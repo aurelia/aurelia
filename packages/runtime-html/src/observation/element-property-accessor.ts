@@ -1,11 +1,5 @@
 import { IIndexable } from '@aurelia/kernel';
-import {
-  IAccessor,
-  LifecycleFlags,
-  IScheduler,
-  ITask,
-  AccessorType,
-} from '@aurelia/runtime';
+import { IAccessor, LifecycleFlags, ITask, AccessorType } from '@aurelia/runtime';
 
 /**
  * Property accessor for HTML Elements.
@@ -27,7 +21,6 @@ export class ElementPropertyAccessor implements IAccessor {
   public type: AccessorType = AccessorType.Node | AccessorType.Layout;
 
   public constructor(
-    public readonly scheduler: IScheduler,
     flags: LifecycleFlags,
     public readonly obj: Node & IIndexable,
     public readonly propertyKey: string,

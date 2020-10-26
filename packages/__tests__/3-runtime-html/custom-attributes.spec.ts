@@ -690,14 +690,14 @@ describe('custom-attributes', function () {
         rootVm.prop = 5;
         assert.strictEqual(foo1Vm.prop, '5', '#2 <-> RootVm.prop << 5');
         assert.strictEqual(rootVm.prop, '5', '#2 <-> RootVm.prop << 5');
-        options.scheduler.getRenderTaskQueue().flush();
+        options.platform.domWriteQueue.flush();
         assert.strictEqual(options.appHost.textContent, '5');
 
         const date = new Date();
         foo1Vm.prop = date;
         assert.strictEqual(foo1Vm.prop, date.toString(), '#3 <-> foo1Vm.prop << Date');
         assert.strictEqual(rootVm.prop, date.toString(), '#3 <-> foo1Vm.prop << Date');
-        options.scheduler.getRenderTaskQueue().flush();
+        options.platform.domWriteQueue.flush();
         assert.strictEqual(options.appHost.textContent, date.toString());
 
         await options.tearDown();
@@ -736,20 +736,20 @@ describe('custom-attributes', function () {
         assert.strictEqual(foo5Vm.prop, 5, '#2 <-> RootVm.prop << 5 -> foo5Vm');
         assert.strictEqual((foo5Vm as any).$observers.prop.currentValue, 5, '#2 Foo5.$observer.prop.currentValue');
         assert.strictEqual(rootVm.prop, 5, '#2 <-> RootVm.prop << 5 -> rootVm');
-        options.scheduler.getRenderTaskQueue().flush();
+        options.platform.domWriteQueue.flush();
         assert.strictEqual(options.appHost.textContent, '5');
 
         const date = new Date();
         foo5Vm.prop = date;
         assert.strictEqual(foo5Vm.prop, date.getTime(), '#3 <-> foo1Vm.prop << Date');
         assert.strictEqual(rootVm.prop, date.getTime(), '#3 <-> foo1Vm.prop << Date');
-        options.scheduler.getRenderTaskQueue().flush();
+        options.platform.domWriteQueue.flush();
         assert.strictEqual(options.appHost.textContent, date.getTime().toString());
 
         rootVm.prop = NaN;
         assert.strictEqual(Object.is(foo5Vm.prop, NaN), true, '#1 <-> Foo1 initial');
         assert.strictEqual(Object.is(rootVm.prop, NaN), true, '#1 <-> RootVm initial');
-        options.scheduler.getRenderTaskQueue().flush();
+        options.platform.domWriteQueue.flush();
         assert.strictEqual(options.appHost.textContent, 'NaN');
 
         await options.tearDown();

@@ -55,8 +55,6 @@
     "@aurelia/router": "0.7.0",
     "@aurelia/runtime-html": "0.7.0",
     "@aurelia/runtime": "0.7.0",
-    "@aurelia/scheduler-dom": "0.7.0",
-    "@aurelia/scheduler": "0.7.0",
     "@aurelia/store": "0.7.0",
     "@aurelia/testing": "0.7.0",
     "@aurelia/ts-jest": "0.7.0",

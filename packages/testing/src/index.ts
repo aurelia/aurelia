@@ -26,9 +26,6 @@ export {
   PLATFORM,
   PLATFORMRegistration,
   setPlatform,
-  SCHEDULER,
-  SCHEDULERRegistration,
-  setScheduler,
   createContainer,
 } from './test-context';
 export {
@@ -55,7 +52,7 @@ export {
   TestConfiguration,
 } from './resources';
 export {
-  ensureSchedulerEmpty,
+  ensureTaskQueuesEmpty,
 } from './scheduler';
 export {
   // verifyASTEqual,

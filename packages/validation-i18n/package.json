@@ -42,7 +42,6 @@
     "@aurelia/platform-browser": "0.7.0",
     "@aurelia/runtime-html": "0.7.0",
     "@aurelia/runtime": "0.7.0",
-    "@aurelia/scheduler": "0.7.0",
     "@aurelia/validation-html": "0.7.0",
     "@aurelia/validation": "0.7.0",
     "i18next": "^17.0.0"

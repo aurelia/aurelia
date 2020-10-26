@@ -115,7 +115,7 @@ describe('dependency injection', function () {
 //     );
 //     const component = new App();
 
-//     const scheduler = container.get(ILifecycle);
+//     const platform = container.get(ILifecycle);
 //     const re = container.get(IRenderingEngine);
 //     const pl = container.get(IProjectorLocator);
 
@@ -141,7 +141,7 @@ describe('dependency injection', function () {
 //     const container = AuDOMConfiguration.createContainer();
 //     const dom = container.get<AuDOM>(IDOM);
 //     const observerLocator = container.get(IObserverLocator);
-//     const scheduler = container.get(ILifecycle);
+//     const platform = container.get(ILifecycle);
 
 //     const location = AuNode.createRenderLocation();
 //     const host = AuNode.createHost().appendChild(location.$start).appendChild(location);
@@ -181,10 +181,10 @@ describe('dependency injection', function () {
 //       }
 //     };
 
-//     const ifFactory = new ViewFactory('if-view', ifTemplate, scheduler);
-//     const elseFactory = new ViewFactory('else-view', elseTemplate, scheduler);
+//     const ifFactory = new ViewFactory('if-view', ifTemplate, platform);
+//     const elseFactory = new ViewFactory('else-view', elseTemplate, platform);
 
-//     const sut = new If(ifFactory, location, new CompositionCoordinator(scheduler));
+//     const sut = new If(ifFactory, location, new CompositionCoordinator(platform));
 //     const elseSut = new Else(elseFactory);
 //     elseSut.link(sut);
 
@@ -192,10 +192,10 @@ describe('dependency injection', function () {
 //     (elseSut as Writable<Else>).$scope = null;
 
 //     const ifBehavior = RuntimeBehavior.create(If);
-//     ifBehavior.applyTo(sut, scheduler);
+//     ifBehavior.applyTo(sut, platform);
 
 //     const elseBehavior = RuntimeBehavior.create(Else);
-//     elseBehavior.applyTo(elseSut, scheduler);
+//     elseBehavior.applyTo(elseSut, platform);
 
 //     let firstBindInitialNodesText: string;
 //     let firstBindFinalNodesText: string;

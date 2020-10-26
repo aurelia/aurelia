@@ -520,7 +520,6 @@ export {
   // Clock,
   // IClock,
   // IClockSettings,
-  IScheduler,
   // ITask,
   // TaskQueue,
   // QueueTaskOptions,

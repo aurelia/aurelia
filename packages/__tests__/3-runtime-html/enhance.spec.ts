@@ -1,6 +1,6 @@
 // This is to test for some intrinsic properties of enhance which is otherwise difficult to test in Data-driven tests parallel to `.app`
 import { Constructable, IContainer } from '@aurelia/kernel';
-import { CustomElement, ICustomElementViewModel, IScheduler, Aurelia } from '@aurelia/runtime-html';
+import { CustomElement, ICustomElementViewModel, IPlatform, Aurelia } from '@aurelia/runtime-html';
 import { assert, TestContext, eachCartesianJoin } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util';
 
@@ -12,7 +12,7 @@ describe('2-runtime/enhance.spec.ts', function () {
     beforeHydration: (host: HTMLElement, child: ChildNode | null) => void;
   }
   class EnhanceTestExecutionContext implements TestExecutionContext<any> {
-    private _scheduler: IScheduler;
+    private _scheduler: IPlatform;
     public constructor(
       public ctx: TestContext,
       public container: IContainer,
@@ -20,7 +20,7 @@ describe('2-runtime/enhance.spec.ts', function () {
       public app: any,
       public childNode: ChildNode | null,
     ) { }
-    public get scheduler(): IScheduler { return this._scheduler ?? (this._scheduler = this.container.get(IScheduler)); }
+    public get platform(): IPlatform { return this._scheduler ?? (this._scheduler = this.container.get(IPlatform)); }
   }
   async function testEnhance(
     testFunction: TestFunction<EnhanceTestExecutionContext>,
@@ -73,10 +73,10 @@ describe('2-runtime/enhance.spec.ts', function () {
 
     let handled = false;
     $it(`preserves the element reference - ${text}`,
-      function ({ host, scheduler }) {
+      function ({ host, platform }) {
         handled = false;
         host.querySelector('span').click();
-        scheduler.getPostRenderTaskQueue().flush();
+        platform.domReadQueue.flush();
         assert.equal(handled, true);
       },
       {
@@ -136,7 +136,7 @@ describe('2-runtime/enhance.spec.ts', function () {
       assert.html.textContent('div', message, 'div', host);
 
       host.querySelector('button').click();
-      ctx.scheduler.getPostRenderTaskQueue().flush();
+      ctx.platform.domReadQueue.flush();
 
       assert.html.textContent('div:nth-of-type(2)', message, 'div:nth-of-type(2)', host);
 

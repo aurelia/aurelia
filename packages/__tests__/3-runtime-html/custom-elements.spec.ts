@@ -75,7 +75,7 @@
 
 //   // <let/>
 //   it('03.', async function () {
-//     const { tearDown, scheduler, appHost, component } = createFixture(`<template><let full-name.bind="firstName + \` \` + lastName"></let><div>\${fullName}</div></template>`,
+//     const { tearDown, platform, appHost, component } = createFixture(`<template><let full-name.bind="firstName + \` \` + lastName"></let><div>\${fullName}</div></template>`,
 //       class { public static isStrictBinding: boolean = true; public firstName?: string = undefined; public lastName?: string = undefined; });
 //     assert.strictEqual(appHost.textContent, 'undefined undefined', `host.textContent`);
 
@@ -83,7 +83,7 @@
 //     component.lastName = 'go';
 
 //     assert.strictEqual(appHost.textContent, 'undefined undefined', `host.textContent`);
-//     scheduler.getRenderTaskQueue().flush();
+//     platform.domWriteQueue.flush();
 
 //     assert.strictEqual(appHost.textContent, 'bi go', `host.textContent`);
 
@@ -93,13 +93,13 @@
 
 //   // //<let [to-binding-context] />
 //   it('04.', async function () {
-//     const { tearDown, scheduler, appHost, component } = createFixture<Person>(`<template><let to-binding-context full-name.bind="firstName + \` \` + lastName"></let><div>\${fullName}</div></template>`,
+//     const { tearDown, platform, appHost, component } = createFixture<Person>(`<template><let to-binding-context full-name.bind="firstName + \` \` + lastName"></let><div>\${fullName}</div></template>`,
 //       class implements Person { public static isStrictBinding: boolean = true; });
 //     component.firstName = 'bi';
 //     assert.strictEqual(component.fullName, 'bi undefined', `component.fullName`);
 //     component.lastName = 'go';
 //     assert.strictEqual(component.fullName, 'bi go', `component.fullName`);
-//     scheduler.getRenderTaskQueue().flush();
+//     platform.domWriteQueue.flush();
 //     assert.strictEqual(appHost.textContent, 'bi go', `host.textContent`);
 //     await tearDown();
 
@@ -202,7 +202,7 @@
 //     }
 
 //     const resources: any[] = [FooElement1, FooElement2, FooElement3, FooElement4, FooElement5];
-//     const { scheduler, component, appHost, tearDown } = createFixture(`<template><foo1 value.bind="value"></foo1>\${value}</template>`, class { public value: string = 'w00t'; }, [...resources, TestConfiguration]);
+//     const { platform, component, appHost, tearDown } = createFixture(`<template><foo1 value.bind="value"></foo1>\${value}</template>`, class { public value: string = 'w00t'; }, [...resources, TestConfiguration]);
 
 //     assert.strictEqual(boundCalls, 5, `boundCalls`);
 
@@ -212,7 +212,7 @@
 //     component.value = 'w00t00t';
 //     assert.strictEqual(current.value, 'w00t00t', `current.value`);
 //     assert.strictEqual(appHost.textContent, 'w00t'.repeat(6), `host.textContent`);
-//     scheduler.getRenderTaskQueue().flush();
+//     platform.domWriteQueue.flush();
 //     assert.strictEqual(appHost.textContent, 'w00t00t'.repeat(6), `host.textContent`);
 //     await tearDown();
 
@@ -424,7 +424,7 @@
 //   });
 
 //   describe('08. Change Handler', function () {
-//     this.afterEach(assert.isSchedulerEmpty);
+//     this.afterEach(assert.areTaskQueuesEmpty);
 
 //     describe('+ with only [prop]Changed()', function () {
 //       interface IChangeHandlerTestViewModel {
@@ -635,7 +635,7 @@
 //   });
 
 //   describe('09. with setter', function () {
-//     this.afterEach(assert.isSchedulerEmpty);
+//     this.afterEach(assert.areTaskQueuesEmpty);
 //     interface IBindableSetterHtmlInputTestCase {
 //       title: string;
 //       template: string;
@@ -667,13 +667,13 @@
 //           // emulate view model value change
 //           rootVm.value = 4;
 //           assert.strictEqual(inputEl.value, 'a5');
-//           ctx.scheduler.getRenderTaskQueue().flush();
+//           ctx.platform.domWriteQueue.flush();
 //           assert.strictEqual(inputEl.value, '4');
 
 //           // emulate wrong value assignment
 //           rootVm.value = NaN;
 //           assert.strictEqual(Object.is(rootVm.value, NaN), true);
-//           ctx.scheduler.getRenderTaskQueue().flush();
+//           ctx.platform.domWriteQueue.flush();
 //           assert.strictEqual(inputEl.value, 'NaN');
 //         }
 //       },
@@ -708,7 +708,7 @@
 //           // emulate view model change 1
 //           // valid value: in side min-max range
 //           rootVm.value = 444;
-//           ctx.scheduler.getRenderTaskQueue().flush();
+//           ctx.platform.domWriteQueue.flush();
 //           assert.strictEqual(inputEl.value, '444');
 //           assert.strictEqual(rootVm.value, 444);
 
@@ -720,7 +720,7 @@
 //           //        This means ValueAttributeObserver needs to be more intelligent about the input/type combo & extra signals
 //           assert.strictEqual(rootVm.value, 11);
 //           assert.strictEqual(inputEl.value, '444');
-//           ctx.scheduler.getRenderTaskQueue().flush();
+//           ctx.platform.domWriteQueue.flush();
 //           assert.strictEqual(inputEl.value, PLATFORM.isBrowserLike ? '100' : '11');
 //         }
 //       },
@@ -745,7 +745,7 @@
 //           // emulate vm change from intercomponent binding
 //           rootVm.value = 'wack';
 //           assert.strictEqual(selectEl.value, '2');
-//           ctx.scheduler.getRenderTaskQueue().flush();
+//           ctx.platform.domWriteQueue.flush();
 //           assert.strictEqual(rootVm.value, NaN);
 //           assert.strictEqual(selectEl.value, '1');
 //         }
@@ -779,7 +779,7 @@
 //           // emulate vm change from intercomponent binding
 //           rootVm.value = 'wack';
 //           assert.strictEqual(selectEl.value, 'Male');
-//           ctx.scheduler.getRenderTaskQueue().flush();
+//           ctx.platform.domWriteQueue.flush();
 //           assert.strictEqual(rootVm.value, NaN);
 //           assert.strictEqual(selectEl.value, 'Neutral');
 //         }

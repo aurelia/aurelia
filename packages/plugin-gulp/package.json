@@ -39,7 +39,6 @@
     "@aurelia/platform": "0.7.0",
     "@aurelia/plugin-conventions": "0.7.0",
     "@aurelia/runtime": "0.7.0",
-    "@aurelia/scheduler": "0.7.0",
     "vinyl": "^2.2.0"
   },
   "devDependencies": {

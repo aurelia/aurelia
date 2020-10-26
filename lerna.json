@@ -24,8 +24,6 @@
     "packages/runtime",
     "packages/runtime-html",
     "packages/http-server",
-    "packages/scheduler",
-    "packages/scheduler-dom",
     "packages/store",
     "packages/testing",
     "packages/validation",

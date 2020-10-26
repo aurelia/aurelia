@@ -8,7 +8,7 @@ export function createFixture<T>(template: string | Node,
   autoStart: boolean = true,
   ctx: TestContext = TestContext.create(),
 ) {
-  const { container, lifecycle, scheduler, observerLocator } = ctx;
+  const { container, lifecycle, platform, observerLocator } = ctx;
   container.register(...registrations);
   const root = ctx.doc.body.appendChild(ctx.doc.createElement('div'));
   const host = root.appendChild(ctx.createElement('app'));
@@ -28,7 +28,7 @@ export function createFixture<T>(template: string | Node,
     host: ctx.doc.firstElementChild,
     container,
     lifecycle,
-    scheduler,
+    platform,
     testHost: root,
     appHost: host,
     au,

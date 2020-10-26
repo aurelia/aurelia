@@ -28,7 +28,7 @@ import {
   Switch,
   valueConverter,
   Aurelia,
-  IScheduler,
+  IPlatform,
 } from '@aurelia/runtime-html';
 import {
   assert,
@@ -183,7 +183,7 @@ describe('switch', function () {
     verifyStopCallsAsSet: boolean;
   }
   class SwitchTestExecutionContext implements TestExecutionContext<any> {
-    private _scheduler: IScheduler;
+    private _scheduler: IPlatform;
     private readonly _log: DebugLog;
     private changeId: number = 0;
     public constructor(
@@ -196,7 +196,7 @@ describe('switch', function () {
     ) {
       this._log = (container.get(ILogger)['debugSinks'] as ISink[]).find((s) => s instanceof DebugLog) as DebugLog;
     }
-    public get scheduler(): IScheduler { return this._scheduler ?? (this._scheduler = this.container.get(IScheduler)); }
+    public get platform(): IPlatform { return this._scheduler ?? (this._scheduler = this.container.get(IPlatform)); }
     public get log() {
       return this._log.log;
     }
@@ -895,7 +895,7 @@ describe('switch', function () {
         [],
         async (ctx) => {
           ctx.app.status = Status.delivered;
-          await ctx.scheduler.yieldAll();
+          await ctx.platform.domWriteQueue.yield();
           assert.html.innerEqual(ctx.host, '<div> the curious case of delivered </div>', 'change innerHTML1');
         }
       );

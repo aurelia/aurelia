@@ -1,7 +1,6 @@
 /* eslint-disable sonarjs/prefer-immediate-return */
 import { IContainer, ILogger } from '@aurelia/kernel';
 import { IPlatform } from '@aurelia/runtime-html';
-import { IScheduler, TaskQueuePriority } from '@aurelia/scheduler';
 
 export function setTimeoutWaiter(
   container: IContainer,
@@ -19,114 +18,5 @@ export function setTimeoutWaiter(
 
       resolve();
     }, ms);
-  });
-}
-
-function stringifyPriority(
-  priority: (
-    TaskQueuePriority.macroTask |
-    TaskQueuePriority.render
-  ),
-): (
-  'MacroTask' |
-  'RenderTask'
-) {
-  switch (priority) {
-    case TaskQueuePriority.macroTask: return 'MacroTask';
-    case TaskQueuePriority.render: return 'RenderTask';
-  }
-}
-
-export function delayedTaskWaiter(
-  container: IContainer,
-  ms: number,
-  priority: (
-    TaskQueuePriority.macroTask |
-    TaskQueuePriority.render
-  ),
-  traceLabel: string,
-): Promise<void> {
-  const taskQueue = container.get(IScheduler).getTaskQueue(priority);
-  const logger = container.get(ILogger).scopeTo(traceLabel);
-
-  logger.trace(`yieldDelayed${stringifyPriority(priority)}(ms:${ms}) - queueing`);
-
-  const task = taskQueue.queueTask(
-    function noop() {
-      logger.trace(`yieldDelayed${stringifyPriority(priority)}(ms:${ms}) - resolving`);
-    },
-    {
-      delay: ms,
-    },
-  );
-  const promise = task.result;
-  return promise;
-}
-
-export function asyncTaskWaiter(
-  container: IContainer,
-  ms: number,
-  priority: (
-    TaskQueuePriority.macroTask |
-    TaskQueuePriority.render
-  ),
-  traceLabel: string,
-): Promise<void> {
-  const platform = container.get(IPlatform);
-  const taskQueue = container.get(IScheduler).getTaskQueue(priority);
-  const logger = container.get(ILogger).scopeTo(traceLabel);
-
-  logger.trace(`yieldAsync${stringifyPriority(priority)}(ms:${ms}) - queueing`);
-
-  const task = taskQueue.queueTask(
-    function () {
-      return new Promise<void>(function (resolve) {
-        platform.setTimeout(function () {
-          logger.trace(`yieldAsync${stringifyPriority(priority)}(ms:${ms}) - resolving`);
-
-          resolve();
-        }, ms);
-      });
-    },
-    {
-      suspend: true,
-    },
-  );
-  const promise = task.result;
-  return promise;
-}
-
-export function taskLoopWaiter(
-  container: IContainer,
-  count: number,
-  priority: (
-    TaskQueuePriority.macroTask |
-    TaskQueuePriority.render
-  ),
-  traceLabel: string,
-): Promise<void> {
-  let currentCount = 0;
-  const taskQueue = container.get(IScheduler).getTaskQueue(priority);
-  const logger = container.get(ILogger).scopeTo(traceLabel);
-
-  logger.trace(`yield${stringifyPriority(priority)}Loop(count:${count}) - queueing`);
-
-  return new Promise(function (resolve) {
-    const task = taskQueue.queueTask(
-      function () {
-        if (++currentCount === count) {
-          task.cancel();
-
-          logger.trace(`yield${stringifyPriority(priority)}Loop(count:${count}) - resolving at count ${currentCount}`);
-
-          resolve();
-        } else {
-          logger.trace(`yield${stringifyPriority(priority)}Loop(count:${count}) - still pending at count ${currentCount}`);
-        }
-      },
-      {
-        persistent: true,
-      },
-    );
   });
 }

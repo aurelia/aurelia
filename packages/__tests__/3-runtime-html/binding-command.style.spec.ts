@@ -1,5 +1,5 @@
 import { Constructable } from '@aurelia/kernel';
-import { CustomElement, IScheduler, Aurelia, IEventDelegator, RuntimeHtmlConfiguration } from '@aurelia/runtime-html';
+import { CustomElement, IPlatform, Aurelia, IEventDelegator, RuntimeHtmlConfiguration } from '@aurelia/runtime-html';
 import { assert, eachCartesianJoin, PLATFORM, TestContext } from '@aurelia/testing';
 import { StyleAttributePattern } from './attribute-pattern';
 
@@ -52,7 +52,7 @@ describe('template-compiler.binding-commands.style', function () {
         <child value.bind="value"></child>
         <child repeat.for="i of 5" value.bind="value"></child>`;
       },
-      assert: (au, scheduler, host, component, [ruleName, ruleValue, ruleDefaultValue, isInvalid, valueOnInvalid], testCase) => {
+      assert: (au, platform, host, component, [ruleName, ruleValue, ruleDefaultValue, isInvalid, valueOnInvalid], testCase) => {
         const childEls = host.querySelectorAll('child') as ArrayLike<HTMLElement>;
         const hasImportant = ruleValue.includes('!important');
         const ruleValueNoPriority = hasImportant ? ruleValue.replace('!important', '') : ruleValue;
@@ -61,7 +61,7 @@ describe('template-compiler.binding-commands.style', function () {
 
         component.value = ruleValue;
 
-        scheduler.getRenderTaskQueue().flush();
+        platform.domWriteQueue.flush();
 
         for (let i = 0, ii = childEls.length; ii > i; ++i) {
           const child = childEls[i];
@@ -77,7 +77,7 @@ describe('template-compiler.binding-commands.style', function () {
 
         component.value = '';
 
-        scheduler.getRenderTaskQueue().flush();
+        platform.domWriteQueue.flush();
 
         for (let i = 0, ii = childEls.length; ii > i; ++i) {
           const child = childEls[i];
@@ -93,7 +93,7 @@ describe('template-compiler.binding-commands.style', function () {
 
         component.value = ruleValue;
 
-        scheduler.getRenderTaskQueue().flush();
+        platform.domWriteQueue.flush();
 
         for (let i = 0, ii = childEls.length; ii > i; ++i) {
           const child = childEls[i];
@@ -139,7 +139,7 @@ describe('template-compiler.binding-commands.style', function () {
     [rulesTests, testCases],
     ([ruleName, ruleValue, ruleDefaultValue, isInvalid, valueOnInvalid], testCase, callIndex) => {
       it(testCase.title(ruleName, ruleValue, callIndex), async function () {
-        const { ctx, au, scheduler, host, component, tearDown } = createFixture(
+        const { ctx, au, platform, host, component, tearDown } = createFixture(
           testCase.template(ruleName),
           class App {
             public value: string = ruleValue;
@@ -186,7 +186,7 @@ describe('template-compiler.binding-commands.style', function () {
 
           component.value = '';
 
-          scheduler.getRenderTaskQueue().flush();
+          platform.domWriteQueue.flush();
 
           for (let i = 0; ii > i; ++i) {
             const el = els[i];
@@ -202,7 +202,7 @@ describe('template-compiler.binding-commands.style', function () {
 
           component.value = ruleValue;
 
-          scheduler.getRenderTaskQueue().flush();
+          platform.domWriteQueue.flush();
 
           for (let i = 0; ii > i; ++i) {
             const el = els[i];
@@ -222,7 +222,7 @@ describe('template-compiler.binding-commands.style', function () {
 
           component.value = '';
 
-          scheduler.getRenderTaskQueue().flush();
+          platform.domWriteQueue.flush();
 
           for (let i = 0; ii > i; ++i) {
             const el = els[i];
@@ -239,7 +239,7 @@ describe('template-compiler.binding-commands.style', function () {
           // TODO: for inlined css, there are rules that employs fallback value when incoming value is inappropriate
           //        better test those scenarios
 
-          await testCase.assert(au, scheduler, host, component, [ruleName, ruleValue, ruleDefaultValue, isInvalid, valueOnInvalid], testCase);
+          await testCase.assert(au, platform, host, component, [ruleName, ruleValue, ruleDefaultValue, isInvalid, valueOnInvalid], testCase);
         } finally {
           const em = ctx.container.get(IEventDelegator);
           em.dispose();
@@ -262,12 +262,12 @@ describe('template-compiler.binding-commands.style', function () {
     selector: string | ((document: Document) => ArrayLike<HTMLElement>);
     title(...args: unknown[]): string;
     template(...args: string[]): string;
-    assert(au: Aurelia, scheduler: IScheduler, host: HTMLElement, component: IApp, ruleCase: [string, string, string, boolean?, string?], testCase): void | Promise<void>;
+    assert(au: Aurelia, platform: IPlatform, host: HTMLElement, component: IApp, ruleCase: [string, string, string, boolean?, string?], testCase): void | Promise<void>;
   }
 
   function createFixture<T>(template: string | Node, $class: Constructable<T> | null, ...registrations: any[]) {
     const ctx = TestContext.create();
-    const { container, lifecycle, observerLocator, scheduler } = ctx;
+    const { container, lifecycle, observerLocator, platform } = ctx;
     container.register(...registrations);
     const host = ctx.doc.body.appendChild(ctx.createElement('app'));
     const au = new Aurelia(container);
@@ -278,6 +278,6 @@ describe('template-compiler.binding-commands.style', function () {
       ctx.doc.body.removeChild(host);
     }
 
-    return { container, lifecycle, scheduler, ctx, host, au, component, observerLocator, tearDown };
+    return { container, lifecycle, platform, ctx, host, au, component, observerLocator, tearDown };
   }
 });

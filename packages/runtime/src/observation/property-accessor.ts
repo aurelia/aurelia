@@ -1,4 +1,4 @@
-import type { ITask } from '@aurelia/scheduler';
+import type { ITask } from '@aurelia/kernel';
 import { AccessorType, IAccessor, IObservable, LifecycleFlags } from '../observation';
 
 export class PropertyAccessor implements IAccessor {

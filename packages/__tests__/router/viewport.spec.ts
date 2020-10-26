@@ -5,7 +5,7 @@ import { TestContext, assert } from '@aurelia/testing';
 describe('Viewport', function () {
   async function createFixture(config?, App?) {
     const ctx = TestContext.create();
-    const { container, scheduler, doc, wnd } = ctx;
+    const { container, platform, doc, wnd } = ctx;
 
     let path = wnd.location.href;
     const hash = path.indexOf('#');
@@ -35,7 +35,7 @@ describe('Viewport', function () {
       au.dispose();
     }
 
-    return { au, container, scheduler, host, router, tearDown };
+    return { au, container, platform, host, router, tearDown };
   }
 
   it('can be created', function () {

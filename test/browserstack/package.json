@@ -16,9 +16,7 @@
     "@aurelia/platform": "0.7.0",
     "@aurelia/platform-browser": "0.7.0",
     "@aurelia/runtime-html": "0.7.0",
-    "@aurelia/runtime": "0.7.0",
-    "@aurelia/scheduler-dom": "0.7.0",
-    "@aurelia/scheduler": "0.7.0"
+    "@aurelia/runtime": "0.7.0"
   },
   "devDependencies": {
     "@types/chai": "^4.2.7",

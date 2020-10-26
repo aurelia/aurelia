@@ -1,10 +1,4 @@
-import {
-  IAccessor,
-  LifecycleFlags,
-  IScheduler,
-  ITask,
-  AccessorType,
-} from '@aurelia/runtime';
+import { IAccessor, LifecycleFlags, ITask, AccessorType } from '@aurelia/runtime';
 import { emptyArray } from '@aurelia/kernel';
 import { INode } from '../dom';
 
@@ -25,7 +19,6 @@ export class ClassAttributeAccessor implements IAccessor {
   public type: AccessorType = AccessorType.Node | AccessorType.Layout;
 
   public constructor(
-    public readonly scheduler: IScheduler,
     flags: LifecycleFlags,
     obj: INode,
   ) {

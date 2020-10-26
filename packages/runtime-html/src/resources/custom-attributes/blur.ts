@@ -1,5 +1,5 @@
 import { emptyArray } from '@aurelia/kernel';
-import { bindable, IScheduler } from '@aurelia/runtime';
+import { bindable } from '@aurelia/runtime';
 import { INode, NodeType } from '../../dom';
 import { ICustomAttributeController, ICustomAttributeViewModel } from '../../lifecycle';
 import { IPlatform } from '../../platform';
@@ -26,14 +26,13 @@ export class BlurManager {
 
   private constructor(
     public readonly platform: IPlatform,
-    public readonly scheduler: IScheduler,
   ) {
     blurDocMap.set(platform.document, this);
     this.handler = createHandler(this, this.blurs);
   }
 
-  public static createFor(platform: IPlatform, scheduler: IScheduler): BlurManager {
-    return blurDocMap.get(platform.document) || new BlurManager(platform, scheduler);
+  public static createFor(platform: IPlatform): BlurManager {
+    return blurDocMap.get(platform.document) || new BlurManager(platform);
   }
 
   public register(blur: Blur): void {
@@ -137,7 +136,7 @@ export class Blur implements ICustomAttributeViewModel {
 
   private readonly element: HTMLElement;
 
-  public constructor(@INode element: INode, @IPlatform private readonly p: IPlatform, @IScheduler scheduler: IScheduler) {
+  public constructor(@INode element: INode, @IPlatform private readonly p: IPlatform) {
     this.element = element as HTMLElement;
     /**
      * By default, the behavior should be least surprise possible, that:
@@ -149,7 +148,7 @@ export class Blur implements ICustomAttributeViewModel {
     this.searchSubTree = true;
     this.linkingContext = null;
     this.value = unset;
-    this.manager = BlurManager.createFor(p, scheduler);
+    this.manager = BlurManager.createFor(p);
   }
 
   public afterAttachChildren(): void {
@@ -312,7 +311,7 @@ const createHandler = (
   };
   const markChecked = () => {
     hasChecked = true;
-    manager.scheduler.queueRenderTask(revertCheckage, { preempt: true });
+    manager.platform.domWriteQueue.queueTask(revertCheckage, { preempt: true });
   };
 
   const handleMousedown = (e: MouseEvent): void => {

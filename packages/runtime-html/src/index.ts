@@ -1,4 +1,18 @@
 export {
+  Platform,
+  TaskQueue,
+  Task,
+  TaskAbortError,
+  TaskQueuePriority,
+  TaskStatus,
+  QueueTaskOptions,
+  ITask,
+} from '@aurelia/platform';
+export {
+  BrowserPlatform,
+} from '@aurelia/platform-browser';
+
+export {
   alias,
   registerAliases,
 
@@ -165,17 +179,6 @@ export {
   ValueConverterInstance,
   ValueConverterType,
   valueConverter,
-
-  IScheduler,
-  ITask,
-  QueueTaskOptions,
-  Task,
-  TaskAbortError,
-  TaskCallback,
-  TaskQueue,
-  TaskQueuePriority,
-  TaskStatus,
-  QueueTaskTargetOptions,
 
   bindable,
   PartialBindableDefinition,

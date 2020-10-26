@@ -1,6 +1,7 @@
+
+import { ITask, TaskQueue, QueueTaskOptions, IPlatform } from '@aurelia/kernel';
 import { LifecycleFlags } from '../observation';
 import { bindingBehavior, BindingInterceptor, IInterceptableBinding } from '../binding-behavior';
-import { ITask, IScheduler, TaskQueue, QueueTaskOptions } from '@aurelia/scheduler';
 import { BindingBehaviorExpression, IsAssign } from '../binding/ast';
 
 import type { Scope } from '../observation/binding-context';
@@ -17,7 +18,7 @@ export class DebounceBindingBehavior extends BindingInterceptor {
     expr: BindingBehaviorExpression,
   ) {
     super(binding, expr);
-    this.taskQueue = binding.locator.get(IScheduler).getPostRenderTaskQueue();
+    this.taskQueue = binding.locator.get(IPlatform).macroTaskQueue;
     if (expr.args.length > 0) {
       this.firstArg = expr.args[0];
     }

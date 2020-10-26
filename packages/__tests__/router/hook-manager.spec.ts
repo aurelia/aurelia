@@ -1,13 +1,13 @@
 import { HookManager, HookTypes, ViewportInstruction, RouterConfiguration, IRouter, Navigation, InstructionResolver } from '@aurelia/router';
 import { assert, TestContext } from '@aurelia/testing';
-import { CustomElement, IScheduler, Aurelia } from '@aurelia/runtime-html';
+import { CustomElement, IPlatform, Aurelia } from '@aurelia/runtime-html';
 
 describe('HookManager', function () {
   this.timeout(5000);
 
   async function createFixture(config?, App?, dependencies: any[] = [], stateSpy?) {
     const ctx = TestContext.create();
-    const { container, scheduler, doc, wnd } = ctx;
+    const { container, platform, doc, wnd } = ctx;
 
     let path = wnd.location.href;
     const hash = path.indexOf('#');
@@ -46,7 +46,7 @@ describe('HookManager', function () {
 
     const navigationInstruction = new Navigation({ instruction: 'test', fullStateInstruction: 'full-test' });
     const viewportInstructions: ViewportInstruction[] = instructionResolver.parseViewportInstructions('parent/child');
-    return { au, container, scheduler, host, router, tearDown, navigationInstruction, viewportInstructions, hookManager, instructionResolver };
+    return { au, container, platform, host, router, tearDown, navigationInstruction, viewportInstructions, hookManager, instructionResolver };
   }
 
   function spyNavigationStates(router, spy) {
@@ -72,9 +72,9 @@ describe('HookManager', function () {
       router.navigation.history.replaceState = _replace;
     }
   }
-  const $goto = async (path: string, router: IRouter, scheduler: IScheduler) => {
+  const $goto = async (path: string, router: IRouter, platform: IPlatform) => {
     await router.load(path);
-    scheduler.getRenderTaskQueue().flush();
+    platform.domWriteQueue.flush();
   };
 
   it('can be created', function () {
@@ -320,33 +320,33 @@ describe('HookManager', function () {
   });
 
   it('can prevent navigation', async function () {
-    const { router, tearDown, scheduler, host } = await createFixture(undefined, undefined, ['one', 'two']);
+    const { router, tearDown, platform, host } = await createFixture(undefined, undefined, ['one', 'two']);
 
-    await $goto('one', router, scheduler);
+    await $goto('one', router, platform);
     assert.strictEqual(host.textContent, `!one!`, `one`);
 
-    await $goto('two', router, scheduler);
+    await $goto('two', router, platform);
     assert.strictEqual(host.textContent, `!two!`, `two`);
 
     router.addHook((instructions: ViewportInstruction[], navigation: Navigation) => Promise.resolve(false),
       { type: HookTypes.BeforeNavigation, include: ['two'] });
 
-    await $goto('one', router, scheduler);
+    await $goto('one', router, platform);
     assert.strictEqual(host.textContent, `!one!`, `one`);
 
-    await $goto('two', router, scheduler);
+    await $goto('two', router, platform);
     assert.strictEqual(host.textContent, `!one!`, `one`);
 
     await tearDown();
   });
 
   it('can redirect navigation', async function () {
-    const { router, tearDown, scheduler, host } = await createFixture(undefined, undefined, ['one', 'two', 'three']);
+    const { router, tearDown, platform, host } = await createFixture(undefined, undefined, ['one', 'two', 'three']);
 
-    await $goto('one', router, scheduler);
+    await $goto('one', router, platform);
     assert.strictEqual(host.textContent, `!one!`, `one`);
 
-    await $goto('two', router, scheduler);
+    await $goto('two', router, platform);
     assert.strictEqual(host.textContent, `!two!`, `two`);
 
     router.addHook(
@@ -354,44 +354,44 @@ describe('HookManager', function () {
         Promise.resolve([router.createViewportInstruction('three', instructions[0].viewport)]),
       { type: HookTypes.BeforeNavigation, include: ['two'] });
 
-    await $goto('one', router, scheduler);
+    await $goto('one', router, platform);
     assert.strictEqual(host.textContent, `!one!`, `one`);
 
-    await $goto('two', router, scheduler);
+    await $goto('two', router, platform);
     assert.strictEqual(host.textContent, `!three!`, `three`);
 
     await tearDown();
   });
 
   it('can transform from url to string', async function () {
-    const { router, tearDown, scheduler, host } = await createFixture(undefined, undefined, ['one', 'two', 'three']);
+    const { router, tearDown, platform, host } = await createFixture(undefined, undefined, ['one', 'two', 'three']);
 
-    await $goto('one', router, scheduler);
+    await $goto('one', router, platform);
     assert.strictEqual(host.textContent, `!one!`, `one`);
 
-    await $goto('two', router, scheduler);
+    await $goto('two', router, platform);
     assert.strictEqual(host.textContent, `!two!`, `two`);
 
     router.addHook(
       (url: string, navigation: Navigation) => Promise.resolve(url === 'two' ? 'three' : url),
       { type: HookTypes.TransformFromUrl });
 
-    await $goto('one', router, scheduler);
+    await $goto('one', router, platform);
     assert.strictEqual(host.textContent, `!one!`, `one`);
 
-    await $goto('two', router, scheduler);
+    await $goto('two', router, platform);
     assert.strictEqual(host.textContent, `!three!`, `three`);
 
     await tearDown();
   });
 
   it('can transform from url to viewport instructions', async function () {
-    const { router, tearDown, scheduler, host } = await createFixture(undefined, undefined, ['one', 'two', 'three']);
+    const { router, tearDown, platform, host } = await createFixture(undefined, undefined, ['one', 'two', 'three']);
 
-    await $goto('one', router, scheduler);
+    await $goto('one', router, platform);
     assert.strictEqual(host.textContent, `!one!`, `one`);
 
-    await $goto('two', router, scheduler);
+    await $goto('two', router, platform);
     assert.strictEqual(host.textContent, `!two!`, `two`);
 
     router.addHook(
@@ -399,10 +399,10 @@ describe('HookManager', function () {
         Promise.resolve(url === 'two' ? [router.createViewportInstruction('three')] : url),
       { type: HookTypes.TransformFromUrl });
 
-    await $goto('one', router, scheduler);
+    await $goto('one', router, platform);
     assert.strictEqual(host.textContent, `!one!`, `one`);
 
-    await $goto('two', router, scheduler);
+    await $goto('two', router, platform);
     assert.strictEqual(host.textContent, `!three!`, `three`);
 
     await tearDown();
@@ -414,13 +414,13 @@ describe('HookManager', function () {
       // console.log(type, data, title, path);
       locationPath = path;
     };
-    const { router, tearDown, scheduler, host } = await createFixture(undefined, undefined, ['one', 'two', 'three'], locationCallback);
+    const { router, tearDown, platform, host } = await createFixture(undefined, undefined, ['one', 'two', 'three'], locationCallback);
 
-    await $goto('one', router, scheduler);
+    await $goto('one', router, platform);
     assert.strictEqual(host.textContent, `!one!`, `one`);
     assert.strictEqual(locationPath, `#/one`, `locationPath one`);
 
-    await $goto('two', router, scheduler);
+    await $goto('two', router, platform);
     assert.strictEqual(host.textContent, `!two!`, `two`);
     assert.strictEqual(locationPath, `#/two`, `locationPath two`);
 
@@ -432,11 +432,11 @@ describe('HookManager', function () {
             : state[0].componentName === 'two' ? 'hooked-two' : state),
       { type: HookTypes.TransformToUrl });
 
-    await $goto('one', router, scheduler);
+    await $goto('one', router, platform);
     assert.strictEqual(host.textContent, `!one!`, `one`);
     assert.strictEqual(locationPath, `#/one`, `locationPath one`);
 
-    await $goto('two', router, scheduler);
+    await $goto('two', router, platform);
     assert.strictEqual(host.textContent, `!two!`, `two`);
     assert.strictEqual(locationPath, `#/hooked-two`, `locationPath hooked-two`);
 
@@ -449,13 +449,13 @@ describe('HookManager', function () {
       // console.log(type, data, title, path);
       locationPath = path;
     };
-    const { router, tearDown, scheduler, host } = await createFixture(undefined, undefined, ['one', 'two', 'three'], locationCallback);
+    const { router, tearDown, platform, host } = await createFixture(undefined, undefined, ['one', 'two', 'three'], locationCallback);
 
-    await $goto('one', router, scheduler);
+    await $goto('one', router, platform);
     assert.strictEqual(host.textContent, `!one!`, `one`);
     assert.strictEqual(locationPath, `#/one`, `locationPath one`);
 
-    await $goto('two', router, scheduler);
+    await $goto('two', router, platform);
     assert.strictEqual(host.textContent, `!two!`, `two`);
     assert.strictEqual(locationPath, `#/two`, `locationPath two`);
 
@@ -466,11 +466,11 @@ describe('HookManager', function () {
           : state[0].componentName === 'two' ? 'hooked-two' : state),
       { type: HookTypes.TransformToUrl });
 
-    await $goto('one', router, scheduler);
+    await $goto('one', router, platform);
     assert.strictEqual(host.textContent, `!one!`, `one`);
     assert.strictEqual(locationPath, `#/one`, `locationPath one`);
 
-    await $goto('two', router, scheduler);
+    await $goto('two', router, platform);
     assert.strictEqual(host.textContent, `!two!`, `two`);
     assert.strictEqual(locationPath, `#/hooked-two`, `locationPath hooked-two`);
 
@@ -483,13 +483,13 @@ describe('HookManager', function () {
       // console.log(type, data, title, path);
       locationPath = path;
     };
-    const { router, tearDown, scheduler, host } = await createFixture(undefined, undefined, ['one', 'two', 'three'], locationCallback);
+    const { router, tearDown, platform, host } = await createFixture(undefined, undefined, ['one', 'two', 'three'], locationCallback);
 
-    await $goto('one', router, scheduler);
+    await $goto('one', router, platform);
     assert.strictEqual(host.textContent, `!one!`, `one`);
     assert.strictEqual(locationPath, `#/one`, `locationPath one`);
 
-    await $goto('two', router, scheduler);
+    await $goto('two', router, platform);
     assert.strictEqual(host.textContent, `!two!`, `two`);
     assert.strictEqual(locationPath, `#/two`, `locationPath two`);
 
@@ -500,11 +500,11 @@ describe('HookManager', function () {
           : state[0].componentName === 'two' ? 'hooked-two' : state),
       { type: HookTypes.TransformToUrl });
 
-    await $goto('one', router, scheduler);
+    await $goto('one', router, platform);
     assert.strictEqual(host.textContent, `!one!`, `one`);
     assert.strictEqual(locationPath, `#/one`, `locationPath one`);
 
-    await $goto('two', router, scheduler);
+    await $goto('two', router, platform);
     assert.strictEqual(host.textContent, `!two!`, `two`);
     assert.strictEqual(locationPath, `#/hooked-hooked-two`, `locationPath hooked-hooked-two`);
 

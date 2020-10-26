@@ -67,7 +67,7 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
         assert.equal(comp.blur, 1);
 
         comp.hasFocus = true;
-        ctx.scheduler.getRenderTaskQueue().flush();
+        ctx.platform.domWriteQueue.flush();
         assert.strictEqual(ctx.doc.activeElement, host);
         assert.equal(comp.focus, 2);
         const div = host.querySelector('div');
@@ -177,7 +177,7 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
         assert.equal(comp.focusCount, undefined);
         assert.equal(comp.blurCount, undefined);
         host.querySelector('input').focus();
-        // await ctx.scheduler.yieldRenderTask();
+        // await ctx.platform.yieldRenderTask();
         assert.equal(comp.hasFocus, true, 'focusing input should have changed "hasFocus"');
         assert.equal(comp.focusCount, 1);
         assert.equal(comp.blurCount, undefined);

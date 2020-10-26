@@ -21,8 +21,6 @@
     "@aurelia/router": "dev",
     "@aurelia/runtime-html": "dev",
     "@aurelia/runtime": "dev",
-    "@aurelia/scheduler-dom": "dev",
-    "@aurelia/scheduler": "dev",
     "@aurelia/store": "dev"
   },
   "devDependencies": {

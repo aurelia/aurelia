@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
-import { TaskQueuePriority } from '@aurelia/runtime';
-import { setTimeoutWaiter, delayedTaskWaiter, asyncTaskWaiter, taskLoopWaiter } from './waiters';
+import { setTimeoutWaiter } from './waiters';
 import { HookName } from './hook-invocation-tracker';
 import { ITestRouteViewModel } from './view-models';
 
@@ -58,102 +57,6 @@ function getHookSpecs<T extends HookName>(name: T) {
         // await setTimeoutWaiter(ctx, 0, label);
         // console.log('setTimeout_0 after await');
         // return getValue();
-      },
-    } as IHookSpec<T>,
-    yieldDelayedMacroTask_1: {
-      name,
-      ticks: -1,
-      type: 'yieldDelayedMacroTask_1',
-      async invoke(vm, getValue) {
-        const ctx = vm.$controller.context;
-        const label = `${vm.name}.${name}`;
-
-        await delayedTaskWaiter(ctx, 1, TaskQueuePriority.macroTask, label);
-        return getValue();
-      },
-    } as IHookSpec<T>,
-    yieldDelayedRenderTask_1: {
-      name,
-      ticks: -1,
-      type: 'yieldDelayedRenderTask_1',
-      async invoke(vm, getValue) {
-        const ctx = vm.$controller.context;
-        const label = `${vm.name}.${name}`;
-
-        await delayedTaskWaiter(ctx, 1, TaskQueuePriority.render, label);
-        return getValue();
-      },
-    } as IHookSpec<T>,
-    yieldAsyncMacroTask_1: {
-      name,
-      ticks: -1,
-      type: 'yieldAsyncMacroTask_1',
-      async invoke(vm, getValue) {
-        const ctx = vm.$controller.context;
-        const label = `${vm.name}.${name}`;
-
-        await asyncTaskWaiter(ctx, 1, TaskQueuePriority.macroTask, label);
-        return getValue();
-      },
-    } as IHookSpec<T>,
-    yieldAsyncRenderTask_1: {
-      name,
-      ticks: -1,
-      type: 'yieldAsyncRenderTask_1',
-      async invoke(vm, getValue) {
-        const ctx = vm.$controller.context;
-        const label = `${vm.name}.${name}`;
-
-        await asyncTaskWaiter(ctx, 1, TaskQueuePriority.render, label);
-        return getValue();
-      },
-    } as IHookSpec<T>,
-    yieldMacroTaskLoop_1: {
-      name,
-      ticks: -1,
-      type: 'yieldMacroTaskLoop_1',
-      async invoke(vm, getValue) {
-        const ctx = vm.$controller.context;
-        const label = `${vm.name}.${name}`;
-
-        await taskLoopWaiter(ctx, 1, TaskQueuePriority.macroTask, label);
-        return getValue();
-      },
-    } as IHookSpec<T>,
-    yieldMacroTaskLoop_2: {
-      name,
-      ticks: -1,
-      type: 'yieldMacroTaskLoop_2',
-      async invoke(vm, getValue) {
-        const ctx = vm.$controller.context;
-        const label = `${vm.name}.${name}`;
-
-        await taskLoopWaiter(ctx, 2, TaskQueuePriority.macroTask, label);
-        return getValue();
-      },
-    } as IHookSpec<T>,
-    yieldRenderTaskLoop_1: {
-      name,
-      ticks: -1,
-      type: 'yieldRenderTaskLoop_1',
-      async invoke(vm, getValue) {
-        const ctx = vm.$controller.context;
-        const label = `${vm.name}.${name}`;
-
-        await taskLoopWaiter(ctx, 1, TaskQueuePriority.render, label);
-        return getValue();
-      },
-    } as IHookSpec<T>,
-    yieldRenderTaskLoop_2: {
-      name,
-      ticks: -1,
-      type: 'yieldRenderTaskLoop_2',
-      async invoke(vm, getValue) {
-        const ctx = vm.$controller.context;
-        const label = `${vm.name}.${name}`;
-
-        await taskLoopWaiter(ctx, 2, TaskQueuePriority.render, label);
-        return getValue();
       },
     } as IHookSpec<T>,
   };

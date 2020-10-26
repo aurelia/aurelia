@@ -1,11 +1,10 @@
-import { all, Metadata, IServiceLocator, IResolver, IContainer, Registration, Class, DI, IRegistry } from '@aurelia/kernel';
+import { all, Metadata, IServiceLocator, IContainer, Registration, Class, DI, IRegistry } from '@aurelia/kernel';
 import {
   BindingMode,
   BindingType,
   ContentBinding,
   IExpressionParser,
   IObserverLocator,
-  IScheduler,
   Interpolation,
   IsBindingBehavior,
   LifecycleFlags,
@@ -16,7 +15,6 @@ import {
   BindingBehaviorInstance,
   CallBinding,
   IInterceptableBinding,
-  ILifecycle,
   IObservable,
   LetBinding,
   RefBinding,
@@ -56,6 +54,7 @@ import { CustomAttribute } from './resources/custom-attribute';
 import { convertToRenderLocation, INode } from './dom';
 import { Controller } from './templating/controller';
 import { IViewFactory } from './templating/view';
+import { IPlatform } from './platform';
 
 export interface ITemplateCompiler {
   compile(
@@ -482,7 +481,7 @@ export class InterpolationBindingComposer implements IInstructionComposer {
   public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IObserverLocator private readonly observerLocator: IObserverLocator,
-    @IScheduler private readonly scheduler: IScheduler,
+    @IPlatform private readonly platform: IPlatform,
   ) {}
 
   public compose(
@@ -500,7 +499,7 @@ export class InterpolationBindingComposer implements IInstructionComposer {
       instruction.to,
       BindingMode.toView,
       context,
-      this.scheduler,
+      this.platform.domWriteQueue,
     );
     const partBindings = binding.partBindings;
     let partBinding: ContentBinding;
@@ -522,6 +521,7 @@ export class PropertyBindingComposer implements IInstructionComposer {
   public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IObserverLocator private readonly observerLocator: IObserverLocator,
+    @IPlatform private readonly platform: IPlatform,
   ) {}
 
   public compose(
@@ -533,7 +533,7 @@ export class PropertyBindingComposer implements IInstructionComposer {
   ): void {
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsPropertyCommand | instruction.mode);
     const binding = applyBindingBehavior(
-      new PropertyBinding(expr, getTarget(target), instruction.to, instruction.mode, this.observerLocator, context),
+      new PropertyBinding(expr, getTarget(target), instruction.to, instruction.mode, this.observerLocator, context, this.platform.domWriteQueue),
       expr,
       context,
     );
@@ -547,6 +547,7 @@ export class IteratorBindingComposer implements IInstructionComposer {
   public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IObserverLocator private readonly observerLocator: IObserverLocator,
+    @IPlatform private readonly platform: IPlatform,
   ) {}
 
   public compose(
@@ -558,7 +559,7 @@ export class IteratorBindingComposer implements IInstructionComposer {
   ): void {
     const expr = ensureExpression(this.parser, instruction.from, BindingType.ForCommand);
     const binding = applyBindingBehavior(
-      new PropertyBinding(expr, getTarget(target), instruction.to, BindingMode.toView, this.observerLocator, context),
+      new PropertyBinding(expr, getTarget(target), instruction.to, BindingMode.toView, this.observerLocator, context, this.platform.domWriteQueue),
       expr as unknown as IsBindingBehavior,
       context,
     );
@@ -595,7 +596,7 @@ export class TextBindingComposer implements IInstructionComposer {
   public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IObserverLocator private readonly observerLocator: IObserverLocator,
-    @IScheduler private readonly scheduler: IScheduler,
+    @IPlatform private readonly platform: IPlatform,
   ) {}
 
   public compose(
@@ -617,7 +618,7 @@ export class TextBindingComposer implements IInstructionComposer {
       'textContent',
       BindingMode.toView,
       context,
-      this.scheduler,
+      this.platform.domWriteQueue,
     );
     const partBindings = binding.partBindings;
     let partBinding: ContentBinding;
@@ -705,6 +706,7 @@ export class StylePropertyBindingComposer implements IInstructionComposer {
   public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IObserverLocator private readonly observerLocator: IObserverLocator,
+    @IPlatform private readonly platform: IPlatform,
   ) {}
 
   public compose(
@@ -716,7 +718,7 @@ export class StylePropertyBindingComposer implements IInstructionComposer {
   ): void {
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsPropertyCommand | BindingMode.toView);
     const binding = applyBindingBehavior(
-      new PropertyBinding(expr, target.style, instruction.to, BindingMode.toView, this.observerLocator, context),
+      new PropertyBinding(expr, target.style, instruction.to, BindingMode.toView, this.observerLocator, context, this.platform.domWriteQueue),
       expr,
       context,
     );

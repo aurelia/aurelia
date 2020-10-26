@@ -1,7 +1,5 @@
 import { BrowserPlatform } from '@aurelia/platform-browser';
-import { setPlatform, assert, ensureSchedulerEmpty, setScheduler } from '@aurelia/testing';
-import { createDOMScheduler } from '@aurelia/scheduler-dom';
-import { Scheduler } from '@aurelia/scheduler';
+import { setPlatform, assert, ensureTaskQueuesEmpty } from '@aurelia/testing';
 
 interface ExtendedSuite extends Mocha.Suite {
   $duration?: number;
@@ -16,9 +14,7 @@ function getRootSuite(suite: ExtendedSuite): ExtendedSuite {
 
 export function $setup(platform: BrowserPlatform) {
   setPlatform(platform);
-  const scheduler = createDOMScheduler(platform);
-  setScheduler(scheduler);
-  Scheduler.set(globalThis, scheduler);
+  BrowserPlatform.set(globalThis, platform);
 
   const globalStart = platform.performanceNow();
   let firstTestStart = 0;
@@ -69,9 +65,9 @@ export function $setup(platform: BrowserPlatform) {
       suite = suite.parent;
     } while (suite);
     try {
-      assert.isSchedulerEmpty();
+      assert.areTaskQueuesEmpty();
     } catch (ex) {
-      ensureSchedulerEmpty();
+      ensureTaskQueuesEmpty();
       throw ex;
     }
   });

@@ -1,8 +1,4 @@
-import {
-  DI,
-  Primitive,
-  isArrayIndex,
-} from '@aurelia/kernel';
+import { DI, Primitive, isArrayIndex } from '@aurelia/kernel';
 import {
   AccessorOrObserver,
   CollectionKind,
@@ -26,7 +22,6 @@ import { propertyAccessor } from './property-accessor';
 import { ProxyObserver } from './proxy-observer';
 import { getSetObserver } from './set-observer';
 import { SetterObserver } from './setter-observer';
-import { IScheduler } from '@aurelia/scheduler';
 
 export interface IObjectObservationAdapter {
   getObserver(flags: LifecycleFlags, object: unknown, propertyName: string, descriptor: PropertyDescriptor): IBindingTargetObserver | null;
@@ -36,27 +31,14 @@ export interface IObserverLocator extends ObserverLocator {}
 export const IObserverLocator = DI.createInterface<IObserverLocator>('IObserverLocator').withDefault(x => x.singleton(ObserverLocator));
 
 export interface ITargetObserverLocator {
-  getObserver(
-    flags: LifecycleFlags,
-    scheduler: IScheduler,
-    lifecycle: ILifecycle,
-    observerLocator: IObserverLocator,
-    obj: unknown,
-    propertyName: string,
-  ): IBindingTargetAccessor | IBindingTargetObserver | null;
+  getObserver(flags: LifecycleFlags, observerLocator: IObserverLocator, obj: unknown, propertyName: string): IBindingTargetAccessor | IBindingTargetObserver | null;
   overridesAccessor(flags: LifecycleFlags, obj: unknown, propertyName: string): boolean;
   handles(flags: LifecycleFlags, obj: unknown): boolean;
 }
 export const ITargetObserverLocator = DI.createInterface<ITargetObserverLocator>('ITargetObserverLocator').noDefault();
 
 export interface ITargetAccessorLocator {
-  getAccessor(
-    flags: LifecycleFlags,
-    scheduler: IScheduler,
-    lifecycle: ILifecycle,
-    obj: unknown,
-    propertyName: string,
-  ): IBindingTargetAccessor;
+  getAccessor(flags: LifecycleFlags, obj: unknown, propertyName: string): IBindingTargetAccessor;
   handles(flags: LifecycleFlags, obj: unknown): boolean;
 }
 export const ITargetAccessorLocator = DI.createInterface<ITargetAccessorLocator>('ITargetAccessorLocator').noDefault();
@@ -72,7 +54,6 @@ export class ObserverLocator {
 
   public constructor(
     @ILifecycle private readonly lifecycle: ILifecycle,
-    @IScheduler private readonly scheduler: IScheduler,
     @IDirtyChecker private readonly dirtyChecker: IDirtyChecker,
     @ITargetObserverLocator private readonly targetObserverLocator: ITargetObserverLocator,
     @ITargetAccessorLocator private readonly targetAccessorLocator: ITargetAccessorLocator,
@@ -94,12 +75,12 @@ export class ObserverLocator {
     }
     if (this.targetAccessorLocator.handles(flags, obj)) {
       if (this.targetObserverLocator.overridesAccessor(flags, obj, key)) {
-        const observer = this.targetObserverLocator.getObserver(flags, this.scheduler, this.lifecycle, this, obj, key);
+        const observer = this.targetObserverLocator.getObserver(flags, this, obj, key);
         if (observer !== null) {
           return this.cache((obj as IObservable), key, observer);
         }
       }
-      return this.targetAccessorLocator.getAccessor(flags, this.scheduler, this.lifecycle, obj, key);
+      return this.targetAccessorLocator.getAccessor(flags, obj, key);
     }
 
     if ((flags & LifecycleFlags.proxyStrategy) > 0) {
@@ -128,7 +109,7 @@ export class ObserverLocator {
     let isNode = false;
     // Never use proxies for observing nodes, so check target observer first and only then evaluate proxy strategy
     if (this.targetObserverLocator.handles(flags, obj)) {
-      const observer = this.targetObserverLocator.getObserver(flags, this.scheduler, this.lifecycle, this, obj, key);
+      const observer = this.targetObserverLocator.getObserver(flags, this, obj, key);
       if (observer !== null) {
         return observer;
       }

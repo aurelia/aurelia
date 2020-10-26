@@ -1,15 +1,16 @@
 export {
-  IScheduler,
-  ITask,
-  QueueTaskOptions,
+  IPlatform,
+} from '@aurelia/kernel';
+export {
+  Platform,
+  TaskQueue,
   Task,
   TaskAbortError,
-  TaskCallback,
-  TaskQueue,
   TaskQueuePriority,
   TaskStatus,
-  QueueTaskTargetOptions,
-} from '@aurelia/scheduler';
+  QueueTaskOptions,
+  ITask,
+} from '@aurelia/platform';
 
 import { IRegistry } from '@aurelia/kernel';
 import {
@@ -233,8 +234,6 @@ export {
   ValueConverterType,
   valueConverter,
 } from './value-converter';
-
-
 
 export {
   bindable,

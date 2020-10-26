@@ -1,14 +1,4 @@
-import {
-  IBindingTargetObserver,
-  IObserverLocator,
-  ISubscriber,
-  ISubscriberCollection,
-  LifecycleFlags,
-  subscriberCollection,
-  IScheduler,
-  ITask,
-  AccessorType,
-} from '@aurelia/runtime';
+import { IBindingTargetObserver, IObserverLocator, ISubscriber, ISubscriberCollection, LifecycleFlags, subscriberCollection, ITask, AccessorType } from '@aurelia/runtime';
 import { IPlatform } from '../platform';
 
 export interface IHtmlElement extends HTMLElement {
@@ -45,7 +35,6 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
 
   public constructor(
     private readonly platform: IPlatform,
-    public readonly scheduler: IScheduler,
     flags: LifecycleFlags,
     public readonly observerLocator: IObserverLocator,
     public readonly obj: IHtmlElement,

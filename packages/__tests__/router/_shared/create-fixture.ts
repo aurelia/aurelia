@@ -64,7 +64,7 @@ export async function createFixture<T extends Constructable>(
   const hiaConfig = createHIAConfig();
   const routerOptions = createRouterOptions();
   const ctx = TestContext.create();
-  const { container, scheduler } = ctx;
+  const { container, platform } = ctx;
 
   container.register(Registration.instance(IHIAConfig, hiaConfig));
   container.register(TestRouterConfiguration.for(ctx, level));
@@ -96,7 +96,7 @@ export async function createFixture<T extends Constructable>(
     host,
     hia,
     component,
-    scheduler,
+    platform,
     router,
     // activityTracker,
     startTracing() {

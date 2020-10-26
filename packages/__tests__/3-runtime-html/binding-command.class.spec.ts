@@ -1,5 +1,5 @@
 import { Constructable } from '@aurelia/kernel';
-import { Aurelia, IEventDelegator, RuntimeHtmlConfiguration, BindingMode, CustomElement, IScheduler } from '@aurelia/runtime-html';
+import { Aurelia, IEventDelegator, RuntimeHtmlConfiguration, BindingMode, CustomElement, IPlatform } from '@aurelia/runtime-html';
 import { TestContext, eachCartesianJoin, eachCartesianJoinAsync, assert } from '@aurelia/testing';
 import { ClassAttributePattern } from './attribute-pattern';
 
@@ -62,7 +62,7 @@ describe('template-compiler.binding-commands.class', function () {
         <child repeat.for="i of 5" value.bind="value"></child>
       `;
       },
-      assert: async (au, scheduler, host, component, testCase, className) => {
+      assert: async (au, platform, host, component, testCase, className) => {
         const childEls = host.querySelectorAll('child');
 
         assert.strictEqual(childEls.length, 6, `childEls.length`);
@@ -81,7 +81,7 @@ describe('template-compiler.binding-commands.class', function () {
 
             component.value = falsyValue;
 
-            scheduler.getRenderTaskQueue().flush();
+            platform.domWriteQueue.flush();
 
             for (let i = 0, ii = childEls.length; ii > i; ++i) {
               const el = childEls[i];
@@ -94,7 +94,7 @@ describe('template-compiler.binding-commands.class', function () {
 
             component.value = truthyValue;
 
-            scheduler.getRenderTaskQueue().flush();
+            platform.domWriteQueue.flush();
 
             for (let i = 0, ii = childEls.length; ii > i; ++i) {
               const el = childEls[i];
@@ -128,7 +128,7 @@ describe('template-compiler.binding-commands.class', function () {
     [classNameTests, testCases],
     (className, testCase, callIndex) => {
       it(testCase.title(className, callIndex), async function () {
-        const { ctx, au, scheduler, host, component, tearDown } = createFixture(
+        const { ctx, au, platform, host, component, tearDown } = createFixture(
           testCase.template(className),
           class App {
             public value: unknown = true;
@@ -168,7 +168,7 @@ describe('template-compiler.binding-commands.class', function () {
             (falsyValue, truthyValue) => {
               component.value = falsyValue;
 
-              scheduler.getRenderTaskQueue().flush();
+              platform.domWriteQueue.flush();
 
               for (let i = 0, ii = els.length; ii > i; ++i) {
                 const el = els[i];
@@ -181,7 +181,7 @@ describe('template-compiler.binding-commands.class', function () {
 
               component.value = truthyValue;
 
-              scheduler.getRenderTaskQueue().flush();
+              platform.domWriteQueue.flush();
 
               for (let i = 0, ii = els.length; ii > i; ++i) {
                 const el = els[i];
@@ -193,7 +193,7 @@ describe('template-compiler.binding-commands.class', function () {
               }
             }
           );
-          await testCase.assert(au, scheduler, host, component, testCase, className);
+          await testCase.assert(au, platform, host, component, testCase, className);
         } finally {
           const em = ctx.container.get(IEventDelegator);
           em.dispose();
@@ -216,12 +216,12 @@ describe('template-compiler.binding-commands.class', function () {
     selector: string | ((document: Document) => ArrayLike<Element>);
     title(...args: unknown[]): string;
     template(...args: string[]): string;
-    assert(au: Aurelia, scheduler: IScheduler, host: HTMLElement, component: IApp, testCase: ITestCase, className: string): void | Promise<void>;
+    assert(au: Aurelia, platform: IPlatform, host: HTMLElement, component: IApp, testCase: ITestCase, className: string): void | Promise<void>;
   }
 
   function createFixture<T>(template: string | Node, $class: Constructable<T> | null, ...registrations: any[]) {
     const ctx = TestContext.create();
-    const { container, scheduler, observerLocator } = ctx;
+    const { container, platform, observerLocator } = ctx;
     container.register(...registrations);
     const host = ctx.doc.body.appendChild(ctx.createElement('app'));
     const au = new Aurelia(container);
@@ -232,6 +232,6 @@ describe('template-compiler.binding-commands.class', function () {
       ctx.doc.body.removeChild(host);
     }
 
-    return { container, scheduler, ctx, host, au, component, observerLocator, tearDown };
+    return { container, platform, ctx, host, au, component, observerLocator, tearDown };
   }
 });

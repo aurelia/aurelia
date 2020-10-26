@@ -68,14 +68,14 @@ describe('Queue', function () {
     this.timeout(5000);
 
     const ctx = TestContext.create();
-    const { scheduler } = ctx;
+    const { platform } = ctx;
 
     const callback = async (qAnimal: QueueItem<Animal>) => {
       await wait(100);
       qAnimal.resolve();
     };
     const q = new Queue<Animal>(callback as (item: QueueItem<Animal>) => void);
-    q.start({ allowedExecutionCostWithinTick: 0, scheduler });
+    q.start({ allowedExecutionCostWithinTick: 0, platform });
     let promise = q.enqueue(new Animal('dog', 'Pluto'));
     assert.strictEqual(q.pending.length, 1, `q.pending.length`);
     await wait(50);

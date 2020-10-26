@@ -64,7 +64,7 @@ describe('5-jit-html/template-compiler.test-apps.spec.ts', function () {
     });
 
     component.onMouseMove({ clientX: 50, clientY: 50 });
-    ctx.scheduler.getRenderTaskQueue().flush();
+    ctx.platform.domWriteQueue.flush();
 
     gNodes = appHost.querySelectorAll('svg g');
     assert.strictEqual(gNodes.length, 2047, 'should have rendered 2047 <g/>');

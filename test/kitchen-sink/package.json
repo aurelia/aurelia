@@ -21,8 +21,6 @@
     "@aurelia/router": "0.7.0",
     "@aurelia/runtime-html": "0.7.0",
     "@aurelia/runtime": "0.7.0",
-    "@aurelia/scheduler-dom": "0.7.0",
-    "@aurelia/scheduler": "0.7.0",
     "bulma": "latest",
     "faker": "latest",
     "perf-monitor": "latest"

@@ -4,7 +4,6 @@ import {
   IObserverLocator,
   IProjectorLocator,
   IComposer,
-  IScheduler,
   ITemplateCompiler,
   IPlatform,
   RuntimeHtmlConfiguration,
@@ -39,18 +38,8 @@ export class TestContext {
       if (this._container.has(IPlatform, true) === false) {
         this._container.register(PLATFORMRegistration);
       }
-      if (this._container.has(IScheduler, true) === false) {
-        this._container.register(SCHEDULERRegistration);
-      }
     }
     return this._container;
-  }
-  private _scheduler: IScheduler | undefined = void 0;
-  public get scheduler(): IScheduler {
-    if (this._scheduler === void 0) {
-      this._scheduler = this.container.get(IScheduler);
-    }
-    return this._scheduler;
   }
   private _platform: IPlatform | undefined = void 0;
   public get platform(): IPlatform {
@@ -124,6 +113,11 @@ export class TestContext {
   }
 }
 
+// Note: our tests shouldn't rely directly on this global variable, but retrieve the platform from a container instead.
+// This keeps the door open for more easily mocking the task queues or certain globals (such as Date) in the future.
+// It's OK to use this for environment or feature checks necessary to conditionally run tests that only work in specific envs,
+// or for initializing test data (creating template elements) before actually running the tests that use that data.
+// For existing usages that "violate" the above: do NOT introduce more of them. Intent is to get rid of those in a future test cleanup pass. Please don't create more work for when that time comes.
 export let PLATFORM: IPlatform;
 export let PLATFORMRegistration: IRegistration<IPlatform>;
 
@@ -132,18 +126,9 @@ export function setPlatform(p: IPlatform): void {
   PLATFORMRegistration = Registration.instance(IPlatform, p);
 }
 
-export let SCHEDULER: IScheduler;
-export let SCHEDULERRegistration: IRegistration<IScheduler>;
-
-export function setScheduler(s: IScheduler): void {
-  SCHEDULER = s;
-  SCHEDULERRegistration = Registration.instance(IScheduler, s);
-}
-
 export function createContainer(...registries: IRegistry[]): IContainer {
   return DI.createContainer().register(
     PLATFORMRegistration,
-    SCHEDULERRegistration,
     ...registries,
   );
 }

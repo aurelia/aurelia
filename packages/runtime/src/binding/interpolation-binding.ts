@@ -1,9 +1,4 @@
-import { IIndexable, IServiceLocator } from '@aurelia/kernel';
-import {
-  IScheduler,
-  ITask,
-  QueueTaskOptions,
-} from '@aurelia/scheduler';
+import { IIndexable, IServiceLocator, ITask, QueueTaskOptions, TaskQueue} from '@aurelia/kernel';
 import {
   IBindingTargetAccessor,
   AccessorType,
@@ -56,7 +51,7 @@ export class InterpolationBinding implements IBinding {
     public targetProperty: string,
     public mode: BindingMode,
     public locator: IServiceLocator,
-    public $scheduler: IScheduler,
+    private readonly taskQueue: TaskQueue,
   ) {
     this.targetObserver = observerLocator.getAccessor(LifecycleFlags.none, target, targetProperty);
     const expressions = interpolation.expressions;
@@ -84,12 +79,12 @@ export class InterpolationBinding implements IBinding {
     // Alpha: during bind a simple strategy for bind is always flush immediately
     // todo:
     //  (1). determine whether this should be the behavior
-    //  (2). if not, then fix tests to reflect the changes/scheduler to properly yield all with aurelia.start().wait()
+    //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start().wait()
     const shouldQueueFlush = (flags & LifecycleFlags.fromBind) === 0 && (targetObserver.type & AccessorType.Layout) > 0;
     if (shouldQueueFlush) {
       flags |= LifecycleFlags.noTargetObserverQueue;
       this.task?.cancel();
-      this.task = this.$scheduler.queueRenderTask(() => {
+      this.task = this.taskQueue.queueTask(() => {
         (targetObserver as unknown as INodeAccessor).flushChanges?.(flags);
         this.task = null;
       }, queueTaskOptions);

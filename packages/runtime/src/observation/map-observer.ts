@@ -1,3 +1,4 @@
+import { ITask } from '@aurelia/kernel';
 import {
   CollectionKind,
   createIndexMap,
@@ -10,7 +11,6 @@ import {
 } from '../observation';
 import { CollectionSizeObserver } from './collection-size-observer';
 import { collectionSubscriberCollection } from './subscriber-collection';
-import { ITask } from '@aurelia/scheduler';
 
 const observerLookup = new WeakMap<Map<unknown, unknown>, MapObserver>();
 

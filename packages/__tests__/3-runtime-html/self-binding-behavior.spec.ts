@@ -1,5 +1,5 @@
 import { DI, IContainer, Registration } from '@aurelia/kernel';
-import { PropertyBinding, IScheduler, SelfBindingBehavior } from '@aurelia/runtime-html';
+import { PropertyBinding, IPlatform, SelfBindingBehavior } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 
 describe('SelfBindingBehavior', function () {
@@ -11,9 +11,9 @@ describe('SelfBindingBehavior', function () {
   // eslint-disable-next-line mocha/no-hooks
   beforeEach(function () {
     container = DI.createContainer();
-    Registration.instance(IScheduler, { }).register(container);
+    Registration.instance(IPlatform, { }).register(container);
     sut = new SelfBindingBehavior();
-    binding = new PropertyBinding(undefined, undefined, undefined, undefined, undefined, container as any);
+    binding = new PropertyBinding(undefined, undefined, undefined, undefined, undefined, container as any, {} as any);
     originalCallSource = binding['callSource'] = function () { return; };
     binding['targetEvent'] = 'foo';
     sut.bind(undefined, undefined, null, binding as any);

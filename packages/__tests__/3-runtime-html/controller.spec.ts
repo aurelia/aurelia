@@ -155,7 +155,7 @@
 //     resetId('au$component');
 
 //     const ctx = TestContext.createHTMLTestContext();
-//     const { container, lifecycle, dom, scheduler } = ctx;
+//     const { container, lifecycle, dom, platform } = ctx;
 //     const $loc = h('div');
 //     const host = h('div', null, $loc);
 //     const loc = dom.convertToRenderLocation($loc);
@@ -168,7 +168,7 @@
 //       ctx,
 //       calls,
 //       container,
-//       scheduler,
+//       platform,
 //       lifecycle,
 //       dom,
 //       host,
@@ -185,7 +185,7 @@
 //     it(`correctly executes 1 CustomElement lifecycle`, function () {
 //       const {
 //         lifecycle,
-//         scheduler,
+//         platform,
 //         container,
 //         host,
 //         calls,
@@ -252,7 +252,7 @@
 //       );
 //       assert.strictEqual(host.textContent, '', '4');
 
-//       scheduler.getRenderTaskQueue().flush();
+//       platform.domWriteQueue.flush();
 
 //       assert.deepStrictEqual(
 //         calls,
@@ -278,7 +278,7 @@
 //       );
 //       assert.strictEqual(host.textContent, '1', '8');
 
-//       scheduler.getRenderTaskQueue().flush();
+//       platform.domWriteQueue.flush();
 
 //       assert.deepStrictEqual(
 //         calls,
@@ -313,7 +313,7 @@
 //     it(`correctly executes 1-1 CustomElement+if lifecycles`, function () {
 //       const {
 //         lifecycle,
-//         scheduler,
+//         platform,
 //         container,
 //         host,
 //         calls,
@@ -515,7 +515,7 @@
 //       );
 //       assert.strictEqual(host.textContent, '', '4');
 
-//       scheduler.getRenderTaskQueue().flush();
+//       platform.domWriteQueue.flush();
 
 //       assert.deepStrictEqual(
 //         calls,
@@ -593,7 +593,7 @@
 //       );
 //       assert.strictEqual(host.textContent, '16', '8');
 
-//       scheduler.getRenderTaskQueue().flush();
+//       platform.domWriteQueue.flush();
 
 //       assert.deepStrictEqual(
 //         calls,
@@ -707,7 +707,7 @@
 //     it(`correctly executes 1-1 CustomElement+if with bindables lifecycles`, function () {
 //       const {
 //         lifecycle,
-//         scheduler,
+//         platform,
 //         container,
 //         host,
 //         calls,
@@ -917,7 +917,7 @@
 //       );
 //       assert.strictEqual(host.textContent, '', '4');
 
-//       scheduler.getRenderTaskQueue().flush();
+//       platform.domWriteQueue.flush();
 
 //       assert.deepStrictEqual(
 //         calls,
@@ -995,7 +995,7 @@
 //       );
 //       assert.strictEqual(host.textContent, 'hihi', '8');
 
-//       scheduler.getRenderTaskQueue().flush();
+//       platform.domWriteQueue.flush();
 
 //       assert.deepStrictEqual(
 //         calls,

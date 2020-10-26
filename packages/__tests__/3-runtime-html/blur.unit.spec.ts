@@ -441,7 +441,6 @@ describe('[UNIT] blur.unit.spec.ts', function () {
               ? host.querySelector(blurHost)
               : blurHost,
             ctx.platform,
-            ctx.scheduler,
           );
           sut.linkedWith = linkedWith;
           sut.linkingContext = linkingContext;
@@ -466,7 +465,7 @@ describe('[UNIT] blur.unit.spec.ts', function () {
   function createFixture() {
     const ctx = TestContext.create();
     const target = ctx.doc.body.appendChild(ctx.createElement('div'));
-    const sut = new Blur(target, ctx.platform, ctx.scheduler);
+    const sut = new Blur(target, ctx.platform);
     return { ctx, target, sut, dispose: () => { target.remove(); } };
   }
 

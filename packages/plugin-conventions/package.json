@@ -38,7 +38,6 @@
     "@aurelia/metadata": "0.7.0",
     "@aurelia/platform": "0.7.0",
     "@aurelia/runtime": "0.7.0",
-    "@aurelia/scheduler": "0.7.0",
     "modify-code": "^1.2.0",
     "parse5": "^5.1.1",
     "typescript": "^4.0.3"

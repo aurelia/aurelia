@@ -4,7 +4,6 @@ import {
   BindingInterceptor,
   BindingMediator,
   IsAssign,
-  IScheduler,
   LifecycleFlags,
   CustomElementHost,
   PropertyBinding,
@@ -67,7 +66,6 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
   private readonly scopedController?: IValidationController;
   private controller!: IValidationController;
   private isChangeTrigger: boolean = false;
-  private readonly scheduler: IScheduler;
   private readonly defaultTrigger: ValidationTrigger;
   private readonly connectedExpressions: IsAssign[] = [];
   private scope!: Scope;
@@ -87,7 +85,7 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
   ) {
     super(binding, expr);
     const locator = this.locator;
-    this.scheduler = locator.get(IScheduler);
+    this.platform = locator.get(IPlatform);
     this.defaultTrigger = locator.get(IDefaultTrigger);
     this.platform = locator.get(IPlatform);
     if (locator.has(IValidationController, true)) {
@@ -208,7 +206,7 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
   private task: ITask | null = null;
   private validateBinding() {
     this.task?.cancel();
-    this.task = this.scheduler.getPostRenderTaskQueue().queueTask(async () => {
+    this.task = this.platform.domReadQueue.queueTask(async () => {
       await this.controller.validateBinding(this.propertyBinding);
     });
   }

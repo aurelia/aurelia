@@ -1,7 +1,6 @@
-import { DI, IIndexable } from '@aurelia/kernel';
+import { DI, IIndexable, ITask, IPlatform, QueueTaskOptions } from '@aurelia/kernel';
 import { IBindingTargetObserver, IObservable, ISubscriber, AccessorType, LifecycleFlags } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
-import { IScheduler, ITask } from '@aurelia/scheduler';
 
 export interface IDirtyChecker extends DirtyChecker {}
 export const IDirtyChecker = DI.createInterface<IDirtyChecker>('IDirtyChecker').withDefault(x => x.singleton(DirtyChecker));
@@ -11,11 +10,11 @@ export const DirtyCheckSettings = {
    * Default: `6`
    *
    * Adjust the global dirty check frequency.
-   * Measures in "frames per check", such that (given an FPS of 60):
-   * - A value of 1 will result in 60 dirty checks per second
-   * - A value of 6 will result in 10 dirty checks per second
+   * Measures in "timeouts per check", such that (given a default of 250 timeouts per second in modern browsers):
+   * - A value of 1 will result in 250 dirty checks per second (or 1 dirty check per second for an inactive tab)
+   * - A value of 25 will result in 10 dirty checks per second (or 1 dirty check per 25 seconds for an inactive tab)
    */
-  framesPerCheck: 6,
+  timeoutsPerCheck: 25,
   /**
    * Default: `false`
    *
@@ -33,10 +32,14 @@ export const DirtyCheckSettings = {
    * Resets all dirty checking settings to the framework's defaults.
    */
   resetToDefault(): void {
-    this.framesPerCheck = 6;
+    this.timeoutsPerCheck = 6;
     this.disabled = false;
     this.throw = false;
   }
+};
+
+const queueTaskOpts: QueueTaskOptions = {
+  persistent: true,
 };
 
 export class DirtyChecker {
@@ -46,7 +49,7 @@ export class DirtyChecker {
   private elapsedFrames: number = 0;
 
   public constructor(
-    @IScheduler private readonly scheduler: IScheduler,
+    @IPlatform private readonly platform: IPlatform,
   ) {}
 
   public createProperty(obj: object, propertyName: string): DirtyCheckProperty {
@@ -60,7 +63,7 @@ export class DirtyChecker {
     this.tracked.push(property);
 
     if (this.tracked.length === 1) {
-      this.task = this.scheduler.queueRenderTask(() => this.check(), { persistent: true });
+      this.task = this.platform.macroTaskQueue.queueTask(this.check, queueTaskOpts);
     }
   }
 
@@ -72,11 +75,11 @@ export class DirtyChecker {
     }
   }
 
-  private check(delta?: number): void {
+  private readonly check = () => {
     if (DirtyCheckSettings.disabled) {
       return;
     }
-    if (++this.elapsedFrames < DirtyCheckSettings.framesPerCheck) {
+    if (++this.elapsedFrames < DirtyCheckSettings.timeoutsPerCheck) {
       return;
     }
     this.elapsedFrames = 0;
@@ -90,7 +93,7 @@ export class DirtyChecker {
         current.flush(LifecycleFlags.none);
       }
     }
-  }
+  };
 }
 
 export interface DirtyCheckProperty extends IBindingTargetObserver { }

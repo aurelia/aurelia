@@ -1,6 +1,5 @@
-import { Primitive } from '@aurelia/kernel';
+import { Primitive, ITask } from '@aurelia/kernel';
 import { IAccessor, ISubscribable, AccessorType } from '../observation';
-import { ITask } from '@aurelia/scheduler';
 
 export class PrimitiveObserver implements IAccessor, ISubscribable {
   public get doNotCache(): true { return true; }

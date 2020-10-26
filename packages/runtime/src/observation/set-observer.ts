@@ -1,7 +1,7 @@
+import { ITask } from '@aurelia/kernel';
 import { CollectionKind, createIndexMap, ICollectionObserver, IObservedSet, ICollectionIndexObserver, AccessorType, ILifecycle, LifecycleFlags } from '../observation';
 import { CollectionSizeObserver } from './collection-size-observer';
 import { collectionSubscriberCollection } from './subscriber-collection';
-import { ITask } from '@aurelia/scheduler';
 
 const observerLookup = new WeakMap<Set<unknown>, SetObserver>();
 

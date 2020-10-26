@@ -1,14 +1,5 @@
-import {
-  DI,
-  IContainer,
-  Registration,
-  InstanceProvider,
-  IDisposable,
-  onResolve,
-} from '@aurelia/kernel';
+import { DI, IContainer, Registration, InstanceProvider, IDisposable, onResolve } from '@aurelia/kernel';
 import { BrowserPlatform } from '@aurelia/platform-browser';
-import { IScheduler } from '@aurelia/scheduler';
-import { createDOMScheduler } from '@aurelia/scheduler-dom';
 import { AppRoot, IAppRoot, ISinglePageApp } from './app-root';
 import { IPlatform } from './platform';
 
@@ -74,10 +65,6 @@ export class Aurelia implements IDisposable {
       this.container.register(Registration.instance(IPlatform, p));
     } else {
       p = this.container.get(IPlatform);
-    }
-    if (!this.container.has(IScheduler, true)) {
-      const scheduler = createDOMScheduler(p);
-      this.container.register(Registration.instance(IScheduler, scheduler));
     }
     return p;
   }

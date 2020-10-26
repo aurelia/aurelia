@@ -16,7 +16,7 @@ describe('AttrBindingBehavior', function () {
     targetProperty = 'foo';
     sut = new AttrBindingBehavior();
     container = ctx.container;
-    binding = new PropertyBinding(undefined, target, targetProperty, undefined, undefined, container);
+    binding = new PropertyBinding(undefined, target, targetProperty, undefined, undefined, container, {} as any);
     sut.bind(undefined, undefined, null, binding);
   });
 

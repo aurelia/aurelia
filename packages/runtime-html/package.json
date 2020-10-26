@@ -38,9 +38,7 @@
     "@aurelia/metadata": "0.7.0",
     "@aurelia/platform": "0.7.0",
     "@aurelia/platform-browser": "0.7.0",
-    "@aurelia/runtime": "0.7.0",
-    "@aurelia/scheduler": "0.7.0",
-    "@aurelia/scheduler-dom": "0.7.0"
+    "@aurelia/runtime": "0.7.0"
   },
   "devDependencies": {
     "typescript": "^4.0.3"

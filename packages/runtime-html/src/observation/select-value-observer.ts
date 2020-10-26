@@ -8,7 +8,6 @@ import {
   ISubscriberCollection,
   LifecycleFlags,
   subscriberCollection,
-  IScheduler,
   ITask,
   AccessorType,
 } from '@aurelia/runtime';
@@ -54,7 +53,6 @@ export class SelectValueObserver implements IAccessor {
   public nodeObserver?: MutationObserver = void 0;
 
   public constructor(
-    public readonly scheduler: IScheduler,
     flags: LifecycleFlags,
     public readonly observerLocator: IObserverLocator,
     public readonly platform: IPlatform,
@@ -108,7 +106,7 @@ export class SelectValueObserver implements IAccessor {
       this.hasChanges = true;
     }
     if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue && this.task === null) {
-      this.task = this.scheduler.queueRenderTask(() => {
+      this.task = this.platform.domWriteQueue.queueTask(() => {
         this.flushChanges(flags);
         this.task = null;
       });
@@ -123,7 +121,7 @@ export class SelectValueObserver implements IAccessor {
       this.hasChanges = true;
     }
     if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue && this.task === null) {
-      this.task = this.scheduler.queueRenderTask(() => {
+      this.task = this.platform.domWriteQueue.queueTask(() => {
         this.flushChanges(flags);
         this.task = null;
       });

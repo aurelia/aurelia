@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 /* eslint-disable @typescript-eslint/require-await */
 import { TestContext, assert } from '@aurelia/testing';
-import { TaskQueuePriority, QueueTaskTargetOptions, ITask, TaskStatus } from '@aurelia/runtime';
+import { TaskQueuePriority, QueueTaskOptions, ITask, TaskStatus, TaskQueue } from '@aurelia/runtime';
 
 function createExposedPromise() {
   let resolve: () => void;
@@ -36,10 +36,10 @@ function reportTask(task: any) {
 }
 
 describe('Scheduler', function () {
-  // There is only ever one global scheduler, so we might as well store it here instead of initializing all extra boilerplate each test
-  const sut = TestContext.create().scheduler;
+  // There is only ever one global platform, so we might as well store it here instead of initializing all extra boilerplate each test
+  const platform = TestContext.create().platform;
 
-  function queueRecursive(opts: QueueTaskTargetOptions, count: number, cb: () => void) {
+  function queueRecursive(sut: TaskQueue, opts: QueueTaskOptions, count: number, cb: () => void) {
     function $queue() {
       cb();
 
@@ -51,7 +51,7 @@ describe('Scheduler', function () {
     sut.queueTask($queue, opts);
   }
 
-  function queueRecursiveAsync(opts: QueueTaskTargetOptions, count: number, cb: () => Promise<void>) {
+  function queueRecursiveAsync(sut: TaskQueue, opts: QueueTaskOptions, count: number, cb: () => Promise<void>) {
     async function $queue() {
       await cb();
 
@@ -63,13 +63,13 @@ describe('Scheduler', function () {
     sut.queueTask($queue, opts);
   }
 
-  function queueSequential(opts: QueueTaskTargetOptions, count: number, cb: () => void) {
+  function queueSequential(sut: TaskQueue, opts: QueueTaskOptions, count: number, cb: () => void) {
     while (count-- > 0) {
       sut.queueTask(cb, opts);
     }
   }
 
-  function queueSequentialAsync(opts: QueueTaskTargetOptions, count: number, cb: () => Promise<void>) {
+  function queueSequentialAsync(sut: TaskQueue, opts: QueueTaskOptions, count: number, cb: () => Promise<void>) {
     while (count-- > 0) {
       sut.queueTask(cb, opts);
     }
@@ -77,40 +77,39 @@ describe('Scheduler', function () {
 
   const prioritySpecs = [
     {
-      priority: TaskQueuePriority.render,
-      name: 'render',
+      sut: platform.domWriteQueue,
+      name: 'domWriteQueue',
     },
     {
-      priority: TaskQueuePriority.macroTask,
-      name: 'macroTask',
+      sut: platform.macroTaskQueue,
+      name: 'macroTaskQueue',
     },
     {
-      priority: TaskQueuePriority.postRender,
-      name: 'postRender',
+      sut: platform.domReadQueue,
+      name: 'domReadQueue',
     },
     {
-      priority: TaskQueuePriority.render,
-      name: 'render',
+      sut: platform.domWriteQueue,
+      name: 'domWriteQueue',
     },
     {
-      priority: TaskQueuePriority.macroTask,
-      name: 'macroTask',
+      sut: platform.macroTaskQueue,
+      name: 'macroTaskQueue',
     },
   ];
 
   for (const reusable of [true, false]) {
-    for (const { priority, name } of prioritySpecs) {
+    for (const { sut, name } of prioritySpecs) {
       describe(`can queue ${name}`, function () {
         it('x1, {preempt: false, delay: 0}', function (done) {
           sut.queueTask(
             function () {
-              assert.isSchedulerEmpty();
+              assert.areTaskQueuesEmpty();
 
               done();
             },
             {
               reusable,
-              priority,
               preempt: false,
               delay: 0,
             },
@@ -120,13 +119,12 @@ describe('Scheduler', function () {
         it('x1, {preempt: true, delay: 0}', function (done) {
           sut.queueTask(
             function () {
-              assert.isSchedulerEmpty();
+              assert.areTaskQueuesEmpty();
 
               done();
             },
             {
               reusable,
-              priority,
               preempt: true,
               delay: 0,
             },
@@ -136,13 +134,12 @@ describe('Scheduler', function () {
         it('x1, {delay: 5}', function (done) {
           sut.queueTask(
             function () {
-              assert.isSchedulerEmpty();
+              assert.areTaskQueuesEmpty();
 
               done();
             },
             {
               reusable,
-              priority,
               delay: 5,
             },
           );
@@ -157,13 +154,12 @@ describe('Scheduler', function () {
 
               assert.deepStrictEqual(calls, [2, 1], 'calls');
 
-              assert.isSchedulerEmpty();
+              assert.areTaskQueuesEmpty();
 
               done();
             },
             {
               reusable,
-              priority,
               delay: 5,
             },
           );
@@ -174,7 +170,6 @@ describe('Scheduler', function () {
             },
             {
               reusable,
-              priority,
               delay: 0,
             },
           );
@@ -189,13 +184,12 @@ describe('Scheduler', function () {
 
               assert.deepStrictEqual(calls, [2, 1], 'calls');
 
-              assert.isSchedulerEmpty();
+              assert.areTaskQueuesEmpty();
 
               done();
             },
             {
               reusable,
-              priority,
               preempt: false,
             },
           );
@@ -206,7 +200,6 @@ describe('Scheduler', function () {
             },
             {
               reusable,
-              priority,
               preempt: true,
             },
           );
@@ -221,13 +214,12 @@ describe('Scheduler', function () {
 
               assert.deepStrictEqual(calls, [3, 2, 1], 'calls');
 
-              assert.isSchedulerEmpty();
+              assert.areTaskQueuesEmpty();
 
               done();
             },
             {
               reusable,
-              priority,
               delay: 5,
             },
           );
@@ -238,7 +230,6 @@ describe('Scheduler', function () {
             },
             {
               reusable,
-              priority,
               preempt: false,
             },
           );
@@ -249,7 +240,6 @@ describe('Scheduler', function () {
             },
             {
               reusable,
-              priority,
               preempt: true,
             },
           );
@@ -261,15 +251,15 @@ describe('Scheduler', function () {
               let actual = 0;
               function increment() {
                 if (++actual === expected) {
-                  assert.isSchedulerEmpty();
+                  assert.areTaskQueuesEmpty();
 
                   done();
                 }
               }
               queueSequential(
+                sut,
                 {
                   reusable,
-                  priority,
                   delay,
                 },
                 expected,
@@ -281,15 +271,15 @@ describe('Scheduler', function () {
               let actual = 0;
               function increment() {
                 if (++actual === expected) {
-                  assert.isSchedulerEmpty();
+                  assert.areTaskQueuesEmpty();
 
                   done();
                 }
               }
               queueRecursive(
+                sut,
                 {
                   reusable,
-                  priority,
                   delay,
                 },
                 expected,
@@ -308,7 +298,6 @@ describe('Scheduler', function () {
             },
             {
               reusable,
-              priority,
               preempt: false,
               delay: 0,
             },
@@ -324,7 +313,6 @@ describe('Scheduler', function () {
             },
             {
               reusable,
-              priority,
               preempt: true,
               delay: 0,
             },
@@ -340,7 +328,6 @@ describe('Scheduler', function () {
             },
             {
               reusable,
-              priority,
               delay: 5,
             },
           );
@@ -357,11 +344,10 @@ describe('Scheduler', function () {
 
               assert.deepStrictEqual(calls, [2, 1], 'calls');
 
-              assert.isSchedulerEmpty();
+              assert.areTaskQueuesEmpty();
             },
             {
               reusable,
-              priority,
               delay: 5,
             },
           );
@@ -372,7 +358,6 @@ describe('Scheduler', function () {
             },
             {
               reusable,
-              priority,
               delay: 0,
             },
           );
@@ -389,11 +374,10 @@ describe('Scheduler', function () {
 
               assert.deepStrictEqual(calls, [2, 1], 'calls');
 
-              assert.isSchedulerEmpty();
+              assert.areTaskQueuesEmpty();
             },
             {
               reusable,
-              priority,
               preempt: false,
             },
           );
@@ -404,7 +388,6 @@ describe('Scheduler', function () {
             },
             {
               reusable,
-              priority,
               preempt: true,
             },
           );
@@ -421,11 +404,10 @@ describe('Scheduler', function () {
 
               assert.deepStrictEqual(calls, [3, 2, 1], 'calls');
 
-              assert.isSchedulerEmpty();
+              assert.areTaskQueuesEmpty();
             },
             {
               reusable,
-              priority,
               delay: 5,
             },
           );
@@ -436,7 +418,6 @@ describe('Scheduler', function () {
             },
             {
               reusable,
-              priority,
               preempt: false,
             },
           );
@@ -447,7 +428,6 @@ describe('Scheduler', function () {
             },
             {
               reusable,
-              priority,
               preempt: true,
             },
           );
@@ -460,9 +440,9 @@ describe('Scheduler', function () {
             it(`x${expected} sequential, {delay: ${delay}}`, async function () {
               let actual = 0;
               queueSequential(
+                sut,
                 {
                   reusable,
-                  priority,
                   delay,
                 },
                 expected,
@@ -471,19 +451,19 @@ describe('Scheduler', function () {
                 },
               );
 
-              await sut.getTaskQueue(priority).yield();
+              await sut.yield();
 
               assert.strictEqual(actual, expected, 'callCount');
 
-              assert.isSchedulerEmpty();
+              assert.areTaskQueuesEmpty();
             });
 
             it(`x${expected} recursive, {delay: ${delay}}`, async function () {
               let actual = 0;
               queueRecursive(
+                sut,
                 {
                   reusable,
-                  priority,
                   delay,
                 },
                 expected,
@@ -492,11 +472,11 @@ describe('Scheduler', function () {
                 },
               );
 
-              await sut.getTaskQueue(priority).yield();
+              await sut.yield();
 
               assert.strictEqual(actual, expected, 'callCount');
 
-              assert.isSchedulerEmpty();
+              assert.areTaskQueuesEmpty();
             });
           }
         }
@@ -515,13 +495,12 @@ describe('Scheduler', function () {
 
                     task.cancel();
 
-                    assert.isSchedulerEmpty();
+                    assert.areTaskQueuesEmpty();
                   }
                 },
                 {
                   persistent: true,
                   reusable,
-                  priority,
                 },
               );
 
@@ -530,7 +509,7 @@ describe('Scheduler', function () {
                 if (++thenCount === iterations) {
                   assert.strictEqual(task.status, TaskStatus.canceled, `task.status at thenCount=${thenCount} ${reportTask(task)}`);
 
-                  assert.isSchedulerEmpty();
+                  assert.areTaskQueuesEmpty();
 
                   done();
                 } else {
@@ -556,7 +535,6 @@ describe('Scheduler', function () {
                 {
                   persistent: true,
                   reusable,
-                  priority,
                 },
               );
 
@@ -570,14 +548,13 @@ describe('Scheduler', function () {
                     if (count === iterations) {
                       task.cancel();
 
-                      assert.isSchedulerEmpty();
+                      assert.areTaskQueuesEmpty();
                     } else {
                       nextTask = createNextTask();
                     }
                   },
                   {
                     reusable,
-                    priority,
                   },
                 );
               }
@@ -590,7 +567,7 @@ describe('Scheduler', function () {
                   assert.strictEqual(nextTask.status, TaskStatus.completed, `nextTask.status at thenCount=${thenCount} ${reportTask(nextTask)}`);
                   assert.strictEqual(task.status, TaskStatus.canceled, `task.status at thenCount=${thenCount} ${reportTask(task)}`);
 
-                  assert.isSchedulerEmpty();
+                  assert.areTaskQueuesEmpty();
 
                   done();
                 } else {
@@ -617,12 +594,11 @@ describe('Scheduler', function () {
                 {
                   persistent: true,
                   reusable,
-                  priority,
                 },
               );
 
               function yieldAndVerify() {
-                sut.yield(priority).then(() => {
+                sut.yield().then(() => {
                   assert.strictEqual(count, ++yieldCount, 'count === ++yieldCount');
 
                   if (yieldCount < iterations) {
@@ -630,7 +606,7 @@ describe('Scheduler', function () {
                   } else {
                     task.cancel();
 
-                    assert.isSchedulerEmpty();
+                    assert.areTaskQueuesEmpty();
 
                     done();
                   }
@@ -652,7 +628,6 @@ describe('Scheduler', function () {
                 {
                   persistent: true,
                   reusable,
-                  priority,
                 },
               );
 
@@ -664,7 +639,6 @@ describe('Scheduler', function () {
                 {
                   preempt: true,
                   reusable,
-                  priority,
                 },
               );
 
@@ -675,7 +649,6 @@ describe('Scheduler', function () {
                 {
                   preempt: false,
                   reusable,
-                  priority,
                 },
               );
 
@@ -686,7 +659,6 @@ describe('Scheduler', function () {
                 {
                   preempt: true,
                   reusable,
-                  priority,
                 },
               );
 
@@ -697,17 +669,16 @@ describe('Scheduler', function () {
                 {
                   preempt: false,
                   reusable,
-                  priority,
                 },
               );
 
-              sut.yield(priority).then(() => {
+              sut.yield().then(() => {
                 assert.strictEqual(count, 1, 'count');
                 assert.strictEqual(otherCount, 4, 'otherCount');
 
                 task.cancel();
 
-                assert.isSchedulerEmpty();
+                assert.areTaskQueuesEmpty();
 
                 done();
               }).catch((error) => { throw error; });
@@ -719,25 +690,24 @@ describe('Scheduler', function () {
   }
 
   // TODO(fkleuver): we need async tests with suspend: false.
-  // This is indirectly tested by various integration tests but we need at least a couple of thorough scheduler-specific tests as well.
+  // This is indirectly tested by various integration tests but we need at least a couple of thorough platform-specific tests as well.
   describe('async', function () {
     for (const reusable of [true, false]) {
       const $reusable = reusable ? 'reusable' : 'non-reusable';
 
-      for (const { priority, name } of prioritySpecs) {
+      for (const { sut, name } of prioritySpecs) {
         describe(`can queue ${$reusable} ${name}`, function () {
           it('x1, {preempt: false, delay: 0}', async function () {
             const { promise, resolve } = createExposedPromise();
 
             sut.queueTask(
               async function () {
-                assert.isSchedulerEmpty();
+                assert.areTaskQueuesEmpty();
 
                 resolve();
               },
               {
                 reusable,
-                priority,
                 preempt: false,
                 delay: 0,
                 suspend: true,
@@ -752,13 +722,12 @@ describe('Scheduler', function () {
 
             sut.queueTask(
               async function () {
-                assert.isSchedulerEmpty();
+                assert.areTaskQueuesEmpty();
 
                 resolve();
               },
               {
                 reusable,
-                priority,
                 preempt: true,
                 delay: 0,
                 suspend: true,
@@ -773,13 +742,12 @@ describe('Scheduler', function () {
 
             sut.queueTask(
               async function () {
-                assert.isSchedulerEmpty();
+                assert.areTaskQueuesEmpty();
 
                 resolve();
               },
               {
                 reusable,
-                priority,
                 delay: 5,
                 suspend: true,
               },
@@ -799,13 +767,12 @@ describe('Scheduler', function () {
 
                 assert.deepStrictEqual(calls, [2, 1], 'calls');
 
-                assert.isSchedulerEmpty();
+                assert.areTaskQueuesEmpty();
 
                 resolve();
               },
               {
                 reusable,
-                priority,
                 delay: 5,
                 suspend: true,
               },
@@ -817,7 +784,6 @@ describe('Scheduler', function () {
               },
               {
                 reusable,
-                priority,
                 delay: 0,
                 suspend: true,
               },
@@ -837,13 +803,12 @@ describe('Scheduler', function () {
 
                 assert.deepStrictEqual(calls, [2, 1], 'calls');
 
-                assert.isSchedulerEmpty();
+                assert.areTaskQueuesEmpty();
 
                 resolve();
               },
               {
                 reusable,
-                priority,
                 preempt: false,
                 suspend: true,
               },
@@ -855,7 +820,6 @@ describe('Scheduler', function () {
               },
               {
                 reusable,
-                priority,
                 preempt: true,
                 suspend: true,
               },
@@ -875,13 +839,12 @@ describe('Scheduler', function () {
 
                 assert.deepStrictEqual(calls, [3, 2, 1], 'calls');
 
-                assert.isSchedulerEmpty();
+                assert.areTaskQueuesEmpty();
 
                 resolve();
               },
               {
                 reusable,
-                priority,
                 delay: 5,
                 suspend: true,
               },
@@ -893,7 +856,6 @@ describe('Scheduler', function () {
               },
               {
                 reusable,
-                priority,
                 preempt: false,
                 suspend: true,
               },
@@ -905,7 +867,6 @@ describe('Scheduler', function () {
               },
               {
                 reusable,
-                priority,
                 preempt: true,
                 suspend: true,
               },
@@ -922,15 +883,15 @@ describe('Scheduler', function () {
                 let actual = 0;
                 async function increment() {
                   if (++actual === expected) {
-                    assert.isSchedulerEmpty();
+                    assert.areTaskQueuesEmpty();
 
                     resolve();
                   }
                 }
                 queueSequentialAsync(
+                  sut,
                   {
                     reusable,
-                    priority,
                     delay,
                     suspend: true,
                   },
@@ -947,15 +908,15 @@ describe('Scheduler', function () {
                 let actual = 0;
                 async function increment() {
                   if (++actual === expected) {
-                    assert.isSchedulerEmpty();
+                    assert.areTaskQueuesEmpty();
 
                     resolve();
                   }
                 }
                 queueRecursiveAsync(
+                  sut,
                   {
                     reusable,
-                    priority,
                     delay,
                     suspend: true,
                   },
@@ -973,7 +934,6 @@ describe('Scheduler', function () {
           it(`manual 2x recursive`, async function () {
             const opts = {
               reusable,
-              priority,
               preempt: false,
               delay: 0,
               suspend: true,
@@ -996,11 +956,11 @@ describe('Scheduler', function () {
               opts,
             );
 
-            await sut.yield(priority);
+            await sut.yield();
 
             assert.strictEqual(count, 2);
 
-            assert.isSchedulerEmpty();
+            assert.areTaskQueuesEmpty();
           });
 
           it('x1, {preempt: false, delay: 0}', async function () {
@@ -1010,7 +970,6 @@ describe('Scheduler', function () {
               },
               {
                 reusable,
-                priority,
                 preempt: false,
                 delay: 0,
                 suspend: true,
@@ -1027,7 +986,6 @@ describe('Scheduler', function () {
               },
               {
                 reusable,
-                priority,
                 preempt: true,
                 delay: 0,
                 suspend: true,
@@ -1044,7 +1002,6 @@ describe('Scheduler', function () {
               },
               {
                 reusable,
-                priority,
                 delay: 5,
                 suspend: true,
               },
@@ -1062,11 +1019,10 @@ describe('Scheduler', function () {
 
                 assert.deepStrictEqual(calls, [2, 1], 'calls');
 
-                assert.isSchedulerEmpty();
+                assert.areTaskQueuesEmpty();
               },
               {
                 reusable,
-                priority,
                 delay: 5,
                 suspend: true,
               },
@@ -1078,7 +1034,6 @@ describe('Scheduler', function () {
               },
               {
                 reusable,
-                priority,
                 delay: 0,
                 suspend: true,
               },
@@ -1096,11 +1051,10 @@ describe('Scheduler', function () {
 
                 assert.deepStrictEqual(calls, [2, 1], 'calls');
 
-                assert.isSchedulerEmpty();
+                assert.areTaskQueuesEmpty();
               },
               {
                 reusable,
-                priority,
                 preempt: false,
                 suspend: true,
               },
@@ -1112,7 +1066,6 @@ describe('Scheduler', function () {
               },
               {
                 reusable,
-                priority,
                 preempt: true,
                 suspend: true,
               },
@@ -1130,11 +1083,10 @@ describe('Scheduler', function () {
 
                 assert.deepStrictEqual(calls, [3, 2, 1], 'calls');
 
-                assert.isSchedulerEmpty();
+                assert.areTaskQueuesEmpty();
               },
               {
                 reusable,
-                priority,
                 delay: 5,
                 suspend: true,
               },
@@ -1146,7 +1098,6 @@ describe('Scheduler', function () {
               },
               {
                 reusable,
-                priority,
                 preempt: false,
                 suspend: true,
               },
@@ -1158,7 +1109,6 @@ describe('Scheduler', function () {
               },
               {
                 reusable,
-                priority,
                 preempt: true,
                 suspend: true,
               },
@@ -1172,9 +1122,9 @@ describe('Scheduler', function () {
               it(`x${expected} sequential, {delay: ${delay}}`, async function () {
                 let actual = 0;
                 queueSequentialAsync(
+                  sut,
                   {
                     reusable,
-                    priority,
                     delay,
                     suspend: true,
                   },
@@ -1184,19 +1134,19 @@ describe('Scheduler', function () {
                   },
                 );
 
-                await sut.getTaskQueue(priority).yield();
+                await sut.yield();
 
                 assert.strictEqual(actual, expected, 'callCount');
 
-                assert.isSchedulerEmpty();
+                assert.areTaskQueuesEmpty();
               });
 
               it(`x${expected} recursive, {delay: ${delay}}`, async function () {
                 let actual = 0;
                 queueRecursiveAsync(
+                  sut,
                   {
                     reusable,
-                    priority,
                     delay,
                     suspend: true,
                   },
@@ -1206,11 +1156,11 @@ describe('Scheduler', function () {
                   },
                 );
 
-                await sut.getTaskQueue(priority).yield();
+                await sut.yield();
 
                 assert.strictEqual(actual, expected, 'callCount');
 
-                assert.isSchedulerEmpty();
+                assert.areTaskQueuesEmpty();
               });
             }
           }
@@ -1231,13 +1181,12 @@ describe('Scheduler', function () {
 
                       task.cancel();
 
-                      assert.isSchedulerEmpty();
+                      assert.areTaskQueuesEmpty();
                     }
                   },
                   {
                     persistent: true,
                     reusable,
-                    priority,
                     suspend: true,
                   },
                 );
@@ -1247,7 +1196,7 @@ describe('Scheduler', function () {
                   if (++thenCount === iterations) {
                     assert.strictEqual(task.status, TaskStatus.canceled, `task.status at thenCount=${thenCount} ${reportTask(task)}`);
 
-                    assert.isSchedulerEmpty();
+                    assert.areTaskQueuesEmpty();
 
                     resolve();
                   } else {
@@ -1278,7 +1227,6 @@ describe('Scheduler', function () {
                   {
                     persistent: true,
                     reusable,
-                    priority,
                     suspend: true,
                   },
                 );
@@ -1293,14 +1241,13 @@ describe('Scheduler', function () {
                       if (count === iterations) {
                         task.cancel();
 
-                        assert.isSchedulerEmpty();
+                        assert.areTaskQueuesEmpty();
                       } else {
                         nextTask = createNextTask();
                       }
                     },
                     {
                       reusable,
-                      priority,
                       suspend: true,
                     },
                   );
@@ -1314,7 +1261,7 @@ describe('Scheduler', function () {
                     assert.strictEqual(nextTask.status, TaskStatus.completed, `nextTask.status at thenCount=${thenCount} ${reportTask(nextTask)}`);
                     assert.strictEqual(task.status, TaskStatus.canceled, `task.status at thenCount=${thenCount} ${reportTask(task)}`);
 
-                    assert.isSchedulerEmpty();
+                    assert.areTaskQueuesEmpty();
 
                     resolve();
                   } else {
@@ -1353,13 +1300,12 @@ describe('Scheduler', function () {
                   {
                     persistent: true,
                     reusable,
-                    priority,
                     suspend: true,
                   },
                 );
 
                 async function yieldAndVerify() {
-                  await sut.yield(priority);
+                  await sut.yield();
 
                   assert.strictEqual(count, ++yieldCount, 'count === ++yieldCount');
 
@@ -1369,7 +1315,7 @@ describe('Scheduler', function () {
                   } else {
                     task.cancel();
 
-                    assert.isSchedulerEmpty();
+                    assert.areTaskQueuesEmpty();
 
                     resolve();
                   }
@@ -1391,7 +1337,6 @@ describe('Scheduler', function () {
                   {
                     persistent: true,
                     reusable,
-                    priority,
                     suspend: true,
                   },
                 );
@@ -1404,7 +1349,6 @@ describe('Scheduler', function () {
                   {
                     preempt: true,
                     reusable,
-                    priority,
                     suspend: true,
                   },
                 );
@@ -1416,7 +1360,6 @@ describe('Scheduler', function () {
                   {
                     preempt: false,
                     reusable,
-                    priority,
                     suspend: true,
                   },
                 );
@@ -1428,7 +1371,6 @@ describe('Scheduler', function () {
                   {
                     preempt: true,
                     reusable,
-                    priority,
                     suspend: true,
                   },
                 );
@@ -1440,19 +1382,18 @@ describe('Scheduler', function () {
                   {
                     preempt: false,
                     reusable,
-                    priority,
                     suspend: true,
                   },
                 );
 
-                await sut.yield(priority);
+                await sut.yield();
 
                 assert.strictEqual(count, 1, 'count');
                 assert.strictEqual(otherCount, 4, 'otherCount');
 
                 task.cancel();
 
-                assert.isSchedulerEmpty();
+                assert.areTaskQueuesEmpty();
               });
             });
           }
@@ -1466,7 +1407,6 @@ describe('Scheduler', function () {
               {
                 persistent: true,
                 reusable,
-                priority,
                 suspend: true,
               },
             );
@@ -1478,11 +1418,10 @@ describe('Scheduler', function () {
 
                 primerTask.cancel();
 
-                assert.isSchedulerEmpty();
+                assert.areTaskQueuesEmpty();
               },
               {
                 reusable,
-                priority,
                 suspend: true,
               },
             );
@@ -1495,7 +1434,7 @@ describe('Scheduler', function () {
             assert.strictEqual(primerTask.status, TaskStatus.canceled, `primerTask.status after awaiting primerCancelTask.result ${reportTask(primerTask)}`);
             assert.strictEqual(primerCancelTask.status, TaskStatus.completed, `primerCancelTask.status after awaiting primerCancelTask.result ${reportTask(primerCancelTask)}`);
 
-            assert.isSchedulerEmpty();
+            assert.areTaskQueuesEmpty();
 
             let count = 0;
             let yieldCount = 0;
@@ -1508,18 +1447,17 @@ describe('Scheduler', function () {
               {
                 persistent: true,
                 reusable,
-                priority,
                 suspend: true,
               },
             );
 
-            await sut.yield(priority);
+            await sut.yield();
 
             assert.strictEqual(count, ++yieldCount, `count (${count}) === ++yieldCount (${yieldCount}) after awaiting sut.yield()`);
 
             persistentTask.cancel();
 
-            assert.isSchedulerEmpty();
+            assert.areTaskQueuesEmpty();
           });
         });
       }
@@ -1561,14 +1499,13 @@ describe('Scheduler', function () {
         assert.deepStrictEqual(states, [TaskState.Finished, TaskState.Finished, TaskState.Finished], `state at the end of callback2`);
       }
 
-      const opts: QueueTaskTargetOptions = {
-        priority: TaskQueuePriority.macroTask,
+      const opts: QueueTaskOptions = {
         suspend: true,
       };
 
-      const task0 = sut.queueTask(callback0, opts);
-      const task1 = sut.queueTask(callback1, opts);
-      const task2 = sut.queueTask(callback2, opts);
+      const task0 = platform.macroTaskQueue.queueTask(callback0, opts);
+      const task1 = platform.macroTaskQueue.queueTask(callback1, opts);
+      const task2 = platform.macroTaskQueue.queueTask(callback2, opts);
 
       assert.deepStrictEqual(states, [TaskState.NotStarted, TaskState.NotStarted, TaskState.NotStarted], `state after queueing 3 tasks`);
 
@@ -1586,7 +1523,7 @@ describe('Scheduler', function () {
 
       assert.deepStrictEqual(states, [TaskState.Finished, TaskState.Finished, TaskState.Finished], `state after awaiting task2`);
 
-      assert.isSchedulerEmpty();
+      assert.areTaskQueuesEmpty();
     });
   });
 });

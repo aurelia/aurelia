@@ -275,7 +275,7 @@ describe('focus.spec.ts', function () {
           assert.equal(component.hasFocus, true, 'window@blur');
 
           component.selectedOption = '2';
-          await ctx.scheduler.yieldRenderTask();
+          await ctx.platform.domWriteQueue.yield();
           assert.equal(doc.activeElement, focusable);
           assert.equal(component.hasFocus, true, 'select@change');
         }

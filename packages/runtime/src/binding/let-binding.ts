@@ -4,7 +4,7 @@ import {
 } from '@aurelia/kernel';
 import {
   ITask,
-} from '@aurelia/scheduler';
+} from '@aurelia/platform';
 import {
   ILifecycle,
   IObservable, LifecycleFlags,

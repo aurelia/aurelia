@@ -26,7 +26,6 @@ import {
   eachCartesianJoin,
   assert,
   PLATFORM,
-  SCHEDULER,
   createContainer,
 } from '@aurelia/testing';
 import { Writable } from '@aurelia/kernel';
@@ -617,7 +616,7 @@ describe(`Repeat`, function () {
         const expectedText2 = sut.items ? sut.items.join('') : '';
 
         if (flush) {
-          SCHEDULER.getRenderTaskQueue().flush();
+          PLATFORM.domWriteQueue.flush();
 
           assert.strictEqual(host.textContent, expectedText2, 'host.textContent #3');
         } else {
@@ -653,7 +652,7 @@ describe(`Repeat`, function () {
         const expectedText4 = sut.items ? sut.items.join('') : '';
 
         if (flush) {
-          SCHEDULER.getRenderTaskQueue().flush();
+          PLATFORM.domWriteQueue.flush();
 
           assert.strictEqual(host.textContent, expectedText4, 'host.textContent #9');
         } else {

@@ -13,8 +13,8 @@ import {
   ITargetObserverLocator,
   LifecycleFlags as LF,
   OverrideContext,
-  IScheduler,
 } from '@aurelia/runtime-html';
+import { createContainer } from './test-context';
 // import {
 //   Instruction,
 //   NodeSequenceFactory,
@@ -456,7 +456,7 @@ import {
 export function createObserverLocator(containerOrLifecycle?: IContainer | ILifecycle): IObserverLocator {
   let container: IContainer;
   if (containerOrLifecycle === undefined || !('get' in containerOrLifecycle)) {
-    container = DI.createContainer();
+    container = createContainer();
   } else {
     container = containerOrLifecycle;
   }
@@ -465,13 +465,9 @@ export function createObserverLocator(containerOrLifecycle?: IContainer | ILifec
       return false;
     }
   };
-  const dummyScheduler: any = {
-
-  };
   Registration.instance(IDirtyChecker, null).register(container);
   Registration.instance(ITargetObserverLocator, dummyLocator).register(container);
   Registration.instance(ITargetAccessorLocator, dummyLocator).register(container);
-  Registration.instance(IScheduler, dummyScheduler).register(container);
   return container.get(IObserverLocator);
 }
 

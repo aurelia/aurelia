@@ -51,16 +51,16 @@ describe('Nav', function () {
       au.dispose();
     }
 
-    const scheduler = ctx.scheduler;
+    const platform = ctx.platform;
 
-    return { au, container, host, router, ctx, tearDown, scheduler };
+    return { au, container, host, router, ctx, tearDown, platform };
   }
 
   it('generates nav with a link', async function () {
     this.timeout(5000);
-    const { host, router, tearDown, scheduler } = await createFixture('foo');
+    const { host, router, tearDown, platform } = await createFixture('foo');
 
-    await scheduler.yieldAll();
+    await platform.domWriteQueue.yield();
 
     assert.includes(host.innerHTML, 'foo', `host.innerHTML`);
     assert.includes(host.innerHTML, 'Bar', `host.innerHTML`);
@@ -71,10 +71,10 @@ describe('Nav', function () {
 
   it('generates nav with an active link', async function () {
     this.timeout(5000);
-    const { host, router, tearDown, scheduler } = await createFixture('bar');
+    const { host, router, tearDown, platform } = await createFixture('bar');
     router.activeComponents = [router.createViewportInstruction('baz', 'main-viewport')];
 
-    await scheduler.yieldAll();
+    await platform.domWriteQueue.yield();
 
     assert.includes(host.innerHTML, 'href="baz"', `host.innerHTML`);
     // assert.includes(host.innerHTML, 'nav-active', `host.innerHTML`); // TODO: fix this
@@ -83,10 +83,10 @@ describe('Nav', function () {
 
   it('generates nav with child links', async function () {
     this.timeout(5000);
-    const { host, router, tearDown, scheduler } = await createFixture('qux');
+    const { host, router, tearDown, platform } = await createFixture('qux');
     router.activeComponents =[router.createViewportInstruction('baz', 'main-viewport')];
 
-    await scheduler.yieldAll();
+    await platform.domWriteQueue.yield();
 
     assert.includes(host.innerHTML, 'href="baz"', `host.innerHTML`);
     assert.includes(host.innerHTML, 'nav-has-children', `host.innerHTML`);

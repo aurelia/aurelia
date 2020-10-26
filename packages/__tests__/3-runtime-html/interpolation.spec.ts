@@ -4,6 +4,7 @@
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
 import {
   assert,
+  createContainer,
   createFixture,
   createObserverLocator,
   createScopeForTest,
@@ -197,7 +198,7 @@ describe('interpolation', function () {
       await tearDown();
     });
     it(`${x.it} change tests work`, async function () {
-      const { tearDown, appHost, scheduler, component } = createFixture(`<template>${x.interpolation}</template>`, x.app);
+      const { tearDown, appHost, platform, component } = createFixture(`<template>${x.interpolation}</template>`, x.app);
       if (x.changeFnc !== undefined) {
         const val = x.changeFnc(component.value);
         if (val != null) {
@@ -210,7 +211,7 @@ describe('interpolation', function () {
       } else {
         component.value = (component.value as number || 0) + 1;
       }
-      scheduler.getRenderTaskQueue().flush();
+      platform.domWriteQueue.flush();
       assert.strictEqual(appHost.textContent, (x.expectedValueAfterChange && x.expectedValueAfterChange.toString()) || (x.expected as number + 1).toString(), `host.textContent`);
       await tearDown();
     });
@@ -226,7 +227,7 @@ describe('interpolation', function () {
 
   describe('volatile expressions', function () {
     it('handles single', function () {
-      const container = DI.createContainer();
+      const container = createContainer();
       const observerLocator = createObserverLocator(container);
       const interpolation = new Interpolation(
         ['', ''],
@@ -308,7 +309,7 @@ describe('interpolation', function () {
     });
 
     it('handles multiple', function () {
-      const container = DI.createContainer();
+      const container = createContainer();
       const observerLocator = createObserverLocator(container);
       const interpolation = new Interpolation(
         ['', '--', ''],

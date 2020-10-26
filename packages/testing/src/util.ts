@@ -23,17 +23,7 @@
  * IN THE SOFTWARE.
  */
 
-import {
-  DI,
-  IContainer,
-  IRegistration,
-  IResolver,
-  isArrayIndex,
-  noop,
-  Primitive,
-  Registration,
-} from '@aurelia/kernel';
-import { IPlatform, IScheduler } from '@aurelia/runtime-html';
+import { isArrayIndex, noop, Primitive } from '@aurelia/kernel';
 
 /* eslint-disable @typescript-eslint/ban-types, @typescript-eslint/no-explicit-any, no-control-regex */
 

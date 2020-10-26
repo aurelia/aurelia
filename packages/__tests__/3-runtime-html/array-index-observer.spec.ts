@@ -73,7 +73,7 @@ describe('simple Computed Observer test case', function () {
         assert.strictEqual(component.itemNames[0], '00');
         assert.strictEqual(component.items[0].name, '00');
 
-        const dirtyChecker = ctx.container.get(IDirtyChecker) as any;
+        const dirtyChecker = ctx.container.get(IDirtyChecker);
         assert.strictEqual(dirtyChecker['tracked'].length, 0);
       }
     },
@@ -87,7 +87,7 @@ describe('simple Computed Observer test case', function () {
         assert.strictEqual(inputEl.checked, false);
 
         component.itemNames.splice(0, 1, true as any);
-        ctx.scheduler.getRenderTaskQueue().flush();
+        ctx.platform.domWriteQueue.flush();
         assert.strictEqual(inputEl.checked, true, 'should have been checked');
 
         inputEl.checked = false;
@@ -95,7 +95,7 @@ describe('simple Computed Observer test case', function () {
 
         assert.strictEqual(component.itemNames[0], false);
 
-        const dirtyChecker = ctx.container.get(IDirtyChecker) as any;
+        const dirtyChecker = ctx.container.get(IDirtyChecker);
         assert.strictEqual(dirtyChecker['tracked'].length, 0);
       }
     },
@@ -117,7 +117,7 @@ describe('simple Computed Observer test case', function () {
 
         component.itemNames.splice(0, 1, 'i-2');
         assert.strictEqual(selectEl.value, 'i-1');
-        ctx.scheduler.getRenderTaskQueue().flush();
+        ctx.platform.domWriteQueue.flush();
         assert.strictEqual(selectEl.value, 'i-2');
       }
     },
@@ -144,7 +144,7 @@ describe('simple Computed Observer test case', function () {
           assert.strictEqual(component.items[idx].name, newValue);
         });
 
-        const dirtyChecker = ctx.container.get(IDirtyChecker) as any;
+        const dirtyChecker = ctx.container.get(IDirtyChecker);
         assert.strictEqual(dirtyChecker['tracked'].length, 0);
       }
     },
@@ -153,14 +153,14 @@ describe('simple Computed Observer test case', function () {
       template: `\${itemNames[0]}`,
       ViewModel: TestClass,
       assertFn: (ctx, host, component) => {
-        assert.html.textContent(host, 'i-0');
-        const dirtyChecker = ctx.container.get(IDirtyChecker) as any;
-        assert.strictEqual(dirtyChecker['tracked'].length, 0);
+        assert.html.textContent(host, 'i-0', `#1`);
+        const dirtyChecker = ctx.container.get(IDirtyChecker);
+        assert.strictEqual(dirtyChecker['tracked'].length, 0, `#2`);
 
         component.itemNames.splice(0, 1, '00');
-        assert.html.textContent(host, 'i-0');
-        ctx.scheduler.getRenderTaskQueue().flush();
-        assert.html.textContent(host, '00');
+        assert.html.textContent(host, 'i-0', `#3`);
+        ctx.platform.domWriteQueue.flush();
+        assert.html.textContent(host, '00', `#4`);
       }
     }
   ];
@@ -246,7 +246,7 @@ describe('3-runtime-html/array-index-observer.spec.ts', function () {
 
   function createFixture() {
     const ctx = TestContext.create();
-    const { container, lifecycle, observerLocator, scheduler } = ctx;
+    const { container, lifecycle, observerLocator, platform } = ctx;
     const el = ctx.createElementFromMarkup(`<input />`) as IInputElement;
     ctx.doc.body.appendChild(el);
 
@@ -257,6 +257,6 @@ describe('3-runtime-html/array-index-observer.spec.ts', function () {
       el.remove();
     };
 
-    return { ctx, container, lifecycle, observerLocator, el, sut, scheduler, tearDown };
+    return { ctx, container, lifecycle, observerLocator, el, sut, platform, tearDown };
   }
 });

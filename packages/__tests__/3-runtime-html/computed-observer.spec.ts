@@ -62,14 +62,14 @@ describe('simple Computed Observer test case', function () {
         assert.strictEqual(host.textContent, '40');
         component.items[0].value = 100;
         assert.strictEqual(host.textContent, '40');
-        ctx.scheduler.getRenderTaskQueue().flush();
+        ctx.platform.domWriteQueue.flush();
         assert.strictEqual(host.textContent, '140');
 
         component.items.splice(1, 1, { name: 'item - 1', value: 100 });
         // todo: this scenario
         // component.items[1] = { name: 'item - 1', value: 100 };
         assert.strictEqual(host.textContent, '140');
-        ctx.scheduler.getRenderTaskQueue().flush();
+        ctx.platform.domWriteQueue.flush();
         assert.strictEqual(host.textContent, '240');
       }
     },
@@ -105,7 +105,7 @@ describe('simple Computed Observer test case', function () {
         assert.strictEqual(host.textContent, '5');
         component.items[1].isDone = true;
         assert.strictEqual(host.textContent, '5');
-        ctx.scheduler.getRenderTaskQueue().flush();
+        ctx.platform.domWriteQueue.flush();
         assert.strictEqual(host.textContent, '6');
       }
     },
@@ -145,7 +145,7 @@ describe('simple Computed Observer test case', function () {
         assert.html.textContent(host, '4');
         component.items[1].isDone = true;
         assert.html.textContent(host, '4');
-        ctx.scheduler.getRenderTaskQueue().flush();
+        ctx.platform.domWriteQueue.flush();
         assert.html.textContent(host, '5');
       }
     },
@@ -186,7 +186,7 @@ describe('simple Computed Observer test case', function () {
         assert.strictEqual(host.textContent, '3');
         component.itemMap.set(`item - 4`, 10);
         assert.strictEqual(host.textContent, '3');
-        ctx.scheduler.getRenderTaskQueue().flush();
+        ctx.platform.domWriteQueue.flush();
         assert.strictEqual(host.textContent, '4');
       }
     },
@@ -229,7 +229,7 @@ describe('simple Computed Observer test case', function () {
         component.items[0].isDone = false;
         assert.strictEqual(component.activeItems.length, 6);
         assert.strictEqual(host.textContent, '30');
-        ctx.scheduler.getRenderTaskQueue().flush();
+        ctx.platform.domWriteQueue.flush();
         assert.strictEqual(host.textContent, '31');
       }
     },
@@ -251,7 +251,7 @@ describe('simple Computed Observer test case', function () {
         assert.html.textContent(host, '1');
         component.items.splice(0, 1, { name: 'mock', value: 1000 });
         assert.html.textContent(host, '1');
-        ctx.scheduler.getRenderTaskQueue().flush();
+        ctx.platform.domWriteQueue.flush();
         assert.html.textContent(host, '1000');
       }
     },
@@ -271,7 +271,7 @@ describe('simple Computed Observer test case', function () {
         assert.strictEqual(host.textContent, '110');
         component.items[0].value = 100;
         assert.strictEqual(host.textContent, '110');
-        ctx.scheduler.getRenderTaskQueue().flush();
+        ctx.platform.domWriteQueue.flush();
         assert.strictEqual(host.textContent, '308');
       }
     },
@@ -312,7 +312,7 @@ describe('simple Computed Observer test case', function () {
         inputEl.value = '50';
         inputEl.dispatchEvent(new ctx.CustomEvent('input'));
         assert.strictEqual(host.textContent, '');
-        ctx.scheduler.getRenderTaskQueue().flush();
+        ctx.platform.domWriteQueue.flush();
         assert.strictEqual(host.textContent, '50');
         assert.strictEqual(component.nameProp.value, '50');
         assert.strictEqual(component.nameProp._value, '50');
@@ -364,7 +364,7 @@ describe('simple Computed Observer test case', function () {
         inputEl.value = '50';
         inputEl.dispatchEvent(new ctx.CustomEvent('input'));
         assert.strictEqual(host.textContent, '');
-        ctx.scheduler.getRenderTaskQueue().flush();
+        ctx.platform.domWriteQueue.flush();
         assert.strictEqual(host.textContent, '50');
         assert.strictEqual(component.nameProp.value, '50');
         assert.strictEqual(component.nameProp._value, '50');

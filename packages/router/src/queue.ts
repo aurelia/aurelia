@@ -1,4 +1,4 @@
-import { IScheduler, ITask } from '@aurelia/runtime-html';
+import { IPlatform, ITask } from '@aurelia/runtime-html';
 import { bound } from '@aurelia/kernel';
 
 /**
@@ -14,7 +14,7 @@ export interface QueueItem<T> {
  * @internal - Shouldn't be used directly
  */
 export interface IQueueOptions {
-  scheduler: IScheduler;
+  platform: IPlatform;
   allowedExecutionCostWithinTick: number;
 }
 
@@ -37,7 +37,7 @@ export class Queue<T> {
   public processing: QueueItem<T> | null = null;
   public allowedExecutionCostWithinTick: number | null = null;
   public currentExecutionCostInCurrentTick: number = 0;
-  private scheduler: IScheduler | null = null;
+  private platform: IPlatform | null = null;
   private task: ITask | null = null;
 
   public constructor(
@@ -52,9 +52,9 @@ export class Queue<T> {
     if (this.isActive) {
       throw new Error('Queue has already been started');
     }
-    this.scheduler = options.scheduler;
+    this.platform = options.platform;
     this.allowedExecutionCostWithinTick = options.allowedExecutionCostWithinTick;
-    this.task = this.scheduler.queueRenderTask(this.dequeue, { persistent: true });
+    this.task = this.platform.domWriteQueue.queueTask(this.dequeue, { persistent: true });
   }
   public stop(): void {
     if (!this.isActive) {

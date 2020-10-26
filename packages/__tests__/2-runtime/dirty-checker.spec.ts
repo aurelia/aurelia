@@ -14,7 +14,7 @@ describe('DirtyChecker', function () {
   function createFixture() {
     const ctx = TestContext.create();
     const dirtyChecker = ctx.container.get(IDirtyChecker);
-    const taskQueue = ctx.scheduler.getRenderTaskQueue();
+    const taskQueue = ctx.platform.macroTaskQueue;
 
     return { dirtyChecker, taskQueue };
   }
@@ -22,7 +22,7 @@ describe('DirtyChecker', function () {
 
   const specs = [
     {
-      framesPerCheck: 1,
+      timeoutsPerCheck: 1,
       frameChecks: [
         { callCount: 0 },
         { oldValue: '0', newValue: '1', callCount: 1, flags: expectedFlags },
@@ -39,7 +39,7 @@ describe('DirtyChecker', function () {
       ]
     },
     {
-      framesPerCheck: 2,
+      timeoutsPerCheck: 2,
       frameChecks: [
         { callCount: 0 },
         { callCount: 0 },
@@ -56,7 +56,7 @@ describe('DirtyChecker', function () {
       ]
     },
     {
-      framesPerCheck: 3,
+      timeoutsPerCheck: 3,
       frameChecks: [
         { callCount: 0 },
         { callCount: 0 },
@@ -73,7 +73,7 @@ describe('DirtyChecker', function () {
       ]
     },
     {
-      framesPerCheck: 6,
+      timeoutsPerCheck: 6,
       frameChecks: [
         { callCount: 0 },
         { callCount: 0 },
@@ -92,9 +92,9 @@ describe('DirtyChecker', function () {
   ];
 
   for (const spec of specs) {
-    it(`updates after ${spec.framesPerCheck} RAF call`, function (done) {
-      const { framesPerCheck, frameChecks } = spec;
-      DirtyCheckSettings.framesPerCheck = framesPerCheck;
+    it(`updates after ${spec.timeoutsPerCheck} RAF call`, function (done) {
+      const { timeoutsPerCheck, frameChecks } = spec;
+      DirtyCheckSettings.timeoutsPerCheck = timeoutsPerCheck;
       const { dirtyChecker, taskQueue } = createFixture();
 
       const obj1 = { foo: '0' };
@@ -253,8 +253,8 @@ describe('DirtyChecker', function () {
   }
 
   it('does nothing if disabled', function (done) {
-    const framesPerCheck: number = 1;
-    DirtyCheckSettings.framesPerCheck = framesPerCheck;
+    const timeoutsPerCheck: number = 1;
+    DirtyCheckSettings.timeoutsPerCheck = timeoutsPerCheck;
     DirtyCheckSettings.disabled = true;
     const { dirtyChecker, taskQueue } = createFixture();
 

@@ -410,7 +410,7 @@ describe(`[repeat.contextual-prop.spec.ts]`, function () {
 
           try {
             mutate(component.items, component);
-            ctx.scheduler.getRenderTaskQueue().flush();
+            ctx.platform.domWriteQueue.flush();
 
             assert.strictEqual(host.textContent, expectation(component.items, component), `#after mutation`);
 

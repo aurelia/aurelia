@@ -15,12 +15,13 @@ import {
   createObserverLocator,
   createScopeForTest,
   eachCartesianJoinFactory,
-  assert
+  assert,
+  createContainer
 } from '@aurelia/testing';
 
 describe.skip('CallBinding', function () {
   function createFixture(sourceExpression: IsBindingBehavior, target: any, targetProperty: string) {
-    const container = DI.createContainer(); // Note: used to be RuntimeConfiguration.createContainer, needs deps
+    const container = createContainer(); // Note: used to be RuntimeConfiguration.createContainer, needs deps
     const lifecycle = container.get(ILifecycle);
     const observerLocator = createObserverLocator(container);
     const sut = new CallBinding(sourceExpression as any, target, targetProperty, observerLocator, container);

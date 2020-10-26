@@ -5,6 +5,17 @@ export interface IPlatform extends Platform {}
 export const IPlatform = DI.createInterface<IPlatform>('IPlatform').noDefault();
 
 export {
+  Platform,
+  TaskQueue,
+  Task,
+  TaskAbortError,
+  TaskQueuePriority,
+  TaskStatus,
+  QueueTaskOptions,
+  ITask,
+} from '@aurelia/platform';
+
+export {
   all,
   DI,
   IContainer,

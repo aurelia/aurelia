@@ -20,7 +20,7 @@ describe.skip('ValueAttributeObserver', function () {
     describe(`setValue() - type="${inputType}"`, function () {
       function createFixture(hasSubscriber: boolean) {
         const ctx = TestContext.create();
-        const { container, lifecycle, observerLocator, scheduler } = ctx;
+        const { container, lifecycle, observerLocator, platform } = ctx;
 
         const el = ctx.createElementFromMarkup(`<input type="${inputType}"/>`) as HTMLInputElement;
         ctx.doc.body.appendChild(el);
@@ -32,12 +32,12 @@ describe.skip('ValueAttributeObserver', function () {
           sut.subscribe(subscriber);
         }
 
-        return { ctx, container, lifecycle, observerLocator, el, sut, subscriber, scheduler };
+        return { ctx, container, lifecycle, observerLocator, el, sut, subscriber, platform };
       }
 
       function tearDown({ ctx, sut, el }: Partial<ReturnType<typeof createFixture>>) {
         ctx.doc.body.removeChild(el);
-        assert.isSchedulerEmpty();
+        assert.areTaskQueuesEmpty();
       }
 
       for (const hasSubscriber of [true, false]) {
@@ -46,7 +46,7 @@ describe.skip('ValueAttributeObserver', function () {
 
             it(_`hasSubscriber=${hasSubscriber}, valueBefore=${valueBefore}, valueAfter=${valueAfter}`, function () {
 
-              const { ctx, sut, lifecycle, el, subscriber, scheduler } = createFixture(hasSubscriber);
+              const { ctx, sut, lifecycle, el, subscriber, platform } = createFixture(hasSubscriber);
 
               const expectedValueBefore = nullValues.includes(valueBefore) ? '' : valueBefore;
               const expectedValueAfter = nullValues.includes(valueAfter) ? '' : valueAfter;
@@ -57,7 +57,7 @@ describe.skip('ValueAttributeObserver', function () {
 
               sut.setValue(valueBefore, LF.none);
               // assert.strictEqual(lifecycle.flushCount, changeCountBefore, 'lifecycle.flushCount 1');
-              scheduler.getRenderTaskQueue().flush();
+              platform.domWriteQueue.flush();
               assert.strictEqual(el.value, expectedValueBefore, 'el.value 1');
               assert.strictEqual(sut.getValue(), expectedValueBefore, 'sut.getValue() 1');
               if (hasSubscriber && changeCountBefore) {
@@ -73,7 +73,7 @@ describe.skip('ValueAttributeObserver', function () {
 
               sut.setValue(valueAfter, LF.none);
               // assert.strictEqual(lifecycle.flushCount, changeCountAfter, 'lifecycle.flushCount 2');
-              scheduler.getRenderTaskQueue().flush();
+              platform.domWriteQueue.flush();
               assert.strictEqual(el.value, expectedValueAfter, 'el.value 2');
               assert.strictEqual(sut.getValue(), expectedValueAfter, 'sut.getValue() 2',);
               if (hasSubscriber && changeCountAfter) {

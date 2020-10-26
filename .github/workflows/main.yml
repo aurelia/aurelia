@@ -71,7 +71,7 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: cd test/1kcomponents && npm run build
-      - run: cd ../fractals-tree && npm run build
+      - run: cd test/fractals-tree && npm run build
         working-directory: packages/__tests__
 
   cypress:

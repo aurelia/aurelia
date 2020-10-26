@@ -1,0 +1,177 @@
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var ProxyObserver_1;
+import { emptyArray } from '@aurelia/kernel';
+import { proxySubscriberCollection, subscriberCollection } from './subscriber-collection';
+const lookup = new WeakMap();
+let ProxySubscriberCollection = class ProxySubscriberCollection {
+    constructor(proxy, raw, key) {
+        this.proxy = proxy;
+        this.raw = raw;
+        this.key = key;
+        this.inBatch = false;
+        this.subscribe = this.addSubscriber;
+        this.unsubscribe = this.removeSubscriber;
+        if (raw[key] instanceof Object) { // Ensure we observe array indices and newly created object properties
+            raw[key] = ProxyObserver.getOrCreate(raw[key]).proxy;
+        }
+    }
+    setValue(value, flags) {
+        const oldValue = this.raw[this.key];
+        if (oldValue !== value) {
+            this.raw[this.key] = value;
+            this.callSubscribers(value, oldValue, flags | 2 /* proxyStrategy */ | 8 /* updateTargetInstance */);
+        }
+    }
+    getValue() {
+        return this.raw[this.key];
+    }
+    flushBatch(flags) {
+        return;
+    }
+};
+ProxySubscriberCollection = __decorate([
+    subscriberCollection(),
+    __metadata("design:paramtypes", [Object, Object, Object])
+], ProxySubscriberCollection);
+export { ProxySubscriberCollection };
+let ProxyObserver = ProxyObserver_1 = class ProxyObserver {
+    constructor(obj) {
+        this.raw = obj;
+        this.proxy = new Proxy(obj, this);
+        lookup.set(obj, this.proxy);
+        this.subscribers = {};
+    }
+    get doNotCache() { return true; }
+    static getProxyOrSelf(obj) {
+        if (obj.$raw === void 0) {
+            const proxy = lookup.get(obj);
+            if (proxy === void 0) {
+                return obj;
+            }
+            return proxy;
+        }
+        return obj;
+    }
+    static getRawIfProxy(obj) {
+        const raw = obj.$raw;
+        if (raw === void 0) {
+            return obj;
+        }
+        return raw;
+    }
+    static getOrCreate(obj, key) {
+        let proxyObserver;
+        if (obj.$raw === void 0) {
+            const proxy = lookup.get(obj);
+            if (proxy === void 0) {
+                proxyObserver = new ProxyObserver_1(obj);
+            }
+            else {
+                proxyObserver = proxy.$observer;
+            }
+        }
+        else {
+            proxyObserver = obj.$observer;
+        }
+        if (key === void 0) {
+            return proxyObserver;
+        }
+        let subscribers = proxyObserver.subscribers[key];
+        if (subscribers === void 0) {
+            const raw = this.getRawIfProxy(obj);
+            const proxy = proxyObserver.proxy;
+            subscribers = proxyObserver.subscribers[key] = new ProxySubscriberCollection(proxy, raw, key);
+        }
+        return subscribers;
+    }
+    static isProxy(obj) {
+        return obj.$raw !== void 0;
+    }
+    get(target, p, receiver) {
+        if (p === '$observer') {
+            return this;
+        }
+        if (p === '$raw') {
+            return target;
+        }
+        return target[p];
+    }
+    set(target, p, value, receiver) {
+        const oldValue = target[p];
+        if (oldValue !== value) {
+            target[p] = value;
+            this.callPropertySubscribers(value, oldValue, p);
+            this.callProxySubscribers(p, value, oldValue, 2 /* proxyStrategy */ | 8 /* updateTargetInstance */);
+        }
+        return true;
+    }
+    deleteProperty(target, p) {
+        const oldValue = target[p];
+        if (Reflect.deleteProperty(target, p)) {
+            if (oldValue !== void 0) {
+                this.callPropertySubscribers(undefined, oldValue, p);
+                this.callProxySubscribers(p, undefined, oldValue, 2 /* proxyStrategy */ | 8 /* updateTargetInstance */);
+            }
+            return true;
+        }
+        return false;
+    }
+    defineProperty(target, p, attributes) {
+        const oldValue = target[p];
+        if (Reflect.defineProperty(target, p, attributes)) {
+            if (attributes.value !== oldValue) {
+                this.callPropertySubscribers(attributes.value, oldValue, p);
+                this.callProxySubscribers(p, attributes.value, oldValue, 2 /* proxyStrategy */ | 8 /* updateTargetInstance */);
+            }
+            return true;
+        }
+        return false;
+    }
+    apply(target, thisArg, argArray = emptyArray) {
+        // eslint-disable-next-line @typescript-eslint/ban-types
+        return Reflect.apply(target, target, argArray); // Reflect API dictates this
+    }
+    subscribe(subscriber, key) {
+        if (key === void 0) {
+            this.addProxySubscriber(subscriber);
+        }
+        else {
+            let subscribers = this.subscribers[key];
+            if (subscribers === void 0) {
+                subscribers = this.subscribers[key] = new ProxySubscriberCollection(this.proxy, this.raw, key);
+            }
+            subscribers.addSubscriber(subscriber);
+        }
+    }
+    unsubscribe(subscriber, key) {
+        if (key === void 0) {
+            this.removeProxySubscriber(subscriber);
+        }
+        else {
+            const subscribers = this.subscribers[key];
+            if (subscribers !== undefined) {
+                subscribers.removeSubscriber(subscriber);
+            }
+        }
+    }
+    callPropertySubscribers(newValue, oldValue, key) {
+        const subscribers = this.subscribers[key];
+        if (subscribers !== void 0) {
+            subscribers.callSubscribers(newValue, oldValue, 2 /* proxyStrategy */ | 8 /* updateTargetInstance */);
+        }
+    }
+};
+ProxyObserver = ProxyObserver_1 = __decorate([
+    proxySubscriberCollection(),
+    __metadata("design:paramtypes", [Object])
+], ProxyObserver);
+export { ProxyObserver };
+//# sourceMappingURL=proxy-observer.js.map

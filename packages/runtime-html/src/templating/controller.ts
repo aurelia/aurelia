@@ -13,6 +13,7 @@ import {
   IServiceLocator,
 } from '@aurelia/kernel';
 import {
+  AccessScopeExpression,
   IBinding,
   Scope,
   LifecycleFlags,
@@ -22,7 +23,13 @@ import {
   ProxyObserver,
   BindableObserver,
   BindableDefinition,
+  BindingType,
   IObserverLocator,
+  IWatchDefinition,
+  ComputedWatcher,
+  ExpressionWatcher,
+  IWatcherCallback,
+  IObservable,
 } from '@aurelia/runtime';
 import { HooksDefinition } from '../definitions';
 import { INodeSequence, IRenderLocation } from '../dom';
@@ -285,7 +292,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     createObservers(this.lifecycle, definition, flags, instance);
     createChildrenObservers(this as Controller, definition, flags, instance);
 
-    if (this.hooks.hasCreate) {
+    if (this.hooks.hasDefine) {
       if (this.debug) {
         this.logger.trace(`invoking define() hook`);
       }
@@ -1332,6 +1339,7 @@ function createWatchers(
   const observerLocator = context!.get(IObserverLocator);
   const expressionParser = context.get(ExpressionParser);
   const watches = definition.watches;
+  const hasProxy = controller.platform.Proxy != null;
   let expression: IWatchDefinition['expression'];
   let callback: IWatchDefinition['callback'];
 
@@ -1357,7 +1365,13 @@ function createWatchers(
         ? expressionParser.parse(expression, BindingType.BindCommand)
         : AccessScopeAst.for(expression);
 
-      controller.addBinding(new ExpressionWatcher(controller.scope!, context, observerLocator, ast, callback));
+      controller.addBinding(new ExpressionWatcher(
+        controller.scope!,
+        context,
+        observerLocator,
+        ast,
+        callback
+      ) as unknown as IBinding);
     }
   }
 }

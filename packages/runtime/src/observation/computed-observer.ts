@@ -24,11 +24,11 @@ import { IObserverLocator } from './observer-locator';
 import { subscriberCollection, collectionSubscriberCollection } from './subscriber-collection';
 import { IWatcher, enterWatcher, exitWatcher } from './watcher-switcher';
 import { connectable, IConnectableBinding } from '../binding/connectable';
-import { IWatcherCallback } from '../templating/watch';
+import { IWatcherCallback } from './watch';
 import { ExpressionKind, IsBindingBehavior } from '../binding/ast';
 import { getProxyOrSelf, getRawOrSelf } from './proxy-observation';
 import { Scope } from './binding-context';
-import { isArray, isSet } from './utilities-objects';
+import { isArray, isMap, isSet } from './utilities-objects';
 
 export interface ComputedOverrides {
   // Indicates that a getter doesn't need to re-calculate its dependencies after the first observation.
@@ -413,8 +413,10 @@ export class ComputedWatcher implements IWatcher {
       observer = obsLocator.getArrayObserver(LifecycleFlags.none, collection);
     } else if (isSet(collection)) {
       observer = obsLocator.getSetObserver(LifecycleFlags.none, collection);
-    } else {
+    } else if (isMap(collection)) {
       observer = obsLocator.getMapObserver(LifecycleFlags.none, collection);
+    } else {
+      throw new Error('Unrecognised collection type.');
     }
     return observer;
   }
@@ -437,7 +439,7 @@ export class ComputedWatcher implements IWatcher {
 export interface ExpressionWatcher extends IConnectableBinding { }
 
 @connectable()
-export class ExpressionWatcher implements ExpressionWatcher {
+export class ExpressionWatcher implements IConnectableBinding {
   /**
    * @internal
    */

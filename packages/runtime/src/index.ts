@@ -256,7 +256,7 @@ export {
   IWatchDefinition,
   IWatcherCallback,
   IDepCollectionFn,
-} from './templating/watch';
+} from './observation/watch';
 
 export {
   BindingMode,

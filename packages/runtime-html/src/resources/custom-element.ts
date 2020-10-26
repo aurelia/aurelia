@@ -17,16 +17,23 @@ import {
   fromAnnotationOrDefinitionOrTypeOrDefault,
   Injectable,
   IResolver,
-  PLATFORM,
+  emptyArray,
 } from '@aurelia/kernel';
-import { PartialBindableDefinition, BindingStrategy, BindableDefinition, Bindable, registerAliases } from '@aurelia/runtime';
+import {
+  PartialBindableDefinition,
+  BindingStrategy,
+  BindableDefinition,
+  Bindable,
+  registerAliases,
+  IWatchDefinition,
+  Watch,
+} from '@aurelia/runtime';
 import { IInstruction, HooksDefinition } from '../definitions';
 import { INode, IRenderLocation, getEffectiveParentNode } from '../dom';
 import { ICustomElementViewModel, ICustomElementController } from '../lifecycle';
 import { PartialChildrenDefinition, ChildrenDefinition, Children } from '../templating/children';
 import { IProjections } from './custom-elements/au-slot';
 import { Controller } from '../templating/controller';
-import { IWatchDefinition, Watch } from '../templating/watch';
 
 export type PartialCustomElementDefinition = PartialResourceDefinition<{
   readonly cache?: '*' | number;
@@ -274,7 +281,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         fromDefinitionOrDefault('hooks', def, () => HooksDefinition.none),
         fromDefinitionOrDefault('enhance', def, () => false),
         fromDefinitionOrDefault('projectionsMap', def as CustomElementDefinition, () => new Map<IInstruction, IProjections>()),
-        fromDefinitionOrDefault('watches', def as CustomElementDefinition, () => PLATFORM.emptyArray),
+        fromDefinitionOrDefault('watches', def as CustomElementDefinition, () => emptyArray),
       );
     }
 

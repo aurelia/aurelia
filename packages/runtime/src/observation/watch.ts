@@ -1,4 +1,4 @@
-import { Constructable, Protocol, Metadata, PLATFORM } from '@aurelia/kernel';
+import { Constructable, Protocol, Metadata, emptyArray } from '@aurelia/kernel';
 import type { IWatcher } from '../observation/watcher-switcher';
 
 export type IDepCollectionFn<TType extends object, TReturn = unknown> = (vm: TType, watcher: IWatcher) => TReturn;
@@ -82,7 +82,7 @@ export function watch<T extends object = object>(
   };
 }
 
-const noDefinitions: IWatchDefinition[] = PLATFORM.emptyArray;
+const noDefinitions: IWatchDefinition[] = emptyArray;
 export const Watch = {
   name: Protocol.annotation.keyFor('@watch'),
   add(Type: Constructable, definition: IWatchDefinition): void {

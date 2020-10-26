@@ -18,10 +18,11 @@ import {
   BindableDefinition,
   Bindable,
   registerAliases,
+  IWatchDefinition,
+  Watch,
 } from '@aurelia/runtime';
 import { HooksDefinition } from '../definitions';
 import { ICustomAttributeViewModel, ICustomAttributeController } from '../lifecycle';
-import { IWatchDefinition, Watch } from '../templating/watch';
 
 export type PartialCustomAttributeDefinition = PartialResourceDefinition<{
   readonly defaultBindingMode?: BindingMode;

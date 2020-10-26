@@ -1,11 +1,9 @@
 import { IIndexable } from '@aurelia/kernel';
 import { watching, currentWatcher } from './watcher-switcher';
-import { LifecycleFlags } from '../flags';
 import { isMap, isSet, isObject, isArray } from './utilities-objects';
 
 const R$get = Reflect.get;
 const proxyMap = new WeakMap<object, object>();
-export const hasProxy = typeof Proxy !== 'undefined';
 
 export const rawKey = '__raw__';
 

@@ -1,5 +1,5 @@
 import { watch } from '@aurelia/runtime';
-import { assert, createFixture, HTMLTestContext } from '@aurelia/testing';
+import { assert, createFixture, TestContext } from '@aurelia/testing';
 
 describe('3-runtime-html/decorator-watch.expression.spec.ts', function () {
   const testCases: ITestCase[] = [
@@ -40,6 +40,22 @@ describe('3-runtime-html/decorator-watch.expression.spec.ts', function () {
       disposed: (post, _, decoratorCount) => {
         post.deliveries[0].done = false;
         assert.strictEqual(post.deliveryCount, 4 * decoratorCount);
+      },
+    },
+    {
+      title: 'observes symbol',
+      get: Symbol.for('packages'),
+      created: (post, _, decoratorCount) => {
+        assert.strictEqual(post.deliveryCount, 0);
+        post[Symbol.for('packages')] = 0;
+        assert.strictEqual(post.deliveryCount, 1 * decoratorCount);
+        post[Symbol.for('packages')] = 1;
+        assert.strictEqual(post.deliveryCount, 2 * decoratorCount);
+      },
+      disposed: (post, _, decoratorCount) => {
+        assert.strictEqual(post.deliveryCount, 2 * decoratorCount);
+        post[Symbol.for('packages')] = 0;
+        assert.strictEqual(post.deliveryCount, 2 * decoratorCount);
       },
     },
   ];
@@ -144,8 +160,8 @@ describe('3-runtime-html/decorator-watch.expression.spec.ts', function () {
   interface ITestCase {
     title: string;
     only?: boolean;
-    get: string;
-    created: (app: IPost, ctx: HTMLTestContext, decoratorCount: number) => any;
-    disposed?: (app: IPost, ctx: HTMLTestContext, decoratorCount: number) => any;
+    get: PropertyKey;
+    created: (app: IPost, ctx: TestContext, decoratorCount: number) => any;
+    disposed?: (app: IPost, ctx: TestContext, decoratorCount: number) => any;
   }
 });

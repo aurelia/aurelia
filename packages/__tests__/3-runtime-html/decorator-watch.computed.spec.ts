@@ -1,5 +1,15 @@
-import { watch, IDepCollectionFn, customElement, bindable, ComputedWatcher, ICustomElementViewModel, customAttribute } from '@aurelia/runtime';
-import { assert, createFixture, HTMLTestContext } from '@aurelia/testing';
+import {
+  watch,
+  IDepCollectionFn,
+  bindable,
+  ComputedWatcher,
+} from '@aurelia/runtime';
+import {
+  customElement,
+  ICustomElementViewModel,
+  customAttribute,
+} from '@aurelia/runtime-html';
+import { assert, createFixture, TestContext } from '@aurelia/testing';
 
 describe('3-runtime-html/decorator-watch.spec.ts', function () {
   it('typings work', function () {
@@ -73,12 +83,12 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
     assert.strictEqual(callCount, 0);
     component.person.first = 'bi ';
     assert.strictEqual(callCount, 0);
-    ctx.scheduler.getRenderTaskQueue().flush();
+    ctx.platform.domWriteQueue.flush();
     assert.strictEqual(appHost.textContent, '');
     component.person.phone = '0413';
     assert.strictEqual(callCount, 1);
     assert.strictEqual(appHost.textContent, '');
-    ctx.scheduler.getRenderTaskQueue().flush();
+    ctx.platform.domWriteQueue.flush();
     assert.strictEqual(appHost.textContent, '0413');
 
     tearDown();
@@ -125,14 +135,14 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
     component.person.addresses[1].strName = '3cp';
     assert.strictEqual(callCount, 1);
     assert.strictEqual(textNode.textContent, '');
-    ctx.scheduler.getRenderTaskQueue().flush();
+    ctx.platform.domWriteQueue.flush();
     assert.strictEqual(textNode.textContent, '3cp');
 
     tearDown();
 
     component.person.addresses[1].strName = 'Chunpeng Huo';
     assert.strictEqual(textNode.textContent, '3cp');
-    ctx.scheduler.getRenderTaskQueue().flush();
+    ctx.platform.domWriteQueue.flush();
     assert.strictEqual(textNode.textContent, '3cp');
   });
 
@@ -471,13 +481,13 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
 
     component.newDelivery({ id: 4, name: 'cookware', delivered: false });
     assert.strictEqual(callCount, 1);
-    ctx.scheduler.getRenderTaskQueue().flush();
+    ctx.platform.domWriteQueue.flush();
     assert.strictEqual(textNode.textContent, json([{ id: 2, name: 'toy', delivered: true }]));
 
     component.delivered(1);
     assert.strictEqual(callCount, 2);
     assert.strictEqual(textNode.textContent, json([{ id: 2, name: 'toy', delivered: true }]));
-    ctx.scheduler.getRenderTaskQueue().flush();
+    ctx.platform.domWriteQueue.flush();
     assert.strictEqual(
       textNode.textContent,
       json([
@@ -497,7 +507,7 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
         { id: 2, name: 'toy', delivered: true }
       ])
     );
-    ctx.scheduler.getRenderTaskQueue().flush();
+    ctx.platform.domWriteQueue.flush();
     assert.strictEqual(
       textNode.textContent,
       json([
@@ -556,13 +566,13 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
 
     component.newDelivery({ id: 4, name: 'cookware', delivered: false });
     assert.strictEqual(callCount, 0);
-    ctx.scheduler.getRenderTaskQueue().flush();
+    ctx.platform.domWriteQueue.flush();
     assert.strictEqual(textNode.textContent, '0');
 
     component.delivered(1);
     assert.strictEqual(callCount, 1);
     assert.strictEqual(textNode.textContent, '0');
-    ctx.scheduler.getRenderTaskQueue().flush();
+    ctx.platform.domWriteQueue.flush();
     assert.strictEqual(textNode.textContent, '1');
 
     tearDown();
@@ -571,10 +581,10 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
     component.delivered(3);
     assert.strictEqual(textNode.textContent, '1');
     assert.strictEqual(callCount, 1);
-    ctx.scheduler.getRenderTaskQueue().flush();
+    ctx.platform.domWriteQueue.flush();
     assert.strictEqual(textNode.textContent, '1');
     component.newDelivery({ id: 6, name: 'box', delivered: true });
-    ctx.scheduler.getRenderTaskQueue().flush();
+    ctx.platform.domWriteQueue.flush();
     assert.strictEqual(textNode.textContent, '1');
   });
 
@@ -851,8 +861,8 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
       only?: boolean;
       init?: () => IDelivery[];
       get: IDepCollectionFn<IPostOffice>;
-      created: (post: IPostOffice, ctx: HTMLTestContext, decoratorCount: number) => any;
-      disposed?: (post: IPostOffice, ctx: HTMLTestContext, decoratorCount: number) => any;
+      created: (post: IPostOffice, ctx: TestContext, decoratorCount: number) => any;
+      disposed?: (post: IPostOffice, ctx: TestContext, decoratorCount: number) => any;
     }
   });
 
@@ -1134,8 +1144,8 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
       title: string;
       only?: boolean;
       get: IDepCollectionFn<IApp>;
-      created: (app: IApp, ctx: HTMLTestContext, decoratorCount: number) => any;
-      disposed?: (app: IApp, ctx: HTMLTestContext, decoratorCount: number) => any;
+      created: (app: IApp, ctx: TestContext, decoratorCount: number) => any;
+      disposed?: (app: IApp, ctx: TestContext, decoratorCount: number) => any;
     }
   });
 

@@ -2,7 +2,7 @@ import { DI, IContainer, Registration } from '@aurelia/kernel';
 import { StandardConfiguration, Aurelia as $Aurelia, IPlatform, IAppRoot, CustomElementType, ISinglePageApp, CustomElement } from '@aurelia/runtime-html';
 import { BrowserPlatform } from '@aurelia/platform-browser';
 
-export const PLATFORM = new BrowserPlatform(window);
+export const PLATFORM = BrowserPlatform.getOrCreate(globalThis);
 export { IPlatform };
 
 function createContainer(): IContainer {

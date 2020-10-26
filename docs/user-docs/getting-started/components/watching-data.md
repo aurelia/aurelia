@@ -337,7 +337,7 @@ By default, a watcher will be created for a `@watch()` decorator. This watcher w
     }
   }
   ```
-  `firstName` and `lastName` property of `contact` components is being observed manually. And everytime either `firstName`, or `lastName` change, the computed getter is run again and the dependencies will be observed again. Observers are cached and the same observer won't be added more than one, old observers from old computed getter will also be disposed, so you won't have to worry about stale dependencies or memory leak.
+  The `firstName` and `lastName` properties of `contact` components is being observed manually. And everytime either `firstName`, or `lastName` change, the computed getter is run again and the dependencies will be observed again. Observers are cached and the same observer won't be added more than once, old observers from the old computed getter run will also be disposed, so you won't have to worry about stale dependencies or memory leak.
 
 # Best practices
 
@@ -347,7 +347,7 @@ By default, a watcher will be created for a `@watch()` decorator. This watcher w
   @watch(object => object.counter++)
   someMethod() {}
   ```
-- To ensure idenity equality with Proxy, always be careful with objects that are not accessed from the 1st parameter passed into the computed getter. Better get the raw underlying object before doing the strict comparison with `===`. For example:
+- To ensure idenity equality with proxies, always be careful with objects that are not accessed from the first parameter passed into the computed getter. Better, get the raw underlying object before doing the strict comparison with `===`. For example:
   ```typescript
   const defaultOptions = {};
 

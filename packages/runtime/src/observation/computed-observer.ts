@@ -3,7 +3,8 @@ import {
   Constructable,
   IIndexable,
   emptyArray,
-  isArrayIndex
+  isArrayIndex,
+  IServiceLocator
 } from '@aurelia/kernel';
 import {
   IBindingContext,
@@ -24,7 +25,7 @@ import { subscriberCollection, collectionSubscriberCollection } from './subscrib
 import { IWatcher, enterWatcher, exitWatcher } from './watcher-switcher';
 import { connectable, IConnectableBinding } from '../binding/connectable';
 import { IWatcherCallback } from '../templating/watch';
-import { IsBindingBehavior } from '../binding/ast';
+import { ExpressionKind, IsBindingBehavior } from '../binding/ast';
 import { getProxyOrSelf, getRawOrSelf } from './proxy-observation';
 import { Scope } from './binding-context';
 import { isArray, isSet } from './utilities-objects';

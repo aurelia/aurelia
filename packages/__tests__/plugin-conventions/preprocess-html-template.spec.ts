@@ -5,7 +5,7 @@ import { assert } from '@aurelia/testing';
 describe('preprocessHtmlTemplate', function () {
   it('processes template with no dependencies', function () {
     const html = '<template></template>';
-    const expected = `import { CustomElement } from '@aurelia/runtime';
+    const expected = `import { CustomElement } from '@aurelia/runtime-html';
 export const name = "foo-bar";
 export const template = "<template></template>";
 export default template;
@@ -24,7 +24,7 @@ export function register(container) {
 
   it('processes template with file name not in kebab case', function () {
     const html = '<template></template>';
-    const expected = `import { CustomElement } from '@aurelia/runtime';
+    const expected = `import { CustomElement } from '@aurelia/runtime-html';
 export const name = "foo-bar";
 export const template = "<template></template>";
 export default template;
@@ -43,7 +43,7 @@ export function register(container) {
 
   it('processes template with css pair', function () {
     const html = '<template></template>';
-    const expected = `import { CustomElement } from '@aurelia/runtime';
+    const expected = `import { CustomElement } from '@aurelia/runtime-html';
 import { Registration } from '@aurelia/kernel';
 import d0 from "./foo-bar.css";
 export const name = "foo-bar";
@@ -64,7 +64,7 @@ export function register(container) {
 
   it('processes template with multiple css', function () {
     const html = '<require from="./lo.css"></require><template></template>';
-    const expected = `import { CustomElement } from '@aurelia/runtime';
+    const expected = `import { CustomElement } from '@aurelia/runtime-html';
 import { Registration } from '@aurelia/kernel';
 import d0 from "./foo-bar.css";
 import d1 from "./lo.css";
@@ -86,7 +86,7 @@ export function register(container) {
 
   it('do not import css pair if a pair is imported', function () {
     const html = '<import from="./foo-bar.less"></import><template></template>';
-    const expected = `import { CustomElement } from '@aurelia/runtime';
+    const expected = `import { CustomElement } from '@aurelia/runtime-html';
 import { Registration } from '@aurelia/kernel';
 import d0 from "./foo-bar.less";
 export const name = "foo-bar";
@@ -107,7 +107,7 @@ export function register(container) {
 
   it('processes template with dependencies', function () {
     const html = '<import from="./hello-world.html" /><template><import from="foo"><require from="./foo-bar.scss"></require></template>';
-    const expected = `import { CustomElement } from '@aurelia/runtime';
+    const expected = `import { CustomElement } from '@aurelia/runtime-html';
 import * as d0 from "./hello-world.html";
 import * as d1 from "foo";
 import { Registration } from '@aurelia/kernel';
@@ -130,7 +130,7 @@ export function register(container) {
 
   it('supports HTML-only dependency not in html format', function () {
     const html = '<import from="./hello-world.md" /><template><import from="foo"><require from="./foo-bar.scss"></require></template>';
-    const expected = `import { CustomElement } from '@aurelia/runtime';
+    const expected = `import { CustomElement } from '@aurelia/runtime-html';
 import * as d0 from "./hello-world.md";
 import * as d1 from "foo";
 import { Registration } from '@aurelia/kernel';
@@ -153,7 +153,7 @@ export function register(container) {
 
   it('processes template with dependencies, wrap css module id', function () {
     const html = '<import from="./hello-world.html" /><template><import from="foo"><require from="./foo-bar.scss"></require></template>';
-    const expected = `import { CustomElement } from '@aurelia/runtime';
+    const expected = `import { CustomElement } from '@aurelia/runtime-html';
 import * as d0 from "./hello-world.html";
 import * as d1 from "foo";
 import { Registration } from '@aurelia/kernel';
@@ -179,7 +179,7 @@ export function register(container) {
 
   it('processes template with css dependencies in shadowDOM mode', function () {
     const html = '<import from="./hello-world.html" /><template><import from="foo"><require from="./foo-bar.scss"></require></template>';
-    const expected = `import { CustomElement } from '@aurelia/runtime';
+    const expected = `import { CustomElement } from '@aurelia/runtime-html';
 import { shadowCSS } from '@aurelia/runtime-html';
 import * as d0 from "./hello-world.html";
 import * as d1 from "foo";
@@ -209,7 +209,7 @@ export function register(container) {
 
   it('processes template with multiple css dependencies in shadowDOM mode', function () {
     const html = '<import from="./hello-world.html" /><template><import from="foo"><require from="./foo-bar.scss"><require from="./foo-bar2.scss"></require></template>';
-    const expected = `import { CustomElement } from '@aurelia/runtime';
+    const expected = `import { CustomElement } from '@aurelia/runtime-html';
 import { shadowCSS } from '@aurelia/runtime-html';
 import * as d0 from "./hello-world.html";
 import * as d1 from "foo";
@@ -239,7 +239,7 @@ export function register(container) {
 
   it('processes template with css dependencies in shadowDOM mode with string module wrap', function () {
     const html = '<import from="./hello-world.html" /><template><import from="foo"><require from="./foo-bar.scss"></require></template>';
-    const expected = `import { CustomElement } from '@aurelia/runtime';
+    const expected = `import { CustomElement } from '@aurelia/runtime-html';
 import { shadowCSS } from '@aurelia/runtime-html';
 import * as d0 from "./hello-world.html";
 import * as d1 from "foo";
@@ -269,7 +269,7 @@ export function register(container) {
 
   it('processes template with css dependencies in shadowDOM mode with string module wrap and explicit shadow mode', function () {
     const html = '<import from="./hello-world.html"><use-shadow-dom><template><import from="foo"><require from="./foo-bar.scss"></require></template>';
-    const expected = `import { CustomElement } from '@aurelia/runtime';
+    const expected = `import { CustomElement } from '@aurelia/runtime-html';
 import { shadowCSS } from '@aurelia/runtime-html';
 import * as d0 from "./hello-world.html";
 import * as d1 from "foo";
@@ -299,7 +299,7 @@ export function register(container) {
 
   it('processes template with css dependencies in per-file shadowDOM mode with string module wrap and explicit shadow mode', function () {
     const html = '<import from="./hello-world.html"><use-shadow-dom><template><import from="foo"><require from="./foo-bar.scss"></require></template>';
-    const expected = `import { CustomElement } from '@aurelia/runtime';
+    const expected = `import { CustomElement } from '@aurelia/runtime-html';
 import { shadowCSS } from '@aurelia/runtime-html';
 import * as d0 from "./hello-world.html";
 import * as d1 from "foo";
@@ -328,7 +328,7 @@ export function register(container) {
 
   it('turn off shadowDOM mode for one word element', function () {
     const html = '<import from="./hello-world.html"><use-shadow-dom><template><import from="foo"><require from="./foo-bar.scss"></require></template>';
-    const expected = `import { CustomElement } from '@aurelia/runtime';
+    const expected = `import { CustomElement } from '@aurelia/runtime-html';
 console.warn("WARN: ShadowDOM is disabled for ${path.join('lo', 'foo.html')}. ShadowDOM requires element name to contain at least one dash (-), you have to refactor <foo> to something like <lorem-foo>.");
 import * as d0 from "./hello-world.html";
 import * as d1 from "foo";
@@ -358,7 +358,7 @@ export function register(container) {
 
   it('processes template with containerless and bindables', function () {
     const html = '<bindable name="age" mode="one-way"><containerless><template bindable="firstName, lastName"></template>';
-    const expected = `import { CustomElement } from '@aurelia/runtime';
+    const expected = `import { CustomElement } from '@aurelia/runtime-html';
 export const name = "foo";
 export const template = "<template ></template>";
 export default template;
@@ -384,7 +384,7 @@ export function register(container) {
 
   it('processes template with containerless and bindables on template', function () {
     const html = '<bindable name="age" mode="one-way"><template containerless bindable="firstName, lastName"></template>';
-    const expected = `import { CustomElement } from '@aurelia/runtime';
+    const expected = `import { CustomElement } from '@aurelia/runtime-html';
 export const name = "foo";
 export const template = "<template  ></template>";
 export default template;
@@ -410,7 +410,7 @@ export function register(container) {
 
   it('processes template with containerless, bindables, and aliases', function () {
     const html = '<bindable name="age" mode="one-way"><containerless><template alias="test, test2" bindable="firstName, lastName"></template>';
-    const expected = `import { CustomElement } from '@aurelia/runtime';
+    const expected = `import { CustomElement } from '@aurelia/runtime-html';
 export const name = "foo";
 export const template = "<template  ></template>";
 export default template;
@@ -437,7 +437,7 @@ export function register(container) {
 
   it('processes template with containerless, bindables, and aliases (node)', function () {
     const html = '<alias name="test, test2"><bindable name="age" mode="one-way"><containerless><template bindable="firstName, lastName"></template>';
-    const expected = `import { CustomElement } from '@aurelia/runtime';
+    const expected = `import { CustomElement } from '@aurelia/runtime-html';
 export const name = "foo";
 export const template = "<template ></template>";
 export default template;
@@ -464,7 +464,7 @@ export function register(container) {
 
   it('processes template with containerless, bindables, and aliases (noth)', function () {
     const html = '<alias name="test, test2"><bindable name="age" mode="one-way"><containerless><template alias="test3, test4" bindable="firstName, lastName"></template>';
-    const expected = `import { CustomElement } from '@aurelia/runtime';
+    const expected = `import { CustomElement } from '@aurelia/runtime-html';
 export const name = "foo";
 export const template = "<template  ></template>";
 export default template;
@@ -491,7 +491,7 @@ export function register(container) {
 
   it('processes template with containerless, bindables, and aliases (empty node) (noth)', function () {
     const html = '<alias><bindable name="age" mode="one-way"><containerless><template alias="test3, test4" bindable="firstName, lastName"></template>';
-    const expected = `import { CustomElement } from '@aurelia/runtime';
+    const expected = `import { CustomElement } from '@aurelia/runtime-html';
 export const name = "foo";
 export const template = "<template  ></template>";
 export default template;
@@ -518,7 +518,7 @@ export function register(container) {
 
   it('processes template with containerless, bindables, and aliases (empty attr) (noth)', function () {
     const html = '<alias name="test, test2"><bindable name="age" mode="one-way"><containerless><template alias="" bindable="firstName, lastName"></template>';
-    const expected = `import { CustomElement } from '@aurelia/runtime';
+    const expected = `import { CustomElement } from '@aurelia/runtime-html';
 export const name = "foo";
 export const template = "<template  ></template>";
 export default template;
@@ -545,7 +545,7 @@ export function register(container) {
 
   it('processes template with containerless, bindables, and aliases (empty attr+node) (noth)', function () {
     const html = '<alias><bindable name="age" mode="one-way"><containerless><template alias="" bindable="firstName, lastName"></template>';
-    const expected = `import { CustomElement } from '@aurelia/runtime';
+    const expected = `import { CustomElement } from '@aurelia/runtime-html';
 export const name = "foo";
 export const template = "<template  ></template>";
 export default template;
@@ -571,7 +571,7 @@ export function register(container) {
 
   it('processes template with containerless, bindables, and aliases (empty node) MAINTAIN EXISTING ATTRIBUTES', function () {
     const html = '<alias><bindable name="age" mode="one-way"><containerless><template id="my-template" alias="test3, test4" bindable="firstName, lastName"></template>';
-    const expected = `import { CustomElement } from '@aurelia/runtime';
+    const expected = `import { CustomElement } from '@aurelia/runtime-html';
 export const name = "foo";
 export const template = "<template id=\\"my-template\\"  ></template>";
 export default template;
@@ -598,7 +598,7 @@ export function register(container) {
 
   it('processes template with containerless, bindables, and aliases (empty node) MAINTAIN EXISTING ATTRIBUTE RAN TOGETHER', function () {
     const html = '<alias><bindable name="age" mode="one-way"><containerless><template id="my-template"alias="test3, test4" bindable="firstName, lastName"></template>';
-    const expected = `import { CustomElement } from '@aurelia/runtime';
+    const expected = `import { CustomElement } from '@aurelia/runtime-html';
 export const name = "foo";
 export const template = "<template id=\\"my-template\\" ></template>";
 export default template;
@@ -625,7 +625,7 @@ export function register(container) {
 
   it('processes template with css dependencies in cssModule mode', function () {
     const html = '<import from="./hello-world.html" /><template><import from="foo"><require from="./foo-bar.scss"></require></template>';
-    const expected = `import { CustomElement } from '@aurelia/runtime';
+    const expected = `import { CustomElement } from '@aurelia/runtime-html';
 import { cssModules } from '@aurelia/runtime-html';
 import * as d0 from "./hello-world.html";
 import * as d1 from "foo";
@@ -654,7 +654,7 @@ export function register(container) {
 
   it('processes template with multiple css dependencies in cssModule mode', function () {
     const html = '<import from="./hello-world.html" /><template><import from="foo"><require from="./foo-bar.scss"><require from="./foo-bar2.scss"></require></template>';
-    const expected = `import { CustomElement } from '@aurelia/runtime';
+    const expected = `import { CustomElement } from '@aurelia/runtime-html';
 import { cssModules } from '@aurelia/runtime-html';
 import * as d0 from "./hello-world.html";
 import * as d1 from "foo";

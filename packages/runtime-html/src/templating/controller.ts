@@ -30,6 +30,7 @@ import {
   ExpressionWatcher,
   IWatcherCallback,
   IObservable,
+  IExpressionParser,
 } from '@aurelia/runtime';
 import { HooksDefinition } from '../definitions';
 import { INodeSequence, IRenderLocation } from '../dom';
@@ -60,7 +61,6 @@ import { IAppRoot } from '../app-root';
 import { ElementProjector, IProjectorLocator } from '../projectors';
 import { IPlatform } from '../platform';
 import { IViewFactory } from './view';
-import { ExpressionParser } from '@aurelia/runtime/dist/binding/expression-parser';
 
 function callDispose(disposable: IDisposable): void {
   disposable.dispose();
@@ -1337,7 +1337,7 @@ function createWatchers(
   instance: object,
 ) {
   const observerLocator = context!.get(IObserverLocator);
-  const expressionParser = context.get(ExpressionParser);
+  const expressionParser = context.get(IExpressionParser);
   const watches = definition.watches;
   const hasProxy = controller.platform.Proxy != null;
   let expression: IWatchDefinition['expression'];

@@ -80,7 +80,7 @@ describe('ts-jest', function () {
   it('transforms html file', function () {
     const html = '<template></template>';
     const expected = `// @ts-nocheck
-import { CustomElement } from '@aurelia/runtime';
+import { CustomElement } from '@aurelia/runtime-html';
 export const name = "foo-bar";
 export const template = "<template></template>";
 export default template;
@@ -101,7 +101,7 @@ export function register(container) {
   it('transforms html file with shadowOptions', function () {
     const html = '<template></template>';
     const expected = `// @ts-nocheck
-import { CustomElement } from '@aurelia/runtime';
+import { CustomElement } from '@aurelia/runtime-html';
 import { shadowCSS } from '@aurelia/runtime-html';
 import d0 from "./foo-bar.less";
 export const name = "foo-bar";
@@ -129,7 +129,7 @@ export function register(container) {
   it('transforms html file with cssModules', function () {
     const html = '<template></template>';
     const expected = `// @ts-nocheck
-import { CustomElement } from '@aurelia/runtime';
+import { CustomElement } from '@aurelia/runtime-html';
 import { cssModules } from '@aurelia/runtime-html';
 import d0 from "./foo-bar.scss";
 export const name = "foo-bar";
@@ -156,7 +156,7 @@ export function register(container) {
   it('transforms js file with html pair', function () {
     const js = 'export class FooBar {}\n';
     const expected = `import * as __au2ViewDef from './foo-bar.html';
-import { customElement } from '@aurelia/runtime';
+import { customElement } from '@aurelia/runtime-html';
 @customElement(__au2ViewDef)
 export class FooBar {}
 `;

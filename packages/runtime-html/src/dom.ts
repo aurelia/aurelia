@@ -1,11 +1,19 @@
 import { DI, Writable } from '@aurelia/kernel';
+import { IAppRoot } from './app-root';
 import { IPlatform } from './platform';
 import { ShadowDOMProjector } from './projectors';
 import { CustomElement } from './resources/custom-element';
 
 export interface INode extends Node {}
-
 export const INode = DI.createInterface<INode>('INode').noDefault();
+
+export interface IEventTarget extends EventTarget {}
+export const IEventTarget = DI.createInterface<IEventTarget>('IEventTarget').withDefault(x => x.cachedCallback(handler => {
+  if (handler.has(IAppRoot, true)) {
+    return handler.get(IAppRoot).host;
+  }
+  return handler.get(IPlatform).document;
+}));
 
 export const IRenderLocation = DI.createInterface<IRenderLocation>('IRenderLocation').noDefault();
 export interface IRenderLocation<T extends Node = Node> extends Node {

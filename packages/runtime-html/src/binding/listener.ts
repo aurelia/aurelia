@@ -10,6 +10,7 @@ import { IEventDelegator } from '../observation/event-delegator';
 
 import type { Scope } from '@aurelia/runtime';
 import { IPlatform } from '../platform';
+import { IEventTarget } from '../dom';
 
 const options = {
   [DelegationStrategy.capturing]: { capture: true } as const,
@@ -79,8 +80,9 @@ export class Listener implements IBinding {
     if (this.delegationStrategy === DelegationStrategy.none) {
       this.target.addEventListener(this.targetEvent, this);
     } else {
+      const eventTarget = this.locator.get(IEventTarget);
       this.handler = this.eventDelegator.addEventListener(
-        this.platform.document,
+        eventTarget,
         this.target,
         this.targetEvent,
         this,

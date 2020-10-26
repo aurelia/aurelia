@@ -614,6 +614,7 @@ export {
 
   // DOM, should expose the one exported in runtime-html
   INode,
+  IEventTarget,
   IRenderLocation,
   // NodeSequence,
   // INodeSequence,

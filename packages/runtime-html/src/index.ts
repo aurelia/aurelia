@@ -577,6 +577,7 @@ export {
 } from './create-element';
 export {
   INode,
+  IEventTarget,
   IRenderLocation,
   INodeSequence,
   NodeType,

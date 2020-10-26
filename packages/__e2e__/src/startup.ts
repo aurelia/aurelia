@@ -1,6 +1,5 @@
 import { I18nConfiguration, I18nInitOptions } from '@aurelia/i18n';
-import { StandardConfiguration } from '@aurelia/runtime-html';
-import { Aurelia } from '@aurelia/runtime';
+import { Aurelia, StandardConfiguration } from '@aurelia/runtime-html';
 import Fetch from 'i18next-fetch-backend';
 import * as intervalPlural from 'i18next-intervalplural-postprocessor';
 import { App as component } from './app';
@@ -14,10 +13,11 @@ import * as deRt from 'relative-time-format/locale/de.json';
 import * as enRt from 'relative-time-format/locale/en.json';
 RelativeTimeFormat.addLocale(enRt['default']);
 RelativeTimeFormat.addLocale(deRt['default']);
+// @ts-ignore
 Intl['RelativeTimeFormat'] = Intl['RelativeTimeFormat'] || RelativeTimeFormat;
 
 (async function () {
-  const host = document.querySelector('app');
+  const host = document.querySelector<HTMLElement>('app');
   const searchParams = new URL(location.href).searchParams;
   const fetchResource = !!searchParams.get('fetchResource');
 

@@ -1,5 +1,6 @@
 import { I18N, Signals } from '@aurelia/i18n';
-import { customElement, ISignaler } from '@aurelia/runtime';
+import { ISignaler } from '@aurelia/runtime';
+import { customElement } from '@aurelia/runtime-html';
 import template from './sut-i18n.html';
 import { Locale } from './translation-resources';
 

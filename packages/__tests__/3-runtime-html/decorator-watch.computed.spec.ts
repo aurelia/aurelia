@@ -3,6 +3,7 @@ import {
   IDepCollectionFn,
   bindable,
   ComputedWatcher,
+  IWatcherCallback,
 } from '@aurelia/runtime';
 import {
   customElement,
@@ -609,7 +610,7 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
           const decoratorCount = post.decoratorCount;
           assert.strictEqual(post.callCount, 2 * decoratorCount);
           post.delivered(2);            assert.strictEqual(post.callCount, 2 * decoratorCount);
-        }
+        },
       },
       {
         title: 'observes .find()',
@@ -631,7 +632,7 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
           const decoratorCount = post.decoratorCount;
           assert.strictEqual(post.callCount, 2 * decoratorCount);
           post.delivered(1);            assert.strictEqual(post.callCount, 2 * decoratorCount);
-        }
+        },
       },
       {
         title: 'observes .indexOf()',
@@ -651,7 +652,7 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
           const decoratorCount = post.decoratorCount;
           assert.strictEqual(post.callCount, 3 * decoratorCount);
           post.selected = post.packages[1];     assert.strictEqual(post.callCount, 3 * decoratorCount);
-        }
+        },
       },
       {
         title: 'observes .findIndex()',
@@ -671,7 +672,7 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
           const decoratorCount = post.decoratorCount;
           assert.strictEqual(post.callCount, 3 * decoratorCount);
           post.selected = post.packages[1];     assert.strictEqual(post.callCount, 3 * decoratorCount);
-        }
+        },
       },
       {
         title: 'observes .some()',
@@ -693,45 +694,41 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
           const decoratorCount = post.decoratorCount;
           assert.strictEqual(post.callCount, 2 * decoratorCount);
           post.delivered(1);            assert.strictEqual(post.callCount, 2 * decoratorCount);
-        }
-      },
-      {
-        title: 'observes .map()',
-        init: () => Array.from(
-          { length: 3 },
-          (_, idx) => ({ id: idx + 1, name: `box ${idx + 1}`, delivered: false })
-        ),
-        get: post => post.packages.map(d => d.delivered).join(', '),
-        created: post => {
-          const decoratorCount = post.decoratorCount;
-          assert.strictEqual(post.callCount, 0);
-          post.newDelivery(4, 'box 4'); assert.strictEqual(post.callCount, 1 * decoratorCount);
-          post.delivered(1);            assert.strictEqual(post.callCount, 2 * decoratorCount);
-          post.delivered(4);            assert.strictEqual(post.callCount, 3 * decoratorCount);
-          post.newDelivery(5, 'box 5'); assert.strictEqual(post.callCount, 4 * decoratorCount);
-          post.packages[0].name = 'h';  assert.strictEqual(post.callCount, 4 * decoratorCount);
         },
-        disposed: post => {
-          const decoratorCount = post.decoratorCount;
-          assert.strictEqual(post.callCount, 4 * decoratorCount);
-          post.delivered(2);            assert.strictEqual(post.callCount, 4 * decoratorCount);
-        }
       },
-      {
-        title: 'observes for..in',
-        init: () => Array.from(
-          { length: 3 },
-          (_, idx) => ({ id: idx + 1, name: `box ${idx + 1}`, delivered: false })
-        ),
-        get: post => {
+      ...[
+        ['.map()', (post: IPostOffice) => post.packages.map(d => d.delivered).join(', ')],
+        ['.flatMap()', (post: IPostOffice) => post.packages.flatMap(d => [d.id, d.delivered]).join(', ')],
+        ['for..in', (post: IPostOffice) => {
           const results = [];
           const packages = post.packages;
           for (const i in packages) {
             results.push(packages[i].delivered);
           }
           return results.join(', ');
-        },
-        created: post => {
+        }],
+        ['.reduce()', (post: IPostOffice) => post
+          .packages
+          .reduce(
+            (str, d, idx, arr) => `${str}${idx === arr.length - 1 ? d.delivered : `, ${d.delivered}`}`,
+            '',
+          ),
+        ],
+        ['.reduceRight()', (post: IPostOffice) => post
+          .packages
+          .reduce(
+            (str, d, idx, arr) => `${str}${idx === arr.length - 1 ? d.delivered : `, ${d.delivered}`}`,
+            '',
+          ),
+        ],
+      ].map(([name, getter]) => ({
+        title: `observes ${name}`,
+        init: () => Array.from(
+          { length: 3 },
+          (_, idx) => ({ id: idx + 1, name: `box ${idx + 1}`, delivered: false }),
+        ),
+        get: getter as IDepCollectionFn<object>,
+        created: (post: IPostOffice) => {
           const decoratorCount = post.decoratorCount;
           assert.strictEqual(post.callCount, 0);
           post.newDelivery(4, 'box 4'); assert.strictEqual(post.callCount, 1 * decoratorCount);
@@ -744,8 +741,8 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
           const decoratorCount = post.decoratorCount;
           assert.strictEqual(post.callCount, 4 * decoratorCount);
           post.delivered(2);            assert.strictEqual(post.callCount, 4 * decoratorCount);
-        }
-      },
+        },
+      })),
     ];
 
     for (const { title, only, init, get, created, disposed } of testCases) {

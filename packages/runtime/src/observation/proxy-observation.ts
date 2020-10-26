@@ -28,7 +28,9 @@ function doNotCollect(obj: object, key: PropertyKey): boolean {
     || key === '__proto__'
     // probably should revert to v1 naming style for consistency with builtin?
     // __o__ is shorters & less chance of conflict with other libs as well
-    || key === 'observers';
+    || key === 'observers'
+    || key === Symbol.toPrimitive
+    || key === Symbol.toStringTag;
 }
 
 function createProxy<T extends object>(obj: T): T {
@@ -91,14 +93,16 @@ const arrayHandler: ProxyHandler<unknown[]> = {
         return wrappedArrayFilter;
       case 'findIndex':
         return wrappedArrayFindIndex;
-      case 'push':
-        return wrappedArrayPush;
-      case 'pop':
-        return wrappedArrayPop;
       case 'flat':
         return wrappedArrayFlat;
       case 'flatMap':
         return wrappedArrayFlatMap;
+      case 'join':
+        return wrappedArrayJoin;
+      case 'push':
+        return wrappedArrayPush;
+      case 'pop':
+        return wrappedArrayPop;
       case 'reduce':
         return wrappedReduce;
       case 'reduceRight':
@@ -184,6 +188,11 @@ function wrappedArrayFlatMap(this: unknown[], cb: (v: unknown, i: number, arr: u
   return getProxy(raw.flatMap((v, i) =>
     getProxyOrSelf(cb.call(thisArg, getProxyOrSelf(v), i, this)))
   );
+}
+function wrappedArrayJoin(this: unknown[], separator?: string): string {
+  const raw = getRaw(this);
+  currentWatcher()?.observeCollection(raw);
+  return raw.join(separator);
 }
 
 function wrappedArrayPop(this: unknown[]): unknown {

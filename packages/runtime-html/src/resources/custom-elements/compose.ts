@@ -1,75 +1,54 @@
-import {
-  Constructable,
-  nextId,
-  PLATFORM,
-  onResolve,
-} from '@aurelia/kernel';
-import {
-  BindingMode,
-  IDOM,
-  IHydrateElementInstruction,
-  INode,
-  ITargetedInstruction,
-  IViewFactory,
-  LifecycleFlags,
-  TargetedInstruction,
-  CustomElementDefinition,
-  bindable,
-  customElement,
-  MountStrategy,
-  getRenderContext,
-  ICustomElementController,
-  ISyntheticView,
-  ICustomElementViewModel,
-  IHydratedController,
-  IHydratedParentController,
-  ControllerVisitor,
-} from '@aurelia/runtime';
-import {
-  createElement,
-  RenderPlan,
-} from '../../create-element';
+import { Constructable, nextId, emptyArray, onResolve } from '@aurelia/kernel';
+import { BindingMode, LifecycleFlags, bindable } from '@aurelia/runtime';
+import { createElement, CompositionPlan } from '../../create-element';
+import { IInstruction } from '../../definitions';
+import { HydrateElementInstruction, Instruction } from '../../instructions';
+import { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, ISyntheticView, MountStrategy } from '../../lifecycle';
+import { IPlatform } from '../../platform';
+import { getCompositionContext } from '../../templating/composition-context';
+import { IViewFactory } from '../../templating/view';
+import { customElement, CustomElementDefinition } from '../custom-element';
 
-export type Subject<T extends INode = Node> = IViewFactory<T> | ISyntheticView<T> | RenderPlan<T> | Constructable | CustomElementDefinition;
-export type MaybeSubjectPromise<T> = Subject<T> | Promise<Subject<T>> | undefined;
+export type Subject = IViewFactory | ISyntheticView | CompositionPlan | Constructable | CustomElementDefinition;
+export type MaybeSubjectPromise = Subject | Promise<Subject> | undefined;
 
 function toLookup(
-  acc: Record<string, TargetedInstruction>,
-  item: ITargetedInstruction & { to?: string },
-): Record<string, TargetedInstruction> {
+  acc: Record<string, Instruction>,
+  item: IInstruction & { to?: string },
+): Record<string, Instruction> {
   const to = item.to;
   if (to !== void 0 && to !== 'subject' && to !== 'composing') {
-    acc[to] = item as TargetedInstruction;
+    acc[to] = item as Instruction;
   }
 
   return acc;
 }
 
 @customElement({ name: 'au-compose', template: null, containerless: true })
-export class Compose<T extends INode = Node> implements ICustomElementViewModel<T> {
+export class Compose implements ICustomElementViewModel {
   public readonly id: number = nextId('au$component');
 
-  @bindable public subject?: MaybeSubjectPromise<T> = void 0;
+  @bindable public subject?: MaybeSubjectPromise = void 0;
   @bindable({ mode: BindingMode.fromView }) public composing: boolean = false;
 
-  public view?: ISyntheticView<T> = void 0;
+  public view?: ISyntheticView = void 0;
 
-  private readonly properties: Record<string, TargetedInstruction>;
+  private readonly properties: Record<string, Instruction>;
 
-  private lastSubject?: MaybeSubjectPromise<T> = void 0;
+  private lastSubject?: MaybeSubjectPromise = void 0;
 
-  public readonly $controller!: ICustomElementController<T, this>; // This is set by the controller after this instance is constructed
+  public readonly $controller!: ICustomElementController<this>; // This is set by the controller after this instance is constructed
 
   public constructor(
-    @IDOM private readonly dom: IDOM<T>,
-    @ITargetedInstruction instruction: IHydrateElementInstruction,
+    @IPlatform private readonly p: IPlatform,
+    @IInstruction instruction: HydrateElementInstruction,
   ) {
     this.properties = instruction.instructions.reduce(toLookup, {});
   }
 
   public afterAttach(
-    initiator: IHydratedController<T>,
-    parent: IHydratedParentController<T> | null,
+    initiator: IHydratedController,
+    parent: IHydratedParentController | null,
     flags: LifecycleFlags,
   ): void | Promise<void> {
     const { subject, view } = this;
@@ -84,16 +63,16 @@ export class Compose<T extends INode = Node> implements ICustomElementViewModel<
   }
 
   public afterUnbind(
-    initiator: IHydratedController<T>,
-    parent: IHydratedParentController<T> | null,
+    initiator: IHydratedController,
+    parent: IHydratedParentController | null,
     flags: LifecycleFlags,
   ): void | Promise<void> {
     return this.deactivate(this.view, initiator, flags);
   }
 
   public subjectChanged(
-    newValue: Subject<T> | Promise<Subject<T>>,
-    previousValue: Subject<T> | Promise<Subject<T>>,
+    newValue: Subject | Promise<Subject>,
+    previousValue: Subject | Promise<Subject>,
     flags: LifecycleFlags,
   ): void {
     const { $controller } = this;
@@ -119,9 +98,9 @@ export class Compose<T extends INode = Node> implements ICustomElementViewModel<
   }
 
   private compose(
-    view: ISyntheticView<T> | undefined | Promise<ISyntheticView<T> | undefined>,
-    subject: MaybeSubjectPromise<T>,
-    initiator: IHydratedController<T> | null,
+    view: ISyntheticView | undefined | Promise<ISyntheticView | undefined>,
+    subject: MaybeSubjectPromise,
+    initiator: IHydratedController | null,
     flags: LifecycleFlags,
   ): void | Promise<void> {
     return onResolve(
@@ -137,16 +116,16 @@ export class Compose<T extends INode = Node> implements ICustomElementViewModel<
   }
 
   private deactivate(
-    view: ISyntheticView<T> | undefined,
-    initiator: IHydratedController<T> | null,
+    view: ISyntheticView | undefined,
+    initiator: IHydratedController | null,
     flags: LifecycleFlags,
   ): void | Promise<void> {
     return view?.deactivate(initiator ?? view, this.$controller, flags);
   }
 
   private activate(
-    view: ISyntheticView<T> | undefined,
-    initiator: IHydratedController<T> | null,
+    view: ISyntheticView | undefined,
+    initiator: IHydratedController | null,
     flags: LifecycleFlags,
   ): void | Promise<void> {
     const { $controller } = this;
@@ -158,7 +137,7 @@ export class Compose<T extends INode = Node> implements ICustomElementViewModel<
     );
   }
 
-  private resolveView(subject: Subject<T> | undefined, flags: LifecycleFlags): ISyntheticView<T> | undefined {
+  private resolveView(subject: Subject | undefined, flags: LifecycleFlags): ISyntheticView | undefined {
     const view = this.provideViewFor(subject, flags);
 
     if (view) {
@@ -170,7 +149,7 @@ export class Compose<T extends INode = Node> implements ICustomElementViewModel<
     return void 0;
   }
 
-  private provideViewFor(subject: Subject<T> | undefined, flags: LifecycleFlags): ISyntheticView<T> | undefined {
+  private provideViewFor(subject: Subject | undefined, flags: LifecycleFlags): ISyntheticView | undefined {
     if (!subject) {
       return void 0;
     }
@@ -179,7 +158,7 @@ export class Compose<T extends INode = Node> implements ICustomElementViewModel<
       return subject;
     }
 
-    if ('createView' in subject) { // RenderPlan
+    if ('createView' in subject) { // CompositionPlan
       return subject.createView(this.$controller.context!);
     }
 
@@ -189,23 +168,23 @@ export class Compose<T extends INode = Node> implements ICustomElementViewModel<
 
     if ('template' in subject) { // Raw Template Definition
       const definition = CustomElementDefinition.getOrCreate(subject);
-      return getRenderContext<T>(definition, this.$controller.context!).getViewFactory().create(flags);
+      return getCompositionContext(definition, this.$controller.context!).getViewFactory().create(flags);
     }
 
     // Constructable (Custom Element Constructor)
     return createElement(
-      this.dom,
+      this.p,
       subject,
       this.properties,
       this.$controller.projector === void 0
-        ? PLATFORM.emptyArray
+        ? emptyArray
         : this.$controller.projector.children
     ).createView(this.$controller.context!);
   }
 
   public onCancel(
-    initiator: IHydratedController<T>,
-    parent: IHydratedParentController<T>,
+    initiator: IHydratedController,
+    parent: IHydratedParentController,
     flags: LifecycleFlags,
   ): void {
     this.view?.cancel(initiator, this.$controller, flags);
@@ -216,13 +195,13 @@ export class Compose<T extends INode = Node> implements ICustomElementViewModel<
     this.view = (void 0)!;
   }
 
-  public accept(visitor: ControllerVisitor<T>): void | true {
+  public accept(visitor: ControllerVisitor): void | true {
     if (this.view?.accept(visitor) === true) {
       return true;
     }
   }
 }
 
-function isController<T extends INode = INode>(subject: Subject<T>): subject is ISyntheticView<T> {
+function isController(subject: Subject): subject is ISyntheticView {
   return 'lockScope' in subject;
 }

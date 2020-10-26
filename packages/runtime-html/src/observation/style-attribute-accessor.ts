@@ -1,12 +1,6 @@
-import {
-  IAccessor,
-  LifecycleFlags,
-  IScheduler,
-  ITask,
-  INode,
-  AccessorType,
-} from '@aurelia/runtime';
-import { PLATFORM, kebabCase } from '@aurelia/kernel';
+import { IAccessor, LifecycleFlags, ITask, AccessorType } from '@aurelia/runtime';
+import { emptyArray, kebabCase } from '@aurelia/kernel';
+import { INode } from '../dom';
 
 export class StyleAttributeAccessor implements IAccessor {
   public readonly obj: HTMLElement;
@@ -23,7 +17,6 @@ export class StyleAttributeAccessor implements IAccessor {
   public type: AccessorType = AccessorType.Node | AccessorType.Layout;
 
   public constructor(
-    public readonly scheduler: IScheduler,
     flags: LifecycleFlags,
     obj: INode,
   ) {
@@ -86,7 +79,7 @@ export class StyleAttributeAccessor implements IAccessor {
       }
       return styles;
     }
-    return PLATFORM.emptyArray;
+    return emptyArray;
   }
 
   private getStyleTuples(currentValue: unknown): [string, string][] {
@@ -102,7 +95,7 @@ export class StyleAttributeAccessor implements IAccessor {
       return this.getStyleTuplesFromObject(currentValue as Record<string, unknown>);
     }
 
-    return PLATFORM.emptyArray;
+    return emptyArray;
   }
 
   public flushChanges(flags: LifecycleFlags): void {

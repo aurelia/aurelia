@@ -1,5 +1,5 @@
-import * as template from "./random-generator.html";
-import { customElement } from '@aurelia/runtime';
+import template from "./random-generator.html";
+import { customElement } from '@aurelia/runtime-html';
 
 /**
  * Potential coverage target

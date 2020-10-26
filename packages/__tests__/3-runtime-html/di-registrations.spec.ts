@@ -20,7 +20,7 @@
 //     return { ctx, container, au, host };
 //   }
 
-//   describe('can render locally registered types', function () {
+//   describe('can compose locally registered types', function () {
 
 //     it('from within the type in which it was registered', function () {
 //       const { au, host } = createFixture();

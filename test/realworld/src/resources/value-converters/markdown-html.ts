@@ -1,4 +1,4 @@
-import { valueConverter } from '@aurelia/runtime';
+import { valueConverter } from '@aurelia/runtime-html';
 
 import * as marked from 'marked';
 

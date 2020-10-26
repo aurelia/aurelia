@@ -1,44 +1,3 @@
-export interface IPerformance {
-  now(): number;
-}
-
-export interface IPerformanceEntry {
-  readonly duration: number;
-  readonly entryType: string;
-  readonly name: string;
-  readonly startTime: number;
-}
-
-export type ITimerHandler = string | ((...args: unknown[]) => void);
-
-// eslint-disable-next-line @typescript-eslint/no-namespace
-declare namespace NodeJS {
-  interface Process {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    env?: any;
-    uptime(): number;
-    hrtime(): [number, number];
-  }
-}
-
-export interface IStorage {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [name: string]: any;
-  readonly length: number;
-  clear(): void;
-  getItem(key: string): string | null;
-  key(index: number): string | null;
-  removeItem(key: string): void;
-  setItem(key: string, value: string): void;
-}
-
-export interface IWindowOrWorkerGlobalScope {
-  process?: NodeJS.Process;
-  readonly performance: IPerformance;
-  readonly localStorage?: IStorage;
-  readonly Intl: typeof Intl;
-}
-
 export interface IDisposable {
   dispose(): void;
 }
@@ -72,16 +31,6 @@ export type Writable<T> = {
   -readonly [K in keyof T]: T[K]
 };
 
-export type Omit<T, K extends keyof T> = T extends {} ? Pick<T, Exclude<keyof T, K>> : never;
-
 export type Overwrite<T1, T2> = Pick<T1, Exclude<keyof T1, keyof T2>> & T2;
 
 export type Primitive = undefined | null | number | boolean | string | symbol;
-
-export type Unwrap<T> =
-    T extends (infer U)[] ? U :
-      T extends (...args: unknown[]) => infer U ? U :
-        T extends Promise<infer U> ? U :
-          T;
-
-export type StrictPrimitive = string | number | boolean | null | undefined;

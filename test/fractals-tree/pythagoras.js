@@ -1,4 +1,4 @@
-import { CustomElementResource } from '@aurelia/runtime';
+import { CustomElementResource } from '@aurelia/runtime-html';
 import { State } from './state';
 
 const MAX_LEVEL = 10;

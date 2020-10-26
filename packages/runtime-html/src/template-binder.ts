@@ -7,19 +7,15 @@ import {
   AnyBindingExpression,
   BindingMode,
   BindingType,
-  IDOM,
   IExpressionParser,
   Char,
-  AttrInfo,
-  AttrSyntax,
-  BindableInfo,
-  IAttributeParser,
-  BindingCommandInstance,
-  ResourceModel,
-  SymbolFlags,
 } from '@aurelia/runtime';
+import { AttrSyntax, IAttributeParser } from './attribute-parser';
 import { IAttrSyntaxTransformer } from './attribute-syntax-transformer';
+import { BindingCommandInstance } from './binding-command';
 import { NodeType } from './dom';
+import { IPlatform } from './platform';
+import { AttrInfo, BindableInfo, ResourceModel } from './resource-model';
 import {
   BindingSymbol,
   CustomAttributeSymbol,
@@ -33,6 +29,7 @@ import {
   TemplateControllerSymbol,
   TextSymbol,
   ProjectionSymbol,
+  SymbolFlags,
 } from './semantic-model';
 
 const invalidSurrogateAttribute = Object.assign(Object.create(null), {
@@ -79,8 +76,8 @@ function isTemplateControllerOf(proxy: ParentNodeSymbol, manifest: ElementSymbol
  * A (temporary) standalone function that purely does the DOM processing (lifting) related to template controllers.
  * It's a first refactoring step towards separating DOM parsing/binding from mutations.
  */
-function processTemplateControllers(dom: IDOM, manifestProxy: ParentNodeSymbol, manifest: ElementSymbol): void {
-  const manifestNode = manifest.physicalNode as HTMLElement;
+function processTemplateControllers(p: IPlatform, manifestProxy: ParentNodeSymbol, manifest: ElementSymbol): void {
+  const manifestNode = manifest.physicalNode;
   let current = manifestProxy;
   let currentTemplate: HTMLTemplateElement;
   while (isTemplateControllerOf(current, manifest)) {
@@ -96,11 +93,11 @@ function processTemplateControllers(dom: IDOM, manifestProxy: ParentNodeSymbol, 
         manifestNode.remove();
       } else {
         // the manifest is not a template element so we need to wrap it in one
-        currentTemplate = current.physicalNode = dom.createTemplate() as HTMLTemplateElement;
+        currentTemplate = current.physicalNode = p.document.createElement('template');
         currentTemplate.content.appendChild(manifestNode);
       }
     } else {
-      currentTemplate = current.physicalNode = dom.createTemplate() as HTMLTemplateElement;
+      currentTemplate = current.physicalNode = p.document.createElement('template');
       currentTemplate.content.appendChild(current.marker);
     }
     manifestNode.removeAttribute(current.syntax.rawName);
@@ -113,7 +110,7 @@ function processTemplateControllers(dom: IDOM, manifestProxy: ParentNodeSymbol, 
  */
 export class TemplateBinder {
   public constructor(
-    public readonly dom: IDOM,
+    public readonly platform: IPlatform,
     public readonly resources: ResourceModel,
     public readonly attrParser: IAttributeParser,
     public readonly exprParser: IExpressionParser,
@@ -121,7 +118,7 @@ export class TemplateBinder {
   ) {}
 
   public bind(node: HTMLElement): PlainElementSymbol {
-    const surrogate = new PlainElementSymbol(this.dom, node);
+    const surrogate = new PlainElementSymbol(node);
 
     const resources = this.resources;
     const attrSyntaxTransformer = this.attrSyntaxTransformer;
@@ -219,11 +216,11 @@ export class TemplateBinder {
     const elementInfo = this.resources.getElementInfo(name);
     if (elementInfo === null) {
       // there is no registered custom element with this name
-      manifest = new PlainElementSymbol(this.dom, node);
+      manifest = new PlainElementSymbol(node);
     } else {
       // it's a custom element so we set the manifestRoot as well (for storing replaces)
       parentManifestRoot = manifestRoot;
-      const ceSymbol = new CustomElementSymbol(this.dom, node, elementInfo);
+      const ceSymbol = new CustomElementSymbol(this.platform, node, elementInfo);
       if (isAuSlot) {
         ceSymbol.flags = SymbolFlags.isAuSlot;
         ceSymbol.slotName = node.getAttribute("name") ?? "default";
@@ -262,7 +259,7 @@ export class TemplateBinder {
     parentManifest: ElementSymbol,
     node: HTMLElement,
   ): void {
-    const symbol = new LetElementSymbol(this.dom, node);
+    const symbol = new LetElementSymbol(this.platform, node);
     parentManifest.childNodes.push(symbol);
 
     const attributes = node.attributes;
@@ -403,7 +400,7 @@ export class TemplateBinder {
       throw new Error(`Unsupported usage of [au-slot="${projection}"]. It seems that projection is attempted, but not for a custom element.`);
     }
 
-    processTemplateControllers(this.dom, manifestProxy, manifest);
+    processTemplateControllers(this.platform, manifestProxy, manifest);
     const projectionOwner: CustomElementSymbol | null = manifest === manifestRoot ? parentManifestRoot : manifestRoot;
 
     if (!hasProjection || projectionOwner === null) {
@@ -497,7 +494,7 @@ export class TemplateBinder {
   ): ChildNode {
     const interpolation = this.exprParser.parse(textNode.wholeText, BindingType.Interpolation);
     if (interpolation !== null) {
-      const symbol = new TextSymbol(this.dom, textNode, interpolation);
+      const symbol = new TextSymbol(this.platform, textNode, interpolation);
       manifest.childNodes.push(symbol);
       processInterpolationText(symbol);
     }
@@ -519,10 +516,10 @@ export class TemplateBinder {
     const isMultiBindings = attrInfo.noMultiBindings === false && command === null && hasInlineBindings(attrRawValue);
 
     if (isMultiBindings) {
-      symbol = new TemplateControllerSymbol(this.dom, attrSyntax, attrInfo);
+      symbol = new TemplateControllerSymbol(this.platform, attrSyntax, attrInfo);
       this.bindMultiAttribute(symbol, attrInfo, attrRawValue);
     } else {
-      symbol = new TemplateControllerSymbol(this.dom, attrSyntax, attrInfo);
+      symbol = new TemplateControllerSymbol(this.platform, attrSyntax, attrInfo);
       const bindingType = command === null ? BindingType.Interpolation : command.bindingType;
       const expr = this.exprParser.parse(attrRawValue, bindingType);
       symbol.bindings.push(new BindingSymbol(command, attrInfo.bindable!, expr, attrRawValue, attrSyntax.target));

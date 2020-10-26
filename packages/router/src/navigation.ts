@@ -1,4 +1,4 @@
-import { ICustomElementViewModel } from '@aurelia/runtime';
+import { ICustomElementViewModel } from '@aurelia/runtime-html';
 import { INavigationFlags } from './navigator';
 import { ViewportInstruction } from './viewport-instruction';
 import { Scope } from './scope';

@@ -1,9 +1,4 @@
-// import {
-//   Serializer,
-//   Unparser,
-// } from '@aurelia/debug';
-import { IElementProjector, If, Repeat, TargetedInstructionType, With, ICustomElementController, ViewModelKind, ISyntheticView } from '@aurelia/runtime';
-import { Compose, HTMLTargetedInstructionType } from '@aurelia/runtime-html';
+import { ElementProjector, If, Repeat, With, ICustomElementController, ViewModelKind, ISyntheticView, Compose, InstructionType } from '@aurelia/runtime-html';
 import { assert } from './assert';
 
 // Disabling this as it this is nowhere used. And also the ast-serialization infra is moved to validation package.
@@ -71,7 +66,7 @@ export function getVisibleText(root: ICustomElementController, host: Node, remov
   return removeWhiteSpace && text ? text.replace(/\s\s+/g, ' ').trim() : text;
 }
 
-function isShadowDOMProjector(projector: IElementProjector | undefined): projector is IElementProjector & { shadowRoot: ShadowRoot } {
+function isShadowDOMProjector(projector: ElementProjector | undefined): projector is ElementProjector & { shadowRoot: ShadowRoot } {
   return projector != void 0 && 'shadowRoot' in projector;
 }
 
@@ -112,37 +107,37 @@ function $getVisibleText(root: ICustomElementController | ISyntheticView, contex
   }
 }
 
-export function targetedInstructionTypeName(type: string): string {
+export function instructionTypeName(type: string): string {
   switch (type) {
-    case HTMLTargetedInstructionType.textBinding:
+    case InstructionType.textBinding:
       return 'textBinding';
-    case TargetedInstructionType.interpolation:
+    case InstructionType.interpolation:
       return 'interpolation';
-    case TargetedInstructionType.propertyBinding:
+    case InstructionType.propertyBinding:
       return 'propertyBinding';
-    case TargetedInstructionType.iteratorBinding:
+    case InstructionType.iteratorBinding:
       return 'iteratorBinding';
-    case HTMLTargetedInstructionType.listenerBinding:
+    case InstructionType.listenerBinding:
       return 'listenerBinding';
-    case TargetedInstructionType.callBinding:
+    case InstructionType.callBinding:
       return 'callBinding';
-    case TargetedInstructionType.refBinding:
+    case InstructionType.refBinding:
       return 'refBinding';
-    case HTMLTargetedInstructionType.stylePropertyBinding:
+    case InstructionType.stylePropertyBinding:
       return 'stylePropertyBinding';
-    case TargetedInstructionType.setProperty:
+    case InstructionType.setProperty:
       return 'setProperty';
-    case HTMLTargetedInstructionType.setAttribute:
+    case InstructionType.setAttribute:
       return 'setAttribute';
-    case TargetedInstructionType.hydrateElement:
-      return 'hydrateElement';
-    case TargetedInstructionType.hydrateAttribute:
-      return 'hydrateAttribute';
-    case TargetedInstructionType.hydrateTemplateController:
-      return 'hydrateTemplateController';
-    case TargetedInstructionType.hydrateLetElement:
-      return 'hydrateLetElement';
-    case TargetedInstructionType.letBinding:
+    case InstructionType.composeElement:
+      return 'composeElement';
+    case InstructionType.composeAttribute:
+      return 'composeAttribute';
+    case InstructionType.composeTemplateController:
+      return 'composeTemplateController';
+    case InstructionType.composeLetElement:
+      return 'composeLetElement';
+    case InstructionType.letBinding:
       return 'letBinding';
     default:
       return type;
@@ -176,8 +171,8 @@ export function verifyBindingInstructionsEqual(actual: any, expected: any, error
           actual = JSON.stringify(actual);
         }
         if (path.endsWith('type')) {
-          expected = targetedInstructionTypeName(expected);
-          actual = targetedInstructionTypeName(actual);
+          expected = instructionTypeName(expected);
+          actual = instructionTypeName(actual);
         }
         errors.push(`WRONG: ${path} === ${actual} (expected: ${expected})`);
       }

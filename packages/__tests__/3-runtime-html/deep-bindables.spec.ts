@@ -6,7 +6,6 @@
 //   IViewModel,
 //   LifecycleFlags
 // } from '@aurelia/runtime';
-// import { stringifyLifecycleFlags } from '@aurelia/debug';
 // import { disableTracing, enableTracing, TestContext, writeProfilerReport } from '@aurelia/testing';
 
 // const spec = 'deep-bindables';

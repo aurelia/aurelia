@@ -1,6 +1,5 @@
 import { IContainer } from '@aurelia/kernel';
-import { PropertyBinding } from '@aurelia/runtime';
-import { AttrBindingBehavior, DataAttributeAccessor } from '@aurelia/runtime-html';
+import { PropertyBinding, AttrBindingBehavior, DataAttributeAccessor } from '@aurelia/runtime-html';
 import { TestContext, assert } from '@aurelia/testing';
 
 describe('AttrBindingBehavior', function () {
@@ -12,12 +11,12 @@ describe('AttrBindingBehavior', function () {
 
   // eslint-disable-next-line mocha/no-hooks
   beforeEach(function () {
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     target = ctx.createElement('div');
     targetProperty = 'foo';
     sut = new AttrBindingBehavior();
     container = ctx.container;
-    binding = new PropertyBinding(undefined, target, targetProperty, undefined, undefined, container);
+    binding = new PropertyBinding(undefined, target, targetProperty, undefined, undefined, container, {} as any);
     sut.bind(undefined, undefined, null, binding);
   });
 

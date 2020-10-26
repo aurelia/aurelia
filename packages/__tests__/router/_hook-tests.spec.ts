@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
 /* eslint-disable @typescript-eslint/require-await */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import { CustomElement, customElement } from '@aurelia/runtime';
+import { CustomElement, customElement } from '@aurelia/runtime-html';
 import { IRouterActivateOptions, IRouter } from '@aurelia/router';
 import { assert } from '@aurelia/testing';
 

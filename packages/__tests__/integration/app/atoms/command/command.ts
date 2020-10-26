@@ -1,5 +1,5 @@
-import { bindable, customElement } from '@aurelia/runtime';
-import * as template from './command.html';
+import { bindable, customElement } from '@aurelia/runtime-html';
+import template from './command.html';
 
 /**
  * Potential test coverage targets:

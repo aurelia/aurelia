@@ -1,18 +1,17 @@
-import { IContainer, Registration, IRegistry, LoggerConfiguration, LogLevel, ColorOptions, PLATFORM } from '@aurelia/kernel';
-import { MockBrowserHistoryLocation, HTMLTestContext } from '@aurelia/testing';
+import { IContainer, Registration, IRegistry, LoggerConfiguration, LogLevel, ColorOptions } from '@aurelia/kernel';
+import { MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 import { IRouter } from '@aurelia/router';
-import { IHistory, ILocation } from '@aurelia/runtime-html';
-import { AppTask } from '@aurelia/runtime';
+import { AppTask, IHistory, ILocation } from '@aurelia/runtime-html';
 
 export const TestRouterConfiguration = {
-  for(ctx: HTMLTestContext, logLevel: LogLevel = LogLevel.debug): IRegistry {
+  for(ctx: TestContext, logLevel: LogLevel = LogLevel.debug): IRegistry {
     return {
       register(container: IContainer): void {
         container.register(
           LoggerConfiguration.create({
             $console: console,
             level: logLevel,
-            colorOptions: PLATFORM.isNodeLike ? ColorOptions.colors : ColorOptions.noColors,
+            colorOptions: ColorOptions.noColors,
           }),
         );
 
@@ -20,7 +19,7 @@ export const TestRouterConfiguration = {
         container.register(
           Registration.instance(IHistory, mockBrowserHistoryLocation),
           Registration.instance(ILocation, mockBrowserHistoryLocation),
-          AppTask.with(IRouter).beforeCompile().call(router => {
+          AppTask.with(IRouter).beforeCompose().call(router => {
             mockBrowserHistoryLocation.changeCallback = router['handlePopstate'];
           }),
         );

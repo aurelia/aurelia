@@ -35,14 +35,15 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/i18n": "0.8.0-dev.202010151053",
-    "@aurelia/kernel": "0.8.0-dev.202010151053",
-    "@aurelia/metadata": "0.8.0-dev.202010151053",
-    "@aurelia/runtime-html": "0.8.0-dev.202010151053",
-    "@aurelia/runtime": "0.8.0-dev.202010151053",
-    "@aurelia/scheduler": "0.8.0-dev.202010151053",
-    "@aurelia/validation-html": "0.8.0-dev.202010151053",
-    "@aurelia/validation": "0.8.0-dev.202010151053",
+    "@aurelia/i18n": "0.7.0",
+    "@aurelia/kernel": "0.7.0",
+    "@aurelia/metadata": "0.7.0",
+    "@aurelia/platform": "0.7.0",
+    "@aurelia/platform-browser": "0.7.0",
+    "@aurelia/runtime-html": "0.7.0",
+    "@aurelia/runtime": "0.7.0",
+    "@aurelia/validation-html": "0.7.0",
+    "@aurelia/validation": "0.7.0",
     "i18next": "^17.0.0"
   },
   "devDependencies": {

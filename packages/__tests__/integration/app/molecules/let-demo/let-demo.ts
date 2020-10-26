@@ -1,5 +1,5 @@
-import { customElement, valueConverter } from '@aurelia/runtime';
-import * as template from './let-demo.html';
+import { customElement, valueConverter } from '@aurelia/runtime-html';
+import template from './let-demo.html';
 
 /**
  * Potential test coverage targets:

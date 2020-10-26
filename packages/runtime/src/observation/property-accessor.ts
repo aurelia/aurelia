@@ -1,6 +1,5 @@
-import type { ITask } from '@aurelia/scheduler';
-import { LifecycleFlags } from '../flags';
-import { AccessorType, IAccessor, IObservable } from '../observation';
+import type { ITask } from '@aurelia/kernel';
+import { AccessorType, IAccessor, IObservable, LifecycleFlags } from '../observation';
 
 export class PropertyAccessor implements IAccessor {
   public task: ITask | null = null;

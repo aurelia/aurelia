@@ -1,5 +1,5 @@
 import { IViewportScopeOptions, ViewportScope } from './viewport-scope';
-import { CustomElementType } from '@aurelia/runtime';
+import { CustomElementType } from '@aurelia/runtime-html';
 import { IRoute, ComponentAppellation, NavigationInstruction } from './interfaces';
 import { FoundRoute } from './found-route';
 import { IRouter } from './router';

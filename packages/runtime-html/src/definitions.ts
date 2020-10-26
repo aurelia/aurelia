@@ -1,89 +1,52 @@
-import {
-  AttributeInstruction,
-  DelegationStrategy,
-  Interpolation,
-  IsBindingBehavior,
-  ITargetedInstruction,
-  NodeInstruction
-} from '@aurelia/runtime';
+import { DI } from '@aurelia/kernel';
 
-export const enum HTMLTargetedInstructionType {
-  textBinding = 'ha',
-  listenerBinding = 'hb',
-  attributeBinding = 'hc',
-  stylePropertyBinding = 'hd',
-  setAttribute = 'he',
-  setClassAttribute = 'hf',
-  setStyleAttribute = 'hg',
+export type InstructionTypeName = string;
+
+export const IInstruction = DI.createInterface<IInstruction>('IInstruction').noDefault();
+export interface IInstruction {
+  type: InstructionTypeName;
 }
 
-export type HTMLNodeInstruction =
-  NodeInstruction |
-  ITextBindingInstruction;
+export class HooksDefinition {
+  public static readonly none: Readonly<HooksDefinition> = new HooksDefinition({});
 
-export type HTMLAttributeInstruction =
-  AttributeInstruction |
-  IListenerBindingInstruction |
-  IAttributeBindingInstruction |
-  IStylePropertyBindingInstruction |
-  ISetAttributeInstruction |
-  ISetClassAttributeInstruction |
-  ISetStyleAttributeInstruction;
+  public readonly hasDefine: boolean;
 
-export type HTMLTargetedInstruction = HTMLNodeInstruction | HTMLAttributeInstruction;
-// TODO: further improve specificity and integrate with the definitions;
-export type HTMLInstructionRow = [HTMLTargetedInstruction, ...HTMLAttributeInstruction[]];
+  public readonly hasBeforeCompose: boolean;
+  public readonly hasBeforeComposeChildren: boolean;
+  public readonly hasAfterCompose: boolean;
 
-export function isHTMLTargetedInstruction(value: unknown): value is HTMLTargetedInstruction {
-  const type = (value as { type?: string }).type;
-  return typeof type === 'string' && type.length === 2;
-}
+  public readonly hasBeforeBind: boolean;
+  public readonly hasAfterBind: boolean;
+  public readonly hasAfterAttach: boolean;
+  public readonly hasAfterAttachChildren: boolean;
 
-export interface ITextBindingInstruction extends ITargetedInstruction {
-  type: HTMLTargetedInstructionType.textBinding;
-  from: string | Interpolation;
-}
+  public readonly hasBeforeDetach: boolean;
+  public readonly hasBeforeUnbind: boolean;
+  public readonly hasAfterUnbind: boolean;
+  public readonly hasAfterUnbindChildren: boolean;
 
-export interface IListenerBindingInstruction extends ITargetedInstruction {
-  type: HTMLTargetedInstructionType.listenerBinding;
-  from: string | IsBindingBehavior;
-  to: string;
-  strategy: DelegationStrategy;
-  preventDefault: boolean;
-}
+  public readonly hasDispose: boolean;
+  public readonly hasAccept: boolean;
 
-export interface IStylePropertyBindingInstruction extends ITargetedInstruction {
-  type: HTMLTargetedInstructionType.stylePropertyBinding;
-  from: string | IsBindingBehavior;
-  to: string;
-}
+  public constructor(target: object) {
+    this.hasDefine = 'define' in target;
 
-export interface ISetAttributeInstruction extends ITargetedInstruction {
-  type: HTMLTargetedInstructionType.setAttribute;
-  value: string;
-  to: string;
-}
+    this.hasBeforeCompose = 'beforeCompose' in target;
+    this.hasBeforeComposeChildren = 'beforeComposeChildren' in target;
+    this.hasAfterCompose = 'afterCompose' in target;
 
-export interface ISetClassAttributeInstruction extends ITargetedInstruction {
-  type: HTMLTargetedInstructionType.setClassAttribute;
-  value: string;
-}
+    this.hasBeforeBind = 'beforeBind' in target;
+    this.hasAfterBind = 'afterBind' in target;
+    this.hasAfterAttach = 'afterAttach' in target;
+    this.hasAfterAttachChildren = 'afterAttachChildren' in target;
 
-export interface ISetStyleAttributeInstruction extends ITargetedInstruction {
-  type: HTMLTargetedInstructionType.setStyleAttribute;
-  value: string;
-}
+    this.hasBeforeDetach = 'beforeDetach' in target;
+    this.hasBeforeUnbind = 'beforeUnbind' in target;
+    this.hasAfterUnbind = 'afterUnbind' in target;
+    this.hasAfterUnbindChildren = 'afterUnbindChildren' in target;
 
-export interface IAttributeBindingInstruction extends ITargetedInstruction {
-  type: HTMLTargetedInstructionType.attributeBinding;
-  from: string | IsBindingBehavior;
-
-  /**
-   * `attr` and `to` have the same value on a normal attribute
-   * Will be different on `class` and `style`
-   * on `class`: attr = `class` (from binding command), to = attribute name
-   * on `style`: attr = `style` (from binding command), to = attribute name
-   */
-  attr: string;
-  to: string;
+    this.hasDispose = 'dispose' in target;
+    this.hasAccept = 'accept' in target;
+  }
 }

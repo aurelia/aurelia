@@ -1,4 +1,3 @@
-import { DebugConfiguration } from '@aurelia/debug';
 import { existsSync } from 'fs';
 import { resolve } from 'path';
 import { HttpServerOptions } from './server-options';
@@ -30,8 +29,6 @@ function parseArgs(args: string[]): null | HttpServerOptions {
 }
 
 (async function () {
-  DebugConfiguration.register();
-
   const parsed = parseArgs(process.argv.slice(2));
   if (parsed === null) {
     console.log(new HttpServerOptions().toString());

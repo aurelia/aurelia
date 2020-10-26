@@ -34,7 +34,8 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/metadata": "0.8.0-dev.202010151053"
+    "@aurelia/metadata": "0.7.0",
+    "@aurelia/platform": "0.7.0"
   },
   "devDependencies": {
     "typescript": "^4.0.3"

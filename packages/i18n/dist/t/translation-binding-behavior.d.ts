@@ -1,7 +1,0 @@
-import { LifecycleFlags } from '@aurelia/runtime';
-import { BindingWithBehavior } from '../utils';
-import type { Scope } from '@aurelia/runtime';
-export declare class TranslationBindingBehavior {
-    bind(flags: LifecycleFlags, _scope: Scope, _hostScope: Scope | null, binding: BindingWithBehavior): void;
-}
-//# sourceMappingURL=translation-binding-behavior.d.ts.map

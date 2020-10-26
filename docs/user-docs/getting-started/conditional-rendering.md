@@ -163,7 +163,7 @@ With the usage of the `switch/case` template controller, the above markup can be
 
 This behaves in similar fashion a `switch` in JavaScript behaves.
 That is it renders the first match, and ignores the rest.
-For example if the `status` has a value `Status.processing`, it will simply render `<span>Processing your order.</span>`.
+For example if the `status` has a value `Status.processing`, it will render `<span>Processing your order.</span>`.
 Note that it intrinsically avoids matching the following `case`s after the first match and consequently binding and rendering those elements.
 That is the basic and typical use-case of the `switch/case` template controllers.
 Now let's see some other features of this as well.
@@ -263,15 +263,15 @@ Aurelia equivalent of this will be the following.
 Assuming that `status` is set to `Status.received`, it will end up the rendering the first two `<span>`s.
 
 {% hint style="info" %}
-- By default for every `case` `fallThrough` is set to `false`. If needed, you need to set it to `true` explicitly. This the reason why we don't need do `<span case="value.bind:'processing'; fall-through.bind: false">Processing your order.</span>`.
-- An less verbose syntax for binding the value of `fallThrough` is also simply `fall-through: true`. In this case the string `'true'` and `'false'` is converted to boolean `true`, and `false` respectively.
+- By default for every `case` `fallThrough` is set to `false`. If needed, you need to set it to `true` explicitly. This the reason why we don't need to write the following: `<span case="value.bind:'processing'; fall-through.bind: false">Processing your order.</span>`.
+- `fall-through: true` is a less verbose syntax for binding the value of `fallThrough`. In this case, the string `'true'` and `'false'` are converted to boolean `true`, and `false` respectively.
 {% endhint %}
 
 ### Miscellaneous examples
 
-This section includes some more interesting examples that you might encounter in real life, and the statutory warnings.
+This section includes few more interesting examples that you might encounter in real life, and the statutory warnings.
 
-- Another usage of switch that we often see in the wild, is to use a static expression from `switch` and more dynamic expression for `case`. Therefore, following is a valid usage of `switch`.
+- Another usage of switch that we often see in the wild, is to use a static expression for `switch` and more dynamic expression for `case`. Therefore, the following is a valid usage of `switch`.
 
   {% code title="my-app.html" %}
   ```markup
@@ -308,7 +308,7 @@ This section includes some more interesting examples that you might encounter in
   ```
   {% endcode %}
 
-- The `case` can be used with `au-slot`. The following markup is rendered as `'<foo-bar> <div> <span>Projection</span> </div> </foo-bar>'` with `status` set to `Status.received`.
+- The `case` can be used with `<au-slot>` element as well. The following markup is rendered as `'<foo-bar> <div> <span>Projection</span> </div> </foo-bar>'` with `status` set to `Status.received`.
 
   {% code title="my-app.html" %}
   ```markup
@@ -398,7 +398,10 @@ This section includes some more interesting examples that you might encounter in
     </template>
   </foo-bar>
 
-  <!-- The following example does produce some sort of output; but such usage is not supported. -->
+  <!--
+    The following example does produce some sort of output;
+    but such usage is not supported.
+  -->
   <template as-custom-element="foo-bar">
     foo bar
   </template>

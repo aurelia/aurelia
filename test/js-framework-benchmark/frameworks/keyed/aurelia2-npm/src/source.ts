@@ -1,4 +1,4 @@
-import { ILifecycle } from '@aurelia/runtime';
+import { ILifecycle } from '@aurelia/runtime-html';
 
 function _random(max: number) {
   return Math.round(Math.random() * 1000) % max;

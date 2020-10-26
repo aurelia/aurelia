@@ -1,4 +1,4 @@
-import { customElement } from '@aurelia/runtime';
+import { customElement } from '@aurelia/runtime-html';
 import { IRouter } from '@aurelia/router';
 import { State } from '../state';
 

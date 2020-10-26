@@ -1,4 +1,4 @@
-import { PLATFORM, kebabCase, camelCase, toArray } from '@aurelia/kernel';
+import { kebabCase, camelCase, toArray } from '@aurelia/kernel';
 import { _, assert } from '@aurelia/testing';
 
 const toString = Object.prototype.toString;
@@ -38,42 +38,6 @@ const stringCases = [
 ];
 
 describe(`The PLATFORM object`, function () {
-  if (typeof global !== 'undefined') {
-    it(`global references global`, function () {
-      assert.strictEqual(PLATFORM.global, global, `PLATFORM.global`);
-    });
-  }
-  if (typeof self !== 'undefined') {
-    it(`global references self`, function () {
-      assert.strictEqual(PLATFORM.global, self, `PLATFORM.global`);
-    });
-  }
-  if (typeof window !== 'undefined') {
-    it(`global references window`, function () {
-      assert.strictEqual(PLATFORM.global, window, `PLATFORM.global`);
-    });
-  }
-
-  it(`now() returns a timestamp`, async function () {
-    const $1 = PLATFORM.now();
-
-    await Promise.resolve();
-    const $2 = PLATFORM.now();
-    assert.greaterThanOrEqualTo($2, $1, `$2`);
-
-    await Promise.resolve();
-    const $3 = PLATFORM.now();
-    assert.greaterThanOrEqualTo($3, $2, `$3`);
-
-    await Promise.resolve();
-    const $4 = PLATFORM.now();
-    assert.greaterThanOrEqualTo($4, $3, `$4`);
-
-    await Promise.resolve();
-    const $5 = PLATFORM.now();
-    assert.greaterThanOrEqualTo($5, $4, `$5`);
-  });
-
   describe(`camelCase()`, function () {
     for (const [input, expected] of stringCases) {
       it(`${input} -> ${expected}`, function () {

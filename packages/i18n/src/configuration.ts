@@ -1,5 +1,5 @@
 import { IContainer, Registration } from '@aurelia/kernel';
-import { AppTask, AttributePatternDefinition, BindingCommand, AttributePattern } from '@aurelia/runtime';
+import { AppTask, AttributePatternDefinition, BindingCommand, AttributePattern } from '@aurelia/runtime-html';
 import { DateFormatBindingBehavior } from './df/date-format-binding-behavior';
 import { DateFormatValueConverter } from './df/date-format-value-converter';
 import { I18N, I18nService } from './i18n';
@@ -13,16 +13,16 @@ import { TranslationBindingBehavior } from './t/translation-binding-behavior';
 import {
   TranslationParametersAttributePattern,
   TranslationParametersBindingCommand,
-  TranslationParametersBindingRenderer
-} from './t/translation-parameters-renderer';
+  TranslationParametersBindingComposer
+} from './t/translation-parameters-composer';
 import {
   TranslationAttributePattern,
   TranslationBindAttributePattern,
   TranslationBindBindingCommand,
-  TranslationBindBindingRenderer,
+  TranslationBindBindingComposer,
   TranslationBindingCommand,
-  TranslationBindingRenderer
-} from './t/translation-renderer';
+  TranslationBindingComposer
+} from './t/translation-composer';
 import { TranslationValueConverter } from './t/translation-value-converter';
 
 export type I18NConfigOptionsProvider = (options: I18nConfigurationOptions) => void;
@@ -54,16 +54,16 @@ function coreComponents(options: I18nConfigurationOptions) {
       bindCommandAliases.push(bindAlias);
     }
   }
-  const renderers = [
+  const composers = [
     AttributePattern.define(patterns, TranslationAttributePattern),
     BindingCommand.define({name:'t', aliases: commandAliases}, TranslationBindingCommand),
-    TranslationBindingRenderer,
+    TranslationBindingComposer,
     AttributePattern.define(bindPatterns, TranslationBindAttributePattern),
     BindingCommand.define({name:'t.bind', aliases: bindCommandAliases}, TranslationBindBindingCommand),
-    TranslationBindBindingRenderer,
+    TranslationBindBindingComposer,
     TranslationParametersAttributePattern,
     TranslationParametersBindingCommand,
-    TranslationParametersBindingRenderer
+    TranslationParametersBindingComposer
   ];
 
   return {
@@ -74,7 +74,7 @@ function coreComponents(options: I18nConfigurationOptions) {
         Registration.singleton(I18nWrapper, I18nextWrapper),
         Registration.singleton(I18N, I18nService),
 
-        ...renderers,
+        ...composers,
         ...translation);
     }
   };

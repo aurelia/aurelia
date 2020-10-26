@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 /* eslint-disable @typescript-eslint/require-await */
 import { TestContext, assert } from '@aurelia/testing';
-import { TaskQueuePriority, QueueTaskTargetOptions, ITask } from '@aurelia/runtime';
+import { TaskQueuePriority, QueueTaskOptions, ITask, TaskStatus, TaskQueue } from '@aurelia/runtime';
 
 function createExposedPromise() {
   let resolve: () => void;
@@ -23,12 +23,6 @@ function round(num: number) {
   return ((num * 10 + .5) | 0) / 10;
 }
 
-async function wait(ms: number): Promise<void> {
-  return new Promise(function (resolve) {
-    setTimeout(resolve, ms);
-  });
-}
-
 function reportTask(task: any) {
   const id = task.id;
   const created = round(task.createdTime);
@@ -42,10 +36,10 @@ function reportTask(task: any) {
 }
 
 describe('Scheduler', function () {
-  // There is only ever one global scheduler, so we might as well store it here instead of initializing all extra boilerplate each test
-  const sut = TestContext.createHTMLTestContext().scheduler;
+  // There is only ever one global platform, so we might as well store it here instead of initializing all extra boilerplate each test
+  const platform = TestContext.create().platform;
 
-  function queueRecursive(opts: QueueTaskTargetOptions, count: number, cb: () => void) {
+  function queueRecursive(sut: TaskQueue, opts: QueueTaskOptions, count: number, cb: () => void) {
     function $queue() {
       cb();
 
@@ -57,7 +51,7 @@ describe('Scheduler', function () {
     sut.queueTask($queue, opts);
   }
 
-  function queueRecursiveAsync(opts: QueueTaskTargetOptions, count: number, cb: () => Promise<void>) {
+  function queueRecursiveAsync(sut: TaskQueue, opts: QueueTaskOptions, count: number, cb: () => Promise<void>) {
     async function $queue() {
       await cb();
 
@@ -69,13 +63,13 @@ describe('Scheduler', function () {
     sut.queueTask($queue, opts);
   }
 
-  function queueSequential(opts: QueueTaskTargetOptions, count: number, cb: () => void) {
+  function queueSequential(sut: TaskQueue, opts: QueueTaskOptions, count: number, cb: () => void) {
     while (count-- > 0) {
       sut.queueTask(cb, opts);
     }
   }
 
-  function queueSequentialAsync(opts: QueueTaskTargetOptions, count: number, cb: () => Promise<void>) {
+  function queueSequentialAsync(sut: TaskQueue, opts: QueueTaskOptions, count: number, cb: () => Promise<void>) {
     while (count-- > 0) {
       sut.queueTask(cb, opts);
     }
@@ -83,48 +77,39 @@ describe('Scheduler', function () {
 
   const prioritySpecs = [
     {
-      priority: TaskQueuePriority.microTask,
-      name: 'microTask',
+      sut: platform.domWriteQueue,
+      name: 'domWriteQueue',
     },
     {
-      priority: TaskQueuePriority.render,
-      name: 'render',
+      sut: platform.macroTaskQueue,
+      name: 'macroTaskQueue',
     },
     {
-      priority: TaskQueuePriority.macroTask,
-      name: 'macroTask',
+      sut: platform.domReadQueue,
+      name: 'domReadQueue',
     },
     {
-      priority: TaskQueuePriority.postRender,
-      name: 'postRender',
+      sut: platform.domWriteQueue,
+      name: 'domWriteQueue',
     },
     {
-      priority: TaskQueuePriority.microTask,
-      name: 'microTask',
-    },
-    {
-      priority: TaskQueuePriority.render,
-      name: 'render',
-    },
-    {
-      priority: TaskQueuePriority.macroTask,
-      name: 'macroTask',
+      sut: platform.macroTaskQueue,
+      name: 'macroTaskQueue',
     },
   ];
 
   for (const reusable of [true, false]) {
-    for (const { priority, name } of prioritySpecs) {
+    for (const { sut, name } of prioritySpecs) {
       describe(`can queue ${name}`, function () {
         it('x1, {preempt: false, delay: 0}', function (done) {
           sut.queueTask(
             function () {
-              assert.isSchedulerEmpty();
+              assert.areTaskQueuesEmpty();
 
               done();
             },
             {
               reusable,
-              priority,
               preempt: false,
               delay: 0,
             },
@@ -134,13 +119,12 @@ describe('Scheduler', function () {
         it('x1, {preempt: true, delay: 0}', function (done) {
           sut.queueTask(
             function () {
-              assert.isSchedulerEmpty();
+              assert.areTaskQueuesEmpty();
 
               done();
             },
             {
               reusable,
-              priority,
               preempt: true,
               delay: 0,
             },
@@ -150,13 +134,12 @@ describe('Scheduler', function () {
         it('x1, {delay: 5}', function (done) {
           sut.queueTask(
             function () {
-              assert.isSchedulerEmpty();
+              assert.areTaskQueuesEmpty();
 
               done();
             },
             {
               reusable,
-              priority,
               delay: 5,
             },
           );
@@ -171,13 +154,12 @@ describe('Scheduler', function () {
 
               assert.deepStrictEqual(calls, [2, 1], 'calls');
 
-              assert.isSchedulerEmpty();
+              assert.areTaskQueuesEmpty();
 
               done();
             },
             {
               reusable,
-              priority,
               delay: 5,
             },
           );
@@ -188,7 +170,6 @@ describe('Scheduler', function () {
             },
             {
               reusable,
-              priority,
               delay: 0,
             },
           );
@@ -203,13 +184,12 @@ describe('Scheduler', function () {
 
               assert.deepStrictEqual(calls, [2, 1], 'calls');
 
-              assert.isSchedulerEmpty();
+              assert.areTaskQueuesEmpty();
 
               done();
             },
             {
               reusable,
-              priority,
               preempt: false,
             },
           );
@@ -220,7 +200,6 @@ describe('Scheduler', function () {
             },
             {
               reusable,
-              priority,
               preempt: true,
             },
           );
@@ -235,13 +214,12 @@ describe('Scheduler', function () {
 
               assert.deepStrictEqual(calls, [3, 2, 1], 'calls');
 
-              assert.isSchedulerEmpty();
+              assert.areTaskQueuesEmpty();
 
               done();
             },
             {
               reusable,
-              priority,
               delay: 5,
             },
           );
@@ -252,7 +230,6 @@ describe('Scheduler', function () {
             },
             {
               reusable,
-              priority,
               preempt: false,
             },
           );
@@ -263,7 +240,6 @@ describe('Scheduler', function () {
             },
             {
               reusable,
-              priority,
               preempt: true,
             },
           );
@@ -275,15 +251,15 @@ describe('Scheduler', function () {
               let actual = 0;
               function increment() {
                 if (++actual === expected) {
-                  assert.isSchedulerEmpty();
+                  assert.areTaskQueuesEmpty();
 
                   done();
                 }
               }
               queueSequential(
+                sut,
                 {
                   reusable,
-                  priority,
                   delay,
                 },
                 expected,
@@ -295,15 +271,15 @@ describe('Scheduler', function () {
               let actual = 0;
               function increment() {
                 if (++actual === expected) {
-                  assert.isSchedulerEmpty();
+                  assert.areTaskQueuesEmpty();
 
                   done();
                 }
               }
               queueRecursive(
+                sut,
                 {
                   reusable,
-                  priority,
                   delay,
                 },
                 expected,
@@ -322,7 +298,6 @@ describe('Scheduler', function () {
             },
             {
               reusable,
-              priority,
               preempt: false,
               delay: 0,
             },
@@ -338,7 +313,6 @@ describe('Scheduler', function () {
             },
             {
               reusable,
-              priority,
               preempt: true,
               delay: 0,
             },
@@ -354,7 +328,6 @@ describe('Scheduler', function () {
             },
             {
               reusable,
-              priority,
               delay: 5,
             },
           );
@@ -371,11 +344,10 @@ describe('Scheduler', function () {
 
               assert.deepStrictEqual(calls, [2, 1], 'calls');
 
-              assert.isSchedulerEmpty();
+              assert.areTaskQueuesEmpty();
             },
             {
               reusable,
-              priority,
               delay: 5,
             },
           );
@@ -386,7 +358,6 @@ describe('Scheduler', function () {
             },
             {
               reusable,
-              priority,
               delay: 0,
             },
           );
@@ -403,11 +374,10 @@ describe('Scheduler', function () {
 
               assert.deepStrictEqual(calls, [2, 1], 'calls');
 
-              assert.isSchedulerEmpty();
+              assert.areTaskQueuesEmpty();
             },
             {
               reusable,
-              priority,
               preempt: false,
             },
           );
@@ -418,7 +388,6 @@ describe('Scheduler', function () {
             },
             {
               reusable,
-              priority,
               preempt: true,
             },
           );
@@ -435,11 +404,10 @@ describe('Scheduler', function () {
 
               assert.deepStrictEqual(calls, [3, 2, 1], 'calls');
 
-              assert.isSchedulerEmpty();
+              assert.areTaskQueuesEmpty();
             },
             {
               reusable,
-              priority,
               delay: 5,
             },
           );
@@ -450,7 +418,6 @@ describe('Scheduler', function () {
             },
             {
               reusable,
-              priority,
               preempt: false,
             },
           );
@@ -461,7 +428,6 @@ describe('Scheduler', function () {
             },
             {
               reusable,
-              priority,
               preempt: true,
             },
           );
@@ -474,9 +440,9 @@ describe('Scheduler', function () {
             it(`x${expected} sequential, {delay: ${delay}}`, async function () {
               let actual = 0;
               queueSequential(
+                sut,
                 {
                   reusable,
-                  priority,
                   delay,
                 },
                 expected,
@@ -485,19 +451,19 @@ describe('Scheduler', function () {
                 },
               );
 
-              await sut.getTaskQueue(priority).yield();
+              await sut.yield();
 
               assert.strictEqual(actual, expected, 'callCount');
 
-              assert.isSchedulerEmpty();
+              assert.areTaskQueuesEmpty();
             });
 
             it(`x${expected} recursive, {delay: ${delay}}`, async function () {
               let actual = 0;
               queueRecursive(
+                sut,
                 {
                   reusable,
-                  priority,
                   delay,
                 },
                 expected,
@@ -506,256 +472,242 @@ describe('Scheduler', function () {
                 },
               );
 
-              await sut.getTaskQueue(priority).yield();
+              await sut.yield();
 
               assert.strictEqual(actual, expected, 'callCount');
 
-              assert.isSchedulerEmpty();
+              assert.areTaskQueuesEmpty();
             });
           }
         }
       });
 
-      if (priority !== TaskQueuePriority.microTask) {
-        describe(`can persist ${name}`, function () {
-          for (const iterations of [1, 2, 3]) {
-            describe(`runs until canceled after ${iterations} iterations`, function () {
-              it(`from within the running task`, function (done) {
-                let count = 0;
+      describe(`can persist ${name}`, function () {
+        for (const iterations of [1, 2, 3]) {
+          describe(`runs until canceled after ${iterations} iterations`, function () {
+            it(`from within the running task`, function (done) {
+              let count = 0;
 
-                const task = sut.queueTask(
-                  function () {
-                    if (++count === iterations) {
-                      assert.strictEqual(task.status, 'running', `task.status at count=${count} ${reportTask(task)}`);
+              const task = sut.queueTask(
+                function () {
+                  if (++count === iterations) {
+                    assert.strictEqual(task.status, TaskStatus.running, `task.status at count=${count} ${reportTask(task)}`);
 
-                      task.cancel();
+                    task.cancel();
 
-                      assert.isSchedulerEmpty();
-                    }
-                  },
-                  {
-                    persistent: true,
-                    reusable,
-                    priority,
-                  },
-                );
-
-                let thenCount = 0;
-                function callback() {
-                  if (++thenCount === iterations) {
-                    assert.strictEqual(task.status, 'canceled', `task.status at thenCount=${thenCount} ${reportTask(task)}`);
-
-                    assert.isSchedulerEmpty();
-
-                    done();
-                  } else {
-                    assert.strictEqual(task.status, 'pending', `task.status at thenCount=${thenCount} ${reportTask(task)}`);
-
-                    task.result.then(callback).catch((error) => { throw error; });
+                    assert.areTaskQueuesEmpty();
                   }
-                }
+                },
+                {
+                  persistent: true,
+                  reusable,
+                },
+              );
 
-                task.result.then(callback).catch((error) => { throw error; });
-              });
+              let thenCount = 0;
+              function callback() {
+                if (++thenCount === iterations) {
+                  assert.strictEqual(task.status, TaskStatus.canceled, `task.status at thenCount=${thenCount} ${reportTask(task)}`);
 
-              it(`from within a followup task`, function (done) {
-                let count = 0;
-
-                const task = sut.queueTask(
-                  function () {
-                    assert.strictEqual(nextTask.status, 'pending', `nextTask.status in task at count=${count} ${reportTask(nextTask)}`);
-                    assert.strictEqual(task.status, 'running', `task.status in task at count=${count} ${reportTask(task)}`);
-
-                    ++count;
-                  },
-                  {
-                    persistent: true,
-                    reusable,
-                    priority,
-                  },
-                );
-
-                let nextTask: ITask;
-                function createNextTask() {
-                  return sut.queueTask(
-                    function () {
-                      assert.strictEqual(nextTask.status, 'running', `nextTask.status in nextTask at count=${count} ${reportTask(nextTask)}`);
-                      assert.strictEqual(task.status, 'pending', `task.status in nextTask at count=${count} ${reportTask(task)}`);
-
-                      if (count === iterations) {
-                        task.cancel();
-
-                        assert.isSchedulerEmpty();
-                      } else {
-                        nextTask = createNextTask();
-                      }
-                    },
-                    {
-                      reusable,
-                      priority,
-                    },
-                  );
-                }
-
-                nextTask = createNextTask();
-
-                let thenCount = 0;
-                function callback() {
-                  if (++thenCount === iterations) {
-                    assert.strictEqual(nextTask.status, 'completed', `nextTask.status at thenCount=${thenCount} ${reportTask(nextTask)}`);
-                    assert.strictEqual(task.status, 'canceled', `task.status at thenCount=${thenCount} ${reportTask(task)}`);
-
-                    assert.isSchedulerEmpty();
-
-                    done();
-                  } else {
-                    assert.strictEqual(nextTask.status, 'pending', `nextTask.status at thenCount=${thenCount} ${reportTask(nextTask)}`);
-                    assert.strictEqual(task.status, 'pending', `task.status at thenCount=${thenCount} ${reportTask(task)}`);
-
-                    nextTask.result.then(callback).catch((error) => { throw error; });
-                  }
-                }
-
-                nextTask.result.then(callback).catch((error) => { throw error; });
-              });
-
-              it(`yields after the first iteration with no other tasks`, function (done) {
-                let count = 0;
-                let yieldCount = 0;
-
-                const task = sut.queueTask(
-                  function () {
-                    assert.strictEqual(task.status, 'running', `task.status at count=${count} ${reportTask(task)}`);
-
-                    assert.strictEqual(++count, yieldCount + 1, '++count === yieldCount + 1');
-                  },
-                  {
-                    persistent: true,
-                    reusable,
-                    priority,
-                  },
-                );
-
-                function yieldAndVerify() {
-                  sut.yield(priority).then(() => {
-                    if (priority !== TaskQueuePriority.microTask) {
-                      assert.strictEqual(count, ++yieldCount, 'count === ++yieldCount');
-
-                      if (yieldCount < iterations) {
-                        yieldAndVerify();
-                      } else {
-                        task.cancel();
-
-                        assert.isSchedulerEmpty();
-
-                        done();
-                      }
-                    }
-                  }).catch((error) => { throw error; });
-                }
-
-                yieldAndVerify();
-              });
-
-              it(`yields after the first iteration with several other tasks`, function (done) {
-                let count = 0;
-
-                const task = sut.queueTask(
-                  function () {
-                    assert.strictEqual(task.status, 'running', `task.status at count=${count} ${reportTask(task)}`);
-
-                    ++count;
-                  },
-                  {
-                    persistent: true,
-                    reusable,
-                    priority,
-                  },
-                );
-
-                let otherCount = 0;
-                sut.queueTask(
-                  function () {
-                    ++otherCount;
-                  },
-                  {
-                    preempt: true,
-                    reusable,
-                    priority,
-                  },
-                );
-
-                sut.queueTask(
-                  function () {
-                    ++otherCount;
-                  },
-                  {
-                    preempt: false,
-                    reusable,
-                    priority,
-                  },
-                );
-
-                sut.queueTask(
-                  function () {
-                    ++otherCount;
-                  },
-                  {
-                    preempt: true,
-                    reusable,
-                    priority,
-                  },
-                );
-
-                sut.queueTask(
-                  function () {
-                    ++otherCount;
-                  },
-                  {
-                    preempt: false,
-                    reusable,
-                    priority,
-                  },
-                );
-
-                sut.yield(priority).then(() => {
-                  assert.strictEqual(count, 1, 'count');
-                  assert.strictEqual(otherCount, 4, 'otherCount');
-
-                  task.cancel();
-
-                  assert.isSchedulerEmpty();
+                  assert.areTaskQueuesEmpty();
 
                   done();
-                }).catch((error) => { throw error; });
-              });
+                } else {
+                  assert.strictEqual(task.status, TaskStatus.pending, `task.status at thenCount=${thenCount} ${reportTask(task)}`);
+
+                  task.result.then(callback).catch((error) => { throw error; });
+                }
+              }
+
+              task.result.then(callback).catch((error) => { throw error; });
             });
-          }
-        });
-      }
+
+            it(`from within a followup task`, function (done) {
+              let count = 0;
+
+              const task = sut.queueTask(
+                function () {
+                  assert.strictEqual(nextTask.status, TaskStatus.pending, `nextTask.status in task at count=${count} ${reportTask(nextTask)}`);
+                  assert.strictEqual(task.status, TaskStatus.running, `task.status in task at count=${count} ${reportTask(task)}`);
+
+                  ++count;
+                },
+                {
+                  persistent: true,
+                  reusable,
+                },
+              );
+
+              let nextTask: ITask;
+              function createNextTask() {
+                return sut.queueTask(
+                  function () {
+                    assert.strictEqual(nextTask.status, TaskStatus.running, `nextTask.status in nextTask at count=${count} ${reportTask(nextTask)}`);
+                    assert.strictEqual(task.status, TaskStatus.pending, `task.status in nextTask at count=${count} ${reportTask(task)}`);
+
+                    if (count === iterations) {
+                      task.cancel();
+
+                      assert.areTaskQueuesEmpty();
+                    } else {
+                      nextTask = createNextTask();
+                    }
+                  },
+                  {
+                    reusable,
+                  },
+                );
+              }
+
+              nextTask = createNextTask();
+
+              let thenCount = 0;
+              function callback() {
+                if (++thenCount === iterations) {
+                  assert.strictEqual(nextTask.status, TaskStatus.completed, `nextTask.status at thenCount=${thenCount} ${reportTask(nextTask)}`);
+                  assert.strictEqual(task.status, TaskStatus.canceled, `task.status at thenCount=${thenCount} ${reportTask(task)}`);
+
+                  assert.areTaskQueuesEmpty();
+
+                  done();
+                } else {
+                  assert.strictEqual(nextTask.status, TaskStatus.pending, `nextTask.status at thenCount=${thenCount} ${reportTask(nextTask)}`);
+                  assert.strictEqual(task.status, TaskStatus.pending, `task.status at thenCount=${thenCount} ${reportTask(task)}`);
+
+                  nextTask.result.then(callback).catch((error) => { throw error; });
+                }
+              }
+
+              nextTask.result.then(callback).catch((error) => { throw error; });
+            });
+
+            it(`yields after the first iteration with no other tasks`, function (done) {
+              let count = 0;
+              let yieldCount = 0;
+
+              const task = sut.queueTask(
+                function () {
+                  assert.strictEqual(task.status, TaskStatus.running, `task.status at count=${count} ${reportTask(task)}`);
+
+                  assert.strictEqual(++count, yieldCount + 1, '++count === yieldCount + 1');
+                },
+                {
+                  persistent: true,
+                  reusable,
+                },
+              );
+
+              function yieldAndVerify() {
+                sut.yield().then(() => {
+                  assert.strictEqual(count, ++yieldCount, 'count === ++yieldCount');
+
+                  if (yieldCount < iterations) {
+                    yieldAndVerify();
+                  } else {
+                    task.cancel();
+
+                    assert.areTaskQueuesEmpty();
+
+                    done();
+                  }
+                }).catch((error) => { throw error; });
+              }
+
+              yieldAndVerify();
+            });
+
+            it(`yields after the first iteration with several other tasks`, function (done) {
+              let count = 0;
+
+              const task = sut.queueTask(
+                function () {
+                  assert.strictEqual(task.status, TaskStatus.running, `task.status at count=${count} ${reportTask(task)}`);
+
+                  ++count;
+                },
+                {
+                  persistent: true,
+                  reusable,
+                },
+              );
+
+              let otherCount = 0;
+              sut.queueTask(
+                function () {
+                  ++otherCount;
+                },
+                {
+                  preempt: true,
+                  reusable,
+                },
+              );
+
+              sut.queueTask(
+                function () {
+                  ++otherCount;
+                },
+                {
+                  preempt: false,
+                  reusable,
+                },
+              );
+
+              sut.queueTask(
+                function () {
+                  ++otherCount;
+                },
+                {
+                  preempt: true,
+                  reusable,
+                },
+              );
+
+              sut.queueTask(
+                function () {
+                  ++otherCount;
+                },
+                {
+                  preempt: false,
+                  reusable,
+                },
+              );
+
+              sut.yield().then(() => {
+                assert.strictEqual(count, 1, 'count');
+                assert.strictEqual(otherCount, 4, 'otherCount');
+
+                task.cancel();
+
+                assert.areTaskQueuesEmpty();
+
+                done();
+              }).catch((error) => { throw error; });
+            });
+          });
+        }
+      });
     }
   }
 
   // TODO(fkleuver): we need async tests with suspend: false.
-  // This is indirectly tested by various integration tests but we need at least a couple of thorough scheduler-specific tests as well.
+  // This is indirectly tested by various integration tests but we need at least a couple of thorough platform-specific tests as well.
   describe('async', function () {
     for (const reusable of [true, false]) {
       const $reusable = reusable ? 'reusable' : 'non-reusable';
 
-      for (const { priority, name } of prioritySpecs) {
+      for (const { sut, name } of prioritySpecs) {
         describe(`can queue ${$reusable} ${name}`, function () {
           it('x1, {preempt: false, delay: 0}', async function () {
             const { promise, resolve } = createExposedPromise();
 
             sut.queueTask(
               async function () {
-                assert.isSchedulerEmpty();
+                assert.areTaskQueuesEmpty();
 
                 resolve();
               },
               {
                 reusable,
-                priority,
                 preempt: false,
                 delay: 0,
                 suspend: true,
@@ -770,13 +722,12 @@ describe('Scheduler', function () {
 
             sut.queueTask(
               async function () {
-                assert.isSchedulerEmpty();
+                assert.areTaskQueuesEmpty();
 
                 resolve();
               },
               {
                 reusable,
-                priority,
                 preempt: true,
                 delay: 0,
                 suspend: true,
@@ -791,13 +742,12 @@ describe('Scheduler', function () {
 
             sut.queueTask(
               async function () {
-                assert.isSchedulerEmpty();
+                assert.areTaskQueuesEmpty();
 
                 resolve();
               },
               {
                 reusable,
-                priority,
                 delay: 5,
                 suspend: true,
               },
@@ -817,13 +767,12 @@ describe('Scheduler', function () {
 
                 assert.deepStrictEqual(calls, [2, 1], 'calls');
 
-                assert.isSchedulerEmpty();
+                assert.areTaskQueuesEmpty();
 
                 resolve();
               },
               {
                 reusable,
-                priority,
                 delay: 5,
                 suspend: true,
               },
@@ -835,7 +784,6 @@ describe('Scheduler', function () {
               },
               {
                 reusable,
-                priority,
                 delay: 0,
                 suspend: true,
               },
@@ -855,13 +803,12 @@ describe('Scheduler', function () {
 
                 assert.deepStrictEqual(calls, [2, 1], 'calls');
 
-                assert.isSchedulerEmpty();
+                assert.areTaskQueuesEmpty();
 
                 resolve();
               },
               {
                 reusable,
-                priority,
                 preempt: false,
                 suspend: true,
               },
@@ -873,7 +820,6 @@ describe('Scheduler', function () {
               },
               {
                 reusable,
-                priority,
                 preempt: true,
                 suspend: true,
               },
@@ -893,13 +839,12 @@ describe('Scheduler', function () {
 
                 assert.deepStrictEqual(calls, [3, 2, 1], 'calls');
 
-                assert.isSchedulerEmpty();
+                assert.areTaskQueuesEmpty();
 
                 resolve();
               },
               {
                 reusable,
-                priority,
                 delay: 5,
                 suspend: true,
               },
@@ -911,7 +856,6 @@ describe('Scheduler', function () {
               },
               {
                 reusable,
-                priority,
                 preempt: false,
                 suspend: true,
               },
@@ -923,7 +867,6 @@ describe('Scheduler', function () {
               },
               {
                 reusable,
-                priority,
                 preempt: true,
                 suspend: true,
               },
@@ -940,15 +883,15 @@ describe('Scheduler', function () {
                 let actual = 0;
                 async function increment() {
                   if (++actual === expected) {
-                    assert.isSchedulerEmpty();
+                    assert.areTaskQueuesEmpty();
 
                     resolve();
                   }
                 }
                 queueSequentialAsync(
+                  sut,
                   {
                     reusable,
-                    priority,
                     delay,
                     suspend: true,
                   },
@@ -965,15 +908,15 @@ describe('Scheduler', function () {
                 let actual = 0;
                 async function increment() {
                   if (++actual === expected) {
-                    assert.isSchedulerEmpty();
+                    assert.areTaskQueuesEmpty();
 
                     resolve();
                   }
                 }
                 queueRecursiveAsync(
+                  sut,
                   {
                     reusable,
-                    priority,
                     delay,
                     suspend: true,
                   },
@@ -991,7 +934,6 @@ describe('Scheduler', function () {
           it(`manual 2x recursive`, async function () {
             const opts = {
               reusable,
-              priority,
               preempt: false,
               delay: 0,
               suspend: true,
@@ -1014,11 +956,11 @@ describe('Scheduler', function () {
               opts,
             );
 
-            await sut.yield(priority);
+            await sut.yield();
 
             assert.strictEqual(count, 2);
 
-            assert.isSchedulerEmpty();
+            assert.areTaskQueuesEmpty();
           });
 
           it('x1, {preempt: false, delay: 0}', async function () {
@@ -1028,7 +970,6 @@ describe('Scheduler', function () {
               },
               {
                 reusable,
-                priority,
                 preempt: false,
                 delay: 0,
                 suspend: true,
@@ -1045,7 +986,6 @@ describe('Scheduler', function () {
               },
               {
                 reusable,
-                priority,
                 preempt: true,
                 delay: 0,
                 suspend: true,
@@ -1062,7 +1002,6 @@ describe('Scheduler', function () {
               },
               {
                 reusable,
-                priority,
                 delay: 5,
                 suspend: true,
               },
@@ -1080,11 +1019,10 @@ describe('Scheduler', function () {
 
                 assert.deepStrictEqual(calls, [2, 1], 'calls');
 
-                assert.isSchedulerEmpty();
+                assert.areTaskQueuesEmpty();
               },
               {
                 reusable,
-                priority,
                 delay: 5,
                 suspend: true,
               },
@@ -1096,7 +1034,6 @@ describe('Scheduler', function () {
               },
               {
                 reusable,
-                priority,
                 delay: 0,
                 suspend: true,
               },
@@ -1114,11 +1051,10 @@ describe('Scheduler', function () {
 
                 assert.deepStrictEqual(calls, [2, 1], 'calls');
 
-                assert.isSchedulerEmpty();
+                assert.areTaskQueuesEmpty();
               },
               {
                 reusable,
-                priority,
                 preempt: false,
                 suspend: true,
               },
@@ -1130,7 +1066,6 @@ describe('Scheduler', function () {
               },
               {
                 reusable,
-                priority,
                 preempt: true,
                 suspend: true,
               },
@@ -1148,11 +1083,10 @@ describe('Scheduler', function () {
 
                 assert.deepStrictEqual(calls, [3, 2, 1], 'calls');
 
-                assert.isSchedulerEmpty();
+                assert.areTaskQueuesEmpty();
               },
               {
                 reusable,
-                priority,
                 delay: 5,
                 suspend: true,
               },
@@ -1164,7 +1098,6 @@ describe('Scheduler', function () {
               },
               {
                 reusable,
-                priority,
                 preempt: false,
                 suspend: true,
               },
@@ -1176,7 +1109,6 @@ describe('Scheduler', function () {
               },
               {
                 reusable,
-                priority,
                 preempt: true,
                 suspend: true,
               },
@@ -1190,9 +1122,9 @@ describe('Scheduler', function () {
               it(`x${expected} sequential, {delay: ${delay}}`, async function () {
                 let actual = 0;
                 queueSequentialAsync(
+                  sut,
                   {
                     reusable,
-                    priority,
                     delay,
                     suspend: true,
                   },
@@ -1202,19 +1134,19 @@ describe('Scheduler', function () {
                   },
                 );
 
-                await sut.getTaskQueue(priority).yield();
+                await sut.yield();
 
                 assert.strictEqual(actual, expected, 'callCount');
 
-                assert.isSchedulerEmpty();
+                assert.areTaskQueuesEmpty();
               });
 
               it(`x${expected} recursive, {delay: ${delay}}`, async function () {
                 let actual = 0;
                 queueRecursiveAsync(
+                  sut,
                   {
                     reusable,
-                    priority,
                     delay,
                     suspend: true,
                   },
@@ -1224,326 +1156,310 @@ describe('Scheduler', function () {
                   },
                 );
 
-                await sut.getTaskQueue(priority).yield();
+                await sut.yield();
 
                 assert.strictEqual(actual, expected, 'callCount');
 
-                assert.isSchedulerEmpty();
+                assert.areTaskQueuesEmpty();
               });
             }
           }
         });
 
-        if (priority !== TaskQueuePriority.microTask) {
-          describe(`can persist ${$reusable} ${name}`, function () {
-            for (const iterations of [1, 2, 3]) {
-              describe(`runs until canceled after ${iterations} iterations`, function () {
-                it(`from within the running task`, async function () {
-                  const { promise, resolve } = createExposedPromise();
+        describe(`can persist ${$reusable} ${name}`, function () {
+          for (const iterations of [1, 2, 3]) {
+            describe(`runs until canceled after ${iterations} iterations`, function () {
+              it(`from within the running task`, async function () {
+                const { promise, resolve } = createExposedPromise();
 
-                  let count = 0;
+                let count = 0;
 
-                  const task = sut.queueTask(
-                    async function () {
-                      if (++count === iterations) {
-                        assert.strictEqual(task.status, 'running', `task.status at count=${count} ${reportTask(task)}`);
+                const task = sut.queueTask(
+                  async function () {
+                    if (++count === iterations) {
+                      assert.strictEqual(task.status, TaskStatus.running, `task.status at count=${count} ${reportTask(task)}`);
 
-                        task.cancel();
+                      task.cancel();
 
-                        assert.isSchedulerEmpty();
-                      }
-                    },
-                    {
-                      persistent: true,
-                      reusable,
-                      priority,
-                      suspend: true,
-                    },
-                  );
-
-                  let thenCount = 0;
-                  async function callback() {
-                    if (++thenCount === iterations) {
-                      assert.strictEqual(task.status, 'canceled', `task.status at thenCount=${thenCount} ${reportTask(task)}`);
-
-                      assert.isSchedulerEmpty();
-
-                      resolve();
-                    } else {
-                      assert.strictEqual(task.status, 'pending', `task.status at thenCount=${thenCount} ${reportTask(task)}`);
-
-                      await task.result;
-                      await callback();
+                      assert.areTaskQueuesEmpty();
                     }
+                  },
+                  {
+                    persistent: true,
+                    reusable,
+                    suspend: true,
+                  },
+                );
+
+                let thenCount = 0;
+                async function callback() {
+                  if (++thenCount === iterations) {
+                    assert.strictEqual(task.status, TaskStatus.canceled, `task.status at thenCount=${thenCount} ${reportTask(task)}`);
+
+                    assert.areTaskQueuesEmpty();
+
+                    resolve();
+                  } else {
+                    assert.strictEqual(task.status, TaskStatus.pending, `task.status at thenCount=${thenCount} ${reportTask(task)}`);
+
+                    await task.result;
+                    await callback();
                   }
+                }
 
-                  await task.result;
-                  await callback();
-                  await promise;
-                });
-
-                it(`from within a followup task`, async function () {
-                  const { promise, resolve } = createExposedPromise();
-
-                  let count = 0;
-
-                  const task = sut.queueTask(
-                    async function () {
-                      assert.strictEqual(nextTask.status, 'pending', `nextTask.status in task at count=${count} ${reportTask(nextTask)}`);
-                      assert.strictEqual(task.status, 'running', `task.status in task at count=${count} ${reportTask(task)}`);
-
-                      ++count;
-                    },
-                    {
-                      persistent: true,
-                      reusable,
-                      priority,
-                      suspend: true,
-                    },
-                  );
-
-                  let nextTask: ITask;
-                  function createNextTask() {
-                    return sut.queueTask(
-                      async function () {
-                        assert.strictEqual(nextTask.status, 'running', `nextTask.status in nextTask at count=${count} ${reportTask(nextTask)}`);
-                        assert.strictEqual(task.status, 'pending', `task.status in nextTask at count=${count} ${reportTask(task)}`);
-
-                        if (count === iterations) {
-                          task.cancel();
-
-                          assert.isSchedulerEmpty();
-                        } else {
-                          nextTask = createNextTask();
-                        }
-                      },
-                      {
-                        reusable,
-                        priority,
-                        suspend: true,
-                      },
-                    );
-                  }
-
-                  nextTask = createNextTask();
-
-                  let thenCount = 0;
-                  async function callback() {
-                    if (++thenCount === iterations) {
-                      assert.strictEqual(nextTask.status, 'completed', `nextTask.status at thenCount=${thenCount} ${reportTask(nextTask)}`);
-                      assert.strictEqual(task.status, 'canceled', `task.status at thenCount=${thenCount} ${reportTask(task)}`);
-
-                      assert.isSchedulerEmpty();
-
-                      resolve();
-                    } else {
-                      assert.strictEqual(nextTask.status, 'pending', `nextTask.status at thenCount=${thenCount} ${reportTask(nextTask)}`);
-                      assert.strictEqual(task.status, 'pending', `task.status at thenCount=${thenCount} ${reportTask(task)}`);
-
-                      await nextTask.result;
-
-                      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-                      callback();
-                    }
-                  }
-
-                  await task.result;
-                  assert.strictEqual(nextTask.status, 'pending', `nextTask.status after awaiting task.result at thenCount=${thenCount} ${reportTask(nextTask)}`);
-                  assert.strictEqual(task.status, 'pending', `task.status after awaiting task.result at thenCount=${thenCount} ${reportTask(task)}`);
-
-                  await nextTask.result;
-
-                  await callback();
-
-                  await promise;
-                });
-
-                it(`yields after the first iteration with no other tasks`, async function () {
-                  const { promise, resolve } = createExposedPromise();
-
-                  let count = 0;
-                  let yieldCount = 0;
-
-                  const task = sut.queueTask(
-                    async function () {
-                      assert.strictEqual(task.status, 'running', `task.status at count=${count} ${reportTask(task)}`);
-                      assert.strictEqual(++count, yieldCount + 1, '++count === yieldCount + 1');
-                    },
-                    {
-                      persistent: true,
-                      reusable,
-                      priority,
-                      suspend: true,
-                    },
-                  );
-
-                  async function yieldAndVerify() {
-                    await sut.yield(priority);
-
-                    if (priority !== TaskQueuePriority.microTask) {
-                      assert.strictEqual(count, ++yieldCount, 'count === ++yieldCount');
-
-                      if (yieldCount < iterations) {
-                        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-                        yieldAndVerify();
-                      } else {
-                        task.cancel();
-
-                        assert.isSchedulerEmpty();
-
-                        resolve();
-                      }
-                    }
-                  }
-
-                  await yieldAndVerify();
-                  await promise;
-                });
-
-                it(`yields after the first iteration with several other tasks`, async function () {
-                  let count = 0;
-
-                  const task = sut.queueTask(
-                    async function () {
-                      assert.strictEqual(task.status, 'running', `task.status at count=${count} ${reportTask(task)}`);
-
-                      ++count;
-                    },
-                    {
-                      persistent: true,
-                      reusable,
-                      priority,
-                      suspend: true,
-                    },
-                  );
-
-                  let otherCount = 0;
-                  sut.queueTask(
-                    async function () {
-                      ++otherCount;
-                    },
-                    {
-                      preempt: true,
-                      reusable,
-                      priority,
-                      suspend: true,
-                    },
-                  );
-
-                  sut.queueTask(
-                    async function () {
-                      ++otherCount;
-                    },
-                    {
-                      preempt: false,
-                      reusable,
-                      priority,
-                      suspend: true,
-                    },
-                  );
-
-                  sut.queueTask(
-                    async function () {
-                      ++otherCount;
-                    },
-                    {
-                      preempt: true,
-                      reusable,
-                      priority,
-                      suspend: true,
-                    },
-                  );
-
-                  sut.queueTask(
-                    async function () {
-                      ++otherCount;
-                    },
-                    {
-                      preempt: false,
-                      reusable,
-                      priority,
-                      suspend: true,
-                    },
-                  );
-
-                  await sut.yield(priority);
-
-                  assert.strictEqual(count, 1, 'count');
-                  assert.strictEqual(otherCount, 4, 'otherCount');
-
-                  task.cancel();
-
-                  assert.isSchedulerEmpty();
-                });
+                await task.result;
+                await callback();
+                await promise;
               });
-            }
 
-            it(`yields after the first iteration with no other tasks, after finishing a persistent task that was canceled from within a followup task`, async function () {
-              const primerTask = sut.queueTask(
-                async function () {
-                  assert.strictEqual(primerTask.status, 'running', `primerTask.status in primerTask ${reportTask(primerTask)}`);
-                  assert.strictEqual(primerCancelTask.status, 'pending', `primerCancelTask.status in primerTask ${reportTask(primerCancelTask)}`);
-                },
-                {
-                  persistent: true,
-                  reusable,
-                  priority,
-                  suspend: true,
-                },
-              );
+              it(`from within a followup task`, async function () {
+                const { promise, resolve } = createExposedPromise();
 
-              const primerCancelTask = sut.queueTask(
-                async function () {
-                  assert.strictEqual(primerTask.status, 'pending', `primerTask.status in primerCancelTask ${reportTask(primerTask)}`);
-                  assert.strictEqual(primerCancelTask.status, 'running', `primerCancelTask.status in primerCancelTask ${reportTask(primerCancelTask)}`);
+                let count = 0;
 
-                  primerTask.cancel();
+                const task = sut.queueTask(
+                  async function () {
+                    assert.strictEqual(nextTask.status, TaskStatus.pending, `nextTask.status in task at count=${count} ${reportTask(nextTask)}`);
+                    assert.strictEqual(task.status, TaskStatus.running, `task.status in task at count=${count} ${reportTask(task)}`);
 
-                  assert.isSchedulerEmpty();
-                },
-                {
-                  reusable,
-                  priority,
-                  suspend: true,
-                },
-              );
+                    ++count;
+                  },
+                  {
+                    persistent: true,
+                    reusable,
+                    suspend: true,
+                  },
+                );
 
-              await primerTask.result;
-              assert.strictEqual(primerTask.status, 'pending', `primerTask.status after awaiting primerTask.result ${reportTask(primerTask)}`);
-              assert.strictEqual(primerCancelTask.status, 'pending', `primerCancelTask.status after awaiting primerTask.result ${reportTask(primerCancelTask)}`);
+                let nextTask: ITask;
+                function createNextTask() {
+                  return sut.queueTask(
+                    async function () {
+                      assert.strictEqual(nextTask.status, TaskStatus.running, `nextTask.status in nextTask at count=${count} ${reportTask(nextTask)}`);
+                      assert.strictEqual(task.status, TaskStatus.pending, `task.status in nextTask at count=${count} ${reportTask(task)}`);
 
-              await primerCancelTask.result;
-              assert.strictEqual(primerTask.status, 'canceled', `primerTask.status after awaiting primerCancelTask.result ${reportTask(primerTask)}`);
-              assert.strictEqual(primerCancelTask.status, 'completed', `primerCancelTask.status after awaiting primerCancelTask.result ${reportTask(primerCancelTask)}`);
+                      if (count === iterations) {
+                        task.cancel();
 
-              assert.isSchedulerEmpty();
+                        assert.areTaskQueuesEmpty();
+                      } else {
+                        nextTask = createNextTask();
+                      }
+                    },
+                    {
+                      reusable,
+                      suspend: true,
+                    },
+                  );
+                }
 
-              let count = 0;
-              let yieldCount = 0;
+                nextTask = createNextTask();
 
-              const persistentTask = sut.queueTask(
-                async function () {
-                  assert.strictEqual(persistentTask.status, 'running', `persistentTask.status in persistentTask ${reportTask(persistentTask)}`);
-                  assert.strictEqual(++count, yieldCount + 1, `++count (${count}) === yieldCount + 1 (${yieldCount + 1}) in persistentTask`);
-                },
-                {
-                  persistent: true,
-                  reusable,
-                  priority,
-                  suspend: true,
-                },
-              );
+                let thenCount = 0;
+                async function callback() {
+                  if (++thenCount === iterations) {
+                    assert.strictEqual(nextTask.status, TaskStatus.completed, `nextTask.status at thenCount=${thenCount} ${reportTask(nextTask)}`);
+                    assert.strictEqual(task.status, TaskStatus.canceled, `task.status at thenCount=${thenCount} ${reportTask(task)}`);
 
-              await sut.yield(priority);
+                    assert.areTaskQueuesEmpty();
 
-              assert.strictEqual(count, ++yieldCount, `count (${count}) === ++yieldCount (${yieldCount}) after awaiting sut.yield()`);
+                    resolve();
+                  } else {
+                    assert.strictEqual(nextTask.status, TaskStatus.pending, `nextTask.status at thenCount=${thenCount} ${reportTask(nextTask)}`);
+                    assert.strictEqual(task.status, TaskStatus.pending, `task.status at thenCount=${thenCount} ${reportTask(task)}`);
 
-              persistentTask.cancel();
+                    await nextTask.result;
 
-              assert.isSchedulerEmpty();
+                    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+                    callback();
+                  }
+                }
+
+                await task.result;
+                assert.strictEqual(nextTask.status, TaskStatus.pending, `nextTask.status after awaiting task.result at thenCount=${thenCount} ${reportTask(nextTask)}`);
+                assert.strictEqual(task.status, TaskStatus.pending, `task.status after awaiting task.result at thenCount=${thenCount} ${reportTask(task)}`);
+
+                await nextTask.result;
+
+                await callback();
+
+                await promise;
+              });
+
+              it(`yields after the first iteration with no other tasks`, async function () {
+                const { promise, resolve } = createExposedPromise();
+
+                let count = 0;
+                let yieldCount = 0;
+
+                const task = sut.queueTask(
+                  async function () {
+                    assert.strictEqual(task.status, TaskStatus.running, `task.status at count=${count} ${reportTask(task)}`);
+                    assert.strictEqual(++count, yieldCount + 1, '++count === yieldCount + 1');
+                  },
+                  {
+                    persistent: true,
+                    reusable,
+                    suspend: true,
+                  },
+                );
+
+                async function yieldAndVerify() {
+                  await sut.yield();
+
+                  assert.strictEqual(count, ++yieldCount, 'count === ++yieldCount');
+
+                  if (yieldCount < iterations) {
+                    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+                    yieldAndVerify();
+                  } else {
+                    task.cancel();
+
+                    assert.areTaskQueuesEmpty();
+
+                    resolve();
+                  }
+                }
+
+                await yieldAndVerify();
+                await promise;
+              });
+
+              it(`yields after the first iteration with several other tasks`, async function () {
+                let count = 0;
+
+                const task = sut.queueTask(
+                  async function () {
+                    assert.strictEqual(task.status, TaskStatus.running, `task.status at count=${count} ${reportTask(task)}`);
+
+                    ++count;
+                  },
+                  {
+                    persistent: true,
+                    reusable,
+                    suspend: true,
+                  },
+                );
+
+                let otherCount = 0;
+                sut.queueTask(
+                  async function () {
+                    ++otherCount;
+                  },
+                  {
+                    preempt: true,
+                    reusable,
+                    suspend: true,
+                  },
+                );
+
+                sut.queueTask(
+                  async function () {
+                    ++otherCount;
+                  },
+                  {
+                    preempt: false,
+                    reusable,
+                    suspend: true,
+                  },
+                );
+
+                sut.queueTask(
+                  async function () {
+                    ++otherCount;
+                  },
+                  {
+                    preempt: true,
+                    reusable,
+                    suspend: true,
+                  },
+                );
+
+                sut.queueTask(
+                  async function () {
+                    ++otherCount;
+                  },
+                  {
+                    preempt: false,
+                    reusable,
+                    suspend: true,
+                  },
+                );
+
+                await sut.yield();
+
+                assert.strictEqual(count, 1, 'count');
+                assert.strictEqual(otherCount, 4, 'otherCount');
+
+                task.cancel();
+
+                assert.areTaskQueuesEmpty();
+              });
             });
+          }
+
+          it(`yields after the first iteration with no other tasks, after finishing a persistent task that was canceled from within a followup task`, async function () {
+            const primerTask = sut.queueTask(
+              async function () {
+                assert.strictEqual(primerTask.status, TaskStatus.running, `primerTask.status in primerTask ${reportTask(primerTask)}`);
+                assert.strictEqual(primerCancelTask.status, TaskStatus.pending, `primerCancelTask.status in primerTask ${reportTask(primerCancelTask)}`);
+              },
+              {
+                persistent: true,
+                reusable,
+                suspend: true,
+              },
+            );
+
+            const primerCancelTask = sut.queueTask(
+              async function () {
+                assert.strictEqual(primerTask.status, TaskStatus.pending, `primerTask.status in primerCancelTask ${reportTask(primerTask)}`);
+                assert.strictEqual(primerCancelTask.status, TaskStatus.running, `primerCancelTask.status in primerCancelTask ${reportTask(primerCancelTask)}`);
+
+                primerTask.cancel();
+
+                assert.areTaskQueuesEmpty();
+              },
+              {
+                reusable,
+                suspend: true,
+              },
+            );
+
+            await primerTask.result;
+            assert.strictEqual(primerTask.status, TaskStatus.pending, `primerTask.status after awaiting primerTask.result ${reportTask(primerTask)}`);
+            assert.strictEqual(primerCancelTask.status, TaskStatus.pending, `primerCancelTask.status after awaiting primerTask.result ${reportTask(primerCancelTask)}`);
+
+            await primerCancelTask.result;
+            assert.strictEqual(primerTask.status, TaskStatus.canceled, `primerTask.status after awaiting primerCancelTask.result ${reportTask(primerTask)}`);
+            assert.strictEqual(primerCancelTask.status, TaskStatus.completed, `primerCancelTask.status after awaiting primerCancelTask.result ${reportTask(primerCancelTask)}`);
+
+            assert.areTaskQueuesEmpty();
+
+            let count = 0;
+            let yieldCount = 0;
+
+            const persistentTask = sut.queueTask(
+              async function () {
+                assert.strictEqual(persistentTask.status, TaskStatus.running, `persistentTask.status in persistentTask ${reportTask(persistentTask)}`);
+                assert.strictEqual(++count, yieldCount + 1, `++count (${count}) === yieldCount + 1 (${yieldCount + 1}) in persistentTask`);
+              },
+              {
+                persistent: true,
+                reusable,
+                suspend: true,
+              },
+            );
+
+            await sut.yield();
+
+            assert.strictEqual(count, ++yieldCount, `count (${count}) === ++yieldCount (${yieldCount}) after awaiting sut.yield()`);
+
+            persistentTask.cancel();
+
+            assert.areTaskQueuesEmpty();
           });
-        }
+        });
       }
     }
 
@@ -1583,14 +1499,13 @@ describe('Scheduler', function () {
         assert.deepStrictEqual(states, [TaskState.Finished, TaskState.Finished, TaskState.Finished], `state at the end of callback2`);
       }
 
-      const opts: QueueTaskTargetOptions = {
-        priority: TaskQueuePriority.macroTask,
+      const opts: QueueTaskOptions = {
         suspend: true,
       };
 
-      const task0 = sut.queueTask(callback0, opts);
-      const task1 = sut.queueTask(callback1, opts);
-      const task2 = sut.queueTask(callback2, opts);
+      const task0 = platform.macroTaskQueue.queueTask(callback0, opts);
+      const task1 = platform.macroTaskQueue.queueTask(callback1, opts);
+      const task2 = platform.macroTaskQueue.queueTask(callback2, opts);
 
       assert.deepStrictEqual(states, [TaskState.NotStarted, TaskState.NotStarted, TaskState.NotStarted], `state after queueing 3 tasks`);
 
@@ -1608,7 +1523,7 @@ describe('Scheduler', function () {
 
       assert.deepStrictEqual(states, [TaskState.Finished, TaskState.Finished, TaskState.Finished], `state after awaiting task2`);
 
-      assert.isSchedulerEmpty();
+      assert.areTaskQueuesEmpty();
     });
   });
 });

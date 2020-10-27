@@ -5,7 +5,7 @@ const lookup = new Map<object, BrowserPlatform>();
 function notImplemented(name: string): (...args: any[]) => any {
   return function notImplemented() {
     throw new Error(`The PLATFORM did not receive a valid reference to the global function '${name}'.`); // TODO: link to docs describing how to fix this issue
-  }
+  };
 }
 
 export class BrowserPlatform<TGlobal extends typeof globalThis = typeof globalThis> extends Platform<TGlobal> {

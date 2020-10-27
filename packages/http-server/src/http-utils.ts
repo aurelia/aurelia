@@ -117,7 +117,15 @@ export class QualifiedHeaderValues {
   ) {
     this.headerName = headerName.toLowerCase();
     const rawValue: string = (headers[headerName] ?? headers[this.headerName]) as string;
+    headerName = this.headerName;
     const parsedMap = this.parsedMap = new Map<string, number>();
+    if (rawValue === void 0) {
+      const wildcardValue = wildcardHeaderValue[headerName];
+      if (wildcardValue !== void 0) {
+        parsedMap.set(wildcardValue, 1);
+      }
+      return;
+    }
 
     // TODO handle the partial values such as `text/html;q=0.8,text/*;q=0.8,*/*;q=0.8`, `*`, or `*;q=0.8`
     /**
@@ -129,13 +137,14 @@ export class QualifiedHeaderValues {
 
     for (const item of rawValue.split(',')) {
       // TODO validate the `value` against a set of acceptable values.
-      const [value, q] = item.trim().split(';');
+      const [value, ...rest] = item.trim().split(';');
       let qValue = 1;
+      const q = rest.find((x) => x.startsWith('q='))
       if (q !== void 0) {
         const rawQValue = q.substring(2);
         qValue = Number(rawQValue);
         if (Number.isNaN(qValue) || qValue < 0 || qValue > 1) {
-          throw new Error(`Invalid qValue ${rawQValue} for ${value} in ${headerName} header`);
+          throw new Error(`Invalid qValue ${rawQValue} for ${value} in ${headerName} header; raw values: ${rawValue}`);
         }
       }
       parsedMap.set(value, qValue);

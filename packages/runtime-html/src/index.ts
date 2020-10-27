@@ -533,7 +533,6 @@ export {
 } from './debugging';
 export {
   ITemplateCompiler,
-  ResourceModel,
   BindableInfo,
   ElementInfo,
   AttrInfo,

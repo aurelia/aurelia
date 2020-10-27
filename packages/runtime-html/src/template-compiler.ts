@@ -8,11 +8,7 @@ import {
   Key,
   ILogger,
   camelCase,
-  IResourceKind,
   kebabCase,
-  Metadata,
-  ResourceDefinition,
-  ResourceType,
   DI,
 } from '@aurelia/kernel';
 import {
@@ -114,7 +110,7 @@ export class TemplateCompiler implements ITemplateCompiler {
   public constructor(
     private readonly attrParser: IAttributeParser,
     private readonly exprParser: IExpressionParser,
-    private readonly resources: ResourceModel,
+    private readonly context: IContainer,
     logger: ILogger,
     private readonly p: IPlatform,
   ) {
@@ -126,7 +122,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       return new TemplateCompiler(
         requestor.get(IAttributeParser),
         handler.get(IExpressionParser),
-        ResourceModel.getOrCreate(requestor),
+        requestor,
         handler.get(ILogger),
         handler.get(IPlatform),
       );
@@ -149,7 +145,64 @@ export class TemplateCompiler implements ITemplateCompiler {
 
     this.processLocalTemplates(template, definition, context);
 
-    const surrogate = this.bind(template);
+    const surrogate = new PlainElementSymbol(template);
+
+    const attributes = template.attributes;
+    let i = 0;
+    while (i < attributes.length) {
+      const attr = attributes[i];
+      const attrSyntax = this.attrParser.parse(attr.name, attr.value);
+
+      if (invalidSurrogateAttribute[attrSyntax.target] === true) {
+        throw new Error(`Invalid surrogate attribute: ${attrSyntax.target}`);
+        // TODO: use reporter
+      }
+      const bindingCommand = this.getBindingCommand(attrSyntax, true);
+      if (bindingCommand === null || (bindingCommand.bindingType & BindingType.IgnoreCustomAttr) === 0) {
+        const attrInfo = AttrInfo.from(this.context.find(CustomAttribute, attrSyntax.target));
+
+        if (attrInfo === null) {
+          // map special html attributes to their corresponding properties
+          this.transformAttr(template, attrSyntax);
+          // it's not a custom attribute but might be a regular bound attribute or interpolation (it might also be nothing)
+          this.bindPlainAttribute(
+            /* attrSyntax */ attrSyntax,
+            /* attr       */ attr,
+            /* surrogate  */ surrogate,
+            /* manifest   */ surrogate,
+          );
+        } else if (attrInfo.isTemplateController) {
+          throw new Error('Cannot have template controller on surrogate element.');
+          // TODO: use reporter
+        } else {
+          this.bindCustomAttribute(
+            /* attrSyntax */ attrSyntax,
+            /* attrInfo   */ attrInfo,
+            /* command    */ bindingCommand,
+            /* manifest   */ surrogate,
+          );
+        }
+      } else {
+        // map special html attributes to their corresponding properties
+        this.transformAttr(template, attrSyntax);
+        // it's not a custom attribute but might be a regular bound attribute or interpolation (it might also be nothing)
+        this.bindPlainAttribute(
+          /* attrSyntax */ attrSyntax,
+          /* attr       */ attr,
+          /* surrogate  */ surrogate,
+          /* manifest   */ surrogate,
+        );
+      }
+      ++i;
+    }
+
+    this.bindChildNodes(
+      /* node               */ template,
+      /* surrogate          */ surrogate,
+      /* manifest           */ surrogate,
+      /* manifestRoot       */ null,
+      /* parentManifestRoot */ null,
+    );
 
     const compilation = this.compilation = new CustomElementCompilationUnit(definition, surrogate, template);
 
@@ -465,71 +518,6 @@ export class TemplateCompiler implements ITemplateCompiler {
     return CustomElementDefinition.create({ name: CustomElement.generateName(), template, instructions, needsCompile: false });
   }
 
-  public bind(node: HTMLElement): PlainElementSymbol {
-    const surrogate = new PlainElementSymbol(node);
-
-    const resources = this.resources;
-
-    const attributes = node.attributes;
-    let i = 0;
-    while (i < attributes.length) {
-      const attr = attributes[i];
-      const attrSyntax = this.attrParser.parse(attr.name, attr.value);
-
-      if (invalidSurrogateAttribute[attrSyntax.target] === true) {
-        throw new Error(`Invalid surrogate attribute: ${attrSyntax.target}`);
-        // TODO: use reporter
-      }
-      const bindingCommand = resources.getBindingCommand(attrSyntax, true);
-      if (bindingCommand === null || (bindingCommand.bindingType & BindingType.IgnoreCustomAttr) === 0) {
-        const attrInfo = resources.getAttributeInfo(attrSyntax);
-
-        if (attrInfo === null) {
-          // map special html attributes to their corresponding properties
-          this.transformAttr(node, attrSyntax);
-          // it's not a custom attribute but might be a regular bound attribute or interpolation (it might also be nothing)
-          this.bindPlainAttribute(
-            /* attrSyntax */ attrSyntax,
-            /* attr       */ attr,
-            /* surrogate  */ surrogate,
-            /* manifest   */ surrogate,
-          );
-        } else if (attrInfo.isTemplateController) {
-          throw new Error('Cannot have template controller on surrogate element.');
-          // TODO: use reporter
-        } else {
-          this.bindCustomAttribute(
-            /* attrSyntax */ attrSyntax,
-            /* attrInfo   */ attrInfo,
-            /* command    */ bindingCommand,
-            /* manifest   */ surrogate,
-          );
-        }
-      } else {
-        // map special html attributes to their corresponding properties
-        this.transformAttr(node, attrSyntax);
-        // it's not a custom attribute but might be a regular bound attribute or interpolation (it might also be nothing)
-        this.bindPlainAttribute(
-          /* attrSyntax */ attrSyntax,
-          /* attr       */ attr,
-          /* surrogate  */ surrogate,
-          /* manifest   */ surrogate,
-        );
-      }
-      ++i;
-    }
-
-    this.bindChildNodes(
-      /* node               */ node,
-      /* surrogate          */ surrogate,
-      /* manifest           */ surrogate,
-      /* manifestRoot       */ null,
-      /* parentManifestRoot */ null,
-    );
-
-    return surrogate;
-  }
-
   private bindManifest(
     parentManifest: ElementSymbol,
     node: HTMLTemplateElement | HTMLElement,
@@ -560,7 +548,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       name = node.nodeName.toLowerCase();
     }
 
-    const elementInfo = this.resources.getElementInfo(name);
+    const elementInfo = ElementInfo.from(this.context.find(CustomElement, name));
     if (elementInfo === null) {
       // there is no registered custom element with this name
       manifest = new PlainElementSymbol(node);
@@ -619,7 +607,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         continue;
       }
       const attrSyntax = this.attrParser.parse(attr.name, attr.value);
-      const command = this.resources.getBindingCommand(attrSyntax, false);
+      const command = this.getBindingCommand(attrSyntax, false);
       const bindingType = command === null ? BindingType.Interpolation : command.bindingType;
       const expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
       const to = camelCase(attrSyntax.target);
@@ -657,10 +645,10 @@ export class TemplateCompiler implements ITemplateCompiler {
       }
 
       const attrSyntax = this.attrParser.parse(attr.name, attr.value);
-      const bindingCommand = this.resources.getBindingCommand(attrSyntax, true);
+      const bindingCommand = this.getBindingCommand(attrSyntax, true);
 
       if (bindingCommand === null || (bindingCommand.bindingType & BindingType.IgnoreCustomAttr) === 0) {
-        const attrInfo = this.resources.getAttributeInfo(attrSyntax);
+        const attrInfo = AttrInfo.from(this.context.find(CustomAttribute, attrSyntax.target));
 
         if (attrInfo === null) {
           // map special html attributes to their corresponding properties
@@ -737,7 +725,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     if (hasProjection
       && (manifestRoot === null
         || parentName === void 0
-        || this.resources.getElementInfo(parentName!) === null)) {
+        || this.context.find(CustomElement, parentName) === null)) {
       /**
        * Prevents the following cases:
        * - <template><div au-slot></div></template>
@@ -858,7 +846,7 @@ export class TemplateCompiler implements ITemplateCompiler {
   ): TemplateControllerSymbol {
     let symbol: TemplateControllerSymbol;
     const attrRawValue = attrSyntax.rawValue;
-    const command = this.resources.getBindingCommand(attrSyntax, false);
+    const command = this.getBindingCommand(attrSyntax, false);
     // multi-bindings logic here is similar to (and explained in) bindCustomAttribute
     const isMultiBindings = attrInfo.noMultiBindings === false && command === null && hasInlineBindings(attrRawValue);
 
@@ -950,7 +938,7 @@ export class TemplateCompiler implements ITemplateCompiler {
 
         const attrSyntax = this.attrParser.parse(attrName, attrValue);
         const attrTarget = camelCase(attrSyntax.target);
-        const command = this.resources.getBindingCommand(attrSyntax, false);
+        const command = this.getBindingCommand(attrSyntax, false);
         const bindingType = command === null ? BindingType.Interpolation : command.bindingType;
         const expr = this.exprParser.parse(attrValue, bindingType);
         let bindable = bindables[attrTarget];
@@ -979,7 +967,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     surrogate: PlainElementSymbol,
     manifest: ElementSymbol,
   ): void {
-    const command = this.resources.getBindingCommand(attrSyntax, false);
+    const command = this.getBindingCommand(attrSyntax, false);
     const bindingType = command === null ? BindingType.Interpolation : command.bindingType;
     const attrTarget = attrSyntax.target;
     const attrRawValue = attrSyntax.rawValue;
@@ -1226,6 +1214,28 @@ export class TemplateCompiler implements ITemplateCompiler {
         }
     }
   }
+
+  /**
+   * Retrieve a binding command resource.
+   *
+   * @param name - The parsed `AttrSyntax`
+   *
+   * @returns An instance of the command if it exists, or `null` if it does not exist.
+   */
+  private getBindingCommand(syntax: AttrSyntax, optional: boolean): BindingCommandInstance | null {
+    const name = syntax.command;
+    if (name === null) {
+      return null;
+    }
+    const instance = this.context.create(BindingCommand, name) as BindingCommandInstance;
+    if (instance === null) {
+      if (optional) {
+        return null;
+      }
+      throw new Error(`Unknown binding command: ${name}`);
+    }
+    return instance;
+  }
 }
 
 const invalidSurrogateAttribute = Object.assign(Object.create(null), {
@@ -1396,6 +1406,8 @@ export class BindableInfo {
   ) {}
 }
 
+const elementInfoLookup = new WeakMap<CustomElementDefinition, ElementInfo>();
+
 /**
  * Pre-processed information about a custom element resource, optimized
  * for consumption by the template compiler.
@@ -1412,39 +1424,49 @@ export class ElementInfo {
     public containerless: boolean,
   ) {}
 
-  public static from(def: CustomElementDefinition): ElementInfo {
-    const info = new ElementInfo(def.name, def.containerless);
-    const bindables = def.bindables;
-    const defaultBindingMode = BindingMode.toView;
+  public static from(def: CustomElementDefinition | null): ElementInfo | null {
+    if (def === null) {
+      return null;
+    }
 
-    let bindable: BindableDefinition;
-    let prop: string;
-    let attr: string;
-    let mode: BindingMode;
+    let info = elementInfoLookup.get(def);
+    if (info === void 0) {
+      info = new ElementInfo(def.name, def.containerless);
+      const bindables = def.bindables;
+      const defaultBindingMode = BindingMode.toView;
 
-    for (prop in bindables) {
-      bindable = bindables[prop];
-      // explicitly provided property name has priority over the implicit property name
-      if (bindable.property !== void 0) {
-        prop = bindable.property;
+      let bindable: BindableDefinition;
+      let prop: string;
+      let attr: string;
+      let mode: BindingMode;
+
+      for (prop in bindables) {
+        bindable = bindables[prop];
+        // explicitly provided property name has priority over the implicit property name
+        if (bindable.property !== void 0) {
+          prop = bindable.property;
+        }
+        // explicitly provided attribute name has priority over the derived implicit attribute name
+        if (bindable.attribute !== void 0) {
+          attr = bindable.attribute;
+        } else {
+          // derive the attribute name from the resolved property name
+          attr = kebabCase(prop);
+        }
+        if (bindable.mode !== void 0 && bindable.mode !== BindingMode.default) {
+          mode = bindable.mode;
+        } else {
+          mode = defaultBindingMode;
+        }
+        info.bindables[attr] = new BindableInfo(prop, mode);
       }
-      // explicitly provided attribute name has priority over the derived implicit attribute name
-      if (bindable.attribute !== void 0) {
-        attr = bindable.attribute;
-      } else {
-        // derive the attribute name from the resolved property name
-        attr = kebabCase(prop);
-      }
-      if (bindable.mode !== void 0 && bindable.mode !== BindingMode.default) {
-        mode = bindable.mode;
-      } else {
-        mode = defaultBindingMode;
-      }
-      info.bindables[attr] = new BindableInfo(prop, mode);
+      elementInfoLookup.set(def, info);
     }
     return info;
   }
 }
+
+const attrInfoLookup = new WeakMap<CustomAttributeDefinition, AttrInfo>();
 
 /**
  * Pre-processed information about a custom attribute resource, optimized
@@ -1473,205 +1495,56 @@ export class AttrInfo {
     public noMultiBindings: boolean,
   ) {}
 
-  public static from(def: CustomAttributeDefinition): AttrInfo {
-    const info = new AttrInfo(def.name, def.isTemplateController, def.noMultiBindings);
-    const bindables = def.bindables;
-    const defaultBindingMode = def.defaultBindingMode !== void 0 && def.defaultBindingMode !== BindingMode.default
-      ? def.defaultBindingMode
-      : BindingMode.toView;
-
-    let bindable: BindableDefinition;
-    let prop: string;
-    let mode: BindingMode;
-    let hasPrimary: boolean = false;
-    let isPrimary: boolean = false;
-    let bindableInfo: BindableInfo;
-
-    for (prop in bindables) {
-      bindable = bindables[prop];
-      // explicitly provided property name has priority over the implicit property name
-      if (bindable.property !== void 0) {
-        prop = bindable.property;
-      }
-      if (bindable.mode !== void 0 && bindable.mode !== BindingMode.default) {
-        mode = bindable.mode;
-      } else {
-        mode = defaultBindingMode;
-      }
-      isPrimary = bindable.primary === true;
-      bindableInfo = info.bindables[prop] = new BindableInfo(prop, mode);
-      if (isPrimary) {
-        if (hasPrimary) {
-          throw new Error('primary already exists');
-        }
-        hasPrimary = true;
-        info.bindable = bindableInfo;
-      }
-      // set to first bindable by convention
-      if (info.bindable === null) {
-        info.bindable = bindableInfo;
-      }
+  public static from(def: CustomAttributeDefinition | null): AttrInfo | null {
+    if (def === null) {
+      return null;
     }
-    // if no bindables are present, default to "value"
-    if (info.bindable === null) {
-      info.bindable = new BindableInfo('value', defaultBindingMode);
+    let info = attrInfoLookup.get(def);
+    if (info === void 0) {
+      info = new AttrInfo(def.name, def.isTemplateController, def.noMultiBindings);
+      const bindables = def.bindables;
+      const defaultBindingMode = def.defaultBindingMode !== void 0 && def.defaultBindingMode !== BindingMode.default
+        ? def.defaultBindingMode
+        : BindingMode.toView;
+
+      let bindable: BindableDefinition;
+      let prop: string;
+      let mode: BindingMode;
+      let hasPrimary: boolean = false;
+      let isPrimary: boolean = false;
+      let bindableInfo: BindableInfo;
+
+      for (prop in bindables) {
+        bindable = bindables[prop];
+        // explicitly provided property name has priority over the implicit property name
+        if (bindable.property !== void 0) {
+          prop = bindable.property;
+        }
+        if (bindable.mode !== void 0 && bindable.mode !== BindingMode.default) {
+          mode = bindable.mode;
+        } else {
+          mode = defaultBindingMode;
+        }
+        isPrimary = bindable.primary === true;
+        bindableInfo = info.bindables[prop] = new BindableInfo(prop, mode);
+        if (isPrimary) {
+          if (hasPrimary) {
+            throw new Error('primary already exists');
+          }
+          hasPrimary = true;
+          info.bindable = bindableInfo;
+        }
+        // set to first bindable by convention
+        if (info.bindable === null) {
+          info.bindable = bindableInfo;
+        }
+      }
+      // if no bindables are present, default to "value"
+      if (info.bindable === null) {
+        info.bindable = new BindableInfo('value', defaultBindingMode);
+      }
+      attrInfoLookup.set(def, info);
     }
     return info;
-  }
-}
-
-const contextLookup = new WeakMap<IContainer, ResourceModel>();
-
-/**
- * A pre-processed piece of information about declared custom elements, attributes and
- * binding commands, optimized for consumption by the template compiler.
- */
-export class ResourceModel {
-  private readonly elementLookup: Record<string, ElementInfo | null | undefined> = Object.create(null);
-  private readonly attributeLookup: Record<string, AttrInfo | null | undefined> = Object.create(null);
-  private readonly commandLookup: Record<string, BindingCommandInstance | null | undefined> = Object.create(null);
-
-  private readonly container: IContainer;
-
-  private readonly resourceResolvers: Record<string, IResolver | undefined | null>;
-  private readonly rootResourceResolvers: Record<string, IResolver | undefined | null>;
-
-  public constructor(container: IContainer) {
-    // Note: don't do this sort of thing elsewhere, this is purely for perf reasons
-    this.container = container;
-    const rootContainer = (container as IContainer & { root: IContainer }).root;
-    this.resourceResolvers = (container as IContainer & { resourceResolvers: Record<string, IResolver | undefined | null> }).resourceResolvers;
-    this.rootResourceResolvers = (rootContainer as IContainer & { resourceResolvers: Record<string, IResolver | undefined | null> }).resourceResolvers;
-  }
-
-  public static getOrCreate(context: IContainer): ResourceModel {
-    let model = contextLookup.get(context);
-    if (model === void 0) {
-      contextLookup.set(
-        context,
-        model = new ResourceModel(context),
-      );
-    }
-    return model;
-  }
-
-  /**
-   * Retrieve information about a custom element resource.
-   *
-   * @param element - The original DOM element.
-   *
-   * @returns The resource information if the element exists, or `null` if it does not exist.
-   */
-  public getElementInfo(name: string): ElementInfo | null {
-    let result = this.elementLookup[name];
-    if (result === void 0) {
-      const def = this.find(CustomElement, name) as unknown as CustomElementDefinition;
-      this.elementLookup[name] = result = def === null ? null : ElementInfo.from(def);
-    }
-
-    return result;
-  }
-
-  /**
-   * Retrieve information about a custom attribute resource.
-   *
-   * @param syntax - The parsed `AttrSyntax`
-   *
-   * @returns The resource information if the attribute exists, or `null` if it does not exist.
-   */
-  public getAttributeInfo(syntax: AttrSyntax): AttrInfo | null {
-    let result = this.attributeLookup[syntax.target];
-    if (result === void 0) {
-      const def = this.find(CustomAttribute, syntax.target) as unknown as CustomAttributeDefinition;
-      this.attributeLookup[syntax.target] = result = def === null ? null : AttrInfo.from(def);
-    }
-    return result;
-  }
-
-  /**
-   * Retrieve a binding command resource.
-   *
-   * @param name - The parsed `AttrSyntax`
-   *
-   * @returns An instance of the command if it exists, or `null` if it does not exist.
-   */
-  public getBindingCommand(syntax: AttrSyntax, optional: boolean): BindingCommandInstance | null {
-    const name = syntax.command;
-    if (name === null) {
-      return null;
-    }
-    let result = this.commandLookup[name];
-    if (result === void 0) {
-      result = this.create(BindingCommand, name) as BindingCommandInstance;
-      if (result === null) {
-        if (optional) {
-          return null;
-        }
-        throw new Error(`Unknown binding command: ${name}`);
-      }
-      this.commandLookup[name] = result;
-    }
-    return result;
-  }
-
-  private find<
-    TType extends ResourceType,
-    TDef extends ResourceDefinition,
-  >(kind: IResourceKind<TType, TDef>, name: string): TDef | null {
-    const key = kind.keyFrom(name);
-    let resolver = this.resourceResolvers[key];
-    if (resolver === void 0) {
-      resolver = this.rootResourceResolvers[key];
-      if (resolver === void 0) {
-        return null;
-      }
-    }
-
-    if (resolver === null) {
-      return null;
-    }
-
-    if (typeof resolver.getFactory === 'function') {
-      const factory = resolver.getFactory(this.container);
-      if (factory === null || factory === void 0) {
-        return null;
-      }
-
-      const definition = Metadata.getOwn(kind.name, factory.Type);
-      if (definition === void 0) {
-        // TODO: we may want to log a warning here, or even throw. This would happen if a dependency is registered with a resource-like key
-        // but does not actually have a definition associated via the type's metadata. That *should* generally not happen.
-        return null;
-      }
-
-      return definition;
-    }
-
-    return null;
-  }
-
-  private create<
-    TType extends ResourceType,
-    TDef extends ResourceDefinition,
-  >(kind: IResourceKind<TType, TDef>, name: string): InstanceType<TType> | null {
-    const key = kind.keyFrom(name);
-    let resolver = this.resourceResolvers[key];
-    if (resolver === void 0) {
-      resolver = this.rootResourceResolvers[key];
-      if (resolver === void 0) {
-        return null;
-      }
-    }
-
-    if (resolver === null) {
-      return null;
-    }
-
-    const instance = resolver.resolve(this.container, this.container);
-    if (instance === void 0) {
-      return null;
-    }
-
-    return instance;
   }
 }

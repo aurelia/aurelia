@@ -1,5 +1,4 @@
-import { LifecycleFlags } from '../flags';
-import { ILifecycle } from '../lifecycle';
+import { ITask } from '@aurelia/kernel';
 import {
   CollectionKind,
   createIndexMap,
@@ -8,7 +7,9 @@ import {
   IObservedArray,
   ICollectionIndexObserver,
   ISubscriber,
-  AccessorType
+  AccessorType,
+  ILifecycle,
+  LifecycleFlags
 } from '../observation';
 import {
   CollectionLengthObserver
@@ -17,7 +18,6 @@ import {
   collectionSubscriberCollection,
   subscriberCollection
 } from './subscriber-collection';
-import { ITask } from '@aurelia/scheduler';
 
 const observerLookup = new WeakMap<unknown[], ArrayObserver>();
 
@@ -441,9 +441,9 @@ export class ArrayObserver {
 
     this.inBatch = false;
     this.indexMap = createIndexMap(length);
-    this.callCollectionSubscribers(indexMap, LifecycleFlags.updateTargetInstance | this.persistentFlags);
+    this.callCollectionSubscribers(indexMap, LifecycleFlags.updateTarget | this.persistentFlags);
     if (this.lengthObserver !== void 0) {
-      this.lengthObserver.setValue(length, LifecycleFlags.updateTargetInstance);
+      this.lengthObserver.setValue(length, LifecycleFlags.updateTarget);
     }
   }
 

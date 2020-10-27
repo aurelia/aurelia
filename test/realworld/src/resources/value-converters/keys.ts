@@ -1,4 +1,4 @@
-import { valueConverter } from '@aurelia/runtime';
+import { valueConverter } from '@aurelia/runtime-html';
 
 @valueConverter({ name: 'keys' })
 export class KeysValueConverter {

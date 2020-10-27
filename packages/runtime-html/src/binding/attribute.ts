@@ -1,6 +1,4 @@
-import {
-  IServiceLocator,
-} from '@aurelia/kernel';
+import { IServiceLocator } from '@aurelia/kernel';
 import {
   AccessorOrObserver,
   INodeAccessor,
@@ -14,19 +12,16 @@ import {
   IPartialConnectableBinding,
   IsBindingBehavior,
   LifecycleFlags,
-  IScheduler,
-  INode,
-  CustomElementDefinition,
   ITask,
   AccessorType,
   QueueTaskOptions,
 } from '@aurelia/runtime';
-import {
-  AttributeObserver,
-  IHtmlElement,
-} from '../observation/element-attribute-observer';
+import { AttributeObserver, IHtmlElement } from '../observation/element-attribute-observer';
 
 import type { Scope } from '@aurelia/runtime';
+import { IPlatform } from '../platform';
+import { CustomElementDefinition } from '../resources/custom-element';
+import { INode } from '../dom';
 
 // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
 const { oneTime, toView, fromView } = BindingMode;
@@ -50,7 +45,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
 
   public id!: number;
   public isBound: boolean = false;
-  public $scheduler: IScheduler;
+  public $platform: IPlatform;
   public $scope: Scope = null!;
   public $hostScope: Scope | null = null;
   public projection?: CustomElementDefinition;
@@ -82,17 +77,17 @@ export class AttributeBinding implements IPartialConnectableBinding {
   ) {
     this.target = target as Element;
     connectable.assignIdTo(this);
-    this.$scheduler = locator.get(IScheduler);
+    this.$platform = locator.get(IPlatform);
   }
 
   public updateTarget(value: unknown, flags: LifecycleFlags): void {
     flags |= this.persistentFlags;
-    this.targetObserver.setValue(value, flags | LifecycleFlags.updateTargetInstance);
+    this.targetObserver.setValue(value, flags | LifecycleFlags.updateTarget);
   }
 
   public updateSource(value: unknown, flags: LifecycleFlags): void {
     flags |= this.persistentFlags;
-    this.sourceExpression.assign!(flags | LifecycleFlags.updateSourceExpression, this.$scope, this.$hostScope, this.locator, value);
+    this.sourceExpression.assign!(flags | LifecycleFlags.updateSource, this.$scope, this.$hostScope, this.locator, value);
   }
 
   public handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {
@@ -109,16 +104,16 @@ export class AttributeBinding implements IPartialConnectableBinding {
     const locator = this.locator;
 
     if (mode === BindingMode.fromView) {
-      flags &= ~LifecycleFlags.updateTargetInstance;
-      flags |= LifecycleFlags.updateSourceExpression;
+      flags &= ~LifecycleFlags.updateTarget;
+      flags |= LifecycleFlags.updateSource;
     }
 
-    if (flags & LifecycleFlags.updateTargetInstance) {
+    if (flags & LifecycleFlags.updateTarget) {
       const targetObserver = this.targetObserver;
       // Alpha: during bind a simple strategy for bind is always flush immediately
       // todo:
       //  (1). determine whether this should be the behavior
-      //  (2). if not, then fix tests to reflect the changes/scheduler to properly yield all with aurelia.start()
+      //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start()
       const shouldQueueFlush = (flags & LifecycleFlags.fromBind) === 0 && (targetObserver.type & AccessorType.Layout) > 0;
       const oldValue = targetObserver.getValue();
 
@@ -137,7 +132,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
         if (shouldQueueFlush) {
           flags |= LifecycleFlags.noTargetObserverQueue;
           this.task?.cancel();
-          this.task = this.$scheduler.queueRenderTask(() => {
+          this.task = this.$platform.domWriteQueue.queueTask(() => {
             (targetObserver as Partial<INodeAccessor>).flushChanges?.(flags);
             this.task = null;
           }, taskOptions);
@@ -149,7 +144,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
       return;
     }
 
-    if (flags & LifecycleFlags.updateSourceExpression) {
+    if (flags & LifecycleFlags.updateSource) {
       if (newValue !== this.sourceExpression.evaluate(flags, $scope, this.$hostScope, locator, null)) {
         interceptor.updateSource(newValue, flags);
       }
@@ -183,7 +178,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
     let targetObserver = this.targetObserver as IBindingTargetObserver;
     if (!targetObserver) {
       targetObserver = this.targetObserver = new AttributeObserver(
-        this.$scheduler,
+        this.$platform,
         flags,
         this.observerLocator,
         this.target as IHtmlElement,
@@ -208,7 +203,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
       );
     }
     if ($mode & fromView) {
-      targetObserver[this.id] |= LifecycleFlags.updateSourceExpression;
+      targetObserver[this.id] |= LifecycleFlags.updateSource;
       targetObserver.subscribe(interceptor);
     }
 
@@ -236,7 +231,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
     }
     if (targetObserver.unsubscribe) {
       targetObserver.unsubscribe(this.interceptor);
-      targetObserver[this.id] &= ~LifecycleFlags.updateSourceExpression;
+      targetObserver[this.id] &= ~LifecycleFlags.updateSource;
     }
     if (task != null) {
       task.cancel();

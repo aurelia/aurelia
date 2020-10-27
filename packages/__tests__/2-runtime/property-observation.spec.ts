@@ -1,4 +1,4 @@
-import { PLATFORM, Primitive, IIndexable } from '@aurelia/kernel';
+import { noop, Primitive, IIndexable } from '@aurelia/kernel';
 import {
   LifecycleFlags as LF,
   PrimitiveObserver,
@@ -68,7 +68,7 @@ class Foo {}
 
 describe('SetterObserver', function () {
   function createFixture(flags: LF, obj: IIndexable, key: string) {
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     const sut = new SetterObserver(flags, obj, key);
 
     return { ctx, sut };
@@ -93,7 +93,7 @@ describe('SetterObserver', function () {
     const valueArr = [undefined, null, 0, '', {}];
     const objectArr = createObjectArr();
     const propertyNameArr = [undefined, null, Symbol(), '', 'foo'];
-    const flags = LF.updateTargetInstance;
+    const flags = LF.updateTarget;
     for (const object of objectArr) {
       for (const propertyName of propertyNameArr) {
         for (const value of valueArr) {
@@ -111,7 +111,7 @@ describe('SetterObserver', function () {
   describe('subscribe()', function () {
     const propertyNameArr = [undefined, null, Symbol(), '', 'foo', 1];
     const objectArr = createObjectArr();
-    const flags = LF.updateTargetInstance;
+    const flags = LF.updateTarget;
     for (const object of objectArr) {
       for (const propertyName of propertyNameArr) {
         it(`can handle ${getName(object)}[${typeof propertyName}]`, function () {
@@ -173,9 +173,9 @@ describe('SetterObserver', function () {
 
 describe('BindableObserver', function () {
   function createFixture(flags: LF, obj: IIndexable, key: string) {
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     const lifecycle = ctx.lifecycle;
-    const sut = new BindableObserver(lifecycle, flags, obj, key, `${key ? key.toString() : `${key}`}Changed`, PLATFORM.noop);
+    const sut = new BindableObserver(lifecycle, flags, obj, key, `${key ? key.toString() : `${key}`}Changed`, noop);
 
     return { sut };
   }
@@ -207,7 +207,7 @@ describe('BindableObserver', function () {
     const valueArr = [undefined, null, 0, '', {}];
     const objectArr = createObjectArr();
     const propertyNameArr = [undefined, null, Symbol(), '', 'foo'];
-    const flags = LF.updateTargetInstance;
+    const flags = LF.updateTarget;
     for (const object of objectArr) {
       for (const propertyName of propertyNameArr) {
         for (const value of valueArr) {
@@ -225,7 +225,7 @@ describe('BindableObserver', function () {
   describe('subscribe()', function () {
     const propertyNameArr = [undefined, null, Symbol(), '', 'foo', 1];
     const objectArr = createObjectArr();
-    const flags = LF.updateTargetInstance;
+    const flags = LF.updateTarget;
     for (const object of objectArr) {
       for (const propertyName of propertyNameArr) {
         it(`can handle ${getName(object)}[${typeof propertyName}]`, function () {

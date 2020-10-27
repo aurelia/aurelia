@@ -1,82 +1,67 @@
-import {
-  nextId,
-  onResolve,
-} from '@aurelia/kernel';
-import {
-  bindable,
-  MountStrategy,
-  IDOM,
-  IRenderLocation,
-  IViewFactory,
-  LifecycleFlags,
-  templateController,
-  ISyntheticView,
-  ICustomAttributeController,
-  ICustomAttributeViewModel,
-  IHydratedController,
-  IHydratedParentController,
-  ControllerVisitor,
-} from '@aurelia/runtime';
-import {
-  HTMLDOM,
-} from '../../dom';
+import { nextId, onResolve } from '@aurelia/kernel';
+import { bindable, LifecycleFlags } from '@aurelia/runtime';
+import { IRenderLocation, setEffectiveParentNode } from '../../dom';
+import { ControllerVisitor, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ISyntheticView, MountStrategy } from '../../lifecycle';
+import { IPlatform } from '../../platform';
+import { IViewFactory } from '../../templating/view';
+import { templateController } from '../custom-attribute';
 
-export type PortalTarget<T extends ParentNode = ParentNode> = string | T | null | undefined;
-type ResolvedTarget<T extends ParentNode = ParentNode> = T | null;
+export type PortalTarget<T extends Node & ParentNode = Node & ParentNode> = string | T | null | undefined;
+type ResolvedTarget<T extends Node & ParentNode = Node & ParentNode> = T | null;
 
-export type PortalLifecycleCallback<T extends ParentNode = ParentNode> = (target: PortalTarget<T>, view: ISyntheticView<T>) => void | Promise<void>;
+export type PortalLifecycleCallback = (target: PortalTarget, view: ISyntheticView) => void | Promise<void>;
 
 @templateController('portal')
-export class Portal<T extends ParentNode = ParentNode> implements ICustomAttributeViewModel<T> {
+export class Portal<T extends Node & ParentNode = Node & ParentNode> implements ICustomAttributeViewModel {
 
-  public readonly $controller!: ICustomAttributeController<T, this>;
+  public readonly $controller!: ICustomAttributeController<this>;
 
   public readonly id: number = nextId('au$component');
 
   @bindable({ primary: true })
-  public target: PortalTarget<T>;
+  public target: PortalTarget;
 
   @bindable({ callback: 'targetChanged' })
-  public renderContext: PortalTarget<T>;
+  public renderContext: PortalTarget;
 
   @bindable()
   public strict: boolean = false;
 
   @bindable()
-  public deactivating?: PortalLifecycleCallback<T>;
+  public deactivating?: PortalLifecycleCallback;
 
   @bindable()
-  public activating?: PortalLifecycleCallback<T>;
+  public activating?: PortalLifecycleCallback;
 
   @bindable()
-  public deactivated?: PortalLifecycleCallback<T>;
+  public deactivated?: PortalLifecycleCallback;
 
   @bindable()
-  public activated?: PortalLifecycleCallback<T>;
+  public activated?: PortalLifecycleCallback;
 
   @bindable()
   public callbackContext: unknown;
 
-  public view: ISyntheticView<T>;
+  public view: ISyntheticView;
 
   private currentTarget?: PortalTarget;
 
   public constructor(
-    @IViewFactory private readonly factory: IViewFactory<T>,
-    @IRenderLocation private readonly originalLoc: IRenderLocation<T>,
-    @IDOM private readonly dom: HTMLDOM,
+    @IViewFactory private readonly factory: IViewFactory,
+    @IRenderLocation private readonly originalLoc: IRenderLocation,
+    @IPlatform private readonly p: IPlatform,
   ) {
     // to make the shape of this object consistent.
     // todo: is this necessary
-    this.currentTarget = dom.createElement('div');
+    this.currentTarget = p.document.createElement('div');
 
     this.view = this.factory.create();
-    dom.setEffectiveParentNode(this.view.nodes!, originalLoc as unknown as Node);
+    setEffectiveParentNode(this.view.nodes!, originalLoc as unknown as Node);
   }
 
   public afterAttach(
-    initiator: IHydratedController<T>,
-    parent: IHydratedParentController<T>,
+    initiator: IHydratedController,
+    parent: IHydratedParentController,
     flags: LifecycleFlags,
   ): void | Promise<void> {
     if (this.callbackContext == null) {
@@ -89,8 +74,8 @@ export class Portal<T extends ParentNode = ParentNode> implements ICustomAttribu
   }
 
   public afterUnbind(
-    initiator: IHydratedController<T>,
-    parent: IHydratedParentController<T>,
+    initiator: IHydratedController,
+    parent: IHydratedParentController,
     flags: LifecycleFlags,
   ): void | Promise<void> {
     return this.$deactivating(initiator, this.currentTarget as T, flags);
@@ -121,7 +106,7 @@ export class Portal<T extends ParentNode = ParentNode> implements ICustomAttribu
   }
 
   private $activating(
-    initiator: IHydratedController<T> | null,
+    initiator: IHydratedController | null,
     target: T,
     flags: LifecycleFlags,
   ): void | Promise<void> {
@@ -138,7 +123,7 @@ export class Portal<T extends ParentNode = ParentNode> implements ICustomAttribu
   }
 
   private activate(
-    initiator: IHydratedController<T> | null,
+    initiator: IHydratedController | null,
     target: T,
     flags: LifecycleFlags,
   ): void | Promise<void> {
@@ -168,7 +153,7 @@ export class Portal<T extends ParentNode = ParentNode> implements ICustomAttribu
   }
 
   private $deactivating(
-    initiator: IHydratedController<T> | null,
+    initiator: IHydratedController | null,
     target: T,
     flags: LifecycleFlags,
   ): void | Promise<void> {
@@ -183,7 +168,7 @@ export class Portal<T extends ParentNode = ParentNode> implements ICustomAttribu
   }
 
   private deactivate(
-    initiator: IHydratedController<T> | null,
+    initiator: IHydratedController | null,
     target: T,
     flags: LifecycleFlags,
   ): void | Promise<void> {
@@ -212,41 +197,41 @@ export class Portal<T extends ParentNode = ParentNode> implements ICustomAttribu
   }
 
   private resolveTarget(): T {
-    const dom = this.dom;
+    const p = this.p;
     // with a $ in front to make it less confusing/error prone
-    const $document = dom.document;
+    const $document = p.document;
     let target = this.target;
     let context = this.renderContext;
 
     if (typeof target === 'string') {
       let queryContext: ParentNode = $document;
       if (typeof context === 'string') {
-        context = $document.querySelector(context) as ResolvedTarget<T>;
+        context = $document.querySelector(context) as ResolvedTarget;
       }
-      if (dom.isNodeInstance(context)) {
+      if (context instanceof p.Node) {
         queryContext = context;
       }
-      target = queryContext.querySelector(target) as ResolvedTarget<T>;
+      target = queryContext.querySelector(target) as ResolvedTarget;
     }
 
-    if (dom.isNodeInstance(target)) {
-      return target;
+    if (target instanceof p.Node) {
+      return target as T & Node & ParentNode;
     }
 
     if (target == null) {
       if (this.strict) {
-        throw new Error('Render target not found');
+        throw new Error('Compose target not found');
       } else {
-        target = $document.body as unknown as ResolvedTarget<T>;
+        target = $document.body as unknown as ResolvedTarget;
       }
     }
 
-    return target!;
+    return target as T & Node & ParentNode;
   }
 
   public onCancel(
-    initiator: IHydratedController<T>,
-    parent: IHydratedParentController<T>,
+    initiator: IHydratedController,
+    parent: IHydratedParentController,
     flags: LifecycleFlags,
   ): void {
     this.view?.cancel(initiator, this.$controller, flags);
@@ -258,7 +243,7 @@ export class Portal<T extends ParentNode = ParentNode> implements ICustomAttribu
     this.callbackContext = null;
   }
 
-  public accept(visitor: ControllerVisitor<T>): void | true {
+  public accept(visitor: ControllerVisitor): void | true {
     if (this.view?.accept(visitor) === true) {
       return true;
     }

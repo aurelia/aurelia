@@ -9,7 +9,6 @@
 This is the umbrella package for Aurelia 2. It re-exports selected internals from following Aurelia 2 packages:
 
 ```
-@aurelia/debug
 @aurelia/fetch-client
 @aurelia/jit
 @aurelia/kernel

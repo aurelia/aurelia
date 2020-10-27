@@ -1,9 +1,9 @@
 import {
   BindingMode,
   ITemplateCompiler,
-  TargetedInstructionType as TT,
-  ITargetedInstruction
-} from '@aurelia/runtime';
+  IInstruction,
+  InstructionType as TT,
+} from '@aurelia/runtime-html';
 import {
   assert,
   TestContext
@@ -35,7 +35,7 @@ describe('template-compiler.convention.spec.ts \n\thtml convention', function ()
   for (const [el, bindingAttr, bindingProp = bindingAttr, elAttrs = {}] of bindToTwoWayCombos) {
     const elAttrsStr = Object.entries(elAttrs).map(([key, value]) => `${key}="${value}"`).join(' ');
     it(`compile <${el} ${bindingAttr}.bind="..." ${elAttrsStr} />`, function () {
-      const ctx = TestContext.createHTMLTestContext();
+      const ctx = TestContext.create();
       const compiler = ctx.container.get(ITemplateCompiler);
       const template = `<${el} ${bindingAttr}.bind="value" ${elAttrsStr}></${el}>`;
       const { instructions: rootInstructions } = compiler.compile(
@@ -83,7 +83,7 @@ describe('template-compiler.convention.spec.ts \n\thtml convention', function ()
   for (const [el, bindingAttr, bindingProp, elAttrs = {}] of attrToPropCombos) {
     const elAttrsStr = Object.entries(elAttrs).map(([key, value]) => `${key}="${value}"`).join(' ');
     it(`compile <${el} ${bindingAttr}.bind="..." ${elAttrsStr} />`, function () {
-      const ctx = TestContext.createHTMLTestContext();
+      const ctx = TestContext.create();
       const compiler = ctx.container.get(ITemplateCompiler);
       const template = `<${el} ${bindingAttr}.bind="value" ${elAttrsStr}></${el}>`;
       const { instructions: rootInstructions } = compiler.compile(
@@ -105,7 +105,7 @@ interface IExpectedInstruction {
   toVerify: string[];
 }
 
-function verifyInstructions(actual: readonly ITargetedInstruction[], expectation: IExpectedInstruction[], type?: string) {
+function verifyInstructions(actual: readonly IInstruction[], expectation: IExpectedInstruction[], type?: string) {
   assert.strictEqual(actual.length, expectation.length, `Expected to have ${expectation.length} ${type ? type : ''} instructions. Received: ${actual.length}`);
   for (let i = 0, ii = actual.length; i < ii; ++i) {
     const actualInst = actual[i];

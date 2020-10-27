@@ -1,25 +1,21 @@
 import {
   IServiceLocator,
-} from '@aurelia/kernel';
-import {
-  IScheduler,
   ITask,
   QueueTaskOptions,
-} from '@aurelia/scheduler';
-import {
-  BindingMode,
-  ExpressionKind,
-  LifecycleFlags,
-} from '../flags';
-import { ILifecycle } from '../lifecycle';
+  TaskQueue,
+} from '@aurelia/kernel';
 import {
   AccessorOrObserver,
   IBindingTargetObserver,
   AccessorType,
   INodeAccessor,
+  BindingMode,
+  ILifecycle,
+  LifecycleFlags,
 } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
 import {
+  ExpressionKind,
   ForOfStatement,
   IsBindingBehavior,
 } from './ast';
@@ -59,7 +55,6 @@ export class PropertyBinding implements IPartialConnectableBinding {
   public persistentFlags: LifecycleFlags = LifecycleFlags.none;
 
   private task: ITask | null = null;
-  private readonly $scheduler: IScheduler;
 
   public constructor(
     public sourceExpression: IsBindingBehavior | ForOfStatement,
@@ -68,10 +63,10 @@ export class PropertyBinding implements IPartialConnectableBinding {
     public mode: BindingMode,
     public observerLocator: IObserverLocator,
     public locator: IServiceLocator,
+    private readonly taskQueue: TaskQueue,
   ) {
     connectable.assignIdTo(this);
     this.$lifecycle = locator.get(ILifecycle);
-    this.$scheduler = locator.get(IScheduler);
   }
 
   public updateTarget(value: unknown, flags: LifecycleFlags): void {
@@ -97,11 +92,11 @@ export class PropertyBinding implements IPartialConnectableBinding {
     const $scope = this.$scope;
     const locator = this.locator;
 
-    if ((flags & LifecycleFlags.updateTargetInstance) > 0) {
+    if ((flags & LifecycleFlags.updateTarget) > 0) {
       // Alpha: during bind a simple strategy for bind is always flush immediately
       // todo:
       //  (1). determine whether this should be the behavior
-      //  (2). if not, then fix tests to reflect the changes/scheduler to properly yield all with aurelia.start()
+      //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start()
       const shouldQueueFlush = (flags & LifecycleFlags.fromBind) === 0 && (targetObserver.type & AccessorType.Layout) > 0;
       const oldValue = targetObserver.getValue(this.target, this.targetProperty);
 
@@ -123,7 +118,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
         if (shouldQueueFlush) {
           flags |= LifecycleFlags.noTargetObserverQueue;
           this.task?.cancel();
-          this.task = this.$scheduler.queueRenderTask(() => {
+          this.task = this.taskQueue.queueTask(() => {
             (targetObserver as Partial<INodeAccessor>).flushChanges?.(flags);
             this.task = null;
           }, updateTaskOpts);
@@ -135,7 +130,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
       return;
     }
 
-    if ((flags & LifecycleFlags.updateSourceExpression) > 0) {
+    if ((flags & LifecycleFlags.updateSource) > 0) {
       if (newValue !== sourceExpression.evaluate(flags, $scope!, this.$hostScope, locator, null)) {
         interceptor.updateSource(newValue, flags);
       }
@@ -201,7 +196,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
       if (!shouldConnect) {
         interceptor.updateSource(targetObserver.getValue(this.target, this.targetProperty), flags);
       }
-      targetObserver[this.id] |= LifecycleFlags.updateSourceExpression;
+      targetObserver[this.id] |= LifecycleFlags.updateSource;
     }
 
     // add isBound flag and remove isBinding flag
@@ -230,7 +225,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
     }
     if (targetObserver.unsubscribe) {
       targetObserver.unsubscribe(this.interceptor);
-      targetObserver[this.id] &= ~LifecycleFlags.updateSourceExpression;
+      targetObserver[this.id] &= ~LifecycleFlags.updateSource;
     }
     if (task != null) {
       task.cancel();

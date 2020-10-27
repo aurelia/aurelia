@@ -1,6 +1,4 @@
 import { IIndexable } from '@aurelia/kernel';
-import { IDOM } from '@aurelia/runtime';
-import { DOM, HTMLDOM } from '@aurelia/runtime-html';
 import { HttpClientConfiguration } from './http-client-configuration';
 import { Interceptor, ValidInterceptorMethodName } from './interfaces';
 import { RetryInterceptor } from './retry-interceptor';
@@ -42,16 +40,12 @@ export class HttpClient {
    */
   public interceptors: Interceptor[];
 
+  public dispatcher: Node | null = null;
+
   /**
    * Creates an instance of HttpClient.
    */
-  public constructor(
-    @IDOM private readonly dom: HTMLDOM,
-  ) {
-    if (dom.window.fetch === undefined) {
-      throw new Error('HttpClient requires a Fetch API implementation, but the current environment doesn\'t support it. You may need to load a polyfill such as https://github.com/github/fetch');
-    }
-    this.dom = dom;
+  public constructor() {
     this.activeRequestCount = 0;
     this.isRequesting = false;
     this.isConfigured = false;
@@ -80,6 +74,7 @@ export class HttpClient {
       normalizedConfig.baseUrl = this.baseUrl;
       normalizedConfig.defaults = { ...this.defaults };
       normalizedConfig.interceptors = this.interceptors;
+      normalizedConfig.dispatcher = this.dispatcher;
 
       const c = config(normalizedConfig);
       if (Object.prototype.isPrototypeOf.call(HttpClientConfiguration.prototype, c)) {
@@ -114,6 +109,7 @@ export class HttpClient {
     this.baseUrl = normalizedConfig.baseUrl;
     this.defaults = defaults;
     this.interceptors = normalizedConfig.interceptors !== undefined ? normalizedConfig.interceptors : [];
+    this.dispatcher = normalizedConfig.dispatcher;
     this.isConfigured = true;
 
     return this;
@@ -276,17 +272,17 @@ export class HttpClient {
 
   private trackRequestStart(): void {
     this.isRequesting = !!(++this.activeRequestCount);
-    if (this.isRequesting) {
-      const evt = DOM.createCustomEvent('aurelia-fetch-client-request-started', { bubbles: true, cancelable: true });
-      DOM.window.setTimeout(() => { DOM.dispatchEvent(evt); }, 1);
+    if (this.isRequesting && this.dispatcher !== null) {
+      const evt = new this.dispatcher.ownerDocument!.defaultView!.CustomEvent('aurelia-fetch-client-request-started', { bubbles: true, cancelable: true });
+      setTimeout(() => { this.dispatcher!.dispatchEvent(evt); }, 1);
     }
   }
 
   private trackRequestEnd(): void {
     this.isRequesting = !!(--this.activeRequestCount);
-    if (!this.isRequesting) {
-      const evt = DOM.createCustomEvent('aurelia-fetch-client-requests-drained', { bubbles: true, cancelable: true });
-      DOM.window.setTimeout(() => { DOM.dispatchEvent(evt); }, 1);
+    if (!this.isRequesting && this.dispatcher !== null) {
+      const evt = new this.dispatcher.ownerDocument!.defaultView!.CustomEvent('aurelia-fetch-client-requests-drained', { bubbles: true, cancelable: true });
+      setTimeout(() => { this.dispatcher!.dispatchEvent(evt); }, 1);
     }
   }
 

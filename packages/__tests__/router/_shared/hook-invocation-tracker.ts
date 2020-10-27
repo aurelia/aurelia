@@ -1,6 +1,5 @@
 import { DI, Writable } from '@aurelia/kernel';
-import { IDOM } from '@aurelia/runtime';
-import { HTMLDOM } from '@aurelia/runtime-html';
+import { IPlatform } from '@aurelia/runtime-html';
 
 export type HookName = (
   'beforeBind' |
@@ -32,7 +31,7 @@ export class HookInvocationTracker {
   public timeout: number = -1;
   public $resolve: () => void;
 
-  public readonly dom: HTMLDOM;
+  public readonly platform: IPlatform;
 
   public readonly notifyHistory: string[] = [];
 
@@ -40,7 +39,7 @@ export class HookInvocationTracker {
     public readonly aggregator: HookInvocationAggregator,
     public readonly methodName: HookName,
   ) {
-    this.dom = aggregator.dom;
+    this.platform = aggregator.platform;
     this._promise = new Promise(resolve => this.$resolve = resolve);
   }
 
@@ -59,7 +58,7 @@ export class HookInvocationTracker {
 
   private setTimeout(ms: number): void {
     if (this.timeout === -1) {
-      this.timeout = this.dom.window.setTimeout(() => {
+      this.timeout = this.platform.setTimeout(() => {
         throw new Error(`${this.methodName} timed out after ${ms}ms. Notification history: [${this.notifyHistory.join(',')}]. Lifecycle call history: [${this.aggregator.notifyHistory.join(',')}]`);
       }, ms);
     }
@@ -69,7 +68,7 @@ export class HookInvocationTracker {
     const timeout = this.timeout;
     if (timeout >= 0) {
       this.timeout = -1;
-      this.dom.window.clearTimeout(timeout);
+      this.platform.clearTimeout(timeout);
     }
   }
 
@@ -79,7 +78,7 @@ export class HookInvocationTracker {
     $this.notifyHistory = void 0;
     $this._promise = void 0;
     $this.$resolve = void 0;
-    $this.dom = void 0;
+    $this.platform = void 0;
     $this.aggregator = void 0;
   }
 }
@@ -100,7 +99,7 @@ export class HookInvocationAggregator {
   public phase: string = '';
 
   public constructor(
-    @IDOM public readonly dom: HTMLDOM,
+    @IPlatform public readonly platform: IPlatform,
     @IHIAConfig public readonly config: IHIAConfig,
   ) {}
 
@@ -154,7 +153,7 @@ export class HookInvocationAggregator {
 
     const $this = this as Partial<Writable<this>>;
     $this.notifyHistory = void 0;
-    $this.dom = void 0;
+    $this.platform = void 0;
     $this.config = void 0;
 
     $this.beforeBind = void 0;

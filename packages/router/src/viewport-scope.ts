@@ -1,4 +1,4 @@
-import { CustomElementType } from '@aurelia/runtime';
+import { CustomElementType } from '@aurelia/runtime-html';
 import { ComponentAppellation, IRoute, RouteableComponentType, NavigationInstruction } from './interfaces';
 import { IRouter } from './router';
 import { ViewportInstruction } from './viewport-instruction';

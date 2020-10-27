@@ -50,7 +50,7 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
   let customElementName: IPos | undefined; // for @customName('custom-name')
 
   // When there are multiple exported classes (e.g. local value converters),
-  // they might be deps for rendering the main implicit custom element.
+  // they might be deps for composing the main implicit custom element.
   const localDeps: string[] = [];
   const conventionalDecorators: [number, string][] = [];
 
@@ -58,15 +58,15 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
     // Find existing import Aurelia, {customElement, templateController} from 'aurelia';
     const au = captureImport(s, 'aurelia', unit.contents);
     if (au) {
-      // Assumes only one import statement for @aurelia/runtime
+      // Assumes only one import statement for @aurelia/runtime-html
       auImport = au;
       return;
     }
 
-    // Find existing import {customElement} from '@aurelia/runtime';
-    const runtime = captureImport(s, '@aurelia/runtime', unit.contents);
+    // Find existing import {customElement} from '@aurelia/runtime-html';
+    const runtime = captureImport(s, '@aurelia/runtime-html', unit.contents);
     if (runtime) {
-      // Assumes only one import statement for @aurelia/runtime
+      // Assumes only one import statement for @aurelia/runtime-html
       runtimeImport = runtime;
       return;
     }
@@ -149,7 +149,7 @@ function modifyResource(unit: IFileUnit, options: IModifyResourceOptions) {
 
   if (conventionalDecorators.length) {
     if (runtimeImport.names.length) {
-      let runtimeImportStatement = `import { ${runtimeImport.names.join(', ')} } from '@aurelia/runtime';`;
+      let runtimeImportStatement = `import { ${runtimeImport.names.join(', ')} } from '@aurelia/runtime-html';`;
       if (runtimeImport.end === runtimeImport.start) runtimeImportStatement += '\n';
       m.replace(runtimeImport.start, runtimeImport.end, runtimeImportStatement);
     }

@@ -13,10 +13,10 @@ export class Settings {
     private readonly router: IRouter,
   ) {}
 
-  public create() { return; }
-  public beforeCompile() { return; }
-  public afterCompile() { return; }
-  public afterCompileChildren() { return; }
+  public define() { return; }
+  public beforeCompose() { return; }
+  public beforeComposeChildren() { return; }
+  public afterCompose() { return; }
 
   public beforeBind() { return; }
   public afterBind() { return; }

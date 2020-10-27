@@ -21,9 +21,9 @@ import {
   SyntaxKind,
 } from 'typescript';
 import {
-  PLATFORM,
   ILogger,
   Writable,
+  emptyArray,
 } from '@aurelia/kernel';
 import {
   IFile,
@@ -145,10 +145,6 @@ import {
 import {
   $StringSet,
 } from '../globals/string';
-
-const {
-  emptyArray,
-} = PLATFORM;
 
 export type $$ESModuleItem = (
   $$ESStatementListItem |
@@ -1128,7 +1124,7 @@ export class $ESModule implements I$Node, IModule {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    const start = PLATFORM.now();
+    const start = Date.now();
     this.logger.debug(`${this.path}.[Instantiate] starting`);
 
     // TODO: this is temporary. Should be done by RunJobs
@@ -1171,7 +1167,7 @@ export class $ESModule implements I$Node, IModule {
     // 7. Assert: stack is empty.
     // 8. Return undefined.
 
-    const end = PLATFORM.now();
+    const end = Date.now();
     this.logger.debug(`${this.path}.[Instantiate] done in ${Math.round(end - start)}ms`);
 
     return new $Undefined(realm);

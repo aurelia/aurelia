@@ -1,5 +1,5 @@
-import { LifecycleFlags as LF } from '../flags';
 import {
+  LifecycleFlags as LF,
   ICollectionSubscriber,
   ICollectionSubscriberCollection,
   IndexMap,

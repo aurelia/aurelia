@@ -1,10 +1,10 @@
 import { IContainer } from '@aurelia/kernel';
-import { Aurelia, CustomElement } from '@aurelia/runtime';
+import { CustomElement, Aurelia } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 
 describe('local dependency inheritance', function () {
   function createFixture() {
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     const au = new Aurelia(ctx.container);
     const host = ctx.createElement('div');
     return { ctx, au, host };

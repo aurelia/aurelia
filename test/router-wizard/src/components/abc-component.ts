@@ -1,6 +1,6 @@
-import { customElement } from '@aurelia/runtime';
+import { customElement } from '@aurelia/runtime-html';
 import { AppState } from '../app-state';
-import * as template from './abc-component.html';
+import template from './abc-component.html';
 import { ILogger } from 'aurelia';
 
 @customElement({ name: 'abc', template })

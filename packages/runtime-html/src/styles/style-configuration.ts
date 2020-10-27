@@ -1,7 +1,7 @@
 import { IContainer, IRegistry, Registration } from '@aurelia/kernel';
-import { AppTask } from '@aurelia/runtime';
 import { IShadowDOMGlobalStyles } from './shadow-dom-styles';
 import { IShadowDOMStyleFactory } from './shadow-dom-registry';
+import { AppTask } from '../app-task';
 
 export interface IShadowDOMConfiguration {
   sharedStyles?: (string | CSSStyleSheet)[];

@@ -13,10 +13,10 @@ import {
   ITargetObserverLocator,
   LifecycleFlags as LF,
   OverrideContext,
-  IScheduler,
-} from '@aurelia/runtime';
+} from '@aurelia/runtime-html';
+import { createContainer } from './test-context';
 // import {
-//   HTMLTargetedInstruction,
+//   Instruction,
 //   NodeSequenceFactory,
 //   TextBindingInstruction,
 // } from '@aurelia/runtime-html';
@@ -24,7 +24,7 @@ import {
 //   FakeView,
 //   FakeViewFactory,
 // } from './fakes';
-// import { HTMLTestContext } from './html-test-context';
+// import { TestContext } from './html-test-context';
 // import {
 //   defineComponentLifecycleMock,
 //   IComponentLifecycleMock,
@@ -73,7 +73,7 @@ import {
 // }
 
 // export class InstructionBuilder {
-//   private instructions: HTMLTargetedInstruction[];
+//   private instructions: Instruction[];
 
 //   constructor() {
 //     this.instructions = [];
@@ -140,7 +140,7 @@ import {
 //     insCbOrBuilder: InstructionCb | InstructionBuilder,
 //     defCbOrBuilder: DefinitionCb | DefinitionBuilder
 //   ): InstructionBuilder {
-//     let childInstructions: HTMLTargetedInstruction[];
+//     let childInstructions: Instruction[];
 //     let definition: PartialCustomElementDefinition;
 //     if (insCbOrBuilder instanceof InstructionBuilder) {
 //       childInstructions = insCbOrBuilder.build();
@@ -171,7 +171,7 @@ import {
 //     return this;
 //   }
 
-//   public build(): HTMLTargetedInstruction[] {
+//   public build(): Instruction[] {
 //     const { instructions } = this;
 //     this.instructions = null!;
 //     return instructions;
@@ -183,7 +183,7 @@ import {
 //   private name: string;
 //   private templateBuilder: TemplateBuilder;
 //   private instructionBuilder: InstructionBuilder;
-//   private instructions: HTMLTargetedInstruction[][];
+//   private instructions: Instruction[][];
 
 //   constructor(name?: string) {
 //     // eslint-disable-next-line prefer-template
@@ -314,7 +314,7 @@ import {
 //   private readonly Type: T;
 
 //   constructor(Type: T) {
-//     this.container = RuntimeHtmlConfiguration.createContainer();
+//     this.container = StandardConfiguration.createContainer();
 //     this.container.register(Type as any);
 //     this.Type = Type;
 //   }
@@ -456,7 +456,7 @@ import {
 export function createObserverLocator(containerOrLifecycle?: IContainer | ILifecycle): IObserverLocator {
   let container: IContainer;
   if (containerOrLifecycle === undefined || !('get' in containerOrLifecycle)) {
-    container = DI.createContainer();
+    container = createContainer();
   } else {
     container = containerOrLifecycle;
   }
@@ -465,13 +465,9 @@ export function createObserverLocator(containerOrLifecycle?: IContainer | ILifec
       return false;
     }
   };
-  const dummyScheduler: any = {
-
-  };
   Registration.instance(IDirtyChecker, null).register(container);
   Registration.instance(ITargetObserverLocator, dummyLocator).register(container);
   Registration.instance(ITargetAccessorLocator, dummyLocator).register(container);
-  Registration.instance(IScheduler, dummyScheduler).register(container);
   return container.get(IObserverLocator);
 }
 
@@ -509,7 +505,7 @@ export function createScopeForTest(bindingContext: any = {}, parentBindingContex
 //   return { Type, sut };
 // }
 
-// export function hydrateCustomElement<T>(Type: Constructable<T>, ctx: HTMLTestContext) {
+// export function hydrateCustomElement<T>(Type: Constructable<T>, ctx: TestContext) {
 //   const { container, dom } = ctx;
 //   const ElementType: ICustomElementType = Type as any;
 //   const parent = ctx.createElement('div');
@@ -519,26 +515,26 @@ export function createScopeForTest(bindingContext: any = {}, parentBindingContex
 //     view.$nodes = new NodeSequenceFactory(dom, '<div>Fake View</div>').createNodeSequence() as INodeSequence<T>;
 //     return view;
 //   };
-//   const renderable = new FakeViewFactory('fake-view', createView, ctx.lifecycle).create();
+//   const composable = new FakeViewFactory('fake-view', createView, ctx.lifecycle).create();
 //   const instruction: IHydrateElementInstruction = {
-//     type: TargetedInstructionType.hydrateElement,
+//     type: InstructionType.composeElement,
 //     res: 'au-compose',
 //     instructions: []
 //   };
 
 //   dom.appendChild(parent, host);
 
-//   const renderableProvider = new InstanceProvider();
+//   const composableProvider = new InstanceProvider();
 //   const elementProvider = new InstanceProvider();
-//   const instructionProvider = new InstanceProvider<ITargetedInstruction>();
+//   const instructionProvider = new InstanceProvider<IInstruction>();
 
-//   renderableProvider.prepare(renderable);
+//   composableProvider.prepare(composable);
 //   elementProvider.prepare(host);
 //   instructionProvider.prepare(instruction);
 
 //   container.register(ElementType);
-//   container.registerResolver(IController, renderableProvider);
-//   container.registerResolver(ITargetedInstruction, instructionProvider);
+//   container.registerResolver(IController, composableProvider);
+//   container.registerResolver(IInstruction, instructionProvider);
 //   dom.registerElementResolver(container, elementProvider);
 
 //   const element = container.get<T & IViewModel>(

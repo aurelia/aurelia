@@ -1,10 +1,8 @@
-import { IIndexable, PLATFORM } from '@aurelia/kernel';
-import { LifecycleFlags } from '../flags';
-import { ILifecycle } from '../lifecycle';
-import { IPropertyObserver, ISubscriber, AccessorType } from '../observation';
+import { IIndexable, noop } from '@aurelia/kernel';
+import { InterceptorFunc } from '../bindable';
+import { IPropertyObserver, ISubscriber, AccessorType, ILifecycle, LifecycleFlags } from '../observation';
 import { ProxyObserver } from './proxy-observer';
 import { subscriberCollection } from './subscriber-collection';
-import { InterceptorFunc } from '../templating/bindable';
 
 export interface BindableObserver extends IPropertyObserver<IIndexable, string> {}
 
@@ -49,7 +47,7 @@ export class BindableObserver {
     const propertyChangedCallback = this.propertyChangedCallback = (this.obj as IMayHavePropertyChangedCallback).propertyChanged;
     const hasPropertyChangedCallback = this.hasPropertyChangedCallback = typeof propertyChangedCallback === 'function';
 
-    const shouldInterceptSet = this.shouldInterceptSet = $set !== PLATFORM.noop;
+    const shouldInterceptSet = this.shouldInterceptSet = $set !== noop;
     // when user declare @bindable({ set })
     // it's expected to work from the start,
     // regardless where the assignment comes from: either direct view model assignment or from binding during render
@@ -92,12 +90,8 @@ export class BindableObserver {
       this.currentValue = newValue;
       if (this.lifecycle.batch.depth === 0) {
         this.callSubscribers(newValue, currentValue, this.persistentFlags | flags);
-        if ((flags & LifecycleFlags.fromBind) === 0 || (flags & LifecycleFlags.updateSourceExpression) > 0) {
-          const callback = this.callback;
-
-          if (callback !== void 0) {
-            callback.call(this.obj, newValue, currentValue, this.persistentFlags | flags);
-          }
+        if ((flags & LifecycleFlags.fromBind) === 0 || (flags & LifecycleFlags.updateSource) > 0) {
+          this.callback?.call(this.obj, newValue, currentValue, this.persistentFlags | flags);
 
           if (this.hasPropertyChangedCallback) {
             // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion

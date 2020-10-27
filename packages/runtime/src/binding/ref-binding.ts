@@ -3,15 +3,12 @@ import {
   IServiceLocator,
 } from '@aurelia/kernel';
 import {
-  LifecycleFlags,
-} from '../flags';
-import { IBinding } from '../lifecycle';
-import {
   IsBindingBehavior,
 } from './ast';
 import { IConnectableBinding } from './connectable';
 
 import type { Scope } from '../observation/binding-context';
+import { IBinding, LifecycleFlags } from '..';
 
 export interface RefBinding extends IConnectableBinding {}
 export class RefBinding implements IBinding {
@@ -43,7 +40,7 @@ export class RefBinding implements IBinding {
       this.sourceExpression.bind(flags, scope, hostScope, this);
     }
 
-    this.sourceExpression.assign!(flags | LifecycleFlags.updateSourceExpression, this.$scope, hostScope, this.locator, this.target);
+    this.sourceExpression.assign!(flags | LifecycleFlags.updateSource, this.$scope, hostScope, this.locator, this.target);
 
     // add isBound flag and remove isBinding flag
     this.isBound = true;

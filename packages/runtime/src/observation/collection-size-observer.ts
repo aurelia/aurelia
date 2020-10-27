@@ -1,7 +1,6 @@
-import { LifecycleFlags } from '../flags';
-import { ISubscriberCollection, AccessorType } from '../observation';
+import { ISubscriberCollection, AccessorType, LifecycleFlags } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
-import { ITask } from '@aurelia/scheduler';
+import { ITask } from '@aurelia/kernel';
 
 export interface CollectionSizeObserver extends ISubscriberCollection {}
 
@@ -23,7 +22,7 @@ export class CollectionSizeObserver {
     const { currentValue } = this;
     if (newValue !== currentValue) {
       this.currentValue = newValue;
-      this.callSubscribers(newValue, currentValue, flags | LifecycleFlags.updateTargetInstance);
+      this.callSubscribers(newValue, currentValue, flags | LifecycleFlags.updateTarget);
     }
   }
 }

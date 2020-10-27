@@ -1,11 +1,11 @@
-import { PLATFORM } from '@aurelia/kernel';
-import { LifecycleFlags } from '../flags';
+import { emptyArray } from '@aurelia/kernel';
 import {
   IPropertyObserver,
   IProxy,
   IProxyObserver,
   IProxySubscriber,
   ISubscriber,
+  LifecycleFlags,
   PropertyObserver
 } from '../observation';
 import { proxySubscriberCollection, subscriberCollection } from './subscriber-collection';
@@ -35,7 +35,7 @@ export class ProxySubscriberCollection<TObj extends object = object> implements 
     const oldValue = this.raw[this.key as keyof TObj];
     if (oldValue !== value) {
       this.raw[this.key as keyof TObj] = value as TObj[keyof TObj];
-      this.callSubscribers(value, oldValue, flags! | LifecycleFlags.proxyStrategy | LifecycleFlags.updateTargetInstance);
+      this.callSubscribers(value, oldValue, flags! | LifecycleFlags.proxyStrategy | LifecycleFlags.updateTarget);
     }
   }
   public getValue(): unknown {
@@ -126,7 +126,7 @@ export class ProxyObserver<TObj extends object = object> implements ProxyObserve
     if (oldValue !== value) {
       target[p as keyof TObj] = value as TObj[keyof TObj];
       this.callPropertySubscribers(value, oldValue, p);
-      this.callProxySubscribers(p, value, oldValue, LifecycleFlags.proxyStrategy | LifecycleFlags.updateTargetInstance);
+      this.callProxySubscribers(p, value, oldValue, LifecycleFlags.proxyStrategy | LifecycleFlags.updateTarget);
     }
     return true;
   }
@@ -136,7 +136,7 @@ export class ProxyObserver<TObj extends object = object> implements ProxyObserve
     if (Reflect.deleteProperty(target, p)) {
       if (oldValue !== void 0) {
         this.callPropertySubscribers(undefined, oldValue, p);
-        this.callProxySubscribers(p, undefined, oldValue, LifecycleFlags.proxyStrategy | LifecycleFlags.updateTargetInstance);
+        this.callProxySubscribers(p, undefined, oldValue, LifecycleFlags.proxyStrategy | LifecycleFlags.updateTarget);
       }
       return true;
     }
@@ -148,14 +148,14 @@ export class ProxyObserver<TObj extends object = object> implements ProxyObserve
     if (Reflect.defineProperty(target, p, attributes)) {
       if (attributes.value !== oldValue) {
         this.callPropertySubscribers(attributes.value, oldValue, p);
-        this.callProxySubscribers(p, attributes.value, oldValue, LifecycleFlags.proxyStrategy | LifecycleFlags.updateTargetInstance);
+        this.callProxySubscribers(p, attributes.value, oldValue, LifecycleFlags.proxyStrategy | LifecycleFlags.updateTarget);
       }
       return true;
     }
     return false;
   }
 
-  public apply(target: TObj, thisArg: unknown, argArray: ArrayLike<unknown> = PLATFORM.emptyArray): unknown {
+  public apply(target: TObj, thisArg: unknown, argArray: ArrayLike<unknown> = emptyArray): unknown {
     // eslint-disable-next-line @typescript-eslint/ban-types
     return Reflect.apply(target as Function, target, argArray); // Reflect API dictates this
   }
@@ -190,7 +190,7 @@ export class ProxyObserver<TObj extends object = object> implements ProxyObserve
   private callPropertySubscribers(newValue: unknown, oldValue: unknown, key: string | number): void {
     const subscribers = this.subscribers[key];
     if (subscribers !== void 0) {
-      subscribers.callSubscribers(newValue, oldValue, LifecycleFlags.proxyStrategy | LifecycleFlags.updateTargetInstance);
+      subscribers.callSubscribers(newValue, oldValue, LifecycleFlags.proxyStrategy | LifecycleFlags.updateTarget);
     }
   }
 }

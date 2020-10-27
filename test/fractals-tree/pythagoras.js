@@ -1,4 +1,5 @@
-import { CustomElementResource } from '@aurelia/runtime';
+// @ts-check
+import { CustomElement } from '@aurelia/runtime-html';
 import { State } from './state';
 
 const MAX_LEVEL = 10;
@@ -25,7 +26,13 @@ const TEMPLATE =
 </template>`;
 
 export class Pythagoras {
+  static get inject() {
+    return [State];
+  }
 
+  /**
+   * @param {State} state
+   */
   constructor(state) {
     this.state = state;
     this.level = undefined;
@@ -33,30 +40,29 @@ export class Pythagoras {
     this.renderLeft = this.renderRight = false;
   }
 
-  bound() {
+  beforeBind() {
     this.renderLeft = this.renderRight = this.level < MAX_LEVEL;
     this.fill = memoizedViridis(this.level, MAX_LEVEL);
   }
 }
 
-Pythagoras.inject = [State];
-CustomElementResource.define({
+CustomElement.define({
   name: 'pythagoras',
   template: (() => {
     const parser = document.createElement('div');
     parser.innerHTML = TEMPLATE;
     const template = parser.firstElementChild;
+    // @ts-ignore
     const svg = template.content.firstElementChild;
     while (svg.firstChild) {
+      // @ts-ignore
       template.content.appendChild(svg.firstChild);
     }
     svg.remove();
     template.remove();
     return template;
   })(),
-  bindables: {
-    level: { property: 'level', attribute: 'level' }
-  }
+  bindables: ['level']
 }, Pythagoras);
 
 const memoizedViridis = (() => {

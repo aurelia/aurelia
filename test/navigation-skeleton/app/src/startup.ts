@@ -1,7 +1,5 @@
-import { DebugConfiguration } from '@aurelia/debug';
-import { RuntimeHtmlBrowserConfiguration } from '@aurelia/runtime-html-browser';
+import { Aurelia, StandardConfiguration } from '@aurelia/runtime-html';
 import { RouterConfiguration } from '@aurelia/router';
-import { Aurelia } from '@aurelia/runtime';
 import { ChildRouter } from './child-router';
 
 import { App } from './app';
@@ -18,9 +16,8 @@ import { UpperValueConverter, Welcome } from './welcome';
       Users,
       ChildRouter,
       UpperValueConverter,
-      RuntimeHtmlBrowserConfiguration,
+      StandardConfiguration,
       RouterConfiguration,
-      DebugConfiguration,
     )
     .app({
       host: document.querySelector('app'),

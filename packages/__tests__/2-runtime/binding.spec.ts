@@ -1,3 +1,4 @@
+import { DI } from '@aurelia/kernel';
 import {
   AccessMemberExpression,
   AccessScopeExpression,
@@ -12,7 +13,6 @@ import {
   ObjectLiteralExpression,
   PrimitiveLiteralExpression,
   PropertyAccessor,
-  RuntimeConfiguration,
   Scope,
   SetterObserver,
   IsBindingBehavior,
@@ -24,6 +24,7 @@ import {
   verifyEqual,
   assert,
   createSpy,
+  createContainer,
 } from '@aurelia/testing';
 
 /**
@@ -48,10 +49,10 @@ describe('PropertyBinding', function () {
   let dummyMode: BindingMode;
 
   function createFixture(sourceExpression: any = dummySourceExpression, target: any = dummyTarget, targetProperty: string = dummyTargetProperty, mode: BindingMode = dummyMode) {
-    const container = RuntimeConfiguration.createContainer();
+    const container = createContainer();
     const observerLocator = createObserverLocator(container);
     const lifecycle = container.get(ILifecycle);
-    const sut = new PropertyBinding(sourceExpression, target, targetProperty, mode, observerLocator, container);
+    const sut = new PropertyBinding(sourceExpression, target, targetProperty, mode, observerLocator, container, {} as any);
 
     return { sut, lifecycle, container, observerLocator };
   }
@@ -69,7 +70,7 @@ describe('PropertyBinding', function () {
 
     for (const ii of invalidInputs) {
       it(`throws on invalid input parameters of type ${getName(ii)}`, function () {
-        assert.throws(() => new PropertyBinding(ii, ii, ii, ii, ii, ii), `() => new PropertyBinding(ii, ii, ii, ii, ii, ii)`);
+        assert.throws(() => new PropertyBinding(ii, ii, ii, ii, ii, ii, ii), `() => new PropertyBinding(ii, ii, ii, ii, ii, ii)`);
       });
     }
   });
@@ -102,10 +103,10 @@ describe('PropertyBinding', function () {
         expr = new BinaryExpression('+', expr, new AccessScopeExpression(prop, 0));
       }
     }
-    const container = RuntimeConfiguration.createContainer();
+    const container = createContainer();
     const observerLocator = createObserverLocator(container);
     const target = {val: 0};
-    const sut = new PropertyBinding(expr as any, target, 'val', BindingMode.toView, observerLocator, container);
+    const sut = new PropertyBinding(expr as any, target, 'val', BindingMode.toView, observerLocator, container, {} as any);
     const scope = Scope.create(LF.none, ctx, null);
 
     sut.$bind(LF.fromBind, scope, null);
@@ -150,7 +151,7 @@ describe('PropertyBinding', function () {
 
     const flagsVariations: (() => [LF, string])[] = [
       () => [LF.fromBind,                                            `fromBind               `],
-      () => [LF.updateTargetInstance,                                `updateTarget           `],
+      () => [LF.updateTarget,                                `updateTarget           `],
     ];
 
     const scopeVariations: (() => [Scope, string])[] = [
@@ -222,7 +223,7 @@ describe('PropertyBinding', function () {
 
     const flagsVariations: (() => [LF, string])[] = [
       () => [LF.fromBind,                                            `fromBind               `],
-      () => [LF.updateTargetInstance,                                `updateTarget           `],
+      () => [LF.updateTarget,                                `updateTarget           `],
     ];
 
     const scopeVariations: (() => [Scope, string])[] = [
@@ -451,7 +452,7 @@ describe('PropertyBinding', function () {
 
     const flagsVariations: (() => [LF, string])[] = [
       () => [LF.fromBind,                                            `fromBind               `],
-      () => [LF.updateTargetInstance,                                `updateTarget           `],
+      () => [LF.updateTarget,                                `updateTarget           `],
     ];
 
     const scopeVariations: (() => [Scope, string])[] = [
@@ -499,7 +500,7 @@ describe('PropertyBinding', function () {
         // massSpy(sut, 'handleChange');
         // massSpy(expr, 'evaluate', 'assign');
 
-        flags = LF.updateSourceExpression;
+        flags = LF.updateSource;
 
         // - Act - Part 2
         targetObserver.setValue(newValue, flags);
@@ -567,7 +568,7 @@ describe('PropertyBinding', function () {
 
     const flagsVariations: (() => [LF, string])[] = [
       () => [LF.fromBind,             `fromBind     `],
-      () => [LF.updateTargetInstance, `updateTarget `]
+      () => [LF.updateTarget, `updateTarget `]
     ];
 
     const scopeVariations: (() => [Scope, string])[] = [
@@ -818,7 +819,7 @@ describe('PropertyBinding', function () {
         // massSpy(sut, 'handleChange');
         // massSpy(expr, 'evaluate', 'assign');
 
-        flags = LF.updateSourceExpression;
+        flags = LF.updateSource;
 
         // - Act - Part 3
         targetObserver.setValue(newValue2, flags);

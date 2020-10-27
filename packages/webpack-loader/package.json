@@ -36,9 +36,9 @@
   "dependencies": {
     "@aurelia/kernel": "0.7.0",
     "@aurelia/metadata": "0.7.0",
+    "@aurelia/platform": "0.7.0",
     "@aurelia/plugin-conventions": "0.7.0",
     "@aurelia/runtime": "0.7.0",
-    "@aurelia/scheduler": "0.7.0",
     "loader-utils": "^2.0.0",
     "webpack": "^4.41.4"
   },

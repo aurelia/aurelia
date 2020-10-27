@@ -1,7 +1,6 @@
-import { IScheduler } from '@aurelia/runtime';
+import { IWindow, IHistory, ILocation, IPlatform } from '@aurelia/runtime-html';
 import { INavigatorState, INavigatorStore, INavigatorViewer, INavigatorViewerOptions, INavigatorViewerState } from './navigator';
 import { QueueTask, TaskQueue } from './task-queue';
-import { IWindow, IHistory, ILocation } from '@aurelia/runtime-html';
 
 /**
  * @internal
@@ -41,7 +40,7 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer {
   private forwardedState: IForwardedState = { eventTask: null, suppressPopstate: false };
 
   public constructor(
-    @IScheduler public readonly scheduler: IScheduler,
+    @IPlatform public readonly platform: IPlatform,
     @IWindow public readonly window: IWindow,
     @IHistory public readonly history: IHistory,
     @ILocation public readonly location: ILocation,
@@ -58,7 +57,7 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer {
     if (options.useUrlFragmentHash != void 0) {
       this.options.useUrlFragmentHash = options.useUrlFragmentHash;
     }
-    this.pendingCalls.start({ scheduler: this.scheduler, allowedExecutionCostWithinTick: this.allowedExecutionCostWithinTick });
+    this.pendingCalls.start({ platform: this.platform, allowedExecutionCostWithinTick: this.allowedExecutionCostWithinTick });
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     this.window.addEventListener('popstate', this.handlePopstate);
   }

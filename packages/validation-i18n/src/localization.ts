@@ -1,6 +1,7 @@
 import { I18N, Signals } from '@aurelia/i18n';
 import { DI, EventAggregator, IContainer, IDisposable, IEventAggregator, ILogger, IServiceLocator, Key } from '@aurelia/kernel';
-import { IExpressionParser, Interpolation, IScheduler, PrimitiveLiteralExpression } from '@aurelia/runtime';
+import { IExpressionParser, Interpolation, PrimitiveLiteralExpression } from '@aurelia/runtime';
+import { IPlatform } from '@aurelia/runtime-html';
 import { IValidationRule, IValidator, ValidationMessageProvider } from '@aurelia/validation';
 import { IValidationController, ValidationController, ValidationControllerFactory, ValidationHtmlCustomizationOptions } from '@aurelia/validation-html';
 
@@ -21,12 +22,12 @@ export class LocalizedValidationController extends ValidationController {
     @IEventAggregator ea: EventAggregator,
     @IValidator validator: IValidator,
     @IExpressionParser parser: IExpressionParser,
-    @IScheduler scheduler: IScheduler,
+    @IPlatform platform: IPlatform,
   ) {
-    super(validator, parser, scheduler, locator);
+    super(validator, parser, platform, locator);
     this.localeChangeSubscription = ea.subscribe(
       I18N_VALIDATION_EA_CHANNEL,
-      () => { scheduler.getPostRenderTaskQueue().queueTask(async () => { await this.revalidateErrors(); }); }
+      () => { platform.domReadQueue.queueTask(async () => { await this.revalidateErrors(); }); }
     );
   }
 }
@@ -40,7 +41,7 @@ export class LocalizedValidationControllerFactory extends ValidationControllerFa
         container.get(IEventAggregator),
         container.get<IValidator>(IValidator),
         container.get(IExpressionParser),
-        container.get(IScheduler)
+        container.get(IPlatform)
       );
   }
 }

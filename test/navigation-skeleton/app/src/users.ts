@@ -1,4 +1,4 @@
-import { customElement } from '@aurelia/runtime';
+import { customElement } from '@aurelia/runtime-html';
 import { HttpClient } from '@aurelia/fetch-client';
 
 import * as template from './users.html';

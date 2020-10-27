@@ -33,7 +33,7 @@ import {
   CaseOrDefaultClause,
 } from 'typescript';
 import {
-  PLATFORM,
+  emptyArray,
   ILogger,
 } from '@aurelia/kernel';
 import {
@@ -104,10 +104,6 @@ import {
 import {
   $LoopContinues,
 } from '../operations';
-
-const {
-  emptyArray,
-} = PLATFORM;
 
 export class $VariableStatement implements I$Node {
   public get $kind(): SyntaxKind.VariableStatement { return SyntaxKind.VariableStatement; }

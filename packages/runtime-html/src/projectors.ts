@@ -1,43 +1,28 @@
-import {
-  IContainer,
-  IResolver,
-  PLATFORM,
-  Registration,
-  toArray,
-  Metadata
-} from '@aurelia/kernel';
-import {
-  CustomElementHost,
-  IDOM,
-  IElementProjector,
-  INodeSequence,
-  IProjectorLocator,
-  CustomElementDefinition,
-  CustomElement,
-  ICustomElementController,
-} from '@aurelia/runtime';
+import { emptyArray, toArray, Metadata, DI } from '@aurelia/kernel';
+import { convertToRenderLocation, INodeSequence } from './dom';
+import { ICustomElementController } from './lifecycle';
+import { CustomElement, CustomElementDefinition, CustomElementHost } from './resources/custom-element';
 import { IShadowDOMStyles, IShadowDOMGlobalStyles } from './styles/shadow-dom-styles';
 
 const defaultShadowOptions = {
   mode: 'open' as 'open' | 'closed'
 };
 
-export class HTMLProjectorLocator implements IProjectorLocator<Node> {
-  public static register(container: IContainer): IResolver<IProjectorLocator<Node>> {
-    return Registration.singleton(IProjectorLocator, this).register(container);
-  }
+export const IProjectorLocator = DI.createInterface<IProjectorLocator>('IProjectorLocator').withDefault(x => x.singleton(ProjectorLocator));
+export interface IProjectorLocator extends ProjectorLocator {}
 
-  public getElementProjector(dom: IDOM<Node>, $component: ICustomElementController<Node>, host: CustomElementHost<HTMLElement>, def: CustomElementDefinition): IElementProjector<Node> {
+export class ProjectorLocator {
+  public getElementProjector($component: ICustomElementController, host: CustomElementHost<HTMLElement>, def: CustomElementDefinition): ElementProjector {
     if (def.shadowOptions || def.hasSlots) {
       if (def.containerless) {
         throw new Error('You cannot combine the containerless custom element option with Shadow DOM.');
       }
 
-      return new ShadowDOMProjector(dom, $component, host, def);
+      return new ShadowDOMProjector($component, host, def);
     }
 
     if (def.containerless) {
-      return new ContainerlessProjector(dom, $component, host);
+      return new ContainerlessProjector($component, host);
     }
 
     return new HostProjector($component, host, def.enhance);
@@ -46,14 +31,13 @@ export class HTMLProjectorLocator implements IProjectorLocator<Node> {
 
 const childObserverOptions = { childList: true };
 
-/** @internal */
-export class ShadowDOMProjector implements IElementProjector<Node> {
+export type ElementProjector = ShadowDOMProjector | ContainerlessProjector | HostProjector;
+export class ShadowDOMProjector {
   public shadowRoot: CustomElementHost<ShadowRoot>;
 
   public constructor(
-    public dom: IDOM<Node>,
     // eslint-disable-next-line @typescript-eslint/prefer-readonly
-    private $controller: ICustomElementController<Node>,
+    private $controller: ICustomElementController,
     public host: CustomElementHost<HTMLElement>,
     definition: CustomElementDefinition,
   ) {
@@ -71,20 +55,21 @@ export class ShadowDOMProjector implements IElementProjector<Node> {
     Metadata.define(CustomElement.name, $controller, this.shadowRoot);
   }
 
-  public get children(): ArrayLike<CustomElementHost<Node>> {
+  public get children(): ArrayLike<ChildNode> {
     return this.host.childNodes;
   }
 
-  public subscribeToChildrenChange(callback: () => void, options = childObserverOptions): void {
+  public subscribeToChildrenChange(callback: () => void, options: MutationObserverInit = childObserverOptions): void {
     // TODO: add a way to dispose/disconnect
-    this.dom.createNodeObserver!(this.host, callback, options);
+    const obs = new this.host.ownerDocument!.defaultView!.MutationObserver(callback);
+    obs.observe(this.host, options);
   }
 
   public provideEncapsulationSource(): CustomElementHost<ShadowRoot> {
     return this.shadowRoot;
   }
 
-  public project(nodes: INodeSequence<Node>): void {
+  public project(nodes: INodeSequence): void {
     const context = this.$controller.context!;
     const styles = context.has(IShadowDOMStyles, false)
       ? context.get(IShadowDOMStyles)
@@ -94,34 +79,32 @@ export class ShadowDOMProjector implements IElementProjector<Node> {
     nodes.appendTo(this.shadowRoot);
   }
 
-  public take(nodes: INodeSequence<Node>): void {
+  public take(nodes: INodeSequence): void {
     nodes.remove();
     nodes.unlink();
   }
 }
 
-/** @internal */
-export class ContainerlessProjector implements IElementProjector<Node> {
-  public host: CustomElementHost<Node>;
+export class ContainerlessProjector {
+  public host: CustomElementHost;
 
-  private readonly childNodes: readonly CustomElementHost<Node>[];
+  private readonly childNodes: readonly ChildNode[];
 
   public constructor(
-    dom: IDOM<Node>,
-    $controller: ICustomElementController<Node>,
+    $controller: ICustomElementController,
     host: Node,
   ) {
     if (host.childNodes.length) {
       this.childNodes = toArray(host.childNodes);
     } else {
-      this.childNodes = PLATFORM.emptyArray;
+      this.childNodes = emptyArray;
     }
 
-    this.host = dom.convertToRenderLocation(host) as CustomElementHost<Node>;
+    this.host = convertToRenderLocation(host) as CustomElementHost;
     Metadata.define(CustomElement.name, $controller, this.host);
   }
 
-  public get children(): ArrayLike<CustomElementHost<Node>> {
+  public get children(): ArrayLike<ChildNode> {
     return this.childNodes;
   }
 
@@ -134,27 +117,26 @@ export class ContainerlessProjector implements IElementProjector<Node> {
     return this.host.getRootNode();
   }
 
-  public project(nodes: INodeSequence<Node>): void {
+  public project(nodes: INodeSequence): void {
     nodes.insertBefore(this.host);
   }
 
-  public take(nodes: INodeSequence<Node>): void {
+  public take(nodes: INodeSequence): void {
     nodes.remove();
     nodes.unlink();
   }
 }
 
-/** @internal */
-export class HostProjector implements IElementProjector<Node> {
+export class HostProjector {
   public constructor(
-    $controller: ICustomElementController<Node>,
-    public host: CustomElementHost<Node>,
+    $controller: ICustomElementController,
+    public host: CustomElementHost,
     private readonly enhance: boolean,
   ) {
     Metadata.define(CustomElement.name, $controller, host);
   }
 
-  public get children(): ArrayLike<CustomElementHost<Node>> {
+  public get children(): ArrayLike<ChildNode> {
     return this.host.childNodes;
   }
 
@@ -166,11 +148,11 @@ export class HostProjector implements IElementProjector<Node> {
     return this.host.getRootNode();
   }
 
-  public project(nodes: INodeSequence<Node>): void {
+  public project(nodes: INodeSequence): void {
     nodes.appendTo(this.host, this.enhance);
   }
 
-  public take(nodes: INodeSequence<Node>): void {
+  public take(nodes: INodeSequence): void {
     nodes.remove();
     nodes.unlink();
   }

@@ -4,7 +4,7 @@ import {
   customAttribute,
   INode,
   valueConverter
-} from '@aurelia/runtime';
+} from '@aurelia/runtime-html';
 import { assert, createFixture } from '@aurelia/testing';
 
 // TemplateCompiler - value converter integration

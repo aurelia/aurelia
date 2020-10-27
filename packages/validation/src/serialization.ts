@@ -4,7 +4,7 @@ import { Deserializer, serializePrimitive, Serializer } from './ast-serializatio
 import {
   IPropertyRule,
   IRuleProperty,
-  IValidationHydrator,
+  IValidationExpressionHydrator,
   IValidationRule,
   IValidationVisitor,
   IValidateable,
@@ -77,7 +77,7 @@ export class ValidationSerializer implements IValidationVisitor {
   }
 }
 
-export class ValidationDeserializer implements IValidationHydrator {
+export class ValidationDeserializer implements IValidationExpressionHydrator {
   private static container: IContainer;
   public static register(container: IContainer) {
     this.container = container;
@@ -187,7 +187,7 @@ interface ModelPropertyRule<TRuleConfig extends { tag?: string; messageKey?: str
   rules: Record<string, TRuleConfig>[];
 }
 
-export class ModelValidationHydrator implements IValidationHydrator {
+export class ModelValidationExpressionHydrator implements IValidationExpressionHydrator {
   public readonly astDeserializer: Deserializer = new Deserializer();
   public constructor(
     @IServiceLocator private readonly locator: IServiceLocator,

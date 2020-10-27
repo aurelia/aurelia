@@ -1,7 +1,7 @@
 import {
   IContainer,
   IResolver,
-  PLATFORM,
+  emptyArray,
   Registration,
   mergeArrays,
   toArray,
@@ -9,33 +9,11 @@ import {
   ILogger,
 } from '@aurelia/kernel';
 import {
-  HydrateAttributeInstruction,
-  HydrateElementInstruction,
-  HydrateTemplateController,
   IExpressionParser,
   Interpolation,
-  ILetBindingInstruction,
-  InterpolationInstruction,
   IsBindingBehavior,
-  ITargetedInstruction,
-  ITemplateCompiler,
-  PartialCustomElementDefinition,
-  LetBindingInstruction,
-  LetElementInstruction,
-  SetPropertyInstruction,
-  CustomElementDefinition,
-  IDOM,
   BindingMode,
   Bindable,
-  CustomElement,
-  IProjections,
-  SlotInfo,
-  AuSlotContentType,
-  RegisteredProjections,
-  ProjectionContext,
-  IAttributeParser,
-  ResourceModel,
-  SymbolFlags,
 } from '@aurelia/runtime';
 import { IAttrSyntaxTransformer } from './attribute-syntax-transformer';
 import { TemplateBinder } from './template-binder';
@@ -52,20 +30,41 @@ import {
   PlainAttributeSymbol,
   PlainElementSymbol,
   TemplateControllerSymbol,
-  TextSymbol
+  TextSymbol,
+  SymbolFlags
 } from './semantic-model';
-import { SetAttributeInstruction, SetClassAttributeInstruction, SetStyleAttributeInstruction, TextBindingInstruction } from './instructions';
-import { HTMLAttributeInstruction, HTMLInstructionRow } from './definitions';
+import {
+  AttributeInstruction,
+  HydrateAttributeInstruction,
+  HydrateElementInstruction,
+  HydrateLetElementInstruction,
+  HydrateTemplateController,
+  InstructionRow,
+  InterpolationInstruction,
+  LetBindingInstruction,
+  SetAttributeInstruction,
+  SetClassAttributeInstruction,
+  SetPropertyInstruction,
+  SetStyleAttributeInstruction,
+  TextBindingInstruction,
+} from './instructions';
+import { IAttributeParser } from './attribute-parser';
+import { ResourceModel } from './resource-model';
+import { IInstruction } from './definitions';
+import { AuSlotContentType, IProjections, ProjectionContext, RegisteredProjections, SlotInfo } from './resources/custom-elements/au-slot';
+import { CustomElement, CustomElementDefinition, PartialCustomElementDefinition } from './resources/custom-element';
+import { ITemplateCompiler } from './composer';
+import { IPlatform } from './platform';
 
 class CustomElementCompilationUnit {
-  public readonly instructions: ITargetedInstruction[][] = [];
-  public readonly surrogates: ITargetedInstruction[] = [];
-  public readonly projectionsMap: Map<ITargetedInstruction, IProjections> = new Map<ITargetedInstruction, IProjections>();
+  public readonly instructions: IInstruction[][] = [];
+  public readonly surrogates: IInstruction[] = [];
+  public readonly projectionsMap: Map<IInstruction, IProjections> = new Map<IInstruction, IProjections>();
 
   public constructor(
     public readonly partialDefinition: PartialCustomElementDefinition,
     public readonly surrogate: PlainElementSymbol,
-    public readonly template: unknown,
+    public readonly template: string | null | Node,
   ) { }
 
   public toDefinition(): CustomElementDefinition {
@@ -114,7 +113,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     @IExpressionParser private readonly exprParser: IExpressionParser,
     @IAttrSyntaxTransformer private readonly attrSyntaxModifier: IAttrSyntaxTransformer,
     @ILogger logger: ILogger,
-    @IDOM private readonly dom: IDOM,
+    @IPlatform private readonly p: IPlatform,
   ) {
     this.logger = logger.scopeTo('TemplateCompiler');
   }
@@ -136,14 +135,14 @@ export class TemplateCompiler implements ITemplateCompiler {
     const resources = ResourceModel.getOrCreate(context);
     const { attrParser, exprParser, attrSyntaxModifier, factory } = this;
 
-    const dom = context.get(IDOM);
-    const binder = new TemplateBinder(dom, resources, attrParser, exprParser, attrSyntaxModifier);
+    const p = context.get(IPlatform);
+    const binder = new TemplateBinder(p, resources, attrParser, exprParser, attrSyntaxModifier);
 
     const template = definition.enhance === true
       ? definition.template as HTMLElement
-      : factory.createTemplate(definition.template) as HTMLTemplateElement;
+      : factory.createTemplate(definition.template);
 
-    processLocalTemplates(template, definition, context, dom, this.logger);
+    processLocalTemplates(template, definition, context, p, this.logger);
 
     const surrogate = binder.bind(template);
 
@@ -175,8 +174,8 @@ export class TemplateCompiler implements ITemplateCompiler {
 
   private compileChildNodes(
     parent: ElementSymbol,
-    instructionRows: ITargetedInstruction[][],
-    projections: WeakMap<ITargetedInstruction, IProjections>,
+    instructionRows: IInstruction[][],
+    projections: WeakMap<IInstruction, IProjections>,
     targetedProjections: RegisteredProjections | null,
   ): void {
     if ((parent.flags & SymbolFlags.hasChildNodes) > 0) {
@@ -189,14 +188,14 @@ export class TemplateCompiler implements ITemplateCompiler {
           instructionRows.push([new TextBindingInstruction((childNode as TextSymbol).interpolation)]);
         } else if ((childNode.flags & SymbolFlags.isLetElement) > 0) {
           const bindings = (childNode as LetElementSymbol).bindings;
-          const instructions: ILetBindingInstruction[] = [];
+          const instructions: LetBindingInstruction[] = [];
           let binding: BindingSymbol;
           const jj = bindings.length;
           for (let j = 0; j < jj; ++j) {
             binding = bindings[j];
             instructions[j] = new LetBindingInstruction(binding.expression as IsBindingBehavior, binding.target);
           }
-          instructionRows.push([new LetElementInstruction(instructions, (childNode as LetElementSymbol).toBindingContext)]);
+          instructionRows.push([new HydrateLetElementInstruction(instructions, (childNode as LetElementSymbol).toBindingContext)]);
         } else {
           this.compileParentNode(childNode as ParentNodeSymbol, instructionRows, projections, targetedProjections);
         }
@@ -206,13 +205,13 @@ export class TemplateCompiler implements ITemplateCompiler {
 
   private compileCustomElement(
     symbol: CustomElementSymbol,
-    instructionRows: ITargetedInstruction[][],
-    projections: WeakMap<ITargetedInstruction, IProjections>,
+    instructionRows: IInstruction[][],
+    projections: WeakMap<IInstruction, IProjections>,
     targetedProjections: RegisteredProjections | null,
   ): void {
     const isAuSlot = (symbol.flags & SymbolFlags.isAuSlot) > 0;
     // offset 1 to leave a spot for the hydrate instruction so we don't need to create 2 arrays with a spread etc
-    const instructionRow = this.compileAttributes(symbol, 1) as HTMLInstructionRow;
+    const instructionRow = this.compileAttributes(symbol, 1) as InstructionRow;
     const slotName = symbol.slotName!;
     let slotInfo: SlotInfo | null = null;
     if (isAuSlot) {
@@ -241,13 +240,13 @@ export class TemplateCompiler implements ITemplateCompiler {
 
   private compilePlainElement(
     symbol: PlainElementSymbol,
-    instructionRows: ITargetedInstruction[][],
-    projections: WeakMap<ITargetedInstruction, IProjections>,
+    instructionRows: IInstruction[][],
+    projections: WeakMap<IInstruction, IProjections>,
     targetedProjections: RegisteredProjections | null,
   ): void {
     const attributes = this.compileAttributes(symbol, 0);
     if (attributes.length > 0) {
-      instructionRows.push(attributes as HTMLInstructionRow);
+      instructionRows.push(attributes as InstructionRow);
     }
 
     this.compileChildNodes(symbol, instructionRows, projections, targetedProjections);
@@ -255,8 +254,8 @@ export class TemplateCompiler implements ITemplateCompiler {
 
   private compileParentNode(
     symbol: ParentNodeSymbol,
-    instructionRows: ITargetedInstruction[][],
-    projections: WeakMap<ITargetedInstruction, IProjections>,
+    instructionRows: IInstruction[][],
+    projections: WeakMap<IInstruction, IProjections>,
     targetedProjections: RegisteredProjections | null,
   ): void {
     switch (symbol.flags & SymbolFlags.type) {
@@ -274,13 +273,13 @@ export class TemplateCompiler implements ITemplateCompiler {
 
   private compileTemplateController(
     symbol: TemplateControllerSymbol,
-    instructionRows: ITargetedInstruction[][],
-    projections: WeakMap<ITargetedInstruction, IProjections>,
+    instructionRows: IInstruction[][],
+    projections: WeakMap<IInstruction, IProjections>,
     targetedProjections: RegisteredProjections | null,
   ): void {
     const bindings = this.compileBindings(symbol);
 
-    const controllerInstructionRows: ITargetedInstruction[][] = [];
+    const controllerInstructionRows: IInstruction[][] = [];
 
     this.compileParentNode(symbol.template!, controllerInstructionRows, projections, targetedProjections);
 
@@ -296,8 +295,8 @@ export class TemplateCompiler implements ITemplateCompiler {
 
   private compileBindings(
     symbol: SymbolWithBindings,
-  ): HTMLAttributeInstruction[] {
-    let bindingInstructions: HTMLAttributeInstruction[];
+  ): AttributeInstruction[] {
+    let bindingInstructions: AttributeInstruction[];
     if ((symbol.flags & SymbolFlags.hasBindings) > 0) {
       // either a custom element with bindings, a custom attribute / template controller with dynamic options,
       // or a single value custom attribute binding
@@ -309,14 +308,14 @@ export class TemplateCompiler implements ITemplateCompiler {
         bindingInstructions[i] = this.compileBinding(bindings[i]);
       }
     } else {
-      bindingInstructions = PLATFORM.emptyArray as typeof PLATFORM.emptyArray & HTMLAttributeInstruction[];
+      bindingInstructions = emptyArray;
     }
     return bindingInstructions;
   }
 
   private compileBinding(
     symbol: BindingSymbol,
-  ): HTMLAttributeInstruction {
+  ): AttributeInstruction {
     if (symbol.command === null) {
       // either an interpolation or a normal string value assigned to an element or attribute binding
       if (symbol.expression === null) {
@@ -329,15 +328,15 @@ export class TemplateCompiler implements ITemplateCompiler {
     } else {
       // either an element binding command, dynamic options attribute binding command,
       // or custom attribute / template controller (single value) binding command
-      return symbol.command.compile(symbol) as HTMLAttributeInstruction;
+      return symbol.command.compile(symbol) as AttributeInstruction;
     }
   }
 
   private compileAttributes(
     symbol: ElementSymbol,
     offset: number,
-  ): HTMLAttributeInstruction[] {
-    let attributeInstructions: HTMLAttributeInstruction[];
+  ): AttributeInstruction[] {
+    let attributeInstructions: AttributeInstruction[];
     if ((symbol.flags & SymbolFlags.hasAttributes) > 0) {
       // any attributes on a custom element (which are not bindables) or a plain element
       const customAttributes = symbol.customAttributes;
@@ -356,14 +355,14 @@ export class TemplateCompiler implements ITemplateCompiler {
     } else if (offset > 0) {
       attributeInstructions = Array(offset);
     } else {
-      attributeInstructions = PLATFORM.emptyArray as typeof PLATFORM.emptyArray & HTMLAttributeInstruction[];
+      attributeInstructions = emptyArray;
     }
     return attributeInstructions;
   }
 
   private compileCustomAttribute(
     symbol: CustomAttributeSymbol,
-  ): HTMLAttributeInstruction {
+  ): AttributeInstruction {
     // a normal custom attribute (not template controller)
     const bindings = this.compileBindings(symbol);
     return new HydrateAttributeInstruction(symbol.res, bindings);
@@ -372,7 +371,7 @@ export class TemplateCompiler implements ITemplateCompiler {
   private compilePlainAttribute(
     symbol: PlainAttributeSymbol,
     isOnSurrogate: boolean,
-  ): HTMLAttributeInstruction {
+  ): AttributeInstruction {
     if (symbol.command === null) {
       const syntax = symbol.syntax;
 
@@ -397,11 +396,11 @@ export class TemplateCompiler implements ITemplateCompiler {
       }
     } else {
       // a plain attribute with a binding command
-      return symbol.command.compile(symbol) as HTMLAttributeInstruction;
+      return symbol.command.compile(symbol) as AttributeInstruction;
     }
   }
 
-  // private compileAttribute(symbol: IAttributeSymbol): HTMLAttributeInstruction {
+  // private compileAttribute(symbol: IAttributeSymbol): AttributeInstruction {
   //   // any attribute on a custom element (which is not a bindable) or a plain element
   //   if (symbol.flags & SymbolFlags.isCustomAttribute) {
   //     return this.compileCustomAttribute(symbol as CustomAttributeSymbol);
@@ -412,13 +411,13 @@ export class TemplateCompiler implements ITemplateCompiler {
 
   private compileProjections(
     symbol: CustomElementSymbol,
-    projectionMap: WeakMap<ITargetedInstruction, IProjections>,
+    projectionMap: WeakMap<IInstruction, IProjections>,
     targetedProjections: RegisteredProjections | null,
   ): IProjections | null {
 
     if ((symbol.flags & SymbolFlags.hasProjections) === 0) { return null; }
 
-    const dom = this.dom;
+    const p = this.p;
     const projections: IProjections = Object.create(null);
     const $projections = symbol.projections;
     const len = $projections.length;
@@ -427,7 +426,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       const projection = $projections[i];
       const name = projection.name;
 
-      const instructions: ITargetedInstruction[][] = [];
+      const instructions: IInstruction[][] = [];
 
       this.compileParentNode(projection.template!, instructions, projectionMap, targetedProjections);
 
@@ -435,15 +434,15 @@ export class TemplateCompiler implements ITemplateCompiler {
       if (definition === void 0) {
         let template = projection.template!.physicalNode!;
         if (template.tagName !== 'TEMPLATE') {
-          const _template = dom.createTemplate() as HTMLTemplateElement;
-          dom.appendChild(_template.content, template);
+          const _template = p.document.createElement('template');
+          _template.content.appendChild(template);
           template = _template;
         }
         projections[name] = CustomElementDefinition.create({ name, template, instructions, needsCompile: false });
       } else {
         // consolidate the projections to same slot
-        dom.appendChild((definition.template as HTMLTemplateElement).content, projection.template!.physicalNode!);
-        (definition.instructions as ITargetedInstruction[][]).push(...instructions);
+        (definition.template as HTMLTemplateElement).content.appendChild(projection.template!.physicalNode!);
+        (definition.instructions as IInstruction[][]).push(...instructions);
       }
     }
     return projections;
@@ -451,12 +450,12 @@ export class TemplateCompiler implements ITemplateCompiler {
 
   private compileProjectionFallback(
     symbol: CustomElementSymbol,
-    projections: WeakMap<ITargetedInstruction, IProjections>,
+    projections: WeakMap<IInstruction, IProjections>,
     targetedProjections: RegisteredProjections | null,
   ): CustomElementDefinition {
-    const instructions: ITargetedInstruction[][] = [];
+    const instructions: IInstruction[][] = [];
     this.compileChildNodes(symbol, instructions, projections, targetedProjections);
-    const template = this.dom.createTemplate() as HTMLTemplateElement;
+    const template = this.p.document.createElement('template');
     template.content.append(...toArray(symbol.physicalNode.childNodes));
     return CustomElementDefinition.create({ name: CustomElement.generateName(), template, instructions, needsCompile: false });
   }
@@ -495,7 +494,7 @@ function processLocalTemplates(
   template: HTMLElement,
   definition: CustomElementDefinition,
   context: IContainer,
-  dom: IDOM,
+  p: IPlatform,
   logger: ILogger,
 ) {
   let root: HTMLElement | DocumentFragment;
@@ -559,7 +558,7 @@ function processLocalTemplates(
       content.removeChild(bindableEl);
     }
 
-    const div = dom.createElement('div') as HTMLDivElement;
+    const div = p.document.createElement('div');
     div.appendChild(content);
     const localTemplateDefinition = CustomElement.define({ name, template: div.innerHTML }, localTemplateType);
     // the casting is needed here as the dependencies are typed as readonly array

@@ -1,14 +1,14 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
-  PLATFORM
+  noop
 } from '@aurelia/kernel';
 import {
-  Aurelia,
   BindingStrategy,
   CustomElement,
-  ILifecycle,
-  LifecycleFlags,
   ValueConverter,
-} from '@aurelia/runtime';
+  Aurelia,
+} from '@aurelia/runtime-html';
 import {
   assert,
   TestContext
@@ -355,7 +355,7 @@ describe(`[repeat.contextual-prop.spec.ts]`, function () {
       repeatExpression = `item of items`,
       textExpression = `[\${item.name}] -- \${$index} -- \${$even}`,
       only,
-      mutate = PLATFORM.noop,
+      mutate = noop,
       expectation = defaultExpectation,
       testWillThrow,
       mutationWillThrow
@@ -371,7 +371,7 @@ describe(`[repeat.contextual-prop.spec.ts]`, function () {
     for (const bindingStrategy of [BindingStrategy.getterSetter, BindingStrategy.proxies]) {
 
       suit(title, async function (): Promise<void> {
-        const ctx = TestContext.createHTMLTestContext();
+        const ctx = TestContext.create();
 
         let body: HTMLElement;
         let host: HTMLElement;
@@ -410,7 +410,7 @@ describe(`[repeat.contextual-prop.spec.ts]`, function () {
 
           try {
             mutate(component.items, component);
-            ctx.scheduler.getRenderTaskQueue().flush();
+            ctx.platform.domWriteQueue.flush();
 
             assert.strictEqual(host.textContent, expectation(component.items, component), `#after mutation`);
 

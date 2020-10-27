@@ -2,6 +2,12 @@ import { Platform, TaskQueue } from '@aurelia/platform';
 
 const lookup = new Map<object, BrowserPlatform>();
 
+function notImplemented(name: string): (...args: any[]) => any {
+  return function notImplemented() {
+    throw new Error(`The PLATFORM did not receive a valid reference to the global function '${name}'.`); // TODO: link to docs describing how to fix this issue
+  }
+}
+
 export class BrowserPlatform<TGlobal extends typeof globalThis = typeof globalThis> extends Platform<TGlobal> {
   public readonly Node: TGlobal['Node'];
   public readonly Element: TGlobal['Element'];
@@ -53,8 +59,8 @@ export class BrowserPlatform<TGlobal extends typeof globalThis = typeof globalTh
     this.history = 'history' in overrides ? overrides.history! : g.history;
     this.navigator = 'navigator' in overrides ? overrides.navigator! : g.navigator;
 
-    this.requestAnimationFrame = 'requestAnimationFrame' in overrides ? overrides.requestAnimationFrame! : g.requestAnimationFrame.bind(g);
-    this.cancelAnimationFrame = 'cancelAnimationFrame' in overrides ? overrides.cancelAnimationFrame! : g.cancelAnimationFrame.bind(g);
+    this.requestAnimationFrame = 'requestAnimationFrame' in overrides ? overrides.requestAnimationFrame! : g.requestAnimationFrame?.bind(g) ?? notImplemented('requestAnimationFrame');
+    this.cancelAnimationFrame = 'cancelAnimationFrame' in overrides ? overrides.cancelAnimationFrame! : g.cancelAnimationFrame?.bind(g) ?? notImplemented('cancelAnimationFrame');
     this.customElements = 'customElements' in overrides ? overrides.customElements! : g.customElements;
 
     this.flushDomRead = this.flushDomRead.bind(this);

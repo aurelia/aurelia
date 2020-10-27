@@ -18,12 +18,13 @@ import {
   ICustomElementViewModel,
   IComposableController,
 } from '../lifecycle';
-import { IComposer, ITemplateCompiler } from '../composer';
+import { IComposer } from '../composer';
 import { CustomElementDefinition, PartialCustomElementDefinition } from '../resources/custom-element';
 import { IViewFactory, ViewFactory } from './view';
 import { AuSlotContentType, IProjectionProvider, RegisteredProjections } from '../resources/custom-elements/au-slot';
 import { IPlatform } from '../platform';
 import { Instruction } from '../instructions';
+import { ITemplateCompiler } from '../template-compiler';
 
 const definitionContainerLookup = new WeakMap<CustomElementDefinition, WeakMap<IContainer, CompositionContext>>();
 const definitionContainerProjectionsLookup = new WeakMap<CustomElementDefinition, WeakMap<IContainer, WeakMap<Record<string, CustomElementDefinition>, CompositionContext>>>();

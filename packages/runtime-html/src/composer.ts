@@ -47,24 +47,13 @@ import {
 } from './instructions';
 import { InstructionTypeName, IInstruction } from './definitions';
 import { IComposableController, IController, ICustomAttributeViewModel, ICustomElementViewModel } from './lifecycle';
-import { CustomElement, CustomElementDefinition, PartialCustomElementDefinition } from './resources/custom-element';
+import { CustomElement, CustomElementDefinition } from './resources/custom-element';
 import { getCompositionContext, ICompiledCompositionContext } from './templating/composition-context';
-import { RegisteredProjections } from './resources/custom-elements/au-slot';
 import { CustomAttribute } from './resources/custom-attribute';
 import { convertToRenderLocation, INode } from './dom';
 import { Controller } from './templating/controller';
 import { IViewFactory } from './templating/view';
 import { IPlatform } from './platform';
-
-export interface ITemplateCompiler {
-  compile(
-    partialDefinition: PartialCustomElementDefinition,
-    context: IContainer,
-    targetedProjections: RegisteredProjections | null,
-  ): CustomElementDefinition;
-}
-
-export const ITemplateCompiler = DI.createInterface<ITemplateCompiler>('ITemplateCompiler').noDefault();
 
 export interface IInstructionTypeClassifier<TType extends string = string> {
   instructionType: TType;

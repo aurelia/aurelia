@@ -39,7 +39,6 @@ import {
   HydrateElementInstruction,
   HydrateTemplateController,
   InstructionType as HTT,
-  ITemplateElementFactory,
   InstructionType as TT,
   HydrateLetElementInstruction,
   InstructionType,
@@ -1641,14 +1640,14 @@ describe('TemplateCompiler - au-slot', function () {
       this.getTargetedProjections = this.getTargetedProjections.bind(this);
     }
 
-    public getTargetedProjections(factory: ITemplateElementFactory) {
+    public getTargetedProjections(compiler: ITemplateCompiler) {
       if (this.partialTargetedProjections === null) { return null; }
       const [scope, projections] = this.partialTargetedProjections;
       return new RegisteredProjections(
         scope,
         Object.entries(projections)
           .reduce((acc: Record<string, CustomElementDefinition>, [key, template]) => {
-            acc[key] = CustomElementDefinition.create({ name: CustomElement.generateName(), template: factory.createTemplate(template), needsCompile: false });
+            acc[key] = CustomElementDefinition.create({ name: CustomElement.generateName(), template: compiler['createTemplate'](template), needsCompile: false });
             return acc;
           }, Object.create(null))
       );
@@ -1714,12 +1713,11 @@ describe('TemplateCompiler - au-slot', function () {
     it(`compiles - ${template}`, function () {
       const { sut, container } = createFixture();
       container.register(AuSlot, ...customElements);
-      const factory = container.get(ITemplateElementFactory);
 
       const compiledDefinition = sut.compile(
         CustomElementDefinition.create({ name: 'my-ce', template }, class MyCe { }),
         container,
-        getTargetedProjections(factory)
+        getTargetedProjections(sut)
       );
 
       const actual = Array.from(compiledDefinition.projectionsMap);

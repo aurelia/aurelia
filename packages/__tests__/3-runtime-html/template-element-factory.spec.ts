@@ -1,22 +1,22 @@
 
-import { ITemplateElementFactory } from '@aurelia/runtime-html';
+import { ITemplateCompiler } from '@aurelia/runtime-html';
 import { TestContext, assert } from '@aurelia/testing';
 
 describe('TemplateElementFactory', function () {
-  let sut: ITemplateElementFactory;
+  let sut: ITemplateCompiler;
   let ctx: TestContext;
 
   // eslint-disable-next-line mocha/no-hooks
   beforeEach(function () {
     ctx = TestContext.create();
-    sut = ctx.container.get(ITemplateElementFactory);
+    sut = ctx.container.get(ITemplateCompiler);
   });
 
   it('template-wrapped markup string', function () {
     const markup = `<template><div class="au">foo</div></template>`;
 
     const expectedHTML = markup;
-    const actualHTML = sut.createTemplate(markup).outerHTML;
+    const actualHTML = sut['createTemplate'](markup).outerHTML;
 
     assert.strictEqual(actualHTML, expectedHTML, `actualHTML`);
   });
@@ -25,7 +25,7 @@ describe('TemplateElementFactory', function () {
     const markup = `<div class="au">foo</div>`;
 
     const expectedHTML = `<template>${markup}</template>`;
-    const actualHTML = sut.createTemplate(markup).outerHTML;
+    const actualHTML = sut['createTemplate'](markup).outerHTML;
 
     assert.strictEqual(actualHTML, expectedHTML, `actualHTML`);
   });
@@ -34,7 +34,7 @@ describe('TemplateElementFactory', function () {
     const markup = `<template><div class="au">foo</div></template>`.repeat(2);
 
     const expectedHTML = `<template>${markup}</template>`;
-    const actualHTML = sut.createTemplate(markup).outerHTML;
+    const actualHTML = sut['createTemplate'](markup).outerHTML;
 
     assert.strictEqual(actualHTML, expectedHTML, `actualHTML`);
   });
@@ -43,7 +43,7 @@ describe('TemplateElementFactory', function () {
     const markup = `<div class="au">foo</div>`.repeat(2);
 
     const expectedHTML = `<template>${markup}</template>`;
-    const actualHTML = sut.createTemplate(markup).outerHTML;
+    const actualHTML = sut['createTemplate'](markup).outerHTML;
 
     assert.strictEqual(actualHTML, expectedHTML, `actualHTML`);
   });
@@ -55,7 +55,7 @@ describe('TemplateElementFactory', function () {
     const node = template;
 
     const expectedHTML = `<template>${markup}</template>`;
-    const actualHTML = sut.createTemplate(node).outerHTML;
+    const actualHTML = sut['createTemplate'](node).outerHTML;
 
     assert.strictEqual(actualHTML, expectedHTML, `actualHTML`);
   });
@@ -67,7 +67,7 @@ describe('TemplateElementFactory', function () {
     const node = template.content.firstElementChild;
 
     const expectedHTML = `<template>${markup}</template>`;
-    const actualHTML = sut.createTemplate(node).outerHTML;
+    const actualHTML = sut['createTemplate'](node).outerHTML;
 
     assert.strictEqual(actualHTML, expectedHTML, `actualHTML`);
   });
@@ -81,7 +81,7 @@ describe('TemplateElementFactory', function () {
     assert.notStrictEqual(node.parentNode, null, `node.parentNode`);
 
     const expectedHTML = markup;
-    const actualNode = sut.createTemplate(node);
+    const actualNode = sut['createTemplate'](node);
 
     assert.strictEqual(actualNode.outerHTML, expectedHTML, `actualNode.outerHTML`);
     assert.strictEqual(actualNode.parentNode, null, `actualNode.parentNode`);

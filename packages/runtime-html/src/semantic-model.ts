@@ -2,7 +2,8 @@ import { AnyBindingExpression, Interpolation } from '@aurelia/runtime';
 import { AttrSyntax } from './attribute-parser';
 import { BindingCommandInstance } from './binding-command';
 import { IPlatform } from './platform';
-import { AttrInfo, BindableInfo, ElementInfo } from './resource-model';
+
+import type { AttrInfo, BindableInfo, ElementInfo } from './template-compiler';
 
 export const enum SymbolFlags {
   type                 = 0b000000_1111111111,

@@ -285,9 +285,6 @@ export {
   getTarget,
 } from './binding-command';
 export {
-  IAttrSyntaxTransformer
-} from './attribute-syntax-transformer';
-export {
   CallBindingCommand,
   DefaultBindingCommand,
   ForBindingCommand,
@@ -313,7 +310,6 @@ export {
   IInstructionComposer,
   IInstructionTypeClassifier,
   IComposer,
-  ITemplateCompiler,
   instructionComposer,
 } from './composer';
 
@@ -536,11 +532,12 @@ export {
   stringifyTemplateDefinition
 } from './debugging';
 export {
-  TemplateBinder,
-} from './template-binder';
-export {
-  ITemplateElementFactory
-} from './template-element-factory';
+  ITemplateCompiler,
+  ResourceModel,
+  BindableInfo,
+  ElementInfo,
+  AttrInfo,
+} from './template-compiler';
 
 export {
   PartialChildrenDefinition,
@@ -655,12 +652,6 @@ export {
   ElementProjector,
 } from './projectors';
 
-export {
-  ResourceModel,
-  BindableInfo,
-  ElementInfo,
-  AttrInfo
-} from './resource-model';
 export {
   AnySymbol,
   BindingSymbol,

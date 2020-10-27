@@ -7,6 +7,13 @@ import {
   toArray,
   Key,
   ILogger,
+  camelCase,
+  IResourceKind,
+  kebabCase,
+  Metadata,
+  ResourceDefinition,
+  ResourceType,
+  DI,
 } from '@aurelia/kernel';
 import {
   IExpressionParser,
@@ -14,10 +21,11 @@ import {
   IsBindingBehavior,
   BindingMode,
   Bindable,
+  AnyBindingExpression,
+  BindingType,
+  Char,
+  BindableDefinition,
 } from '@aurelia/runtime';
-import { IAttrSyntaxTransformer } from './attribute-syntax-transformer';
-import { TemplateBinder } from './template-binder';
-import { ITemplateElementFactory } from './template-element-factory';
 import {
   BindingSymbol,
   CustomElementSymbol,
@@ -31,7 +39,9 @@ import {
   PlainElementSymbol,
   TemplateControllerSymbol,
   TextSymbol,
-  SymbolFlags
+  SymbolFlags,
+  ProjectionSymbol,
+  ResourceAttributeSymbol
 } from './semantic-model';
 import {
   AttributeInstruction,
@@ -48,13 +58,14 @@ import {
   SetStyleAttributeInstruction,
   TextBindingInstruction,
 } from './instructions';
-import { IAttributeParser } from './attribute-parser';
-import { ResourceModel } from './resource-model';
+import { AttrSyntax, IAttributeParser } from './attribute-parser';
 import { IInstruction } from './definitions';
 import { AuSlotContentType, IProjections, ProjectionContext, RegisteredProjections, SlotInfo } from './resources/custom-elements/au-slot';
 import { CustomElement, CustomElementDefinition, PartialCustomElementDefinition } from './resources/custom-element';
-import { ITemplateCompiler } from './composer';
 import { IPlatform } from './platform';
+import { NodeType } from './dom';
+import { CustomAttribute, CustomAttributeDefinition } from './resources/custom-attribute';
+import { BindingCommand, BindingCommandInstance } from './binding-command';
 
 class CustomElementCompilationUnit {
   public readonly instructions: IInstruction[][] = [];
@@ -82,25 +93,18 @@ class CustomElementCompilationUnit {
   }
 }
 
-const enum LocalTemplateBindableAttributes {
-  property = "property",
-  attribute = "attribute",
-  mode = "mode",
+export interface ITemplateCompiler {
+  compile(
+    partialDefinition: PartialCustomElementDefinition,
+    context: IContainer,
+    targetedProjections: RegisteredProjections | null,
+  ): CustomElementDefinition;
 }
-const allowedLocalTemplateBindableAttributes: readonly string[] = Object.freeze([
-  LocalTemplateBindableAttributes.property,
-  LocalTemplateBindableAttributes.attribute,
-  LocalTemplateBindableAttributes.mode
-]);
-const localTemplateIdentifier = 'as-custom-element';
-/**
- * Default (runtime-agnostic) implementation for `ITemplateCompiler`.
- *
- * @internal
- */
-export class TemplateCompiler implements ITemplateCompiler {
+export const ITemplateCompiler = DI.createInterface<ITemplateCompiler>('ITemplateCompiler').noDefault();
 
-  private compilation!: CustomElementCompilationUnit;
+export class TemplateCompiler implements ITemplateCompiler {
+  private compilation: CustomElementCompilationUnit = null!;
+  private template: HTMLTemplateElement = this.p.document.createElement('template');
   private readonly logger: ILogger;
 
   public get name(): string {
@@ -108,18 +112,25 @@ export class TemplateCompiler implements ITemplateCompiler {
   }
 
   public constructor(
-    @ITemplateElementFactory private readonly factory: ITemplateElementFactory,
-    @IAttributeParser private readonly attrParser: IAttributeParser,
-    @IExpressionParser private readonly exprParser: IExpressionParser,
-    @IAttrSyntaxTransformer private readonly attrSyntaxModifier: IAttrSyntaxTransformer,
-    @ILogger logger: ILogger,
-    @IPlatform private readonly p: IPlatform,
+    private readonly attrParser: IAttributeParser,
+    private readonly exprParser: IExpressionParser,
+    private readonly resources: ResourceModel,
+    logger: ILogger,
+    private readonly p: IPlatform,
   ) {
     this.logger = logger.scopeTo('TemplateCompiler');
   }
 
   public static register(container: IContainer): IResolver<ITemplateCompiler> {
-    return Registration.singleton(ITemplateCompiler, this).register(container);
+    return Registration.callback(ITemplateCompiler, function (handler, requestor) {
+      return new TemplateCompiler(
+        requestor.get(IAttributeParser),
+        handler.get(IExpressionParser),
+        ResourceModel.getOrCreate(requestor),
+        handler.get(ILogger),
+        handler.get(IPlatform),
+      );
+    }).register(container);
   }
 
   public compile(
@@ -132,19 +143,13 @@ export class TemplateCompiler implements ITemplateCompiler {
       return definition;
     }
 
-    const resources = ResourceModel.getOrCreate(context);
-    const { attrParser, exprParser, attrSyntaxModifier, factory } = this;
-
-    const p = context.get(IPlatform);
-    const binder = new TemplateBinder(p, resources, attrParser, exprParser, attrSyntaxModifier);
-
     const template = definition.enhance === true
       ? definition.template as HTMLElement
-      : factory.createTemplate(definition.template);
+      : this.createTemplate(definition.template);
 
-    processLocalTemplates(template, definition, context, p, this.logger);
+    this.processLocalTemplates(template, definition, context);
 
-    const surrogate = binder.bind(template);
+    const surrogate = this.bind(template);
 
     const compilation = this.compilation = new CustomElementCompilationUnit(definition, surrogate, template);
 
@@ -459,7 +464,883 @@ export class TemplateCompiler implements ITemplateCompiler {
     template.content.append(...toArray(symbol.physicalNode.childNodes));
     return CustomElementDefinition.create({ name: CustomElement.generateName(), template, instructions, needsCompile: false });
   }
+
+  public bind(node: HTMLElement): PlainElementSymbol {
+    const surrogate = new PlainElementSymbol(node);
+
+    const resources = this.resources;
+
+    const attributes = node.attributes;
+    let i = 0;
+    while (i < attributes.length) {
+      const attr = attributes[i];
+      const attrSyntax = this.attrParser.parse(attr.name, attr.value);
+
+      if (invalidSurrogateAttribute[attrSyntax.target] === true) {
+        throw new Error(`Invalid surrogate attribute: ${attrSyntax.target}`);
+        // TODO: use reporter
+      }
+      const bindingCommand = resources.getBindingCommand(attrSyntax, true);
+      if (bindingCommand === null || (bindingCommand.bindingType & BindingType.IgnoreCustomAttr) === 0) {
+        const attrInfo = resources.getAttributeInfo(attrSyntax);
+
+        if (attrInfo === null) {
+          // map special html attributes to their corresponding properties
+          this.transformAttr(node, attrSyntax);
+          // it's not a custom attribute but might be a regular bound attribute or interpolation (it might also be nothing)
+          this.bindPlainAttribute(
+            /* attrSyntax */ attrSyntax,
+            /* attr       */ attr,
+            /* surrogate  */ surrogate,
+            /* manifest   */ surrogate,
+          );
+        } else if (attrInfo.isTemplateController) {
+          throw new Error('Cannot have template controller on surrogate element.');
+          // TODO: use reporter
+        } else {
+          this.bindCustomAttribute(
+            /* attrSyntax */ attrSyntax,
+            /* attrInfo   */ attrInfo,
+            /* command    */ bindingCommand,
+            /* manifest   */ surrogate,
+          );
+        }
+      } else {
+        // map special html attributes to their corresponding properties
+        this.transformAttr(node, attrSyntax);
+        // it's not a custom attribute but might be a regular bound attribute or interpolation (it might also be nothing)
+        this.bindPlainAttribute(
+          /* attrSyntax */ attrSyntax,
+          /* attr       */ attr,
+          /* surrogate  */ surrogate,
+          /* manifest   */ surrogate,
+        );
+      }
+      ++i;
+    }
+
+    this.bindChildNodes(
+      /* node               */ node,
+      /* surrogate          */ surrogate,
+      /* manifest           */ surrogate,
+      /* manifestRoot       */ null,
+      /* parentManifestRoot */ null,
+    );
+
+    return surrogate;
+  }
+
+  private bindManifest(
+    parentManifest: ElementSymbol,
+    node: HTMLTemplateElement | HTMLElement,
+    surrogate: PlainElementSymbol,
+    manifest: ElementSymbol,
+    manifestRoot: CustomElementSymbol | null,
+    parentManifestRoot: CustomElementSymbol | null,
+  ): void {
+    let isAuSlot = false;
+    switch (node.nodeName) {
+      case 'LET':
+        // let cannot have children and has some different processing rules, so return early
+        this.bindLetElement(
+          /* parentManifest */ parentManifest,
+          /* node           */ node,
+        );
+        return;
+      case 'SLOT':
+        surrogate.hasSlots = true;
+        break;
+      case 'AU-SLOT':
+        isAuSlot = true;
+        break;
+    }
+
+    let name = node.getAttribute('as-element');
+    if (name === null) {
+      name = node.nodeName.toLowerCase();
+    }
+
+    const elementInfo = this.resources.getElementInfo(name);
+    if (elementInfo === null) {
+      // there is no registered custom element with this name
+      manifest = new PlainElementSymbol(node);
+    } else {
+      // it's a custom element so we set the manifestRoot as well (for storing replaces)
+      parentManifestRoot = manifestRoot;
+      const ceSymbol = new CustomElementSymbol(this.p, node, elementInfo);
+      if (isAuSlot) {
+        ceSymbol.flags = SymbolFlags.isAuSlot;
+        ceSymbol.slotName = node.getAttribute("name") ?? "default";
+      }
+      manifestRoot = manifest = ceSymbol;
+    }
+
+    // lifting operations done by template controllers and replaces effectively unlink the nodes, so start at the bottom
+    this.bindChildNodes(
+      /* node               */ node,
+      /* surrogate          */ surrogate,
+      /* manifest           */ manifest,
+      /* manifestRoot       */ manifestRoot,
+      /* parentManifestRoot */ parentManifestRoot,
+    );
+
+    // the parentManifest will receive either the direct child nodes, or the template controllers / replaces
+    // wrapping them
+    this.bindAttributes(
+      /* node               */ node,
+      /* parentManifest     */ parentManifest,
+      /* surrogate          */ surrogate,
+      /* manifest           */ manifest,
+      /* manifestRoot       */ manifestRoot,
+      /* parentManifestRoot */ parentManifestRoot,
+    );
+
+    if (manifestRoot === manifest && manifest.isContainerless) {
+      node.parentNode!.replaceChild(manifest.marker, node);
+    } else if (manifest.isTarget) {
+      node.classList.add('au');
+    }
+  }
+
+  private bindLetElement(
+    parentManifest: ElementSymbol,
+    node: HTMLElement,
+  ): void {
+    const symbol = new LetElementSymbol(this.p, node);
+    parentManifest.childNodes.push(symbol);
+
+    const attributes = node.attributes;
+    let i = 0;
+    while (i < attributes.length) {
+      const attr = attributes[i];
+      if (attr.name === 'to-binding-context') {
+        node.removeAttribute('to-binding-context');
+        symbol.toBindingContext = true;
+        continue;
+      }
+      const attrSyntax = this.attrParser.parse(attr.name, attr.value);
+      const command = this.resources.getBindingCommand(attrSyntax, false);
+      const bindingType = command === null ? BindingType.Interpolation : command.bindingType;
+      const expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
+      const to = camelCase(attrSyntax.target);
+      const info = new BindableInfo(to, BindingMode.toView);
+      symbol.bindings.push(new BindingSymbol(command, info, expr, attrSyntax.rawValue, to));
+
+      ++i;
+    }
+    node.parentNode!.replaceChild(symbol.marker, node);
+  }
+
+  private bindAttributes(
+    node: HTMLTemplateElement | HTMLElement,
+    parentManifest: ElementSymbol,
+    surrogate: PlainElementSymbol,
+    manifest: ElementSymbol,
+    manifestRoot: CustomElementSymbol | null,
+    parentManifestRoot: CustomElementSymbol | null,
+  ): void {
+    // This is the top-level symbol for the current depth.
+    // If there are no template controllers or replaces, it is always the manifest itself.
+    // If there are template controllers, then this will be the outer-most TemplateControllerSymbol.
+    let manifestProxy: ParentNodeSymbol = manifest;
+
+    let previousController: TemplateControllerSymbol = (void 0)!;
+    let currentController: TemplateControllerSymbol = (void 0)!;
+
+    const attributes = node.attributes;
+    let i = 0;
+    while (i < attributes.length) {
+      const attr = attributes[i];
+      ++i;
+      if (attributesToIgnore[attr.name] === true) {
+        continue;
+      }
+
+      const attrSyntax = this.attrParser.parse(attr.name, attr.value);
+      const bindingCommand = this.resources.getBindingCommand(attrSyntax, true);
+
+      if (bindingCommand === null || (bindingCommand.bindingType & BindingType.IgnoreCustomAttr) === 0) {
+        const attrInfo = this.resources.getAttributeInfo(attrSyntax);
+
+        if (attrInfo === null) {
+          // map special html attributes to their corresponding properties
+          this.transformAttr(node, attrSyntax);
+          // it's not a custom attribute but might be a regular bound attribute or interpolation (it might also be nothing)
+          this.bindPlainAttribute(
+            /* attrSyntax */ attrSyntax,
+            /* attr       */ attr,
+            /* surrogate  */ surrogate,
+            /* manifest   */ manifest,
+          );
+        } else if (attrInfo.isTemplateController) {
+          // the manifest is wrapped by the inner-most template controller (if there are multiple on the same element)
+          // so keep setting manifest.templateController to the latest template controller we find
+          currentController = manifest.templateController = this.declareTemplateController(
+            /* attrSyntax */ attrSyntax,
+            /* attrInfo   */ attrInfo,
+          );
+
+          // the proxy and the manifest are only identical when we're at the first template controller (since the controller
+          // is assigned to the proxy), so this evaluates to true at most once per node
+          if (manifestProxy === manifest) {
+            currentController.template = manifest;
+            manifestProxy = currentController;
+          } else {
+            currentController.templateController = previousController;
+            currentController.template = previousController.template;
+            previousController.template = currentController;
+          }
+          previousController = currentController;
+        } else {
+          // a regular custom attribute
+          this.bindCustomAttribute(
+            /* attrSyntax */ attrSyntax,
+            /* attrInfo   */ attrInfo,
+            /* command    */ bindingCommand,
+            /* manifest   */ manifest,
+          );
+        }
+      } else {
+        // map special html attributes to their corresponding properties
+        this.transformAttr(node, attrSyntax);
+        // it's not a custom attribute but might be a regular bound attribute or interpolation (it might also be nothing)
+        this.bindPlainAttribute(
+          /* attrSyntax */ attrSyntax,
+          /* attr       */ attr,
+          /* surrogate  */ surrogate,
+          /* manifest   */ manifest,
+        );
+      }
+    }
+    if (node.tagName === 'INPUT') {
+      const type = (node as HTMLInputElement).type;
+      if (type === 'checkbox' || type === 'radio') {
+        this.ensureAttributeOrder(manifest);
+      }
+    }
+
+    let projection = node.getAttribute('au-slot');
+    if (projection === '') {
+      projection = 'default';
+    }
+    const hasProjection = projection !== null;
+    if (hasProjection && isTemplateControllerOf(manifestProxy, manifest)) {
+      // prevents <some-el au-slot TEMPLATE.CONTROLLER></some-el>.
+      throw new Error(`Unsupported usage of [au-slot="${projection}"] along with a template controller (if, else, repeat.for etc.) found (example: <some-el au-slot if.bind="true"></some-el>).`);
+      /**
+       * TODO: prevent <template TEMPLATE.CONTROLLER><some-el au-slot></some-el></template>.
+       * But there is not easy way for now, as the attribute binding is done after binding the child nodes.
+       * This means by the time the template controller in the ancestor is processed, the projection is already registered.
+       */
+    }
+    const parentName = node.parentNode?.nodeName.toLowerCase();
+    if (hasProjection
+      && (manifestRoot === null
+        || parentName === void 0
+        || this.resources.getElementInfo(parentName!) === null)) {
+      /**
+       * Prevents the following cases:
+       * - <template><div au-slot></div></template>
+       * - <my-ce><div><div au-slot></div></div></my-ce>
+       * - <my-ce><div au-slot="s1"><div au-slot="s2"></div></div></my-ce>
+       */
+      throw new Error(`Unsupported usage of [au-slot="${projection}"]. It seems that projection is attempted, but not for a custom element.`);
+    }
+
+    processTemplateControllers(this.p, manifestProxy, manifest);
+    const projectionOwner: CustomElementSymbol | null = manifest === manifestRoot ? parentManifestRoot : manifestRoot;
+
+    if (!hasProjection || projectionOwner === null) {
+      // the proxy is either the manifest itself or the outer-most controller; add it directly to the parent
+      parentManifest.childNodes.push(manifestProxy);
+    } else if (hasProjection) {
+      projectionOwner!.projections.push(new ProjectionSymbol(projection!, manifestProxy));
+      node.removeAttribute('au-slot');
+      node.remove();
+    }
+  }
+
+  // TODO: refactor to use render priority slots (this logic shouldn't be in the template binder)
+  private ensureAttributeOrder(manifest: ElementSymbol) {
+    // swap the order of checked and model/value attribute, so that the required observers are prepared for checked-observer
+    const attributes = manifest.plainAttributes;
+    let modelOrValueIndex: number | undefined = void 0;
+    let checkedIndex: number | undefined = void 0;
+    let found = 0;
+    for (let i = 0; i < attributes.length && found < 3; i++) {
+      switch (attributes[i].syntax.target) {
+        case 'model':
+        case 'value':
+        case 'matcher':
+          modelOrValueIndex = i;
+          found++;
+          break;
+        case 'checked':
+          checkedIndex = i;
+          found++;
+          break;
+      }
+    }
+    if (checkedIndex !== void 0 && modelOrValueIndex !== void 0 && checkedIndex < modelOrValueIndex) {
+      [attributes[modelOrValueIndex], attributes[checkedIndex]] = [attributes[checkedIndex], attributes[modelOrValueIndex]];
+    }
+  }
+
+  private bindChildNodes(
+    node: HTMLTemplateElement | HTMLElement,
+    surrogate: PlainElementSymbol,
+    manifest: ElementSymbol,
+    manifestRoot: CustomElementSymbol | null,
+    parentManifestRoot: CustomElementSymbol | null,
+  ): void {
+    let childNode: ChildNode | null;
+    if (node.nodeName === 'TEMPLATE') {
+      childNode = (node as HTMLTemplateElement).content.firstChild;
+    } else {
+      childNode = node.firstChild;
+    }
+
+    let nextChild: ChildNode | null;
+    while (childNode !== null) {
+      switch (childNode.nodeType) {
+        case NodeType.Element:
+          nextChild = childNode.nextSibling;
+          this.bindManifest(
+            /* parentManifest     */ manifest,
+            /* node               */ childNode as HTMLElement,
+            /* surrogate          */ surrogate,
+            /* manifest           */ manifest,
+            /* manifestRoot       */ manifestRoot,
+            /* parentManifestRoot */ parentManifestRoot,
+          );
+          childNode = nextChild;
+          break;
+        case NodeType.Text:
+          childNode = this.bindText(
+            /* textNode */ childNode as Text,
+            /* manifest */ manifest,
+          ).nextSibling;
+          break;
+        case NodeType.CDATASection:
+        case NodeType.ProcessingInstruction:
+        case NodeType.Comment:
+        case NodeType.DocumentType:
+          childNode = childNode.nextSibling;
+          break;
+        case NodeType.Document:
+        case NodeType.DocumentFragment:
+          childNode = childNode.firstChild;
+      }
+    }
+
+  }
+
+  private bindText(
+    textNode: Text,
+    manifest: ElementSymbol,
+  ): ChildNode {
+    const interpolation = this.exprParser.parse(textNode.wholeText, BindingType.Interpolation);
+    if (interpolation !== null) {
+      const symbol = new TextSymbol(this.p, textNode, interpolation);
+      manifest.childNodes.push(symbol);
+      processInterpolationText(symbol);
+    }
+    let next: ChildNode = textNode;
+    while (next.nextSibling !== null && next.nextSibling.nodeType === NodeType.Text) {
+      next = next.nextSibling;
+    }
+    return next;
+  }
+
+  private declareTemplateController(
+    attrSyntax: AttrSyntax,
+    attrInfo: AttrInfo,
+  ): TemplateControllerSymbol {
+    let symbol: TemplateControllerSymbol;
+    const attrRawValue = attrSyntax.rawValue;
+    const command = this.resources.getBindingCommand(attrSyntax, false);
+    // multi-bindings logic here is similar to (and explained in) bindCustomAttribute
+    const isMultiBindings = attrInfo.noMultiBindings === false && command === null && hasInlineBindings(attrRawValue);
+
+    if (isMultiBindings) {
+      symbol = new TemplateControllerSymbol(this.p, attrSyntax, attrInfo);
+      this.bindMultiAttribute(symbol, attrInfo, attrRawValue);
+    } else {
+      symbol = new TemplateControllerSymbol(this.p, attrSyntax, attrInfo);
+      const bindingType = command === null ? BindingType.Interpolation : command.bindingType;
+      const expr = this.exprParser.parse(attrRawValue, bindingType);
+      symbol.bindings.push(new BindingSymbol(command, attrInfo.bindable!, expr, attrRawValue, attrSyntax.target));
+    }
+
+    return symbol;
+  }
+
+  private bindCustomAttribute(
+    attrSyntax: AttrSyntax,
+    attrInfo: AttrInfo,
+    command: BindingCommandInstance | null,
+    manifest: ElementSymbol,
+  ): void {
+    let symbol: CustomAttributeSymbol;
+    const attrRawValue = attrSyntax.rawValue;
+    // Custom attributes are always in multiple binding mode,
+    // except when they can't be
+    // When they cannot be:
+    //        * has explicit configuration noMultiBindings: false
+    //        * has binding command, ie: <div my-attr.bind="...">.
+    //          In this scenario, the value of the custom attributes is required to be a valid expression
+    //        * has no colon: ie: <div my-attr="abcd">
+    //          In this scenario, it's simply invalid syntax. Consider style attribute rule-value pair: <div style="rule: ruleValue">
+    const isMultiBindings = attrInfo.noMultiBindings === false && command === null && hasInlineBindings(attrRawValue);
+
+    if (isMultiBindings) {
+      // a multiple-bindings attribute usage (semicolon separated binding) is only valid without a binding command;
+      // the binding commands must be declared in each of the property bindings
+      symbol = new CustomAttributeSymbol(attrSyntax, attrInfo);
+      this.bindMultiAttribute(symbol, attrInfo, attrRawValue);
+    } else {
+      symbol = new CustomAttributeSymbol(attrSyntax, attrInfo);
+      const bindingType = command === null ? BindingType.Interpolation : command.bindingType;
+      const expr = this.exprParser.parse(attrRawValue, bindingType);
+      symbol.bindings.push(new BindingSymbol(command, attrInfo.bindable!, expr, attrRawValue, attrSyntax.target));
+    }
+    manifest.customAttributes.push(symbol);
+    manifest.isTarget = true;
+  }
+
+  private bindMultiAttribute(symbol: ResourceAttributeSymbol, attrInfo: AttrInfo, value: string): void {
+    const bindables = attrInfo.bindables;
+    const valueLength = value.length;
+
+    let attrName: string | undefined = void 0;
+    let attrValue: string | undefined = void 0;
+
+    let start = 0;
+    let ch = 0;
+
+    for (let i = 0; i < valueLength; ++i) {
+      ch = value.charCodeAt(i);
+
+      if (ch === Char.Backslash) {
+        ++i;
+        // Ignore whatever comes next because it's escaped
+      } else if (ch === Char.Colon) {
+        attrName = value.slice(start, i);
+
+        // Skip whitespace after colon
+        while (value.charCodeAt(++i) <= Char.Space);
+
+        start = i;
+
+        for (; i < valueLength; ++i) {
+          ch = value.charCodeAt(i);
+          if (ch === Char.Backslash) {
+            ++i;
+            // Ignore whatever comes next because it's escaped
+          } else if (ch === Char.Semicolon) {
+            attrValue = value.slice(start, i);
+            break;
+          }
+        }
+
+        if (attrValue === void 0) {
+          // No semicolon found, so just grab the rest of the value
+          attrValue = value.slice(start);
+        }
+
+        const attrSyntax = this.attrParser.parse(attrName, attrValue);
+        const attrTarget = camelCase(attrSyntax.target);
+        const command = this.resources.getBindingCommand(attrSyntax, false);
+        const bindingType = command === null ? BindingType.Interpolation : command.bindingType;
+        const expr = this.exprParser.parse(attrValue, bindingType);
+        let bindable = bindables[attrTarget];
+        if (bindable === undefined) {
+          // everything in a multi-bindings expression must be used,
+          // so if it's not a bindable then we create one on the spot
+          bindable = bindables[attrTarget] = new BindableInfo(attrTarget, BindingMode.toView);
+        }
+
+        symbol.bindings.push(new BindingSymbol(command, bindable, expr, attrValue, attrTarget));
+
+        // Skip whitespace after semicolon
+        while (i < valueLength && value.charCodeAt(++i) <= Char.Space);
+
+        start = i;
+
+        attrName = void 0;
+        attrValue = void 0;
+      }
+    }
+  }
+
+  private bindPlainAttribute(
+    attrSyntax: AttrSyntax,
+    attr: Attr,
+    surrogate: PlainElementSymbol,
+    manifest: ElementSymbol,
+  ): void {
+    const command = this.resources.getBindingCommand(attrSyntax, false);
+    const bindingType = command === null ? BindingType.Interpolation : command.bindingType;
+    const attrTarget = attrSyntax.target;
+    const attrRawValue = attrSyntax.rawValue;
+    let expr: AnyBindingExpression;
+    if (
+      attrRawValue.length === 0
+      && (bindingType & BindingType.BindCommand | BindingType.OneTimeCommand | BindingType.ToViewCommand | BindingType.TwoWayCommand) > 0
+    ) {
+      if ((bindingType & BindingType.BindCommand | BindingType.OneTimeCommand | BindingType.ToViewCommand | BindingType.TwoWayCommand) > 0) {
+        // Default to the name of the attr for empty binding commands
+        expr = this.exprParser.parse(camelCase(attrTarget), bindingType);
+      } else {
+        return;
+      }
+    } else {
+      expr = this.exprParser.parse(attrRawValue, bindingType);
+    }
+
+    if ((manifest.flags & SymbolFlags.isCustomElement) > 0) {
+      const bindable = (manifest as CustomElementSymbol).bindables[attrTarget];
+      if (bindable != null) {
+        // if the attribute name matches a bindable property name, add it regardless of whether it's a command, interpolation, or just a plain string;
+        // the template compiler will translate it to the correct instruction
+        (manifest as CustomElementSymbol).bindings.push(new BindingSymbol(command, bindable, expr, attrRawValue, attrTarget));
+        manifest.isTarget = true;
+      } else if (expr != null) {
+        // if it does not map to a bindable, only add it if we were able to parse an expression (either a command or interpolation)
+        manifest.plainAttributes.push(new PlainAttributeSymbol(attrSyntax, command, expr));
+        manifest.isTarget = true;
+      }
+    } else if (expr != null) {
+      // either a binding command, an interpolation, or a ref
+      manifest.plainAttributes.push(new PlainAttributeSymbol(attrSyntax, command, expr));
+      manifest.isTarget = true;
+    } else if (manifest === surrogate) {
+      // any attributes, even if they are plain (no command/interpolation etc), should be added if they
+      // are on the surrogate element
+      manifest.plainAttributes.push(new PlainAttributeSymbol(attrSyntax, command, expr));
+    }
+
+    if (command == null && expr != null) {
+      // if it's an interpolation, clear the attribute value
+      attr.value = '';
+    }
+  }
+
+  private processLocalTemplates(
+    template: HTMLElement,
+    definition: CustomElementDefinition,
+    context: IContainer,
+  ) {
+    let root: HTMLElement | DocumentFragment;
+
+    if (template.nodeName === 'TEMPLATE') {
+      if (template.hasAttribute(localTemplateIdentifier)) {
+        throw new Error('The root cannot be a local template itself.');
+      }
+      root = (template as HTMLTemplateElement).content;
+    } else {
+      root = template;
+    }
+    const localTemplates = toArray(root.querySelectorAll('template[as-custom-element]')) as HTMLTemplateElement[];
+    const numLocalTemplates = localTemplates.length;
+    if (numLocalTemplates === 0) { return; }
+    if (numLocalTemplates === root.childElementCount) {
+      throw new Error('The custom element does not have any content other than local template(s).');
+    }
+    const localTemplateNames: Set<string> = new Set();
+
+    for (const localTemplate of localTemplates) {
+      if (localTemplate.parentNode !== root) {
+        throw new Error('Local templates needs to be defined directly under root.');
+      }
+      const name = getTemplateName(localTemplate, localTemplateNames);
+
+      const localTemplateType = class LocalTemplate { };
+      const content = localTemplate.content;
+      const bindableEls = toArray(content.querySelectorAll('bindable'));
+      const bindableInstructions = Bindable.for(localTemplateType);
+      const properties = new Set<string>();
+      const attributes = new Set<string>();
+      for (const bindableEl of bindableEls) {
+        if (bindableEl.parentNode !== content) {
+          throw new Error('Bindable properties of local templates needs to be defined directly under root.');
+        }
+        const property = bindableEl.getAttribute(LocalTemplateBindableAttributes.property);
+        if (property === null) { throw new Error(`The attribute 'property' is missing in ${bindableEl.outerHTML}`); }
+        const attribute = bindableEl.getAttribute(LocalTemplateBindableAttributes.attribute);
+        if (attribute !== null
+          && attributes.has(attribute)
+          || properties.has(property)
+        ) {
+          throw new Error(`Bindable property and attribute needs to be unique; found property: ${property}, attribute: ${attribute}`);
+        } else {
+          if (attribute !== null) {
+            attributes.add(attribute);
+          }
+          properties.add(property);
+        }
+        bindableInstructions.add({
+          property,
+          attribute: attribute ?? void 0,
+          mode: getBindingMode(bindableEl),
+        });
+        const ignoredAttributes = bindableEl.getAttributeNames().filter((attrName) => !allowedLocalTemplateBindableAttributes.includes(attrName));
+        if (ignoredAttributes.length > 0) {
+          this.logger.warn(`The attribute(s) ${ignoredAttributes.join(', ')} will be ignored for ${bindableEl.outerHTML}. Only ${allowedLocalTemplateBindableAttributes.join(', ')} are processed.`);
+        }
+
+        content.removeChild(bindableEl);
+      }
+
+      const div = this.p.document.createElement('div');
+      div.appendChild(content);
+      const localTemplateDefinition = CustomElement.define({ name, template: div.innerHTML }, localTemplateType);
+      // the casting is needed here as the dependencies are typed as readonly array
+      (definition.dependencies as Key[]).push(localTemplateDefinition);
+      context.register(localTemplateDefinition);
+
+      root.removeChild(localTemplate);
+    }
+  }
+
+  private createTemplate(markup: string): HTMLTemplateElement;
+  private createTemplate(node: Node): HTMLTemplateElement;
+  private createTemplate(input: string | Node): HTMLTemplateElement;
+  private createTemplate(input: string | Node): HTMLTemplateElement {
+    if (typeof input === 'string') {
+      let result = markupCache[input];
+      if (result === void 0) {
+        const template = this.template;
+        template.innerHTML = input;
+        const node = template.content.firstElementChild;
+        // if the input is either not wrapped in a template or there is more than one node,
+        // return the whole template that wraps it/them (and create a new one for the next input)
+        if (node == null || node.nodeName !== 'TEMPLATE' || node.nextElementSibling != null) {
+          this.template = this.p.document.createElement('template');
+          result = template;
+        } else {
+          // the node to return is both a template and the only node, so return just the node
+          // and clean up the template for the next input
+          template.content.removeChild(node);
+          result = node as HTMLTemplateElement;
+        }
+
+        markupCache[input] = result;
+      }
+
+      return result.cloneNode(true) as HTMLTemplateElement;
+    }
+    if (input.nodeName !== 'TEMPLATE') {
+      // if we get one node that is not a template, wrap it in one
+      const template = this.p.document.createElement('template');
+      template.content.appendChild(input);
+      return template;
+    }
+    // we got a template element, remove it from the DOM if it's present there and don't
+    // do any other processing
+    input.parentNode?.removeChild(input);
+    return input.cloneNode(true) as HTMLTemplateElement;
+  }
+
+  private transformAttr(node: HTMLElement, attrSyntax: AttrSyntax): void {
+    if (attrSyntax.command === 'bind' && shouldDefaultToTwoWay(node, attrSyntax)) {
+      attrSyntax.command = 'two-way';
+    }
+    attrSyntax.target = this.mapAttr(node.tagName, attrSyntax.target);
+  }
+
+  private mapAttr(tagName: string, attr: string): string {
+    switch (tagName) {
+      case 'LABEL':
+        switch (attr) {
+          case 'for':
+            return 'htmlFor';
+          default:
+            return attr;
+        }
+      case 'IMG':
+        switch (attr) {
+          case 'usemap':
+            return 'useMap';
+          default:
+            return attr;
+        }
+      case 'INPUT':
+        switch (attr) {
+          case 'maxlength':
+            return 'maxLength';
+          case 'minlength':
+            return 'minLength';
+          case 'formaction':
+            return 'formAction';
+          case 'formenctype':
+            return 'formEncType';
+          case 'formmethod':
+            return 'formMethod';
+          case 'formnovalidate':
+            return 'formNoValidate';
+          case 'formtarget':
+            return 'formTarget';
+          case 'inputmode':
+            return 'inputMode';
+          default:
+            return attr;
+        }
+      case 'TEXTAREA':
+        switch (attr) {
+          case 'maxlength':
+            return 'maxLength';
+          default:
+            return attr;
+        }
+      case 'TD':
+      case 'TH':
+        switch (attr) {
+          case 'rowspan':
+            return 'rowSpan';
+          case 'colspan':
+            return 'colSpan';
+          default:
+            return attr;
+        }
+      default:
+        switch (attr) {
+          case 'accesskey':
+            return 'accessKey';
+          case 'contenteditable':
+            return 'contentEditable';
+          case 'tabindex':
+            return 'tabIndex';
+          case 'textcontent':
+            return 'textContent';
+          case 'innerhtml':
+            return 'innerHTML';
+          case 'scrolltop':
+            return 'scrollTop';
+          case 'scrollleft':
+            return 'scrollLeft';
+          case 'readonly':
+            return 'readOnly';
+          default:
+            return attr;
+        }
+    }
+  }
 }
+
+const invalidSurrogateAttribute = Object.assign(Object.create(null), {
+  'id': true,
+  'au-slot': true,
+}) as Record<string, boolean | undefined>;
+
+const attributesToIgnore = Object.assign(Object.create(null), {
+  'as-element': true,
+}) as Record<string, boolean | undefined>;
+
+function hasInlineBindings(rawValue: string): boolean {
+  const len = rawValue.length;
+  let ch = 0;
+  for (let i = 0; i < len; ++i) {
+    ch = rawValue.charCodeAt(i);
+    if (ch === Char.Backslash) {
+      ++i;
+      // Ignore whatever comes next because it's escaped
+    } else if (ch === Char.Colon) {
+      return true;
+    } else if (ch === Char.Dollar && rawValue.charCodeAt(i + 1) === Char.OpenBrace) {
+      return false;
+    }
+  }
+  return false;
+}
+
+function processInterpolationText(symbol: TextSymbol): void {
+  const node = symbol.physicalNode;
+  const parentNode = node.parentNode!;
+  while (node.nextSibling !== null && node.nextSibling.nodeType === NodeType.Text) {
+    parentNode.removeChild(node.nextSibling);
+  }
+  node.textContent = '';
+  parentNode.insertBefore(symbol.marker, node);
+}
+
+function isTemplateControllerOf(proxy: ParentNodeSymbol, manifest: ElementSymbol): proxy is TemplateControllerSymbol {
+  return proxy !== manifest;
+}
+
+/**
+ * A (temporary) standalone function that purely does the DOM processing (lifting) related to template controllers.
+ * It's a first refactoring step towards separating DOM parsing/binding from mutations.
+ */
+function processTemplateControllers(p: IPlatform, manifestProxy: ParentNodeSymbol, manifest: ElementSymbol): void {
+  const manifestNode = manifest.physicalNode;
+  let current = manifestProxy;
+  let currentTemplate: HTMLTemplateElement;
+  while (isTemplateControllerOf(current, manifest)) {
+    if (current.template === manifest) {
+      // the DOM linkage is still in its original state here so we can safely assume the parentNode is non-null
+      manifestNode.parentNode!.replaceChild(current.marker, manifestNode);
+
+      // if the manifest is a template element (e.g. <template repeat.for="...">) then we can skip one lift operation
+      // and simply use the template directly, saving a bit of work
+      if (manifestNode.nodeName === 'TEMPLATE') {
+        current.physicalNode = manifestNode as HTMLTemplateElement;
+        // the template could safely stay without affecting anything visible, but let's keep the DOM tidy
+        manifestNode.remove();
+      } else {
+        // the manifest is not a template element so we need to wrap it in one
+        currentTemplate = current.physicalNode = p.document.createElement('template');
+        currentTemplate.content.appendChild(manifestNode);
+      }
+    } else {
+      currentTemplate = current.physicalNode = p.document.createElement('template');
+      currentTemplate.content.appendChild(current.marker);
+    }
+    manifestNode.removeAttribute(current.syntax.rawName);
+    current = current.template!;
+  }
+}
+
+const enum LocalTemplateBindableAttributes {
+  property = "property",
+  attribute = "attribute",
+  mode = "mode",
+}
+const allowedLocalTemplateBindableAttributes: readonly string[] = Object.freeze([
+  LocalTemplateBindableAttributes.property,
+  LocalTemplateBindableAttributes.attribute,
+  LocalTemplateBindableAttributes.mode
+]);
+const localTemplateIdentifier = 'as-custom-element';
+
+function shouldDefaultToTwoWay(element: HTMLElement, attr: AttrSyntax): boolean {
+  switch (element.tagName) {
+    case 'INPUT':
+      switch ((element as HTMLInputElement).type) {
+        case 'checkbox':
+        case 'radio':
+          return attr.target === 'checked';
+        default:
+          return attr.target === 'value' || attr.target === 'files';
+      }
+    case 'TEXTAREA':
+    case 'SELECT':
+      return attr.target === 'value';
+    default:
+      switch (attr.target) {
+        case 'textcontent':
+        case 'innerhtml':
+          return element.hasAttribute('contenteditable');
+        case 'scrolltop':
+        case 'scrollleft':
+          return true;
+        default:
+          return false;
+      }
+  }
+}
+
+const markupCache: Record<string, HTMLTemplateElement | undefined> = {};
 
 function getTemplateName(localTemplate: HTMLTemplateElement, localTemplateNames: Set<string>): string {
   const name = localTemplate.getAttribute(localTemplateIdentifier);
@@ -490,81 +1371,307 @@ function getBindingMode(bindable: Element): BindingMode {
   }
 }
 
-function processLocalTemplates(
-  template: HTMLElement,
-  definition: CustomElementDefinition,
-  context: IContainer,
-  p: IPlatform,
-  logger: ILogger,
-) {
-  let root: HTMLElement | DocumentFragment;
+/**
+ * A pre-processed piece of information about a defined bindable property on a custom
+ * element or attribute, optimized for consumption by the template compiler.
+ */
+export class BindableInfo {
+  public constructor(
+    /**
+     * The pre-processed *property* (not attribute) name of the bindable, which is
+     * (in order of priority):
+     *
+     * 1. The `property` from the description (if defined)
+     * 2. The name of the property of the bindable itself
+     */
+    public propName: string,
+    /**
+     * The pre-processed (default) bindingMode of the bindable, which is (in order of priority):
+     *
+     * 1. The `mode` from the bindable (if defined and not bindingMode.default)
+     * 2. The `defaultBindingMode` (if it's an attribute, defined, and not bindingMode.default)
+     * 3. `bindingMode.toView`
+     */
+    public mode: BindingMode,
+  ) {}
+}
 
-  if (template.nodeName === 'TEMPLATE') {
-    if (template.hasAttribute(localTemplateIdentifier)) {
-      throw new Error('The root cannot be a local template itself.');
-    }
-    root = (template as HTMLTemplateElement).content;
-  } else {
-    root = template;
-  }
-  const localTemplates = toArray(root.querySelectorAll('template[as-custom-element]')) as HTMLTemplateElement[];
-  const numLocalTemplates = localTemplates.length;
-  if (numLocalTemplates === 0) { return; }
-  if (numLocalTemplates === root.childElementCount) {
-    throw new Error('The custom element does not have any content other than local template(s).');
-  }
-  const localTemplateNames: Set<string> = new Set();
+/**
+ * Pre-processed information about a custom element resource, optimized
+ * for consumption by the template compiler.
+ */
+export class ElementInfo {
+  /**
+   * A lookup of the bindables of this element, indexed by the (pre-processed)
+   * attribute names as they would be found in parsed markup.
+   */
+  public bindables: Record<string, BindableInfo | undefined> = Object.create(null);
 
-  for (const localTemplate of localTemplates) {
-    if (localTemplate.parentNode !== root) {
-      throw new Error('Local templates needs to be defined directly under root.');
-    }
-    const name = getTemplateName(localTemplate, localTemplateNames);
+  public constructor(
+    public name: string,
+    public containerless: boolean,
+  ) {}
 
-    const localTemplateType = class LocalTemplate { };
-    const content = localTemplate.content;
-    const bindableEls = toArray(content.querySelectorAll('bindable'));
-    const bindableInstructions = Bindable.for(localTemplateType);
-    const properties = new Set<string>();
-    const attributes = new Set<string>();
-    for (const bindableEl of bindableEls) {
-      if (bindableEl.parentNode !== content) {
-        throw new Error('Bindable properties of local templates needs to be defined directly under root.');
+  public static from(def: CustomElementDefinition): ElementInfo {
+    const info = new ElementInfo(def.name, def.containerless);
+    const bindables = def.bindables;
+    const defaultBindingMode = BindingMode.toView;
+
+    let bindable: BindableDefinition;
+    let prop: string;
+    let attr: string;
+    let mode: BindingMode;
+
+    for (prop in bindables) {
+      bindable = bindables[prop];
+      // explicitly provided property name has priority over the implicit property name
+      if (bindable.property !== void 0) {
+        prop = bindable.property;
       }
-      const property = bindableEl.getAttribute(LocalTemplateBindableAttributes.property);
-      if (property === null) { throw new Error(`The attribute 'property' is missing in ${bindableEl.outerHTML}`); }
-      const attribute = bindableEl.getAttribute(LocalTemplateBindableAttributes.attribute);
-      if (attribute !== null
-        && attributes.has(attribute)
-        || properties.has(property)
-      ) {
-        throw new Error(`Bindable property and attribute needs to be unique; found property: ${property}, attribute: ${attribute}`);
+      // explicitly provided attribute name has priority over the derived implicit attribute name
+      if (bindable.attribute !== void 0) {
+        attr = bindable.attribute;
       } else {
-        if (attribute !== null) {
-          attributes.add(attribute);
-        }
-        properties.add(property);
+        // derive the attribute name from the resolved property name
+        attr = kebabCase(prop);
       }
-      bindableInstructions.add({
-        property,
-        attribute: attribute ?? void 0,
-        mode: getBindingMode(bindableEl),
-      });
-      const ignoredAttributes = bindableEl.getAttributeNames().filter((attrName) => !allowedLocalTemplateBindableAttributes.includes(attrName));
-      if (ignoredAttributes.length > 0) {
-        logger.warn(`The attribute(s) ${ignoredAttributes.join(', ')} will be ignored for ${bindableEl.outerHTML}. Only ${allowedLocalTemplateBindableAttributes.join(', ')} are processed.`);
+      if (bindable.mode !== void 0 && bindable.mode !== BindingMode.default) {
+        mode = bindable.mode;
+      } else {
+        mode = defaultBindingMode;
       }
+      info.bindables[attr] = new BindableInfo(prop, mode);
+    }
+    return info;
+  }
+}
 
-      content.removeChild(bindableEl);
+/**
+ * Pre-processed information about a custom attribute resource, optimized
+ * for consumption by the template compiler.
+ */
+export class AttrInfo {
+  /**
+   * A lookup of the bindables of this attribute, indexed by the (pre-processed)
+   * bindable names as they would be found in the attribute value.
+   *
+   * Only applicable to multi attribute bindings (semicolon-separated).
+   */
+  public bindables: Record<string, BindableInfo | undefined> = Object.create(null);
+  /**
+   * The single or first bindable of this attribute, or a default 'value'
+   * bindable if no bindables were defined on the attribute.
+   *
+   * Only applicable to single attribute bindings (where the attribute value
+   * contains no semicolons)
+   */
+  public bindable: BindableInfo | null = null;
+
+  public constructor(
+    public name: string,
+    public isTemplateController: boolean,
+    public noMultiBindings: boolean,
+  ) {}
+
+  public static from(def: CustomAttributeDefinition): AttrInfo {
+    const info = new AttrInfo(def.name, def.isTemplateController, def.noMultiBindings);
+    const bindables = def.bindables;
+    const defaultBindingMode = def.defaultBindingMode !== void 0 && def.defaultBindingMode !== BindingMode.default
+      ? def.defaultBindingMode
+      : BindingMode.toView;
+
+    let bindable: BindableDefinition;
+    let prop: string;
+    let mode: BindingMode;
+    let hasPrimary: boolean = false;
+    let isPrimary: boolean = false;
+    let bindableInfo: BindableInfo;
+
+    for (prop in bindables) {
+      bindable = bindables[prop];
+      // explicitly provided property name has priority over the implicit property name
+      if (bindable.property !== void 0) {
+        prop = bindable.property;
+      }
+      if (bindable.mode !== void 0 && bindable.mode !== BindingMode.default) {
+        mode = bindable.mode;
+      } else {
+        mode = defaultBindingMode;
+      }
+      isPrimary = bindable.primary === true;
+      bindableInfo = info.bindables[prop] = new BindableInfo(prop, mode);
+      if (isPrimary) {
+        if (hasPrimary) {
+          throw new Error('primary already exists');
+        }
+        hasPrimary = true;
+        info.bindable = bindableInfo;
+      }
+      // set to first bindable by convention
+      if (info.bindable === null) {
+        info.bindable = bindableInfo;
+      }
+    }
+    // if no bindables are present, default to "value"
+    if (info.bindable === null) {
+      info.bindable = new BindableInfo('value', defaultBindingMode);
+    }
+    return info;
+  }
+}
+
+const contextLookup = new WeakMap<IContainer, ResourceModel>();
+
+/**
+ * A pre-processed piece of information about declared custom elements, attributes and
+ * binding commands, optimized for consumption by the template compiler.
+ */
+export class ResourceModel {
+  private readonly elementLookup: Record<string, ElementInfo | null | undefined> = Object.create(null);
+  private readonly attributeLookup: Record<string, AttrInfo | null | undefined> = Object.create(null);
+  private readonly commandLookup: Record<string, BindingCommandInstance | null | undefined> = Object.create(null);
+
+  private readonly container: IContainer;
+
+  private readonly resourceResolvers: Record<string, IResolver | undefined | null>;
+  private readonly rootResourceResolvers: Record<string, IResolver | undefined | null>;
+
+  public constructor(container: IContainer) {
+    // Note: don't do this sort of thing elsewhere, this is purely for perf reasons
+    this.container = container;
+    const rootContainer = (container as IContainer & { root: IContainer }).root;
+    this.resourceResolvers = (container as IContainer & { resourceResolvers: Record<string, IResolver | undefined | null> }).resourceResolvers;
+    this.rootResourceResolvers = (rootContainer as IContainer & { resourceResolvers: Record<string, IResolver | undefined | null> }).resourceResolvers;
+  }
+
+  public static getOrCreate(context: IContainer): ResourceModel {
+    let model = contextLookup.get(context);
+    if (model === void 0) {
+      contextLookup.set(
+        context,
+        model = new ResourceModel(context),
+      );
+    }
+    return model;
+  }
+
+  /**
+   * Retrieve information about a custom element resource.
+   *
+   * @param element - The original DOM element.
+   *
+   * @returns The resource information if the element exists, or `null` if it does not exist.
+   */
+  public getElementInfo(name: string): ElementInfo | null {
+    let result = this.elementLookup[name];
+    if (result === void 0) {
+      const def = this.find(CustomElement, name) as unknown as CustomElementDefinition;
+      this.elementLookup[name] = result = def === null ? null : ElementInfo.from(def);
     }
 
-    const div = p.document.createElement('div');
-    div.appendChild(content);
-    const localTemplateDefinition = CustomElement.define({ name, template: div.innerHTML }, localTemplateType);
-    // the casting is needed here as the dependencies are typed as readonly array
-    (definition.dependencies as Key[]).push(localTemplateDefinition);
-    context.register(localTemplateDefinition);
+    return result;
+  }
 
-    root.removeChild(localTemplate);
+  /**
+   * Retrieve information about a custom attribute resource.
+   *
+   * @param syntax - The parsed `AttrSyntax`
+   *
+   * @returns The resource information if the attribute exists, or `null` if it does not exist.
+   */
+  public getAttributeInfo(syntax: AttrSyntax): AttrInfo | null {
+    let result = this.attributeLookup[syntax.target];
+    if (result === void 0) {
+      const def = this.find(CustomAttribute, syntax.target) as unknown as CustomAttributeDefinition;
+      this.attributeLookup[syntax.target] = result = def === null ? null : AttrInfo.from(def);
+    }
+    return result;
+  }
+
+  /**
+   * Retrieve a binding command resource.
+   *
+   * @param name - The parsed `AttrSyntax`
+   *
+   * @returns An instance of the command if it exists, or `null` if it does not exist.
+   */
+  public getBindingCommand(syntax: AttrSyntax, optional: boolean): BindingCommandInstance | null {
+    const name = syntax.command;
+    if (name === null) {
+      return null;
+    }
+    let result = this.commandLookup[name];
+    if (result === void 0) {
+      result = this.create(BindingCommand, name) as BindingCommandInstance;
+      if (result === null) {
+        if (optional) {
+          return null;
+        }
+        throw new Error(`Unknown binding command: ${name}`);
+      }
+      this.commandLookup[name] = result;
+    }
+    return result;
+  }
+
+  private find<
+    TType extends ResourceType,
+    TDef extends ResourceDefinition,
+  >(kind: IResourceKind<TType, TDef>, name: string): TDef | null {
+    const key = kind.keyFrom(name);
+    let resolver = this.resourceResolvers[key];
+    if (resolver === void 0) {
+      resolver = this.rootResourceResolvers[key];
+      if (resolver === void 0) {
+        return null;
+      }
+    }
+
+    if (resolver === null) {
+      return null;
+    }
+
+    if (typeof resolver.getFactory === 'function') {
+      const factory = resolver.getFactory(this.container);
+      if (factory === null || factory === void 0) {
+        return null;
+      }
+
+      const definition = Metadata.getOwn(kind.name, factory.Type);
+      if (definition === void 0) {
+        // TODO: we may want to log a warning here, or even throw. This would happen if a dependency is registered with a resource-like key
+        // but does not actually have a definition associated via the type's metadata. That *should* generally not happen.
+        return null;
+      }
+
+      return definition;
+    }
+
+    return null;
+  }
+
+  private create<
+    TType extends ResourceType,
+    TDef extends ResourceDefinition,
+  >(kind: IResourceKind<TType, TDef>, name: string): InstanceType<TType> | null {
+    const key = kind.keyFrom(name);
+    let resolver = this.resourceResolvers[key];
+    if (resolver === void 0) {
+      resolver = this.rootResourceResolvers[key];
+      if (resolver === void 0) {
+        return null;
+      }
+    }
+
+    if (resolver === null) {
+      return null;
+    }
+
+    const instance = resolver.resolve(this.container, this.container);
+    if (instance === void 0) {
+      return null;
+    }
+
+    return instance;
   }
 }

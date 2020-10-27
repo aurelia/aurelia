@@ -1,95 +1,95 @@
-import {
-  IAttrSyntaxTransformer,
-  TemplateBinder,
-  IAttributeParser,
-  ResourceModel,
-  Aurelia,
-  CustomElement,
-  IExpressionParser,
-} from '@aurelia/runtime-html';
-import { assert, TestContext } from '@aurelia/testing';
+// import {
+//   IAttrSyntaxTransformer,
+//   TemplateBinder,
+//   IAttributeParser,
+//   ResourceModel,
+//   Aurelia,
+//   CustomElement,
+//   IExpressionParser,
+// } from '@aurelia/runtime-html';
+// import { assert, TestContext } from '@aurelia/testing';
 
-// TemplateCompiler - integration with various different parts
-describe('xml node compiler tests', function () {
-  // TODO: add some content assertions and verify different kinds of xml compilation
-  // (for now these tests are just to ensure the binder doesn't hang or crash when given "unusual" node types)
-  const markups = [
-    '<?xml?>',
-    '<?xml version="1.0" encoding="utf-8"?>',
-    '<?xml?>\n<a/>',
-    '<?xml?>\n<a>\n\v<b/>\n</a>',
-    '<?go there?>',
-    '<?go there?><?come here?>',
-    '<!-- \t Hello, World! \t -->',
-    '<!-- \t Hello \t -->\n<!-- \t World \t -->',
-    '<![CDATA[ \t <foo></bar> \t ]]>',
-    '<![CDATA[ \t data]]><![CDATA[< > " and & \t ]]>',
-    '<!DOCTYPE note [\n<!ENTITY foo "baa">]>',
-    '<a/>',
-    '<a/>\n<a/>',
-    '<a/>\n<b/>',
-    '<a x="hello"/>',
-    '<a x="1.234" y="It\'s"/>',
-    '<a> \t Hi \t </a>',
-    '<a>  Hi \n There \t </a>',
-    '<a>\n\v<b/>\n</a>',
-    '<a>\n\v<b>\n\v\v<c/>\n\v</b>\n</a>'
-  ];
+// // TemplateCompiler - integration with various different parts
+// describe('xml node compiler tests', function () {
+//   // TODO: add some content assertions and verify different kinds of xml compilation
+//   // (for now these tests are just to ensure the binder doesn't hang or crash when given "unusual" node types)
+//   const markups = [
+//     '<?xml?>',
+//     '<?xml version="1.0" encoding="utf-8"?>',
+//     '<?xml?>\n<a/>',
+//     '<?xml?>\n<a>\n\v<b/>\n</a>',
+//     '<?go there?>',
+//     '<?go there?><?come here?>',
+//     '<!-- \t Hello, World! \t -->',
+//     '<!-- \t Hello \t -->\n<!-- \t World \t -->',
+//     '<![CDATA[ \t <foo></bar> \t ]]>',
+//     '<![CDATA[ \t data]]><![CDATA[< > " and & \t ]]>',
+//     '<!DOCTYPE note [\n<!ENTITY foo "baa">]>',
+//     '<a/>',
+//     '<a/>\n<a/>',
+//     '<a/>\n<b/>',
+//     '<a x="hello"/>',
+//     '<a x="1.234" y="It\'s"/>',
+//     '<a> \t Hi \t </a>',
+//     '<a>  Hi \n There \t </a>',
+//     '<a>\n\v<b/>\n</a>',
+//     '<a>\n\v<b>\n\v\v<c/>\n\v</b>\n</a>'
+//   ];
 
-  for (const markup of markups) {
-    const escaped = markup.replace(/\b/g, '\\b').replace(/\t/g, '\\t').replace(/\n/g, '\\n').replace(/\v/g, '\\v').replace(/\f/g, '\\f').replace(/\r/g, '\\r');
-    it.skip(escaped, function () {
-      const ctx = TestContext.create();
-      const parser = new ctx.DOMParser();
-      const doc = parser.parseFromString(markup, 'application/xml');
-      const fakeSurrogate = { firstChild: doc, attributes: [] };
+//   for (const markup of markups) {
+//     const escaped = markup.replace(/\b/g, '\\b').replace(/\t/g, '\\t').replace(/\n/g, '\\n').replace(/\v/g, '\\v').replace(/\f/g, '\\f').replace(/\r/g, '\\r');
+//     it.skip(escaped, function () {
+//       const ctx = TestContext.create();
+//       const parser = new ctx.DOMParser();
+//       const doc = parser.parseFromString(markup, 'application/xml');
+//       const fakeSurrogate = { firstChild: doc, attributes: [] };
 
-      const binder = new TemplateBinder(
-        ctx.platform,
-        new ResourceModel(ctx.container),
-        ctx.container.get(IAttributeParser),
-        ctx.container.get(IExpressionParser),
-        ctx.container.get(IAttrSyntaxTransformer)
-      );
+//       const binder = new TemplateBinder(
+//         ctx.platform,
+//         new ResourceModel(ctx.container),
+//         ctx.container.get(IAttributeParser),
+//         ctx.container.get(IExpressionParser),
+//         ctx.container.get(IAttrSyntaxTransformer)
+//       );
 
-      const result = binder.bind(fakeSurrogate as any);
-      assert.strictEqual(result.physicalNode, fakeSurrogate, `result.physicalNode`);
-    });
-  }
-});
+//       const result = binder.bind(fakeSurrogate as any);
+//       assert.strictEqual(result.physicalNode, fakeSurrogate, `result.physicalNode`);
+//     });
+//   }
+// });
 
-describe('dependency injection', function () {
-  it.skip('register local dependencies ', function () {
-    const Foo = CustomElement.define(
-      {
-        name: 'foo',
-        template: 'bar'
-      },
-      null
-    );
-    const App = CustomElement.define(
-      {
-        name: 'app',
-        template: '<foo></foo>',
-        dependencies: [Foo]
-      },
-      null
-    );
+// describe('dependency injection', function () {
+//   it.skip('register local dependencies ', function () {
+//     const Foo = CustomElement.define(
+//       {
+//         name: 'foo',
+//         template: 'bar'
+//       },
+//       null
+//     );
+//     const App = CustomElement.define(
+//       {
+//         name: 'app',
+//         template: '<foo></foo>',
+//         dependencies: [Foo]
+//       },
+//       null
+//     );
 
-    const ctx = TestContext.create();
-    ctx.container.register(Foo);
-    const au = new Aurelia(ctx.container);
+//     const ctx = TestContext.create();
+//     ctx.container.register(Foo);
+//     const au = new Aurelia(ctx.container);
 
-    const host = ctx.createElement('div');
-    const component = new App();
+//     const host = ctx.createElement('div');
+//     const component = new App();
 
-    au.app({ host, component });
+//     au.app({ host, component });
 
-    void au.start();
+//     void au.start();
 
-    assert.strictEqual(host.textContent, 'bar', `host.textContent`);
-  });
-});
+//     assert.strictEqual(host.textContent, 'bar', `host.textContent`);
+//   });
+// });
 
 // commented out code left here intentionally, serves as a staring point for template controller tests
 

@@ -60,6 +60,23 @@ jobs:
       - run: npm run test-${{matrix.browser}}
         working-directory: packages/__tests__
 
+  testapps:
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    container:
+      image: "cypress/browsers:node12.13.0-chrome80-ff74"
+      options: --user 1001
+    steps:
+      - uses: actions/checkout@v2
+      - run: npm ci
+      - run: npm run build
+      - run: npm run build
+        working-directory: test/1kcomponents
+      - run: npm run build
+        working-directory: test/fractals-tree
+      - run: npm run build
+        working-directory: test/sierpinski-triangle
+
   cypress:
     runs-on: ubuntu-latest
     container:

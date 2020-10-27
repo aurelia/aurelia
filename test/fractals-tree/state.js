@@ -11,9 +11,7 @@ export class State {
   }
 
   mouseMoved(x, y) {
-    const height = window.innerHeight;
-    const width = window.innerWidth;
-    this.update(1 - y / height, x / width);
+    this.update(1 - y / window.innerHeight, x / window.innerWidth);
   }
 
   update(ratioH, ratioW) {

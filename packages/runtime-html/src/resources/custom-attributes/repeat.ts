@@ -107,7 +107,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray> implements IC
     }
     flags |= $controller.flags;
     this.checkCollectionObserver(flags);
-    flags |= LF.updateTargetInstance;
+    flags |= LF.updateTarget;
     this.normalizeToArray(flags);
 
     const ret = onResolve(
@@ -130,7 +130,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray> implements IC
       return;
     }
     flags |= $controller.flags;
-    flags |= LF.updateTargetInstance;
+    flags |= LF.updateTarget;
     this.normalizeToArray(flags);
 
     if (indexMap === void 0) {

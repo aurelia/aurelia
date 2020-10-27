@@ -221,7 +221,7 @@ export class ChildrenObserver {
       this.callback.call(this.obj);
     }
 
-    this.callSubscribers(this.children, undefined, this.persistentFlags | LifecycleFlags.updateTargetInstance);
+    this.callSubscribers(this.children, undefined, this.persistentFlags | LifecycleFlags.updateTarget);
   }
 }
 

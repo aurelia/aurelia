@@ -207,9 +207,9 @@ export class MapObserver {
 
     this.inBatch = false;
     this.indexMap = createIndexMap(size);
-    this.callCollectionSubscribers(indexMap, LifecycleFlags.updateTargetInstance | this.persistentFlags);
+    this.callCollectionSubscribers(indexMap, LifecycleFlags.updateTarget | this.persistentFlags);
     if (this.lengthObserver !== void 0) {
-      this.lengthObserver.setValue(size, LifecycleFlags.updateTargetInstance);
+      this.lengthObserver.setValue(size, LifecycleFlags.updateTarget);
     }
   }
 }

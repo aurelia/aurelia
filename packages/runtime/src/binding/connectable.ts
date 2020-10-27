@@ -63,7 +63,7 @@ export function addObserver(
     }
     this[slotNames[i]] = observer;
     observer.subscribe(this);
-    observer[this.id] |= LifecycleFlags.updateTargetInstance;
+    observer[this.id] |= LifecycleFlags.updateTarget;
     // increment the slot count.
     if (i === observerSlots) {
       this.observerSlots = i + 1;
@@ -102,7 +102,7 @@ export function unobserve(this: IConnectableBinding & { [key: string]: unknown }
       if (observer != null) {
         this[slotName] = void 0;
         observer.unsubscribe(this);
-        observer[this.id] &= ~LifecycleFlags.updateTargetInstance;
+        observer[this.id] &= ~LifecycleFlags.updateTarget;
       }
     }
   } else {
@@ -114,7 +114,7 @@ export function unobserve(this: IConnectableBinding & { [key: string]: unknown }
         if (observer != null) {
           this[slotName] = void 0;
           observer.unsubscribe(this);
-          observer[this.id] &= ~LifecycleFlags.updateTargetInstance;
+          observer[this.id] &= ~LifecycleFlags.updateTarget;
         }
       }
     }

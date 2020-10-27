@@ -9,7 +9,7 @@ class Test {}
 
 describe('subscriberCollection', function () {
   it('calls subscribers', function () {
-    const flags = LifecycleFlags.updateSourceExpression;
+    const flags = LifecycleFlags.updateSource;
     const observer = new Test();
     const observer2 = new Test();
 

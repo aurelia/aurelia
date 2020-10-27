@@ -441,9 +441,9 @@ export class ArrayObserver {
 
     this.inBatch = false;
     this.indexMap = createIndexMap(length);
-    this.callCollectionSubscribers(indexMap, LifecycleFlags.updateTargetInstance | this.persistentFlags);
+    this.callCollectionSubscribers(indexMap, LifecycleFlags.updateTarget | this.persistentFlags);
     if (this.lengthObserver !== void 0) {
-      this.lengthObserver.setValue(length, LifecycleFlags.updateTargetInstance);
+      this.lengthObserver.setValue(length, LifecycleFlags.updateTarget);
     }
   }
 

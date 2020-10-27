@@ -50,7 +50,7 @@ export class LetBinding implements IPartialConnectableBinding {
       return;
     }
 
-    if (flags & LifecycleFlags.updateTargetInstance) {
+    if (flags & LifecycleFlags.updateTarget) {
       const target = this.target as IIndexable;
       const targetProperty = this.targetProperty as string;
       const previousValue: unknown = target[targetProperty];

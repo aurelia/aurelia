@@ -93,7 +93,7 @@ describe('SetterObserver', function () {
     const valueArr = [undefined, null, 0, '', {}];
     const objectArr = createObjectArr();
     const propertyNameArr = [undefined, null, Symbol(), '', 'foo'];
-    const flags = LF.updateTargetInstance;
+    const flags = LF.updateTarget;
     for (const object of objectArr) {
       for (const propertyName of propertyNameArr) {
         for (const value of valueArr) {
@@ -111,7 +111,7 @@ describe('SetterObserver', function () {
   describe('subscribe()', function () {
     const propertyNameArr = [undefined, null, Symbol(), '', 'foo', 1];
     const objectArr = createObjectArr();
-    const flags = LF.updateTargetInstance;
+    const flags = LF.updateTarget;
     for (const object of objectArr) {
       for (const propertyName of propertyNameArr) {
         it(`can handle ${getName(object)}[${typeof propertyName}]`, function () {
@@ -207,7 +207,7 @@ describe('BindableObserver', function () {
     const valueArr = [undefined, null, 0, '', {}];
     const objectArr = createObjectArr();
     const propertyNameArr = [undefined, null, Symbol(), '', 'foo'];
-    const flags = LF.updateTargetInstance;
+    const flags = LF.updateTarget;
     for (const object of objectArr) {
       for (const propertyName of propertyNameArr) {
         for (const value of valueArr) {
@@ -225,7 +225,7 @@ describe('BindableObserver', function () {
   describe('subscribe()', function () {
     const propertyNameArr = [undefined, null, Symbol(), '', 'foo', 1];
     const objectArr = createObjectArr();
-    const flags = LF.updateTargetInstance;
+    const flags = LF.updateTarget;
     for (const object of objectArr) {
       for (const propertyName of propertyNameArr) {
         it(`can handle ${getName(object)}[${typeof propertyName}]`, function () {

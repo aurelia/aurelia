@@ -70,6 +70,7 @@ export class BindingContext implements IBindingContext {
      * This artifact raises the need for this fallback.
      */
     /* eslint-enable jsdoc/check-indentation */
+    // eslint-disable-next-line prefer-const
     let [context, found] = chooseContext(scope, name, ancestor);
     if (context !== null && (found || !hasOtherScope)) { return context; }
     if (hasOtherScope) {

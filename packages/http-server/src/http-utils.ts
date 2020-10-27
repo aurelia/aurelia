@@ -139,7 +139,7 @@ export class QualifiedHeaderValues {
       // TODO validate the `value` against a set of acceptable values.
       const [value, ...rest] = item.trim().split(';');
       let qValue = 1;
-      const q = rest.find((x) => x.startsWith('q='))
+      const q = rest.find((x) => x.startsWith('q='));
       if (q !== void 0) {
         const rawQValue = q.substring(2);
         qValue = Number(rawQValue);

@@ -201,7 +201,6 @@ const App = CustomElement.define(
      */
     constructor(scheduler) {
       this.scheduler = scheduler;
-      /**@type {Point[]} */
       this.points = [];
       this.count = 0;
       this.fps = 30;
@@ -250,9 +249,7 @@ const App = CustomElement.define(
     }
 
     createPoint(count, i) {
-      const point = new Point(i, count);
-      // this.scheduler.enqueueRAF(point.flushRAF, point, Priority.low);
-      return point;
+      return new Point(i, count);
     }
   }
 );

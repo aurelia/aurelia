@@ -31,8 +31,7 @@ export class Pythagoras {
   }
 
   /**
-   * 
-   * @param {State} state 
+   * @param {State} state
    */
   constructor(state) {
     this.state = state;

@@ -8,17 +8,18 @@ import {
   IContainer,
 } from '@aurelia/kernel';
 import {
-  Aurelia,
   bindable,
   BindingMode,
+} from '@aurelia/runtime';
+import {
+  Aurelia,
   Controller,
   CustomElement,
   customElement,
-  IScheduler,
-} from '@aurelia/runtime';
+  IPlatform,
+} from '@aurelia/runtime-html';
 import {
   assert,
-  HTMLTestContext,
   TestContext,
 } from '@aurelia/testing';
 import {
@@ -36,9 +37,9 @@ describe('runtime-html.integration', function () {
       registrations,
     }: Partial<TestSetupContext<TApp>> = {}
   ) {
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
 
-    const host = ctx.dom.createElement('div');
+    const host = ctx.createElement('div');
     ctx.doc.body.appendChild(host);
 
     const container = ctx.container;
@@ -71,16 +72,16 @@ describe('runtime-html.integration', function () {
   }
 
   class IntegrationTestExecutionContext<TApp extends unknown> implements TestExecutionContext<any> {
-    private _scheduler: IScheduler;
+    private _platform: IPlatform;
     public constructor(
-      public ctx: HTMLTestContext,
+      public ctx: TestContext,
       public container: IContainer,
       public host: HTMLElement,
       public app: TApp | null,
       public controller: Controller,
       public error: Error | null,
     ) { }
-    public get scheduler(): IScheduler { return this._scheduler ?? (this._scheduler = this.container.get(IScheduler)); }
+    public get platform(): IPlatform { return this._platform ?? (this._platform = this.container.get(IPlatform)); }
   }
 
   interface TestSetupContext<TAppPrototype extends unknown> {
@@ -130,7 +131,7 @@ describe('runtime-html.integration', function () {
           const childEl = host.querySelector('#child');
           assert.strictEqual(app.child, childEl);
 
-          const childVm = CustomElement.for<Element, Child>(childEl).viewModel;
+          const childVm = CustomElement.for<Child>(childEl).viewModel;
           const childContainer = childVm.container;
           assert.strictEqual(childEl.querySelector('#cc'), childContainer);
           assert.strictEqual(childVm['container2'], childEl.querySelector('#cc2'));
@@ -139,7 +140,7 @@ describe('runtime-html.integration', function () {
           const grandChildEl = childEl.querySelector('#grandChild');
           assert.strictEqual(childVm.grandChild, grandChildEl);
 
-          const grandChildVm = CustomElement.for<Element, GrandChild>(grandChildEl).viewModel;
+          const grandChildVm = CustomElement.for<GrandChild>(grandChildEl).viewModel;
           const grandChildContainer = grandChildVm.container;
           assert.strictEqual(grandChildEl.querySelector('#cgc'), grandChildContainer);
           assert.strictEqual(grandChildVm['container2'], grandChildEl.querySelector('#cgc2'));
@@ -211,13 +212,13 @@ describe('runtime-html.integration', function () {
           assert.html.textContent(cc, '3');
           assert.html.textContent(cr, '3');
 
-          const childVm = CustomElement.for<Element, Child>(host.querySelector('child')).viewModel;
+          const childVm = CustomElement.for<Child>(host.querySelector('child')).viewModel;
           assert.strictEqual(childVm.value, 3);
           assert.strictEqual(app.value, 3);
 
-          const grandchildVm = CustomElement.for<Element, GrandChild>(host.querySelector('grand-child')).viewModel;
+          const grandchildVm = CustomElement.for<GrandChild>(host.querySelector('grand-child')).viewModel;
           grandchildVm.value = 42;
-          await ctx.scheduler.yieldAll();
+          await ctx.platform.domWriteQueue.yield();
 
           assert.html.textContent(cgc, '42');
           assert.html.textContent(cc, '42');
@@ -255,13 +256,13 @@ describe('runtime-html.integration', function () {
           assert.html.textContent(cc, '1');
           assert.html.textContent(cr, '1');
 
-          const childVm = CustomElement.for<Element, Child>(host.querySelector('child')).viewModel;
-          const grandchildVm = CustomElement.for<Element, GrandChild>(host.querySelector('grand-child')).viewModel;
+          const childVm = CustomElement.for<Child>(host.querySelector('child')).viewModel;
+          const grandchildVm = CustomElement.for<GrandChild>(host.querySelector('grand-child')).viewModel;
           assert.strictEqual(grandchildVm.value, 1);
           assert.strictEqual(childVm.value, 1);
 
           app.value = 42;
-          await ctx.scheduler.yieldAll();
+          await ctx.platform.domWriteQueue.yield();
 
           assert.html.textContent(cgc, '42');
           assert.html.textContent(cc, '42');
@@ -299,13 +300,13 @@ describe('runtime-html.integration', function () {
           assert.html.textContent(cc, '1');
           assert.html.textContent(cr, '1');
 
-          const childVm = CustomElement.for<Element, Child>(host.querySelector('child')).viewModel;
-          const grandchildVm = CustomElement.for<Element, GrandChild>(host.querySelector('grand-child')).viewModel;
+          const childVm = CustomElement.for<Child>(host.querySelector('child')).viewModel;
+          const grandchildVm = CustomElement.for<GrandChild>(host.querySelector('grand-child')).viewModel;
           assert.strictEqual(grandchildVm.value, 1);
           assert.strictEqual(childVm.value, 1);
 
           grandchildVm.value = 42;
-          await ctx.scheduler.yieldAll();
+          await ctx.platform.domWriteQueue.yield();
 
           assert.html.textContent(cgc, '42');
           assert.html.textContent(cc, '42');
@@ -315,7 +316,7 @@ describe('runtime-html.integration', function () {
           assert.strictEqual(app.value, 42);
 
           childVm.value = 24;
-          await ctx.scheduler.yieldAll();
+          await ctx.platform.domWriteQueue.yield();
 
           assert.html.textContent(cgc, '24');
           assert.html.textContent(cc, '24');
@@ -347,17 +348,17 @@ describe('runtime-html.integration', function () {
           assert.html.textContent(cc, '1', 'cc.text.1');
           assert.html.textContent(cr, '1', 'cr.text.1');
 
-          const childVm = CustomElement.for<Element, Child>(host.querySelector('child')).viewModel;
+          const childVm = CustomElement.for<Child>(host.querySelector('child')).viewModel;
           assert.strictEqual(childVm.value, 1, 'child.value.1');
 
           childVm.value = 42;
-          await ctx.scheduler.yieldAll();
+          await ctx.platform.domWriteQueue.yield();
           assert.strictEqual(app.value, 1, 'app.value.2');
           assert.html.textContent(cc, '42', 'cc.text.2');
           assert.html.textContent(cr, '1', 'cr.text.2');
 
           app.value = 24;
-          await ctx.scheduler.yieldAll();
+          await ctx.platform.domWriteQueue.yield();
           assert.strictEqual(childVm.value, 24, 'child.value.3');
           assert.html.textContent(cc, '24', 'cc.text.3');
           assert.html.textContent(cr, '24', 'cr.text.3');
@@ -387,14 +388,14 @@ describe('runtime-html.integration', function () {
           assert.strictEqual(app.value, 2, 'app.value.1');
 
           app.value = 24;
-          await ctx.scheduler.yieldAll();
-          const childVm = CustomElement.for<Element, Child>(host.querySelector('child')).viewModel;
+          await ctx.platform.domWriteQueue.yield();
+          const childVm = CustomElement.for<Child>(host.querySelector('child')).viewModel;
           assert.strictEqual(childVm.value, 2, 'child.value.2');
           assert.html.textContent(cc, '2', 'cc.text.2');
           assert.html.textContent(cr, '24', 'cr.text.2');
 
           childVm.value = 42;
-          await ctx.scheduler.yieldAll();
+          await ctx.platform.domWriteQueue.yield();
           assert.strictEqual(app.value, 42, 'app.value.3');
           assert.html.textContent(cc, '42', 'cc.text.3');
           assert.html.textContent(cr, '42', 'cr.text.3');
@@ -431,18 +432,18 @@ describe('runtime-html.integration', function () {
           assert.html.textContent(cc, '1');
           assert.html.textContent(cr, '1');
 
-          const childVm = CustomElement.for<Element, Child>(host.querySelector('child')).viewModel;
+          const childVm = CustomElement.for<Child>(host.querySelector('child')).viewModel;
           assert.strictEqual(childVm.value, 1);
 
           childVm.condition = true;
-          await ctx.scheduler.yieldAll();
-          const grandchildVm = CustomElement.for<Element, GrandChild>(host.querySelector('grand-child')).viewModel;
+          await ctx.platform.domWriteQueue.yield();
+          const grandchildVm = CustomElement.for<GrandChild>(host.querySelector('grand-child')).viewModel;
           assert.strictEqual(grandchildVm.value, 1);
           const cgc = host.querySelector('#cgc');
           assert.html.textContent(cgc, '1');
 
           grandchildVm.value = 42;
-          await ctx.scheduler.yieldAll();
+          await ctx.platform.domWriteQueue.yield();
           assert.html.textContent(cgc, '42');
           assert.html.textContent(cc, '42');
           assert.html.textContent(cr, '42');

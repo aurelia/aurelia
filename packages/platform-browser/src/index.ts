@@ -2,6 +2,12 @@ import { Platform, TaskQueue } from '@aurelia/platform';
 
 const lookup = new Map<object, BrowserPlatform>();
 
+function notImplemented(name: string): (...args: any[]) => any {
+  return function notImplemented() {
+    throw new Error(`The PLATFORM did not receive a valid reference to the global function '${name}'.`); // TODO: link to docs describing how to fix this issue
+  };
+}
+
 export class BrowserPlatform<TGlobal extends typeof globalThis = typeof globalThis> extends Platform<TGlobal> {
   public readonly Node: TGlobal['Node'];
   public readonly Element: TGlobal['Element'];
@@ -17,6 +23,7 @@ export class BrowserPlatform<TGlobal extends typeof globalThis = typeof globalTh
   public readonly history: TGlobal['history'];
   public readonly navigator: TGlobal['navigator'];
 
+  public readonly fetch!: TGlobal['window']['fetch'];
   public readonly requestAnimationFrame: TGlobal['requestAnimationFrame'];
   public readonly cancelAnimationFrame: TGlobal['cancelAnimationFrame'];
   public readonly customElements: TGlobal['customElements'];
@@ -26,12 +33,8 @@ export class BrowserPlatform<TGlobal extends typeof globalThis = typeof globalTh
   // So, re-declaring these based on the Window type to ensure they have the DOM-based signature.
   public readonly clearInterval!: TGlobal['window']['clearInterval'];
   public readonly clearTimeout!: TGlobal['window']['clearTimeout'];
-  public readonly fetch!: TGlobal['window']['fetch'];
-  public readonly queueMicrotask!: TGlobal['window']['queueMicrotask'];
   public readonly setInterval!: TGlobal['window']['setInterval'];
   public readonly setTimeout!: TGlobal['window']['setTimeout'];
-  public readonly console!: TGlobal['window']['console'];
-
   public readonly domWriteQueue: TaskQueue;
   public readonly domReadQueue: TaskQueue;
 
@@ -53,8 +56,9 @@ export class BrowserPlatform<TGlobal extends typeof globalThis = typeof globalTh
     this.history = 'history' in overrides ? overrides.history! : g.history;
     this.navigator = 'navigator' in overrides ? overrides.navigator! : g.navigator;
 
-    this.requestAnimationFrame = 'requestAnimationFrame' in overrides ? overrides.requestAnimationFrame! : g.requestAnimationFrame.bind(g);
-    this.cancelAnimationFrame = 'cancelAnimationFrame' in overrides ? overrides.cancelAnimationFrame! : g.cancelAnimationFrame.bind(g);
+    this.fetch = 'fetch' in overrides ? overrides.fetch! : g.fetch?.bind(g) ?? notImplemented('fetch');
+    this.requestAnimationFrame = 'requestAnimationFrame' in overrides ? overrides.requestAnimationFrame! : g.requestAnimationFrame?.bind(g) ?? notImplemented('requestAnimationFrame');
+    this.cancelAnimationFrame = 'cancelAnimationFrame' in overrides ? overrides.cancelAnimationFrame! : g.cancelAnimationFrame?.bind(g) ?? notImplemented('cancelAnimationFrame');
     this.customElements = 'customElements' in overrides ? overrides.customElements! : g.customElements;
 
     this.flushDomRead = this.flushDomRead.bind(this);

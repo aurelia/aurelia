@@ -12,8 +12,14 @@
     exports.BrowserPlatform = void 0;
     const platform_1 = require("@aurelia/platform");
     const lookup = new Map();
+    function notImplemented(name) {
+        return function notImplemented() {
+            throw new Error(`The PLATFORM did not receive a valid reference to the global function '${name}'.`); // TODO: link to docs describing how to fix this issue
+        };
+    }
     class BrowserPlatform extends platform_1.Platform {
         constructor(g, overrides = {}) {
+            var _a, _b, _c, _d;
             super(g, overrides);
             this.domReadRequested = false;
             this.domReadHandle = -1;
@@ -32,8 +38,8 @@
             this.location = 'location' in overrides ? overrides.location : g.location;
             this.history = 'history' in overrides ? overrides.history : g.history;
             this.navigator = 'navigator' in overrides ? overrides.navigator : g.navigator;
-            this.requestAnimationFrame = 'requestAnimationFrame' in overrides ? overrides.requestAnimationFrame : g.requestAnimationFrame.bind(g);
-            this.cancelAnimationFrame = 'cancelAnimationFrame' in overrides ? overrides.cancelAnimationFrame : g.cancelAnimationFrame.bind(g);
+            this.requestAnimationFrame = 'requestAnimationFrame' in overrides ? overrides.requestAnimationFrame : (_b = (_a = g.requestAnimationFrame) === null || _a === void 0 ? void 0 : _a.bind(g)) !== null && _b !== void 0 ? _b : notImplemented('requestAnimationFrame');
+            this.cancelAnimationFrame = 'cancelAnimationFrame' in overrides ? overrides.cancelAnimationFrame : (_d = (_c = g.cancelAnimationFrame) === null || _c === void 0 ? void 0 : _c.bind(g)) !== null && _d !== void 0 ? _d : notImplemented('cancelAnimationFrame');
             this.customElements = 'customElements' in overrides ? overrides.customElements : g.customElements;
             this.flushDomRead = this.flushDomRead.bind(this);
             this.flushDomWrite = this.flushDomWrite.bind(this);

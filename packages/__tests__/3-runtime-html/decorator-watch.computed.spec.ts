@@ -701,6 +701,7 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
         ['for..in', (post: IPostOffice) => {
           const results = [];
           const packages = post.packages;
+          // eslint-disable-next-line
           for (const i in packages) {
             results.push(packages[i].delivered);
           }

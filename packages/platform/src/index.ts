@@ -13,6 +13,12 @@ type GlobalThisOrWindowOrWorkerGlobalScope = Pick<
   >
 >;
 
+function notImplemented(name: string): (...args: any[]) => any {
+  return function notImplemented() {
+    throw new Error(`The PLATFORM did not receive a valid reference to the global function '${name}'.`); // TODO: link to docs describing how to fix this issue
+  };
+}
+
 export class Platform<TGlobal extends GlobalThisOrWindowOrWorkerGlobalScope = GlobalThisOrWindowOrWorkerGlobalScope> {
   // http://www.ecma-international.org/ecma-262/#sec-value-properties-of-the-global-object
   public readonly globalThis: TGlobal;
@@ -57,15 +63,15 @@ export class Platform<TGlobal extends GlobalThisOrWindowOrWorkerGlobalScope = Gl
 
     this.Reflect = 'Reflect' in overrides ? overrides.Reflect! : g.Reflect;
 
-    this.clearInterval = 'clearInterval' in overrides ? overrides.clearInterval! : g.clearInterval.bind(g);
-    this.clearTimeout = 'clearTimeout' in overrides ? overrides.clearTimeout! : g.clearTimeout.bind(g);
-    this.fetch = 'fetch' in overrides ? overrides.fetch! : g.fetch.bind(g);
-    this.queueMicrotask = 'queueMicrotask' in overrides ? overrides.queueMicrotask! : g.queueMicrotask.bind(g);
-    this.setInterval = 'setInterval' in overrides ? overrides.setInterval! : g.setInterval.bind(g);
-    this.setTimeout = 'setTimeout' in overrides ? overrides.setTimeout! : g.setTimeout.bind(g);
+    this.clearInterval = 'clearInterval' in overrides ? overrides.clearInterval! : g.clearInterval?.bind(g) ?? notImplemented('clearInterval');
+    this.clearTimeout = 'clearTimeout' in overrides ? overrides.clearTimeout! : g.clearTimeout?.bind(g) ?? notImplemented('clearTimeout');
+    this.fetch = 'fetch' in overrides ? overrides.fetch! : g.fetch?.bind(g) ?? notImplemented('fetch');
+    this.queueMicrotask = 'queueMicrotask' in overrides ? overrides.queueMicrotask! : g.queueMicrotask?.bind(g) ?? notImplemented('queueMicrotask');
+    this.setInterval = 'setInterval' in overrides ? overrides.setInterval! : g.setInterval?.bind(g) ?? notImplemented('setInterval');
+    this.setTimeout = 'setTimeout' in overrides ? overrides.setTimeout! : g.setTimeout?.bind(g) ?? notImplemented('setTimeout');
     this.console = 'console' in overrides ? overrides.console! : g.console;
 
-    this.performanceNow = 'performanceNow' in overrides ? overrides.performanceNow! : g.performance.now.bind(g.performance);
+    this.performanceNow = 'performanceNow' in overrides ? overrides.performanceNow! : g.performance?.now?.bind(g.performance) ?? notImplemented('performance.now');
 
     this.flushMacroTask = this.flushMacroTask.bind(this);
     this.macroTaskQueue = new TaskQueue(this, this.requestMacroTask.bind(this), this.cancelMacroTask.bind(this));

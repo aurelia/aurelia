@@ -73,7 +73,7 @@
 //       const expectedKey = typeof name === 'symbol' ? name : String(name);
 
 //       const observer = ProxyObserver.getOrCreate(obj as object);
-//       const expectedFlags = LifecycleFlags.updateTargetInstance | LifecycleFlags.proxyStrategy;
+//       const expectedFlags = LifecycleFlags.updateTarget | LifecycleFlags.proxyStrategy;
 
 //       let callCount = 0;
 //       let newValue: unknown;

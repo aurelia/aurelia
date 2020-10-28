@@ -118,7 +118,7 @@ export class CustomSetterObserver implements CustomSetterObserver {
     if (this.currentValue !== newValue) {
       this.oldValue = this.currentValue;
       this.currentValue = newValue;
-      this.callSubscribers(newValue, this.oldValue, LifecycleFlags.updateTargetInstance);
+      this.callSubscribers(newValue, this.oldValue, LifecycleFlags.updateTarget);
     }
   }
 
@@ -212,7 +212,7 @@ export class GetterObserver implements GetterObserver {
     const oldValue = this.currentValue;
     const newValue = this.getValueAndCollectDependencies(false);
     if (oldValue !== newValue) {
-      this.callSubscribers(newValue, oldValue, LifecycleFlags.updateTargetInstance);
+      this.callSubscribers(newValue, oldValue, LifecycleFlags.updateTarget);
     }
   }
 
@@ -220,7 +220,7 @@ export class GetterObserver implements GetterObserver {
     const oldValue = this.currentValue;
     const newValue = this.getValueAndCollectDependencies(false);
     if (oldValue !== newValue) {
-      this.callSubscribers(newValue, oldValue, LifecycleFlags.updateTargetInstance);
+      this.callSubscribers(newValue, oldValue, LifecycleFlags.updateTarget);
     }
   }
 

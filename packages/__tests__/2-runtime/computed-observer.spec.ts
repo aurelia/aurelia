@@ -116,7 +116,7 @@ describe.skip('ComputedObserver', function () {
       Reflect.defineProperty(instance, 'prop', propDescriptor);
       Reflect.defineProperty(instance, 'dep', depDescriptor);
 
-      const expectedFlags = LF.updateTargetInstance;
+      const expectedFlags = LF.updateTarget;
 
       let callCount1 = 0;
       let evaluated1: unknown;

@@ -82,12 +82,12 @@ export class AttributeBinding implements IPartialConnectableBinding {
 
   public updateTarget(value: unknown, flags: LifecycleFlags): void {
     flags |= this.persistentFlags;
-    this.targetObserver.setValue(value, flags | LifecycleFlags.updateTargetInstance);
+    this.targetObserver.setValue(value, flags | LifecycleFlags.updateTarget);
   }
 
   public updateSource(value: unknown, flags: LifecycleFlags): void {
     flags |= this.persistentFlags;
-    this.sourceExpression.assign!(flags | LifecycleFlags.updateSourceExpression, this.$scope, this.$hostScope, this.locator, value);
+    this.sourceExpression.assign!(flags | LifecycleFlags.updateSource, this.$scope, this.$hostScope, this.locator, value);
   }
 
   public handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {
@@ -104,11 +104,11 @@ export class AttributeBinding implements IPartialConnectableBinding {
     const locator = this.locator;
 
     if (mode === BindingMode.fromView) {
-      flags &= ~LifecycleFlags.updateTargetInstance;
-      flags |= LifecycleFlags.updateSourceExpression;
+      flags &= ~LifecycleFlags.updateTarget;
+      flags |= LifecycleFlags.updateSource;
     }
 
-    if (flags & LifecycleFlags.updateTargetInstance) {
+    if (flags & LifecycleFlags.updateTarget) {
       const targetObserver = this.targetObserver;
       // Alpha: during bind a simple strategy for bind is always flush immediately
       // todo:
@@ -144,7 +144,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
       return;
     }
 
-    if (flags & LifecycleFlags.updateSourceExpression) {
+    if (flags & LifecycleFlags.updateSource) {
       if (newValue !== this.sourceExpression.evaluate(flags, $scope, this.$hostScope, locator, null)) {
         interceptor.updateSource(newValue, flags);
       }
@@ -203,7 +203,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
       );
     }
     if ($mode & fromView) {
-      targetObserver[this.id] |= LifecycleFlags.updateSourceExpression;
+      targetObserver[this.id] |= LifecycleFlags.updateSource;
       targetObserver.subscribe(interceptor);
     }
 
@@ -231,7 +231,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
     }
     if (targetObserver.unsubscribe) {
       targetObserver.unsubscribe(this.interceptor);
-      targetObserver[this.id] &= ~LifecycleFlags.updateSourceExpression;
+      targetObserver[this.id] &= ~LifecycleFlags.updateSource;
     }
     if (task != null) {
       task.cancel();

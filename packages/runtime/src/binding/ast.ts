@@ -437,11 +437,13 @@ export class BindingBehaviorExpression {
   }
 
   public unbind(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
-    if ((b as BindingWithBehavior)[this.behaviorKey] !== void 0) {
-      if (typeof (b as BindingWithBehavior)[this.behaviorKey]!.unbind === 'function') {
-        (b as BindingWithBehavior)[this.behaviorKey]!.unbind(f, s, hs, b);
+    const key = this.behaviorKey;
+    const $b = b as BindingWithBehavior;
+    if ($b[key] !== void 0) {
+      if (typeof $b[key]!.unbind === 'function') {
+        $b[key]!.unbind(f, s, hs, b);
       }
-      (b as BindingWithBehavior)[this.behaviorKey] = void 0;
+      $b[key] = void 0;
     }
     if (this.expression.hasUnbind) {
       this.expression.unbind(f, s, hs, b);

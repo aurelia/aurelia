@@ -92,7 +92,7 @@ export function observeProperty(this: IConnectableBinding, flags: LifecycleFlags
 
 /** @internal */
 export function unobserve(this: IConnectableBinding & { [key: string]: unknown }, all?: boolean): void {
-  let slots = this.observerSlots;
+  const slots = this.observerSlots;
   let slotName: string;
   let observer: IBindingTargetObserver & { [key: string]: number };
   if (all === true) {

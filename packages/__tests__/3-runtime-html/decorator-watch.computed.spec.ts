@@ -588,7 +588,7 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
     assert.strictEqual(textNode.textContent, '1');
   });
 
-  describe('Erray', function () {
+  describe('Array', function () {
     const testCases: ITestCase[] = [
       {
         title: 'observes .filter()',
@@ -633,46 +633,30 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
           post.delivered(1);            assert.strictEqual(post.callCount, 2 * decoratorCount);
         },
       },
-      {
-        title: 'observes .indexOf()',
+      ...[
+        ['.indexOf()', (post: IPostOffice) => post.packages.indexOf(post.selected)],
+        ['.findIndex()', (post: IPostOffice) => post.packages.findIndex(v => v === post.selected)],
+        ['.includes()', (post: IPostOffice) => post.packages.includes(post.selected)],
+      ].map(([name, getter]) => ({ 
+        title: `observes ${name}`,
         init: () => Array.from(
           { length: 3 },
           (_, idx) => ({ id: idx + 1, name: `box ${idx + 1}`, delivered: false })
         ),
-        get: post => post.packages.indexOf(post.selected),
+        get: getter as IDepCollectionFn<object>,
         created: post => {
           const decoratorCount = post.decoratorCount;
           assert.strictEqual(post.callCount, 0);
           post.selected = post.packages[2];     assert.strictEqual(post.callCount, 1 * decoratorCount);
-          post.selected = post.packages[1];     assert.strictEqual(post.callCount, 2 * decoratorCount);
-          post.selected = null;                 assert.strictEqual(post.callCount, 3 * decoratorCount);
+          post.selected = null;                 assert.strictEqual(post.callCount, 2 * decoratorCount);
+          post.selected = post.packages[1];     assert.strictEqual(post.callCount, 3 * decoratorCount);
         },
         disposed: post => {
           const decoratorCount = post.decoratorCount;
           assert.strictEqual(post.callCount, 3 * decoratorCount);
           post.selected = post.packages[1];     assert.strictEqual(post.callCount, 3 * decoratorCount);
         },
-      },
-      {
-        title: 'observes .findIndex()',
-        init: () => Array.from(
-          { length: 3 },
-          (_, idx) => ({ id: idx + 1, name: `box ${idx + 1}`, delivered: false })
-        ),
-        get: post => post.packages.findIndex(v => v === post.selected),
-        created: post => {
-          const decoratorCount = post.decoratorCount;
-          assert.strictEqual(post.callCount, 0);
-          post.selected = post.packages[2];     assert.strictEqual(post.callCount, 1 * decoratorCount);
-          post.selected = post.packages[1];     assert.strictEqual(post.callCount, 2 * decoratorCount);
-          post.selected = null;                 assert.strictEqual(post.callCount, 3 * decoratorCount);
-        },
-        disposed: post => {
-          const decoratorCount = post.decoratorCount;
-          assert.strictEqual(post.callCount, 3 * decoratorCount);
-          post.selected = post.packages[1];     assert.strictEqual(post.callCount, 3 * decoratorCount);
-        },
-      },
+      })),
       {
         title: 'observes .some()',
         init: () => Array.from(
@@ -693,6 +677,28 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
           const decoratorCount = post.decoratorCount;
           assert.strictEqual(post.callCount, 2 * decoratorCount);
           post.delivered(1);            assert.strictEqual(post.callCount, 2 * decoratorCount);
+        },
+      },
+      {
+        title: 'observes .every()',
+        init: () => Array.from(
+          { length: 3 },
+          (_, idx) => ({ id: idx + 1, name: `box ${idx + 1}`, delivered: false })
+        ),
+        get: post => post.packages.every(d => d.delivered),
+        created: post => {
+          const decoratorCount = post.decoratorCount;
+          assert.strictEqual(post.callCount, 0);
+          post.delivered(1);            assert.strictEqual(post.callCount, 0);
+          post.delivered(2);            assert.strictEqual(post.callCount, 0);
+          post.delivered(3);            assert.strictEqual(post.callCount, 1 * decoratorCount);
+          post.newDelivery(4, 'box 4'); assert.strictEqual(post.callCount, 2 * decoratorCount);
+          post.delivered(4);            assert.strictEqual(post.callCount, 3 * decoratorCount);
+        },
+        disposed: post => {
+          const decoratorCount = post.decoratorCount;
+          assert.strictEqual(post.callCount, 3 * decoratorCount);
+          post.delivered(1);            assert.strictEqual(post.callCount, 3 * decoratorCount);
         },
       },
       ...[

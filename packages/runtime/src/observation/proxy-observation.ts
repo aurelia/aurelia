@@ -85,10 +85,14 @@ const arrayHandler: ProxyHandler<unknown[]> = {
         return target.length;
       case 'map':
         return wrappedArrayMap;
+      case 'includes':
+        return wrappedArrayIncludes;
       case 'indexOf':
         return wrappedArrayIndexOf;
       case 'lastIndexOf':
         return wrappedArrayLastIndexOf;
+      case 'every':
+        return wrappedArrayEvery;
       case 'filter':
         return wrappedArrayFilter;
       case 'findIndex':
@@ -138,14 +142,20 @@ const arrayHandler: ProxyHandler<unknown[]> = {
 };
 
 function wrappedArrayMap(this: unknown[], cb: (v: unknown, i: number, arr: unknown[]) => unknown, thisArg?: unknown): unknown {
-  const arr = this;
   const raw = getRaw(this);
   const res = raw.map((v, i) =>
     // do we wrap `thisArg`?
-    getRawOrSelf(cb.call(thisArg, getProxyOrSelf(v), i, arr))
+    getRawOrSelf(cb.call(thisArg, getProxyOrSelf(v), i, this))
   );
   currentWatcher()?.observeCollection(raw);
   return getProxyOrSelf(res);
+}
+
+function wrappedArrayEvery(this: unknown[], cb: (v: unknown, i: number, arr: unknown[]) => unknown, thisArg?: unknown): boolean {
+  const raw = getRaw(this);
+  const res = raw.every((v, i) => cb.call(thisArg, v, i, this));
+  currentWatcher()?.observeCollection(raw);
+  return res;
 }
 
 function wrappedArrayFilter(this: unknown[], cb: (v: unknown, i: number, arr: unknown[]) => boolean, thisArg?: unknown): unknown[] {
@@ -156,6 +166,13 @@ function wrappedArrayFilter(this: unknown[], cb: (v: unknown, i: number, arr: un
   );
   currentWatcher()?.observeCollection(raw);
   return getProxyOrSelf(res);
+}
+
+function wrappedArrayIncludes(this: unknown[], v: unknown): boolean {
+  const raw = getRaw(this);
+  const res = raw.includes(getRawOrSelf(v));
+  currentWatcher()?.observeCollection(raw);
+  return res;
 }
 
 function wrappedArrayIndexOf(this: unknown[], v: unknown): number {

@@ -40,14 +40,6 @@ abstract class FlagsTemplateController implements ICustomAttributeViewModel {
     return this.view.deactivate(initiator, this.$controller, flags);
   }
 
-  public onCancel(
-    initiator: IHydratedController,
-    parent: IHydratedParentController,
-    flags: LifecycleFlags,
-  ): void {
-    this.view?.cancel(initiator, this.$controller, flags);
-  }
-
   public dispose(): void {
     this.view.dispose();
     this.view = (void 0)!;

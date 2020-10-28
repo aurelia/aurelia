@@ -368,16 +368,6 @@ export class Repeat<C extends ObservedCollection = IObservedArray> implements IC
     }
   }
 
-  public onCancel(
-    initiator: IHydratedController,
-    parent: IHydratedParentController,
-    flags: LF,
-  ): void {
-    this.views.forEach(view => {
-      view.cancel(initiator, this.$controller, flags);
-    });
-  }
-
   public dispose(): void {
     this.views.forEach(dispose);
     this.views = (void 0)!;

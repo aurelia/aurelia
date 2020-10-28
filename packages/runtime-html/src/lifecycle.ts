@@ -5,7 +5,6 @@ import { HooksDefinition, IInstruction } from './definitions';
 import { INode, INodeSequence, IRenderLocation } from './dom';
 import { CustomElementDefinition, PartialCustomElementDefinition } from './resources/custom-element';
 import { ICompositionContext, ICompiledCompositionContext } from './templating/composition-context';
-import { AuSlotContentType } from './resources/custom-elements/au-slot';
 import { CustomAttributeDefinition } from './resources/custom-attribute';
 
 import type { IAppRoot } from './app-root';
@@ -230,11 +229,6 @@ export interface ISyntheticView extends IComposableController, IHydratedControll
     parent: IHydratedComponentController,
     flags: LifecycleFlags,
   ): void | Promise<void>;
-  cancel(
-    initiator: IHydratedController,
-    parent: IHydratedComponentController,
-    flags: LifecycleFlags,
-  ): void;
 
   /**
    * Lock this view's scope to the provided `Scope`. The scope, which is normally set during `activate()`, will then not change anymore.
@@ -298,11 +292,6 @@ export interface ICustomAttributeController<C extends ICustomAttributeViewModel 
     parent: IHydratedParentController,
     flags: LifecycleFlags,
   ): void | Promise<void>;
-  cancel(
-    initiator: IHydratedController,
-    parent: IHydratedParentController,
-    flags: LifecycleFlags,
-  ): void;
 }
 
 /**
@@ -391,11 +380,6 @@ export interface ICustomElementController<C extends ICustomElementViewModel = IC
     parent: IHydratedParentController | null,
     flags: LifecycleFlags,
   ): void | Promise<void>;
-  cancel(
-    initiator: IHydratedController,
-    parent: IHydratedParentController | null,
-    flags: LifecycleFlags,
-  ): void;
 }
 
 export const IController = DI.createInterface<IController>('IController').noDefault();
@@ -449,11 +433,6 @@ export interface IActivationHooks<TParent> {
     flags: LifecycleFlags,
   ): void | Promise<void>;
 
-  onCancel?(
-    initiator: IHydratedController,
-    parent: TParent,
-    flags: LifecycleFlags,
-  ): void;
   dispose?(): void;
   /**
    * If this component controls the instantiation and lifecycles of one or more controllers,

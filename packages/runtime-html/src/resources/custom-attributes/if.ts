@@ -100,14 +100,6 @@ export class If implements ICustomAttributeViewModel {
     return view;
   }
 
-  public onCancel(
-    initiator: IHydratedController,
-    parent: IHydratedParentController,
-    flags: LifecycleFlags,
-  ): void {
-    this.view?.cancel(initiator, this.$controller, flags);
-  }
-
   public dispose(): void {
     if (this.ifView !== void 0) {
       this.ifView.dispose();

@@ -400,41 +400,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     );
   }
 
-  private canceling: boolean = false;
-  public cancel(
-    initiator: Controller,
-    parent: Controller | null,
-    flags: LifecycleFlags,
-  ): void {
-    if (this.canceling) {
-      return;
-    }
-    this.canceling = true;
-    if ((this.state & State.activating) === State.activating) {
-      this.state = (this.state ^ State.activating) | State.deactivating;
-      this.bindingContext?.onCancel?.(initiator as IHydratedController, parent as IHydratedParentController, flags);
-      if (
-        (this.state & State.activateChildrenCalled) === State.activateChildrenCalled &&
-        this.children !== void 0
-      ) {
-        for (const child of this.children) {
-          child.cancel(initiator, parent, flags);
-        }
-      }
-    } else if ((this.state & State.deactivating) === State.deactivating) {
-      this.state = (this.state ^ State.deactivating) | State.activating;
-      this.bindingContext?.onCancel?.(initiator as IHydratedController, parent as IHydratedParentController, flags);
-      if (
-        (this.state & State.deactivateChildrenCalled) === State.deactivateChildrenCalled &&
-        this.children !== void 0
-      ) {
-        for (const child of this.children) {
-          child.cancel(initiator, parent, flags);
-        }
-      }
-    }
-  }
-
   public activate(
     initiator: Controller,
     parent: Controller | null,
@@ -442,7 +407,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     scope?: Scope,
     hostScope?: Scope | null,
   ): void | Promise<void> {
-    this.canceling = false;
     switch (this.state) {
       case State.none:
       case State.deactivated:
@@ -754,7 +718,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     parent: Controller | null,
     flags: LifecycleFlags,
   ): void | Promise<void> {
-    this.canceling = false;
     switch ((this.state & ~State.released)) {
       case State.activated:
         // We're fully activated, so proceed with normal deactivation.

@@ -104,14 +104,6 @@ export class AuSlot implements ICustomElementViewModel {
     return this.view.deactivate(initiator, this.$controller, flags);
   }
 
-  public onCancel(
-    initiator: IHydratedController,
-    parent: IHydratedParentController,
-    flags: LifecycleFlags,
-  ): void {
-    this.view.cancel(initiator, this.$controller, flags);
-  }
-
   public dispose(): void {
     this.view.dispose();
     (this as Writable<this>).view = (void 0)!;

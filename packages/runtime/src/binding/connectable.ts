@@ -116,11 +116,10 @@ export function unobserve(this: IConnectableBinding & { [key: string]: unknown }
           this[slotName] = void 0;
           observer.unsubscribe(this);
           observer[this.id] &= ~LifecycleFlags.updateTarget;
-          slots--;
+          this.observerSlots--;
         }
       }
     }
-    this.observerSlots = slots;
   }
 }
 

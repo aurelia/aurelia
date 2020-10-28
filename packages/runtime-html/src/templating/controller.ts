@@ -424,30 +424,13 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       case State.activated:
         // If we're already activated, no need to do anything.
         return;
+      case State.activating:
+        // If we're already activating, no need to do anything.
+        return this.promise;
       case State.disposed:
         throw new Error(`${this.name} trying to activate a controller that is disposed.`);
       default:
-        if ((this.state & State.activating) === State.activating) {
-          // We're already activating, so no need to do anything.
-          return this.promise;
-        }
-        if ((this.state & State.deactivating) === State.deactivating) {
-          // We're in an incomplete deactivation, so we can still abort some of it.
-          // Simply add the 'activating' bit (and remove 'deactivating' so we know what was the last request) and return.
-          this.state = (this.state ^ State.deactivating) | State.activating;
-          if (
-            (this.state & State.deactivateChildrenCalled) === State.deactivateChildrenCalled &&
-            this.children !== void 0
-          ) {
-            return resolveAll(
-              this.onResolve(this.$activateChildren(initiator, parent, flags)),
-              this.promise,
-            );
-          }
-          return this.promise;
-        } else {
-          throw new Error(`${this.name} unexpected state: ${stringifyState(this.state)}.`);
-        }
+        throw new Error(`${this.name} unexpected state: ${stringifyState(this.state)}.`);
     }
 
     this.parent = parent;
@@ -509,11 +492,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   ): void | Promise<void> {
     if (this.debug) {
       this.logger!.trace(`bind()`);
-    }
-
-    this.state |= State.beforeBindCalled;
-    if ((this.state & State.deactivating) === State.deactivating) {
-      return this.afterUnbind(initiator, parent, flags);
     }
 
     if (this.bindings !== void 0) {
@@ -601,8 +579,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       this.logger!.trace(`activateChildren()`);
     }
 
-    this.state |= State.activateChildrenCalled;
-
     return this.onResolve(
       this.$activateChildren(initiator, parent, flags),
       () => {
@@ -633,16 +609,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   ): void | Promise<void> {
     if (this.debug) {
       this.logger!.trace(`afterAttachChildren()`);
-    }
-
-    this.state ^= State.activateChildrenCalled;
-    if ((this.state & State.deactivating) === State.deactivating) {
-      clearLinks(initiator);
-      return this.beforeDetach(initiator, parent, flags);
-    } else if ((this.state & State.beforeDetachCalled) === State.beforeDetachCalled) {
-      this.state ^= State.beforeDetachCalled;
-      this.resolvePromise();
-      return;
     }
 
     let promises: Promise<void>[] | undefined = void 0;
@@ -729,28 +695,11 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       case State.deactivated | State.disposed:
         // If we're already deactivated (or even disposed), or never activated in the first place, no need to do anything.
         return;
+      case State.deactivating:
+        // We're already deactivating, so no need to do anything.
+        return this.promise;
       default:
-        if ((this.state & State.deactivating) === State.deactivating) {
-          // We're already deactivating, so no need to do anything.
-          return this.promise;
-        }
-        if ((this.state & State.activating) === State.activating) {
-          // We're in an incomplete activation, so we can still abort some of it.
-          // Simply add the 'deactivating' bit (and remove 'activating' so we know what was the last request) and return.
-          this.state = (this.state ^ State.activating) | State.deactivating;
-          if (
-            (this.state & State.activateChildrenCalled) === State.activateChildrenCalled &&
-            this.children !== void 0
-          ) {
-            return resolveAll(
-              this.onResolve(this.$deactivateChildren(initiator, parent, flags)),
-              this.promise,
-            );
-          }
-          return this.promise;
-        } else {
-          throw new Error(`${this.name} unexpected state: ${stringifyState(this.state)}.`);
-        }
+        throw new Error(`${this.name} unexpected state: ${stringifyState(this.state)}.`);
     }
 
     if (this.debug) {
@@ -784,11 +733,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   ): void | Promise<void> {
     if (this.debug) {
       this.logger!.trace(`detach()`);
-    }
-
-    this.state |= State.beforeDetachCalled;
-    if ((this.state & State.activating) === State.activating) {
-      return this.afterAttach(initiator, parent, flags);
     }
 
     switch (this.vmKind) {
@@ -872,8 +816,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       this.logger!.trace(`deactivateChildren()`);
     }
 
-    this.state |= State.deactivateChildrenCalled;
-
     return this.onResolve(
       this.$deactivateChildren(initiator, parent, flags),
       () => {
@@ -904,18 +846,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   ): void | Promise<void> {
     if (this.debug) {
       this.logger!.trace(`afterUnbindChildren()`);
-    }
-
-    this.state ^= State.deactivateChildrenCalled;
-    if ((this.state & State.activating) === State.activating) {
-      // In a short-circuit it's possible that descendants have already started building the links for afterUnbindChildren hooks.
-      // Those hooks are never invoked (because only the initiator can do that), but we still need to clear the list so as to avoid corrupting the next lifecycle.
-      clearLinks(initiator);
-      return this.beforeBind(initiator, parent, flags);
-    } else if ((this.state & State.beforeBindCalled) === State.beforeBindCalled) {
-      this.state ^= State.beforeBindCalled;
-      this.resolvePromise();
-      return;
     }
 
     let promises: Promise<void>[] | undefined = void 0;
@@ -1262,17 +1192,6 @@ function createChildrenObservers(
         );
       }
     }
-  }
-}
-
-function clearLinks(initiator: Controller): void {
-  let cur = initiator.head;
-  initiator.head = initiator.tail = null;
-  let next: Controller | null;
-  while (cur !== null) {
-    next = cur.next;
-    cur.next = null;
-    cur = next;
   }
 }
 

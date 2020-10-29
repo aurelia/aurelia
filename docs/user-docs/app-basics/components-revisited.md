@@ -6,7 +6,7 @@
 
 ## au-slot
 
-Aurelia provides another way of view projection with `au-slot`.
+Aurelia provides another way of content projection with `au-slot`.
 This is similar to the native `slot` in terms of content projection, however, it does not use shadow DOM.
 `au-slot` is useful where you want externally defined styles to penetrate the component boundary, to facilitate easy styling of components.
 If you are creating your own set of custom elements that are solely used in your application, then you might want to avoid the native slots in the custom elements as it might be difficult to style those elements from your application.

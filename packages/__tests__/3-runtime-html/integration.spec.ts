@@ -497,7 +497,7 @@ describe('runtime-html.integration', function () {
           </template>
         </template>`,
 
-      // The following template does not supported; kept here for docs purpose.
+      // The following template is not supported; kept here for documentation purpose.
       // `<template>
       //     <template repeat.for="i of 3">
       //       <template repeat.for="i of 3">

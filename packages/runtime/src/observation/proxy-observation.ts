@@ -111,6 +111,8 @@ const arrayHandler: ProxyHandler<unknown[]> = {
         return wrappedReduce;
       case 'reduceRight':
         return wrappedReduceRight;
+      case 'reverse':
+        return wrappedArrayReverse;
       case 'shift':
         return wrappedArrayShift;
       case 'unshift':
@@ -153,7 +155,7 @@ function wrappedArrayMap(this: unknown[], cb: (v: unknown, i: number, arr: unkno
 
 function wrappedArrayEvery(this: unknown[], cb: (v: unknown, i: number, arr: unknown[]) => unknown, thisArg?: unknown): boolean {
   const raw = getRaw(this);
-  const res = raw.every((v, i) => cb.call(thisArg, v, i, this));
+  const res = raw.every((v, i) => cb.call(thisArg, getProxyOrSelf(v), i, this));
   currentWatcher()?.observeCollection(raw);
   return res;
 }
@@ -226,6 +228,12 @@ function wrappedArrayUnshift(this: unknown[], ...args: unknown[]): unknown {
 }
 function wrappedArraySplice(this: unknown[], ...args: [number, number, ...unknown[]]): unknown {
   return getProxyOrSelf(getRaw(this).splice(...args));
+}
+function wrappedArrayReverse(this: unknown[], ...args: unknown[]): unknown[] {
+  const raw = getRaw(this);
+  const res = raw.reverse();
+  currentWatcher()?.observeCollection(raw);
+  return getProxyOrSelf(res);
 }
 
 function wrappedArraySome(this: unknown[], cb: (v: unknown, i: number, arr: unknown[]) => boolean, thisArg?: unknown): boolean {

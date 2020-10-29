@@ -339,6 +339,13 @@ By default, a watcher will be created for a `@watch()` decorator. This watcher w
   ```
   The `firstName` and `lastName` properties of `contact` components is being observed manually. And everytime either `firstName`, or `lastName` change, the computed getter is run again and the dependencies will be observed again. Observers are cached and the same observer won't be added more than once, old observers from the old computed getter run will also be disposed, so you won't have to worry about stale dependencies or memory leak.
 
+{% hint style="warning" %}
+**Automatic array observation**
+
+- By default, in the computed getter, array mutation method such as `.push()`, `.pop()`, `.shift()`, `.unshift()`, and `.reverse()` are not observed, as there are no clear indicators of what dependencies to be collected from those methods.
+
+{% endhint %}
+
 # Best practices
 
 - It is best to avoid mutation on dependencies collected inside a computed getter. For example:

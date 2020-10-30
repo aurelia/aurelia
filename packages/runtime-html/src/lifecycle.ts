@@ -1,7 +1,7 @@
 import { DI, IContainer, IIndexable, IDisposable } from '@aurelia/kernel';
 import { IBindingTargetAccessor, LifecycleFlags, Scope, ILifecycle, IBinding } from '@aurelia/runtime';
 
-import { HooksDefinition, IInstruction } from './definitions';
+import { HooksDefinition } from './definitions';
 import { INode, INodeSequence, IRenderLocation } from './dom';
 import { CustomElementDefinition, PartialCustomElementDefinition } from './resources/custom-element';
 import { IRenderContext, ICompiledRenderContext } from './templating/render-context';
@@ -10,6 +10,7 @@ import { CustomAttributeDefinition } from './resources/custom-attribute';
 import type { IAppRoot } from './app-root';
 import { IPlatform } from './platform';
 import { ElementProjector } from './projectors';
+import { Instruction } from './instructions';
 
 export const enum ViewModelKind {
   customElement,
@@ -437,7 +438,7 @@ export interface ICustomAttributeViewModel extends IViewModel, IActivationHooks<
     controller: IComposableController,
     childController: ICustomAttributeController,
     target: INode,
-    instruction: IInstruction,
+    instruction: Instruction,
   ): void;
 }
 

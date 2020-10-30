@@ -10,7 +10,6 @@ import {
   Transformer,
 } from '@aurelia/kernel';
 import { Scope, LifecycleFlags } from '@aurelia/runtime';
-import { IInstruction } from '../definitions';
 import { FragmentNodeSequence, INode, INodeSequence, IRenderLocation } from '../dom';
 import {
   IController,
@@ -18,12 +17,12 @@ import {
   ICustomElementViewModel,
   IComposableController,
 } from '../lifecycle';
-import { IComposer, ITemplateCompiler } from '../composer';
+import { IRenderer, ITemplateCompiler } from '../renderer';
 import { CustomElementDefinition, PartialCustomElementDefinition } from '../resources/custom-element';
 import { IViewFactory, ViewFactory } from './view';
 import { AuSlotContentType, IProjectionProvider, RegisteredProjections } from '../resources/custom-elements/au-slot';
 import { IPlatform } from '../platform';
-import { Instruction } from '../instructions';
+import { IInstruction, Instruction, InstructionTypeName } from '../instructions';
 
 const definitionContainerLookup = new WeakMap<CustomElementDefinition, WeakMap<IContainer, RenderContext>>();
 const definitionContainerProjectionsLookup = new WeakMap<CustomElementDefinition, WeakMap<IContainer, WeakMap<Record<string, CustomElementDefinition>, RenderContext>>>();
@@ -234,7 +233,7 @@ export class RenderContext implements IComponentFactory {
 
   private readonly parentControllerProvider: InstanceProvider<IController>;
   private readonly elementProvider: InstanceProvider<HTMLElement>;
-  private readonly instructionProvider: InstanceProvider<IInstruction>;
+  private readonly instructionProvider: InstanceProvider<Instruction>;
   private readonly factoryProvider: ViewFactoryProvider;
   private readonly renderLocationProvider: InstanceProvider<IRenderLocation>;
 
@@ -245,7 +244,7 @@ export class RenderContext implements IComponentFactory {
 
   private readonly projectionProvider: IProjectionProvider;
   public readonly platform: IPlatform;
-  public readonly composer: IComposer;
+  private readonly renderers: Record<InstructionTypeName, IRenderer> = Object.create(null);
 
   public compiledDefinition: CustomElementDefinition = (void 0)!;
 
@@ -254,7 +253,12 @@ export class RenderContext implements IComponentFactory {
     public readonly parentContainer: IContainer,
   ) {
     const container = this.container = parentContainer.createChild();
-    this.composer = container.get(IComposer);
+    // TODO(fkleuver): get contextual + root renderers
+    const renderers = container.getAll(IRenderer);
+    for (let i = 0; i < renderers.length; ++i) {
+      const renderer = renderers[i];
+      this.renderers[renderer.instructionType as string] = renderer;
+    }
     this.projectionProvider = container.get(IProjectionProvider);
     const p = this.platform = container.get(IPlatform);
 
@@ -270,7 +274,7 @@ export class RenderContext implements IComponentFactory {
     );
     container.registerResolver(
       IInstruction,
-      this.instructionProvider = new InstanceProvider<IInstruction>('IInstruction'),
+      this.instructionProvider = new InstanceProvider<Instruction>('IInstruction'),
       true,
     );
     container.registerResolver(
@@ -435,7 +439,7 @@ export class RenderContext implements IComponentFactory {
   public getComponentFactory(
     parentController?: IController,
     host?: HTMLElement,
-    instruction?: IInstruction,
+    instruction?: Instruction,
     viewFactory?: IViewFactory,
     location?: IRenderLocation,
   ): IComponentFactory {
@@ -470,19 +474,42 @@ export class RenderContext implements IComponentFactory {
     flags: LifecycleFlags,
     controller: IComposableController,
     targets: ArrayLike<INode>,
-    templateDefinition: CustomElementDefinition,
+    definition: CustomElementDefinition,
     host: INode | null | undefined,
   ): void {
-    this.composer.compose(flags, this, controller, targets, templateDefinition, host);
+    if (targets.length !== definition.instructions.length) {
+      throw new Error(`The compiled template is not aligned with the compose instructions. There are ${targets.length} targets and ${definition.instructions.length} instructions.`);
+    }
+
+    for (let i = 0; i < targets.length; ++i) {
+      this.composeChildren(
+        /* flags        */flags,
+        /* instructions */definition.instructions[i],
+        /* controller   */controller,
+        /* target       */targets[i],
+      );
+    }
+
+    if (host !== void 0 && host !== null) {
+      this.composeChildren(
+        /* flags        */flags,
+        /* instructions */definition.surrogates,
+        /* controller   */controller,
+        /* target       */host,
+      );
+    }
   }
 
   public composeChildren(
     flags: LifecycleFlags,
-    instructions: readonly Instruction[],
+    instructions: readonly IInstruction[],
     controller: IComposableController,
     target: unknown,
   ): void {
-    this.composer.composeChildren(flags, this, instructions, controller, target);
+    for (let i = 0; i < instructions.length; ++i) {
+      const current = instructions[i];
+      this.renderers[current.type].compose(flags, this, controller, target, current);
+    }
   }
 
   public dispose(): void {
@@ -491,11 +518,11 @@ export class RenderContext implements IComponentFactory {
   // #endregion
 
   // #region IProjectionProvider api
-  public registerProjections(projections: Map<IInstruction, Record<string, CustomElementDefinition>>, scope: Scope): void {
+  public registerProjections(projections: Map<Instruction, Record<string, CustomElementDefinition>>, scope: Scope): void {
     this.projectionProvider.registerProjections(projections, scope);
   }
 
-  public getProjectionFor(instruction: IInstruction): RegisteredProjections | null {
+  public getProjectionFor(instruction: Instruction): RegisteredProjections | null {
     return this.projectionProvider.getProjectionFor(instruction);
   }
   // #endregion

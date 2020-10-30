@@ -1,7 +1,7 @@
 import { nextId, onResolve } from '@aurelia/kernel';
 import { bindable, LifecycleFlags } from '@aurelia/runtime';
-import { IInstruction } from '../../definitions';
 import { INode, IRenderLocation } from '../../dom';
+import { Instruction } from '../../instructions';
 import { ISyntheticView, MountStrategy, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor, IComposableController } from '../../lifecycle';
 import { ICompiledRenderContext } from '../../templating/render-context';
 import { IViewFactory } from '../../templating/view';
@@ -135,7 +135,7 @@ export class Else {
     controller: IComposableController,
     _childController: ICustomAttributeController,
     _target: INode,
-    _instruction: IInstruction,
+    _instruction: Instruction,
   ): void {
     const children = controller.children!;
     const ifBehavior: If | ICustomAttributeController = children[children.length - 1] as If | ICustomAttributeController;

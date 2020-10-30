@@ -13,16 +13,16 @@ import { TranslationBindingBehavior } from './t/translation-binding-behavior';
 import {
   TranslationParametersAttributePattern,
   TranslationParametersBindingCommand,
-  TranslationParametersBindingComposer
-} from './t/translation-parameters-composer';
+  TranslationParametersBindingRenderer
+} from './t/translation-parameters-renderer';
 import {
   TranslationAttributePattern,
   TranslationBindAttributePattern,
   TranslationBindBindingCommand,
-  TranslationBindBindingComposer,
+  TranslationBindBindingRenderer,
   TranslationBindingCommand,
-  TranslationBindingComposer
-} from './t/translation-composer';
+  TranslationBindingRenderer
+} from './t/translation-renderer';
 import { TranslationValueConverter } from './t/translation-value-converter';
 
 export type I18NConfigOptionsProvider = (options: I18nConfigurationOptions) => void;
@@ -57,13 +57,13 @@ function coreComponents(options: I18nConfigurationOptions) {
   const composers = [
     AttributePattern.define(patterns, TranslationAttributePattern),
     BindingCommand.define({name:'t', aliases: commandAliases}, TranslationBindingCommand),
-    TranslationBindingComposer,
+    TranslationBindingRenderer,
     AttributePattern.define(bindPatterns, TranslationBindAttributePattern),
     BindingCommand.define({name:'t.bind', aliases: bindCommandAliases}, TranslationBindBindingCommand),
-    TranslationBindBindingComposer,
+    TranslationBindBindingRenderer,
     TranslationParametersAttributePattern,
     TranslationParametersBindingCommand,
-    TranslationParametersBindingComposer
+    TranslationParametersBindingRenderer
   ];
 
   return {

@@ -29,8 +29,8 @@ import {
 import { templateController } from '../custom-attribute';
 import { Controller } from '../../templating/controller';
 import { ICompiledRenderContext } from '../../templating/render-context';
-import { IInstruction } from '../../definitions';
 import { IViewFactory } from '../../templating/view';
+import { Instruction } from '../../instructions';
 
 @templateController('switch')
 export class Switch implements ICustomAttributeViewModel {
@@ -58,11 +58,11 @@ export class Switch implements ICustomAttributeViewModel {
 
   public link(
     flags: LifecycleFlags,
-    parentContext: ICompiledRenderContext,
-    controller: IComposableController,
-    childController: ICustomAttributeController,
-    target: INode,
-    instruction: IInstruction,
+    _parentContext: ICompiledRenderContext,
+    _controller: IComposableController,
+    _childController: ICustomAttributeController,
+    _target: INode,
+    _instruction: Instruction,
   ): void {
     const view = this.view = this.factory.create(flags, this.$controller);
     view.setLocation(this.location, MountStrategy.insertBefore);
@@ -276,7 +276,7 @@ export class Case implements ICustomAttributeViewModel {
     controller: IComposableController,
     _childController: ICustomAttributeController,
     _target: INode,
-    _instruction: IInstruction,
+    _instruction: Instruction,
   ): void {
     const switchController: IHydratedParentController = (controller as Controller).parent! as IHydratedParentController;
     const $switch = switchController?.viewModel;

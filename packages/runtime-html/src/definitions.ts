@@ -1,12 +1,3 @@
-import { DI } from '@aurelia/kernel';
-
-export type InstructionTypeName = string;
-
-export const IInstruction = DI.createInterface<IInstruction>('IInstruction').noDefault();
-export interface IInstruction {
-  type: InstructionTypeName;
-}
-
 export class HooksDefinition {
   public static readonly none: Readonly<HooksDefinition> = new HooksDefinition({});
 

@@ -11,8 +11,8 @@ import {
   MountStrategy
 } from '../../lifecycle';
 import { customElement, CustomElementDefinition } from '../custom-element';
-import { IInstruction } from '../../definitions';
 import { IViewFactory } from '../../templating/view';
+import { IInstruction, Instruction } from '../../instructions';
 
 export type IProjections = Record<string, CustomElementDefinition>;
 export const IProjections = DI.createInterface<IProjections>("IProjections").noDefault();
@@ -47,7 +47,7 @@ export class RegisteredProjections {
 export interface IProjectionProvider extends ProjectionProvider {}
 export const IProjectionProvider = DI.createInterface<IProjectionProvider>('IProjectionProvider').withDefault(x => x.singleton(ProjectionProvider));
 
-const projectionMap: WeakMap<IInstruction, RegisteredProjections> = new WeakMap<IInstruction, RegisteredProjections>();
+const projectionMap: WeakMap<IInstruction, RegisteredProjections> = new WeakMap<Instruction, RegisteredProjections>();
 export class ProjectionProvider {
   public registerProjections(projections: Map<IInstruction, Record<string, CustomElementDefinition>>, scope: Scope): void {
     for (const [instruction, $projections] of projections) {

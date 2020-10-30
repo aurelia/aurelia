@@ -1,8 +1,7 @@
 import { Constructable, nextId, emptyArray, onResolve } from '@aurelia/kernel';
 import { BindingMode, LifecycleFlags, bindable } from '@aurelia/runtime';
 import { createElement, RenderPlan } from '../../create-element';
-import { IInstruction } from '../../definitions';
-import { HydrateElementInstruction, Instruction } from '../../instructions';
+import { HydrateElementInstruction, IInstruction, Instruction } from '../../instructions';
 import { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, ISyntheticView, MountStrategy } from '../../lifecycle';
 import { IPlatform } from '../../platform';
 import { getRenderContext } from '../../templating/render-context';
@@ -13,9 +12,9 @@ export type Subject = IViewFactory | ISyntheticView | RenderPlan | Constructable
 export type MaybeSubjectPromise = Subject | Promise<Subject> | undefined;
 
 function toLookup(
-  acc: Record<string, Instruction>,
+  acc: Record<string, IInstruction>,
   item: IInstruction & { to?: string },
-): Record<string, Instruction> {
+): Record<string, IInstruction> {
   const to = item.to;
   if (to !== void 0 && to !== 'subject' && to !== 'composing') {
     acc[to] = item as Instruction;
@@ -33,7 +32,7 @@ export class Compose implements ICustomElementViewModel {
 
   public view?: ISyntheticView = void 0;
 
-  private readonly properties: Record<string, Instruction>;
+  private readonly properties: Record<string, IInstruction>;
 
   private lastSubject?: MaybeSubjectPromise = void 0;
 

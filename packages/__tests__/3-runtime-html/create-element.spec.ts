@@ -6,7 +6,7 @@ import {
   InstructionType,
   HydrateElementInstruction,
   RenderPlan,
-  Instruction,
+  IInstruction,
 } from '@aurelia/runtime-html';
 import {
   _,
@@ -67,9 +67,9 @@ describe(`createElement() creates element based on tag`, function () {
         t => {
           it(`understands targeted instruction type=${t}`, function () {
             const ctx = TestContext.create();
-            const actual = sut(ctx.platform, tag, { prop: { type: t }  as unknown as string|Instruction});
+            const actual = sut(ctx.platform, tag, { prop: { type: t }  as unknown as string|IInstruction});
 
-            const instruction = actual['instructions'][0][0] as Instruction;
+            const instruction = actual['instructions'][0][0] as IInstruction;
             const node = actual['node'] as Element;
 
             assert.strictEqual(actual['instructions'].length, 1, `actual['instructions'].length`);
@@ -152,7 +152,7 @@ describe(`createElement() creates element based on type`, function () {
         it(`can handle ${str} props`, function () {
           const type = createType();
           const ctx = TestContext.create();
-          const actual = sut(ctx.platform, type, props as unknown as Record<string, string|Instruction>);
+          const actual = sut(ctx.platform, type, props as unknown as Record<string, string|IInstruction>);
 
           const node = actual['node'] as Element;
           const instruction = (actual['instructions'][0][0]) as HydrateElementInstruction;
@@ -189,7 +189,7 @@ describe(`createElement() creates element based on type`, function () {
             const type = createType();
             const definition = CustomElement.getDefinition(type);
             const ctx = TestContext.create();
-            const actual = sut(ctx.platform, type, { prop: { type: t } as unknown as string|Instruction});
+            const actual = sut(ctx.platform, type, { prop: { type: t } as unknown as string|IInstruction});
 
             const node = actual['node'] as Element;
             const instruction = (actual['instructions'][0][0]) as HydrateElementInstruction;

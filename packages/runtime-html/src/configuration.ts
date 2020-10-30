@@ -32,24 +32,24 @@ import {
 } from './binding-commands';
 import { TemplateCompiler } from './template-compiler';
 import {
-  CallBindingComposer,
-  CustomAttributeComposer,
-  CustomElementComposer,
-  InterpolationBindingComposer,
-  IteratorBindingComposer,
-  LetElementComposer,
-  PropertyBindingComposer,
-  RefBindingComposer,
-  SetPropertyComposer,
-  TemplateControllerComposer,
-  AttributeBindingComposer,
-  ListenerBindingComposer,
-  SetAttributeComposer,
-  StylePropertyBindingComposer,
-  TextBindingComposer,
-  SetClassAttributeComposer,
-  SetStyleAttributeComposer,
-} from './composer';
+  CallBindingRenderer,
+  CustomAttributeRenderer,
+  CustomElementRenderer,
+  InterpolationBindingRenderer,
+  IteratorBindingRenderer,
+  LetElementRenderer,
+  PropertyBindingRenderer,
+  RefBindingRenderer,
+  SetPropertyRenderer,
+  TemplateControllerRenderer,
+  AttributeBindingRenderer,
+  ListenerBindingRenderer,
+  SetAttributeRenderer,
+  StylePropertyBindingRenderer,
+  TextBindingRenderer,
+  SetClassAttributeRenderer,
+  SetStyleAttributeRenderer,
+} from './renderer';
 import { TargetAccessorLocator, TargetObserverLocator } from './observation/observer-locator';
 import { SVGAnalyzer } from './observation/svg-analyzer';
 import { AttrBindingBehavior } from './resources/binding-behaviors/attr';
@@ -75,7 +75,6 @@ export const ITargetObserverLocatorRegistration = TargetObserverLocator as IRegi
 /**
  * Default HTML-specific (but environment-agnostic) implementations for the following interfaces:
  * - `ITemplateCompiler`
- * - `IComposer`
  * - `ITargetAccessorLocator`
  * - `ITargetObserverLocator`
  */
@@ -209,23 +208,23 @@ export const DefaultResources = [
   AuSlot,
 ];
 
-export const CallBindingComposerRegistration = CallBindingComposer as unknown as IRegistry;
-export const CustomAttributeComposerRegistration = CustomAttributeComposer as unknown as IRegistry;
-export const CustomElementComposerRegistration = CustomElementComposer as unknown as IRegistry;
-export const InterpolationBindingComposerRegistration = InterpolationBindingComposer as unknown as IRegistry;
-export const IteratorBindingComposerRegistration = IteratorBindingComposer as unknown as IRegistry;
-export const LetElementComposerRegistration = LetElementComposer as unknown as IRegistry;
-export const PropertyBindingComposerRegistration = PropertyBindingComposer as unknown as IRegistry;
-export const RefBindingComposerRegistration = RefBindingComposer as unknown as IRegistry;
-export const SetPropertyComposerRegistration = SetPropertyComposer as unknown as IRegistry;
-export const TemplateControllerComposerRegistration = TemplateControllerComposer as unknown as IRegistry;
-export const ListenerBindingComposerRegistration = ListenerBindingComposer as unknown as IRegistry;
-export const AttributeBindingComposerRegistration = AttributeBindingComposer as unknown as IRegistry;
-export const SetAttributeComposerRegistration = SetAttributeComposer as unknown as IRegistry;
-export const SetClassAttributeComposerRegistration = SetClassAttributeComposer as unknown as IRegistry;
-export const SetStyleAttributeComposerRegistration = SetStyleAttributeComposer as unknown as IRegistry;
-export const StylePropertyBindingComposerRegistration = StylePropertyBindingComposer as unknown as IRegistry;
-export const TextBindingComposerRegistration = TextBindingComposer as unknown as IRegistry;
+export const CallBindingComposerRegistration = CallBindingRenderer as unknown as IRegistry;
+export const CustomAttributeComposerRegistration = CustomAttributeRenderer as unknown as IRegistry;
+export const CustomElementComposerRegistration = CustomElementRenderer as unknown as IRegistry;
+export const InterpolationBindingComposerRegistration = InterpolationBindingRenderer as unknown as IRegistry;
+export const IteratorBindingComposerRegistration = IteratorBindingRenderer as unknown as IRegistry;
+export const LetElementComposerRegistration = LetElementRenderer as unknown as IRegistry;
+export const PropertyBindingComposerRegistration = PropertyBindingRenderer as unknown as IRegistry;
+export const RefBindingComposerRegistration = RefBindingRenderer as unknown as IRegistry;
+export const SetPropertyComposerRegistration = SetPropertyRenderer as unknown as IRegistry;
+export const TemplateControllerComposerRegistration = TemplateControllerRenderer as unknown as IRegistry;
+export const ListenerBindingComposerRegistration = ListenerBindingRenderer as unknown as IRegistry;
+export const AttributeBindingComposerRegistration = AttributeBindingRenderer as unknown as IRegistry;
+export const SetAttributeComposerRegistration = SetAttributeRenderer as unknown as IRegistry;
+export const SetClassAttributeComposerRegistration = SetClassAttributeRenderer as unknown as IRegistry;
+export const SetStyleAttributeComposerRegistration = SetStyleAttributeRenderer as unknown as IRegistry;
+export const StylePropertyBindingComposerRegistration = StylePropertyBindingRenderer as unknown as IRegistry;
+export const TextBindingComposerRegistration = TextBindingRenderer as unknown as IRegistry;
 
 /**
  * Default composers for:

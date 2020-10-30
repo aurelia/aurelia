@@ -598,7 +598,7 @@ export {
   // IInterpolationInstruction,
   // IIteratorBindingInstruction,
   // ILetBindingInstruction,
-  // InstructionRow,
+  // IInstructionRow,
   // InstructionTypeName,
   // IPropertyBindingInstruction,
   // IRefBindingInstruction,
@@ -606,7 +606,7 @@ export {
   // isInstruction,
   // IInstruction,
   // NodeInstruction,
-  // Instruction,
+  // IInstruction,
   // InstructionType,
   // PartialCustomElementDefinitionParts,
   alias,
@@ -690,7 +690,7 @@ export {
   // cloneIndexMap,
   // createIndexMap,
 
-  instructionComposer,
+  renderer,
 
   // DefaultBindingLanguage as JitDefaultBindingLanguage,
 
@@ -800,9 +800,8 @@ export {
 
   // CompiledTemplate,
   // ChildrenObserver,
-  // IInstructionComposer,
+  // IRenderer,
   // IInstructionTypeClassifier,
-  // IComposer,
   // IRenderingEngine,
   // ITemplate,
   // ITemplateCompiler,
@@ -887,9 +886,9 @@ export {
   // RenderPlan,
 
   // AttributeInstruction,
-  // InstructionRow,
+  // IInstructionRow,
   // NodeInstruction,
-  // Instruction,
+  // IInstruction,
   // InstructionType,
   // IAttributeBindingInstruction,
   // IListenerBindingInstruction,

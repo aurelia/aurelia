@@ -310,12 +310,11 @@ export {
 } from './binding/attribute';
 
 export {
-  IInstructionComposer,
+  IRenderer,
   IInstructionTypeClassifier,
-  IComposer,
   ITemplateCompiler,
-  instructionComposer,
-} from './composer';
+  renderer,
+} from './renderer';
 
 export {
   AttributeNSAccessor
@@ -527,8 +526,6 @@ export {
 } from './configuration';
 export {
   HooksDefinition,
-  InstructionTypeName,
-  IInstruction,
 } from './definitions';
 export {
   stringifyDOM,
@@ -618,7 +615,9 @@ export {
   InstructionRow,
   isInstruction,
   NodeInstruction,
+  InstructionTypeName,
   Instruction,
+  IInstruction,
   InstructionType,
 } from './instructions';
 export {

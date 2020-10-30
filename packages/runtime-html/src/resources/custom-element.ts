@@ -19,12 +19,13 @@ import {
   IResolver,
 } from '@aurelia/kernel';
 import { PartialBindableDefinition, BindingStrategy, BindableDefinition, Bindable, registerAliases } from '@aurelia/runtime';
-import { IInstruction, HooksDefinition } from '../definitions';
 import { INode, IRenderLocation, getEffectiveParentNode } from '../dom';
 import { ICustomElementViewModel, ICustomElementController } from '../lifecycle';
 import { PartialChildrenDefinition, ChildrenDefinition, Children } from '../templating/children';
 import { IProjections } from './custom-elements/au-slot';
 import { Controller } from '../templating/controller';
+import { IInstruction } from '../instructions';
+import { HooksDefinition } from '../definitions';
 
 export type PartialCustomElementDefinition = PartialResourceDefinition<{
   readonly cache?: '*' | number;

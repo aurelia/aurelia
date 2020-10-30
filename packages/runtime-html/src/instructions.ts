@@ -1,3 +1,4 @@
+import { DI } from '@aurelia/kernel';
 import {
   BindingMode,
   DelegationStrategy,
@@ -5,7 +6,6 @@ import {
   Interpolation,
   IsBindingBehavior,
 } from '@aurelia/runtime';
-import { IInstruction } from './definitions';
 import { PartialCustomElementDefinition } from './resources/custom-element';
 import { SlotInfo } from './resources/custom-elements/au-slot';
 
@@ -77,7 +77,14 @@ export type AttributeInstruction =
 export type Instruction = NodeInstruction | AttributeInstruction;
 export type InstructionRow = [Instruction, ...AttributeInstruction[]];
 
-export function isInstruction(value: unknown): value is Instruction {
+export type InstructionTypeName = string;
+
+export interface IInstruction {
+  readonly type: InstructionTypeName;
+}
+export const IInstruction = DI.createInterface<IInstruction>('Instruction').noDefault();
+
+export function isInstruction(value: unknown): value is IInstruction {
   const type = (value as { type?: string }).type;
   return typeof type === 'string' && type.length === 2;
 }

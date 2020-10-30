@@ -13,7 +13,7 @@ import {
   Metadata
 } from '@aurelia/kernel';
 import { BindingType, registerAliases } from '@aurelia/runtime';
-import { IInstruction } from './definitions';
+import { IInstruction } from './instructions';
 import { BindingSymbol, PlainAttributeSymbol, SymbolFlags } from './semantic-model';
 
 export type PartialBindingCommandDefinition = PartialResourceDefinition<{

@@ -4,8 +4,8 @@ import {
   BindingMode,
   BindingType,
   IExpressionParser,
-  IInstructionComposer,
-  instructionComposer,
+  IRenderer,
+  renderer,
   IObserverLocator,
   IsBindingBehavior,
   LifecycleFlags,
@@ -51,8 +51,8 @@ export class TranslationBindingCommand implements BindingCommandInstance {
   }
 }
 
-@instructionComposer(TranslationInstructionType)
-export class TranslationBindingComposer implements IInstructionComposer {
+@renderer(TranslationInstructionType)
+export class TranslationBindingRenderer implements IRenderer {
   public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IObserverLocator private readonly observerLocator: IObserverLocator,
@@ -100,8 +100,8 @@ export class TranslationBindBindingCommand implements BindingCommandInstance {
   }
 }
 
-@instructionComposer(TranslationBindInstructionType)
-export class TranslationBindBindingComposer implements IInstructionComposer {
+@renderer(TranslationBindInstructionType)
+export class TranslationBindBindingRenderer implements IRenderer {
   public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IObserverLocator private readonly observerLocator: IObserverLocator,

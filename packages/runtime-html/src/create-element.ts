@@ -3,8 +3,9 @@ import {
   HydrateElementInstruction,
   isInstruction,
   SetAttributeInstruction,
-  Instruction,
+  IInstruction,
   InstructionType,
+  Instruction,
 } from './instructions';
 import { ISyntheticView } from './lifecycle';
 import { IPlatform } from './platform';
@@ -15,7 +16,7 @@ import { IViewFactory } from './templating/view';
 export function createElement<C extends Constructable = Constructable>(
   p: IPlatform,
   tagOrType: string | C,
-  props?: Record<string, string | Instruction>,
+  props?: Record<string, string | IInstruction>,
   children?: ArrayLike<unknown>
 ): RenderPlan {
   if (typeof tagOrType === 'string') {
@@ -35,7 +36,7 @@ export class RenderPlan {
 
   public constructor(
     private readonly node: Node,
-    private readonly instructions: Instruction[][],
+    private readonly instructions: IInstruction[][],
     private readonly dependencies: Key[]
   ) {}
 
@@ -65,16 +66,16 @@ export class RenderPlan {
   }
 
   /** @internal */
-  public mergeInto(parent: Node & ParentNode, instructions: Instruction[][], dependencies: Key[]): void {
+  public mergeInto(parent: Node & ParentNode, instructions: IInstruction[][], dependencies: Key[]): void {
     parent.appendChild(this.node);
     instructions.push(...this.instructions);
     dependencies.push(...this.dependencies);
   }
 }
 
-function createElementForTag(p: IPlatform, tagName: string, props?: Record<string, string | Instruction>, children?: ArrayLike<unknown>): RenderPlan {
-  const instructions: Instruction[] = [];
-  const allInstructions: Instruction[][] = [];
+function createElementForTag(p: IPlatform, tagName: string, props?: Record<string, string | IInstruction>, children?: ArrayLike<unknown>): RenderPlan {
+  const instructions: IInstruction[] = [];
+  const allInstructions: IInstruction[][] = [];
   const dependencies: IRegistry[] = [];
   const element = p.document.createElement(tagName);
   let hasInstructions = false;
@@ -113,7 +114,7 @@ function createElementForType(
 ): RenderPlan {
   const definition = CustomElement.getDefinition(Type);
   const tagName = definition.name;
-  const instructions: Instruction[] = [];
+  const instructions: IInstruction[] = [];
   const allInstructions = [instructions];
   const dependencies: Key[] = [];
   const childInstructions: Instruction[] = [];
@@ -161,7 +162,7 @@ function addChildren<T extends HTMLElement>(
   p: IPlatform,
   parent: T,
   children: ArrayLike<unknown>,
-  allInstructions: Instruction[][],
+  allInstructions: IInstruction[][],
   dependencies: Key[],
 ): void {
   for (let i = 0, ii = children.length; i < ii; ++i) {

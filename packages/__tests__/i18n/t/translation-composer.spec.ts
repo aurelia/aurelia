@@ -4,11 +4,11 @@ import {
   TranslationBindAttributePattern,
   TranslationBindBindingCommand,
   TranslationBindBindingInstruction,
-  TranslationBindBindingComposer,
+  TranslationBindBindingRenderer,
   TranslationBinding,
   TranslationBindingCommand,
   TranslationBindingInstruction,
-  TranslationBindingComposer,
+  TranslationBindingRenderer,
   TranslationBindInstructionType,
   TranslationInstructionType,
 } from '@aurelia/i18n';
@@ -19,7 +19,7 @@ import {
   IBinding,
   ICompiledRenderContext,
   IExpressionParser,
-  IInstructionComposer,
+  IRenderer,
   IObserverLocator,
   IComposableController,
   LifecycleFlags,
@@ -119,7 +119,7 @@ describe('TranslationBindingCommand', function () {
   });
 });
 
-describe('TranslationBindingComposer', function () {
+describe('TranslationBindingRenderer', function () {
 
   function createFixture() {
     return createContainer(StandardConfiguration, I18nConfiguration);
@@ -127,13 +127,13 @@ describe('TranslationBindingComposer', function () {
 
   it('instantiated with instruction type', function () {
     const container = createFixture();
-    const sut: IInstructionComposer = new TranslationBindingComposer(container.get(IExpressionParser), {} as unknown as IObserverLocator);
+    const sut: IRenderer = new TranslationBindingRenderer(container.get(IExpressionParser), {} as unknown as IObserverLocator);
     assert.equal(sut.instructionType, TranslationInstructionType);
   });
 
   it('#compose instantiates TranslationBinding - simple string literal', function () {
     const container = createFixture();
-    const sut: IInstructionComposer = new TranslationBindingComposer(container.get(IExpressionParser), {} as unknown as IObserverLocator);
+    const sut: IRenderer = new TranslationBindingRenderer(container.get(IExpressionParser), {} as unknown as IObserverLocator);
     const expressionParser = container.get(IExpressionParser);
     const controller = ({ bindings: [], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); } } as unknown as IComposableController);
 
@@ -152,7 +152,7 @@ describe('TranslationBindingComposer', function () {
 
   it('#compose adds expr to the existing TranslationBinding for the target element', function () {
     const container = createFixture();
-    const sut: IInstructionComposer = new TranslationBindingComposer(container.get(IExpressionParser), {} as unknown as IObserverLocator);
+    const sut: IRenderer = new TranslationBindingRenderer(container.get(IExpressionParser), {} as unknown as IObserverLocator);
     const expressionParser = container.get(IExpressionParser);
     const targetElement = PLATFORM.document.createElement('span');
     const binding = new TranslationBinding(targetElement, {} as unknown as IObserverLocator, container);
@@ -262,7 +262,7 @@ describe('TranslationBindBindingCommand', function () {
   });
 });
 
-describe('TranslationBindBindingComposer', function () {
+describe('TranslationBindBindingRenderer', function () {
 
   function createFixture() {
     const container = createContainer();
@@ -272,13 +272,13 @@ describe('TranslationBindBindingComposer', function () {
 
   it('instantiated with instruction type', function () {
     const container = createFixture();
-    const sut: IInstructionComposer = new TranslationBindBindingComposer(container.get(IExpressionParser), {} as unknown as IObserverLocator);
+    const sut: IRenderer = new TranslationBindBindingRenderer(container.get(IExpressionParser), {} as unknown as IObserverLocator);
     assert.equal(sut.instructionType, TranslationBindInstructionType);
   });
 
   it('#compose instantiates TranslationBinding - simple string literal', function () {
     const container = createFixture();
-    const sut: IInstructionComposer = new TranslationBindBindingComposer(container.get(IExpressionParser), {} as unknown as IObserverLocator);
+    const sut: IRenderer = new TranslationBindBindingRenderer(container.get(IExpressionParser), {} as unknown as IObserverLocator);
     const expressionParser = container.get(IExpressionParser);
     const controller = ({ bindings: [], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); } } as unknown as IComposableController);
 
@@ -297,7 +297,7 @@ describe('TranslationBindBindingComposer', function () {
 
   it('#compose instantiates TranslationBinding - .bind expr', function () {
     const container = createFixture();
-    const sut: IInstructionComposer = new TranslationBindBindingComposer(container.get(IExpressionParser), {} as unknown as IObserverLocator);
+    const sut: IRenderer = new TranslationBindBindingRenderer(container.get(IExpressionParser), {} as unknown as IObserverLocator);
     const expressionParser = container.get(IExpressionParser);
     const controller = ({ bindings: [], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); } } as unknown as IComposableController);
 
@@ -316,7 +316,7 @@ describe('TranslationBindBindingComposer', function () {
 
   it('#compose adds expr to the existing TranslationBinding for the target element', function () {
     const container = createFixture();
-    const sut: IInstructionComposer = new TranslationBindBindingComposer(container.get(IExpressionParser), {} as unknown as IObserverLocator);
+    const sut: IRenderer = new TranslationBindBindingRenderer(container.get(IExpressionParser), {} as unknown as IObserverLocator);
     const expressionParser = container.get(IExpressionParser);
     const targetElement = PLATFORM.document.createElement('span');
     const binding = new TranslationBinding(targetElement, {} as unknown as IObserverLocator, container);

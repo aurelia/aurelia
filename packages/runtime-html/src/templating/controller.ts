@@ -314,13 +314,13 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     // - Controller.compileChildren
     // This keeps hydration synchronous while still allowing the composition root compile hooks to do async work.
     if ((this.root?.controller as this | undefined) !== this) {
-      this.compile(targetedProjections);
+      this.hydrate(targetedProjections);
       this.compileChildren();
     }
   }
 
   /** @internal */
-  public compile(
+  public hydrate(
     targetedProjections: RegisteredProjections | null,
   ): void {
     if (this.hooks.hasHydrating) {

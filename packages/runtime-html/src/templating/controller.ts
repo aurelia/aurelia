@@ -315,7 +315,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     // This keeps hydration synchronous while still allowing the composition root compile hooks to do async work.
     if ((this.root?.controller as this | undefined) !== this) {
       this.hydrate(targetedProjections);
-      this.compileChildren();
+      this.hydrateChildren();
     }
   }
 
@@ -357,7 +357,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   }
 
   /** @internal */
-  public compileChildren(): void {
+  public hydrateChildren(): void {
     const targets = this.nodes!.findTargets();
     this.context!.compose(
       /* flags      */this.flags,

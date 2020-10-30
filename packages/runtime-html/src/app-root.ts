@@ -79,7 +79,7 @@ export class AppRoot implements IDisposable {
       return onResolve(this.runAppTasks('hydrating'), () => {
         controller.hydrate(null);
         return onResolve(this.runAppTasks('hydrated'), () => {
-          controller.compileChildren();
+          controller.hydrateChildren();
           this.hydratePromise = void 0;
         });
       });

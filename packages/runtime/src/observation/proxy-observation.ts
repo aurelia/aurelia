@@ -23,7 +23,7 @@ export function getRawOrSelf<T extends unknown>(v: T): T {
   return isObject(v) ? (v as IIndexable)[rawKey] as T : v;
 }
 
-function doNotCollect(obj: object, key: PropertyKey): boolean {
+function doNotCollect(key: PropertyKey): boolean {
   return key === 'constructor'
     || key === '__proto__'
     // probably should revert to v1 naming style for consistency with builtin?
@@ -55,7 +55,7 @@ const objectHandler: ProxyHandler<object> = {
 
     const connectable = currentWatcher();
 
-    if (!watching || doNotCollect(target, key) || connectable == null) {
+    if (!watching || doNotCollect(key) || connectable == null) {
       return R$get(target, key, receiver);
     }
 
@@ -75,7 +75,7 @@ const arrayHandler: ProxyHandler<unknown[]> = {
 
     const connectable = currentWatcher();
 
-    if (!watching || doNotCollect(target, key) || connectable == null) {
+    if (!watching || doNotCollect(key) || connectable == null) {
       return R$get(target, key, receiver);
     }
 
@@ -274,7 +274,7 @@ const collectionHandler: ProxyHandler<$MapOrSet> = {
 
     const connectable = currentWatcher();
 
-    if (!watching || doNotCollect(target, key) || connectable == null) {
+    if (!watching || doNotCollect(key) || connectable == null) {
       return R$get(target, key, receiver);
     }
 
@@ -410,9 +410,6 @@ function wrappedEntries(this: $MapOrSet): IterableIterator<unknown> {
       const next = iterator.next();
       const value = next.value;
       const done = next.done;
-      if (done) {
-        return { value, done };
-      }
 
       return done
         ? { value: void 0, done }

@@ -38,15 +38,6 @@ export interface ITestRouteViewModel extends IRouteableComponent {
     parent: IHydratedParentController,
     flags: LifecycleFlags,
   ): void | Promise<void>;
-  afterUnbind(
-    initiator: IHydratedController,
-    parent: IHydratedParentController,
-    flags: LifecycleFlags,
-  ): void | Promise<void>;
-  afterUnbindChildren(
-    initiator: IHydratedController,
-    flags: LifecycleFlags,
-  ): void | Promise<void>;
 
   canLoad(
     params: Params,
@@ -81,8 +72,6 @@ export class HookSpecs {
 
     public readonly beforeDetach: IHookSpec<'beforeDetach'>,
     public readonly beforeUnbind: IHookSpec<'beforeUnbind'>,
-    public readonly afterUnbind: IHookSpec<'afterUnbind'>,
-    public readonly afterUnbindChildren: IHookSpec<'afterUnbindChildren'>,
 
     public readonly $dispose: IHookSpec<'dispose'>,
 
@@ -104,8 +93,6 @@ export class HookSpecs {
 
       input.beforeDetach || hookSpecsMap.beforeDetach.sync,
       input.beforeUnbind || hookSpecsMap.beforeUnbind.sync,
-      input.afterUnbind || hookSpecsMap.afterUnbind.sync,
-      input.afterUnbindChildren || hookSpecsMap.afterUnbindChildren.sync,
 
       hookSpecsMap.dispose,
 
@@ -126,8 +113,6 @@ export class HookSpecs {
 
     $this.beforeDetach = void 0;
     $this.beforeUnbind = void 0;
-    $this.afterUnbind = void 0;
-    $this.afterUnbindChildren = void 0;
 
     $this.$dispose = void 0;
 
@@ -157,8 +142,6 @@ const hookNames = [
 
   'beforeDetach',
   'beforeUnbind',
-  'afterUnbind',
-  'afterUnbindChildren',
 
   'canLoad',
   'load',
@@ -264,35 +247,6 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
       () => {
         // this.hia.beforeUnbind.notify(this.name);
         return this.$beforeUnbind(initiator, parent, flags);
-      },
-    );
-  }
-
-  public afterUnbind(
-    initiator: IHydratedController,
-    parent: IHydratedParentController,
-    flags: LifecycleFlags,
-  ): void | Promise<void> {
-    this.hia.afterUnbind.notify(this.name);
-    return this.specs.afterUnbind.invoke(
-      this,
-      () => {
-        // this.hia.afterUnbind.notify(this.name);
-        return this.$afterUnbind(initiator, parent, flags);
-      },
-    );
-  }
-
-  public afterUnbindChildren(
-    initiator: IHydratedController,
-    flags: LifecycleFlags,
-  ): void | Promise<void> {
-    this.hia.afterUnbindChildren.notify(this.name);
-    return this.specs.afterUnbindChildren.invoke(
-      this,
-      () => {
-        // this.hia.afterUnbindChildren.notify(this.name);
-        return this.$afterUnbindChildren(initiator, flags);
       },
     );
   }
@@ -412,21 +366,6 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
   protected $beforeUnbind(
     _initiator: IHydratedController,
     _parent: IHydratedParentController,
-    _flags: LifecycleFlags,
-  ): void | Promise<void> {
-    // do nothing
-  }
-
-  protected $afterUnbind(
-    _initiator: IHydratedController,
-    _parent: IHydratedParentController,
-    _flags: LifecycleFlags,
-  ): void | Promise<void> {
-    // do nothing
-  }
-
-  protected $afterUnbindChildren(
-    _initiator: IHydratedController,
     _flags: LifecycleFlags,
   ): void | Promise<void> {
     // do nothing

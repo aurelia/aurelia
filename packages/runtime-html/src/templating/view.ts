@@ -323,23 +323,6 @@ export class ViewLocator {
           return this.viewModel.beforeUnbind!(initiator, parent, flags);
         };
       }
-      if ('afterUnbind' in object) {
-        proto.afterUnbind = function afterUnbind(
-          initiator: IHydratedController,
-          parent: IHydratedParentController | null,
-          flags: LifecycleFlags,
-        ): void | Promise<void> {
-          return this.viewModel.afterUnbind!(initiator, parent, flags);
-        };
-      }
-      if ('afterUnbindChildren' in object) {
-        proto.afterUnbindChildren = function afterUnbindChildren(
-          initiator: IHydratedController,
-          flags: LifecycleFlags,
-        ): void | Promise<void> {
-          return this.viewModel.afterUnbindChildren!(initiator, flags);
-        };
-      }
 
       if ('dispose' in object) {
         proto.dispose = function dispose(): void {

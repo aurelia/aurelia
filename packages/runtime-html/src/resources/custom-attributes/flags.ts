@@ -32,7 +32,7 @@ abstract class FlagsTemplateController implements ICustomAttributeViewModel {
     return this.view.activate(initiator, $controller, flags | this.flags, $controller.scope, $controller.hostScope);
   }
 
-  public afterUnbind(
+  public beforeDetach(
     initiator: IHydratedController,
     parent: IHydratedParentController,
     flags: LifecycleFlags,

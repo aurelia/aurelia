@@ -388,15 +388,6 @@ export interface IActivationHooks<TParent> {
     parent: TParent,
     flags: LifecycleFlags,
   ): void | Promise<void>;
-  afterUnbind?(
-    initiator: IHydratedController,
-    parent: TParent,
-    flags: LifecycleFlags,
-  ): void | Promise<void>;
-  afterUnbindChildren?(
-    initiator: IHydratedController,
-    flags: LifecycleFlags,
-  ): void | Promise<void>;
 
   dispose?(): void;
   /**

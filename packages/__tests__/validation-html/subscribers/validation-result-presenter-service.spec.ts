@@ -52,7 +52,7 @@ describe('validation-result-presenter-service', function () {
       this.controller.reset();
     }
 
-    public afterUnbindChildren() {
+    public dispose() {
       const controller = this.controller;
       assert.equal(controller.results.length, 0, 'the result should have been removed');
       assert.equal(controller.bindings.size, 0, 'the bindings should have been removed');

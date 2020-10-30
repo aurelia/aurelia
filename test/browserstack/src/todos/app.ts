@@ -87,12 +87,4 @@ export class App {
   public beforeUnbind(): void {
     console.log('app beforeUnbind');
   }
-
-  public afterUnbind(): void {
-    console.log('app afterUnbind');
-  }
-
-  public afterUnbindChildren(): void {
-    console.log('app afterUnbindChildren');
-  }
 }

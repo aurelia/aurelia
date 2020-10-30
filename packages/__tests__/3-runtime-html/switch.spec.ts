@@ -135,22 +135,6 @@ describe('switch', function () {
 
         this.logger.debug('beforeUnbind');
       }
-
-      public async afterUnbind(): Promise<void> {
-        if (this.config.hasPromise) {
-          await this.config.wait();
-        }
-
-        this.logger.debug('afterUnbind');
-      }
-
-      public async afterUnbindChildren(): Promise<void> {
-        if (this.config.hasPromise) {
-          await this.config.wait();
-        }
-
-        this.logger.debug('afterUnbindChildren');
-      }
     }
 
     Reflect.defineProperty(Component, 'name', {
@@ -354,8 +338,8 @@ describe('switch', function () {
   }
   function getDeactivationSequenceFor(name: string | string[]) {
     return typeof name === 'string'
-      ? [`${name}.beforeDetach`, `${name}.beforeUnbind`, `${name}.afterUnbind`, `${name}.afterUnbindChildren`]
-      : ['beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren'].flatMap(x => name.map(n => `${n}.${x}`));
+      ? [`${name}.beforeDetach`, `${name}.beforeUnbind`]
+      : ['beforeDetach', 'beforeUnbind'].flatMap(x => name.map(n => `${n}.${x}`));
   }
 
   class TestData implements TestSetupContext {

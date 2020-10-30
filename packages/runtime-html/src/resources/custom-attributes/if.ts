@@ -37,7 +37,7 @@ export class If implements ICustomAttributeViewModel {
     }
   }
 
-  public afterUnbind(
+  public beforeDetach(
     initiator: IHydratedController,
     parent: IHydratedParentController,
     flags: LifecycleFlags,

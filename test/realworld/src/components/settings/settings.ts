@@ -25,8 +25,6 @@ export class Settings {
 
   public beforeDetach() { return; }
   public beforeUnbind() { return; }
-  public afterUnbind() { return; }
-  public afterUnbindChildren() { return; }
 
   public update() {
     this.userService.update(this.sharedState.currentUser);

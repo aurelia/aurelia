@@ -129,10 +129,4 @@ export class Author {
   public beforeUnbind() {
     console.log('### beforeUnbind', this);
   }
-  public afterUnbind() {
-    console.log('### afterUnbind', this);
-  }
-  public afterUnbindChildren() {
-    console.log('### afterUnbindChildren', this);
-  }
 }

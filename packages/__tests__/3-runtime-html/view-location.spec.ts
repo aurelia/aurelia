@@ -234,8 +234,6 @@ describe('the view locator', function () {
 
     'beforeDetach',
     'beforeUnbind',
-    'afterUnbind',
-    'afterUnbindChildren',
 
     'dispose',
   ].forEach(lifecycleHook => {

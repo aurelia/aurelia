@@ -8,8 +8,8 @@ export function lifecycleLogger(name: string) {
     'created',
     'beforeBind', 'afterBind',
     'beforeAttach', 'afterAttach',
-    'beforeDetach', 'afterDetach',
-    'beforeUnbind', 'afterUnbind',
+    'beforeDetach',
+    'beforeUnbind',
   ];
 
   return function (target: any) {
@@ -43,7 +43,5 @@ export class LifecycleClass {
   public canUnload() { console.log(`name canUnload`); return true; }
   public unload() { console.log(`name unload`); }
   public beforeDetach() { console.log(`name beforeDetach`); }
-  public afterDetach() { console.log(`name afterDetach`); }
   public beforeUnbind() { console.log(`name beforeUnbind`); }
-  public afterUnbind() { console.log(`name unbound`); }
 }

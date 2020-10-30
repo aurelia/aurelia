@@ -70,8 +70,6 @@ export const hookSpecsMap = {
 
   beforeDetach: getHookSpecs('beforeDetach'),
   beforeUnbind: getHookSpecs('beforeUnbind'),
-  afterUnbind: getHookSpecs('afterUnbind'),
-  afterUnbindChildren: getHookSpecs('afterUnbindChildren'),
 
   dispose: getHookSpecs('dispose').sync,
 

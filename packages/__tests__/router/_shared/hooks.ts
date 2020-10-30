@@ -3,7 +3,7 @@ import { interleave, prepend } from '../_hook-tests.spec';
 import { HookName } from './hook-invocation-tracker';
 
 export const addHooks: HookName[] = ['beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren'];
-export const removeHooks: HookName[] = ['beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren', 'dispose'];
+export const removeHooks: HookName[] = ['beforeDetach', 'beforeUnbind', 'dispose'];
 
 export function* getStartHooks(root: string) {
   yield `start.${root}.beforeBind`;
@@ -15,13 +15,9 @@ export function* getStartHooks(root: string) {
 export function* getStopHooks(root: string, p: string, c: string = '') {
   yield `stop.${root}.beforeDetach`;
   yield `stop.${root}.beforeUnbind`;
-  yield `stop.${root}.afterUnbind`;
 
-  if (p) { yield* prepend('stop', p, 'unload', 'beforeDetach', 'beforeUnbind', 'afterUnbind'); }
-  if (c) { yield* prepend('stop', c, 'unload', 'beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren'); }
-
-  if (p) { yield `stop.${p}.afterUnbindChildren`; }
-  yield `stop.${root}.afterUnbindChildren`;
+  if (p) { yield* prepend('stop', p, 'unload', 'beforeDetach', 'beforeUnbind'); }
+  if (c) { yield* prepend('stop', c, 'unload', 'beforeDetach', 'beforeUnbind'); }
 }
 
 export function* getSingleHooks(deferUntil, swapStrategy, componentKind, phase, from, to) {

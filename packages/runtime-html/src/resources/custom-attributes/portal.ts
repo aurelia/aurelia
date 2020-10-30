@@ -73,7 +73,7 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
     return this.$activating(initiator, newTarget, flags);
   }
 
-  public afterUnbind(
+  public beforeDetach(
     initiator: IHydratedController,
     parent: IHydratedParentController,
     flags: LifecycleFlags,

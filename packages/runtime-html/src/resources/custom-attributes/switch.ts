@@ -77,7 +77,7 @@ export class Switch implements ICustomAttributeViewModel {
     return this.promise;
   }
 
-  public afterUnbind(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void> {
+  public beforeDetach(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void> {
     this.queue(() => {
       const view = this.view;
       return view.deactivate(view, this.$controller, flags);
@@ -288,7 +288,7 @@ export class Case implements ICustomAttributeViewModel {
     }
   }
 
-  public afterUnbind(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void> {
+  public beforeDetach(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void> {
     return this.deactivate(flags);
   }
 

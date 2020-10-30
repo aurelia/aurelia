@@ -62,7 +62,7 @@ export class Compose implements ICustomElementViewModel {
     return this.compose(view, subject, initiator, flags);
   }
 
-  public afterUnbind(
+  public beforeDetach(
     initiator: IHydratedController,
     parent: IHydratedParentController | null,
     flags: LifecycleFlags,

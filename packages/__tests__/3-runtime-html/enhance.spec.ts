@@ -106,7 +106,7 @@ describe('2-runtime/enhance.spec.ts', function () {
           @IContainer public container: IContainer
         ) { }
 
-        public async afterAttach() {
+        public async attaching() {
           await this.enhance(this.r1);
         }
 
@@ -169,7 +169,7 @@ describe('2-runtime/enhance.spec.ts', function () {
             @IContainer public container: IContainer
           ) { }
 
-          public async afterAttach() {
+          public async attaching() {
             await this.enhance(this.r1);
           }
 
@@ -233,7 +233,7 @@ describe('2-runtime/enhance.spec.ts', function () {
       created() { this.eventLog.push('created'); },
       binding() { this.eventLog.push('binding'); },
       bound() { this.eventLog.push('bound'); },
-      afterAttach() { this.eventLog.push('afterAttach'); },
+      attaching() { this.eventLog.push('attaching'); },
       attached() { this.eventLog.push('attached'); },
     };
     const container = ctx.container;
@@ -251,7 +251,7 @@ describe('2-runtime/enhance.spec.ts', function () {
       'created',
       'binding',
       'bound',
-      'afterAttach',
+      'attaching',
       'attached',
     ]);
     au.dispose();

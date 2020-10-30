@@ -104,12 +104,12 @@ describe('switch', function () {
         this.logger.debug('bound');
       }
 
-      public async afterAttach(): Promise<void> {
+      public async attaching(): Promise<void> {
         if (this.config.hasPromise) {
           await this.config.wait();
         }
 
-        this.logger.debug('afterAttach');
+        this.logger.debug('attaching');
       }
 
       public async attached(): Promise<void> {
@@ -333,8 +333,8 @@ describe('switch', function () {
 
   function getActivationSequenceFor(name: string | string[]) {
     return typeof name === 'string'
-      ? [`${name}.binding`, `${name}.bound`, `${name}.afterAttach`, `${name}.attached`]
-      : ['binding', 'bound', 'afterAttach', 'attached'].flatMap(x => name.map(n => `${n}.${x}`));
+      ? [`${name}.binding`, `${name}.bound`, `${name}.attaching`, `${name}.attached`]
+      : ['binding', 'bound', 'attaching', 'attached'].flatMap(x => name.map(n => `${n}.${x}`));
   }
   function getDeactivationSequenceFor(name: string | string[]) {
     return typeof name === 'string'

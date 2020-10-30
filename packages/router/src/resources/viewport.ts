@@ -89,9 +89,9 @@ export class ViewportCustomElement implements ICustomElementViewModel {
     );
   }
 
-  public afterAttach(initiator: IHydratedController, parent: IHydratedParentController | null, flags: LifecycleFlags): void | Promise<void> {
+  public attaching(initiator: IHydratedController, parent: IHydratedParentController | null, flags: LifecycleFlags): void | Promise<void> {
     if (this.viewport !== null && (this.viewport.nextContent ?? null) === null) {
-      // console.log('afterAttach', this.viewport?.toString());
+      // console.log('attaching', this.viewport?.toString());
       this.viewport.enabled = true;
       return this.viewport.activate(initiator, this.$controller, flags, true);
       // TODO: Restore scroll state

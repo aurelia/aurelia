@@ -59,7 +59,7 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
     setEffectiveParentNode(this.view.nodes!, originalLoc as unknown as Node);
   }
 
-  public afterAttach(
+  public attaching(
     initiator: IHydratedController,
     parent: IHydratedParentController,
     flags: LifecycleFlags,

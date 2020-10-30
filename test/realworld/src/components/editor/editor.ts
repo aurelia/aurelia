@@ -24,7 +24,7 @@ export class Editor {
 
   public binding() { return; }
   public bound() { return; }
-  public afterAttach() { return; }
+  public attaching() { return; }
   public attached() { return; }
 
   public beforeDetach() { return; }

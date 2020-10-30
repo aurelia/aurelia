@@ -87,7 +87,7 @@ export class AuSlot implements ICustomElementViewModel {
     this.hostScope = this.$controller.scope.parentScope!;
   }
 
-  public afterAttach(
+  public attaching(
     initiator: IHydratedController,
     parent: IHydratedParentController,
     flags: LifecycleFlags,

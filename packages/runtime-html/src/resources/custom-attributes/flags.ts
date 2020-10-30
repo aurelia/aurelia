@@ -23,7 +23,7 @@ abstract class FlagsTemplateController implements ICustomAttributeViewModel {
     this.view.setLocation(location, MountStrategy.insertBefore);
   }
 
-  public afterAttach(
+  public attaching(
     initiator: IHydratedController,
     parent: IHydratedParentController,
     flags: LifecycleFlags,

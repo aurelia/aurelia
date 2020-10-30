@@ -72,8 +72,8 @@ export class App {
     console.log('app bound');
   }
 
-  public afterAttach(): void {
-    console.log('app afterAttach');
+  public attaching(): void {
+    console.log('app attaching');
   }
 
   public attached(): void {

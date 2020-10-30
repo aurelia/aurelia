@@ -79,7 +79,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray> implements IC
     this.local = this.forOf.declaration.evaluate(flags, this.$controller.scope, null, binding.locator, null) as string;
   }
 
-  public afterAttach(
+  public attaching(
     initiator: IHydratedController,
     parent: IHydratedParentController,
     flags: LF,

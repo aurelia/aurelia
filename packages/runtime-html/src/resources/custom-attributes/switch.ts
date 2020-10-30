@@ -68,7 +68,7 @@ export class Switch implements ICustomAttributeViewModel {
     view.setLocation(this.location, MountStrategy.insertBefore);
   }
 
-  public afterAttach(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void> {
+  public attaching(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void> {
     const view = this.view;
     const $controller = this.$controller;
 

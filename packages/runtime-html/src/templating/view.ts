@@ -287,13 +287,13 @@ export class ViewLocator {
           return this.viewModel.bound!(initiator, parent, flags);
         };
       }
-      if ('afterAttach' in object) {
-        proto.afterAttach = function afterAttach(
+      if ('attaching' in object) {
+        proto.attaching = function attaching(
           initiator: IHydratedController,
           parent: IHydratedParentController | null,
           flags: LifecycleFlags,
         ): void | Promise<void> {
-          return this.viewModel.afterAttach!(initiator, parent, flags);
+          return this.viewModel.attaching!(initiator, parent, flags);
         };
       }
       if ('attached' in object) {

@@ -900,11 +900,11 @@
 //     ): void {
 //       this.$calls.addCall(this.id, 'beforeAttach');
 //     };
-//     proto.afterAttach = function afterAttach(
+//     proto.attaching = function attaching(
 //       this: TProto,
 //       flags: LifecycleFlags,
 //     ): MaybePromiseOrTask {
-//       this.$calls.addCall(this.id, 'afterAttach');
+//       this.$calls.addCall(this.id, 'attaching');
 //     };
 //     proto.attached = function attached(
 //       this: TProto,
@@ -963,7 +963,7 @@
 //         .addCall(1, 'bound')
 //         .addCall(1, 'bound')
 //         .addCall(1, 'beforeAttach')
-//         .addCall(1, 'afterAttach')
+//         .addCall(1, 'attaching')
 //         .addCall(1, 'attached')
 //         .addCall(1, 'beforeDetach')
 //         .addCall(1, 'afterDetach')
@@ -1031,10 +1031,10 @@
 //         .addCall(1, 'bound')
 
 //         .addCall(1, 'beforeAttach')
-//         .addCall(1, 'afterAttach')
+//         .addCall(1, 'attaching')
 
 //         .addCall(2, 'beforeAttach')
-//         .addCall(2, 'afterAttach')
+//         .addCall(2, 'attaching')
 
 //         .addCall(2, 'attached')
 //         .addCall(1, 'attached')

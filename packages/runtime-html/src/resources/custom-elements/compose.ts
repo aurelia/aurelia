@@ -45,7 +45,7 @@ export class Compose implements ICustomElementViewModel {
     this.properties = instruction.instructions.reduce(toLookup, {});
   }
 
-  public afterAttach(
+  public attaching(
     initiator: IHydratedController,
     parent: IHydratedParentController | null,
     flags: LifecycleFlags,

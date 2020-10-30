@@ -37,7 +37,7 @@ export class With implements ICustomAttributeViewModel {
     }
   }
 
-  public afterAttach(
+  public attaching(
     initiator: IHydratedController,
     parent: IHydratedParentController,
     flags: LifecycleFlags,

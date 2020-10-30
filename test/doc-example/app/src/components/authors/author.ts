@@ -108,8 +108,8 @@ export class Author {
   public bound() {
     console.log('### bound', this);
   }
-  public afterAttach() {
-    console.log('### afterAttach', this);
+  public attaching() {
+    console.log('### attaching', this);
   }
   public attached() {
     console.log('### attached', this);

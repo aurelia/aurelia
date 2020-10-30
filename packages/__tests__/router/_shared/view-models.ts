@@ -18,7 +18,7 @@ export interface ITestRouteViewModel extends IRouteableComponent {
     parent: IHydratedParentController,
     flags: LifecycleFlags,
   ): void | Promise<void>;
-  afterAttach(
+  attaching(
     initiator: IHydratedController,
     parent: IHydratedParentController,
     flags: LifecycleFlags,
@@ -67,7 +67,7 @@ export class HookSpecs {
   private constructor(
     public readonly binding: IHookSpec<'binding'>,
     public readonly bound: IHookSpec<'bound'>,
-    public readonly afterAttach: IHookSpec<'afterAttach'>,
+    public readonly attaching: IHookSpec<'attaching'>,
     public readonly attached: IHookSpec<'attached'>,
 
     public readonly beforeDetach: IHookSpec<'beforeDetach'>,
@@ -88,7 +88,7 @@ export class HookSpecs {
       // TODO: use '??' instead of '||' but gotta figure out first why ts-node doesn't understand ES2020 syntax
       input.binding || hookSpecsMap.binding.sync,
       input.bound || hookSpecsMap.bound.sync,
-      input.afterAttach || hookSpecsMap.afterAttach.sync,
+      input.attaching || hookSpecsMap.attaching.sync,
       input.attached || hookSpecsMap.attached.sync,
 
       input.beforeDetach || hookSpecsMap.beforeDetach.sync,
@@ -108,7 +108,7 @@ export class HookSpecs {
 
     $this.binding = void 0;
     $this.bound = void 0;
-    $this.afterAttach = void 0;
+    $this.attaching = void 0;
     $this.attached = void 0;
 
     $this.beforeDetach = void 0;
@@ -137,7 +137,7 @@ export class HookSpecs {
 const hookNames = [
   'binding',
   'bound',
-  'afterAttach',
+  'attaching',
   'attached',
 
   'beforeDetach',
@@ -191,17 +191,17 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     );
   }
 
-  public afterAttach(
+  public attaching(
     initiator: IHydratedController,
     parent: IHydratedParentController,
     flags: LifecycleFlags,
   ): void | Promise<void> {
-    this.hia.afterAttach.notify(this.name);
-    return this.specs.afterAttach.invoke(
+    this.hia.attaching.notify(this.name);
+    return this.specs.attaching.invoke(
       this,
       () => {
-        // this.hia.afterAttach.notify(this.name);
-        return this.$afterAttach(initiator, parent, flags);
+        // this.hia.attaching.notify(this.name);
+        return this.$attaching(initiator, parent, flags);
       },
     );
   }
@@ -340,7 +340,7 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     // do nothing
   }
 
-  protected $afterAttach(
+  protected $attaching(
     _initiator: IHydratedController,
     _parent: IHydratedParentController,
     _flags: LifecycleFlags,

@@ -25,7 +25,7 @@ export class If implements ICustomAttributeViewModel {
     @IRenderLocation private readonly location: IRenderLocation,
   ) {}
 
-  public afterAttach(
+  public attaching(
     initiator: IHydratedController,
     parent: IHydratedParentController,
     flags: LifecycleFlags,

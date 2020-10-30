@@ -20,8 +20,8 @@ export class AbcComponent {
   public bound(...rest) {
     this.logger.debug(this.name, 'bound', this.appState, rest);
   }
-  public afterAttach(...rest) {
-    this.logger.debug(this.name, 'afterAttach', rest);
+  public attaching(...rest) {
+    this.logger.debug(this.name, 'attaching', rest);
   }
   public canEnter(instruction, previousInstruction) {
     this.logger.debug(this.name, 'canEnter', ++this.counter, instruction, previousInstruction);

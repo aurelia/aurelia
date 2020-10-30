@@ -140,7 +140,7 @@ describe('router hooks', function () {
         hookSpecs: HookSpecs.create({
           binding: hookSpecsMap.binding.sync,
           bound: hookSpecsMap.bound.sync,
-          afterAttach: hookSpecsMap.afterAttach.sync,
+          attaching: hookSpecsMap.attaching.sync,
           attached: hookSpecsMap.attached.sync,
 
           beforeDetach: hookSpecsMap.beforeDetach.sync,
@@ -343,7 +343,7 @@ describe('router hooks', function () {
                   const expected = [...(function* () {
                     yield `start.root2.binding`;
                     yield `start.root2.bound`;
-                    yield `start.root2.afterAttach`;
+                    yield `start.root2.attaching`;
                     yield `start.root2.attached`;
 
                     switch (componentSpec.kind) {
@@ -1011,7 +1011,7 @@ describe('router hooks', function () {
             bound: hookSpecsMap.bound.setTimeout_0,
           }),
           HookSpecs.create({
-            afterAttach: hookSpecsMap.afterAttach.setTimeout_0,
+            attaching: hookSpecsMap.attaching.setTimeout_0,
           }),
 
           HookSpecs.create({
@@ -1072,32 +1072,32 @@ describe('router hooks', function () {
                   [
                     `start.root.binding`,
                     `start.root.bound`,
-                    `start.root.afterAttach`,
+                    `start.root.attaching`,
                     `start.root.attached`,
 
                     `('' -> 'a/b/c/d').a.canLoad`,
                     `('' -> 'a/b/c/d').a.load`,
                     `('' -> 'a/b/c/d').a.binding`,
                     `('' -> 'a/b/c/d').a.bound`,
-                    `('' -> 'a/b/c/d').a.afterAttach`,
+                    `('' -> 'a/b/c/d').a.attaching`,
 
                     `('' -> 'a/b/c/d').b.canLoad`,
                     `('' -> 'a/b/c/d').b.load`,
                     `('' -> 'a/b/c/d').b.binding`,
                     `('' -> 'a/b/c/d').b.bound`,
-                    `('' -> 'a/b/c/d').b.afterAttach`,
+                    `('' -> 'a/b/c/d').b.attaching`,
 
                     `('' -> 'a/b/c/d').c.canLoad`,
                     `('' -> 'a/b/c/d').c.load`,
                     `('' -> 'a/b/c/d').c.binding`,
                     `('' -> 'a/b/c/d').c.bound`,
-                    `('' -> 'a/b/c/d').c.afterAttach`,
+                    `('' -> 'a/b/c/d').c.attaching`,
 
                     `('' -> 'a/b/c/d').d.canLoad`,
                     `('' -> 'a/b/c/d').d.load`,
                     `('' -> 'a/b/c/d').d.binding`,
                     `('' -> 'a/b/c/d').d.bound`,
-                    `('' -> 'a/b/c/d').d.afterAttach`,
+                    `('' -> 'a/b/c/d').d.attaching`,
 
                     `('' -> 'a/b/c/d').d.attached`,
                     `('' -> 'a/b/c/d').c.attached`,
@@ -1138,7 +1138,7 @@ describe('router hooks', function () {
                   [
                     `start.root.binding`,
                     `start.root.bound`,
-                    `start.root.afterAttach`,
+                    `start.root.attaching`,
                     `start.root.attached`,
 
                     `('' -> 'a/b/c/d').a.canLoad`,
@@ -1149,19 +1149,19 @@ describe('router hooks', function () {
                     `('' -> 'a/b/c/d').a.load`,
                     `('' -> 'a/b/c/d').a.binding`,
                     `('' -> 'a/b/c/d').a.bound`,
-                    `('' -> 'a/b/c/d').a.afterAttach`,
+                    `('' -> 'a/b/c/d').a.attaching`,
                     `('' -> 'a/b/c/d').b.load`,
                     `('' -> 'a/b/c/d').b.binding`,
                     `('' -> 'a/b/c/d').b.bound`,
-                    `('' -> 'a/b/c/d').b.afterAttach`,
+                    `('' -> 'a/b/c/d').b.attaching`,
                     `('' -> 'a/b/c/d').c.load`,
                     `('' -> 'a/b/c/d').c.binding`,
                     `('' -> 'a/b/c/d').c.bound`,
-                    `('' -> 'a/b/c/d').c.afterAttach`,
+                    `('' -> 'a/b/c/d').c.attaching`,
                     `('' -> 'a/b/c/d').d.load`,
                     `('' -> 'a/b/c/d').d.binding`,
                     `('' -> 'a/b/c/d').d.bound`,
-                    `('' -> 'a/b/c/d').d.afterAttach`,
+                    `('' -> 'a/b/c/d').d.attaching`,
                     `('' -> 'a/b/c/d').d.attached`,
                     `('' -> 'a/b/c/d').c.attached`,
                     `('' -> 'a/b/c/d').b.attached`,
@@ -1201,7 +1201,7 @@ describe('router hooks', function () {
                   [
                     `start.root.binding`,
                     `start.root.bound`,
-                    `start.root.afterAttach`,
+                    `start.root.attaching`,
                     `start.root.attached`,
 
                     `('' -> 'a/b/c/d').a.canLoad`,
@@ -1216,16 +1216,16 @@ describe('router hooks', function () {
 
                     `('' -> 'a/b/c/d').a.binding`,
                     `('' -> 'a/b/c/d').a.bound`,
-                    `('' -> 'a/b/c/d').a.afterAttach`,
+                    `('' -> 'a/b/c/d').a.attaching`,
                     `('' -> 'a/b/c/d').b.binding`,
                     `('' -> 'a/b/c/d').b.bound`,
-                    `('' -> 'a/b/c/d').b.afterAttach`,
+                    `('' -> 'a/b/c/d').b.attaching`,
                     `('' -> 'a/b/c/d').c.binding`,
                     `('' -> 'a/b/c/d').c.bound`,
-                    `('' -> 'a/b/c/d').c.afterAttach`,
+                    `('' -> 'a/b/c/d').c.attaching`,
                     `('' -> 'a/b/c/d').d.binding`,
                     `('' -> 'a/b/c/d').d.bound`,
-                    `('' -> 'a/b/c/d').d.afterAttach`,
+                    `('' -> 'a/b/c/d').d.attaching`,
                     `('' -> 'a/b/c/d').d.attached`,
                     `('' -> 'a/b/c/d').c.attached`,
                     `('' -> 'a/b/c/d').b.attached`,
@@ -1846,7 +1846,7 @@ describe('router hooks', function () {
 
                 yield* interleave(
                   (function* () {
-                    yield* prepend(phase1, 'a1', 'binding', 'bound', 'afterAttach');
+                    yield* prepend(phase1, 'a1', 'binding', 'bound', 'attaching');
                     yield `${phase1}.a2.load`;
                     if (a2Load > 1) { yield ''; }
                     if (a2Load > 2) { yield ''; }
@@ -1857,7 +1857,7 @@ describe('router hooks', function () {
                     yield `${phase1}.a1.attached`;
                   })(),
                   (function* () {
-                    yield* prepend(phase1, 'b1', 'binding', 'bound', 'afterAttach');
+                    yield* prepend(phase1, 'b1', 'binding', 'bound', 'attaching');
                     yield `${phase1}.b2.load`;
                     if (b2Load > 2) { yield ''; }
                     if (b2Load > 3) { yield ''; }
@@ -1905,13 +1905,13 @@ describe('router hooks', function () {
 
                 yield* interleave(
                   (function* () {
-                    yield* prepend(phase1, 'a1', 'binding', 'bound', 'afterAttach');
+                    yield* prepend(phase1, 'a1', 'binding', 'bound', 'attaching');
                     yield* prepend(phase1, 'a2', ...addHooks);
                     yield `${phase1}.a1.attached`;
                   })(),
                   (function* () {
-                    yield* prepend(phase1, 'b1', 'binding', 'bound', 'afterAttach');
-                    yield* prepend(phase1, 'b2', 'binding', 'bound', 'afterAttach');
+                    yield* prepend(phase1, 'b1', 'binding', 'bound', 'attaching');
+                    yield* prepend(phase1, 'b2', 'binding', 'bound', 'attaching');
                     yield '';
                     yield `${phase1}.b2.attached`;
                     yield `${phase1}.b1.attached`;
@@ -2015,7 +2015,7 @@ describe('router hooks', function () {
         for (const hookName of [
           'binding',
           'bound',
-          'afterAttach',
+          'attaching',
           'attached',
           'canLoad',
           'load',
@@ -2057,7 +2057,7 @@ describe('router hooks', function () {
               const target2 = CustomElement.define({ name: 'a', template: 'a' }, class Target2 {
                 public async binding() { throw new Error(`error in binding`); }
                 public async bound() { throw new Error(`error in bound`); }
-                public async afterAttach() { throw new Error(`error in afterAttach`); }
+                public async attaching() { throw new Error(`error in attaching`); }
                 public async canLoad() { throw new Error(`error in canLoad`); }
                 public async load() { throw new Error(`error in load`); }
               });
@@ -2088,7 +2088,7 @@ function getAllAsyncSpecs(count: number): HookSpecs {
   return HookSpecs.create({
     binding: hookSpecsMap.binding.async(count),
     bound: hookSpecsMap.bound.async(count),
-    afterAttach: hookSpecsMap.afterAttach.async(count),
+    attaching: hookSpecsMap.attaching.async(count),
     attached: hookSpecsMap.attached.async(count),
 
     beforeDetach: hookSpecsMap.beforeDetach.async(count),

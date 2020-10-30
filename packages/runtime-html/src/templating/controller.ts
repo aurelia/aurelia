@@ -524,10 +524,10 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
     let ret: Promise<void> | void = void 0;
     let promises: Promise<void>[] | undefined = void 0;
-    if (this.hooks.hasAfterAttach) {
-      if (this.debug) { this.logger!.trace(`afterAttach()`); }
+    if (this.hooks.hasAttaching) {
+      if (this.debug) { this.logger!.trace(`attaching()`); }
 
-      ret = this.bindingContext!.afterAttach(this.$initiator as IHydratedController, this.parent as IHydratedParentController, this.$flags);
+      ret = this.bindingContext!.attaching(this.$initiator as IHydratedController, this.parent as IHydratedParentController, this.$flags);
       if (ret instanceof Promise) {
         promises = [ret];
       }

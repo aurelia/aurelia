@@ -64,8 +64,8 @@ export class App {
     }
   }
 
-  public beforeBind(): void {
-    console.log('app beforeBind');
+  public binding(): void {
+    console.log('app binding');
   }
 
   public afterBind(): void {

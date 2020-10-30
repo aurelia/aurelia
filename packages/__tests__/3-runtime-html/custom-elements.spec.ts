@@ -119,7 +119,7 @@
 //         assert.strictEqual(this.value1, 'w00t1', 'Foo1.this.value1');
 //         boundCalls++;
 //       }
-//       public beforeBind() { this.valueChanged(); }
+//       public binding() { this.valueChanged(); }
 //       public valueChanged(): void {
 //         this.value1 = `${this.value}1`;
 //       }
@@ -138,7 +138,7 @@
 //         assert.strictEqual(this.value2, 'w00t1', 'Foo2.this.value2');
 //         boundCalls++;
 //       }
-//       public beforeBind() { this.valueChanged(); }
+//       public binding() { this.valueChanged(); }
 //       public valueChanged(): void {
 //         this.value1 = `${this.value}1`;
 //       }
@@ -157,7 +157,7 @@
 //         assert.strictEqual(this.value2, 'w00t1', 'Foo3.this.value2');
 //         boundCalls++;
 //       }
-//       public beforeBind() { this.valueChanged(); }
+//       public binding() { this.valueChanged(); }
 //       public valueChanged(): void {
 //         this.value1 = `${this.value}1`;
 //       }
@@ -176,7 +176,7 @@
 //         assert.strictEqual(this.value2, 'w00t1', 'Foo4.this.value2');
 //         boundCalls++;
 //       }
-//       public beforeBind() { this.valueChanged(); }
+//       public binding() { this.valueChanged(); }
 //       public valueChanged(): void {
 //         this.value1 = `${this.value}1`;
 //       }
@@ -195,7 +195,7 @@
 //         assert.strictEqual(this.value2, 'w00t1', 'Foo5.this.value2');
 //         boundCalls++;
 //       }
-//       public beforeBind() { this.valueChanged(); }
+//       public binding() { this.valueChanged(); }
 //       public valueChanged(): void {
 //         this.value1 = `${this.value}1`;
 //       }
@@ -225,7 +225,7 @@
 //       @bindable()
 //       public value: any;
 //       public value1: any;
-//       public beforeBind() { this.valueChanged(); }
+//       public binding() { this.valueChanged(); }
 //       public valueChanged(): void {
 //         this.value1 = `${this.value}1`;
 //       }
@@ -238,7 +238,7 @@
 //       public value1: any;
 //       @bindable()
 //       public value2: any;
-//       public beforeBind() { this.valueChanged(); }
+//       public binding() { this.valueChanged(); }
 //       public valueChanged(): void {
 //         this.value1 = `${this.value}1`;
 //       }
@@ -249,7 +249,7 @@
 //       @bindable()
 //       public value: any;
 //       public value1: any;
-//       public beforeBind() { this.valueChanged(); }
+//       public binding() { this.valueChanged(); }
 //       public valueChanged(): void {
 //         this.value1 = `${this.value}1`;
 //       }
@@ -261,7 +261,7 @@
 //       @bindable()
 //       public value: any;
 //       public value1: any;
-//       public beforeBind() { this.valueChanged(); }
+//       public binding() { this.valueChanged(); }
 //       public valueChanged(): void {
 //         this.value1 = `${this.value}1`;
 //       }
@@ -273,7 +273,7 @@
 //       @bindable()
 //       public value: any;
 //       public value1: any;
-//       public beforeBind() { this.valueChanged(); }
+//       public binding() { this.valueChanged(); }
 //       public valueChanged(): void {
 //         this.value1 = `${this.value}1`;
 //       }
@@ -365,7 +365,7 @@
 //       @bindable()
 //       public value: any;
 //       public value1: any;
-//       public beforeBind() { this.valueChanged(); }
+//       public binding() { this.valueChanged(); }
 //       public valueChanged(): void {
 //         this.value1 = `${this.value}1`;
 //       }
@@ -378,7 +378,7 @@
 //       public value1: any;
 //       @bindable()
 //       public value2: any;
-//       public beforeBind() { this.valueChanged(); }
+//       public binding() { this.valueChanged(); }
 //       public valueChanged(): void {
 //         this.value1 = `${this.value}1`;
 //       }
@@ -389,7 +389,7 @@
 //       @bindable()
 //       public value: any;
 //       public value1: any;
-//       public beforeBind() { this.valueChanged(); }
+//       public binding() { this.valueChanged(); }
 //       public valueChanged(): void {
 //         this.value1 = `${this.value}1`;
 //       }
@@ -850,13 +850,13 @@
 //       this.$calls.addCall(this.id, 'created');
 //     };
 
-//     proto.beforeBind = function beforeBind(
+//     proto.binding = function binding(
 //       this: TProto,
 //       initiator: IHydratedController,
 //       parent: IHydratedParentController | null,
 //       flags: LifecycleFlags,
 //     ): MaybePromiseOrTask {
-//       this.$calls.addCall(this.id, 'beforeBind');
+//       this.$calls.addCall(this.id, 'binding');
 //     };
 //     proto.afterBind = function afterBind(
 //       this: TProto,
@@ -959,7 +959,7 @@
 //         .addCall(1, 'hydrating')
 //         .addCall(1, 'hydrated')
 //         .addCall(1, 'created')
-//         .addCall(1, 'beforeBind')
+//         .addCall(1, 'binding')
 //         .addCall(1, 'afterBind')
 //         .addCall(1, 'afterBind')
 //         .addCall(1, 'beforeAttach')
@@ -1021,10 +1021,10 @@
 //         .addCall(2, 'created')
 //         .addCall(1, 'created')
 
-//         .addCall(1, 'beforeBind')
+//         .addCall(1, 'binding')
 //         .addCall(1, 'afterBind')
 
-//         .addCall(2, 'beforeBind')
+//         .addCall(2, 'binding')
 //         .addCall(2, 'afterBind')
 
 //         .addCall(2, 'afterBind')

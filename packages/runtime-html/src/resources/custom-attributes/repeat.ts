@@ -60,7 +60,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray> implements IC
     @IViewFactory public factory: IViewFactory
   ) {}
 
-  public beforeBind(
+  public binding(
     initiator: IHydratedController,
     parent: IHydratedParentController,
     flags: LF,

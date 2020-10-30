@@ -22,7 +22,7 @@ export class Editor {
   public hydrated() { return; }
   public created() { return; }
 
-  public beforeBind() { return; }
+  public binding() { return; }
   public afterBind() { return; }
   public afterAttach() { return; }
   public afterAttachChildren() { return; }

@@ -42,7 +42,7 @@ export class App implements IViewModel {
     this.message = 'Hello World!'; // just for unit testing ;)
   }
 
-  public async beforeBind() {
+  public async binding() {
     // this.router.guardian.addGuard(
     this.router.addHook(
       () => {

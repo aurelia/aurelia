@@ -22,7 +22,7 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
     this.element = element as Element;
   }
 
-  public beforeBind(): void {
+  public binding(): void {
     this.element.addEventListener('click', this.router.linkHandler.handler);
     this.updateValue();
 

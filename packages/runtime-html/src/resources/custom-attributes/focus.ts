@@ -26,7 +26,7 @@ export class Focus implements ICustomAttributeViewModel {
     this.element = element as HTMLElement;
   }
 
-  public beforeBind(): void {
+  public binding(): void {
     this.valueChanged();
   }
 

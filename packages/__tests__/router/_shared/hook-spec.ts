@@ -63,7 +63,7 @@ function getHookSpecs<T extends HookName>(name: T) {
 }
 
 export const hookSpecsMap = {
-  beforeBind: getHookSpecs('beforeBind'),
+  binding: getHookSpecs('binding'),
   afterBind: getHookSpecs('afterBind'),
   afterAttach: getHookSpecs('afterAttach'),
   afterAttachChildren: getHookSpecs('afterAttachChildren'),

@@ -269,13 +269,13 @@ export class ViewLocator {
         };
       }
 
-      if ('beforeBind' in object) {
-        proto.beforeBind = function beforeBind(
+      if ('binding' in object) {
+        proto.binding = function binding(
           initiator: IHydratedController,
           parent: IHydratedParentController | null,
           flags: LifecycleFlags,
         ): void | Promise<void> {
-          return this.viewModel.beforeBind!(initiator, parent, flags);
+          return this.viewModel.binding!(initiator, parent, flags);
         };
       }
       if ('afterBind' in object) {

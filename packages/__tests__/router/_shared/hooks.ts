@@ -2,11 +2,11 @@ import { assert } from '@aurelia/testing';
 import { interleave, prepend } from '../_hook-tests.spec';
 import { HookName } from './hook-invocation-tracker';
 
-export const addHooks: HookName[] = ['beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren'];
+export const addHooks: HookName[] = ['binding', 'afterBind', 'afterAttach', 'afterAttachChildren'];
 export const removeHooks: HookName[] = ['beforeDetach', 'beforeUnbind', 'dispose'];
 
 export function* getStartHooks(root: string) {
-  yield `start.${root}.beforeBind`;
+  yield `start.${root}.binding`;
   yield `start.${root}.afterBind`;
   yield `start.${root}.afterAttach`;
   yield `start.${root}.afterAttachChildren`;
@@ -465,7 +465,7 @@ export function* getParentChildHooks(deferUntil, swapStrategy, componentKind, ph
 //                 yield* prepend(phase, from.p, ...removeHooks);
 //               })(),
 //               (function* () {
-//                 yield* prepend(phase, to.p, 'beforeBind', 'afterBind', 'afterAttach');
+//                 yield* prepend(phase, to.p, 'binding', 'afterBind', 'afterAttach');
 //                 if (to.c) { yield* prepend(phase, to.c, 'load', ...addHooks); }
 //                 yield `${phase}.${to.p}.afterAttachChildren`;
 //               })(),
@@ -473,7 +473,7 @@ export function* getParentChildHooks(deferUntil, swapStrategy, componentKind, ph
 //             break;
 //           case 'all-sync':
 //             yield* prepend(phase, from.p, ...removeHooks);
-//             yield* prepend(phase, to.p, 'beforeBind', 'afterBind', 'afterAttach');
+//             yield* prepend(phase, to.p, 'binding', 'afterBind', 'afterAttach');
 //             if (to.c) { yield* prepend(phase, to.c, 'load', ...addHooks); }
 //             yield `${phase}.${to.p}.afterAttachChildren`;
 //             break;
@@ -482,12 +482,12 @@ export function* getParentChildHooks(deferUntil, swapStrategy, componentKind, ph
 //       case 'sequential-remove-first':
 //         if (from.c) { yield* prepend(phase, from.c, ...removeHooks); }
 //         yield* prepend(phase, from.p, ...removeHooks);
-//         yield* prepend(phase, to.p, 'beforeBind', 'afterBind', 'afterAttach');
+//         yield* prepend(phase, to.p, 'binding', 'afterBind', 'afterAttach');
 //         if (to.c) { yield* prepend(phase, to.c, 'load', ...addHooks); }
 //         yield `${phase}.${to.p}.afterAttachChildren`;
 //         break;
 //       case 'sequential-add-first':
-//         yield* prepend(phase, to.p, 'beforeBind', 'afterBind', 'afterAttach');
+//         yield* prepend(phase, to.p, 'binding', 'afterBind', 'afterAttach');
 //         if (to.c) { yield* prepend(phase, to.c, 'load', ...addHooks); }
 //         yield `${phase}.${to.p}.afterAttachChildren`;
 //         if (from.c) { yield* prepend(phase, from.c, ...removeHooks); }
@@ -507,7 +507,7 @@ export function* getParentChildHooks(deferUntil, swapStrategy, componentKind, ph
 //                 yield* prepend(phase, from.p, ...removeHooks);
 //               })(),
 //               (function* () {
-//                 yield* prepend(phase, to.p, 'beforeBind', 'afterBind', 'afterAttach');
+//                 yield* prepend(phase, to.p, 'binding', 'afterBind', 'afterAttach');
 //                 if (to.c) { yield* prepend(phase, to.c, ...addHooks); }
 //                 yield `${phase}.${to.p}.afterAttachChildren`;
 //               })(),
@@ -515,7 +515,7 @@ export function* getParentChildHooks(deferUntil, swapStrategy, componentKind, ph
 //             break;
 //           case 'all-sync':
 //             yield* prepend(phase, from.p, ...removeHooks);
-//             yield* prepend(phase, to.p, 'beforeBind', 'afterBind', 'afterAttach');
+//             yield* prepend(phase, to.p, 'binding', 'afterBind', 'afterAttach');
 //             if (to.c) { yield* prepend(phase, to.c, ...addHooks); }
 //             yield `${phase}.${to.p}.afterAttachChildren`;
 //             break;
@@ -524,12 +524,12 @@ export function* getParentChildHooks(deferUntil, swapStrategy, componentKind, ph
 //       case 'sequential-remove-first':
 //         if (from.c) { yield* prepend(phase, from.c, ...removeHooks); }
 //         yield* prepend(phase, from.p, ...removeHooks);
-//         yield* prepend(phase, to.p, 'beforeBind', 'afterBind', 'afterAttach');
+//         yield* prepend(phase, to.p, 'binding', 'afterBind', 'afterAttach');
 //         if (to.c) { yield* prepend(phase, to.c, ...addHooks); }
 //         yield `${phase}.${to.p}.afterAttachChildren`;
 //         break;
 //       case 'sequential-add-first':
-//         yield* prepend(phase, to.p, 'beforeBind', 'afterBind', 'afterAttach');
+//         yield* prepend(phase, to.p, 'binding', 'afterBind', 'afterAttach');
 //         if (to.c) { yield* prepend(phase, to.c, ...addHooks); }
 //         yield `${phase}.${to.p}.afterAttachChildren`;
 //         if (from.c) { yield* prepend(phase, from.c, ...removeHooks); }

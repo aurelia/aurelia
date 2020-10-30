@@ -223,7 +223,7 @@ export class ViewportScope implements IScopeOwner {
     return false;
   }
 
-  public beforeBind(): void {
+  public binding(): void {
     const source: unknown[] = this.source || [];
     if (source.length > 0 && this.sourceItem === null) {
       this.sourceItem = this.getAvailableSourceItem();

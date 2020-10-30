@@ -20,7 +20,7 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
     this.element = element as Element;
   }
 
-  public beforeBind(): void {
+  public binding(): void {
     if (this.router.options.useHref && !this.hasGoto()) {
       this.element.addEventListener('click', this.router.linkHandler.handler);
     }

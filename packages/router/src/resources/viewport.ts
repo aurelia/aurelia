@@ -77,7 +77,7 @@ export class ViewportCustomElement implements ICustomElementViewModel {
     );
   }
 
-  public beforeBind(initiator: IHydratedController, parent: IHydratedParentController | null, flags: LifecycleFlags): void | Promise<void> {
+  public binding(initiator: IHydratedController, parent: IHydratedParentController | null, flags: LifecycleFlags): void | Promise<void> {
     this.isBound = true;
     return Runner.run(
       () => this.waitForRouterStart(),

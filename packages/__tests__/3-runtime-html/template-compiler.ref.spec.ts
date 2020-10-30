@@ -168,7 +168,7 @@ describe('3-runtime-html/templating-compiler.ref.spec.ts', function () {
       root: class App {
         public static inject = [INode];
         public div: HTMLElement;
-        public beforeBindCalls = 0;
+        public bindingCalls = 0;
         public afterBindCalls = 0;
         public afterAttachCalls = 0;
         public afterAttachChildrenCalls = 0;
@@ -180,10 +180,10 @@ describe('3-runtime-html/templating-compiler.ref.spec.ts', function () {
           this.el = el as Element;
         }
 
-        public beforeBind(): void {
-          this.beforeBindCalls++;
-          assert.strictEqual(this.div, undefined, '[beforeBind] div !== undefined');
-          assert.notContains(this.el, this.div, '[beforeBind] this.el.contains(this.div) === false');
+        public binding(): void {
+          this.bindingCalls++;
+          assert.strictEqual(this.div, undefined, '[binding] div !== undefined');
+          assert.notContains(this.el, this.div, '[binding] this.el.contains(this.div) === false');
         }
 
         public afterBind(): void {
@@ -220,7 +220,7 @@ describe('3-runtime-html/templating-compiler.ref.spec.ts', function () {
         ctx,
         host,
         comp: {
-          beforeBindCalls: number;
+          bindingCalls: number;
           afterBindCalls: number;
           afterAttachCalls: number;
           afterAttachChildrenCalls: number;
@@ -228,7 +228,7 @@ describe('3-runtime-html/templating-compiler.ref.spec.ts', function () {
           beforeUnbindCalls: number;
         }
       ) => {
-        assert.equal(comp.beforeBindCalls, 1, '[beforeBind]');
+        assert.equal(comp.bindingCalls, 1, '[binding]');
         assert.equal(comp.afterBindCalls, 1, '[afterBind]');
         assert.equal(comp.afterAttachCalls, 1, '[afterAttach]');
         assert.equal(comp.afterAttachChildrenCalls, 1, '[afterAttachChildren]');
@@ -239,7 +239,7 @@ describe('3-runtime-html/templating-compiler.ref.spec.ts', function () {
         ctx,
         host,
         comp: {
-          beforeBindCalls: number;
+          bindingCalls: number;
           afterBindCalls: number;
           afterAttachCalls: number;
           afterAttachChildrenCalls: number;
@@ -247,7 +247,7 @@ describe('3-runtime-html/templating-compiler.ref.spec.ts', function () {
           beforeUnbindCalls: number;
         }
       ) => {
-        assert.equal(comp.beforeBindCalls, 1, '[beforeBind]');
+        assert.equal(comp.bindingCalls, 1, '[binding]');
         assert.equal(comp.afterBindCalls, 1, '[afterBind]');
         assert.equal(comp.afterAttachCalls, 1, '[afterAttach]');
         assert.equal(comp.afterAttachChildrenCalls, 1, '[afterAttachChildren]');
@@ -307,7 +307,7 @@ describe('3-runtime-html/templating-compiler.ref.spec.ts', function () {
         ] as IRefIntegrationTestCase[];
       })
       .reduce((arr, cases) => arr.concat(cases), []),
-    // #region ref-beforeBind order
+    // #region ref-binding order
     {
       title: 'works regardless of declaration order',
       template: '<input value.to-view="div.toString()"><div ref="div"></div>',
@@ -388,7 +388,7 @@ describe('3-runtime-html/templating-compiler.ref.spec.ts', function () {
         assert.strictEqual(comp.divSetterCount, 11, 'shoulda called setter 11 times' /* 1 comes from $unbind */);
       }
     },
-    // #endregion ref-beforeBind order
+    // #endregion ref-binding order
 
     // #region wrong usage
     // bellow are non-happy-path scenarios

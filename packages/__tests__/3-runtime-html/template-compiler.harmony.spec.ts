@@ -137,7 +137,7 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
                 this.el = el as HTMLElement;
               }
 
-              public beforeBind() {
+              public binding() {
                 this.el.setAttribute('lvl', `lvl-${this.lvl}`);
               }
             }
@@ -199,7 +199,7 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
           public constructor(element: INode) {
             this.element = element as Element;
           }
-          public beforeBind(): void {
+          public binding(): void {
             this.valueChanged();
           }
 
@@ -275,7 +275,7 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
             public constructor(element: INode) {
               this.element = element as Element;
             }
-            public beforeBind(): void {
+            public binding(): void {
               this.valueChanged();
             }
             public valueChanged(): void {

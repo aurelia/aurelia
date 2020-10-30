@@ -92,7 +92,7 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel {
 
     this.connect();
     if (this.viewportScope !== null) {
-      this.viewportScope.beforeBind();
+      this.viewportScope.binding();
     }
   }
   public beforeUnbind(initiator: IHydratedController, parent: ISyntheticView | ICustomElementController | null, flags: LifecycleFlags): void | Promise<void> {

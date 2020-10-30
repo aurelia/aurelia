@@ -212,7 +212,7 @@ describe('validate-binding-behavior', function () {
       this.node = node as HTMLElement;
     }
 
-    public beforeBind() {
+    public binding() {
       for (const event of this.triggeringEvents) {
         this.node.addEventListener(event, this);
       }

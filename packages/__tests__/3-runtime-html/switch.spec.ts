@@ -88,12 +88,12 @@ describe('switch', function () {
         nameIdMap.set(name, ++id);
       }
 
-      public async beforeBind(): Promise<void> {
+      public async binding(): Promise<void> {
         if (this.config.hasPromise) {
           await this.config.wait();
         }
 
-        this.logger.debug('beforeBind');
+        this.logger.debug('binding');
       }
 
       public async afterBind(): Promise<void> {
@@ -333,8 +333,8 @@ describe('switch', function () {
 
   function getActivationSequenceFor(name: string | string[]) {
     return typeof name === 'string'
-      ? [`${name}.beforeBind`, `${name}.afterBind`, `${name}.afterAttach`, `${name}.afterAttachChildren`]
-      : ['beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren'].flatMap(x => name.map(n => `${n}.${x}`));
+      ? [`${name}.binding`, `${name}.afterBind`, `${name}.afterAttach`, `${name}.afterAttachChildren`]
+      : ['binding', 'afterBind', 'afterAttach', 'afterAttachChildren'].flatMap(x => name.map(n => `${n}.${x}`));
   }
   function getDeactivationSequenceFor(name: string | string[]) {
     return typeof name === 'string'

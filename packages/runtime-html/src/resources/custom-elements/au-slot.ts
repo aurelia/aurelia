@@ -79,7 +79,7 @@ export class AuSlot implements ICustomElementViewModel {
     this.outerScope = factory.projectionScope;
   }
 
-  public beforeBind(
+  public binding(
     initiator: IHydratedController,
     parent: IHydratedParentController,
     flags: LifecycleFlags,

@@ -43,7 +43,7 @@ export class App {
   //   return Math.max(...this.windows.map(w => w.id));
   // }
 
-  public beforeBind(): void {
+  public binding(): void {
     const observerLocator = this.router.container.get(IObserverLocator);
     const observer = observerLocator.getArrayObserver(LifecycleFlags.none, this.windows) as any;
     observer.subscribeToCollection(this);

@@ -359,7 +359,7 @@ export const enum MountStrategy {
 }
 
 export interface IActivationHooks<TParent> {
-  beforeBind?(
+  binding?(
     initiator: IHydratedController,
     parent: TParent,
     flags: LifecycleFlags,

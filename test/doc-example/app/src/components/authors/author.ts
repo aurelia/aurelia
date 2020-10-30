@@ -87,8 +87,8 @@ export class Author {
       await new Promise(resolve => setTimeout(resolve, 2000));
     }
   }
-  public beforeBind() {
-    console.log('### beforeBind', this);
+  public binding() {
+    console.log('### binding', this);
     const newRoutes = this.router.addRoutes([
       { path: 'awards', instructions: [{ component: 'awards', viewport: 'down' }] },
       { path: '/new', instructions: [{ component: 'new', viewport: 'right' }] },

@@ -471,10 +471,10 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     this.$initiator = initiator;
     this.$flags = flags;
 
-    if (this.hooks.hasBeforeBind) {
-      if (this.debug) { this.logger!.trace(`beforeBind()`); }
+    if (this.hooks.hasBinding) {
+      if (this.debug) { this.logger!.trace(`binding()`); }
 
-      const ret = this.bindingContext!.beforeBind(this.$initiator as IHydratedController, this.parent as IHydratedParentController, this.$flags);
+      const ret = this.bindingContext!.binding(this.$initiator as IHydratedController, this.parent as IHydratedParentController, this.$flags);
       if (ret instanceof Promise) {
         return ret.then(this.bind.bind(this));
       }

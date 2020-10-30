@@ -44,7 +44,7 @@
 //     binding: true,
 //     bound: true,
 //     beforeAttach: true,
-//     afterAttachChildren: true,
+//     attached: true,
 //     beforeDetach: true,
 //     dispose: true,
 //     afterDetachChildren: true,
@@ -58,7 +58,7 @@
 //     binding(...args: any[]): void;
 //     bound(...args: any[]): void;
 //     beforeAttach(...args: any[]): void;
-//     afterAttachChildren(...args: any[]): void;
+//     attached(...args: any[]): void;
 //     beforeDetach(...args: any[]): void;
 //     dispose(...args: any[]): void;
 //     afterDetachChildren(...args: any[]): void;
@@ -79,8 +79,8 @@
 //     proto.beforeAttach = function (...args: any[]): void {
 //       this.$$calls.addCall(this.id, 'beforeAttach', ...args);
 //     };
-//     proto.afterAttachChildren = function (...args: any[]): void {
-//       this.$$calls.addCall(this.id, 'afterAttachChildren', ...args);
+//     proto.attached = function (...args: any[]): void {
+//       this.$$calls.addCall(this.id, 'attached', ...args);
 //     };
 //     proto.beforeDetach = function (...args: any[]): void {
 //       this.$$calls.addCall(this.id, 'beforeDetach', ...args);
@@ -259,8 +259,8 @@
 //         expectedCalls
 //           .addCall(2, 'mount', LF.fromTick)
 //           .addCall(2, 'mountCustomElement', LF.fromTick)
-//           .addCall(2, 'afterAttachChildren', LF.fromTick)
-//           .addCall(1, 'afterAttachChildren', LF.fromTick),
+//           .addCall(2, 'attached', LF.fromTick)
+//           .addCall(1, 'attached', LF.fromTick),
 //         '5',
 //       );
 //       assert.strictEqual(host.textContent, '1', '6');
@@ -532,16 +532,16 @@
 //           .addCall(7, 'mount', LF.fromTick)
 //           .addCall(7, 'mountCustomElement', LF.fromTick)
 
-//           .addCall(7, 'afterAttachChildren', LF.fromTick)
+//           .addCall(7, 'attached', LF.fromTick)
 
 //           // ce #2
-//           .addCall(6, 'afterAttachChildren', LF.fromTick)
+//           .addCall(6, 'attached', LF.fromTick)
 
 //           // ce #1 controller
-//           .addCall(2, 'afterAttachChildren', LF.fromTick)
+//           .addCall(2, 'attached', LF.fromTick)
 
 //           // ce #1
-//           .addCall(1, 'afterAttachChildren', LF.fromTick),
+//           .addCall(1, 'attached', LF.fromTick),
 //         '5',
 //       );
 //       assert.strictEqual(host.textContent, '16', '6');
@@ -934,16 +934,16 @@
 //           .addCall(7, 'mount', LF.fromTick)
 //           .addCall(7, 'mountCustomElement', LF.fromTick)
 
-//           .addCall(7, 'afterAttachChildren', LF.fromTick)
+//           .addCall(7, 'attached', LF.fromTick)
 
 //           // ce #2
-//           .addCall(6, 'afterAttachChildren', LF.fromTick)
+//           .addCall(6, 'attached', LF.fromTick)
 
 //           // ce #1 controller
-//           .addCall(2, 'afterAttachChildren', LF.fromTick)
+//           .addCall(2, 'attached', LF.fromTick)
 
 //           // ce #1
-//           .addCall(1, 'afterAttachChildren', LF.fromTick),
+//           .addCall(1, 'attached', LF.fromTick),
 //         '5',
 //       );
 //       assert.strictEqual(host.textContent, 'hihi', '6');

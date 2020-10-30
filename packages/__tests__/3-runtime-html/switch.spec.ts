@@ -112,12 +112,12 @@ describe('switch', function () {
         this.logger.debug('afterAttach');
       }
 
-      public async afterAttachChildren(): Promise<void> {
+      public async attached(): Promise<void> {
         if (this.config.hasPromise) {
           await this.config.wait();
         }
 
-        this.logger.debug('afterAttachChildren');
+        this.logger.debug('attached');
       }
 
       public async beforeDetach(): Promise<void> {
@@ -333,8 +333,8 @@ describe('switch', function () {
 
   function getActivationSequenceFor(name: string | string[]) {
     return typeof name === 'string'
-      ? [`${name}.binding`, `${name}.bound`, `${name}.afterAttach`, `${name}.afterAttachChildren`]
-      : ['binding', 'bound', 'afterAttach', 'afterAttachChildren'].flatMap(x => name.map(n => `${n}.${x}`));
+      ? [`${name}.binding`, `${name}.bound`, `${name}.afterAttach`, `${name}.attached`]
+      : ['binding', 'bound', 'afterAttach', 'attached'].flatMap(x => name.map(n => `${n}.${x}`));
   }
   function getDeactivationSequenceFor(name: string | string[]) {
     return typeof name === 'string'

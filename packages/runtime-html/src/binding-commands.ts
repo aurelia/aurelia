@@ -190,7 +190,7 @@ export class ClassBindingCommand implements BindingCommandInstance {
 }
 
 /**
- * Binding command to refer different targets (element, custom element/attribute view models, controller) afterAttachChildren to an element
+ * Binding command to refer different targets (element, custom element/attribute view models, controller) attached to an element
  */
 @bindingCommand('ref')
 export class RefBindingCommand implements BindingCommandInstance {

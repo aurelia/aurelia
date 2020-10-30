@@ -234,7 +234,7 @@ describe('2-runtime/enhance.spec.ts', function () {
       binding() { this.eventLog.push('binding'); },
       bound() { this.eventLog.push('bound'); },
       afterAttach() { this.eventLog.push('afterAttach'); },
-      afterAttachChildren() { this.eventLog.push('afterAttachChildren'); },
+      attached() { this.eventLog.push('attached'); },
     };
     const container = ctx.container;
     const au = new Aurelia(container);
@@ -252,7 +252,7 @@ describe('2-runtime/enhance.spec.ts', function () {
       'binding',
       'bound',
       'afterAttach',
-      'afterAttachChildren',
+      'attached',
     ]);
     au.dispose();
   });

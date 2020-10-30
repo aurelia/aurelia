@@ -149,7 +149,7 @@
 //   public readonly binding: PromiseTracker = new PromiseTracker(this, 'binding');
 //   public readonly bound: PromiseTracker = new PromiseTracker(this, 'bound');
 //   public readonly afterAttach: PromiseTracker = new PromiseTracker(this, 'afterAttach');
-//   public readonly afterAttachChildren: PromiseTracker = new PromiseTracker(this, 'afterAttachChildren');
+//   public readonly attached: PromiseTracker = new PromiseTracker(this, 'attached');
 //   public readonly beforeDetach: PromiseTracker = new PromiseTracker(this, 'beforeDetach');
 //   public readonly beforeUnbind: PromiseTracker = new PromiseTracker(this, 'beforeUnbind');
 //   public readonly afterUnbind: PromiseTracker = new PromiseTracker(this, 'afterUnbind');
@@ -223,12 +223,12 @@
 //       this.calls.afterAttach.notify(name, callResolve);
 //     }
 
-//     public async afterAttachChildren(): Promise<void> {
+//     public async attached(): Promise<void> {
 //       if (this.config.hasPromise) {
 //         await this.config.wait();
 //       }
 
-//       this.calls.afterAttachChildren.notify(name, callResolve);
+//       this.calls.attached.notify(name, callResolve);
 //     }
 
 //     public async beforeDetach(): Promise<void> {
@@ -444,7 +444,7 @@
 //                   controller.dispose();
 //                 });
 
-//                 it('afterAttachChildren', async function () {
+//                 it('attached', async function () {
 //                   const { controller, calls, config } = createControllerFixture(A1, createConfig);
 //                   const promises: (void | Promise<void>)[] = [];
 
@@ -474,9 +474,9 @@
 //                   assert.deepStrictEqual(calls.history.splice(0), [
 //                     'a-1.afterAttach',
 //                   ], `1.5`);
-//                   await calls.afterAttachChildren.promise;
+//                   await calls.attached.promise;
 //                   assert.deepStrictEqual(calls.history.splice(0), [
-//                     'a-1.afterAttachChildren',
+//                     'a-1.attached',
 //                   ], `1.6`);
 
 //                   promises.push(controller.deactivate(controller, null!, flags));
@@ -575,7 +575,7 @@
 //                   controller.dispose();
 //                 });
 
-//                 it('afterAttachChildren', async function () {
+//                 it('attached', async function () {
 //                   const { controller, calls, config, ctx } = createControllerFixture(A1, createConfig);
 //                   controller.addController(createController(ctx, B1));
 //                   const promises: (void | Promise<void>)[] = [];
@@ -606,13 +606,13 @@
 //                   assert.deepStrictEqual(calls.history.splice(0), [
 //                     'a-1.afterAttach',
 //                   ], `1.5`);
-//                   await calls.afterAttachChildren.promise;
+//                   await calls.attached.promise;
 //                   assert.deepStrictEqual(calls.history.splice(0), [
 //                     'b-1.binding',
 //                     'b-1.bound',
 //                     'b-1.afterAttach',
-//                     'b-1.afterAttachChildren',
-//                     'a-1.afterAttachChildren',
+//                     'b-1.attached',
+//                     'a-1.attached',
 //                   ], `1.6`);
 
 //                   promises.push(controller.deactivate(controller, null!, flags));
@@ -841,7 +841,7 @@
 //                   controller.dispose();
 //                 });
 
-//                 it('afterAttachChildren', async function () {
+//                 it('attached', async function () {
 //                   const { controller, calls, config, ctx } = createControllerFixture(B1, createConfig);
 //                   controller.addController(createController(ctx, A1));
 //                   const promises: (void | Promise<void>)[] = [];
@@ -881,19 +881,19 @@
 //                   assert.deepStrictEqual(calls.history.splice(0), [
 //                     'a-1.afterAttach',
 //                   ], `1.5`);
-//                   await calls.afterAttachChildren.promise;
+//                   await calls.attached.promise;
 //                   if (config.hasTimeout) {
 //                     assert.deepStrictEqual(calls.history.splice(0), [
-//                       'a-1.afterAttachChildren',
+//                       'a-1.attached',
 //                     ], `1.6.1`);
 //                     await Promise.all(promises.splice(0));
 //                     assert.deepStrictEqual(calls.history.splice(0), [
-//                       'b-1.afterAttachChildren',
+//                       'b-1.attached',
 //                     ], `1.6.2`);
 //                   } else {
 //                     assert.deepStrictEqual(calls.history.splice(0), [
-//                       'a-1.afterAttachChildren',
-//                       'b-1.afterAttachChildren',
+//                       'a-1.attached',
+//                       'b-1.attached',
 //                     ], `1.7.1`);
 //                     await Promise.all(promises.splice(0));
 //                     assert.deepStrictEqual(calls.history.splice(0), [
@@ -1117,7 +1117,7 @@
 //                   au.dispose();
 //                 });
 
-//                 it('afterAttachChildren', async function () {
+//                 it('attached', async function () {
 //                   const { au, calls, component, config } = createAuFixture(A1Toggle, createConfig);
 //                   await au.start();
 //                   assert.deepStrictEqual(calls.history.splice(0), [
@@ -1148,9 +1148,9 @@
 //                   assert.deepStrictEqual(calls.history.splice(0), [
 //                     'a-1.afterAttach',
 //                   ], `1.5`);
-//                   await calls.afterAttachChildren.promise;
+//                   await calls.attached.promise;
 //                   assert.deepStrictEqual(calls.history.splice(0), [
-//                     'a-1.afterAttachChildren',
+//                     'a-1.attached',
 //                   ], `1.6`);
 
 //                   component.showA1 = false;

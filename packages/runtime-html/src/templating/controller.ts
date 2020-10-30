@@ -543,18 +543,18 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
     ret = promises === void 0 ? void 0 : resolveAll(...promises);
     if (ret instanceof Promise) {
-      return ret.then(this.afterAttachChildren.bind(this));
+      return ret.then(this.attached.bind(this));
     }
-    return this.afterAttachChildren();
+    return this.attached();
   }
 
-  private afterAttachChildren(): void | Promise<void> {
+  private attached(): void | Promise<void> {
     this.state = State.activated;
 
-    if (this.hooks.hasAfterAttachChildren) {
-      if (this.debug) { this.logger!.trace(`afterAttachChildren()`); }
+    if (this.hooks.hasAttached) {
+      if (this.debug) { this.logger!.trace(`attached()`); }
 
-      return this.bindingContext!.afterAttachChildren!(this.$initiator as IHydratedController, this.$flags);
+      return this.bindingContext!.attached!(this.$initiator as IHydratedController, this.$flags);
     }
   }
 

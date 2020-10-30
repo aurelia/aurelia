@@ -25,7 +25,7 @@ export class Editor {
   public binding() { return; }
   public bound() { return; }
   public afterAttach() { return; }
-  public afterAttachChildren() { return; }
+  public attached() { return; }
 
   public beforeDetach() { return; }
   public beforeUnbind() { return; }

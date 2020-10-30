@@ -66,7 +66,7 @@ export const hookSpecsMap = {
   binding: getHookSpecs('binding'),
   bound: getHookSpecs('bound'),
   afterAttach: getHookSpecs('afterAttach'),
-  afterAttachChildren: getHookSpecs('afterAttachChildren'),
+  attached: getHookSpecs('attached'),
 
   beforeDetach: getHookSpecs('beforeDetach'),
   beforeUnbind: getHookSpecs('beforeUnbind'),

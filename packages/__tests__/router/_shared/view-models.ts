@@ -23,7 +23,7 @@ export interface ITestRouteViewModel extends IRouteableComponent {
     parent: IHydratedParentController,
     flags: LifecycleFlags,
   ): void | Promise<void>;
-  afterAttachChildren(
+  attached(
     initiator: IHydratedController,
     flags: LifecycleFlags,
   ): void | Promise<void>;
@@ -68,7 +68,7 @@ export class HookSpecs {
     public readonly binding: IHookSpec<'binding'>,
     public readonly bound: IHookSpec<'bound'>,
     public readonly afterAttach: IHookSpec<'afterAttach'>,
-    public readonly afterAttachChildren: IHookSpec<'afterAttachChildren'>,
+    public readonly attached: IHookSpec<'attached'>,
 
     public readonly beforeDetach: IHookSpec<'beforeDetach'>,
     public readonly beforeUnbind: IHookSpec<'beforeUnbind'>,
@@ -89,7 +89,7 @@ export class HookSpecs {
       input.binding || hookSpecsMap.binding.sync,
       input.bound || hookSpecsMap.bound.sync,
       input.afterAttach || hookSpecsMap.afterAttach.sync,
-      input.afterAttachChildren || hookSpecsMap.afterAttachChildren.sync,
+      input.attached || hookSpecsMap.attached.sync,
 
       input.beforeDetach || hookSpecsMap.beforeDetach.sync,
       input.beforeUnbind || hookSpecsMap.beforeUnbind.sync,
@@ -109,7 +109,7 @@ export class HookSpecs {
     $this.binding = void 0;
     $this.bound = void 0;
     $this.afterAttach = void 0;
-    $this.afterAttachChildren = void 0;
+    $this.attached = void 0;
 
     $this.beforeDetach = void 0;
     $this.beforeUnbind = void 0;
@@ -138,7 +138,7 @@ const hookNames = [
   'binding',
   'bound',
   'afterAttach',
-  'afterAttachChildren',
+  'attached',
 
   'beforeDetach',
   'beforeUnbind',
@@ -206,16 +206,16 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     );
   }
 
-  public afterAttachChildren(
+  public attached(
     initiator: IHydratedController,
     flags: LifecycleFlags,
   ): void | Promise<void> {
-    this.hia.afterAttachChildren.notify(this.name);
-    return this.specs.afterAttachChildren.invoke(
+    this.hia.attached.notify(this.name);
+    return this.specs.attached.invoke(
       this,
       () => {
-        // this.hia.afterAttachChildren.notify(this.name);
-        return this.$afterAttachChildren(initiator, flags);
+        // this.hia.attached.notify(this.name);
+        return this.$attached(initiator, flags);
       },
     );
   }
@@ -348,7 +348,7 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     // do nothing
   }
 
-  protected $afterAttachChildren(
+  protected $attached(
     _initiator: IHydratedController,
     _flags: LifecycleFlags,
   ): void | Promise<void> {

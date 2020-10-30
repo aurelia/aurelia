@@ -230,7 +230,7 @@ describe('the view locator', function () {
     'binding',
     'bound',
     'afterAttach',
-    'afterAttachChildren',
+    'attached',
 
     'beforeDetach',
     'beforeUnbind',

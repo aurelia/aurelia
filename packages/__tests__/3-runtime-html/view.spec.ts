@@ -141,9 +141,9 @@ describe.skip(`ViewFactory`, function () {
 //     lifecycle.afterUnbindChildren.end(flags);
 //   }
 //   function runAttachLifecycle(lifecycle: ILifecycle, view: IController, flags: LF): void {
-//     lifecycle.afterAttachChildren.begin();
+//     lifecycle.attached.begin();
 //     view.attach(flags);
-//     lifecycle.afterAttachChildren.end(flags);
+//     lifecycle.attached.end(flags);
 //   }
 //   function runDetachLifecycle(lifecycle: ILifecycle, view: IController, flags: LF): void {
 //     lifecycle.afterDetachChildren.begin();

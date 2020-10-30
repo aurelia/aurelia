@@ -151,7 +151,7 @@ export class Blur implements ICustomAttributeViewModel {
     this.manager = BlurManager.createFor(p);
   }
 
-  public afterAttachChildren(): void {
+  public attached(): void {
     this.manager.register(this);
   }
 

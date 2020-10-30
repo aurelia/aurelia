@@ -5,7 +5,7 @@ export type HookName = (
   'binding' |
   'bound' |
   'afterAttach' |
-  'afterAttachChildren' |
+  'attached' |
 
   'beforeDetach' |
   'beforeUnbind' |
@@ -104,7 +104,7 @@ export class HookInvocationAggregator {
   public readonly binding: HookInvocationTracker = new HookInvocationTracker(this, 'binding');
   public readonly bound: HookInvocationTracker = new HookInvocationTracker(this, 'bound');
   public readonly afterAttach: HookInvocationTracker = new HookInvocationTracker(this, 'afterAttach');
-  public readonly afterAttachChildren: HookInvocationTracker = new HookInvocationTracker(this, 'afterAttachChildren');
+  public readonly attached: HookInvocationTracker = new HookInvocationTracker(this, 'attached');
 
   public readonly beforeDetach: HookInvocationTracker = new HookInvocationTracker(this, 'beforeDetach');
   public readonly beforeUnbind: HookInvocationTracker = new HookInvocationTracker(this, 'beforeUnbind');
@@ -136,7 +136,7 @@ export class HookInvocationAggregator {
     this.binding.dispose();
     this.bound.dispose();
     this.afterAttach.dispose();
-    this.afterAttachChildren.dispose();
+    this.attached.dispose();
     this.beforeDetach.dispose();
     this.beforeUnbind.dispose();
     this.$$dispose.dispose();
@@ -153,7 +153,7 @@ export class HookInvocationAggregator {
     $this.binding = void 0;
     $this.bound = void 0;
     $this.afterAttach = void 0;
-    $this.afterAttachChildren = void 0;
+    $this.attached = void 0;
     $this.beforeDetach = void 0;
     $this.beforeUnbind = void 0;
     $this.$$dispose = void 0;

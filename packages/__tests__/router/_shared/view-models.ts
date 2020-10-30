@@ -33,7 +33,7 @@ export interface ITestRouteViewModel extends IRouteableComponent {
     parent: IHydratedParentController,
     flags: LifecycleFlags,
   ): void | Promise<void>;
-  beforeUnbind(
+  unbinding(
     initiator: IHydratedController,
     parent: IHydratedParentController,
     flags: LifecycleFlags,
@@ -71,7 +71,7 @@ export class HookSpecs {
     public readonly attached: IHookSpec<'attached'>,
 
     public readonly detaching: IHookSpec<'detaching'>,
-    public readonly beforeUnbind: IHookSpec<'beforeUnbind'>,
+    public readonly unbinding: IHookSpec<'unbinding'>,
 
     public readonly $dispose: IHookSpec<'dispose'>,
 
@@ -92,7 +92,7 @@ export class HookSpecs {
       input.attached || hookSpecsMap.attached.sync,
 
       input.detaching || hookSpecsMap.detaching.sync,
-      input.beforeUnbind || hookSpecsMap.beforeUnbind.sync,
+      input.unbinding || hookSpecsMap.unbinding.sync,
 
       hookSpecsMap.dispose,
 
@@ -112,7 +112,7 @@ export class HookSpecs {
     $this.attached = void 0;
 
     $this.detaching = void 0;
-    $this.beforeUnbind = void 0;
+    $this.unbinding = void 0;
 
     $this.$dispose = void 0;
 
@@ -141,7 +141,7 @@ const hookNames = [
   'attached',
 
   'detaching',
-  'beforeUnbind',
+  'unbinding',
 
   'canLoad',
   'load',
@@ -235,18 +235,18 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     );
   }
 
-  public beforeUnbind(
+  public unbinding(
     initiator: IHydratedController,
     parent: IHydratedParentController,
     flags: LifecycleFlags,
   ): void | Promise<void> {
-    // console.log(`beforeUnbind ${this.name} ${this.$controller.host.outerHTML}`);
-    this.hia.beforeUnbind.notify(this.name);
-    return this.specs.beforeUnbind.invoke(
+    // console.log(`unbinding ${this.name} ${this.$controller.host.outerHTML}`);
+    this.hia.unbinding.notify(this.name);
+    return this.specs.unbinding.invoke(
       this,
       () => {
-        // this.hia.beforeUnbind.notify(this.name);
-        return this.$beforeUnbind(initiator, parent, flags);
+        // this.hia.unbinding.notify(this.name);
+        return this.$unbinding(initiator, parent, flags);
       },
     );
   }
@@ -363,7 +363,7 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     // do nothing
   }
 
-  protected $beforeUnbind(
+  protected $unbinding(
     _initiator: IHydratedController,
     _parent: IHydratedParentController,
     _flags: LifecycleFlags,

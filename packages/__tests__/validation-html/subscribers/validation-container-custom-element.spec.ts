@@ -40,7 +40,7 @@ describe('validation-container-custom-element', function () {
         .withMessage('${$displayName} is not fizbaz');
     }
 
-    public beforeUnbind() {
+    public unbinding() {
       this.validationRules.off();
       // mandatory cleanup in root
       this.controller.reset();
@@ -284,7 +284,7 @@ describe('validation-container-custom-element', function () {
           .required();
       }
 
-      public beforeUnbind() {
+      public unbinding() {
         this.validationRules.off();
       }
     }

@@ -314,13 +314,13 @@ export class ViewLocator {
           return this.viewModel.detaching!(initiator, parent, flags);
         };
       }
-      if ('beforeUnbind' in object) {
-        proto.beforeUnbind = function beforeUnbind(
+      if ('unbinding' in object) {
+        proto.unbinding = function unbinding(
           initiator: IHydratedController,
           parent: IHydratedParentController | null,
           flags: LifecycleFlags,
         ): void | Promise<void> {
-          return this.viewModel.beforeUnbind!(initiator, parent, flags);
+          return this.viewModel.unbinding!(initiator, parent, flags);
         };
       }
 

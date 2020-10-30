@@ -31,7 +31,7 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
     this.observer.subscribe(this);
   }
 
-  public beforeUnbind(): void {
+  public unbinding(): void {
     this.element.removeEventListener('click', this.router.linkHandler.handler);
     this.observer.unsubscribe(this);
   }

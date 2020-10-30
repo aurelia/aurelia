@@ -59,7 +59,7 @@ export class ValidationContainerCustomElement implements ValidationResultsSubscr
     this.controller.addSubscriber(this);
   }
 
-  public beforeUnbind() {
+  public unbinding() {
     this.controller.removeSubscriber(this);
   }
 }

@@ -664,7 +664,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
             break;
         }
       }
-      ret = cur.beforeUnbind();
+      ret = cur.unbinding();
       if (ret instanceof Promise) {
         (promises ??= []).push(ret);
       }
@@ -680,11 +680,11 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
   }
 
-  private beforeUnbind(): void | Promise<void> {
-    if (this.hooks.hasBeforeUnbind) {
-      if (this.debug) { this.logger!.trace(`beforeUnbind()`); }
+  private unbinding(): void | Promise<void> {
+    if (this.hooks.hasUnbinding) {
+      if (this.debug) { this.logger!.trace(`unbinding()`); }
 
-      const ret = this.bindingContext!.beforeUnbind(this.$initiator as IHydratedController, this.parent as IHydratedParentController, this.$flags);
+      const ret = this.bindingContext!.unbinding(this.$initiator as IHydratedController, this.parent as IHydratedParentController, this.$flags);
       if (ret instanceof Promise) {
         return ret.then(this.unbind.bind(this));
       }

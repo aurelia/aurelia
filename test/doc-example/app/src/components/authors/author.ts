@@ -126,7 +126,7 @@ export class Author {
   public detaching() {
     console.log('### detaching', this);
   }
-  public beforeUnbind() {
-    console.log('### beforeUnbind', this);
+  public unbinding() {
+    console.log('### unbinding', this);
   }
 }

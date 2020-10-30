@@ -66,7 +66,7 @@ describe('validation-i18n', function () {
         .withMessageKey('errorMessages:required');
     }
 
-    public beforeUnbind() {
+    public unbinding() {
       this.validationRules.off();
       // mandatory cleanup in root
       this.controller.reset();

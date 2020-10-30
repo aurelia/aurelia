@@ -98,9 +98,9 @@ export class ViewportCustomElement implements ICustomElementViewModel {
     }
   }
 
-  public beforeUnbind(initiator: IHydratedController, parent: ISyntheticView | ICustomElementController | null, flags: LifecycleFlags): void | Promise<void> {
+  public unbinding(initiator: IHydratedController, parent: ISyntheticView | ICustomElementController | null, flags: LifecycleFlags): void | Promise<void> {
     if (this.viewport !== null && (this.viewport.nextContent ?? null) === null) {
-      // console.log('beforeUnbind', this.viewport?.toString());
+      // console.log('unbinding', this.viewport?.toString());
       // TODO: Save to cache, something like
       // this.viewport.cacheContent();
       // From viewport-content:

@@ -48,7 +48,7 @@
 //     detaching: true,
 //     dispose: true,
 //     afterDetachChildren: true,
-//     beforeUnbind: true,
+//     unbinding: true,
 //     afterUnbindChildren: true,
 //   }));
 //   const noHooks = Object.freeze(new HooksDefinition({}));
@@ -62,7 +62,7 @@
 //     detaching(...args: any[]): void;
 //     dispose(...args: any[]): void;
 //     afterDetachChildren(...args: any[]): void;
-//     beforeUnbind(...args: any[]): void;
+//     unbinding(...args: any[]): void;
 //     afterUnbindChildren(...args: any[]): void;
 //   }> {
 //     const proto = ctor.prototype as any;
@@ -91,8 +91,8 @@
 //     proto.afterDetachChildren = function (...args: any[]): void {
 //       this.$$calls.addCall(this.id, 'afterDetachChildren', ...args);
 //     };
-//     proto.beforeUnbind = function (...args: any[]): void {
-//       this.$$calls.addCall(this.id, 'beforeUnbind', ...args);
+//     proto.unbinding = function (...args: any[]): void {
+//       this.$$calls.addCall(this.id, 'unbinding', ...args);
 //     };
 //     proto.afterUnbindChildren = function (...args: any[]): void {
 //       this.$$calls.addCall(this.id, 'afterUnbindChildren', ...args);
@@ -298,7 +298,7 @@
 //         expectedCalls
 //           .addCall(2, 'unbind', LF.none)
 //           .addCall(2, 'unbindCustomElement', LF.fromUnbind)
-//           .addCall(1, 'beforeUnbind', LF.fromUnbind)
+//           .addCall(1, 'unbinding', LF.fromUnbind)
 //           .addCall(2, 'unbindControllers', LF.fromUnbind)
 //           .addCall(2, 'unbindBindings', LF.fromUnbind)
 //           .addCall(2, 'endUnbind', LF.fromUnbind)
@@ -635,7 +635,7 @@
 //           .addCall(2, 'unbindCustomElement', LF.fromUnbind)
 
 //           // ce #1
-//           .addCall(1, 'beforeUnbind', LF.fromUnbind)
+//           .addCall(1, 'unbinding', LF.fromUnbind)
 
 //           // ce #1 controller
 //           .addCall(2, 'unbindControllers', LF.fromUnbind)
@@ -645,7 +645,7 @@
 //           .addCall(4, 'unbindCustomAttribute', LF.fromUnbind)
 
 //           // if #1
-//           .addCall(3, 'beforeUnbind', LF.fromUnbind)
+//           .addCall(3, 'unbinding', LF.fromUnbind)
 
 //           // if #1 ifView
 //           .addCall(5, 'unbind', LF.fromUnbind)
@@ -657,7 +657,7 @@
 //           .addCall(7, 'unbindCustomElement', LF.fromUnbind)
 
 //           // ce #2
-//           .addCall(6, 'beforeUnbind', LF.fromUnbind)
+//           .addCall(6, 'unbinding', LF.fromUnbind)
 
 //           // ce #2 controller
 //           .addCall(7, 'unbindControllers', LF.fromUnbind)
@@ -667,7 +667,7 @@
 //           .addCall(9, 'unbindCustomAttribute', LF.fromUnbind)
 
 //           // if #2
-//           .addCall(8, 'beforeUnbind', LF.fromUnbind)
+//           .addCall(8, 'unbinding', LF.fromUnbind)
 
 //           // if #2 controller
 //           .addCall(9, 'endUnbind', LF.fromUnbind)
@@ -1037,7 +1037,7 @@
 //           .addCall(2, 'unbindCustomElement', LF.fromUnbind)
 
 //           // ce #1
-//           .addCall(1, 'beforeUnbind', LF.fromUnbind)
+//           .addCall(1, 'unbinding', LF.fromUnbind)
 
 //           // ce #1 controller
 //           .addCall(2, 'unbindControllers', LF.fromUnbind)
@@ -1047,7 +1047,7 @@
 //           .addCall(4, 'unbindCustomAttribute', LF.fromUnbind)
 
 //           // if #1
-//           .addCall(3, 'beforeUnbind', LF.fromUnbind)
+//           .addCall(3, 'unbinding', LF.fromUnbind)
 
 //           // if #1 ifView
 //           .addCall(5, 'unbind', LF.fromUnbind)
@@ -1059,7 +1059,7 @@
 //           .addCall(7, 'unbindCustomElement', LF.fromUnbind)
 
 //           // ce #2
-//           .addCall(6, 'beforeUnbind', LF.fromUnbind)
+//           .addCall(6, 'unbinding', LF.fromUnbind)
 
 //           // ce #2 controller
 //           .addCall(7, 'unbindControllers', LF.fromUnbind)
@@ -1069,7 +1069,7 @@
 //           .addCall(9, 'unbindCustomAttribute', LF.fromUnbind)
 
 //           // if #2
-//           .addCall(8, 'beforeUnbind', LF.fromUnbind)
+//           .addCall(8, 'unbinding', LF.fromUnbind)
 
 //           // if #2 controller
 //           .addCall(9, 'endUnbind', LF.fromUnbind)

@@ -173,7 +173,7 @@ describe('3-runtime-html/templating-compiler.ref.spec.ts', function () {
         public attachingCalls = 0;
         public attachedCalls = 0;
         public detachingCalls = 0;
-        public beforeUnbindCalls = 0;
+        public unbindingCalls = 0;
 
         private readonly el: Element;
         public constructor(el: INode) {
@@ -210,10 +210,10 @@ describe('3-runtime-html/templating-compiler.ref.spec.ts', function () {
           assert.contains(this.el, this.div, '[detaching] this.el.contains(this.div)');
         }
 
-        public beforeUnbind(): void {
-          this.beforeUnbindCalls++;
+        public unbinding(): void {
+          this.unbindingCalls++;
           assert.notStrictEqual(this.div, undefined);
-          assert.notContains(this.el, this.div, '[beforeUnbind] this.el.contains(this.div)');
+          assert.notContains(this.el, this.div, '[unbinding] this.el.contains(this.div)');
         }
       },
       assertFn: (
@@ -225,7 +225,7 @@ describe('3-runtime-html/templating-compiler.ref.spec.ts', function () {
           attachingCalls: number;
           attachedCalls: number;
           detachingCalls: number;
-          beforeUnbindCalls: number;
+          unbindingCalls: number;
         }
       ) => {
         assert.equal(comp.bindingCalls, 1, '[binding]');
@@ -233,7 +233,7 @@ describe('3-runtime-html/templating-compiler.ref.spec.ts', function () {
         assert.equal(comp.attachingCalls, 1, '[attaching]');
         assert.equal(comp.attachedCalls, 1, '[attached]');
         assert.equal(comp.detachingCalls, 0, '[detaching]');
-        assert.equal(comp.beforeUnbindCalls, 0, '[beforeUnbind]');
+        assert.equal(comp.unbindingCalls, 0, '[unbinding]');
       },
       assertFnAfterDestroy: (
         ctx,
@@ -244,7 +244,7 @@ describe('3-runtime-html/templating-compiler.ref.spec.ts', function () {
           attachingCalls: number;
           attachedCalls: number;
           detachingCalls: number;
-          beforeUnbindCalls: number;
+          unbindingCalls: number;
         }
       ) => {
         assert.equal(comp.bindingCalls, 1, '[binding]');
@@ -252,7 +252,7 @@ describe('3-runtime-html/templating-compiler.ref.spec.ts', function () {
         assert.equal(comp.attachingCalls, 1, '[attaching]');
         assert.equal(comp.attachedCalls, 1, '[attached]');
         assert.equal(comp.detachingCalls, 1, '[detaching]');
-        assert.equal(comp.beforeUnbindCalls, 1, '[beforeUnbind]');
+        assert.equal(comp.unbindingCalls, 1, '[unbinding]');
       }
     },
     ...Array

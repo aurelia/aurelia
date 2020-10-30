@@ -84,7 +84,7 @@ export class App {
     console.log('app detaching');
   }
 
-  public beforeUnbind(): void {
-    console.log('app beforeUnbind');
+  public unbinding(): void {
+    console.log('app unbinding');
   }
 }

@@ -171,7 +171,7 @@ describe('validation-controller', function () {
         .rules;
     }
 
-    public beforeUnbind() {
+    public unbinding() {
       this.validationRules.off();
       // mandatory cleanup in root
       this.controller.reset();

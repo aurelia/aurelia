@@ -26,7 +26,7 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
     }
     this.updateValue();
   }
-  public beforeUnbind(): void {
+  public unbinding(): void {
     this.element.removeEventListener('click', this.router.linkHandler.handler);
   }
 

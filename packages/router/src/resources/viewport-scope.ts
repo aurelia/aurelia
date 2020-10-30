@@ -95,9 +95,9 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel {
       this.viewportScope.binding();
     }
   }
-  public beforeUnbind(initiator: IHydratedController, parent: ISyntheticView | ICustomElementController | null, flags: LifecycleFlags): void | Promise<void> {
+  public unbinding(initiator: IHydratedController, parent: ISyntheticView | ICustomElementController | null, flags: LifecycleFlags): void | Promise<void> {
     if (this.viewportScope !== null) {
-      this.viewportScope.beforeUnbind();
+      this.viewportScope.unbinding();
     }
     return Promise.resolve();
   }

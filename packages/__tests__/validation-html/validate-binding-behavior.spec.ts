@@ -130,7 +130,7 @@ describe('validate-binding-behavior', function () {
       }).result;
     }
 
-    public beforeUnbind() {
+    public unbinding() {
       this.validationRules.off();
     }
 
@@ -1398,7 +1398,7 @@ describe('validate-binding-behavior', function () {
           .required();
       }
 
-      public beforeUnbind() {
+      public unbinding() {
         this.validationRules.off();
       }
 

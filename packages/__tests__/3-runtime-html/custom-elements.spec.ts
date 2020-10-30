@@ -871,13 +871,13 @@
 //       this.$calls.addCall(this.id, 'bound');
 //     };
 
-//     proto.beforeUnbind = function beforeUnbind(
+//     proto.unbinding = function unbinding(
 //       this: TProto,
 //       initiator: IHydratedController,
 //       parent: IHydratedParentController | null,
 //       flags: LifecycleFlags,
 //     ): MaybePromiseOrTask {
-//       this.$calls.addCall(this.id, 'beforeUnbind');
+//       this.$calls.addCall(this.id, 'unbinding');
 //     };
 //     proto.afterUnbind = function afterUnbind(
 //       this: TProto,
@@ -968,7 +968,7 @@
 //         .addCall(1, 'detaching')
 //         .addCall(1, 'afterDetach')
 //         .addCall(1, 'afterDetachChildren')
-//         .addCall(1, 'beforeUnbind')
+//         .addCall(1, 'unbinding')
 //         .addCall(1, 'afterUnbind')
 //         .addCall(1, 'afterUnbindChildren');
 
@@ -1048,10 +1048,10 @@
 //         .addCall(2, 'afterDetachChildren')
 //         .addCall(1, 'afterDetachChildren')
 
-//         .addCall(1, 'beforeUnbind')
+//         .addCall(1, 'unbinding')
 //         .addCall(1, 'afterUnbind')
 
-//         .addCall(2, 'beforeUnbind')
+//         .addCall(2, 'unbinding')
 //         .addCall(2, 'afterUnbind')
 
 //         .addCall(2, 'afterUnbindChildren')

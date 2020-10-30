@@ -50,7 +50,7 @@
 //             afterDetachChildren() {
 //                 this.items.push(6);
 //             }
-//             beforeUnbind() {
+//             unbinding() {
 //                 this.items.push(7);
 //             }
 //             afterUnbindChildren() {
@@ -113,7 +113,7 @@
 //             afterDetachChildren() {
 //                 this.items.push(6);
 //             }
-//             beforeUnbind() {
+//             unbinding() {
 //                 this.items.push(7);
 //             }
 //             afterUnbindChildren() {
@@ -182,7 +182,7 @@
 //             afterDetachChildren() {
 //                 this.items.push(6);
 //             }
-//             beforeUnbind() {
+//             unbinding() {
 //                 this.items.push(7);
 //             }
 //             afterUnbindChildren() {
@@ -247,7 +247,7 @@
 //             afterDetachChildren() {
 //                 this.items.push(6);
 //             }
-//             beforeUnbind() {
+//             unbinding() {
 //                 this.items.push(7);
 //             }
 //             afterUnbindChildren() {

@@ -3,7 +3,7 @@ import { interleave, prepend } from '../_hook-tests.spec';
 import { HookName } from './hook-invocation-tracker';
 
 export const addHooks: HookName[] = ['binding', 'bound', 'attaching', 'attached'];
-export const removeHooks: HookName[] = ['detaching', 'beforeUnbind', 'dispose'];
+export const removeHooks: HookName[] = ['detaching', 'unbinding', 'dispose'];
 
 export function* getStartHooks(root: string) {
   yield `start.${root}.binding`;
@@ -14,10 +14,10 @@ export function* getStartHooks(root: string) {
 
 export function* getStopHooks(root: string, p: string, c: string = '') {
   yield `stop.${root}.detaching`;
-  yield `stop.${root}.beforeUnbind`;
+  yield `stop.${root}.unbinding`;
 
-  if (p) { yield* prepend('stop', p, 'unload', 'detaching', 'beforeUnbind'); }
-  if (c) { yield* prepend('stop', c, 'unload', 'detaching', 'beforeUnbind'); }
+  if (p) { yield* prepend('stop', p, 'unload', 'detaching', 'unbinding'); }
+  if (c) { yield* prepend('stop', c, 'unload', 'detaching', 'unbinding'); }
 }
 
 export function* getSingleHooks(deferUntil, swapStrategy, componentKind, phase, from, to) {

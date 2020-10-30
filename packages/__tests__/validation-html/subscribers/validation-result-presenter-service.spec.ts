@@ -45,7 +45,7 @@ describe('validation-result-presenter-service', function () {
         .withMessage('${$displayName} is not fizbaz');
     }
 
-    public beforeUnbind() {
+    public unbinding() {
       this.validationRules.off();
       // mandatory cleanup in root
       this.controller.removeSubscriber(this.presenterService);

@@ -70,7 +70,7 @@ export class ValidationErrorsCustomAttribute implements ValidationResultsSubscri
     this.controller.addSubscriber(this);
   }
 
-  public beforeUnbind() {
+  public unbinding() {
     this.controller!.removeSubscriber(this);
   }
 }

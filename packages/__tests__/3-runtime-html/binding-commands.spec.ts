@@ -342,7 +342,7 @@ describe('binding-commands', function () {
 //       class {
 //         public a: string;
 
-//         public afterBind(this: this & IViewModel<Node>): void {
+//         public bound(this: this & IViewModel<Node>): void {
 //           assert.strictEqual(this.a, 'x', `this.a`);
 //         }
 

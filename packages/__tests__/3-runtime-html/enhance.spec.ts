@@ -232,7 +232,7 @@ describe('2-runtime/enhance.spec.ts', function () {
       hydrated() { this.eventLog.push('hydrated'); },
       created() { this.eventLog.push('created'); },
       binding() { this.eventLog.push('binding'); },
-      afterBind() { this.eventLog.push('afterBind'); },
+      bound() { this.eventLog.push('bound'); },
       afterAttach() { this.eventLog.push('afterAttach'); },
       afterAttachChildren() { this.eventLog.push('afterAttachChildren'); },
     };
@@ -250,7 +250,7 @@ describe('2-runtime/enhance.spec.ts', function () {
       'hydrated',
       'created',
       'binding',
-      'afterBind',
+      'bound',
       'afterAttach',
       'afterAttachChildren',
     ]);

@@ -131,9 +131,9 @@ describe.skip(`ViewFactory`, function () {
 // }
 // describe.skip('View', function () {
 //   function runBindLifecycle(lifecycle: ILifecycle, view: IController, flags: LF, scope: Scope): void {
-//     lifecycle.afterBind.begin();
+//     lifecycle.bound.begin();
 //     view.bind(flags, scope);
-//     lifecycle.afterBind.end(flags);
+//     lifecycle.bound.end(flags);
 //   }
 //   function runUnbindLifecycle(lifecycle: ILifecycle, view: IController, flags: LF): void {
 //     lifecycle.afterUnbindChildren.begin();

@@ -6,7 +6,7 @@ export function lifecycleLogger(name: string) {
     'canUnload', 'unload',
     'canLoad', 'load',
     'created',
-    'binding', 'afterBind',
+    'binding', 'bound',
     'beforeAttach', 'afterAttach',
     'beforeDetach',
     'beforeUnbind',
@@ -37,7 +37,7 @@ export class LifecycleClass {
   public load(params: any) { console.log(`name load`); }
   public created() { console.log(`name created`); }
   public binding() { console.log(`name binding`); }
-  public afterBind() { console.log(`name bound`); }
+  public bound() { console.log(`name bound`); }
   public beforeAttach() { console.log(`name beforeAttach`); }
   public afterAttach() { console.log(`name afterAttach`); }
   public canUnload() { console.log(`name canUnload`); return true; }

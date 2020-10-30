@@ -42,7 +42,7 @@
 //   const allHooks = Object.freeze(new HooksDefinition({
 //     created: true,
 //     binding: true,
-//     afterBind: true,
+//     bound: true,
 //     beforeAttach: true,
 //     afterAttachChildren: true,
 //     beforeDetach: true,
@@ -56,7 +56,7 @@
 //   function addTracingHooks<TProto>(ctor: Class<TProto>): Class<TProto & {
 //     created(...args: any[]): void;
 //     binding(...args: any[]): void;
-//     afterBind(...args: any[]): void;
+//     bound(...args: any[]): void;
 //     beforeAttach(...args: any[]): void;
 //     afterAttachChildren(...args: any[]): void;
 //     beforeDetach(...args: any[]): void;
@@ -73,8 +73,8 @@
 //     proto.binding = function (...args: any[]): void {
 //       this.$$calls.addCall(this.id, 'binding', ...args);
 //     };
-//     proto.afterBind = function (...args: any[]): void {
-//       this.$$calls.addCall(this.id, 'afterBind', ...args);
+//     proto.bound = function (...args: any[]): void {
+//       this.$$calls.addCall(this.id, 'bound', ...args);
 //     };
 //     proto.beforeAttach = function (...args: any[]): void {
 //       this.$$calls.addCall(this.id, 'beforeAttach', ...args);
@@ -234,8 +234,8 @@
 //           .addCall(1, 'binding', LF.fromBind)
 //           .addCall(2, 'bindControllers', LF.fromBind, sut.scope)
 //           .addCall(2, 'endBind', LF.fromBind)
-//           .addCall(2, 'afterBind', LF.fromBind)
-//           .addCall(1, 'afterBind', LF.fromBind),
+//           .addCall(2, 'bound', LF.fromBind)
+//           .addCall(1, 'bound', LF.fromBind),
 //         '2',
 //       );
 
@@ -453,16 +453,16 @@
 //           .addCall(2, 'endBind', LF.fromBind)
 
 //           // ce #2 controller
-//           .addCall(7, 'afterBind', LF.fromBind)
+//           .addCall(7, 'bound', LF.fromBind)
 
 //           // ce #2
-//           .addCall(6, 'afterBind', LF.fromBind)
+//           .addCall(6, 'bound', LF.fromBind)
 
 //           // ce #1 controller
-//           .addCall(2, 'afterBind', LF.fromBind)
+//           .addCall(2, 'bound', LF.fromBind)
 
 //           // ce #1
-//           .addCall(1, 'afterBind', LF.fromBind),
+//           .addCall(1, 'bound', LF.fromBind),
 //         '2',
 //       );
 
@@ -855,16 +855,16 @@
 //           .addCall(2, 'endBind', LF.fromBind)
 
 //           // ce #2 controller
-//           .addCall(7, 'afterBind', LF.fromBind)
+//           .addCall(7, 'bound', LF.fromBind)
 
 //           // ce #2
-//           .addCall(6, 'afterBind', LF.fromBind)
+//           .addCall(6, 'bound', LF.fromBind)
 
 //           // ce #1 controller
-//           .addCall(2, 'afterBind', LF.fromBind)
+//           .addCall(2, 'bound', LF.fromBind)
 
 //           // ce #1
-//           .addCall(1, 'afterBind', LF.fromBind),
+//           .addCall(1, 'bound', LF.fromBind),
 //         '2',
 //       );
 

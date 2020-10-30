@@ -169,7 +169,7 @@ describe('3-runtime-html/templating-compiler.ref.spec.ts', function () {
         public static inject = [INode];
         public div: HTMLElement;
         public bindingCalls = 0;
-        public afterBindCalls = 0;
+        public boundCalls = 0;
         public afterAttachCalls = 0;
         public afterAttachChildrenCalls = 0;
         public beforeDetachCalls = 0;
@@ -186,10 +186,10 @@ describe('3-runtime-html/templating-compiler.ref.spec.ts', function () {
           assert.notContains(this.el, this.div, '[binding] this.el.contains(this.div) === false');
         }
 
-        public afterBind(): void {
-          this.afterBindCalls++;
-          assert.notStrictEqual(this.div, undefined, '[afterBind] div !== undefined');
-          assert.notContains(this.el, this.div, '[afterBind] this.el.contains(this.div) === false');
+        public bound(): void {
+          this.boundCalls++;
+          assert.notStrictEqual(this.div, undefined, '[bound] div !== undefined');
+          assert.notContains(this.el, this.div, '[bound] this.el.contains(this.div) === false');
         }
 
         public afterAttach(): void {
@@ -221,7 +221,7 @@ describe('3-runtime-html/templating-compiler.ref.spec.ts', function () {
         host,
         comp: {
           bindingCalls: number;
-          afterBindCalls: number;
+          boundCalls: number;
           afterAttachCalls: number;
           afterAttachChildrenCalls: number;
           beforeDetachCalls: number;
@@ -229,7 +229,7 @@ describe('3-runtime-html/templating-compiler.ref.spec.ts', function () {
         }
       ) => {
         assert.equal(comp.bindingCalls, 1, '[binding]');
-        assert.equal(comp.afterBindCalls, 1, '[afterBind]');
+        assert.equal(comp.boundCalls, 1, '[bound]');
         assert.equal(comp.afterAttachCalls, 1, '[afterAttach]');
         assert.equal(comp.afterAttachChildrenCalls, 1, '[afterAttachChildren]');
         assert.equal(comp.beforeDetachCalls, 0, '[beforeDetach]');
@@ -240,7 +240,7 @@ describe('3-runtime-html/templating-compiler.ref.spec.ts', function () {
         host,
         comp: {
           bindingCalls: number;
-          afterBindCalls: number;
+          boundCalls: number;
           afterAttachCalls: number;
           afterAttachChildrenCalls: number;
           beforeDetachCalls: number;
@@ -248,7 +248,7 @@ describe('3-runtime-html/templating-compiler.ref.spec.ts', function () {
         }
       ) => {
         assert.equal(comp.bindingCalls, 1, '[binding]');
-        assert.equal(comp.afterBindCalls, 1, '[afterBind]');
+        assert.equal(comp.boundCalls, 1, '[bound]');
         assert.equal(comp.afterAttachCalls, 1, '[afterAttach]');
         assert.equal(comp.afterAttachChildrenCalls, 1, '[afterAttachChildren]');
         assert.equal(comp.beforeDetachCalls, 1, '[beforeDetach]');

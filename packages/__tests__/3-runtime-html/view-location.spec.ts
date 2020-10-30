@@ -228,7 +228,7 @@ describe('the view locator', function () {
     'created',
 
     'binding',
-    'afterBind',
+    'bound',
     'afterAttach',
     'afterAttachChildren',
 

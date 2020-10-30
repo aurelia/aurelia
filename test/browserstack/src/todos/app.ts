@@ -68,8 +68,8 @@ export class App {
     console.log('app binding');
   }
 
-  public afterBind(): void {
-    console.log('app afterBind');
+  public bound(): void {
+    console.log('app bound');
   }
 
   public afterAttach(): void {

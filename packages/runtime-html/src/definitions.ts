@@ -8,7 +8,7 @@ export class HooksDefinition {
   public readonly hasCreated: boolean;
 
   public readonly hasBinding: boolean;
-  public readonly hasAfterBind: boolean;
+  public readonly hasBound: boolean;
   public readonly hasAfterAttach: boolean;
   public readonly hasAfterAttachChildren: boolean;
 
@@ -26,7 +26,7 @@ export class HooksDefinition {
     this.hasCreated = 'created' in target;
 
     this.hasBinding = 'binding' in target;
-    this.hasAfterBind = 'afterBind' in target;
+    this.hasBound = 'bound' in target;
     this.hasAfterAttach = 'afterAttach' in target;
     this.hasAfterAttachChildren = 'afterAttachChildren' in target;
 

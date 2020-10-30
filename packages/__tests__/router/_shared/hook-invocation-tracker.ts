@@ -3,7 +3,7 @@ import { IPlatform } from '@aurelia/runtime-html';
 
 export type HookName = (
   'binding' |
-  'afterBind' |
+  'bound' |
   'afterAttach' |
   'afterAttachChildren' |
 
@@ -102,7 +102,7 @@ export class HookInvocationAggregator {
   ) {}
 
   public readonly binding: HookInvocationTracker = new HookInvocationTracker(this, 'binding');
-  public readonly afterBind: HookInvocationTracker = new HookInvocationTracker(this, 'afterBind');
+  public readonly bound: HookInvocationTracker = new HookInvocationTracker(this, 'bound');
   public readonly afterAttach: HookInvocationTracker = new HookInvocationTracker(this, 'afterAttach');
   public readonly afterAttachChildren: HookInvocationTracker = new HookInvocationTracker(this, 'afterAttachChildren');
 
@@ -134,7 +134,7 @@ export class HookInvocationAggregator {
 
   public dispose(): void {
     this.binding.dispose();
-    this.afterBind.dispose();
+    this.bound.dispose();
     this.afterAttach.dispose();
     this.afterAttachChildren.dispose();
     this.beforeDetach.dispose();
@@ -151,7 +151,7 @@ export class HookInvocationAggregator {
     $this.config = void 0;
 
     $this.binding = void 0;
-    $this.afterBind = void 0;
+    $this.bound = void 0;
     $this.afterAttach = void 0;
     $this.afterAttachChildren = void 0;
     $this.beforeDetach = void 0;

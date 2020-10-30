@@ -114,7 +114,7 @@
 //       @bindable()
 //       public value: any;
 //       public value1: any;
-//       public afterBind(): void {
+//       public bound(): void {
 //         assert.strictEqual(this.value, 'w00t', 'Foo1.this.value');
 //         assert.strictEqual(this.value1, 'w00t1', 'Foo1.this.value1');
 //         boundCalls++;
@@ -132,7 +132,7 @@
 //       public value1: any;
 //       @bindable()
 //       public value2: any;
-//       public afterBind(): void {
+//       public bound(): void {
 //         assert.strictEqual(this.value, 'w00t', 'Foo2.this.value');
 //         assert.strictEqual(this.value1, 'w00t1', 'Foo2.this.value1');
 //         assert.strictEqual(this.value2, 'w00t1', 'Foo2.this.value2');
@@ -151,7 +151,7 @@
 //       public value1: any;
 //       @bindable()
 //       public value2: any;
-//       public afterBind(): void {
+//       public bound(): void {
 //         assert.strictEqual(this.value, 'w00t', 'Foo3.this.value');
 //         assert.strictEqual(this.value1, 'w00t1', 'Foo3.this.value1');
 //         assert.strictEqual(this.value2, 'w00t1', 'Foo3.this.value2');
@@ -170,7 +170,7 @@
 //       public value1: any;
 //       @bindable()
 //       public value2: any;
-//       public afterBind(): void {
+//       public bound(): void {
 //         assert.strictEqual(this.value, 'w00t', 'Foo4.this.value');
 //         assert.strictEqual(this.value1, 'w00t1', 'Foo4.this.value1');
 //         assert.strictEqual(this.value2, 'w00t1', 'Foo4.this.value2');
@@ -189,7 +189,7 @@
 //       public value1: any;
 //       @bindable()
 //       public value2: any;
-//       public afterBind(): void {
+//       public bound(): void {
 //         assert.strictEqual(this.value, 'w00t', 'Foo5.this.value');
 //         assert.strictEqual(this.value1, 'w00t1', 'Foo5.this.value1');
 //         assert.strictEqual(this.value2, 'w00t1', 'Foo5.this.value2');
@@ -858,17 +858,17 @@
 //     ): MaybePromiseOrTask {
 //       this.$calls.addCall(this.id, 'binding');
 //     };
-//     proto.afterBind = function afterBind(
+//     proto.bound = function bound(
 //       this: TProto,
 //       flags: LifecycleFlags,
 //     ): void {
-//       this.$calls.addCall(this.id, 'afterBind');
+//       this.$calls.addCall(this.id, 'bound');
 //     };
-//     proto.afterBind = function afterBind(
+//     proto.bound = function bound(
 //       this: TProto,
 //       flags: LifecycleFlags,
 //     ): void {
-//       this.$calls.addCall(this.id, 'afterBind');
+//       this.$calls.addCall(this.id, 'bound');
 //     };
 
 //     proto.beforeUnbind = function beforeUnbind(
@@ -960,8 +960,8 @@
 //         .addCall(1, 'hydrated')
 //         .addCall(1, 'created')
 //         .addCall(1, 'binding')
-//         .addCall(1, 'afterBind')
-//         .addCall(1, 'afterBind')
+//         .addCall(1, 'bound')
+//         .addCall(1, 'bound')
 //         .addCall(1, 'beforeAttach')
 //         .addCall(1, 'afterAttach')
 //         .addCall(1, 'afterAttachChildren')
@@ -1022,13 +1022,13 @@
 //         .addCall(1, 'created')
 
 //         .addCall(1, 'binding')
-//         .addCall(1, 'afterBind')
+//         .addCall(1, 'bound')
 
 //         .addCall(2, 'binding')
-//         .addCall(2, 'afterBind')
+//         .addCall(2, 'bound')
 
-//         .addCall(2, 'afterBind')
-//         .addCall(1, 'afterBind')
+//         .addCall(2, 'bound')
+//         .addCall(1, 'bound')
 
 //         .addCall(1, 'beforeAttach')
 //         .addCall(1, 'afterAttach')

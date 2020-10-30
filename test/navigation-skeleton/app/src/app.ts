@@ -49,7 +49,7 @@ export class App {
     observer.subscribeToCollection(this);
   }
 
-  public afterBind(): void {
+  public bound(): void {
     this.setupNavs();
   }
 

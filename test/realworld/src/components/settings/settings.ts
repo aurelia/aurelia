@@ -19,7 +19,7 @@ export class Settings {
   public created() { return; }
 
   public binding() { return; }
-  public afterBind() { return; }
+  public bound() { return; }
   public afterAttach() { return; }
   public afterAttachChildren() { return; }
 

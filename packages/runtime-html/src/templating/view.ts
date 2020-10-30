@@ -278,13 +278,13 @@ export class ViewLocator {
           return this.viewModel.binding!(initiator, parent, flags);
         };
       }
-      if ('afterBind' in object) {
-        proto.afterBind = function afterBind(
+      if ('bound' in object) {
+        proto.bound = function bound(
           initiator: IHydratedController,
           parent: IHydratedParentController | null,
           flags: LifecycleFlags,
         ): void | Promise<void> {
-          return this.viewModel.afterBind!(initiator, parent, flags);
+          return this.viewModel.bound!(initiator, parent, flags);
         };
       }
       if ('afterAttach' in object) {

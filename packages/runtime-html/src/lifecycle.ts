@@ -364,7 +364,7 @@ export interface IActivationHooks<TParent> {
     parent: TParent,
     flags: LifecycleFlags,
   ): void | Promise<void>;
-  afterBind?(
+  bound?(
     initiator: IHydratedController,
     parent: TParent,
     flags: LifecycleFlags,

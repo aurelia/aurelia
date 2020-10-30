@@ -139,7 +139,7 @@ describe('router hooks', function () {
         kind: 'all-sync',
         hookSpecs: HookSpecs.create({
           binding: hookSpecsMap.binding.sync,
-          afterBind: hookSpecsMap.afterBind.sync,
+          bound: hookSpecsMap.bound.sync,
           afterAttach: hookSpecsMap.afterAttach.sync,
           afterAttachChildren: hookSpecsMap.afterAttachChildren.sync,
 
@@ -342,7 +342,7 @@ describe('router hooks', function () {
 
                   const expected = [...(function* () {
                     yield `start.root2.binding`;
-                    yield `start.root2.afterBind`;
+                    yield `start.root2.bound`;
                     yield `start.root2.afterAttach`;
                     yield `start.root2.afterAttachChildren`;
 
@@ -1008,7 +1008,7 @@ describe('router hooks', function () {
             binding: hookSpecsMap.binding.setTimeout_0,
           }),
           HookSpecs.create({
-            afterBind: hookSpecsMap.afterBind.setTimeout_0,
+            bound: hookSpecsMap.bound.setTimeout_0,
           }),
           HookSpecs.create({
             afterAttach: hookSpecsMap.afterAttach.setTimeout_0,
@@ -1071,32 +1071,32 @@ describe('router hooks', function () {
                   hia.notifyHistory,
                   [
                     `start.root.binding`,
-                    `start.root.afterBind`,
+                    `start.root.bound`,
                     `start.root.afterAttach`,
                     `start.root.afterAttachChildren`,
 
                     `('' -> 'a/b/c/d').a.canLoad`,
                     `('' -> 'a/b/c/d').a.load`,
                     `('' -> 'a/b/c/d').a.binding`,
-                    `('' -> 'a/b/c/d').a.afterBind`,
+                    `('' -> 'a/b/c/d').a.bound`,
                     `('' -> 'a/b/c/d').a.afterAttach`,
 
                     `('' -> 'a/b/c/d').b.canLoad`,
                     `('' -> 'a/b/c/d').b.load`,
                     `('' -> 'a/b/c/d').b.binding`,
-                    `('' -> 'a/b/c/d').b.afterBind`,
+                    `('' -> 'a/b/c/d').b.bound`,
                     `('' -> 'a/b/c/d').b.afterAttach`,
 
                     `('' -> 'a/b/c/d').c.canLoad`,
                     `('' -> 'a/b/c/d').c.load`,
                     `('' -> 'a/b/c/d').c.binding`,
-                    `('' -> 'a/b/c/d').c.afterBind`,
+                    `('' -> 'a/b/c/d').c.bound`,
                     `('' -> 'a/b/c/d').c.afterAttach`,
 
                     `('' -> 'a/b/c/d').d.canLoad`,
                     `('' -> 'a/b/c/d').d.load`,
                     `('' -> 'a/b/c/d').d.binding`,
-                    `('' -> 'a/b/c/d').d.afterBind`,
+                    `('' -> 'a/b/c/d').d.bound`,
                     `('' -> 'a/b/c/d').d.afterAttach`,
 
                     `('' -> 'a/b/c/d').d.afterAttachChildren`,
@@ -1137,7 +1137,7 @@ describe('router hooks', function () {
                   hia.notifyHistory,
                   [
                     `start.root.binding`,
-                    `start.root.afterBind`,
+                    `start.root.bound`,
                     `start.root.afterAttach`,
                     `start.root.afterAttachChildren`,
 
@@ -1148,19 +1148,19 @@ describe('router hooks', function () {
 
                     `('' -> 'a/b/c/d').a.load`,
                     `('' -> 'a/b/c/d').a.binding`,
-                    `('' -> 'a/b/c/d').a.afterBind`,
+                    `('' -> 'a/b/c/d').a.bound`,
                     `('' -> 'a/b/c/d').a.afterAttach`,
                     `('' -> 'a/b/c/d').b.load`,
                     `('' -> 'a/b/c/d').b.binding`,
-                    `('' -> 'a/b/c/d').b.afterBind`,
+                    `('' -> 'a/b/c/d').b.bound`,
                     `('' -> 'a/b/c/d').b.afterAttach`,
                     `('' -> 'a/b/c/d').c.load`,
                     `('' -> 'a/b/c/d').c.binding`,
-                    `('' -> 'a/b/c/d').c.afterBind`,
+                    `('' -> 'a/b/c/d').c.bound`,
                     `('' -> 'a/b/c/d').c.afterAttach`,
                     `('' -> 'a/b/c/d').d.load`,
                     `('' -> 'a/b/c/d').d.binding`,
-                    `('' -> 'a/b/c/d').d.afterBind`,
+                    `('' -> 'a/b/c/d').d.bound`,
                     `('' -> 'a/b/c/d').d.afterAttach`,
                     `('' -> 'a/b/c/d').d.afterAttachChildren`,
                     `('' -> 'a/b/c/d').c.afterAttachChildren`,
@@ -1200,7 +1200,7 @@ describe('router hooks', function () {
                   hia.notifyHistory,
                   [
                     `start.root.binding`,
-                    `start.root.afterBind`,
+                    `start.root.bound`,
                     `start.root.afterAttach`,
                     `start.root.afterAttachChildren`,
 
@@ -1215,16 +1215,16 @@ describe('router hooks', function () {
                     `('' -> 'a/b/c/d').d.load`,
 
                     `('' -> 'a/b/c/d').a.binding`,
-                    `('' -> 'a/b/c/d').a.afterBind`,
+                    `('' -> 'a/b/c/d').a.bound`,
                     `('' -> 'a/b/c/d').a.afterAttach`,
                     `('' -> 'a/b/c/d').b.binding`,
-                    `('' -> 'a/b/c/d').b.afterBind`,
+                    `('' -> 'a/b/c/d').b.bound`,
                     `('' -> 'a/b/c/d').b.afterAttach`,
                     `('' -> 'a/b/c/d').c.binding`,
-                    `('' -> 'a/b/c/d').c.afterBind`,
+                    `('' -> 'a/b/c/d').c.bound`,
                     `('' -> 'a/b/c/d').c.afterAttach`,
                     `('' -> 'a/b/c/d').d.binding`,
-                    `('' -> 'a/b/c/d').d.afterBind`,
+                    `('' -> 'a/b/c/d').d.bound`,
                     `('' -> 'a/b/c/d').d.afterAttach`,
                     `('' -> 'a/b/c/d').d.afterAttachChildren`,
                     `('' -> 'a/b/c/d').c.afterAttachChildren`,
@@ -1846,7 +1846,7 @@ describe('router hooks', function () {
 
                 yield* interleave(
                   (function* () {
-                    yield* prepend(phase1, 'a1', 'binding', 'afterBind', 'afterAttach');
+                    yield* prepend(phase1, 'a1', 'binding', 'bound', 'afterAttach');
                     yield `${phase1}.a2.load`;
                     if (a2Load > 1) { yield ''; }
                     if (a2Load > 2) { yield ''; }
@@ -1857,7 +1857,7 @@ describe('router hooks', function () {
                     yield `${phase1}.a1.afterAttachChildren`;
                   })(),
                   (function* () {
-                    yield* prepend(phase1, 'b1', 'binding', 'afterBind', 'afterAttach');
+                    yield* prepend(phase1, 'b1', 'binding', 'bound', 'afterAttach');
                     yield `${phase1}.b2.load`;
                     if (b2Load > 2) { yield ''; }
                     if (b2Load > 3) { yield ''; }
@@ -1905,13 +1905,13 @@ describe('router hooks', function () {
 
                 yield* interleave(
                   (function* () {
-                    yield* prepend(phase1, 'a1', 'binding', 'afterBind', 'afterAttach');
+                    yield* prepend(phase1, 'a1', 'binding', 'bound', 'afterAttach');
                     yield* prepend(phase1, 'a2', ...addHooks);
                     yield `${phase1}.a1.afterAttachChildren`;
                   })(),
                   (function* () {
-                    yield* prepend(phase1, 'b1', 'binding', 'afterBind', 'afterAttach');
-                    yield* prepend(phase1, 'b2', 'binding', 'afterBind', 'afterAttach');
+                    yield* prepend(phase1, 'b1', 'binding', 'bound', 'afterAttach');
+                    yield* prepend(phase1, 'b2', 'binding', 'bound', 'afterAttach');
                     yield '';
                     yield `${phase1}.b2.afterAttachChildren`;
                     yield `${phase1}.b1.afterAttachChildren`;
@@ -2014,7 +2014,7 @@ describe('router hooks', function () {
 
         for (const hookName of [
           'binding',
-          'afterBind',
+          'bound',
           'afterAttach',
           'afterAttachChildren',
           'canLoad',
@@ -2056,7 +2056,7 @@ describe('router hooks', function () {
               // These shouldn't throw
               const target2 = CustomElement.define({ name: 'a', template: 'a' }, class Target2 {
                 public async binding() { throw new Error(`error in binding`); }
-                public async afterBind() { throw new Error(`error in afterBind`); }
+                public async bound() { throw new Error(`error in bound`); }
                 public async afterAttach() { throw new Error(`error in afterAttach`); }
                 public async canLoad() { throw new Error(`error in canLoad`); }
                 public async load() { throw new Error(`error in load`); }
@@ -2087,7 +2087,7 @@ function join(sep: string, ...parts: string[]): string {
 function getAllAsyncSpecs(count: number): HookSpecs {
   return HookSpecs.create({
     binding: hookSpecsMap.binding.async(count),
-    afterBind: hookSpecsMap.afterBind.async(count),
+    bound: hookSpecsMap.bound.async(count),
     afterAttach: hookSpecsMap.afterAttach.async(count),
     afterAttachChildren: hookSpecsMap.afterAttachChildren.async(count),
 

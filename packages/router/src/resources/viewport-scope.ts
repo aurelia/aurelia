@@ -85,7 +85,7 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel {
     // console.log('ViewportScope creating', this.getAttribute('name', this.name), this.container, this.parent, controller, this);
     // this.connect();
   }
-  public afterBind(initiator: IHydratedController, parent: ISyntheticView | ICustomElementController | null, flags: LifecycleFlags): void {
+  public bound(initiator: IHydratedController, parent: ISyntheticView | ICustomElementController | null, flags: LifecycleFlags): void {
     this.isBound = true;
 
     (this.$controller as Writable<ICustomElementController>).scope = this.parentController.scope!;

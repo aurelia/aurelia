@@ -105,8 +105,8 @@ export class Author {
     // console.log('route', route);
     // this.match(route);
   }
-  public afterBind() {
-    console.log('### afterBind', this);
+  public bound() {
+    console.log('### bound', this);
   }
   public afterAttach() {
     console.log('### afterAttach', this);

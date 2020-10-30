@@ -342,7 +342,7 @@ By default, a watcher will be created for a `@watch()` decorator. This watcher w
 {% hint style="warning" %}
 **Automatic array observation**
 
-- By default, in the computed getter, array mutation method such as `.push()`, `.pop()`, `.shift()`, `.unshift()`, and `.reverse()` are not observed, as there are no clear indicators of what dependencies to be collected from those methods.
+- By default, in the computed getter, array mutation method such as `.push()`, `.pop()`, `.shift()`, `.unshift()`, `.splice()`, and `.reverse()` are not observed, as there are no clear indicators of what dependencies to be collected from those methods.
 
 {% endhint %}
 
@@ -353,7 +353,17 @@ By default, a watcher will be created for a `@watch()` decorator. This watcher w
   // don't do this
   @watch(object => object.counter++)
   someMethod() {}
+
+  // don't do these
+  @watch(object => object.someArray.push(...args))
+  @watch(object => object.someArray.pop())
+  @watch(object => object.someArray.shift())
+  @watch(object => object.someArray.unshift())
+  @watch(object => object.someArray.splice(...args))
+  @watch(object => object.someArray.reverse())
+  someMethod() {}
   ```
+
 - To ensure idenity equality with proxies, always be careful with objects that are not accessed from the first parameter passed into the computed getter. Better, get the raw underlying object before doing the strict comparison with `===`. For example:
   ```typescript
   const defaultOptions = {};

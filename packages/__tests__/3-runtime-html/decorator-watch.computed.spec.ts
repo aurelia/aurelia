@@ -663,7 +663,7 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
         ['.indexOf()', (post: IPostOffice) => post.packages.indexOf(post.selected)],
         ['.findIndex()', (post: IPostOffice) => post.packages.findIndex(v => v === post.selected)],
         ['.includes()', (post: IPostOffice) => post.packages.includes(post.selected)],
-      ].map(([name, getter]) => ({ 
+      ].map(([name, getter]) => ({
         title: `observes ${name}`,
         init: () => Array.from(
           { length: 3 },

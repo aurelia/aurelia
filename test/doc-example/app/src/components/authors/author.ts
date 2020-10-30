@@ -54,8 +54,8 @@ export class Author {
     console.log('### hydrated', this);
   }
 
-  public afterCompose() {
-    console.log('### afterCompose', this);
+  public created() {
+    console.log('### created', this);
   }
 
   // KEEP THIS!

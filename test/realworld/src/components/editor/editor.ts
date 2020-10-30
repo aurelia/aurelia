@@ -20,7 +20,7 @@ export class Editor {
   public define() { return; }
   public hydrating() { return; }
   public hydrated() { return; }
-  public afterCompose() { return; }
+  public created() { return; }
 
   public beforeBind() { return; }
   public afterBind() { return; }

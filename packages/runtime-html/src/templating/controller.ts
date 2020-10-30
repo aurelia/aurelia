@@ -367,11 +367,11 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       /* host       */this.host,
     );
 
-    if (this.hooks.hasAfterCompose) {
+    if (this.hooks.hasCreated) {
       if (this.debug) {
-        this.logger!.trace(`invoking afterCompose() hook`);
+        this.logger!.trace(`invoking created() hook`);
       }
-      (this.viewModel as BindingContext<C>).afterCompose(this as ICustomElementController);
+      (this.viewModel as BindingContext<C>).created(this as ICustomElementController);
     }
   }
 

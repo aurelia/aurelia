@@ -261,11 +261,11 @@ export class ViewLocator {
           this.viewModel.hydrated!(controller as ICompiledCustomElementController<T>);
         };
       }
-      if ('afterCompose' in object) {
-        proto.afterCompose = function afterCompose(
+      if ('created' in object) {
+        proto.created = function created(
           controller: ICustomElementController,
         ): void {
-          this.viewModel.afterCompose!(controller as ICustomElementController<T>);
+          this.viewModel.created!(controller as ICustomElementController<T>);
         };
       }
 

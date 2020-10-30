@@ -225,7 +225,7 @@ describe('the view locator', function () {
     'hydrating',
     'define',
     'hydrated',
-    'afterCompose',
+    'created',
 
     'beforeBind',
     'afterBind',

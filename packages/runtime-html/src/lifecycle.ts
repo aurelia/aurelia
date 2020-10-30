@@ -411,7 +411,7 @@ export interface ICompileHooks {
   hydrated?(
     controller: ICompiledCustomElementController<this>,
   ): void;
-  afterCompose?(
+  created?(
     controller: ICustomElementController<this>,
   ): void;
 }

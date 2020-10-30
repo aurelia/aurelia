@@ -295,7 +295,7 @@ export interface IContextualCustomElementController<C extends IViewModel = IView
 }
 
 /**
- * A representation of `IController` specific to a custom element whose `beforeComposeChildren` hook is about to be invoked (if present).
+ * A representation of `IController` specific to a custom element whose `hydrated` hook is about to be invoked (if present).
  *
  * It has the same properties as `IContextualCustomElementController`, except the context is now compiled (hence 'compiled'), as well as the nodes, and projector.
  */
@@ -408,7 +408,7 @@ export interface ICompileHooks {
   hydrating?(
     controller: IContextualCustomElementController<this>,
   ): void;
-  beforeComposeChildren?(
+  hydrated?(
     controller: ICompiledCustomElementController<this>,
   ): void;
   afterCompose?(

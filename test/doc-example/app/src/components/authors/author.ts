@@ -50,8 +50,8 @@ export class Author {
     console.log('### hydrating', this);
   }
 
-  public beforeComposeChildren() {
-    console.log('### beforeComposeChildren', this);
+  public hydrated() {
+    console.log('### hydrated', this);
   }
 
   public afterCompose() {

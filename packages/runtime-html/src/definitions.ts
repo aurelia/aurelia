@@ -13,7 +13,7 @@ export class HooksDefinition {
   public readonly hasDefine: boolean;
 
   public readonly hasHydrating: boolean;
-  public readonly hasBeforeComposeChildren: boolean;
+  public readonly hasHydrated: boolean;
   public readonly hasAfterCompose: boolean;
 
   public readonly hasBeforeBind: boolean;
@@ -31,7 +31,7 @@ export class HooksDefinition {
     this.hasDefine = 'define' in target;
 
     this.hasHydrating = 'hydrating' in target;
-    this.hasBeforeComposeChildren = 'beforeComposeChildren' in target;
+    this.hasHydrated = 'hydrated' in target;
     this.hasAfterCompose = 'afterCompose' in target;
 
     this.hasBeforeBind = 'beforeBind' in target;

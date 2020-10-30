@@ -310,7 +310,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     // - Controller.hydrateCustomElement
     // - runAppTasks('hydrating') // may return a promise
     // - Controller.compile
-    // - runAppTasks('beforeCompileChildren') // may return a promise
+    // - runAppTasks('hydrated') // may return a promise
     // - Controller.compileChildren
     // This keeps hydration synchronous while still allowing the composition root compile hooks to do async work.
     if ((this.root?.controller as this | undefined) !== this) {
@@ -348,11 +348,11 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     (this.viewModel as Writable<C>).$controller = this;
     this.nodes = compiledContext.createNodes();
 
-    if (this.hooks.hasBeforeComposeChildren) {
+    if (this.hooks.hasHydrated) {
       if (this.debug) {
-        this.logger!.trace(`invoking hasBeforeComposeChildren() hook`);
+        this.logger!.trace(`invoking hasHydrated() hook`);
       }
-      (this.viewModel as BindingContext<C>).beforeComposeChildren(this as ICustomElementController);
+      (this.viewModel as BindingContext<C>).hydrated(this as ICustomElementController);
     }
   }
 

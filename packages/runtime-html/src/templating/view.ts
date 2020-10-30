@@ -254,11 +254,11 @@ export class ViewLocator {
           this.viewModel.hydrating!(controller as IContextualCustomElementController<T>);
         };
       }
-      if ('beforeComposeChildren' in object) {
-        proto.beforeComposeChildren = function beforeComposeChildren(
+      if ('hydrated' in object) {
+        proto.hydrated = function hydrated(
           controller: ICompiledCustomElementController,
         ): void {
-          this.viewModel.beforeComposeChildren!(controller as ICompiledCustomElementController<T>);
+          this.viewModel.hydrated!(controller as ICompiledCustomElementController<T>);
         };
       }
       if ('afterCompose' in object) {

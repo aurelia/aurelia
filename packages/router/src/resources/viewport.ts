@@ -61,8 +61,8 @@ export class ViewportCustomElement implements ICustomElementViewModel {
     this.element = element as Element;
   }
 
-  public beforeComposeChildren(controller: ICompiledCustomElementController) {
-    // console.log('beforeComposeChildren', this.name, this.router.isActive);
+  public hydrated(controller: ICompiledCustomElementController) {
+    // console.log('hydrated', this.name, this.router.isActive);
     this.controller = controller as IRoutingController;
     this.container = controller.context.get(IContainer);
 

@@ -283,7 +283,7 @@ export interface IDryCustomElementController<C extends IViewModel = IViewModel> 
 }
 
 /**
- * A representation of `IController` specific to a custom element whose `beforeCompose` hook is about to be invoked (if present).
+ * A representation of `IController` specific to a custom element whose `hydrating` hook is about to be invoked (if present).
  *
  * It has the same properties as `IDryCustomElementController`, as well as a composition context (hence 'contextual').
  */
@@ -405,7 +405,7 @@ export interface ICompileHooks {
     parentContainer: IContainer,
     definition: CustomElementDefinition,
   ): PartialCustomElementDefinition | void;
-  beforeCompose?(
+  hydrating?(
     controller: IContextualCustomElementController<this>,
   ): void;
   beforeComposeChildren?(

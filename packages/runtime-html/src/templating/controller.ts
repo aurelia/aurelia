@@ -308,7 +308,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
     // If this is the root controller, then the AppRoot will invoke things in the following order:
     // - Controller.hydrateCustomElement
-    // - runAppTasks('beforeCompose') // may return a promise
+    // - runAppTasks('hydrating') // may return a promise
     // - Controller.compile
     // - runAppTasks('beforeCompileChildren') // may return a promise
     // - Controller.compileChildren
@@ -323,11 +323,11 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   public compile(
     targetedProjections: RegisteredProjections | null,
   ): void {
-    if (this.hooks.hasBeforeCompose) {
+    if (this.hooks.hasHydrating) {
       if (this.debug) {
-        this.logger!.trace(`invoking hasBeforeCompose() hook`);
+        this.logger!.trace(`invoking hasHydrating() hook`);
       }
-      (this.viewModel as BindingContext<C>).beforeCompose(this as ICustomElementController);
+      (this.viewModel as BindingContext<C>).hydrating(this as ICustomElementController);
     }
 
     const compiledContext = this.context!.compile(targetedProjections);

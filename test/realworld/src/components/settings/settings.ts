@@ -14,7 +14,7 @@ export class Settings {
   ) {}
 
   public define() { return; }
-  public beforeCompose() { return; }
+  public hydrating() { return; }
   public beforeComposeChildren() { return; }
   public afterCompose() { return; }
 

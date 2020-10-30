@@ -222,7 +222,7 @@ describe('the view locator', function () {
   });
 
   [
-    'beforeCompose',
+    'hydrating',
     'define',
     'beforeComposeChildren',
     'afterCompose',

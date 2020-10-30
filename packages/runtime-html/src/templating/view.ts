@@ -247,11 +247,11 @@ export class ViewLocator {
 
       const proto = UnboundComponent.prototype;
 
-      if ('beforeCompose' in object) {
-        proto.beforeCompose = function beforeCompose(
+      if ('hydrating' in object) {
+        proto.hydrating = function hydrating(
           controller: IContextualCustomElementController,
         ): void {
-          this.viewModel.beforeCompose!(controller as IContextualCustomElementController<T>);
+          this.viewModel.hydrating!(controller as IContextualCustomElementController<T>);
         };
       }
       if ('beforeComposeChildren' in object) {

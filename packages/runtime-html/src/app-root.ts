@@ -76,7 +76,7 @@ export class AppRoot implements IDisposable {
       )) as Controller;
 
       controller.hydrateCustomElement(container, null);
-      return onResolve(this.runAppTasks('beforeCompose'), () => {
+      return onResolve(this.runAppTasks('hydrating'), () => {
         controller.compile(null);
         return onResolve(this.runAppTasks('beforeCompileChildren'), () => {
           controller.compileChildren();

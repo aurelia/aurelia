@@ -18,7 +18,7 @@ export class Editor {
   ) {}
 
   public define() { return; }
-  public beforeCompose() { return; }
+  public hydrating() { return; }
   public beforeComposeChildren() { return; }
   public afterCompose() { return; }
 

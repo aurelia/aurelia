@@ -831,11 +831,11 @@
 //     ): PartialCustomElementDefinition | void {
 //       this.$calls.addCall(this.id, 'define');
 //     };
-//     proto.beforeCompose = function beforeCompose(
+//     proto.hydrating = function hydrating(
 //       this: TProto,
 //       controller: IContextualCustomElementController<HTMLElement, TProto>,
 //     ): void {
-//       this.$calls.addCall(this.id, 'beforeCompose');
+//       this.$calls.addCall(this.id, 'hydrating');
 //     };
 //     proto.beforeComposeChildren = function beforeComposeChildren(
 //       this: TProto,
@@ -956,7 +956,7 @@
 //       const expectedCalls = new CallCollection();
 //       expectedCalls
 //         .addCall(1, 'define')
-//         .addCall(1, 'beforeCompose')
+//         .addCall(1, 'hydrating')
 //         .addCall(1, 'beforeComposeChildren')
 //         .addCall(1, 'afterCompose')
 //         .addCall(1, 'beforeBind')
@@ -1011,11 +1011,11 @@
 //       const expectedCalls = new CallCollection();
 //       expectedCalls
 //         .addCall(1, 'define')
-//         .addCall(1, 'beforeCompose')
+//         .addCall(1, 'hydrating')
 //         .addCall(1, 'beforeComposeChildren')
 
 //         .addCall(2, 'create')
-//         .addCall(2, 'beforeCompose')
+//         .addCall(2, 'hydrating')
 //         .addCall(2, 'beforeComposeChildren')
 
 //         .addCall(2, 'afterCompose')

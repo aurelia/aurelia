@@ -7,7 +7,7 @@ export type HookName = (
   'attaching' |
   'attached' |
 
-  'beforeDetach' |
+  'detaching' |
   'beforeUnbind' |
 
   'dispose' |
@@ -106,7 +106,7 @@ export class HookInvocationAggregator {
   public readonly attaching: HookInvocationTracker = new HookInvocationTracker(this, 'attaching');
   public readonly attached: HookInvocationTracker = new HookInvocationTracker(this, 'attached');
 
-  public readonly beforeDetach: HookInvocationTracker = new HookInvocationTracker(this, 'beforeDetach');
+  public readonly detaching: HookInvocationTracker = new HookInvocationTracker(this, 'detaching');
   public readonly beforeUnbind: HookInvocationTracker = new HookInvocationTracker(this, 'beforeUnbind');
 
   public readonly $$dispose: HookInvocationTracker = new HookInvocationTracker(this, 'dispose');
@@ -137,7 +137,7 @@ export class HookInvocationAggregator {
     this.bound.dispose();
     this.attaching.dispose();
     this.attached.dispose();
-    this.beforeDetach.dispose();
+    this.detaching.dispose();
     this.beforeUnbind.dispose();
     this.$$dispose.dispose();
     this.canLoad.dispose();
@@ -154,7 +154,7 @@ export class HookInvocationAggregator {
     $this.bound = void 0;
     $this.attaching = void 0;
     $this.attached = void 0;
-    $this.beforeDetach = void 0;
+    $this.detaching = void 0;
     $this.beforeUnbind = void 0;
     $this.$$dispose = void 0;
     $this.canLoad = void 0;

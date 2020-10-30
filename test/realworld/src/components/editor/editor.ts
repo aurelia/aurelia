@@ -27,7 +27,7 @@ export class Editor {
   public attaching() { return; }
   public attached() { return; }
 
-  public beforeDetach() { return; }
+  public detaching() { return; }
   public beforeUnbind() { return; }
 
   public enter(params: { slug: any }) {

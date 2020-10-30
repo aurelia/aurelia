@@ -96,7 +96,7 @@ export class AuSlot implements ICustomElementViewModel {
     return this.view.activate(initiator, $controller, flags, this.outerScope ?? this.hostScope!, this.hostScope);
   }
 
-  public beforeDetach(
+  public detaching(
     initiator: IHydratedController,
     parent: IHydratedParentController,
     flags: LifecycleFlags,

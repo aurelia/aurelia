@@ -12,7 +12,7 @@ export class HooksDefinition {
   public readonly hasAttaching: boolean;
   public readonly hasAttached: boolean;
 
-  public readonly hasBeforeDetach: boolean;
+  public readonly hasDetaching: boolean;
   public readonly hasBeforeUnbind: boolean;
 
   public readonly hasDispose: boolean;
@@ -30,7 +30,7 @@ export class HooksDefinition {
     this.hasAttaching = 'attaching' in target;
     this.hasAttached = 'attached' in target;
 
-    this.hasBeforeDetach = 'beforeDetach' in target;
+    this.hasDetaching = 'detaching' in target;
     this.hasBeforeUnbind = 'beforeUnbind' in target;
 
     this.hasDispose = 'dispose' in target;

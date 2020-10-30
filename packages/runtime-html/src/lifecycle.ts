@@ -379,7 +379,7 @@ export interface IActivationHooks<TParent> {
     flags: LifecycleFlags,
   ): void | Promise<void>;
 
-  beforeDetach?(
+  detaching?(
     initiator: IHydratedController,
     parent: TParent,
     flags: LifecycleFlags,

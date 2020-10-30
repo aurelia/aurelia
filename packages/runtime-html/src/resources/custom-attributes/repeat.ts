@@ -89,7 +89,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray> implements IC
     return this.activateAllViews(initiator, flags);
   }
 
-  public beforeDetach(
+  public detaching(
     initiator: IHydratedController,
     parent: IHydratedParentController,
     flags: LF,

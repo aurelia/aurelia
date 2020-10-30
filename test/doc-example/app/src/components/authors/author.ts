@@ -123,8 +123,8 @@ export class Author {
     console.log('### leave', this, parameters);
     return true;
   }
-  public beforeDetach() {
-    console.log('### beforeDetach', this);
+  public detaching() {
+    console.log('### detaching', this);
   }
   public beforeUnbind() {
     console.log('### beforeUnbind', this);

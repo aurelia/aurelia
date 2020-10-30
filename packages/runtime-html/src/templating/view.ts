@@ -305,13 +305,13 @@ export class ViewLocator {
         };
       }
 
-      if ('beforeDetach' in object) {
-        proto.beforeDetach = function beforeDetach(
+      if ('detaching' in object) {
+        proto.detaching = function detaching(
           initiator: IHydratedController,
           parent: IHydratedParentController | null,
           flags: LifecycleFlags,
         ): void | Promise<void> {
-          return this.viewModel.beforeDetach!(initiator, parent, flags);
+          return this.viewModel.detaching!(initiator, parent, flags);
         };
       }
       if ('beforeUnbind' in object) {

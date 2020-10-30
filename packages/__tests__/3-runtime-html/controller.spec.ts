@@ -45,7 +45,7 @@
 //     bound: true,
 //     beforeAttach: true,
 //     attached: true,
-//     beforeDetach: true,
+//     detaching: true,
 //     dispose: true,
 //     afterDetachChildren: true,
 //     beforeUnbind: true,
@@ -59,7 +59,7 @@
 //     bound(...args: any[]): void;
 //     beforeAttach(...args: any[]): void;
 //     attached(...args: any[]): void;
-//     beforeDetach(...args: any[]): void;
+//     detaching(...args: any[]): void;
 //     dispose(...args: any[]): void;
 //     afterDetachChildren(...args: any[]): void;
 //     beforeUnbind(...args: any[]): void;
@@ -82,8 +82,8 @@
 //     proto.attached = function (...args: any[]): void {
 //       this.$$calls.addCall(this.id, 'attached', ...args);
 //     };
-//     proto.beforeDetach = function (...args: any[]): void {
-//       this.$$calls.addCall(this.id, 'beforeDetach', ...args);
+//     proto.detaching = function (...args: any[]): void {
+//       this.$$calls.addCall(this.id, 'detaching', ...args);
 //     };
 //     proto.dispose = function (...args: any[]): void {
 //       this.$$calls.addCall(this.id, 'dispose', ...args);
@@ -272,7 +272,7 @@
 //         expectedCalls
 //           .addCall(2, 'detach', LF.none)
 //           .addCall(2, 'detachCustomElement', LF.fromDetach)
-//           .addCall(1, 'beforeDetach', LF.fromDetach)
+//           .addCall(1, 'detaching', LF.fromDetach)
 //           .addCall(2, 'detachControllers', LF.fromDetach),
 //         '7',
 //       );
@@ -556,7 +556,7 @@
 //           .addCall(2, 'detachCustomElement', LF.fromDetach)
 
 //           // ce #1
-//           .addCall(1, 'beforeDetach', LF.fromDetach)
+//           .addCall(1, 'detaching', LF.fromDetach)
 
 //           // ce #1 controller
 //           .addCall(2, 'detachControllers', LF.fromDetach)
@@ -566,7 +566,7 @@
 //           .addCall(4, 'detachCustomAttribute', LF.fromDetach)
 
 //           // if #1
-//           .addCall(3, 'beforeDetach', LF.fromDetach)
+//           .addCall(3, 'detaching', LF.fromDetach)
 
 //           // if #1 ifView
 //           .addCall(5, 'detach', LF.fromDetach)
@@ -578,7 +578,7 @@
 //           .addCall(7, 'detachCustomElement', LF.fromDetach)
 
 //           // ce #2
-//           .addCall(6, 'beforeDetach', LF.fromDetach)
+//           .addCall(6, 'detaching', LF.fromDetach)
 
 //           // ce #2 controller
 //           .addCall(7, 'detachControllers', LF.fromDetach)
@@ -588,7 +588,7 @@
 //           .addCall(9, 'detachCustomAttribute', LF.fromDetach)
 
 //           // if #2
-//           .addCall(8, 'beforeDetach', LF.fromDetach),
+//           .addCall(8, 'detaching', LF.fromDetach),
 //         '7',
 //       );
 //       assert.strictEqual(host.textContent, '16', '8');
@@ -958,7 +958,7 @@
 //           .addCall(2, 'detachCustomElement', LF.fromDetach)
 
 //           // ce #1
-//           .addCall(1, 'beforeDetach', LF.fromDetach)
+//           .addCall(1, 'detaching', LF.fromDetach)
 
 //           // ce #1 controller
 //           .addCall(2, 'detachControllers', LF.fromDetach)
@@ -968,7 +968,7 @@
 //           .addCall(4, 'detachCustomAttribute', LF.fromDetach)
 
 //           // if #1
-//           .addCall(3, 'beforeDetach', LF.fromDetach)
+//           .addCall(3, 'detaching', LF.fromDetach)
 
 //           // if #1 ifView
 //           .addCall(5, 'detach', LF.fromDetach)
@@ -980,7 +980,7 @@
 //           .addCall(7, 'detachCustomElement', LF.fromDetach)
 
 //           // ce #2
-//           .addCall(6, 'beforeDetach', LF.fromDetach)
+//           .addCall(6, 'detaching', LF.fromDetach)
 
 //           // ce #2 controller
 //           .addCall(7, 'detachControllers', LF.fromDetach)
@@ -990,7 +990,7 @@
 //           .addCall(9, 'detachCustomAttribute', LF.fromDetach)
 
 //           // if #2
-//           .addCall(8, 'beforeDetach', LF.fromDetach),
+//           .addCall(8, 'detaching', LF.fromDetach),
 //         '7',
 //       );
 //       assert.strictEqual(host.textContent, 'hihi', '8');

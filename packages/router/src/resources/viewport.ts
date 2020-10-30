@@ -136,9 +136,9 @@ export class ViewportCustomElement implements ICustomElementViewModel {
     }
   }
 
-  // public beforeDetach(initiator: IHydratedController, parent: ISyntheticView | ICustomElementController<ICustomElementViewModel> | null, flags: LifecycleFlags): void | Promise<void> {
+  // public detaching(initiator: IHydratedController, parent: ISyntheticView | ICustomElementController<ICustomElementViewModel> | null, flags: LifecycleFlags): void | Promise<void> {
   //   if (this.viewport !== null && (this.viewport.nextContent ?? null) === null) {
-  //     console.log('beforeDetach', this.viewport?.toString());
+  //     console.log('detaching', this.viewport?.toString());
   //   }
   // }
 

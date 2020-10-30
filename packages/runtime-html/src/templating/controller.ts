@@ -594,10 +594,10 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       }
     }
 
-    if (this.hooks.hasBeforeDetach) {
-      if (this.debug) { this.logger!.trace(`beforeDetach()`); }
+    if (this.hooks.hasDetaching) {
+      if (this.debug) { this.logger!.trace(`detaching()`); }
 
-      ret = this.bindingContext!.beforeDetach(this.$initiator as IHydratedController, this.parent as IHydratedParentController, this.$flags);
+      ret = this.bindingContext!.detaching(this.$initiator as IHydratedController, this.parent as IHydratedParentController, this.$flags);
       if (ret instanceof Promise) {
         (promises ??= []).push(ret);
       }
@@ -606,9 +606,9 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     // Note: if a 3rd party plugin happens to do any async stuff in a template controller before calling deactivate on its view,
     // then the linking will become out of order.
     // For framework components, this shouldn't cause issues.
-    // We can only prevent that by linking up after awaiting the beforeDetach promise, which would add an extra tick + a fair bit of
+    // We can only prevent that by linking up after awaiting the detaching promise, which would add an extra tick + a fair bit of
     // overhead on this hot path, so it's (for now) a deliberate choice to not account for such situation.
-    // Just leaving the note here so that we know to look here if a weird beforeDetach-related timing issue is ever reported.
+    // Just leaving the note here so that we know to look here if a weird detaching-related timing issue is ever reported.
     if (initiator.head === null) {
       initiator.head = this as Controller;
     } else {
@@ -619,7 +619,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     ret = promises === void 0 ? void 0 : resolveAll(...promises);
 
     if (initiator !== this) {
-      // Only beforeDetach is called + the linked list is built when any controller that is not the initiator, is deactivated.
+      // Only detaching is called + the linked list is built when any controller that is not the initiator, is deactivated.
       // The rest is handled by the initiator.
       // This means that descendant controllers have to make sure to await the initiator's promise before doing any subsequent
       // controller api calls, or race conditions might occur.

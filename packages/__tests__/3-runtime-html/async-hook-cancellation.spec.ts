@@ -150,7 +150,7 @@
 //   public readonly bound: PromiseTracker = new PromiseTracker(this, 'bound');
 //   public readonly attaching: PromiseTracker = new PromiseTracker(this, 'attaching');
 //   public readonly attached: PromiseTracker = new PromiseTracker(this, 'attached');
-//   public readonly beforeDetach: PromiseTracker = new PromiseTracker(this, 'beforeDetach');
+//   public readonly detaching: PromiseTracker = new PromiseTracker(this, 'detaching');
 //   public readonly beforeUnbind: PromiseTracker = new PromiseTracker(this, 'beforeUnbind');
 //   public readonly afterUnbind: PromiseTracker = new PromiseTracker(this, 'afterUnbind');
 //   public readonly afterUnbindChildren: PromiseTracker = new PromiseTracker(this, 'afterUnbindChildren');
@@ -231,12 +231,12 @@
 //       this.calls.attached.notify(name, callResolve);
 //     }
 
-//     public async beforeDetach(): Promise<void> {
+//     public async detaching(): Promise<void> {
 //       if (this.config.hasPromise) {
 //         await this.config.wait();
 //       }
 
-//       this.calls.beforeDetach.notify(name, callResolve);
+//       this.calls.detaching.notify(name, callResolve);
 //     }
 
 //     public async beforeUnbind(): Promise<void> {
@@ -425,9 +425,9 @@
 
 //                   assert.deepStrictEqual(calls.history.splice(0), [
 //                   ], `2.5`);
-//                   await calls.beforeDetach.promise;
+//                   await calls.detaching.promise;
 //                   assert.deepStrictEqual(calls.history.splice(0), [
-//                     'a-1.beforeDetach',
+//                     'a-1.detaching',
 //                   ], `2.4`);
 //                   await calls.beforeUnbind.promise;
 //                   assert.deepStrictEqual(calls.history.splice(0), [
@@ -487,9 +487,9 @@
 
 //                   assert.deepStrictEqual(calls.history.splice(0), [
 //                   ], `2.6`);
-//                   await calls.beforeDetach.promise;
+//                   await calls.detaching.promise;
 //                   assert.deepStrictEqual(calls.history.splice(0), [
-//                     'a-1.beforeDetach',
+//                     'a-1.detaching',
 //                   ], `2.5`);
 //                   await calls.beforeUnbind.promise;
 //                   assert.deepStrictEqual(calls.history.splice(0), [
@@ -556,9 +556,9 @@
 
 //                   assert.deepStrictEqual(calls.history.splice(0), [
 //                   ], `2.5`);
-//                   await calls.beforeDetach.promise;
+//                   await calls.detaching.promise;
 //                   assert.deepStrictEqual(calls.history.splice(0), [
-//                     'a-1.beforeDetach',
+//                     'a-1.detaching',
 //                   ], `2.4`);
 //                   await calls.beforeUnbind.promise;
 //                   assert.deepStrictEqual(calls.history.splice(0), [
@@ -623,9 +623,9 @@
 
 //                   assert.deepStrictEqual(calls.history.splice(0), [
 //                   ], `2.6`);
-//                   await calls.beforeDetach.promise;
+//                   await calls.detaching.promise;
 //                   assert.deepStrictEqual(calls.history.splice(0), [
-//                     'a-1.beforeDetach',
+//                     'a-1.detaching',
 //                   ], `2.5`);
 //                   await calls.beforeUnbind.promise;
 //                   assert.deepStrictEqual(calls.history.splice(0), [
@@ -637,7 +637,7 @@
 //                   ], `2.3`);
 //                   await calls.afterUnbindChildren.promise;
 //                   assert.deepStrictEqual(calls.history.splice(0), [
-//                     'b-1.beforeDetach',
+//                     'b-1.detaching',
 //                     'b-1.beforeUnbind',
 //                     'b-1.afterUnbind',
 //                     'b-1.afterUnbindChildren',
@@ -699,7 +699,7 @@
 //                   ], `2.2`);
 //                   await Promise.all(promises);
 //                   assert.deepStrictEqual(calls.history.splice(0), [
-//                     'b-1.beforeDetach',
+//                     'b-1.detaching',
 //                     'b-1.beforeUnbind',
 //                     'b-1.afterUnbind',
 //                   ], `2.1`);
@@ -762,7 +762,7 @@
 //                   ], `2.2`);
 //                   await Promise.all(promises);
 //                   assert.deepStrictEqual(calls.history.splice(0), [
-//                     'b-1.beforeDetach',
+//                     'b-1.detaching',
 //                     'b-1.beforeUnbind',
 //                     'b-1.afterUnbind',
 //                   ], `2.1`);
@@ -819,9 +819,9 @@
 
 //                   assert.deepStrictEqual(calls.history.splice(0), [
 //                   ], `2.5`);
-//                   await calls.beforeDetach.promise;
+//                   await calls.detaching.promise;
 //                   assert.deepStrictEqual(calls.history.splice(0), [
-//                     'a-1.beforeDetach',
+//                     'a-1.detaching',
 //                   ], `2.4`);
 //                   await calls.beforeUnbind.promise;
 //                   assert.deepStrictEqual(calls.history.splice(0), [
@@ -833,7 +833,7 @@
 //                   ], `2.2`);
 //                   await Promise.all(promises);
 //                   assert.deepStrictEqual(calls.history.splice(0), [
-//                     'b-1.beforeDetach',
+//                     'b-1.detaching',
 //                     'b-1.beforeUnbind',
 //                     'b-1.afterUnbind',
 //                   ], `2.1`);
@@ -909,22 +909,22 @@
 //                   if (config.hasPromise) {
 //                     assert.deepStrictEqual(calls.history.splice(0), [
 //                     ], `2.7.1`);
-//                     await calls.beforeDetach.promise;
+//                     await calls.detaching.promise;
 //                     assert.deepStrictEqual(calls.history.splice(0), [
-//                       'b-1.beforeDetach',
+//                       'b-1.detaching',
 //                       'b-1.beforeUnbind',
 //                       'b-1.afterUnbind',
-//                       'a-1.beforeDetach',
+//                       'a-1.detaching',
 //                     ], `2.7.2`);
 //                   } else {
 //                     assert.deepStrictEqual(calls.history.splice(0), [
-//                       'b-1.beforeDetach',
+//                       'b-1.detaching',
 //                     ], `2.6.1`);
-//                     await calls.beforeDetach.promise;
+//                     await calls.detaching.promise;
 //                     assert.deepStrictEqual(calls.history.splice(0), [
 //                       'b-1.beforeUnbind',
 //                       'b-1.afterUnbind',
-//                       'a-1.beforeDetach',
+//                       'a-1.detaching',
 //                     ], `2.6.2`);
 //                   }
 //                   await calls.beforeUnbind.promise;
@@ -1098,9 +1098,9 @@
 //                   }
 //                   assert.deepStrictEqual(calls.history.splice(0), [
 //                   ], `2.5`);
-//                   await calls.beforeDetach.promise;
+//                   await calls.detaching.promise;
 //                   assert.deepStrictEqual(calls.history.splice(0), [
-//                     'a-1.beforeDetach',
+//                     'a-1.detaching',
 //                   ], `2.4`);
 //                   await calls.beforeUnbind.promise;
 //                   assert.deepStrictEqual(calls.history.splice(0), [
@@ -1160,9 +1160,9 @@
 //                   }
 //                   assert.deepStrictEqual(calls.history.splice(0), [
 //                   ], `2.6`);
-//                   await calls.beforeDetach.promise;
+//                   await calls.detaching.promise;
 //                   assert.deepStrictEqual(calls.history.splice(0), [
-//                     'a-1.beforeDetach',
+//                     'a-1.detaching',
 //                   ], `2.5`);
 //                   await calls.beforeUnbind.promise;
 //                   assert.deepStrictEqual(calls.history.splice(0), [

@@ -68,7 +68,7 @@ export const hookSpecsMap = {
   attaching: getHookSpecs('attaching'),
   attached: getHookSpecs('attached'),
 
-  beforeDetach: getHookSpecs('beforeDetach'),
+  detaching: getHookSpecs('detaching'),
   beforeUnbind: getHookSpecs('beforeUnbind'),
 
   dispose: getHookSpecs('dispose').sync,

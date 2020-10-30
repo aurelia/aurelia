@@ -175,11 +175,11 @@ describe.skip(`ViewFactory`, function () {
 //     lockScope2: boolean;
 //   }
 //   interface ReleaseSpec extends Spec {
-//     relBeforeDetach1: boolean;
+//     relDetaching1: boolean;
 //     relBeforeEndDetach1: boolean;
 //     relAfterDetachChildren1: boolean;
 
-//     relBeforeDetach2: boolean;
+//     relDetaching2: boolean;
 //     relBeforeEndDetach2: boolean;
 //     relAfterDetachChildren2: boolean;
 //   }
@@ -221,22 +221,22 @@ describe.skip(`ViewFactory`, function () {
 //   ];
 
 //   const relSpecs: ReleaseSpec[] = [
-//     { t: ' 1', relBeforeDetach1: false, relBeforeEndDetach1: false, relAfterDetachChildren1: false, relBeforeDetach2: false, relBeforeEndDetach2: false, relAfterDetachChildren2: false },
-//     { t: ' 2', relBeforeDetach1: false, relBeforeEndDetach1: false, relAfterDetachChildren1: false, relBeforeDetach2: false, relBeforeEndDetach2: false, relAfterDetachChildren2: true  },
-//     { t: ' 3', relBeforeDetach1: false, relBeforeEndDetach1: false, relAfterDetachChildren1: false, relBeforeDetach2: false, relBeforeEndDetach2: true,  relAfterDetachChildren2: false },
-//     { t: ' 4', relBeforeDetach1: false, relBeforeEndDetach1: false, relAfterDetachChildren1: false, relBeforeDetach2: true,  relBeforeEndDetach2: false, relAfterDetachChildren2: false },
-//     { t: ' 5', relBeforeDetach1: false, relBeforeEndDetach1: false, relAfterDetachChildren1: true,  relBeforeDetach2: false, relBeforeEndDetach2: false, relAfterDetachChildren2: false },
-//     { t: ' 6', relBeforeDetach1: false, relBeforeEndDetach1: false, relAfterDetachChildren1: true,  relBeforeDetach2: false, relBeforeEndDetach2: false, relAfterDetachChildren2: true  },
-//     { t: ' 7', relBeforeDetach1: false, relBeforeEndDetach1: false, relAfterDetachChildren1: true,  relBeforeDetach2: false, relBeforeEndDetach2: true,  relAfterDetachChildren2: false },
-//     { t: ' 8', relBeforeDetach1: false, relBeforeEndDetach1: false, relAfterDetachChildren1: true,  relBeforeDetach2: true,  relBeforeEndDetach2: false, relAfterDetachChildren2: false },
-//     { t: ' 9', relBeforeDetach1: false, relBeforeEndDetach1: true,  relAfterDetachChildren1: false, relBeforeDetach2: false, relBeforeEndDetach2: false, relAfterDetachChildren2: false },
-//     { t: '10', relBeforeDetach1: false, relBeforeEndDetach1: true,  relAfterDetachChildren1: false, relBeforeDetach2: false, relBeforeEndDetach2: false, relAfterDetachChildren2: true  },
-//     { t: '11', relBeforeDetach1: false, relBeforeEndDetach1: true,  relAfterDetachChildren1: false, relBeforeDetach2: false, relBeforeEndDetach2: true,  relAfterDetachChildren2: false },
-//     { t: '12', relBeforeDetach1: false, relBeforeEndDetach1: true,  relAfterDetachChildren1: false, relBeforeDetach2: true,  relBeforeEndDetach2: false, relAfterDetachChildren2: false },
-//     { t: '13', relBeforeDetach1: true,  relBeforeEndDetach1: false, relAfterDetachChildren1: false, relBeforeDetach2: false, relBeforeEndDetach2: false, relAfterDetachChildren2: false },
-//     { t: '14', relBeforeDetach1: true,  relBeforeEndDetach1: false, relAfterDetachChildren1: false, relBeforeDetach2: false, relBeforeEndDetach2: false, relAfterDetachChildren2: true  },
-//     { t: '15', relBeforeDetach1: true,  relBeforeEndDetach1: false, relAfterDetachChildren1: false, relBeforeDetach2: false, relBeforeEndDetach2: true,  relAfterDetachChildren2: false },
-//     { t: '16', relBeforeDetach1: true,  relBeforeEndDetach1: false, relAfterDetachChildren1: false, relBeforeDetach2: true,  relBeforeEndDetach2: false, relAfterDetachChildren2: false },
+//     { t: ' 1', relDetaching1: false, relBeforeEndDetach1: false, relAfterDetachChildren1: false, relDetaching2: false, relBeforeEndDetach2: false, relAfterDetachChildren2: false },
+//     { t: ' 2', relDetaching1: false, relBeforeEndDetach1: false, relAfterDetachChildren1: false, relDetaching2: false, relBeforeEndDetach2: false, relAfterDetachChildren2: true  },
+//     { t: ' 3', relDetaching1: false, relBeforeEndDetach1: false, relAfterDetachChildren1: false, relDetaching2: false, relBeforeEndDetach2: true,  relAfterDetachChildren2: false },
+//     { t: ' 4', relDetaching1: false, relBeforeEndDetach1: false, relAfterDetachChildren1: false, relDetaching2: true,  relBeforeEndDetach2: false, relAfterDetachChildren2: false },
+//     { t: ' 5', relDetaching1: false, relBeforeEndDetach1: false, relAfterDetachChildren1: true,  relDetaching2: false, relBeforeEndDetach2: false, relAfterDetachChildren2: false },
+//     { t: ' 6', relDetaching1: false, relBeforeEndDetach1: false, relAfterDetachChildren1: true,  relDetaching2: false, relBeforeEndDetach2: false, relAfterDetachChildren2: true  },
+//     { t: ' 7', relDetaching1: false, relBeforeEndDetach1: false, relAfterDetachChildren1: true,  relDetaching2: false, relBeforeEndDetach2: true,  relAfterDetachChildren2: false },
+//     { t: ' 8', relDetaching1: false, relBeforeEndDetach1: false, relAfterDetachChildren1: true,  relDetaching2: true,  relBeforeEndDetach2: false, relAfterDetachChildren2: false },
+//     { t: ' 9', relDetaching1: false, relBeforeEndDetach1: true,  relAfterDetachChildren1: false, relDetaching2: false, relBeforeEndDetach2: false, relAfterDetachChildren2: false },
+//     { t: '10', relDetaching1: false, relBeforeEndDetach1: true,  relAfterDetachChildren1: false, relDetaching2: false, relBeforeEndDetach2: false, relAfterDetachChildren2: true  },
+//     { t: '11', relDetaching1: false, relBeforeEndDetach1: true,  relAfterDetachChildren1: false, relDetaching2: false, relBeforeEndDetach2: true,  relAfterDetachChildren2: false },
+//     { t: '12', relDetaching1: false, relBeforeEndDetach1: true,  relAfterDetachChildren1: false, relDetaching2: true,  relBeforeEndDetach2: false, relAfterDetachChildren2: false },
+//     { t: '13', relDetaching1: true,  relBeforeEndDetach1: false, relAfterDetachChildren1: false, relDetaching2: false, relBeforeEndDetach2: false, relAfterDetachChildren2: false },
+//     { t: '14', relDetaching1: true,  relBeforeEndDetach1: false, relAfterDetachChildren1: false, relDetaching2: false, relBeforeEndDetach2: false, relAfterDetachChildren2: true  },
+//     { t: '15', relDetaching1: true,  relBeforeEndDetach1: false, relAfterDetachChildren1: false, relDetaching2: false, relBeforeEndDetach2: true,  relAfterDetachChildren2: false },
+//     { t: '16', relDetaching1: true,  relBeforeEndDetach1: false, relAfterDetachChildren1: false, relDetaching2: true,  relBeforeEndDetach2: false, relAfterDetachChildren2: false },
 //   ];
 
 //   const none = LF.none;
@@ -269,7 +269,7 @@ describe.skip(`ViewFactory`, function () {
 //       const { childCount, cacheSize } = cacheSpec;
 //       const { bindTwice, duplicateBindValue, attachTwice, detachTwice, unbindTwice } = duplicateOpSpec;
 //       const { propName, propValue1, lockScope1, newScopeForSecondBind, propValue2, lockScope2 } = bindSpec;
-//       const { relBeforeDetach1, relBeforeEndDetach1, relAfterDetachChildren1, relBeforeDetach2, relBeforeEndDetach2, relAfterDetachChildren2 } = relSpec;
+//       const { relDetaching1, relBeforeEndDetach1, relAfterDetachChildren1, relDetaching2, relBeforeEndDetach2, relAfterDetachChildren2 } = relSpec;
 //       const { bindFlags1, attachFlags1, detachFlags1, unbindFlags1, bindFlags2, attachFlags2, detachFlags2, unbindFlags2 } = flagsSpec;
 
 //       let firstBindInitialValue: string;
@@ -463,7 +463,7 @@ describe.skip(`ViewFactory`, function () {
 //       // - Round 1 - detach
 
 //       lifecycle.afterDetachChildren.begin();
-//       if (relBeforeDetach1) {
+//       if (relDetaching1) {
 //         sut.release(detachFlags1);
 //         assert.strictEqual(host.textContent, firstBindFinalValue.repeat(1 + childCount), 'host.textContent #2');
 //       }
@@ -477,7 +477,7 @@ describe.skip(`ViewFactory`, function () {
 //         sut.release(detachFlags1);
 //       }
 //       if (cacheSize > 0) {
-//         if (relBeforeDetach1 || relBeforeEndDetach1) {
+//         if (relDetaching1 || relBeforeEndDetach1) {
 //           assert.strictEqual(factory['cache'].length, 1, `factory['cache'].length`);
 //           assert.strictEqual(factory.create(), sut, `factory.create()`);
 //         } else {
@@ -486,7 +486,7 @@ describe.skip(`ViewFactory`, function () {
 //       }
 //       if (detachTwice) {
 //         lifecycle.afterDetachChildren.begin();
-//         if (relBeforeDetach1) {
+//         if (relDetaching1) {
 //           sut.release(detachFlags1);
 //         }
 //         sut.detach(detachFlags1);
@@ -551,7 +551,7 @@ describe.skip(`ViewFactory`, function () {
 //       // Round 2 - detach
 
 //       lifecycle.afterDetachChildren.begin();
-//       if (relBeforeDetach2) {
+//       if (relDetaching2) {
 //         sut.release(detachFlags2);
 //         assert.strictEqual(host.textContent, secondBindFinalValue.repeat(1 + childCount), 'host.textContent #6');
 //       }
@@ -565,7 +565,7 @@ describe.skip(`ViewFactory`, function () {
 //         sut.release(detachFlags2);
 //       }
 //       if (cacheSize > 0) {
-//         if (relBeforeDetach2 || relBeforeEndDetach2) {
+//         if (relDetaching2 || relBeforeEndDetach2) {
 //           assert.strictEqual(factory['cache'].length, 1, `factory['cache'].length`);
 //           assert.strictEqual(factory.create(), sut, `factory.create()`);
 //         } else {
@@ -574,7 +574,7 @@ describe.skip(`ViewFactory`, function () {
 //       }
 //       if (detachTwice) {
 //         lifecycle.afterDetachChildren.begin();
-//         if (relBeforeDetach2) {
+//         if (relDetaching2) {
 //           sut.release(detachFlags2);
 //         }
 //         sut.detach(detachFlags2);

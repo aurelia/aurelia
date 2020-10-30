@@ -41,11 +41,11 @@
 //                 this.$lifecycle.processFlushQueue();
 //                 assert.strictEqual(this.el.textContent, this.cycled ? "123456781234" : "1234", "this.el.textContent during attached() after mutation after flushChanges()", `this.el.textContent`);
 //             }
-//             beforeDetach() {
+//             detaching() {
 //                 this.items.push(5);
-//                 assert.strictEqual(this.el.textContent, this.cycled ? "123456781234" : "1234", "this.el.textContent during beforeDetach() before mutation before flushChanges()", `this.el.textContent`);
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "123456781234" : "1234", "this.el.textContent during detaching() before mutation before flushChanges()", `this.el.textContent`);
 //                 this.$lifecycle.processFlushQueue();
-//                 assert.strictEqual(this.el.textContent, this.cycled ? "1234567812345" : "12345", "this.el.textContent during beforeDetach() after mutation after flushChanges()", `this.el.textContent`);
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "1234567812345" : "12345", "this.el.textContent during detaching() after mutation after flushChanges()", `this.el.textContent`);
 //             }
 //             afterDetachChildren() {
 //                 this.items.push(6);
@@ -106,9 +106,9 @@
 //                 this.items.push(4);
 //                 assert.strictEqual(this.el.textContent, this.cycled ? "12345678123" : "123", "this.el.textContent during attached() before mutation", `this.el.textContent`);
 //             }
-//             beforeDetach() {
+//             detaching() {
 //                 this.items.push(5);
-//                 assert.strictEqual(this.el.textContent, this.cycled ? "12345678123" : "123", "this.el.textContent during beforeDetach() before mutation", `this.el.textContent`);
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "12345678123" : "123", "this.el.textContent during detaching() before mutation", `this.el.textContent`);
 //             }
 //             afterDetachChildren() {
 //                 this.items.push(6);
@@ -173,11 +173,11 @@
 //                 this.$lifecycle.processFlushQueue();
 //                 assert.strictEqual(this.el.textContent, this.cycled ? "363" : "24", "this.el.textContent during attached() after mutation after flushChanges()", `this.el.textContent`);
 //             }
-//             beforeDetach() {
+//             detaching() {
 //                 this.items.push(5);
-//                 assert.strictEqual(this.el.textContent, this.cycled ? "363" : "24", "this.el.textContent during beforeDetach() before mutation before flushChanges()", `this.el.textContent`);
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "363" : "24", "this.el.textContent during detaching() before mutation before flushChanges()", `this.el.textContent`);
 //                 this.$lifecycle.processFlushQueue();
-//                 assert.strictEqual(this.el.textContent, this.cycled ? "363" : "24", "this.el.textContent during beforeDetach() after mutation after flushChanges()", `this.el.textContent`);
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "363" : "24", "this.el.textContent during detaching() after mutation after flushChanges()", `this.el.textContent`);
 //             }
 //             afterDetachChildren() {
 //                 this.items.push(6);
@@ -240,9 +240,9 @@
 //                 this.items.push(4);
 //                 assert.strictEqual(this.el.textContent, this.cycled ? "363" : "2", "this.el.textContent during attached() before mutation", `this.el.textContent`);
 //             }
-//             beforeDetach() {
+//             detaching() {
 //                 this.items.push(5);
-//                 assert.strictEqual(this.el.textContent, this.cycled ? "363" : "2", "this.el.textContent during beforeDetach() before mutation", `this.el.textContent`);
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "363" : "2", "this.el.textContent during detaching() before mutation", `this.el.textContent`);
 //             }
 //             afterDetachChildren() {
 //                 this.items.push(6);

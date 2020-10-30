@@ -155,7 +155,7 @@ export class Blur implements ICustomAttributeViewModel {
     this.manager.register(this);
   }
 
-  public beforeDetach(): void {
+  public detaching(): void {
     this.manager.unregister(this);
   }
 

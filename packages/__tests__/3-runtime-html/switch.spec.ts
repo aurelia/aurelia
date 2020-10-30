@@ -120,12 +120,12 @@ describe('switch', function () {
         this.logger.debug('attached');
       }
 
-      public async beforeDetach(): Promise<void> {
+      public async detaching(): Promise<void> {
         if (this.config.hasPromise) {
           await this.config.wait();
         }
 
-        this.logger.debug('beforeDetach');
+        this.logger.debug('detaching');
       }
 
       public async beforeUnbind(): Promise<void> {
@@ -338,8 +338,8 @@ describe('switch', function () {
   }
   function getDeactivationSequenceFor(name: string | string[]) {
     return typeof name === 'string'
-      ? [`${name}.beforeDetach`, `${name}.beforeUnbind`]
-      : ['beforeDetach', 'beforeUnbind'].flatMap(x => name.map(n => `${n}.${x}`));
+      ? [`${name}.detaching`, `${name}.beforeUnbind`]
+      : ['detaching', 'beforeUnbind'].flatMap(x => name.map(n => `${n}.${x}`));
   }
 
   class TestData implements TestSetupContext {

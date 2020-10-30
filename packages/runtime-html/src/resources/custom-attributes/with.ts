@@ -45,7 +45,7 @@ export class With implements ICustomAttributeViewModel {
     return this.activateView(initiator, flags);
   }
 
-  public beforeDetach(
+  public detaching(
     initiator: IHydratedController,
     parent: IHydratedParentController,
     flags: LifecycleFlags,

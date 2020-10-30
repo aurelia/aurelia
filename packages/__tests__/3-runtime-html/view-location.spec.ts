@@ -232,7 +232,7 @@ describe('the view locator', function () {
     'attaching',
     'attached',
 
-    'beforeDetach',
+    'detaching',
     'beforeUnbind',
 
     'dispose',

@@ -28,7 +28,7 @@ export interface ITestRouteViewModel extends IRouteableComponent {
     flags: LifecycleFlags,
   ): void | Promise<void>;
 
-  beforeDetach(
+  detaching(
     initiator: IHydratedController,
     parent: IHydratedParentController,
     flags: LifecycleFlags,
@@ -70,7 +70,7 @@ export class HookSpecs {
     public readonly attaching: IHookSpec<'attaching'>,
     public readonly attached: IHookSpec<'attached'>,
 
-    public readonly beforeDetach: IHookSpec<'beforeDetach'>,
+    public readonly detaching: IHookSpec<'detaching'>,
     public readonly beforeUnbind: IHookSpec<'beforeUnbind'>,
 
     public readonly $dispose: IHookSpec<'dispose'>,
@@ -91,7 +91,7 @@ export class HookSpecs {
       input.attaching || hookSpecsMap.attaching.sync,
       input.attached || hookSpecsMap.attached.sync,
 
-      input.beforeDetach || hookSpecsMap.beforeDetach.sync,
+      input.detaching || hookSpecsMap.detaching.sync,
       input.beforeUnbind || hookSpecsMap.beforeUnbind.sync,
 
       hookSpecsMap.dispose,
@@ -111,7 +111,7 @@ export class HookSpecs {
     $this.attaching = void 0;
     $this.attached = void 0;
 
-    $this.beforeDetach = void 0;
+    $this.detaching = void 0;
     $this.beforeUnbind = void 0;
 
     $this.$dispose = void 0;
@@ -140,7 +140,7 @@ const hookNames = [
   'attaching',
   'attached',
 
-  'beforeDetach',
+  'detaching',
   'beforeUnbind',
 
   'canLoad',
@@ -220,17 +220,17 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     );
   }
 
-  public beforeDetach(
+  public detaching(
     initiator: IHydratedController,
     parent: IHydratedParentController,
     flags: LifecycleFlags,
   ): void | Promise<void> {
-    this.hia.beforeDetach.notify(this.name);
-    return this.specs.beforeDetach.invoke(
+    this.hia.detaching.notify(this.name);
+    return this.specs.detaching.invoke(
       this,
       () => {
-        // this.hia.beforeDetach.notify(this.name);
-        return this.$beforeDetach(initiator, parent, flags);
+        // this.hia.detaching.notify(this.name);
+        return this.$detaching(initiator, parent, flags);
       },
     );
   }
@@ -355,7 +355,7 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     // do nothing
   }
 
-  protected $beforeDetach(
+  protected $detaching(
     _initiator: IHydratedController,
     _parent: IHydratedParentController,
     _flags: LifecycleFlags,

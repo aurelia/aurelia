@@ -8,7 +8,7 @@ import {
   IObserverLocator,
   LifecycleFlags,
   StandardConfiguration,
-  ICompiledCompositionContext,
+  ICompiledRenderContext,
   IComposableController,
   IBinding,
   CallBindingInstruction,
@@ -92,7 +92,7 @@ describe('TranslationParametersBindingComposer', function () {
 
     sut.compose(
       LifecycleFlags.none,
-      container as unknown as ICompiledCompositionContext,
+      container as unknown as ICompiledRenderContext,
       controller,
       PLATFORM.document.createElement('span'),
       callBindingInstruction,
@@ -113,7 +113,7 @@ describe('TranslationParametersBindingComposer', function () {
 
     sut.compose(
       LifecycleFlags.none,
-      container as unknown as ICompiledCompositionContext,
+      container as unknown as ICompiledRenderContext,
       composable,
       targetElement,
       callBindingInstruction,

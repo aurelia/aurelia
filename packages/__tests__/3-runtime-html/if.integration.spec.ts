@@ -10,7 +10,7 @@ import {
   ViewFactory,
   Controller,
   CustomElementDefinition,
-  getCompositionContext,
+  getRenderContext,
   IComposableController,
   IRenderLocation,
   PropertyBindingComposerRegistration,
@@ -138,7 +138,7 @@ describe(`If/Else`, function () {
         elseLoc.$start = PLATFORM.document.createComment('au-start');
         host.append(ifLoc.$start, ifLoc, elseLoc.$start, elseLoc);
 
-        const ifContext = getCompositionContext(
+        const ifContext = getRenderContext(
           CustomElementDefinition.create({
             name: void 0,
             template: textTemplate.content.cloneNode(true),
@@ -151,7 +151,7 @@ describe(`If/Else`, function () {
           }),
           container,
         );
-        const elseContext = getCompositionContext(
+        const elseContext = getRenderContext(
           CustomElementDefinition.create({
             name: void 0,
             template: textTemplate.content.cloneNode(true),

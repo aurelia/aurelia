@@ -12,7 +12,7 @@ import {
   ViewFactory,
   Controller,
   CustomElementDefinition,
-  getCompositionContext,
+  getRenderContext,
   IComposableController,
   IRenderLocation,
   ITargetAccessorLocatorRegistration,
@@ -563,7 +563,7 @@ describe(`Repeat`, function () {
         loc.$start = PLATFORM.document.createComment('au-start');
         host.append(loc.$start, loc);
 
-        const itemContext = getCompositionContext(
+        const itemContext = getRenderContext(
           CustomElementDefinition.create({
             name: void 0,
             template: textTemplate.content.cloneNode(true),

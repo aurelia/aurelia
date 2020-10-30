@@ -3,7 +3,7 @@ import { bindable, LifecycleFlags } from '@aurelia/runtime';
 import { IInstruction } from '../../definitions';
 import { INode, IRenderLocation } from '../../dom';
 import { ISyntheticView, MountStrategy, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor, IComposableController } from '../../lifecycle';
-import { ICompiledCompositionContext } from '../../templating/composition-context';
+import { ICompiledRenderContext } from '../../templating/render-context';
 import { IViewFactory } from '../../templating/view';
 import { templateController } from '../custom-attribute';
 
@@ -131,7 +131,7 @@ export class Else {
 
   public link(
     flags: LifecycleFlags,
-    parentContext: ICompiledCompositionContext,
+    parentContext: ICompiledRenderContext,
     controller: IComposableController,
     _childController: ICustomAttributeController,
     _target: INode,

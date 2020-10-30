@@ -557,12 +557,12 @@ export {
   isCustomElementViewModel,
 } from './templating/controller';
 export {
-  getCompositionContext,
-  isCompositionContext,
-  ICompositionContext,
-  ICompiledCompositionContext,
+  getRenderContext,
+  isRenderContext,
+  IRenderContext,
+  ICompiledRenderContext,
   IComponentFactory,
-} from './templating/composition-context';
+} from './templating/render-context';
 export {
   ViewFactory,
   IViewFactory,
@@ -573,7 +573,7 @@ export {
 } from './templating/view';
 export {
   createElement,
-  CompositionPlan
+  RenderPlan
 } from './create-element';
 export {
   INode,

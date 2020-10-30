@@ -17,7 +17,7 @@ import {
   AnyBindingExpression,
   BindingType,
   IBinding,
-  ICompiledCompositionContext,
+  ICompiledRenderContext,
   IExpressionParser,
   IInstructionComposer,
   IObserverLocator,
@@ -141,7 +141,7 @@ describe('TranslationBindingComposer', function () {
     const callBindingInstruction: CallBindingInstruction = { from } as unknown as CallBindingInstruction;
     sut.compose(
       LifecycleFlags.none,
-      container as unknown as ICompiledCompositionContext,
+      container as unknown as ICompiledRenderContext,
       controller,
       PLATFORM.document.createElement('span'),
       callBindingInstruction,
@@ -162,7 +162,7 @@ describe('TranslationBindingComposer', function () {
     const callBindingInstruction: CallBindingInstruction = { from } as unknown as CallBindingInstruction;
     sut.compose(
       LifecycleFlags.none,
-      container as unknown as ICompiledCompositionContext,
+      container as unknown as ICompiledRenderContext,
       controller,
       targetElement,
       callBindingInstruction,
@@ -286,7 +286,7 @@ describe('TranslationBindBindingComposer', function () {
     const callBindingInstruction: CallBindingInstruction = { from, to: '.bind' } as unknown as CallBindingInstruction;
     sut.compose(
       LifecycleFlags.none,
-      container as unknown as ICompiledCompositionContext,
+      container as unknown as ICompiledRenderContext,
       controller,
       PLATFORM.document.createElement('span'),
       callBindingInstruction,
@@ -305,7 +305,7 @@ describe('TranslationBindBindingComposer', function () {
     const callBindingInstruction: CallBindingInstruction = { from, to: '.bind' } as unknown as CallBindingInstruction;
     sut.compose(
       LifecycleFlags.none,
-      container as unknown as ICompiledCompositionContext,
+      container as unknown as ICompiledRenderContext,
       controller,
       PLATFORM.document.createElement('span'),
       callBindingInstruction,
@@ -326,7 +326,7 @@ describe('TranslationBindBindingComposer', function () {
     const callBindingInstruction: CallBindingInstruction = { from, to: '.bind' } as unknown as CallBindingInstruction;
     sut.compose(
       LifecycleFlags.none,
-      container as unknown as ICompiledCompositionContext,
+      container as unknown as ICompiledRenderContext,
       controller,
       targetElement,
       callBindingInstruction,

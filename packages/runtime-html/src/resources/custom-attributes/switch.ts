@@ -28,7 +28,7 @@ import {
 } from '../../lifecycle';
 import { templateController } from '../custom-attribute';
 import { Controller } from '../../templating/controller';
-import { ICompiledCompositionContext } from '../../templating/composition-context';
+import { ICompiledRenderContext } from '../../templating/render-context';
 import { IInstruction } from '../../definitions';
 import { IViewFactory } from '../../templating/view';
 
@@ -58,7 +58,7 @@ export class Switch implements ICustomAttributeViewModel {
 
   public link(
     flags: LifecycleFlags,
-    parentContext: ICompiledCompositionContext,
+    parentContext: ICompiledRenderContext,
     controller: IComposableController,
     childController: ICustomAttributeController,
     target: INode,
@@ -272,7 +272,7 @@ export class Case implements ICustomAttributeViewModel {
 
   public link(
     flags: LifecycleFlags,
-    parentContext: ICompiledCompositionContext,
+    parentContext: ICompiledRenderContext,
     controller: IComposableController,
     _childController: ICustomAttributeController,
     _target: INode,

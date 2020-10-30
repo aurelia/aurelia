@@ -382,7 +382,7 @@ describe.skip(`ViewFactory`, function () {
 
 //       // CompiledTemplate mock for the child views
 //       const childTemplate: ITemplate = {
-//         compositionContext: null as any,
+//         renderContext: null as any,
 //         dom: null as any,
 //         compose(composable) {
 //           const text = AuNode.createText();
@@ -403,7 +403,7 @@ describe.skip(`ViewFactory`, function () {
 
 //       // CompiledTemplate mock for the top-level view (sut)
 //       const rootTemplate: ITemplate = {
-//         compositionContext: null as any,
+//         renderContext: null as any,
 //         dom: null as any,
 //         compose(composable) {
 //           const text = AuNode.createText();

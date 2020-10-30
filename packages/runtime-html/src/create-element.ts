@@ -9,7 +9,7 @@ import {
 import { ISyntheticView } from './lifecycle';
 import { IPlatform } from './platform';
 import { CustomElement, CustomElementDefinition, CustomElementType } from './resources/custom-element';
-import { getCompositionContext, ICompositionContext } from './templating/composition-context';
+import { getRenderContext, IRenderContext } from './templating/render-context';
 import { IViewFactory } from './templating/view';
 
 export function createElement<C extends Constructable = Constructable>(
@@ -17,7 +17,7 @@ export function createElement<C extends Constructable = Constructable>(
   tagOrType: string | C,
   props?: Record<string, string | Instruction>,
   children?: ArrayLike<unknown>
-): CompositionPlan {
+): RenderPlan {
   if (typeof tagOrType === 'string') {
     return createElementForTag(p, tagOrType, props, children);
   } else if (CustomElement.isType(tagOrType)) {
@@ -28,9 +28,9 @@ export function createElement<C extends Constructable = Constructable>(
 }
 
 /**
- * CompositionPlan. Todo: describe goal of this class
+ * RenderPlan. Todo: describe goal of this class
  */
-export class CompositionPlan {
+export class RenderPlan {
   private lazyDefinition?: CustomElementDefinition = void 0;
 
   public constructor(
@@ -52,8 +52,8 @@ export class CompositionPlan {
     return this.lazyDefinition;
   }
 
-  public getContext(parentContainer: IContainer): ICompositionContext {
-    return getCompositionContext(this.definition, parentContainer);
+  public getContext(parentContainer: IContainer): IRenderContext {
+    return getRenderContext(this.definition, parentContainer);
   }
 
   public createView(parentContainer: IContainer): ISyntheticView {
@@ -72,7 +72,7 @@ export class CompositionPlan {
   }
 }
 
-function createElementForTag(p: IPlatform, tagName: string, props?: Record<string, string | Instruction>, children?: ArrayLike<unknown>): CompositionPlan {
+function createElementForTag(p: IPlatform, tagName: string, props?: Record<string, string | Instruction>, children?: ArrayLike<unknown>): RenderPlan {
   const instructions: Instruction[] = [];
   const allInstructions: Instruction[][] = [];
   const dependencies: IRegistry[] = [];
@@ -102,7 +102,7 @@ function createElementForTag(p: IPlatform, tagName: string, props?: Record<strin
     addChildren(p, element, children, allInstructions, dependencies);
   }
 
-  return new CompositionPlan(element, allInstructions, dependencies);
+  return new RenderPlan(element, allInstructions, dependencies);
 }
 
 function createElementForType(
@@ -110,7 +110,7 @@ function createElementForType(
   Type: CustomElementType,
   props?: Record<string, unknown>,
   children?: ArrayLike<unknown>,
-): CompositionPlan {
+): RenderPlan {
   const definition = CustomElement.getDefinition(Type);
   const tagName = definition.name;
   const instructions: Instruction[] = [];
@@ -154,7 +154,7 @@ function createElementForType(
     addChildren(p, element, children, allInstructions, dependencies);
   }
 
-  return new CompositionPlan(element, allInstructions, dependencies);
+  return new RenderPlan(element, allInstructions, dependencies);
 }
 
 function addChildren<T extends HTMLElement>(
@@ -174,8 +174,8 @@ function addChildren<T extends HTMLElement>(
       case 'object':
         if (current instanceof p.Node) {
           parent.appendChild(current);
-        } else if ('mergeInto' in (current as CompositionPlan)) {
-          (current as CompositionPlan).mergeInto(parent, allInstructions, dependencies);
+        } else if ('mergeInto' in (current as RenderPlan)) {
+          (current as RenderPlan).mergeInto(parent, allInstructions, dependencies);
         }
     }
   }

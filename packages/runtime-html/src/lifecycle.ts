@@ -4,7 +4,7 @@ import { IBindingTargetAccessor, LifecycleFlags, Scope, ILifecycle, IBinding } f
 import { HooksDefinition, IInstruction } from './definitions';
 import { INode, INodeSequence, IRenderLocation } from './dom';
 import { CustomElementDefinition, PartialCustomElementDefinition } from './resources/custom-element';
-import { ICompositionContext, ICompiledCompositionContext } from './templating/composition-context';
+import { IRenderContext, ICompiledRenderContext } from './templating/render-context';
 import { CustomAttributeDefinition } from './resources/custom-attribute';
 
 import type { IAppRoot } from './app-root';
@@ -169,9 +169,9 @@ export interface ISyntheticView extends IComposableController, IHydratedControll
   readonly scope: Scope;
   hostScope: Scope | null;
   /**
-   * The compiled composition context used for composing this view. Compilation was done by the `IViewFactory` prior to creating this view.
+   * The compiled render context used for composing this view. Compilation was done by the `IViewFactory` prior to creating this view.
    */
-  readonly context: ICompiledCompositionContext;
+  readonly context: ICompiledRenderContext;
   readonly isStrictBinding: boolean;
   /**
    * The physical DOM nodes that will be appended during the `mount()` operation.
@@ -262,7 +262,7 @@ export interface ICustomAttributeController<C extends ICustomAttributeViewModel 
 /**
  * A representation of `IController` specific to a custom element whose `create` hook is about to be invoked (if present).
  *
- * It is not yet hydrated (hence 'dry') with any composition-specific information.
+ * It is not yet hydrated (hence 'dry') with any render-specific information.
  */
 export interface IDryCustomElementController<C extends IViewModel = IViewModel> extends IComponentController<C>, IComposableController<C> {
   readonly vmKind: ViewModelKind.customElement;
@@ -285,13 +285,13 @@ export interface IDryCustomElementController<C extends IViewModel = IViewModel> 
 /**
  * A representation of `IController` specific to a custom element whose `hydrating` hook is about to be invoked (if present).
  *
- * It has the same properties as `IDryCustomElementController`, as well as a composition context (hence 'contextual').
+ * It has the same properties as `IDryCustomElementController`, as well as a render context (hence 'contextual').
  */
 export interface IContextualCustomElementController<C extends IViewModel = IViewModel> extends IDryCustomElementController<C> {
   /**
-   * The non-compiled composition context used for compiling this component's `CustomElementDefinition`.
+   * The non-compiled render context used for compiling this component's `CustomElementDefinition`.
    */
-  readonly context: ICompositionContext;
+  readonly context: IRenderContext;
 }
 
 /**
@@ -301,9 +301,9 @@ export interface IContextualCustomElementController<C extends IViewModel = IView
  */
 export interface ICompiledCustomElementController<C extends IViewModel = IViewModel> extends IContextualCustomElementController<C>, IHydratedControllerProperties {
   /**
-   * The compiled composition context used for hydrating this controller.
+   * The compiled render context used for hydrating this controller.
    */
-  readonly context: ICompiledCompositionContext;
+  readonly context: ICompiledRenderContext;
   readonly isStrictBinding: boolean;
   /**
    * The projector used for mounting the `nodes` of this controller. Typically this will be one of:
@@ -433,7 +433,7 @@ export interface ICustomAttributeViewModel extends IViewModel, IActivationHooks<
   readonly $controller?: ICustomAttributeController<this>;
   link?(
     flags: LifecycleFlags,
-    parentContext: ICompiledCompositionContext,
+    parentContext: ICompiledRenderContext,
     controller: IComposableController,
     childController: ICustomAttributeController,
     target: INode,

@@ -13,7 +13,7 @@ import {
 } from '../lifecycle';
 import { CustomElement, PartialCustomElementDefinition, CustomElementDefinition } from '../resources/custom-element';
 import { Controller } from './controller';
-import { ICompositionContext } from './composition-context';
+import { IRenderContext } from './render-context';
 import { AuSlotContentType } from '../resources/custom-elements/au-slot';
 
 export interface IViewFactory extends ViewFactory {}
@@ -28,7 +28,7 @@ export class ViewFactory implements IViewFactory {
 
   public constructor(
     public name: string,
-    public readonly context: ICompositionContext,
+    public readonly context: IRenderContext,
     public readonly contentType: AuSlotContentType | undefined,
     public readonly projectionScope: Scope | null = null,
   ) {}

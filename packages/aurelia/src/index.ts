@@ -808,7 +808,7 @@ export {
   // ITemplateCompiler,
   // ITemplateFactory,
 
-  // CompositionContext
+  // RenderContext
 
   // AttrSyntax,
 
@@ -884,7 +884,7 @@ export {
   // StandardConfiguration,
 
   createElement,
-  // CompositionPlan,
+  // RenderPlan,
 
   // AttributeInstruction,
   // InstructionRow,

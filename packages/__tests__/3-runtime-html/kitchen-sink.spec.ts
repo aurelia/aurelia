@@ -152,7 +152,7 @@ describe('dependency injection', function () {
 //     const elseText = 'bar';
 
 //     const ifTemplate: ITemplate = {
-//       compositionContext: null as any,
+//       renderContext: null as any,
 //       dom: null as any,
 //       compose(composable) {
 //         const text = AuNode.createText();
@@ -167,7 +167,7 @@ describe('dependency injection', function () {
 //     };
 
 //     const elseTemplate: ITemplate = {
-//       compositionContext: null as any,
+//       renderContext: null as any,
 //       dom: null as any,
 //       compose(composable) {
 //         const text = AuNode.createText();

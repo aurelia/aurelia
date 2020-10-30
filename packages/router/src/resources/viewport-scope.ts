@@ -64,7 +64,7 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel {
 
   //   // We could tidy this up into a formal api in the future. For now, there are two ways to do this:
   //   // 1. inject the `@IInstruction` (IHydrateElementInstruction) and grab .parts['default'] from there, manually creating a view factory from that, etc.
-  //   // 2. what we're doing right here: grab the 'default' part from the create hook and return it as the definition, telling the composition context to use that part to compile this element instead
+  //   // 2. what we're doing right here: grab the 'default' part from the create hook and return it as the definition, telling the render context to use that part to compile this element instead
   //   // This effectively causes this element to compose its declared content as if it was its own template.
 
   //   // We do need to set `containerless` to true on the part definition so that the correct projector is used since parts default to non-containerless.

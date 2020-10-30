@@ -45,7 +45,7 @@ import {
 } from '../lifecycle';
 import { CustomElementDefinition, CustomElement, CustomElementHost } from '../resources/custom-element';
 import { CustomAttributeDefinition, CustomAttribute } from '../resources/custom-attribute';
-import { ICompositionContext, getCompositionContext, CompositionContext } from './composition-context';
+import { IRenderContext, getRenderContext, RenderContext } from './render-context';
 import { ChildrenObserver } from './children';
 import { RegisteredProjections } from '../resources/custom-elements/au-slot';
 import { IAppRoot } from '../app-root';
@@ -84,7 +84,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   public projector: ElementProjector | undefined = void 0;
 
   public nodes: INodeSequence | undefined = void 0;
-  public context: CompositionContext | undefined = void 0;
+  public context: RenderContext | undefined = void 0;
   public location: IRenderLocation | undefined = void 0;
   public mountStrategy: MountStrategy = MountStrategy.insertBefore;
 
@@ -240,7 +240,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
   public static forSyntheticView(
     root: IAppRoot | null,
-    context: ICompositionContext,
+    context: IRenderContext,
     viewFactory: IViewFactory,
     flags: LifecycleFlags = LifecycleFlags.none,
     parentController: ISyntheticView | ICustomElementController | ICustomAttributeController | undefined = void 0,
@@ -298,7 +298,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       }
     }
 
-    const context = this.context = getCompositionContext(definition, parentContainer, targetedProjections?.projections) as CompositionContext;
+    const context = this.context = getRenderContext(definition, parentContainer, targetedProjections?.projections) as RenderContext;
     // Support Recursive Components by adding self to own context
     definition.register(context);
     if (definition.injectable !== null) {
@@ -385,9 +385,9 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   }
 
   private hydrateSynthetic(
-    context: ICompositionContext,
+    context: IRenderContext,
   ): void {
-    this.context = context as CompositionContext;
+    this.context = context as RenderContext;
     const compiledContext = context.compile(null);
     const compiledDefinition = compiledContext.compiledDefinition;
 

@@ -1,15 +1,15 @@
 import { Constructable, nextId, emptyArray, onResolve } from '@aurelia/kernel';
 import { BindingMode, LifecycleFlags, bindable } from '@aurelia/runtime';
-import { createElement, CompositionPlan } from '../../create-element';
+import { createElement, RenderPlan } from '../../create-element';
 import { IInstruction } from '../../definitions';
 import { HydrateElementInstruction, Instruction } from '../../instructions';
 import { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, ISyntheticView, MountStrategy } from '../../lifecycle';
 import { IPlatform } from '../../platform';
-import { getCompositionContext } from '../../templating/composition-context';
+import { getRenderContext } from '../../templating/render-context';
 import { IViewFactory } from '../../templating/view';
 import { customElement, CustomElementDefinition } from '../custom-element';
 
-export type Subject = IViewFactory | ISyntheticView | CompositionPlan | Constructable | CustomElementDefinition;
+export type Subject = IViewFactory | ISyntheticView | RenderPlan | Constructable | CustomElementDefinition;
 export type MaybeSubjectPromise = Subject | Promise<Subject> | undefined;
 
 function toLookup(
@@ -158,7 +158,7 @@ export class Compose implements ICustomElementViewModel {
       return subject;
     }
 
-    if ('createView' in subject) { // CompositionPlan
+    if ('createView' in subject) { // RenderPlan
       return subject.createView(this.$controller.context!);
     }
 
@@ -168,7 +168,7 @@ export class Compose implements ICustomElementViewModel {
 
     if ('template' in subject) { // Raw Template Definition
       const definition = CustomElementDefinition.getOrCreate(subject);
-      return getCompositionContext(definition, this.$controller.context!).getViewFactory().create(flags);
+      return getRenderContext(definition, this.$controller.context!).getViewFactory().create(flags);
     }
 
     // Constructable (Custom Element Constructor)

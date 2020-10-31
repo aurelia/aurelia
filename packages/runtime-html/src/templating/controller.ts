@@ -359,7 +359,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   /** @internal */
   public hydrateChildren(): void {
     const targets = this.nodes!.findTargets();
-    this.context!.compose(
+    this.context!.render(
       /* flags      */this.flags,
       /* controller */this as ICustomElementController,
       /* targets    */targets,
@@ -395,7 +395,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
     const nodes = this.nodes = compiledContext.createNodes();
     const targets = nodes.findTargets();
-    compiledContext.compose(
+    compiledContext.render(
       /* flags      */this.flags,
       /* controller */this,
       /* targets    */targets,

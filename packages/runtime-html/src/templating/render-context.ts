@@ -120,7 +120,7 @@ export interface ICompiledRenderContext extends IRenderContext, IProjectionProvi
     location?: IRenderLocation,
   ): IComponentFactory;
 
-  compose(
+  render(
     flags: LifecycleFlags,
     controller: IController,
     targets: ArrayLike<INode>,
@@ -128,7 +128,7 @@ export interface ICompiledRenderContext extends IRenderContext, IProjectionProvi
     host: INode | null | undefined,
   ): void;
 
-  composeChildren(
+  renderChildren(
     flags: LifecycleFlags,
     instructions: readonly IInstruction[],
     controller: IController,
@@ -481,7 +481,7 @@ export class RenderContext implements IComponentFactory {
     return this.container.get(resourceKey) as unknown as TViewModel;
   }
 
-  public compose(
+  public render(
     flags: LifecycleFlags,
     controller: IComposableController,
     targets: ArrayLike<INode>,
@@ -493,7 +493,7 @@ export class RenderContext implements IComponentFactory {
     }
 
     for (let i = 0; i < targets.length; ++i) {
-      this.composeChildren(
+      this.renderChildren(
         /* flags        */flags,
         /* instructions */definition.instructions[i],
         /* controller   */controller,
@@ -502,7 +502,7 @@ export class RenderContext implements IComponentFactory {
     }
 
     if (host !== void 0 && host !== null) {
-      this.composeChildren(
+      this.renderChildren(
         /* flags        */flags,
         /* instructions */definition.surrogates,
         /* controller   */controller,
@@ -511,7 +511,7 @@ export class RenderContext implements IComponentFactory {
     }
   }
 
-  public composeChildren(
+  public renderChildren(
     flags: LifecycleFlags,
     instructions: readonly IInstruction[],
     controller: IComposableController,

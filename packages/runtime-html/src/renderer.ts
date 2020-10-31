@@ -218,7 +218,7 @@ export class CustomElementRenderer implements IRenderer {
     flags = childController.flags;
     Metadata.define(key, childController, target);
 
-    context.composeChildren(
+    context.renderChildren(
       /* flags        */flags,
       /* instructions */instruction.instructions,
       /* controller   */controller,
@@ -262,7 +262,7 @@ export class CustomAttributeRenderer implements IRenderer {
 
     Metadata.define(key, childController, target);
 
-    context.composeChildren(
+    context.renderChildren(
       /* flags        */flags,
       /* instructions */instruction.instructions,
       /* controller   */controller,
@@ -312,7 +312,7 @@ export class TemplateControllerRenderer implements IRenderer {
 
     component.link?.(flags, context, controller, childController, target, instruction);
 
-    context.composeChildren(
+    context.renderChildren(
       /* flags        */flags,
       /* instructions */instruction.instructions,
       /* controller   */controller,

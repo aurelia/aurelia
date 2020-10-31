@@ -379,22 +379,22 @@ export {
   FrequentMutations,
   InfrequentMutations,
   ObserveShallow,
-} from './resources/custom-attributes/flags';
+} from './resources/template-controllers/flags';
 export {
   If,
   Else
-} from './resources/custom-attributes/if';
+} from './resources/template-controllers/if';
 export {
   Repeat
-} from './resources/custom-attributes/repeat';
+} from './resources/template-controllers/repeat';
 export {
   With
-} from './resources/custom-attributes/with';
+} from './resources/template-controllers/with';
 export {
   Switch,
   Case,
   DefaultCase,
-} from './resources/custom-attributes/switch';
+} from './resources/template-controllers/switch';
 
 export {
   Blur,
@@ -409,7 +409,7 @@ export {
   Portal,
   PortalTarget,
   PortalLifecycleCallback
-} from './resources/custom-attributes/portal';
+} from './resources/template-controllers/portal';
 
 export {
   AuSlot,

@@ -753,14 +753,6 @@ abstract class TestVM implements IViewModel {
 }
 
 class Notifier {
-  public get promise(): Promise<void> {
-    this.setTimeout(this.mgr.config.resolveTimeoutMs);
-    return this._promise;
-  }
-  public _promise: Promise<void>;
-  public timeout: number = -1;
-  public $resolve: () => void;
-
   public readonly p: IPlatform;
   public readonly entryHistory: string[] = [];
   public readonly fullHistory: string[] = [];
@@ -770,7 +762,6 @@ class Notifier {
     public readonly name: HookName,
   ) {
     this.p = mgr.p;
-    this._promise = new Promise(resolve => this.$resolve = resolve);
   }
 
   public enter(vm: TestVM): void {
@@ -783,35 +774,9 @@ class Notifier {
     this.mgr.leave(vm, this);
   }
 
-  public resolve(): void {
-    const $resolve = this.$resolve;
-    // Also re-create the promise immediately, for any potential subsequent await
-    this._promise = new Promise(resolve => this.$resolve = resolve);
-    this.clearTimeout();
-    $resolve();
-  }
-
-  public setTimeout(ms: number): void {
-    if (this.timeout === -1) {
-      this.timeout = this.p.setTimeout(() => {
-        throw new Error(`${this.name} timed out after ${ms}ms. Notification history: [${this.fullHistory.join(',')}]. Lifecycle call history: [${this.mgr.fullNotifyHistory.join(',')}]`);
-      }, ms);
-    }
-  }
-  public clearTimeout(): void {
-    const timeout = this.timeout;
-    if (timeout >= 0) {
-      this.timeout = -1;
-      this.p.clearTimeout(timeout);
-    }
-  }
-
   public dispose(this: Partial<Writable<this>>): void {
-    this.clearTimeout();
     this.entryHistory = void 0;
     this.fullHistory = void 0;
-    this._promise = void 0;
-    this.$resolve = void 0;
     this.p = void 0;
     this.mgr = void 0;
   }
@@ -835,7 +800,6 @@ class NotifierManager {
 
   public constructor(
     @IPlatform public readonly p: IPlatform,
-    @INotifierConfig public readonly config: INotifierConfig,
   ) {}
 
   public readonly binding: Notifier = new Notifier(this, 'binding');
@@ -850,16 +814,10 @@ class NotifierManager {
     const label = `${this.prefix}.${vm.name}.${tracker.name}`;
     this.entryNotifyHistory.push(label);
     this.fullNotifyHistory.push(`${label}.enter`);
-    if (this.config.resolveLabels.includes(label)) {
-      tracker.resolve();
-    }
   }
   public leave(vm: TestVM, tracker: Notifier): void {
     const label = `${this.prefix}.${vm.name}.${tracker.name}`;
     this.fullNotifyHistory.push(`${label}.leave`);
-    if (this.config.resolveLabels.includes(label)) {
-      tracker.resolve();
-    }
   }
 
   public setPrefix(prefix: string): void {
@@ -878,7 +836,6 @@ class NotifierManager {
     this.entryNotifyHistory = void 0;
     this.fullNotifyHistory = void 0;
     this.p = void 0;
-    this.config = void 0;
 
     this.binding = void 0;
     this.bound = void 0;

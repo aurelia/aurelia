@@ -575,7 +575,6 @@ export {
 } from './dom';
 export {
   CallBindingInstruction,
-  FromViewBindingInstruction,
   HydrateAttributeInstruction,
   HydrateElementInstruction,
   HydrateTemplateController,
@@ -583,13 +582,11 @@ export {
   IteratorBindingInstruction,
   LetBindingInstruction,
   HydrateLetElementInstruction,
-  OneTimeBindingInstruction,
   RefBindingInstruction,
   SetPropertyInstruction,
-  ToViewBindingInstruction,
-  TwoWayBindingInstruction,
   AttributeBindingInstruction,
   CaptureBindingInstruction,
+  PropertyBindingInstruction,
   DelegateBindingInstruction,
   SetAttributeInstruction,
   SetClassAttributeInstruction,

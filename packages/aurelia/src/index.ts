@@ -627,7 +627,6 @@ export {
   // State,
 
   // CallBindingInstruction,
-  // FromViewBindingInstruction,
   // HydrateAttributeInstruction,
   // HydrateElementInstruction,
   // HydrateTemplateController,
@@ -635,11 +634,8 @@ export {
   // IteratorBindingInstruction,
   // LetBindingInstruction,
   // HydrateLetElementInstruction,
-  // OneTimeBindingInstruction,
   // RefBindingInstruction,
   // SetPropertyInstruction,
-  // ToViewBindingInstruction,
-  // TwoWayBindingInstruction,
 
   // ViewModelKind,
   // IBinding,

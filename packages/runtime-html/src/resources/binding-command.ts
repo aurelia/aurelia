@@ -18,13 +18,10 @@ import {
   AttributeBindingInstruction,
   CaptureBindingInstruction,
   DelegateBindingInstruction,
-  OneTimeBindingInstruction,
+  PropertyBindingInstruction,
   TriggerBindingInstruction,
   CallBindingInstruction,
-  FromViewBindingInstruction,
   IteratorBindingInstruction,
-  ToViewBindingInstruction,
-  TwoWayBindingInstruction,
   AttributeInstruction,
   RefBindingInstruction,
 } from '../instructions';
@@ -148,7 +145,7 @@ export class OneTimeBindingCommand implements BindingCommandInstance {
   public readonly bindingType: BindingType.OneTimeCommand = BindingType.OneTimeCommand;
 
   public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
-    return new OneTimeBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, false));
+    return new PropertyBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, false), BindingMode.oneTime);
   }
 }
 
@@ -157,7 +154,7 @@ export class ToViewBindingCommand implements BindingCommandInstance {
   public readonly bindingType: BindingType.ToViewCommand = BindingType.ToViewCommand;
 
   public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
-    return new ToViewBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, false));
+    return new PropertyBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, false), BindingMode.toView);
   }
 }
 
@@ -166,7 +163,7 @@ export class FromViewBindingCommand implements BindingCommandInstance {
   public readonly bindingType: BindingType.FromViewCommand = BindingType.FromViewCommand;
 
   public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
-    return new FromViewBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, false));
+    return new PropertyBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, false), BindingMode.fromView);
   }
 }
 
@@ -175,7 +172,7 @@ export class TwoWayBindingCommand implements BindingCommandInstance {
   public readonly bindingType: BindingType.TwoWayCommand = BindingType.TwoWayCommand;
 
   public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
-    return new TwoWayBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, false));
+    return new PropertyBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, false), BindingMode.twoWay);
   }
 }
 
@@ -206,17 +203,7 @@ export class DefaultBindingCommand implements BindingCommandInstance {
       }
     }
 
-    switch (mode) {
-      case BindingMode.default:
-      case BindingMode.toView:
-        return ToViewBindingCommand.prototype.compile(binding);
-      case BindingMode.oneTime:
-        return OneTimeBindingCommand.prototype.compile(binding);
-      case BindingMode.fromView:
-        return FromViewBindingCommand.prototype.compile(binding);
-      case BindingMode.twoWay:
-        return TwoWayBindingCommand.prototype.compile(binding);
-    }
+    return new PropertyBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, false), mode === BindingMode.default ? BindingMode.toView : mode);
   }
 }
 

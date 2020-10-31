@@ -39,13 +39,6 @@ export const enum InstructionType {
   setStyleAttribute = 'hg',
 }
 
-export type PropertyBindingInstruction = (
-  OneTimeBindingInstruction |
-  ToViewBindingInstruction |
-  FromViewBindingInstruction |
-  TwoWayBindingInstruction
-);
-
 export type ListenerBindingInstruction = (
   TriggerBindingInstruction |
   DelegateBindingInstruction |
@@ -98,51 +91,13 @@ export class InterpolationInstruction {
   ) {}
 }
 
-export class OneTimeBindingInstruction {
-  public type: InstructionType.propertyBinding = InstructionType.propertyBinding;
-
-  public mode: BindingMode.oneTime = BindingMode.oneTime;
-  public oneTime: true = true;
+export class PropertyBindingInstruction {
+  public get type(): InstructionType.propertyBinding { return InstructionType.propertyBinding; }
 
   public constructor(
     public from: string | IsBindingBehavior,
     public to: string,
-  ) {}
-}
-
-export class ToViewBindingInstruction {
-  public type: InstructionType.propertyBinding = InstructionType.propertyBinding;
-
-  public mode: BindingMode.toView = BindingMode.toView;
-  public oneTime: false = false;
-
-  public constructor(
-    public from: string | IsBindingBehavior,
-    public to: string,
-  ) {}
-}
-
-export class FromViewBindingInstruction {
-  public type: InstructionType.propertyBinding = InstructionType.propertyBinding;
-
-  public mode: BindingMode.fromView = BindingMode.fromView;
-  public oneTime: false = false;
-
-  public constructor(
-    public from: string | IsBindingBehavior,
-    public to: string,
-  ) {}
-}
-
-export class TwoWayBindingInstruction {
-  public type: InstructionType.propertyBinding = InstructionType.propertyBinding;
-
-  public mode: BindingMode.twoWay = BindingMode.twoWay;
-  public oneTime: false = false;
-
-  public constructor(
-    public from: string | IsBindingBehavior,
-    public to: string,
+    public mode: BindingMode,
   ) {}
 }
 

@@ -142,7 +142,6 @@ export {
 
   subscriberCollection,
   collectionSubscriberCollection,
-  proxySubscriberCollection,
 
   bindingBehavior,
   BindingBehavior,
@@ -228,10 +227,6 @@ export {
   PropertyObserver,
   CollectionObserver,
   ICollectionSubscriberCollection,
-  IProxy,
-  IProxySubscribable,
-  IProxySubscriber,
-  IProxySubscriberCollection,
   ICollectionSubscribable,
   ISubscriber,
   isIndexMap,

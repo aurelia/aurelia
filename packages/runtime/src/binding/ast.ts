@@ -1557,8 +1557,6 @@ function getFunction(f: LF, obj: object, name: string): ((...args: unknown[]) =>
   throw new Error(`Expected '${name}' to be a function`);
 }
 
-const proxyAndOriginalArray = LF.proxyStrategy;
-
 function $array(f: LF, result: unknown[], func: (arr: Collection, index: number, item: unknown) => void): void {
   for (let i = 0, ii = result.length; i < ii; ++i) {
     func(result, i, result[i]);

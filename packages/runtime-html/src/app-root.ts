@@ -8,7 +8,7 @@ import {
   onResolve,
   resolveAll
 } from '@aurelia/kernel';
-import { BindingStrategy, LifecycleFlags } from '@aurelia/runtime';
+import { LifecycleFlags } from '@aurelia/runtime';
 import { INode } from './dom';
 import { ICustomElementViewModel, ICustomElementController } from './lifecycle';
 import { IAppTask, TaskSlot } from './app-task';
@@ -18,7 +18,6 @@ import { HooksDefinition } from './definitions';
 import { IPlatform } from './platform';
 
 export interface ISinglePageApp {
-  strategy?: BindingStrategy;
   host: HTMLElement;
   component: unknown;
 }

@@ -240,7 +240,6 @@ export {
 
 export {
   BindingMode,
-  BindingStrategy,
   LifecycleFlags,
   AccessorOrObserver,
   IBinding,

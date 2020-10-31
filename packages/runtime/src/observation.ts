@@ -100,37 +100,6 @@ export enum BindingMode {
   default  = 0b1000
 }
 
-export const enum BindingStrategy {
-  /**
-   * Configures all components "below" this one to operate in getterSetter binding mode.
-   * This is the default; if no strategy is specified, this one is implied.
-   *
-   * This strategy is the most compatible, convenient and has the best performance on frequently updated bindings on components that are infrequently replaced.
-   * However, it also consumes the most resources on initialization.
-   */
-  getterSetter = 0b01,
-  /**
-   * Configures all components "below" this one to operate in proxy binding mode.
-   * No getters/setters are created.
-   *
-   * This strategy consumes significantly fewer resources than `getterSetter` on initialization and has the best performance on infrequently updated bindings on
-   * components that are frequently replaced.
-   * However, it consumes more resources on updates.
-   */
-  proxies      = 0b10,
-}
-
-const mandatoryStrategy = BindingStrategy.getterSetter | BindingStrategy.proxies;
-
-export function ensureValidStrategy(strategy: BindingStrategy | null | undefined): BindingStrategy {
-  if ((strategy! & mandatoryStrategy) === 0) {
-    // TODO: probably want to validate that user isn't trying to mix getterSetter/proxy
-    // TODO: also need to make sure that strategy can be changed away from proxies inside the component tree (not here though, but just making a note)
-    return strategy! | BindingStrategy.getterSetter;
-  }
-  return strategy!;
-}
-
 export const enum LifecycleFlags {
   none                          = 0b00000_00_00_00_000,
   // Bitmask for flags that need to be stored on a binding during $bind for mutation

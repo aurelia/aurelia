@@ -49,7 +49,7 @@ import {
   SetStyleAttributeInstruction,
   TextBindingInstruction,
 } from './instructions';
-import { IAttributeParser } from './attribute-parser';
+import { IAttributeParser } from './resources/attribute-pattern';
 import { AuSlotContentType, IProjections, ProjectionContext, RegisteredProjections, SlotInfo } from './resources/custom-elements/au-slot';
 import { CustomElement, CustomElementDefinition, PartialCustomElementDefinition } from './resources/custom-element';
 import { ITemplateCompiler } from './renderer';

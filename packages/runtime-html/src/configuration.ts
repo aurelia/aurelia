@@ -13,7 +13,7 @@ import {
   ColonPrefixedBindAttributePattern,
   DotSeparatedAttributePattern,
   RefAttributePattern
-} from './attribute-patterns';
+} from './resources/attribute-patterns';
 import {
   CallBindingCommand,
   DefaultBindingCommand,

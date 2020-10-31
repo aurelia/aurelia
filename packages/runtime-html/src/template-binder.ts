@@ -8,7 +8,7 @@ import {
   IExpressionParser,
   Char,
 } from '@aurelia/runtime';
-import { AttrSyntax, IAttributeParser } from './attribute-parser';
+import { AttrSyntax, IAttributeParser } from './resources/attribute-pattern';
 import { IAttrSyntaxTransformer } from './attribute-syntax-transformer';
 import { BindingCommand, BindingCommandInstance } from './binding-command';
 import { NodeType } from './dom';

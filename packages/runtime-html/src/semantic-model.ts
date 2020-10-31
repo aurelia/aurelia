@@ -1,5 +1,5 @@
 import { AnyBindingExpression, Interpolation } from '@aurelia/runtime';
-import { AttrSyntax } from './attribute-parser';
+import { AttrSyntax } from './resources/attribute-pattern';
 import { BindingCommandInstance } from './binding-command';
 import { IPlatform } from './platform';
 import { AttrInfo, BindableInfo, ElementInfo } from './resource-model';

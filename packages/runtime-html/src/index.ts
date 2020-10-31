@@ -260,21 +260,19 @@ export {
 export {
   AttrSyntax,
   IAttributeParser,
-} from './attribute-parser';
-export {
   attributePattern,
   AttributePatternDefinition,
   IAttributePattern,
   AttributePattern,
   Interpretation,
   ISyntaxInterpreter,
-} from './attribute-pattern';
+} from './resources/attribute-pattern';
 export {
   AtPrefixedTriggerAttributePattern,
   ColonPrefixedBindAttributePattern,
   DotSeparatedAttributePattern,
   RefAttributePattern,
-} from './attribute-patterns';
+} from './resources/attribute-patterns';
 export {
   bindingCommand,
   BindingCommand ,

@@ -13,7 +13,6 @@ import { IAttrSyntaxTransformer } from './attribute-syntax-transformer';
 import { BindingCommand, BindingCommandInstance } from './resources/binding-command';
 import { NodeType } from './dom';
 import { IPlatform } from './platform';
-import { AttrInfo, BindableInfo, ElementInfo } from './resource-model';
 import { CustomAttribute } from './resources/custom-attribute';
 import { CustomElement } from './resources/custom-element';
 import {
@@ -30,6 +29,9 @@ import {
   TextSymbol,
   ProjectionSymbol,
   SymbolFlags,
+  AttrInfo,
+  ElementInfo,
+  BindableInfo,
 } from './semantic-model';
 
 const invalidSurrogateAttribute = Object.assign(Object.create(null), {

@@ -648,9 +648,7 @@ export {
 export {
   BindableInfo,
   ElementInfo,
-  AttrInfo
-} from './resource-model';
-export {
+  AttrInfo,
   AnySymbol,
   BindingSymbol,
   CustomAttributeSymbol,

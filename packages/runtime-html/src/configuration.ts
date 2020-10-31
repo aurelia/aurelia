@@ -29,7 +29,7 @@ import {
   RefBindingCommand,
   StyleBindingCommand,
   TriggerBindingCommand,
-} from './binding-commands';
+} from './resources/binding-command';
 import { TemplateCompiler } from './template-compiler';
 import {
   CallBindingRenderer,

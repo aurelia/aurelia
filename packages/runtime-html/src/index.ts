@@ -281,11 +281,6 @@ export {
   BindingCommandKind,
   BindingCommandType,
   getTarget,
-} from './binding-command';
-export {
-  IAttrSyntaxTransformer
-} from './attribute-syntax-transformer';
-export {
   CallBindingCommand,
   DefaultBindingCommand,
   ForBindingCommand,
@@ -299,7 +294,10 @@ export {
   AttrBindingCommand,
   ClassBindingCommand,
   StyleBindingCommand,
-} from './binding-commands';
+} from './resources/binding-command';
+export {
+  IAttrSyntaxTransformer
+} from './attribute-syntax-transformer';
 export {
   Listener
 } from './binding/listener';

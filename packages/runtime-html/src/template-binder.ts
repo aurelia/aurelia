@@ -10,7 +10,7 @@ import {
 } from '@aurelia/runtime';
 import { AttrSyntax, IAttributeParser } from './resources/attribute-pattern';
 import { IAttrSyntaxTransformer } from './attribute-syntax-transformer';
-import { BindingCommand, BindingCommandInstance } from './binding-command';
+import { BindingCommand, BindingCommandInstance } from './resources/binding-command';
 import { NodeType } from './dom';
 import { IPlatform } from './platform';
 import { AttrInfo, BindableInfo, ElementInfo } from './resource-model';

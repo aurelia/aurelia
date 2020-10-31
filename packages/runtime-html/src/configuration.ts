@@ -12,8 +12,8 @@ import {
   AtPrefixedTriggerAttributePattern,
   ColonPrefixedBindAttributePattern,
   DotSeparatedAttributePattern,
-  RefAttributePattern
-} from './resources/attribute-patterns';
+  RefAttributePattern,
+} from './resources/attribute-pattern';
 import {
   CallBindingCommand,
   DefaultBindingCommand,

@@ -266,13 +266,11 @@ export {
   AttributePattern,
   Interpretation,
   ISyntaxInterpreter,
-} from './resources/attribute-pattern';
-export {
   AtPrefixedTriggerAttributePattern,
   ColonPrefixedBindAttributePattern,
   DotSeparatedAttributePattern,
   RefAttributePattern,
-} from './resources/attribute-patterns';
+} from './resources/attribute-pattern';
 export {
   bindingCommand,
   BindingCommand ,

@@ -6,7 +6,6 @@ import {
   If,
   Scope,
   LifecycleFlags,
-  ProxyObserver,
   ViewFactory,
   Controller,
   CustomElementDefinition,
@@ -69,11 +68,6 @@ describe(`If/Else`, function () {
     deactivateFlags2: LifecycleFlags;
   }
 
-  const strategySpecs: StrategySpec[] = [
-    { t: '1', strategy: BindingStrategy.getterSetter },
-    { t: '2', strategy: BindingStrategy.proxies },
-  ];
-
   const duplicateOperationSpecs: DuplicateOperationSpec[] = [
     { t: '1', activateTwice: false, deactivateTwice: false },
     { t: '2', activateTwice: true,  deactivateTwice: false },
@@ -118,18 +112,16 @@ describe(`If/Else`, function () {
   textTemplate.content.append(marker, text);
 
   eachCartesianJoin(
-    [strategySpecs, duplicateOperationSpecs, bindSpecs, mutationSpecs, flagsSpecs],
-    (strategySpec, duplicateOperationSpec, bindSpec, mutationSpec, flagsSpec) => {
-      it(`verify if/else behavior - strategySpec ${strategySpec.t}, duplicateOperationSpec ${duplicateOperationSpec.t}, bindSpec ${bindSpec.t}, mutationSpec ${mutationSpec.t}, flagsSpec ${flagsSpec.t}, `, function () {
-        const { strategy } = strategySpec;
+    [duplicateOperationSpecs, bindSpecs, mutationSpecs, flagsSpecs],
+    (duplicateOperationSpec, bindSpec, mutationSpec, flagsSpec) => {
+      it(`verify if/else behavior - duplicateOperationSpec ${duplicateOperationSpec.t}, bindSpec ${bindSpec.t}, mutationSpec ${mutationSpec.t}, flagsSpec ${flagsSpec.t}, `, function () {
         const { activateTwice, deactivateTwice } = duplicateOperationSpec;
         const { ifPropName, elsePropName, ifText, elseText, value1, value2 } = bindSpec;
         const { newValue1, newValue2 } = mutationSpec;
         const { activateFlags1, deactivateFlags1, activateFlags2, deactivateFlags2 } = flagsSpec;
 
         // common stuff
-        const baseFlags: LifecycleFlags = strategy as unknown as LifecycleFlags;
-        const proxies = (strategy & BindingStrategy.proxies) > 0;
+        const baseFlags: LifecycleFlags = LifecycleFlags.none;
 
         const host = PLATFORM.document.createElement('div');
         const ifLoc = PLATFORM.document.createComment('au-end') as IRenderLocation;
@@ -167,15 +159,8 @@ describe(`If/Else`, function () {
 
         const ifFactory = new ViewFactory('if-view', ifContext, void 0, null);
         const elseFactory = new ViewFactory('else-view', elseContext, void 0, null);
-        let sut: If;
-        let elseSut: Else;
-        if (proxies) {
-          sut = ProxyObserver.getOrCreate(new If(ifFactory, ifLoc)).proxy;
-          elseSut = ProxyObserver.getOrCreate(new Else(elseFactory)).proxy;
-        } else {
-          sut = new If(ifFactory, ifLoc);
-          elseSut = new Else(elseFactory);
-        }
+        const sut = new If(ifFactory, ifLoc);
+        const elseSut = new Else(elseFactory);
         const ifController = (sut as Writable<If>).$controller = Controller.forCustomAttribute(null, container, sut, (void 0)!);
         elseSut.link(LifecycleFlags.none, void 0!, { children: [ifController] } as unknown as IComposableController, void 0!, void 0!, void 0!);
 

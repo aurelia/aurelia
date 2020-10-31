@@ -7,7 +7,6 @@ import {
   LifecycleFlags as LF,
   CustomElement,
   BindingStrategy,
-  ProxyObserver,
   Aurelia,
   CheckedObserver,
   IInputElement,
@@ -329,8 +328,7 @@ describe('checked-observer.spec.ts', function () {
       lifecycle,
       testHost,
       appHost,
-      // todo: keeping ProxyObserver.getProxyOrSelf as a reminder of what will need to be done to make the tests behave as expected
-      component: ProxyObserver.getProxyOrSelf(component) as T,
+      component: component as T,
       observerLocator,
       tearDown: async () => {
         await au.stop();

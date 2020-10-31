@@ -19,7 +19,6 @@ import {
   ISubscriber,
 } from '../observation';
 import { BindingContext } from '../observation/binding-context';
-import { ProxyObserver } from '../observation/proxy-observer';
 import { ISignaler } from '../observation/signaler';
 import {
   BindingBehavior, BindingBehaviorInstance, BindingBehaviorFactory,
@@ -1561,25 +1560,8 @@ function getFunction(f: LF, obj: object, name: string): ((...args: unknown[]) =>
 const proxyAndOriginalArray = LF.proxyStrategy;
 
 function $array(f: LF, result: unknown[], func: (arr: Collection, index: number, item: unknown) => void): void {
-  if ((f & proxyAndOriginalArray) === proxyAndOriginalArray) {
-    // If we're in proxy mode, and the array is the original "items" (and not an array we created here to iterate over e.g. a set)
-    // then replace all items (which are Objects) with proxies so their properties are observed in the source view model even if no
-    // observers are explicitly created
-    const rawArray = ProxyObserver.getRawIfProxy(result);
-    const len = rawArray.length;
-    let item: unknown;
-    let i = 0;
-    for (; i < len; ++i) {
-      item = rawArray[i];
-      if (item instanceof Object) {
-        item = rawArray[i] = ProxyObserver.getOrCreate(item).proxy;
-      }
-      func(rawArray, i, item);
-    }
-  } else {
-    for (let i = 0, ii = result.length; i < ii; ++i) {
-      func(result, i, result[i]);
-    }
+  for (let i = 0, ii = result.length; i < ii; ++i) {
+    func(result, i, result[i]);
   }
 }
 

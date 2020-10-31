@@ -434,8 +434,6 @@ export {
 
   // PropertyAccessor,
 
-  // ProxyObserver,
-
   // BindableObserver,
 
   // SetterObserver,
@@ -678,7 +676,6 @@ export {
   // PropertyObserver,
   // CollectionObserver,
   // ICollectionSubscriberCollection,
-  // IProxyObserver,
   // IProxy,
   // IProxySubscribable,
   // IProxySubscriber,

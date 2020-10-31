@@ -19,7 +19,6 @@ import { IDirtyChecker } from './dirty-checker';
 import { getMapObserver } from './map-observer';
 import { PrimitiveObserver } from './primitive-observer';
 import { propertyAccessor } from './property-accessor';
-import { ProxyObserver } from './proxy-observer';
 import { getSetObserver } from './set-observer';
 import { SetterObserver } from './setter-observer';
 
@@ -83,9 +82,6 @@ export class ObserverLocator {
       return this.targetAccessorLocator.getAccessor(flags, obj, key);
     }
 
-    if ((flags & LifecycleFlags.proxyStrategy) > 0) {
-      return ProxyObserver.getOrCreate(obj, key) as unknown as AccessorOrObserver;
-    }
     return propertyAccessor as IBindingTargetAccessor;
   }
 
@@ -114,9 +110,6 @@ export class ObserverLocator {
         return observer;
       }
       isNode = true;
-    } else if ((flags & LifecycleFlags.proxyStrategy) > 0) {
-      // TODO: fix typings (and ensure proper contracts ofc)
-      return ProxyObserver.getOrCreate(obj, key) as unknown as AccessorOrObserver;
     }
 
     switch (key) {
@@ -215,16 +208,12 @@ export class ObserverLocator {
 
 export type RepeatableCollection = IObservedMap | IObservedSet | IObservedArray | null | undefined | number;
 
-export function getCollectionObserver(flags: LifecycleFlags, lifecycle: ILifecycle, collection: RepeatableCollection): CollectionObserver | undefined {
-  // If the collection is wrapped by a proxy then `$observer` will return the proxy observer instead of the collection observer, which is not what we want
-  // when we ask for getCollectionObserver
-  const rawCollection = collection instanceof Object ? ProxyObserver.getRawIfProxy(collection) : collection;
-  if (collection instanceof Array) {
-    return getArrayObserver(flags, lifecycle, rawCollection as IObservedArray);
+export function getCollectionObserver(flags: LifecycleFlags, lifecycle: ILifecycle, collection: RepeatableCollection): CollectionObserver | undefined {  if (collection instanceof Array) {
+    return getArrayObserver(flags, lifecycle, collection as IObservedArray);
   } else if (collection instanceof Map) {
-    return getMapObserver(flags, lifecycle, rawCollection as IObservedMap);
+    return getMapObserver(flags, lifecycle, collection as IObservedMap);
   } else if (collection instanceof Set) {
-    return getSetObserver(flags, lifecycle, rawCollection as IObservedSet);
+    return getSetObserver(flags, lifecycle, collection as IObservedSet);
   }
   return void 0;
 }

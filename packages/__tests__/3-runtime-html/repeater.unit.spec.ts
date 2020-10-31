@@ -7,7 +7,6 @@ import {
   ForOfStatement,
   Scope,
   LifecycleFlags,
-  ProxyObserver,
   Repeat,
   ViewFactory,
   Controller,
@@ -545,18 +544,16 @@ describe(`Repeat`, function () {
   textTemplate.content.append(marker, text);
 
   eachCartesianJoin(
-    [strategySpecs, duplicateOperationSpecs, bindSpecs, flagsSpecs],
-    (strategySpec, duplicateOperationSpec, bindSpec, flagsSpec) => {
-      it(`verify repeat behavior - strategySpec ${strategySpec.t}, duplicateOperationSpec ${duplicateOperationSpec.t}, bindSpec ${bindSpec.t}, flagsSpec ${flagsSpec.t}, `, function () {
-        const { strategy } = strategySpec;
+    [duplicateOperationSpecs, bindSpecs, flagsSpecs],
+    (duplicateOperationSpec, bindSpec, flagsSpec) => {
+      it(`verify repeat behavior - duplicateOperationSpec ${duplicateOperationSpec.t}, bindSpec ${bindSpec.t}, flagsSpec ${flagsSpec.t}, `, function () {
         const { activateTwice, deactivateTwice } = duplicateOperationSpec;
         const { items: $items, flush, mutations } = bindSpec;
         const { activateFlags1, deactivateFlags1, activateFlags2, deactivateFlags2 } = flagsSpec;
 
         const items = $items.slice();
         // common stuff
-        const baseFlags: LifecycleFlags = strategy as unknown as LifecycleFlags;
-        const proxies = (strategy & BindingStrategy.proxies) > 0;
+        const baseFlags: LifecycleFlags = LifecycleFlags.none;
 
         const host = PLATFORM.document.createElement('div');
         const loc = PLATFORM.document.createComment('au-end') as IRenderLocation;
@@ -587,15 +584,8 @@ describe(`Repeat`, function () {
         const composable: IComposableController = {
           bindings: [binding]
         } as any;
-        let sut: Repeat;
-        if (proxies) {
-          const raw = new Repeat(loc, composable, itemFactory);
-          sut = new ProxyObserver(raw).proxy;
-          (raw as Writable<Repeat>).$controller = Controller.forCustomAttribute(null, container, sut, (void 0)!);
-        } else {
-          sut = new Repeat(loc, composable, itemFactory);
-          (sut as Writable<Repeat>).$controller = Controller.forCustomAttribute(null, container, sut, (void 0)!);
-        }
+        const sut = new Repeat(loc, composable, itemFactory);
+        (sut as Writable<Repeat>).$controller = Controller.forCustomAttribute(null, container, sut, (void 0)!);
         binding.target = sut as any;
 
         // -- Round 1 --

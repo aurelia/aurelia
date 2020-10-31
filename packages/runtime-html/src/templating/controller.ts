@@ -18,7 +18,6 @@ import {
   ILifecycle,
   IBindingTargetAccessor,
   PropertyBinding,
-  ProxyObserver,
   BindableObserver,
   BindableDefinition,
 } from '@aurelia/runtime';
@@ -1196,11 +1195,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 }
 
 function getBindingContext<C extends IViewModel>(flags: LifecycleFlags, instance: object): BindingContext<C> {
-  if ((instance as IIndexable).noProxy === true || (flags & LifecycleFlags.proxyStrategy) === 0) {
-    return instance as BindingContext<C>;
-  }
-
-  return ProxyObserver.getOrCreate(instance).proxy as unknown as BindingContext<C>;
+  return instance as BindingContext<C>;
 }
 
 function getLookup(instance: IIndexable): Record<string, BindableObserver | ChildrenObserver> {
@@ -1230,39 +1225,22 @@ function createObservers(
   if (length > 0) {
     let name: string;
     let bindable: BindableDefinition;
+    const observers = getLookup(instance as IIndexable);
 
-    if ((flags & LifecycleFlags.proxyStrategy) > 0) {
-      for (let i = 0; i < length; ++i) {
-        name = observableNames[i];
+    for (let i = 0; i < length; ++i) {
+      name = observableNames[i];
+
+      if (observers[name] === void 0) {
         bindable = bindables[name];
 
-        new BindableObserver(
+        observers[name] = new BindableObserver(
           lifecycle,
           flags,
-          ProxyObserver.getOrCreate(instance).proxy,
+          instance as IIndexable,
           name,
           bindable.callback,
           bindable.set,
         );
-      }
-    } else {
-      const observers = getLookup(instance as IIndexable);
-
-      for (let i = 0; i < length; ++i) {
-        name = observableNames[i];
-
-        if (observers[name] === void 0) {
-          bindable = bindables[name];
-
-          observers[name] = new BindableObserver(
-            lifecycle,
-            flags,
-            instance as IIndexable,
-            name,
-            bindable.callback,
-            bindable.set,
-          );
-        }
       }
     }
   }

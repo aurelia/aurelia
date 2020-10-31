@@ -203,6 +203,13 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
     let target = this.target;
     let context = this.renderContext;
 
+    if (target === '') {
+      if (this.strict) {
+        throw new Error('Empty querySelector');
+      }
+      return $document.body as unknown as T;
+    }
+
     if (typeof target === 'string') {
       let queryContext: ParentNode = $document;
       if (typeof context === 'string') {
@@ -220,10 +227,9 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
 
     if (target == null) {
       if (this.strict) {
-        throw new Error('Compose target not found');
-      } else {
-        target = $document.body as unknown as ResolvedTarget;
+        throw new Error('Portal target not found');
       }
+      return $document.body as unknown as T;
     }
 
     return target as T & Node & ParentNode;

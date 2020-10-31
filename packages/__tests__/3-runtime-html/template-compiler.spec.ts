@@ -1590,7 +1590,7 @@ describe('TemplateCompiler - local templates', function () {
   });
 
   for (const attr of ['if.bind="true"', 'if.bind="false"', 'else', 'repeat.for="item of items"', 'with.bind="{a:1}"', 'switch.bind="cond"', 'case="case1"']) {
-    it(`throws error if local-template surrogate has template controller - ${attr}`, async function () {
+    it(`throws error if local-template surrogate has template controller - ${attr}`, function () {
       const template = `<template as-custom-element="foo-bar" ${attr}>
       <bindable property="prop1" attribute="bar"></bindable>
     </template>

@@ -187,10 +187,6 @@ export interface ISubscriber<TValue = unknown> {
   handleChange(newValue: TValue, previousValue: TValue, flags: LifecycleFlags): void;
 }
 
-export interface IProxySubscriber<TValue = unknown> {
-  handleProxyChange(key: PropertyKey, newValue: TValue, previousValue: TValue, flags: LifecycleFlags): void;
-}
-
 export interface ICollectionSubscriber {
   handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void;
 }
@@ -198,11 +194,6 @@ export interface ICollectionSubscriber {
 export interface ISubscribable {
   subscribe(subscriber: ISubscriber): void;
   unsubscribe(subscriber: ISubscriber): void;
-}
-
-export interface IProxySubscribable {
-  subscribeToProxy(subscriber: IProxySubscriber): void;
-  unsubscribeFromProxy(subscriber: IProxySubscriber): void;
 }
 
 export interface ICollectionSubscribable {
@@ -224,22 +215,6 @@ export interface ISubscriberCollection extends ISubscribable {
   hasSubscriber(subscriber: ISubscriber): boolean;
   removeSubscriber(subscriber: ISubscriber): boolean;
   addSubscriber(subscriber: ISubscriber): boolean;
-}
-
-export interface IProxySubscriberCollection extends IProxySubscribable {
-  [key: number]: LifecycleFlags;
-
-  /** @internal */_proxySubscriberFlags: SubscriberFlags;
-  /** @internal */_proxySubscriber0?: IProxySubscriber;
-  /** @internal */_proxySubscriber1?: IProxySubscriber;
-  /** @internal */_proxySubscriber2?: IProxySubscriber;
-  /** @internal */_proxySubscribersRest?: IProxySubscriber[];
-
-  callProxySubscribers(key: PropertyKey, newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void;
-  hasProxySubscribers(): boolean;
-  hasProxySubscriber(subscriber: IProxySubscriber): boolean;
-  removeProxySubscriber(subscriber: IProxySubscriber): boolean;
-  addProxySubscriber(subscriber: IProxySubscriber): boolean;
 }
 
 export interface ICollectionSubscriberCollection extends ICollectionSubscribable {
@@ -337,14 +312,6 @@ export type ObservedCollectionKindToType<T> =
         T extends CollectionKind.set ? IObservedSet :
           T extends CollectionKind.keyed ? IObservedSet | IObservedMap :
             never;
-
-export interface IProxyObserver<TObj extends {} = {}> extends IProxySubscriberCollection {
-  proxy: IProxy<TObj>;
-}
-
-export type IProxy<TObj extends {} = {}> = TObj & {
-  $raw: TObj;
-};
 
 export const enum AccessorType {
   None          = 0b0_0000_0000,

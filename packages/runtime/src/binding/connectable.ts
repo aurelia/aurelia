@@ -6,7 +6,6 @@ import {
 import {
   IConnectable,
   IBindingTargetObserver,
-  IProxySubscribable,
   ISubscribable,
   ISubscriber,
   IBinding,
@@ -40,7 +39,7 @@ export interface IConnectableBinding extends IPartialConnectableBinding, IConnec
   id: number;
   observerSlots: number;
   version: number;
-  addObserver(observer: ISubscribable | IProxySubscribable): void;
+  addObserver(observer: ISubscribable): void;
   unobserve(all?: boolean): void;
 }
 

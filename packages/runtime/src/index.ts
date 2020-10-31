@@ -176,9 +176,6 @@ export {
   PropertyAccessor
 } from './observation/property-accessor';
 export {
-  ProxyObserver
-} from './observation/proxy-observer';
-export {
   BindableObserver
 } from './observation/bindable-observer';
 export {
@@ -190,7 +187,6 @@ export {
 export {
   subscriberCollection,
   collectionSubscriberCollection,
-  proxySubscriberCollection,
 } from './observation/subscriber-collection';
 
 export {
@@ -277,11 +273,6 @@ export {
   PropertyObserver,
   CollectionObserver,
   ICollectionSubscriberCollection,
-  IProxyObserver,
-  IProxy,
-  IProxySubscribable,
-  IProxySubscriber,
-  IProxySubscriberCollection,
   ICollectionSubscribable,
   ISubscriber,
   isIndexMap,

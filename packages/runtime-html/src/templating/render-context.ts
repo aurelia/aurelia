@@ -5,8 +5,11 @@ import {
   IFactory,
   InstanceProvider,
   IResolver,
+  IResourceKind,
   Key,
   Resolved,
+  ResourceDefinition,
+  ResourceType,
   Transformer,
 } from '@aurelia/kernel';
 import { Scope, LifecycleFlags } from '@aurelia/runtime';
@@ -336,6 +339,14 @@ export class RenderContext implements IComponentFactory {
 
   public createChild(): IContainer {
     return this.container.createChild();
+  }
+
+  public find<TType extends ResourceType, TDef extends ResourceDefinition>(kind: IResourceKind<TType, TDef>, name: string): TDef | null {
+    return this.container.find(kind, name);
+  }
+
+  public create<TType extends ResourceType, TDef extends ResourceDefinition>(kind: IResourceKind<TType, TDef>, name: string): InstanceType<TType> | null {
+    return this.container.create(kind, name);
   }
 
   public disposeResolvers() {

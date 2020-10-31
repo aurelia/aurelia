@@ -523,7 +523,7 @@ describe('controller.hook-timings.integration', function () {
         await au.start();
 
         mgr.setPrefix('stop');
-        await au.stop();
+        await au.stop(true);
 
         verifyInvocationsEqual(mgr.fullNotifyHistory, expected);
       });
@@ -543,7 +543,7 @@ describe('controller.hook-timings.integration', function () {
         await au.start();
 
         mgr.setPrefix('stop');
-        await au.stop();
+        await au.stop(true);
 
         verifyInvocationsEqual(mgr.fullNotifyHistory, expected);
       });
@@ -563,7 +563,7 @@ describe('controller.hook-timings.integration', function () {
         await au.start();
 
         mgr.setPrefix('stop');
-        await au.stop();
+        await au.stop(true);
 
         verifyInvocationsEqual(mgr.fullNotifyHistory, expected);
       });
@@ -583,7 +583,7 @@ describe('controller.hook-timings.integration', function () {
         await au.start();
 
         mgr.setPrefix('stop');
-        await au.stop();
+        await au.stop(true);
 
         verifyInvocationsEqual(mgr.fullNotifyHistory, expected);
       });
@@ -603,7 +603,7 @@ describe('controller.hook-timings.integration', function () {
         await au.start();
 
         mgr.setPrefix('stop');
-        await au.stop();
+        await au.stop(true);
 
         verifyInvocationsEqual(mgr.fullNotifyHistory, expected);
       });
@@ -623,7 +623,7 @@ describe('controller.hook-timings.integration', function () {
         await au.start();
 
         mgr.setPrefix('stop');
-        await au.stop();
+        await au.stop(true);
 
         verifyInvocationsEqual(mgr.fullNotifyHistory, expected);
       });
@@ -643,7 +643,7 @@ describe('controller.hook-timings.integration', function () {
         await au.start();
 
         mgr.setPrefix('stop');
-        await au.stop();
+        await au.stop(true);
 
         verifyInvocationsEqual(mgr.fullNotifyHistory, expected);
       });
@@ -663,7 +663,7 @@ describe('controller.hook-timings.integration', function () {
         await au.start();
 
         mgr.setPrefix('stop');
-        await au.stop();
+        await au.stop(true);
 
         verifyInvocationsEqual(mgr.fullNotifyHistory, expected);
       });
@@ -683,7 +683,7 @@ describe('controller.hook-timings.integration', function () {
         await au.start();
 
         mgr.setPrefix('stop');
-        await au.stop();
+        await au.stop(true);
 
         verifyInvocationsEqual(mgr.fullNotifyHistory, expected);
       });

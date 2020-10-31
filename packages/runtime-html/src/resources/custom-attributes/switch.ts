@@ -25,6 +25,7 @@ import {
   IComposableController,
   ISyntheticView,
   MountStrategy,
+  ControllerVisitor,
 } from '../../lifecycle';
 import { templateController } from '../custom-attribute';
 import { Controller } from '../../templating/controller';
@@ -232,6 +233,15 @@ export class Switch implements ICustomAttributeViewModel {
       }
     );
   }
+
+  public accept(visitor: ControllerVisitor): void | true {
+    if (this.$controller.accept(visitor) === true) {
+      return true;
+    }
+    if (this.activeCases.some(x => x.accept(visitor))) {
+      return true;
+    }
+  }
 }
 
 @templateController('case')
@@ -346,6 +356,13 @@ export class Case implements ICustomAttributeViewModel {
     const observer = this.locator.getArrayObserver(flags, $value);
     observer.addCollectionSubscriber(this);
     return observer;
+  }
+
+  public accept(visitor: ControllerVisitor): void | true {
+    if (this.$controller.accept(visitor) === true) {
+      return true;
+    }
+    return this.view?.accept(visitor);
   }
 }
 

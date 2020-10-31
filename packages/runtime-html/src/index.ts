@@ -519,11 +519,6 @@ export {
   StandardConfiguration
 } from './configuration';
 export {
-  stringifyDOM,
-  stringifyInstructions,
-  stringifyTemplateDefinition
-} from './debugging';
-export {
   TemplateBinder,
 } from './template-binder';
 export {

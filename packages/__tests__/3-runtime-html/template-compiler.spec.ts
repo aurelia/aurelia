@@ -25,7 +25,6 @@ import {
   PartialCustomElementDefinition,
   PrimitiveLiteralExpression,
   PartialCustomAttributeDefinition,
-  HooksDefinition,
   CustomElementDefinition,
   IProjections,
   IInstruction,
@@ -457,7 +456,6 @@ const defaultCustomElementDefinitionProperties = {
   shadowOptions: null,
   strategy: 1,
   surrogates: [],
-  hooks: HooksDefinition.none,
 };
 
 function createTplCtrlAttributeInstruction(attr: string, value: string) {

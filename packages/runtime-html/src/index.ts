@@ -525,9 +525,6 @@ export {
   StandardConfiguration
 } from './configuration';
 export {
-  HooksDefinition,
-} from './definitions';
-export {
   stringifyDOM,
   stringifyInstructions,
   stringifyTemplateDefinition

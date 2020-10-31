@@ -14,7 +14,6 @@ import { ICustomElementViewModel, ICustomElementController } from './lifecycle';
 import { IAppTask, TaskSlot } from './app-task';
 import { CustomElement, CustomElementDefinition } from './resources/custom-element';
 import { Controller } from './templating/controller';
-import { HooksDefinition } from './definitions';
 import { IPlatform } from './platform';
 
 export interface ISinglePageApp {
@@ -55,7 +54,7 @@ export class AppRoot implements IDisposable {
       this.enhanceDefinition = CustomElement.getDefinition(
         CustomElement.isType(component)
           ? CustomElement.define({ ...CustomElement.getDefinition(component), template: this.host, enhance: true }, component)
-          : CustomElement.define({ name: (void 0)!, template: this.host, enhance: true, hooks: new HooksDefinition(component) })
+          : CustomElement.define({ name: (void 0)!, template: this.host, enhance: true })
       );
     }
 

@@ -1,7 +1,6 @@
 import { DI, IContainer, IIndexable, IDisposable } from '@aurelia/kernel';
 import { IBindingTargetAccessor, LifecycleFlags, Scope, ILifecycle, IBinding } from '@aurelia/runtime';
 
-import { HooksDefinition } from './definitions';
 import { INode, INodeSequence, IRenderLocation } from './dom';
 import { CustomElementDefinition, PartialCustomElementDefinition } from './resources/custom-element';
 import { IRenderContext, ICompiledRenderContext } from './templating/render-context';
@@ -62,7 +61,6 @@ export interface IController<C extends IViewModel = IViewModel> extends IDisposa
   readonly root: IAppRoot | null;
   readonly flags: LifecycleFlags;
   readonly lifecycle: ILifecycle;
-  readonly hooks: HooksDefinition;
   readonly vmKind: ViewModelKind;
   readonly definition: CustomElementDefinition | CustomAttributeDefinition | undefined;
 }

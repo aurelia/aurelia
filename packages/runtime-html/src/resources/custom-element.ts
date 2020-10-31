@@ -25,7 +25,6 @@ import { PartialChildrenDefinition, ChildrenDefinition, Children } from '../temp
 import { IProjections } from './custom-elements/au-slot';
 import { Controller } from '../templating/controller';
 import { IInstruction } from '../instructions';
-import { HooksDefinition } from '../definitions';
 
 export type PartialCustomElementDefinition = PartialResourceDefinition<{
   readonly cache?: '*' | number;
@@ -42,7 +41,6 @@ export type PartialCustomElementDefinition = PartialResourceDefinition<{
   readonly shadowOptions?: { mode: 'open' | 'closed' } | null;
   readonly hasSlots?: boolean;
   readonly strategy?: BindingStrategy;
-  readonly hooks?: Readonly<HooksDefinition>;
   readonly enhance?: boolean;
   readonly projectionsMap?: Map<IInstruction, IProjections>;
 }>;
@@ -210,7 +208,6 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
     public readonly shadowOptions: { mode: 'open' | 'closed' } | null,
     public readonly hasSlots: boolean,
     public readonly strategy: BindingStrategy,
-    public readonly hooks: Readonly<HooksDefinition>,
     public readonly enhance: boolean,
     public readonly projectionsMap: Map<IInstruction, IProjections>,
   ) {}
@@ -268,7 +265,6 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         fromDefinitionOrDefault('shadowOptions', def, () => null),
         fromDefinitionOrDefault('hasSlots', def, () => false),
         fromDefinitionOrDefault('strategy', def, () => BindingStrategy.getterSetter),
-        fromDefinitionOrDefault('hooks', def, () => HooksDefinition.none),
         fromDefinitionOrDefault('enhance', def, () => false),
         fromDefinitionOrDefault('projectionsMap', def as CustomElementDefinition, () => new Map<IInstruction, IProjections>()),
       );
@@ -305,8 +301,6 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         fromAnnotationOrTypeOrDefault('shadowOptions', Type, () => null),
         fromAnnotationOrTypeOrDefault('hasSlots', Type, () => false),
         fromAnnotationOrTypeOrDefault('strategy', Type, () => BindingStrategy.getterSetter),
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-        fromAnnotationOrTypeOrDefault('hooks', Type, () => new HooksDefinition(Type!.prototype)),
         fromAnnotationOrTypeOrDefault('enhance', Type, () => false),
         fromAnnotationOrTypeOrDefault('projectionsMap', Type, () => new Map<IInstruction, IProjections>()),
       );
@@ -348,8 +342,6 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
       fromAnnotationOrDefinitionOrTypeOrDefault('shadowOptions', nameOrDef, Type, () => null),
       fromAnnotationOrDefinitionOrTypeOrDefault('hasSlots', nameOrDef, Type, () => false),
       fromAnnotationOrDefinitionOrTypeOrDefault('strategy', nameOrDef, Type, () => BindingStrategy.getterSetter),
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-      fromAnnotationOrTypeOrDefault('hooks', Type, () => new HooksDefinition(Type!.prototype)),
       fromAnnotationOrDefinitionOrTypeOrDefault('enhance', nameOrDef, Type, () => false),
       fromAnnotationOrDefinitionOrTypeOrDefault('projectionsMap', nameOrDef, Type, () => new Map<IInstruction, IProjections>()),
     );

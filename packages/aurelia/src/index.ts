@@ -589,7 +589,6 @@ export {
   // RuntimeConfiguration,
 
   // AttributeInstruction,
-  // HooksDefinition,
   // ICallBindingInstruction,
   // IHydrateAttributeInstruction,
   // IHydrateElementInstruction,

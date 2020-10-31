@@ -3,7 +3,6 @@ import {
   PropertyBinding,
   BindingContext,
   BindingIdentifier,
-  BindingStrategy,
   ForOfStatement,
   Scope,
   LifecycleFlags,
@@ -41,9 +40,6 @@ describe(`Repeat`, function () {
 
   interface Spec {
     t: string;
-  }
-  interface StrategySpec extends Spec {
-    strategy: BindingStrategy;
   }
   interface DuplicateOperationSpec extends Spec {
     activateTwice: boolean;
@@ -147,13 +143,7 @@ describe(`Repeat`, function () {
           sut.items.sort(spec.fn);
       }
     }
-
   }
-
-  const strategySpecs: StrategySpec[] = [
-    { t: '1', strategy: BindingStrategy.getterSetter },
-    { t: '2', strategy: BindingStrategy.proxies },
-  ];
 
   const duplicateOperationSpecs: DuplicateOperationSpec[] = [
     { t: '1', activateTwice: false, deactivateTwice: false },

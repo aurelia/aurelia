@@ -6,7 +6,6 @@ import {
   IBindingTargetObserver,
   LifecycleFlags as LF,
   CustomElement,
-  BindingStrategy,
   Aurelia,
   CheckedObserver,
   IInputElement,
@@ -252,27 +251,20 @@ describe('checked-observer.spec.ts', function () {
   eachCartesianJoin(
     [testCases],
     (testCase, callIndex) => {
-      for (const strategy of [
-        // todo: enable this
-        // BindingStrategy.proxies,
-        BindingStrategy.getterSetter,
-      ]) {
-        const { title, template, ViewModel, assertFn, only } = testCase;
-        // eslint-disable-next-line mocha/no-exclusive-tests
-        const $it = (title_: string, fn: Mocha.Func) => only ? it.only(title_, fn) : it(title_, fn);
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        $it(`<Strategy: ${strategy === BindingStrategy.getterSetter ? 'Getter/Setter' : 'Proxies'}> ${title}`, async function () {
-          const { ctx, component, testHost, tearDown } = await createFixture<any>(
-            template,
-            ViewModel,
-            strategy,
-          );
-          await assertFn(ctx, testHost, component);
-          // test cases could be sharing the same context document
-          // so wait a bit before running the next test
-          await tearDown();
-        });
-      }
+      const { title, template, ViewModel, assertFn, only } = testCase;
+      // eslint-disable-next-line mocha/no-exclusive-tests
+      const $it = (title_: string, fn: Mocha.Func) => only ? it.only(title_, fn) : it(title_, fn);
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      $it(title, async function () {
+        const { ctx, component, testHost, tearDown } = await createFixture<any>(
+          template,
+          ViewModel,
+        );
+        await assertFn(ctx, testHost, component);
+        // test cases could be sharing the same context document
+        // so wait a bit before running the next test
+        await tearDown();
+      });
     }
   );
 
@@ -307,7 +299,7 @@ describe('checked-observer.spec.ts', function () {
     }));
   }
 
-  async function createFixture<T>(template: string | Node, $class: Constructable | null, bindingStrategy: BindingStrategy, ...registrations: any[]) {
+  async function createFixture<T>(template: string | Node, $class: Constructable | null, ...registrations: any[]) {
     const ctx = TestContext.create();
     const { container, lifecycle, observerLocator } = ctx;
     registrations = Array.from(new Set([...registrations]));
@@ -318,7 +310,7 @@ describe('checked-observer.spec.ts', function () {
     const App = CustomElement.define({ name: 'app', template }, $class);
     const component = new App();
 
-    au.app({ host: appHost, component, strategy: bindingStrategy });
+    au.app({ host: appHost, component });
     await au.start();
 
     return {

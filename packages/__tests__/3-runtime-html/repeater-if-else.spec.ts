@@ -1,5 +1,4 @@
 import {
-  BindingStrategy,
   CustomElement,
   IPlatform,
   Aurelia,
@@ -18,9 +17,6 @@ describe(spec, function () {
   type Comp = { items: any[]; display: boolean };
   interface Spec {
     t: string;
-  }
-  interface StrategySpec extends Spec {
-    strategy: BindingStrategy;
   }
   interface BehaviorsSpec extends Spec {
     behaviors: string;
@@ -42,16 +38,6 @@ describe(spec, function () {
   interface MutationSpec extends Spec {
     execute(component: Comp, platform: IPlatform, host: Element, count: number, ifText: string, elseText: string): void;
   }
-  const strategySpecs: StrategySpec[] = [
-    {
-      t: '01',
-      strategy: BindingStrategy.getterSetter
-    },
-    {
-      t: '02',
-      strategy: BindingStrategy.proxies
-    },
-  ];
 
   const behaviorsSpecs: BehaviorsSpec[] = [
     {
@@ -526,11 +512,10 @@ describe(spec, function () {
   ];
 
   eachCartesianJoin(
-    [strategySpecs, behaviorsSpecs, ceTemplateSpecs, appTemplateSpecs, itemsSpecs, countSpecs, mutationSpecs],
-    (strategySpec, behaviorsSpec, ceTemplateSpec, appTemplateSpec, itemsSpec, countSpec, mutationSpec) => {
+    [behaviorsSpecs, ceTemplateSpecs, appTemplateSpecs, itemsSpecs, countSpecs, mutationSpecs],
+    (behaviorsSpec, ceTemplateSpec, appTemplateSpec, itemsSpec, countSpec, mutationSpec) => {
 
-      it(`strategySpec ${strategySpec.t}, behaviorsSpec ${behaviorsSpec.t}, ceTemplateSpec ${ceTemplateSpec.t}, appTemplateSpec ${appTemplateSpec.t}, itemsSpec ${itemsSpec.t}, countSpec ${countSpec.t}, mutationSpec ${mutationSpec.t}`, async function () {
-        const { strategy } = strategySpec;
+      it(`behaviorsSpec ${behaviorsSpec.t}, ceTemplateSpec ${ceTemplateSpec.t}, appTemplateSpec ${appTemplateSpec.t}, itemsSpec ${itemsSpec.t}, countSpec ${countSpec.t}, mutationSpec ${mutationSpec.t}`, async function () {
         const { behaviors } = behaviorsSpec;
         const { createCETemplate } = ceTemplateSpec;
         const { createAppTemplate } = appTemplateSpec;
@@ -547,13 +532,11 @@ describe(spec, function () {
           {
             name: 'app',
             template: createAppTemplate(behaviors),
-            strategy,
             dependencies: [
               CustomElement.define(
                 {
                   name: 'foo',
                   template: createCETemplate(behaviors),
-                  strategy
                 },
                 class Foo {
                   public static bindables = ['items', 'display'];
@@ -579,7 +562,7 @@ describe(spec, function () {
 
         const au = new Aurelia(container);
         const task = au.register(TestConfiguration)
-          .app({ host, component: Component, strategy })
+          .app({ host, component: Component })
           .start();
         const component = au.root.controller.bindingContext;
         await task;

@@ -2,7 +2,6 @@ import {
   IAttrSyntaxTransformer,
   TemplateBinder,
   IAttributeParser,
-  ResourceModel,
   Aurelia,
   CustomElement,
   IExpressionParser,
@@ -46,7 +45,7 @@ describe('xml node compiler tests', function () {
 
       const binder = new TemplateBinder(
         ctx.platform,
-        new ResourceModel(ctx.container),
+        ctx.container,
         ctx.container.get(IAttributeParser),
         ctx.container.get(IExpressionParser),
         ctx.container.get(IAttrSyntaxTransformer)

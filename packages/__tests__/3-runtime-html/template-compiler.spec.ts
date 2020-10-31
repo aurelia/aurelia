@@ -43,7 +43,6 @@ import {
   InstructionType as TT,
   HydrateLetElementInstruction,
   InstructionType,
-  ResourceModel,
   ElementInfo,
   BindableInfo,
 } from '@aurelia/runtime-html';
@@ -1277,11 +1276,11 @@ describe('TemplateCompiler - local templates', function () {
     ) {
       this.verifyDefinition = this.verifyDefinition.bind(this);
     }
-    public verifyDefinition(definition: CustomElementDefinition, resources: ResourceModel): void {
+    public verifyDefinition(definition: CustomElementDefinition, container: IContainer): void {
       assert.equal((definition.template as HTMLTemplateElement).querySelector('template[as-custom-element]'), null);
 
       for (const [name, info] of this.expectedResources) {
-        assert.deepStrictEqual(resources.getElementInfo(name), info, 'element info');
+        assert.deepStrictEqual(ElementInfo.from(container.find(CustomElement, name)), info, 'element info');
       }
       const ceInstructions: HydrateElementInstruction[] = definition.instructions.flatMap((i) => i).filter((i) => i instanceof HydrateElementInstruction) as HydrateElementInstruction[];
       for (const [template, freq] of this.templateFreq) {
@@ -1370,7 +1369,7 @@ describe('TemplateCompiler - local templates', function () {
     it(template, function () {
       const { container, sut } = createFixture();
       const definition = sut.compile({ name: 'lorem-ipsum', template }, container, null);
-      verifyDefinition(definition, ResourceModel.getOrCreate(container));
+      verifyDefinition(definition, container);
     });
     if (template.includes(`mode="fromView"`)) { continue; }
     it(`${template} - content`, async function () {

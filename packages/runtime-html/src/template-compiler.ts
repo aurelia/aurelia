@@ -50,7 +50,6 @@ import {
   TextBindingInstruction,
 } from './instructions';
 import { IAttributeParser } from './attribute-parser';
-import { ResourceModel } from './resource-model';
 import { AuSlotContentType, IProjections, ProjectionContext, RegisteredProjections, SlotInfo } from './resources/custom-elements/au-slot';
 import { CustomElement, CustomElementDefinition, PartialCustomElementDefinition } from './resources/custom-element';
 import { ITemplateCompiler } from './renderer';
@@ -132,11 +131,10 @@ export class TemplateCompiler implements ITemplateCompiler {
       return definition;
     }
 
-    const resources = ResourceModel.getOrCreate(context);
     const { attrParser, exprParser, attrSyntaxModifier, factory } = this;
 
     const p = context.get(IPlatform);
-    const binder = new TemplateBinder(p, resources, attrParser, exprParser, attrSyntaxModifier);
+    const binder = new TemplateBinder(p, context, attrParser, exprParser, attrSyntaxModifier);
 
     const template = definition.enhance === true
       ? definition.template as HTMLElement

@@ -655,7 +655,6 @@ export {
 } from './projectors';
 
 export {
-  ResourceModel,
   BindableInfo,
   ElementInfo,
   AttrInfo

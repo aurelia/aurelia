@@ -705,7 +705,6 @@ export {
   // parse,
   // ParserState,
 
-  // ResourceModel,
   // BindableInfo,
   // ElementInfo,
   // AttrInfo,

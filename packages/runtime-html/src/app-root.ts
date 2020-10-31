@@ -33,7 +33,6 @@ export class AppRoot implements IDisposable {
 
   private hydratePromise: Promise<void> | void = void 0;
   private readonly enhanceDefinition: CustomElementDefinition | undefined;
-  private readonly strategy: BindingStrategy;
 
   public constructor(
     public readonly config: ISinglePageApp,
@@ -48,7 +47,6 @@ export class AppRoot implements IDisposable {
       this.container = container.createChild();
     }
     this.container.register(Registration.instance(INode, config.host));
-    this.strategy = config.strategy ?? BindingStrategy.getterSetter;
 
     if (enhance) {
       const component = config.component as Constructable | ICustomElementViewModel;
@@ -70,7 +68,7 @@ export class AppRoot implements IDisposable {
         instance,
         this.host,
         null,
-        this.strategy as number,
+        LifecycleFlags.none,
         false,
         this.enhanceDefinition,
       )) as Controller;
@@ -89,7 +87,7 @@ export class AppRoot implements IDisposable {
   public activate(): void | Promise<void> {
     return onResolve(this.hydratePromise, () => {
       return onResolve(this.runAppTasks('beforeActivate'), () => {
-        return onResolve(this.controller.activate(this.controller, null, this.strategy | LifecycleFlags.fromBind, void 0), () => {
+        return onResolve(this.controller.activate(this.controller, null, LifecycleFlags.fromBind, void 0), () => {
           return this.runAppTasks('afterActivate');
         });
       });
@@ -98,7 +96,7 @@ export class AppRoot implements IDisposable {
 
   public deactivate(): void | Promise<void> {
     return onResolve(this.runAppTasks('beforeDeactivate'), () => {
-      return onResolve(this.controller.deactivate(this.controller, null, this.strategy | LifecycleFlags.none), () => {
+      return onResolve(this.controller.deactivate(this.controller, null, LifecycleFlags.none), () => {
         return this.runAppTasks('afterDeactivate');
       });
     });

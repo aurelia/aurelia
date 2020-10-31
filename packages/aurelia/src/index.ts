@@ -619,7 +619,6 @@ export {
   // INodeSequenceFactory,
 
   BindingMode,
-  BindingStrategy,
   // ExpressionKind,
   // Hooks,
   LifecycleFlags,

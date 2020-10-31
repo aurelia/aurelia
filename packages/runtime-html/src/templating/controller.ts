@@ -174,7 +174,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
 
     definition = definition ?? CustomElement.getDefinition(viewModel.constructor as Constructable);
-    flags |= definition.strategy;
 
     const controller = new Controller<C>(
       /* root           */root,
@@ -210,7 +209,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
 
     const definition = CustomAttribute.getDefinition(viewModel.constructor as Constructable);
-    flags |= definition.strategy;
 
     const controller = new Controller<C>(
       /* root           */root,
@@ -271,7 +269,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
 
     let definition = this.definition as CustomElementDefinition;
-    const flags = this.flags |= definition.strategy;
+    const flags = this.flags;
     const instance = this.viewModel as BindingContext<C>;
     createObservers(this.lifecycle, definition, flags, instance);
     createChildrenObservers(this as Controller, definition, flags, instance);
@@ -372,9 +370,8 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
   private hydrateCustomAttribute(): void {
     const definition = this.definition as CustomElementDefinition;
-    const flags = this.flags | definition.strategy;
     const instance = this.viewModel!;
-    createObservers(this.lifecycle, definition, flags, instance);
+    createObservers(this.lifecycle, definition, this.flags, instance);
 
     (instance as Writable<C>).$controller = this;
   }

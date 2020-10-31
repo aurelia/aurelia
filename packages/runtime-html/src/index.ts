@@ -191,7 +191,6 @@ export {
   TwoWayBindingBehaviorRegistration,
 
   BindingMode,
-  BindingStrategy,
   ExpressionKind,
   LifecycleFlags,
 

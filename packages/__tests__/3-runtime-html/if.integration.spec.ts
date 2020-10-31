@@ -1,7 +1,6 @@
 import {
   AccessScopeExpression,
   BindingContext,
-  BindingStrategy,
   Else,
   If,
   Scope,
@@ -39,9 +38,6 @@ describe(`If/Else`, function () {
 
   interface Spec {
     t: string;
-  }
-  interface StrategySpec extends Spec {
-    strategy: BindingStrategy;
   }
   interface DuplicateOperationSpec extends Spec {
     activateTwice: boolean;

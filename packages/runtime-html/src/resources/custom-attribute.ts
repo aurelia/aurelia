@@ -14,7 +14,6 @@ import {
 import {
   BindingMode,
   PartialBindableDefinition,
-  BindingStrategy,
   BindableDefinition,
   Bindable,
   registerAliases,
@@ -26,7 +25,6 @@ export type PartialCustomAttributeDefinition = PartialResourceDefinition<{
   readonly defaultBindingMode?: BindingMode;
   readonly isTemplateController?: boolean;
   readonly bindables?: Record<string, PartialBindableDefinition> | readonly string[];
-  readonly strategy?: BindingStrategy;
   readonly hooks?: HooksDefinition;
   /**
    * A config that can be used by template compliler to change attr value parsing mode
@@ -98,7 +96,6 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
     public readonly defaultBindingMode: BindingMode,
     public readonly isTemplateController: boolean,
     public readonly bindables: Record<string, BindableDefinition>,
-    public readonly strategy: BindingStrategy,
     public readonly hooks: HooksDefinition,
     public readonly noMultiBindings: boolean,
   ) {}
@@ -126,7 +123,6 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
       firstDefined(CustomAttribute.getAnnotation(Type, 'defaultBindingMode'), def.defaultBindingMode, Type.defaultBindingMode, BindingMode.toView),
       firstDefined(CustomAttribute.getAnnotation(Type, 'isTemplateController'), def.isTemplateController, Type.isTemplateController, false),
       Bindable.from(...Bindable.getAll(Type), CustomAttribute.getAnnotation(Type, 'bindables'), Type.bindables, def.bindables),
-      firstDefined(CustomAttribute.getAnnotation(Type, 'strategy'), def.strategy, Type.strategy, BindingStrategy.getterSetter),
       firstDefined(CustomAttribute.getAnnotation(Type, 'hooks'), def.hooks, Type.hooks, new HooksDefinition(Type.prototype)),
       firstDefined(CustomAttribute.getAnnotation(Type, 'noMultiBindings'), def.noMultiBindings, Type.noMultiBindings, false),
     );

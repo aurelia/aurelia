@@ -1,8 +1,8 @@
-import { Constructable, nextId, emptyArray, onResolve } from '@aurelia/kernel';
+import { Constructable, nextId, onResolve } from '@aurelia/kernel';
 import { BindingMode, LifecycleFlags, bindable } from '@aurelia/runtime';
 import { createElement, RenderPlan } from '../../create-element';
 import { HydrateElementInstruction, IInstruction, Instruction } from '../../renderer';
-import { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, ISyntheticView, MountStrategy } from '../../lifecycle';
+import { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../lifecycle';
 import { IPlatform } from '../../platform';
 import { getRenderContext } from '../../templating/render-context';
 import { IViewFactory } from '../../templating/view';
@@ -140,7 +140,7 @@ export class Compose implements ICustomElementViewModel {
     const view = this.provideViewFor(subject, flags);
 
     if (view) {
-      view.setLocation(this.$controller.projector!.host, MountStrategy.insertBefore);
+      view.setLocation(this.$controller.location!);
       view.lockScope(this.$controller.scope);
       return view;
     }
@@ -175,9 +175,7 @@ export class Compose implements ICustomElementViewModel {
       this.p,
       subject,
       this.properties,
-      this.$controller.projector === void 0
-        ? emptyArray
-        : this.$controller.projector.children
+      this.$controller.host.childNodes,
     ).createView(this.$controller.context!);
   }
 

@@ -1,7 +1,7 @@
 import { nextId } from '@aurelia/kernel';
 import { LifecycleFlags } from '@aurelia/runtime';
 import { IRenderLocation } from '../../dom';
-import { ISyntheticView, MountStrategy, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../lifecycle';
+import { ISyntheticView, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../lifecycle';
 import { IViewFactory } from '../../templating/view';
 import { templateController } from '../custom-attribute';
 
@@ -19,8 +19,7 @@ abstract class FlagsTemplateController implements ICustomAttributeViewModel {
   ) {
     this.id = nextId('au$component');
 
-    this.view = this.factory.create();
-    this.view.setLocation(location, MountStrategy.insertBefore);
+    this.view = this.factory.create().setLocation(location);
   }
 
   public attaching(

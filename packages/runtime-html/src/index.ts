@@ -450,7 +450,6 @@ export {
 export {
   containerless,
   customElement,
-  CustomElementHost,
   CustomElement,
   CustomElementDecorator,
   CustomElementKind,
@@ -564,7 +563,6 @@ export {
   Controller,
   isCustomElementController,
   isCustomElementViewModel,
-  ElementProjector,
 } from './templating/controller';
 export {
   getRenderContext,
@@ -615,7 +613,6 @@ export {
   IHydratedParentController,
   ICompiledCustomElementController,
   ICustomElementController,
-  MountStrategy,
   ICustomElementViewModel,
   ICustomAttributeViewModel,
   IHydratedCustomElementViewModel,

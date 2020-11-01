@@ -24,7 +24,6 @@ import {
   IHydratedParentController,
   IComposableController,
   ISyntheticView,
-  MountStrategy,
   ControllerVisitor,
 } from '../../lifecycle';
 import { templateController } from '../custom-attribute';
@@ -65,8 +64,7 @@ export class Switch implements ICustomAttributeViewModel {
     _target: INode,
     _instruction: Instruction,
   ): void {
-    const view = this.view = this.factory.create(flags, this.$controller);
-    view.setLocation(this.location, MountStrategy.insertBefore);
+    this.view = this.factory.create(flags, this.$controller).setLocation(this.location);
   }
 
   public attaching(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void> {
@@ -277,7 +275,7 @@ export class Case implements ICustomAttributeViewModel {
   ) {
     this.debug = logger.config.level <= LogLevel.debug;
     this.logger = logger.scopeTo(`${this.constructor.name}-#${this.id}`);
-    (this.view = this.factory.create()).setLocation(location, MountStrategy.insertBefore);
+    this.view = this.factory.create().setLocation(location);
   }
 
   public link(

@@ -492,7 +492,6 @@ export {
 
   containerless,
   customElement,
-  CustomElementHost,
   CustomElement,
   // CustomElementDecorator,
   // CustomElementKind,

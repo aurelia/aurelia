@@ -106,7 +106,7 @@ export class TranslationBinding implements IPartialConnectableBinding {
     controller,
     target,
   }: Omit<TranslationBindingCreationContext, 'parser' | 'instruction' | 'isParameterContext'>): TranslationBinding {
-    let binding: TranslationBinding | undefined = controller.bindings && controller.bindings.find((b) => b instanceof TranslationBinding && b.target === target) as TranslationBinding;
+    let binding: TranslationBinding | null = controller.bindings && controller.bindings.find((b) => b instanceof TranslationBinding && b.target === target) as TranslationBinding;
     if (!binding) {
       binding = new TranslationBinding(target, observerLocator, context);
       controller.addBinding(binding);

@@ -1,7 +1,6 @@
 import {
   CustomAttribute,
   CustomElement,
-  CustomElementHost,
   INode,
   Aurelia,
 } from '@aurelia/runtime-html';
@@ -94,7 +93,7 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
       ],
       browserOnly: true,
       assertFn: (ctx, host) => {
-        const ceEl: CustomElementHost<HTMLElement> = host.querySelector('c-e');
+        const ceEl: HTMLElement = host.querySelector('c-e');
         const $ceViewModel = CustomElement.for(ceEl).viewModel as { hasFocus: boolean; focus: number; blur: number };
         assert.equal($ceViewModel.hasFocus, undefined, 'comp.hasFocus === undefined');
         assert.equal($ceViewModel.focus, undefined);
@@ -147,7 +146,7 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
           // it should work
           // todo: self-recursive does not work
           // assert.equal(host.querySelectorAll('c-e').length, idx + 1);
-          const leafCeHost: CustomElementHost<HTMLElement> = host.querySelector(`[lvl=lvl-${idx}]`);
+          const leafCeHost: HTMLElement = host.querySelector(`[lvl=lvl-${idx}]`);
           const $leafCeVm = CustomElement.for(leafCeHost).viewModel as { focus: number };
           assert.strictEqual(ctx.doc.activeElement, leafCeHost, `activeElement === <c-e lvl=lvl-${idx}>`);
           assert.equal($leafCeVm.focus, 1);

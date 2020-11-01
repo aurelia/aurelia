@@ -11,8 +11,6 @@ import {
   ILogger,
   LogLevel,
   resolveAll,
-  emptyArray,
-  toArray,
   Metadata,
 } from '@aurelia/kernel';
 import {
@@ -31,7 +29,6 @@ import {
   IController,
   IViewModel,
   ViewModelKind,
-  MountStrategy,
   ISyntheticView,
   ICustomAttributeController,
   ICustomElementController,
@@ -45,7 +42,7 @@ import {
   stringifyState,
   ControllerVisitor,
 } from '../lifecycle';
-import { CustomElementDefinition, CustomElement, CustomElementHost } from '../resources/custom-element';
+import { CustomElementDefinition, CustomElement } from '../resources/custom-element';
 import { CustomAttributeDefinition, CustomAttribute } from '../resources/custom-attribute';
 import { IRenderContext, getRenderContext, RenderContext } from './render-context';
 import { ChildrenObserver } from './children';
@@ -65,30 +62,37 @@ type BindingContext<C extends IViewModel> = IIndexable<
   Required<IActivationHooks<IHydratedParentController | null>>
 >;
 
+export const enum MountTarget {
+  none = 0,
+  host = 1,
+  shadowRoot = 2,
+  location = 3,
+}
+
 const controllerLookup: WeakMap<object, Controller> = new WeakMap();
 export class Controller<C extends IViewModel = IViewModel> implements IController<C> {
   public readonly id: number = nextId('au$component');
 
-  public head: Controller<C> | null = null;
-  public tail: Controller<C> | null = null;
-  public next: Controller<C> | null = null;
+  public head: IHydratedController | null = null;
+  public tail: IHydratedController | null = null;
+  public next: IHydratedController | null = null;
 
   public parent: Controller | null = null;
-  public bindings: IBinding[] | undefined = void 0;
-  public children: Controller[] | undefined = void 0;
+  public bindings: IBinding[] | null = null;
+  public children: Controller[] | null = null;
 
   public hasLockedScope: boolean = false;
 
   public isStrictBinding: boolean = false;
 
-  public scope: Scope | undefined = void 0;
+  public scope: Scope | null = null;
   public hostScope: Scope | null = null;
-  public projector: ElementProjector | undefined = void 0;
 
-  public nodes: INodeSequence | undefined = void 0;
-  public context: RenderContext | undefined = void 0;
-  public location: IRenderLocation | undefined = void 0;
-  public mountStrategy: MountStrategy = MountStrategy.insertBefore;
+  public mountTarget: MountTarget = MountTarget.none;
+  public shadowRoot: ShadowRoot | null = null;
+  public nodes: INodeSequence | null = null;
+  public context: RenderContext | null = null;
+  public location: IRenderLocation | null = null;
 
   public state: State = State.none;
   public get isActive(): boolean {
@@ -121,23 +125,27 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     public container: IContainer,
     public readonly vmKind: ViewModelKind,
     public flags: LifecycleFlags,
-    public readonly definition: CustomElementDefinition | CustomAttributeDefinition | undefined,
+    public readonly definition: CustomElementDefinition | CustomAttributeDefinition | null,
     /**
      * The viewFactory. Only present for synthetic views.
      */
-    public viewFactory: IViewFactory | undefined,
+    public viewFactory: IViewFactory | null,
     /**
      * The backing viewModel. This is never a proxy. Only present for custom attributes and elements.
      */
-    public viewModel: C | undefined,
+    public viewModel: C | null,
     /**
      * The binding context. This may be a proxy. If it is not, then it is the same instance as the viewModel. Only present for custom attributes and elements.
      */
-    public bindingContext: BindingContext<C> | undefined,
+    public bindingContext: BindingContext<C> | null,
     /**
-     * The physical host dom node. Only present for custom elements.
+     * The physical host dom node.
+     *
+     * For containerless elements, this node will be removed from the DOM and replaced by a comment, which is assigned to the `location` property.
+     *
+     * For ShadowDOM elements, this will be the original declaring element, NOT the shadow root (the shadow root is stored on the `shadowRoot` property)
      */
-    public host: Node | undefined,
+    public host: HTMLElement | null,
   ) {
     if (root === null && container.has(IAppRoot, true)) {
       this.root = container.get<IAppRoot>(IAppRoot);
@@ -171,7 +179,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     root: IAppRoot | null,
     container: IContainer,
     viewModel: C,
-    host: Node,
+    host: HTMLElement,
     // projections *targeted* for this custom element. these are not the projections *provided* by this custom element.
     targetedProjections: RegisteredProjections | null,
     flags: LifecycleFlags = LifecycleFlags.none,
@@ -192,7 +200,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       /* vmKind         */ViewModelKind.customElement,
       /* flags          */flags,
       /* definition     */definition,
-      /* viewFactory    */void 0,
+      /* viewFactory    */null,
       /* viewModel      */viewModel,
       /* bindingContext */getBindingContext<C>(flags, viewModel),
       /* host           */host,
@@ -211,7 +219,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     root: IAppRoot | null,
     container: IContainer,
     viewModel: C,
-    host: Node,
+    host: HTMLElement,
     flags: LifecycleFlags = LifecycleFlags.none,
   ): ICustomAttributeController<C> {
     if (controllerLookup.has(viewModel)) {
@@ -227,7 +235,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       /* vmKind         */ViewModelKind.customAttribute,
       /* flags          */flags,
       /* definition     */definition,
-      /* viewFactory    */void 0,
+      /* viewFactory    */null,
       /* viewModel      */viewModel,
       /* bindingContext */getBindingContext<C>(flags, viewModel),
       /* host           */host
@@ -252,11 +260,11 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       /* container      */context,
       /* vmKind         */ViewModelKind.synthetic,
       /* flags          */flags,
-      /* definition     */void 0,
+      /* definition     */null,
       /* viewFactory    */viewFactory,
-      /* viewModel      */void 0,
-      /* bindingContext */void 0,
-      /* host           */void 0,
+      /* viewModel      */null,
+      /* bindingContext */null,
+      /* host           */null,
     );
     // deepscan-disable-next-line
     controller.parent = parentController as Controller ?? null;
@@ -267,10 +275,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   }
 
   /** @internal */
-  public hydrateCustomElement(
-    parentContainer: IContainer,
-    targetedProjections: RegisteredProjections | null,
-  ): void {
+  public hydrateCustomElement(parentContainer: IContainer, targetedProjections: RegisteredProjections | null): void {
     this.logger = parentContainer.get(ILogger).root;
     this.debug = this.logger.config.level <= LogLevel.debug;
     if (this.debug) {
@@ -287,9 +292,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
     const hooks = this.hooks;
     if (hooks.hasDefine) {
-      if (this.debug) {
-        this.logger.trace(`invoking define() hook`);
-      }
+      if (this.debug) { this.logger.trace(`invoking define() hook`); }
       const result = instance.define(
         /* controller      */this as ICustomElementController,
         /* parentContainer */parentContainer,
@@ -322,43 +325,34 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   }
 
   /** @internal */
-  public hydrate(
-    targetedProjections: RegisteredProjections | null,
-  ): void {
+  public hydrate(targetedProjections: RegisteredProjections | null): void {
     if (this.hooks.hasHydrating) {
-      if (this.debug) {
-        this.logger!.trace(`invoking hasHydrating() hook`);
-      }
+      if (this.debug) { this.logger!.trace(`invoking hasHydrating() hook`); }
       (this.viewModel as BindingContext<C>).hydrating(this as ICustomElementController);
     }
 
     const compiledContext = this.context!.compile(targetedProjections);
-    const compiledDefinition = compiledContext.compiledDefinition;
+    const { projectionsMap, shadowOptions, isStrictBinding, hasSlots, containerless } = compiledContext.compiledDefinition;
 
-    compiledContext.registerProjections(compiledDefinition.projectionsMap, this.scope!);
+    compiledContext.registerProjections(projectionsMap, this.scope!);
     // once the projections are registered, we can cleanup the projection map to prevent memory leaks.
-    compiledDefinition.projectionsMap.clear();
-    this.isStrictBinding = compiledDefinition.isStrictBinding;
+    projectionsMap.clear();
+    this.isStrictBinding = isStrictBinding;
 
-    if (compiledDefinition.shadowOptions || compiledDefinition.hasSlots) {
-      if (compiledDefinition.containerless) {
-        throw new Error('You cannot combine the containerless custom element option with Shadow DOM.');
-      }
-
-      this.projector = new ShadowDOMProjector(this as ICustomElementController, this.host as CustomElementHost<HTMLElement>, compiledDefinition);
-    } else if (compiledDefinition.containerless) {
-      this.projector = new ContainerlessProjector(this as ICustomElementController, this.host as CustomElementHost);
+    if (shadowOptions !== null || hasSlots) {
+      if (containerless) { throw new Error('You cannot combine the containerless custom element option with Shadow DOM.'); }
+      this.setShadowRoot(this.shadowRoot = (this.host as HTMLElement).attachShadow(shadowOptions ?? defaultShadowOptions));
+    } else if (containerless) {
+      this.setLocation(this.location = convertToRenderLocation(this.host!));
     } else {
-      this.projector = new HostProjector(this as ICustomElementController, this.host as CustomElementHost, compiledDefinition.enhance);
+      this.setHost(this.host!);
     }
 
     (this.viewModel as Writable<C>).$controller = this;
     this.nodes = compiledContext.createNodes();
 
     if (this.hooks.hasHydrated) {
-      if (this.debug) {
-        this.logger!.trace(`invoking hasHydrated() hook`);
-      }
+      if (this.debug) { this.logger!.trace(`invoking hasHydrated() hook`); }
       (this.viewModel as BindingContext<C>).hydrated(this as ICustomElementController);
     }
   }
@@ -375,9 +369,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     );
 
     if (this.hooks.hasCreated) {
-      if (this.debug) {
-        this.logger!.trace(`invoking created() hook`);
-      }
+      if (this.debug) { this.logger!.trace(`invoking created() hook`); }
       (this.viewModel as BindingContext<C>).created(this as ICustomElementController);
     }
   }
@@ -391,9 +383,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     (instance as Writable<C>).$controller = this;
   }
 
-  private hydrateSynthetic(
-    context: IRenderContext,
-  ): void {
+  private hydrateSynthetic(context: IRenderContext): void {
     this.context = context as RenderContext;
     const compiledContext = context.compile(null);
     const compiledDefinition = compiledContext.compiledDefinition;
@@ -417,7 +407,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     initiator: Controller,
     parent: Controller | null,
     flags: LifecycleFlags,
-    scope?: Scope,
+    scope?: Scope | null,
     hostScope?: Scope | null,
   ): void | Promise<void> {
     switch (this.state) {
@@ -455,10 +445,10 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     switch (this.vmKind) {
       case ViewModelKind.customElement:
         // Custom element scope is created and assigned during hydration
-        (this.scope as Writable<Scope>).parentScope = scope === void 0 ? null : scope;
+        (this.scope as Writable<Scope>).parentScope = scope ?? null;
         break;
       case ViewModelKind.customAttribute:
-        this.scope = scope;
+        this.scope = scope ?? null;
         break;
       case ViewModelKind.synthetic:
         if (scope === void 0 || scope === null) {
@@ -493,7 +483,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   private bind(): void | Promise<void> {
     if (this.debug) { this.logger!.trace(`bind()`); }
 
-    if (this.bindings !== void 0) {
+    if (this.bindings !== null) {
       for (let i = 0; i < this.bindings.length; ++i) {
         this.bindings[i].$bind(this.$flags, this.scope!, this.hostScope);
       }
@@ -514,19 +504,21 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   private attach(): void | Promise<void> {
     if (this.debug) { this.logger!.trace(`attach()`); }
 
-    switch (this.vmKind) {
-      case ViewModelKind.customElement:
-        this.projector!.project(this.nodes!);
+    switch (this.mountTarget) {
+      case MountTarget.host:
+        this.nodes!.appendTo(this.host!, (this.definition as CustomElementDefinition | null)?.enhance);
         break;
-      case ViewModelKind.synthetic:
-        switch (this.mountStrategy) {
-          case MountStrategy.append:
-            this.nodes!.appendTo(this.location!);
-            break;
-          case MountStrategy.insertBefore:
-            this.nodes!.insertBefore(this.location!);
-            break;
-        }
+      case MountTarget.shadowRoot: {
+        const styles = this.context!.has(IShadowDOMStyles, false)
+          ? this.context!.get(IShadowDOMStyles)
+          : this.context!.get(IShadowDOMGlobalStyles);
+        styles.applyTo(this.shadowRoot!);
+        this.nodes!.appendTo(this.shadowRoot!);
+        break;
+      }
+      case MountTarget.location:
+        this.nodes!.insertBefore(this.location!);
+        break;
     }
 
     let ret: Promise<void> | void = void 0;
@@ -539,7 +531,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         promises = [ret];
       }
     }
-    if (this.children !== void 0) {
+    if (this.children !== null) {
       for (let i = 0; i < this.children.length; ++i) {
         ret = this.children[i].activate(this.$initiator, this as Controller, this.$flags, this.scope, this.hostScope);
         if (ret instanceof Promise) {
@@ -592,7 +584,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
     let promises: Promise<void>[] | undefined = void 0;
     let ret: Promise<void> | void = void 0;
-    if (this.children !== void 0) {
+    if (this.children !== null) {
       for (let i = 0; i < this.children.length; ++i) {
         ret = this.children[i].deactivate(initiator, this as Controller, flags);
         if (ret instanceof Promise) {
@@ -617,11 +609,11 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     // overhead on this hot path, so it's (for now) a deliberate choice to not account for such situation.
     // Just leaving the note here so that we know to look here if a weird detaching-related timing issue is ever reported.
     if (initiator.head === null) {
-      initiator.head = this as Controller;
+      initiator.head = this as IHydratedController;
     } else {
-      initiator.tail!.next = this as Controller;
+      initiator.tail!.next = this as IHydratedController;
     }
-    initiator.tail = this as Controller;
+    initiator.tail = this as IHydratedController;
 
     ret = promises === void 0 ? void 0 : resolveAll(...promises);
 
@@ -669,7 +661,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       if (ret instanceof Promise) {
         (promises ??= []).push(ret);
       }
-      next = cur.next;
+      next = cur.next as Controller;
       cur.next = null;
       cur = next;
     }
@@ -699,7 +691,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
     const flags = this.$flags | LifecycleFlags.fromUnbind;
 
-    if (this.bindings !== void 0) {
+    if (this.bindings !== null) {
       for (let i = 0; i < this.bindings.length; ++i) {
         this.bindings[i].$unbind(flags);
       }
@@ -709,11 +701,11 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
     switch (this.vmKind) {
       case ViewModelKind.customAttribute:
-        this.scope = void 0;
+        this.scope = null;
         break;
       case ViewModelKind.synthetic:
         if (!this.hasLockedScope) {
-          this.scope = void 0;
+          this.scope = null;
         }
 
         if (
@@ -735,7 +727,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   }
 
   public addBinding(binding: IBinding): void {
-    if (this.bindings === void 0) {
+    if (this.bindings === null) {
       this.bindings = [binding];
     } else {
       this.bindings[this.bindings.length] = binding;
@@ -743,7 +735,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   }
 
   public addController(controller: Controller): void {
-    if (this.children === void 0) {
+    if (this.children === null) {
       this.children = [controller];
     } else {
       this.children[this.children.length] = controller;
@@ -770,9 +762,25 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     this.hasLockedScope = true;
   }
 
-  public setLocation(location: IRenderLocation, mountStrategy: MountStrategy): void {
+  public setHost(host: HTMLElement): this {
+    if (this.vmKind === ViewModelKind.customElement) { Metadata.define(CustomElement.name, this, host); }
+    this.host = host;
+    this.mountTarget = MountTarget.host;
+    return this;
+  }
+
+  public setShadowRoot(shadowRoot: ShadowRoot): this {
+    if (this.vmKind === ViewModelKind.customElement) { Metadata.define(CustomElement.name, this, shadowRoot); }
+    this.shadowRoot = shadowRoot;
+    this.mountTarget = MountTarget.shadowRoot;
+    return this;
+  }
+
+  public setLocation(location: IRenderLocation): this {
+    if (this.vmKind === ViewModelKind.customElement) { Metadata.define(CustomElement.name, this, location); }
     this.location = location;
-    this.mountStrategy = mountStrategy;
+    this.mountTarget = MountTarget.location;
+    return this;
   }
 
   public release(): void {
@@ -791,25 +799,25 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       this.bindingContext!.dispose();
     }
 
-    if (this.children !== void 0) {
+    if (this.children !== null) {
       this.children.forEach(callDispose);
-      this.children = void 0;
+      this.children = null;
     }
 
-    this.scope = void 0;
-    this.projector = void 0;
+    this.scope = null;
 
-    this.nodes = void 0;
-    this.context = void 0;
-    this.location = void 0;
+    this.nodes = null;
+    this.context = null;
+    this.location = null;
 
-    this.viewFactory = void 0;
-    if (this.viewModel !== void 0) {
+    this.viewFactory = null;
+    if (this.viewModel !== null) {
       controllerLookup.delete(this.viewModel);
-      this.viewModel = void 0;
+      this.viewModel = null;
     }
-    this.bindingContext = void 0;
-    this.host = void 0;
+    this.bindingContext = null;
+    this.host = null;
+    this.shadowRoot = null;
     this.root = null;
   }
 
@@ -822,7 +830,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       return true;
     }
 
-    if (this.children !== void 0) {
+    if (this.children !== null) {
       const { children } = this;
       for (let i = 0, ii = children.length; i < ii; ++i) {
         if (children[i].accept(visitor) === true) {
@@ -834,7 +842,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
   public getTargetAccessor(propertyName: string): IBindingTargetAccessor | undefined {
     const { bindings } = this;
-    if (bindings !== void 0) {
+    if (bindings !== null) {
       const binding = bindings.find(b => (b as PropertyBinding).targetProperty === propertyName) as PropertyBinding;
       if (binding !== void 0) {
         return binding.targetObserver;
@@ -999,120 +1007,6 @@ export class HooksDefinition {
   }
 }
 
-const childObserverOptions = { childList: true };
-
 const defaultShadowOptions = {
   mode: 'open' as 'open' | 'closed'
 };
-
-export type ElementProjector = ShadowDOMProjector | ContainerlessProjector | HostProjector;
-export class ShadowDOMProjector {
-  public shadowRoot: CustomElementHost<ShadowRoot>;
-
-  public constructor(
-    // eslint-disable-next-line @typescript-eslint/prefer-readonly
-    private $controller: ICustomElementController,
-    public host: CustomElementHost<HTMLElement>,
-    definition: CustomElementDefinition,
-  ) {
-    let shadowOptions: ShadowRootInit;
-    if (
-      definition.shadowOptions instanceof Object &&
-      'mode' in definition.shadowOptions
-    ) {
-      shadowOptions = definition.shadowOptions as unknown as ShadowRootInit;
-    } else {
-      shadowOptions = defaultShadowOptions;
-    }
-    this.shadowRoot = host.attachShadow(shadowOptions);
-    Metadata.define(CustomElement.name, $controller, this.host);
-    Metadata.define(CustomElement.name, $controller, this.shadowRoot);
-  }
-
-  public get children(): ArrayLike<ChildNode> {
-    return this.host.childNodes;
-  }
-
-  public subscribeToChildrenChange(callback: () => void, options: MutationObserverInit = childObserverOptions): void {
-    // TODO: add a way to dispose/disconnect
-    const obs = new this.host.ownerDocument!.defaultView!.MutationObserver(callback);
-    obs.observe(this.host, options);
-  }
-
-  public provideEncapsulationSource(): CustomElementHost<ShadowRoot> {
-    return this.shadowRoot;
-  }
-
-  public project(nodes: INodeSequence): void {
-    const context = this.$controller.context!;
-    const styles = context.has(IShadowDOMStyles, false)
-      ? context.get(IShadowDOMStyles)
-      : context.get(IShadowDOMGlobalStyles);
-
-    styles.applyTo(this.shadowRoot);
-    nodes.appendTo(this.shadowRoot);
-  }
-}
-
-export class ContainerlessProjector {
-  public host: CustomElementHost;
-
-  private readonly childNodes: readonly ChildNode[];
-
-  public constructor(
-    $controller: ICustomElementController,
-    host: Node,
-  ) {
-    if (host.childNodes.length) {
-      this.childNodes = toArray(host.childNodes);
-    } else {
-      this.childNodes = emptyArray;
-    }
-
-    this.host = convertToRenderLocation(host) as CustomElementHost;
-    Metadata.define(CustomElement.name, $controller, this.host);
-  }
-
-  public get children(): ArrayLike<ChildNode> {
-    return this.childNodes;
-  }
-
-  public subscribeToChildrenChange(callback: () => void): void {
-    // TODO: turn this into an error
-    // Containerless does not have a container node to observe children on.
-  }
-
-  public provideEncapsulationSource(): Document | DocumentFragment | CustomElementHost<ShadowRoot> {
-    return this.host.getRootNode() as Document | DocumentFragment | CustomElementHost<ShadowRoot>;
-  }
-
-  public project(nodes: INodeSequence): void {
-    nodes.insertBefore(this.host);
-  }
-}
-
-export class HostProjector {
-  public constructor(
-    $controller: ICustomElementController,
-    public host: CustomElementHost,
-    private readonly enhance: boolean,
-  ) {
-    Metadata.define(CustomElement.name, $controller, host);
-  }
-
-  public get children(): ArrayLike<ChildNode> {
-    return this.host.childNodes;
-  }
-
-  public subscribeToChildrenChange(callback: () => void): void {
-    // Do nothing since this scenario will never have children.
-  }
-
-  public provideEncapsulationSource(): Document | DocumentFragment | CustomElementHost<ShadowRoot> {
-    return this.host.getRootNode() as Document | DocumentFragment | CustomElementHost<ShadowRoot>;
-  }
-
-  public project(nodes: INodeSequence): void {
-    nodes.appendTo(this.host, this.enhance);
-  }
-}

@@ -5,12 +5,12 @@ import {
   BindingMediator,
   IsAssign,
   LifecycleFlags,
-  CustomElementHost,
   PropertyBinding,
   IBinding,
   BindingBehaviorExpression,
   ITask,
   IPlatform,
+  CustomElement,
 } from '@aurelia/runtime-html';
 import { PropertyRule } from '@aurelia/validation';
 import { BindingWithBehavior, IValidationController, ValidationController, BindingInfo, ValidationResultsSubscriber, ValidationEvent } from './validation-controller';
@@ -283,11 +283,7 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
     if (target instanceof this.platform.Node) {
       this.target = target as HTMLElement;
     } else {
-      const controller = (target as CustomElementHost)?.$controller;
-      if (controller === void 0) {
-        throw new Error('Invalid binding target'); // TODO: use reporter
-      }
-      this.target = controller.host as HTMLElement;
+      throw new Error('Invalid binding target');
     }
   }
 

@@ -2,7 +2,7 @@ import { nextId, onResolve } from '@aurelia/kernel';
 import { bindable, LifecycleFlags } from '@aurelia/runtime';
 import { INode, IRenderLocation } from '../../dom';
 import { Instruction } from '../../renderer';
-import { ISyntheticView, MountStrategy, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor, IComposableController } from '../../lifecycle';
+import { ISyntheticView, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor, IComposableController } from '../../lifecycle';
 import { ICompiledRenderContext } from '../../templating/render-context';
 import { IViewFactory } from '../../templating/view';
 import { templateController } from '../custom-attribute';
@@ -95,7 +95,7 @@ export class If implements ICustomAttributeViewModel {
       view = factory.create(flags);
     }
 
-    view.setLocation(this.location, MountStrategy.insertBefore);
+    view.setLocation(this.location);
 
     return view;
   }

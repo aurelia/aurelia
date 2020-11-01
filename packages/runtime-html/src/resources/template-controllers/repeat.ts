@@ -18,7 +18,6 @@ import {
 import { IRenderLocation } from '../../dom';
 import {
   ISyntheticView,
-  MountStrategy,
   ICustomAttributeController,
   IComposableController,
   IController,
@@ -215,8 +214,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray> implements IC
     const views = this.views = Array(newLen);
 
     this.forOf.iterate(flags, items, (arr, i, item) => {
-      view = views[i] = factory.create(flags);
-      view.setLocation(location, MountStrategy.insertBefore);
+      view = views[i] = factory.create(flags).setLocation(location);
       view.nodes!.unlink();
       viewScope = Scope.fromParent(flags, parentScope, BindingContext.create(flags, local, item));
 
@@ -344,7 +342,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray> implements IC
       if (indexMap[i] === -2) {
         viewScope = Scope.fromParent(flags, parentScope, BindingContext.create(flags, local, normalizedItems![i]));
         setContextualProperties(viewScope.overrideContext as IRepeatOverrideContext, i, newLen);
-        view.setLocation(location, MountStrategy.insertBefore);
+        view.setLocation(location);
 
         ret = view.activate(view, $controller, flags, viewScope, hostScope);
         if (ret instanceof Promise) {

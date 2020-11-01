@@ -537,7 +537,3 @@ export const CustomElement: CustomElementKind = {
     };
   })(),
 };
-
-export type CustomElementHost<T extends Node & ParentNode = Node & ParentNode> = IRenderLocation<T> & T & {
-  $controller?: ICustomElementController;
-};

@@ -1,7 +1,7 @@
 import { nextId, onResolve } from '@aurelia/kernel';
 import { bindable, LifecycleFlags } from '@aurelia/runtime';
 import { IRenderLocation, setEffectiveParentNode } from '../../dom';
-import { ControllerVisitor, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ISyntheticView, MountStrategy } from '../../lifecycle';
+import { ControllerVisitor, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../lifecycle';
 import { IPlatform } from '../../platform';
 import { IViewFactory } from '../../templating/view';
 import { templateController } from '../custom-attribute';
@@ -68,7 +68,7 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
       this.callbackContext = this.$controller.scope.bindingContext;
     }
     const newTarget = this.currentTarget = this.resolveTarget();
-    this.view.setLocation(newTarget, MountStrategy.append);
+    this.view.setHost(newTarget);
 
     return this.$activating(initiator, newTarget, flags);
   }
@@ -94,7 +94,7 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
       return;
     }
 
-    this.view.setLocation(newTarget, MountStrategy.append);
+    this.view.setHost(newTarget);
     // TODO(fkleuver): fix and test possible race condition
     const ret = onResolve(
       this.$deactivating(null, newTarget, $controller.flags),
@@ -112,7 +112,7 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
   ): void | Promise<void> {
     const { activating, callbackContext, view } = this;
 
-    view.setLocation(target, MountStrategy.append);
+    view.setHost(target);
 
     return onResolve(
       activating?.call(callbackContext, target, view),

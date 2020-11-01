@@ -8,7 +8,6 @@ import {
   IHydratedController,
   IHydratedParentController,
   ISyntheticView,
-  MountStrategy
 } from '../../lifecycle';
 import { customElement, CustomElementDefinition } from '../custom-element';
 import { IViewFactory } from '../../templating/view';
@@ -73,8 +72,7 @@ export class AuSlot implements ICustomElementViewModel {
     @IViewFactory private readonly factory: IViewFactory,
     @IRenderLocation location: IRenderLocation,
   ) {
-    this.view = factory.create();
-    this.view.setLocation(location, MountStrategy.insertBefore);
+    this.view = factory.create().setLocation(location);
     this.isProjection = factory.contentType === AuSlotContentType.Projection;
     this.outerScope = factory.projectionScope;
   }

@@ -2,7 +2,7 @@ import { DI, Writable } from '@aurelia/kernel';
 import { IAppRoot } from './app-root';
 import { IPlatform } from './platform';
 import { CustomElement } from './resources/custom-element';
-import { ShadowDOMProjector } from './templating/controller';
+import { MountTarget } from './templating/controller';
 
 export interface INode extends Node {}
 export const INode = DI.createInterface<INode>('INode').noDefault();
@@ -134,10 +134,8 @@ export function getEffectiveParentNode(node: Node): Node | null {
       // Nothing more we can try, just return null
       return null;
     }
-    const projector = controller.projector!;
-    if (projector instanceof ShadowDOMProjector) {
-      // Now we can use the original host to traverse further up
-      return getEffectiveParentNode(projector.host);
+    if (controller.mountTarget === MountTarget.shadowRoot) {
+      return getEffectiveParentNode(controller.host);
     }
   }
 

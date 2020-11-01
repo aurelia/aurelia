@@ -14,6 +14,7 @@ import {
   IShadowDOMGlobalStyles,
   IShadowDOMStyles,
   FragmentNodeSequence,
+  LifecycleFlags,
 } from '@aurelia/runtime-html';
 import { assert, PLATFORM, TestContext } from '@aurelia/testing';
 
@@ -190,15 +191,14 @@ describe('Styles', function () {
       assert.equal(fake.wasCalled, true);
     });
 
-    it.skip('projector applies styles during projection', function () {
+    it('controller applies styles during activation', function () {
       const ctx = TestContext.create();
       const host = ctx.createElement('foo-bar');
-      const FooBar = CustomElement.define(
-        {
-          name: 'foo-bar',
-          shadowOptions: { mode: 'open' }
-        }
-      );
+      const FooBar = CustomElement.define({
+        name: 'foo-bar',
+        shadowOptions: { mode: 'open' },
+        template: '',
+      });
       const css = '.my-class { color: red }';
       const context = ctx.container.createChild();
       context.register(
@@ -209,23 +209,11 @@ describe('Styles', function () {
       );
 
       const component = new FooBar();
-      const controller = Controller.forCustomElement(
-        null,
-        ctx.container,
-        component,
-        host,
-        void 0,
-        null,
-      );
+      const controller = Controller.forCustomElement(null, ctx.container, component, host, null, null);
 
-      const seq = new FragmentNodeSequence(ctx.platform, ctx.doc.createDocumentFragment());
-      const projector = controller.projector;
+      controller.activate(controller, null, LifecycleFlags.none);
 
-      projector.project(seq);
-
-      const root = projector.provideEncapsulationSource();
-
-      assert.strictEqual(root.firstElementChild.innerHTML, css);
+      assert.strictEqual(controller.shadowRoot.firstElementChild.innerHTML, css);
     });
 
     if (!AdoptedStyleSheetsStyles.supported(PLATFORM)) {

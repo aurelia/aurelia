@@ -390,7 +390,7 @@ export class CustomElementRenderer implements IRenderer {
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
     controller: IComposableController,
-    target: INode,
+    target: HTMLElement,
     instruction: HydrateElementInstruction,
   ): void {
 
@@ -445,7 +445,7 @@ export class CustomAttributeRenderer implements IRenderer {
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
     controller: IComposableController,
-    target: Node,
+    target: HTMLElement,
     instruction: HydrateAttributeInstruction,
   ): void {
     const factory = context.getComponentFactory(
@@ -489,7 +489,7 @@ export class TemplateControllerRenderer implements IRenderer {
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
     controller: IComposableController,
-    target: INode,
+    target: HTMLElement,
     instruction: HydrateTemplateController,
   ): void {
 

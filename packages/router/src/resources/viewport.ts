@@ -21,7 +21,7 @@ export interface IRoutingController extends ICustomElementController {
   routingContainer?: IContainer;
 }
 export interface IConnectedCustomElement extends ICustomElementViewModel {
-  element: Element;
+  element: HTMLElement;
   container: IContainer;
   controller: IRoutingController;
 }
@@ -48,7 +48,7 @@ export class ViewportCustomElement implements ICustomElementViewModel {
   public readonly $controller!: ICustomElementController<this>;
 
   public controller!: IRoutingController;
-  public readonly element: Element;
+  public readonly element: HTMLElement;
 
   private isBound: boolean = false;
 
@@ -58,7 +58,7 @@ export class ViewportCustomElement implements ICustomElementViewModel {
     @IContainer public container: IContainer,
     @ParentViewport public readonly parentViewport: ViewportCustomElement,
   ) {
-    this.element = element as Element;
+    this.element = element as HTMLElement;
   }
 
   public hydrated(controller: ICompiledCustomElementController) {

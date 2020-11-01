@@ -21,7 +21,7 @@ export interface IRoutingController extends ICustomElementController {
   routingContainer?: IContainer;
 }
 export interface IConnectedCustomElement extends ICustomElementViewModel {
-  element: Element;
+  element: HTMLElement;
   container: IContainer;
   controller: IRoutingController;
 }
@@ -48,7 +48,7 @@ export class ViewportCustomElement implements ICustomElementViewModel {
   public readonly $controller!: ICustomElementController<this>;
 
   public controller!: IRoutingController;
-  public readonly element: Element;
+  public readonly element: HTMLElement;
 
   private isBound: boolean = false;
 
@@ -58,11 +58,11 @@ export class ViewportCustomElement implements ICustomElementViewModel {
     @IContainer public container: IContainer,
     @ParentViewport public readonly parentViewport: ViewportCustomElement,
   ) {
-    this.element = element as Element;
+    this.element = element as HTMLElement;
   }
 
-  public beforeComposeChildren(controller: ICompiledCustomElementController) {
-    // console.log('beforeComposeChildren', this.name, this.router.isActive);
+  public hydrated(controller: ICompiledCustomElementController) {
+    // console.log('hydrated', this.name, this.router.isActive);
     this.controller = controller as IRoutingController;
     this.container = controller.context.get(IContainer);
 
@@ -77,7 +77,7 @@ export class ViewportCustomElement implements ICustomElementViewModel {
     );
   }
 
-  public beforeBind(initiator: IHydratedController, parent: IHydratedParentController | null, flags: LifecycleFlags): void | Promise<void> {
+  public binding(initiator: IHydratedController, parent: IHydratedParentController | null, flags: LifecycleFlags): void | Promise<void> {
     this.isBound = true;
     return Runner.run(
       () => this.waitForRouterStart(),
@@ -89,18 +89,18 @@ export class ViewportCustomElement implements ICustomElementViewModel {
     );
   }
 
-  public afterAttach(initiator: IHydratedController, parent: IHydratedParentController | null, flags: LifecycleFlags): void | Promise<void> {
+  public attaching(initiator: IHydratedController, parent: IHydratedParentController | null, flags: LifecycleFlags): void | Promise<void> {
     if (this.viewport !== null && (this.viewport.nextContent ?? null) === null) {
-      // console.log('afterAttach', this.viewport?.toString());
+      // console.log('attaching', this.viewport?.toString());
       this.viewport.enabled = true;
       return this.viewport.activate(initiator, this.$controller, flags, true);
       // TODO: Restore scroll state
     }
   }
 
-  public beforeUnbind(initiator: IHydratedController, parent: ISyntheticView | ICustomElementController | null, flags: LifecycleFlags): void | Promise<void> {
+  public unbinding(initiator: IHydratedController, parent: ISyntheticView | ICustomElementController | null, flags: LifecycleFlags): void | Promise<void> {
     if (this.viewport !== null && (this.viewport.nextContent ?? null) === null) {
-      // console.log('beforeUnbind', this.viewport?.toString());
+      // console.log('unbinding', this.viewport?.toString());
       // TODO: Save to cache, something like
       // this.viewport.cacheContent();
       // From viewport-content:
@@ -136,9 +136,9 @@ export class ViewportCustomElement implements ICustomElementViewModel {
     }
   }
 
-  // public beforeDetach(initiator: IHydratedController, parent: ISyntheticView | ICustomElementController<ICustomElementViewModel> | null, flags: LifecycleFlags): void | Promise<void> {
+  // public detaching(initiator: IHydratedController, parent: ISyntheticView | ICustomElementController<ICustomElementViewModel> | null, flags: LifecycleFlags): void | Promise<void> {
   //   if (this.viewport !== null && (this.viewport.nextContent ?? null) === null) {
-  //     console.log('beforeDetach', this.viewport?.toString());
+  //     console.log('detaching', this.viewport?.toString());
   //   }
   // }
 

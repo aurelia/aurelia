@@ -130,7 +130,7 @@ describe('validate-binding-behavior', function () {
       }).result;
     }
 
-    public beforeUnbind() {
+    public unbinding() {
       this.validationRules.off();
     }
 
@@ -212,7 +212,7 @@ describe('validate-binding-behavior', function () {
       this.node = node as HTMLElement;
     }
 
-    public beforeBind() {
+    public binding() {
       for (const event of this.triggeringEvents) {
         this.node.addEventListener(event, this);
       }
@@ -1398,7 +1398,7 @@ describe('validate-binding-behavior', function () {
           .required();
       }
 
-      public beforeUnbind() {
+      public unbinding() {
         this.validationRules.off();
       }
 

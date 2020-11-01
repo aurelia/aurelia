@@ -47,7 +47,7 @@ describe('template-compiler.primary-bindable.spec.ts', function () {
             this.el = el as HTMLElement;
           }
 
-          public beforeBind() {
+          public binding() {
             this.el.style.background = this.color;
           }
         }
@@ -75,7 +75,7 @@ describe('template-compiler.primary-bindable.spec.ts', function () {
             this.el = el as HTMLElement;
           }
 
-          public beforeBind() {
+          public binding() {
             this.el.style.background = this.color;
             assert.strictEqual(this.diameter, undefined, 'diameter === undefined');
           }
@@ -104,7 +104,7 @@ describe('template-compiler.primary-bindable.spec.ts', function () {
             this.el = el as HTMLElement;
           }
 
-          public beforeBind() {
+          public binding() {
             this.el.style.background = this.color;
             assert.strictEqual(this.diameter, undefined, 'diameter === undefined');
           }
@@ -132,7 +132,7 @@ describe('template-compiler.primary-bindable.spec.ts', function () {
             this.el = el as HTMLElement;
           }
 
-          public beforeBind() {
+          public binding() {
             this.el.style.background = this.color;
           }
         }
@@ -162,7 +162,7 @@ describe('template-compiler.primary-bindable.spec.ts', function () {
             this.el = el as HTMLElement;
           }
 
-          public beforeBind() {
+          public binding() {
             this.el.style.background = this.color;
             assert.strictEqual(this.diameter, undefined);
           }
@@ -193,7 +193,7 @@ describe('template-compiler.primary-bindable.spec.ts', function () {
             this.el = el as HTMLElement;
           }
 
-          public beforeBind() {
+          public binding() {
             this.el.style.background = this.color;
           }
         }
@@ -223,7 +223,7 @@ describe('template-compiler.primary-bindable.spec.ts', function () {
             this.el = el as HTMLElement;
           }
 
-          public beforeBind() {
+          public binding() {
             this.el.style.background = this.color;
             this.el.style.width = this.el.style.height = `${this.diameter}px`;
           }
@@ -248,7 +248,7 @@ describe('template-compiler.primary-bindable.spec.ts', function () {
             this.el = el as HTMLElement;
           }
 
-          public beforeBind() {
+          public binding() {
             this.el.style.background = this.value;
           }
         }
@@ -275,7 +275,7 @@ describe('template-compiler.primary-bindable.spec.ts', function () {
               this.el = el as HTMLElement;
             }
 
-            public beforeBind() {
+            public binding() {
               const value = this.value === 'literal:literal' ? 'red' : this.value;
               this.el.style.background = value;
             }
@@ -380,7 +380,7 @@ describe('template-compiler.primary-bindable.spec.ts', function () {
             this.el = el as HTMLElement;
           }
 
-          public beforeBind(): void {
+          public binding(): void {
             this.el.style.borderRadius = `${this.borderRadius || 0}px`;
           }
         }
@@ -410,7 +410,7 @@ describe('template-compiler.primary-bindable.spec.ts', function () {
             this.el = el as HTMLElement;
           }
 
-          public beforeBind(): void {
+          public binding(): void {
             this.el.style.borderRadius = `${this.borderRadius || 0}px`;
             this.el.style.color = this.color;
           }
@@ -443,7 +443,7 @@ describe('template-compiler.primary-bindable.spec.ts', function () {
             this.el = el as HTMLElement;
           }
 
-          public beforeBind(): void {
+          public binding(): void {
             this.el.style.borderRadius = `${this.borderRadius || 0}px`;
             this.el.style.color = this.color;
           }
@@ -548,7 +548,7 @@ describe('template-compiler.primary-bindable.spec.ts', function () {
         /*  */
       }
 
-      public beforeBind(): void {
+      public binding(): void {
         this.updateAnchor('route');
       }
 

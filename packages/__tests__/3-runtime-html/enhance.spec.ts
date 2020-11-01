@@ -106,7 +106,7 @@ describe('2-runtime/enhance.spec.ts', function () {
           @IContainer public container: IContainer
         ) { }
 
-        public async afterAttach() {
+        public async attaching() {
           await this.enhance(this.r1);
         }
 
@@ -169,7 +169,7 @@ describe('2-runtime/enhance.spec.ts', function () {
             @IContainer public container: IContainer
           ) { }
 
-          public async afterAttach() {
+          public async attaching() {
             await this.enhance(this.r1);
           }
 
@@ -228,13 +228,13 @@ describe('2-runtime/enhance.spec.ts', function () {
     const component = {
       eventLog: [],
       define() { this.eventLog.push('define'); },
-      beforeCompose() { this.eventLog.push('beforeCompose'); },
-      beforeComposeChildren() { this.eventLog.push('beforeComposeChildren'); },
-      afterCompose() { this.eventLog.push('afterCompose'); },
-      beforeBind() { this.eventLog.push('beforeBind'); },
-      afterBind() { this.eventLog.push('afterBind'); },
-      afterAttach() { this.eventLog.push('afterAttach'); },
-      afterAttachChildren() { this.eventLog.push('afterAttachChildren'); },
+      hydrating() { this.eventLog.push('hydrating'); },
+      hydrated() { this.eventLog.push('hydrated'); },
+      created() { this.eventLog.push('created'); },
+      binding() { this.eventLog.push('binding'); },
+      bound() { this.eventLog.push('bound'); },
+      attaching() { this.eventLog.push('attaching'); },
+      attached() { this.eventLog.push('attached'); },
     };
     const container = ctx.container;
     const au = new Aurelia(container);
@@ -246,13 +246,13 @@ describe('2-runtime/enhance.spec.ts', function () {
 
     assert.deepStrictEqual(component.eventLog, [
       'define',
-      'beforeCompose',
-      'beforeComposeChildren',
-      'afterCompose',
-      'beforeBind',
-      'afterBind',
-      'afterAttach',
-      'afterAttachChildren',
+      'hydrating',
+      'hydrated',
+      'created',
+      'binding',
+      'bound',
+      'attaching',
+      'attached',
     ]);
     au.dispose();
   });

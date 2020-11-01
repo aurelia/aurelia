@@ -117,7 +117,7 @@ export class DirtyCheckProperty implements DirtyCheckProperty {
     const oldValue = this.oldValue;
     const newValue = this.obj[this.propertyKey];
 
-    this.callSubscribers(newValue, oldValue, flags | LifecycleFlags.updateTargetInstance);
+    this.callSubscribers(newValue, oldValue, flags | LifecycleFlags.updateTarget);
 
     this.oldValue = newValue;
   }

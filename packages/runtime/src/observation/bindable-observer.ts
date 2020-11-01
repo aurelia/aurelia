@@ -90,12 +90,8 @@ export class BindableObserver {
       this.currentValue = newValue;
       if (this.lifecycle.batch.depth === 0) {
         this.callSubscribers(newValue, currentValue, this.persistentFlags | flags);
-        if ((flags & LifecycleFlags.fromBind) === 0 || (flags & LifecycleFlags.updateSourceExpression) > 0) {
-          const callback = this.callback;
-
-          if (callback !== void 0) {
-            callback.call(this.obj, newValue, currentValue, this.persistentFlags | flags);
-          }
+        if ((flags & LifecycleFlags.fromBind) === 0 || (flags & LifecycleFlags.updateSource) > 0) {
+          this.callback?.call(this.obj, newValue, currentValue, this.persistentFlags | flags);
 
           if (this.hasPropertyChangedCallback) {
             // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion

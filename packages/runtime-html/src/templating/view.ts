@@ -1,20 +1,10 @@
 import { Constructable, ConstructableClass, DI, IContainer, Metadata, Protocol } from '@aurelia/kernel';
 import { LifecycleFlags, Scope } from '@aurelia/runtime';
-import {
-  ICustomElementViewModel,
-  ISyntheticView,
-  IDryCustomElementController,
-  IContextualCustomElementController,
-  ICompiledCustomElementController,
-  ICustomElementController,
-  ICustomAttributeController,
-  IHydratedController,
-  IHydratedParentController,
-} from '../lifecycle';
 import { CustomElement, PartialCustomElementDefinition, CustomElementDefinition } from '../resources/custom-element';
 import { Controller } from './controller';
-import { ICompositionContext } from './composition-context';
+import { IRenderContext } from './render-context';
 import { AuSlotContentType } from '../resources/custom-elements/au-slot';
+import type { ICustomElementViewModel, ISyntheticView, IDryCustomElementController, IContextualCustomElementController, ICompiledCustomElementController, ICustomElementController, ICustomAttributeController, IHydratedController, IHydratedParentController } from './controller';
 
 export interface IViewFactory extends ViewFactory {}
 export const IViewFactory = DI.createInterface<IViewFactory>('IViewFactory').noDefault();
@@ -28,7 +18,7 @@ export class ViewFactory implements IViewFactory {
 
   public constructor(
     public name: string,
-    public readonly context: ICompositionContext,
+    public readonly context: IRenderContext,
     public readonly contentType: AuSlotContentType | undefined,
     public readonly projectionScope: Scope | null = null,
   ) {}
@@ -247,97 +237,80 @@ export class ViewLocator {
 
       const proto = UnboundComponent.prototype;
 
-      if ('beforeCompose' in object) {
-        proto.beforeCompose = function beforeCompose(
+      if ('hydrating' in object) {
+        proto.hydrating = function hydrating(
           controller: IContextualCustomElementController,
         ): void {
-          this.viewModel.beforeCompose!(controller as IContextualCustomElementController<T>);
+          this.viewModel.hydrating!(controller as IContextualCustomElementController<T>);
         };
       }
-      if ('beforeComposeChildren' in object) {
-        proto.beforeComposeChildren = function beforeComposeChildren(
+      if ('hydrated' in object) {
+        proto.hydrated = function hydrated(
           controller: ICompiledCustomElementController,
         ): void {
-          this.viewModel.beforeComposeChildren!(controller as ICompiledCustomElementController<T>);
+          this.viewModel.hydrated!(controller as ICompiledCustomElementController<T>);
         };
       }
-      if ('afterCompose' in object) {
-        proto.afterCompose = function afterCompose(
+      if ('created' in object) {
+        proto.created = function created(
           controller: ICustomElementController,
         ): void {
-          this.viewModel.afterCompose!(controller as ICustomElementController<T>);
+          this.viewModel.created!(controller as ICustomElementController<T>);
         };
       }
 
-      if ('beforeBind' in object) {
-        proto.beforeBind = function beforeBind(
+      if ('binding' in object) {
+        proto.binding = function binding(
           initiator: IHydratedController,
           parent: IHydratedParentController | null,
           flags: LifecycleFlags,
         ): void | Promise<void> {
-          return this.viewModel.beforeBind!(initiator, parent, flags);
+          return this.viewModel.binding!(initiator, parent, flags);
         };
       }
-      if ('afterBind' in object) {
-        proto.afterBind = function afterBind(
+      if ('bound' in object) {
+        proto.bound = function bound(
           initiator: IHydratedController,
           parent: IHydratedParentController | null,
           flags: LifecycleFlags,
         ): void | Promise<void> {
-          return this.viewModel.afterBind!(initiator, parent, flags);
+          return this.viewModel.bound!(initiator, parent, flags);
         };
       }
-      if ('afterAttach' in object) {
-        proto.afterAttach = function afterAttach(
+      if ('attaching' in object) {
+        proto.attaching = function attaching(
           initiator: IHydratedController,
           parent: IHydratedParentController | null,
           flags: LifecycleFlags,
         ): void | Promise<void> {
-          return this.viewModel.afterAttach!(initiator, parent, flags);
+          return this.viewModel.attaching!(initiator, parent, flags);
         };
       }
-      if ('afterAttachChildren' in object) {
-        proto.afterAttachChildren = function afterAttachChildren(
+      if ('attached' in object) {
+        proto.attached = function attached(
           initiator: IHydratedController,
           flags: LifecycleFlags,
         ): void | Promise<void> {
-          return this.viewModel.afterAttachChildren!(initiator, flags);
+          return this.viewModel.attached!(initiator, flags);
         };
       }
 
-      if ('beforeDetach' in object) {
-        proto.beforeDetach = function beforeDetach(
+      if ('detaching' in object) {
+        proto.detaching = function detaching(
           initiator: IHydratedController,
           parent: IHydratedParentController | null,
           flags: LifecycleFlags,
         ): void | Promise<void> {
-          return this.viewModel.beforeDetach!(initiator, parent, flags);
+          return this.viewModel.detaching!(initiator, parent, flags);
         };
       }
-      if ('beforeUnbind' in object) {
-        proto.beforeUnbind = function beforeUnbind(
+      if ('unbinding' in object) {
+        proto.unbinding = function unbinding(
           initiator: IHydratedController,
           parent: IHydratedParentController | null,
           flags: LifecycleFlags,
         ): void | Promise<void> {
-          return this.viewModel.beforeUnbind!(initiator, parent, flags);
-        };
-      }
-      if ('afterUnbind' in object) {
-        proto.afterUnbind = function afterUnbind(
-          initiator: IHydratedController,
-          parent: IHydratedParentController | null,
-          flags: LifecycleFlags,
-        ): void | Promise<void> {
-          return this.viewModel.afterUnbind!(initiator, parent, flags);
-        };
-      }
-      if ('afterUnbindChildren' in object) {
-        proto.afterUnbindChildren = function afterUnbindChildren(
-          initiator: IHydratedController,
-          flags: LifecycleFlags,
-        ): void | Promise<void> {
-          return this.viewModel.afterUnbindChildren!(initiator, flags);
+          return this.viewModel.unbinding!(initiator, parent, flags);
         };
       }
 

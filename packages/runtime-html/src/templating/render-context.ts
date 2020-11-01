@@ -5,50 +5,47 @@ import {
   IFactory,
   InstanceProvider,
   IResolver,
+  IResourceKind,
   Key,
   Resolved,
+  ResourceDefinition,
+  ResourceType,
   Transformer,
 } from '@aurelia/kernel';
 import { Scope, LifecycleFlags } from '@aurelia/runtime';
-import { IInstruction } from '../definitions';
 import { FragmentNodeSequence, INode, INodeSequence, IRenderLocation } from '../dom';
-import {
-  IController,
-  ICustomAttributeViewModel,
-  ICustomElementViewModel,
-  IComposableController,
-} from '../lifecycle';
-import { IComposer, ITemplateCompiler } from '../composer';
+import { IRenderer, ITemplateCompiler, IInstruction, Instruction, InstructionTypeName } from '../renderer';
 import { CustomElementDefinition, PartialCustomElementDefinition } from '../resources/custom-element';
 import { IViewFactory, ViewFactory } from './view';
 import { AuSlotContentType, IProjectionProvider, RegisteredProjections } from '../resources/custom-elements/au-slot';
 import { IPlatform } from '../platform';
-import { Instruction } from '../instructions';
+import { IController } from './controller';
+import type { ICustomAttributeViewModel, ICustomElementViewModel, IHydratableController } from './controller';
 
-const definitionContainerLookup = new WeakMap<CustomElementDefinition, WeakMap<IContainer, CompositionContext>>();
-const definitionContainerProjectionsLookup = new WeakMap<CustomElementDefinition, WeakMap<IContainer, WeakMap<Record<string, CustomElementDefinition>, CompositionContext>>>();
+const definitionContainerLookup = new WeakMap<CustomElementDefinition, WeakMap<IContainer, RenderContext>>();
+const definitionContainerProjectionsLookup = new WeakMap<CustomElementDefinition, WeakMap<IContainer, WeakMap<Record<string, CustomElementDefinition>, RenderContext>>>();
 
 const fragmentCache = new WeakMap<CustomElementDefinition, Node | null>();
 
-export function isCompositionContext(value: unknown): value is ICompositionContext {
-  return value instanceof CompositionContext;
+export function isRenderContext(value: unknown): value is IRenderContext {
+  return value instanceof RenderContext;
 }
 
 /**
- * A composition context that wraps an `IContainer` and must be compiled before it can be used for composing.
+ * A render context that wraps an `IContainer` and must be compiled before it can be used for composing.
  */
-export interface ICompositionContext extends IContainer {
+export interface IRenderContext extends IContainer {
   readonly platform: IPlatform;
 
   /**
-   * The `CustomElementDefinition` that this `ICompositionContext` was created with.
+   * The `CustomElementDefinition` that this `IRenderContext` was created with.
    *
    * If a `PartialCustomElementDefinition` was used to create this context, then this property will be the return value of `CustomElementDefinition.getOrCreate`.
    */
   readonly definition: CustomElementDefinition;
 
   /**
-   * The `IContainer` (which may be, but is not guaranteed to be, an `ICompositionContext`) that this `ICompositionContext` was created with.
+   * The `IContainer` (which may be, but is not guaranteed to be, an `IRenderContext`) that this `IRenderContext` was created with.
    */
   readonly parentContainer: IContainer;
 
@@ -57,16 +54,16 @@ export interface ICompositionContext extends IContainer {
    *
    * @param instance - The component instance to make available to child components if this context's definition has `injectable` set to `true`.
    */
-  beginChildComponentOperation(instance: ICustomElementViewModel): ICompositionContext;
+  beginChildComponentOperation(instance: ICustomElementViewModel): IRenderContext;
 
   /**
-   * Compiles the backing `CustomElementDefinition` (if needed) and returns the compiled `ICompositionContext` that exposes the compiled `CustomElementDefinition` as well as composing operations.
+   * Compiles the backing `CustomElementDefinition` (if needed) and returns the compiled `IRenderContext` that exposes the compiled `CustomElementDefinition` as well as composing operations.
    *
    * This operation is idempotent.
    *
-   * @returns The compiled `ICompositionContext`.
+   * @returns The compiled `IRenderContext`.
    */
-  compile(targetedProjections: RegisteredProjections | null): ICompiledCompositionContext;
+  compile(targetedProjections: RegisteredProjections | null): ICompiledRenderContext;
 
   /**
    * Creates an (or returns the cached) `IViewFactory` that can be used to create synthetic view controllers.
@@ -77,10 +74,10 @@ export interface ICompositionContext extends IContainer {
 }
 
 /**
- * A compiled `ICompositionContext` that can create instances of `INodeSequence` (based on the template of the compiled definition)
+ * A compiled `IRenderContext` that can create instances of `INodeSequence` (based on the template of the compiled definition)
  * and begin a component operation to create new component instances.
  */
-export interface ICompiledCompositionContext extends ICompositionContext, IProjectionProvider {
+export interface ICompiledRenderContext extends IRenderContext, IProjectionProvider {
   /**
    * The compiled `CustomElementDefinition`.
    *
@@ -98,7 +95,7 @@ export interface ICompiledCompositionContext extends ICompositionContext, IProje
   createNodes(): INodeSequence;
 
   /**
-   * Prepare this composition context for creating a new component instance.
+   * Prepare this context context for creating a new component instance.
    *
    * All parameters are optional injectable dependencies, that is: only those that are actually needed by the to-be-created component, need to be provided in order for that component to work.
    *
@@ -106,7 +103,7 @@ export interface ICompiledCompositionContext extends ICompositionContext, IProje
    *
    * @param parentController - The `IController` of the immediate parent of the to-be-created component. Not used by any built-in components.
    * @param host - The DOM node that declared the component, or the node that the component will be mounted to (in case of containerless). Used by some built-in custom attributes.
-   * @param instruction - The hydrate instruction that resulted in the creation of this composition context. Only used by `au-compose`.
+   * @param instruction - The hydrate instruction that resulted in the creation of this context context. Only used by `au-compose`.
    * @param viewFactory - The `IViewFactory` that was created from the template that the template controller was placed on. Only applicable for template controllers. Used by all built-in template controllers.
    * @param location - The DOM node that the nodes created by the `IViewFactory` should be mounted to. Only applicable for template controllers. Used by all built-in template controllers.
    */
@@ -118,7 +115,7 @@ export interface ICompiledCompositionContext extends ICompositionContext, IProje
     location?: IRenderLocation,
   ): IComponentFactory;
 
-  compose(
+  render(
     flags: LifecycleFlags,
     controller: IController,
     targets: ArrayLike<INode>,
@@ -126,7 +123,7 @@ export interface ICompiledCompositionContext extends ICompositionContext, IProje
     host: INode | null | undefined,
   ): void;
 
-  composeChildren(
+  renderChildren(
     flags: LifecycleFlags,
     instructions: readonly IInstruction[],
     controller: IController,
@@ -135,9 +132,9 @@ export interface ICompiledCompositionContext extends ICompositionContext, IProje
 }
 
 /**
- * A compiled `ICompositionContext` that is ready to be used for creating component instances, and composing them.
+ * A compiled `IRenderContext` that is ready to be used for creating component instances, and composing them.
  */
-export interface IComponentFactory extends ICompiledCompositionContext, IDisposable {
+export interface IComponentFactory extends ICompiledRenderContext, IDisposable {
   /**
    * Creates a new component instance based on the provided `resourceKey`.
    *
@@ -168,16 +165,16 @@ export interface IComponentFactory extends ICompiledCompositionContext, IDisposa
   dispose(): void;
 }
 
-export function getCompositionContext(
+export function getRenderContext(
   partialDefinition: PartialCustomElementDefinition,
   parentContainer: IContainer,
   projections?: Record<string, CustomElementDefinition> | null,
-): ICompositionContext {
+): IRenderContext {
   const definition = CustomElementDefinition.getOrCreate(partialDefinition);
 
-  // injectable completely prevents caching, ensuring that each instance gets a new composition context
+  // injectable completely prevents caching, ensuring that each instance gets a new context context
   if (definition.injectable !== null) {
-    return new CompositionContext(definition, parentContainer);
+    return new RenderContext(definition, parentContainer);
   }
 
   if (projections == null) {
@@ -193,7 +190,7 @@ export function getCompositionContext(
     if (context === void 0) {
       containerLookup.set(
         parentContainer,
-        context = new CompositionContext(definition, parentContainer),
+        context = new RenderContext(definition, parentContainer),
       );
     }
 
@@ -220,7 +217,7 @@ export function getCompositionContext(
   if (context === void 0) {
     projectionsLookup.set(
       projections,
-      context = new CompositionContext(definition, parentContainer),
+      context = new RenderContext(definition, parentContainer),
     );
   }
 
@@ -229,12 +226,12 @@ export function getCompositionContext(
 
 const emptyNodeCache = new WeakMap<IPlatform, FragmentNodeSequence>();
 
-export class CompositionContext implements IComponentFactory {
+export class RenderContext implements IComponentFactory {
   private readonly container: IContainer;
 
   private readonly parentControllerProvider: InstanceProvider<IController>;
   private readonly elementProvider: InstanceProvider<HTMLElement>;
-  private readonly instructionProvider: InstanceProvider<IInstruction>;
+  private readonly instructionProvider: InstanceProvider<Instruction>;
   private readonly factoryProvider: ViewFactoryProvider;
   private readonly renderLocationProvider: InstanceProvider<IRenderLocation>;
 
@@ -245,7 +242,7 @@ export class CompositionContext implements IComponentFactory {
 
   private readonly projectionProvider: IProjectionProvider;
   public readonly platform: IPlatform;
-  public readonly composer: IComposer;
+  private readonly renderers: Record<InstructionTypeName, IRenderer> = Object.create(null);
 
   public compiledDefinition: CustomElementDefinition = (void 0)!;
 
@@ -254,7 +251,12 @@ export class CompositionContext implements IComponentFactory {
     public readonly parentContainer: IContainer,
   ) {
     const container = this.container = parentContainer.createChild();
-    this.composer = container.get(IComposer);
+    // TODO(fkleuver): get contextual + root renderers
+    const renderers = container.getAll(IRenderer);
+    for (let i = 0; i < renderers.length; ++i) {
+      const renderer = renderers[i];
+      this.renderers[renderer.instructionType as string] = renderer;
+    }
     this.projectionProvider = container.get(IProjectionProvider);
     const p = this.platform = container.get(IPlatform);
 
@@ -270,7 +272,7 @@ export class CompositionContext implements IComponentFactory {
     );
     container.registerResolver(
       IInstruction,
-      this.instructionProvider = new InstanceProvider<IInstruction>('IInstruction'),
+      this.instructionProvider = new InstanceProvider<Instruction>('IInstruction'),
       true,
     );
     container.registerResolver(
@@ -334,13 +336,21 @@ export class CompositionContext implements IComponentFactory {
     return this.container.createChild();
   }
 
+  public find<TType extends ResourceType, TDef extends ResourceDefinition>(kind: IResourceKind<TType, TDef>, name: string): TDef | null {
+    return this.container.find(kind, name);
+  }
+
+  public create<TType extends ResourceType, TDef extends ResourceDefinition>(kind: IResourceKind<TType, TDef>, name: string): InstanceType<TType> | null {
+    return this.container.create(kind, name);
+  }
+
   public disposeResolvers() {
     this.container.disposeResolvers();
   }
   // #endregion
 
-  // #region ICompositionContext api
-  public compile(targetedProjections: RegisteredProjections | null): ICompiledCompositionContext {
+  // #region IRenderContext api
+  public compile(targetedProjections: RegisteredProjections | null): ICompiledRenderContext {
     let compiledDefinition: CustomElementDefinition;
     if (this.isCompiled) {
       return this;
@@ -398,7 +408,7 @@ export class CompositionContext implements IComponentFactory {
     return factory;
   }
 
-  public beginChildComponentOperation(instance: ICustomElementViewModel): ICompositionContext {
+  public beginChildComponentOperation(instance: ICustomElementViewModel): IRenderContext {
     const definition = this.definition;
     if (definition.injectable !== null) {
       if (this.viewModelProvider === void 0) {
@@ -415,7 +425,7 @@ export class CompositionContext implements IComponentFactory {
 
   // #endregion
 
-  // #region ICompiledCompositionContext api
+  // #region ICompiledRenderContext api
 
   public createNodes(): INodeSequence {
     if (this.compiledDefinition.enhance === true) {
@@ -435,7 +445,7 @@ export class CompositionContext implements IComponentFactory {
   public getComponentFactory(
     parentController?: IController,
     host?: HTMLElement,
-    instruction?: IInstruction,
+    instruction?: Instruction,
     viewFactory?: IViewFactory,
     location?: IRenderLocation,
   ): IComponentFactory {
@@ -466,23 +476,46 @@ export class CompositionContext implements IComponentFactory {
     return this.container.get(resourceKey) as unknown as TViewModel;
   }
 
-  public compose(
+  public render(
     flags: LifecycleFlags,
-    controller: IComposableController,
+    controller: IHydratableController,
     targets: ArrayLike<INode>,
-    templateDefinition: CustomElementDefinition,
+    definition: CustomElementDefinition,
     host: INode | null | undefined,
   ): void {
-    this.composer.compose(flags, this, controller, targets, templateDefinition, host);
+    if (targets.length !== definition.instructions.length) {
+      throw new Error(`The compiled template is not aligned with the render instructions. There are ${targets.length} targets and ${definition.instructions.length} instructions.`);
+    }
+
+    for (let i = 0; i < targets.length; ++i) {
+      this.renderChildren(
+        /* flags        */flags,
+        /* instructions */definition.instructions[i],
+        /* controller   */controller,
+        /* target       */targets[i],
+      );
+    }
+
+    if (host !== void 0 && host !== null) {
+      this.renderChildren(
+        /* flags        */flags,
+        /* instructions */definition.surrogates,
+        /* controller   */controller,
+        /* target       */host,
+      );
+    }
   }
 
-  public composeChildren(
+  public renderChildren(
     flags: LifecycleFlags,
-    instructions: readonly Instruction[],
-    controller: IComposableController,
+    instructions: readonly IInstruction[],
+    controller: IHydratableController,
     target: unknown,
   ): void {
-    this.composer.composeChildren(flags, this, instructions, controller, target);
+    for (let i = 0; i < instructions.length; ++i) {
+      const current = instructions[i];
+      this.renderers[current.type].render(flags, this, controller, target, current);
+    }
   }
 
   public dispose(): void {
@@ -491,11 +524,11 @@ export class CompositionContext implements IComponentFactory {
   // #endregion
 
   // #region IProjectionProvider api
-  public registerProjections(projections: Map<IInstruction, Record<string, CustomElementDefinition>>, scope: Scope): void {
+  public registerProjections(projections: Map<Instruction, Record<string, CustomElementDefinition>>, scope: Scope): void {
     this.projectionProvider.registerProjections(projections, scope);
   }
 
-  public getProjectionFor(instruction: IInstruction): RegisteredProjections | null {
+  public getProjectionFor(instruction: Instruction): RegisteredProjections | null {
     return this.projectionProvider.getProjectionFor(instruction);
   }
   // #endregion

@@ -22,7 +22,7 @@ export class CollectionLengthObserver {
     const currentValue = this.currentValue;
     if (newValue !== currentValue) {
       this.currentValue = newValue;
-      this.callSubscribers(newValue, currentValue, flags | LifecycleFlags.updateTargetInstance);
+      this.callSubscribers(newValue, currentValue, flags | LifecycleFlags.updateTarget);
     }
   }
 }

@@ -46,16 +46,16 @@ export class Author {
     console.log('### define', this);
   }
 
-  public beforeCompose() {
-    console.log('### beforeCompose', this);
+  public hydrating() {
+    console.log('### hydrating', this);
   }
 
-  public beforeComposeChildren() {
-    console.log('### beforeComposeChildren', this);
+  public hydrated() {
+    console.log('### hydrated', this);
   }
 
-  public afterCompose() {
-    console.log('### afterCompose', this);
+  public created() {
+    console.log('### created', this);
   }
 
   // KEEP THIS!
@@ -87,8 +87,8 @@ export class Author {
       await new Promise(resolve => setTimeout(resolve, 2000));
     }
   }
-  public beforeBind() {
-    console.log('### beforeBind', this);
+  public binding() {
+    console.log('### binding', this);
     const newRoutes = this.router.addRoutes([
       { path: 'awards', instructions: [{ component: 'awards', viewport: 'down' }] },
       { path: '/new', instructions: [{ component: 'new', viewport: 'right' }] },
@@ -105,14 +105,14 @@ export class Author {
     // console.log('route', route);
     // this.match(route);
   }
-  public afterBind() {
-    console.log('### afterBind', this);
+  public bound() {
+    console.log('### bound', this);
   }
-  public afterAttach() {
-    console.log('### afterAttach', this);
+  public attaching() {
+    console.log('### attaching', this);
   }
-  public afterAttachChildren() {
-    console.log('### afterAttachChildren', this);
+  public attached() {
+    console.log('### attached', this);
   }
 
   public canLeave(parameters) {
@@ -123,16 +123,10 @@ export class Author {
     console.log('### leave', this, parameters);
     return true;
   }
-  public beforeDetach() {
-    console.log('### beforeDetach', this);
+  public detaching() {
+    console.log('### detaching', this);
   }
-  public beforeUnbind() {
-    console.log('### beforeUnbind', this);
-  }
-  public afterUnbind() {
-    console.log('### afterUnbind', this);
-  }
-  public afterUnbindChildren() {
-    console.log('### afterUnbindChildren', this);
+  public unbinding() {
+    console.log('### unbinding', this);
   }
 }

@@ -14,19 +14,17 @@ export class Settings {
   ) {}
 
   public define() { return; }
-  public beforeCompose() { return; }
-  public beforeComposeChildren() { return; }
-  public afterCompose() { return; }
+  public hydrating() { return; }
+  public hydrated() { return; }
+  public created() { return; }
 
-  public beforeBind() { return; }
-  public afterBind() { return; }
-  public afterAttach() { return; }
-  public afterAttachChildren() { return; }
+  public binding() { return; }
+  public bound() { return; }
+  public attaching() { return; }
+  public attached() { return; }
 
-  public beforeDetach() { return; }
-  public beforeUnbind() { return; }
-  public afterUnbind() { return; }
-  public afterUnbindChildren() { return; }
+  public detaching() { return; }
+  public unbinding() { return; }
 
   public update() {
     this.userService.update(this.sharedState.currentUser);

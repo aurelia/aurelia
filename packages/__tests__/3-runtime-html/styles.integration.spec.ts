@@ -42,13 +42,13 @@ describe('styles', function () {
     await au.app({ host, component }).start();
 
     const withStyles = (au.root.controller.viewModel as any).withStyles;
-    const withStylesRoot = CustomElement.for(withStyles).projector.provideEncapsulationSource() as ShadowRoot;
+    const withStylesRoot = CustomElement.for(withStyles).shadowRoot;
     const withStyleDiv = withStylesRoot.getElementById('target');
 
     assert.equal(true, withStyleDiv.classList.contains(cssClasses.test));
 
     const withoutStyles = (au.root.controller.viewModel as any).withoutStyles;
-    const withoutStylesRoot = CustomElement.for(withoutStyles).projector.provideEncapsulationSource() as ShadowRoot;
+    const withoutStylesRoot = CustomElement.for(withoutStyles).shadowRoot;
     const withoutStylesDiv = withoutStylesRoot.getElementById('target');
 
     assert.equal(true, withoutStylesDiv.classList.contains('test'));

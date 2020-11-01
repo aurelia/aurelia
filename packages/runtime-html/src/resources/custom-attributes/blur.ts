@@ -1,9 +1,9 @@
 import { emptyArray } from '@aurelia/kernel';
 import { bindable } from '@aurelia/runtime';
 import { INode, NodeType } from '../../dom';
-import { ICustomAttributeController, ICustomAttributeViewModel } from '../../lifecycle';
 import { IPlatform } from '../../platform';
 import { customAttribute } from '../custom-attribute';
+import type { ICustomAttributeController, ICustomAttributeViewModel } from '../../templating/controller';
 
 const unset = Symbol();
 
@@ -151,11 +151,11 @@ export class Blur implements ICustomAttributeViewModel {
     this.manager = BlurManager.createFor(p);
   }
 
-  public afterAttachChildren(): void {
+  public attached(): void {
     this.manager.register(this);
   }
 
-  public beforeDetach(): void {
+  public detaching(): void {
     this.manager.unregister(this);
   }
 

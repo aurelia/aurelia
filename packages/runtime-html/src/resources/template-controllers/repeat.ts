@@ -16,19 +16,10 @@ import {
   synchronizeIndices,
 } from '@aurelia/runtime';
 import { IRenderLocation } from '../../dom';
-import {
-  ISyntheticView,
-  MountStrategy,
-  ICustomAttributeController,
-  IComposableController,
-  IController,
-  ICustomAttributeViewModel,
-  IHydratedController,
-  IHydratedParentController,
-  ControllerVisitor,
-} from '../../lifecycle';
 import { IViewFactory } from '../../templating/view';
 import { templateController } from '../custom-attribute';
+import type { ISyntheticView, ICustomAttributeController, IHydratableController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller';
+import { IController } from '../../templating/controller';
 
 type Items<C extends ObservedCollection = IObservedArray> = C | undefined;
 
@@ -56,17 +47,17 @@ export class Repeat<C extends ObservedCollection = IObservedArray> implements IC
 
   public constructor(
     @IRenderLocation public location: IRenderLocation,
-    @IController public composable: IComposableController,
+    @IController public parent: IHydratableController,
     @IViewFactory public factory: IViewFactory
   ) {}
 
-  public beforeBind(
+  public binding(
     initiator: IHydratedController,
     parent: IHydratedParentController,
     flags: LF,
   ): void | Promise<void> {
     this.checkCollectionObserver(flags);
-    const bindings = this.composable.bindings as PropertyBinding[];
+    const bindings = this.parent.bindings as PropertyBinding[];
     let binding: PropertyBinding = (void 0)!;
     for (let i = 0, ii = bindings.length; i < ii; ++i) {
       binding = bindings[i];
@@ -79,7 +70,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray> implements IC
     this.local = this.forOf.declaration.evaluate(flags, this.$controller.scope, null, binding.locator, null) as string;
   }
 
-  public afterAttach(
+  public attaching(
     initiator: IHydratedController,
     parent: IHydratedParentController,
     flags: LF,
@@ -89,7 +80,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray> implements IC
     return this.activateAllViews(initiator, flags);
   }
 
-  public afterUnbind(
+  public detaching(
     initiator: IHydratedController,
     parent: IHydratedParentController,
     flags: LF,
@@ -107,7 +98,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray> implements IC
     }
     flags |= $controller.flags;
     this.checkCollectionObserver(flags);
-    flags |= LF.updateTargetInstance;
+    flags |= LF.updateTarget;
     this.normalizeToArray(flags);
 
     const ret = onResolve(
@@ -130,7 +121,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray> implements IC
       return;
     }
     flags |= $controller.flags;
-    flags |= LF.updateTargetInstance;
+    flags |= LF.updateTarget;
     this.normalizeToArray(flags);
 
     if (indexMap === void 0) {
@@ -215,8 +206,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray> implements IC
     const views = this.views = Array(newLen);
 
     this.forOf.iterate(flags, items, (arr, i, item) => {
-      view = views[i] = factory.create(flags);
-      view.setLocation(location, MountStrategy.insertBefore);
+      view = views[i] = factory.create(flags).setLocation(location);
       view.nodes!.unlink();
       viewScope = Scope.fromParent(flags, parentScope, BindingContext.create(flags, local, item));
 
@@ -344,7 +334,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray> implements IC
       if (indexMap[i] === -2) {
         viewScope = Scope.fromParent(flags, parentScope, BindingContext.create(flags, local, normalizedItems![i]));
         setContextualProperties(viewScope.overrideContext as IRepeatOverrideContext, i, newLen);
-        view.setLocation(location, MountStrategy.insertBefore);
+        view.setLocation(location);
 
         ret = view.activate(view, $controller, flags, viewScope, hostScope);
         if (ret instanceof Promise) {
@@ -366,16 +356,6 @@ export class Repeat<C extends ObservedCollection = IObservedArray> implements IC
         ? promises[0]
         : Promise.all(promises) as unknown as Promise<void>;
     }
-  }
-
-  public onCancel(
-    initiator: IHydratedController,
-    parent: IHydratedParentController,
-    flags: LF,
-  ): void {
-    this.views.forEach(view => {
-      view.cancel(initiator, this.$controller, flags);
-    });
   }
 
   public dispose(): void {

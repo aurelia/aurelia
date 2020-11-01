@@ -269,16 +269,9 @@ export class SegmentTypes {
   public symbols: number = 0;
 }
 
-export interface ISyntaxInterpreter {
-  add(def: AttributePatternDefinition): void;
-  add(defs: AttributePatternDefinition[]): void;
-  add(defOrDefs: AttributePatternDefinition | AttributePatternDefinition[]): void;
-  interpret(value: string): Interpretation;
-}
-
+export interface ISyntaxInterpreter extends SyntaxInterpreter {}
 export const ISyntaxInterpreter = DI.createInterface<ISyntaxInterpreter>('ISyntaxInterpreter').withDefault(x => x.singleton(SyntaxInterpreter));
 
-/** @internal */
 export class SyntaxInterpreter {
   public rootState: State = new State(null!);
   private readonly initialStates: State[] = [this.rootState];
@@ -418,6 +411,12 @@ export class AttrSyntax {
   ) {}
 }
 
+export interface IAttributePattern {
+  [pattern: string]: (rawName: string, rawValue: string, parts: readonly string[]) => AttrSyntax;
+}
+
+export const IAttributePattern = DI.createInterface<IAttributePattern>('IAttributePattern').noDefault();
+
 export interface IAttributeParser extends AttributeParser {}
 export const IAttributeParser = DI.createInterface<IAttributeParser>('IAttributeParser').withDefault(x => x.singleton(AttributeParser));
 
@@ -452,12 +451,6 @@ export class AttributeParser {
     }
   }
 }
-
-export interface IAttributePattern {
-  [pattern: string]: (rawName: string, rawValue: string, parts: readonly string[]) => AttrSyntax;
-}
-
-export const IAttributePattern = DI.createInterface<IAttributePattern>('IAttributePattern').noDefault();
 
 type DecoratableAttributePattern<TProto, TClass> = Class<TProto & Partial<{} | IAttributePattern>, TClass>;
 type DecoratedAttributePattern<TProto, TClass> = Class<TProto & IAttributePattern, TClass>;

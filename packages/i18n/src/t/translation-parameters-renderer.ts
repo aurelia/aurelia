@@ -3,7 +3,7 @@ import { TranslationBinding } from './translation-binding';
 import {
   BindingMode,
   BindingType,
-  IComposableController,
+  IHydratableController,
   IExpressionParser,
   IRenderer,
   renderer,
@@ -60,10 +60,10 @@ export class TranslationParametersBindingRenderer implements IRenderer {
     @IObserverLocator private readonly observerLocator: IObserverLocator,
   ) { }
 
-  public compose(
+  public render(
     flags: LifecycleFlags,
     context: IContainer,
-    controller: IComposableController,
+    controller: IHydratableController,
     target: HTMLElement,
     instruction: CallBindingInstruction,
   ): void {

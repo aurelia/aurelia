@@ -126,14 +126,14 @@ export function instructionTypeName(type: string): string {
       return 'setProperty';
     case InstructionType.setAttribute:
       return 'setAttribute';
-    case InstructionType.composeElement:
-      return 'composeElement';
-    case InstructionType.composeAttribute:
-      return 'composeAttribute';
-    case InstructionType.composeTemplateController:
-      return 'composeTemplateController';
-    case InstructionType.composeLetElement:
-      return 'composeLetElement';
+    case InstructionType.hydrateElement:
+      return 'hydrateElement';
+    case InstructionType.hydrateAttribute:
+      return 'hydrateAttribute';
+    case InstructionType.hydrateTemplateController:
+      return 'hydrateTemplateController';
+    case InstructionType.hydrateLetElement:
+      return 'hydrateLetElement';
     case InstructionType.letBinding:
       return 'letBinding';
     default:

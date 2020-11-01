@@ -54,7 +54,7 @@ function coreComponents(options: I18nConfigurationOptions) {
       bindCommandAliases.push(bindAlias);
     }
   }
-  const composers = [
+  const renderers = [
     AttributePattern.define(patterns, TranslationAttributePattern),
     BindingCommand.define({name:'t', aliases: commandAliases}, TranslationBindingCommand),
     TranslationBindingRenderer,
@@ -74,7 +74,7 @@ function coreComponents(options: I18nConfigurationOptions) {
         Registration.singleton(I18nWrapper, I18nextWrapper),
         Registration.singleton(I18N, I18nService),
 
-        ...composers,
+        ...renderers,
         ...translation);
     }
   };

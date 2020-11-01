@@ -20,7 +20,7 @@ import { IViewFactory, ViewFactory } from './view';
 import { AuSlotContentType, IProjectionProvider, RegisteredProjections } from '../resources/custom-elements/au-slot';
 import { IPlatform } from '../platform';
 import { IController } from './controller';
-import type { ICustomAttributeViewModel, ICustomElementViewModel, IComposableController } from './controller';
+import type { ICustomAttributeViewModel, ICustomElementViewModel, IHydratableController } from './controller';
 
 const definitionContainerLookup = new WeakMap<CustomElementDefinition, WeakMap<IContainer, RenderContext>>();
 const definitionContainerProjectionsLookup = new WeakMap<CustomElementDefinition, WeakMap<IContainer, WeakMap<Record<string, CustomElementDefinition>, RenderContext>>>();
@@ -478,13 +478,13 @@ export class RenderContext implements IComponentFactory {
 
   public render(
     flags: LifecycleFlags,
-    controller: IComposableController,
+    controller: IHydratableController,
     targets: ArrayLike<INode>,
     definition: CustomElementDefinition,
     host: INode | null | undefined,
   ): void {
     if (targets.length !== definition.instructions.length) {
-      throw new Error(`The compiled template is not aligned with the compose instructions. There are ${targets.length} targets and ${definition.instructions.length} instructions.`);
+      throw new Error(`The compiled template is not aligned with the render instructions. There are ${targets.length} targets and ${definition.instructions.length} instructions.`);
     }
 
     for (let i = 0; i < targets.length; ++i) {
@@ -509,12 +509,12 @@ export class RenderContext implements IComponentFactory {
   public renderChildren(
     flags: LifecycleFlags,
     instructions: readonly IInstruction[],
-    controller: IComposableController,
+    controller: IHydratableController,
     target: unknown,
   ): void {
     for (let i = 0; i < instructions.length; ++i) {
       const current = instructions[i];
-      this.renderers[current.type].compose(flags, this, controller, target, current);
+      this.renderers[current.type].render(flags, this, controller, target, current);
     }
   }
 

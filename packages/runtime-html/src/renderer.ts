@@ -33,13 +33,13 @@ import { convertToRenderLocation, INode } from './dom';
 import { Controller } from './templating/controller';
 import { IViewFactory } from './templating/view';
 import { IPlatform } from './platform';
-import type { IComposableController, IController, ICustomAttributeViewModel, ICustomElementViewModel } from './templating/controller';
+import type { IHydratableController, IController, ICustomAttributeViewModel, ICustomElementViewModel } from './templating/controller';
 
 export const enum InstructionType {
-  composeElement = 'ra',
-  composeAttribute = 'rb',
-  composeTemplateController = 'rc',
-  composeLetElement = 'rd',
+  hydrateElement = 'ra',
+  hydrateAttribute = 'rb',
+  hydrateTemplateController = 'rc',
+  hydrateLetElement = 'rd',
   setProperty = 're',
   interpolation = 'rf',
   propertyBinding = 'rg',
@@ -149,7 +149,7 @@ export class SetPropertyInstruction {
 }
 
 export class HydrateElementInstruction {
-  public get type(): InstructionType.composeElement { return InstructionType.composeElement; }
+  public get type(): InstructionType.hydrateElement { return InstructionType.hydrateElement; }
 
   public constructor(
     public res: string,
@@ -159,7 +159,7 @@ export class HydrateElementInstruction {
 }
 
 export class HydrateAttributeInstruction {
-  public get type(): InstructionType.composeAttribute { return InstructionType.composeAttribute; }
+  public get type(): InstructionType.hydrateAttribute { return InstructionType.hydrateAttribute; }
 
   public constructor(
     public res: string,
@@ -168,7 +168,7 @@ export class HydrateAttributeInstruction {
 }
 
 export class HydrateTemplateController {
-  public get type(): InstructionType.composeTemplateController { return InstructionType.composeTemplateController; }
+  public get type(): InstructionType.hydrateTemplateController { return InstructionType.hydrateTemplateController; }
 
   public constructor(
     public def: PartialCustomElementDefinition,
@@ -178,7 +178,7 @@ export class HydrateTemplateController {
 }
 
 export class HydrateLetElementInstruction {
-  public get type(): InstructionType.composeLetElement { return InstructionType.composeLetElement; }
+  public get type(): InstructionType.hydrateLetElement { return InstructionType.hydrateLetElement; }
 
   public constructor(
     public instructions: LetBindingInstruction[],
@@ -279,10 +279,10 @@ export interface IInstructionTypeClassifier<TType extends string = string> {
 export interface IRenderer<
   TType extends InstructionTypeName = InstructionTypeName
 > extends Partial<IInstructionTypeClassifier<TType>> {
-  compose(
+  render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
-    controller: IComposableController,
+    controller: IHydratableController,
     target: unknown,
     instruction: IInstruction,
   ): void;
@@ -290,12 +290,12 @@ export interface IRenderer<
 
 export const IRenderer = DI.createInterface<IRenderer>('IRenderer').noDefault();
 
-type DecoratableInstructionRenderer<TType extends string, TProto, TClass> = Class<TProto & Partial<IInstructionTypeClassifier<TType> & Pick<IRenderer, 'compose'>>, TClass> & Partial<IRegistry>;
-type DecoratedInstructionRenderer<TType extends string, TProto, TClass> =  Class<TProto & IInstructionTypeClassifier<TType> & Pick<IRenderer, 'compose'>, TClass> & IRegistry;
+type DecoratableInstructionRenderer<TType extends string, TProto, TClass> = Class<TProto & Partial<IInstructionTypeClassifier<TType> & Pick<IRenderer, 'render'>>, TClass> & Partial<IRegistry>;
+type DecoratedInstructionRenderer<TType extends string, TProto, TClass> =  Class<TProto & IInstructionTypeClassifier<TType> & Pick<IRenderer, 'render'>, TClass> & IRegistry;
 
-type InstructionComposerDecorator<TType extends string> = <TProto, TClass>(target: DecoratableInstructionRenderer<TType, TProto, TClass>) => DecoratedInstructionRenderer<TType, TProto, TClass>;
+type InstructionRendererDecorator<TType extends string> = <TProto, TClass>(target: DecoratableInstructionRenderer<TType, TProto, TClass>) => DecoratedInstructionRenderer<TType, TProto, TClass>;
 
-export function renderer<TType extends string>(instructionType: TType): InstructionComposerDecorator<TType> {
+export function renderer<TType extends string>(instructionType: TType): InstructionRendererDecorator<TType> {
   return function decorator<TProto, TClass>(target: DecoratableInstructionRenderer<TType, TProto, TClass>): DecoratedInstructionRenderer<TType, TProto, TClass> {
     // wrap the constructor to set the instructionType to the instance (for better performance than when set on the prototype)
     const decoratedTarget = function (...args: unknown[]): TProto {
@@ -367,10 +367,10 @@ function getRefTarget(refHost: INode, refTargetName: string): object {
 @renderer(InstructionType.setProperty)
 /** @internal */
 export class SetPropertyRenderer implements IRenderer {
-  public compose(
+  public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
-    controller: IComposableController,
+    controller: IHydratableController,
     target: IController,
     instruction: SetPropertyInstruction,
   ): void {
@@ -383,13 +383,13 @@ export class SetPropertyRenderer implements IRenderer {
   }
 }
 
-@renderer(InstructionType.composeElement)
+@renderer(InstructionType.hydrateElement)
 /** @internal */
 export class CustomElementRenderer implements IRenderer {
-  public compose(
+  public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
-    controller: IComposableController,
+    controller: IHydratableController,
     target: HTMLElement,
     instruction: HydrateElementInstruction,
   ): void {
@@ -438,13 +438,13 @@ export class CustomElementRenderer implements IRenderer {
   }
 }
 
-@renderer(InstructionType.composeAttribute)
+@renderer(InstructionType.hydrateAttribute)
 /** @internal */
 export class CustomAttributeRenderer implements IRenderer {
-  public compose(
+  public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
-    controller: IComposableController,
+    controller: IHydratableController,
     target: HTMLElement,
     instruction: HydrateAttributeInstruction,
   ): void {
@@ -482,13 +482,13 @@ export class CustomAttributeRenderer implements IRenderer {
   }
 }
 
-@renderer(InstructionType.composeTemplateController)
+@renderer(InstructionType.hydrateTemplateController)
 /** @internal */
 export class TemplateControllerRenderer implements IRenderer {
-  public compose(
+  public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
-    controller: IComposableController,
+    controller: IHydratableController,
     target: HTMLElement,
     instruction: HydrateTemplateController,
   ): void {
@@ -532,7 +532,7 @@ export class TemplateControllerRenderer implements IRenderer {
   }
 }
 
-@renderer(InstructionType.composeLetElement)
+@renderer(InstructionType.hydrateLetElement)
 /** @internal */
 export class LetElementRenderer implements IRenderer {
   public constructor(
@@ -540,10 +540,10 @@ export class LetElementRenderer implements IRenderer {
     @IObserverLocator private readonly observerLocator: IObserverLocator,
   ) {}
 
-  public compose(
+  public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
-    controller: IComposableController,
+    controller: IHydratableController,
     target: Node & ChildNode,
     instruction: HydrateLetElementInstruction,
   ): void {
@@ -575,10 +575,10 @@ export class CallBindingRenderer implements IRenderer {
     @IObserverLocator private readonly observerLocator: IObserverLocator,
   ) {}
 
-  public compose(
+  public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
-    controller: IComposableController,
+    controller: IHydratableController,
     target: IController,
     instruction: CallBindingInstruction,
   ): void {
@@ -599,10 +599,10 @@ export class RefBindingRenderer implements IRenderer {
     @IExpressionParser private readonly parser: IExpressionParser,
   ) {}
 
-  public compose(
+  public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
-    controller: IComposableController,
+    controller: IHydratableController,
     target: INode,
     instruction: RefBindingInstruction,
   ): void {
@@ -625,10 +625,10 @@ export class InterpolationBindingRenderer implements IRenderer {
     @IPlatform private readonly platform: IPlatform,
   ) {}
 
-  public compose(
+  public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
-    controller: IComposableController,
+    controller: IHydratableController,
     target: IController,
     instruction: InterpolationInstruction,
   ): void {
@@ -665,10 +665,10 @@ export class PropertyBindingRenderer implements IRenderer {
     @IPlatform private readonly platform: IPlatform,
   ) {}
 
-  public compose(
+  public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
-    controller: IComposableController,
+    controller: IHydratableController,
     target: IController,
     instruction: PropertyBindingInstruction,
   ): void {
@@ -691,10 +691,10 @@ export class IteratorBindingRenderer implements IRenderer {
     @IPlatform private readonly platform: IPlatform,
   ) {}
 
-  public compose(
+  public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
-    controller: IComposableController,
+    controller: IHydratableController,
     target: IController,
     instruction: IteratorBindingInstruction,
   ): void {
@@ -740,10 +740,10 @@ export class TextBindingRenderer implements IRenderer {
     @IPlatform private readonly platform: IPlatform,
   ) {}
 
-  public compose(
+  public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
-    controller: IComposableController,
+    controller: IHydratableController,
     target: ChildNode,
     instruction: TextBindingInstruction,
   ): void {
@@ -783,10 +783,10 @@ export class ListenerBindingRenderer implements IRenderer {
     @IEventDelegator private readonly eventDelegator: IEventDelegator,
   ) {}
 
-  public compose(
+  public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
-    controller: IComposableController,
+    controller: IHydratableController,
     target: HTMLElement,
     instruction: ListenerBindingInstruction,
   ): void {
@@ -804,10 +804,10 @@ export class ListenerBindingRenderer implements IRenderer {
 @renderer(InstructionType.setAttribute)
 /** @internal */
 export class SetAttributeRenderer implements IRenderer {
-  public compose(
+  public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
-    controller: IComposableController,
+    controller: IHydratableController,
     target: HTMLElement,
     instruction: SetAttributeInstruction,
   ): void {
@@ -817,10 +817,10 @@ export class SetAttributeRenderer implements IRenderer {
 
 @renderer(InstructionType.setClassAttribute)
 export class SetClassAttributeRenderer implements IRenderer {
-  public compose(
+  public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
-    controller: IComposableController,
+    controller: IHydratableController,
     target: HTMLElement,
     instruction: SetClassAttributeInstruction,
   ): void {
@@ -830,10 +830,10 @@ export class SetClassAttributeRenderer implements IRenderer {
 
 @renderer(InstructionType.setStyleAttribute)
 export class SetStyleAttributeRenderer implements IRenderer {
-  public compose(
+  public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
-    controller: IComposableController,
+    controller: IHydratableController,
     target: HTMLElement,
     instruction: SetStyleAttributeInstruction,
   ): void {
@@ -850,10 +850,10 @@ export class StylePropertyBindingRenderer implements IRenderer {
     @IPlatform private readonly platform: IPlatform,
   ) {}
 
-  public compose(
+  public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
-    controller: IComposableController,
+    controller: IHydratableController,
     target: HTMLElement,
     instruction: StylePropertyBindingInstruction,
   ): void {
@@ -875,10 +875,10 @@ export class AttributeBindingRenderer implements IRenderer {
     @IObserverLocator private readonly observerLocator: IObserverLocator,
   ) {}
 
-  public compose(
+  public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
-    controller: IComposableController,
+    controller: IHydratableController,
     target: HTMLElement,
     instruction: AttributeBindingInstruction,
   ): void {

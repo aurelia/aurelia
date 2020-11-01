@@ -9,7 +9,7 @@ import {
   IObserverLocator,
   IsBindingBehavior,
   LifecycleFlags,
-  IComposableController,
+  IHydratableController,
   AttrSyntax,
   getTarget,
 } from '@aurelia/runtime-html';
@@ -58,10 +58,10 @@ export class TranslationBindingRenderer implements IRenderer {
     @IObserverLocator private readonly observerLocator: IObserverLocator,
   ) { }
 
-  public compose(
+  public render(
     flags: LifecycleFlags,
     context: IContainer,
-    controller: IComposableController,
+    controller: IHydratableController,
     target: HTMLElement,
     instruction: CallBindingInstruction,
   ): void {
@@ -107,10 +107,10 @@ export class TranslationBindBindingRenderer implements IRenderer {
     @IObserverLocator private readonly observerLocator: IObserverLocator,
   ) { }
 
-  public compose(
+  public render(
     flags: LifecycleFlags,
     context: IContainer,
-    controller: IComposableController,
+    controller: IHydratableController,
     target: HTMLElement,
     instruction: CallBindingInstruction,
   ): void {

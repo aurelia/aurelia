@@ -13,12 +13,12 @@ import {
   Controller,
   CustomElementDefinition,
   getRenderContext,
-  IComposableController,
+  IHydratableController,
   IRenderLocation,
   ITargetAccessorLocatorRegistration,
   ITargetObserverLocatorRegistration,
-  PropertyBindingComposerRegistration,
-  TextBindingComposerRegistration,
+  PropertyBindingRendererRegistration,
+  TextBindingRendererRegistration,
   TextBindingInstruction,
   Interpolation,
 } from '@aurelia/runtime-html';
@@ -534,8 +534,8 @@ describe(`Repeat`, function () {
   const container = createContainer().register(
     ITargetAccessorLocatorRegistration,
     ITargetObserverLocatorRegistration,
-    PropertyBindingComposerRegistration,
-    TextBindingComposerRegistration,
+    PropertyBindingRendererRegistration,
+    TextBindingRendererRegistration,
   );
 
   const marker = PLATFORM.document.createElement('au-m');
@@ -584,16 +584,16 @@ describe(`Repeat`, function () {
           targetProperty: 'items',
           sourceExpression: new ForOfStatement(new BindingIdentifier('item'), new AccessScopeExpression('items'))
         } as any;
-        const composable: IComposableController = {
+        const hydratable: IHydratableController = {
           bindings: [binding]
         } as any;
         let sut: Repeat;
         if (proxies) {
-          const raw = new Repeat(loc, composable, itemFactory);
+          const raw = new Repeat(loc, hydratable, itemFactory);
           sut = new ProxyObserver(raw).proxy;
           (raw as Writable<Repeat>).$controller = Controller.forCustomAttribute(null, container, sut, (void 0)!);
         } else {
-          sut = new Repeat(loc, composable, itemFactory);
+          sut = new Repeat(loc, hydratable, itemFactory);
           (sut as Writable<Repeat>).$controller = Controller.forCustomAttribute(null, container, sut, (void 0)!);
         }
         binding.target = sut as any;

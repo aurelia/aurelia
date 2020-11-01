@@ -48,10 +48,10 @@ describe(`createElement() creates element based on tag`, function () {
         [
           [
             InstructionType.callBinding,
-            InstructionType.composeAttribute,
-            InstructionType.composeElement,
-            InstructionType.composeLetElement,
-            InstructionType.composeTemplateController,
+            InstructionType.hydrateAttribute,
+            InstructionType.hydrateElement,
+            InstructionType.hydrateLetElement,
+            InstructionType.hydrateTemplateController,
             InstructionType.interpolation,
             InstructionType.iteratorBinding,
             InstructionType.letBinding,
@@ -132,7 +132,7 @@ describe(`createElement() creates element based on type`, function () {
 
         assert.strictEqual(actual['instructions'].length, 1, `actual['instructions'].length`);
         assert.strictEqual(actual['instructions'][0].length, 1, `actual['instructions'][0].length`);
-        assert.strictEqual(instruction.type, InstructionType.composeElement, `instruction.type`);
+        assert.strictEqual(instruction.type, InstructionType.hydrateElement, `instruction.type`);
         assert.strictEqual(instruction.res, definition.name, `instruction.res`);
         assert.strictEqual(instruction.instructions.length, 2, `instruction.instructions.length`);
         assert.strictEqual(instruction.instructions[0].type, InstructionType.setAttribute, `instruction.instructions[0].type`);
@@ -168,10 +168,10 @@ describe(`createElement() creates element based on type`, function () {
         [
           [
             InstructionType.callBinding,
-            InstructionType.composeAttribute,
-            InstructionType.composeElement,
-            InstructionType.composeLetElement,
-            InstructionType.composeTemplateController,
+            InstructionType.hydrateAttribute,
+            InstructionType.hydrateElement,
+            InstructionType.hydrateLetElement,
+            InstructionType.hydrateTemplateController,
             InstructionType.interpolation,
             InstructionType.iteratorBinding,
             InstructionType.letBinding,
@@ -196,7 +196,7 @@ describe(`createElement() creates element based on type`, function () {
 
             assert.strictEqual(actual['instructions'].length, 1, `actual['instructions'].length`);
             assert.strictEqual(actual['instructions'][0].length, 1, `actual['instructions'][0].length`);
-            assert.strictEqual(instruction.type, InstructionType.composeElement, `instruction.type`);
+            assert.strictEqual(instruction.type, InstructionType.hydrateElement, `instruction.type`);
             assert.strictEqual(instruction.res, definition.name, `instruction.res`);
             assert.strictEqual(instruction.instructions.length, 1, `instruction.instructions.length`);
             assert.strictEqual(instruction.instructions[0].type, t, `instruction.instructions[0].type`);
@@ -229,7 +229,7 @@ describe(`createElement() creates element based on type`, function () {
 
           assert.strictEqual(actual['instructions'].length, 1, `actual['instructions'].length`);
           assert.strictEqual(actual['instructions'][0].length, 1, `actual['instructions'][0].length`);
-          assert.strictEqual(instruction.type, InstructionType.composeElement, `instruction.type`);
+          assert.strictEqual(instruction.type, InstructionType.hydrateElement, `instruction.type`);
           assert.strictEqual(instruction.res, definition.name, `instruction.res`);
           assert.strictEqual(instruction.instructions.length, 0, `instruction.instructions.length`);
           assert.strictEqual(node.getAttribute('class'), 'au', `node.getAttribute('class')`);

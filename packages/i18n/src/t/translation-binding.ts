@@ -13,7 +13,7 @@ import {
   IsExpression,
   LifecycleFlags,
   INode,
-  IComposableController,
+  IHydratableController,
   IsBindingBehavior,
   IPlatform,
 } from '@aurelia/runtime-html';
@@ -28,7 +28,7 @@ interface TranslationBindingCreationContext {
   parser: IExpressionParser;
   observerLocator: IObserverLocator;
   context: IContainer;
-  controller: IComposableController;
+  controller: IHydratableController;
   target: HTMLElement;
   instruction: CallBindingInstruction;
   isParameterContext?: boolean;

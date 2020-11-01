@@ -21,7 +21,7 @@ import { templateController } from '../custom-attribute';
 import { Controller } from '../../templating/controller';
 import { ICompiledRenderContext } from '../../templating/render-context';
 import { IViewFactory } from '../../templating/view';
-import type { ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, IComposableController, ISyntheticView, ControllerVisitor } from '../../templating/controller';
+import type { ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, IHydratableController, ISyntheticView, ControllerVisitor } from '../../templating/controller';
 import { Instruction } from '../../renderer';
 
 @templateController('switch')
@@ -51,7 +51,7 @@ export class Switch implements ICustomAttributeViewModel {
   public link(
     flags: LifecycleFlags,
     _parentContext: ICompiledRenderContext,
-    _controller: IComposableController,
+    _controller: IHydratableController,
     _childController: ICustomAttributeController,
     _target: INode,
     _instruction: Instruction,
@@ -273,7 +273,7 @@ export class Case implements ICustomAttributeViewModel {
   public link(
     flags: LifecycleFlags,
     parentContext: ICompiledRenderContext,
-    controller: IComposableController,
+    controller: IHydratableController,
     _childController: ICustomAttributeController,
     _target: INode,
     _instruction: Instruction,

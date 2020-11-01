@@ -9,7 +9,7 @@ import {
   LifecycleFlags,
   StandardConfiguration,
   ICompiledRenderContext,
-  IComposableController,
+  IHydratableController,
   IBinding,
   CallBindingInstruction,
   AttrSyntax,
@@ -83,14 +83,14 @@ describe('TranslationParametersBindingRenderer', function () {
     assert.equal(sut.instructionType, TranslationParametersInstructionType);
   });
 
-  it('#compose instantiates TranslationBinding if there are none existing', function () {
+  it('#render instantiates TranslationBinding if there are none existing', function () {
     const container = createFixture();
     const sut: IRenderer = new TranslationParametersBindingRenderer(container.get(IExpressionParser), container.get(IObserverLocator));
     const expressionParser = container.get(IExpressionParser);
-    const controller = ({ bindings: [], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); }} as unknown as IComposableController);
+    const controller = ({ bindings: [], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); }} as unknown as IHydratableController);
     const callBindingInstruction: CallBindingInstruction = { from: expressionParser.parse('{foo: "bar"}', BindingType.BindCommand) } as unknown as CallBindingInstruction;
 
-    sut.compose(
+    sut.render(
       LifecycleFlags.none,
       container as unknown as ICompiledRenderContext,
       controller,
@@ -101,20 +101,20 @@ describe('TranslationParametersBindingRenderer', function () {
     assert.instanceOf(controller.bindings[0], TranslationBinding);
   });
 
-  it('#compose add the paramExpr to the existing TranslationBinding for the target element', function () {
+  it('#render add the paramExpr to the existing TranslationBinding for the target element', function () {
     const container = createFixture();
     const sut: IRenderer = new TranslationParametersBindingRenderer(container.get(IExpressionParser), container.get(IObserverLocator));
     const expressionParser = container.get(IExpressionParser);
     const targetElement = PLATFORM.document.createElement('span');
     const binding = new TranslationBinding(targetElement, container.get(IObserverLocator), container);
-    const composable = ({ bindings: [binding] } as unknown as IComposableController);
+    const hydratable = ({ bindings: [binding] } as unknown as IHydratableController);
     const paramExpr = expressionParser.parse('{foo: "bar"}', BindingType.BindCommand);
     const callBindingInstruction: CallBindingInstruction = { from: paramExpr } as unknown as CallBindingInstruction;
 
-    sut.compose(
+    sut.render(
       LifecycleFlags.none,
       container as unknown as ICompiledRenderContext,
-      composable,
+      hydratable,
       targetElement,
       callBindingInstruction,
     );

@@ -11,12 +11,12 @@ import {
   Controller,
   CustomElementDefinition,
   getRenderContext,
-  IComposableController,
+  IHydratableController,
   IRenderLocation,
-  PropertyBindingComposerRegistration,
+  PropertyBindingRendererRegistration,
   ITargetAccessorLocatorRegistration,
   ITargetObserverLocatorRegistration,
-  TextBindingComposerRegistration,
+  TextBindingRendererRegistration,
   TextBindingInstruction,
   Interpolation,
 } from '@aurelia/runtime-html';
@@ -107,8 +107,8 @@ describe(`If/Else`, function () {
   const container = createContainer().register(
     ITargetAccessorLocatorRegistration,
     ITargetObserverLocatorRegistration,
-    PropertyBindingComposerRegistration,
-    TextBindingComposerRegistration,
+    PropertyBindingRendererRegistration,
+    TextBindingRendererRegistration,
   );
 
   const marker = PLATFORM.document.createElement('au-m');
@@ -177,7 +177,7 @@ describe(`If/Else`, function () {
           elseSut = new Else(elseFactory);
         }
         const ifController = (sut as Writable<If>).$controller = Controller.forCustomAttribute(null, container, sut, (void 0)!);
-        elseSut.link(LifecycleFlags.none, void 0!, { children: [ifController] } as unknown as IComposableController, void 0!, void 0!, void 0!);
+        elseSut.link(LifecycleFlags.none, void 0!, { children: [ifController] } as unknown as IHydratableController, void 0!, void 0!, void 0!);
 
         const firstBindInitialNodesText: string = value1 ? ifText : elseText;
         const firstBindFinalNodesText = firstBindInitialNodesText;

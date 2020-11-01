@@ -18,7 +18,7 @@ import {
 import { IRenderLocation } from '../../dom';
 import { IViewFactory } from '../../templating/view';
 import { templateController } from '../custom-attribute';
-import type { ISyntheticView, ICustomAttributeController, IComposableController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller';
+import type { ISyntheticView, ICustomAttributeController, IHydratableController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller';
 import { IController } from '../../templating/controller';
 
 type Items<C extends ObservedCollection = IObservedArray> = C | undefined;
@@ -47,7 +47,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray> implements IC
 
   public constructor(
     @IRenderLocation public location: IRenderLocation,
-    @IController public composable: IComposableController,
+    @IController public parent: IHydratableController,
     @IViewFactory public factory: IViewFactory
   ) {}
 
@@ -57,7 +57,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray> implements IC
     flags: LF,
   ): void | Promise<void> {
     this.checkCollectionObserver(flags);
-    const bindings = this.composable.bindings as PropertyBinding[];
+    const bindings = this.parent.bindings as PropertyBinding[];
     let binding: PropertyBinding = (void 0)!;
     for (let i = 0, ii = bindings.length; i < ii; ++i) {
       binding = bindings[i];

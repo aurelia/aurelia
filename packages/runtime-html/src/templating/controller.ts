@@ -1091,10 +1091,10 @@ export interface IComponentController<C extends IViewModel = IViewModel> extends
  * The base type for `ISyntheticView` and `ICustomElementController`.
  *
  * Both of those types can:
- * - Have `bindings` and `children` which are populated during composing (hence, 'Composable').
+ * - Have `bindings` and `children` which are populated during hydration (hence, 'Hydratable').
  * - Have physical DOM nodes that can be mounted.
  */
-export interface IComposableController<C extends IViewModel = IViewModel> extends IController<C> {
+export interface IHydratableController<C extends IViewModel = IViewModel> extends IController<C> {
   readonly vmKind: ViewModelKind.customElement | ViewModelKind.synthetic;
   readonly mountTarget: MountTarget;
   readonly definition: CustomElementDefinition | null;
@@ -1134,11 +1134,11 @@ export function stringifyState(state: State): string {
 /**
  * The controller for a synthetic view, that is, a controller created by an `IViewFactory`.
  *
- * A synthetic view, typically created when composing a template controller (`if`, `repeat`, etc), is a composable component with mountable DOM nodes that has no user view model.
+ * A synthetic view, typically created when composing a template controller (`if`, `repeat`, etc), is a hydratable component with mountable DOM nodes that has no user view model.
  *
  * It has either its own synthetic binding context or is locked to some externally sourced scope (in the case of `au-compose`)
  */
-export interface ISyntheticView extends IComposableController {
+export interface ISyntheticView extends IHydratableController {
   parent: IHydratedComponentController | null;
 
   readonly vmKind: ViewModelKind.synthetic;
@@ -1265,7 +1265,7 @@ export interface ICustomAttributeController<C extends ICustomAttributeViewModel 
  *
  * It is not yet hydrated (hence 'dry') with any render-specific information.
  */
-export interface IDryCustomElementController<C extends IViewModel = IViewModel> extends IComponentController<C>, IComposableController<C> {
+export interface IDryCustomElementController<C extends IViewModel = IViewModel> extends IComponentController<C>, IHydratableController<C> {
   readonly vmKind: ViewModelKind.customElement;
   readonly definition: CustomElementDefinition;
   /**
@@ -1432,7 +1432,7 @@ export interface ICustomAttributeViewModel extends IViewModel, IActivationHooks<
   link?(
     flags: LifecycleFlags,
     parentContext: ICompiledRenderContext,
-    controller: IComposableController,
+    controller: IHydratableController,
     childController: ICustomAttributeController,
     target: INode,
     instruction: Instruction,

@@ -5,7 +5,7 @@ import { Instruction } from '../../renderer';
 import { ICompiledRenderContext } from '../../templating/render-context';
 import { IViewFactory } from '../../templating/view';
 import { templateController } from '../custom-attribute';
-import type { ISyntheticView, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor, IComposableController } from '../../templating/controller';
+import type { ISyntheticView, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor, IHydratableController } from '../../templating/controller';
 
 @templateController('if')
 export class If implements ICustomAttributeViewModel {
@@ -132,7 +132,7 @@ export class Else {
   public link(
     flags: LifecycleFlags,
     parentContext: ICompiledRenderContext,
-    controller: IComposableController,
+    controller: IHydratableController,
     _childController: ICustomAttributeController,
     _target: INode,
     _instruction: Instruction,

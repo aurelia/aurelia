@@ -645,12 +645,9 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
     switch (this.vmKind) {
       case ViewModelKind.customElement:
-        this.projector!.take(this.nodes!);
-        break;
       case ViewModelKind.synthetic:
         this.nodes!.remove();
         this.nodes!.unlink();
-        break;
     }
 
     let promises: Promise<void>[] | undefined = void 0;
@@ -663,12 +660,9 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
         switch (cur.vmKind) {
           case ViewModelKind.customElement:
-            cur.projector!.take(cur.nodes!);
-            break;
           case ViewModelKind.synthetic:
             cur.nodes!.remove();
             cur.nodes!.unlink();
-            break;
         }
       }
       ret = cur.unbinding();
@@ -1058,11 +1052,6 @@ export class ShadowDOMProjector {
     styles.applyTo(this.shadowRoot);
     nodes.appendTo(this.shadowRoot);
   }
-
-  public take(nodes: INodeSequence): void {
-    nodes.remove();
-    nodes.unlink();
-  }
 }
 
 export class ContainerlessProjector {
@@ -1100,11 +1089,6 @@ export class ContainerlessProjector {
   public project(nodes: INodeSequence): void {
     nodes.insertBefore(this.host);
   }
-
-  public take(nodes: INodeSequence): void {
-    nodes.remove();
-    nodes.unlink();
-  }
 }
 
 export class HostProjector {
@@ -1130,10 +1114,5 @@ export class HostProjector {
 
   public project(nodes: INodeSequence): void {
     nodes.appendTo(this.host, this.enhance);
-  }
-
-  public take(nodes: INodeSequence): void {
-    nodes.remove();
-    nodes.unlink();
   }
 }

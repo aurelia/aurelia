@@ -83,7 +83,7 @@ export function isInstruction(value: unknown): value is IInstruction {
 }
 
 export class InterpolationInstruction {
-  public type: InstructionType.interpolation = InstructionType.interpolation;
+  public get type(): InstructionType.interpolation { return InstructionType.interpolation; }
 
   public constructor(
     public from: string | Interpolation,
@@ -102,7 +102,7 @@ export class PropertyBindingInstruction {
 }
 
 export class IteratorBindingInstruction {
-  public type: InstructionType.iteratorBinding = InstructionType.iteratorBinding;
+  public get type(): InstructionType.iteratorBinding { return InstructionType.iteratorBinding; }
 
   public constructor(
     public from: string | ForOfStatement,
@@ -111,7 +111,7 @@ export class IteratorBindingInstruction {
 }
 
 export class CallBindingInstruction {
-  public type: InstructionType.callBinding = InstructionType.callBinding;
+  public get type(): InstructionType.callBinding { return InstructionType.callBinding; }
 
   public constructor(
     public from: string | IsBindingBehavior,
@@ -120,18 +120,16 @@ export class CallBindingInstruction {
 }
 
 export class RefBindingInstruction {
-  public type: InstructionType.refBinding = InstructionType.refBinding;
+  public get type(): InstructionType.refBinding { return InstructionType.refBinding; }
 
   public constructor(
     public readonly from: string | IsBindingBehavior,
     public readonly to: string
-  ) {
-    this.type = InstructionType.refBinding;
-  }
+  ) {}
 }
 
 export class SetPropertyInstruction {
-  public type: InstructionType.setProperty = InstructionType.setProperty;
+  public get type(): InstructionType.setProperty { return InstructionType.setProperty; }
 
   public constructor(
     public value: unknown,
@@ -140,7 +138,7 @@ export class SetPropertyInstruction {
 }
 
 export class HydrateElementInstruction {
-  public type: InstructionType.composeElement = InstructionType.composeElement;
+  public get type(): InstructionType.composeElement { return InstructionType.composeElement; }
 
   public constructor(
     public res: string,
@@ -150,7 +148,7 @@ export class HydrateElementInstruction {
 }
 
 export class HydrateAttributeInstruction {
-  public type: InstructionType.composeAttribute = InstructionType.composeAttribute;
+  public get type(): InstructionType.composeAttribute { return InstructionType.composeAttribute; }
 
   public constructor(
     public res: string,
@@ -159,7 +157,7 @@ export class HydrateAttributeInstruction {
 }
 
 export class HydrateTemplateController {
-  public type: InstructionType.composeTemplateController = InstructionType.composeTemplateController;
+  public get type(): InstructionType.composeTemplateController { return InstructionType.composeTemplateController; }
 
   public constructor(
     public def: PartialCustomElementDefinition,
@@ -169,7 +167,7 @@ export class HydrateTemplateController {
 }
 
 export class HydrateLetElementInstruction {
-  public type: InstructionType.composeLetElement = InstructionType.composeLetElement;
+  public get type(): InstructionType.composeLetElement { return InstructionType.composeLetElement; }
 
   public constructor(
     public instructions: LetBindingInstruction[],
@@ -178,7 +176,7 @@ export class HydrateLetElementInstruction {
 }
 
 export class LetBindingInstruction {
-  public type: InstructionType.letBinding = InstructionType.letBinding;
+  public get type(): InstructionType.letBinding { return InstructionType.letBinding; }
 
   public constructor(
     public from: string | IsBindingBehavior | Interpolation,
@@ -187,7 +185,7 @@ export class LetBindingInstruction {
 }
 
 export class TextBindingInstruction {
-  public type: InstructionType.textBinding = InstructionType.textBinding;
+  public get type(): InstructionType.textBinding { return InstructionType.textBinding; }
 
   public constructor(
     public from: string | Interpolation,
@@ -195,7 +193,7 @@ export class TextBindingInstruction {
 }
 
 export class TriggerBindingInstruction {
-  public type: InstructionType.listenerBinding = InstructionType.listenerBinding;
+  public get type(): InstructionType.listenerBinding { return InstructionType.listenerBinding; }
 
   public preventDefault: true = true;
   public strategy: DelegationStrategy.none = DelegationStrategy.none;
@@ -207,7 +205,7 @@ export class TriggerBindingInstruction {
 }
 
 export class DelegateBindingInstruction {
-  public type: InstructionType.listenerBinding = InstructionType.listenerBinding;
+  public get type(): InstructionType.listenerBinding { return InstructionType.listenerBinding; }
 
   public preventDefault: false = false;
   public strategy: DelegationStrategy.bubbling = DelegationStrategy.bubbling;
@@ -219,7 +217,7 @@ export class DelegateBindingInstruction {
 }
 
 export class CaptureBindingInstruction {
-  public type: InstructionType.listenerBinding = InstructionType.listenerBinding;
+  public get type(): InstructionType.listenerBinding { return InstructionType.listenerBinding; }
 
   public preventDefault: false = false;
   public strategy: DelegationStrategy.capturing = DelegationStrategy.capturing;
@@ -231,7 +229,7 @@ export class CaptureBindingInstruction {
 }
 
 export class StylePropertyBindingInstruction {
-  public type: InstructionType.stylePropertyBinding = InstructionType.stylePropertyBinding;
+  public get type(): InstructionType.stylePropertyBinding { return InstructionType.stylePropertyBinding; }
 
   public constructor(
     public from: string | IsBindingBehavior,
@@ -240,7 +238,7 @@ export class StylePropertyBindingInstruction {
 }
 
 export class SetAttributeInstruction {
-  public type: InstructionType.setAttribute = InstructionType.setAttribute;
+  public get type(): InstructionType.setAttribute { return InstructionType.setAttribute; }
 
   public constructor(
     public value: string,
@@ -265,7 +263,7 @@ export class SetStyleAttributeInstruction {
 }
 
 export class AttributeBindingInstruction {
-  public type: InstructionType.attributeBinding = InstructionType.attributeBinding;
+  public get type(): InstructionType.attributeBinding { return InstructionType.attributeBinding; }
 
   public constructor(
     /**

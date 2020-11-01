@@ -454,7 +454,6 @@ const defaultCustomElementDefinitionProperties = {
   isStrictBinding: false,
   hasSlots: false,
   shadowOptions: null,
-  strategy: 1,
   surrogates: [],
 };
 

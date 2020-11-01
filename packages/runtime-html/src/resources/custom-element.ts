@@ -40,7 +40,6 @@ export type PartialCustomElementDefinition = PartialResourceDefinition<{
   readonly isStrictBinding?: boolean;
   readonly shadowOptions?: { mode: 'open' | 'closed' } | null;
   readonly hasSlots?: boolean;
-  readonly hooks?: Readonly<HooksDefinition>;
   readonly enhance?: boolean;
   readonly projectionsMap?: Map<IInstruction, IProjections>;
 }>;

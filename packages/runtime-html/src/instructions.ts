@@ -39,12 +39,6 @@ export const enum InstructionType {
   setStyleAttribute = 'hg',
 }
 
-export type ListenerBindingInstruction = (
-  TriggerBindingInstruction |
-  DelegateBindingInstruction |
-  CaptureBindingInstruction
-);
-
 export type NodeInstruction =
   HydrateElementInstruction |
   HydrateTemplateController |
@@ -192,42 +186,16 @@ export class TextBindingInstruction {
   ) {}
 }
 
-export class TriggerBindingInstruction {
+export class ListenerBindingInstruction {
   public get type(): InstructionType.listenerBinding { return InstructionType.listenerBinding; }
-
-  public preventDefault: true = true;
-  public strategy: DelegationStrategy.none = DelegationStrategy.none;
 
   public constructor(
     public from: string | IsBindingBehavior,
     public to: string,
+    public preventDefault: boolean,
+    public strategy: DelegationStrategy,
   ) {}
 }
-
-export class DelegateBindingInstruction {
-  public get type(): InstructionType.listenerBinding { return InstructionType.listenerBinding; }
-
-  public preventDefault: false = false;
-  public strategy: DelegationStrategy.bubbling = DelegationStrategy.bubbling;
-
-  public constructor(
-    public from: string | IsBindingBehavior,
-    public to: string,
-  ) {}
-}
-
-export class CaptureBindingInstruction {
-  public get type(): InstructionType.listenerBinding { return InstructionType.listenerBinding; }
-
-  public preventDefault: false = false;
-  public strategy: DelegationStrategy.capturing = DelegationStrategy.capturing;
-
-  public constructor(
-    public from: string | IsBindingBehavior,
-    public to: string,
-  ) {}
-}
-
 export class StylePropertyBindingInstruction {
   public get type(): InstructionType.stylePropertyBinding { return InstructionType.stylePropertyBinding; }
 

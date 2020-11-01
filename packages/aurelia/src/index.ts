@@ -895,14 +895,11 @@ export {
   // FragmentNodeSequence,
 
   // AttributeBindingInstruction,
-  // CaptureBindingInstruction,
-  // DelegateBindingInstruction,
   // SetAttributeInstruction,
   // SetClassAttributeInstruction,
   // SetStyleAttributeInstruction,
   // StylePropertyBindingInstruction,
   // TextBindingInstruction,
-  // TriggerBindingInstruction,
 
   // ContainerlessProjector,
   // HostProjector,

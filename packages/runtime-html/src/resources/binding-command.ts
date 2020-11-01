@@ -12,18 +12,16 @@ import {
   firstDefined,
   Metadata
 } from '@aurelia/kernel';
-import { BindingMode, BindingType, ForOfStatement, IsBindingBehavior, registerAliases } from '@aurelia/runtime';
+import { BindingMode, BindingType, DelegationStrategy, ForOfStatement, IsBindingBehavior, registerAliases } from '@aurelia/runtime';
 import {
   IInstruction,
   AttributeBindingInstruction,
-  CaptureBindingInstruction,
-  DelegateBindingInstruction,
   PropertyBindingInstruction,
-  TriggerBindingInstruction,
   CallBindingInstruction,
   IteratorBindingInstruction,
   AttributeInstruction,
   RefBindingInstruction,
+  ListenerBindingInstruction,
 } from '../instructions';
 import { BindingSymbol, PlainAttributeSymbol, SymbolFlags } from '../semantic-model';
 
@@ -225,39 +223,30 @@ export class ForBindingCommand implements BindingCommandInstance {
   }
 }
 
-/**
- * Trigger binding command. Compile attr with binding symbol with command `trigger` to `TriggerBindingInstruction`
- */
 @bindingCommand('trigger')
 export class TriggerBindingCommand implements BindingCommandInstance {
   public readonly bindingType: BindingType.TriggerCommand = BindingType.TriggerCommand;
 
   public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
-    return new TriggerBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, false));
+    return new ListenerBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, false), true, DelegationStrategy.none);
   }
 }
 
-/**
- * Delegate binding command. Compile attr with binding symbol with command `delegate` to `DelegateBindingInstruction`
- */
 @bindingCommand('delegate')
 export class DelegateBindingCommand implements BindingCommandInstance {
   public readonly bindingType: BindingType.DelegateCommand = BindingType.DelegateCommand;
 
   public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
-    return new DelegateBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, false));
+    return new ListenerBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, false), false, DelegationStrategy.bubbling);
   }
 }
 
-/**
- * Capture binding command. Compile attr with binding symbol with command `capture` to `CaptureBindingInstruction`
- */
 @bindingCommand('capture')
 export class CaptureBindingCommand implements BindingCommandInstance {
   public readonly bindingType: BindingType.CaptureCommand = BindingType.CaptureCommand;
 
   public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
-    return new CaptureBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, false));
+    return new ListenerBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, false), false, DelegationStrategy.capturing);
   }
 }
 

@@ -209,7 +209,7 @@ describe('Styles', function () {
       );
 
       const component = new FooBar();
-      const controller = Controller.forCustomElement(null, ctx.container, component, host, null, null);
+      const controller = Controller.forCustomElement(null, context, component, host, null, null);
 
       controller.activate(controller, null, LifecycleFlags.none);
 

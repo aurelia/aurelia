@@ -661,14 +661,13 @@ function createAttributeInstruction(bindableDescription: BindableDefinition | nu
   const cmd = parts.pop();
   const defaultMode = !!bindableDescription ? (bindableDescription.mode === BindingMode.default ? BindingMode.toView : bindableDescription.mode) : BindingMode.toView;
   const mode = commandToMode[cmd] || defaultMode;
-  const oneTime = mode === BindingMode.oneTime;
 
   if (!!bindableDescription) {
     if (!!cmd && validCommands.includes(cmd)) {
       const type = TT.propertyBinding;
       const to = bindableDescription.property;
       const from = parseExpression(attributeValue);
-      return { type, to, mode, from, oneTime };
+      return { type, to, mode, from };
     } else {
       const from = parseExpression(attributeValue, BindingType.Interpolation);
       if (!!from) {
@@ -687,7 +686,7 @@ function createAttributeInstruction(bindableDescription: BindableDefinition | nu
     const to = attr;
     if (!!cmd && validCommands.includes(cmd)) {
       const from = parseExpression(attributeValue);
-      return { type, to, mode, from, oneTime };
+      return { type, to, mode, from };
     } else {
       const from = parseExpression(attributeValue, BindingType.Interpolation);
       if (!!from) {
@@ -808,9 +807,6 @@ describe(`TemplateCompiler - combinations`, function () {
         (ctx, [, , to],      [attr, value]) => [`${attr}.two-way`,   { type: TT.propertyBinding, from: value.length > 0 ? new AccessScopeExpression(value) : new PrimitiveLiteralExpression(value), to, mode: BindingMode.twoWay }]
       ] as ((ctx: TestContext, $1: [Record<string, BindableDefinition>, BindingMode, string], $2: [string, string, Constructable], $3: BindingMode) => [string, any])[]
     ],                       (ctx, [bindables], [attr, value, ctor], defaultBindingMode, [name, childInstruction]) => {
-      if (childInstruction.mode !== undefined) {
-        childInstruction.oneTime = childInstruction.mode === BindingMode.oneTime;
-      }
       const def = { name: attr, defaultBindingMode, bindables };
       const markup = `<div ${name}="${value}"></div>`;
 

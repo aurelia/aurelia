@@ -57,8 +57,9 @@ describe('5-jit-html/template-compiler.test-apps.spec.ts', function () {
 
     await startPromise;
 
+    const expectedNodeCount = /* MAX_LEVEL = 6 > 2 ** 7 - 1 nodes */ 2 ** 7 - 1;
     let gNodes = appHost.querySelectorAll('svg g');
-    assert.strictEqual(gNodes.length, 2047, 'should have rendered 2047 <g/>');
+    assert.strictEqual(gNodes.length, expectedNodeCount, 'should have rendered 127 <g/>');
     gNodes.forEach((g, idx) => {
       assert.equal(g.getAttribute('transform'), idx === 0 ? null : '');
     });
@@ -67,7 +68,7 @@ describe('5-jit-html/template-compiler.test-apps.spec.ts', function () {
     ctx.platform.domWriteQueue.flush();
 
     gNodes = appHost.querySelectorAll('svg g');
-    assert.strictEqual(gNodes.length, 2047, 'should have rendered 2047 <g/>');
+    assert.strictEqual(gNodes.length, expectedNodeCount, 'should have rendered 127 <g/>');
     gNodes.forEach(g => {
       assert.notEqual(g.getAttribute('transform'), '');
     });
@@ -75,7 +76,7 @@ describe('5-jit-html/template-compiler.test-apps.spec.ts', function () {
     await tearDown();
   });
 
-  const MAX_LEVEL = 10;
+  const MAX_LEVEL = 6;
   const BASE_SIZE = 100;
   const DEGREES = 180 / Math.PI;
 

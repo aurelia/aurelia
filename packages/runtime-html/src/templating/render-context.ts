@@ -20,12 +20,11 @@ import {
   ICustomElementViewModel,
   IComposableController,
 } from '../lifecycle';
-import { IRenderer, ITemplateCompiler } from '../renderer';
+import { IRenderer, ITemplateCompiler, IInstruction, Instruction, InstructionTypeName } from '../renderer';
 import { CustomElementDefinition, PartialCustomElementDefinition } from '../resources/custom-element';
 import { IViewFactory, ViewFactory } from './view';
 import { AuSlotContentType, IProjectionProvider, RegisteredProjections } from '../resources/custom-elements/au-slot';
 import { IPlatform } from '../platform';
-import { IInstruction, Instruction, InstructionTypeName } from '../instructions';
 
 const definitionContainerLookup = new WeakMap<CustomElementDefinition, WeakMap<IContainer, RenderContext>>();
 const definitionContainerProjectionsLookup = new WeakMap<CustomElementDefinition, WeakMap<IContainer, WeakMap<Record<string, CustomElementDefinition>, RenderContext>>>();

@@ -12,7 +12,7 @@ import {
 } from '../../lifecycle';
 import { customElement, CustomElementDefinition } from '../custom-element';
 import { IViewFactory } from '../../templating/view';
-import { IInstruction, Instruction } from '../../instructions';
+import { IInstruction, Instruction } from '../../renderer';
 
 export type IProjections = Record<string, CustomElementDefinition>;
 export const IProjections = DI.createInterface<IProjections>("IProjections").noDefault();

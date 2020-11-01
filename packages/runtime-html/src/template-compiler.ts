@@ -48,11 +48,11 @@ import {
   SetPropertyInstruction,
   SetStyleAttributeInstruction,
   TextBindingInstruction,
-} from './instructions';
+  ITemplateCompiler,
+} from './renderer';
 import { IAttributeParser } from './resources/attribute-pattern';
 import { AuSlotContentType, IProjections, ProjectionContext, RegisteredProjections, SlotInfo } from './resources/custom-elements/au-slot';
 import { CustomElement, CustomElementDefinition, PartialCustomElementDefinition } from './resources/custom-element';
-import { ITemplateCompiler } from './renderer';
 import { IPlatform } from './platform';
 
 class CustomElementCompilationUnit {

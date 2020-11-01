@@ -6,7 +6,7 @@ import {
   IInstruction,
   InstructionType,
   Instruction,
-} from './instructions';
+} from './renderer';
 import { ISyntheticView } from './lifecycle';
 import { IPlatform } from './platform';
 import { CustomElement, CustomElementDefinition, CustomElementType } from './resources/custom-element';

@@ -9,7 +9,7 @@ import { CustomAttributeDefinition } from './resources/custom-attribute';
 import type { IAppRoot } from './app-root';
 import { IPlatform } from './platform';
 import { ElementProjector } from './projectors';
-import { Instruction } from './instructions';
+import { Instruction } from './renderer';
 
 export const enum ViewModelKind {
   customElement,

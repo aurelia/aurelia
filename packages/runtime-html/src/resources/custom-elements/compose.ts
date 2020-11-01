@@ -1,7 +1,7 @@
 import { Constructable, nextId, emptyArray, onResolve } from '@aurelia/kernel';
 import { BindingMode, LifecycleFlags, bindable } from '@aurelia/runtime';
 import { createElement, RenderPlan } from '../../create-element';
-import { HydrateElementInstruction, IInstruction, Instruction } from '../../instructions';
+import { HydrateElementInstruction, IInstruction, Instruction } from '../../renderer';
 import { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, ISyntheticView, MountStrategy } from '../../lifecycle';
 import { IPlatform } from '../../platform';
 import { getRenderContext } from '../../templating/render-context';

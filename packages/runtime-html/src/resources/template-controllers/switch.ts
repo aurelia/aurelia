@@ -31,7 +31,7 @@ import { templateController } from '../custom-attribute';
 import { Controller } from '../../templating/controller';
 import { ICompiledRenderContext } from '../../templating/render-context';
 import { IViewFactory } from '../../templating/view';
-import { Instruction } from '../../instructions';
+import { Instruction } from '../../renderer';
 
 @templateController('switch')
 export class Switch implements ICustomAttributeViewModel {

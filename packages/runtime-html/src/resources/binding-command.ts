@@ -22,7 +22,7 @@ import {
   AttributeInstruction,
   RefBindingInstruction,
   ListenerBindingInstruction,
-} from '../instructions';
+} from '../renderer';
 import { BindingSymbol, PlainAttributeSymbol, SymbolFlags } from '../semantic-model';
 
 export type PartialBindingCommandDefinition = PartialResourceDefinition<{

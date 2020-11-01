@@ -14,17 +14,13 @@ import {
 } from '@aurelia/kernel';
 import { Scope, LifecycleFlags } from '@aurelia/runtime';
 import { FragmentNodeSequence, INode, INodeSequence, IRenderLocation } from '../dom';
-import {
-  IController,
-  ICustomAttributeViewModel,
-  ICustomElementViewModel,
-  IComposableController,
-} from '../lifecycle';
 import { IRenderer, ITemplateCompiler, IInstruction, Instruction, InstructionTypeName } from '../renderer';
 import { CustomElementDefinition, PartialCustomElementDefinition } from '../resources/custom-element';
 import { IViewFactory, ViewFactory } from './view';
 import { AuSlotContentType, IProjectionProvider, RegisteredProjections } from '../resources/custom-elements/au-slot';
 import { IPlatform } from '../platform';
+import { IController } from './controller';
+import type { ICustomAttributeViewModel, ICustomElementViewModel, IComposableController } from './controller';
 
 const definitionContainerLookup = new WeakMap<CustomElementDefinition, WeakMap<IContainer, RenderContext>>();
 const definitionContainerProjectionsLookup = new WeakMap<CustomElementDefinition, WeakMap<IContainer, WeakMap<Record<string, CustomElementDefinition>, RenderContext>>>();

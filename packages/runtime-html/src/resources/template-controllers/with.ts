@@ -1,9 +1,9 @@
 import { nextId } from '@aurelia/kernel';
 import { bindable, LifecycleFlags, Scope } from '@aurelia/runtime';
 import { IRenderLocation } from '../../dom';
-import { ISyntheticView, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../lifecycle';
 import { IViewFactory } from '../../templating/view';
 import { templateController } from '../custom-attribute';
+import type { ISyntheticView, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller';
 
 @templateController('with')
 export class With implements ICustomAttributeViewModel {

@@ -7,11 +7,11 @@ import {
   InstructionType,
   Instruction,
 } from './renderer';
-import { ISyntheticView } from './lifecycle';
 import { IPlatform } from './platform';
 import { CustomElement, CustomElementDefinition, CustomElementType } from './resources/custom-element';
 import { getRenderContext, IRenderContext } from './templating/render-context';
 import { IViewFactory } from './templating/view';
+import type { ISyntheticView } from './templating/controller';
 
 export function createElement<C extends Constructable = Constructable>(
   p: IPlatform,

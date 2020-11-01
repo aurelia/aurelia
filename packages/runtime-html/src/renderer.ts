@@ -25,7 +25,6 @@ import {
 import { AttributeBinding } from './binding/attribute';
 import { Listener } from './binding/listener';
 import { IEventDelegator } from './observation/event-delegator';
-import { IComposableController, IController, ICustomAttributeViewModel, ICustomElementViewModel } from './lifecycle';
 import { CustomElement, CustomElementDefinition, PartialCustomElementDefinition } from './resources/custom-element';
 import { getRenderContext, ICompiledRenderContext } from './templating/render-context';
 import { RegisteredProjections, SlotInfo } from './resources/custom-elements/au-slot';
@@ -34,6 +33,7 @@ import { convertToRenderLocation, INode } from './dom';
 import { Controller } from './templating/controller';
 import { IViewFactory } from './templating/view';
 import { IPlatform } from './platform';
+import type { IComposableController, IController, ICustomAttributeViewModel, ICustomElementViewModel } from './templating/controller';
 
 export const enum InstructionType {
   composeElement = 'ra',

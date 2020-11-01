@@ -19,7 +19,7 @@ import {
   Bindable,
   registerAliases,
 } from '@aurelia/runtime';
-import { ICustomAttributeViewModel, ICustomAttributeController } from '../lifecycle';
+import type { ICustomAttributeViewModel, ICustomAttributeController } from '../templating/controller';
 
 export type PartialCustomAttributeDefinition = PartialResourceDefinition<{
   readonly defaultBindingMode?: BindingMode;

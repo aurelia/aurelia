@@ -16,18 +16,10 @@ import {
   synchronizeIndices,
 } from '@aurelia/runtime';
 import { IRenderLocation } from '../../dom';
-import {
-  ISyntheticView,
-  ICustomAttributeController,
-  IComposableController,
-  IController,
-  ICustomAttributeViewModel,
-  IHydratedController,
-  IHydratedParentController,
-  ControllerVisitor,
-} from '../../lifecycle';
 import { IViewFactory } from '../../templating/view';
 import { templateController } from '../custom-attribute';
+import type { ISyntheticView, ICustomAttributeController, IComposableController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller';
+import { IController } from '../../templating/controller';
 
 type Items<C extends ObservedCollection = IObservedArray> = C | undefined;
 

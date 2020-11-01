@@ -1,8 +1,8 @@
 import { bindable, BindingMode } from '@aurelia/runtime';
 import { INode } from '../../dom';
-import { ICustomAttributeController, ICustomAttributeViewModel } from '../../lifecycle';
 import { IPlatform } from '../../platform';
 import { customAttribute } from '../custom-attribute';
+import type { ICustomAttributeController, ICustomAttributeViewModel } from '../../templating/controller';
 
 /**
  * Focus attribute for element focus binding

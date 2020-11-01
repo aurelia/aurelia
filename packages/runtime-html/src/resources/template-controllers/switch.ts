@@ -17,19 +17,11 @@ import {
   Scope,
 } from '@aurelia/runtime';
 import { INode, IRenderLocation } from '../../dom';
-import {
-  ICustomAttributeController,
-  ICustomAttributeViewModel,
-  IHydratedController,
-  IHydratedParentController,
-  IComposableController,
-  ISyntheticView,
-  ControllerVisitor,
-} from '../../lifecycle';
 import { templateController } from '../custom-attribute';
 import { Controller } from '../../templating/controller';
 import { ICompiledRenderContext } from '../../templating/render-context';
 import { IViewFactory } from '../../templating/view';
+import type { ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, IComposableController, ISyntheticView, ControllerVisitor } from '../../templating/controller';
 import { Instruction } from '../../renderer';
 
 @templateController('switch')

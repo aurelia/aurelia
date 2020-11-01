@@ -1,20 +1,10 @@
 import { Constructable, ConstructableClass, DI, IContainer, Metadata, Protocol } from '@aurelia/kernel';
 import { LifecycleFlags, Scope } from '@aurelia/runtime';
-import {
-  ICustomElementViewModel,
-  ISyntheticView,
-  IDryCustomElementController,
-  IContextualCustomElementController,
-  ICompiledCustomElementController,
-  ICustomElementController,
-  ICustomAttributeController,
-  IHydratedController,
-  IHydratedParentController,
-} from '../lifecycle';
 import { CustomElement, PartialCustomElementDefinition, CustomElementDefinition } from '../resources/custom-element';
 import { Controller } from './controller';
 import { IRenderContext } from './render-context';
 import { AuSlotContentType } from '../resources/custom-elements/au-slot';
+import type { ICustomElementViewModel, ISyntheticView, IDryCustomElementController, IContextualCustomElementController, ICompiledCustomElementController, ICustomElementController, ICustomAttributeController, IHydratedController, IHydratedParentController } from './controller';
 
 export interface IViewFactory extends ViewFactory {}
 export const IViewFactory = DI.createInterface<IViewFactory>('IViewFactory').noDefault();

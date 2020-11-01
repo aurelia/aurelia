@@ -10,11 +10,11 @@ import {
 } from '@aurelia/kernel';
 import { BindingStrategy, LifecycleFlags } from '@aurelia/runtime';
 import { INode } from './dom';
-import { ICustomElementViewModel, ICustomElementController } from './lifecycle';
 import { IAppTask, TaskSlot } from './app-task';
 import { CustomElement, CustomElementDefinition } from './resources/custom-element';
 import { Controller } from './templating/controller';
 import { IPlatform } from './platform';
+import type { ICustomElementViewModel, ICustomElementController } from './templating/controller';
 
 export interface ISinglePageApp {
   strategy?: BindingStrategy;

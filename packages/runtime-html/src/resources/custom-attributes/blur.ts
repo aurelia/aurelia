@@ -1,9 +1,9 @@
 import { emptyArray } from '@aurelia/kernel';
 import { bindable } from '@aurelia/runtime';
 import { INode, NodeType } from '../../dom';
-import { ICustomAttributeController, ICustomAttributeViewModel } from '../../lifecycle';
 import { IPlatform } from '../../platform';
 import { customAttribute } from '../custom-attribute';
+import type { ICustomAttributeController, ICustomAttributeViewModel } from '../../templating/controller';
 
 const unset = Symbol();
 

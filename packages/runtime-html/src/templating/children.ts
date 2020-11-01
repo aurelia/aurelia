@@ -2,8 +2,8 @@
 import { Constructable, Protocol, Metadata, firstDefined, getPrototypeChain, IIndexable } from '@aurelia/kernel';
 import { LifecycleFlags, subscriberCollection, ISubscriberCollection, IAccessor, ISubscribable, IPropertyObserver, ISubscriber } from '@aurelia/runtime';
 import { INode } from '../dom';
-import { ICustomElementViewModel, ICustomElementController } from '../lifecycle';
 import { CustomElement } from '../resources/custom-element';
+import type { ICustomElementViewModel, ICustomElementController } from './controller';
 
 export type PartialChildrenDefinition = {
   callback?: string;

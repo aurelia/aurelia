@@ -114,12 +114,12 @@
 //       @bindable()
 //       public value: any;
 //       public value1: any;
-//       public afterBind(): void {
+//       public bound(): void {
 //         assert.strictEqual(this.value, 'w00t', 'Foo1.this.value');
 //         assert.strictEqual(this.value1, 'w00t1', 'Foo1.this.value1');
 //         boundCalls++;
 //       }
-//       public beforeBind() { this.valueChanged(); }
+//       public binding() { this.valueChanged(); }
 //       public valueChanged(): void {
 //         this.value1 = `${this.value}1`;
 //       }
@@ -132,13 +132,13 @@
 //       public value1: any;
 //       @bindable()
 //       public value2: any;
-//       public afterBind(): void {
+//       public bound(): void {
 //         assert.strictEqual(this.value, 'w00t', 'Foo2.this.value');
 //         assert.strictEqual(this.value1, 'w00t1', 'Foo2.this.value1');
 //         assert.strictEqual(this.value2, 'w00t1', 'Foo2.this.value2');
 //         boundCalls++;
 //       }
-//       public beforeBind() { this.valueChanged(); }
+//       public binding() { this.valueChanged(); }
 //       public valueChanged(): void {
 //         this.value1 = `${this.value}1`;
 //       }
@@ -151,13 +151,13 @@
 //       public value1: any;
 //       @bindable()
 //       public value2: any;
-//       public afterBind(): void {
+//       public bound(): void {
 //         assert.strictEqual(this.value, 'w00t', 'Foo3.this.value');
 //         assert.strictEqual(this.value1, 'w00t1', 'Foo3.this.value1');
 //         assert.strictEqual(this.value2, 'w00t1', 'Foo3.this.value2');
 //         boundCalls++;
 //       }
-//       public beforeBind() { this.valueChanged(); }
+//       public binding() { this.valueChanged(); }
 //       public valueChanged(): void {
 //         this.value1 = `${this.value}1`;
 //       }
@@ -170,13 +170,13 @@
 //       public value1: any;
 //       @bindable()
 //       public value2: any;
-//       public afterBind(): void {
+//       public bound(): void {
 //         assert.strictEqual(this.value, 'w00t', 'Foo4.this.value');
 //         assert.strictEqual(this.value1, 'w00t1', 'Foo4.this.value1');
 //         assert.strictEqual(this.value2, 'w00t1', 'Foo4.this.value2');
 //         boundCalls++;
 //       }
-//       public beforeBind() { this.valueChanged(); }
+//       public binding() { this.valueChanged(); }
 //       public valueChanged(): void {
 //         this.value1 = `${this.value}1`;
 //       }
@@ -189,13 +189,13 @@
 //       public value1: any;
 //       @bindable()
 //       public value2: any;
-//       public afterBind(): void {
+//       public bound(): void {
 //         assert.strictEqual(this.value, 'w00t', 'Foo5.this.value');
 //         assert.strictEqual(this.value1, 'w00t1', 'Foo5.this.value1');
 //         assert.strictEqual(this.value2, 'w00t1', 'Foo5.this.value2');
 //         boundCalls++;
 //       }
-//       public beforeBind() { this.valueChanged(); }
+//       public binding() { this.valueChanged(); }
 //       public valueChanged(): void {
 //         this.value1 = `${this.value}1`;
 //       }
@@ -225,7 +225,7 @@
 //       @bindable()
 //       public value: any;
 //       public value1: any;
-//       public beforeBind() { this.valueChanged(); }
+//       public binding() { this.valueChanged(); }
 //       public valueChanged(): void {
 //         this.value1 = `${this.value}1`;
 //       }
@@ -238,7 +238,7 @@
 //       public value1: any;
 //       @bindable()
 //       public value2: any;
-//       public beforeBind() { this.valueChanged(); }
+//       public binding() { this.valueChanged(); }
 //       public valueChanged(): void {
 //         this.value1 = `${this.value}1`;
 //       }
@@ -249,7 +249,7 @@
 //       @bindable()
 //       public value: any;
 //       public value1: any;
-//       public beforeBind() { this.valueChanged(); }
+//       public binding() { this.valueChanged(); }
 //       public valueChanged(): void {
 //         this.value1 = `${this.value}1`;
 //       }
@@ -261,7 +261,7 @@
 //       @bindable()
 //       public value: any;
 //       public value1: any;
-//       public beforeBind() { this.valueChanged(); }
+//       public binding() { this.valueChanged(); }
 //       public valueChanged(): void {
 //         this.value1 = `${this.value}1`;
 //       }
@@ -273,7 +273,7 @@
 //       @bindable()
 //       public value: any;
 //       public value1: any;
-//       public beforeBind() { this.valueChanged(); }
+//       public binding() { this.valueChanged(); }
 //       public valueChanged(): void {
 //         this.value1 = `${this.value}1`;
 //       }
@@ -365,7 +365,7 @@
 //       @bindable()
 //       public value: any;
 //       public value1: any;
-//       public beforeBind() { this.valueChanged(); }
+//       public binding() { this.valueChanged(); }
 //       public valueChanged(): void {
 //         this.value1 = `${this.value}1`;
 //       }
@@ -378,7 +378,7 @@
 //       public value1: any;
 //       @bindable()
 //       public value2: any;
-//       public beforeBind() { this.valueChanged(); }
+//       public binding() { this.valueChanged(); }
 //       public valueChanged(): void {
 //         this.value1 = `${this.value}1`;
 //       }
@@ -389,7 +389,7 @@
 //       @bindable()
 //       public value: any;
 //       public value1: any;
-//       public beforeBind() { this.valueChanged(); }
+//       public binding() { this.valueChanged(); }
 //       public valueChanged(): void {
 //         this.value1 = `${this.value}1`;
 //       }
@@ -831,53 +831,53 @@
 //     ): PartialCustomElementDefinition | void {
 //       this.$calls.addCall(this.id, 'define');
 //     };
-//     proto.beforeCompose = function beforeCompose(
+//     proto.hydrating = function hydrating(
 //       this: TProto,
 //       controller: IContextualCustomElementController<HTMLElement, TProto>,
 //     ): void {
-//       this.$calls.addCall(this.id, 'beforeCompose');
+//       this.$calls.addCall(this.id, 'hydrating');
 //     };
-//     proto.beforeComposeChildren = function beforeComposeChildren(
+//     proto.hydrated = function hydrated(
 //       this: TProto,
 //       controller: ICompiledCustomElementController<HTMLElement, TProto>,
 //     ): void {
-//       this.$calls.addCall(this.id, 'beforeComposeChildren');
+//       this.$calls.addCall(this.id, 'hydrated');
 //     };
-//     proto.afterCompose = function afterCompose(
+//     proto.created = function created(
 //       this: TProto,
 //       controller: ICustomElementController<HTMLElement, TProto>,
 //     ): void {
-//       this.$calls.addCall(this.id, 'afterCompose');
+//       this.$calls.addCall(this.id, 'created');
 //     };
 
-//     proto.beforeBind = function beforeBind(
+//     proto.binding = function binding(
 //       this: TProto,
 //       initiator: IHydratedController,
 //       parent: IHydratedParentController | null,
 //       flags: LifecycleFlags,
 //     ): MaybePromiseOrTask {
-//       this.$calls.addCall(this.id, 'beforeBind');
+//       this.$calls.addCall(this.id, 'binding');
 //     };
-//     proto.afterBind = function afterBind(
+//     proto.bound = function bound(
 //       this: TProto,
 //       flags: LifecycleFlags,
 //     ): void {
-//       this.$calls.addCall(this.id, 'afterBind');
+//       this.$calls.addCall(this.id, 'bound');
 //     };
-//     proto.afterBind = function afterBind(
+//     proto.bound = function bound(
 //       this: TProto,
 //       flags: LifecycleFlags,
 //     ): void {
-//       this.$calls.addCall(this.id, 'afterBind');
+//       this.$calls.addCall(this.id, 'bound');
 //     };
 
-//     proto.beforeUnbind = function beforeUnbind(
+//     proto.unbinding = function unbinding(
 //       this: TProto,
 //       initiator: IHydratedController,
 //       parent: IHydratedParentController | null,
 //       flags: LifecycleFlags,
 //     ): MaybePromiseOrTask {
-//       this.$calls.addCall(this.id, 'beforeUnbind');
+//       this.$calls.addCall(this.id, 'unbinding');
 //     };
 //     proto.afterUnbind = function afterUnbind(
 //       this: TProto,
@@ -900,26 +900,26 @@
 //     ): void {
 //       this.$calls.addCall(this.id, 'beforeAttach');
 //     };
-//     proto.afterAttach = function afterAttach(
+//     proto.attaching = function attaching(
 //       this: TProto,
 //       flags: LifecycleFlags,
 //     ): MaybePromiseOrTask {
-//       this.$calls.addCall(this.id, 'afterAttach');
+//       this.$calls.addCall(this.id, 'attaching');
 //     };
-//     proto.afterAttachChildren = function afterAttachChildren(
+//     proto.attached = function attached(
 //       this: TProto,
 //       flags: LifecycleFlags,
 //     ): void {
-//       this.$calls.addCall(this.id, 'afterAttachChildren');
+//       this.$calls.addCall(this.id, 'attached');
 //     };
 
-//     proto.beforeDetach = function beforeDetach(
+//     proto.detaching = function detaching(
 //       this: TProto,
 //       initiator: IHydratedController,
 //       parent: IHydratedParentController | null,
 //       flags: LifecycleFlags,
 //     ): MaybePromiseOrTask {
-//       this.$calls.addCall(this.id, 'beforeDetach');
+//       this.$calls.addCall(this.id, 'detaching');
 //     };
 //     proto.afterDetach = function afterDetach(
 //       this: TProto,
@@ -956,19 +956,19 @@
 //       const expectedCalls = new CallCollection();
 //       expectedCalls
 //         .addCall(1, 'define')
-//         .addCall(1, 'beforeCompose')
-//         .addCall(1, 'beforeComposeChildren')
-//         .addCall(1, 'afterCompose')
-//         .addCall(1, 'beforeBind')
-//         .addCall(1, 'afterBind')
-//         .addCall(1, 'afterBind')
+//         .addCall(1, 'hydrating')
+//         .addCall(1, 'hydrated')
+//         .addCall(1, 'created')
+//         .addCall(1, 'binding')
+//         .addCall(1, 'bound')
+//         .addCall(1, 'bound')
 //         .addCall(1, 'beforeAttach')
-//         .addCall(1, 'afterAttach')
-//         .addCall(1, 'afterAttachChildren')
-//         .addCall(1, 'beforeDetach')
+//         .addCall(1, 'attaching')
+//         .addCall(1, 'attached')
+//         .addCall(1, 'detaching')
 //         .addCall(1, 'afterDetach')
 //         .addCall(1, 'afterDetachChildren')
-//         .addCall(1, 'beforeUnbind')
+//         .addCall(1, 'unbinding')
 //         .addCall(1, 'afterUnbind')
 //         .addCall(1, 'afterUnbindChildren');
 
@@ -1011,47 +1011,47 @@
 //       const expectedCalls = new CallCollection();
 //       expectedCalls
 //         .addCall(1, 'define')
-//         .addCall(1, 'beforeCompose')
-//         .addCall(1, 'beforeComposeChildren')
+//         .addCall(1, 'hydrating')
+//         .addCall(1, 'hydrated')
 
 //         .addCall(2, 'create')
-//         .addCall(2, 'beforeCompose')
-//         .addCall(2, 'beforeComposeChildren')
+//         .addCall(2, 'hydrating')
+//         .addCall(2, 'hydrated')
 
-//         .addCall(2, 'afterCompose')
-//         .addCall(1, 'afterCompose')
+//         .addCall(2, 'created')
+//         .addCall(1, 'created')
 
-//         .addCall(1, 'beforeBind')
-//         .addCall(1, 'afterBind')
+//         .addCall(1, 'binding')
+//         .addCall(1, 'bound')
 
-//         .addCall(2, 'beforeBind')
-//         .addCall(2, 'afterBind')
+//         .addCall(2, 'binding')
+//         .addCall(2, 'bound')
 
-//         .addCall(2, 'afterBind')
-//         .addCall(1, 'afterBind')
+//         .addCall(2, 'bound')
+//         .addCall(1, 'bound')
 
 //         .addCall(1, 'beforeAttach')
-//         .addCall(1, 'afterAttach')
+//         .addCall(1, 'attaching')
 
 //         .addCall(2, 'beforeAttach')
-//         .addCall(2, 'afterAttach')
+//         .addCall(2, 'attaching')
 
-//         .addCall(2, 'afterAttachChildren')
-//         .addCall(1, 'afterAttachChildren')
+//         .addCall(2, 'attached')
+//         .addCall(1, 'attached')
 
-//         .addCall(1, 'beforeDetach')
+//         .addCall(1, 'detaching')
 //         .addCall(1, 'afterDetach')
 
-//         .addCall(2, 'beforeDetach')
+//         .addCall(2, 'detaching')
 //         .addCall(2, 'afterDetach')
 
 //         .addCall(2, 'afterDetachChildren')
 //         .addCall(1, 'afterDetachChildren')
 
-//         .addCall(1, 'beforeUnbind')
+//         .addCall(1, 'unbinding')
 //         .addCall(1, 'afterUnbind')
 
-//         .addCall(2, 'beforeUnbind')
+//         .addCall(2, 'unbinding')
 //         .addCall(2, 'afterUnbind')
 
 //         .addCall(2, 'afterUnbindChildren')

@@ -1,5 +1,4 @@
-import { Class, Constructable, DI, IContainer, Metadata, emptyArray, Protocol, Registration, ResourceDefinition, ResourceType } from '@aurelia/kernel';
-import { AttrSyntax } from './attribute-parser';
+import { Class, Constructable, DI, IContainer, Metadata, emptyArray, Protocol, Registration, ResourceDefinition, ResourceType, all } from '@aurelia/kernel';
 
 export interface AttributePatternDefinition {
   pattern: string;
@@ -270,16 +269,9 @@ export class SegmentTypes {
   public symbols: number = 0;
 }
 
-export interface ISyntaxInterpreter {
-  add(def: AttributePatternDefinition): void;
-  add(defs: AttributePatternDefinition[]): void;
-  add(defOrDefs: AttributePatternDefinition | AttributePatternDefinition[]): void;
-  interpret(value: string): Interpretation;
-}
-
+export interface ISyntaxInterpreter extends SyntaxInterpreter {}
 export const ISyntaxInterpreter = DI.createInterface<ISyntaxInterpreter>('ISyntaxInterpreter').withDefault(x => x.singleton(SyntaxInterpreter));
 
-/** @internal */
 export class SyntaxInterpreter {
   public rootState: State = new State(null!);
   private readonly initialStates: State[] = [this.rootState];
@@ -410,11 +402,55 @@ export class SyntaxInterpreter {
   }
 }
 
+export class AttrSyntax {
+  public constructor(
+    public rawName: string,
+    public rawValue: string,
+    public target: string,
+    public command: string | null,
+  ) {}
+}
+
 export interface IAttributePattern {
   [pattern: string]: (rawName: string, rawValue: string, parts: readonly string[]) => AttrSyntax;
 }
 
 export const IAttributePattern = DI.createInterface<IAttributePattern>('IAttributePattern').noDefault();
+
+export interface IAttributeParser extends AttributeParser {}
+export const IAttributeParser = DI.createInterface<IAttributeParser>('IAttributeParser').withDefault(x => x.singleton(AttributeParser));
+
+export class AttributeParser {
+  private readonly cache: Record<string, Interpretation> = {};
+  private readonly patterns: Record<string, IAttributePattern>;
+
+  public constructor(
+    @ISyntaxInterpreter private readonly interpreter: ISyntaxInterpreter,
+    @all(IAttributePattern) attrPatterns: IAttributePattern[],
+  ) {
+    const patterns: AttributeParser['patterns'] = this.patterns = {};
+    attrPatterns.forEach(attrPattern => {
+      const defs = AttributePattern.getPatternDefinitions(attrPattern.constructor as Constructable);
+      interpreter.add(defs);
+      defs.forEach(def => {
+        patterns[def.pattern] = attrPattern as unknown as IAttributePattern;
+      });
+    });
+  }
+
+  public parse(name: string, value: string): AttrSyntax {
+    let interpretation = this.cache[name];
+    if (interpretation == null) {
+      interpretation = this.cache[name] = this.interpreter.interpret(name);
+    }
+    const pattern = interpretation.pattern;
+    if (pattern == null) {
+      return new AttrSyntax(name, value, name, null);
+    } else {
+      return this.patterns[pattern][pattern](name, value, interpretation.parts);
+    }
+  }
+}
 
 type DecoratableAttributePattern<TProto, TClass> = Class<TProto & Partial<{} | IAttributePattern>, TClass>;
 type DecoratedAttributePattern<TProto, TClass> = Class<TProto & IAttributePattern, TClass>;
@@ -467,3 +503,45 @@ export const AttributePattern: AttributePattern = Object.freeze({
     return Protocol.annotation.get(Type, AttributePattern.definitionAnnotationKey) as AttributePatternDefinition[];
   }
 });
+
+@attributePattern(
+  { pattern: 'PART.PART', symbols: '.' },
+  { pattern: 'PART.PART.PART', symbols: '.' }
+)
+export class DotSeparatedAttributePattern {
+  public 'PART.PART'(rawName: string, rawValue: string, parts: string[]): AttrSyntax {
+    return new AttrSyntax(rawName, rawValue, parts[0], parts[1]);
+  }
+
+  public 'PART.PART.PART'(rawName: string, rawValue: string, parts: string[]): AttrSyntax {
+    return new AttrSyntax(rawName, rawValue, parts[0], parts[2]);
+  }
+}
+
+@attributePattern(
+  { pattern: 'ref', symbols: '' },
+  { pattern: 'PART.ref', symbols: '.' }
+)
+export class RefAttributePattern {
+  public 'ref'(rawName: string, rawValue: string, parts: string[]): AttrSyntax {
+    return new AttrSyntax(rawName, rawValue, 'element', 'ref');
+  }
+
+  public 'PART.ref'(rawName: string, rawValue: string, parts: string[]): AttrSyntax {
+    return new AttrSyntax(rawName, rawValue, parts[0], 'ref');
+  }
+}
+
+@attributePattern({ pattern: ':PART', symbols: ':' })
+export class ColonPrefixedBindAttributePattern {
+  public ':PART'(rawName: string, rawValue: string, parts: string[]): AttrSyntax {
+    return new AttrSyntax(rawName, rawValue, parts[0], 'bind');
+  }
+}
+
+@attributePattern({ pattern: '@PART', symbols: '@' })
+export class AtPrefixedTriggerAttributePattern {
+  public '@PART'(rawName: string, rawValue: string, parts: string[]): AttrSyntax {
+    return new AttrSyntax(rawName, rawValue, parts[0], 'trigger');
+  }
+}

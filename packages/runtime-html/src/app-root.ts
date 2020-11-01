@@ -10,12 +10,11 @@ import {
 } from '@aurelia/kernel';
 import { LifecycleFlags } from '@aurelia/runtime';
 import { INode } from './dom';
-import { ICustomElementViewModel, ICustomElementController } from './lifecycle';
 import { IAppTask, TaskSlot } from './app-task';
 import { CustomElement, CustomElementDefinition } from './resources/custom-element';
 import { Controller } from './templating/controller';
-import { HooksDefinition } from './definitions';
 import { IPlatform } from './platform';
+import type { ICustomElementViewModel, ICustomElementController } from './templating/controller';
 
 export interface ISinglePageApp {
   host: HTMLElement;
@@ -52,7 +51,7 @@ export class AppRoot implements IDisposable {
       this.enhanceDefinition = CustomElement.getDefinition(
         CustomElement.isType(component)
           ? CustomElement.define({ ...CustomElement.getDefinition(component), template: this.host, enhance: true }, component)
-          : CustomElement.define({ name: (void 0)!, template: this.host, enhance: true, hooks: new HooksDefinition(component) })
+          : CustomElement.define({ name: (void 0)!, template: this.host, enhance: true })
       );
     }
 
@@ -73,10 +72,10 @@ export class AppRoot implements IDisposable {
       )) as Controller;
 
       controller.hydrateCustomElement(container, null);
-      return onResolve(this.runAppTasks('beforeCompose'), () => {
-        controller.compile(null);
-        return onResolve(this.runAppTasks('beforeCompileChildren'), () => {
-          controller.compileChildren();
+      return onResolve(this.runAppTasks('hydrating'), () => {
+        controller.hydrate(null);
+        return onResolve(this.runAppTasks('hydrated'), () => {
+          controller.hydrateChildren();
           this.hydratePromise = void 0;
         });
       });

@@ -40,7 +40,7 @@ export class Pythagoras {
     this.renderLeft = this.renderRight = false;
   }
 
-  beforeBind() {
+  binding() {
     this.renderLeft = this.renderRight = this.level < MAX_LEVEL;
     this.fill = memoizedViridis(this.level, MAX_LEVEL);
   }

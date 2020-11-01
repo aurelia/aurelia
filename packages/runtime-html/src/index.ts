@@ -251,21 +251,17 @@ export {
 export {
   AttrSyntax,
   IAttributeParser,
-} from './attribute-parser';
-export {
   attributePattern,
   AttributePatternDefinition,
   IAttributePattern,
   AttributePattern,
   Interpretation,
   ISyntaxInterpreter,
-} from './attribute-pattern';
-export {
   AtPrefixedTriggerAttributePattern,
   ColonPrefixedBindAttributePattern,
   DotSeparatedAttributePattern,
   RefAttributePattern,
-} from './attribute-patterns';
+} from './resources/attribute-pattern';
 export {
   bindingCommand,
   BindingCommand ,
@@ -274,11 +270,6 @@ export {
   BindingCommandKind,
   BindingCommandType,
   getTarget,
-} from './binding-command';
-export {
-  IAttrSyntaxTransformer
-} from './attribute-syntax-transformer';
-export {
   CallBindingCommand,
   DefaultBindingCommand,
   ForBindingCommand,
@@ -292,7 +283,10 @@ export {
   AttrBindingCommand,
   ClassBindingCommand,
   StyleBindingCommand,
-} from './binding-commands';
+} from './resources/binding-command';
+export {
+  IAttrSyntaxTransformer
+} from './attribute-syntax-transformer';
 export {
   Listener
 } from './binding/listener';
@@ -301,12 +295,37 @@ export {
 } from './binding/attribute';
 
 export {
-  IInstructionComposer,
+  IRenderer,
   IInstructionTypeClassifier,
-  IComposer,
   ITemplateCompiler,
-  instructionComposer,
-} from './composer';
+  renderer,
+  CallBindingInstruction,
+  HydrateAttributeInstruction,
+  HydrateElementInstruction,
+  HydrateTemplateController,
+  InterpolationInstruction,
+  IteratorBindingInstruction,
+  LetBindingInstruction,
+  HydrateLetElementInstruction,
+  RefBindingInstruction,
+  SetPropertyInstruction,
+  AttributeBindingInstruction,
+  ListenerBindingInstruction,
+  PropertyBindingInstruction,
+  SetAttributeInstruction,
+  SetClassAttributeInstruction,
+  SetStyleAttributeInstruction,
+  StylePropertyBindingInstruction,
+  TextBindingInstruction,
+  AttributeInstruction,
+  InstructionRow,
+  isInstruction,
+  NodeInstruction,
+  InstructionTypeName,
+  Instruction,
+  IInstruction,
+  InstructionType,
+} from './renderer';
 
 export {
   AttributeNSAccessor
@@ -377,22 +396,22 @@ export {
   FrequentMutations,
   InfrequentMutations,
   ObserveShallow,
-} from './resources/custom-attributes/flags';
+} from './resources/template-controllers/flags';
 export {
   If,
   Else
-} from './resources/custom-attributes/if';
+} from './resources/template-controllers/if';
 export {
   Repeat
-} from './resources/custom-attributes/repeat';
+} from './resources/template-controllers/repeat';
 export {
   With
-} from './resources/custom-attributes/with';
+} from './resources/template-controllers/with';
 export {
   Switch,
   Case,
   DefaultCase,
-} from './resources/custom-attributes/switch';
+} from './resources/template-controllers/switch';
 
 export {
   Blur,
@@ -407,7 +426,7 @@ export {
   Portal,
   PortalTarget,
   PortalLifecycleCallback
-} from './resources/custom-attributes/portal';
+} from './resources/template-controllers/portal';
 
 export {
   AuSlot,
@@ -422,7 +441,6 @@ export {
 export {
   containerless,
   customElement,
-  CustomElementHost,
   CustomElement,
   CustomElementDecorator,
   CustomElementKind,
@@ -493,39 +511,29 @@ export {
 
   DefaultResources,
 
-  AttributeBindingComposerRegistration,
-  ListenerBindingComposerRegistration,
-  SetAttributeComposerRegistration,
-  SetClassAttributeComposerRegistration,
-  SetStyleAttributeComposerRegistration,
-  StylePropertyBindingComposerRegistration,
-  TextBindingComposerRegistration,
+  AttributeBindingRendererRegistration,
+  ListenerBindingRendererRegistration,
+  SetAttributeRendererRegistration,
+  SetClassAttributeRendererRegistration,
+  SetStyleAttributeRendererRegistration,
+  StylePropertyBindingRendererRegistration,
+  TextBindingRendererRegistration,
 
-  RefBindingComposerRegistration,
-  CallBindingComposerRegistration,
-  CustomAttributeComposerRegistration,
-  CustomElementComposerRegistration,
-  InterpolationBindingComposerRegistration,
-  IteratorBindingComposerRegistration,
-  LetElementComposerRegistration,
-  PropertyBindingComposerRegistration,
-  SetPropertyComposerRegistration,
-  TemplateControllerComposerRegistration,
+  RefBindingRendererRegistration,
+  CallBindingRendererRegistration,
+  CustomAttributeRendererRegistration,
+  CustomElementRendererRegistration,
+  InterpolationBindingRendererRegistration,
+  IteratorBindingRendererRegistration,
+  LetElementRendererRegistration,
+  PropertyBindingRendererRegistration,
+  SetPropertyRendererRegistration,
+  TemplateControllerRendererRegistration,
 
-  DefaultComposers,
+  DefaultRenderers,
 
   StandardConfiguration
 } from './configuration';
-export {
-  HooksDefinition,
-  InstructionTypeName,
-  IInstruction,
-} from './definitions';
-export {
-  stringifyDOM,
-  stringifyInstructions,
-  stringifyTemplateDefinition
-} from './debugging';
 export {
   TemplateBinder,
 } from './template-binder';
@@ -546,14 +554,33 @@ export {
   Controller,
   isCustomElementController,
   isCustomElementViewModel,
+  ViewModelKind,
+  ControllerVisitor,
+  IViewModel,
+  IController,
+  IComponentController,
+  IContextualCustomElementController,
+  IHydratableController,
+  IDryCustomElementController,
+  ICustomAttributeController,
+  IHydratedController,
+  IHydratedComponentController,
+  IHydratedParentController,
+  ICompiledCustomElementController,
+  ICustomElementController,
+  ICustomElementViewModel,
+  ICustomAttributeViewModel,
+  IHydratedCustomElementViewModel,
+  IHydratedCustomAttributeViewModel,
+  ISyntheticView,
 } from './templating/controller';
 export {
-  getCompositionContext,
-  isCompositionContext,
-  ICompositionContext,
-  ICompiledCompositionContext,
+  getRenderContext,
+  isRenderContext,
+  IRenderContext,
+  ICompiledRenderContext,
   IComponentFactory,
-} from './templating/composition-context';
+} from './templating/render-context';
 export {
   ViewFactory,
   IViewFactory,
@@ -564,7 +591,7 @@ export {
 } from './templating/view';
 export {
   createElement,
-  CompositionPlan
+  RenderPlan
 } from './create-element';
 export {
   INode,
@@ -582,77 +609,13 @@ export {
   isRenderLocation,
 } from './dom';
 export {
-  CallBindingInstruction,
-  FromViewBindingInstruction,
-  HydrateAttributeInstruction,
-  HydrateElementInstruction,
-  HydrateTemplateController,
-  InterpolationInstruction,
-  IteratorBindingInstruction,
-  LetBindingInstruction,
-  HydrateLetElementInstruction,
-  OneTimeBindingInstruction,
-  RefBindingInstruction,
-  SetPropertyInstruction,
-  ToViewBindingInstruction,
-  TwoWayBindingInstruction,
-  AttributeBindingInstruction,
-  CaptureBindingInstruction,
-  DelegateBindingInstruction,
-  SetAttributeInstruction,
-  SetClassAttributeInstruction,
-  SetStyleAttributeInstruction,
-  StylePropertyBindingInstruction,
-  TextBindingInstruction,
-  TriggerBindingInstruction,
-  AttributeInstruction,
-  InstructionRow,
-  isInstruction,
-  NodeInstruction,
-  Instruction,
-  InstructionType,
-} from './instructions';
-export {
-  ViewModelKind,
-  ControllerVisitor,
-  IViewModel,
-  IController,
-  IComponentController,
-  IContextualCustomElementController,
-  IComposableController,
-  IDryCustomElementController,
-  ICustomAttributeController,
-  IHydratedController,
-  IHydratedComponentController,
-  IHydratedParentController,
-  ICompiledCustomElementController,
-  ICustomElementController,
-  MountStrategy,
-  ICustomElementViewModel,
-  ICustomAttributeViewModel,
-  IHydratedCustomElementViewModel,
-  IHydratedCustomAttributeViewModel,
-  ISyntheticView,
-} from './lifecycle';
-export {
   IPlatform,
 } from './platform';
-export {
-  ContainerlessProjector,
-  HostProjector,
-  ProjectorLocator,
-  IProjectorLocator,
-  ShadowDOMProjector,
-  ElementProjector,
-} from './projectors';
 
 export {
-  ResourceModel,
   BindableInfo,
   ElementInfo,
-  AttrInfo
-} from './resource-model';
-export {
+  AttrInfo,
   AnySymbol,
   BindingSymbol,
   CustomAttributeSymbol,
@@ -674,21 +637,15 @@ export {
 } from './semantic-model';
 
 export {
-  StyleConfiguration,
-  IShadowDOMConfiguration
-} from './styles/style-configuration';
-export {
   CSSModulesProcessorRegistry,
-  cssModules
-} from './styles/css-modules-registry';
-export {
+  cssModules,
   ShadowDOMRegistry,
   IShadowDOMStyleFactory,
-  shadowCSS
-} from './styles/shadow-dom-registry';
-export {
+  shadowCSS,
+  StyleConfiguration,
+  IShadowDOMConfiguration,
   AdoptedStyleSheetsStyles,
   StyleElementStyles,
   IShadowDOMStyles,
-  IShadowDOMGlobalStyles
-} from './styles/shadow-dom-styles';
+  IShadowDOMGlobalStyles,
+} from './templating/styles';

@@ -6,7 +6,6 @@ import {
   Controller,
   CustomAttribute,
   CustomElement,
-  CustomElementHost,
   INode,
   Aurelia,
 } from '@aurelia/runtime-html';
@@ -142,7 +141,7 @@ describe('3-runtime-html/templating-compiler.ref.spec.ts', function () {
               )
             ],
             assertFn: (ctx, host) => {
-              const ceEl = host.querySelector('c-e') as CustomElementHost;
+              const ceEl = host.querySelector('c-e') as HTMLElement;
               const $celVm = CustomElement.for(ceEl).viewModel as object;
               for (let i = 0, ii = arr.length; ii > i; ++i) {
                 assert.strictEqual(CustomAttribute.for(ceEl, `c-a-${i}`).viewModel, $celVm[`ca${i}`]);
@@ -168,111 +167,91 @@ describe('3-runtime-html/templating-compiler.ref.spec.ts', function () {
       root: class App {
         public static inject = [INode];
         public div: HTMLElement;
-        public beforeBindCalls = 0;
-        public afterBindCalls = 0;
-        public afterAttachCalls = 0;
-        public afterAttachChildrenCalls = 0;
-        public beforeDetachCalls = 0;
-        public beforeUnbindCalls = 0;
-        public afterUnbindCalls = 0;
-        public afterUnbindChildrenCalls = 0;
+        public bindingCalls = 0;
+        public boundCalls = 0;
+        public attachingCalls = 0;
+        public attachedCalls = 0;
+        public detachingCalls = 0;
+        public unbindingCalls = 0;
 
         private readonly el: Element;
         public constructor(el: INode) {
           this.el = el as Element;
         }
 
-        public beforeBind(): void {
-          this.beforeBindCalls++;
-          assert.strictEqual(this.div, undefined, '[beforeBind] div !== undefined');
-          assert.notContains(this.el, this.div, '[beforeBind] this.el.contains(this.div) === false');
+        public binding(): void {
+          this.bindingCalls++;
+          assert.strictEqual(this.div, undefined, '[binding] div !== undefined');
+          assert.notContains(this.el, this.div, '[binding] this.el.contains(this.div) === false');
         }
 
-        public afterBind(): void {
-          this.afterBindCalls++;
-          assert.notStrictEqual(this.div, undefined, '[afterBind] div !== undefined');
-          assert.notContains(this.el, this.div, '[afterBind] this.el.contains(this.div) === false');
+        public bound(): void {
+          this.boundCalls++;
+          assert.notStrictEqual(this.div, undefined, '[bound] div !== undefined');
+          assert.notContains(this.el, this.div, '[bound] this.el.contains(this.div) === false');
         }
 
-        public afterAttach(): void {
-          this.afterAttachCalls++;
+        public attaching(): void {
+          this.attachingCalls++;
           assert.notStrictEqual(this.div, undefined);
-          assert.contains(this.el, this.div, '[afterAttach] this.el.contains(this.div)');
+          assert.contains(this.el, this.div, '[attaching] this.el.contains(this.div)');
         }
 
-        public afterAttachChildren(): void {
-          this.afterAttachChildrenCalls++;
+        public attached(): void {
+          this.attachedCalls++;
           assert.notStrictEqual(this.div, undefined);
-          assert.contains(this.el, this.div, '[afterAttachChildren] this.el.contains(this.div)');
+          assert.contains(this.el, this.div, '[attached] this.el.contains(this.div)');
         }
 
-        public beforeDetach(): void {
-          this.beforeDetachCalls++;
+        public detaching(): void {
+          this.detachingCalls++;
           assert.notStrictEqual(this.div, undefined);
-          assert.contains(this.el, this.div, '[beforeDetach] this.el.contains(this.div)');
+          assert.contains(this.el, this.div, '[detaching] this.el.contains(this.div)');
         }
 
-        public beforeUnbind(): void {
-          this.beforeUnbindCalls++;
+        public unbinding(): void {
+          this.unbindingCalls++;
           assert.notStrictEqual(this.div, undefined);
-          assert.notContains(this.el, this.div, '[beforeUnbind] this.el.contains(this.div)');
-        }
-
-        public afterUnbind(): void {
-          this.afterUnbindCalls++;
-          assert.strictEqual(this.div, null, '[afterUnbind] this.div === null');
-        }
-
-        public afterUnbindChildren(): void {
-          this.afterUnbindChildrenCalls++;
+          assert.notContains(this.el, this.div, '[unbinding] this.el.contains(this.div)');
         }
       },
       assertFn: (
         ctx,
         host,
         comp: {
-          beforeBindCalls: number;
-          afterBindCalls: number;
-          afterAttachCalls: number;
-          afterAttachChildrenCalls: number;
-          beforeDetachCalls: number;
-          afterDetachCalls: number;
-          beforeUnbindCalls: number;
-          afterUnbindCalls: number;
-          afterUnbindChildrenCalls: number;
+          bindingCalls: number;
+          boundCalls: number;
+          attachingCalls: number;
+          attachedCalls: number;
+          detachingCalls: number;
+          unbindingCalls: number;
         }
       ) => {
-        assert.equal(comp.beforeBindCalls, 1, '[beforeBind]');
-        assert.equal(comp.afterBindCalls, 1, '[afterBind]');
-        assert.equal(comp.afterAttachCalls, 1, '[afterAttach]');
-        assert.equal(comp.afterAttachChildrenCalls, 1, '[afterAttachChildren]');
-        assert.equal(comp.beforeDetachCalls, 0, '[beforeDetach]');
-        assert.equal(comp.beforeUnbindCalls, 0, '[beforeUnbind]');
-        assert.equal(comp.afterUnbindCalls, 0, '[afterUnbind]');
-        assert.equal(comp.afterUnbindChildrenCalls, 0, '[afterUnbind]');
+        assert.equal(comp.bindingCalls, 1, '[binding]');
+        assert.equal(comp.boundCalls, 1, '[bound]');
+        assert.equal(comp.attachingCalls, 1, '[attaching]');
+        assert.equal(comp.attachedCalls, 1, '[attached]');
+        assert.equal(comp.detachingCalls, 0, '[detaching]');
+        assert.equal(comp.unbindingCalls, 0, '[unbinding]');
       },
       assertFnAfterDestroy: (
         ctx,
         host,
         comp: {
-          beforeBindCalls: number;
-          afterBindCalls: number;
-          afterAttachCalls: number;
-          afterAttachChildrenCalls: number;
-          beforeDetachCalls: number;
-          beforeUnbindCalls: number;
-          afterUnbindCalls: number;
-          afterUnbindChildrenCalls: number;
+          bindingCalls: number;
+          boundCalls: number;
+          attachingCalls: number;
+          attachedCalls: number;
+          detachingCalls: number;
+          unbindingCalls: number;
         }
       ) => {
-        assert.equal(comp.beforeBindCalls, 1, '[beforeBind]');
-        assert.equal(comp.afterBindCalls, 1, '[afterBind]');
-        assert.equal(comp.afterAttachCalls, 1, '[afterAttach]');
-        assert.equal(comp.afterAttachChildrenCalls, 1, '[afterAttachChildren]');
-        assert.equal(comp.beforeDetachCalls, 1, '[beforeDetach]');
-        assert.equal(comp.beforeUnbindCalls, 1, '[beforeUnbind]');
-        assert.equal(comp.afterUnbindCalls, 1, '[afterUnbind]');
-        assert.equal(comp.afterUnbindChildrenCalls, 1, '[afterUnbind]');
+        assert.equal(comp.bindingCalls, 1, '[binding]');
+        assert.equal(comp.boundCalls, 1, '[bound]');
+        assert.equal(comp.attachingCalls, 1, '[attaching]');
+        assert.equal(comp.attachedCalls, 1, '[attached]');
+        assert.equal(comp.detachingCalls, 1, '[detaching]');
+        assert.equal(comp.unbindingCalls, 1, '[unbinding]');
       }
     },
     ...Array
@@ -327,7 +306,7 @@ describe('3-runtime-html/templating-compiler.ref.spec.ts', function () {
         ] as IRefIntegrationTestCase[];
       })
       .reduce((arr, cases) => arr.concat(cases), []),
-    // #region ref-beforeBind order
+    // #region ref-binding order
     {
       title: 'works regardless of declaration order',
       template: '<input value.to-view="div.toString()"><div ref="div"></div>',
@@ -408,7 +387,7 @@ describe('3-runtime-html/templating-compiler.ref.spec.ts', function () {
         assert.strictEqual(comp.divSetterCount, 11, 'shoulda called setter 11 times' /* 1 comes from $unbind */);
       }
     },
-    // #endregion ref-beforeBind order
+    // #endregion ref-binding order
 
     // #region wrong usage
     // bellow are non-happy-path scenarios

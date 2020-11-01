@@ -181,7 +181,7 @@ describe('5-jit-html/template-compiler.test-apps.spec.ts', function () {
           this.renderLeft = this.renderRight = false;
         }
 
-        public beforeBind() {
+        public binding() {
           this.renderLeft = this.renderRight = this.level < MAX_LEVEL;
           this.fill = memoizedViridis(this.level, MAX_LEVEL);
         }

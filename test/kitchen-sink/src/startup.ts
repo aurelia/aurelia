@@ -6,12 +6,12 @@ import {
   RepeatRegistration,
   OneTimeBindingBehaviorRegistration,
   TwoWayBindingBehaviorRegistration,
-  CustomElementComposerRegistration,
-  InterpolationBindingComposerRegistration,
-  IteratorBindingComposerRegistration,
-  PropertyBindingComposerRegistration,
-  SetPropertyComposerRegistration,
-  TemplateControllerComposerRegistration,
+  CustomElementRendererRegistration,
+  InterpolationBindingRendererRegistration,
+  IteratorBindingRendererRegistration,
+  PropertyBindingRendererRegistration,
+  SetPropertyRendererRegistration,
+  TemplateControllerRendererRegistration,
   ValueConverter,
   AtPrefixedTriggerAttributePatternRegistration,
   ColonPrefixedBindAttributePatternRegistration,
@@ -22,9 +22,9 @@ import {
   TwoWayBindingCommandRegistration,
   ITargetAccessorLocatorRegistration,
   ComposeRegistration,
-  ListenerBindingComposerRegistration,
-  SetAttributeComposerRegistration,
-  TextBindingComposerRegistration,
+  ListenerBindingRendererRegistration,
+  SetAttributeRendererRegistration,
+  TextBindingRendererRegistration,
   ITargetObserverLocatorRegistration,
   ITemplateCompilerRegistration,
   TriggerBindingCommandRegistration,
@@ -50,12 +50,12 @@ const container = DI.createContainer().register(
   TwoWayBindingBehaviorRegistration,
 
   // runtime renderers
-  CustomElementComposerRegistration,
-  InterpolationBindingComposerRegistration,
-  IteratorBindingComposerRegistration,
-  PropertyBindingComposerRegistration,
-  SetPropertyComposerRegistration,
-  TemplateControllerComposerRegistration,
+  CustomElementRendererRegistration,
+  InterpolationBindingRendererRegistration,
+  IteratorBindingRendererRegistration,
+  PropertyBindingRendererRegistration,
+  SetPropertyRendererRegistration,
+  TemplateControllerRendererRegistration,
 
   // runtime-html components
   ITargetObserverLocatorRegistration,
@@ -65,9 +65,9 @@ const container = DI.createContainer().register(
   ComposeRegistration,
 
   // runtime-html renderers
-  ListenerBindingComposerRegistration,
-  SetAttributeComposerRegistration,
-  TextBindingComposerRegistration,
+  ListenerBindingRendererRegistration,
+  SetAttributeRendererRegistration,
+  TextBindingRendererRegistration,
 
   // jit attribute patterns
   DotSeparatedAttributePatternRegistration,

@@ -2,15 +2,13 @@ import { DI, Writable } from '@aurelia/kernel';
 import { IPlatform } from '@aurelia/runtime-html';
 
 export type HookName = (
-  'beforeBind' |
-  'afterBind' |
-  'afterAttach' |
-  'afterAttachChildren' |
+  'binding' |
+  'bound' |
+  'attaching' |
+  'attached' |
 
-  'beforeDetach' |
-  'beforeUnbind' |
-  'afterUnbind' |
-  'afterUnbindChildren' |
+  'detaching' |
+  'unbinding' |
 
   'dispose' |
 
@@ -103,15 +101,13 @@ export class HookInvocationAggregator {
     @IHIAConfig public readonly config: IHIAConfig,
   ) {}
 
-  public readonly beforeBind: HookInvocationTracker = new HookInvocationTracker(this, 'beforeBind');
-  public readonly afterBind: HookInvocationTracker = new HookInvocationTracker(this, 'afterBind');
-  public readonly afterAttach: HookInvocationTracker = new HookInvocationTracker(this, 'afterAttach');
-  public readonly afterAttachChildren: HookInvocationTracker = new HookInvocationTracker(this, 'afterAttachChildren');
+  public readonly binding: HookInvocationTracker = new HookInvocationTracker(this, 'binding');
+  public readonly bound: HookInvocationTracker = new HookInvocationTracker(this, 'bound');
+  public readonly attaching: HookInvocationTracker = new HookInvocationTracker(this, 'attaching');
+  public readonly attached: HookInvocationTracker = new HookInvocationTracker(this, 'attached');
 
-  public readonly beforeDetach: HookInvocationTracker = new HookInvocationTracker(this, 'beforeDetach');
-  public readonly beforeUnbind: HookInvocationTracker = new HookInvocationTracker(this, 'beforeUnbind');
-  public readonly afterUnbind: HookInvocationTracker = new HookInvocationTracker(this, 'afterUnbind');
-  public readonly afterUnbindChildren: HookInvocationTracker = new HookInvocationTracker(this, 'afterUnbindChildren');
+  public readonly detaching: HookInvocationTracker = new HookInvocationTracker(this, 'detaching');
+  public readonly unbinding: HookInvocationTracker = new HookInvocationTracker(this, 'unbinding');
 
   public readonly $$dispose: HookInvocationTracker = new HookInvocationTracker(this, 'dispose');
 
@@ -137,14 +133,12 @@ export class HookInvocationAggregator {
   }
 
   public dispose(): void {
-    this.beforeBind.dispose();
-    this.afterBind.dispose();
-    this.afterAttach.dispose();
-    this.afterAttachChildren.dispose();
-    this.beforeDetach.dispose();
-    this.beforeUnbind.dispose();
-    this.afterUnbind.dispose();
-    this.afterUnbindChildren.dispose();
+    this.binding.dispose();
+    this.bound.dispose();
+    this.attaching.dispose();
+    this.attached.dispose();
+    this.detaching.dispose();
+    this.unbinding.dispose();
     this.$$dispose.dispose();
     this.canLoad.dispose();
     this.load.dispose();
@@ -156,14 +150,12 @@ export class HookInvocationAggregator {
     $this.platform = void 0;
     $this.config = void 0;
 
-    $this.beforeBind = void 0;
-    $this.afterBind = void 0;
-    $this.afterAttach = void 0;
-    $this.afterAttachChildren = void 0;
-    $this.beforeDetach = void 0;
-    $this.beforeUnbind = void 0;
-    $this.afterUnbind = void 0;
-    $this.afterUnbindChildren = void 0;
+    $this.binding = void 0;
+    $this.bound = void 0;
+    $this.attaching = void 0;
+    $this.attached = void 0;
+    $this.detaching = void 0;
+    $this.unbinding = void 0;
     $this.$$dispose = void 0;
     $this.canLoad = void 0;
     $this.load = void 0;

@@ -1,4 +1,5 @@
-import { ElementProjector, If, Repeat, With, ICustomElementController, ViewModelKind, ISyntheticView, Compose, InstructionType } from '@aurelia/runtime-html';
+import { If, Repeat, With, ICustomElementController, ViewModelKind, ISyntheticView, Compose, InstructionType } from '@aurelia/runtime-html';
+import { MountTarget } from '@aurelia/runtime-html/dist/templating/controller';
 import { assert } from './assert';
 
 // Disabling this as it this is nowhere used. And also the ast-serialization infra is moved to validation package.
@@ -66,10 +67,6 @@ export function getVisibleText(root: ICustomElementController, host: Node, remov
   return removeWhiteSpace && text ? text.replace(/\s\s+/g, ' ').trim() : text;
 }
 
-function isShadowDOMProjector(projector: ElementProjector | undefined): projector is ElementProjector & { shadowRoot: ShadowRoot } {
-  return projector != void 0 && 'shadowRoot' in projector;
-}
-
 function $getVisibleText(root: ICustomElementController | ISyntheticView, context: { text: string | null}): void {
   if (root == void 0) {
     return;
@@ -85,8 +82,8 @@ function $getVisibleText(root: ICustomElementController | ISyntheticView, contex
     controller = children[i];
     switch (controller.vmKind) {
       case ViewModelKind.customElement:
-        if (isShadowDOMProjector(controller.projector)) {
-          context.text += controller.projector.shadowRoot.textContent!;
+        if (controller.mountTarget === MountTarget.shadowRoot) {
+          context.text += controller.shadowRoot!.textContent!;
           $getVisibleText(controller, context);
         } else if (controller.viewModel instanceof Compose) {
           $getVisibleText((controller.viewModel as Compose).view!, context);
@@ -129,14 +126,14 @@ export function instructionTypeName(type: string): string {
       return 'setProperty';
     case InstructionType.setAttribute:
       return 'setAttribute';
-    case InstructionType.composeElement:
-      return 'composeElement';
-    case InstructionType.composeAttribute:
-      return 'composeAttribute';
-    case InstructionType.composeTemplateController:
-      return 'composeTemplateController';
-    case InstructionType.composeLetElement:
-      return 'composeLetElement';
+    case InstructionType.hydrateElement:
+      return 'hydrateElement';
+    case InstructionType.hydrateAttribute:
+      return 'hydrateAttribute';
+    case InstructionType.hydrateTemplateController:
+      return 'hydrateTemplateController';
+    case InstructionType.hydrateLetElement:
+      return 'hydrateLetElement';
     case InstructionType.letBinding:
       return 'letBinding';
     default:

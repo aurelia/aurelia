@@ -63,15 +63,13 @@ function getHookSpecs<T extends HookName>(name: T) {
 }
 
 export const hookSpecsMap = {
-  beforeBind: getHookSpecs('beforeBind'),
-  afterBind: getHookSpecs('afterBind'),
-  afterAttach: getHookSpecs('afterAttach'),
-  afterAttachChildren: getHookSpecs('afterAttachChildren'),
+  binding: getHookSpecs('binding'),
+  bound: getHookSpecs('bound'),
+  attaching: getHookSpecs('attaching'),
+  attached: getHookSpecs('attached'),
 
-  beforeDetach: getHookSpecs('beforeDetach'),
-  beforeUnbind: getHookSpecs('beforeUnbind'),
-  afterUnbind: getHookSpecs('afterUnbind'),
-  afterUnbindChildren: getHookSpecs('afterUnbindChildren'),
+  detaching: getHookSpecs('detaching'),
+  unbinding: getHookSpecs('unbinding'),
 
   dispose: getHookSpecs('dispose').sync,
 

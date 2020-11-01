@@ -1267,64 +1267,6 @@ export function formatPromise(ctx: IInspectContext, value: Promise<any>, recurse
   return ['[object Promise]'];
 }
 
-// Still incomplete
-const methodNamesWithFlags: PropertyKey[] = [
-  'created',
-
-  'bind',
-  'bindCustomElement',
-  'bindCustomAttribute',
-  'bindSynthetic',
-
-  'bindBindings',
-  'bindControllers',
-  'endBind',
-
-  'beforeBind',
-  'afterBind',
-
-  'attach',
-  'attachCustomElement',
-  'attachCustomAttribute',
-  'attachSynthetic',
-
-  'attachControllers',
-
-  'afterAttach',
-  'afterAttachChildren',
-
-  'detach',
-  'detachCustomElement',
-  'detachCustomAttribute',
-  'detachSynthetic',
-
-  'detachControllers',
-
-  'beforeDetach',
-  'afterDetachChildren',
-
-  'tryReturnToCache',
-
-  'cache',
-  'cacheCustomElement',
-  'cacheCustomAttribute',
-  'cacheSynthetic',
-
-  'dispose',
-
-  'unbind',
-  'unbindCustomElement',
-  'unbindCustomAttribute',
-  'unbindSynthetic',
-
-  'unbindBindings',
-  'unbindControllers',
-  'endUnbind',
-
-  'beforeUnbind',
-  'afterUnbindChildren',
-];
-
 export function formatProperty(
   ctx: IInspectContext,
   value: any,

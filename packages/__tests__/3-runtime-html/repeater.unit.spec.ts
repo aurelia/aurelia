@@ -10,13 +10,13 @@ import {
   ViewFactory,
   Controller,
   CustomElementDefinition,
-  getCompositionContext,
-  IComposableController,
+  getRenderContext,
+  IHydratableController,
   IRenderLocation,
   ITargetAccessorLocatorRegistration,
   ITargetObserverLocatorRegistration,
-  PropertyBindingComposerRegistration,
-  TextBindingComposerRegistration,
+  PropertyBindingRendererRegistration,
+  TextBindingRendererRegistration,
   TextBindingInstruction,
   Interpolation,
 } from '@aurelia/runtime-html';
@@ -523,8 +523,8 @@ describe(`Repeat`, function () {
   const container = createContainer().register(
     ITargetAccessorLocatorRegistration,
     ITargetObserverLocatorRegistration,
-    PropertyBindingComposerRegistration,
-    TextBindingComposerRegistration,
+    PropertyBindingRendererRegistration,
+    TextBindingRendererRegistration,
   );
 
   const marker = PLATFORM.document.createElement('au-m');
@@ -550,7 +550,7 @@ describe(`Repeat`, function () {
         loc.$start = PLATFORM.document.createComment('au-start');
         host.append(loc.$start, loc);
 
-        const itemContext = getCompositionContext(
+        const itemContext = getRenderContext(
           CustomElementDefinition.create({
             name: void 0,
             template: textTemplate.content.cloneNode(true),
@@ -571,10 +571,10 @@ describe(`Repeat`, function () {
           targetProperty: 'items',
           sourceExpression: new ForOfStatement(new BindingIdentifier('item'), new AccessScopeExpression('items'))
         } as any;
-        const composable: IComposableController = {
+        const hydratable: IHydratableController = {
           bindings: [binding]
         } as any;
-        const sut = new Repeat(loc, composable, itemFactory);
+        const sut = new Repeat(loc, hydratable, itemFactory);
         (sut as Writable<Repeat>).$controller = Controller.forCustomAttribute(null, container, sut, (void 0)!);
         binding.target = sut as any;
 

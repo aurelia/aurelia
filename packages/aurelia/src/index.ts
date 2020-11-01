@@ -489,7 +489,6 @@ export {
 
   containerless,
   customElement,
-  CustomElementHost,
   CustomElement,
   // CustomElementDecorator,
   // CustomElementKind,
@@ -568,25 +567,24 @@ export {
   // ThrottleBindingBehaviorRegistration,
   // TwoWayBindingBehaviorRegistration,
 
-  // RefBindingComposerRegistration,
-  // CallBindingComposerRegistration,
-  // CustomAttributeComposerRegistration,
-  // CustomElementComposerRegistration,
-  // InterpolationBindingComposerRegistration,
-  // IteratorBindingComposerRegistration,
-  // LetElementComposerRegistration,
-  // PropertyBindingComposerRegistration,
-  // SetPropertyComposerRegistration,
-  // TemplateControllerComposerRegistration,
+  // RefBindingRendererRegistration,
+  // CallBindingRendererRegistration,
+  // CustomAttributeRendererRegistration,
+  // CustomElementRendererRegistration,
+  // InterpolationBindingRendererRegistration,
+  // IteratorBindingRendererRegistration,
+  // LetElementRendererRegistration,
+  // PropertyBindingRendererRegistration,
+  // SetPropertyRendererRegistration,
+  // TemplateControllerRendererRegistration,
 
   // DefaultResources as RuntimeDefaultResources,
   // IObserverLocatorRegistration,
   // ILifecycleRegistration,
-  // IComposerRegistration,
+  // IRendererRegistration,
   // RuntimeConfiguration,
 
   // AttributeInstruction,
-  // HooksDefinition,
   // ICallBindingInstruction,
   // IHydrateAttributeInstruction,
   // IHydrateElementInstruction,
@@ -595,7 +593,7 @@ export {
   // IInterpolationInstruction,
   // IIteratorBindingInstruction,
   // ILetBindingInstruction,
-  // InstructionRow,
+  // IInstructionRow,
   // InstructionTypeName,
   // IPropertyBindingInstruction,
   // IRefBindingInstruction,
@@ -603,7 +601,7 @@ export {
   // isInstruction,
   // IInstruction,
   // NodeInstruction,
-  // Instruction,
+  // IInstruction,
   // InstructionType,
   // PartialCustomElementDefinitionParts,
   alias,
@@ -624,7 +622,6 @@ export {
   // State,
 
   // CallBindingInstruction,
-  // FromViewBindingInstruction,
   // HydrateAttributeInstruction,
   // HydrateElementInstruction,
   // HydrateTemplateController,
@@ -632,11 +629,8 @@ export {
   // IteratorBindingInstruction,
   // LetBindingInstruction,
   // HydrateLetElementInstruction,
-  // OneTimeBindingInstruction,
   // RefBindingInstruction,
   // SetPropertyInstruction,
-  // ToViewBindingInstruction,
-  // TwoWayBindingInstruction,
 
   // ViewModelKind,
   // IBinding,
@@ -681,7 +675,7 @@ export {
   // cloneIndexMap,
   // createIndexMap,
 
-  instructionComposer,
+  renderer,
 
   // DefaultBindingLanguage as JitDefaultBindingLanguage,
 
@@ -696,7 +690,6 @@ export {
   // parse,
   // ParserState,
 
-  // ResourceModel,
   // BindableInfo,
   // ElementInfo,
   // AttrInfo,
@@ -791,15 +784,14 @@ export {
 
   // CompiledTemplate,
   // ChildrenObserver,
-  // IInstructionComposer,
+  // IRenderer,
   // IInstructionTypeClassifier,
-  // IComposer,
   // IRenderingEngine,
   // ITemplate,
   // ITemplateCompiler,
   // ITemplateFactory,
 
-  // CompositionContext
+  // RenderContext
 
   // AttrSyntax,
 
@@ -862,25 +854,25 @@ export {
 
   // DefaultResources as RuntimeHtmlDefaultResources,
 
-  // AttributeBindingComposerRegistration,
-  // ListenerBindingComposerRegistration,
-  // SetAttributeComposerRegistration,
-  // SetClassAttributeComposerRegistration,
-  // SetStyleAttributeComposerRegistration,
-  // StylePropertyBindingComposerRegistration,
-  // TextBindingComposerRegistration,
+  // AttributeBindingRendererRegistration,
+  // ListenerBindingRendererRegistration,
+  // SetAttributeRendererRegistration,
+  // SetClassAttributeRendererRegistration,
+  // SetStyleAttributeRendererRegistration,
+  // StylePropertyBindingRendererRegistration,
+  // TextBindingRendererRegistration,
 
-  // DefaultComposers,
+  // DefaultRenderers,
 
   // StandardConfiguration,
 
   createElement,
-  // CompositionPlan,
+  // RenderPlan,
 
   // AttributeInstruction,
-  // InstructionRow,
+  // IInstructionRow,
   // NodeInstruction,
-  // Instruction,
+  // IInstruction,
   // InstructionType,
   // IAttributeBindingInstruction,
   // IListenerBindingInstruction,
@@ -893,14 +885,11 @@ export {
   // FragmentNodeSequence,
 
   // AttributeBindingInstruction,
-  // CaptureBindingInstruction,
-  // DelegateBindingInstruction,
   // SetAttributeInstruction,
   // SetClassAttributeInstruction,
   // SetStyleAttributeInstruction,
   // StylePropertyBindingInstruction,
   // TextBindingInstruction,
-  // TriggerBindingInstruction,
 
   // ContainerlessProjector,
   // HostProjector,

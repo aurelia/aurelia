@@ -64,35 +64,27 @@ export class App {
     }
   }
 
-  public beforeBind(): void {
-    console.log('app beforeBind');
+  public binding(): void {
+    console.log('app binding');
   }
 
-  public afterBind(): void {
-    console.log('app afterBind');
+  public bound(): void {
+    console.log('app bound');
   }
 
-  public afterAttach(): void {
-    console.log('app afterAttach');
+  public attaching(): void {
+    console.log('app attaching');
   }
 
-  public afterAttachChildren(): void {
-    console.log('app afterAttachChildren');
+  public attached(): void {
+    console.log('app attached');
   }
 
-  public beforeDetach(): void {
-    console.log('app beforeDetach');
+  public detaching(): void {
+    console.log('app detaching');
   }
 
-  public beforeUnbind(): void {
-    console.log('app beforeUnbind');
-  }
-
-  public afterUnbind(): void {
-    console.log('app afterUnbind');
-  }
-
-  public afterUnbindChildren(): void {
-    console.log('app afterUnbindChildren');
+  public unbinding(): void {
+    console.log('app unbinding');
   }
 }

@@ -5,8 +5,8 @@ import {
   createElement as sut,
   InstructionType,
   HydrateElementInstruction,
-  CompositionPlan,
-  Instruction,
+  RenderPlan,
+  IInstruction,
 } from '@aurelia/runtime-html';
 import {
   _,
@@ -48,10 +48,10 @@ describe(`createElement() creates element based on tag`, function () {
         [
           [
             InstructionType.callBinding,
-            InstructionType.composeAttribute,
-            InstructionType.composeElement,
-            InstructionType.composeLetElement,
-            InstructionType.composeTemplateController,
+            InstructionType.hydrateAttribute,
+            InstructionType.hydrateElement,
+            InstructionType.hydrateLetElement,
+            InstructionType.hydrateTemplateController,
             InstructionType.interpolation,
             InstructionType.iteratorBinding,
             InstructionType.letBinding,
@@ -67,9 +67,9 @@ describe(`createElement() creates element based on tag`, function () {
         t => {
           it(`understands targeted instruction type=${t}`, function () {
             const ctx = TestContext.create();
-            const actual = sut(ctx.platform, tag, { prop: { type: t }  as unknown as string|Instruction});
+            const actual = sut(ctx.platform, tag, { prop: { type: t }  as unknown as string|IInstruction});
 
-            const instruction = actual['instructions'][0][0] as Instruction;
+            const instruction = actual['instructions'][0][0] as IInstruction;
             const node = actual['node'] as Element;
 
             assert.strictEqual(actual['instructions'].length, 1, `actual['instructions'].length`);
@@ -87,12 +87,12 @@ describe(`createElement() creates element based on tag`, function () {
           ctx => [['foo', 'bar'], 'foobar'],
           ctx => [[ctx.createElementFromMarkup('<div>foo</div>'), ctx.createElementFromMarkup('<div>bar</div>')], 'foobar'],
           ctx => [['foo', ctx.createElementFromMarkup('<div>bar</div>')], 'foobar']
-        ] as ((ctx: TestContext) => [(CompositionPlan | string | INode)[], string])[],
+        ] as ((ctx: TestContext) => [(RenderPlan | string | INode)[], string])[],
         [
           (ctx, [children, expected]) => [children, expected],
           (ctx, [children, expected]) => [[sut(ctx.platform, 'div', null, ['baz']), ...children], `baz${expected}`],
           (ctx, [children, expected]) => [[sut(ctx.platform, 'div', null, [ctx.createElementFromMarkup('<div>baz</div>')]), ...children], `baz${expected}`]
-        ] as ((ctx: TestContext, $1: [(CompositionPlan | string | INode)[], string]) => [(CompositionPlan | string | INode)[], string])[]
+        ] as ((ctx: TestContext, $1: [(RenderPlan | string | INode)[], string]) => [(RenderPlan | string | INode)[], string])[]
       ],                       (ctx, $1, [children, expected]) => {
         it(_`adds children (${children})`, function () {
           const actual = sut(ctx.platform, tag, null, children);
@@ -132,7 +132,7 @@ describe(`createElement() creates element based on type`, function () {
 
         assert.strictEqual(actual['instructions'].length, 1, `actual['instructions'].length`);
         assert.strictEqual(actual['instructions'][0].length, 1, `actual['instructions'][0].length`);
-        assert.strictEqual(instruction.type, InstructionType.composeElement, `instruction.type`);
+        assert.strictEqual(instruction.type, InstructionType.hydrateElement, `instruction.type`);
         assert.strictEqual(instruction.res, definition.name, `instruction.res`);
         assert.strictEqual(instruction.instructions.length, 2, `instruction.instructions.length`);
         assert.strictEqual(instruction.instructions[0].type, InstructionType.setAttribute, `instruction.instructions[0].type`);
@@ -152,7 +152,7 @@ describe(`createElement() creates element based on type`, function () {
         it(`can handle ${str} props`, function () {
           const type = createType();
           const ctx = TestContext.create();
-          const actual = sut(ctx.platform, type, props as unknown as Record<string, string|Instruction>);
+          const actual = sut(ctx.platform, type, props as unknown as Record<string, string|IInstruction>);
 
           const node = actual['node'] as Element;
           const instruction = (actual['instructions'][0][0]) as HydrateElementInstruction;
@@ -168,10 +168,10 @@ describe(`createElement() creates element based on type`, function () {
         [
           [
             InstructionType.callBinding,
-            InstructionType.composeAttribute,
-            InstructionType.composeElement,
-            InstructionType.composeLetElement,
-            InstructionType.composeTemplateController,
+            InstructionType.hydrateAttribute,
+            InstructionType.hydrateElement,
+            InstructionType.hydrateLetElement,
+            InstructionType.hydrateTemplateController,
             InstructionType.interpolation,
             InstructionType.iteratorBinding,
             InstructionType.letBinding,
@@ -189,14 +189,14 @@ describe(`createElement() creates element based on type`, function () {
             const type = createType();
             const definition = CustomElement.getDefinition(type);
             const ctx = TestContext.create();
-            const actual = sut(ctx.platform, type, { prop: { type: t } as unknown as string|Instruction});
+            const actual = sut(ctx.platform, type, { prop: { type: t } as unknown as string|IInstruction});
 
             const node = actual['node'] as Element;
             const instruction = (actual['instructions'][0][0]) as HydrateElementInstruction;
 
             assert.strictEqual(actual['instructions'].length, 1, `actual['instructions'].length`);
             assert.strictEqual(actual['instructions'][0].length, 1, `actual['instructions'][0].length`);
-            assert.strictEqual(instruction.type, InstructionType.composeElement, `instruction.type`);
+            assert.strictEqual(instruction.type, InstructionType.hydrateElement, `instruction.type`);
             assert.strictEqual(instruction.res, definition.name, `instruction.res`);
             assert.strictEqual(instruction.instructions.length, 1, `instruction.instructions.length`);
             assert.strictEqual(instruction.instructions[0].type, t, `instruction.instructions[0].type`);
@@ -212,12 +212,12 @@ describe(`createElement() creates element based on type`, function () {
           ctx => [['foo', 'bar'], 'foobar'],
           ctx => [[ctx.createElementFromMarkup('<div>foo</div>'), ctx.createElementFromMarkup('<div>bar</div>')], 'foobar'],
           ctx => [['foo', ctx.createElementFromMarkup('<div>bar</div>')], 'foobar']
-        ] as ((ctx: TestContext) => [(CompositionPlan | string | INode)[], string])[],
+        ] as ((ctx: TestContext) => [(RenderPlan | string | INode)[], string])[],
         [
           (ctx, [children, expected]) => [children, expected],
           (ctx, [children, expected]) => [[sut(ctx.platform, 'div', null, ['baz']), ...children], `baz${expected}`],
           (ctx, [children, expected]) => [[sut(ctx.platform, 'div', null, [ctx.createElementFromMarkup('<div>baz</div>')]), ...children], `baz${expected}`]
-        ] as ((ctx: TestContext, $1: [(CompositionPlan | string | INode)[], string]) => [(CompositionPlan | string | INode)[], string])[]
+        ] as ((ctx: TestContext, $1: [(RenderPlan | string | INode)[], string]) => [(RenderPlan | string | INode)[], string])[]
       ],                       (ctx, $1, [children, expected]) => {
         it(_`adds children (${children})`, function () {
           const type = createType();
@@ -229,7 +229,7 @@ describe(`createElement() creates element based on type`, function () {
 
           assert.strictEqual(actual['instructions'].length, 1, `actual['instructions'].length`);
           assert.strictEqual(actual['instructions'][0].length, 1, `actual['instructions'][0].length`);
-          assert.strictEqual(instruction.type, InstructionType.composeElement, `instruction.type`);
+          assert.strictEqual(instruction.type, InstructionType.hydrateElement, `instruction.type`);
           assert.strictEqual(instruction.res, definition.name, `instruction.res`);
           assert.strictEqual(instruction.instructions.length, 0, `instruction.instructions.length`);
           assert.strictEqual(node.getAttribute('class'), 'au', `node.getAttribute('class')`);

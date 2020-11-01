@@ -1,4 +1,4 @@
-import { all, Metadata, IServiceLocator, IContainer, Registration, Class, DI, IRegistry } from '@aurelia/kernel';
+import { Metadata, IServiceLocator, IContainer, Registration, Class, DI, IRegistry } from '@aurelia/kernel';
 import {
   BindingMode,
   BindingType,
@@ -19,42 +19,249 @@ import {
   LetBinding,
   RefBinding,
   BindingBehaviorFactory,
+  ForOfStatement,
+  DelegationStrategy,
 } from '@aurelia/runtime';
 import { AttributeBinding } from './binding/attribute';
 import { Listener } from './binding/listener';
 import { IEventDelegator } from './observation/event-delegator';
-import {
-  AttributeBindingInstruction,
-  CallBindingInstruction,
-  HydrateAttributeInstruction,
-  HydrateElementInstruction,
-  HydrateLetElementInstruction,
-  HydrateTemplateController,
-  InterpolationInstruction,
-  IteratorBindingInstruction,
-  LetBindingInstruction,
-  ListenerBindingInstruction,
-  PropertyBindingInstruction,
-  RefBindingInstruction,
-  SetAttributeInstruction,
-  SetClassAttributeInstruction,
-  SetPropertyInstruction,
-  SetStyleAttributeInstruction,
-  StylePropertyBindingInstruction,
-  Instruction,
-  InstructionType,
-  TextBindingInstruction,
-} from './instructions';
-import { InstructionTypeName, IInstruction } from './definitions';
-import { IComposableController, IController, ICustomAttributeViewModel, ICustomElementViewModel } from './lifecycle';
 import { CustomElement, CustomElementDefinition, PartialCustomElementDefinition } from './resources/custom-element';
-import { getCompositionContext, ICompiledCompositionContext } from './templating/composition-context';
-import { RegisteredProjections } from './resources/custom-elements/au-slot';
+import { getRenderContext, ICompiledRenderContext } from './templating/render-context';
+import { RegisteredProjections, SlotInfo } from './resources/custom-elements/au-slot';
 import { CustomAttribute } from './resources/custom-attribute';
 import { convertToRenderLocation, INode } from './dom';
 import { Controller } from './templating/controller';
 import { IViewFactory } from './templating/view';
 import { IPlatform } from './platform';
+import type { IHydratableController, IController, ICustomAttributeViewModel, ICustomElementViewModel } from './templating/controller';
+
+export const enum InstructionType {
+  hydrateElement = 'ra',
+  hydrateAttribute = 'rb',
+  hydrateTemplateController = 'rc',
+  hydrateLetElement = 'rd',
+  setProperty = 're',
+  interpolation = 'rf',
+  propertyBinding = 'rg',
+  callBinding = 'rh',
+  letBinding = 'ri',
+  refBinding = 'rj',
+  iteratorBinding = 'rk',
+  textBinding = 'ha',
+  listenerBinding = 'hb',
+  attributeBinding = 'hc',
+  stylePropertyBinding = 'hd',
+  setAttribute = 'he',
+  setClassAttribute = 'hf',
+  setStyleAttribute = 'hg',
+}
+
+export type NodeInstruction =
+  HydrateElementInstruction |
+  HydrateTemplateController |
+  HydrateLetElementInstruction |
+  TextBindingInstruction;
+
+export type AttributeInstruction =
+  InterpolationInstruction |
+  PropertyBindingInstruction |
+  IteratorBindingInstruction |
+  CallBindingInstruction |
+  RefBindingInstruction |
+  SetPropertyInstruction |
+  LetBindingInstruction |
+  HydrateAttributeInstruction |
+  ListenerBindingInstruction |
+  AttributeBindingInstruction |
+  StylePropertyBindingInstruction |
+  SetAttributeInstruction |
+  SetClassAttributeInstruction |
+  SetStyleAttributeInstruction;
+
+export type Instruction = NodeInstruction | AttributeInstruction;
+export type InstructionRow = [Instruction, ...AttributeInstruction[]];
+
+export type InstructionTypeName = string;
+
+export interface IInstruction {
+  readonly type: InstructionTypeName;
+}
+export const IInstruction = DI.createInterface<IInstruction>('Instruction').noDefault();
+
+export function isInstruction(value: unknown): value is IInstruction {
+  const type = (value as { type?: string }).type;
+  return typeof type === 'string' && type.length === 2;
+}
+
+export class InterpolationInstruction {
+  public get type(): InstructionType.interpolation { return InstructionType.interpolation; }
+
+  public constructor(
+    public from: string | Interpolation,
+    public to: string,
+  ) {}
+}
+
+export class PropertyBindingInstruction {
+  public get type(): InstructionType.propertyBinding { return InstructionType.propertyBinding; }
+
+  public constructor(
+    public from: string | IsBindingBehavior,
+    public to: string,
+    public mode: BindingMode,
+  ) {}
+}
+
+export class IteratorBindingInstruction {
+  public get type(): InstructionType.iteratorBinding { return InstructionType.iteratorBinding; }
+
+  public constructor(
+    public from: string | ForOfStatement,
+    public to: string,
+  ) {}
+}
+
+export class CallBindingInstruction {
+  public get type(): InstructionType.callBinding { return InstructionType.callBinding; }
+
+  public constructor(
+    public from: string | IsBindingBehavior,
+    public to: string,
+  ) {}
+}
+
+export class RefBindingInstruction {
+  public get type(): InstructionType.refBinding { return InstructionType.refBinding; }
+
+  public constructor(
+    public readonly from: string | IsBindingBehavior,
+    public readonly to: string
+  ) {}
+}
+
+export class SetPropertyInstruction {
+  public get type(): InstructionType.setProperty { return InstructionType.setProperty; }
+
+  public constructor(
+    public value: unknown,
+    public to: string,
+  ) {}
+}
+
+export class HydrateElementInstruction {
+  public get type(): InstructionType.hydrateElement { return InstructionType.hydrateElement; }
+
+  public constructor(
+    public res: string,
+    public instructions: IInstruction[],
+    public slotInfo: SlotInfo | null,
+  ) {}
+}
+
+export class HydrateAttributeInstruction {
+  public get type(): InstructionType.hydrateAttribute { return InstructionType.hydrateAttribute; }
+
+  public constructor(
+    public res: string,
+    public instructions: IInstruction[],
+  ) {}
+}
+
+export class HydrateTemplateController {
+  public get type(): InstructionType.hydrateTemplateController { return InstructionType.hydrateTemplateController; }
+
+  public constructor(
+    public def: PartialCustomElementDefinition,
+    public res: string,
+    public instructions: IInstruction[],
+  ) {}
+}
+
+export class HydrateLetElementInstruction {
+  public get type(): InstructionType.hydrateLetElement { return InstructionType.hydrateLetElement; }
+
+  public constructor(
+    public instructions: LetBindingInstruction[],
+    public toBindingContext: boolean,
+  ) {}
+}
+
+export class LetBindingInstruction {
+  public get type(): InstructionType.letBinding { return InstructionType.letBinding; }
+
+  public constructor(
+    public from: string | IsBindingBehavior | Interpolation,
+    public to: string,
+  ) {}
+}
+
+export class TextBindingInstruction {
+  public get type(): InstructionType.textBinding { return InstructionType.textBinding; }
+
+  public constructor(
+    public from: string | Interpolation,
+  ) {}
+}
+
+export class ListenerBindingInstruction {
+  public get type(): InstructionType.listenerBinding { return InstructionType.listenerBinding; }
+
+  public constructor(
+    public from: string | IsBindingBehavior,
+    public to: string,
+    public preventDefault: boolean,
+    public strategy: DelegationStrategy,
+  ) {}
+}
+export class StylePropertyBindingInstruction {
+  public get type(): InstructionType.stylePropertyBinding { return InstructionType.stylePropertyBinding; }
+
+  public constructor(
+    public from: string | IsBindingBehavior,
+    public to: string,
+  ) {}
+}
+
+export class SetAttributeInstruction {
+  public get type(): InstructionType.setAttribute { return InstructionType.setAttribute; }
+
+  public constructor(
+    public value: string,
+    public to: string,
+  ) {}
+}
+
+export class SetClassAttributeInstruction {
+  public readonly type: InstructionType.setClassAttribute = InstructionType.setClassAttribute;
+
+  public constructor(
+    public readonly value: string,
+  ) {}
+}
+
+export class SetStyleAttributeInstruction {
+  public readonly type: InstructionType.setStyleAttribute = InstructionType.setStyleAttribute;
+
+  public constructor(
+    public readonly value: string,
+  ) {}
+}
+
+export class AttributeBindingInstruction {
+  public get type(): InstructionType.attributeBinding { return InstructionType.attributeBinding; }
+
+  public constructor(
+    /**
+     * `attr` and `to` have the same value on a normal attribute
+     * Will be different on `class` and `style`
+     * on `class`: attr = `class` (from binding command), to = attribute name
+     * on `style`: attr = `style` (from binding command), to = attribute name
+     */
+    public attr: string,
+    public from: string | IsBindingBehavior,
+    public to: string,
+  ) {}
+}
 
 export interface ITemplateCompiler {
   compile(
@@ -69,36 +276,36 @@ export const ITemplateCompiler = DI.createInterface<ITemplateCompiler>('ITemplat
 export interface IInstructionTypeClassifier<TType extends string = string> {
   instructionType: TType;
 }
-export interface IInstructionComposer<
+export interface IRenderer<
   TType extends InstructionTypeName = InstructionTypeName
 > extends Partial<IInstructionTypeClassifier<TType>> {
-  compose(
+  render(
     flags: LifecycleFlags,
-    context: ICompiledCompositionContext,
-    controller: IComposableController,
+    context: ICompiledRenderContext,
+    controller: IHydratableController,
     target: unknown,
     instruction: IInstruction,
   ): void;
 }
 
-export const IInstructionComposer = DI.createInterface<IInstructionComposer>('IInstructionComposer').noDefault();
+export const IRenderer = DI.createInterface<IRenderer>('IRenderer').noDefault();
 
-type DecoratableInstructionComposer<TType extends string, TProto, TClass> = Class<TProto & Partial<IInstructionTypeClassifier<TType> & Pick<IInstructionComposer, 'compose'>>, TClass> & Partial<IRegistry>;
-type DecoratedInstructionComposer<TType extends string, TProto, TClass> =  Class<TProto & IInstructionTypeClassifier<TType> & Pick<IInstructionComposer, 'compose'>, TClass> & IRegistry;
+type DecoratableInstructionRenderer<TType extends string, TProto, TClass> = Class<TProto & Partial<IInstructionTypeClassifier<TType> & Pick<IRenderer, 'render'>>, TClass> & Partial<IRegistry>;
+type DecoratedInstructionRenderer<TType extends string, TProto, TClass> =  Class<TProto & IInstructionTypeClassifier<TType> & Pick<IRenderer, 'render'>, TClass> & IRegistry;
 
-type InstructionComposerDecorator<TType extends string> = <TProto, TClass>(target: DecoratableInstructionComposer<TType, TProto, TClass>) => DecoratedInstructionComposer<TType, TProto, TClass>;
+type InstructionRendererDecorator<TType extends string> = <TProto, TClass>(target: DecoratableInstructionRenderer<TType, TProto, TClass>) => DecoratedInstructionRenderer<TType, TProto, TClass>;
 
-export function instructionComposer<TType extends string>(instructionType: TType): InstructionComposerDecorator<TType> {
-  return function decorator<TProto, TClass>(target: DecoratableInstructionComposer<TType, TProto, TClass>): DecoratedInstructionComposer<TType, TProto, TClass> {
+export function renderer<TType extends string>(instructionType: TType): InstructionRendererDecorator<TType> {
+  return function decorator<TProto, TClass>(target: DecoratableInstructionRenderer<TType, TProto, TClass>): DecoratedInstructionRenderer<TType, TProto, TClass> {
     // wrap the constructor to set the instructionType to the instance (for better performance than when set on the prototype)
     const decoratedTarget = function (...args: unknown[]): TProto {
       const instance = new target(...args);
       instance.instructionType = instructionType;
       return instance;
-    } as unknown as DecoratedInstructionComposer<TType, TProto, TClass>;
+    } as unknown as DecoratedInstructionRenderer<TType, TProto, TClass>;
     // make sure we register the decorated constructor with DI
     decoratedTarget.register = function register(container: IContainer): void {
-      Registration.singleton(IInstructionComposer, decoratedTarget).register(container);
+      Registration.singleton(IRenderer, decoratedTarget).register(container);
     };
     // copy over any metadata such as annotations (set by preceding decorators) as well as static properties set by the user
     // also copy the name, to be less confusing to users (so they can still use constructor.name for whatever reason)
@@ -113,72 +320,6 @@ export function instructionComposer<TType extends string>(instructionType: TType
     });
     return decoratedTarget;
   };
-}
-
-export interface IComposer extends Composer {}
-export const IComposer = DI.createInterface<IComposer>('IComposer').withDefault(x => x.singleton(Composer));
-export class Composer {
-  private readonly instructionComposers: Record<InstructionTypeName, IInstructionComposer['compose']>;
-
-  public constructor(@all(IInstructionComposer) instructionComposers: IInstructionComposer[]) {
-    const record: Record<InstructionTypeName, IInstructionComposer['compose']> = this.instructionComposers = {};
-    instructionComposers.forEach(item => {
-      // Binding the functions to the composer instances and calling the functions directly,
-      // prevents the `compose` call sites from going megamorphic.
-      // Consumes slightly more memory but significantly less CPU.
-      record[item.instructionType as string] = item.compose.bind(item);
-    });
-  }
-
-  public compose(
-    flags: LifecycleFlags,
-    context: ICompiledCompositionContext,
-    controller: IComposableController,
-    targets: ArrayLike<INode>,
-    definition: CustomElementDefinition,
-    host: INode | null | undefined,
-  ): void {
-    const targetInstructions = definition.instructions;
-
-    if (targets.length !== targetInstructions.length) {
-      throw new Error(`The compiled template is not aligned with the compose instructions. There are ${targets.length} targets and ${targetInstructions.length} instructions.`);
-    }
-
-    for (let i = 0, ii = targets.length; i < ii; ++i) {
-      this.composeChildren(
-        /* flags        */flags,
-        /* context      */context,
-        /* instructions */targetInstructions[i] as readonly Instruction[],
-        /* controller   */controller,
-        /* target       */targets[i],
-      );
-    }
-
-    if (host !== void 0 && host !== null) {
-      this.composeChildren(
-        /* flags        */flags,
-        /* context      */context,
-        /* instructions */definition.surrogates as readonly Instruction[],
-        /* controller   */controller,
-        /* target       */host,
-      );
-    }
-  }
-
-  public composeChildren(
-    flags: LifecycleFlags,
-    context: ICompiledCompositionContext,
-    instructions: readonly Instruction[],
-    controller: IComposableController,
-    target: unknown,
-  ): void {
-    const instructionComposers = this.instructionComposers;
-    let current: Instruction;
-    for (let i = 0, ii = instructions.length; i < ii; ++i) {
-      current = instructions[i];
-      instructionComposers[current.type](flags, context, controller, target, current);
-    }
-  }
 }
 
 function ensureExpression<TFrom>(parser: IExpressionParser, srcOrExpr: TFrom, bindingType: BindingType): Exclude<TFrom, string> {
@@ -223,13 +364,13 @@ function getRefTarget(refHost: INode, refTargetName: string): object {
   }
 }
 
-@instructionComposer(InstructionType.setProperty)
+@renderer(InstructionType.setProperty)
 /** @internal */
-export class SetPropertyComposer implements IInstructionComposer {
-  public compose(
+export class SetPropertyRenderer implements IRenderer {
+  public render(
     flags: LifecycleFlags,
-    context: ICompiledCompositionContext,
-    controller: IComposableController,
+    context: ICompiledRenderContext,
+    controller: IHydratableController,
     target: IController,
     instruction: SetPropertyInstruction,
   ): void {
@@ -242,14 +383,14 @@ export class SetPropertyComposer implements IInstructionComposer {
   }
 }
 
-@instructionComposer(InstructionType.composeElement)
+@renderer(InstructionType.hydrateElement)
 /** @internal */
-export class CustomElementComposer implements IInstructionComposer {
-  public compose(
+export class CustomElementRenderer implements IRenderer {
+  public render(
     flags: LifecycleFlags,
-    context: ICompiledCompositionContext,
-    controller: IComposableController,
-    target: INode,
+    context: ICompiledRenderContext,
+    controller: IHydratableController,
+    target: HTMLElement,
     instruction: HydrateElementInstruction,
   ): void {
 
@@ -258,7 +399,7 @@ export class CustomElementComposer implements IInstructionComposer {
     const slotInfo = instruction.slotInfo;
     if (slotInfo!==null) {
       const projectionCtx = slotInfo.projectionContext;
-      viewFactory = getCompositionContext(projectionCtx.content, context).getViewFactory(void 0, slotInfo.type, projectionCtx.scope);
+      viewFactory = getRenderContext(projectionCtx.content, context).getViewFactory(void 0, slotInfo.type, projectionCtx.scope);
     }
 
     const factory = context.getComponentFactory(
@@ -284,7 +425,7 @@ export class CustomElementComposer implements IInstructionComposer {
     flags = childController.flags;
     Metadata.define(key, childController, target);
 
-    context.composeChildren(
+    context.renderChildren(
       /* flags        */flags,
       /* instructions */instruction.instructions,
       /* controller   */controller,
@@ -297,14 +438,14 @@ export class CustomElementComposer implements IInstructionComposer {
   }
 }
 
-@instructionComposer(InstructionType.composeAttribute)
+@renderer(InstructionType.hydrateAttribute)
 /** @internal */
-export class CustomAttributeComposer implements IInstructionComposer {
-  public compose(
+export class CustomAttributeRenderer implements IRenderer {
+  public render(
     flags: LifecycleFlags,
-    context: ICompiledCompositionContext,
-    controller: IComposableController,
-    target: Node,
+    context: ICompiledRenderContext,
+    controller: IHydratableController,
+    target: HTMLElement,
     instruction: HydrateAttributeInstruction,
   ): void {
     const factory = context.getComponentFactory(
@@ -328,7 +469,7 @@ export class CustomAttributeComposer implements IInstructionComposer {
 
     Metadata.define(key, childController, target);
 
-    context.composeChildren(
+    context.renderChildren(
       /* flags        */flags,
       /* instructions */instruction.instructions,
       /* controller   */controller,
@@ -341,18 +482,18 @@ export class CustomAttributeComposer implements IInstructionComposer {
   }
 }
 
-@instructionComposer(InstructionType.composeTemplateController)
+@renderer(InstructionType.hydrateTemplateController)
 /** @internal */
-export class TemplateControllerComposer implements IInstructionComposer {
-  public compose(
+export class TemplateControllerRenderer implements IRenderer {
+  public render(
     flags: LifecycleFlags,
-    context: ICompiledCompositionContext,
-    controller: IComposableController,
-    target: INode,
+    context: ICompiledRenderContext,
+    controller: IHydratableController,
+    target: HTMLElement,
     instruction: HydrateTemplateController,
   ): void {
 
-    const viewFactory = getCompositionContext(instruction.def, context).getViewFactory();
+    const viewFactory = getRenderContext(instruction.def, context).getViewFactory();
     const renderLocation = convertToRenderLocation(target);
 
     const componentFactory = context.getComponentFactory(
@@ -378,7 +519,7 @@ export class TemplateControllerComposer implements IInstructionComposer {
 
     component.link?.(flags, context, controller, childController, target, instruction);
 
-    context.composeChildren(
+    context.renderChildren(
       /* flags        */flags,
       /* instructions */instruction.instructions,
       /* controller   */controller,
@@ -391,18 +532,18 @@ export class TemplateControllerComposer implements IInstructionComposer {
   }
 }
 
-@instructionComposer(InstructionType.composeLetElement)
+@renderer(InstructionType.hydrateLetElement)
 /** @internal */
-export class LetElementComposer implements IInstructionComposer {
+export class LetElementRenderer implements IRenderer {
   public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IObserverLocator private readonly observerLocator: IObserverLocator,
   ) {}
 
-  public compose(
+  public render(
     flags: LifecycleFlags,
-    context: ICompiledCompositionContext,
-    controller: IComposableController,
+    context: ICompiledRenderContext,
+    controller: IHydratableController,
     target: Node & ChildNode,
     instruction: HydrateLetElementInstruction,
   ): void {
@@ -426,18 +567,18 @@ export class LetElementComposer implements IInstructionComposer {
   }
 }
 
-@instructionComposer(InstructionType.callBinding)
+@renderer(InstructionType.callBinding)
 /** @internal */
-export class CallBindingComposer implements IInstructionComposer {
+export class CallBindingRenderer implements IRenderer {
   public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IObserverLocator private readonly observerLocator: IObserverLocator,
   ) {}
 
-  public compose(
+  public render(
     flags: LifecycleFlags,
-    context: ICompiledCompositionContext,
-    controller: IComposableController,
+    context: ICompiledRenderContext,
+    controller: IHydratableController,
     target: IController,
     instruction: CallBindingInstruction,
   ): void {
@@ -451,17 +592,17 @@ export class CallBindingComposer implements IInstructionComposer {
   }
 }
 
-@instructionComposer(InstructionType.refBinding)
+@renderer(InstructionType.refBinding)
 /** @internal */
-export class RefBindingComposer implements IInstructionComposer {
+export class RefBindingRenderer implements IRenderer {
   public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
   ) {}
 
-  public compose(
+  public render(
     flags: LifecycleFlags,
-    context: ICompiledCompositionContext,
-    controller: IComposableController,
+    context: ICompiledRenderContext,
+    controller: IHydratableController,
     target: INode,
     instruction: RefBindingInstruction,
   ): void {
@@ -475,19 +616,19 @@ export class RefBindingComposer implements IInstructionComposer {
   }
 }
 
-@instructionComposer(InstructionType.interpolation)
+@renderer(InstructionType.interpolation)
 /** @internal */
-export class InterpolationBindingComposer implements IInstructionComposer {
+export class InterpolationBindingRenderer implements IRenderer {
   public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IObserverLocator private readonly observerLocator: IObserverLocator,
     @IPlatform private readonly platform: IPlatform,
   ) {}
 
-  public compose(
+  public render(
     flags: LifecycleFlags,
-    context: ICompiledCompositionContext,
-    controller: IComposableController,
+    context: ICompiledRenderContext,
+    controller: IHydratableController,
     target: IController,
     instruction: InterpolationInstruction,
   ): void {
@@ -515,19 +656,19 @@ export class InterpolationBindingComposer implements IInstructionComposer {
   }
 }
 
-@instructionComposer(InstructionType.propertyBinding)
+@renderer(InstructionType.propertyBinding)
 /** @internal */
-export class PropertyBindingComposer implements IInstructionComposer {
+export class PropertyBindingRenderer implements IRenderer {
   public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IObserverLocator private readonly observerLocator: IObserverLocator,
     @IPlatform private readonly platform: IPlatform,
   ) {}
 
-  public compose(
+  public render(
     flags: LifecycleFlags,
-    context: ICompiledCompositionContext,
-    controller: IComposableController,
+    context: ICompiledRenderContext,
+    controller: IHydratableController,
     target: IController,
     instruction: PropertyBindingInstruction,
   ): void {
@@ -541,19 +682,19 @@ export class PropertyBindingComposer implements IInstructionComposer {
   }
 }
 
-@instructionComposer(InstructionType.iteratorBinding)
+@renderer(InstructionType.iteratorBinding)
 /** @internal */
-export class IteratorBindingComposer implements IInstructionComposer {
+export class IteratorBindingRenderer implements IRenderer {
   public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IObserverLocator private readonly observerLocator: IObserverLocator,
     @IPlatform private readonly platform: IPlatform,
   ) {}
 
-  public compose(
+  public render(
     flags: LifecycleFlags,
-    context: ICompiledCompositionContext,
-    controller: IComposableController,
+    context: ICompiledRenderContext,
+    controller: IHydratableController,
     target: IController,
     instruction: IteratorBindingInstruction,
   ): void {
@@ -590,19 +731,19 @@ export function applyBindingBehavior(
   return binding;
 }
 
-@instructionComposer(InstructionType.textBinding)
+@renderer(InstructionType.textBinding)
 /** @internal */
-export class TextBindingComposer implements IInstructionComposer {
+export class TextBindingRenderer implements IRenderer {
   public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IObserverLocator private readonly observerLocator: IObserverLocator,
     @IPlatform private readonly platform: IPlatform,
   ) {}
 
-  public compose(
+  public render(
     flags: LifecycleFlags,
-    context: ICompiledCompositionContext,
-    controller: IComposableController,
+    context: ICompiledRenderContext,
+    controller: IHydratableController,
     target: ChildNode,
     instruction: TextBindingInstruction,
   ): void {
@@ -634,18 +775,18 @@ export class TextBindingComposer implements IInstructionComposer {
   }
 }
 
-@instructionComposer(InstructionType.listenerBinding)
+@renderer(InstructionType.listenerBinding)
 /** @internal */
-export class ListenerBindingComposer implements IInstructionComposer {
+export class ListenerBindingRenderer implements IRenderer {
   public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IEventDelegator private readonly eventDelegator: IEventDelegator,
   ) {}
 
-  public compose(
+  public render(
     flags: LifecycleFlags,
-    context: ICompiledCompositionContext,
-    controller: IComposableController,
+    context: ICompiledRenderContext,
+    controller: IHydratableController,
     target: HTMLElement,
     instruction: ListenerBindingInstruction,
   ): void {
@@ -660,13 +801,13 @@ export class ListenerBindingComposer implements IInstructionComposer {
   }
 }
 
-@instructionComposer(InstructionType.setAttribute)
+@renderer(InstructionType.setAttribute)
 /** @internal */
-export class SetAttributeComposer implements IInstructionComposer {
-  public compose(
+export class SetAttributeRenderer implements IRenderer {
+  public render(
     flags: LifecycleFlags,
-    context: ICompiledCompositionContext,
-    controller: IComposableController,
+    context: ICompiledRenderContext,
+    controller: IHydratableController,
     target: HTMLElement,
     instruction: SetAttributeInstruction,
   ): void {
@@ -674,12 +815,12 @@ export class SetAttributeComposer implements IInstructionComposer {
   }
 }
 
-@instructionComposer(InstructionType.setClassAttribute)
-export class SetClassAttributeComposer implements IInstructionComposer {
-  public compose(
+@renderer(InstructionType.setClassAttribute)
+export class SetClassAttributeRenderer implements IRenderer {
+  public render(
     flags: LifecycleFlags,
-    context: ICompiledCompositionContext,
-    controller: IComposableController,
+    context: ICompiledRenderContext,
+    controller: IHydratableController,
     target: HTMLElement,
     instruction: SetClassAttributeInstruction,
   ): void {
@@ -687,12 +828,12 @@ export class SetClassAttributeComposer implements IInstructionComposer {
   }
 }
 
-@instructionComposer(InstructionType.setStyleAttribute)
-export class SetStyleAttributeComposer implements IInstructionComposer {
-  public compose(
+@renderer(InstructionType.setStyleAttribute)
+export class SetStyleAttributeRenderer implements IRenderer {
+  public render(
     flags: LifecycleFlags,
-    context: ICompiledCompositionContext,
-    controller: IComposableController,
+    context: ICompiledRenderContext,
+    controller: IHydratableController,
     target: HTMLElement,
     instruction: SetStyleAttributeInstruction,
   ): void {
@@ -700,19 +841,19 @@ export class SetStyleAttributeComposer implements IInstructionComposer {
   }
 }
 
-@instructionComposer(InstructionType.stylePropertyBinding)
+@renderer(InstructionType.stylePropertyBinding)
 /** @internal */
-export class StylePropertyBindingComposer implements IInstructionComposer {
+export class StylePropertyBindingRenderer implements IRenderer {
   public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IObserverLocator private readonly observerLocator: IObserverLocator,
     @IPlatform private readonly platform: IPlatform,
   ) {}
 
-  public compose(
+  public render(
     flags: LifecycleFlags,
-    context: ICompiledCompositionContext,
-    controller: IComposableController,
+    context: ICompiledRenderContext,
+    controller: IHydratableController,
     target: HTMLElement,
     instruction: StylePropertyBindingInstruction,
   ): void {
@@ -726,18 +867,18 @@ export class StylePropertyBindingComposer implements IInstructionComposer {
   }
 }
 
-@instructionComposer(InstructionType.attributeBinding)
+@renderer(InstructionType.attributeBinding)
 /** @internal */
-export class AttributeBindingComposer implements IInstructionComposer {
+export class AttributeBindingRenderer implements IRenderer {
   public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IObserverLocator private readonly observerLocator: IObserverLocator,
   ) {}
 
-  public compose(
+  public render(
     flags: LifecycleFlags,
-    context: ICompiledCompositionContext,
-    controller: IComposableController,
+    context: ICompiledRenderContext,
+    controller: IHydratableController,
     target: HTMLElement,
     instruction: AttributeBindingInstruction,
   ): void {

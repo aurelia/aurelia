@@ -8,43 +8,34 @@ export interface ITestRouteViewModel extends IRouteableComponent {
   readonly $controller: ICustomElementController<this>;
   readonly name: string;
 
-  beforeBind(
+  binding(
     initiator: IHydratedController,
     parent: IHydratedParentController,
     flags: LifecycleFlags,
   ): void | Promise<void>;
-  afterBind(
+  bound(
     initiator: IHydratedController,
     parent: IHydratedParentController,
     flags: LifecycleFlags,
   ): void | Promise<void>;
-  afterAttach(
+  attaching(
     initiator: IHydratedController,
     parent: IHydratedParentController,
     flags: LifecycleFlags,
   ): void | Promise<void>;
-  afterAttachChildren(
+  attached(
     initiator: IHydratedController,
     flags: LifecycleFlags,
   ): void | Promise<void>;
 
-  beforeDetach(
+  detaching(
     initiator: IHydratedController,
     parent: IHydratedParentController,
     flags: LifecycleFlags,
   ): void | Promise<void>;
-  beforeUnbind(
+  unbinding(
     initiator: IHydratedController,
     parent: IHydratedParentController,
-    flags: LifecycleFlags,
-  ): void | Promise<void>;
-  afterUnbind(
-    initiator: IHydratedController,
-    parent: IHydratedParentController,
-    flags: LifecycleFlags,
-  ): void | Promise<void>;
-  afterUnbindChildren(
-    initiator: IHydratedController,
     flags: LifecycleFlags,
   ): void | Promise<void>;
 
@@ -74,15 +65,13 @@ export class HookSpecs {
   }
 
   private constructor(
-    public readonly beforeBind: IHookSpec<'beforeBind'>,
-    public readonly afterBind: IHookSpec<'afterBind'>,
-    public readonly afterAttach: IHookSpec<'afterAttach'>,
-    public readonly afterAttachChildren: IHookSpec<'afterAttachChildren'>,
+    public readonly binding: IHookSpec<'binding'>,
+    public readonly bound: IHookSpec<'bound'>,
+    public readonly attaching: IHookSpec<'attaching'>,
+    public readonly attached: IHookSpec<'attached'>,
 
-    public readonly beforeDetach: IHookSpec<'beforeDetach'>,
-    public readonly beforeUnbind: IHookSpec<'beforeUnbind'>,
-    public readonly afterUnbind: IHookSpec<'afterUnbind'>,
-    public readonly afterUnbindChildren: IHookSpec<'afterUnbindChildren'>,
+    public readonly detaching: IHookSpec<'detaching'>,
+    public readonly unbinding: IHookSpec<'unbinding'>,
 
     public readonly $dispose: IHookSpec<'dispose'>,
 
@@ -97,15 +86,13 @@ export class HookSpecs {
   ): HookSpecs {
     return new HookSpecs(
       // TODO: use '??' instead of '||' but gotta figure out first why ts-node doesn't understand ES2020 syntax
-      input.beforeBind || hookSpecsMap.beforeBind.sync,
-      input.afterBind || hookSpecsMap.afterBind.sync,
-      input.afterAttach || hookSpecsMap.afterAttach.sync,
-      input.afterAttachChildren || hookSpecsMap.afterAttachChildren.sync,
+      input.binding || hookSpecsMap.binding.sync,
+      input.bound || hookSpecsMap.bound.sync,
+      input.attaching || hookSpecsMap.attaching.sync,
+      input.attached || hookSpecsMap.attached.sync,
 
-      input.beforeDetach || hookSpecsMap.beforeDetach.sync,
-      input.beforeUnbind || hookSpecsMap.beforeUnbind.sync,
-      input.afterUnbind || hookSpecsMap.afterUnbind.sync,
-      input.afterUnbindChildren || hookSpecsMap.afterUnbindChildren.sync,
+      input.detaching || hookSpecsMap.detaching.sync,
+      input.unbinding || hookSpecsMap.unbinding.sync,
 
       hookSpecsMap.dispose,
 
@@ -119,15 +106,13 @@ export class HookSpecs {
   public dispose(): void {
     const $this = this as Partial<Writable<this>>;
 
-    $this.beforeBind = void 0;
-    $this.afterBind = void 0;
-    $this.afterAttach = void 0;
-    $this.afterAttachChildren = void 0;
+    $this.binding = void 0;
+    $this.bound = void 0;
+    $this.attaching = void 0;
+    $this.attached = void 0;
 
-    $this.beforeDetach = void 0;
-    $this.beforeUnbind = void 0;
-    $this.afterUnbind = void 0;
-    $this.afterUnbindChildren = void 0;
+    $this.detaching = void 0;
+    $this.unbinding = void 0;
 
     $this.$dispose = void 0;
 
@@ -150,15 +135,13 @@ export class HookSpecs {
 }
 
 const hookNames = [
-  'beforeBind',
-  'afterBind',
-  'afterAttach',
-  'afterAttachChildren',
+  'binding',
+  'bound',
+  'attaching',
+  'attached',
 
-  'beforeDetach',
-  'beforeUnbind',
-  'afterUnbind',
-  'afterUnbindChildren',
+  'detaching',
+  'unbinding',
 
   'canLoad',
   'load',
@@ -178,121 +161,92 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     public readonly specs: HookSpecs = HookSpecs.DEFAULT,
   ) {}
 
-  public beforeBind(
+  public binding(
     initiator: IHydratedController,
     parent: IHydratedParentController,
     flags: LifecycleFlags,
   ): void | Promise<void> {
-    this.hia.beforeBind.notify(this.name);
-    return this.specs.beforeBind.invoke(
+    this.hia.binding.notify(this.name);
+    return this.specs.binding.invoke(
       this,
       () => {
-        // this.hia.beforeBind.notify(this.name);
-        return this.$beforeBind(initiator, parent, flags);
+        // this.hia.binding.notify(this.name);
+        return this.$binding(initiator, parent, flags);
       },
     );
   }
 
-  public afterBind(
+  public bound(
     initiator: IHydratedController,
     parent: IHydratedParentController,
     flags: LifecycleFlags,
   ): void | Promise<void> {
-    this.hia.afterBind.notify(this.name);
-    return this.specs.afterBind.invoke(
+    this.hia.bound.notify(this.name);
+    return this.specs.bound.invoke(
       this,
       () => {
-        // this.hia.afterBind.notify(this.name);
-        return this.$afterBind(initiator, parent, flags);
+        // this.hia.bound.notify(this.name);
+        return this.$bound(initiator, parent, flags);
       },
     );
   }
 
-  public afterAttach(
+  public attaching(
     initiator: IHydratedController,
     parent: IHydratedParentController,
     flags: LifecycleFlags,
   ): void | Promise<void> {
-    this.hia.afterAttach.notify(this.name);
-    return this.specs.afterAttach.invoke(
+    this.hia.attaching.notify(this.name);
+    return this.specs.attaching.invoke(
       this,
       () => {
-        // this.hia.afterAttach.notify(this.name);
-        return this.$afterAttach(initiator, parent, flags);
+        // this.hia.attaching.notify(this.name);
+        return this.$attaching(initiator, parent, flags);
       },
     );
   }
 
-  public afterAttachChildren(
+  public attached(
     initiator: IHydratedController,
     flags: LifecycleFlags,
   ): void | Promise<void> {
-    this.hia.afterAttachChildren.notify(this.name);
-    return this.specs.afterAttachChildren.invoke(
+    this.hia.attached.notify(this.name);
+    return this.specs.attached.invoke(
       this,
       () => {
-        // this.hia.afterAttachChildren.notify(this.name);
-        return this.$afterAttachChildren(initiator, flags);
+        // this.hia.attached.notify(this.name);
+        return this.$attached(initiator, flags);
       },
     );
   }
 
-  public beforeDetach(
-    initiator: IHydratedController,
-    parent: IHydratedParentController,
-    flags: LifecycleFlags,
-  ): void | Promise<void> {
-    this.hia.beforeDetach.notify(this.name);
-    return this.specs.beforeDetach.invoke(
-      this,
-      () => {
-        // this.hia.beforeDetach.notify(this.name);
-        return this.$beforeDetach(initiator, parent, flags);
-      },
-    );
-  }
-
-  public beforeUnbind(
+  public detaching(
     initiator: IHydratedController,
     parent: IHydratedParentController,
     flags: LifecycleFlags,
   ): void | Promise<void> {
-    // console.log(`beforeUnbind ${this.name} ${this.$controller.host.outerHTML}`);
-    this.hia.beforeUnbind.notify(this.name);
-    return this.specs.beforeUnbind.invoke(
+    this.hia.detaching.notify(this.name);
+    return this.specs.detaching.invoke(
       this,
       () => {
-        // this.hia.beforeUnbind.notify(this.name);
-        return this.$beforeUnbind(initiator, parent, flags);
+        // this.hia.detaching.notify(this.name);
+        return this.$detaching(initiator, parent, flags);
       },
     );
   }
 
-  public afterUnbind(
+  public unbinding(
     initiator: IHydratedController,
     parent: IHydratedParentController,
     flags: LifecycleFlags,
   ): void | Promise<void> {
-    this.hia.afterUnbind.notify(this.name);
-    return this.specs.afterUnbind.invoke(
+    // console.log(`unbinding ${this.name} ${this.$controller.host.outerHTML}`);
+    this.hia.unbinding.notify(this.name);
+    return this.specs.unbinding.invoke(
       this,
       () => {
-        // this.hia.afterUnbind.notify(this.name);
-        return this.$afterUnbind(initiator, parent, flags);
-      },
-    );
-  }
-
-  public afterUnbindChildren(
-    initiator: IHydratedController,
-    flags: LifecycleFlags,
-  ): void | Promise<void> {
-    this.hia.afterUnbindChildren.notify(this.name);
-    return this.specs.afterUnbindChildren.invoke(
-      this,
-      () => {
-        // this.hia.afterUnbindChildren.notify(this.name);
-        return this.$afterUnbindChildren(initiator, flags);
+        // this.hia.unbinding.notify(this.name);
+        return this.$unbinding(initiator, parent, flags);
       },
     );
   }
@@ -370,7 +324,7 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     );
   }
 
-  protected $beforeBind(
+  protected $binding(
     _initiator: IHydratedController,
     _parent: IHydratedParentController,
     _flags: LifecycleFlags,
@@ -378,7 +332,7 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     // do nothing
   }
 
-  protected $afterBind(
+  protected $bound(
     _initiator: IHydratedController,
     _parent: IHydratedParentController,
     _flags: LifecycleFlags,
@@ -386,7 +340,7 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     // do nothing
   }
 
-  protected $afterAttach(
+  protected $attaching(
     _initiator: IHydratedController,
     _parent: IHydratedParentController,
     _flags: LifecycleFlags,
@@ -394,14 +348,14 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     // do nothing
   }
 
-  protected $afterAttachChildren(
+  protected $attached(
     _initiator: IHydratedController,
     _flags: LifecycleFlags,
   ): void | Promise<void> {
     // do nothing
   }
 
-  protected $beforeDetach(
+  protected $detaching(
     _initiator: IHydratedController,
     _parent: IHydratedParentController,
     _flags: LifecycleFlags,
@@ -409,24 +363,9 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     // do nothing
   }
 
-  protected $beforeUnbind(
+  protected $unbinding(
     _initiator: IHydratedController,
     _parent: IHydratedParentController,
-    _flags: LifecycleFlags,
-  ): void | Promise<void> {
-    // do nothing
-  }
-
-  protected $afterUnbind(
-    _initiator: IHydratedController,
-    _parent: IHydratedParentController,
-    _flags: LifecycleFlags,
-  ): void | Promise<void> {
-    // do nothing
-  }
-
-  protected $afterUnbindChildren(
-    _initiator: IHydratedController,
     _flags: LifecycleFlags,
   ): void | Promise<void> {
     // do nothing

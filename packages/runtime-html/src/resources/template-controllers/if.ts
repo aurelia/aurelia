@@ -1,11 +1,11 @@
 import { nextId, onResolve } from '@aurelia/kernel';
 import { bindable, LifecycleFlags } from '@aurelia/runtime';
-import { IInstruction } from '../../definitions';
 import { INode, IRenderLocation } from '../../dom';
-import { ISyntheticView, MountStrategy, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor, IComposableController } from '../../lifecycle';
-import { ICompiledCompositionContext } from '../../templating/composition-context';
+import { Instruction } from '../../renderer';
+import { ICompiledRenderContext } from '../../templating/render-context';
 import { IViewFactory } from '../../templating/view';
 import { templateController } from '../custom-attribute';
+import type { ISyntheticView, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor, IHydratableController } from '../../templating/controller';
 
 @templateController('if')
 export class If implements ICustomAttributeViewModel {
@@ -25,7 +25,7 @@ export class If implements ICustomAttributeViewModel {
     @IRenderLocation private readonly location: IRenderLocation,
   ) {}
 
-  public afterAttach(
+  public attaching(
     initiator: IHydratedController,
     parent: IHydratedParentController,
     flags: LifecycleFlags,
@@ -37,7 +37,7 @@ export class If implements ICustomAttributeViewModel {
     }
   }
 
-  public afterUnbind(
+  public detaching(
     initiator: IHydratedController,
     parent: IHydratedParentController,
     flags: LifecycleFlags,
@@ -95,17 +95,9 @@ export class If implements ICustomAttributeViewModel {
       view = factory.create(flags);
     }
 
-    view.setLocation(this.location, MountStrategy.insertBefore);
+    view.setLocation(this.location);
 
     return view;
-  }
-
-  public onCancel(
-    initiator: IHydratedController,
-    parent: IHydratedParentController,
-    flags: LifecycleFlags,
-  ): void {
-    this.view?.cancel(initiator, this.$controller, flags);
   }
 
   public dispose(): void {
@@ -139,11 +131,11 @@ export class Else {
 
   public link(
     flags: LifecycleFlags,
-    parentContext: ICompiledCompositionContext,
-    controller: IComposableController,
+    parentContext: ICompiledRenderContext,
+    controller: IHydratableController,
     _childController: ICustomAttributeController,
     _target: INode,
-    _instruction: IInstruction,
+    _instruction: Instruction,
   ): void {
     const children = controller.children!;
     const ifBehavior: If | ICustomAttributeController = children[children.length - 1] as If | ICustomAttributeController;

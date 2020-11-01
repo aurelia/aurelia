@@ -208,7 +208,8 @@ export class ObserverLocator {
 
 export type RepeatableCollection = IObservedMap | IObservedSet | IObservedArray | null | undefined | number;
 
-export function getCollectionObserver(flags: LifecycleFlags, lifecycle: ILifecycle, collection: RepeatableCollection): CollectionObserver | undefined {  if (collection instanceof Array) {
+export function getCollectionObserver(flags: LifecycleFlags, lifecycle: ILifecycle, collection: RepeatableCollection): CollectionObserver | undefined {
+  if (collection instanceof Array) {
     return getArrayObserver(flags, lifecycle, collection as IObservedArray);
   } else if (collection instanceof Map) {
     return getMapObserver(flags, lifecycle, collection as IObservedMap);

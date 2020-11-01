@@ -185,7 +185,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       /* definition     */definition,
       /* viewFactory    */null,
       /* viewModel      */viewModel,
-      /* bindingContext */getBindingContext<C>(flags, viewModel),
+      /* bindingContext */viewModel as BindingContext<C>,
       /* host           */host,
     );
 
@@ -219,7 +219,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       /* definition     */definition,
       /* viewFactory    */null,
       /* viewModel      */viewModel,
-      /* bindingContext */getBindingContext<C>(flags, viewModel),
+      /* bindingContext */viewModel as BindingContext<C>,
       /* host           */host
     );
 
@@ -832,10 +832,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
     return void 0;
   }
-}
-
-function getBindingContext<C extends IViewModel>(flags: LifecycleFlags, instance: object): BindingContext<C> {
-  return instance as BindingContext<C>;
 }
 
 function getLookup(instance: IIndexable): Record<string, BindableObserver | ChildrenObserver> {

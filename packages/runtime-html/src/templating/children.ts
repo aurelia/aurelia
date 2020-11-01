@@ -3,7 +3,7 @@ import { Constructable, Protocol, Metadata, firstDefined, getPrototypeChain, IIn
 import { LifecycleFlags, subscriberCollection, ISubscriberCollection, IAccessor, ISubscribable, IPropertyObserver, ISubscriber } from '@aurelia/runtime';
 import { INode } from '../dom';
 import { ICustomElementViewModel, ICustomElementController } from '../lifecycle';
-import { ElementProjector } from '../projectors';
+import { ElementProjector } from './controller';
 import { CustomElement } from '../resources/custom-element';
 
 export type PartialChildrenDefinition = {

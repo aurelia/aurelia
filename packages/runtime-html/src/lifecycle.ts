@@ -8,7 +8,7 @@ import { CustomAttributeDefinition } from './resources/custom-attribute';
 
 import type { IAppRoot } from './app-root';
 import { IPlatform } from './platform';
-import { ElementProjector } from './projectors';
+import { ElementProjector } from './templating/controller';
 import { Instruction } from './renderer';
 
 export const enum ViewModelKind {

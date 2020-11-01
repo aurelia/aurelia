@@ -564,6 +564,7 @@ export {
   Controller,
   isCustomElementController,
   isCustomElementViewModel,
+  ElementProjector,
 } from './templating/controller';
 export {
   getRenderContext,
@@ -624,14 +625,6 @@ export {
 export {
   IPlatform,
 } from './platform';
-export {
-  ContainerlessProjector,
-  HostProjector,
-  ProjectorLocator,
-  IProjectorLocator,
-  ShadowDOMProjector,
-  ElementProjector,
-} from './projectors';
 
 export {
   BindableInfo,

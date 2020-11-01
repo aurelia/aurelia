@@ -11,6 +11,9 @@ import {
   ILogger,
   LogLevel,
   resolveAll,
+  emptyArray,
+  toArray,
+  Metadata,
 } from '@aurelia/kernel';
 import {
   IBinding,
@@ -23,7 +26,7 @@ import {
   BindableObserver,
   BindableDefinition,
 } from '@aurelia/runtime';
-import { INodeSequence, IRenderLocation } from '../dom';
+import { convertToRenderLocation, INodeSequence, IRenderLocation } from '../dom';
 import {
   IController,
   IViewModel,
@@ -48,9 +51,9 @@ import { IRenderContext, getRenderContext, RenderContext } from './render-contex
 import { ChildrenObserver } from './children';
 import { RegisteredProjections } from '../resources/custom-elements/au-slot';
 import { IAppRoot } from '../app-root';
-import { ElementProjector, IProjectorLocator } from '../projectors';
 import { IPlatform } from '../platform';
 import { IViewFactory } from './view';
+import { IShadowDOMGlobalStyles, IShadowDOMStyles } from '../styles/shadow-dom-styles';
 
 function callDispose(disposable: IDisposable): void {
   disposable.dispose();
@@ -337,12 +340,17 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     compiledDefinition.projectionsMap.clear();
     this.isStrictBinding = compiledDefinition.isStrictBinding;
 
-    const projectorLocator = this.context!.get<IProjectorLocator>(IProjectorLocator);
-    this.projector = projectorLocator.getElementProjector(
-      this as ICustomElementController,
-      this.host as CustomElementHost<HTMLElement>,
-      compiledDefinition,
-    );
+    if (compiledDefinition.shadowOptions || compiledDefinition.hasSlots) {
+      if (compiledDefinition.containerless) {
+        throw new Error('You cannot combine the containerless custom element option with Shadow DOM.');
+      }
+
+      this.projector = new ShadowDOMProjector(this as ICustomElementController, this.host as CustomElementHost<HTMLElement>, compiledDefinition);
+    } else if (compiledDefinition.containerless) {
+      this.projector = new ContainerlessProjector(this as ICustomElementController, this.host as CustomElementHost);
+    } else {
+      this.projector = new HostProjector(this as ICustomElementController, this.host as CustomElementHost, compiledDefinition.enhance);
+    }
 
     (this.viewModel as Writable<C>).$controller = this;
     this.nodes = compiledContext.createNodes();
@@ -994,5 +1002,138 @@ export class HooksDefinition {
 
     this.hasDispose = 'dispose' in target;
     this.hasAccept = 'accept' in target;
+  }
+}
+
+const childObserverOptions = { childList: true };
+
+const defaultShadowOptions = {
+  mode: 'open' as 'open' | 'closed'
+};
+
+export type ElementProjector = ShadowDOMProjector | ContainerlessProjector | HostProjector;
+export class ShadowDOMProjector {
+  public shadowRoot: CustomElementHost<ShadowRoot>;
+
+  public constructor(
+    // eslint-disable-next-line @typescript-eslint/prefer-readonly
+    private $controller: ICustomElementController,
+    public host: CustomElementHost<HTMLElement>,
+    definition: CustomElementDefinition,
+  ) {
+    let shadowOptions: ShadowRootInit;
+    if (
+      definition.shadowOptions instanceof Object &&
+      'mode' in definition.shadowOptions
+    ) {
+      shadowOptions = definition.shadowOptions as unknown as ShadowRootInit;
+    } else {
+      shadowOptions = defaultShadowOptions;
+    }
+    this.shadowRoot = host.attachShadow(shadowOptions);
+    Metadata.define(CustomElement.name, $controller, this.host);
+    Metadata.define(CustomElement.name, $controller, this.shadowRoot);
+  }
+
+  public get children(): ArrayLike<ChildNode> {
+    return this.host.childNodes;
+  }
+
+  public subscribeToChildrenChange(callback: () => void, options: MutationObserverInit = childObserverOptions): void {
+    // TODO: add a way to dispose/disconnect
+    const obs = new this.host.ownerDocument!.defaultView!.MutationObserver(callback);
+    obs.observe(this.host, options);
+  }
+
+  public provideEncapsulationSource(): CustomElementHost<ShadowRoot> {
+    return this.shadowRoot;
+  }
+
+  public project(nodes: INodeSequence): void {
+    const context = this.$controller.context!;
+    const styles = context.has(IShadowDOMStyles, false)
+      ? context.get(IShadowDOMStyles)
+      : context.get(IShadowDOMGlobalStyles);
+
+    styles.applyTo(this.shadowRoot);
+    nodes.appendTo(this.shadowRoot);
+  }
+
+  public take(nodes: INodeSequence): void {
+    nodes.remove();
+    nodes.unlink();
+  }
+}
+
+export class ContainerlessProjector {
+  public host: CustomElementHost;
+
+  private readonly childNodes: readonly ChildNode[];
+
+  public constructor(
+    $controller: ICustomElementController,
+    host: Node,
+  ) {
+    if (host.childNodes.length) {
+      this.childNodes = toArray(host.childNodes);
+    } else {
+      this.childNodes = emptyArray;
+    }
+
+    this.host = convertToRenderLocation(host) as CustomElementHost;
+    Metadata.define(CustomElement.name, $controller, this.host);
+  }
+
+  public get children(): ArrayLike<ChildNode> {
+    return this.childNodes;
+  }
+
+  public subscribeToChildrenChange(callback: () => void): void {
+    // TODO: turn this into an error
+    // Containerless does not have a container node to observe children on.
+  }
+
+  public provideEncapsulationSource(): Document | DocumentFragment | CustomElementHost<ShadowRoot> {
+    return this.host.getRootNode() as Document | DocumentFragment | CustomElementHost<ShadowRoot>;
+  }
+
+  public project(nodes: INodeSequence): void {
+    nodes.insertBefore(this.host);
+  }
+
+  public take(nodes: INodeSequence): void {
+    nodes.remove();
+    nodes.unlink();
+  }
+}
+
+export class HostProjector {
+  public constructor(
+    $controller: ICustomElementController,
+    public host: CustomElementHost,
+    private readonly enhance: boolean,
+  ) {
+    Metadata.define(CustomElement.name, $controller, host);
+  }
+
+  public get children(): ArrayLike<ChildNode> {
+    return this.host.childNodes;
+  }
+
+  public subscribeToChildrenChange(callback: () => void): void {
+    // Do nothing since this scenario will never have children.
+  }
+
+  public provideEncapsulationSource(): Document | DocumentFragment | CustomElementHost<ShadowRoot> {
+    return this.host.getRootNode() as Document | DocumentFragment | CustomElementHost<ShadowRoot>;
+  }
+
+  public project(nodes: INodeSequence): void {
+    nodes.appendTo(this.host, this.enhance);
+  }
+
+  public take(nodes: INodeSequence): void {
+    nodes.remove();
+    nodes.unlink();
   }
 }

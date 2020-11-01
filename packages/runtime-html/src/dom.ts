@@ -1,8 +1,8 @@
 import { DI, Writable } from '@aurelia/kernel';
 import { IAppRoot } from './app-root';
 import { IPlatform } from './platform';
-import { ShadowDOMProjector } from './projectors';
 import { CustomElement } from './resources/custom-element';
+import { ShadowDOMProjector } from './templating/controller';
 
 export interface INode extends Node {}
 export const INode = DI.createInterface<INode>('INode').noDefault();

@@ -13,7 +13,6 @@ import {
   cssModules,
   IShadowDOMGlobalStyles,
   IShadowDOMStyles,
-  ShadowDOMProjector,
   FragmentNodeSequence,
 } from '@aurelia/runtime-html';
 import { assert, PLATFORM, TestContext } from '@aurelia/testing';
@@ -220,7 +219,7 @@ describe('Styles', function () {
       );
 
       const seq = new FragmentNodeSequence(ctx.platform, ctx.doc.createDocumentFragment());
-      const projector = controller.projector as ShadowDOMProjector;
+      const projector = controller.projector;
 
       projector.project(seq);
 

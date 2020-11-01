@@ -194,22 +194,21 @@ describe('Styles', function () {
     it('controller applies styles during activation', function () {
       const ctx = TestContext.create();
       const host = ctx.createElement('foo-bar');
+      const css = '.my-class { color: red }';
       const FooBar = CustomElement.define({
         name: 'foo-bar',
         shadowOptions: { mode: 'open' },
         template: '',
+        dependencies: [
+          Registration.instance(
+            IShadowDOMStyles,
+            new StyleElementStyles(ctx.platform, [css], null)
+          )
+        ]
       });
-      const css = '.my-class { color: red }';
-      const context = ctx.container.createChild();
-      context.register(
-        Registration.instance(
-          IShadowDOMStyles,
-          new StyleElementStyles(ctx.platform, [css], null)
-        )
-      );
 
       const component = new FooBar();
-      const controller = Controller.forCustomElement(null, context, component, host, null, null);
+      const controller = Controller.forCustomElement(null, ctx.container, component, host, null, null);
 
       controller.activate(controller, null, LifecycleFlags.none);
 

@@ -341,6 +341,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
     if (shadowOptions !== null || hasSlots) {
       if (containerless) { throw new Error('You cannot combine the containerless custom element option with Shadow DOM.'); }
+      Metadata.define(CustomElement.name, this, this.host);
       this.setShadowRoot(this.shadowRoot = (this.host as HTMLElement).attachShadow(shadowOptions ?? defaultShadowOptions));
     } else if (containerless) {
       this.setLocation(this.location = convertToRenderLocation(this.host!));

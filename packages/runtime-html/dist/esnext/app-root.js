@@ -3,7 +3,6 @@ import { INode } from './dom';
 import { IAppTask } from './app-task';
 import { CustomElement } from './resources/custom-element';
 import { Controller } from './templating/controller';
-import { HooksDefinition } from './definitions';
 export const IAppRoot = DI.createInterface('IAppRoot').noDefault();
 export class AppRoot {
     constructor(config, platform, container, rootProvider, enhance = false) {
@@ -24,7 +23,7 @@ export class AppRoot {
             const component = config.component;
             this.enhanceDefinition = CustomElement.getDefinition(CustomElement.isType(component)
                 ? CustomElement.define({ ...CustomElement.getDefinition(component), template: this.host, enhance: true }, component)
-                : CustomElement.define({ name: (void 0), template: this.host, enhance: true, hooks: new HooksDefinition(component) }));
+                : CustomElement.define({ name: (void 0), template: this.host, enhance: true }));
         }
         this.hydratePromise = onResolve(this.runAppTasks('beforeCreate'), () => {
             const instance = CustomElement.isType(config.component)
@@ -32,10 +31,10 @@ export class AppRoot {
                 : config.component;
             const controller = (this.controller = Controller.forCustomElement(this, container, instance, this.host, null, this.strategy, false, this.enhanceDefinition));
             controller.hydrateCustomElement(container, null);
-            return onResolve(this.runAppTasks('beforeCompose'), () => {
-                controller.compile(null);
-                return onResolve(this.runAppTasks('beforeCompileChildren'), () => {
-                    controller.compileChildren();
+            return onResolve(this.runAppTasks('hydrating'), () => {
+                controller.hydrate(null);
+                return onResolve(this.runAppTasks('hydrated'), () => {
+                    controller.hydrateChildren();
                     this.hydratePromise = void 0;
                 });
             });

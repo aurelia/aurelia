@@ -26,7 +26,7 @@ export declare class ValidationErrorsCustomAttribute implements ValidationResult
     private readonly host;
     constructor(host: INode, scopedController: IValidationController);
     handleValidationEvent(event: ValidationEvent): void;
-    beforeBind(): void;
-    beforeUnbind(): void;
+    binding(): void;
+    unbinding(): void;
 }
 //# sourceMappingURL=validation-errors-custom-attribute.d.ts.map

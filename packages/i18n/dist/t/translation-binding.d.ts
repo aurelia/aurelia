@@ -1,5 +1,5 @@
 import { IServiceLocator, IContainer } from '@aurelia/kernel';
-import { IConnectableBinding, IExpressionParser, IObserverLocator, IPartialConnectableBinding, IsExpression, LifecycleFlags, INode, IComposableController } from '@aurelia/runtime-html';
+import { IConnectableBinding, IExpressionParser, IObserverLocator, IPartialConnectableBinding, IsExpression, LifecycleFlags, INode, IHydratableController } from '@aurelia/runtime-html';
 import i18next from 'i18next';
 import type { Scope } from '@aurelia/runtime';
 import type { CallBindingInstruction } from '@aurelia/runtime-html';
@@ -7,7 +7,7 @@ interface TranslationBindingCreationContext {
     parser: IExpressionParser;
     observerLocator: IObserverLocator;
     context: IContainer;
-    controller: IComposableController;
+    controller: IHydratableController;
     target: HTMLElement;
     instruction: CallBindingInstruction;
     isParameterContext?: boolean;

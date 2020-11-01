@@ -165,13 +165,13 @@ export class ViewportScope {
         }
         return false;
     }
-    beforeBind() {
+    binding() {
         const source = this.source || [];
         if (source.length > 0 && this.sourceItem === null) {
             this.sourceItem = this.getAvailableSourceItem();
         }
     }
-    beforeUnbind() {
+    unbinding() {
         if (this.sourceItem !== null && this.source !== null) {
             arrayRemove(this.source, (item) => item === this.sourceItem);
         }

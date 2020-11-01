@@ -88,7 +88,7 @@
                 });
             });
         }
-        stop() {
+        stop(dispose = false) {
             if (this.stopPromise instanceof Promise) {
                 return this.stopPromise;
             }
@@ -98,6 +98,9 @@
                 this._isStopping = true;
                 return this.stopPromise = kernel_1.onResolve(root.deactivate(), () => {
                     Reflect.deleteProperty(root.host, '$aurelia');
+                    if (dispose) {
+                        root.dispose();
+                    }
                     this._root = void 0;
                     this.rootProvider.dispose();
                     this._isStopping = false;
@@ -106,12 +109,9 @@
             }
         }
         dispose() {
-            var _a;
             if (this._isRunning || this._isStopping) {
                 throw new Error(`The aurelia instance must be fully stopped before it can be disposed`);
             }
-            (_a = this._root) === null || _a === void 0 ? void 0 : _a.dispose();
-            this._root = void 0;
             this.container.dispose();
         }
         dispatchEvent(root, name, target) {

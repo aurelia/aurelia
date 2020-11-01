@@ -39,7 +39,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             const oldValue = this.raw[this.key];
             if (oldValue !== value) {
                 this.raw[this.key] = value;
-                this.callSubscribers(value, oldValue, flags | 2 /* proxyStrategy */ | 8 /* updateTargetInstance */);
+                this.callSubscribers(value, oldValue, flags | 2 /* proxyStrategy */ | 8 /* updateTarget */);
             }
         }
         getValue() {
@@ -121,7 +121,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             if (oldValue !== value) {
                 target[p] = value;
                 this.callPropertySubscribers(value, oldValue, p);
-                this.callProxySubscribers(p, value, oldValue, 2 /* proxyStrategy */ | 8 /* updateTargetInstance */);
+                this.callProxySubscribers(p, value, oldValue, 2 /* proxyStrategy */ | 8 /* updateTarget */);
             }
             return true;
         }
@@ -130,7 +130,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             if (Reflect.deleteProperty(target, p)) {
                 if (oldValue !== void 0) {
                     this.callPropertySubscribers(undefined, oldValue, p);
-                    this.callProxySubscribers(p, undefined, oldValue, 2 /* proxyStrategy */ | 8 /* updateTargetInstance */);
+                    this.callProxySubscribers(p, undefined, oldValue, 2 /* proxyStrategy */ | 8 /* updateTarget */);
                 }
                 return true;
             }
@@ -141,7 +141,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             if (Reflect.defineProperty(target, p, attributes)) {
                 if (attributes.value !== oldValue) {
                     this.callPropertySubscribers(attributes.value, oldValue, p);
-                    this.callProxySubscribers(p, attributes.value, oldValue, 2 /* proxyStrategy */ | 8 /* updateTargetInstance */);
+                    this.callProxySubscribers(p, attributes.value, oldValue, 2 /* proxyStrategy */ | 8 /* updateTarget */);
                 }
                 return true;
             }
@@ -177,7 +177,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         callPropertySubscribers(newValue, oldValue, key) {
             const subscribers = this.subscribers[key];
             if (subscribers !== void 0) {
-                subscribers.callSubscribers(newValue, oldValue, 2 /* proxyStrategy */ | 8 /* updateTargetInstance */);
+                subscribers.callSubscribers(newValue, oldValue, 2 /* proxyStrategy */ | 8 /* updateTarget */);
             }
         }
     };

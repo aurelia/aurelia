@@ -1,9 +1,6 @@
-import { DI, Registration } from '@aurelia/kernel';
+import { DI } from '@aurelia/kernel';
 export const IAttrSyntaxTransformer = DI.createInterface('IAttrSyntaxTransformer').withDefault(x => x.singleton(AttrSyntaxTransformer));
 export class AttrSyntaxTransformer {
-    static register(container) {
-        return Registration.singleton(IAttrSyntaxTransformer, this).register(container);
-    }
     transform(node, attrSyntax) {
         if (attrSyntax.command === 'bind' && shouldDefaultToTwoWay(node, attrSyntax)) {
             attrSyntax.command = 'two-way';

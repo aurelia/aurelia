@@ -1,22 +1,22 @@
 import { Constructable, IContainer, Key } from '@aurelia/kernel';
-import { Instruction } from './instructions';
-import { ISyntheticView } from './lifecycle';
+import { IInstruction } from './renderer';
 import { IPlatform } from './platform';
 import { CustomElementDefinition } from './resources/custom-element';
-import { ICompositionContext } from './templating/composition-context';
+import { IRenderContext } from './templating/render-context';
 import { IViewFactory } from './templating/view';
-export declare function createElement<C extends Constructable = Constructable>(p: IPlatform, tagOrType: string | C, props?: Record<string, string | Instruction>, children?: ArrayLike<unknown>): CompositionPlan;
+import type { ISyntheticView } from './templating/controller';
+export declare function createElement<C extends Constructable = Constructable>(p: IPlatform, tagOrType: string | C, props?: Record<string, string | IInstruction>, children?: ArrayLike<unknown>): RenderPlan;
 /**
- * CompositionPlan. Todo: describe goal of this class
+ * RenderPlan. Todo: describe goal of this class
  */
-export declare class CompositionPlan {
+export declare class RenderPlan {
     private readonly node;
     private readonly instructions;
     private readonly dependencies;
     private lazyDefinition?;
-    constructor(node: Node, instructions: Instruction[][], dependencies: Key[]);
+    constructor(node: Node, instructions: IInstruction[][], dependencies: Key[]);
     get definition(): CustomElementDefinition;
-    getContext(parentContainer: IContainer): ICompositionContext;
+    getContext(parentContainer: IContainer): IRenderContext;
     createView(parentContainer: IContainer): ISyntheticView;
     getViewFactory(parentContainer: IContainer): IViewFactory;
 }

@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "./dom", "./app-task", "./resources/custom-element", "./templating/controller", "./definitions"], factory);
+        define(["require", "exports", "@aurelia/kernel", "./dom", "./app-task", "./resources/custom-element", "./templating/controller"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -15,7 +15,6 @@
     const app_task_1 = require("./app-task");
     const custom_element_1 = require("./resources/custom-element");
     const controller_1 = require("./templating/controller");
-    const definitions_1 = require("./definitions");
     exports.IAppRoot = kernel_1.DI.createInterface('IAppRoot').noDefault();
     class AppRoot {
         constructor(config, platform, container, rootProvider, enhance = false) {
@@ -36,7 +35,7 @@
                 const component = config.component;
                 this.enhanceDefinition = custom_element_1.CustomElement.getDefinition(custom_element_1.CustomElement.isType(component)
                     ? custom_element_1.CustomElement.define({ ...custom_element_1.CustomElement.getDefinition(component), template: this.host, enhance: true }, component)
-                    : custom_element_1.CustomElement.define({ name: (void 0), template: this.host, enhance: true, hooks: new definitions_1.HooksDefinition(component) }));
+                    : custom_element_1.CustomElement.define({ name: (void 0), template: this.host, enhance: true }));
             }
             this.hydratePromise = kernel_1.onResolve(this.runAppTasks('beforeCreate'), () => {
                 const instance = custom_element_1.CustomElement.isType(config.component)
@@ -44,10 +43,10 @@
                     : config.component;
                 const controller = (this.controller = controller_1.Controller.forCustomElement(this, container, instance, this.host, null, this.strategy, false, this.enhanceDefinition));
                 controller.hydrateCustomElement(container, null);
-                return kernel_1.onResolve(this.runAppTasks('beforeCompose'), () => {
-                    controller.compile(null);
-                    return kernel_1.onResolve(this.runAppTasks('beforeCompileChildren'), () => {
-                        controller.compileChildren();
+                return kernel_1.onResolve(this.runAppTasks('hydrating'), () => {
+                    controller.hydrate(null);
+                    return kernel_1.onResolve(this.runAppTasks('hydrated'), () => {
+                        controller.hydrateChildren();
                         this.hydratePromise = void 0;
                     });
                 });

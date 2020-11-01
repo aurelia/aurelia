@@ -1,22 +1,22 @@
 import { Constructable, ConstructableClass } from '@aurelia/kernel';
 import { LifecycleFlags, Scope } from '@aurelia/runtime';
-import { ICustomElementViewModel, ISyntheticView, ICustomElementController, ICustomAttributeController } from '../lifecycle';
 import { PartialCustomElementDefinition, CustomElementDefinition } from '../resources/custom-element';
-import { ICompositionContext } from './composition-context';
+import { IRenderContext } from './render-context';
 import { AuSlotContentType } from '../resources/custom-elements/au-slot';
+import type { ICustomElementViewModel, ISyntheticView, ICustomElementController, ICustomAttributeController } from './controller';
 export interface IViewFactory extends ViewFactory {
 }
 export declare const IViewFactory: import("@aurelia/kernel").InterfaceSymbol<IViewFactory>;
 export declare class ViewFactory implements IViewFactory {
     name: string;
-    readonly context: ICompositionContext;
+    readonly context: IRenderContext;
     readonly contentType: AuSlotContentType | undefined;
     readonly projectionScope: Scope | null;
     static maxCacheSize: number;
     isCaching: boolean;
     private cache;
     private cacheSize;
-    constructor(name: string, context: ICompositionContext, contentType: AuSlotContentType | undefined, projectionScope?: Scope | null);
+    constructor(name: string, context: IRenderContext, contentType: AuSlotContentType | undefined, projectionScope?: Scope | null);
     setCacheSize(size: number | '*', doNotOverrideIfAlreadySet: boolean): void;
     canReturnToCache(controller: ISyntheticView): boolean;
     tryReturnToCache(controller: ISyntheticView): boolean;

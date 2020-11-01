@@ -1,4 +1,5 @@
 import { Constructable, IDisposable } from './interfaces';
+import { IResourceKind, ResourceDefinition, ResourceType } from './resource';
 export declare type ResolveCallback<T = any> = (handler: IContainer, requestor: IContainer, resolver: IResolver<T>) => T;
 export declare type InterfaceSymbol<K = any> = (target: Injectable<K>, property: string, index: number) => void;
 export interface IDefaultableInterfaceSymbol<K> extends InterfaceSymbol<K> {
@@ -45,6 +46,8 @@ export interface IContainer extends IServiceLocator, IDisposable {
     getFactory<T extends Constructable>(key: T): IFactory<T> | null;
     createChild(config?: IContainerConfiguration): IContainer;
     disposeResolvers(): void;
+    find<TType extends ResourceType, TDef extends ResourceDefinition>(kind: IResourceKind<TType, TDef>, name: string): TDef | null;
+    create<TType extends ResourceType, TDef extends ResourceDefinition>(kind: IResourceKind<TType, TDef>, name: string): InstanceType<TType> | null;
 }
 export declare class ResolverBuilder<K> {
     private container;

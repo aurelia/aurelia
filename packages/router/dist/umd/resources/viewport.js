@@ -47,8 +47,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             this.isBound = false;
             this.element = element;
         }
-        beforeComposeChildren(controller) {
-            // console.log('beforeComposeChildren', this.name, this.router.isActive);
+        hydrated(controller) {
+            // console.log('hydrated', this.name, this.router.isActive);
             this.controller = controller;
             this.container = controller.context.get(kernel_1.IContainer);
             // The first viewport(s) might be compiled before the router is active
@@ -58,7 +58,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                 }
             });
         }
-        beforeBind(initiator, parent, flags) {
+        binding(initiator, parent, flags) {
             this.isBound = true;
             return runner_1.Runner.run(() => this.waitForRouterStart(), () => {
                 if (!this.router.isRestrictedNavigation) {
@@ -66,19 +66,19 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                 }
             });
         }
-        afterAttach(initiator, parent, flags) {
+        attaching(initiator, parent, flags) {
             var _a;
             if (this.viewport !== null && ((_a = this.viewport.nextContent) !== null && _a !== void 0 ? _a : null) === null) {
-                // console.log('afterAttach', this.viewport?.toString());
+                // console.log('attaching', this.viewport?.toString());
                 this.viewport.enabled = true;
                 return this.viewport.activate(initiator, this.$controller, flags, true);
                 // TODO: Restore scroll state
             }
         }
-        beforeUnbind(initiator, parent, flags) {
+        unbinding(initiator, parent, flags) {
             var _a;
             if (this.viewport !== null && ((_a = this.viewport.nextContent) !== null && _a !== void 0 ? _a : null) === null) {
-                // console.log('beforeUnbind', this.viewport?.toString());
+                // console.log('unbinding', this.viewport?.toString());
                 // TODO: Save to cache, something like
                 // this.viewport.cacheContent();
                 // From viewport-content:
@@ -105,9 +105,9 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                 // // this.viewport.enabled = false;
             }
         }
-        // public beforeDetach(initiator: IHydratedController, parent: ISyntheticView | ICustomElementController<ICustomElementViewModel> | null, flags: LifecycleFlags): void | Promise<void> {
+        // public detaching(initiator: IHydratedController, parent: ISyntheticView | ICustomElementController<ICustomElementViewModel> | null, flags: LifecycleFlags): void | Promise<void> {
         //   if (this.viewport !== null && (this.viewport.nextContent ?? null) === null) {
-        //     console.log('beforeDetach', this.viewport?.toString());
+        //     console.log('detaching', this.viewport?.toString());
         //   }
         // }
         dispose() {

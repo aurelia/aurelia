@@ -1,6 +1,6 @@
-import { HydrateElementInstruction, isInstruction, SetAttributeInstruction, } from './instructions';
+import { HydrateElementInstruction, isInstruction, SetAttributeInstruction, } from './renderer';
 import { CustomElement, CustomElementDefinition } from './resources/custom-element';
-import { getCompositionContext } from './templating/composition-context';
+import { getRenderContext } from './templating/render-context';
 export function createElement(p, tagOrType, props, children) {
     if (typeof tagOrType === 'string') {
         return createElementForTag(p, tagOrType, props, children);
@@ -13,9 +13,9 @@ export function createElement(p, tagOrType, props, children) {
     }
 }
 /**
- * CompositionPlan. Todo: describe goal of this class
+ * RenderPlan. Todo: describe goal of this class
  */
-export class CompositionPlan {
+export class RenderPlan {
     constructor(node, instructions, dependencies) {
         this.node = node;
         this.instructions = instructions;
@@ -35,7 +35,7 @@ export class CompositionPlan {
         return this.lazyDefinition;
     }
     getContext(parentContainer) {
-        return getCompositionContext(this.definition, parentContainer);
+        return getRenderContext(this.definition, parentContainer);
     }
     createView(parentContainer) {
         return this.getViewFactory(parentContainer).create();
@@ -76,7 +76,7 @@ function createElementForTag(p, tagName, props, children) {
     if (children) {
         addChildren(p, element, children, allInstructions, dependencies);
     }
-    return new CompositionPlan(element, allInstructions, dependencies);
+    return new RenderPlan(element, allInstructions, dependencies);
 }
 function createElementForType(p, Type, props, children) {
     const definition = CustomElement.getDefinition(Type);
@@ -117,7 +117,7 @@ function createElementForType(p, Type, props, children) {
     if (children) {
         addChildren(p, element, children, allInstructions, dependencies);
     }
-    return new CompositionPlan(element, allInstructions, dependencies);
+    return new RenderPlan(element, allInstructions, dependencies);
 }
 function addChildren(p, parent, children, allInstructions, dependencies) {
     for (let i = 0, ii = children.length; i < ii; ++i) {

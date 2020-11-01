@@ -1,9 +1,9 @@
 import { IContainer, Key, Resolved } from '@aurelia/kernel';
-export declare type TaskSlot = ('beforeCreate' | 'beforeCompose' | 'beforeCompileChildren' | 'beforeActivate' | 'afterActivate' | 'beforeDeactivate' | 'afterDeactivate');
+export declare type TaskSlot = ('beforeCreate' | 'hydrating' | 'hydrated' | 'beforeActivate' | 'afterActivate' | 'beforeDeactivate' | 'afterDeactivate');
 export declare const IAppTask: import("@aurelia/kernel").InterfaceSymbol<IAppTask>;
 export interface IAppTask extends Pick<$AppTask, 'slot' | 'run' | 'register'> {
 }
-export interface ICallbackSlotChooser<K extends Key> extends Pick<$AppTask<K>, 'beforeCreate' | 'beforeCompose' | 'beforeCompileChildren' | 'beforeActivate' | 'afterActivate' | 'beforeDeactivate' | 'afterDeactivate'> {
+export interface ICallbackSlotChooser<K extends Key> extends Pick<$AppTask<K>, 'beforeCreate' | 'hydrating' | 'hydrated' | 'beforeActivate' | 'afterActivate' | 'beforeDeactivate' | 'afterDeactivate'> {
 }
 export interface ICallbackChooser<K extends Key> extends Pick<$AppTask<K>, 'call'> {
 }
@@ -15,8 +15,8 @@ declare class $AppTask<K extends Key = Key> {
     private constructor();
     static with<K1 extends Key>(key: K1): ICallbackSlotChooser<K1>;
     beforeCreate(): ICallbackChooser<K>;
-    beforeCompose(): ICallbackChooser<K>;
-    beforeCompileChildren(): ICallbackChooser<K>;
+    hydrating(): ICallbackChooser<K>;
+    hydrated(): ICallbackChooser<K>;
     beforeActivate(): ICallbackChooser<K>;
     afterActivate(): ICallbackChooser<K>;
     beforeDeactivate(): ICallbackChooser<K>;

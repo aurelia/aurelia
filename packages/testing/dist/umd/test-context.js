@@ -20,8 +20,6 @@
             this._templateCompiler = void 0;
             this._observerLocator = void 0;
             this._lifecycle = void 0;
-            this._composer = void 0;
-            this._projectorLocator = void 0;
             this._domParser = void 0;
         }
         get wnd() { return this.platform.globalThis; }
@@ -71,18 +69,6 @@
                 this._lifecycle = this.container.get(runtime_html_1.ILifecycle);
             }
             return this._lifecycle;
-        }
-        get composer() {
-            if (this._composer === void 0) {
-                this._composer = this.container.get(runtime_html_1.IComposer);
-            }
-            return this._composer;
-        }
-        get projectorLocator() {
-            if (this._projectorLocator === void 0) {
-                this._projectorLocator = this.container.get(runtime_html_1.IProjectorLocator);
-            }
-            return this._projectorLocator;
         }
         get domParser() {
             if (this._domParser === void 0) {

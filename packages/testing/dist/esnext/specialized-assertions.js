@@ -61,9 +61,6 @@ export function getVisibleText(root, host, removeWhiteSpace) {
     const text = context.text;
     return removeWhiteSpace && text ? text.replace(/\s\s+/g, ' ').trim() : text;
 }
-function isShadowDOMProjector(projector) {
-    return projector != void 0 && 'shadowRoot' in projector;
-}
 function $getVisibleText(root, context) {
     if (root == void 0) {
         return;
@@ -78,8 +75,8 @@ function $getVisibleText(root, context) {
         controller = children[i];
         switch (controller.vmKind) {
             case 0 /* customElement */:
-                if (isShadowDOMProjector(controller.projector)) {
-                    context.text += controller.projector.shadowRoot.textContent;
+                if (controller.mountTarget === 2 /* shadowRoot */) {
+                    context.text += controller.shadowRoot.textContent;
                     $getVisibleText(controller, context);
                 }
                 else if (controller.viewModel instanceof Compose) {
@@ -124,14 +121,14 @@ export function instructionTypeName(type) {
             return 'setProperty';
         case "he" /* setAttribute */:
             return 'setAttribute';
-        case "ra" /* composeElement */:
-            return 'composeElement';
-        case "rb" /* composeAttribute */:
-            return 'composeAttribute';
-        case "rc" /* composeTemplateController */:
-            return 'composeTemplateController';
-        case "rd" /* composeLetElement */:
-            return 'composeLetElement';
+        case "ra" /* hydrateElement */:
+            return 'hydrateElement';
+        case "rb" /* hydrateAttribute */:
+            return 'hydrateAttribute';
+        case "rc" /* hydrateTemplateController */:
+            return 'hydrateTemplateController';
+        case "rd" /* hydrateLetElement */:
+            return 'hydrateLetElement';
         case "ri" /* letBinding */:
             return 'letBinding';
         default:

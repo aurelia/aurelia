@@ -28,7 +28,7 @@ export function addObserver(observer) {
         }
         this[slotNames[i]] = observer;
         observer.subscribe(this);
-        observer[this.id] |= 8 /* updateTargetInstance */;
+        observer[this.id] |= 8 /* updateTarget */;
         // increment the slot count.
         if (i === observerSlots) {
             this.observerSlots = i + 1;
@@ -65,7 +65,7 @@ export function unobserve(all) {
             if (observer != null) {
                 this[slotName] = void 0;
                 observer.unsubscribe(this);
-                observer[this.id] &= ~8 /* updateTargetInstance */;
+                observer[this.id] &= ~8 /* updateTarget */;
             }
         }
     }
@@ -78,7 +78,7 @@ export function unobserve(all) {
                 if (observer != null) {
                     this[slotName] = void 0;
                     observer.unsubscribe(this);
-                    observer[this.id] &= ~8 /* updateTargetInstance */;
+                    observer[this.id] &= ~8 /* updateTarget */;
                 }
             }
         }

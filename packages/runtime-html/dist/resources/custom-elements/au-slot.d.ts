@@ -1,9 +1,9 @@
 import { Scope, LifecycleFlags } from '@aurelia/runtime';
 import { IRenderLocation } from '../../dom';
-import { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../lifecycle';
 import { CustomElementDefinition } from '../custom-element';
-import { IInstruction } from '../../definitions';
 import { IViewFactory } from '../../templating/view';
+import { IInstruction } from '../../renderer';
+import type { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../templating/controller';
 export declare type IProjections = Record<string, CustomElementDefinition>;
 export declare const IProjections: import("@aurelia/kernel").InterfaceSymbol<Record<string, CustomElementDefinition<import("@aurelia/kernel").Constructable<{}>>>>;
 export declare enum AuSlotContentType {
@@ -41,10 +41,9 @@ export declare class AuSlot implements ICustomElementViewModel {
     private hostScope;
     private readonly outerScope;
     constructor(factory: IViewFactory, location: IRenderLocation);
-    beforeBind(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void>;
-    afterAttach(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void>;
-    afterUnbind(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void>;
-    onCancel(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void;
+    binding(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void>;
+    attaching(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void>;
+    detaching(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void>;
     dispose(): void;
     accept(visitor: ControllerVisitor): void | true;
 }

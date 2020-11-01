@@ -9,8 +9,8 @@ export declare class GotoCustomAttribute implements ICustomAttributeViewModel {
     readonly $controller: ICustomAttributeController<this>;
     private readonly activeClass;
     constructor(element: INode, router: IRouter);
-    beforeBind(): void;
-    beforeUnbind(): void;
+    binding(): void;
+    unbinding(): void;
     valueChanged(newValue: unknown): void;
     private updateValue;
     handleChange(): void;

@@ -23,7 +23,7 @@ export declare class Aurelia implements IDisposable {
     private startPromise;
     start(root?: IAppRoot | undefined): void | Promise<void>;
     private stopPromise;
-    stop(): void | Promise<void>;
+    stop(dispose?: boolean): void | Promise<void>;
     dispose(): void;
     private dispatchEvent;
 }

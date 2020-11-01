@@ -449,9 +449,9 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             const length = this.collection.length;
             this.inBatch = false;
             this.indexMap = observation_1.createIndexMap(length);
-            this.callCollectionSubscribers(indexMap, 8 /* updateTargetInstance */ | this.persistentFlags);
+            this.callCollectionSubscribers(indexMap, 8 /* updateTarget */ | this.persistentFlags);
             if (this.lengthObserver !== void 0) {
-                this.lengthObserver.setValue(length, 8 /* updateTargetInstance */);
+                this.lengthObserver.setValue(length, 8 /* updateTarget */);
             }
         }
         /**

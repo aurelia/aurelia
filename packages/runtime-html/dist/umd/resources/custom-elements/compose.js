@@ -16,7 +16,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "../../create-element", "../../definitions", "../../instructions", "../../platform", "../../templating/composition-context", "../custom-element"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "../../create-element", "../../renderer", "../../platform", "../../templating/render-context", "../custom-element"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -25,10 +25,9 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
     const create_element_1 = require("../../create-element");
-    const definitions_1 = require("../../definitions");
-    const instructions_1 = require("../../instructions");
+    const renderer_1 = require("../../renderer");
     const platform_1 = require("../../platform");
-    const composition_context_1 = require("../../templating/composition-context");
+    const render_context_1 = require("../../templating/render-context");
     const custom_element_1 = require("../custom-element");
     function toLookup(acc, item) {
         const to = item.to;
@@ -47,7 +46,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             this.lastSubject = void 0;
             this.properties = instruction.instructions.reduce(toLookup, {});
         }
-        afterAttach(initiator, parent, flags) {
+        attaching(initiator, parent, flags) {
             const { subject, view } = this;
             if (view === void 0 || this.lastSubject !== subject) {
                 this.lastSubject = subject;
@@ -56,7 +55,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             }
             return this.compose(view, subject, initiator, flags);
         }
-        afterUnbind(initiator, parent, flags) {
+        detaching(initiator, parent, flags) {
             return this.deactivate(this.view, initiator, flags);
         }
         subjectChanged(newValue, previousValue, flags) {
@@ -99,7 +98,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         resolveView(subject, flags) {
             const view = this.provideViewFor(subject, flags);
             if (view) {
-                view.setLocation(this.$controller.projector.host, 1 /* insertBefore */);
+                view.setLocation(this.$controller.location);
                 view.lockScope(this.$controller.scope);
                 return view;
             }
@@ -112,7 +111,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             if (isController(subject)) { // IController
                 return subject;
             }
-            if ('createView' in subject) { // CompositionPlan
+            if ('createView' in subject) { // RenderPlan
                 return subject.createView(this.$controller.context);
             }
             if ('create' in subject) { // IViewFactory
@@ -120,16 +119,10 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             }
             if ('template' in subject) { // Raw Template Definition
                 const definition = custom_element_1.CustomElementDefinition.getOrCreate(subject);
-                return composition_context_1.getCompositionContext(definition, this.$controller.context).getViewFactory().create(flags);
+                return render_context_1.getRenderContext(definition, this.$controller.context).getViewFactory().create(flags);
             }
             // Constructable (Custom Element Constructor)
-            return create_element_1.createElement(this.p, subject, this.properties, this.$controller.projector === void 0
-                ? kernel_1.emptyArray
-                : this.$controller.projector.children).createView(this.$controller.context);
-        }
-        onCancel(initiator, parent, flags) {
-            var _a;
-            (_a = this.view) === null || _a === void 0 ? void 0 : _a.cancel(initiator, this.$controller, flags);
+            return create_element_1.createElement(this.p, subject, this.properties, this.$controller.host.childNodes).createView(this.$controller.context);
         }
         dispose() {
             var _a;
@@ -154,8 +147,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     Compose = __decorate([
         custom_element_1.customElement({ name: 'au-compose', template: null, containerless: true }),
         __param(0, platform_1.IPlatform),
-        __param(1, definitions_1.IInstruction),
-        __metadata("design:paramtypes", [Object, instructions_1.HydrateElementInstruction])
+        __param(1, renderer_1.IInstruction),
+        __metadata("design:paramtypes", [Object, renderer_1.HydrateElementInstruction])
     ], Compose);
     exports.Compose = Compose;
     function isController(subject) {

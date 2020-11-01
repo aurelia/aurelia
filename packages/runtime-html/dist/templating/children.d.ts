@@ -1,12 +1,11 @@
 import { Constructable, IIndexable } from '@aurelia/kernel';
 import { ISubscriberCollection, IAccessor, ISubscribable, IPropertyObserver } from '@aurelia/runtime';
-import { ICustomElementViewModel, ICustomElementController } from '../lifecycle';
-import { ElementProjector } from '../projectors';
+import type { ICustomElementViewModel, ICustomElementController } from './controller';
 export declare type PartialChildrenDefinition = {
     callback?: string;
     property?: string;
     options?: MutationObserverInit;
-    query?: (projector: ElementProjector) => ArrayLike<Node>;
+    query?: (controller: ICustomElementController) => ArrayLike<Node>;
     filter?: (node: Node, controller?: ICustomElementController | null, viewModel?: ICustomElementViewModel) => boolean;
     map?: (node: Node, controller?: ICustomElementController | null, viewModel?: ICustomElementViewModel) => any;
 };
@@ -39,7 +38,7 @@ export declare class ChildrenDefinition {
     readonly callback: string;
     readonly property: string;
     readonly options?: MutationObserverInit | undefined;
-    readonly query?: ((projector: ElementProjector) => ArrayLike<Node>) | undefined;
+    readonly query?: ((controller: ICustomElementController) => ArrayLike<Node>) | undefined;
     readonly filter?: ((node: Node, controller?: ICustomElementController<ICustomElementViewModel> | null | undefined, viewModel?: ICustomElementViewModel | undefined) => boolean) | undefined;
     readonly map?: ((node: Node, controller?: ICustomElementController<ICustomElementViewModel> | null | undefined, viewModel?: ICustomElementViewModel | undefined) => any) | undefined;
     private constructor();

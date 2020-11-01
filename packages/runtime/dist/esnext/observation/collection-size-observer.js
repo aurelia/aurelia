@@ -22,7 +22,7 @@ let CollectionSizeObserver = class CollectionSizeObserver {
         const { currentValue } = this;
         if (newValue !== currentValue) {
             this.currentValue = newValue;
-            this.callSubscribers(newValue, currentValue, flags | 8 /* updateTargetInstance */);
+            this.callSubscribers(newValue, currentValue, flags | 8 /* updateTarget */);
         }
     }
 };

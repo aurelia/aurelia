@@ -175,59 +175,49 @@
                     }
                 });
                 const proto = UnboundComponent.prototype;
-                if ('beforeCompose' in object) {
-                    proto.beforeCompose = function beforeCompose(controller) {
-                        this.viewModel.beforeCompose(controller);
+                if ('hydrating' in object) {
+                    proto.hydrating = function hydrating(controller) {
+                        this.viewModel.hydrating(controller);
                     };
                 }
-                if ('beforeComposeChildren' in object) {
-                    proto.beforeComposeChildren = function beforeComposeChildren(controller) {
-                        this.viewModel.beforeComposeChildren(controller);
+                if ('hydrated' in object) {
+                    proto.hydrated = function hydrated(controller) {
+                        this.viewModel.hydrated(controller);
                     };
                 }
-                if ('afterCompose' in object) {
-                    proto.afterCompose = function afterCompose(controller) {
-                        this.viewModel.afterCompose(controller);
+                if ('created' in object) {
+                    proto.created = function created(controller) {
+                        this.viewModel.created(controller);
                     };
                 }
-                if ('beforeBind' in object) {
-                    proto.beforeBind = function beforeBind(initiator, parent, flags) {
-                        return this.viewModel.beforeBind(initiator, parent, flags);
+                if ('binding' in object) {
+                    proto.binding = function binding(initiator, parent, flags) {
+                        return this.viewModel.binding(initiator, parent, flags);
                     };
                 }
-                if ('afterBind' in object) {
-                    proto.afterBind = function afterBind(initiator, parent, flags) {
-                        return this.viewModel.afterBind(initiator, parent, flags);
+                if ('bound' in object) {
+                    proto.bound = function bound(initiator, parent, flags) {
+                        return this.viewModel.bound(initiator, parent, flags);
                     };
                 }
-                if ('afterAttach' in object) {
-                    proto.afterAttach = function afterAttach(initiator, parent, flags) {
-                        return this.viewModel.afterAttach(initiator, parent, flags);
+                if ('attaching' in object) {
+                    proto.attaching = function attaching(initiator, parent, flags) {
+                        return this.viewModel.attaching(initiator, parent, flags);
                     };
                 }
-                if ('afterAttachChildren' in object) {
-                    proto.afterAttachChildren = function afterAttachChildren(initiator, flags) {
-                        return this.viewModel.afterAttachChildren(initiator, flags);
+                if ('attached' in object) {
+                    proto.attached = function attached(initiator, flags) {
+                        return this.viewModel.attached(initiator, flags);
                     };
                 }
-                if ('beforeDetach' in object) {
-                    proto.beforeDetach = function beforeDetach(initiator, parent, flags) {
-                        return this.viewModel.beforeDetach(initiator, parent, flags);
+                if ('detaching' in object) {
+                    proto.detaching = function detaching(initiator, parent, flags) {
+                        return this.viewModel.detaching(initiator, parent, flags);
                     };
                 }
-                if ('beforeUnbind' in object) {
-                    proto.beforeUnbind = function beforeUnbind(initiator, parent, flags) {
-                        return this.viewModel.beforeUnbind(initiator, parent, flags);
-                    };
-                }
-                if ('afterUnbind' in object) {
-                    proto.afterUnbind = function afterUnbind(initiator, parent, flags) {
-                        return this.viewModel.afterUnbind(initiator, parent, flags);
-                    };
-                }
-                if ('afterUnbindChildren' in object) {
-                    proto.afterUnbindChildren = function afterUnbindChildren(initiator, flags) {
-                        return this.viewModel.afterUnbindChildren(initiator, flags);
+                if ('unbinding' in object) {
+                    proto.unbinding = function unbinding(initiator, parent, flags) {
+                        return this.viewModel.unbinding(initiator, parent, flags);
                     };
                 }
                 if ('dispose' in object) {

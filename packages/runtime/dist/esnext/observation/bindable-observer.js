@@ -58,6 +58,7 @@ let BindableObserver = BindableObserver_1 = class BindableObserver {
         return this.currentValue;
     }
     setValue(newValue, flags) {
+        var _a;
         if (this.shouldInterceptSet) {
             newValue = this.$set(newValue);
         }
@@ -70,11 +71,8 @@ let BindableObserver = BindableObserver_1 = class BindableObserver {
             this.currentValue = newValue;
             if (this.lifecycle.batch.depth === 0) {
                 this.callSubscribers(newValue, currentValue, this.persistentFlags | flags);
-                if ((flags & 32 /* fromBind */) === 0 || (flags & 16 /* updateSourceExpression */) > 0) {
-                    const callback = this.callback;
-                    if (callback !== void 0) {
-                        callback.call(this.obj, newValue, currentValue, this.persistentFlags | flags);
-                    }
+                if ((flags & 32 /* fromBind */) === 0 || (flags & 16 /* updateSource */) > 0) {
+                    (_a = this.callback) === null || _a === void 0 ? void 0 : _a.call(this.obj, newValue, currentValue, this.persistentFlags | flags);
                     if (this.hasPropertyChangedCallback) {
                         // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
                         this.propertyChangedCallback.call(this.obj, this.propertyKey, newValue, currentValue, this.persistentFlags | flags);

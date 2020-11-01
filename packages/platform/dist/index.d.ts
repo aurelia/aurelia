@@ -1,5 +1,4 @@
-declare type GlobalThisOrWindowOrWorkerGlobalScope = Pick<typeof globalThis, Exclude<keyof typeof globalThis, Exclude<keyof Window, keyof WindowOrWorkerGlobalScope>>>;
-export declare class Platform<TGlobal extends GlobalThisOrWindowOrWorkerGlobalScope = GlobalThisOrWindowOrWorkerGlobalScope> {
+export declare class Platform<TGlobal extends typeof globalThis = typeof globalThis> {
     readonly globalThis: TGlobal;
     readonly decodeURI: TGlobal['decodeURI'];
     readonly decodeURIComponent: TGlobal['decodeURIComponent'];
@@ -9,14 +8,15 @@ export declare class Platform<TGlobal extends GlobalThisOrWindowOrWorkerGlobalSc
     readonly Reflect: TGlobal['Reflect'];
     readonly clearInterval: TGlobal['clearInterval'];
     readonly clearTimeout: TGlobal['clearTimeout'];
-    readonly fetch: TGlobal['fetch'];
     readonly queueMicrotask: TGlobal['queueMicrotask'];
     readonly setInterval: TGlobal['setInterval'];
     readonly setTimeout: TGlobal['setTimeout'];
     readonly console: TGlobal['console'];
-    readonly performanceNow: TGlobal['performance']['now'];
+    readonly performanceNow: () => number;
     readonly macroTaskQueue: TaskQueue;
     constructor(g: TGlobal, overrides?: Partial<Exclude<Platform, 'globalThis'>>);
+    static getOrCreate<TGlobal extends typeof globalThis = typeof globalThis>(g: TGlobal, overrides?: Partial<Exclude<Platform, 'globalThis'>>): Platform<TGlobal>;
+    static set(g: typeof globalThis, platform: Platform): void;
     protected macroTaskRequested: boolean;
     protected macroTaskHandle: number;
     protected requestMacroTask(): void;

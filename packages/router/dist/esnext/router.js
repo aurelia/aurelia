@@ -2,7 +2,7 @@
 /* eslint-disable prefer-template */
 /* eslint-disable max-lines-per-function */
 import { DI, IContainer, Registration, Metadata } from '@aurelia/kernel';
-import { CustomElement, IAppRoot, isCompositionContext, getEffectiveParentNode } from '@aurelia/runtime-html';
+import { CustomElement, IAppRoot, isRenderContext, getEffectiveParentNode } from '@aurelia/runtime-html';
 import { InstructionResolver } from './instruction-resolver';
 import { LinkHandler } from './link-handler';
 import { Nav } from './nav';
@@ -1175,7 +1175,7 @@ export class Router {
         if ('resourceResolvers' in viewModelOrContainer) {
             return viewModelOrContainer;
         }
-        if (isCompositionContext(viewModelOrContainer)) {
+        if (isRenderContext(viewModelOrContainer)) {
             return viewModelOrContainer.get(IContainer);
         }
         if ('$controller' in viewModelOrContainer) {

@@ -32,14 +32,14 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             this.activeClass = 'load-active';
             this.element = element;
         }
-        beforeBind() {
+        binding() {
             this.element.addEventListener('click', this.router.linkHandler.handler);
             this.updateValue();
             const observerLocator = this.router.container.get(runtime_html_1.IObserverLocator);
             this.observer = observerLocator.getObserver(0 /* none */, this.router, 'activeComponents');
             this.observer.subscribe(this);
         }
-        beforeUnbind() {
+        unbinding() {
             this.element.removeEventListener('click', this.router.linkHandler.handler);
             this.observer.unsubscribe(this);
         }

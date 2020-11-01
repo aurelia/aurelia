@@ -10,6 +10,7 @@
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.TaskQueuePriority = exports.Task = exports.TaskStatus = exports.TaskAbortError = exports.TaskQueue = exports.Platform = void 0;
+    const lookup = new Map();
     function notImplemented(name) {
         return function notImplemented() {
             throw new Error(`The PLATFORM did not receive a valid reference to the global function '${name}'.`); // TODO: link to docs describing how to fix this issue
@@ -17,7 +18,7 @@
     }
     class Platform {
         constructor(g, overrides = {}) {
-            var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q;
+            var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
             this.macroTaskRequested = false;
             this.macroTaskHandle = -1;
             this.globalThis = g;
@@ -30,15 +31,24 @@
             this.Reflect = 'Reflect' in overrides ? overrides.Reflect : g.Reflect;
             this.clearInterval = 'clearInterval' in overrides ? overrides.clearInterval : (_b = (_a = g.clearInterval) === null || _a === void 0 ? void 0 : _a.bind(g)) !== null && _b !== void 0 ? _b : notImplemented('clearInterval');
             this.clearTimeout = 'clearTimeout' in overrides ? overrides.clearTimeout : (_d = (_c = g.clearTimeout) === null || _c === void 0 ? void 0 : _c.bind(g)) !== null && _d !== void 0 ? _d : notImplemented('clearTimeout');
-            this.fetch = 'fetch' in overrides ? overrides.fetch : (_f = (_e = g.fetch) === null || _e === void 0 ? void 0 : _e.bind(g)) !== null && _f !== void 0 ? _f : notImplemented('fetch');
-            this.queueMicrotask = 'queueMicrotask' in overrides ? overrides.queueMicrotask : (_h = (_g = g.queueMicrotask) === null || _g === void 0 ? void 0 : _g.bind(g)) !== null && _h !== void 0 ? _h : notImplemented('queueMicrotask');
-            this.setInterval = 'setInterval' in overrides ? overrides.setInterval : (_k = (_j = g.setInterval) === null || _j === void 0 ? void 0 : _j.bind(g)) !== null && _k !== void 0 ? _k : notImplemented('setInterval');
-            this.setTimeout = 'setTimeout' in overrides ? overrides.setTimeout : (_m = (_l = g.setTimeout) === null || _l === void 0 ? void 0 : _l.bind(g)) !== null && _m !== void 0 ? _m : notImplemented('setTimeout');
+            this.queueMicrotask = 'queueMicrotask' in overrides ? overrides.queueMicrotask : (_f = (_e = g.queueMicrotask) === null || _e === void 0 ? void 0 : _e.bind(g)) !== null && _f !== void 0 ? _f : notImplemented('queueMicrotask');
+            this.setInterval = 'setInterval' in overrides ? overrides.setInterval : (_h = (_g = g.setInterval) === null || _g === void 0 ? void 0 : _g.bind(g)) !== null && _h !== void 0 ? _h : notImplemented('setInterval');
+            this.setTimeout = 'setTimeout' in overrides ? overrides.setTimeout : (_k = (_j = g.setTimeout) === null || _j === void 0 ? void 0 : _j.bind(g)) !== null && _k !== void 0 ? _k : notImplemented('setTimeout');
             this.console = 'console' in overrides ? overrides.console : g.console;
-            this.performanceNow = 'performanceNow' in overrides ? overrides.performanceNow : (_q = (_p = (_o = g.performance) === null || _o === void 0 ? void 0 : _o.now) === null || _p === void 0 ? void 0 : _p.bind(g.performance)) !== null && _q !== void 0 ? _q : notImplemented('performance.now');
+            this.performanceNow = 'performanceNow' in overrides ? overrides.performanceNow : (_o = (_m = (_l = g.performance) === null || _l === void 0 ? void 0 : _l.now) === null || _m === void 0 ? void 0 : _m.bind(g.performance)) !== null && _o !== void 0 ? _o : notImplemented('performance.now');
             this.flushMacroTask = this.flushMacroTask.bind(this);
             this.macroTaskQueue = new TaskQueue(this, this.requestMacroTask.bind(this), this.cancelMacroTask.bind(this));
             /* eslint-enable @typescript-eslint/no-unnecessary-type-assertion */
+        }
+        static getOrCreate(g, overrides = {}) {
+            let platform = lookup.get(g);
+            if (platform === void 0) {
+                lookup.set(g, platform = new Platform(g, overrides));
+            }
+            return platform;
+        }
+        static set(g, platform) {
+            lookup.set(g, platform);
         }
         requestMacroTask() {
             this.macroTaskRequested = true;

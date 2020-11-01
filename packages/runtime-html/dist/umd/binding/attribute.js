@@ -61,11 +61,11 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         }
         updateTarget(value, flags) {
             flags |= this.persistentFlags;
-            this.targetObserver.setValue(value, flags | 8 /* updateTargetInstance */);
+            this.targetObserver.setValue(value, flags | 8 /* updateTarget */);
         }
         updateSource(value, flags) {
             flags |= this.persistentFlags;
-            this.sourceExpression.assign(flags | 16 /* updateSourceExpression */, this.$scope, this.$hostScope, this.locator, value);
+            this.sourceExpression.assign(flags | 16 /* updateSource */, this.$scope, this.$hostScope, this.locator, value);
         }
         handleChange(newValue, _previousValue, flags) {
             var _a;
@@ -79,10 +79,10 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             const $scope = this.$scope;
             const locator = this.locator;
             if (mode === runtime_1.BindingMode.fromView) {
-                flags &= ~8 /* updateTargetInstance */;
-                flags |= 16 /* updateSourceExpression */;
+                flags &= ~8 /* updateTarget */;
+                flags |= 16 /* updateSource */;
             }
-            if (flags & 8 /* updateTargetInstance */) {
+            if (flags & 8 /* updateTarget */) {
                 const targetObserver = this.targetObserver;
                 // Alpha: during bind a simple strategy for bind is always flush immediately
                 // todo:
@@ -114,7 +114,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                 }
                 return;
             }
-            if (flags & 16 /* updateSourceExpression */) {
+            if (flags & 16 /* updateSource */) {
                 if (newValue !== this.sourceExpression.evaluate(flags, $scope, this.$hostScope, locator, null)) {
                     interceptor.updateSource(newValue, flags);
                 }
@@ -155,7 +155,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                 interceptor.updateTarget(sourceExpression.evaluate(flags, scope, this.$hostScope, this.locator, shouldConnect ? interceptor : null), flags);
             }
             if ($mode & fromView) {
-                targetObserver[this.id] |= 16 /* updateSourceExpression */;
+                targetObserver[this.id] |= 16 /* updateSource */;
                 targetObserver.subscribe(interceptor);
             }
             // add isBound flag and remove isBinding flag
@@ -178,7 +178,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             }
             if (targetObserver.unsubscribe) {
                 targetObserver.unsubscribe(this.interceptor);
-                targetObserver[this.id] &= ~16 /* updateSourceExpression */;
+                targetObserver[this.id] &= ~16 /* updateSource */;
             }
             if (task != null) {
                 task.cancel();

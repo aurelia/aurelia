@@ -34,7 +34,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             const currentValue = this.currentValue;
             if (newValue !== currentValue) {
                 this.currentValue = newValue;
-                this.callSubscribers(newValue, currentValue, flags | 8 /* updateTargetInstance */);
+                this.callSubscribers(newValue, currentValue, flags | 8 /* updateTarget */);
             }
         }
     };

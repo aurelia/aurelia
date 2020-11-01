@@ -4,15 +4,15 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./instructions", "./resources/custom-element", "./templating/composition-context"], factory);
+        define(["require", "exports", "./renderer", "./resources/custom-element", "./templating/render-context"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.CompositionPlan = exports.createElement = void 0;
-    const instructions_1 = require("./instructions");
+    exports.RenderPlan = exports.createElement = void 0;
+    const renderer_1 = require("./renderer");
     const custom_element_1 = require("./resources/custom-element");
-    const composition_context_1 = require("./templating/composition-context");
+    const render_context_1 = require("./templating/render-context");
     function createElement(p, tagOrType, props, children) {
         if (typeof tagOrType === 'string') {
             return createElementForTag(p, tagOrType, props, children);
@@ -26,9 +26,9 @@
     }
     exports.createElement = createElement;
     /**
-     * CompositionPlan. Todo: describe goal of this class
+     * RenderPlan. Todo: describe goal of this class
      */
-    class CompositionPlan {
+    class RenderPlan {
         constructor(node, instructions, dependencies) {
             this.node = node;
             this.instructions = instructions;
@@ -48,7 +48,7 @@
             return this.lazyDefinition;
         }
         getContext(parentContainer) {
-            return composition_context_1.getCompositionContext(this.definition, parentContainer);
+            return render_context_1.getRenderContext(this.definition, parentContainer);
         }
         createView(parentContainer) {
             return this.getViewFactory(parentContainer).create();
@@ -63,7 +63,7 @@
             dependencies.push(...this.dependencies);
         }
     }
-    exports.CompositionPlan = CompositionPlan;
+    exports.RenderPlan = RenderPlan;
     function createElementForTag(p, tagName, props, children) {
         const instructions = [];
         const allInstructions = [];
@@ -74,7 +74,7 @@
             Object.keys(props)
                 .forEach(to => {
                 const value = props[to];
-                if (instructions_1.isInstruction(value)) {
+                if (renderer_1.isInstruction(value)) {
                     hasInstructions = true;
                     instructions.push(value);
                 }
@@ -90,7 +90,7 @@
         if (children) {
             addChildren(p, element, children, allInstructions, dependencies);
         }
-        return new CompositionPlan(element, allInstructions, dependencies);
+        return new RenderPlan(element, allInstructions, dependencies);
     }
     function createElementForType(p, Type, props, children) {
         const definition = custom_element_1.CustomElement.getDefinition(Type);
@@ -105,12 +105,12 @@
         if (!dependencies.includes(Type)) {
             dependencies.push(Type);
         }
-        instructions.push(new instructions_1.HydrateElementInstruction(tagName, childInstructions, null));
+        instructions.push(new renderer_1.HydrateElementInstruction(tagName, childInstructions, null));
         if (props) {
             Object.keys(props)
                 .forEach(to => {
                 const value = props[to];
-                if (instructions_1.isInstruction(value)) {
+                if (renderer_1.isInstruction(value)) {
                     childInstructions.push(value);
                 }
                 else {
@@ -123,7 +123,7 @@
                         });
                     }
                     else {
-                        childInstructions.push(new instructions_1.SetAttributeInstruction(value, to));
+                        childInstructions.push(new renderer_1.SetAttributeInstruction(value, to));
                     }
                 }
             });
@@ -131,7 +131,7 @@
         if (children) {
             addChildren(p, element, children, allInstructions, dependencies);
         }
-        return new CompositionPlan(element, allInstructions, dependencies);
+        return new RenderPlan(element, allInstructions, dependencies);
     }
     function addChildren(p, parent, children, allInstructions, dependencies) {
         for (let i = 0, ii = children.length; i < ii; ++i) {

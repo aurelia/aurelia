@@ -9,7 +9,7 @@ export declare class ValidationContainerCustomElement implements ValidationResul
     private readonly host;
     constructor(host: INode, scopedController: IValidationController);
     handleValidationEvent(event: ValidationEvent): void;
-    beforeBind(): void;
-    beforeUnbind(): void;
+    binding(): void;
+    unbinding(): void;
 }
 //# sourceMappingURL=validation-container-custom-element.d.ts.map

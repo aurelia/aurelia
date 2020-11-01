@@ -43,7 +43,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             if (!this.isBound) {
                 return;
             }
-            if (flags & 8 /* updateTargetInstance */) {
+            if (flags & 8 /* updateTarget */) {
                 const target = this.target;
                 const targetProperty = this.targetProperty;
                 const previousValue = target[targetProperty];

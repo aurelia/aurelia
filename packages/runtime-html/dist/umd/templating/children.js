@@ -112,6 +112,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             return defs;
         },
     };
+    const childObserverOptions = { childList: true };
     class ChildrenDefinition {
         constructor(callback, property, options, query, filter, map) {
             this.callback = callback;
@@ -122,7 +123,8 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             this.map = map;
         }
         static create(prop, def = {}) {
-            return new ChildrenDefinition(kernel_1.firstDefined(def.callback, `${prop}Changed`), kernel_1.firstDefined(def.property, prop), def.options, def.query, def.filter, def.map);
+            var _a;
+            return new ChildrenDefinition(kernel_1.firstDefined(def.callback, `${prop}Changed`), kernel_1.firstDefined(def.property, prop), (_a = def.options) !== null && _a !== void 0 ? _a : childObserverOptions, def.query, def.filter, def.map);
         }
     }
     exports.ChildrenDefinition = ChildrenDefinition;
@@ -159,17 +161,17 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         tryStartObserving() {
             if (!this.observing) {
                 this.observing = true;
-                const projector = this.controller.projector;
-                this.children = filterChildren(projector, this.query, this.filter, this.map);
-                projector.subscribeToChildrenChange(() => { this.onChildrenChanged(); }, this.options);
+                this.children = filterChildren(this.controller, this.query, this.filter, this.map);
+                const obs = new this.controller.host.ownerDocument.defaultView.MutationObserver(() => { this.onChildrenChanged(); });
+                obs.observe(this.controller.host, this.options);
             }
         }
         onChildrenChanged() {
-            this.children = filterChildren(this.controller.projector, this.query, this.filter, this.map);
+            this.children = filterChildren(this.controller, this.query, this.filter, this.map);
             if (this.callback !== void 0) {
                 this.callback.call(this.obj);
             }
-            this.callSubscribers(this.children, undefined, this.persistentFlags | 8 /* updateTargetInstance */);
+            this.callSubscribers(this.children, undefined, this.persistentFlags | 8 /* updateTarget */);
         }
     };
     ChildrenObserver = ChildrenObserver_1 = __decorate([
@@ -177,8 +179,8 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         __metadata("design:paramtypes", [Object, Object, Number, String, String, Object, Object, Object, Object])
     ], ChildrenObserver);
     exports.ChildrenObserver = ChildrenObserver;
-    function defaultChildQuery(projector) {
-        return projector.children;
+    function defaultChildQuery(controller) {
+        return controller.host.childNodes;
     }
     function defaultChildFilter(node, controller, viewModel) {
         return !!viewModel;
@@ -188,16 +190,16 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     }
     const forOpts = { optional: true };
     /** @internal */
-    function filterChildren(projector, query, filter, map) {
+    function filterChildren(controller, query, filter, map) {
         var _a;
-        const nodes = query(projector);
+        const nodes = query(controller);
         const children = [];
         for (let i = 0, ii = nodes.length; i < ii; ++i) {
             const node = nodes[i];
-            const controller = custom_element_1.CustomElement.for(node, forOpts);
-            const viewModel = (_a = controller === null || controller === void 0 ? void 0 : controller.viewModel) !== null && _a !== void 0 ? _a : null;
-            if (filter(node, controller, viewModel)) {
-                children.push(map(node, controller, viewModel));
+            const $controller = custom_element_1.CustomElement.for(node, forOpts);
+            const viewModel = (_a = $controller === null || $controller === void 0 ? void 0 : $controller.viewModel) !== null && _a !== void 0 ? _a : null;
+            if (filter(node, $controller, viewModel)) {
+                children.push(map(node, $controller, viewModel));
             }
         }
         return children;

@@ -16,12 +16,12 @@ export declare class ViewportScopeCustomElement implements ICustomElementViewMod
     viewportScope: ViewportScope | null;
     readonly $controller: ICustomElementController<this>;
     controller: IRoutingController;
-    readonly element: Element;
+    readonly element: HTMLElement;
     private isBound;
     constructor(router: IRouter, element: INode, container: IContainer, parent: ViewportScopeCustomElement, parentController: IHydratedController);
-    beforeComposeChildren(controller: ICompiledCustomElementController): void;
-    afterBind(initiator: IHydratedController, parent: ISyntheticView | ICustomElementController | null, flags: LifecycleFlags): void;
-    beforeUnbind(initiator: IHydratedController, parent: ISyntheticView | ICustomElementController | null, flags: LifecycleFlags): void | Promise<void>;
+    hydrated(controller: ICompiledCustomElementController): void;
+    bound(initiator: IHydratedController, parent: ISyntheticView | ICustomElementController | null, flags: LifecycleFlags): void;
+    unbinding(initiator: IHydratedController, parent: ISyntheticView | ICustomElementController | null, flags: LifecycleFlags): void | Promise<void>;
     afterUnbind(initiator: IHydratedController, parent: ISyntheticView | ICustomElementController | null, flags: LifecycleFlags): void | Promise<void>;
     afterUnbound(): void;
     connect(): void;

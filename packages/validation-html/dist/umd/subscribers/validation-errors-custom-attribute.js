@@ -75,12 +75,12 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             });
             this.errors = this.errorsInternal;
         }
-        beforeBind() {
+        binding() {
             var _a;
             this.controller = (_a = this.controller) !== null && _a !== void 0 ? _a : this.scopedController;
             this.controller.addSubscriber(this);
         }
-        beforeUnbind() {
+        unbinding() {
             this.controller.removeSubscriber(this);
         }
     };

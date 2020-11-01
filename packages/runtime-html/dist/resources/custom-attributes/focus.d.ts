@@ -1,6 +1,6 @@
 import { INode } from '../../dom';
-import { ICustomAttributeController, ICustomAttributeViewModel } from '../../lifecycle';
 import { IPlatform } from '../../platform';
+import type { ICustomAttributeController, ICustomAttributeViewModel } from '../../templating/controller';
 /**
  * Focus attribute for element focus binding
  */
@@ -9,12 +9,12 @@ export declare class Focus implements ICustomAttributeViewModel {
     readonly $controller: ICustomAttributeController<this>;
     value: unknown;
     /**
-     * Indicates whether `apply` should be called when `afterAttachChildren` callback is invoked
+     * Indicates whether `apply` should be called when `attached` callback is invoked
      */
     private needsApply;
     private readonly element;
     constructor(element: INode, p: IPlatform);
-    beforeBind(): void;
+    binding(): void;
     /**
      * Invoked everytime the bound value changes.
      *
@@ -22,9 +22,9 @@ export declare class Focus implements ICustomAttributeViewModel {
      */
     valueChanged(): void;
     /**
-     * Invoked when the attribute is afterAttachChildren to the DOM.
+     * Invoked when the attribute is attached to the DOM.
      */
-    afterAttachChildren(): void;
+    attached(): void;
     /**
      * Invoked when the attribute is afterDetachChildren from the DOM.
      */

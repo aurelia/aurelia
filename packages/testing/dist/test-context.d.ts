@@ -1,5 +1,5 @@
 import { IContainer, IRegistration, IRegistry } from '@aurelia/kernel';
-import { ILifecycle, IObserverLocator, IProjectorLocator, IComposer, ITemplateCompiler, IPlatform } from '@aurelia/runtime-html';
+import { ILifecycle, IObserverLocator, ITemplateCompiler, IPlatform } from '@aurelia/runtime-html';
 export declare class TestContext {
     static readonly ambient: TestContext;
     get wnd(): Window & typeof globalThis;
@@ -77,10 +77,6 @@ export declare class TestContext {
     get observerLocator(): IObserverLocator;
     private _lifecycle;
     get lifecycle(): ILifecycle;
-    private _composer;
-    get composer(): IComposer;
-    private _projectorLocator;
-    get projectorLocator(): IProjectorLocator;
     private _domParser;
     get domParser(): HTMLDivElement;
     private constructor();

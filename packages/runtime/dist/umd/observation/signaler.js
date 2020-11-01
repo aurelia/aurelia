@@ -22,7 +22,7 @@
                 return;
             }
             for (const listener of listeners.keys()) {
-                listener.handleChange(undefined, undefined, flags | 8 /* updateTargetInstance */);
+                listener.handleChange(undefined, undefined, flags | 8 /* updateTarget */);
             }
         }
         addSignalListener(name, listener) {

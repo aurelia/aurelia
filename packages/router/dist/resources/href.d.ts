@@ -6,8 +6,8 @@ export declare class HrefCustomAttribute implements ICustomAttributeViewModel {
     private readonly element;
     readonly $controller: ICustomAttributeController<this>;
     constructor(element: INode, router: IRouter);
-    beforeBind(): void;
-    beforeUnbind(): void;
+    binding(): void;
+    unbinding(): void;
     valueChanged(): void;
     private updateValue;
     private hasGoto;

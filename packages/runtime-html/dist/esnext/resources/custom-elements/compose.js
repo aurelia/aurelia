@@ -10,13 +10,12 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-import { nextId, emptyArray, onResolve } from '@aurelia/kernel';
+import { nextId, onResolve } from '@aurelia/kernel';
 import { BindingMode, bindable } from '@aurelia/runtime';
 import { createElement } from '../../create-element';
-import { IInstruction } from '../../definitions';
-import { HydrateElementInstruction } from '../../instructions';
+import { HydrateElementInstruction, IInstruction } from '../../renderer';
 import { IPlatform } from '../../platform';
-import { getCompositionContext } from '../../templating/composition-context';
+import { getRenderContext } from '../../templating/render-context';
 import { customElement, CustomElementDefinition } from '../custom-element';
 function toLookup(acc, item) {
     const to = item.to;
@@ -35,7 +34,7 @@ let Compose = class Compose {
         this.lastSubject = void 0;
         this.properties = instruction.instructions.reduce(toLookup, {});
     }
-    afterAttach(initiator, parent, flags) {
+    attaching(initiator, parent, flags) {
         const { subject, view } = this;
         if (view === void 0 || this.lastSubject !== subject) {
             this.lastSubject = subject;
@@ -44,7 +43,7 @@ let Compose = class Compose {
         }
         return this.compose(view, subject, initiator, flags);
     }
-    afterUnbind(initiator, parent, flags) {
+    detaching(initiator, parent, flags) {
         return this.deactivate(this.view, initiator, flags);
     }
     subjectChanged(newValue, previousValue, flags) {
@@ -87,7 +86,7 @@ let Compose = class Compose {
     resolveView(subject, flags) {
         const view = this.provideViewFor(subject, flags);
         if (view) {
-            view.setLocation(this.$controller.projector.host, 1 /* insertBefore */);
+            view.setLocation(this.$controller.location);
             view.lockScope(this.$controller.scope);
             return view;
         }
@@ -100,7 +99,7 @@ let Compose = class Compose {
         if (isController(subject)) { // IController
             return subject;
         }
-        if ('createView' in subject) { // CompositionPlan
+        if ('createView' in subject) { // RenderPlan
             return subject.createView(this.$controller.context);
         }
         if ('create' in subject) { // IViewFactory
@@ -108,16 +107,10 @@ let Compose = class Compose {
         }
         if ('template' in subject) { // Raw Template Definition
             const definition = CustomElementDefinition.getOrCreate(subject);
-            return getCompositionContext(definition, this.$controller.context).getViewFactory().create(flags);
+            return getRenderContext(definition, this.$controller.context).getViewFactory().create(flags);
         }
         // Constructable (Custom Element Constructor)
-        return createElement(this.p, subject, this.properties, this.$controller.projector === void 0
-            ? emptyArray
-            : this.$controller.projector.children).createView(this.$controller.context);
-    }
-    onCancel(initiator, parent, flags) {
-        var _a;
-        (_a = this.view) === null || _a === void 0 ? void 0 : _a.cancel(initiator, this.$controller, flags);
+        return createElement(this.p, subject, this.properties, this.$controller.host.childNodes).createView(this.$controller.context);
     }
     dispose() {
         var _a;

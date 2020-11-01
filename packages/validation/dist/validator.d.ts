@@ -2,7 +2,7 @@ import { LifecycleFlags } from '@aurelia/runtime';
 import { ValidationResult, PropertyRule } from './rule-provider';
 import { IValidateable } from './rule-interfaces';
 /**
- * Instruction for the validation controller's validate method.
+ * IInstruction for the validation controller's validate method.
  */
 export declare class ValidateInstruction<TObject extends IValidateable = IValidateable> {
     object: TObject;

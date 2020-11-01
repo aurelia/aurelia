@@ -56,12 +56,12 @@ let ValidationContainerCustomElement = class ValidationContainerCustomElement {
             return compareDocumentPositionFlat(a.targets[0], b.targets[0]);
         });
     }
-    beforeBind() {
+    binding() {
         var _a;
         this.controller = (_a = this.controller) !== null && _a !== void 0 ? _a : this.scopedController;
         this.controller.addSubscriber(this);
     }
-    beforeUnbind() {
+    unbinding() {
         this.controller.removeSubscriber(this);
     }
 };

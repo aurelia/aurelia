@@ -1,7 +1,7 @@
 import { IContainer, InstanceProvider, IDisposable } from '@aurelia/kernel';
 import { BindingStrategy } from '@aurelia/runtime';
-import { ICustomElementController } from './lifecycle';
 import { IPlatform } from './platform';
+import type { ICustomElementController } from './templating/controller';
 export interface ISinglePageApp {
     strategy?: BindingStrategy;
     host: HTMLElement;

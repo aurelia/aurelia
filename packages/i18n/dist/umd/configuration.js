@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime-html", "./df/date-format-binding-behavior", "./df/date-format-value-converter", "./i18n", "./i18n-configuration-options", "./i18next-wrapper", "./nf/number-format-binding-behavior", "./nf/number-format-value-converter", "./rt/relative-time-binding-behavior", "./rt/relative-time-value-converter", "./t/translation-binding-behavior", "./t/translation-parameters-composer", "./t/translation-composer", "./t/translation-value-converter"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime-html", "./df/date-format-binding-behavior", "./df/date-format-value-converter", "./i18n", "./i18n-configuration-options", "./i18next-wrapper", "./nf/number-format-binding-behavior", "./nf/number-format-value-converter", "./rt/relative-time-binding-behavior", "./rt/relative-time-value-converter", "./t/translation-binding-behavior", "./t/translation-parameters-renderer", "./t/translation-renderer", "./t/translation-value-converter"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -22,8 +22,8 @@
     const relative_time_binding_behavior_1 = require("./rt/relative-time-binding-behavior");
     const relative_time_value_converter_1 = require("./rt/relative-time-value-converter");
     const translation_binding_behavior_1 = require("./t/translation-binding-behavior");
-    const translation_parameters_composer_1 = require("./t/translation-parameters-composer");
-    const translation_composer_1 = require("./t/translation-composer");
+    const translation_parameters_renderer_1 = require("./t/translation-parameters-renderer");
+    const translation_renderer_1 = require("./t/translation-renderer");
     const translation_value_converter_1 = require("./t/translation-value-converter");
     const translation = [
         translation_value_converter_1.TranslationValueConverter,
@@ -39,28 +39,28 @@
         for (const alias of aliases) {
             const bindAlias = `${alias}.bind`;
             patterns.push({ pattern: alias, symbols: '' });
-            translation_composer_1.TranslationAttributePattern.registerAlias(alias);
+            translation_renderer_1.TranslationAttributePattern.registerAlias(alias);
             bindPatterns.push({ pattern: bindAlias, symbols: '.' });
-            translation_composer_1.TranslationBindAttributePattern.registerAlias(alias);
+            translation_renderer_1.TranslationBindAttributePattern.registerAlias(alias);
             if (alias !== 't') {
                 commandAliases.push(alias);
                 bindCommandAliases.push(bindAlias);
             }
         }
-        const composers = [
-            runtime_html_1.AttributePattern.define(patterns, translation_composer_1.TranslationAttributePattern),
-            runtime_html_1.BindingCommand.define({ name: 't', aliases: commandAliases }, translation_composer_1.TranslationBindingCommand),
-            translation_composer_1.TranslationBindingComposer,
-            runtime_html_1.AttributePattern.define(bindPatterns, translation_composer_1.TranslationBindAttributePattern),
-            runtime_html_1.BindingCommand.define({ name: 't.bind', aliases: bindCommandAliases }, translation_composer_1.TranslationBindBindingCommand),
-            translation_composer_1.TranslationBindBindingComposer,
-            translation_parameters_composer_1.TranslationParametersAttributePattern,
-            translation_parameters_composer_1.TranslationParametersBindingCommand,
-            translation_parameters_composer_1.TranslationParametersBindingComposer
+        const renderers = [
+            runtime_html_1.AttributePattern.define(patterns, translation_renderer_1.TranslationAttributePattern),
+            runtime_html_1.BindingCommand.define({ name: 't', aliases: commandAliases }, translation_renderer_1.TranslationBindingCommand),
+            translation_renderer_1.TranslationBindingRenderer,
+            runtime_html_1.AttributePattern.define(bindPatterns, translation_renderer_1.TranslationBindAttributePattern),
+            runtime_html_1.BindingCommand.define({ name: 't.bind', aliases: bindCommandAliases }, translation_renderer_1.TranslationBindBindingCommand),
+            translation_renderer_1.TranslationBindBindingRenderer,
+            translation_parameters_renderer_1.TranslationParametersAttributePattern,
+            translation_parameters_renderer_1.TranslationParametersBindingCommand,
+            translation_parameters_renderer_1.TranslationParametersBindingRenderer
         ];
         return {
             register(container) {
-                return container.register(kernel_1.Registration.callback(i18n_configuration_options_1.I18nInitOptions, () => options.initOptions), runtime_html_1.AppTask.with(i18n_1.I18N).beforeActivate().call(i18n => i18n.initPromise), kernel_1.Registration.singleton(i18next_wrapper_1.I18nWrapper, i18next_wrapper_1.I18nextWrapper), kernel_1.Registration.singleton(i18n_1.I18N, i18n_1.I18nService), ...composers, ...translation);
+                return container.register(kernel_1.Registration.callback(i18n_configuration_options_1.I18nInitOptions, () => options.initOptions), runtime_html_1.AppTask.with(i18n_1.I18N).beforeActivate().call(i18n => i18n.initPromise), kernel_1.Registration.singleton(i18next_wrapper_1.I18nWrapper, i18next_wrapper_1.I18nextWrapper), kernel_1.Registration.singleton(i18n_1.I18N, i18n_1.I18nService), ...renderers, ...translation);
             }
         };
     }

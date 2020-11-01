@@ -18,10 +18,10 @@
             'canUnload', 'unload',
             'canLoad', 'load',
             'created',
-            'beforeBind', 'afterBind',
-            'beforeAttach', 'afterAttach',
-            'beforeDetach', 'afterDetach',
-            'beforeUnbind', 'afterUnbind',
+            'binding', 'bound',
+            'beforeAttach', 'attaching',
+            'detaching',
+            'unbinding',
         ];
         return function (target) {
             for (const lifecycle of lifecycles) {
@@ -48,16 +48,14 @@
         canLoad() { console.log(`name canLoad`); return true; }
         load(params) { console.log(`name load`); }
         created() { console.log(`name created`); }
-        beforeBind() { console.log(`name binding`); }
-        afterBind() { console.log(`name bound`); }
+        binding() { console.log(`name binding`); }
+        bound() { console.log(`name bound`); }
         beforeAttach() { console.log(`name beforeAttach`); }
-        afterAttach() { console.log(`name afterAttach`); }
+        attaching() { console.log(`name attaching`); }
         canUnload() { console.log(`name canUnload`); return true; }
         unload() { console.log(`name unload`); }
-        beforeDetach() { console.log(`name beforeDetach`); }
-        afterDetach() { console.log(`name afterDetach`); }
-        beforeUnbind() { console.log(`name beforeUnbind`); }
-        afterUnbind() { console.log(`name unbound`); }
+        detaching() { console.log(`name detaching`); }
+        unbinding() { console.log(`name unbinding`); }
     }
     exports.LifecycleClass = LifecycleClass;
 });

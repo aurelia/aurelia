@@ -20,7 +20,7 @@ export class RefBinding {
         if (this.sourceExpression.hasBind) {
             this.sourceExpression.bind(flags, scope, hostScope, this);
         }
-        this.sourceExpression.assign(flags | 16 /* updateSourceExpression */, this.$scope, hostScope, this.locator, this.target);
+        this.sourceExpression.assign(flags | 16 /* updateSource */, this.$scope, hostScope, this.locator, this.target);
         // add isBound flag and remove isBinding flag
         this.isBound = true;
     }

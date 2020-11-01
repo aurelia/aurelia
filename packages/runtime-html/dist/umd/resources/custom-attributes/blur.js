@@ -110,10 +110,10 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             this.value = unset;
             this.manager = BlurManager.createFor(p);
         }
-        afterAttachChildren() {
+        attached() {
             this.manager.register(this);
         }
-        beforeDetach() {
+        detaching() {
             this.manager.unregister(this);
         }
         handleEventTarget(target) {

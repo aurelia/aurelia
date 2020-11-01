@@ -49,11 +49,11 @@ let AttributeBinding = class AttributeBinding {
     }
     updateTarget(value, flags) {
         flags |= this.persistentFlags;
-        this.targetObserver.setValue(value, flags | 8 /* updateTargetInstance */);
+        this.targetObserver.setValue(value, flags | 8 /* updateTarget */);
     }
     updateSource(value, flags) {
         flags |= this.persistentFlags;
-        this.sourceExpression.assign(flags | 16 /* updateSourceExpression */, this.$scope, this.$hostScope, this.locator, value);
+        this.sourceExpression.assign(flags | 16 /* updateSource */, this.$scope, this.$hostScope, this.locator, value);
     }
     handleChange(newValue, _previousValue, flags) {
         var _a;
@@ -67,10 +67,10 @@ let AttributeBinding = class AttributeBinding {
         const $scope = this.$scope;
         const locator = this.locator;
         if (mode === BindingMode.fromView) {
-            flags &= ~8 /* updateTargetInstance */;
-            flags |= 16 /* updateSourceExpression */;
+            flags &= ~8 /* updateTarget */;
+            flags |= 16 /* updateSource */;
         }
-        if (flags & 8 /* updateTargetInstance */) {
+        if (flags & 8 /* updateTarget */) {
             const targetObserver = this.targetObserver;
             // Alpha: during bind a simple strategy for bind is always flush immediately
             // todo:
@@ -102,7 +102,7 @@ let AttributeBinding = class AttributeBinding {
             }
             return;
         }
-        if (flags & 16 /* updateSourceExpression */) {
+        if (flags & 16 /* updateSource */) {
             if (newValue !== this.sourceExpression.evaluate(flags, $scope, this.$hostScope, locator, null)) {
                 interceptor.updateSource(newValue, flags);
             }
@@ -143,7 +143,7 @@ let AttributeBinding = class AttributeBinding {
             interceptor.updateTarget(sourceExpression.evaluate(flags, scope, this.$hostScope, this.locator, shouldConnect ? interceptor : null), flags);
         }
         if ($mode & fromView) {
-            targetObserver[this.id] |= 16 /* updateSourceExpression */;
+            targetObserver[this.id] |= 16 /* updateSource */;
             targetObserver.subscribe(interceptor);
         }
         // add isBound flag and remove isBinding flag
@@ -166,7 +166,7 @@ let AttributeBinding = class AttributeBinding {
         }
         if (targetObserver.unsubscribe) {
             targetObserver.unsubscribe(this.interceptor);
-            targetObserver[this.id] &= ~16 /* updateSourceExpression */;
+            targetObserver[this.id] &= ~16 /* updateSource */;
         }
         if (task != null) {
             task.cancel();

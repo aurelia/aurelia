@@ -2,15 +2,13 @@ export declare class LifecycleClass {
     canLoad(): boolean;
     load(params: any): void;
     created(): void;
-    beforeBind(): void;
-    afterBind(): void;
+    binding(): void;
+    bound(): void;
     beforeAttach(): void;
-    afterAttach(): void;
+    attaching(): void;
     canUnload(): boolean;
     unload(): void;
-    beforeDetach(): void;
-    afterDetach(): void;
-    beforeUnbind(): void;
-    afterUnbind(): void;
+    detaching(): void;
+    unbinding(): void;
 }
 //# sourceMappingURL=lifecycle-logger.d.ts.map

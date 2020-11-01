@@ -14,7 +14,7 @@
     const runtime_html_1 = require("@aurelia/runtime-html");
     const test_context_1 = require("./test-context");
     // import {
-    //   Instruction,
+    //   IInstruction,
     //   NodeSequenceFactory,
     //   TextBindingInstruction,
     // } from '@aurelia/runtime-html';
@@ -62,7 +62,7 @@
     //   }
     // }
     // export class InstructionBuilder {
-    //   private instructions: Instruction[];
+    //   private instructions: IInstruction[];
     //   constructor() {
     //     this.instructions = [];
     //   }
@@ -121,7 +121,7 @@
     //     insCbOrBuilder: InstructionCb | InstructionBuilder,
     //     defCbOrBuilder: DefinitionCb | DefinitionBuilder
     //   ): InstructionBuilder {
-    //     let childInstructions: Instruction[];
+    //     let childInstructions: IInstruction[];
     //     let definition: PartialCustomElementDefinition;
     //     if (insCbOrBuilder instanceof InstructionBuilder) {
     //       childInstructions = insCbOrBuilder.build();
@@ -149,7 +149,7 @@
     //     this.instructions.push(instruction);
     //     return this;
     //   }
-    //   public build(): Instruction[] {
+    //   public build(): IInstruction[] {
     //     const { instructions } = this;
     //     this.instructions = null!;
     //     return instructions;
@@ -160,7 +160,7 @@
     //   private name: string;
     //   private templateBuilder: TemplateBuilder;
     //   private instructionBuilder: InstructionBuilder;
-    //   private instructions: Instruction[][];
+    //   private instructions: IInstruction[][];
     //   constructor(name?: string) {
     //     // eslint-disable-next-line prefer-template
     //     this.name = name || ('$' + ++DefinitionBuilder.lastId);

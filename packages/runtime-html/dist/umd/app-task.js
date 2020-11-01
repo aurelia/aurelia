@@ -26,11 +26,11 @@
         beforeCreate() {
             return this.at('beforeCreate');
         }
-        beforeCompose() {
-            return this.at('beforeCompose');
+        hydrating() {
+            return this.at('hydrating');
         }
-        beforeCompileChildren() {
-            return this.at('beforeCompileChildren');
+        hydrated() {
+            return this.at('hydrated');
         }
         beforeActivate() {
             return this.at('beforeActivate');

@@ -10,8 +10,8 @@ import { NumberFormatValueConverter } from './nf/number-format-value-converter';
 import { RelativeTimeBindingBehavior } from './rt/relative-time-binding-behavior';
 import { RelativeTimeValueConverter } from './rt/relative-time-value-converter';
 import { TranslationBindingBehavior } from './t/translation-binding-behavior';
-import { TranslationParametersAttributePattern, TranslationParametersBindingCommand, TranslationParametersBindingComposer } from './t/translation-parameters-composer';
-import { TranslationAttributePattern, TranslationBindAttributePattern, TranslationBindBindingCommand, TranslationBindBindingComposer, TranslationBindingCommand, TranslationBindingComposer } from './t/translation-composer';
+import { TranslationParametersAttributePattern, TranslationParametersBindingCommand, TranslationParametersBindingRenderer } from './t/translation-parameters-renderer';
+import { TranslationAttributePattern, TranslationBindAttributePattern, TranslationBindBindingCommand, TranslationBindBindingRenderer, TranslationBindingCommand, TranslationBindingRenderer } from './t/translation-renderer';
 import { TranslationValueConverter } from './t/translation-value-converter';
 const translation = [
     TranslationValueConverter,
@@ -35,20 +35,20 @@ function coreComponents(options) {
             bindCommandAliases.push(bindAlias);
         }
     }
-    const composers = [
+    const renderers = [
         AttributePattern.define(patterns, TranslationAttributePattern),
         BindingCommand.define({ name: 't', aliases: commandAliases }, TranslationBindingCommand),
-        TranslationBindingComposer,
+        TranslationBindingRenderer,
         AttributePattern.define(bindPatterns, TranslationBindAttributePattern),
         BindingCommand.define({ name: 't.bind', aliases: bindCommandAliases }, TranslationBindBindingCommand),
-        TranslationBindBindingComposer,
+        TranslationBindBindingRenderer,
         TranslationParametersAttributePattern,
         TranslationParametersBindingCommand,
-        TranslationParametersBindingComposer
+        TranslationParametersBindingRenderer
     ];
     return {
         register(container) {
-            return container.register(Registration.callback(I18nInitOptions, () => options.initOptions), AppTask.with(I18N).beforeActivate().call(i18n => i18n.initPromise), Registration.singleton(I18nWrapper, I18nextWrapper), Registration.singleton(I18N, I18nService), ...composers, ...translation);
+            return container.register(Registration.callback(I18nInitOptions, () => options.initOptions), AppTask.with(I18N).beforeActivate().call(i18n => i18n.initPromise), Registration.singleton(I18nWrapper, I18nextWrapper), Registration.singleton(I18N, I18nService), ...renderers, ...translation);
         }
     };
 }

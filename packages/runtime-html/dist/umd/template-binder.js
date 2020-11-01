@@ -1,11 +1,10 @@
-/* eslint-disable compat/compat */
 (function (factory) {
     if (typeof module === "object" && typeof module.exports === "object") {
         var v = factory(require, exports);
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "./resource-model", "./semantic-model"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "./resources/binding-command", "./resources/custom-attribute", "./resources/custom-element", "./semantic-model"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -13,7 +12,9 @@
     exports.TemplateBinder = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
-    const resource_model_1 = require("./resource-model");
+    const binding_command_1 = require("./resources/binding-command");
+    const custom_attribute_1 = require("./resources/custom-attribute");
+    const custom_element_1 = require("./resources/custom-element");
     const semantic_model_1 = require("./semantic-model");
     const invalidSurrogateAttribute = Object.assign(Object.create(null), {
         'id': true,
@@ -89,16 +90,16 @@
      * TemplateBinder. Todo: describe goal of this class
      */
     class TemplateBinder {
-        constructor(platform, resources, attrParser, exprParser, attrSyntaxTransformer) {
+        constructor(platform, container, attrParser, exprParser, attrSyntaxTransformer) {
             this.platform = platform;
-            this.resources = resources;
+            this.container = container;
             this.attrParser = attrParser;
             this.exprParser = exprParser;
             this.attrSyntaxTransformer = attrSyntaxTransformer;
+            this.commandLookup = Object.create(null);
         }
         bind(node) {
             const surrogate = new semantic_model_1.PlainElementSymbol(node);
-            const resources = this.resources;
             const attrSyntaxTransformer = this.attrSyntaxTransformer;
             const attributes = node.attributes;
             let i = 0;
@@ -109,9 +110,9 @@
                     throw new Error(`Invalid surrogate attribute: ${attrSyntax.target}`);
                     // TODO: use reporter
                 }
-                const bindingCommand = resources.getBindingCommand(attrSyntax, true);
+                const bindingCommand = this.getBindingCommand(attrSyntax, true);
                 if (bindingCommand === null || (bindingCommand.bindingType & 4096 /* IgnoreCustomAttr */) === 0) {
-                    const attrInfo = resources.getAttributeInfo(attrSyntax);
+                    const attrInfo = semantic_model_1.AttrInfo.from(this.container.find(custom_attribute_1.CustomAttribute, attrSyntax.target));
                     if (attrInfo === null) {
                         // map special html attributes to their corresponding properties
                         attrSyntaxTransformer.transform(node, attrSyntax);
@@ -175,7 +176,7 @@
             if (name === null) {
                 name = node.nodeName.toLowerCase();
             }
-            const elementInfo = this.resources.getElementInfo(name);
+            const elementInfo = semantic_model_1.ElementInfo.from(this.container.find(custom_element_1.CustomElement, name));
             if (elementInfo === null) {
                 // there is no registered custom element with this name
                 manifest = new semantic_model_1.PlainElementSymbol(node);
@@ -226,11 +227,11 @@
                     continue;
                 }
                 const attrSyntax = this.attrParser.parse(attr.name, attr.value);
-                const command = this.resources.getBindingCommand(attrSyntax, false);
+                const command = this.getBindingCommand(attrSyntax, false);
                 const bindingType = command === null ? 2048 /* Interpolation */ : command.bindingType;
                 const expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
                 const to = kernel_1.camelCase(attrSyntax.target);
-                const info = new resource_model_1.BindableInfo(to, runtime_1.BindingMode.toView);
+                const info = new semantic_model_1.BindableInfo(to, runtime_1.BindingMode.toView);
                 symbol.bindings.push(new semantic_model_1.BindingSymbol(command, info, expr, attrSyntax.rawValue, to));
                 ++i;
             }
@@ -253,9 +254,9 @@
                     continue;
                 }
                 const attrSyntax = this.attrParser.parse(attr.name, attr.value);
-                const bindingCommand = this.resources.getBindingCommand(attrSyntax, true);
+                const bindingCommand = this.getBindingCommand(attrSyntax, true);
                 if (bindingCommand === null || (bindingCommand.bindingType & 4096 /* IgnoreCustomAttr */) === 0) {
-                    const attrInfo = this.resources.getAttributeInfo(attrSyntax);
+                    const attrInfo = semantic_model_1.AttrInfo.from(this.container.find(custom_attribute_1.CustomAttribute, attrSyntax.target));
                     if (attrInfo === null) {
                         // map special html attributes to their corresponding properties
                         this.attrSyntaxTransformer.transform(node, attrSyntax);
@@ -329,7 +330,7 @@
             if (hasProjection
                 && (manifestRoot === null
                     || parentName === void 0
-                    || this.resources.getElementInfo(parentName) === null)) {
+                    || this.container.find(custom_element_1.CustomElement, parentName) === null)) {
                 /**
                  * Prevents the following cases:
                  * - <template><div au-slot></div></template>
@@ -430,7 +431,7 @@
         declareTemplateController(attrSyntax, attrInfo) {
             let symbol;
             const attrRawValue = attrSyntax.rawValue;
-            const command = this.resources.getBindingCommand(attrSyntax, false);
+            const command = this.getBindingCommand(attrSyntax, false);
             // multi-bindings logic here is similar to (and explained in) bindCustomAttribute
             const isMultiBindings = attrInfo.noMultiBindings === false && command === null && hasInlineBindings(attrRawValue);
             if (isMultiBindings) {
@@ -508,14 +509,14 @@
                     }
                     const attrSyntax = this.attrParser.parse(attrName, attrValue);
                     const attrTarget = kernel_1.camelCase(attrSyntax.target);
-                    const command = this.resources.getBindingCommand(attrSyntax, false);
+                    const command = this.getBindingCommand(attrSyntax, false);
                     const bindingType = command === null ? 2048 /* Interpolation */ : command.bindingType;
                     const expr = this.exprParser.parse(attrValue, bindingType);
                     let bindable = bindables[attrTarget];
                     if (bindable === undefined) {
                         // everything in a multi-bindings expression must be used,
                         // so if it's not a bindable then we create one on the spot
-                        bindable = bindables[attrTarget] = new resource_model_1.BindableInfo(attrTarget, runtime_1.BindingMode.toView);
+                        bindable = bindables[attrTarget] = new semantic_model_1.BindableInfo(attrTarget, runtime_1.BindingMode.toView);
                     }
                     symbol.bindings.push(new semantic_model_1.BindingSymbol(command, bindable, expr, attrValue, attrTarget));
                     // Skip whitespace after semicolon
@@ -528,7 +529,7 @@
             }
         }
         bindPlainAttribute(attrSyntax, attr, surrogate, manifest) {
-            const command = this.resources.getBindingCommand(attrSyntax, false);
+            const command = this.getBindingCommand(attrSyntax, false);
             const bindingType = command === null ? 2048 /* Interpolation */ : command.bindingType;
             const attrTarget = attrSyntax.target;
             const attrRawValue = attrSyntax.rawValue;
@@ -574,6 +575,31 @@
                 // if it's an interpolation, clear the attribute value
                 attr.value = '';
             }
+        }
+        /**
+         * Retrieve a binding command resource.
+         *
+         * @param name - The parsed `AttrSyntax`
+         *
+         * @returns An instance of the command if it exists, or `null` if it does not exist.
+         */
+        getBindingCommand(syntax, optional) {
+            const name = syntax.command;
+            if (name === null) {
+                return null;
+            }
+            let result = this.commandLookup[name];
+            if (result === void 0) {
+                result = this.container.create(binding_command_1.BindingCommand, name);
+                if (result === null) {
+                    if (optional) {
+                        return null;
+                    }
+                    throw new Error(`Unknown binding command: ${name}`);
+                }
+                this.commandLookup[name] = result;
+            }
+            return result;
         }
     }
     exports.TemplateBinder = TemplateBinder;

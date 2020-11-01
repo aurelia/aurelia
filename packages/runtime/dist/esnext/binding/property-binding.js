@@ -57,7 +57,7 @@ let PropertyBinding = class PropertyBinding {
         const sourceExpression = this.sourceExpression;
         const $scope = this.$scope;
         const locator = this.locator;
-        if ((flags & 8 /* updateTargetInstance */) > 0) {
+        if ((flags & 8 /* updateTarget */) > 0) {
             // Alpha: during bind a simple strategy for bind is always flush immediately
             // todo:
             //  (1). determine whether this should be the behavior
@@ -91,7 +91,7 @@ let PropertyBinding = class PropertyBinding {
             }
             return;
         }
-        if ((flags & 16 /* updateSourceExpression */) > 0) {
+        if ((flags & 16 /* updateSource */) > 0) {
             if (newValue !== sourceExpression.evaluate(flags, $scope, this.$hostScope, locator, null)) {
                 interceptor.updateSource(newValue, flags);
             }
@@ -146,7 +146,7 @@ let PropertyBinding = class PropertyBinding {
             if (!shouldConnect) {
                 interceptor.updateSource(targetObserver.getValue(this.target, this.targetProperty), flags);
             }
-            targetObserver[this.id] |= 16 /* updateSourceExpression */;
+            targetObserver[this.id] |= 16 /* updateSource */;
         }
         // add isBound flag and remove isBinding flag
         this.isBound = true;
@@ -168,7 +168,7 @@ let PropertyBinding = class PropertyBinding {
         }
         if (targetObserver.unsubscribe) {
             targetObserver.unsubscribe(this.interceptor);
-            targetObserver[this.id] &= ~16 /* updateSourceExpression */;
+            targetObserver[this.id] &= ~16 /* updateSource */;
         }
         if (task != null) {
             task.cancel();

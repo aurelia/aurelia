@@ -21,12 +21,12 @@ let Focus = class Focus {
     constructor(element, p) {
         this.p = p;
         /**
-         * Indicates whether `apply` should be called when `afterAttachChildren` callback is invoked
+         * Indicates whether `apply` should be called when `attached` callback is invoked
          */
         this.needsApply = false;
         this.element = element;
     }
-    beforeBind() {
+    binding() {
         this.valueChanged();
     }
     /**
@@ -46,14 +46,14 @@ let Focus = class Focus {
         else {
             // If the element is not currently connect
             // toggle the flag to add pending work for later
-            // in afterAttachChildren lifecycle
+            // in attached lifecycle
             this.needsApply = true;
         }
     }
     /**
-     * Invoked when the attribute is afterAttachChildren to the DOM.
+     * Invoked when the attribute is attached to the DOM.
      */
-    afterAttachChildren() {
+    attached() {
         if (this.needsApply) {
             this.needsApply = false;
             this.apply();

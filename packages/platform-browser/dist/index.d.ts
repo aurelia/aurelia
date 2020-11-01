@@ -12,16 +12,14 @@ export declare class BrowserPlatform<TGlobal extends typeof globalThis = typeof 
     readonly location: TGlobal['location'];
     readonly history: TGlobal['history'];
     readonly navigator: TGlobal['navigator'];
+    readonly fetch: TGlobal['window']['fetch'];
     readonly requestAnimationFrame: TGlobal['requestAnimationFrame'];
     readonly cancelAnimationFrame: TGlobal['cancelAnimationFrame'];
     readonly customElements: TGlobal['customElements'];
     readonly clearInterval: TGlobal['window']['clearInterval'];
     readonly clearTimeout: TGlobal['window']['clearTimeout'];
-    readonly fetch: TGlobal['window']['fetch'];
-    readonly queueMicrotask: TGlobal['window']['queueMicrotask'];
     readonly setInterval: TGlobal['window']['setInterval'];
     readonly setTimeout: TGlobal['window']['setTimeout'];
-    readonly console: TGlobal['window']['console'];
     readonly domWriteQueue: TaskQueue;
     readonly domReadQueue: TaskQueue;
     constructor(g: TGlobal, overrides?: Partial<Exclude<BrowserPlatform, 'globalThis'>>);

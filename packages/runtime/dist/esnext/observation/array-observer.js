@@ -435,9 +435,9 @@ let ArrayObserver = class ArrayObserver {
         const length = this.collection.length;
         this.inBatch = false;
         this.indexMap = createIndexMap(length);
-        this.callCollectionSubscribers(indexMap, 8 /* updateTargetInstance */ | this.persistentFlags);
+        this.callCollectionSubscribers(indexMap, 8 /* updateTarget */ | this.persistentFlags);
         if (this.lengthObserver !== void 0) {
-            this.lengthObserver.setValue(length, 8 /* updateTargetInstance */);
+            this.lengthObserver.setValue(length, 8 /* updateTarget */);
         }
     }
     /**

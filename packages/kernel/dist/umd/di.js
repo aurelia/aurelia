@@ -937,6 +937,46 @@
                 (_a = disposables.pop()) === null || _a === void 0 ? void 0 : _a.dispose();
             }
         }
+        find(kind, name) {
+            const key = kind.keyFrom(name);
+            let resolver = this.resourceResolvers[key];
+            if (resolver === void 0) {
+                resolver = this.root.resourceResolvers[key];
+                if (resolver === void 0) {
+                    return null;
+                }
+            }
+            if (resolver === null) {
+                return null;
+            }
+            if (typeof resolver.getFactory === 'function') {
+                const factory = resolver.getFactory(this);
+                if (factory === null || factory === void 0) {
+                    return null;
+                }
+                const definition = metadata_1.Metadata.getOwn(kind.name, factory.Type);
+                if (definition === void 0) {
+                    // TODO: we may want to log a warning here, or even throw. This would happen if a dependency is registered with a resource-like key
+                    // but does not actually have a definition associated via the type's metadata. That *should* generally not happen.
+                    return null;
+                }
+                return definition;
+            }
+            return null;
+        }
+        create(kind, name) {
+            var _a, _b;
+            const key = kind.keyFrom(name);
+            let resolver = this.resourceResolvers[key];
+            if (resolver === void 0) {
+                resolver = this.root.resourceResolvers[key];
+                if (resolver === void 0) {
+                    return null;
+                }
+                return (_a = resolver.resolve(this.root, this)) !== null && _a !== void 0 ? _a : null;
+            }
+            return (_b = resolver.resolve(this, this)) !== null && _b !== void 0 ? _b : null;
+        }
         dispose() {
             this.disposeResolvers();
             this.resolvers.clear();

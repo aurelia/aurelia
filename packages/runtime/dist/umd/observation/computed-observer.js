@@ -84,7 +84,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             if (this.currentValue !== newValue) {
                 this.oldValue = this.currentValue;
                 this.currentValue = newValue;
-                this.callSubscribers(newValue, this.oldValue, 8 /* updateTargetInstance */);
+                this.callSubscribers(newValue, this.oldValue, 8 /* updateTarget */);
             }
         }
         subscribe(subscriber) {
@@ -163,14 +163,14 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             const oldValue = this.currentValue;
             const newValue = this.getValueAndCollectDependencies(false);
             if (oldValue !== newValue) {
-                this.callSubscribers(newValue, oldValue, 8 /* updateTargetInstance */);
+                this.callSubscribers(newValue, oldValue, 8 /* updateTarget */);
             }
         }
         handleCollectionChange() {
             const oldValue = this.currentValue;
             const newValue = this.getValueAndCollectDependencies(false);
             if (oldValue !== newValue) {
-                this.callSubscribers(newValue, oldValue, 8 /* updateTargetInstance */);
+                this.callSubscribers(newValue, oldValue, 8 /* updateTarget */);
             }
         }
         getValueAndCollectDependencies(requireCollect) {

@@ -1187,7 +1187,7 @@
             if ('resourceResolvers' in viewModelOrContainer) {
                 return viewModelOrContainer;
             }
-            if (runtime_html_1.isCompositionContext(viewModelOrContainer)) {
+            if (runtime_html_1.isRenderContext(viewModelOrContainer)) {
                 return viewModelOrContainer.get(kernel_1.IContainer);
             }
             if ('$controller' in viewModelOrContainer) {

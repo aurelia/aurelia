@@ -890,48 +890,6 @@ export function formatIterator(ctx, value, recurseTimes, braces) {
 export function formatPromise(ctx, value, recurseTimes) {
     return ['[object Promise]'];
 }
-// Still incomplete
-const methodNamesWithFlags = [
-    'created',
-    'bind',
-    'bindCustomElement',
-    'bindCustomAttribute',
-    'bindSynthetic',
-    'bindBindings',
-    'bindControllers',
-    'endBind',
-    'beforeBind',
-    'afterBind',
-    'attach',
-    'attachCustomElement',
-    'attachCustomAttribute',
-    'attachSynthetic',
-    'attachControllers',
-    'afterAttach',
-    'afterAttachChildren',
-    'detach',
-    'detachCustomElement',
-    'detachCustomAttribute',
-    'detachSynthetic',
-    'detachControllers',
-    'beforeDetach',
-    'afterDetachChildren',
-    'tryReturnToCache',
-    'cache',
-    'cacheCustomElement',
-    'cacheCustomAttribute',
-    'cacheSynthetic',
-    'dispose',
-    'unbind',
-    'unbindCustomElement',
-    'unbindCustomAttribute',
-    'unbindSynthetic',
-    'unbindBindings',
-    'unbindControllers',
-    'endUnbind',
-    'beforeUnbind',
-    'afterUnbindChildren',
-];
 export function formatProperty(ctx, value, recurseTimes, key, type) {
     switch (key) {
         // Aurelia-specific:

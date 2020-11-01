@@ -27,7 +27,7 @@ let ProxySubscriberCollection = class ProxySubscriberCollection {
         const oldValue = this.raw[this.key];
         if (oldValue !== value) {
             this.raw[this.key] = value;
-            this.callSubscribers(value, oldValue, flags | 2 /* proxyStrategy */ | 8 /* updateTargetInstance */);
+            this.callSubscribers(value, oldValue, flags | 2 /* proxyStrategy */ | 8 /* updateTarget */);
         }
     }
     getValue() {
@@ -109,7 +109,7 @@ let ProxyObserver = ProxyObserver_1 = class ProxyObserver {
         if (oldValue !== value) {
             target[p] = value;
             this.callPropertySubscribers(value, oldValue, p);
-            this.callProxySubscribers(p, value, oldValue, 2 /* proxyStrategy */ | 8 /* updateTargetInstance */);
+            this.callProxySubscribers(p, value, oldValue, 2 /* proxyStrategy */ | 8 /* updateTarget */);
         }
         return true;
     }
@@ -118,7 +118,7 @@ let ProxyObserver = ProxyObserver_1 = class ProxyObserver {
         if (Reflect.deleteProperty(target, p)) {
             if (oldValue !== void 0) {
                 this.callPropertySubscribers(undefined, oldValue, p);
-                this.callProxySubscribers(p, undefined, oldValue, 2 /* proxyStrategy */ | 8 /* updateTargetInstance */);
+                this.callProxySubscribers(p, undefined, oldValue, 2 /* proxyStrategy */ | 8 /* updateTarget */);
             }
             return true;
         }
@@ -129,7 +129,7 @@ let ProxyObserver = ProxyObserver_1 = class ProxyObserver {
         if (Reflect.defineProperty(target, p, attributes)) {
             if (attributes.value !== oldValue) {
                 this.callPropertySubscribers(attributes.value, oldValue, p);
-                this.callProxySubscribers(p, attributes.value, oldValue, 2 /* proxyStrategy */ | 8 /* updateTargetInstance */);
+                this.callProxySubscribers(p, attributes.value, oldValue, 2 /* proxyStrategy */ | 8 /* updateTarget */);
             }
             return true;
         }
@@ -165,7 +165,7 @@ let ProxyObserver = ProxyObserver_1 = class ProxyObserver {
     callPropertySubscribers(newValue, oldValue, key) {
         const subscribers = this.subscribers[key];
         if (subscribers !== void 0) {
-            subscribers.callSubscribers(newValue, oldValue, 2 /* proxyStrategy */ | 8 /* updateTargetInstance */);
+            subscribers.callSubscribers(newValue, oldValue, 2 /* proxyStrategy */ | 8 /* updateTarget */);
         }
     }
 };

@@ -2,7 +2,7 @@ import { DI } from '@aurelia/kernel';
 import { Scope } from '@aurelia/runtime';
 import { validationRulesRegistrar, rootObjectSymbol } from './rule-provider';
 /**
- * Instruction for the validation controller's validate method.
+ * IInstruction for the validation controller's validate method.
  */
 export class ValidateInstruction {
     /**

@@ -124,7 +124,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         flush(flags) {
             const oldValue = this.oldValue;
             const newValue = this.obj[this.propertyKey];
-            this.callSubscribers(newValue, oldValue, flags | 8 /* updateTargetInstance */);
+            this.callSubscribers(newValue, oldValue, flags | 8 /* updateTarget */);
             this.oldValue = newValue;
         }
         subscribe(subscriber) {

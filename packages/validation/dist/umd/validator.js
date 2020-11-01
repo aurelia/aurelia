@@ -14,7 +14,7 @@
     const runtime_1 = require("@aurelia/runtime");
     const rule_provider_1 = require("./rule-provider");
     /**
-     * Instruction for the validation controller's validate method.
+     * IInstruction for the validation controller's validate method.
      */
     class ValidateInstruction {
         /**

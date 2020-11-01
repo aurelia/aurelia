@@ -1,8 +1,9 @@
-/* eslint-disable compat/compat */
 import { camelCase, } from '@aurelia/kernel';
 import { BindingMode, } from '@aurelia/runtime';
-import { BindableInfo } from './resource-model';
-import { BindingSymbol, CustomAttributeSymbol, CustomElementSymbol, LetElementSymbol, PlainAttributeSymbol, PlainElementSymbol, TemplateControllerSymbol, TextSymbol, ProjectionSymbol, } from './semantic-model';
+import { BindingCommand } from './resources/binding-command';
+import { CustomAttribute } from './resources/custom-attribute';
+import { CustomElement } from './resources/custom-element';
+import { BindingSymbol, CustomAttributeSymbol, CustomElementSymbol, LetElementSymbol, PlainAttributeSymbol, PlainElementSymbol, TemplateControllerSymbol, TextSymbol, ProjectionSymbol, AttrInfo, ElementInfo, BindableInfo, } from './semantic-model';
 const invalidSurrogateAttribute = Object.assign(Object.create(null), {
     'id': true,
     'au-slot': true,
@@ -77,16 +78,16 @@ function processTemplateControllers(p, manifestProxy, manifest) {
  * TemplateBinder. Todo: describe goal of this class
  */
 export class TemplateBinder {
-    constructor(platform, resources, attrParser, exprParser, attrSyntaxTransformer) {
+    constructor(platform, container, attrParser, exprParser, attrSyntaxTransformer) {
         this.platform = platform;
-        this.resources = resources;
+        this.container = container;
         this.attrParser = attrParser;
         this.exprParser = exprParser;
         this.attrSyntaxTransformer = attrSyntaxTransformer;
+        this.commandLookup = Object.create(null);
     }
     bind(node) {
         const surrogate = new PlainElementSymbol(node);
-        const resources = this.resources;
         const attrSyntaxTransformer = this.attrSyntaxTransformer;
         const attributes = node.attributes;
         let i = 0;
@@ -97,9 +98,9 @@ export class TemplateBinder {
                 throw new Error(`Invalid surrogate attribute: ${attrSyntax.target}`);
                 // TODO: use reporter
             }
-            const bindingCommand = resources.getBindingCommand(attrSyntax, true);
+            const bindingCommand = this.getBindingCommand(attrSyntax, true);
             if (bindingCommand === null || (bindingCommand.bindingType & 4096 /* IgnoreCustomAttr */) === 0) {
-                const attrInfo = resources.getAttributeInfo(attrSyntax);
+                const attrInfo = AttrInfo.from(this.container.find(CustomAttribute, attrSyntax.target));
                 if (attrInfo === null) {
                     // map special html attributes to their corresponding properties
                     attrSyntaxTransformer.transform(node, attrSyntax);
@@ -163,7 +164,7 @@ export class TemplateBinder {
         if (name === null) {
             name = node.nodeName.toLowerCase();
         }
-        const elementInfo = this.resources.getElementInfo(name);
+        const elementInfo = ElementInfo.from(this.container.find(CustomElement, name));
         if (elementInfo === null) {
             // there is no registered custom element with this name
             manifest = new PlainElementSymbol(node);
@@ -214,7 +215,7 @@ export class TemplateBinder {
                 continue;
             }
             const attrSyntax = this.attrParser.parse(attr.name, attr.value);
-            const command = this.resources.getBindingCommand(attrSyntax, false);
+            const command = this.getBindingCommand(attrSyntax, false);
             const bindingType = command === null ? 2048 /* Interpolation */ : command.bindingType;
             const expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
             const to = camelCase(attrSyntax.target);
@@ -241,9 +242,9 @@ export class TemplateBinder {
                 continue;
             }
             const attrSyntax = this.attrParser.parse(attr.name, attr.value);
-            const bindingCommand = this.resources.getBindingCommand(attrSyntax, true);
+            const bindingCommand = this.getBindingCommand(attrSyntax, true);
             if (bindingCommand === null || (bindingCommand.bindingType & 4096 /* IgnoreCustomAttr */) === 0) {
-                const attrInfo = this.resources.getAttributeInfo(attrSyntax);
+                const attrInfo = AttrInfo.from(this.container.find(CustomAttribute, attrSyntax.target));
                 if (attrInfo === null) {
                     // map special html attributes to their corresponding properties
                     this.attrSyntaxTransformer.transform(node, attrSyntax);
@@ -317,7 +318,7 @@ export class TemplateBinder {
         if (hasProjection
             && (manifestRoot === null
                 || parentName === void 0
-                || this.resources.getElementInfo(parentName) === null)) {
+                || this.container.find(CustomElement, parentName) === null)) {
             /**
              * Prevents the following cases:
              * - <template><div au-slot></div></template>
@@ -418,7 +419,7 @@ export class TemplateBinder {
     declareTemplateController(attrSyntax, attrInfo) {
         let symbol;
         const attrRawValue = attrSyntax.rawValue;
-        const command = this.resources.getBindingCommand(attrSyntax, false);
+        const command = this.getBindingCommand(attrSyntax, false);
         // multi-bindings logic here is similar to (and explained in) bindCustomAttribute
         const isMultiBindings = attrInfo.noMultiBindings === false && command === null && hasInlineBindings(attrRawValue);
         if (isMultiBindings) {
@@ -496,7 +497,7 @@ export class TemplateBinder {
                 }
                 const attrSyntax = this.attrParser.parse(attrName, attrValue);
                 const attrTarget = camelCase(attrSyntax.target);
-                const command = this.resources.getBindingCommand(attrSyntax, false);
+                const command = this.getBindingCommand(attrSyntax, false);
                 const bindingType = command === null ? 2048 /* Interpolation */ : command.bindingType;
                 const expr = this.exprParser.parse(attrValue, bindingType);
                 let bindable = bindables[attrTarget];
@@ -516,7 +517,7 @@ export class TemplateBinder {
         }
     }
     bindPlainAttribute(attrSyntax, attr, surrogate, manifest) {
-        const command = this.resources.getBindingCommand(attrSyntax, false);
+        const command = this.getBindingCommand(attrSyntax, false);
         const bindingType = command === null ? 2048 /* Interpolation */ : command.bindingType;
         const attrTarget = attrSyntax.target;
         const attrRawValue = attrSyntax.rawValue;
@@ -562,6 +563,31 @@ export class TemplateBinder {
             // if it's an interpolation, clear the attribute value
             attr.value = '';
         }
+    }
+    /**
+     * Retrieve a binding command resource.
+     *
+     * @param name - The parsed `AttrSyntax`
+     *
+     * @returns An instance of the command if it exists, or `null` if it does not exist.
+     */
+    getBindingCommand(syntax, optional) {
+        const name = syntax.command;
+        if (name === null) {
+            return null;
+        }
+        let result = this.commandLookup[name];
+        if (result === void 0) {
+            result = this.container.create(BindingCommand, name);
+            if (result === null) {
+                if (optional) {
+                    return null;
+                }
+                throw new Error(`Unknown binding command: ${name}`);
+            }
+            this.commandLookup[name] = result;
+        }
+        return result;
     }
 }
 //# sourceMappingURL=template-binder.js.map

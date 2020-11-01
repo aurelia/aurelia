@@ -1,13 +1,11 @@
 import { Constructable, IContainer, IResourceKind, ResourceDefinition, PartialResourceDefinition, ResourceType } from '@aurelia/kernel';
 import { BindingMode, PartialBindableDefinition, BindingStrategy, BindableDefinition } from '@aurelia/runtime';
-import { HooksDefinition } from '../definitions';
-import { ICustomAttributeViewModel, ICustomAttributeController } from '../lifecycle';
+import type { ICustomAttributeViewModel, ICustomAttributeController } from '../templating/controller';
 export declare type PartialCustomAttributeDefinition = PartialResourceDefinition<{
     readonly defaultBindingMode?: BindingMode;
     readonly isTemplateController?: boolean;
     readonly bindables?: Record<string, PartialBindableDefinition> | readonly string[];
     readonly strategy?: BindingStrategy;
-    readonly hooks?: HooksDefinition;
     /**
      * A config that can be used by template compliler to change attr value parsing mode
      * `true` to always parse as a single value, mostly will be string in URL scenario
@@ -58,7 +56,6 @@ export declare class CustomAttributeDefinition<T extends Constructable = Constru
     readonly isTemplateController: boolean;
     readonly bindables: Record<string, BindableDefinition>;
     readonly strategy: BindingStrategy;
-    readonly hooks: HooksDefinition;
     readonly noMultiBindings: boolean;
     private constructor();
     static create<T extends Constructable = Constructable>(nameOrDef: string | PartialCustomAttributeDefinition, Type: CustomAttributeType<T>): CustomAttributeDefinition<T>;

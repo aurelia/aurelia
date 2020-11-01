@@ -72,24 +72,20 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         constructor(factory, location) {
             this.factory = factory;
             this.hostScope = null;
-            this.view = factory.create();
-            this.view.setLocation(location, 1 /* insertBefore */);
+            this.view = factory.create().setLocation(location);
             this.isProjection = factory.contentType === AuSlotContentType.Projection;
             this.outerScope = factory.projectionScope;
         }
-        beforeBind(initiator, parent, flags) {
+        binding(initiator, parent, flags) {
             this.hostScope = this.$controller.scope.parentScope;
         }
-        afterAttach(initiator, parent, flags) {
+        attaching(initiator, parent, flags) {
             var _a;
             const { $controller } = this;
             return this.view.activate(initiator, $controller, flags, (_a = this.outerScope) !== null && _a !== void 0 ? _a : this.hostScope, this.hostScope);
         }
-        afterUnbind(initiator, parent, flags) {
+        detaching(initiator, parent, flags) {
             return this.view.deactivate(initiator, this.$controller, flags);
-        }
-        onCancel(initiator, parent, flags) {
-            this.view.cancel(initiator, this.$controller, flags);
         }
         dispose() {
             this.view.dispose();

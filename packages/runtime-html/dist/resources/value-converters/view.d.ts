@@ -1,5 +1,5 @@
 import { ComposableObjectComponentType, IViewLocator, ViewSelector } from '../../templating/view';
-import { ICustomElementViewModel } from '../../lifecycle';
+import type { ICustomElementViewModel } from '../../templating/controller';
 export declare class ViewValueConverter {
     private readonly viewLocator;
     constructor(viewLocator: IViewLocator);

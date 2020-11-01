@@ -1,19 +1,19 @@
+import { IContainer } from '@aurelia/kernel';
 import { IExpressionParser } from '@aurelia/runtime';
-import { IAttributeParser } from './attribute-parser';
+import { IAttributeParser } from './resources/attribute-pattern';
 import { IAttrSyntaxTransformer } from './attribute-syntax-transformer';
 import { IPlatform } from './platform';
-import { ResourceModel } from './resource-model';
 import { PlainElementSymbol } from './semantic-model';
 /**
  * TemplateBinder. Todo: describe goal of this class
  */
 export declare class TemplateBinder {
     readonly platform: IPlatform;
-    readonly resources: ResourceModel;
+    readonly container: IContainer;
     readonly attrParser: IAttributeParser;
     readonly exprParser: IExpressionParser;
     readonly attrSyntaxTransformer: IAttrSyntaxTransformer;
-    constructor(platform: IPlatform, resources: ResourceModel, attrParser: IAttributeParser, exprParser: IExpressionParser, attrSyntaxTransformer: IAttrSyntaxTransformer);
+    constructor(platform: IPlatform, container: IContainer, attrParser: IAttributeParser, exprParser: IExpressionParser, attrSyntaxTransformer: IAttrSyntaxTransformer);
     bind(node: HTMLElement): PlainElementSymbol;
     private bindManifest;
     private bindLetElement;
@@ -25,5 +25,14 @@ export declare class TemplateBinder {
     private bindCustomAttribute;
     private bindMultiAttribute;
     private bindPlainAttribute;
+    private readonly commandLookup;
+    /**
+     * Retrieve a binding command resource.
+     *
+     * @param name - The parsed `AttrSyntax`
+     *
+     * @returns An instance of the command if it exists, or `null` if it does not exist.
+     */
+    private getBindingCommand;
 }
 //# sourceMappingURL=template-binder.d.ts.map

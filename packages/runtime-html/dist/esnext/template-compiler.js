@@ -15,12 +15,10 @@ import { IExpressionParser, BindingMode, Bindable, } from '@aurelia/runtime';
 import { IAttrSyntaxTransformer } from './attribute-syntax-transformer';
 import { TemplateBinder } from './template-binder';
 import { ITemplateElementFactory } from './template-element-factory';
-import { HydrateAttributeInstruction, HydrateElementInstruction, HydrateLetElementInstruction, HydrateTemplateController, InterpolationInstruction, LetBindingInstruction, SetAttributeInstruction, SetClassAttributeInstruction, SetPropertyInstruction, SetStyleAttributeInstruction, TextBindingInstruction, } from './instructions';
-import { IAttributeParser } from './attribute-parser';
-import { ResourceModel } from './resource-model';
+import { HydrateAttributeInstruction, HydrateElementInstruction, HydrateLetElementInstruction, HydrateTemplateController, InterpolationInstruction, LetBindingInstruction, SetAttributeInstruction, SetClassAttributeInstruction, SetPropertyInstruction, SetStyleAttributeInstruction, TextBindingInstruction, ITemplateCompiler, } from './renderer';
+import { IAttributeParser } from './resources/attribute-pattern';
 import { AuSlotContentType, ProjectionContext, SlotInfo } from './resources/custom-elements/au-slot';
 import { CustomElement, CustomElementDefinition } from './resources/custom-element';
-import { ITemplateCompiler } from './composer';
 import { IPlatform } from './platform';
 class CustomElementCompilationUnit {
     constructor(partialDefinition, surrogate, template) {
@@ -81,10 +79,9 @@ let TemplateCompiler = class TemplateCompiler {
         if (definition.template === null || definition.template === void 0) {
             return definition;
         }
-        const resources = ResourceModel.getOrCreate(context);
         const { attrParser, exprParser, attrSyntaxModifier, factory } = this;
         const p = context.get(IPlatform);
-        const binder = new TemplateBinder(p, resources, attrParser, exprParser, attrSyntaxModifier);
+        const binder = new TemplateBinder(p, context, attrParser, exprParser, attrSyntaxModifier);
         const template = definition.enhance === true
             ? definition.template
             : factory.createTemplate(definition.template);

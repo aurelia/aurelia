@@ -6,7 +6,7 @@ export interface IRoutingController extends ICustomElementController {
     routingContainer?: IContainer;
 }
 export interface IConnectedCustomElement extends ICustomElementViewModel {
-    element: Element;
+    element: HTMLElement;
     container: IContainer;
     controller: IRoutingController;
 }
@@ -27,13 +27,13 @@ export declare class ViewportCustomElement implements ICustomElementViewModel {
     viewport: Viewport | null;
     readonly $controller: ICustomElementController<this>;
     controller: IRoutingController;
-    readonly element: Element;
+    readonly element: HTMLElement;
     private isBound;
     constructor(router: IRouter, element: INode, container: IContainer, parentViewport: ViewportCustomElement);
-    beforeComposeChildren(controller: ICompiledCustomElementController): unknown;
-    beforeBind(initiator: IHydratedController, parent: IHydratedParentController | null, flags: LifecycleFlags): void | Promise<void>;
-    afterAttach(initiator: IHydratedController, parent: IHydratedParentController | null, flags: LifecycleFlags): void | Promise<void>;
-    beforeUnbind(initiator: IHydratedController, parent: ISyntheticView | ICustomElementController | null, flags: LifecycleFlags): void | Promise<void>;
+    hydrated(controller: ICompiledCustomElementController): unknown;
+    binding(initiator: IHydratedController, parent: IHydratedParentController | null, flags: LifecycleFlags): void | Promise<void>;
+    attaching(initiator: IHydratedController, parent: IHydratedParentController | null, flags: LifecycleFlags): void | Promise<void>;
+    unbinding(initiator: IHydratedController, parent: ISyntheticView | ICustomElementController | null, flags: LifecycleFlags): void | Promise<void>;
     dispose(): void | Promise<void>;
     connect(): void;
     disconnect(): void;

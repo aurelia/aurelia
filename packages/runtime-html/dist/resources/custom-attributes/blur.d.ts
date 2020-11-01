@@ -1,6 +1,6 @@
 import { INode } from '../../dom';
-import { ICustomAttributeController, ICustomAttributeViewModel } from '../../lifecycle';
 import { IPlatform } from '../../platform';
+import type { ICustomAttributeController, ICustomAttributeViewModel } from '../../templating/controller';
 declare const unset: unique symbol;
 export declare class BlurManager {
     readonly platform: IPlatform;
@@ -45,8 +45,8 @@ export declare class Blur implements ICustomAttributeViewModel {
     linkingContext: string | Element | null;
     private readonly element;
     constructor(element: INode, p: IPlatform);
-    afterAttachChildren(): void;
-    beforeDetach(): void;
+    attached(): void;
+    detaching(): void;
     handleEventTarget(target: EventTarget): void;
     contains(target: Element): boolean;
     triggerBlur(): void;

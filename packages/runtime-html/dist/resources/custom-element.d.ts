@@ -1,10 +1,9 @@
 import { Constructable, IContainer, IResourceKind, ResourceType, PartialResourceDefinition, Key, ResourceDefinition, Injectable } from '@aurelia/kernel';
 import { PartialBindableDefinition, BindingStrategy, BindableDefinition } from '@aurelia/runtime';
-import { IInstruction, HooksDefinition } from '../definitions';
-import { IRenderLocation } from '../dom';
-import { ICustomElementViewModel, ICustomElementController } from '../lifecycle';
 import { PartialChildrenDefinition, ChildrenDefinition } from '../templating/children';
 import { IProjections } from './custom-elements/au-slot';
+import { IInstruction } from '../renderer';
+import type { ICustomElementViewModel, ICustomElementController } from '../templating/controller';
 export declare type PartialCustomElementDefinition = PartialResourceDefinition<{
     readonly cache?: '*' | number;
     readonly template?: null | string | Node;
@@ -22,7 +21,6 @@ export declare type PartialCustomElementDefinition = PartialResourceDefinition<{
     } | null;
     readonly hasSlots?: boolean;
     readonly strategy?: BindingStrategy;
-    readonly hooks?: Readonly<HooksDefinition>;
     readonly enhance?: boolean;
     readonly projectionsMap?: Map<IInstruction, IProjections>;
 }>;
@@ -149,7 +147,6 @@ export declare class CustomElementDefinition<C extends Constructable = Construct
     } | null;
     readonly hasSlots: boolean;
     readonly strategy: BindingStrategy;
-    readonly hooks: Readonly<HooksDefinition>;
     readonly enhance: boolean;
     readonly projectionsMap: Map<IInstruction, IProjections>;
     private constructor();
@@ -161,8 +158,5 @@ export declare class CustomElementDefinition<C extends Constructable = Construct
 }
 export declare type InjectableToken<K = any> = (target: Injectable<K>, property: string, index: number) => void;
 export declare const CustomElement: CustomElementKind;
-export declare type CustomElementHost<T extends Node & ParentNode = Node & ParentNode> = IRenderLocation<T> & T & {
-    $controller?: ICustomElementController;
-};
 export {};
 //# sourceMappingURL=custom-element.d.ts.map

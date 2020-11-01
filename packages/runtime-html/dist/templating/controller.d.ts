@@ -1,126 +1,461 @@
-import { IContainer, IIndexable, Writable } from '@aurelia/kernel';
+import { IContainer, IIndexable, Writable, IDisposable } from '@aurelia/kernel';
 import { IBinding, Scope, LifecycleFlags, ILifecycle, IBindingTargetAccessor } from '@aurelia/runtime';
-import { HooksDefinition } from '../definitions';
-import { INodeSequence, IRenderLocation } from '../dom';
-import { IController, IViewModel, ViewModelKind, MountStrategy, ISyntheticView, ICustomAttributeController, ICustomElementController, ICustomElementViewModel, ICustomAttributeViewModel, IActivationHooks, ICompileHooks, IHydratedParentController, State, ControllerVisitor } from '../lifecycle';
-import { CustomElementDefinition } from '../resources/custom-element';
+import { INode, INodeSequence, IRenderLocation } from '../dom';
+import { CustomElementDefinition, PartialCustomElementDefinition } from '../resources/custom-element';
 import { CustomAttributeDefinition } from '../resources/custom-attribute';
-import { ICompositionContext, CompositionContext } from './composition-context';
-import { RegisteredProjections } from '../resources/custom-elements/au-slot';
+import { IRenderContext, RenderContext, ICompiledRenderContext } from './render-context';
 import { IAppRoot } from '../app-root';
-import { ElementProjector } from '../projectors';
 import { IPlatform } from '../platform';
-import { IViewFactory } from './view';
+import type { RegisteredProjections } from '../resources/custom-elements/au-slot';
+import type { IViewFactory } from './view';
+import type { Instruction } from '../renderer';
 declare type BindingContext<C extends IViewModel> = IIndexable<C & Required<ICompileHooks> & Required<IActivationHooks<IHydratedParentController | null>>>;
+export declare const enum MountTarget {
+    none = 0,
+    host = 1,
+    shadowRoot = 2,
+    location = 3
+}
 export declare class Controller<C extends IViewModel = IViewModel> implements IController<C> {
     root: IAppRoot | null;
     container: IContainer;
     readonly vmKind: ViewModelKind;
     flags: LifecycleFlags;
-    readonly definition: CustomElementDefinition | CustomAttributeDefinition | undefined;
-    hooks: HooksDefinition;
+    readonly definition: CustomElementDefinition | CustomAttributeDefinition | null;
     /**
      * The viewFactory. Only present for synthetic views.
      */
-    viewFactory: IViewFactory | undefined;
+    viewFactory: IViewFactory | null;
     /**
      * The backing viewModel. This is never a proxy. Only present for custom attributes and elements.
      */
-    viewModel: C | undefined;
+    viewModel: C | null;
     /**
      * The binding context. This may be a proxy. If it is not, then it is the same instance as the viewModel. Only present for custom attributes and elements.
      */
-    bindingContext: BindingContext<C> | undefined;
+    bindingContext: BindingContext<C> | null;
     /**
-     * The physical host dom node. Only present for custom elements.
+     * The physical host dom node.
+     *
+     * For containerless elements, this node will be removed from the DOM and replaced by a comment, which is assigned to the `location` property.
+     *
+     * For ShadowDOM elements, this will be the original declaring element, NOT the shadow root (the shadow root is stored on the `shadowRoot` property)
      */
-    host: Node | undefined;
+    host: HTMLElement | null;
     readonly id: number;
-    head: Controller<C> | null;
-    tail: Controller<C> | null;
-    next: Controller<C> | null;
+    head: IHydratedController | null;
+    tail: IHydratedController | null;
+    next: IHydratedController | null;
     parent: Controller | null;
-    bindings: IBinding[] | undefined;
-    children: Controller[] | undefined;
+    bindings: IBinding[] | null;
+    children: Controller[] | null;
     hasLockedScope: boolean;
     isStrictBinding: boolean;
-    scope: Scope | undefined;
+    scope: Scope | null;
     hostScope: Scope | null;
-    projector: ElementProjector | undefined;
-    nodes: INodeSequence | undefined;
-    context: CompositionContext | undefined;
-    location: IRenderLocation | undefined;
-    mountStrategy: MountStrategy;
+    mountTarget: MountTarget;
+    shadowRoot: ShadowRoot | null;
+    nodes: INodeSequence | null;
+    context: RenderContext | null;
+    location: IRenderLocation | null;
     state: State;
     get isActive(): boolean;
     private get name();
-    private promise;
-    private resolve;
-    private reject;
     private logger;
     private debug;
     private fullyNamed;
     readonly platform: IPlatform;
     readonly lifecycle: ILifecycle;
-    constructor(root: IAppRoot | null, container: IContainer, vmKind: ViewModelKind, flags: LifecycleFlags, definition: CustomElementDefinition | CustomAttributeDefinition | undefined, hooks: HooksDefinition, 
+    readonly hooks: HooksDefinition;
+    constructor(root: IAppRoot | null, container: IContainer, vmKind: ViewModelKind, flags: LifecycleFlags, definition: CustomElementDefinition | CustomAttributeDefinition | null, 
     /**
      * The viewFactory. Only present for synthetic views.
      */
-    viewFactory: IViewFactory | undefined, 
+    viewFactory: IViewFactory | null, 
     /**
      * The backing viewModel. This is never a proxy. Only present for custom attributes and elements.
      */
-    viewModel: C | undefined, 
+    viewModel: C | null, 
     /**
      * The binding context. This may be a proxy. If it is not, then it is the same instance as the viewModel. Only present for custom attributes and elements.
      */
-    bindingContext: BindingContext<C> | undefined, 
+    bindingContext: BindingContext<C> | null, 
     /**
-     * The physical host dom node. Only present for custom elements.
+     * The physical host dom node.
+     *
+     * For containerless elements, this node will be removed from the DOM and replaced by a comment, which is assigned to the `location` property.
+     *
+     * For ShadowDOM elements, this will be the original declaring element, NOT the shadow root (the shadow root is stored on the `shadowRoot` property)
      */
-    host: Node | undefined);
+    host: HTMLElement | null);
     static getCached<C extends ICustomElementViewModel = ICustomElementViewModel>(viewModel: C): ICustomElementController<C> | undefined;
     static getCachedOrThrow<C extends ICustomElementViewModel = ICustomElementViewModel>(viewModel: C): ICustomElementController<C>;
-    static forCustomElement<C extends ICustomElementViewModel = ICustomElementViewModel>(root: IAppRoot | null, container: IContainer, viewModel: C, host: Node, targetedProjections: RegisteredProjections | null, flags?: LifecycleFlags, hydrate?: boolean, definition?: CustomElementDefinition | undefined): ICustomElementController<C>;
-    static forCustomAttribute<C extends ICustomAttributeViewModel = ICustomAttributeViewModel>(root: IAppRoot | null, container: IContainer, viewModel: C, host: Node, flags?: LifecycleFlags): ICustomAttributeController<C>;
-    static forSyntheticView(root: IAppRoot | null, context: ICompositionContext, viewFactory: IViewFactory, flags?: LifecycleFlags, parentController?: ISyntheticView | ICustomElementController | ICustomAttributeController | undefined): ISyntheticView;
+    static forCustomElement<C extends ICustomElementViewModel = ICustomElementViewModel>(root: IAppRoot | null, container: IContainer, viewModel: C, host: HTMLElement, targetedProjections: RegisteredProjections | null, flags?: LifecycleFlags, hydrate?: boolean, definition?: CustomElementDefinition | undefined): ICustomElementController<C>;
+    static forCustomAttribute<C extends ICustomAttributeViewModel = ICustomAttributeViewModel>(root: IAppRoot | null, container: IContainer, viewModel: C, host: HTMLElement, flags?: LifecycleFlags): ICustomAttributeController<C>;
+    static forSyntheticView(root: IAppRoot | null, context: IRenderContext, viewFactory: IViewFactory, flags?: LifecycleFlags, parentController?: ISyntheticView | ICustomElementController | ICustomAttributeController | undefined): ISyntheticView;
     private hydrateCustomAttribute;
     private hydrateSynthetic;
-    private canceling;
-    cancel(initiator: Controller, parent: Controller | null, flags: LifecycleFlags): void;
-    activate(initiator: Controller, parent: Controller | null, flags: LifecycleFlags, scope?: Scope, hostScope?: Scope | null): void | Promise<void>;
-    private beforeBind;
+    private $initiator;
+    private $flags;
+    activate(initiator: Controller, parent: Controller | null, flags: LifecycleFlags, scope?: Scope | null, hostScope?: Scope | null): void | Promise<void>;
     private bind;
-    private afterBind;
     private attach;
-    private afterAttach;
-    private activateChildren;
-    private $activateChildren;
-    private endActivate;
-    private afterAttachChildren;
+    private attached;
     deactivate(initiator: Controller, parent: Controller | null, flags: LifecycleFlags): void | Promise<void>;
-    private beforeDetach;
     private detach;
-    private beforeUnbind;
+    private unbinding;
     private unbind;
-    private afterUnbind;
-    private deactivateChildren;
-    private $deactivateChildren;
-    private endDeactivate;
-    private afterUnbindChildren;
-    private onResolve;
     addBinding(binding: IBinding): void;
     addController(controller: Controller): void;
     is(name: string): boolean;
     lockScope(scope: Writable<Scope>): void;
-    setLocation(location: IRenderLocation, mountStrategy: MountStrategy): void;
+    setHost(host: HTMLElement): this;
+    setShadowRoot(shadowRoot: ShadowRoot): this;
+    setLocation(location: IRenderLocation): this;
     release(): void;
     dispose(): void;
     accept(visitor: ControllerVisitor): void | true;
     getTargetAccessor(propertyName: string): IBindingTargetAccessor | undefined;
-    private resolvePromise;
 }
 export declare function isCustomElementController<C extends ICustomElementViewModel = ICustomElementViewModel>(value: unknown): value is ICustomElementController<C>;
 export declare function isCustomElementViewModel(value: unknown): value is ICustomElementViewModel;
+export declare class HooksDefinition {
+    static readonly none: Readonly<HooksDefinition>;
+    readonly hasDefine: boolean;
+    readonly hasHydrating: boolean;
+    readonly hasHydrated: boolean;
+    readonly hasCreated: boolean;
+    readonly hasBinding: boolean;
+    readonly hasBound: boolean;
+    readonly hasAttaching: boolean;
+    readonly hasAttached: boolean;
+    readonly hasDetaching: boolean;
+    readonly hasUnbinding: boolean;
+    readonly hasDispose: boolean;
+    readonly hasAccept: boolean;
+    constructor(target: object);
+}
+export declare const enum ViewModelKind {
+    customElement = 0,
+    customAttribute = 1,
+    synthetic = 2
+}
+/**
+ * A controller that is ready for activation. It can be `ISyntheticView`, `ICustomElementController` or `ICustomAttributeController`.
+ *
+ * In terms of specificity this is identical to `IController`. The only difference is that this
+ * type is further initialized and thus has more properties and APIs available.
+ */
+export declare type IHydratedController = ISyntheticView | ICustomElementController | ICustomAttributeController;
+/**
+ * A controller that is ready for activation. It can be `ICustomElementController` or `ICustomAttributeController`.
+ *
+ * This type of controller is backed by a real component (hence the name) and therefore has ViewModel and may have lifecycle hooks.
+ *
+ * In contrast, `ISyntheticView` has neither a view model nor lifecycle hooks (but its child controllers, if any, may).
+ */
+export declare type IHydratedComponentController = ICustomElementController | ICustomAttributeController;
+/**
+ * A controller that is ready for activation. It can be `ISyntheticView` or `ICustomElementController`.
+ *
+ * This type of controller may have child controllers (hence the name) and bindings directly placed on it during hydration.
+ *
+ * In contrast, `ICustomAttributeController` has neither child controllers nor bindings directly placed on it (but the backing component may).
+ *
+ * Note: the parent of a `ISyntheticView` is always a `IHydratedComponentController` because views cannot directly own other views. Views may own components, and components may own views or components.
+ */
+export declare type IHydratedParentController = ISyntheticView | ICustomElementController;
+/**
+ * A callback that is invoked on each controller in the component tree.
+ *
+ * Return `true` to stop traversal.
+ */
+export declare type ControllerVisitor = (controller: IHydratedController) => void | true;
+/**
+ * The base type for all controller types.
+ *
+ * Every controller, regardless of their type and state, will have at least the properties/methods in this interface.
+ */
+export interface IController<C extends IViewModel = IViewModel> extends IDisposable {
+    readonly platform: IPlatform;
+    readonly root: IAppRoot | null;
+    readonly flags: LifecycleFlags;
+    readonly lifecycle: ILifecycle;
+    readonly vmKind: ViewModelKind;
+    readonly definition: CustomElementDefinition | CustomAttributeDefinition | null;
+    readonly host: HTMLElement | null;
+    readonly state: State;
+    readonly isActive: boolean;
+    /**
+     * Return `true` to stop traversal.
+     */
+    accept(visitor: ControllerVisitor): void | true;
+}
+/**
+ * The base type for `ICustomAttributeController` and `ICustomElementController`.
+ *
+ * Both of those types have the `viewModel` and `bindingContext` properties which represent the user instance containing the bound properties and hooks for this component.
+ */
+export interface IComponentController<C extends IViewModel = IViewModel> extends IController<C> {
+    readonly vmKind: ViewModelKind.customAttribute | ViewModelKind.customElement;
+    readonly definition: CustomElementDefinition | CustomAttributeDefinition;
+    /**
+     * The user instance containing the bound properties. This is always an instance of a class, which may either be user-defined, or generated by a view locator.
+     *
+     * This is the raw instance; never a proxy.
+     */
+    readonly viewModel: C;
+    /**
+     * In Proxy observation mode, this will be a proxy that wraps the view model, otherwise it is the exactly the same reference to the same object.
+     *
+     * This property is / should be used for creating the `Scope` and invoking lifecycle hooks.
+     */
+    readonly bindingContext: C & IIndexable;
+}
+/**
+ * The base type for `ISyntheticView` and `ICustomElementController`.
+ *
+ * Both of those types can:
+ * - Have `bindings` and `children` which are populated during hydration (hence, 'Hydratable').
+ * - Have physical DOM nodes that can be mounted.
+ */
+export interface IHydratableController<C extends IViewModel = IViewModel> extends IController<C> {
+    readonly vmKind: ViewModelKind.customElement | ViewModelKind.synthetic;
+    readonly mountTarget: MountTarget;
+    readonly definition: CustomElementDefinition | null;
+    readonly bindings: readonly IBinding[] | null;
+    readonly children: readonly IHydratedController[] | null;
+    getTargetAccessor(propertyName: string): IBindingTargetAccessor | null;
+    addBinding(binding: IBinding): void;
+    addController(controller: IController): void;
+}
+export declare const enum State {
+    none = 0,
+    activating = 1,
+    activated = 2,
+    deactivating = 4,
+    deactivated = 8,
+    released = 16,
+    disposed = 32
+}
+export declare function stringifyState(state: State): string;
+/**
+ * The controller for a synthetic view, that is, a controller created by an `IViewFactory`.
+ *
+ * A synthetic view, typically created when composing a template controller (`if`, `repeat`, etc), is a hydratable component with mountable DOM nodes that has no user view model.
+ *
+ * It has either its own synthetic binding context or is locked to some externally sourced scope (in the case of `au-compose`)
+ */
+export interface ISyntheticView extends IHydratableController {
+    parent: IHydratedComponentController | null;
+    readonly vmKind: ViewModelKind.synthetic;
+    readonly definition: null;
+    readonly viewModel: null;
+    readonly bindingContext: null;
+    hostScope: Scope | null;
+    /**
+     * The compiled render context used for composing this view. Compilation was done by the `IViewFactory` prior to creating this view.
+     */
+    readonly context: ICompiledRenderContext;
+    readonly isStrictBinding: boolean;
+    /**
+     * The physical DOM nodes that will be appended during the attach operation.
+     */
+    readonly nodes: INodeSequence;
+    activate(initiator: IHydratedController, parent: IHydratedComponentController, flags: LifecycleFlags, scope: Scope, hostScope?: Scope | null): void | Promise<void>;
+    deactivate(initiator: IHydratedController, parent: IHydratedComponentController, flags: LifecycleFlags): void | Promise<void>;
+    /**
+     * Lock this view's scope to the provided `Scope`. The scope, which is normally set during `activate()`, will then not change anymore.
+     *
+     * This is used by `au-compose` to set the binding context of a view to a particular component instance.
+     *
+     * @param scope - The scope to lock this view to.
+     */
+    lockScope(scope: Scope): void;
+    /**
+     * The scope that belongs to this view. This property will always be defined when the `state` property of this view indicates that the view is currently bound.
+     *
+     * The `scope` may be set during `activate()` and unset during `deactivate()`, or it may be statically set during composing with `lockScope()`.
+     */
+    readonly scope: Scope;
+    /**
+     * Set the render location that this view will be inserted before.
+     */
+    setLocation(location: IRenderLocation): this;
+    /**
+     * The DOM node that this view will be inserted before (if set).
+     */
+    readonly location: IRenderLocation | null;
+    /**
+     * Set the host that this view will be appended to.
+     */
+    setHost(host: Node & ParentNode): this;
+    /**
+     * The DOM node that this view will be appended to (if set).
+     */
+    readonly host: HTMLElement | null;
+    /**
+     * Set the `ShadowRoot` that this view will be appended to.
+     */
+    setShadowRoot(shadowRoot: ShadowRoot): this;
+    /**
+     * The ShadowRoot that this view will be appended to (if set).
+     */
+    readonly shadowRoot: ShadowRoot | null;
+    /**
+     * Mark this view as not-in-use, so that it can either be disposed or returned to cache after finishing the deactivate lifecycle.
+     *
+     * If this view is cached and later retrieved from the cache, it will be marked as in-use again before starting the activate lifecycle, so this method must be called each time.
+     *
+     * If this method is *not* called before `deactivate()`, this view will neither be cached nor disposed.
+     */
+    release(): void;
+}
+export interface ICustomAttributeController<C extends ICustomAttributeViewModel = ICustomAttributeViewModel> extends IComponentController<C> {
+    parent: IHydratedParentController | null;
+    readonly vmKind: ViewModelKind.customAttribute;
+    readonly definition: CustomAttributeDefinition;
+    /**
+     * @inheritdoc
+     */
+    readonly viewModel: C;
+    /**
+     * @inheritdoc
+     */
+    readonly bindingContext: C & IIndexable;
+    /**
+     * The scope that belongs to this custom attribute. This property will always be defined when the `state` property of this view indicates that the view is currently bound.
+     *
+     * The `scope` will be set during `activate()` and unset during `deactivate()`.
+     *
+     * The scope's `bindingContext` will be the same instance as this controller's `bindingContext` property.
+     */
+    readonly scope: Scope;
+    hostScope: Scope | null;
+    readonly children: null;
+    readonly bindings: null;
+    activate(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags, scope: Scope, hostScope?: Scope | null): void | Promise<void>;
+    deactivate(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void>;
+}
+/**
+ * A representation of `IController` specific to a custom element whose `create` hook is about to be invoked (if present).
+ *
+ * It is not yet hydrated (hence 'dry') with any render-specific information.
+ */
+export interface IDryCustomElementController<C extends IViewModel = IViewModel> extends IComponentController<C>, IHydratableController<C> {
+    readonly vmKind: ViewModelKind.customElement;
+    readonly definition: CustomElementDefinition;
+    /**
+     * The scope that belongs to this custom element. This property is set immediately after the controller is created and is always guaranteed to be available.
+     *
+     * It may be overwritten by end user during the `create()` hook.
+     *
+     * By default, the scope's `bindingContext` will be the same instance as this controller's `bindingContext` property.
+     */
+    scope: Scope;
+    hostScope: Scope | null;
+    /**
+     * The original host dom node.
+     *
+     * For containerless elements, this node will be removed from the DOM and replaced by a comment, which is assigned to the `location` property.
+     *
+     * For ShadowDOM elements, this will be the original declaring element, NOT the shadow root (the shadow root is stored on the `shadowRoot` property)
+     */
+    readonly host: HTMLElement;
+}
+/**
+ * A representation of `IController` specific to a custom element whose `hydrating` hook is about to be invoked (if present).
+ *
+ * It has the same properties as `IDryCustomElementController`, as well as a render context (hence 'contextual').
+ */
+export interface IContextualCustomElementController<C extends IViewModel = IViewModel> extends IDryCustomElementController<C> {
+    /**
+     * The non-compiled render context used for compiling this component's `CustomElementDefinition`.
+     */
+    readonly context: IRenderContext;
+}
+/**
+ * A representation of `IController` specific to a custom element whose `hydrated` hook is about to be invoked (if present).
+ *
+ * It has the same properties as `IContextualCustomElementController`, except the context is now compiled (hence 'compiled'), as well as the nodes, and projector.
+ */
+export interface ICompiledCustomElementController<C extends IViewModel = IViewModel> extends IContextualCustomElementController<C> {
+    /**
+     * The compiled render context used for hydrating this controller.
+     */
+    readonly context: ICompiledRenderContext;
+    readonly isStrictBinding: boolean;
+    /**
+     * The ShadowRoot, if this custom element uses ShadowDOM.
+     */
+    readonly shadowRoot: ShadowRoot | null;
+    /**
+     * The renderLocation, if this is a `containerless` custom element.
+     */
+    readonly location: IRenderLocation | null;
+    /**
+     * The physical DOM nodes that will be appended during the `mount()` operation.
+     */
+    readonly nodes: INodeSequence;
+}
+/**
+ * A fully hydrated custom element controller.
+ */
+export interface ICustomElementController<C extends ICustomElementViewModel = ICustomElementViewModel> extends ICompiledCustomElementController<C> {
+    parent: IHydratedParentController | null;
+    /**
+     * @inheritdoc
+     */
+    readonly viewModel: C;
+    /**
+     * @inheritdoc
+     */
+    readonly bindingContext: C & IIndexable;
+    activate(initiator: IHydratedController, parent: IHydratedParentController | null, flags: LifecycleFlags, scope?: Scope, hostScope?: Scope | null): void | Promise<void>;
+    deactivate(initiator: IHydratedController, parent: IHydratedParentController | null, flags: LifecycleFlags): void | Promise<void>;
+}
+export declare const IController: import("@aurelia/kernel").InterfaceSymbol<IController<IViewModel>>;
+export interface IActivationHooks<TParent> {
+    binding?(initiator: IHydratedController, parent: TParent, flags: LifecycleFlags): void | Promise<void>;
+    bound?(initiator: IHydratedController, parent: TParent, flags: LifecycleFlags): void | Promise<void>;
+    attaching?(initiator: IHydratedController, parent: TParent, flags: LifecycleFlags): void | Promise<void>;
+    attached?(initiator: IHydratedController, flags: LifecycleFlags): void | Promise<void>;
+    detaching?(initiator: IHydratedController, parent: TParent, flags: LifecycleFlags): void | Promise<void>;
+    unbinding?(initiator: IHydratedController, parent: TParent, flags: LifecycleFlags): void | Promise<void>;
+    dispose?(): void;
+    /**
+     * If this component controls the instantiation and lifecycles of one or more controllers,
+     * implement this hook to enable component tree traversal for plugins that use it (such as the router).
+     *
+     * Return `true` to stop traversal.
+     */
+    accept?(visitor: ControllerVisitor): void | true;
+}
+export interface ICompileHooks {
+    define?(controller: IDryCustomElementController<this>, parentContainer: IContainer, definition: CustomElementDefinition): PartialCustomElementDefinition | void;
+    hydrating?(controller: IContextualCustomElementController<this>): void;
+    hydrated?(controller: ICompiledCustomElementController<this>): void;
+    created?(controller: ICustomElementController<this>): void;
+}
+/**
+ * Defines optional lifecycle hooks that will be called only when they are implemented.
+ */
+export interface IViewModel {
+    constructor: Function;
+    readonly $controller?: IController<this>;
+}
+export interface ICustomElementViewModel extends IViewModel, IActivationHooks<IHydratedParentController | null>, ICompileHooks {
+    readonly $controller?: ICustomElementController<this>;
+}
+export interface ICustomAttributeViewModel extends IViewModel, IActivationHooks<IHydratedParentController> {
+    readonly $controller?: ICustomAttributeController<this>;
+    link?(flags: LifecycleFlags, parentContext: ICompiledRenderContext, controller: IHydratableController, childController: ICustomAttributeController, target: INode, instruction: Instruction): void;
+}
+export interface IHydratedCustomElementViewModel extends ICustomElementViewModel {
+    readonly $controller: ICustomElementController<this>;
+}
+export interface IHydratedCustomAttributeViewModel extends ICustomAttributeViewModel {
+    readonly $controller: ICustomAttributeController<this>;
+}
 export {};
 //# sourceMappingURL=controller.d.ts.map

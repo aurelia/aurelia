@@ -166,9 +166,9 @@ let SetObserver = class SetObserver {
         const size = this.collection.size;
         this.inBatch = false;
         this.indexMap = createIndexMap(size);
-        this.callCollectionSubscribers(indexMap, 8 /* updateTargetInstance */ | this.persistentFlags);
+        this.callCollectionSubscribers(indexMap, 8 /* updateTarget */ | this.persistentFlags);
         if (this.lengthObserver !== void 0) {
-            this.lengthObserver.setValue(size, 8 /* updateTargetInstance */);
+            this.lengthObserver.setValue(size, 8 /* updateTarget */);
         }
     }
 };

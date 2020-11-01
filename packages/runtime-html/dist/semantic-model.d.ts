@@ -1,8 +1,9 @@
-import { AnyBindingExpression, Interpolation } from '@aurelia/runtime';
-import { AttrSyntax } from './attribute-parser';
-import { BindingCommandInstance } from './binding-command';
+import { AnyBindingExpression, BindingMode, Interpolation } from '@aurelia/runtime';
+import { AttrSyntax } from './resources/attribute-pattern';
+import { BindingCommandInstance } from './resources/binding-command';
 import { IPlatform } from './platform';
-import { AttrInfo, BindableInfo, ElementInfo } from './resource-model';
+import { CustomElementDefinition } from './resources/custom-element';
+import { CustomAttributeDefinition } from './resources/custom-attribute';
 export declare const enum SymbolFlags {
     type = 1023,
     isTemplateController = 1,
@@ -158,5 +159,85 @@ export declare class TextSymbol {
     marker: HTMLElement;
     flags: SymbolFlags;
     constructor(p: IPlatform, physicalNode: Text, interpolation: Interpolation, marker?: HTMLElement);
+}
+/**
+ * A pre-processed piece of information about a defined bindable property on a custom
+ * element or attribute, optimized for consumption by the template compiler.
+ */
+export declare class BindableInfo {
+    /**
+     * The pre-processed *property* (not attribute) name of the bindable, which is
+     * (in order of priority):
+     *
+     * 1. The `property` from the description (if defined)
+     * 2. The name of the property of the bindable itself
+     */
+    propName: string;
+    /**
+     * The pre-processed (default) bindingMode of the bindable, which is (in order of priority):
+     *
+     * 1. The `mode` from the bindable (if defined and not bindingMode.default)
+     * 2. The `defaultBindingMode` (if it's an attribute, defined, and not bindingMode.default)
+     * 3. `bindingMode.toView`
+     */
+    mode: BindingMode;
+    constructor(
+    /**
+     * The pre-processed *property* (not attribute) name of the bindable, which is
+     * (in order of priority):
+     *
+     * 1. The `property` from the description (if defined)
+     * 2. The name of the property of the bindable itself
+     */
+    propName: string, 
+    /**
+     * The pre-processed (default) bindingMode of the bindable, which is (in order of priority):
+     *
+     * 1. The `mode` from the bindable (if defined and not bindingMode.default)
+     * 2. The `defaultBindingMode` (if it's an attribute, defined, and not bindingMode.default)
+     * 3. `bindingMode.toView`
+     */
+    mode: BindingMode);
+}
+/**
+ * Pre-processed information about a custom element resource, optimized
+ * for consumption by the template compiler.
+ */
+export declare class ElementInfo {
+    name: string;
+    containerless: boolean;
+    /**
+     * A lookup of the bindables of this element, indexed by the (pre-processed)
+     * attribute names as they would be found in parsed markup.
+     */
+    bindables: Record<string, BindableInfo | undefined>;
+    constructor(name: string, containerless: boolean);
+    static from(def: CustomElementDefinition | null): ElementInfo | null;
+}
+/**
+ * Pre-processed information about a custom attribute resource, optimized
+ * for consumption by the template compiler.
+ */
+export declare class AttrInfo {
+    name: string;
+    isTemplateController: boolean;
+    noMultiBindings: boolean;
+    /**
+     * A lookup of the bindables of this attribute, indexed by the (pre-processed)
+     * bindable names as they would be found in the attribute value.
+     *
+     * Only applicable to multi attribute bindings (semicolon-separated).
+     */
+    bindables: Record<string, BindableInfo | undefined>;
+    /**
+     * The single or first bindable of this attribute, or a default 'value'
+     * bindable if no bindables were defined on the attribute.
+     *
+     * Only applicable to single attribute bindings (where the attribute value
+     * contains no semicolons)
+     */
+    bindable: BindableInfo | null;
+    constructor(name: string, isTemplateController: boolean, noMultiBindings: boolean);
+    static from(def: CustomAttributeDefinition | null): AttrInfo | null;
 }
 //# sourceMappingURL=semantic-model.d.ts.map

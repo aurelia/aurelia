@@ -1,21 +1,28 @@
+/* eslint-disable max-lines-per-function */
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
-import { nextId, isObject, ILogger, resolveAll, } from '@aurelia/kernel';
+import { nextId, isObject, ILogger, resolveAll, Metadata, DI, } from '@aurelia/kernel';
 import { Scope, ILifecycle, ProxyObserver, BindableObserver, } from '@aurelia/runtime';
-import { HooksDefinition } from '../definitions';
-import { stringifyState, } from '../lifecycle';
+import { convertToRenderLocation } from '../dom';
 import { CustomElementDefinition, CustomElement } from '../resources/custom-element';
 import { CustomAttribute } from '../resources/custom-attribute';
-import { getCompositionContext } from './composition-context';
+import { getRenderContext } from './render-context';
 import { ChildrenObserver } from './children';
 import { IAppRoot } from '../app-root';
-import { IProjectorLocator } from '../projectors';
 import { IPlatform } from '../platform';
+import { IShadowDOMGlobalStyles, IShadowDOMStyles } from './styles';
 function callDispose(disposable) {
     disposable.dispose();
 }
+export var MountTarget;
+(function (MountTarget) {
+    MountTarget[MountTarget["none"] = 0] = "none";
+    MountTarget[MountTarget["host"] = 1] = "host";
+    MountTarget[MountTarget["shadowRoot"] = 2] = "shadowRoot";
+    MountTarget[MountTarget["location"] = 3] = "location";
+})(MountTarget || (MountTarget = {}));
 const controllerLookup = new WeakMap();
 export class Controller {
-    constructor(root, container, vmKind, flags, definition, hooks, 
+    constructor(root, container, vmKind, flags, definition, 
     /**
      * The viewFactory. Only present for synthetic views.
      */
@@ -29,7 +36,11 @@ export class Controller {
      */
     bindingContext, 
     /**
-     * The physical host dom node. Only present for custom elements.
+     * The physical host dom node.
+     *
+     * For containerless elements, this node will be removed from the DOM and replaced by a comment, which is assigned to the `location` property.
+     *
+     * For ShadowDOM elements, this will be the original declaring element, NOT the shadow root (the shadow root is stored on the `shadowRoot` property)
      */
     host) {
         this.root = root;
@@ -37,7 +48,6 @@ export class Controller {
         this.vmKind = vmKind;
         this.flags = flags;
         this.definition = definition;
-        this.hooks = hooks;
         this.viewFactory = viewFactory;
         this.viewModel = viewModel;
         this.bindingContext = bindingContext;
@@ -47,33 +57,40 @@ export class Controller {
         this.tail = null;
         this.next = null;
         this.parent = null;
-        this.bindings = void 0;
-        this.children = void 0;
+        this.bindings = null;
+        this.children = null;
         this.hasLockedScope = false;
         this.isStrictBinding = false;
-        this.scope = void 0;
+        this.scope = null;
         this.hostScope = null;
-        this.projector = void 0;
-        this.nodes = void 0;
-        this.context = void 0;
-        this.location = void 0;
-        this.mountStrategy = 1 /* insertBefore */;
+        this.mountTarget = 0 /* none */;
+        this.shadowRoot = null;
+        this.nodes = null;
+        this.context = null;
+        this.location = null;
         this.state = 0 /* none */;
-        this.promise = void 0;
-        this.resolve = void 0;
-        this.reject = void 0;
         this.logger = null;
         this.debug = false;
         this.fullyNamed = false;
-        this.canceling = false;
+        this.$initiator = null;
+        this.$flags = 0 /* none */;
         if (root === null && container.has(IAppRoot, true)) {
             this.root = container.get(IAppRoot);
         }
         this.platform = container.get(IPlatform);
         this.lifecycle = container.get(ILifecycle);
+        switch (vmKind) {
+            case 1 /* customAttribute */:
+            case 0 /* customElement */:
+                this.hooks = new HooksDefinition(viewModel);
+                break;
+            case 2 /* synthetic */:
+                this.hooks = HooksDefinition.none;
+                break;
+        }
     }
     get isActive() {
-        return (this.state & (1 /* activating */ | 14 /* activated */)) > 0 && (this.state & 16 /* deactivating */) === 0;
+        return (this.state & (1 /* activating */ | 2 /* activated */)) > 0 && (this.state & 4 /* deactivating */) === 0;
     }
     get name() {
         var _a, _b, _c, _d, _e;
@@ -113,8 +130,7 @@ export class Controller {
         /* container      */ container, 0 /* customElement */, 
         /* flags          */ flags, 
         /* definition     */ definition, 
-        /* hooks          */ definition.hooks, 
-        /* viewFactory    */ void 0, 
+        /* viewFactory    */ null, 
         /* viewModel      */ viewModel, 
         /* bindingContext */ getBindingContext(flags, viewModel), 
         /* host           */ host);
@@ -135,8 +151,7 @@ export class Controller {
         /* container      */ container, 1 /* customAttribute */, 
         /* flags          */ flags, 
         /* definition     */ definition, 
-        /* hooks          */ definition.hooks, 
-        /* viewFactory    */ void 0, 
+        /* viewFactory    */ null, 
         /* viewModel      */ viewModel, 
         /* bindingContext */ getBindingContext(flags, viewModel), 
         /* host           */ host);
@@ -150,12 +165,11 @@ export class Controller {
         /* root           */ root, 
         /* container      */ context, 2 /* synthetic */, 
         /* flags          */ flags, 
-        /* definition     */ void 0, 
-        /* hooks          */ HooksDefinition.none, 
+        /* definition     */ null, 
         /* viewFactory    */ viewFactory, 
-        /* viewModel      */ void 0, 
-        /* bindingContext */ void 0, 
-        /* host           */ void 0);
+        /* viewModel      */ null, 
+        /* bindingContext */ null, 
+        /* host           */ null);
         // deepscan-disable-next-line
         controller.parent = (_a = parentController) !== null && _a !== void 0 ? _a : null;
         controller.hydrateSynthetic(context);
@@ -188,7 +202,7 @@ export class Controller {
                 definition = CustomElementDefinition.getOrCreate(result);
             }
         }
-        const context = this.context = getCompositionContext(definition, parentContainer, targetedProjections === null || targetedProjections === void 0 ? void 0 : targetedProjections.projections);
+        const context = this.context = getRenderContext(definition, parentContainer, targetedProjections === null || targetedProjections === void 0 ? void 0 : targetedProjections.projections);
         // Support Recursive Components by adding self to own context
         definition.register(context);
         if (definition.injectable !== null) {
@@ -197,55 +211,66 @@ export class Controller {
         }
         // If this is the root controller, then the AppRoot will invoke things in the following order:
         // - Controller.hydrateCustomElement
-        // - runAppTasks('beforeCompose') // may return a promise
+        // - runAppTasks('hydrating') // may return a promise
         // - Controller.compile
-        // - runAppTasks('beforeCompileChildren') // may return a promise
+        // - runAppTasks('hydrated') // may return a promise
         // - Controller.compileChildren
         // This keeps hydration synchronous while still allowing the composition root compile hooks to do async work.
         if (((_a = this.root) === null || _a === void 0 ? void 0 : _a.controller) !== this) {
-            this.compile(targetedProjections);
-            this.compileChildren();
+            this.hydrate(targetedProjections);
+            this.hydrateChildren();
         }
     }
     /** @internal */
-    compile(targetedProjections) {
-        if (this.hooks.hasBeforeCompose) {
+    hydrate(targetedProjections) {
+        if (this.hooks.hasHydrating) {
             if (this.debug) {
-                this.logger.trace(`invoking hasBeforeCompose() hook`);
+                this.logger.trace(`invoking hasHydrating() hook`);
             }
-            this.viewModel.beforeCompose(this);
+            this.viewModel.hydrating(this);
         }
         const compiledContext = this.context.compile(targetedProjections);
-        const compiledDefinition = compiledContext.compiledDefinition;
-        compiledContext.registerProjections(compiledDefinition.projectionsMap, this.scope);
+        const { projectionsMap, shadowOptions, isStrictBinding, hasSlots, containerless } = compiledContext.compiledDefinition;
+        compiledContext.registerProjections(projectionsMap, this.scope);
         // once the projections are registered, we can cleanup the projection map to prevent memory leaks.
-        compiledDefinition.projectionsMap.clear();
-        this.isStrictBinding = compiledDefinition.isStrictBinding;
-        const projectorLocator = this.context.get(IProjectorLocator);
-        this.projector = projectorLocator.getElementProjector(this, this.host, compiledDefinition);
+        projectionsMap.clear();
+        this.isStrictBinding = isStrictBinding;
+        if (shadowOptions !== null || hasSlots) {
+            if (containerless) {
+                throw new Error('You cannot combine the containerless custom element option with Shadow DOM.');
+            }
+            Metadata.define(CustomElement.name, this, this.host);
+            this.setShadowRoot(this.shadowRoot = this.host.attachShadow(shadowOptions !== null && shadowOptions !== void 0 ? shadowOptions : defaultShadowOptions));
+        }
+        else if (containerless) {
+            this.setLocation(this.location = convertToRenderLocation(this.host));
+        }
+        else {
+            this.setHost(this.host);
+        }
         this.viewModel.$controller = this;
         this.nodes = compiledContext.createNodes();
-        if (this.hooks.hasBeforeComposeChildren) {
+        if (this.hooks.hasHydrated) {
             if (this.debug) {
-                this.logger.trace(`invoking hasBeforeComposeChildren() hook`);
+                this.logger.trace(`invoking hasHydrated() hook`);
             }
-            this.viewModel.beforeComposeChildren(this);
+            this.viewModel.hydrated(this);
         }
     }
     /** @internal */
-    compileChildren() {
+    hydrateChildren() {
         const targets = this.nodes.findTargets();
-        this.context.compose(
+        this.context.render(
         /* flags      */ this.flags, 
         /* controller */ this, 
         /* targets    */ targets, 
         /* definition */ this.context.compiledDefinition, 
         /* host       */ this.host);
-        if (this.hooks.hasAfterCompose) {
+        if (this.hooks.hasCreated) {
             if (this.debug) {
-                this.logger.trace(`invoking afterCompose() hook`);
+                this.logger.trace(`invoking created() hook`);
             }
-            this.viewModel.afterCompose(this);
+            this.viewModel.created(this);
         }
     }
     hydrateCustomAttribute() {
@@ -262,45 +287,17 @@ export class Controller {
         this.isStrictBinding = compiledDefinition.isStrictBinding;
         const nodes = this.nodes = compiledContext.createNodes();
         const targets = nodes.findTargets();
-        compiledContext.compose(
+        compiledContext.render(
         /* flags      */ this.flags, 
         /* controller */ this, 
         /* targets    */ targets, 
         /* definition */ compiledDefinition, 
         /* host       */ void 0);
     }
-    cancel(initiator, parent, flags) {
-        var _a, _b, _c, _d;
-        if (this.canceling) {
-            return;
-        }
-        this.canceling = true;
-        if ((this.state & 1 /* activating */) === 1 /* activating */) {
-            this.state = (this.state ^ 1 /* activating */) | 16 /* deactivating */;
-            (_b = (_a = this.bindingContext) === null || _a === void 0 ? void 0 : _a.onCancel) === null || _b === void 0 ? void 0 : _b.call(_a, initiator, parent, flags);
-            if ((this.state & 4 /* activateChildrenCalled */) === 4 /* activateChildrenCalled */ &&
-                this.children !== void 0) {
-                for (const child of this.children) {
-                    child.cancel(initiator, parent, flags);
-                }
-            }
-        }
-        else if ((this.state & 16 /* deactivating */) === 16 /* deactivating */) {
-            this.state = (this.state ^ 16 /* deactivating */) | 1 /* activating */;
-            (_d = (_c = this.bindingContext) === null || _c === void 0 ? void 0 : _c.onCancel) === null || _d === void 0 ? void 0 : _d.call(_c, initiator, parent, flags);
-            if ((this.state & 64 /* deactivateChildrenCalled */) === 64 /* deactivateChildrenCalled */ &&
-                this.children !== void 0) {
-                for (const child of this.children) {
-                    child.cancel(initiator, parent, flags);
-                }
-            }
-        }
-    }
     activate(initiator, parent, flags, scope, hostScope) {
-        this.canceling = false;
         switch (this.state) {
             case 0 /* none */:
-            case 224 /* deactivated */:
+            case 8 /* deactivated */:
                 if (!(parent === null || parent.isActive)) {
                     // If this is not the root, and the parent is either:
                     // 1. Not activated, or activating children OR
@@ -312,29 +309,13 @@ export class Controller {
                 // 'deactivated' and 'none' are treated the same because, from an activation perspective, they mean the same thing.
                 this.state = 1 /* activating */;
                 break;
-            case 14 /* activated */:
+            case 2 /* activated */:
                 // If we're already activated, no need to do anything.
                 return;
-            case 512 /* disposed */:
+            case 32 /* disposed */:
                 throw new Error(`${this.name} trying to activate a controller that is disposed.`);
             default:
-                if ((this.state & 1 /* activating */) === 1 /* activating */) {
-                    // We're already activating, so no need to do anything.
-                    return this.promise;
-                }
-                if ((this.state & 16 /* deactivating */) === 16 /* deactivating */) {
-                    // We're in an incomplete deactivation, so we can still abort some of it.
-                    // Simply add the 'activating' bit (and remove 'deactivating' so we know what was the last request) and return.
-                    this.state = (this.state ^ 16 /* deactivating */) | 1 /* activating */;
-                    if ((this.state & 64 /* deactivateChildrenCalled */) === 64 /* deactivateChildrenCalled */ &&
-                        this.children !== void 0) {
-                        return resolveAll(this.onResolve(this.$activateChildren(initiator, parent, flags)), this.promise);
-                    }
-                    return this.promise;
-                }
-                else {
-                    throw new Error(`${this.name} unexpected state: ${stringifyState(this.state)}.`);
-                }
+                throw new Error(`${this.name} unexpected state: ${stringifyState(this.state)}.`);
         }
         this.parent = parent;
         if (this.debug && !this.fullyNamed) {
@@ -347,10 +328,10 @@ export class Controller {
         switch (this.vmKind) {
             case 0 /* customElement */:
                 // Custom element scope is created and assigned during hydration
-                this.scope.parentScope = scope === void 0 ? null : scope;
+                this.scope.parentScope = scope !== null && scope !== void 0 ? scope : null;
                 break;
             case 1 /* customAttribute */:
-                this.scope = scope;
+                this.scope = scope !== null && scope !== void 0 ? scope : null;
                 break;
             case 2 /* synthetic */:
                 if (scope === void 0 || scope === null) {
@@ -364,294 +345,139 @@ export class Controller {
         if (this.isStrictBinding) {
             flags |= 4 /* isStrictBindingStrategy */;
         }
-        return this.beforeBind(initiator, parent, flags);
-    }
-    beforeBind(initiator, parent, flags) {
-        var _a, _b;
-        if (this.debug) {
-            this.logger.trace(`beforeBind()`);
+        this.$initiator = initiator;
+        this.$flags = flags;
+        if (this.hooks.hasBinding) {
+            if (this.debug) {
+                this.logger.trace(`binding()`);
+            }
+            const ret = this.bindingContext.binding(this.$initiator, this.parent, this.$flags);
+            if (ret instanceof Promise) {
+                return ret.then(this.bind.bind(this));
+            }
         }
-        return this.onResolve((_b = (_a = this.bindingContext) === null || _a === void 0 ? void 0 : _a.beforeBind) === null || _b === void 0 ? void 0 : _b.call(_a, initiator, parent, flags), () => {
-            return this.bind(initiator, parent, flags);
-        });
+        return this.bind();
     }
-    bind(initiator, parent, flags) {
+    bind() {
         if (this.debug) {
             this.logger.trace(`bind()`);
         }
-        this.state |= 2 /* beforeBindCalled */;
-        if ((this.state & 16 /* deactivating */) === 16 /* deactivating */) {
-            return this.afterUnbind(initiator, parent, flags);
-        }
-        if (this.bindings !== void 0) {
-            const { scope, hostScope, bindings } = this;
-            for (let i = 0, ii = bindings.length; i < ii; ++i) {
-                bindings[i].$bind(flags, scope, hostScope);
+        if (this.bindings !== null) {
+            for (let i = 0; i < this.bindings.length; ++i) {
+                this.bindings[i].$bind(this.$flags, this.scope, this.hostScope);
             }
         }
-        return this.afterBind(initiator, parent, flags);
-    }
-    afterBind(initiator, parent, flags) {
-        var _a, _b;
-        if (this.debug) {
-            this.logger.trace(`afterBind()`);
+        if (this.hooks.hasBound) {
+            if (this.debug) {
+                this.logger.trace(`bound()`);
+            }
+            const ret = this.bindingContext.bound(this.$initiator, this.parent, this.$flags);
+            if (ret instanceof Promise) {
+                return ret.then(this.attach.bind(this));
+            }
         }
-        return this.onResolve((_b = (_a = this.bindingContext) === null || _a === void 0 ? void 0 : _a.afterBind) === null || _b === void 0 ? void 0 : _b.call(_a, initiator, parent, flags), () => {
-            return this.attach(initiator, parent, flags);
-        });
+        return this.attach();
     }
-    attach(initiator, parent, flags) {
+    attach() {
+        var _a;
         if (this.debug) {
             this.logger.trace(`attach()`);
         }
-        if ((this.state & 16 /* deactivating */) === 16 /* deactivating */) {
-            return this.beforeUnbind(initiator, parent, flags);
-        }
-        switch (this.vmKind) {
-            case 0 /* customElement */:
-                this.projector.project(this.nodes);
+        switch (this.mountTarget) {
+            case 1 /* host */:
+                this.nodes.appendTo(this.host, (_a = this.definition) === null || _a === void 0 ? void 0 : _a.enhance);
                 break;
-            case 2 /* synthetic */:
-                switch (this.mountStrategy) {
-                    case 2 /* append */:
-                        this.nodes.appendTo(this.location);
-                        break;
-                    case 1 /* insertBefore */:
-                        this.nodes.insertBefore(this.location);
-                        break;
-                }
+            case 2 /* shadowRoot */: {
+                const styles = this.context.has(IShadowDOMStyles, false)
+                    ? this.context.get(IShadowDOMStyles)
+                    : this.context.get(IShadowDOMGlobalStyles);
+                styles.applyTo(this.shadowRoot);
+                this.nodes.appendTo(this.shadowRoot);
+                break;
+            }
+            case 3 /* location */:
+                this.nodes.insertBefore(this.location);
                 break;
         }
-        return this.afterAttach(initiator, parent, flags);
-    }
-    afterAttach(initiator, parent, flags) {
-        var _a, _b;
-        if (this.debug) {
-            this.logger.trace(`afterAttach()`);
-        }
-        return this.onResolve((_b = (_a = this.bindingContext) === null || _a === void 0 ? void 0 : _a.afterAttach) === null || _b === void 0 ? void 0 : _b.call(_a, initiator, parent, flags), () => {
-            return this.activateChildren(initiator, parent, flags);
-        });
-    }
-    activateChildren(initiator, parent, flags) {
-        if (this.debug) {
-            this.logger.trace(`activateChildren()`);
-        }
-        this.state |= 4 /* activateChildrenCalled */;
-        return this.onResolve(this.$activateChildren(initiator, parent, flags), () => {
-            return this.endActivate(initiator, parent, flags);
-        });
-    }
-    $activateChildren(initiator, parent, flags) {
-        if (this.children !== void 0) {
-            const { children, scope, hostScope } = this;
-            return resolveAll(...children.map(child => {
-                return child.activate(initiator, this, flags, scope, hostScope);
-            }));
-        }
-    }
-    endActivate(initiator, parent, flags) {
-        if (this.debug) {
-            this.logger.trace(`afterAttachChildren()`);
-        }
-        this.state ^= 4 /* activateChildrenCalled */;
-        if ((this.state & 16 /* deactivating */) === 16 /* deactivating */) {
-            clearLinks(initiator);
-            return this.beforeDetach(initiator, parent, flags);
-        }
-        else if ((this.state & 32 /* beforeDetachCalled */) === 32 /* beforeDetachCalled */) {
-            this.state ^= 32 /* beforeDetachCalled */;
-            this.resolvePromise();
-            return;
-        }
+        let ret = void 0;
         let promises = void 0;
-        let ret;
-        if (initiator.head === null) {
-            initiator.head = this;
+        if (this.hooks.hasAttaching) {
+            if (this.debug) {
+                this.logger.trace(`attaching()`);
+            }
+            ret = this.bindingContext.attaching(this.$initiator, this.parent, this.$flags);
+            if (ret instanceof Promise) {
+                promises = [ret];
+            }
         }
-        else {
-            initiator.tail.next = this;
-        }
-        initiator.tail = this;
-        if (initiator === this) {
-            if (initiator.head !== null) {
-                let cur = initiator.head;
-                initiator.head = initiator.tail = null;
-                let next;
-                do {
-                    ret = cur.afterAttachChildren(initiator, parent, flags);
-                    if (ret instanceof Promise) {
-                        (promises !== null && promises !== void 0 ? promises : (promises = [])).push(ret);
-                    }
-                    next = cur.next;
-                    cur.next = null;
-                    cur = next;
-                } while (cur !== null);
-                if (promises !== void 0) {
-                    const promise = promises.length === 1
-                        ? promises[0]
-                        : Promise.all(promises);
-                    return promise.then(() => {
-                        this.resolvePromise();
-                    });
+        if (this.children !== null) {
+            for (let i = 0; i < this.children.length; ++i) {
+                ret = this.children[i].activate(this.$initiator, this, this.$flags, this.scope, this.hostScope);
+                if (ret instanceof Promise) {
+                    (promises !== null && promises !== void 0 ? promises : (promises = [])).push(ret);
                 }
             }
-            this.resolvePromise();
         }
+        ret = promises === void 0 ? void 0 : resolveAll(...promises);
+        if (ret instanceof Promise) {
+            return ret.then(this.attached.bind(this));
+        }
+        return this.attached();
     }
-    afterAttachChildren(initiator, parent, flags) {
-        var _a, _b;
-        return this.onResolve((_b = (_a = this.bindingContext) === null || _a === void 0 ? void 0 : _a.afterAttachChildren) === null || _b === void 0 ? void 0 : _b.call(_a, initiator, flags), () => {
-            if ((this.state & 16 /* deactivating */) === 16 /* deactivating */) {
-                this.state = 14 /* activated */;
-                // If the cancellation of activation was requested once the children were already activating,
-                // then there were no more sensible cancellation points and we had to wait out the remainder of the operation.
-                // Now, after activation finally finished, we can proceed to deactivate.
-                return this.deactivate(this, parent, flags);
+    attached() {
+        this.state = 2 /* activated */;
+        if (this.hooks.hasAttached) {
+            if (this.debug) {
+                this.logger.trace(`attached()`);
             }
-            this.state = 14 /* activated */;
-            if (initiator !== this) {
-                // For the initiator, the promise is resolved at the end of endAactivate because that promise resolution
-                // has to come after all descendant postEndActivate calls resolved. Otherwise, the initiator might resolve
-                // while some of its descendants are still busy.
-                this.resolvePromise();
-            }
-        });
+            return this.bindingContext.attached(this.$initiator, this.$flags);
+        }
     }
     deactivate(initiator, parent, flags) {
-        this.canceling = false;
-        switch ((this.state & ~256 /* released */)) {
-            case 14 /* activated */:
+        switch ((this.state & ~16 /* released */)) {
+            case 2 /* activated */:
                 // We're fully activated, so proceed with normal deactivation.
-                this.state = 16 /* deactivating */;
+                this.state = 4 /* deactivating */;
                 break;
             case 0 /* none */:
-            case 224 /* deactivated */:
-            case 512 /* disposed */:
-            case 224 /* deactivated */ | 512 /* disposed */:
+            case 8 /* deactivated */:
+            case 32 /* disposed */:
+            case 8 /* deactivated */ | 32 /* disposed */:
                 // If we're already deactivated (or even disposed), or never activated in the first place, no need to do anything.
                 return;
             default:
-                if ((this.state & 16 /* deactivating */) === 16 /* deactivating */) {
-                    // We're already deactivating, so no need to do anything.
-                    return this.promise;
-                }
-                if ((this.state & 1 /* activating */) === 1 /* activating */) {
-                    // We're in an incomplete activation, so we can still abort some of it.
-                    // Simply add the 'deactivating' bit (and remove 'activating' so we know what was the last request) and return.
-                    this.state = (this.state ^ 1 /* activating */) | 16 /* deactivating */;
-                    if ((this.state & 4 /* activateChildrenCalled */) === 4 /* activateChildrenCalled */ &&
-                        this.children !== void 0) {
-                        return resolveAll(this.onResolve(this.$deactivateChildren(initiator, parent, flags)), this.promise);
-                    }
-                    return this.promise;
-                }
-                else {
-                    throw new Error(`${this.name} unexpected state: ${stringifyState(this.state)}.`);
-                }
+                throw new Error(`${this.name} unexpected state: ${stringifyState(this.state)}.`);
         }
         if (this.debug) {
             this.logger.trace(`deactivate()`);
         }
-        return this.beforeDetach(initiator, parent, flags);
-    }
-    beforeDetach(initiator, parent, flags) {
-        var _a, _b;
-        if (this.debug) {
-            this.logger.trace(`beforeDetach()`);
-        }
-        return this.onResolve((_b = (_a = this.bindingContext) === null || _a === void 0 ? void 0 : _a.beforeDetach) === null || _b === void 0 ? void 0 : _b.call(_a, initiator, parent, flags), () => {
-            return this.detach(initiator, parent, flags);
-        });
-    }
-    detach(initiator, parent, flags) {
-        if (this.debug) {
-            this.logger.trace(`detach()`);
-        }
-        this.state |= 32 /* beforeDetachCalled */;
-        if ((this.state & 1 /* activating */) === 1 /* activating */) {
-            return this.afterAttach(initiator, parent, flags);
-        }
-        switch (this.vmKind) {
-            case 0 /* customElement */:
-                this.projector.take(this.nodes);
-                break;
-            case 2 /* synthetic */:
-                this.nodes.remove();
-                this.nodes.unlink();
-                break;
-        }
-        return this.beforeUnbind(initiator, parent, flags);
-    }
-    beforeUnbind(initiator, parent, flags) {
-        var _a, _b;
-        if (this.debug) {
-            this.logger.trace(`beforeUnbind()`);
-        }
-        return this.onResolve((_b = (_a = this.bindingContext) === null || _a === void 0 ? void 0 : _a.beforeUnbind) === null || _b === void 0 ? void 0 : _b.call(_a, initiator, parent, flags), () => {
-            return this.unbind(initiator, parent, flags);
-        });
-    }
-    unbind(initiator, parent, flags) {
-        if (this.debug) {
-            this.logger.trace(`unbind()`);
-        }
-        if ((this.state & 1 /* activating */) === 1 /* activating */) {
-            return this.afterBind(initiator, parent, flags);
-        }
-        flags |= 64 /* fromUnbind */;
-        if (this.bindings !== void 0) {
-            const { bindings } = this;
-            for (let i = 0, ii = bindings.length; i < ii; ++i) {
-                bindings[i].$unbind(flags);
+        this.$initiator = initiator;
+        this.$flags = flags;
+        let promises = void 0;
+        let ret = void 0;
+        if (this.children !== null) {
+            for (let i = 0; i < this.children.length; ++i) {
+                ret = this.children[i].deactivate(initiator, this, flags);
+                if (ret instanceof Promise) {
+                    (promises !== null && promises !== void 0 ? promises : (promises = [])).push(ret);
+                }
             }
         }
-        return this.afterUnbind(initiator, parent, flags);
-    }
-    afterUnbind(initiator, parent, flags) {
-        var _a, _b;
-        if (this.debug) {
-            this.logger.trace(`afterUnbind()`);
+        if (this.hooks.hasDetaching) {
+            if (this.debug) {
+                this.logger.trace(`detaching()`);
+            }
+            ret = this.bindingContext.detaching(this.$initiator, this.parent, this.$flags);
+            if (ret instanceof Promise) {
+                (promises !== null && promises !== void 0 ? promises : (promises = [])).push(ret);
+            }
         }
-        return this.onResolve((_b = (_a = this.bindingContext) === null || _a === void 0 ? void 0 : _a.afterUnbind) === null || _b === void 0 ? void 0 : _b.call(_a, initiator, parent, flags), () => {
-            return this.deactivateChildren(initiator, parent, flags);
-        });
-    }
-    deactivateChildren(initiator, parent, flags) {
-        if (this.debug) {
-            this.logger.trace(`deactivateChildren()`);
-        }
-        this.state |= 64 /* deactivateChildrenCalled */;
-        return this.onResolve(this.$deactivateChildren(initiator, parent, flags), () => {
-            return this.endDeactivate(initiator, parent, flags);
-        });
-    }
-    $deactivateChildren(initiator, parent, flags) {
-        if (this.children !== void 0) {
-            const { children } = this;
-            return resolveAll(...children.map(child => {
-                return child.deactivate(initiator, this, flags);
-            }));
-        }
-    }
-    endDeactivate(initiator, parent, flags) {
-        if (this.debug) {
-            this.logger.trace(`afterUnbindChildren()`);
-        }
-        this.state ^= 64 /* deactivateChildrenCalled */;
-        if ((this.state & 1 /* activating */) === 1 /* activating */) {
-            // In a short-circuit it's possible that descendants have already started building the links for afterUnbindChildren hooks.
-            // Those hooks are never invoked (because only the initiator can do that), but we still need to clear the list so as to avoid corrupting the next lifecycle.
-            clearLinks(initiator);
-            return this.beforeBind(initiator, parent, flags);
-        }
-        else if ((this.state & 2 /* beforeBindCalled */) === 2 /* beforeBindCalled */) {
-            this.state ^= 2 /* beforeBindCalled */;
-            this.resolvePromise();
-            return;
-        }
-        let promises = void 0;
-        let ret;
+        // Note: if a 3rd party plugin happens to do any async stuff in a template controller before calling deactivate on its view,
+        // then the linking will become out of order.
+        // For framework components, this shouldn't cause issues.
+        // We can only prevent that by linking up after awaiting the detaching promise, which would add an extra tick + a fair bit of
+        // overhead on this hot path, so it's (for now) a deliberate choice to not account for such situation.
+        // Just leaving the note here so that we know to look here if a weird detaching-related timing issue is ever reported.
         if (initiator.head === null) {
             initiator.head = this;
         }
@@ -659,95 +485,105 @@ export class Controller {
             initiator.tail.next = this;
         }
         initiator.tail = this;
-        if (initiator === this) {
-            if (initiator.head !== null) {
-                let cur = initiator.head;
-                initiator.head = initiator.tail = null;
-                let next;
-                do {
-                    ret = cur.afterUnbindChildren(initiator, parent, flags);
-                    if (ret instanceof Promise) {
-                        (promises !== null && promises !== void 0 ? promises : (promises = [])).push(ret);
-                    }
-                    next = cur.next;
-                    cur.next = null;
-                    cur = next;
-                } while (cur !== null);
-                if (promises !== void 0) {
-                    const promise = promises.length === 1
-                        ? promises[0]
-                        : Promise.all(promises);
-                    return promise.then(() => {
-                        this.resolvePromise();
-                    });
+        ret = promises === void 0 ? void 0 : resolveAll(...promises);
+        if (initiator !== this) {
+            // Only detaching is called + the linked list is built when any controller that is not the initiator, is deactivated.
+            // The rest is handled by the initiator.
+            // This means that descendant controllers have to make sure to await the initiator's promise before doing any subsequent
+            // controller api calls, or race conditions might occur.
+            return ret;
+        }
+        if (ret instanceof Promise) {
+            return ret.then(this.detach.bind(this));
+        }
+        return this.detach();
+    }
+    detach() {
+        if (this.debug) {
+            this.logger.trace(`detach()`);
+        }
+        switch (this.vmKind) {
+            case 0 /* customElement */:
+            case 2 /* synthetic */:
+                this.nodes.remove();
+                this.nodes.unlink();
+        }
+        let promises = void 0;
+        let ret = void 0;
+        let cur = this.$initiator.head;
+        let next = null;
+        while (cur !== null) {
+            if (cur !== this) {
+                if (cur.debug) {
+                    cur.logger.trace(`detach()`);
+                }
+                switch (cur.vmKind) {
+                    case 0 /* customElement */:
+                    case 2 /* synthetic */:
+                        cur.nodes.remove();
+                        cur.nodes.unlink();
                 }
             }
-            this.resolvePromise();
+            ret = cur.unbinding();
+            if (ret instanceof Promise) {
+                (promises !== null && promises !== void 0 ? promises : (promises = [])).push(ret);
+            }
+            next = cur.next;
+            cur.next = null;
+            cur = next;
+        }
+        this.head = this.tail = null;
+        if (promises !== void 0) {
+            return resolveAll(...promises);
         }
     }
-    afterUnbindChildren(initiator, parent, flags) {
-        var _a, _b;
-        return this.onResolve((_b = (_a = this.bindingContext) === null || _a === void 0 ? void 0 : _a.afterUnbindChildren) === null || _b === void 0 ? void 0 : _b.call(_a, initiator, flags), () => {
-            this.parent = null;
-            switch (this.vmKind) {
-                case 1 /* customAttribute */:
-                    this.scope = void 0;
-                    break;
-                case 2 /* synthetic */:
-                    if (!this.hasLockedScope) {
-                        this.scope = void 0;
-                    }
-                    if ((this.state & 256 /* released */) === 256 /* released */ &&
-                        !this.viewFactory.tryReturnToCache(this)) {
-                        this.dispose();
-                    }
-                    break;
-                case 0 /* customElement */:
-                    this.scope.parentScope = null;
-                    break;
+    unbinding() {
+        if (this.hooks.hasUnbinding) {
+            if (this.debug) {
+                this.logger.trace(`unbinding()`);
             }
-            if ((this.state & 1 /* activating */) === 1 /* activating */) {
-                this.state = (this.state & 512 /* disposed */) | 224 /* deactivated */;
-                return this.activate(this, parent, flags);
+            const ret = this.bindingContext.unbinding(this.$initiator, this.parent, this.$flags);
+            if (ret instanceof Promise) {
+                return ret.then(this.unbind.bind(this));
             }
-            if ((flags & 512 /* dispose */) === 512 /* dispose */) {
-                this.dispose();
-            }
-            this.state = (this.state & 512 /* disposed */) | 224 /* deactivated */;
-            if (initiator !== this) {
-                // For the initiator, the promise is resolved at the end of endDeactivate because that promise resolution
-                // has to come after all descendant postEndDeactivate calls resolved. Otherwise, the initiator might resolve
-                // while some of its descendants are still busy.
-                this.resolvePromise();
-            }
-        });
+        }
+        return this.unbind();
     }
-    onResolve(maybePromise, resolveCallback) {
-        if (maybePromise instanceof Promise) {
-            if (this.promise === void 0) {
-                this.promise = new Promise((resolve, reject) => {
-                    this.resolve = resolve;
-                    this.reject = reject;
-                });
+    unbind() {
+        if (this.debug) {
+            this.logger.trace(`unbind()`);
+        }
+        const flags = this.$flags | 64 /* fromUnbind */;
+        if (this.bindings !== null) {
+            for (let i = 0; i < this.bindings.length; ++i) {
+                this.bindings[i].$unbind(flags);
             }
-            maybePromise = maybePromise.catch(err => {
-                var _a;
-                (_a = this.logger) === null || _a === void 0 ? void 0 : _a.error(err);
-                const reject = this.reject;
-                this.promise = this.resolve = this.reject = void 0;
-                reject(err);
-                throw err;
-            });
-            return resolveCallback === void 0
-                ? maybePromise
-                : maybePromise.then(resolveCallback);
         }
-        if (resolveCallback !== void 0) {
-            return resolveCallback();
+        this.parent = null;
+        switch (this.vmKind) {
+            case 1 /* customAttribute */:
+                this.scope = null;
+                break;
+            case 2 /* synthetic */:
+                if (!this.hasLockedScope) {
+                    this.scope = null;
+                }
+                if ((this.state & 16 /* released */) === 16 /* released */ &&
+                    !this.viewFactory.tryReturnToCache(this)) {
+                    this.dispose();
+                }
+                break;
+            case 0 /* customElement */:
+                this.scope.parentScope = null;
+                break;
         }
+        if ((flags & 512 /* dispose */) === 512 /* dispose */) {
+            this.dispose();
+        }
+        this.state = (this.state & 32 /* disposed */) | 8 /* deactivated */;
     }
     addBinding(binding) {
-        if (this.bindings === void 0) {
+        if (this.bindings === null) {
             this.bindings = [binding];
         }
         else {
@@ -755,7 +591,7 @@ export class Controller {
         }
     }
     addController(controller) {
-        if (this.children === void 0) {
+        if (this.children === null) {
             this.children = [controller];
         }
         else {
@@ -780,40 +616,60 @@ export class Controller {
         this.scope = scope;
         this.hasLockedScope = true;
     }
-    setLocation(location, mountStrategy) {
+    setHost(host) {
+        if (this.vmKind === 0 /* customElement */) {
+            Metadata.define(CustomElement.name, this, host);
+        }
+        this.host = host;
+        this.mountTarget = 1 /* host */;
+        return this;
+    }
+    setShadowRoot(shadowRoot) {
+        if (this.vmKind === 0 /* customElement */) {
+            Metadata.define(CustomElement.name, this, shadowRoot);
+        }
+        this.shadowRoot = shadowRoot;
+        this.mountTarget = 2 /* shadowRoot */;
+        return this;
+    }
+    setLocation(location) {
+        if (this.vmKind === 0 /* customElement */) {
+            Metadata.define(CustomElement.name, this, location);
+        }
         this.location = location;
-        this.mountStrategy = mountStrategy;
+        this.mountTarget = 3 /* location */;
+        return this;
     }
     release() {
-        this.state |= 256 /* released */;
+        this.state |= 16 /* released */;
     }
     dispose() {
         if (this.debug) {
             this.logger.trace(`dispose()`);
         }
-        if ((this.state & 512 /* disposed */) === 512 /* disposed */) {
+        if ((this.state & 32 /* disposed */) === 32 /* disposed */) {
             return;
         }
-        this.state |= 512 /* disposed */;
+        this.state |= 32 /* disposed */;
         if (this.hooks.hasDispose) {
             this.bindingContext.dispose();
         }
-        if (this.children !== void 0) {
+        if (this.children !== null) {
             this.children.forEach(callDispose);
-            this.children = void 0;
+            this.children = null;
         }
-        this.scope = void 0;
-        this.projector = void 0;
-        this.nodes = void 0;
-        this.context = void 0;
-        this.location = void 0;
-        this.viewFactory = void 0;
-        if (this.viewModel !== void 0) {
+        this.scope = null;
+        this.nodes = null;
+        this.context = null;
+        this.location = null;
+        this.viewFactory = null;
+        if (this.viewModel !== null) {
             controllerLookup.delete(this.viewModel);
-            this.viewModel = void 0;
+            this.viewModel = null;
         }
-        this.bindingContext = void 0;
-        this.host = void 0;
+        this.bindingContext = null;
+        this.host = null;
+        this.shadowRoot = null;
         this.root = null;
     }
     accept(visitor) {
@@ -823,7 +679,7 @@ export class Controller {
         if (this.hooks.hasAccept && this.bindingContext.accept(visitor) === true) {
             return true;
         }
-        if (this.children !== void 0) {
+        if (this.children !== null) {
             const { children } = this;
             for (let i = 0, ii = children.length; i < ii; ++i) {
                 if (children[i].accept(visitor) === true) {
@@ -834,20 +690,13 @@ export class Controller {
     }
     getTargetAccessor(propertyName) {
         const { bindings } = this;
-        if (bindings !== void 0) {
+        if (bindings !== null) {
             const binding = bindings.find(b => b.targetProperty === propertyName);
             if (binding !== void 0) {
                 return binding.targetObserver;
             }
         }
         return void 0;
-    }
-    resolvePromise() {
-        const resolve = this.resolve;
-        if (resolve !== void 0) {
-            this.promise = this.resolve = this.reject = void 0;
-            resolve();
-        }
     }
 }
 function getBindingContext(flags, instance) {
@@ -908,20 +757,69 @@ function createChildrenObservers(controller, definition, flags, instance) {
         }
     }
 }
-function clearLinks(initiator) {
-    let cur = initiator.head;
-    initiator.head = initiator.tail = null;
-    let next;
-    while (cur !== null) {
-        next = cur.next;
-        cur.next = null;
-        cur = next;
-    }
-}
 export function isCustomElementController(value) {
     return value instanceof Controller && value.vmKind === 0 /* customElement */;
 }
 export function isCustomElementViewModel(value) {
     return isObject(value) && CustomElement.isType(value.constructor);
 }
+export class HooksDefinition {
+    constructor(target) {
+        this.hasDefine = 'define' in target;
+        this.hasHydrating = 'hydrating' in target;
+        this.hasHydrated = 'hydrated' in target;
+        this.hasCreated = 'created' in target;
+        this.hasBinding = 'binding' in target;
+        this.hasBound = 'bound' in target;
+        this.hasAttaching = 'attaching' in target;
+        this.hasAttached = 'attached' in target;
+        this.hasDetaching = 'detaching' in target;
+        this.hasUnbinding = 'unbinding' in target;
+        this.hasDispose = 'dispose' in target;
+        this.hasAccept = 'accept' in target;
+    }
+}
+HooksDefinition.none = new HooksDefinition({});
+const defaultShadowOptions = {
+    mode: 'open'
+};
+export var ViewModelKind;
+(function (ViewModelKind) {
+    ViewModelKind[ViewModelKind["customElement"] = 0] = "customElement";
+    ViewModelKind[ViewModelKind["customAttribute"] = 1] = "customAttribute";
+    ViewModelKind[ViewModelKind["synthetic"] = 2] = "synthetic";
+})(ViewModelKind || (ViewModelKind = {}));
+export var State;
+(function (State) {
+    State[State["none"] = 0] = "none";
+    State[State["activating"] = 1] = "activating";
+    State[State["activated"] = 2] = "activated";
+    State[State["deactivating"] = 4] = "deactivating";
+    State[State["deactivated"] = 8] = "deactivated";
+    State[State["released"] = 16] = "released";
+    State[State["disposed"] = 32] = "disposed";
+})(State || (State = {}));
+export function stringifyState(state) {
+    const names = [];
+    if ((state & 1 /* activating */) === 1 /* activating */) {
+        names.push('activating');
+    }
+    if ((state & 2 /* activated */) === 2 /* activated */) {
+        names.push('activated');
+    }
+    if ((state & 4 /* deactivating */) === 4 /* deactivating */) {
+        names.push('deactivating');
+    }
+    if ((state & 8 /* deactivated */) === 8 /* deactivated */) {
+        names.push('deactivated');
+    }
+    if ((state & 16 /* released */) === 16 /* released */) {
+        names.push('released');
+    }
+    if ((state & 32 /* disposed */) === 32 /* disposed */) {
+        names.push('disposed');
+    }
+    return names.length === 0 ? 'none' : names.join('|');
+}
+export const IController = DI.createInterface('IController').noDefault();
 //# sourceMappingURL=controller.js.map

@@ -18,13 +18,13 @@ let HrefCustomAttribute = class HrefCustomAttribute {
         this.router = router;
         this.element = element;
     }
-    beforeBind() {
+    binding() {
         if (this.router.options.useHref && !this.hasGoto()) {
             this.element.addEventListener('click', this.router.linkHandler.handler);
         }
         this.updateValue();
     }
-    beforeUnbind() {
+    unbinding() {
         this.element.removeEventListener('click', this.router.linkHandler.handler);
     }
     valueChanged() {
@@ -36,7 +36,7 @@ let HrefCustomAttribute = class HrefCustomAttribute {
     hasGoto() {
         const parent = this.$controller.parent;
         const siblings = parent.children;
-        return siblings !== void 0
+        return siblings !== null
             && siblings.some(c => c.vmKind === 1 /* customAttribute */ && c.viewModel instanceof GotoCustomAttribute);
     }
 };

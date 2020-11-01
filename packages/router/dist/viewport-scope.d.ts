@@ -53,8 +53,8 @@ export declare class ViewportScope implements IScopeOwner {
     finalizeContentChange(): void;
     abortContentChange(): Promise<void>;
     acceptSegment(segment: string): boolean;
-    beforeBind(): void;
-    beforeUnbind(): void;
+    binding(): void;
+    unbinding(): void;
     getAvailableSourceItem(): unknown | null;
     addSourceItem(): unknown;
     removeSourceItem(): void;

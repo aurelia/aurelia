@@ -6,7 +6,6 @@ export declare const ITargetObserverLocatorRegistration: IRegistry;
 /**
  * Default HTML-specific (but environment-agnostic) implementations for the following interfaces:
  * - `ITemplateCompiler`
- * - `IComposer`
  * - `ITargetAccessorLocator`
  * - `ITargetObserverLocator`
  */
@@ -77,26 +76,26 @@ export declare const BlurRegistration: IRegistry;
  * - Template controllers: `if`/`else`, `repeat`, `with`
  * - Value Converters: `sanitize`
  */
-export declare const DefaultResources: (IRegistry | typeof AuSlot)[];
-export declare const CallBindingComposerRegistration: IRegistry;
-export declare const CustomAttributeComposerRegistration: IRegistry;
-export declare const CustomElementComposerRegistration: IRegistry;
-export declare const InterpolationBindingComposerRegistration: IRegistry;
-export declare const IteratorBindingComposerRegistration: IRegistry;
-export declare const LetElementComposerRegistration: IRegistry;
-export declare const PropertyBindingComposerRegistration: IRegistry;
-export declare const RefBindingComposerRegistration: IRegistry;
-export declare const SetPropertyComposerRegistration: IRegistry;
-export declare const TemplateControllerComposerRegistration: IRegistry;
-export declare const ListenerBindingComposerRegistration: IRegistry;
-export declare const AttributeBindingComposerRegistration: IRegistry;
-export declare const SetAttributeComposerRegistration: IRegistry;
-export declare const SetClassAttributeComposerRegistration: IRegistry;
-export declare const SetStyleAttributeComposerRegistration: IRegistry;
-export declare const StylePropertyBindingComposerRegistration: IRegistry;
-export declare const TextBindingComposerRegistration: IRegistry;
+export declare const DefaultResources: (typeof AuSlot | IRegistry)[];
+export declare const CallBindingRendererRegistration: IRegistry;
+export declare const CustomAttributeRendererRegistration: IRegistry;
+export declare const CustomElementRendererRegistration: IRegistry;
+export declare const InterpolationBindingRendererRegistration: IRegistry;
+export declare const IteratorBindingRendererRegistration: IRegistry;
+export declare const LetElementRendererRegistration: IRegistry;
+export declare const PropertyBindingRendererRegistration: IRegistry;
+export declare const RefBindingRendererRegistration: IRegistry;
+export declare const SetPropertyRendererRegistration: IRegistry;
+export declare const TemplateControllerRendererRegistration: IRegistry;
+export declare const ListenerBindingRendererRegistration: IRegistry;
+export declare const AttributeBindingRendererRegistration: IRegistry;
+export declare const SetAttributeRendererRegistration: IRegistry;
+export declare const SetClassAttributeRendererRegistration: IRegistry;
+export declare const SetStyleAttributeRendererRegistration: IRegistry;
+export declare const StylePropertyBindingRendererRegistration: IRegistry;
+export declare const TextBindingRendererRegistration: IRegistry;
 /**
- * Default composers for:
+ * Default renderers for:
  * - PropertyBinding: `bind`, `one-time`, `to-view`, `from-view`, `two-way`
  * - IteratorBinding: `for`
  * - CallBinding: `call`
@@ -112,13 +111,13 @@ export declare const TextBindingComposerRegistration: IRegistry;
  * - StyleProperty: `style`, `css`
  * - TextBinding: `${}`
  */
-export declare const DefaultComposers: IRegistry[];
+export declare const DefaultRenderers: IRegistry[];
 /**
  * A DI configuration object containing html-specific (but environment-agnostic) registrations:
  * - `RuntimeConfiguration` from `@aurelia/runtime`
  * - `DefaultComponents`
  * - `DefaultResources`
- * - `DefaultComposers`
+ * - `DefaultRenderers`
  */
 export declare const StandardConfiguration: {
     /**

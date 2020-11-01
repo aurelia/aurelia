@@ -248,7 +248,7 @@ describe('i18n', function () {
     }
   });
 
-  it.only('sets the src attribute of img elements by default', function () {
+  it('sets the src attribute of img elements by default', function () {
     cy.get('#i18n-img').should('have.attr', 'src', en.imgPath);
   });
 

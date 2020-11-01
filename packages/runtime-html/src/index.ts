@@ -646,21 +646,15 @@ export {
 } from './semantic-model';
 
 export {
-  StyleConfiguration,
-  IShadowDOMConfiguration
-} from './styles/style-configuration';
-export {
   CSSModulesProcessorRegistry,
-  cssModules
-} from './styles/css-modules-registry';
-export {
+  cssModules,
   ShadowDOMRegistry,
   IShadowDOMStyleFactory,
-  shadowCSS
-} from './styles/shadow-dom-registry';
-export {
+  shadowCSS,
+  StyleConfiguration,
+  IShadowDOMConfiguration,
   AdoptedStyleSheetsStyles,
   StyleElementStyles,
   IShadowDOMStyles,
-  IShadowDOMGlobalStyles
-} from './styles/shadow-dom-styles';
+  IShadowDOMGlobalStyles,
+} from './templating/styles';

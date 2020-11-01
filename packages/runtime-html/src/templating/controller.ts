@@ -32,7 +32,7 @@ import { IRenderContext, getRenderContext, RenderContext, ICompiledRenderContext
 import { ChildrenObserver } from './children';
 import { IAppRoot } from '../app-root';
 import { IPlatform } from '../platform';
-import { IShadowDOMGlobalStyles, IShadowDOMStyles } from '../styles/shadow-dom-styles';
+import { IShadowDOMGlobalStyles, IShadowDOMStyles } from './styles';
 import type { RegisteredProjections } from '../resources/custom-elements/au-slot';
 import type { IViewFactory } from './view';
 import type { Instruction } from '../renderer';

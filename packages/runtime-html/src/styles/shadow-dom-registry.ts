@@ -77,11 +77,6 @@ class StyleElementStylesFactory {
     localStyles: string[],
     sharedStyles: IShadowDOMStyles | null,
   ): IShadowDOMStyles {
-    if (localStyles.some(x => typeof x !== 'string')) {
-      // TODO: use reporter
-      throw new Error('Shadow DOM CSS must be a string.');
-    }
-
     return new StyleElementStyles(
       this.p,
       localStyles,

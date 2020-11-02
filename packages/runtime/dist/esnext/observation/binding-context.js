@@ -1,4 +1,3 @@
-import { ProxyObserver } from './proxy-observer';
 const marker = Object.freeze({});
 export class BindingContext {
     constructor(keyOrObj, value) {
@@ -18,11 +17,7 @@ export class BindingContext {
         }
     }
     static create(flags, keyOrObj, value) {
-        const bc = new BindingContext(keyOrObj, value);
-        if (flags & 2 /* proxyStrategy */) {
-            return ProxyObserver.getOrCreate(bc).proxy;
-        }
-        return bc;
+        return new BindingContext(keyOrObj, value);
     }
     static get(scope, name, ancestor, flags, hostScope) {
         if (scope == null && hostScope == null) {

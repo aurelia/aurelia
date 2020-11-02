@@ -1,5 +1,5 @@
 import { Constructable, IContainer, ResourceDefinition, IResourceKind, ResourceType, PartialResourceDefinition, IServiceLocator } from '@aurelia/kernel';
-import { IBinding, ISubscribable, IProxySubscribable, LifecycleFlags } from './observation';
+import { IBinding, ISubscribable, LifecycleFlags } from './observation';
 import { IConnectableBinding } from './binding/connectable';
 import { IObserverLocator } from './observation/observer-locator';
 import { BindingBehaviorExpression, IBindingBehaviorExpression } from './binding/ast';
@@ -54,7 +54,7 @@ export interface IInterceptableBinding extends IBinding {
     callSource?(args: object): unknown;
     handleChange?(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void;
     observeProperty?(flags: LifecycleFlags, obj: object, propertyName: string): void;
-    addObserver?(observer: ISubscribable | IProxySubscribable): void;
+    addObserver?(observer: ISubscribable): void;
     unobserve?(all?: boolean): void;
 }
 export interface BindingInterceptor extends IConnectableBinding {

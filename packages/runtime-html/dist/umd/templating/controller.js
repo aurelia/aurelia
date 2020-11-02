@@ -40,13 +40,9 @@
          */
         viewFactory, 
         /**
-         * The backing viewModel. This is never a proxy. Only present for custom attributes and elements.
+         * The backing viewModel. Only present for custom attributes and elements.
          */
         viewModel, 
-        /**
-         * The binding context. This may be a proxy. If it is not, then it is the same instance as the viewModel. Only present for custom attributes and elements.
-         */
-        bindingContext, 
         /**
          * The physical host dom node.
          *
@@ -62,7 +58,6 @@
             this.definition = definition;
             this.viewFactory = viewFactory;
             this.viewModel = viewModel;
-            this.bindingContext = bindingContext;
             this.host = host;
             this.id = kernel_1.nextId('au$component');
             this.head = null;
@@ -136,7 +131,6 @@
                 return controllerLookup.get(viewModel);
             }
             definition = definition !== null && definition !== void 0 ? definition : custom_element_1.CustomElement.getDefinition(viewModel.constructor);
-            flags |= definition.strategy;
             const controller = new Controller(
             /* root           */ root, 
             /* container      */ container, 0 /* customElement */, 
@@ -144,7 +138,6 @@
             /* definition     */ definition, 
             /* viewFactory    */ null, 
             /* viewModel      */ viewModel, 
-            /* bindingContext */ getBindingContext(flags, viewModel), 
             /* host           */ host);
             controllerLookup.set(viewModel, controller);
             if (hydrate) {
@@ -157,7 +150,6 @@
                 return controllerLookup.get(viewModel);
             }
             const definition = custom_attribute_1.CustomAttribute.getDefinition(viewModel.constructor);
-            flags |= definition.strategy;
             const controller = new Controller(
             /* root           */ root, 
             /* container      */ container, 1 /* customAttribute */, 
@@ -165,7 +157,6 @@
             /* definition     */ definition, 
             /* viewFactory    */ null, 
             /* viewModel      */ viewModel, 
-            /* bindingContext */ getBindingContext(flags, viewModel), 
             /* host           */ host);
             controllerLookup.set(viewModel, controller);
             controller.hydrateCustomAttribute();
@@ -180,7 +171,6 @@
             /* definition     */ null, 
             /* viewFactory    */ viewFactory, 
             /* viewModel      */ null, 
-            /* bindingContext */ null, 
             /* host           */ null);
             // deepscan-disable-next-line
             controller.parent = (_a = parentController) !== null && _a !== void 0 ? _a : null;
@@ -196,11 +186,11 @@
                 this.logger = this.logger.scopeTo(this.name);
             }
             let definition = this.definition;
-            const flags = this.flags |= definition.strategy;
+            const flags = this.flags;
             const instance = this.viewModel;
             createObservers(this.lifecycle, definition, flags, instance);
             createChildrenObservers(this, definition, flags, instance);
-            this.scope = runtime_1.Scope.create(flags, this.bindingContext, null);
+            this.scope = runtime_1.Scope.create(flags, this.viewModel, null);
             const hooks = this.hooks;
             if (hooks.hasDefine) {
                 if (this.debug) {
@@ -287,9 +277,8 @@
         }
         hydrateCustomAttribute() {
             const definition = this.definition;
-            const flags = this.flags | definition.strategy;
             const instance = this.viewModel;
-            createObservers(this.lifecycle, definition, flags, instance);
+            createObservers(this.lifecycle, definition, this.flags, instance);
             instance.$controller = this;
         }
         hydrateSynthetic(context) {
@@ -363,7 +352,7 @@
                 if (this.debug) {
                     this.logger.trace(`binding()`);
                 }
-                const ret = this.bindingContext.binding(this.$initiator, this.parent, this.$flags);
+                const ret = this.viewModel.binding(this.$initiator, this.parent, this.$flags);
                 if (ret instanceof Promise) {
                     return ret.then(this.bind.bind(this));
                 }
@@ -383,7 +372,7 @@
                 if (this.debug) {
                     this.logger.trace(`bound()`);
                 }
-                const ret = this.bindingContext.bound(this.$initiator, this.parent, this.$flags);
+                const ret = this.viewModel.bound(this.$initiator, this.parent, this.$flags);
                 if (ret instanceof Promise) {
                     return ret.then(this.attach.bind(this));
                 }
@@ -417,7 +406,7 @@
                 if (this.debug) {
                     this.logger.trace(`attaching()`);
                 }
-                ret = this.bindingContext.attaching(this.$initiator, this.parent, this.$flags);
+                ret = this.viewModel.attaching(this.$initiator, this.parent, this.$flags);
                 if (ret instanceof Promise) {
                     promises = [ret];
                 }
@@ -442,7 +431,7 @@
                 if (this.debug) {
                     this.logger.trace(`attached()`);
                 }
-                return this.bindingContext.attached(this.$initiator, this.$flags);
+                return this.viewModel.attached(this.$initiator, this.$flags);
             }
         }
         deactivate(initiator, parent, flags) {
@@ -479,7 +468,7 @@
                 if (this.debug) {
                     this.logger.trace(`detaching()`);
                 }
-                ret = this.bindingContext.detaching(this.$initiator, this.parent, this.$flags);
+                ret = this.viewModel.detaching(this.$initiator, this.parent, this.$flags);
                 if (ret instanceof Promise) {
                     (promises !== null && promises !== void 0 ? promises : (promises = [])).push(ret);
                 }
@@ -554,7 +543,7 @@
                 if (this.debug) {
                     this.logger.trace(`unbinding()`);
                 }
-                const ret = this.bindingContext.unbinding(this.$initiator, this.parent, this.$flags);
+                const ret = this.viewModel.unbinding(this.$initiator, this.parent, this.$flags);
                 if (ret instanceof Promise) {
                     return ret.then(this.unbind.bind(this));
                 }
@@ -664,7 +653,7 @@
             }
             this.state |= 32 /* disposed */;
             if (this.hooks.hasDispose) {
-                this.bindingContext.dispose();
+                this.viewModel.dispose();
             }
             if (this.children !== null) {
                 this.children.forEach(callDispose);
@@ -679,7 +668,7 @@
                 controllerLookup.delete(this.viewModel);
                 this.viewModel = null;
             }
-            this.bindingContext = null;
+            this.viewModel = null;
             this.host = null;
             this.shadowRoot = null;
             this.root = null;
@@ -688,7 +677,7 @@
             if (visitor(this) === true) {
                 return true;
             }
-            if (this.hooks.hasAccept && this.bindingContext.accept(visitor) === true) {
+            if (this.hooks.hasAccept && this.viewModel.accept(visitor) === true) {
                 return true;
             }
             if (this.children !== null) {
@@ -712,12 +701,6 @@
         }
     }
     exports.Controller = Controller;
-    function getBindingContext(flags, instance) {
-        if (instance.noProxy === true || (flags & 2 /* proxyStrategy */) === 0) {
-            return instance;
-        }
-        return runtime_1.ProxyObserver.getOrCreate(instance).proxy;
-    }
     function getLookup(instance) {
         let lookup = instance.$observers;
         if (lookup === void 0) {
@@ -735,21 +718,12 @@
         if (length > 0) {
             let name;
             let bindable;
-            if ((flags & 2 /* proxyStrategy */) > 0) {
-                for (let i = 0; i < length; ++i) {
-                    name = observableNames[i];
+            const observers = getLookup(instance);
+            for (let i = 0; i < length; ++i) {
+                name = observableNames[i];
+                if (observers[name] === void 0) {
                     bindable = bindables[name];
-                    new runtime_1.BindableObserver(lifecycle, flags, runtime_1.ProxyObserver.getOrCreate(instance).proxy, name, bindable.callback, bindable.set);
-                }
-            }
-            else {
-                const observers = getLookup(instance);
-                for (let i = 0; i < length; ++i) {
-                    name = observableNames[i];
-                    if (observers[name] === void 0) {
-                        bindable = bindables[name];
-                        observers[name] = new runtime_1.BindableObserver(lifecycle, flags, instance, name, bindable.callback, bindable.set);
-                    }
+                    observers[name] = new runtime_1.BindableObserver(lifecycle, flags, instance, name, bindable.callback, bindable.set);
                 }
             }
         }

@@ -18,7 +18,6 @@ import { IDirtyChecker } from './dirty-checker';
 import { getMapObserver } from './map-observer';
 import { PrimitiveObserver } from './primitive-observer';
 import { propertyAccessor } from './property-accessor';
-import { ProxyObserver } from './proxy-observer';
 import { getSetObserver } from './set-observer';
 import { SetterObserver } from './setter-observer';
 export const IObserverLocator = DI.createInterface('IObserverLocator').withDefault(x => x.singleton(ObserverLocator));
@@ -54,9 +53,6 @@ let ObserverLocator = class ObserverLocator {
             }
             return this.targetAccessorLocator.getAccessor(flags, obj, key);
         }
-        if ((flags & 2 /* proxyStrategy */) > 0) {
-            return ProxyObserver.getOrCreate(obj, key);
-        }
         return propertyAccessor;
     }
     getArrayObserver(flags, observedArray) {
@@ -80,10 +76,6 @@ let ObserverLocator = class ObserverLocator {
                 return observer;
             }
             isNode = true;
-        }
-        else if ((flags & 2 /* proxyStrategy */) > 0) {
-            // TODO: fix typings (and ensure proper contracts ofc)
-            return ProxyObserver.getOrCreate(obj, key);
         }
         switch (key) {
             case 'length':
@@ -180,17 +172,14 @@ ObserverLocator = __decorate([
 ], ObserverLocator);
 export { ObserverLocator };
 export function getCollectionObserver(flags, lifecycle, collection) {
-    // If the collection is wrapped by a proxy then `$observer` will return the proxy observer instead of the collection observer, which is not what we want
-    // when we ask for getCollectionObserver
-    const rawCollection = collection instanceof Object ? ProxyObserver.getRawIfProxy(collection) : collection;
     if (collection instanceof Array) {
-        return getArrayObserver(flags, lifecycle, rawCollection);
+        return getArrayObserver(flags, lifecycle, collection);
     }
     else if (collection instanceof Map) {
-        return getMapObserver(flags, lifecycle, rawCollection);
+        return getMapObserver(flags, lifecycle, collection);
     }
     else if (collection instanceof Set) {
-        return getSetObserver(flags, lifecycle, rawCollection);
+        return getSetObserver(flags, lifecycle, collection);
     }
     return void 0;
 }

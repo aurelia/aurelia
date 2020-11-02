@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "../observation/binding-context", "../observation/proxy-observer", "../observation/signaler", "../binding-behavior", "../value-converter"], factory);
+        define(["require", "exports", "@aurelia/kernel", "../observation/binding-context", "../observation/signaler", "../binding-behavior", "../value-converter"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -14,7 +14,6 @@
     /* eslint-disable @typescript-eslint/restrict-template-expressions */
     const kernel_1 = require("@aurelia/kernel");
     const binding_context_1 = require("../observation/binding-context");
-    const proxy_observer_1 = require("../observation/proxy-observer");
     const signaler_1 = require("../observation/signaler");
     const binding_behavior_1 = require("../binding-behavior");
     const value_converter_1 = require("../value-converter");
@@ -1229,12 +1228,13 @@
                 default: throw new Error(`Cannot count ${toStringTag.call(result)}`);
             }
         }
+        // deepscan-disable-next-line
         iterate(f, result, func) {
             switch (toStringTag.call(result)) {
-                case '[object Array]': return $array(f, result, func);
-                case '[object Map]': return $map(f, result, func);
-                case '[object Set]': return $set(f, result, func);
-                case '[object Number]': return $number(f, result, func);
+                case '[object Array]': return $array(result, func);
+                case '[object Map]': return $map(result, func);
+                case '[object Set]': return $set(result, func);
+                case '[object Number]': return $number(result, func);
                 case '[object Null]': return;
                 case '[object Undefined]': return;
                 default: throw new Error(`Cannot iterate over ${toStringTag.call(result)}`);
@@ -1314,52 +1314,33 @@
         }
         throw new Error(`Expected '${name}' to be a function`);
     }
-    const proxyAndOriginalArray = 2 /* proxyStrategy */;
-    function $array(f, result, func) {
-        if ((f & proxyAndOriginalArray) === proxyAndOriginalArray) {
-            // If we're in proxy mode, and the array is the original "items" (and not an array we created here to iterate over e.g. a set)
-            // then replace all items (which are Objects) with proxies so their properties are observed in the source view model even if no
-            // observers are explicitly created
-            const rawArray = proxy_observer_1.ProxyObserver.getRawIfProxy(result);
-            const len = rawArray.length;
-            let item;
-            let i = 0;
-            for (; i < len; ++i) {
-                item = rawArray[i];
-                if (item instanceof Object) {
-                    item = rawArray[i] = proxy_observer_1.ProxyObserver.getOrCreate(item).proxy;
-                }
-                func(rawArray, i, item);
-            }
-        }
-        else {
-            for (let i = 0, ii = result.length; i < ii; ++i) {
-                func(result, i, result[i]);
-            }
+    function $array(result, func) {
+        for (let i = 0, ii = result.length; i < ii; ++i) {
+            func(result, i, result[i]);
         }
     }
-    function $map(f, result, func) {
+    function $map(result, func) {
         const arr = Array(result.size);
         let i = -1;
         for (const entry of result.entries()) {
             arr[++i] = entry;
         }
-        $array(f, arr, func);
+        $array(arr, func);
     }
-    function $set(f, result, func) {
+    function $set(result, func) {
         const arr = Array(result.size);
         let i = -1;
         for (const key of result.keys()) {
             arr[++i] = key;
         }
-        $array(f, arr, func);
+        $array(arr, func);
     }
-    function $number(f, result, func) {
+    function $number(result, func) {
         const arr = Array(result);
         for (let i = 0; i < result; ++i) {
             arr[i] = i;
         }
-        $array(f, arr, func);
+        $array(arr, func);
     }
 });
 //# sourceMappingURL=ast.js.map

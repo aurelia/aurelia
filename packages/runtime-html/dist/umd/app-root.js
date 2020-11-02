@@ -18,7 +18,6 @@
     exports.IAppRoot = kernel_1.DI.createInterface('IAppRoot').noDefault();
     class AppRoot {
         constructor(config, platform, container, rootProvider, enhance = false) {
-            var _a;
             this.config = config;
             this.platform = platform;
             this.container = container;
@@ -30,7 +29,6 @@
                 this.container = container.createChild();
             }
             this.container.register(kernel_1.Registration.instance(dom_1.INode, config.host));
-            this.strategy = (_a = config.strategy) !== null && _a !== void 0 ? _a : 1 /* getterSetter */;
             if (enhance) {
                 const component = config.component;
                 this.enhanceDefinition = custom_element_1.CustomElement.getDefinition(custom_element_1.CustomElement.isType(component)
@@ -41,7 +39,7 @@
                 const instance = custom_element_1.CustomElement.isType(config.component)
                     ? this.container.get(config.component)
                     : config.component;
-                const controller = (this.controller = controller_1.Controller.forCustomElement(this, container, instance, this.host, null, this.strategy, false, this.enhanceDefinition));
+                const controller = (this.controller = controller_1.Controller.forCustomElement(this, container, instance, this.host, null, 0 /* none */, false, this.enhanceDefinition));
                 controller.hydrateCustomElement(container, null);
                 return kernel_1.onResolve(this.runAppTasks('hydrating'), () => {
                     controller.hydrate(null);
@@ -55,7 +53,7 @@
         activate() {
             return kernel_1.onResolve(this.hydratePromise, () => {
                 return kernel_1.onResolve(this.runAppTasks('beforeActivate'), () => {
-                    return kernel_1.onResolve(this.controller.activate(this.controller, null, this.strategy | 32 /* fromBind */, void 0), () => {
+                    return kernel_1.onResolve(this.controller.activate(this.controller, null, 32 /* fromBind */, void 0), () => {
                         return this.runAppTasks('afterActivate');
                     });
                 });
@@ -63,7 +61,7 @@
         }
         deactivate() {
             return kernel_1.onResolve(this.runAppTasks('beforeDeactivate'), () => {
-                return kernel_1.onResolve(this.controller.deactivate(this.controller, null, this.strategy | 0 /* none */), () => {
+                return kernel_1.onResolve(this.controller.deactivate(this.controller, null, 0 /* none */), () => {
                     return this.runAppTasks('afterDeactivate');
                 });
             });

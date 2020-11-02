@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/testing",
-  "version": "0.8.0-dev.202011010943",
+  "version": "0.8.0-dev.202011020142",
   "main": "dist/umd/index.js",
   "module": "dist/esnext/index.js",
   "types": "dist/index.d.ts",
@@ -34,12 +34,12 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "0.8.0-dev.202011010943",
-    "@aurelia/metadata": "0.8.0-dev.202011010943",
-    "@aurelia/platform": "0.8.0-dev.202011010943",
-    "@aurelia/platform-browser": "0.8.0-dev.202011010943",
-    "@aurelia/runtime-html": "0.8.0-dev.202011010943",
-    "@aurelia/runtime": "0.8.0-dev.202011010943"
+    "@aurelia/kernel": "0.8.0-dev.202011020142",
+    "@aurelia/metadata": "0.8.0-dev.202011020142",
+    "@aurelia/platform": "0.8.0-dev.202011020142",
+    "@aurelia/platform-browser": "0.8.0-dev.202011020142",
+    "@aurelia/runtime-html": "0.8.0-dev.202011020142",
+    "@aurelia/runtime": "0.8.0-dev.202011020142"
   },
   "devDependencies": {
     "@types/mocha": "^8.0.3",

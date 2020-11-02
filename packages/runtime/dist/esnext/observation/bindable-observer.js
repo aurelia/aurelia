@@ -10,7 +10,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var BindableObserver_1;
 import { noop } from '@aurelia/kernel';
 import { ILifecycle } from '../observation';
-import { ProxyObserver } from './proxy-observer';
 import { subscriberCollection } from './subscriber-collection';
 let BindableObserver = BindableObserver_1 = class BindableObserver {
     constructor(lifecycle, flags, obj, propertyKey, cbName, $set) {
@@ -22,12 +21,6 @@ let BindableObserver = BindableObserver_1 = class BindableObserver {
         this.oldValue = void 0;
         this.inBatch = false;
         this.type = 4 /* Obj */;
-        let isProxy = false;
-        if (ProxyObserver.isProxy(obj)) {
-            isProxy = true;
-            obj.$observer.subscribe(this, propertyKey);
-            this.obj = obj.$raw;
-        }
         this.callback = this.obj[cbName];
         const propertyChangedCallback = this.propertyChangedCallback = this.obj.propertyChanged;
         const hasPropertyChangedCallback = this.hasPropertyChangedCallback = typeof propertyChangedCallback === 'function';
@@ -45,9 +38,7 @@ let BindableObserver = BindableObserver_1 = class BindableObserver {
             this.currentValue = shouldInterceptSet && currentValue !== void 0
                 ? $set(currentValue)
                 : currentValue;
-            if (!isProxy) {
-                this.createGetterSetter();
-            }
+            this.createGetterSetter();
         }
         this.persistentFlags = flags & 31751 /* persistentBindingFlags */;
     }

@@ -1,5 +1,5 @@
 import { Class, IServiceLocator, ResourceDefinition } from '@aurelia/kernel';
-import { IConnectable, IProxySubscribable, ISubscribable, ISubscriber, IBinding, LifecycleFlags } from '../observation';
+import { IConnectable, ISubscribable, ISubscriber, IBinding, LifecycleFlags } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
 import type { Scope } from '../observation/binding-context';
 export interface IPartialConnectableBinding extends IBinding, ISubscriber {
@@ -9,7 +9,7 @@ export interface IConnectableBinding extends IPartialConnectableBinding, IConnec
     id: number;
     observerSlots: number;
     version: number;
-    addObserver(observer: ISubscribable | IProxySubscribable): void;
+    addObserver(observer: ISubscribable): void;
     unobserve(all?: boolean): void;
 }
 declare type DecoratableConnectable<TProto, TClass> = Class<TProto & Partial<IConnectableBinding> & IPartialConnectableBinding, TClass>;

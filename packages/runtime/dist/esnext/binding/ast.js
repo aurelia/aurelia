@@ -2,7 +2,6 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { emptyArray, isNumberOrBigInt, isStringOrDate, } from '@aurelia/kernel';
 import { BindingContext } from '../observation/binding-context';
-import { ProxyObserver } from '../observation/proxy-observer';
 import { ISignaler } from '../observation/signaler';
 import { BindingBehavior, BindingBehaviorFactory, } from '../binding-behavior';
 import { ValueConverter, } from '../value-converter';
@@ -1193,12 +1192,13 @@ export class ForOfStatement {
             default: throw new Error(`Cannot count ${toStringTag.call(result)}`);
         }
     }
+    // deepscan-disable-next-line
     iterate(f, result, func) {
         switch (toStringTag.call(result)) {
-            case '[object Array]': return $array(f, result, func);
-            case '[object Map]': return $map(f, result, func);
-            case '[object Set]': return $set(f, result, func);
-            case '[object Number]': return $number(f, result, func);
+            case '[object Array]': return $array(result, func);
+            case '[object Map]': return $map(result, func);
+            case '[object Set]': return $set(result, func);
+            case '[object Number]': return $number(result, func);
             case '[object Null]': return;
             case '[object Undefined]': return;
             default: throw new Error(`Cannot iterate over ${toStringTag.call(result)}`);
@@ -1276,51 +1276,32 @@ function getFunction(f, obj, name) {
     }
     throw new Error(`Expected '${name}' to be a function`);
 }
-const proxyAndOriginalArray = 2 /* proxyStrategy */;
-function $array(f, result, func) {
-    if ((f & proxyAndOriginalArray) === proxyAndOriginalArray) {
-        // If we're in proxy mode, and the array is the original "items" (and not an array we created here to iterate over e.g. a set)
-        // then replace all items (which are Objects) with proxies so their properties are observed in the source view model even if no
-        // observers are explicitly created
-        const rawArray = ProxyObserver.getRawIfProxy(result);
-        const len = rawArray.length;
-        let item;
-        let i = 0;
-        for (; i < len; ++i) {
-            item = rawArray[i];
-            if (item instanceof Object) {
-                item = rawArray[i] = ProxyObserver.getOrCreate(item).proxy;
-            }
-            func(rawArray, i, item);
-        }
-    }
-    else {
-        for (let i = 0, ii = result.length; i < ii; ++i) {
-            func(result, i, result[i]);
-        }
+function $array(result, func) {
+    for (let i = 0, ii = result.length; i < ii; ++i) {
+        func(result, i, result[i]);
     }
 }
-function $map(f, result, func) {
+function $map(result, func) {
     const arr = Array(result.size);
     let i = -1;
     for (const entry of result.entries()) {
         arr[++i] = entry;
     }
-    $array(f, arr, func);
+    $array(arr, func);
 }
-function $set(f, result, func) {
+function $set(result, func) {
     const arr = Array(result.size);
     let i = -1;
     for (const key of result.keys()) {
         arr[++i] = key;
     }
-    $array(f, arr, func);
+    $array(arr, func);
 }
-function $number(f, result, func) {
+function $number(result, func) {
     const arr = Array(result);
     for (let i = 0; i < result; ++i) {
         arr[i] = i;
     }
-    $array(f, arr, func);
+    $array(arr, func);
 }
 //# sourceMappingURL=ast.js.map

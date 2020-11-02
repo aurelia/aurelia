@@ -16,7 +16,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "../observation", "./array-observer", "./computed-observer", "./dirty-checker", "./map-observer", "./primitive-observer", "./property-accessor", "./proxy-observer", "./set-observer", "./setter-observer"], factory);
+        define(["require", "exports", "@aurelia/kernel", "../observation", "./array-observer", "./computed-observer", "./dirty-checker", "./map-observer", "./primitive-observer", "./property-accessor", "./set-observer", "./setter-observer"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -30,7 +30,6 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     const map_observer_1 = require("./map-observer");
     const primitive_observer_1 = require("./primitive-observer");
     const property_accessor_1 = require("./property-accessor");
-    const proxy_observer_1 = require("./proxy-observer");
     const set_observer_1 = require("./set-observer");
     const setter_observer_1 = require("./setter-observer");
     exports.IObserverLocator = kernel_1.DI.createInterface('IObserverLocator').withDefault(x => x.singleton(ObserverLocator));
@@ -66,9 +65,6 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                 }
                 return this.targetAccessorLocator.getAccessor(flags, obj, key);
             }
-            if ((flags & 2 /* proxyStrategy */) > 0) {
-                return proxy_observer_1.ProxyObserver.getOrCreate(obj, key);
-            }
             return property_accessor_1.propertyAccessor;
         }
         getArrayObserver(flags, observedArray) {
@@ -92,10 +88,6 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                     return observer;
                 }
                 isNode = true;
-            }
-            else if ((flags & 2 /* proxyStrategy */) > 0) {
-                // TODO: fix typings (and ensure proper contracts ofc)
-                return proxy_observer_1.ProxyObserver.getOrCreate(obj, key);
             }
             switch (key) {
                 case 'length':
@@ -192,17 +184,14 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     ], ObserverLocator);
     exports.ObserverLocator = ObserverLocator;
     function getCollectionObserver(flags, lifecycle, collection) {
-        // If the collection is wrapped by a proxy then `$observer` will return the proxy observer instead of the collection observer, which is not what we want
-        // when we ask for getCollectionObserver
-        const rawCollection = collection instanceof Object ? proxy_observer_1.ProxyObserver.getRawIfProxy(collection) : collection;
         if (collection instanceof Array) {
-            return array_observer_1.getArrayObserver(flags, lifecycle, rawCollection);
+            return array_observer_1.getArrayObserver(flags, lifecycle, collection);
         }
         else if (collection instanceof Map) {
-            return map_observer_1.getMapObserver(flags, lifecycle, rawCollection);
+            return map_observer_1.getMapObserver(flags, lifecycle, collection);
         }
         else if (collection instanceof Set) {
-            return set_observer_1.getSetObserver(flags, lifecycle, rawCollection);
+            return set_observer_1.getSetObserver(flags, lifecycle, collection);
         }
         return void 0;
     }

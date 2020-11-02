@@ -4,13 +4,12 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./proxy-observer"], factory);
+        define(["require", "exports"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.OverrideContext = exports.Scope = exports.BindingContext = void 0;
-    const proxy_observer_1 = require("./proxy-observer");
     const marker = Object.freeze({});
     class BindingContext {
         constructor(keyOrObj, value) {
@@ -30,11 +29,7 @@
             }
         }
         static create(flags, keyOrObj, value) {
-            const bc = new BindingContext(keyOrObj, value);
-            if (flags & 2 /* proxyStrategy */) {
-                return proxy_observer_1.ProxyObserver.getOrCreate(bc).proxy;
-            }
-            return bc;
+            return new BindingContext(keyOrObj, value);
         }
         static get(scope, name, ancestor, flags, hostScope) {
             if (scope == null && hostScope == null) {

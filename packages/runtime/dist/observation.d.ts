@@ -46,26 +46,6 @@ export declare enum BindingMode {
     twoWay = 6,
     default = 8
 }
-export declare const enum BindingStrategy {
-    /**
-     * Configures all components "below" this one to operate in getterSetter binding mode.
-     * This is the default; if no strategy is specified, this one is implied.
-     *
-     * This strategy is the most compatible, convenient and has the best performance on frequently updated bindings on components that are infrequently replaced.
-     * However, it also consumes the most resources on initialization.
-     */
-    getterSetter = 1,
-    /**
-     * Configures all components "below" this one to operate in proxy binding mode.
-     * No getters/setters are created.
-     *
-     * This strategy consumes significantly fewer resources than `getterSetter` on initialization and has the best performance on infrequently updated bindings on
-     * components that are frequently replaced.
-     * However, it consumes more resources on updates.
-     */
-    proxies = 2
-}
-export declare function ensureValidStrategy(strategy: BindingStrategy | null | undefined): BindingStrategy;
 export declare const enum LifecycleFlags {
     none = 0,
     persistentBindingFlags = 31751,
@@ -105,19 +85,12 @@ export interface ISubscriber<TValue = unknown> {
     id?: number;
     handleChange(newValue: TValue, previousValue: TValue, flags: LifecycleFlags): void;
 }
-export interface IProxySubscriber<TValue = unknown> {
-    handleProxyChange(key: PropertyKey, newValue: TValue, previousValue: TValue, flags: LifecycleFlags): void;
-}
 export interface ICollectionSubscriber {
     handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void;
 }
 export interface ISubscribable {
     subscribe(subscriber: ISubscriber): void;
     unsubscribe(subscriber: ISubscriber): void;
-}
-export interface IProxySubscribable {
-    subscribeToProxy(subscriber: IProxySubscriber): void;
-    unsubscribeFromProxy(subscriber: IProxySubscriber): void;
 }
 export interface ICollectionSubscribable {
     subscribeToCollection(subscriber: ICollectionSubscriber): void;
@@ -130,14 +103,6 @@ export interface ISubscriberCollection extends ISubscribable {
     hasSubscriber(subscriber: ISubscriber): boolean;
     removeSubscriber(subscriber: ISubscriber): boolean;
     addSubscriber(subscriber: ISubscriber): boolean;
-}
-export interface IProxySubscriberCollection extends IProxySubscribable {
-    [key: number]: LifecycleFlags;
-    callProxySubscribers(key: PropertyKey, newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void;
-    hasProxySubscribers(): boolean;
-    hasProxySubscriber(subscriber: IProxySubscriber): boolean;
-    removeProxySubscriber(subscriber: IProxySubscriber): boolean;
-    addProxySubscriber(subscriber: IProxySubscriber): boolean;
 }
 export interface ICollectionSubscriberCollection extends ICollectionSubscribable {
     [key: number]: LifecycleFlags;
@@ -197,12 +162,6 @@ export declare type LengthPropertyName<T> = T extends unknown[] ? 'length' : T e
 export declare type CollectionTypeToKind<T> = T extends unknown[] ? CollectionKind.array | CollectionKind.indexed : T extends Set<unknown> ? CollectionKind.set | CollectionKind.keyed : T extends Map<unknown, unknown> ? CollectionKind.map | CollectionKind.keyed : never;
 export declare type CollectionKindToType<T> = T extends CollectionKind.array ? unknown[] : T extends CollectionKind.indexed ? unknown[] : T extends CollectionKind.map ? Map<unknown, unknown> : T extends CollectionKind.set ? Set<unknown> : T extends CollectionKind.keyed ? Set<unknown> | Map<unknown, unknown> : never;
 export declare type ObservedCollectionKindToType<T> = T extends CollectionKind.array ? IObservedArray : T extends CollectionKind.indexed ? IObservedArray : T extends CollectionKind.map ? IObservedMap : T extends CollectionKind.set ? IObservedSet : T extends CollectionKind.keyed ? IObservedSet | IObservedMap : never;
-export interface IProxyObserver<TObj extends {} = {}> extends IProxySubscriberCollection {
-    proxy: IProxy<TObj>;
-}
-export declare type IProxy<TObj extends {} = {}> = TObj & {
-    $raw: TObj;
-};
 export declare const enum AccessorType {
     None = 0,
     Observer = 1,

@@ -13,7 +13,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "../observation", "./proxy-observer", "./subscriber-collection"], factory);
+        define(["require", "exports", "@aurelia/kernel", "../observation", "./subscriber-collection"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -22,7 +22,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     exports.BindableObserver = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const observation_1 = require("../observation");
-    const proxy_observer_1 = require("./proxy-observer");
     const subscriber_collection_1 = require("./subscriber-collection");
     let BindableObserver = BindableObserver_1 = class BindableObserver {
         constructor(lifecycle, flags, obj, propertyKey, cbName, $set) {
@@ -34,12 +33,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             this.oldValue = void 0;
             this.inBatch = false;
             this.type = 4 /* Obj */;
-            let isProxy = false;
-            if (proxy_observer_1.ProxyObserver.isProxy(obj)) {
-                isProxy = true;
-                obj.$observer.subscribe(this, propertyKey);
-                this.obj = obj.$raw;
-            }
             this.callback = this.obj[cbName];
             const propertyChangedCallback = this.propertyChangedCallback = this.obj.propertyChanged;
             const hasPropertyChangedCallback = this.hasPropertyChangedCallback = typeof propertyChangedCallback === 'function';
@@ -57,9 +50,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                 this.currentValue = shouldInterceptSet && currentValue !== void 0
                     ? $set(currentValue)
                     : currentValue;
-                if (!isProxy) {
-                    this.createGetterSetter();
-                }
+                this.createGetterSetter();
             }
             this.persistentFlags = flags & 31751 /* persistentBindingFlags */;
         }

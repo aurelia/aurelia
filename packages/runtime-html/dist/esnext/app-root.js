@@ -6,7 +6,6 @@ import { Controller } from './templating/controller';
 export const IAppRoot = DI.createInterface('IAppRoot').noDefault();
 export class AppRoot {
     constructor(config, platform, container, rootProvider, enhance = false) {
-        var _a;
         this.config = config;
         this.platform = platform;
         this.container = container;
@@ -18,7 +17,6 @@ export class AppRoot {
             this.container = container.createChild();
         }
         this.container.register(Registration.instance(INode, config.host));
-        this.strategy = (_a = config.strategy) !== null && _a !== void 0 ? _a : 1 /* getterSetter */;
         if (enhance) {
             const component = config.component;
             this.enhanceDefinition = CustomElement.getDefinition(CustomElement.isType(component)
@@ -29,7 +27,7 @@ export class AppRoot {
             const instance = CustomElement.isType(config.component)
                 ? this.container.get(config.component)
                 : config.component;
-            const controller = (this.controller = Controller.forCustomElement(this, container, instance, this.host, null, this.strategy, false, this.enhanceDefinition));
+            const controller = (this.controller = Controller.forCustomElement(this, container, instance, this.host, null, 0 /* none */, false, this.enhanceDefinition));
             controller.hydrateCustomElement(container, null);
             return onResolve(this.runAppTasks('hydrating'), () => {
                 controller.hydrate(null);
@@ -43,7 +41,7 @@ export class AppRoot {
     activate() {
         return onResolve(this.hydratePromise, () => {
             return onResolve(this.runAppTasks('beforeActivate'), () => {
-                return onResolve(this.controller.activate(this.controller, null, this.strategy | 32 /* fromBind */, void 0), () => {
+                return onResolve(this.controller.activate(this.controller, null, 32 /* fromBind */, void 0), () => {
                     return this.runAppTasks('afterActivate');
                 });
             });
@@ -51,7 +49,7 @@ export class AppRoot {
     }
     deactivate() {
         return onResolve(this.runAppTasks('beforeDeactivate'), () => {
-            return onResolve(this.controller.deactivate(this.controller, null, this.strategy | 0 /* none */), () => {
+            return onResolve(this.controller.deactivate(this.controller, null, 0 /* none */), () => {
                 return this.runAppTasks('afterDeactivate');
             });
         });

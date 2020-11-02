@@ -21,7 +21,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.isIndexMap = exports.cloneIndexMap = exports.createIndexMap = exports.copyIndexMap = exports.AccessorType = exports.CollectionKind = exports.DelegationStrategy = exports.SubscriberFlags = exports.LifecycleFlags = exports.ensureValidStrategy = exports.BindingStrategy = exports.BindingMode = exports.BatchQueue = exports.Lifecycle = exports.ILifecycle = void 0;
+    exports.isIndexMap = exports.cloneIndexMap = exports.createIndexMap = exports.copyIndexMap = exports.AccessorType = exports.CollectionKind = exports.DelegationStrategy = exports.SubscriberFlags = exports.LifecycleFlags = exports.BindingMode = exports.BatchQueue = exports.Lifecycle = exports.ILifecycle = void 0;
     const kernel_1 = require("@aurelia/kernel");
     exports.ILifecycle = kernel_1.DI.createInterface('ILifecycle').withDefault(x => x.singleton(Lifecycle));
     class Lifecycle {
@@ -93,36 +93,6 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         BindingMode[BindingMode["twoWay"] = 6] = "twoWay";
         BindingMode[BindingMode["default"] = 8] = "default";
     })(BindingMode = exports.BindingMode || (exports.BindingMode = {}));
-    var BindingStrategy;
-    (function (BindingStrategy) {
-        /**
-         * Configures all components "below" this one to operate in getterSetter binding mode.
-         * This is the default; if no strategy is specified, this one is implied.
-         *
-         * This strategy is the most compatible, convenient and has the best performance on frequently updated bindings on components that are infrequently replaced.
-         * However, it also consumes the most resources on initialization.
-         */
-        BindingStrategy[BindingStrategy["getterSetter"] = 1] = "getterSetter";
-        /**
-         * Configures all components "below" this one to operate in proxy binding mode.
-         * No getters/setters are created.
-         *
-         * This strategy consumes significantly fewer resources than `getterSetter` on initialization and has the best performance on infrequently updated bindings on
-         * components that are frequently replaced.
-         * However, it consumes more resources on updates.
-         */
-        BindingStrategy[BindingStrategy["proxies"] = 2] = "proxies";
-    })(BindingStrategy = exports.BindingStrategy || (exports.BindingStrategy = {}));
-    const mandatoryStrategy = 1 /* getterSetter */ | 2 /* proxies */;
-    function ensureValidStrategy(strategy) {
-        if ((strategy & mandatoryStrategy) === 0) {
-            // TODO: probably want to validate that user isn't trying to mix getterSetter/proxy
-            // TODO: also need to make sure that strategy can be changed away from proxies inside the component tree (not here though, but just making a note)
-            return strategy | 1 /* getterSetter */;
-        }
-        return strategy;
-    }
-    exports.ensureValidStrategy = ensureValidStrategy;
     var LifecycleFlags;
     (function (LifecycleFlags) {
         LifecycleFlags[LifecycleFlags["none"] = 0] = "none";

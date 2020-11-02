@@ -27,7 +27,7 @@
     }
     exports.templateController = templateController;
     class CustomAttributeDefinition {
-        constructor(Type, name, aliases, key, defaultBindingMode, isTemplateController, bindables, strategy, noMultiBindings) {
+        constructor(Type, name, aliases, key, defaultBindingMode, isTemplateController, bindables, noMultiBindings) {
             this.Type = Type;
             this.name = name;
             this.aliases = aliases;
@@ -35,7 +35,6 @@
             this.defaultBindingMode = defaultBindingMode;
             this.isTemplateController = isTemplateController;
             this.bindables = bindables;
-            this.strategy = strategy;
             this.noMultiBindings = noMultiBindings;
         }
         static create(nameOrDef, Type) {
@@ -49,7 +48,7 @@
                 name = nameOrDef.name;
                 def = nameOrDef;
             }
-            return new CustomAttributeDefinition(Type, kernel_1.firstDefined(exports.CustomAttribute.getAnnotation(Type, 'name'), name), kernel_1.mergeArrays(exports.CustomAttribute.getAnnotation(Type, 'aliases'), def.aliases, Type.aliases), exports.CustomAttribute.keyFrom(name), kernel_1.firstDefined(exports.CustomAttribute.getAnnotation(Type, 'defaultBindingMode'), def.defaultBindingMode, Type.defaultBindingMode, runtime_1.BindingMode.toView), kernel_1.firstDefined(exports.CustomAttribute.getAnnotation(Type, 'isTemplateController'), def.isTemplateController, Type.isTemplateController, false), runtime_1.Bindable.from(...runtime_1.Bindable.getAll(Type), exports.CustomAttribute.getAnnotation(Type, 'bindables'), Type.bindables, def.bindables), kernel_1.firstDefined(exports.CustomAttribute.getAnnotation(Type, 'strategy'), def.strategy, Type.strategy, 1 /* getterSetter */), kernel_1.firstDefined(exports.CustomAttribute.getAnnotation(Type, 'noMultiBindings'), def.noMultiBindings, Type.noMultiBindings, false));
+            return new CustomAttributeDefinition(Type, kernel_1.firstDefined(exports.CustomAttribute.getAnnotation(Type, 'name'), name), kernel_1.mergeArrays(exports.CustomAttribute.getAnnotation(Type, 'aliases'), def.aliases, Type.aliases), exports.CustomAttribute.keyFrom(name), kernel_1.firstDefined(exports.CustomAttribute.getAnnotation(Type, 'defaultBindingMode'), def.defaultBindingMode, Type.defaultBindingMode, runtime_1.BindingMode.toView), kernel_1.firstDefined(exports.CustomAttribute.getAnnotation(Type, 'isTemplateController'), def.isTemplateController, Type.isTemplateController, false), runtime_1.Bindable.from(...runtime_1.Bindable.getAll(Type), exports.CustomAttribute.getAnnotation(Type, 'bindables'), Type.bindables, def.bindables), kernel_1.firstDefined(exports.CustomAttribute.getAnnotation(Type, 'noMultiBindings'), def.noMultiBindings, Type.noMultiBindings, false));
         }
         register(container) {
             const { Type, key, aliases } = this;

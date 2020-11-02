@@ -1,8 +1,8 @@
 import { Constructable, IContainer, IResourceKind, ResourceType, PartialResourceDefinition, Key, ResourceDefinition, Injectable } from '@aurelia/kernel';
-import { PartialBindableDefinition, BindingStrategy, BindableDefinition } from '@aurelia/runtime';
-import { PartialChildrenDefinition, ChildrenDefinition } from '../templating/children';
+import { PartialBindableDefinition, BindableDefinition } from '@aurelia/runtime';
 import { IProjections } from './custom-elements/au-slot';
 import { IInstruction } from '../renderer';
+import { PartialChildrenDefinition, ChildrenDefinition } from '../templating/children';
 import type { ICustomElementViewModel, ICustomElementController } from '../templating/controller';
 export declare type PartialCustomElementDefinition = PartialResourceDefinition<{
     readonly cache?: '*' | number;
@@ -20,7 +20,6 @@ export declare type PartialCustomElementDefinition = PartialResourceDefinition<{
         mode: 'open' | 'closed';
     } | null;
     readonly hasSlots?: boolean;
-    readonly strategy?: BindingStrategy;
     readonly enhance?: boolean;
     readonly projectionsMap?: Map<IInstruction, IProjections>;
 }>;
@@ -146,7 +145,6 @@ export declare class CustomElementDefinition<C extends Constructable = Construct
         mode: 'open' | 'closed';
     } | null;
     readonly hasSlots: boolean;
-    readonly strategy: BindingStrategy;
     readonly enhance: boolean;
     readonly projectionsMap: Map<IInstruction, IProjections>;
     private constructor();

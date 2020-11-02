@@ -250,8 +250,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         return srcOrExpr;
     }
     function getTarget(potentialTarget) {
-        if (potentialTarget.bindingContext !== void 0) {
-            return potentialTarget.bindingContext;
+        if (potentialTarget.viewModel != null) {
+            return potentialTarget.viewModel;
         }
         return potentialTarget;
     }

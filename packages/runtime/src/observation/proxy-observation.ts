@@ -1,6 +1,6 @@
 import { IIndexable } from '@aurelia/kernel';
 import { watching, currentWatcher } from './watcher-switcher';
-import { isMap, isSet, isObject, isArray } from './utilities-objects';
+import { isMap, isSet, isObject, isArray } from '../utilities-objects';
 
 const R$get = Reflect.get;
 const proxyMap = new WeakMap<object, object>();

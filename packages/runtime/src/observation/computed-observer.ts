@@ -28,7 +28,7 @@ import { IWatcherCallback } from './watch';
 import { ExpressionKind, IsBindingBehavior } from '../binding/ast';
 import { getProxyOrSelf, getRawOrSelf } from './proxy-observation';
 import { Scope } from './binding-context';
-import { isArray, isMap, isSet } from './utilities-objects';
+import { isArray, isMap, isSet } from '../utilities-objects';
 
 export interface ComputedOverrides {
   // Indicates that a getter doesn't need to re-calculate its dependencies after the first observation.

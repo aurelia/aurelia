@@ -172,8 +172,6 @@ describe('router config', function () {
 
           beforeDetach: hookSpecsMap.beforeDetach.sync,
           beforeUnbind: hookSpecsMap.beforeUnbind.sync,
-          afterUnbind: hookSpecsMap.afterUnbind.sync,
-          afterUnbindChildren: hookSpecsMap.afterUnbindChildren.sync,
 
           canLoad: hookSpecsMap.canLoad.sync,
           load: hookSpecsMap.load.sync,
@@ -310,35 +308,32 @@ describe('router config', function () {
                         case 'parallel-remove-first':
                           switch (componentSpec.kind) {
                             case 'all-sync':
-                              yield* prepend(phase, $t1c, 'beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren', 'dispose');
+                              yield* prepend(phase, $t1c, 'beforeDetach', 'beforeUnbind', 'dispose');
                               yield* prepend(phase, $t2c, 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren');
                               break;
                             case 'all-async':
                               yield* interleave(
-                                prepend(phase, $t1c, 'beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren', 'dispose'),
+                                prepend(phase, $t1c, 'beforeDetach', 'beforeUnbind', 'dispose'),
                                 prepend(phase, $t2c, 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren'),
                               );
                               break;
                           }
                           break;
                         case 'sequential-remove-first':
-                          yield* prepend(phase, $t1c, 'beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren', 'dispose');
+                          yield* prepend(phase, $t1c, 'beforeDetach', 'beforeUnbind', 'dispose');
                           yield* prepend(phase, $t2c, 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren');
                           break;
                         case 'sequential-add-first':
                           yield* prepend(phase, $t2c, 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren');
-                          yield* prepend(phase, $t1c, 'beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren', 'dispose');
+                          yield* prepend(phase, $t1c, 'beforeDetach', 'beforeUnbind', 'dispose');
                           break;
                       }
                     }
 
                     yield `stop.root2.beforeDetach`;
                     yield `stop.root2.beforeUnbind`;
-                    yield `stop.root2.afterUnbind`;
 
-                    yield* prepend('stop', t4, 'beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren');
-
-                    yield `stop.root2.afterUnbindChildren`;
+                    yield* prepend('stop', t4, 'beforeDetach', 'beforeUnbind');
                   })()];
                   assert.deepStrictEqual(hia.notifyHistory, expected);
 
@@ -771,8 +766,6 @@ function getAllAsyncSpecs(count: number): HookSpecs {
 
     beforeDetach: hookSpecsMap.beforeDetach.async(count),
     beforeUnbind: hookSpecsMap.beforeUnbind.async(count),
-    afterUnbind: hookSpecsMap.afterUnbind.async(count),
-    afterUnbindChildren: hookSpecsMap.afterUnbindChildren.async(count),
 
     canLoad: hookSpecsMap.canLoad.async(count),
     load: hookSpecsMap.load.async(count),

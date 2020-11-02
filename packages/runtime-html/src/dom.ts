@@ -1,8 +1,8 @@
 import { DI, Writable } from '@aurelia/kernel';
 import { IAppRoot } from './app-root';
 import { IPlatform } from './platform';
-import { ShadowDOMProjector } from './projectors';
 import { CustomElement } from './resources/custom-element';
+import { MountTarget } from './templating/controller';
 
 export interface INode extends Node {}
 export const INode = DI.createInterface<INode>('INode').noDefault();
@@ -134,10 +134,8 @@ export function getEffectiveParentNode(node: Node): Node | null {
       // Nothing more we can try, just return null
       return null;
     }
-    const projector = controller.projector!;
-    if (projector instanceof ShadowDOMProjector) {
-      // Now we can use the original host to traverse further up
-      return getEffectiveParentNode(projector.host);
+    if (controller.mountTarget === MountTarget.shadowRoot) {
+      return getEffectiveParentNode(controller.host);
     }
   }
 
@@ -223,13 +221,13 @@ export class FragmentNodeSequence implements INodeSequence {
     const targets = this.targets = Array(ii);
 
     while (i < ii) {
-      // eagerly convert all markers to RenderLocations (otherwise the composer
+      // eagerly convert all markers to RenderLocations (otherwise the renderer
       // will do it anyway) and store them in the target list (since the comments
       // can't be queried)
       const target = targetNodeList[i];
 
       if (target.nodeName === 'AU-M') {
-        // note the composer will still call this method, but it will just return the
+        // note the renderer will still call this method, but it will just return the
         // location if it sees it's already a location
         targets[i] = convertToRenderLocation(target);
       } else {

@@ -3,8 +3,6 @@ import { DI, IContainer, IRegistration, IRegistry, Registration } from '@aurelia
 import {
   ILifecycle,
   IObserverLocator,
-  IProjectorLocator,
-  IComposer,
   ITemplateCompiler,
   IPlatform,
   StandardConfiguration,
@@ -69,20 +67,6 @@ export class TestContext {
       this._lifecycle = this.container.get(ILifecycle);
     }
     return this._lifecycle;
-  }
-  private _composer: IComposer | undefined = void 0;
-  public get composer(): IComposer {
-    if (this._composer === void 0) {
-      this._composer = this.container.get(IComposer);
-    }
-    return this._composer;
-  }
-  private _projectorLocator: IProjectorLocator | undefined = void 0;
-  public get projectorLocator(): IProjectorLocator {
-    if (this._projectorLocator === void 0) {
-      this._projectorLocator = this.container.get(IProjectorLocator);
-    }
-    return this._projectorLocator;
   }
   private _domParser: HTMLDivElement | undefined = void 0;
   public get domParser(): HTMLDivElement {

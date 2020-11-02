@@ -14,7 +14,6 @@ import {
   ArrayIndexObserver,
   ISubscriber,
   CustomElement,
-  BindingStrategy,
   IDirtyChecker,
 } from '@aurelia/runtime-html';
 
@@ -192,7 +191,7 @@ describe('simple Computed Observer test case', function () {
     const testHost = ctx.doc.body.appendChild(ctx.createElement('div'));
     const appHost = testHost.appendChild(ctx.createElement('app'));
     const au = new Aurelia(container);
-    const App = CustomElement.define({ name: 'app', template, strategy: BindingStrategy.proxies }, $class);
+    const App = CustomElement.define({ name: 'app', template }, $class);
     const component = new App();
 
     au.app({ host: appHost, component });

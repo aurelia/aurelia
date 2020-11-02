@@ -1,19 +1,12 @@
-// Limit the accessible properties to that of the native ES globalThis and WindowOrWorkerGlobalScope by default.
-// We need the whole DOM lib to have access to the WindowOrWorkerGlobalScope type, but that turns globalThis into a union with Window
-// which exposes properties we don't want to assume exist here.
-// Hence, we create a synthetic type that has only the properties we can more or less safely assume to exist.
-type GlobalThisOrWindowOrWorkerGlobalScope = Pick<
-  typeof globalThis,
-  Exclude<
-    keyof typeof globalThis,
-    Exclude<
-      keyof Window,
-      keyof WindowOrWorkerGlobalScope
-    >
-  >
->;
+const lookup = new Map<object, Platform>();
 
-export class Platform<TGlobal extends GlobalThisOrWindowOrWorkerGlobalScope = GlobalThisOrWindowOrWorkerGlobalScope> {
+function notImplemented(name: string): (...args: any[]) => any {
+  return function notImplemented() {
+    throw new Error(`The PLATFORM did not receive a valid reference to the global function '${name}'.`); // TODO: link to docs describing how to fix this issue
+  };
+}
+
+export class Platform<TGlobal extends typeof globalThis = typeof globalThis> {
   // http://www.ecma-international.org/ecma-262/#sec-value-properties-of-the-global-object
   public readonly globalThis: TGlobal;
 
@@ -35,13 +28,12 @@ export class Platform<TGlobal extends GlobalThisOrWindowOrWorkerGlobalScope = Gl
   // or can otherwise be mocked fairly easily. If not, things probably won't work anyway.
   public readonly clearInterval: TGlobal['clearInterval'];
   public readonly clearTimeout: TGlobal['clearTimeout'];
-  public readonly fetch: TGlobal['fetch'];
   public readonly queueMicrotask: TGlobal['queueMicrotask'];
   public readonly setInterval: TGlobal['setInterval'];
   public readonly setTimeout: TGlobal['setTimeout'];
   public readonly console: TGlobal['console'];
 
-  public readonly performanceNow: TGlobal['performance']['now'];
+  public readonly performanceNow: () => number;
 
   public readonly macroTaskQueue: TaskQueue;
 
@@ -57,19 +49,33 @@ export class Platform<TGlobal extends GlobalThisOrWindowOrWorkerGlobalScope = Gl
 
     this.Reflect = 'Reflect' in overrides ? overrides.Reflect! : g.Reflect;
 
-    this.clearInterval = 'clearInterval' in overrides ? overrides.clearInterval! : g.clearInterval.bind(g);
-    this.clearTimeout = 'clearTimeout' in overrides ? overrides.clearTimeout! : g.clearTimeout.bind(g);
-    this.fetch = 'fetch' in overrides ? overrides.fetch! : g.fetch.bind(g);
-    this.queueMicrotask = 'queueMicrotask' in overrides ? overrides.queueMicrotask! : g.queueMicrotask.bind(g);
-    this.setInterval = 'setInterval' in overrides ? overrides.setInterval! : g.setInterval.bind(g);
-    this.setTimeout = 'setTimeout' in overrides ? overrides.setTimeout! : g.setTimeout.bind(g);
+    this.clearInterval = 'clearInterval' in overrides ? overrides.clearInterval! : g.clearInterval?.bind(g) ?? notImplemented('clearInterval');
+    this.clearTimeout = 'clearTimeout' in overrides ? overrides.clearTimeout! : g.clearTimeout?.bind(g) ?? notImplemented('clearTimeout');
+    this.queueMicrotask = 'queueMicrotask' in overrides ? overrides.queueMicrotask! : g.queueMicrotask?.bind(g) ?? notImplemented('queueMicrotask');
+    this.setInterval = 'setInterval' in overrides ? overrides.setInterval! : g.setInterval?.bind(g) ?? notImplemented('setInterval');
+    this.setTimeout = 'setTimeout' in overrides ? overrides.setTimeout! : g.setTimeout?.bind(g) ?? notImplemented('setTimeout');
     this.console = 'console' in overrides ? overrides.console! : g.console;
 
-    this.performanceNow = 'performanceNow' in overrides ? overrides.performanceNow! : g.performance.now.bind(g.performance);
+    this.performanceNow = 'performanceNow' in overrides ? overrides.performanceNow! : g.performance?.now?.bind(g.performance) ?? notImplemented('performance.now');
 
     this.flushMacroTask = this.flushMacroTask.bind(this);
     this.macroTaskQueue = new TaskQueue(this, this.requestMacroTask.bind(this), this.cancelMacroTask.bind(this));
     /* eslint-enable @typescript-eslint/no-unnecessary-type-assertion */
+  }
+
+  public static getOrCreate<TGlobal extends typeof globalThis = typeof globalThis>(
+    g: TGlobal,
+    overrides: Partial<Exclude<Platform, 'globalThis'>> = {},
+  ): Platform<TGlobal> {
+    let platform = lookup.get(g);
+    if (platform === void 0) {
+      lookup.set(g, platform = new Platform(g, overrides));
+    }
+    return platform as Platform<TGlobal>;
+  }
+
+  public static set(g: typeof globalThis, platform: Platform): void {
+    lookup.set(g, platform);
   }
 
   protected macroTaskRequested: boolean = false;

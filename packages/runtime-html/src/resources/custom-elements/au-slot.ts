@@ -1,18 +1,10 @@
 import { DI, Writable } from '@aurelia/kernel';
 import { Scope, LifecycleFlags } from '@aurelia/runtime';
 import { IRenderLocation } from '../../dom';
-import {
-  ControllerVisitor,
-  ICustomElementController,
-  ICustomElementViewModel,
-  IHydratedController,
-  IHydratedParentController,
-  ISyntheticView,
-  MountStrategy
-} from '../../lifecycle';
 import { customElement, CustomElementDefinition } from '../custom-element';
-import { IInstruction } from '../../definitions';
 import { IViewFactory } from '../../templating/view';
+import { IInstruction, Instruction } from '../../renderer';
+import type { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../templating/controller';
 
 export type IProjections = Record<string, CustomElementDefinition>;
 export const IProjections = DI.createInterface<IProjections>("IProjections").noDefault();
@@ -47,7 +39,7 @@ export class RegisteredProjections {
 export interface IProjectionProvider extends ProjectionProvider {}
 export const IProjectionProvider = DI.createInterface<IProjectionProvider>('IProjectionProvider').withDefault(x => x.singleton(ProjectionProvider));
 
-const projectionMap: WeakMap<IInstruction, RegisteredProjections> = new WeakMap<IInstruction, RegisteredProjections>();
+const projectionMap: WeakMap<IInstruction, RegisteredProjections> = new WeakMap<Instruction, RegisteredProjections>();
 export class ProjectionProvider {
   public registerProjections(projections: Map<IInstruction, Record<string, CustomElementDefinition>>, scope: Scope): void {
     for (const [instruction, $projections] of projections) {
@@ -73,13 +65,12 @@ export class AuSlot implements ICustomElementViewModel {
     @IViewFactory private readonly factory: IViewFactory,
     @IRenderLocation location: IRenderLocation,
   ) {
-    this.view = factory.create();
-    this.view.setLocation(location, MountStrategy.insertBefore);
+    this.view = factory.create().setLocation(location);
     this.isProjection = factory.contentType === AuSlotContentType.Projection;
     this.outerScope = factory.projectionScope;
   }
 
-  public beforeBind(
+  public binding(
     initiator: IHydratedController,
     parent: IHydratedParentController,
     flags: LifecycleFlags,
@@ -87,7 +78,7 @@ export class AuSlot implements ICustomElementViewModel {
     this.hostScope = this.$controller.scope.parentScope!;
   }
 
-  public afterAttach(
+  public attaching(
     initiator: IHydratedController,
     parent: IHydratedParentController,
     flags: LifecycleFlags,
@@ -96,20 +87,12 @@ export class AuSlot implements ICustomElementViewModel {
     return this.view.activate(initiator, $controller, flags, this.outerScope ?? this.hostScope!, this.hostScope);
   }
 
-  public afterUnbind(
+  public detaching(
     initiator: IHydratedController,
     parent: IHydratedParentController,
     flags: LifecycleFlags,
   ): void | Promise<void> {
     return this.view.deactivate(initiator, this.$controller, flags);
-  }
-
-  public onCancel(
-    initiator: IHydratedController,
-    parent: IHydratedParentController,
-    flags: LifecycleFlags,
-  ): void {
-    this.view.cancel(initiator, this.$controller, flags);
   }
 
   public dispose(): void {

@@ -1,7 +1,6 @@
 import { IIndexable, noop } from '@aurelia/kernel';
 import { InterceptorFunc } from '../bindable';
 import { IPropertyObserver, ISubscriber, AccessorType, ILifecycle, LifecycleFlags } from '../observation';
-import { ProxyObserver } from './proxy-observer';
 import { subscriberCollection } from './subscriber-collection';
 
 export interface BindableObserver extends IPropertyObserver<IIndexable, string> {}
@@ -35,13 +34,6 @@ export class BindableObserver {
     cbName: string,
     private readonly $set: InterceptorFunc,
   ) {
-    let isProxy = false;
-    if (ProxyObserver.isProxy(obj)) {
-      isProxy = true;
-      obj.$observer.subscribe(this, propertyKey);
-      this.obj = obj.$raw;
-    }
-
     this.callback = this.obj[cbName] as typeof BindableObserver.prototype.callback;
 
     const propertyChangedCallback = this.propertyChangedCallback = (this.obj as IMayHavePropertyChangedCallback).propertyChanged;
@@ -61,9 +53,7 @@ export class BindableObserver {
       this.currentValue = shouldInterceptSet && currentValue !== void 0
         ? $set(currentValue)
         : currentValue;
-      if (!isProxy) {
-        this.createGetterSetter();
-      }
+      this.createGetterSetter();
     }
     this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
   }
@@ -90,12 +80,8 @@ export class BindableObserver {
       this.currentValue = newValue;
       if (this.lifecycle.batch.depth === 0) {
         this.callSubscribers(newValue, currentValue, this.persistentFlags | flags);
-        if ((flags & LifecycleFlags.fromBind) === 0 || (flags & LifecycleFlags.updateSourceExpression) > 0) {
-          const callback = this.callback;
-
-          if (callback !== void 0) {
-            callback.call(this.obj, newValue, currentValue, this.persistentFlags | flags);
-          }
+        if ((flags & LifecycleFlags.fromBind) === 0 || (flags & LifecycleFlags.updateSource) > 0) {
+          this.callback?.call(this.obj, newValue, currentValue, this.persistentFlags | flags);
 
           if (this.hasPropertyChangedCallback) {
             // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion

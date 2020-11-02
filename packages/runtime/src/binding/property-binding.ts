@@ -92,7 +92,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
     const $scope = this.$scope;
     const locator = this.locator;
 
-    if ((flags & LifecycleFlags.updateTargetInstance) > 0) {
+    if ((flags & LifecycleFlags.updateTarget) > 0) {
       // Alpha: during bind a simple strategy for bind is always flush immediately
       // todo:
       //  (1). determine whether this should be the behavior
@@ -130,7 +130,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
       return;
     }
 
-    if ((flags & LifecycleFlags.updateSourceExpression) > 0) {
+    if ((flags & LifecycleFlags.updateSource) > 0) {
       if (newValue !== sourceExpression.evaluate(flags, $scope!, this.$hostScope, locator, null)) {
         interceptor.updateSource(newValue, flags);
       }
@@ -196,7 +196,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
       if (!shouldConnect) {
         interceptor.updateSource(targetObserver.getValue(this.target, this.targetProperty), flags);
       }
-      targetObserver[this.id] |= LifecycleFlags.updateSourceExpression;
+      targetObserver[this.id] |= LifecycleFlags.updateSource;
     }
 
     // add isBound flag and remove isBinding flag
@@ -225,7 +225,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
     }
     if (targetObserver.unsubscribe) {
       targetObserver.unsubscribe(this.interceptor);
-      targetObserver[this.id] &= ~LifecycleFlags.updateSourceExpression;
+      targetObserver[this.id] &= ~LifecycleFlags.updateSource;
     }
     if (task != null) {
       task.cancel();

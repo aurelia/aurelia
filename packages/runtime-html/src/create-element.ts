@@ -3,21 +3,22 @@ import {
   HydrateElementInstruction,
   isInstruction,
   SetAttributeInstruction,
-  Instruction,
+  IInstruction,
   InstructionType,
-} from './instructions';
-import { ISyntheticView } from './lifecycle';
+  Instruction,
+} from './renderer';
 import { IPlatform } from './platform';
 import { CustomElement, CustomElementDefinition, CustomElementType } from './resources/custom-element';
-import { getCompositionContext, ICompositionContext } from './templating/composition-context';
+import { getRenderContext, IRenderContext } from './templating/render-context';
 import { IViewFactory } from './templating/view';
+import type { ISyntheticView } from './templating/controller';
 
 export function createElement<C extends Constructable = Constructable>(
   p: IPlatform,
   tagOrType: string | C,
-  props?: Record<string, string | Instruction>,
+  props?: Record<string, string | IInstruction>,
   children?: ArrayLike<unknown>
-): CompositionPlan {
+): RenderPlan {
   if (typeof tagOrType === 'string') {
     return createElementForTag(p, tagOrType, props, children);
   } else if (CustomElement.isType(tagOrType)) {
@@ -28,14 +29,14 @@ export function createElement<C extends Constructable = Constructable>(
 }
 
 /**
- * CompositionPlan. Todo: describe goal of this class
+ * RenderPlan. Todo: describe goal of this class
  */
-export class CompositionPlan {
+export class RenderPlan {
   private lazyDefinition?: CustomElementDefinition = void 0;
 
   public constructor(
     private readonly node: Node,
-    private readonly instructions: Instruction[][],
+    private readonly instructions: IInstruction[][],
     private readonly dependencies: Key[]
   ) {}
 
@@ -52,8 +53,8 @@ export class CompositionPlan {
     return this.lazyDefinition;
   }
 
-  public getContext(parentContainer: IContainer): ICompositionContext {
-    return getCompositionContext(this.definition, parentContainer);
+  public getContext(parentContainer: IContainer): IRenderContext {
+    return getRenderContext(this.definition, parentContainer);
   }
 
   public createView(parentContainer: IContainer): ISyntheticView {
@@ -65,16 +66,16 @@ export class CompositionPlan {
   }
 
   /** @internal */
-  public mergeInto(parent: Node & ParentNode, instructions: Instruction[][], dependencies: Key[]): void {
+  public mergeInto(parent: Node & ParentNode, instructions: IInstruction[][], dependencies: Key[]): void {
     parent.appendChild(this.node);
     instructions.push(...this.instructions);
     dependencies.push(...this.dependencies);
   }
 }
 
-function createElementForTag(p: IPlatform, tagName: string, props?: Record<string, string | Instruction>, children?: ArrayLike<unknown>): CompositionPlan {
-  const instructions: Instruction[] = [];
-  const allInstructions: Instruction[][] = [];
+function createElementForTag(p: IPlatform, tagName: string, props?: Record<string, string | IInstruction>, children?: ArrayLike<unknown>): RenderPlan {
+  const instructions: IInstruction[] = [];
+  const allInstructions: IInstruction[][] = [];
   const dependencies: IRegistry[] = [];
   const element = p.document.createElement(tagName);
   let hasInstructions = false;
@@ -102,7 +103,7 @@ function createElementForTag(p: IPlatform, tagName: string, props?: Record<strin
     addChildren(p, element, children, allInstructions, dependencies);
   }
 
-  return new CompositionPlan(element, allInstructions, dependencies);
+  return new RenderPlan(element, allInstructions, dependencies);
 }
 
 function createElementForType(
@@ -110,10 +111,10 @@ function createElementForType(
   Type: CustomElementType,
   props?: Record<string, unknown>,
   children?: ArrayLike<unknown>,
-): CompositionPlan {
+): RenderPlan {
   const definition = CustomElement.getDefinition(Type);
   const tagName = definition.name;
-  const instructions: Instruction[] = [];
+  const instructions: IInstruction[] = [];
   const allInstructions = [instructions];
   const dependencies: Key[] = [];
   const childInstructions: Instruction[] = [];
@@ -154,14 +155,14 @@ function createElementForType(
     addChildren(p, element, children, allInstructions, dependencies);
   }
 
-  return new CompositionPlan(element, allInstructions, dependencies);
+  return new RenderPlan(element, allInstructions, dependencies);
 }
 
 function addChildren<T extends HTMLElement>(
   p: IPlatform,
   parent: T,
   children: ArrayLike<unknown>,
-  allInstructions: Instruction[][],
+  allInstructions: IInstruction[][],
   dependencies: Key[],
 ): void {
   for (let i = 0, ii = children.length; i < ii; ++i) {
@@ -174,8 +175,8 @@ function addChildren<T extends HTMLElement>(
       case 'object':
         if (current instanceof p.Node) {
           parent.appendChild(current);
-        } else if ('mergeInto' in (current as CompositionPlan)) {
-          (current as CompositionPlan).mergeInto(parent, allInstructions, dependencies);
+        } else if ('mergeInto' in (current as RenderPlan)) {
+          (current as RenderPlan).mergeInto(parent, allInstructions, dependencies);
         }
     }
   }

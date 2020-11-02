@@ -1,9 +1,9 @@
 import { nextId } from '@aurelia/kernel';
 import { LifecycleFlags } from '@aurelia/runtime';
 import { IRenderLocation } from '../../dom';
-import { ISyntheticView, MountStrategy, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../lifecycle';
 import { IViewFactory } from '../../templating/view';
 import { templateController } from '../custom-attribute';
+import type { ISyntheticView, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller';
 
 abstract class FlagsTemplateController implements ICustomAttributeViewModel {
   public readonly id: number;
@@ -19,11 +19,10 @@ abstract class FlagsTemplateController implements ICustomAttributeViewModel {
   ) {
     this.id = nextId('au$component');
 
-    this.view = this.factory.create();
-    this.view.setLocation(location, MountStrategy.insertBefore);
+    this.view = this.factory.create().setLocation(location);
   }
 
-  public afterAttach(
+  public attaching(
     initiator: IHydratedController,
     parent: IHydratedParentController,
     flags: LifecycleFlags,
@@ -32,20 +31,12 @@ abstract class FlagsTemplateController implements ICustomAttributeViewModel {
     return this.view.activate(initiator, $controller, flags | this.flags, $controller.scope, $controller.hostScope);
   }
 
-  public afterUnbind(
+  public detaching(
     initiator: IHydratedController,
     parent: IHydratedParentController,
     flags: LifecycleFlags,
   ): void | Promise<void> {
     return this.view.deactivate(initiator, this.$controller, flags);
-  }
-
-  public onCancel(
-    initiator: IHydratedController,
-    parent: IHydratedParentController,
-    flags: LifecycleFlags,
-  ): void {
-    this.view?.cancel(initiator, this.$controller, flags);
   }
 
   public dispose(): void {

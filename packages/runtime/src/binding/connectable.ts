@@ -6,7 +6,6 @@ import {
 import {
   IConnectable,
   IBindingTargetObserver,
-  IProxySubscribable,
   ISubscribable,
   ISubscriber,
   IBinding,
@@ -40,7 +39,7 @@ export interface IConnectableBinding extends IPartialConnectableBinding, IConnec
   id: number;
   observerSlots: number;
   version: number;
-  addObserver(observer: ISubscribable | IProxySubscribable): void;
+  addObserver(observer: ISubscribable): void;
   unobserve(all?: boolean): void;
 }
 
@@ -63,7 +62,7 @@ export function addObserver(
     }
     this[slotNames[i]] = observer;
     observer.subscribe(this);
-    observer[this.id] |= LifecycleFlags.updateTargetInstance;
+    observer[this.id] |= LifecycleFlags.updateTarget;
     // increment the slot count.
     if (i === observerSlots) {
       this.observerSlots = i + 1;
@@ -102,7 +101,7 @@ export function unobserve(this: IConnectableBinding & { [key: string]: unknown }
       if (observer != null) {
         this[slotName] = void 0;
         observer.unsubscribe(this);
-        observer[this.id] &= ~LifecycleFlags.updateTargetInstance;
+        observer[this.id] &= ~LifecycleFlags.updateTarget;
       }
     }
   } else {
@@ -114,7 +113,7 @@ export function unobserve(this: IConnectableBinding & { [key: string]: unknown }
         if (observer != null) {
           this[slotName] = void 0;
           observer.unsubscribe(this);
-          observer[this.id] &= ~LifecycleFlags.updateTargetInstance;
+          observer[this.id] &= ~LifecycleFlags.updateTarget;
         }
       }
     }

@@ -504,12 +504,14 @@ export class Viewport implements IScopeOwner {
     // console.log('removeContent', this.toString());
 
     return Runner.run(
-      () => this.connectedScope.removeContent(),
+      () => { const promise = this.connectedScope.removeContent(); return !this.router.options.swapStrategy.includes('parallel') ? promise : void 0; },
+      // () => this.connectedScope.removeContent(),
+      // () => !this.router.options.swapStrategy.includes('parallel') ? this.connectedScope.removeContent() : void 0,
       () => this.deactivate(null, null /* TODO: verify this.connectedController */, LifecycleFlags.none),
       () => this.dispose(),
+      // () => this.router.options.swapStrategy.includes('parallel') ? this.connectedScope.removeContent() : void 0,
     );
   }
-
   public removeChildrenContent(): void | Promise<void> {
     // console.log(this.name, 'removeContent', this.content.content);
     return Runner.run(
@@ -604,6 +606,9 @@ export class Viewport implements IScopeOwner {
     this.nextContent = null;
     this.nextContentAction = '';
 
+//    this.content.contentStates.delete('checkedUnload');
+//    this.content.contentStates.delete('checkedLoad');
+
     this.previousViewportState = null;
     this.connectedScope.clearReplacedChildren();
   }
@@ -620,6 +625,9 @@ export class Viewport implements IScopeOwner {
           Object.assign(this, this.previousViewportState);
         }
         this.nextContentAction = '';
+
+//        this.content.contentStates.delete('checkedUnload');
+//        this.content.contentStates.delete('checkedLoad');
       });
   }
 

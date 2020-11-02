@@ -28,7 +28,7 @@ export type TitleFunction = (viewModel: IRouteableComponent, instruction: Naviga
 export interface IRouteableComponent extends ICustomElementViewModel {
   reentryBehavior?: ReentryBehavior;
   canLoad?(parameters: Record<string, unknown>, nextInstruction: Navigation, instruction: Navigation): boolean | NavigationInstruction | NavigationInstruction[] | Promise<boolean | NavigationInstruction | NavigationInstruction[]>;
-  load?(parameters: Record<string, unknown>, nextInstruction: Navigation, instruction: Navigation): void | Promise<void>;
+  load?(parameters: Record<string, unknown>, viewport: Viewport, nextInstruction: Navigation, instruction: Navigation): void | Promise<void>;
   canUnload?(nextInstruction: Navigation | null, instruction: Navigation): boolean | Promise<boolean>;
   unload?(nextInstruction: Navigation | null, instruction: Navigation): void | Promise<void>;
 }

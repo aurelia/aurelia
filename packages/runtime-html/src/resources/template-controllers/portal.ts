@@ -1,10 +1,10 @@
 import { nextId, onResolve } from '@aurelia/kernel';
 import { bindable, LifecycleFlags } from '@aurelia/runtime';
 import { IRenderLocation, setEffectiveParentNode } from '../../dom';
-import { ControllerVisitor, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ISyntheticView, MountStrategy } from '../../lifecycle';
 import { IPlatform } from '../../platform';
 import { IViewFactory } from '../../templating/view';
 import { templateController } from '../custom-attribute';
+import type { ControllerVisitor, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../templating/controller';
 
 export type PortalTarget<T extends Node & ParentNode = Node & ParentNode> = string | T | null | undefined;
 type ResolvedTarget<T extends Node & ParentNode = Node & ParentNode> = T | null;
@@ -59,7 +59,7 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
     setEffectiveParentNode(this.view.nodes!, originalLoc as unknown as Node);
   }
 
-  public afterAttach(
+  public attaching(
     initiator: IHydratedController,
     parent: IHydratedParentController,
     flags: LifecycleFlags,
@@ -68,12 +68,12 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
       this.callbackContext = this.$controller.scope.bindingContext;
     }
     const newTarget = this.currentTarget = this.resolveTarget();
-    this.view.setLocation(newTarget, MountStrategy.append);
+    this.view.setHost(newTarget);
 
     return this.$activating(initiator, newTarget, flags);
   }
 
-  public afterUnbind(
+  public detaching(
     initiator: IHydratedController,
     parent: IHydratedParentController,
     flags: LifecycleFlags,
@@ -94,7 +94,7 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
       return;
     }
 
-    this.view.setLocation(newTarget, MountStrategy.append);
+    this.view.setHost(newTarget);
     // TODO(fkleuver): fix and test possible race condition
     const ret = onResolve(
       this.$deactivating(null, newTarget, $controller.flags),
@@ -112,7 +112,7 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
   ): void | Promise<void> {
     const { activating, callbackContext, view } = this;
 
-    view.setLocation(target, MountStrategy.append);
+    view.setHost(target);
 
     return onResolve(
       activating?.call(callbackContext, target, view),
@@ -203,6 +203,13 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
     let target = this.target;
     let context = this.renderContext;
 
+    if (target === '') {
+      if (this.strict) {
+        throw new Error('Empty querySelector');
+      }
+      return $document.body as unknown as T;
+    }
+
     if (typeof target === 'string') {
       let queryContext: ParentNode = $document;
       if (typeof context === 'string') {
@@ -220,21 +227,12 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
 
     if (target == null) {
       if (this.strict) {
-        throw new Error('Compose target not found');
-      } else {
-        target = $document.body as unknown as ResolvedTarget;
+        throw new Error('Portal target not found');
       }
+      return $document.body as unknown as T;
     }
 
     return target as T & Node & ParentNode;
-  }
-
-  public onCancel(
-    initiator: IHydratedController,
-    parent: IHydratedParentController,
-    flags: LifecycleFlags,
-  ): void {
-    this.view?.cancel(initiator, this.$controller, flags);
   }
 
   public dispose(): void {

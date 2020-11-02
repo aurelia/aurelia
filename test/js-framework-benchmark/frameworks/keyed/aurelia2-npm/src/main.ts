@@ -10,15 +10,15 @@ import {
   DefaultBindingCommandRegistration,
   ForBindingCommandRegistration,
 
-  PropertyBindingComposerRegistration,
-  IteratorBindingComposerRegistration,
+  PropertyBindingRendererRegistration,
+  IteratorBindingRendererRegistration,
 
-  CustomElementComposerRegistration,
-  TemplateControllerComposerRegistration,
+  CustomElementRendererRegistration,
+  TemplateControllerRendererRegistration,
   DelegateBindingCommandRegistration,
 
-  TextBindingComposerRegistration,
-  ListenerBindingComposerRegistration,
+  TextBindingRendererRegistration,
+  ListenerBindingRendererRegistration,
 
   Aurelia,
 } from '@aurelia/runtime-html';
@@ -40,12 +40,12 @@ global['Aurelia'] = new Aurelia()
     DelegateBindingCommandRegistration,
     ForBindingCommandRegistration,
 
-    TextBindingComposerRegistration,
-    ListenerBindingComposerRegistration,
-    PropertyBindingComposerRegistration,
-    IteratorBindingComposerRegistration,
-    CustomElementComposerRegistration,
-    TemplateControllerComposerRegistration,
+    TextBindingRendererRegistration,
+    ListenerBindingRendererRegistration,
+    PropertyBindingRendererRegistration,
+    IteratorBindingRendererRegistration,
+    CustomElementRendererRegistration,
+    TemplateControllerRendererRegistration,
   )
   .app({
     host: document.querySelector('app'),

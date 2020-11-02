@@ -1,4 +1,5 @@
 /* eslint-disable mocha/no-hooks, mocha/no-sibling-hooks */
+import { IContainer } from '@aurelia/kernel';
 import {
   IAttrSyntaxTransformer,
   ITemplateElementFactory,
@@ -7,7 +8,6 @@ import {
   IAttributeParser,
   PlainElementSymbol,
   ProjectionSymbol,
-  ResourceModel,
   SymbolFlags,
   TemplateControllerSymbol,
   AuSlot,
@@ -15,6 +15,7 @@ import {
   CustomElementType,
   IExpressionParser,
   IPlatform,
+  ElementInfo,
 } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 
@@ -22,7 +23,7 @@ describe('template-binder.au-slot', function () {
   class TestData {
     public constructor(
       public readonly markup: string,
-      public readonly verify: (manifestRoot: PlainElementSymbol, platform: IPlatform, factory: ITemplateElementFactory, resources: ResourceModel) => void,
+      public readonly verify: (manifestRoot: PlainElementSymbol, platform: IPlatform, factory: ITemplateElementFactory, container: IContainer) => void,
       public readonly customElements: CustomElementType[] = [],
     ) { }
   }
@@ -31,7 +32,7 @@ describe('template-binder.au-slot', function () {
       public readonly binder: TemplateBinder,
       public readonly factory: ITemplateElementFactory,
       public readonly platform: IPlatform,
-      public readonly resources: ResourceModel,
+      public readonly container: IContainer,
     ) { }
   }
   function createElement(template: string, name: string = 'my-element') {
@@ -48,17 +49,15 @@ describe('template-binder.au-slot', function () {
 
     container.register(AuSlot, ...customElements);
 
-    const resources = new ResourceModel(container);
-
     const attrParser = container.get(IAttributeParser);
     const exprParser = container.get(IExpressionParser);
     const transformer = container.get(IAttrSyntaxTransformer);
 
     return new AuSlotTestContext(
-      new TemplateBinder(platform, resources, attrParser, exprParser, transformer),
+      new TemplateBinder(platform, container, attrParser, exprParser, transformer),
       container.get(ITemplateElementFactory),
       platform,
-      resources,
+      container,
     );
   }
   function* getTestData() {
@@ -214,12 +213,12 @@ describe('template-binder.au-slot', function () {
     );
     yield new TestData(
       '<my-element1><div au-slot="s1"><my-element2><div au-slot="s1"></div></my-element2></div></my-element1>',
-      (mfr, platform, factory, resources) => {
+      (mfr, platform, factory, container) => {
         const ce = (mfr.childNodes[0] as CustomElementSymbol);
         assert.instanceOf(ce, CustomElementSymbol);
         assert.includes(ce.res, 'my-element1');
 
-        const mel2 = new CustomElementSymbol(platform, factory.createTemplate('<my-element2 class="au"></my-element2>').content.firstChild as HTMLElement, resources.getElementInfo('my-element2'));
+        const mel2 = new CustomElementSymbol(platform, factory.createTemplate('<my-element2 class="au"></my-element2>').content.firstChild as HTMLElement, ElementInfo.from(container.find(CustomElement, 'my-element2')));
         mel2.projections.push(new ProjectionSymbol("s1", new PlainElementSymbol(factory.createTemplate('<div></div>').content.firstChild as HTMLElement)));
         const mel1 = new PlainElementSymbol(factory.createTemplate('<div><my-element2><div></div></my-element2></div>').content.firstChild as HTMLElement);
         mel1.childNodes.push(mel2);
@@ -265,7 +264,7 @@ describe('template-binder.au-slot', function () {
       const factory = ctx.factory;
       const template = factory.createTemplate(markup);
 
-      verify(ctx.binder.bind(template), ctx.platform, factory, ctx.resources);
+      verify(ctx.binder.bind(template), ctx.platform, factory, ctx.container);
     });
   }
 

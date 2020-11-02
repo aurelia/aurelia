@@ -16,7 +16,7 @@ import {
 } from '@aurelia/runtime-html';
 import { createContainer } from './test-context';
 // import {
-//   Instruction,
+//   IInstruction,
 //   NodeSequenceFactory,
 //   TextBindingInstruction,
 // } from '@aurelia/runtime-html';
@@ -73,7 +73,7 @@ import { createContainer } from './test-context';
 // }
 
 // export class InstructionBuilder {
-//   private instructions: Instruction[];
+//   private instructions: IInstruction[];
 
 //   constructor() {
 //     this.instructions = [];
@@ -140,7 +140,7 @@ import { createContainer } from './test-context';
 //     insCbOrBuilder: InstructionCb | InstructionBuilder,
 //     defCbOrBuilder: DefinitionCb | DefinitionBuilder
 //   ): InstructionBuilder {
-//     let childInstructions: Instruction[];
+//     let childInstructions: IInstruction[];
 //     let definition: PartialCustomElementDefinition;
 //     if (insCbOrBuilder instanceof InstructionBuilder) {
 //       childInstructions = insCbOrBuilder.build();
@@ -171,7 +171,7 @@ import { createContainer } from './test-context';
 //     return this;
 //   }
 
-//   public build(): Instruction[] {
+//   public build(): IInstruction[] {
 //     const { instructions } = this;
 //     this.instructions = null!;
 //     return instructions;
@@ -183,7 +183,7 @@ import { createContainer } from './test-context';
 //   private name: string;
 //   private templateBuilder: TemplateBuilder;
 //   private instructionBuilder: InstructionBuilder;
-//   private instructions: Instruction[][];
+//   private instructions: IInstruction[][];
 
 //   constructor(name?: string) {
 //     // eslint-disable-next-line prefer-template

@@ -65,12 +65,12 @@ export class ValidationErrorsCustomAttribute implements ValidationResultsSubscri
     this.errors = this.errorsInternal;
   }
 
-  public beforeBind() {
+  public binding() {
     this.controller = this.controller ?? this.scopedController;
     this.controller.addSubscriber(this);
   }
 
-  public beforeUnbind() {
+  public unbinding() {
     this.controller!.removeSubscriber(this);
   }
 }

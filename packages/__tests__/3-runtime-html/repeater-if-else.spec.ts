@@ -564,7 +564,7 @@ describe(spec, function () {
         const task = au.register(TestConfiguration)
           .app({ host, component: Component })
           .start();
-        const component = au.root.controller.bindingContext;
+        const component = au.root.controller.viewModel;
         await task;
 
         assert.strictEqual(trimFull(host.textContent), elseText.repeat(count), `trimFull(host.textContent) === elseText.repeat(count)`);

@@ -1,10 +1,10 @@
-import { DI, Writable } from '@aurelia/kernel';
+import { DI, InterfaceSymbol, Writable } from '@aurelia/kernel';
 import { IAppRoot } from './app-root';
 import { IPlatform } from './platform';
 import { CustomElement } from './resources/custom-element';
 import { MountTarget } from './templating/controller';
 
-export interface INode extends Node {}
+export type INode<T extends Node = Node> = T;
 export const INode = DI.createInterface<INode>('INode').noDefault();
 
 export interface IEventTarget extends EventTarget {}

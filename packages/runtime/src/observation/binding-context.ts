@@ -70,11 +70,14 @@ export class BindingContext implements IBindingContext {
      * This artifact raises the need for this fallback.
      */
     /* eslint-enable jsdoc/check-indentation */
-    // eslint-disable-next-line prefer-const
-    let [context, found] = chooseContext(scope, name, ancestor);
-    if (context !== null && (found || !hasOtherScope)) { return context; }
+    let context = chooseContext(scope, name, ancestor);
+    if (
+      context !== null
+      && ((context == null ? false : name in context)
+        || !hasOtherScope)
+    ) { return context; }
     if (hasOtherScope) {
-      [context,] = chooseContext(hostScope!, name, ancestor);
+      context = chooseContext(hostScope!, name, ancestor);
       if (context !== null) { return context; }
     }
 
@@ -88,7 +91,7 @@ export class BindingContext implements IBindingContext {
   }
 }
 
-function chooseContext(scope: Scope, name: string, ancestor: number): [IBindingContext, boolean] | [undefined | null, false] {
+function chooseContext(scope: Scope, name: string, ancestor: number): IBindingContext | undefined | null {
   let overrideContext: IOverrideContext | null = scope.overrideContext;
   let currentScope: Scope | null = scope;
 
@@ -98,13 +101,12 @@ function chooseContext(scope: Scope, name: string, ancestor: number): [IBindingC
       ancestor--;
       currentScope = currentScope.parentScope;
       if (currentScope?.overrideContext == null) {
-        return [void 0, false];
+        return void 0;
       }
     }
 
     overrideContext = currentScope!.overrideContext;
-    const bc = overrideContext.bindingContext;
-    return name in overrideContext ? [overrideContext, true] : [bc, bc != null ? name in bc : false];
+    return name in overrideContext ? overrideContext : overrideContext.bindingContext;
   }
 
   // traverse the context and it's ancestors, searching for a context that has the name.
@@ -122,11 +124,10 @@ function chooseContext(scope: Scope, name: string, ancestor: number): [IBindingC
   }
 
   if (overrideContext) {
-    const bc = overrideContext.bindingContext;
-    return name in overrideContext ? [overrideContext, true] : [bc, bc != null ? name in bc : false];
+    return name in overrideContext ? overrideContext : overrideContext.bindingContext;
   }
 
-  return [null, false];
+  return null;
 }
 
 export class Scope {

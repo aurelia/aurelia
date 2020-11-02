@@ -148,14 +148,12 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
 
   describe('timing', function () {
     it('ensures proper timing with custom elements', async function () {
-      let childBeforeBindCallCount = 0;
-      let childAfterBindCallCount = 0;
-      let childBeforeUnbindCallCount = 0;
-      let childAfterUnbindCallCount = 0;
-      let appBeforeBindCallCount = 0;
-      let appAfterBindCallCount = 0;
-      let appBeforeUnbindCallCount = 0;
-      let appAfterUnbindCallCount = 0;
+      let childBindingCallCount = 0;
+      let childBoundCallCount = 0;
+      let childUnbindingCallCount = 0;
+      let appBindingCallCount = 0;
+      let appBoundCallCount = 0;
+      let appUnbindingCallCount = 0;
 
       @customElement({ name: 'child', template: `\${prop}` })
       class Child {
@@ -168,34 +166,26 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
           this.logCallCount++;
         }
 
-        public beforeBind(): void {
-          childBeforeBindCallCount++;
+        public binding(): void {
+          childBindingCallCount++;
           assert.strictEqual(this.logCallCount, 0);
           this.prop++;
           assert.strictEqual(this.logCallCount, 0);
         }
 
-        public afterBind(): void {
-          childAfterBindCallCount++;
+        public bound(): void {
+          childBoundCallCount++;
           assert.strictEqual(this.logCallCount, 0);
           this.prop++;
           assert.strictEqual(this.logCallCount, 1);
         }
 
-        public beforeUnbind(): void {
-          childBeforeUnbindCallCount++;
+        public unbinding(): void {
+          childUnbindingCallCount++;
           // test body prop changed, callCount++
-          // parent prop changed, callCount++
+          assert.strictEqual(this.logCallCount, 2);
+          this.prop++;
           assert.strictEqual(this.logCallCount, 3);
-          this.prop++;
-          assert.strictEqual(this.logCallCount, 4);
-        }
-
-        public afterUnbind(): void {
-          childAfterUnbindCallCount++;
-          assert.strictEqual(this.logCallCount, 4);
-          this.prop++;
-          assert.strictEqual(this.logCallCount, 4);
         }
       }
 
@@ -211,36 +201,30 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
           this.logCallCount++;
         }
 
-        public beforeBind(): void {
-          appBeforeBindCallCount++;
+        public binding(): void {
+          appBindingCallCount++;
           assert.strictEqual(this.logCallCount, 0);
           this.prop++;
           assert.strictEqual(this.logCallCount, 0);
         }
 
-        public afterBind(): void {
-          appAfterBindCallCount++;
+        public bound(): void {
+          appBoundCallCount++;
           assert.strictEqual(this.logCallCount, 0);
           assert.strictEqual(this.child.logCallCount, 0);
           this.prop++;
           assert.strictEqual(this.logCallCount, 1);
-          // child after bind hasn't been called yet,
+          // child bound hasn't been called yet,
           // so watcher won't be activated and thus, no log call
           assert.strictEqual(this.child.logCallCount, 0);
         }
 
-        public beforeUnbind(): void {
-          appBeforeUnbindCallCount++;
+        public unbinding(): void {
+          appUnbindingCallCount++;
           // already got the modification in the code below, so it starts at 2
           assert.strictEqual(this.logCallCount, 2);
-          assert.strictEqual(this.child.logCallCount, 2);
-          this.prop++;
-          assert.strictEqual(this.logCallCount, 3);
-        }
-
-        public afterUnbind(): void {
-          appAfterUnbindCallCount++;
-          assert.strictEqual(this.logCallCount, 3);
+          // child unbinding is called before app unbinding
+          assert.strictEqual(this.child.logCallCount, 3);
           this.prop++;
           assert.strictEqual(this.logCallCount, 3);
         }
@@ -249,12 +233,11 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
       const { component, startPromise, tearDown } = createFixture('<child view-model.ref="child" prop.bind=prop>', App, [Child]);
 
       await startPromise;
-      assert.strictEqual(appBeforeBindCallCount, 1);
-      assert.strictEqual(appAfterBindCallCount, 1);
-      assert.strictEqual(appBeforeUnbindCallCount, 0);
-      assert.strictEqual(appAfterUnbindCallCount, 0);
-      assert.strictEqual(childBeforeBindCallCount, 1);
-      assert.strictEqual(childAfterBindCallCount, 1);
+      assert.strictEqual(appBindingCallCount, 1);
+      assert.strictEqual(appBoundCallCount, 1);
+      assert.strictEqual(appUnbindingCallCount, 0);
+      assert.strictEqual(childBindingCallCount, 1);
+      assert.strictEqual(childBoundCallCount, 1);
 
       assert.strictEqual(component.logCallCount, 1);
       assert.strictEqual(component.child.logCallCount, 1);
@@ -274,31 +257,27 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
       assert.instanceOf(childBindings[0], ComputedWatcher);
       await tearDown();
 
-      assert.strictEqual(appBeforeBindCallCount, 1);
-      assert.strictEqual(appAfterBindCallCount, 1);
-      assert.strictEqual(appBeforeUnbindCallCount, 1);
-      assert.strictEqual(appAfterUnbindCallCount, 1);
-      assert.strictEqual(childBeforeBindCallCount, 1);
-      assert.strictEqual(childAfterBindCallCount, 1);
-      assert.strictEqual(childBeforeUnbindCallCount, 1);
-      assert.strictEqual(childAfterUnbindCallCount, 1);
+      assert.strictEqual(appBindingCallCount, 1);
+      assert.strictEqual(appBoundCallCount, 1);
+      assert.strictEqual(appUnbindingCallCount, 1);
+      assert.strictEqual(childBindingCallCount, 1);
+      assert.strictEqual(childBoundCallCount, 1);
+      assert.strictEqual(childUnbindingCallCount, 1);
 
       assert.strictEqual(component.logCallCount, 3);
-      assert.strictEqual(child.logCallCount, 4);
+      assert.strictEqual(child.logCallCount, 3);
       component.prop++;
       assert.strictEqual(component.logCallCount, 3);
-      assert.strictEqual(child.logCallCount, 4);
+      assert.strictEqual(child.logCallCount, 3);
     });
 
     it('ensures proper timing with custom attribute', async function () {
-      let childBeforeBindCallCount = 0;
-      let childAfterBindCallCount = 0;
-      let childBeforeUnbindCallCount = 0;
-      let childAfterUnbindCallCount = 0;
-      let appBeforeBindCallCount = 0;
-      let appAfterBindCallCount = 0;
-      let appBeforeUnbindCallCount = 0;
-      let appAfterUnbindCallCount = 0;
+      let childBindingCallCount = 0;
+      let childBoundCallCount = 0;
+      let childUnbindingCallCount = 0;
+      let appBindingCallCount = 0;
+      let appBoundCallCount = 0;
+      let appUnbindingCallCount = 0;
 
       @customAttribute({ name: 'child' })
       class Child {
@@ -311,34 +290,26 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
           this.logCallCount++;
         }
 
-        public beforeBind(): void {
-          childBeforeBindCallCount++;
+        public binding(): void {
+          childBindingCallCount++;
           assert.strictEqual(this.logCallCount, 0);
           this.prop++;
           assert.strictEqual(this.logCallCount, 0);
         }
 
-        public afterBind(): void {
-          childAfterBindCallCount++;
+        public bound(): void {
+          childBoundCallCount++;
           assert.strictEqual(this.logCallCount, 0);
           this.prop++;
           assert.strictEqual(this.logCallCount, 1);
         }
 
-        public beforeUnbind(): void {
-          childBeforeUnbindCallCount++;
+        public unbinding(): void {
+          childUnbindingCallCount++;
           // test body prop changed, callCount++
-          // parent prop changed, callCount++
+          assert.strictEqual(this.logCallCount, 2);
+          this.prop++;
           assert.strictEqual(this.logCallCount, 3);
-          this.prop++;
-          assert.strictEqual(this.logCallCount, 4);
-        }
-
-        public afterUnbind(): void {
-          childAfterUnbindCallCount++;
-          assert.strictEqual(this.logCallCount, 4);
-          this.prop++;
-          assert.strictEqual(this.logCallCount, 4);
         }
       }
 
@@ -354,15 +325,15 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
           this.logCallCount++;
         }
 
-        public beforeBind(): void {
-          appBeforeBindCallCount++;
+        public binding(): void {
+          appBindingCallCount++;
           assert.strictEqual(this.logCallCount, 0);
           this.prop++;
           assert.strictEqual(this.logCallCount, 0);
         }
 
-        public afterBind(): void {
-          appAfterBindCallCount++;
+        public bound(): void {
+          appBoundCallCount++;
           assert.strictEqual(this.logCallCount, 0);
           assert.strictEqual(this.child.logCallCount, 0);
           this.prop++;
@@ -372,18 +343,12 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
           assert.strictEqual(this.child.logCallCount, 0);
         }
 
-        public beforeUnbind(): void {
-          appBeforeUnbindCallCount++;
+        public unbinding(): void {
+          appUnbindingCallCount++;
           // already got the modification in the code below, so it starts at 2
           assert.strictEqual(this.logCallCount, 2);
-          assert.strictEqual(this.child.logCallCount, 2);
-          this.prop++;
-          assert.strictEqual(this.logCallCount, 3);
-        }
-
-        public afterUnbind(): void {
-          appAfterUnbindCallCount++;
-          assert.strictEqual(this.logCallCount, 3);
+          // child unbinding is aclled before this unbinding
+          assert.strictEqual(this.child.logCallCount, 3);
           this.prop++;
           assert.strictEqual(this.logCallCount, 3);
         }
@@ -392,12 +357,11 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
       const { component, startPromise, tearDown } = createFixture('<div child.bind="prop" child.ref="child">', App, [Child]);
 
       await startPromise;
-      assert.strictEqual(appBeforeBindCallCount, 1);
-      assert.strictEqual(appAfterBindCallCount, 1);
-      assert.strictEqual(appBeforeUnbindCallCount, 0);
-      assert.strictEqual(appAfterUnbindCallCount, 0);
-      assert.strictEqual(childBeforeBindCallCount, 1);
-      assert.strictEqual(childAfterBindCallCount, 1);
+      assert.strictEqual(appBindingCallCount, 1);
+      assert.strictEqual(appBoundCallCount, 1);
+      assert.strictEqual(appUnbindingCallCount, 0);
+      assert.strictEqual(childBindingCallCount, 1);
+      assert.strictEqual(childBoundCallCount, 1);
 
       assert.strictEqual(component.logCallCount, 1);
       assert.strictEqual(component.child.logCallCount, 1);
@@ -417,20 +381,18 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
       assert.instanceOf(childBindings[0], ComputedWatcher);
       await tearDown();
 
-      assert.strictEqual(appBeforeBindCallCount, 1);
-      assert.strictEqual(appAfterBindCallCount, 1);
-      assert.strictEqual(appBeforeUnbindCallCount, 1);
-      assert.strictEqual(appAfterUnbindCallCount, 1);
-      assert.strictEqual(childBeforeBindCallCount, 1);
-      assert.strictEqual(childAfterBindCallCount, 1);
-      assert.strictEqual(childBeforeUnbindCallCount, 1);
-      assert.strictEqual(childAfterUnbindCallCount, 1);
+      assert.strictEqual(appBindingCallCount, 1);
+      assert.strictEqual(appBoundCallCount, 1);
+      assert.strictEqual(appUnbindingCallCount, 1);
+      assert.strictEqual(childBindingCallCount, 1);
+      assert.strictEqual(childBoundCallCount, 1);
+      assert.strictEqual(childUnbindingCallCount, 1);
 
       assert.strictEqual(component.logCallCount, 3);
-      assert.strictEqual(child.logCallCount, 4);
+      assert.strictEqual(child.logCallCount, 3);
       component.prop++;
       assert.strictEqual(component.logCallCount, 3);
-      assert.strictEqual(child.logCallCount, 4);
+      assert.strictEqual(child.logCallCount, 3);
     });
   });
 

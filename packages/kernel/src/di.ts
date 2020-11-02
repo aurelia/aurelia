@@ -5,7 +5,7 @@ applyMetadataPolyfill(Reflect);
 import { isArrayIndex, isNativeFunction } from './functions';
 import { Class, Constructable, IDisposable } from './interfaces';
 import { emptyArray } from './platform';
-import { Protocol } from './resource';
+import { IResourceKind, Protocol, ResourceDefinition, ResourceType } from './resource';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -66,6 +66,8 @@ export interface IContainer extends IServiceLocator, IDisposable {
   getFactory<T extends Constructable>(key: T): IFactory<T> | null;
   createChild(config?: IContainerConfiguration): IContainer;
   disposeResolvers(): void;
+  find<TType extends ResourceType, TDef extends ResourceDefinition>(kind: IResourceKind<TType, TDef>, name: string): TDef | null;
+  create<TType extends ResourceType, TDef extends ResourceDefinition>(kind: IResourceKind<TType, TDef>, name: string): InstanceType<TType> | null;
 }
 
 export class ResolverBuilder<K> {
@@ -1205,6 +1207,52 @@ export class Container implements IContainer {
     while (disposables.length > 0) {
       disposables.pop()?.dispose();
     }
+  }
+
+  public find<TType extends ResourceType, TDef extends ResourceDefinition>(kind: IResourceKind<TType, TDef>, name: string): TDef | null {
+    const key = kind.keyFrom(name);
+    let resolver = this.resourceResolvers[key];
+    if (resolver === void 0) {
+      resolver = this.root.resourceResolvers[key];
+      if (resolver === void 0) {
+        return null;
+      }
+    }
+
+    if (resolver === null) {
+      return null;
+    }
+
+    if (typeof resolver.getFactory === 'function') {
+      const factory = resolver.getFactory(this);
+      if (factory === null || factory === void 0) {
+        return null;
+      }
+
+      const definition = Metadata.getOwn(kind.name, factory.Type);
+      if (definition === void 0) {
+        // TODO: we may want to log a warning here, or even throw. This would happen if a dependency is registered with a resource-like key
+        // but does not actually have a definition associated via the type's metadata. That *should* generally not happen.
+        return null;
+      }
+
+      return definition;
+    }
+
+    return null;
+  }
+
+  public create<TType extends ResourceType, TDef extends ResourceDefinition>(kind: IResourceKind<TType, TDef>, name: string): InstanceType<TType> | null {
+    const key = kind.keyFrom(name);
+    let resolver = this.resourceResolvers[key];
+    if (resolver === void 0) {
+      resolver = this.root.resourceResolvers[key];
+      if (resolver === void 0) {
+        return null;
+      }
+      return resolver.resolve(this.root, this) ?? null;
+    }
+    return resolver.resolve(this, this) ?? null;
   }
 
   public dispose(): void {

@@ -1,8 +1,8 @@
 import { bindable, BindingMode } from '@aurelia/runtime';
 import { INode } from '../../dom';
-import { ICustomAttributeController, ICustomAttributeViewModel } from '../../lifecycle';
 import { IPlatform } from '../../platform';
 import { customAttribute } from '../custom-attribute';
+import type { ICustomAttributeController, ICustomAttributeViewModel } from '../../templating/controller';
 
 /**
  * Focus attribute for element focus binding
@@ -16,7 +16,7 @@ export class Focus implements ICustomAttributeViewModel {
   public value: unknown;
 
   /**
-   * Indicates whether `apply` should be called when `afterAttachChildren` callback is invoked
+   * Indicates whether `apply` should be called when `attached` callback is invoked
    */
   private needsApply: boolean = false;
 
@@ -26,7 +26,7 @@ export class Focus implements ICustomAttributeViewModel {
     this.element = element as HTMLElement;
   }
 
-  public beforeBind(): void {
+  public binding(): void {
     this.valueChanged();
   }
 
@@ -46,15 +46,15 @@ export class Focus implements ICustomAttributeViewModel {
     } else {
       // If the element is not currently connect
       // toggle the flag to add pending work for later
-      // in afterAttachChildren lifecycle
+      // in attached lifecycle
       this.needsApply = true;
     }
   }
 
   /**
-   * Invoked when the attribute is afterAttachChildren to the DOM.
+   * Invoked when the attribute is attached to the DOM.
    */
-  public afterAttachChildren(): void {
+  public attached(): void {
     if (this.needsApply) {
       this.needsApply = false;
       this.apply();

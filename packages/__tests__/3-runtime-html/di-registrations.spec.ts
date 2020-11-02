@@ -200,7 +200,7 @@
 //             this.node = node;
 //           }
 
-//           public beforeBind(this: IViewModel & this): void {
+//           public binding(this: IViewModel & this): void {
 //             this.child = this.$context.get<IViewModel>('au:resource:custom-element:foo');
 //             this.child.$hydrate(LF.none, this.$context, this.node);
 //             this.child.$bind(LF.none, Scope.create(LF.none, BindingContext.create(LF.none)));
@@ -243,7 +243,7 @@
 //             this.node = node;
 //           }
 
-//           public beforeBind(this: IViewModel & this): void {
+//           public binding(this: IViewModel & this): void {
 //             this.child = this.$context.get<IViewModel>('au:resource:custom-element:bar');
 //             this.child.$hydrate(LF.none, this.$context, this.node);
 //             this.child.$bind(LF.none, Scope.create(LF.none, BindingContext.create(LF.none)));
@@ -295,7 +295,7 @@
 //             this.node = node;
 //           }
 
-//           public beforeBind(this: IViewModel & this): void {
+//           public binding(this: IViewModel & this): void {
 //             this.child = this.$context.get<IViewModel>('au:resource:custom-element:baz');
 //             this.child.$hydrate(LF.none, this.$context, this.node);
 //             this.child.$bind(LF.none, Scope.create(LF.none, BindingContext.create(LF.none)));

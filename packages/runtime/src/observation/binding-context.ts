@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { IIndexable } from '@aurelia/kernel';
 import { IBinding, IBindingContext, IOverrideContext, LifecycleFlags } from '../observation';
-import { ProxyObserver } from './proxy-observer';
 
 const marker = Object.freeze({});
 
@@ -45,11 +44,7 @@ export class BindingContext implements IBindingContext {
    */
   public static create(flags: LifecycleFlags, keyOrObj?: string | IIndexable, value?: unknown): BindingContext;
   public static create(flags: LifecycleFlags, keyOrObj?: string | IIndexable, value?: unknown): BindingContext {
-    const bc = new BindingContext(keyOrObj, value);
-    if (flags & LifecycleFlags.proxyStrategy) {
-      return ProxyObserver.getOrCreate(bc).proxy;
-    }
-    return bc;
+    return new BindingContext(keyOrObj, value);
   }
 
   public static get(scope: Scope, name: string, ancestor: number, flags: LifecycleFlags, hostScope?: Scope | null): IBindingContext | IOverrideContext | IBinding | undefined | null {

@@ -17,20 +17,12 @@ import {
   Scope,
 } from '@aurelia/runtime';
 import { INode, IRenderLocation } from '../../dom';
-import {
-  ICustomAttributeController,
-  ICustomAttributeViewModel,
-  IHydratedController,
-  IHydratedParentController,
-  IComposableController,
-  ISyntheticView,
-  MountStrategy,
-} from '../../lifecycle';
 import { templateController } from '../custom-attribute';
 import { Controller } from '../../templating/controller';
-import { ICompiledCompositionContext } from '../../templating/composition-context';
-import { IInstruction } from '../../definitions';
+import { ICompiledRenderContext } from '../../templating/render-context';
 import { IViewFactory } from '../../templating/view';
+import type { ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, IHydratableController, ISyntheticView, ControllerVisitor } from '../../templating/controller';
+import { Instruction } from '../../renderer';
 
 @templateController('switch')
 export class Switch implements ICustomAttributeViewModel {
@@ -58,29 +50,28 @@ export class Switch implements ICustomAttributeViewModel {
 
   public link(
     flags: LifecycleFlags,
-    parentContext: ICompiledCompositionContext,
-    controller: IComposableController,
-    childController: ICustomAttributeController,
-    target: INode,
-    instruction: IInstruction,
+    _parentContext: ICompiledRenderContext,
+    _controller: IHydratableController,
+    _childController: ICustomAttributeController,
+    _target: INode,
+    _instruction: Instruction,
   ): void {
-    const view = this.view = this.factory.create(flags, this.$controller);
-    view.setLocation(this.location, MountStrategy.insertBefore);
+    this.view = this.factory.create(flags, this.$controller).setLocation(this.location);
   }
 
-  public afterAttach(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void> {
+  public attaching(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void> {
     const view = this.view;
     const $controller = this.$controller;
 
-    this.queue(() => view.activate(view, $controller, flags, $controller.scope, $controller.hostScope));
-    this.queue(() => this.swap(flags, this.value));
+    this.queue(() => view.activate(initiator, $controller, flags, $controller.scope, $controller.hostScope));
+    this.queue(() => this.swap(initiator, flags, this.value));
     return this.promise;
   }
 
-  public afterUnbind(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void> {
+  public detaching(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void> {
     this.queue(() => {
       const view = this.view;
-      return view.deactivate(view, this.$controller, flags);
+      return view.deactivate(initiator, this.$controller, flags);
     });
     return this.promise;
   }
@@ -92,7 +83,7 @@ export class Switch implements ICustomAttributeViewModel {
 
   public valueChanged(_newValue: boolean, _oldValue: boolean, flags: LifecycleFlags): void {
     if (!this.$controller.isActive) { return; }
-    this.queue(() => this.swap(flags, this.value));
+    this.queue(() => this.swap(null, flags, this.value));
   }
 
   public caseChanged($case: Case, flags: LifecycleFlags): void {
@@ -108,7 +99,7 @@ export class Switch implements ICustomAttributeViewModel {
     if (!isMatch) {
       /** The previous match started with this; thus clear. */
       if (numActiveCases > 0 && activeCases[0].id === $case.id) {
-        await this.clearActiveCases(flags);
+        await this.clearActiveCases(null, flags);
       }
       /**
        * There are 2 different scenarios here:
@@ -139,13 +130,13 @@ export class Switch implements ICustomAttributeViewModel {
       }
     }
 
-    await this.clearActiveCases(flags, newActiveCases);
+    await this.clearActiveCases(null, flags, newActiveCases);
     this.activeCases = newActiveCases;
 
-    await this.activateCases(flags);
+    await this.activateCases(null, flags);
   }
 
-  private swap(flags: LifecycleFlags, value: unknown): void | Promise<void> {
+  private swap(initiator: IHydratedController | null, flags: LifecycleFlags, value: unknown): void | Promise<void> {
     const newActiveCases: Case[] = [];
 
     let fallThrough: boolean = false;
@@ -163,17 +154,17 @@ export class Switch implements ICustomAttributeViewModel {
 
     return onResolve(
       this.activeCases.length > 0
-        ? this.clearActiveCases(flags, newActiveCases)
+        ? this.clearActiveCases(initiator, flags, newActiveCases)
         : void 0!,
       () => {
         this.activeCases = newActiveCases;
         if (newActiveCases.length === 0) { return; }
-        return this.activateCases(flags);
+        return this.activateCases(initiator, flags);
       }
     );
   }
 
-  private activateCases(flags: LifecycleFlags): void | Promise<void> {
+  private activateCases(initiator: IHydratedController | null, flags: LifecycleFlags): void | Promise<void> {
     const controller = this.$controller;
     if (!controller.isActive) { return; }
 
@@ -186,13 +177,13 @@ export class Switch implements ICustomAttributeViewModel {
 
     // most common case
     if (length === 1) {
-      return cases[0].activate(flags, scope, hostScope);
+      return cases[0].activate(initiator, flags, scope, hostScope);
     }
 
-    return resolveAll(...cases.map(($case) => $case.activate(flags, scope, hostScope)));
+    return resolveAll(...cases.map(($case) => $case.activate(initiator, flags, scope, hostScope)));
   }
 
-  private clearActiveCases(flags: LifecycleFlags, newActiveCases: Case[] = []): void | Promise<void> {
+  private clearActiveCases(initiator: IHydratedController | null, flags: LifecycleFlags, newActiveCases: Case[] = []): void | Promise<void> {
     const cases = this.activeCases;
     const numCases = cases.length;
 
@@ -202,7 +193,7 @@ export class Switch implements ICustomAttributeViewModel {
       const firstCase = cases[0];
       if (!newActiveCases.includes(firstCase)) {
         cases.length = 0;
-        return firstCase.deactivate(flags);
+        return firstCase.deactivate(initiator, flags);
       }
       return;
     }
@@ -210,7 +201,7 @@ export class Switch implements ICustomAttributeViewModel {
     return onResolve(
       resolveAll(...cases.reduce((acc: (void | Promise<void>)[], $case) => {
         if (!newActiveCases.includes($case)) {
-          acc.push($case.deactivate(flags));
+          acc.push($case.deactivate(initiator, flags));
         }
         return acc;
       }, [])),
@@ -231,6 +222,15 @@ export class Switch implements ICustomAttributeViewModel {
         }
       }
     );
+  }
+
+  public accept(visitor: ControllerVisitor): void | true {
+    if (this.$controller.accept(visitor) === true) {
+      return true;
+    }
+    if (this.activeCases.some(x => x.accept(visitor))) {
+      return true;
+    }
   }
 }
 
@@ -267,16 +267,16 @@ export class Case implements ICustomAttributeViewModel {
   ) {
     this.debug = logger.config.level <= LogLevel.debug;
     this.logger = logger.scopeTo(`${this.constructor.name}-#${this.id}`);
-    (this.view = this.factory.create()).setLocation(location, MountStrategy.insertBefore);
+    this.view = this.factory.create().setLocation(location);
   }
 
   public link(
     flags: LifecycleFlags,
-    parentContext: ICompiledCompositionContext,
-    controller: IComposableController,
+    parentContext: ICompiledRenderContext,
+    controller: IHydratableController,
     _childController: ICustomAttributeController,
     _target: INode,
-    _instruction: IInstruction,
+    _instruction: Instruction,
   ): void {
     const switchController: IHydratedParentController = (controller as Controller).parent! as IHydratedParentController;
     const $switch = switchController?.viewModel;
@@ -288,8 +288,8 @@ export class Case implements ICustomAttributeViewModel {
     }
   }
 
-  public afterUnbind(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void> {
-    return this.deactivate(flags);
+  public detaching(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void> {
+    return this.deactivate(initiator, flags);
   }
 
   public isMatch(value: unknown, flags: LifecycleFlags): boolean {
@@ -320,16 +320,16 @@ export class Case implements ICustomAttributeViewModel {
     this.$switch.caseChanged(this, flags);
   }
 
-  public activate(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void | Promise<void> {
+  public activate(initiator: IHydratedController | null, flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void | Promise<void> {
     const view = this.view;
     if (view.isActive) { return; }
-    return view.activate(view, this.$controller, flags, scope, hostScope);
+    return view.activate(initiator ?? view, this.$controller, flags, scope, hostScope);
   }
 
-  public deactivate(flags: LifecycleFlags): void | Promise<void> {
+  public deactivate(initiator: IHydratedController | null, flags: LifecycleFlags): void | Promise<void> {
     const view = this.view;
     if (!view.isActive) { return; }
-    return view.deactivate(view, this.$controller, flags);
+    return view.deactivate(initiator ?? view, this.$controller, flags);
   }
 
   public dispose(): void {
@@ -346,6 +346,13 @@ export class Case implements ICustomAttributeViewModel {
     const observer = this.locator.getArrayObserver(flags, $value);
     observer.addCollectionSubscriber(this);
     return observer;
+  }
+
+  public accept(visitor: ControllerVisitor): void | true {
+    if (this.$controller.accept(visitor) === true) {
+      return true;
+    }
+    return this.view?.accept(visitor);
   }
 }
 

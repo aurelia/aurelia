@@ -1,29 +1,9 @@
-import {
-  LogLevel,
-  Constructable,
-  kebabCase,
-  ILogConfig,
-} from '@aurelia/kernel';
-import {
-  assert,
-  TestContext,
-} from '@aurelia/testing';
-import {
-  RouterConfiguration,
-  IRouter,
-  NavigationInstruction,
-  // TODO? IRouteContext,
-  Navigation,
-} from '@aurelia/router';
-import {
-  Aurelia,
-  customElement,
-  CustomElement,
-} from '@aurelia/runtime';
+import { LogLevel, Constructable, kebabCase, ILogConfig } from '@aurelia/kernel';
+import { assert, TestContext } from '@aurelia/testing';
+import { RouterConfiguration, IRouter, NavigationInstruction, IRouteContext, RouteNode } from '@aurelia/router';
+import { Aurelia, customElement, CustomElement } from '@aurelia/runtime-html';
 
-import {
-  TestRouterConfiguration,
-} from './_shared/configuration';
+import { TestRouterConfiguration } from './_shared/configuration';
 
 function vp(count: number): string {
   return '<au-viewport></au-viewport>'.repeat(count);
@@ -48,12 +28,12 @@ function assertComponentsVisible(host: HTMLElement, spec: CSpec, msg: string = '
 function assertIsActive(
   router: IRouter,
   instruction: NavigationInstruction,
-  context: any, // TODO? IRouteContext,
+  context: IRouteContext,
   expected: boolean,
   assertId: number,
 ): void {
-  // const isActive = expected; // TODO: router.isActive(instruction, context);
-  // assert.strictEqual(isActive, expected, `expected isActive to return ${expected} (assertId ${assertId})`);
+  const isActive = router.isActive(instruction, context);
+  assert.strictEqual(isActive, expected, `expected isActive to return ${expected} (assertId ${assertId})`);
 }
 
 async function createFixture<T extends Constructable>(
@@ -61,8 +41,8 @@ async function createFixture<T extends Constructable>(
   deps: Constructable[],
   level: LogLevel = LogLevel.warn,
 ) {
-  const ctx = TestContext.createHTMLTestContext();
-  const { container, scheduler } = ctx;
+  const ctx = TestContext.create();
+  const { container, platform } = ctx;
 
   container.register(TestRouterConfiguration.for(ctx, level));
   container.register(RouterConfiguration.customize({ deferUntil: 'none' }));
@@ -73,11 +53,10 @@ async function createFixture<T extends Constructable>(
 
   const au = new Aurelia(container);
   const host = ctx.createElement('div');
-  ctx.doc.body.appendChild(host as any);
 
   au.app({ component, host });
 
-  await au.start();
+  await au.start()
 
   assertComponentsVisible(host, [Component]);
 
@@ -88,7 +67,7 @@ async function createFixture<T extends Constructable>(
     au,
     host,
     component,
-    scheduler,
+    platform,
     container,
     router,
     startTracing() {
@@ -98,14 +77,9 @@ async function createFixture<T extends Constructable>(
       logConfig.level = level;
     },
     async tearDown() {
-      // scheduler.getRenderTaskQueue().flush();
-      // assert.areTaskQueuesEmpty();
+      assert.areTaskQueuesEmpty();
 
-      await au.stop();
-      ctx.doc.body.removeChild(host);
-
-      // scheduler.getRenderTaskQueue().flush();
-      // assert.areTaskQueuesEmpty();
+      await au.stop(true);
     }
   };
 }
@@ -139,8 +113,8 @@ describe('router (smoke tests)', function () {
     @customElement({ name: name(B01), template: `${name(B01)}${vp(0)}` })
     class B01 {
       public async canUnload(
-        next: Navigation | null,
-        current: Navigation,
+        next: RouteNode | null,
+        current: RouteNode,
       ): Promise<true> {
         await new Promise(function (resolve) { setTimeout(resolve, 0); });
         return true;
@@ -149,8 +123,8 @@ describe('router (smoke tests)', function () {
     @customElement({ name: name(B02), template: `${name(B02)}${vp(0)}` })
     class B02 {
       public async canUnload(
-        next: Navigation | null,
-        current: Navigation,
+        next: RouteNode | null,
+        current: RouteNode,
       ): Promise<false> {
         await new Promise(function (resolve) { setTimeout(resolve, 0); });
         return false;
@@ -161,8 +135,8 @@ describe('router (smoke tests)', function () {
     @customElement({ name: name(B11), template: `${name(B11)}${vp(1)}` })
     class B11 {
       public async canUnload(
-        next: Navigation | null,
-        current: Navigation,
+        next: RouteNode | null,
+        current: RouteNode,
       ): Promise<true> {
         await new Promise(function (resolve) { setTimeout(resolve, 0); });
         return true;
@@ -171,8 +145,8 @@ describe('router (smoke tests)', function () {
     @customElement({ name: name(B12), template: `${name(B12)}${vp(1)}` })
     class B12 {
       public async canUnload(
-        next: Navigation | null,
-        current: Navigation,
+        next: RouteNode | null,
+        current: RouteNode,
       ): Promise<false> {
         await new Promise(function (resolve) { setTimeout(resolve, 0); });
         return false;
@@ -190,7 +164,7 @@ describe('router (smoke tests)', function () {
 
       await router.load(name(A01));
       assertComponentsVisible(host, [Root1, A01]);
-      assertIsActive(router, name(A01), router/* .routeTree.root.context */, true, 1);
+      assertIsActive(router, name(A01), router.routeTree.root.context, true, 1);
 
       await tearDown();
     });
@@ -200,7 +174,7 @@ describe('router (smoke tests)', function () {
 
       await router.load(A01);
       assertComponentsVisible(host, [Root1, A01]);
-      assertIsActive(router, A01, router/* .routeTree.root.context */, true, 1);
+      assertIsActive(router, A01, router.routeTree.root.context, true, 1);
 
       await tearDown();
     });
@@ -210,7 +184,7 @@ describe('router (smoke tests)', function () {
 
       await router.load({ component: A01 });
       assertComponentsVisible(host, [Root1, A01]);
-      assertIsActive(router, { component: A01 }, router/* .routeTree.root.context */, true, 1);
+      assertIsActive(router, { component: A01 }, router.routeTree.root.context, true, 1);
 
       await tearDown();
     });
@@ -220,7 +194,7 @@ describe('router (smoke tests)', function () {
 
       await router.load(CustomElement.getDefinition(A01));
       assertComponentsVisible(host, [Root1, A01]);
-      assertIsActive(router, CustomElement.getDefinition(A01), router/* .routeTree.root.context */, true, 1);
+      assertIsActive(router, CustomElement.getDefinition(A01), router.routeTree.root.context, true, 1);
 
       await tearDown();
     });
@@ -230,11 +204,11 @@ describe('router (smoke tests)', function () {
 
       await router.load(name(A01));
       assertComponentsVisible(host, [Root1, A01]);
-      assertIsActive(router, name(A01), router/* .routeTree.root.context */, true, 1);
+      assertIsActive(router, name(A01), router.routeTree.root.context, true, 1);
 
       await router.load(name(A02));
       assertComponentsVisible(host, [Root1, A02]);
-      assertIsActive(router, name(A02), router/* .routeTree.root.context */, true, 2);
+      assertIsActive(router, name(A02), router.routeTree.root.context, true, 2);
 
       await tearDown();
     });
@@ -244,15 +218,15 @@ describe('router (smoke tests)', function () {
 
       await router.load(A11);
       assertComponentsVisible(host, [Root1, A11]);
-      assertIsActive(router, A11, router/* .routeTree.root.context */, true, 1);
+      assertIsActive(router, A11, router.routeTree.root.context, true, 1);
 
-      const context = router /* .routeTree.root.children[0].context */;
+      const context = router.routeTree.root.children[0].context;
 
       await router.load(A02, { context });
       assertComponentsVisible(host, [Root1, A11, A02]);
       assertIsActive(router, A02, context, true, 2);
-      assertIsActive(router, A02, router/* .routeTree.root.context */, false, 3);
-      assertIsActive(router, A11, router/* .routeTree.root.context */, true, 3);
+      assertIsActive(router, A02, router.routeTree.root.context, false, 3);
+      assertIsActive(router, A11, router.routeTree.root.context, true, 3);
 
       await tearDown();
     });
@@ -263,7 +237,7 @@ describe('router (smoke tests)', function () {
       await router.load({ component: A11, children: [A01] });
       assertComponentsVisible(host, [Root1, A11, A01]);
 
-      const context = router /* .routeTree.root.children[0].context */;
+      const context = router.routeTree.root.children[0].context;
 
       await router.load(A02, { context });
       assertComponentsVisible(host, [Root1, A11, A02]);
@@ -271,7 +245,7 @@ describe('router (smoke tests)', function () {
       await tearDown();
     });
 
-    it(`${name(Root1)} correctly handles canUnload with goto ${name(B01)},${name(A01)} in order`, async function () {
+    it(`${name(Root1)} correctly handles canUnload with load ${name(B01)},${name(A01)} in order`, async function () {
       const { router, host, tearDown } = await createFixture(Root1, Z);
 
       let result = await router.load(B01);
@@ -285,7 +259,7 @@ describe('router (smoke tests)', function () {
       await tearDown();
     });
 
-    it(`${name(Root1)} correctly handles canUnload with goto ${name(B02)},${name(A01)} in order`, async function () {
+    it(`${name(Root1)} correctly handles canUnload with load ${name(B02)},${name(A01)} in order`, async function () {
       const { router, host, tearDown } = await createFixture(Root1, Z);
 
       let result = await router.load(B02);
@@ -299,7 +273,7 @@ describe('router (smoke tests)', function () {
       await tearDown();
     });
 
-    it(`${name(Root1)} correctly handles canUnload with goto ${name(B02)},${name(A01)},${name(A02)} in order`, async function () {
+    it(`${name(Root1)} correctly handles canUnload with load ${name(B02)},${name(A01)},${name(A02)} in order`, async function () {
       const { router, host, tearDown } = await createFixture(Root1, Z);
 
       let result = await router.load(B02);
@@ -317,7 +291,7 @@ describe('router (smoke tests)', function () {
       await tearDown();
     });
 
-    it(`${name(Root1)} correctly handles canUnload with goto ${name(B11)}/${name(B02)},${name(B11)}/${name(A02)} in order`, async function () {
+    it(`${name(Root1)} correctly handles canUnload with load ${name(B11)}/${name(B02)},${name(B11)}/${name(A02)} in order`, async function () {
       const { router, host, tearDown } = await createFixture(Root1, Z);
 
       let result = await router.load(`${name(B11)}/${name(B02)}`);
@@ -331,7 +305,7 @@ describe('router (smoke tests)', function () {
       await tearDown();
     });
 
-    it(`${name(Root1)} correctly handles canUnload with goto ${name(B12)}/${name(B01)},${name(B11)}/${name(B01)} in order`, async function () {
+    it(`${name(Root1)} correctly handles canUnload with load ${name(B12)}/${name(B01)},${name(B11)}/${name(B01)} in order`, async function () {
       const { router, host, tearDown } = await createFixture(Root1, Z);
 
       let result = await router.load(`${name(B12)}/${name(B01)}`);
@@ -345,7 +319,7 @@ describe('router (smoke tests)', function () {
       await tearDown();
     });
 
-    it(`${name(Root1)} correctly handles canUnload with goto ${name(B12)}/${name(B01)},${name(B12)}/${name(A01)} in order`, async function () {
+    it(`${name(Root1)} correctly handles canUnload with load ${name(B12)}/${name(B01)},${name(B12)}/${name(A01)} in order`, async function () {
       const { router, host, tearDown } = await createFixture(Root1, Z);
 
       let result = await router.load(`${name(B12)}/${name(B01)}`);
@@ -443,12 +417,12 @@ describe('router (smoke tests)', function () {
       await router.load(`${name(A11)}/${name(A12)}/${name(A01)}+${name(A12)}/${name(A01)}`);
       assertComponentsVisible(host, [Root2, [A11, [A12, [A01]]], [A12, [A01]]], '#1');
 
-      let context = router /* .routeTree.root.children[1].context */;
+      let context = router.routeTree.root.children[1].context;
 
       await router.load(`${name(A11)}/${name(A01)}`, { context });
       assertComponentsVisible(host, [Root2, [A11, [A12, [A01]]], [A12, [A11, [A01]]]], '#2');
 
-      context = router /*.routeTree.root.children[0].children[0].context */;
+      context = router.routeTree.root.children[0].children[0].context;
 
       await router.load(`${name(A02)}`, { context });
       assertComponentsVisible(host, [Root2, [A11, [A12, [A02]]], [A12, [A11, [A01]]]], '#3');

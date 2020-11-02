@@ -1,33 +1,35 @@
-import { customAttribute, INode, bindable, BindingMode, ViewModelKind, ICustomAttributeViewModel, ICustomAttributeController } from '@aurelia/runtime-html';
-import { IRouter } from '../router';
-import { GotoCustomAttribute } from '../configuration';
+import { IDisposable } from '@aurelia/kernel';
+import { customAttribute, bindable, BindingMode, ICustomAttributeViewModel, ICustomAttributeController, IEventDelegator, IEventTarget, INode } from '@aurelia/runtime-html';
 
-@customAttribute({
-  name: 'href',
-  noMultiBindings: true
-})
+import { IRouter } from '../router';
+import { LoadCustomAttribute } from '../configuration';
+import { ILinkHandler } from '../link-handler';
+
+@customAttribute({ name: 'href', noMultiBindings: true })
 export class HrefCustomAttribute implements ICustomAttributeViewModel {
   @bindable({ mode: BindingMode.toView })
-  public value: string | undefined;
+  public value: unknown;
 
-  private readonly element: Element;
+  private eventListener: IDisposable | null = null;
+
   public readonly $controller!: ICustomAttributeController<this>;
 
   public constructor(
-    @INode element: INode,
+    @IEventTarget private readonly target: IEventTarget,
+    @INode private readonly el: INode<HTMLElement>,
     @IRouter private readonly router: IRouter,
-  ) {
-    this.element = element as Element;
-  }
+    @ILinkHandler private readonly linkHandler: ILinkHandler,
+    @IEventDelegator private readonly delegator: IEventDelegator,
+  ) {}
 
   public binding(): void {
-    if (this.router.options.useHref && !this.hasGoto()) {
-      this.element.addEventListener('click', this.router.linkHandler.handler);
+    if (this.router.options.useHref && !this.hasLoad()) {
+      this.eventListener = this.delegator.addEventListener(this.target, this.el, 'click', this.linkHandler.onClick as EventListener);
     }
     this.updateValue();
   }
   public unbinding(): void {
-    this.element.removeEventListener('click', this.router.linkHandler.handler);
+    this.eventListener?.dispose();
   }
 
   public valueChanged(): void {
@@ -35,13 +37,12 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
   }
 
   private updateValue(): void {
-    this.element.setAttribute('href', this.value as string);
+    this.el.setAttribute('href', this.value as string);
   }
 
-  private hasGoto(): boolean {
-    const parent = this.$controller.parent!;
-    const siblings = parent.children;
-    return siblings !== null
-      && siblings.some(c => c.vmKind === ViewModelKind.customAttribute && c.viewModel instanceof GotoCustomAttribute);
+  private hasLoad(): boolean {
+    return this.$controller.parent?.children?.some(function (c) {
+      return c.viewModel instanceof LoadCustomAttribute;
+    }) ?? false;
   }
 }

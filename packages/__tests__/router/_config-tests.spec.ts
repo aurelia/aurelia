@@ -1,36 +1,12 @@
-/* eslint-disable @typescript-eslint/strict-boolean-expressions */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import {
-  customElement,
-  ICustomElementController,
-} from '@aurelia/runtime';
-import {
-  IRouterOptions,
-  DeferralJuncture,
-  SwapStrategy,
-  route,
-  Route,
-} from '@aurelia/router';
-import {
-  assert,
-} from '@aurelia/testing';
+import { customElement, ICustomElementController } from '@aurelia/runtime-html';
+import { IRouterOptions, DeferralJuncture, SwapStrategy, route, Route } from '@aurelia/router';
+import { assert } from '@aurelia/testing';
 
-import {
-  IHookInvocationAggregator,
-  IHIAConfig,
-  HookName,
-} from './_shared/hook-invocation-tracker';
-import {
-  HookSpecs,
-  TestRouteViewModelBase,
-} from './_shared/view-models';
-import {
-  hookSpecsMap,
-} from './_shared/hook-spec';
-import {
-  createFixture,
-  IActivityTracker,
-} from './_shared/create-fixture';
+import { IHookInvocationAggregator, IHIAConfig, HookName } from './_shared/hook-invocation-tracker';
+import { HookSpecs, TestRouteViewModelBase } from './_shared/view-models';
+import { hookSpecsMap, verifyInvocationsEqual } from './_shared/hook-spec';
+import { createFixture, IActivityTracker } from './_shared/create-fixture';
 
 function vp(count: number): string {
   if (count === 1) {
@@ -127,7 +103,7 @@ export abstract class SimpleActivityTrackingVMBase {
     @IActivityTracker public readonly tracker: IActivityTracker,
   ) {}
 
-  public afterAttachChildren(): void {
+  public attached(): void {
     this.tracker.setActive(this.$controller.context.definition.name);
   }
 
@@ -165,13 +141,13 @@ describe('router config', function () {
       {
         kind: 'all-sync',
         hookSpecs: HookSpecs.create({
-          beforeBind: hookSpecsMap.beforeBind.sync,
-          afterBind: hookSpecsMap.afterBind.sync,
-          afterAttach: hookSpecsMap.afterAttach.sync,
-          afterAttachChildren: hookSpecsMap.afterAttachChildren.sync,
+          binding: hookSpecsMap.binding.sync,
+          bound: hookSpecsMap.bound.sync,
+          attaching: hookSpecsMap.attaching.sync,
+          attached: hookSpecsMap.attached.sync,
 
-          beforeDetach: hookSpecsMap.beforeDetach.sync,
-          beforeUnbind: hookSpecsMap.beforeUnbind.sync,
+          detaching: hookSpecsMap.detaching.sync,
+          unbinding: hookSpecsMap.unbinding.sync,
 
           canLoad: hookSpecsMap.canLoad.sync,
           load: hookSpecsMap.load.sync,
@@ -287,12 +263,12 @@ describe('router config', function () {
                   await tearDown();
 
                   const expected = [...(function* () {
-                    yield `start.root2.beforeBind`;
-                    yield `start.root2.afterBind`;
-                    yield `start.root2.afterAttach`;
-                    yield `start.root2.afterAttachChildren`;
+                    yield `start.root2.binding`;
+                    yield `start.root2.bound`;
+                    yield `start.root2.attaching`;
+                    yield `start.root2.attached`;
 
-                    yield* prepend(phase1, t1, 'canLoad', 'load', 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren');
+                    yield* prepend(phase1, t1, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached');
 
                     for (const [phase, { $t1c, $t2c }] of [
                       [phase2, { $t1c: t1c, $t2c: t2c }],
@@ -308,34 +284,34 @@ describe('router config', function () {
                         case 'parallel-remove-first':
                           switch (componentSpec.kind) {
                             case 'all-sync':
-                              yield* prepend(phase, $t1c, 'beforeDetach', 'beforeUnbind', 'dispose');
-                              yield* prepend(phase, $t2c, 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren');
+                              yield* prepend(phase, $t1c, 'detaching', 'unbinding', 'dispose');
+                              yield* prepend(phase, $t2c, 'binding', 'bound', 'attaching', 'attached');
                               break;
                             case 'all-async':
                               yield* interleave(
-                                prepend(phase, $t1c, 'beforeDetach', 'beforeUnbind', 'dispose'),
-                                prepend(phase, $t2c, 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren'),
+                                prepend(phase, $t1c, 'detaching', 'unbinding', 'dispose'),
+                                prepend(phase, $t2c, 'binding', 'bound', 'attaching', 'attached'),
                               );
                               break;
                           }
                           break;
                         case 'sequential-remove-first':
-                          yield* prepend(phase, $t1c, 'beforeDetach', 'beforeUnbind', 'dispose');
-                          yield* prepend(phase, $t2c, 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren');
+                          yield* prepend(phase, $t1c, 'detaching', 'unbinding', 'dispose');
+                          yield* prepend(phase, $t2c, 'binding', 'bound', 'attaching', 'attached');
                           break;
                         case 'sequential-add-first':
-                          yield* prepend(phase, $t2c, 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren');
-                          yield* prepend(phase, $t1c, 'beforeDetach', 'beforeUnbind', 'dispose');
+                          yield* prepend(phase, $t2c, 'binding', 'bound', 'attaching', 'attached');
+                          yield* prepend(phase, $t1c, 'detaching', 'unbinding', 'dispose');
                           break;
                       }
                     }
 
-                    yield `stop.root2.beforeDetach`;
-                    yield `stop.root2.beforeUnbind`;
+                    yield `stop.root2.detaching`;
+                    yield `stop.root2.unbinding`;
 
-                    yield* prepend('stop', t4, 'beforeDetach', 'beforeUnbind');
+                    yield* prepend('stop', t4, 'detaching', 'unbinding');
                   })()];
-                  assert.deepStrictEqual(hia.notifyHistory, expected);
+                  verifyInvocationsEqual(hia.notifyHistory, expected);
 
                   hia.dispose();
                 });
@@ -390,7 +366,7 @@ describe('router config', function () {
 
             await router.load('a');
 
-            assert.deepStrictEqual(activityTracker.activeVMs, ['root', 'a01']);
+            verifyInvocationsEqual(activityTracker.activeVMs, ['root', 'a01']);
           });
 
           it(`can load a configured child route with indirect path and explicit component`, async function () {
@@ -406,7 +382,7 @@ describe('router config', function () {
 
             await router.load('a');
 
-            assert.deepStrictEqual(activityTracker.activeVMs, ['root', 'a01']);
+            verifyInvocationsEqual(activityTracker.activeVMs, ['root', 'a01']);
           });
         });
       }
@@ -424,7 +400,7 @@ describe('router config', function () {
 
     await router.load('a01');
 
-    assert.deepStrictEqual(activityTracker.activeVMs, ['root', 'a01']);
+    verifyInvocationsEqual(activityTracker.activeVMs, ['root', 'a01']);
   });
 
   it(`can load a configured child route by name when routingMode is 'configured-first'`, async function () {
@@ -439,7 +415,7 @@ describe('router config', function () {
 
     await router.load('a01');
 
-    assert.deepStrictEqual(activityTracker.activeVMs, ['root', 'a01']);
+    verifyInvocationsEqual(activityTracker.activeVMs, ['root', 'a01']);
   });
 
   it(`can load a configured child route by name when routingMode is 'configured-only'`, async function () {
@@ -454,7 +430,7 @@ describe('router config', function () {
 
     await router.load('a01');
 
-    assert.deepStrictEqual(activityTracker.activeVMs, ['root', 'a01']);
+    verifyInvocationsEqual(activityTracker.activeVMs, ['root', 'a01']);
   });
 
   it(`can navigate to deep dependencies as long as they are declared`, async function () {
@@ -474,7 +450,7 @@ describe('router config', function () {
 
     await router.load('a11/b11/c01');
 
-    assert.deepStrictEqual(activityTracker.activeVMs, ['root', 'a11', 'b11', 'c01']);
+    verifyInvocationsEqual(activityTracker.activeVMs, ['root', 'a11', 'b11', 'c01']);
   });
 
   it(`works with single multi segment static path`, async function () {
@@ -489,7 +465,7 @@ describe('router config', function () {
 
     await router.load('a/x');
 
-    assert.deepStrictEqual(activityTracker.activeVMs, ['root', 'a01']);
+    verifyInvocationsEqual(activityTracker.activeVMs, ['root', 'a01']);
   });
 
   it(`works with single multi segment dynamic path`, async function () {
@@ -504,7 +480,7 @@ describe('router config', function () {
 
     await router.load('a/1');
 
-    assert.deepStrictEqual(activityTracker.activeVMs, ['root', 'a01']);
+    verifyInvocationsEqual(activityTracker.activeVMs, ['root', 'a01']);
   });
 
   it(`works with single multi segment static path with single child`, async function () {
@@ -523,7 +499,7 @@ describe('router config', function () {
 
     await router.load('a/x/b');
 
-    assert.deepStrictEqual(activityTracker.activeVMs, ['root', 'a11', 'b01']);
+    verifyInvocationsEqual(activityTracker.activeVMs, ['root', 'a11', 'b01']);
   });
 
   it(`works with single multi segment static path with single multi segment static child`, async function () {
@@ -542,7 +518,7 @@ describe('router config', function () {
 
     await router.load('a/x/b/x');
 
-    assert.deepStrictEqual(activityTracker.activeVMs, ['root', 'a11', 'b01']);
+    verifyInvocationsEqual(activityTracker.activeVMs, ['root', 'a11', 'b01']);
   });
 
   it(`works with single static path with single multi segment static child`, async function () {
@@ -561,7 +537,7 @@ describe('router config', function () {
 
     await router.load('a/b/x');
 
-    assert.deepStrictEqual(activityTracker.activeVMs, ['root', 'a11', 'b01']);
+    verifyInvocationsEqual(activityTracker.activeVMs, ['root', 'a11', 'b01']);
   });
 
   it(`works with single empty static path redirect`, async function () {
@@ -576,7 +552,7 @@ describe('router config', function () {
 
     await router.load('');
 
-    assert.deepStrictEqual(activityTracker.activeVMs, ['root', 'a01']);
+    verifyInvocationsEqual(activityTracker.activeVMs, ['root', 'a01']);
   });
 
   it(`works with single static path redirect`, async function () {
@@ -591,7 +567,7 @@ describe('router config', function () {
 
     await router.load('x');
 
-    assert.deepStrictEqual(activityTracker.activeVMs, ['root', 'a01']);
+    verifyInvocationsEqual(activityTracker.activeVMs, ['root', 'a01']);
   });
 
   describe(`throw error when`, function () {
@@ -759,13 +735,13 @@ function join(sep: string, ...parts: string[]): string {
 
 function getAllAsyncSpecs(count: number): HookSpecs {
   return HookSpecs.create({
-    beforeBind: hookSpecsMap.beforeBind.async(count),
-    afterBind: hookSpecsMap.afterBind.async(count),
-    afterAttach: hookSpecsMap.afterAttach.async(count),
-    afterAttachChildren: hookSpecsMap.afterAttachChildren.async(count),
+    binding: hookSpecsMap.binding.async(count),
+    bound: hookSpecsMap.bound.async(count),
+    attaching: hookSpecsMap.attaching.async(count),
+    attached: hookSpecsMap.attached.async(count),
 
-    beforeDetach: hookSpecsMap.beforeDetach.async(count),
-    beforeUnbind: hookSpecsMap.beforeUnbind.async(count),
+    detaching: hookSpecsMap.detaching.async(count),
+    unbinding: hookSpecsMap.unbinding.async(count),
 
     canLoad: hookSpecsMap.canLoad.async(count),
     load: hookSpecsMap.load.async(count),

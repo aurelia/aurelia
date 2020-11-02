@@ -1,70 +1,64 @@
-import { customAttribute, INode, bindable, BindingMode, IObserverLocator, LifecycleFlags, CustomAttribute, ICustomAttributeController, ICustomAttributeViewModel } from '@aurelia/runtime-html';
+import { IDisposable } from '@aurelia/kernel';
+import { customAttribute, bindable, BindingMode, ICustomAttributeViewModel, IEventDelegator, IEventTarget, INode } from '@aurelia/runtime-html';
+
 import { IRouter } from '../router';
-import { NavigationInstructionResolver } from '../type-resolvers';
+import { ILinkHandler } from '../link-handler';
+import { IRouterEvents } from '../router-events';
+import { IRouteContext } from '../route-context';
+import { NavigationInstruction } from '../instructions';
 
 @customAttribute('load')
 export class LoadCustomAttribute implements ICustomAttributeViewModel {
   @bindable({ mode: BindingMode.toView })
   public value: unknown;
 
+  private eventListener: IDisposable | null = null;
+  private navigationEndListener: IDisposable | null = null;
   private hasHref: boolean | null = null;
-
-  private readonly element: Element;
-  private observer: any;
-
-  public readonly $controller!: ICustomAttributeController<this>;
 
   private readonly activeClass: string = 'load-active';
   public constructor(
-    @INode element: INode,
+    @IEventTarget private readonly target: IEventTarget,
+    @INode private readonly el: INode<HTMLElement>,
     @IRouter private readonly router: IRouter,
-  ) {
-    this.element = element as Element;
-  }
+    @ILinkHandler private readonly linkHandler: ILinkHandler,
+    @IRouterEvents private readonly events: IRouterEvents,
+    @IEventDelegator private readonly delegator: IEventDelegator,
+    @IRouteContext private readonly context: IRouteContext,
+  ) {}
 
   public binding(): void {
-    this.element.addEventListener('click', this.router.linkHandler.handler);
+    this.eventListener = this.delegator.addEventListener(this.target, this.el, 'click', this.linkHandler.onClick as EventListener);
+
     this.updateValue();
 
-    const observerLocator = this.router.container.get(IObserverLocator);
-    this.observer = observerLocator.getObserver(LifecycleFlags.none, this.router, 'activeComponents') as any;
-    this.observer.subscribe(this);
+    this.navigationEndListener = this.events.subscribe('au:router:navigation-end', _e => {
+      // TODO: Use router configuration for class name and update target
+      if (this.router.isActive(this.value as NavigationInstruction, this.context)) {
+        this.el.classList.add(this.activeClass);
+      } else {
+        this.el.classList.remove(this.activeClass);
+      }
+    });
   }
 
   public unbinding(): void {
-    this.element.removeEventListener('click', this.router.linkHandler.handler);
-    this.observer.unsubscribe(this);
+    this.eventListener?.dispose();
+    this.navigationEndListener?.dispose();
   }
 
-  public valueChanged(newValue: unknown): void {
+  public valueChanged(): void {
     this.updateValue();
   }
 
   private updateValue(): void {
     if (this.hasHref === null) {
-      this.hasHref = this.element.hasAttribute('href');
+      this.hasHref = this.el.hasAttribute('href');
     }
     if (!this.hasHref) {
       // TODO: Figure out a better value here for non-strings (using InstructionResolver?)
       const value = typeof this.value === 'string' ? this.value : JSON.stringify(this.value);
-      this.element.setAttribute('href', value);
-    }
-  }
-
-  public handleChange(): void {
-    const controller = CustomAttribute.for(this.element, 'load')!.parent!;
-    const created = NavigationInstructionResolver.createViewportInstructions(this.router, this.value as any, { context: controller });
-    const instructions = NavigationInstructionResolver.toViewportInstructions(this.router, created.instructions);
-    for (const instruction of instructions) {
-      if (instruction.scope === null) {
-        instruction.scope = created.scope;
-      }
-    }
-    // TODO: Use router configuration for class name and update target
-    if (this.router.checkActive(instructions)) {
-      this.element.classList.add(this.activeClass);
-    } else {
-      this.element.classList.remove(this.activeClass);
+      this.el.setAttribute('href', value);
     }
   }
 }

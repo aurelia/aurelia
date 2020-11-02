@@ -52,11 +52,6 @@ function getHookSpecs<T extends HookName>(name: T) {
         return setTimeoutWaiter(ctx, 0, label)
           .then(() => getValue() as any
         );
-
-        // console.log('setTimeout_0 before await');
-        // await setTimeoutWaiter(ctx, 0, label);
-        // console.log('setTimeout_0 after await');
-        // return getValue();
       },
     } as IHookSpec<T>,
   };
@@ -78,3 +73,36 @@ export const hookSpecsMap = {
   canUnload: getHookSpecs('canUnload'),
   unload: getHookSpecs('unload'),
 };
+
+function groupByPrefix(list: string[]): Record<string, string[]> {
+  const groups: Record<string, string[]> = {};
+  for (let i = 0; i < list.length; ++i) {
+    const item = list[i];
+    const prefix = item.slice(0, item.indexOf('.'));
+    (groups[prefix] ??= []).push(item);
+  }
+  return groups;
+}
+
+export function verifyInvocationsEqual(actual: string[], expected: string[]): void {
+  const errors: string[] = [];
+  const expectedGroups = groupByPrefix(expected);
+  const actualGroups = groupByPrefix(actual);
+  for (const prefix in expectedGroups) {
+    expected = expectedGroups[prefix];
+    actual = actualGroups[prefix] ?? [];
+    const len = Math.max(actual.length, expected.length);
+    for (let i = 0; i < len; ++i) {
+      const $actual = actual[i];
+      const $expected = expected[i];
+      if ($actual === $expected) {
+        errors.push(`    OK : ${$actual}`);
+      } else {
+        errors.push(`NOT OK : ${$actual} (expected: ${$expected})`);
+      }
+    }
+  }
+  if (errors.some(e => e.startsWith('N'))) {
+    throw new Error(`Failed assertion: invocation mismatch\n  - ${errors.join('\n  - ')})`);
+  }
+}

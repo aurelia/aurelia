@@ -42,7 +42,7 @@ export {
   Transformer,
   newInstanceForScope,
   newInstanceOf,
-  DefaultContainerConfiguration,
+  ContainerConfiguration,
   DefaultResolver,
   IContainerConfiguration,
 } from './di';

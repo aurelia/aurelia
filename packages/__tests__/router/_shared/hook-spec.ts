@@ -49,14 +49,14 @@ function getHookSpecs<T extends HookName>(name: T) {
         const ctx = vm.$controller.context;
         const label = `${vm.name}.${name}`;
 
-        return setTimeoutWaiter(ctx, 0, label)
-          .then(() => getValue() as any
-        );
+        // return setTimeoutWaiter(ctx, 0, label)
+        //   .then(() => getValue() as any
+        // );
 
         // console.log('setTimeout_0 before await');
-        // await setTimeoutWaiter(ctx, 0, label);
+        await setTimeoutWaiter(ctx, 0, label);
         // console.log('setTimeout_0 after await');
-        // return getValue();
+        return getValue();
       },
     } as IHookSpec<T>,
   };

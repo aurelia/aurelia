@@ -6,5 +6,5 @@ $setup(platform);
 
 console.log(`Browser router test context initialized`);
 
-const testContext = require.context('.', true, /router\/[^_][^_].*?\.spec\.js$/i);
+const testContext = require.context('.', true, /router\/[_][^_].*?\.spec\.js$/i);
 testContext.keys().forEach(testContext);

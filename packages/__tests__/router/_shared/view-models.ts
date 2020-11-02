@@ -1,8 +1,8 @@
 import { Writable } from '@aurelia/kernel';
 import { ICustomElementController, IHydratedController, IHydratedParentController, LifecycleFlags } from '@aurelia/runtime-html';
-import { Params, IRouteableComponent, NavigationInstruction, Navigation } from '@aurelia/router';
-import { IHookInvocationAggregator } from './hook-invocation-tracker.js';
-import { IHookSpec, hookSpecsMap } from './hook-spec.js';
+import { Params, IRouteableComponent, NavigationInstruction, Navigation, Viewport } from '@aurelia/router';
+import { IHookInvocationAggregator } from './hook-invocation-tracker';
+import { IHookSpec, hookSpecsMap } from './hook-spec';
 
 export interface ITestRouteViewModel extends IRouteableComponent {
   readonly $controller: ICustomElementController<this>;
@@ -46,6 +46,7 @@ export interface ITestRouteViewModel extends IRouteableComponent {
   ): boolean | NavigationInstruction | NavigationInstruction[] | Promise<boolean | NavigationInstruction | NavigationInstruction[]>;
   load(
     params: Params,
+    viewport: Viewport,
     next: Navigation,
     current: Navigation | null,
   ): void | Promise<void>;
@@ -151,6 +152,7 @@ const hookNames = [
 
 export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
   public readonly $controller!: ICustomElementController<this>;
+  public viewport: Viewport;
   public get name(): string {
     return this.$controller.context.definition.name;
   }
@@ -166,6 +168,7 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     parent: IHydratedParentController,
     flags: LifecycleFlags,
   ): void | Promise<void> {
+    // this.hia.binding.notify(`${this.viewport?.name}:${this.name}`);
     this.hia.binding.notify(this.name);
     return this.specs.binding.invoke(
       this,
@@ -196,6 +199,7 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     parent: IHydratedParentController,
     flags: LifecycleFlags,
   ): void | Promise<void> {
+    // this.hia.attaching.notify(`${this.viewport?.name}:${this.name}`);
     this.hia.attaching.notify(this.name);
     return this.specs.attaching.invoke(
       this,
@@ -280,9 +284,11 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
 
   public load(
     params: Params,
+    viewport: Viewport,
     next: Navigation,
     current: Navigation | null,
   ): void | Promise<void> {
+    this.viewport = viewport;
     // console.log('TestViewModel load', this.name);
     this.hia.load.notify(this.name);
     return this.specs.load.invoke(

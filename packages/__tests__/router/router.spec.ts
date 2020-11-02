@@ -642,18 +642,29 @@ describe('Router', function () {
   it('overrides querystring with parameter', async function () {
     this.timeout(5000);
 
-    const { platform, host, router, tearDown } = await createFixture();
+    let locationPath: string;
+    let browserTitle: string;
+    const locationCallback = (type, data, title, path) => {
+      // console.log(type, data, title, path);
+      locationPath = path;
+      browserTitle = title;
+    };
 
-    await $goto('bar(456)@left?id=123', router, platform);
+    const { platform, host, router, tearDown } = await createFixture(void 0, void 0, locationCallback);
+
+    let url = 'bar(456)@left?id=123';
+    await $goto(url, router, platform);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
     assert.includes(host.textContent, 'Parameter id: [456]', `host.textContent`);
 
-    await $goto('bar(456,FourFiveSix)@left?id=123&name=OneTwoThree', router, platform);
+    url = 'bar(456,FourFiveSix)@left?id=123&name=OneTwoThree';
+    await $goto(url, router, platform);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
     assert.includes(host.textContent, 'Parameter id: [456]', `host.textContent`);
     assert.includes(host.textContent, 'Parameter name: [FourFiveSix]', `host.textContent`);
 
-    await $goto('bar(name=SevenEightNine,id=789)@left?id=123&name=OneTwoThree', router, platform);
+    url = 'bar(name=SevenEightNine,id=789)@left?id=123&name=OneTwoThree';
+    await $goto(url, router, platform);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
     assert.includes(host.textContent, 'Parameter id: [789]', `host.textContent`);
     assert.includes(host.textContent, 'Parameter name: [SevenEightNine]', `host.textContent`);

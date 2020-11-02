@@ -50,10 +50,6 @@ export function translateOptions(routerOptionsSpec: IRouterOptionsSpec): IRouter
   };
 }
 
-export function transformNotifications(notifications: string[]): string[] {
-  return notifications.filter(notification => !(/^stop\..*?\.unload$/.test(notification)));
-}
-
 export async function createFixture<T extends Constructable>(
   Component: T,
   deps: Constructable[],

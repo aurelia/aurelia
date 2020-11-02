@@ -12,8 +12,8 @@ export class TransitionViewport {
   public load: boolean = true;
 
   public static routingHooks: HookName[] = ['canUnload', 'canLoad', 'unload', 'load'];
-  public static addHooks: HookName[] = ['beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren'];
-  public static removeHooks: HookName[] = ['beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren', 'dispose'];
+  public static addHooks: HookName[] = ['binding', 'bound', 'attaching', 'attached'];
+  public static removeHooks: HookName[] = ['detaching', 'unbinding', 'dispose'];
 
   public static getPrepended(prefix: string, component: string, ...hooks: (HookName | '')[]) {
     return hooks.map(hook => hook !== '' ? `${prefix}.${component}.${hook}` : '');

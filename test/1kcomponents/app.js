@@ -206,7 +206,7 @@ const App = CustomElement.define(
       this.fps = 30;
     }
 
-    afterAttach() {
+    attaching() {
       this.count = 1000;
       // this.scheduler.enqueueRAF(Point.update, Point, Priority.preempt);
       this.scheduler.queueRenderTask(

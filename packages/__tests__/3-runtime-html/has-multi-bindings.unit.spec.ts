@@ -1,4 +1,4 @@
-import { IExpressionParser, CustomAttribute, TemplateBinder, IAttrSyntaxTransformer, ITemplateElementFactory, ResourceModel, IAttributeParser, PlainElementSymbol } from '@aurelia/runtime-html';
+import { IExpressionParser, CustomAttribute, TemplateBinder, IAttrSyntaxTransformer, ITemplateElementFactory, IAttributeParser, PlainElementSymbol } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 
 describe('has-multi-bindings.unit.spec.ts', function () {
@@ -305,14 +305,12 @@ describe('has-multi-bindings.unit.spec.ts', function () {
 
       container.register(CustomAttribute.define({ name: 'attr', bindables: ['a', 'b', 'c'] }, class {}));
 
-      const resources = new ResourceModel(container);
-
       const attrParser = container.get(IAttributeParser);
       const exprParser = container.get(IExpressionParser);
       const transformer = container.get(IAttrSyntaxTransformer);
       const factory = container.get(ITemplateElementFactory);
 
-      const sut = new TemplateBinder(platform, resources, attrParser, exprParser, transformer);
+      const sut = new TemplateBinder(platform, container, attrParser, exprParser, transformer);
 
       const template = factory.createTemplate(markup);
       const manifestRoot = sut.bind(template);

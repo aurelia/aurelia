@@ -181,9 +181,6 @@ export {
   ProxyObservable,
 } from './observation/proxy-observation';
 export {
-  ProxyObserver,
-} from './observation/proxy-observer';
-export {
   BindableObserver,
 } from './observation/bindable-observer';
 export {
@@ -195,7 +192,6 @@ export {
 export {
   subscriberCollection,
   collectionSubscriberCollection,
-  proxySubscriberCollection,
 } from './observation/subscriber-collection';
 export {
   IWatcher,
@@ -260,7 +256,6 @@ export {
 
 export {
   BindingMode,
-  BindingStrategy,
   LifecycleFlags,
   AccessorOrObserver,
   IBinding,
@@ -293,11 +288,6 @@ export {
   PropertyObserver,
   CollectionObserver,
   ICollectionSubscriberCollection,
-  IProxyObserver,
-  IProxy,
-  IProxySubscribable,
-  IProxySubscriber,
-  IProxySubscriberCollection,
   ICollectionSubscribable,
   ISubscriber,
   isIndexMap,

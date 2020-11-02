@@ -4,11 +4,11 @@ import {
   TranslationBindAttributePattern,
   TranslationBindBindingCommand,
   TranslationBindBindingInstruction,
-  TranslationBindBindingComposer,
+  TranslationBindBindingRenderer,
   TranslationBinding,
   TranslationBindingCommand,
   TranslationBindingInstruction,
-  TranslationBindingComposer,
+  TranslationBindingRenderer,
   TranslationBindInstructionType,
   TranslationInstructionType,
 } from '@aurelia/i18n';
@@ -17,11 +17,11 @@ import {
   AnyBindingExpression,
   BindingType,
   IBinding,
-  ICompiledCompositionContext,
+  ICompiledRenderContext,
   IExpressionParser,
-  IInstructionComposer,
+  IRenderer,
   IObserverLocator,
-  IComposableController,
+  IHydratableController,
   LifecycleFlags,
   StandardConfiguration,
   AttributePattern,
@@ -119,7 +119,7 @@ describe('TranslationBindingCommand', function () {
   });
 });
 
-describe('TranslationBindingComposer', function () {
+describe('TranslationBindingRenderer', function () {
 
   function createFixture() {
     return createContainer(StandardConfiguration, I18nConfiguration);
@@ -127,21 +127,21 @@ describe('TranslationBindingComposer', function () {
 
   it('instantiated with instruction type', function () {
     const container = createFixture();
-    const sut: IInstructionComposer = new TranslationBindingComposer(container.get(IExpressionParser), {} as unknown as IObserverLocator);
+    const sut: IRenderer = new TranslationBindingRenderer(container.get(IExpressionParser), {} as unknown as IObserverLocator);
     assert.equal(sut.instructionType, TranslationInstructionType);
   });
 
-  it('#compose instantiates TranslationBinding - simple string literal', function () {
+  it('#render instantiates TranslationBinding - simple string literal', function () {
     const container = createFixture();
-    const sut: IInstructionComposer = new TranslationBindingComposer(container.get(IExpressionParser), {} as unknown as IObserverLocator);
+    const sut: IRenderer = new TranslationBindingRenderer(container.get(IExpressionParser), {} as unknown as IObserverLocator);
     const expressionParser = container.get(IExpressionParser);
-    const controller = ({ bindings: [], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); } } as unknown as IComposableController);
+    const controller = ({ bindings: [], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); } } as unknown as IHydratableController);
 
     const from = expressionParser.parse('simple.key', BindingType.CustomCommand);
     const callBindingInstruction: CallBindingInstruction = { from } as unknown as CallBindingInstruction;
-    sut.compose(
+    sut.render(
       LifecycleFlags.none,
-      container as unknown as ICompiledCompositionContext,
+      container as unknown as ICompiledRenderContext,
       controller,
       PLATFORM.document.createElement('span'),
       callBindingInstruction,
@@ -150,19 +150,19 @@ describe('TranslationBindingComposer', function () {
     assert.instanceOf(controller.bindings[0], TranslationBinding);
   });
 
-  it('#compose adds expr to the existing TranslationBinding for the target element', function () {
+  it('#render adds expr to the existing TranslationBinding for the target element', function () {
     const container = createFixture();
-    const sut: IInstructionComposer = new TranslationBindingComposer(container.get(IExpressionParser), {} as unknown as IObserverLocator);
+    const sut: IRenderer = new TranslationBindingRenderer(container.get(IExpressionParser), {} as unknown as IObserverLocator);
     const expressionParser = container.get(IExpressionParser);
     const targetElement = PLATFORM.document.createElement('span');
     const binding = new TranslationBinding(targetElement, {} as unknown as IObserverLocator, container);
-    const controller = ({ bindings: [binding], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); } } as unknown as IComposableController);
+    const controller = ({ bindings: [binding], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); } } as unknown as IHydratableController);
 
     const from = expressionParser.parse('simple.key', BindingType.CustomCommand);
     const callBindingInstruction: CallBindingInstruction = { from } as unknown as CallBindingInstruction;
-    sut.compose(
+    sut.render(
       LifecycleFlags.none,
-      container as unknown as ICompiledCompositionContext,
+      container as unknown as ICompiledRenderContext,
       controller,
       targetElement,
       callBindingInstruction,
@@ -262,7 +262,7 @@ describe('TranslationBindBindingCommand', function () {
   });
 });
 
-describe('TranslationBindBindingComposer', function () {
+describe('TranslationBindBindingRenderer', function () {
 
   function createFixture() {
     const container = createContainer();
@@ -272,21 +272,21 @@ describe('TranslationBindBindingComposer', function () {
 
   it('instantiated with instruction type', function () {
     const container = createFixture();
-    const sut: IInstructionComposer = new TranslationBindBindingComposer(container.get(IExpressionParser), {} as unknown as IObserverLocator);
+    const sut: IRenderer = new TranslationBindBindingRenderer(container.get(IExpressionParser), {} as unknown as IObserverLocator);
     assert.equal(sut.instructionType, TranslationBindInstructionType);
   });
 
-  it('#compose instantiates TranslationBinding - simple string literal', function () {
+  it('#render instantiates TranslationBinding - simple string literal', function () {
     const container = createFixture();
-    const sut: IInstructionComposer = new TranslationBindBindingComposer(container.get(IExpressionParser), {} as unknown as IObserverLocator);
+    const sut: IRenderer = new TranslationBindBindingRenderer(container.get(IExpressionParser), {} as unknown as IObserverLocator);
     const expressionParser = container.get(IExpressionParser);
-    const controller = ({ bindings: [], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); } } as unknown as IComposableController);
+    const controller = ({ bindings: [], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); } } as unknown as IHydratableController);
 
     const from = expressionParser.parse('simple.key', BindingType.BindCommand);
     const callBindingInstruction: CallBindingInstruction = { from, to: '.bind' } as unknown as CallBindingInstruction;
-    sut.compose(
+    sut.render(
       LifecycleFlags.none,
-      container as unknown as ICompiledCompositionContext,
+      container as unknown as ICompiledRenderContext,
       controller,
       PLATFORM.document.createElement('span'),
       callBindingInstruction,
@@ -295,17 +295,17 @@ describe('TranslationBindBindingComposer', function () {
     assert.instanceOf(controller.bindings[0], TranslationBinding);
   });
 
-  it('#compose instantiates TranslationBinding - .bind expr', function () {
+  it('#render instantiates TranslationBinding - .bind expr', function () {
     const container = createFixture();
-    const sut: IInstructionComposer = new TranslationBindBindingComposer(container.get(IExpressionParser), {} as unknown as IObserverLocator);
+    const sut: IRenderer = new TranslationBindBindingRenderer(container.get(IExpressionParser), {} as unknown as IObserverLocator);
     const expressionParser = container.get(IExpressionParser);
-    const controller = ({ bindings: [], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); } } as unknown as IComposableController);
+    const controller = ({ bindings: [], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); } } as unknown as IHydratableController);
 
     const from = expressionParser.parse('simple.key', BindingType.BindCommand);
     const callBindingInstruction: CallBindingInstruction = { from, to: '.bind' } as unknown as CallBindingInstruction;
-    sut.compose(
+    sut.render(
       LifecycleFlags.none,
-      container as unknown as ICompiledCompositionContext,
+      container as unknown as ICompiledRenderContext,
       controller,
       PLATFORM.document.createElement('span'),
       callBindingInstruction,
@@ -314,19 +314,19 @@ describe('TranslationBindBindingComposer', function () {
     assert.instanceOf(controller.bindings[0], TranslationBinding);
   });
 
-  it('#compose adds expr to the existing TranslationBinding for the target element', function () {
+  it('#render adds expr to the existing TranslationBinding for the target element', function () {
     const container = createFixture();
-    const sut: IInstructionComposer = new TranslationBindBindingComposer(container.get(IExpressionParser), {} as unknown as IObserverLocator);
+    const sut: IRenderer = new TranslationBindBindingRenderer(container.get(IExpressionParser), {} as unknown as IObserverLocator);
     const expressionParser = container.get(IExpressionParser);
     const targetElement = PLATFORM.document.createElement('span');
     const binding = new TranslationBinding(targetElement, {} as unknown as IObserverLocator, container);
-    const controller = ({ bindings: [binding], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); } } as unknown as IComposableController);
+    const controller = ({ bindings: [binding], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); } } as unknown as IHydratableController);
 
     const from = expressionParser.parse('simple.key', BindingType.BindCommand);
     const callBindingInstruction: CallBindingInstruction = { from, to: '.bind' } as unknown as CallBindingInstruction;
-    sut.compose(
+    sut.render(
       LifecycleFlags.none,
-      container as unknown as ICompiledCompositionContext,
+      container as unknown as ICompiledRenderContext,
       controller,
       targetElement,
       callBindingInstruction,

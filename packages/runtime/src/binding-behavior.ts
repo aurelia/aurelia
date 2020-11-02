@@ -15,7 +15,7 @@ import {
   Key,
   fromAnnotationOrDefinitionOrTypeOrDefault,
 } from '@aurelia/kernel';
-import { IBinding, ISubscribable, IProxySubscribable, LifecycleFlags } from './observation';
+import { IBinding, ISubscribable, LifecycleFlags } from './observation';
 import { connectable, IConnectableBinding } from './binding/connectable';
 import { IObserverLocator } from './observation/observer-locator';
 import { BindingBehaviorExpression, IBindingBehaviorExpression } from './binding/ast';
@@ -151,7 +151,7 @@ export interface IInterceptableBinding extends IBinding {
   handleChange?(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void;
 
   observeProperty?(flags: LifecycleFlags, obj: object, propertyName: string): void;
-  addObserver?(observer: ISubscribable | IProxySubscribable): void;
+  addObserver?(observer: ISubscribable): void;
   unobserve?(all?: boolean): void;
 }
 

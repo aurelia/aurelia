@@ -1,21 +1,20 @@
-import { Constructable, nextId, emptyArray, onResolve } from '@aurelia/kernel';
+import { Constructable, nextId, onResolve } from '@aurelia/kernel';
 import { BindingMode, LifecycleFlags, bindable } from '@aurelia/runtime';
-import { createElement, CompositionPlan } from '../../create-element';
-import { IInstruction } from '../../definitions';
-import { HydrateElementInstruction, Instruction } from '../../instructions';
-import { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, ISyntheticView, MountStrategy } from '../../lifecycle';
+import { createElement, RenderPlan } from '../../create-element';
+import { HydrateElementInstruction, IInstruction, Instruction } from '../../renderer';
 import { IPlatform } from '../../platform';
-import { getCompositionContext } from '../../templating/composition-context';
+import { getRenderContext } from '../../templating/render-context';
 import { IViewFactory } from '../../templating/view';
 import { customElement, CustomElementDefinition } from '../custom-element';
+import type { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../templating/controller';
 
-export type Subject = IViewFactory | ISyntheticView | CompositionPlan | Constructable | CustomElementDefinition;
+export type Subject = IViewFactory | ISyntheticView | RenderPlan | Constructable | CustomElementDefinition;
 export type MaybeSubjectPromise = Subject | Promise<Subject> | undefined;
 
 function toLookup(
-  acc: Record<string, Instruction>,
+  acc: Record<string, IInstruction>,
   item: IInstruction & { to?: string },
-): Record<string, Instruction> {
+): Record<string, IInstruction> {
   const to = item.to;
   if (to !== void 0 && to !== 'subject' && to !== 'composing') {
     acc[to] = item as Instruction;
@@ -33,7 +32,7 @@ export class Compose implements ICustomElementViewModel {
 
   public view?: ISyntheticView = void 0;
 
-  private readonly properties: Record<string, Instruction>;
+  private readonly properties: Record<string, IInstruction>;
 
   private lastSubject?: MaybeSubjectPromise = void 0;
 
@@ -46,7 +45,7 @@ export class Compose implements ICustomElementViewModel {
     this.properties = instruction.instructions.reduce(toLookup, {});
   }
 
-  public afterAttach(
+  public attaching(
     initiator: IHydratedController,
     parent: IHydratedParentController | null,
     flags: LifecycleFlags,
@@ -62,7 +61,7 @@ export class Compose implements ICustomElementViewModel {
     return this.compose(view, subject, initiator, flags);
   }
 
-  public afterUnbind(
+  public detaching(
     initiator: IHydratedController,
     parent: IHydratedParentController | null,
     flags: LifecycleFlags,
@@ -141,7 +140,7 @@ export class Compose implements ICustomElementViewModel {
     const view = this.provideViewFor(subject, flags);
 
     if (view) {
-      view.setLocation(this.$controller.projector!.host, MountStrategy.insertBefore);
+      view.setLocation(this.$controller.location!);
       view.lockScope(this.$controller.scope);
       return view;
     }
@@ -158,7 +157,7 @@ export class Compose implements ICustomElementViewModel {
       return subject;
     }
 
-    if ('createView' in subject) { // CompositionPlan
+    if ('createView' in subject) { // RenderPlan
       return subject.createView(this.$controller.context!);
     }
 
@@ -168,7 +167,7 @@ export class Compose implements ICustomElementViewModel {
 
     if ('template' in subject) { // Raw Template Definition
       const definition = CustomElementDefinition.getOrCreate(subject);
-      return getCompositionContext(definition, this.$controller.context!).getViewFactory().create(flags);
+      return getRenderContext(definition, this.$controller.context!).getViewFactory().create(flags);
     }
 
     // Constructable (Custom Element Constructor)
@@ -176,18 +175,8 @@ export class Compose implements ICustomElementViewModel {
       this.p,
       subject,
       this.properties,
-      this.$controller.projector === void 0
-        ? emptyArray
-        : this.$controller.projector.children
+      this.$controller.host.childNodes,
     ).createView(this.$controller.context!);
-  }
-
-  public onCancel(
-    initiator: IHydratedController,
-    parent: IHydratedParentController,
-    flags: LifecycleFlags,
-  ): void {
-    this.view?.cancel(initiator, this.$controller, flags);
   }
 
   public dispose(): void {

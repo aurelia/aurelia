@@ -12,8 +12,8 @@ import {
   AtPrefixedTriggerAttributePattern,
   ColonPrefixedBindAttributePattern,
   DotSeparatedAttributePattern,
-  RefAttributePattern
-} from './attribute-patterns';
+  RefAttributePattern,
+} from './resources/attribute-pattern';
 import {
   CallBindingCommand,
   DefaultBindingCommand,
@@ -29,27 +29,27 @@ import {
   RefBindingCommand,
   StyleBindingCommand,
   TriggerBindingCommand,
-} from './binding-commands';
+} from './resources/binding-command';
 import { TemplateCompiler } from './template-compiler';
 import {
-  CallBindingComposer,
-  CustomAttributeComposer,
-  CustomElementComposer,
-  InterpolationBindingComposer,
-  IteratorBindingComposer,
-  LetElementComposer,
-  PropertyBindingComposer,
-  RefBindingComposer,
-  SetPropertyComposer,
-  TemplateControllerComposer,
-  AttributeBindingComposer,
-  ListenerBindingComposer,
-  SetAttributeComposer,
-  StylePropertyBindingComposer,
-  TextBindingComposer,
-  SetClassAttributeComposer,
-  SetStyleAttributeComposer,
-} from './composer';
+  CallBindingRenderer,
+  CustomAttributeRenderer,
+  CustomElementRenderer,
+  InterpolationBindingRenderer,
+  IteratorBindingRenderer,
+  LetElementRenderer,
+  PropertyBindingRenderer,
+  RefBindingRenderer,
+  SetPropertyRenderer,
+  TemplateControllerRenderer,
+  AttributeBindingRenderer,
+  ListenerBindingRenderer,
+  SetAttributeRenderer,
+  StylePropertyBindingRenderer,
+  TextBindingRenderer,
+  SetClassAttributeRenderer,
+  SetStyleAttributeRenderer,
+} from './renderer';
 import { TargetAccessorLocator, TargetObserverLocator } from './observation/observer-locator';
 import { SVGAnalyzer } from './observation/svg-analyzer';
 import { AttrBindingBehavior } from './resources/binding-behaviors/attr';
@@ -57,12 +57,12 @@ import { SelfBindingBehavior } from './resources/binding-behaviors/self';
 import { UpdateTriggerBindingBehavior } from './resources/binding-behaviors/update-trigger';
 import { Blur } from './resources/custom-attributes/blur';
 import { Focus } from './resources/custom-attributes/focus';
-import { Portal } from './resources/custom-attributes/portal';
-import { FrequentMutations, InfrequentMutations, ObserveShallow } from './resources/custom-attributes/flags';
-import { Else, If } from './resources/custom-attributes/if';
-import { Repeat } from './resources/custom-attributes/repeat';
-import { With } from './resources/custom-attributes/with';
-import { Switch, Case, DefaultCase } from './resources/custom-attributes/switch';
+import { Portal } from './resources/template-controllers/portal';
+import { FrequentMutations, InfrequentMutations, ObserveShallow } from './resources/template-controllers/flags';
+import { Else, If } from './resources/template-controllers/if';
+import { Repeat } from './resources/template-controllers/repeat';
+import { With } from './resources/template-controllers/with';
+import { Switch, Case, DefaultCase } from './resources/template-controllers/switch';
 import { Compose } from './resources/custom-elements/compose';
 import { AuSlot } from './resources/custom-elements/au-slot';
 import { SanitizeValueConverter } from './resources/value-converters/sanitize';
@@ -75,7 +75,6 @@ export const ITargetObserverLocatorRegistration = TargetObserverLocator as IRegi
 /**
  * Default HTML-specific (but environment-agnostic) implementations for the following interfaces:
  * - `ITemplateCompiler`
- * - `IComposer`
  * - `ITargetAccessorLocator`
  * - `ITargetObserverLocator`
  */
@@ -209,26 +208,26 @@ export const DefaultResources = [
   AuSlot,
 ];
 
-export const CallBindingComposerRegistration = CallBindingComposer as unknown as IRegistry;
-export const CustomAttributeComposerRegistration = CustomAttributeComposer as unknown as IRegistry;
-export const CustomElementComposerRegistration = CustomElementComposer as unknown as IRegistry;
-export const InterpolationBindingComposerRegistration = InterpolationBindingComposer as unknown as IRegistry;
-export const IteratorBindingComposerRegistration = IteratorBindingComposer as unknown as IRegistry;
-export const LetElementComposerRegistration = LetElementComposer as unknown as IRegistry;
-export const PropertyBindingComposerRegistration = PropertyBindingComposer as unknown as IRegistry;
-export const RefBindingComposerRegistration = RefBindingComposer as unknown as IRegistry;
-export const SetPropertyComposerRegistration = SetPropertyComposer as unknown as IRegistry;
-export const TemplateControllerComposerRegistration = TemplateControllerComposer as unknown as IRegistry;
-export const ListenerBindingComposerRegistration = ListenerBindingComposer as unknown as IRegistry;
-export const AttributeBindingComposerRegistration = AttributeBindingComposer as unknown as IRegistry;
-export const SetAttributeComposerRegistration = SetAttributeComposer as unknown as IRegistry;
-export const SetClassAttributeComposerRegistration = SetClassAttributeComposer as unknown as IRegistry;
-export const SetStyleAttributeComposerRegistration = SetStyleAttributeComposer as unknown as IRegistry;
-export const StylePropertyBindingComposerRegistration = StylePropertyBindingComposer as unknown as IRegistry;
-export const TextBindingComposerRegistration = TextBindingComposer as unknown as IRegistry;
+export const CallBindingRendererRegistration = CallBindingRenderer as unknown as IRegistry;
+export const CustomAttributeRendererRegistration = CustomAttributeRenderer as unknown as IRegistry;
+export const CustomElementRendererRegistration = CustomElementRenderer as unknown as IRegistry;
+export const InterpolationBindingRendererRegistration = InterpolationBindingRenderer as unknown as IRegistry;
+export const IteratorBindingRendererRegistration = IteratorBindingRenderer as unknown as IRegistry;
+export const LetElementRendererRegistration = LetElementRenderer as unknown as IRegistry;
+export const PropertyBindingRendererRegistration = PropertyBindingRenderer as unknown as IRegistry;
+export const RefBindingRendererRegistration = RefBindingRenderer as unknown as IRegistry;
+export const SetPropertyRendererRegistration = SetPropertyRenderer as unknown as IRegistry;
+export const TemplateControllerRendererRegistration = TemplateControllerRenderer as unknown as IRegistry;
+export const ListenerBindingRendererRegistration = ListenerBindingRenderer as unknown as IRegistry;
+export const AttributeBindingRendererRegistration = AttributeBindingRenderer as unknown as IRegistry;
+export const SetAttributeRendererRegistration = SetAttributeRenderer as unknown as IRegistry;
+export const SetClassAttributeRendererRegistration = SetClassAttributeRenderer as unknown as IRegistry;
+export const SetStyleAttributeRendererRegistration = SetStyleAttributeRenderer as unknown as IRegistry;
+export const StylePropertyBindingRendererRegistration = StylePropertyBindingRenderer as unknown as IRegistry;
+export const TextBindingRendererRegistration = TextBindingRenderer as unknown as IRegistry;
 
 /**
- * Default composers for:
+ * Default renderers for:
  * - PropertyBinding: `bind`, `one-time`, `to-view`, `from-view`, `two-way`
  * - IteratorBinding: `for`
  * - CallBinding: `call`
@@ -244,24 +243,24 @@ export const TextBindingComposerRegistration = TextBindingComposer as unknown as
  * - StyleProperty: `style`, `css`
  * - TextBinding: `${}`
  */
-export const DefaultComposers = [
-  PropertyBindingComposerRegistration,
-  IteratorBindingComposerRegistration,
-  CallBindingComposerRegistration,
-  RefBindingComposerRegistration,
-  InterpolationBindingComposerRegistration,
-  SetPropertyComposerRegistration,
-  CustomElementComposerRegistration,
-  CustomAttributeComposerRegistration,
-  TemplateControllerComposerRegistration,
-  LetElementComposerRegistration,
-  ListenerBindingComposerRegistration,
-  AttributeBindingComposerRegistration,
-  SetAttributeComposerRegistration,
-  SetClassAttributeComposerRegistration,
-  SetStyleAttributeComposerRegistration,
-  StylePropertyBindingComposerRegistration,
-  TextBindingComposerRegistration,
+export const DefaultRenderers = [
+  PropertyBindingRendererRegistration,
+  IteratorBindingRendererRegistration,
+  CallBindingRendererRegistration,
+  RefBindingRendererRegistration,
+  InterpolationBindingRendererRegistration,
+  SetPropertyRendererRegistration,
+  CustomElementRendererRegistration,
+  CustomAttributeRendererRegistration,
+  TemplateControllerRendererRegistration,
+  LetElementRendererRegistration,
+  ListenerBindingRendererRegistration,
+  AttributeBindingRendererRegistration,
+  SetAttributeRendererRegistration,
+  SetClassAttributeRendererRegistration,
+  SetStyleAttributeRendererRegistration,
+  StylePropertyBindingRendererRegistration,
+  TextBindingRendererRegistration,
 ];
 
 /**
@@ -269,7 +268,7 @@ export const DefaultComposers = [
  * - `RuntimeConfiguration` from `@aurelia/runtime`
  * - `DefaultComponents`
  * - `DefaultResources`
- * - `DefaultComposers`
+ * - `DefaultRenderers`
  */
 export const StandardConfiguration = {
   /**
@@ -281,7 +280,7 @@ export const StandardConfiguration = {
       ...DefaultResources,
       ...DefaultBindingSyntax,
       ...DefaultBindingLanguage,
-      ...DefaultComposers,
+      ...DefaultRenderers,
     );
   },
   /**

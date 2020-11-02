@@ -17,11 +17,11 @@ export class DefComponent {
     this.logger = logger.scopeTo(this.constructor.name);
   }
 
-  public afterBind(...rest) {
-    this.logger.debug(this.name, 'afterBind', this.appState, rest);
+  public bound(...rest) {
+    this.logger.debug(this.name, 'bound', this.appState, rest);
   }
-  public afterAttach(...rest) {
-    this.logger.debug(this.name, 'afterAttach', rest);
+  public attaching(...rest) {
+    this.logger.debug(this.name, 'attaching', rest);
   }
   public canEnter(instruction, previousInstruction) {
     this.logger.debug(this.name, 'canEnter', ++this.counter, instruction, previousInstruction);

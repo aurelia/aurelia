@@ -222,20 +222,18 @@ describe('the view locator', function () {
   });
 
   [
-    'beforeCompose',
+    'hydrating',
     'define',
-    'beforeComposeChildren',
-    'afterCompose',
+    'hydrated',
+    'created',
 
-    'beforeBind',
-    'afterBind',
-    'afterAttach',
-    'afterAttachChildren',
+    'binding',
+    'bound',
+    'attaching',
+    'attached',
 
-    'beforeDetach',
-    'beforeUnbind',
-    'afterUnbind',
-    'afterUnbindChildren',
+    'detaching',
+    'unbinding',
 
     'dispose',
   ].forEach(lifecycleHook => {

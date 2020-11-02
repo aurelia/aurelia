@@ -4,7 +4,7 @@ import { ValidationResult, validationRulesRegistrar, PropertyRule, rootObjectSym
 import { IValidateable } from './rule-interfaces';
 
 /**
- * Instruction for the validation controller's validate method.
+ * IInstruction for the validation controller's validate method.
  */
 export class ValidateInstruction<TObject extends IValidateable = IValidateable> {
   /**

@@ -138,15 +138,13 @@ describe('router hooks', function () {
       {
         kind: 'all-sync',
         hookSpecs: HookSpecs.create({
-          beforeBind: hookSpecsMap.beforeBind.sync,
-          afterBind: hookSpecsMap.afterBind.sync,
-          afterAttach: hookSpecsMap.afterAttach.sync,
-          afterAttachChildren: hookSpecsMap.afterAttachChildren.sync,
+          binding: hookSpecsMap.binding.sync,
+          bound: hookSpecsMap.bound.sync,
+          attaching: hookSpecsMap.attaching.sync,
+          attached: hookSpecsMap.attached.sync,
 
-          beforeDetach: hookSpecsMap.beforeDetach.sync,
-          beforeUnbind: hookSpecsMap.beforeUnbind.sync,
-          afterUnbind: hookSpecsMap.afterUnbind.sync,
-          afterUnbindChildren: hookSpecsMap.afterUnbindChildren.sync,
+          detaching: hookSpecsMap.detaching.sync,
+          unbinding: hookSpecsMap.unbinding.sync,
 
           canLoad: hookSpecsMap.canLoad.sync,
           load: hookSpecsMap.load.sync,
@@ -343,10 +341,10 @@ describe('router hooks', function () {
                   await tearDown();
 
                   const expected = [...(function* () {
-                    yield `start.root2.beforeBind`;
-                    yield `start.root2.afterBind`;
-                    yield `start.root2.afterAttach`;
-                    yield `start.root2.afterAttachChildren`;
+                    yield `start.root2.binding`;
+                    yield `start.root2.bound`;
+                    yield `start.root2.attaching`;
+                    yield `start.root2.attached`;
 
                     switch (componentSpec.kind) {
                       case 'all-async':
@@ -759,30 +757,25 @@ describe('router hooks', function () {
                       }
                     }
 
-                    yield `stop.root2.beforeDetach`;
-                    yield `stop.root2.beforeUnbind`;
-                    yield `stop.root2.afterUnbind`;
+                    yield `stop.root2.detaching`;
+                    yield `stop.root2.unbinding`;
 
                     switch (componentSpec.kind) {
                       case 'all-async':
                         yield* interleave(
                           (function* () {
-                            if (t2.vp0) { yield* prepend('stop', t2.vp0, 'beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren'); }
+                            if (t2.vp0) { yield* prepend('stop', t2.vp0, 'detaching', 'unbinding'); }
                           })(),
                           (function* () {
-                            if (t2.vp1) { yield* prepend('stop', t2.vp1, 'beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren'); }
+                            if (t2.vp1) { yield* prepend('stop', t2.vp1, 'detaching', 'unbinding'); }
                           })(),
                         );
                         break;
                       case 'all-sync':
-                        if (t2.vp0) { yield* prepend('stop', t2.vp0, 'beforeDetach', 'beforeUnbind', 'afterUnbind'); }
-                        if (t2.vp1) { yield* prepend('stop', t2.vp1, 'beforeDetach', 'beforeUnbind', 'afterUnbind'); }
-                        if (t2.vp0) { yield `stop.${t2.vp0}.afterUnbindChildren`; }
-                        if (t2.vp1) { yield `stop.${t2.vp1}.afterUnbindChildren`; }
+                        if (t2.vp0) { yield* prepend('stop', t2.vp0, 'detaching', 'unbinding'); }
+                        if (t2.vp1) { yield* prepend('stop', t2.vp1, 'detaching', 'unbinding'); }
                         break;
                     }
-
-                    yield `stop.root2.afterUnbindChildren`;
                   })()];
                   assertHooks(transformNotifications(hia.notifyHistory), expected);
 
@@ -900,14 +893,11 @@ describe('router hooks', function () {
 
                     yield* getStopHooks('root1', t2.p, t2.c);
 
-                    // yield `stop.root1.beforeDetach`;
-                    // yield `stop.root1.beforeUnbind`;
-                    // yield `stop.root1.afterUnbind`;
+                    // yield `stop.root1.detaching`;
+                    // yield `stop.root1.unbinding`;
 
-                    // yield* prepend('stop', t2.p, 'beforeDetach', 'beforeUnbind', 'afterUnbind');
-                    // if (t2.c) { yield* prepend('stop', t2.c, 'beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren'); }
-                    // yield `stop.${t2.p}.afterUnbindChildren`;
-                    // yield `stop.root1.afterUnbindChildren`;
+                    // yield* prepend('stop', t2.p, 'detaching', 'unbinding');
+                    // if (t2.c) { yield* prepend('stop', t2.c, 'detaching', 'unbinding'); }
                   })()];
 
                   assertHooks(hia.notifyHistory, expected);
@@ -1015,23 +1005,20 @@ describe('router hooks', function () {
           }),
 
           HookSpecs.create({
-            beforeBind: hookSpecsMap.beforeBind.setTimeout_0,
+            binding: hookSpecsMap.binding.setTimeout_0,
           }),
           HookSpecs.create({
-            afterBind: hookSpecsMap.afterBind.setTimeout_0,
+            bound: hookSpecsMap.bound.setTimeout_0,
           }),
           HookSpecs.create({
-            afterAttach: hookSpecsMap.afterAttach.setTimeout_0,
+            attaching: hookSpecsMap.attaching.setTimeout_0,
           }),
 
           HookSpecs.create({
-            beforeDetach: hookSpecsMap.beforeDetach.setTimeout_0,
+            detaching: hookSpecsMap.detaching.setTimeout_0,
           }),
           HookSpecs.create({
-            beforeUnbind: hookSpecsMap.beforeUnbind.setTimeout_0,
-          }),
-          HookSpecs.create({
-            afterUnbind: hookSpecsMap.afterUnbind.setTimeout_0,
+            unbinding: hookSpecsMap.unbinding.setTimeout_0,
           }),
         ]) {
           // TODO: Fix this
@@ -1083,39 +1070,39 @@ describe('router hooks', function () {
                 assertHooks(
                   hia.notifyHistory,
                   [
-                    `start.root.beforeBind`,
-                    `start.root.afterBind`,
-                    `start.root.afterAttach`,
-                    `start.root.afterAttachChildren`,
+                    `start.root.binding`,
+                    `start.root.bound`,
+                    `start.root.attaching`,
+                    `start.root.attached`,
 
                     `('' -> 'a/b/c/d').a.canLoad`,
                     `('' -> 'a/b/c/d').a.load`,
-                    `('' -> 'a/b/c/d').a.beforeBind`,
-                    `('' -> 'a/b/c/d').a.afterBind`,
-                    `('' -> 'a/b/c/d').a.afterAttach`,
+                    `('' -> 'a/b/c/d').a.binding`,
+                    `('' -> 'a/b/c/d').a.bound`,
+                    `('' -> 'a/b/c/d').a.attaching`,
 
                     `('' -> 'a/b/c/d').b.canLoad`,
                     `('' -> 'a/b/c/d').b.load`,
-                    `('' -> 'a/b/c/d').b.beforeBind`,
-                    `('' -> 'a/b/c/d').b.afterBind`,
-                    `('' -> 'a/b/c/d').b.afterAttach`,
+                    `('' -> 'a/b/c/d').b.binding`,
+                    `('' -> 'a/b/c/d').b.bound`,
+                    `('' -> 'a/b/c/d').b.attaching`,
 
                     `('' -> 'a/b/c/d').c.canLoad`,
                     `('' -> 'a/b/c/d').c.load`,
-                    `('' -> 'a/b/c/d').c.beforeBind`,
-                    `('' -> 'a/b/c/d').c.afterBind`,
-                    `('' -> 'a/b/c/d').c.afterAttach`,
+                    `('' -> 'a/b/c/d').c.binding`,
+                    `('' -> 'a/b/c/d').c.bound`,
+                    `('' -> 'a/b/c/d').c.attaching`,
 
                     `('' -> 'a/b/c/d').d.canLoad`,
                     `('' -> 'a/b/c/d').d.load`,
-                    `('' -> 'a/b/c/d').d.beforeBind`,
-                    `('' -> 'a/b/c/d').d.afterBind`,
-                    `('' -> 'a/b/c/d').d.afterAttach`,
+                    `('' -> 'a/b/c/d').d.binding`,
+                    `('' -> 'a/b/c/d').d.bound`,
+                    `('' -> 'a/b/c/d').d.attaching`,
 
-                    `('' -> 'a/b/c/d').d.afterAttachChildren`,
-                    `('' -> 'a/b/c/d').c.afterAttachChildren`,
-                    `('' -> 'a/b/c/d').b.afterAttachChildren`,
-                    `('' -> 'a/b/c/d').a.afterAttachChildren`,
+                    `('' -> 'a/b/c/d').d.attached`,
+                    `('' -> 'a/b/c/d').c.attached`,
+                    `('' -> 'a/b/c/d').b.attached`,
+                    `('' -> 'a/b/c/d').a.attached`,
 
                     `('a/b/c/d' -> 'a').d.canUnload`,
                     `('a/b/c/d' -> 'a').c.canUnload`,
@@ -1125,33 +1112,22 @@ describe('router hooks', function () {
                     `('a/b/c/d' -> 'a').c.unload`,
                     `('a/b/c/d' -> 'a').b.unload`,
 
-                    `('a/b/c/d' -> 'a').d.beforeDetach`,
-                    `('a/b/c/d' -> 'a').d.beforeUnbind`,
-                    `('a/b/c/d' -> 'a').d.afterUnbind`,
-                    `('a/b/c/d' -> 'a').d.afterUnbindChildren`,
+                    `('a/b/c/d' -> 'a').d.detaching`,
+                    `('a/b/c/d' -> 'a').d.unbinding`,
                     `('a/b/c/d' -> 'a').d.dispose`,
-                    `('a/b/c/d' -> 'a').c.beforeDetach`,
-                    `('a/b/c/d' -> 'a').c.beforeUnbind`,
-                    `('a/b/c/d' -> 'a').c.afterUnbind`,
-                    `('a/b/c/d' -> 'a').c.afterUnbindChildren`,
+                    `('a/b/c/d' -> 'a').c.detaching`,
+                    `('a/b/c/d' -> 'a').c.unbinding`,
                     `('a/b/c/d' -> 'a').c.dispose`,
-                    `('a/b/c/d' -> 'a').b.beforeDetach`,
-                    `('a/b/c/d' -> 'a').b.beforeUnbind`,
-                    `('a/b/c/d' -> 'a').b.afterUnbind`,
-                    `('a/b/c/d' -> 'a').b.afterUnbindChildren`,
+                    `('a/b/c/d' -> 'a').b.detaching`,
+                    `('a/b/c/d' -> 'a').b.unbinding`,
                     `('a/b/c/d' -> 'a').b.dispose`,
 
-                    `stop.root.beforeDetach`,
-                    `stop.root.beforeUnbind`,
-                    `stop.root.afterUnbind`,
+                    `stop.root.detaching`,
+                    `stop.root.unbinding`,
 
                     `stop.a.unload`,
-                    `stop.a.beforeDetach`,
-                    `stop.a.beforeUnbind`,
-                    `stop.a.afterUnbind`,
-                    `stop.a.afterUnbindChildren`,
-
-                    `stop.root.afterUnbindChildren`,
+                    `stop.a.detaching`,
+                    `stop.a.unbinding`,
                   ],
                 );
                 break;
@@ -1160,10 +1136,10 @@ describe('router hooks', function () {
                 assertHooks(
                   hia.notifyHistory,
                   [
-                    `start.root.beforeBind`,
-                    `start.root.afterBind`,
-                    `start.root.afterAttach`,
-                    `start.root.afterAttachChildren`,
+                    `start.root.binding`,
+                    `start.root.bound`,
+                    `start.root.attaching`,
+                    `start.root.attached`,
 
                     `('' -> 'a/b/c/d').a.canLoad`,
                     `('' -> 'a/b/c/d').b.canLoad`,
@@ -1171,25 +1147,25 @@ describe('router hooks', function () {
                     `('' -> 'a/b/c/d').d.canLoad`,
 
                     `('' -> 'a/b/c/d').a.load`,
-                    `('' -> 'a/b/c/d').a.beforeBind`,
-                    `('' -> 'a/b/c/d').a.afterBind`,
-                    `('' -> 'a/b/c/d').a.afterAttach`,
+                    `('' -> 'a/b/c/d').a.binding`,
+                    `('' -> 'a/b/c/d').a.bound`,
+                    `('' -> 'a/b/c/d').a.attaching`,
                     `('' -> 'a/b/c/d').b.load`,
-                    `('' -> 'a/b/c/d').b.beforeBind`,
-                    `('' -> 'a/b/c/d').b.afterBind`,
-                    `('' -> 'a/b/c/d').b.afterAttach`,
+                    `('' -> 'a/b/c/d').b.binding`,
+                    `('' -> 'a/b/c/d').b.bound`,
+                    `('' -> 'a/b/c/d').b.attaching`,
                     `('' -> 'a/b/c/d').c.load`,
-                    `('' -> 'a/b/c/d').c.beforeBind`,
-                    `('' -> 'a/b/c/d').c.afterBind`,
-                    `('' -> 'a/b/c/d').c.afterAttach`,
+                    `('' -> 'a/b/c/d').c.binding`,
+                    `('' -> 'a/b/c/d').c.bound`,
+                    `('' -> 'a/b/c/d').c.attaching`,
                     `('' -> 'a/b/c/d').d.load`,
-                    `('' -> 'a/b/c/d').d.beforeBind`,
-                    `('' -> 'a/b/c/d').d.afterBind`,
-                    `('' -> 'a/b/c/d').d.afterAttach`,
-                    `('' -> 'a/b/c/d').d.afterAttachChildren`,
-                    `('' -> 'a/b/c/d').c.afterAttachChildren`,
-                    `('' -> 'a/b/c/d').b.afterAttachChildren`,
-                    `('' -> 'a/b/c/d').a.afterAttachChildren`,
+                    `('' -> 'a/b/c/d').d.binding`,
+                    `('' -> 'a/b/c/d').d.bound`,
+                    `('' -> 'a/b/c/d').d.attaching`,
+                    `('' -> 'a/b/c/d').d.attached`,
+                    `('' -> 'a/b/c/d').c.attached`,
+                    `('' -> 'a/b/c/d').b.attached`,
+                    `('' -> 'a/b/c/d').a.attached`,
 
                     `('a/b/c/d' -> 'a').d.canUnload`,
                     `('a/b/c/d' -> 'a').c.canUnload`,
@@ -1199,33 +1175,22 @@ describe('router hooks', function () {
                     `('a/b/c/d' -> 'a').c.unload`,
                     `('a/b/c/d' -> 'a').b.unload`,
 
-                    `('a/b/c/d' -> 'a').d.beforeDetach`,
-                    `('a/b/c/d' -> 'a').d.beforeUnbind`,
-                    `('a/b/c/d' -> 'a').d.afterUnbind`,
-                    `('a/b/c/d' -> 'a').d.afterUnbindChildren`,
+                    `('a/b/c/d' -> 'a').d.detaching`,
+                    `('a/b/c/d' -> 'a').d.unbinding`,
                     `('a/b/c/d' -> 'a').d.dispose`,
-                    `('a/b/c/d' -> 'a').c.beforeDetach`,
-                    `('a/b/c/d' -> 'a').c.beforeUnbind`,
-                    `('a/b/c/d' -> 'a').c.afterUnbind`,
-                    `('a/b/c/d' -> 'a').c.afterUnbindChildren`,
+                    `('a/b/c/d' -> 'a').c.detaching`,
+                    `('a/b/c/d' -> 'a').c.unbinding`,
                     `('a/b/c/d' -> 'a').c.dispose`,
-                    `('a/b/c/d' -> 'a').b.beforeDetach`,
-                    `('a/b/c/d' -> 'a').b.beforeUnbind`,
-                    `('a/b/c/d' -> 'a').b.afterUnbind`,
-                    `('a/b/c/d' -> 'a').b.afterUnbindChildren`,
+                    `('a/b/c/d' -> 'a').b.detaching`,
+                    `('a/b/c/d' -> 'a').b.unbinding`,
                     `('a/b/c/d' -> 'a').b.dispose`,
 
-                    `stop.root.beforeDetach`,
-                    `stop.root.beforeUnbind`,
-                    `stop.root.afterUnbind`,
+                    `stop.root.detaching`,
+                    `stop.root.unbinding`,
 
                     `stop.a.unload`,
-                    `stop.a.beforeDetach`,
-                    `stop.a.beforeUnbind`,
-                    `stop.a.afterUnbind`,
-                    `stop.a.afterUnbindChildren`,
-
-                    `stop.root.afterUnbindChildren`,
+                    `stop.a.detaching`,
+                    `stop.a.unbinding`,
                   ],
                 );
                 break;
@@ -1234,10 +1199,10 @@ describe('router hooks', function () {
                 assertHooks(
                   hia.notifyHistory,
                   [
-                    `start.root.beforeBind`,
-                    `start.root.afterBind`,
-                    `start.root.afterAttach`,
-                    `start.root.afterAttachChildren`,
+                    `start.root.binding`,
+                    `start.root.bound`,
+                    `start.root.attaching`,
+                    `start.root.attached`,
 
                     `('' -> 'a/b/c/d').a.canLoad`,
                     `('' -> 'a/b/c/d').b.canLoad`,
@@ -1249,22 +1214,22 @@ describe('router hooks', function () {
                     `('' -> 'a/b/c/d').c.load`,
                     `('' -> 'a/b/c/d').d.load`,
 
-                    `('' -> 'a/b/c/d').a.beforeBind`,
-                    `('' -> 'a/b/c/d').a.afterBind`,
-                    `('' -> 'a/b/c/d').a.afterAttach`,
-                    `('' -> 'a/b/c/d').b.beforeBind`,
-                    `('' -> 'a/b/c/d').b.afterBind`,
-                    `('' -> 'a/b/c/d').b.afterAttach`,
-                    `('' -> 'a/b/c/d').c.beforeBind`,
-                    `('' -> 'a/b/c/d').c.afterBind`,
-                    `('' -> 'a/b/c/d').c.afterAttach`,
-                    `('' -> 'a/b/c/d').d.beforeBind`,
-                    `('' -> 'a/b/c/d').d.afterBind`,
-                    `('' -> 'a/b/c/d').d.afterAttach`,
-                    `('' -> 'a/b/c/d').d.afterAttachChildren`,
-                    `('' -> 'a/b/c/d').c.afterAttachChildren`,
-                    `('' -> 'a/b/c/d').b.afterAttachChildren`,
-                    `('' -> 'a/b/c/d').a.afterAttachChildren`,
+                    `('' -> 'a/b/c/d').a.binding`,
+                    `('' -> 'a/b/c/d').a.bound`,
+                    `('' -> 'a/b/c/d').a.attaching`,
+                    `('' -> 'a/b/c/d').b.binding`,
+                    `('' -> 'a/b/c/d').b.bound`,
+                    `('' -> 'a/b/c/d').b.attaching`,
+                    `('' -> 'a/b/c/d').c.binding`,
+                    `('' -> 'a/b/c/d').c.bound`,
+                    `('' -> 'a/b/c/d').c.attaching`,
+                    `('' -> 'a/b/c/d').d.binding`,
+                    `('' -> 'a/b/c/d').d.bound`,
+                    `('' -> 'a/b/c/d').d.attaching`,
+                    `('' -> 'a/b/c/d').d.attached`,
+                    `('' -> 'a/b/c/d').c.attached`,
+                    `('' -> 'a/b/c/d').b.attached`,
+                    `('' -> 'a/b/c/d').a.attached`,
 
                     `('a/b/c/d' -> 'a').d.canUnload`,
                     `('a/b/c/d' -> 'a').c.canUnload`,
@@ -1274,33 +1239,22 @@ describe('router hooks', function () {
                     `('a/b/c/d' -> 'a').c.unload`,
                     `('a/b/c/d' -> 'a').b.unload`,
 
-                    `('a/b/c/d' -> 'a').d.beforeDetach`,
-                    `('a/b/c/d' -> 'a').d.beforeUnbind`,
-                    `('a/b/c/d' -> 'a').d.afterUnbind`,
-                    `('a/b/c/d' -> 'a').d.afterUnbindChildren`,
+                    `('a/b/c/d' -> 'a').d.detaching`,
+                    `('a/b/c/d' -> 'a').d.unbinding`,
                     `('a/b/c/d' -> 'a').d.dispose`,
-                    `('a/b/c/d' -> 'a').c.beforeDetach`,
-                    `('a/b/c/d' -> 'a').c.beforeUnbind`,
-                    `('a/b/c/d' -> 'a').c.afterUnbind`,
-                    `('a/b/c/d' -> 'a').c.afterUnbindChildren`,
+                    `('a/b/c/d' -> 'a').c.detaching`,
+                    `('a/b/c/d' -> 'a').c.unbinding`,
                     `('a/b/c/d' -> 'a').c.dispose`,
-                    `('a/b/c/d' -> 'a').b.beforeDetach`,
-                    `('a/b/c/d' -> 'a').b.beforeUnbind`,
-                    `('a/b/c/d' -> 'a').b.afterUnbind`,
-                    `('a/b/c/d' -> 'a').b.afterUnbindChildren`,
+                    `('a/b/c/d' -> 'a').b.detaching`,
+                    `('a/b/c/d' -> 'a').b.unbinding`,
                     `('a/b/c/d' -> 'a').b.dispose`,
 
-                    `stop.root.beforeDetach`,
-                    `stop.root.beforeUnbind`,
-                    `stop.root.afterUnbind`,
+                    `stop.root.detaching`,
+                    `stop.root.unbinding`,
 
                     `stop.a.unload`,
-                    `stop.a.beforeDetach`,
-                    `stop.a.beforeUnbind`,
-                    `stop.a.afterUnbind`,
-                    `stop.a.afterUnbindChildren`,
-
-                    `stop.root.afterUnbindChildren`,
+                    `stop.a.detaching`,
+                    `stop.a.unbinding`,
                   ],
                 );
                 break;
@@ -1443,12 +1397,11 @@ describe('router hooks', function () {
               prepend(phase1, 'b', 'canLoad', 'load', ...addHooks),
             );
 
-            yield* prepend(`stop`, 'root', 'beforeDetach', 'beforeUnbind', 'afterUnbind');
+            yield* prepend(`stop`, 'root', 'detaching', 'unbinding');
             yield* interleave(
-              prepend(`stop`, 'a', 'beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren'),
-              prepend(`stop`, 'b', 'beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren'),
+              prepend(`stop`, 'a', 'detaching', 'unbinding'),
+              prepend(`stop`, 'b', 'detaching', 'unbinding'),
             );
-            yield `stop.root.afterUnbindChildren`;
           });
         }
       });
@@ -1893,7 +1846,7 @@ describe('router hooks', function () {
 
                 yield* interleave(
                   (function* () {
-                    yield* prepend(phase1, 'a1', 'beforeBind', 'afterBind', 'afterAttach');
+                    yield* prepend(phase1, 'a1', 'binding', 'bound', 'attaching');
                     yield `${phase1}.a2.load`;
                     if (a2Load > 1) { yield ''; }
                     if (a2Load > 2) { yield ''; }
@@ -1901,17 +1854,17 @@ describe('router hooks', function () {
                     yield* prepend(phase1, 'a2', ...addHooks);
                     if (b2Load > 2) { yield ''; }
                     if (b2Load > 3) { yield ''; }
-                    yield `${phase1}.a1.afterAttachChildren`;
+                    yield `${phase1}.a1.attached`;
                   })(),
                   (function* () {
-                    yield* prepend(phase1, 'b1', 'beforeBind', 'afterBind', 'afterAttach');
+                    yield* prepend(phase1, 'b1', 'binding', 'bound', 'attaching');
                     yield `${phase1}.b2.load`;
                     if (b2Load > 2) { yield ''; }
                     if (b2Load > 3) { yield ''; }
                     yield* prepend(phase1, 'b2', ...addHooks);
                     if (a2Load > 2) { yield ''; }
                     if (a2Load > 4) { yield ''; }
-                    yield `${phase1}.b1.afterAttachChildren`;
+                    yield `${phase1}.b1.attached`;
                   })(),
                 );
                 break;
@@ -1952,35 +1905,30 @@ describe('router hooks', function () {
 
                 yield* interleave(
                   (function* () {
-                    yield* prepend(phase1, 'a1', 'beforeBind', 'afterBind', 'afterAttach');
+                    yield* prepend(phase1, 'a1', 'binding', 'bound', 'attaching');
                     yield* prepend(phase1, 'a2', ...addHooks);
-                    yield `${phase1}.a1.afterAttachChildren`;
+                    yield `${phase1}.a1.attached`;
                   })(),
                   (function* () {
-                    yield* prepend(phase1, 'b1', 'beforeBind', 'afterBind', 'afterAttach');
-                    yield* prepend(phase1, 'b2', 'beforeBind', 'afterBind', 'afterAttach');
+                    yield* prepend(phase1, 'b1', 'binding', 'bound', 'attaching');
+                    yield* prepend(phase1, 'b2', 'binding', 'bound', 'attaching');
                     yield '';
-                    yield `${phase1}.b2.afterAttachChildren`;
-                    yield `${phase1}.b1.afterAttachChildren`;
+                    yield `${phase1}.b2.attached`;
+                    yield `${phase1}.b1.attached`;
                   })(),
                 );
                 break;
             }
 
-            yield* prepend(`stop`, 'root', 'beforeDetach', 'beforeUnbind', 'afterUnbind');
+            yield* prepend(`stop`, 'root', 'detaching', 'unbinding');
             yield* interleave(
-              prepend(`stop`, 'a1', 'beforeDetach', 'beforeUnbind', 'afterUnbind'),
-              prepend(`stop`, 'b1', 'beforeDetach', 'beforeUnbind', 'afterUnbind'),
+              prepend(`stop`, 'a1', 'detaching', 'unbinding'),
+              prepend(`stop`, 'b1', 'detaching', 'unbinding'),
             );
             yield* interleave(
-              prepend(`stop`, 'a2', 'beforeDetach', 'beforeUnbind', 'afterUnbind'),
-              prepend(`stop`, 'b2', 'beforeDetach', 'beforeUnbind', 'afterUnbind'),
+              prepend(`stop`, 'a2', 'detaching', 'unbinding'),
+              prepend(`stop`, 'b2', 'detaching', 'unbinding'),
             );
-            yield `stop.a2.afterUnbindChildren`;
-            yield `stop.b2.afterUnbindChildren`;
-            yield `stop.a1.afterUnbindChildren`;
-            yield `stop.b1.afterUnbindChildren`;
-            yield `stop.root.afterUnbindChildren`;
           });
         }
       });
@@ -2065,10 +2013,10 @@ describe('router hooks', function () {
         }
 
         for (const hookName of [
-          'beforeBind',
-          'afterBind',
-          'afterAttach',
-          'afterAttachChildren',
+          'binding',
+          'bound',
+          'attaching',
+          'attached',
           'canLoad',
           'load',
         ] as HookName[]) {
@@ -2092,10 +2040,8 @@ describe('router hooks', function () {
         }
 
         for (const hookName of [
-          'beforeDetach',
-          'beforeUnbind',
-          'afterUnbind',
-          'afterUnbindChildren',
+          'detaching',
+          'unbinding',
           'canUnload',
           'unload',
         ] as HookName[]) {
@@ -2109,9 +2055,9 @@ describe('router hooks', function () {
 
               // These shouldn't throw
               const target2 = CustomElement.define({ name: 'a', template: 'a' }, class Target2 {
-                public async beforeBind() { throw new Error(`error in beforeBind`); }
-                public async afterBind() { throw new Error(`error in afterBind`); }
-                public async afterAttach() { throw new Error(`error in afterAttach`); }
+                public async binding() { throw new Error(`error in binding`); }
+                public async bound() { throw new Error(`error in bound`); }
+                public async attaching() { throw new Error(`error in attaching`); }
                 public async canLoad() { throw new Error(`error in canLoad`); }
                 public async load() { throw new Error(`error in load`); }
               });
@@ -2140,15 +2086,13 @@ function join(sep: string, ...parts: string[]): string {
 
 function getAllAsyncSpecs(count: number): HookSpecs {
   return HookSpecs.create({
-    beforeBind: hookSpecsMap.beforeBind.async(count),
-    afterBind: hookSpecsMap.afterBind.async(count),
-    afterAttach: hookSpecsMap.afterAttach.async(count),
-    afterAttachChildren: hookSpecsMap.afterAttachChildren.async(count),
+    binding: hookSpecsMap.binding.async(count),
+    bound: hookSpecsMap.bound.async(count),
+    attaching: hookSpecsMap.attaching.async(count),
+    attached: hookSpecsMap.attached.async(count),
 
-    beforeDetach: hookSpecsMap.beforeDetach.async(count),
-    beforeUnbind: hookSpecsMap.beforeUnbind.async(count),
-    afterUnbind: hookSpecsMap.afterUnbind.async(count),
-    afterUnbindChildren: hookSpecsMap.afterUnbindChildren.async(count),
+    detaching: hookSpecsMap.detaching.async(count),
+    unbinding: hookSpecsMap.unbinding.async(count),
 
     canLoad: hookSpecsMap.canLoad.async(count),
     load: hookSpecsMap.load.async(count),

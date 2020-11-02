@@ -2,15 +2,14 @@
 import { Constructable, Protocol, Metadata, firstDefined, getPrototypeChain, IIndexable } from '@aurelia/kernel';
 import { LifecycleFlags, subscriberCollection, ISubscriberCollection, IAccessor, ISubscribable, IPropertyObserver, ISubscriber } from '@aurelia/runtime';
 import { INode } from '../dom';
-import { ICustomElementViewModel, ICustomElementController } from '../lifecycle';
-import { ElementProjector } from '../projectors';
 import { CustomElement } from '../resources/custom-element';
+import type { ICustomElementViewModel, ICustomElementController } from './controller';
 
 export type PartialChildrenDefinition = {
   callback?: string;
   property?: string;
   options?: MutationObserverInit;
-  query?: (projector: ElementProjector) => ArrayLike<Node>;
+  query?: (controller: ICustomElementController) => ArrayLike<Node>;
   filter?: (node: Node, controller?: ICustomElementController | null, viewModel?: ICustomElementViewModel) => boolean;
   map?: (node: Node, controller?: ICustomElementController | null, viewModel?: ICustomElementViewModel) => any;
 };
@@ -132,12 +131,13 @@ export const Children = {
   },
 };
 
+const childObserverOptions = { childList: true };
 export class ChildrenDefinition {
   private constructor(
     public readonly callback: string,
     public readonly property: string,
     public readonly options?: MutationObserverInit,
-    public readonly query?: (projector: ElementProjector) => ArrayLike<Node>,
+    public readonly query?: (controller: ICustomElementController) => ArrayLike<Node>,
     public readonly filter?: (node: Node, controller?: ICustomElementController | null, viewModel?: ICustomElementViewModel) => boolean,
     public readonly map?: (node: Node, controller?: ICustomElementController | null, viewModel?: ICustomElementViewModel) => any,
   ) {}
@@ -146,7 +146,7 @@ export class ChildrenDefinition {
     return new ChildrenDefinition(
       firstDefined(def.callback, `${prop}Changed`),
       firstDefined(def.property, prop),
-      def.options,
+      def.options ?? childObserverOptions,
       def.query,
       def.filter,
       def.map,
@@ -208,14 +208,14 @@ export class ChildrenObserver {
   private tryStartObserving() {
     if (!this.observing) {
       this.observing = true;
-      const projector = this.controller.projector!;
-      this.children = filterChildren(projector, this.query, this.filter, this.map);
-      projector.subscribeToChildrenChange(() => { this.onChildrenChanged(); }, this.options);
+      this.children = filterChildren(this.controller, this.query, this.filter, this.map);
+      const obs = new this.controller.host.ownerDocument.defaultView!.MutationObserver(() => { this.onChildrenChanged(); });
+      obs.observe(this.controller.host, this.options);
     }
   }
 
   private onChildrenChanged(): void {
-    this.children = filterChildren(this.controller.projector!, this.query, this.filter, this.map);
+    this.children = filterChildren(this.controller, this.query, this.filter, this.map);
 
     if (this.callback !== void 0) {
       this.callback.call(this.obj);
@@ -225,8 +225,8 @@ export class ChildrenObserver {
   }
 }
 
-function defaultChildQuery(projector: ElementProjector): ArrayLike<INode> {
-  return projector.children;
+function defaultChildQuery(controller: ICustomElementController): ArrayLike<INode> {
+  return controller.host.childNodes;
 }
 
 function defaultChildFilter(node: INode, controller?: ICustomElementController | null, viewModel?: any): boolean {
@@ -241,21 +241,21 @@ const forOpts = { optional: true } as const;
 
 /** @internal */
 export function filterChildren(
-  projector: ElementProjector,
+  controller: ICustomElementController,
   query: typeof defaultChildQuery,
   filter: typeof defaultChildFilter,
   map: typeof defaultChildMap
 ): any[] {
-  const nodes = query(projector);
+  const nodes = query(controller);
   const children = [];
 
   for (let i = 0, ii = nodes.length; i < ii; ++i) {
     const node = nodes[i];
-    const controller = CustomElement.for(node, forOpts);
-    const viewModel = controller?.viewModel ?? null;
+    const $controller = CustomElement.for(node, forOpts);
+    const viewModel = $controller?.viewModel ?? null;
 
-    if (filter(node, controller, viewModel)) {
-      children.push(map(node, controller, viewModel));
+    if (filter(node, $controller, viewModel)) {
+      children.push(map(node, $controller, viewModel));
     }
   }
 

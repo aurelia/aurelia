@@ -36,7 +36,7 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel {
   public readonly $controller!: ICustomElementController<this>;
 
   public controller!: IRoutingController;
-  public readonly element: Element;
+  public readonly element: HTMLElement;
 
   private isBound: boolean = false;
 
@@ -47,7 +47,7 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel {
     @ParentViewportScope private readonly parent: ViewportScopeCustomElement,
     @IController private readonly parentController: IHydratedController,
   ) {
-    this.element = element as Element;
+    this.element = element as HTMLElement;
   }
 
   // Maybe this really should be here. Check with Fred
@@ -64,8 +64,8 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel {
 
   //   // We could tidy this up into a formal api in the future. For now, there are two ways to do this:
   //   // 1. inject the `@IInstruction` (IHydrateElementInstruction) and grab .parts['default'] from there, manually creating a view factory from that, etc.
-  //   // 2. what we're doing right here: grab the 'default' part from the create hook and return it as the definition, telling the composition context to use that part to compile this element instead
-  //   // This effectively causes this element to compose its declared content as if it was its own template.
+  //   // 2. what we're doing right here: grab the 'default' part from the create hook and return it as the definition, telling the render context to use that part to compile this element instead
+  //   // This effectively causes this element to render its declared content as if it was its own template.
 
   //   // We do need to set `containerless` to true on the part definition so that the correct projector is used since parts default to non-containerless.
   //   // Otherwise, the controller will try to do `appendChild` on a comment node when it has to do `insertBefore`.
@@ -77,7 +77,7 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel {
   //   return CustomElementDefinition.getOrCreate({ ...part, containerless: true });
   // }
 
-  public beforeComposeChildren(controller: ICompiledCustomElementController) {
+  public hydrated(controller: ICompiledCustomElementController) {
     this.controller = controller as IRoutingController;
     // Don't update the container here (probably because it wants to be a part of the structure)
     // this.container = controller.context.get(IContainer);
@@ -85,19 +85,19 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel {
     // console.log('ViewportScope creating', this.getAttribute('name', this.name), this.container, this.parent, controller, this);
     // this.connect();
   }
-  public afterBind(initiator: IHydratedController, parent: ISyntheticView | ICustomElementController | null, flags: LifecycleFlags): void {
+  public bound(initiator: IHydratedController, parent: ISyntheticView | ICustomElementController | null, flags: LifecycleFlags): void {
     this.isBound = true;
 
     (this.$controller as Writable<ICustomElementController>).scope = this.parentController.scope!;
 
     this.connect();
     if (this.viewportScope !== null) {
-      this.viewportScope.beforeBind();
+      this.viewportScope.binding();
     }
   }
-  public beforeUnbind(initiator: IHydratedController, parent: ISyntheticView | ICustomElementController | null, flags: LifecycleFlags): void | Promise<void> {
+  public unbinding(initiator: IHydratedController, parent: ISyntheticView | ICustomElementController | null, flags: LifecycleFlags): void | Promise<void> {
     if (this.viewportScope !== null) {
-      this.viewportScope.beforeUnbind();
+      this.viewportScope.unbinding();
     }
     return Promise.resolve();
   }

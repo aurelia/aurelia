@@ -42,27 +42,27 @@
 //   const allHooks = Object.freeze(new HooksDefinition({
 //     created: true,
 //     binding: true,
-//     afterBind: true,
+//     bound: true,
 //     beforeAttach: true,
-//     afterAttachChildren: true,
-//     beforeDetach: true,
+//     attached: true,
+//     detaching: true,
 //     dispose: true,
 //     afterDetachChildren: true,
-//     beforeUnbind: true,
+//     unbinding: true,
 //     afterUnbindChildren: true,
 //   }));
 //   const noHooks = Object.freeze(new HooksDefinition({}));
 
 //   function addTracingHooks<TProto>(ctor: Class<TProto>): Class<TProto & {
 //     created(...args: any[]): void;
-//     beforeBind(...args: any[]): void;
-//     afterBind(...args: any[]): void;
+//     binding(...args: any[]): void;
+//     bound(...args: any[]): void;
 //     beforeAttach(...args: any[]): void;
-//     afterAttachChildren(...args: any[]): void;
-//     beforeDetach(...args: any[]): void;
+//     attached(...args: any[]): void;
+//     detaching(...args: any[]): void;
 //     dispose(...args: any[]): void;
 //     afterDetachChildren(...args: any[]): void;
-//     beforeUnbind(...args: any[]): void;
+//     unbinding(...args: any[]): void;
 //     afterUnbindChildren(...args: any[]): void;
 //   }> {
 //     const proto = ctor.prototype as any;
@@ -70,20 +70,20 @@
 //     proto.created = function (...args: any[]): void {
 //       this.$$calls.addCall(this.id, 'created', ...args);
 //     };
-//     proto.beforeBind = function (...args: any[]): void {
-//       this.$$calls.addCall(this.id, 'beforeBind', ...args);
+//     proto.binding = function (...args: any[]): void {
+//       this.$$calls.addCall(this.id, 'binding', ...args);
 //     };
-//     proto.afterBind = function (...args: any[]): void {
-//       this.$$calls.addCall(this.id, 'afterBind', ...args);
+//     proto.bound = function (...args: any[]): void {
+//       this.$$calls.addCall(this.id, 'bound', ...args);
 //     };
 //     proto.beforeAttach = function (...args: any[]): void {
 //       this.$$calls.addCall(this.id, 'beforeAttach', ...args);
 //     };
-//     proto.afterAttachChildren = function (...args: any[]): void {
-//       this.$$calls.addCall(this.id, 'afterAttachChildren', ...args);
+//     proto.attached = function (...args: any[]): void {
+//       this.$$calls.addCall(this.id, 'attached', ...args);
 //     };
-//     proto.beforeDetach = function (...args: any[]): void {
-//       this.$$calls.addCall(this.id, 'beforeDetach', ...args);
+//     proto.detaching = function (...args: any[]): void {
+//       this.$$calls.addCall(this.id, 'detaching', ...args);
 //     };
 //     proto.dispose = function (...args: any[]): void {
 //       this.$$calls.addCall(this.id, 'dispose', ...args);
@@ -91,8 +91,8 @@
 //     proto.afterDetachChildren = function (...args: any[]): void {
 //       this.$$calls.addCall(this.id, 'afterDetachChildren', ...args);
 //     };
-//     proto.beforeUnbind = function (...args: any[]): void {
-//       this.$$calls.addCall(this.id, 'beforeUnbind', ...args);
+//     proto.unbinding = function (...args: any[]): void {
+//       this.$$calls.addCall(this.id, 'unbinding', ...args);
 //     };
 //     proto.afterUnbindChildren = function (...args: any[]): void {
 //       this.$$calls.addCall(this.id, 'afterUnbindChildren', ...args);
@@ -231,11 +231,11 @@
 //           .addCall(2, 'bind', LF.none)
 //           .addCall(2, 'bindCustomElement', LF.fromBind, sut.scope)
 //           .addCall(2, 'bindBindings', LF.fromBind, sut.scope)
-//           .addCall(1, 'beforeBind', LF.fromBind)
+//           .addCall(1, 'binding', LF.fromBind)
 //           .addCall(2, 'bindControllers', LF.fromBind, sut.scope)
 //           .addCall(2, 'endBind', LF.fromBind)
-//           .addCall(2, 'afterBind', LF.fromBind)
-//           .addCall(1, 'afterBind', LF.fromBind),
+//           .addCall(2, 'bound', LF.fromBind)
+//           .addCall(1, 'bound', LF.fromBind),
 //         '2',
 //       );
 
@@ -259,8 +259,8 @@
 //         expectedCalls
 //           .addCall(2, 'mount', LF.fromTick)
 //           .addCall(2, 'mountCustomElement', LF.fromTick)
-//           .addCall(2, 'afterAttachChildren', LF.fromTick)
-//           .addCall(1, 'afterAttachChildren', LF.fromTick),
+//           .addCall(2, 'attached', LF.fromTick)
+//           .addCall(1, 'attached', LF.fromTick),
 //         '5',
 //       );
 //       assert.strictEqual(host.textContent, '1', '6');
@@ -272,7 +272,7 @@
 //         expectedCalls
 //           .addCall(2, 'detach', LF.none)
 //           .addCall(2, 'detachCustomElement', LF.fromDetach)
-//           .addCall(1, 'beforeDetach', LF.fromDetach)
+//           .addCall(1, 'detaching', LF.fromDetach)
 //           .addCall(2, 'detachControllers', LF.fromDetach),
 //         '7',
 //       );
@@ -298,7 +298,7 @@
 //         expectedCalls
 //           .addCall(2, 'unbind', LF.none)
 //           .addCall(2, 'unbindCustomElement', LF.fromUnbind)
-//           .addCall(1, 'beforeUnbind', LF.fromUnbind)
+//           .addCall(1, 'unbinding', LF.fromUnbind)
 //           .addCall(2, 'unbindControllers', LF.fromUnbind)
 //           .addCall(2, 'unbindBindings', LF.fromUnbind)
 //           .addCall(2, 'endUnbind', LF.fromUnbind)
@@ -384,7 +384,7 @@
 //           .addCall(3, 'valueChanged', true, false, LF.none)
 
 //           // ce #1
-//           .addCall(1, 'beforeBind', LF.fromBind)
+//           .addCall(1, 'binding', LF.fromBind)
 
 //           // ce #1 controller
 //           .addCall(2, 'bindControllers', LF.fromBind, sut.scope)
@@ -394,7 +394,7 @@
 //           .addCall(4, 'bindCustomAttribute', LF.fromBind, sut.scope)
 
 //           // if #1
-//           .addCall(3, 'beforeBind', LF.fromBind)
+//           .addCall(3, 'binding', LF.fromBind)
 //           .addCall(3, 'swap', true, LF.fromBind)
 //           .addCall(3, 'updateView', true, LF.fromBind)
 //           .addCall(3, 'ensureView', void 0, ifInstance['ifFactory'], LF.fromBind)
@@ -421,7 +421,7 @@
 //           .addCall(7, 'bindBindings', LF.fromBind, secondCustomElementController.scope)
 
 //           // ce #2
-//           .addCall(6, 'beforeBind', LF.fromBind)
+//           .addCall(6, 'binding', LF.fromBind)
 
 //           // ce #2 controller
 //           .addCall(7, 'bindControllers', LF.fromBind, secondCustomElementController.scope)
@@ -431,7 +431,7 @@
 //           .addCall(9, 'bindCustomAttribute', LF.fromBind, secondCustomElementController.scope)
 
 //           // if #2
-//           .addCall(8, 'beforeBind', LF.fromBind)
+//           .addCall(8, 'binding', LF.fromBind)
 //           .addCall(8, 'swap', false, LF.fromBind)
 //           .addCall(8, 'deactivate', LF.fromBind)
 //           .addCall(8, 'updateView', false, LF.fromBind)
@@ -453,16 +453,16 @@
 //           .addCall(2, 'endBind', LF.fromBind)
 
 //           // ce #2 controller
-//           .addCall(7, 'afterBind', LF.fromBind)
+//           .addCall(7, 'bound', LF.fromBind)
 
 //           // ce #2
-//           .addCall(6, 'afterBind', LF.fromBind)
+//           .addCall(6, 'bound', LF.fromBind)
 
 //           // ce #1 controller
-//           .addCall(2, 'afterBind', LF.fromBind)
+//           .addCall(2, 'bound', LF.fromBind)
 
 //           // ce #1
-//           .addCall(1, 'afterBind', LF.fromBind),
+//           .addCall(1, 'bound', LF.fromBind),
 //         '2',
 //       );
 
@@ -532,16 +532,16 @@
 //           .addCall(7, 'mount', LF.fromTick)
 //           .addCall(7, 'mountCustomElement', LF.fromTick)
 
-//           .addCall(7, 'afterAttachChildren', LF.fromTick)
+//           .addCall(7, 'attached', LF.fromTick)
 
 //           // ce #2
-//           .addCall(6, 'afterAttachChildren', LF.fromTick)
+//           .addCall(6, 'attached', LF.fromTick)
 
 //           // ce #1 controller
-//           .addCall(2, 'afterAttachChildren', LF.fromTick)
+//           .addCall(2, 'attached', LF.fromTick)
 
 //           // ce #1
-//           .addCall(1, 'afterAttachChildren', LF.fromTick),
+//           .addCall(1, 'attached', LF.fromTick),
 //         '5',
 //       );
 //       assert.strictEqual(host.textContent, '16', '6');
@@ -556,7 +556,7 @@
 //           .addCall(2, 'detachCustomElement', LF.fromDetach)
 
 //           // ce #1
-//           .addCall(1, 'beforeDetach', LF.fromDetach)
+//           .addCall(1, 'detaching', LF.fromDetach)
 
 //           // ce #1 controller
 //           .addCall(2, 'detachControllers', LF.fromDetach)
@@ -566,7 +566,7 @@
 //           .addCall(4, 'detachCustomAttribute', LF.fromDetach)
 
 //           // if #1
-//           .addCall(3, 'beforeDetach', LF.fromDetach)
+//           .addCall(3, 'detaching', LF.fromDetach)
 
 //           // if #1 ifView
 //           .addCall(5, 'detach', LF.fromDetach)
@@ -578,7 +578,7 @@
 //           .addCall(7, 'detachCustomElement', LF.fromDetach)
 
 //           // ce #2
-//           .addCall(6, 'beforeDetach', LF.fromDetach)
+//           .addCall(6, 'detaching', LF.fromDetach)
 
 //           // ce #2 controller
 //           .addCall(7, 'detachControllers', LF.fromDetach)
@@ -588,7 +588,7 @@
 //           .addCall(9, 'detachCustomAttribute', LF.fromDetach)
 
 //           // if #2
-//           .addCall(8, 'beforeDetach', LF.fromDetach),
+//           .addCall(8, 'detaching', LF.fromDetach),
 //         '7',
 //       );
 //       assert.strictEqual(host.textContent, '16', '8');
@@ -635,7 +635,7 @@
 //           .addCall(2, 'unbindCustomElement', LF.fromUnbind)
 
 //           // ce #1
-//           .addCall(1, 'beforeUnbind', LF.fromUnbind)
+//           .addCall(1, 'unbinding', LF.fromUnbind)
 
 //           // ce #1 controller
 //           .addCall(2, 'unbindControllers', LF.fromUnbind)
@@ -645,7 +645,7 @@
 //           .addCall(4, 'unbindCustomAttribute', LF.fromUnbind)
 
 //           // if #1
-//           .addCall(3, 'beforeUnbind', LF.fromUnbind)
+//           .addCall(3, 'unbinding', LF.fromUnbind)
 
 //           // if #1 ifView
 //           .addCall(5, 'unbind', LF.fromUnbind)
@@ -657,7 +657,7 @@
 //           .addCall(7, 'unbindCustomElement', LF.fromUnbind)
 
 //           // ce #2
-//           .addCall(6, 'beforeUnbind', LF.fromUnbind)
+//           .addCall(6, 'unbinding', LF.fromUnbind)
 
 //           // ce #2 controller
 //           .addCall(7, 'unbindControllers', LF.fromUnbind)
@@ -667,7 +667,7 @@
 //           .addCall(9, 'unbindCustomAttribute', LF.fromUnbind)
 
 //           // if #2
-//           .addCall(8, 'beforeUnbind', LF.fromUnbind)
+//           .addCall(8, 'unbinding', LF.fromUnbind)
 
 //           // if #2 controller
 //           .addCall(9, 'endUnbind', LF.fromUnbind)
@@ -786,7 +786,7 @@
 //           .addCall(3, 'valueChanged', true, false, LF.none)
 
 //           // ce #1
-//           .addCall(1, 'beforeBind', LF.fromBind)
+//           .addCall(1, 'binding', LF.fromBind)
 
 //           // ce #1 controller
 //           .addCall(2, 'bindControllers', LF.fromBind, sut.scope)
@@ -796,7 +796,7 @@
 //           .addCall(4, 'bindCustomAttribute', LF.fromBind, sut.scope)
 
 //           // if #1
-//           .addCall(3, 'beforeBind', LF.fromBind)
+//           .addCall(3, 'binding', LF.fromBind)
 //           .addCall(3, 'swap', true, LF.fromBind)
 //           .addCall(3, 'updateView', true, LF.fromBind)
 //           .addCall(3, 'ensureView', void 0, ifInstance['ifFactory'], LF.fromBind)
@@ -823,7 +823,7 @@
 //           .addCall(7, 'bindBindings', LF.fromBind, secondCustomElementController.scope)
 
 //           // ce #2
-//           .addCall(6, 'beforeBind', LF.fromBind)
+//           .addCall(6, 'binding', LF.fromBind)
 
 //           // ce #2 controller
 //           .addCall(7, 'bindControllers', LF.fromBind, secondCustomElementController.scope)
@@ -833,7 +833,7 @@
 //           .addCall(9, 'bindCustomAttribute', LF.fromBind, secondCustomElementController.scope)
 
 //           // if #2
-//           .addCall(8, 'beforeBind', LF.fromBind)
+//           .addCall(8, 'binding', LF.fromBind)
 //           .addCall(8, 'swap', false, LF.fromBind)
 //           .addCall(8, 'deactivate', LF.fromBind)
 //           .addCall(8, 'updateView', false, LF.fromBind)
@@ -855,16 +855,16 @@
 //           .addCall(2, 'endBind', LF.fromBind)
 
 //           // ce #2 controller
-//           .addCall(7, 'afterBind', LF.fromBind)
+//           .addCall(7, 'bound', LF.fromBind)
 
 //           // ce #2
-//           .addCall(6, 'afterBind', LF.fromBind)
+//           .addCall(6, 'bound', LF.fromBind)
 
 //           // ce #1 controller
-//           .addCall(2, 'afterBind', LF.fromBind)
+//           .addCall(2, 'bound', LF.fromBind)
 
 //           // ce #1
-//           .addCall(1, 'afterBind', LF.fromBind),
+//           .addCall(1, 'bound', LF.fromBind),
 //         '2',
 //       );
 
@@ -934,16 +934,16 @@
 //           .addCall(7, 'mount', LF.fromTick)
 //           .addCall(7, 'mountCustomElement', LF.fromTick)
 
-//           .addCall(7, 'afterAttachChildren', LF.fromTick)
+//           .addCall(7, 'attached', LF.fromTick)
 
 //           // ce #2
-//           .addCall(6, 'afterAttachChildren', LF.fromTick)
+//           .addCall(6, 'attached', LF.fromTick)
 
 //           // ce #1 controller
-//           .addCall(2, 'afterAttachChildren', LF.fromTick)
+//           .addCall(2, 'attached', LF.fromTick)
 
 //           // ce #1
-//           .addCall(1, 'afterAttachChildren', LF.fromTick),
+//           .addCall(1, 'attached', LF.fromTick),
 //         '5',
 //       );
 //       assert.strictEqual(host.textContent, 'hihi', '6');
@@ -958,7 +958,7 @@
 //           .addCall(2, 'detachCustomElement', LF.fromDetach)
 
 //           // ce #1
-//           .addCall(1, 'beforeDetach', LF.fromDetach)
+//           .addCall(1, 'detaching', LF.fromDetach)
 
 //           // ce #1 controller
 //           .addCall(2, 'detachControllers', LF.fromDetach)
@@ -968,7 +968,7 @@
 //           .addCall(4, 'detachCustomAttribute', LF.fromDetach)
 
 //           // if #1
-//           .addCall(3, 'beforeDetach', LF.fromDetach)
+//           .addCall(3, 'detaching', LF.fromDetach)
 
 //           // if #1 ifView
 //           .addCall(5, 'detach', LF.fromDetach)
@@ -980,7 +980,7 @@
 //           .addCall(7, 'detachCustomElement', LF.fromDetach)
 
 //           // ce #2
-//           .addCall(6, 'beforeDetach', LF.fromDetach)
+//           .addCall(6, 'detaching', LF.fromDetach)
 
 //           // ce #2 controller
 //           .addCall(7, 'detachControllers', LF.fromDetach)
@@ -990,7 +990,7 @@
 //           .addCall(9, 'detachCustomAttribute', LF.fromDetach)
 
 //           // if #2
-//           .addCall(8, 'beforeDetach', LF.fromDetach),
+//           .addCall(8, 'detaching', LF.fromDetach),
 //         '7',
 //       );
 //       assert.strictEqual(host.textContent, 'hihi', '8');
@@ -1037,7 +1037,7 @@
 //           .addCall(2, 'unbindCustomElement', LF.fromUnbind)
 
 //           // ce #1
-//           .addCall(1, 'beforeUnbind', LF.fromUnbind)
+//           .addCall(1, 'unbinding', LF.fromUnbind)
 
 //           // ce #1 controller
 //           .addCall(2, 'unbindControllers', LF.fromUnbind)
@@ -1047,7 +1047,7 @@
 //           .addCall(4, 'unbindCustomAttribute', LF.fromUnbind)
 
 //           // if #1
-//           .addCall(3, 'beforeUnbind', LF.fromUnbind)
+//           .addCall(3, 'unbinding', LF.fromUnbind)
 
 //           // if #1 ifView
 //           .addCall(5, 'unbind', LF.fromUnbind)
@@ -1059,7 +1059,7 @@
 //           .addCall(7, 'unbindCustomElement', LF.fromUnbind)
 
 //           // ce #2
-//           .addCall(6, 'beforeUnbind', LF.fromUnbind)
+//           .addCall(6, 'unbinding', LF.fromUnbind)
 
 //           // ce #2 controller
 //           .addCall(7, 'unbindControllers', LF.fromUnbind)
@@ -1069,7 +1069,7 @@
 //           .addCall(9, 'unbindCustomAttribute', LF.fromUnbind)
 
 //           // if #2
-//           .addCall(8, 'beforeUnbind', LF.fromUnbind)
+//           .addCall(8, 'unbinding', LF.fromUnbind)
 
 //           // if #2 controller
 //           .addCall(9, 'endUnbind', LF.fromUnbind)

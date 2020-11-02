@@ -5,9 +5,9 @@ import {
   IObserverLocator,
   view,
   customElement,
-  getCompositionContext,
+  getRenderContext,
   Aurelia,
-  CompositionPlan,
+  RenderPlan,
   IPlatform,
 } from '@aurelia/runtime-html';
 import {
@@ -70,17 +70,17 @@ describe(spec, function () {
     },
     {
       t: '4',
-      createSubject: ctx => getCompositionContext({ name: 'cmp', template: `<template>Hello!</template>` }, ctx.container).getViewFactory(),
+      createSubject: ctx => getRenderContext({ name: 'cmp', template: `<template>Hello!</template>` }, ctx.container).getViewFactory(),
       expectedText: 'Hello!'
     },
     // {
     //   t: '5',
-    //   createSubject: ctx => getCompositionContext({ name: 'cmp', template: `<template>Hello!</template>` }, ctx.container).getViewFactory().create(),
+    //   createSubject: ctx => getRenderContext({ name: 'cmp', template: `<template>Hello!</template>` }, ctx.container).getViewFactory().create(),
     //   expectedText: 'Hello!'
     // },
     {
       t: '6',
-      createSubject: ctx => new CompositionPlan(`<div>Hello!</div>` as any, [], []),
+      createSubject: ctx => new RenderPlan(`<div>Hello!</div>` as any, [], []),
       expectedText: 'Hello!'
     }
   ];

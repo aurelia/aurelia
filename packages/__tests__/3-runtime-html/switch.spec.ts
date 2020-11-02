@@ -88,68 +88,52 @@ describe('switch', function () {
         nameIdMap.set(name, ++id);
       }
 
-      public async beforeBind(): Promise<void> {
+      public async binding(): Promise<void> {
         if (this.config.hasPromise) {
           await this.config.wait();
         }
 
-        this.logger.debug('beforeBind');
+        this.logger.debug('binding');
       }
 
-      public async afterBind(): Promise<void> {
+      public async bound(): Promise<void> {
         if (this.config.hasPromise) {
           await this.config.wait();
         }
 
-        this.logger.debug('afterBind');
+        this.logger.debug('bound');
       }
 
-      public async afterAttach(): Promise<void> {
+      public async attaching(): Promise<void> {
         if (this.config.hasPromise) {
           await this.config.wait();
         }
 
-        this.logger.debug('afterAttach');
+        this.logger.debug('attaching');
       }
 
-      public async afterAttachChildren(): Promise<void> {
+      public async attached(): Promise<void> {
         if (this.config.hasPromise) {
           await this.config.wait();
         }
 
-        this.logger.debug('afterAttachChildren');
+        this.logger.debug('attached');
       }
 
-      public async beforeDetach(): Promise<void> {
+      public async detaching(): Promise<void> {
         if (this.config.hasPromise) {
           await this.config.wait();
         }
 
-        this.logger.debug('beforeDetach');
+        this.logger.debug('detaching');
       }
 
-      public async beforeUnbind(): Promise<void> {
+      public async unbinding(): Promise<void> {
         if (this.config.hasPromise) {
           await this.config.wait();
         }
 
-        this.logger.debug('beforeUnbind');
-      }
-
-      public async afterUnbind(): Promise<void> {
-        if (this.config.hasPromise) {
-          await this.config.wait();
-        }
-
-        this.logger.debug('afterUnbind');
-      }
-
-      public async afterUnbindChildren(): Promise<void> {
-        if (this.config.hasPromise) {
-          await this.config.wait();
-        }
-
-        this.logger.debug('afterUnbindChildren');
+        this.logger.debug('unbinding');
       }
     }
 
@@ -349,13 +333,13 @@ describe('switch', function () {
 
   function getActivationSequenceFor(name: string | string[]) {
     return typeof name === 'string'
-      ? [`${name}.beforeBind`, `${name}.afterBind`, `${name}.afterAttach`, `${name}.afterAttachChildren`]
-      : ['beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren'].flatMap(x => name.map(n => `${n}.${x}`));
+      ? [`${name}.binding`, `${name}.bound`, `${name}.attaching`, `${name}.attached`]
+      : ['binding', 'bound', 'attaching', 'attached'].flatMap(x => name.map(n => `${n}.${x}`));
   }
   function getDeactivationSequenceFor(name: string | string[]) {
     return typeof name === 'string'
-      ? [`${name}.beforeDetach`, `${name}.beforeUnbind`, `${name}.afterUnbind`, `${name}.afterUnbindChildren`]
-      : ['beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren'].flatMap(x => name.map(n => `${n}.${x}`));
+      ? [`${name}.detaching`, `${name}.unbinding`]
+      : ['detaching', 'unbinding'].flatMap(x => name.map(n => `${n}.${x}`));
   }
 
   class TestData implements TestSetupContext {
@@ -1063,7 +1047,7 @@ describe('switch', function () {
         null,
         getDeactivationSequenceFor(['case-host-1', 'case-host-6']),
         (ctx) => {
-          const switches = (ctx.controller.children[0].viewModel as Repeat)
+          const switches = (ctx.controller.children[0] as Controller<Repeat>).viewModel
             .views
             .map((v) => v.children[0].viewModel as Switch);
           ctx.assertCallSet([
@@ -1095,7 +1079,7 @@ describe('switch', function () {
         null,
         getDeactivationSequenceFor(['case-host-1', 'case-host-6']),
         (ctx) => {
-          const switches = (ctx.controller.children[0].viewModel as Repeat)
+          const switches = (ctx.controller.children[0] as Controller<Repeat>).viewModel
             .views
             .map((v) => v.children[0].viewModel as Switch);
           ctx.assertCallSet([
@@ -1387,7 +1371,7 @@ describe('switch', function () {
         getDeactivationSequenceFor('case-host-4'),
         async (ctx) => {
           const fooBarController = ctx.controller.children[0];
-          const auSlot: AuSlot = fooBarController.children[0].viewModel as AuSlot;
+          const auSlot: AuSlot = (fooBarController.children[0] as Controller<AuSlot>).viewModel;
           const $switch = ctx.getSwitches(auSlot.view as unknown as Controller)[0];
           ctx.assertCalls([`Case-#${$switch['cases'][0].id}.isMatch()`, ...getActivationSequenceFor('case-host-1')]);
           await ctx.assertChange(

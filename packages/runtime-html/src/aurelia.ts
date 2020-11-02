@@ -94,7 +94,7 @@ export class Aurelia implements IDisposable {
   }
 
   private stopPromise: Promise<void> | void = void 0;
-  public stop(): void | Promise<void> {
+  public stop(dispose: boolean = false): void | Promise<void> {
     if (this.stopPromise instanceof Promise) {
       return this.stopPromise;
     }
@@ -106,6 +106,9 @@ export class Aurelia implements IDisposable {
 
       return this.stopPromise = onResolve(root.deactivate(), () => {
         Reflect.deleteProperty(root.host, '$aurelia');
+        if (dispose) {
+          root.dispose();
+        }
         this._root = void 0;
         this.rootProvider.dispose();
         this._isStopping = false;
@@ -118,8 +121,6 @@ export class Aurelia implements IDisposable {
     if (this._isRunning || this._isStopping) {
       throw new Error(`The aurelia instance must be fully stopped before it can be disposed`);
     }
-    this._root?.dispose();
-    this._root = void 0;
     this.container.dispose();
   }
 

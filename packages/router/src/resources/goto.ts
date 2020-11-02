@@ -24,7 +24,7 @@ export class GotoCustomAttribute implements ICustomAttributeViewModel {
     this.element = element as Element;
   }
 
-  public beforeBind(): void {
+  public binding(): void {
     this.element.addEventListener('click', this.router.linkHandler.handler);
     this.updateValue();
 
@@ -33,7 +33,7 @@ export class GotoCustomAttribute implements ICustomAttributeViewModel {
     this.observer.subscribe(this);
   }
 
-  public beforeUnbind(): void {
+  public unbinding(): void {
     this.element.removeEventListener('click', this.router.linkHandler.handler);
     this.observer.unsubscribe(this);
   }

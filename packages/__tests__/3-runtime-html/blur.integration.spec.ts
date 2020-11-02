@@ -1,5 +1,5 @@
 import { Constructable } from '@aurelia/kernel';
-import { CustomElement, CustomElementHost, Aurelia, Blur, Focus } from '@aurelia/runtime-html';
+import { CustomElement, Aurelia, Blur, Focus } from '@aurelia/runtime-html';
 import { assert, eachCartesianJoin, TestContext } from '@aurelia/testing';
 
 describe('blur.integration.spec.ts', function () {
@@ -266,8 +266,8 @@ describe('blur.integration.spec.ts', function () {
         },
         assertFn: async (ctx, testHost, component: IApp & { aHasFocus: boolean; bHasFocus: boolean }, host) => {
 
-          const $ceA: CustomElementHost & HTMLElement = host.querySelector('ce-a');
-          const $ceB: CustomElementHost & HTMLElement = host.querySelector('ce-b');
+          const $ceA: HTMLElement = host.querySelector('ce-a');
+          const $ceB: HTMLElement = host.querySelector('ce-b');
           const ceA = CustomElement.for($ceA).viewModel as IApp;
           const ceB = CustomElement.for($ceB).viewModel as IApp;
 

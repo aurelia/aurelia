@@ -18,13 +18,13 @@ import {
   Injectable,
   IResolver,
 } from '@aurelia/kernel';
-import { PartialBindableDefinition, BindingStrategy, BindableDefinition, Bindable, registerAliases } from '@aurelia/runtime';
-import { IInstruction, HooksDefinition } from '../definitions';
-import { INode, IRenderLocation, getEffectiveParentNode } from '../dom';
-import { ICustomElementViewModel, ICustomElementController } from '../lifecycle';
-import { PartialChildrenDefinition, ChildrenDefinition, Children } from '../templating/children';
+import { PartialBindableDefinition, BindableDefinition, Bindable, registerAliases } from '@aurelia/runtime';
 import { IProjections } from './custom-elements/au-slot';
+import { INode, getEffectiveParentNode } from '../dom';
+import { IInstruction } from '../renderer';
+import { PartialChildrenDefinition, ChildrenDefinition, Children } from '../templating/children';
 import { Controller } from '../templating/controller';
+import type { ICustomElementViewModel, ICustomElementController } from '../templating/controller';
 
 export type PartialCustomElementDefinition = PartialResourceDefinition<{
   readonly cache?: '*' | number;
@@ -40,8 +40,6 @@ export type PartialCustomElementDefinition = PartialResourceDefinition<{
   readonly isStrictBinding?: boolean;
   readonly shadowOptions?: { mode: 'open' | 'closed' } | null;
   readonly hasSlots?: boolean;
-  readonly strategy?: BindingStrategy;
-  readonly hooks?: Readonly<HooksDefinition>;
   readonly enhance?: boolean;
   readonly projectionsMap?: Map<IInstruction, IProjections>;
 }>;
@@ -208,8 +206,6 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
     public readonly isStrictBinding: boolean,
     public readonly shadowOptions: { mode: 'open' | 'closed' } | null,
     public readonly hasSlots: boolean,
-    public readonly strategy: BindingStrategy,
-    public readonly hooks: Readonly<HooksDefinition>,
     public readonly enhance: boolean,
     public readonly projectionsMap: Map<IInstruction, IProjections>,
   ) {}
@@ -266,8 +262,6 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         fromDefinitionOrDefault('isStrictBinding', def, () => false),
         fromDefinitionOrDefault('shadowOptions', def, () => null),
         fromDefinitionOrDefault('hasSlots', def, () => false),
-        fromDefinitionOrDefault('strategy', def, () => BindingStrategy.getterSetter),
-        fromDefinitionOrDefault('hooks', def, () => HooksDefinition.none),
         fromDefinitionOrDefault('enhance', def, () => false),
         fromDefinitionOrDefault('projectionsMap', def as CustomElementDefinition, () => new Map<IInstruction, IProjections>()),
       );
@@ -303,9 +297,6 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         fromAnnotationOrTypeOrDefault('isStrictBinding', Type, () => false),
         fromAnnotationOrTypeOrDefault('shadowOptions', Type, () => null),
         fromAnnotationOrTypeOrDefault('hasSlots', Type, () => false),
-        fromAnnotationOrTypeOrDefault('strategy', Type, () => BindingStrategy.getterSetter),
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-        fromAnnotationOrTypeOrDefault('hooks', Type, () => new HooksDefinition(Type!.prototype)),
         fromAnnotationOrTypeOrDefault('enhance', Type, () => false),
         fromAnnotationOrTypeOrDefault('projectionsMap', Type, () => new Map<IInstruction, IProjections>()),
       );
@@ -346,9 +337,6 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
       fromAnnotationOrDefinitionOrTypeOrDefault('isStrictBinding', nameOrDef, Type, () => false),
       fromAnnotationOrDefinitionOrTypeOrDefault('shadowOptions', nameOrDef, Type, () => null),
       fromAnnotationOrDefinitionOrTypeOrDefault('hasSlots', nameOrDef, Type, () => false),
-      fromAnnotationOrDefinitionOrTypeOrDefault('strategy', nameOrDef, Type, () => BindingStrategy.getterSetter),
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-      fromAnnotationOrTypeOrDefault('hooks', Type, () => new HooksDefinition(Type!.prototype)),
       fromAnnotationOrDefinitionOrTypeOrDefault('enhance', nameOrDef, Type, () => false),
       fromAnnotationOrDefinitionOrTypeOrDefault('projectionsMap', nameOrDef, Type, () => new Map<IInstruction, IProjections>()),
     );
@@ -543,8 +531,4 @@ export const CustomElement: CustomElementKind = {
       return Type;
     };
   })(),
-};
-
-export type CustomElementHost<T extends Node & ParentNode = Node & ParentNode> = IRenderLocation<T> & T & {
-  $controller?: ICustomElementController;
 };

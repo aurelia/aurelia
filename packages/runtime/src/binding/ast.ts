@@ -19,7 +19,6 @@ import {
   ISubscriber,
 } from '../observation';
 import { BindingContext } from '../observation/binding-context';
-import { ProxyObserver } from '../observation/proxy-observer';
 import { ISignaler } from '../observation/signaler';
 import {
   BindingBehavior, BindingBehaviorInstance, BindingBehaviorFactory,
@@ -1459,12 +1458,13 @@ export class ForOfStatement {
     }
   }
 
+  // deepscan-disable-next-line
   public iterate(f: LF, result: ObservedCollection | number | null | undefined, func: (arr: Collection, index: number, item: unknown) => void): void {
     switch (toStringTag.call(result)) {
-      case '[object Array]': return $array(f, result as unknown[], func);
-      case '[object Map]': return $map(f, result as Map<unknown, unknown>, func);
-      case '[object Set]': return $set(f, result as Set<unknown>, func);
-      case '[object Number]': return $number(f, result as number, func);
+      case '[object Array]': return $array(result as unknown[], func);
+      case '[object Map]': return $map(result as Map<unknown, unknown>, func);
+      case '[object Set]': return $set(result as Set<unknown>, func);
+      case '[object Number]': return $number(result as number, func);
       case '[object Null]': return;
       case '[object Undefined]': return;
       default: throw new Error(`Cannot iterate over ${toStringTag.call(result)}`);
@@ -1558,53 +1558,34 @@ function getFunction(f: LF, obj: object, name: string): ((...args: unknown[]) =>
   throw new Error(`Expected '${name}' to be a function`);
 }
 
-const proxyAndOriginalArray = LF.proxyStrategy;
-
-function $array(f: LF, result: unknown[], func: (arr: Collection, index: number, item: unknown) => void): void {
-  if ((f & proxyAndOriginalArray) === proxyAndOriginalArray) {
-    // If we're in proxy mode, and the array is the original "items" (and not an array we created here to iterate over e.g. a set)
-    // then replace all items (which are Objects) with proxies so their properties are observed in the source view model even if no
-    // observers are explicitly created
-    const rawArray = ProxyObserver.getRawIfProxy(result);
-    const len = rawArray.length;
-    let item: unknown;
-    let i = 0;
-    for (; i < len; ++i) {
-      item = rawArray[i];
-      if (item instanceof Object) {
-        item = rawArray[i] = ProxyObserver.getOrCreate(item).proxy;
-      }
-      func(rawArray, i, item);
-    }
-  } else {
-    for (let i = 0, ii = result.length; i < ii; ++i) {
-      func(result, i, result[i]);
-    }
+function $array(result: unknown[], func: (arr: Collection, index: number, item: unknown) => void): void {
+  for (let i = 0, ii = result.length; i < ii; ++i) {
+    func(result, i, result[i]);
   }
 }
 
-function $map(f: LF, result: Map<unknown, unknown>, func: (arr: Collection, index: number, item: unknown) => void): void {
+function $map(result: Map<unknown, unknown>, func: (arr: Collection, index: number, item: unknown) => void): void {
   const arr = Array(result.size);
   let i = -1;
   for (const entry of result.entries()) {
     arr[++i] = entry;
   }
-  $array(f, arr, func);
+  $array(arr, func);
 }
 
-function $set(f: LF, result: Set<unknown>, func: (arr: Collection, index: number, item: unknown) => void): void {
+function $set(result: Set<unknown>, func: (arr: Collection, index: number, item: unknown) => void): void {
   const arr = Array(result.size);
   let i = -1;
   for (const key of result.keys()) {
     arr[++i] = key;
   }
-  $array(f, arr, func);
+  $array(arr, func);
 }
 
-function $number(f: LF, result: number, func: (arr: Collection, index: number, item: unknown) => void): void {
+function $number(result: number, func: (arr: Collection, index: number, item: unknown) => void): void {
   const arr = Array(result);
   for (let i = 0; i < result; ++i) {
     arr[i] = i;
   }
-  $array(f, arr, func);
+  $array(arr, func);
 }

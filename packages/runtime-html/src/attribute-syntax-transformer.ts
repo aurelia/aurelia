@@ -1,15 +1,10 @@
-import { DI, IContainer, IResolver, Registration } from '@aurelia/kernel';
-import { AttrSyntax } from './attribute-parser';
+import { DI } from '@aurelia/kernel';
+import { AttrSyntax } from './resources/attribute-pattern';
 
 export interface IAttrSyntaxTransformer extends AttrSyntaxTransformer {}
 export const IAttrSyntaxTransformer = DI.createInterface<IAttrSyntaxTransformer>('IAttrSyntaxTransformer').withDefault(x => x.singleton(AttrSyntaxTransformer));
 
-export class AttrSyntaxTransformer implements IAttrSyntaxTransformer {
-
-  public static register(container: IContainer): IResolver<IAttrSyntaxTransformer> {
-    return Registration.singleton(IAttrSyntaxTransformer, this).register(container);
-  }
-
+export class AttrSyntaxTransformer {
   public transform(node: HTMLElement, attrSyntax: AttrSyntax): void {
     if (attrSyntax.command === 'bind' && shouldDefaultToTwoWay(node, attrSyntax)) {
       attrSyntax.command = 'two-way';

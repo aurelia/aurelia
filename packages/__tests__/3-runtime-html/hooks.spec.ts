@@ -86,25 +86,25 @@
 //       public created() {
 //         return;
 //       }
-//       public beforeBind() {
+//       public binding() {
 //         return;
 //       }
-//       public afterBind() {
+//       public bound() {
 //         return;
 //       }
 //       public beforeAttach() {
 //         return;
 //       }
-//       public afterAttachChildren() {
+//       public attached() {
 //         return;
 //       }
-//       public beforeDetach() {
+//       public detaching() {
 //         return;
 //       }
 //       public afterDetachChildren() {
 //         return;
 //       }
-//       public beforeUnbind() {
+//       public unbinding() {
 //         return;
 //       }
 //       public afterUnbindChildren() {
@@ -122,25 +122,25 @@
 //       public created() {
 //         return;
 //       }
-//       public beforeBind() {
+//       public binding() {
 //         return;
 //       }
-//       public afterBind() {
+//       public bound() {
 //         return;
 //       }
 //       public beforeAttach() {
 //         return;
 //       }
-//       public afterAttachChildren() {
+//       public attached() {
 //         return;
 //       }
-//       public beforeDetach() {
+//       public detaching() {
 //         return;
 //       }
 //       public afterDetachChildren() {
 //         return;
 //       }
-//       public beforeUnbind() {
+//       public unbinding() {
 //         return;
 //       }
 //       public afterUnbindChildren() {
@@ -158,25 +158,25 @@
 //       public created() {
 //         return;
 //       }
-//       public beforeBind() {
+//       public binding() {
 //         return;
 //       }
-//       public afterBind() {
+//       public bound() {
 //         return;
 //       }
 //       public beforeAttach() {
 //         return;
 //       }
-//       public afterAttachChildren() {
+//       public attached() {
 //         return;
 //       }
-//       public beforeDetach() {
+//       public detaching() {
 //         return;
 //       }
 //       public afterDetachChildren() {
 //         return;
 //       }
-//       public beforeUnbind() {
+//       public unbinding() {
 //         return;
 //       }
 //       public afterUnbindChildren() {
@@ -193,25 +193,25 @@
 //       public created() {
 //         return;
 //       }
-//       public beforeBind() {
+//       public binding() {
 //         return;
 //       }
-//       public afterBind() {
+//       public bound() {
 //         return;
 //       }
 //       public beforeAttach() {
 //         return;
 //       }
-//       public afterAttachChildren() {
+//       public attached() {
 //         return;
 //       }
-//       public beforeDetach() {
+//       public detaching() {
 //         return;
 //       }
 //       public afterDetachChildren() {
 //         return;
 //       }
-//       public beforeUnbind() {
+//       public unbinding() {
 //         return;
 //       }
 //       public afterUnbindChildren() {
@@ -267,7 +267,7 @@
 
 //   });
 
-//   it('afterAttachChildren task awaited indirectly', async function () {
+//   it('attached task awaited indirectly', async function () {
 
 //     const Foo = CustomElement.define({
 //       name: 'foo',
@@ -326,7 +326,7 @@
 //     assert.strictEqual(host.textContent, '', `host.textContent`);
 //   });
 
-//   it('afterAttachChildren task awaited directly', async function () {
+//   it('attached task awaited directly', async function () {
 
 //     const Foo = CustomElement.define({
 //       name: 'foo',
@@ -390,7 +390,7 @@
 //     assert.strictEqual(host.textContent, '', `host.textContent`);
 //   });
 
-//   it('afterAttachChildren task (triple then) awaited indirectly', async function () {
+//   it('attached task (triple then) awaited indirectly', async function () {
 
 //     const Foo = CustomElement.define({
 //       name: 'foo',
@@ -457,7 +457,7 @@
 //     assert.strictEqual(host.textContent, '', `host.textContent`);
 //   });
 
-//   it('afterAttachChildren task (triple then) awaited directly', async function () {
+//   it('attached task (triple then) awaited directly', async function () {
 
 //     const Foo = CustomElement.define({
 //       name: 'foo',
@@ -528,7 +528,7 @@
 //       template: `<template><div ref="div">bar</div></template>`
 //     },                                       class {
 //       public $lifecycle: ILifecycle;
-//       public beforeDetach() {
+//       public detaching() {
 //         this.$lifecycle.registerTask({
 //           done: false,
 //           canCancel() { return false; },
@@ -589,7 +589,7 @@
 //       template: `<template><div ref="div">bar</div></template>`
 //     },                                       class {
 //       public $lifecycle: ILifecycle;
-//       public beforeDetach() {
+//       public detaching() {
 //         this.$lifecycle.registerTask({
 //           done: false,
 //           canCancel() { return false; },
@@ -650,7 +650,7 @@
 //       template: `<template><div ref="div">bar</div></template>`
 //     },                                       class {
 //       public $lifecycle: ILifecycle;
-//       public beforeDetach() {
+//       public detaching() {
 //         this.$lifecycle.registerTask({
 //           done: false,
 //           canCancel() { return false; },
@@ -714,7 +714,7 @@
 //       template: `<template><div ref="div">bar</div></template>`
 //     },                                       class {
 //       public $lifecycle: ILifecycle;
-//       public beforeDetach() {
+//       public detaching() {
 //         this.$lifecycle.registerTask({
 //           done: false,
 //           canCancel() { return false; },

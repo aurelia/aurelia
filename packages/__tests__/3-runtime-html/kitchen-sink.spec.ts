@@ -2,7 +2,6 @@ import {
   IAttrSyntaxTransformer,
   TemplateBinder,
   IAttributeParser,
-  ResourceModel,
   Aurelia,
   CustomElement,
   IExpressionParser,
@@ -46,7 +45,7 @@ describe('xml node compiler tests', function () {
 
       const binder = new TemplateBinder(
         ctx.platform,
-        new ResourceModel(ctx.container),
+        ctx.container,
         ctx.container.get(IAttributeParser),
         ctx.container.get(IExpressionParser),
         ctx.container.get(IAttrSyntaxTransformer)
@@ -152,7 +151,7 @@ describe('dependency injection', function () {
 //     const elseText = 'bar';
 
 //     const ifTemplate: ITemplate = {
-//       compositionContext: null as any,
+//       renderContext: null as any,
 //       dom: null as any,
 //       compose(composable) {
 //         const text = AuNode.createText();
@@ -167,7 +166,7 @@ describe('dependency injection', function () {
 //     };
 
 //     const elseTemplate: ITemplate = {
-//       compositionContext: null as any,
+//       renderContext: null as any,
 //       dom: null as any,
 //       compose(composable) {
 //         const text = AuNode.createText();

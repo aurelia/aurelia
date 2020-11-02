@@ -25,7 +25,6 @@ import {
   PartialCustomElementDefinition,
   PrimitiveLiteralExpression,
   PartialCustomAttributeDefinition,
-  HooksDefinition,
   CustomElementDefinition,
   IProjections,
   IInstruction,
@@ -43,7 +42,6 @@ import {
   InstructionType as TT,
   HydrateLetElementInstruction,
   InstructionType,
-  ResourceModel,
   ElementInfo,
   BindableInfo,
 } from '@aurelia/runtime-html';
@@ -158,8 +156,8 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
         assert.strictEqual(actual.instructions[0].length, 3, `actual.instructions[0].length`);
         const siblingInstructions = actual.instructions[0].slice(1);
         const expectedSiblingInstructions = [
-          { toVerify: ['type', 'res', 'to'], type: TT.composeAttribute, res: 'prop3' },
-          { toVerify: ['type', 'res', 'to'], type: TT.composeAttribute, res: 'prop3' }
+          { toVerify: ['type', 'res', 'to'], type: TT.hydrateAttribute, res: 'prop3' },
+          { toVerify: ['type', 'res', 'to'], type: TT.hydrateAttribute, res: 'prop3' }
         ];
         verifyInstructions(siblingInstructions, expectedSiblingInstructions);
         const rootInstructions = actual.instructions[0][0]['instructions'];
@@ -186,7 +184,7 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
         );
         const rootInstructions = actual.instructions[0];
         const expectedRootInstructions = [
-          { toVerify: ['type', 'res'], type: TT.composeElement, res: 'el' }
+          { toVerify: ['type', 'res'], type: TT.hydrateElement, res: 'el' }
         ];
         verifyInstructions(rootInstructions, expectedRootInstructions);
 
@@ -305,7 +303,7 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
             const { instructions } = compileWith('<template><div as-element="not-div"></div></template>', [NotDiv]);
             verifyInstructions(instructions[0], [
               { toVerify: ['type', 'res'],
-                type: TT.composeElement, res: 'not-div' }
+                type: TT.hydrateElement, res: 'not-div' }
             ]);
           });
 
@@ -325,7 +323,7 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
 
               verifyInstructions(instructions[0], [
                 { toVerify: ['type', 'res', 'to'],
-                  type: TT.composeTemplateController, res: 'if' }
+                  type: TT.hydrateTemplateController, res: 'if' }
               ]);
               const templateControllerInst = instructions[0][0] as HydrateTemplateController;
               verifyInstructions(templateControllerInst.instructions, [
@@ -335,7 +333,7 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
               const [hydrateNotDivInstruction] = templateControllerInst.def.instructions[0] as [HydrateElementInstruction];
               verifyInstructions([hydrateNotDivInstruction], [
                 { toVerify: ['type', 'res'],
-                  type: TT.composeElement, res: 'not-div' }
+                  type: TT.hydrateElement, res: 'not-div' }
               ]);
               verifyInstructions(hydrateNotDivInstruction.instructions, []);
             });
@@ -364,7 +362,7 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
             [Let]
           );
           verifyInstructions(instructions[0], [
-            { toVerify: ['type'], type: TT.composeLetElement }
+            { toVerify: ['type'], type: TT.hydrateLetElement }
           ]);
         });
 
@@ -387,11 +385,11 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
           it('ignores [to-binding-context] order', function () {
             let instructions = compileWith(`<template><let a.bind="a" to-binding-context></let></template>`).instructions[0];
             verifyInstructions(instructions, [
-              { toVerify: ['type', 'toBindingContext'], type: TT.composeLetElement, toBindingContext: true }
+              { toVerify: ['type', 'toBindingContext'], type: TT.hydrateLetElement, toBindingContext: true }
             ]);
             instructions = compileWith(`<template><let to-binding-context a.bind="a"></let></template>`).instructions[0];
             verifyInstructions(instructions, [
-              { toVerify: ['type', 'toBindingContext'], type: TT.composeLetElement, toBindingContext: true }
+              { toVerify: ['type', 'toBindingContext'], type: TT.hydrateLetElement, toBindingContext: true }
             ]);
           });
         });
@@ -456,9 +454,7 @@ const defaultCustomElementDefinitionProperties = {
   isStrictBinding: false,
   hasSlots: false,
   shadowOptions: null,
-  strategy: 1,
   surrogates: [],
-  hooks: HooksDefinition.none,
 };
 
 function createTplCtrlAttributeInstruction(attr: string, value: string) {
@@ -476,7 +472,6 @@ function createTplCtrlAttributeInstruction(attr: string, value: string) {
       from: value.length === 0 ? PrimitiveLiteralExpression.$empty : new AccessScopeExpression(value),
       to: 'value',
       mode: BindingMode.toView,
-      oneTime: false
     }];
   } else {
     return [{
@@ -504,7 +499,7 @@ function createTemplateController(ctx: TestContext, attr: string, target: string
     node.setAttribute(attr, value);
     const rawMarkup = node.outerHTML;
     const instruction = {
-      type: TT.composeTemplateController,
+      type: TT.hydrateTemplateController,
       res: target,
       def: {
         ...defaultCustomElementDefinitionProperties,
@@ -542,7 +537,7 @@ function createTemplateController(ctx: TestContext, attr: string, target: string
       instructions = [[childInstr]];
     }
     const instruction = {
-      type: TT.composeTemplateController,
+      type: TT.hydrateTemplateController,
       res: target,
       def: {
         ...defaultCustomElementDefinitionProperties,
@@ -585,7 +580,7 @@ function createCustomElement(
   childInput?,
 ): [PartialCustomElementDefinition, PartialCustomElementDefinition] {
   const instruction = {
-    type: TT.composeElement,
+    type: TT.hydrateElement,
     res: tagName,
     instructions: childInstructions,
     slotInfo: null,
@@ -624,7 +619,7 @@ function createCustomAttribute(
   childInput?,
 ): [PartialCustomAttributeDefinition, PartialCustomAttributeDefinition] {
   const instruction = {
-    type: TT.composeAttribute,
+    type: TT.hydrateAttribute,
     res: resName,
     instructions: childInstructions
   };
@@ -665,14 +660,13 @@ function createAttributeInstruction(bindableDescription: BindableDefinition | nu
   const cmd = parts.pop();
   const defaultMode = !!bindableDescription ? (bindableDescription.mode === BindingMode.default ? BindingMode.toView : bindableDescription.mode) : BindingMode.toView;
   const mode = commandToMode[cmd] || defaultMode;
-  const oneTime = mode === BindingMode.oneTime;
 
   if (!!bindableDescription) {
     if (!!cmd && validCommands.includes(cmd)) {
       const type = TT.propertyBinding;
       const to = bindableDescription.property;
       const from = parseExpression(attributeValue);
-      return { type, to, mode, from, oneTime };
+      return { type, to, mode, from };
     } else {
       const from = parseExpression(attributeValue, BindingType.Interpolation);
       if (!!from) {
@@ -691,7 +685,7 @@ function createAttributeInstruction(bindableDescription: BindableDefinition | nu
     const to = attr;
     if (!!cmd && validCommands.includes(cmd)) {
       const from = parseExpression(attributeValue);
-      return { type, to, mode, from, oneTime };
+      return { type, to, mode, from };
     } else {
       const from = parseExpression(attributeValue, BindingType.Interpolation);
       if (!!from) {
@@ -737,11 +731,11 @@ describe(`TemplateCompiler - combinations`, function () {
       ] as ((ctx: TestContext, $1: [string]) => [string, string, string])[],
       [
         (ctx, $1, [, , value]) => [`ref`,                     value, { type: TT.refBinding,       from: new AccessScopeExpression(value), to: 'element' }],
-        (ctx, $1, [attr, to, value]) => [`${attr}.bind`,      value, { type: TT.propertyBinding,  from: new AccessScopeExpression(value), to, mode: BindingMode.toView,   oneTime: false }],
-        (ctx, $1, [attr, to, value]) => [`${attr}.to-view`,   value, { type: TT.propertyBinding,  from: new AccessScopeExpression(value), to, mode: BindingMode.toView,   oneTime: false }],
-        (ctx, $1, [attr, to, value]) => [`${attr}.one-time`,  value, { type: TT.propertyBinding,  from: new AccessScopeExpression(value), to, mode: BindingMode.oneTime,  oneTime: true  }],
-        (ctx, $1, [attr, to, value]) => [`${attr}.from-view`, value, { type: TT.propertyBinding,  from: new AccessScopeExpression(value), to, mode: BindingMode.fromView, oneTime: false }],
-        (ctx, $1, [attr, to, value]) => [`${attr}.two-way`,   value, { type: TT.propertyBinding,  from: new AccessScopeExpression(value), to, mode: BindingMode.twoWay,   oneTime: false }],
+        (ctx, $1, [attr, to, value]) => [`${attr}.bind`,      value, { type: TT.propertyBinding,  from: new AccessScopeExpression(value), to, mode: BindingMode.toView,   }],
+        (ctx, $1, [attr, to, value]) => [`${attr}.to-view`,   value, { type: TT.propertyBinding,  from: new AccessScopeExpression(value), to, mode: BindingMode.toView,   }],
+        (ctx, $1, [attr, to, value]) => [`${attr}.one-time`,  value, { type: TT.propertyBinding,  from: new AccessScopeExpression(value), to, mode: BindingMode.oneTime,  }],
+        (ctx, $1, [attr, to, value]) => [`${attr}.from-view`, value, { type: TT.propertyBinding,  from: new AccessScopeExpression(value), to, mode: BindingMode.fromView, }],
+        (ctx, $1, [attr, to, value]) => [`${attr}.two-way`,   value, { type: TT.propertyBinding,  from: new AccessScopeExpression(value), to, mode: BindingMode.twoWay,   }],
         (ctx, $1, [attr, to, value]) => [`${attr}.trigger`,   value, { type: HTT.listenerBinding, from: new AccessScopeExpression(value), to, strategy: DelegationStrategy.none,      preventDefault: true }],
         (ctx, $1, [attr, to, value]) => [`${attr}.delegate`,  value, { type: HTT.listenerBinding, from: new AccessScopeExpression(value), to, strategy: DelegationStrategy.bubbling,  preventDefault: false }],
         (ctx, $1, [attr, to, value]) => [`${attr}.capture`,   value, { type: HTT.listenerBinding, from: new AccessScopeExpression(value), to, strategy: DelegationStrategy.capturing, preventDefault: false }],
@@ -812,9 +806,6 @@ describe(`TemplateCompiler - combinations`, function () {
         (ctx, [, , to],      [attr, value]) => [`${attr}.two-way`,   { type: TT.propertyBinding, from: value.length > 0 ? new AccessScopeExpression(value) : new PrimitiveLiteralExpression(value), to, mode: BindingMode.twoWay }]
       ] as ((ctx: TestContext, $1: [Record<string, BindableDefinition>, BindingMode, string], $2: [string, string, Constructable], $3: BindingMode) => [string, any])[]
     ],                       (ctx, [bindables], [attr, value, ctor], defaultBindingMode, [name, childInstruction]) => {
-      if (childInstruction.mode !== undefined) {
-        childInstruction.oneTime = childInstruction.mode === BindingMode.oneTime;
-      }
       const def = { name: attr, defaultBindingMode, bindables };
       const markup = `<div ${name}="${value}"></div>`;
 
@@ -825,7 +816,7 @@ describe(`TemplateCompiler - combinations`, function () {
           surrogates: [],
         } as unknown as PartialCustomElementDefinition;
         const instruction = {
-          type: TT.composeAttribute,
+          type: TT.hydrateAttribute,
           res: def.name,
           instructions: [childInstruction],
         };
@@ -1277,11 +1268,11 @@ describe('TemplateCompiler - local templates', function () {
     ) {
       this.verifyDefinition = this.verifyDefinition.bind(this);
     }
-    public verifyDefinition(definition: CustomElementDefinition, resources: ResourceModel): void {
+    public verifyDefinition(definition: CustomElementDefinition, container: IContainer): void {
       assert.equal((definition.template as HTMLTemplateElement).querySelector('template[as-custom-element]'), null);
 
       for (const [name, info] of this.expectedResources) {
-        assert.deepStrictEqual(resources.getElementInfo(name), info, 'element info');
+        assert.deepStrictEqual(ElementInfo.from(container.find(CustomElement, name)), info, 'element info');
       }
       const ceInstructions: HydrateElementInstruction[] = definition.instructions.flatMap((i) => i).filter((i) => i instanceof HydrateElementInstruction) as HydrateElementInstruction[];
       for (const [template, freq] of this.templateFreq) {
@@ -1370,7 +1361,7 @@ describe('TemplateCompiler - local templates', function () {
     it(template, function () {
       const { container, sut } = createFixture();
       const definition = sut.compile({ name: 'lorem-ipsum', template }, container, null);
-      verifyDefinition(definition, ResourceModel.getOrCreate(container));
+      verifyDefinition(definition, container);
     });
     if (template.includes(`mode="fromView"`)) { continue; }
     it(`${template} - content`, async function () {
@@ -1754,7 +1745,7 @@ describe('TemplateCompiler - au-slot', function () {
       const allInstructions = compiledDefinition.instructions.flat();
       for (const expectedSlotInfo of expectedSlotInfos) {
         const actualInstruction = allInstructions.find((i) =>
-          i.type === InstructionType.composeElement
+          i.type === InstructionType.hydrateElement
           && (i as HydrateElementInstruction).res.includes('au-slot')
           && (i as HydrateElementInstruction).slotInfo.name === expectedSlotInfo.slotName
         ) as HydrateElementInstruction;

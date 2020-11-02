@@ -1,9 +1,9 @@
 import { nextId } from '@aurelia/kernel';
 import { bindable, LifecycleFlags, Scope } from '@aurelia/runtime';
 import { IRenderLocation } from '../../dom';
-import { ISyntheticView, MountStrategy, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../lifecycle';
 import { IViewFactory } from '../../templating/view';
 import { templateController } from '../custom-attribute';
+import type { ISyntheticView, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller';
 
 @templateController('with')
 export class With implements ICustomAttributeViewModel {
@@ -21,8 +21,7 @@ export class With implements ICustomAttributeViewModel {
   ) {
     this.id = nextId('au$component');
 
-    this.view = this.factory.create();
-    this.view.setLocation(location, MountStrategy.insertBefore);
+    this.view = this.factory.create().setLocation(location);
   }
 
   public valueChanged(
@@ -37,7 +36,7 @@ export class With implements ICustomAttributeViewModel {
     }
   }
 
-  public afterAttach(
+  public attaching(
     initiator: IHydratedController,
     parent: IHydratedParentController,
     flags: LifecycleFlags,
@@ -45,7 +44,7 @@ export class With implements ICustomAttributeViewModel {
     return this.activateView(initiator, flags);
   }
 
-  public afterUnbind(
+  public detaching(
     initiator: IHydratedController,
     parent: IHydratedParentController,
     flags: LifecycleFlags,
@@ -60,14 +59,6 @@ export class With implements ICustomAttributeViewModel {
     const { $controller, value } = this;
     const scope = Scope.fromParent(flags, $controller.scope, value === void 0 ? {} : value);
     return this.view.activate(initiator, $controller, flags, scope, $controller.hostScope);
-  }
-
-  public onCancel(
-    initiator: IHydratedController,
-    parent: IHydratedParentController,
-    flags: LifecycleFlags,
-  ): void {
-    this.view?.cancel(initiator, this.$controller, flags);
   }
 
   public dispose(): void {

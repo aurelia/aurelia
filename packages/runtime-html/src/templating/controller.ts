@@ -21,7 +21,6 @@ import {
   ILifecycle,
   IBindingTargetAccessor,
   PropertyBinding,
-  ProxyObserver,
   BindableObserver,
   BindableDefinition,
 } from '@aurelia/runtime';
@@ -41,11 +40,7 @@ function callDispose(disposable: IDisposable): void {
   disposable.dispose();
 }
 
-type BindingContext<C extends IViewModel> = IIndexable<
-  C &
-  Required<ICompileHooks> &
-  Required<IActivationHooks<IHydratedParentController | null>>
->;
+type BindingContext<C extends IViewModel> = Required<ICompileHooks> & Required<IActivationHooks<IHydratedParentController | null>> & C;
 
 export const enum MountTarget {
   none = 0,
@@ -116,13 +111,9 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
      */
     public viewFactory: IViewFactory | null,
     /**
-     * The backing viewModel. This is never a proxy. Only present for custom attributes and elements.
+     * The backing viewModel. Only present for custom attributes and elements.
      */
-    public viewModel: C | null,
-    /**
-     * The binding context. This may be a proxy. If it is not, then it is the same instance as the viewModel. Only present for custom attributes and elements.
-     */
-    public bindingContext: BindingContext<C> | null,
+    public viewModel: BindingContext<C> | null,
     /**
      * The physical host dom node.
      *
@@ -177,7 +168,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
 
     definition = definition ?? CustomElement.getDefinition(viewModel.constructor as Constructable);
-    flags |= definition.strategy;
 
     const controller = new Controller<C>(
       /* root           */root,
@@ -186,8 +176,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       /* flags          */flags,
       /* definition     */definition,
       /* viewFactory    */null,
-      /* viewModel      */viewModel,
-      /* bindingContext */getBindingContext<C>(flags, viewModel),
+      /* viewModel      */viewModel as BindingContext<C>,
       /* host           */host,
     );
 
@@ -212,7 +201,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
 
     const definition = CustomAttribute.getDefinition(viewModel.constructor as Constructable);
-    flags |= definition.strategy;
 
     const controller = new Controller<C>(
       /* root           */root,
@@ -221,8 +209,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       /* flags          */flags,
       /* definition     */definition,
       /* viewFactory    */null,
-      /* viewModel      */viewModel,
-      /* bindingContext */getBindingContext<C>(flags, viewModel),
+      /* viewModel      */viewModel as BindingContext<C>,
       /* host           */host
     );
 
@@ -248,7 +235,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       /* definition     */null,
       /* viewFactory    */viewFactory,
       /* viewModel      */null,
-      /* bindingContext */null,
       /* host           */null,
     );
     // deepscan-disable-next-line
@@ -268,12 +254,12 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
 
     let definition = this.definition as CustomElementDefinition;
-    const flags = this.flags |= definition.strategy;
+    const flags = this.flags;
     const instance = this.viewModel as BindingContext<C>;
     createObservers(this.lifecycle, definition, flags, instance);
     createChildrenObservers(this as Controller, definition, flags, instance);
 
-    this.scope = Scope.create(flags, this.bindingContext!, null);
+    this.scope = Scope.create(flags, this.viewModel!, null);
 
     const hooks = this.hooks;
     if (hooks.hasDefine) {
@@ -362,9 +348,8 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
   private hydrateCustomAttribute(): void {
     const definition = this.definition as CustomElementDefinition;
-    const flags = this.flags | definition.strategy;
     const instance = this.viewModel!;
-    createObservers(this.lifecycle, definition, flags, instance);
+    createObservers(this.lifecycle, definition, this.flags, instance);
 
     (instance as Writable<C>).$controller = this;
   }
@@ -457,7 +442,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     if (this.hooks.hasBinding) {
       if (this.debug) { this.logger!.trace(`binding()`); }
 
-      const ret = this.bindingContext!.binding(this.$initiator as IHydratedController, this.parent as IHydratedParentController, this.$flags);
+      const ret = this.viewModel!.binding(this.$initiator as IHydratedController, this.parent as IHydratedParentController, this.$flags);
       if (ret instanceof Promise) {
         return ret.then(this.bind.bind(this));
       }
@@ -478,7 +463,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     if (this.hooks.hasBound) {
       if (this.debug) { this.logger!.trace(`bound()`); }
 
-      const ret = this.bindingContext!.bound(this.$initiator as IHydratedController, this.parent as IHydratedParentController, this.$flags);
+      const ret = this.viewModel!.bound(this.$initiator as IHydratedController, this.parent as IHydratedParentController, this.$flags);
       if (ret instanceof Promise) {
         return ret.then(this.attach.bind(this));
       }
@@ -512,7 +497,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     if (this.hooks.hasAttaching) {
       if (this.debug) { this.logger!.trace(`attaching()`); }
 
-      ret = this.bindingContext!.attaching(this.$initiator as IHydratedController, this.parent as IHydratedParentController, this.$flags);
+      ret = this.viewModel!.attaching(this.$initiator as IHydratedController, this.parent as IHydratedParentController, this.$flags);
       if (ret instanceof Promise) {
         promises = [ret];
       }
@@ -539,7 +524,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     if (this.hooks.hasAttached) {
       if (this.debug) { this.logger!.trace(`attached()`); }
 
-      return this.bindingContext!.attached!(this.$initiator as IHydratedController, this.$flags);
+      return this.viewModel!.attached!(this.$initiator as IHydratedController, this.$flags);
     }
   }
 
@@ -582,7 +567,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     if (this.hooks.hasDetaching) {
       if (this.debug) { this.logger!.trace(`detaching()`); }
 
-      ret = this.bindingContext!.detaching(this.$initiator as IHydratedController, this.parent as IHydratedParentController, this.$flags);
+      ret = this.viewModel!.detaching(this.$initiator as IHydratedController, this.parent as IHydratedParentController, this.$flags);
       if (ret instanceof Promise) {
         (promises ??= []).push(ret);
       }
@@ -663,7 +648,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     if (this.hooks.hasUnbinding) {
       if (this.debug) { this.logger!.trace(`unbinding()`); }
 
-      const ret = this.bindingContext!.unbinding(this.$initiator as IHydratedController, this.parent as IHydratedParentController, this.$flags);
+      const ret = this.viewModel!.unbinding(this.$initiator as IHydratedController, this.parent as IHydratedParentController, this.$flags);
       if (ret instanceof Promise) {
         return ret.then(this.unbind.bind(this));
       }
@@ -782,7 +767,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     this.state |= State.disposed;
 
     if (this.hooks.hasDispose) {
-      this.bindingContext!.dispose();
+      this.viewModel!.dispose();
     }
 
     if (this.children !== null) {
@@ -801,7 +786,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       controllerLookup.delete(this.viewModel);
       this.viewModel = null;
     }
-    this.bindingContext = null;
+    this.viewModel = null;
     this.host = null;
     this.shadowRoot = null;
     this.root = null;
@@ -812,7 +797,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       return true;
     }
 
-    if (this.hooks.hasAccept && this.bindingContext!.accept(visitor) === true) {
+    if (this.hooks.hasAccept && this.viewModel!.accept(visitor) === true) {
       return true;
     }
 
@@ -836,14 +821,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
     return void 0;
   }
-}
-
-function getBindingContext<C extends IViewModel>(flags: LifecycleFlags, instance: object): BindingContext<C> {
-  if ((instance as IIndexable).noProxy === true || (flags & LifecycleFlags.proxyStrategy) === 0) {
-    return instance as BindingContext<C>;
-  }
-
-  return ProxyObserver.getOrCreate(instance).proxy as unknown as BindingContext<C>;
 }
 
 function getLookup(instance: IIndexable): Record<string, BindableObserver | ChildrenObserver> {
@@ -873,39 +850,22 @@ function createObservers(
   if (length > 0) {
     let name: string;
     let bindable: BindableDefinition;
+    const observers = getLookup(instance as IIndexable);
 
-    if ((flags & LifecycleFlags.proxyStrategy) > 0) {
-      for (let i = 0; i < length; ++i) {
-        name = observableNames[i];
+    for (let i = 0; i < length; ++i) {
+      name = observableNames[i];
+
+      if (observers[name] === void 0) {
         bindable = bindables[name];
 
-        new BindableObserver(
+        observers[name] = new BindableObserver(
           lifecycle,
           flags,
-          ProxyObserver.getOrCreate(instance).proxy,
+          instance as IIndexable,
           name,
           bindable.callback,
           bindable.set,
         );
-      }
-    } else {
-      const observers = getLookup(instance as IIndexable);
-
-      for (let i = 0; i < length; ++i) {
-        name = observableNames[i];
-
-        if (observers[name] === void 0) {
-          bindable = bindables[name];
-
-          observers[name] = new BindableObserver(
-            lifecycle,
-            flags,
-            instance as IIndexable,
-            name,
-            bindable.callback,
-            bindable.set,
-          );
-        }
       }
     }
   }
@@ -1066,7 +1026,7 @@ export interface IController<C extends IViewModel = IViewModel> extends IDisposa
 /**
  * The base type for `ICustomAttributeController` and `ICustomElementController`.
  *
- * Both of those types have the `viewModel` and `bindingContext` properties which represent the user instance containing the bound properties and hooks for this component.
+ * Both of those types have the `viewModel` property which represent the user instance containing the bound properties and hooks for this component.
  */
 export interface IComponentController<C extends IViewModel = IViewModel> extends IController<C> {
   readonly vmKind: ViewModelKind.customAttribute | ViewModelKind.customElement;
@@ -1074,16 +1034,8 @@ export interface IComponentController<C extends IViewModel = IViewModel> extends
 
   /**
    * The user instance containing the bound properties. This is always an instance of a class, which may either be user-defined, or generated by a view locator.
-   *
-   * This is the raw instance; never a proxy.
    */
   readonly viewModel: C;
-  /**
-   * In Proxy observation mode, this will be a proxy that wraps the view model, otherwise it is the exactly the same reference to the same object.
-   *
-   * This property is / should be used for creating the `Scope` and invoking lifecycle hooks.
-   */
-  readonly bindingContext: C & IIndexable;
 
 }
 
@@ -1144,7 +1096,6 @@ export interface ISyntheticView extends IHydratableController {
   readonly vmKind: ViewModelKind.synthetic;
   readonly definition: null;
   readonly viewModel: null;
-  readonly bindingContext: null;
   hostScope: Scope | null;
   /**
    * The compiled render context used for composing this view. Compilation was done by the `IViewFactory` prior to creating this view.
@@ -1231,15 +1182,11 @@ export interface ICustomAttributeController<C extends ICustomAttributeViewModel 
    */
   readonly viewModel: C;
   /**
-   * @inheritdoc
-   */
-  readonly bindingContext: C & IIndexable;
-  /**
    * The scope that belongs to this custom attribute. This property will always be defined when the `state` property of this view indicates that the view is currently bound.
    *
    * The `scope` will be set during `activate()` and unset during `deactivate()`.
    *
-   * The scope's `bindingContext` will be the same instance as this controller's `bindingContext` property.
+   * The scope's `bindingContext` will be the same instance as this controller's `viewModel` property.
    */
   readonly scope: Scope;
   hostScope: Scope | null;
@@ -1273,7 +1220,7 @@ export interface IDryCustomElementController<C extends IViewModel = IViewModel> 
    *
    * It may be overwritten by end user during the `create()` hook.
    *
-   * By default, the scope's `bindingContext` will be the same instance as this controller's `bindingContext` property.
+   * By default, the scope's `bindingContext` will be the same instance as this controller's `viewModel` property.
    */
   scope: Scope;
   hostScope: Scope | null;
@@ -1334,10 +1281,6 @@ export interface ICustomElementController<C extends ICustomElementViewModel = IC
    * @inheritdoc
    */
   readonly viewModel: C;
-  /**
-   * @inheritdoc
-   */
-  readonly bindingContext: C & IIndexable;
 
   activate(
     initiator: IHydratedController,

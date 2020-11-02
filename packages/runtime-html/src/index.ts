@@ -134,8 +134,6 @@ export {
 
   PropertyAccessor,
 
-  ProxyObserver,
-
   BindableObserver,
 
   SetterObserver,
@@ -144,7 +142,6 @@ export {
 
   subscriberCollection,
   collectionSubscriberCollection,
-  proxySubscriberCollection,
 
   bindingBehavior,
   BindingBehavior,
@@ -194,7 +191,6 @@ export {
   TwoWayBindingBehaviorRegistration,
 
   BindingMode,
-  BindingStrategy,
   ExpressionKind,
   LifecycleFlags,
 
@@ -230,11 +226,6 @@ export {
   PropertyObserver,
   CollectionObserver,
   ICollectionSubscriberCollection,
-  IProxyObserver,
-  IProxy,
-  IProxySubscribable,
-  IProxySubscriber,
-  IProxySubscriberCollection,
   ICollectionSubscribable,
   ISubscriber,
   isIndexMap,

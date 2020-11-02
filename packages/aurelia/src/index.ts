@@ -434,8 +434,6 @@ export {
 
   // PropertyAccessor,
 
-  // ProxyObserver,
-
   // BindableObserver,
 
   // SetterObserver,
@@ -444,7 +442,6 @@ export {
 
   subscriberCollection,
   collectionSubscriberCollection,
-  proxySubscriberCollection,
 
   bindingBehavior,
   BindingBehavior,
@@ -619,7 +616,6 @@ export {
   // INodeSequenceFactory,
 
   BindingMode,
-  BindingStrategy,
   // ExpressionKind,
   // Hooks,
   LifecycleFlags,
@@ -672,11 +668,6 @@ export {
   // PropertyObserver,
   // CollectionObserver,
   // ICollectionSubscriberCollection,
-  // IProxyObserver,
-  // IProxy,
-  // IProxySubscribable,
-  // IProxySubscriber,
-  // IProxySubscriberCollection,
   // ICollectionSubscribable,
   // ISubscriber,
   // isIndexMap,

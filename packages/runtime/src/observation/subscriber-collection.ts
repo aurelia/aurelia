@@ -3,8 +3,6 @@ import {
   ICollectionSubscriber,
   ICollectionSubscriberCollection,
   IndexMap,
-  IProxySubscriber,
-  IProxySubscriberCollection,
   ISubscriber,
   ISubscriberCollection,
   SubscriberFlags as SF
@@ -27,24 +25,6 @@ export function subscriberCollection(): ClassDecorator {
 
     if (proto.subscribe === void 0) proto.subscribe = addSubscriber;
     if (proto.unsubscribe === void 0) proto.unsubscribe = removeSubscriber;
-  };
-}
-
-export function proxySubscriberCollection(): ClassDecorator {
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  return function (target: Function): void { // ClassDecorator expects it to be derived from Function
-    const proto = target.prototype as IProxySubscriberCollection;
-
-    proto._proxySubscriberFlags = SF.None;
-
-    proto.addProxySubscriber = addProxySubscriber;
-    proto.removeProxySubscriber = removeProxySubscriber;
-    proto.hasProxySubscriber = hasProxySubscriber;
-    proto.hasProxySubscribers = hasProxySubscribers;
-    proto.callProxySubscribers = callProxySubscribers;
-
-    if (proto.subscribeToProxy === void 0) proto.subscribeToProxy = addProxySubscriber;
-    if (proto.unsubscribeFromProxy === void 0) proto.unsubscribeFromProxy = removeProxySubscriber;
   };
 }
 
@@ -86,30 +66,6 @@ function addSubscriber(this: ISubscriberCollection, subscriber: ISubscriber): bo
   } else {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     this._subscribersRest!.push(subscriber); // Non-null is implied by else branch of (subscriberFlags & SF.SubscribersRest) === 0
-  }
-  return true;
-}
-
-function addProxySubscriber(this: IProxySubscriberCollection, subscriber: IProxySubscriber): boolean {
-  if (this.hasProxySubscriber(subscriber)) {
-    return false;
-  }
-  const subscriberFlags = this._proxySubscriberFlags;
-  if ((subscriberFlags & SF.Subscriber0) === 0) {
-    this._proxySubscriber0 = subscriber;
-    this._proxySubscriberFlags |= SF.Subscriber0;
-  } else if ((subscriberFlags & SF.Subscriber1) === 0) {
-    this._proxySubscriber1 = subscriber;
-    this._proxySubscriberFlags |= SF.Subscriber1;
-  } else if ((subscriberFlags & SF.Subscriber2) === 0) {
-    this._proxySubscriber2 = subscriber;
-    this._proxySubscriberFlags |= SF.Subscriber2;
-  } else if ((subscriberFlags & SF.SubscribersRest) === 0) {
-    this._proxySubscribersRest = [subscriber];
-    this._proxySubscriberFlags |= SF.SubscribersRest;
-  } else {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    this._proxySubscribersRest!.push(subscriber); // Non-null is implied by else branch of (subscriberFlags & SF.SubscribersRest) === 0
   }
   return true;
 }
@@ -168,36 +124,6 @@ function removeSubscriber(this: ISubscriberCollection, subscriber: ISubscriber):
   return false;
 }
 
-function removeProxySubscriber(this: IProxySubscriberCollection, subscriber: IProxySubscriber): boolean {
-  const subscriberFlags = this._proxySubscriberFlags;
-  if ((subscriberFlags & SF.Subscriber0) > 0 && this._proxySubscriber0 === subscriber) {
-    this._proxySubscriber0 = void 0;
-    this._proxySubscriberFlags = (this._proxySubscriberFlags | SF.Subscriber0) ^ SF.Subscriber0;
-    return true;
-  } else if ((subscriberFlags & SF.Subscriber1) > 0 && this._proxySubscriber1 === subscriber) {
-    this._proxySubscriber1 = void 0;
-    this._proxySubscriberFlags = (this._proxySubscriberFlags | SF.Subscriber1) ^ SF.Subscriber1;
-    return true;
-  } else if ((subscriberFlags & SF.Subscriber2) > 0 && this._proxySubscriber2 === subscriber) {
-    this._proxySubscriber2 = void 0;
-    this._proxySubscriberFlags = (this._proxySubscriberFlags | SF.Subscriber2) ^ SF.Subscriber2;
-    return true;
-  } else if ((subscriberFlags & SF.SubscribersRest) > 0) {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const subscribers = this._proxySubscribersRest!; // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
-    for (let i = 0, ii = subscribers.length; i < ii; ++i) {
-      if (subscribers[i] === subscriber) {
-        subscribers.splice(i, 1);
-        if (ii === 1) {
-          this._proxySubscriberFlags = (this._proxySubscriberFlags | SF.SubscribersRest) ^ SF.SubscribersRest;
-        }
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
 function removeCollectionSubscriber(this: ICollectionSubscriberCollection, subscriber: ICollectionSubscriber): boolean {
   const subscriberFlags = this._collectionSubscriberFlags;
   if ((subscriberFlags & SF.Subscriber0) > 0 && this._collectionSubscriber0 === subscriber) {
@@ -232,10 +158,6 @@ function hasSubscribers(this: ISubscriberCollection): boolean {
   return this._subscriberFlags !== SF.None;
 }
 
-function hasProxySubscribers(this: IProxySubscriberCollection): boolean {
-  return this._proxySubscriberFlags !== SF.None;
-}
-
 function hasCollectionSubscribers(this: ICollectionSubscriberCollection): boolean {
   return this._collectionSubscriberFlags !== SF.None;
 }
@@ -257,29 +179,6 @@ function hasSubscriber(this: ISubscriberCollection, subscriber: ISubscriber): bo
   if ((subscriberFlags & SF.SubscribersRest) > 0) {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const subscribers = this._subscribersRest!; // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
-    for (let i = 0, ii = subscribers.length; i < ii; ++i) {
-      if (subscribers[i] === subscriber) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
-function hasProxySubscriber(this: IProxySubscriberCollection, subscriber: IProxySubscriber): boolean {
-  const subscriberFlags = this._proxySubscriberFlags;
-  if ((subscriberFlags & SF.Subscriber0) > 0 && this._proxySubscriber0 === subscriber) {
-    return true;
-  }
-  if ((subscriberFlags & SF.Subscriber1) > 0 && this._proxySubscriber1 === subscriber) {
-    return true;
-  }
-  if ((subscriberFlags & SF.Subscriber2) > 0 && this._proxySubscriber2 === subscriber) {
-    return true;
-  }
-  if ((subscriberFlags & SF.SubscribersRest) > 0) {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const subscribers = this._proxySubscribersRest!; // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
     for (let i = 0, ii = subscribers.length; i < ii; ++i) {
       if (subscribers[i] === subscriber) {
         return true;
@@ -356,35 +255,6 @@ function callSubscriber(
   ownFlags: LF,
 ): void {
   subscriber.handleChange(newValue, previousValue, ((flags | LF.update) ^ LF.update) | ownFlags);
-}
-
-function callProxySubscribers(this: IProxySubscriberCollection, key: PropertyKey, newValue: unknown, previousValue: unknown, flags: LF): void {
-  const subscriber0 = this._proxySubscriber0;
-  const subscriber1 = this._proxySubscriber1;
-  const subscriber2 = this._proxySubscriber2;
-  let subscribers = this._proxySubscribersRest;
-  if (subscribers !== void 0) {
-    subscribers = subscribers.slice();
-  }
-  if (subscriber0 !== void 0) {
-    subscriber0.handleProxyChange(key, newValue, previousValue, flags);
-  }
-  if (subscriber1 !== void 0) {
-    subscriber1.handleProxyChange(key, newValue, previousValue, flags);
-  }
-  if (subscriber2 !== void 0) {
-    subscriber2.handleProxyChange(key, newValue, previousValue, flags);
-  }
-  if (subscribers !== void 0) {
-    const { length } = subscribers;
-    let subscriber: IProxySubscriber | undefined;
-    for (let i = 0; i < length; ++i) {
-      subscriber = subscribers[i];
-      if (subscriber !== void 0) {
-        subscriber.handleProxyChange(key, newValue, previousValue, flags);
-      }
-    }
-  }
 }
 
 function callCollectionSubscribers(this: ICollectionSubscriberCollection, indexMap: IndexMap, flags: LF): void {

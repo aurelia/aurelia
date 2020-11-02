@@ -229,9 +229,6 @@ export class PropertyBinding implements IPartialConnectableBinding {
     }
     if (task != null) {
       task.cancel();
-      if (task === targetObserver.task) {
-        targetObserver.task = null;
-      }
       this.task = null;
     }
     this.interceptor.unobserve(true);

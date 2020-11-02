@@ -114,7 +114,6 @@ export class SetterNotifier implements IAccessor, ISubscribable {
    * @internal
    */
   public v: unknown = void 0;
-  public task: ITask | null = null;
 
   public readonly persistentFlags: LifecycleFlags = LifecycleFlags.none;
 

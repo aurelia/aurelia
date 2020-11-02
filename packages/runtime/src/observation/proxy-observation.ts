@@ -126,9 +126,9 @@ const arrayHandler: ProxyHandler<unknown[]> = {
       case 'keys':
         return wrappedKeys;
       case 'values':
+      case Symbol.iterator:
         return wrappedValues;
       case 'entries':
-      case Symbol.iterator:
         return wrappedEntries;
     }
 
@@ -356,7 +356,7 @@ function wrappedDelete(this: $MapOrSet, k: unknown): boolean {
   return getProxyOrSelf(getRaw(this).delete(getRawOrSelf(k)));
 }
 
-function wrappedKeys(this: $MapOrSet): IterableIterator<unknown> {
+function wrappedKeys(this: $MapOrSet | unknown[]): IterableIterator<unknown> {
   const raw = getRaw(this);
   currentWatcher()?.observeCollection(raw);
   const iterator = raw.keys();
@@ -377,7 +377,7 @@ function wrappedKeys(this: $MapOrSet): IterableIterator<unknown> {
   };
 }
 
-function wrappedValues(this: $MapOrSet): IterableIterator<unknown> {
+function wrappedValues(this: $MapOrSet | unknown[]): IterableIterator<unknown> {
   const raw = getRaw(this);
   currentWatcher()?.observeCollection(raw);
   const iterator = raw.values();
@@ -398,7 +398,7 @@ function wrappedValues(this: $MapOrSet): IterableIterator<unknown> {
   };
 }
 
-function wrappedEntries(this: $MapOrSet): IterableIterator<unknown> {
+function wrappedEntries(this: $MapOrSet | unknown[]): IterableIterator<unknown> {
   const raw = getRaw(this);
   currentWatcher()?.observeCollection(raw);
   const iterator = raw.entries();

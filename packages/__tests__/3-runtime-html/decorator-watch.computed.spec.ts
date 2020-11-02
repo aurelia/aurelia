@@ -690,6 +690,7 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
         },
       },
       ...[
+        ['.slice()', (post: IPostOffice) => post.packages.slice(0).map(d => d.delivered).join(', ')],
         ['.map()', (post: IPostOffice) => post.packages.map(d => d.delivered).join(', ')],
         ['.flatMap()', (post: IPostOffice) => post.packages.flatMap(d => [d.id, d.delivered]).join(', ')],
         ['for..in', (post: IPostOffice) => {
@@ -710,7 +711,7 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
         ],
         ['.reduceRight()', (post: IPostOffice) => post
           .packages
-          .reduce(
+          .reduceRight(
             (str, d, idx, arr) => `${str}${idx === arr.length - 1 ? d.delivered : `, ${d.delivered}`}`,
             '',
           ),
@@ -735,6 +736,57 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
           const decoratorCount = post.decoratorCount;
           assert.strictEqual(post.callCount, 4 * decoratorCount);
           post.delivered(2);            assert.strictEqual(post.callCount, 4 * decoratorCount);
+        },
+      })),
+      ...[
+        ['for..of', (post: IPostOffice) => {
+          const result = [];
+          for (const p of post.packages) {
+            result.push(p.delivered);
+          }
+          return result.join(', ');
+        }],
+        ['.entries()', (post: IPostOffice) => {
+          const result = [];
+          for (const p of post.packages.entries()) {
+            result.push(p[1].delivered);
+          }
+          return result.join(', ');
+        }],
+        ['.values()', (post: IPostOffice) => {
+          const result = [];
+          for (const p of post.packages.values()) {
+            result.push(p.delivered);
+          }
+          return result.join(', ');
+        }],
+        ['.keys()', (post: IPostOffice) => {
+          const result = [];
+          for (const index of post.packages.keys()) {
+            result.push(post.packages[index].delivered);
+          }
+          return result.join(', ');
+        }],
+      ].map(([name, getter]) => ({
+        title: `observers ${name}`,
+        init: () => Array.from(
+          { length: 3 },
+          (_, idx) => ({ id: idx + 1, name: `box ${idx + 1}`, delivered: false }),
+        ),
+        get: getter as IDepCollectionFn<object>,
+        created: (post: IPostOffice) => {
+          const decoratorCount = post.decoratorCount;
+          assert.strictEqual(post.callCount, 0);
+          // mutate                       // assert the effect
+          post.newDelivery(4, 'box 4');   assert.strictEqual(post.callCount, 1 * decoratorCount);
+          post.delivered(4);              assert.strictEqual(post.callCount, 2 * decoratorCount);
+          post.delivered(1);              assert.strictEqual(post.callCount, 3 * decoratorCount);
+        },
+        disposed: (post: IPostOffice) => {
+          const decoratorCount = post.decoratorCount;
+          post.newDelivery(5, 'box 5');   assert.strictEqual(post.callCount, 3 * decoratorCount);
+          post.delivered(4);              assert.strictEqual(post.callCount, 3 * decoratorCount);
+          post.delivered(1);              assert.strictEqual(post.callCount, 3 * decoratorCount);
         },
       })),
     ];

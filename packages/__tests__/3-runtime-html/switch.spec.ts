@@ -1047,7 +1047,7 @@ describe('switch', function () {
         null,
         getDeactivationSequenceFor(['case-host-1', 'case-host-6']),
         (ctx) => {
-          const switches = (ctx.controller.children[0].viewModel as Repeat)
+          const switches = (ctx.controller.children[0] as Controller<Repeat>).viewModel
             .views
             .map((v) => v.children[0].viewModel as Switch);
           ctx.assertCallSet([
@@ -1079,7 +1079,7 @@ describe('switch', function () {
         null,
         getDeactivationSequenceFor(['case-host-1', 'case-host-6']),
         (ctx) => {
-          const switches = (ctx.controller.children[0].viewModel as Repeat)
+          const switches = (ctx.controller.children[0] as Controller<Repeat>).viewModel
             .views
             .map((v) => v.children[0].viewModel as Switch);
           ctx.assertCallSet([
@@ -1371,7 +1371,7 @@ describe('switch', function () {
         getDeactivationSequenceFor('case-host-4'),
         async (ctx) => {
           const fooBarController = ctx.controller.children[0];
-          const auSlot: AuSlot = fooBarController.children[0].viewModel as AuSlot;
+          const auSlot: AuSlot = (fooBarController.children[0] as Controller<AuSlot>).viewModel;
           const $switch = ctx.getSwitches(auSlot.view as unknown as Controller)[0];
           ctx.assertCalls([`Case-#${$switch['cases'][0].id}.isMatch()`, ...getActivationSequenceFor('case-host-1')]);
           await ctx.assertChange(

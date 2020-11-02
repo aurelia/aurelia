@@ -330,8 +330,8 @@ function ensureExpression<TFrom>(parser: IExpressionParser, srcOrExpr: TFrom, bi
 }
 
 function getTarget(potentialTarget: object): object {
-  if ((potentialTarget as { bindingContext?: object }).bindingContext !== void 0) {
-    return (potentialTarget as { bindingContext: object }).bindingContext;
+  if ((potentialTarget as { viewModel?: object }).viewModel != null) {
+    return (potentialTarget as { viewModel: object }).viewModel;
   }
   return potentialTarget;
 }

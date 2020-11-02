@@ -96,8 +96,8 @@ export class ViewportCustomElement implements ICustomElementViewModel {
   }
 
   public unbinding(initiator: IHydratedController, parent: ISyntheticView | ICustomElementController | null, flags: LifecycleFlags): void | Promise<void> {
-    if (this.viewport !== null && (this.viewport.nextContent ?? null) === null) {
-      // console.log('unbinding', this.viewport?.toString());
+    if (this.viewport !== null && (this.router.processingNavigation ?? null) === null) {
+      // console.log('beforeUnbind', this.viewport?.toString());
       // TODO: Save to cache, something like
       // this.viewport.cacheContent();
       // From viewport-content:
@@ -142,7 +142,7 @@ export class ViewportCustomElement implements ICustomElementViewModel {
   public dispose(): void | Promise<void> {
     if (this.viewport !== null) {
       return Runner.run(
-        () => (this.viewport?.nextContent ?? null) === null ? this.viewport?.dispose() : void 0,
+        () => (this.router.processingNavigation ?? null) === null ? this.viewport?.dispose() : void 0,
         () => this.disconnect()
       );
     }

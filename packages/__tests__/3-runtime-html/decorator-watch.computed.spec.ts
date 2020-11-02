@@ -624,6 +624,7 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
       ...[
         ['.indexOf()', (post: IPostOffice) => post.packages.indexOf(post.selected)],
         ['.findIndex()', (post: IPostOffice) => post.packages.findIndex(v => v === post.selected)],
+        ['.lastIndexOf()', (post: IPostOffice) => post.packages.lastIndexOf(post.selected)],
         ['.includes()', (post: IPostOffice) => post.packages.includes(post.selected)],
       ].map(([name, getter]) => ({
         title: `observes ${name}`,
@@ -692,6 +693,7 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
       ...[
         ['.slice()', (post: IPostOffice) => post.packages.slice(0).map(d => d.delivered).join(', ')],
         ['.map()', (post: IPostOffice) => post.packages.map(d => d.delivered).join(', ')],
+        ['.flat()', (post: IPostOffice) => post.packages.flat().map(d => d.delivered).join(', ')],
         ['.flatMap()', (post: IPostOffice) => post.packages.flatMap(d => [d.id, d.delivered]).join(', ')],
         ['for..in', (post: IPostOffice) => {
           const results = [];
@@ -938,7 +940,7 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
     }
   });
 
-  describe('Map/Set', function () {
+  describe('Map', function () {
     const symbol = Symbol();
 
     const testCases: ITestCase[] = [
@@ -1018,7 +1020,7 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
         title: 'observers .entries()',
         get: app => {
           let count = 0;
-          for (const [, value] of app.map) {
+          for (const [, value] of app.map.entries()) {
             if (value === symbol) count++;
           }
           return count;
@@ -1029,6 +1031,16 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
           app.map.set('a', 2);          assert.strictEqual(app.callCount, 0);
           app.map.set('a', symbol);     assert.strictEqual(app.callCount, 1 * app.decoratorCount);
           app.map.set('b', symbol);     assert.strictEqual(app.callCount, 2 * app.decoratorCount);
+        },
+      },
+      {
+        title: 'observes .size',
+        get: app => app.map.size,
+        created: app => {
+          assert.strictEqual(app.callCount, 0);
+          app.map.set(symbol, 2);       assert.strictEqual(app.callCount, 1 * app.decoratorCount);
+          app.map.set(symbol, 1);       assert.strictEqual(app.callCount, 1 * app.decoratorCount);
+          app.map.set(1, symbol);       assert.strictEqual(app.callCount, 2 * app.decoratorCount);
         },
       },
       {
@@ -1206,6 +1218,279 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
     interface IApp {
       decoratorCount: number;
       map: Map<unknown, unknown>;
+      selectedItem: unknown;
+      counter: number;
+      callCount: number;
+      log(): void;
+    }
+
+    interface ITestCase {
+      title: string;
+      only?: boolean;
+      get: IDepCollectionFn<IApp>;
+      created: (app: IApp, ctx: TestContext, decoratorCount: number) => any;
+      disposed?: (app: IApp, ctx: TestContext, decoratorCount: number) => any;
+    }
+  });
+
+  describe('Set', function () {
+    const symbol = Symbol();
+
+    const testCases: ITestCase[] = [
+      {
+        title: 'observes .has()',
+        get: app => app.set.has(symbol),
+        created: (app) => {
+          assert.strictEqual(app.callCount, 0);
+          app.set.add(symbol);      assert.strictEqual(app.callCount, 1 * app.decoratorCount);
+          app.set.add(symbol);      assert.strictEqual(app.callCount, 1 * app.decoratorCount);
+          app.set.delete(symbol);   assert.strictEqual(app.callCount, 2 * app.decoratorCount);
+        },
+        disposed: (app) => {
+          app.set.add(symbol);      assert.strictEqual(app.callCount, 2 * app.decoratorCount);
+          app.set.add(symbol);      assert.strictEqual(app.callCount, 2 * app.decoratorCount);
+          app.set.delete(symbol);   assert.strictEqual(app.callCount, 2 * app.decoratorCount);
+        },
+      },
+      {
+        title: 'observes .keys()',
+        get: app => Array.from(app.set.keys()).filter(k => k === symbol).length,
+        created: app => {
+          assert.strictEqual(app.callCount, 0);
+          app.set.add('a');         assert.strictEqual(app.callCount, 0);
+          app.set.add(symbol);      assert.strictEqual(app.callCount, 1 * app.decoratorCount);
+        },
+      },
+      {
+        title: 'observers .values()',
+        get: app => Array.from(app.set.values()).filter(v => v === symbol).length,
+        created: app => {
+          assert.strictEqual(app.callCount, 0);
+          // mutate                 // assert the effect
+          app.set.add('a');         assert.strictEqual(app.callCount, 0);
+          app.set.add('b');         assert.strictEqual(app.callCount, 0);
+          app.set.add(symbol);      assert.strictEqual(app.callCount, 1 * app.decoratorCount);
+        },
+      },
+      {
+        title: 'observers @@Symbol.iterator',
+        get: app => {
+          let count = 0;
+          for (const value of app.set) {
+            if (value === symbol) count++;
+          }
+          return count;
+        },
+        created: app => {
+          assert.strictEqual(app.callCount, 0);
+          // mutate                 // assert the effect
+          app.set.add('a');         assert.strictEqual(app.callCount, 0);
+          app.set.add('b');         assert.strictEqual(app.callCount, 0);
+          app.set.add(symbol);      assert.strictEqual(app.callCount, 1 * app.decoratorCount);
+        },
+      },
+      {
+        title: 'observers .entries()',
+        get: app => {
+          let count = 0;
+          for (const [, value] of app.set.entries()) {
+            if (value === symbol) count++;
+          }
+          return count;
+        },
+        created: app => {
+          assert.strictEqual(app.callCount, 0);
+          // mutate                 // assert the effect
+          app.set.add('a');         assert.strictEqual(app.callCount, 0);
+          app.set.add('b');         assert.strictEqual(app.callCount, 0);
+          app.set.add(symbol);      assert.strictEqual(app.callCount, 1 * app.decoratorCount);
+        },
+      },
+      {
+        title: 'observes .size',
+        get: app => app.set.size,
+        created: app => {
+          assert.strictEqual(app.callCount, 0);
+          app.set.add(symbol);      assert.strictEqual(app.callCount, 1 * app.decoratorCount);
+          app.set.add(2);           assert.strictEqual(app.callCount, 2 * app.decoratorCount);
+          app.set.add(1);           assert.strictEqual(app.callCount, 3 * app.decoratorCount);
+        },
+      },
+      {
+        title: 'does not observe mutation by .add()',
+        get: app => app.set.add(symbol),
+        created: app => {
+          assert.strictEqual(app.callCount, 0);
+          app.set.add(1);
+          app.set.add(2);
+          assert.strictEqual(app.callCount, 0);
+        },
+      },
+      {
+        title: 'does not observe mutation by .delete()',
+        get: app => app.set.delete(symbol),
+        created: app => {
+          assert.strictEqual(app.callCount, 0);
+          app.set.add(symbol);      assert.strictEqual(app.callCount, 0);
+          app.set.add(1);           assert.strictEqual(app.callCount, 0);
+          app.set.add(2);           assert.strictEqual(app.callCount, 0);
+        },
+      },
+      {
+        title: 'does not observe mutation by .clear()',
+        get: app => app.set.clear(),
+        created: app => {
+          assert.strictEqual(app.callCount, 0);
+          app.set.add(symbol);      assert.strictEqual(app.callCount, 0);
+          app.set.add(1);           assert.strictEqual(app.callCount, 0);
+          app.set.add(2);           assert.strictEqual(app.callCount, 0);
+        },
+      },
+      {
+        title: 'watcher callback is not invoked when getter throws error',
+        get: app => {
+          if (app.decoratorCount === 2) {
+            if (app.counter++ <= 2) {
+              return 0;
+            }
+          } else {
+            if (app.counter++ === 0) {
+              return 0;
+            }
+          }
+          throw new Error('err');
+        },
+        created: app => {
+          assert.strictEqual(app.callCount, 0);
+          let ex: Error;
+          try {
+            if (app.decoratorCount === 2) {
+              app.counter = 0;
+            } else {
+              app.counter++;
+            }
+          } catch (e) {
+            ex = e;
+          }
+          assert.strictEqual(app.callCount, 0);
+          assert.instanceOf(ex, Error);
+          assert.strictEqual(ex.message, 'err');
+        },
+      },
+      {
+        title: 'works with ===',
+        get: app => {
+          let has = false;
+          app.set.forEach(v => {
+            if (v === app.selectedItem) {
+              has = true;
+            }
+          });
+          return has;
+        },
+        created: app => {
+          assert.strictEqual(app.callCount, 0);
+          const item1 = {};
+          const item2 = {};
+          app.set = new Set([item1, item2]);
+          assert.strictEqual(app.callCount, 0);
+          app.selectedItem = item1;
+          assert.strictEqual(app.callCount, 1 * app.decoratorCount);
+        },
+      },
+      {
+        title: 'works with Object.is()',
+        get: app => {
+          let has = false;
+          app.set.forEach(v => {
+            if (Object.is(v, app.selectedItem)) {
+              has = true;
+            }
+          });
+          return has;
+        },
+        created: app => {
+          assert.strictEqual(app.callCount, 0);
+          const item1 = {};
+          const item2 = {};
+          app.set = new Set([item1, item2]);
+          assert.strictEqual(app.callCount, 0);
+          app.selectedItem = item1;
+          assert.strictEqual(app.callCount, 1 * app.decoratorCount);
+        },
+      }
+    ];
+
+    for (const { title, only = false, get, created, disposed } of testCases) {
+      const $it = only ? it.only : it;
+      $it(`${title} on method`, async function () {
+        class App implements IApp {
+          public decoratorCount: number = 1;
+          public set: Set<unknown> = new Set();
+          public selectedItem: unknown = void 0;
+          public counter: number = 0;
+          public callCount = 0;
+
+          @watch(get)
+          public log() {
+            this.callCount++;
+          }
+        }
+
+        const { ctx, component, startPromise, tearDown } = createFixture('', App);
+        await startPromise;
+        created(component, ctx, 1);
+        await tearDown();
+        disposed?.(component, ctx, 1);
+      });
+
+      $it(`${title} on class`, async function () {
+        @watch(get, (v, o, a) => a.log())
+        class App implements IApp {
+          public decoratorCount: number = 1;
+          public set: Set<unknown> = new Set();
+          public selectedItem: unknown;
+          public counter: number = 0;
+          public callCount = 0;
+
+          public log() {
+            this.callCount++;
+          }
+        }
+
+        const { ctx, component, tearDown, startPromise } = createFixture('', App);
+        await startPromise;
+        created(component, ctx, 1);
+        await tearDown();
+        disposed?.(component, ctx, 1);
+      });
+
+      $it(`${title} on both class and method`, async function () {
+        @watch(get, (v, o, a) => a.log())
+        class App implements IApp {
+          public decoratorCount: number = 2;
+          public set: Set<unknown> = new Set();
+          public selectedItem: unknown;
+          public counter: number = 0;
+          public callCount = 0;
+
+          @watch(get)
+          public log(): void {
+            this.callCount++;
+          }
+        }
+
+        const { ctx, component, startPromise, tearDown } = createFixture('', App);
+        await startPromise;
+        created(component, ctx, 2);
+        await tearDown();
+        disposed?.(component, ctx, 2);
+      });
+    }
+
+    interface IApp {
+      decoratorCount: number;
+      set: Set<unknown>;
       selectedItem: unknown;
       counter: number;
       callCount: number;

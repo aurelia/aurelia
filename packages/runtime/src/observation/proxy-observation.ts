@@ -281,7 +281,7 @@ const collectionHandler: ProxyHandler<$MapOrSet> = {
     switch (key) {
       case 'size':
         connectable.observeLength(target);
-        return R$get(target, key, receiver);
+        return target.size;
       case 'clear':
         return wrappedClear;
       case 'delete':
@@ -310,8 +310,9 @@ const collectionHandler: ProxyHandler<$MapOrSet> = {
       case 'values':
         return wrappedValues;
       case 'entries':
-      case Symbol.iterator:
         return wrappedEntries;
+      case Symbol.iterator:
+        return isMap(target) ? wrappedEntries : wrappedValues;
     }
 
     return getProxyOrSelf(R$get(target, key, receiver));

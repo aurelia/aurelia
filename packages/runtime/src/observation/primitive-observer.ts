@@ -1,10 +1,9 @@
-import { Primitive, ITask } from '@aurelia/kernel';
+import { Primitive } from '@aurelia/kernel';
 import { IAccessor, ISubscribable, AccessorType } from '../observation';
 
 export class PrimitiveObserver implements IAccessor, ISubscribable {
   public get doNotCache(): true { return true; }
   public type: AccessorType = AccessorType.None;
-  public task: ITask | null = null;
 
   public constructor(
     public readonly obj: Primitive,

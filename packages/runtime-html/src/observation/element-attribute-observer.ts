@@ -1,4 +1,4 @@
-import { IBindingTargetObserver, IObserverLocator, ISubscriber, ISubscriberCollection, LifecycleFlags, subscriberCollection, ITask, AccessorType } from '@aurelia/runtime';
+import { IBindingTargetObserver, IObserverLocator, ISubscriber, ISubscriberCollection, LifecycleFlags, subscriberCollection, AccessorType } from '@aurelia/runtime';
 import { IPlatform } from '../platform';
 
 export interface IHtmlElement extends HTMLElement {
@@ -28,7 +28,6 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
   public readonly persistentFlags: LifecycleFlags;
 
   public hasChanges: boolean = false;
-  public task: ITask | null = null;
   // layout is not certain, depends on the attribute being flushed to owner element
   // but for simple start, always treat as such
   public type: AccessorType = AccessorType.Node | AccessorType.Observer | AccessorType.Layout;
@@ -53,7 +52,7 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
   public setValue(newValue: unknown, flags: LifecycleFlags): void {
     this.currentValue = newValue;
     this.hasChanges = newValue !== this.oldValue;
-    if ((flags & LifecycleFlags.noTargetObserverQueue) === 0) {
+    if ((flags & LifecycleFlags.noFlush) === 0) {
       this.flushChanges(flags);
     }
   }

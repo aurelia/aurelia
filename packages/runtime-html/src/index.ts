@@ -394,7 +394,6 @@ export {
 } from './resources/custom-attribute';
 export {
   FrequentMutations,
-  InfrequentMutations,
   ObserveShallow,
 } from './resources/template-controllers/flags';
 export {

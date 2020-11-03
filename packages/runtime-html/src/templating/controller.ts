@@ -259,7 +259,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     createObservers(this.lifecycle, definition, flags, instance);
     createChildrenObservers(this as Controller, definition, flags, instance);
 
-    this.scope = Scope.create(flags, this.viewModel!, null);
+    this.scope = Scope.create(flags, this.viewModel!, null, true);
 
     const hooks = this.hooks;
     if (hooks.hasDefine) {

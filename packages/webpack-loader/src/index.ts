@@ -1,9 +1,8 @@
-import { IOptionalPreprocessOptions, preprocess, preprocessOptions } from '@aurelia/plugin-conventions';
+import { preprocess, preprocessOptions } from '@aurelia/plugin-conventions';
 import { getOptions } from 'loader-utils';
-import * as webpack from 'webpack';
 
 export default function (
-  this: webpack.loader.LoaderContext,
+  this: any, // TODO: used to be webpack.loader.LoaderContext but that type no longer exist. API still seems to exist though. Figure out the correct type here and in loader()
   contents: string,
   sourceMap?: object, // ignore existing source map for now
 ) {
@@ -11,14 +10,14 @@ export default function (
 }
 
 export function loader(
-  this: webpack.loader.LoaderContext,
+  this: any,
   contents: string,
   _preprocess = preprocess // for testing
 ) {
   // eslint-disable-next-line @typescript-eslint/no-unused-expressions, @typescript-eslint/strict-boolean-expressions
   this.cacheable && this.cacheable();
-  const cb = this.async() as webpack.loader.loaderCallback;
-  const options = getOptions(this) as IOptionalPreprocessOptions;
+  const cb = this.async();
+  const options = getOptions(this);
 
   const filePath = this.resourcePath;
 

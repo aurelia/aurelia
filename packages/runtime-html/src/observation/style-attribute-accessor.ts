@@ -1,6 +1,6 @@
 import { IAccessor, LifecycleFlags, ITask, AccessorType } from '@aurelia/runtime';
 import { emptyArray, kebabCase } from '@aurelia/kernel';
-import { INode } from '../dom';
+import { INode } from '../dom.js';
 
 export class StyleAttributeAccessor implements IAccessor {
   public readonly obj: HTMLElement;

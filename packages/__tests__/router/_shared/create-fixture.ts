@@ -3,8 +3,8 @@ import { Aurelia } from '@aurelia/runtime-html';
 import { RouterConfiguration, IRouter, IRouterActivateOptions, NavigationState } from '@aurelia/router';
 import { TestContext } from '@aurelia/testing';
 
-import { IHIAConfig, IHookInvocationAggregator } from './hook-invocation-tracker';
-import { TestRouterConfiguration } from './configuration';
+import { IHIAConfig, IHookInvocationAggregator } from './hook-invocation-tracker.js';
+import { TestRouterConfiguration } from './configuration.js';
 
 export interface IRouterOptionsSpec {
   deferUntil: DeferralJuncture;

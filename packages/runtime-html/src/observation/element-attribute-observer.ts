@@ -1,5 +1,5 @@
 import { IBindingTargetObserver, IObserverLocator, ISubscriber, ISubscriberCollection, LifecycleFlags, subscriberCollection, ITask, AccessorType } from '@aurelia/runtime';
-import { IPlatform } from '../platform';
+import { IPlatform } from '../platform.js';
 
 export interface IHtmlElement extends HTMLElement {
   $mObserver: MutationObserver;

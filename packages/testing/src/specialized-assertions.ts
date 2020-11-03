@@ -1,6 +1,6 @@
 import { If, Repeat, With, ICustomElementController, ViewModelKind, ISyntheticView, Compose, InstructionType } from '@aurelia/runtime-html';
 import { MountTarget } from '@aurelia/runtime-html/dist/templating/controller';
-import { assert } from './assert';
+import { assert } from './assert.js';
 
 // Disabling this as it this is nowhere used. And also the ast-serialization infra is moved to validation package.
 

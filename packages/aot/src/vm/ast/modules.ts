@@ -1,4 +1,5 @@
-import {
+import ts from 'typescript';
+import type {
   ExportAssignment,
   ExportDeclaration,
   ExportSpecifier,
@@ -7,7 +8,6 @@ import {
   ImportDeclaration,
   ImportEqualsDeclaration,
   ImportSpecifier,
-  ModifierFlags,
   ModuleBlock,
   ModuleDeclaration,
   NamedExports,
@@ -18,7 +18,6 @@ import {
   QualifiedName,
   SourceFile,
   StringLiteral,
-  SyntaxKind,
 } from 'typescript';
 import {
   ILogger,
@@ -38,35 +37,35 @@ import {
   ResolvedBindingRecord,
   Realm,
   ExecutionContext,
-} from '../realm';
+} from '../realm.js';
 import {
   $ModuleEnvRec,
   $EnvRec,
   $FunctionEnvRec,
   $GlobalEnvRec,
-} from '../types/environment-record';
+} from '../types/environment-record.js';
 import {
   $NamespaceExoticObject,
-} from '../exotics/namespace';
+} from '../exotics/namespace.js';
 import {
   $String,
-} from '../types/string';
+} from '../types/string.js';
 import {
   $Undefined,
-} from '../types/undefined';
+} from '../types/undefined.js';
 import {
   $Any,
   CompletionType,
-} from '../types/_shared';
+} from '../types/_shared.js';
 import {
   $Number,
-} from '../types/number';
+} from '../types/number.js';
 import {
   $Null,
-} from '../types/null';
+} from '../types/null.js';
 import {
   $Empty,
-} from '../types/empty';
+} from '../types/empty.js';
 import {
   IModuleResolver,
 } from '../../service-host';
@@ -74,10 +73,10 @@ import {
   $Error,
   $SyntaxError,
   $TypeError,
-} from '../types/error';
+} from '../types/error.js';
 import {
   $List,
-} from '../types/list';
+} from '../types/list.js';
 import {
   I$Node,
   Context,
@@ -102,13 +101,13 @@ import {
   $i,
   $ESStatementListItemNode,
   $$ESVarDeclaration,
-} from './_shared';
+} from './_shared.js';
 import {
   $Identifier,
-} from './expressions';
+} from './expressions.js';
 import {
   $ClassDeclaration,
-} from './classes';
+} from './classes.js';
 import {
   DirectivePrologue,
   $VariableStatement,
@@ -130,21 +129,21 @@ import {
   $ThrowStatement,
   $TryStatement,
   $DebuggerStatement,
-} from './statements';
+} from './statements.js';
 import {
   $FunctionDeclaration,
-} from './functions';
+} from './functions.js';
 import {
   $InterfaceDeclaration,
   $TypeAliasDeclaration,
   $EnumDeclaration,
-} from './types';
+} from './types.js';
 import {
   $StringLiteral,
-} from './literals';
+} from './literals.js';
 import {
   $StringSet,
-} from '../globals/string';
+} from '../globals/string.js';
 
 export type $$ESModuleItem = (
   $$ESStatementListItem |
@@ -243,7 +242,7 @@ export class $ESScript implements I$Node {
       stmt = statements[i];
 
       switch (stmt.kind) {
-        case SyntaxKind.VariableStatement:
+        case ts.SyntaxKind.VariableStatement:
           $stmt = $statements[s] = new $VariableStatement(stmt, this, ctx, s);
           ++s;
 
@@ -256,127 +255,127 @@ export class $ESScript implements I$Node {
           }
 
           break;
-        case SyntaxKind.FunctionDeclaration:
+        case ts.SyntaxKind.FunctionDeclaration:
           $stmt = $statements[s] = new $FunctionDeclaration(stmt, this, ctx, s);
           ++s;
 
           VarDeclaredNames.push(...$stmt.BoundNames);
           VarScopedDeclarations.push($stmt);
           break;
-        case SyntaxKind.ClassDeclaration:
+        case ts.SyntaxKind.ClassDeclaration:
           $stmt = $statements[s] = new $ClassDeclaration(stmt, this, ctx, s);
           ++s;
 
           LexicallyDeclaredNames.push(...$stmt.BoundNames);
           LexicallyScopedDeclarations.push($stmt);
           break;
-        case SyntaxKind.Block:
+        case ts.SyntaxKind.Block:
           $stmt = $statements[s] = new $Block(stmt, this, ctx, s);
           ++s;
 
           VarDeclaredNames.push(...$stmt.VarDeclaredNames);
           VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
           break;
-        case SyntaxKind.EmptyStatement:
+        case ts.SyntaxKind.EmptyStatement:
           $stmt = $statements[s] = new $EmptyStatement(stmt, this, ctx, s);
           ++s;
           break;
-        case SyntaxKind.ExpressionStatement:
+        case ts.SyntaxKind.ExpressionStatement:
           $stmt = $statements[s] = new $ExpressionStatement(stmt, this, ctx, s);
           ++s;
           break;
-        case SyntaxKind.IfStatement:
+        case ts.SyntaxKind.IfStatement:
           $stmt = $statements[s] = new $IfStatement(stmt, this, ctx, s);
           ++s;
 
           VarDeclaredNames.push(...$stmt.VarDeclaredNames);
           VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
           break;
-        case SyntaxKind.DoStatement:
+        case ts.SyntaxKind.DoStatement:
           $stmt = $statements[s] = new $DoStatement(stmt, this, ctx, s);
           ++s;
 
           VarDeclaredNames.push(...$stmt.VarDeclaredNames);
           VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
           break;
-        case SyntaxKind.WhileStatement:
+        case ts.SyntaxKind.WhileStatement:
           $stmt = $statements[s] = new $WhileStatement(stmt, this, ctx, s);
           ++s;
 
           VarDeclaredNames.push(...$stmt.VarDeclaredNames);
           VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
           break;
-        case SyntaxKind.ForStatement:
+        case ts.SyntaxKind.ForStatement:
           $stmt = $statements[s] = new $ForStatement(stmt, this, ctx, s);
           ++s;
 
           VarDeclaredNames.push(...$stmt.VarDeclaredNames);
           VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
           break;
-        case SyntaxKind.ForInStatement:
+        case ts.SyntaxKind.ForInStatement:
           $stmt = $statements[s] = new $ForInStatement(stmt, this, ctx, s);
           ++s;
 
           VarDeclaredNames.push(...$stmt.VarDeclaredNames);
           VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
           break;
-        case SyntaxKind.ForOfStatement:
+        case ts.SyntaxKind.ForOfStatement:
           $stmt = $statements[s] = new $ForOfStatement(stmt, this, ctx, s);
           ++s;
 
           VarDeclaredNames.push(...$stmt.VarDeclaredNames);
           VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
           break;
-        case SyntaxKind.ContinueStatement:
+        case ts.SyntaxKind.ContinueStatement:
           $stmt = $statements[s] = new $ContinueStatement(stmt, this, ctx, s);
           ++s;
           break;
-        case SyntaxKind.BreakStatement:
+        case ts.SyntaxKind.BreakStatement:
           $stmt = $statements[s] = new $BreakStatement(stmt, this, ctx, s);
           ++s;
           break;
-        case SyntaxKind.ReturnStatement:
+        case ts.SyntaxKind.ReturnStatement:
           $stmt = $statements[s] = new $ReturnStatement(stmt, this, ctx, s);
           ++s;
           break;
-        case SyntaxKind.WithStatement:
+        case ts.SyntaxKind.WithStatement:
           $stmt = $statements[s] = new $WithStatement(stmt, this, ctx, s);
           ++s;
 
           VarDeclaredNames.push(...$stmt.VarDeclaredNames);
           VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
           break;
-        case SyntaxKind.SwitchStatement:
+        case ts.SyntaxKind.SwitchStatement:
           $stmt = $statements[s] = new $SwitchStatement(stmt, this, ctx, s);
           ++s;
 
           VarDeclaredNames.push(...$stmt.VarDeclaredNames);
           VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
           break;
-        case SyntaxKind.LabeledStatement:
+        case ts.SyntaxKind.LabeledStatement:
           $stmt = $statements[s] = new $LabeledStatement(stmt, this, ctx, s);
           ++s;
 
           VarDeclaredNames.push(...$stmt.TopLevelVarDeclaredNames);
           VarScopedDeclarations.push(...$stmt.TopLevelVarScopedDeclarations);
           break;
-        case SyntaxKind.ThrowStatement:
+        case ts.SyntaxKind.ThrowStatement:
           $stmt = $statements[s] = new $ThrowStatement(stmt, this, ctx, s);
           ++s;
           break;
-        case SyntaxKind.TryStatement:
+        case ts.SyntaxKind.TryStatement:
           $stmt = $statements[s] = new $TryStatement(stmt, this, ctx, s);
           ++s;
 
           VarDeclaredNames.push(...$stmt.VarDeclaredNames);
           VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
           break;
-        case SyntaxKind.DebuggerStatement:
+        case ts.SyntaxKind.DebuggerStatement:
           $stmt = $statements[s] = new $DebuggerStatement(stmt, this, ctx, s);
           ++s;
           break;
         default:
-          throw new Error(`Unexpected syntax node: ${SyntaxKind[(node as Node).kind]}.`);
+          throw new Error(`Unexpected syntax node: ${ts.SyntaxKind[(node as Node).kind]}.`);
       }
     }
   }
@@ -601,71 +600,71 @@ export class $ESScript implements I$Node {
         $statement = $statements[i];
 
         switch ($statement.$kind) {
-          case SyntaxKind.VariableStatement:
+          case ts.SyntaxKind.VariableStatement:
             sl = $statement.Evaluate(scriptCxt);
             break;
-          case SyntaxKind.FunctionDeclaration:
+          case ts.SyntaxKind.FunctionDeclaration:
             sl = $statement.Evaluate(scriptCxt);
             break;
-          case SyntaxKind.ClassDeclaration:
+          case ts.SyntaxKind.ClassDeclaration:
             sl = $statement.Evaluate(scriptCxt);
             break;
-          case SyntaxKind.Block:
+          case ts.SyntaxKind.Block:
             sl = $statement.Evaluate(scriptCxt);
             break;
-          case SyntaxKind.EmptyStatement:
+          case ts.SyntaxKind.EmptyStatement:
             sl = $statement.Evaluate(scriptCxt);
             break;
-          case SyntaxKind.ExpressionStatement:
+          case ts.SyntaxKind.ExpressionStatement:
             sl = $statement.Evaluate(scriptCxt);
             break;
-          case SyntaxKind.IfStatement:
+          case ts.SyntaxKind.IfStatement:
             sl = $statement.Evaluate(scriptCxt);
             break;
-          case SyntaxKind.DoStatement:
+          case ts.SyntaxKind.DoStatement:
             sl = $statement.EvaluateLabelled(scriptCxt, new $StringSet());
             break;
-          case SyntaxKind.WhileStatement:
+          case ts.SyntaxKind.WhileStatement:
             sl = $statement.EvaluateLabelled(scriptCxt, new $StringSet());
             break;
-          case SyntaxKind.ForStatement:
+          case ts.SyntaxKind.ForStatement:
             sl = $statement.EvaluateLabelled(scriptCxt);
             break;
-          case SyntaxKind.ForInStatement:
+          case ts.SyntaxKind.ForInStatement:
             sl = $statement.EvaluateLabelled(scriptCxt);
             break;
-          case SyntaxKind.ForOfStatement:
+          case ts.SyntaxKind.ForOfStatement:
             sl = $statement.EvaluateLabelled(scriptCxt);
             break;
-          case SyntaxKind.ContinueStatement:
+          case ts.SyntaxKind.ContinueStatement:
             sl = $statement.Evaluate(scriptCxt);
             break;
-          case SyntaxKind.BreakStatement:
+          case ts.SyntaxKind.BreakStatement:
             sl = $statement.Evaluate(scriptCxt);
             break;
-          case SyntaxKind.ReturnStatement:
+          case ts.SyntaxKind.ReturnStatement:
             sl = $statement.Evaluate(scriptCxt);
             break;
-          case SyntaxKind.WithStatement:
+          case ts.SyntaxKind.WithStatement:
             sl = $statement.Evaluate(scriptCxt);
             break;
-          case SyntaxKind.SwitchStatement:
+          case ts.SyntaxKind.SwitchStatement:
             sl = $statement.Evaluate(scriptCxt);
             break;
-          case SyntaxKind.LabeledStatement:
+          case ts.SyntaxKind.LabeledStatement:
             sl = $statement.EvaluateLabelled(scriptCxt);
             break;
-          case SyntaxKind.ThrowStatement:
+          case ts.SyntaxKind.ThrowStatement:
             sl = $statement.Evaluate(scriptCxt);
             break;
-          case SyntaxKind.TryStatement:
+          case ts.SyntaxKind.TryStatement:
             sl = $statement.Evaluate(scriptCxt);
             break;
-          case SyntaxKind.DebuggerStatement:
+          case ts.SyntaxKind.DebuggerStatement:
             sl = $statement.Evaluate(scriptCxt);
             break;
           default:
-            throw new Error(`Unexpected syntax node: ${SyntaxKind[$statement.$kind]}.`);
+            throw new Error(`Unexpected syntax node: ${ts.SyntaxKind[$statement.$kind]}.`);
         }
 
         if (sl.isAbrupt) {
@@ -712,7 +711,7 @@ export class $ESModule implements I$Node, IModule {
 
   public get isAbrupt(): false { return false; }
 
-  public get $kind(): SyntaxKind.SourceFile { return SyntaxKind.SourceFile; }
+  public get $kind(): ts.SyntaxKind.SourceFile { return ts.SyntaxKind.SourceFile; }
 
   public readonly path: string;
 
@@ -811,19 +810,19 @@ export class $ESModule implements I$Node, IModule {
       stmt = statements[i];
 
       switch (stmt.kind) {
-        case SyntaxKind.ModuleDeclaration:
+        case ts.SyntaxKind.ModuleDeclaration:
           $stmt = $statements[s] = new $ModuleDeclaration(stmt, this, ctx, s);
           ++s;
           break;
-        case SyntaxKind.NamespaceExportDeclaration:
+        case ts.SyntaxKind.NamespaceExportDeclaration:
           $stmt = $statements[s] = new $NamespaceExportDeclaration(stmt, this, ctx, s);
           ++s;
           break;
-        case SyntaxKind.ImportEqualsDeclaration:
+        case ts.SyntaxKind.ImportEqualsDeclaration:
           $stmt = $statements[s] = new $ImportEqualsDeclaration(stmt, this, ctx, s);
           ++s;
           break;
-        case SyntaxKind.ImportDeclaration:
+        case ts.SyntaxKind.ImportDeclaration:
           $stmt = $statements[s] = new $ImportDeclaration(stmt, this, ctx, s);
           ++s;
 
@@ -832,11 +831,11 @@ export class $ESModule implements I$Node, IModule {
 
           ModuleRequests.push(...$stmt.ModuleRequests);
           break;
-        case SyntaxKind.ExportAssignment:
+        case ts.SyntaxKind.ExportAssignment:
           $stmt = $statements[s] = new $ExportAssignment(stmt, this, ctx, s);
           ++s;
           break;
-        case SyntaxKind.ExportDeclaration:
+        case ts.SyntaxKind.ExportDeclaration:
           $stmt = $statements[s] = new $ExportDeclaration(stmt, this, ctx, s);
           ++s;
 
@@ -848,7 +847,7 @@ export class $ESModule implements I$Node, IModule {
 
           LexicallyScopedDeclarations.push(...$stmt.LexicallyScopedDeclarations);
           break;
-        case SyntaxKind.VariableStatement:
+        case ts.SyntaxKind.VariableStatement:
           $stmt = $statements[s] = new $VariableStatement(stmt, this, ctx, s);
           ++s;
 
@@ -858,14 +857,14 @@ export class $ESModule implements I$Node, IModule {
             VarScopedDeclarations.push($stmt);
           }
 
-          if (hasBit($stmt.modifierFlags, ModifierFlags.Export)) {
+          if (hasBit($stmt.modifierFlags, ts.ModifierFlags.Export)) {
             ExportedBindings.push(...$stmt.ExportedBindings);
             ExportedNames.push(...$stmt.ExportedNames);
             ExportEntries.push(...$stmt.ExportEntries);
           }
 
           break;
-        case SyntaxKind.FunctionDeclaration:
+        case ts.SyntaxKind.FunctionDeclaration:
           // Skip overload signature
           if (stmt.body === void 0) {
             continue;
@@ -873,7 +872,7 @@ export class $ESModule implements I$Node, IModule {
           $stmt = $statements[s] = new $FunctionDeclaration(stmt, this, ctx, s);
           ++s;
 
-          if (hasBit($stmt.modifierFlags, ModifierFlags.Export)) {
+          if (hasBit($stmt.modifierFlags, ts.ModifierFlags.Export)) {
             ExportedBindings.push(...$stmt.ExportedBindings);
             ExportedNames.push(...$stmt.ExportedNames);
             ExportEntries.push(...$stmt.ExportEntries);
@@ -881,11 +880,11 @@ export class $ESModule implements I$Node, IModule {
 
           LexicallyScopedDeclarations.push($stmt);
           break;
-        case SyntaxKind.ClassDeclaration:
+        case ts.SyntaxKind.ClassDeclaration:
           $stmt = $statements[s] = new $ClassDeclaration(stmt, this, ctx, s);
           ++s;
 
-          if (hasBit($stmt.modifierFlags, ModifierFlags.Export)) {
+          if (hasBit($stmt.modifierFlags, ts.ModifierFlags.Export)) {
             ExportedBindings.push(...$stmt.ExportedBindings);
             ExportedNames.push(...$stmt.ExportedNames);
             ExportEntries.push(...$stmt.ExportEntries);
@@ -893,132 +892,132 @@ export class $ESModule implements I$Node, IModule {
 
           LexicallyScopedDeclarations.push($stmt);
           break;
-        case SyntaxKind.InterfaceDeclaration:
+        case ts.SyntaxKind.InterfaceDeclaration:
           $stmt = $statements[s] = new $InterfaceDeclaration(stmt, this, ctx, s);
           ++s;
 
-          if (hasBit($stmt.modifierFlags, ModifierFlags.Export)) {
+          if (hasBit($stmt.modifierFlags, ts.ModifierFlags.Export)) {
             ExportedBindings.push(...$stmt.ExportedBindings);
             ExportedNames.push(...$stmt.ExportedNames);
             ExportEntries.push(...$stmt.ExportEntries);
           }
           break;
-        case SyntaxKind.TypeAliasDeclaration:
+        case ts.SyntaxKind.TypeAliasDeclaration:
           $stmt = $statements[s] = new $TypeAliasDeclaration(stmt, this, ctx, s);
           ++s;
 
-          if (hasBit($stmt.modifierFlags, ModifierFlags.Export)) {
+          if (hasBit($stmt.modifierFlags, ts.ModifierFlags.Export)) {
             ExportedBindings.push(...$stmt.ExportedBindings);
             ExportedNames.push(...$stmt.ExportedNames);
             ExportEntries.push(...$stmt.ExportEntries);
           }
           break;
-        case SyntaxKind.EnumDeclaration:
+        case ts.SyntaxKind.EnumDeclaration:
           $stmt = $statements[s] = new $EnumDeclaration(stmt, this, ctx, s);
           ++s;
 
-          if (hasBit($stmt.modifierFlags, ModifierFlags.Export)) {
+          if (hasBit($stmt.modifierFlags, ts.ModifierFlags.Export)) {
             ExportedBindings.push(...$stmt.ExportedBindings);
             ExportedNames.push(...$stmt.ExportedNames);
             ExportEntries.push(...$stmt.ExportEntries);
           }
           break;
-        case SyntaxKind.Block:
+        case ts.SyntaxKind.Block:
           $stmt = $statements[s] = new $Block(stmt, this, ctx, s);
           ++s;
 
           VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
           break;
-        case SyntaxKind.EmptyStatement:
+        case ts.SyntaxKind.EmptyStatement:
           $stmt = $statements[s] = new $EmptyStatement(stmt, this, ctx, s);
           ++s;
           break;
-        case SyntaxKind.ExpressionStatement:
+        case ts.SyntaxKind.ExpressionStatement:
           $stmt = $statements[s] = new $ExpressionStatement(stmt, this, ctx, s);
           ++s;
           break;
-        case SyntaxKind.IfStatement:
+        case ts.SyntaxKind.IfStatement:
           $stmt = $statements[s] = new $IfStatement(stmt, this, ctx, s);
           ++s;
 
           VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
           break;
-        case SyntaxKind.DoStatement:
+        case ts.SyntaxKind.DoStatement:
           $stmt = $statements[s] = new $DoStatement(stmt, this, ctx, s);
           ++s;
 
           VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
           break;
-        case SyntaxKind.WhileStatement:
+        case ts.SyntaxKind.WhileStatement:
           $stmt = $statements[s] = new $WhileStatement(stmt, this, ctx, s);
           ++s;
 
           VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
           break;
-        case SyntaxKind.ForStatement:
+        case ts.SyntaxKind.ForStatement:
           $stmt = $statements[s] = new $ForStatement(stmt, this, ctx, s);
           ++s;
 
           VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
           break;
-        case SyntaxKind.ForInStatement:
+        case ts.SyntaxKind.ForInStatement:
           $stmt = $statements[s] = new $ForInStatement(stmt, this, ctx, s);
           ++s;
 
           VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
           break;
-        case SyntaxKind.ForOfStatement:
+        case ts.SyntaxKind.ForOfStatement:
           $stmt = $statements[s] = new $ForOfStatement(stmt, this, ctx, s);
           ++s;
 
           VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
           break;
-        case SyntaxKind.ContinueStatement:
+        case ts.SyntaxKind.ContinueStatement:
           $stmt = $statements[s] = new $ContinueStatement(stmt, this, ctx, s);
           ++s;
           break;
-        case SyntaxKind.BreakStatement:
+        case ts.SyntaxKind.BreakStatement:
           $stmt = $statements[s] = new $BreakStatement(stmt, this, ctx, s);
           ++s;
           break;
-        case SyntaxKind.ReturnStatement:
+        case ts.SyntaxKind.ReturnStatement:
           $stmt = $statements[s] = new $ReturnStatement(stmt, this, ctx, s);
           ++s;
           break;
-        case SyntaxKind.WithStatement:
+        case ts.SyntaxKind.WithStatement:
           $stmt = $statements[s] = new $WithStatement(stmt, this, ctx, s);
           ++s;
 
           VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
           break;
-        case SyntaxKind.SwitchStatement:
+        case ts.SyntaxKind.SwitchStatement:
           $stmt = $statements[s] = new $SwitchStatement(stmt, this, ctx, s);
           ++s;
 
           VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
           break;
-        case SyntaxKind.LabeledStatement:
+        case ts.SyntaxKind.LabeledStatement:
           $stmt = $statements[s] = new $LabeledStatement(stmt, this, ctx, s);
           ++s;
 
           VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
           break;
-        case SyntaxKind.ThrowStatement:
+        case ts.SyntaxKind.ThrowStatement:
           $stmt = $statements[s] = new $ThrowStatement(stmt, this, ctx, s);
           ++s;
           break;
-        case SyntaxKind.TryStatement:
+        case ts.SyntaxKind.TryStatement:
           $stmt = $statements[s] = new $TryStatement(stmt, this, ctx, s);
           ++s;
 
           VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
           break;
-        case SyntaxKind.DebuggerStatement:
+        case ts.SyntaxKind.DebuggerStatement:
           $stmt = $statements[s] = new $DebuggerStatement(stmt, this, ctx, s);
           ++s;
           break;
         default:
-          throw new Error(`Unexpected syntax node: ${SyntaxKind[(node as Node).kind]}.`);
+          throw new Error(`Unexpected syntax node: ${ts.SyntaxKind[(node as Node).kind]}.`);
       }
     }
 
@@ -1420,7 +1419,7 @@ export class $ESModule implements I$Node, IModule {
           envRec.CreateMutableBinding(ctx, dn, intrinsics.false);
 
           // 15. a. iii. If d is a FunctionDeclaration, a GeneratorDeclaration, an AsyncFunctionDeclaration, or an AsyncGeneratorDeclaration, then
-          if (d.$kind === SyntaxKind.FunctionDeclaration) {
+          if (d.$kind === ts.SyntaxKind.FunctionDeclaration) {
             // 15. a. iii. 1. Let fo be the result of performing InstantiateFunctionObject for d with argument env.
             const fo = d.InstantiateFunctionObject(ctx, envRec);
             if (fo.isAbrupt) { return fo.enrichWith(ctx, this); }
@@ -1849,98 +1848,98 @@ export class $ESModule implements I$Node, IModule {
       $statement = $statements[i];
 
       switch ($statement.$kind) {
-        case SyntaxKind.ModuleDeclaration:
+        case ts.SyntaxKind.ModuleDeclaration:
           // sl = $statement.Evaluate(ctx);
           break;
-        case SyntaxKind.NamespaceExportDeclaration:
+        case ts.SyntaxKind.NamespaceExportDeclaration:
           // sl = $statement.Evaluate(ctx);
           break;
-        case SyntaxKind.ImportEqualsDeclaration:
+        case ts.SyntaxKind.ImportEqualsDeclaration:
           // sl = $statement.Evaluate(ctx);
           break;
-        case SyntaxKind.ImportDeclaration:
+        case ts.SyntaxKind.ImportDeclaration:
           // sl = $statement.Evaluate(ctx);
           break;
-        case SyntaxKind.ExportAssignment:
+        case ts.SyntaxKind.ExportAssignment:
           // sl = $statement.Evaluate(ctx);
           break;
-        case SyntaxKind.ExportDeclaration:
+        case ts.SyntaxKind.ExportDeclaration:
           // sl = $statement.Evaluate(ctx);
           break;
-        case SyntaxKind.VariableStatement:
+        case ts.SyntaxKind.VariableStatement:
           sl = $statement.Evaluate(ctx);
           break;
-        case SyntaxKind.FunctionDeclaration:
+        case ts.SyntaxKind.FunctionDeclaration:
           sl = $statement.Evaluate(ctx);
           break;
-        case SyntaxKind.ClassDeclaration:
+        case ts.SyntaxKind.ClassDeclaration:
           sl = $statement.Evaluate(ctx);
           break;
-        case SyntaxKind.InterfaceDeclaration:
+        case ts.SyntaxKind.InterfaceDeclaration:
           // sl = $statement.Evaluate(ctx);
           break;
-        case SyntaxKind.TypeAliasDeclaration:
+        case ts.SyntaxKind.TypeAliasDeclaration:
           // sl = $statement.Evaluate(ctx);
           break;
-        case SyntaxKind.EnumDeclaration:
+        case ts.SyntaxKind.EnumDeclaration:
           // sl = $statement.Evaluate(ctx);
           break;
-        case SyntaxKind.Block:
+        case ts.SyntaxKind.Block:
           sl = $statement.Evaluate(ctx);
           break;
-        case SyntaxKind.EmptyStatement:
+        case ts.SyntaxKind.EmptyStatement:
           sl = $statement.Evaluate(ctx);
           break;
-        case SyntaxKind.ExpressionStatement:
+        case ts.SyntaxKind.ExpressionStatement:
           sl = $statement.Evaluate(ctx);
           break;
-        case SyntaxKind.IfStatement:
+        case ts.SyntaxKind.IfStatement:
           sl = $statement.Evaluate(ctx);
           break;
-        case SyntaxKind.DoStatement:
+        case ts.SyntaxKind.DoStatement:
           sl = $statement.EvaluateLabelled(ctx, new $StringSet());
           break;
-        case SyntaxKind.WhileStatement:
+        case ts.SyntaxKind.WhileStatement:
           sl = $statement.EvaluateLabelled(ctx, new $StringSet());
           break;
-        case SyntaxKind.ForStatement:
+        case ts.SyntaxKind.ForStatement:
           sl = $statement.EvaluateLabelled(ctx);
           break;
-        case SyntaxKind.ForInStatement:
+        case ts.SyntaxKind.ForInStatement:
           sl = $statement.EvaluateLabelled(ctx);
           break;
-        case SyntaxKind.ForOfStatement:
+        case ts.SyntaxKind.ForOfStatement:
           sl = $statement.EvaluateLabelled(ctx);
           break;
-        case SyntaxKind.ContinueStatement:
+        case ts.SyntaxKind.ContinueStatement:
           sl = $statement.Evaluate(ctx);
           break;
-        case SyntaxKind.BreakStatement:
+        case ts.SyntaxKind.BreakStatement:
           sl = $statement.Evaluate(ctx);
           break;
-        case SyntaxKind.ReturnStatement:
+        case ts.SyntaxKind.ReturnStatement:
           sl = $statement.Evaluate(ctx);
           break;
-        case SyntaxKind.WithStatement:
+        case ts.SyntaxKind.WithStatement:
           sl = $statement.Evaluate(ctx);
           break;
-        case SyntaxKind.SwitchStatement:
+        case ts.SyntaxKind.SwitchStatement:
           sl = $statement.Evaluate(ctx);
           break;
-        case SyntaxKind.LabeledStatement:
+        case ts.SyntaxKind.LabeledStatement:
           sl = $statement.EvaluateLabelled(ctx);
           break;
-        case SyntaxKind.ThrowStatement:
+        case ts.SyntaxKind.ThrowStatement:
           sl = $statement.Evaluate(ctx);
           break;
-        case SyntaxKind.TryStatement:
+        case ts.SyntaxKind.TryStatement:
           sl = $statement.Evaluate(ctx);
           break;
-        case SyntaxKind.DebuggerStatement:
+        case ts.SyntaxKind.DebuggerStatement:
           sl = $statement.Evaluate(ctx);
           break;
         default:
-          throw new Error(`Unexpected syntax node: ${SyntaxKind[$statement.$kind]}.`);
+          throw new Error(`Unexpected syntax node: ${ts.SyntaxKind[$statement.$kind]}.`);
       }
 
       if (sl.isAbrupt) { return sl.enrichWith(ctx, this); }
@@ -2079,9 +2078,9 @@ export type $$ModuleName = (
 );
 
 export class $ModuleDeclaration implements I$Node {
-  public get $kind(): SyntaxKind.ModuleDeclaration { return SyntaxKind.ModuleDeclaration; }
+  public get $kind(): ts.SyntaxKind.ModuleDeclaration { return ts.SyntaxKind.ModuleDeclaration; }
 
-  public readonly modifierFlags: ModifierFlags;
+  public readonly modifierFlags: ts.ModifierFlags;
 
   public readonly $name: $$ModuleName;
   public readonly $body: $Identifier | $ModuleBlock | $ModuleDeclaration | undefined;
@@ -2099,7 +2098,7 @@ export class $ModuleDeclaration implements I$Node {
   ) {
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
-    if (node.name.kind === SyntaxKind.Identifier) {
+    if (node.name.kind === ts.SyntaxKind.Identifier) {
       this.$name = new $Identifier(node.name, this, ctx, -1);
     } else {
       this.$name = new $StringLiteral(node.name, this, ctx, -1);
@@ -2109,17 +2108,17 @@ export class $ModuleDeclaration implements I$Node {
       this.$body = void 0;
     } else {
       switch (node.body.kind) {
-        case SyntaxKind.Identifier:
+        case ts.SyntaxKind.Identifier:
           this.$body = new $Identifier(node.body, this, ctx, -1);
           break;
-        case SyntaxKind.ModuleBlock:
+        case ts.SyntaxKind.ModuleBlock:
           this.$body = new $ModuleBlock(node.body, this, ctx);
           break;
-        case SyntaxKind.ModuleDeclaration:
+        case ts.SyntaxKind.ModuleDeclaration:
           this.$body = new $ModuleDeclaration(node.body, this, ctx, -1);
           break;
         default:
-          throw new Error(`Unexpected syntax node: ${SyntaxKind[(node as Node).kind]}.`);
+          throw new Error(`Unexpected syntax node: ${ts.SyntaxKind[(node as Node).kind]}.`);
       }
     }
   }
@@ -2155,9 +2154,9 @@ export type $$ModuleReference = (
  * - import x = M.x;
  */
 export class $ImportEqualsDeclaration implements I$Node {
-  public get $kind(): SyntaxKind.ImportEqualsDeclaration { return SyntaxKind.ImportEqualsDeclaration; }
+  public get $kind(): ts.SyntaxKind.ImportEqualsDeclaration { return ts.SyntaxKind.ImportEqualsDeclaration; }
 
-  public readonly modifierFlags: ModifierFlags;
+  public readonly modifierFlags: ts.ModifierFlags;
 
   public readonly $name: $Identifier;
   public readonly $moduleReference: $$ModuleReference;
@@ -2177,17 +2176,17 @@ export class $ImportEqualsDeclaration implements I$Node {
 
     this.$name = $identifier(node.name, this, ctx, -1);
     switch (node.moduleReference.kind) {
-      case SyntaxKind.Identifier:
+      case ts.SyntaxKind.Identifier:
         this.$moduleReference = new $Identifier(node.moduleReference, this, ctx, -1);
         break;
-      case SyntaxKind.QualifiedName:
+      case ts.SyntaxKind.QualifiedName:
         this.$moduleReference = new $QualifiedName(node.moduleReference, this, ctx);
         break;
-      case SyntaxKind.ExternalModuleReference:
+      case ts.SyntaxKind.ExternalModuleReference:
         this.$moduleReference = new $ExternalModuleReference(node.moduleReference, this, ctx);
         break;
       default:
-        throw new Error(`Unexpected syntax node: ${SyntaxKind[(node as Node).kind]}.`);
+        throw new Error(`Unexpected syntax node: ${ts.SyntaxKind[(node as Node).kind]}.`);
     }
   }
 }
@@ -2197,9 +2196,9 @@ export class $ImportEqualsDeclaration implements I$Node {
 // In rest of the cases, module specifier is string literal corresponding to module
 // ImportClause information is shown at its declaration below.
 export class $ImportDeclaration implements I$Node {
-  public get $kind(): SyntaxKind.ImportDeclaration { return SyntaxKind.ImportDeclaration; }
+  public get $kind(): ts.SyntaxKind.ImportDeclaration { return ts.SyntaxKind.ImportDeclaration; }
 
-  public readonly modifierFlags: ModifierFlags;
+  public readonly modifierFlags: ts.ModifierFlags;
 
   public readonly $importClause: $ImportClause | $Undefined;
   public readonly $moduleSpecifier: $StringLiteral;
@@ -2256,7 +2255,7 @@ export class $ImportDeclaration implements I$Node {
 // import { a, b as x } from "mod" => name = undefined, namedBinding: NamedImports = { elements: [{ name: a }, { name: x, propertyName: b}]}
 // import d, { a, b as x } from "mod" => name = d, namedBinding: NamedImports = { elements: [{ name: a }, { name: x, propertyName: b}]}
 export class $ImportClause implements I$Node {
-  public get $kind(): SyntaxKind.ImportClause { return SyntaxKind.ImportClause; }
+  public get $kind(): ts.SyntaxKind.ImportClause { return ts.SyntaxKind.ImportClause; }
 
   public readonly $name: $Identifier | $Undefined;
   public readonly $namedBindings: $NamespaceImport | $NamedImports | undefined;
@@ -2307,7 +2306,7 @@ export class $ImportClause implements I$Node {
     if (node.namedBindings === void 0) {
       this.$namedBindings = void 0;
     } else {
-      if (node.namedBindings.kind === SyntaxKind.NamespaceImport) {
+      if (node.namedBindings.kind === ts.SyntaxKind.NamespaceImport) {
         const $namedBindings = this.$namedBindings = new $NamespaceImport(node.namedBindings, this, ctx);
         BoundNames.push(...$namedBindings.BoundNames);
         ImportEntriesForModule.push(...$namedBindings.ImportEntriesForModule);
@@ -2321,7 +2320,7 @@ export class $ImportClause implements I$Node {
 }
 
 export class $NamedImports implements I$Node {
-  public get $kind(): SyntaxKind.NamedImports { return SyntaxKind.NamedImports; }
+  public get $kind(): ts.SyntaxKind.NamedImports { return ts.SyntaxKind.NamedImports; }
 
   public readonly $elements: readonly $ImportSpecifier[];
 
@@ -2354,7 +2353,7 @@ export class $NamedImports implements I$Node {
 }
 
 export class $ImportSpecifier implements I$Node {
-  public get $kind(): SyntaxKind.ImportSpecifier { return SyntaxKind.ImportSpecifier; }
+  public get $kind(): ts.SyntaxKind.ImportSpecifier { return ts.SyntaxKind.ImportSpecifier; }
 
   public readonly $propertyName: $Identifier | $Undefined;
   public readonly $name: $Identifier;
@@ -2414,7 +2413,7 @@ export class $ImportSpecifier implements I$Node {
 }
 
 export class $NamespaceImport implements I$Node {
-  public get $kind(): SyntaxKind.NamespaceImport { return SyntaxKind.NamespaceImport; }
+  public get $kind(): ts.SyntaxKind.NamespaceImport { return ts.SyntaxKind.NamespaceImport; }
 
   public readonly $name: $Identifier;
 
@@ -2479,9 +2478,9 @@ export class ExportEntryRecord {
 }
 
 export class $ExportAssignment implements I$Node {
-  public get $kind(): SyntaxKind.ExportAssignment { return SyntaxKind.ExportAssignment; }
+  public get $kind(): ts.SyntaxKind.ExportAssignment { return ts.SyntaxKind.ExportAssignment; }
 
-  public readonly modifierFlags: ModifierFlags;
+  public readonly modifierFlags: ts.ModifierFlags;
 
   public readonly $expression: $$AssignmentExpressionOrHigher;
 
@@ -2509,9 +2508,9 @@ export class $ExportAssignment implements I$Node {
 }
 
 export class $ExportDeclaration implements I$Node {
-  public get $kind(): SyntaxKind.ExportDeclaration { return SyntaxKind.ExportDeclaration; }
+  public get $kind(): ts.SyntaxKind.ExportDeclaration { return ts.SyntaxKind.ExportDeclaration; }
 
-  public readonly modifierFlags: ModifierFlags;
+  public readonly modifierFlags: ts.ModifierFlags;
 
   public readonly $exportClause: $NamedExports | undefined;
   public readonly $moduleSpecifier: $StringLiteral | undefined;
@@ -2595,7 +2594,7 @@ export class $ExportDeclaration implements I$Node {
 }
 
 export class $NamedExports implements I$Node {
-  public get $kind(): SyntaxKind.NamedExports { return SyntaxKind.NamedExports; }
+  public get $kind(): ts.SyntaxKind.NamedExports { return ts.SyntaxKind.NamedExports; }
 
   public readonly $elements: readonly $ExportSpecifier[];
 
@@ -2632,7 +2631,7 @@ export class $NamedExports implements I$Node {
 }
 
 export class $ExportSpecifier implements I$Node {
-  public get $kind(): SyntaxKind.ExportSpecifier { return SyntaxKind.ExportSpecifier; }
+  public get $kind(): ts.SyntaxKind.ExportSpecifier { return ts.SyntaxKind.ExportSpecifier; }
 
   public readonly $propertyName: $Identifier | $Undefined;
   public readonly $name: $Identifier;
@@ -2729,9 +2728,9 @@ export class $ExportSpecifier implements I$Node {
 }
 
 export class $NamespaceExportDeclaration implements I$Node {
-  public get $kind(): SyntaxKind.NamespaceExportDeclaration { return SyntaxKind.NamespaceExportDeclaration; }
+  public get $kind(): ts.SyntaxKind.NamespaceExportDeclaration { return ts.SyntaxKind.NamespaceExportDeclaration; }
 
-  public readonly modifierFlags: ModifierFlags;
+  public readonly modifierFlags: ts.ModifierFlags;
 
   public readonly $name: $Identifier;
 
@@ -2753,7 +2752,7 @@ export class $NamespaceExportDeclaration implements I$Node {
 }
 
 export class $ModuleBlock implements I$Node {
-  public get $kind(): SyntaxKind.ModuleBlock { return SyntaxKind.ModuleBlock; }
+  public get $kind(): ts.SyntaxKind.ModuleBlock { return ts.SyntaxKind.ModuleBlock; }
 
   // TODO: ModuleBlock shares a lot in common with SourceFile, so we implement this last to try to maximize code reuse / reduce refactoring overhead and/or see if the two can be consolidated.
   public readonly $statements: readonly $$TSModuleItem[] = emptyArray;
@@ -2771,7 +2770,7 @@ export class $ModuleBlock implements I$Node {
 }
 
 export class $ExternalModuleReference implements I$Node {
-  public get $kind(): SyntaxKind.ExternalModuleReference { return SyntaxKind.ExternalModuleReference; }
+  public get $kind(): ts.SyntaxKind.ExternalModuleReference { return ts.SyntaxKind.ExternalModuleReference; }
 
   public readonly $expression: $StringLiteral;
 
@@ -2800,7 +2799,7 @@ export type $$EntityName = (
 );
 
 export class $QualifiedName implements I$Node {
-  public get $kind(): SyntaxKind.QualifiedName { return SyntaxKind.QualifiedName; }
+  public get $kind(): ts.SyntaxKind.QualifiedName { return ts.SyntaxKind.QualifiedName; }
 
   public readonly $left: $$EntityName;
   public readonly $right: $Identifier;
@@ -2815,7 +2814,7 @@ export class $QualifiedName implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.QualifiedName`,
   ) {
-    if (node.left.kind === SyntaxKind.Identifier) {
+    if (node.left.kind === ts.SyntaxKind.Identifier) {
       this.$left = new $Identifier(node.left, this, ctx, -1);
     } else {
       this.$left = new $QualifiedName(node.left, this, ctx);

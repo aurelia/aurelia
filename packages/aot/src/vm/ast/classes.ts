@@ -1,22 +1,12 @@
-import {
+import ts from 'typescript';
+import type {
   ClassDeclaration,
   ClassExpression,
-  createIdentifier,
   ExpressionWithTypeArguments,
   HeritageClause,
-  ModifierFlags,
   NodeArray,
   PropertyDeclaration,
   SemicolonClassElement,
-  SyntaxKind,
-  createConstructor,
-  createParameter,
-  createToken,
-  createBlock,
-  createExpressionStatement,
-  createCall,
-  createSuper,
-  createSpread,
 } from 'typescript';
 import {
   emptyArray,
@@ -26,42 +16,42 @@ import {
 import {
   Realm,
   ExecutionContext,
-} from '../realm';
+} from '../realm.js';
 import {
   $DeclarativeEnvRec,
   $FunctionEnvRec,
-} from '../types/environment-record';
+} from '../types/environment-record.js';
 import {
   $String,
-} from '../types/string';
+} from '../types/string.js';
 import {
   $Undefined,
-} from '../types/undefined';
+} from '../types/undefined.js';
 import {
   $Function,
-} from '../types/function';
+} from '../types/function.js';
 import {
   $Any,
   CompletionType,
   $AnyNonEmpty,
-} from '../types/_shared';
+} from '../types/_shared.js';
 import {
   $Object,
-} from '../types/object';
+} from '../types/object.js';
 import {
   $Null,
-} from '../types/null';
+} from '../types/null.js';
 import {
   $Empty,
   empty,
-} from '../types/empty';
+} from '../types/empty.js';
 import {
   $TypeError,
   $Error,
-} from '../types/error';
+} from '../types/error.js';
 import {
   $PropertyDescriptor,
-} from '../types/property-descriptor';
+} from '../types/property-descriptor.js';
 import {
   I$Node,
   Context,
@@ -90,24 +80,24 @@ import {
   $i,
   $$ESVarDeclaration,
   FunctionKind,
-} from './_shared';
+} from './_shared.js';
 import {
   ExportEntryRecord,
   $$ESModuleOrScript,
-} from './modules';
+} from './modules.js';
 import {
   $Identifier,
   $Decorator,
-} from './expressions';
+} from './expressions.js';
 import {
   $InterfaceDeclaration,
-} from './types';
+} from './types.js';
 import {
   $ConstructorDeclaration,
-} from './functions';
+} from './functions.js';
 import {
   $List,
-} from '../types/list';
+} from '../types/list.js';
 
 // #region Declaration members
 
@@ -135,7 +125,7 @@ export function $expressionWithTypeArgumentsList(
 }
 
 export class $HeritageClause implements I$Node {
-  public get $kind(): SyntaxKind.HeritageClause { return SyntaxKind.HeritageClause; }
+  public get $kind(): ts.SyntaxKind.HeritageClause { return ts.SyntaxKind.HeritageClause; }
 
   public readonly $types: readonly $ExpressionWithTypeArguments[];
 
@@ -155,7 +145,7 @@ export class $HeritageClause implements I$Node {
 }
 
 export class $ExpressionWithTypeArguments implements I$Node {
-  public get $kind(): SyntaxKind.ExpressionWithTypeArguments { return SyntaxKind.ExpressionWithTypeArguments; }
+  public get $kind(): ts.SyntaxKind.ExpressionWithTypeArguments { return ts.SyntaxKind.ExpressionWithTypeArguments; }
 
   public readonly $expression: $$LHSExpressionOrHigher;
 
@@ -177,9 +167,9 @@ export class $ExpressionWithTypeArguments implements I$Node {
 // #endregion
 
 export class $ClassExpression implements I$Node {
-  public get $kind(): SyntaxKind.ClassExpression { return SyntaxKind.ClassExpression; }
+  public get $kind(): ts.SyntaxKind.ClassExpression { return ts.SyntaxKind.ClassExpression; }
 
-  public readonly modifierFlags: ModifierFlags;
+  public readonly modifierFlags: ts.ModifierFlags;
 
   public readonly $name: $Identifier | undefined;
   public readonly $heritageClauses: readonly $HeritageClause[];
@@ -228,12 +218,12 @@ export class $ClassExpression implements I$Node {
     const $heritageClauses = this.$heritageClauses = $heritageClauseList(node.heritageClauses, this, ctx);
     const $members = this.$members = $$classElementList(node.members as NodeArray<$ClassElementNode>, this, ctx);
 
-    this.ClassHeritage = $heritageClauses.find(h => h.node.token === SyntaxKind.ExtendsKeyword);
+    this.ClassHeritage = $heritageClauses.find(h => h.node.token === ts.SyntaxKind.ExtendsKeyword);
 
     if ($name === void 0) {
       this.BoundNames = [intrinsics['*default*']];
     } else {
-      if (hasAllBits(modifierFlags, ModifierFlags.ExportDefault)) {
+      if (hasAllBits(modifierFlags, ts.ModifierFlags.ExportDefault)) {
         this.BoundNames = [...$name.BoundNames, intrinsics['*default*']];
       } else {
         this.BoundNames = $name.BoundNames;
@@ -247,20 +237,20 @@ export class $ClassExpression implements I$Node {
     for (let i = 0, ii = $members.length; i < ii; ++i) {
       $member = $members[i];
       switch ($member.$kind) {
-        case SyntaxKind.PropertyDeclaration:
+        case ts.SyntaxKind.PropertyDeclaration:
           break;
-        case SyntaxKind.Constructor:
+        case ts.SyntaxKind.Constructor:
           this.ConstructorMethod = $member;
           break;
-        case SyntaxKind.MethodDeclaration:
-        case SyntaxKind.GetAccessor:
-        case SyntaxKind.SetAccessor:
+        case ts.SyntaxKind.MethodDeclaration:
+        case ts.SyntaxKind.GetAccessor:
+        case ts.SyntaxKind.SetAccessor:
           NonConstructorMethodDefinitions.push($member);
           if (!$member.PropName.isEmpty && !$member.IsStatic) {
             PrototypePropertyNameList.push($member.PropName as $String);
           }
           break;
-        case SyntaxKind.SemicolonClassElement:
+        case ts.SyntaxKind.SemicolonClassElement:
       }
     }
 
@@ -316,9 +306,9 @@ export class $ClassExpression implements I$Node {
 }
 
 export class $ClassDeclaration implements I$Node {
-  public get $kind(): SyntaxKind.ClassDeclaration { return SyntaxKind.ClassDeclaration; }
+  public get $kind(): ts.SyntaxKind.ClassDeclaration { return ts.SyntaxKind.ClassDeclaration; }
 
-  public readonly modifierFlags: ModifierFlags;
+  public readonly modifierFlags: ts.ModifierFlags;
 
   public readonly $decorators: readonly $Decorator[];
   public readonly $name: $Identifier | $Undefined;
@@ -388,7 +378,7 @@ export class $ClassDeclaration implements I$Node {
 
     const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
-    if (hasBit(modifierFlags, ModifierFlags.Export)) {
+    if (hasBit(modifierFlags, ts.ModifierFlags.Export)) {
       ctx |= Context.InExport;
     }
 
@@ -402,7 +392,7 @@ export class $ClassDeclaration implements I$Node {
     const $heritageClauses = this.$heritageClauses = $heritageClauseList(node.heritageClauses, this, ctx);
     const $members = this.$members = $$classElementList(node.members as NodeArray<$ClassElementNode>, this, ctx);
 
-    this.ClassHeritage = $heritageClauses.find(h => h.node.token === SyntaxKind.ExtendsKeyword);
+    this.ClassHeritage = $heritageClauses.find(h => h.node.token === ts.SyntaxKind.ExtendsKeyword);
 
     const NonConstructorMethodDefinitions = this.NonConstructorMethodDefinitions = [] as $$MethodDefinition[];
     const PrototypePropertyNameList = this.PrototypePropertyNameList = [] as $String[];
@@ -411,27 +401,27 @@ export class $ClassDeclaration implements I$Node {
     for (let i = 0, ii = $members.length; i < ii; ++i) {
       $member = $members[i];
       switch ($member.$kind) {
-        case SyntaxKind.PropertyDeclaration:
+        case ts.SyntaxKind.PropertyDeclaration:
           break;
-        case SyntaxKind.Constructor:
+        case ts.SyntaxKind.Constructor:
           this.ConstructorMethod = $member;
           break;
-        case SyntaxKind.MethodDeclaration:
-        case SyntaxKind.GetAccessor:
-        case SyntaxKind.SetAccessor:
+        case ts.SyntaxKind.MethodDeclaration:
+        case ts.SyntaxKind.GetAccessor:
+        case ts.SyntaxKind.SetAccessor:
           NonConstructorMethodDefinitions.push($member);
           if (!$member.PropName.isEmpty && !$member.IsStatic) {
             PrototypePropertyNameList.push($member.PropName as $String);
           }
           break;
-        case SyntaxKind.SemicolonClassElement:
+        case ts.SyntaxKind.SemicolonClassElement:
       }
     }
 
     const HasName = this.HasName = !$name.isUndefined;
 
     if (hasBit(ctx, Context.InExport)) {
-      if (hasBit(this.modifierFlags, ModifierFlags.Default)) {
+      if (hasBit(this.modifierFlags, ts.ModifierFlags.Default)) {
         if (HasName) {
           const [localName] = ($name as $Identifier).BoundNames;
           const BoundNames = this.BoundNames = [localName, intrinsics['*default*']];
@@ -601,26 +591,26 @@ export class $ClassDeclaration implements I$Node {
       if (this.ClassHeritage !== void 0) {
         // 10. a. i. Set constructor to the result of parsing the source text constructor(... args){ super (...args);} using the syntactic grammar with the goal symbol MethodDefinition[~Yield, ~Await].
         constructor = (this as Writable<$ClassDeclaration>).ConstructorMethod = new $ConstructorDeclaration(
-          createConstructor(
+          ts.createConstructor(
             void 0,
             void 0,
             [
-              createParameter(
+              ts.createParameter(
                 void 0,
                 void 0,
-                createToken(SyntaxKind.DotDotDotToken),
-                createIdentifier('args'),
+                ts.createToken(ts.SyntaxKind.DotDotDotToken),
+                ts.createIdentifier('args'),
               ),
             ],
-            createBlock(
+            ts.createBlock(
               [
-                createExpressionStatement(
-                  createCall(
-                    createSuper(),
+                ts.createExpressionStatement(
+                  ts.createCall(
+                    ts.createSuper(),
                     void 0,
                     [
-                      createSpread(
-                        createIdentifier('args'),
+                      ts.createSpread(
+                        ts.createIdentifier('args'),
                       ),
                     ],
                   ),
@@ -637,11 +627,11 @@ export class $ClassDeclaration implements I$Node {
       else {
         // 10. b. i. Set constructor to the result of parsing the source text constructor(){ } using the syntactic grammar with the goal symbol MethodDefinition[~Yield, ~Await].
         constructor = (this as Writable<$ClassDeclaration>).ConstructorMethod = new $ConstructorDeclaration(
-          createConstructor(
+          ts.createConstructor(
             void 0,
             void 0,
             [],
-            createBlock([]),
+            ts.createBlock([]),
           ),
           this,
           this.ctx,
@@ -819,9 +809,9 @@ export class $ClassDeclaration implements I$Node {
 }
 
 export class $PropertyDeclaration implements I$Node {
-  public get $kind(): SyntaxKind.PropertyDeclaration { return SyntaxKind.PropertyDeclaration; }
+  public get $kind(): ts.SyntaxKind.PropertyDeclaration { return ts.SyntaxKind.PropertyDeclaration; }
 
-  public readonly modifierFlags: ModifierFlags;
+  public readonly modifierFlags: ts.ModifierFlags;
 
   public readonly $decorators: readonly $Decorator[];
   public readonly $name: $$PropertyName;
@@ -848,12 +838,12 @@ export class $PropertyDeclaration implements I$Node {
     this.$name = $$propertyName(node.name, this, ctx | Context.IsMemberName, -1);
     this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx, -1);
 
-    this.IsStatic = hasBit(modifierFlags, ModifierFlags.Static);
+    this.IsStatic = hasBit(modifierFlags, ts.ModifierFlags.Static);
   }
 }
 
 export class $SemicolonClassElement implements I$Node {
-  public get $kind(): SyntaxKind.SemicolonClassElement { return SyntaxKind.SemicolonClassElement; }
+  public get $kind(): ts.SyntaxKind.SemicolonClassElement { return ts.SyntaxKind.SemicolonClassElement; }
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-isstatic
   // 14.6.9 Static Semantics: IsStatic

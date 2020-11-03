@@ -1,4 +1,5 @@
-import {
+import ts from 'typescript';
+import type {
   BigIntLiteral,
   BooleanLiteral,
   NoSubstitutionTemplateLiteral,
@@ -6,7 +7,6 @@ import {
   NumericLiteral,
   RegularExpressionLiteral,
   StringLiteral,
-  SyntaxKind,
   TemplateHead,
   TemplateMiddle,
   TemplateSpan,
@@ -18,25 +18,25 @@ import {
 import {
   Realm,
   ExecutionContext,
-} from '../realm';
+} from '../realm.js';
 import {
   $String,
-} from '../types/string';
+} from '../types/string.js';
 import {
   $AnyNonEmpty,
-} from '../types/_shared';
+} from '../types/_shared.js';
 import {
   $Object,
-} from '../types/object';
+} from '../types/object.js';
 import {
   $Number,
-} from '../types/number';
+} from '../types/number.js';
 import {
   $Null,
-} from '../types/null';
+} from '../types/null.js';
 import {
   $Boolean,
-} from '../types/boolean';
+} from '../types/boolean.js';
 import {
   I$Node,
   Context,
@@ -45,18 +45,18 @@ import {
   $AssignmentExpressionNode,
   $AnyParentNode,
   $i,
-} from './_shared';
+} from './_shared.js';
 import {
   $$ESModuleOrScript,
-} from './modules';
+} from './modules.js';
 import {
   $TemplateExpression,
-} from './expressions';
+} from './expressions.js';
 
 // #region Pseudo-literals
 
 export class $TemplateHead implements I$Node {
-  public get $kind(): SyntaxKind.TemplateHead { return SyntaxKind.TemplateHead; }
+  public get $kind(): ts.SyntaxKind.TemplateHead { return ts.SyntaxKind.TemplateHead; }
 
   public constructor(
     public readonly node: TemplateHead,
@@ -86,7 +86,7 @@ export class $TemplateHead implements I$Node {
 }
 
 export class $TemplateMiddle implements I$Node {
-  public get $kind(): SyntaxKind.TemplateMiddle { return SyntaxKind.TemplateMiddle; }
+  public get $kind(): ts.SyntaxKind.TemplateMiddle { return ts.SyntaxKind.TemplateMiddle; }
 
   public constructor(
     public readonly node: TemplateMiddle,
@@ -116,7 +116,7 @@ export class $TemplateMiddle implements I$Node {
 }
 
 export class $TemplateTail implements I$Node {
-  public get $kind(): SyntaxKind.TemplateTail { return SyntaxKind.TemplateTail; }
+  public get $kind(): ts.SyntaxKind.TemplateTail { return ts.SyntaxKind.TemplateTail; }
 
   public constructor(
     public readonly node: TemplateTail,
@@ -151,7 +151,7 @@ export class $TemplateTail implements I$Node {
 }
 
 export class $TemplateSpan implements I$Node {
-  public get $kind(): SyntaxKind.TemplateSpan { return SyntaxKind.TemplateSpan; }
+  public get $kind(): ts.SyntaxKind.TemplateSpan { return ts.SyntaxKind.TemplateSpan; }
 
   public readonly $expression: $$AssignmentExpressionOrHigher;
   public readonly $literal: $TemplateMiddle | $TemplateTail;
@@ -168,7 +168,7 @@ export class $TemplateSpan implements I$Node {
     public readonly path: string = `${parent.path}${$i(idx)}.TemplateSpan`,
   ) {
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx, -1);
-    if (node.literal.kind === SyntaxKind.TemplateMiddle) {
+    if (node.literal.kind === ts.SyntaxKind.TemplateMiddle) {
       this.$literal = new $TemplateMiddle(node.literal, this, ctx);
     } else {
       this.$literal = new $TemplateTail(node.literal, this, ctx);
@@ -218,7 +218,7 @@ export class $TemplateSpan implements I$Node {
 // #endregion
 
 export class $NumericLiteral implements I$Node {
-  public get $kind(): SyntaxKind.NumericLiteral { return SyntaxKind.NumericLiteral; }
+  public get $kind(): ts.SyntaxKind.NumericLiteral { return ts.SyntaxKind.NumericLiteral; }
 
   public readonly Value: $Number;
 
@@ -280,7 +280,7 @@ export class $NumericLiteral implements I$Node {
 }
 
 export class $BigIntLiteral implements I$Node {
-  public get $kind(): SyntaxKind.BigIntLiteral { return SyntaxKind.BigIntLiteral; }
+  public get $kind(): ts.SyntaxKind.BigIntLiteral { return ts.SyntaxKind.BigIntLiteral; }
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
   // 12.2.1.1 Static Semantics: CoveredParenthesizedExpression
@@ -325,7 +325,7 @@ export class $BigIntLiteral implements I$Node {
 }
 
 export class $StringLiteral implements I$Node {
-  public get $kind(): SyntaxKind.StringLiteral { return SyntaxKind.StringLiteral; }
+  public get $kind(): ts.SyntaxKind.StringLiteral { return ts.SyntaxKind.StringLiteral; }
 
   public readonly Value: $String;
 
@@ -392,7 +392,7 @@ export class $StringLiteral implements I$Node {
 }
 
 export class $RegularExpressionLiteral implements I$Node {
-  public get $kind(): SyntaxKind.RegularExpressionLiteral { return SyntaxKind.RegularExpressionLiteral; }
+  public get $kind(): ts.SyntaxKind.RegularExpressionLiteral { return ts.SyntaxKind.RegularExpressionLiteral; }
 
   // http://www.ecma-international.org/ecma-262/#sec-regexp-identifier-names-static-semantics-stringvalue
   // 21.2.1.6 Static Semantics: StringValue
@@ -448,7 +448,7 @@ export class $RegularExpressionLiteral implements I$Node {
 }
 
 export class $NoSubstitutionTemplateLiteral implements I$Node {
-  public get $kind(): SyntaxKind.NoSubstitutionTemplateLiteral { return SyntaxKind.NoSubstitutionTemplateLiteral; }
+  public get $kind(): ts.SyntaxKind.NoSubstitutionTemplateLiteral { return ts.SyntaxKind.NoSubstitutionTemplateLiteral; }
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
   // 12.2.1.1 Static Semantics: CoveredParenthesizedExpression
@@ -496,7 +496,7 @@ export class $NoSubstitutionTemplateLiteral implements I$Node {
 }
 
 export class $NullLiteral implements I$Node {
-  public get $kind(): SyntaxKind.NullKeyword { return SyntaxKind.NullKeyword; }
+  public get $kind(): ts.SyntaxKind.NullKeyword { return ts.SyntaxKind.NullKeyword; }
 
   public readonly Value: $Null;
 
@@ -545,7 +545,7 @@ export class $NullLiteral implements I$Node {
 }
 
 export class $BooleanLiteral implements I$Node {
-  public readonly $kind: SyntaxKind.TrueKeyword | SyntaxKind.FalseKeyword;
+  public readonly $kind: ts.SyntaxKind.TrueKeyword | ts.SyntaxKind.FalseKeyword;
 
   public readonly Value: $Boolean;
 
@@ -578,7 +578,7 @@ export class $BooleanLiteral implements I$Node {
   ) {
     this.$kind = node.kind;
 
-    this.Value = new $Boolean(realm, node.kind === SyntaxKind.TrueKeyword, void 0, void 0, this);
+    this.Value = new $Boolean(realm, node.kind === ts.SyntaxKind.TrueKeyword, void 0, void 0, this);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-literals-runtime-semantics-evaluation

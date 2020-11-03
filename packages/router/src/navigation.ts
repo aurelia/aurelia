@@ -1,8 +1,8 @@
 import { ICustomElementViewModel } from '@aurelia/runtime-html';
-import { INavigationFlags } from './navigator';
-import { ViewportInstruction } from './viewport-instruction';
-import { Scope } from './scope';
-import { IRoute } from './interfaces';
+import { INavigationFlags } from './navigator.js';
+import { ViewportInstruction } from './viewport-instruction.js';
+import { Scope } from './scope.js';
+import { IRoute } from './interfaces.js';
 
 export interface INavigation extends IStoredNavigation {
   // INavigatorEntry

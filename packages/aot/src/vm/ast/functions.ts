@@ -1,12 +1,11 @@
-import {
+import ts from 'typescript';
+import type {
   ArrowFunction,
   Block,
   ConstructorDeclaration,
   FunctionDeclaration,
   FunctionExpression,
-  ModifierFlags,
   ParameterDeclaration,
-  SyntaxKind,
 } from 'typescript';
 import {
   emptyArray,
@@ -15,46 +14,46 @@ import {
 import {
   Realm,
   ExecutionContext,
-} from '../realm';
+} from '../realm.js';
 import {
   $EnvRec,
   $DeclarativeEnvRec,
   $FunctionEnvRec,
-} from '../types/environment-record';
+} from '../types/environment-record.js';
 import {
   $String,
-} from '../types/string';
+} from '../types/string.js';
 import {
   $Undefined,
-} from '../types/undefined';
+} from '../types/undefined.js';
 import {
   $Function,
-} from '../types/function';
+} from '../types/function.js';
 import {
   $Any,
   CompletionType,
   $AnyNonEmpty,
   $PropertyKey,
-} from '../types/_shared';
+} from '../types/_shared.js';
 import {
   $Object,
-} from '../types/object';
+} from '../types/object.js';
 import {
   $Empty,
-} from '../types/empty';
+} from '../types/empty.js';
 import {
   $CreateUnmappedArgumentsObject,
   $ArgumentsExoticObject,
-} from '../exotics/arguments';
+} from '../exotics/arguments.js';
 import {
   $CreateListIteratorRecord,
   $IteratorRecord,
   $IteratorStep,
   $IteratorValue,
-} from '../globals/iteration';
+} from '../globals/iteration.js';
 import {
   $Error,
-} from '../types/error';
+} from '../types/error.js';
 import {
   I$Node,
   Context,
@@ -75,40 +74,40 @@ import {
   $i,
   $$ESVarDeclaration,
   FunctionKind,
-} from './_shared';
+} from './_shared.js';
 import {
   ExportEntryRecord,
   $$ESModuleOrScript,
-} from './modules';
+} from './modules.js';
 import {
   $Identifier,
   $Decorator,
-} from './expressions';
+} from './expressions.js';
 import {
   $ClassDeclaration,
   $ClassExpression,
-} from './classes';
+} from './classes.js';
 import {
   $Block,
   DirectivePrologue,
-} from './statements';
+} from './statements.js';
 import {
   $MethodDeclaration,
   $SetAccessorDeclaration,
   $GetAccessorDeclaration,
-} from './methods';
+} from './methods.js';
 import {
   $DefinePropertyOrThrow,
-} from '../operations';
+} from '../operations.js';
 import {
   $PropertyDescriptor,
-} from '../types/property-descriptor';
+} from '../types/property-descriptor.js';
 import {
   $Boolean,
-} from '../types/boolean';
+} from '../types/boolean.js';
 import {
   $List,
-} from '../types/list';
+} from '../types/list.js';
 
 export type $$Function = (
   $FunctionDeclaration |
@@ -195,9 +194,9 @@ export class $FormalParameterList extends Array<$ParameterDeclaration> {
 }
 
 export class $FunctionExpression implements I$Node {
-  public get $kind(): SyntaxKind.FunctionExpression { return SyntaxKind.FunctionExpression; }
+  public get $kind(): ts.SyntaxKind.FunctionExpression { return ts.SyntaxKind.FunctionExpression; }
 
-  public readonly modifierFlags: ModifierFlags;
+  public readonly modifierFlags: ts.ModifierFlags;
 
   public readonly $name: $Identifier | undefined;
   public readonly $parameters: $FormalParameterList;
@@ -270,7 +269,7 @@ export class $FunctionExpression implements I$Node {
     this.VarDeclaredNames = $body.TopLevelVarDeclaredNames;
     this.VarScopedDeclarations = $body.TopLevelVarScopedDeclarations;
 
-    if (!hasBit(modifierFlags, ModifierFlags.Async)) {
+    if (!hasBit(modifierFlags, ts.ModifierFlags.Async)) {
       if (node.asteriskToken === void 0) {
         this.functionKind = FunctionKind.normal;
       } else {
@@ -644,9 +643,9 @@ export class $FunctionExpression implements I$Node {
 }
 
 export class $FunctionDeclaration implements I$Node {
-  public get $kind(): SyntaxKind.FunctionDeclaration { return SyntaxKind.FunctionDeclaration; }
+  public get $kind(): ts.SyntaxKind.FunctionDeclaration { return ts.SyntaxKind.FunctionDeclaration; }
 
-  public readonly modifierFlags: ModifierFlags;
+  public readonly modifierFlags: ts.ModifierFlags;
 
   public readonly $decorators: readonly $Decorator[];
   public readonly $name: $Identifier | undefined;
@@ -749,7 +748,7 @@ export class $FunctionDeclaration implements I$Node {
 
     const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
-    if (hasBit(modifierFlags, ModifierFlags.Export)) {
+    if (hasBit(modifierFlags, ts.ModifierFlags.Export)) {
       ctx |= Context.InExport;
     }
 
@@ -778,7 +777,7 @@ export class $FunctionDeclaration implements I$Node {
     }
 
     if (hasBit(ctx, Context.InExport)) {
-      if (hasBit(this.modifierFlags, ModifierFlags.Default)) {
+      if (hasBit(this.modifierFlags, ts.ModifierFlags.Default)) {
         if (HasName) {
           const [localName] = $name!.BoundNames;
           const BoundNames = this.BoundNames = [localName, intrinsics['*default*']];
@@ -835,7 +834,7 @@ export class $FunctionDeclaration implements I$Node {
       this.ExportEntries = emptyArray;
     }
 
-    if (!hasBit(modifierFlags, ModifierFlags.Async)) {
+    if (!hasBit(modifierFlags, ts.ModifierFlags.Async)) {
       if (node.asteriskToken === void 0) {
         this.functionKind = FunctionKind.normal;
       } else {
@@ -1453,9 +1452,9 @@ export function $FunctionDeclarationInstantiation(
 }
 
 export class $ArrowFunction implements I$Node {
-  public get $kind(): SyntaxKind.ArrowFunction { return SyntaxKind.ArrowFunction; }
+  public get $kind(): ts.SyntaxKind.ArrowFunction { return ts.SyntaxKind.ArrowFunction; }
 
-  public readonly modifierFlags: ModifierFlags;
+  public readonly modifierFlags: ts.ModifierFlags;
 
   public readonly $parameters: $FormalParameterList;
   public readonly $body: $Block | $$AssignmentExpressionOrHigher;
@@ -1518,7 +1517,7 @@ export class $ArrowFunction implements I$Node {
   ) {
     const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
-    if (node.body.kind === SyntaxKind.Block) {
+    if (node.body.kind === ts.SyntaxKind.Block) {
       const DirectivePrologue = this.DirectivePrologue = GetDirectivePrologue((node.body as Block).statements);
       if (DirectivePrologue.ContainsUseStrict) {
         ctx |= Context.InStrictMode;
@@ -1537,7 +1536,7 @@ export class $ArrowFunction implements I$Node {
       this.$body = $assignmentExpression(node.body as $AssignmentExpressionNode, this, ctx, -1);
     }
 
-    this.functionKind = hasBit(modifierFlags, ModifierFlags.Async) ? FunctionKind.async : FunctionKind.normal;
+    this.functionKind = hasBit(modifierFlags, ts.ModifierFlags.Async) ? FunctionKind.async : FunctionKind.normal;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-arrow-function-definitions-runtime-semantics-evaluation
@@ -1572,7 +1571,7 @@ export class $ArrowFunction implements I$Node {
   ): $Any {
     ctx.checkTimeout();
 
-    if (this.$body.$kind === SyntaxKind.Block) {
+    if (this.$body.$kind === ts.SyntaxKind.Block) {
       return $FunctionDeclaration.prototype.EvaluateBody.call(this, ctx, functionObject, argumentsList);
     }
 
@@ -1607,9 +1606,9 @@ export class MethodDefinitionRecord {
 }
 
 export class $ConstructorDeclaration implements I$Node {
-  public get $kind(): SyntaxKind.Constructor { return SyntaxKind.Constructor; }
+  public get $kind(): ts.SyntaxKind.Constructor { return ts.SyntaxKind.Constructor; }
 
-  public readonly modifierFlags: ModifierFlags;
+  public readonly modifierFlags: ts.ModifierFlags;
 
   public readonly $decorators: readonly $Decorator[];
   public readonly $parameters: $FormalParameterList;
@@ -1711,10 +1710,10 @@ export class $ConstructorDeclaration implements I$Node {
 }
 
 export class $ParameterDeclaration implements I$Node {
-  public get $kind(): SyntaxKind.Parameter { return SyntaxKind.Parameter; }
+  public get $kind(): ts.SyntaxKind.Parameter { return ts.SyntaxKind.Parameter; }
 
-  public readonly modifierFlags: ModifierFlags;
-  public readonly combinedModifierFlags: ModifierFlags;
+  public readonly modifierFlags: ts.ModifierFlags;
+  public readonly combinedModifierFlags: ts.ModifierFlags;
 
   public readonly $decorators: readonly $Decorator[];
   public readonly $name: $$BindingName;
@@ -1781,7 +1780,7 @@ export class $ParameterDeclaration implements I$Node {
 
     const BindingElement = this.$name;
 
-    if (BindingElement.$kind === SyntaxKind.Identifier) {
+    if (BindingElement.$kind === ts.SyntaxKind.Identifier) {
       return BindingElement.InitializeIteratorBinding(ctx, iteratorRecord, environment, this.$initializer);
     }
 

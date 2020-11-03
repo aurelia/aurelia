@@ -4,7 +4,7 @@ import {
   Registration,
   emptyArray,
 } from '@aurelia/kernel';
-import { getOwnPropertyDescriptors, Reflect_apply } from './util';
+import { getOwnPropertyDescriptors, Reflect_apply } from './util.js';
 
 export class Call {
   public readonly instance: any;

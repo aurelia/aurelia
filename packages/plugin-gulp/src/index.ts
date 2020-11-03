@@ -21,7 +21,7 @@ export function plugin(
       if (file.isStream()) {
         this.emit('error', new Error('@aurelia/plugin-gulp: Streaming is not supported'));
       } else if (file.isBuffer()) {
-        // Rewrite foo.html to foo.html.js
+        // Rewrite foo.html to foo.html
         const result = _preprocess(
           {
             path: file.relative,
@@ -33,7 +33,7 @@ export function plugin(
 
         if (result) {
           if (allOptions.templateExtensions.includes(file.extname)) {
-            // Rewrite foo.html to foo.html.js, or foo.md to foo.md.js
+            // Rewrite foo.html to foo.html, or foo.md to foo.md.js
             file.basename += '.js';
           }
 

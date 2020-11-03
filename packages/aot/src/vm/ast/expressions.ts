@@ -1,4 +1,5 @@
-import {
+import ts from 'typescript';
+import type {
   ArrayLiteralExpression,
   AsExpression,
   AwaitExpression,
@@ -10,7 +11,6 @@ import {
   ElementAccessExpression,
   Identifier,
   MetaProperty,
-  ModifierFlags,
   NewExpression,
   NodeArray,
   NonNullExpression,
@@ -24,7 +24,6 @@ import {
   ShorthandPropertyAssignment,
   SpreadAssignment,
   SuperExpression,
-  SyntaxKind,
   TaggedTemplateExpression,
   TemplateExpression,
   TemplateSpan,
@@ -41,10 +40,10 @@ import {
 import {
   Realm,
   ExecutionContext,
-} from '../realm';
+} from '../realm.js';
 import {
   $EnvRec,
-} from '../types/environment-record';
+} from '../types/environment-record.js';
 import {
   $AbstractRelationalComparison,
   $InstanceOfOperator,
@@ -55,56 +54,56 @@ import {
   $CreateDataProperty,
   $Set,
   $CopyDataProperties,
-} from '../operations';
+} from '../operations.js';
 import {
   $String,
-} from '../types/string';
+} from '../types/string.js';
 import {
   $Undefined,
-} from '../types/undefined';
+} from '../types/undefined.js';
 import {
   $Function,
-} from '../types/function';
+} from '../types/function.js';
 import {
   $Any,
   $AnyNonEmpty,
   $AnyObject,
-} from '../types/_shared';
+} from '../types/_shared.js';
 import {
   $Object,
-} from '../types/object';
+} from '../types/object.js';
 import {
   $Reference,
-} from '../types/reference';
+} from '../types/reference.js';
 import {
   $Number,
-} from '../types/number';
+} from '../types/number.js';
 import {
   $Null,
-} from '../types/null';
+} from '../types/null.js';
 import {
   $Boolean,
-} from '../types/boolean';
+} from '../types/boolean.js';
 import {
   $Empty,
   empty,
-} from '../types/empty';
+} from '../types/empty.js';
 import {
   $IteratorRecord,
   $IteratorStep,
   $IteratorValue,
-} from '../globals/iteration';
+} from '../globals/iteration.js';
 import {
   $TypeError,
   $Error,
   $ReferenceError,
-} from '../types/error';
+} from '../types/error.js';
 import {
   $ArrayExoticObject,
-} from '../exotics/array';
+} from '../exotics/array.js';
 import {
   $List,
-} from '../types/list';
+} from '../types/list.js';
 import {
   I$Node,
   Context,
@@ -131,30 +130,30 @@ import {
   $$UpdateExpressionOrHigher,
   $UpdateExpressionNode,
   $i,
-} from './_shared';
+} from './_shared.js';
 import {
   $$ESModuleOrScript,
-} from './modules';
+} from './modules.js';
 import {
   $SpreadElement,
   $OmittedExpression,
-} from './bindings';
+} from './bindings.js';
 import {
   $MethodDeclaration,
   $GetAccessorDeclaration,
   $SetAccessorDeclaration,
-} from './methods';
+} from './methods.js';
 import {
   $NoSubstitutionTemplateLiteral,
   $TemplateSpan,
   $TemplateHead,
-} from './literals';
+} from './literals.js';
 import {
   $FunctionExpression,
-} from './functions';
+} from './functions.js';
 
 export class $Decorator implements I$Node {
-  public get $kind(): SyntaxKind.Decorator { return SyntaxKind.Decorator; }
+  public get $kind(): ts.SyntaxKind.Decorator { return ts.SyntaxKind.Decorator; }
 
   public readonly $expression: $$LHSExpressionOrHigher;
 
@@ -176,7 +175,7 @@ export class $Decorator implements I$Node {
 // #region LHS
 
 export class $ThisExpression implements I$Node {
-  public get $kind(): SyntaxKind.ThisKeyword { return SyntaxKind.ThisKeyword; }
+  public get $kind(): ts.SyntaxKind.ThisKeyword { return ts.SyntaxKind.ThisKeyword; }
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
   // 12.2.1.1 Static Semantics: CoveredParenthesizedExpression
@@ -224,7 +223,7 @@ export class $ThisExpression implements I$Node {
 }
 
 export class $SuperExpression implements I$Node {
-  public get $kind(): SyntaxKind.SuperKeyword { return SyntaxKind.SuperKeyword; }
+  public get $kind(): ts.SyntaxKind.SuperKeyword { return ts.SyntaxKind.SuperKeyword; }
 
   public constructor(
     public readonly node: SuperExpression,
@@ -301,9 +300,9 @@ export function $argumentOrArrayLiteralElement(
   idx: number,
 ): $$ArgumentOrArrayLiteralElement {
   switch (node.kind) {
-    case SyntaxKind.SpreadElement:
+    case ts.SyntaxKind.SpreadElement:
       return new $SpreadElement(node, parent, ctx, idx);
-    case SyntaxKind.OmittedExpression:
+    case ts.SyntaxKind.OmittedExpression:
       return new $OmittedExpression(node, parent, ctx, idx);
     default:
       return $assignmentExpression(node, parent, ctx, idx);
@@ -328,7 +327,7 @@ export function $argumentOrArrayLiteralElementList(
 }
 
 export class $ArrayLiteralExpression implements I$Node {
-  public get $kind(): SyntaxKind.ArrayLiteralExpression { return SyntaxKind.ArrayLiteralExpression; }
+  public get $kind(): ts.SyntaxKind.ArrayLiteralExpression { return ts.SyntaxKind.ArrayLiteralExpression; }
 
   public readonly $elements: readonly $$ArgumentOrArrayLiteralElement[];
 
@@ -383,11 +382,11 @@ export class $ArrayLiteralExpression implements I$Node {
       el = elements[i];
 
       switch (el.$kind) {
-        case SyntaxKind.OmittedExpression: {
+        case ts.SyntaxKind.OmittedExpression: {
           ++padding;
           break;
         }
-        case SyntaxKind.SpreadElement: {
+        case ts.SyntaxKind.SpreadElement: {
           // ElementList : Elision opt SpreadElement
 
           // 1. Let padding be the ElisionWidth of Elision; if Elision is not present, use the numeric value zero.
@@ -518,22 +517,22 @@ export function $$objectLiteralElementLikeList(
   for (let i = 0; i < len; ++i) {
     el = nodes[i];
     switch (el.kind) {
-      case SyntaxKind.PropertyAssignment:
+      case ts.SyntaxKind.PropertyAssignment:
         $nodes[i] = new $PropertyAssignment(el, parent, ctx, i);
         break;
-      case SyntaxKind.ShorthandPropertyAssignment:
+      case ts.SyntaxKind.ShorthandPropertyAssignment:
         $nodes[i] = new $ShorthandPropertyAssignment(el, parent, ctx, i);
         break;
-      case SyntaxKind.SpreadAssignment:
+      case ts.SyntaxKind.SpreadAssignment:
         $nodes[i] = new $SpreadAssignment(el, parent, ctx, i);
         break;
-      case SyntaxKind.MethodDeclaration:
+      case ts.SyntaxKind.MethodDeclaration:
         $nodes[i] = new $MethodDeclaration(el, parent, ctx, i);
         break;
-      case SyntaxKind.GetAccessor:
+      case ts.SyntaxKind.GetAccessor:
         $nodes[i] = new $GetAccessorDeclaration(el, parent, ctx, i);
         break;
-      case SyntaxKind.SetAccessor:
+      case ts.SyntaxKind.SetAccessor:
         $nodes[i] = new $SetAccessorDeclaration(el, parent, ctx, i);
         break;
     }
@@ -542,7 +541,7 @@ export function $$objectLiteralElementLikeList(
 }
 
 export class $ObjectLiteralExpression implements I$Node {
-  public get $kind(): SyntaxKind.ObjectLiteralExpression { return SyntaxKind.ObjectLiteralExpression; }
+  public get $kind(): ts.SyntaxKind.ObjectLiteralExpression { return ts.SyntaxKind.ObjectLiteralExpression; }
 
   public readonly $properties: readonly $$ObjectLiteralElementLike[];
 
@@ -607,9 +606,9 @@ export class $ObjectLiteralExpression implements I$Node {
 }
 
 export class $PropertyAssignment implements I$Node {
-  public get $kind(): SyntaxKind.PropertyAssignment { return SyntaxKind.PropertyAssignment; }
+  public get $kind(): ts.SyntaxKind.PropertyAssignment { return ts.SyntaxKind.PropertyAssignment; }
 
-  public readonly modifierFlags: ModifierFlags;
+  public readonly modifierFlags: ts.ModifierFlags;
 
   public readonly $name: $$PropertyName;
   public readonly $initializer: $$AssignmentExpressionOrHigher;
@@ -685,9 +684,9 @@ export class $PropertyAssignment implements I$Node {
 }
 
 export class $ShorthandPropertyAssignment implements I$Node {
-  public get $kind(): SyntaxKind.ShorthandPropertyAssignment { return SyntaxKind.ShorthandPropertyAssignment; }
+  public get $kind(): ts.SyntaxKind.ShorthandPropertyAssignment { return ts.SyntaxKind.ShorthandPropertyAssignment; }
 
-  public readonly modifierFlags: ModifierFlags;
+  public readonly modifierFlags: ts.ModifierFlags;
 
   public readonly $name: $Identifier;
   public readonly $objectAssignmentInitializer: $$AssignmentExpressionOrHigher | undefined;
@@ -745,7 +744,7 @@ export class $ShorthandPropertyAssignment implements I$Node {
 }
 
 export class $SpreadAssignment implements I$Node {
-  public get $kind(): SyntaxKind.SpreadAssignment { return SyntaxKind.SpreadAssignment; }
+  public get $kind(): ts.SyntaxKind.SpreadAssignment { return ts.SyntaxKind.SpreadAssignment; }
 
   public readonly $expression: $$AssignmentExpressionOrHigher;
 
@@ -795,7 +794,7 @@ export class $SpreadAssignment implements I$Node {
 }
 
 export class $PropertyAccessExpression implements I$Node {
-  public get $kind(): SyntaxKind.PropertyAccessExpression { return SyntaxKind.PropertyAccessExpression; }
+  public get $kind(): ts.SyntaxKind.PropertyAccessExpression { return ts.SyntaxKind.PropertyAccessExpression; }
 
   public readonly $expression: $$LHSExpressionOrHigher;
   public readonly $name: $Identifier;
@@ -851,7 +850,7 @@ export class $PropertyAccessExpression implements I$Node {
 }
 
 export class $ElementAccessExpression implements I$Node {
-  public get $kind(): SyntaxKind.ElementAccessExpression { return SyntaxKind.ElementAccessExpression; }
+  public get $kind(): ts.SyntaxKind.ElementAccessExpression { return ts.SyntaxKind.ElementAccessExpression; }
 
   public readonly $expression: $$LHSExpressionOrHigher;
   public readonly $argumentExpression: $$AssignmentExpressionOrHigher;
@@ -914,7 +913,7 @@ export class $ElementAccessExpression implements I$Node {
 }
 
 export class $CallExpression implements I$Node {
-  public get $kind(): SyntaxKind.CallExpression { return SyntaxKind.CallExpression; }
+  public get $kind(): ts.SyntaxKind.CallExpression { return ts.SyntaxKind.CallExpression; }
 
   public readonly $expression: $$LHSExpressionOrHigher;
   public readonly $arguments: readonly $$ArgumentOrArrayLiteralElement[];
@@ -1128,7 +1127,7 @@ export function $ArgumentListEvaluation(
 }
 
 export class $NewExpression implements I$Node {
-  public get $kind(): SyntaxKind.NewExpression { return SyntaxKind.NewExpression; }
+  public get $kind(): ts.SyntaxKind.NewExpression { return ts.SyntaxKind.NewExpression; }
 
   public readonly $expression: $$LHSExpressionOrHigher;
   public readonly $arguments: readonly $$ArgumentOrArrayLiteralElement[];
@@ -1208,7 +1207,7 @@ export type $$TemplateLiteral = (
 );
 
 export class $TaggedTemplateExpression implements I$Node {
-  public get $kind(): SyntaxKind.TaggedTemplateExpression { return SyntaxKind.TaggedTemplateExpression; }
+  public get $kind(): ts.SyntaxKind.TaggedTemplateExpression { return ts.SyntaxKind.TaggedTemplateExpression; }
 
   public readonly $tag: $$LHSExpressionOrHigher;
   public readonly $template: $$TemplateLiteral;
@@ -1226,7 +1225,7 @@ export class $TaggedTemplateExpression implements I$Node {
   ) {
     this.$tag = $LHSExpression(node.tag as $LHSExpressionNode, this, ctx, -1);
 
-    if (node.template.kind === SyntaxKind.NoSubstitutionTemplateLiteral) {
+    if (node.template.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral) {
       this.$template = new $NoSubstitutionTemplateLiteral(node.template, this, ctx, -1);
     } else {
       this.$template = new $TemplateExpression(node.template, this, ctx, -1);
@@ -1282,7 +1281,7 @@ export function $$templateSpanList(
 }
 
 export class $TemplateExpression implements I$Node {
-  public get $kind(): SyntaxKind.TemplateExpression { return SyntaxKind.TemplateExpression; }
+  public get $kind(): ts.SyntaxKind.TemplateExpression { return ts.SyntaxKind.TemplateExpression; }
 
   public readonly $head: $TemplateHead;
   public readonly $templateSpans: readonly $TemplateSpan[];
@@ -1372,7 +1371,7 @@ export class $TemplateExpression implements I$Node {
 }
 
 export class $ParenthesizedExpression implements I$Node {
-  public get $kind(): SyntaxKind.ParenthesizedExpression { return SyntaxKind.ParenthesizedExpression; }
+  public get $kind(): ts.SyntaxKind.ParenthesizedExpression { return ts.SyntaxKind.ParenthesizedExpression; }
 
   public readonly $expression: $$AssignmentExpressionOrHigher;
 
@@ -1419,7 +1418,7 @@ export class $ParenthesizedExpression implements I$Node {
 }
 
 export class $NonNullExpression implements I$Node {
-  public get $kind(): SyntaxKind.NonNullExpression { return SyntaxKind.NonNullExpression; }
+  public get $kind(): ts.SyntaxKind.NonNullExpression { return ts.SyntaxKind.NonNullExpression; }
 
   public readonly $expression: $$LHSExpressionOrHigher;
 
@@ -1448,7 +1447,7 @@ export class $NonNullExpression implements I$Node {
 }
 
 export class $MetaProperty implements I$Node {
-  public get $kind(): SyntaxKind.MetaProperty { return SyntaxKind.MetaProperty; }
+  public get $kind(): ts.SyntaxKind.MetaProperty { return ts.SyntaxKind.MetaProperty; }
 
   public readonly $name: $Identifier;
 
@@ -1490,7 +1489,7 @@ export class $MetaProperty implements I$Node {
 // #region Unary
 
 export class $DeleteExpression implements I$Node {
-  public get $kind(): SyntaxKind.DeleteExpression { return SyntaxKind.DeleteExpression; }
+  public get $kind(): ts.SyntaxKind.DeleteExpression { return ts.SyntaxKind.DeleteExpression; }
 
   public readonly $expression: $$UnaryExpressionOrHigher;
 
@@ -1540,7 +1539,7 @@ export class $DeleteExpression implements I$Node {
 }
 
 export class $TypeOfExpression implements I$Node {
-  public get $kind(): SyntaxKind.TypeOfExpression { return SyntaxKind.TypeOfExpression; }
+  public get $kind(): ts.SyntaxKind.TypeOfExpression { return ts.SyntaxKind.TypeOfExpression; }
 
   public readonly $expression: $$UnaryExpressionOrHigher;
 
@@ -1624,7 +1623,7 @@ export class $TypeOfExpression implements I$Node {
 }
 
 export class $VoidExpression implements I$Node {
-  public get $kind(): SyntaxKind.VoidExpression { return SyntaxKind.VoidExpression; }
+  public get $kind(): ts.SyntaxKind.VoidExpression { return ts.SyntaxKind.VoidExpression; }
 
   public readonly $expression: $$UnaryExpressionOrHigher;
 
@@ -1668,7 +1667,7 @@ export class $VoidExpression implements I$Node {
 }
 
 export class $AwaitExpression implements I$Node {
-  public get $kind(): SyntaxKind.AwaitExpression { return SyntaxKind.AwaitExpression; }
+  public get $kind(): ts.SyntaxKind.AwaitExpression { return ts.SyntaxKind.AwaitExpression; }
 
   public readonly $expression: $$UnaryExpressionOrHigher;
 
@@ -1708,7 +1707,7 @@ export class $AwaitExpression implements I$Node {
 }
 
 export class $PrefixUnaryExpression implements I$Node {
-  public get $kind(): SyntaxKind.PrefixUnaryExpression { return SyntaxKind.PrefixUnaryExpression; }
+  public get $kind(): ts.SyntaxKind.PrefixUnaryExpression { return ts.SyntaxKind.PrefixUnaryExpression; }
 
   public readonly $operand: $$UnaryExpressionOrHigher;
 
@@ -1745,7 +1744,7 @@ export class $PrefixUnaryExpression implements I$Node {
     this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
 
     switch (this.node.operator) {
-      case SyntaxKind.PlusPlusToken: {
+      case ts.SyntaxKind.PlusPlusToken: {
         // http://www.ecma-international.org/ecma-262/#sec-prefix-increment-operator-runtime-semantics-evaluation
         // 12.4.6.1 Runtime Semantics: Evaluation
 
@@ -1774,7 +1773,7 @@ export class $PrefixUnaryExpression implements I$Node {
         // 5. Return newValue.
         return newValue;
       }
-      case SyntaxKind.MinusMinusToken: {
+      case ts.SyntaxKind.MinusMinusToken: {
         // http://www.ecma-international.org/ecma-262/#sec-prefix-decrement-operator-runtime-semantics-evaluation
         // 12.4.7.1 Runtime Semantics: Evaluation
 
@@ -1803,7 +1802,7 @@ export class $PrefixUnaryExpression implements I$Node {
         // 5. Return newValue.
         return newValue;
       }
-      case SyntaxKind.PlusToken: {
+      case ts.SyntaxKind.PlusToken: {
         // http://www.ecma-international.org/ecma-262/#sec-unary-plus-operator-runtime-semantics-evaluation
         // 12.5.6.1 Runtime Semantics: Evaluation
 
@@ -1820,7 +1819,7 @@ export class $PrefixUnaryExpression implements I$Node {
         if (value.isAbrupt) { return value.enrichWith(ctx, this); }
         return value;
       }
-      case SyntaxKind.MinusToken: {
+      case ts.SyntaxKind.MinusToken: {
         // http://www.ecma-international.org/ecma-262/#sec-unary-minus-operator-runtime-semantics-evaluation
         // 12.5.7.1 Runtime Semantics: Evaluation
 
@@ -1844,7 +1843,7 @@ export class $PrefixUnaryExpression implements I$Node {
         // 4. Return the result of negating oldValue; that is, compute a Number with the same magnitude but opposite sign.
         return new $Number(realm, -oldValue['[[Value]]']);
       }
-      case SyntaxKind.TildeToken: {
+      case ts.SyntaxKind.TildeToken: {
         // http://www.ecma-international.org/ecma-262/#sec-bitwise-not-operator-runtime-semantics-evaluation
         // 12.5.8.1 Runtime Semantics: Evaluation
 
@@ -1863,7 +1862,7 @@ export class $PrefixUnaryExpression implements I$Node {
         // 3. Return the result of applying bitwise complement to oldValue. The result is a signed 32-bit integer.
         return new $Number(realm, ~oldValue['[[Value]]']);
       }
-      case SyntaxKind.ExclamationToken: {
+      case ts.SyntaxKind.ExclamationToken: {
         // http://www.ecma-international.org/ecma-262/#sec-logical-not-operator-runtime-semantics-evaluation
         // 12.5.9.1 Runtime Semantics: Evaluation
 
@@ -1892,7 +1891,7 @@ export class $PrefixUnaryExpression implements I$Node {
 }
 
 export class $PostfixUnaryExpression implements I$Node {
-  public get $kind(): SyntaxKind.PostfixUnaryExpression { return SyntaxKind.PostfixUnaryExpression; }
+  public get $kind(): ts.SyntaxKind.PostfixUnaryExpression { return ts.SyntaxKind.PostfixUnaryExpression; }
 
   public readonly $operand: $$LHSExpressionOrHigher;
 
@@ -1925,7 +1924,7 @@ export class $PostfixUnaryExpression implements I$Node {
     this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
 
     switch (this.node.operator) {
-      case SyntaxKind.PlusPlusToken: {
+      case ts.SyntaxKind.PlusPlusToken: {
         // http://www.ecma-international.org/ecma-262/#sec-postfix-increment-operator-runtime-semantics-evaluation
         // 12.4.4.1 Runtime Semantics: Evaluation
 
@@ -1953,7 +1952,7 @@ export class $PostfixUnaryExpression implements I$Node {
         // 5. Return oldValue.
         return oldValue;
       }
-      case SyntaxKind.MinusMinusToken: {
+      case ts.SyntaxKind.MinusMinusToken: {
         // http://www.ecma-international.org/ecma-262/#sec-postfix-decrement-operator-runtime-semantics-evaluation
         // 12.4.5.1 Runtime Semantics: Evaluation
 
@@ -1986,7 +1985,7 @@ export class $PostfixUnaryExpression implements I$Node {
 }
 
 export class $TypeAssertion implements I$Node {
-  public get $kind(): SyntaxKind.TypeAssertionExpression { return SyntaxKind.TypeAssertionExpression; }
+  public get $kind(): ts.SyntaxKind.TypeAssertionExpression { return ts.SyntaxKind.TypeAssertionExpression; }
 
   public readonly $expression: $$AssignmentExpressionOrHigher;
 
@@ -2019,7 +2018,7 @@ export class $TypeAssertion implements I$Node {
 // #region Assignment
 
 export class $BinaryExpression implements I$Node {
-  public get $kind(): SyntaxKind.BinaryExpression { return SyntaxKind.BinaryExpression; }
+  public get $kind(): ts.SyntaxKind.BinaryExpression { return ts.SyntaxKind.BinaryExpression; }
 
   public readonly $left: $$BinaryExpressionOrHigher;
   public readonly $right: $$BinaryExpressionOrHigher;
@@ -2072,7 +2071,7 @@ export class $BinaryExpression implements I$Node {
     this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
 
     switch (this.node.operatorToken.kind) {
-      case SyntaxKind.AsteriskAsteriskToken: {
+      case ts.SyntaxKind.AsteriskAsteriskToken: {
         // http://www.ecma-international.org/ecma-262/#sec-exp-operator-runtime-semantics-evaluation
         // 12.6.3 Runtime Semantics: Evaluation
 
@@ -2103,7 +2102,7 @@ export class $BinaryExpression implements I$Node {
         // 7. Return the result of Applying the ** operator with base and exponent as specified in 12.6.4.
         return new $Number(realm, base['[[Value]]'] ** exponent['[[Value]]']); // TODO: add temporal state snapshot for tracing
       }
-      case SyntaxKind.AsteriskToken: {
+      case ts.SyntaxKind.AsteriskToken: {
         // http://www.ecma-international.org/ecma-262/#sec-multiplicative-operators-runtime-semantics-evaluation
         // 12.7.3 Runtime Semantics: Evaluation
 
@@ -2134,7 +2133,7 @@ export class $BinaryExpression implements I$Node {
         // 7. Return the result of applying the MultiplicativeOperator (*, /, or %) to lnum and rnum as specified in 12.7.3.1, 12.7.3.2, or 12.7.3.3.
         return new $Number(realm, lnum['[[Value]]'] * rnum['[[Value]]']); // TODO: add temporal state snapshot for tracing
       }
-      case SyntaxKind.SlashToken: {
+      case ts.SyntaxKind.SlashToken: {
         // http://www.ecma-international.org/ecma-262/#sec-multiplicative-operators-runtime-semantics-evaluation
         // 12.7.3 Runtime Semantics: Evaluation
 
@@ -2165,7 +2164,7 @@ export class $BinaryExpression implements I$Node {
         // 7. Return the result of applying the MultiplicativeOperator (*, /, or %) to lnum and rnum as specified in 12.7.3.1, 12.7.3.2, or 12.7.3.3.
         return new $Number(realm, lnum['[[Value]]'] / rnum['[[Value]]']); // TODO: add temporal state snapshot for tracing
       }
-      case SyntaxKind.PercentToken: {
+      case ts.SyntaxKind.PercentToken: {
         // http://www.ecma-international.org/ecma-262/#sec-multiplicative-operators-runtime-semantics-evaluation
         // 12.7.3 Runtime Semantics: Evaluation
 
@@ -2196,7 +2195,7 @@ export class $BinaryExpression implements I$Node {
         // 7. Return the result of applying the MultiplicativeOperator (*, /, or %) to lnum and rnum as specified in 12.7.3.1, 12.7.3.2, or 12.7.3.3.
         return new $Number(realm, lnum['[[Value]]'] % rnum['[[Value]]']); // TODO: add temporal state snapshot for tracing
       }
-      case SyntaxKind.PlusToken: {
+      case ts.SyntaxKind.PlusToken: {
         // http://www.ecma-international.org/ecma-262/#sec-addition-operator-plus-runtime-semantics-evaluation
         // 12.8.3.1 Runtime Semantics: Evaluation
 
@@ -2249,7 +2248,7 @@ export class $BinaryExpression implements I$Node {
         // 10. Return the result of applying the addition operation to lnum and rnum. See the Note below 12.8.5.
         return new $Number(realm, lnum['[[Value]]'] + rnum['[[Value]]']); // TODO: add temporal state snapshot for tracing
       }
-      case SyntaxKind.MinusToken: {
+      case ts.SyntaxKind.MinusToken: {
         // http://www.ecma-international.org/ecma-262/#sec-subtraction-operator-minus-runtime-semantics-evaluation
         // 12.8.4.1 Runtime Semantics: Evaluation
 
@@ -2280,7 +2279,7 @@ export class $BinaryExpression implements I$Node {
         // 7. Return the result of applying the subtraction operation to lnum and rnum. See the note below 12.8.5.
         return new $Number(realm, lnum['[[Value]]'] - rnum['[[Value]]']); // TODO: add temporal state snapshot for tracing
       }
-      case SyntaxKind.LessThanLessThanToken: {
+      case ts.SyntaxKind.LessThanLessThanToken: {
         // http://www.ecma-international.org/ecma-262/#sec-left-shift-operator-runtime-semantics-evaluation
         // 12.9.3.1 Runtime Semantics: Evaluation
 
@@ -2314,7 +2313,7 @@ export class $BinaryExpression implements I$Node {
         // 8. Return the result of left shifting lnum by shiftCount bits. The result is a signed 32-bit integer.
         return new $Number(realm, lnum['[[Value]]'] << shiftCount); // TODO: add temporal state snapshot for tracing
       }
-      case SyntaxKind.GreaterThanGreaterThanToken: {
+      case ts.SyntaxKind.GreaterThanGreaterThanToken: {
         // http://www.ecma-international.org/ecma-262/#sec-signed-right-shift-operator-runtime-semantics-evaluation
         // 12.9.4.1 Runtime Semantics: Evaluation
 
@@ -2348,7 +2347,7 @@ export class $BinaryExpression implements I$Node {
         // 8. Return the result of performing a sign-extending right shift of lnum by shiftCount bits. The most significant bit is propagated. The result is a signed 32-bit integer.
         return new $Number(realm, lnum['[[Value]]'] >> shiftCount); // TODO: add temporal state snapshot for tracing
       }
-      case SyntaxKind.GreaterThanGreaterThanGreaterThanToken: {
+      case ts.SyntaxKind.GreaterThanGreaterThanGreaterThanToken: {
         // http://www.ecma-international.org/ecma-262/#sec-unsigned-right-shift-operator-runtime-semantics-evaluation
         // 12.9.5.1 Runtime Semantics: Evaluation
 
@@ -2384,7 +2383,7 @@ export class $BinaryExpression implements I$Node {
       }
       // http://www.ecma-international.org/ecma-262/#sec-relational-operators-runtime-semantics-evaluation
       // 12.10.3 Runtime Semantics: Evaluation
-      case SyntaxKind.LessThanToken: {
+      case ts.SyntaxKind.LessThanToken: {
         // RelationalExpression : RelationalExpression < ShiftExpression
 
         // 1. Let lref be the result of evaluating RelationalExpression.
@@ -2410,7 +2409,7 @@ export class $BinaryExpression implements I$Node {
         // 7. If r is undefined, return false. Otherwise, return r.
         return r.isUndefined ? intrinsics.false : r;
       }
-      case SyntaxKind.GreaterThanToken: {
+      case ts.SyntaxKind.GreaterThanToken: {
         // RelationalExpression : RelationalExpression > ShiftExpression
 
         // 1. Let lref be the result of evaluating RelationalExpression.
@@ -2436,7 +2435,7 @@ export class $BinaryExpression implements I$Node {
         // 7. If r is undefined, return false. Otherwise, return r.
         return r.isUndefined ? intrinsics.false : r;
       }
-      case SyntaxKind.LessThanEqualsToken: {
+      case ts.SyntaxKind.LessThanEqualsToken: {
         // RelationalExpression : RelationalExpression <= ShiftExpression
 
         // 1. Let lref be the result of evaluating RelationalExpression.
@@ -2462,7 +2461,7 @@ export class $BinaryExpression implements I$Node {
         // 7. If r is true or undefined, return false. Otherwise, return true.
         return r.isTruthy || r.isUndefined ? intrinsics.false : intrinsics.true;
       }
-      case SyntaxKind.GreaterThanEqualsToken: {
+      case ts.SyntaxKind.GreaterThanEqualsToken: {
         // RelationalExpression : RelationalExpression >= ShiftExpression
 
         // 1. Let lref be the result of evaluating RelationalExpression.
@@ -2488,7 +2487,7 @@ export class $BinaryExpression implements I$Node {
         // 7. If r is true or undefined, return false. Otherwise, return true.
         return r.isTruthy || r.isUndefined ? intrinsics.false : intrinsics.true;
       }
-      case SyntaxKind.InstanceOfKeyword: {
+      case ts.SyntaxKind.InstanceOfKeyword: {
         // RelationalExpression : RelationalExpression instanceof ShiftExpression
 
         // 1. Let lref be the result of evaluating RelationalExpression.
@@ -2508,7 +2507,7 @@ export class $BinaryExpression implements I$Node {
         // 5. Return ? InstanceofOperator(lval, rval).
         return $InstanceOfOperator(ctx, lval, rval).enrichWith(ctx, this);
       }
-      case SyntaxKind.InKeyword: {
+      case ts.SyntaxKind.InKeyword: {
         // RelationalExpression : RelationalExpression in ShiftExpression
 
         // 1. Let lref be the result of evaluating RelationalExpression.
@@ -2535,7 +2534,7 @@ export class $BinaryExpression implements I$Node {
       }
       // http://www.ecma-international.org/ecma-262/#sec-equality-operators-runtime-semantics-evaluation
       // 12.11.3 Runtime Semantics: Evaluation
-      case SyntaxKind.EqualsEqualsToken: {
+      case ts.SyntaxKind.EqualsEqualsToken: {
         // EqualityExpression : EqualityExpression == RelationalExpression
 
         // 1. Let lref be the result of evaluating EqualityExpression.
@@ -2555,7 +2554,7 @@ export class $BinaryExpression implements I$Node {
         // 5. Return the result of performing Abstract Equality Comparison rval == lval.
         return $AbstractEqualityComparison(ctx, rval, lval).enrichWith(ctx, this);
       }
-      case SyntaxKind.ExclamationEqualsToken: {
+      case ts.SyntaxKind.ExclamationEqualsToken: {
         // EqualityExpression : EqualityExpression != RelationalExpression
 
         // 1. Let lref be the result of evaluating EqualityExpression.
@@ -2579,7 +2578,7 @@ export class $BinaryExpression implements I$Node {
         // 6. If r is true, return false. Otherwise, return true.
         return r.isTruthy ? intrinsics.false : intrinsics.true;
       }
-      case SyntaxKind.EqualsEqualsEqualsToken: {
+      case ts.SyntaxKind.EqualsEqualsEqualsToken: {
         // EqualityExpression : EqualityExpression === RelationalExpression
 
         // 1. Let lref be the result of evaluating EqualityExpression.
@@ -2599,7 +2598,7 @@ export class $BinaryExpression implements I$Node {
         // 5. Return the result of performing Strict Equality Comparison rval === lval.
         return $StrictEqualityComparison(ctx, rval, lval).enrichWith(ctx, this);
       }
-      case SyntaxKind.ExclamationEqualsEqualsToken: {
+      case ts.SyntaxKind.ExclamationEqualsEqualsToken: {
         // EqualityExpression : EqualityExpression !== RelationalExpression
 
         // 1. Let lref be the result of evaluating EqualityExpression.
@@ -2623,7 +2622,7 @@ export class $BinaryExpression implements I$Node {
         // 6. If r is true, return false. Otherwise, return true.
         return r.isTruthy ? intrinsics.false : intrinsics.true;
       }
-      case SyntaxKind.AmpersandToken: {
+      case ts.SyntaxKind.AmpersandToken: {
         // http://www.ecma-international.org/ecma-262/#sec-binary-bitwise-operators-runtime-semantics-evaluation
         // 12.12.3 Runtime Semantics: Evaluation
 
@@ -2652,7 +2651,7 @@ export class $BinaryExpression implements I$Node {
         // 7. Return the result of applying the bitwise operator @ to lnum and rnum. The result is a signed 32-bit integer.
         return new $Number(realm, lnum['[[Value]]'] & rnum['[[Value]]']); // TODO: add temporal state snapshot for tracing
       }
-      case SyntaxKind.CaretToken: {
+      case ts.SyntaxKind.CaretToken: {
         // http://www.ecma-international.org/ecma-262/#sec-binary-bitwise-operators-runtime-semantics-evaluation
         // 12.12.3 Runtime Semantics: Evaluation
 
@@ -2681,7 +2680,7 @@ export class $BinaryExpression implements I$Node {
         // 7. Return the result of applying the bitwise operator @ to lnum and rnum. The result is a signed 32-bit integer.
         return new $Number(realm, lnum['[[Value]]'] ^ rnum['[[Value]]']); // TODO: add temporal state snapshot for tracing
       }
-      case SyntaxKind.BarToken: {
+      case ts.SyntaxKind.BarToken: {
         // http://www.ecma-international.org/ecma-262/#sec-binary-bitwise-operators-runtime-semantics-evaluation
         // 12.12.3 Runtime Semantics: Evaluation
 
@@ -2712,7 +2711,7 @@ export class $BinaryExpression implements I$Node {
       }
       // http://www.ecma-international.org/ecma-262/#sec-binary-logical-operators-runtime-semantics-evaluation
       // 12.13.3 Runtime Semantics: Evaluation
-      case SyntaxKind.AmpersandAmpersandToken: {
+      case ts.SyntaxKind.AmpersandAmpersandToken: {
 
         // LogicalANDExpression : LogicalANDExpression && BitwiseORExpression
 
@@ -2738,7 +2737,7 @@ export class $BinaryExpression implements I$Node {
         // 6. Return ? GetValue(rref).
         return rref.GetValue(ctx);
       }
-      case SyntaxKind.BarBarToken: {
+      case ts.SyntaxKind.BarBarToken: {
         // LogicalORExpression : LogicalORExpression || LogicalANDExpression
 
         // 1. Let lref be the result of evaluating LogicalORExpression.
@@ -2763,7 +2762,7 @@ export class $BinaryExpression implements I$Node {
         // 6. Return ? GetValue(rref).
         return rref.GetValue(ctx);
       }
-      case SyntaxKind.EqualsToken: {
+      case ts.SyntaxKind.EqualsToken: {
         // http://www.ecma-international.org/ecma-262/#sec-assignment-operators-runtime-semantics-evaluation
         // 12.15.4 Runtime Semantics: Evaluation
 
@@ -2823,7 +2822,7 @@ export class $BinaryExpression implements I$Node {
         // 6. Return rval.
         return rval;
       }
-      case SyntaxKind.CommaToken: {
+      case ts.SyntaxKind.CommaToken: {
         // 1. Let lref be the result of evaluating LeftHandSideExpression.
         const lref = this.$left.Evaluate(ctx);
 
@@ -2837,7 +2836,7 @@ export class $BinaryExpression implements I$Node {
         // 4. Return ? GetValue(rref)
         return rref.GetValue(ctx).enrichWith(ctx, this);
       }
-      case SyntaxKind.QuestionQuestionToken: {
+      case ts.SyntaxKind.QuestionQuestionToken: {
         const lref = this.$left.Evaluate(ctx);
         const lval = lref.GetValue(ctx);
         if (lval.isAbrupt) { return lval.enrichWith(ctx, this); }
@@ -2849,18 +2848,18 @@ export class $BinaryExpression implements I$Node {
 
         return lval;
       }
-      case SyntaxKind.AsteriskAsteriskEqualsToken:
-      case SyntaxKind.AsteriskEqualsToken:
-      case SyntaxKind.SlashEqualsToken:
-      case SyntaxKind.PercentEqualsToken:
-      case SyntaxKind.PlusEqualsToken:
-      case SyntaxKind.MinusEqualsToken:
-      case SyntaxKind.LessThanLessThanEqualsToken:
-      case SyntaxKind.GreaterThanGreaterThanEqualsToken:
-      case SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken:
-      case SyntaxKind.AmpersandEqualsToken:
-      case SyntaxKind.CaretEqualsToken:
-      case SyntaxKind.BarEqualsToken: {
+      case ts.SyntaxKind.AsteriskAsteriskEqualsToken:
+      case ts.SyntaxKind.AsteriskEqualsToken:
+      case ts.SyntaxKind.SlashEqualsToken:
+      case ts.SyntaxKind.PercentEqualsToken:
+      case ts.SyntaxKind.PlusEqualsToken:
+      case ts.SyntaxKind.MinusEqualsToken:
+      case ts.SyntaxKind.LessThanLessThanEqualsToken:
+      case ts.SyntaxKind.GreaterThanGreaterThanEqualsToken:
+      case ts.SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken:
+      case ts.SyntaxKind.AmpersandEqualsToken:
+      case ts.SyntaxKind.CaretEqualsToken:
+      case ts.SyntaxKind.BarEqualsToken: {
         // AssignmentExpression : LeftHandSideExpression AssignmentOperator AssignmentExpression
 
         // 1. Let lref be the result of evaluating LeftHandSideExpression.
@@ -2882,7 +2881,7 @@ export class $BinaryExpression implements I$Node {
         // 6. Let r be the result of applying op to lval and rval as if evaluating the expression lval op rval.
         let r: $AnyNonEmpty;
         switch (this.node.operatorToken.kind) {
-          case SyntaxKind.AsteriskAsteriskEqualsToken: {
+          case ts.SyntaxKind.AsteriskAsteriskEqualsToken: {
             // 5. Let base be ? ToNumber(leftValue).
             const base = lval.ToNumber(ctx);
             if (base.isAbrupt) { return base.enrichWith(ctx, this); }
@@ -2895,7 +2894,7 @@ export class $BinaryExpression implements I$Node {
             r = new $Number(realm, base['[[Value]]'] ** exponent['[[Value]]']);
             break;
           }
-          case SyntaxKind.AsteriskEqualsToken: {
+          case ts.SyntaxKind.AsteriskEqualsToken: {
             // 5. Let lnum be ? ToNumber(leftValue).
             const lnum = lval.ToNumber(ctx);
             if (lnum.isAbrupt) { return lnum.enrichWith(ctx, this); }
@@ -2908,7 +2907,7 @@ export class $BinaryExpression implements I$Node {
             r = new $Number(realm, lnum['[[Value]]'] * rnum['[[Value]]']);
             break;
           }
-          case SyntaxKind.SlashEqualsToken: {
+          case ts.SyntaxKind.SlashEqualsToken: {
             // 5. Let lnum be ? ToNumber(leftValue).
             const lnum = lval.ToNumber(ctx);
             if (lnum.isAbrupt) { return lnum.enrichWith(ctx, this); }
@@ -2921,7 +2920,7 @@ export class $BinaryExpression implements I$Node {
             r = new $Number(realm, lnum['[[Value]]'] / rnum['[[Value]]']);
             break;
           }
-          case SyntaxKind.PercentEqualsToken: {
+          case ts.SyntaxKind.PercentEqualsToken: {
             // 5. Let lnum be ? ToNumber(leftValue).
             const lnum = lval.ToNumber(ctx);
             if (lnum.isAbrupt) { return lnum.enrichWith(ctx, this); }
@@ -2934,7 +2933,7 @@ export class $BinaryExpression implements I$Node {
             r = new $Number(realm, lnum['[[Value]]'] % rnum['[[Value]]']);
             break;
           }
-          case SyntaxKind.PlusEqualsToken: {
+          case ts.SyntaxKind.PlusEqualsToken: {
 
             // 5. Let lprim be ? ToPrimitive(lval).
             const lprim = lval.ToPrimitive(ctx);
@@ -2971,7 +2970,7 @@ export class $BinaryExpression implements I$Node {
             r = new $Number(realm, lnum['[[Value]]'] + rnum['[[Value]]']);
             break;
           }
-          case SyntaxKind.MinusEqualsToken: {
+          case ts.SyntaxKind.MinusEqualsToken: {
             // 5. Let lnum be ? ToNumber(lval).
             const lnum = lval.ToNumber(ctx);
             if (lnum.isAbrupt) { return lnum.enrichWith(ctx, this); }
@@ -2984,7 +2983,7 @@ export class $BinaryExpression implements I$Node {
             r = new $Number(realm, lnum['[[Value]]'] - rnum['[[Value]]']);
             break;
           }
-          case SyntaxKind.LessThanLessThanEqualsToken: {
+          case ts.SyntaxKind.LessThanLessThanEqualsToken: {
             // 5. Let lnum be ? ToInt32(lval).
             const lnum = lval.ToInt32(ctx);
             if (lnum.isAbrupt) { return lnum.enrichWith(ctx, this); }
@@ -3000,7 +2999,7 @@ export class $BinaryExpression implements I$Node {
             r = new $Number(realm, lnum['[[Value]]'] << shiftCount);
             break;
           }
-          case SyntaxKind.GreaterThanGreaterThanEqualsToken: {
+          case ts.SyntaxKind.GreaterThanGreaterThanEqualsToken: {
             // 5. Let lnum be ? ToInt32(lval).
             const lnum = lval.ToInt32(ctx);
             if (lnum.isAbrupt) { return lnum.enrichWith(ctx, this); }
@@ -3016,7 +3015,7 @@ export class $BinaryExpression implements I$Node {
             r = new $Number(realm, lnum['[[Value]]'] >> shiftCount);
             break;
           }
-          case SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken: {
+          case ts.SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken: {
             // 5. Let lnum be ? ToUint32(lval).
             const lnum = lval.ToUint32(ctx);
             if (lnum.isAbrupt) { return lnum.enrichWith(ctx, this); }
@@ -3032,7 +3031,7 @@ export class $BinaryExpression implements I$Node {
             r = new $Number(realm, lnum['[[Value]]'] >>> shiftCount);
             break;
           }
-          case SyntaxKind.AmpersandEqualsToken: {
+          case ts.SyntaxKind.AmpersandEqualsToken: {
             // 5. Let lnum be ? ToInt32(lval).
             const lnum = lval.ToInt32(ctx);
             if (lnum.isAbrupt) { return lnum.enrichWith(ctx, this); }
@@ -3045,7 +3044,7 @@ export class $BinaryExpression implements I$Node {
             r = new $Number(realm, lnum['[[Value]]'] & rnum['[[Value]]']);
             break;
           }
-          case SyntaxKind.CaretEqualsToken: {
+          case ts.SyntaxKind.CaretEqualsToken: {
             // 5. Let lnum be ? ToInt32(lval).
             const lnum = lval.ToInt32(ctx);
             if (lnum.isAbrupt) { return lnum.enrichWith(ctx, this); }
@@ -3058,7 +3057,7 @@ export class $BinaryExpression implements I$Node {
             r = new $Number(realm, lnum['[[Value]]'] ^ rnum['[[Value]]']);
             break;
           }
-          case SyntaxKind.BarEqualsToken: {
+          case ts.SyntaxKind.BarEqualsToken: {
             // 5. Let lnum be ? ToInt32(lval).
             const lnum = lval.ToInt32(ctx);
             if (lnum.isAbrupt) { return lnum.enrichWith(ctx, this); }
@@ -3084,13 +3083,13 @@ export class $BinaryExpression implements I$Node {
         return r;
       }
       default:
-        throw new Error(`SyntaxKind ${this.node.operatorToken.kind} not yet implemented`);
+        throw new Error(`ts.SyntaxKind ${this.node.operatorToken.kind} not yet implemented`);
     }
   }
 }
 
 export class $ConditionalExpression implements I$Node {
-  public get $kind(): SyntaxKind.ConditionalExpression { return SyntaxKind.ConditionalExpression; }
+  public get $kind(): ts.SyntaxKind.ConditionalExpression { return ts.SyntaxKind.ConditionalExpression; }
 
   public readonly $condition: $$BinaryExpressionOrHigher;
   public readonly $whenTrue: $$AssignmentExpressionOrHigher;
@@ -3107,7 +3106,7 @@ export class $ConditionalExpression implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}${$i(idx)}.ConditionalExpression`,
   ) {
-    if (node.condition.kind === SyntaxKind.BinaryExpression) {
+    if (node.condition.kind === ts.SyntaxKind.BinaryExpression) {
       this.$condition = new $BinaryExpression(node.condition as BinaryExpression, this, ctx, -1);
     } else {
       this.$condition = $unaryExpression(node.condition as $UnaryExpressionNode, this, ctx, -1);
@@ -3144,7 +3143,7 @@ export class $ConditionalExpression implements I$Node {
 }
 
 export class $YieldExpression implements I$Node {
-  public get $kind(): SyntaxKind.YieldExpression { return SyntaxKind.YieldExpression; }
+  public get $kind(): ts.SyntaxKind.YieldExpression { return ts.SyntaxKind.YieldExpression; }
 
   public readonly $expression: $$AssignmentExpressionOrHigher;
 
@@ -3244,7 +3243,7 @@ export class $YieldExpression implements I$Node {
 }
 
 export class $AsExpression implements I$Node {
-  public get $kind(): SyntaxKind.AsExpression { return SyntaxKind.AsExpression; }
+  public get $kind(): ts.SyntaxKind.AsExpression { return ts.SyntaxKind.AsExpression; }
 
   public readonly $expression: $$UpdateExpressionOrHigher;
 
@@ -3275,7 +3274,7 @@ export class $AsExpression implements I$Node {
 // #endregion
 
 export class $Identifier implements I$Node {
-  public get $kind(): SyntaxKind.Identifier { return SyntaxKind.Identifier; }
+  public get $kind(): ts.SyntaxKind.Identifier { return ts.SyntaxKind.Identifier; }
 
   // http://www.ecma-international.org/ecma-262/#sec-identifiers-static-semantics-stringvalue
   // 12.1.4 Static Semantics: StringValue

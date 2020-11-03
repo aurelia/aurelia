@@ -15,9 +15,9 @@ import {
   BindingMode,
   Bindable,
 } from '@aurelia/runtime';
-import { IAttrSyntaxTransformer } from './attribute-syntax-transformer';
-import { TemplateBinder } from './template-binder';
-import { ITemplateElementFactory } from './template-element-factory';
+import { IAttrSyntaxTransformer } from './attribute-syntax-transformer.js';
+import { TemplateBinder } from './template-binder.js';
+import { ITemplateElementFactory } from './template-element-factory.js';
 import {
   BindingSymbol,
   CustomElementSymbol,
@@ -32,7 +32,7 @@ import {
   TemplateControllerSymbol,
   TextSymbol,
   SymbolFlags
-} from './semantic-model';
+} from './semantic-model.js';
 import {
   AttributeInstruction,
   HydrateAttributeInstruction,
@@ -49,11 +49,11 @@ import {
   SetStyleAttributeInstruction,
   TextBindingInstruction,
   ITemplateCompiler,
-} from './renderer';
-import { IAttributeParser } from './resources/attribute-pattern';
-import { AuSlotContentType, IProjections, ProjectionContext, RegisteredProjections, SlotInfo } from './resources/custom-elements/au-slot';
-import { CustomElement, CustomElementDefinition, PartialCustomElementDefinition } from './resources/custom-element';
-import { IPlatform } from './platform';
+} from './renderer.js';
+import { IAttributeParser } from './resources/attribute-pattern.js';
+import { AuSlotContentType, IProjections, ProjectionContext, RegisteredProjections, SlotInfo } from './resources/custom-elements/au-slot.js';
+import { CustomElement, CustomElementDefinition, PartialCustomElementDefinition } from './resources/custom-element.js';
+import { IPlatform } from './platform.js';
 
 class CustomElementCompilationUnit {
   public readonly instructions: Instruction[][] = [];

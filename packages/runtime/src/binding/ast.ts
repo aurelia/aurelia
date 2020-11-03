@@ -17,17 +17,17 @@ import {
   ObservedCollection,
   IConnectable,
   ISubscriber,
-} from '../observation';
-import { BindingContext } from '../observation/binding-context';
-import { ISignaler } from '../observation/signaler';
+} from '../observation.js';
+import { BindingContext } from '../observation/binding-context.js';
+import { ISignaler } from '../observation/signaler.js';
 import {
   BindingBehavior, BindingBehaviorInstance, BindingBehaviorFactory,
-} from '../binding-behavior';
+} from '../binding-behavior.js';
 import {
   ValueConverter, ValueConverterInstance,
-} from '../value-converter';
-import { IConnectableBinding } from './connectable';
-import type { Scope } from '../observation/binding-context';
+} from '../value-converter.js';
+import { IConnectableBinding } from './connectable.js';
+import type { Scope } from '../observation/binding-context.js';
 
 export const enum ExpressionKind {
   Connects             = 0b000000000001_00000, // The expression's connect() function calls observeProperty and/or calls connect() on another expression that it wraps (all expressions except for AccessThis, PrimitiveLiteral, CallMember/Function and Assign)

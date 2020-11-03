@@ -2,63 +2,62 @@ import {
   $BuiltinFunction,
   $Function,
   $GetPrototypeFromConstructor,
-} from '../types/function';
+} from '../types/function.js';
 import {
   Realm,
   ExecutionContext,
-} from '../realm';
+} from '../realm.js';
 import {
   $AnyNonEmpty,
   $AnyNonEmptyNonError,
   CompletionType,
-} from '../types/_shared';
+} from '../types/_shared.js';
 import {
   $Error, $TypeError,
-} from '../types/error';
+} from '../types/error.js';
 import {
   $Undefined,
-} from '../types/undefined';
+} from '../types/undefined.js';
 import {
   $Object,
-} from '../types/object';
+} from '../types/object.js';
 import {
   $ObjectPrototype,
-} from './object';
+} from './object.js';
 import {
   $List,
-} from '../types/list';
+} from '../types/list.js';
 import {
   $Call,
   $HostEnsureCanCompileStrings,
   $DefinePropertyOrThrow,
-} from '../operations';
+} from '../operations.js';
 import {
   $String,
-} from '../types/string';
-import {
-  createSourceFile,
-  ScriptTarget,
+} from '../types/string.js';
+import ts from 'typescript';
+import type {
   FunctionDeclaration,
 } from 'typescript';
 import {
   $FunctionDeclaration,
-} from '../ast/functions';
+} from '../ast/functions.js';
 import {
   $ESModule,
-} from '../ast/modules';
+} from '../ast/modules.js';
 import {
   Context,
   FunctionKind,
-} from '../ast/_shared';
+} from '../ast/_shared.js';
 import {
   $Boolean,
-} from '../types/boolean';
+} from '../types/boolean.js';
 import {
   $PropertyDescriptor,
-} from '../types/property-descriptor';
+} from '../types/property-descriptor.js';
 import {
   $Number,
-} from '../types/number';
+} from '../types/number.js';
 
 // http://www.ecma-international.org/ecma-262/#sec-function-objects
 // 19.2 Function Objects
@@ -496,10 +495,10 @@ export function $CreateDynamicFunction(
 
   // 17. Let parameters be the result of parsing P, interpreted as UTF-16 encoded Unicode text as described in 6.1.4, using parameterGoal as the goal symbol. Throw a SyntaxError exception if the parse fails.
   // 18. Let body be the result of parsing bodyText, interpreted as UTF-16 encoded Unicode text as described in 6.1.4, using goal as the goal symbol. Throw a SyntaxError exception if the parse fails.
-  const node = createSourceFile(
+  const node = ts.createSourceFile(
     '',
     sourceText,
-    ScriptTarget.Latest,
+    ts.ScriptTarget.Latest,
   ).statements[0] as FunctionDeclaration;
   const ScriptOrModule = callerContext.ScriptOrModule as $ESModule;
 

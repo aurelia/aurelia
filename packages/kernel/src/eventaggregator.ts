@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import { DI } from './di';
-import { Constructable, IDisposable } from './interfaces';
+import { DI } from './di.js';
+import { Constructable, IDisposable } from './interfaces.js';
 
 /**
  * Represents a handler for an EventAggregator event.

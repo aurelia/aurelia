@@ -1,14 +1,14 @@
 import { IContainer, Key } from '@aurelia/kernel';
 import { CustomElement } from '@aurelia/runtime-html';
-import { ComponentAppellation, ComponentParameters, IRouteableComponent, RouteableComponentType, ViewportHandle } from './interfaces';
-import { IRouter } from './router';
-import { ComponentAppellationResolver } from './type-resolvers';
-import { Viewport } from './viewport';
-import { IComponentParameter, InstructionResolver } from './instruction-resolver';
-import { Scope, IScopeOwner } from './scope';
-import { ViewportScope } from './viewport-scope';
-import { FoundRoute } from './found-route';
-import { RouterOptions } from './router-options';
+import { ComponentAppellation, ComponentParameters, IRouteableComponent, RouteableComponentType, ViewportHandle } from './interfaces.js';
+import { IRouter } from './router.js';
+import { ComponentAppellationResolver } from './type-resolvers.js';
+import { Viewport } from './viewport.js';
+import { IComponentParameter, InstructionResolver } from './instruction-resolver.js';
+import { Scope, IScopeOwner } from './scope.js';
+import { ViewportScope } from './viewport-scope.js';
+import { FoundRoute } from './found-route.js';
+import { RouterOptions } from './router-options.js';
 
 /**
  * @internal - Shouldn't be used directly

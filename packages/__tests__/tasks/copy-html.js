@@ -4,10 +4,11 @@
  * A minimalist implementation to watch and copy html files to dist.
  * Existing packages like cpx does not copy new files.
  */
-const chokidar = require('chokidar');
-const argv = require('yargs').argv;
-const path = require('path');
-const fs = require('fs');
+import * as chokidar from 'chokidar';
+import yargs from 'yargs';
+const { argv } = yargs;
+import * as path from 'path';
+import * as fs from 'fs';
 
 const sourceDirs = ['integration'];
 const baseOutDir = path.join('dist', 'esnext', '__tests__');

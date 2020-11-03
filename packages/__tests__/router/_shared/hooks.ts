@@ -1,6 +1,6 @@
 import { assert } from '@aurelia/testing';
-import { interleave, prepend } from '../_hook-tests.spec';
-import { HookName } from './hook-invocation-tracker';
+import { interleave, prepend } from '../_hook-tests.spec.js';
+import { HookName } from './hook-invocation-tracker.js';
 
 export const addHooks: HookName[] = ['binding', 'bound', 'attaching', 'attached'];
 export const removeHooks: HookName[] = ['detaching', 'unbinding', 'dispose'];

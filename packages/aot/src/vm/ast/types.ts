@@ -1,9 +1,8 @@
-import {
+import ts from 'typescript';
+import type {
   EnumDeclaration,
   EnumMember,
   InterfaceDeclaration,
-  ModifierFlags,
-  SyntaxKind,
   TypeAliasDeclaration,
 } from 'typescript';
 import {
@@ -12,10 +11,10 @@ import {
 } from '@aurelia/kernel';
 import {
   Realm,
-} from '../realm';
+} from '../realm.js';
 import {
   $String,
-} from '../types/string';
+} from '../types/string.js';
 import {
   I$Node,
   Context,
@@ -32,22 +31,22 @@ import {
   $AssignmentExpressionNode,
   $i,
   $$ESVarDeclaration,
-} from './_shared';
+} from './_shared.js';
 import {
   ExportEntryRecord,
   $$ESModuleOrScript,
-} from './modules';
+} from './modules.js';
 import {
   $Identifier,
-} from './expressions';
+} from './expressions.js';
 import {
   $HeritageClause,
-} from './classes';
+} from './classes.js';
 
 export class $InterfaceDeclaration implements I$Node {
-  public get $kind(): SyntaxKind.InterfaceDeclaration { return SyntaxKind.InterfaceDeclaration; }
+  public get $kind(): ts.SyntaxKind.InterfaceDeclaration { return ts.SyntaxKind.InterfaceDeclaration; }
 
-  public readonly modifierFlags: ModifierFlags;
+  public readonly modifierFlags: ts.ModifierFlags;
 
   public readonly BoundNames: readonly [$String];
   public readonly VarDeclaredNames: readonly $String[] = emptyArray;
@@ -82,7 +81,7 @@ export class $InterfaceDeclaration implements I$Node {
 
     const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
-    if (hasBit(modifierFlags, ModifierFlags.Export)) {
+    if (hasBit(modifierFlags, ts.ModifierFlags.Export)) {
       ctx |= Context.InExport;
     }
 
@@ -115,9 +114,9 @@ export class $InterfaceDeclaration implements I$Node {
 }
 
 export class $TypeAliasDeclaration implements I$Node {
-  public get $kind(): SyntaxKind.TypeAliasDeclaration { return SyntaxKind.TypeAliasDeclaration; }
+  public get $kind(): ts.SyntaxKind.TypeAliasDeclaration { return ts.SyntaxKind.TypeAliasDeclaration; }
 
-  public readonly modifierFlags: ModifierFlags;
+  public readonly modifierFlags: ts.ModifierFlags;
 
   public readonly BoundNames: readonly [$String];
   public readonly VarDeclaredNames: readonly $String[] = emptyArray;
@@ -151,7 +150,7 @@ export class $TypeAliasDeclaration implements I$Node {
 
     const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
-    if (hasBit(modifierFlags, ModifierFlags.Export)) {
+    if (hasBit(modifierFlags, ts.ModifierFlags.Export)) {
       ctx |= Context.InExport;
     }
 
@@ -200,9 +199,9 @@ export function $enumMemberList(
 }
 
 export class $EnumDeclaration implements I$Node {
-  public get $kind(): SyntaxKind.EnumDeclaration { return SyntaxKind.EnumDeclaration; }
+  public get $kind(): ts.SyntaxKind.EnumDeclaration { return ts.SyntaxKind.EnumDeclaration; }
 
-  public readonly modifierFlags: ModifierFlags;
+  public readonly modifierFlags: ts.ModifierFlags;
 
   public readonly BoundNames: readonly [$String];
   public readonly VarDeclaredNames: readonly $String[] = emptyArray;
@@ -235,7 +234,7 @@ export class $EnumDeclaration implements I$Node {
 
     const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
-    if (hasBit(modifierFlags, ModifierFlags.Export)) {
+    if (hasBit(modifierFlags, ts.ModifierFlags.Export)) {
       ctx |= Context.InExport;
     }
 
@@ -268,7 +267,7 @@ export class $EnumDeclaration implements I$Node {
 }
 
 export class $EnumMember implements I$Node {
-  public get $kind(): SyntaxKind.EnumMember { return SyntaxKind.EnumMember; }
+  public get $kind(): ts.SyntaxKind.EnumMember { return ts.SyntaxKind.EnumMember; }
 
   public readonly $name: $$PropertyName;
   public readonly $initializer: $$AssignmentExpressionOrHigher | undefined;

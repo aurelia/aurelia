@@ -13,8 +13,8 @@ import {
   ILifecycle,
   AccessorType,
 } from '@aurelia/runtime';
-import { EventSubscriber } from './event-delegator';
-import { ValueAttributeObserver } from './value-attribute-observer';
+import { EventSubscriber } from './event-delegator.js';
+import { ValueAttributeObserver } from './value-attribute-observer.js';
 
 type RepeatableCollection = unknown[] | Set<unknown> | Map<unknown, unknown>;
 

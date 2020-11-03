@@ -83,7 +83,7 @@ describe('plugin-gulp', function () {
     t.on('error', done);
     t.on('end', () => {
       assert.equal(files.length, 1);
-      assert.equal(files[0].relative, 'src/foo-bar.html.js');
+      assert.equal(files[0].relative, 'src/foo-bar.html');
       assert.equal(files[0].contents.toString(), expected);
       assert.equal(files[0].sourceMap, undefined);
       done();
@@ -117,7 +117,7 @@ describe('plugin-gulp', function () {
     t.on('error', done);
     t.on('end', () => {
       assert.equal(files.length, 1);
-      assert.equal(files[0].relative, 'src/foo-bar.html.js');
+      assert.equal(files[0].relative, 'src/foo-bar.html');
       assert.equal(files[0].contents.toString(), expected);
       assert.equal(files[0].sourceMap.version, 3);
       done();
@@ -146,7 +146,7 @@ describe('plugin-gulp', function () {
     t.on('error', done);
     t.on('end', () => {
       assert.equal(files.length, 1);
-      assert.equal(files[0].relative, 'src/foo-bar.html.js');
+      assert.equal(files[0].relative, 'src/foo-bar.html');
       assert.equal(files[0].contents.toString(), expected);
       assert.equal(files[0].sourceMap.version, 3);
       done();
@@ -182,7 +182,7 @@ describe('plugin-gulp', function () {
     t.on('error', done);
     t.on('end', () => {
       assert.equal(files.length, 1);
-      assert.equal(files[0].relative, 'src/foo-bar.html.js');
+      assert.equal(files[0].relative, 'src/foo-bar.html');
       assert.equal(files[0].contents.toString(), expected);
       assert.equal(files[0].sourceMap.version, 3);
       done();

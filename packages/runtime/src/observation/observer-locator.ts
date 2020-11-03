@@ -12,15 +12,15 @@ import {
   IObservedMap,
   IObservedSet,
   LifecycleFlags,
-} from '../observation';
-import { getArrayObserver } from './array-observer';
-import { createComputedObserver } from './computed-observer';
-import { IDirtyChecker } from './dirty-checker';
-import { getMapObserver } from './map-observer';
-import { PrimitiveObserver } from './primitive-observer';
-import { propertyAccessor } from './property-accessor';
-import { getSetObserver } from './set-observer';
-import { SetterObserver } from './setter-observer';
+} from '../observation.js';
+import { getArrayObserver } from './array-observer.js';
+import { createComputedObserver } from './computed-observer.js';
+import { IDirtyChecker } from './dirty-checker.js';
+import { getMapObserver } from './map-observer.js';
+import { PrimitiveObserver } from './primitive-observer.js';
+import { propertyAccessor } from './property-accessor.js';
+import { getSetObserver } from './set-observer.js';
+import { SetterObserver } from './setter-observer.js';
 
 export interface IObjectObservationAdapter {
   getObserver(flags: LifecycleFlags, object: unknown, propertyName: string, descriptor: PropertyDescriptor): IBindingTargetObserver | null;

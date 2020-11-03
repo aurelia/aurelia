@@ -11,9 +11,9 @@ import {
   ITask,
   AccessorType,
 } from '@aurelia/runtime';
-import { EventSubscriber } from './event-delegator';
+import { EventSubscriber } from './event-delegator.js';
 import { bound } from '@aurelia/kernel';
-import { IPlatform } from '../platform';
+import { IPlatform } from '../platform.js';
 
 const childObserverOptions = {
   childList: true,

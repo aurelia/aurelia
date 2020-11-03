@@ -13,14 +13,14 @@ import {
   Transformer,
 } from '@aurelia/kernel';
 import { Scope, LifecycleFlags } from '@aurelia/runtime';
-import { FragmentNodeSequence, INode, INodeSequence, IRenderLocation } from '../dom';
-import { IRenderer, ITemplateCompiler, IInstruction, Instruction, InstructionTypeName } from '../renderer';
-import { CustomElementDefinition, PartialCustomElementDefinition } from '../resources/custom-element';
-import { IViewFactory, ViewFactory } from './view';
-import { AuSlotContentType, IProjectionProvider, RegisteredProjections } from '../resources/custom-elements/au-slot';
-import { IPlatform } from '../platform';
-import { IController } from './controller';
-import type { ICustomAttributeViewModel, ICustomElementViewModel, IHydratableController } from './controller';
+import { FragmentNodeSequence, INode, INodeSequence, IRenderLocation } from '../dom.js';
+import { IRenderer, ITemplateCompiler, IInstruction, Instruction, InstructionTypeName } from '../renderer.js';
+import { CustomElementDefinition, PartialCustomElementDefinition } from '../resources/custom-element.js';
+import { IViewFactory, ViewFactory } from './view.js';
+import { AuSlotContentType, IProjectionProvider, RegisteredProjections } from '../resources/custom-elements/au-slot.js';
+import { IPlatform } from '../platform.js';
+import { IController } from './controller.js';
+import type { ICustomAttributeViewModel, ICustomElementViewModel, IHydratableController } from './controller.js';
 
 const definitionContainerLookup = new WeakMap<CustomElementDefinition, WeakMap<IContainer, RenderContext>>();
 const definitionContainerProjectionsLookup = new WeakMap<CustomElementDefinition, WeakMap<IContainer, WeakMap<Record<string, CustomElementDefinition>, RenderContext>>>();

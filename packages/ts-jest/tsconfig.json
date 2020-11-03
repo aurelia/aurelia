@@ -3,6 +3,7 @@
   "compilerOptions": {
     "rootDir": "src",
     "declarationDir": "dist",
+    "allowSyntheticDefaultImports": true,
     "outDir": "dist/esnext"
   },
   "include": ["src"]

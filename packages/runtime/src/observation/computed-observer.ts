@@ -14,10 +14,10 @@ import {
   ISubscribable,
   ISubscriber,
   LifecycleFlags
-} from '../observation';
-import { IDirtyChecker } from './dirty-checker';
-import { IObserverLocator } from './observer-locator';
-import { subscriberCollection } from './subscriber-collection';
+} from '../observation.js';
+import { IDirtyChecker } from './dirty-checker.js';
+import { IObserverLocator } from './observer-locator.js';
+import { subscriberCollection } from './subscriber-collection.js';
 
 export interface ComputedOverrides {
   // Indicates that a getter doesn't need to re-calculate its dependencies after the first observation.

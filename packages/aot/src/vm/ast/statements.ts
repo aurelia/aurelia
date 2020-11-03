@@ -1,4 +1,5 @@
-import {
+import ts from 'typescript';
+import type {
   Block,
   BreakStatement,
   CaseBlock,
@@ -15,13 +16,10 @@ import {
   ForStatement,
   IfStatement,
   LabeledStatement,
-  ModifierFlags,
   NodeArray,
-  NodeFlags,
   ReturnStatement,
   StringLiteral,
   SwitchStatement,
-  SyntaxKind,
   ThrowStatement,
   TryStatement,
   VariableDeclaration,
@@ -39,24 +37,24 @@ import {
 import {
   Realm,
   ExecutionContext,
-} from '../realm';
+} from '../realm.js';
 import {
   $DeclarativeEnvRec,
-} from '../types/environment-record';
+} from '../types/environment-record.js';
 import {
   $String,
-} from '../types/string';
+} from '../types/string.js';
 import {
   $Undefined,
-} from '../types/undefined';
+} from '../types/undefined.js';
 import {
   $Any,
   CompletionType,
   $AnyNonEmpty,
-} from '../types/_shared';
+} from '../types/_shared.js';
 import {
   $Empty,
-} from '../types/empty';
+} from '../types/empty.js';
 import {
   I$Node,
   Context,
@@ -87,28 +85,28 @@ import {
   getLexicallyScopedDeclarations,
   $i,
   $$ESVarDeclaration,
-} from './_shared';
+} from './_shared.js';
 import {
   ExportEntryRecord,
   $$ESModuleOrScript,
-} from './modules';
+} from './modules.js';
 import {
   $Identifier,
-} from './expressions';
+} from './expressions.js';
 import {
   $ObjectBindingPattern,
-} from './bindings';
+} from './bindings.js';
 import {
   $StringSet,
-} from '../globals/string';
+} from '../globals/string.js';
 import {
   $LoopContinues,
-} from '../operations';
+} from '../operations.js';
 
 export class $VariableStatement implements I$Node {
-  public get $kind(): SyntaxKind.VariableStatement { return SyntaxKind.VariableStatement; }
+  public get $kind(): ts.SyntaxKind.VariableStatement { return ts.SyntaxKind.VariableStatement; }
 
-  public readonly modifierFlags: ModifierFlags;
+  public readonly modifierFlags: ts.ModifierFlags;
 
   public readonly $declarationList: $VariableDeclarationList;
 
@@ -164,7 +162,7 @@ export class $VariableStatement implements I$Node {
 
     ctx |= Context.InVariableStatement;
 
-    if (hasBit(this.modifierFlags, ModifierFlags.Export)) {
+    if (hasBit(this.modifierFlags, ts.ModifierFlags.Export)) {
       ctx |= Context.InExport;
     }
 
@@ -302,10 +300,10 @@ export class $VariableStatement implements I$Node {
 }
 
 export class $VariableDeclaration implements I$Node {
-  public get $kind(): SyntaxKind.VariableDeclaration { return SyntaxKind.VariableDeclaration; }
+  public get $kind(): ts.SyntaxKind.VariableDeclaration { return ts.SyntaxKind.VariableDeclaration; }
 
-  public readonly modifierFlags: ModifierFlags;
-  public readonly combinedModifierFlags: ModifierFlags;
+  public readonly modifierFlags: ts.ModifierFlags;
+  public readonly combinedModifierFlags: ts.ModifierFlags;
 
   public readonly $name: $$BindingName;
   public readonly $initializer: $$AssignmentExpressionOrHigher | undefined;
@@ -385,7 +383,7 @@ export class $VariableDeclaration implements I$Node {
         // 12.1.5 Runtime Semantics: BindingInitialization
         // http://www.ecma-international.org/ecma-262/#sec-initializeboundname
         // 12.1.5.1 Runtime Semantics: InitializeBoundName ( name , value , environment )
-        case SyntaxKind.Identifier: {
+        case ts.SyntaxKind.Identifier: {
           const name = boundNames![0]?.GetValue(ctx);
           // 1. Assert: Type(name) is String.
           // 2. If environment is not undefined, then
@@ -405,11 +403,11 @@ export class $VariableDeclaration implements I$Node {
             return lhs.PutValue(ctx, value).enrichWith(ctx, this);
           }
         }
-        case SyntaxKind.ObjectBindingPattern:
+        case ts.SyntaxKind.ObjectBindingPattern:
           (bindingName as $ObjectBindingPattern).InitializeBinding(ctx, value, envRec);
           break;
 
-        case SyntaxKind.ArrayBindingPattern:
+        case ts.SyntaxKind.ArrayBindingPattern:
           // TODO
           break;
       }
@@ -437,9 +435,9 @@ export function $variableDeclarationList(
 }
 
 export class $VariableDeclarationList implements I$Node {
-  public get $kind(): SyntaxKind.VariableDeclarationList { return SyntaxKind.VariableDeclarationList; }
+  public get $kind(): ts.SyntaxKind.VariableDeclarationList { return ts.SyntaxKind.VariableDeclarationList; }
 
-  public readonly combinedModifierFlags: ModifierFlags;
+  public readonly combinedModifierFlags: ts.ModifierFlags;
 
   public readonly $declarations: readonly $VariableDeclaration[];
 
@@ -471,18 +469,18 @@ export class $VariableDeclarationList implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.VariableDeclarationList`,
   ) {
-    this.isLexical = (node.flags & (NodeFlags.Const | NodeFlags.Let)) > 0;
-    this.IsConstantDeclaration = (node.flags & NodeFlags.Const) > 0;
+    this.isLexical = (node.flags & (ts.NodeFlags.Const | ts.NodeFlags.Let)) > 0;
+    this.IsConstantDeclaration = (node.flags & ts.NodeFlags.Const) > 0;
 
     if (hasBit(ctx, Context.InVariableStatement)) {
       this.combinedModifierFlags = (parent as $VariableStatement).modifierFlags;
     } else {
-      this.combinedModifierFlags = ModifierFlags.None;
+      this.combinedModifierFlags = ts.ModifierFlags.None;
     }
 
-    if (hasBit(node.flags, NodeFlags.Const)) {
+    if (hasBit(node.flags, ts.NodeFlags.Const)) {
       ctx |= Context.IsConst;
-    } else if (hasBit(node.flags, NodeFlags.Let)) {
+    } else if (hasBit(node.flags, ts.NodeFlags.Let)) {
       ctx |= Context.IsLet;
     } else {
       ctx |= Context.IsVar;
@@ -499,7 +497,7 @@ export class $VariableDeclarationList implements I$Node {
 // #region Statements
 
 export class $Block implements I$Node {
-  public get $kind(): SyntaxKind.Block { return SyntaxKind.Block; }
+  public get $kind(): ts.SyntaxKind.Block { return ts.SyntaxKind.Block; }
 
   public readonly $statements: readonly $$TSStatementListItem[];
 
@@ -558,21 +556,21 @@ export class $Block implements I$Node {
     for (let i = 0; i < len; ++i) {
       $statement = $statements[i];
       switch ($statement.$kind) {
-        case SyntaxKind.FunctionDeclaration:
+        case ts.SyntaxKind.FunctionDeclaration:
           LexicallyDeclaredNames.push(...$statement.BoundNames);
           LexicallyScopedDeclarations.push($statement);
 
           TopLevelVarDeclaredNames.push(...$statement.BoundNames);
           TopLevelVarScopedDeclarations.push($statement);
           break;
-        case SyntaxKind.ClassDeclaration:
+        case ts.SyntaxKind.ClassDeclaration:
           LexicallyDeclaredNames.push(...$statement.BoundNames);
           LexicallyScopedDeclarations.push($statement);
 
           TopLevelLexicallyDeclaredNames.push(...$statement.BoundNames);
           TopLevelLexicallyScopedDeclarations.push($statement);
           break;
-        case SyntaxKind.VariableStatement:
+        case ts.SyntaxKind.VariableStatement:
           if ($statement.isLexical) {
             LexicallyDeclaredNames.push(...$statement.BoundNames);
             LexicallyScopedDeclarations.push($statement);
@@ -587,7 +585,7 @@ export class $Block implements I$Node {
             VarScopedDeclarations.push(...$statement.VarScopedDeclarations);
           }
           break;
-        case SyntaxKind.LabeledStatement:
+        case ts.SyntaxKind.LabeledStatement:
           LexicallyDeclaredNames.push(...$statement.LexicallyDeclaredNames);
           LexicallyScopedDeclarations.push(...$statement.LexicallyScopedDeclarations);
 
@@ -597,16 +595,16 @@ export class $Block implements I$Node {
           VarDeclaredNames.push(...$statement.VarDeclaredNames);
           VarScopedDeclarations.push(...$statement.VarScopedDeclarations);
           break;
-        case SyntaxKind.Block:
-        case SyntaxKind.IfStatement:
-        case SyntaxKind.DoStatement:
-        case SyntaxKind.WhileStatement:
-        case SyntaxKind.ForStatement:
-        case SyntaxKind.ForInStatement:
-        case SyntaxKind.ForOfStatement:
-        case SyntaxKind.WithStatement:
-        case SyntaxKind.SwitchStatement:
-        case SyntaxKind.TryStatement:
+        case ts.SyntaxKind.Block:
+        case ts.SyntaxKind.IfStatement:
+        case ts.SyntaxKind.DoStatement:
+        case ts.SyntaxKind.WhileStatement:
+        case ts.SyntaxKind.ForStatement:
+        case ts.SyntaxKind.ForInStatement:
+        case ts.SyntaxKind.ForOfStatement:
+        case ts.SyntaxKind.WithStatement:
+        case ts.SyntaxKind.SwitchStatement:
+        case ts.SyntaxKind.TryStatement:
           TopLevelVarDeclaredNames.push(...$statement.VarDeclaredNames);
           TopLevelVarScopedDeclarations.push(...$statement.VarScopedDeclarations);
 
@@ -661,7 +659,7 @@ export class $Block implements I$Node {
 }
 
 export class $EmptyStatement implements I$Node {
-  public get $kind(): SyntaxKind.EmptyStatement { return SyntaxKind.EmptyStatement; }
+  public get $kind(): ts.SyntaxKind.EmptyStatement { return ts.SyntaxKind.EmptyStatement; }
 
   public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
@@ -711,7 +709,7 @@ export type DirectivePrologue = readonly ExpressionStatement_T<StringLiteral>[] 
 };
 
 export class $ExpressionStatement implements I$Node {
-  public get $kind(): SyntaxKind.ExpressionStatement { return SyntaxKind.ExpressionStatement; }
+  public get $kind(): ts.SyntaxKind.ExpressionStatement { return ts.SyntaxKind.ExpressionStatement; }
 
   public readonly $expression: $$AssignmentExpressionOrHigher;
 
@@ -756,7 +754,7 @@ export class $ExpressionStatement implements I$Node {
 }
 
 export class $IfStatement implements I$Node {
-  public get $kind(): SyntaxKind.IfStatement { return SyntaxKind.IfStatement; }
+  public get $kind(): ts.SyntaxKind.IfStatement { return ts.SyntaxKind.IfStatement; }
 
   public readonly $expression: $$AssignmentExpressionOrHigher;
   public readonly $thenStatement: $$ESLabelledItem;
@@ -863,7 +861,7 @@ export class $IfStatement implements I$Node {
 }
 
 export class $DoStatement implements I$Node {
-  public get $kind(): SyntaxKind.DoStatement { return SyntaxKind.DoStatement; }
+  public get $kind(): ts.SyntaxKind.DoStatement { return ts.SyntaxKind.DoStatement; }
 
   public readonly $statement: $$ESLabelledItem;
   public readonly $expression: $$AssignmentExpressionOrHigher;
@@ -948,7 +946,7 @@ export class $DoStatement implements I$Node {
 }
 
 export class $WhileStatement implements I$Node {
-  public get $kind(): SyntaxKind.WhileStatement { return SyntaxKind.WhileStatement; }
+  public get $kind(): ts.SyntaxKind.WhileStatement { return ts.SyntaxKind.WhileStatement; }
 
   public readonly $statement: $$ESLabelledItem;
   public readonly $expression: $$AssignmentExpressionOrHigher;
@@ -1038,7 +1036,7 @@ export type $$Initializer = (
 );
 
 export class $ForStatement implements I$Node {
-  public get $kind(): SyntaxKind.ForStatement { return SyntaxKind.ForStatement; }
+  public get $kind(): ts.SyntaxKind.ForStatement { return ts.SyntaxKind.ForStatement; }
 
   public readonly $initializer: $$Initializer | undefined;
   public readonly $condition: $$AssignmentExpressionOrHigher | undefined;
@@ -1075,7 +1073,7 @@ export class $ForStatement implements I$Node {
       this.VarDeclaredNames = $statement.VarDeclaredNames;
       this.VarScopedDeclarations = $statement.VarScopedDeclarations;
     } else {
-      if (node.initializer.kind === SyntaxKind.VariableDeclarationList) {
+      if (node.initializer.kind === ts.SyntaxKind.VariableDeclarationList) {
         const $initializer = this.$initializer = new $VariableDeclarationList(node.initializer as VariableDeclarationList, this, ctx);
         if ($initializer.isLexical) {
           this.VarDeclaredNames = $statement.VarDeclaredNames;
@@ -1150,7 +1148,7 @@ export class $ForStatement implements I$Node {
 }
 
 export class $ForInStatement implements I$Node {
-  public get $kind(): SyntaxKind.ForInStatement { return SyntaxKind.ForInStatement; }
+  public get $kind(): ts.SyntaxKind.ForInStatement { return ts.SyntaxKind.ForInStatement; }
 
   public readonly $initializer: $$Initializer;
   public readonly $expression: $$AssignmentExpressionOrHigher;
@@ -1180,7 +1178,7 @@ export class $ForInStatement implements I$Node {
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx, -1);
     const $statement = this.$statement = $$esLabelledItem(node.statement as $StatementNode, this, ctx, -1);
 
-    if (node.initializer.kind === SyntaxKind.VariableDeclarationList) {
+    if (node.initializer.kind === ts.SyntaxKind.VariableDeclarationList) {
       const $initializer = this.$initializer = new $VariableDeclarationList(node.initializer as VariableDeclarationList, this, ctx);
       if ($initializer.isLexical) {
         this.BoundNames = $initializer.BoundNames;
@@ -1286,7 +1284,7 @@ export class $ForInStatement implements I$Node {
 }
 
 export class $ForOfStatement implements I$Node {
-  public get $kind(): SyntaxKind.ForOfStatement { return SyntaxKind.ForOfStatement; }
+  public get $kind(): ts.SyntaxKind.ForOfStatement { return ts.SyntaxKind.ForOfStatement; }
 
   public readonly $initializer: $$Initializer;
   public readonly $expression: $$AssignmentExpressionOrHigher;
@@ -1316,7 +1314,7 @@ export class $ForOfStatement implements I$Node {
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx, -1);
     const $statement = this.$statement = $$esLabelledItem(node.statement as $StatementNode, this, ctx, -1);
 
-    if (node.initializer.kind === SyntaxKind.VariableDeclarationList) {
+    if (node.initializer.kind === ts.SyntaxKind.VariableDeclarationList) {
       const $initializer = this.$initializer = new $VariableDeclarationList(node.initializer as VariableDeclarationList, this, ctx);
       if ($initializer.isLexical) {
         this.BoundNames = $initializer.BoundNames;
@@ -1418,7 +1416,7 @@ export class $ForOfStatement implements I$Node {
 }
 
 export class $ContinueStatement implements I$Node {
-  public get $kind(): SyntaxKind.ContinueStatement { return SyntaxKind.ContinueStatement; }
+  public get $kind(): ts.SyntaxKind.ContinueStatement { return ts.SyntaxKind.ContinueStatement; }
 
   public readonly $label: $Identifier | undefined;
 
@@ -1472,7 +1470,7 @@ export class $ContinueStatement implements I$Node {
 }
 
 export class $BreakStatement implements I$Node {
-  public get $kind(): SyntaxKind.BreakStatement { return SyntaxKind.BreakStatement; }
+  public get $kind(): ts.SyntaxKind.BreakStatement { return ts.SyntaxKind.BreakStatement; }
 
   public readonly $label: $Identifier | undefined;
 
@@ -1526,7 +1524,7 @@ export class $BreakStatement implements I$Node {
 }
 
 export class $ReturnStatement implements I$Node {
-  public get $kind(): SyntaxKind.ReturnStatement { return SyntaxKind.ReturnStatement; }
+  public get $kind(): ts.SyntaxKind.ReturnStatement { return ts.SyntaxKind.ReturnStatement; }
 
   public readonly $expression: $$AssignmentExpressionOrHigher | undefined;
 
@@ -1592,7 +1590,7 @@ export class $ReturnStatement implements I$Node {
 }
 
 export class $WithStatement implements I$Node {
-  public get $kind(): SyntaxKind.WithStatement { return SyntaxKind.WithStatement; }
+  public get $kind(): ts.SyntaxKind.WithStatement { return ts.SyntaxKind.WithStatement; }
 
   public readonly $expression: $$AssignmentExpressionOrHigher;
   public readonly $statement: $$ESLabelledItem;
@@ -1652,7 +1650,7 @@ export class $WithStatement implements I$Node {
 }
 
 export class $SwitchStatement implements I$Node {
-  public get $kind(): SyntaxKind.SwitchStatement { return SyntaxKind.SwitchStatement; }
+  public get $kind(): ts.SyntaxKind.SwitchStatement { return ts.SyntaxKind.SwitchStatement; }
 
   public readonly $expression: $$AssignmentExpressionOrHigher;
   public readonly $caseBlock: $CaseBlock;
@@ -1750,7 +1748,7 @@ export class $SwitchStatement implements I$Node {
     }
 
     let V: $Any = $undefined;
-    const defaultClauseIndex: number = clauses.findIndex((clause) => clause.$kind === SyntaxKind.DefaultClause);
+    const defaultClauseIndex: number = clauses.findIndex((clause) => clause.$kind === ts.SyntaxKind.DefaultClause);
     class CaseClausesEvaluationResult {
       public constructor(public result: $Any, public found: boolean, public isAbrupt: boolean) { }
     }
@@ -1865,7 +1863,7 @@ export class $SwitchStatement implements I$Node {
 }
 
 export class $LabeledStatement implements I$Node {
-  public get $kind(): SyntaxKind.LabeledStatement { return SyntaxKind.LabeledStatement; }
+  public get $kind(): ts.SyntaxKind.LabeledStatement { return ts.SyntaxKind.LabeledStatement; }
 
   public readonly $label: $Identifier;
   public readonly $statement: $$ESLabelledItem;
@@ -1912,7 +1910,7 @@ export class $LabeledStatement implements I$Node {
     this.$label = $identifier(node.label, this, ctx | Context.IsLabel, -1);
     const $statement = this.$statement = $$esLabelledItem(node.statement as $StatementNode, this, ctx, -1);
 
-    if ($statement.$kind === SyntaxKind.FunctionDeclaration) {
+    if ($statement.$kind === ts.SyntaxKind.FunctionDeclaration) {
       this.LexicallyDeclaredNames = $statement.BoundNames;
       this.LexicallyScopedDeclarations = [$statement];
       this.TopLevelVarDeclaredNames = $statement.BoundNames;
@@ -1922,7 +1920,7 @@ export class $LabeledStatement implements I$Node {
     } else {
       this.LexicallyDeclaredNames = emptyArray;
       this.LexicallyScopedDeclarations = emptyArray;
-      if ($statement.$kind === SyntaxKind.LabeledStatement) {
+      if ($statement.$kind === ts.SyntaxKind.LabeledStatement) {
         this.TopLevelVarDeclaredNames = $statement.TopLevelVarDeclaredNames;
         this.TopLevelVarScopedDeclarations = $statement.TopLevelVarScopedDeclarations;
       } else {
@@ -1989,7 +1987,7 @@ export class $LabeledStatement implements I$Node {
 }
 
 export class $ThrowStatement implements I$Node {
-  public get $kind(): SyntaxKind.ThrowStatement { return SyntaxKind.ThrowStatement; }
+  public get $kind(): ts.SyntaxKind.ThrowStatement { return ts.SyntaxKind.ThrowStatement; }
 
   public readonly $expression: $$AssignmentExpressionOrHigher;
 
@@ -2042,7 +2040,7 @@ export class $ThrowStatement implements I$Node {
 }
 
 export class $TryStatement implements I$Node {
-  public get $kind(): SyntaxKind.TryStatement { return SyntaxKind.TryStatement; }
+  public get $kind(): ts.SyntaxKind.TryStatement { return ts.SyntaxKind.TryStatement; }
 
   public readonly $tryBlock: $Block;
   public readonly $catchClause: $CatchClause | undefined;
@@ -2222,7 +2220,7 @@ export class $TryStatement implements I$Node {
 }
 
 export class $DebuggerStatement implements I$Node {
-  public get $kind(): SyntaxKind.DebuggerStatement { return SyntaxKind.DebuggerStatement; }
+  public get $kind(): ts.SyntaxKind.DebuggerStatement { return ts.SyntaxKind.DebuggerStatement; }
 
   public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
@@ -2287,10 +2285,10 @@ export function $$clauseList(
   for (let i = 0; i < len; ++i) {
     node = nodes[i];
     switch (node.kind) {
-      case SyntaxKind.CaseClause:
+      case ts.SyntaxKind.CaseClause:
         $nodes[i] = new $CaseClause(node, parent, ctx, i);
         break;
-      case SyntaxKind.DefaultClause:
+      case ts.SyntaxKind.DefaultClause:
         $nodes[i] = new $DefaultClause(node, parent, ctx, i);
         break;
     }
@@ -2299,7 +2297,7 @@ export function $$clauseList(
 }
 
 export class $CaseBlock implements I$Node {
-  public get $kind(): SyntaxKind.CaseBlock { return SyntaxKind.CaseBlock; }
+  public get $kind(): ts.SyntaxKind.CaseBlock { return ts.SyntaxKind.CaseBlock; }
 
   // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-lexicallydeclarednames
   // 13.12.5 Static Semantics: LexicallyDeclaredNames
@@ -2336,7 +2334,7 @@ export class $CaseBlock implements I$Node {
 }
 
 export class $CaseClause implements I$Node {
-  public get $kind(): SyntaxKind.CaseClause { return SyntaxKind.CaseClause; }
+  public get $kind(): ts.SyntaxKind.CaseClause { return ts.SyntaxKind.CaseClause; }
 
   // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-lexicallydeclarednames
   // 13.12.5 Static Semantics: LexicallyDeclaredNames
@@ -2376,7 +2374,7 @@ export class $CaseClause implements I$Node {
 }
 
 export class $DefaultClause implements I$Node {
-  public get $kind(): SyntaxKind.DefaultClause { return SyntaxKind.DefaultClause; }
+  public get $kind(): ts.SyntaxKind.DefaultClause { return ts.SyntaxKind.DefaultClause; }
 
   // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-lexicallydeclarednames
   // 13.12.5 Static Semantics: LexicallyDeclaredNames
@@ -2414,7 +2412,7 @@ export class $DefaultClause implements I$Node {
 }
 
 export class $CatchClause implements I$Node {
-  public get $kind(): SyntaxKind.CatchClause { return SyntaxKind.CatchClause; }
+  public get $kind(): ts.SyntaxKind.CatchClause { return ts.SyntaxKind.CatchClause; }
 
   // http://www.ecma-international.org/ecma-262/#sec-try-statement-static-semantics-vardeclarednames
   // 13.15.5 Static Semantics: VarDeclaredNames

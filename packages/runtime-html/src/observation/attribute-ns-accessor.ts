@@ -1,5 +1,5 @@
 import { IAccessor, LifecycleFlags, ITask, AccessorType } from '@aurelia/runtime';
-import { INode } from '../dom';
+import { INode } from '../dom.js';
 
 /**
  * Attribute accessor in a XML document/element that can be accessed via a namespace.

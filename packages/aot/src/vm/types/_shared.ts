@@ -1,58 +1,58 @@
 import {
   $Undefined,
-} from './undefined';
+} from './undefined.js';
 import {
   $Null,
-} from './null';
+} from './null.js';
 import {
   $Boolean,
-} from './boolean';
+} from './boolean.js';
 import {
   $String,
-} from './string';
+} from './string.js';
 import {
   $Symbol,
-} from './symbol';
+} from './symbol.js';
 import {
   $Number,
-} from './number';
+} from './number.js';
 import {
   $Empty,
-} from './empty';
+} from './empty.js';
 import {
   $Object,
-} from './object';
+} from './object.js';
 import {
   $Function,
   $BuiltinFunction,
-} from './function';
+} from './function.js';
 import {
   $BoundFunctionExoticObject,
-} from '../exotics/bound-function';
+} from '../exotics/bound-function.js';
 import {
   $ArrayExoticObject,
-} from '../exotics/array';
+} from '../exotics/array.js';
 import {
   $ProxyExoticObject,
-} from '../exotics/proxy';
+} from '../exotics/proxy.js';
 import {
   $ImmutablePrototypeExoticObject,
-} from '../exotics/immutable-prototype';
+} from '../exotics/immutable-prototype.js';
 import {
   $NamespaceExoticObject,
-} from '../exotics/namespace';
+} from '../exotics/namespace.js';
 import {
   $StringExoticObject,
-} from '../exotics/string';
+} from '../exotics/string.js';
 import {
   $IntegerIndexedExoticObject,
-} from '../exotics/integer-indexed';
+} from '../exotics/integer-indexed.js';
 import {
   $ArgumentsExoticObject,
-} from '../exotics/arguments';
+} from '../exotics/arguments.js';
 import {
   $Error,
-} from './error';
+} from './error.js';
 
 export const enum CompletionType {
   normal   = 1,

@@ -6,7 +6,7 @@ import {
   ISubscriber,
   ISubscriberCollection,
   SubscriberFlags as SF
-} from '../observation';
+} from '../observation.js';
 
 // TODO: see if we can de-duplicate these 3 decorators and their functions without killing performance or readability
 

@@ -8,9 +8,9 @@ import {
   AccessorType,
   ILifecycle,
   LifecycleFlags,
-} from '../observation';
-import { CollectionSizeObserver } from './collection-size-observer';
-import { collectionSubscriberCollection } from './subscriber-collection';
+} from '../observation.js';
+import { CollectionSizeObserver } from './collection-size-observer.js';
+import { collectionSubscriberCollection } from './subscriber-collection.js';
 
 const observerLookup = new WeakMap<Map<unknown, unknown>, MapObserver>();
 

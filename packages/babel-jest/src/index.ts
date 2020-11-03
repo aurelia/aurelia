@@ -1,9 +1,10 @@
 import { IOptionalPreprocessOptions, preprocess, preprocessOptions } from '@aurelia/plugin-conventions';
-import {
-  canInstrument as babelCanInstrument,
-  getCacheKey as babelGetCacheKey,
-  process as babelProcess
-} from 'babel-jest';
+import babelJest from 'babel-jest';
+const {
+  canInstrument: babelCanInstrument,
+  getCacheKey: babelGetCacheKey,
+  process: babelProcess
+} = babelJest;
 import type { Config } from '@jest/types';
 import type { TransformOptions, TransformedSource, CacheKeyOptions } from '@jest/transform';
 

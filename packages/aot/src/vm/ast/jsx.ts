@@ -1,4 +1,5 @@
-import {
+import ts from 'typescript';
+import type {
   JsxAttribute,
   JsxAttributes,
   JsxChild,
@@ -14,7 +15,6 @@ import {
   JsxTagNameExpression,
   JsxText,
   Node,
-  SyntaxKind,
   JsxAttributeLike,
 } from 'typescript';
 import {
@@ -24,11 +24,11 @@ import {
 import {
   Realm,
   ExecutionContext,
-} from '../realm';
+} from '../realm.js';
 import {
   $Any,
   $AnyNonEmpty,
-} from '../types/_shared';
+} from '../types/_shared.js';
 import {
   I$Node,
   Context,
@@ -38,18 +38,18 @@ import {
   $AssignmentExpressionNode,
   $$JsxOpeningLikeElement,
   $i,
-} from './_shared';
+} from './_shared.js';
 import {
   $$ESModuleOrScript,
-} from './modules';
+} from './modules.js';
 import {
   $Identifier,
   $PropertyAccessExpression,
   $ThisExpression,
-} from './expressions';
+} from './expressions.js';
 import {
   $StringLiteral,
-} from './literals';
+} from './literals.js';
 
 export type $$JsxParent = (
   $JsxElement |
@@ -77,19 +77,19 @@ export function $$jsxChildList(
   const $nodes: $$JsxChild[] = Array(len);
   for (let i = 0; i < len; ++i) {
     switch (nodes[i].kind) {
-      case SyntaxKind.JsxText:
+      case ts.SyntaxKind.JsxText:
         $nodes[i] = new $JsxText(nodes[i] as JsxText, parent, ctx, i);
         break;
-      case SyntaxKind.JsxExpression:
+      case ts.SyntaxKind.JsxExpression:
         $nodes[i] = new $JsxExpression(nodes[i] as JsxExpression, parent, ctx, i);
         break;
-      case SyntaxKind.JsxElement:
+      case ts.SyntaxKind.JsxElement:
         $nodes[i] = new $JsxElement(nodes[i] as JsxElement, parent, ctx, i);
         break;
-      case SyntaxKind.JsxSelfClosingElement:
+      case ts.SyntaxKind.JsxSelfClosingElement:
         $nodes[i] = new $JsxSelfClosingElement(nodes[i] as JsxSelfClosingElement, parent, ctx, i);
         break;
-      case SyntaxKind.JsxFragment:
+      case ts.SyntaxKind.JsxFragment:
         $nodes[i] = new $JsxFragment(nodes[i] as JsxFragment, parent, ctx, i);
         break;
     }
@@ -98,7 +98,7 @@ export function $$jsxChildList(
 }
 
 export class $JsxElement implements I$Node {
-  public get $kind(): SyntaxKind.JsxElement { return SyntaxKind.JsxElement; }
+  public get $kind(): ts.SyntaxKind.JsxElement { return ts.SyntaxKind.JsxElement; }
 
   public readonly $openingElement: $JsxOpeningElement;
   public readonly $children: readonly $$JsxChild[];
@@ -157,19 +157,19 @@ export function $$jsxTagNameExpression(
   idx: number,
 ): $$JsxTagNameExpression {
   switch (node.kind) {
-    case SyntaxKind.Identifier:
+    case ts.SyntaxKind.Identifier:
       return new $Identifier(node, parent, ctx, idx);
-    case SyntaxKind.ThisKeyword:
+    case ts.SyntaxKind.ThisKeyword:
       return new $ThisExpression(node, parent, ctx, idx);
-    case SyntaxKind.PropertyAccessExpression:
+    case ts.SyntaxKind.PropertyAccessExpression:
       return new $PropertyAccessExpression(node, parent, ctx, idx) as $$JsxTagNamePropertyAccess;
     default:
-      throw new Error(`Unexpected syntax node: ${SyntaxKind[(node as Node).kind]}.`);
+      throw new Error(`Unexpected syntax node: ${ts.SyntaxKind[(node as Node).kind]}.`);
   }
 }
 
 export class $JsxSelfClosingElement implements I$Node {
-  public get $kind(): SyntaxKind.JsxSelfClosingElement { return SyntaxKind.JsxSelfClosingElement; }
+  public get $kind(): ts.SyntaxKind.JsxSelfClosingElement { return ts.SyntaxKind.JsxSelfClosingElement; }
 
   public readonly $tagName: $$JsxTagNameExpression;
   public readonly $attributes: $JsxAttributes;
@@ -204,7 +204,7 @@ export class $JsxSelfClosingElement implements I$Node {
 }
 
 export class $JsxFragment implements I$Node {
-  public get $kind(): SyntaxKind.JsxFragment { return SyntaxKind.JsxFragment; }
+  public get $kind(): ts.SyntaxKind.JsxFragment { return ts.SyntaxKind.JsxFragment; }
 
   public readonly $openingFragment: $JsxOpeningFragment;
   public readonly $children: readonly $$JsxChild[];
@@ -241,7 +241,7 @@ export class $JsxFragment implements I$Node {
 }
 
 export class $JsxText implements I$Node {
-  public get $kind(): SyntaxKind.JsxText { return SyntaxKind.JsxText; }
+  public get $kind(): ts.SyntaxKind.JsxText { return ts.SyntaxKind.JsxText; }
 
   public constructor(
     public readonly node: JsxText,
@@ -270,7 +270,7 @@ export class $JsxText implements I$Node {
 }
 
 export class $JsxOpeningElement implements I$Node {
-  public get $kind(): SyntaxKind.JsxOpeningElement { return SyntaxKind.JsxOpeningElement; }
+  public get $kind(): ts.SyntaxKind.JsxOpeningElement { return ts.SyntaxKind.JsxOpeningElement; }
 
   public readonly $tagName: $$JsxTagNameExpression;
   public readonly $attributes: $JsxAttributes;
@@ -304,7 +304,7 @@ export class $JsxOpeningElement implements I$Node {
 }
 
 export class $JsxClosingElement implements I$Node {
-  public get $kind(): SyntaxKind.JsxClosingElement { return SyntaxKind.JsxClosingElement; }
+  public get $kind(): ts.SyntaxKind.JsxClosingElement { return ts.SyntaxKind.JsxClosingElement; }
 
   public readonly $tagName: $$JsxTagNameExpression;
 
@@ -336,7 +336,7 @@ export class $JsxClosingElement implements I$Node {
 }
 
 export class $JsxOpeningFragment implements I$Node {
-  public get $kind(): SyntaxKind.JsxOpeningFragment { return SyntaxKind.JsxOpeningFragment; }
+  public get $kind(): ts.SyntaxKind.JsxOpeningFragment { return ts.SyntaxKind.JsxOpeningFragment; }
 
   public constructor(
     public readonly node: JsxOpeningFragment,
@@ -364,7 +364,7 @@ export class $JsxOpeningFragment implements I$Node {
 }
 
 export class $JsxClosingFragment implements I$Node {
-  public get $kind(): SyntaxKind.JsxClosingFragment { return SyntaxKind.JsxClosingFragment; }
+  public get $kind(): ts.SyntaxKind.JsxClosingFragment { return ts.SyntaxKind.JsxClosingFragment; }
 
   public constructor(
     public readonly node: JsxClosingFragment,
@@ -392,7 +392,7 @@ export class $JsxClosingFragment implements I$Node {
 }
 
 export class $JsxAttribute implements I$Node {
-  public get $kind(): SyntaxKind.JsxAttribute { return SyntaxKind.JsxAttribute; }
+  public get $kind(): ts.SyntaxKind.JsxAttribute { return ts.SyntaxKind.JsxAttribute; }
 
   public readonly $name: $Identifier;
   public readonly $initializer: $StringLiteral | $JsxExpression | undefined;
@@ -412,7 +412,7 @@ export class $JsxAttribute implements I$Node {
     if (node.initializer === void 0) {
       this.$initializer = void 0;
     } else {
-      if (node.initializer.kind === SyntaxKind.StringLiteral) {
+      if (node.initializer.kind === ts.SyntaxKind.StringLiteral) {
         this.$initializer = new $StringLiteral(node.initializer, this, ctx, -1);
       } else {
         this.$initializer = new $JsxExpression(node.initializer, this, ctx, -1);
@@ -439,10 +439,10 @@ export function $$jsxAttributeLikeList(
   const $nodes: $$JsxAttributeLike[] = Array(len);
   for (let i = 0; i < len; ++i) {
     switch (nodes[i].kind) {
-      case SyntaxKind.JsxAttribute:
+      case ts.SyntaxKind.JsxAttribute:
         $nodes[i] = new $JsxAttribute(nodes[i] as JsxAttribute, parent, ctx, i);
         break;
-      case SyntaxKind.JsxSpreadAttribute:
+      case ts.SyntaxKind.JsxSpreadAttribute:
         $nodes[i] = new $JsxSpreadAttribute(nodes[i] as JsxSpreadAttribute, parent, ctx, i);
         break;
     }
@@ -451,7 +451,7 @@ export function $$jsxAttributeLikeList(
 }
 
 export class $JsxAttributes implements I$Node {
-  public get $kind(): SyntaxKind.JsxAttributes { return SyntaxKind.JsxAttributes; }
+  public get $kind(): ts.SyntaxKind.JsxAttributes { return ts.SyntaxKind.JsxAttributes; }
 
   public readonly $properties: readonly $$JsxAttributeLike[];
 
@@ -483,7 +483,7 @@ export class $JsxAttributes implements I$Node {
 }
 
 export class $JsxSpreadAttribute implements I$Node {
-  public get $kind(): SyntaxKind.JsxSpreadAttribute { return SyntaxKind.JsxSpreadAttribute; }
+  public get $kind(): ts.SyntaxKind.JsxSpreadAttribute { return ts.SyntaxKind.JsxSpreadAttribute; }
 
   public readonly $expression: $$AssignmentExpressionOrHigher;
 
@@ -516,7 +516,7 @@ export class $JsxSpreadAttribute implements I$Node {
 }
 
 export class $JsxExpression implements I$Node {
-  public get $kind(): SyntaxKind.JsxExpression { return SyntaxKind.JsxExpression; }
+  public get $kind(): ts.SyntaxKind.JsxExpression { return ts.SyntaxKind.JsxExpression; }
 
   public readonly $expression: $$AssignmentExpressionOrHigher | undefined;
 

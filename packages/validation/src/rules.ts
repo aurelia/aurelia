@@ -11,7 +11,7 @@ import {
   IEqualsRule,
   IValidationVisitor,
   ValidationDisplayNameAccessor,
-} from './rule-interfaces';
+} from './rule-interfaces.js';
 
 /**
  * Retrieves validation messages and property display names.

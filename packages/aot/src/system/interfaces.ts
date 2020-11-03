@@ -1,9 +1,7 @@
 import {
   DI,
 } from '@aurelia/kernel';
-import {
-  CompilerOptions,
-} from 'typescript';
+import ts from 'typescript';
 
 export const enum Encoding {
   utf8 = 'utf8',
@@ -93,7 +91,7 @@ export interface IFileSystem {
   getFilesSync(dir: string, loadContent?: boolean): readonly IFile[];
 }
 
-export interface $CompilerOptions extends CompilerOptions {
+export interface $CompilerOptions extends ts.CompilerOptions {
   readonly __dirname: string;
 }
 

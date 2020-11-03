@@ -9,17 +9,17 @@ import {
   LifecycleFlags,
   SetterObserver,
 } from '@aurelia/runtime';
-import { IPlatform } from '../platform';
-import { AttributeNSAccessor } from './attribute-ns-accessor';
-import { CheckedObserver, IInputElement } from './checked-observer';
-import { ClassAttributeAccessor } from './class-attribute-accessor';
-import { DataAttributeAccessor } from './data-attribute-accessor';
-import { ElementPropertyAccessor } from './element-property-accessor';
-import { EventSubscriber } from './event-delegator';
-import { ISelectElement, SelectValueObserver } from './select-value-observer';
-import { StyleAttributeAccessor } from './style-attribute-accessor';
-import { ISVGAnalyzer } from './svg-analyzer';
-import { ValueAttributeObserver } from './value-attribute-observer';
+import { IPlatform } from '../platform.js';
+import { AttributeNSAccessor } from './attribute-ns-accessor.js';
+import { CheckedObserver, IInputElement } from './checked-observer.js';
+import { ClassAttributeAccessor } from './class-attribute-accessor.js';
+import { DataAttributeAccessor } from './data-attribute-accessor.js';
+import { ElementPropertyAccessor } from './element-property-accessor.js';
+import { EventSubscriber } from './event-delegator.js';
+import { ISelectElement, SelectValueObserver } from './select-value-observer.js';
+import { StyleAttributeAccessor } from './style-attribute-accessor.js';
+import { ISVGAnalyzer } from './svg-analyzer.js';
+import { ValueAttributeObserver } from './value-attribute-observer.js';
 
 // https://infra.spec.whatwg.org/#namespaces
 const htmlNS = 'http://www.w3.org/1999/xhtml';

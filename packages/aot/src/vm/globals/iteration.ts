@@ -1,17 +1,17 @@
 import {
   ExecutionContext,
   Realm,
-} from '../realm';
+} from '../realm.js';
 import {
   $Object,
-} from '../types/object';
+} from '../types/object.js';
 import {
   $Function,
   $BuiltinFunction,
-} from '../types/function';
+} from '../types/function.js';
 import {
   $Boolean,
-} from '../types/boolean';
+} from '../types/boolean.js';
 import {
   $AnyNonError,
   $AnyNonEmpty,
@@ -19,38 +19,38 @@ import {
   CompletionType,
   $AnyObject,
   $Any,
-} from '../types/_shared';
+} from '../types/_shared.js';
 import {
   $CreateDataProperty,
   $Call,
   $DefinePropertyOrThrow,
   $GetMethod,
-} from '../operations';
+} from '../operations.js';
 import {
   $Number,
-} from '../types/number';
+} from '../types/number.js';
 import {
   $Undefined,
-} from '../types/undefined';
+} from '../types/undefined.js';
 import {
   $TypeError,
   $Error,
-} from '../types/error';
+} from '../types/error.js';
 import {
   $String,
-} from '../types/string';
+} from '../types/string.js';
 import {
   $PropertyDescriptor,
-} from '../types/property-descriptor';
+} from '../types/property-descriptor.js';
 import {
   $List,
-} from '../types/list';
+} from '../types/list.js';
 import {
   $ObjectPrototype,
-} from './object';
+} from './object.js';
 import {
   $FunctionPrototype,
-} from './function';
+} from './function.js';
 import {
   $NewPromiseCapability,
   $PromiseCapability,
@@ -58,7 +58,7 @@ import {
   $PromiseInstance,
   $PromiseResolve,
   $PerformPromiseThen,
-} from './promise';
+} from './promise.js';
 
 // http://www.ecma-international.org/ecma-262/#sec-getiterator
 export function $GetIterator(

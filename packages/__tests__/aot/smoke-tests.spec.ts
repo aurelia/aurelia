@@ -1,6 +1,6 @@
 import { DI, LoggerConfiguration, LogLevel, ColorOptions, Registration } from '@aurelia/kernel';
 import { IFileSystem, FileKind, ServiceHost, $Undefined, $ESModule } from '@aurelia/aot';
-import { VirtualFileSystem } from './virtual-file-system';
+import { VirtualFileSystem } from './virtual-file-system.js';
 import { assert } from '@aurelia/testing';
 
 // NOTE: These tests are not meant to be even close to exhaustive. That's what the 262 test suite is for.

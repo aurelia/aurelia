@@ -1,8 +1,8 @@
 import * as path from 'path';
 import { kebabCase } from '@aurelia/kernel';
 import modifyCode, { ModifyCodeResult } from 'modify-code';
-import { IFileUnit, IPreprocessOptions } from './options';
-import { stripMetaData } from './strip-meta-data';
+import { IFileUnit, IPreprocessOptions } from './options.js';
+import { stripMetaData } from './strip-meta-data.js';
 
 // stringModuleWrap is to deal with pure css text module import in shadowDOM mode.
 // For webpack:

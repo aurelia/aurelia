@@ -1,14 +1,13 @@
-import {
+import type {
   ArrayBindingElement,
   ArrayBindingPattern,
   BindingElement,
   ComputedPropertyName,
-  ModifierFlags,
   ObjectBindingPattern,
   OmittedExpression,
   SpreadElement,
-  SyntaxKind,
 } from 'typescript';
+import ts from 'typescript';
 import {
   emptyArray,
   ILogger,
@@ -16,35 +15,35 @@ import {
 import {
   Realm,
   ExecutionContext,
-} from '../realm';
+} from '../realm.js';
 import {
   $EnvRec,
-} from '../types/environment-record';
+} from '../types/environment-record.js';
 import {
   $String,
-} from '../types/string';
+} from '../types/string.js';
 import {
   $Any,
   $AnyNonEmpty,
   $AnyObject,
-} from '../types/_shared';
+} from '../types/_shared.js';
 import {
   $Object,
-} from '../types/object';
+} from '../types/object.js';
 import {
   $Empty,
-} from '../types/empty';
+} from '../types/empty.js';
 import {
   $IteratorRecord,
   $IteratorStep,
   $IteratorValue,
   $GetIterator,
   $IteratorClose,
-} from '../globals/iteration';
+} from '../globals/iteration.js';
 import {
   $TypeError,
   $Error,
-} from '../types/error';
+} from '../types/error.js';
 import {
   I$Node,
   Context,
@@ -63,10 +62,10 @@ import {
   getHasInitializer,
   getIsSimpleParameterList,
   $i,
-} from './_shared';
+} from './_shared.js';
 import {
   $$ESModuleOrScript,
-} from './modules';
+} from './modules.js';
 import {
   $Identifier,
   $PropertyAssignment,
@@ -76,33 +75,33 @@ import {
   $ArrayLiteralExpression,
   $NewExpression,
   $CallExpression,
-} from './expressions';
+} from './expressions.js';
 import {
   $PropertyDeclaration,
-} from './classes';
+} from './classes.js';
 import {
   $GetAccessorDeclaration,
   $SetAccessorDeclaration,
   $MethodDeclaration,
-} from './methods';
+} from './methods.js';
 import {
   $EnumMember,
-} from './types';
+} from './types.js';
 import {
   $Number,
-} from '../types/number';
+} from '../types/number.js';
 import {
   $ArrayExoticObject,
-} from '../exotics/array';
+} from '../exotics/array.js';
 import {
   $CreateDataProperty,
-} from '../operations';
+} from '../operations.js';
 import {
   $Boolean,
-} from '../types/boolean';
+} from '../types/boolean.js';
 import {
   $List,
-} from '../types/list';
+} from '../types/list.js';
 
 export type $$NamedDeclaration = (
   $GetAccessorDeclaration |
@@ -117,7 +116,7 @@ export type $$NamedDeclaration = (
 );
 
 export class $ComputedPropertyName implements I$Node {
-  public get $kind(): SyntaxKind.ComputedPropertyName { return SyntaxKind.ComputedPropertyName; }
+  public get $kind(): ts.SyntaxKind.ComputedPropertyName { return ts.SyntaxKind.ComputedPropertyName; }
 
   public readonly $expression: $$AssignmentExpressionOrHigher;
 
@@ -172,9 +171,9 @@ export class $ComputedPropertyName implements I$Node {
 }
 
 export class $ObjectBindingPattern implements I$Node {
-  public get $kind(): SyntaxKind.ObjectBindingPattern { return SyntaxKind.ObjectBindingPattern; }
+  public get $kind(): ts.SyntaxKind.ObjectBindingPattern { return ts.SyntaxKind.ObjectBindingPattern; }
 
-  public readonly combinedModifierFlags: ModifierFlags;
+  public readonly combinedModifierFlags: ts.ModifierFlags;
 
   public readonly $elements: readonly $BindingElement[];
 
@@ -284,9 +283,9 @@ export function $$arrayBindingElement(
   idx: number,
 ): $$ArrayBindingElement {
   switch (node.kind) {
-    case SyntaxKind.BindingElement:
+    case ts.SyntaxKind.BindingElement:
       return new $BindingElement(node, parent, ctx, idx);
-    case SyntaxKind.OmittedExpression:
+    case ts.SyntaxKind.OmittedExpression:
       return new $OmittedExpression(node, parent, ctx, idx);
   }
 }
@@ -322,9 +321,9 @@ export function $bindingElementList(
 }
 
 export class $ArrayBindingPattern implements I$Node {
-  public get $kind(): SyntaxKind.ArrayBindingPattern { return SyntaxKind.ArrayBindingPattern; }
+  public get $kind(): ts.SyntaxKind.ArrayBindingPattern { return ts.SyntaxKind.ArrayBindingPattern; }
 
-  public readonly combinedModifierFlags: ModifierFlags;
+  public readonly combinedModifierFlags: ts.ModifierFlags;
 
   public readonly $elements: readonly $$ArrayBindingElement[];
 
@@ -411,7 +410,7 @@ export class $ArrayBindingPattern implements I$Node {
     for (let i = 0, ii = elements.length; i < ii; ++i) {
       const el = elements[i];
       switch (el.$kind) {
-        case SyntaxKind.OmittedExpression: {
+        case ts.SyntaxKind.OmittedExpression: {
           if (i + 1 === ii) {
             // If the last element is an elision, skip it as per the runtime semantics:
 
@@ -428,7 +427,7 @@ export class $ArrayBindingPattern implements I$Node {
           if (result.isAbrupt) { return result.enrichWith(ctx, this); }
           break;
         }
-        case SyntaxKind.BindingElement: {
+        case ts.SyntaxKind.BindingElement: {
           // ArrayBindingPattern : [ Elision opt BindingRestElement ]
 
           // 1. If Elision is present, then
@@ -473,10 +472,10 @@ export type $$BindingPattern = (
 );
 
 export class $BindingElement implements I$Node {
-  public get $kind(): SyntaxKind.BindingElement { return SyntaxKind.BindingElement; }
+  public get $kind(): ts.SyntaxKind.BindingElement { return ts.SyntaxKind.BindingElement; }
 
-  public readonly modifierFlags: ModifierFlags;
-  public readonly combinedModifierFlags: ModifierFlags;
+  public readonly modifierFlags: ts.ModifierFlags;
+  public readonly combinedModifierFlags: ts.ModifierFlags;
 
   public readonly $propertyName: $$PropertyName | undefined;
   public readonly $name: $$BindingName;
@@ -522,7 +521,7 @@ export class $BindingElement implements I$Node {
 
         this.ContainsExpression = $name.ContainsExpression;
         this.HasInitializer = false;
-        this.IsSimpleParameterList = $name.$kind === SyntaxKind.Identifier;
+        this.IsSimpleParameterList = $name.$kind === ts.SyntaxKind.Identifier;
       } else {
         this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx, -1);
 
@@ -540,9 +539,9 @@ export class $BindingElement implements I$Node {
       if (node.initializer === void 0) {
         this.$initializer = void 0;
 
-        this.ContainsExpression = $propertyName.$kind === SyntaxKind.ComputedPropertyName || $name.ContainsExpression;
+        this.ContainsExpression = $propertyName.$kind === ts.SyntaxKind.ComputedPropertyName || $name.ContainsExpression;
         this.HasInitializer = false;
-        this.IsSimpleParameterList = $name.$kind === SyntaxKind.Identifier;
+        this.IsSimpleParameterList = $name.$kind === ts.SyntaxKind.Identifier;
       } else {
         this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx, -1);
 
@@ -623,7 +622,7 @@ export class $BindingElement implements I$Node {
         // 4. b. ii. Set v to ? GetValue(defaultValue).
     // 5. If environment is undefined, return ? PutValue(lhs, v).
     // 6. Return InitializeReferencedBinding(lhs, v).
-    if (BindingElement.$kind === SyntaxKind.Identifier) {
+    if (BindingElement.$kind === ts.SyntaxKind.Identifier) {
       return BindingElement.InitializeKeyedBinding(ctx, value, environment, propertyName, initializer).enrichWith(ctx, this);
     }
 
@@ -692,7 +691,7 @@ export class $BindingElement implements I$Node {
     // 6. If environment is undefined, return ? PutValue(lhs, v).
     // 7. Return InitializeReferencedBinding(lhs, v).
 
-    if (BindingElement.$kind === SyntaxKind.Identifier) {
+    if (BindingElement.$kind === ts.SyntaxKind.Identifier) {
       return BindingElement.InitializeIteratorBinding(ctx, iteratorRecord, environment, this.$initializer).enrichWith(ctx, this);
     }
 
@@ -756,7 +755,7 @@ export class $BindingElement implements I$Node {
 }
 
 export class $SpreadElement implements I$Node {
-  public get $kind(): SyntaxKind.SpreadElement { return SyntaxKind.SpreadElement; }
+  public get $kind(): ts.SyntaxKind.SpreadElement { return ts.SyntaxKind.SpreadElement; }
 
   public readonly $expression: $$AssignmentExpressionOrHigher;
 
@@ -867,7 +866,7 @@ export class $SpreadElement implements I$Node {
 }
 
 export class $OmittedExpression implements I$Node {
-  public get $kind(): SyntaxKind.OmittedExpression { return SyntaxKind.OmittedExpression; }
+  public get $kind(): ts.SyntaxKind.OmittedExpression { return ts.SyntaxKind.OmittedExpression; }
 
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-boundnames
   // 13.3.3.1 Static Semantics: BoundNames

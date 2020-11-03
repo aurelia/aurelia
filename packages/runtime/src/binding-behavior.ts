@@ -15,13 +15,13 @@ import {
   Key,
   fromAnnotationOrDefinitionOrTypeOrDefault,
 } from '@aurelia/kernel';
-import { IBinding, ISubscribable, LifecycleFlags } from './observation';
-import { connectable, IConnectableBinding } from './binding/connectable';
-import { IObserverLocator } from './observation/observer-locator';
-import { BindingBehaviorExpression, IBindingBehaviorExpression } from './binding/ast';
+import { IBinding, ISubscribable, LifecycleFlags } from './observation.js';
+import { connectable, IConnectableBinding } from './binding/connectable.js';
+import { IObserverLocator } from './observation/observer-locator.js';
+import { BindingBehaviorExpression, IBindingBehaviorExpression } from './binding/ast.js';
 
-import type { Scope } from './observation/binding-context';
-import { registerAliases } from './alias';
+import type { Scope } from './observation/binding-context.js';
+import { registerAliases } from './alias.js';
 
 export type PartialBindingBehaviorDefinition = PartialResourceDefinition<{
   strategy?: BindingBehaviorStrategy;

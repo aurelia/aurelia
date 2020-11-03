@@ -18,8 +18,8 @@ import {
   IPlatform,
 } from '@aurelia/runtime-html';
 import i18next from 'i18next';
-import { I18N } from '../i18n';
-import { Signals } from '../utils';
+import { I18N } from '../i18n.js';
+import { Signals } from '../utils.js';
 
 import type { Scope } from '@aurelia/runtime';
 import type { CallBindingInstruction } from '@aurelia/runtime-html';

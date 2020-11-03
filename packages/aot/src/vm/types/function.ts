@@ -1,67 +1,65 @@
 import {
   $Object,
-} from './object';
+} from './object.js';
 import {
   $EnvRec,
   $FunctionEnvRec,
-} from './environment-record';
+} from './environment-record.js';
 import {
   $Boolean,
-} from './boolean';
+} from './boolean.js';
 import {
   $String,
-} from './string';
+} from './string.js';
 import {
   $AnyNonEmpty,
   $AnyNonEmptyNonError,
   CompletionType,
   $AnyObject,
-} from './_shared';
+} from './_shared.js';
 import {
   $PropertyDescriptor,
-} from './property-descriptor';
+} from './property-descriptor.js';
 import {
   $Number,
-} from './number';
+} from './number.js';
 import {
   $DefinePropertyOrThrow,
-} from '../operations';
+} from '../operations.js';
 import {
   $Symbol,
-} from './symbol';
+} from './symbol.js';
 import {
   Intrinsics,
   IntrinsicObjectKey,
-} from '../intrinsics';
+} from '../intrinsics.js';
 import {
   $Undefined,
-} from './undefined';
+} from './undefined.js';
 import {
   ExecutionContext,
   Realm,
-} from '../realm';
+} from '../realm.js';
 import {
   $Null,
-} from './null';
+} from './null.js';
 import {
   $TypeError,
   $Error,
-} from './error';
+} from './error.js';
 import {
   $$Function,
-} from '../ast/functions';
+} from '../ast/functions.js';
 import {
   $$ESModuleOrScript,
-} from '../ast/modules';
-import {
-  getLineAndCharacterOfPosition
-} from 'typescript';
+} from '../ast/modules.js';
+import ts from 'typescript';
 import {
   FunctionKind,
-} from '../ast/_shared';
+} from '../ast/_shared.js';
 import {
   $List,
-} from './list';
+} from './list.js';
 
 // http://www.ecma-international.org/ecma-262/#table-6
 // http://www.ecma-international.org/ecma-262/#sec-ecmascript-function-objects
@@ -103,7 +101,7 @@ export class $Function<
     let line = -1;
     let character = -1;
     if (node.pos > -1) {
-      ({ line, character } = getLineAndCharacterOfPosition(sourceFile, node.getStart(sourceFile)));
+      ({ line, character } = ts.getLineAndCharacterOfPosition(sourceFile, node.getStart(sourceFile)));
     }
 
     return `${firstLine}:${line + 1}:${character} (${path})`;

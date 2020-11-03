@@ -1,4 +1,6 @@
-import {
+import ts from 'typescript';
+import type {
+  Modifier,
   ArrayLiteralExpression,
   ArrowFunction,
   AsExpression,
@@ -43,8 +45,6 @@ import {
   LabeledStatement,
   MetaProperty,
   MethodDeclaration,
-  Modifier,
-  ModifierFlags,
   ModuleDeclaration,
   NamespaceExportDeclaration,
   NewExpression,
@@ -69,7 +69,6 @@ import {
   StringLiteral,
   SuperExpression,
   SwitchStatement,
-  SyntaxKind,
   TaggedTemplateExpression,
   TemplateExpression,
   ThisExpression,
@@ -92,17 +91,17 @@ import {
 import {
   Realm,
   ExecutionContext,
-} from '../realm';
+} from '../realm.js';
 import {
   $DeclarativeEnvRec,
-} from '../types/environment-record';
+} from '../types/environment-record.js';
 import {
   $Function,
-} from '../types/function';
+} from '../types/function.js';
 import {
   $Any,
   $AnyNonEmpty,
-} from '../types/_shared';
+} from '../types/_shared.js';
 import {
   $$TSModuleItem,
   $ExportSpecifier,
@@ -120,7 +119,7 @@ import {
   $ImportEqualsDeclaration,
   $ESScript,
   $ESModule,
-} from './modules';
+} from './modules.js';
 import {
   $ArrayBindingPattern,
   $BindingElement,
@@ -128,7 +127,7 @@ import {
   $ObjectBindingPattern,
   $SpreadElement,
   $$NamedDeclaration,
-} from './bindings';
+} from './bindings.js';
 import {
   $ArrayLiteralExpression,
   $AsExpression,
@@ -159,14 +158,14 @@ import {
   $Identifier,
   $ThisExpression,
   $SuperExpression,
-} from './expressions';
+} from './expressions.js';
 import {
   $ArrowFunction,
   $ConstructorDeclaration,
   $FunctionExpression,
   $ParameterDeclaration,
   $FunctionDeclaration,
-} from './functions';
+} from './functions.js';
 import {
   $Block,
   $BreakStatement,
@@ -195,7 +194,7 @@ import {
   $DebuggerStatement,
   DirectivePrologue,
   ExpressionStatement_T,
-} from './statements';
+} from './statements.js';
 import {
   $ClassExpression,
   $ExpressionWithTypeArguments,
@@ -204,18 +203,18 @@ import {
   $ClassDeclaration,
   $$NodeWithHeritageClauses,
   $SemicolonClassElement,
-} from './classes';
+} from './classes.js';
 import {
   $EnumMember,
   $InterfaceDeclaration,
   $TypeAliasDeclaration,
   $EnumDeclaration,
-} from './types';
+} from './types.js';
 import {
   $GetAccessorDeclaration,
   $MethodDeclaration,
   $SetAccessorDeclaration,
-} from './methods';
+} from './methods.js';
 import {
   $JsxAttribute,
   $JsxAttributes,
@@ -227,7 +226,7 @@ import {
   $JsxSelfClosingElement,
   $JsxSpreadAttribute,
   $$JsxParent,
-} from './jsx';
+} from './jsx.js';
 import {
   $TemplateSpan,
   $BigIntLiteral,
@@ -237,16 +236,16 @@ import {
   $NumericLiteral,
   $RegularExpressionLiteral,
   $StringLiteral,
-} from './literals';
+} from './literals.js';
 import {
   $StringSet,
-} from '../globals/string';
+} from '../globals/string.js';
 import {
   $Empty,
-} from '../types/empty';
+} from '../types/empty.js';
 import {
   $Error,
-} from '../types/error';
+} from '../types/error.js';
 
 // #region TS AST unions
 
@@ -536,15 +535,15 @@ export function $assignmentExpression(
   }
 
   switch (node.kind) {
-    case SyntaxKind.AsExpression:
+    case ts.SyntaxKind.AsExpression:
       return new $AsExpression(node, parent, ctx, idx);
-    case SyntaxKind.BinaryExpression:
+    case ts.SyntaxKind.BinaryExpression:
       return new $BinaryExpression(node, parent, ctx, idx);
-    case SyntaxKind.ArrowFunction:
+    case ts.SyntaxKind.ArrowFunction:
       return new $ArrowFunction(node, parent, ctx, idx);
-    case SyntaxKind.ConditionalExpression:
+    case ts.SyntaxKind.ConditionalExpression:
       return new $ConditionalExpression(node, parent, ctx, idx);
-    case SyntaxKind.YieldExpression:
+    case ts.SyntaxKind.YieldExpression:
       return new $YieldExpression(node, parent, ctx, idx);
     default:
       return $unaryExpression(node, parent, ctx, idx);
@@ -585,25 +584,25 @@ export function $unaryExpression(
   idx: number,
 ): $$UnaryExpressionOrHigher {
   switch (node.kind) {
-    case SyntaxKind.JsxElement:
+    case ts.SyntaxKind.JsxElement:
       return new $JsxElement(node, parent as $$JsxParent, ctx, idx);
-    case SyntaxKind.JsxFragment:
+    case ts.SyntaxKind.JsxFragment:
       return new $JsxFragment(node, parent as $$JsxParent, ctx, idx);
-    case SyntaxKind.JsxSelfClosingElement:
+    case ts.SyntaxKind.JsxSelfClosingElement:
       return new $JsxSelfClosingElement(node, parent as $$JsxParent, ctx, idx);
-    case SyntaxKind.PostfixUnaryExpression:
+    case ts.SyntaxKind.PostfixUnaryExpression:
       return new $PostfixUnaryExpression(node, parent, ctx, idx);
-    case SyntaxKind.PrefixUnaryExpression:
+    case ts.SyntaxKind.PrefixUnaryExpression:
       return new $PrefixUnaryExpression(node, parent, ctx, idx);
-    case SyntaxKind.AwaitExpression:
+    case ts.SyntaxKind.AwaitExpression:
       return new $AwaitExpression(node, parent, ctx, idx);
-    case SyntaxKind.DeleteExpression:
+    case ts.SyntaxKind.DeleteExpression:
       return new $DeleteExpression(node, parent, ctx, idx);
-    case SyntaxKind.TypeAssertionExpression:
+    case ts.SyntaxKind.TypeAssertionExpression:
       return new $TypeAssertion(node, parent, ctx, idx);
-    case SyntaxKind.TypeOfExpression:
+    case ts.SyntaxKind.TypeOfExpression:
       return new $TypeOfExpression(node, parent, ctx, idx);
-    case SyntaxKind.VoidExpression:
+    case ts.SyntaxKind.VoidExpression:
       return new $VoidExpression(node, parent, ctx, idx);
     default:
       return $LHSExpression(node, parent, ctx, idx);
@@ -671,55 +670,55 @@ export function $LHSExpression(
   idx: number,
 ): $$LHSExpressionOrHigher {
   switch (node.kind) {
-    case SyntaxKind.ArrayLiteralExpression:
+    case ts.SyntaxKind.ArrayLiteralExpression:
       return new $ArrayLiteralExpression(node, parent, ctx, idx);
-    case SyntaxKind.ClassExpression:
+    case ts.SyntaxKind.ClassExpression:
       return new $ClassExpression(node, parent, ctx, idx);
-    case SyntaxKind.FunctionExpression:
+    case ts.SyntaxKind.FunctionExpression:
       return new $FunctionExpression(node, parent, ctx, idx);
-    case SyntaxKind.Identifier:
+    case ts.SyntaxKind.Identifier:
       return new $Identifier(node, parent, ctx, idx);
-    case SyntaxKind.NewExpression:
+    case ts.SyntaxKind.NewExpression:
       return new $NewExpression(node, parent, ctx, idx);
-    case SyntaxKind.ObjectLiteralExpression:
+    case ts.SyntaxKind.ObjectLiteralExpression:
       return new $ObjectLiteralExpression(node, parent, ctx, idx);
-    case SyntaxKind.ParenthesizedExpression:
+    case ts.SyntaxKind.ParenthesizedExpression:
       return new $ParenthesizedExpression(node, parent, ctx, idx);
-    case SyntaxKind.TemplateExpression:
+    case ts.SyntaxKind.TemplateExpression:
       return new $TemplateExpression(node, parent, ctx, idx);
-    case SyntaxKind.ElementAccessExpression:
+    case ts.SyntaxKind.ElementAccessExpression:
       return new $ElementAccessExpression(node, parent, ctx, idx);
-    case SyntaxKind.NonNullExpression:
+    case ts.SyntaxKind.NonNullExpression:
       return new $NonNullExpression(node, parent, ctx, idx);
-    case SyntaxKind.PropertyAccessExpression:
+    case ts.SyntaxKind.PropertyAccessExpression:
       return new $PropertyAccessExpression(node, parent, ctx, idx);
-    case SyntaxKind.TaggedTemplateExpression:
+    case ts.SyntaxKind.TaggedTemplateExpression:
       return new $TaggedTemplateExpression(node, parent, ctx, idx);
-    case SyntaxKind.CallExpression:
+    case ts.SyntaxKind.CallExpression:
       return new $CallExpression(node, parent, ctx, idx);
-    case SyntaxKind.MetaProperty:
+    case ts.SyntaxKind.MetaProperty:
       return new $MetaProperty(node, parent, ctx, idx);
-    case SyntaxKind.ThisKeyword:
+    case ts.SyntaxKind.ThisKeyword:
       return new $ThisExpression(node, parent, ctx, idx);
-    case SyntaxKind.SuperKeyword:
+    case ts.SyntaxKind.SuperKeyword:
       return new $SuperExpression(node, parent, ctx, idx);
-    case SyntaxKind.NumericLiteral:
+    case ts.SyntaxKind.NumericLiteral:
       return new $NumericLiteral(node, parent, ctx, idx);
-    case SyntaxKind.BigIntLiteral:
+    case ts.SyntaxKind.BigIntLiteral:
       return new $BigIntLiteral(node, parent, ctx, idx);
-    case SyntaxKind.StringLiteral:
+    case ts.SyntaxKind.StringLiteral:
       return new $StringLiteral(node, parent, ctx, idx);
-    case SyntaxKind.RegularExpressionLiteral:
+    case ts.SyntaxKind.RegularExpressionLiteral:
       return new $RegularExpressionLiteral(node, parent, ctx, idx);
-    case SyntaxKind.NoSubstitutionTemplateLiteral:
+    case ts.SyntaxKind.NoSubstitutionTemplateLiteral:
       return new $NoSubstitutionTemplateLiteral(node, parent, ctx, idx);
-    case SyntaxKind.NullKeyword:
+    case ts.SyntaxKind.NullKeyword:
       return new $NullLiteral(node, parent, ctx, idx);
-    case SyntaxKind.TrueKeyword:
-    case SyntaxKind.FalseKeyword:
+    case ts.SyntaxKind.TrueKeyword:
+    case ts.SyntaxKind.FalseKeyword:
       return new $BooleanLiteral(node, parent, ctx, idx);
     default:
-      throw new Error(`Unexpected syntax node: ${SyntaxKind[(node as any).kind]}.`);
+      throw new Error(`Unexpected syntax node: ${ts.SyntaxKind[(node as any).kind]}.`);
   }
 }
 
@@ -768,13 +767,13 @@ export function $$propertyName(
   // @ts-ignore - TODO(fkleuver): update AOT to use new TS 3.8 ast
 ): $$PropertyName {
   switch (node.kind) {
-    case SyntaxKind.Identifier:
+    case ts.SyntaxKind.Identifier:
       return new $Identifier(node, parent, ctx, idx);
-    case SyntaxKind.StringLiteral:
+    case ts.SyntaxKind.StringLiteral:
       return new $StringLiteral(node, parent, ctx, idx);
-    case SyntaxKind.NumericLiteral:
+    case ts.SyntaxKind.NumericLiteral:
       return new $NumericLiteral(node, parent, ctx, idx);
-    case SyntaxKind.ComputedPropertyName:
+    case ts.SyntaxKind.ComputedPropertyName:
       return new $ComputedPropertyName(node, parent as $$NamedDeclaration, ctx, idx);
   }
 }
@@ -798,11 +797,11 @@ export function $$bindingName(
   idx: number,
 ): $$BindingName {
   switch (node.kind) {
-    case SyntaxKind.Identifier:
+    case ts.SyntaxKind.Identifier:
       return new $Identifier(node, parent, ctx | Context.IsBindingName, idx);
-    case SyntaxKind.ObjectBindingPattern:
+    case ts.SyntaxKind.ObjectBindingPattern:
       return new $ObjectBindingPattern(node, parent, ctx, idx);
-    case SyntaxKind.ArrayBindingPattern:
+    case ts.SyntaxKind.ArrayBindingPattern:
       return new $ArrayBindingPattern(node, parent, ctx, idx);
   }
 }
@@ -873,44 +872,44 @@ export function $$esStatement(
   idx: number,
 ): $$ESStatement {
   switch (node.kind) {
-    case SyntaxKind.Block:
+    case ts.SyntaxKind.Block:
       return new $Block(node, parent, ctx, idx);
-    case SyntaxKind.EmptyStatement:
+    case ts.SyntaxKind.EmptyStatement:
       return new $EmptyStatement(node, parent, ctx, idx);
-    case SyntaxKind.ExpressionStatement:
+    case ts.SyntaxKind.ExpressionStatement:
       return new $ExpressionStatement(node, parent, ctx, idx);
-    case SyntaxKind.IfStatement:
+    case ts.SyntaxKind.IfStatement:
       return new $IfStatement(node, parent, ctx, idx);
-    case SyntaxKind.DoStatement:
+    case ts.SyntaxKind.DoStatement:
       return new $DoStatement(node, parent, ctx, idx);
-    case SyntaxKind.WhileStatement:
+    case ts.SyntaxKind.WhileStatement:
       return new $WhileStatement(node, parent, ctx, idx);
-    case SyntaxKind.ForStatement:
+    case ts.SyntaxKind.ForStatement:
       return new $ForStatement(node, parent, ctx, idx);
-    case SyntaxKind.ForInStatement:
+    case ts.SyntaxKind.ForInStatement:
       return new $ForInStatement(node, parent, ctx, idx);
-    case SyntaxKind.ForOfStatement:
+    case ts.SyntaxKind.ForOfStatement:
       return new $ForOfStatement(node, parent, ctx, idx);
-    case SyntaxKind.ContinueStatement:
+    case ts.SyntaxKind.ContinueStatement:
       return new $ContinueStatement(node, parent, ctx, idx);
-    case SyntaxKind.BreakStatement:
+    case ts.SyntaxKind.BreakStatement:
       return new $BreakStatement(node, parent, ctx, idx);
-    case SyntaxKind.ReturnStatement:
+    case ts.SyntaxKind.ReturnStatement:
       return new $ReturnStatement(node, parent, ctx, idx);
-    case SyntaxKind.WithStatement:
+    case ts.SyntaxKind.WithStatement:
       return new $WithStatement(node, parent, ctx, idx);
-    case SyntaxKind.SwitchStatement:
+    case ts.SyntaxKind.SwitchStatement:
       return new $SwitchStatement(node, parent, ctx, idx);
-    case SyntaxKind.LabeledStatement:
+    case ts.SyntaxKind.LabeledStatement:
       return new $LabeledStatement(node, parent, ctx, idx);
-    case SyntaxKind.ThrowStatement:
+    case ts.SyntaxKind.ThrowStatement:
       return new $ThrowStatement(node, parent, ctx, idx);
-    case SyntaxKind.TryStatement:
+    case ts.SyntaxKind.TryStatement:
       return new $TryStatement(node, parent, ctx, idx);
-    case SyntaxKind.DebuggerStatement:
+    case ts.SyntaxKind.DebuggerStatement:
       return new $DebuggerStatement(node, parent, ctx, idx);
     default:
-      throw new Error(`Unexpected syntax node: ${SyntaxKind[(node as Node).kind]}.`);
+      throw new Error(`Unexpected syntax node: ${ts.SyntaxKind[(node as Node).kind]}.`);
   }
 }
 
@@ -948,17 +947,17 @@ export function $$tsStatementListItem(
   idx: number,
 ): $$TSStatementListItem {
   switch (node.kind) {
-    case SyntaxKind.VariableStatement:
+    case ts.SyntaxKind.VariableStatement:
       return new $VariableStatement(node, parent, ctx, idx);
-    case SyntaxKind.FunctionDeclaration:
+    case ts.SyntaxKind.FunctionDeclaration:
       return new $FunctionDeclaration(node, parent, ctx, idx);
-    case SyntaxKind.ClassDeclaration:
+    case ts.SyntaxKind.ClassDeclaration:
       return new $ClassDeclaration(node, parent, ctx, idx);
-    case SyntaxKind.InterfaceDeclaration:
+    case ts.SyntaxKind.InterfaceDeclaration:
       return new $InterfaceDeclaration(node, parent, ctx, idx);
-    case SyntaxKind.TypeAliasDeclaration:
+    case ts.SyntaxKind.TypeAliasDeclaration:
       return new $TypeAliasDeclaration(node, parent, ctx, idx);
-    case SyntaxKind.EnumDeclaration:
+    case ts.SyntaxKind.EnumDeclaration:
       return new $EnumDeclaration(node, parent, ctx, idx);
     default:
       return $$esStatement(node, parent, ctx, idx);
@@ -977,7 +976,7 @@ export function $$tsStatementList(
   let x = 0;
   for (let i = 0; i < len; ++i) {
     node = nodes[i];
-    if (node.kind === SyntaxKind.FunctionDeclaration && node.body === void 0) {
+    if (node.kind === ts.SyntaxKind.FunctionDeclaration && node.body === void 0) {
       continue;
     }
     $nodes[x] = $$tsStatementListItem(node, parent, ctx, x);
@@ -998,9 +997,9 @@ export function $$esLabelledItem(
   idx: number,
 ): $$ESLabelledItem {
   switch (node.kind) {
-    case SyntaxKind.VariableStatement:
+    case ts.SyntaxKind.VariableStatement:
       return new $VariableStatement(node, parent, ctx, idx);
-    case SyntaxKind.FunctionDeclaration:
+    case ts.SyntaxKind.FunctionDeclaration:
       return new $FunctionDeclaration(node, parent, ctx, idx);
     default:
       return $$esStatement(node, parent, ctx, idx);
@@ -1019,8 +1018,8 @@ export function GetDirectivePrologue(statements: readonly Statement[]): Directiv
   for (let i = 0; i < len; ++i) {
     statement = statements[i] as ExpressionStatement_T<StringLiteral>;
     if (
-      statement.kind === SyntaxKind.ExpressionStatement
-      && statement.expression.kind === SyntaxKind.StringLiteral
+      statement.kind === ts.SyntaxKind.ExpressionStatement
+      && statement.expression.kind === ts.SyntaxKind.StringLiteral
     ) {
       if (directivePrologue === emptyArray) {
         directivePrologue = [statement];
@@ -1057,28 +1056,28 @@ export function evaluateStatement(
 
   let stmtCompletion: $Any = intrinsics.empty;
   switch (statement.$kind) {
-    case SyntaxKind.Block:
-    case SyntaxKind.VariableStatement:
-    case SyntaxKind.EmptyStatement:
-    case SyntaxKind.ExpressionStatement:
-    case SyntaxKind.IfStatement:
-    case SyntaxKind.SwitchStatement:
-    case SyntaxKind.ContinueStatement:
-    case SyntaxKind.BreakStatement:
-    case SyntaxKind.ReturnStatement:
-    case SyntaxKind.WithStatement:
-    case SyntaxKind.LabeledStatement:
-    case SyntaxKind.ThrowStatement:
-    case SyntaxKind.TryStatement:
-    case SyntaxKind.DebuggerStatement:
-    case SyntaxKind.FunctionDeclaration:
+    case ts.SyntaxKind.Block:
+    case ts.SyntaxKind.VariableStatement:
+    case ts.SyntaxKind.EmptyStatement:
+    case ts.SyntaxKind.ExpressionStatement:
+    case ts.SyntaxKind.IfStatement:
+    case ts.SyntaxKind.SwitchStatement:
+    case ts.SyntaxKind.ContinueStatement:
+    case ts.SyntaxKind.BreakStatement:
+    case ts.SyntaxKind.ReturnStatement:
+    case ts.SyntaxKind.WithStatement:
+    case ts.SyntaxKind.LabeledStatement:
+    case ts.SyntaxKind.ThrowStatement:
+    case ts.SyntaxKind.TryStatement:
+    case ts.SyntaxKind.DebuggerStatement:
+    case ts.SyntaxKind.FunctionDeclaration:
       stmtCompletion = statement.Evaluate(ctx);
       break;
-    case SyntaxKind.DoStatement:
-    case SyntaxKind.WhileStatement:
-    case SyntaxKind.ForStatement:
-    case SyntaxKind.ForInStatement:
-    case SyntaxKind.ForOfStatement:
+    case ts.SyntaxKind.DoStatement:
+    case ts.SyntaxKind.WhileStatement:
+    case ts.SyntaxKind.ForStatement:
+    case ts.SyntaxKind.ForInStatement:
+    case ts.SyntaxKind.ForOfStatement:
       stmtCompletion = statement.EvaluateLabelled(ctx, new $StringSet());
       break;
     // Note that no default case is needed here as the cases above are exhausetive $$ESStatement (http://www.ecma-international.org/ecma-262/#prod-Statement)
@@ -1142,7 +1141,7 @@ export function BlockDeclarationInstantiation(
 
     const dkind = d.$kind;
     // 4. b. If d is a FunctionDeclaration, a GeneratorDeclaration, an AsyncFunctionDeclaration, or an AsyncGeneratorDeclaration, then
-    if (dkind === SyntaxKind.FunctionDeclaration /* || dkind === SyntaxKind.GeneratorDeclaration || dkind === SyntaxKind.AsyncFunctionDeclaration || dkind === SyntaxKind.AsyncGeneratorDeclaration */) {
+    if (dkind === ts.SyntaxKind.FunctionDeclaration /* || dkind === ts.SyntaxKind.GeneratorDeclaration || dkind === ts.SyntaxKind.AsyncFunctionDeclaration || dkind === ts.SyntaxKind.AsyncGeneratorDeclaration */) {
       // 4. b. i. Let fn be the sole element of the BoundNames of d.
       const fn = d.BoundNames[0];
 
@@ -1290,17 +1289,17 @@ export function $$classElement(
   idx: number,
 ): $$ClassElement | undefined {
   switch (node.kind) {
-    case SyntaxKind.PropertyDeclaration:
+    case ts.SyntaxKind.PropertyDeclaration:
       return new $PropertyDeclaration(node, parent, ctx, idx);
-    case SyntaxKind.SemicolonClassElement:
+    case ts.SyntaxKind.SemicolonClassElement:
       return new $SemicolonClassElement(node, parent, ctx, idx);
-    case SyntaxKind.MethodDeclaration:
+    case ts.SyntaxKind.MethodDeclaration:
       return new $MethodDeclaration(node, parent, ctx, idx);
-    case SyntaxKind.Constructor:
+    case ts.SyntaxKind.Constructor:
       return new $ConstructorDeclaration(node, parent, ctx, idx);
-    case SyntaxKind.GetAccessor:
+    case ts.SyntaxKind.GetAccessor:
       return new $GetAccessorDeclaration(node, parent, ctx, idx);
-    case SyntaxKind.SetAccessor:
+    case ts.SyntaxKind.SetAccessor:
       return new $SetAccessorDeclaration(node, parent, ctx, idx);
     default:
       return void 0;
@@ -1351,22 +1350,22 @@ export const enum Context {
 
 export const modifiersToModifierFlags = (function () {
   const lookup = Object.assign(Object.create(null) as {}, {
-    [SyntaxKind.ConstKeyword]: ModifierFlags.Const,
-    [SyntaxKind.DefaultKeyword]: ModifierFlags.Default,
-    [SyntaxKind.ExportKeyword]: ModifierFlags.Export,
-    [SyntaxKind.AsyncKeyword]: ModifierFlags.Async,
-    [SyntaxKind.PrivateKeyword]: ModifierFlags.Private,
-    [SyntaxKind.ProtectedKeyword]: ModifierFlags.Protected,
-    [SyntaxKind.PublicKeyword]: ModifierFlags.Public,
-    [SyntaxKind.StaticKeyword]: ModifierFlags.Static,
-    [SyntaxKind.AbstractKeyword]: ModifierFlags.Abstract,
-    [SyntaxKind.DeclareKeyword]: ModifierFlags.Ambient,
-    [SyntaxKind.ReadonlyKeyword]: ModifierFlags.Readonly,
+    [ts.SyntaxKind.ConstKeyword]: ts.ModifierFlags.Const,
+    [ts.SyntaxKind.DefaultKeyword]: ts.ModifierFlags.Default,
+    [ts.SyntaxKind.ExportKeyword]: ts.ModifierFlags.Export,
+    [ts.SyntaxKind.AsyncKeyword]: ts.ModifierFlags.Async,
+    [ts.SyntaxKind.PrivateKeyword]: ts.ModifierFlags.Private,
+    [ts.SyntaxKind.ProtectedKeyword]: ts.ModifierFlags.Protected,
+    [ts.SyntaxKind.PublicKeyword]: ts.ModifierFlags.Public,
+    [ts.SyntaxKind.StaticKeyword]: ts.ModifierFlags.Static,
+    [ts.SyntaxKind.AbstractKeyword]: ts.ModifierFlags.Abstract,
+    [ts.SyntaxKind.DeclareKeyword]: ts.ModifierFlags.Ambient,
+    [ts.SyntaxKind.ReadonlyKeyword]: ts.ModifierFlags.Readonly,
   } as const);
 
-  return function (mods: readonly Modifier[] | undefined): ModifierFlags {
+  return function (mods: readonly Modifier[] | undefined): ts.ModifierFlags {
     if (mods === void 0) {
-      return ModifierFlags.None;
+      return ts.ModifierFlags.None;
     }
     const len = mods.length;
     if (len === 1) {

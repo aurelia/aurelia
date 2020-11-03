@@ -4,6 +4,7 @@
     "rootDir": "src",
     "declarationDir": "dist",
     "outDir": "dist/esnext",
+    "allowSyntheticDefaultImports": true,
     "types": [
       "node"
     ],

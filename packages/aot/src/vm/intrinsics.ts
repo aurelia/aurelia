@@ -1,31 +1,31 @@
 import {
   Realm,
   ExecutionContext,
-} from './realm';
+} from './realm.js';
 import {
   $Boolean,
-} from './types/boolean';
+} from './types/boolean.js';
 import {
   $Empty,
-} from './types/empty';
+} from './types/empty.js';
 import {
   $Undefined,
-} from './types/undefined';
+} from './types/undefined.js';
 import {
   $Null,
-} from './types/null';
+} from './types/null.js';
 import {
   $Number,
-} from './types/number';
+} from './types/number.js';
 import {
   $String,
-} from './types/string';
+} from './types/string.js';
 import {
   $Symbol,
-} from './types/symbol';
+} from './types/symbol.js';
 import {
   $Object,
-} from './types/object';
+} from './types/object.js';
 import {
   $IteratorPrototype,
   $AsyncIteratorPrototype,
@@ -33,11 +33,11 @@ import {
   $AsyncFromSyncIteratorPrototype_next,
   $AsyncFromSyncIteratorPrototype_return,
   $AsyncFromSyncIteratorPrototype_throw,
-} from './globals/iteration';
+} from './globals/iteration.js';
 import {
   $StringConstructor,
   $StringPrototype,
-} from './globals/string';
+} from './globals/string.js';
 import {
   $ObjectConstructor,
   $ObjectPrototype,
@@ -68,7 +68,7 @@ import {
   $Object_seal,
   $Object_setPrototypeOf,
   $Object_values,
-} from './globals/object';
+} from './globals/object.js';
 import {
   $FunctionPrototype,
   $FunctionConstructor,
@@ -77,22 +77,22 @@ import {
   $FunctionPrototype_bind,
   $FunctionPrototype_toString,
   $FunctionPrototype_hasInstance,
-} from './globals/function';
+} from './globals/function.js';
 import {
   CompletionType,
-} from './types/_shared';
+} from './types/_shared.js';
 import {
   $NumberConstructor,
   $NumberPrototype,
-} from './globals/number';
+} from './globals/number.js';
 import {
   $BooleanConstructor,
   $BooleanPrototype,
-} from './globals/boolean';
+} from './globals/boolean.js';
 import {
   $SymbolConstructor,
   $SymbolPrototype,
-} from './globals/symbol';
+} from './globals/symbol.js';
 import {
   $ErrorConstructor,
   $ErrorPrototype,
@@ -109,10 +109,10 @@ import {
   $TypeErrorPrototype,
   $URIErrorConstructor,
   $URIErrorPrototype,
-} from './globals/error';
+} from './globals/error.js';
 import {
   $ThrowTypeError,
-} from './globals/throw-type-error';
+} from './globals/throw-type-error.js';
 import {
   IDisposable,
   Writable,
@@ -124,7 +124,7 @@ import {
   $GeneratorPrototype_next,
   $GeneratorPrototype_return,
   $GeneratorPrototype_throw,
-} from './globals/generator-function';
+} from './globals/generator-function.js';
 import {
   $PromiseConstructor,
   $PromisePrototype,
@@ -135,14 +135,14 @@ import {
   $PromiseProto_then,
   $PromiseProto_catch,
   $PromiseProto_finally,
-} from './globals/promise';
+} from './globals/promise.js';
 import {
   $GetSpecies,
-} from './globals/_shared';
+} from './globals/_shared.js';
 import {
   $AsyncFunctionPrototype,
   $AsyncFunctionConstructor,
-} from './globals/async-function';
+} from './globals/async-function.js';
 import {
   $AsyncGeneratorFunctionPrototype,
   $AsyncGeneratorFunctionConstructor,
@@ -150,11 +150,11 @@ import {
   $AsyncGeneratorPrototype_next,
   $AsyncGeneratorPrototype_return,
   $AsyncGeneratorPrototype_throw,
-} from './globals/async-generator-function';
+} from './globals/async-generator-function.js';
 import {
   $ProxyConstructor,
   $Proxy_revocable,
-} from './globals/proxy';
+} from './globals/proxy.js';
 import {
   $Reflect,
   $Reflect_apply,
@@ -170,28 +170,28 @@ import {
   $Reflect_preventExtensions,
   $Reflect_set,
   $Reflect_setPrototypeOf,
-} from './globals/reflect';
+} from './globals/reflect.js';
 import {
   $Eval,
-} from './globals/eval';
+} from './globals/eval.js';
 import {
   $IsFinite,
-} from './globals/is-finite';
+} from './globals/is-finite.js';
 import {
   $IsNaN,
-} from './globals/is-nan';
+} from './globals/is-nan.js';
 import {
   $ParseFloat,
-} from './globals/parse-float';
+} from './globals/parse-float.js';
 import {
   $ParseInt,
-} from './globals/parse-int';
+} from './globals/parse-int.js';
 import {
   $DecodeURI,
   $DecodeURIComponent,
   $EncodeURI,
   $EncodeURIComponent,
-} from './globals/uri-handling';
+} from './globals/uri-handling.js';
 
 export type $True = $Boolean<true>;
 export type $False = $Boolean<false>;

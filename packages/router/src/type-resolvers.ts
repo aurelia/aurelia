@@ -1,10 +1,10 @@
 import { Constructable } from '@aurelia/kernel';
 import { CustomElement, IController, ICustomElementViewModel } from '@aurelia/runtime-html';
-import { ComponentAppellation, IRouteableComponent, RouteableComponentType, IViewportInstruction, NavigationInstruction, ViewportHandle } from './interfaces';
-import { IRouter } from './router';
-import { Viewport } from './viewport';
-import { ViewportInstruction } from './viewport-instruction';
-import { Scope } from './scope';
+import { ComponentAppellation, IRouteableComponent, RouteableComponentType, IViewportInstruction, NavigationInstruction, ViewportHandle } from './interfaces.js';
+import { IRouter } from './router.js';
+import { Viewport } from './viewport.js';
+import { ViewportInstruction } from './viewport-instruction.js';
+import { Scope } from './scope.js';
 
 export const ComponentAppellationResolver = {
   isName(component: ComponentAppellation): component is string {

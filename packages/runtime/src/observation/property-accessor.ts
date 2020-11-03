@@ -1,5 +1,5 @@
 import type { ITask } from '@aurelia/kernel';
-import { AccessorType, IAccessor, IObservable, LifecycleFlags } from '../observation';
+import { AccessorType, IAccessor, IObservable, LifecycleFlags } from '../observation.js';
 
 export class PropertyAccessor implements IAccessor {
   public task: ITask | null = null;

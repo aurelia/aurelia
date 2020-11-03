@@ -16,13 +16,13 @@ import {
   IndexMap,
   Scope,
 } from '@aurelia/runtime';
-import { INode, IRenderLocation } from '../../dom';
-import { templateController } from '../custom-attribute';
-import { Controller } from '../../templating/controller';
-import { ICompiledRenderContext } from '../../templating/render-context';
-import { IViewFactory } from '../../templating/view';
-import type { ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, IHydratableController, ISyntheticView, ControllerVisitor } from '../../templating/controller';
-import { Instruction } from '../../renderer';
+import { INode, IRenderLocation } from '../../dom.js';
+import { templateController } from '../custom-attribute.js';
+import { Controller } from '../../templating/controller.js';
+import { ICompiledRenderContext } from '../../templating/render-context.js';
+import { IViewFactory } from '../../templating/view.js';
+import type { ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, IHydratableController, ISyntheticView, ControllerVisitor } from '../../templating/controller.js';
+import { Instruction } from '../../renderer.js';
 
 @templateController('switch')
 export class Switch implements ICustomAttributeViewModel {

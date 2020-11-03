@@ -1,67 +1,67 @@
 import {
   $BuiltinFunction,
   $Function,
-} from '../types/function';
+} from '../types/function.js';
 import {
   Realm,
   ExecutionContext,
-} from '../realm';
+} from '../realm.js';
 import {
   $AnyNonEmpty,
   $AnyNonEmptyNonError,
   CompletionType,
   $Any,
-} from '../types/_shared';
+} from '../types/_shared.js';
 import {
   $Error,
   $TypeError,
-} from '../types/error';
+} from '../types/error.js';
 import {
   $Undefined,
-} from '../types/undefined';
+} from '../types/undefined.js';
 import {
   $Object,
-} from '../types/object';
+} from '../types/object.js';
 import {
   $String,
-} from '../types/string';
+} from '../types/string.js';
 import {
   FunctionKind,
-} from '../ast/_shared';
+} from '../ast/_shared.js';
 import {
   $CreateDynamicFunction,
   $FunctionPrototype,
   $FunctionConstructor,
-} from './function';
+} from './function.js';
 import {
   $IteratorPrototype,
   $CreateIterResultObject,
-} from './iteration';
+} from './iteration.js';
 import {
   $Number,
-} from '../types/number';
+} from '../types/number.js';
 import {
   $Block,
-} from '../ast/statements';
+} from '../ast/statements.js';
 import {
   $List,
-} from '../types/list';
+} from '../types/list.js';
 import {
   $PromiseCapability,
   $PromiseResolve,
   $PerformPromiseThen,
   $NewPromiseCapability,
   $PromiseInstance,
-} from './promise';
+} from './promise.js';
 import {
   $Boolean,
-} from '../types/boolean';
+} from '../types/boolean.js';
 import {
   $Call,
-} from '../operations';
+} from '../operations.js';
 import {
   $Await,
-} from '../types/await';
+} from '../types/await.js';
 
 // http://www.ecma-international.org/ecma-262/#sec-asyncgeneratorfunction-objects
 // 25.3 AsyncGeneratorFunction Objects

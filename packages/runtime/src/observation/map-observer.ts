@@ -1,4 +1,3 @@
-import { ITask } from '@aurelia/kernel';
 import {
   CollectionKind,
   createIndexMap,
@@ -158,7 +157,6 @@ export interface MapObserver extends ICollectionObserver<CollectionKind.map> {}
 export class MapObserver {
   public inBatch: boolean;
   public type: AccessorType = AccessorType.Map;
-  public task: ITask | null = null;
 
   public constructor(flags: LifecycleFlags, lifecycle: ILifecycle, map: IObservedMap) {
 
@@ -208,7 +206,7 @@ export class MapObserver {
     this.indexMap = createIndexMap(size);
     this.callCollectionSubscribers(indexMap, LifecycleFlags.updateTarget | this.persistentFlags);
     if (this.lengthObserver !== void 0) {
-      this.lengthObserver.setValue(size, LifecycleFlags.updateTarget);
+      this.lengthObserver.notify();
     }
   }
 }

@@ -1,4 +1,3 @@
-import { ITask } from '@aurelia/kernel';
 import { CollectionKind, createIndexMap, ICollectionObserver, IObservedSet, ICollectionIndexObserver, AccessorType, ILifecycle, LifecycleFlags } from '../observation';
 import { CollectionSizeObserver } from './collection-size-observer';
 import { collectionSubscriberCollection } from './subscriber-collection';
@@ -130,15 +129,12 @@ export function disableSetObservation(): void {
   }
 }
 
-const slice = Array.prototype.slice;
-
 export interface SetObserver extends ICollectionObserver<CollectionKind.set> {}
 
 @collectionSubscriberCollection()
 export class SetObserver {
   public inBatch: boolean;
   public type: AccessorType = AccessorType.Set;
-  public task: ITask | null = null;
 
   public constructor(flags: LifecycleFlags, lifecycle: ILifecycle, observedSet: IObservedSet) {
 
@@ -188,7 +184,7 @@ export class SetObserver {
     this.indexMap = createIndexMap(size);
     this.callCollectionSubscribers(indexMap, LifecycleFlags.updateTarget | this.persistentFlags);
     if (this.lengthObserver !== void 0) {
-      this.lengthObserver.setValue(size, LifecycleFlags.updateTarget);
+      this.lengthObserver.notify();
     }
   }
 }

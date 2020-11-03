@@ -1,4 +1,4 @@
-import { IIndexable, ITask } from '@aurelia/kernel';
+import { IIndexable } from '@aurelia/kernel';
 import { IPropertyObserver, ISubscriber, AccessorType, ISubscribable, IAccessor, ISubscriberCollection, LifecycleFlags } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
 import { InterceptorFunc } from '../bindable';
@@ -114,7 +114,6 @@ export class SetterNotifier implements IAccessor, ISubscribable {
    * @internal
    */
   public v: unknown = void 0;
-  public task: ITask | null = null;
 
   public readonly persistentFlags: LifecycleFlags = LifecycleFlags.none;
 

@@ -82,7 +82,7 @@ export class InterpolationBinding implements IBinding {
     //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start().wait()
     const shouldQueueFlush = (flags & LifecycleFlags.fromBind) === 0 && (targetObserver.type & AccessorType.Layout) > 0;
     if (shouldQueueFlush) {
-      flags |= LifecycleFlags.noTargetObserverQueue;
+      flags |= LifecycleFlags.noFlush;
       this.task?.cancel();
       this.task = this.taskQueue.queueTask(() => {
         (targetObserver as unknown as INodeAccessor).flushChanges?.(flags);

@@ -39,17 +39,6 @@ class FlagsTemplateController {
         }
     }
 }
-let InfrequentMutations = class InfrequentMutations extends FlagsTemplateController {
-    constructor(factory, location) {
-        super(factory, location, 4096 /* noTargetObserverQueue */);
-    }
-};
-InfrequentMutations = __decorate([
-    templateController('infrequent-mutations'),
-    __param(0, IViewFactory), __param(1, IRenderLocation),
-    __metadata("design:paramtypes", [Object, Object])
-], InfrequentMutations);
-export { InfrequentMutations };
 let FrequentMutations = class FrequentMutations extends FlagsTemplateController {
     constructor(factory, location) {
         super(factory, location, 8192 /* persistentTargetObserverQueue */);

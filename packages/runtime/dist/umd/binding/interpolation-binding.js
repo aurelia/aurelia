@@ -76,7 +76,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start().wait()
             const shouldQueueFlush = (flags & 32 /* fromBind */) === 0 && (targetObserver.type & 64 /* Layout */) > 0;
             if (shouldQueueFlush) {
-                flags |= 4096 /* noTargetObserverQueue */;
+                flags |= 4096 /* noFlush */;
                 (_a = this.task) === null || _a === void 0 ? void 0 : _a.cancel();
                 this.task = this.taskQueue.queueTask(() => {
                     var _a, _b;

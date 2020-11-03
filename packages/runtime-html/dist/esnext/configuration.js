@@ -12,7 +12,7 @@ import { UpdateTriggerBindingBehavior } from './resources/binding-behaviors/upda
 import { Blur } from './resources/custom-attributes/blur';
 import { Focus } from './resources/custom-attributes/focus';
 import { Portal } from './resources/template-controllers/portal';
-import { FrequentMutations, InfrequentMutations, ObserveShallow } from './resources/template-controllers/flags';
+import { FrequentMutations, ObserveShallow } from './resources/template-controllers/flags';
 import { Else, If } from './resources/template-controllers/if';
 import { Repeat } from './resources/template-controllers/repeat';
 import { With } from './resources/template-controllers/with';
@@ -98,7 +98,6 @@ export const DefaultBindingLanguage = [
 export const SanitizeValueConverterRegistration = SanitizeValueConverter;
 export const ViewValueConverterRegistration = ViewValueConverter;
 export const FrequentMutationsRegistration = FrequentMutations;
-export const InfrequentMutationsRegistration = InfrequentMutations;
 export const ObserveShallowRegistration = ObserveShallow;
 export const IfRegistration = If;
 export const ElseRegistration = Else;
@@ -133,7 +132,6 @@ export const DefaultResources = [
     SanitizeValueConverterRegistration,
     ViewValueConverterRegistration,
     FrequentMutationsRegistration,
-    InfrequentMutationsRegistration,
     ObserveShallowRegistration,
     IfRegistration,
     ElseRegistration,

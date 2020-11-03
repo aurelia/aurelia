@@ -116,7 +116,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
              * @internal
              */
             this.v = void 0;
-            this.task = null;
             this.persistentFlags = 0 /* none */;
         }
         getValue() {

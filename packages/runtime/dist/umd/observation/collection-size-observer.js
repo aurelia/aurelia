@@ -24,18 +24,17 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         constructor(obj) {
             this.obj = obj;
             this.type = 4 /* Obj */;
-            this.task = null;
             this.currentValue = obj.size;
         }
         getValue() {
             return this.obj.size;
         }
-        setValue(newValue, flags) {
-            const { currentValue } = this;
-            if (newValue !== currentValue) {
-                this.currentValue = newValue;
-                this.callSubscribers(newValue, currentValue, flags | 8 /* updateTarget */);
-            }
+        setValue() {
+            throw new Error('collection "size" is a readonly property');
+        }
+        notify() {
+            const oldValue = this.currentValue;
+            this.callSubscribers(this.currentValue = this.obj.size, oldValue, 8 /* updateTarget */);
         }
     };
     CollectionSizeObserver = __decorate([

@@ -21,7 +21,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.ObserveShallow = exports.FrequentMutations = exports.InfrequentMutations = void 0;
+    exports.ObserveShallow = exports.FrequentMutations = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const dom_1 = require("../../dom");
     const view_1 = require("../../templating/view");
@@ -51,17 +51,6 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             }
         }
     }
-    let InfrequentMutations = class InfrequentMutations extends FlagsTemplateController {
-        constructor(factory, location) {
-            super(factory, location, 4096 /* noTargetObserverQueue */);
-        }
-    };
-    InfrequentMutations = __decorate([
-        custom_attribute_1.templateController('infrequent-mutations'),
-        __param(0, view_1.IViewFactory), __param(1, dom_1.IRenderLocation),
-        __metadata("design:paramtypes", [Object, Object])
-    ], InfrequentMutations);
-    exports.InfrequentMutations = InfrequentMutations;
     let FrequentMutations = class FrequentMutations extends FlagsTemplateController {
         constructor(factory, location) {
             super(factory, location, 8192 /* persistentTargetObserverQueue */);

@@ -12,7 +12,6 @@ let CollectionLengthObserver = class CollectionLengthObserver {
     constructor(obj) {
         this.obj = obj;
         this.type = 10 /* Array */;
-        this.task = null;
         this.currentValue = obj.length;
     }
     getValue() {

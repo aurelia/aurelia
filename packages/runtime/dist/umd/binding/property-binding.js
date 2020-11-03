@@ -91,7 +91,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                 // todo(fred): maybe let the obsrever decides whether it updates
                 if (newValue !== oldValue) {
                     if (shouldQueueFlush) {
-                        flags |= 4096 /* noTargetObserverQueue */;
+                        flags |= 4096 /* noFlush */;
                         (_a = this.task) === null || _a === void 0 ? void 0 : _a.cancel();
                         this.task = this.taskQueue.queueTask(() => {
                             var _a, _b;
@@ -184,9 +184,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             }
             if (task != null) {
                 task.cancel();
-                if (task === targetObserver.task) {
-                    targetObserver.task = null;
-                }
                 this.task = null;
             }
             this.interceptor.unobserve(true);

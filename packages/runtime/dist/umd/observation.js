@@ -102,7 +102,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         LifecycleFlags[LifecycleFlags["allowParentScopeTraversal"] = 1024] = "allowParentScopeTraversal";
         LifecycleFlags[LifecycleFlags["observeLeafPropertiesOnly"] = 2048] = "observeLeafPropertiesOnly";
         LifecycleFlags[LifecycleFlags["targetObserverFlags"] = 12295] = "targetObserverFlags";
-        LifecycleFlags[LifecycleFlags["noTargetObserverQueue"] = 4096] = "noTargetObserverQueue";
+        LifecycleFlags[LifecycleFlags["noFlush"] = 4096] = "noFlush";
         LifecycleFlags[LifecycleFlags["persistentTargetObserverQueue"] = 8192] = "persistentTargetObserverQueue";
         LifecycleFlags[LifecycleFlags["secondaryExpression"] = 16384] = "secondaryExpression";
         LifecycleFlags[LifecycleFlags["bindingStrategy"] = 7] = "bindingStrategy";
@@ -152,7 +152,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         AccessorType[AccessorType["Array"] = 10] = "Array";
         AccessorType[AccessorType["Set"] = 18] = "Set";
         AccessorType[AccessorType["Map"] = 34] = "Map";
-        // misc characteristic of observer when update
+        // misc characteristic of accessors/observers when update
         //
         // by default, everything is synchronous
         // except changes that are supposed to cause reflow/heavy computation

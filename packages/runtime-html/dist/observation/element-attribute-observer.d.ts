@@ -1,4 +1,4 @@
-import { IBindingTargetObserver, IObserverLocator, ISubscriber, ISubscriberCollection, LifecycleFlags, ITask, AccessorType } from '@aurelia/runtime';
+import { IBindingTargetObserver, IObserverLocator, ISubscriber, ISubscriberCollection, LifecycleFlags, AccessorType } from '@aurelia/runtime';
 import { IPlatform } from '../platform';
 export interface IHtmlElement extends HTMLElement {
     $mObserver: MutationObserver;
@@ -24,7 +24,6 @@ export declare class AttributeObserver implements AttributeObserver, ElementMuta
     oldValue: unknown;
     readonly persistentFlags: LifecycleFlags;
     hasChanges: boolean;
-    task: ITask | null;
     type: AccessorType;
     constructor(platform: IPlatform, flags: LifecycleFlags, observerLocator: IObserverLocator, obj: IHtmlElement, propertyKey: string, targetAttribute: string);
     getValue(): unknown;

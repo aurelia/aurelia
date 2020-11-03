@@ -56,7 +56,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         setValue(newValue, flags) {
             this.currentValue = newValue;
             this.hasChanges = newValue !== this.oldValue;
-            if ((flags & 4096 /* noTargetObserverQueue */) === 0) {
+            if ((flags & 4096 /* noFlush */) === 0) {
                 this.flushChanges(flags);
             }
         }
@@ -82,7 +82,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             }
         }
         handleCollectionChange(indexMap, flags) {
-            if ((flags & 32 /* fromBind */) > 0 || this.persistentFlags === 4096 /* noTargetObserverQueue */) {
+            if ((flags & 32 /* fromBind */) > 0 || this.persistentFlags === 4096 /* noFlush */) {
                 this.synchronizeOptions();
             }
             else {
@@ -97,7 +97,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             this.callSubscribers(this.currentValue, this.oldValue, flags);
         }
         handleChange(newValue, previousValue, flags) {
-            if ((flags & 32 /* fromBind */) > 0 || this.persistentFlags === 4096 /* noTargetObserverQueue */) {
+            if ((flags & 32 /* fromBind */) > 0 || this.persistentFlags === 4096 /* noFlush */) {
                 this.synchronizeOptions();
             }
             else {
@@ -112,7 +112,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             this.callSubscribers(newValue, previousValue, flags);
         }
         notify(flags) {
-            if ((flags & 32 /* fromBind */) > 0 || this.persistentFlags === 4096 /* noTargetObserverQueue */) {
+            if ((flags & 32 /* fromBind */) > 0 || this.persistentFlags === 4096 /* noFlush */) {
                 return;
             }
             const oldValue = this.oldValue;

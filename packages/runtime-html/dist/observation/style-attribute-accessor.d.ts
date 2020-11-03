@@ -1,4 +1,4 @@
-import { IAccessor, LifecycleFlags, ITask, AccessorType } from '@aurelia/runtime';
+import { IAccessor, LifecycleFlags, AccessorType } from '@aurelia/runtime';
 import { INode } from '../dom';
 export declare class StyleAttributeAccessor implements IAccessor {
     readonly obj: HTMLElement;
@@ -8,7 +8,6 @@ export declare class StyleAttributeAccessor implements IAccessor {
     styles: Record<string, number>;
     version: number;
     hasChanges: boolean;
-    task: ITask | null;
     type: AccessorType;
     constructor(flags: LifecycleFlags, obj: INode);
     getValue(): string;

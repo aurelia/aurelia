@@ -141,7 +141,6 @@ const slice = Array.prototype.slice;
 let MapObserver = class MapObserver {
     constructor(flags, lifecycle, map) {
         this.type = 34 /* Map */;
-        this.task = null;
         if (!enableMapObservationCalled) {
             enableMapObservationCalled = true;
             enableMapObservation();
@@ -181,7 +180,7 @@ let MapObserver = class MapObserver {
         this.indexMap = createIndexMap(size);
         this.callCollectionSubscribers(indexMap, 8 /* updateTarget */ | this.persistentFlags);
         if (this.lengthObserver !== void 0) {
-            this.lengthObserver.setValue(size, 8 /* updateTarget */);
+            this.lengthObserver.notify();
         }
     }
 };

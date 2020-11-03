@@ -1,5 +1,5 @@
 import { IIndexable } from '@aurelia/kernel';
-import { IAccessor, LifecycleFlags, ITask, AccessorType } from '@aurelia/runtime';
+import { IAccessor, LifecycleFlags, AccessorType } from '@aurelia/runtime';
 /**
  * Property accessor for HTML Elements.
  * Note that Aurelia works with properties, so in all case it will try to assign to property instead of attributes.
@@ -14,7 +14,6 @@ export declare class ElementPropertyAccessor implements IAccessor {
     oldValue: unknown;
     readonly persistentFlags: LifecycleFlags;
     hasChanges: boolean;
-    task: ITask | null;
     type: AccessorType;
     constructor(flags: LifecycleFlags, obj: Node & IIndexable, propertyKey: string);
     getValue(): unknown;

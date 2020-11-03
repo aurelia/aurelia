@@ -1,5 +1,4 @@
 import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
-import type { ITask } from '@aurelia/platform';
 import type { Scope } from './observation/binding-context';
 import type { CollectionLengthObserver } from './observation/collection-length-observer';
 import type { CollectionSizeObserver } from './observation/collection-size-observer';
@@ -52,7 +51,7 @@ export declare const enum LifecycleFlags {
     allowParentScopeTraversal = 1024,
     observeLeafPropertiesOnly = 2048,
     targetObserverFlags = 12295,
-    noTargetObserverQueue = 4096,
+    noFlush = 4096,
     persistentTargetObserverQueue = 8192,
     secondaryExpression = 16384,
     bindingStrategy = 7,
@@ -176,7 +175,6 @@ export declare const enum AccessorType {
  * Basic interface to normalize getting/setting a value of any property on any object
  */
 export interface IAccessor<TValue = unknown> {
-    task: ITask | null;
     type: AccessorType;
     getValue(obj?: object, key?: PropertyKey): TValue;
     setValue(newValue: TValue, flags: LifecycleFlags, obj?: object, key?: PropertyKey): void;

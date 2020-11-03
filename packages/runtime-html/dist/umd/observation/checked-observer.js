@@ -33,7 +33,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             this.currentValue = void 0;
             this.oldValue = void 0;
             this.hasChanges = false;
-            this.task = null;
             // ObserverType.Layout is not always true, it depends on the property
             // but for simplicity, always treat as such
             this.type = 2 /* Node */ | 1 /* Observer */ | 64 /* Layout */;
@@ -49,7 +48,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         setValue(newValue, flags) {
             this.currentValue = newValue;
             this.hasChanges = newValue !== this.oldValue;
-            if ((flags & 4096 /* noTargetObserverQueue */) === 0) {
+            if ((flags & 4096 /* noFlush */) === 0) {
                 this.flushChanges(flags);
             }
         }

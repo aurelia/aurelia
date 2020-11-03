@@ -3,7 +3,6 @@ export class PrimitiveObserver {
         this.obj = obj;
         this.propertyKey = propertyKey;
         this.type = 0 /* None */;
-        this.task = null;
     }
     get doNotCache() { return true; }
     getValue() {

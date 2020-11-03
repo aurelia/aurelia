@@ -155,7 +155,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     let MapObserver = class MapObserver {
         constructor(flags, lifecycle, map) {
             this.type = 34 /* Map */;
-            this.task = null;
             if (!enableMapObservationCalled) {
                 enableMapObservationCalled = true;
                 enableMapObservation();
@@ -195,7 +194,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             this.indexMap = observation_1.createIndexMap(size);
             this.callCollectionSubscribers(indexMap, 8 /* updateTarget */ | this.persistentFlags);
             if (this.lengthObserver !== void 0) {
-                this.lengthObserver.setValue(size, 8 /* updateTarget */);
+                this.lengthObserver.notify();
             }
         }
     };

@@ -52,7 +52,6 @@ export declare const DefaultBindingLanguage: IRegistry[];
 export declare const SanitizeValueConverterRegistration: IRegistry;
 export declare const ViewValueConverterRegistration: IRegistry;
 export declare const FrequentMutationsRegistration: IRegistry;
-export declare const InfrequentMutationsRegistration: IRegistry;
 export declare const ObserveShallowRegistration: IRegistry;
 export declare const IfRegistration: IRegistry;
 export declare const ElseRegistration: IRegistry;

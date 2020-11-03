@@ -6,7 +6,6 @@ export class StyleAttributeAccessor {
         this.styles = {};
         this.version = 0;
         this.hasChanges = false;
-        this.task = null;
         this.type = 2 /* Node */ | 64 /* Layout */;
         this.obj = obj;
         this.persistentFlags = flags & 12295 /* targetObserverFlags */;
@@ -17,7 +16,7 @@ export class StyleAttributeAccessor {
     setValue(newValue, flags) {
         this.currentValue = newValue;
         this.hasChanges = newValue !== this.oldValue;
-        if ((flags & 4096 /* noTargetObserverQueue */) === 0) {
+        if ((flags & 4096 /* noFlush */) === 0) {
             this.flushChanges(flags);
         }
     }

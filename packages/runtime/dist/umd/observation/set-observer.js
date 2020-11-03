@@ -138,11 +138,9 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         }
     }
     exports.disableSetObservation = disableSetObservation;
-    const slice = Array.prototype.slice;
     let SetObserver = class SetObserver {
         constructor(flags, lifecycle, observedSet) {
             this.type = 18 /* Set */;
-            this.task = null;
             if (!enableSetObservationCalled) {
                 enableSetObservationCalled = true;
                 enableSetObservation();
@@ -182,7 +180,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             this.indexMap = observation_1.createIndexMap(size);
             this.callCollectionSubscribers(indexMap, 8 /* updateTarget */ | this.persistentFlags);
             if (this.lengthObserver !== void 0) {
-                this.lengthObserver.setValue(size, 8 /* updateTarget */);
+                this.lengthObserver.notify();
             }
         }
     };

@@ -21,7 +21,6 @@
             this.currentValue = null;
             this.oldValue = null;
             this.hasChanges = false;
-            this.task = null;
             // ObserverType.Layout is not always true, it depends on the property
             // but for simplicity, always treat as such
             this.type = 2 /* Node */ | 64 /* Layout */;
@@ -36,7 +35,7 @@
         setValue(newValue, flags) {
             this.currentValue = newValue;
             this.hasChanges = newValue !== this.oldValue;
-            if ((flags & 4096 /* noTargetObserverQueue */) === 0) {
+            if ((flags & 4096 /* noFlush */) === 0) {
                 this.flushChanges(flags);
             }
         }

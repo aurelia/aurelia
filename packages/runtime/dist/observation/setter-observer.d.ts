@@ -1,4 +1,4 @@
-import { IIndexable, ITask } from '@aurelia/kernel';
+import { IIndexable } from '@aurelia/kernel';
 import { IPropertyObserver, ISubscriber, AccessorType, ISubscribable, IAccessor, ISubscriberCollection, LifecycleFlags } from '../observation';
 import { InterceptorFunc } from '../bindable';
 export interface SetterObserver extends IPropertyObserver<IIndexable, string> {
@@ -29,7 +29,6 @@ export interface SetterNotifier extends ISubscriberCollection {
 export declare class SetterNotifier implements IAccessor, ISubscribable {
     private readonly s?;
     type: AccessorType;
-    task: ITask | null;
     readonly persistentFlags: LifecycleFlags;
     constructor(s?: InterceptorFunc<unknown, unknown> | undefined);
     getValue(): unknown;

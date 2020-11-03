@@ -36,7 +36,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             this.currentValue = null;
             this.oldValue = null;
             this.hasChanges = false;
-            this.task = null;
             // layout is not certain, depends on the attribute being flushed to owner element
             // but for simple start, always treat as such
             this.type = 2 /* Node */ | 1 /* Observer */ | 64 /* Layout */;
@@ -50,7 +49,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         setValue(newValue, flags) {
             this.currentValue = newValue;
             this.hasChanges = newValue !== this.oldValue;
-            if ((flags & 4096 /* noTargetObserverQueue */) === 0) {
+            if ((flags & 4096 /* noFlush */) === 0) {
                 this.flushChanges(flags);
             }
         }

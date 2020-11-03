@@ -12,7 +12,6 @@
     exports.propertyAccessor = exports.PropertyAccessor = void 0;
     class PropertyAccessor {
         constructor() {
-            this.task = null;
             // the only thing can be guaranteed is it's an object
             // even if this property accessor is used to access an element
             this.type = 4 /* Obj */;

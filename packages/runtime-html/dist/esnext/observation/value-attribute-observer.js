@@ -21,7 +21,6 @@ let ValueAttributeObserver = class ValueAttributeObserver {
         this.currentValue = '';
         this.oldValue = '';
         this.hasChanges = false;
-        this.task = null;
         // ObserverType.Layout is not always true, it depends on the element & property combo
         // but for simplicity, always treat as such
         this.type = 2 /* Node */ | 1 /* Observer */ | 64 /* Layout */;
@@ -35,7 +34,7 @@ let ValueAttributeObserver = class ValueAttributeObserver {
     setValue(newValue, flags) {
         this.currentValue = newValue;
         this.hasChanges = newValue !== this.oldValue;
-        if ((flags & 4096 /* noTargetObserverQueue */) === 0) {
+        if ((flags & 4096 /* noFlush */) === 0) {
             this.flushChanges(flags);
         }
     }

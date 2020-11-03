@@ -1,4 +1,3 @@
-import { ITask } from '@aurelia/kernel';
 import { CollectionKind, ICollectionObserver, IndexMap, IObservedArray, ICollectionIndexObserver, ISubscriber, AccessorType, ILifecycle, LifecycleFlags } from '../observation';
 import { CollectionLengthObserver } from './collection-length-observer';
 export declare function enableArrayObservation(): void;
@@ -8,7 +7,6 @@ export interface ArrayObserver extends ICollectionObserver<CollectionKind.array>
 export declare class ArrayObserver {
     inBatch: boolean;
     type: AccessorType;
-    task: ITask | null;
     private readonly indexObservers;
     constructor(flags: LifecycleFlags, lifecycle: ILifecycle, array: IObservedArray);
     notify(): void;

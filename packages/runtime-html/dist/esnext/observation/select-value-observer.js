@@ -44,7 +44,7 @@ let SelectValueObserver = class SelectValueObserver {
     setValue(newValue, flags) {
         this.currentValue = newValue;
         this.hasChanges = newValue !== this.oldValue;
-        if ((flags & 4096 /* noTargetObserverQueue */) === 0) {
+        if ((flags & 4096 /* noFlush */) === 0) {
             this.flushChanges(flags);
         }
     }
@@ -70,7 +70,7 @@ let SelectValueObserver = class SelectValueObserver {
         }
     }
     handleCollectionChange(indexMap, flags) {
-        if ((flags & 32 /* fromBind */) > 0 || this.persistentFlags === 4096 /* noTargetObserverQueue */) {
+        if ((flags & 32 /* fromBind */) > 0 || this.persistentFlags === 4096 /* noFlush */) {
             this.synchronizeOptions();
         }
         else {
@@ -85,7 +85,7 @@ let SelectValueObserver = class SelectValueObserver {
         this.callSubscribers(this.currentValue, this.oldValue, flags);
     }
     handleChange(newValue, previousValue, flags) {
-        if ((flags & 32 /* fromBind */) > 0 || this.persistentFlags === 4096 /* noTargetObserverQueue */) {
+        if ((flags & 32 /* fromBind */) > 0 || this.persistentFlags === 4096 /* noFlush */) {
             this.synchronizeOptions();
         }
         else {
@@ -100,7 +100,7 @@ let SelectValueObserver = class SelectValueObserver {
         this.callSubscribers(newValue, previousValue, flags);
     }
     notify(flags) {
-        if ((flags & 32 /* fromBind */) > 0 || this.persistentFlags === 4096 /* noTargetObserverQueue */) {
+        if ((flags & 32 /* fromBind */) > 0 || this.persistentFlags === 4096 /* noFlush */) {
             return;
         }
         const oldValue = this.oldValue;

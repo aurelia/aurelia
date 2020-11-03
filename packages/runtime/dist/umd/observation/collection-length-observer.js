@@ -24,7 +24,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         constructor(obj) {
             this.obj = obj;
             this.type = 10 /* Array */;
-            this.task = null;
             this.currentValue = obj.length;
         }
         getValue() {

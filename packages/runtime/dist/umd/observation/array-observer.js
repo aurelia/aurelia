@@ -410,7 +410,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     let ArrayObserver = class ArrayObserver {
         constructor(flags, lifecycle, array) {
             this.type = 10 /* Array */;
-            this.task = null;
             if (!enableArrayObservationCalled) {
                 enableArrayObservationCalled = true;
                 enableArrayObservation();

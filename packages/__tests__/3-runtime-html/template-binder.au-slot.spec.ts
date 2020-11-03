@@ -283,7 +283,7 @@ describe('template-binder.au-slot', function () {
     yield new InvalidMarkupTestData(`<my-element> <div au-slot repeat.for="i of 1">dp</div> <div au-slot="s1">s1p</div> </my-element>`, re1);
     yield new InvalidMarkupTestData(`<my-element> <div au-slot repeat.for="i of 1" with.bind="i">dp</div> <div au-slot="s1">s1p</div> </my-element>`, re1);
     yield new InvalidMarkupTestData(`<my-element> <div au-slot with.bind="{item: 'foo'}">dp</div> <div au-slot="s1">s1p</div> </my-element>`, re1);
-    yield* ['infrequent-mutations', 'frequent-mutations', 'observe-shallow']
+    yield* ['frequent-mutations', 'observe-shallow']
       .map((flags) => new InvalidMarkupTestData(`<my-element> <div au-slot ${flags}>dp</div> <div au-slot="s1">s1p</div> </my-element>`, re1));
 
     const re2 = /Unsupported usage of \[au-slot=".+"\]\. It seems that projection is attempted, but not for a custom element./;

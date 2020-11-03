@@ -1,4 +1,3 @@
-import { ITask } from '@aurelia/kernel';
 import {
   CollectionKind,
   createIndexMap,
@@ -390,7 +389,6 @@ export interface ArrayObserver extends ICollectionObserver<CollectionKind.array>
 export class ArrayObserver {
   public inBatch: boolean;
   public type: AccessorType = AccessorType.Array;
-  public task: ITask | null = null;
 
   private readonly indexObservers: Record<string | number, ArrayIndexObserver | undefined>;
 

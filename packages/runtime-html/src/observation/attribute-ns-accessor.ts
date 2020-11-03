@@ -1,4 +1,4 @@
-import { IAccessor, LifecycleFlags, ITask, AccessorType } from '@aurelia/runtime';
+import { IAccessor, LifecycleFlags, AccessorType } from '@aurelia/runtime';
 import { INode } from '../dom';
 
 /**
@@ -13,7 +13,6 @@ export class AttributeNSAccessor implements IAccessor<string | null> {
   public readonly persistentFlags: LifecycleFlags;
 
   public hasChanges: boolean = false;
-  public task: ITask | null = null;
   // ObserverType.Layout is not always true, it depends on the property
   // but for simplicity, always treat as such
   public type: AccessorType = AccessorType.Node | AccessorType.Layout;
@@ -37,7 +36,7 @@ export class AttributeNSAccessor implements IAccessor<string | null> {
   public setValue(newValue: string | null, flags: LifecycleFlags): void {
     this.currentValue = newValue;
     this.hasChanges = newValue !== this.oldValue;
-    if ((flags & LifecycleFlags.noTargetObserverQueue) === 0) {
+    if ((flags & LifecycleFlags.noFlush) === 0) {
       this.flushChanges(flags);
     }
   }

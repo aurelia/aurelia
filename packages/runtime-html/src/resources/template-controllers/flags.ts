@@ -51,13 +51,6 @@ abstract class FlagsTemplateController implements ICustomAttributeViewModel {
   }
 }
 
-@templateController('infrequent-mutations')
-export class InfrequentMutations extends FlagsTemplateController {
-  public constructor(@IViewFactory factory: IViewFactory, @IRenderLocation location: IRenderLocation) {
-    super(factory, location, LifecycleFlags.noTargetObserverQueue);
-  }
-}
-
 @templateController('frequent-mutations')
 export class FrequentMutations extends FlagsTemplateController {
   public constructor(@IViewFactory factory: IViewFactory, @IRenderLocation location: IRenderLocation) {

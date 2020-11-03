@@ -1,4 +1,4 @@
-import { IIndexable, ITask } from '@aurelia/kernel';
+import { IIndexable } from '@aurelia/kernel';
 import { IPropertyObserver, ISubscriber, AccessorType, ISubscribable, IAccessor, ISubscriberCollection, LifecycleFlags } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
 import { InterceptorFunc } from '../bindable';

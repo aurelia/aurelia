@@ -8,7 +8,6 @@ import {
   LifecycleFlags,
   SetterObserver,
   subscriberCollection,
-  ITask,
   getCollectionObserver,
   ILifecycle,
   AccessorType,

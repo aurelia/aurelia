@@ -1,4 +1,4 @@
-import { IBindingTargetObserver, IObserverLocator, ISubscriber, ISubscriberCollection, LifecycleFlags, subscriberCollection, ITask, AccessorType } from '@aurelia/runtime';
+import { IBindingTargetObserver, IObserverLocator, ISubscriber, ISubscriberCollection, LifecycleFlags, subscriberCollection, AccessorType } from '@aurelia/runtime';
 import { IPlatform } from '../platform';
 
 export interface IHtmlElement extends HTMLElement {

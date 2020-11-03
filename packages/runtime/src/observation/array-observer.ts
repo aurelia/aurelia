@@ -1,4 +1,3 @@
-import { ITask } from '@aurelia/kernel';
 import {
   CollectionKind,
   createIndexMap,

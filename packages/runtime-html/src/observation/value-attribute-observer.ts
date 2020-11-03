@@ -1,5 +1,5 @@
 import { IIndexable } from '@aurelia/kernel';
-import { IAccessor, ISubscriber, ISubscriberCollection, LifecycleFlags, subscriberCollection, ITask, AccessorType } from '@aurelia/runtime';
+import { IAccessor, ISubscriber, ISubscriberCollection, LifecycleFlags, subscriberCollection, AccessorType } from '@aurelia/runtime';
 import { EventSubscriber } from './event-delegator';
 
 export interface ValueAttributeObserver

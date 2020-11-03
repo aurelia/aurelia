@@ -1,4 +1,4 @@
-import { IAccessor, LifecycleFlags, ITask, AccessorType } from '@aurelia/runtime';
+import { IAccessor, LifecycleFlags, AccessorType } from '@aurelia/runtime';
 import { emptyArray, kebabCase } from '@aurelia/kernel';
 import { INode } from '../dom';
 

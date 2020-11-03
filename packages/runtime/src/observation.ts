@@ -1,6 +1,5 @@
 import { DI } from '@aurelia/kernel';
 import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
-import type { ITask } from '@aurelia/platform';
 import type { Scope } from './observation/binding-context';
 
 import type { CollectionLengthObserver } from './observation/collection-length-observer';

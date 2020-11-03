@@ -1,5 +1,5 @@
 import { IIndexable } from '@aurelia/kernel';
-import { IAccessor, LifecycleFlags, ITask, AccessorType } from '@aurelia/runtime';
+import { IAccessor, LifecycleFlags, AccessorType } from '@aurelia/runtime';
 
 /**
  * Property accessor for HTML Elements.

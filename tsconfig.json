@@ -3,7 +3,7 @@
     "experimentalDecorators": true,
     "esModuleInterop": true,
     "module": "commonjs",
-    "target": "es2018",
+    "target": "es2020",
     "lib": ["esnext"],
     "resolveJsonModule": true
   }

@@ -11,7 +11,7 @@
     "moduleResolution": "node",
     "skipLibCheck": true,
     "rootDir": "src",
-    "target": "es5",
+    "target": "es2020",
     "esModuleInterop": false,
     "baseUrl": "src",
     "paths": {

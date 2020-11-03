@@ -5,7 +5,7 @@
         "noImplicitAny": true,
         "module": "commonjs",
         "moduleResolution": "node",
-        "target": "es2017",
+        "target": "es2020",
         "noLib": false,
         "allowJs": false,
         "typeRoots": ["node_modules/@types"]

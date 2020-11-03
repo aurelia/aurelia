@@ -2,7 +2,7 @@
   "compilerOptions": {
       "strict": true,
       "baseUrl": "node_modules",
-      "target": "es5",
+      "target": "es2020",
       "lib": [
           "es5",
           "es2015",

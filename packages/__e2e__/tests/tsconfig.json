@@ -2,7 +2,7 @@
   "extends": "../tsconfig.json",
   "compilerOptions": {
     "baseUrl": "../node_modules",
-    "target": "es5",
+    "target": "es2020",
     "types": ["cypress"],
   },
   "include": ["**/*.ts"]

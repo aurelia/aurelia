@@ -8,7 +8,7 @@
     "moduleResolution": "node",
     "outDir": "dist",
     "rootDir": ".",
-    "target": "es5",
+    "target": "es2020",
     "types": [
       "mocha",
       "chai",

@@ -7,7 +7,7 @@
     "moduleResolution": "node",
     "skipLibCheck": true,
     "outDir": "dist",
-    "target": "es2018",
+    "target": "es2020",
     "resolveJsonModule": true
   },
   "include": ["src"],

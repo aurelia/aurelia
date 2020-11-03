@@ -1,6 +1,7 @@
 import * as path from 'path';
 import { kebabCase } from '@aurelia/kernel';
-import modifyCode, { ModifyCodeResult } from 'modify-code';
+import modifyCode from 'modify-code';
+import type { ModifyCodeResult } from 'modify-code';
 import { IFileUnit, IPreprocessOptions } from './options.js';
 import { stripMetaData } from './strip-meta-data.js';
 
@@ -75,7 +76,7 @@ export function preprocessHtmlTemplate(unit: IFileUnit, options: IPreprocessOpti
     }
   });
 
-  const m = modifyCode('', unit.path);
+  const m = (modifyCode as unknown as { default: typeof modifyCode }).default('', unit.path);
   m.append(`import { CustomElement } from '@aurelia/runtime-html';\n`);
   if (cssDeps.length > 0) {
     if (shadowMode !== null) {

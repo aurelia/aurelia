@@ -1,6 +1,7 @@
 import * as path from 'path';
 import { kebabCase } from '@aurelia/kernel';
-import modifyCode, { ModifyCodeResult } from 'modify-code';
+import modifyCode from 'modify-code';
+import type { ModifyCodeResult } from 'modify-code';
 import ts from 'typescript';
 import { nameConvention } from './name-convention.js';
 import { IFileUnit, IPreprocessOptions, ResourceType } from './options.js';
@@ -114,7 +115,7 @@ function modifyResource(unit: IFileUnit, options: IModifyResourceOptions) {
     customElementName
   } = options;
 
-  const m = modifyCode(unit.contents, unit.path);
+  const m = (modifyCode as unknown as { default: typeof modifyCode }).default(unit.contents, unit.path);
   if (implicitElement && unit.filePair) {
     // @view() for foo.js and foo-view.html
     // @customElement() for foo.js and foo.html

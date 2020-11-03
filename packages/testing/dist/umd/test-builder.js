@@ -423,10 +423,10 @@
         return container.get(runtime_html_1.IObserverLocator);
     }
     exports.createObserverLocator = createObserverLocator;
-    function createScopeForTest(bindingContext = {}, parentBindingContext) {
+    function createScopeForTest(bindingContext = {}, parentBindingContext, isComponentBoundary) {
         return parentBindingContext
             ? runtime_html_1.Scope.fromParent(0 /* none */, runtime_html_1.Scope.create(0 /* none */, parentBindingContext), bindingContext)
-            : runtime_html_1.Scope.create(0 /* none */, bindingContext, runtime_html_1.OverrideContext.create(0 /* none */, bindingContext));
+            : runtime_html_1.Scope.create(0 /* none */, bindingContext, runtime_html_1.OverrideContext.create(0 /* none */, bindingContext), isComponentBoundary);
     }
     exports.createScopeForTest = createScopeForTest;
 });

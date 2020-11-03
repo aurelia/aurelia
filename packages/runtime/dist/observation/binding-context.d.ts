@@ -29,6 +29,7 @@ export declare class Scope {
     parentScope: Scope | null;
     bindingContext: IBindingContext;
     overrideContext: IOverrideContext;
+    readonly isComponentBoundary: boolean;
     private constructor();
     /**
      * Create a new `Scope` backed by the provided `BindingContext` and a new standalone `OverrideContext`.
@@ -48,7 +49,7 @@ export declare class Scope {
      * during binding, it will traverse up via the `parentScope` of the scope until
      * it finds the property.
      */
-    static create(flags: LifecycleFlags, bc: object, oc: IOverrideContext): Scope;
+    static create(flags: LifecycleFlags, bc: object, oc: IOverrideContext, isComponentBoundary?: boolean): Scope;
     /**
      * Create a new `Scope` backed by the provided `BindingContext` and `OverrideContext`.
      *
@@ -58,7 +59,7 @@ export declare class Scope {
      * @param bc - The `BindingContext` to back the `Scope` with.
      * @param oc - null. This overload is functionally equivalent to not passing this argument at all.
      */
-    static create(flags: LifecycleFlags, bc: object, oc: null): Scope;
+    static create(flags: LifecycleFlags, bc: object, oc: null, isComponentBoundary?: boolean): Scope;
     static fromOverride(flags: LifecycleFlags, oc: IOverrideContext): Scope;
     static fromParent(flags: LifecycleFlags, ps: Scope | null, bc: object): Scope;
 }

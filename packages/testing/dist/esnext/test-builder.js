@@ -410,10 +410,10 @@ export function createObserverLocator(containerOrLifecycle) {
     Registration.instance(ITargetAccessorLocator, dummyLocator).register(container);
     return container.get(IObserverLocator);
 }
-export function createScopeForTest(bindingContext = {}, parentBindingContext) {
+export function createScopeForTest(bindingContext = {}, parentBindingContext, isComponentBoundary) {
     return parentBindingContext
         ? Scope.fromParent(0 /* none */, Scope.create(0 /* none */, parentBindingContext), bindingContext)
-        : Scope.create(0 /* none */, bindingContext, OverrideContext.create(0 /* none */, bindingContext));
+        : Scope.create(0 /* none */, bindingContext, OverrideContext.create(0 /* none */, bindingContext), isComponentBoundary);
 }
 // export type CustomAttribute = Writable<IViewModel> & IComponentLifecycleMock;
 // export function createCustomAttribute(nameOrDef: string | PartialCustomAttributeDefinition = 'foo') {

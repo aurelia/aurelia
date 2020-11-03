@@ -178,7 +178,7 @@ export class Controller {
         const instance = this.viewModel;
         createObservers(this.lifecycle, definition, flags, instance);
         createChildrenObservers(this, definition, flags, instance);
-        this.scope = Scope.create(flags, this.viewModel, null);
+        this.scope = Scope.create(flags, this.viewModel, null, true);
         const hooks = this.hooks;
         if (hooks.hasDefine) {
             if (this.debug) {

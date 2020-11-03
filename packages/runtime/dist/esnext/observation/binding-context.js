@@ -23,6 +23,7 @@ export class BindingContext {
         if (scope == null && hostScope == null) {
             throw new Error(`Scope is ${scope} and HostScope is ${hostScope}.`);
         }
+        const hasOtherScope = hostScope !== scope && hostScope != null;
         /* eslint-disable jsdoc/check-indentation */
         /**
          * This fallback is needed to support the following case:
@@ -36,10 +37,12 @@ export class BindingContext {
          */
         /* eslint-enable jsdoc/check-indentation */
         let context = chooseContext(scope, name, ancestor);
-        if (context !== null) {
+        if (context !== null
+            && ((context == null ? false : name in context)
+                || !hasOtherScope)) {
             return context;
         }
-        if (hostScope !== scope && hostScope != null) {
+        if (hasOtherScope) {
             context = chooseContext(hostScope, name, ancestor);
             if (context !== null) {
                 return context;
@@ -71,36 +74,40 @@ function chooseContext(scope, name, ancestor) {
         return name in overrideContext ? overrideContext : overrideContext.bindingContext;
     }
     // traverse the context and it's ancestors, searching for a context that has the name.
-    while (overrideContext && !(name in overrideContext) && !(overrideContext.bindingContext && name in overrideContext.bindingContext)) {
+    while (!(currentScope === null || currentScope === void 0 ? void 0 : currentScope.isComponentBoundary)
+        && overrideContext
+        && !(name in overrideContext)
+        && !(overrideContext.bindingContext
+            && name in overrideContext.bindingContext)) {
         currentScope = (_a = currentScope.parentScope) !== null && _a !== void 0 ? _a : null;
         overrideContext = (_b = currentScope === null || currentScope === void 0 ? void 0 : currentScope.overrideContext) !== null && _b !== void 0 ? _b : null;
     }
     if (overrideContext) {
-        // we located a context with the property.  return it.
         return name in overrideContext ? overrideContext : overrideContext.bindingContext;
     }
     return null;
 }
 export class Scope {
-    constructor(parentScope, bindingContext, overrideContext) {
+    constructor(parentScope, bindingContext, overrideContext, isComponentBoundary) {
         this.parentScope = parentScope;
         this.bindingContext = bindingContext;
         this.overrideContext = overrideContext;
+        this.isComponentBoundary = isComponentBoundary;
     }
-    static create(flags, bc, oc) {
-        return new Scope(null, bc, oc == null ? OverrideContext.create(flags, bc) : oc);
+    static create(flags, bc, oc, isComponentBoundary) {
+        return new Scope(null, bc, oc == null ? OverrideContext.create(flags, bc) : oc, isComponentBoundary !== null && isComponentBoundary !== void 0 ? isComponentBoundary : false);
     }
     static fromOverride(flags, oc) {
         if (oc == null) {
             throw new Error(`OverrideContext is ${oc}`);
         }
-        return new Scope(null, oc.bindingContext, oc);
+        return new Scope(null, oc.bindingContext, oc, false);
     }
     static fromParent(flags, ps, bc) {
         if (ps == null) {
             throw new Error(`ParentScope is ${ps}`);
         }
-        return new Scope(ps, bc, OverrideContext.create(flags, bc));
+        return new Scope(ps, bc, OverrideContext.create(flags, bc), false);
     }
 }
 export class OverrideContext {

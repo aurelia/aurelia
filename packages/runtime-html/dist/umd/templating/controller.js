@@ -190,7 +190,7 @@
             const instance = this.viewModel;
             createObservers(this.lifecycle, definition, flags, instance);
             createChildrenObservers(this, definition, flags, instance);
-            this.scope = runtime_1.Scope.create(flags, this.viewModel, null);
+            this.scope = runtime_1.Scope.create(flags, this.viewModel, null, true);
             const hooks = this.hooks;
             if (hooks.hasDefine) {
                 if (this.debug) {

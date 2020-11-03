@@ -108,7 +108,7 @@ export const enum LifecycleFlags {
   allowParentScopeTraversal     = 0b00001_000_00_00_000,
   observeLeafPropertiesOnly     = 0b00010_000_00_00_000,
   targetObserverFlags           = 0b01100_000_00_00_111,
-  noTargetObserverQueue         = 0b00100_000_00_00_000,
+  noFlush                       = 0b00100_000_00_00_000,
   persistentTargetObserverQueue = 0b01000_000_00_00_000,
   secondaryExpression           = 0b10000_000_00_00_000,
   bindingStrategy               = 0b00000_000_00_00_111,
@@ -293,7 +293,7 @@ export const enum AccessorType {
   Set           = 0b0_0001_0010,
   Map           = 0b0_0010_0010,
 
-  // misc characteristic of observer when update
+  // misc characteristic of accessors/observers when update
   //
   // by default, everything is synchronous
   // except changes that are supposed to cause reflow/heavy computation

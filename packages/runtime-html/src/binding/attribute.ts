@@ -130,7 +130,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
 
       if (newValue !== oldValue) {
         if (shouldQueueFlush) {
-          flags |= LifecycleFlags.noTargetObserverQueue;
+          flags |= LifecycleFlags.noFlush;
           this.task?.cancel();
           this.task = this.$platform.domWriteQueue.queueTask(() => {
             (targetObserver as Partial<INodeAccessor>).flushChanges?.(flags);

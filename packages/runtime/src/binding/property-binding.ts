@@ -116,7 +116,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
       // todo(fred): maybe let the obsrever decides whether it updates
       if (newValue !== oldValue) {
         if (shouldQueueFlush) {
-          flags |= LifecycleFlags.noTargetObserverQueue;
+          flags |= LifecycleFlags.noFlush;
           this.task?.cancel();
           this.task = this.taskQueue.queueTask(() => {
             (targetObserver as Partial<INodeAccessor>).flushChanges?.(flags);

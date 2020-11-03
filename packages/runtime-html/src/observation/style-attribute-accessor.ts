@@ -13,7 +13,6 @@ export class StyleAttributeAccessor implements IAccessor {
   public version: number = 0;
 
   public hasChanges: boolean = false;
-  public task: ITask | null = null;
   public type: AccessorType = AccessorType.Node | AccessorType.Layout;
 
   public constructor(
@@ -31,7 +30,7 @@ export class StyleAttributeAccessor implements IAccessor {
   public setValue(newValue: unknown, flags: LifecycleFlags): void {
     this.currentValue = newValue;
     this.hasChanges = newValue !== this.oldValue;
-    if ((flags & LifecycleFlags.noTargetObserverQueue) === 0) {
+    if ((flags & LifecycleFlags.noFlush) === 0) {
       this.flushChanges(flags);
     }
   }

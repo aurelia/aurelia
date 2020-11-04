@@ -71,7 +71,7 @@ export class SelectValueObserver implements IAccessor {
   public setValue(newValue: unknown, flags: LifecycleFlags): void {
     this.currentValue = newValue;
     this.hasChanges = newValue !== this.oldValue;
-    if ((flags & LifecycleFlags.noTargetObserverQueue) === 0) {
+    if ((flags & LifecycleFlags.noFlush) === 0) {
       this.flushChanges(flags);
     }
   }
@@ -100,7 +100,7 @@ export class SelectValueObserver implements IAccessor {
   }
 
   public handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void {
-    if ((flags & LifecycleFlags.fromBind) > 0 || this.persistentFlags === LifecycleFlags.noTargetObserverQueue) {
+    if ((flags & LifecycleFlags.fromBind) > 0 || this.persistentFlags === LifecycleFlags.noFlush) {
       this.synchronizeOptions();
     } else {
       this.hasChanges = true;
@@ -115,7 +115,7 @@ export class SelectValueObserver implements IAccessor {
   }
 
   public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
-    if ((flags & LifecycleFlags.fromBind) > 0 || this.persistentFlags === LifecycleFlags.noTargetObserverQueue) {
+    if ((flags & LifecycleFlags.fromBind) > 0 || this.persistentFlags === LifecycleFlags.noFlush) {
       this.synchronizeOptions();
     } else {
       this.hasChanges = true;
@@ -130,7 +130,7 @@ export class SelectValueObserver implements IAccessor {
   }
 
   public notify(flags: LifecycleFlags): void {
-    if ((flags & LifecycleFlags.fromBind) > 0 || this.persistentFlags === LifecycleFlags.noTargetObserverQueue) {
+    if ((flags & LifecycleFlags.fromBind) > 0 || this.persistentFlags === LifecycleFlags.noFlush) {
       return;
     }
     const oldValue = this.oldValue;

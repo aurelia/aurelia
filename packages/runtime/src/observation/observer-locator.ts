@@ -54,7 +54,7 @@ export class ObserverLocator {
   public constructor(
     @ILifecycle private readonly lifecycle: ILifecycle,
     @IDirtyChecker private readonly dirtyChecker: IDirtyChecker,
-    @ITargetObserverLocator private readonly targetObserverLocator: ITargetObserverLocator,
+    @ITargetObserverLocator private readonly nodeAdapter: ITargetObserverLocator,
     @ITargetAccessorLocator private readonly targetAccessorLocator: ITargetAccessorLocator,
   ) {}
 
@@ -73,8 +73,8 @@ export class ObserverLocator {
       return cached;
     }
     if (this.targetAccessorLocator.handles(flags, obj)) {
-      if (this.targetObserverLocator.overridesAccessor(flags, obj, key)) {
-        const observer = this.targetObserverLocator.getObserver(flags, this, obj, key);
+      if (this.nodeAdapter.overridesAccessor(flags, obj, key)) {
+        const observer = this.nodeAdapter.getObserver(flags, this, obj, key);
         if (observer !== null) {
           return this.cache((obj as IObservable), key, observer);
         }
@@ -104,8 +104,8 @@ export class ObserverLocator {
 
     let isNode = false;
     // Never use proxies for observing nodes, so check target observer first and only then evaluate proxy strategy
-    if (this.targetObserverLocator.handles(flags, obj)) {
-      const observer = this.targetObserverLocator.getObserver(flags, this, obj, key);
+    if (this.nodeAdapter.handles(flags, obj)) {
+      const observer = this.nodeAdapter.getObserver(flags, this, obj, key);
       if (observer !== null) {
         return observer;
       }

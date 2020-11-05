@@ -12,8 +12,8 @@ import {
 } from '@aurelia/runtime';
 import { EventSubscriber } from './event-delegator';
 import { IPlatform } from '../platform';
-import { hasOwn } from '../utilities-objects';
 
+const hasOwn = Object.prototype.hasOwnProperty;
 const childObserverOptions = {
   childList: true,
   subtree: true,
@@ -120,7 +120,7 @@ export class SelectValueObserver implements IAccessor {
 
     while (i-- > 0) {
       const option = options[i];
-      const optionValue = hasOwn(option, 'model') ? option.model : option.value;
+      const optionValue = hasOwn.call(option, 'model') ? option.model : option.value;
       if (isArray) {
         option.selected = (currentValue as unknown[]).findIndex(item => !!matcher(optionValue, item)) !== -1;
         continue;
@@ -166,7 +166,7 @@ export class SelectValueObserver implements IAccessor {
       while (i < len) {
         option = options[i];
         if (option.selected) {
-          values.push(hasOwn(option, 'model')
+          values.push(hasOwn.call(option, 'model')
             ? option.model
             : option.value
           );
@@ -203,7 +203,7 @@ export class SelectValueObserver implements IAccessor {
     while (i < len) {
       const option = options[i];
       if (option.selected) {
-        value = hasOwn(option, 'model')
+        value = hasOwn.call(option, 'model')
           ? option.model
           : option.value;
         break;

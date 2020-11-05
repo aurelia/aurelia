@@ -218,13 +218,13 @@ export class SelectValueObserver implements IAccessor {
     return true;
   }
 
-  private observe(): void {
+  private start(): void {
     (this.nodeObserver = new this.platform.MutationObserver(this.handleNodeChange.bind(this))).observe(this.obj, childObserverOptions);
     this.observeArray(this.currentValue instanceof Array ? this.currentValue : null);
     this.observing = true;
   }
 
-  private unobserve(): void {
+  private stop(): void {
     this.nodeObserver!.disconnect();
     this.nodeObserver = null!;
 
@@ -260,7 +260,7 @@ export class SelectValueObserver implements IAccessor {
   public subscribe(subscriber: ISubscriber): void {
     if (!this.hasSubscribers()) {
       this.handler.subscribe(this.obj, this);
-      this.observe();
+      this.start();
     }
     this.addSubscriber(subscriber);
   }
@@ -269,7 +269,7 @@ export class SelectValueObserver implements IAccessor {
     this.removeSubscriber(subscriber);
     if (!this.hasSubscribers()) {
       this.handler.dispose();
-      this.unobserve();
+      this.stop();
     }
   }
 }

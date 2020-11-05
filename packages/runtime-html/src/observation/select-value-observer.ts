@@ -63,7 +63,11 @@ export class SelectValueObserver implements IAccessor {
   public getValue(): unknown {
     // is it safe to assume the observer has the latest value?
     // todo: ability to turn on/off cache based on type
-    return this.observing ? this.currentValue : this.obj.value;
+    return this.observing
+      ? this.currentValue
+      : this.obj.multiple
+        ? Array.from(this.obj.options).map(o => o.value)
+        : this.obj.value;
   }
 
   public setValue(newValue: unknown, flags: LF): void {
@@ -217,6 +221,7 @@ export class SelectValueObserver implements IAccessor {
   private observe(): void {
     (this.nodeObserver = new this.platform.MutationObserver(this.handleNodeChange.bind(this))).observe(this.obj, childObserverOptions);
     this.observeArray(this.currentValue instanceof Array ? this.currentValue : null);
+    this.observing = true;
   }
 
   private unobserve(): void {
@@ -227,6 +232,7 @@ export class SelectValueObserver implements IAccessor {
       this.arrayObserver.unsubscribeFromCollection(this);
       this.arrayObserver = null!;
     }
+    this.observing = false;
   }
 
   // todo: observe all kind of collection

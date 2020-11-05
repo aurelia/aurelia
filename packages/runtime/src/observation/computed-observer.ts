@@ -18,6 +18,8 @@ import {
   ICollectionObserver,
   CollectionKind,
   LifecycleFlags,
+  ISubscriberCollection,
+  ICollectionSubscriber,
 } from '../observation';
 import { IDirtyChecker } from './dirty-checker';
 import { IObserverLocator } from './observer-locator';
@@ -28,7 +30,7 @@ import { IWatcherCallback } from './watch';
 import { ExpressionKind, IsBindingBehavior } from '../binding/ast';
 import { getProxyOrSelf, getRawOrSelf } from './proxy-observation';
 import { Scope } from './binding-context';
-import { isArray, isMap, isSet } from '../utilities-objects';
+import { defineHiddenProp, ensureProto, isArray, isMap, isSet } from '../utilities-objects';
 
 export interface ComputedOverrides {
   // Indicates that a getter doesn't need to re-calculate its dependencies after the first observation.
@@ -310,17 +312,206 @@ function proxyOrValue(flags: LifecycleFlags, target: object, key: PropertyKey, o
   return new Proxy(value, createGetterTraps(flags, observerLocator, observer));
 }
 
+interface IWatcherImpl extends IWatcher, IConnectableBinding, ISubscriber, ICollectionSubscriber {
+  id: number;
+  observers: Map<ICollectionObserver<CollectionKind>, number>;
+  readonly useProxy: boolean;
+  unobserveCollection(all?: boolean): void;
+}
+
+function watcherImpl(): ClassDecorator;
+function watcherImpl(klass?: Constructable<IWatcher>): void;
+function watcherImpl(klass?: Constructable<IWatcher>): ClassDecorator | void {
+  return klass == null ? watcherImplDecorator as ClassDecorator : watcherImplDecorator(klass);
+}
+
+function watcherImplDecorator(klass: Constructable<IWatcher>) {
+  const proto = klass.prototype as IWatcher;
+  connectable()(klass);
+  subscriberCollection()(klass);
+  collectionSubscriberCollection()(klass);
+
+  ensureProto(proto, 'observe', observe);
+  ensureProto(proto, 'observeCollection', observeCollection);
+  ensureProto(proto, 'observeLength', observeLength);
+
+  defineHiddenProp(proto as IWatcherImpl, 'unobserveCollection', unobserveCollection);
+}
+
+function observe(this: IWatcherImpl, obj: object, key: PropertyKey): void {
+  const observer = this.observerLocator.getObserver(LifecycleFlags.none, obj, key as string) as IBindingTargetObserver;
+  this.addObserver(observer);
+}
+
+function observeCollection(this: IWatcherImpl, collection: Collection): void {
+  const obs = getCollectionObserver(this.observerLocator, collection);
+  this.observers.set(obs, this.version);
+  obs.subscribeToCollection(this);
+}
+
+function observeLength(this: IWatcherImpl, collection: Collection): void {
+  getCollectionObserver(this.observerLocator, collection).getLengthObserver().subscribe(this);
+}
+
+function unobserveCollection(this: IWatcherImpl, all?: boolean): void {
+  const version = this.version;
+  const observers = this.observers;
+  observers.forEach((v, o) => {
+    if (all || v !== version) {
+      o.unsubscribeFromCollection(this);
+      observers.delete(o);
+    }
+  });
+}
+
+function getCollectionObserver(observerLocator: IObserverLocator, collection: Collection): ICollectionObserver<CollectionKind> {
+  let observer: ICollectionObserver<CollectionKind>;
+  if (isArray(collection)) {
+    observer = observerLocator.getArrayObserver(LifecycleFlags.none, collection);
+  } else if (isSet(collection)) {
+    observer = observerLocator.getSetObserver(LifecycleFlags.none, collection);
+  } else if (isMap(collection)) {
+    observer = observerLocator.getMapObserver(LifecycleFlags.none, collection);
+  } else {
+    throw new Error('Unrecognised collection type.');
+  }
+  return observer;
+}
+
+export interface ComputedObserver extends IWatcherImpl, IConnectableBinding, ISubscriberCollection {}
+
+@watcherImpl
+export class ComputedObserver implements IWatcherImpl {
+
+  public static create(obj: object, key: PropertyKey, descriptor: PropertyDescriptor, useProxy: boolean): ComputedObserver {
+    const getter = descriptor.get!;
+    const setter = descriptor.set;
+    const observer = new ComputedObserver(obj, getter, setter, useProxy);
+    Reflect.defineProperty(obj, key, {
+      enumerable: descriptor.enumerable,
+      writable: true,
+      configurable: true,
+      get: () => observer.getValue(),
+      set: (v) => observer.setValue(v, LifecycleFlags.none),
+    });
+
+    return observer;
+  }
+
+  public observers: Map<ICollectionObserver<CollectionKind>, number> = new Map();
+
+  /**
+   * @internal
+   */
+  private subscriberCount: number = 0;
+  // todo: maybe use a counter allow recursive call to a certain level
+  /**
+   * @internal
+   */
+  private running: boolean = false;
+  private value: unknown = void 0;
+
+  private isDirty: boolean = false;
+
+  public constructor(
+    public readonly obj: object,
+    public readonly get: (watcher: IWatcher) => unknown,
+    public readonly set: undefined | ((v: unknown) => void),
+    public readonly useProxy: boolean,
+  ) {
+    connectable.assignIdTo(this);
+  }
+
+  public getValue() {
+    if (this.isDirty) {
+      this.compute();
+    }
+    return this.value;
+  }
+
+  public setValue(v: unknown, flags: LifecycleFlags): void {
+    if (typeof this.set === 'function' && v !== this.value) {
+      const oldValue = this.value;
+      this.set.call(this.obj, v);
+      if (!this.useProxy) {
+        this.isDirty = true;
+        this.callSubscribers(this.getValue(), oldValue, flags);
+        this.isDirty = false;
+      }
+    }
+  }
+
+  public handleChange(): void {
+    this.isDirty = true;
+    if (this.observerSlots > 0) {
+      this.run();
+    }
+  }
+
+  public handleCollectionChange(): void {
+    this.isDirty = true;
+    if (this.observerSlots > 0) {
+      this.run();
+    }
+  }
+
+  public subscribe(subscriber: ISubscriber): void {
+    if (this.addSubscriber(subscriber) && ++this.subscriberCount === 1) {
+      this.compute();
+      this.isDirty = false;
+    }
+  }
+
+  public unsubscribe(subscriber: ISubscriber): void {
+    if (this.removeSubscriber(subscriber) && --this.subscriberCount === 0) {
+      this.isDirty = true;
+      this.unobserve(true);
+      this.unobserveCollection(true);
+    }
+  }
+
+  private run(): void {
+    if (!this.isBound || this.running) {
+      return;
+    }
+    const oldValue = this.value;
+    const newValue = this.compute();
+
+    if (!Object.is(newValue, oldValue)) {
+      // should optionally queue
+      this.callSubscribers(newValue, oldValue, LifecycleFlags.none);
+    }
+  }
+
+  private compute(): unknown {
+    this.running = true;
+    this.version++;
+    try {
+      enterWatcher(this);
+      this.value = getRawOrSelf(this.get.call(this.useProxy ? getProxyOrSelf(this.obj) : this.obj, this));
+    } finally {
+      exitWatcher(this);
+      this.unobserve(false);
+      this.unobserveCollection(false);
+      this.running = false;
+    }
+    return this.value;
+  }
+}
+
 // watchers (Computed & Expression) are basically binding,
 // they are treated as special and setup before all other bindings
 
-export interface ComputedWatcher extends IConnectableBinding { }
+export interface ComputedWatcher extends IWatcherImpl, IConnectableBinding { }
 
-@connectable()
-@subscriberCollection()
-@collectionSubscriberCollection()
+@watcherImpl
 export class ComputedWatcher implements IWatcher {
 
-  private readonly observers: Map<ICollectionObserver<CollectionKind>, number> = new Map();
+  /**
+   * @internal
+   */
+  public observers: Map<ICollectionObserver<CollectionKind>, number> = new Map();
+
   // todo: maybe use a counter allow recursive call to a certain level
   private running: boolean = false;
   private value: unknown = void 0;
@@ -332,7 +523,7 @@ export class ComputedWatcher implements IWatcher {
     public readonly observerLocator: IObserverLocator,
     public readonly get: (obj: object, watcher: IWatcher) => unknown,
     private readonly cb: IWatcherCallback<object>,
-    private readonly useProxy: boolean,
+    public readonly useProxy: boolean,
   ) {
     connectable.assignIdTo(this);
   }
@@ -362,21 +553,6 @@ export class ComputedWatcher implements IWatcher {
     this.unobserveCollection(true);
   }
 
-  public observe(obj: object, key: PropertyKey): void {
-    const observer = this.observerLocator.getObserver(LifecycleFlags.none, obj, key as string) as IBindingTargetObserver;
-    this.addObserver(observer);
-  }
-
-  public observeCollection(collection: Collection): void {
-    const obs = this.forCollection(collection);
-    this.observers.set(obs, this.version);
-    obs.subscribeToCollection(this);
-  }
-
-  public observeLength(collection: Collection): void {
-    this.forCollection(collection).getLengthObserver().subscribe(this);
-  }
-
   private run(): void {
     if (!this.isBound || this.running) {
       return;
@@ -396,7 +572,7 @@ export class ComputedWatcher implements IWatcher {
     this.version++;
     try {
       enterWatcher(this);
-      this.value = getRawOrSelf(this.get(this.useProxy ? getProxyOrSelf(this.obj) : this.obj, this));
+      this.value = getRawOrSelf(this.get.call(void 0, this.useProxy ? getProxyOrSelf(this.obj) : this.obj, this));
     } finally {
       exitWatcher(this);
       this.unobserve(false);
@@ -404,32 +580,6 @@ export class ComputedWatcher implements IWatcher {
       this.running = false;
     }
     return this.value;
-  }
-
-  private forCollection(collection: Collection): ICollectionObserver<CollectionKind> {
-    const obsLocator = this.observerLocator;
-    let observer: ICollectionObserver<CollectionKind>;
-    if (isArray(collection)) {
-      observer = obsLocator.getArrayObserver(LifecycleFlags.none, collection);
-    } else if (isSet(collection)) {
-      observer = obsLocator.getSetObserver(LifecycleFlags.none, collection);
-    } else if (isMap(collection)) {
-      observer = obsLocator.getMapObserver(LifecycleFlags.none, collection);
-    } else {
-      throw new Error('Unrecognised collection type.');
-    }
-    return observer;
-  }
-
-  private unobserveCollection(all: boolean): void {
-    const version = this.version;
-    const observers = this.observers;
-    observers.forEach((v, o) => {
-      if (all || v !== version) {
-        o.unsubscribeFromCollection(this);
-        observers.delete(o);
-      }
-    });
   }
 }
 

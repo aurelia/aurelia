@@ -8,7 +8,6 @@ import {
   ISubscriberCollection,
   LifecycleFlags as LF,
   subscriberCollection,
-  ITask,
   AccessorType,
 } from '@aurelia/runtime';
 import { EventSubscriber } from './event-delegator';
@@ -41,10 +40,9 @@ export class SelectValueObserver implements IAccessor {
   public currentValue: unknown = void 0;
   public oldValue: unknown = void 0;
 
-  public readonly persistentFlags: LF;
+  public readonly persistentFlags: LF = LF.none;
 
   public hasChanges: boolean = false;
-  public task: ITask | null = null;
   // ObserverType.Layout is not always true
   // but for simplicity, always treat as such
   public type: AccessorType = AccessorType.Node | AccessorType.Observer | AccessorType.Layout;
@@ -55,13 +53,11 @@ export class SelectValueObserver implements IAccessor {
   private observing: boolean = false;
 
   public constructor(
-    flags: LF,
     public readonly observerLocator: IObserverLocator,
     public readonly platform: IPlatform,
     public readonly handler: EventSubscriber,
     public readonly obj: ISelectElement,
   ) {
-    this.persistentFlags = flags & LF.targetObserverFlags;
   }
 
   public getValue(): unknown {

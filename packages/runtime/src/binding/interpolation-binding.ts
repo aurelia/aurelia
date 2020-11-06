@@ -82,14 +82,14 @@ export class InterpolationBinding implements IBinding {
     //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start().wait()
     const shouldQueueFlush = (flags & LifecycleFlags.fromBind) === 0 && (targetObserver.type & AccessorType.Layout) > 0;
     if (shouldQueueFlush) {
-      flags |= LifecycleFlags.noFlush;
       this.task?.cancel();
       this.task = this.taskQueue.queueTask(() => {
-        (targetObserver as unknown as INodeAccessor).flushChanges?.(flags);
+        targetObserver.setValue(result, flags, this.target, this.targetProperty);
         this.task = null;
       }, queueTaskOptions);
+    } else {
+      targetObserver.setValue(result, flags, this.target, this.targetProperty);
     }
-    targetObserver.setValue(result, flags, this.target, this.targetProperty);
   }
 
   public $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void {

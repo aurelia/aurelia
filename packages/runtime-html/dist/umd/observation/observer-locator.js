@@ -94,7 +94,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                     return new checked_observer_1.CheckedObserver(flags, this.lifecycle, new event_delegator_1.EventSubscriber(inputEvents), obj);
                 case 'value':
                     if (obj.tagName === 'SELECT') {
-                        return new select_value_observer_1.SelectValueObserver(flags, observerLocator, this.platform, new event_delegator_1.EventSubscriber(selectEvents), obj);
+                        return new select_value_observer_1.SelectValueObserver(observerLocator, this.platform, new event_delegator_1.EventSubscriber(selectEvents), obj);
                     }
                     return new value_attribute_observer_1.ValueAttributeObserver(flags, new event_delegator_1.EventSubscriber(inputEvents), obj, propertyName);
                 case 'files':

@@ -82,7 +82,7 @@ let TargetObserverLocator = class TargetObserverLocator {
                 return new CheckedObserver(flags, this.lifecycle, new EventSubscriber(inputEvents), obj);
             case 'value':
                 if (obj.tagName === 'SELECT') {
-                    return new SelectValueObserver(flags, observerLocator, this.platform, new EventSubscriber(selectEvents), obj);
+                    return new SelectValueObserver(observerLocator, this.platform, new EventSubscriber(selectEvents), obj);
                 }
                 return new ValueAttributeObserver(flags, new EventSubscriber(inputEvents), obj, propertyName);
             case 'files':

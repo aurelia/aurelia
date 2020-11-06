@@ -9,8 +9,8 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 import { IObserverLocator, subscriberCollection, } from '@aurelia/runtime';
 import { EventSubscriber } from './event-delegator';
-import { bound } from '@aurelia/kernel';
 import { IPlatform } from '../platform';
+const hasOwn = Object.prototype.hasOwnProperty;
 const childObserverOptions = {
     childList: true,
     subtree: true,
@@ -20,30 +20,35 @@ function defaultMatcher(a, b) {
     return a === b;
 }
 let SelectValueObserver = class SelectValueObserver {
-    constructor(flags, observerLocator, platform, handler, obj) {
+    constructor(observerLocator, platform, handler, obj) {
         this.observerLocator = observerLocator;
         this.platform = platform;
         this.handler = handler;
         this.obj = obj;
         this.currentValue = void 0;
         this.oldValue = void 0;
+        this.persistentFlags = 0 /* none */;
         this.hasChanges = false;
-        this.task = null;
         // ObserverType.Layout is not always true
         // but for simplicity, always treat as such
         this.type = 2 /* Node */ | 1 /* Observer */ | 64 /* Layout */;
         this.arrayObserver = void 0;
         this.nodeObserver = void 0;
-        this.persistentFlags = flags & 12295 /* targetObserverFlags */;
+        this.observing = false;
     }
     getValue() {
         // is it safe to assume the observer has the latest value?
         // todo: ability to turn on/off cache based on type
-        return this.currentValue;
+        return this.observing
+            ? this.currentValue
+            : this.obj.multiple
+                ? Array.from(this.obj.options).map(o => o.value)
+                : this.obj.value;
     }
     setValue(newValue, flags) {
         this.currentValue = newValue;
         this.hasChanges = newValue !== this.oldValue;
+        this.observeArray(newValue instanceof Array ? newValue : null);
         if ((flags & 4096 /* noFlush */) === 0) {
             this.flushChanges(flags);
         }
@@ -51,56 +56,16 @@ let SelectValueObserver = class SelectValueObserver {
     flushChanges(flags) {
         if (this.hasChanges) {
             this.hasChanges = false;
-            const currentValue = this.currentValue;
-            const isArray = Array.isArray(currentValue);
-            this.oldValue = currentValue;
-            if (!isArray && currentValue != void 0 && this.obj.multiple) {
-                throw new Error('Only null or Array instances can be bound to a multi-select.');
-            }
-            if (this.arrayObserver) {
-                this.arrayObserver.unsubscribeFromCollection(this);
-                this.arrayObserver = void 0;
-            }
-            if (isArray) {
-                this.arrayObserver = this.observerLocator.getArrayObserver(flags, currentValue);
-                this.arrayObserver.subscribeToCollection(this);
-            }
             this.synchronizeOptions();
-            this.notify(flags);
         }
     }
-    handleCollectionChange(indexMap, flags) {
-        if ((flags & 32 /* fromBind */) > 0 || this.persistentFlags === 4096 /* noFlush */) {
-            this.synchronizeOptions();
-        }
-        else {
-            this.hasChanges = true;
-        }
-        if (this.persistentFlags !== 8192 /* persistentTargetObserverQueue */ && this.task === null) {
-            this.task = this.platform.domWriteQueue.queueTask(() => {
-                this.flushChanges(flags);
-                this.task = null;
-            });
-        }
-        this.callSubscribers(this.currentValue, this.oldValue, flags);
-    }
-    handleChange(newValue, previousValue, flags) {
-        if ((flags & 32 /* fromBind */) > 0 || this.persistentFlags === 4096 /* noFlush */) {
-            this.synchronizeOptions();
-        }
-        else {
-            this.hasChanges = true;
-        }
-        if (this.persistentFlags !== 8192 /* persistentTargetObserverQueue */ && this.task === null) {
-            this.task = this.platform.domWriteQueue.queueTask(() => {
-                this.flushChanges(flags);
-                this.task = null;
-            });
-        }
-        this.callSubscribers(newValue, previousValue, flags);
+    handleCollectionChange() {
+        // always sync "selected" property of <options/>
+        // immediately whenever the array notifies its mutation
+        this.synchronizeOptions();
     }
     notify(flags) {
-        if ((flags & 32 /* fromBind */) > 0 || this.persistentFlags === 4096 /* noFlush */) {
+        if ((flags & 32 /* fromBind */) > 0) {
             return;
         }
         const oldValue = this.oldValue;
@@ -111,7 +76,6 @@ let SelectValueObserver = class SelectValueObserver {
         this.callSubscribers(newValue, oldValue, flags);
     }
     handleEvent() {
-        // "from-view" changes are always synchronous now, so immediately sync the value and notify subscribers
         const shouldNotify = this.synchronizeValue();
         if (shouldNotify) {
             this.callSubscribers(this.currentValue, this.oldValue, 0 /* none */);
@@ -125,7 +89,7 @@ let SelectValueObserver = class SelectValueObserver {
         let i = options.length;
         while (i-- > 0) {
             const option = options[i];
-            const optionValue = Object.prototype.hasOwnProperty.call(option, 'model') ? option.model : option.value;
+            const optionValue = hasOwn.call(option, 'model') ? option.model : option.value;
             if (isArray) {
                 option.selected = currentValue.findIndex(item => !!matcher(optionValue, item)) !== -1;
                 continue;
@@ -134,7 +98,7 @@ let SelectValueObserver = class SelectValueObserver {
         }
     }
     synchronizeValue() {
-        // Spec for synchronizing value from `SelectObserver` to `<select/>`
+        // Spec for synchronizing value from `<select/>`  to `SelectObserver`
         // When synchronizing value to observed <select/> element, do the following steps:
         // A. If `<select/>` is multiple
         //    1. Check if current value, called `currentValue` is an array
@@ -169,7 +133,7 @@ let SelectValueObserver = class SelectValueObserver {
             while (i < len) {
                 option = options[i];
                 if (option.selected) {
-                    values.push(Object.prototype.hasOwnProperty.call(option, 'model')
+                    values.push(hasOwn.call(option, 'model')
                         ? option.model
                         : option.value);
                 }
@@ -206,7 +170,7 @@ let SelectValueObserver = class SelectValueObserver {
         while (i < len) {
             const option = options[i];
             if (option.selected) {
-                value = Object.prototype.hasOwnProperty.call(option, 'model')
+                value = hasOwn.call(option, 'model')
                     ? option.model
                     : option.value;
                 break;
@@ -220,15 +184,31 @@ let SelectValueObserver = class SelectValueObserver {
         // B.4
         return true;
     }
-    bind(flags) {
-        (this.nodeObserver = new this.platform.MutationObserver(this.handleNodeChange)).observe(this.obj, childObserverOptions);
+    start() {
+        (this.nodeObserver = new this.platform.MutationObserver(this.handleNodeChange.bind(this))).observe(this.obj, childObserverOptions);
+        this.observeArray(this.currentValue instanceof Array ? this.currentValue : null);
+        this.observing = true;
     }
-    unbind(flags) {
+    stop() {
         this.nodeObserver.disconnect();
         this.nodeObserver = null;
         if (this.arrayObserver) {
             this.arrayObserver.unsubscribeFromCollection(this);
             this.arrayObserver = null;
+        }
+        this.observing = false;
+    }
+    // todo: observe all kind of collection
+    observeArray(array) {
+        if (array != null && !this.obj.multiple) {
+            throw new Error('Only null or Array instances can be bound to a multi-select.');
+        }
+        if (this.arrayObserver) {
+            this.arrayObserver.unsubscribeFromCollection(this);
+            this.arrayObserver = void 0;
+        }
+        if (array != null) {
+            (this.arrayObserver = this.observerLocator.getArrayObserver(0 /* none */, array)).subscribeToCollection(this);
         }
     }
     handleNodeChange() {
@@ -241,6 +221,7 @@ let SelectValueObserver = class SelectValueObserver {
     subscribe(subscriber) {
         if (!this.hasSubscribers()) {
             this.handler.subscribe(this.obj, this);
+            this.start();
         }
         this.addSubscriber(subscriber);
     }
@@ -248,18 +229,13 @@ let SelectValueObserver = class SelectValueObserver {
         this.removeSubscriber(subscriber);
         if (!this.hasSubscribers()) {
             this.handler.dispose();
+            this.stop();
         }
     }
 };
-__decorate([
-    bound,
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
-    __metadata("design:returntype", void 0)
-], SelectValueObserver.prototype, "handleNodeChange", null);
 SelectValueObserver = __decorate([
     subscriberCollection(),
-    __metadata("design:paramtypes", [Number, Object, Object, EventSubscriber, Object])
+    __metadata("design:paramtypes", [Object, Object, EventSubscriber, Object])
 ], SelectValueObserver);
 export { SelectValueObserver };
 //# sourceMappingURL=select-value-observer.js.map

@@ -43,7 +43,7 @@ export class CheckedObserver implements IAccessor {
   public readonly persistentFlags: LifecycleFlags;
 
   public hasChanges: boolean = false;
-  public type: AccessorType = AccessorType.Node | AccessorType.Observer;
+  public type: AccessorType = AccessorType.Node | AccessorType.Observer | AccessorType.Layout;
 
   public collectionObserver?: ICollectionObserver<CollectionKind> = void 0;
   public valueObserver?: ValueAttributeObserver | SetterObserver = void 0;

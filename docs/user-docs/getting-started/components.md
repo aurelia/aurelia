@@ -203,11 +203,6 @@ Aurelia
 {% endtab %}
 {% endtabs %}
 
-{% hint style="info" %}
-**Aurelia Architecture**
-
-Did you notice how the default Aurelia startup code involves importing and registering `StandardConfiguration`? The `StandardConfiguration` export is a type of `registry,` just like the one we described above. Since all of Aurelia's internals are pluggable and extensible, we provide this convenience registry to setup the standard options you would want in a typical application.
-{% endhint %}
 
 ### Working without Conventions
 
@@ -278,7 +273,7 @@ Every lifecycle callback is optional. Implement whatever makes sense for your co
 | `attaching` | If your component has a method named "attaching", then the framework will invoke it when it has attached the component's HTML element. You can queue animations and/or initialize certain 3rd party libraries. If you return a `Promise` from this method, it will not suspend binding/attaching of child components but it will be awaited before the `attached` hook is invoked. |
 | `attached` | If your component has a method named "attached", then the framework will invoke it when it has attached the current component as well as all of its children. In terms of the component hierarchy, the attached hooks execute bottom-up. This is the best time to invoke code that requires measuring of elements or integrating a 3rd party JavaScript library that requires the whole component subtree to be mounted to the DOM. |
 | `detaching` | If your component has a method named "detaching", then the framework will invoke it when it is about to remove your HTML element from the document. In terms of the component hierarchy, the detaching hooks execute bottom-up. If you return a `Promise` (for example, from an outgoing animation), it will be awaited before the element is detached. It will run in parallel with promises returned from the `detaching` hooks of siblings / parents. |
-| `unbinding` | If your component has a method named "afterDetach", then the framework will invoke it when it has fully removed your HTML element from the document. In terms of the component hierarchy, the afterDetach hooks execute bottom-up. |
+| `afterDetach` | If your component has a method named "afterDetach", then the framework will invoke it when it has fully removed your HTML element from the document. In terms of the component hierarchy, the afterDetach hooks execute bottom-up. |
 | `unbinding` | If your component has a method named "unbinding", then the framework will invoke it when it is about to disconnect bindings from your component. In terms of the component hierarchy, the unbinding hooks execute bottom-up. You can optionally return a `Promise`. If you do so, it will be awaited by the top-level component that initiated the removal, but it will run in parallel with any parent/siblings. This is useful for fetch/save of data before final data disconnect. |
 | `dispose` | If your component has a method named "dispose", then the framework will invoke it when the component is to be cleared from memory completely. It may be called for example when a component is in a repeater, and some items are removed that are not returned to cache. This is an advanced hook mostly useful for clean up of resources and references that might cause memory leaks if never dereferenced explicitly. |
 

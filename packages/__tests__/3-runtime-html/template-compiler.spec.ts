@@ -1580,6 +1580,22 @@ describe('TemplateCompiler - local templates', function () {
     );
   });
 
+  for (const attr of ['if.bind="true"', 'if.bind="false"', 'else', 'repeat.for="item of items"', 'with.bind="{a:1}"', 'switch.bind="cond"', 'case="case1"']) {
+    it(`throws error if local-template surrogate has template controller - ${attr}`, function () {
+      const template = `<template as-custom-element="foo-bar" ${attr}>
+      <bindable property="prop1" attribute="bar"></bindable>
+    </template>
+    <foo-bar></foo-bar>`;
+      const { ctx, container } = createFixture();
+
+      assert.throws(() =>
+        new Aurelia(container)
+          .app({ host: ctx.doc.createElement('div'), component: CustomElement.define({ name: 'lorem-ipsum', template }, class { }) }),
+        /Cannot have template controller on surrogate element./
+      );
+    });
+  }
+
   it('warns if bindable element has more attributes other than the allowed', function () {
     const template = `<template as-custom-element="foo-bar">
       <bindable property="prop" unknown-attr who-cares="no one"></bindable>

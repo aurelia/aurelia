@@ -355,7 +355,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         __metadata("design:paramtypes", [Object, Object, Object, Object, Object, Object])
     ], TemplateCompiler);
     exports.TemplateCompiler = TemplateCompiler;
-    function getTemplateName(localTemplate, localTemplateNames) {
+    function processTemplateName(localTemplate, localTemplateNames) {
         const name = localTemplate.getAttribute(localTemplateIdentifier);
         if (name === null || name === '') {
             throw new Error('The value of "as-custom-element" attribute cannot be empty for local template');
@@ -365,6 +365,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
         else {
             localTemplateNames.add(name);
+            localTemplate.removeAttribute(localTemplateIdentifier);
         }
         return name;
     }
@@ -407,7 +408,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             if (localTemplate.parentNode !== root) {
                 throw new Error('Local templates needs to be defined directly under root.');
             }
-            const name = getTemplateName(localTemplate, localTemplateNames);
+            const name = processTemplateName(localTemplate, localTemplateNames);
             const localTemplateType = class LocalTemplate {
             };
             const content = localTemplate.content;
@@ -446,9 +447,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                 }
                 content.removeChild(bindableEl);
             }
-            const div = p.document.createElement('div');
-            div.appendChild(content);
-            const localTemplateDefinition = custom_element_1.CustomElement.define({ name, template: div.innerHTML }, localTemplateType);
+            const localTemplateDefinition = custom_element_1.CustomElement.define({ name, template: localTemplate }, localTemplateType);
             // the casting is needed here as the dependencies are typed as readonly array
             definition.dependencies.push(localTemplateDefinition);
             context.register(localTemplateDefinition);

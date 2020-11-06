@@ -343,7 +343,7 @@ TemplateCompiler = __decorate([
     __metadata("design:paramtypes", [Object, Object, Object, Object, Object, Object])
 ], TemplateCompiler);
 export { TemplateCompiler };
-function getTemplateName(localTemplate, localTemplateNames) {
+function processTemplateName(localTemplate, localTemplateNames) {
     const name = localTemplate.getAttribute(localTemplateIdentifier);
     if (name === null || name === '') {
         throw new Error('The value of "as-custom-element" attribute cannot be empty for local template');
@@ -353,6 +353,7 @@ function getTemplateName(localTemplate, localTemplateNames) {
     }
     else {
         localTemplateNames.add(name);
+        localTemplate.removeAttribute(localTemplateIdentifier);
     }
     return name;
 }
@@ -395,7 +396,7 @@ function processLocalTemplates(template, definition, context, p, logger) {
         if (localTemplate.parentNode !== root) {
             throw new Error('Local templates needs to be defined directly under root.');
         }
-        const name = getTemplateName(localTemplate, localTemplateNames);
+        const name = processTemplateName(localTemplate, localTemplateNames);
         const localTemplateType = class LocalTemplate {
         };
         const content = localTemplate.content;
@@ -434,9 +435,7 @@ function processLocalTemplates(template, definition, context, p, logger) {
             }
             content.removeChild(bindableEl);
         }
-        const div = p.document.createElement('div');
-        div.appendChild(content);
-        const localTemplateDefinition = CustomElement.define({ name, template: div.innerHTML }, localTemplateType);
+        const localTemplateDefinition = CustomElement.define({ name, template: localTemplate }, localTemplateType);
         // the casting is needed here as the dependencies are typed as readonly array
         definition.dependencies.push(localTemplateDefinition);
         context.register(localTemplateDefinition);

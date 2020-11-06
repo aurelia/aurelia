@@ -10,6 +10,8 @@ export class AttrBindingBehavior {
   }
 
   public unbind(flags: LifecycleFlags, _scope: Scope, _hostScope: Scope | null, binding: PropertyBinding): void {
-    return;
+    if (binding.targetObserver === attrAccessor) {
+      binding.targetObserver = void 0;
+    }
   }
 }

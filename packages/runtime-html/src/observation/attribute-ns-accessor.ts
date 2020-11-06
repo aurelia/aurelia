@@ -1,60 +1,46 @@
 import { IAccessor, LifecycleFlags, AccessorType } from '@aurelia/runtime';
-import { INode } from '../dom';
+
+const nsMap: Record<string, AttributeNSAccessor> = Object.create(null);
 
 /**
  * Attribute accessor in a XML document/element that can be accessed via a namespace.
  * Wraps [`getAttributeNS`](https://developer.mozilla.org/en-US/docs/Web/API/Element/getAttributeNS).
  */
 export class AttributeNSAccessor implements IAccessor<string | null> {
-  public readonly obj: HTMLElement;
+
+  public static forNs(ns: string): AttributeNSAccessor {
+    return nsMap[ns] ??= new AttributeNSAccessor(ns);
+  }
+
   public currentValue: string | null = null;
   public oldValue: string | null = null;
 
-  public readonly persistentFlags: LifecycleFlags;
-
-  public hasChanges: boolean = false;
   // ObserverType.Layout is not always true, it depends on the property
   // but for simplicity, always treat as such
   public type: AccessorType = AccessorType.Node | AccessorType.Layout;
 
+  public obj?: HTMLElement;
+  public propertyKey?: string;
+
   public constructor(
-    flags: LifecycleFlags,
-    obj: INode,
-    public readonly propertyKey: string,
     public readonly namespace: string,
   ) {
-    this.obj = obj as HTMLElement;
-    this.persistentFlags = flags & LifecycleFlags.targetObserverFlags;
   }
 
-  public getValue(): string | null {
-    // is it safe to assume the observer has the latest value?
-    // todo: ability to turn on/off cache based on type
-    return this.currentValue;
+  public getValue(obj: HTMLElement, propertyKey: string): string | null {
+    return obj.getAttributeNS(this.namespace, propertyKey);
   }
 
-  public setValue(newValue: string | null, flags: LifecycleFlags): void {
-    this.currentValue = newValue;
-    this.hasChanges = newValue !== this.oldValue;
-    if ((flags & LifecycleFlags.noFlush) === 0) {
-      this.flushChanges(flags);
-    }
-  }
-
-  public flushChanges(flags: LifecycleFlags): void {
-    if (this.hasChanges) {
-      this.hasChanges = false;
-      const currentValue = this.currentValue;
-      this.oldValue = currentValue;
-      if (currentValue == void 0) {
-        this.obj.removeAttributeNS(this.namespace, this.propertyKey);
+  public setValue(newValue: string | null, flags: LifecycleFlags, obj: HTMLElement, key: string): void {
+    if (newValue !== this.currentValue) {
+      this.currentValue = newValue;
+      if (newValue == void 0) {
+        obj.removeAttributeNS(this.namespace, key);
       } else {
-        this.obj.setAttributeNS(this.namespace, this.propertyKey, currentValue);
+        obj.setAttributeNS(this.namespace, key, newValue);
       }
     }
   }
 
-  public bind(flags: LifecycleFlags): void {
-    this.currentValue = this.oldValue = this.obj.getAttributeNS(this.namespace, this.propertyKey);
-  }
+  public flushChanges(flags: LifecycleFlags): void {/* empty */}
 }

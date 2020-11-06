@@ -22,10 +22,7 @@ export class ElementPropertyAccessor implements IAccessor {
   }
 
   public setValue(newValue: string | null, flags: LifecycleFlags, obj: HTMLElement & IIndexable, key: string): void {
-    if (newValue !== this.currentValue) {
-      this.currentValue = newValue;
-      obj[key] = newValue;
-    }
+    obj[key] = newValue;
   }
 }
 

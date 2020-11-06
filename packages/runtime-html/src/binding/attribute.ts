@@ -1,7 +1,6 @@
 import { IServiceLocator } from '@aurelia/kernel';
 import {
   AccessorOrObserver,
-  INodeAccessor,
   BindingMode,
   connectable,
   ExpressionKind,

@@ -8,7 +8,6 @@ import {
   AccessorOrObserver,
   IBindingTargetObserver,
   AccessorType,
-  INodeAccessor,
   BindingMode,
   ILifecycle,
   LifecycleFlags,

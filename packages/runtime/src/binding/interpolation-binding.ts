@@ -2,7 +2,6 @@ import { IIndexable, IServiceLocator, ITask, QueueTaskOptions, TaskQueue} from '
 import {
   IBindingTargetAccessor,
   AccessorType,
-  INodeAccessor,
   IObservedArray,
   ICollectionSubscriber,
   IndexMap,

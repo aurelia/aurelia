@@ -21,13 +21,10 @@ export class DataAttributeAccessor implements IAccessor<string | null> {
   }
 
   public setValue(newValue: string | null, flags: LifecycleFlags, obj: HTMLElement, key: string): void {
-    if (newValue !== this.currentValue) {
-      this.currentValue = newValue;
-      if (newValue == void 0) {
-        obj.removeAttribute(key);
-      } else {
-        obj.setAttribute(key, newValue);
-      }
+    if (newValue == void 0) {
+      obj.removeAttribute(key);
+    } else {
+      obj.setAttribute(key, newValue);
     }
   }
 }

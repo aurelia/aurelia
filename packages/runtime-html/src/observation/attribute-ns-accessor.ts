@@ -13,7 +13,6 @@ export class AttributeNSAccessor implements IAccessor<string | null> {
   }
 
   public currentValue: string | null = null;
-  public oldValue: string | null = null;
 
   // ObserverType.Layout is not always true, it depends on the property
   // but for simplicity, always treat as such
@@ -32,15 +31,10 @@ export class AttributeNSAccessor implements IAccessor<string | null> {
   }
 
   public setValue(newValue: string | null, flags: LifecycleFlags, obj: HTMLElement, key: string): void {
-    if (newValue !== this.currentValue) {
-      this.currentValue = newValue;
-      if (newValue == void 0) {
-        obj.removeAttributeNS(this.namespace, key);
-      } else {
-        obj.setAttributeNS(this.namespace, key, newValue);
-      }
+    if (newValue == void 0) {
+      obj.removeAttributeNS(this.namespace, key);
+    } else {
+      obj.setAttributeNS(this.namespace, key, newValue);
     }
   }
-
-  public flushChanges(flags: LifecycleFlags): void {/* empty */}
 }

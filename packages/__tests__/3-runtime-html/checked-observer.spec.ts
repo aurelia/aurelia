@@ -537,7 +537,6 @@ describe.skip('CheckedObserver', function () {
             assert.strictEqual(sutC.getValue(), expectedNewValue, 'sutC.getValue() 2');
             // assert.strictEqual(lifecycle.flushCount, changeCountAfter, 'lifecycle.flushCount 2');
 
-
             assert.strictEqual(elA.checked, checkedAfter === 'A', 'elA.checked 3');
             assert.strictEqual(elB.checked, checkedAfter === 'B', 'elB.checked 3');
             assert.strictEqual(elC.checked, checkedAfter === 'C', 'elC.checked 3');
@@ -695,7 +694,6 @@ describe.skip('CheckedObserver', function () {
                     assert.strictEqual(el.checked, valueCanBeChecked && checkedBefore, 'el.checked 2');
                     assert.strictEqual(sut.getValue(), newValue, 'sut.getValue() 2');
                     // assert.strictEqual(lifecycle.flushCount, changeCountAfter, 'lifecycle.flushCount 2');
-
 
                     assert.strictEqual(el.checked, valueCanBeChecked && checkedAfter, 'el.checked 3');
                     assert.deepStrictEqual(

@@ -116,15 +116,16 @@ export class PropertyBinding implements IPartialConnectableBinding {
       // todo(fred): maybe let the obsrever decides whether it updates
       if (newValue !== oldValue) {
         if (shouldQueueFlush) {
-          flags |= LifecycleFlags.noFlush;
           this.task?.cancel();
           this.task = this.taskQueue.queueTask(() => {
-            (targetObserver as Partial<INodeAccessor>).flushChanges?.(flags);
+            if (this.isBound) {
+              interceptor.updateTarget(newValue, flags);
+            }
             this.task = null;
           }, updateTaskOpts);
+        } else {
+          interceptor.updateTarget(newValue, flags);
         }
-
-        interceptor.updateTarget(newValue, flags);
       }
 
       return;
@@ -199,7 +200,6 @@ export class PropertyBinding implements IPartialConnectableBinding {
       targetObserver[this.id] |= LifecycleFlags.updateSource;
     }
 
-    // add isBound flag and remove isBinding flag
     this.isBound = true;
   }
 
@@ -208,7 +208,6 @@ export class PropertyBinding implements IPartialConnectableBinding {
       return;
     }
 
-    // clear persistent flags
     this.persistentFlags = LifecycleFlags.none;
 
     if (this.sourceExpression.hasUnbind) {

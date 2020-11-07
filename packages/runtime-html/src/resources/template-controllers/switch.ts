@@ -90,7 +90,7 @@ export class Switch implements ICustomAttributeViewModel {
     this.queue(() => this.handleCaseChange($case, flags));
   }
 
-  public handleCaseChange($case: Case, flags: LifecycleFlags): void | Promise<void> {
+  private handleCaseChange($case: Case, flags: LifecycleFlags): void | Promise<void> {
     const isMatch = $case.isMatch(this.value, flags);
     const activeCases = this.activeCases;
     const numActiveCases = activeCases.length;

@@ -316,6 +316,11 @@ export interface IAccessor<TValue = unknown> {
   setValue(newValue: TValue, flags: LifecycleFlags, obj?: object, key?: PropertyKey): void;
 }
 
+export interface IObserver extends IAccessor {
+  subscribe(subscriber: ISubscriber): boolean;
+  unsubscribe(subscriber: ISubscriber): boolean;
+}
+
 /**
  * Describes a target observer for to-view bindings (in other words, an observer without the observation).
  */

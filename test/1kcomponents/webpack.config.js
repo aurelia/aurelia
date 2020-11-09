@@ -2,7 +2,7 @@ const { resolve } = require('path');
 
 module.exports = function () {
   return {
-    mode: 'none',
+    mode: 'development',
     devtool: false,
     performance: {
       hints: false

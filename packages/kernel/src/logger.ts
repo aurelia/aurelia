@@ -328,30 +328,37 @@ export class ConsoleSink implements ISink {
     this.handleEvent = function emit(event: ILogEvent): void {
       const optionalParams = event.optionalParams;
       if (optionalParams === void 0 || optionalParams.length === 0) {
+        const msg = event.toString();
         switch (event.severity) {
           case LogLevel.trace:
           case LogLevel.debug:
-            return $console.debug(event.toString());
+            return $console.debug(msg);
           case LogLevel.info:
-            return $console.info(event.toString());
+            return $console.info(msg);
           case LogLevel.warn:
-            return $console.warn(event.toString());
+            return $console.warn(msg);
           case LogLevel.error:
           case LogLevel.fatal:
-            return $console.error(event.toString());
+            return $console.error(msg);
         }
       } else {
+        let msg = event.toString();
+        let offset = 0;
+        // console.log in chrome doesn't call .toString() on object inputs (https://bugs.chromium.org/p/chromium/issues/detail?id=1146817)
+        while (msg.includes('%s')) {
+          msg = msg.replace('%s', String(optionalParams[offset++]));
+        }
         switch (event.severity) {
           case LogLevel.trace:
           case LogLevel.debug:
-            return $console.debug(event.toString(), ...optionalParams);
+            return $console.debug(msg, ...optionalParams.slice(offset));
           case LogLevel.info:
-            return $console.info(event.toString(), ...optionalParams);
+            return $console.info(msg, ...optionalParams.slice(offset));
           case LogLevel.warn:
-            return $console.warn(event.toString(), ...optionalParams);
+            return $console.warn(msg, ...optionalParams.slice(offset));
           case LogLevel.error:
           case LogLevel.fatal:
-            return $console.error(event.toString(), ...optionalParams);
+            return $console.error(msg, ...optionalParams.slice(offset));
         }
       }
     };

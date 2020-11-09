@@ -295,10 +295,14 @@ describe('router hooks', function () {
                       }
                     }
 
+                    yield `stop.${t4}.detaching`;
                     yield `stop.root2.detaching`;
+
+                    yield `stop.${t4}.unbinding`;
                     yield `stop.root2.unbinding`;
 
-                    yield* prepend('stop', t4, 'detaching', 'unbinding');
+                    yield `stop.root2.dispose`;
+                    yield `stop.${t4}.dispose`;
                   })()];
                   verifyInvocationsEqual(hia.notifyHistory, expected);
 
@@ -482,25 +486,17 @@ describe('router hooks', function () {
                       }
                     }
 
+                    if (t2.vp0) { yield `stop.${t2.vp0}.detaching`; }
+                    if (t2.vp1) { yield `stop.${t2.vp1}.detaching`; }
                     yield `stop.root2.detaching`;
+
+                    if (t2.vp0) { yield `stop.${t2.vp0}.unbinding`; }
+                    if (t2.vp1) { yield `stop.${t2.vp1}.unbinding`; }
                     yield `stop.root2.unbinding`;
 
-                    switch (componentSpec.kind) {
-                      case 'all-async':
-                        yield* interleave(
-                          (function* () {
-                            if (t2.vp0) { yield* prepend('stop', t2.vp0, 'detaching', 'unbinding'); }
-                          })(),
-                          (function* () {
-                            if (t2.vp1) { yield* prepend('stop', t2.vp1, 'detaching', 'unbinding'); }
-                          })(),
-                        );
-                        break;
-                      case 'all-sync':
-                        if (t2.vp0) { yield* prepend('stop', t2.vp0, 'detaching', 'unbinding'); }
-                        if (t2.vp1) { yield* prepend('stop', t2.vp1, 'detaching', 'unbinding'); }
-                        break;
-                    }
+                    yield `stop.root2.dispose`;
+                    if (t2.vp0) { yield `stop.${t2.vp0}.dispose`; }
+                    if (t2.vp1) { yield `stop.${t2.vp1}.dispose`; }
                   })()];
                   verifyInvocationsEqual(hia.notifyHistory, expected);
 
@@ -807,11 +803,17 @@ describe('router hooks', function () {
                       }
                     }
 
+                    if (t2.c) { yield `stop.${t2.c}.detaching`; }
+                    yield `stop.${t2.p}.detaching`;
                     yield `stop.root2.detaching`;
+
+                    if (t2.c) { yield `stop.${t2.c}.unbinding`; }
+                    yield `stop.${t2.p}.unbinding`;
                     yield `stop.root2.unbinding`;
 
-                    yield* prepend('stop', t2.p, 'detaching', 'unbinding');
-                    if (t2.c) { yield* prepend('stop', t2.c, 'detaching', 'unbinding'); }
+                    yield `stop.root2.dispose`;
+                    yield `stop.${t2.p}.dispose`;
+                    if (t2.c) { yield `stop.${t2.c}.dispose`; }
                   })()];
                   verifyInvocationsEqual(hia.notifyHistory, expected);
 
@@ -1023,11 +1025,14 @@ describe('router hooks', function () {
                     `('a/b/c/d' -> 'a').b.unbinding`,
                     `('a/b/c/d' -> 'a').b.dispose`,
 
+                    `stop.a.detaching`,
                     `stop.root.detaching`,
+
+                    `stop.a.unbinding`,
                     `stop.root.unbinding`,
 
-                    `stop.a.detaching`,
-                    `stop.a.unbinding`,
+                    `stop.root.dispose`,
+                    `stop.a.dispose`,
                   ],
                 );
                 break;
@@ -1085,11 +1090,14 @@ describe('router hooks', function () {
                     `('a/b/c/d' -> 'a').b.unbinding`,
                     `('a/b/c/d' -> 'a').b.dispose`,
 
+                    `stop.a.detaching`,
                     `stop.root.detaching`,
+
+                    `stop.a.unbinding`,
                     `stop.root.unbinding`,
 
-                    `stop.a.detaching`,
-                    `stop.a.unbinding`,
+                    `stop.root.dispose`,
+                    `stop.a.dispose`,
                   ],
                 );
                 break;
@@ -1148,11 +1156,14 @@ describe('router hooks', function () {
                     `('a/b/c/d' -> 'a').b.unbinding`,
                     `('a/b/c/d' -> 'a').b.dispose`,
 
+                    `stop.a.detaching`,
                     `stop.root.detaching`,
+
+                    `stop.a.unbinding`,
                     `stop.root.unbinding`,
 
-                    `stop.a.detaching`,
-                    `stop.a.unbinding`,
+                    `stop.root.dispose`,
+                    `stop.a.dispose`,
                   ],
                 );
                 break;
@@ -1294,11 +1305,17 @@ describe('router hooks', function () {
               prepend(phase1, 'b', 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached'),
             );
 
-            yield* prepend(`stop`, 'root', 'detaching', 'unbinding');
-            yield* interleave(
-              prepend(`stop`, 'a', 'detaching', 'unbinding'),
-              prepend(`stop`, 'b', 'detaching', 'unbinding'),
-            );
+            yield `stop.a.detaching`;
+            yield `stop.b.detaching`;
+            yield `stop.root.detaching`;
+
+            yield `stop.a.unbinding`;
+            yield `stop.b.unbinding`;
+            yield `stop.root.unbinding`;
+
+            yield `stop.root.dispose`;
+            yield `stop.a.dispose`;
+            yield `stop.b.dispose`;
           });
         }
       });
@@ -1433,9 +1450,17 @@ describe('router hooks', function () {
                 break;
             }
 
-            yield* prepend(`stop`, 'root', 'detaching', 'unbinding');
-            yield* prepend(`stop`, 'a1', 'detaching', 'unbinding');
-            yield* prepend(`stop`, 'a2', 'detaching', 'unbinding');
+            yield `stop.a2.detaching`;
+            yield `stop.a1.detaching`;
+            yield `stop.root.detaching`;
+
+            yield `stop.a2.unbinding`;
+            yield `stop.a1.unbinding`;
+            yield `stop.root.unbinding`;
+
+            yield `stop.root.dispose`;
+            yield `stop.a1.dispose`;
+            yield `stop.a2.dispose`;
           });
         }
       });
@@ -1725,22 +1750,33 @@ describe('router hooks', function () {
                     yield `${phase1}.a2.canLoad`;
                     if (a2CanLoad > 1) { yield ''; }
                     if (a2CanLoad > 2) { yield ''; }
+                    if (a2CanLoad > 3) { yield ''; }
                     if (a2CanLoad > 4) { yield ''; }
                     yield `${phase1}.a2.load`;
                     if (a2Load > 1) { yield ''; }
                     if (a2Load > 2) { yield ''; }
+                    if (a2Load > 3) { yield ''; }
                     if (a2Load > 4) { yield ''; }
-                    yield* prepend(phase1, 'a2', 'binding', 'bound', 'attaching', 'attached');
+                    yield `${phase1}.a2.binding`;
+                    yield `${phase1}.a2.bound`;
+                    yield `${phase1}.a2.attaching`;
+                    yield `${phase1}.a2.attached`;
                   })(),
                   (function* () {
                     yield* prepend(phase1, 'b1', 'binding', 'bound', 'attaching', 'attached');
                     yield `${phase1}.b2.canLoad`;
                     if (b2CanLoad > 2) { yield ''; }
                     if (b2CanLoad > 3) { yield ''; }
+                    if (b2CanLoad > 4) { yield ''; }
                     yield `${phase1}.b2.load`;
+                    if (b2CanLoad > 1) { yield ''; }
+                    if (b2Load > 1) { yield ''; }
                     if (b2Load > 2) { yield ''; }
                     if (b2Load > 3) { yield ''; }
-                    yield* prepend(phase1, 'b2', 'binding', 'bound', 'attaching', 'attached');
+                    yield `${phase1}.b2.binding`;
+                    yield `${phase1}.b2.bound`;
+                    yield `${phase1}.b2.attaching`;
+                    yield `${phase1}.b2.attached`;
                   })(),
                 );
                 break;
@@ -1765,26 +1801,39 @@ describe('router hooks', function () {
                 yield `${phase1}.a1.load`;
                 yield `${phase1}.b1.load`;
 
+
+                yield `${phase1}.a1.binding`;
+                yield `${phase1}.b1.binding`;
+                yield `${phase1}.a1.bound`;
+                yield `${phase1}.b1.bound`;
+                yield `${phase1}.a1.attaching`;
+                yield `${phase1}.a2.load`;
+                yield `${phase1}.b1.attaching`;
+                yield `${phase1}.b2.load`;
+
                 yield* interleave(
                   (function* () {
-                    yield* prepend(phase1, 'a1', 'binding', 'bound', 'attaching');
-                    yield `${phase1}.a2.load`;
                     if (a2Load > 1) { yield ''; }
                     if (a2Load > 2) { yield ''; }
+                    if (a2Load > 3) { yield ''; }
                     if (a2Load > 4) { yield ''; }
                     yield* prepend(phase1, 'a2', 'binding', 'bound', 'attaching', 'attached');
+                  })(),
+                  (function* () {
+                    if (b2Load > 1) { yield ''; }
                     if (b2Load > 2) { yield ''; }
                     if (b2Load > 3) { yield ''; }
+                    if (b2Load > 4) { yield ''; }
+                    yield* prepend(phase1, 'b2', 'binding', 'bound', 'attaching', 'attached');
+                  })(),
+                );
+                yield* interleave(
+                  (function* () {
+                    if (a2Load > 1) { yield ''; }
                     yield `${phase1}.a1.attached`;
                   })(),
                   (function* () {
-                    yield* prepend(phase1, 'b1', 'binding', 'bound', 'attaching');
-                    yield `${phase1}.b2.load`;
-                    if (b2Load > 2) { yield ''; }
-                    if (b2Load > 3) { yield ''; }
-                    yield* prepend(phase1, 'b2', 'binding', 'bound', 'attaching', 'attached');
-                    if (a2Load > 2) { yield ''; }
-                    if (a2Load > 4) { yield ''; }
+                    if (b2Load > 1) { yield ''; }
                     yield `${phase1}.b1.attached`;
                   })(),
                 );
@@ -1824,30 +1873,42 @@ describe('router hooks', function () {
                   })(),
                 );
 
-                yield* interleave(
-                  (function* () {
-                    yield* prepend(phase1, 'a1', 'binding', 'bound', 'attaching');
-                    yield* prepend(phase1, 'a2', 'binding', 'bound', 'attaching', 'attached');
-                    yield `${phase1}.a1.attached`;
-                  })(),
-                  (function* () {
-                    yield* prepend(phase1, 'b1', 'binding', 'bound', 'attaching');
-                    yield* prepend(phase1, 'b2', 'binding', 'bound', 'attaching', 'attached');
-                    yield `${phase1}.b1.attached`;
-                  })(),
-                );
+                yield `${phase1}.a1.binding`;
+                yield `${phase1}.b1.binding`;
+                yield `${phase1}.a1.bound`;
+                yield `${phase1}.b1.bound`;
+                yield `${phase1}.a1.attaching`;
+                yield `${phase1}.a2.binding`;
+                yield `${phase1}.b1.attaching`;
+                yield `${phase1}.b2.binding`;
+                yield `${phase1}.a2.bound`;
+                yield `${phase1}.b2.bound`;
+                yield `${phase1}.a2.attaching`;
+                yield `${phase1}.b2.attaching`;
+                yield `${phase1}.a2.attached`;
+                yield `${phase1}.b2.attached`;
+                yield `${phase1}.a1.attached`;
+                yield `${phase1}.b1.attached`;
                 break;
             }
 
-            yield* prepend(`stop`, 'root', 'detaching', 'unbinding');
-            yield* interleave(
-              prepend(`stop`, 'a1', 'detaching', 'unbinding'),
-              prepend(`stop`, 'b1', 'detaching', 'unbinding'),
-            );
-            yield* interleave(
-              prepend(`stop`, 'a2', 'detaching', 'unbinding'),
-              prepend(`stop`, 'b2', 'detaching', 'unbinding'),
-            );
+            yield `stop.a2.detaching`;
+            yield `stop.a1.detaching`;
+            yield `stop.b2.detaching`;
+            yield `stop.b1.detaching`;
+            yield `stop.root.detaching`;
+
+            yield `stop.a2.unbinding`;
+            yield `stop.a1.unbinding`;
+            yield `stop.b2.unbinding`;
+            yield `stop.b1.unbinding`;
+            yield `stop.root.unbinding`;
+
+            yield `stop.root.dispose`;
+            yield `stop.a1.dispose`;
+            yield `stop.a2.dispose`;
+            yield `stop.b1.dispose`;
+            yield `stop.b2.dispose`;
           });
         }
       });

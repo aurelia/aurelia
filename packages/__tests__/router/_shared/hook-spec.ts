@@ -46,11 +46,12 @@ function getHookSpecs<T extends HookName>(name: T) {
       ticks: -1,
       type: 'setTimeout_0',
       async invoke(vm, getValue) {
+        const value = getValue();
         const ctx = vm.$controller.context;
         const label = `${vm.name}.${name}`;
 
         return setTimeoutWaiter(ctx, 0, label)
-          .then(() => getValue() as any
+          .then(() => value as any
         );
       },
     } as IHookSpec<T>,

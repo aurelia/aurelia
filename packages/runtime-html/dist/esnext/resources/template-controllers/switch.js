@@ -60,7 +60,7 @@ let Switch = class Switch {
     caseChanged($case, flags) {
         this.queue(() => this.handleCaseChange($case, flags));
     }
-    async handleCaseChange($case, flags) {
+    handleCaseChange($case, flags) {
         const isMatch = $case.isMatch(this.value, flags);
         const activeCases = this.activeCases;
         const numActiveCases = activeCases.length;
@@ -68,7 +68,7 @@ let Switch = class Switch {
         if (!isMatch) {
             /** The previous match started with this; thus clear. */
             if (numActiveCases > 0 && activeCases[0].id === $case.id) {
-                await this.clearActiveCases(null, flags);
+                return this.clearActiveCases(null, flags);
             }
             /**
              * There are 2 different scenarios here:
@@ -97,9 +97,10 @@ let Switch = class Switch {
                 fallThrough = c.fallThrough;
             }
         }
-        await this.clearActiveCases(null, flags, newActiveCases);
-        this.activeCases = newActiveCases;
-        await this.activateCases(null, flags);
+        return onResolve(this.clearActiveCases(null, flags, newActiveCases), () => {
+            this.activeCases = newActiveCases;
+            return this.activateCases(null, flags);
+        });
     }
     swap(initiator, flags, value) {
         const newActiveCases = [];

@@ -45,7 +45,7 @@ function configure(container: IContainer, config?: RouterConfig): IContainer {
     AppTask.with(IContainer).hydrated().call(RouteContext.setRoot),
     // TODO(fkleuver): hook this up to MountQueue after that's added back in, to delay mounting until the whole tree
     // has loaded. This to prevent flicker in case of cancellation.
-    AppTask.with(IRouter).beforeActivate().call(router => {
+    AppTask.with(IRouter).afterActivate().call(router => {
       if (isObject(config)) {
         if (typeof config === 'function') {
           return config(router) as void | Promise<void>;

@@ -203,7 +203,6 @@ export {
   CollectionKind,
   DelegationStrategy,
   IAccessor,
-  INodeAccessor,
   IBindingContext,
   IBindingTargetAccessor,
   IBindingTargetObserver,

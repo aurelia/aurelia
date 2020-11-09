@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { Constructable, ResourceType, IContainer, IResourceKind, ResourceDefinition, Key, IResolver, Resolved, IFactory, Transformer, DI, InstanceProvider, Registration, ILogger, IModuleLoader, IModuleAnalyzer, IModule } from '@aurelia/kernel';
-import { ICompiledRenderContext, IRenderContext, CustomElementDefinition, CustomElement, ICustomElementController, IController, isCustomElementViewModel, isCustomElementController, IAppRoot, IPlatform } from '@aurelia/runtime-html';
+import { ICompiledRenderContext, CustomElementDefinition, CustomElement, ICustomElementController, IController, isCustomElementViewModel, isCustomElementController, IAppRoot, IPlatform } from '@aurelia/runtime-html';
 
 import { RouteDefinition } from './route-definition';
 import { ViewportAgent, ViewportRequest } from './viewport-agent';
@@ -10,23 +10,6 @@ import { RouteRecognizer, RecognizedRoute } from './route-recognizer';
 import { IRouter } from './router';
 import { IViewport } from './resources/viewport';
 import { Routeable } from './route';
-
-type RenderContextLookup = WeakMap<IRenderContext, RouteDefinitionLookup>;
-type RouteDefinitionLookup = WeakMap<RouteDefinition, IRouteContext>;
-
-const renderContextLookup: RenderContextLookup = new WeakMap();
-
-function getRouteDefinitionLookup(renderContext: ICompiledRenderContext): RouteDefinitionLookup {
-  let routeDefinitionLookup = renderContextLookup.get(renderContext);
-  if (routeDefinitionLookup === void 0) {
-    renderContextLookup.set(
-      renderContext,
-      routeDefinitionLookup = new WeakMap(),
-    );
-  }
-
-  return routeDefinitionLookup;
-}
 
 function isNotPromise<T>(value: T): value is Exclude<T, Promise<unknown>> {
   return !(value instanceof Promise);
@@ -117,7 +100,7 @@ export class RouteContext implements IContainer {
   private readonly hostControllerProvider: InstanceProvider<ICustomElementController>;
   private readonly recognizer: RouteRecognizer;
 
-  private constructor(
+  public constructor(
     viewportAgent: ViewportAgent | null,
     public readonly parent: IRouteContext | null,
     public readonly component: CustomElementDefinition,
@@ -171,57 +154,6 @@ export class RouteContext implements IContainer {
   }
 
   /**
-   * This is the primary API for retrieving statically configured routes combined with the customElement metadata associated with a type.
-   *
-   * The customElement metadata is lazily associated with a type via the RouteContext the first time `getOrCreate` is called.
-   *
-   * This API is also used for direct routing even when there is no configuration at all.
-   *
-   * @param viewportAgent - The ViewportAgent hosting the component associated with this RouteContext. If the RouteContext for the component already exists, the ViewportAgent will be updated in case it changed.
-   * @param component - The custom element definition.
-   * @param renderContext - The `controller.context` of the component hosting the viewport that the route will be loaded into.
-   *
-   */
-  public static getOrCreate(
-    viewportAgent: ViewportAgent | null,
-    component: CustomElementDefinition,
-    renderContext: ICompiledRenderContext,
-  ): IRouteContext {
-    const logger = renderContext.get(ILogger).scopeTo('RouteContext');
-
-    const routeDefinition = RouteDefinition.resolve(component.Type);
-    const routeDefinitionLookup = getRouteDefinitionLookup(renderContext);
-
-    let routeContext = routeDefinitionLookup.get(routeDefinition);
-    if (routeContext === void 0) {
-      logger.trace(`creating new RouteContext for %s`, routeDefinition);
-
-      const parent = renderContext.has(IRouteContext, true)
-        ? renderContext.get(IRouteContext)
-        : null;
-
-      routeDefinitionLookup.set(
-        routeDefinition,
-        routeContext = new RouteContext(
-          viewportAgent,
-          parent,
-          component,
-          routeDefinition,
-          renderContext,
-        ),
-      );
-    } else {
-      logger.trace(`returning existing RouteContext for %s`, routeDefinition);
-
-      if (viewportAgent !== null) {
-        routeContext.vpa = viewportAgent;
-      }
-    }
-
-    return routeContext;
-  }
-
-  /**
    * Create a new `RouteContext` and register it in the provided container.
    *
    * Uses the `RenderContext` of the registered `IAppRoot` as the root context.
@@ -244,9 +176,10 @@ export class RouteContext implements IContainer {
       logAndThrow(new Error(`The provided IAppRoot does not (yet) have a controller. A possible cause is calling this API manually before Aurelia.start() is called`), logger);
     }
 
-    const routeContext = RouteContext.getOrCreate(null, controller.context.definition, controller.context);
+    const router = container.get(IRouter);
+    const routeContext = router.getRouteContext(null, controller.context.definition, controller.context);
     container.register(Registration.instance(IRouteContext, routeContext));
-    routeContext.node = container.get(IRouter).routeTree.root;
+    routeContext.node = router.routeTree.root;
   }
 
   public static resolve(root: IRouteContext, context: unknown): IRouteContext {

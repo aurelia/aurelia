@@ -2,8 +2,8 @@
 import { ILogger, resolveAll, onResolve, emptyArray } from '@aurelia/kernel';
 import { CustomElementDefinition, CustomElement } from '@aurelia/runtime-html';
 
-import { IRouteContext, RouteContext } from './route-context';
-import { RoutingMode, DeferralJuncture, SwapStrategy } from './router';
+import { IRouteContext } from './route-context';
+import { RoutingMode, DeferralJuncture, SwapStrategy, IRouter } from './router';
 import { ViewportInstructionTree, ViewportInstruction, NavigationInstructionType, Params, ITypedNavigationInstruction_ResolvedComponent } from './instructions';
 import { RecognizedRoute } from './route-recognizer';
 import { RouteDefinition } from './route-definition';
@@ -201,6 +201,7 @@ export class RouteTree {
 }
 
 export class RouteTreeCompiler {
+  private readonly router: IRouter;
   private readonly logger: ILogger;
   private readonly mode: RoutingMode;
   private readonly deferUntil: DeferralJuncture;
@@ -215,6 +216,7 @@ export class RouteTreeCompiler {
     this.deferUntil = instructions.options.deferUntil;
     this.swapStrategy = instructions.options.swapStrategy;
     this.logger = ctx.get(ILogger).scopeTo('RouteTreeBuilder');
+    this.router = ctx.get(IRouter);
   }
 
   /**
@@ -503,7 +505,7 @@ export class RouteTreeCompiler {
       deferUntil: this.deferUntil,
     }));
 
-    const childCtx = RouteContext.getOrCreate(
+    const childCtx = this.router.getRouteContext(
       viewportAgent,
       component,
       viewportAgent.hostController.context,
@@ -543,7 +545,7 @@ export class RouteTreeCompiler {
       deferUntil: this.deferUntil,
     }));
 
-    const childCtx = RouteContext.getOrCreate(
+    const childCtx = this.router.getRouteContext(
       viewportAgent,
       component,
       viewportAgent.hostController.context,

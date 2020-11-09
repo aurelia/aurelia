@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { IContainer, ILogger, isObject, DI, IDisposable, onResolve } from '@aurelia/kernel';
-import { IPlatform, PartialCustomElementDefinition } from '@aurelia/runtime-html';
+import { CustomElementDefinition, ICompiledRenderContext, IPlatform, IRenderContext, PartialCustomElementDefinition } from '@aurelia/runtime-html';
 
 import { IRouteContext, RouteContext } from './route-context';
 import { IRouterEvents, NavigationStartEvent, NavigationEndEvent, NavigationCancelEvent } from './router-events';
@@ -10,6 +10,8 @@ import { IRouteViewModel } from './component-agent';
 import { RouteTree, RouteNode, RouteTreeCompiler } from './route-tree';
 import { IViewportInstruction, NavigationInstruction, RouteContextLike, ViewportInstructionTree, Params } from './instructions';
 import { mergeDistinct, resolveAll, runSequence } from './util';
+import { RouteDefinition } from './route-definition';
+import { ViewportAgent } from './viewport-agent';
 
 export const AuNavId = 'au-nav-id' as const;
 export type AuNavId = typeof AuNavId;
@@ -301,6 +303,9 @@ export class Transition {
   }
 }
 
+type RouteDefinitionLookup = WeakMap<RouteDefinition, IRouteContext>;
+type ViewportAgentLookup = Map<ViewportAgent | null, RouteDefinitionLookup>;
+
 export interface IRouter extends Router { }
 export const IRouter = DI.createInterface<IRouter>('IRouter').withDefault(x => x.singleton(Router));
 export class Router {
@@ -399,7 +404,7 @@ export class Router {
    * - `ICustomElementViewModel` (the `this` object when working from inside a view model): the context of this component (if it was loaded as a route), or the routeable component (page) directly or indirectly containing it.
    * - `ICustomElementController`: same as `ICustomElementViewModel`, but using the controller object instead of the view model object (advanced users).
    */
-  public getContext(context: RouteContextLike | null): IRouteContext {
+  public resolveContext(context: RouteContextLike | null): IRouteContext {
     return RouteContext.resolve(this.ctx, context);
   }
 
@@ -543,13 +548,66 @@ export class Router {
   }
 
   public isActive(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], context: RouteContextLike): boolean {
-    const ctx = this.getContext(context);
+    const ctx = this.resolveContext(context);
     const instructions = this.createViewportInstructions(instructionOrInstructions, { context: ctx });
 
     this.logger.trace('isActive(instructions:%s,ctx:%s)', instructions, ctx);
 
     // TODO: incorporate potential context offset by `../` etc in the instructions
     return this.routeTree.contains(instructions);
+  }
+
+  private readonly vpaLookup: ViewportAgentLookup = new Map();
+  /**
+   * Retrieve the RouteContext, which contains statically configured routes combined with the customElement metadata associated with a type.
+   *
+   * The customElement metadata is lazily associated with a type via the RouteContext the first time `getOrCreate` is called.
+   *
+   * This API is also used for direct routing even when there is no configuration at all.
+   *
+   * @param viewportAgent - The ViewportAgent hosting the component associated with this RouteContext. If the RouteContext for the component+viewport combination already exists, the ViewportAgent will be updated in case it changed.
+   * @param component - The custom element definition.
+   * @param renderContext - The `controller.context` of the component hosting the viewport that the route will be loaded into.
+   *
+   */
+  public getRouteContext(
+    viewportAgent: ViewportAgent | null,
+    component: CustomElementDefinition,
+    renderContext: ICompiledRenderContext,
+  ): IRouteContext {
+    const logger = renderContext.get(ILogger).scopeTo('RouteContext');
+
+    const routeDefinition = RouteDefinition.resolve(component.Type);
+    let routeDefinitionLookup = this.vpaLookup.get(viewportAgent);
+    if (routeDefinitionLookup === void 0) {
+      this.vpaLookup.set(viewportAgent, routeDefinitionLookup = new WeakMap());
+    }
+
+    let routeContext = routeDefinitionLookup.get(routeDefinition);
+    if (routeContext === void 0) {
+      logger.trace(`creating new RouteContext for %s`, routeDefinition);
+
+      const parent = renderContext.has(IRouteContext, true) ? renderContext.get(IRouteContext) : null;
+
+      routeDefinitionLookup.set(
+        routeDefinition,
+        routeContext = new RouteContext(
+          viewportAgent,
+          parent,
+          component,
+          routeDefinition,
+          renderContext,
+        ),
+      );
+    } else {
+      logger.trace(`returning existing RouteContext for %s`, routeDefinition);
+
+      if (viewportAgent !== null) {
+        routeContext.vpa = viewportAgent;
+      }
+    }
+
+    return routeContext;
   }
 
   private createViewportInstructions(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options?: INavigationOptions): ViewportInstructionTree {
@@ -681,7 +739,7 @@ export class Router {
       return this.run(this.nextTr);
     }
 
-    const navigationContext = this.getContext(tr.options.context);
+    const navigationContext = this.resolveContext(tr.options.context);
 
     this.activeNavigation = Navigation.create({
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion

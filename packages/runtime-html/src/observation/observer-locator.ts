@@ -1,11 +1,11 @@
-import { IContainer, IResolver, Registration, IIndexable } from '@aurelia/kernel';
+import { IContainer, Registration, IIndexable } from '@aurelia/kernel';
 import {
+  IAccessor,
   IBindingTargetAccessor,
-  IBindingTargetObserver,
   ILifecycle,
+  INodeObserverLocator,
   IObserverLocator,
-  ITargetAccessorLocator,
-  ITargetObserverLocator,
+  IObserver,
   LifecycleFlags,
   SetterObserver,
 } from '@aurelia/runtime';
@@ -31,7 +31,7 @@ const xmlnsNS = 'http://www.w3.org/2000/xmlns/';
 
 // https://html.spec.whatwg.org/multipage/syntax.html#attributes-2
 const nsAttributes = Object.assign(
-  Object.create(null),
+  createLookup<[string, string]>(),
   {
     'xlink:actuate': ['actuate', xlinkNS],
     'xlink:arcrole': ['arcrole', xlinkNS],
@@ -44,125 +44,105 @@ const nsAttributes = Object.assign(
     'xml:space': ['space', xmlNS],
     'xmlns': ['xmlns', xmlnsNS],
     'xmlns:xlink': ['xlink', xmlnsNS],
-  }
-) as Record<string, [string, string]>;
+  },
+);
 
 const inputEvents = ['change', 'input'];
 const selectEvents = ['change'];
 const contentEvents = ['change', 'input', 'blur', 'keyup', 'paste'];
 const scrollEvents = ['scroll'];
 
-const overrideProps = Object.assign(
-  Object.create(null),
-  {
-    'class': true,
-    'style': true,
-    'css': true,
-    'checked': true,
-    'value': true,
-    'model': true,
-    'xlink:actuate': true,
-    'xlink:arcrole': true,
-    'xlink:href': true,
-    'xlink:role': true,
-    'xlink:show': true,
-    'xlink:title': true,
-    'xlink:type': true,
-    'xml:lang': true,
-    'xml:space': true,
-    'xmlns': true,
-    'xmlns:xlink': true,
-  }
-) as Record<string, boolean>;
+const getDefaultOverrideProps = () => [
+  'class',
+  'style',
+  'css',
+  'checked',
+  'value',
+  'model',
+  // 'xlink:actuate',
+  // 'xlink:arcrole',
+  // 'xlink:href',
+  // 'xlink:role',
+  // 'xlink:show',
+  // 'xlink:title',
+  // 'xlink:type',
+  'xml:lang',
+  'xml:space',
+  'xmlns',
+  'xmlns:xlink',
+].reduce((overrides, attr) => {
+  overrides[attr] = true;
+  return overrides;
+},createLookup<true>());
 
-export class TargetObserverLocator implements ITargetObserverLocator {
+export class NodeObserverLocator implements INodeObserverLocator {
+  // { input: { value: ['change', 'input'] } }
+  private readonly eventsLookup: Record<string, Record<string, string[]>> = createLookup();
+  private readonly overrides: Record<string, true> = getDefaultOverrideProps();
+
   public constructor(
     @IPlatform private readonly platform: IPlatform,
     @ILifecycle private readonly lifecycle: ILifecycle,
     @ISVGAnalyzer private readonly svgAnalyzer: ISVGAnalyzer,
-  ) {}
-
-  public static register(container: IContainer): IResolver<ITargetObserverLocator> {
-    return Registration.singleton(ITargetObserverLocator, this).register(container);
+  ) {
+    this.useEvent({
+      INPUT: {
+        value: inputEvents,
+        files: inputEvents,
+      },
+      TEXTAREA: {
+        value: inputEvents,
+      },
+    });
   }
 
-  public getObserver(
-    flags: LifecycleFlags,
-    observerLocator: IObserverLocator,
-    obj: Node,
-    propertyName: string,
-  ): IBindingTargetObserver | IBindingTargetAccessor | null {
-    switch (propertyName) {
-      case 'checked':
-        return new CheckedObserver(flags, this.lifecycle, new EventSubscriber(inputEvents), obj as IInputElement);
-      case 'value':
-        if ((obj as Element).tagName === 'SELECT') {
-          return new SelectValueObserver(observerLocator, this.platform, new EventSubscriber(selectEvents), obj as ISelectElement);
-        }
-        return new ValueAttributeObserver(flags, new EventSubscriber(inputEvents), obj as Node & IIndexable, propertyName);
-      case 'files':
-        return new ValueAttributeObserver(flags, new EventSubscriber(inputEvents), obj as Node & IIndexable, propertyName);
-      case 'textContent':
-      case 'innerHTML':
-        return new ValueAttributeObserver(flags, new EventSubscriber(contentEvents), obj as Node & IIndexable, propertyName);
-      case 'scrollTop':
-      case 'scrollLeft':
-        return new ValueAttributeObserver(flags, new EventSubscriber(scrollEvents), obj as Node & IIndexable, propertyName);
-      case 'class':
-        return new ClassAttributeAccessor(flags, obj as HTMLElement);
-      case 'style':
-      case 'css':
-        return new StyleAttributeAccessor(flags, obj as HTMLElement);
-      case 'model':
-        return new SetterObserver(flags, obj as Node & IIndexable, propertyName);
-      case 'role':
-        return attrAccessor;
-      default:
-        if (nsAttributes[propertyName] !== undefined) {
-          const nsProps = nsAttributes[propertyName];
-          return AttributeNSAccessor.forNs(nsProps[1]) as IBindingTargetAccessor;
-        }
-        if (isDataAttribute(obj, propertyName, this.svgAnalyzer)) {
-          return attrAccessor;
-        }
-    }
-    return null!;
+  public static register(container: IContainer) {
+    Registration.singleton(INodeObserverLocator, this).register(container);
   }
 
-  public overridesAccessor(flags: LifecycleFlags, obj: Node, propertyName: string): boolean {
-    return overrideProps[propertyName] === true;
-  }
-
-  // consider a scenario where user would want to provide a Date object observation via patching a few mutation method on it
-  // then this extension point of this default implementaion cannot be used,
-  // and a new implementation of ITargetObserverLocator should be used instead
-  // This default implementation only accounts for the most common target scenarios
-  public handles(flags: LifecycleFlags, obj: unknown): boolean {
+  // deepscan-disable-next-line
+  public handles(obj: unknown, _key: PropertyKey): boolean {
     return obj instanceof this.platform.Node;
   }
-}
 
-export class TargetAccessorLocator implements ITargetAccessorLocator {
-  public constructor(
-    @IPlatform private readonly platform: IPlatform,
-    @ISVGAnalyzer private readonly svgAnalyzer: ISVGAnalyzer,
-  ) {}
-
-  public static register(container: IContainer): IResolver<ITargetAccessorLocator> {
-    return Registration.singleton(ITargetAccessorLocator, this).register(container);
+  public useEvent(config: Record<string, Record<string, string[]>>): void;
+  public useEvent(nodeName: string, key: PropertyKey, events: string[]): void;
+  public useEvent(nodeNameOrConfig: string | Record<string, Record<string, string[]>>, key?: PropertyKey, events?: string[]): void {
+    const lookup = this.eventsLookup;
+    let existingMapping: Record<string, string[]>;
+    if (typeof nodeNameOrConfig === 'string') {
+      existingMapping = lookup[nodeNameOrConfig] ??= createLookup<string[]>();
+      if (existingMapping[key as string] == null) {
+        existingMapping[key as string] = events!;
+      } else {
+        throwMappingExisted(nodeNameOrConfig, key!);
+      }
+    } else {
+      for (const nodeName in nodeNameOrConfig) {
+        existingMapping = lookup[nodeName] ??= createLookup<string[]>();
+        const newMapping = nodeNameOrConfig[nodeName];
+        for (key in newMapping) {
+          if (existingMapping[key] == null) {
+            existingMapping[key] = newMapping[key];
+          } else {
+            throwMappingExisted(nodeName, key);
+          }
+        }
+      }
+    }
   }
 
-  public getAccessor(
-    flags: LifecycleFlags,
-    obj: Node,
-    propertyName: string,
-  ): IBindingTargetAccessor {
-    switch (propertyName) {
+  // deepscan-disable-nextline
+  public getAccessor(obj: HTMLElement, key: PropertyKey, requestor: IObserverLocator): IAccessor | IObserver {
+    if (this.overrides[key as string] === true) {
+      return this.getObserver(obj, key, requestor);
+    }
+    switch (key) {
       case 'class':
-        return new ClassAttributeAccessor(flags, obj as HTMLElement);
+        return new ClassAttributeAccessor(LifecycleFlags.none, obj);
       case 'style':
       case 'css':
-        return new StyleAttributeAccessor(flags, obj as HTMLElement);
+        return new StyleAttributeAccessor(LifecycleFlags.none, obj);
       // TODO: there are (many) more situation where we want to default to DataAttributeAccessor,
       // but for now stick to what vCurrent does
       case 'src':
@@ -171,33 +151,76 @@ export class TargetAccessorLocator implements ITargetAccessorLocator {
       case 'role':
         return attrAccessor;
       default:
-        if (nsAttributes[propertyName] !== undefined) {
-          const nsProps = nsAttributes[propertyName];
+        const nsProps = nsAttributes[key as string];
+        if (nsProps !== undefined) {
           return AttributeNSAccessor.forNs(nsProps[1]) as IBindingTargetAccessor;
         }
-        if (isDataAttribute(obj, propertyName, this.svgAnalyzer)) {
+        if (isDataAttribute(obj, key, this.svgAnalyzer)) {
           return attrAccessor;
         }
         return elementPropertyAccessor;
     }
   }
 
-  public handles(flags: LifecycleFlags, obj: Node): boolean {
-    return obj instanceof this.platform.Node;
+  public getObserver(el: HTMLElement, key: PropertyKey, requestor: IObserverLocator): IAccessor | IObserver {
+    const noFlags = LifecycleFlags.none;
+    const tagName = el.tagName;
+    if (tagName === 'SELECT' && key === 'value') {
+      return new SelectValueObserver(requestor, this.platform, new EventSubscriber(selectEvents), el as ISelectElement);
+    } else if (tagName === 'INPUT' && key === 'checked') {
+      return new CheckedObserver(noFlags, this.lifecycle, new EventSubscriber(inputEvents), el as IInputElement);
+    }
+    let events: string[] | null;
+    switch (key) {
+      case 'css':
+      case 'style':
+        return new StyleAttributeAccessor(LifecycleFlags.none, el);
+      case 'scrolltop':
+      case 'scrollleft':
+        events = scrollEvents;
+        break;
+      case 'textContent':
+      case 'innerHTML':
+        events = contentEvents;
+        break;
+      default:
+        events = this.eventsLookup[tagName]?.[key as string];
+        break;
+    }
+    if (events == null) {
+      if (key in el.constructor.prototype) {
+        // todo: if DirtyChecker is register, then use it
+        throw new Error(`Unable to observe property ${String(key)}. Register observation mapping with .useEvent().`);
+      } else {
+        return new SetterObserver(noFlags, el as HTMLElement & IIndexable, key as string);
+      }
+    }
+    return new ValueAttributeObserver(noFlags, new EventSubscriber(events), el as HTMLElement & IIndexable, key);
   }
 }
 
-const IsDataAttribute: Record<string, boolean> = {};
+function throwMappingExisted(nodeName: string, key: PropertyKey): never {
+  throw new Error(`Mapping for property ${String(key)} of <${nodeName} /> already exists`);
+}
 
-function isDataAttribute(obj: Node, propertyName: string, svgAnalyzer: ISVGAnalyzer): boolean {
-  if (IsDataAttribute[propertyName] === true) {
+const IsDataAttribute: Record<string, boolean> = createLookup();
+
+function isDataAttribute(obj: Node, key: PropertyKey, svgAnalyzer: ISVGAnalyzer): boolean {
+  if (IsDataAttribute[key as string] === true) {
     return true;
   }
-  const prefix = propertyName.slice(0, 5);
+  if (typeof key !== 'string') {
+    return false;
+  }
+  const prefix = key.slice(0, 5);
   // https://html.spec.whatwg.org/multipage/dom.html#wai-aria
   // https://html.spec.whatwg.org/multipage/dom.html#custom-data-attribute
-  return IsDataAttribute[propertyName] =
+  return IsDataAttribute[key] =
     prefix === 'aria-' ||
     prefix === 'data-' ||
-    svgAnalyzer.isStandardSvgAttribute(obj, propertyName);
+    svgAnalyzer.isStandardSvgAttribute(obj, key);
+}
+
+function createLookup<T = unknown>(){
+  return Object.create(null) as Record<string, T>;
 }

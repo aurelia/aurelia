@@ -64,17 +64,19 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
       this.oldValue = currentValue;
       switch (this.targetAttribute) {
         case 'class': {
-          // Why is class attribute observer setValue look different with class attribute accessor?
+          // Why does class attribute observer setValue look different with class attribute accessor?
           // ==============
           // For class list
           // newValue is simply checked if truthy or falsy
           // and toggle the class accordingly
           // -- the rule of this is quite different to normal attribute
           //
-          // for class attribute, observer is different in a way that it only observe a particular class at a time
+          // for class attribute, observer is different in a way that it only observes one class at a time
           // this also comes from syntax, where it would typically be my-class.class="someProperty"
           //
           // so there is no need for separating class by space and add all of them like class accessor
+          //
+          // note: not using .toggle API so that environment with broken impl (IE11) won't need to polfyfill by default
           if (!!currentValue) {
             this.obj.classList.add(this.propertyKey);
           } else {

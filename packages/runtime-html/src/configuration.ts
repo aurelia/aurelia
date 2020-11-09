@@ -50,7 +50,7 @@ import {
   SetClassAttributeRenderer,
   SetStyleAttributeRenderer,
 } from './renderer';
-import { TargetAccessorLocator, TargetObserverLocator } from './observation/observer-locator';
+import { NodeObserverLocator } from './observation/observer-locator';
 import { SVGAnalyzer } from './observation/svg-analyzer';
 import { AttrBindingBehavior } from './resources/binding-behaviors/attr';
 import { SelfBindingBehavior } from './resources/binding-behaviors/self';
@@ -69,8 +69,7 @@ import { SanitizeValueConverter } from './resources/value-converters/sanitize';
 import { ViewValueConverter } from './resources/value-converters/view';
 
 export const ITemplateCompilerRegistration = TemplateCompiler as IRegistry;
-export const ITargetAccessorLocatorRegistration = TargetAccessorLocator as IRegistry;
-export const ITargetObserverLocatorRegistration = TargetObserverLocator as IRegistry;
+export const INodeObserverLocatorRegistration = NodeObserverLocator as IRegistry;
 
 /**
  * Default HTML-specific (but environment-agnostic) implementations for the following interfaces:
@@ -80,8 +79,7 @@ export const ITargetObserverLocatorRegistration = TargetObserverLocator as IRegi
  */
 export const DefaultComponents = [
   ITemplateCompilerRegistration,
-  ITargetAccessorLocatorRegistration,
-  ITargetObserverLocatorRegistration,
+  INodeObserverLocatorRegistration,
 ];
 
 export const SVGAnalyzerRegistration = SVGAnalyzer as IRegistry;

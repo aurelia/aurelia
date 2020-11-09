@@ -125,8 +125,7 @@ export {
 
   IObjectObservationAdapter,
   IObserverLocator,
-  ITargetObserverLocator,
-  ITargetAccessorLocator,
+  INodeObserverLocator,
   getCollectionObserver,
   ObserverLocator,
 
@@ -348,8 +347,7 @@ export {
   EventDelegator
 } from './observation/event-delegator';
 export {
-  TargetAccessorLocator,
-  TargetObserverLocator
+  NodeObserverLocator,
 } from './observation/observer-locator';
 export {
   ISelectElement,
@@ -462,8 +460,7 @@ export {
 
 export {
   ITemplateCompilerRegistration,
-  ITargetAccessorLocatorRegistration,
-  ITargetObserverLocatorRegistration,
+  INodeObserverLocatorRegistration,
 
   DefaultComponents,
 

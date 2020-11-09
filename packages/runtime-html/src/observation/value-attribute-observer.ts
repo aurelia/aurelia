@@ -26,7 +26,7 @@ export class ValueAttributeObserver implements IAccessor {
     flags: LifecycleFlags,
     public readonly handler: EventSubscriber,
     public readonly obj: Node & IIndexable,
-    public readonly propertyKey: string,
+    public readonly propertyKey: PropertyKey,
   ) {
     this.persistentFlags = flags & LifecycleFlags.targetObserverFlags;
   }
@@ -52,9 +52,9 @@ export class ValueAttributeObserver implements IAccessor {
       const oldValue = this.oldValue;
       this.oldValue = currentValue;
       if (currentValue == void 0) {
-        this.obj[this.propertyKey] = '';
+        this.obj[this.propertyKey as string] = '';
       } else {
-        this.obj[this.propertyKey] = currentValue;
+        this.obj[this.propertyKey as string] = currentValue;
       }
 
       if ((flags & LifecycleFlags.fromBind) === 0) {
@@ -65,7 +65,7 @@ export class ValueAttributeObserver implements IAccessor {
 
   public handleEvent(): void {
     const oldValue = this.oldValue = this.currentValue;
-    const currentValue = this.currentValue = this.obj[this.propertyKey];
+    const currentValue = this.currentValue = this.obj[this.propertyKey as string];
     if (oldValue !== currentValue) {
       this.oldValue = currentValue;
       this.callSubscribers(currentValue, oldValue, LifecycleFlags.none);
@@ -75,7 +75,7 @@ export class ValueAttributeObserver implements IAccessor {
   public subscribe(subscriber: ISubscriber): void {
     if (!this.hasSubscribers()) {
       this.handler.subscribe(this.obj, this);
-      this.currentValue = this.oldValue = this.obj[this.propertyKey];
+      this.currentValue = this.oldValue = this.obj[this.propertyKey as string];
     }
     this.addSubscriber(subscriber);
   }

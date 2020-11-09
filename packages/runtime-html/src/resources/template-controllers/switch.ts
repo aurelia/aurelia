@@ -90,7 +90,7 @@ export class Switch implements ICustomAttributeViewModel {
     this.queue(() => this.handleCaseChange($case, flags));
   }
 
-  private async handleCaseChange($case: Case, flags: LifecycleFlags): Promise<void> {
+  private handleCaseChange($case: Case, flags: LifecycleFlags): void | Promise<void> {
     const isMatch = $case.isMatch(this.value, flags);
     const activeCases = this.activeCases;
     const numActiveCases = activeCases.length;
@@ -99,7 +99,7 @@ export class Switch implements ICustomAttributeViewModel {
     if (!isMatch) {
       /** The previous match started with this; thus clear. */
       if (numActiveCases > 0 && activeCases[0].id === $case.id) {
-        await this.clearActiveCases(null, flags);
+        return this.clearActiveCases(null, flags);
       }
       /**
        * There are 2 different scenarios here:
@@ -130,10 +130,13 @@ export class Switch implements ICustomAttributeViewModel {
       }
     }
 
-    await this.clearActiveCases(null, flags, newActiveCases);
-    this.activeCases = newActiveCases;
-
-    await this.activateCases(null, flags);
+    return onResolve(
+      this.clearActiveCases(null, flags, newActiveCases),
+      () => {
+        this.activeCases = newActiveCases;
+        return this.activateCases(null, flags);
+      }
+    );
   }
 
   private swap(initiator: IHydratedController | null, flags: LifecycleFlags, value: unknown): void | Promise<void> {
@@ -357,7 +360,7 @@ export class Case implements ICustomAttributeViewModel {
 }
 
 @templateController('default-case')
-export class DefaultCase extends Case{
+export class DefaultCase extends Case {
 
   protected linkToSwitch($switch: Switch): void {
     if ($switch.defaultCase !== void 0) {

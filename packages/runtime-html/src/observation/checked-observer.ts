@@ -8,14 +8,12 @@ import {
   LifecycleFlags,
   SetterObserver,
   subscriberCollection,
-  getCollectionObserver,
-  ILifecycle,
   AccessorType,
+  IObserverLocator,
 } from '@aurelia/runtime';
 import { EventSubscriber } from './event-delegator';
+import { getCollectionObserver } from './observer-locator';
 import { ValueAttributeObserver } from './value-attribute-observer';
-
-type RepeatableCollection = unknown[] | Set<unknown> | Map<unknown, unknown>;
 
 export interface IInputElement extends HTMLInputElement {
   model?: unknown;
@@ -40,7 +38,7 @@ export class CheckedObserver implements IAccessor {
   public currentValue: unknown = void 0;
   public oldValue: unknown = void 0;
 
-  public readonly persistentFlags: LifecycleFlags;
+  public readonly persistentFlags: LifecycleFlags = LifecycleFlags.none;
 
   public hasChanges: boolean = false;
   public type: AccessorType = AccessorType.Node | AccessorType.Observer | AccessorType.Layout;
@@ -49,12 +47,10 @@ export class CheckedObserver implements IAccessor {
   public valueObserver?: ValueAttributeObserver | SetterObserver = void 0;
 
   public constructor(
-    flags: LifecycleFlags,
-    public lifecycle: ILifecycle,
-    public readonly handler: EventSubscriber,
     public readonly obj: IInputElement,
+    public readonly handler: EventSubscriber,
+    public readonly observerLocator: IObserverLocator,
   ) {
-    this.persistentFlags = flags & LifecycleFlags.targetObserverFlags;
   }
 
   public getValue(): unknown {
@@ -85,21 +81,15 @@ export class CheckedObserver implements IAccessor {
             this.valueObserver = this.obj.$observers.value;
           }
         }
-        if (this.valueObserver !== void 0) {
-          this.valueObserver.subscribe(this);
-        }
+        this.valueObserver?.subscribe(this);
       }
 
-      if (this.collectionObserver !== void 0) {
-        this.collectionObserver.unsubscribeFromCollection(this);
-        this.collectionObserver = void 0;
-      }
+      this.collectionObserver?.unsubscribeFromCollection(this);
+      this.collectionObserver = void 0;
 
       if (this.obj.type === 'checkbox') {
-        this.collectionObserver = getCollectionObserver(flags, this.lifecycle, currentValue as RepeatableCollection);
-        if (this.collectionObserver !== void 0) {
-          this.collectionObserver.subscribeToCollection(this);
-        }
+        (this.collectionObserver = getCollectionObserver(currentValue, this.observerLocator))
+          ?.subscribeToCollection(this);
       }
 
       this.synchronizeElement();

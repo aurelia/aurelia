@@ -12,23 +12,26 @@ export interface ValueAttributeObserver
  */
 @subscriberCollection()
 export class ValueAttributeObserver implements IAccessor {
+  public readonly obj: Node & IIndexable;
   public currentValue: unknown = '';
   public oldValue: unknown = '';
 
-  public readonly persistentFlags: LifecycleFlags;
+  public readonly persistentFlags: LifecycleFlags = LifecycleFlags.none;
 
   public hasChanges: boolean = false;
   // ObserverType.Layout is not always true, it depends on the element & property combo
   // but for simplicity, always treat as such
   public type: AccessorType = AccessorType.Node | AccessorType.Observer | AccessorType.Layout;
 
+  private readonly readonly: boolean;
+
   public constructor(
-    flags: LifecycleFlags,
-    public readonly handler: EventSubscriber,
-    public readonly obj: Node & IIndexable,
+    obj: Node,
     public readonly propertyKey: PropertyKey,
+    public readonly handler: EventSubscriber,
   ) {
-    this.persistentFlags = flags & LifecycleFlags.targetObserverFlags;
+    this.obj = obj as Node & IIndexable;
+    this.readonly = handler.config.readonly === true;
   }
 
   public getValue(): unknown {
@@ -40,7 +43,7 @@ export class ValueAttributeObserver implements IAccessor {
   public setValue(newValue: string | null, flags: LifecycleFlags): void {
     this.currentValue = newValue;
     this.hasChanges = newValue !== this.oldValue;
-    if ((flags & LifecycleFlags.noFlush) === 0) {
+    if (!this.readonly && (flags & LifecycleFlags.noFlush) === 0) {
       this.flushChanges(flags);
     }
   }
@@ -51,11 +54,7 @@ export class ValueAttributeObserver implements IAccessor {
       const currentValue = this.currentValue;
       const oldValue = this.oldValue;
       this.oldValue = currentValue;
-      if (currentValue == void 0) {
-        this.obj[this.propertyKey as string] = '';
-      } else {
-        this.obj[this.propertyKey as string] = currentValue;
-      }
+      this.obj[this.propertyKey as string] = currentValue ?? this.handler.config.default;
 
       if ((flags & LifecycleFlags.fromBind) === 0) {
         this.callSubscribers(currentValue, oldValue, flags);

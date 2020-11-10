@@ -25,7 +25,7 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
   public currentValue: unknown = null;
   public oldValue: unknown = null;
 
-  public readonly persistentFlags: LifecycleFlags;
+  public readonly persistentFlags: LifecycleFlags = LifecycleFlags.none;
 
   public hasChanges: boolean = false;
   // layout is not certain, depends on the attribute being flushed to owner element
@@ -34,13 +34,11 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
 
   public constructor(
     private readonly platform: IPlatform,
-    flags: LifecycleFlags,
     public readonly observerLocator: IObserverLocator,
     public readonly obj: IHtmlElement,
     public readonly propertyKey: string,
     public readonly targetAttribute: string,
   ) {
-    this.persistentFlags = flags & LifecycleFlags.targetObserverFlags;
   }
 
   public getValue(): unknown {

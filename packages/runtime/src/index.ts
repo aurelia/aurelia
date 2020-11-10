@@ -164,6 +164,7 @@ export {
 export {
   IObjectObservationAdapter,
   IObserverLocator,
+  INodeEventConfig,
   INodeObserverLocator,
   getCollectionObserver,
   ObserverLocator,

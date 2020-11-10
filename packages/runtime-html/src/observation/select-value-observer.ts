@@ -53,10 +53,10 @@ export class SelectValueObserver implements IAccessor {
   private observing: boolean = false;
 
   public constructor(
+    public readonly obj: ISelectElement,
+    public readonly handler: EventSubscriber,
     public readonly observerLocator: IObserverLocator,
     public readonly platform: IPlatform,
-    public readonly handler: EventSubscriber,
-    public readonly obj: ISelectElement,
   ) {
   }
 

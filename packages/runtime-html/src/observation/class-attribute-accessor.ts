@@ -1,13 +1,11 @@
 import { IAccessor, LifecycleFlags, AccessorType } from '@aurelia/runtime';
 import { emptyArray } from '@aurelia/kernel';
-import { INode } from '../dom';
 
 export class ClassAttributeAccessor implements IAccessor {
-  public readonly obj: HTMLElement;
   public currentValue: unknown = '';
   public oldValue: unknown = '';
 
-  public readonly persistentFlags: LifecycleFlags;
+  public readonly persistentFlags: LifecycleFlags = LifecycleFlags.none;
 
   public readonly doNotCache: true = true;
   public nameIndex: Record<string, number> = {};
@@ -18,11 +16,8 @@ export class ClassAttributeAccessor implements IAccessor {
   public type: AccessorType = AccessorType.Node | AccessorType.Layout;
 
   public constructor(
-    flags: LifecycleFlags,
-    obj: INode,
+    public readonly obj: HTMLElement
   ) {
-    this.obj = obj as HTMLElement;
-    this.persistentFlags = flags & LifecycleFlags.targetObserverFlags;
   }
 
   public getValue(): unknown {

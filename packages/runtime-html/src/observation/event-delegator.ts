@@ -1,4 +1,5 @@
 import { DI, IDisposable } from '@aurelia/kernel';
+import { INodeEventConfig } from '@aurelia/runtime';
 
 const defaultOptions: AddEventListenerOptions = {
   capture: false,
@@ -99,13 +100,13 @@ export class EventSubscriber {
   private handler: EventListenerOrEventListenerObject | null = null;
 
   public constructor(
-    private readonly events: string[],
+    public readonly config: INodeEventConfig,
   ) {}
 
   public subscribe(node: EventTarget, callbackOrListener: EventListenerOrEventListenerObject): void {
     this.target = node;
     this.handler = callbackOrListener;
-    for (const event of this.events) {
+    for (const event of this.config.events) {
       node.addEventListener(event, callbackOrListener);
     }
   }
@@ -113,7 +114,7 @@ export class EventSubscriber {
   public dispose(): void {
     const { target, handler } = this;
     if (target !== null && handler !== null) {
-      for (const event of this.events) {
+      for (const event of this.config.events) {
         target.removeEventListener(event, handler);
       }
     }

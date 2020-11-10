@@ -31,11 +31,27 @@ export interface IObjectObservationAdapter {
 export interface IObserverLocator extends ObserverLocator {}
 export const IObserverLocator = DI.createInterface<IObserverLocator>('IObserverLocator').withDefault(x => x.singleton(ObserverLocator));
 
+export interface INodeEventConfig {
+  /**
+   * Indicates the list of events can be used to observe a particular property
+   */
+  events: string[];
+  /**
+   * Indicates whether this property is readonly, so observer wont attempt to assign value
+   * example: input.files
+   */
+  readonly?: boolean;
+  /**
+   * A default value to assign to the corresponding property if the incomming value is null/undefined
+   */
+  default?: unknown;
+}
+
 export interface INodeObserverLocator {
   handles(obj: unknown, key: PropertyKey, requestor: IObserverLocator): boolean;
   // instruct the node observer locator to use some events to observe a property of a node
-  useEvent(config: Record<string, Record<string, string[]>>): void;
-  useEvent(nodeName: string, key: PropertyKey, events: string[]): void;
+  useConfig(config: Record<string, Record<string, INodeEventConfig>>): void;
+  useConfig(nodeName: string, key: PropertyKey, eventsConfig: INodeEventConfig): void;
   getObserver(obj: object, key: PropertyKey, requestor: IObserverLocator): IAccessor | IObserver;
   getAccessor(obj: object, key: PropertyKey, requestor: IObserverLocator): IAccessor | IObserver;
 }
@@ -47,7 +63,7 @@ export const INodeObserverLocator = DI
     });
     return {
       handles: () => false,
-      useEvent: () => {/* empty */},
+      useConfig: () => {/* empty */},
       getAccessor: () => propertyAccessor,
       getObserver: () => propertyAccessor,
     };
@@ -172,7 +188,7 @@ export class ObserverLocator {
 
     // Ordinary get/set observation (the common use case)
     // TODO: think about how to handle a data property that does not sit on the instance (should we do anything different?)
-    return new SetterObserver(flags, obj, key);
+    return new SetterObserver(obj, key);
   }
 
   private getAdapterObserver(flags: LifecycleFlags, obj: IObservable, propertyName: string, pd: PropertyDescriptor): IBindingTargetObserver | null {

@@ -1,11 +1,7 @@
-import { IContainer, Registration, IIndexable } from '@aurelia/kernel';
+import { Registration } from '@aurelia/kernel';
 import {
-  IAccessor,
-  IBindingTargetAccessor,
-  ILifecycle,
   INodeObserverLocator,
   IObserverLocator,
-  IObserver,
   LifecycleFlags,
   SetterObserver,
 } from '@aurelia/runtime';
@@ -20,6 +16,9 @@ import { ISelectElement, SelectValueObserver } from './select-value-observer';
 import { StyleAttributeAccessor } from './style-attribute-accessor';
 import { ISVGAnalyzer } from './svg-analyzer';
 import { ValueAttributeObserver } from './value-attribute-observer';
+
+import type { IContainer, IIndexable } from '@aurelia/kernel';
+import type { IAccessor, IBindingTargetAccessor, INodeEventConfig, IObserver, ICollectionObserver, CollectionKind } from '@aurelia/runtime';
 
 // https://infra.spec.whatwg.org/#namespaces
 const htmlNS = 'http://www.w3.org/1999/xhtml';
@@ -47,10 +46,10 @@ const nsAttributes = Object.assign(
   },
 );
 
-const inputEvents = ['change', 'input'];
-const selectEvents = ['change'];
-const contentEvents = ['change', 'input', 'blur', 'keyup', 'paste'];
-const scrollEvents = ['scroll'];
+const inputEventsConfig: INodeEventConfig = { events: ['change', 'input'], default: '' };
+const selectEventsConfig: INodeEventConfig = { events: ['change'], default: '' };
+const contentEventsConfig: INodeEventConfig = { events: ['change', 'input', 'blur', 'keyup', 'paste'], default: '' };
+const scrollEventsConfig: INodeEventConfig = { events: ['scroll'], default: 0 };
 
 const getDefaultOverrideProps = () => [
   'class',
@@ -77,21 +76,20 @@ const getDefaultOverrideProps = () => [
 
 export class NodeObserverLocator implements INodeObserverLocator {
   // { input: { value: ['change', 'input'] } }
-  private readonly eventsLookup: Record<string, Record<string, string[]>> = createLookup();
+  private readonly eventsLookup: Record<string, Record<string, INodeEventConfig>> = createLookup();
   private readonly overrides: Record<string, true> = getDefaultOverrideProps();
 
   public constructor(
     @IPlatform private readonly platform: IPlatform,
-    @ILifecycle private readonly lifecycle: ILifecycle,
     @ISVGAnalyzer private readonly svgAnalyzer: ISVGAnalyzer,
   ) {
-    this.useEvent({
+    this.useConfig({
       INPUT: {
-        value: inputEvents,
-        files: inputEvents,
+        value: inputEventsConfig,
+        files: { events: inputEventsConfig.events, readonly: true },
       },
       TEXTAREA: {
-        value: inputEvents,
+        value: inputEventsConfig,
       },
     });
   }
@@ -105,21 +103,21 @@ export class NodeObserverLocator implements INodeObserverLocator {
     return obj instanceof this.platform.Node;
   }
 
-  public useEvent(config: Record<string, Record<string, string[]>>): void;
-  public useEvent(nodeName: string, key: PropertyKey, events: string[]): void;
-  public useEvent(nodeNameOrConfig: string | Record<string, Record<string, string[]>>, key?: PropertyKey, events?: string[]): void {
+  public useConfig(config: Record<string, Record<string, INodeEventConfig>>): void;
+  public useConfig(nodeName: string, key: PropertyKey, events: INodeEventConfig): void;
+  public useConfig(nodeNameOrConfig: string | Record<string, Record<string, INodeEventConfig>>, key?: PropertyKey, eventsConfig?: INodeEventConfig): void {
     const lookup = this.eventsLookup;
-    let existingMapping: Record<string, string[]>;
+    let existingMapping: Record<string, INodeEventConfig>;
     if (typeof nodeNameOrConfig === 'string') {
-      existingMapping = lookup[nodeNameOrConfig] ??= createLookup<string[]>();
+      existingMapping = lookup[nodeNameOrConfig] ??= createLookup();
       if (existingMapping[key as string] == null) {
-        existingMapping[key as string] = events!;
+        existingMapping[key as string] = eventsConfig!;
       } else {
         throwMappingExisted(nodeNameOrConfig, key!);
       }
     } else {
       for (const nodeName in nodeNameOrConfig) {
-        existingMapping = lookup[nodeName] ??= createLookup<string[]>();
+        existingMapping = lookup[nodeName] ??= createLookup<INodeEventConfig>();
         const newMapping = nodeNameOrConfig[nodeName];
         for (key in newMapping) {
           if (existingMapping[key] == null) {
@@ -138,11 +136,8 @@ export class NodeObserverLocator implements INodeObserverLocator {
       return this.getObserver(obj, key, requestor);
     }
     switch (key) {
-      case 'class':
-        return new ClassAttributeAccessor(LifecycleFlags.none, obj);
-      case 'style':
-      case 'css':
-        return new StyleAttributeAccessor(LifecycleFlags.none, obj);
+      // class / style / css attribute will be observed using .getObserver() per overrides
+      //
       // TODO: there are (many) more situation where we want to default to DataAttributeAccessor,
       // but for now stick to what vCurrent does
       case 'src':
@@ -163,40 +158,56 @@ export class NodeObserverLocator implements INodeObserverLocator {
   }
 
   public getObserver(el: HTMLElement, key: PropertyKey, requestor: IObserverLocator): IAccessor | IObserver {
-    const noFlags = LifecycleFlags.none;
     const tagName = el.tagName;
     if (tagName === 'SELECT' && key === 'value') {
-      return new SelectValueObserver(requestor, this.platform, new EventSubscriber(selectEvents), el as ISelectElement);
+      return new SelectValueObserver(el as ISelectElement, new EventSubscriber(selectEventsConfig), requestor, this.platform);
     } else if (tagName === 'INPUT' && key === 'checked') {
-      return new CheckedObserver(noFlags, this.lifecycle, new EventSubscriber(inputEvents), el as IInputElement);
+      return new CheckedObserver(el as IInputElement, new EventSubscriber(inputEventsConfig), requestor);
     }
-    let events: string[] | null;
+    let eventsConfig: INodeEventConfig | null;
     switch (key) {
+      case 'class':
+        return new ClassAttributeAccessor(el);
       case 'css':
       case 'style':
-        return new StyleAttributeAccessor(LifecycleFlags.none, el);
+        return new StyleAttributeAccessor(el);
       case 'scrolltop':
       case 'scrollleft':
-        events = scrollEvents;
+        eventsConfig = scrollEventsConfig;
         break;
       case 'textContent':
       case 'innerHTML':
-        events = contentEvents;
+        eventsConfig = contentEventsConfig;
         break;
       default:
-        events = this.eventsLookup[tagName]?.[key as string];
+        eventsConfig = this.eventsLookup[tagName]?.[key as string];
         break;
     }
-    if (events == null) {
+    if (eventsConfig == null) {
       if (key in el.constructor.prototype) {
-        // todo: if DirtyChecker is register, then use it
+        // todo: either:
+        // - if DirtyChecker is register, then use it
+        // - add a adapter API to handle unknown obj/key combo
         throw new Error(`Unable to observe property ${String(key)}. Register observation mapping with .useEvent().`);
       } else {
-        return new SetterObserver(noFlags, el as HTMLElement & IIndexable, key as string);
+        return new SetterObserver(el as HTMLElement & IIndexable, key as string);
       }
     }
-    return new ValueAttributeObserver(noFlags, new EventSubscriber(events), el as HTMLElement & IIndexable, key);
+    return new ValueAttributeObserver(el, key, new EventSubscriber(eventsConfig));
   }
+}
+
+export function getCollectionObserver(collection: unknown, observerLocator: IObserverLocator): ICollectionObserver<CollectionKind> | undefined {
+  if (collection instanceof Array) {
+    return observerLocator.getArrayObserver(LifecycleFlags.none, collection);
+  }
+  if (collection instanceof Map) {
+    return observerLocator.getMapObserver(LifecycleFlags.none, collection);
+  }
+  if (collection instanceof Set) {
+    return observerLocator.getSetObserver(LifecycleFlags.none, collection);
+  }
+  return;
 }
 
 function throwMappingExisted(nodeName: string, key: PropertyKey): never {

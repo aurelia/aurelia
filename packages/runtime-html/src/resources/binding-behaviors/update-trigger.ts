@@ -50,7 +50,7 @@ export class UpdateTriggerBindingBehavior {
     targetObserver.originalHandler = binding.targetObserver.handler;
 
     // replace the element subscribe function with one that uses the correct events.
-    (targetObserver as Writable<typeof targetObserver>).handler = new EventSubscriber(events);
+    (targetObserver as Writable<typeof targetObserver>).handler = new EventSubscriber({ events });
   }
 
   public unbind(flags: LifecycleFlags, _scope: Scope, _hostScope: Scope | null, binding: UpdateTriggerableBinding): void {

@@ -304,21 +304,28 @@ describe('ObserverLocator', function () {
                 }});
               }
             }
-            const actual = sut.getObserver(LF.none, obj, property);
             if (property === 'textContent' || property === 'innerHTML' || property === 'scrollTop' || property === 'scrollLeft') {
+              const actual = sut.getObserver(LF.none, obj, property);
               assert.strictEqual(actual.constructor.name, ValueAttributeObserver.name, `actual.constructor.name`);
             } else if (property === 'style' || property === 'css') {
+              const actual = sut.getObserver(LF.none, obj, property);
               assert.strictEqual(actual.constructor.name, StyleAttributeAccessor.name, `actual.constructor.name`);
             } else if (descriptors[property].get === undefined) {
-              assert.strictEqual(actual.constructor.name, SetterObserver.name, `actual.constructor.name`);
+              assert.throws(() => {
+                const actual = sut.getObserver(LF.none, obj, property);
+                assert.strictEqual(actual.constructor.name, SetterObserver.name, `actual.constructor.name`);
+              });
             } else {
-              if (!(hasAdapterObserver && adapterIsDefined)) {
-                assert.strictEqual(actual.constructor.name, DirtyCheckProperty.name, `actual.constructor.name`);
-              } else if ((!hasGetObserver && hasAdapterObserver && adapterIsDefined) || hasGetObserver) {
-                assert.strictEqual(actual, dummyObserver, `actual`);
-              } else {
-                assert.strictEqual(actual.constructor.name, DirtyCheckProperty.name, `actual.constructor.name`);
-              }
+              assert.throws(() => {
+                const actual = sut.getObserver(LF.none, obj, property);
+                if (!(hasAdapterObserver && adapterIsDefined)) {
+                  assert.strictEqual(actual.constructor.name, DirtyCheckProperty.name, `actual.constructor.name`);
+                } else if ((!hasGetObserver && hasAdapterObserver && adapterIsDefined) || hasGetObserver) {
+                  assert.strictEqual(actual, dummyObserver, `actual`);
+                } else {
+                  assert.strictEqual(actual.constructor.name, DirtyCheckProperty.name, `actual.constructor.name`);
+                }
+              });
             }
           });
         }

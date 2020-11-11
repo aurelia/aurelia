@@ -112,7 +112,6 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
       }
       const { component, platform, testHost, tearDown, startPromise } = createFixture(`<div ref="div"></div>\${div.tagName}`, App);
       await startPromise;
-
       assert.strictEqual(testHost.textContent, 'DIV');
       component.div = { tagName: 'hello' };
 

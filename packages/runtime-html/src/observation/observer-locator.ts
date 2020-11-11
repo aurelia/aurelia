@@ -1,5 +1,6 @@
 import { Registration } from '@aurelia/kernel';
 import {
+  IDirtyChecker,
   INodeObserverLocator,
   IObserverLocator,
   LifecycleFlags,
@@ -81,9 +82,11 @@ export class NodeObserverLocator implements INodeObserverLocator {
   private readonly eventsLookup: Record<string, Record<string, INodeEventConfig>> = createLookup();
   private readonly overrides: Record<string, true> = getDefaultOverrideProps();
 
+  public allowDirtyCheck: boolean = true;
 
   public constructor(
     @IPlatform private readonly platform: IPlatform,
+    @IDirtyChecker private readonly dirtyChecker: IDirtyChecker,
     @ISVGAnalyzer private readonly svgAnalyzer: ISVGAnalyzer,
   ) {
     this.useConfig({
@@ -214,11 +217,15 @@ export class NodeObserverLocator implements INodeObserverLocator {
         return attrAccessor;
       }
       if (key in el.constructor.prototype) {
-        // todo: either:
-        // - if DirtyChecker is register, then use it
-        // - add a adapter API to handle unknown obj/key combo
+        if (this.allowDirtyCheck) {
+          return this.dirtyChecker.createProperty(el, key as string);
+        }
+        // consider:
+        // - maybe add a adapter API to handle unknown obj/key combo
         throw new Error(`Unable to observe property ${String(key)}. Register observation mapping with .useEvent().`);
       } else {
+        // todo: probably still needs to get the property descriptor via getOwnPropertyDescriptor
+        // but let's start with simplest scenario
         return new SetterObserver(el as HTMLElement & IIndexable, key as string);
       }
     }

@@ -48,6 +48,7 @@ export interface INodeEventConfig {
 }
 
 export interface INodeObserverLocator {
+  allowDirtyCheck: boolean;
   handles(obj: unknown, key: PropertyKey, requestor: IObserverLocator): boolean;
   // instruct the node observer locator to use some events to observe a property of a node
   useConfig(config: Record<string, Record<string, INodeEventConfig>>): void;
@@ -64,6 +65,7 @@ export const INodeObserverLocator = DI
       logger.error('Using default INodeObserverLocator implementation. Will not be able to observe nodes (HTML etc...).');
     });
     return {
+      allowDirtyCheck: false,
       handles: () => false,
       useGlobalConfig: noop,
       useConfig: noop,

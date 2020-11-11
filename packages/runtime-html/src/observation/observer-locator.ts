@@ -166,13 +166,15 @@ export class NodeObserverLocator implements INodeObserverLocator {
     }
     let eventsConfig: INodeEventConfig | null;
     switch (key) {
+      case 'role':
+        return attrAccessor;
       case 'class':
         return new ClassAttributeAccessor(el);
       case 'css':
       case 'style':
         return new StyleAttributeAccessor(el);
-      case 'scrolltop':
-      case 'scrollleft':
+      case 'scrollTop':
+      case 'scrollLeft':
         eventsConfig = scrollEventsConfig;
         break;
       case 'textContent':
@@ -184,6 +186,14 @@ export class NodeObserverLocator implements INodeObserverLocator {
         break;
     }
     if (eventsConfig == null) {
+      const nsProps = nsAttributes[key as string];
+      if (nsProps !== undefined) {
+        return AttributeNSAccessor.forNs(nsProps[1]) as IBindingTargetAccessor;
+      }
+      if (isDataAttribute(el, key, this.svgAnalyzer)) {
+        // todo: should observe
+        return attrAccessor;
+      }
       if (key in el.constructor.prototype) {
         // todo: either:
         // - if DirtyChecker is register, then use it

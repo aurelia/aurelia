@@ -81,7 +81,7 @@ export class ObserverLocator {
   public constructor(
     @ILifecycle private readonly lifecycle: ILifecycle,
     @IDirtyChecker private readonly dirtyChecker: IDirtyChecker,
-    @INodeObserverLocator private readonly nodeObserverLocator: INodeObserverLocator,
+    @INodeObserverLocator public readonly nodeObserverLocator: INodeObserverLocator,
   ) {}
 
   public addAdapter(adapter: IObjectObservationAdapter): void {

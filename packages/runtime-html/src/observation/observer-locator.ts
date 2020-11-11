@@ -75,9 +75,12 @@ const getDefaultOverrideProps = () => [
 },createLookup<true>());
 
 export class NodeObserverLocator implements INodeObserverLocator {
+
+  private readonly globalLookup: Record<string, INodeEventConfig> = createLookup();
   // { input: { value: ['change', 'input'] } }
   private readonly eventsLookup: Record<string, Record<string, INodeEventConfig>> = createLookup();
   private readonly overrides: Record<string, true> = getDefaultOverrideProps();
+
 
   public constructor(
     @IPlatform private readonly platform: IPlatform,
@@ -91,6 +94,12 @@ export class NodeObserverLocator implements INodeObserverLocator {
       TEXTAREA: {
         value: inputEventsConfig,
       },
+    });
+    this.useGlobalConfig({
+      scrollTop: scrollEventsConfig,
+      scrollLeft: scrollEventsConfig,
+      textContent: contentEventsConfig,
+      innerHTML: contentEventsConfig,
     });
   }
 
@@ -130,6 +139,27 @@ export class NodeObserverLocator implements INodeObserverLocator {
     }
   }
 
+  public useGlobalConfig(config: Record<string, INodeEventConfig>): void;
+  public useGlobalConfig(key: PropertyKey, events: INodeEventConfig): void;
+  public useGlobalConfig(configOrKey: PropertyKey | Record<string, INodeEventConfig>, eventsConfig?: INodeEventConfig): void {
+    const lookup = this.globalLookup;
+    if (typeof configOrKey === 'object') {
+      for (const key in configOrKey) {
+        if (lookup[key] == null) {
+          lookup[key] = configOrKey[key];
+        } else {
+          throwMappingExisted('*', key);
+        }
+      }
+    } else {
+      if (lookup[configOrKey as string] == null) {
+        lookup[configOrKey as string] = eventsConfig!;
+      } else {
+        throwMappingExisted('*', configOrKey);
+      }
+    }
+  }
+
   // deepscan-disable-nextline
   public getAccessor(obj: HTMLElement, key: PropertyKey, requestor: IObserverLocator): IAccessor | IObserver {
     if (this.overrides[key as string] === true) {
@@ -164,7 +194,6 @@ export class NodeObserverLocator implements INodeObserverLocator {
     } else if (tagName === 'INPUT' && key === 'checked') {
       return new CheckedObserver(el as IInputElement, new EventSubscriber(inputEventsConfig), requestor);
     }
-    let eventsConfig: INodeEventConfig | null;
     switch (key) {
       case 'role':
         return attrAccessor;
@@ -173,18 +202,8 @@ export class NodeObserverLocator implements INodeObserverLocator {
       case 'css':
       case 'style':
         return new StyleAttributeAccessor(el);
-      case 'scrollTop':
-      case 'scrollLeft':
-        eventsConfig = scrollEventsConfig;
-        break;
-      case 'textContent':
-      case 'innerHTML':
-        eventsConfig = contentEventsConfig;
-        break;
-      default:
-        eventsConfig = this.eventsLookup[tagName]?.[key as string];
-        break;
     }
+    const eventsConfig: INodeEventConfig | undefined = this.eventsLookup[tagName]?.[key as string] ?? this.globalLookup[key as string];
     if (eventsConfig == null) {
       const nsProps = nsAttributes[key as string];
       if (nsProps !== undefined) {

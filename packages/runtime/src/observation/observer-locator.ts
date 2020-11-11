@@ -1,4 +1,4 @@
-import { DI, Primitive, isArrayIndex, ILogger } from '@aurelia/kernel';
+import { DI, Primitive, isArrayIndex, ILogger, noop } from '@aurelia/kernel';
 import {
   AccessorOrObserver,
   CollectionKind,
@@ -52,6 +52,8 @@ export interface INodeObserverLocator {
   // instruct the node observer locator to use some events to observe a property of a node
   useConfig(config: Record<string, Record<string, INodeEventConfig>>): void;
   useConfig(nodeName: string, key: PropertyKey, eventsConfig: INodeEventConfig): void;
+  useGlobalConfig(config: Record<string, INodeEventConfig>): void;
+  useGlobalConfig(key: PropertyKey, eventsConfig: INodeEventConfig): void;
   getObserver(obj: object, key: PropertyKey, requestor: IObserverLocator): IAccessor | IObserver;
   getAccessor(obj: object, key: PropertyKey, requestor: IObserverLocator): IAccessor | IObserver;
 }
@@ -63,7 +65,8 @@ export const INodeObserverLocator = DI
     });
     return {
       handles: () => false,
-      useConfig: () => {/* empty */},
+      useGlobalConfig: noop,
+      useConfig: noop,
       getAccessor: () => propertyAccessor,
       getObserver: () => propertyAccessor,
     };
@@ -81,7 +84,7 @@ export class ObserverLocator {
   public constructor(
     @ILifecycle private readonly lifecycle: ILifecycle,
     @IDirtyChecker private readonly dirtyChecker: IDirtyChecker,
-    @INodeObserverLocator public readonly nodeObserverLocator: INodeObserverLocator,
+    @INodeObserverLocator private readonly nodeObserverLocator: INodeObserverLocator,
   ) {}
 
   public addAdapter(adapter: IObjectObservationAdapter): void {

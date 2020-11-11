@@ -9,10 +9,9 @@ import {
   ILifecycle,
   IObserverLocator,
   Scope,
-  ITargetAccessorLocator,
-  ITargetObserverLocator,
   LifecycleFlags as LF,
   OverrideContext,
+  INodeObserverLocator,
 } from '@aurelia/runtime-html';
 import { createContainer } from './test-context';
 // import {
@@ -466,8 +465,7 @@ export function createObserverLocator(containerOrLifecycle?: IContainer | ILifec
     }
   };
   Registration.instance(IDirtyChecker, null).register(container);
-  Registration.instance(ITargetObserverLocator, dummyLocator).register(container);
-  Registration.instance(ITargetAccessorLocator, dummyLocator).register(container);
+  Registration.instance(INodeObserverLocator, dummyLocator).register(container);
   return container.get(IObserverLocator);
 }
 

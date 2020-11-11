@@ -1,5 +1,5 @@
 // @ts-check
-import { SVGAnalyzerRegistration, StandardConfiguration, Aurelia, CustomElement, ValueConverter, ILifecycle } from '@aurelia/runtime-html';
+import { SVGAnalyzerRegistration, StandardConfiguration, Aurelia, CustomElement, ValueConverter } from '@aurelia/runtime-html';
 import { startFPSMonitor, startMemMonitor } from 'perf-monitor';
 import { interpolateViridis } from 'd3-scale-chromatic';
 

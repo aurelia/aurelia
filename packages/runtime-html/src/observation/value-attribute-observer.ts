@@ -1,6 +1,7 @@
 import { IIndexable } from '@aurelia/kernel';
 import { IAccessor, ISubscriber, ISubscriberCollection, LifecycleFlags, subscriberCollection, AccessorType } from '@aurelia/runtime';
 import { EventSubscriber } from './event-delegator';
+import { INode } from '../dom';
 
 export interface ValueAttributeObserver
   extends ISubscriberCollection {}
@@ -12,7 +13,7 @@ export interface ValueAttributeObserver
  */
 @subscriberCollection()
 export class ValueAttributeObserver implements IAccessor {
-  public readonly obj: Node & IIndexable;
+  public readonly obj: INode & IIndexable;
   public currentValue: unknown = '';
   public oldValue: unknown = '';
 
@@ -26,11 +27,11 @@ export class ValueAttributeObserver implements IAccessor {
   private readonly readonly: boolean;
 
   public constructor(
-    obj: Node,
+    obj: INode,
     public readonly propertyKey: PropertyKey,
     public readonly handler: EventSubscriber,
   ) {
-    this.obj = obj as Node & IIndexable;
+    this.obj = obj as INode & IIndexable;
     this.readonly = handler.config.readonly === true;
   }
 

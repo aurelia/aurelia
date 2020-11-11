@@ -203,7 +203,6 @@ export {
   CollectionKind,
   DelegationStrategy,
   IAccessor,
-  INodeAccessor,
   IBindingContext,
   IBindingTargetAccessor,
   IBindingTargetObserver,
@@ -394,7 +393,6 @@ export {
 } from './resources/custom-attribute';
 export {
   FrequentMutations,
-  InfrequentMutations,
   ObserveShallow,
 } from './resources/template-controllers/flags';
 export {

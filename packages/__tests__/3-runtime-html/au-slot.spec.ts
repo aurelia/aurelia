@@ -124,7 +124,7 @@ describe('au-slot', function () {
     for (const sep of [' ', '~', '`', '!', '@', '#', '$', '%', '^', '&', '*', '[', '{', '(', ')', '}', ']', '<', '>', '-', '_', '+', '=', '.', ',', '/', '\\\\', '|', '?', ':', ';', '&quot;']) {
       const slotName = `slot${sep}one`;
       yield new TestData(
-        `au-slot name with space works - ${slotName}`,
+        `au-slot name with special character works - ${slotName}`,
         `<my-element><div au-slot="${slotName}">p</div></my-element>`,
         [
           createMyElement(`<au-slot name="${slotName}"></au-slot>`),
@@ -185,6 +185,20 @@ describe('au-slot', function () {
         ),
       ],
       { 'my-element': `<div>inner</div> <div>root</div>` },
+    );
+
+    yield new TestData(
+      'uses inner scope by default if no projection is provided',
+      `<my-element> <div au-slot="s2">\${message}</div> </my-element>`,
+      [
+        CustomElement.define(
+          { name: 'my-element', isStrictBinding: true, template: `<au-slot name="s1">\${message}</au-slot> <au-slot name="s2">s2</au-slot>` },
+          class MyElement {
+            public readonly message: string = 'inner';
+          }
+        ),
+      ],
+      { 'my-element': `inner <div>root</div>` },
     );
     // #endregion
 
@@ -678,6 +692,45 @@ describe('au-slot', function () {
           CustomElement.define({ name: 'my-element-s12', isStrictBinding: true, template: `<au-slot name="s1">s12</au-slot>` }, class MyElement { }),
         ],
         { 'my-element-s11': 'p1 <my-element-s12 class="au"> p2 </my-element-s12>' },
+      );
+
+      yield new TestData(
+        'au-slot>CE works - fallback',
+        `<my-element></my-element>`,
+        [
+          CustomElement.define({ name: 'my-element', isStrictBinding: true, template: `<au-slot name="s1"><foo-bar foo.bind="message"></foo-bar></au-slot>` }, class MyElement { public readonly message = 'inner'; }),
+          CustomElement.define({ name: 'foo-bar', isStrictBinding: true, template: `\${foo}`, bindables: ['foo'] }, class MyElement { }),
+        ],
+        { 'my-element': '<foo-bar foo.bind="message" class="au">inner</foo-bar>' },
+      );
+
+      yield new TestData(
+        'CE[au-slot] works - non $host',
+        `<my-element>
+          <foo-bar au-slot="s1" foo.bind="message"></foo-bar>
+        </my-element>`,
+        [
+          createMyElement(`<au-slot name="s1">s1fb</au-slot>`),
+          CustomElement.define({ name: 'foo-bar', isStrictBinding: true, template: `\${foo}`, bindables: ['foo'] }, class MyElement { }),
+        ],
+        { 'my-element': '<foo-bar foo.bind="message" class="au">root</foo-bar>' },
+      );
+
+      yield new TestData(
+        'CE[au-slot] works - $host',
+        `<my-element>
+          <foo-bar au-slot="s1" foo.bind="$host.message"></foo-bar>
+        </my-element>`,
+        [
+          CustomElement.define(
+            { name: 'my-element', isStrictBinding: true, template: `<au-slot name="s1">s1fb</au-slot>` },
+            class MyElement {
+              public readonly message: string = 'inner';
+            }
+          ),
+          CustomElement.define({ name: 'foo-bar', isStrictBinding: true, template: `\${foo}`, bindables: ['foo'] }, class MyElement { }),
+        ],
+        { 'my-element': '<foo-bar foo.bind="$host.message" class="au">inner</foo-bar>' },
       );
 
       // tag: nonsense-example

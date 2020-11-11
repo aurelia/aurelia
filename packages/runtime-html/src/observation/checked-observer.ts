@@ -8,7 +8,6 @@ import {
   LifecycleFlags,
   SetterObserver,
   subscriberCollection,
-  ITask,
   getCollectionObserver,
   ILifecycle,
   AccessorType,
@@ -44,9 +43,6 @@ export class CheckedObserver implements IAccessor {
   public readonly persistentFlags: LifecycleFlags;
 
   public hasChanges: boolean = false;
-  public task: ITask | null = null;
-  // ObserverType.Layout is not always true, it depends on the property
-  // but for simplicity, always treat as such
   public type: AccessorType = AccessorType.Node | AccessorType.Observer | AccessorType.Layout;
 
   public collectionObserver?: ICollectionObserver<CollectionKind> = void 0;
@@ -70,7 +66,7 @@ export class CheckedObserver implements IAccessor {
   public setValue(newValue: unknown, flags: LifecycleFlags): void {
     this.currentValue = newValue;
     this.hasChanges = newValue !== this.oldValue;
-    if ((flags & LifecycleFlags.noTargetObserverQueue) === 0) {
+    if ((flags & LifecycleFlags.noFlush) === 0) {
       this.flushChanges(flags);
     }
   }

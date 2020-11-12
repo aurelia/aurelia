@@ -86,17 +86,11 @@ export class ClassAttributeAccessor implements IAccessor {
 }
 
 export function getClassesToAdd(object: Record<string, unknown> | [] | string): string[] {
-
-  function splitClassString(classString: string): string[] {
-    const matches = classString.match(/\S+/g);
-    if (matches === null) {
-      return emptyArray;
-    }
-    return matches;
-  }
-
   if (typeof object === 'string') {
     return splitClassString(object);
+  }
+  if (typeof object !== 'object') {
+    return emptyArray;
   }
 
   if (object instanceof Array) {
@@ -110,21 +104,28 @@ export function getClassesToAdd(object: Record<string, unknown> | [] | string): 
     } else {
       return emptyArray;
     }
-  } else if (object instanceof Object) {
-    const classes: string[] = [];
-    for (const property in object) {
-      // Let non typical values also evaluate true so disable bool check
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, no-extra-boolean-cast
-      if (Boolean(object[property])) {
-        // We must do this in case object property has a space in the name which results in two classes
-        if (property.includes(' ')) {
-          classes.push(...splitClassString(property));
-        } else {
-          classes.push(property);
-        }
+  }
+
+  const classes: string[] = [];
+  for (const property in object) {
+    // Let non typical values also evaluate true so disable bool check
+    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, no-extra-boolean-cast
+    if (Boolean(object[property])) {
+      // We must do this in case object property has a space in the name which results in two classes
+      if (property.includes(' ')) {
+        classes.push(...splitClassString(property));
+      } else {
+        classes.push(property);
       }
     }
-    return classes;
   }
-  return emptyArray;
+  return classes;
+}
+
+function splitClassString(classString: string): string[] {
+  const matches = classString.match(/\S+/g);
+  if (matches === null) {
+    return emptyArray;
+  }
+  return matches;
 }

@@ -71,14 +71,15 @@ export class CheckedObserver implements IAccessor {
     if (this.hasChanges) {
       this.hasChanges = false;
 
+      const obj = this.obj;
       const currentValue = this.oldValue = this.currentValue;
 
       if (this.valueObserver === void 0) {
-        if (this.obj.$observers !== void 0) {
-          if (this.obj.$observers.model !== void 0) {
-            this.valueObserver = this.obj.$observers.model;
-          } else if (this.obj.$observers.value !== void 0) {
-            this.valueObserver = this.obj.$observers.value;
+        if (obj.$observers !== void 0) {
+          if (obj.$observers.model !== void 0) {
+            this.valueObserver = obj.$observers.model;
+          } else if (obj.$observers.value !== void 0) {
+            this.valueObserver = obj.$observers.value;
           }
         }
         this.valueObserver?.subscribe(this);
@@ -87,7 +88,7 @@ export class CheckedObserver implements IAccessor {
       this.collectionObserver?.unsubscribeFromCollection(this);
       this.collectionObserver = void 0;
 
-      if (this.obj.type === 'checkbox') {
+      if (obj.type === 'checkbox') {
         (this.collectionObserver = getCollectionObserver(currentValue, this.observerLocator))
           ?.subscribeToCollection(this);
       }

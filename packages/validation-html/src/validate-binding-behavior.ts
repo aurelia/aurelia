@@ -68,7 +68,6 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
   private controller!: IValidationController;
   private isChangeTrigger: boolean = false;
   private readonly defaultTrigger: ValidationTrigger;
-  private readonly connectedExpressions: IsAssign[] = [];
   private scope!: Scope;
   private hostScope: Scope | null = null;
   private readonly triggerMediator: BindingMediator<'handleTriggerChange'> = new BindingMediator('handleTriggerChange', this, this.observerLocator, this.locator);
@@ -181,24 +180,19 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
     const args = expression.args;
     for (let i = 0, ii = args.length; i < ii; i++) {
       const arg = args[i];
-      const temp = arg.evaluate(evaluationFlags, scope, hostScope, locator, null);
       switch (i) {
         case 0:
-          trigger = this.ensureTrigger(temp);
-          arg.connect(flags, scope, hostScope, this.triggerMediator);
+          trigger = this.ensureTrigger(arg.evaluate(evaluationFlags, scope, hostScope, locator, this.triggerMediator));
           break;
         case 1:
-          controller = this.ensureController(temp);
-          arg.connect(flags, scope, hostScope, this.controllerMediator);
+          controller = this.ensureController(arg.evaluate(evaluationFlags, scope, hostScope, locator, this.controllerMediator));
           break;
         case 2:
-          rules = this.ensureRules(temp);
-          arg.connect(flags, scope, hostScope, this.rulesMediator);
+          rules = this.ensureRules(arg.evaluate(evaluationFlags, scope, hostScope, locator, this.rulesMediator));
           break;
         default:
-          throw new Error(`Unconsumed argument#${i + 1} for validate binding behavior: ${temp}`); // TODO: use reporter
+          throw new Error(`Unconsumed argument#${i + 1} for validate binding behavior: ${arg.evaluate(evaluationFlags, scope, hostScope, locator, null)}`);
       }
-      this.connectedExpressions.push(arg);
     }
 
     return new ValidateArgumentsDelta(this.ensureController(controller), this.ensureTrigger(trigger), rules);

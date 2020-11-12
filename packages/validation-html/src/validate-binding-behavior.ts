@@ -3,14 +3,12 @@ import {
   bindingBehavior,
   BindingInterceptor,
   BindingMediator,
-  IsAssign,
   LifecycleFlags,
   PropertyBinding,
   IBinding,
   BindingBehaviorExpression,
   ITask,
   IPlatform,
-  CustomElement,
   ICustomElementViewModel,
 } from '@aurelia/runtime-html';
 import { PropertyRule } from '@aurelia/validation';

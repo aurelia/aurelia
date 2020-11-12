@@ -54,7 +54,6 @@ export class TranslationBinding implements IPartialConnectableBinding {
   public id!: number;
   public isBound: boolean = false;
   public expr!: IsExpression;
-  public parametersExpr?: IsExpression;
   private readonly i18n: I18N;
   private readonly contentAttributes: readonly string[] = contentAttributes;
   private keyExpression: string | undefined | null;

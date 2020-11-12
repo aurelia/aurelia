@@ -90,8 +90,16 @@ export interface I18N {
    * If the `locales` is skipped, then the currently active locale is used for formatting.
    */
   rt(input: Date, options?: Intl.RelativeTimeFormatOptions, locales?: string | string[]): string;
+  /**
+   * Queue a subscriber to be invoked for when the locale of a I18N service changes
+   */
+  subscribeLocaleChange(subscriber: ILocalChangeSubscriber): void;
 }
 export const I18N = DI.createInterface<I18N>('I18N').noDefault();
+
+export interface ILocalChangeSubscriber {
+  handleLocaleChange(locales: { oldLocale: string, newLocale: string }): void;
+}
 /**
  * Translation service class.
  */
@@ -104,6 +112,7 @@ export class I18nService implements I18N {
    */
   public readonly initPromise: Promise<void>;
   private options!: I18nInitOptions;
+  private localeSubscribers: Set<ILocalChangeSubscriber> = new Set();
 
   public constructor(
     @I18nWrapper i18nextWrapper: I18nextWrapper,
@@ -142,8 +151,10 @@ export class I18nService implements I18N {
   }
   public async setLocale(newLocale: string): Promise<void> {
     const oldLocale = this.getLocale();
+    const locales = { oldLocale, newLocale };
     await this.i18next.changeLanguage(newLocale);
-    this.ea.publish(Signals.I18N_EA_CHANNEL, { oldLocale, newLocale });
+    this.ea.publish(Signals.I18N_EA_CHANNEL, locales);
+    this.localeSubscribers.forEach(sub => sub.handleLocaleChange(locales));
     this.signaler.dispatchSignal(Signals.I18N_SIGNAL);
   }
 
@@ -229,6 +240,10 @@ export class I18nService implements I18N {
     difference = Math.abs(difference) < TimeSpan.Second ? TimeSpan.Second : difference;
     value = difference / TimeSpan.Second;
     return formatter.format(Math.round(value), 'second');
+  }
+
+  public subscribeLocaleChange(subscriber: ILocalChangeSubscriber): void {
+    this.localeSubscribers.add(subscriber);
   }
 
   private now() {

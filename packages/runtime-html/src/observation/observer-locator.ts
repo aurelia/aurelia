@@ -178,7 +178,7 @@ export class NodeObserverLocator implements INodeObserverLocator {
       // https://html.spec.whatwg.org/multipage/dom.html#wai-aria
       case 'role':
         return attrAccessor;
-      default:
+      default: {
         const nsProps = nsAttributes[key as string];
         if (nsProps !== undefined) {
           return AttributeNSAccessor.forNs(nsProps[1]) as IBindingTargetAccessor;
@@ -187,6 +187,7 @@ export class NodeObserverLocator implements INodeObserverLocator {
           return attrAccessor;
         }
         return elementPropertyAccessor;
+      }
     }
   }
 
@@ -243,7 +244,6 @@ export function getCollectionObserver(collection: unknown, observerLocator: IObs
   if (collection instanceof Set) {
     return observerLocator.getSetObserver(LifecycleFlags.none, collection);
   }
-  return;
 }
 
 function throwMappingExisted(nodeName: string, key: PropertyKey): never {

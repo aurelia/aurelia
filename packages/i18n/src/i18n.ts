@@ -98,7 +98,7 @@ export interface I18N {
 export const I18N = DI.createInterface<I18N>('I18N').noDefault();
 
 export interface ILocalChangeSubscriber {
-  handleLocaleChange(locales: { oldLocale: string, newLocale: string }): void;
+  handleLocaleChange(locales: { oldLocale: string; newLocale: string }): void;
 }
 /**
  * Translation service class.
@@ -112,7 +112,7 @@ export class I18nService implements I18N {
    */
   public readonly initPromise: Promise<void>;
   private options!: I18nInitOptions;
-  private localeSubscribers: Set<ILocalChangeSubscriber> = new Set();
+  private readonly localeSubscribers: Set<ILocalChangeSubscriber> = new Set();
 
   public constructor(
     @I18nWrapper i18nextWrapper: I18nextWrapper,

@@ -297,7 +297,7 @@ class ParameterBinding {
 
   private scope!: Scope;
   private hostScope: Scope | null = null;
-  
+
   public constructor(
     public readonly owner: TranslationBinding,
     public readonly expr: IsExpression,

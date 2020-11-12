@@ -24,15 +24,12 @@ export class ValueAttributeObserver implements IAccessor {
   // but for simplicity, always treat as such
   public type: AccessorType = AccessorType.Node | AccessorType.Observer | AccessorType.Layout;
 
-  private readonly readonly: boolean;
-
   public constructor(
     obj: INode,
     public readonly propertyKey: PropertyKey,
     public readonly handler: EventSubscriber,
   ) {
     this.obj = obj as INode & IIndexable;
-    this.readonly = handler.config.readonly === true;
   }
 
   public getValue(): unknown {
@@ -44,7 +41,7 @@ export class ValueAttributeObserver implements IAccessor {
   public setValue(newValue: string | null, flags: LifecycleFlags): void {
     this.currentValue = newValue;
     this.hasChanges = newValue !== this.oldValue;
-    if (!this.readonly && (flags & LifecycleFlags.noFlush) === 0) {
+    if (!this.handler.config.readonly && (flags & LifecycleFlags.noFlush) === 0) {
       this.flushChanges(flags);
     }
   }

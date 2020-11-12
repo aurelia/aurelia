@@ -1,5 +1,5 @@
 ---
-description: Using different strategy to observe changes in your applications.
+description: Observe changes in your applications.
 ---
 
 # Observation Basic 
@@ -8,10 +8,8 @@ Aurelia observation system is built using observers and subscribers. By default,
 
 ```ts
 interface IObserver {
-  obj;
-  propertyKey;
-  subscribe(subscriber);
-  unsubscribe(subscriber);
+  subscribe(subscriber)
+  unsubscribe(subscriber)
 }
 ```
 
@@ -19,11 +17,32 @@ The method `.subscribe()` of an observer can be used subscribe to the changes it
 
 ```ts
 interface ISubscriber {
-  handleChange(newValue, oldValue);
+  handleChange(newValue, oldValue)
 }
 ```
 
-# HTML Element Observation
+An observer of an object property can be retrieved using an observer locator. An example is:
+
+```ts
+// getting the observer for property 'value'
+const observer = observerLocator.getObserver(obj, 'value')
+```
+
+And to subscribe to changes emitted by this observer:
+```ts
+const subscriber = {
+  handleChange(newValue) {
+    console.log('new value of object is:', newValue)
+  }
+}
+
+observer.subscribe(subscriber)
+
+// and to stop subscribing
+observer.unsubscribe(subscriber)
+```
+
+# HTML Observation
 
 HTML elements are special objects that often require different observation strategies, and most of the time, listening to some specific event is the preferred way. For this reason, Aurelia encourages using events to observe HTML elements.
 
@@ -64,7 +83,7 @@ export interface INodeObserverLocator {
   ```
   In this example, `eventsConfig` argument has the value `{ events: ['scroll']}`.
 
-# Webcomponent - Custom element observation
+# Webcomponent - Custom Element Observation
 
 It should be the same observing custom (HTML) elements and normal HTML elements. It is common for webcomponents to have well defined events associated with their custom properties, so observing them often means adding a few lines of configuration.
 

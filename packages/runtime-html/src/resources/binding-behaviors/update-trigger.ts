@@ -47,10 +47,11 @@ export class UpdateTriggerBindingBehavior {
     binding.targetObserver = targetObserver;
 
     // stash the original element subscribe function.
-    targetObserver.originalHandler = binding.targetObserver.handler;
+    const originalHandler = targetObserver.handler;
+    targetObserver.originalHandler = originalHandler;
 
     // replace the element subscribe function with one that uses the correct events.
-    (targetObserver as Writable<typeof targetObserver>).handler = new EventSubscriber({ events });
+    (targetObserver as Writable<typeof targetObserver>).handler = new EventSubscriber({ default: originalHandler.config.default, events, readonly: originalHandler.config.readonly });
   }
 
   public unbind(flags: LifecycleFlags, _scope: Scope, _hostScope: Scope | null, binding: UpdateTriggerableBinding): void {

@@ -413,10 +413,6 @@ export class BindingBehaviorExpression {
     return this.expression.assign(f, s, hs, l, val);
   }
 
-  public connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
-    this.expression.connect(f, s, hs, b);
-  }
-
   public bind(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
     if (this.expression.hasBind) {
       this.expression.bind(f, s, hs, b);
@@ -475,20 +471,20 @@ export class ValueConverterExpression {
     if (vc == null) {
       throw new Error(`ValueConverter named '${this.name}' could not be found. Did you forget to register it as a dependency?`);
     }
-    if ('toView' in vc) {
-      // note: everything should be ISubscriber eventually
-      // for now, it's sort of internal thing where only built-in bindings are passed as connectable
-      // so it by default satisfies ISubscriber constrain
-      if (c !== null && ('handleChange' in (c  as unknown as ISubscriber))) {
-        const signals = vc.signals;
-        if (signals != null) {
-          const signaler = l.get(ISignaler);
-          for (let i = 0, ii = signals.length; i < ii; ++i) {
-            signaler.addSignalListener(signals[i], c as unknown as ISubscriber);
-          }
+    // note: everything should be ISubscriber eventually
+    // for now, it's sort of internal thing where only built-in bindings are passed as connectable
+    // so it by default satisfies ISubscriber constrain
+    if (c !== null && ('handleChange' in (c  as unknown as ISubscriber))) {
+      const signals = vc.signals;
+      if (signals != null) {
+        const signaler = l.get(ISignaler);
+        for (let i = 0, ii = signals.length; i < ii; ++i) {
+          signaler.addSignalListener(signals[i], c as unknown as ISubscriber);
         }
       }
-      return (vc.toView.call as (...args: unknown[]) => void)(vc, this.expression.evaluate(f, s, hs, l, c), ...this.args.map(a => a.evaluate(f, s, hs, l, c)));
+    }
+    if ('toView' in vc) {
+      return vc.toView.call(vc, this.expression.evaluate(f, s, hs, l, c), ...this.args.map(a => a.evaluate(f, s, hs, l, c)));
     }
     return this.expression.evaluate(f, s, hs, l, c);
   }
@@ -502,24 +498,6 @@ export class ValueConverterExpression {
       val = (vc.fromView!.call as (...args: unknown[]) => void)(vc, val, ...this.args.map(a => a.evaluate(f, s, hs, l, null)));
     }
     return this.expression.assign(f, s, hs, l, val);
-  }
-
-  public connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
-    this.expression.connect(f, s, hs, b);
-    for (let i = 0; i < this.args.length; ++i) {
-      this.args[i].connect(f, s, hs, b);
-    }
-    const vc = b.locator.get(this.converterKey) as { signals?: string[] };
-    if (vc == null) {
-      throw new Error(`ValueConverter named '${this.name}' could not be found. Did you forget to register it as a dependency?`);
-    }
-    if (vc.signals === void 0) {
-      return;
-    }
-    const signaler = b.locator.get(ISignaler);
-    for (let i = 0; i < vc.signals.length; ++i) {
-      signaler.addSignalListener(vc.signals[i], b);
-    }
   }
 
   public unbind(_f: LF, _s: Scope, _hs: Scope | null, b: IConnectableBinding): void {
@@ -556,10 +534,6 @@ export class AssignExpression {
     return this.target.assign(f, s, hs, l, this.value.evaluate(f, s, hs, l, c));
   }
 
-  public connect(_f: LF, _s: Scope, _hs: Scope | null, _b: IConnectableBinding): void {
-    return;
-  }
-
   public assign(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, val: unknown): unknown {
     this.value.assign(f, s, hs, l, val);
     return this.target.assign(f, s, hs, l, val);
@@ -591,16 +565,6 @@ export class ConditionalExpression {
 
   public assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown): unknown {
     return void 0;
-  }
-
-  public connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
-    if (this.condition.evaluate(f, s, hs, b.locator, null)) {
-      this.condition.connect(f, s, hs, b);
-      this.yes.connect(f, s, hs, b);
-    } else {
-      this.condition.connect(f, s, hs, b);
-      this.no.connect(f, s, hs, b);
-    }
   }
 
   public accept<T>(visitor: IVisitor<T>): T {
@@ -641,10 +605,6 @@ export class AccessThisExpression {
 
   public assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown): unknown {
     return void 0;
-  }
-
-  public connect(_f: LF, _s: Scope, _hs: Scope | null, _b: IConnectableBinding): void {
-    return;
   }
 
   public accept<T>(visitor: IVisitor<T>): T {
@@ -692,11 +652,6 @@ export class AccessScopeExpression {
     return void 0;
   }
 
-  public connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
-    const context = BindingContext.get(chooseScope(this.accessHostScope, s, hs), this.name, this.ancestor, f, hs)!;
-    b.observeProperty(f, context, this.name);
-  }
-
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitAccessScope(this);
   }
@@ -717,7 +672,7 @@ export class AccessMemberExpression {
   ) {}
 
   public evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, c: IConnectable | null): unknown {
-    const instance = this.object.evaluate(f, s, hs, l, c) as IIndexable;
+    const instance = this.object.evaluate(f, s, hs, l, (f & LF.observeLeafPropertiesOnly) > 0 ? null : c) as IIndexable;
     if (f & LF.isStrictBindingStrategy) {
       if (instance == null) {
         return instance;
@@ -747,16 +702,6 @@ export class AccessMemberExpression {
     return val;
   }
 
-  public connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
-    const obj = this.object.evaluate(f, s, hs, b.locator, null) as IIndexable;
-    if ((f & LF.observeLeafPropertiesOnly) === 0) {
-      this.object.connect(f, s, hs, b);
-    }
-    if (obj instanceof Object) {
-      b.observeProperty(f, obj, this.name);
-    }
-  }
-
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitAccessMember(this);
   }
@@ -777,9 +722,9 @@ export class AccessKeyedExpression {
   ) {}
 
   public evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, c: IConnectable | null): unknown {
-    const instance = this.object.evaluate(f, s, hs, l, c) as IIndexable;
+    const instance = this.object.evaluate(f, s, hs, l, (f & LF.observeLeafPropertiesOnly) > 0 ? null : c) as IIndexable;
     if (instance instanceof Object) {
-      const key = this.key.evaluate(f, s, hs, l, c) as string;
+      const key = this.key.evaluate(f, s, hs, l, (f & LF.observeLeafPropertiesOnly) > 0 ? null : c) as string;
       if (c !== null) {
         c.observeProperty(f, instance, key);
       }
@@ -792,19 +737,6 @@ export class AccessKeyedExpression {
     const instance = this.object.evaluate(f, s, hs, l, null) as IIndexable;
     const key = this.key.evaluate(f, s, hs, l, null) as string;
     return instance[key] = val;
-  }
-
-  public connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
-    const obj = this.object.evaluate(f, s, hs, b.locator, null);
-    if ((f & LF.observeLeafPropertiesOnly) === 0) {
-      this.object.connect(f, s, hs, b);
-    }
-    if (obj instanceof Object) {
-      this.key.connect(f, s, hs, b);
-      const key = this.key.evaluate(f, s, hs, b.locator, null);
-      // (note: string indexers behave the same way as numeric indexers as long as they represent numbers)
-      b.observeProperty(f, obj, key as string);
-    }
   }
 
   public accept<T>(visitor: IVisitor<T>): T {
@@ -847,12 +779,6 @@ export class CallScopeExpression {
     return void 0;
   }
 
-  public connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
-    for (let i = 0; i < this.args.length; ++i) {
-      this.args[i].connect(f, s, hs, b);
-    }
-  }
-
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitCallScope(this);
   }
@@ -874,7 +800,7 @@ export class CallMemberExpression {
   ) {}
 
   public evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, c: IConnectable | null): unknown {
-    const instance = this.object.evaluate(f, s, hs, l, c) as IIndexable;
+    const instance = this.object.evaluate(f, s, hs, l, (f & LF.observeLeafPropertiesOnly) > 0 ? null : c) as IIndexable;
 
     const args = this.args.map(a => a.evaluate(f, s, hs, l, c));
     const func = getFunction(f, instance, this.name);
@@ -886,18 +812,6 @@ export class CallMemberExpression {
 
   public assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown): unknown {
     return void 0;
-  }
-
-  public connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
-    const obj = this.object.evaluate(f, s, hs, b.locator, null) as IIndexable;
-    if ((f & LF.observeLeafPropertiesOnly) === 0) {
-      this.object.connect(f, s, hs, b);
-    }
-    if (getFunction(f & ~LF.mustEvaluate, obj, this.name)) {
-      for (let i = 0; i < this.args.length; ++i) {
-        this.args[i].connect(f, s, hs, b);
-      }
-    }
   }
 
   public accept<T>(visitor: IVisitor<T>): T {
@@ -932,16 +846,6 @@ export class CallFunctionExpression {
 
   public assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown): unknown {
     return void 0;
-  }
-
-  public connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
-    const func = this.func.evaluate(f, s, hs, b.locator, null);
-    this.func.connect(f, s, hs, b);
-    if (typeof func === 'function') {
-      for (let i = 0; i < this.args.length; ++i) {
-        this.args[i].connect(f, s, hs, b);
-      }
-    }
   }
 
   public accept<T>(visitor: IVisitor<T>): T {
@@ -1044,11 +948,6 @@ export class BinaryExpression {
     return void 0;
   }
 
-  public connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
-    this.left.connect(f, s, hs, b);
-    this.right.connect(f, s, hs, b);
-  }
-
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitBinary(this);
   }
@@ -1089,10 +988,6 @@ export class UnaryExpression {
     return void 0;
   }
 
-  public connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
-    this.expression.connect(f, s, hs, b);
-  }
-
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitUnary(this);
   }
@@ -1121,10 +1016,6 @@ export class PrimitiveLiteralExpression<TValue extends null | undefined | number
 
   public assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown): unknown {
     return void 0;
-  }
-
-  public connect(_f: LF, _s: Scope, _hs: Scope | null, _b: IConnectableBinding): void {
-    return;
   }
 
   public accept<T>(visitor: IVisitor<T>): T {
@@ -1161,12 +1052,6 @@ export class HtmlLiteralExpression {
     return void 0;
   }
 
-  public connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
-    for (let i = 0; i < this.parts.length; ++i) {
-      this.parts[i].connect(f, s, hs, b);
-    }
-  }
-
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitHtmlLiteral(this);
   }
@@ -1192,12 +1077,6 @@ export class ArrayLiteralExpression {
 
   public assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown): unknown {
     return void 0;
-  }
-
-  public connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
-    for (let i = 0; i < this.elements.length; ++i) {
-      this.elements[i].connect(f, s, hs, b);
-    }
   }
 
   public accept<T>(visitor: IVisitor<T>): T {
@@ -1232,12 +1111,6 @@ export class ObjectLiteralExpression {
     return void 0;
   }
 
-  public connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
-    for (let i = 0; i < this.keys.length; ++i) {
-      this.values[i].connect(f, s, hs, b);
-    }
-  }
-
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitObjectLiteral(this);
   }
@@ -1269,13 +1142,6 @@ export class TemplateExpression {
 
   public assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown): unknown {
     return void 0;
-  }
-
-  public connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
-    for (let i = 0; i < this.expressions.length; ++i) {
-      this.expressions[i].connect(f, s, hs, b);
-      i++;
-    }
   }
 
   public accept<T>(visitor: IVisitor<T>): T {
@@ -1314,13 +1180,6 @@ export class TaggedTemplateExpression {
     return void 0;
   }
 
-  public connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
-    for (let i = 0; i < this.expressions.length; ++i) {
-      this.expressions[i].connect(f, s, hs, b);
-    }
-    this.func.connect(f, s, hs, b);
-  }
-
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitTaggedTemplate(this);
   }
@@ -1348,10 +1207,6 @@ export class ArrayBindingPattern {
   public assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown): unknown {
     // TODO
     return void 0;
-  }
-
-  public connect(_f: LF, _s: Scope, _hs: Scope | null, _b: IConnectableBinding): void {
-    return;
   }
 
   public accept<T>(visitor: IVisitor<T>): T {
@@ -1384,10 +1239,6 @@ export class ObjectBindingPattern {
     return void 0;
   }
 
-  public connect(_f: LF, _s: Scope, _hs: Scope | null, _b: IConnectableBinding): void {
-    return;
-  }
-
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitObjectBindingPattern(this);
   }
@@ -1408,9 +1259,6 @@ export class BindingIdentifier {
 
   public evaluate(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator | null, _c: IConnectable | null): string {
     return this.name;
-  }
-  public connect(_f: LF, _s: Scope, _hs: Scope | null, _b: IConnectableBinding): void {
-    return;
   }
 
   public accept<T>(visitor: IVisitor<T>): T {
@@ -1471,11 +1319,6 @@ export class ForOfStatement {
     }
   }
 
-  public connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
-    this.declaration.connect(f, s, hs, b);
-    this.iterable.connect(f, s, hs, b);
-  }
-
   public bind(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
     if (this.iterable.hasBind) {
       this.iterable.bind(f, s, hs, b);
@@ -1532,10 +1375,6 @@ export class Interpolation {
 
   public assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown): unknown {
     return void 0;
-  }
-
-  public connect(_f: LF, _s: Scope, _hs: Scope | null, _b: IConnectableBinding): void {
-    return;
   }
 
   public accept<T>(visitor: IVisitor<T>): T {

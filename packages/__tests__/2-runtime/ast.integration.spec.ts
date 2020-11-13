@@ -22,8 +22,6 @@ describe('2-runtime/ast.integration.spec.ts', function () {
         const container = createContainer();
         const observerLocator = createObserverLocator(container);
         const accessScopeExpr = new AccessScopeExpression('name', 0);
-        // disable connect to verifies evaluate works
-        accessScopeExpr.connect = () => {/* empty */};
 
         const source = { name: 'hello' };
         const target = { name: '' };
@@ -47,9 +45,6 @@ describe('2-runtime/ast.integration.spec.ts', function () {
           new AccessScopeExpression('yesMessage'),
           new AccessScopeExpression('noMessage'),
         );
-
-        // disable connect to verifies evaluate works
-        conditionalExpr.connect = () => {/* empty */};
 
         const source = { checked: false, yesMessage: 'yes', noMessage: 'no' };
         const target = { value: '' };
@@ -105,9 +100,6 @@ describe('2-runtime/ast.integration.spec.ts', function () {
         const observerLocator = createObserverLocator(container);
         const accessScopeExpr = new AccessScopeExpression('name', 0);
 
-        // disable connect to verifies evaluate works
-        accessScopeExpr.connect = () => {/* empty */};
-
         const source = { value: '' };
         const oc = { name: 'hello' };
         const scope = createScopeForTest(source, oc);
@@ -131,9 +123,6 @@ describe('2-runtime/ast.integration.spec.ts', function () {
           new AccessScopeExpression('yesMessage'),
           new AccessScopeExpression('noMessage'),
         );
-
-        // disable connect to verifies evaluate works
-        conditionalExpr.connect = () => {/* empty */};
 
         const source = { value: '' };
         const oc = { checked: false, yesMessage: 'yes', noMessage: 'no' };

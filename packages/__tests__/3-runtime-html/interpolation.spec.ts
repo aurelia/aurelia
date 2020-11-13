@@ -249,12 +249,6 @@ describe('interpolation', function () {
       );
       const source = { checked: false, yesMsg: 'yes', noMsg: 'no' };
 
-      // disable connect to verify evaluate works
-      interpolation.connect = () => {/* empty */};
-      interpolation.expressions.forEach(expr => {
-        expr.connect = () => {/* empty */};
-      });
-
       let handleChangeCallCount = 0;
       let updateTargetCallCount = 0;
 
@@ -344,12 +338,6 @@ describe('interpolation', function () {
         yes2: 'yes2',
         no2: 'no2'
       };
-
-      // disable connect to verify evaluate works
-      interpolation.connect = () => {/* empty */};
-      interpolation.expressions.forEach(expr => {
-        expr.connect = () => {/* empty */};
-      });
 
       let handleChange1CallCount = 0;
       let handleChange2CallCount = 0;

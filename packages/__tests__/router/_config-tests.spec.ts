@@ -45,14 +45,9 @@ export function* prependDeferrable(
   deferUntil: DeferralJuncture,
   ...calls: (HookName | '')[]
 ) {
-  switch (deferUntil) {
-    case 'none':
-      yield `${prefix}.${component}.canLoad`;
-      yield `${prefix}.${component}.load`;
-      break;
-    case 'guard-hooks':
-      yield `${prefix}.${component}.load`;
-      break;
+  if (deferUntil === 'none') {
+    yield `${prefix}.${component}.canLoad`;
+    yield `${prefix}.${component}.load`;
   }
 
   for (const call of calls) {
@@ -116,7 +111,6 @@ describe('router config', function () {
   describe.skip('monomorphic timings', function () {
     const deferUntils: DeferralJuncture[] = [
       'none',
-      'guard-hooks',
       'load-hooks',
     ];
     const swapStrategies: SwapStrategy[] = [

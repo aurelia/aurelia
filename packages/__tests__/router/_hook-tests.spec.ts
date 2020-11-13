@@ -48,14 +48,9 @@ export function* prependDeferrable(
   deferUntil: DeferralJuncture,
   ...calls: (HookName | '')[]
 ) {
-  switch (deferUntil) {
-    case 'none':
-      yield `${prefix}.${component}.canLoad`;
-      yield `${prefix}.${component}.load`;
-      break;
-    case 'guard-hooks':
-      yield `${prefix}.${component}.load`;
-      break;
+  if (deferUntil === 'none') {
+    yield `${prefix}.${component}.canLoad`;
+    yield `${prefix}.${component}.load`;
   }
 
   for (const call of calls) {
@@ -103,7 +98,6 @@ describe('router hooks', function () {
   describe('monomorphic timings', function () {
     const deferUntils: DeferralJuncture[] = [
       'none',
-      'guard-hooks',
       'load-hooks',
     ];
     const swapStrategies: SwapStrategy[] = [
@@ -603,14 +597,6 @@ describe('router hooks', function () {
                         yield* prepend(phase1, t1.p, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached');
                         if (t1.c) { yield* prepend(phase1, t1.c, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached'); }
                         break;
-                      case 'guard-hooks':
-                        yield `${phase1}.${t1.p}.canLoad`;
-                        if (t1.c) { yield `${phase1}.${t1.c}.canLoad`; }
-
-                        yield* prepend(phase1, t1.p, 'load', 'binding', 'bound', 'attaching');
-                        if (t1.c) { yield* prepend(phase1, t1.c, 'load', 'binding', 'bound', 'attaching', 'attached'); }
-                        yield `${phase1}.${t1.p}.attached`;
-                        break;
                       case 'load-hooks':
                         yield `${phase1}.${t1.p}.canLoad`;
                         if (t1.c) { yield `${phase1}.${t1.c}.canLoad`; }
@@ -701,53 +687,6 @@ describe('router hooks', function () {
                                 yield* prepend(phase, $t2.p, 'binding', 'bound', 'attaching', 'attached');
                                 yield* prepend(phase, $t1.p, 'detaching', 'unbinding', 'dispose');
                                 if ($t2.c) { yield* prepend(phase, $t2.c, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached'); }
-                                break;
-                            }
-                            break;
-                          case 'guard-hooks':
-                            if ($t1.c) { yield `${phase}.${$t1.c}.canUnload`; }
-                            yield `${phase}.${$t1.p}.canUnload`;
-                            yield `${phase}.${$t2.p}.canLoad`;
-                            if ($t2.c) { yield `${phase}.${$t2.c}.canLoad`; }
-                            if ($t1.c) { yield `${phase}.${$t1.c}.unload`; }
-                            yield `${phase}.${$t1.p}.unload`;
-                            yield `${phase}.${$t2.p}.load`;
-
-                            if ($t1.c) { yield* prepend(phase, $t1.c, 'detaching', 'unbinding', 'dispose'); }
-                            switch (routerOptionsSpec.swapStrategy) {
-                              case 'parallel-remove-first':
-                                switch (componentSpec.kind) {
-                                  case 'all-async':
-                                    yield* interleave(
-                                      (function* () {
-                                        yield* prepend(phase, $t1.p, 'detaching', 'unbinding', 'dispose');
-                                      })(),
-                                      (function* () {
-                                        yield* prepend(phase, $t2.p, 'binding', 'bound', 'attaching');
-                                        if ($t2.c) { yield* prepend(phase, $t2.c, 'load', 'binding', 'bound', 'attaching', 'attached'); }
-                                        yield `${phase}.${$t2.p}.attached`;
-                                      })(),
-                                    );
-                                    break;
-                                  case 'all-sync':
-                                    yield* prepend(phase, $t1.p, 'detaching', 'unbinding', 'dispose');
-                                    yield* prepend(phase, $t2.p, 'binding', 'bound', 'attaching');
-                                    if ($t2.c) { yield* prepend(phase, $t2.c, 'load', 'binding', 'bound', 'attaching', 'attached'); }
-                                    yield `${phase}.${$t2.p}.attached`;
-                                    break;
-                                }
-                                break;
-                              case 'sequential-remove-first':
-                                yield* prepend(phase, $t1.p, 'detaching', 'unbinding', 'dispose');
-                                yield* prepend(phase, $t2.p, 'binding', 'bound', 'attaching');
-                                if ($t2.c) { yield* prepend(phase, $t2.c, 'load', 'binding', 'bound', 'attaching', 'attached'); }
-                                yield `${phase}.${$t2.p}.attached`;
-                                break;
-                              case 'sequential-add-first':
-                                yield* prepend(phase, $t2.p, 'binding', 'bound', 'attaching');
-                                if ($t2.c) { yield* prepend(phase, $t2.c, 'load', 'binding', 'bound', 'attaching', 'attached'); }
-                                yield `${phase}.${$t2.p}.attached`;
-                                yield* prepend(phase, $t1.p, 'detaching', 'unbinding', 'dispose');
                                 break;
                             }
                             break;
@@ -871,7 +810,6 @@ describe('router hooks', function () {
   describe('parent-child timings', function () {
     const deferUntils: DeferralJuncture[] = [
       'none',
-      'guard-hooks',
       'load-hooks',
     ];
     const swapStrategies: SwapStrategy[] = [
@@ -1037,71 +975,6 @@ describe('router hooks', function () {
                 );
                 break;
               }
-              case 'guard-hooks': {
-                verifyInvocationsEqual(
-                  hia.notifyHistory,
-                  [
-                    `start.root.binding`,
-                    `start.root.bound`,
-                    `start.root.attaching`,
-                    `start.root.attached`,
-
-                    `('' -> 'a/b/c/d').a.canLoad`,
-                    `('' -> 'a/b/c/d').b.canLoad`,
-                    `('' -> 'a/b/c/d').c.canLoad`,
-                    `('' -> 'a/b/c/d').d.canLoad`,
-
-                    `('' -> 'a/b/c/d').a.load`,
-                    `('' -> 'a/b/c/d').a.binding`,
-                    `('' -> 'a/b/c/d').a.bound`,
-                    `('' -> 'a/b/c/d').a.attaching`,
-                    `('' -> 'a/b/c/d').b.load`,
-                    `('' -> 'a/b/c/d').b.binding`,
-                    `('' -> 'a/b/c/d').b.bound`,
-                    `('' -> 'a/b/c/d').b.attaching`,
-                    `('' -> 'a/b/c/d').c.load`,
-                    `('' -> 'a/b/c/d').c.binding`,
-                    `('' -> 'a/b/c/d').c.bound`,
-                    `('' -> 'a/b/c/d').c.attaching`,
-                    `('' -> 'a/b/c/d').d.load`,
-                    `('' -> 'a/b/c/d').d.binding`,
-                    `('' -> 'a/b/c/d').d.bound`,
-                    `('' -> 'a/b/c/d').d.attaching`,
-                    `('' -> 'a/b/c/d').d.attached`,
-                    `('' -> 'a/b/c/d').c.attached`,
-                    `('' -> 'a/b/c/d').b.attached`,
-                    `('' -> 'a/b/c/d').a.attached`,
-
-                    `('a/b/c/d' -> 'a').d.canUnload`,
-                    `('a/b/c/d' -> 'a').c.canUnload`,
-                    `('a/b/c/d' -> 'a').b.canUnload`,
-
-                    `('a/b/c/d' -> 'a').d.unload`,
-                    `('a/b/c/d' -> 'a').c.unload`,
-                    `('a/b/c/d' -> 'a').b.unload`,
-
-                    `('a/b/c/d' -> 'a').d.detaching`,
-                    `('a/b/c/d' -> 'a').d.unbinding`,
-                    `('a/b/c/d' -> 'a').d.dispose`,
-                    `('a/b/c/d' -> 'a').c.detaching`,
-                    `('a/b/c/d' -> 'a').c.unbinding`,
-                    `('a/b/c/d' -> 'a').c.dispose`,
-                    `('a/b/c/d' -> 'a').b.detaching`,
-                    `('a/b/c/d' -> 'a').b.unbinding`,
-                    `('a/b/c/d' -> 'a').b.dispose`,
-
-                    `stop.a.detaching`,
-                    `stop.root.detaching`,
-
-                    `stop.a.unbinding`,
-                    `stop.root.unbinding`,
-
-                    `stop.root.dispose`,
-                    `stop.a.dispose`,
-                  ],
-                );
-                break;
-              }
               case 'load-hooks': {
                 verifyInvocationsEqual(
                   hia.notifyHistory,
@@ -1181,7 +1054,6 @@ describe('router hooks', function () {
   describe('single incoming sibling transition', function () {
     const deferUntils: DeferralJuncture[] = [
       'none',
-      'guard-hooks',
       'load-hooks',
     ];
     const swapStrategies: SwapStrategy[] = [
@@ -1325,7 +1197,6 @@ describe('router hooks', function () {
   describe('single incoming parent-child transition', function () {
     const deferUntils: DeferralJuncture[] = [
       'none',
-      'guard-hooks',
       'load-hooks',
     ];
     const swapStrategies: SwapStrategy[] = [
@@ -1427,15 +1298,6 @@ describe('router hooks', function () {
                 yield* prepend(phase1, 'a1', 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached');
                 yield* prepend(phase1, 'a2', 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached');
                 break;
-              case 'guard-hooks':
-                yield `${phase1}.a1.canLoad`;
-                yield `${phase1}.a2.canLoad`;
-
-                yield* prepend(phase1, 'a1', 'load', 'binding', 'bound', 'attaching');
-                yield* prepend(phase1, 'a2', 'load', 'binding', 'bound', 'attaching');
-                yield `${phase1}.a2.attached`;
-                yield `${phase1}.a1.attached`;
-                break;
               case 'load-hooks':
                 yield `${phase1}.a1.canLoad`;
                 yield `${phase1}.a2.canLoad`;
@@ -1470,7 +1332,6 @@ describe('router hooks', function () {
   describe('single incoming parentsiblings-childsiblings transition', function () {
     const deferUntils: DeferralJuncture[] = [
       'none',
-      'guard-hooks',
       'load-hooks',
     ];
     const swapStrategies: SwapStrategy[] = [
@@ -1780,64 +1641,6 @@ describe('router hooks', function () {
                   })(),
                 );
                 break;
-              case 'guard-hooks':
-                yield `${phase1}.a1.canLoad`;
-                yield `${phase1}.b1.canLoad`;
-
-                yield* interleave(
-                  (function* () {
-                    if (a1CanLoad > 1) { yield ''; }
-                    if (a1CanLoad > 2) { yield ''; }
-                    if (a1CanLoad > 4) { yield ''; }
-                    yield `${phase1}.a2.canLoad`;
-                  })(),
-                  (function* () {
-                    if (b1CanLoad > 2) { yield ''; }
-                    if (b1CanLoad > 3) { yield ''; }
-                    yield `${phase1}.b2.canLoad`;
-                  })(),
-                );
-
-                yield `${phase1}.a1.load`;
-                yield `${phase1}.b1.load`;
-
-
-                yield `${phase1}.a1.binding`;
-                yield `${phase1}.b1.binding`;
-                yield `${phase1}.a1.bound`;
-                yield `${phase1}.b1.bound`;
-                yield `${phase1}.a1.attaching`;
-                yield `${phase1}.a2.load`;
-                yield `${phase1}.b1.attaching`;
-                yield `${phase1}.b2.load`;
-
-                yield* interleave(
-                  (function* () {
-                    if (a2Load > 1) { yield ''; }
-                    if (a2Load > 2) { yield ''; }
-                    if (a2Load > 3) { yield ''; }
-                    if (a2Load > 4) { yield ''; }
-                    yield* prepend(phase1, 'a2', 'binding', 'bound', 'attaching', 'attached');
-                  })(),
-                  (function* () {
-                    if (b2Load > 1) { yield ''; }
-                    if (b2Load > 2) { yield ''; }
-                    if (b2Load > 3) { yield ''; }
-                    if (b2Load > 4) { yield ''; }
-                    yield* prepend(phase1, 'b2', 'binding', 'bound', 'attaching', 'attached');
-                  })(),
-                );
-                yield* interleave(
-                  (function* () {
-                    if (a2Load > 1) { yield ''; }
-                    yield `${phase1}.a1.attached`;
-                  })(),
-                  (function* () {
-                    if (b2Load > 1) { yield ''; }
-                    yield `${phase1}.b1.attached`;
-                  })(),
-                );
-                break;
               case 'load-hooks':
                 yield `${phase1}.a1.canLoad`;
                 yield `${phase1}.b1.canLoad`;
@@ -1918,7 +1721,6 @@ describe('router hooks', function () {
   describe('error handling', function () {
     const deferUntils: DeferralJuncture[] = [
       'none',
-      'guard-hooks',
       'load-hooks',
     ];
     const swapStrategies: SwapStrategy[] = [

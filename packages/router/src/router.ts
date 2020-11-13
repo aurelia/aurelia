@@ -30,7 +30,7 @@ export function toManagedState(state: {} | null, navId: number): ManagedState {
 
 export type RoutingMode = 'configured-only' | 'configured-first';
 export type SwapStrategy = 'sequential-add-first' | 'sequential-remove-first' | 'parallel-remove-first';
-export type DeferralJuncture = 'guard-hooks' | 'load-hooks' | 'none';
+export type DeferralJuncture = 'load-hooks' | 'none';
 export type QueryParamsStrategy = 'overwrite' | 'preserve' | 'merge';
 export type FragmentStrategy = 'overwrite' | 'preserve';
 export type HistoryStrategy = 'none' | 'replace' | 'push';

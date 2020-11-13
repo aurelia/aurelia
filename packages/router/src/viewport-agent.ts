@@ -108,15 +108,6 @@ export class ViewportAgent {
         }
         this.logger.trace(`activateFromViewport() - running ordinary activate at %s`, this);
         return this.activate(this.currTransition);
-      case State.nextCanLoadDone:
-        if (this.currTransition === null) {
-          throw new Error(`Unexpected viewport activation outside of a transition context at ${this}`);
-        }
-        if (this.$deferral !== 'guard-hooks') {
-          throw new Error(`Unexpected viewport activation at ${this}`);
-        }
-        this.logger.trace(`activateFromViewport() - running ordinary activate at %s`, this);
-        return this.activate(this.currTransition);
       default:
         this.unexpectedState('activateFromViewport 2');
     }
@@ -275,7 +266,6 @@ export class ViewportAgent {
                 // Residue compilation will happen at `ViewportAgent#processResidue`
                 this.logger.trace(`canLoad(next:%s) - (deferral: 'none'), delaying residue compilation until activate`, next, this.$plan);
                 return;
-              case 'guard-hooks':
               case 'load-hooks': {
                 this.logger.trace(`canLoad(next:%s) - (deferral: '${this.$deferral}'), creating nextCA and compiling residue`, next, this.$plan);
                 return RouteTreeCompiler.compileResidue(next.tree, next.tree.instructions, next.context);
@@ -339,11 +329,6 @@ export class ViewportAgent {
   }
 
   public load(tr: Transition): void | Promise<void> {
-    if (this.$deferral === 'guard-hooks' && !this.isActive) {
-      this.logger.trace(`load() - skipping due to deferral 'guard-hooks' at %s`, this);
-      return;
-    }
-
     ensureTransitionHasNotErrored(tr);
     ensureGuardsResultIsTrue(this, tr);
 
@@ -436,22 +421,6 @@ export class ViewportAgent {
       return runSequence(
         () => { return this.canLoad(tr); },
         () => { return this.load(tr); },
-        () => { return this.activate(tr); },
-      );
-    }
-
-    if (
-      this.nextState === State.nextCanLoadDone &&
-      this.$deferral === 'guard-hooks'
-    ) {
-      this.logger.trace(`activate() - invoking load() and activate() on new component due to deferral 'guard-hooks' at %s`, this);
-      return runSequence(
-        () => { return this.load(tr); },
-        // In this situation, we ran all the guard hooks eagerly but not the load hooks, to increase parallelism.
-        // The parent VPA will have essentially just called a no-op `load()` before calling `activate()`, so we still need
-        // to load here.
-        // `load()` will set this.nextState to `nextLoadDone` so that the next activate call will run
-        // the `switch(this.nextState)` code path down below and proceed as normal.
         () => { return this.activate(tr); },
       );
     }

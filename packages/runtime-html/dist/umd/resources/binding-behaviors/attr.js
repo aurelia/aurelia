@@ -20,7 +20,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     const data_attribute_accessor_1 = require("../../observation/data-attribute-accessor");
     let AttrBindingBehavior = class AttrBindingBehavior {
         bind(flags, _scope, _hostScope, binding) {
-            binding.targetObserver = new data_attribute_accessor_1.DataAttributeAccessor(flags, binding.target, binding.targetProperty);
+            binding.targetObserver = data_attribute_accessor_1.attrAccessor;
         }
         unbind(flags, _scope, _hostScope, binding) {
             return;

@@ -16,8 +16,8 @@ import { IPlatform } from '../platform';
 import { AttributeNSAccessor } from './attribute-ns-accessor';
 import { CheckedObserver } from './checked-observer';
 import { ClassAttributeAccessor } from './class-attribute-accessor';
-import { DataAttributeAccessor } from './data-attribute-accessor';
-import { ElementPropertyAccessor } from './element-property-accessor';
+import { attrAccessor } from './data-attribute-accessor';
+import { elementPropertyAccessor } from './element-property-accessor';
 import { EventSubscriber } from './event-delegator';
 import { SelectValueObserver } from './select-value-observer';
 import { StyleAttributeAccessor } from './style-attribute-accessor';
@@ -101,14 +101,14 @@ let TargetObserverLocator = class TargetObserverLocator {
             case 'model':
                 return new SetterObserver(flags, obj, propertyName);
             case 'role':
-                return new DataAttributeAccessor(flags, obj, propertyName);
+                return attrAccessor;
             default:
                 if (nsAttributes[propertyName] !== undefined) {
                     const nsProps = nsAttributes[propertyName];
-                    return new AttributeNSAccessor(flags, obj, nsProps[0], nsProps[1]);
+                    return AttributeNSAccessor.forNs(nsProps[1]);
                 }
                 if (isDataAttribute(obj, propertyName, this.svgAnalyzer)) {
-                    return new DataAttributeAccessor(flags, obj, propertyName);
+                    return attrAccessor;
                 }
         }
         return null;
@@ -141,9 +141,6 @@ let TargetAccessorLocator = class TargetAccessorLocator {
     }
     getAccessor(flags, obj, propertyName) {
         switch (propertyName) {
-            case 'textContent':
-                // note: this case is just an optimization (textContent is the most often used property)
-                return new ElementPropertyAccessor(flags, obj, propertyName);
             case 'class':
                 return new ClassAttributeAccessor(flags, obj);
             case 'style':
@@ -155,16 +152,16 @@ let TargetAccessorLocator = class TargetAccessorLocator {
             case 'href':
             // https://html.spec.whatwg.org/multipage/dom.html#wai-aria
             case 'role':
-                return new DataAttributeAccessor(flags, obj, propertyName);
+                return attrAccessor;
             default:
                 if (nsAttributes[propertyName] !== undefined) {
                     const nsProps = nsAttributes[propertyName];
-                    return new AttributeNSAccessor(flags, obj, nsProps[0], nsProps[1]);
+                    return AttributeNSAccessor.forNs(nsProps[1]);
                 }
                 if (isDataAttribute(obj, propertyName, this.svgAnalyzer)) {
-                    return new DataAttributeAccessor(flags, obj, propertyName);
+                    return attrAccessor;
                 }
-                return new ElementPropertyAccessor(flags, obj, propertyName);
+                return elementPropertyAccessor;
         }
     }
     handles(flags, obj) {

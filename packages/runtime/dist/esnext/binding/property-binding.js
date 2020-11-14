@@ -79,15 +79,17 @@ let PropertyBinding = class PropertyBinding {
             // todo(fred): maybe let the obsrever decides whether it updates
             if (newValue !== oldValue) {
                 if (shouldQueueFlush) {
-                    flags |= 4096 /* noFlush */;
                     (_a = this.task) === null || _a === void 0 ? void 0 : _a.cancel();
                     this.task = this.taskQueue.queueTask(() => {
-                        var _a, _b;
-                        (_b = (_a = targetObserver).flushChanges) === null || _b === void 0 ? void 0 : _b.call(_a, flags);
+                        if (this.isBound) {
+                            interceptor.updateTarget(newValue, flags);
+                        }
                         this.task = null;
                     }, updateTaskOpts);
                 }
-                interceptor.updateTarget(newValue, flags);
+                else {
+                    interceptor.updateTarget(newValue, flags);
+                }
             }
             return;
         }
@@ -148,14 +150,12 @@ let PropertyBinding = class PropertyBinding {
             }
             targetObserver[this.id] |= 16 /* updateSource */;
         }
-        // add isBound flag and remove isBinding flag
         this.isBound = true;
     }
     $unbind(flags) {
         if (!this.isBound) {
             return;
         }
-        // clear persistent flags
         this.persistentFlags = 0 /* none */;
         if (this.sourceExpression.hasUnbind) {
             this.sourceExpression.unbind(flags, this.$scope, this.$hostScope, this.interceptor);

@@ -61,7 +61,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         }
         updateTarget(value, flags) {
             flags |= this.persistentFlags;
-            this.targetObserver.setValue(value, flags | 8 /* updateTarget */);
+            this.targetObserver.setValue(value, flags | 8 /* updateTarget */, this.target, this.targetProperty);
         }
         updateSource(value, flags) {
             flags |= this.persistentFlags;
@@ -89,7 +89,10 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                 //  (1). determine whether this should be the behavior
                 //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start()
                 const shouldQueueFlush = (flags & 32 /* fromBind */) === 0 && (targetObserver.type & 64 /* Layout */) > 0;
-                const oldValue = targetObserver.getValue();
+                // unlike property binding
+                // attr binding read can be potentially expensive
+                // so caching the read. Consider a way to force read configurably
+                const oldValue = this.value;
                 if (sourceExpression.$kind !== 10082 /* AccessScope */ || this.observerSlots > 1) {
                     const shouldConnect = (mode & oneTime) === 0;
                     if (shouldConnect) {
@@ -101,21 +104,24 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                     }
                 }
                 if (newValue !== oldValue) {
+                    this.value = newValue;
                     if (shouldQueueFlush) {
-                        flags |= 4096 /* noFlush */;
                         (_a = this.task) === null || _a === void 0 ? void 0 : _a.cancel();
                         this.task = this.$platform.domWriteQueue.queueTask(() => {
-                            var _a, _b;
-                            (_b = (_a = targetObserver).flushChanges) === null || _b === void 0 ? void 0 : _b.call(_a, flags);
+                            if (this.isBound) {
+                                interceptor.updateTarget(newValue, flags);
+                            }
                             this.task = null;
                         }, taskOptions);
                     }
-                    interceptor.updateTarget(newValue, flags);
+                    else {
+                        interceptor.updateTarget(newValue, flags);
+                    }
                 }
                 return;
             }
             if (flags & 16 /* updateSource */) {
-                if (newValue !== this.sourceExpression.evaluate(flags, $scope, this.$hostScope, locator, null)) {
+                if (newValue !== sourceExpression.evaluate(flags, $scope, this.$hostScope, locator, null)) {
                     interceptor.updateSource(newValue, flags);
                 }
                 return;
@@ -152,13 +158,12 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             const interceptor = this.interceptor;
             if ($mode & toViewOrOneTime) {
                 const shouldConnect = ($mode & toView) > 0;
-                interceptor.updateTarget(sourceExpression.evaluate(flags, scope, this.$hostScope, this.locator, shouldConnect ? interceptor : null), flags);
+                interceptor.updateTarget(this.value = sourceExpression.evaluate(flags, scope, this.$hostScope, this.locator, shouldConnect ? interceptor : null), flags);
             }
             if ($mode & fromView) {
                 targetObserver[this.id] |= 16 /* updateSource */;
                 targetObserver.subscribe(interceptor);
             }
-            // add isBound flag and remove isBinding flag
             this.isBound = true;
         }
         $unbind(flags) {
@@ -187,12 +192,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             this.interceptor.unobserve(true);
             // remove isBound and isUnbinding flags
             this.isBound = false;
-        }
-        connect(flags) {
-            if (this.isBound) {
-                flags |= this.persistentFlags;
-                this.sourceExpression.connect(flags | 128 /* mustEvaluate */, this.$scope, this.$hostScope, this.interceptor); // why do we have a connect method here in the first place? will this be called after bind?
-            }
         }
     };
     AttributeBinding = __decorate([

@@ -113,14 +113,14 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                 case 'model':
                     return new runtime_1.SetterObserver(flags, obj, propertyName);
                 case 'role':
-                    return new data_attribute_accessor_1.DataAttributeAccessor(flags, obj, propertyName);
+                    return data_attribute_accessor_1.attrAccessor;
                 default:
                     if (nsAttributes[propertyName] !== undefined) {
                         const nsProps = nsAttributes[propertyName];
-                        return new attribute_ns_accessor_1.AttributeNSAccessor(flags, obj, nsProps[0], nsProps[1]);
+                        return attribute_ns_accessor_1.AttributeNSAccessor.forNs(nsProps[1]);
                     }
                     if (isDataAttribute(obj, propertyName, this.svgAnalyzer)) {
-                        return new data_attribute_accessor_1.DataAttributeAccessor(flags, obj, propertyName);
+                        return data_attribute_accessor_1.attrAccessor;
                     }
             }
             return null;
@@ -153,9 +153,6 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
         getAccessor(flags, obj, propertyName) {
             switch (propertyName) {
-                case 'textContent':
-                    // note: this case is just an optimization (textContent is the most often used property)
-                    return new element_property_accessor_1.ElementPropertyAccessor(flags, obj, propertyName);
                 case 'class':
                     return new class_attribute_accessor_1.ClassAttributeAccessor(flags, obj);
                 case 'style':
@@ -167,16 +164,16 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                 case 'href':
                 // https://html.spec.whatwg.org/multipage/dom.html#wai-aria
                 case 'role':
-                    return new data_attribute_accessor_1.DataAttributeAccessor(flags, obj, propertyName);
+                    return data_attribute_accessor_1.attrAccessor;
                 default:
                     if (nsAttributes[propertyName] !== undefined) {
                         const nsProps = nsAttributes[propertyName];
-                        return new attribute_ns_accessor_1.AttributeNSAccessor(flags, obj, nsProps[0], nsProps[1]);
+                        return attribute_ns_accessor_1.AttributeNSAccessor.forNs(nsProps[1]);
                     }
                     if (isDataAttribute(obj, propertyName, this.svgAnalyzer)) {
-                        return new data_attribute_accessor_1.DataAttributeAccessor(flags, obj, propertyName);
+                        return data_attribute_accessor_1.attrAccessor;
                     }
-                    return new element_property_accessor_1.ElementPropertyAccessor(flags, obj, propertyName);
+                    return element_property_accessor_1.elementPropertyAccessor;
             }
         }
         handles(flags, obj) {

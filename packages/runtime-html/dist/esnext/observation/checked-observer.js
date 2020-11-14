@@ -21,8 +21,6 @@ let CheckedObserver = class CheckedObserver {
         this.currentValue = void 0;
         this.oldValue = void 0;
         this.hasChanges = false;
-        // ObserverType.Layout is not always true, it depends on the property
-        // but for simplicity, always treat as such
         this.type = 2 /* Node */ | 1 /* Observer */ | 64 /* Layout */;
         this.collectionObserver = void 0;
         this.valueObserver = void 0;

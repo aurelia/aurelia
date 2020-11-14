@@ -126,7 +126,7 @@ let TranslationBinding = TranslationBinding_1 = class TranslationBinding {
         const observer = controller && controller.viewModel
             ? this.observerLocator.getAccessor(0 /* none */, controller.viewModel, attribute)
             : this.observerLocator.getAccessor(0 /* none */, this.target, attribute);
-        observer.setValue(value, flags);
+        observer.setValue(value, flags, this.target, attribute);
         this.targetObservers.add(observer);
     }
     preprocessAttributes(attributes) {

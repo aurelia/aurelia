@@ -8,17 +8,12 @@ import { IAccessor, LifecycleFlags, AccessorType } from '@aurelia/runtime';
  * @see DataAttributeAccessor
  */
 export declare class ElementPropertyAccessor implements IAccessor {
+    currentValue: unknown;
     readonly obj: Node & IIndexable;
     readonly propertyKey: string;
-    currentValue: unknown;
-    oldValue: unknown;
-    readonly persistentFlags: LifecycleFlags;
-    hasChanges: boolean;
     type: AccessorType;
-    constructor(flags: LifecycleFlags, obj: Node & IIndexable, propertyKey: string);
-    getValue(): unknown;
-    setValue(newValue: string | null, flags: LifecycleFlags): void;
-    flushChanges(flags: LifecycleFlags): void;
-    bind(flags: LifecycleFlags): void;
+    getValue(obj: HTMLElement & IIndexable, key: string): unknown;
+    setValue(newValue: string | null, flags: LifecycleFlags, obj: HTMLElement & IIndexable, key: string): void;
 }
+export declare const elementPropertyAccessor: ElementPropertyAccessor;
 //# sourceMappingURL=element-property-accessor.d.ts.map

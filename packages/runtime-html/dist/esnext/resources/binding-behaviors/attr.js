@@ -5,10 +5,10 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 import { bindingBehavior } from '@aurelia/runtime';
-import { DataAttributeAccessor } from '../../observation/data-attribute-accessor';
+import { attrAccessor } from '../../observation/data-attribute-accessor';
 let AttrBindingBehavior = class AttrBindingBehavior {
     bind(flags, _scope, _hostScope, binding) {
-        binding.targetObserver = new DataAttributeAccessor(flags, binding.target, binding.targetProperty);
+        binding.targetObserver = attrAccessor;
     }
     unbind(flags, _scope, _hostScope, binding) {
         return;

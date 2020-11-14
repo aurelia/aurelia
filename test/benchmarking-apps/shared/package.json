@@ -1,0 +1,13 @@
+{
+  "name": "@benchmarking-apps/shared",
+  "version": "1.0.0",
+  "description": "Shared classes for the benchmarking apps",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

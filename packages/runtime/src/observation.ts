@@ -316,10 +316,6 @@ export interface IAccessor<TValue = unknown> {
   setValue(newValue: TValue, flags: LifecycleFlags, obj?: object, key?: PropertyKey): void;
 }
 
-export interface INodeAccessor<TValue = unknown> extends IAccessor<TValue> {
-  flushChanges(flags: LifecycleFlags): void;
-}
-
 /**
  * Describes a target observer for to-view bindings (in other words, an observer without the observation).
  */

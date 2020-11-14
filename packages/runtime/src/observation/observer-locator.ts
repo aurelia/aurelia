@@ -42,7 +42,7 @@ export interface INodeEventConfig {
    */
   readonly?: boolean;
   /**
-   * A default value to assign to the corresponding property if the incomming value is null/undefined
+   * A default value to assign to the corresponding property if the incoming value is null/undefined
    */
   default?: unknown;
 }

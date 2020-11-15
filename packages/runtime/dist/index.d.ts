@@ -23,16 +23,18 @@ export { SetObserver, enableSetObservation, disableSetObservation } from './obse
 export { BindingContext, Scope, OverrideContext, } from './observation/binding-context';
 export { CollectionLengthObserver, } from './observation/collection-length-observer';
 export { CollectionSizeObserver, } from './observation/collection-size-observer';
-export { ComputedOverrides, ComputedLookup, computed, createComputedObserver, CustomSetterObserver, GetterObserver, } from './observation/computed-observer';
+export { ComputedOverrides, ComputedLookup, computed, createComputedObserver, CustomSetterObserver, GetterObserver, ComputedWatcher, ExpressionWatcher, } from './observation/computed-observer';
 export { IDirtyChecker, DirtyCheckProperty, DirtyCheckSettings, } from './observation/dirty-checker';
 export { IObservableDefinition, observable, } from './observation/observable';
 export { IObjectObservationAdapter, IObserverLocator, INodeObserverLocator, getCollectionObserver, ObserverLocator, } from './observation/observer-locator';
 export { PrimitiveObserver, } from './observation/primitive-observer';
 export { PropertyAccessor, } from './observation/property-accessor';
+export { ProxyObservable, } from './observation/proxy-observation';
 export { BindableObserver, } from './observation/bindable-observer';
 export { SetterObserver, } from './observation/setter-observer';
 export { ISignaler, } from './observation/signaler';
 export { subscriberCollection, collectionSubscriberCollection, } from './observation/subscriber-collection';
+export { IWatcher, } from './observation/watcher-switcher';
 export { bindingBehavior, BindingBehavior, BindingBehaviorDefinition, PartialBindingBehaviorDefinition, BindingBehaviorKind, BindingBehaviorDecorator, BindingBehaviorInstance, BindingBehaviorType, BindingInterceptor, BindingBehaviorFactory, BindingBehaviorStrategy, IInterceptableBinding, } from './binding-behavior';
 export { BindingModeBehavior, OneTimeBindingBehavior, ToViewBindingBehavior, FromViewBindingBehavior, TwoWayBindingBehavior, } from './binding-behaviors/binding-mode';
 export { DebounceBindingBehavior, } from './binding-behaviors/debounce';
@@ -40,5 +42,6 @@ export { SignalBindingBehavior, } from './binding-behaviors/signals';
 export { ThrottleBindingBehavior, } from './binding-behaviors/throttle';
 export { ValueConverter, ValueConverterDefinition, PartialValueConverterDefinition, ValueConverterKind, ValueConverterDecorator, ValueConverterInstance, ValueConverterType, valueConverter, } from './value-converter';
 export { bindable, PartialBindableDefinition, BindableDefinition, Bindable, } from './bindable';
+export { watch, Watch, IWatchDefinition, IWatcherCallback, IDepCollectionFn, } from './observation/watch';
 export { BindingMode, LifecycleFlags, AccessorOrObserver, IBinding, ILifecycle, AccessorType, Collection, CollectionKind, DelegationStrategy, IAccessor, IBindingContext, IBindingTargetAccessor, IBindingTargetObserver, ICollectionChangeTracker, ICollectionObserver, ICollectionIndexObserver, ICollectionSubscriber, IndexMap, IBatchable, IObserver, IObservable, IObservedArray, IObservedMap, IObservedSet, IOverrideContext, IPropertyChangeTracker, IPropertyObserver, ISubscribable, ISubscriberCollection, ObservedCollection, PropertyObserver, CollectionObserver, ICollectionSubscriberCollection, ICollectionSubscribable, ISubscriber, isIndexMap, copyIndexMap, cloneIndexMap, createIndexMap, } from './observation';
 //# sourceMappingURL=index.d.ts.map

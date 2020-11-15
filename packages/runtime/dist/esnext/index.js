@@ -26,12 +26,13 @@ export { SetObserver, enableSetObservation, disableSetObservation } from './obse
 export { BindingContext, Scope, OverrideContext, } from './observation/binding-context';
 export { CollectionLengthObserver, } from './observation/collection-length-observer';
 export { CollectionSizeObserver, } from './observation/collection-size-observer';
-export { computed, createComputedObserver, CustomSetterObserver, GetterObserver, } from './observation/computed-observer';
+export { computed, createComputedObserver, CustomSetterObserver, GetterObserver, ComputedWatcher, ExpressionWatcher, } from './observation/computed-observer';
 export { IDirtyChecker, DirtyCheckProperty, DirtyCheckSettings, } from './observation/dirty-checker';
 export { observable, } from './observation/observable';
 export { IObserverLocator, INodeObserverLocator, getCollectionObserver, ObserverLocator, } from './observation/observer-locator';
 export { PrimitiveObserver, } from './observation/primitive-observer';
 export { PropertyAccessor, } from './observation/property-accessor';
+export { ProxyObservable, } from './observation/proxy-observation';
 export { BindableObserver, } from './observation/bindable-observer';
 export { SetterObserver, } from './observation/setter-observer';
 export { ISignaler, } from './observation/signaler';
@@ -43,5 +44,6 @@ export { SignalBindingBehavior, } from './binding-behaviors/signals';
 export { ThrottleBindingBehavior, } from './binding-behaviors/throttle';
 export { ValueConverter, ValueConverterDefinition, valueConverter, } from './value-converter';
 export { bindable, BindableDefinition, Bindable, } from './bindable';
+export { watch, Watch, } from './observation/watch';
 export { BindingMode, LifecycleFlags, ILifecycle, AccessorType, CollectionKind, DelegationStrategy, isIndexMap, copyIndexMap, cloneIndexMap, createIndexMap, } from './observation';
 //# sourceMappingURL=index.js.map

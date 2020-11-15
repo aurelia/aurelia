@@ -6,6 +6,7 @@ export declare class Platform<TGlobal extends typeof globalThis = typeof globalT
     readonly encodeURIComponent: TGlobal['encodeURIComponent'];
     readonly Date: TGlobal['Date'];
     readonly Reflect: TGlobal['Reflect'];
+    readonly Proxy: TGlobal['Proxy'];
     readonly clearInterval: TGlobal['clearInterval'];
     readonly clearTimeout: TGlobal['clearTimeout'];
     readonly queueMicrotask: TGlobal['queueMicrotask'];

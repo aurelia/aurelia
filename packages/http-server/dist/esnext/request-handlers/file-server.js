@@ -13,11 +13,10 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 import { statSync, openSync, readdirSync } from 'fs';
 import { IncomingMessage, ServerResponse } from 'http';
 import { constants, Http2ServerRequest, Http2ServerResponse } from 'http2';
-import * as url from 'url';
 import { join, resolve, relative, extname } from 'path';
 import { ILogger } from '@aurelia/kernel';
 import { IHttpServerOptions } from '../interfaces';
-import { getContentType, QualifiedHeaderValues, getContentEncoding } from '../http-utils';
+import { getContentType, getContentEncoding } from '../http-utils';
 import { readFile, isReadable, exists } from "../file-utils";
 const { HTTP2_HEADER_PATH, HTTP2_HEADER_CONTENT_LENGTH, HTTP2_HEADER_LAST_MODIFIED, HTTP2_HEADER_CONTENT_TYPE, HTTP2_HEADER_ACCEPT_ENCODING, HTTP2_HEADER_CONTENT_ENCODING, HTTP2_HEADER_CACHE_CONTROL } = constants;
 const contentEncodingExtensionMap = {
@@ -42,16 +41,12 @@ let FileServer = class FileServer {
         if (!(request instanceof IncomingMessage && response instanceof ServerResponse)) {
             return;
         }
-        const parsedUrl = url.parse(request.url);
-        let parsedPath = parsedUrl.path;
-        if (parsedPath.endsWith('/')) {
-            parsedPath = `${parsedPath}index.html`;
-        }
-        const path = join(this.root, parsedPath);
+        const parsedUrl = context.requestUrl;
+        const path = join(this.root, parsedUrl.path);
         if (await isReadable(path)) {
             this.logger.debug(`Serving file "${path}"`);
             const contentType = getContentType(path);
-            const clientEncoding = determineContentEncoding(request.headers);
+            const clientEncoding = determineContentEncoding(context);
             let contentEncoding = (void 0);
             let content = (void 0);
             if (clientEncoding === 'br'
@@ -114,13 +109,10 @@ let Http2FileServer = class Http2FileServer {
         if (!(request instanceof Http2ServerRequest && response instanceof Http2ServerResponse)) {
             return;
         }
-        const parsedUrl = url.parse(request.url);
-        let parsedPath = parsedUrl.path;
-        if (parsedPath.endsWith('/')) {
-            parsedPath = `${parsedPath}index.html`;
-        }
+        const parsedUrl = context.requestUrl;
+        const parsedPath = parsedUrl.path;
         const path = join(this.root, parsedPath);
-        const contentEncoding = determineContentEncoding(request.headers);
+        const contentEncoding = determineContentEncoding(context);
         const file = this.getPushInfo(parsedPath, contentEncoding);
         if (file !== void 0) {
             this.logger.debug(`Serving file "${path}"`);
@@ -201,9 +193,9 @@ class PushInfo {
         });
     }
 }
-function determineContentEncoding(headers) {
+function determineContentEncoding(context) {
     var _a, _b;
-    const clientEncoding = new QualifiedHeaderValues(HTTP2_HEADER_ACCEPT_ENCODING, headers);
+    const clientEncoding = context.getQualifiedRequestHeaderFor(HTTP2_HEADER_ACCEPT_ENCODING);
     // if brotli compression is supported return `br`
     if (clientEncoding.isAccepted('br')) {
         return 'br';

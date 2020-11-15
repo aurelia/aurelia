@@ -40,7 +40,7 @@ export declare function getContentType(path: string): ContentType;
 export declare function getContentEncoding(path: string): ContentEncoding;
 export declare type Headers = IncomingHttpHeaders | IncomingHttp2Headers;
 export declare class QualifiedHeaderValues {
-    headerName: string;
+    readonly headerName: string;
     readonly mostPrioritized: {
         name: string;
         q: number;

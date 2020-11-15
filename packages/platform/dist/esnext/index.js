@@ -17,6 +17,7 @@ export class Platform {
         this.encodeURIComponent = 'encodeURIComponent' in overrides ? overrides.encodeURIComponent : g.encodeURIComponent;
         this.Date = 'Date' in overrides ? overrides.Date : g.Date;
         this.Reflect = 'Reflect' in overrides ? overrides.Reflect : g.Reflect;
+        this.Proxy = 'Proxy' in overrides ? overrides.Proxy : g.Proxy;
         this.clearInterval = 'clearInterval' in overrides ? overrides.clearInterval : (_b = (_a = g.clearInterval) === null || _a === void 0 ? void 0 : _a.bind(g)) !== null && _b !== void 0 ? _b : notImplemented('clearInterval');
         this.clearTimeout = 'clearTimeout' in overrides ? overrides.clearTimeout : (_d = (_c = g.clearTimeout) === null || _c === void 0 ? void 0 : _c.bind(g)) !== null && _d !== void 0 ? _d : notImplemented('clearTimeout');
         this.queueMicrotask = 'queueMicrotask' in overrides ? overrides.queueMicrotask : (_f = (_e = g.queueMicrotask) === null || _e === void 0 ? void 0 : _e.bind(g)) !== null && _f !== void 0 ? _f : notImplemented('queueMicrotask');

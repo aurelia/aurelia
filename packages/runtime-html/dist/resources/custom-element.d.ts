@@ -1,5 +1,5 @@
 import { Constructable, IContainer, IResourceKind, ResourceType, PartialResourceDefinition, Key, ResourceDefinition, Injectable } from '@aurelia/kernel';
-import { PartialBindableDefinition, BindableDefinition } from '@aurelia/runtime';
+import { PartialBindableDefinition, BindableDefinition, IWatchDefinition } from '@aurelia/runtime';
 import { IProjections } from './custom-elements/au-slot';
 import { IInstruction } from '../renderer';
 import { PartialChildrenDefinition, ChildrenDefinition } from '../templating/children';
@@ -22,6 +22,7 @@ export declare type PartialCustomElementDefinition = PartialResourceDefinition<{
     readonly hasSlots?: boolean;
     readonly enhance?: boolean;
     readonly projectionsMap?: Map<IInstruction, IProjections>;
+    readonly watches?: IWatchDefinition[];
 }>;
 export declare type CustomElementType<C extends Constructable = Constructable> = ResourceType<C, ICustomElementViewModel & (C extends Constructable<infer P> ? P : {}), PartialCustomElementDefinition>;
 export declare type CustomElementKind = IResourceKind<CustomElementType, CustomElementDefinition> & {
@@ -147,6 +148,7 @@ export declare class CustomElementDefinition<C extends Constructable = Construct
     readonly hasSlots: boolean;
     readonly enhance: boolean;
     readonly projectionsMap: Map<IInstruction, IProjections>;
+    readonly watches: IWatchDefinition[];
     private constructor();
     static create<T extends Constructable = Constructable>(def: PartialCustomElementDefinition, Type?: null): CustomElementDefinition;
     static create<T extends Constructable = Constructable>(name: string, Type: CustomElementType): CustomElementDefinition;

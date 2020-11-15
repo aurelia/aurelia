@@ -339,11 +339,13 @@
             }
         }
         unbind(f, s, hs, b) {
-            if (b[this.behaviorKey] !== void 0) {
-                if (typeof b[this.behaviorKey].unbind === 'function') {
-                    b[this.behaviorKey].unbind(f, s, hs, b);
+            const key = this.behaviorKey;
+            const $b = b;
+            if ($b[key] !== void 0) {
+                if (typeof $b[key].unbind === 'function') {
+                    $b[key].unbind(f, s, hs, b);
                 }
-                b[this.behaviorKey] = void 0;
+                $b[key] = void 0;
             }
             if (this.expression.hasUnbind) {
                 this.expression.unbind(f, s, hs, b);

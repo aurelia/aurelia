@@ -1,3 +1,4 @@
+import { constants } from 'http2';
 export var HTTPStatusCode;
 (function (HTTPStatusCode) {
     HTTPStatusCode[HTTPStatusCode["SwitchingProtocols"] = 101] = "SwitchingProtocols";
@@ -76,12 +77,26 @@ export function getContentEncoding(path) {
     }
     return "identity" /* identity */;
 }
+const wildcardHeaderValue = {
+    [constants.HTTP2_HEADER_ACCEPT_ENCODING]: '*',
+    [constants.HTTP2_HEADER_ACCEPT]: '*/*',
+    [constants.HTTP2_HEADER_ACCEPT_CHARSET]: '*',
+    [constants.HTTP2_HEADER_ACCEPT_LANGUAGE]: '*',
+};
 export class QualifiedHeaderValues {
     constructor(headerName, headers) {
         var _a;
         this.headerName = headerName.toLowerCase();
         const rawValue = ((_a = headers[headerName]) !== null && _a !== void 0 ? _a : headers[this.headerName]);
+        headerName = this.headerName;
         const parsedMap = this.parsedMap = new Map();
+        if (rawValue === void 0) {
+            const wildcardValue = wildcardHeaderValue[headerName];
+            if (wildcardValue !== void 0) {
+                parsedMap.set(wildcardValue, 1);
+            }
+            return;
+        }
         // TODO handle the partial values such as `text/html;q=0.8,text/*;q=0.8,*/*;q=0.8`, `*`, or `*;q=0.8`
         /**
          * Example:
@@ -91,13 +106,14 @@ export class QualifiedHeaderValues {
          */
         for (const item of rawValue.split(',')) {
             // TODO validate the `value` against a set of acceptable values.
-            const [value, q] = item.trim().split(';');
+            const [value, ...rest] = item.trim().split(';');
             let qValue = 1;
+            const q = rest.find((x) => x.startsWith('q='));
             if (q !== void 0) {
                 const rawQValue = q.substring(2);
                 qValue = Number(rawQValue);
                 if (Number.isNaN(qValue) || qValue < 0 || qValue > 1) {
-                    throw new Error(`Invalid qValue ${rawQValue} for ${value} in ${headerName} header`);
+                    throw new Error(`Invalid qValue ${rawQValue} for ${value} in ${headerName} header; raw values: ${rawValue}`);
                 }
             }
             parsedMap.set(value, qValue);
@@ -111,7 +127,7 @@ export class QualifiedHeaderValues {
         if (qValue !== void 0) {
             return qValue !== 0;
         }
-        return this.parsedMap.has('*'); // TODO handle this properly
+        return this.parsedMap.has(wildcardHeaderValue[this.headerName]);
     }
     getQValueFor(value) {
         const qValue = this.parsedMap.get(value);

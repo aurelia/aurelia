@@ -28,12 +28,12 @@
             //    @observable('prop')
             //    class {}
             //
-            //    @observable({ name: 'prop', changeHandler: ... })
+            //    @observable({ name: 'prop', callback: ... })
             //    class {}
             //
             //    class {
             //      @observable() prop
-            //      @observable({ changeHandler: ... }) prop2
+            //      @observable({ callback: ... }) prop2
             //    }
             return ((t, k, d) => deco(t, k, d, targetOrConfig));
         }

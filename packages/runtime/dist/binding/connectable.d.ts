@@ -36,9 +36,6 @@ export declare class BindingMediator<K extends string> implements IConnectableBi
     constructor(key: K, binding: MediatedBinding<K>, observerLocator: IObserverLocator, locator: IServiceLocator);
     $bind(flags: LifecycleFlags, scope: Scope, hostScope?: Scope | null, projection?: ResourceDefinition): void;
     $unbind(flags: LifecycleFlags): void;
-    observeProperty: typeof observeProperty;
-    unobserve: typeof unobserve;
-    addObserver: typeof addObserver;
     handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void;
 }
 export {};

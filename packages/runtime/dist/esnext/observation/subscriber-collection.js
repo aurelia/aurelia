@@ -1,34 +1,31 @@
+import { ensureProto } from '../utilities-objects';
 // TODO: see if we can de-duplicate these 3 decorators and their functions without killing performance or readability
 export function subscriberCollection() {
     // eslint-disable-next-line @typescript-eslint/ban-types
     return function (target) {
         const proto = target.prototype;
-        proto._subscriberFlags = 0 /* None */;
-        proto.addSubscriber = addSubscriber;
-        proto.removeSubscriber = removeSubscriber;
-        proto.hasSubscriber = hasSubscriber;
-        proto.hasSubscribers = hasSubscribers;
-        proto.callSubscribers = callSubscribers;
-        if (proto.subscribe === void 0)
-            proto.subscribe = addSubscriber;
-        if (proto.unsubscribe === void 0)
-            proto.unsubscribe = removeSubscriber;
+        ensureProto(proto, '_subscriberFlags', 0 /* None */);
+        ensureProto(proto, 'addSubscriber', addSubscriber);
+        ensureProto(proto, 'removeSubscriber', removeSubscriber);
+        ensureProto(proto, 'hasSubscriber', hasSubscriber);
+        ensureProto(proto, 'hasSubscribers', hasSubscribers);
+        ensureProto(proto, 'callSubscribers', callSubscribers);
+        ensureProto(proto, 'subscribe', addSubscriber);
+        ensureProto(proto, 'unsubscribe', removeSubscriber);
     };
 }
 export function collectionSubscriberCollection() {
     // eslint-disable-next-line @typescript-eslint/ban-types
     return function (target) {
         const proto = target.prototype;
-        proto._collectionSubscriberFlags = 0 /* None */;
-        proto.addCollectionSubscriber = addCollectionSubscriber;
-        proto.removeCollectionSubscriber = removeCollectionSubscriber;
-        proto.hasCollectionSubscriber = hasCollectionSubscriber;
-        proto.hasCollectionSubscribers = hasCollectionSubscribers;
-        proto.callCollectionSubscribers = callCollectionSubscribers;
-        if (proto.subscribeToCollection === void 0)
-            proto.subscribeToCollection = addCollectionSubscriber;
-        if (proto.unsubscribeFromCollection === void 0)
-            proto.unsubscribeFromCollection = removeCollectionSubscriber;
+        ensureProto(proto, '_collectionSubscriberFlags', 0 /* None */);
+        ensureProto(proto, 'addCollectionSubscriber', addCollectionSubscriber);
+        ensureProto(proto, 'removeCollectionSubscriber', removeCollectionSubscriber);
+        ensureProto(proto, 'hasCollectionSubscriber', hasCollectionSubscriber);
+        ensureProto(proto, 'hasCollectionSubscribers', hasCollectionSubscribers);
+        ensureProto(proto, 'callCollectionSubscribers', callCollectionSubscribers);
+        ensureProto(proto, 'subscribeToCollection', addCollectionSubscriber);
+        ensureProto(proto, 'unsubscribeFromCollection', removeCollectionSubscriber);
     };
 }
 function addSubscriber(subscriber) {

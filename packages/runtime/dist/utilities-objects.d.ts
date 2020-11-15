@@ -1,0 +1,3 @@
+export declare function defineHiddenProp(obj: object, key: PropertyKey, value: unknown): void;
+export declare function ensureProto<T extends object, K extends keyof T>(proto: T, key: K, defaultValue: unknown): void;
+//# sourceMappingURL=utilities-objects.d.ts.map

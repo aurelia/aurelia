@@ -1,6 +1,11 @@
-import { IIndexable } from '@aurelia/kernel';
-import { IBindingContext, IBindingTargetObserver, ICollectionSubscribable, IObservable, ISubscribable, ISubscriber, LifecycleFlags } from '../observation';
+import { IIndexable, IServiceLocator } from '@aurelia/kernel';
+import { IBindingContext, IBindingTargetObserver, ICollectionSubscribable, IObservable, ISubscribable, ISubscriber, Collection, LifecycleFlags } from '../observation';
 import { IObserverLocator } from './observer-locator';
+import { IWatcher } from './watcher-switcher';
+import { IConnectableBinding } from '../binding/connectable';
+import { IWatcherCallback } from './watch';
+import { IsBindingBehavior } from '../binding/ast';
+import { Scope } from './binding-context';
 export interface ComputedOverrides {
     static?: boolean;
     volatile?: boolean;
@@ -49,5 +54,42 @@ export declare class GetterObserver implements GetterObserver {
     getValueAndCollectDependencies(requireCollect: boolean): unknown;
     doNotCollect(target: IObservable | IBindingContext, key: PropertyKey, receiver?: unknown): boolean;
     private unsubscribeAllDependencies;
+}
+export interface ComputedWatcher extends IConnectableBinding {
+}
+export declare class ComputedWatcher implements IWatcher {
+    readonly obj: IObservable;
+    readonly observerLocator: IObserverLocator;
+    readonly get: (obj: object, watcher: IWatcher) => unknown;
+    private readonly cb;
+    private readonly useProxy;
+    private readonly observers;
+    private running;
+    private value;
+    isBound: boolean;
+    constructor(obj: IObservable, observerLocator: IObserverLocator, get: (obj: object, watcher: IWatcher) => unknown, cb: IWatcherCallback<object>, useProxy: boolean);
+    handleChange(): void;
+    handleCollectionChange(): void;
+    $bind(): void;
+    $unbind(): void;
+    observe(obj: object, key: PropertyKey): void;
+    observeCollection(collection: Collection): void;
+    observeLength(collection: Collection): void;
+    private run;
+    private compute;
+    private forCollection;
+    private unobserveCollection;
+}
+export declare class ExpressionWatcher implements IConnectableBinding {
+    scope: Scope;
+    locator: IServiceLocator;
+    observerLocator: IObserverLocator;
+    private readonly expression;
+    private readonly callback;
+    isBound: boolean;
+    constructor(scope: Scope, locator: IServiceLocator, observerLocator: IObserverLocator, expression: IsBindingBehavior, callback: IWatcherCallback<object>);
+    handleChange(value: unknown): void;
+    $bind(): void;
+    $unbind(): void;
 }
 //# sourceMappingURL=computed-observer.d.ts.map

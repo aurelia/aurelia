@@ -13,16 +13,20 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "./observer-locator", "./subscriber-collection"], factory);
+        define(["require", "exports", "@aurelia/kernel", "./observer-locator", "./subscriber-collection", "./watcher-switcher", "../binding/connectable", "./proxy-observation", "./binding-context"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.GetterObserver = exports.CustomSetterObserver = exports.createComputedObserver = exports.computed = void 0;
+    exports.ExpressionWatcher = exports.ComputedWatcher = exports.GetterObserver = exports.CustomSetterObserver = exports.createComputedObserver = exports.computed = void 0;
     /* eslint-disable eqeqeq, compat/compat */
     const kernel_1 = require("@aurelia/kernel");
     const observer_locator_1 = require("./observer-locator");
     const subscriber_collection_1 = require("./subscriber-collection");
+    const watcher_switcher_1 = require("./watcher-switcher");
+    const connectable_1 = require("../binding/connectable");
+    const proxy_observation_1 = require("./proxy-observation");
+    const binding_context_1 = require("./binding-context");
     function computed(config) {
         return function (target, key) {
             /**
@@ -252,5 +256,164 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         }
         return new Proxy(value, createGetterTraps(flags, observerLocator, observer));
     }
+    let ComputedWatcher = class ComputedWatcher {
+        constructor(obj, observerLocator, get, cb, useProxy) {
+            this.obj = obj;
+            this.observerLocator = observerLocator;
+            this.get = get;
+            this.cb = cb;
+            this.useProxy = useProxy;
+            this.observers = new Map();
+            // todo: maybe use a counter allow recursive call to a certain level
+            this.running = false;
+            this.value = void 0;
+            this.isBound = false;
+            connectable_1.connectable.assignIdTo(this);
+        }
+        handleChange() {
+            this.run();
+        }
+        handleCollectionChange() {
+            this.run();
+        }
+        $bind() {
+            if (this.isBound) {
+                return;
+            }
+            this.isBound = true;
+            this.compute();
+        }
+        $unbind() {
+            if (!this.isBound) {
+                return;
+            }
+            this.isBound = false;
+            this.unobserve(true);
+            this.unobserveCollection(true);
+        }
+        observe(obj, key) {
+            const observer = this.observerLocator.getObserver(0 /* none */, obj, key);
+            this.addObserver(observer);
+        }
+        observeCollection(collection) {
+            const obs = this.forCollection(collection);
+            this.observers.set(obs, this.version);
+            obs.subscribeToCollection(this);
+        }
+        observeLength(collection) {
+            this.forCollection(collection).getLengthObserver().subscribe(this);
+        }
+        run() {
+            if (!this.isBound || this.running) {
+                return;
+            }
+            const obj = this.obj;
+            const oldValue = this.value;
+            const newValue = this.compute();
+            if (!Object.is(newValue, oldValue)) {
+                // should optionally queue
+                this.cb.call(obj, newValue, oldValue, obj);
+            }
+        }
+        compute() {
+            this.running = true;
+            this.version++;
+            try {
+                watcher_switcher_1.enterWatcher(this);
+                this.value = proxy_observation_1.getRawOrSelf(this.get(this.useProxy ? proxy_observation_1.getProxyOrSelf(this.obj) : this.obj, this));
+            }
+            finally {
+                watcher_switcher_1.exitWatcher(this);
+                this.unobserve(false);
+                this.unobserveCollection(false);
+                this.running = false;
+            }
+            return this.value;
+        }
+        forCollection(collection) {
+            const obsLocator = this.observerLocator;
+            let observer;
+            if (collection instanceof Array) {
+                observer = obsLocator.getArrayObserver(0 /* none */, collection);
+            }
+            else if (collection instanceof Set) {
+                observer = obsLocator.getSetObserver(0 /* none */, collection);
+            }
+            else if (collection instanceof Map) {
+                observer = obsLocator.getMapObserver(0 /* none */, collection);
+            }
+            else {
+                throw new Error('Unrecognised collection type.');
+            }
+            return observer;
+        }
+        unobserveCollection(all) {
+            const version = this.version;
+            const observers = this.observers;
+            observers.forEach((v, o) => {
+                if (all || v !== version) {
+                    o.unsubscribeFromCollection(this);
+                    observers.delete(o);
+                }
+            });
+        }
+    };
+    ComputedWatcher = __decorate([
+        connectable_1.connectable(),
+        subscriber_collection_1.subscriberCollection(),
+        subscriber_collection_1.collectionSubscriberCollection(),
+        __metadata("design:paramtypes", [Object, Object, Function, Function, Boolean])
+    ], ComputedWatcher);
+    exports.ComputedWatcher = ComputedWatcher;
+    let ExpressionWatcher = class ExpressionWatcher {
+        constructor(scope, locator, observerLocator, expression, callback) {
+            this.scope = scope;
+            this.locator = locator;
+            this.observerLocator = observerLocator;
+            this.expression = expression;
+            this.callback = callback;
+            this.isBound = false;
+            this.obj = scope.bindingContext;
+            connectable_1.connectable.assignIdTo(this);
+        }
+        handleChange(value) {
+            const expr = this.expression;
+            const obj = this.obj;
+            const oldValue = this.value;
+            const canOptimize = expr.$kind === 10082 /* AccessScope */ && this.observerSlots === 1;
+            if (!canOptimize) {
+                this.version++;
+                value = expr.evaluate(0, this.scope, null, this.locator, this);
+                this.unobserve(false);
+            }
+            if (!Object.is(value, oldValue)) {
+                this.value = value;
+                // should optionally queue for batch synchronous
+                this.callback.call(obj, value, oldValue, obj);
+            }
+        }
+        $bind() {
+            if (this.isBound) {
+                return;
+            }
+            this.isBound = true;
+            this.version++;
+            this.value = this.expression.evaluate(0 /* none */, this.scope, null, this.locator, this);
+            this.unobserve(false);
+        }
+        $unbind() {
+            if (!this.isBound) {
+                return;
+            }
+            this.isBound = false;
+            this.unobserve(true);
+            this.value = void 0;
+        }
+    };
+    ExpressionWatcher = __decorate([
+        connectable_1.connectable(),
+        __metadata("design:paramtypes", [binding_context_1.Scope, Object, Object, Object, Function])
+    ], ExpressionWatcher);
+    exports.ExpressionWatcher = ExpressionWatcher;
 });
 //# sourceMappingURL=computed-observer.js.map

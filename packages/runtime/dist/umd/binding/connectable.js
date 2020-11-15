@@ -4,12 +4,13 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports"], factory);
+        define(["require", "exports", "../utilities-objects"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.BindingMediator = exports.connectable = exports.unobserve = exports.observeProperty = exports.addObserver = void 0;
+    const utilities_objects_1 = require("../utilities-objects");
     // TODO: add connect-queue (or something similar) back in when everything else is working, to improve startup time
     const slotNames = [];
     const versionSlotNames = [];
@@ -82,6 +83,7 @@
                     observer[this.id] &= ~8 /* updateTarget */;
                 }
             }
+            this.observerSlots = 0;
         }
         else {
             const version = this.version;
@@ -93,6 +95,7 @@
                         this[slotName] = void 0;
                         observer.unsubscribe(this);
                         observer[this.id] &= ~8 /* updateTarget */;
+                        this.observerSlots--;
                     }
                 }
             }
@@ -101,12 +104,10 @@
     exports.unobserve = unobserve;
     function connectableDecorator(target) {
         const proto = target.prototype;
-        if (!Object.prototype.hasOwnProperty.call(proto, 'observeProperty'))
-            proto.observeProperty = observeProperty;
-        if (!Object.prototype.hasOwnProperty.call(proto, 'unobserve'))
-            proto.unobserve = unobserve;
-        if (!Object.prototype.hasOwnProperty.call(proto, 'addObserver'))
-            proto.addObserver = addObserver;
+        utilities_objects_1.ensureProto(proto, 'version', 0);
+        utilities_objects_1.ensureProto(proto, 'observeProperty', observeProperty);
+        utilities_objects_1.ensureProto(proto, 'unobserve', unobserve);
+        utilities_objects_1.ensureProto(proto, 'addObserver', addObserver);
         return target;
     }
     function connectable(target) {
@@ -124,9 +125,6 @@
             this.binding = binding;
             this.observerLocator = observerLocator;
             this.locator = locator;
-            this.observeProperty = observeProperty;
-            this.unobserve = unobserve;
-            this.addObserver = addObserver;
             connectable.assignIdTo(this);
         }
         $bind(flags, scope, hostScope, projection) {
@@ -140,5 +138,10 @@
         }
     }
     exports.BindingMediator = BindingMediator;
+    (proto => {
+        utilities_objects_1.ensureProto(proto, 'observeProperty', observeProperty);
+        utilities_objects_1.ensureProto(proto, 'unobserve', unobserve);
+        utilities_objects_1.ensureProto(proto, 'addObserver', addObserver);
+    })(BindingMediator.prototype);
 });
 //# sourceMappingURL=connectable.js.map

@@ -188,11 +188,13 @@
             let definition = this.definition;
             const flags = this.flags;
             const instance = this.viewModel;
+            this.scope = runtime_1.Scope.create(flags, instance, null, true);
+            if (definition.watches.length > 0) {
+                createWatchers(this, this.container, definition, instance);
+            }
             createObservers(this.lifecycle, definition, flags, instance);
             createChildrenObservers(this, definition, flags, instance);
-            this.scope = runtime_1.Scope.create(flags, this.viewModel, null, true);
-            const hooks = this.hooks;
-            if (hooks.hasDefine) {
+            if (this.hooks.hasDefine) {
                 if (this.debug) {
                     this.logger.trace(`invoking define() hook`);
                 }
@@ -278,6 +280,9 @@
         hydrateCustomAttribute() {
             const definition = this.definition;
             const instance = this.viewModel;
+            if (definition.watches.length > 0) {
+                createWatchers(this, this.container, definition, instance);
+            }
             createObservers(this.lifecycle, definition, this.flags, instance);
             instance.$controller = this;
         }
@@ -741,6 +746,45 @@
                     const childrenDescription = childrenObservers[name];
                     observers[name] = new children_1.ChildrenObserver(controller, instance, flags, name, childrenDescription.callback, childrenDescription.query, childrenDescription.filter, childrenDescription.map, childrenDescription.options);
                 }
+            }
+        }
+    }
+    const AccessScopeAst = {
+        map: new Map(),
+        for(key) {
+            let ast = AccessScopeAst.map.get(key);
+            if (ast == null) {
+                ast = new runtime_1.AccessScopeExpression(key, 0);
+                AccessScopeAst.map.set(key, ast);
+            }
+            return ast;
+        },
+    };
+    function createWatchers(controller, context, definition, instance) {
+        const observerLocator = context.get(runtime_1.IObserverLocator);
+        const expressionParser = context.get(runtime_1.IExpressionParser);
+        const watches = definition.watches;
+        const hasProxy = controller.platform.Proxy != null;
+        let expression;
+        let callback;
+        for (let i = 0, ii = watches.length; ii > i; ++i) {
+            ({ expression, callback } = watches[i]);
+            callback = typeof callback === 'function'
+                ? callback
+                : Reflect.get(instance, callback);
+            if (typeof callback !== 'function') {
+                throw new Error(`Invalid callback for @watch decorator: ${String(callback)}`);
+            }
+            if (typeof expression === 'function') {
+                controller.addBinding(new runtime_1.ComputedWatcher(instance, observerLocator, expression, callback, 
+                // there should be a flag to purposely disable proxy
+                hasProxy));
+            }
+            else {
+                const ast = typeof expression === 'string'
+                    ? expressionParser.parse(expression, 53 /* BindCommand */)
+                    : AccessScopeAst.for(expression);
+                controller.addBinding(new runtime_1.ExpressionWatcher(controller.scope, context, observerLocator, ast, callback));
             }
         }
     }

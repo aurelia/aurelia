@@ -1,3 +1,4 @@
+import { ensureProto } from '../utilities-objects';
 // TODO: add connect-queue (or something similar) back in when everything else is working, to improve startup time
 const slotNames = [];
 const versionSlotNames = [];
@@ -68,6 +69,7 @@ export function unobserve(all) {
                 observer[this.id] &= ~8 /* updateTarget */;
             }
         }
+        this.observerSlots = 0;
     }
     else {
         const version = this.version;
@@ -79,6 +81,7 @@ export function unobserve(all) {
                     this[slotName] = void 0;
                     observer.unsubscribe(this);
                     observer[this.id] &= ~8 /* updateTarget */;
+                    this.observerSlots--;
                 }
             }
         }
@@ -86,12 +89,10 @@ export function unobserve(all) {
 }
 function connectableDecorator(target) {
     const proto = target.prototype;
-    if (!Object.prototype.hasOwnProperty.call(proto, 'observeProperty'))
-        proto.observeProperty = observeProperty;
-    if (!Object.prototype.hasOwnProperty.call(proto, 'unobserve'))
-        proto.unobserve = unobserve;
-    if (!Object.prototype.hasOwnProperty.call(proto, 'addObserver'))
-        proto.addObserver = addObserver;
+    ensureProto(proto, 'version', 0);
+    ensureProto(proto, 'observeProperty', observeProperty);
+    ensureProto(proto, 'unobserve', unobserve);
+    ensureProto(proto, 'addObserver', addObserver);
     return target;
 }
 export function connectable(target) {
@@ -108,9 +109,6 @@ export class BindingMediator {
         this.binding = binding;
         this.observerLocator = observerLocator;
         this.locator = locator;
-        this.observeProperty = observeProperty;
-        this.unobserve = unobserve;
-        this.addObserver = addObserver;
         connectable.assignIdTo(this);
     }
     $bind(flags, scope, hostScope, projection) {
@@ -123,4 +121,9 @@ export class BindingMediator {
         this.binding[this.key](newValue, previousValue, flags);
     }
 }
+(proto => {
+    ensureProto(proto, 'observeProperty', observeProperty);
+    ensureProto(proto, 'unobserve', unobserve);
+    ensureProto(proto, 'addObserver', addObserver);
+})(BindingMediator.prototype);
 //# sourceMappingURL=connectable.js.map

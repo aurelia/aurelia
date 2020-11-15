@@ -1,5 +1,5 @@
 import { Constructable, IContainer, IResourceKind, ResourceDefinition, PartialResourceDefinition, ResourceType } from '@aurelia/kernel';
-import { BindingMode, PartialBindableDefinition, BindableDefinition } from '@aurelia/runtime';
+import { BindingMode, PartialBindableDefinition, BindableDefinition, IWatchDefinition } from '@aurelia/runtime';
 import type { ICustomAttributeViewModel, ICustomAttributeController } from '../templating/controller';
 export declare type PartialCustomAttributeDefinition = PartialResourceDefinition<{
     readonly defaultBindingMode?: BindingMode;
@@ -19,6 +19,7 @@ export declare type PartialCustomAttributeDefinition = PartialResourceDefinition
      * to a property name `http`, with value equal to literal string `//bla.bla.com`
      */
     readonly noMultiBindings?: boolean;
+    readonly watches?: IWatchDefinition[];
 }>;
 export declare type CustomAttributeType<T extends Constructable = Constructable> = ResourceType<T, ICustomAttributeViewModel, PartialCustomAttributeDefinition>;
 export declare type CustomAttributeKind = IResourceKind<CustomAttributeType, CustomAttributeDefinition> & {
@@ -55,6 +56,7 @@ export declare class CustomAttributeDefinition<T extends Constructable = Constru
     readonly isTemplateController: boolean;
     readonly bindables: Record<string, BindableDefinition>;
     readonly noMultiBindings: boolean;
+    readonly watches: IWatchDefinition[];
     private constructor();
     static create<T extends Constructable = Constructable>(nameOrDef: string | PartialCustomAttributeDefinition, Type: CustomAttributeType<T>): CustomAttributeDefinition<T>;
     register(container: IContainer): void;

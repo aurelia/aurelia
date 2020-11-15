@@ -4,27 +4,26 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports"], factory);
+        define(["require", "exports", "../utilities-objects"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.collectionSubscriberCollection = exports.subscriberCollection = void 0;
+    const utilities_objects_1 = require("../utilities-objects");
     // TODO: see if we can de-duplicate these 3 decorators and their functions without killing performance or readability
     function subscriberCollection() {
         // eslint-disable-next-line @typescript-eslint/ban-types
         return function (target) {
             const proto = target.prototype;
-            proto._subscriberFlags = 0 /* None */;
-            proto.addSubscriber = addSubscriber;
-            proto.removeSubscriber = removeSubscriber;
-            proto.hasSubscriber = hasSubscriber;
-            proto.hasSubscribers = hasSubscribers;
-            proto.callSubscribers = callSubscribers;
-            if (proto.subscribe === void 0)
-                proto.subscribe = addSubscriber;
-            if (proto.unsubscribe === void 0)
-                proto.unsubscribe = removeSubscriber;
+            utilities_objects_1.ensureProto(proto, '_subscriberFlags', 0 /* None */);
+            utilities_objects_1.ensureProto(proto, 'addSubscriber', addSubscriber);
+            utilities_objects_1.ensureProto(proto, 'removeSubscriber', removeSubscriber);
+            utilities_objects_1.ensureProto(proto, 'hasSubscriber', hasSubscriber);
+            utilities_objects_1.ensureProto(proto, 'hasSubscribers', hasSubscribers);
+            utilities_objects_1.ensureProto(proto, 'callSubscribers', callSubscribers);
+            utilities_objects_1.ensureProto(proto, 'subscribe', addSubscriber);
+            utilities_objects_1.ensureProto(proto, 'unsubscribe', removeSubscriber);
         };
     }
     exports.subscriberCollection = subscriberCollection;
@@ -32,16 +31,14 @@
         // eslint-disable-next-line @typescript-eslint/ban-types
         return function (target) {
             const proto = target.prototype;
-            proto._collectionSubscriberFlags = 0 /* None */;
-            proto.addCollectionSubscriber = addCollectionSubscriber;
-            proto.removeCollectionSubscriber = removeCollectionSubscriber;
-            proto.hasCollectionSubscriber = hasCollectionSubscriber;
-            proto.hasCollectionSubscribers = hasCollectionSubscribers;
-            proto.callCollectionSubscribers = callCollectionSubscribers;
-            if (proto.subscribeToCollection === void 0)
-                proto.subscribeToCollection = addCollectionSubscriber;
-            if (proto.unsubscribeFromCollection === void 0)
-                proto.unsubscribeFromCollection = removeCollectionSubscriber;
+            utilities_objects_1.ensureProto(proto, '_collectionSubscriberFlags', 0 /* None */);
+            utilities_objects_1.ensureProto(proto, 'addCollectionSubscriber', addCollectionSubscriber);
+            utilities_objects_1.ensureProto(proto, 'removeCollectionSubscriber', removeCollectionSubscriber);
+            utilities_objects_1.ensureProto(proto, 'hasCollectionSubscriber', hasCollectionSubscriber);
+            utilities_objects_1.ensureProto(proto, 'hasCollectionSubscribers', hasCollectionSubscribers);
+            utilities_objects_1.ensureProto(proto, 'callCollectionSubscribers', callCollectionSubscribers);
+            utilities_objects_1.ensureProto(proto, 'subscribeToCollection', addCollectionSubscriber);
+            utilities_objects_1.ensureProto(proto, 'unsubscribeFromCollection', removeCollectionSubscriber);
         };
     }
     exports.collectionSubscriberCollection = collectionSubscriberCollection;

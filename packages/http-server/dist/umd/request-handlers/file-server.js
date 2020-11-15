@@ -16,7 +16,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "fs", "http", "http2", "url", "path", "@aurelia/kernel", "../interfaces", "../http-utils", "../file-utils"], factory);
+        define(["require", "exports", "fs", "http", "http2", "path", "@aurelia/kernel", "../interfaces", "../http-utils", "../file-utils"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -25,7 +25,6 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     const fs_1 = require("fs");
     const http_1 = require("http");
     const http2_1 = require("http2");
-    const url = require("url");
     const path_1 = require("path");
     const kernel_1 = require("@aurelia/kernel");
     const interfaces_1 = require("../interfaces");
@@ -54,16 +53,12 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             if (!(request instanceof http_1.IncomingMessage && response instanceof http_1.ServerResponse)) {
                 return;
             }
-            const parsedUrl = url.parse(request.url);
-            let parsedPath = parsedUrl.path;
-            if (parsedPath.endsWith('/')) {
-                parsedPath = `${parsedPath}index.html`;
-            }
-            const path = path_1.join(this.root, parsedPath);
+            const parsedUrl = context.requestUrl;
+            const path = path_1.join(this.root, parsedUrl.path);
             if (await file_utils_1.isReadable(path)) {
                 this.logger.debug(`Serving file "${path}"`);
                 const contentType = http_utils_1.getContentType(path);
-                const clientEncoding = determineContentEncoding(request.headers);
+                const clientEncoding = determineContentEncoding(context);
                 let contentEncoding = (void 0);
                 let content = (void 0);
                 if (clientEncoding === 'br'
@@ -126,13 +121,10 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             if (!(request instanceof http2_1.Http2ServerRequest && response instanceof http2_1.Http2ServerResponse)) {
                 return;
             }
-            const parsedUrl = url.parse(request.url);
-            let parsedPath = parsedUrl.path;
-            if (parsedPath.endsWith('/')) {
-                parsedPath = `${parsedPath}index.html`;
-            }
+            const parsedUrl = context.requestUrl;
+            const parsedPath = parsedUrl.path;
             const path = path_1.join(this.root, parsedPath);
-            const contentEncoding = determineContentEncoding(request.headers);
+            const contentEncoding = determineContentEncoding(context);
             const file = this.getPushInfo(parsedPath, contentEncoding);
             if (file !== void 0) {
                 this.logger.debug(`Serving file "${path}"`);
@@ -213,9 +205,9 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             });
         }
     }
-    function determineContentEncoding(headers) {
+    function determineContentEncoding(context) {
         var _a, _b;
-        const clientEncoding = new http_utils_1.QualifiedHeaderValues(HTTP2_HEADER_ACCEPT_ENCODING, headers);
+        const clientEncoding = context.getQualifiedRequestHeaderFor(HTTP2_HEADER_ACCEPT_ENCODING);
         // if brotli compression is supported return `br`
         if (clientEncoding.isAccepted('br')) {
             return 'br';

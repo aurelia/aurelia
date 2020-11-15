@@ -439,11 +439,11 @@ export class ComputedWatcher implements IWatcher {
 export interface ExpressionWatcher extends IConnectableBinding { }
 
 @connectable()
-export class ExpressionWatcher implements IConnectableBinding {
+export class ExpressionWatcher implements IConnectableBinding, IWatcher {
   /**
    * @internal
    */
-  private value: any;
+  private value: unknown;
   /**
    * @internal
    */
@@ -498,4 +498,3 @@ export class ExpressionWatcher implements IConnectableBinding {
     this.value = void 0;
   }
 }
-

@@ -48,15 +48,14 @@ const nsAttributes = Object.assign(
   },
 );
 
-export interface IHtmlObserverConstructor {
+export type IHtmlObserverConstructor =
   new (
     el: INode,
     key: PropertyKey,
     handler: EventSubscriber,
     observerLocator: IObserverLocator,
     locator: IServiceLocator,
-  ): IObserver;
-}
+  ) => IObserver;
 
 export interface INodeObserverConfig extends Partial<NodeObserverConfig> {
   events: string[];
@@ -66,7 +65,7 @@ export class NodeObserverConfig {
   /**
    * The observer constructor to use
    */
-  type: IHtmlObserverConstructor;
+  public type: IHtmlObserverConstructor;
   /**
    * Indicates the list of events can be used to observe a particular property
    */
@@ -88,8 +87,6 @@ export class NodeObserverConfig {
     this.default = config.default;
   }
 }
-
-const selectEventsConfig: NodeObserverConfig = new NodeObserverConfig({ events: ['change'], default: '' });
 
 export class NodeObserverLocator implements INodeObserverLocator {
   public allowDirtyCheck: boolean = true;

@@ -31,7 +31,6 @@ export interface IObjectObservationAdapter {
 export interface IObserverLocator extends ObserverLocator {}
 export const IObserverLocator = DI.createInterface<IObserverLocator>('IObserverLocator').withDefault(x => x.singleton(ObserverLocator));
 
-
 export interface INodeObserverLocator {
   handles(obj: unknown, key: PropertyKey, requestor: IObserverLocator): boolean;
   getObserver(obj: object, key: PropertyKey, requestor: IObserverLocator): IAccessor | IObserver;
@@ -47,13 +46,13 @@ export const INodeObserverLocator = DI
   }));
 
 class DefaultNodeObserverLocator implements INodeObserverLocator {
-  handles(): boolean {
+  public handles(): boolean {
     return false;
   }
-  getObserver(): IAccessor<unknown> | IObserver {
+  public getObserver(): IAccessor | IObserver {
     return propertyAccessor;
   }
-  getAccessor(): IAccessor<unknown> | IObserver {
+  public getAccessor(): IAccessor | IObserver {
     return propertyAccessor;
   }
 }

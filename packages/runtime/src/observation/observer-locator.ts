@@ -13,7 +13,6 @@ import {
   IObservedSet,
   LifecycleFlags,
 } from '../observation';
-import { isArray, isMap, isSet } from '../utilities-objects';
 import { getArrayObserver } from './array-observer';
 import { createComputedObserver } from './computed-observer';
 import { IDirtyChecker } from './dirty-checker';
@@ -210,11 +209,11 @@ export class ObserverLocator {
 export type RepeatableCollection = IObservedMap | IObservedSet | IObservedArray | null | undefined | number;
 
 export function getCollectionObserver(flags: LifecycleFlags, lifecycle: ILifecycle, collection: RepeatableCollection): CollectionObserver | undefined {
-  if (isArray(collection)) {
+  if (collection instanceof Array) {
     return getArrayObserver(flags, lifecycle, collection as IObservedArray);
-  } else if (isMap(collection)) {
+  } else if (collection instanceof Map) {
     return getMapObserver(flags, lifecycle, collection as IObservedMap);
-  } else if (isSet(collection)) {
+  } else if (collection instanceof Set) {
     return getSetObserver(flags, lifecycle, collection as IObservedSet);
   }
   return void 0;

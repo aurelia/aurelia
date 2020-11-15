@@ -28,7 +28,6 @@ import { IWatcherCallback } from './watch';
 import { ExpressionKind, IsBindingBehavior } from '../binding/ast';
 import { getProxyOrSelf, getRawOrSelf } from './proxy-observation';
 import { Scope } from './binding-context';
-import { isArray, isMap, isSet } from '../utilities-objects';
 
 export interface ComputedOverrides {
   // Indicates that a getter doesn't need to re-calculate its dependencies after the first observation.
@@ -409,11 +408,11 @@ export class ComputedWatcher implements IWatcher {
   private forCollection(collection: Collection): ICollectionObserver<CollectionKind> {
     const obsLocator = this.observerLocator;
     let observer: ICollectionObserver<CollectionKind>;
-    if (isArray(collection)) {
+    if (collection instanceof Array) {
       observer = obsLocator.getArrayObserver(LifecycleFlags.none, collection);
-    } else if (isSet(collection)) {
+    } else if (collection instanceof Set) {
       observer = obsLocator.getSetObserver(LifecycleFlags.none, collection);
-    } else if (isMap(collection)) {
+    } else if (collection instanceof Map) {
       observer = obsLocator.getMapObserver(LifecycleFlags.none, collection);
     } else {
       throw new Error('Unrecognised collection type.');
@@ -439,7 +438,7 @@ export class ComputedWatcher implements IWatcher {
 export interface ExpressionWatcher extends IConnectableBinding { }
 
 @connectable()
-export class ExpressionWatcher implements IConnectableBinding, IWatcher {
+export class ExpressionWatcher implements IConnectableBinding {
   /**
    * @internal
    */

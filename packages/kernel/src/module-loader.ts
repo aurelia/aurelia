@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/class-name-casing */
-/* eslint-disable @typescript-eslint/camelcase */
 import { DI, IRegistry } from './di';
 import { Constructable, IDisposable, IIndexable } from './interfaces';
 import { emptyArray } from './platform';
@@ -84,9 +82,9 @@ export class ModuleLoader implements IDisposable {
 
     const ret = promise.then(obj => {
       return this.loadFromObject(obj, transform);
-    })
+    });
     this.promiseCache.set(promise, ret);
-    ret.then(value => {
+    void ret.then(value => {
       // make it synchronous for future requests
       this.promiseCache.set(promise, value);
     });
@@ -101,7 +99,7 @@ export class ModuleLoader implements IDisposable {
     const ret = transform(this.analyze(obj));
     this.objectCache.set(obj, ret);
     if (ret instanceof Promise) {
-      ret.then(value => {
+      void ret.then(value => {
         // make it synchronous for future requests
         this.objectCache.set(obj, value);
       });
@@ -146,7 +144,6 @@ export class ModuleLoader implements IDisposable {
 
     return new AnalyzedModule(m, items as ITypedModuleItem_T[]);
   }
-
 
   public dispose(): void {
     this.promiseCache.clear();

@@ -1,6 +1,6 @@
 import {
   ITemplateCompilerRegistration,
-  DefaultNodeObserverLocatorRegistration,
+  INodeObserverLocatorRegistration,
 
   RepeatRegistration,
   OneTimeBindingBehaviorRegistration,
@@ -27,7 +27,7 @@ import { App } from './app';
 global['Aurelia'] = new Aurelia()
   .register(
     ITemplateCompilerRegistration,
-    DefaultNodeObserverLocatorRegistration,
+    INodeObserverLocatorRegistration,
 
     DotSeparatedAttributePatternRegistration,
 

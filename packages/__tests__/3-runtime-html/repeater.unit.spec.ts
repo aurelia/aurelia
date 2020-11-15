@@ -17,7 +17,7 @@ import {
   TextBindingRendererRegistration,
   TextBindingInstruction,
   Interpolation,
-  DefaultNodeObserverLocatorRegistration,
+  INodeObserverLocatorRegistration,
 } from '@aurelia/runtime-html';
 import {
   eachCartesianJoin,
@@ -520,7 +520,7 @@ describe(`Repeat`, function () {
   ];
 
   const container = createContainer().register(
-    DefaultNodeObserverLocatorRegistration,
+    INodeObserverLocatorRegistration,
     PropertyBindingRendererRegistration,
     TextBindingRendererRegistration,
   );

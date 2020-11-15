@@ -74,6 +74,7 @@ const scrollEventsConfig: NodeEventConfig = new NodeEventConfig({ events: ['scro
 export const DefaultNodeObserverLocatorRegistration: IRegistry = {
   register(container) {
     Registration.singleton(INodeObserverLocator, NodeObserverLocator).register(container);
+    Registration.aliasTo(INodeObserverLocator, NodeObserverLocator).register(container);
     const locator = container.get(NodeObserverLocator);
     locator.useConfig({
       INPUT: {
@@ -107,10 +108,6 @@ export class NodeObserverLocator implements INodeObserverLocator {
     @IDirtyChecker private readonly dirtyChecker: IDirtyChecker,
     @ISVGAnalyzer private readonly svgAnalyzer: ISVGAnalyzer,
   ) {}
-
-  public static register(container: IContainer) {
-    Registration.singleton(INodeObserverLocator, this).register(container);
-  }
 
   // deepscan-disable-next-line
   public handles(obj: unknown, _key: PropertyKey): boolean {

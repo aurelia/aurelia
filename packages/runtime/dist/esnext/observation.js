@@ -85,13 +85,12 @@ export var LifecycleFlags;
     LifecycleFlags[LifecycleFlags["none"] = 0] = "none";
     // Bitmask for flags that need to be stored on a binding during $bind for mutation
     // callbacks outside of $bind
-    LifecycleFlags[LifecycleFlags["persistentBindingFlags"] = 31751] = "persistentBindingFlags";
+    LifecycleFlags[LifecycleFlags["persistentBindingFlags"] = 15367] = "persistentBindingFlags";
     LifecycleFlags[LifecycleFlags["allowParentScopeTraversal"] = 1024] = "allowParentScopeTraversal";
     LifecycleFlags[LifecycleFlags["observeLeafPropertiesOnly"] = 2048] = "observeLeafPropertiesOnly";
     LifecycleFlags[LifecycleFlags["targetObserverFlags"] = 12295] = "targetObserverFlags";
     LifecycleFlags[LifecycleFlags["noFlush"] = 4096] = "noFlush";
     LifecycleFlags[LifecycleFlags["persistentTargetObserverQueue"] = 8192] = "persistentTargetObserverQueue";
-    LifecycleFlags[LifecycleFlags["secondaryExpression"] = 16384] = "secondaryExpression";
     LifecycleFlags[LifecycleFlags["bindingStrategy"] = 7] = "bindingStrategy";
     LifecycleFlags[LifecycleFlags["getterSetterStrategy"] = 1] = "getterSetterStrategy";
     LifecycleFlags[LifecycleFlags["proxyStrategy"] = 2] = "proxyStrategy";

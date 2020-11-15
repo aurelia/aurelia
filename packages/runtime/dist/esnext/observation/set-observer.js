@@ -133,7 +133,7 @@ let SetObserver = class SetObserver {
         }
         this.inBatch = false;
         this.collection = observedSet;
-        this.persistentFlags = flags & 31751 /* persistentBindingFlags */;
+        this.persistentFlags = flags & 15367 /* persistentBindingFlags */;
         this.indexMap = createIndexMap(observedSet.size);
         this.lifecycle = lifecycle;
         this.lengthObserver = (void 0);

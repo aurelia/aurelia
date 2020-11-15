@@ -13,30 +13,28 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/runtime", "./event-delegator"], factory);
+        define(["require", "exports", "@aurelia/runtime"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ValueAttributeObserver = void 0;
     const runtime_1 = require("@aurelia/runtime");
-    const event_delegator_1 = require("./event-delegator");
-    // TODO: handle file attribute properly again, etc
     /**
      * Observer for non-radio, non-checkbox input.
      */
     let ValueAttributeObserver = class ValueAttributeObserver {
-        constructor(flags, handler, obj, propertyKey) {
-            this.handler = handler;
-            this.obj = obj;
+        constructor(obj, propertyKey, handler) {
             this.propertyKey = propertyKey;
+            this.handler = handler;
             this.currentValue = '';
             this.oldValue = '';
+            this.persistentFlags = 0 /* none */;
             this.hasChanges = false;
             // ObserverType.Layout is not always true, it depends on the element & property combo
             // but for simplicity, always treat as such
             this.type = 2 /* Node */ | 1 /* Observer */ | 64 /* Layout */;
-            this.persistentFlags = flags & 12295 /* targetObserverFlags */;
+            this.obj = obj;
         }
         getValue() {
             // is it safe to assume the observer has the latest value?
@@ -46,7 +44,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         setValue(newValue, flags) {
             this.currentValue = newValue;
             this.hasChanges = newValue !== this.oldValue;
-            if ((flags & 4096 /* noFlush */) === 0) {
+            if (!this.handler.config.readonly && (flags & 4096 /* noFlush */) === 0) {
                 this.flushChanges(flags);
             }
         }
@@ -56,12 +54,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                 const currentValue = this.currentValue;
                 const oldValue = this.oldValue;
                 this.oldValue = currentValue;
-                if (currentValue == void 0) {
-                    this.obj[this.propertyKey] = '';
-                }
-                else {
-                    this.obj[this.propertyKey] = currentValue;
-                }
+                this.obj[this.propertyKey] = currentValue !== null && currentValue !== void 0 ? currentValue : this.handler.config.default;
                 if ((flags & 32 /* fromBind */) === 0) {
                     this.callSubscribers(currentValue, oldValue, flags);
                 }
@@ -83,15 +76,14 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             this.addSubscriber(subscriber);
         }
         unsubscribe(subscriber) {
-            this.removeSubscriber(subscriber);
-            if (!this.hasSubscribers()) {
+            if (this.removeSubscriber(subscriber) && !this.hasSubscribers()) {
                 this.handler.dispose();
             }
         }
     };
     ValueAttributeObserver = __decorate([
         runtime_1.subscriberCollection(),
-        __metadata("design:paramtypes", [Number, event_delegator_1.EventSubscriber, Object, String])
+        __metadata("design:paramtypes", [Object, Object, Function])
     ], ValueAttributeObserver);
     exports.ValueAttributeObserver = ValueAttributeObserver;
 });

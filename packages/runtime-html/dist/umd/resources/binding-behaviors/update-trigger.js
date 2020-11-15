@@ -16,7 +16,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/runtime", "../../observation/event-delegator"], factory);
+        define(["require", "exports", "@aurelia/runtime", "../../observation/event-delegator", "../../observation/observer-locator"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -24,6 +24,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     exports.UpdateTriggerBindingBehavior = void 0;
     const runtime_1 = require("@aurelia/runtime");
     const event_delegator_1 = require("../../observation/event-delegator");
+    const observer_locator_1 = require("../../observation/observer-locator");
     let UpdateTriggerBindingBehavior = class UpdateTriggerBindingBehavior {
         constructor(observerLocator) {
             this.observerLocator = observerLocator;
@@ -35,7 +36,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             if (binding.mode !== runtime_1.BindingMode.twoWay && binding.mode !== runtime_1.BindingMode.fromView) {
                 throw new Error('The updateTrigger binding behavior can only be applied to two-way/ from-view bindings on input/select elements.');
             }
-            this.persistentFlags = flags & 31751 /* persistentBindingFlags */;
+            this.persistentFlags = flags & 15367 /* persistentBindingFlags */;
             // ensure the binding's target observer has been set.
             const targetObserver = this.observerLocator.getObserver(this.persistentFlags | flags, binding.target, binding.targetProperty);
             if (!targetObserver.handler) {
@@ -43,9 +44,14 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             }
             binding.targetObserver = targetObserver;
             // stash the original element subscribe function.
-            targetObserver.originalHandler = binding.targetObserver.handler;
+            const originalHandler = targetObserver.handler;
+            targetObserver.originalHandler = originalHandler;
             // replace the element subscribe function with one that uses the correct events.
-            targetObserver.handler = new event_delegator_1.EventSubscriber(events);
+            targetObserver.handler = new event_delegator_1.EventSubscriber(new observer_locator_1.NodeObserverConfig({
+                default: originalHandler.config.default,
+                events,
+                readonly: originalHandler.config.readonly
+            }));
         }
         unbind(flags, _scope, _hostScope, binding) {
             // restore the state of the binding.

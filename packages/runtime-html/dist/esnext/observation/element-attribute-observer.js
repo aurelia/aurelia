@@ -15,7 +15,7 @@ import { IPlatform } from '../platform';
  * TODO: handle SVG/attributes with namespace
  */
 let AttributeObserver = class AttributeObserver {
-    constructor(platform, flags, observerLocator, obj, propertyKey, targetAttribute) {
+    constructor(platform, observerLocator, obj, propertyKey, targetAttribute) {
         this.platform = platform;
         this.observerLocator = observerLocator;
         this.obj = obj;
@@ -23,11 +23,11 @@ let AttributeObserver = class AttributeObserver {
         this.targetAttribute = targetAttribute;
         this.currentValue = null;
         this.oldValue = null;
+        this.persistentFlags = 0 /* none */;
         this.hasChanges = false;
         // layout is not certain, depends on the attribute being flushed to owner element
         // but for simple start, always treat as such
         this.type = 2 /* Node */ | 1 /* Observer */ | 64 /* Layout */;
-        this.persistentFlags = flags & 12295 /* targetObserverFlags */;
     }
     getValue() {
         // is it safe to assume the observer has the latest value?
@@ -48,17 +48,19 @@ let AttributeObserver = class AttributeObserver {
             this.oldValue = currentValue;
             switch (this.targetAttribute) {
                 case 'class': {
-                    // Why is class attribute observer setValue look different with class attribute accessor?
+                    // Why does class attribute observer setValue look different with class attribute accessor?
                     // ==============
                     // For class list
                     // newValue is simply checked if truthy or falsy
                     // and toggle the class accordingly
                     // -- the rule of this is quite different to normal attribute
                     //
-                    // for class attribute, observer is different in a way that it only observe a particular class at a time
+                    // for class attribute, observer is different in a way that it only observes one class at a time
                     // this also comes from syntax, where it would typically be my-class.class="someProperty"
                     //
                     // so there is no need for separating class by space and add all of them like class accessor
+                    //
+                    // note: not using .toggle API so that environment with broken impl (IE11) won't need to polfyfill by default
                     if (!!currentValue) {
                         this.obj.classList.add(this.propertyKey);
                     }
@@ -124,7 +126,7 @@ let AttributeObserver = class AttributeObserver {
 };
 AttributeObserver = __decorate([
     subscriberCollection(),
-    __metadata("design:paramtypes", [Object, Number, Object, Object, String, String])
+    __metadata("design:paramtypes", [Object, Object, Object, String, String])
 ], AttributeObserver);
 export { AttributeObserver };
 const startObservation = ($MutationObserver, element, subscription) => {

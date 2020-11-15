@@ -418,8 +418,7 @@
             }
         };
         kernel_1.Registration.instance(runtime_html_1.IDirtyChecker, null).register(container);
-        kernel_1.Registration.instance(runtime_html_1.ITargetObserverLocator, dummyLocator).register(container);
-        kernel_1.Registration.instance(runtime_html_1.ITargetAccessorLocator, dummyLocator).register(container);
+        kernel_1.Registration.instance(runtime_html_1.INodeObserverLocator, dummyLocator).register(container);
         return container.get(runtime_html_1.IObserverLocator);
     }
     exports.createObserverLocator = createObserverLocator;

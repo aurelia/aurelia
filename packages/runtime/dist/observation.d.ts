@@ -47,13 +47,12 @@ export declare enum BindingMode {
 }
 export declare const enum LifecycleFlags {
     none = 0,
-    persistentBindingFlags = 31751,
+    persistentBindingFlags = 15367,
     allowParentScopeTraversal = 1024,
     observeLeafPropertiesOnly = 2048,
     targetObserverFlags = 12295,
     noFlush = 4096,
     persistentTargetObserverQueue = 8192,
-    secondaryExpression = 16384,
     bindingStrategy = 7,
     getterSetterStrategy = 1,
     proxyStrategy = 2,
@@ -178,6 +177,8 @@ export interface IAccessor<TValue = unknown> {
     type: AccessorType;
     getValue(obj?: object, key?: PropertyKey): TValue;
     setValue(newValue: TValue, flags: LifecycleFlags, obj?: object, key?: PropertyKey): void;
+}
+export interface IObserver extends IAccessor, ISubscribable {
 }
 /**
  * Describes a target observer for to-view bindings (in other words, an observer without the observation).

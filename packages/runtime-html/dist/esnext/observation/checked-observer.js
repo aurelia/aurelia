@@ -7,28 +7,28 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-import { subscriberCollection, getCollectionObserver, ILifecycle, } from '@aurelia/runtime';
-import { EventSubscriber } from './event-delegator';
-const toStringTag = Object.prototype.toString;
+import { subscriberCollection, } from '@aurelia/runtime';
+import { getCollectionObserver } from './observer-locator';
 function defaultMatcher(a, b) {
     return a === b;
 }
 let CheckedObserver = class CheckedObserver {
-    constructor(flags, lifecycle, handler, obj) {
-        this.lifecycle = lifecycle;
+    constructor(obj, 
+    // deepscan-disable-next-line
+    _key, handler, observerLocator) {
         this.handler = handler;
-        this.obj = obj;
+        this.observerLocator = observerLocator;
         this.currentValue = void 0;
         this.oldValue = void 0;
+        this.persistentFlags = 0 /* none */;
         this.hasChanges = false;
         this.type = 2 /* Node */ | 1 /* Observer */ | 64 /* Layout */;
         this.collectionObserver = void 0;
         this.valueObserver = void 0;
-        this.persistentFlags = flags & 12295 /* targetObserverFlags */;
+        this.subscriberCount = 0;
+        this.obj = obj;
     }
     getValue() {
-        // is it safe to assume the observer has the latest value?
-        // todo: ability to turn on/off cache based on type
         return this.currentValue;
     }
     setValue(newValue, flags) {
@@ -39,41 +39,32 @@ let CheckedObserver = class CheckedObserver {
         }
     }
     flushChanges(flags) {
+        var _a, _b, _c;
         if (this.hasChanges) {
             this.hasChanges = false;
+            const obj = this.obj;
             const currentValue = this.oldValue = this.currentValue;
             if (this.valueObserver === void 0) {
-                if (this.obj.$observers !== void 0) {
-                    if (this.obj.$observers.model !== void 0) {
-                        this.valueObserver = this.obj.$observers.model;
+                if (obj.$observers !== void 0) {
+                    if (obj.$observers.model !== void 0) {
+                        this.valueObserver = obj.$observers.model;
                     }
-                    else if (this.obj.$observers.value !== void 0) {
-                        this.valueObserver = this.obj.$observers.value;
+                    else if (obj.$observers.value !== void 0) {
+                        this.valueObserver = obj.$observers.value;
                     }
                 }
-                if (this.valueObserver !== void 0) {
-                    this.valueObserver.subscribe(this);
-                }
+                (_a = this.valueObserver) === null || _a === void 0 ? void 0 : _a.subscribe(this);
             }
-            if (this.collectionObserver !== void 0) {
-                this.collectionObserver.unsubscribeFromCollection(this);
-                this.collectionObserver = void 0;
-            }
-            if (this.obj.type === 'checkbox') {
-                this.collectionObserver = getCollectionObserver(flags, this.lifecycle, currentValue);
-                if (this.collectionObserver !== void 0) {
-                    this.collectionObserver.subscribeToCollection(this);
-                }
+            (_b = this.collectionObserver) === null || _b === void 0 ? void 0 : _b.unsubscribeFromCollection(this);
+            this.collectionObserver = void 0;
+            if (obj.type === 'checkbox') {
+                (_c = (this.collectionObserver = getCollectionObserver(currentValue, this.observerLocator))) === null || _c === void 0 ? void 0 : _c.subscribeToCollection(this);
             }
             this.synchronizeElement();
         }
     }
     handleCollectionChange(indexMap, flags) {
-        const currentValue = this.currentValue;
-        const oldValue = this.oldValue;
-        this.oldValue = currentValue;
         this.synchronizeElement();
-        this.callSubscribers(currentValue, oldValue, flags);
     }
     handleChange(newValue, previousValue, flags) {
         this.synchronizeElement();
@@ -94,29 +85,28 @@ let CheckedObserver = class CheckedObserver {
         }
         else {
             let hasMatch = false;
-            switch (toStringTag.call(currentValue)) {
-                case '[object Array]':
-                    hasMatch = currentValue.findIndex(item => !!matcher(item, elementValue)) !== -1;
-                    break;
-                case '[object Set]':
-                    for (const v of currentValue) {
-                        if (matcher(v, elementValue)) {
-                            hasMatch = true;
-                            break;
-                        }
+            if (currentValue instanceof Array) {
+                hasMatch = currentValue.findIndex(item => !!matcher(item, elementValue)) !== -1;
+            }
+            else if (currentValue instanceof Set) {
+                for (const v of currentValue) {
+                    if (matcher(v, elementValue)) {
+                        hasMatch = true;
+                        break;
                     }
-                    break;
-                case '[object Map]':
-                    for (const pair of currentValue) {
-                        const existingItem = pair[0];
-                        const $isChecked = pair[1];
-                        // a potential complain, when only `true` is supported
-                        // but it's consistent with array
-                        if (matcher(existingItem, elementValue) && $isChecked === true) {
-                            hasMatch = true;
-                            break;
-                        }
+                }
+            }
+            else if (currentValue instanceof Map) {
+                for (const pair of currentValue) {
+                    const existingItem = pair[0];
+                    const $isChecked = pair[1];
+                    // a potential complain, when only `true` is supported
+                    // but it's consistent with array
+                    if (matcher(existingItem, elementValue) && $isChecked === true) {
+                        hasMatch = true;
+                        break;
                     }
+                }
             }
             obj.checked = hasMatch;
         }
@@ -128,8 +118,7 @@ let CheckedObserver = class CheckedObserver {
         const isChecked = obj.checked;
         const matcher = obj.matcher !== void 0 ? obj.matcher : defaultMatcher;
         if (obj.type === 'checkbox') {
-            const toStringRet = toStringTag.call(currentValue);
-            if (toStringRet === '[object Array]') {
+            if (currentValue instanceof Array) {
                 // Array binding steps on a change event:
                 // 1. find corresponding item INDEX in the Set based on current model/value and matcher
                 // 2. is the checkbox checked?
@@ -154,7 +143,7 @@ let CheckedObserver = class CheckedObserver {
                 // do not invoke callback as only the array obj has changed
                 return;
             }
-            else if (toStringRet === '[object Set]') {
+            else if (currentValue instanceof Set) {
                 // Set binding steps on a change event:
                 // 1. find corresponding item in the Set based on current model/value and matcher
                 // 2. is the checkbox checked?
@@ -192,7 +181,7 @@ let CheckedObserver = class CheckedObserver {
                 // do not invoke callback as only the Set has been mutated
                 return;
             }
-            else if (toStringRet === '[object Map]') {
+            else if (currentValue instanceof Map) {
                 // Map binding steps on a change event
                 // 1. find corresponding item in the Map based on current model/value and matcher
                 // 2. Set the value of the corresponding item in the Map based on checked state of the checkbox
@@ -229,11 +218,23 @@ let CheckedObserver = class CheckedObserver {
         this.currentValue = currentValue;
         this.callSubscribers(this.currentValue, this.oldValue, 0 /* none */);
     }
-    bind(flags) {
+    // deepscan-disable-next-line
+    bind(_flags) {
+        // this is incorrect, needs to find a different way to initialize observer value,
+        // relative to binding value
+        // for now keeping this to do everything at once later
         this.currentValue = this.obj.checked;
     }
+    // deepscan-disable-next-line
+    unbind(_flags) {
+        this.currentValue = void 0;
+    }
+    start() {
+        this.handler.subscribe(this.obj, this);
+    }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    unbind(flags) {
+    stop() {
+        this.handler.dispose();
         if (this.collectionObserver !== void 0) {
             this.collectionObserver.unsubscribeFromCollection(this);
             this.collectionObserver = void 0;
@@ -243,21 +244,19 @@ let CheckedObserver = class CheckedObserver {
         }
     }
     subscribe(subscriber) {
-        if (!this.hasSubscribers()) {
-            this.handler.subscribe(this.obj, this);
+        if (this.addSubscriber(subscriber) && ++this.subscriberCount === 1) {
+            this.start();
         }
-        this.addSubscriber(subscriber);
     }
     unsubscribe(subscriber) {
-        this.removeSubscriber(subscriber);
-        if (!this.hasSubscribers()) {
-            this.handler.dispose();
+        if (this.removeSubscriber(subscriber) && --this.subscriberCount === 0) {
+            this.stop();
         }
     }
 };
 CheckedObserver = __decorate([
     subscriberCollection(),
-    __metadata("design:paramtypes", [Number, Object, EventSubscriber, Object])
+    __metadata("design:paramtypes", [Object, Object, Function, Object])
 ], CheckedObserver);
 export { CheckedObserver };
 //# sourceMappingURL=checked-observer.js.map

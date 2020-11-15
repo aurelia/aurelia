@@ -42,7 +42,6 @@ export declare class ValidateBindingBehavior extends BindingInterceptor implemen
     private controller;
     private isChangeTrigger;
     private readonly defaultTrigger;
-    private readonly connectedExpressions;
     private scope;
     private hostScope;
     private readonly triggerMediator;

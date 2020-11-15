@@ -131,7 +131,6 @@ export declare class BindingBehaviorExpression {
     constructor(expression: IsBindingBehavior, name: string, args: readonly IsAssign[]);
     evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, c: IConnectable | null): unknown;
     assign(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, val: unknown): unknown;
-    connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void;
     bind(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void;
     unbind(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void;
     accept<T>(visitor: IVisitor<T>): T;
@@ -148,7 +147,6 @@ export declare class ValueConverterExpression {
     constructor(expression: IsValueConverter, name: string, args: readonly IsAssign[]);
     evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, c: IConnectable | null): unknown;
     assign(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, val: unknown): unknown;
-    connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void;
     unbind(_f: LF, _s: Scope, _hs: Scope | null, b: IConnectableBinding): void;
     accept<T>(visitor: IVisitor<T>): T;
     toString(): string;
@@ -161,7 +159,6 @@ export declare class AssignExpression {
     get hasUnbind(): false;
     constructor(target: IsAssignable, value: IsAssign);
     evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, c: IConnectable | null): unknown;
-    connect(_f: LF, _s: Scope, _hs: Scope | null, _b: IConnectableBinding): void;
     assign(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, val: unknown): unknown;
     accept<T>(visitor: IVisitor<T>): T;
     toString(): string;
@@ -176,7 +173,6 @@ export declare class ConditionalExpression {
     constructor(condition: IsBinary, yes: IsAssign, no: IsAssign);
     evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, c: IConnectable | null): unknown;
     assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown): unknown;
-    connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void;
     accept<T>(visitor: IVisitor<T>): T;
     toString(): string;
 }
@@ -191,7 +187,6 @@ export declare class AccessThisExpression {
     constructor(ancestor?: number);
     evaluate(_f: LF, s: Scope, hs: Scope | null, _l: IServiceLocator, _c: IConnectable | null): IBindingContext | undefined;
     assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown): unknown;
-    connect(_f: LF, _s: Scope, _hs: Scope | null, _b: IConnectableBinding): void;
     accept<T>(visitor: IVisitor<T>): T;
     toString(): string;
 }
@@ -205,7 +200,6 @@ export declare class AccessScopeExpression {
     constructor(name: string, ancestor?: number, accessHostScope?: boolean);
     evaluate(f: LF, s: Scope, hs: Scope | null, _l: IServiceLocator, c: IConnectable | null): IBindingContext | IOverrideContext;
     assign(f: LF, s: Scope, hs: Scope | null, _l: IServiceLocator, val: unknown): unknown;
-    connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void;
     accept<T>(visitor: IVisitor<T>): T;
     toString(): string;
 }
@@ -218,7 +212,6 @@ export declare class AccessMemberExpression {
     constructor(object: IsLeftHandSide, name: string);
     evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, c: IConnectable | null): unknown;
     assign(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, val: unknown): unknown;
-    connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void;
     accept<T>(visitor: IVisitor<T>): T;
     toString(): string;
 }
@@ -231,7 +224,6 @@ export declare class AccessKeyedExpression {
     constructor(object: IsLeftHandSide, key: IsAssign);
     evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, c: IConnectable | null): unknown;
     assign(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, val: unknown): unknown;
-    connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void;
     accept<T>(visitor: IVisitor<T>): T;
     toString(): string;
 }
@@ -246,7 +238,6 @@ export declare class CallScopeExpression {
     constructor(name: string, args: readonly IsAssign[], ancestor?: number, accessHostScope?: boolean);
     evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, c: IConnectable | null): unknown;
     assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown): unknown;
-    connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void;
     accept<T>(visitor: IVisitor<T>): T;
     toString(): string;
 }
@@ -260,7 +251,6 @@ export declare class CallMemberExpression {
     constructor(object: IsLeftHandSide, name: string, args: readonly IsAssign[]);
     evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, c: IConnectable | null): unknown;
     assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown): unknown;
-    connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void;
     accept<T>(visitor: IVisitor<T>): T;
     toString(): string;
 }
@@ -273,7 +263,6 @@ export declare class CallFunctionExpression {
     constructor(func: IsLeftHandSide, args: readonly IsAssign[]);
     evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, c: IConnectable | null): unknown;
     assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown): unknown;
-    connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void;
     accept<T>(visitor: IVisitor<T>): T;
     toString(): string;
 }
@@ -287,7 +276,6 @@ export declare class BinaryExpression {
     constructor(operation: BinaryOperator, left: IsBinary, right: IsBinary);
     evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, c: IConnectable | null): unknown;
     assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown): unknown;
-    connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void;
     accept<T>(visitor: IVisitor<T>): T;
     toString(): string;
 }
@@ -300,7 +288,6 @@ export declare class UnaryExpression {
     constructor(operation: UnaryOperator, expression: IsLeftHandSide);
     evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, c: IConnectable | null): unknown;
     assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown): unknown;
-    connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void;
     accept<T>(visitor: IVisitor<T>): T;
     toString(): string;
 }
@@ -317,7 +304,6 @@ export declare class PrimitiveLiteralExpression<TValue extends null | undefined 
     constructor(value: TValue);
     evaluate(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _c: IConnectable | null): TValue;
     assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown): unknown;
-    connect(_f: LF, _s: Scope, _hs: Scope | null, _b: IConnectableBinding): void;
     accept<T>(visitor: IVisitor<T>): T;
     toString(): string;
 }
@@ -329,7 +315,6 @@ export declare class HtmlLiteralExpression {
     constructor(parts: readonly HtmlLiteralExpression[]);
     evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, c: IConnectable | null): string;
     assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown, _projection?: ResourceDefinition): unknown;
-    connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void;
     accept<T>(visitor: IVisitor<T>): T;
     toString(): string;
 }
@@ -342,7 +327,6 @@ export declare class ArrayLiteralExpression {
     constructor(elements: readonly IsAssign[]);
     evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, c: IConnectable | null): readonly unknown[];
     assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown): unknown;
-    connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void;
     accept<T>(visitor: IVisitor<T>): T;
     toString(): string;
 }
@@ -356,7 +340,6 @@ export declare class ObjectLiteralExpression {
     constructor(keys: readonly (number | string)[], values: readonly IsAssign[]);
     evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, c: IConnectable | null): Record<string, unknown>;
     assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown): unknown;
-    connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void;
     accept<T>(visitor: IVisitor<T>): T;
     toString(): string;
 }
@@ -370,7 +353,6 @@ export declare class TemplateExpression {
     constructor(cooked: readonly string[], expressions?: readonly IsAssign[]);
     evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, c: IConnectable | null): string;
     assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown): unknown;
-    connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void;
     accept<T>(visitor: IVisitor<T>): T;
     toString(): string;
 }
@@ -388,7 +370,6 @@ export declare class TaggedTemplateExpression {
     }, raw: readonly string[], func: IsLeftHandSide, expressions?: readonly IsAssign[]);
     evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, c: IConnectable | null): string;
     assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown): unknown;
-    connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void;
     accept<T>(visitor: IVisitor<T>): T;
     toString(): string;
 }
@@ -400,7 +381,6 @@ export declare class ArrayBindingPattern {
     constructor(elements: readonly IsAssign[]);
     evaluate(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _c: IConnectable | null): unknown;
     assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown): unknown;
-    connect(_f: LF, _s: Scope, _hs: Scope | null, _b: IConnectableBinding): void;
     accept<T>(visitor: IVisitor<T>): T;
     toString(): string;
 }
@@ -413,7 +393,6 @@ export declare class ObjectBindingPattern {
     constructor(keys: readonly (string | number)[], values: readonly IsAssign[]);
     evaluate(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _c: IConnectable | null): unknown;
     assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown): unknown;
-    connect(_f: LF, _s: Scope, _hs: Scope | null, _b: IConnectableBinding): void;
     accept<T>(visitor: IVisitor<T>): T;
     toString(): string;
 }
@@ -424,7 +403,6 @@ export declare class BindingIdentifier {
     get hasUnbind(): false;
     constructor(name: string);
     evaluate(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator | null, _c: IConnectable | null): string;
-    connect(_f: LF, _s: Scope, _hs: Scope | null, _b: IConnectableBinding): void;
     accept<T>(visitor: IVisitor<T>): T;
     toString(): string;
 }
@@ -439,7 +417,6 @@ export declare class ForOfStatement {
     assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown): unknown;
     count(_f: LF, result: ObservedCollection | number | null | undefined): number;
     iterate(f: LF, result: ObservedCollection | number | null | undefined, func: (arr: Collection, index: number, item: unknown) => void): void;
-    connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void;
     bind(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void;
     unbind(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void;
     accept<T>(visitor: IVisitor<T>): T;
@@ -456,7 +433,6 @@ export declare class Interpolation {
     constructor(parts: readonly string[], expressions?: readonly IsBindingBehavior[]);
     evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, c: IConnectable | null): string;
     assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown): unknown;
-    connect(_f: LF, _s: Scope, _hs: Scope | null, _b: IConnectableBinding): void;
     accept<T>(visitor: IVisitor<T>): T;
     toString(): string;
 }

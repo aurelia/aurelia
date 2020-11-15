@@ -25,7 +25,7 @@ export declare class AttributeObserver implements AttributeObserver, ElementMuta
     readonly persistentFlags: LifecycleFlags;
     hasChanges: boolean;
     type: AccessorType;
-    constructor(platform: IPlatform, flags: LifecycleFlags, observerLocator: IObserverLocator, obj: IHtmlElement, propertyKey: string, targetAttribute: string);
+    constructor(platform: IPlatform, observerLocator: IObserverLocator, obj: IHtmlElement, propertyKey: string, targetAttribute: string);
     getValue(): unknown;
     setValue(newValue: unknown, flags: LifecycleFlags): void;
     flushChanges(flags: LifecycleFlags): void;

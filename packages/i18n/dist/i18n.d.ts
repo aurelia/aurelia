@@ -65,8 +65,18 @@ export interface I18N {
      * If the `locales` is skipped, then the currently active locale is used for formatting.
      */
     rt(input: Date, options?: Intl.RelativeTimeFormatOptions, locales?: string | string[]): string;
+    /**
+     * Queue a subscriber to be invoked for when the locale of a I18N service changes
+     */
+    subscribeLocaleChange(subscriber: ILocalChangeSubscriber): void;
 }
 export declare const I18N: import("@aurelia/kernel").InterfaceSymbol<I18N>;
+export interface ILocalChangeSubscriber {
+    handleLocaleChange(locales: {
+        oldLocale: string;
+        newLocale: string;
+    }): void;
+}
 /**
  * Translation service class.
  */
@@ -80,6 +90,7 @@ export declare class I18nService implements I18N {
      */
     readonly initPromise: Promise<void>;
     private options;
+    private readonly localeSubscribers;
     constructor(i18nextWrapper: I18nextWrapper, options: I18nInitOptions, ea: IEventAggregator, signaler: ISignaler);
     evaluate(keyExpr: string, options?: i18nextCore.TOptions): I18nKeyEvaluationResult[];
     tr(key: string | string[], options?: i18nextCore.TOptions): string;
@@ -92,6 +103,7 @@ export declare class I18nService implements I18N {
     uf(numberLike: string, locale?: string): number;
     createRelativeTimeFormat(options?: Intl.RelativeTimeFormatOptions, locales?: string | string[]): Intl.RelativeTimeFormat;
     rt(input: Date, options?: Intl.RelativeTimeFormatOptions, locales?: string | string[]): string;
+    subscribeLocaleChange(subscriber: ILocalChangeSubscriber): void;
     private now;
     private initializeI18next;
 }

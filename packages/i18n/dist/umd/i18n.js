@@ -59,6 +59,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         constructor(i18nextWrapper, options, ea, signaler) {
             this.ea = ea;
             this.signaler = signaler;
+            this.localeSubscribers = new Set();
             this.i18next = i18nextWrapper.i18next;
             this.initPromise = this.initializeI18next(options);
         }
@@ -88,8 +89,10 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
         async setLocale(newLocale) {
             const oldLocale = this.getLocale();
+            const locales = { oldLocale, newLocale };
             await this.i18next.changeLanguage(newLocale);
-            this.ea.publish("i18n:locale:changed" /* I18N_EA_CHANNEL */, { oldLocale, newLocale });
+            this.ea.publish("i18n:locale:changed" /* I18N_EA_CHANNEL */, locales);
+            this.localeSubscribers.forEach(sub => sub.handleLocaleChange(locales));
             this.signaler.dispatchSignal("aurelia-translation-signal" /* I18N_SIGNAL */);
         }
         createNumberFormat(options, locales) {
@@ -156,6 +159,9 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             difference = Math.abs(difference) < 1000 /* Second */ ? 1000 /* Second */ : difference;
             value = difference / 1000 /* Second */;
             return formatter.format(Math.round(value), 'second');
+        }
+        subscribeLocaleChange(subscriber) {
+            this.localeSubscribers.add(subscriber);
         }
         now() {
             return new Date().getTime();

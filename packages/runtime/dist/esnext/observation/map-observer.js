@@ -147,7 +147,7 @@ let MapObserver = class MapObserver {
         }
         this.inBatch = false;
         this.collection = map;
-        this.persistentFlags = flags & 31751 /* persistentBindingFlags */;
+        this.persistentFlags = flags & 15367 /* persistentBindingFlags */;
         this.indexMap = createIndexMap(map.size);
         this.lifecycle = lifecycle;
         this.lengthObserver = (void 0);

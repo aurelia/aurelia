@@ -16,7 +16,7 @@ export declare class SetterObserver {
     inBatch: boolean;
     observing: boolean;
     type: AccessorType;
-    constructor(flags: LifecycleFlags, obj: IIndexable, propertyKey: string);
+    constructor(obj: IIndexable, propertyKey: string);
     getValue(): unknown;
     setValue(newValue: unknown, flags: LifecycleFlags): void;
     flushBatch(flags: LifecycleFlags): void;

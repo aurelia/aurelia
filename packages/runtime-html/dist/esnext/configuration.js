@@ -4,7 +4,6 @@ import { AtPrefixedTriggerAttributePattern, ColonPrefixedBindAttributePattern, D
 import { CallBindingCommand, DefaultBindingCommand, ForBindingCommand, FromViewBindingCommand, OneTimeBindingCommand, ToViewBindingCommand, TwoWayBindingCommand, AttrBindingCommand, CaptureBindingCommand, ClassBindingCommand, DelegateBindingCommand, RefBindingCommand, StyleBindingCommand, TriggerBindingCommand, } from './resources/binding-command';
 import { TemplateCompiler } from './template-compiler';
 import { CallBindingRenderer, CustomAttributeRenderer, CustomElementRenderer, InterpolationBindingRenderer, IteratorBindingRenderer, LetElementRenderer, PropertyBindingRenderer, RefBindingRenderer, SetPropertyRenderer, TemplateControllerRenderer, AttributeBindingRenderer, ListenerBindingRenderer, SetAttributeRenderer, StylePropertyBindingRenderer, TextBindingRenderer, SetClassAttributeRenderer, SetStyleAttributeRenderer, } from './renderer';
-import { TargetAccessorLocator, TargetObserverLocator } from './observation/observer-locator';
 import { SVGAnalyzer } from './observation/svg-analyzer';
 import { AttrBindingBehavior } from './resources/binding-behaviors/attr';
 import { SelfBindingBehavior } from './resources/binding-behaviors/self';
@@ -21,9 +20,9 @@ import { Compose } from './resources/custom-elements/compose';
 import { AuSlot } from './resources/custom-elements/au-slot';
 import { SanitizeValueConverter } from './resources/value-converters/sanitize';
 import { ViewValueConverter } from './resources/value-converters/view';
+import { NodeObserverLocator } from './observation/observer-locator';
 export const ITemplateCompilerRegistration = TemplateCompiler;
-export const ITargetAccessorLocatorRegistration = TargetAccessorLocator;
-export const ITargetObserverLocatorRegistration = TargetObserverLocator;
+export const INodeObserverLocatorRegistration = NodeObserverLocator;
 /**
  * Default HTML-specific (but environment-agnostic) implementations for the following interfaces:
  * - `ITemplateCompiler`
@@ -32,8 +31,7 @@ export const ITargetObserverLocatorRegistration = TargetObserverLocator;
  */
 export const DefaultComponents = [
     ITemplateCompilerRegistration,
-    ITargetAccessorLocatorRegistration,
-    ITargetObserverLocatorRegistration,
+    INodeObserverLocatorRegistration,
 ];
 export const SVGAnalyzerRegistration = SVGAnalyzer;
 export const AtPrefixedTriggerAttributePatternRegistration = AtPrefixedTriggerAttributePattern;

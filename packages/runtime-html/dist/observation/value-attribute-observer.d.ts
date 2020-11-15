@@ -1,21 +1,23 @@
-import { IIndexable } from '@aurelia/kernel';
-import { IAccessor, ISubscriber, ISubscriberCollection, LifecycleFlags, AccessorType } from '@aurelia/runtime';
-import { EventSubscriber } from './event-delegator';
+import { LifecycleFlags, AccessorType } from '@aurelia/runtime';
+import type { EventSubscriber } from './event-delegator';
+import type { INode } from '../dom';
+import type { IIndexable } from '@aurelia/kernel';
+import type { ISubscriberCollection, ISubscriber, IObserver } from '@aurelia/runtime';
 export interface ValueAttributeObserver extends ISubscriberCollection {
 }
 /**
  * Observer for non-radio, non-checkbox input.
  */
-export declare class ValueAttributeObserver implements IAccessor {
+export declare class ValueAttributeObserver implements IObserver {
+    readonly propertyKey: PropertyKey;
     readonly handler: EventSubscriber;
-    readonly obj: Node & IIndexable;
-    readonly propertyKey: string;
+    readonly obj: INode & IIndexable;
     currentValue: unknown;
     oldValue: unknown;
     readonly persistentFlags: LifecycleFlags;
     hasChanges: boolean;
     type: AccessorType;
-    constructor(flags: LifecycleFlags, handler: EventSubscriber, obj: Node & IIndexable, propertyKey: string);
+    constructor(obj: INode, propertyKey: PropertyKey, handler: EventSubscriber);
     getValue(): unknown;
     setValue(newValue: string | null, flags: LifecycleFlags): void;
     flushChanges(flags: LifecycleFlags): void;

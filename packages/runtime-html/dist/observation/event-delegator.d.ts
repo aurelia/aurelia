@@ -1,4 +1,5 @@
-import { IDisposable } from '@aurelia/kernel';
+import type { NodeObserverConfig } from './observer-locator';
+import type { IDisposable } from '@aurelia/kernel';
 declare class ListenerTracker implements IDisposable {
     private readonly publisher;
     private readonly eventName;
@@ -22,10 +23,10 @@ export declare class DelegateSubscription implements IDisposable {
     dispose(): void;
 }
 export declare class EventSubscriber {
-    private readonly events;
+    readonly config: NodeObserverConfig;
     private target;
     private handler;
-    constructor(events: string[]);
+    constructor(config: NodeObserverConfig);
     subscribe(node: EventTarget, callbackOrListener: EventListenerOrEventListenerObject): void;
     dispose(): void;
 }

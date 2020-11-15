@@ -147,7 +147,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             }
             this.inBatch = false;
             this.collection = observedSet;
-            this.persistentFlags = flags & 31751 /* persistentBindingFlags */;
+            this.persistentFlags = flags & 15367 /* persistentBindingFlags */;
             this.indexMap = observation_1.createIndexMap(observedSet.size);
             this.lifecycle = lifecycle;
             this.lengthObserver = (void 0);

@@ -8,23 +8,21 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 import { subscriberCollection } from '@aurelia/runtime';
-import { EventSubscriber } from './event-delegator';
-// TODO: handle file attribute properly again, etc
 /**
  * Observer for non-radio, non-checkbox input.
  */
 let ValueAttributeObserver = class ValueAttributeObserver {
-    constructor(flags, handler, obj, propertyKey) {
-        this.handler = handler;
-        this.obj = obj;
+    constructor(obj, propertyKey, handler) {
         this.propertyKey = propertyKey;
+        this.handler = handler;
         this.currentValue = '';
         this.oldValue = '';
+        this.persistentFlags = 0 /* none */;
         this.hasChanges = false;
         // ObserverType.Layout is not always true, it depends on the element & property combo
         // but for simplicity, always treat as such
         this.type = 2 /* Node */ | 1 /* Observer */ | 64 /* Layout */;
-        this.persistentFlags = flags & 12295 /* targetObserverFlags */;
+        this.obj = obj;
     }
     getValue() {
         // is it safe to assume the observer has the latest value?
@@ -34,7 +32,7 @@ let ValueAttributeObserver = class ValueAttributeObserver {
     setValue(newValue, flags) {
         this.currentValue = newValue;
         this.hasChanges = newValue !== this.oldValue;
-        if ((flags & 4096 /* noFlush */) === 0) {
+        if (!this.handler.config.readonly && (flags & 4096 /* noFlush */) === 0) {
             this.flushChanges(flags);
         }
     }
@@ -44,12 +42,7 @@ let ValueAttributeObserver = class ValueAttributeObserver {
             const currentValue = this.currentValue;
             const oldValue = this.oldValue;
             this.oldValue = currentValue;
-            if (currentValue == void 0) {
-                this.obj[this.propertyKey] = '';
-            }
-            else {
-                this.obj[this.propertyKey] = currentValue;
-            }
+            this.obj[this.propertyKey] = currentValue !== null && currentValue !== void 0 ? currentValue : this.handler.config.default;
             if ((flags & 32 /* fromBind */) === 0) {
                 this.callSubscribers(currentValue, oldValue, flags);
             }
@@ -71,15 +64,14 @@ let ValueAttributeObserver = class ValueAttributeObserver {
         this.addSubscriber(subscriber);
     }
     unsubscribe(subscriber) {
-        this.removeSubscriber(subscriber);
-        if (!this.hasSubscribers()) {
+        if (this.removeSubscriber(subscriber) && !this.hasSubscribers()) {
             this.handler.dispose();
         }
     }
 };
 ValueAttributeObserver = __decorate([
     subscriberCollection(),
-    __metadata("design:paramtypes", [Number, EventSubscriber, Object, String])
+    __metadata("design:paramtypes", [Object, Object, Function])
 ], ValueAttributeObserver);
 export { ValueAttributeObserver };
 //# sourceMappingURL=value-attribute-observer.js.map

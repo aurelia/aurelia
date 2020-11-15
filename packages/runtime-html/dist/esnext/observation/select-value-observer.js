@@ -7,8 +7,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-import { IObserverLocator, subscriberCollection, } from '@aurelia/runtime';
-import { EventSubscriber } from './event-delegator';
+import { subscriberCollection, } from '@aurelia/runtime';
 import { IPlatform } from '../platform';
 const hasOwn = Object.prototype.hasOwnProperty;
 const childObserverOptions = {
@@ -20,11 +19,11 @@ function defaultMatcher(a, b) {
     return a === b;
 }
 let SelectValueObserver = class SelectValueObserver {
-    constructor(observerLocator, platform, handler, obj) {
-        this.observerLocator = observerLocator;
-        this.platform = platform;
+    constructor(obj, 
+    // deepscan-disable-next-line
+    _key, handler, observerLocator, locator) {
         this.handler = handler;
-        this.obj = obj;
+        this.observerLocator = observerLocator;
         this.currentValue = void 0;
         this.oldValue = void 0;
         this.persistentFlags = 0 /* none */;
@@ -35,6 +34,8 @@ let SelectValueObserver = class SelectValueObserver {
         this.arrayObserver = void 0;
         this.nodeObserver = void 0;
         this.observing = false;
+        this.obj = obj;
+        this.platform = locator.get(IPlatform);
     }
     getValue() {
         // is it safe to assume the observer has the latest value?
@@ -235,7 +236,7 @@ let SelectValueObserver = class SelectValueObserver {
 };
 SelectValueObserver = __decorate([
     subscriberCollection(),
-    __metadata("design:paramtypes", [Object, Object, EventSubscriber, Object])
+    __metadata("design:paramtypes", [Object, Object, Function, Object, Object])
 ], SelectValueObserver);
 export { SelectValueObserver };
 //# sourceMappingURL=select-value-observer.js.map

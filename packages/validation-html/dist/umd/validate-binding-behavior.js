@@ -65,7 +65,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             this.propertyBinding = (void 0);
             this.target = (void 0);
             this.isChangeTrigger = false;
-            this.connectedExpressions = [];
             this.hostScope = null;
             this.triggerMediator = new runtime_html_1.BindingMediator('handleTriggerChange', this, this.observerLocator, this.locator);
             this.controllerMediator = new runtime_html_1.BindingMediator('handleControllerChange', this, this.observerLocator, this.locator);
@@ -160,24 +159,19 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             const args = expression.args;
             for (let i = 0, ii = args.length; i < ii; i++) {
                 const arg = args[i];
-                const temp = arg.evaluate(evaluationFlags, scope, hostScope, locator, null);
                 switch (i) {
                     case 0:
-                        trigger = this.ensureTrigger(temp);
-                        arg.connect(flags, scope, hostScope, this.triggerMediator);
+                        trigger = this.ensureTrigger(arg.evaluate(evaluationFlags, scope, hostScope, locator, this.triggerMediator));
                         break;
                     case 1:
-                        controller = this.ensureController(temp);
-                        arg.connect(flags, scope, hostScope, this.controllerMediator);
+                        controller = this.ensureController(arg.evaluate(evaluationFlags, scope, hostScope, locator, this.controllerMediator));
                         break;
                     case 2:
-                        rules = this.ensureRules(temp);
-                        arg.connect(flags, scope, hostScope, this.rulesMediator);
+                        rules = this.ensureRules(arg.evaluate(evaluationFlags, scope, hostScope, locator, this.rulesMediator));
                         break;
                     default:
-                        throw new Error(`Unconsumed argument#${i + 1} for validate binding behavior: ${temp}`); // TODO: use reporter
+                        throw new Error(`Unconsumed argument#${i + 1} for validate binding behavior: ${arg.evaluate(evaluationFlags, scope, hostScope, locator, null)}`);
                 }
-                this.connectedExpressions.push(arg);
             }
             return new ValidateArgumentsDelta(this.ensureController(controller), this.ensureTrigger(trigger), rules);
         }

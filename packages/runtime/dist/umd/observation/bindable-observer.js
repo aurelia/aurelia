@@ -52,7 +52,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                     : currentValue;
                 this.createGetterSetter();
             }
-            this.persistentFlags = flags & 31751 /* persistentBindingFlags */;
+            this.persistentFlags = flags & 15367 /* persistentBindingFlags */;
         }
         handleChange(newValue, oldValue, flags) {
             this.setValue(newValue, flags);

@@ -1,5 +1,5 @@
 import { Registration, } from '@aurelia/kernel';
-import { IDirtyChecker, IObserverLocator, Scope, ITargetAccessorLocator, ITargetObserverLocator, OverrideContext, } from '@aurelia/runtime-html';
+import { IDirtyChecker, IObserverLocator, Scope, OverrideContext, INodeObserverLocator, } from '@aurelia/runtime-html';
 import { createContainer } from './test-context';
 // import {
 //   IInstruction,
@@ -406,8 +406,7 @@ export function createObserverLocator(containerOrLifecycle) {
         }
     };
     Registration.instance(IDirtyChecker, null).register(container);
-    Registration.instance(ITargetObserverLocator, dummyLocator).register(container);
-    Registration.instance(ITargetAccessorLocator, dummyLocator).register(container);
+    Registration.instance(INodeObserverLocator, dummyLocator).register(container);
     return container.get(IObserverLocator);
 }
 export function createScopeForTest(bindingContext = {}, parentBindingContext, isComponentBoundary) {

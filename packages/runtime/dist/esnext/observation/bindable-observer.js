@@ -40,7 +40,7 @@ let BindableObserver = BindableObserver_1 = class BindableObserver {
                 : currentValue;
             this.createGetterSetter();
         }
-        this.persistentFlags = flags & 31751 /* persistentBindingFlags */;
+        this.persistentFlags = flags & 15367 /* persistentBindingFlags */;
     }
     handleChange(newValue, oldValue, flags) {
         this.setValue(newValue, flags);

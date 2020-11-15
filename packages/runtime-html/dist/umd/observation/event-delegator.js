@@ -96,22 +96,22 @@
     }
     exports.DelegateSubscription = DelegateSubscription;
     class EventSubscriber {
-        constructor(events) {
-            this.events = events;
+        constructor(config) {
+            this.config = config;
             this.target = null;
             this.handler = null;
         }
         subscribe(node, callbackOrListener) {
             this.target = node;
             this.handler = callbackOrListener;
-            for (const event of this.events) {
+            for (const event of this.config.events) {
                 node.addEventListener(event, callbackOrListener);
             }
         }
         dispose() {
             const { target, handler } = this;
             if (target !== null && handler !== null) {
-                for (const event of this.events) {
+                for (const event of this.config.events) {
                     target.removeEventListener(event, handler);
                 }
             }

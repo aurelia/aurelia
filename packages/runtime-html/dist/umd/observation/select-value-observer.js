@@ -13,14 +13,13 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/runtime", "./event-delegator", "../platform"], factory);
+        define(["require", "exports", "@aurelia/runtime", "../platform"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.SelectValueObserver = void 0;
     const runtime_1 = require("@aurelia/runtime");
-    const event_delegator_1 = require("./event-delegator");
     const platform_1 = require("../platform");
     const hasOwn = Object.prototype.hasOwnProperty;
     const childObserverOptions = {
@@ -32,11 +31,11 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         return a === b;
     }
     let SelectValueObserver = class SelectValueObserver {
-        constructor(observerLocator, platform, handler, obj) {
-            this.observerLocator = observerLocator;
-            this.platform = platform;
+        constructor(obj, 
+        // deepscan-disable-next-line
+        _key, handler, observerLocator, locator) {
             this.handler = handler;
-            this.obj = obj;
+            this.observerLocator = observerLocator;
             this.currentValue = void 0;
             this.oldValue = void 0;
             this.persistentFlags = 0 /* none */;
@@ -47,6 +46,8 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             this.arrayObserver = void 0;
             this.nodeObserver = void 0;
             this.observing = false;
+            this.obj = obj;
+            this.platform = locator.get(platform_1.IPlatform);
         }
         getValue() {
             // is it safe to assume the observer has the latest value?
@@ -247,7 +248,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     };
     SelectValueObserver = __decorate([
         runtime_1.subscriberCollection(),
-        __metadata("design:paramtypes", [Object, Object, event_delegator_1.EventSubscriber, Object])
+        __metadata("design:paramtypes", [Object, Object, Function, Object, Object])
     ], SelectValueObserver);
     exports.SelectValueObserver = SelectValueObserver;
 });

@@ -10,7 +10,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-import { DI, isArrayIndex } from '@aurelia/kernel';
+import { DI, isArrayIndex, ILogger } from '@aurelia/kernel';
 import { ILifecycle, } from '../observation';
 import { getArrayObserver } from './array-observer';
 import { createComputedObserver } from './computed-observer';
@@ -21,14 +21,30 @@ import { propertyAccessor } from './property-accessor';
 import { getSetObserver } from './set-observer';
 import { SetterObserver } from './setter-observer';
 export const IObserverLocator = DI.createInterface('IObserverLocator').withDefault(x => x.singleton(ObserverLocator));
-export const ITargetObserverLocator = DI.createInterface('ITargetObserverLocator').noDefault();
-export const ITargetAccessorLocator = DI.createInterface('ITargetAccessorLocator').noDefault();
+export const INodeObserverLocator = DI
+    .createInterface('INodeObserverLocator')
+    .withDefault(x => x.cachedCallback(handler => {
+    handler.getAll(ILogger).forEach(logger => {
+        logger.error('Using default INodeObserverLocator implementation. Will not be able to observe nodes (HTML etc...).');
+    });
+    return new DefaultNodeObserverLocator();
+}));
+class DefaultNodeObserverLocator {
+    handles() {
+        return false;
+    }
+    getObserver() {
+        return propertyAccessor;
+    }
+    getAccessor() {
+        return propertyAccessor;
+    }
+}
 let ObserverLocator = class ObserverLocator {
-    constructor(lifecycle, dirtyChecker, targetObserverLocator, targetAccessorLocator) {
+    constructor(lifecycle, dirtyChecker, nodeObserverLocator) {
         this.lifecycle = lifecycle;
         this.dirtyChecker = dirtyChecker;
-        this.targetObserverLocator = targetObserverLocator;
-        this.targetAccessorLocator = targetAccessorLocator;
+        this.nodeObserverLocator = nodeObserverLocator;
         this.adapters = [];
     }
     addAdapter(adapter) {
@@ -44,14 +60,8 @@ let ObserverLocator = class ObserverLocator {
         if (cached !== void 0) {
             return cached;
         }
-        if (this.targetAccessorLocator.handles(flags, obj)) {
-            if (this.targetObserverLocator.overridesAccessor(flags, obj, key)) {
-                const observer = this.targetObserverLocator.getObserver(flags, this, obj, key);
-                if (observer !== null) {
-                    return this.cache(obj, key, observer);
-                }
-            }
-            return this.targetAccessorLocator.getAccessor(flags, obj, key);
+        if (this.nodeObserverLocator.handles(obj, key, this)) {
+            return this.nodeObserverLocator.getAccessor(obj, key, this);
         }
         return propertyAccessor;
     }
@@ -68,14 +78,8 @@ let ObserverLocator = class ObserverLocator {
         if (!(obj instanceof Object)) {
             return new PrimitiveObserver(obj, key);
         }
-        let isNode = false;
-        // Never use proxies for observing nodes, so check target observer first and only then evaluate proxy strategy
-        if (this.targetObserverLocator.handles(flags, obj)) {
-            const observer = this.targetObserverLocator.getObserver(flags, this, obj, key);
-            if (observer !== null) {
-                return observer;
-            }
-            isNode = true;
+        if (this.nodeObserverLocator.handles(obj, key, this)) {
+            return this.nodeObserverLocator.getObserver(obj, key, this);
         }
         switch (key) {
             case 'length':
@@ -131,15 +135,11 @@ let ObserverLocator = class ObserverLocator {
             if (obs !== null) {
                 return obs;
             }
-            if (isNode) {
-                // TODO: use MutationObserver
-                return this.dirtyChecker.createProperty(obj, key);
-            }
             return createComputedObserver(flags, this, this.dirtyChecker, this.lifecycle, obj, key, pd);
         }
         // Ordinary get/set observation (the common use case)
         // TODO: think about how to handle a data property that does not sit on the instance (should we do anything different?)
-        return new SetterObserver(flags, obj, key);
+        return new SetterObserver(obj, key);
     }
     getAdapterObserver(flags, obj, propertyName, pd) {
         if (this.adapters.length > 0) {
@@ -166,9 +166,8 @@ let ObserverLocator = class ObserverLocator {
 ObserverLocator = __decorate([
     __param(0, ILifecycle),
     __param(1, IDirtyChecker),
-    __param(2, ITargetObserverLocator),
-    __param(3, ITargetAccessorLocator),
-    __metadata("design:paramtypes", [Object, Object, Object, Object])
+    __param(2, INodeObserverLocator),
+    __metadata("design:paramtypes", [Object, Object, Object])
 ], ObserverLocator);
 export { ObserverLocator };
 export function getCollectionObserver(flags, lifecycle, collection) {

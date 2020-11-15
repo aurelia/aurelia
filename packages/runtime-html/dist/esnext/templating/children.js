@@ -127,7 +127,7 @@ let ChildrenObserver = ChildrenObserver_1 = class ChildrenObserver {
         this.observing = false;
         this.children = (void 0);
         this.callback = obj[cbName];
-        this.persistentFlags = flags & 31751 /* persistentBindingFlags */;
+        this.persistentFlags = flags & 15367 /* persistentBindingFlags */;
         Reflect.defineProperty(this.obj, this.propertyKey, {
             enumerable: true,
             configurable: true,

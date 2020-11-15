@@ -14,16 +14,16 @@ const $is = Object.is;
  * This is used for observing object properties that has no decorator.
  */
 let SetterObserver = class SetterObserver {
-    constructor(flags, obj, propertyKey) {
+    constructor(obj, propertyKey) {
         this.obj = obj;
         this.propertyKey = propertyKey;
         this.currentValue = void 0;
         this.oldValue = void 0;
+        this.persistentFlags = 0 /* none */;
         this.inBatch = false;
         this.observing = false;
         // todo(bigopon): tweak the flag based on typeof obj (array/set/map/iterator/proxy etc...)
         this.type = 4 /* Obj */;
-        this.persistentFlags = flags & 31751 /* persistentBindingFlags */;
     }
     getValue() {
         return this.currentValue;
@@ -32,7 +32,7 @@ let SetterObserver = class SetterObserver {
         if (this.observing) {
             const currentValue = this.currentValue;
             this.currentValue = newValue;
-            this.callSubscribers(newValue, currentValue, this.persistentFlags | flags);
+            this.callSubscribers(newValue, currentValue, flags);
         }
         else {
             // If subscribe() has been called, the target property descriptor is replaced by these getter/setter methods,
@@ -49,7 +49,7 @@ let SetterObserver = class SetterObserver {
         const currentValue = this.currentValue;
         const oldValue = this.oldValue;
         this.oldValue = currentValue;
-        this.callSubscribers(currentValue, oldValue, this.persistentFlags | flags);
+        this.callSubscribers(currentValue, oldValue, flags);
     }
     subscribe(subscriber) {
         if (this.observing === false) {
@@ -90,7 +90,7 @@ let SetterObserver = class SetterObserver {
 };
 SetterObserver = __decorate([
     subscriberCollection(),
-    __metadata("design:paramtypes", [Number, Object, String])
+    __metadata("design:paramtypes", [Object, String])
 ], SetterObserver);
 export { SetterObserver };
 let SetterNotifier = class SetterNotifier {

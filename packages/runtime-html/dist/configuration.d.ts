@@ -1,8 +1,7 @@
 import { IContainer, IRegistry } from '@aurelia/kernel';
 import { AuSlot } from './resources/custom-elements/au-slot';
 export declare const ITemplateCompilerRegistration: IRegistry;
-export declare const ITargetAccessorLocatorRegistration: IRegistry;
-export declare const ITargetObserverLocatorRegistration: IRegistry;
+export declare const INodeObserverLocatorRegistration: IRegistry;
 /**
  * Default HTML-specific (but environment-agnostic) implementations for the following interfaces:
  * - `ITemplateCompiler`

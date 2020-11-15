@@ -1,14 +1,14 @@
 import { emptyArray, kebabCase } from '@aurelia/kernel';
 export class StyleAttributeAccessor {
-    constructor(flags, obj) {
+    constructor(obj) {
+        this.obj = obj;
         this.currentValue = '';
         this.oldValue = '';
+        this.persistentFlags = 0 /* none */;
         this.styles = {};
         this.version = 0;
         this.hasChanges = false;
         this.type = 2 /* Node */ | 64 /* Layout */;
-        this.obj = obj;
-        this.persistentFlags = flags & 12295 /* targetObserverFlags */;
     }
     getValue() {
         return this.obj.style.cssText;

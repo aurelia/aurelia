@@ -1,6 +1,8 @@
-import { CollectionKind, IAccessor, ICollectionObserver, IndexMap, ISubscriber, ISubscriberCollection, LifecycleFlags, SetterObserver, ILifecycle, AccessorType } from '@aurelia/runtime';
-import { EventSubscriber } from './event-delegator';
-import { ValueAttributeObserver } from './value-attribute-observer';
+import { CollectionKind, LifecycleFlags, SetterObserver, AccessorType } from '@aurelia/runtime';
+import type { INode } from '../dom';
+import type { EventSubscriber } from './event-delegator';
+import type { ValueAttributeObserver } from './value-attribute-observer';
+import type { ICollectionObserver, IndexMap, ISubscriber, ISubscriberCollection, IObserver, IObserverLocator } from '@aurelia/runtime';
 export interface IInputElement extends HTMLInputElement {
     model?: unknown;
     $observers?: {
@@ -12,18 +14,19 @@ export interface IInputElement extends HTMLInputElement {
 declare function defaultMatcher(a: unknown, b: unknown): boolean;
 export interface CheckedObserver extends ISubscriberCollection {
 }
-export declare class CheckedObserver implements IAccessor {
-    lifecycle: ILifecycle;
+export declare class CheckedObserver implements IObserver {
     readonly handler: EventSubscriber;
-    readonly obj: IInputElement;
+    readonly observerLocator: IObserverLocator;
     currentValue: unknown;
     oldValue: unknown;
+    readonly obj: IInputElement;
     readonly persistentFlags: LifecycleFlags;
     hasChanges: boolean;
     type: AccessorType;
     collectionObserver?: ICollectionObserver<CollectionKind>;
     valueObserver?: ValueAttributeObserver | SetterObserver;
-    constructor(flags: LifecycleFlags, lifecycle: ILifecycle, handler: EventSubscriber, obj: IInputElement);
+    subscriberCount: number;
+    constructor(obj: INode, _key: PropertyKey, handler: EventSubscriber, observerLocator: IObserverLocator);
     getValue(): unknown;
     setValue(newValue: unknown, flags: LifecycleFlags): void;
     flushChanges(flags: LifecycleFlags): void;
@@ -31,8 +34,10 @@ export declare class CheckedObserver implements IAccessor {
     handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void;
     synchronizeElement(): void;
     handleEvent(): void;
-    bind(flags: LifecycleFlags): void;
-    unbind(flags: LifecycleFlags): void;
+    bind(_flags: LifecycleFlags): void;
+    unbind(_flags: LifecycleFlags): void;
+    start(): void;
+    stop(): void;
     subscribe(subscriber: ISubscriber): void;
     unsubscribe(subscriber: ISubscriber): void;
 }

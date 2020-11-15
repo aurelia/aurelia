@@ -124,7 +124,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             flags |= 4 /* isStrictBindingStrategy */;
             // Store flags which we can only receive during $bind and need to pass on
             // to the AST during evaluate/connect/assign
-            this.persistentFlags = flags & 31751 /* persistentBindingFlags */;
+            this.persistentFlags = flags & 15367 /* persistentBindingFlags */;
             this.$scope = scope;
             this.$hostScope = hostScope;
             let sourceExpression = this.sourceExpression;

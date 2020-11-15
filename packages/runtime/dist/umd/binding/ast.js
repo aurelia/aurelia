@@ -320,9 +320,6 @@
         assign(f, s, hs, l, val) {
             return this.expression.assign(f, s, hs, l, val);
         }
-        connect(f, s, hs, b) {
-            this.expression.connect(f, s, hs, b);
-        }
         bind(f, s, hs, b) {
             if (this.expression.hasBind) {
                 this.expression.bind(f, s, hs, b);
@@ -375,19 +372,19 @@
             if (vc == null) {
                 throw new Error(`ValueConverter named '${this.name}' could not be found. Did you forget to register it as a dependency?`);
             }
-            if ('toView' in vc) {
-                // note: everything should be ISubscriber eventually
-                // for now, it's sort of internal thing where only built-in bindings are passed as connectable
-                // so it by default satisfies ISubscriber constrain
-                if (c !== null && ('handleChange' in c)) {
-                    const signals = vc.signals;
-                    if (signals != null) {
-                        const signaler = l.get(signaler_1.ISignaler);
-                        for (let i = 0, ii = signals.length; i < ii; ++i) {
-                            signaler.addSignalListener(signals[i], c);
-                        }
+            // note: everything should be ISubscriber eventually
+            // for now, it's sort of internal thing where only built-in bindings are passed as connectable
+            // so it by default satisfies ISubscriber constrain
+            if (c !== null && ('handleChange' in c)) {
+                const signals = vc.signals;
+                if (signals != null) {
+                    const signaler = l.get(signaler_1.ISignaler);
+                    for (let i = 0, ii = signals.length; i < ii; ++i) {
+                        signaler.addSignalListener(signals[i], c);
                     }
                 }
+            }
+            if ('toView' in vc) {
                 return vc.toView.call(vc, this.expression.evaluate(f, s, hs, l, c), ...this.args.map(a => a.evaluate(f, s, hs, l, c)));
             }
             return this.expression.evaluate(f, s, hs, l, c);
@@ -401,23 +398,6 @@
                 val = vc.fromView.call(vc, val, ...this.args.map(a => a.evaluate(f, s, hs, l, null)));
             }
             return this.expression.assign(f, s, hs, l, val);
-        }
-        connect(f, s, hs, b) {
-            this.expression.connect(f, s, hs, b);
-            for (let i = 0; i < this.args.length; ++i) {
-                this.args[i].connect(f, s, hs, b);
-            }
-            const vc = b.locator.get(this.converterKey);
-            if (vc == null) {
-                throw new Error(`ValueConverter named '${this.name}' could not be found. Did you forget to register it as a dependency?`);
-            }
-            if (vc.signals === void 0) {
-                return;
-            }
-            const signaler = b.locator.get(signaler_1.ISignaler);
-            for (let i = 0; i < vc.signals.length; ++i) {
-                signaler.addSignalListener(vc.signals[i], b);
-            }
         }
         unbind(_f, _s, _hs, b) {
             const vc = b.locator.get(this.converterKey);
@@ -448,9 +428,6 @@
         evaluate(f, s, hs, l, c) {
             return this.target.assign(f, s, hs, l, this.value.evaluate(f, s, hs, l, c));
         }
-        connect(_f, _s, _hs, _b) {
-            return;
-        }
         assign(f, s, hs, l, val) {
             this.value.assign(f, s, hs, l, val);
             return this.target.assign(f, s, hs, l, val);
@@ -477,16 +454,6 @@
         }
         assign(_f, _s, _hs, _l, _obj) {
             return void 0;
-        }
-        connect(f, s, hs, b) {
-            if (this.condition.evaluate(f, s, hs, b.locator, null)) {
-                this.condition.connect(f, s, hs, b);
-                this.yes.connect(f, s, hs, b);
-            }
-            else {
-                this.condition.connect(f, s, hs, b);
-                this.no.connect(f, s, hs, b);
-            }
         }
         accept(visitor) {
             return visitor.visitConditional(this);
@@ -519,9 +486,6 @@
         }
         assign(_f, _s, _hs, _l, _obj) {
             return void 0;
-        }
-        connect(_f, _s, _hs, _b) {
-            return;
         }
         accept(visitor) {
             return visitor.visitAccessThis(this);
@@ -569,10 +533,6 @@
             }
             return void 0;
         }
-        connect(f, s, hs, b) {
-            const context = binding_context_1.BindingContext.get(chooseScope(this.accessHostScope, s, hs), this.name, this.ancestor, f, hs);
-            b.observeProperty(f, context, this.name);
-        }
         accept(visitor) {
             return visitor.visitAccessScope(this);
         }
@@ -590,7 +550,7 @@
         get hasBind() { return false; }
         get hasUnbind() { return false; }
         evaluate(f, s, hs, l, c) {
-            const instance = this.object.evaluate(f, s, hs, l, c);
+            const instance = this.object.evaluate(f, s, hs, l, (f & 2048 /* observeLeafPropertiesOnly */) > 0 ? null : c);
             if (f & 4 /* isStrictBindingStrategy */) {
                 if (instance == null) {
                     return instance;
@@ -620,15 +580,6 @@
             }
             return val;
         }
-        connect(f, s, hs, b) {
-            const obj = this.object.evaluate(f, s, hs, b.locator, null);
-            if ((f & 2048 /* observeLeafPropertiesOnly */) === 0) {
-                this.object.connect(f, s, hs, b);
-            }
-            if (obj instanceof Object) {
-                b.observeProperty(f, obj, this.name);
-            }
-        }
         accept(visitor) {
             return visitor.visitAccessMember(this);
         }
@@ -646,9 +597,9 @@
         get hasBind() { return false; }
         get hasUnbind() { return false; }
         evaluate(f, s, hs, l, c) {
-            const instance = this.object.evaluate(f, s, hs, l, c);
+            const instance = this.object.evaluate(f, s, hs, l, (f & 2048 /* observeLeafPropertiesOnly */) > 0 ? null : c);
             if (instance instanceof Object) {
-                const key = this.key.evaluate(f, s, hs, l, c);
+                const key = this.key.evaluate(f, s, hs, l, (f & 2048 /* observeLeafPropertiesOnly */) > 0 ? null : c);
                 if (c !== null) {
                     c.observeProperty(f, instance, key);
                 }
@@ -660,18 +611,6 @@
             const instance = this.object.evaluate(f, s, hs, l, null);
             const key = this.key.evaluate(f, s, hs, l, null);
             return instance[key] = val;
-        }
-        connect(f, s, hs, b) {
-            const obj = this.object.evaluate(f, s, hs, b.locator, null);
-            if ((f & 2048 /* observeLeafPropertiesOnly */) === 0) {
-                this.object.connect(f, s, hs, b);
-            }
-            if (obj instanceof Object) {
-                this.key.connect(f, s, hs, b);
-                const key = this.key.evaluate(f, s, hs, b.locator, null);
-                // (note: string indexers behave the same way as numeric indexers as long as they represent numbers)
-                b.observeProperty(f, obj, key);
-            }
         }
         accept(visitor) {
             return visitor.visitAccessKeyed(this);
@@ -707,11 +646,6 @@
         assign(_f, _s, _hs, _l, _obj) {
             return void 0;
         }
-        connect(f, s, hs, b) {
-            for (let i = 0; i < this.args.length; ++i) {
-                this.args[i].connect(f, s, hs, b);
-            }
-        }
         accept(visitor) {
             return visitor.visitCallScope(this);
         }
@@ -730,7 +664,7 @@
         get hasBind() { return false; }
         get hasUnbind() { return false; }
         evaluate(f, s, hs, l, c) {
-            const instance = this.object.evaluate(f, s, hs, l, c);
+            const instance = this.object.evaluate(f, s, hs, l, (f & 2048 /* observeLeafPropertiesOnly */) > 0 ? null : c);
             const args = this.args.map(a => a.evaluate(f, s, hs, l, c));
             const func = getFunction(f, instance, this.name);
             if (func) {
@@ -740,17 +674,6 @@
         }
         assign(_f, _s, _hs, _l, _obj) {
             return void 0;
-        }
-        connect(f, s, hs, b) {
-            const obj = this.object.evaluate(f, s, hs, b.locator, null);
-            if ((f & 2048 /* observeLeafPropertiesOnly */) === 0) {
-                this.object.connect(f, s, hs, b);
-            }
-            if (getFunction(f & ~128 /* mustEvaluate */, obj, this.name)) {
-                for (let i = 0; i < this.args.length; ++i) {
-                    this.args[i].connect(f, s, hs, b);
-                }
-            }
         }
         accept(visitor) {
             return visitor.visitCallMember(this);
@@ -780,15 +703,6 @@
         }
         assign(_f, _s, _hs, _l, _obj) {
             return void 0;
-        }
-        connect(f, s, hs, b) {
-            const func = this.func.evaluate(f, s, hs, b.locator, null);
-            this.func.connect(f, s, hs, b);
-            if (typeof func === 'function') {
-                for (let i = 0; i < this.args.length; ++i) {
-                    this.args[i].connect(f, s, hs, b);
-                }
-            }
         }
         accept(visitor) {
             return visitor.visitCallFunction(this);
@@ -883,10 +797,6 @@
         assign(_f, _s, _hs, _l, _obj) {
             return void 0;
         }
-        connect(f, s, hs, b) {
-            this.left.connect(f, s, hs, b);
-            this.right.connect(f, s, hs, b);
-        }
         accept(visitor) {
             return visitor.visitBinary(this);
         }
@@ -922,9 +832,6 @@
         assign(_f, _s, _hs, _l, _obj) {
             return void 0;
         }
-        connect(f, s, hs, b) {
-            this.expression.connect(f, s, hs, b);
-        }
         accept(visitor) {
             return visitor.visitUnary(this);
         }
@@ -945,9 +852,6 @@
         }
         assign(_f, _s, _hs, _l, _obj) {
             return void 0;
-        }
-        connect(_f, _s, _hs, _b) {
-            return;
         }
         accept(visitor) {
             return visitor.visitPrimitiveLiteral(this);
@@ -983,11 +887,6 @@
         assign(_f, _s, _hs, _l, _obj, _projection) {
             return void 0;
         }
-        connect(f, s, hs, b) {
-            for (let i = 0; i < this.parts.length; ++i) {
-                this.parts[i].connect(f, s, hs, b);
-            }
-        }
         accept(visitor) {
             return visitor.visitHtmlLiteral(this);
         }
@@ -1008,11 +907,6 @@
         }
         assign(_f, _s, _hs, _l, _obj) {
             return void 0;
-        }
-        connect(f, s, hs, b) {
-            for (let i = 0; i < this.elements.length; ++i) {
-                this.elements[i].connect(f, s, hs, b);
-            }
         }
         accept(visitor) {
             return visitor.visitArrayLiteral(this);
@@ -1041,11 +935,6 @@
         assign(_f, _s, _hs, _l, _obj) {
             return void 0;
         }
-        connect(f, s, hs, b) {
-            for (let i = 0; i < this.keys.length; ++i) {
-                this.values[i].connect(f, s, hs, b);
-            }
-        }
         accept(visitor) {
             return visitor.visitObjectLiteral(this);
         }
@@ -1073,12 +962,6 @@
         }
         assign(_f, _s, _hs, _l, _obj) {
             return void 0;
-        }
-        connect(f, s, hs, b) {
-            for (let i = 0; i < this.expressions.length; ++i) {
-                this.expressions[i].connect(f, s, hs, b);
-                i++;
-            }
         }
         accept(visitor) {
             return visitor.visitTemplate(this);
@@ -1110,12 +993,6 @@
         assign(_f, _s, _hs, _l, _obj) {
             return void 0;
         }
-        connect(f, s, hs, b) {
-            for (let i = 0; i < this.expressions.length; ++i) {
-                this.expressions[i].connect(f, s, hs, b);
-            }
-            this.func.connect(f, s, hs, b);
-        }
         accept(visitor) {
             return visitor.visitTaggedTemplate(this);
         }
@@ -1139,9 +1016,6 @@
         assign(_f, _s, _hs, _l, _obj) {
             // TODO
             return void 0;
-        }
-        connect(_f, _s, _hs, _b) {
-            return;
         }
         accept(visitor) {
             return visitor.visitArrayBindingPattern(this);
@@ -1168,9 +1042,6 @@
             // TODO
             return void 0;
         }
-        connect(_f, _s, _hs, _b) {
-            return;
-        }
         accept(visitor) {
             return visitor.visitObjectBindingPattern(this);
         }
@@ -1188,9 +1059,6 @@
         get hasUnbind() { return false; }
         evaluate(_f, _s, _hs, _l, _c) {
             return this.name;
-        }
-        connect(_f, _s, _hs, _b) {
-            return;
         }
         accept(visitor) {
             return visitor.visitBindingIdentifier(this);
@@ -1240,10 +1108,6 @@
                 default: throw new Error(`Cannot iterate over ${toStringTag.call(result)}`);
             }
         }
-        connect(f, s, hs, b) {
-            this.declaration.connect(f, s, hs, b);
-            this.iterable.connect(f, s, hs, b);
-        }
         bind(f, s, hs, b) {
             if (this.iterable.hasBind) {
                 this.iterable.bind(f, s, hs, b);
@@ -1292,9 +1156,6 @@
         }
         assign(_f, _s, _hs, _l, _obj) {
             return void 0;
-        }
-        connect(_f, _s, _hs, _b) {
-            return;
         }
         accept(visitor) {
             return visitor.visitInterpolation(this);

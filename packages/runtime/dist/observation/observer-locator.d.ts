@@ -1,4 +1,4 @@
-import { AccessorOrObserver, CollectionKind, CollectionObserver, IBindingTargetAccessor, IBindingTargetObserver, ICollectionObserver, ILifecycle, IObservedArray, IObservedMap, IObservedSet, LifecycleFlags } from '../observation';
+import { AccessorOrObserver, CollectionKind, CollectionObserver, IAccessor, IBindingTargetAccessor, IBindingTargetObserver, ICollectionObserver, ILifecycle, IObservedArray, IObservedMap, IObservedSet, IObserver, LifecycleFlags } from '../observation';
 import { IDirtyChecker } from './dirty-checker';
 export interface IObjectObservationAdapter {
     getObserver(flags: LifecycleFlags, object: unknown, propertyName: string, descriptor: PropertyDescriptor): IBindingTargetObserver | null;
@@ -6,24 +6,18 @@ export interface IObjectObservationAdapter {
 export interface IObserverLocator extends ObserverLocator {
 }
 export declare const IObserverLocator: import("@aurelia/kernel").InterfaceSymbol<IObserverLocator>;
-export interface ITargetObserverLocator {
-    getObserver(flags: LifecycleFlags, observerLocator: IObserverLocator, obj: unknown, propertyName: string): IBindingTargetAccessor | IBindingTargetObserver | null;
-    overridesAccessor(flags: LifecycleFlags, obj: unknown, propertyName: string): boolean;
-    handles(flags: LifecycleFlags, obj: unknown): boolean;
+export interface INodeObserverLocator {
+    handles(obj: unknown, key: PropertyKey, requestor: IObserverLocator): boolean;
+    getObserver(obj: object, key: PropertyKey, requestor: IObserverLocator): IAccessor | IObserver;
+    getAccessor(obj: object, key: PropertyKey, requestor: IObserverLocator): IAccessor | IObserver;
 }
-export declare const ITargetObserverLocator: import("@aurelia/kernel").InterfaceSymbol<ITargetObserverLocator>;
-export interface ITargetAccessorLocator {
-    getAccessor(flags: LifecycleFlags, obj: unknown, propertyName: string): IBindingTargetAccessor;
-    handles(flags: LifecycleFlags, obj: unknown): boolean;
-}
-export declare const ITargetAccessorLocator: import("@aurelia/kernel").InterfaceSymbol<ITargetAccessorLocator>;
+export declare const INodeObserverLocator: import("@aurelia/kernel").InterfaceSymbol<INodeObserverLocator>;
 export declare class ObserverLocator {
     private readonly lifecycle;
     private readonly dirtyChecker;
-    private readonly targetObserverLocator;
-    private readonly targetAccessorLocator;
+    private readonly nodeObserverLocator;
     private readonly adapters;
-    constructor(lifecycle: ILifecycle, dirtyChecker: IDirtyChecker, targetObserverLocator: ITargetObserverLocator, targetAccessorLocator: ITargetAccessorLocator);
+    constructor(lifecycle: ILifecycle, dirtyChecker: IDirtyChecker, nodeObserverLocator: INodeObserverLocator);
     addAdapter(adapter: IObjectObservationAdapter): void;
     getObserver(flags: LifecycleFlags, obj: object, key: string): AccessorOrObserver;
     getAccessor(flags: LifecycleFlags, obj: object, key: string): IBindingTargetAccessor;

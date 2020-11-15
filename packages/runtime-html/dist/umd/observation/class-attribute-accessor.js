@@ -12,17 +12,17 @@
     exports.getClassesToAdd = exports.ClassAttributeAccessor = void 0;
     const kernel_1 = require("@aurelia/kernel");
     class ClassAttributeAccessor {
-        constructor(flags, obj) {
+        constructor(obj) {
+            this.obj = obj;
             this.currentValue = '';
             this.oldValue = '';
+            this.persistentFlags = 0 /* none */;
             this.doNotCache = true;
             this.nameIndex = {};
             this.version = 0;
             this.hasChanges = false;
             this.isActive = false;
             this.type = 2 /* Node */ | 64 /* Layout */;
-            this.obj = obj;
-            this.persistentFlags = flags & 12295 /* targetObserverFlags */;
         }
         getValue() {
             // is it safe to assume the observer has the latest value?
@@ -81,15 +81,11 @@
     }
     exports.ClassAttributeAccessor = ClassAttributeAccessor;
     function getClassesToAdd(object) {
-        function splitClassString(classString) {
-            const matches = classString.match(/\S+/g);
-            if (matches === null) {
-                return kernel_1.emptyArray;
-            }
-            return matches;
-        }
         if (typeof object === 'string') {
             return splitClassString(object);
+        }
+        if (typeof object !== 'object') {
+            return kernel_1.emptyArray;
         }
         if (object instanceof Array) {
             const len = object.length;
@@ -104,25 +100,29 @@
                 return kernel_1.emptyArray;
             }
         }
-        else if (object instanceof Object) {
-            const classes = [];
-            for (const property in object) {
-                // Let non typical values also evaluate true so disable bool check
-                // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, no-extra-boolean-cast
-                if (Boolean(object[property])) {
-                    // We must do this in case object property has a space in the name which results in two classes
-                    if (property.includes(' ')) {
-                        classes.push(...splitClassString(property));
-                    }
-                    else {
-                        classes.push(property);
-                    }
+        const classes = [];
+        for (const property in object) {
+            // Let non typical values also evaluate true so disable bool check
+            // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, no-extra-boolean-cast
+            if (Boolean(object[property])) {
+                // We must do this in case object property has a space in the name which results in two classes
+                if (property.includes(' ')) {
+                    classes.push(...splitClassString(property));
+                }
+                else {
+                    classes.push(property);
                 }
             }
-            return classes;
         }
-        return kernel_1.emptyArray;
+        return classes;
     }
     exports.getClassesToAdd = getClassesToAdd;
+    function splitClassString(classString) {
+        const matches = classString.match(/\S+/g);
+        if (matches === null) {
+            return kernel_1.emptyArray;
+        }
+        return matches;
+    }
 });
 //# sourceMappingURL=class-attribute-accessor.js.map

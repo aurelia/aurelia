@@ -34,24 +34,25 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             this.isBound = false;
             this.contentAttributes = contentAttributes;
             this.hostScope = null;
+            this.parameter = null;
             this.target = target;
             this.i18n = this.locator.get(i18n_1.I18N);
             this.platform = this.locator.get(runtime_html_1.IPlatform);
-            const ea = this.locator.get(kernel_1.IEventAggregator);
-            ea.subscribe("i18n:locale:changed" /* I18N_EA_CHANNEL */, this.handleLocaleChange.bind(this));
             this.targetObservers = new Set();
+            this.i18n.subscribeLocaleChange(this);
+            runtime_html_1.connectable.assignIdTo(this);
         }
         static create({ parser, observerLocator, context, controller, target, instruction, isParameterContext, }) {
             const binding = this.getBinding({ observerLocator, context, controller, target });
             const expr = typeof instruction.from === 'string'
                 ? parser.parse(instruction.from, 53 /* BindCommand */)
                 : instruction.from;
-            if (!isParameterContext) {
-                const interpolation = expr instanceof runtime_html_1.CustomExpression ? parser.parse(expr.value, 2048 /* Interpolation */) : undefined;
-                binding.expr = interpolation || expr;
+            if (isParameterContext) {
+                binding.useParameter(expr);
             }
             else {
-                binding.parametersExpr = expr;
+                const interpolation = expr instanceof runtime_html_1.CustomExpression ? parser.parse(expr.value, 2048 /* Interpolation */) : undefined;
+                binding.expr = interpolation || expr;
             }
         }
         static getBinding({ observerLocator, context, controller, target, }) {
@@ -63,23 +64,16 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             return binding;
         }
         $bind(flags, scope, hostScope) {
+            var _a;
             if (!this.expr) {
                 throw new Error('key expression is missing');
-            } // TODO replace with error code
+            }
             this.scope = scope;
             this.hostScope = hostScope;
-            this.isInterpolatedSourceExpr = this.expr instanceof runtime_html_1.Interpolation;
-            this.keyExpression = this.expr.evaluate(flags, scope, hostScope, this.locator, null);
+            this.isInterpolation = this.expr instanceof runtime_html_1.Interpolation;
+            this.keyExpression = this.expr.evaluate(flags, scope, hostScope, this.locator, this);
             this.ensureKeyExpression();
-            if (this.parametersExpr) {
-                const parametersFlags = flags | 16384 /* secondaryExpression */;
-                this.translationParameters = this.parametersExpr.evaluate(parametersFlags, scope, hostScope, this.locator, null);
-                this.parametersExpr.connect(parametersFlags, scope, hostScope, this);
-            }
-            const expressions = !(this.expr instanceof runtime_html_1.CustomExpression) ? this.isInterpolatedSourceExpr ? this.expr.expressions : [this.expr] : [];
-            for (const expr of expressions) {
-                expr.connect(flags, scope, hostScope, this);
-            }
+            (_a = this.parameter) === null || _a === void 0 ? void 0 : _a.$bind(flags, scope, hostScope);
             this.updateTranslations(flags);
             this.isBound = true;
         }
@@ -91,30 +85,32 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             if (this.expr.hasUnbind) {
                 this.expr.unbind(flags, this.scope, this.hostScope, this);
             }
-            if ((_a = this.parametersExpr) === null || _a === void 0 ? void 0 : _a.hasUnbind) {
-                this.parametersExpr.unbind(flags | 16384 /* secondaryExpression */, this.scope, this.hostScope, this);
-            }
+            (_a = this.parameter) === null || _a === void 0 ? void 0 : _a.$unbind(flags);
             this.unobserveTargets(flags);
             this.scope = (void 0);
             this.unobserve(true);
         }
         handleChange(newValue, _previousValue, flags) {
-            if (flags & 16384 /* secondaryExpression */) {
-                this.translationParameters = this.parametersExpr.evaluate(flags, this.scope, this.hostScope, this.locator, null);
-            }
-            else {
-                this.keyExpression = this.isInterpolatedSourceExpr
-                    ? this.expr.evaluate(flags, this.scope, this.hostScope, this.locator, null)
-                    : newValue;
-                this.ensureKeyExpression();
-            }
+            this.version++;
+            this.keyExpression = this.isInterpolation
+                ? this.expr.evaluate(flags, this.scope, this.hostScope, this.locator, this)
+                : newValue;
+            this.unobserve(false);
+            this.ensureKeyExpression();
             this.updateTranslations(flags);
         }
         handleLocaleChange() {
             this.updateTranslations(0 /* none */);
         }
+        useParameter(expr) {
+            if (this.parameter != null) {
+                throw new Error('This translation parameter has already been specified.');
+            }
+            this.parameter = new ParameterBinding(this, expr, (flags) => this.updateTranslations(flags));
+        }
         updateTranslations(flags) {
-            const results = this.i18n.evaluate(this.keyExpression, this.translationParameters);
+            var _a;
+            const results = this.i18n.evaluate(this.keyExpression, (_a = this.parameter) === null || _a === void 0 ? void 0 : _a.value);
             const content = Object.create(null);
             this.unobserveTargets(flags);
             for (const item of results) {
@@ -210,7 +206,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         }
         ensureKeyExpression() {
             var _a;
-            const expr = this.keyExpression = (_a = this.keyExpression) !== null && _a !== void 0 ? _a : '';
+            const expr = (_a = this.keyExpression) !== null && _a !== void 0 ? _a : (this.keyExpression = '');
             const exprType = typeof expr;
             if (exprType !== 'string') {
                 throw new Error(`Expected the i18n key to be a string, but got ${expr} of type ${exprType}`); // TODO use reporter/logger
@@ -222,5 +218,52 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         __metadata("design:paramtypes", [Object, Object, Object])
     ], TranslationBinding);
     exports.TranslationBinding = TranslationBinding;
+    let ParameterBinding = class ParameterBinding {
+        constructor(owner, expr, updater) {
+            this.owner = owner;
+            this.expr = expr;
+            this.updater = updater;
+            this.isBound = false;
+            this.hostScope = null;
+            this.observerLocator = owner.observerLocator;
+            this.locator = owner.locator;
+            runtime_html_1.connectable.assignIdTo(this);
+        }
+        handleChange(newValue, _previousValue, flags) {
+            if ((flags & 8 /* updateTarget */) === 0) {
+                throw new Error('Unexpected context in a ParameterBinding.');
+            }
+            this.version++;
+            this.value = this.expr.evaluate(flags, this.scope, this.hostScope, this.locator, this);
+            this.unobserve(false);
+            this.updater(flags);
+        }
+        $bind(flags, scope, hostScope) {
+            if (this.isBound) {
+                return;
+            }
+            this.scope = scope;
+            this.hostScope = hostScope;
+            if (this.expr.hasBind) {
+                this.expr.bind(flags, scope, hostScope, this);
+            }
+            this.value = this.expr.evaluate(flags, scope, hostScope, this.locator, this);
+            this.isBound = true;
+        }
+        $unbind(flags) {
+            if (!this.isBound) {
+                return;
+            }
+            if (this.expr.hasUnbind) {
+                this.expr.unbind(flags, this.scope, this.hostScope, this);
+            }
+            this.scope = (void 0);
+            this.unobserve(true);
+        }
+    };
+    ParameterBinding = __decorate([
+        runtime_html_1.connectable(),
+        __metadata("design:paramtypes", [TranslationBinding, Object, Function])
+    ], ParameterBinding);
 });
 //# sourceMappingURL=translation-binding.js.map

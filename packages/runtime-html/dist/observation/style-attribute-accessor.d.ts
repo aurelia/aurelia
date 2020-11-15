@@ -1,5 +1,4 @@
 import { IAccessor, LifecycleFlags, AccessorType } from '@aurelia/runtime';
-import { INode } from '../dom';
 export declare class StyleAttributeAccessor implements IAccessor {
     readonly obj: HTMLElement;
     currentValue: unknown;
@@ -9,7 +8,7 @@ export declare class StyleAttributeAccessor implements IAccessor {
     version: number;
     hasChanges: boolean;
     type: AccessorType;
-    constructor(flags: LifecycleFlags, obj: INode);
+    constructor(obj: HTMLElement);
     getValue(): string;
     setValue(newValue: unknown, flags: LifecycleFlags): void;
     private getStyleTuplesFromString;

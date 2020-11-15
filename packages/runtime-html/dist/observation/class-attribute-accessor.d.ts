@@ -1,5 +1,4 @@
 import { IAccessor, LifecycleFlags, AccessorType } from '@aurelia/runtime';
-import { INode } from '../dom';
 export declare class ClassAttributeAccessor implements IAccessor {
     readonly obj: HTMLElement;
     currentValue: unknown;
@@ -11,7 +10,7 @@ export declare class ClassAttributeAccessor implements IAccessor {
     hasChanges: boolean;
     isActive: boolean;
     type: AccessorType;
-    constructor(flags: LifecycleFlags, obj: INode);
+    constructor(obj: HTMLElement);
     getValue(): unknown;
     setValue(newValue: unknown, flags: LifecycleFlags): void;
     flushChanges(flags: LifecycleFlags): void;

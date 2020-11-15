@@ -100,29 +100,28 @@ export enum BindingMode {
 }
 
 export const enum LifecycleFlags {
-  none                          = 0b00000_00_00_00_000,
+  none                          = 0b0000_000_00_00_000,
   // Bitmask for flags that need to be stored on a binding during $bind for mutation
   // callbacks outside of $bind
-  persistentBindingFlags        = 0b11111_000_00_00_111,
-  allowParentScopeTraversal     = 0b00001_000_00_00_000,
-  observeLeafPropertiesOnly     = 0b00010_000_00_00_000,
-  targetObserverFlags           = 0b01100_000_00_00_111,
-  noFlush                       = 0b00100_000_00_00_000,
-  persistentTargetObserverQueue = 0b01000_000_00_00_000,
-  secondaryExpression           = 0b10000_000_00_00_000,
-  bindingStrategy               = 0b00000_000_00_00_111,
-  getterSetterStrategy          = 0b00000_000_00_00_001,
-  proxyStrategy                 = 0b00000_000_00_00_010,
-  isStrictBindingStrategy       = 0b00000_000_00_00_100,
-  update                        = 0b00000_000_00_11_000,
-  updateTarget                  = 0b00000_000_00_01_000,
-  updateSource                  = 0b00000_000_00_10_000,
-  from                          = 0b00000_000_11_00_000,
-  fromBind                      = 0b00000_000_01_00_000,
-  fromUnbind                    = 0b00000_000_10_00_000,
-  mustEvaluate                  = 0b00000_001_00_00_000,
-  isTraversingParentScope       = 0b00000_010_00_00_000,
-  dispose                       = 0b00000_100_00_00_000,
+  persistentBindingFlags        = 0b1111_000_00_00_111,
+  allowParentScopeTraversal     = 0b0001_000_00_00_000,
+  observeLeafPropertiesOnly     = 0b0010_000_00_00_000,
+  targetObserverFlags           = 0b1100_000_00_00_111,
+  noFlush                       = 0b0100_000_00_00_000,
+  persistentTargetObserverQueue = 0b1000_000_00_00_000,
+  bindingStrategy               = 0b0000_000_00_00_111,
+  getterSetterStrategy          = 0b0000_000_00_00_001,
+  proxyStrategy                 = 0b0000_000_00_00_010,
+  isStrictBindingStrategy       = 0b0000_000_00_00_100,
+  update                        = 0b0000_000_00_11_000,
+  updateTarget                  = 0b0000_000_00_01_000,
+  updateSource                  = 0b0000_000_00_10_000,
+  from                          = 0b0000_000_11_00_000,
+  fromBind                      = 0b0000_000_01_00_000,
+  fromUnbind                    = 0b0000_000_10_00_000,
+  mustEvaluate                  = 0b0000_001_00_00_000,
+  isTraversingParentScope       = 0b0000_010_00_00_000,
+  dispose                       = 0b0000_100_00_00_000,
 }
 
 export interface IConnectable {
@@ -315,6 +314,8 @@ export interface IAccessor<TValue = unknown> {
   getValue(obj?: object, key?: PropertyKey): TValue;
   setValue(newValue: TValue, flags: LifecycleFlags, obj?: object, key?: PropertyKey): void;
 }
+
+export interface IObserver extends IAccessor, ISubscribable {}
 
 /**
  * Describes a target observer for to-view bindings (in other words, an observer without the observation).

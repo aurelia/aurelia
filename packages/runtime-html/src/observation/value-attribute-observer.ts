@@ -1,21 +1,21 @@
-import { IIndexable } from '@aurelia/kernel';
-import { IAccessor, ISubscriber, ISubscriberCollection, LifecycleFlags, subscriberCollection, AccessorType } from '@aurelia/runtime';
-import { EventSubscriber } from './event-delegator';
+import { LifecycleFlags, subscriberCollection, AccessorType } from '@aurelia/runtime';
 
-export interface ValueAttributeObserver
-  extends ISubscriberCollection {}
+import type { EventSubscriber } from './event-delegator';
+import type { INode } from '../dom';
+import type { IIndexable } from '@aurelia/kernel';
+import type { ISubscriberCollection, ISubscriber, IObserver } from '@aurelia/runtime';
 
-// TODO: handle file attribute properly again, etc
-
+export interface ValueAttributeObserver extends ISubscriberCollection {}
 /**
  * Observer for non-radio, non-checkbox input.
  */
 @subscriberCollection()
-export class ValueAttributeObserver implements IAccessor {
+export class ValueAttributeObserver implements IObserver {
+  public readonly obj: INode & IIndexable;
   public currentValue: unknown = '';
   public oldValue: unknown = '';
 
-  public readonly persistentFlags: LifecycleFlags;
+  public readonly persistentFlags: LifecycleFlags = LifecycleFlags.none;
 
   public hasChanges: boolean = false;
   // ObserverType.Layout is not always true, it depends on the element & property combo
@@ -23,12 +23,11 @@ export class ValueAttributeObserver implements IAccessor {
   public type: AccessorType = AccessorType.Node | AccessorType.Observer | AccessorType.Layout;
 
   public constructor(
-    flags: LifecycleFlags,
+    obj: INode,
+    public readonly propertyKey: PropertyKey,
     public readonly handler: EventSubscriber,
-    public readonly obj: Node & IIndexable,
-    public readonly propertyKey: string,
   ) {
-    this.persistentFlags = flags & LifecycleFlags.targetObserverFlags;
+    this.obj = obj as INode & IIndexable;
   }
 
   public getValue(): unknown {
@@ -40,7 +39,7 @@ export class ValueAttributeObserver implements IAccessor {
   public setValue(newValue: string | null, flags: LifecycleFlags): void {
     this.currentValue = newValue;
     this.hasChanges = newValue !== this.oldValue;
-    if ((flags & LifecycleFlags.noFlush) === 0) {
+    if (!this.handler.config.readonly && (flags & LifecycleFlags.noFlush) === 0) {
       this.flushChanges(flags);
     }
   }
@@ -51,11 +50,7 @@ export class ValueAttributeObserver implements IAccessor {
       const currentValue = this.currentValue;
       const oldValue = this.oldValue;
       this.oldValue = currentValue;
-      if (currentValue == void 0) {
-        this.obj[this.propertyKey] = '';
-      } else {
-        this.obj[this.propertyKey] = currentValue;
-      }
+      this.obj[this.propertyKey as string] = currentValue ?? this.handler.config.default;
 
       if ((flags & LifecycleFlags.fromBind) === 0) {
         this.callSubscribers(currentValue, oldValue, flags);
@@ -65,7 +60,7 @@ export class ValueAttributeObserver implements IAccessor {
 
   public handleEvent(): void {
     const oldValue = this.oldValue = this.currentValue;
-    const currentValue = this.currentValue = this.obj[this.propertyKey];
+    const currentValue = this.currentValue = this.obj[this.propertyKey as string];
     if (oldValue !== currentValue) {
       this.oldValue = currentValue;
       this.callSubscribers(currentValue, oldValue, LifecycleFlags.none);
@@ -75,14 +70,13 @@ export class ValueAttributeObserver implements IAccessor {
   public subscribe(subscriber: ISubscriber): void {
     if (!this.hasSubscribers()) {
       this.handler.subscribe(this.obj, this);
-      this.currentValue = this.oldValue = this.obj[this.propertyKey];
+      this.currentValue = this.oldValue = this.obj[this.propertyKey as string];
     }
     this.addSubscriber(subscriber);
   }
 
   public unsubscribe(subscriber: ISubscriber): void {
-    this.removeSubscriber(subscriber);
-    if (!this.hasSubscribers()) {
+    if (this.removeSubscriber(subscriber) && !this.hasSubscribers()) {
       this.handler.dispose();
     }
   }

@@ -17,8 +17,9 @@ import { ISelectElement, SelectValueObserver } from './select-value-observer';
 import { StyleAttributeAccessor } from './style-attribute-accessor';
 import { ISVGAnalyzer } from './svg-analyzer';
 import { ValueAttributeObserver } from './value-attribute-observer';
+import { AppTask } from '../app-task';
 
-import type { IContainer, IIndexable } from '@aurelia/kernel';
+import type { IIndexable } from '@aurelia/kernel';
 import type { IAccessor, IBindingTargetAccessor, IObserver, ICollectionObserver, CollectionKind } from '@aurelia/runtime';
 
 // https://infra.spec.whatwg.org/#namespaces
@@ -62,7 +63,9 @@ export class NodeEventConfig {
    */
   public readonly default?: unknown;
   public constructor(config: NodeEventConfig) {
-    Object.assign(this, config);
+    this.events = config.events;
+    this.readonly = config.readonly;
+    this.default = config.default;
   }
 }
 
@@ -75,21 +78,22 @@ export const DefaultNodeObserverLocatorRegistration: IRegistry = {
   register(container) {
     Registration.singleton(INodeObserverLocator, NodeObserverLocator).register(container);
     Registration.aliasTo(INodeObserverLocator, NodeObserverLocator).register(container);
-    const locator = container.get(NodeObserverLocator);
-    locator.useConfig({
-      INPUT: {
-        value: inputEventsConfig,
-        files: { events: inputEventsConfig.events, readonly: true },
-      },
-      TEXTAREA: {
-        value: inputEventsConfig,
-      },
-    });
-    locator.useGlobalConfig({
-      scrollTop: scrollEventsConfig,
-      scrollLeft: scrollEventsConfig,
-      textContent: contentEventsConfig,
-      innerHTML: contentEventsConfig,
+    AppTask.with(NodeObserverLocator).beforeCreate().call(locator => {
+      locator.useConfig({
+        INPUT: {
+          value: inputEventsConfig,
+          files: { events: inputEventsConfig.events, readonly: true },
+        },
+        TEXTAREA: {
+          value: inputEventsConfig,
+        },
+      });
+      locator.useGlobalConfig({
+        scrollTop: scrollEventsConfig,
+        scrollLeft: scrollEventsConfig,
+        textContent: contentEventsConfig,
+        innerHTML: contentEventsConfig,
+      });
     });
   }
 }

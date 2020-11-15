@@ -151,6 +151,8 @@ export {
   createComputedObserver,
   CustomSetterObserver,
   GetterObserver,
+  ComputedWatcher,
+  ExpressionWatcher,
 } from './observation/computed-observer';
 export {
   IDirtyChecker,
@@ -175,6 +177,9 @@ export {
   PropertyAccessor,
 } from './observation/property-accessor';
 export {
+  ProxyObservable,
+} from './observation/proxy-observation';
+export {
   BindableObserver,
 } from './observation/bindable-observer';
 export {
@@ -187,6 +192,9 @@ export {
   subscriberCollection,
   collectionSubscriberCollection,
 } from './observation/subscriber-collection';
+export {
+  IWatcher,
+} from './observation/watcher-switcher';
 
 export {
   bindingBehavior,
@@ -236,6 +244,14 @@ export {
   BindableDefinition,
   Bindable,
 } from './bindable';
+
+export {
+  watch,
+  Watch,
+  IWatchDefinition,
+  IWatcherCallback,
+  IDepCollectionFn,
+} from './observation/watch';
 
 export {
   BindingMode,

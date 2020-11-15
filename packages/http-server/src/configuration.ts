@@ -2,6 +2,7 @@ import { ColorOptions, IContainer, LoggerConfiguration, Registration } from '@au
 import { Http2Server, HttpServer } from './http-server';
 import { IHttp2FileServer, IHttpServer, IHttpServerOptions, IRequestHandler } from './interfaces';
 import { FileServer, Http2FileServer } from './request-handlers/file-server';
+import { PushStateHandler } from './request-handlers/push-state-handler';
 import { HttpServerOptions } from './server-options';
 
 const opts: HttpServerOptions = new HttpServerOptions();
@@ -14,6 +15,7 @@ export const HttpServerConfiguration = {
       register(container: IContainer): IContainer {
         container.register(
           Registration.instance(IHttpServerOptions, opts),
+          Registration.singleton(IRequestHandler, PushStateHandler),
           Registration.singleton(IRequestHandler, FileServer),
           Registration.singleton(IHttp2FileServer, Http2FileServer),
           LoggerConfiguration.create({ $console: console, level: opts.level, colorOptions: ColorOptions.colors })

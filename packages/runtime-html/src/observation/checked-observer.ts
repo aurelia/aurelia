@@ -1,19 +1,22 @@
 import {
   CollectionKind,
-  IAccessor,
-  ICollectionObserver,
-  IndexMap,
-  ISubscriber,
-  ISubscriberCollection,
   LifecycleFlags,
   SetterObserver,
   subscriberCollection,
   AccessorType,
+} from '@aurelia/runtime';
+import { getCollectionObserver } from './observer-locator';
+import type { INode } from '../dom';
+import type { EventSubscriber } from './event-delegator';
+import type { ValueAttributeObserver } from './value-attribute-observer';
+import type {
+  ICollectionObserver,
+  IndexMap,
+  ISubscriber,
+  ISubscriberCollection,
+  IObserver,
   IObserverLocator,
 } from '@aurelia/runtime';
-import { EventSubscriber } from './event-delegator';
-import { getCollectionObserver } from './observer-locator';
-import { ValueAttributeObserver } from './value-attribute-observer';
 
 export interface IInputElement extends HTMLInputElement {
   model?: unknown;
@@ -24,8 +27,6 @@ export interface IInputElement extends HTMLInputElement {
   matcher?: typeof defaultMatcher;
 }
 
-const toStringTag = Object.prototype.toString;
-
 function defaultMatcher(a: unknown, b: unknown): boolean {
   return a === b;
 }
@@ -34,10 +35,11 @@ export interface CheckedObserver extends
   ISubscriberCollection {}
 
 @subscriberCollection()
-export class CheckedObserver implements IAccessor {
+export class CheckedObserver implements IObserver {
   public currentValue: unknown = void 0;
   public oldValue: unknown = void 0;
 
+  public readonly obj: IInputElement;
   public readonly persistentFlags: LifecycleFlags = LifecycleFlags.none;
 
   public hasChanges: boolean = false;
@@ -45,17 +47,19 @@ export class CheckedObserver implements IAccessor {
 
   public collectionObserver?: ICollectionObserver<CollectionKind> = void 0;
   public valueObserver?: ValueAttributeObserver | SetterObserver = void 0;
+  public subscriberCount: number = 0;
 
   public constructor(
-    public readonly obj: IInputElement,
+    obj: INode,
+    // deepscan-disable-next-line
+    _key: PropertyKey,
     public readonly handler: EventSubscriber,
     public readonly observerLocator: IObserverLocator,
   ) {
+    this.obj = obj as IInputElement;
   }
 
   public getValue(): unknown {
-    // is it safe to assume the observer has the latest value?
-    // todo: ability to turn on/off cache based on type
     return this.currentValue;
   }
 
@@ -98,11 +102,7 @@ export class CheckedObserver implements IAccessor {
   }
 
   public handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void {
-    const currentValue = this.currentValue;
-    const oldValue = this.oldValue;
-    this.oldValue = currentValue;
     this.synchronizeElement();
-    this.callSubscribers(currentValue, oldValue, flags);
   }
 
   public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
@@ -124,29 +124,26 @@ export class CheckedObserver implements IAccessor {
       obj.checked = true;
     } else {
       let hasMatch = false;
-      switch (toStringTag.call(currentValue)) {
-        case '[object Array]':
-          hasMatch = (currentValue as unknown[]).findIndex(item => !!matcher(item, elementValue)) !== -1;
-          break;
-        case '[object Set]':
-          for (const v of currentValue as Set<unknown>) {
-            if (matcher(v, elementValue)) {
-              hasMatch = true;
-              break;
-            }
+      if (currentValue instanceof Array) {
+        hasMatch = currentValue.findIndex(item => !!matcher(item, elementValue)) !== -1;
+      } else if (currentValue instanceof Set) {
+        for (const v of currentValue) {
+          if (matcher(v, elementValue)) {
+            hasMatch = true;
+            break;
           }
-          break;
-        case '[object Map]':
-          for (const pair of currentValue as Map<unknown, unknown>) {
-            const existingItem = pair[0];
-            const $isChecked = pair[1];
-            // a potential complain, when only `true` is supported
-            // but it's consistent with array
-            if (matcher(existingItem, elementValue) && $isChecked === true) {
-              hasMatch = true;
-              break;
-            }
+        }
+      } else if (currentValue instanceof Map) {
+        for (const pair of currentValue) {
+          const existingItem = pair[0];
+          const $isChecked = pair[1];
+          // a potential complain, when only `true` is supported
+          // but it's consistent with array
+          if (matcher(existingItem, elementValue) && $isChecked === true) {
+            hasMatch = true;
+            break;
           }
+        }
       }
       obj.checked = hasMatch;
     }
@@ -160,8 +157,7 @@ export class CheckedObserver implements IAccessor {
     const matcher = obj.matcher !== void 0 ? obj.matcher : defaultMatcher;
 
     if (obj.type === 'checkbox') {
-      const toStringRet = toStringTag.call(currentValue);
-      if (toStringRet === '[object Array]') {
+      if (currentValue instanceof Array) {
         // Array binding steps on a change event:
         // 1. find corresponding item INDEX in the Set based on current model/value and matcher
         // 2. is the checkbox checked?
@@ -170,22 +166,22 @@ export class CheckedObserver implements IAccessor {
         //    2.2. No: is the corresponding item in the Array (index !== -1)?
         //        2.2.1: Yes: remove the corresponding item
         // =================================================
-        const index = (currentValue as unknown[]).findIndex(item => !!matcher(item, elementValue));
+        const index = currentValue.findIndex(item => !!matcher(item, elementValue));
 
         // if the checkbox is checkde, and there's no matching value in the existing array
         // add the checkbox model/value to the array
         if (isChecked && index === -1) {
-          (currentValue as unknown[]).push(elementValue);
+          currentValue.push(elementValue);
         } else if (!isChecked && index !== -1) {
           // if the checkbox is not checked, and found a matching item in the array
           // based on the checkbox model/value
           // remove the existing item
-          (currentValue as unknown[]).splice(index, 1);
+          currentValue.splice(index, 1);
         }
         // when existing currentValue is an array,
         // do not invoke callback as only the array obj has changed
         return;
-      } else if (toStringRet === '[object Set]') {
+      } else if (currentValue instanceof Set) {
         // Set binding steps on a change event:
         // 1. find corresponding item in the Set based on current model/value and matcher
         // 2. is the checkbox checked?
@@ -198,7 +194,7 @@ export class CheckedObserver implements IAccessor {
         // 1. find corresponding item
         const unset = {};
         let existingItem: unknown = unset;
-        for (const value of currentValue as Set<unknown>) {
+        for (const value of currentValue) {
           if (matcher(value, elementValue) === true) {
             existingItem = value;
             break;
@@ -210,19 +206,19 @@ export class CheckedObserver implements IAccessor {
         // add the checkbox model/value to the Set
         if (isChecked && existingItem === unset) {
           // 2.1.1. add the current model/value to the Set
-          (currentValue as Set<unknown>).add(elementValue);
+          currentValue.add(elementValue);
         } else if (!isChecked && existingItem !== unset) {
           // 2.2.1 Checkbox is unchecked, corresponding is in the Set
           //
           // if checkbox is not checked, and found a matching item in the Set
           // based on the checkbox model/value
           // remove the existing item
-          (currentValue as Set<unknown>).delete(existingItem);
+          currentValue.delete(existingItem);
         }
         // when existing value is a Set,
         // do not invoke callback as only the Set has been mutated
         return;
-      } else if (toStringRet === '[object Map]') {
+      } else if (currentValue instanceof Map) {
         // Map binding steps on a change event
         // 1. find corresponding item in the Map based on current model/value and matcher
         // 2. Set the value of the corresponding item in the Map based on checked state of the checkbox
@@ -230,7 +226,7 @@ export class CheckedObserver implements IAccessor {
 
         // 1. find the corresponding item
         let existingItem: unknown;
-        for (const pair of currentValue as Map<unknown, unknown>) {
+        for (const pair of currentValue) {
           const currItem = pair[0];
           if (matcher(currItem, elementValue) === true) {
             existingItem = currItem;
@@ -242,7 +238,7 @@ export class CheckedObserver implements IAccessor {
         // if checkbox is checked and there's no value in the existing Map
         // add the checkbox model/value to the Map as key,
         // and value will be checked state of the checkbox
-        (currentValue as Map<unknown, unknown>).set(existingItem, isChecked);
+        currentValue.set(existingItem, isChecked);
         // when existing value is a Map,
         // do not invoke callback as only the Map has been mutated
         return;
@@ -260,12 +256,24 @@ export class CheckedObserver implements IAccessor {
     this.callSubscribers(this.currentValue, this.oldValue, LifecycleFlags.none);
   }
 
-  public bind(flags: LifecycleFlags): void {
+  public bind(): void {
+    // this is incorrect, needs to find a different way to initialize observer value,
+    // relative to binding value
+    // for now keeping this to do everything at once later
     this.currentValue = this.obj.checked;
   }
 
+  public unbind(): void {
+    this.currentValue = void 0;
+  }
+
+  public start() {
+    this.handler.subscribe(this.obj, this);
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public unbind(flags: LifecycleFlags): void {
+  public stop(): void {
+    this.handler.dispose();
     if (this.collectionObserver !== void 0) {
       this.collectionObserver.unsubscribeFromCollection(this);
       this.collectionObserver = void 0;
@@ -277,16 +285,14 @@ export class CheckedObserver implements IAccessor {
   }
 
   public subscribe(subscriber: ISubscriber): void {
-    if (!this.hasSubscribers()) {
-      this.handler.subscribe(this.obj, this);
+    if (this.addSubscriber(subscriber) && ++this.subscriberCount === 1) {
+      this.start();
     }
-    this.addSubscriber(subscriber);
   }
 
   public unsubscribe(subscriber: ISubscriber): void {
-    this.removeSubscriber(subscriber);
-    if (!this.hasSubscribers()) {
-      this.handler.dispose();
+    if (this.removeSubscriber(subscriber) && --this.subscriberCount === 0) {
+      this.stop();
     }
   }
 }

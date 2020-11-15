@@ -326,29 +326,31 @@ export {
 } from './renderer';
 
 export {
-  AttributeNSAccessor
+  AttributeNSAccessor,
 } from './observation/attribute-ns-accessor';
 export {
   IInputElement,
-  CheckedObserver
+  CheckedObserver,
 } from './observation/checked-observer';
 export {
-  ClassAttributeAccessor
+  ClassAttributeAccessor,
 } from './observation/class-attribute-accessor';
 export {
-  DataAttributeAccessor
+  DataAttributeAccessor,
 } from './observation/data-attribute-accessor';
 export {
-  ElementPropertyAccessor
+  ElementPropertyAccessor,
 } from './observation/element-property-accessor';
 export {
   IEventDelegator,
   EventSubscriber,
-  EventDelegator
+  EventDelegator,
 } from './observation/event-delegator';
 export {
-  NodeEventConfig,
+  NodeObserverConfig,
   NodeObserverLocator,
+  INodeObserverConfig,
+  IHtmlObserverConstructor,
 } from './observation/observer-locator';
 export {
   ISelectElement,
@@ -364,20 +366,20 @@ export {
   NoopSVGAnalyzer,
 } from './observation/svg-analyzer';
 export {
-  ValueAttributeObserver
+  ValueAttributeObserver,
 } from './observation/value-attribute-observer';
 
 export {
-  AttrBindingBehavior
+  AttrBindingBehavior,
 } from './resources/binding-behaviors/attr';
 export {
   SelfableBinding,
-  SelfBindingBehavior
+  SelfBindingBehavior,
 } from './resources/binding-behaviors/self';
 export {
   UpdateTriggerBindingBehavior,
   UpdateTriggerableBinding,
-  UpdateTriggerableObserver
+  UpdateTriggerableObserver,
 } from './resources/binding-behaviors/update-trigger';
 
 export {
@@ -396,7 +398,7 @@ export {
 } from './resources/template-controllers/flags';
 export {
   If,
-  Else
+  Else,
 } from './resources/template-controllers/if';
 export {
   Repeat
@@ -412,17 +414,17 @@ export {
 
 export {
   Blur,
-  BlurManager
+  BlurManager,
 } from './resources/custom-attributes/blur';
 
 export {
-  Focus
+  Focus,
 } from './resources/custom-attributes/focus';
 
 export {
   Portal,
   PortalTarget,
-  PortalLifecycleCallback
+  PortalLifecycleCallback,
 } from './resources/template-controllers/portal';
 
 export {
@@ -444,12 +446,12 @@ export {
   CustomElementType,
   CustomElementDefinition,
   PartialCustomElementDefinition,
-  useShadowDOM
+  useShadowDOM,
 } from './resources/custom-element';
 
 export {
   Subject,
-  Compose
+  Compose,
 } from './resources/custom-elements/compose';
 export {
   ISanitizer,
@@ -461,7 +463,7 @@ export {
 
 export {
   ITemplateCompilerRegistration,
-  DefaultNodeObserverLocatorRegistration,
+  INodeObserverLocatorRegistration,
 
   DefaultComponents,
 

@@ -1,18 +1,16 @@
-import { IIndexable } from '@aurelia/kernel';
-import { IAccessor, ISubscriber, ISubscriberCollection, LifecycleFlags, subscriberCollection, AccessorType } from '@aurelia/runtime';
-import { EventSubscriber } from './event-delegator';
-import { INode } from '../dom';
+import { LifecycleFlags, subscriberCollection, AccessorType } from '@aurelia/runtime';
 
-export interface ValueAttributeObserver
-  extends ISubscriberCollection {}
+import type { EventSubscriber } from './event-delegator';
+import type { INode } from '../dom';
+import type { IIndexable } from '@aurelia/kernel';
+import type { ISubscriberCollection, ISubscriber, IObserver } from '@aurelia/runtime';
 
-// TODO: handle file attribute properly again, etc
-
+export interface ValueAttributeObserver extends ISubscriberCollection {}
 /**
  * Observer for non-radio, non-checkbox input.
  */
 @subscriberCollection()
-export class ValueAttributeObserver implements IAccessor {
+export class ValueAttributeObserver implements IObserver {
   public readonly obj: INode & IIndexable;
   public currentValue: unknown = '';
   public oldValue: unknown = '';
@@ -78,8 +76,7 @@ export class ValueAttributeObserver implements IAccessor {
   }
 
   public unsubscribe(subscriber: ISubscriber): void {
-    this.removeSubscriber(subscriber);
-    if (!this.hasSubscribers()) {
+    if (this.removeSubscriber(subscriber) && !this.hasSubscribers()) {
       this.handler.dispose();
     }
   }

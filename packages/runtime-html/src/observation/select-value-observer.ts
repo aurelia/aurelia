@@ -1,17 +1,23 @@
 import {
   CollectionKind,
-  IAccessor,
-  ICollectionObserver,
-  IndexMap,
-  IObserverLocator,
-  ISubscriber,
-  ISubscriberCollection,
   LifecycleFlags as LF,
   subscriberCollection,
   AccessorType,
 } from '@aurelia/runtime';
-import { EventSubscriber } from './event-delegator';
+
 import { IPlatform } from '../platform';
+
+import type { INode } from '../dom';
+import type { EventSubscriber } from './event-delegator';
+import type { IServiceLocator } from '@aurelia/kernel';
+import type {
+  ICollectionObserver,
+  IndexMap,
+  IObserver,
+  IObserverLocator,
+  ISubscriber,
+  ISubscriberCollection,
+} from '@aurelia/runtime';
 
 const hasOwn = Object.prototype.hasOwnProperty;
 const childObserverOptions = {
@@ -36,11 +42,13 @@ export interface SelectValueObserver extends
   ISubscriberCollection {}
 
 @subscriberCollection()
-export class SelectValueObserver implements IAccessor {
+export class SelectValueObserver implements IObserver {
   public currentValue: unknown = void 0;
   public oldValue: unknown = void 0;
 
+  public readonly obj: ISelectElement;
   public readonly persistentFlags: LF = LF.none;
+  public readonly platform: IPlatform;
 
   public hasChanges: boolean = false;
   // ObserverType.Layout is not always true
@@ -53,11 +61,15 @@ export class SelectValueObserver implements IAccessor {
   private observing: boolean = false;
 
   public constructor(
-    public readonly obj: ISelectElement,
+    obj: INode,
+    // deepscan-disable-next-line
+    _key: PropertyKey,
     public readonly handler: EventSubscriber,
     public readonly observerLocator: IObserverLocator,
-    public readonly platform: IPlatform,
+    locator: IServiceLocator,
   ) {
+    this.obj = obj as ISelectElement;
+    this.platform = locator.get(IPlatform);
   }
 
   public getValue(): unknown {

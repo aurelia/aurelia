@@ -256,14 +256,16 @@ export class CheckedObserver implements IObserver {
     this.callSubscribers(this.currentValue, this.oldValue, LifecycleFlags.none);
   }
 
-  public bind(): void {
+  // deepscan-disable-next-line
+  public bind(_flags: LifecycleFlags): void {
     // this is incorrect, needs to find a different way to initialize observer value,
     // relative to binding value
     // for now keeping this to do everything at once later
     this.currentValue = this.obj.checked;
   }
 
-  public unbind(): void {
+  // deepscan-disable-next-line
+  public unbind(_flags: LifecycleFlags): void {
     this.currentValue = void 0;
   }
 

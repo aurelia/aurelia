@@ -127,7 +127,7 @@ describe('StyleAccessor', function () {
     it(`setValue - style="${rule}" flags.none`, function () {
       const ctx = TestContext.create();
       el = ctx.createElementFromMarkup('<div></div>');
-      sut = new StyleAttributeAccessor(LifecycleFlags.none, el);
+      sut = new StyleAttributeAccessor(el);
       const setPropertySpy = createSpy(sut, 'setProperty', true);
 
       sut.bind(LifecycleFlags.none);
@@ -155,7 +155,7 @@ describe('StyleAccessor', function () {
     it(`setValue - style="${rule}" flags.none`, function () {
       const ctx = TestContext.create();
       el = ctx.createElementFromMarkup('<div></div>');
-      sut = new StyleAttributeAccessor(LifecycleFlags.none, el);
+      sut = new StyleAttributeAccessor(el);
       const setPropertySpy = createSpy(sut, 'setProperty', true);
 
       sut.setValue(rule, LifecycleFlags.none);
@@ -292,7 +292,7 @@ describe('StyleAccessor', function () {
     it(title, function () {
       const ctx = TestContext.create();
       const el = ctx.createElementFromMarkup(`<div style="${staticStyle}"></div>`);
-      const sut = new StyleAttributeAccessor(LifecycleFlags.none, el);
+      const sut = new StyleAttributeAccessor(el);
       sut.setValue(input, LifecycleFlags.none);
 
       const actual = sut.getValue();
@@ -358,7 +358,7 @@ describe('ClassAccessor', function () {
         const el = ctx.createElementFromMarkup(markup);
         const initialClassList = el.classList.toString();
         const { platform } = ctx;
-        const sut = new ClassAttributeAccessor(LifecycleFlags.none, el);
+        const sut = new ClassAttributeAccessor(el);
 
         function tearDown() {
           platform.domWriteQueue.flush();

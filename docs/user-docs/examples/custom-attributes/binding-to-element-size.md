@@ -3,7 +3,7 @@
 ## Basic implementation
 
 ```typescript
-import { bindable, BindingMode, customAttribute, HTMLDOM, IDOM, INode } from 'aurelia';
+import { bindable, BindingMode, customAttribute } from 'aurelia';
 
 @customAttribute({
   name: 'rectsize',

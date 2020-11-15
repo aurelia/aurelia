@@ -1,4 +1,4 @@
-import { DI, Primitive, isArrayIndex, ILogger, noop } from '@aurelia/kernel';
+import { DI, Primitive, isArrayIndex, ILogger } from '@aurelia/kernel';
 import {
   AccessorOrObserver,
   CollectionKind,
@@ -47,13 +47,13 @@ export const INodeObserverLocator = DI
   }));
 
 class DefaultNodeObserverLocator implements INodeObserverLocator {
-  handles(obj: unknown, key: string | number | symbol, requestor: IObserverLocator): boolean {
+  handles(): boolean {
     return false;
   }
-  getObserver(obj: object, key: string | number | symbol, requestor: IObserverLocator): IAccessor<unknown> | IObserver {
+  getObserver(): IAccessor<unknown> | IObserver {
     return propertyAccessor;
   }
-  getAccessor(obj: object, key: string | number | symbol, requestor: IObserverLocator): IAccessor<unknown> | IObserver {
+  getAccessor(): IAccessor<unknown> | IObserver {
     return propertyAccessor;
   }
 }

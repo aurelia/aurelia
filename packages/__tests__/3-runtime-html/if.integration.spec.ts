@@ -15,7 +15,7 @@ import {
   TextBindingRendererRegistration,
   TextBindingInstruction,
   Interpolation,
-  INodeObserverLocatorRegistration,
+  DefaultNodeObserverLocatorRegistration,
 } from '@aurelia/runtime-html';
 import {
   eachCartesianJoin,
@@ -94,7 +94,7 @@ describe(`If/Else`, function () {
   ];
 
   const container = createContainer().register(
-    INodeObserverLocatorRegistration,
+    DefaultNodeObserverLocatorRegistration,
     PropertyBindingRendererRegistration,
     TextBindingRendererRegistration,
   );

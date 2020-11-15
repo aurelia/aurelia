@@ -47,24 +47,6 @@ const nsAttributes = Object.assign(
   },
 );
 
-
-const getDefaultOverrideProps = () => [
-  'class',
-  'style',
-  'css',
-  'checked',
-  'value',
-  'model',
-  'xml:lang',
-  'xml:space',
-  'xmlns',
-  'xmlns:xlink',
-].reduce((overrides, attr) => {
-  overrides[attr] = true;
-  return overrides;
-},createLookup<true>());
-
-
 export class NodeEventConfig {
   /**
    * Indicates the list of events can be used to observe a particular property
@@ -252,6 +234,24 @@ export class NodeObserverLocator implements INodeObserverLocator {
     }
     return new ValueAttributeObserver(el, key, new EventSubscriber(eventsConfig));
   }
+}
+
+function getDefaultOverrideProps() {
+  return [
+    'class',
+    'style',
+    'css',
+    'checked',
+    'value',
+    'model',
+    'xml:lang',
+    'xml:space',
+    'xmlns',
+    'xmlns:xlink',
+  ].reduce((overrides, attr) => {
+    overrides[attr] = true;
+    return overrides;
+  },createLookup<true>());
 }
 
 export function getCollectionObserver(collection: unknown, observerLocator: IObserverLocator): ICollectionObserver<CollectionKind> | undefined {

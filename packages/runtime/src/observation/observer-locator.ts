@@ -31,30 +31,9 @@ export interface IObjectObservationAdapter {
 export interface IObserverLocator extends ObserverLocator {}
 export const IObserverLocator = DI.createInterface<IObserverLocator>('IObserverLocator').withDefault(x => x.singleton(ObserverLocator));
 
-export interface INodeEventConfig {
-  /**
-   * Indicates the list of events can be used to observe a particular property
-   */
-  events: string[];
-  /**
-   * Indicates whether this property is readonly, so observer wont attempt to assign value
-   * example: input.files
-   */
-  readonly?: boolean;
-  /**
-   * A default value to assign to the corresponding property if the incoming value is null/undefined
-   */
-  default?: unknown;
-}
 
 export interface INodeObserverLocator {
-  allowDirtyCheck: boolean;
   handles(obj: unknown, key: PropertyKey, requestor: IObserverLocator): boolean;
-  // instruct the node observer locator to use some events to observe a property of a node
-  useConfig(config: Record<string, Record<string, INodeEventConfig>>): void;
-  useConfig(nodeName: string, key: PropertyKey, eventsConfig: INodeEventConfig): void;
-  useGlobalConfig(config: Record<string, INodeEventConfig>): void;
-  useGlobalConfig(key: PropertyKey, eventsConfig: INodeEventConfig): void;
   getObserver(obj: object, key: PropertyKey, requestor: IObserverLocator): IAccessor | IObserver;
   getAccessor(obj: object, key: PropertyKey, requestor: IObserverLocator): IAccessor | IObserver;
 }
@@ -64,15 +43,20 @@ export const INodeObserverLocator = DI
     handler.getAll(ILogger).forEach(logger => {
       logger.error('Using default INodeObserverLocator implementation. Will not be able to observe nodes (HTML etc...).');
     });
-    return {
-      allowDirtyCheck: false,
-      handles: () => false,
-      useGlobalConfig: noop,
-      useConfig: noop,
-      getAccessor: () => propertyAccessor,
-      getObserver: () => propertyAccessor,
-    };
+    return new DefaultNodeObserverLocator();
   }));
+
+class DefaultNodeObserverLocator implements INodeObserverLocator {
+  handles(obj: unknown, key: string | number | symbol, requestor: IObserverLocator): boolean {
+    return false;
+  }
+  getObserver(obj: object, key: string | number | symbol, requestor: IObserverLocator): IAccessor<unknown> | IObserver {
+    return propertyAccessor;
+  }
+  getAccessor(obj: object, key: string | number | symbol, requestor: IObserverLocator): IAccessor<unknown> | IObserver {
+    return propertyAccessor;
+  }
+}
 
 type ExtendedPropertyDescriptor = PropertyDescriptor & {
   get: PropertyDescriptor['get'] & {

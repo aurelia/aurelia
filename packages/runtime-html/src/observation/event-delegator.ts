@@ -1,5 +1,5 @@
 import { DI, IDisposable } from '@aurelia/kernel';
-import { INodeEventConfig } from '@aurelia/runtime';
+import type { NodeEventConfig } from './observer-locator';
 
 const defaultOptions: AddEventListenerOptions = {
   capture: false,
@@ -100,7 +100,7 @@ export class EventSubscriber {
   private handler: EventListenerOrEventListenerObject | null = null;
 
   public constructor(
-    public readonly config: INodeEventConfig,
+    public readonly config: NodeEventConfig,
   ) {}
 
   public subscribe(node: EventTarget, callbackOrListener: EventListenerOrEventListenerObject): void {

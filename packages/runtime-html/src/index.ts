@@ -347,6 +347,7 @@ export {
   EventDelegator
 } from './observation/event-delegator';
 export {
+  NodeEventConfig,
   NodeObserverLocator,
 } from './observation/observer-locator';
 export {
@@ -460,7 +461,7 @@ export {
 
 export {
   ITemplateCompilerRegistration,
-  INodeObserverLocatorRegistration,
+  DefaultNodeObserverLocatorRegistration,
 
   DefaultComponents,
 

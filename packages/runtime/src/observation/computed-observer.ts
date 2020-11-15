@@ -3,7 +3,8 @@ import {
   Constructable,
   IIndexable,
   emptyArray,
-  isArrayIndex
+  isArrayIndex,
+  IServiceLocator
 } from '@aurelia/kernel';
 import {
   IBindingContext,
@@ -13,11 +14,20 @@ import {
   IObservable,
   ISubscribable,
   ISubscriber,
-  LifecycleFlags
+  Collection,
+  ICollectionObserver,
+  CollectionKind,
+  LifecycleFlags,
 } from '../observation';
 import { IDirtyChecker } from './dirty-checker';
 import { IObserverLocator } from './observer-locator';
-import { subscriberCollection } from './subscriber-collection';
+import { subscriberCollection, collectionSubscriberCollection } from './subscriber-collection';
+import { IWatcher, enterWatcher, exitWatcher } from './watcher-switcher';
+import { connectable, IConnectableBinding } from '../binding/connectable';
+import { IWatcherCallback } from './watch';
+import { ExpressionKind, IsBindingBehavior } from '../binding/ast';
+import { getProxyOrSelf, getRawOrSelf } from './proxy-observation';
+import { Scope } from './binding-context';
 
 export interface ComputedOverrides {
   // Indicates that a getter doesn't need to re-calculate its dependencies after the first observation.
@@ -99,7 +109,7 @@ export class CustomSetterObserver implements CustomSetterObserver {
     public readonly obj: IObservable & IIndexable,
     public readonly propertyKey: string,
     private readonly descriptor: PropertyDescriptor,
-  ) {}
+  ) { }
 
   public setValue(newValue: unknown): void {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-unnecessary-type-assertion
@@ -297,4 +307,193 @@ function proxyOrValue(flags: LifecycleFlags, target: object, key: PropertyKey, o
     return value;
   }
   return new Proxy(value, createGetterTraps(flags, observerLocator, observer));
+}
+
+// watchers (Computed & Expression) are basically binding,
+// they are treated as special and setup before all other bindings
+
+export interface ComputedWatcher extends IConnectableBinding { }
+
+@connectable()
+@subscriberCollection()
+@collectionSubscriberCollection()
+export class ComputedWatcher implements IWatcher {
+
+  private readonly observers: Map<ICollectionObserver<CollectionKind>, number> = new Map();
+  // todo: maybe use a counter allow recursive call to a certain level
+  private running: boolean = false;
+  private value: unknown = void 0;
+
+  public isBound: boolean = false;
+
+  public constructor(
+    public readonly obj: IObservable,
+    public readonly observerLocator: IObserverLocator,
+    public readonly get: (obj: object, watcher: IWatcher) => unknown,
+    private readonly cb: IWatcherCallback<object>,
+    private readonly useProxy: boolean,
+  ) {
+    connectable.assignIdTo(this);
+  }
+
+  public handleChange(): void {
+    this.run();
+  }
+
+  public handleCollectionChange(): void {
+    this.run();
+  }
+
+  public $bind(): void {
+    if (this.isBound) {
+      return;
+    }
+    this.isBound = true;
+    this.compute();
+  }
+
+  public $unbind(): void {
+    if (!this.isBound) {
+      return;
+    }
+    this.isBound = false;
+    this.unobserve(true);
+    this.unobserveCollection(true);
+  }
+
+  public observe(obj: object, key: PropertyKey): void {
+    const observer = this.observerLocator.getObserver(LifecycleFlags.none, obj, key as string) as IBindingTargetObserver;
+    this.addObserver(observer);
+  }
+
+  public observeCollection(collection: Collection): void {
+    const obs = this.forCollection(collection);
+    this.observers.set(obs, this.version);
+    obs.subscribeToCollection(this);
+  }
+
+  public observeLength(collection: Collection): void {
+    this.forCollection(collection).getLengthObserver().subscribe(this);
+  }
+
+  private run(): void {
+    if (!this.isBound || this.running) {
+      return;
+    }
+    const obj = this.obj;
+    const oldValue = this.value;
+    const newValue = this.compute();
+
+    if (!Object.is(newValue, oldValue)) {
+      // should optionally queue
+      this.cb.call(obj, newValue, oldValue, obj);
+    }
+  }
+
+  private compute(): unknown {
+    this.running = true;
+    this.version++;
+    try {
+      enterWatcher(this);
+      this.value = getRawOrSelf(this.get(this.useProxy ? getProxyOrSelf(this.obj) : this.obj, this));
+    } finally {
+      exitWatcher(this);
+      this.unobserve(false);
+      this.unobserveCollection(false);
+      this.running = false;
+    }
+    return this.value;
+  }
+
+  private forCollection(collection: Collection): ICollectionObserver<CollectionKind> {
+    const obsLocator = this.observerLocator;
+    let observer: ICollectionObserver<CollectionKind>;
+    if (collection instanceof Array) {
+      observer = obsLocator.getArrayObserver(LifecycleFlags.none, collection);
+    } else if (collection instanceof Set) {
+      observer = obsLocator.getSetObserver(LifecycleFlags.none, collection);
+    } else if (collection instanceof Map) {
+      observer = obsLocator.getMapObserver(LifecycleFlags.none, collection);
+    } else {
+      throw new Error('Unrecognised collection type.');
+    }
+    return observer;
+  }
+
+  private unobserveCollection(all: boolean): void {
+    const version = this.version;
+    const observers = this.observers;
+    observers.forEach((v, o) => {
+      if (all || v !== version) {
+        o.unsubscribeFromCollection(this);
+        observers.delete(o);
+      }
+    });
+  }
+}
+
+/**
+ * @internal The interface describes methods added by `connectable` & `subscriberCollection` decorators
+ */
+export interface ExpressionWatcher extends IConnectableBinding { }
+
+@connectable()
+export class ExpressionWatcher implements IConnectableBinding {
+  /**
+   * @internal
+   */
+  private value: unknown;
+  /**
+   * @internal
+   */
+  private readonly obj: object;
+
+  public isBound: boolean = false;
+
+  public constructor(
+    public scope: Scope,
+    public locator: IServiceLocator,
+    public observerLocator: IObserverLocator,
+    private readonly expression: IsBindingBehavior,
+    private readonly callback: IWatcherCallback<object>,
+  ) {
+    this.obj = scope.bindingContext;
+    connectable.assignIdTo(this);
+  }
+
+  public handleChange(value: unknown): void {
+    const expr = this.expression;
+    const obj = this.obj;
+    const oldValue = this.value;
+    const canOptimize = expr.$kind === ExpressionKind.AccessScope && this.observerSlots === 1;
+    if (!canOptimize) {
+      this.version++;
+      value = expr.evaluate(0, this.scope, null, this.locator, this);
+      this.unobserve(false);
+    }
+    if (!Object.is(value, oldValue)) {
+      this.value = value;
+      // should optionally queue for batch synchronous
+      this.callback.call(obj, value, oldValue, obj);
+    }
+  }
+
+  public $bind(): void {
+    if (this.isBound) {
+      return;
+    }
+    this.isBound = true;
+    this.version++;
+    this.value = this.expression.evaluate(LifecycleFlags.none, this.scope, null, this.locator, this);
+    this.unobserve(false);
+  }
+
+  public $unbind(): void {
+    if (!this.isBound) {
+      return;
+    }
+    this.isBound = false;
+    this.unobserve(true);
+    this.value = void 0;
+  }
 }

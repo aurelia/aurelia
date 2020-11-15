@@ -12,6 +12,7 @@ import {
   LifecycleFlags,
 } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
+import { ensureProto } from '../utilities-objects';
 import type { Scope } from '../observation/binding-context';
 
 // TODO: add connect-queue (or something similar) back in when everything else is working, to improve startup time
@@ -104,6 +105,7 @@ export function unobserve(this: IConnectableBinding & { [key: string]: unknown }
         observer[this.id] &= ~LifecycleFlags.updateTarget;
       }
     }
+    this.observerSlots = 0;
   } else {
     const version = this.version;
     for (let i = 0; i < slots; ++i) {
@@ -114,6 +116,7 @@ export function unobserve(this: IConnectableBinding & { [key: string]: unknown }
           this[slotName] = void 0;
           observer.unsubscribe(this);
           observer[this.id] &= ~LifecycleFlags.updateTarget;
+          this.observerSlots--;
         }
       }
     }
@@ -125,9 +128,10 @@ type DecoratedConnectable<TProto, TClass> = Class<TProto & IConnectableBinding, 
 
 function connectableDecorator<TProto, TClass>(target: DecoratableConnectable<TProto, TClass>): DecoratedConnectable<TProto, TClass> {
   const proto = target.prototype;
-  if (!Object.prototype.hasOwnProperty.call(proto, 'observeProperty')) proto.observeProperty = observeProperty;
-  if (!Object.prototype.hasOwnProperty.call(proto, 'unobserve')) proto.unobserve = unobserve;
-  if (!Object.prototype.hasOwnProperty.call(proto, 'addObserver')) proto.addObserver = addObserver;
+  ensureProto(proto, 'version', 0);
+  ensureProto(proto, 'observeProperty', observeProperty);
+  ensureProto(proto, 'unobserve', unobserve);
+  ensureProto(proto, 'addObserver', addObserver);
   return target as DecoratedConnectable<TProto, TClass>;
 }
 
@@ -158,18 +162,22 @@ export class BindingMediator<K extends string> implements IConnectableBinding {
   ) {
     connectable.assignIdTo(this);
   }
+
   public $bind(flags: LifecycleFlags, scope: Scope, hostScope?: Scope | null, projection?: ResourceDefinition): void {
     throw new Error('Method not implemented.');
   }
+
   public $unbind(flags: LifecycleFlags): void {
     throw new Error('Method not implemented.');
   }
-
-  public observeProperty: typeof observeProperty = observeProperty;
-  public unobserve: typeof unobserve = unobserve;
-  public addObserver: typeof addObserver = addObserver;
 
   public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
     this.binding[this.key](newValue, previousValue, flags);
   }
 }
+
+(proto => {
+  ensureProto(proto, 'observeProperty', observeProperty);
+  ensureProto(proto, 'unobserve', unobserve);
+  ensureProto(proto, 'addObserver', addObserver);
+})(BindingMediator.prototype);

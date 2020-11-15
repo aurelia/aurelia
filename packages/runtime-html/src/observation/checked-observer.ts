@@ -43,8 +43,6 @@ export class CheckedObserver implements IAccessor {
   public readonly persistentFlags: LifecycleFlags;
 
   public hasChanges: boolean = false;
-  // ObserverType.Layout is not always true, it depends on the property
-  // but for simplicity, always treat as such
   public type: AccessorType = AccessorType.Node | AccessorType.Observer | AccessorType.Layout;
 
   public collectionObserver?: ICollectionObserver<CollectionKind> = void 0;

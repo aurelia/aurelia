@@ -86,8 +86,8 @@ export {
   IModule,
   IModuleLoader,
   AnalyzedModule,
-  IModuleAnalyzer,
-} from './modules';
+  ModuleItem,
+} from './module-loader';
 export {
   noop,
   emptyArray,

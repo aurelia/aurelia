@@ -74,7 +74,8 @@ const observe = {
     if (size > 0) {
       const indexMap = o.indexMap;
       let i = 0;
-      for (const entry of $this.keys()) {
+      // deepscan-disable-next-line
+      for (const _ of $this.keys()) {
         if (indexMap[i] > -1) {
           indexMap.deletedItems.push(indexMap[i]);
         }
@@ -149,8 +150,6 @@ export function disableMapObservation(): void {
     }
   }
 }
-
-const slice = Array.prototype.slice;
 
 export interface MapObserver extends ICollectionObserver<CollectionKind.map> {}
 

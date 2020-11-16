@@ -1,7 +1,10 @@
-import { DI, IRegistry } from './di';
-import { Constructable, IDisposable, IIndexable } from './interfaces';
+import { DI } from './di';
 import { emptyArray } from './platform';
-import { Protocol, ResourceDefinition } from './resource';
+import { Protocol } from './resource';
+
+import type { IRegistry } from './di';
+import type { Constructable, IDisposable, IIndexable } from './interfaces';
+import type { ResourceDefinition } from './resource';
 
 export interface IModule {
   [key: string]: unknown;
@@ -15,73 +18,33 @@ function noTransform<TRet = AnalyzedModule>(m: AnalyzedModule): TRet {
   return m as unknown as TRet;
 }
 
-export class ModuleLoader implements IDisposable {
-  private readonly promiseCache: Map<Promise<IModule>, unknown> = new Map();
-  private readonly objectCache: Map<IModule, unknown> = new Map();
+type TransformFn<TMod extends IModule = IModule, TRet = AnalyzedModule<TMod>> = (m: AnalyzedModule<TMod>) => TRet | Promise<TRet>;
 
-  /**
-   * Await a module promise and then analyzes and transforms it. The result is cached, using the promise as the cache key.
-   *
-   * @param promise - A promise (returning a module, or an object resembling a module), e.g. the return value of a dynamic `import()` or `require()` call.
-   * @param transform - A transform function, e.g. to select the appropriate default or first non-default resource export.
-   * Note: The return value of `transform` is cached, so it is recommended to perform any processing here that is intended to happen only once per unique module promise.
-   *
-   * @returns The (cached) transformed result. On subsequent calls, if the original promise resolved, the resolved result will be returned (rather than a promise).
-   */
-  public load<TMod extends IModule = IModule, TRet = AnalyzedModule<TMod>>(promise: Promise<TMod>, transform: (m: AnalyzedModule<TMod>) => TRet | Promise<TRet>): Promise<TRet> | TRet;
-  /**
-   * Await a module promise and then analyzes it. The result is cached, using the promise as the cache key.
-   *
-   * @param promise - A promise (returning a module, or an object resembling a module), e.g. the return value of a dynamic `import()` or `require()` call.
-   *
-   * @returns The analyzed module. On subsequent calls, if the original promise resolved, the resolved result will be returned (rather than a promise).
-   */
-  public load<TMod extends IModule = IModule>(promise: Promise<TMod>): Promise<AnalyzedModule<TMod>> | AnalyzedModule<TMod>;
-  /**
-   * Analyzes and transforms a module-like object. The result is cached, using the object as the cache key.
-   *
-   * @param promise - A module-like object, e.g. the awaited return value of a dynamic `import()` or `require()` call, or a statically imported module such as `import * as Module from './my-module';`.
-   * @param transform - A transform function, e.g. to select the appropriate default or first non-default resource export.
-   * Note: The return value of `transform` is cached, so it is recommended to perform any processing here that is intended to happen only once per unique module promise.
-   *
-   * @returns The (cached) transformed result. On subsequent calls, if the original promise resolved, the resolved result will be returned (rather than a promise).
-   */
-  public load<TMod extends IModule = IModule, TRet = AnalyzedModule<TMod>>(obj: TMod, transform: (m: AnalyzedModule<TMod>) => TRet | Promise<TRet>): Promise<TRet> | TRet;
-  /**
-   * Analyzes a module-like object. The result is cached, using the object as the cache key.
-   *
-   * @param promise - A module-like object, e.g. the awaited return value of a dynamic `import()` or `require()` call, or a statically imported module such as `import * as Module from './my-module';`.
-   *
-   * @returns The analyzed module. On subsequent calls, if the original promise resolved, the resolved result will be returned (rather than a promise).
-   */
-  public load<TMod extends IModule = IModule>(obj: TMod): AnalyzedModule<TMod>;
-  /**
-   * Analyzes and transforms a module-like object or a promise thereof. The result is cached, using the object as the cache key.
-   *
-   * @param promise - A module-like object or a promise thereof, e.g. the (awaited) return value of a dynamic `import()` or `require()` call, or a statically imported module such as `import * as Module from './my-module';`.
-   * @param transform - A transform function, e.g. to select the appropriate default or first non-default resource export.
-   * Note: The return value of `transform` is cached, so it is recommended to perform any processing here that is intended to happen only once per unique module promise.
-   *
-   * @returns The (cached) transformed result. On subsequent calls, if the original promise resolved, the resolved result will be returned (rather than a promise).
-   */
-  public load<TMod extends IModule = IModule, TRet = AnalyzedModule<TMod>>(objOrPromise: TMod | Promise<TMod>, transform?: (m: AnalyzedModule<TMod>) => TRet | Promise<TRet>): Promise<TRet> | TRet;
-  public load<TMod extends IModule = IModule, TRet = AnalyzedModule<TMod>>(objOrPromise: TMod | Promise<TMod>, transform?: (m: AnalyzedModule<TMod>) => TRet | Promise<TRet>): Promise<TRet> | TRet {
+class ModuleTransformer<TMod extends IModule = IModule, TRet = AnalyzedModule<TMod>> {
+  private readonly promiseCache: Map<Promise<IModule>, unknown> = new Map<Promise<IModule>, unknown>();
+  private readonly objectCache: Map<IModule, unknown> = new Map<IModule, unknown>();
+
+  public constructor(
+    private readonly $transform: TransformFn<TMod, TRet>,
+  ) {}
+
+  public transform(objOrPromise: TMod | Promise<TMod>): Promise<TRet> | TRet {
     if (objOrPromise instanceof Promise) {
-      return this.loadFromPromise(objOrPromise, transform ?? noTransform);
+      return this.transformPromise(objOrPromise);
     } else if (typeof objOrPromise === 'object' && objOrPromise !== null) {
-      return this.loadFromObject(objOrPromise, transform ?? noTransform);
+      return this.transformObject(objOrPromise);
     } else {
       throw new Error(`Invalid input: ${String(objOrPromise)}. Expected Promise or Object.`);
     }
   }
 
-  private loadFromPromise<TMod extends IModule, TRet>(promise: Promise<TMod>, transform: (m: AnalyzedModule<TMod>) => TRet | Promise<TRet>): TRet | Promise<TRet> {
+  private transformPromise(promise: Promise<TMod>): TRet | Promise<TRet> {
     if (this.promiseCache.has(promise)) {
       return this.promiseCache.get(promise) as TRet | Promise<TRet>;
     }
 
     const ret = promise.then(obj => {
-      return this.loadFromObject(obj, transform);
+      return this.transformObject(obj);
     });
     this.promiseCache.set(promise, ret);
     void ret.then(value => {
@@ -91,12 +54,12 @@ export class ModuleLoader implements IDisposable {
     return ret;
   }
 
-  private loadFromObject<TMod extends IModule, TRet>(obj: TMod, transform: (m: AnalyzedModule<TMod>) => TRet | Promise<TRet>): TRet | Promise<TRet> {
+  private transformObject(obj: TMod): TRet | Promise<TRet> {
     if (this.objectCache.has(obj)) {
       return this.objectCache.get(obj) as TRet | Promise<TRet>;
     }
 
-    const ret = transform(this.analyze(obj));
+    const ret = this.$transform(this.analyze(obj));
     this.objectCache.set(obj, ret);
     if (ret instanceof Promise) {
       void ret.then(value => {
@@ -104,10 +67,10 @@ export class ModuleLoader implements IDisposable {
         this.objectCache.set(obj, value);
       });
     }
-    return ret as TRet | Promise<TRet>;
+    return ret;
   }
 
-  private analyze<TMod extends IModule>(m: TMod): AnalyzedModule<TMod> {
+  private analyze(m: TMod): AnalyzedModule<TMod> {
     let value: unknown;
     let isRegistry: boolean;
     let isConstructable: boolean;
@@ -144,10 +107,69 @@ export class ModuleLoader implements IDisposable {
 
     return new AnalyzedModule(m, items as ITypedModuleItem_T[]);
   }
+}
+
+export class ModuleLoader implements IDisposable {
+  private readonly transformers: Map<TransformFn, ModuleTransformer> = new Map<TransformFn, ModuleTransformer>();
+
+  /**
+   * Await a module promise and then analyzes and transforms it. The result is cached, using the transform function + promise as the cache key.
+   *
+   * @param promise - A promise (returning a module, or an object resembling a module), e.g. the return value of a dynamic `import()` or `require()` call.
+   * @param transform - A transform function, e.g. to select the appropriate default or first non-default resource export.
+   * Note: The return value of `transform` is cached, so it is recommended to perform any processing here that is intended to happen only once per unique module promise.
+   *
+   * @returns The (cached) transformed result. On subsequent calls, if the original promise resolved, the resolved result will be returned (rather than a promise).
+   */
+  public load<TMod extends IModule = IModule, TRet = AnalyzedModule<TMod>>(promise: Promise<TMod>, transform: (m: AnalyzedModule<TMod>) => TRet | Promise<TRet>): Promise<TRet> | TRet;
+  /**
+   * Await a module promise and then analyzes it. The result is cached, using the transform function + promise as the cache key.
+   *
+   * @param promise - A promise (returning a module, or an object resembling a module), e.g. the return value of a dynamic `import()` or `require()` call.
+   *
+   * @returns The analyzed module. On subsequent calls, if the original promise resolved, the resolved result will be returned (rather than a promise).
+   */
+  public load<TMod extends IModule = IModule>(promise: Promise<TMod>): Promise<AnalyzedModule<TMod>> | AnalyzedModule<TMod>;
+  /**
+   * Analyzes and transforms a module-like object. The result is cached, using the transform function + object as the cache key.
+   *
+   * @param promise - A module-like object, e.g. the awaited return value of a dynamic `import()` or `require()` call, or a statically imported module such as `import * as Module from './my-module';`.
+   * @param transform - A transform function, e.g. to select the appropriate default or first non-default resource export.
+   * Note: The return value of `transform` is cached, so it is recommended to perform any processing here that is intended to happen only once per unique module promise.
+   *
+   * @returns The (cached) transformed result. On subsequent calls, if the original promise resolved, the resolved result will be returned (rather than a promise).
+   */
+  public load<TMod extends IModule = IModule, TRet = AnalyzedModule<TMod>>(obj: TMod, transform: (m: AnalyzedModule<TMod>) => TRet | Promise<TRet>): Promise<TRet> | TRet;
+  /**
+   * Analyzes a module-like object. The result is cached, using the transform function + object as the cache key.
+   *
+   * @param promise - A module-like object, e.g. the awaited return value of a dynamic `import()` or `require()` call, or a statically imported module such as `import * as Module from './my-module';`.
+   *
+   * @returns The analyzed module. On subsequent calls, if the original promise resolved, the resolved result will be returned (rather than a promise).
+   */
+  public load<TMod extends IModule = IModule>(obj: TMod): AnalyzedModule<TMod>;
+  /**
+   * Analyzes and transforms a module-like object or a promise thereof. The result is cached, using the transform function + object as the cache key.
+   *
+   * @param promise - A module-like object or a promise thereof, e.g. the (awaited) return value of a dynamic `import()` or `require()` call, or a statically imported module such as `import * as Module from './my-module';`.
+   * @param transform - A transform function, e.g. to select the appropriate default or first non-default resource export.
+   * Note: The return value of `transform` is cached, so it is recommended to perform any processing here that is intended to happen only once per unique module promise.
+   *
+   * @returns The (cached) transformed result. On subsequent calls, if the original promise resolved, the resolved result will be returned (rather than a promise).
+   */
+  public load<TMod extends IModule = IModule, TRet = AnalyzedModule<TMod>>(objOrPromise: TMod | Promise<TMod>, transform?: (m: AnalyzedModule<TMod>) => TRet | Promise<TRet>): Promise<TRet> | TRet;
+  public load<TMod extends IModule = IModule, TRet = AnalyzedModule<TMod>>(objOrPromise: TMod | Promise<TMod>, transform: (m: AnalyzedModule<TMod>) => TRet | Promise<TRet> = noTransform): Promise<TRet> | TRet {
+    const transformers = this.transformers as Map<TransformFn, ModuleTransformer> & Map<TransformFn<TMod, TRet>, ModuleTransformer<TMod, TRet>>;
+    let transformer = transformers.get(transform);
+    if (transformer === void 0) {
+      transformers.set(transform, transformer = new ModuleTransformer(transform));
+    }
+
+    return transformer.transform(objOrPromise);
+  }
 
   public dispose(): void {
-    this.promiseCache.clear();
-    this.objectCache.clear();
+    this.transformers.clear();
   }
 }
 

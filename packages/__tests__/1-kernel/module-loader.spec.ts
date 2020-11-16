@@ -233,7 +233,7 @@ describe('ModuleLoader', function () {
 
     assert.strictEqual($res1, retVal, `$res1 === retVal`);
 
-    const res3 = loader.load(promise);
+    const res3 = loader.load(promise, transform);
 
     assert.strictEqual(res3, $res1, `res3 === $res1`);
     assert.strictEqual(calls, 1, `calls === 1`);
@@ -259,9 +259,45 @@ describe('ModuleLoader', function () {
 
     assert.strictEqual($res1, retVal, `$res1 === retVal`);
 
-    const res3 = loader.load(promise);
+    const res3 = loader.load(promise, transform);
 
     assert.strictEqual(res3, $res1, `res3 === $res1`);
     assert.strictEqual(calls, 1, `calls === 1`);
+  });
+
+  it('does not cache results across different transform functions', async function () {
+    const loader = createFixture();
+    const promise = Promise.resolve(kitchen_sink);
+    const retVal = kitchen_sink.CE;
+    let calls1 = 0;
+    function transform1(m: AnalyzedModule<typeof kitchen_sink>): {} {
+      ++calls1;
+      return Promise.resolve(m.items.find(x => x.isConstructable && CustomElement.isType(x.definitions[0].Type))!.value);
+    }
+
+    let calls2 = 0;
+    function transform2(m: AnalyzedModule<typeof kitchen_sink>): {} {
+      ++calls2;
+      return Promise.resolve(m.items.find(x => x.isConstructable && CustomElement.isType(x.definitions[0].Type))!.value);
+    }
+
+    const res1 = loader.load(promise, transform1);
+    const res2 = loader.load(promise, transform2);
+
+    assert.notStrictEqual(res1, res2, `res1 !== res2`);
+    assert.strictEqual(res1 instanceof Promise, true, `res1 instanceof Promise === true`);
+    assert.strictEqual(res2 instanceof Promise, true, `res2 instanceof Promise === true`);
+
+    const $res1 = await res1;
+    const $res2 = await res2;
+
+    loader.load(promise, transform1);
+    loader.load(promise, transform2);
+
+    assert.strictEqual($res1, retVal, `$res1 === retVal`);
+    assert.strictEqual($res2, retVal, `$res2 === retVal`);
+
+    assert.strictEqual(calls1, 1, `calls1 === 1`);
+    assert.strictEqual(calls2, 1, `calls2 === 1`);
   });
 });

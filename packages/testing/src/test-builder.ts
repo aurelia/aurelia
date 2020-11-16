@@ -1,6 +1,6 @@
 import {
-  DI,
   IContainer,
+  IPlatform,
   Registration,
 } from '@aurelia/kernel';
 import {
@@ -464,6 +464,7 @@ export function createObserverLocator(containerOrLifecycle?: IContainer | ILifec
       return false;
     }
   };
+  Registration.instance(IPlatform, { Proxy }).register(container);
   Registration.instance(IDirtyChecker, null).register(container);
   Registration.instance(INodeObserverLocator, dummyLocator).register(container);
   return container.get(IObserverLocator);

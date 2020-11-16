@@ -412,16 +412,13 @@ export {
 
   // CollectionSizeObserver,
 
-  // ComputedOverrides,
-  // ComputedLookup,
-  computed,
-  // createComputedObserver,
-  // CustomSetterObserver,
-  // GetterObserver,
-
   // IDirtyChecker,
   // DirtyCheckProperty,
   // DirtyCheckSettings,
+
+  ComputedObserver,
+  ComputedWatcher,
+  ExpressionWatcher,
 
   // IObjectObservationAdapter,
   IObserverLocator,

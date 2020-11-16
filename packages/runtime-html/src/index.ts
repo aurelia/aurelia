@@ -113,6 +113,10 @@ export {
   DirtyCheckProperty,
   DirtyCheckSettings,
 
+  ComputedObserver,
+  ComputedWatcher,
+  ExpressionWatcher,
+
   IObservableDefinition,
   observable,
 

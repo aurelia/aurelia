@@ -857,7 +857,8 @@ function getLookup(instance: IIndexable): Record<string, BindableObserver | Chil
 function createObservers(
   lifecycle: ILifecycle,
   definition: CustomElementDefinition | CustomAttributeDefinition,
-  flags: LifecycleFlags,
+  // deepscan-disable-next-line
+  _flags: LifecycleFlags,
   instance: object,
 ): void {
   const bindables = definition.bindables;
@@ -876,7 +877,6 @@ function createObservers(
 
         observers[name] = new BindableObserver(
           lifecycle,
-          flags,
           instance as IIndexable,
           name,
           bindable.callback,
@@ -890,7 +890,8 @@ function createObservers(
 function createChildrenObservers(
   controller: Controller,
   definition: CustomElementDefinition,
-  flags: LifecycleFlags,
+  // deepscan-disable-next-line
+  _flags: LifecycleFlags,
   instance: object,
 ): void {
   const childrenObservers = definition.childrenObservers;
@@ -908,7 +909,6 @@ function createChildrenObservers(
         observers[name] = new ChildrenObserver(
           controller as ICustomElementController,
           instance as IIndexable,
-          flags,
           name,
           childrenDescription.callback,
           childrenDescription.query,

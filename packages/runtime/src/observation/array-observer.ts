@@ -392,7 +392,7 @@ export class ArrayObserver {
 
   private readonly indexObservers: Record<string | number, ArrayIndexObserver | undefined>;
 
-  public constructor(flags: LifecycleFlags, lifecycle: ILifecycle, array: IObservedArray) {
+  public constructor(lifecycle: ILifecycle, array: IObservedArray) {
 
     if (!enableArrayObservationCalled) {
       enableArrayObservationCalled = true;
@@ -403,7 +403,6 @@ export class ArrayObserver {
     this.indexObservers = {};
 
     this.collection = array;
-    this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
     this.indexMap = createIndexMap(array.length);
     this.lifecycle = lifecycle;
     this.lengthObserver = (void 0)!;
@@ -439,7 +438,7 @@ export class ArrayObserver {
 
     this.inBatch = false;
     this.indexMap = createIndexMap(length);
-    this.callCollectionSubscribers(indexMap, LifecycleFlags.updateTarget | this.persistentFlags);
+    this.callCollectionSubscribers(indexMap, LifecycleFlags.updateTarget);
     if (this.lengthObserver !== void 0) {
       this.lengthObserver.setValue(length, LifecycleFlags.updateTarget);
     }
@@ -539,10 +538,10 @@ export class ArrayIndexObserver implements ICollectionIndexObserver {
   }
 }
 
-export function getArrayObserver(flags: LifecycleFlags, lifecycle: ILifecycle, array: IObservedArray): ArrayObserver {
+export function getArrayObserver(lifecycle: ILifecycle, array: IObservedArray): ArrayObserver {
   const observer = observerLookup.get(array);
   if (observer === void 0) {
-    return new ArrayObserver(flags, lifecycle, array);
+    return new ArrayObserver(lifecycle, array);
   }
   return observer;
 }

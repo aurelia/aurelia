@@ -94,15 +94,15 @@ export class ObserverLocator {
   }
 
   public getArrayObserver(flags: LifecycleFlags, observedArray: IObservedArray): ICollectionObserver<CollectionKind.array> {
-    return getArrayObserver(flags, this.lifecycle, observedArray);
+    return getArrayObserver(this.lifecycle, observedArray);
   }
 
   public getMapObserver(flags: LifecycleFlags, observedMap: IObservedMap): ICollectionObserver<CollectionKind.map>  {
-    return getMapObserver(flags, this.lifecycle, observedMap);
+    return getMapObserver(this.lifecycle, observedMap);
   }
 
   public getSetObserver(flags: LifecycleFlags, observedSet: IObservedSet): ICollectionObserver<CollectionKind.set>  {
-    return getSetObserver(flags, this.lifecycle, observedSet);
+    return getSetObserver(this.lifecycle, observedSet);
   }
 
   private createObserver(flags: LifecycleFlags, obj: IObservable, key: string): AccessorOrObserver {
@@ -117,19 +117,19 @@ export class ObserverLocator {
     switch (key) {
       case 'length':
         if (obj instanceof Array) {
-          return getArrayObserver(flags, this.lifecycle, obj).getLengthObserver();
+          return getArrayObserver(this.lifecycle, obj).getLengthObserver();
         }
         break;
       case 'size':
         if (obj instanceof Map) {
-          return getMapObserver(flags, this.lifecycle, obj).getLengthObserver();
+          return getMapObserver(this.lifecycle, obj).getLengthObserver();
         } else if (obj instanceof Set) {
-          return getSetObserver(flags, this.lifecycle, obj).getLengthObserver();
+          return getSetObserver(this.lifecycle, obj).getLengthObserver();
         }
         break;
       default:
         if (obj instanceof Array && isArrayIndex(key)) {
-          return getArrayObserver(flags, this.lifecycle, obj).getIndexObserver(Number(key));
+          return getArrayObserver(this.lifecycle, obj).getIndexObserver(Number(key));
         }
         break;
     }
@@ -205,13 +205,13 @@ export class ObserverLocator {
 
 export type RepeatableCollection = IObservedMap | IObservedSet | IObservedArray | null | undefined | number;
 
-export function getCollectionObserver(flags: LifecycleFlags, lifecycle: ILifecycle, collection: RepeatableCollection): CollectionObserver | undefined {
+export function getCollectionObserver(lifecycle: ILifecycle, collection: RepeatableCollection): CollectionObserver | undefined {
   if (collection instanceof Array) {
-    return getArrayObserver(flags, lifecycle, collection as IObservedArray);
+    return getArrayObserver(lifecycle, collection as IObservedArray);
   } else if (collection instanceof Map) {
-    return getMapObserver(flags, lifecycle, collection as IObservedMap);
+    return getMapObserver(lifecycle, collection as IObservedMap);
   } else if (collection instanceof Set) {
-    return getSetObserver(flags, lifecycle, collection as IObservedSet);
+    return getSetObserver(lifecycle, collection as IObservedSet);
   }
   return void 0;
 }

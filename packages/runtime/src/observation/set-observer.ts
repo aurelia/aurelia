@@ -136,7 +136,7 @@ export class SetObserver {
   public inBatch: boolean;
   public type: AccessorType = AccessorType.Set;
 
-  public constructor(flags: LifecycleFlags, lifecycle: ILifecycle, observedSet: IObservedSet) {
+  public constructor(lifecycle: ILifecycle, observedSet: IObservedSet) {
 
     if (!enableSetObservationCalled) {
       enableSetObservationCalled = true;
@@ -146,7 +146,6 @@ export class SetObserver {
     this.inBatch = false;
 
     this.collection = observedSet;
-    this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
     this.indexMap = createIndexMap(observedSet.size);
     this.lifecycle = lifecycle;
     this.lengthObserver = (void 0)!;
@@ -182,17 +181,17 @@ export class SetObserver {
 
     this.inBatch = false;
     this.indexMap = createIndexMap(size);
-    this.callCollectionSubscribers(indexMap, LifecycleFlags.updateTarget | this.persistentFlags);
+    this.callCollectionSubscribers(indexMap, LifecycleFlags.updateTarget);
     if (this.lengthObserver !== void 0) {
       this.lengthObserver.notify();
     }
   }
 }
 
-export function getSetObserver(flags: LifecycleFlags, lifecycle: ILifecycle, observedSet: IObservedSet): SetObserver {
+export function getSetObserver(lifecycle: ILifecycle, observedSet: IObservedSet): SetObserver {
   const observer = observerLookup.get(observedSet);
   if (observer === void 0) {
-    return new SetObserver(flags, lifecycle, observedSet);
+    return new SetObserver(lifecycle, observedSet);
   }
   return observer;
 }

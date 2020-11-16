@@ -163,7 +163,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray> implements IC
         oldObserver.unsubscribeFromCollection(this);
       }
     } else if (this.$controller.isActive) {
-      const newObserver = this.observer = getCollectionObserver(flags, this.$controller.lifecycle, this.items);
+      const newObserver = this.observer = getCollectionObserver(this.$controller.lifecycle, this.items);
       if (oldObserver !== newObserver && oldObserver) {
         oldObserver.unsubscribeFromCollection(this);
       }

@@ -104,7 +104,7 @@ describe('validate-binding-behavior', function () {
 
       if (observeCollection) {
         this.employeesMediator = new BindingMediator('handleEmployeesChange', this, observerLocator, serviceLocator);
-        this.employeeObserver = new ArrayObserver(LifecycleFlags.none, lifecycle, this.org.employees);
+        this.employeeObserver = new ArrayObserver(lifecycle, this.org.employees);
         this.employeeObserver.getLengthObserver().addSubscriber(this.employeesMediator);
       }
 

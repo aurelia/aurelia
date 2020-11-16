@@ -40,7 +40,6 @@ export class CheckedObserver implements IObserver {
   public oldValue: unknown = void 0;
 
   public readonly obj: IInputElement;
-  public readonly persistentFlags: LifecycleFlags = LifecycleFlags.none;
 
   public hasChanges: boolean = false;
   public type: AccessorType = AccessorType.Node | AccessorType.Observer | AccessorType.Layout;

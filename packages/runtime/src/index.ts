@@ -17,7 +17,7 @@ import {
   FromViewBindingBehavior,
   OneTimeBindingBehavior,
   ToViewBindingBehavior,
-  TwoWayBindingBehavior
+  TwoWayBindingBehavior,
 } from './binding-behaviors/binding-mode';
 import { DebounceBindingBehavior } from './binding-behaviors/debounce';
 import { SignalBindingBehavior } from './binding-behaviors/signals';
@@ -109,10 +109,10 @@ export {
   InterpolationBinding,
 } from './binding/interpolation-binding';
 export {
-  LetBinding
+  LetBinding,
 } from './binding/let-binding';
 export {
-  RefBinding
+  RefBinding,
 } from './binding/ref-binding';
 
 export {
@@ -126,7 +126,7 @@ export {
 export {
   MapObserver,
   enableMapObservation,
-  disableMapObservation
+  disableMapObservation,
 } from './observation/map-observer';
 export {
   SetObserver,
@@ -136,7 +136,7 @@ export {
 export {
   BindingContext,
   Scope,
-  OverrideContext
+  OverrideContext,
 } from './observation/binding-context';
 export {
   CollectionLengthObserver,
@@ -150,12 +150,14 @@ export {
   computed,
   createComputedObserver,
   CustomSetterObserver,
-  GetterObserver
+  GetterObserver,
+  ComputedWatcher,
+  ExpressionWatcher,
 } from './observation/computed-observer';
 export {
   IDirtyChecker,
   DirtyCheckProperty,
-  DirtyCheckSettings
+  DirtyCheckSettings,
 } from './observation/dirty-checker';
 export {
   IObservableDefinition,
@@ -164,30 +166,35 @@ export {
 export {
   IObjectObservationAdapter,
   IObserverLocator,
-  ITargetObserverLocator,
-  ITargetAccessorLocator,
+  INodeObserverLocator,
   getCollectionObserver,
-  ObserverLocator
+  ObserverLocator,
 } from './observation/observer-locator';
 export {
-  PrimitiveObserver
+  PrimitiveObserver,
 } from './observation/primitive-observer';
 export {
-  PropertyAccessor
+  PropertyAccessor,
 } from './observation/property-accessor';
 export {
-  BindableObserver
+  ProxyObservable,
+} from './observation/proxy-observation';
+export {
+  BindableObserver,
 } from './observation/bindable-observer';
 export {
-  SetterObserver
+  SetterObserver,
 } from './observation/setter-observer';
 export {
-  ISignaler
+  ISignaler,
 } from './observation/signaler';
 export {
   subscriberCollection,
   collectionSubscriberCollection,
 } from './observation/subscriber-collection';
+export {
+  IWatcher,
+} from './observation/watcher-switcher';
 
 export {
   bindingBehavior,
@@ -208,16 +215,16 @@ export {
   OneTimeBindingBehavior,
   ToViewBindingBehavior,
   FromViewBindingBehavior,
-  TwoWayBindingBehavior
+  TwoWayBindingBehavior,
 } from './binding-behaviors/binding-mode';
 export {
-  DebounceBindingBehavior
+  DebounceBindingBehavior,
 } from './binding-behaviors/debounce';
 export {
-  SignalBindingBehavior
+  SignalBindingBehavior,
 } from './binding-behaviors/signals';
 export {
-  ThrottleBindingBehavior
+  ThrottleBindingBehavior,
 } from './binding-behaviors/throttle';
 
 export {
@@ -239,6 +246,14 @@ export {
 } from './bindable';
 
 export {
+  watch,
+  Watch,
+  IWatchDefinition,
+  IWatcherCallback,
+  IDepCollectionFn,
+} from './observation/watch';
+
+export {
   BindingMode,
   LifecycleFlags,
   AccessorOrObserver,
@@ -258,6 +273,7 @@ export {
   ICollectionSubscriber,
   IndexMap,
   IBatchable,
+  IObserver,
   IObservable,
   IObservedArray,
   IObservedMap,

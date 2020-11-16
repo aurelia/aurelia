@@ -455,6 +455,7 @@ const defaultCustomElementDefinitionProperties = {
   hasSlots: false,
   shadowOptions: null,
   surrogates: [],
+  watches: [],
 };
 
 function createTplCtrlAttributeInstruction(attr: string, value: string) {
@@ -603,6 +604,7 @@ function createCustomElement(
     needsCompile: false,
     enhance: false,
     projectionsMap: new Map<IInstruction, IProjections>(),
+    watches: [],
   };
   return [input, output];
 }
@@ -641,6 +643,7 @@ function createCustomAttribute(
     needsCompile: false,
     enhance: false,
     projectionsMap: new Map<IInstruction, IProjections>(),
+    watches: [],
   };
   return [input, output];
 }
@@ -828,6 +831,7 @@ describe(`TemplateCompiler - combinations`, function () {
           needsCompile: false,
           enhance: false,
           projectionsMap: new Map<IInstruction, IProjections>(),
+          watches: [],
         };
 
         const $def = CustomAttribute.define(def, ctor);
@@ -1015,7 +1019,8 @@ describe(`TemplateCompiler - combinations`, function () {
       [
         (ctx, $1, $2, $3, [input, output]) => createTemplateController(ctx, 'quux',       'quux',   '',              null,       true, output.instructions[0][0], input.template)
       ] as ((ctx: TestContext, $1: CTCResult, $2: CTCResult, $3: CTCResult, $4: CTCResult) => CTCResult)[]
-    ],                       (ctx, $1, $2, $3, $4, [input, output]) => {
+    ],
+    (ctx, $1, $2, $3, $4, [input, output]) => {
 
       it(`${input.template}`, function () {
 
@@ -1094,6 +1099,7 @@ describe(`TemplateCompiler - combinations`, function () {
           needsCompile: false,
           enhance: false,
           projectionsMap: new Map<IInstruction, IProjections>(),
+          watches: [],
         };
         // enableTracing();
         // Tracer.enableLiveLogging(SymbolTraceWriter);
@@ -1216,7 +1222,8 @@ describe(`TemplateCompiler - combinations`, function () {
       //   ($1, [input, output]) => createCustomElement(`baz`, true, [], [], [], output.instructions, output, input)
       // ]
       // ], ($1, $2, [input, output]) => {
-    ],                       (ctx, [input, output]) => {
+    ],
+    (ctx, [input, output]) => {
       it(`${input.template}`, function () {
 
         const { sut, container } = createFixture(

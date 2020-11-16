@@ -184,7 +184,6 @@ export class AttributeBinding implements IPartialConnectableBinding {
     if (!targetObserver) {
       targetObserver = this.targetObserver = new AttributeObserver(
         this.$platform,
-        flags,
         this.observerLocator,
         this.target as IHtmlElement,
         this.targetProperty,

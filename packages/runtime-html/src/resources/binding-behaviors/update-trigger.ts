@@ -22,7 +22,6 @@ export type UpdateTriggerableBinding = PropertyBinding & {
 
 @bindingBehavior('updateTrigger')
 export class UpdateTriggerBindingBehavior {
-  public persistentFlags!: LifecycleFlags;
 
   public constructor(
     @IObserverLocator private readonly observerLocator: IObserverLocator
@@ -37,10 +36,8 @@ export class UpdateTriggerBindingBehavior {
       throw new Error('The updateTrigger binding behavior can only be applied to two-way/ from-view bindings on input/select elements.');
     }
 
-    this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
-
     // ensure the binding's target observer has been set.
-    const targetObserver = this.observerLocator.getObserver(this.persistentFlags | flags, binding.target, binding.targetProperty) as UpdateTriggerableObserver;
+    const targetObserver = this.observerLocator.getObserver(flags, binding.target, binding.targetProperty) as UpdateTriggerableObserver;
     if (!targetObserver.handler) {
       throw new Error('The updateTrigger binding behavior can only be applied to two-way/ from-view bindings on input/select elements.');
     }

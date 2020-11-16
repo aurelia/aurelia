@@ -25,8 +25,6 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
   public currentValue: unknown = null;
   public oldValue: unknown = null;
 
-  public readonly persistentFlags: LifecycleFlags = LifecycleFlags.none;
-
   public hasChanges: boolean = false;
   // layout is not certain, depends on the attribute being flushed to owner element
   // but for simple start, always treat as such

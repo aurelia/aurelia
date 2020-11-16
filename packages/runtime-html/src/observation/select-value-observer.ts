@@ -5,11 +5,8 @@ import {
   AccessorType,
 } from '@aurelia/runtime';
 
-import { IPlatform } from '../platform.js';
-
-import type { INode } from '../dom.js';
-import type { EventSubscriber } from './event-delegator.js';
-import type { IServiceLocator } from '@aurelia/kernel';
+import type { INode } from '../dom';
+import type { EventSubscriber } from './event-delegator';
 import type {
   ICollectionObserver,
   IndexMap,
@@ -47,8 +44,6 @@ export class SelectValueObserver implements IObserver {
   public oldValue: unknown = void 0;
 
   public readonly obj: ISelectElement;
-  public readonly persistentFlags: LF = LF.none;
-  public readonly platform: IPlatform;
 
   public hasChanges: boolean = false;
   // ObserverType.Layout is not always true
@@ -66,10 +61,8 @@ export class SelectValueObserver implements IObserver {
     _key: PropertyKey,
     public readonly handler: EventSubscriber,
     public readonly observerLocator: IObserverLocator,
-    locator: IServiceLocator,
   ) {
     this.obj = obj as ISelectElement;
-    this.platform = locator.get(IPlatform);
   }
 
   public getValue(): unknown {
@@ -231,7 +224,8 @@ export class SelectValueObserver implements IObserver {
   }
 
   private start(): void {
-    (this.nodeObserver = new this.platform.MutationObserver(this.handleNodeChange.bind(this))).observe(this.obj, childObserverOptions);
+    (this.nodeObserver = new this.obj.ownerDocument.defaultView!.MutationObserver(this.handleNodeChange.bind(this)))
+      .observe(this.obj, childObserverOptions);
     this.observeArray(this.currentValue instanceof Array ? this.currentValue : null);
     this.observing = true;
   }

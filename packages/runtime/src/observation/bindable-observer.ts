@@ -16,7 +16,6 @@ export class BindableObserver {
   public currentValue: unknown = void 0;
   public oldValue: unknown = void 0;
 
-  public readonly persistentFlags: LifecycleFlags;
   public inBatch: boolean = false;
   public observing: boolean;
   public type: AccessorType = AccessorType.Obj;
@@ -28,7 +27,6 @@ export class BindableObserver {
 
   public constructor(
     public readonly lifecycle: ILifecycle,
-    flags: LifecycleFlags,
     public readonly obj: IIndexable,
     public readonly propertyKey: string,
     cbName: string,
@@ -55,7 +53,6 @@ export class BindableObserver {
         : currentValue;
       this.createGetterSetter();
     }
-    this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
   }
 
   public handleChange(newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void {
@@ -79,13 +76,13 @@ export class BindableObserver {
       }
       this.currentValue = newValue;
       if (this.lifecycle.batch.depth === 0) {
-        this.callSubscribers(newValue, currentValue, this.persistentFlags | flags);
+        this.callSubscribers(newValue, currentValue, flags);
         if ((flags & LifecycleFlags.fromBind) === 0 || (flags & LifecycleFlags.updateSource) > 0) {
-          this.callback?.call(this.obj, newValue, currentValue, this.persistentFlags | flags);
+          this.callback?.call(this.obj, newValue, currentValue, flags);
 
           if (this.hasPropertyChangedCallback) {
             // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-            this.propertyChangedCallback!.call(this.obj, this.propertyKey, newValue, currentValue, this.persistentFlags | flags);
+            this.propertyChangedCallback!.call(this.obj, this.propertyKey, newValue, currentValue, flags);
           }
         }
       } else if (!this.inBatch) {

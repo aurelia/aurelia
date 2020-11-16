@@ -5,8 +5,6 @@ export class StyleAttributeAccessor implements IAccessor {
   public currentValue: unknown = '';
   public oldValue: unknown = '';
 
-  public readonly persistentFlags: LifecycleFlags = LifecycleFlags.none;
-
   public styles: Record<string, number> = {};
   public version: number = 0;
 

@@ -166,7 +166,7 @@ describe(spec, function () {
       au.app({ host, component: App });
       await au.start();
 
-      assert.visibleTextEqual(au.root, 'Hello world!');
+      assert.visibleTextEqual(host, 'Hello world!');
 
       await au.stop();
 

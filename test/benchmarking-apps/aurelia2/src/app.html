@@ -1,0 +1,23 @@
+<div style="display: flex; flex-direction: column; row-gap: 1em;">
+  <div style="display: flex;">
+    <button click.delegate="changeLocale()">Toggle to ${locale ? 'de' : 'en'}</button>
+    <label for="show-address-details">
+      <input name="show-address-details" type="checkbox" checked.two-way="showAddressDetails">
+      Show address details
+    </label>
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(5, 1fr);">
+    <strong>First name</strong>
+    <strong>Last name</strong>
+    <strong>Date of birth</strong>
+    <strong>Deceased</strong>
+    <strong>Addresses</strong>
+    <template repeat.for="person of people">
+      <span>${person.firstName}</span>
+      <span>${person.lastName}</span>
+      <span>${person.dob | formatDate:locale}</span>
+      <span>${person.isDeceased ? 'Yes' : ''}</span>
+      <address-viewer addresses.bind="person.addresses" show-details.bind="showAddressDetails"></address-viewer>
+    </template>
+  </div>
+</div>

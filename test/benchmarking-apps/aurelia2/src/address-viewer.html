@@ -1,0 +1,6 @@
+<template if.bind="showDetails"></template>
+<ul else>
+  <li repeat.for="item of addresses">
+    ${item.address.city}, ${item.address.country}
+  </li>
+</ul>

@@ -28,11 +28,30 @@ export class Person implements IEntity {
   }
 }
 
+export interface IPersonRepository extends PersonRepository { }
 export class PersonRepository extends BaseRepository<Person> {
-  public constructor(database: Database) {
+  public constructor(
+    database: Database,
+    private readonly maxAddresses: number = 3, // Do we need this as some sort of config option? Probably not.
+  ) {
     super(database, (d) => d.people);
+    this.associateRandomAddresses();
   }
+
   public createRandom(): Person {
-    return new Person();
+    const person = new Person();
+    this.associateRandomAddresses(void 0, person);
+    return person;
+  }
+
+  private associateRandomAddresses(maxAddresses: number = this.maxAddresses, person?: Person) {
+    if (person !== void 0) {
+      person.addresses.push(...AddressAssociation.getN(randomNumber(maxAddresses)));
+      return;
+    }
+
+    for (const person of this.database.people) {
+      person.addresses.push(...AddressAssociation.getN(randomNumber(maxAddresses)));
+    }
   }
 }

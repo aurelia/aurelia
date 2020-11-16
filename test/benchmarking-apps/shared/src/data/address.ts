@@ -71,6 +71,7 @@ export class AddressAssociation implements IEntity {
   }
 }
 
+export interface IAddressRepository extends AddressRepository { }
 export class AddressRepository extends BaseRepository<Address> {
   public constructor(database: Database) {
     super(database, (d) => d.addresses);

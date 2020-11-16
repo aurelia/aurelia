@@ -29,5 +29,7 @@ export class Database {
     for (let i = 0; i < numPeople; i++) {
       people[i] = new Person();
     }
+
+
   }
 }

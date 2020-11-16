@@ -12,7 +12,6 @@ export declare class SetterObserver {
     readonly propertyKey: string;
     currentValue: unknown;
     oldValue: unknown;
-    readonly persistentFlags: LifecycleFlags;
     inBatch: boolean;
     observing: boolean;
     type: AccessorType;
@@ -29,7 +28,6 @@ export interface SetterNotifier extends ISubscriberCollection {
 export declare class SetterNotifier implements IAccessor, ISubscribable {
     private readonly s?;
     type: AccessorType;
-    readonly persistentFlags: LifecycleFlags;
     constructor(s?: InterceptorFunc<unknown, unknown> | undefined);
     getValue(): unknown;
     setValue(value: unknown, flags: LifecycleFlags): void;

@@ -1,8 +1,6 @@
 import { CollectionKind, LifecycleFlags as LF, AccessorType } from '@aurelia/runtime';
-import { IPlatform } from '../platform.js';
-import type { INode } from '../dom.js';
-import type { EventSubscriber } from './event-delegator.js';
-import type { IServiceLocator } from '@aurelia/kernel';
+import type { INode } from '../dom';
+import type { EventSubscriber } from './event-delegator';
 import type { ICollectionObserver, IndexMap, IObserver, IObserverLocator, ISubscriber, ISubscriberCollection } from '@aurelia/runtime';
 declare function defaultMatcher(a: unknown, b: unknown): boolean;
 export interface ISelectElement extends HTMLSelectElement {
@@ -20,14 +18,12 @@ export declare class SelectValueObserver implements IObserver {
     currentValue: unknown;
     oldValue: unknown;
     readonly obj: ISelectElement;
-    readonly persistentFlags: LF;
-    readonly platform: IPlatform;
     hasChanges: boolean;
     type: AccessorType;
     arrayObserver?: ICollectionObserver<CollectionKind.array>;
     nodeObserver?: MutationObserver;
     private observing;
-    constructor(obj: INode, _key: PropertyKey, handler: EventSubscriber, observerLocator: IObserverLocator, locator: IServiceLocator);
+    constructor(obj: INode, _key: PropertyKey, handler: EventSubscriber, observerLocator: IObserverLocator);
     getValue(): unknown;
     setValue(newValue: unknown, flags: LF): void;
     flushChanges(flags: LF): void;

@@ -31,7 +31,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             this.propertyKey = propertyKey;
             this.currentValue = void 0;
             this.oldValue = void 0;
-            this.persistentFlags = 0 /* none */;
             this.inBatch = false;
             this.observing = false;
             // todo(bigopon): tweak the flag based on typeof obj (array/set/map/iterator/proxy etc...)
@@ -116,7 +115,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
              * @internal
              */
             this.v = void 0;
-            this.persistentFlags = 0 /* none */;
         }
         getValue() {
             return this.v;

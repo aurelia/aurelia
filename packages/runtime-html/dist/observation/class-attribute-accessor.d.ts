@@ -3,7 +3,6 @@ export declare class ClassAttributeAccessor implements IAccessor {
     readonly obj: HTMLElement;
     currentValue: unknown;
     oldValue: unknown;
-    readonly persistentFlags: LifecycleFlags;
     readonly doNotCache: true;
     nameIndex: Record<string, number>;
     version: number;

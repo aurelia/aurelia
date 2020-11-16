@@ -14,7 +14,6 @@ export declare class ValueAttributeObserver implements IObserver {
     readonly obj: INode & IIndexable;
     currentValue: unknown;
     oldValue: unknown;
-    readonly persistentFlags: LifecycleFlags;
     hasChanges: boolean;
     type: AccessorType;
     constructor(obj: INode, propertyKey: PropertyKey, handler: EventSubscriber);

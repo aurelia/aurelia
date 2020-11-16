@@ -408,7 +408,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     }
     exports.disableArrayObservation = disableArrayObservation;
     let ArrayObserver = class ArrayObserver {
-        constructor(flags, lifecycle, array) {
+        constructor(lifecycle, array) {
             this.type = 10 /* Array */;
             if (!enableArrayObservationCalled) {
                 enableArrayObservationCalled = true;
@@ -417,7 +417,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             this.inBatch = false;
             this.indexObservers = {};
             this.collection = array;
-            this.persistentFlags = flags & 15367 /* persistentBindingFlags */;
             this.indexMap = observation_js_1.createIndexMap(array.length);
             this.lifecycle = lifecycle;
             this.lengthObserver = (void 0);
@@ -448,7 +447,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             const length = this.collection.length;
             this.inBatch = false;
             this.indexMap = observation_js_1.createIndexMap(length);
-            this.callCollectionSubscribers(indexMap, 8 /* updateTarget */ | this.persistentFlags);
+            this.callCollectionSubscribers(indexMap, 8 /* updateTarget */);
             if (this.lengthObserver !== void 0) {
                 this.lengthObserver.setValue(length, 8 /* updateTarget */);
             }
@@ -479,7 +478,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     };
     ArrayObserver = __decorate([
         subscriber_collection_js_1.collectionSubscriberCollection(),
-        __metadata("design:paramtypes", [Number, Object, Object])
+        __metadata("design:paramtypes", [Object, Object])
     ], ArrayObserver);
     exports.ArrayObserver = ArrayObserver;
     let ArrayIndexObserver = class ArrayIndexObserver {
@@ -540,10 +539,10 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         __metadata("design:paramtypes", [ArrayObserver, Number])
     ], ArrayIndexObserver);
     exports.ArrayIndexObserver = ArrayIndexObserver;
-    function getArrayObserver(flags, lifecycle, array) {
+    function getArrayObserver(lifecycle, array) {
         const observer = observerLookup.get(array);
         if (observer === void 0) {
-            return new ArrayObserver(flags, lifecycle, array);
+            return new ArrayObserver(lifecycle, array);
         }
         return observer;
     }

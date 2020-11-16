@@ -35,7 +35,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             this.targetAttribute = targetAttribute;
             this.currentValue = null;
             this.oldValue = null;
-            this.persistentFlags = 0 /* none */;
             this.hasChanges = false;
             // layout is not certain, depends on the attribute being flushed to owner element
             // but for simple start, always treat as such

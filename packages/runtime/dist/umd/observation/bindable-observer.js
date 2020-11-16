@@ -24,7 +24,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     const observation_js_1 = require("../observation.js");
     const subscriber_collection_js_1 = require("./subscriber-collection.js");
     let BindableObserver = BindableObserver_1 = class BindableObserver {
-        constructor(lifecycle, flags, obj, propertyKey, cbName, $set) {
+        constructor(lifecycle, obj, propertyKey, cbName, $set) {
             this.lifecycle = lifecycle;
             this.obj = obj;
             this.propertyKey = propertyKey;
@@ -52,7 +52,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                     : currentValue;
                 this.createGetterSetter();
             }
-            this.persistentFlags = flags & 15367 /* persistentBindingFlags */;
         }
         handleChange(newValue, oldValue, flags) {
             this.setValue(newValue, flags);
@@ -73,12 +72,12 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                 }
                 this.currentValue = newValue;
                 if (this.lifecycle.batch.depth === 0) {
-                    this.callSubscribers(newValue, currentValue, this.persistentFlags | flags);
+                    this.callSubscribers(newValue, currentValue, flags);
                     if ((flags & 32 /* fromBind */) === 0 || (flags & 16 /* updateSource */) > 0) {
-                        (_a = this.callback) === null || _a === void 0 ? void 0 : _a.call(this.obj, newValue, currentValue, this.persistentFlags | flags);
+                        (_a = this.callback) === null || _a === void 0 ? void 0 : _a.call(this.obj, newValue, currentValue, flags);
                         if (this.hasPropertyChangedCallback) {
                             // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-                            this.propertyChangedCallback.call(this.obj, this.propertyKey, newValue, currentValue, this.persistentFlags | flags);
+                            this.propertyChangedCallback.call(this.obj, this.propertyKey, newValue, currentValue, flags);
                         }
                     }
                 }
@@ -117,7 +116,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     };
     BindableObserver = BindableObserver_1 = __decorate([
         subscriber_collection_js_1.subscriberCollection(),
-        __metadata("design:paramtypes", [Object, Number, Object, String, String, Function])
+        __metadata("design:paramtypes", [Object, Object, String, String, Function])
     ], BindableObserver);
     exports.BindableObserver = BindableObserver;
 });

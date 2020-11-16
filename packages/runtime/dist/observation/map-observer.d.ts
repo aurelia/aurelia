@@ -7,11 +7,11 @@ export interface MapObserver extends ICollectionObserver<CollectionKind.map> {
 export declare class MapObserver {
     inBatch: boolean;
     type: AccessorType;
-    constructor(flags: LifecycleFlags, lifecycle: ILifecycle, map: IObservedMap);
+    constructor(lifecycle: ILifecycle, map: IObservedMap);
     notify(): void;
     getLengthObserver(): CollectionSizeObserver;
     getIndexObserver(index: number): ICollectionIndexObserver;
     flushBatch(flags: LifecycleFlags): void;
 }
-export declare function getMapObserver(flags: LifecycleFlags, lifecycle: ILifecycle, map: IObservedMap): MapObserver;
+export declare function getMapObserver(lifecycle: ILifecycle, map: IObservedMap): MapObserver;
 //# sourceMappingURL=map-observer.d.ts.map

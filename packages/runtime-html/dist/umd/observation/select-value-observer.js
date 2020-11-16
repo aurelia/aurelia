@@ -13,14 +13,13 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/runtime", "../platform.js"], factory);
+        define(["require", "exports", "@aurelia/runtime"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.SelectValueObserver = void 0;
     const runtime_1 = require("@aurelia/runtime");
-    const platform_js_1 = require("../platform.js");
     const hasOwn = Object.prototype.hasOwnProperty;
     const childObserverOptions = {
         childList: true,
@@ -33,12 +32,11 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     let SelectValueObserver = class SelectValueObserver {
         constructor(obj, 
         // deepscan-disable-next-line
-        _key, handler, observerLocator, locator) {
+        _key, handler, observerLocator) {
             this.handler = handler;
             this.observerLocator = observerLocator;
             this.currentValue = void 0;
             this.oldValue = void 0;
-            this.persistentFlags = 0 /* none */;
             this.hasChanges = false;
             // ObserverType.Layout is not always true
             // but for simplicity, always treat as such
@@ -47,7 +45,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             this.nodeObserver = void 0;
             this.observing = false;
             this.obj = obj;
-            this.platform = locator.get(platform_js_1.IPlatform);
         }
         getValue() {
             // is it safe to assume the observer has the latest value?
@@ -198,7 +195,8 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             return true;
         }
         start() {
-            (this.nodeObserver = new this.platform.MutationObserver(this.handleNodeChange.bind(this))).observe(this.obj, childObserverOptions);
+            (this.nodeObserver = new this.obj.ownerDocument.defaultView.MutationObserver(this.handleNodeChange.bind(this)))
+                .observe(this.obj, childObserverOptions);
             this.observeArray(this.currentValue instanceof Array ? this.currentValue : null);
             this.observing = true;
         }
@@ -248,7 +246,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     };
     SelectValueObserver = __decorate([
         runtime_1.subscriberCollection(),
-        __metadata("design:paramtypes", [Object, Object, Function, Object, Object])
+        __metadata("design:paramtypes", [Object, Object, Function, Object])
     ], SelectValueObserver);
     exports.SelectValueObserver = SelectValueObserver;
 });

@@ -66,13 +66,13 @@ let ObserverLocator = class ObserverLocator {
         return propertyAccessor;
     }
     getArrayObserver(flags, observedArray) {
-        return getArrayObserver(flags, this.lifecycle, observedArray);
+        return getArrayObserver(this.lifecycle, observedArray);
     }
     getMapObserver(flags, observedMap) {
-        return getMapObserver(flags, this.lifecycle, observedMap);
+        return getMapObserver(this.lifecycle, observedMap);
     }
     getSetObserver(flags, observedSet) {
-        return getSetObserver(flags, this.lifecycle, observedSet);
+        return getSetObserver(this.lifecycle, observedSet);
     }
     createObserver(flags, obj, key) {
         if (!(obj instanceof Object)) {
@@ -84,20 +84,20 @@ let ObserverLocator = class ObserverLocator {
         switch (key) {
             case 'length':
                 if (obj instanceof Array) {
-                    return getArrayObserver(flags, this.lifecycle, obj).getLengthObserver();
+                    return getArrayObserver(this.lifecycle, obj).getLengthObserver();
                 }
                 break;
             case 'size':
                 if (obj instanceof Map) {
-                    return getMapObserver(flags, this.lifecycle, obj).getLengthObserver();
+                    return getMapObserver(this.lifecycle, obj).getLengthObserver();
                 }
                 else if (obj instanceof Set) {
-                    return getSetObserver(flags, this.lifecycle, obj).getLengthObserver();
+                    return getSetObserver(this.lifecycle, obj).getLengthObserver();
                 }
                 break;
             default:
                 if (obj instanceof Array && isArrayIndex(key)) {
-                    return getArrayObserver(flags, this.lifecycle, obj).getIndexObserver(Number(key));
+                    return getArrayObserver(this.lifecycle, obj).getIndexObserver(Number(key));
                 }
                 break;
         }
@@ -170,15 +170,15 @@ ObserverLocator = __decorate([
     __metadata("design:paramtypes", [Object, Object, Object])
 ], ObserverLocator);
 export { ObserverLocator };
-export function getCollectionObserver(flags, lifecycle, collection) {
+export function getCollectionObserver(lifecycle, collection) {
     if (collection instanceof Array) {
-        return getArrayObserver(flags, lifecycle, collection);
+        return getArrayObserver(lifecycle, collection);
     }
     else if (collection instanceof Map) {
-        return getMapObserver(flags, lifecycle, collection);
+        return getMapObserver(lifecycle, collection);
     }
     else if (collection instanceof Set) {
-        return getSetObserver(flags, lifecycle, collection);
+        return getSetObserver(lifecycle, collection);
     }
     return void 0;
 }

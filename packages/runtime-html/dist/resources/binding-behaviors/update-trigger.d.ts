@@ -12,7 +12,6 @@ export declare type UpdateTriggerableBinding = PropertyBinding & {
 };
 export declare class UpdateTriggerBindingBehavior {
     private readonly observerLocator;
-    persistentFlags: LifecycleFlags;
     constructor(observerLocator: IObserverLocator);
     bind(flags: LifecycleFlags, _scope: Scope, _hostScope: Scope | null, binding: UpdateTriggerableBinding, ...events: string[]): void;
     unbind(flags: LifecycleFlags, _scope: Scope, _hostScope: Scope | null, binding: UpdateTriggerableBinding): void;

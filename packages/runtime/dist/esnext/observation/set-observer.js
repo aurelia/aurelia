@@ -126,7 +126,7 @@ export function disableSetObservation() {
     }
 }
 let SetObserver = class SetObserver {
-    constructor(flags, lifecycle, observedSet) {
+    constructor(lifecycle, observedSet) {
         this.type = 18 /* Set */;
         if (!enableSetObservationCalled) {
             enableSetObservationCalled = true;
@@ -134,7 +134,6 @@ let SetObserver = class SetObserver {
         }
         this.inBatch = false;
         this.collection = observedSet;
-        this.persistentFlags = flags & 15367 /* persistentBindingFlags */;
         this.indexMap = createIndexMap(observedSet.size);
         this.lifecycle = lifecycle;
         this.lengthObserver = (void 0);
@@ -165,7 +164,7 @@ let SetObserver = class SetObserver {
         const size = this.collection.size;
         this.inBatch = false;
         this.indexMap = createIndexMap(size);
-        this.callCollectionSubscribers(indexMap, 8 /* updateTarget */ | this.persistentFlags);
+        this.callCollectionSubscribers(indexMap, 8 /* updateTarget */);
         if (this.lengthObserver !== void 0) {
             this.lengthObserver.notify();
         }
@@ -173,13 +172,13 @@ let SetObserver = class SetObserver {
 };
 SetObserver = __decorate([
     collectionSubscriberCollection(),
-    __metadata("design:paramtypes", [Number, Object, Object])
+    __metadata("design:paramtypes", [Object, Object])
 ], SetObserver);
 export { SetObserver };
-export function getSetObserver(flags, lifecycle, observedSet) {
+export function getSetObserver(lifecycle, observedSet) {
     const observer = observerLookup.get(observedSet);
     if (observer === void 0) {
-        return new SetObserver(flags, lifecycle, observedSet);
+        return new SetObserver(lifecycle, observedSet);
     }
     return observer;
 }

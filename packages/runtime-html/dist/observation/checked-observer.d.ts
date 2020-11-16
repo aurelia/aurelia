@@ -20,7 +20,6 @@ export declare class CheckedObserver implements IObserver {
     currentValue: unknown;
     oldValue: unknown;
     readonly obj: IInputElement;
-    readonly persistentFlags: LifecycleFlags;
     hasChanges: boolean;
     type: AccessorType;
     collectionObserver?: ICollectionObserver<CollectionKind>;

@@ -7,11 +7,11 @@ export interface SetObserver extends ICollectionObserver<CollectionKind.set> {
 export declare class SetObserver {
     inBatch: boolean;
     type: AccessorType;
-    constructor(flags: LifecycleFlags, lifecycle: ILifecycle, observedSet: IObservedSet);
+    constructor(lifecycle: ILifecycle, observedSet: IObservedSet);
     notify(): void;
     getLengthObserver(): CollectionSizeObserver;
     getIndexObserver(index: number): ICollectionIndexObserver;
     flushBatch(flags: LifecycleFlags): void;
 }
-export declare function getSetObserver(flags: LifecycleFlags, lifecycle: ILifecycle, observedSet: IObservedSet): SetObserver;
+export declare function getSetObserver(lifecycle: ILifecycle, observedSet: IObservedSet): SetObserver;
 //# sourceMappingURL=set-observer.d.ts.map

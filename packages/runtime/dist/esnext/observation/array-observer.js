@@ -394,7 +394,7 @@ export function disableArrayObservation() {
     }
 }
 let ArrayObserver = class ArrayObserver {
-    constructor(flags, lifecycle, array) {
+    constructor(lifecycle, array) {
         this.type = 10 /* Array */;
         if (!enableArrayObservationCalled) {
             enableArrayObservationCalled = true;
@@ -403,7 +403,6 @@ let ArrayObserver = class ArrayObserver {
         this.inBatch = false;
         this.indexObservers = {};
         this.collection = array;
-        this.persistentFlags = flags & 15367 /* persistentBindingFlags */;
         this.indexMap = createIndexMap(array.length);
         this.lifecycle = lifecycle;
         this.lengthObserver = (void 0);
@@ -434,7 +433,7 @@ let ArrayObserver = class ArrayObserver {
         const length = this.collection.length;
         this.inBatch = false;
         this.indexMap = createIndexMap(length);
-        this.callCollectionSubscribers(indexMap, 8 /* updateTarget */ | this.persistentFlags);
+        this.callCollectionSubscribers(indexMap, 8 /* updateTarget */);
         if (this.lengthObserver !== void 0) {
             this.lengthObserver.setValue(length, 8 /* updateTarget */);
         }
@@ -465,7 +464,7 @@ let ArrayObserver = class ArrayObserver {
 };
 ArrayObserver = __decorate([
     collectionSubscriberCollection(),
-    __metadata("design:paramtypes", [Number, Object, Object])
+    __metadata("design:paramtypes", [Object, Object])
 ], ArrayObserver);
 export { ArrayObserver };
 let ArrayIndexObserver = class ArrayIndexObserver {
@@ -526,10 +525,10 @@ ArrayIndexObserver = __decorate([
     __metadata("design:paramtypes", [ArrayObserver, Number])
 ], ArrayIndexObserver);
 export { ArrayIndexObserver };
-export function getArrayObserver(flags, lifecycle, array) {
+export function getArrayObserver(lifecycle, array) {
     const observer = observerLookup.get(array);
     if (observer === void 0) {
-        return new ArrayObserver(flags, lifecycle, array);
+        return new ArrayObserver(lifecycle, array);
     }
     return observer;
 }

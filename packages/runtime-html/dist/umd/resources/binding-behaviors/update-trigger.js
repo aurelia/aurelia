@@ -36,9 +36,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             if (binding.mode !== runtime_1.BindingMode.twoWay && binding.mode !== runtime_1.BindingMode.fromView) {
                 throw new Error('The updateTrigger binding behavior can only be applied to two-way/ from-view bindings on input/select elements.');
             }
-            this.persistentFlags = flags & 15367 /* persistentBindingFlags */;
             // ensure the binding's target observer has been set.
-            const targetObserver = this.observerLocator.getObserver(this.persistentFlags | flags, binding.target, binding.targetProperty);
+            const targetObserver = this.observerLocator.getObserver(flags, binding.target, binding.targetProperty);
             if (!targetObserver.handler) {
                 throw new Error('The updateTrigger binding behavior can only be applied to two-way/ from-view bindings on input/select elements.');
             }

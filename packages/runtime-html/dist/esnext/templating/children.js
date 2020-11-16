@@ -116,7 +116,7 @@ export class ChildrenDefinition {
 }
 /** @internal */
 let ChildrenObserver = ChildrenObserver_1 = class ChildrenObserver {
-    constructor(controller, obj, flags, propertyKey, cbName, query = defaultChildQuery, filter = defaultChildFilter, map = defaultChildMap, options) {
+    constructor(controller, obj, propertyKey, cbName, query = defaultChildQuery, filter = defaultChildFilter, map = defaultChildMap, options) {
         this.controller = controller;
         this.obj = obj;
         this.propertyKey = propertyKey;
@@ -127,7 +127,6 @@ let ChildrenObserver = ChildrenObserver_1 = class ChildrenObserver {
         this.observing = false;
         this.children = (void 0);
         this.callback = obj[cbName];
-        this.persistentFlags = flags & 15367 /* persistentBindingFlags */;
         Reflect.defineProperty(this.obj, this.propertyKey, {
             enumerable: true,
             configurable: true,
@@ -157,12 +156,12 @@ let ChildrenObserver = ChildrenObserver_1 = class ChildrenObserver {
         if (this.callback !== void 0) {
             this.callback.call(this.obj);
         }
-        this.callSubscribers(this.children, undefined, this.persistentFlags | 8 /* updateTarget */);
+        this.callSubscribers(this.children, undefined, 8 /* updateTarget */);
     }
 };
 ChildrenObserver = ChildrenObserver_1 = __decorate([
     subscriberCollection(),
-    __metadata("design:paramtypes", [Object, Object, Number, String, String, Object, Object, Object, Object])
+    __metadata("design:paramtypes", [Object, Object, String, String, Object, Object, Object, Object])
 ], ChildrenObserver);
 export { ChildrenObserver };
 function defaultChildQuery(controller) {

@@ -17,7 +17,6 @@ let ValueAttributeObserver = class ValueAttributeObserver {
         this.handler = handler;
         this.currentValue = '';
         this.oldValue = '';
-        this.persistentFlags = 0 /* none */;
         this.hasChanges = false;
         // ObserverType.Layout is not always true, it depends on the element & property combo
         // but for simplicity, always treat as such

@@ -16,7 +16,6 @@
             this.obj = obj;
             this.currentValue = '';
             this.oldValue = '';
-            this.persistentFlags = 0 /* none */;
             this.doNotCache = true;
             this.nameIndex = {};
             this.version = 0;

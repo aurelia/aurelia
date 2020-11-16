@@ -140,7 +140,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     }
     exports.disableSetObservation = disableSetObservation;
     let SetObserver = class SetObserver {
-        constructor(flags, lifecycle, observedSet) {
+        constructor(lifecycle, observedSet) {
             this.type = 18 /* Set */;
             if (!enableSetObservationCalled) {
                 enableSetObservationCalled = true;
@@ -148,7 +148,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             }
             this.inBatch = false;
             this.collection = observedSet;
-            this.persistentFlags = flags & 15367 /* persistentBindingFlags */;
             this.indexMap = observation_js_1.createIndexMap(observedSet.size);
             this.lifecycle = lifecycle;
             this.lengthObserver = (void 0);
@@ -179,7 +178,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             const size = this.collection.size;
             this.inBatch = false;
             this.indexMap = observation_js_1.createIndexMap(size);
-            this.callCollectionSubscribers(indexMap, 8 /* updateTarget */ | this.persistentFlags);
+            this.callCollectionSubscribers(indexMap, 8 /* updateTarget */);
             if (this.lengthObserver !== void 0) {
                 this.lengthObserver.notify();
             }
@@ -187,13 +186,13 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     };
     SetObserver = __decorate([
         subscriber_collection_js_1.collectionSubscriberCollection(),
-        __metadata("design:paramtypes", [Number, Object, Object])
+        __metadata("design:paramtypes", [Object, Object])
     ], SetObserver);
     exports.SetObserver = SetObserver;
-    function getSetObserver(flags, lifecycle, observedSet) {
+    function getSetObserver(lifecycle, observedSet) {
         const observer = observerLookup.get(observedSet);
         if (observer === void 0) {
-            return new SetObserver(flags, lifecycle, observedSet);
+            return new SetObserver(lifecycle, observedSet);
         }
         return observer;
     }

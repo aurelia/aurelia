@@ -117,7 +117,6 @@ export interface IPropertyObserver<TObj extends object, TProp extends keyof TObj
     type: AccessorType;
     inBatch: boolean;
     observing: boolean;
-    persistentFlags: LifecycleFlags;
 }
 /**
  * An any-typed property observer
@@ -235,7 +234,6 @@ export interface ICollectionObserver<T extends CollectionKind> extends ICollecti
     type: AccessorType;
     inBatch: boolean;
     lifecycle: ILifecycle;
-    persistentFlags: LifecycleFlags;
     collection: ObservedCollectionKindToType<T>;
     lengthObserver: T extends CollectionKind.array ? CollectionLengthObserver : CollectionSizeObserver;
     getLengthObserver(): T extends CollectionKind.array ? CollectionLengthObserver : CollectionSizeObserver;

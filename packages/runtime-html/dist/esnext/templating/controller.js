@@ -703,7 +703,9 @@ function getLookup(instance) {
     }
     return lookup;
 }
-function createObservers(lifecycle, definition, flags, instance) {
+function createObservers(lifecycle, definition, 
+// deepscan-disable-next-line
+_flags, instance) {
     const bindables = definition.bindables;
     const observableNames = Object.getOwnPropertyNames(bindables);
     const length = observableNames.length;
@@ -715,12 +717,14 @@ function createObservers(lifecycle, definition, flags, instance) {
             name = observableNames[i];
             if (observers[name] === void 0) {
                 bindable = bindables[name];
-                observers[name] = new BindableObserver(lifecycle, flags, instance, name, bindable.callback, bindable.set);
+                observers[name] = new BindableObserver(lifecycle, instance, name, bindable.callback, bindable.set);
             }
         }
     }
 }
-function createChildrenObservers(controller, definition, flags, instance) {
+function createChildrenObservers(controller, definition, 
+// deepscan-disable-next-line
+_flags, instance) {
     const childrenObservers = definition.childrenObservers;
     const childObserverNames = Object.getOwnPropertyNames(childrenObservers);
     const length = childObserverNames.length;
@@ -731,7 +735,7 @@ function createChildrenObservers(controller, definition, flags, instance) {
             name = childObserverNames[i];
             if (observers[name] == void 0) {
                 const childrenDescription = childrenObservers[name];
-                observers[name] = new ChildrenObserver(controller, instance, flags, name, childrenDescription.callback, childrenDescription.query, childrenDescription.filter, childrenDescription.map, childrenDescription.options);
+                observers[name] = new ChildrenObserver(controller, instance, name, childrenDescription.callback, childrenDescription.query, childrenDescription.filter, childrenDescription.map, childrenDescription.options);
             }
         }
     }

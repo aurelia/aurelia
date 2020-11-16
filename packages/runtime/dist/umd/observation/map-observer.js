@@ -153,7 +153,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     }
     exports.disableMapObservation = disableMapObservation;
     let MapObserver = class MapObserver {
-        constructor(flags, lifecycle, map) {
+        constructor(lifecycle, map) {
             this.type = 34 /* Map */;
             if (!enableMapObservationCalled) {
                 enableMapObservationCalled = true;
@@ -161,7 +161,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             }
             this.inBatch = false;
             this.collection = map;
-            this.persistentFlags = flags & 15367 /* persistentBindingFlags */;
             this.indexMap = observation_js_1.createIndexMap(map.size);
             this.lifecycle = lifecycle;
             this.lengthObserver = (void 0);
@@ -192,7 +191,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             const size = this.collection.size;
             this.inBatch = false;
             this.indexMap = observation_js_1.createIndexMap(size);
-            this.callCollectionSubscribers(indexMap, 8 /* updateTarget */ | this.persistentFlags);
+            this.callCollectionSubscribers(indexMap, 8 /* updateTarget */);
             if (this.lengthObserver !== void 0) {
                 this.lengthObserver.notify();
             }
@@ -200,13 +199,13 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     };
     MapObserver = __decorate([
         subscriber_collection_js_1.collectionSubscriberCollection(),
-        __metadata("design:paramtypes", [Number, Object, Object])
+        __metadata("design:paramtypes", [Object, Object])
     ], MapObserver);
     exports.MapObserver = MapObserver;
-    function getMapObserver(flags, lifecycle, map) {
+    function getMapObserver(lifecycle, map) {
         const observer = observerLookup.get(map);
         if (observer === void 0) {
-            return new MapObserver(flags, lifecycle, map);
+            return new MapObserver(lifecycle, map);
         }
         return observer;
     }

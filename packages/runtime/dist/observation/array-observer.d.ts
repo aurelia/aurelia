@@ -8,7 +8,7 @@ export declare class ArrayObserver {
     inBatch: boolean;
     type: AccessorType;
     private readonly indexObservers;
-    constructor(flags: LifecycleFlags, lifecycle: ILifecycle, array: IObservedArray);
+    constructor(lifecycle: ILifecycle, array: IObservedArray);
     notify(): void;
     getLengthObserver(): CollectionLengthObserver;
     getIndexObserver(index: number): ICollectionIndexObserver;
@@ -31,7 +31,7 @@ export declare class ArrayIndexObserver implements ICollectionIndexObserver {
     subscribe(subscriber: ISubscriber): void;
     unsubscribe(subscriber: ISubscriber): void;
 }
-export declare function getArrayObserver(flags: LifecycleFlags, lifecycle: ILifecycle, array: IObservedArray): ArrayObserver;
+export declare function getArrayObserver(lifecycle: ILifecycle, array: IObservedArray): ArrayObserver;
 /**
  * Applies offsets to the non-negative indices in the IndexMap
  * based on added and deleted items relative to those indices.

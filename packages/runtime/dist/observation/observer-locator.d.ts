@@ -29,5 +29,5 @@ export declare class ObserverLocator {
     private cache;
 }
 export declare type RepeatableCollection = IObservedMap | IObservedSet | IObservedArray | null | undefined | number;
-export declare function getCollectionObserver(flags: LifecycleFlags, lifecycle: ILifecycle, collection: RepeatableCollection): CollectionObserver | undefined;
+export declare function getCollectionObserver(lifecycle: ILifecycle, collection: RepeatableCollection): CollectionObserver | undefined;
 //# sourceMappingURL=observer-locator.d.ts.map

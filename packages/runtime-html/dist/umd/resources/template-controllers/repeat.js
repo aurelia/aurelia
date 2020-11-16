@@ -130,7 +130,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                 }
             }
             else if (this.$controller.isActive) {
-                const newObserver = this.observer = runtime_1.getCollectionObserver(flags, this.$controller.lifecycle, this.items);
+                const newObserver = this.observer = runtime_1.getCollectionObserver(this.$controller.lifecycle, this.items);
                 if (oldObserver !== newObserver && oldObserver) {
                     oldObserver.unsubscribeFromCollection(this);
                 }

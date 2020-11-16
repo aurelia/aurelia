@@ -20,7 +20,6 @@ let CheckedObserver = class CheckedObserver {
         this.observerLocator = observerLocator;
         this.currentValue = void 0;
         this.oldValue = void 0;
-        this.persistentFlags = 0 /* none */;
         this.hasChanges = false;
         this.type = 2 /* Node */ | 1 /* Observer */ | 64 /* Layout */;
         this.collectionObserver = void 0;

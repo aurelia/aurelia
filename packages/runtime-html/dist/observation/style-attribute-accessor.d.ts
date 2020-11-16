@@ -3,7 +3,6 @@ export declare class StyleAttributeAccessor implements IAccessor {
     readonly obj: HTMLElement;
     currentValue: unknown;
     oldValue: unknown;
-    readonly persistentFlags: LifecycleFlags;
     styles: Record<string, number>;
     version: number;
     hasChanges: boolean;

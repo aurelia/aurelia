@@ -716,7 +716,9 @@
         }
         return lookup;
     }
-    function createObservers(lifecycle, definition, flags, instance) {
+    function createObservers(lifecycle, definition, 
+    // deepscan-disable-next-line
+    _flags, instance) {
         const bindables = definition.bindables;
         const observableNames = Object.getOwnPropertyNames(bindables);
         const length = observableNames.length;
@@ -728,12 +730,14 @@
                 name = observableNames[i];
                 if (observers[name] === void 0) {
                     bindable = bindables[name];
-                    observers[name] = new runtime_1.BindableObserver(lifecycle, flags, instance, name, bindable.callback, bindable.set);
+                    observers[name] = new runtime_1.BindableObserver(lifecycle, instance, name, bindable.callback, bindable.set);
                 }
             }
         }
     }
-    function createChildrenObservers(controller, definition, flags, instance) {
+    function createChildrenObservers(controller, definition, 
+    // deepscan-disable-next-line
+    _flags, instance) {
         const childrenObservers = definition.childrenObservers;
         const childObserverNames = Object.getOwnPropertyNames(childrenObservers);
         const length = childObserverNames.length;
@@ -744,7 +748,7 @@
                 name = childObserverNames[i];
                 if (observers[name] == void 0) {
                     const childrenDescription = childrenObservers[name];
-                    observers[name] = new children_js_1.ChildrenObserver(controller, instance, flags, name, childrenDescription.callback, childrenDescription.query, childrenDescription.filter, childrenDescription.map, childrenDescription.options);
+                    observers[name] = new children_js_1.ChildrenObserver(controller, instance, name, childrenDescription.callback, childrenDescription.query, childrenDescription.filter, childrenDescription.map, childrenDescription.options);
                 }
             }
         }

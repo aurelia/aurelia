@@ -139,7 +139,7 @@ export function disableMapObservation() {
     }
 }
 let MapObserver = class MapObserver {
-    constructor(flags, lifecycle, map) {
+    constructor(lifecycle, map) {
         this.type = 34 /* Map */;
         if (!enableMapObservationCalled) {
             enableMapObservationCalled = true;
@@ -147,7 +147,6 @@ let MapObserver = class MapObserver {
         }
         this.inBatch = false;
         this.collection = map;
-        this.persistentFlags = flags & 15367 /* persistentBindingFlags */;
         this.indexMap = createIndexMap(map.size);
         this.lifecycle = lifecycle;
         this.lengthObserver = (void 0);
@@ -178,7 +177,7 @@ let MapObserver = class MapObserver {
         const size = this.collection.size;
         this.inBatch = false;
         this.indexMap = createIndexMap(size);
-        this.callCollectionSubscribers(indexMap, 8 /* updateTarget */ | this.persistentFlags);
+        this.callCollectionSubscribers(indexMap, 8 /* updateTarget */);
         if (this.lengthObserver !== void 0) {
             this.lengthObserver.notify();
         }
@@ -186,13 +185,13 @@ let MapObserver = class MapObserver {
 };
 MapObserver = __decorate([
     collectionSubscriberCollection(),
-    __metadata("design:paramtypes", [Number, Object, Object])
+    __metadata("design:paramtypes", [Object, Object])
 ], MapObserver);
 export { MapObserver };
-export function getMapObserver(flags, lifecycle, map) {
+export function getMapObserver(lifecycle, map) {
     const observer = observerLookup.get(map);
     if (observer === void 0) {
-        return new MapObserver(flags, lifecycle, map);
+        return new MapObserver(lifecycle, map);
     }
     return observer;
 }

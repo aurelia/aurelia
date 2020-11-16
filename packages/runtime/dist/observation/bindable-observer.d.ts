@@ -10,7 +10,6 @@ export declare class BindableObserver {
     private readonly $set;
     currentValue: unknown;
     oldValue: unknown;
-    readonly persistentFlags: LifecycleFlags;
     inBatch: boolean;
     observing: boolean;
     type: AccessorType;
@@ -18,7 +17,7 @@ export declare class BindableObserver {
     private readonly propertyChangedCallback?;
     private readonly hasPropertyChangedCallback;
     private readonly shouldInterceptSet;
-    constructor(lifecycle: ILifecycle, flags: LifecycleFlags, obj: IIndexable, propertyKey: string, cbName: string, $set: InterceptorFunc);
+    constructor(lifecycle: ILifecycle, obj: IIndexable, propertyKey: string, cbName: string, $set: InterceptorFunc);
     handleChange(newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void;
     getValue(): unknown;
     setValue(newValue: unknown, flags: LifecycleFlags): void;

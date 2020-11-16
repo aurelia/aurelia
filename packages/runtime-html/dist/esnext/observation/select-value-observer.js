@@ -8,7 +8,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 import { subscriberCollection, } from '@aurelia/runtime';
-import { IPlatform } from '../platform.js';
 const hasOwn = Object.prototype.hasOwnProperty;
 const childObserverOptions = {
     childList: true,
@@ -21,12 +20,11 @@ function defaultMatcher(a, b) {
 let SelectValueObserver = class SelectValueObserver {
     constructor(obj, 
     // deepscan-disable-next-line
-    _key, handler, observerLocator, locator) {
+    _key, handler, observerLocator) {
         this.handler = handler;
         this.observerLocator = observerLocator;
         this.currentValue = void 0;
         this.oldValue = void 0;
-        this.persistentFlags = 0 /* none */;
         this.hasChanges = false;
         // ObserverType.Layout is not always true
         // but for simplicity, always treat as such
@@ -35,7 +33,6 @@ let SelectValueObserver = class SelectValueObserver {
         this.nodeObserver = void 0;
         this.observing = false;
         this.obj = obj;
-        this.platform = locator.get(IPlatform);
     }
     getValue() {
         // is it safe to assume the observer has the latest value?
@@ -186,7 +183,8 @@ let SelectValueObserver = class SelectValueObserver {
         return true;
     }
     start() {
-        (this.nodeObserver = new this.platform.MutationObserver(this.handleNodeChange.bind(this))).observe(this.obj, childObserverOptions);
+        (this.nodeObserver = new this.obj.ownerDocument.defaultView.MutationObserver(this.handleNodeChange.bind(this)))
+            .observe(this.obj, childObserverOptions);
         this.observeArray(this.currentValue instanceof Array ? this.currentValue : null);
         this.observing = true;
     }
@@ -236,7 +234,7 @@ let SelectValueObserver = class SelectValueObserver {
 };
 SelectValueObserver = __decorate([
     subscriberCollection(),
-    __metadata("design:paramtypes", [Object, Object, Function, Object, Object])
+    __metadata("design:paramtypes", [Object, Object, Function, Object])
 ], SelectValueObserver);
 export { SelectValueObserver };
 //# sourceMappingURL=select-value-observer.js.map

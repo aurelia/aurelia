@@ -1,7 +1,7 @@
 import {
   JobQueue,
   Job,
-} from './job';
+} from './job.js';
 import {
   DI,
   IContainer,
@@ -12,19 +12,19 @@ import {
 import {
   Realm,
   ExecutionContext,
-} from './realm';
+} from './realm.js';
 import {
   CompletionType,
   $Any,
-} from './types/_shared';
+} from './types/_shared.js';
 import {
   $Empty,
-} from './types/empty';
+} from './types/empty.js';
 import {
   $ESModule,
   $$ESModuleOrScript,
   $ESScript,
-} from './ast/modules';
+} from './ast/modules.js';
 
 export const ISourceFileProvider = DI.createInterface<ISourceFileProvider>('ISourceFileProvider').noDefault();
 export interface ISourceFileProvider {

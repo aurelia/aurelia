@@ -1,8 +1,8 @@
 import { Metadata } from '@aurelia/metadata';
 
-import { IContainer } from './di';
-import { Constructable } from './interfaces';
-import { emptyArray } from './platform';
+import { IContainer } from './di.js';
+import { Constructable } from './interfaces.js';
+import { emptyArray } from './platform.js';
 
 export type ResourceType<
   TUserType extends Constructable = Constructable,

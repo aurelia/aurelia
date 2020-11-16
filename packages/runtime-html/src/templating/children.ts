@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 import { Constructable, Protocol, Metadata, firstDefined, getPrototypeChain, IIndexable } from '@aurelia/kernel';
 import { LifecycleFlags, subscriberCollection, ISubscriberCollection, IAccessor, ISubscribable, IPropertyObserver, ISubscriber } from '@aurelia/runtime';
-import { INode } from '../dom';
-import { CustomElement } from '../resources/custom-element';
-import type { ICustomElementViewModel, ICustomElementController } from './controller';
+import { INode } from '../dom.js';
+import { CustomElement } from '../resources/custom-element.js';
+import type { ICustomElementViewModel, ICustomElementController } from './controller.js';
 
 export type PartialChildrenDefinition = {
   callback?: string;

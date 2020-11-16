@@ -1,6 +1,6 @@
-import { CollectionKind, createIndexMap, ICollectionObserver, IObservedSet, ICollectionIndexObserver, AccessorType, ILifecycle, LifecycleFlags } from '../observation';
-import { CollectionSizeObserver } from './collection-size-observer';
-import { collectionSubscriberCollection } from './subscriber-collection';
+import { CollectionKind, createIndexMap, ICollectionObserver, IObservedSet, ICollectionIndexObserver, AccessorType, ILifecycle, LifecycleFlags } from '../observation.js';
+import { CollectionSizeObserver } from './collection-size-observer.js';
+import { collectionSubscriberCollection } from './subscriber-collection.js';
 
 const observerLookup = new WeakMap<Set<unknown>, SetObserver>();
 

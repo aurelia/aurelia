@@ -61,7 +61,7 @@ import {
   String_valueOf,
   Symbol_valueOf,
   TypedArray,
-} from './util';
+} from './util.js';
 
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion, @typescript-eslint/ban-types */
 

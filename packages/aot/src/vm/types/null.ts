@@ -12,44 +12,44 @@ import {
   CompletionTarget,
   CompletionType,
   $Any,
-} from './_shared';
+} from './_shared.js';
 import {
   Realm,
   ExecutionContext,
-} from '../realm';
+} from '../realm.js';
 import {
   $String,
-} from './string';
+} from './string.js';
 import {
   $Number,
-} from './number';
+} from './number.js';
 import {
   $Boolean,
-} from './boolean';
+} from './boolean.js';
 import {
   $TypeError,
   $Error,
-} from './error';
+} from './error.js';
 import {
   $ExportDeclaration,
   $ExportSpecifier,
   $ESModule,
-} from '../ast/modules';
+} from '../ast/modules.js';
 import {
   $ClassDeclaration,
-} from '../ast/classes';
+} from '../ast/classes.js';
 import {
   $FunctionDeclaration,
-} from '../ast/functions';
+} from '../ast/functions.js';
 import {
   $VariableStatement,
-} from '../ast/statements';
+} from '../ast/statements.js';
 import {
   $NullLiteral,
-} from '../ast/literals';
+} from '../ast/literals.js';
 import {
   I$Node,
-} from '../ast/_shared';
+} from '../ast/_shared.js';
 
 // http://www.ecma-international.org/ecma-262/#sec-ecmascript-language-types-null-type
 export class $Null {

@@ -9,14 +9,14 @@ import {
   AccessorType,
   ILifecycle,
   LifecycleFlags
-} from '../observation';
+} from '../observation.js';
 import {
   CollectionLengthObserver
-} from './collection-length-observer';
+} from './collection-length-observer.js';
 import {
   collectionSubscriberCollection,
   subscriberCollection
-} from './subscriber-collection';
+} from './subscriber-collection.js';
 
 const observerLookup = new WeakMap<unknown[], ArrayObserver>();
 

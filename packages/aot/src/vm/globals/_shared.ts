@@ -1,21 +1,21 @@
 import {
   $BuiltinFunction,
   $Function,
-} from '../types/function';
+} from '../types/function.js';
 import {
   $AnyNonEmptyNonError,
   $AnyNonEmpty,
-} from '../types/_shared';
+} from '../types/_shared.js';
 import {
   $List,
-} from '../types/list';
+} from '../types/list.js';
 import {
   Realm,
   ExecutionContext,
-} from '../realm';
+} from '../realm.js';
 import {
   $Undefined,
-} from '../types/undefined';
+} from '../types/undefined.js';
 
 export class $ValueRecord<T> {
   public '[[Value]]': T;

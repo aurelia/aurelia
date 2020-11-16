@@ -1,8 +1,8 @@
-import { ComponentParameters, ComponentAppellation, ViewportHandle } from './interfaces';
-import { ViewportInstruction } from './viewport-instruction';
-import { Scope } from './scope';
-import { FoundRoute } from './found-route';
-import { IRouteSeparators, ISeparators } from './router-options';
+import { ComponentParameters, ComponentAppellation, ViewportHandle } from './interfaces.js';
+import { ViewportInstruction } from './viewport-instruction.js';
+import { Scope } from './scope.js';
+import { FoundRoute } from './found-route.js';
+import { IRouteSeparators, ISeparators } from './router-options.js';
 
 export interface IInstructionResolverOptions {
   separators?: IRouteSeparators;

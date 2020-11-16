@@ -1,14 +1,14 @@
 /* eslint-disable no-fallthrough */
 import { IContainer } from '@aurelia/kernel';
 import { Controller, LifecycleFlags, ILifecycle, IHydratedController, ICustomElementController, ICustomElementViewModel } from '@aurelia/runtime-html';
-import { IRouteableComponent, RouteableComponentType, ReentryBehavior, NavigationInstruction } from './interfaces';
-import { parseQuery } from './parser';
-import { Viewport } from './viewport';
-import { ViewportInstruction } from './viewport-instruction';
-import { Navigation } from './navigation';
-import { IConnectedCustomElement } from './resources/viewport';
-import { Runner } from './runner';
-import { AwaitableMap } from './awaitable-map';
+import { IRouteableComponent, RouteableComponentType, ReentryBehavior, NavigationInstruction } from './interfaces.js';
+import { parseQuery } from './parser.js';
+import { Viewport } from './viewport.js';
+import { ViewportInstruction } from './viewport-instruction.js';
+import { Navigation } from './navigation.js';
+import { IConnectedCustomElement } from './resources/viewport.js';
+import { Runner } from './runner.js';
+import { AwaitableMap } from './awaitable-map.js';
 
 /**
  * @internal - Shouldn't be used directly

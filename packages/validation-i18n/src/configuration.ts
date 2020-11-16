@@ -1,6 +1,6 @@
 import { IContainer, noop, Registration } from '@aurelia/kernel';
 import { getDefaultValidationHtmlConfiguration, ValidationHtmlConfiguration, ValidationHtmlCustomizationOptions } from '@aurelia/validation-html';
-import { I18nKeyConfiguration, LocalizedValidationControllerFactory, LocalizedValidationMessageProvider, ValidationI18nCustomizationOptions } from './localization';
+import { I18nKeyConfiguration, LocalizedValidationControllerFactory, LocalizedValidationMessageProvider, ValidationI18nCustomizationOptions } from './localization.js';
 
 export type ValidationConfigurationProvider = (options: ValidationI18nCustomizationOptions) => void;
 

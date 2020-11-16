@@ -8,13 +8,13 @@ import {
   IExpressionParser,
   Char,
 } from '@aurelia/runtime';
-import { AttrSyntax, IAttributeParser } from './resources/attribute-pattern';
-import { IAttrSyntaxTransformer } from './attribute-syntax-transformer';
-import { BindingCommand, BindingCommandInstance } from './resources/binding-command';
-import { NodeType } from './dom';
-import { IPlatform } from './platform';
-import { CustomAttribute } from './resources/custom-attribute';
-import { CustomElement } from './resources/custom-element';
+import { AttrSyntax, IAttributeParser } from './resources/attribute-pattern.js';
+import { IAttrSyntaxTransformer } from './attribute-syntax-transformer.js';
+import { BindingCommand, BindingCommandInstance } from './resources/binding-command.js';
+import { NodeType } from './dom.js';
+import { IPlatform } from './platform.js';
+import { CustomAttribute } from './resources/custom-attribute.js';
+import { CustomElement } from './resources/custom-element.js';
 import {
   BindingSymbol,
   CustomAttributeSymbol,
@@ -32,7 +32,7 @@ import {
   AttrInfo,
   ElementInfo,
   BindableInfo,
-} from './semantic-model';
+} from './semantic-model.js';
 
 const invalidSurrogateAttribute = Object.assign(Object.create(null), {
   'id': true,

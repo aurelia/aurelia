@@ -1,6 +1,6 @@
 import { bindable, customElement } from '@aurelia/runtime-html';
-import { NavRoute } from '../nav-route';
-import { IRouter } from '../router';
+import { NavRoute } from '../nav-route.js';
+import { IRouter } from '../router.js';
 
 export interface INavClasses {
   nav?: string;

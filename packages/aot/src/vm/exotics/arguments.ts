@@ -1,14 +1,14 @@
 import {
   $Object,
-} from '../types/object';
+} from '../types/object.js';
 import {
   Realm,
   ExecutionContext,
-} from '../realm';
+} from '../realm.js';
 import {
   $Function,
   $BuiltinFunction,
-} from '../types/function';
+} from '../types/function.js';
 
 import {
   $PropertyKey,
@@ -16,44 +16,44 @@ import {
   $AnyNonEmptyNonError,
   $AnyObject,
   CompletionType,
-} from '../types/_shared';
+} from '../types/_shared.js';
 import {
   $EnvRec,
-} from '../types/environment-record';
+} from '../types/environment-record.js';
 import {
   $CreateDataProperty,
   $DefinePropertyOrThrow,
   $HasOwnProperty,
   $Set,
-} from '../operations';
+} from '../operations.js';
 import {
   $String,
-} from '../types/string';
+} from '../types/string.js';
 import {
   $PropertyDescriptor,
   $IsDataDescriptor,
-} from '../types/property-descriptor';
+} from '../types/property-descriptor.js';
 import {
   $Number,
-} from '../types/number';
+} from '../types/number.js';
 import {
   $Undefined,
-} from '../types/undefined';
+} from '../types/undefined.js';
 import {
   $Boolean,
-} from '../types/boolean';
+} from '../types/boolean.js';
 import {
   $Error,
-} from '../types/error';
+} from '../types/error.js';
 import {
   $ParameterDeclaration,
-} from '../ast/functions';
+} from '../ast/functions.js';
 import {
   getBoundNames,
-} from '../ast/_shared';
+} from '../ast/_shared.js';
 import {
   $List,
-} from '../types/list';
+} from '../types/list.js';
 
 // http://www.ecma-international.org/ecma-262/#sec-arguments-exotic-objects
 export class $ArgumentsExoticObject extends $Object<'ArgumentsExoticObject'> {

@@ -11,7 +11,7 @@ import {
   mergeArrays,
   firstDefined,
 } from '@aurelia/kernel';
-import { registerAliases } from './alias';
+import { registerAliases } from './alias.js';
 
 export type PartialValueConverterDefinition = PartialResourceDefinition;
 

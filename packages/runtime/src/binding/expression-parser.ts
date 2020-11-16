@@ -41,7 +41,7 @@ import {
   IsValueConverter,
   UnaryOperator,
   ExpressionKind,
-} from './ast';
+} from './ast.js';
 
 export interface IExpressionParser extends ExpressionParser {}
 export const IExpressionParser = DI.createInterface<IExpressionParser>('IExpressionParser').withDefault(x => x.singleton(ExpressionParser));

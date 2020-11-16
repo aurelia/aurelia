@@ -36,7 +36,7 @@ import {
   validationRulesRegistrar,
   rootObjectSymbol,
 } from '@aurelia/validation';
-import { Person } from './_test-resources';
+import { Person } from './_test-resources.js';
 
 describe('ValidationRules', function () {
 

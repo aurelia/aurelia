@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
-import { setTimeoutWaiter } from './waiters';
-import { HookName } from './hook-invocation-tracker';
-import { ITestRouteViewModel } from './view-models';
+import { setTimeoutWaiter } from './waiters.js';
+import { HookName } from './hook-invocation-tracker.js';
+import { ITestRouteViewModel } from './view-models.js';
 
 export interface IHookSpec<T extends HookName> {
   name: T;

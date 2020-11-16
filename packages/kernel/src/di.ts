@@ -2,10 +2,10 @@ import { Metadata, isObject, applyMetadataPolyfill } from '@aurelia/metadata';
 
 applyMetadataPolyfill(Reflect);
 
-import { isArrayIndex, isNativeFunction } from './functions';
-import { Class, Constructable, IDisposable } from './interfaces';
-import { emptyArray } from './platform';
-import { IResourceKind, Protocol, ResourceDefinition, ResourceType } from './resource';
+import { isArrayIndex, isNativeFunction } from './functions.js';
+import { Class, Constructable, IDisposable } from './interfaces.js';
+import { emptyArray } from './platform.js';
+import { IResourceKind, Protocol, ResourceDefinition, ResourceType } from './resource.js';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 

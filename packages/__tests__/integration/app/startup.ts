@@ -2,11 +2,11 @@
 import { IRegistration } from '@aurelia/kernel';
 import { Aurelia, CustomElement, FrequentMutations, CustomElementType } from '@aurelia/runtime-html';
 import { CallCollection, TestContext } from '@aurelia/testing';
-import { App } from './app';
-import { appTemplate as template } from './app-template';
-import { atoms } from './atoms';
-import { callCollection } from './debug';
-import { MolecularConfiguration, molecules } from './molecules';
+import { App } from './app.js';
+import { appTemplate as template } from './app-template.js';
+import { atoms } from './atoms/index.js';
+import { callCollection } from './debug.js';
+import { MolecularConfiguration, molecules } from './molecules/index.js';
 
 export class TestExecutionContext {
   public constructor(

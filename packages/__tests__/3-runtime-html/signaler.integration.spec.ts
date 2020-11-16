@@ -43,33 +43,33 @@ describe('signaler.integration', function () {
 
     await au.start();
 
-    assert.visibleTextEqual(au.root, '1', 'assert #1');
+    assert.visibleTextEqual(host, '1', 'assert #1');
     assert.areTaskQueuesEmpty();
 
     component.increment();
-    assert.visibleTextEqual(au.root, '1', 'assert #2');
+    assert.visibleTextEqual(host, '1', 'assert #2');
     tq.flush();
-    assert.visibleTextEqual(au.root, '2', 'assert #3');
+    assert.visibleTextEqual(host, '2', 'assert #3');
 
     component.factor = 2;
-    assert.visibleTextEqual(au.root, '2', 'assert #4');
+    assert.visibleTextEqual(host, '2', 'assert #4');
     tq.flush();
-    assert.visibleTextEqual(au.root, '6', 'assert #5');
+    assert.visibleTextEqual(host, '6', 'assert #5');
 
     component.increment();
-    assert.visibleTextEqual(au.root, '6', 'assert #6');
+    assert.visibleTextEqual(host, '6', 'assert #6');
     tq.flush();
-    assert.visibleTextEqual(au.root, '8', 'assert #7');
+    assert.visibleTextEqual(host, '8', 'assert #7');
 
     component.input = 10;
-    assert.visibleTextEqual(au.root, '8', 'assert #8');
+    assert.visibleTextEqual(host, '8', 'assert #8');
     tq.flush();
-    assert.visibleTextEqual(au.root, '20', 'assert #9');
+    assert.visibleTextEqual(host, '20', 'assert #9');
 
     component.increment();
-    assert.visibleTextEqual(au.root, '20', 'assert #10');
+    assert.visibleTextEqual(host, '20', 'assert #10');
     tq.flush();
-    assert.visibleTextEqual(au.root, '22', 'assert #11');
+    assert.visibleTextEqual(host, '22', 'assert #11');
 
     await au.stop();
   });
@@ -111,45 +111,45 @@ describe('signaler.integration', function () {
 
         await au.start();
 
-        assert.visibleTextEqual(au.root, '012', 'assert #1');
+        assert.visibleTextEqual(host, '012', 'assert #1');
         assert.areTaskQueuesEmpty();
 
         items[0] = 2;
         assert.areTaskQueuesEmpty();
         component.updateItem();
-        assert.visibleTextEqual(au.root, '012', 'assert #2');
+        assert.visibleTextEqual(host, '012', 'assert #2');
         tq.flush();
-        assert.visibleTextEqual(au.root, '212', 'assert #3');
+        assert.visibleTextEqual(host, '212', 'assert #3');
 
         items[0] = 3;
         items[1] = 4;
         items[2] = 5;
         assert.areTaskQueuesEmpty();
         component.updateItem();
-        assert.visibleTextEqual(au.root, '212', 'assert #3');
+        assert.visibleTextEqual(host, '212', 'assert #3');
         tq.flush();
-        assert.visibleTextEqual(au.root, '345', 'assert #4');
+        assert.visibleTextEqual(host, '345', 'assert #4');
 
         items.reverse();
-        assert.visibleTextEqual(au.root, '345', 'assert #5');
+        assert.visibleTextEqual(host, '345', 'assert #5');
         if (expr.includes('oneTime')) {
           tq.flush();
-          assert.visibleTextEqual(au.root, '345', 'assert #6');
+          assert.visibleTextEqual(host, '345', 'assert #6');
           component.updateItem();
-          assert.visibleTextEqual(au.root, '345', 'assert #7');
+          assert.visibleTextEqual(host, '345', 'assert #7');
           tq.flush();
-          assert.visibleTextEqual(au.root, '543', 'assert #8');
+          assert.visibleTextEqual(host, '543', 'assert #8');
         } else {
           tq.flush();
-          assert.visibleTextEqual(au.root, '543', 'assert #9');
+          assert.visibleTextEqual(host, '543', 'assert #9');
         }
 
         items[1] = 6;
         assert.areTaskQueuesEmpty();
         component.updateItem();
-        assert.visibleTextEqual(au.root, '543', 'assert #10');
+        assert.visibleTextEqual(host, '543', 'assert #10');
         tq.flush();
-        assert.visibleTextEqual(au.root, '563', 'assert #11');
+        assert.visibleTextEqual(host, '563', 'assert #11');
 
         await au.stop();
       });

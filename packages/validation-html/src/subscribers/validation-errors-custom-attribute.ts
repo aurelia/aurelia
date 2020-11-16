@@ -30,13 +30,10 @@ export class ValidationErrorsCustomAttribute implements ValidationResultsSubscri
   public errors: ValidationResultTarget[] = [];
 
   private readonly errorsInternal: ValidationResultTarget[] = [];
-  private readonly host: HTMLElement;
   public constructor(
-    @INode host: INode,
+    @INode private readonly host: INode<HTMLElement>,
     @optional(IValidationController) private readonly scopedController: IValidationController
-  ) {
-    this.host = host as HTMLElement;
-  }
+  ) {}
 
   public handleValidationEvent(event: ValidationEvent) {
     for (const { result } of event.removedResults) {

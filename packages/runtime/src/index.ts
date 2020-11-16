@@ -18,10 +18,10 @@ import {
   OneTimeBindingBehavior,
   ToViewBindingBehavior,
   TwoWayBindingBehavior,
-} from './binding-behaviors/binding-mode';
-import { DebounceBindingBehavior } from './binding-behaviors/debounce';
-import { SignalBindingBehavior } from './binding-behaviors/signals';
-import { ThrottleBindingBehavior } from './binding-behaviors/throttle';
+} from './binding-behaviors/binding-mode.js';
+import { DebounceBindingBehavior } from './binding-behaviors/debounce.js';
+import { SignalBindingBehavior } from './binding-behaviors/signals.js';
+import { ThrottleBindingBehavior } from './binding-behaviors/throttle.js';
 
 export const DebounceBindingBehaviorRegistration = DebounceBindingBehavior as unknown as IRegistry;
 export const OneTimeBindingBehaviorRegistration = OneTimeBindingBehavior as unknown as IRegistry;
@@ -34,7 +34,7 @@ export const TwoWayBindingBehaviorRegistration = TwoWayBindingBehavior as unknow
 export {
   alias,
   registerAliases,
-} from './alias';
+} from './alias.js';
 export {
   ExpressionKind,
   CallFunctionExpression,
@@ -80,20 +80,20 @@ export {
   BindingIdentifierOrPattern,
   UnaryOperator,
   IExpressionHydrator,
-} from './binding/ast';
+} from './binding/ast.js';
 export {
   PropertyBinding
-} from './binding/property-binding';
+} from './binding/property-binding.js';
 export {
   CallBinding
-} from './binding/call-binding';
+} from './binding/call-binding.js';
 export {
   IPartialConnectableBinding,
   IConnectableBinding,
   connectable,
   BindingMediator,
   MediatedBinding
-} from './binding/connectable';
+} from './binding/connectable.js';
 export {
   IExpressionParser,
   BindingType,
@@ -103,17 +103,17 @@ export {
   Precedence,
   parse,
   ParserState,
-} from './binding/expression-parser';
+} from './binding/expression-parser.js';
 export {
   ContentBinding,
   InterpolationBinding,
-} from './binding/interpolation-binding';
+} from './binding/interpolation-binding.js';
 export {
   LetBinding,
-} from './binding/let-binding';
+} from './binding/let-binding.js';
 export {
   RefBinding,
-} from './binding/ref-binding';
+} from './binding/ref-binding.js';
 
 export {
   ArrayObserver,
@@ -122,28 +122,28 @@ export {
   disableArrayObservation,
   applyMutationsToIndices,
   synchronizeIndices,
-} from './observation/array-observer';
+} from './observation/array-observer.js';
 export {
   MapObserver,
   enableMapObservation,
   disableMapObservation,
-} from './observation/map-observer';
+} from './observation/map-observer.js';
 export {
   SetObserver,
   enableSetObservation,
   disableSetObservation
-} from './observation/set-observer';
+} from './observation/set-observer.js';
 export {
   BindingContext,
   Scope,
   OverrideContext,
-} from './observation/binding-context';
+} from './observation/binding-context.js';
 export {
   CollectionLengthObserver,
-} from './observation/collection-length-observer';
+} from './observation/collection-length-observer.js';
 export {
   CollectionSizeObserver,
-} from './observation/collection-size-observer';
+} from './observation/collection-size-observer.js';
 export {
   ComputedOverrides,
   ComputedLookup,
@@ -153,48 +153,48 @@ export {
   GetterObserver,
   ComputedWatcher,
   ExpressionWatcher,
-} from './observation/computed-observer';
+} from './observation/computed-observer.js';
 export {
   IDirtyChecker,
   DirtyCheckProperty,
   DirtyCheckSettings,
-} from './observation/dirty-checker';
+} from './observation/dirty-checker.js';
 export {
   IObservableDefinition,
   observable,
-} from './observation/observable';
+} from './observation/observable.js';
 export {
   IObjectObservationAdapter,
   IObserverLocator,
   INodeObserverLocator,
   getCollectionObserver,
   ObserverLocator,
-} from './observation/observer-locator';
+} from './observation/observer-locator.js';
 export {
   PrimitiveObserver,
-} from './observation/primitive-observer';
+} from './observation/primitive-observer.js';
 export {
   PropertyAccessor,
-} from './observation/property-accessor';
+} from './observation/property-accessor.js';
 export {
   ProxyObservable,
-} from './observation/proxy-observation';
+} from './observation/proxy-observation.js';
 export {
   BindableObserver,
-} from './observation/bindable-observer';
+} from './observation/bindable-observer.js';
 export {
   SetterObserver,
-} from './observation/setter-observer';
+} from './observation/setter-observer.js';
 export {
   ISignaler,
-} from './observation/signaler';
+} from './observation/signaler.js';
 export {
   subscriberCollection,
   collectionSubscriberCollection,
-} from './observation/subscriber-collection';
+} from './observation/subscriber-collection.js';
 export {
   IWatcher,
-} from './observation/watcher-switcher';
+} from './observation/watcher-switcher.js';
 
 export {
   bindingBehavior,
@@ -209,23 +209,23 @@ export {
   BindingBehaviorFactory,
   BindingBehaviorStrategy,
   IInterceptableBinding,
-} from './binding-behavior';
+} from './binding-behavior.js';
 export {
   BindingModeBehavior,
   OneTimeBindingBehavior,
   ToViewBindingBehavior,
   FromViewBindingBehavior,
   TwoWayBindingBehavior,
-} from './binding-behaviors/binding-mode';
+} from './binding-behaviors/binding-mode.js';
 export {
   DebounceBindingBehavior,
-} from './binding-behaviors/debounce';
+} from './binding-behaviors/debounce.js';
 export {
   SignalBindingBehavior,
-} from './binding-behaviors/signals';
+} from './binding-behaviors/signals.js';
 export {
   ThrottleBindingBehavior,
-} from './binding-behaviors/throttle';
+} from './binding-behaviors/throttle.js';
 
 export {
   ValueConverter,
@@ -236,14 +236,14 @@ export {
   ValueConverterInstance,
   ValueConverterType,
   valueConverter,
-} from './value-converter';
+} from './value-converter.js';
 
 export {
   bindable,
   PartialBindableDefinition,
   BindableDefinition,
   Bindable,
-} from './bindable';
+} from './bindable.js';
 
 export {
   watch,
@@ -251,7 +251,7 @@ export {
   IWatchDefinition,
   IWatcherCallback,
   IDepCollectionFn,
-} from './observation/watch';
+} from './observation/watch.js';
 
 export {
   BindingMode,
@@ -293,4 +293,4 @@ export {
   copyIndexMap,
   cloneIndexMap,
   createIndexMap,
-} from './observation';
+} from './observation.js';

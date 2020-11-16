@@ -115,5 +115,6 @@
     "statusBar.foreground": "#e7e7e7"
   },
   "workbench.tree.indent": 16,
-  "git.pullTags": false
+  "git.pullTags": false,
+  "javascript.preferences.importModuleSpecifierEnding": "js"
 }

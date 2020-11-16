@@ -1,5 +1,5 @@
 import { LifecycleFlags, PropertyBinding, bindingBehavior } from '@aurelia/runtime';
-import { attrAccessor } from '../../observation/data-attribute-accessor';
+import { attrAccessor } from '../../observation/data-attribute-accessor.js';
 
 import type { Scope } from '@aurelia/runtime';
 

@@ -1,14 +1,14 @@
 import { LifecycleFlags, ICompiledRenderContext, ICustomElementController, CustomElement, ICustomElementViewModel, IHydratedController, IHydratedParentController } from '@aurelia/runtime-html';
-import { ComponentAppellation, IRouteableComponent, ReentryBehavior, IRoute, RouteableComponentType, NavigationInstruction } from './interfaces';
-import { IRouter } from './router';
-import { arrayRemove } from './utils';
-import { ViewportContent } from './viewport-content';
-import { ViewportInstruction } from './viewport-instruction';
-import { IScopeOwner, IScopeOwnerOptions, NextContentAction, Scope } from './scope';
-import { Navigation } from './navigation';
-import { IRoutingController, IConnectedCustomElement } from './resources/viewport';
-import { NavigationCoordinator } from './navigation-coordinator';
-import { Runner } from './runner';
+import { ComponentAppellation, IRouteableComponent, ReentryBehavior, IRoute, RouteableComponentType, NavigationInstruction } from './interfaces.js';
+import { IRouter } from './router.js';
+import { arrayRemove } from './utils.js';
+import { ViewportContent } from './viewport-content.js';
+import { ViewportInstruction } from './viewport-instruction.js';
+import { IScopeOwner, IScopeOwnerOptions, NextContentAction, Scope } from './scope.js';
+import { Navigation } from './navigation.js';
+import { IRoutingController, IConnectedCustomElement } from './resources/viewport.js';
+import { NavigationCoordinator } from './navigation-coordinator.js';
+import { Runner } from './runner.js';
 
 export interface IViewportOptions extends IScopeOwnerOptions {
   scope?: boolean;

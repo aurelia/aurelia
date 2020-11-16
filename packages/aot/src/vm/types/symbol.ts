@@ -1,9 +1,9 @@
 import {
   $Undefined,
-} from './undefined';
+} from './undefined.js';
 import {
   $String,
-} from './string';
+} from './string.js';
 import {
   nextValueId,
   $AnyNonError,
@@ -11,24 +11,24 @@ import {
   CompletionTarget,
   CompletionType,
   $Any,
-} from './_shared';
+} from './_shared.js';
 import {
   Realm,
   ExecutionContext,
-} from '../realm';
+} from '../realm.js';
 import {
   $Object,
-} from './object';
+} from './object.js';
 import {
   $Boolean,
-} from './boolean';
+} from './boolean.js';
 import {
   $TypeError,
   $Error,
-} from './error';
+} from './error.js';
 import {
   I$Node,
-} from '../ast/_shared';
+} from '../ast/_shared.js';
 
 // http://www.ecma-international.org/ecma-262/#sec-ecmascript-language-types-symbol-type
 export class $Symbol<T extends $Undefined | $String = $Undefined | $String> {

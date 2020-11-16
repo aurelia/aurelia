@@ -1,6 +1,6 @@
 import { IPlatform, CustomAttribute } from '@aurelia/runtime-html';
-import { GotoCustomAttribute } from './resources/goto';
-import { LoadCustomAttribute } from './resources/load';
+import { GotoCustomAttribute } from './resources/goto.js';
+import { LoadCustomAttribute } from './resources/load.js';
 
 /**
  * Provides information about how to handle an anchor event.

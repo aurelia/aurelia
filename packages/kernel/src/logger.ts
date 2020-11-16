@@ -1,7 +1,7 @@
-import { all, DI, IContainer, ignore, IRegistry, optional, Registration } from './di';
-import { bound, toLookup } from './functions';
-import { Class, Constructable } from './interfaces';
-import { Protocol } from './resource';
+import { all, DI, IContainer, ignore, IRegistry, optional, Registration } from './di.js';
+import { bound, toLookup } from './functions.js';
+import { Class, Constructable } from './interfaces.js';
+import { Protocol } from './resource.js';
 import { Metadata } from '@aurelia/metadata';
 
 export const enum LogLevel {

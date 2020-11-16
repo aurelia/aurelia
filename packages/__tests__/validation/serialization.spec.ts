@@ -22,7 +22,7 @@ import {
   ValidateInstruction,
   IValidationExpressionHydrator
 } from '@aurelia/validation';
-import { Person } from './_test-resources';
+import { Person } from './_test-resources.js';
 
 describe('validation de/serialization', function () {
   function setup() {

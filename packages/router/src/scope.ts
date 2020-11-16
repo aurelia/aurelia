@@ -1,18 +1,18 @@
-import { IViewportScopeOptions, ViewportScope } from './viewport-scope';
+import { IViewportScopeOptions, ViewportScope } from './viewport-scope.js';
 import { CustomElementType } from '@aurelia/runtime-html';
-import { IRoute, ComponentAppellation, NavigationInstruction } from './interfaces';
-import { FoundRoute } from './found-route';
-import { IRouter } from './router';
-import { ViewportInstruction } from './viewport-instruction';
-import { NavigationInstructionResolver } from './type-resolvers';
-import { Viewport, IViewportOptions } from './viewport';
-import { arrayRemove } from './utils';
-import { Collection } from './collection';
-import { IConfigurableRoute, RouteRecognizer } from './route-recognizer';
-import { Navigation } from './navigation';
-import { IConnectedCustomElement } from './resources/viewport';
-import { NavigationCoordinator } from './navigation-coordinator';
-import { Runner } from './runner';
+import { IRoute, ComponentAppellation, NavigationInstruction } from './interfaces.js';
+import { FoundRoute } from './found-route.js';
+import { IRouter } from './router.js';
+import { ViewportInstruction } from './viewport-instruction.js';
+import { NavigationInstructionResolver } from './type-resolvers.js';
+import { Viewport, IViewportOptions } from './viewport.js';
+import { arrayRemove } from './utils.js';
+import { Collection } from './collection.js';
+import { IConfigurableRoute, RouteRecognizer } from './route-recognizer.js';
+import { Navigation } from './navigation.js';
+import { IConnectedCustomElement } from './resources/viewport.js';
+import { NavigationCoordinator } from './navigation-coordinator.js';
+import { Runner } from './runner.js';
 
 export type NextContentAction = 'skip' | 'reload' | 'swap' | '';
 

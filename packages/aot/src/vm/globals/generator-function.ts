@@ -1,49 +1,49 @@
 import {
   $BuiltinFunction,
   $Function,
-} from '../types/function';
+} from '../types/function.js';
 import {
   Realm,
   ExecutionContext,
-} from '../realm';
+} from '../realm.js';
 import {
   $AnyNonEmpty,
   $AnyNonEmptyNonError,
   CompletionType,
-} from '../types/_shared';
+} from '../types/_shared.js';
 import {
   $Error, $TypeError,
-} from '../types/error';
+} from '../types/error.js';
 import {
   $Undefined,
-} from '../types/undefined';
+} from '../types/undefined.js';
 import {
   $Object,
-} from '../types/object';
+} from '../types/object.js';
 import {
   $String,
-} from '../types/string';
+} from '../types/string.js';
 import {
   FunctionKind,
-} from '../ast/_shared';
+} from '../ast/_shared.js';
 import {
   $CreateDynamicFunction,
   $FunctionPrototype,
   $FunctionConstructor,
-} from './function';
+} from './function.js';
 import {
   $IteratorPrototype,
   $CreateIterResultObject,
-} from './iteration';
+} from './iteration.js';
 import {
   $Number,
-} from '../types/number';
+} from '../types/number.js';
 import {
   $Block,
-} from '../ast/statements';
+} from '../ast/statements.js';
 import {
   $List
-} from '../types/list';
+} from '../types/list.js';
 
 // http://www.ecma-international.org/ecma-262/#sec-generatorfunction-objects
 // 25.2 GeneratorFunction Objects

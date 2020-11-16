@@ -5,7 +5,7 @@
 //   public reject!: () => void;
 // }
 
-import { OpenPromise } from './open-promise';
+import { OpenPromise } from './open-promise.js';
 
 export class AwaitableMap<K, V> {
   public map: Map<K, V | OpenPromise<V>> = new Map();

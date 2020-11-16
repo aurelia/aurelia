@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { IIndexable } from '@aurelia/kernel';
-import { IBinding, IBindingContext, IOverrideContext, LifecycleFlags } from '../observation';
+import { IBinding, IBindingContext, IOverrideContext, LifecycleFlags } from '../observation.js';
 
 const marker = Object.freeze({});
 

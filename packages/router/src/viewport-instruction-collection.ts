@@ -1,6 +1,6 @@
-import { ViewportInstruction } from './viewport-instruction';
-import { IScopeOwner } from './scope';
-import { arrayRemove } from './utils';
+import { ViewportInstruction } from './viewport-instruction.js';
+import { IScopeOwner } from './scope.js';
+import { arrayRemove } from './utils.js';
 
 /**
  * @internal - Shouldn't be used directly

@@ -1,10 +1,10 @@
-import { $Object, } from '../types/object';
-import { $Number, } from '../types/number';
-import { $PropertyDescriptor, } from '../types/property-descriptor';
-import { $GetFunctionRealm, $Construct, $CreateDataProperty, } from '../operations';
-import { $String, } from '../types/string';
-import { $RangeError, $TypeError, } from '../types/error';
-import { $List, } from '../types/list';
+import { $Object, } from '../types/object.js';
+import { $Number, } from '../types/number.js';
+import { $PropertyDescriptor, } from '../types/property-descriptor.js';
+import { $GetFunctionRealm, $Construct, $CreateDataProperty, } from '../operations.js';
+import { $String, } from '../types/string.js';
+import { $RangeError, $TypeError, } from '../types/error.js';
+import { $List, } from '../types/list.js';
 // http://www.ecma-international.org/ecma-262/#sec-array-exotic-objects
 export class $ArrayExoticObject extends $Object {
     get isArray() { return true; }

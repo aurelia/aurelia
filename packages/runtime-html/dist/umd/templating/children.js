@@ -13,7 +13,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "../resources/custom-element"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "../resources/custom-element.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -23,7 +23,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     /* eslint-disable @typescript-eslint/no-use-before-define */
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
-    const custom_element_1 = require("../resources/custom-element");
+    const custom_element_js_1 = require("../resources/custom-element.js");
     function children(configOrTarget, prop) {
         let config;
         function decorator($target, $prop) {
@@ -196,7 +196,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         const children = [];
         for (let i = 0, ii = nodes.length; i < ii; ++i) {
             const node = nodes[i];
-            const $controller = custom_element_1.CustomElement.for(node, forOpts);
+            const $controller = custom_element_js_1.CustomElement.for(node, forOpts);
             const viewModel = (_a = $controller === null || $controller === void 0 ? void 0 : $controller.viewModel) !== null && _a !== void 0 ? _a : null;
             if (filter(node, $controller, viewModel)) {
                 children.push(map(node, $controller, viewModel));

@@ -1,5 +1,5 @@
-import { $Set, } from '../operations';
-import { $TypeError, $ReferenceError, } from './error';
+import { $Set, } from '../operations.js';
+import { $TypeError, $ReferenceError, } from './error.js';
 // http://www.ecma-international.org/ecma-262/#sec-reference-specification-type
 export class $Reference {
     constructor(realm, baseValue, referencedName, strict, thisValue) {

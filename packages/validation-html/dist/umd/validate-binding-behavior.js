@@ -13,7 +13,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime-html", "@aurelia/validation", "./validation-controller"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime-html", "@aurelia/validation", "./validation-controller.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -22,7 +22,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     const kernel_1 = require("@aurelia/kernel");
     const runtime_html_1 = require("@aurelia/runtime-html");
     const validation_1 = require("@aurelia/validation");
-    const validation_controller_1 = require("./validation-controller");
+    const validation_controller_js_1 = require("./validation-controller.js");
     /**
      * Validation triggers.
      */
@@ -77,8 +77,8 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             this.platform = locator.get(runtime_html_1.IPlatform);
             this.defaultTrigger = locator.get(exports.IDefaultTrigger);
             this.platform = locator.get(runtime_html_1.IPlatform);
-            if (locator.has(validation_controller_1.IValidationController, true)) {
-                this.scopedController = locator.get(validation_controller_1.IValidationController);
+            if (locator.has(validation_controller_js_1.IValidationController, true)) {
+                this.scopedController = locator.get(validation_controller_js_1.IValidationController);
             }
             this.setPropertyBinding();
         }
@@ -224,7 +224,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             if (controller === (void 0) || controller === null) {
                 controller = this.scopedController;
             }
-            else if (!(controller instanceof validation_controller_1.ValidationController)) {
+            else if (!(controller instanceof validation_controller_js_1.ValidationController)) {
                 throw new Error(`${controller} is not of type ValidationController`); // TODO: use reporter
             }
             return controller;
@@ -273,7 +273,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             return this.triggerEvent = triggerEvent;
         }
         setBindingInfo(rules) {
-            return this.bindingInfo = new validation_controller_1.BindingInfo(this.target, this.scope, this.hostScope, rules);
+            return this.bindingInfo = new validation_controller_js_1.BindingInfo(this.target, this.scope, this.hostScope, rules);
         }
     };
     ValidateBindingBehavior = __decorate([

@@ -1,4 +1,4 @@
-import { I18N } from '../i18n';
+import { I18N } from '../i18n.js';
 export declare class DateFormatValueConverter {
     private readonly i18n;
     readonly signals: string[];

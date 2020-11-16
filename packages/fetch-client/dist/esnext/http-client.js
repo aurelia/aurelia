@@ -1,5 +1,5 @@
-import { HttpClientConfiguration } from './http-client-configuration';
-import { RetryInterceptor } from './retry-interceptor';
+import { HttpClientConfiguration } from './http-client-configuration.js';
+import { RetryInterceptor } from './retry-interceptor.js';
 const absoluteUrlRegexp = /^([a-z][a-z0-9+\-.]*:)?\/\//i;
 /**
  * An HTTP client based on the Fetch API.

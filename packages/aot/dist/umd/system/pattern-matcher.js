@@ -4,22 +4,22 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "./path-utils"], factory);
+        define(["require", "exports", "@aurelia/kernel", "./path-utils.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.PatternMatcher = void 0;
     const kernel_1 = require("@aurelia/kernel");
-    const path_utils_1 = require("./path-utils");
+    const path_utils_js_1 = require("./path-utils.js");
     const lookup = new WeakMap();
     class PatternMatcher {
         constructor(logger, compilerOptions) {
             this.logger = logger;
             this.compilerOptions = compilerOptions;
             this.logger = logger.scopeTo(this.constructor.name);
-            this.rootDir = path_utils_1.resolvePath(compilerOptions.__dirname);
-            this.basePath = path_utils_1.joinPath(this.rootDir, compilerOptions.baseUrl);
+            this.rootDir = path_utils_js_1.resolvePath(compilerOptions.__dirname);
+            this.basePath = path_utils_js_1.joinPath(this.rootDir, compilerOptions.baseUrl);
             this.sources = Object.keys(compilerOptions.paths).map(x => new PatternSource(this.logger, this, x));
         }
         findMatch(files, specifier) {
@@ -109,15 +109,15 @@
             this.logger = logger.scopeTo(this.constructor.name);
             if (pattern.endsWith('*')) {
                 this.hasWildcard = true;
-                this.patternPath = path_utils_1.joinPath(source.matcher.basePath, pattern.slice(0, -1));
+                this.patternPath = path_utils_js_1.joinPath(source.matcher.basePath, pattern.slice(0, -1));
             }
             else {
                 this.hasWildcard = false;
-                this.patternPath = path_utils_1.joinPath(source.matcher.basePath, pattern);
+                this.patternPath = path_utils_js_1.joinPath(source.matcher.basePath, pattern);
             }
         }
         findMatch(files, specifier) {
-            const targetPath = this.hasWildcard ? path_utils_1.joinPath(this.patternPath, specifier) : this.patternPath;
+            const targetPath = this.hasWildcard ? path_utils_js_1.joinPath(this.patternPath, specifier) : this.patternPath;
             const len = files.length;
             let file;
             for (let i = 0; i < len; ++i) {

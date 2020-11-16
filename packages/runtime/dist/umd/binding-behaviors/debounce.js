@@ -13,16 +13,16 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "../binding-behavior", "../binding/ast"], factory);
+        define(["require", "exports", "@aurelia/kernel", "../binding-behavior.js", "../binding/ast.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.DebounceBindingBehavior = void 0;
     const kernel_1 = require("@aurelia/kernel");
-    const binding_behavior_1 = require("../binding-behavior");
-    const ast_1 = require("../binding/ast");
-    let DebounceBindingBehavior = class DebounceBindingBehavior extends binding_behavior_1.BindingInterceptor {
+    const binding_behavior_js_1 = require("../binding-behavior.js");
+    const ast_js_1 = require("../binding/ast.js");
+    let DebounceBindingBehavior = class DebounceBindingBehavior extends binding_behavior_js_1.BindingInterceptor {
         constructor(binding, expr) {
             super(binding, expr);
             this.opts = { delay: 0 };
@@ -66,8 +66,8 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         }
     };
     DebounceBindingBehavior = __decorate([
-        binding_behavior_1.bindingBehavior('debounce'),
-        __metadata("design:paramtypes", [Object, ast_1.BindingBehaviorExpression])
+        binding_behavior_js_1.bindingBehavior('debounce'),
+        __metadata("design:paramtypes", [Object, ast_js_1.BindingBehaviorExpression])
     ], DebounceBindingBehavior);
     exports.DebounceBindingBehavior = DebounceBindingBehavior;
 });

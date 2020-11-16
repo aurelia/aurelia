@@ -1,6 +1,6 @@
-import { $DefinePropertyOrThrow, $Set, $HasOwnProperty, } from '../operations';
-import { $PropertyDescriptor, } from './property-descriptor';
-import { $TypeError, $ReferenceError, } from './error';
+import { $DefinePropertyOrThrow, $Set, $HasOwnProperty, } from '../operations.js';
+import { $PropertyDescriptor, } from './property-descriptor.js';
+import { $TypeError, $ReferenceError, } from './error.js';
 let bindingId = 0;
 export class $Binding {
     constructor(isMutable, isStrict, isInitialized, canBeDeleted, value, name, origin, M = null, N2 = null) {

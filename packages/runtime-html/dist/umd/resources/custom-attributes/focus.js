@@ -16,16 +16,16 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/runtime", "../../dom", "../../platform", "../custom-attribute"], factory);
+        define(["require", "exports", "@aurelia/runtime", "../../dom.js", "../../platform.js", "../custom-attribute.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Focus = void 0;
     const runtime_1 = require("@aurelia/runtime");
-    const dom_1 = require("../../dom");
-    const platform_1 = require("../../platform");
-    const custom_attribute_1 = require("../custom-attribute");
+    const dom_js_1 = require("../../dom.js");
+    const platform_js_1 = require("../../platform.js");
+    const custom_attribute_js_1 = require("../custom-attribute.js");
     /**
      * Focus attribute for element focus binding
      */
@@ -126,8 +126,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         __metadata("design:type", Object)
     ], Focus.prototype, "value", void 0);
     Focus = __decorate([
-        custom_attribute_1.customAttribute('focus'),
-        __param(0, dom_1.INode), __param(1, platform_1.IPlatform),
+        custom_attribute_js_1.customAttribute('focus'),
+        __param(0, dom_js_1.INode), __param(1, platform_js_1.IPlatform),
         __metadata("design:paramtypes", [Object, Object])
     ], Focus);
     exports.Focus = Focus;

@@ -1,8 +1,8 @@
 import { DI, Registration, onResolve, resolveAll } from '@aurelia/kernel';
-import { INode } from './dom';
-import { IAppTask } from './app-task';
-import { CustomElement } from './resources/custom-element';
-import { Controller } from './templating/controller';
+import { INode } from './dom.js';
+import { IAppTask } from './app-task.js';
+import { CustomElement } from './resources/custom-element.js';
+import { Controller } from './templating/controller.js';
 export const IAppRoot = DI.createInterface('IAppRoot').noDefault();
 export class AppRoot {
     constructor(config, platform, container, rootProvider, enhance = false) {

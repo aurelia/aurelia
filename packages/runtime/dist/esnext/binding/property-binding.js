@@ -8,9 +8,9 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 import { IServiceLocator, TaskQueue, } from '@aurelia/kernel';
-import { BindingMode, ILifecycle, } from '../observation';
-import { IObserverLocator } from '../observation/observer-locator';
-import { connectable, } from './connectable';
+import { BindingMode, ILifecycle, } from '../observation.js';
+import { IObserverLocator } from '../observation/observer-locator.js';
+import { connectable, } from './connectable.js';
 // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
 const { oneTime, toView, fromView } = BindingMode;
 // pre-combining flags for bitwise checks is a minor perf tweak

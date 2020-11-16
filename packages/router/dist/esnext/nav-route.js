@@ -1,4 +1,4 @@
-import { ComponentAppellationResolver, NavigationInstructionResolver } from './type-resolvers';
+import { ComponentAppellationResolver, NavigationInstructionResolver } from './type-resolvers.js';
 /**
  * @internal - Used by au-nav
  */

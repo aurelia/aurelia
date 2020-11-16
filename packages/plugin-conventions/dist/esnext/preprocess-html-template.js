@@ -1,7 +1,7 @@
 import * as path from 'path';
 import { kebabCase } from '@aurelia/kernel';
 import modifyCode from 'modify-code';
-import { stripMetaData } from './strip-meta-data';
+import { stripMetaData } from './strip-meta-data.js';
 // stringModuleWrap is to deal with pure css text module import in shadowDOM mode.
 // For webpack:
 //   import d0 from '!!raw-loader!./foo.css';

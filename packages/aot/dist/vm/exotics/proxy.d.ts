@@ -1,13 +1,13 @@
-import { $Object } from '../types/object';
-import { $Null } from '../types/null';
-import { Realm, ExecutionContext } from '../realm';
-import { $PropertyKey, $AnyNonEmpty, $AnyNonEmptyNonError, $AnyObject } from '../types/_shared';
-import { $Boolean } from '../types/boolean';
-import { $PropertyDescriptor } from '../types/property-descriptor';
-import { $Undefined } from '../types/undefined';
-import { $Function } from '../types/function';
-import { $Error } from '../types/error';
-import { $List } from '../types/list';
+import { $Object } from '../types/object.js';
+import { $Null } from '../types/null.js';
+import { Realm, ExecutionContext } from '../realm.js';
+import { $PropertyKey, $AnyNonEmpty, $AnyNonEmptyNonError, $AnyObject } from '../types/_shared.js';
+import { $Boolean } from '../types/boolean.js';
+import { $PropertyDescriptor } from '../types/property-descriptor.js';
+import { $Undefined } from '../types/undefined.js';
+import { $Function } from '../types/function.js';
+import { $Error } from '../types/error.js';
+import { $List } from '../types/list.js';
 export declare class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
     '[[ProxyHandler]]': $AnyObject | $Null;
     '[[ProxyTarget]]': $AnyObject | $Null;

@@ -1,4 +1,4 @@
-import { RetryInterceptor } from './retry-interceptor';
+import { RetryInterceptor } from './retry-interceptor.js';
 /**
  * A class for configuring HttpClients.
  */

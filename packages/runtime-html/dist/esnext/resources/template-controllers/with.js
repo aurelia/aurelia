@@ -12,9 +12,9 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 import { nextId } from '@aurelia/kernel';
 import { bindable, Scope } from '@aurelia/runtime';
-import { IRenderLocation } from '../../dom';
-import { IViewFactory } from '../../templating/view';
-import { templateController } from '../custom-attribute';
+import { IRenderLocation } from '../../dom.js';
+import { IViewFactory } from '../../templating/view.js';
+import { templateController } from '../custom-attribute.js';
 let With = class With {
     constructor(factory, location) {
         this.factory = factory;

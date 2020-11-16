@@ -4,14 +4,14 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./di"], factory);
+        define(["require", "exports", "./di.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.EventAggregator = exports.IEventAggregator = void 0;
     /* eslint-disable @typescript-eslint/restrict-template-expressions */
-    const di_1 = require("./di");
+    const di_js_1 = require("./di.js");
     /**
      * Represents a handler for an EventAggregator event.
      */
@@ -26,7 +26,7 @@
             }
         }
     }
-    exports.IEventAggregator = di_1.DI.createInterface('IEventAggregator').withDefault(x => x.singleton(EventAggregator));
+    exports.IEventAggregator = di_js_1.DI.createInterface('IEventAggregator').withDefault(x => x.singleton(EventAggregator));
     /**
      * Enables loosely coupled publish/subscribe messaging.
      */

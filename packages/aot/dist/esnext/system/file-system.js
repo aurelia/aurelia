@@ -13,7 +13,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 import { accessSync, constants, exists, existsSync, lstatSync, mkdirSync, promises, readdirSync, readFileSync, realpathSync, statSync, writeFileSync, } from 'fs';
 import { dirname, join, } from 'path';
 import { ILogger, } from '@aurelia/kernel';
-import { normalizePath, joinPath, } from './path-utils';
+import { normalizePath, joinPath, } from './path-utils.js';
 const { access, lstat, mkdir, readdir, readFile, realpath, rmdir, stat, unlink, writeFile, } = promises;
 function compareFilePath(a, b) {
     return a.path < b.path ? -1 : a.path > b.path ? 1 : 0;

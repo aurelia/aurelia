@@ -1,4 +1,4 @@
-import { $BuiltinFunction, } from '../types/function';
+import { $BuiltinFunction, } from '../types/function.js';
 // http://www.ecma-international.org/ecma-262/#sec-isfinite-number
 // 18.2.2 isFinite ( number )
 export class $IsFinite extends $BuiltinFunction {

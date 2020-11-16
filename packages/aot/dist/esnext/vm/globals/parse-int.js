@@ -1,4 +1,4 @@
-import { $BuiltinFunction, } from '../types/function';
+import { $BuiltinFunction, } from '../types/function.js';
 // http://www.ecma-international.org/ecma-262/#sec-parseint-string-radix
 // 18.2.5 parseInt ( string , radix )
 export class $ParseInt extends $BuiltinFunction {

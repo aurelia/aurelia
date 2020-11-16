@@ -14,20 +14,20 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./configuration", "./i18n", "./i18n-configuration-options", "./t/index", "./df/index", "./nf/index", "./rt/index", "./utils"], factory);
+        define(["require", "exports", "./configuration.js", "./i18n.js", "./i18n-configuration-options.js", "./t/index.js", "./df/index.js", "./nf/index.js", "./rt/index.js", "./utils.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Signals = void 0;
-    __exportStar(require("./configuration"), exports);
-    __exportStar(require("./i18n"), exports);
-    __exportStar(require("./i18n-configuration-options"), exports);
-    __exportStar(require("./t/index"), exports);
-    __exportStar(require("./df/index"), exports);
-    __exportStar(require("./nf/index"), exports);
-    __exportStar(require("./rt/index"), exports);
-    var utils_1 = require("./utils");
-    Object.defineProperty(exports, "Signals", { enumerable: true, get: function () { return utils_1.Signals; } });
+    __exportStar(require("./configuration.js"), exports);
+    __exportStar(require("./i18n.js"), exports);
+    __exportStar(require("./i18n-configuration-options.js"), exports);
+    __exportStar(require("./t/index.js"), exports);
+    __exportStar(require("./df/index.js"), exports);
+    __exportStar(require("./nf/index.js"), exports);
+    __exportStar(require("./rt/index.js"), exports);
+    var utils_js_1 = require("./utils.js");
+    Object.defineProperty(exports, "Signals", { enumerable: true, get: function () { return utils_js_1.Signals; } });
 });
 //# sourceMappingURL=index.js.map

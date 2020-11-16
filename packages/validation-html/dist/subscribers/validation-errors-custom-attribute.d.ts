@@ -1,5 +1,5 @@
 import { INode } from '@aurelia/runtime-html';
-import { IValidationController, ValidationResultsSubscriber, ValidationEvent, ValidationResultTarget } from '../validation-controller';
+import { IValidationController, ValidationResultsSubscriber, ValidationEvent, ValidationResultTarget } from '../validation-controller.js';
 /**
  * A validation errors subscriber in form of a custom attribute.
  *

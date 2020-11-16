@@ -10,17 +10,17 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/runtime", "../../observation/data-attribute-accessor"], factory);
+        define(["require", "exports", "@aurelia/runtime", "../../observation/data-attribute-accessor.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.AttrBindingBehavior = void 0;
     const runtime_1 = require("@aurelia/runtime");
-    const data_attribute_accessor_1 = require("../../observation/data-attribute-accessor");
+    const data_attribute_accessor_js_1 = require("../../observation/data-attribute-accessor.js");
     let AttrBindingBehavior = class AttrBindingBehavior {
         bind(flags, _scope, _hostScope, binding) {
-            binding.targetObserver = data_attribute_accessor_1.attrAccessor;
+            binding.targetObserver = data_attribute_accessor_js_1.attrAccessor;
         }
         unbind(flags, _scope, _hostScope, binding) {
             return;

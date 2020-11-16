@@ -1,7 +1,7 @@
 import { DI, Metadata, Protocol } from '@aurelia/kernel';
 import { Scope } from '@aurelia/runtime';
-import { CustomElement, CustomElementDefinition } from '../resources/custom-element';
-import { Controller } from './controller';
+import { CustomElement, CustomElementDefinition } from '../resources/custom-element.js';
+import { Controller } from './controller.js';
 export const IViewFactory = DI.createInterface('IViewFactory').noDefault();
 export class ViewFactory {
     constructor(name, context, contentType, projectionScope = null) {

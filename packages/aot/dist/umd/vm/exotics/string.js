@@ -4,20 +4,20 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "../types/object", "../types/string", "../operations", "../types/property-descriptor", "../types/number", "../types/list"], factory);
+        define(["require", "exports", "../types/object.js", "../types/string.js", "../operations.js", "../types/property-descriptor.js", "../types/number.js", "../types/list.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.$StringExoticObject = void 0;
-    const object_1 = require("../types/object");
-    const string_1 = require("../types/string");
-    const operations_1 = require("../operations");
-    const property_descriptor_1 = require("../types/property-descriptor");
-    const number_1 = require("../types/number");
-    const list_1 = require("../types/list");
+    const object_js_1 = require("../types/object.js");
+    const string_js_1 = require("../types/string.js");
+    const operations_js_1 = require("../operations.js");
+    const property_descriptor_js_1 = require("../types/property-descriptor.js");
+    const number_js_1 = require("../types/number.js");
+    const list_js_1 = require("../types/list.js");
     // http://www.ecma-international.org/ecma-262/#sec-string-exotic-objects
-    class $StringExoticObject extends object_1.$Object {
+    class $StringExoticObject extends object_js_1.$Object {
         // http://www.ecma-international.org/ecma-262/#sec-stringcreate
         // 9.4.3.4 StringCreate ( value , prototype )
         constructor(realm, value, proto) {
@@ -35,8 +35,8 @@
             // 10. Let length be the number of code unit elements in value.
             const length = value['[[Value]]'].length;
             // 11. Perform ! DefinePropertyOrThrow(S, "length", PropertyDescriptor { [[Value]]: length, [[Writable]]: false, [[Enumerable]]: false, [[Configurable]]: false }).
-            operations_1.$DefinePropertyOrThrow(realm.stack.top, this, realm['[[Intrinsics]]'].length, new property_descriptor_1.$PropertyDescriptor(realm, realm['[[Intrinsics]]'].length, {
-                '[[Value]]': new number_1.$Number(realm, length),
+            operations_js_1.$DefinePropertyOrThrow(realm.stack.top, this, realm['[[Intrinsics]]'].length, new property_descriptor_js_1.$PropertyDescriptor(realm, realm['[[Intrinsics]]'].length, {
+                '[[Value]]': new number_js_1.$Number(realm, length),
                 '[[Writable]]': realm['[[Intrinsics]]'].false,
                 '[[Enumerable]]': realm['[[Intrinsics]]'].false,
                 '[[Configurable]]': realm['[[Intrinsics]]'].false,
@@ -69,7 +69,7 @@
                 // 3. a. Let extensible be S.[[Extensible]].
                 const extensible = this['[[Extensible]]'];
                 // 3. b. Return ! IsCompatiblePropertyDescriptor(extensible, Desc, stringDesc).
-                return operations_1.$ValidateAndApplyPropertyDescriptor(ctx, 
+                return operations_js_1.$ValidateAndApplyPropertyDescriptor(ctx, 
                 /* O */ intrinsics.undefined, 
                 /* P */ intrinsics.undefined, 
                 /* extensible */ extensible, 
@@ -84,7 +84,7 @@
         '[[OwnPropertyKeys]]'(ctx) {
             const realm = ctx.Realm;
             // 1. Let keys be a new empty List.
-            const keys = new list_1.$List();
+            const keys = new list_js_1.$List();
             // 2. Let str be O.[[StringData]].
             const str = this['[[StringData]]'];
             // 3. Assert: Type(str) is String.
@@ -95,7 +95,7 @@
             // 5. For each integer i starting with 0 such that i < len, in ascending order, do
             for (; i < len; ++i) {
                 // 5. a. Add ! ToString(i) as the last element of keys.
-                keys[keysLen++] = new string_1.$String(realm, i.toString());
+                keys[keysLen++] = new string_js_1.$String(realm, i.toString());
             }
             // 6. For each own property key P of O such that P is an array index and ToInteger(P) ≥ len, in ascending numeric index order, do
             // 6. a. Add P as the last element of keys.
@@ -142,9 +142,9 @@
             return intrinsics.undefined;
         }
         // 12. Let resultStr be the String value of length 1, containing one code unit from str, specifically the code unit at index index.
-        const resultStr = new string_1.$String(realm, str['[[Value]]'][index['[[Value]]']]);
+        const resultStr = new string_js_1.$String(realm, str['[[Value]]'][index['[[Value]]']]);
         // 13. Return a PropertyDescriptor { [[Value]]: resultStr, [[Writable]]: false, [[Enumerable]]: true, [[Configurable]]: false }.
-        return new property_descriptor_1.$PropertyDescriptor(realm, P, {
+        return new property_descriptor_js_1.$PropertyDescriptor(realm, P, {
             '[[Value]]': resultStr,
             '[[Writable]]': intrinsics.false,
             '[[Enumerable]]': intrinsics.true,

@@ -1,8 +1,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { preprocessOptions } from './options';
-import { preprocessHtmlTemplate } from './preprocess-html-template';
-import { preprocessResource } from './preprocess-resource';
+import { preprocessOptions } from './options.js';
+import { preprocessHtmlTemplate } from './preprocess-html-template.js';
+import { preprocessResource } from './preprocess-resource.js';
 export function preprocess(unit, options, _fileExists = fileExists) {
     const ext = path.extname(unit.path);
     const basename = path.basename(unit.path, ext);

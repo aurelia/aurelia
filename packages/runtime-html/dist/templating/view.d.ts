@@ -1,9 +1,9 @@
 import { Constructable, ConstructableClass } from '@aurelia/kernel';
 import { LifecycleFlags, Scope } from '@aurelia/runtime';
-import { PartialCustomElementDefinition, CustomElementDefinition } from '../resources/custom-element';
-import { IRenderContext } from './render-context';
-import { AuSlotContentType } from '../resources/custom-elements/au-slot';
-import type { ICustomElementViewModel, ISyntheticView, ICustomElementController, ICustomAttributeController } from './controller';
+import { PartialCustomElementDefinition, CustomElementDefinition } from '../resources/custom-element.js';
+import { IRenderContext } from './render-context.js';
+import { AuSlotContentType } from '../resources/custom-elements/au-slot.js';
+import type { ICustomElementViewModel, ISyntheticView, ICustomElementController, ICustomAttributeController } from './controller.js';
 export interface IViewFactory extends ViewFactory {
 }
 export declare const IViewFactory: import("@aurelia/kernel").InterfaceSymbol<IViewFactory>;

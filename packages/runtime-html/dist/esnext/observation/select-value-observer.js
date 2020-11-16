@@ -8,7 +8,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 import { subscriberCollection, } from '@aurelia/runtime';
-import { IPlatform } from '../platform';
+import { IPlatform } from '../platform.js';
 const hasOwn = Object.prototype.hasOwnProperty;
 const childObserverOptions = {
     childList: true,

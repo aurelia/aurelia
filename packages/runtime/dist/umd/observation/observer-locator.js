@@ -16,22 +16,22 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "../observation", "./array-observer", "./computed-observer", "./dirty-checker", "./map-observer", "./primitive-observer", "./property-accessor", "./set-observer", "./setter-observer"], factory);
+        define(["require", "exports", "@aurelia/kernel", "../observation.js", "./array-observer.js", "./computed-observer.js", "./dirty-checker.js", "./map-observer.js", "./primitive-observer.js", "./property-accessor.js", "./set-observer.js", "./setter-observer.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.getCollectionObserver = exports.ObserverLocator = exports.INodeObserverLocator = exports.IObserverLocator = void 0;
     const kernel_1 = require("@aurelia/kernel");
-    const observation_1 = require("../observation");
-    const array_observer_1 = require("./array-observer");
-    const computed_observer_1 = require("./computed-observer");
-    const dirty_checker_1 = require("./dirty-checker");
-    const map_observer_1 = require("./map-observer");
-    const primitive_observer_1 = require("./primitive-observer");
-    const property_accessor_1 = require("./property-accessor");
-    const set_observer_1 = require("./set-observer");
-    const setter_observer_1 = require("./setter-observer");
+    const observation_js_1 = require("../observation.js");
+    const array_observer_js_1 = require("./array-observer.js");
+    const computed_observer_js_1 = require("./computed-observer.js");
+    const dirty_checker_js_1 = require("./dirty-checker.js");
+    const map_observer_js_1 = require("./map-observer.js");
+    const primitive_observer_js_1 = require("./primitive-observer.js");
+    const property_accessor_js_1 = require("./property-accessor.js");
+    const set_observer_js_1 = require("./set-observer.js");
+    const setter_observer_js_1 = require("./setter-observer.js");
     exports.IObserverLocator = kernel_1.DI.createInterface('IObserverLocator').withDefault(x => x.singleton(ObserverLocator));
     exports.INodeObserverLocator = kernel_1.DI
         .createInterface('INodeObserverLocator')
@@ -46,10 +46,10 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             return false;
         }
         getObserver() {
-            return property_accessor_1.propertyAccessor;
+            return property_accessor_js_1.propertyAccessor;
         }
         getAccessor() {
-            return property_accessor_1.propertyAccessor;
+            return property_accessor_js_1.propertyAccessor;
         }
     }
     let ObserverLocator = class ObserverLocator {
@@ -75,20 +75,20 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             if (this.nodeObserverLocator.handles(obj, key, this)) {
                 return this.nodeObserverLocator.getAccessor(obj, key, this);
             }
-            return property_accessor_1.propertyAccessor;
+            return property_accessor_js_1.propertyAccessor;
         }
         getArrayObserver(flags, observedArray) {
-            return array_observer_1.getArrayObserver(flags, this.lifecycle, observedArray);
+            return array_observer_js_1.getArrayObserver(flags, this.lifecycle, observedArray);
         }
         getMapObserver(flags, observedMap) {
-            return map_observer_1.getMapObserver(flags, this.lifecycle, observedMap);
+            return map_observer_js_1.getMapObserver(flags, this.lifecycle, observedMap);
         }
         getSetObserver(flags, observedSet) {
-            return set_observer_1.getSetObserver(flags, this.lifecycle, observedSet);
+            return set_observer_js_1.getSetObserver(flags, this.lifecycle, observedSet);
         }
         createObserver(flags, obj, key) {
             if (!(obj instanceof Object)) {
-                return new primitive_observer_1.PrimitiveObserver(obj, key);
+                return new primitive_observer_js_1.PrimitiveObserver(obj, key);
             }
             if (this.nodeObserverLocator.handles(obj, key, this)) {
                 return this.nodeObserverLocator.getObserver(obj, key, this);
@@ -96,20 +96,20 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             switch (key) {
                 case 'length':
                     if (obj instanceof Array) {
-                        return array_observer_1.getArrayObserver(flags, this.lifecycle, obj).getLengthObserver();
+                        return array_observer_js_1.getArrayObserver(flags, this.lifecycle, obj).getLengthObserver();
                     }
                     break;
                 case 'size':
                     if (obj instanceof Map) {
-                        return map_observer_1.getMapObserver(flags, this.lifecycle, obj).getLengthObserver();
+                        return map_observer_js_1.getMapObserver(flags, this.lifecycle, obj).getLengthObserver();
                     }
                     else if (obj instanceof Set) {
-                        return set_observer_1.getSetObserver(flags, this.lifecycle, obj).getLengthObserver();
+                        return set_observer_js_1.getSetObserver(flags, this.lifecycle, obj).getLengthObserver();
                     }
                     break;
                 default:
                     if (obj instanceof Array && kernel_1.isArrayIndex(key)) {
-                        return array_observer_1.getArrayObserver(flags, this.lifecycle, obj).getIndexObserver(Number(key));
+                        return array_observer_js_1.getArrayObserver(flags, this.lifecycle, obj).getIndexObserver(Number(key));
                     }
                     break;
             }
@@ -147,11 +147,11 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                 if (obs !== null) {
                     return obs;
                 }
-                return computed_observer_1.createComputedObserver(flags, this, this.dirtyChecker, this.lifecycle, obj, key, pd);
+                return computed_observer_js_1.createComputedObserver(flags, this, this.dirtyChecker, this.lifecycle, obj, key, pd);
             }
             // Ordinary get/set observation (the common use case)
             // TODO: think about how to handle a data property that does not sit on the instance (should we do anything different?)
-            return new setter_observer_1.SetterObserver(obj, key);
+            return new setter_observer_js_1.SetterObserver(obj, key);
         }
         getAdapterObserver(flags, obj, propertyName, pd) {
             if (this.adapters.length > 0) {
@@ -176,21 +176,21 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
     };
     ObserverLocator = __decorate([
-        __param(0, observation_1.ILifecycle),
-        __param(1, dirty_checker_1.IDirtyChecker),
+        __param(0, observation_js_1.ILifecycle),
+        __param(1, dirty_checker_js_1.IDirtyChecker),
         __param(2, exports.INodeObserverLocator),
         __metadata("design:paramtypes", [Object, Object, Object])
     ], ObserverLocator);
     exports.ObserverLocator = ObserverLocator;
     function getCollectionObserver(flags, lifecycle, collection) {
         if (collection instanceof Array) {
-            return array_observer_1.getArrayObserver(flags, lifecycle, collection);
+            return array_observer_js_1.getArrayObserver(flags, lifecycle, collection);
         }
         else if (collection instanceof Map) {
-            return map_observer_1.getMapObserver(flags, lifecycle, collection);
+            return map_observer_js_1.getMapObserver(flags, lifecycle, collection);
         }
         else if (collection instanceof Set) {
-            return set_observer_1.getSetObserver(flags, lifecycle, collection);
+            return set_observer_js_1.getSetObserver(flags, lifecycle, collection);
         }
         return void 0;
     }

@@ -16,7 +16,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "./binding/attribute", "./binding/listener", "./observation/event-delegator", "./resources/custom-element", "./templating/render-context", "./resources/custom-attribute", "./dom", "./templating/controller", "./platform"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "./binding/attribute.js", "./binding/listener.js", "./observation/event-delegator.js", "./resources/custom-element.js", "./templating/render-context.js", "./resources/custom-attribute.js", "./dom.js", "./templating/controller.js", "./platform.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -24,15 +24,15 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     exports.AttributeBindingRenderer = exports.StylePropertyBindingRenderer = exports.SetStyleAttributeRenderer = exports.SetClassAttributeRenderer = exports.SetAttributeRenderer = exports.ListenerBindingRenderer = exports.TextBindingRenderer = exports.applyBindingBehavior = exports.IteratorBindingRenderer = exports.PropertyBindingRenderer = exports.InterpolationBindingRenderer = exports.RefBindingRenderer = exports.CallBindingRenderer = exports.LetElementRenderer = exports.TemplateControllerRenderer = exports.CustomAttributeRenderer = exports.CustomElementRenderer = exports.SetPropertyRenderer = exports.renderer = exports.IRenderer = exports.ITemplateCompiler = exports.AttributeBindingInstruction = exports.SetStyleAttributeInstruction = exports.SetClassAttributeInstruction = exports.SetAttributeInstruction = exports.StylePropertyBindingInstruction = exports.ListenerBindingInstruction = exports.TextBindingInstruction = exports.LetBindingInstruction = exports.HydrateLetElementInstruction = exports.HydrateTemplateController = exports.HydrateAttributeInstruction = exports.HydrateElementInstruction = exports.SetPropertyInstruction = exports.RefBindingInstruction = exports.CallBindingInstruction = exports.IteratorBindingInstruction = exports.PropertyBindingInstruction = exports.InterpolationInstruction = exports.isInstruction = exports.IInstruction = exports.InstructionType = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
-    const attribute_1 = require("./binding/attribute");
-    const listener_1 = require("./binding/listener");
-    const event_delegator_1 = require("./observation/event-delegator");
-    const custom_element_1 = require("./resources/custom-element");
-    const render_context_1 = require("./templating/render-context");
-    const custom_attribute_1 = require("./resources/custom-attribute");
-    const dom_1 = require("./dom");
-    const controller_1 = require("./templating/controller");
-    const platform_1 = require("./platform");
+    const attribute_js_1 = require("./binding/attribute.js");
+    const listener_js_1 = require("./binding/listener.js");
+    const event_delegator_js_1 = require("./observation/event-delegator.js");
+    const custom_element_js_1 = require("./resources/custom-element.js");
+    const render_context_js_1 = require("./templating/render-context.js");
+    const custom_attribute_js_1 = require("./resources/custom-attribute.js");
+    const dom_js_1 = require("./dom.js");
+    const controller_js_1 = require("./templating/controller.js");
+    const platform_js_1 = require("./platform.js");
     var InstructionType;
     (function (InstructionType) {
         InstructionType["hydrateElement"] = "ra";
@@ -262,19 +262,19 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         switch (refTargetName) {
             case 'controller':
                 // this means it supports returning undefined
-                return custom_element_1.CustomElement.for(refHost);
+                return custom_element_js_1.CustomElement.for(refHost);
             case 'view':
                 // todo: returns node sequences for fun?
                 throw new Error('Not supported API');
             case 'view-model':
                 // this means it supports returning undefined
-                return custom_element_1.CustomElement.for(refHost).viewModel;
+                return custom_element_js_1.CustomElement.for(refHost).viewModel;
             default: {
-                const caController = custom_attribute_1.CustomAttribute.for(refHost, refTargetName);
+                const caController = custom_attribute_js_1.CustomAttribute.for(refHost, refTargetName);
                 if (caController !== void 0) {
                     return caController.viewModel;
                 }
-                const ceController = custom_element_1.CustomElement.for(refHost, { name: refTargetName });
+                const ceController = custom_element_js_1.CustomElement.for(refHost, { name: refTargetName });
                 if (ceController === void 0) {
                     throw new Error(`Attempted to reference "${refTargetName}", but it was not found amongst the target's API.`);
                 }
@@ -308,7 +308,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             const slotInfo = instruction.slotInfo;
             if (slotInfo !== null) {
                 const projectionCtx = slotInfo.projectionContext;
-                viewFactory = render_context_1.getRenderContext(projectionCtx.content, context).getViewFactory(void 0, slotInfo.type, projectionCtx.scope);
+                viewFactory = render_context_js_1.getRenderContext(projectionCtx.content, context).getViewFactory(void 0, slotInfo.type, projectionCtx.scope);
             }
             const factory = context.getComponentFactory(
             /* parentController */ controller, 
@@ -316,9 +316,9 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             /* instruction      */ instruction, 
             /* viewFactory      */ viewFactory, 
             /* location         */ target);
-            const key = custom_element_1.CustomElement.keyFrom(instruction.res);
+            const key = custom_element_js_1.CustomElement.keyFrom(instruction.res);
             const component = factory.createComponent(key);
-            const childController = controller_1.Controller.forCustomElement(
+            const childController = controller_js_1.Controller.forCustomElement(
             /* root                */ controller.root, 
             /* container           */ context, 
             /* viewModel           */ component, 
@@ -351,9 +351,9 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             /* instruction      */ instruction, 
             /* viewFactory      */ void 0, 
             /* location         */ void 0);
-            const key = custom_attribute_1.CustomAttribute.keyFrom(instruction.res);
+            const key = custom_attribute_js_1.CustomAttribute.keyFrom(instruction.res);
             const component = factory.createComponent(key);
-            const childController = controller_1.Controller.forCustomAttribute(
+            const childController = controller_js_1.Controller.forCustomAttribute(
             /* root      */ controller.root, 
             /* container */ context, 
             /* viewModel */ component, 
@@ -379,17 +379,17 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     class TemplateControllerRenderer {
         render(flags, context, controller, target, instruction) {
             var _a;
-            const viewFactory = render_context_1.getRenderContext(instruction.def, context).getViewFactory();
-            const renderLocation = dom_1.convertToRenderLocation(target);
+            const viewFactory = render_context_js_1.getRenderContext(instruction.def, context).getViewFactory();
+            const renderLocation = dom_js_1.convertToRenderLocation(target);
             const componentFactory = context.getComponentFactory(
             /* parentController */ controller, 
             /* host             */ target, 
             /* instruction      */ instruction, 
             /* viewFactory      */ viewFactory, 
             /* location         */ renderLocation);
-            const key = custom_attribute_1.CustomAttribute.keyFrom(instruction.res);
+            const key = custom_attribute_js_1.CustomAttribute.keyFrom(instruction.res);
             const component = componentFactory.createComponent(key);
-            const childController = controller_1.Controller.forCustomAttribute(
+            const childController = controller_js_1.Controller.forCustomAttribute(
             /* root      */ controller.root, 
             /* container */ context, 
             /* viewModel */ component, 
@@ -510,7 +510,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         ,
         __param(0, runtime_1.IExpressionParser),
         __param(1, runtime_1.IObserverLocator),
-        __param(2, platform_1.IPlatform),
+        __param(2, platform_js_1.IPlatform),
         __metadata("design:paramtypes", [Object, Object, Object])
     ], InterpolationBindingRenderer);
     exports.InterpolationBindingRenderer = InterpolationBindingRenderer;
@@ -534,7 +534,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         ,
         __param(0, runtime_1.IExpressionParser),
         __param(1, runtime_1.IObserverLocator),
-        __param(2, platform_1.IPlatform),
+        __param(2, platform_js_1.IPlatform),
         __metadata("design:paramtypes", [Object, Object, Object])
     ], PropertyBindingRenderer);
     exports.PropertyBindingRenderer = PropertyBindingRenderer;
@@ -558,7 +558,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         ,
         __param(0, runtime_1.IExpressionParser),
         __param(1, runtime_1.IObserverLocator),
-        __param(2, platform_1.IPlatform),
+        __param(2, platform_js_1.IPlatform),
         __metadata("design:paramtypes", [Object, Object, Object])
     ], IteratorBindingRenderer);
     exports.IteratorBindingRenderer = IteratorBindingRenderer;
@@ -610,7 +610,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         ,
         __param(0, runtime_1.IExpressionParser),
         __param(1, runtime_1.IObserverLocator),
-        __param(2, platform_1.IPlatform),
+        __param(2, platform_js_1.IPlatform),
         __metadata("design:paramtypes", [Object, Object, Object])
     ], TextBindingRenderer);
     exports.TextBindingRenderer = TextBindingRenderer;
@@ -624,7 +624,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         render(flags, context, controller, target, instruction) {
             // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
             const expr = ensureExpression(this.parser, instruction.from, 80 /* IsEventCommand */ | (instruction.strategy + 6 /* DelegationStrategyDelta */));
-            const binding = applyBindingBehavior(new listener_1.Listener(context.platform, instruction.to, instruction.strategy, expr, target, instruction.preventDefault, this.eventDelegator, context), expr, context);
+            const binding = applyBindingBehavior(new listener_js_1.Listener(context.platform, instruction.to, instruction.strategy, expr, target, instruction.preventDefault, this.eventDelegator, context), expr, context);
             controller.addBinding(binding);
         }
     };
@@ -633,7 +633,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         /** @internal */
         ,
         __param(0, runtime_1.IExpressionParser),
-        __param(1, event_delegator_1.IEventDelegator),
+        __param(1, event_delegator_js_1.IEventDelegator),
         __metadata("design:paramtypes", [Object, Object])
     ], ListenerBindingRenderer);
     exports.ListenerBindingRenderer = ListenerBindingRenderer;
@@ -687,7 +687,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         ,
         __param(0, runtime_1.IExpressionParser),
         __param(1, runtime_1.IObserverLocator),
-        __param(2, platform_1.IPlatform),
+        __param(2, platform_js_1.IPlatform),
         __metadata("design:paramtypes", [Object, Object, Object])
     ], StylePropertyBindingRenderer);
     exports.StylePropertyBindingRenderer = StylePropertyBindingRenderer;
@@ -700,7 +700,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
         render(flags, context, controller, target, instruction) {
             const expr = ensureExpression(this.parser, instruction.from, 48 /* IsPropertyCommand */ | runtime_1.BindingMode.toView);
-            const binding = applyBindingBehavior(new attribute_1.AttributeBinding(expr, target, instruction.attr /* targetAttribute */, instruction.to /* targetKey */, runtime_1.BindingMode.toView, this.observerLocator, context), expr, context);
+            const binding = applyBindingBehavior(new attribute_js_1.AttributeBinding(expr, target, instruction.attr /* targetAttribute */, instruction.to /* targetKey */, runtime_1.BindingMode.toView, this.observerLocator, context), expr, context);
             controller.addBinding(binding);
         }
     };

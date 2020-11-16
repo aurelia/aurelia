@@ -1,14 +1,14 @@
-import { $Object } from '../types/object';
-import { $Null } from '../types/null';
-import { $Number } from '../types/number';
-import { $String } from '../types/string';
-import { Realm, ExecutionContext } from '../realm';
-import { $PropertyKey, $AnyNonEmpty, $AnyObject } from '../types/_shared';
-import { $PropertyDescriptor } from '../types/property-descriptor';
-import { $Undefined } from '../types/undefined';
-import { $Boolean } from '../types/boolean';
-import { $Error } from '../types/error';
-import { $List } from '../types/list';
+import { $Object } from '../types/object.js';
+import { $Null } from '../types/null.js';
+import { $Number } from '../types/number.js';
+import { $String } from '../types/string.js';
+import { Realm, ExecutionContext } from '../realm.js';
+import { $PropertyKey, $AnyNonEmpty, $AnyObject } from '../types/_shared.js';
+import { $PropertyDescriptor } from '../types/property-descriptor.js';
+import { $Undefined } from '../types/undefined.js';
+import { $Boolean } from '../types/boolean.js';
+import { $Error } from '../types/error.js';
+import { $List } from '../types/list.js';
 export declare class $IntegerIndexedExoticObject extends $Object<'IntegerIndexedExoticObject'> {
     '[[ViewedArrayBuffer]]': $AnyObject | $Null;
     '[[ArrayLength]]': $Number;

@@ -1,8 +1,8 @@
 import { INode, LifecycleFlags, ICompiledCustomElementController, ICustomElementViewModel, ICustomElementController, IHydratedController, ISyntheticView } from '@aurelia/runtime-html';
 import { IContainer } from '@aurelia/kernel';
-import { IRouter } from '../router';
-import { ViewportScope } from '../viewport-scope';
-import { IRoutingController } from './viewport';
+import { IRouter } from '../router.js';
+import { ViewportScope } from '../viewport-scope.js';
+import { IRoutingController } from './viewport.js';
 export declare const ParentViewportScope: import("@aurelia/runtime-html/dist/resources/custom-element").InjectableToken<any>;
 export declare class ViewportScopeCustomElement implements ICustomElementViewModel {
     private readonly router;

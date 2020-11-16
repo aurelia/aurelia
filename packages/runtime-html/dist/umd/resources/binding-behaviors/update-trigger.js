@@ -16,15 +16,15 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/runtime", "../../observation/event-delegator", "../../observation/observer-locator"], factory);
+        define(["require", "exports", "@aurelia/runtime", "../../observation/event-delegator.js", "../../observation/observer-locator.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.UpdateTriggerBindingBehavior = void 0;
     const runtime_1 = require("@aurelia/runtime");
-    const event_delegator_1 = require("../../observation/event-delegator");
-    const observer_locator_1 = require("../../observation/observer-locator");
+    const event_delegator_js_1 = require("../../observation/event-delegator.js");
+    const observer_locator_js_1 = require("../../observation/observer-locator.js");
     let UpdateTriggerBindingBehavior = class UpdateTriggerBindingBehavior {
         constructor(observerLocator) {
             this.observerLocator = observerLocator;
@@ -47,7 +47,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             const originalHandler = targetObserver.handler;
             targetObserver.originalHandler = originalHandler;
             // replace the element subscribe function with one that uses the correct events.
-            targetObserver.handler = new event_delegator_1.EventSubscriber(new observer_locator_1.NodeObserverConfig({
+            targetObserver.handler = new event_delegator_js_1.EventSubscriber(new observer_locator_js_1.NodeObserverConfig({
                 default: originalHandler.config.default,
                 events,
                 readonly: originalHandler.config.readonly

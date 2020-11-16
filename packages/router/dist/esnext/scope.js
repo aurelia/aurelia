@@ -1,11 +1,11 @@
-import { ViewportScope } from './viewport-scope';
-import { FoundRoute } from './found-route';
-import { NavigationInstructionResolver } from './type-resolvers';
-import { Viewport } from './viewport';
-import { arrayRemove } from './utils';
-import { Collection } from './collection';
-import { RouteRecognizer } from './route-recognizer';
-import { Runner } from './runner';
+import { ViewportScope } from './viewport-scope.js';
+import { FoundRoute } from './found-route.js';
+import { NavigationInstructionResolver } from './type-resolvers.js';
+import { Viewport } from './viewport.js';
+import { arrayRemove } from './utils.js';
+import { Collection } from './collection.js';
+import { RouteRecognizer } from './route-recognizer.js';
+import { Runner } from './runner.js';
 /**
  * @internal - Shouldn't be used directly
  */

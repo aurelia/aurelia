@@ -16,7 +16,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "./attribute-syntax-transformer", "./template-binder", "./template-element-factory", "./renderer", "./resources/attribute-pattern", "./resources/custom-elements/au-slot", "./resources/custom-element", "./platform"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "./attribute-syntax-transformer.js", "./template-binder.js", "./template-element-factory.js", "./renderer.js", "./resources/attribute-pattern.js", "./resources/custom-elements/au-slot.js", "./resources/custom-element.js", "./platform.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -24,14 +24,14 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     exports.TemplateCompiler = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
-    const attribute_syntax_transformer_1 = require("./attribute-syntax-transformer");
-    const template_binder_1 = require("./template-binder");
-    const template_element_factory_1 = require("./template-element-factory");
-    const renderer_1 = require("./renderer");
-    const attribute_pattern_1 = require("./resources/attribute-pattern");
-    const au_slot_1 = require("./resources/custom-elements/au-slot");
-    const custom_element_1 = require("./resources/custom-element");
-    const platform_1 = require("./platform");
+    const attribute_syntax_transformer_js_1 = require("./attribute-syntax-transformer.js");
+    const template_binder_js_1 = require("./template-binder.js");
+    const template_element_factory_js_1 = require("./template-element-factory.js");
+    const renderer_js_1 = require("./renderer.js");
+    const attribute_pattern_js_1 = require("./resources/attribute-pattern.js");
+    const au_slot_js_1 = require("./resources/custom-elements/au-slot.js");
+    const custom_element_js_1 = require("./resources/custom-element.js");
+    const platform_js_1 = require("./platform.js");
     class CustomElementCompilationUnit {
         constructor(partialDefinition, surrogate, template) {
             this.partialDefinition = partialDefinition;
@@ -43,7 +43,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
         toDefinition() {
             const def = this.partialDefinition;
-            return custom_element_1.CustomElementDefinition.create({
+            return custom_element_js_1.CustomElementDefinition.create({
                 ...def,
                 instructions: kernel_1.mergeArrays(def.instructions, this.instructions),
                 surrogates: kernel_1.mergeArrays(def.surrogates, this.surrogates),
@@ -84,16 +84,16 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             return 'default';
         }
         static register(container) {
-            return kernel_1.Registration.singleton(renderer_1.ITemplateCompiler, this).register(container);
+            return kernel_1.Registration.singleton(renderer_js_1.ITemplateCompiler, this).register(container);
         }
         compile(partialDefinition, context, targetedProjections) {
-            const definition = custom_element_1.CustomElementDefinition.getOrCreate(partialDefinition);
+            const definition = custom_element_js_1.CustomElementDefinition.getOrCreate(partialDefinition);
             if (definition.template === null || definition.template === void 0) {
                 return definition;
             }
             const { attrParser, exprParser, attrSyntaxModifier, factory } = this;
-            const p = context.get(platform_1.IPlatform);
-            const binder = new template_binder_1.TemplateBinder(p, context, attrParser, exprParser, attrSyntaxModifier);
+            const p = context.get(platform_js_1.IPlatform);
+            const binder = new template_binder_js_1.TemplateBinder(p, context, attrParser, exprParser, attrSyntaxModifier);
             const template = definition.enhance === true
                 ? definition.template
                 : factory.createTemplate(definition.template);
@@ -128,7 +128,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                 for (let i = 0; i < ii; ++i) {
                     childNode = childNodes[i];
                     if ((childNode.flags & 128 /* isText */) > 0) {
-                        instructionRows.push([new renderer_1.TextBindingInstruction(childNode.interpolation)]);
+                        instructionRows.push([new renderer_js_1.TextBindingInstruction(childNode.interpolation)]);
                     }
                     else if ((childNode.flags & 32 /* isLetElement */) > 0) {
                         const bindings = childNode.bindings;
@@ -137,9 +137,9 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                         const jj = bindings.length;
                         for (let j = 0; j < jj; ++j) {
                             binding = bindings[j];
-                            instructions[j] = new renderer_1.LetBindingInstruction(binding.expression, binding.target);
+                            instructions[j] = new renderer_js_1.LetBindingInstruction(binding.expression, binding.target);
                         }
-                        instructionRows.push([new renderer_1.HydrateLetElementInstruction(instructions, childNode.toBindingContext)]);
+                        instructionRows.push([new renderer_js_1.HydrateLetElementInstruction(instructions, childNode.toBindingContext)]);
                     }
                     else {
                         this.compileParentNode(childNode, instructionRows, projections, targetedProjections);
@@ -158,10 +158,10 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                 // eslint-disable-next-line @typescript-eslint/no-extra-non-null-assertion,@typescript-eslint/no-unnecessary-type-assertion
                 const targetedProjection = (_a = targetedProjections === null || targetedProjections === void 0 ? void 0 : targetedProjections.projections) === null || _a === void 0 ? void 0 : _a[slotName];
                 slotInfo = targetedProjection !== void 0
-                    ? new au_slot_1.SlotInfo(slotName, au_slot_1.AuSlotContentType.Projection, new au_slot_1.ProjectionContext(targetedProjection, targetedProjections === null || targetedProjections === void 0 ? void 0 : targetedProjections.scope))
-                    : new au_slot_1.SlotInfo(slotName, au_slot_1.AuSlotContentType.Fallback, new au_slot_1.ProjectionContext(this.compileProjectionFallback(symbol, projections, targetedProjections)));
+                    ? new au_slot_js_1.SlotInfo(slotName, au_slot_js_1.AuSlotContentType.Projection, new au_slot_js_1.ProjectionContext(targetedProjection, targetedProjections === null || targetedProjections === void 0 ? void 0 : targetedProjections.scope))
+                    : new au_slot_js_1.SlotInfo(slotName, au_slot_js_1.AuSlotContentType.Fallback, new au_slot_js_1.ProjectionContext(this.compileProjectionFallback(symbol, projections, targetedProjections)));
             }
-            const instruction = instructionRow[0] = new renderer_1.HydrateElementInstruction(symbol.res, this.compileBindings(symbol), slotInfo);
+            const instruction = instructionRow[0] = new renderer_js_1.HydrateElementInstruction(symbol.res, this.compileBindings(symbol), slotInfo);
             const compiledProjections = this.compileProjections(symbol, projections, targetedProjections);
             if (compiledProjections !== null) {
                 projections.set(instruction, compiledProjections);
@@ -195,13 +195,13 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             const bindings = this.compileBindings(symbol);
             const controllerInstructionRows = [];
             this.compileParentNode(symbol.template, controllerInstructionRows, projections, targetedProjections);
-            const def = custom_element_1.CustomElementDefinition.create({
+            const def = custom_element_js_1.CustomElementDefinition.create({
                 name: symbol.res,
                 template: symbol.physicalNode,
                 instructions: controllerInstructionRows,
                 needsCompile: false,
             });
-            instructionRows.push([new renderer_1.HydrateTemplateController(def, symbol.res, bindings)]);
+            instructionRows.push([new renderer_js_1.HydrateTemplateController(def, symbol.res, bindings)]);
         }
         compileBindings(symbol) {
             let bindingInstructions;
@@ -226,11 +226,11 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                 // either an interpolation or a normal string value assigned to an element or attribute binding
                 if (symbol.expression === null) {
                     // the template binder already filtered out non-bindables, so we know we need a setProperty here
-                    return new renderer_1.SetPropertyInstruction(symbol.rawValue, symbol.bindable.propName);
+                    return new renderer_js_1.SetPropertyInstruction(symbol.rawValue, symbol.bindable.propName);
                 }
                 else {
                     // either an element binding interpolation or a dynamic options attribute binding interpolation
-                    return new renderer_1.InterpolationInstruction(symbol.expression, symbol.bindable.propName);
+                    return new renderer_js_1.InterpolationInstruction(symbol.expression, symbol.bindable.propName);
                 }
             }
             else {
@@ -268,7 +268,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         compileCustomAttribute(symbol) {
             // a normal custom attribute (not template controller)
             const bindings = this.compileBindings(symbol);
-            return new renderer_1.HydrateAttributeInstruction(symbol.res, bindings);
+            return new renderer_js_1.HydrateAttributeInstruction(symbol.res, bindings);
         }
         compilePlainAttribute(symbol, isOnSurrogate) {
             if (symbol.command === null) {
@@ -278,19 +278,19 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                     if (isOnSurrogate) {
                         switch (syntax.target) {
                             case 'class':
-                                return new renderer_1.SetClassAttributeInstruction(attrRawValue);
+                                return new renderer_js_1.SetClassAttributeInstruction(attrRawValue);
                             case 'style':
-                                return new renderer_1.SetStyleAttributeInstruction(attrRawValue);
+                                return new renderer_js_1.SetStyleAttributeInstruction(attrRawValue);
                             // todo:  define how to merge other attribute peacefully
                             //        this is an existing feature request
                         }
                     }
                     // a plain attribute on a surrogate
-                    return new renderer_1.SetAttributeInstruction(attrRawValue, syntax.target);
+                    return new renderer_js_1.SetAttributeInstruction(attrRawValue, syntax.target);
                 }
                 else {
                     // a plain attribute with an interpolation
-                    return new renderer_1.InterpolationInstruction(symbol.expression, syntax.target);
+                    return new renderer_js_1.InterpolationInstruction(symbol.expression, syntax.target);
                 }
             }
             else {
@@ -327,7 +327,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                         _template.content.appendChild(template);
                         template = _template;
                     }
-                    projections[name] = custom_element_1.CustomElementDefinition.create({ name, template, instructions, needsCompile: false });
+                    projections[name] = custom_element_js_1.CustomElementDefinition.create({ name, template, instructions, needsCompile: false });
                 }
                 else {
                     // consolidate the projections to same slot
@@ -342,16 +342,16 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             this.compileChildNodes(symbol, instructions, projections, targetedProjections);
             const template = this.p.document.createElement('template');
             template.content.append(...kernel_1.toArray(symbol.physicalNode.childNodes));
-            return custom_element_1.CustomElementDefinition.create({ name: custom_element_1.CustomElement.generateName(), template, instructions, needsCompile: false });
+            return custom_element_js_1.CustomElementDefinition.create({ name: custom_element_js_1.CustomElement.generateName(), template, instructions, needsCompile: false });
         }
     };
     TemplateCompiler = __decorate([
-        __param(0, template_element_factory_1.ITemplateElementFactory),
-        __param(1, attribute_pattern_1.IAttributeParser),
+        __param(0, template_element_factory_js_1.ITemplateElementFactory),
+        __param(1, attribute_pattern_js_1.IAttributeParser),
         __param(2, runtime_1.IExpressionParser),
-        __param(3, attribute_syntax_transformer_1.IAttrSyntaxTransformer),
+        __param(3, attribute_syntax_transformer_js_1.IAttrSyntaxTransformer),
         __param(4, kernel_1.ILogger),
-        __param(5, platform_1.IPlatform),
+        __param(5, platform_js_1.IPlatform),
         __metadata("design:paramtypes", [Object, Object, Object, Object, Object, Object])
     ], TemplateCompiler);
     exports.TemplateCompiler = TemplateCompiler;
@@ -447,7 +447,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                 }
                 content.removeChild(bindableEl);
             }
-            const localTemplateDefinition = custom_element_1.CustomElement.define({ name, template: localTemplate }, localTemplateType);
+            const localTemplateDefinition = custom_element_js_1.CustomElement.define({ name, template: localTemplate }, localTemplateType);
             // the casting is needed here as the dependencies are typed as readonly array
             definition.dependencies.push(localTemplateDefinition);
             context.register(localTemplateDefinition);

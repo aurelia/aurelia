@@ -4,17 +4,17 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "../types/object", "../operations", "../types/list"], factory);
+        define(["require", "exports", "../types/object.js", "../operations.js", "../types/list.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.$BoundFunctionExoticObject = void 0;
-    const object_1 = require("../types/object");
-    const operations_1 = require("../operations");
-    const list_1 = require("../types/list");
+    const object_js_1 = require("../types/object.js");
+    const operations_js_1 = require("../operations.js");
+    const list_js_1 = require("../types/list.js");
     // http://www.ecma-international.org/ecma-262/#sec-bound-function-exotic-objects
-    class $BoundFunctionExoticObject extends object_1.$Object {
+    class $BoundFunctionExoticObject extends object_js_1.$Object {
         // http://www.ecma-international.org/ecma-262/#sec-boundfunctioncreate
         // 9.4.1.3 BoundFunctionCreate ( targetFunction , boundThis , boundArgs )
         constructor(realm, targetFunction, boundThis, boundArgs) {
@@ -52,9 +52,9 @@
             // 3. Let boundArgs be F.[[BoundArguments]].
             const boundArgs = F['[[BoundArguments]]'];
             // 4. Let args be a new list containing the same values as the list boundArgs in the same order followed by the same values as the list argumentsList in the same order.
-            const args = new list_1.$List(...boundArgs, ...argumentsList);
+            const args = new list_js_1.$List(...boundArgs, ...argumentsList);
             // 5. Return ? Call(target, boundThis, args).
-            return operations_1.$Call(ctx, target, boundThis, args);
+            return operations_js_1.$Call(ctx, target, boundThis, args);
         }
         // http://www.ecma-international.org/ecma-262/#sec-bound-function-exotic-objects-construct-argumentslist-newtarget
         // 9.4.1.2 [[Construct]] ( argumentsList , newTarget )
@@ -66,13 +66,13 @@
             // 3. Let boundArgs be F.[[BoundArguments]].
             const boundArgs = F['[[BoundArguments]]'];
             // 4. Let args be a new list containing the same values as the list boundArgs in the same order followed by the same values as the list argumentsList in the same order.
-            const args = new list_1.$List(...boundArgs, ...argumentsList);
+            const args = new list_js_1.$List(...boundArgs, ...argumentsList);
             // 5. If SameValue(F, newTarget) is true, set newTarget to target.
             if (F.is(newTarget)) {
                 newTarget = target;
             }
             // 6. Return ? Construct(target, args, newTarget).
-            return operations_1.$Construct(ctx, target, args, newTarget);
+            return operations_js_1.$Construct(ctx, target, args, newTarget);
         }
     }
     exports.$BoundFunctionExoticObject = $BoundFunctionExoticObject;

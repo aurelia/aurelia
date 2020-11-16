@@ -4,15 +4,15 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/runtime-html", "./type-resolvers", "./router-options"], factory);
+        define(["require", "exports", "@aurelia/runtime-html", "./type-resolvers.js", "./router-options.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ViewportInstruction = exports.ParametersType = void 0;
     const runtime_html_1 = require("@aurelia/runtime-html");
-    const type_resolvers_1 = require("./type-resolvers");
-    const router_options_1 = require("./router-options");
+    const type_resolvers_js_1 = require("./type-resolvers.js");
+    const router_options_js_1 = require("./router-options.js");
     /**
      * @internal - Shouldn't be used directly
      */
@@ -103,20 +103,20 @@
             return '';
         }
         setComponent(component) {
-            if (type_resolvers_1.ComponentAppellationResolver.isName(component)) {
-                this.componentName = type_resolvers_1.ComponentAppellationResolver.getName(component);
+            if (type_resolvers_js_1.ComponentAppellationResolver.isName(component)) {
+                this.componentName = type_resolvers_js_1.ComponentAppellationResolver.getName(component);
                 this.componentType = null;
                 this.componentInstance = null;
             }
-            else if (type_resolvers_1.ComponentAppellationResolver.isType(component)) {
+            else if (type_resolvers_js_1.ComponentAppellationResolver.isType(component)) {
                 this.componentName = this.getNewName(component);
-                this.componentType = type_resolvers_1.ComponentAppellationResolver.getType(component);
+                this.componentType = type_resolvers_js_1.ComponentAppellationResolver.getType(component);
                 this.componentInstance = null;
             }
-            else if (type_resolvers_1.ComponentAppellationResolver.isInstance(component)) {
-                this.componentName = this.getNewName(type_resolvers_1.ComponentAppellationResolver.getType(component));
-                this.componentType = type_resolvers_1.ComponentAppellationResolver.getType(component);
-                this.componentInstance = type_resolvers_1.ComponentAppellationResolver.getInstance(component);
+            else if (type_resolvers_js_1.ComponentAppellationResolver.isInstance(component)) {
+                this.componentName = this.getNewName(type_resolvers_js_1.ComponentAppellationResolver.getType(component));
+                this.componentType = type_resolvers_js_1.ComponentAppellationResolver.getType(component);
+                this.componentInstance = type_resolvers_js_1.ComponentAppellationResolver.getInstance(component);
             }
         }
         setViewport(viewport) {
@@ -311,12 +311,12 @@
             if (this.componentName === null
             // || !type.aliases?.includes(this.componentName)
             ) {
-                return type_resolvers_1.ComponentAppellationResolver.getName(type);
+                return type_resolvers_js_1.ComponentAppellationResolver.getName(type);
             }
             return this.componentName;
         }
     }
     exports.ViewportInstruction = ViewportInstruction;
-    ViewportInstruction.inject = [router_options_1.RouterOptions];
+    ViewportInstruction.inject = [router_options_js_1.RouterOptions];
 });
 //# sourceMappingURL=viewport-instruction.js.map

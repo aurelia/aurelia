@@ -7,9 +7,9 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-import { createIndexMap, ILifecycle, } from '../observation';
-import { CollectionSizeObserver } from './collection-size-observer';
-import { collectionSubscriberCollection } from './subscriber-collection';
+import { createIndexMap, ILifecycle, } from '../observation.js';
+import { CollectionSizeObserver } from './collection-size-observer.js';
+import { collectionSubscriberCollection } from './subscriber-collection.js';
 const observerLookup = new WeakMap();
 const proto = Map.prototype;
 const $set = proto.set;

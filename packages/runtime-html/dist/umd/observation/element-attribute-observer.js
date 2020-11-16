@@ -13,14 +13,14 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/runtime", "../platform"], factory);
+        define(["require", "exports", "@aurelia/runtime", "../platform.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.AttributeObserver = void 0;
     const runtime_1 = require("@aurelia/runtime");
-    const platform_1 = require("../platform");
+    const platform_js_1 = require("../platform.js");
     /**
      * Observer for handling two-way binding with attributes
      * Has different strategy for class/style and normal attributes

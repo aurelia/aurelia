@@ -8,7 +8,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 import { subscriberCollection, } from '@aurelia/runtime';
-import { getCollectionObserver } from './observer-locator';
+import { getCollectionObserver } from './observer-locator.js';
 function defaultMatcher(a, b) {
     return a === b;
 }

@@ -1,4 +1,4 @@
-import { $Object, } from '../types/object';
+import { $Object, } from '../types/object.js';
 // http://www.ecma-international.org/ecma-262/#sec-string-exotic-objects
 export class $ImmutablePrototypeExoticObject extends $Object {
     constructor(realm, proto) {

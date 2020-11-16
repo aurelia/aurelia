@@ -11,7 +11,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 import { DI } from '@aurelia/kernel';
-import { IPlatform } from './platform';
+import { IPlatform } from './platform.js';
 export const ITemplateElementFactory = DI.createInterface('ITemplateElementFactory').withDefault(x => x.singleton(TemplateElementFactory));
 const markupCache = {};
 let TemplateElementFactory = class TemplateElementFactory {

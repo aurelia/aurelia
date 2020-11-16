@@ -4,15 +4,15 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./queue", "./navigation", "./runner"], factory);
+        define(["require", "exports", "./queue.js", "./navigation.js", "./runner.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Navigator = void 0;
-    const queue_1 = require("./queue");
-    const navigation_1 = require("./navigation");
-    const runner_1 = require("./runner");
+    const queue_js_1 = require("./queue.js");
+    const navigation_js_1 = require("./navigation.js");
+    const runner_js_1 = require("./runner.js");
     /**
      * @internal - Shouldn't be used directly
      */
@@ -42,7 +42,7 @@
                         navigationFlags.first = true;
                         navigationFlags.new = true;
                         // TODO: Should this really be created here? Shouldn't it be in the viewer?
-                        this.currentEntry = new navigation_1.Navigation({
+                        this.currentEntry = new navigation_js_1.Navigation({
                             index: 0,
                             instruction: '',
                             fullStateInstruction: '',
@@ -75,12 +75,12 @@
                 }
                 this.invokeCallback(entry, navigationFlags, this.currentEntry);
             };
-            this.uninitializedEntry = new navigation_1.Navigation({
+            this.uninitializedEntry = new navigation_js_1.Navigation({
                 instruction: 'NAVIGATOR UNINITIALIZED',
                 fullStateInstruction: '',
             });
             this.currentEntry = this.uninitializedEntry;
-            this.pendingNavigations = new queue_1.Queue(this.processNavigations);
+            this.pendingNavigations = new queue_js_1.Queue(this.processNavigations);
         }
         get queued() {
             return this.pendingNavigations.length;
@@ -142,9 +142,9 @@
         // Load a stored state into Navigation entries
         loadState() {
             const state = this.getState();
-            this.entries = state.entries.map(entry => new navigation_1.Navigation(entry));
+            this.entries = state.entries.map(entry => new navigation_js_1.Navigation(entry));
             this.currentEntry = state.currentEntry !== null
-                ? new navigation_1.Navigation(state.currentEntry)
+                ? new navigation_js_1.Navigation(state.currentEntry)
                 : this.uninitializedEntry;
         }
         // Save storeable versions of Navigation entries
@@ -154,7 +154,7 @@
                 return Promise.resolve();
             }
             const storedEntry = this.currentEntry.toStored();
-            this.entries[storedEntry.index !== void 0 ? storedEntry.index : 0] = new navigation_1.Navigation(storedEntry);
+            this.entries[storedEntry.index !== void 0 ? storedEntry.index : 0] = new navigation_js_1.Navigation(storedEntry);
             // If preserving history, serialize entries that aren't preserved
             if (this.options.statefulHistoryLength > 0) {
                 const index = this.entries.length - this.options.statefulHistoryLength;
@@ -237,7 +237,7 @@
             }
         }
         invokeCallback(entry, navigationFlags, previousEntry) {
-            const instruction = new navigation_1.Navigation({ ...entry });
+            const instruction = new navigation_js_1.Navigation({ ...entry });
             instruction.navigation = navigationFlags;
             instruction.previous = previousEntry;
             if (this.options.callback) {
@@ -245,7 +245,7 @@
             }
         }
         toStoreableEntry(entry) {
-            const storeable = entry instanceof navigation_1.Navigation ? entry.toStored() : entry;
+            const storeable = entry instanceof navigation_js_1.Navigation ? entry.toStored() : entry;
             storeable.instruction = this.router.instructionResolver.stringifyViewportInstructions(storeable.instruction);
             storeable.fullStateInstruction = this.router.instructionResolver.stringifyViewportInstructions(storeable.fullStateInstruction);
             if (typeof storeable.scope !== 'string') {
@@ -298,13 +298,13 @@
                 return;
             }
             if (!excludeComponents.some(exclude => exclude === component)) {
-                return runner_1.Runner.run(() => viewport.freeContent(component), () => {
+                return runner_js_1.Runner.run(() => viewport.freeContent(component), () => {
                     alreadyDone.push(component);
                 });
             }
             if (instruction.nextScopeInstructions !== null) {
                 for (const nextInstruction of instruction.nextScopeInstructions) {
-                    return runner_1.Runner.run(() => this.freeInstructionComponents(nextInstruction, excludeComponents, alreadyDone));
+                    return runner_js_1.Runner.run(() => this.freeInstructionComponents(nextInstruction, excludeComponents, alreadyDone));
                 }
             }
         }

@@ -16,14 +16,14 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "../observation/signaler", "../binding-behavior"], factory);
+        define(["require", "exports", "../observation/signaler.js", "../binding-behavior.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.SignalBindingBehavior = void 0;
-    const signaler_1 = require("../observation/signaler");
-    const binding_behavior_1 = require("../binding-behavior");
+    const signaler_js_1 = require("../observation/signaler.js");
+    const binding_behavior_js_1 = require("../binding-behavior.js");
     let SignalBindingBehavior = class SignalBindingBehavior {
         constructor(signaler) {
             this.signaler = signaler;
@@ -50,8 +50,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
     };
     SignalBindingBehavior = __decorate([
-        binding_behavior_1.bindingBehavior('signal'),
-        __param(0, signaler_1.ISignaler),
+        binding_behavior_js_1.bindingBehavior('signal'),
+        __param(0, signaler_js_1.ISignaler),
         __metadata("design:paramtypes", [Object])
     ], SignalBindingBehavior);
     exports.SignalBindingBehavior = SignalBindingBehavior;

@@ -1,5 +1,5 @@
-import { $TypeError, } from '../types/error';
-import { $BuiltinFunction, } from '../types/function';
+import { $TypeError, } from '../types/error.js';
+import { $BuiltinFunction, } from '../types/function.js';
 // http://www.ecma-international.org/ecma-262/#sec-%throwtypeerror%
 // 9.2.9.1 %ThrowTypeError% ( )
 export class $ThrowTypeError extends $BuiltinFunction {

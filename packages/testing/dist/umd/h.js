@@ -4,16 +4,16 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "./test-context"], factory);
+        define(["require", "exports", "@aurelia/kernel", "./test-context.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.hJsx = exports.h = void 0;
     const kernel_1 = require("@aurelia/kernel");
-    const test_context_1 = require("./test-context");
+    const test_context_js_1 = require("./test-context.js");
     function h(name, attrs = null, ...children) {
-        const doc = test_context_1.PLATFORM.document;
+        const doc = test_context_js_1.PLATFORM.document;
         const el = doc.createElement(name);
         for (const attr in attrs) {
             if (attr === 'class' || attr === 'className' || attr === 'cls') {
@@ -52,7 +52,7 @@
      * jsx with aurelia binding command friendly version of h
      */
     exports.hJsx = function (name, attrs, ...children) {
-        const doc = test_context_1.PLATFORM.document;
+        const doc = test_context_js_1.PLATFORM.document;
         const el = doc.createElement(name === 'let$' ? 'let' : name);
         if (attrs != null) {
             let value;
@@ -124,11 +124,11 @@
             }
             if (Array.isArray(child)) {
                 for (const child_child of child) {
-                    appender.appendChild(child_child instanceof test_context_1.PLATFORM.Node ? child_child : doc.createTextNode(`${child_child}`));
+                    appender.appendChild(child_child instanceof test_context_js_1.PLATFORM.Node ? child_child : doc.createTextNode(`${child_child}`));
                 }
             }
             else {
-                appender.appendChild(child instanceof test_context_1.PLATFORM.Node ? child : doc.createTextNode(`${child}`));
+                appender.appendChild(child instanceof test_context_js_1.PLATFORM.Node ? child : doc.createTextNode(`${child}`));
             }
         }
         return el;

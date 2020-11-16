@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "typescript", "@aurelia/kernel", "../realm", "../types/environment-record", "../exotics/namespace", "../types/string", "../types/undefined", "../types/number", "../types/null", "../types/empty", "../types/error", "../types/list", "./_shared", "./expressions", "./classes", "./statements", "./functions", "./types", "./literals", "../globals/string"], factory);
+        define(["require", "exports", "typescript", "@aurelia/kernel", "../realm.js", "../types/environment-record.js", "../exotics/namespace.js", "../types/string.js", "../types/undefined.js", "../types/number.js", "../types/null.js", "../types/empty.js", "../types/error.js", "../types/list.js", "./_shared.js", "./expressions.js", "./classes.js", "./statements.js", "./functions.js", "./types.js", "./literals.js", "../globals/string.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -12,24 +12,24 @@
     exports.$QualifiedName = exports.$ExternalModuleReference = exports.$ModuleBlock = exports.$NamespaceExportDeclaration = exports.$ExportSpecifier = exports.$NamedExports = exports.$ExportDeclaration = exports.$ExportAssignment = exports.ExportEntryRecord = exports.$NamespaceImport = exports.$ImportSpecifier = exports.$NamedImports = exports.$ImportClause = exports.$ImportDeclaration = exports.$ImportEqualsDeclaration = exports.ImportEntryRecord = exports.$ModuleDeclaration = exports.$DocumentFragment = exports.$ESModule = exports.$ESScript = void 0;
     const typescript_1 = require("typescript");
     const kernel_1 = require("@aurelia/kernel");
-    const realm_1 = require("../realm");
-    const environment_record_1 = require("../types/environment-record");
-    const namespace_1 = require("../exotics/namespace");
-    const string_1 = require("../types/string");
-    const undefined_1 = require("../types/undefined");
-    const number_1 = require("../types/number");
-    const null_1 = require("../types/null");
-    const empty_1 = require("../types/empty");
-    const error_1 = require("../types/error");
-    const list_1 = require("../types/list");
-    const _shared_1 = require("./_shared");
-    const expressions_1 = require("./expressions");
-    const classes_1 = require("./classes");
-    const statements_1 = require("./statements");
-    const functions_1 = require("./functions");
-    const types_1 = require("./types");
-    const literals_1 = require("./literals");
-    const string_2 = require("../globals/string");
+    const realm_js_1 = require("../realm.js");
+    const environment_record_js_1 = require("../types/environment-record.js");
+    const namespace_js_1 = require("../exotics/namespace.js");
+    const string_js_1 = require("../types/string.js");
+    const undefined_js_1 = require("../types/undefined.js");
+    const number_js_1 = require("../types/number.js");
+    const null_js_1 = require("../types/null.js");
+    const empty_js_1 = require("../types/empty.js");
+    const error_js_1 = require("../types/error.js");
+    const list_js_1 = require("../types/list.js");
+    const _shared_js_1 = require("./_shared.js");
+    const expressions_js_1 = require("./expressions.js");
+    const classes_js_1 = require("./classes.js");
+    const statements_js_1 = require("./statements.js");
+    const functions_js_1 = require("./functions.js");
+    const types_js_1 = require("./types.js");
+    const literals_js_1 = require("./literals.js");
+    const string_js_2 = require("../globals/string.js");
     // http://www.ecma-international.org/ecma-262/#sec-scripts
     class $ESScript {
         constructor(logger, $file, node, realm) {
@@ -48,7 +48,7 @@
             this.path = `ESScript<(...)${$file.rootlessPath}>`;
             this.logger = logger.root;
             let ctx = 0 /* None */;
-            this.DirectivePrologue = _shared_1.GetDirectivePrologue(node.statements);
+            this.DirectivePrologue = _shared_js_1.GetDirectivePrologue(node.statements);
             if (this.DirectivePrologue.ContainsUseStrict) {
                 ctx |= 65536 /* InStrictMode */;
             }
@@ -65,7 +65,7 @@
                 stmt = statements[i];
                 switch (stmt.kind) {
                     case typescript_1.SyntaxKind.VariableStatement:
-                        $stmt = $statements[s] = new statements_1.$VariableStatement(stmt, this, ctx, s);
+                        $stmt = $statements[s] = new statements_js_1.$VariableStatement(stmt, this, ctx, s);
                         ++s;
                         if ($stmt.isLexical) {
                             LexicallyDeclaredNames.push(...$stmt.BoundNames);
@@ -77,109 +77,109 @@
                         }
                         break;
                     case typescript_1.SyntaxKind.FunctionDeclaration:
-                        $stmt = $statements[s] = new functions_1.$FunctionDeclaration(stmt, this, ctx, s);
+                        $stmt = $statements[s] = new functions_js_1.$FunctionDeclaration(stmt, this, ctx, s);
                         ++s;
                         VarDeclaredNames.push(...$stmt.BoundNames);
                         VarScopedDeclarations.push($stmt);
                         break;
                     case typescript_1.SyntaxKind.ClassDeclaration:
-                        $stmt = $statements[s] = new classes_1.$ClassDeclaration(stmt, this, ctx, s);
+                        $stmt = $statements[s] = new classes_js_1.$ClassDeclaration(stmt, this, ctx, s);
                         ++s;
                         LexicallyDeclaredNames.push(...$stmt.BoundNames);
                         LexicallyScopedDeclarations.push($stmt);
                         break;
                     case typescript_1.SyntaxKind.Block:
-                        $stmt = $statements[s] = new statements_1.$Block(stmt, this, ctx, s);
+                        $stmt = $statements[s] = new statements_js_1.$Block(stmt, this, ctx, s);
                         ++s;
                         VarDeclaredNames.push(...$stmt.VarDeclaredNames);
                         VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
                         break;
                     case typescript_1.SyntaxKind.EmptyStatement:
-                        $stmt = $statements[s] = new statements_1.$EmptyStatement(stmt, this, ctx, s);
+                        $stmt = $statements[s] = new statements_js_1.$EmptyStatement(stmt, this, ctx, s);
                         ++s;
                         break;
                     case typescript_1.SyntaxKind.ExpressionStatement:
-                        $stmt = $statements[s] = new statements_1.$ExpressionStatement(stmt, this, ctx, s);
+                        $stmt = $statements[s] = new statements_js_1.$ExpressionStatement(stmt, this, ctx, s);
                         ++s;
                         break;
                     case typescript_1.SyntaxKind.IfStatement:
-                        $stmt = $statements[s] = new statements_1.$IfStatement(stmt, this, ctx, s);
+                        $stmt = $statements[s] = new statements_js_1.$IfStatement(stmt, this, ctx, s);
                         ++s;
                         VarDeclaredNames.push(...$stmt.VarDeclaredNames);
                         VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
                         break;
                     case typescript_1.SyntaxKind.DoStatement:
-                        $stmt = $statements[s] = new statements_1.$DoStatement(stmt, this, ctx, s);
+                        $stmt = $statements[s] = new statements_js_1.$DoStatement(stmt, this, ctx, s);
                         ++s;
                         VarDeclaredNames.push(...$stmt.VarDeclaredNames);
                         VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
                         break;
                     case typescript_1.SyntaxKind.WhileStatement:
-                        $stmt = $statements[s] = new statements_1.$WhileStatement(stmt, this, ctx, s);
+                        $stmt = $statements[s] = new statements_js_1.$WhileStatement(stmt, this, ctx, s);
                         ++s;
                         VarDeclaredNames.push(...$stmt.VarDeclaredNames);
                         VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
                         break;
                     case typescript_1.SyntaxKind.ForStatement:
-                        $stmt = $statements[s] = new statements_1.$ForStatement(stmt, this, ctx, s);
+                        $stmt = $statements[s] = new statements_js_1.$ForStatement(stmt, this, ctx, s);
                         ++s;
                         VarDeclaredNames.push(...$stmt.VarDeclaredNames);
                         VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
                         break;
                     case typescript_1.SyntaxKind.ForInStatement:
-                        $stmt = $statements[s] = new statements_1.$ForInStatement(stmt, this, ctx, s);
+                        $stmt = $statements[s] = new statements_js_1.$ForInStatement(stmt, this, ctx, s);
                         ++s;
                         VarDeclaredNames.push(...$stmt.VarDeclaredNames);
                         VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
                         break;
                     case typescript_1.SyntaxKind.ForOfStatement:
-                        $stmt = $statements[s] = new statements_1.$ForOfStatement(stmt, this, ctx, s);
+                        $stmt = $statements[s] = new statements_js_1.$ForOfStatement(stmt, this, ctx, s);
                         ++s;
                         VarDeclaredNames.push(...$stmt.VarDeclaredNames);
                         VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
                         break;
                     case typescript_1.SyntaxKind.ContinueStatement:
-                        $stmt = $statements[s] = new statements_1.$ContinueStatement(stmt, this, ctx, s);
+                        $stmt = $statements[s] = new statements_js_1.$ContinueStatement(stmt, this, ctx, s);
                         ++s;
                         break;
                     case typescript_1.SyntaxKind.BreakStatement:
-                        $stmt = $statements[s] = new statements_1.$BreakStatement(stmt, this, ctx, s);
+                        $stmt = $statements[s] = new statements_js_1.$BreakStatement(stmt, this, ctx, s);
                         ++s;
                         break;
                     case typescript_1.SyntaxKind.ReturnStatement:
-                        $stmt = $statements[s] = new statements_1.$ReturnStatement(stmt, this, ctx, s);
+                        $stmt = $statements[s] = new statements_js_1.$ReturnStatement(stmt, this, ctx, s);
                         ++s;
                         break;
                     case typescript_1.SyntaxKind.WithStatement:
-                        $stmt = $statements[s] = new statements_1.$WithStatement(stmt, this, ctx, s);
+                        $stmt = $statements[s] = new statements_js_1.$WithStatement(stmt, this, ctx, s);
                         ++s;
                         VarDeclaredNames.push(...$stmt.VarDeclaredNames);
                         VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
                         break;
                     case typescript_1.SyntaxKind.SwitchStatement:
-                        $stmt = $statements[s] = new statements_1.$SwitchStatement(stmt, this, ctx, s);
+                        $stmt = $statements[s] = new statements_js_1.$SwitchStatement(stmt, this, ctx, s);
                         ++s;
                         VarDeclaredNames.push(...$stmt.VarDeclaredNames);
                         VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
                         break;
                     case typescript_1.SyntaxKind.LabeledStatement:
-                        $stmt = $statements[s] = new statements_1.$LabeledStatement(stmt, this, ctx, s);
+                        $stmt = $statements[s] = new statements_js_1.$LabeledStatement(stmt, this, ctx, s);
                         ++s;
                         VarDeclaredNames.push(...$stmt.TopLevelVarDeclaredNames);
                         VarScopedDeclarations.push(...$stmt.TopLevelVarScopedDeclarations);
                         break;
                     case typescript_1.SyntaxKind.ThrowStatement:
-                        $stmt = $statements[s] = new statements_1.$ThrowStatement(stmt, this, ctx, s);
+                        $stmt = $statements[s] = new statements_js_1.$ThrowStatement(stmt, this, ctx, s);
                         ++s;
                         break;
                     case typescript_1.SyntaxKind.TryStatement:
-                        $stmt = $statements[s] = new statements_1.$TryStatement(stmt, this, ctx, s);
+                        $stmt = $statements[s] = new statements_js_1.$TryStatement(stmt, this, ctx, s);
                         ++s;
                         VarDeclaredNames.push(...$stmt.VarDeclaredNames);
                         VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
                         break;
                     case typescript_1.SyntaxKind.DebuggerStatement:
-                        $stmt = $statements[s] = new statements_1.$DebuggerStatement(stmt, this, ctx, s);
+                        $stmt = $statements[s] = new statements_js_1.$DebuggerStatement(stmt, this, ctx, s);
                         ++s;
                         break;
                     default:
@@ -207,11 +207,11 @@
             for (const name of lexNames) {
                 // 5. a. If envRec.HasVarDeclaration(name) is true, throw a SyntaxError exception.
                 if (envRec.HasVarDeclaration(ctx, name).isTruthy) {
-                    return new error_1.$SyntaxError(realm, `${name} is already var-declared in global scope`).enrichWith(ctx, this);
+                    return new error_js_1.$SyntaxError(realm, `${name} is already var-declared in global scope`).enrichWith(ctx, this);
                 }
                 // 5. b. If envRec.HasLexicalDeclaration(name) is true, throw a SyntaxError exception.
                 if (envRec.HasLexicalDeclaration(ctx, name).isTruthy) {
-                    return new error_1.$SyntaxError(realm, `${name} is already lexically-declared in global scope`).enrichWith(ctx, this);
+                    return new error_js_1.$SyntaxError(realm, `${name} is already lexically-declared in global scope`).enrichWith(ctx, this);
                 }
                 // 5. c. Let hasRestrictedGlobal be ? envRec.HasRestrictedGlobalProperty(name).
                 const hasRestrictedGlobal = envRec.HasRestrictedGlobalProperty(ctx, name);
@@ -220,14 +220,14 @@
                 }
                 // 5. d. If hasRestrictedGlobal is true, throw a SyntaxError exception.
                 if (hasRestrictedGlobal.isTruthy) {
-                    return new error_1.$SyntaxError(realm, `${name} is a restricted global property`).enrichWith(ctx, this);
+                    return new error_js_1.$SyntaxError(realm, `${name} is a restricted global property`).enrichWith(ctx, this);
                 }
             }
             // 6. For each name in varNames, do
             for (const name of varNames) {
                 // 6. a. If envRec.HasLexicalDeclaration(name) is true, throw a SyntaxError exception.
                 if (envRec.HasLexicalDeclaration(ctx, name).isTruthy) {
-                    return new error_1.$SyntaxError(realm, `${name} is already lexically-declared in global scope`).enrichWith(ctx, this);
+                    return new error_js_1.$SyntaxError(realm, `${name} is already lexically-declared in global scope`).enrichWith(ctx, this);
                 }
             }
             // 7. Let varDeclarations be the VarScopedDeclarations of script.
@@ -235,12 +235,12 @@
             // 8. Let functionsToInitialize be a new empty List.
             const functionsToInitialize = [];
             // 9. Let declaredFunctionNames be a new empty List.
-            const declaredFunctionNames = new string_2.$StringSet();
+            const declaredFunctionNames = new string_js_2.$StringSet();
             // 10. For each d in varDeclarations, in reverse list order, do
             for (let i = varDeclarations.length - 1; i >= 0; --i) {
                 const d = varDeclarations[i];
                 // 10. a. If d is neither a VariableDeclaration nor a ForBinding nor a BindingIdentifier, then
-                if (d instanceof functions_1.$FunctionDeclaration) {
+                if (d instanceof functions_js_1.$FunctionDeclaration) {
                     // 10. a. i. Assert: d is either a FunctionDeclaration, a GeneratorDeclaration, an AsyncFunctionDeclaration, or an AsyncGeneratorDeclaration.
                     // 10. a. ii. NOTE: If there are multiple function declarations for the same name, the last declaration is used.
                     // 10. a. iii. Let fn be the sole element of the BoundNames of d.
@@ -254,7 +254,7 @@
                         }
                         // 10. a. iv. 2. If fnDefinable is false, throw a TypeError exception.
                         if (fnDefinable.isFalsey) {
-                            return new error_1.$TypeError(realm, `function declaration ${fn} cannot be defined in global scope.`).enrichWith(ctx, this);
+                            return new error_js_1.$TypeError(realm, `function declaration ${fn} cannot be defined in global scope.`).enrichWith(ctx, this);
                         }
                         // 10. a. iv. 3. Append fn to declaredFunctionNames.
                         declaredFunctionNames.add(fn);
@@ -264,11 +264,11 @@
                 }
             }
             // 11. Let declaredVarNames be a new empty List.
-            const declaredVarNames = new string_2.$StringSet();
+            const declaredVarNames = new string_js_2.$StringSet();
             // 12. For each d in varDeclarations, do
             for (const d of varDeclarations) {
                 // 12. a. If d is a VariableDeclaration, a ForBinding, or a BindingIdentifier, then
-                if (!(d instanceof functions_1.$FunctionDeclaration)) {
+                if (!(d instanceof functions_js_1.$FunctionDeclaration)) {
                     // 12. a. i. For each String vn in the BoundNames of d, do
                     for (const vn of d.BoundNames) {
                         // 12. a. i. 1. If vn is not an element of declaredFunctionNames, then
@@ -280,7 +280,7 @@
                             }
                             // 12. a. i. 1. b. If vnDefinable is false, throw a TypeError exception.
                             if (vnDefinable.isFalsey) {
-                                return new error_1.$TypeError(realm, `var declaration ${vn} cannot be defined in global scope.`).enrichWith(ctx, this);
+                                return new error_js_1.$TypeError(realm, `var declaration ${vn} cannot be defined in global scope.`).enrichWith(ctx, this);
                             }
                             // 12. a. i. 1. c. If vn is not an element of declaredVarNames, then
                             if (!declaredVarNames.has(vn)) {
@@ -342,7 +342,7 @@
                 }
             }
             // 19. Return NormalCompletion(empty).
-            return new empty_1.$Empty(realm);
+            return new empty_js_1.$Empty(realm);
         }
         // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-scriptevaluation
         // 15.1.10 ScriptEvaluation ( scriptRecord )
@@ -354,7 +354,7 @@
             // 1. Let globalEnv be scriptRecord.[[Realm]].[[GlobalEnv]].
             const globalEnv = scriptRecord.realm['[[GlobalEnv]]'];
             // 2. Let scriptCxt be a new ECMAScript code execution context.
-            const scriptCxt = new realm_1.ExecutionContext(realm);
+            const scriptCxt = new realm_js_1.ExecutionContext(realm);
             // 3. Set the Function of scriptCxt to null.
             // 4. Set the Realm of scriptCxt to scriptRecord.[[Realm]].
             // 5. Set the ScriptOrModule of scriptCxt to scriptRecord.
@@ -402,10 +402,10 @@
                             sl = $statement.Evaluate(scriptCxt);
                             break;
                         case typescript_1.SyntaxKind.DoStatement:
-                            sl = $statement.EvaluateLabelled(scriptCxt, new string_2.$StringSet());
+                            sl = $statement.EvaluateLabelled(scriptCxt, new string_js_2.$StringSet());
                             break;
                         case typescript_1.SyntaxKind.WhileStatement:
-                            sl = $statement.EvaluateLabelled(scriptCxt, new string_2.$StringSet());
+                            sl = $statement.EvaluateLabelled(scriptCxt, new string_js_2.$StringSet());
                             break;
                         case typescript_1.SyntaxKind.ForStatement:
                             sl = $statement.EvaluateLabelled(scriptCxt);
@@ -456,7 +456,7 @@
             // 13. If result.[[Type]] is normal and result.[[Value]] is empty, then
             if (result['[[Type]]'] === 1 /* normal */ && result.isEmpty) {
                 // 13. a. Set result to NormalCompletion(undefined).
-                result = new undefined_1.$Undefined(realm);
+                result = new undefined_js_1.$Undefined(realm);
             }
             // 14. Suspend scriptCxt and remove it from the execution context stack.
             scriptCxt.suspend();
@@ -495,7 +495,7 @@
             this.path = `ESModule<(...)${$file.rootlessPath}>`;
             this.logger = logger.root;
             let ctx = 0 /* None */;
-            this.DirectivePrologue = _shared_1.GetDirectivePrologue(node.statements);
+            this.DirectivePrologue = _shared_js_1.GetDirectivePrologue(node.statements);
             if (this.DirectivePrologue.ContainsUseStrict) {
                 ctx |= 65536 /* InStrictMode */;
             }
@@ -531,7 +531,7 @@
                         $stmt = $statements[s] = new $ImportDeclaration(stmt, this, ctx, s);
                         ++s;
                         ImportEntries.push(...$stmt.ImportEntries);
-                        ImportedLocalNames.push(...$stmt.ImportEntries.map(_shared_1.getLocalName));
+                        ImportedLocalNames.push(...$stmt.ImportEntries.map(_shared_js_1.getLocalName));
                         ModuleRequests.push(...$stmt.ModuleRequests);
                         break;
                     case typescript_1.SyntaxKind.ExportAssignment:
@@ -548,7 +548,7 @@
                         LexicallyScopedDeclarations.push(...$stmt.LexicallyScopedDeclarations);
                         break;
                     case typescript_1.SyntaxKind.VariableStatement:
-                        $stmt = $statements[s] = new statements_1.$VariableStatement(stmt, this, ctx, s);
+                        $stmt = $statements[s] = new statements_js_1.$VariableStatement(stmt, this, ctx, s);
                         ++s;
                         if ($stmt.isLexical) {
                             LexicallyScopedDeclarations.push($stmt);
@@ -556,7 +556,7 @@
                         else {
                             VarScopedDeclarations.push($stmt);
                         }
-                        if (_shared_1.hasBit($stmt.modifierFlags, typescript_1.ModifierFlags.Export)) {
+                        if (_shared_js_1.hasBit($stmt.modifierFlags, typescript_1.ModifierFlags.Export)) {
                             ExportedBindings.push(...$stmt.ExportedBindings);
                             ExportedNames.push(...$stmt.ExportedNames);
                             ExportEntries.push(...$stmt.ExportEntries);
@@ -567,9 +567,9 @@
                         if (stmt.body === void 0) {
                             continue;
                         }
-                        $stmt = $statements[s] = new functions_1.$FunctionDeclaration(stmt, this, ctx, s);
+                        $stmt = $statements[s] = new functions_js_1.$FunctionDeclaration(stmt, this, ctx, s);
                         ++s;
-                        if (_shared_1.hasBit($stmt.modifierFlags, typescript_1.ModifierFlags.Export)) {
+                        if (_shared_js_1.hasBit($stmt.modifierFlags, typescript_1.ModifierFlags.Export)) {
                             ExportedBindings.push(...$stmt.ExportedBindings);
                             ExportedNames.push(...$stmt.ExportedNames);
                             ExportEntries.push(...$stmt.ExportEntries);
@@ -577,9 +577,9 @@
                         LexicallyScopedDeclarations.push($stmt);
                         break;
                     case typescript_1.SyntaxKind.ClassDeclaration:
-                        $stmt = $statements[s] = new classes_1.$ClassDeclaration(stmt, this, ctx, s);
+                        $stmt = $statements[s] = new classes_js_1.$ClassDeclaration(stmt, this, ctx, s);
                         ++s;
-                        if (_shared_1.hasBit($stmt.modifierFlags, typescript_1.ModifierFlags.Export)) {
+                        if (_shared_js_1.hasBit($stmt.modifierFlags, typescript_1.ModifierFlags.Export)) {
                             ExportedBindings.push(...$stmt.ExportedBindings);
                             ExportedNames.push(...$stmt.ExportedNames);
                             ExportEntries.push(...$stmt.ExportEntries);
@@ -587,113 +587,113 @@
                         LexicallyScopedDeclarations.push($stmt);
                         break;
                     case typescript_1.SyntaxKind.InterfaceDeclaration:
-                        $stmt = $statements[s] = new types_1.$InterfaceDeclaration(stmt, this, ctx, s);
+                        $stmt = $statements[s] = new types_js_1.$InterfaceDeclaration(stmt, this, ctx, s);
                         ++s;
-                        if (_shared_1.hasBit($stmt.modifierFlags, typescript_1.ModifierFlags.Export)) {
+                        if (_shared_js_1.hasBit($stmt.modifierFlags, typescript_1.ModifierFlags.Export)) {
                             ExportedBindings.push(...$stmt.ExportedBindings);
                             ExportedNames.push(...$stmt.ExportedNames);
                             ExportEntries.push(...$stmt.ExportEntries);
                         }
                         break;
                     case typescript_1.SyntaxKind.TypeAliasDeclaration:
-                        $stmt = $statements[s] = new types_1.$TypeAliasDeclaration(stmt, this, ctx, s);
+                        $stmt = $statements[s] = new types_js_1.$TypeAliasDeclaration(stmt, this, ctx, s);
                         ++s;
-                        if (_shared_1.hasBit($stmt.modifierFlags, typescript_1.ModifierFlags.Export)) {
+                        if (_shared_js_1.hasBit($stmt.modifierFlags, typescript_1.ModifierFlags.Export)) {
                             ExportedBindings.push(...$stmt.ExportedBindings);
                             ExportedNames.push(...$stmt.ExportedNames);
                             ExportEntries.push(...$stmt.ExportEntries);
                         }
                         break;
                     case typescript_1.SyntaxKind.EnumDeclaration:
-                        $stmt = $statements[s] = new types_1.$EnumDeclaration(stmt, this, ctx, s);
+                        $stmt = $statements[s] = new types_js_1.$EnumDeclaration(stmt, this, ctx, s);
                         ++s;
-                        if (_shared_1.hasBit($stmt.modifierFlags, typescript_1.ModifierFlags.Export)) {
+                        if (_shared_js_1.hasBit($stmt.modifierFlags, typescript_1.ModifierFlags.Export)) {
                             ExportedBindings.push(...$stmt.ExportedBindings);
                             ExportedNames.push(...$stmt.ExportedNames);
                             ExportEntries.push(...$stmt.ExportEntries);
                         }
                         break;
                     case typescript_1.SyntaxKind.Block:
-                        $stmt = $statements[s] = new statements_1.$Block(stmt, this, ctx, s);
+                        $stmt = $statements[s] = new statements_js_1.$Block(stmt, this, ctx, s);
                         ++s;
                         VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
                         break;
                     case typescript_1.SyntaxKind.EmptyStatement:
-                        $stmt = $statements[s] = new statements_1.$EmptyStatement(stmt, this, ctx, s);
+                        $stmt = $statements[s] = new statements_js_1.$EmptyStatement(stmt, this, ctx, s);
                         ++s;
                         break;
                     case typescript_1.SyntaxKind.ExpressionStatement:
-                        $stmt = $statements[s] = new statements_1.$ExpressionStatement(stmt, this, ctx, s);
+                        $stmt = $statements[s] = new statements_js_1.$ExpressionStatement(stmt, this, ctx, s);
                         ++s;
                         break;
                     case typescript_1.SyntaxKind.IfStatement:
-                        $stmt = $statements[s] = new statements_1.$IfStatement(stmt, this, ctx, s);
+                        $stmt = $statements[s] = new statements_js_1.$IfStatement(stmt, this, ctx, s);
                         ++s;
                         VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
                         break;
                     case typescript_1.SyntaxKind.DoStatement:
-                        $stmt = $statements[s] = new statements_1.$DoStatement(stmt, this, ctx, s);
+                        $stmt = $statements[s] = new statements_js_1.$DoStatement(stmt, this, ctx, s);
                         ++s;
                         VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
                         break;
                     case typescript_1.SyntaxKind.WhileStatement:
-                        $stmt = $statements[s] = new statements_1.$WhileStatement(stmt, this, ctx, s);
+                        $stmt = $statements[s] = new statements_js_1.$WhileStatement(stmt, this, ctx, s);
                         ++s;
                         VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
                         break;
                     case typescript_1.SyntaxKind.ForStatement:
-                        $stmt = $statements[s] = new statements_1.$ForStatement(stmt, this, ctx, s);
+                        $stmt = $statements[s] = new statements_js_1.$ForStatement(stmt, this, ctx, s);
                         ++s;
                         VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
                         break;
                     case typescript_1.SyntaxKind.ForInStatement:
-                        $stmt = $statements[s] = new statements_1.$ForInStatement(stmt, this, ctx, s);
+                        $stmt = $statements[s] = new statements_js_1.$ForInStatement(stmt, this, ctx, s);
                         ++s;
                         VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
                         break;
                     case typescript_1.SyntaxKind.ForOfStatement:
-                        $stmt = $statements[s] = new statements_1.$ForOfStatement(stmt, this, ctx, s);
+                        $stmt = $statements[s] = new statements_js_1.$ForOfStatement(stmt, this, ctx, s);
                         ++s;
                         VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
                         break;
                     case typescript_1.SyntaxKind.ContinueStatement:
-                        $stmt = $statements[s] = new statements_1.$ContinueStatement(stmt, this, ctx, s);
+                        $stmt = $statements[s] = new statements_js_1.$ContinueStatement(stmt, this, ctx, s);
                         ++s;
                         break;
                     case typescript_1.SyntaxKind.BreakStatement:
-                        $stmt = $statements[s] = new statements_1.$BreakStatement(stmt, this, ctx, s);
+                        $stmt = $statements[s] = new statements_js_1.$BreakStatement(stmt, this, ctx, s);
                         ++s;
                         break;
                     case typescript_1.SyntaxKind.ReturnStatement:
-                        $stmt = $statements[s] = new statements_1.$ReturnStatement(stmt, this, ctx, s);
+                        $stmt = $statements[s] = new statements_js_1.$ReturnStatement(stmt, this, ctx, s);
                         ++s;
                         break;
                     case typescript_1.SyntaxKind.WithStatement:
-                        $stmt = $statements[s] = new statements_1.$WithStatement(stmt, this, ctx, s);
+                        $stmt = $statements[s] = new statements_js_1.$WithStatement(stmt, this, ctx, s);
                         ++s;
                         VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
                         break;
                     case typescript_1.SyntaxKind.SwitchStatement:
-                        $stmt = $statements[s] = new statements_1.$SwitchStatement(stmt, this, ctx, s);
+                        $stmt = $statements[s] = new statements_js_1.$SwitchStatement(stmt, this, ctx, s);
                         ++s;
                         VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
                         break;
                     case typescript_1.SyntaxKind.LabeledStatement:
-                        $stmt = $statements[s] = new statements_1.$LabeledStatement(stmt, this, ctx, s);
+                        $stmt = $statements[s] = new statements_js_1.$LabeledStatement(stmt, this, ctx, s);
                         ++s;
                         VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
                         break;
                     case typescript_1.SyntaxKind.ThrowStatement:
-                        $stmt = $statements[s] = new statements_1.$ThrowStatement(stmt, this, ctx, s);
+                        $stmt = $statements[s] = new statements_js_1.$ThrowStatement(stmt, this, ctx, s);
                         ++s;
                         break;
                     case typescript_1.SyntaxKind.TryStatement:
-                        $stmt = $statements[s] = new statements_1.$TryStatement(stmt, this, ctx, s);
+                        $stmt = $statements[s] = new statements_js_1.$TryStatement(stmt, this, ctx, s);
                         ++s;
                         VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
                         break;
                     case typescript_1.SyntaxKind.DebuggerStatement:
-                        $stmt = $statements[s] = new statements_1.$DebuggerStatement(stmt, this, ctx, s);
+                        $stmt = $statements[s] = new statements_js_1.$DebuggerStatement(stmt, this, ctx, s);
                         ++s;
                         break;
                     default:
@@ -798,7 +798,7 @@
             // 3. Let stack be a new empty List.
             const stack = [];
             // 4. Let result be InnerModuleInstantiation(module, stack, 0).
-            const result = this._InnerModuleInstantiation(ctx, stack, new number_1.$Number(realm, 0));
+            const result = this._InnerModuleInstantiation(ctx, stack, new number_js_1.$Number(realm, 0));
             // 5. If result is an abrupt completion, then
             if (result.isAbrupt) {
                 // 5. a. For each module m in stack, do
@@ -822,7 +822,7 @@
             // 8. Return undefined.
             const end = Date.now();
             this.logger.debug(`${this.path}.[Instantiate] done in ${Math.round(end - start)}ms`);
-            return new undefined_1.$Undefined(realm);
+            return new undefined_js_1.$Undefined(realm);
         }
         // http://www.ecma-international.org/ecma-262/#sec-innermoduleinstantiation
         // 15.2.1.16.1.1 InnerModuleInstantiation ( module , stack , idx )
@@ -849,7 +849,7 @@
             // 6. Set module.[[DFSAncestorIndex]] to idx.
             this.DFSAncestorIndex = idx['[[Value]]'];
             // 7. Increase idx by 1.
-            idx = new number_1.$Number(realm, idx['[[Value]]'] + 1);
+            idx = new number_js_1.$Number(realm, idx['[[Value]]'] + 1);
             // 8. Append module to stack.
             stack.push(this);
             // 9. For each String required that is an element of module.[[RequestedModules]], do
@@ -913,13 +913,13 @@
             // 2. For each ExportEntry Record e in module.[[IndirectExportEntries]], do
             for (const e of this.IndirectExportEntries) {
                 // 2. a. Let resolution be ? module.ResolveExport(e.[[ExportName]], « »).
-                const resolution = this.ResolveExport(ctx, e.ExportName, new realm_1.ResolveSet());
+                const resolution = this.ResolveExport(ctx, e.ExportName, new realm_js_1.ResolveSet());
                 if (resolution.isAbrupt) {
                     return resolution.enrichWith(ctx, this);
                 }
                 // 2. b. If resolution is null or "ambiguous", throw a SyntaxError exception.
                 if (resolution.isNull || resolution.isAmbiguous) {
-                    return new error_1.$SyntaxError(realm, `ResolveExport(${e.ExportName}) returned ${resolution}`);
+                    return new error_js_1.$SyntaxError(realm, `ResolveExport(${e.ExportName}) returned ${resolution}`);
                 }
                 // 2. c. Assert: resolution is a ResolvedBinding Record.
             }
@@ -927,7 +927,7 @@
             // 4. Let realm be module.[[Realm]].
             // 5. Assert: Realm is not undefined.
             // 6. Let env be NewModuleEnvironment(realm.[[GlobalEnv]]).
-            const envRec = new environment_record_1.$ModuleEnvRec(this.logger, realm, realm['[[GlobalEnv]]']);
+            const envRec = new environment_record_js_1.$ModuleEnvRec(this.logger, realm, realm['[[GlobalEnv]]']);
             // 7. Set module.[[Environment]] to env.
             this['[[Environment]]'] = envRec;
             // 8. Let envRec be env's EnvironmentRecord.
@@ -954,21 +954,21 @@
                                 return exportedNames.enrichWith(ctx, mod);
                             }
                             // 4. b. Let unambiguousNames be a new empty List.
-                            const unambiguousNames = new list_1.$List();
+                            const unambiguousNames = new list_js_1.$List();
                             // 4. c. For each name that is an element of exportedNames, do
                             for (const name of exportedNames) {
                                 // 4. c. i. Let resolution be ? module.ResolveExport(name, « »).
-                                const resolution = mod.ResolveExport(ctx, name, new realm_1.ResolveSet());
+                                const resolution = mod.ResolveExport(ctx, name, new realm_js_1.ResolveSet());
                                 if (resolution.isAbrupt) {
                                     return resolution.enrichWith(ctx, mod);
                                 }
                                 // 4. c. ii. If resolution is a ResolvedBinding Record, append name to unambiguousNames.
-                                if (resolution instanceof realm_1.ResolvedBindingRecord) {
+                                if (resolution instanceof realm_js_1.ResolvedBindingRecord) {
                                     unambiguousNames.push(name);
                                 }
                             }
                             // 4. d. Set namespace to ModuleNamespaceCreate(module, unambiguousNames).
-                            namespace = new namespace_1.$NamespaceExoticObject(realm, mod, unambiguousNames);
+                            namespace = new namespace_js_1.$NamespaceExoticObject(realm, mod, unambiguousNames);
                         }
                         // 5. Return namespace.
                         return namespace;
@@ -984,13 +984,13 @@
                 // 9. d. Else,
                 else {
                     // 9. d. i. Let resolution be ? importedModule.ResolveExport(in.[[ImportName]], « »).
-                    const resolution = importedModule.ResolveExport(ctx, ie.ImportName, new realm_1.ResolveSet());
+                    const resolution = importedModule.ResolveExport(ctx, ie.ImportName, new realm_js_1.ResolveSet());
                     if (resolution.isAbrupt) {
                         return resolution.enrichWith(ctx, this);
                     }
                     // 9. d. ii. If resolution is null or "ambiguous", throw a SyntaxError exception.
                     if (resolution.isNull || resolution.isAmbiguous) {
-                        return new error_1.$SyntaxError(realm, `ResolveExport(${ie.ImportName}) returned ${resolution}`);
+                        return new error_js_1.$SyntaxError(realm, `ResolveExport(${ie.ImportName}) returned ${resolution}`);
                     }
                     // 9. d. iii. Call envRec.CreateImportBinding(in.[[LocalName]], resolution.[[Module]], resolution.[[BindingName]]).
                     envRec.CreateImportBinding(ctx, ie.LocalName, resolution.Module, resolution.BindingName);
@@ -1000,7 +1000,7 @@
             // 11. Let varDeclarations be the VarScopedDeclarations of code.
             const varDeclarations = this.VarScopedDeclarations;
             // 12. Let declaredVarNames be a new empty List.
-            const declaredVarNames = new list_1.$List();
+            const declaredVarNames = new list_js_1.$List();
             // 13. For each element d in varDeclarations, do
             for (const d of varDeclarations) {
                 // 13. a. For each element dn of the BoundNames of d, do
@@ -1045,7 +1045,7 @@
                 }
             }
             // 16. Return NormalCompletion(empty).
-            return new empty_1.$Empty(realm);
+            return new empty_js_1.$Empty(realm);
         }
         // http://www.ecma-international.org/ecma-262/#sec-getexportednames
         // 15.2.1.17.2 GetExportedNames ( exportStarSet ) Concrete Method
@@ -1059,12 +1059,12 @@
             if (exportStarSet.has(mod)) {
                 // 2. a. Assert: We've reached the starting point of an import * circularity.
                 // 2. b. Return a new empty List.
-                return new list_1.$List();
+                return new list_js_1.$List();
             }
             // 3. Append module to exportStarSet.
             exportStarSet.add(mod);
             // 4. Let exportedNames be a new empty List.
-            const exportedNames = new list_1.$List();
+            const exportedNames = new list_js_1.$List();
             // 5. For each ExportEntry Record e in module.[[LocalExportEntries]], do
             for (const e of mod.LocalExportEntries) {
                 // 5. a. Assert: module provides the direct binding for this export.
@@ -1117,7 +1117,7 @@
                 // 2. a. i. Assert: This is a circular import request.
                 // 2. a. ii. Return null.
                 this.logger.warn(`[ResolveExport] Circular import: ${exportName}`);
-                return new null_1.$Null(realm);
+                return new null_js_1.$Null(realm);
             }
             // 3. Append the Record { [[Module]]: module, [[ExportName]]: exportName } to resolveSet.
             resolveSet.add(this, exportName);
@@ -1128,7 +1128,7 @@
                     // 4. a. i. Assert: module provides the direct binding for this export.
                     this.logger.debug(`${this.path}.[ResolveExport] found direct binding for ${exportName['[[Value]]']}`);
                     // 4. a. ii. Return ResolvedBinding Record { [[Module]]: module, [[BindingName]]: e.[[LocalName]] }.
-                    return new realm_1.ResolvedBindingRecord(this, e.LocalName);
+                    return new realm_js_1.ResolvedBindingRecord(this, e.LocalName);
                 }
             }
             // 5. For each ExportEntry Record e in module.[[IndirectExportEntries]], do
@@ -1151,11 +1151,11 @@
                 // 6. a. Assert: A default export was not explicitly defined by this module.
                 // 6. b. Return null.
                 this.logger.warn(`[ResolveExport] No default export defined`);
-                return new null_1.$Null(realm);
+                return new null_js_1.$Null(realm);
                 // 6. c. NOTE: A default export cannot be provided by an export *.
             }
             // 7. Let starResolution be null.
-            let starResolution = new null_1.$Null(realm);
+            let starResolution = new null_js_1.$Null(realm);
             // 8. For each ExportEntry Record e in module.[[StarExportEntries]], do
             for (const e of this.StarExportEntries) {
                 // 8. a. Let importedModule be ? HostResolveImportedModule(module, e.[[ModuleRequest]]).
@@ -1186,7 +1186,7 @@
                         // 8. d. iii. 2. If resolution.[[Module]] and starResolution.[[Module]] are not the same Module Record or SameValue(resolution.[[BindingName]], starResolution.[[BindingName]]) is false, return "ambiguous".
                         if (!(resolution.Module === starResolution.Module && resolution.BindingName.is(starResolution.BindingName))) {
                             this.logger.warn(`[ResolveExport] ambiguous resolution for ${exportName['[[Value]]']}`);
-                            return new string_1.$String(realm, 'ambiguous');
+                            return new string_js_1.$String(realm, 'ambiguous');
                         }
                     }
                 }
@@ -1226,7 +1226,7 @@
             // 6. Assert: module.[[Status]] is "evaluated" and module.[[EvaluationError]] is undefined.
             // 7. Assert: stack is empty.
             // 8. Return undefined.
-            return new undefined_1.$Undefined(realm, 1 /* normal */, intrinsics.empty, this);
+            return new undefined_js_1.$Undefined(realm, 1 /* normal */, intrinsics.empty, this);
         }
         // http://www.ecma-international.org/ecma-262/#sec-innermoduleevaluation
         // 15.2.1.16.2.1 InnerModuleEvaluation ( module , stack , idx )
@@ -1241,12 +1241,12 @@
             // 2. If module.[[Status]] is "evaluated", then
             if (this.Status === 'evaluated') {
                 // 2. a. If module.[[EvaluationError]] is undefined, return idx.
-                return new number_1.$Number(realm, idx); // TODO
+                return new number_js_1.$Number(realm, idx); // TODO
                 // 2. b. Otherwise return module.[[EvaluationError]].
             }
             // 3. If module.[[Status]] is "evaluating", return idx.
             if (this.Status === 'evaluating') {
-                return new number_1.$Number(realm, idx);
+                return new number_js_1.$Number(realm, idx);
             }
             // 4. Assert: module.[[Status]] is "instantiated".
             // 5. Set module.[[Status]] to "evaluating".
@@ -1304,7 +1304,7 @@
                 }
             }
             // 15. Return idx.
-            return new number_1.$Number(realm, idx);
+            return new number_js_1.$Number(realm, idx);
         }
         // http://www.ecma-international.org/ecma-262/#sec-source-text-module-record-execute-module
         // 15.2.1.17.5 ExecuteModule ( ) Concrete Method
@@ -1315,7 +1315,7 @@
             const intrinsics = realm['[[Intrinsics]]'];
             // 1. Let module be this Source Text Module Record.
             // 2. Let moduleCxt be a new ECMAScript code execution context.
-            const moduleCxt = new realm_1.ExecutionContext(this.realm);
+            const moduleCxt = new realm_js_1.ExecutionContext(this.realm);
             // 3. Set the Function of moduleCxt to null.
             moduleCxt.Function = intrinsics.null;
             // 4. Assert: module.[[Realm]] is not undefined.
@@ -1418,10 +1418,10 @@
                         sl = $statement.Evaluate(ctx);
                         break;
                     case typescript_1.SyntaxKind.DoStatement:
-                        sl = $statement.EvaluateLabelled(ctx, new string_2.$StringSet());
+                        sl = $statement.EvaluateLabelled(ctx, new string_js_2.$StringSet());
                         break;
                     case typescript_1.SyntaxKind.WhileStatement:
-                        sl = $statement.EvaluateLabelled(ctx, new string_2.$StringSet());
+                        sl = $statement.EvaluateLabelled(ctx, new string_js_2.$StringSet());
                         break;
                     case typescript_1.SyntaxKind.ForStatement:
                         sl = $statement.EvaluateLabelled(ctx);
@@ -1525,11 +1525,11 @@
         ResolveExport(ctx, exportName, resolveSet) {
             ctx.checkTimeout();
             this.logger.debug(`${this.path}.[ResolveExport] returning content as '${exportName['[[Value]]']}'`);
-            return new realm_1.ResolvedBindingRecord(this, exportName);
+            return new realm_js_1.ResolvedBindingRecord(this, exportName);
         }
         GetExportedNames(ctx, exportStarSet) {
             ctx.checkTimeout();
-            return new list_1.$List();
+            return new list_js_1.$List();
         }
         Instantiate(ctx) {
             ctx.checkTimeout();
@@ -1546,7 +1546,7 @@
     }
     exports.$DocumentFragment = $DocumentFragment;
     class $ModuleDeclaration {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.ModuleDeclaration`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.ModuleDeclaration`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -1556,12 +1556,12 @@
             this.depth = depth;
             this.logger = logger;
             this.path = path;
-            this.modifierFlags = _shared_1.modifiersToModifierFlags(node.modifiers);
+            this.modifierFlags = _shared_js_1.modifiersToModifierFlags(node.modifiers);
             if (node.name.kind === typescript_1.SyntaxKind.Identifier) {
-                this.$name = new expressions_1.$Identifier(node.name, this, ctx, -1);
+                this.$name = new expressions_js_1.$Identifier(node.name, this, ctx, -1);
             }
             else {
-                this.$name = new literals_1.$StringLiteral(node.name, this, ctx, -1);
+                this.$name = new literals_js_1.$StringLiteral(node.name, this, ctx, -1);
             }
             if (node.body === void 0) {
                 this.$body = void 0;
@@ -1569,7 +1569,7 @@
             else {
                 switch (node.body.kind) {
                     case typescript_1.SyntaxKind.Identifier:
-                        this.$body = new expressions_1.$Identifier(node.body, this, ctx, -1);
+                        this.$body = new expressions_js_1.$Identifier(node.body, this, ctx, -1);
                         break;
                     case typescript_1.SyntaxKind.ModuleBlock:
                         this.$body = new $ModuleBlock(node.body, this, ctx);
@@ -1610,7 +1610,7 @@
      * - import x = M.x;
      */
     class $ImportEqualsDeclaration {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.ImportEqualsDeclaration`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.ImportEqualsDeclaration`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -1620,11 +1620,11 @@
             this.depth = depth;
             this.logger = logger;
             this.path = path;
-            this.modifierFlags = _shared_1.modifiersToModifierFlags(node.modifiers);
-            this.$name = _shared_1.$identifier(node.name, this, ctx, -1);
+            this.modifierFlags = _shared_js_1.modifiersToModifierFlags(node.modifiers);
+            this.$name = _shared_js_1.$identifier(node.name, this, ctx, -1);
             switch (node.moduleReference.kind) {
                 case typescript_1.SyntaxKind.Identifier:
-                    this.$moduleReference = new expressions_1.$Identifier(node.moduleReference, this, ctx, -1);
+                    this.$moduleReference = new expressions_js_1.$Identifier(node.moduleReference, this, ctx, -1);
                     break;
                 case typescript_1.SyntaxKind.QualifiedName:
                     this.$moduleReference = new $QualifiedName(node.moduleReference, this, ctx);
@@ -1644,7 +1644,7 @@
     // In rest of the cases, module specifier is string literal corresponding to module
     // ImportClause information is shown at its declaration below.
     class $ImportDeclaration {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.ImportDeclaration`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.ImportDeclaration`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -1654,11 +1654,11 @@
             this.depth = depth;
             this.logger = logger;
             this.path = path;
-            this.modifierFlags = _shared_1.modifiersToModifierFlags(node.modifiers);
-            const $moduleSpecifier = this.$moduleSpecifier = new literals_1.$StringLiteral(node.moduleSpecifier, this, ctx, -1);
+            this.modifierFlags = _shared_js_1.modifiersToModifierFlags(node.modifiers);
+            const $moduleSpecifier = this.$moduleSpecifier = new literals_js_1.$StringLiteral(node.moduleSpecifier, this, ctx, -1);
             const moduleSpecifier = this.moduleSpecifier = $moduleSpecifier.StringValue;
             if (node.importClause === void 0) {
-                this.$importClause = new undefined_1.$Undefined(realm, void 0, void 0, this);
+                this.$importClause = new undefined_js_1.$Undefined(realm, void 0, void 0, this);
                 this.BoundNames = kernel_1.emptyArray;
                 this.ImportEntries = kernel_1.emptyArray;
             }
@@ -1693,10 +1693,10 @@
             const BoundNames = this.BoundNames = [];
             const ImportEntriesForModule = this.ImportEntriesForModule = [];
             if (node.name === void 0) {
-                this.$name = new undefined_1.$Undefined(realm, void 0, void 0, this);
+                this.$name = new undefined_js_1.$Undefined(realm, void 0, void 0, this);
             }
             else {
-                const $name = this.$name = new expressions_1.$Identifier(node.name, this, ctx, -1);
+                const $name = this.$name = new expressions_js_1.$Identifier(node.name, this, ctx, -1);
                 const [localName] = $name.BoundNames;
                 BoundNames.push(localName);
                 ImportEntriesForModule.push(new ImportEntryRecord(
@@ -1736,8 +1736,8 @@
             this.path = path;
             this.moduleSpecifier = parent.moduleSpecifier;
             const $elements = this.$elements = node.elements.map(x => new $ImportSpecifier(x, this, ctx));
-            this.BoundNames = $elements.flatMap(_shared_1.getBoundNames);
-            this.ImportEntriesForModule = $elements.flatMap(_shared_1.getImportEntriesForModule);
+            this.BoundNames = $elements.flatMap(_shared_js_1.getBoundNames);
+            this.ImportEntriesForModule = $elements.flatMap(_shared_js_1.getImportEntriesForModule);
         }
         get $kind() { return typescript_1.SyntaxKind.NamedImports; }
     }
@@ -1754,12 +1754,12 @@
             this.path = path;
             let $propertyName;
             if (node.propertyName === void 0) {
-                $propertyName = this.$propertyName = new undefined_1.$Undefined(realm, void 0, void 0, this);
+                $propertyName = this.$propertyName = new undefined_js_1.$Undefined(realm, void 0, void 0, this);
             }
             else {
-                $propertyName = this.$propertyName = new expressions_1.$Identifier(node.propertyName, this, ctx, -1);
+                $propertyName = this.$propertyName = new expressions_js_1.$Identifier(node.propertyName, this, ctx, -1);
             }
-            const $name = this.$name = _shared_1.$identifier(node.name, this, ctx, -1);
+            const $name = this.$name = _shared_js_1.$identifier(node.name, this, ctx, -1);
             const BoundNames = this.BoundNames = this.$name.BoundNames;
             const moduleSpecifier = parent.moduleSpecifier;
             if ($propertyName.isUndefined) {
@@ -1798,7 +1798,7 @@
             this.logger = logger;
             this.path = path;
             const intrinsics = realm['[[Intrinsics]]'];
-            const $name = this.$name = new expressions_1.$Identifier(node.name, this, ctx, -1);
+            const $name = this.$name = new expressions_js_1.$Identifier(node.name, this, ctx, -1);
             this.BoundNames = $name.BoundNames;
             const moduleSpecifier = parent.moduleSpecifier;
             const localName = $name.StringValue;
@@ -1837,7 +1837,7 @@
     }
     exports.ExportEntryRecord = ExportEntryRecord;
     class $ExportAssignment {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.ExportAssignment`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.ExportAssignment`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -1848,15 +1848,15 @@
             this.logger = logger;
             this.path = path;
             const intrinsics = realm['[[Intrinsics]]'];
-            this.modifierFlags = _shared_1.modifiersToModifierFlags(node.modifiers);
-            this.$expression = _shared_1.$assignmentExpression(node.expression, this, ctx, -1);
+            this.modifierFlags = _shared_js_1.modifiersToModifierFlags(node.modifiers);
+            this.$expression = _shared_js_1.$assignmentExpression(node.expression, this, ctx, -1);
             this.BoundNames = [intrinsics['*default*']];
         }
         get $kind() { return typescript_1.SyntaxKind.ExportAssignment; }
     }
     exports.$ExportAssignment = $ExportAssignment;
     class $ExportDeclaration {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.ExportDeclaration`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.ExportDeclaration`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -1881,7 +1881,7 @@
             this.TypeDeclarations = kernel_1.emptyArray;
             this.IsType = false;
             const intrinsics = realm['[[Intrinsics]]'];
-            this.modifierFlags = _shared_1.modifiersToModifierFlags(node.modifiers);
+            this.modifierFlags = _shared_js_1.modifiersToModifierFlags(node.modifiers);
             let moduleSpecifier;
             if (node.moduleSpecifier === void 0) {
                 this.$moduleSpecifier = void 0;
@@ -1889,7 +1889,7 @@
                 this.ModuleRequests = kernel_1.emptyArray;
             }
             else {
-                const $moduleSpecifier = this.$moduleSpecifier = new literals_1.$StringLiteral(node.moduleSpecifier, this, ctx, -1);
+                const $moduleSpecifier = this.$moduleSpecifier = new literals_js_1.$StringLiteral(node.moduleSpecifier, this, ctx, -1);
                 moduleSpecifier = this.moduleSpecifier = $moduleSpecifier.StringValue;
                 this.ModuleRequests = [moduleSpecifier];
             }
@@ -1927,9 +1927,9 @@
             this.path = path;
             this.moduleSpecifier = parent.moduleSpecifier;
             const $elements = this.$elements = node.elements.map(x => new $ExportSpecifier(x, this, ctx));
-            this.ExportedNames = $elements.flatMap(_shared_1.getExportedNames);
-            this.ExportEntriesForModule = $elements.flatMap(_shared_1.getExportEntriesForModule);
-            this.ReferencedBindings = $elements.flatMap(_shared_1.getReferencedBindings);
+            this.ExportedNames = $elements.flatMap(_shared_js_1.getExportedNames);
+            this.ExportEntriesForModule = $elements.flatMap(_shared_js_1.getExportEntriesForModule);
+            this.ReferencedBindings = $elements.flatMap(_shared_js_1.getReferencedBindings);
         }
         get $kind() { return typescript_1.SyntaxKind.NamedExports; }
     }
@@ -1947,12 +1947,12 @@
             const intrinsics = realm['[[Intrinsics]]'];
             let $propertyName;
             if (node.propertyName === void 0) {
-                $propertyName = this.$propertyName = new undefined_1.$Undefined(realm, void 0, void 0, this);
+                $propertyName = this.$propertyName = new undefined_js_1.$Undefined(realm, void 0, void 0, this);
             }
             else {
-                $propertyName = this.$propertyName = new expressions_1.$Identifier(node.propertyName, this, ctx, -1);
+                $propertyName = this.$propertyName = new expressions_js_1.$Identifier(node.propertyName, this, ctx, -1);
             }
-            const $name = this.$name = new expressions_1.$Identifier(node.name, this, ctx, -1);
+            const $name = this.$name = new expressions_js_1.$Identifier(node.name, this, ctx, -1);
             const moduleSpecifier = parent.moduleSpecifier;
             if ($propertyName.isUndefined) {
                 const sourceName = $name.StringValue;
@@ -2010,7 +2010,7 @@
     }
     exports.$ExportSpecifier = $ExportSpecifier;
     class $NamespaceExportDeclaration {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.NamespaceExportDeclaration`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.NamespaceExportDeclaration`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -2020,8 +2020,8 @@
             this.depth = depth;
             this.logger = logger;
             this.path = path;
-            this.modifierFlags = _shared_1.modifiersToModifierFlags(node.modifiers);
-            this.$name = _shared_1.$identifier(node.name, this, ctx, -1);
+            this.modifierFlags = _shared_js_1.modifiersToModifierFlags(node.modifiers);
+            this.$name = _shared_js_1.$identifier(node.name, this, ctx, -1);
         }
         get $kind() { return typescript_1.SyntaxKind.NamespaceExportDeclaration; }
     }
@@ -2052,7 +2052,7 @@
             this.depth = depth;
             this.logger = logger;
             this.path = path;
-            this.$expression = new literals_1.$StringLiteral(node.expression, this, ctx, -1);
+            this.$expression = new literals_js_1.$StringLiteral(node.expression, this, ctx, -1);
         }
         get $kind() { return typescript_1.SyntaxKind.ExternalModuleReference; }
     }
@@ -2068,12 +2068,12 @@
             this.logger = logger;
             this.path = path;
             if (node.left.kind === typescript_1.SyntaxKind.Identifier) {
-                this.$left = new expressions_1.$Identifier(node.left, this, ctx, -1);
+                this.$left = new expressions_js_1.$Identifier(node.left, this, ctx, -1);
             }
             else {
                 this.$left = new $QualifiedName(node.left, this, ctx);
             }
-            this.$right = new expressions_1.$Identifier(node.right, this, ctx, -1);
+            this.$right = new expressions_js_1.$Identifier(node.right, this, ctx, -1);
         }
         get $kind() { return typescript_1.SyntaxKind.QualifiedName; }
     }

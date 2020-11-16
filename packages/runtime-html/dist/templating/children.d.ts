@@ -1,6 +1,6 @@
 import { Constructable, IIndexable } from '@aurelia/kernel';
 import { ISubscriberCollection, IAccessor, ISubscribable, IPropertyObserver } from '@aurelia/runtime';
-import type { ICustomElementViewModel, ICustomElementController } from './controller';
+import type { ICustomElementViewModel, ICustomElementController } from './controller.js';
 export declare type PartialChildrenDefinition = {
     callback?: string;
     property?: string;

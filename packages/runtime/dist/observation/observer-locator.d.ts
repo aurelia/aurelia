@@ -1,5 +1,5 @@
-import { AccessorOrObserver, CollectionKind, CollectionObserver, IAccessor, IBindingTargetAccessor, IBindingTargetObserver, ICollectionObserver, ILifecycle, IObservedArray, IObservedMap, IObservedSet, IObserver, LifecycleFlags } from '../observation';
-import { IDirtyChecker } from './dirty-checker';
+import { AccessorOrObserver, CollectionKind, CollectionObserver, IAccessor, IBindingTargetAccessor, IBindingTargetObserver, ICollectionObserver, ILifecycle, IObservedArray, IObservedMap, IObservedSet, IObserver, LifecycleFlags } from '../observation.js';
+import { IDirtyChecker } from './dirty-checker.js';
 export interface IObjectObservationAdapter {
     getObserver(flags: LifecycleFlags, object: unknown, propertyName: string, descriptor: PropertyDescriptor): IBindingTargetObserver | null;
 }

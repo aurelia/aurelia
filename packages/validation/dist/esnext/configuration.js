@@ -1,9 +1,9 @@
 import { noop, Registration } from '@aurelia/kernel';
-import { IValidationExpressionHydrator } from './rule-interfaces';
-import { ICustomMessages, IValidationRules, ValidationMessageProvider, ValidationRules } from './rule-provider';
-import { IValidationMessageProvider } from './rules';
-import { ModelValidationExpressionHydrator, ValidationDeserializer } from './serialization';
-import { IValidator, StandardValidator } from './validator';
+import { IValidationExpressionHydrator } from './rule-interfaces.js';
+import { ICustomMessages, IValidationRules, ValidationMessageProvider, ValidationRules } from './rule-provider.js';
+import { IValidationMessageProvider } from './rules.js';
+import { ModelValidationExpressionHydrator, ValidationDeserializer } from './serialization.js';
+import { IValidator, StandardValidator } from './validator.js';
 export function getDefaultValidationConfiguration() {
     return {
         ValidatorType: StandardValidator,

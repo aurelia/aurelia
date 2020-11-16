@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime-html", "./test-context"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime-html", "./test-context.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -12,7 +12,7 @@
     exports.createScopeForTest = exports.createObserverLocator = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const runtime_html_1 = require("@aurelia/runtime-html");
-    const test_context_1 = require("./test-context");
+    const test_context_js_1 = require("./test-context.js");
     // import {
     //   IInstruction,
     //   NodeSequenceFactory,
@@ -21,12 +21,12 @@
     // import {
     //   FakeView,
     //   FakeViewFactory,
-    // } from './fakes';
-    // import { TestContext } from './html-test-context';
+    // } from './fakes.js';
+    // import { TestContext } from './html-test-context.js';
     // import {
     //   defineComponentLifecycleMock,
     //   IComponentLifecycleMock,
-    // } from './mocks';
+    // } from './mocks.js';
     // export type TemplateCb = (builder: TemplateBuilder) => TemplateBuilder;
     // export type InstructionCb = (builder: InstructionBuilder) => InstructionBuilder;
     // export type DefinitionCb = (builder: DefinitionBuilder) => DefinitionBuilder;
@@ -407,7 +407,7 @@
     function createObserverLocator(containerOrLifecycle) {
         let container;
         if (containerOrLifecycle === undefined || !('get' in containerOrLifecycle)) {
-            container = test_context_1.createContainer();
+            container = test_context_js_1.createContainer();
         }
         else {
             container = containerOrLifecycle;

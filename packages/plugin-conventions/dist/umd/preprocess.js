@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "fs", "path", "./options", "./preprocess-html-template", "./preprocess-resource"], factory);
+        define(["require", "exports", "fs", "path", "./options.js", "./preprocess-html-template.js", "./preprocess-resource.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -12,13 +12,13 @@
     exports.preprocess = void 0;
     const fs = require("fs");
     const path = require("path");
-    const options_1 = require("./options");
-    const preprocess_html_template_1 = require("./preprocess-html-template");
-    const preprocess_resource_1 = require("./preprocess-resource");
+    const options_js_1 = require("./options.js");
+    const preprocess_html_template_js_1 = require("./preprocess-html-template.js");
+    const preprocess_resource_js_1 = require("./preprocess-resource.js");
     function preprocess(unit, options, _fileExists = fileExists) {
         const ext = path.extname(unit.path);
         const basename = path.basename(unit.path, ext);
-        const allOptions = options_1.preprocessOptions(options);
+        const allOptions = options_js_1.preprocessOptions(options);
         const base = unit.base || '';
         if (allOptions.templateExtensions.includes(ext)) {
             const possibleFilePair = allOptions.cssExtensions.map(e => path.join(base, unit.path.slice(0, -ext.length) + e));
@@ -31,7 +31,7 @@
                     unit.filePair = path.basename(filePair);
                 }
             }
-            return preprocess_html_template_1.preprocessHtmlTemplate(unit, allOptions);
+            return preprocess_html_template_js_1.preprocessHtmlTemplate(unit, allOptions);
         }
         else if (allOptions.jsExtensions.includes(ext)) {
             const possibleFilePair = allOptions.templateExtensions.map(e => path.join(base, unit.path.slice(0, -ext.length) + e));
@@ -58,7 +58,7 @@
                     }
                 }
             }
-            return preprocess_resource_1.preprocessResource(unit, allOptions);
+            return preprocess_resource_js_1.preprocessResource(unit, allOptions);
         }
     }
     exports.preprocess = preprocess;

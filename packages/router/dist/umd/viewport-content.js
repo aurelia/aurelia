@@ -4,18 +4,18 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/runtime-html", "./parser", "./viewport-instruction", "./navigation", "./runner", "./awaitable-map"], factory);
+        define(["require", "exports", "@aurelia/runtime-html", "./parser.js", "./viewport-instruction.js", "./navigation.js", "./runner.js", "./awaitable-map.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ViewportContent = exports.ContentStatus = void 0;
     const runtime_html_1 = require("@aurelia/runtime-html");
-    const parser_1 = require("./parser");
-    const viewport_instruction_1 = require("./viewport-instruction");
-    const navigation_1 = require("./navigation");
-    const runner_1 = require("./runner");
-    const awaitable_map_1 = require("./awaitable-map");
+    const parser_js_1 = require("./parser.js");
+    const viewport_instruction_js_1 = require("./viewport-instruction.js");
+    const navigation_js_1 = require("./navigation.js");
+    const runner_js_1 = require("./runner.js");
+    const awaitable_map_js_1 = require("./awaitable-map.js");
     /**
      * @internal - Shouldn't be used directly
      */
@@ -32,7 +32,7 @@
         constructor(
         // Can (and wants) be a (resolved) type or a string (to be resolved later)
         // public content: ViewportInstruction = new ViewportInstruction(''),
-        content = viewport_instruction_1.ViewportInstruction.create(null, ''), instruction = new navigation_1.Navigation({
+        content = viewport_instruction_js_1.ViewportInstruction.create(null, ''), instruction = new navigation_js_1.Navigation({
             instruction: '',
             fullStateInstruction: '',
         }), connectedCE = null) {
@@ -40,7 +40,7 @@
             this.content = content;
             this.instruction = instruction;
             // public contentStatus: ContentStatus = ContentStatus.none;
-            this.contentStates = new awaitable_map_1.AwaitableMap();
+            this.contentStates = new awaitable_map_js_1.AwaitableMap();
             // public contentStates: Map<ContentState, undefined> = new Map();
             this.loaded = false;
             this.fromCache = false;
@@ -141,7 +141,7 @@
             }
             const typeParameters = this.content.componentType ? this.content.componentType.parameters : null;
             this.instruction.parameters = this.content.toSpecifiedParameters(typeParameters);
-            const merged = { ...parser_1.parseQuery(this.instruction.query), ...this.instruction.parameters };
+            const merged = { ...parser_js_1.parseQuery(this.instruction.query), ...this.instruction.parameters };
             const result = this.content.componentInstance.canLoad(merged, this.instruction, previousInstruction);
             if (typeof result === 'boolean') {
                 return result;
@@ -177,7 +177,7 @@
             //   return;
             // }
             // this.reentry = false;
-            return runner_1.Runner.run(() => this.contentStates.await('guarded'), () => {
+            return runner_js_1.Runner.run(() => this.contentStates.await('guarded'), () => {
                 if (!this.contentStates.has('created') || (this.contentStates.has('loaded') && !this.reentry)) {
                     return;
                 }
@@ -188,7 +188,7 @@
                 if (this.content.componentInstance && this.content.componentInstance.load) {
                     const typeParameters = this.content.componentType ? this.content.componentType.parameters : null;
                     this.instruction.parameters = this.content.toSpecifiedParameters(typeParameters);
-                    const merged = { ...parser_1.parseQuery(this.instruction.query), ...this.instruction.parameters };
+                    const merged = { ...parser_js_1.parseQuery(this.instruction.query), ...this.instruction.parameters };
                     return this.content.componentInstance.load(merged, this.instruction, previousInstruction);
                 }
             });
@@ -230,7 +230,7 @@
             // //   return ;
             // // }
             // const contentController = this.contentController(connectedCE);
-            return runner_1.Runner.run(() => this.contentStates.await('loaded'), () => {
+            return runner_js_1.Runner.run(() => this.contentStates.await('loaded'), () => {
                 if (this.contentStates.has('activated')) {
                     return;
                 }
@@ -292,7 +292,7 @@
                 }
             }
             const contentController = this.contentController(connectedCE);
-            return runner_1.Runner.run(() => contentController.deactivate(initiator !== null && initiator !== void 0 ? initiator : contentController, parent, flags));
+            return runner_js_1.Runner.run(() => contentController.deactivate(initiator !== null && initiator !== void 0 ? initiator : contentController, parent, flags));
         }
         disposeComponent(connectedCE, cache, stateful = false) {
             if (!this.contentStates.has('created')) {
@@ -320,7 +320,7 @@
             // }
             // TODO: Fix execution order on these
             // These are all safe to run
-            return runner_1.Runner.run(() => this.unload(nextInstruction), () => this.deactivateComponent(null, connectedCE.controller, 0 /* none */, connectedCE, stateful), 
+            return runner_js_1.Runner.run(() => this.unload(nextInstruction), () => this.deactivateComponent(null, connectedCE.controller, 0 /* none */, connectedCE, stateful), 
             // () => this.unloadComponent(cache, stateful), // TODO: Hook up to new dispose
             // () => this.destroyComponent(),
             () => this.disposeComponent(connectedCE, cache, stateful));

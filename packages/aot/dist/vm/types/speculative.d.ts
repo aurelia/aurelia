@@ -1,8 +1,8 @@
-import { $AnyNonError } from './_shared';
-import { Realm, ExecutionContext } from '../realm';
-import { $Empty } from './empty';
-import { $Error } from './error';
-import { $$AssignmentExpressionOrHigher } from '../ast/_shared';
+import { $AnyNonError } from './_shared.js';
+import { Realm, ExecutionContext } from '../realm.js';
+import { $Empty } from './empty.js';
+import { $Error } from './error.js';
+import { $$AssignmentExpressionOrHigher } from '../ast/_shared.js';
 export declare class $SpeculativeValue {
     readonly realm: Realm;
     readonly sourceNode: $$AssignmentExpressionOrHigher;

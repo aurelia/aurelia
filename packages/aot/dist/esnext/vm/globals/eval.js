@@ -1,4 +1,4 @@
-import { $BuiltinFunction, } from '../types/function';
+import { $BuiltinFunction, } from '../types/function.js';
 // http://www.ecma-international.org/ecma-262/#sec-eval-x
 // 18.2.1 eval ( x )
 export class $Eval extends $BuiltinFunction {

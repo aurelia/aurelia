@@ -1,5 +1,5 @@
-import { Constructable, IDisposable } from './interfaces';
-import { IResourceKind, ResourceDefinition, ResourceType } from './resource';
+import { Constructable, IDisposable } from './interfaces.js';
+import { IResourceKind, ResourceDefinition, ResourceType } from './resource.js';
 export declare type ResolveCallback<T = any> = (handler: IContainer, requestor: IContainer, resolver: IResolver<T>) => T;
 export declare type InterfaceSymbol<K = any> = (target: Injectable<K>, property: string, index: number) => void;
 export interface IDefaultableInterfaceSymbol<K> extends InterfaceSymbol<K> {
@@ -71,16 +71,30 @@ export declare type Injectable<T = {}> = Constructable<T> & {
     inject?: Key[];
 };
 export interface IContainerConfiguration {
-    defaultResolver(key: Key, handler: IContainer): IResolver;
+    /**
+     * If `true`, `createChild` will inherit the resource resolvers from its parent container
+     * instead of only from the root container.
+     *
+     * Setting this flag will not implicitly perpetuate it in the child container hierarchy.
+     * It must be explicitly set on each call to `createChild`.
+     */
+    inheritParentResources?: boolean;
+    defaultResolver?(key: Key, handler: IContainer): IResolver;
 }
 export declare const DefaultResolver: {
     none(key: Key): IResolver;
     singleton(key: Key): IResolver;
     transient(key: Key): IResolver;
 };
-export declare const DefaultContainerConfiguration: IContainerConfiguration;
+export declare class ContainerConfiguration implements IContainerConfiguration {
+    readonly inheritParentResources: boolean;
+    readonly defaultResolver: (key: Key, handler: IContainer) => IResolver;
+    static readonly DEFAULT: ContainerConfiguration;
+    private constructor();
+    static from(config?: IContainerConfiguration): ContainerConfiguration;
+}
 export declare const DI: {
-    createContainer(config?: IContainerConfiguration): IContainer;
+    createContainer(config?: Partial<IContainerConfiguration> | undefined): IContainer;
     getDesignParamtypes(Type: Constructable | Injectable): readonly Key[] | undefined;
     getAnnotationParamtypes(Type: Constructable | Injectable): readonly Key[] | undefined;
     getOrCreateAnnotationParamTypes(Type: Constructable | Injectable): Key[];

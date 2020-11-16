@@ -1,5 +1,5 @@
-import { ComponentAppellationResolver, ViewportHandleResolver } from './type-resolvers';
-import { ViewportInstruction } from './viewport-instruction';
+import { ComponentAppellationResolver, ViewportHandleResolver } from './type-resolvers.js';
+import { ViewportInstruction } from './viewport-instruction.js';
 /**
  * @internal - Shouldn't be used directly
  */

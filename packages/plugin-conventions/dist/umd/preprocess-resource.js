@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "path", "@aurelia/kernel", "modify-code", "typescript", "./name-convention"], factory);
+        define(["require", "exports", "path", "@aurelia/kernel", "modify-code", "typescript", "./name-convention.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -14,7 +14,7 @@
     const kernel_1 = require("@aurelia/kernel");
     const modify_code_1 = require("modify-code");
     const ts = require("typescript");
-    const name_convention_1 = require("./name-convention");
+    const name_convention_js_1 = require("./name-convention.js");
     function preprocessResource(unit, options) {
         const basename = path.basename(unit.path, path.extname(unit.path));
         const expectedResourceName = kernel_1.kebabCase(basename);
@@ -184,7 +184,7 @@
             return;
         const pos = ensureTokenStart(node.pos, code);
         const className = node.name.text;
-        const { name, type } = name_convention_1.nameConvention(className);
+        const { name, type } = name_convention_js_1.nameConvention(className);
         const isImplicitResource = isKindOfSame(name, expectedResourceName);
         const foundType = findDecoratedResourceType(node);
         if (foundType) {

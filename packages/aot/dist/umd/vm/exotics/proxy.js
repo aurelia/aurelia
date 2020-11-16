@@ -4,38 +4,38 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "../types/object", "../operations", "./array", "../types/error", "../types/list"], factory);
+        define(["require", "exports", "../types/object.js", "../operations.js", "./array.js", "../types/error.js", "../types/list.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.$ProxyExoticObject = void 0;
-    const object_1 = require("../types/object");
-    const operations_1 = require("../operations");
-    const array_1 = require("./array");
-    const error_1 = require("../types/error");
-    const list_1 = require("../types/list");
+    const object_js_1 = require("../types/object.js");
+    const operations_js_1 = require("../operations.js");
+    const array_js_1 = require("./array.js");
+    const error_js_1 = require("../types/error.js");
+    const list_js_1 = require("../types/list.js");
     // http://www.ecma-international.org/ecma-262/#sec-proxy-object-internal-methods-and-internal-slots
-    class $ProxyExoticObject extends object_1.$Object {
+    class $ProxyExoticObject extends object_js_1.$Object {
         // http://www.ecma-international.org/ecma-262/#sec-proxycreate
         // 9.5.14 ProxyCreate ( target , handler )
         constructor(realm, target, handler) {
             super(realm, 'ProxyExoticObject', realm['[[Intrinsics]]'].null, 1 /* normal */, realm['[[Intrinsics]]'].empty);
             // 1. If Type(target) is not Object, throw a TypeError exception.
             if (!target.isObject) {
-                return new error_1.$TypeError(realm); // TODO: move to static method so we can return error completion
+                return new error_js_1.$TypeError(realm); // TODO: move to static method so we can return error completion
             }
             // 2. If target is a Proxy exotic object and target.[[ProxyHandler]] is null, throw a TypeError exception.
             if (target.isProxy && target['[[ProxyHandler]]'].isNull) {
-                return new error_1.$TypeError(realm); // TODO: move to static method so we can return error completion
+                return new error_js_1.$TypeError(realm); // TODO: move to static method so we can return error completion
             }
             // 3. If Type(handler) is not Object, throw a TypeError exception.
             if (!handler.isObject) {
-                return new error_1.$TypeError(realm); // TODO: move to static method so we can return error completion
+                return new error_js_1.$TypeError(realm); // TODO: move to static method so we can return error completion
             }
             // 4. If handler is a Proxy exotic object and handler.[[ProxyHandler]] is null, throw a TypeError exception.
             if (handler instanceof $ProxyExoticObject && handler['[[ProxyHandler]]'].isNull) {
-                return new error_1.$TypeError(realm); // TODO: move to static method so we can return error completion
+                return new error_js_1.$TypeError(realm); // TODO: move to static method so we can return error completion
             }
             // 5. Let P be a newly created object.
             // 6. Set P's essential internal methods (except for [[Call]] and [[Construct]]) to the definitions specified in 9.5.
@@ -59,7 +59,7 @@
             const handler = this['[[ProxyHandler]]'];
             if (handler.isNull) {
                 // 2. If handler is null, throw a TypeError exception.
-                return new error_1.$TypeError(realm, `ProxyHandler is null`);
+                return new error_js_1.$TypeError(realm, `ProxyHandler is null`);
             }
             // 3. Assert: Type(handler) is Object.
             // 4. Let target be O.[[ProxyTarget]].
@@ -75,13 +75,13 @@
                 return target['[[GetPrototypeOf]]'](ctx);
             }
             // 7. Let handlerProto be ? Call(trap, handler, « target »).
-            const handlerProto = operations_1.$Call(ctx, trap, handler, new list_1.$List(target));
+            const handlerProto = operations_js_1.$Call(ctx, trap, handler, new list_js_1.$List(target));
             if (handlerProto.isAbrupt) {
                 return handlerProto;
             }
             // 8. If Type(handlerProto) is neither Object nor Null, throw a TypeError exception.
             if (!handlerProto.isNull && !handlerProto.isObject) {
-                return new error_1.$TypeError(realm, `Proxy handler prototype is ${handlerProto}, but expected Object or Null`);
+                return new error_js_1.$TypeError(realm, `Proxy handler prototype is ${handlerProto}, but expected Object or Null`);
             }
             // 9. Let extensibleTarget be ? IsExtensible(target).
             const extensibleTarget = target['[[IsExtensible]]'](ctx);
@@ -99,7 +99,7 @@
             }
             // 12. If SameValue(handlerProto, targetProto) is false, throw a TypeError exception.
             if (!handlerProto.is(targetProto)) {
-                return new error_1.$TypeError(realm, `Expected handler prototype ${handlerProto} to be the same value as target prototype ${targetProto}`);
+                return new error_js_1.$TypeError(realm, `Expected handler prototype ${handlerProto} to be the same value as target prototype ${targetProto}`);
             }
             // 13. Return handlerProto.
             return handlerProto;
@@ -114,7 +114,7 @@
             const handler = this['[[ProxyHandler]]'];
             if (handler.isNull) {
                 // 3. If handler is null, throw a TypeError exception.
-                return new error_1.$TypeError(realm, `ProxyHandler is null`);
+                return new error_js_1.$TypeError(realm, `ProxyHandler is null`);
             }
             // 4. Assert: Type(handler) is Object.
             // 5. Let target be O.[[ProxyTarget]].
@@ -130,7 +130,7 @@
                 return target['[[SetPrototypeOf]]'](ctx, V);
             }
             // 8. Let booleanTrapResult be ToBoolean(? Call(trap, handler, « target, V »)).
-            const booleanTrapResult = operations_1.$Call(ctx, trap, handler, new list_1.$List(target, V)).ToBoolean(ctx);
+            const booleanTrapResult = operations_js_1.$Call(ctx, trap, handler, new list_js_1.$List(target, V)).ToBoolean(ctx);
             if (booleanTrapResult.isAbrupt) {
                 return booleanTrapResult;
             }
@@ -154,7 +154,7 @@
             }
             // 13. If SameValue(V, targetProto) is false, throw a TypeError exception.
             if (!V.is(targetProto)) {
-                return new error_1.$TypeError(realm, `Expected value ${V} to be the same value as target prototype ${targetProto}`);
+                return new error_js_1.$TypeError(realm, `Expected value ${V} to be the same value as target prototype ${targetProto}`);
             }
             // 14. Return true.
             return intrinsics.true;
@@ -168,7 +168,7 @@
             const handler = this['[[ProxyHandler]]'];
             if (handler.isNull) {
                 // 2. If handler is null, throw a TypeError exception.
-                return new error_1.$TypeError(realm, `ProxyHandler is null`);
+                return new error_js_1.$TypeError(realm, `ProxyHandler is null`);
             }
             // 3. Assert: Type(handler) is Object.
             // 4. Let target be O.[[ProxyTarget]].
@@ -184,7 +184,7 @@
                 return target['[[IsExtensible]]'](ctx);
             }
             // 7. Let booleanTrapResult be ToBoolean(? Call(trap, handler, « target »)).
-            const booleanTrapResult = operations_1.$Call(ctx, trap, handler, new list_1.$List(target)).ToBoolean(ctx);
+            const booleanTrapResult = operations_js_1.$Call(ctx, trap, handler, new list_js_1.$List(target)).ToBoolean(ctx);
             // 8. Let targetResult be ? target.[[IsExtensible]]().
             const targetResult = target['[[IsExtensible]]'](ctx);
             if (targetResult.isAbrupt) {
@@ -192,7 +192,7 @@
             }
             // 9. If SameValue(booleanTrapResult, targetResult) is false, throw a TypeError exception.
             if (!booleanTrapResult.is(targetResult)) {
-                return new error_1.$TypeError(realm, `Expected booleanTrapResult ${booleanTrapResult} to be the same value as targetResult ${targetResult}`);
+                return new error_js_1.$TypeError(realm, `Expected booleanTrapResult ${booleanTrapResult} to be the same value as targetResult ${targetResult}`);
             }
             // 10. Return booleanTrapResult.
             return booleanTrapResult;
@@ -206,7 +206,7 @@
             const handler = this['[[ProxyHandler]]'];
             if (handler.isNull) {
                 // 2. If handler is null, throw a TypeError exception.
-                return new error_1.$TypeError(realm, `ProxyHandler is null`);
+                return new error_js_1.$TypeError(realm, `ProxyHandler is null`);
             }
             // 3. Assert: Type(handler) is Object.
             // 4. Let target be O.[[ProxyTarget]].
@@ -222,7 +222,7 @@
                 return target['[[PreventExtensions]]'](ctx);
             }
             // 7. Let booleanTrapResult be ToBoolean(? Call(trap, handler, « target »)).
-            const booleanTrapResult = operations_1.$Call(ctx, trap, handler, new list_1.$List(target)).ToBoolean(ctx);
+            const booleanTrapResult = operations_js_1.$Call(ctx, trap, handler, new list_js_1.$List(target)).ToBoolean(ctx);
             if (booleanTrapResult.isAbrupt) {
                 return booleanTrapResult;
             }
@@ -235,7 +235,7 @@
                 }
                 // 8. b. If targetIsExtensible is true, throw a TypeError exception.
                 if (targetIsExtensible.isTruthy) {
-                    return new error_1.$TypeError(realm, `Target is still extensible`);
+                    return new error_js_1.$TypeError(realm, `Target is still extensible`);
                 }
             }
             // 9. Return booleanTrapResult.
@@ -251,7 +251,7 @@
             const handler = this['[[ProxyHandler]]'];
             if (handler.isNull) {
                 // 3. If handler is null, throw a TypeError exception.
-                return new error_1.$TypeError(realm, `ProxyHandler is null`);
+                return new error_js_1.$TypeError(realm, `ProxyHandler is null`);
             }
             // 4. Assert: Type(handler) is Object.
             // 5. Let target be O.[[ProxyTarget]].
@@ -267,13 +267,13 @@
                 return target['[[GetOwnProperty]]'](ctx, P);
             }
             // 8. Let trapResultObj be ? Call(trap, handler, « target, P »).
-            const trapResultObj = operations_1.$Call(ctx, trap, handler, new list_1.$List(target, P));
+            const trapResultObj = operations_js_1.$Call(ctx, trap, handler, new list_js_1.$List(target, P));
             if (trapResultObj.isAbrupt) {
                 return trapResultObj;
             }
             // 9. If Type(trapResultObj) is neither Object nor Undefined, throw a TypeError exception.
             if (!trapResultObj.isObject && !trapResultObj.isUndefined) {
-                return new error_1.$TypeError(realm, `trapResultObj from GetOwnProperty(${P}) is ${trapResultObj}, but expected Object or Undefined`);
+                return new error_js_1.$TypeError(realm, `trapResultObj from GetOwnProperty(${P}) is ${trapResultObj}, but expected Object or Undefined`);
             }
             // 10. Let targetDesc be ? target.[[GetOwnProperty]](P).
             const targetDesc = target['[[GetOwnProperty]]'](ctx, P);
@@ -288,7 +288,7 @@
                 }
                 // 11. b. If targetDesc.[[Configurable]] is false, throw a TypeError exception.
                 if (targetDesc['[[Configurable]]'].isFalsey) {
-                    return new error_1.$TypeError(realm, `The proxy returned undefined for property descriptor ${P}, but there is a backing property descriptor which is not configurable`);
+                    return new error_js_1.$TypeError(realm, `The proxy returned undefined for property descriptor ${P}, but there is a backing property descriptor which is not configurable`);
                 }
                 // 11. c. Let extensibleTarget be ? IsExtensible(target).
                 const extensibleTarget = target['[[IsExtensible]]'](ctx);
@@ -297,7 +297,7 @@
                 }
                 // 11. d. If extensibleTarget is false, throw a TypeError exception.
                 if (extensibleTarget.isFalsey) {
-                    return new error_1.$TypeError(realm, `The proxy returned undefined for property descriptor ${P}, but there is a backing property descriptor and the backing object is not extensible`);
+                    return new error_js_1.$TypeError(realm, `The proxy returned undefined for property descriptor ${P}, but there is a backing property descriptor and the backing object is not extensible`);
                 }
                 // 11. e. Return undefined.
                 return intrinsics.undefined;
@@ -308,14 +308,14 @@
                 return extensibleTarget;
             }
             // 13. Let resultDesc be ? ToPropertyDescriptor(trapResultObj).
-            const resultDesc = operations_1.$ToPropertyDescriptor(ctx, trapResultObj, P);
+            const resultDesc = operations_js_1.$ToPropertyDescriptor(ctx, trapResultObj, P);
             if (resultDesc.isAbrupt) {
                 return resultDesc;
             }
             // 14. Call CompletePropertyDescriptor(resultDesc).
             resultDesc.Complete(ctx);
             // 15. Let valid be IsCompatiblePropertyDescriptor(extensibleTarget, resultDesc, targetDesc).
-            const valid = operations_1.$ValidateAndApplyPropertyDescriptor(ctx, 
+            const valid = operations_js_1.$ValidateAndApplyPropertyDescriptor(ctx, 
             /* O */ intrinsics.undefined, 
             /* P */ intrinsics.undefined, 
             /* extensible */ extensibleTarget, 
@@ -323,14 +323,14 @@
             /* current */ targetDesc);
             // 16. If valid is false, throw a TypeError exception.
             if (valid.isFalsey) {
-                return new error_1.$TypeError(realm, `Validation for property descriptor ${P} failed`);
+                return new error_js_1.$TypeError(realm, `Validation for property descriptor ${P} failed`);
             }
             // 17. If resultDesc.[[Configurable]] is false, then
             if (resultDesc['[[Configurable]]'].isFalsey) {
                 // 17. a. If targetDesc is undefined or targetDesc.[[Configurable]] is true, then
                 if (targetDesc.isUndefined || targetDesc['[[Configurable]]'].isTruthy) {
                     // 17. a. i. Throw a TypeError exception.
-                    return new error_1.$TypeError(realm, `The proxy returned a non-configurable property descriptor for ${P}, but the backing property descriptor is either undefined or configurable`);
+                    return new error_js_1.$TypeError(realm, `The proxy returned a non-configurable property descriptor for ${P}, but the backing property descriptor is either undefined or configurable`);
                 }
             }
             // 18. Return resultDesc.
@@ -346,7 +346,7 @@
             const handler = this['[[ProxyHandler]]'];
             if (handler.isNull) {
                 // 3. If handler is null, throw a TypeError exception.
-                return new error_1.$TypeError(realm, `ProxyHandler is null`);
+                return new error_js_1.$TypeError(realm, `ProxyHandler is null`);
             }
             // 4. Assert: Type(handler) is Object.
             // 5. Let target be O.[[ProxyTarget]].
@@ -362,12 +362,12 @@
                 return target['[[DefineOwnProperty]]'](ctx, P, Desc);
             }
             // 8. Let descObj be FromPropertyDescriptor(Desc).
-            const descObj = operations_1.$FromPropertyDescriptor(ctx, Desc);
+            const descObj = operations_js_1.$FromPropertyDescriptor(ctx, Desc);
             if (descObj.isAbrupt) {
                 return descObj;
             } // TODO: spec doesn't say this. maybe we need to fix the types somehow?
             // 9. Let booleanTrapResult be ToBoolean(? Call(trap, handler, « target, P, descObj »)).
-            const booleanTrapResult = operations_1.$Call(ctx, trap, handler, new list_1.$List(target, P, descObj)).ToBoolean(ctx);
+            const booleanTrapResult = operations_js_1.$Call(ctx, trap, handler, new list_js_1.$List(target, P, descObj)).ToBoolean(ctx);
             if (booleanTrapResult.isAbrupt) {
                 return booleanTrapResult;
             }
@@ -399,27 +399,27 @@
             if (targetDesc.isUndefined) {
                 // 15. a. If extensibleTarget is false, throw a TypeError exception.
                 if (extensibleTarget.isFalsey) {
-                    return new error_1.$TypeError(realm, `Cannot define property ${P} on non-extensible target`);
+                    return new error_js_1.$TypeError(realm, `Cannot define property ${P} on non-extensible target`);
                 }
                 // 15. b. If settingConfigFalse is true, throw a TypeError exception.
                 if (!settingConfigFalse) {
-                    return new error_1.$TypeError(realm, `Cannot define non-configurable property ${P} on proxy`);
+                    return new error_js_1.$TypeError(realm, `Cannot define non-configurable property ${P} on proxy`);
                 }
             }
             // 16. Else targetDesc is not undefined,
             else {
                 // 16. a. If IsCompatiblePropertyDescriptor(extensibleTarget, Desc, targetDesc) is false, throw a TypeError exception.
-                if (operations_1.$ValidateAndApplyPropertyDescriptor(ctx, 
+                if (operations_js_1.$ValidateAndApplyPropertyDescriptor(ctx, 
                 /* O */ intrinsics.undefined, 
                 /* P */ intrinsics.undefined, 
                 /* extensible */ extensibleTarget, 
                 /* Desc */ Desc, 
                 /* current */ targetDesc).isFalsey) {
-                    return new error_1.$TypeError(realm, `The provided property descriptor for ${P} is not compatible with the proxy target's existing descriptor`);
+                    return new error_js_1.$TypeError(realm, `The provided property descriptor for ${P} is not compatible with the proxy target's existing descriptor`);
                 }
                 // 16. b. If settingConfigFalse is true and targetDesc.[[Configurable]] is true, throw a TypeError exception.
                 if (settingConfigFalse && targetDesc['[[Configurable]]'].isTruthy) {
-                    return new error_1.$TypeError(realm, `The provided property descriptor for ${P} is not configurable but the proxy target's existing descriptor is`);
+                    return new error_js_1.$TypeError(realm, `The provided property descriptor for ${P} is not configurable but the proxy target's existing descriptor is`);
                 }
             }
             // 17. Return true.
@@ -435,7 +435,7 @@
             const handler = this['[[ProxyHandler]]'];
             if (handler.isNull) {
                 // 3. If handler is null, throw a TypeError exception.
-                return new error_1.$TypeError(realm, `ProxyHandler is null`);
+                return new error_js_1.$TypeError(realm, `ProxyHandler is null`);
             }
             // 4. Assert: Type(handler) is Object.
             // 5. Let target be O.[[ProxyTarget]].
@@ -451,7 +451,7 @@
                 return target['[[HasProperty]]'](ctx, P);
             }
             // 8. Let booleanTrapResult be ToBoolean(? Call(trap, handler, « target, P »)).
-            const booleanTrapResult = operations_1.$Call(ctx, trap, handler, new list_1.$List(target, P)).ToBoolean(ctx);
+            const booleanTrapResult = operations_js_1.$Call(ctx, trap, handler, new list_js_1.$List(target, P)).ToBoolean(ctx);
             if (booleanTrapResult.isAbrupt) {
                 return booleanTrapResult;
             }
@@ -466,7 +466,7 @@
                 if (!targetDesc.isUndefined) {
                     // 9. b. i. If targetDesc.[[Configurable]] is false, throw a TypeError exception.
                     if (targetDesc['[[Configurable]]'].isFalsey) {
-                        return new error_1.$TypeError(realm, `The proxy returned false for HasProperty for ${P}, but the backing object has a property with that name which is not configurable`);
+                        return new error_js_1.$TypeError(realm, `The proxy returned false for HasProperty for ${P}, but the backing object has a property with that name which is not configurable`);
                     }
                     // 9. b. ii. Let extensibleTarget be ? IsExtensible(target).
                     const extensibleTarget = target['[[IsExtensible]]'](ctx);
@@ -475,7 +475,7 @@
                     }
                     if (extensibleTarget.isFalsey) {
                         // 9. b. iii. If extensibleTarget is false, throw a TypeError exception.
-                        return new error_1.$TypeError(realm, `The proxy returned false for HasProperty for ${P}, but the backing object has a property with that name and is not extensible`);
+                        return new error_js_1.$TypeError(realm, `The proxy returned false for HasProperty for ${P}, but the backing object has a property with that name and is not extensible`);
                     }
                 }
             }
@@ -492,7 +492,7 @@
             const handler = this['[[ProxyHandler]]'];
             if (handler.isNull) {
                 // 3. If handler is null, throw a TypeError exception.
-                return new error_1.$TypeError(realm, `ProxyHandler is null`);
+                return new error_js_1.$TypeError(realm, `ProxyHandler is null`);
             }
             // 4. Assert: Type(handler) is Object.
             // 5. Let target be O.[[ProxyTarget]].
@@ -508,7 +508,7 @@
                 return target['[[Get]]'](ctx, P, Receiver);
             }
             // 8. Let trapResult be ? Call(trap, handler, « target, P, Receiver »).
-            const trapResult = operations_1.$Call(ctx, trap, handler, new list_1.$List(target, P, Receiver));
+            const trapResult = operations_js_1.$Call(ctx, trap, handler, new list_js_1.$List(target, P, Receiver));
             if (trapResult.isAbrupt) {
                 return trapResult;
             }
@@ -523,14 +523,14 @@
                 if (targetDesc.isDataDescriptor && targetDesc['[[Writable]]'].isFalsey) {
                     // 10. a. i. If SameValue(trapResult, targetDesc.[[Value]]) is false, throw a TypeError exception.
                     if (!trapResult.is(targetDesc['[[Value]]'])) {
-                        return new error_1.$TypeError(realm, `The value returned by the proxy's getter for ${P} (${trapResult}) is different from the backing property's value (${targetDesc}), but the backing descriptor is neither configurable nor writable`);
+                        return new error_js_1.$TypeError(realm, `The value returned by the proxy's getter for ${P} (${trapResult}) is different from the backing property's value (${targetDesc}), but the backing descriptor is neither configurable nor writable`);
                     }
                 }
                 // 10. b. If IsAccessorDescriptor(targetDesc) is true and targetDesc.[[Get]] is undefined, then
                 if (targetDesc.isAccessorDescriptor && targetDesc['[[Get]]'].isUndefined) {
                     // 10. b. i. If trapResult is not undefined, throw a TypeError exception.
                     if (!trapResult.isUndefined) {
-                        return new error_1.$TypeError(realm, `The proxy's getter for ${P} returned (${trapResult}), but expected undefined because the backing property's accessor descriptor has no getter and is not configurable`);
+                        return new error_js_1.$TypeError(realm, `The proxy's getter for ${P} returned (${trapResult}), but expected undefined because the backing property's accessor descriptor has no getter and is not configurable`);
                     }
                 }
             }
@@ -547,7 +547,7 @@
             const handler = this['[[ProxyHandler]]'];
             if (handler.isNull) {
                 // 3. If handler is null, throw a TypeError exception.
-                return new error_1.$TypeError(realm, `ProxyHandler is null`);
+                return new error_js_1.$TypeError(realm, `ProxyHandler is null`);
             }
             // 4. Assert: Type(handler) is Object.
             // 5. Let target be O.[[ProxyTarget]].
@@ -563,7 +563,7 @@
                 return target['[[Set]]'](ctx, P, V, Receiver);
             }
             // 8. Let booleanTrapResult be ToBoolean(? Call(trap, handler, « target, P, V, Receiver »)).
-            const booleanTrapResult = operations_1.$Call(ctx, trap, handler, new list_1.$List(target, P, V, Receiver)).ToBoolean(ctx);
+            const booleanTrapResult = operations_js_1.$Call(ctx, trap, handler, new list_js_1.$List(target, P, V, Receiver)).ToBoolean(ctx);
             if (booleanTrapResult.isAbrupt) {
                 return booleanTrapResult;
             }
@@ -582,14 +582,14 @@
                 if (targetDesc.isDataDescriptor && targetDesc['[[Writable]]'].isFalsey) {
                     // 11. a. i. If SameValue(V, targetDesc.[[Value]]) is false, throw a TypeError exception.
                     if (!V.is(targetDesc['[[Value]]'])) {
-                        return new error_1.$TypeError(realm, `The value supplied to the proxy's setter for ${P} (${V}) is different from the backing property's value (${targetDesc}), but the backing descriptor is neither configurable nor writable`);
+                        return new error_js_1.$TypeError(realm, `The value supplied to the proxy's setter for ${P} (${V}) is different from the backing property's value (${targetDesc}), but the backing descriptor is neither configurable nor writable`);
                     }
                 }
                 // 11. b. If IsAccessorDescriptor(targetDesc) is true, then
                 if (targetDesc.isAccessorDescriptor) {
                     // 11. b. i. If targetDesc.[[Set]] is undefined, throw a TypeError exception.
                     if (targetDesc['[[Set]]'].isUndefined) {
-                        return new error_1.$TypeError(realm, `The proxy's setter for ${P} was invoked, but the backing property's accessor descriptor has no setter and is not configurable`);
+                        return new error_js_1.$TypeError(realm, `The proxy's setter for ${P} was invoked, but the backing property's accessor descriptor has no setter and is not configurable`);
                     }
                 }
             }
@@ -606,7 +606,7 @@
             const handler = this['[[ProxyHandler]]'];
             if (handler.isNull) {
                 // 3. If handler is null, throw a TypeError exception.
-                return new error_1.$TypeError(realm, `ProxyHandler is null`);
+                return new error_js_1.$TypeError(realm, `ProxyHandler is null`);
             }
             // 4. Assert: Type(handler) is Object.
             // 5. Let target be O.[[ProxyTarget]].
@@ -622,7 +622,7 @@
                 return target['[[Delete]]'](ctx, P);
             }
             // 8. Let booleanTrapResult be ToBoolean(? Call(trap, handler, « target, P »)).
-            const booleanTrapResult = operations_1.$Call(ctx, trap, handler, new list_1.$List(target, P)).ToBoolean(ctx);
+            const booleanTrapResult = operations_js_1.$Call(ctx, trap, handler, new list_js_1.$List(target, P)).ToBoolean(ctx);
             if (booleanTrapResult.isAbrupt) {
                 return booleanTrapResult;
             }
@@ -641,7 +641,7 @@
             }
             // 12. If targetDesc.[[Configurable]] is false, throw a TypeError exception.
             if (targetDesc['[[Configurable]]'].isFalsey) {
-                return new error_1.$TypeError(realm, `The [[Delete]] trap returned true for ${P}, but the backing descriptor is not configurable`);
+                return new error_js_1.$TypeError(realm, `The [[Delete]] trap returned true for ${P}, but the backing descriptor is not configurable`);
             }
             // 13. Return true.
             return intrinsics.true;
@@ -655,7 +655,7 @@
             const handler = this['[[ProxyHandler]]'];
             if (handler.isNull) {
                 // 2. If handler is null, throw a TypeError exception.
-                return new error_1.$TypeError(realm, `ProxyHandler is null`);
+                return new error_js_1.$TypeError(realm, `ProxyHandler is null`);
             }
             // 3. Assert: Type(handler) is Object.
             // 4. Let target be O.[[ProxyTarget]].
@@ -671,18 +671,18 @@
                 return target['[[OwnPropertyKeys]]'](ctx);
             }
             // 7. Let trapResultArray be ? Call(trap, handler, « target »).
-            const trapResultArray = operations_1.$Call(ctx, trap, handler, new list_1.$List(target));
+            const trapResultArray = operations_js_1.$Call(ctx, trap, handler, new list_js_1.$List(target));
             if (trapResultArray.isAbrupt) {
                 return trapResultArray;
             }
             // 8. Let trapResult be ? CreateListFromArrayLike(trapResultArray, « String, Symbol »).
-            const trapResult = operations_1.$CreateListFromArrayLike(ctx, trapResultArray, ['String', 'Symbol']);
+            const trapResult = operations_js_1.$CreateListFromArrayLike(ctx, trapResultArray, ['String', 'Symbol']);
             if (trapResult.isAbrupt) {
                 return trapResult;
             }
             // 9. If trapResult contains any duplicate entries, throw a TypeError exception.
             if (trapResult.filter((x, i) => trapResult.findIndex(y => x.is(y)) === i).length !== trapResult.length) {
-                return new error_1.$TypeError(realm, `The [[OwnPropertyKeys]] trap returned more than one of the same property key: ${trapResult.map(x => x['[[Value]]'])}`);
+                return new error_js_1.$TypeError(realm, `The [[OwnPropertyKeys]] trap returned more than one of the same property key: ${trapResult.map(x => x['[[Value]]'])}`);
             }
             // 10. Let extensibleTarget be ? IsExtensible(target).
             const extensibleTarget = target['[[IsExtensible]]'](ctx);
@@ -730,7 +730,7 @@
                 // 19. a. If key is not an element of uncheckedResultKeys, throw a TypeError exception.
                 const idx = uncheckedResultKeys.findIndex(x => x.is(key));
                 if (idx === -1) {
-                    return new error_1.$TypeError(realm, `The [[OwnPropertyKeys]] trap did not return all non-configurable keys of the backing object: ${key}`);
+                    return new error_js_1.$TypeError(realm, `The [[OwnPropertyKeys]] trap did not return all non-configurable keys of the backing object: ${key}`);
                 }
                 // 19. b. Remove key from uncheckedResultKeys.
                 uncheckedResultKeys.splice(idx, 1);
@@ -744,14 +744,14 @@
                 // 21. a. If key is not an element of uncheckedResultKeys, throw a TypeError exception.
                 const idx = uncheckedResultKeys.findIndex(x => x.is(key));
                 if (idx === -1) {
-                    return new error_1.$TypeError(realm, `The [[OwnPropertyKeys]] trap did not return all configurable keys of the backing object: ${key}`);
+                    return new error_js_1.$TypeError(realm, `The [[OwnPropertyKeys]] trap did not return all configurable keys of the backing object: ${key}`);
                 }
                 // 21. b. Remove key from uncheckedResultKeys.
                 uncheckedResultKeys.splice(idx, 1);
             }
             // 22. If uncheckedResultKeys is not empty, throw a TypeError exception.
             if (uncheckedResultKeys.length > 0) {
-                return new error_1.$TypeError(realm, `The [[OwnPropertyKeys]] returned one or more keys that do not exist on the backing object: ${uncheckedResultKeys.map(x => x)}`);
+                return new error_js_1.$TypeError(realm, `The [[OwnPropertyKeys]] returned one or more keys that do not exist on the backing object: ${uncheckedResultKeys.map(x => x)}`);
             }
             // 23. Return trapResult.
             return trapResult;
@@ -765,7 +765,7 @@
             const handler = this['[[ProxyHandler]]'];
             if (handler.isNull) {
                 // 2. If handler is null, throw a TypeError exception.
-                return new error_1.$TypeError(realm, `ProxyHandler is null`);
+                return new error_js_1.$TypeError(realm, `ProxyHandler is null`);
             }
             // 3. Assert: Type(handler) is Object.
             // 4. Let target be O.[[ProxyTarget]].
@@ -778,12 +778,12 @@
             // 6. If trap is undefined, then
             if (trap.isUndefined) {
                 // 6. a. Return ? Call(target, thisArgument, argumentsList).
-                return operations_1.$Call(ctx, target, thisArgument, argumentsList);
+                return operations_js_1.$Call(ctx, target, thisArgument, argumentsList);
             }
             // 7. Let argArray be CreateArrayFromList(argumentsList).
-            const argArray = array_1.$CreateArrayFromList(ctx, argumentsList);
+            const argArray = array_js_1.$CreateArrayFromList(ctx, argumentsList);
             // 8. Return ? Call(trap, handler, « target, thisArgument, argArray »).
-            return operations_1.$Call(ctx, trap, handler, new list_1.$List(target, thisArgument, argArray));
+            return operations_js_1.$Call(ctx, trap, handler, new list_js_1.$List(target, thisArgument, argArray));
         }
         // http://www.ecma-international.org/ecma-262/#sec-proxy-object-internal-methods-and-internal-slots-construct-argumentslist-newtarget
         // 9.5.13 [[Construct]] ( argumentsList , newTarget )
@@ -794,7 +794,7 @@
             const handler = this['[[ProxyHandler]]'];
             if (handler.isNull) {
                 // 2. If handler is null, throw a TypeError exception.
-                return new error_1.$TypeError(realm, `ProxyHandler is null`);
+                return new error_js_1.$TypeError(realm, `ProxyHandler is null`);
             }
             // 3. Assert: Type(handler) is Object.
             // 4. Let target be O.[[ProxyTarget]].
@@ -808,18 +808,18 @@
             // 7. If trap is undefined, then
             if (trap.isUndefined) {
                 // 7. a. Return ? Construct(target, argumentsList, newTarget).
-                return operations_1.$Construct(ctx, target, argumentsList, newTarget);
+                return operations_js_1.$Construct(ctx, target, argumentsList, newTarget);
             }
             // 8. Let argArray be CreateArrayFromList(argumentsList).
-            const argArray = array_1.$CreateArrayFromList(ctx, argumentsList);
+            const argArray = array_js_1.$CreateArrayFromList(ctx, argumentsList);
             // 9. Let newObj be ? Call(trap, handler, « target, argArray, newTarget »).
-            const newObj = operations_1.$Call(ctx, trap, handler, new list_1.$List(target, argArray, newTarget));
+            const newObj = operations_js_1.$Call(ctx, trap, handler, new list_js_1.$List(target, argArray, newTarget));
             if (newObj.isAbrupt) {
                 return newObj;
             }
             // 10. If Type(newObj) is not Object, throw a TypeError exception.
             if (!newObj.isObject) {
-                return new error_1.$TypeError(realm, `The [[Construct]] trap returned ${newObj}, but expected an object`);
+                return new error_js_1.$TypeError(realm, `The [[Construct]] trap returned ${newObj}, but expected an object`);
             }
             // 11. Return newObj.
             return newObj;

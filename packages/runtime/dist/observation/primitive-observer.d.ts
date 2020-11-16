@@ -1,5 +1,5 @@
 import { Primitive } from '@aurelia/kernel';
-import { IAccessor, ISubscribable, AccessorType } from '../observation';
+import { IAccessor, ISubscribable, AccessorType } from '../observation.js';
 export declare class PrimitiveObserver implements IAccessor, ISubscribable {
     readonly obj: Primitive;
     readonly propertyKey: PropertyKey;

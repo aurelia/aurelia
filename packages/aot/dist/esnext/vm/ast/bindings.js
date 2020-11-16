@@ -1,12 +1,12 @@
 import { SyntaxKind, } from 'typescript';
 import { emptyArray, } from '@aurelia/kernel';
-import { $Empty, } from '../types/empty';
-import { $IteratorStep, $IteratorValue, $GetIterator, $IteratorClose, } from '../globals/iteration';
-import { $TypeError, } from '../types/error';
-import { clearBit, modifiersToModifierFlags, $$propertyName, $assignmentExpression, $$bindingName, getBoundNames, getContainsExpression, getHasInitializer, getIsSimpleParameterList, $i, } from './_shared';
-import { $Number, } from '../types/number';
-import { $CreateDataProperty, } from '../operations';
-import { $List, } from '../types/list';
+import { $Empty, } from '../types/empty.js';
+import { $IteratorStep, $IteratorValue, $GetIterator, $IteratorClose, } from '../globals/iteration.js';
+import { $TypeError, } from '../types/error.js';
+import { clearBit, modifiersToModifierFlags, $$propertyName, $assignmentExpression, $$bindingName, getBoundNames, getContainsExpression, getHasInitializer, getIsSimpleParameterList, $i, } from './_shared.js';
+import { $Number, } from '../types/number.js';
+import { $CreateDataProperty, } from '../operations.js';
+import { $List, } from '../types/list.js';
 export class $ComputedPropertyName {
     constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${$i(idx)}.ComputedPropertyName`) {
         this.node = node;

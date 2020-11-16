@@ -1,6 +1,6 @@
 import { Registration, } from '@aurelia/kernel';
 import { IDirtyChecker, IObserverLocator, Scope, OverrideContext, INodeObserverLocator, } from '@aurelia/runtime-html';
-import { createContainer } from './test-context';
+import { createContainer } from './test-context.js';
 // import {
 //   IInstruction,
 //   NodeSequenceFactory,
@@ -9,12 +9,12 @@ import { createContainer } from './test-context';
 // import {
 //   FakeView,
 //   FakeViewFactory,
-// } from './fakes';
-// import { TestContext } from './html-test-context';
+// } from './fakes.js';
+// import { TestContext } from './html-test-context.js';
 // import {
 //   defineComponentLifecycleMock,
 //   IComponentLifecycleMock,
-// } from './mocks';
+// } from './mocks.js';
 // export type TemplateCb = (builder: TemplateBuilder) => TemplateBuilder;
 // export type InstructionCb = (builder: InstructionBuilder) => InstructionBuilder;
 // export type DefinitionCb = (builder: DefinitionBuilder) => DefinitionBuilder;

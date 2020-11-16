@@ -16,13 +16,13 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "../../templating/view", "@aurelia/runtime"], factory);
+        define(["require", "exports", "../../templating/view.js", "@aurelia/runtime"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ViewValueConverter = void 0;
-    const view_1 = require("../../templating/view");
+    const view_js_1 = require("../../templating/view.js");
     const runtime_1 = require("@aurelia/runtime");
     let ViewValueConverter = class ViewValueConverter {
         constructor(viewLocator) {
@@ -34,7 +34,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     };
     ViewValueConverter = __decorate([
         runtime_1.valueConverter('view'),
-        __param(0, view_1.IViewLocator),
+        __param(0, view_js_1.IViewLocator),
         __metadata("design:paramtypes", [Object])
     ], ViewValueConverter);
     exports.ViewValueConverter = ViewValueConverter;

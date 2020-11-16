@@ -1,7 +1,7 @@
-import { $BuiltinFunction, $OrdinaryCreateFromConstructor, } from '../types/function';
-import { $Object, } from '../types/object';
-import { $String, } from '../types/string';
-import { $StringExoticObject, } from '../exotics/string';
+import { $BuiltinFunction, $OrdinaryCreateFromConstructor, } from '../types/function.js';
+import { $Object, } from '../types/object.js';
+import { $String, } from '../types/string.js';
+import { $StringExoticObject, } from '../exotics/string.js';
 // http://www.ecma-international.org/ecma-262/#sec-object-constructor
 // #region 19.1.1 The Object Constructor
 export class $ObjectConstructor extends $BuiltinFunction {

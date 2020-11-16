@@ -1,9 +1,9 @@
 import { Constructable, IContainer, IResourceKind, ResourceType, PartialResourceDefinition, Key, ResourceDefinition, Injectable } from '@aurelia/kernel';
 import { PartialBindableDefinition, BindableDefinition, IWatchDefinition } from '@aurelia/runtime';
-import { IProjections } from './custom-elements/au-slot';
-import { IInstruction } from '../renderer';
-import { PartialChildrenDefinition, ChildrenDefinition } from '../templating/children';
-import type { ICustomElementViewModel, ICustomElementController } from '../templating/controller';
+import { IProjections } from './custom-elements/au-slot.js';
+import { IInstruction } from '../renderer.js';
+import { PartialChildrenDefinition, ChildrenDefinition } from '../templating/children.js';
+import type { ICustomElementViewModel, ICustomElementController } from '../templating/controller.js';
 export declare type PartialCustomElementDefinition = PartialResourceDefinition<{
     readonly cache?: '*' | number;
     readonly template?: null | string | Node;

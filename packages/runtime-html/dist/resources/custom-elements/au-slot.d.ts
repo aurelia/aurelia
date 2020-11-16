@@ -1,9 +1,9 @@
 import { Scope, LifecycleFlags } from '@aurelia/runtime';
-import { IRenderLocation } from '../../dom';
-import { CustomElementDefinition } from '../custom-element';
-import { IViewFactory } from '../../templating/view';
-import { IInstruction } from '../../renderer';
-import type { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../templating/controller';
+import { IRenderLocation } from '../../dom.js';
+import { CustomElementDefinition } from '../custom-element.js';
+import { IViewFactory } from '../../templating/view.js';
+import { IInstruction } from '../../renderer.js';
+import type { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../templating/controller.js';
 export declare type IProjections = Record<string, CustomElementDefinition>;
 export declare const IProjections: import("@aurelia/kernel").InterfaceSymbol<Record<string, CustomElementDefinition<import("@aurelia/kernel").Constructable<{}>>>>;
 export declare enum AuSlotContentType {

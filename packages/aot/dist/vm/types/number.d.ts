@@ -1,10 +1,10 @@
-import { $AnyNonError, PotentialNonEmptyCompletionType, CompletionTarget, $Any } from './_shared';
-import { Realm, ExecutionContext } from '../realm';
-import { $Object } from './object';
-import { $String } from './string';
-import { $Boolean } from './boolean';
-import { $NumericLiteral } from '../ast/literals';
-import { I$Node } from '../ast/_shared';
+import { $AnyNonError, PotentialNonEmptyCompletionType, CompletionTarget, $Any } from './_shared.js';
+import { Realm, ExecutionContext } from '../realm.js';
+import { $Object } from './object.js';
+import { $String } from './string.js';
+import { $Boolean } from './boolean.js';
+import { $NumericLiteral } from '../ast/literals.js';
+import { I$Node } from '../ast/_shared.js';
 export declare class $Number<T extends number = number> {
     readonly realm: Realm;
     readonly sourceNode: $NumericLiteral | null;

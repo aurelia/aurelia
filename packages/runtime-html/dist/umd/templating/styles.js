@@ -16,7 +16,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "../app-task", "../dom", "../observation/class-attribute-accessor", "../platform", "../resources/custom-attribute"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "../app-task.js", "../dom.js", "../observation/class-attribute-accessor.js", "../platform.js", "../resources/custom-attribute.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -24,11 +24,11 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     exports.StyleConfiguration = exports.StyleElementStyles = exports.AdoptedStyleSheetsStyles = exports.IShadowDOMGlobalStyles = exports.IShadowDOMStyles = exports.ShadowDOMRegistry = exports.IShadowDOMStyleFactory = exports.shadowCSS = exports.CSSModulesProcessorRegistry = exports.cssModules = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
-    const app_task_1 = require("../app-task");
-    const dom_1 = require("../dom");
-    const class_attribute_accessor_1 = require("../observation/class-attribute-accessor");
-    const platform_1 = require("../platform");
-    const custom_attribute_1 = require("../resources/custom-attribute");
+    const app_task_js_1 = require("../app-task.js");
+    const dom_js_1 = require("../dom.js");
+    const class_attribute_accessor_js_1 = require("../observation/class-attribute-accessor.js");
+    const platform_js_1 = require("../platform.js");
+    const custom_attribute_js_1 = require("../resources/custom-attribute.js");
     function cssModules(...modules) {
         return new CSSModulesProcessorRegistry(modules);
     }
@@ -51,7 +51,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                         this.element.className = '';
                         return;
                     }
-                    this.element.className = class_attribute_accessor_1.getClassesToAdd(this.value).map(x => classLookup[x] || x).join(' ');
+                    this.element.className = class_attribute_accessor_js_1.getClassesToAdd(this.value).map(x => classLookup[x] || x).join(' ');
                 }
             };
             __decorate([
@@ -59,8 +59,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                 __metadata("design:type", String)
             ], ClassCustomAttribute.prototype, "value", void 0);
             ClassCustomAttribute = __decorate([
-                custom_attribute_1.customAttribute('class'),
-                __param(0, dom_1.INode),
+                custom_attribute_js_1.customAttribute('class'),
+                __param(0, dom_js_1.INode),
                 __metadata("design:paramtypes", [Object])
             ], ClassCustomAttribute);
             container.register(ClassCustomAttribute);
@@ -72,7 +72,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     }
     exports.shadowCSS = shadowCSS;
     exports.IShadowDOMStyleFactory = kernel_1.DI.createInterface('IShadowDOMStyleFactory').withDefault(x => x.cachedCallback(handler => {
-        if (AdoptedStyleSheetsStyles.supported(handler.get(platform_1.IPlatform))) {
+        if (AdoptedStyleSheetsStyles.supported(handler.get(platform_js_1.IPlatform))) {
             return handler.get(AdoptedStyleSheetsStylesFactory);
         }
         return handler.get(StyleElementStylesFactory);
@@ -98,7 +98,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
     };
     AdoptedStyleSheetsStylesFactory = __decorate([
-        __param(0, platform_1.IPlatform),
+        __param(0, platform_js_1.IPlatform),
         __metadata("design:paramtypes", [Object])
     ], AdoptedStyleSheetsStylesFactory);
     let StyleElementStylesFactory = class StyleElementStylesFactory {
@@ -110,7 +110,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
     };
     StyleElementStylesFactory = __decorate([
-        __param(0, platform_1.IPlatform),
+        __param(0, platform_js_1.IPlatform),
         __metadata("design:paramtypes", [Object])
     ], StyleElementStylesFactory);
     exports.IShadowDOMStyles = kernel_1.DI.createInterface('IShadowDOMStyles').noDefault();
@@ -172,7 +172,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     exports.StyleElementStyles = StyleElementStyles;
     exports.StyleConfiguration = {
         shadowDOM(config) {
-            return app_task_1.AppTask.with(kernel_1.IContainer).beforeCreate().call(container => {
+            return app_task_js_1.AppTask.with(kernel_1.IContainer).beforeCreate().call(container => {
                 if (config.sharedStyles != null) {
                     const factory = container.get(exports.IShadowDOMStyleFactory);
                     container.register(kernel_1.Registration.instance(exports.IShadowDOMGlobalStyles, factory.createStyles(config.sharedStyles, null)));

@@ -13,8 +13,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 var ViewportScopeCustomElement_1;
 import { bindable, INode, customElement, CustomElement, IController, isCustomElementController, isCustomElementViewModel, } from '@aurelia/runtime-html';
 import { IContainer } from '@aurelia/kernel';
-import { IRouter } from '../router';
-import { ViewportCustomElement } from './viewport';
+import { IRouter } from '../router.js';
+import { ViewportCustomElement } from './viewport.js';
 export const ParentViewportScope = CustomElement.createInjectable();
 let ViewportScopeCustomElement = ViewportScopeCustomElement_1 = class ViewportScopeCustomElement {
     constructor(router, element, container, parent, parentController) {

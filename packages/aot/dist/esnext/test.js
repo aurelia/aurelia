@@ -1,9 +1,9 @@
 /* eslint-disable import/no-nodejs-modules */
 import { resolve, } from 'path';
 import { DI, LoggerConfiguration, Registration, } from '@aurelia/kernel';
-import { IFileSystem, } from './system/interfaces';
-import { NodeFileSystem, } from './system/file-system';
-import { ServiceHost, } from './service-host';
+import { IFileSystem, } from './system/interfaces.js';
+import { NodeFileSystem, } from './system/file-system.js';
+import { ServiceHost, } from './service-host.js';
 (async function () {
     // Just for testing
     const root = resolve(__dirname, '..', '..', '..', '..', 'test', 'realworld');

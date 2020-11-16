@@ -1,8 +1,8 @@
 import { IIndexable, IServiceLocator } from '@aurelia/kernel';
-import { IsBindingBehavior } from './ast';
-import { IConnectableBinding } from './connectable';
-import type { Scope } from '../observation/binding-context';
-import { IBinding, LifecycleFlags } from '..';
+import { IsBindingBehavior } from './ast.js';
+import { IConnectableBinding } from './connectable.js';
+import type { Scope } from '../observation/binding-context.js';
+import { IBinding, LifecycleFlags } from '../observation.js';
 export interface RefBinding extends IConnectableBinding {
 }
 export declare class RefBinding implements IBinding {

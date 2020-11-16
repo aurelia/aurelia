@@ -4,14 +4,14 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/runtime", "../dom"], factory);
+        define(["require", "exports", "@aurelia/runtime", "../dom.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Listener = void 0;
     const runtime_1 = require("@aurelia/runtime");
-    const dom_1 = require("../dom");
+    const dom_js_1 = require("../dom.js");
     const options = {
         [runtime_1.DelegationStrategy.capturing]: { capture: true },
         [runtime_1.DelegationStrategy.bubbling]: { capture: false },
@@ -64,7 +64,7 @@
                 this.target.addEventListener(this.targetEvent, this);
             }
             else {
-                const eventTarget = this.locator.get(dom_1.IEventTarget);
+                const eventTarget = this.locator.get(dom_js_1.IEventTarget);
                 this.handler = this.eventDelegator.addEventListener(eventTarget, this.target, this.targetEvent, this, options[this.delegationStrategy]);
             }
             // add isBound flag and remove isBinding flag

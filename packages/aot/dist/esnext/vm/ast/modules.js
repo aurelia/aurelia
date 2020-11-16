@@ -1,23 +1,23 @@
 import { ModifierFlags, SyntaxKind, } from 'typescript';
 import { emptyArray, } from '@aurelia/kernel';
-import { ResolveSet, ResolvedBindingRecord, ExecutionContext, } from '../realm';
-import { $ModuleEnvRec, } from '../types/environment-record';
-import { $NamespaceExoticObject, } from '../exotics/namespace';
-import { $String, } from '../types/string';
-import { $Undefined, } from '../types/undefined';
-import { $Number, } from '../types/number';
-import { $Null, } from '../types/null';
-import { $Empty, } from '../types/empty';
-import { $SyntaxError, $TypeError, } from '../types/error';
-import { $List, } from '../types/list';
-import { modifiersToModifierFlags, hasBit, $identifier, $assignmentExpression, getBoundNames, GetDirectivePrologue, getLocalName, getImportEntriesForModule, getExportedNames, getExportEntriesForModule, getReferencedBindings, $i, } from './_shared';
-import { $Identifier, } from './expressions';
-import { $ClassDeclaration, } from './classes';
-import { $VariableStatement, $Block, $EmptyStatement, $ExpressionStatement, $IfStatement, $DoStatement, $WhileStatement, $ForStatement, $ForInStatement, $ForOfStatement, $ContinueStatement, $BreakStatement, $ReturnStatement, $WithStatement, $SwitchStatement, $LabeledStatement, $ThrowStatement, $TryStatement, $DebuggerStatement, } from './statements';
-import { $FunctionDeclaration, } from './functions';
-import { $InterfaceDeclaration, $TypeAliasDeclaration, $EnumDeclaration, } from './types';
-import { $StringLiteral, } from './literals';
-import { $StringSet, } from '../globals/string';
+import { ResolveSet, ResolvedBindingRecord, ExecutionContext, } from '../realm.js';
+import { $ModuleEnvRec, } from '../types/environment-record.js';
+import { $NamespaceExoticObject, } from '../exotics/namespace.js';
+import { $String, } from '../types/string.js';
+import { $Undefined, } from '../types/undefined.js';
+import { $Number, } from '../types/number.js';
+import { $Null, } from '../types/null.js';
+import { $Empty, } from '../types/empty.js';
+import { $SyntaxError, $TypeError, } from '../types/error.js';
+import { $List, } from '../types/list.js';
+import { modifiersToModifierFlags, hasBit, $identifier, $assignmentExpression, getBoundNames, GetDirectivePrologue, getLocalName, getImportEntriesForModule, getExportedNames, getExportEntriesForModule, getReferencedBindings, $i, } from './_shared.js';
+import { $Identifier, } from './expressions.js';
+import { $ClassDeclaration, } from './classes.js';
+import { $VariableStatement, $Block, $EmptyStatement, $ExpressionStatement, $IfStatement, $DoStatement, $WhileStatement, $ForStatement, $ForInStatement, $ForOfStatement, $ContinueStatement, $BreakStatement, $ReturnStatement, $WithStatement, $SwitchStatement, $LabeledStatement, $ThrowStatement, $TryStatement, $DebuggerStatement, } from './statements.js';
+import { $FunctionDeclaration, } from './functions.js';
+import { $InterfaceDeclaration, $TypeAliasDeclaration, $EnumDeclaration, } from './types.js';
+import { $StringLiteral, } from './literals.js';
+import { $StringSet, } from '../globals/string.js';
 // http://www.ecma-international.org/ecma-262/#sec-scripts
 export class $ESScript {
     constructor(logger, $file, node, realm) {

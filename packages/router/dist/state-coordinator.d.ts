@@ -1,5 +1,5 @@
-import { Navigation } from './navigation';
-import { OpenPromise } from './open-promise';
+import { Navigation } from './navigation.js';
+import { OpenPromise } from './open-promise.js';
 export declare class Entity<T, S> {
     entity: T;
     running: boolean;

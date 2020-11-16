@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "typescript", "@aurelia/kernel", "../operations", "../types/string", "../types/undefined", "../types/function", "../types/object", "../types/reference", "../types/number", "../types/null", "../types/boolean", "../types/empty", "../globals/iteration", "../types/error", "../exotics/array", "../types/list", "./_shared", "./bindings", "./methods", "./literals", "./functions"], factory);
+        define(["require", "exports", "typescript", "@aurelia/kernel", "../operations.js", "../types/string.js", "../types/undefined.js", "../types/function.js", "../types/object.js", "../types/reference.js", "../types/number.js", "../types/null.js", "../types/boolean.js", "../types/empty.js", "../globals/iteration.js", "../types/error.js", "../exotics/array.js", "../types/list.js", "./_shared.js", "./bindings.js", "./methods.js", "./literals.js", "./functions.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -12,27 +12,27 @@
     exports.$Identifier = exports.$AsExpression = exports.$YieldExpression = exports.$ConditionalExpression = exports.$BinaryExpression = exports.$TypeAssertion = exports.$PostfixUnaryExpression = exports.$PrefixUnaryExpression = exports.$AwaitExpression = exports.$VoidExpression = exports.$TypeOfExpression = exports.$DeleteExpression = exports.$MetaProperty = exports.$NonNullExpression = exports.$ParenthesizedExpression = exports.$TemplateExpression = exports.$$templateSpanList = exports.$TaggedTemplateExpression = exports.$NewExpression = exports.$ArgumentListEvaluation = exports.$EvaluateCall = exports.$CallExpression = exports.$ElementAccessExpression = exports.$PropertyAccessExpression = exports.$SpreadAssignment = exports.$ShorthandPropertyAssignment = exports.$PropertyAssignment = exports.$ObjectLiteralExpression = exports.$$objectLiteralElementLikeList = exports.$ArrayLiteralExpression = exports.$argumentOrArrayLiteralElementList = exports.$argumentOrArrayLiteralElement = exports.$SuperExpression = exports.$ThisExpression = exports.$Decorator = void 0;
     const typescript_1 = require("typescript");
     const kernel_1 = require("@aurelia/kernel");
-    const operations_1 = require("../operations");
-    const string_1 = require("../types/string");
-    const undefined_1 = require("../types/undefined");
-    const function_1 = require("../types/function");
-    const object_1 = require("../types/object");
-    const reference_1 = require("../types/reference");
-    const number_1 = require("../types/number");
-    const null_1 = require("../types/null");
-    const boolean_1 = require("../types/boolean");
-    const empty_1 = require("../types/empty");
-    const iteration_1 = require("../globals/iteration");
-    const error_1 = require("../types/error");
-    const array_1 = require("../exotics/array");
-    const list_1 = require("../types/list");
-    const _shared_1 = require("./_shared");
-    const bindings_1 = require("./bindings");
-    const methods_1 = require("./methods");
-    const literals_1 = require("./literals");
-    const functions_1 = require("./functions");
+    const operations_js_1 = require("../operations.js");
+    const string_js_1 = require("../types/string.js");
+    const undefined_js_1 = require("../types/undefined.js");
+    const function_js_1 = require("../types/function.js");
+    const object_js_1 = require("../types/object.js");
+    const reference_js_1 = require("../types/reference.js");
+    const number_js_1 = require("../types/number.js");
+    const null_js_1 = require("../types/null.js");
+    const boolean_js_1 = require("../types/boolean.js");
+    const empty_js_1 = require("../types/empty.js");
+    const iteration_js_1 = require("../globals/iteration.js");
+    const error_js_1 = require("../types/error.js");
+    const array_js_1 = require("../exotics/array.js");
+    const list_js_1 = require("../types/list.js");
+    const _shared_js_1 = require("./_shared.js");
+    const bindings_js_1 = require("./bindings.js");
+    const methods_js_1 = require("./methods.js");
+    const literals_js_1 = require("./literals.js");
+    const functions_js_1 = require("./functions.js");
     class $Decorator {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.Decorator`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.Decorator`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -42,14 +42,14 @@
             this.depth = depth;
             this.logger = logger;
             this.path = path;
-            this.$expression = _shared_1.$LHSExpression(node.expression, this, ctx, -1);
+            this.$expression = _shared_js_1.$LHSExpression(node.expression, this, ctx, -1);
         }
         get $kind() { return typescript_1.SyntaxKind.Decorator; }
     }
     exports.$Decorator = $Decorator;
     // #region LHS
     class $ThisExpression {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.ThisExpression`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.ThisExpression`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -89,7 +89,7 @@
     }
     exports.$ThisExpression = $ThisExpression;
     class $SuperExpression {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.SuperExpression`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.SuperExpression`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -138,11 +138,11 @@
     function $argumentOrArrayLiteralElement(node, parent, ctx, idx) {
         switch (node.kind) {
             case typescript_1.SyntaxKind.SpreadElement:
-                return new bindings_1.$SpreadElement(node, parent, ctx, idx);
+                return new bindings_js_1.$SpreadElement(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.OmittedExpression:
-                return new bindings_1.$OmittedExpression(node, parent, ctx, idx);
+                return new bindings_js_1.$OmittedExpression(node, parent, ctx, idx);
             default:
-                return _shared_1.$assignmentExpression(node, parent, ctx, idx);
+                return _shared_js_1.$assignmentExpression(node, parent, ctx, idx);
         }
     }
     exports.$argumentOrArrayLiteralElement = $argumentOrArrayLiteralElement;
@@ -159,7 +159,7 @@
     }
     exports.$argumentOrArrayLiteralElementList = $argumentOrArrayLiteralElementList;
     class $ArrayLiteralExpression {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.ArrayLiteralExpression`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.ArrayLiteralExpression`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -213,7 +213,7 @@
                         // 2. ReturnIfAbrupt(postIndex).
                         // 3. Let padding be the ElisionWidth of Elision; if Elision is not present, use the numeric value zero.
                         // 4. Return the result of performing ArrayAccumulation for SpreadElement with arguments array and postIndex + padding.
-                        const $postIndex = el.AccumulateArray(ctx, array, new number_1.$Number(realm, postIndex['[[Value]]'] + padding));
+                        const $postIndex = el.AccumulateArray(ctx, array, new number_js_1.$Number(realm, postIndex['[[Value]]'] + padding));
                         if ($postIndex.isAbrupt) {
                             return $postIndex.enrichWith(ctx, this);
                         }
@@ -241,10 +241,10 @@
                             return initValue.enrichWith(ctx, this);
                         }
                         // 6. Let created be CreateDataProperty(array, ToString(ToUint32(postIndex + padding)), initValue).
-                        const created = operations_1.$CreateDataProperty(ctx, array, new number_1.$Number(realm, postIndex['[[Value]]'] + padding).ToUint32(ctx).ToString(ctx), initValue);
+                        const created = operations_js_1.$CreateDataProperty(ctx, array, new number_js_1.$Number(realm, postIndex['[[Value]]'] + padding).ToUint32(ctx).ToString(ctx), initValue);
                         // 7. Assert: created is true.
                         // 8. Return postIndex + padding + 1.
-                        postIndex = new number_1.$Number(realm, postIndex['[[Value]]'] + padding + 1);
+                        postIndex = new number_js_1.$Number(realm, postIndex['[[Value]]'] + padding + 1);
                         padding = 0;
                         break;
                     }
@@ -266,7 +266,7 @@
             // 5. Return array.
             // ArrayLiteral : [ ElementList ]
             // 1. Let array be ! ArrayCreate(0).
-            const array = new array_1.$ArrayExoticObject(realm, intrinsics['0']);
+            const array = new array_js_1.$ArrayExoticObject(realm, intrinsics['0']);
             // 2. Let len be the result of performing ArrayAccumulation for ElementList with arguments array and 0.
             const len = this.AccumulateArray(ctx, array, intrinsics['0']);
             // 3. ReturnIfAbrupt(len).
@@ -274,7 +274,7 @@
                 return len.enrichWith(ctx, this);
             }
             // 4. Perform Set(array, "length", ToUint32(len), false).
-            operations_1.$Set(ctx, array, intrinsics.length, len.ToUint32(ctx), intrinsics.false);
+            operations_js_1.$Set(ctx, array, intrinsics.length, len.ToUint32(ctx), intrinsics.false);
             // 5. NOTE: The above Set cannot fail because of the nature of the object returned by ArrayCreate.
             // 6. Return array.
             return array;
@@ -309,13 +309,13 @@
                     $nodes[i] = new $SpreadAssignment(el, parent, ctx, i);
                     break;
                 case typescript_1.SyntaxKind.MethodDeclaration:
-                    $nodes[i] = new methods_1.$MethodDeclaration(el, parent, ctx, i);
+                    $nodes[i] = new methods_js_1.$MethodDeclaration(el, parent, ctx, i);
                     break;
                 case typescript_1.SyntaxKind.GetAccessor:
-                    $nodes[i] = new methods_1.$GetAccessorDeclaration(el, parent, ctx, i);
+                    $nodes[i] = new methods_js_1.$GetAccessorDeclaration(el, parent, ctx, i);
                     break;
                 case typescript_1.SyntaxKind.SetAccessor:
-                    $nodes[i] = new methods_1.$SetAccessorDeclaration(el, parent, ctx, i);
+                    $nodes[i] = new methods_js_1.$SetAccessorDeclaration(el, parent, ctx, i);
                     break;
             }
         }
@@ -323,7 +323,7 @@
     }
     exports.$$objectLiteralElementLikeList = $$objectLiteralElementLikeList;
     class $ObjectLiteralExpression {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.ObjectLiteralExpression`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.ObjectLiteralExpression`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -361,7 +361,7 @@
             // 1. Return ObjectCreate(%ObjectPrototype%).
             // ObjectLiteral : { PropertyDefinitionList } { PropertyDefinitionList , }
             // 1. Let obj be ObjectCreate(%ObjectPrototype%).
-            const obj = object_1.$Object.ObjectCreate(ctx, 'Object', intrinsics['%ObjectPrototype%']);
+            const obj = object_js_1.$Object.ObjectCreate(ctx, 'Object', intrinsics['%ObjectPrototype%']);
             // 2. Perform ? PropertyDefinitionEvaluation of PropertyDefinitionList with arguments obj and true.
             for (const prop of this.$properties) {
                 const $PropertyDefinitionEvaluationResult = prop.EvaluatePropertyDefinition(ctx, obj, intrinsics.true);
@@ -375,7 +375,7 @@
     }
     exports.$ObjectLiteralExpression = $ObjectLiteralExpression;
     class $PropertyAssignment {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.PropertyAssignment`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.PropertyAssignment`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -385,9 +385,9 @@
             this.depth = depth;
             this.logger = logger;
             this.path = path;
-            this.modifierFlags = _shared_1.modifiersToModifierFlags(node.modifiers);
-            const $name = this.$name = _shared_1.$$propertyName(node.name, this, ctx | 512 /* IsMemberName */, -1);
-            this.$initializer = _shared_1.$assignmentExpression(node.initializer, this, ctx, -1);
+            this.modifierFlags = _shared_js_1.modifiersToModifierFlags(node.modifiers);
+            const $name = this.$name = _shared_js_1.$$propertyName(node.name, this, ctx | 512 /* IsMemberName */, -1);
+            this.$initializer = _shared_js_1.$assignmentExpression(node.initializer, this, ctx, -1);
             this.PropName = $name.PropName;
         }
         get $kind() { return typescript_1.SyntaxKind.PropertyAssignment; }
@@ -405,7 +405,7 @@
             }
             let propValue;
             // 3. If IsAnonymousFunctionDefinition(AssignmentExpression) is true, then
-            if (this.$initializer instanceof functions_1.$FunctionExpression && !this.$initializer.HasName) {
+            if (this.$initializer instanceof functions_js_1.$FunctionExpression && !this.$initializer.HasName) {
                 // 3. a. Let propValue be the result of performing NamedEvaluation for AssignmentExpression with argument propKey.
                 const $propValue = this.$initializer.EvaluateNamed(ctx, propKey);
                 if ($propValue.isAbrupt) {
@@ -427,12 +427,12 @@
             // 5. Assert: enumerable is true.
             // 6. Assert: object is an ordinary, extensible object with no non-configurable properties.
             // 7. Return ! CreateDataPropertyOrThrow(object, propKey, propValue).
-            return operations_1.$CreateDataProperty(ctx, object, propKey, propValue);
+            return operations_js_1.$CreateDataProperty(ctx, object, propKey, propValue);
         }
     }
     exports.$PropertyAssignment = $PropertyAssignment;
     class $ShorthandPropertyAssignment {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.ShorthandPropertyAssignment`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.ShorthandPropertyAssignment`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -442,9 +442,9 @@
             this.depth = depth;
             this.logger = logger;
             this.path = path;
-            this.modifierFlags = _shared_1.modifiersToModifierFlags(node.modifiers);
-            const $name = this.$name = _shared_1.$identifier(node.name, this, ctx, -1);
-            this.$objectAssignmentInitializer = _shared_1.$assignmentExpression(node.objectAssignmentInitializer, this, ctx, -1);
+            this.modifierFlags = _shared_js_1.modifiersToModifierFlags(node.modifiers);
+            const $name = this.$name = _shared_js_1.$identifier(node.name, this, ctx, -1);
+            this.$objectAssignmentInitializer = _shared_js_1.$assignmentExpression(node.objectAssignmentInitializer, this, ctx, -1);
             this.PropName = $name.PropName;
         }
         get $kind() { return typescript_1.SyntaxKind.ShorthandPropertyAssignment; }
@@ -466,12 +466,12 @@
             // 4. Assert: enumerable is true.
             // 5. Assert: object is an ordinary, extensible object with no non-configurable properties.
             // 6. Return ! CreateDataPropertyOrThrow(object, propName, propValue).
-            return operations_1.$CreateDataProperty(ctx, object, propName, propValue);
+            return operations_js_1.$CreateDataProperty(ctx, object, propName, propValue);
         }
     }
     exports.$ShorthandPropertyAssignment = $ShorthandPropertyAssignment;
     class $SpreadAssignment {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.SpreadAssignment`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.SpreadAssignment`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -483,8 +483,8 @@
             this.path = path;
             // http://www.ecma-international.org/ecma-262/#sec-object-initializer-static-semantics-propname
             // 12.2.6.5 Static Semantics: PropName
-            this.PropName = empty_1.empty;
-            this.$expression = _shared_1.$assignmentExpression(node.expression, this, ctx, -1);
+            this.PropName = empty_js_1.empty;
+            this.$expression = _shared_js_1.$assignmentExpression(node.expression, this, ctx, -1);
         }
         get $kind() { return typescript_1.SyntaxKind.SpreadAssignment; }
         // http://www.ecma-international.org/ecma-262/#sec-object-initializer-runtime-semantics-propertydefinitionevaluation
@@ -503,12 +503,12 @@
             // 3. Let excludedNames be a new empty List.
             const excludedNames = [];
             // 4. Return ? CopyDataProperties(object, fromValue, excludedNames).
-            return operations_1.$CopyDataProperties(ctx, object, fromValue, excludedNames);
+            return operations_js_1.$CopyDataProperties(ctx, object, fromValue, excludedNames);
         }
     }
     exports.$SpreadAssignment = $SpreadAssignment;
     class $PropertyAccessExpression {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.PropertyAccessExpression`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.PropertyAccessExpression`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -518,9 +518,9 @@
             this.depth = depth;
             this.logger = logger;
             this.path = path;
-            this.$expression = _shared_1.$LHSExpression(node.expression, this, ctx, -1);
+            this.$expression = _shared_js_1.$LHSExpression(node.expression, this, ctx, -1);
             // @ts-ignore - TODO(fkleuver): update AOT to use new TS 3.8 ast
-            this.$name = _shared_1.$identifier(node.name, this, ctx | 256 /* IsPropertyAccessName */, -1);
+            this.$name = _shared_js_1.$identifier(node.name, this, ctx | 256 /* IsPropertyAccessName */, -1);
         }
         get $kind() { return typescript_1.SyntaxKind.PropertyAccessExpression; }
         // http://www.ecma-international.org/ecma-262/#sec-property-accessors-runtime-semantics-evaluation
@@ -540,19 +540,19 @@
             }
             // 3. baseValue bv be ? RequireObjectCoercible(baseValue).
             if (baseValue.isNil) {
-                return new error_1.$TypeError(realm, `Cannot access property ${this.$name.StringValue['[[Value]]']} on value: ${baseValue['[[Value]]']}`).enrichWith(ctx, this);
+                return new error_js_1.$TypeError(realm, `Cannot access property ${this.$name.StringValue['[[Value]]']} on value: ${baseValue['[[Value]]']}`).enrichWith(ctx, this);
             }
             // 4. Let propertyNameString be StringValue of IdentifierName.
             const propertyNameString = this.$name.StringValue;
             // 5. If the code matched by this MemberExpression is strict mode code, let strict be true, else let strict be false.
             const strict = intrinsics.true; // TODO: use static semantics
             // 6. Return a value of type Reference whose base value component is bv, whose referenced name component is propertyNameString, and whose strict reference flag is strict.
-            return new reference_1.$Reference(realm, baseValue, propertyNameString, strict, intrinsics.undefined);
+            return new reference_js_1.$Reference(realm, baseValue, propertyNameString, strict, intrinsics.undefined);
         }
     }
     exports.$PropertyAccessExpression = $PropertyAccessExpression;
     class $ElementAccessExpression {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.ElementAccessExpression`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.ElementAccessExpression`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -562,8 +562,8 @@
             this.depth = depth;
             this.logger = logger;
             this.path = path;
-            this.$expression = _shared_1.$LHSExpression(node.expression, this, ctx, -1);
-            this.$argumentExpression = _shared_1.$assignmentExpression(node.argumentExpression, this, ctx, -1);
+            this.$expression = _shared_js_1.$LHSExpression(node.expression, this, ctx, -1);
+            this.$argumentExpression = _shared_js_1.$assignmentExpression(node.argumentExpression, this, ctx, -1);
         }
         get $kind() { return typescript_1.SyntaxKind.ElementAccessExpression; }
         // http://www.ecma-international.org/ecma-262/#sec-property-accessors-runtime-semantics-evaluation
@@ -590,7 +590,7 @@
             }
             // 5. Let bv be ? RequireObjectCoercible(baseValue).
             if (baseValue.isNil) {
-                return new error_1.$TypeError(realm, `Cannot access computed / indexed property on value: ${baseValue['[[Value]]']}`).enrichWith(ctx, this);
+                return new error_js_1.$TypeError(realm, `Cannot access computed / indexed property on value: ${baseValue['[[Value]]']}`).enrichWith(ctx, this);
             }
             // 6. Let propertyKey be ? ToPropertyKey(propertyNameValue).
             const propertyKey = propertyNameValue.ToPropertyKey(ctx);
@@ -600,12 +600,12 @@
             // 7. If the code matched by this MemberExpression is strict mode code, let strict be true, else let strict be false.
             const strict = intrinsics.true; // TODO: use static semantics
             // 8. Return a value of type Reference whose base value component is bv, whose referenced name component is propertyKey, and whose strict reference flag is strict.
-            return new reference_1.$Reference(realm, baseValue, propertyKey, strict, intrinsics.undefined);
+            return new reference_js_1.$Reference(realm, baseValue, propertyKey, strict, intrinsics.undefined);
         }
     }
     exports.$ElementAccessExpression = $ElementAccessExpression;
     class $CallExpression {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.CallExpression`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.CallExpression`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -615,7 +615,7 @@
             this.depth = depth;
             this.logger = logger;
             this.path = path;
-            this.$expression = _shared_1.$LHSExpression(node.expression, this, ctx, -1);
+            this.$expression = _shared_js_1.$LHSExpression(node.expression, this, ctx, -1);
             this.$arguments = $argumentOrArrayLiteralElementList(node.arguments, this, ctx);
         }
         get $kind() { return typescript_1.SyntaxKind.CallExpression; }
@@ -640,7 +640,7 @@
                 return func.enrichWith(ctx, this);
             }
             // 6. If Type(ref) is Reference and IsPropertyReference(ref) is false and GetReferencedName(ref) is "eval", then
-            if (ref instanceof reference_1.$Reference && ref.IsPropertyReference().isFalsey && ref.GetReferencedName()['[[Value]]'] === 'eval') {
+            if (ref instanceof reference_js_1.$Reference && ref.IsPropertyReference().isFalsey && ref.GetReferencedName()['[[Value]]'] === 'eval') {
                 // 6. a. If SameValue(func, %eval%) is true, then
                 if (func.is(intrinsics['%eval%'])) { // TODO
                     // 6. a. i. Let argList be ? ArgumentListEvaluation of arguments.
@@ -675,7 +675,7 @@
         const intrinsics = realm['[[Intrinsics]]'];
         let thisValue;
         // 1. If Type(ref) is Reference, then
-        if (ref instanceof reference_1.$Reference) {
+        if (ref instanceof reference_js_1.$Reference) {
             // 1. a. If IsPropertyReference(ref) is true, then
             if (ref.IsPropertyReference().isTruthy) {
                 // 1. a. i. Let thisValue be GetThisValue(ref).
@@ -703,12 +703,12 @@
         // 5. If Type(func) is not Object, throw a TypeError exception.
         // 6. If IsCallable(func) is false, throw a TypeError exception.
         if (!func.isFunction) {
-            return new error_1.$TypeError(realm, `${func} is not callable`);
+            return new error_js_1.$TypeError(realm, `${func} is not callable`);
         }
         // 7. If tailPosition is true, perform PrepareForTailCall().
         // TODO
         // 8. Let result be Call(func, thisValue, argList).
-        const result = operations_1.$Call(ctx, func, thisValue, argList);
+        const result = operations_js_1.$Call(ctx, func, thisValue, argList);
         // 9. Assert: If tailPosition is true, the above call will not return here, but instead evaluation will continue as if the following return has already occurred.
         // 10. Assert: If result is not an abrupt completion, then Type(result) is an ECMAScript language type.
         // 11. Return result.
@@ -741,7 +741,7 @@
         // 4. Let arg be ? GetValue(ref).
         // 5. Append arg to the end of precedingArgs.
         // 6. Return precedingArgs.
-        const list = new list_1.$List();
+        const list = new list_js_1.$List();
         for (const arg of args) {
             const ref = arg.Evaluate(ctx);
             if (ref.isAbrupt) {
@@ -772,7 +772,7 @@
     }
     exports.$ArgumentListEvaluation = $ArgumentListEvaluation;
     class $NewExpression {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.NewExpression`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.NewExpression`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -782,7 +782,7 @@
             this.depth = depth;
             this.logger = logger;
             this.path = path;
-            this.$expression = _shared_1.$LHSExpression(node.expression, this, ctx, -1);
+            this.$expression = _shared_js_1.$LHSExpression(node.expression, this, ctx, -1);
             this.$arguments = $argumentOrArrayLiteralElementList(node.arguments, this, ctx);
         }
         get $kind() { return typescript_1.SyntaxKind.NewExpression; }
@@ -812,7 +812,7 @@
             let argList;
             // 5. If arguments is empty, let argList be a new empty List.
             if ($arguments.length === 0) {
-                argList = new list_1.$List();
+                argList = new list_js_1.$List();
             }
             // 6. Else,
             else {
@@ -825,16 +825,16 @@
                 argList = $argList;
             }
             // 7. If IsConstructor(constructor) is false, throw a TypeError exception.
-            if (!_shared_1.IsConstructor(ctx, constructor)) {
-                return new error_1.$TypeError(realm, `${constructor} is not a constructor`);
+            if (!_shared_js_1.IsConstructor(ctx, constructor)) {
+                return new error_js_1.$TypeError(realm, `${constructor} is not a constructor`);
             }
             // 8. Return ? Construct(constructor, argList).
-            return operations_1.$Construct(ctx, constructor, argList, intrinsics.undefined).enrichWith(ctx, this);
+            return operations_js_1.$Construct(ctx, constructor, argList, intrinsics.undefined).enrichWith(ctx, this);
         }
     }
     exports.$NewExpression = $NewExpression;
     class $TaggedTemplateExpression {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.TaggedTemplateExpression`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.TaggedTemplateExpression`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -844,9 +844,9 @@
             this.depth = depth;
             this.logger = logger;
             this.path = path;
-            this.$tag = _shared_1.$LHSExpression(node.tag, this, ctx, -1);
+            this.$tag = _shared_js_1.$LHSExpression(node.tag, this, ctx, -1);
             if (node.template.kind === typescript_1.SyntaxKind.NoSubstitutionTemplateLiteral) {
-                this.$template = new literals_1.$NoSubstitutionTemplateLiteral(node.template, this, ctx, -1);
+                this.$template = new literals_js_1.$NoSubstitutionTemplateLiteral(node.template, this, ctx, -1);
             }
             else {
                 this.$template = new $TemplateExpression(node.template, this, ctx, -1);
@@ -883,13 +883,13 @@
         const len = nodes.length;
         const $nodes = Array(len);
         for (let i = 0; i < len; ++i) {
-            $nodes[i] = new literals_1.$TemplateSpan(nodes[i], parent, ctx, i);
+            $nodes[i] = new literals_js_1.$TemplateSpan(nodes[i], parent, ctx, i);
         }
         return $nodes;
     }
     exports.$$templateSpanList = $$templateSpanList;
     class $TemplateExpression {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.TemplateExpression`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.TemplateExpression`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -914,7 +914,7 @@
             // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-assignmenttargettype
             // 12.2.1.5 Static Semantics: AssignmentTargetType
             this.AssignmentTargetType = 'invalid';
-            this.$head = new literals_1.$TemplateHead(node.head, this, ctx);
+            this.$head = new literals_js_1.$TemplateHead(node.head, this, ctx);
             this.$templateSpans = $$templateSpanList(node.templateSpans, this, ctx);
         }
         get $kind() { return typescript_1.SyntaxKind.TemplateExpression; }
@@ -959,7 +959,7 @@
     }
     exports.$TemplateExpression = $TemplateExpression;
     class $ParenthesizedExpression {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.ParenthesizedExpression`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.ParenthesizedExpression`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -969,7 +969,7 @@
             this.depth = depth;
             this.logger = logger;
             this.path = path;
-            const $expression = this.$expression = _shared_1.$assignmentExpression(node.expression, this, ctx, -1);
+            const $expression = this.$expression = _shared_js_1.$assignmentExpression(node.expression, this, ctx, -1);
             this.CoveredParenthesizedExpression = $expression;
         }
         get $kind() { return typescript_1.SyntaxKind.ParenthesizedExpression; }
@@ -989,7 +989,7 @@
     }
     exports.$ParenthesizedExpression = $ParenthesizedExpression;
     class $NonNullExpression {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.NonNullExpression`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.NonNullExpression`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -999,7 +999,7 @@
             this.depth = depth;
             this.logger = logger;
             this.path = path;
-            this.$expression = _shared_1.$LHSExpression(node.expression, this, ctx, -1);
+            this.$expression = _shared_js_1.$LHSExpression(node.expression, this, ctx, -1);
         }
         get $kind() { return typescript_1.SyntaxKind.NonNullExpression; }
         // This is a TS expression that wraps an ordinary expression. Just return the evaluate result.
@@ -1010,7 +1010,7 @@
     }
     exports.$NonNullExpression = $NonNullExpression;
     class $MetaProperty {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.MetaProperty`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.MetaProperty`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -1020,7 +1020,7 @@
             this.depth = depth;
             this.logger = logger;
             this.path = path;
-            this.$name = _shared_1.$identifier(node.name, this, ctx, -1);
+            this.$name = _shared_js_1.$identifier(node.name, this, ctx, -1);
         }
         get $kind() { return typescript_1.SyntaxKind.MetaProperty; }
         // http://www.ecma-international.org/ecma-262/#sec-meta-properties-runtime-semantics-evaluation
@@ -1039,7 +1039,7 @@
     // #endregion
     // #region Unary
     class $DeleteExpression {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.DeleteExpression`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.DeleteExpression`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -1049,7 +1049,7 @@
             this.depth = depth;
             this.logger = logger;
             this.path = path;
-            this.$expression = _shared_1.$unaryExpression(node.expression, this, ctx, -1);
+            this.$expression = _shared_js_1.$unaryExpression(node.expression, this, ctx, -1);
         }
         get $kind() { return typescript_1.SyntaxKind.DeleteExpression; }
         // http://www.ecma-international.org/ecma-262/#sec-delete-operator-runtime-semantics-evaluation
@@ -1079,7 +1079,7 @@
     }
     exports.$DeleteExpression = $DeleteExpression;
     class $TypeOfExpression {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.TypeOfExpression`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.TypeOfExpression`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -1089,7 +1089,7 @@
             this.depth = depth;
             this.logger = logger;
             this.path = path;
-            this.$expression = _shared_1.$unaryExpression(node.expression, this, ctx, -1);
+            this.$expression = _shared_js_1.$unaryExpression(node.expression, this, ctx, -1);
         }
         get $kind() { return typescript_1.SyntaxKind.TypeOfExpression; }
         // http://www.ecma-international.org/ecma-262/#sec-typeof-operator-runtime-semantics-evaluation
@@ -1104,8 +1104,8 @@
             let val = this.$expression.Evaluate(ctx);
             // 2. If Type(val) is Reference, then
             // 2. a. If IsUnresolvableReference(val) is true, return "undefined".
-            if (val instanceof reference_1.$Reference && val.IsUnresolvableReference()['[[Value]]']) {
-                return new undefined_1.$Undefined(realm);
+            if (val instanceof reference_js_1.$Reference && val.IsUnresolvableReference()['[[Value]]']) {
+                return new undefined_js_1.$Undefined(realm);
             }
             // 3. Set val to ? GetValue(val).
             val = val.GetValue(ctx);
@@ -1117,37 +1117,37 @@
             switch (true) {
                 // Type of val   Result
                 // Undefined   	"undefined"
-                case val instanceof undefined_1.$Undefined:
-                    return new string_1.$String(realm, "undefined");
+                case val instanceof undefined_js_1.$Undefined:
+                    return new string_js_1.$String(realm, "undefined");
                 // Boolean   	  "boolean"
-                case val instanceof boolean_1.$Boolean:
-                    return new string_1.$String(realm, "boolean");
+                case val instanceof boolean_js_1.$Boolean:
+                    return new string_js_1.$String(realm, "boolean");
                 // Number    	  "number"
-                case val instanceof number_1.$Number:
-                    return new string_1.$String(realm, "number");
+                case val instanceof number_js_1.$Number:
+                    return new string_js_1.$String(realm, "number");
                 // String    	  "string"
-                case val instanceof string_1.$String:
-                    return new string_1.$String(realm, "string");
+                case val instanceof string_js_1.$String:
+                    return new string_js_1.$String(realm, "string");
                 // Symbol    	  "symbol"
                 // case val instanceof $Symbol:
                 //   return new $String(realm, "symbol");
                 // Object        (implements [[Call]])	"function"
-                case val instanceof function_1.$Function:
-                    return new string_1.$String(realm, "function");
+                case val instanceof function_js_1.$Function:
+                    return new string_js_1.$String(realm, "function");
                 // Object        (ordinary and does not implement [[Call]])	"object"
                 // Object        (standard exotic and does not implement [[Call]])	"object"
                 // Object        (non-standard exotic and does not implement [[Call]])	Implementation-defined. Must not be "undefined", "boolean", "function", "number", "symbol", or "string".
-                case val instanceof object_1.$Object:
+                case val instanceof object_js_1.$Object:
                 // Null    	    "object"
-                case val instanceof null_1.$Null:
+                case val instanceof null_js_1.$Null:
                 default:
-                    return new string_1.$String(realm, "object");
+                    return new string_js_1.$String(realm, "object");
             }
         }
     }
     exports.$TypeOfExpression = $TypeOfExpression;
     class $VoidExpression {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.VoidExpression`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.VoidExpression`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -1157,7 +1157,7 @@
             this.depth = depth;
             this.logger = logger;
             this.path = path;
-            this.$expression = _shared_1.$unaryExpression(node.expression, this, ctx, -1);
+            this.$expression = _shared_js_1.$unaryExpression(node.expression, this, ctx, -1);
         }
         get $kind() { return typescript_1.SyntaxKind.VoidExpression; }
         // http://www.ecma-international.org/ecma-262/#sec-void-operator
@@ -1181,7 +1181,7 @@
     }
     exports.$VoidExpression = $VoidExpression;
     class $AwaitExpression {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.AwaitExpression`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.AwaitExpression`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -1191,7 +1191,7 @@
             this.depth = depth;
             this.logger = logger;
             this.path = path;
-            this.$expression = _shared_1.$unaryExpression(node.expression, this, ctx, -1);
+            this.$expression = _shared_js_1.$unaryExpression(node.expression, this, ctx, -1);
         }
         get $kind() { return typescript_1.SyntaxKind.AwaitExpression; }
         // http://www.ecma-international.org/ecma-262/#sec-async-function-definitions-runtime-semantics-evaluation
@@ -1210,7 +1210,7 @@
     }
     exports.$AwaitExpression = $AwaitExpression;
     class $PrefixUnaryExpression {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.PrefixUnaryExpression`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.PrefixUnaryExpression`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -1220,7 +1220,7 @@
             this.depth = depth;
             this.logger = logger;
             this.path = path;
-            this.$operand = _shared_1.$unaryExpression(node.operand, this, ctx, -1);
+            this.$operand = _shared_js_1.$unaryExpression(node.operand, this, ctx, -1);
         }
         get $kind() { return typescript_1.SyntaxKind.PrefixUnaryExpression; }
         // http://www.ecma-international.org/ecma-262/#sec-prefix-increment-operator-runtime-semantics-evaluation
@@ -1256,10 +1256,10 @@
                         return oldValue.enrichWith(ctx, this);
                     }
                     // 3. Let newValue be the result of adding the value 1 to oldValue, using the same rules as for the + operator (see 12.8.5).
-                    const newValue = new number_1.$Number(realm, oldValue['[[Value]]'] + 1);
+                    const newValue = new number_js_1.$Number(realm, oldValue['[[Value]]'] + 1);
                     // 4. Perform ? PutValue(expr, newValue).
-                    if (!(expr instanceof reference_1.$Reference)) {
-                        return new error_1.$ReferenceError(realm, `Value is not assignable: ${expr}`).enrichWith(ctx, this);
+                    if (!(expr instanceof reference_js_1.$Reference)) {
+                        return new error_js_1.$ReferenceError(realm, `Value is not assignable: ${expr}`).enrichWith(ctx, this);
                     }
                     const $PutValueResult = expr.PutValue(ctx, newValue);
                     if ($PutValueResult.isAbrupt) {
@@ -1287,10 +1287,10 @@
                         return oldValue.enrichWith(ctx, this);
                     }
                     // 3. Let newValue be the result of subtracting the value 1 from oldValue, using the same rules as for the - operator (see 12.8.5).
-                    const newValue = new number_1.$Number(realm, oldValue['[[Value]]'] - 1);
+                    const newValue = new number_js_1.$Number(realm, oldValue['[[Value]]'] - 1);
                     // 4. Perform ? PutValue(expr, newValue).
-                    if (!(expr instanceof reference_1.$Reference)) {
-                        return new error_1.$ReferenceError(realm, `Value is not assignable: ${expr}`).enrichWith(ctx, this);
+                    if (!(expr instanceof reference_js_1.$Reference)) {
+                        return new error_js_1.$ReferenceError(realm, `Value is not assignable: ${expr}`).enrichWith(ctx, this);
                     }
                     const $PutValueResult = expr.PutValue(ctx, newValue);
                     if ($PutValueResult.isAbrupt) {
@@ -1342,7 +1342,7 @@
                         return oldValue;
                     }
                     // 4. Return the result of negating oldValue; that is, compute a Number with the same magnitude but opposite sign.
-                    return new number_1.$Number(realm, -oldValue['[[Value]]']);
+                    return new number_js_1.$Number(realm, -oldValue['[[Value]]']);
                 }
                 case typescript_1.SyntaxKind.TildeToken: {
                     // http://www.ecma-international.org/ecma-262/#sec-bitwise-not-operator-runtime-semantics-evaluation
@@ -1363,7 +1363,7 @@
                         return oldValue.enrichWith(ctx, this);
                     }
                     // 3. Return the result of applying bitwise complement to oldValue. The result is a signed 32-bit integer.
-                    return new number_1.$Number(realm, ~oldValue['[[Value]]']);
+                    return new number_js_1.$Number(realm, ~oldValue['[[Value]]']);
                 }
                 case typescript_1.SyntaxKind.ExclamationToken: {
                     // http://www.ecma-international.org/ecma-262/#sec-logical-not-operator-runtime-semantics-evaluation
@@ -1395,7 +1395,7 @@
     }
     exports.$PrefixUnaryExpression = $PrefixUnaryExpression;
     class $PostfixUnaryExpression {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.PostfixUnaryExpression`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.PostfixUnaryExpression`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -1405,7 +1405,7 @@
             this.depth = depth;
             this.logger = logger;
             this.path = path;
-            this.$operand = _shared_1.$LHSExpression(node.operand, this, ctx, -1);
+            this.$operand = _shared_js_1.$LHSExpression(node.operand, this, ctx, -1);
         }
         get $kind() { return typescript_1.SyntaxKind.PostfixUnaryExpression; }
         // http://www.ecma-international.org/ecma-262/#sec-postfix-increment-operator-runtime-semantics-evaluation
@@ -1434,10 +1434,10 @@
                         return oldValue.enrichWith(ctx, this);
                     }
                     // 3. Let newValue be the result of adding the value 1 to oldValue, using the same rules as for the + operator (see 12.8.5).
-                    const newValue = new number_1.$Number(realm, oldValue['[[Value]]'] + 1);
+                    const newValue = new number_js_1.$Number(realm, oldValue['[[Value]]'] + 1);
                     // 4. Perform ? PutValue(lhs, newValue).
-                    if (!(lhs instanceof reference_1.$Reference)) {
-                        return new error_1.$ReferenceError(realm, `Value is not assignable: ${lhs}`).enrichWith(ctx, this);
+                    if (!(lhs instanceof reference_js_1.$Reference)) {
+                        return new error_js_1.$ReferenceError(realm, `Value is not assignable: ${lhs}`).enrichWith(ctx, this);
                     }
                     const $PutValueResult = lhs.PutValue(ctx, newValue);
                     if ($PutValueResult.isAbrupt) {
@@ -1462,10 +1462,10 @@
                         return oldValue.enrichWith(ctx, this);
                     }
                     // 3. Let newValue be the result of subtracting the value 1 from oldValue, using the same rules as for the - operator (see 12.8.5).
-                    const newValue = new number_1.$Number(realm, oldValue['[[Value]]'] - 1);
+                    const newValue = new number_js_1.$Number(realm, oldValue['[[Value]]'] - 1);
                     // 4. Perform ? PutValue(lhs, newValue).
-                    if (!(lhs instanceof reference_1.$Reference)) {
-                        return new error_1.$ReferenceError(realm, `Value is not assignable: ${lhs}`).enrichWith(ctx, this);
+                    if (!(lhs instanceof reference_js_1.$Reference)) {
+                        return new error_js_1.$ReferenceError(realm, `Value is not assignable: ${lhs}`).enrichWith(ctx, this);
                     }
                     const $PutValueResult = lhs.PutValue(ctx, newValue);
                     if ($PutValueResult.isAbrupt) {
@@ -1479,7 +1479,7 @@
     }
     exports.$PostfixUnaryExpression = $PostfixUnaryExpression;
     class $TypeAssertion {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.TypeAssertion`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.TypeAssertion`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -1489,7 +1489,7 @@
             this.depth = depth;
             this.logger = logger;
             this.path = path;
-            this.$expression = _shared_1.$assignmentExpression(node.expression, this, ctx, -1);
+            this.$expression = _shared_js_1.$assignmentExpression(node.expression, this, ctx, -1);
         }
         get $kind() { return typescript_1.SyntaxKind.TypeAssertionExpression; }
         // This is a TS expression that wraps an ordinary expression. Just return the evaluate result.
@@ -1502,7 +1502,7 @@
     // #endregion
     // #region Assignment
     class $BinaryExpression {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.BinaryExpression`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.BinaryExpression`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -1512,8 +1512,8 @@
             this.depth = depth;
             this.logger = logger;
             this.path = path;
-            this.$left = _shared_1.$assignmentExpression(node.left, this, ctx, -1);
-            this.$right = _shared_1.$assignmentExpression(node.right, this, ctx, -1);
+            this.$left = _shared_js_1.$assignmentExpression(node.left, this, ctx, -1);
+            this.$right = _shared_js_1.$assignmentExpression(node.right, this, ctx, -1);
         }
         get $kind() { return typescript_1.SyntaxKind.BinaryExpression; }
         // http://www.ecma-international.org/ecma-262/#sec-exp-operator-runtime-semantics-evaluation
@@ -1573,7 +1573,7 @@
                         return exponent.enrichWith(ctx, this);
                     }
                     // 7. Return the result of Applying the ** operator with base and exponent as specified in 12.6.4.
-                    return new number_1.$Number(realm, base['[[Value]]'] ** exponent['[[Value]]']); // TODO: add temporal state snapshot for tracing
+                    return new number_js_1.$Number(realm, base['[[Value]]'] ** exponent['[[Value]]']); // TODO: add temporal state snapshot for tracing
                 }
                 case typescript_1.SyntaxKind.AsteriskToken: {
                     // http://www.ecma-international.org/ecma-262/#sec-multiplicative-operators-runtime-semantics-evaluation
@@ -1604,7 +1604,7 @@
                         return rnum.enrichWith(ctx, this);
                     }
                     // 7. Return the result of applying the MultiplicativeOperator (*, /, or %) to lnum and rnum as specified in 12.7.3.1, 12.7.3.2, or 12.7.3.3.
-                    return new number_1.$Number(realm, lnum['[[Value]]'] * rnum['[[Value]]']); // TODO: add temporal state snapshot for tracing
+                    return new number_js_1.$Number(realm, lnum['[[Value]]'] * rnum['[[Value]]']); // TODO: add temporal state snapshot for tracing
                 }
                 case typescript_1.SyntaxKind.SlashToken: {
                     // http://www.ecma-international.org/ecma-262/#sec-multiplicative-operators-runtime-semantics-evaluation
@@ -1635,7 +1635,7 @@
                         return rnum.enrichWith(ctx, this);
                     }
                     // 7. Return the result of applying the MultiplicativeOperator (*, /, or %) to lnum and rnum as specified in 12.7.3.1, 12.7.3.2, or 12.7.3.3.
-                    return new number_1.$Number(realm, lnum['[[Value]]'] / rnum['[[Value]]']); // TODO: add temporal state snapshot for tracing
+                    return new number_js_1.$Number(realm, lnum['[[Value]]'] / rnum['[[Value]]']); // TODO: add temporal state snapshot for tracing
                 }
                 case typescript_1.SyntaxKind.PercentToken: {
                     // http://www.ecma-international.org/ecma-262/#sec-multiplicative-operators-runtime-semantics-evaluation
@@ -1666,7 +1666,7 @@
                         return rnum.enrichWith(ctx, this);
                     }
                     // 7. Return the result of applying the MultiplicativeOperator (*, /, or %) to lnum and rnum as specified in 12.7.3.1, 12.7.3.2, or 12.7.3.3.
-                    return new number_1.$Number(realm, lnum['[[Value]]'] % rnum['[[Value]]']); // TODO: add temporal state snapshot for tracing
+                    return new number_js_1.$Number(realm, lnum['[[Value]]'] % rnum['[[Value]]']); // TODO: add temporal state snapshot for tracing
                 }
                 case typescript_1.SyntaxKind.PlusToken: {
                     // http://www.ecma-international.org/ecma-262/#sec-addition-operator-plus-runtime-semantics-evaluation
@@ -1709,7 +1709,7 @@
                             return rstr.enrichWith(ctx, this);
                         }
                         // 7. c. Return the string-concatenation of lstr and rstr.
-                        return new string_1.$String(realm, lstr['[[Value]]'] + rstr['[[Value]]']); // TODO: add temporal state snapshot for tracing
+                        return new string_js_1.$String(realm, lstr['[[Value]]'] + rstr['[[Value]]']); // TODO: add temporal state snapshot for tracing
                     }
                     // 8. Let lnum be ? ToNumber(lprim).
                     const lnum = lprim.ToNumber(ctx);
@@ -1722,7 +1722,7 @@
                         return rnum.enrichWith(ctx, this);
                     }
                     // 10. Return the result of applying the addition operation to lnum and rnum. See the Note below 12.8.5.
-                    return new number_1.$Number(realm, lnum['[[Value]]'] + rnum['[[Value]]']); // TODO: add temporal state snapshot for tracing
+                    return new number_js_1.$Number(realm, lnum['[[Value]]'] + rnum['[[Value]]']); // TODO: add temporal state snapshot for tracing
                 }
                 case typescript_1.SyntaxKind.MinusToken: {
                     // http://www.ecma-international.org/ecma-262/#sec-subtraction-operator-minus-runtime-semantics-evaluation
@@ -1753,7 +1753,7 @@
                         return rnum.enrichWith(ctx, this);
                     }
                     // 7. Return the result of applying the subtraction operation to lnum and rnum. See the note below 12.8.5.
-                    return new number_1.$Number(realm, lnum['[[Value]]'] - rnum['[[Value]]']); // TODO: add temporal state snapshot for tracing
+                    return new number_js_1.$Number(realm, lnum['[[Value]]'] - rnum['[[Value]]']); // TODO: add temporal state snapshot for tracing
                 }
                 case typescript_1.SyntaxKind.LessThanLessThanToken: {
                     // http://www.ecma-international.org/ecma-262/#sec-left-shift-operator-runtime-semantics-evaluation
@@ -1786,7 +1786,7 @@
                     // 7. Let shiftCount be the result of masking out all but the least significant 5 bits of rnum, that is, compute rnum & 0x1F.
                     const shiftCount = rnum['[[Value]]'] & 0b11111;
                     // 8. Return the result of left shifting lnum by shiftCount bits. The result is a signed 32-bit integer.
-                    return new number_1.$Number(realm, lnum['[[Value]]'] << shiftCount); // TODO: add temporal state snapshot for tracing
+                    return new number_js_1.$Number(realm, lnum['[[Value]]'] << shiftCount); // TODO: add temporal state snapshot for tracing
                 }
                 case typescript_1.SyntaxKind.GreaterThanGreaterThanToken: {
                     // http://www.ecma-international.org/ecma-262/#sec-signed-right-shift-operator-runtime-semantics-evaluation
@@ -1819,7 +1819,7 @@
                     // 7. Let shiftCount be the result of masking out all but the least significant 5 bits of rnum, that is, compute rnum & 0x1F.
                     const shiftCount = rnum['[[Value]]'] & 0b11111;
                     // 8. Return the result of performing a sign-extending right shift of lnum by shiftCount bits. The most significant bit is propagated. The result is a signed 32-bit integer.
-                    return new number_1.$Number(realm, lnum['[[Value]]'] >> shiftCount); // TODO: add temporal state snapshot for tracing
+                    return new number_js_1.$Number(realm, lnum['[[Value]]'] >> shiftCount); // TODO: add temporal state snapshot for tracing
                 }
                 case typescript_1.SyntaxKind.GreaterThanGreaterThanGreaterThanToken: {
                     // http://www.ecma-international.org/ecma-262/#sec-unsigned-right-shift-operator-runtime-semantics-evaluation
@@ -1852,7 +1852,7 @@
                     // 7. Let shiftCount be the result of masking out all but the least significant 5 bits of rnum, that is, compute rnum & 0x1F.
                     const shiftCount = rnum['[[Value]]'] & 0b11111;
                     // 8. Return the result of performing a zero-filling right shift of lnum by shiftCount bits. Vacated bits are filled with zero. The result is an unsigned 32-bit integer.
-                    return new number_1.$Number(realm, lnum['[[Value]]'] >>> shiftCount); // TODO: add temporal state snapshot for tracing
+                    return new number_js_1.$Number(realm, lnum['[[Value]]'] >>> shiftCount); // TODO: add temporal state snapshot for tracing
                 }
                 // http://www.ecma-international.org/ecma-262/#sec-relational-operators-runtime-semantics-evaluation
                 // 12.10.3 Runtime Semantics: Evaluation
@@ -1873,7 +1873,7 @@
                         return rval.enrichWith(ctx, this);
                     }
                     // 5. Let r be the result of performing Abstract Relational Comparison lval < rval.
-                    const r = operations_1.$AbstractRelationalComparison(ctx, true, lval, rval);
+                    const r = operations_js_1.$AbstractRelationalComparison(ctx, true, lval, rval);
                     // 6. ReturnIfAbrupt(r).
                     if (r.isAbrupt) {
                         return r.enrichWith(ctx, this);
@@ -1898,7 +1898,7 @@
                         return rval.enrichWith(ctx, this);
                     }
                     // 5. Let r be the result of performing Abstract Relational Comparison rval < lval with LeftFirst equal to false.
-                    const r = operations_1.$AbstractRelationalComparison(ctx, false, rval, lval);
+                    const r = operations_js_1.$AbstractRelationalComparison(ctx, false, rval, lval);
                     // 6. ReturnIfAbrupt(r).
                     if (r.isAbrupt) {
                         return r.enrichWith(ctx, this);
@@ -1923,7 +1923,7 @@
                         return rval.enrichWith(ctx, this);
                     }
                     // 5. Let r be the result of performing Abstract Relational Comparison rval < lval with LeftFirst equal to false.
-                    const r = operations_1.$AbstractRelationalComparison(ctx, false, rval, lval);
+                    const r = operations_js_1.$AbstractRelationalComparison(ctx, false, rval, lval);
                     // 6. ReturnIfAbrupt(r).
                     if (r.isAbrupt) {
                         return r.enrichWith(ctx, this);
@@ -1948,7 +1948,7 @@
                         return rval.enrichWith(ctx, this);
                     }
                     // 5. Let r be the result of performing Abstract Relational Comparison lval < rval.
-                    const r = operations_1.$AbstractRelationalComparison(ctx, true, lval, rval);
+                    const r = operations_js_1.$AbstractRelationalComparison(ctx, true, lval, rval);
                     // 6. ReturnIfAbrupt(r).
                     if (r.isAbrupt) {
                         return r.enrichWith(ctx, this);
@@ -1973,7 +1973,7 @@
                         return rval.enrichWith(ctx, this);
                     }
                     // 5. Return ? InstanceofOperator(lval, rval).
-                    return operations_1.$InstanceOfOperator(ctx, lval, rval).enrichWith(ctx, this);
+                    return operations_js_1.$InstanceOfOperator(ctx, lval, rval).enrichWith(ctx, this);
                 }
                 case typescript_1.SyntaxKind.InKeyword: {
                     // RelationalExpression : RelationalExpression in ShiftExpression
@@ -1993,7 +1993,7 @@
                     }
                     // 5. If Type(rval) is not Object, throw a TypeError exception.
                     if (!rval.isObject) {
-                        return new error_1.$TypeError(realm, `Right-hand side of 'in' keyword is not an object: ${rval}`);
+                        return new error_js_1.$TypeError(realm, `Right-hand side of 'in' keyword is not an object: ${rval}`);
                     }
                     // 6. Return ? HasProperty(rval, ToPropertyKey(lval)).
                     return rval['[[HasProperty]]'](ctx, lval.ToPropertyKey(ctx)).enrichWith(ctx, this); // TODO: is this cast safe?
@@ -2017,7 +2017,7 @@
                         return rval.enrichWith(ctx, this);
                     }
                     // 5. Return the result of performing Abstract Equality Comparison rval == lval.
-                    return operations_1.$AbstractEqualityComparison(ctx, rval, lval).enrichWith(ctx, this);
+                    return operations_js_1.$AbstractEqualityComparison(ctx, rval, lval).enrichWith(ctx, this);
                 }
                 case typescript_1.SyntaxKind.ExclamationEqualsToken: {
                     // EqualityExpression : EqualityExpression != RelationalExpression
@@ -2036,7 +2036,7 @@
                         return rval.enrichWith(ctx, this);
                     }
                     // 5. Let r be the result of performing Abstract Equality Comparison rval == lval.
-                    const r = operations_1.$AbstractEqualityComparison(ctx, rval, lval);
+                    const r = operations_js_1.$AbstractEqualityComparison(ctx, rval, lval);
                     if (r.isAbrupt) {
                         return r.enrichWith(ctx, this);
                     } // TODO: is this correct? spec doesn't say it
@@ -2060,7 +2060,7 @@
                         return rval.enrichWith(ctx, this);
                     }
                     // 5. Return the result of performing Strict Equality Comparison rval === lval.
-                    return operations_1.$StrictEqualityComparison(ctx, rval, lval).enrichWith(ctx, this);
+                    return operations_js_1.$StrictEqualityComparison(ctx, rval, lval).enrichWith(ctx, this);
                 }
                 case typescript_1.SyntaxKind.ExclamationEqualsEqualsToken: {
                     // EqualityExpression : EqualityExpression !== RelationalExpression
@@ -2079,7 +2079,7 @@
                         return rval.enrichWith(ctx, this);
                     }
                     // 5. Let r be the result of performing Strict Equality Comparison rval === lval.
-                    const r = operations_1.$StrictEqualityComparison(ctx, rval, lval);
+                    const r = operations_js_1.$StrictEqualityComparison(ctx, rval, lval);
                     if (r.isAbrupt) {
                         return r.enrichWith(ctx, this);
                     } // TODO: is this correct? spec doesn't say it
@@ -2114,7 +2114,7 @@
                         return rnum.enrichWith(ctx, this);
                     }
                     // 7. Return the result of applying the bitwise operator @ to lnum and rnum. The result is a signed 32-bit integer.
-                    return new number_1.$Number(realm, lnum['[[Value]]'] & rnum['[[Value]]']); // TODO: add temporal state snapshot for tracing
+                    return new number_js_1.$Number(realm, lnum['[[Value]]'] & rnum['[[Value]]']); // TODO: add temporal state snapshot for tracing
                 }
                 case typescript_1.SyntaxKind.CaretToken: {
                     // http://www.ecma-international.org/ecma-262/#sec-binary-bitwise-operators-runtime-semantics-evaluation
@@ -2144,7 +2144,7 @@
                         return rnum.enrichWith(ctx, this);
                     }
                     // 7. Return the result of applying the bitwise operator @ to lnum and rnum. The result is a signed 32-bit integer.
-                    return new number_1.$Number(realm, lnum['[[Value]]'] ^ rnum['[[Value]]']); // TODO: add temporal state snapshot for tracing
+                    return new number_js_1.$Number(realm, lnum['[[Value]]'] ^ rnum['[[Value]]']); // TODO: add temporal state snapshot for tracing
                 }
                 case typescript_1.SyntaxKind.BarToken: {
                     // http://www.ecma-international.org/ecma-262/#sec-binary-bitwise-operators-runtime-semantics-evaluation
@@ -2174,7 +2174,7 @@
                         return rnum.enrichWith(ctx, this);
                     }
                     // 7. Return the result of applying the bitwise operator @ to lnum and rnum. The result is a signed 32-bit integer.
-                    return new number_1.$Number(realm, lnum['[[Value]]'] | rnum['[[Value]]']); // TODO: add temporal state snapshot for tracing
+                    return new number_js_1.$Number(realm, lnum['[[Value]]'] | rnum['[[Value]]']); // TODO: add temporal state snapshot for tracing
                 }
                 // http://www.ecma-international.org/ecma-262/#sec-binary-logical-operators-runtime-semantics-evaluation
                 // 12.13.3 Runtime Semantics: Evaluation
@@ -2240,7 +2240,7 @@
                         }
                         let rval;
                         // 1. c. If IsAnonymousFunctionDefinition(AssignmentExpression) and IsIdentifierRef of LeftHandSideExpression are both true, then
-                        if (assign instanceof functions_1.$FunctionExpression && !assign.HasName && lref instanceof $Identifier) {
+                        if (assign instanceof functions_js_1.$FunctionExpression && !assign.HasName && lref instanceof $Identifier) {
                             // 1. c. i. Let rval be the result of performing NamedEvaluation for AssignmentExpression with argument GetReferencedName(lref).
                             rval = lref.GetReferencedName();
                         }
@@ -2256,8 +2256,8 @@
                             rval = $rval;
                         }
                         // 1. e. Perform ? PutValue(lref, rval).
-                        if (!(lref instanceof reference_1.$Reference)) {
-                            return new error_1.$ReferenceError(realm, `Value is not assignable: ${lref}`).enrichWith(ctx, this);
+                        if (!(lref instanceof reference_js_1.$Reference)) {
+                            return new error_js_1.$ReferenceError(realm, `Value is not assignable: ${lref}`).enrichWith(ctx, this);
                         }
                         const $PutValueResult = lref.PutValue(ctx, rval);
                         if ($PutValueResult.isAbrupt) {
@@ -2348,7 +2348,7 @@
                                 return exponent.enrichWith(ctx, this);
                             }
                             // 7. Return the result of Applying the ** operator with base and exponent as specified in 12.6.4.
-                            r = new number_1.$Number(realm, base['[[Value]]'] ** exponent['[[Value]]']);
+                            r = new number_js_1.$Number(realm, base['[[Value]]'] ** exponent['[[Value]]']);
                             break;
                         }
                         case typescript_1.SyntaxKind.AsteriskEqualsToken: {
@@ -2363,7 +2363,7 @@
                                 return rnum.enrichWith(ctx, this);
                             }
                             // 7. Return the result of applying the MultiplicativeOperator (*, /, or %) to lnum and rnum as specified in 12.7.3.1, 12.7.3.2, or 12.7.3.3.
-                            r = new number_1.$Number(realm, lnum['[[Value]]'] * rnum['[[Value]]']);
+                            r = new number_js_1.$Number(realm, lnum['[[Value]]'] * rnum['[[Value]]']);
                             break;
                         }
                         case typescript_1.SyntaxKind.SlashEqualsToken: {
@@ -2378,7 +2378,7 @@
                                 return rnum.enrichWith(ctx, this);
                             }
                             // 7. Return the result of applying the MultiplicativeOperator (*, /, or %) to lnum and rnum as specified in 12.7.3.1, 12.7.3.2, or 12.7.3.3.
-                            r = new number_1.$Number(realm, lnum['[[Value]]'] / rnum['[[Value]]']);
+                            r = new number_js_1.$Number(realm, lnum['[[Value]]'] / rnum['[[Value]]']);
                             break;
                         }
                         case typescript_1.SyntaxKind.PercentEqualsToken: {
@@ -2393,7 +2393,7 @@
                                 return rnum.enrichWith(ctx, this);
                             }
                             // 7. Return the result of applying the MultiplicativeOperator (*, /, or %) to lnum and rnum as specified in 12.7.3.1, 12.7.3.2, or 12.7.3.3.
-                            r = new number_1.$Number(realm, lnum['[[Value]]'] % rnum['[[Value]]']);
+                            r = new number_js_1.$Number(realm, lnum['[[Value]]'] % rnum['[[Value]]']);
                             break;
                         }
                         case typescript_1.SyntaxKind.PlusEqualsToken: {
@@ -2420,7 +2420,7 @@
                                     return rstr.enrichWith(ctx, this);
                                 }
                                 // 7. c. Return the string-concatenation of lstr and rstr.
-                                r = new string_1.$String(realm, lstr['[[Value]]'] + rstr['[[Value]]']);
+                                r = new string_js_1.$String(realm, lstr['[[Value]]'] + rstr['[[Value]]']);
                                 break;
                             }
                             // 8. Let lnum be ? ToNumber(lprim).
@@ -2434,7 +2434,7 @@
                                 return rnum.enrichWith(ctx, this);
                             }
                             // 10. Return the result of applying the addition operation to lnum and rnum. See the Note below 12.8.5.
-                            r = new number_1.$Number(realm, lnum['[[Value]]'] + rnum['[[Value]]']);
+                            r = new number_js_1.$Number(realm, lnum['[[Value]]'] + rnum['[[Value]]']);
                             break;
                         }
                         case typescript_1.SyntaxKind.MinusEqualsToken: {
@@ -2449,7 +2449,7 @@
                                 return rnum.enrichWith(ctx, this);
                             }
                             // 7. Return the result of applying the subtraction operation to lnum and rnum. See the note below 12.8.5.
-                            r = new number_1.$Number(realm, lnum['[[Value]]'] - rnum['[[Value]]']);
+                            r = new number_js_1.$Number(realm, lnum['[[Value]]'] - rnum['[[Value]]']);
                             break;
                         }
                         case typescript_1.SyntaxKind.LessThanLessThanEqualsToken: {
@@ -2466,7 +2466,7 @@
                             // 7. Let shiftCount be the result of masking out all but the least significant 5 bits of rnum, that is, compute rnum & 0x1F.
                             const shiftCount = rnum['[[Value]]'] & 0b11111;
                             // 8. Return the result of left shifting lnum by shiftCount bits. The result is a signed 32-bit integer.
-                            r = new number_1.$Number(realm, lnum['[[Value]]'] << shiftCount);
+                            r = new number_js_1.$Number(realm, lnum['[[Value]]'] << shiftCount);
                             break;
                         }
                         case typescript_1.SyntaxKind.GreaterThanGreaterThanEqualsToken: {
@@ -2483,7 +2483,7 @@
                             // 7. Let shiftCount be the result of masking out all but the least significant 5 bits of rnum, that is, compute rnum & 0x1F.
                             const shiftCount = rnum['[[Value]]'] & 0b11111;
                             // 8. Return the result of performing a sign-extending right shift of lnum by shiftCount bits. The most significant bit is propagated. The result is a signed 32-bit integer.
-                            r = new number_1.$Number(realm, lnum['[[Value]]'] >> shiftCount);
+                            r = new number_js_1.$Number(realm, lnum['[[Value]]'] >> shiftCount);
                             break;
                         }
                         case typescript_1.SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken: {
@@ -2500,7 +2500,7 @@
                             // 7. Let shiftCount be the result of masking out all but the least significant 5 bits of rnum, that is, compute rnum & 0x1F.
                             const shiftCount = rnum['[[Value]]'] & 0b11111;
                             // 8. Return the result of performing a zero-filling right shift of lnum by shiftCount bits. Vacated bits are filled with zero. The result is an unsigned 32-bit integer.
-                            r = new number_1.$Number(realm, lnum['[[Value]]'] >>> shiftCount);
+                            r = new number_js_1.$Number(realm, lnum['[[Value]]'] >>> shiftCount);
                             break;
                         }
                         case typescript_1.SyntaxKind.AmpersandEqualsToken: {
@@ -2515,7 +2515,7 @@
                                 return rnum.enrichWith(ctx, this);
                             }
                             // 7. Return the result of applying the bitwise operator @ to lnum and rnum. The result is a signed 32-bit integer.
-                            r = new number_1.$Number(realm, lnum['[[Value]]'] & rnum['[[Value]]']);
+                            r = new number_js_1.$Number(realm, lnum['[[Value]]'] & rnum['[[Value]]']);
                             break;
                         }
                         case typescript_1.SyntaxKind.CaretEqualsToken: {
@@ -2530,7 +2530,7 @@
                                 return rnum.enrichWith(ctx, this);
                             }
                             // 7. Return the result of applying the bitwise operator @ to lnum and rnum. The result is a signed 32-bit integer.
-                            r = new number_1.$Number(realm, lnum['[[Value]]'] ^ rnum['[[Value]]']);
+                            r = new number_js_1.$Number(realm, lnum['[[Value]]'] ^ rnum['[[Value]]']);
                             break;
                         }
                         case typescript_1.SyntaxKind.BarEqualsToken: {
@@ -2545,13 +2545,13 @@
                                 return rnum.enrichWith(ctx, this);
                             }
                             // 7. Return the result of applying the bitwise operator @ to lnum and rnum. The result is a signed 32-bit integer.
-                            r = new number_1.$Number(realm, lnum['[[Value]]'] | rnum['[[Value]]']);
+                            r = new number_js_1.$Number(realm, lnum['[[Value]]'] | rnum['[[Value]]']);
                             break;
                         }
                     }
                     // 7. Perform ? PutValue(lref, r).
-                    if (!(lref instanceof reference_1.$Reference)) {
-                        return new error_1.$ReferenceError(realm, `Value is not assignable: ${lref}`).enrichWith(ctx, this);
+                    if (!(lref instanceof reference_js_1.$Reference)) {
+                        return new error_js_1.$ReferenceError(realm, `Value is not assignable: ${lref}`).enrichWith(ctx, this);
                     }
                     const $PutValueResult = lref.PutValue(ctx, r);
                     if ($PutValueResult.isAbrupt) {
@@ -2567,7 +2567,7 @@
     }
     exports.$BinaryExpression = $BinaryExpression;
     class $ConditionalExpression {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.ConditionalExpression`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.ConditionalExpression`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -2581,10 +2581,10 @@
                 this.$condition = new $BinaryExpression(node.condition, this, ctx, -1);
             }
             else {
-                this.$condition = _shared_1.$unaryExpression(node.condition, this, ctx, -1);
+                this.$condition = _shared_js_1.$unaryExpression(node.condition, this, ctx, -1);
             }
-            this.$whenTrue = _shared_1.$assignmentExpression(node.whenTrue, this, ctx, -1);
-            this.$whenFalse = _shared_1.$assignmentExpression(node.whenFalse, this, ctx, -1);
+            this.$whenTrue = _shared_js_1.$assignmentExpression(node.whenTrue, this, ctx, -1);
+            this.$whenFalse = _shared_js_1.$assignmentExpression(node.whenFalse, this, ctx, -1);
         }
         get $kind() { return typescript_1.SyntaxKind.ConditionalExpression; }
         // http://www.ecma-international.org/ecma-262/#sec-conditional-operator-runtime-semantics-evaluation
@@ -2608,7 +2608,7 @@
     }
     exports.$ConditionalExpression = $ConditionalExpression;
     class $YieldExpression {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.YieldExpression`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.YieldExpression`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -2618,7 +2618,7 @@
             this.depth = depth;
             this.logger = logger;
             this.path = path;
-            this.$expression = _shared_1.$assignmentExpression(node.expression, this, ctx, -1);
+            this.$expression = _shared_js_1.$assignmentExpression(node.expression, this, ctx, -1);
         }
         get $kind() { return typescript_1.SyntaxKind.YieldExpression; }
         // http://www.ecma-international.org/ecma-262/#sec-generator-function-definitions-runtime-semantics-evaluation
@@ -2694,7 +2694,7 @@
     }
     exports.$YieldExpression = $YieldExpression;
     class $AsExpression {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.AsExpression`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.AsExpression`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -2704,7 +2704,7 @@
             this.depth = depth;
             this.logger = logger;
             this.path = path;
-            this.$expression = _shared_1.$assignmentExpression(node.expression, this, ctx, -1);
+            this.$expression = _shared_js_1.$assignmentExpression(node.expression, this, ctx, -1);
         }
         get $kind() { return typescript_1.SyntaxKind.AsExpression; }
         // This is a TS expression that wraps an ordinary expression. Just return the evaluate result.
@@ -2716,7 +2716,7 @@
     exports.$AsExpression = $AsExpression;
     // #endregion
     class $Identifier {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.Identifier(${node.text})`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.Identifier(${node.text})`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -2747,10 +2747,10 @@
             // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-issimpleparameterlist
             // 13.3.3.4 Static Semantics: IsSimpleParameterList
             this.IsSimpleParameterList = true;
-            const StringValue = this.StringValue = new string_1.$String(realm, node.text, void 0, void 0, this);
+            const StringValue = this.StringValue = new string_js_1.$String(realm, node.text, void 0, void 0, this);
             this.PropName = StringValue;
             this.BoundNames = [StringValue];
-            if (_shared_1.hasBit(ctx, 65536 /* InStrictMode */) && (StringValue['[[Value]]'] === 'eval' || StringValue['[[Value]]'] === 'arguments')) {
+            if (_shared_js_1.hasBit(ctx, 65536 /* InStrictMode */) && (StringValue['[[Value]]'] === 'eval' || StringValue['[[Value]]'] === 'arguments')) {
                 this.AssignmentTargetType = 'strict';
             }
             else {
@@ -2793,7 +2793,7 @@
                 return $InitializeKeyedBindingResult.enrichWith(ctx, this);
             }
             // 3. Return a new List containing name.
-            return new list_1.$List(...this.BoundNames);
+            return new list_js_1.$List(...this.BoundNames);
         }
         // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-runtime-semantics-iteratorbindinginitialization
         // 13.3.3.8 Runtime Semantics: IteratorBindingInitialization
@@ -2814,7 +2814,7 @@
             // 3. If iteratorRecord.[[Done]] is false, then
             if (iteratorRecord['[[Done]]'].isFalsey) {
                 // 3. a. Let next be IteratorStep(iteratorRecord).
-                const next = iteration_1.$IteratorStep(ctx, iteratorRecord);
+                const next = iteration_js_1.$IteratorStep(ctx, iteratorRecord);
                 // 3. b. If next is an abrupt completion, set iteratorRecord.[[Done]] to true.
                 if (next.isAbrupt) {
                     iteratorRecord['[[Done]]'] = intrinsics.true;
@@ -2828,7 +2828,7 @@
                 // 3. e. Else,
                 else {
                     // 3. e. i. Let v be IteratorValue(next).
-                    v = iteration_1.$IteratorValue(ctx, next);
+                    v = iteration_js_1.$IteratorValue(ctx, next);
                     // 3. e. ii. If v is an abrupt completion, set iteratorRecord.[[Done]] to true.
                     if (v.isAbrupt) {
                         iteratorRecord['[[Done]]'] = intrinsics.true;
@@ -2844,7 +2844,7 @@
             // 5. If Initializer is present and v is undefined, then
             if (initializer !== void 0 && v.isUndefined) {
                 // 5. a. If IsAnonymousFunctionDefinition(Initializer) is true, then
-                if (initializer instanceof functions_1.$FunctionExpression && !initializer.HasName) {
+                if (initializer instanceof functions_js_1.$FunctionExpression && !initializer.HasName) {
                     // 5. a. i. Set v to the result of performing NamedEvaluation for Initializer with argument bindingId.
                     v = initializer.EvaluateNamed(ctx, bindingId);
                 }
@@ -2893,7 +2893,7 @@
             // 4. If Initializer is present and v is undefined, then
             if (initializer !== void 0 && v.isUndefined) {
                 // 4. a. If IsAnonymousFunctionDefinition(Initializer) is true, then
-                if (initializer instanceof functions_1.$FunctionExpression && !initializer.HasName) {
+                if (initializer instanceof functions_js_1.$FunctionExpression && !initializer.HasName) {
                     // 4. a. i. Set v to the result of performing NamedEvaluation for Initializer with argument bindingId.
                     v = initializer.EvaluateNamed(ctx, bindingId);
                 }

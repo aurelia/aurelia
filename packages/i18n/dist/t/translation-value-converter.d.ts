@@ -1,5 +1,5 @@
 import i18next from 'i18next';
-import { I18N } from '../i18n';
+import { I18N } from '../i18n.js';
 export declare class TranslationValueConverter {
     private readonly i18n;
     readonly signals: string[];

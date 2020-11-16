@@ -1,5 +1,5 @@
 import { IIndexable } from '@aurelia/kernel';
-import { IBinding, IBindingContext, IOverrideContext, LifecycleFlags } from '../observation';
+import { IBinding, IBindingContext, IOverrideContext, LifecycleFlags } from '../observation.js';
 export declare class BindingContext implements IBindingContext {
     [key: string]: unknown;
     private constructor();

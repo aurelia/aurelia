@@ -1,11 +1,11 @@
 import { ModifierFlags, NodeFlags, SyntaxKind, } from 'typescript';
 import { emptyArray, } from '@aurelia/kernel';
-import { $DeclarativeEnvRec, } from '../types/environment-record';
-import { $Undefined, } from '../types/undefined';
-import { $Empty, } from '../types/empty';
-import { clearBit, modifiersToModifierFlags, hasBit, $identifier, $assignmentExpression, $$bindingName, getBoundNames, getVarDeclaredNames, getVarScopedDeclarations, $$tsStatementList, BlockDeclarationInstantiation, evaluateStatementList, evaluateStatement, $$esLabelledItem, getLexicallyDeclaredNames, getLexicallyScopedDeclarations, $i, } from './_shared';
-import { ExportEntryRecord, } from './modules';
-import { $LoopContinues, } from '../operations';
+import { $DeclarativeEnvRec, } from '../types/environment-record.js';
+import { $Undefined, } from '../types/undefined.js';
+import { $Empty, } from '../types/empty.js';
+import { clearBit, modifiersToModifierFlags, hasBit, $identifier, $assignmentExpression, $$bindingName, getBoundNames, getVarDeclaredNames, getVarScopedDeclarations, $$tsStatementList, BlockDeclarationInstantiation, evaluateStatementList, evaluateStatement, $$esLabelledItem, getLexicallyDeclaredNames, getLexicallyScopedDeclarations, $i, } from './_shared.js';
+import { ExportEntryRecord, } from './modules.js';
+import { $LoopContinues, } from '../operations.js';
 export class $VariableStatement {
     constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${$i(idx)}.VariableStatement`) {
         this.node = node;

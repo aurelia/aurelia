@@ -1,5 +1,5 @@
 import { IContainer, IDisposable } from '@aurelia/kernel';
-import { IAppRoot, ISinglePageApp } from './app-root';
+import { IAppRoot, ISinglePageApp } from './app-root.js';
 export interface IAurelia extends Aurelia {
 }
 export declare const IAurelia: import("@aurelia/kernel").InterfaceSymbol<IAurelia>;

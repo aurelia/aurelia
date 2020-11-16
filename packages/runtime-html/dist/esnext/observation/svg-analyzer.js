@@ -11,7 +11,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 import { DI, Registration } from '@aurelia/kernel';
-import { IPlatform } from '../platform';
+import { IPlatform } from '../platform.js';
 export const ISVGAnalyzer = DI.createInterface('ISVGAnalyzer').withDefault(x => x.singleton(NoopSVGAnalyzer));
 export class NoopSVGAnalyzer {
     isStandardSvgAttribute(node, attributeName) {

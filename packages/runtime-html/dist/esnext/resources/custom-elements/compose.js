@@ -12,11 +12,11 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 import { nextId, onResolve } from '@aurelia/kernel';
 import { BindingMode, bindable } from '@aurelia/runtime';
-import { createElement } from '../../create-element';
-import { HydrateElementInstruction, IInstruction } from '../../renderer';
-import { IPlatform } from '../../platform';
-import { getRenderContext } from '../../templating/render-context';
-import { customElement, CustomElementDefinition } from '../custom-element';
+import { createElement } from '../../create-element.js';
+import { HydrateElementInstruction, IInstruction } from '../../renderer.js';
+import { IPlatform } from '../../platform.js';
+import { getRenderContext } from '../../templating/render-context.js';
+import { customElement, CustomElementDefinition } from '../custom-element.js';
 function toLookup(acc, item) {
     const to = item.to;
     if (to !== void 0 && to !== 'subject' && to !== 'composing') {

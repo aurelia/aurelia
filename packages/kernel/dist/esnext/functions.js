@@ -1,4 +1,4 @@
-import { emptyArray } from './platform';
+import { emptyArray } from './platform.js';
 const isNumericLookup = {};
 /**
  * Efficiently determine whether the provided property key is numeric

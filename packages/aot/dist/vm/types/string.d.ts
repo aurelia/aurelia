@@ -1,12 +1,12 @@
-import { $AnyNonError, PotentialNonEmptyCompletionType, CompletionTarget, $Any } from './_shared';
-import { $Number } from './number';
-import { $Undefined } from './undefined';
-import { Realm, ExecutionContext } from '../realm';
-import { $Object } from './object';
-import { $Boolean } from './boolean';
-import { $Identifier } from '../ast/expressions';
-import { $StringLiteral, $NumericLiteral } from '../ast/literals';
-import { I$Node } from '../ast/_shared';
+import { $AnyNonError, PotentialNonEmptyCompletionType, CompletionTarget, $Any } from './_shared.js';
+import { $Number } from './number.js';
+import { $Undefined } from './undefined.js';
+import { Realm, ExecutionContext } from '../realm.js';
+import { $Object } from './object.js';
+import { $Boolean } from './boolean.js';
+import { $Identifier } from '../ast/expressions.js';
+import { $StringLiteral, $NumericLiteral } from '../ast/literals.js';
+import { I$Node } from '../ast/_shared.js';
 export declare class $String<T extends string = string> {
     readonly realm: Realm;
     readonly sourceNode: $Identifier | $StringLiteral | $NumericLiteral | null;

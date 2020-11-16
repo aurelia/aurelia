@@ -1,6 +1,6 @@
-import { ComponentAppellation, IComponentAndOrViewportOrNothing } from './interfaces';
-import { ViewportInstruction } from './viewport-instruction';
-import { Navigation } from './navigation';
+import { ComponentAppellation, IComponentAndOrViewportOrNothing } from './interfaces.js';
+import { ViewportInstruction } from './viewport-instruction.js';
+import { Navigation } from './navigation.js';
 /**
  * Public API
  */

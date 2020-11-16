@@ -1,8 +1,8 @@
-import { $BuiltinFunction, } from '../types/function';
-import { $TypeError, } from '../types/error';
-import { $Symbol, } from '../types/symbol';
-import { $Undefined, } from '../types/undefined';
-import { $Object, } from '../types/object';
+import { $BuiltinFunction, } from '../types/function.js';
+import { $TypeError, } from '../types/error.js';
+import { $Symbol, } from '../types/symbol.js';
+import { $Undefined, } from '../types/undefined.js';
+import { $Object, } from '../types/object.js';
 // http://www.ecma-international.org/ecma-262/#sec-symbol-constructor
 export class $SymbolConstructor extends $BuiltinFunction {
     get $prototype() {

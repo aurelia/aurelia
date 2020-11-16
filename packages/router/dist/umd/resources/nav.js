@@ -16,14 +16,14 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/runtime-html", "../router"], factory);
+        define(["require", "exports", "@aurelia/runtime-html", "../router.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.NavCustomElement = void 0;
     const runtime_html_1 = require("@aurelia/runtime-html");
-    const router_1 = require("../router");
+    const router_js_1 = require("../router.js");
     let NavCustomElement = class NavCustomElement {
         constructor(router) {
             this.router = router;
@@ -88,7 +88,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
   </ul>
 </template>`
         }),
-        __param(0, router_1.IRouter),
+        __param(0, router_js_1.IRouter),
         __metadata("design:paramtypes", [Object])
     ], NavCustomElement);
     exports.NavCustomElement = NavCustomElement;

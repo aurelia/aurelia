@@ -16,7 +16,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "../platform", "./attribute-ns-accessor", "./checked-observer", "./class-attribute-accessor", "./data-attribute-accessor", "./element-property-accessor", "./event-delegator", "./select-value-observer", "./style-attribute-accessor", "./svg-analyzer", "./value-attribute-observer"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "../platform.js", "./attribute-ns-accessor.js", "./checked-observer.js", "./class-attribute-accessor.js", "./data-attribute-accessor.js", "./element-property-accessor.js", "./event-delegator.js", "./select-value-observer.js", "./style-attribute-accessor.js", "./svg-analyzer.js", "./value-attribute-observer.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -24,17 +24,17 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     exports.getCollectionObserver = exports.NodeObserverLocator = exports.NodeObserverConfig = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
-    const platform_1 = require("../platform");
-    const attribute_ns_accessor_1 = require("./attribute-ns-accessor");
-    const checked_observer_1 = require("./checked-observer");
-    const class_attribute_accessor_1 = require("./class-attribute-accessor");
-    const data_attribute_accessor_1 = require("./data-attribute-accessor");
-    const element_property_accessor_1 = require("./element-property-accessor");
-    const event_delegator_1 = require("./event-delegator");
-    const select_value_observer_1 = require("./select-value-observer");
-    const style_attribute_accessor_1 = require("./style-attribute-accessor");
-    const svg_analyzer_1 = require("./svg-analyzer");
-    const value_attribute_observer_1 = require("./value-attribute-observer");
+    const platform_js_1 = require("../platform.js");
+    const attribute_ns_accessor_js_1 = require("./attribute-ns-accessor.js");
+    const checked_observer_js_1 = require("./checked-observer.js");
+    const class_attribute_accessor_js_1 = require("./class-attribute-accessor.js");
+    const data_attribute_accessor_js_1 = require("./data-attribute-accessor.js");
+    const element_property_accessor_js_1 = require("./element-property-accessor.js");
+    const event_delegator_js_1 = require("./event-delegator.js");
+    const select_value_observer_js_1 = require("./select-value-observer.js");
+    const style_attribute_accessor_js_1 = require("./style-attribute-accessor.js");
+    const svg_analyzer_js_1 = require("./svg-analyzer.js");
+    const value_attribute_observer_js_1 = require("./value-attribute-observer.js");
     // https://infra.spec.whatwg.org/#namespaces
     const htmlNS = 'http://www.w3.org/1999/xhtml';
     const mathmlNS = 'http://www.w3.org/1998/Math/MathML';
@@ -59,7 +59,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     class NodeObserverConfig {
         constructor(config) {
             var _a;
-            this.type = (_a = config.type) !== null && _a !== void 0 ? _a : value_attribute_observer_1.ValueAttributeObserver;
+            this.type = (_a = config.type) !== null && _a !== void 0 ? _a : value_attribute_observer_js_1.ValueAttributeObserver;
             this.events = config.events;
             this.readonly = config.readonly;
             this.default = config.default;
@@ -87,11 +87,11 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             this.useConfig({
                 INPUT: {
                     value: inputEventsConfig,
-                    checked: { type: checked_observer_1.CheckedObserver, events: inputEvents },
+                    checked: { type: checked_observer_js_1.CheckedObserver, events: inputEvents },
                     files: { events: inputEvents, readonly: true },
                 },
                 SELECT: {
-                    value: { type: select_value_observer_1.SelectValueObserver, events: ['change'], default: '' },
+                    value: { type: select_value_observer_js_1.SelectValueObserver, events: ['change'], default: '' },
                 },
                 TEXTAREA: {
                     value: inputEventsConfig,
@@ -177,16 +177,16 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                 case 'href':
                 // https://html.spec.whatwg.org/multipage/dom.html#wai-aria
                 case 'role':
-                    return data_attribute_accessor_1.attrAccessor;
+                    return data_attribute_accessor_js_1.attrAccessor;
                 default: {
                     const nsProps = nsAttributes[key];
                     if (nsProps !== undefined) {
-                        return attribute_ns_accessor_1.AttributeNSAccessor.forNs(nsProps[1]);
+                        return attribute_ns_accessor_js_1.AttributeNSAccessor.forNs(nsProps[1]);
                     }
                     if (isDataAttribute(obj, key, this.svgAnalyzer)) {
-                        return data_attribute_accessor_1.attrAccessor;
+                        return data_attribute_accessor_js_1.attrAccessor;
                     }
-                    return element_property_accessor_1.elementPropertyAccessor;
+                    return element_property_accessor_js_1.elementPropertyAccessor;
                 }
             }
         }
@@ -194,24 +194,24 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             var _a, _b;
             switch (key) {
                 case 'role':
-                    return data_attribute_accessor_1.attrAccessor;
+                    return data_attribute_accessor_js_1.attrAccessor;
                 case 'class':
-                    return new class_attribute_accessor_1.ClassAttributeAccessor(el);
+                    return new class_attribute_accessor_js_1.ClassAttributeAccessor(el);
                 case 'css':
                 case 'style':
-                    return new style_attribute_accessor_1.StyleAttributeAccessor(el);
+                    return new style_attribute_accessor_js_1.StyleAttributeAccessor(el);
             }
             const eventsConfig = (_b = (_a = this.eventsLookup[el.tagName]) === null || _a === void 0 ? void 0 : _a[key]) !== null && _b !== void 0 ? _b : this.globalLookup[key];
             if (eventsConfig != null) {
-                return new eventsConfig.type(el, key, new event_delegator_1.EventSubscriber(eventsConfig), requestor, this.locator);
+                return new eventsConfig.type(el, key, new event_delegator_js_1.EventSubscriber(eventsConfig), requestor, this.locator);
             }
             const nsProps = nsAttributes[key];
             if (nsProps !== undefined) {
-                return attribute_ns_accessor_1.AttributeNSAccessor.forNs(nsProps[1]);
+                return attribute_ns_accessor_js_1.AttributeNSAccessor.forNs(nsProps[1]);
             }
             if (isDataAttribute(el, key, this.svgAnalyzer)) {
                 // todo: should observe
-                return data_attribute_accessor_1.attrAccessor;
+                return data_attribute_accessor_js_1.attrAccessor;
             }
             if (key in el.constructor.prototype) {
                 if (this.allowDirtyCheck) {
@@ -230,9 +230,9 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     };
     NodeObserverLocator = __decorate([
         __param(0, kernel_1.IServiceLocator),
-        __param(1, platform_1.IPlatform),
+        __param(1, platform_js_1.IPlatform),
         __param(2, runtime_1.IDirtyChecker),
-        __param(3, svg_analyzer_1.ISVGAnalyzer),
+        __param(3, svg_analyzer_js_1.ISVGAnalyzer),
         __metadata("design:paramtypes", [Object, Object, Object, Object])
     ], NodeObserverLocator);
     exports.NodeObserverLocator = NodeObserverLocator;

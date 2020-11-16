@@ -1,7 +1,7 @@
 import { Constructable, IContainer, IResourceKind, ResourceType, ResourceDefinition, PartialResourceDefinition } from '@aurelia/kernel';
 import { BindingType } from '@aurelia/runtime';
-import { IInstruction, AttributeInstruction, RefBindingInstruction } from '../renderer';
-import { BindingSymbol, PlainAttributeSymbol } from '../semantic-model';
+import { IInstruction, AttributeInstruction, RefBindingInstruction } from '../renderer.js';
+import { BindingSymbol, PlainAttributeSymbol } from '../semantic-model.js';
 export declare type PartialBindingCommandDefinition = PartialResourceDefinition<{
     readonly type?: string | null;
 }>;

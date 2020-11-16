@@ -16,7 +16,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "../../dom", "../../templating/view", "../custom-attribute", "../../templating/controller"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "../../dom.js", "../../templating/view.js", "../custom-attribute.js", "../../templating/controller.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -24,10 +24,10 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     exports.longestIncreasingSubsequence = exports.Repeat = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
-    const dom_1 = require("../../dom");
-    const view_1 = require("../../templating/view");
-    const custom_attribute_1 = require("../custom-attribute");
-    const controller_1 = require("../../templating/controller");
+    const dom_js_1 = require("../../dom.js");
+    const view_js_1 = require("../../templating/view.js");
+    const custom_attribute_js_1 = require("../custom-attribute.js");
+    const controller_js_1 = require("../../templating/controller.js");
     function dispose(disposable) {
         disposable.dispose();
     }
@@ -307,10 +307,10 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         __metadata("design:type", Object)
     ], Repeat.prototype, "items", void 0);
     Repeat = __decorate([
-        custom_attribute_1.templateController('repeat'),
-        __param(0, dom_1.IRenderLocation),
-        __param(1, controller_1.IController),
-        __param(2, view_1.IViewFactory),
+        custom_attribute_js_1.templateController('repeat'),
+        __param(0, dom_js_1.IRenderLocation),
+        __param(1, controller_js_1.IController),
+        __param(2, view_js_1.IViewFactory),
         __metadata("design:paramtypes", [Object, Object, Object])
     ], Repeat);
     exports.Repeat = Repeat;

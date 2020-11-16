@@ -1,15 +1,15 @@
-import { $Object } from '../types/object';
-import { Realm, ExecutionContext } from '../realm';
-import { $Function, $BuiltinFunction } from '../types/function';
-import { $PropertyKey, $AnyNonEmpty, $AnyNonEmptyNonError, $AnyObject } from '../types/_shared';
-import { $EnvRec } from '../types/environment-record';
-import { $String } from '../types/string';
-import { $PropertyDescriptor } from '../types/property-descriptor';
-import { $Undefined } from '../types/undefined';
-import { $Boolean } from '../types/boolean';
-import { $Error } from '../types/error';
-import { $ParameterDeclaration } from '../ast/functions';
-import { $List } from '../types/list';
+import { $Object } from '../types/object.js';
+import { Realm, ExecutionContext } from '../realm.js';
+import { $Function, $BuiltinFunction } from '../types/function.js';
+import { $PropertyKey, $AnyNonEmpty, $AnyNonEmptyNonError, $AnyObject } from '../types/_shared.js';
+import { $EnvRec } from '../types/environment-record.js';
+import { $String } from '../types/string.js';
+import { $PropertyDescriptor } from '../types/property-descriptor.js';
+import { $Undefined } from '../types/undefined.js';
+import { $Boolean } from '../types/boolean.js';
+import { $Error } from '../types/error.js';
+import { $ParameterDeclaration } from '../ast/functions.js';
+import { $List } from '../types/list.js';
 export declare class $ArgumentsExoticObject extends $Object<'ArgumentsExoticObject'> {
     readonly '[[ParameterMap]]': $AnyObject;
     constructor(realm: Realm, func: $Function, formals: readonly $ParameterDeclaration[], argumentsList: readonly $AnyNonEmpty[], env: $EnvRec);

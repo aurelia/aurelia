@@ -11,7 +11,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 import { bindable, customElement } from '@aurelia/runtime-html';
-import { IRouter } from '../router';
+import { IRouter } from '../router.js';
 let NavCustomElement = class NavCustomElement {
     constructor(router) {
         this.router = router;

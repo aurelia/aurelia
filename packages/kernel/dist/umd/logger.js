@@ -16,15 +16,15 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./di", "./functions", "./resource", "@aurelia/metadata"], factory);
+        define(["require", "exports", "./di.js", "./functions.js", "./resource.js", "@aurelia/metadata"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.LoggerConfiguration = exports.DefaultLogger = exports.ConsoleSink = exports.DefaultLogEventFactory = exports.DefaultLogEvent = exports.LogConfig = exports.format = exports.sink = exports.LoggerSink = exports.ILogScopes = exports.ILogger = exports.ILogEventFactory = exports.ISink = exports.ILogConfig = exports.ColorOptions = exports.LogLevel = void 0;
-    const di_1 = require("./di");
-    const functions_1 = require("./functions");
-    const resource_1 = require("./resource");
+    const di_js_1 = require("./di.js");
+    const functions_js_1 = require("./functions.js");
+    const resource_js_1 = require("./resource.js");
     const metadata_1 = require("@aurelia/metadata");
     var LogLevel;
     (function (LogLevel) {
@@ -73,13 +73,13 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
          */
         ColorOptions[ColorOptions["colors"] = 1] = "colors";
     })(ColorOptions = exports.ColorOptions || (exports.ColorOptions = {}));
-    exports.ILogConfig = di_1.DI.createInterface('ILogConfig').withDefault(x => x.instance(new LogConfig(0 /* noColors */, 3 /* warn */)));
-    exports.ISink = di_1.DI.createInterface('ISink').noDefault();
-    exports.ILogEventFactory = di_1.DI.createInterface('ILogEventFactory').withDefault(x => x.singleton(DefaultLogEventFactory));
-    exports.ILogger = di_1.DI.createInterface('ILogger').withDefault(x => x.singleton(DefaultLogger));
-    exports.ILogScopes = di_1.DI.createInterface('ILogScope').noDefault();
+    exports.ILogConfig = di_js_1.DI.createInterface('ILogConfig').withDefault(x => x.instance(new LogConfig(0 /* noColors */, 3 /* warn */)));
+    exports.ISink = di_js_1.DI.createInterface('ISink').noDefault();
+    exports.ILogEventFactory = di_js_1.DI.createInterface('ILogEventFactory').withDefault(x => x.singleton(DefaultLogEventFactory));
+    exports.ILogger = di_js_1.DI.createInterface('ILogger').withDefault(x => x.singleton(DefaultLogger));
+    exports.ILogScopes = di_js_1.DI.createInterface('ILogScope').noDefault();
     exports.LoggerSink = Object.freeze({
-        key: resource_1.Protocol.annotation.keyFor('logger-sink-handles'),
+        key: resource_js_1.Protocol.annotation.keyFor('logger-sink-handles'),
         define(target, definition) {
             metadata_1.Metadata.define(this.key, definition.handles, target.prototype);
             return target;
@@ -95,7 +95,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     }
     exports.sink = sink;
     // http://en.wikipedia.org/wiki/ANSI_escape_code#graphics
-    exports.format = functions_1.toLookup({
+    exports.format = functions_js_1.toLookup({
         red(str) {
             return `\u001b[31m${str}\u001b[39m`;
         },
@@ -130,7 +130,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     exports.LogConfig = LogConfig;
     const getLogLevelString = (function () {
         const logLevelString = [
-            functions_1.toLookup({
+            functions_js_1.toLookup({
                 TRC: 'TRC',
                 DBG: 'DBG',
                 INF: 'INF',
@@ -139,7 +139,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                 FTL: 'FTL',
                 QQQ: '???',
             }),
-            functions_1.toLookup({
+            functions_js_1.toLookup({
                 TRC: exports.format.grey('TRC'),
                 DBG: exports.format.grey('DBG'),
                 INF: exports.format.white('INF'),
@@ -387,37 +387,37 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
     };
     __decorate([
-        functions_1.bound,
+        functions_js_1.bound,
         __metadata("design:type", Function),
         __metadata("design:paramtypes", [Object, Object]),
         __metadata("design:returntype", void 0)
     ], DefaultLogger.prototype, "trace", null);
     __decorate([
-        functions_1.bound,
+        functions_js_1.bound,
         __metadata("design:type", Function),
         __metadata("design:paramtypes", [Object, Object]),
         __metadata("design:returntype", void 0)
     ], DefaultLogger.prototype, "debug", null);
     __decorate([
-        functions_1.bound,
+        functions_js_1.bound,
         __metadata("design:type", Function),
         __metadata("design:paramtypes", [Object, Object]),
         __metadata("design:returntype", void 0)
     ], DefaultLogger.prototype, "info", null);
     __decorate([
-        functions_1.bound,
+        functions_js_1.bound,
         __metadata("design:type", Function),
         __metadata("design:paramtypes", [Object, Object]),
         __metadata("design:returntype", void 0)
     ], DefaultLogger.prototype, "warn", null);
     __decorate([
-        functions_1.bound,
+        functions_js_1.bound,
         __metadata("design:type", Function),
         __metadata("design:paramtypes", [Object, Object]),
         __metadata("design:returntype", void 0)
     ], DefaultLogger.prototype, "error", null);
     __decorate([
-        functions_1.bound,
+        functions_js_1.bound,
         __metadata("design:type", Function),
         __metadata("design:paramtypes", [Object, Object]),
         __metadata("design:returntype", void 0)
@@ -425,9 +425,9 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     DefaultLogger = __decorate([
         __param(0, exports.ILogConfig),
         __param(1, exports.ILogEventFactory),
-        __param(2, di_1.all(exports.ISink)),
-        __param(3, di_1.optional(exports.ILogScopes)),
-        __param(4, di_1.ignore),
+        __param(2, di_js_1.all(exports.ISink)),
+        __param(3, di_js_1.optional(exports.ILogScopes)),
+        __param(4, di_js_1.ignore),
         __metadata("design:paramtypes", [Object, Object, Array, Array, Object])
     ], DefaultLogger);
     exports.DefaultLogger = DefaultLogger;
@@ -458,21 +458,21 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
      *
      * ```
      */
-    exports.LoggerConfiguration = functions_1.toLookup({
+    exports.LoggerConfiguration = functions_js_1.toLookup({
         /**
          * @param $console - The `console` object to use. Can be the native `window.console` / `global.console`, but can also be a wrapper or mock that implements the same interface.
          * @param level - The global `LogLevel` to configure. Defaults to `warn` or higher.
          * @param colorOptions - Whether to use colors or not. Defaults to `noColors`. Colors are especially nice in nodejs environments but don't necessarily work (well) in all environments, such as browsers.
          */
         create({ $console, level = 3 /* warn */, colorOptions = 0 /* noColors */, sinks = [], } = {}) {
-            return functions_1.toLookup({
+            return functions_js_1.toLookup({
                 register(container) {
-                    container.register(di_1.Registration.instance(exports.ILogConfig, new LogConfig(colorOptions, level)));
+                    container.register(di_js_1.Registration.instance(exports.ILogConfig, new LogConfig(colorOptions, level)));
                     if ($console !== void 0 && $console !== null) {
-                        container.register(di_1.Registration.instance(exports.ISink, new ConsoleSink($console)));
+                        container.register(di_js_1.Registration.instance(exports.ISink, new ConsoleSink($console)));
                     }
                     for (const $sink of sinks) {
-                        container.register(di_1.Registration.singleton(exports.ISink, $sink));
+                        container.register(di_js_1.Registration.singleton(exports.ISink, $sink));
                     }
                     return container;
                 },

@@ -1,14 +1,14 @@
-import { Realm, ExecutionContext } from '../realm';
-import { $Boolean } from './boolean';
-import { $String } from './string';
-import { $Symbol } from './symbol';
-import { $Number } from './number';
-import { $EnvRec } from './environment-record';
-import { $Undefined } from './undefined';
-import { $AnyNonEmpty, $AnyObject } from './_shared';
-import { $Empty } from './empty';
-import { $Error } from './error';
-import { I$Node } from '../ast/_shared';
+import { Realm, ExecutionContext } from '../realm.js';
+import { $Boolean } from './boolean.js';
+import { $String } from './string.js';
+import { $Symbol } from './symbol.js';
+import { $Number } from './number.js';
+import { $EnvRec } from './environment-record.js';
+import { $Undefined } from './undefined.js';
+import { $AnyNonEmpty, $AnyObject } from './_shared.js';
+import { $Empty } from './empty.js';
+import { $Error } from './error.js';
+import { I$Node } from '../ast/_shared.js';
 export declare class $Reference {
     readonly realm: Realm;
     readonly baseValue: $AnyObject | $Boolean | $String | $Symbol | $Number | $EnvRec | $Undefined;

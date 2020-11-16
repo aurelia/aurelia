@@ -16,14 +16,14 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "./platform"], factory);
+        define(["require", "exports", "@aurelia/kernel", "./platform.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.TemplateElementFactory = exports.ITemplateElementFactory = void 0;
     const kernel_1 = require("@aurelia/kernel");
-    const platform_1 = require("./platform");
+    const platform_js_1 = require("./platform.js");
     exports.ITemplateElementFactory = kernel_1.DI.createInterface('ITemplateElementFactory').withDefault(x => x.singleton(TemplateElementFactory));
     const markupCache = {};
     let TemplateElementFactory = class TemplateElementFactory {
@@ -68,7 +68,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
     };
     TemplateElementFactory = __decorate([
-        __param(0, platform_1.IPlatform),
+        __param(0, platform_js_1.IPlatform),
         __metadata("design:paramtypes", [Object])
     ], TemplateElementFactory);
     exports.TemplateElementFactory = TemplateElementFactory;

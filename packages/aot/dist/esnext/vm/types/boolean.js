@@ -1,7 +1,7 @@
-import { nextValueId, Int32, Uint32, Int16, Uint16, Int8, Uint8, Uint8Clamp, } from './_shared';
-import { $Object, } from './object';
-import { $String, } from './string';
-import { $Number, } from './number';
+import { nextValueId, Int32, Uint32, Int16, Uint16, Int8, Uint8, Uint8Clamp, } from './_shared.js';
+import { $Object, } from './object.js';
+import { $String, } from './string.js';
+import { $Number, } from './number.js';
 // http://www.ecma-international.org/ecma-262/#sec-ecmascript-language-types-boolean-type
 export class $Boolean {
     constructor(realm, value, type = 1 /* normal */, target = realm['[[Intrinsics]]'].empty, sourceNode = null, conversionSource = null) {

@@ -1,4 +1,4 @@
-import { nextValueId, } from './_shared';
+import { nextValueId, } from './_shared.js';
 export class $Error {
     constructor(realm, err, intrinsicName) {
         this.realm = realm;

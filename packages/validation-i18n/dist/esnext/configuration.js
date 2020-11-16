@@ -1,6 +1,6 @@
 import { noop, Registration } from '@aurelia/kernel';
 import { getDefaultValidationHtmlConfiguration, ValidationHtmlConfiguration } from '@aurelia/validation-html';
-import { I18nKeyConfiguration, LocalizedValidationControllerFactory, LocalizedValidationMessageProvider } from './localization';
+import { I18nKeyConfiguration, LocalizedValidationControllerFactory, LocalizedValidationMessageProvider } from './localization.js';
 function createConfiguration(optionsProvider) {
     return {
         optionsProvider,

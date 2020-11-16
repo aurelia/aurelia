@@ -4,13 +4,13 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./open-promise"], factory);
+        define(["require", "exports", "./open-promise.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.StateCoordinator = exports.Entity = void 0;
-    const open_promise_1 = require("./open-promise");
+    const open_promise_js_1 = require("./open-promise.js");
     class Entity {
         constructor(entity) {
             this.entity = entity;
@@ -34,7 +34,7 @@
         //   this.logger.trace('constructor()');
         // }
         addSyncState(state) {
-            const openPromise = new open_promise_1.OpenPromise();
+            const openPromise = new open_promise_js_1.OpenPromise();
             this.syncStates.set(state, openPromise);
         }
         addEntity(entity) {
@@ -62,7 +62,7 @@
                 const ent = this.entities.find(e => e.entity === entity);
                 if ((ent === null || ent === void 0 ? void 0 : ent.syncPromise) === null && openPromise.isPending) {
                     ent.syncState = state;
-                    ent.syncPromise = new open_promise_1.OpenPromise();
+                    ent.syncPromise = new open_promise_js_1.OpenPromise();
                     ent.checkedStates.push(state);
                     this.checkedSyncStates.add(state);
                     Promise.resolve().then(() => { this.checkSyncState(state); }).catch(err => { throw err; });

@@ -1,4 +1,4 @@
-import { $BuiltinFunction, } from '../types/function';
+import { $BuiltinFunction, } from '../types/function.js';
 // http://www.ecma-international.org/ecma-262/#sec-isnan-number
 // 18.2.3 isNaN ( number )
 export class $IsNaN extends $BuiltinFunction {

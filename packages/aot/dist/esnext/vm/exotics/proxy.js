@@ -1,8 +1,8 @@
-import { $Object, } from '../types/object';
-import { $Call, $ToPropertyDescriptor, $ValidateAndApplyPropertyDescriptor, $FromPropertyDescriptor, $CreateListFromArrayLike, $Construct, } from '../operations';
-import { $CreateArrayFromList, } from './array';
-import { $TypeError, } from '../types/error';
-import { $List, } from '../types/list';
+import { $Object, } from '../types/object.js';
+import { $Call, $ToPropertyDescriptor, $ValidateAndApplyPropertyDescriptor, $FromPropertyDescriptor, $CreateListFromArrayLike, $Construct, } from '../operations.js';
+import { $CreateArrayFromList, } from './array.js';
+import { $TypeError, } from '../types/error.js';
+import { $List, } from '../types/list.js';
 // http://www.ecma-international.org/ecma-262/#sec-proxy-object-internal-methods-and-internal-slots
 export class $ProxyExoticObject extends $Object {
     // http://www.ecma-international.org/ecma-262/#sec-proxycreate

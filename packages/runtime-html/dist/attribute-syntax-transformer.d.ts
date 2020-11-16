@@ -1,4 +1,4 @@
-import { AttrSyntax } from './resources/attribute-pattern';
+import { AttrSyntax } from './resources/attribute-pattern.js';
 export interface IAttrSyntaxTransformer extends AttrSyntaxTransformer {
 }
 export declare const IAttrSyntaxTransformer: import("@aurelia/kernel").InterfaceSymbol<IAttrSyntaxTransformer>;

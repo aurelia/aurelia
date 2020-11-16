@@ -1,11 +1,11 @@
-import { $Undefined } from './undefined';
-import { $String } from './string';
-import { $AnyNonError, PotentialNonEmptyCompletionType, CompletionTarget, $Any } from './_shared';
-import { Realm, ExecutionContext } from '../realm';
-import { $Object } from './object';
-import { $Boolean } from './boolean';
-import { $Error } from './error';
-import { I$Node } from '../ast/_shared';
+import { $Undefined } from './undefined.js';
+import { $String } from './string.js';
+import { $AnyNonError, PotentialNonEmptyCompletionType, CompletionTarget, $Any } from './_shared.js';
+import { Realm, ExecutionContext } from '../realm.js';
+import { $Object } from './object.js';
+import { $Boolean } from './boolean.js';
+import { $Error } from './error.js';
+import { I$Node } from '../ast/_shared.js';
 export declare class $Symbol<T extends $Undefined | $String = $Undefined | $String> {
     readonly realm: Realm;
     readonly Description: T;

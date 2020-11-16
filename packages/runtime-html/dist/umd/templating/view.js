@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "../resources/custom-element", "./controller"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "../resources/custom-element.js", "./controller.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -12,8 +12,8 @@
     exports.ViewLocator = exports.IViewLocator = exports.view = exports.Views = exports.ViewFactory = exports.IViewFactory = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
-    const custom_element_1 = require("../resources/custom-element");
-    const controller_1 = require("./controller");
+    const custom_element_js_1 = require("../resources/custom-element.js");
+    const controller_js_1 = require("./controller.js");
     exports.IViewFactory = kernel_1.DI.createInterface('IViewFactory').noDefault();
     class ViewFactory {
         constructor(name, context, contentType, projectionScope = null) {
@@ -62,7 +62,7 @@
                 controller = cache.pop();
                 return controller;
             }
-            controller = controller_1.Controller.forSyntheticView(null, this.context, this, flags, parentController);
+            controller = controller_js_1.Controller.forSyntheticView(null, this.context, this, flags, parentController);
             return controller;
         }
     }
@@ -74,7 +74,7 @@
     }
     function toCustomElementDefinition($view) {
         seenViews.add($view);
-        return custom_element_1.CustomElementDefinition.create($view);
+        return custom_element_js_1.CustomElementDefinition.create($view);
     }
     exports.Views = {
         name: kernel_1.Protocol.resource.keyFor('views'),
@@ -97,7 +97,7 @@
             return views;
         },
         add(Type, partialDefinition) {
-            const definition = custom_element_1.CustomElementDefinition.create(partialDefinition);
+            const definition = custom_element_js_1.CustomElementDefinition.create(partialDefinition);
             let views = kernel_1.Metadata.getOwn(exports.Views.name, Type);
             if (views === void 0) {
                 kernel_1.Metadata.define(exports.Views.name, views = [definition], Type);
@@ -142,7 +142,7 @@
             }
             if (BoundComponent === void 0) {
                 const UnboundComponent = this.getOrCreateUnboundComponent(object, availableViews, resolvedViewName);
-                BoundComponent = custom_element_1.CustomElement.define(custom_element_1.CustomElement.getDefinition(UnboundComponent), class extends UnboundComponent {
+                BoundComponent = custom_element_js_1.CustomElement.define(custom_element_js_1.CustomElement.getDefinition(UnboundComponent), class extends UnboundComponent {
                     constructor() {
                         super(object);
                     }
@@ -162,7 +162,7 @@
                 UnboundComponent = lookup[resolvedViewName];
             }
             if (UnboundComponent === void 0) {
-                UnboundComponent = custom_element_1.CustomElement.define(this.getView(availableViews, resolvedViewName), class {
+                UnboundComponent = custom_element_js_1.CustomElement.define(this.getView(availableViews, resolvedViewName), class {
                     constructor(viewModel) {
                         this.viewModel = viewModel;
                     }

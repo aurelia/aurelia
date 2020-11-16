@@ -1,9 +1,9 @@
 import { AnyBindingExpression, BindingMode, Interpolation } from '@aurelia/runtime';
-import { AttrSyntax } from './resources/attribute-pattern';
-import { BindingCommandInstance } from './resources/binding-command';
-import { IPlatform } from './platform';
-import { CustomElementDefinition } from './resources/custom-element';
-import { CustomAttributeDefinition } from './resources/custom-attribute';
+import { AttrSyntax } from './resources/attribute-pattern.js';
+import { BindingCommandInstance } from './resources/binding-command.js';
+import { IPlatform } from './platform.js';
+import { CustomElementDefinition } from './resources/custom-element.js';
+import { CustomAttributeDefinition } from './resources/custom-attribute.js';
 export declare const enum SymbolFlags {
     type = 1023,
     isTemplateController = 1,

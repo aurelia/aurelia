@@ -1,16 +1,16 @@
 import { createIdentifier, ModifierFlags, SyntaxKind, createConstructor, createParameter, createToken, createBlock, createExpressionStatement, createCall, createSuper, createSpread, } from 'typescript';
 import { emptyArray, } from '@aurelia/kernel';
-import { $DeclarativeEnvRec, } from '../types/environment-record';
-import { $String, } from '../types/string';
-import { $Undefined, } from '../types/undefined';
-import { $Object, } from '../types/object';
-import { $Empty, empty, } from '../types/empty';
-import { $TypeError, } from '../types/error';
-import { $PropertyDescriptor, } from '../types/property-descriptor';
-import { modifiersToModifierFlags, hasBit, $identifier, $heritageClauseList, $$propertyName, $assignmentExpression, $LHSExpression, $$classElementList, hasAllBits, $decoratorList, $i, } from './_shared';
-import { ExportEntryRecord, } from './modules';
-import { $Identifier, } from './expressions';
-import { $ConstructorDeclaration, } from './functions';
+import { $DeclarativeEnvRec, } from '../types/environment-record.js';
+import { $String, } from '../types/string.js';
+import { $Undefined, } from '../types/undefined.js';
+import { $Object, } from '../types/object.js';
+import { $Empty, empty, } from '../types/empty.js';
+import { $TypeError, } from '../types/error.js';
+import { $PropertyDescriptor, } from '../types/property-descriptor.js';
+import { modifiersToModifierFlags, hasBit, $identifier, $heritageClauseList, $$propertyName, $assignmentExpression, $LHSExpression, $$classElementList, hasAllBits, $decoratorList, $i, } from './_shared.js';
+import { ExportEntryRecord, } from './modules.js';
+import { $Identifier, } from './expressions.js';
+import { $ConstructorDeclaration, } from './functions.js';
 export function $expressionWithTypeArgumentsList(nodes, parent, ctx) {
     if (nodes.length === 0) {
         return emptyArray;

@@ -1,5 +1,5 @@
 import { IContainer, IRegistry } from '@aurelia/kernel';
-import { AuSlot } from './resources/custom-elements/au-slot';
+import { AuSlot } from './resources/custom-elements/au-slot.js';
 export declare const ITemplateCompilerRegistration: IRegistry;
 export declare const INodeObserverLocatorRegistration: IRegistry;
 /**

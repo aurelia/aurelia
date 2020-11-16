@@ -1,12 +1,12 @@
-import { $BuiltinFunction, $Function } from '../types/function';
-import { Realm, ExecutionContext } from '../realm';
-import { $AnyNonEmpty, $AnyNonEmptyNonError } from '../types/_shared';
-import { $Boolean } from '../types/boolean';
-import { $Undefined } from '../types/undefined';
-import { $FunctionPrototype } from './function';
-import { $Object } from '../types/object';
-import { $ObjectPrototype } from './object';
-import { $List } from '../types/list';
+import { $BuiltinFunction, $Function } from '../types/function.js';
+import { Realm, ExecutionContext } from '../realm.js';
+import { $AnyNonEmpty, $AnyNonEmptyNonError } from '../types/_shared.js';
+import { $Boolean } from '../types/boolean.js';
+import { $Undefined } from '../types/undefined.js';
+import { $FunctionPrototype } from './function.js';
+import { $Object } from '../types/object.js';
+import { $ObjectPrototype } from './object.js';
+import { $List } from '../types/list.js';
 export declare class $BooleanConstructor extends $BuiltinFunction<'%Boolean%'> {
     get $prototype(): $BooleanPrototype;
     set $prototype(value: $BooleanPrototype);

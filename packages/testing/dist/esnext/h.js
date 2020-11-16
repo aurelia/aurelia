@@ -1,5 +1,5 @@
 import { kebabCase, emptyArray, } from '@aurelia/kernel';
-import { PLATFORM } from './test-context';
+import { PLATFORM } from './test-context.js';
 export function h(name, attrs = null, ...children) {
     const doc = PLATFORM.document;
     const el = doc.createElement(name);

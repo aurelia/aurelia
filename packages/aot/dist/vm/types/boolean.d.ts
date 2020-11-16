@@ -1,10 +1,10 @@
-import { $AnyNonError, PotentialNonEmptyCompletionType, CompletionTarget, $Any } from './_shared';
-import { Realm, ExecutionContext } from '../realm';
-import { $Object } from './object';
-import { $String } from './string';
-import { $Number } from './number';
-import { $BooleanLiteral } from '../ast/literals';
-import { I$Node } from '../ast/_shared';
+import { $AnyNonError, PotentialNonEmptyCompletionType, CompletionTarget, $Any } from './_shared.js';
+import { Realm, ExecutionContext } from '../realm.js';
+import { $Object } from './object.js';
+import { $String } from './string.js';
+import { $Number } from './number.js';
+import { $BooleanLiteral } from '../ast/literals.js';
+import { I$Node } from '../ast/_shared.js';
 export declare class $Boolean<T extends boolean = boolean> {
     readonly realm: Realm;
     readonly sourceNode: $BooleanLiteral | null;

@@ -4,13 +4,13 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./hook"], factory);
+        define(["require", "exports", "./hook.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.HookManager = exports.HookTypes = void 0;
-    const hook_1 = require("./hook");
+    const hook_js_1 = require("./hook.js");
     /**
      * Public API
      */
@@ -35,7 +35,7 @@
             this.lastIdentity = 0;
         }
         addHook(hookFunction, options) {
-            const hook = new hook_1.Hook(hookFunction, options || {}, ++this.lastIdentity);
+            const hook = new hook_js_1.Hook(hookFunction, options || {}, ++this.lastIdentity);
             this.hooks[hook.type].push(hook);
             return this.lastIdentity;
         }

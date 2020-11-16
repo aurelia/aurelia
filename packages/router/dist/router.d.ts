@@ -1,19 +1,19 @@
 import { IContainer, Key } from '@aurelia/kernel';
 import { ICustomElementViewModel } from '@aurelia/runtime-html';
-import { InstructionResolver } from './instruction-resolver';
-import { NavigationInstruction, IRoute, ComponentAppellation, ViewportHandle, ComponentParameters } from './interfaces';
-import { LinkHandler } from './link-handler';
-import { INavRoute, Nav } from './nav';
-import { Navigator } from './navigator';
-import { INavClasses } from './resources/nav';
-import { Viewport } from './viewport';
-import { ViewportInstruction } from './viewport-instruction';
-import { HookManager, IHookDefinition, HookIdentity, HookFunction, IHookOptions, BeforeNavigationHookFunction, TransformFromUrlHookFunction, TransformToUrlHookFunction, SetTitleHookFunction } from './hook-manager';
-import { ViewportScope } from './viewport-scope';
-import { BrowserViewerStore } from './browser-viewer-store';
-import { IConnectedCustomElement } from './resources/viewport';
-import { IRouterActivateOptions, RouterOptions } from './router-options';
-import { OpenPromise } from './open-promise';
+import { InstructionResolver } from './instruction-resolver.js';
+import { NavigationInstruction, IRoute, ComponentAppellation, ViewportHandle, ComponentParameters } from './interfaces.js';
+import { LinkHandler } from './link-handler.js';
+import { INavRoute, Nav } from './nav.js';
+import { Navigator } from './navigator.js';
+import { INavClasses } from './resources/nav.js';
+import { Viewport } from './viewport.js';
+import { ViewportInstruction } from './viewport-instruction.js';
+import { HookManager, IHookDefinition, HookIdentity, HookFunction, IHookOptions, BeforeNavigationHookFunction, TransformFromUrlHookFunction, TransformToUrlHookFunction, SetTitleHookFunction } from './hook-manager.js';
+import { ViewportScope } from './viewport-scope.js';
+import { BrowserViewerStore } from './browser-viewer-store.js';
+import { IConnectedCustomElement } from './resources/viewport.js';
+import { IRouterActivateOptions, RouterOptions } from './router-options.js';
+import { OpenPromise } from './open-promise.js';
 /**
  * Public API
  */

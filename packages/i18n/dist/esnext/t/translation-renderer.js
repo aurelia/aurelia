@@ -10,7 +10,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-import { TranslationBinding } from './translation-binding';
+import { TranslationBinding } from './translation-binding.js';
 import { BindingMode, IExpressionParser, renderer, IObserverLocator, AttrSyntax, getTarget, } from '@aurelia/runtime-html';
 export const TranslationInstructionType = 'tt';
 export class TranslationAttributePattern {

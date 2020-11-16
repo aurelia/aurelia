@@ -6,15 +6,15 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "./util", "./test-context"], factory);
+        define(["require", "exports", "@aurelia/kernel", "./util.js", "./test-context.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.inspectValue = exports.inspect = exports.formatValue = exports.formatRaw = exports.formatProperty = exports.formatPromise = exports.formatIterator = exports.formatWeakMap = exports.formatWeakSet = exports.formatWeakCollection = exports.formatMapIterInner = exports.formatSetIterInner = exports.formatMap = exports.formatSet = exports.formatTypedArray = exports.formatArray = exports.formatArrayBuffer = exports.formatSpecialArray = exports.formatError = exports.formatPrimitive = exports.formatNumber = exports.AssertionError = exports.customInspectSymbol = void 0;
     const kernel_1 = require("@aurelia/kernel");
-    const util_1 = require("./util");
-    const test_context_1 = require("./test-context");
+    const util_js_1 = require("./util.js");
+    const test_context_js_1 = require("./test-context.js");
     /* eslint-disable max-lines-per-function, @typescript-eslint/no-explicit-any, @typescript-eslint/ban-types, @typescript-eslint/no-non-null-assertion */
     let maxStack_ErrorName;
     let maxStack_ErrorMessage;
@@ -32,7 +32,7 @@
         return (err.name === maxStack_ErrorName
             && err.message === maxStack_ErrorMessage);
     }
-    const defaultInspectOptions = util_1.Object_freeze({
+    const defaultInspectOptions = util_js_1.Object_freeze({
         showHidden: false,
         depth: 2,
         colors: true,
@@ -46,7 +46,7 @@
         userOptions: void 0,
         stylize: stylizeWithColor,
     });
-    const mandatoryInspectKeys = util_1.Object_keys(defaultInspectOptions);
+    const mandatoryInspectKeys = util_js_1.Object_keys(defaultInspectOptions);
     function getUserOptions(ctx) {
         const obj = {};
         for (const key of mandatoryInspectKeys) {
@@ -54,7 +54,7 @@
             obj[key] = ctx[key];
         }
         if (ctx.userOptions !== void 0) {
-            util_1.Object_assign(obj, ctx.userOptions);
+            util_js_1.Object_assign(obj, ctx.userOptions);
         }
         return obj;
     }
@@ -68,7 +68,7 @@
             stylize: ctx.colors ? stylizeWithColor : stylizeNoColor,
         };
         for (const key of mandatoryInspectKeys) {
-            if (util_1.hasOwnProperty(ctx, key)) {
+            if (util_js_1.hasOwnProperty(ctx, key)) {
                 // @ts-ignore // TODO: https://github.com/microsoft/TypeScript/issues/31904
                 obj[key] = ctx[key];
             }
@@ -78,7 +78,7 @@
         }
         return obj;
     }
-    const styles = util_1.Object_freeze({
+    const styles = util_js_1.Object_freeze({
         special: 'cyan',
         number: 'yellow',
         boolean: 'yellow',
@@ -89,7 +89,7 @@
         date: 'magenta',
         regexp: 'red',
     });
-    const operatorText = util_1.Object_freeze({
+    const operatorText = util_js_1.Object_freeze({
         deepStrictEqual: 'Expected values to be strictly deep-equal:',
         strictEqual: 'Expected values to be strictly equal:',
         strictEqualObject: 'Expected "actual" to be reference-equal to "expected":',
@@ -105,8 +105,8 @@
     exports.customInspectSymbol = Symbol.for('customInspect');
     function stylizeWithColor(str, styleType) {
         const style = styles[styleType];
-        if (util_1.isString(style)) {
-            return util_1.colors[style](str);
+        if (util_js_1.isString(style)) {
+            return util_js_1.colors[style](str);
         }
         else {
             return str;
@@ -130,11 +130,11 @@
                 // eslint-disable-next-line prefer-const
                 let res = inspectValue(actual).split('\n');
                 if (operator === 'notStrictEqual'
-                    && util_1.isObject(actual)) {
+                    && util_js_1.isObject(actual)) {
                     base = operatorText.notStrictEqualObject;
                 }
                 if (res.length > 30) {
-                    res[26] = util_1.colors.blue('...');
+                    res[26] = util_js_1.colors.blue('...');
                     while (res.length > 27) {
                         res.pop();
                     }
@@ -143,7 +143,7 @@
                     super(`${prefix}${base} ${res[0]}`);
                 }
                 else {
-                    super(`${prefix}${base}\n\n${util_1.join(res, '\n')}\n`);
+                    super(`${prefix}${base}\n\n${util_js_1.join(res, '\n')}\n`);
                 }
             }
             else {
@@ -180,7 +180,7 @@
             }
             Error.stackTraceLimit = limit;
             this.generatedMessage = !message || message === 'Failed';
-            util_1.defineProperty(this, 'name', {
+            util_js_1.defineProperty(this, 'name', {
                 value: 'AssertionError [ERR_ASSERTION]',
                 enumerable: false,
                 writable: true,
@@ -226,8 +226,8 @@
         let i = 0;
         let indicator = '';
         if (operator === 'strictEqual'
-            && util_1.isObject(actual)
-            && util_1.isObject(expected)) {
+            && util_js_1.isObject(actual)
+            && util_js_1.isObject(expected)) {
             operator = 'strictEqualObject';
         }
         if (actualLines.length === 1
@@ -235,8 +235,8 @@
             && actualLines[0] !== expectedLines[0]) {
             const inputLength = actualLines[0].length + expectedLines[0].length;
             if (inputLength <= kMaxShortLength) {
-                if (!util_1.isObject(actual)
-                    && !util_1.isObject(expected)
+                if (!util_js_1.isObject(actual)
+                    && !util_js_1.isObject(expected)
                     && (actual !== 0 || expected !== 0)) {
                     return `${operatorText[operator]}\n\n${actualLines[0]} !== ${expectedLines[0]}\n`;
                 }
@@ -272,15 +272,15 @@
         if (maxLines === 0) {
             const $actualLines = actualInspected.split('\n');
             if ($actualLines.length > 30) {
-                $actualLines[26] = util_1.colors.blue('...');
+                $actualLines[26] = util_js_1.colors.blue('...');
                 while ($actualLines.length > 27) {
                     $actualLines.pop();
                 }
             }
-            return `${operatorText.notIdentical}\n\n${util_1.join($actualLines, '\n')}\n`;
+            return `${operatorText.notIdentical}\n\n${util_js_1.join($actualLines, '\n')}\n`;
         }
         if (i > 3) {
-            end = `\n${util_1.colors.blue('...')}${end}`;
+            end = `\n${util_js_1.colors.blue('...')}${end}`;
             skipped = true;
         }
         if (other !== '') {
@@ -288,14 +288,14 @@
             other = '';
         }
         let printedLines = 0;
-        const msg = `${operatorText[operator]}\n${util_1.colors.green('+ actual')} ${util_1.colors.red('- expected')}`;
-        const skippedMsg = ` ${util_1.colors.blue('...')} Lines skipped`;
+        const msg = `${operatorText[operator]}\n${util_js_1.colors.green('+ actual')} ${util_js_1.colors.red('- expected')}`;
+        const skippedMsg = ` ${util_js_1.colors.blue('...')} Lines skipped`;
         for (i = 0; i < maxLines; i++) {
             const cur = i - lastPos;
             if (actualLines.length < i + 1) {
                 if (cur > 1 && i > 2) {
                     if (cur > 4) {
-                        res += `\n${util_1.colors.blue('...')}`;
+                        res += `\n${util_js_1.colors.blue('...')}`;
                         skipped = true;
                     }
                     else if (cur > 3) {
@@ -306,13 +306,13 @@
                     printedLines++;
                 }
                 lastPos = i;
-                other += `\n${util_1.colors.red('-')} ${expectedLines[i]}`;
+                other += `\n${util_js_1.colors.red('-')} ${expectedLines[i]}`;
                 printedLines++;
             }
             else if (expectedLines.length < i + 1) {
                 if (cur > 1 && i > 2) {
                     if (cur > 4) {
-                        res += `\n${util_1.colors.blue('...')}`;
+                        res += `\n${util_js_1.colors.blue('...')}`;
                         skipped = true;
                     }
                     else if (cur > 3) {
@@ -323,7 +323,7 @@
                     printedLines++;
                 }
                 lastPos = i;
-                res += `\n${util_1.colors.green('+')} ${actualLines[i]}`;
+                res += `\n${util_js_1.colors.green('+')} ${actualLines[i]}`;
                 printedLines++;
             }
             else {
@@ -342,7 +342,7 @@
                 if (divergingLines) {
                     if (cur > 1 && i > 2) {
                         if (cur > 4) {
-                            res += `\n${util_1.colors.blue('...')}`;
+                            res += `\n${util_js_1.colors.blue('...')}`;
                             skipped = true;
                         }
                         else if (cur > 3) {
@@ -353,8 +353,8 @@
                         printedLines++;
                     }
                     lastPos = i;
-                    res += `\n${util_1.colors.green('+')} ${actualLine}`;
-                    other += `\n${util_1.colors.red('-')} ${expectedLine}`;
+                    res += `\n${util_js_1.colors.green('+')} ${actualLine}`;
+                    other += `\n${util_js_1.colors.red('-')} ${expectedLine}`;
                     printedLines += 2;
                 }
                 else {
@@ -367,7 +367,7 @@
                 }
             }
             if (printedLines > 1000 && i < maxLines - 2) {
-                return `${msg}${skippedMsg}\n${res}\n${util_1.colors.blue('...')}${other}\n${util_1.colors.blue('...')}`;
+                return `${msg}${skippedMsg}\n${res}\n${util_js_1.colors.blue('...')}${other}\n${util_js_1.colors.blue('...')}`;
             }
         }
         return `${msg}${skipped ? skippedMsg : ''}\n${res}${other}${end}${indicator}`;
@@ -415,7 +415,7 @@
         // entries length of all output entries. We have to remove colors first,
         // otherwise the length would not be calculated properly.
         for (; i < output.length; i++) {
-            const len = ctx.colors ? util_1.removeColors(output[i]).length : output[i].length;
+            const len = ctx.colors ? util_js_1.removeColors(output[i]).length : output[i].length;
             dataLen[i] = len;
             totalLength += len;
             if (maxLength < len) {
@@ -487,7 +487,7 @@
         }
         throw err;
     }
-    const typedArrayKeys = util_1.Object_freeze([
+    const typedArrayKeys = util_js_1.Object_freeze([
         'BYTES_PER_ELEMENT',
         'length',
         'byteLength',
@@ -508,7 +508,7 @@
         }
         for (let i = 0; i < output.length; i++) {
             if (ctx.colors) {
-                totalLength += util_1.removeColors(output[i]).length;
+                totalLength += util_js_1.removeColors(output[i]).length;
             }
             else {
                 totalLength += output[i].length;
@@ -528,31 +528,31 @@
                     + base.length
                     + 10);
                 if (isBelowBreakLength(ctx, output, start)) {
-                    return `${base ? `${base} ` : ''}${braces[0]} ${util_1.join(output, ', ')} ${braces[1]}`;
+                    return `${base ? `${base} ` : ''}${braces[0]} ${util_js_1.join(output, ', ')} ${braces[1]}`;
                 }
             }
             const indent = `\n${' '.repeat(ctx.indentationLvl)}`;
-            return `${base ? `${base} ` : ''}${braces[0]}${indent}  ${util_1.join(output, `,${indent}  `)}${indent}${braces[1]}`;
+            return `${base ? `${base} ` : ''}${braces[0]}${indent}  ${util_js_1.join(output, `,${indent}  `)}${indent}${braces[1]}`;
         }
         if (isBelowBreakLength(ctx, output, 0)) {
-            return `${braces[0]}${base ? ` ${base}` : ''} ${util_1.join(output, ', ')} ${braces[1]}`;
+            return `${braces[0]}${base ? ` ${base}` : ''} ${util_js_1.join(output, ', ')} ${braces[1]}`;
         }
         const indentation = ' '.repeat(ctx.indentationLvl);
         const ln = base === '' && braces[0].length === 1
             ? ' '
             : `${base ? ` ${base}` : ''}\n${indentation}  `;
-        return `${braces[0]}${ln}${util_1.join(output, `,\n${indentation}  `)} ${braces[1]}`;
+        return `${braces[0]}${ln}${util_js_1.join(output, `,\n${indentation}  `)} ${braces[1]}`;
     }
     function getConstructorName(obj, ctx) {
         let firstProto;
         while (obj) {
-            const descriptor = util_1.getOwnPropertyDescriptor(obj, 'constructor');
-            if (!util_1.isUndefined(descriptor)
-                && util_1.isFunction(descriptor.value)
+            const descriptor = util_js_1.getOwnPropertyDescriptor(obj, 'constructor');
+            if (!util_js_1.isUndefined(descriptor)
+                && util_js_1.isFunction(descriptor.value)
                 && descriptor.value.name !== '') {
                 return descriptor.value.name;
             }
-            obj = util_1.getPrototypeOf(obj);
+            obj = util_js_1.getPrototypeOf(obj);
             if (firstProto === void 0) {
                 firstProto = obj;
             }
@@ -584,17 +584,17 @@
     const getBoxedValue = formatPrimitive.bind(null, stylizeNoColor);
     function getKeys(value, showHidden) {
         let keys;
-        const symbols = util_1.getOwnPropertySymbols(value);
+        const symbols = util_js_1.getOwnPropertySymbols(value);
         if (showHidden) {
-            keys = util_1.getOwnPropertyNames(value);
+            keys = util_js_1.getOwnPropertyNames(value);
             if (symbols.length !== 0) {
                 keys.push(...symbols);
             }
         }
         else {
-            keys = util_1.Object_keys(value);
+            keys = util_js_1.Object_keys(value);
             if (symbols.length !== 0) {
-                keys.push(...symbols.filter((key) => util_1.propertyIsEnumerable(value, key)));
+                keys.push(...symbols.filter((key) => util_js_1.propertyIsEnumerable(value, key)));
             }
         }
         return keys;
@@ -602,16 +602,16 @@
     function getCtxStyle(constructor, tag) {
         return constructor || tag || 'Object';
     }
-    const typedConstructorMap = util_1.Object_freeze([
-        [util_1.isUint8Array, Uint8Array],
-        [util_1.isUint8ClampedArray, Uint8ClampedArray],
-        [util_1.isUint16Array, Uint16Array],
-        [util_1.isUint32Array, Uint32Array],
-        [util_1.isInt8Array, Int8Array],
-        [util_1.isInt16Array, Int16Array],
-        [util_1.isInt32Array, Int32Array],
-        [util_1.isFloat32Array, Float32Array],
-        [util_1.isFloat64Array, Float64Array],
+    const typedConstructorMap = util_js_1.Object_freeze([
+        [util_js_1.isUint8Array, Uint8Array],
+        [util_js_1.isUint8ClampedArray, Uint8ClampedArray],
+        [util_js_1.isUint16Array, Uint16Array],
+        [util_js_1.isUint32Array, Uint32Array],
+        [util_js_1.isInt8Array, Int8Array],
+        [util_js_1.isInt16Array, Int16Array],
+        [util_js_1.isInt32Array, Int32Array],
+        [util_js_1.isFloat32Array, Float32Array],
+        [util_js_1.isFloat64Array, Float64Array],
     ]);
     const typedConstructorCount = typedConstructorMap.length;
     function findTypedConstructor(value) {
@@ -650,40 +650,40 @@
                 return '';
             }
         }
-        util_1.defineProperty(NullPrototype.prototype.constructor, 'name', { value: `[${name}: null prototype]` });
+        util_js_1.defineProperty(NullPrototype.prototype.constructor, 'name', { value: `[${name}: null prototype]` });
         lazyNullPrototypeCache.set(clazz, NullPrototype);
         return NullPrototype;
     }
     function noPrototypeIterator(ctx, value, recurseTimes) {
         let newVal;
-        if (util_1.isSet(value)) {
+        if (util_js_1.isSet(value)) {
             const clazz = clazzWithNullPrototype(Set, 'Set');
-            newVal = new clazz(util_1.Set_values(value));
+            newVal = new clazz(util_js_1.Set_values(value));
         }
-        else if (util_1.isMap(value)) {
+        else if (util_js_1.isMap(value)) {
             const clazz = clazzWithNullPrototype(Map, 'Map');
-            newVal = new clazz(util_1.Map_entries(value));
+            newVal = new clazz(util_js_1.Map_entries(value));
         }
         else if (Array.isArray(value)) {
             const clazz = clazzWithNullPrototype(Array, 'Array');
             newVal = new clazz(value.length);
         }
-        else if (util_1.isTypedArray(value)) {
+        else if (util_js_1.isTypedArray(value)) {
             const constructor = findTypedConstructor(value);
             const clazz = clazzWithNullPrototype(constructor, constructor.name);
             newVal = new clazz(value);
         }
         if (newVal !== undefined) {
-            util_1.defineProperties(newVal, util_1.getOwnPropertyDescriptors(value));
+            util_js_1.defineProperties(newVal, util_js_1.getOwnPropertyDescriptors(value));
             return formatRaw(ctx, newVal, recurseTimes);
         }
         return (void 0);
     }
     function getMessage(self) {
-        return `${util_1.truncate(inspect(self.actual), 128)} ${self.operator} ${util_1.truncate(inspect(self.expected), 128)}`;
+        return `${util_js_1.truncate(inspect(self.actual), 128)} ${self.operator} ${util_js_1.truncate(inspect(self.expected), 128)}`;
     }
     function formatNumber(fn, value) {
-        return fn(util_1.Object_is(value, -0) ? '-0' : `${value}`, 'number');
+        return fn(util_js_1.Object_is(value, -0) ? '-0' : `${value}`, 'number');
     }
     exports.formatNumber = formatNumber;
     function formatPrimitive(fn, value, ctx) {
@@ -704,16 +704,16 @@
                     const matches = value.match(readableRegExps[divisor]);
                     if (matches.length > 1) {
                         const indent = ' '.repeat(ctx.indentationLvl);
-                        let res = `${fn(util_1.escapeAndQuoteString(matches[0]), 'string')} +\n`;
+                        let res = `${fn(util_js_1.escapeAndQuoteString(matches[0]), 'string')} +\n`;
                         let i = 1;
                         for (; i < matches.length - 1; i++) {
-                            res += `${indent}  ${fn(util_1.escapeAndQuoteString(matches[i]), 'string')} +\n`;
+                            res += `${indent}  ${fn(util_js_1.escapeAndQuoteString(matches[i]), 'string')} +\n`;
                         }
-                        res += `${indent}  ${fn(util_1.escapeAndQuoteString(matches[i]), 'string')}`;
+                        res += `${indent}  ${fn(util_js_1.escapeAndQuoteString(matches[i]), 'string')}`;
                         return res;
                     }
                 }
-                return fn(util_1.escapeAndQuoteString(value), 'string');
+                return fn(util_js_1.escapeAndQuoteString(value), 'string');
             case 'number':
                 return formatNumber(fn, value);
             case 'boolean':
@@ -723,15 +723,15 @@
             case 'symbol':
                 return fn(value.toString(), 'symbol');
         }
-        throw new Error(`formatPrimitive only handles non-null primitives. Got: ${util_1.Object_toString(value)}`);
+        throw new Error(`formatPrimitive only handles non-null primitives. Got: ${util_js_1.Object_toString(value)}`);
     }
     exports.formatPrimitive = formatPrimitive;
     function formatError(value) {
-        return value.stack || util_1.Error_toString(value);
+        return value.stack || util_js_1.Error_toString(value);
     }
     exports.formatError = formatError;
     function formatSpecialArray(ctx, value, recurseTimes, maxLength, output, i) {
-        const keys = util_1.Object_keys(value);
+        const keys = util_js_1.Object_keys(value);
         let index = i;
         for (; i < keys.length && output.length < maxLength; i++) {
             const key = keys[i];
@@ -771,7 +771,7 @@
     exports.formatSpecialArray = formatSpecialArray;
     function formatArrayBuffer(ctx, value) {
         const buffer = new Uint8Array(value);
-        let str = util_1.join(buffer.slice(0, Math.min(ctx.maxArrayLength, buffer.length)).map(val => val.toString(16)), ' ');
+        let str = util_js_1.join(buffer.slice(0, Math.min(ctx.maxArrayLength, buffer.length)).map(val => val.toString(16)), ' ');
         const remaining = buffer.length - ctx.maxArrayLength;
         if (remaining > 0) {
             str += ` ... ${remaining} more byte${remaining > 1 ? 's' : ''}`;
@@ -785,7 +785,7 @@
         const remaining = valLen - len;
         const output = [];
         for (let i = 0; i < len; i++) {
-            if (!util_1.hasOwnProperty(value, i)) {
+            if (!util_js_1.hasOwnProperty(value, i)) {
                 return formatSpecialArray(ctx, value, recurseTimes, len, output, i);
             }
             output.push(formatProperty(ctx, value, recurseTimes, i, kArrayType));
@@ -929,7 +929,7 @@
         }
         let name, str;
         let extra = ' ';
-        const desc = (util_1.getOwnPropertyDescriptor(value, key)
+        const desc = (util_js_1.getOwnPropertyDescriptor(value, key)
             || ({
                 value: value[key],
                 enumerable: true,
@@ -941,7 +941,7 @@
             str = formatValue(ctx, desc.value, recurseTimes);
             if (diff === 3) {
                 const len = ctx.colors
-                    ? util_1.removeColors(str).length
+                    ? util_js_1.removeColors(str).length
                     : str.length;
                 if (ctx.breakLength < len) {
                     extra = `\n${' '.repeat(ctx.indentationLvl)}`;
@@ -992,18 +992,18 @@
         if (type === kArrayType) {
             return str;
         }
-        if (util_1.isSymbol(key)) {
-            const tmp = util_1.escapeString(key.toString());
+        if (util_js_1.isSymbol(key)) {
+            const tmp = util_js_1.escapeString(key.toString());
             name = `[${ctx.stylize(tmp, 'symbol')}]`;
         }
         else if (desc.enumerable === false) {
-            name = `[${util_1.escapeString(key.toString())}]`;
+            name = `[${util_js_1.escapeString(key.toString())}]`;
         }
         else if (isValidIdentifier(key)) {
             name = ctx.stylize(key, 'name');
         }
         else {
-            name = ctx.stylize(util_1.escapeAndQuoteString(key), 'string');
+            name = ctx.stylize(util_js_1.escapeAndQuoteString(key), 'string');
         }
         return `${name}:${extra}${str}`;
     }
@@ -1028,7 +1028,7 @@
                 }
         }
         let tag = value[Symbol.toStringTag];
-        if (!util_1.isString(tag)) {
+        if (!util_js_1.isString(tag)) {
             tag = '';
         }
         let base = '';
@@ -1041,7 +1041,7 @@
         if (value[Symbol.iterator]) {
             noIterator = false;
             if (Array.isArray(value)) {
-                keys = util_1.getOwnNonIndexProperties(value, ctx.showHidden);
+                keys = util_js_1.getOwnNonIndexProperties(value, ctx.showHidden);
                 // Only set the constructor for non ordinary ("Array [...]") arrays.
                 const prefix = getPrefix(constructor, tag, 'Array');
                 braces = [`${prefix === 'Array ' ? '' : prefix}[`, ']'];
@@ -1051,7 +1051,7 @@
                 extrasType = kArrayExtrasType;
                 formatter = formatArray;
             }
-            else if (util_1.isSet(value)) {
+            else if (util_js_1.isSet(value)) {
                 keys = getKeys(value, ctx.showHidden);
                 const prefix = getPrefix(constructor, tag, 'Set');
                 if (value.size === 0 && keys.length === 0) {
@@ -1060,7 +1060,7 @@
                 braces = [`${prefix}{`, '}'];
                 formatter = formatSet;
             }
-            else if (util_1.isMap(value)) {
+            else if (util_js_1.isMap(value)) {
                 keys = getKeys(value, ctx.showHidden);
                 const prefix = getPrefix(constructor, tag, 'Map');
                 if (value.size === 0 && keys.length === 0) {
@@ -1069,8 +1069,8 @@
                 braces = [`${prefix}{`, '}'];
                 formatter = formatMap;
             }
-            else if (util_1.isTypedArray(value)) {
-                keys = util_1.getOwnNonIndexProperties(value, ctx.showHidden);
+            else if (util_js_1.isTypedArray(value)) {
+                keys = util_js_1.getOwnNonIndexProperties(value, ctx.showHidden);
                 const prefix = constructor !== null
                     ? getPrefix(constructor, tag)
                     : getPrefix(constructor, tag, findTypedConstructor(value).name);
@@ -1081,12 +1081,12 @@
                 formatter = formatTypedArray;
                 extrasType = kArrayExtrasType;
             }
-            else if (util_1.isMapIterator(value)) {
+            else if (util_js_1.isMapIterator(value)) {
                 keys = getKeys(value, ctx.showHidden);
                 braces = setIteratorBraces('Map', tag);
                 formatter = formatIterator;
             }
-            else if (util_1.isSetIterator(value)) {
+            else if (util_js_1.isSetIterator(value)) {
                 keys = getKeys(value, ctx.showHidden);
                 braces = setIteratorBraces('Set', tag);
                 formatter = formatIterator;
@@ -1099,7 +1099,7 @@
             keys = getKeys(value, ctx.showHidden);
             braces = ['{', '}'];
             if (constructor === 'Object') {
-                if (util_1.isArgumentsObject(value)) {
+                if (util_js_1.isArgumentsObject(value)) {
                     braces[0] = '[Arguments] {';
                 }
                 else if (tag !== '') {
@@ -1109,10 +1109,10 @@
                     return `${braces[0]}}`;
                 }
             }
-            else if (util_1.isFunction(value)) {
+            else if (util_js_1.isFunction(value)) {
                 const type = constructor || tag || 'Function';
                 let name = `${type}`;
-                if (value.name && util_1.isString(value.name)) {
+                if (value.name && util_js_1.isString(value.name)) {
                     name += `: ${value.name}`;
                 }
                 if (keys.length === 0) {
@@ -1120,9 +1120,9 @@
                 }
                 base = `[${name}]`;
             }
-            else if (util_1.isRegExp(value)) {
+            else if (util_js_1.isRegExp(value)) {
                 // Make RegExps say that they are RegExps
-                base = util_1.RegExp_toString(constructor !== null ? value : new RegExp(value));
+                base = util_js_1.RegExp_toString(constructor !== null ? value : new RegExp(value));
                 const prefix = getPrefix(constructor, tag, 'RegExp');
                 if (prefix !== 'RegExp ') {
                     base = `${prefix}${base}`;
@@ -1131,11 +1131,11 @@
                     return ctx.stylize(base, 'regexp');
                 }
             }
-            else if (util_1.isDate(value)) {
+            else if (util_js_1.isDate(value)) {
                 // Make dates with properties first say the date
-                base = Number.isNaN(util_1.Date_getTime(value))
-                    ? util_1.Date_toString(value)
-                    : util_1.Date_toISOString(value);
+                base = Number.isNaN(util_js_1.Date_getTime(value))
+                    ? util_js_1.Date_toString(value)
+                    : util_js_1.Date_toISOString(value);
                 const prefix = getPrefix(constructor, tag, 'Date');
                 if (prefix !== 'Date ') {
                     base = `${prefix}${base}`;
@@ -1144,7 +1144,7 @@
                     return ctx.stylize(base, 'date');
                 }
             }
-            else if (util_1.isError(value)) {
+            else if (util_js_1.isError(value)) {
                 // Make error with message first say the error.
                 base = formatError(value);
                 // Wrap the error in brackets in case it has no stack trace.
@@ -1165,11 +1165,11 @@
                     base = `[${base.slice(0, stackStart)}]`;
                 }
             }
-            else if (util_1.isAnyArrayBuffer(value)) {
+            else if (util_js_1.isAnyArrayBuffer(value)) {
                 // Fast path for ArrayBuffer and SharedArrayBuffer.
                 // Can't do the same for DataView because it has a non-primitive
                 // .buffer property that we need to recurse for.
-                const arrayType = util_1.isArrayBuffer(value)
+                const arrayType = util_js_1.isArrayBuffer(value)
                     ? 'ArrayBuffer'
                     : 'SharedArrayBuffer';
                 const prefix = getPrefix(constructor, tag, arrayType);
@@ -1182,46 +1182,46 @@
                 braces[0] = `${prefix}{`;
                 keys.unshift('byteLength');
             }
-            else if (util_1.isDataView(value)) {
+            else if (util_js_1.isDataView(value)) {
                 braces[0] = `${getPrefix(constructor, tag, 'DataView')}{`;
                 // .buffer goes last, it's not a primitive like the others.
                 keys.unshift('byteLength', 'byteOffset', 'buffer');
             }
-            else if (util_1.isPromise(value)) {
+            else if (util_js_1.isPromise(value)) {
                 braces[0] = `${getPrefix(constructor, tag, 'Promise')}{`;
                 formatter = formatPromise;
             }
-            else if (util_1.isWeakSet(value)) {
+            else if (util_js_1.isWeakSet(value)) {
                 braces[0] = `${getPrefix(constructor, tag, 'WeakSet')}{`;
                 formatter = ctx.showHidden ? formatWeakSet : formatWeakCollection;
             }
-            else if (util_1.isWeakMap(value)) {
+            else if (util_js_1.isWeakMap(value)) {
                 braces[0] = `${getPrefix(constructor, tag, 'WeakMap')}{`;
                 formatter = ctx.showHidden ? formatWeakMap : formatWeakCollection;
                 // } else if (isModuleNamespaceObject(value)) {
                 //   braces[0] = `[${tag}] {`;
                 //   formatter = formatNamespaceObject;
             }
-            else if (util_1.isBoxedPrimitive(value)) {
+            else if (util_js_1.isBoxedPrimitive(value)) {
                 let type;
-                if (util_1.isNumberObject(value)) {
-                    base = `[Number: ${getBoxedValue(util_1.Number_valueOf(value), ctx)}]`;
+                if (util_js_1.isNumberObject(value)) {
+                    base = `[Number: ${getBoxedValue(util_js_1.Number_valueOf(value), ctx)}]`;
                     type = 'number';
                 }
-                else if (util_1.isStringObject(value)) {
-                    base = `[String: ${getBoxedValue(util_1.String_valueOf(value), ctx)}]`;
+                else if (util_js_1.isStringObject(value)) {
+                    base = `[String: ${getBoxedValue(util_js_1.String_valueOf(value), ctx)}]`;
                     type = 'string';
                     // For boxed Strings, we have to remove the 0-n indexed entries,
                     // since they just noisy up the output and are redundant
                     // Make boxed primitive Strings look like such
                     keys = keys.slice(value.length);
                 }
-                else if (util_1.isBooleanObject(value)) {
-                    base = `[Boolean: ${getBoxedValue(util_1.Boolean_valueOf(value), ctx)}]`;
+                else if (util_js_1.isBooleanObject(value)) {
+                    base = `[Boolean: ${getBoxedValue(util_js_1.Boolean_valueOf(value), ctx)}]`;
                     type = 'boolean';
                 }
                 else {
-                    base = `[Symbol: ${getBoxedValue(util_1.Symbol_valueOf(value), ctx)}]`;
+                    base = `[Symbol: ${getBoxedValue(util_js_1.Symbol_valueOf(value), ctx)}]`;
                     type = 'symbol';
                 }
                 if (keys.length === 0) {
@@ -1237,11 +1237,11 @@
                         return specialIterator;
                     }
                 }
-                if (util_1.isMapIterator(value)) {
+                if (util_js_1.isMapIterator(value)) {
                     braces = setIteratorBraces('Map', tag);
                     formatter = formatIterator;
                 }
-                else if (util_1.isSetIterator(value)) {
+                else if (util_js_1.isSetIterator(value)) {
                     braces = setIteratorBraces('Set', tag);
                     formatter = formatIterator;
                     // Handle other regular objects again.
@@ -1268,7 +1268,7 @@
         try {
             output = formatter(ctx, value, recurseTimes, keys, braces);
             let $key;
-            const isNotNode = !(value instanceof test_context_1.PLATFORM.Node);
+            const isNotNode = !(value instanceof test_context_js_1.PLATFORM.Node);
             for (i = 0; i < keys.length; i++) {
                 $key = keys[i];
                 if (
@@ -1297,7 +1297,7 @@
             }
         }
         let combine = false;
-        if (util_1.isNumber(ctx.compact)) {
+        if (util_js_1.isNumber(ctx.compact)) {
             // Memorize the original output length. In case the the output is grouped,
             // prevent lining up the entries on a single line.
             const entries = output.length;
@@ -1348,13 +1348,13 @@
         }
         if (ctx.customInspect) {
             const maybeCustom = value[exports.customInspectSymbol];
-            if (util_1.isFunction(maybeCustom)
+            if (util_js_1.isFunction(maybeCustom)
                 && maybeCustom !== inspect
                 && !(value.constructor && value.constructor.prototype === value)) {
                 const depth = ctx.depth === null ? null : ctx.depth - recurseTimes;
                 const ret = maybeCustom.call(value, depth, getUserOptions(ctx));
                 if (ret !== value) {
-                    if (!util_1.isString(ret)) {
+                    if (!util_js_1.isString(ret)) {
                         return formatValue(ctx, ret, recurseTimes);
                     }
                     return ret.replace(/\n/g, `\n${' '.repeat(ctx.indentationLvl)}`);

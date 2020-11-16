@@ -16,15 +16,15 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/runtime-html", "../validation-controller", "./common", "@aurelia/kernel"], factory);
+        define(["require", "exports", "@aurelia/runtime-html", "../validation-controller.js", "./common.js", "@aurelia/kernel"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ValidationContainerCustomElement = exports.defaultContainerDefinition = exports.defaultContainerTemplate = void 0;
     const runtime_html_1 = require("@aurelia/runtime-html");
-    const validation_controller_1 = require("../validation-controller");
-    const common_1 = require("./common");
+    const validation_controller_js_1 = require("../validation-controller.js");
+    const common_js_1 = require("./common.js");
     const kernel_1 = require("@aurelia/kernel");
     exports.defaultContainerTemplate = `
 <slot></slot>
@@ -58,14 +58,14 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                 }
                 const targets = elements.filter(e => this.host.contains(e));
                 if (targets.length > 0) {
-                    this.errors.push(new validation_controller_1.ValidationResultTarget(result, targets));
+                    this.errors.push(new validation_controller_js_1.ValidationResultTarget(result, targets));
                 }
             }
             this.errors.sort((a, b) => {
                 if (a.targets[0] === b.targets[0]) {
                     return 0;
                 }
-                return common_1.compareDocumentPositionFlat(a.targets[0], b.targets[0]);
+                return common_js_1.compareDocumentPositionFlat(a.targets[0], b.targets[0]);
             });
         }
         binding() {
@@ -87,7 +87,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     ], ValidationContainerCustomElement.prototype, "errors", void 0);
     ValidationContainerCustomElement = __decorate([
         __param(0, runtime_html_1.INode),
-        __param(1, kernel_1.optional(validation_controller_1.IValidationController)),
+        __param(1, kernel_1.optional(validation_controller_js_1.IValidationController)),
         __metadata("design:paramtypes", [Object, Object])
     ], ValidationContainerCustomElement);
     exports.ValidationContainerCustomElement = ValidationContainerCustomElement;

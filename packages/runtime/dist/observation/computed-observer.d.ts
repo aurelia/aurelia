@@ -1,11 +1,11 @@
 import { IIndexable, IServiceLocator } from '@aurelia/kernel';
-import { IBindingContext, IBindingTargetObserver, ICollectionSubscribable, IObservable, ISubscribable, ISubscriber, Collection, LifecycleFlags } from '../observation';
-import { IObserverLocator } from './observer-locator';
-import { IWatcher } from './watcher-switcher';
-import { IConnectableBinding } from '../binding/connectable';
-import { IWatcherCallback } from './watch';
-import { IsBindingBehavior } from '../binding/ast';
-import { Scope } from './binding-context';
+import { IBindingContext, IBindingTargetObserver, ICollectionSubscribable, IObservable, ISubscribable, ISubscriber, Collection, LifecycleFlags } from '../observation.js';
+import { IObserverLocator } from './observer-locator.js';
+import { IWatcher } from './watcher-switcher.js';
+import { IConnectableBinding } from '../binding/connectable.js';
+import { IWatcherCallback } from './watch.js';
+import { IsBindingBehavior } from '../binding/ast.js';
+import { Scope } from './binding-context.js';
 export interface ComputedOverrides {
     static?: boolean;
     volatile?: boolean;

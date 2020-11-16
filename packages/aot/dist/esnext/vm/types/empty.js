@@ -1,5 +1,5 @@
-import { nextValueId, } from './_shared';
-import { $TypeError, } from './error';
+import { nextValueId, } from './_shared.js';
+import { $TypeError, } from './error.js';
 export const empty = Symbol('empty');
 export class $Empty {
     constructor(realm, type = 1 /* normal */, target = realm['[[Intrinsics]]'].empty, sourceNode = null) {

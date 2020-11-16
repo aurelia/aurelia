@@ -2,14 +2,14 @@ import { ILogger, Registration, } from '@aurelia/kernel';
 import { basename, dirname, } from 'path';
 import { createSourceFile, ScriptTarget, } from 'typescript';
 import { JSDOM, } from 'jsdom';
-import { IFileSystem, } from './system/interfaces';
-import { normalizePath, isRelativeModulePath, joinPath, resolvePath, } from './system/path-utils';
-import { NPMPackageLoader, } from './system/npm-package-loader';
-import { File, } from './system/file-system';
-import { DeferredModule, } from './vm/realm';
-import { $ESModule, $DocumentFragment, $ESScript, } from './vm/ast/modules';
-import { PatternMatcher, } from './system/pattern-matcher';
-import { ISourceFileProvider, Agent, } from './vm/agent';
+import { IFileSystem, } from './system/interfaces.js';
+import { normalizePath, isRelativeModulePath, joinPath, resolvePath, } from './system/path-utils.js';
+import { NPMPackageLoader, } from './system/npm-package-loader.js';
+import { File, } from './system/file-system.js';
+import { DeferredModule, } from './vm/realm.js';
+import { $ESModule, $DocumentFragment, $ESScript, } from './vm/ast/modules.js';
+import { PatternMatcher, } from './system/pattern-matcher.js';
+import { ISourceFileProvider, Agent, } from './vm/agent.js';
 function comparePathLength(a, b) {
     return a.path.length - b.path.length;
 }

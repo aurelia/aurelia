@@ -1,6 +1,6 @@
 import { LifecycleFlags } from '@aurelia/runtime';
-import { ValidationResult, PropertyRule } from './rule-provider';
-import { IValidateable } from './rule-interfaces';
+import { ValidationResult, PropertyRule } from './rule-provider.js';
+import { IValidateable } from './rule-interfaces.js';
 /**
  * IInstruction for the validation controller's validate method.
  */

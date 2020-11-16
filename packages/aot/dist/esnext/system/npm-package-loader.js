@@ -1,6 +1,6 @@
 import { ILogger, emptyArray, IContainer, } from '@aurelia/kernel';
-import { IFileSystem, } from './interfaces';
-import { normalizePath, joinPath, } from './path-utils';
+import { IFileSystem, } from './interfaces.js';
+import { normalizePath, joinPath, } from './path-utils.js';
 import { basename, dirname, } from 'path';
 function countSlashes(path) {
     let count = 0;

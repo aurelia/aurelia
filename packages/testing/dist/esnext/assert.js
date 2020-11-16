@@ -1,12 +1,12 @@
 // Significant portion of this code is copy-pasted from the node.js source
 // Modifications consist primarily of removing dependencies on v8 natives and adding typings
-import { isDeepEqual, isDeepStrictEqual, } from './comparison';
-import { AssertionError, inspect, } from './inspect';
-import { getVisibleText } from './specialized-assertions';
-import { isError, isFunction, isNullOrUndefined, isObject, isPrimitive, isRegExp, isString, isUndefined, Object_freeze, Object_is, Object_keys, } from './util';
+import { isDeepEqual, isDeepStrictEqual, } from './comparison.js';
+import { AssertionError, inspect, } from './inspect.js';
+import { getVisibleText } from './specialized-assertions.js';
+import { isError, isFunction, isNullOrUndefined, isObject, isPrimitive, isRegExp, isString, isUndefined, Object_freeze, Object_is, Object_keys, } from './util.js';
 import { CustomElement, CustomAttribute, BrowserPlatform, } from '@aurelia/runtime-html';
-import { ensureTaskQueuesEmpty } from './scheduler';
-import { PLATFORM } from './test-context';
+import { ensureTaskQueuesEmpty } from './scheduler.js';
+import { PLATFORM } from './test-context.js';
 const noException = Symbol('noException');
 function innerFail(obj) {
     if (isError(obj.message)) {

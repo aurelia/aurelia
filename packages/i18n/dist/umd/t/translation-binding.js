@@ -13,7 +13,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime-html", "../i18n"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime-html", "../i18n.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -22,7 +22,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     exports.TranslationBinding = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const runtime_html_1 = require("@aurelia/runtime-html");
-    const i18n_1 = require("../i18n");
+    const i18n_js_1 = require("../i18n.js");
     const contentAttributes = ['textContent', 'innerHTML', 'prepend', 'append'];
     const attributeAliases = new Map([['text', 'textContent'], ['html', 'innerHTML']]);
     const forOpts = { optional: true };
@@ -36,7 +36,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             this.hostScope = null;
             this.parameter = null;
             this.target = target;
-            this.i18n = this.locator.get(i18n_1.I18N);
+            this.i18n = this.locator.get(i18n_js_1.I18N);
             this.platform = this.locator.get(runtime_html_1.IPlatform);
             this.targetObservers = new Set();
             this.i18n.subscribeLocaleChange(this);

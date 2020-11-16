@@ -5,7 +5,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 import { bindingBehavior } from '@aurelia/runtime';
-import { createIntlFormatValueConverterExpression } from '../utils';
+import { createIntlFormatValueConverterExpression } from '../utils.js';
 let DateFormatBindingBehavior = class DateFormatBindingBehavior {
     bind(flags, _scope, _hostScope, binding) {
         createIntlFormatValueConverterExpression("df" /* dateFormatValueConverterName */, binding);

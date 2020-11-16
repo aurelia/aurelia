@@ -4,13 +4,13 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./setter-observer"], factory);
+        define(["require", "exports", "./setter-observer.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.observable = void 0;
-    const setter_observer_1 = require("./setter-observer");
+    const setter_observer_js_1 = require("./setter-observer.js");
     function getObserversLookup(obj) {
         if (obj.$observers === void 0) {
             Reflect.defineProperty(obj, '$observers', { value: {} });
@@ -107,7 +107,7 @@
         const lookup = getObserversLookup(obj);
         let notifier = lookup[key];
         if (notifier == null) {
-            notifier = new setter_observer_1.SetterNotifier(set);
+            notifier = new setter_observer_js_1.SetterNotifier(set);
             lookup[key] = notifier;
             if (initialValue !== noValue) {
                 notifier.setValue(initialValue, 0 /* none */);

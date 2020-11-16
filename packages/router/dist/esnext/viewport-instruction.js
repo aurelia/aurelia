@@ -1,6 +1,6 @@
 import { CustomElement } from '@aurelia/runtime-html';
-import { ComponentAppellationResolver } from './type-resolvers';
-import { RouterOptions } from './router-options';
+import { ComponentAppellationResolver } from './type-resolvers.js';
+import { RouterOptions } from './router-options.js';
 /**
  * @internal - Shouldn't be used directly
  */

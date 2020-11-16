@@ -1,12 +1,12 @@
 import { IContainer, ILogger, Writable, IDisposable } from '@aurelia/kernel';
 import { JSDOM } from 'jsdom';
-import { IFileSystem, IFile, $CompilerOptions } from './system/interfaces';
-import { IModule, ExecutionContext } from './vm/realm';
-import { $ESModule, $ESScript, $$ESModuleOrScript } from './vm/ast/modules';
-import { $String } from './vm/types/string';
-import { ISourceFileProvider, Agent } from './vm/agent';
-import { $Any } from './vm/types/_shared';
-import { $Error } from './vm/types/error';
+import { IFileSystem, IFile, $CompilerOptions } from './system/interfaces.js';
+import { IModule, ExecutionContext } from './vm/realm.js';
+import { $ESModule, $ESScript, $$ESModuleOrScript } from './vm/ast/modules.js';
+import { $String } from './vm/types/string.js';
+import { ISourceFileProvider, Agent } from './vm/agent.js';
+import { $Any } from './vm/types/_shared.js';
+import { $Error } from './vm/types/error.js';
 export interface IModuleResolver {
     ResolveImportedModule(ctx: ExecutionContext, referencingModule: $ESModule, $specifier: $String): IModule | $Error;
 }

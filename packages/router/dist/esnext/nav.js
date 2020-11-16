@@ -1,4 +1,4 @@
-import { NavRoute } from './nav-route';
+import { NavRoute } from './nav-route.js';
 /**
  * Public API - Used by au-nav and Router add/setNav
  */

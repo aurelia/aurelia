@@ -1,9 +1,9 @@
-import { $Object, } from '../types/object';
-import { $String, } from '../types/string';
-import { $DefinePropertyOrThrow, $ValidateAndApplyPropertyDescriptor, } from '../operations';
-import { $PropertyDescriptor, } from '../types/property-descriptor';
-import { $Number, } from '../types/number';
-import { $List, } from '../types/list';
+import { $Object, } from '../types/object.js';
+import { $String, } from '../types/string.js';
+import { $DefinePropertyOrThrow, $ValidateAndApplyPropertyDescriptor, } from '../operations.js';
+import { $PropertyDescriptor, } from '../types/property-descriptor.js';
+import { $Number, } from '../types/number.js';
+import { $List, } from '../types/list.js';
 // http://www.ecma-international.org/ecma-262/#sec-string-exotic-objects
 export class $StringExoticObject extends $Object {
     // http://www.ecma-international.org/ecma-262/#sec-stringcreate

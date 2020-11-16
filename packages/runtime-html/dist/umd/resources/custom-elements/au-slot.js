@@ -16,16 +16,16 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "../../dom", "../custom-element", "../../templating/view"], factory);
+        define(["require", "exports", "@aurelia/kernel", "../../dom.js", "../custom-element.js", "../../templating/view.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.AuSlot = exports.ProjectionProvider = exports.IProjectionProvider = exports.RegisteredProjections = exports.ProjectionContext = exports.SlotInfo = exports.AuSlotContentType = exports.IProjections = void 0;
     const kernel_1 = require("@aurelia/kernel");
-    const dom_1 = require("../../dom");
-    const custom_element_1 = require("../custom-element");
-    const view_1 = require("../../templating/view");
+    const dom_js_1 = require("../../dom.js");
+    const custom_element_js_1 = require("../custom-element.js");
+    const view_js_1 = require("../../templating/view.js");
     exports.IProjections = kernel_1.DI.createInterface("IProjections").noDefault();
     var AuSlotContentType;
     (function (AuSlotContentType) {
@@ -99,9 +99,9 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
     };
     AuSlot = __decorate([
-        custom_element_1.customElement({ name: 'au-slot', template: null, containerless: true }),
-        __param(0, view_1.IViewFactory),
-        __param(1, dom_1.IRenderLocation),
+        custom_element_js_1.customElement({ name: 'au-slot', template: null, containerless: true }),
+        __param(0, view_js_1.IViewFactory),
+        __param(1, dom_js_1.IRenderLocation),
         __metadata("design:paramtypes", [Object, Object])
     ], AuSlot);
     exports.AuSlot = AuSlot;

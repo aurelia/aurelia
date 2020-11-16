@@ -1,8 +1,8 @@
-import { nextValueId, compareIndices, } from './_shared';
-import { $PropertyDescriptor, } from './property-descriptor';
-import { $Call, $ValidateAndApplyPropertyDescriptor, $OrdinarySetWithOwnDescriptor, } from '../operations';
-import { $TypeError, } from './error';
-import { $List, } from './list';
+import { nextValueId, compareIndices, } from './_shared.js';
+import { $PropertyDescriptor, } from './property-descriptor.js';
+import { $Call, $ValidateAndApplyPropertyDescriptor, $OrdinarySetWithOwnDescriptor, } from '../operations.js';
+import { $TypeError, } from './error.js';
+import { $List, } from './list.js';
 // http://www.ecma-international.org/ecma-262/#sec-object-type
 export class $Object {
     constructor(realm, IntrinsicName, proto, type, target) {

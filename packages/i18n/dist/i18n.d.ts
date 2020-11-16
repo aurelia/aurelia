@@ -1,8 +1,8 @@
 import { IEventAggregator } from '@aurelia/kernel';
 import { ISignaler } from '@aurelia/runtime';
 import i18nextCore from 'i18next';
-import { I18nInitOptions } from './i18n-configuration-options';
-import { I18nextWrapper } from './i18next-wrapper';
+import { I18nInitOptions } from './i18n-configuration-options.js';
+import { I18nextWrapper } from './i18next-wrapper.js';
 export declare class I18nKeyEvaluationResult {
     key: string;
     value: string;

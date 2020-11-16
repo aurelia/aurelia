@@ -4,13 +4,13 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./retry-interceptor"], factory);
+        define(["require", "exports", "./retry-interceptor.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.HttpClientConfiguration = void 0;
-    const retry_interceptor_1 = require("./retry-interceptor");
+    const retry_interceptor_js_1 = require("./retry-interceptor.js");
     /**
      * A class for configuring HttpClients.
      */
@@ -97,7 +97,7 @@
             return this.withInterceptor({ response: rejectOnError });
         }
         withRetry(config) {
-            const interceptor = new retry_interceptor_1.RetryInterceptor(config);
+            const interceptor = new retry_interceptor_js_1.RetryInterceptor(config);
             return this.withInterceptor(interceptor);
         }
         withDispatcher(dispatcher) {

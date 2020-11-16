@@ -4,15 +4,15 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "./interfaces", "./path-utils", "path"], factory);
+        define(["require", "exports", "@aurelia/kernel", "./interfaces.js", "./path-utils.js", "path"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.NPMPackageDependency = exports.NPMPackage = exports.NPMPackageLoader = void 0;
     const kernel_1 = require("@aurelia/kernel");
-    const interfaces_1 = require("./interfaces");
-    const path_utils_1 = require("./path-utils");
+    const interfaces_js_1 = require("./interfaces.js");
+    const path_utils_js_1 = require("./path-utils.js");
     const path_1 = require("path");
     function countSlashes(path) {
         let count = 0;
@@ -135,11 +135,11 @@
             this.pkgResolvePromiseCache = new Map();
             this.logger = logger.root.scopeTo('NPMPackageLoader');
         }
-        static get inject() { return [kernel_1.IContainer, kernel_1.ILogger, interfaces_1.IFileSystem]; }
+        static get inject() { return [kernel_1.IContainer, kernel_1.ILogger, interfaces_js_1.IFileSystem]; }
         async loadEntryPackage(projectDir) {
             const start = Date.now();
             this.logger.info(`load()`);
-            projectDir = path_utils_1.normalizePath(projectDir);
+            projectDir = path_utils_js_1.normalizePath(projectDir);
             const entryPkg = await this.loadPackageCore(projectDir, null);
             await entryPkg.loadDependencies();
             this.pkgPromiseCache.clear();
@@ -182,7 +182,7 @@
                 if (dir === null) {
                     dir = await this.resolvePackagePath(issuer);
                 }
-                const pkgPath = path_utils_1.joinPath(dir, 'package.json');
+                const pkgPath = path_utils_js_1.joinPath(dir, 'package.json');
                 const files = await fs.getFiles(dir);
                 const pkgJsonFile = files.find(x => x.path === pkgPath);
                 if (pkgJsonFile === void 0) {
@@ -215,25 +215,25 @@
                 let dir = dep.issuer.dir;
                 // eslint-disable-next-line no-constant-condition
                 while (true) {
-                    resolvedPath = path_utils_1.joinPath(dir, 'node_modules', refName, 'package.json');
+                    resolvedPath = path_utils_js_1.joinPath(dir, 'node_modules', refName, 'package.json');
                     // eslint-disable-next-line no-await-in-loop
                     if (await fs.isReadable(resolvedPath)) {
                         break;
                     }
-                    const parent = path_utils_1.normalizePath(path_1.dirname(dir));
+                    const parent = path_utils_js_1.normalizePath(path_1.dirname(dir));
                     if (parent === dir) {
                         throw new Error(`Unable to resolve npm dependency "${refName}"`);
                     }
                     dir = parent;
                 }
-                const realPath = path_utils_1.normalizePath(await fs.getRealPath(resolvedPath));
+                const realPath = path_utils_js_1.normalizePath(await fs.getRealPath(resolvedPath));
                 if (realPath === resolvedPath) {
                     this.logger.debug(`resolved "${refName}" directly to "${path_1.dirname(realPath)}"`);
                 }
                 else {
                     this.logger.debug(`resolved "${refName}" to "${path_1.dirname(realPath)}" via symlink "${path_1.dirname(resolvedPath)}"`);
                 }
-                resolvedPath = path_utils_1.normalizePath(path_1.dirname(realPath));
+                resolvedPath = path_utils_js_1.normalizePath(path_1.dirname(realPath));
                 pkgResolveCache.set(refName, resolvedPath);
             }
             return resolvedPath;
@@ -267,7 +267,7 @@
                     const withJs = `${entryFilePath}.js`;
                     entryFile = files.find(x => x.path.endsWith(withJs));
                     if (entryFile === void 0) {
-                        const withIndexJs = path_utils_1.joinPath(entryFilePath, 'index.js');
+                        const withIndexJs = path_utils_js_1.joinPath(entryFilePath, 'index.js');
                         entryFile = files.find(x => x.path.endsWith(withIndexJs));
                     }
                 }

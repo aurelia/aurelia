@@ -4,16 +4,16 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "../types/function"], factory);
+        define(["require", "exports", "../types/function.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.$ParseInt = void 0;
-    const function_1 = require("../types/function");
+    const function_js_1 = require("../types/function.js");
     // http://www.ecma-international.org/ecma-262/#sec-parseint-string-radix
     // 18.2.5 parseInt ( string , radix )
-    class $ParseInt extends function_1.$BuiltinFunction {
+    class $ParseInt extends function_js_1.$BuiltinFunction {
         constructor(realm, proto) {
             super(realm, '%parseInt%', proto);
         }

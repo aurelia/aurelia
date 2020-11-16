@@ -1,8 +1,8 @@
-import { $BuiltinFunction, } from '../types/function';
-import { $Object, } from '../types/object';
-import { $CreateDynamicFunction, } from './function';
-import { $List, } from '../types/list';
-import { $Call, } from '../operations';
+import { $BuiltinFunction, } from '../types/function.js';
+import { $Object, } from '../types/object.js';
+import { $CreateDynamicFunction, } from './function.js';
+import { $List, } from '../types/list.js';
+import { $Call, } from '../operations.js';
 // http://www.ecma-international.org/ecma-262/#sec-async-function-objects
 // 25.7 AsyncFunction Objects
 // http://www.ecma-international.org/ecma-262/#sec-async-function-constructor

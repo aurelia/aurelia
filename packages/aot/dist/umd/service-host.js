@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "path", "typescript", "jsdom", "./system/interfaces", "./system/path-utils", "./system/npm-package-loader", "./system/file-system", "./vm/realm", "./vm/ast/modules", "./system/pattern-matcher", "./vm/agent"], factory);
+        define(["require", "exports", "@aurelia/kernel", "path", "typescript", "jsdom", "./system/interfaces.js", "./system/path-utils.js", "./system/npm-package-loader.js", "./system/file-system.js", "./vm/realm.js", "./vm/ast/modules.js", "./system/pattern-matcher.js", "./vm/agent.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -14,14 +14,14 @@
     const path_1 = require("path");
     const typescript_1 = require("typescript");
     const jsdom_1 = require("jsdom");
-    const interfaces_1 = require("./system/interfaces");
-    const path_utils_1 = require("./system/path-utils");
-    const npm_package_loader_1 = require("./system/npm-package-loader");
-    const file_system_1 = require("./system/file-system");
-    const realm_1 = require("./vm/realm");
-    const modules_1 = require("./vm/ast/modules");
-    const pattern_matcher_1 = require("./system/pattern-matcher");
-    const agent_1 = require("./vm/agent");
+    const interfaces_js_1 = require("./system/interfaces.js");
+    const path_utils_js_1 = require("./system/path-utils.js");
+    const npm_package_loader_js_1 = require("./system/npm-package-loader.js");
+    const file_system_js_1 = require("./system/file-system.js");
+    const realm_js_1 = require("./vm/realm.js");
+    const modules_js_1 = require("./vm/ast/modules.js");
+    const pattern_matcher_js_1 = require("./system/pattern-matcher.js");
+    const agent_js_1 = require("./vm/agent.js");
     function comparePathLength(a, b) {
         return a.path.length - b.path.length;
     }
@@ -51,7 +51,7 @@
     }
     exports.EntrySourceFileProvider = EntrySourceFileProvider;
     class ServiceHost {
-        constructor(container, logger = container.get(kernel_1.ILogger), fs = container.get(interfaces_1.IFileSystem)) {
+        constructor(container, logger = container.get(kernel_1.ILogger), fs = container.get(interfaces_js_1.IFileSystem)) {
             this.container = container;
             this.logger = logger;
             this.fs = fs;
@@ -59,7 +59,7 @@
             this.compilerOptionsCache = new Map();
             this.moduleCache = new Map();
             this.scriptCache = new Map();
-            this.agent = new agent_1.Agent(logger);
+            this.agent = new agent_js_1.Agent(logger);
         }
         get jsdom() {
             let jsdom = this._jsdom;
@@ -84,23 +84,23 @@
         }
         executeEntryFile(dir) {
             const container = this.container.createChild();
-            container.register(kernel_1.Registration.instance(agent_1.ISourceFileProvider, new EntrySourceFileProvider(this, dir)));
+            container.register(kernel_1.Registration.instance(agent_js_1.ISourceFileProvider, new EntrySourceFileProvider(this, dir)));
             return this.agent.RunJobs(container);
         }
         executeSpecificFile(file, mode) {
             const container = this.container.createChild();
-            container.register(kernel_1.Registration.instance(agent_1.ISourceFileProvider, new SpecificSourceFileProvider(this, file, mode)));
+            container.register(kernel_1.Registration.instance(agent_js_1.ISourceFileProvider, new SpecificSourceFileProvider(this, file, mode)));
             return this.agent.RunJobs(container);
         }
         executeProvider(provider) {
             const container = this.container.createChild();
-            container.register(kernel_1.Registration.instance(agent_1.ISourceFileProvider, provider));
+            container.register(kernel_1.Registration.instance(agent_js_1.ISourceFileProvider, provider));
             return this.agent.RunJobs(container);
         }
         // http://www.ecma-international.org/ecma-262/#sec-hostresolveimportedmodule
         ResolveImportedModule(ctx, referencingModule, $specifier) {
-            const specifier = path_utils_1.normalizePath($specifier['[[Value]]']);
-            const isRelative = path_utils_1.isRelativeModulePath(specifier);
+            const specifier = path_utils_js_1.normalizePath($specifier['[[Value]]']);
+            const isRelative = path_utils_js_1.isRelativeModulePath(specifier);
             const pkg = referencingModule.pkg;
             // Single file scenario; lazily resolve the import
             if (pkg === null) {
@@ -112,13 +112,13 @@
                 const ext = '.js';
                 const name = path_1.basename(specifier);
                 const shortName = name.slice(0, -3);
-                const path = path_utils_1.joinPath(dir, name);
-                const file = new file_system_1.File(this.fs, path, dir, specifier, name, shortName, ext);
+                const path = path_utils_js_1.joinPath(dir, name);
+                const file = new file_system_js_1.File(this.fs, path, dir, specifier, name, shortName, ext);
                 return this.getESModule(ctx, file, null);
             }
             if (isRelative) {
                 this.logger.debug(`[ResolveImport] resolving internal relative module: '${$specifier['[[Value]]']}' for ${referencingModule.$file.name}`);
-                const filePath = path_utils_1.resolvePath(path_1.dirname(referencingModule.$file.path), specifier);
+                const filePath = path_utils_js_1.resolvePath(path_1.dirname(referencingModule.$file.path), specifier);
                 const files = pkg.files.filter(x => x.shortPath === filePath || x.path === filePath).sort(comparePathLength);
                 if (files.length === 0) {
                     throw new Error(`Cannot find file "${filePath}" (imported as "${specifier}" by "${referencingModule.$file.name}")`);
@@ -131,7 +131,7 @@
                         file = files[0];
                         let deferred = this.moduleCache.get(file.path);
                         if (deferred === void 0) {
-                            deferred = new realm_1.DeferredModule(file, ctx.Realm);
+                            deferred = new realm_js_1.DeferredModule(file, ctx.Realm);
                             this.moduleCache.set(file.path, deferred);
                         }
                         return deferred;
@@ -144,7 +144,7 @@
                 const pkgDep = pkg.deps.find(n => n.refName === specifier || specifier.startsWith(`${n.refName}/`));
                 if (pkgDep === void 0) {
                     this.logger.debug(`[ResolveImport] resolving internal absolute module: '${$specifier['[[Value]]']}' for ${referencingModule.$file.name}`);
-                    const matcher = pattern_matcher_1.PatternMatcher.getOrCreate(referencingModule.compilerOptions, this.container);
+                    const matcher = pattern_matcher_js_1.PatternMatcher.getOrCreate(referencingModule.compilerOptions, this.container);
                     if (matcher !== null) {
                         const file = matcher.findMatch(pkg.files, specifier);
                         return this.getESModule(ctx, file, pkg);
@@ -162,10 +162,10 @@
                         }
                         let file = externalPkg.files.find(x => x.shortPath === externalPkg.dir && x.ext === '.js');
                         if (file === void 0) {
-                            const indexModulePath = path_utils_1.joinPath(externalPkg.dir, 'index');
+                            const indexModulePath = path_utils_js_1.joinPath(externalPkg.dir, 'index');
                             file = externalPkg.files.find(f => f.shortPath === indexModulePath && f.ext === '.js');
                             if (file === void 0) {
-                                const partialAbsolutePath = path_utils_1.joinPath('node_modules', specifier);
+                                const partialAbsolutePath = path_utils_js_1.joinPath('node_modules', specifier);
                                 file = externalPkg.files.find(f => f.shortPath.endsWith(partialAbsolutePath) && f.ext === '.js');
                                 if (file === void 0) {
                                     throw new Error(`Unable to resolve file "${externalPkg.dir}" or "${indexModulePath}" (refName="${pkgDep.refName}", entryFile="${externalPkg.entryFile.shortPath}", specifier=${specifier})`);
@@ -194,7 +194,7 @@
         }
         loadEntryPackage(dir) {
             this.logger.trace(`loadEntryPackage(${dir})`);
-            const loader = this.container.get(npm_package_loader_1.NPMPackageLoader);
+            const loader = this.container.get(npm_package_loader_js_1.NPMPackageLoader);
             return loader.loadEntryPackage(dir);
         }
         getHTMLModule(ctx, file, pkg) {
@@ -203,7 +203,7 @@
                 const sourceText = file.getContentSync();
                 const template = this.jsdom.window.document.createElement('template');
                 template.innerHTML = sourceText;
-                hm = new modules_1.$DocumentFragment(this.logger, file, template.content, ctx.Realm, pkg);
+                hm = new modules_js_1.$DocumentFragment(this.logger, file, template.content, ctx.Realm, pkg);
                 this.moduleCache.set(file.path, hm);
             }
             return hm;
@@ -213,7 +213,7 @@
             if (script === void 0) {
                 const sourceText = file.getContentSync();
                 const sf = typescript_1.createSourceFile(file.path, sourceText, typescript_1.ScriptTarget.Latest, false);
-                script = new modules_1.$ESScript(this.logger, file, sf, ctx.Realm);
+                script = new modules_js_1.$ESScript(this.logger, file, sf, ctx.Realm);
                 this.scriptCache.set(file.path, script);
             }
             return script;
@@ -224,24 +224,24 @@
                 const compilerOptions = this.getCompilerOptions(file.path, pkg);
                 const sourceText = file.getContentSync();
                 const sf = typescript_1.createSourceFile(file.path, sourceText, typescript_1.ScriptTarget.Latest, false);
-                esm = new modules_1.$ESModule(this.logger, file, sf, ctx.Realm, pkg, this, compilerOptions);
+                esm = new modules_js_1.$ESModule(this.logger, file, sf, ctx.Realm, pkg, this, compilerOptions);
                 this.moduleCache.set(file.path, esm);
             }
             return esm;
         }
         getCompilerOptions(path, pkg) {
             // TODO: this is a very simple/naive impl, needs more work for inheritance etc
-            path = path_utils_1.normalizePath(path);
+            path = path_utils_js_1.normalizePath(path);
             let compilerOptions = this.compilerOptionsCache.get(path);
             if (compilerOptions === void 0) {
-                const dir = path_utils_1.normalizePath(path_1.dirname(path));
+                const dir = path_utils_js_1.normalizePath(path_1.dirname(path));
                 if (dir === path || pkg === null /* TODO: maybe still try to find tsconfig? */) {
                     compilerOptions = {
                         __dirname: '',
                     };
                 }
                 else {
-                    const tsConfigPath = path_utils_1.joinPath(path, 'tsconfig.json');
+                    const tsConfigPath = path_utils_js_1.joinPath(path, 'tsconfig.json');
                     const tsConfigFile = pkg.files.find(x => x.path === tsConfigPath);
                     if (tsConfigFile === void 0) {
                         compilerOptions = this.getCompilerOptions(dir, pkg);

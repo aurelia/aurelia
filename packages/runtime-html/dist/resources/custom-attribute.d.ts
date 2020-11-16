@@ -1,6 +1,6 @@
 import { Constructable, IContainer, IResourceKind, ResourceDefinition, PartialResourceDefinition, ResourceType } from '@aurelia/kernel';
 import { BindingMode, PartialBindableDefinition, BindableDefinition, IWatchDefinition } from '@aurelia/runtime';
-import type { ICustomAttributeViewModel, ICustomAttributeController } from '../templating/controller';
+import type { ICustomAttributeViewModel, ICustomAttributeController } from '../templating/controller.js';
 export declare type PartialCustomAttributeDefinition = PartialResourceDefinition<{
     readonly defaultBindingMode?: BindingMode;
     readonly isTemplateController?: boolean;

@@ -11,8 +11,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 import { INode, bindable } from '@aurelia/runtime-html';
-import { ValidationResultTarget, IValidationController } from '../validation-controller';
-import { compareDocumentPositionFlat } from './common';
+import { ValidationResultTarget, IValidationController } from '../validation-controller.js';
+import { compareDocumentPositionFlat } from './common.js';
 import { optional } from '@aurelia/kernel';
 export const defaultContainerTemplate = `
 <slot></slot>

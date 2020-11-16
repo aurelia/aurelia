@@ -16,7 +16,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "./rules", "./rule-interfaces"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "./rules.js", "./rule-interfaces.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -25,8 +25,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     /* eslint-disable no-template-curly-in-string */
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
-    const rules_1 = require("./rules");
-    const rule_interfaces_1 = require("./rule-interfaces");
+    const rules_js_1 = require("./rules.js");
+    const rule_interfaces_js_1 = require("./rule-interfaces.js");
     /* @internal */
     exports.ICustomMessages = kernel_1.DI.createInterface('ICustomMessages').noDefault();
     class RuleProperty {
@@ -223,7 +223,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
          * @param {RuleCondition} condition - The function to validate the rule. Will be called with two arguments, the property value and the object.
          */
         satisfies(condition) {
-            const rule = new (class extends rules_1.BaseValidationRule {
+            const rule = new (class extends rules_js_1.BaseValidationRule {
                 constructor() {
                     super(...arguments);
                     this.execute = condition;
@@ -243,13 +243,13 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
          * Applies an instance of `RequiredRule`.
          */
         required() {
-            return this.addRule(new rules_1.RequiredRule());
+            return this.addRule(new rules_js_1.RequiredRule());
         }
         /**
          * Applies an instance of `RegexRule`.
          */
         matches(regex) {
-            return this.addRule(new rules_1.RegexRule(regex));
+            return this.addRule(new rules_js_1.RegexRule(regex));
         }
         /**
          * Applies an instance of `RegexRule` with email pattern.
@@ -257,69 +257,69 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         email() {
             // eslint-disable-next-line no-useless-escape
             const emailPattern = /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
-            return this.addRule(new rules_1.RegexRule(emailPattern, 'email'));
+            return this.addRule(new rules_js_1.RegexRule(emailPattern, 'email'));
         }
         /**
          * Applies an instance of `LengthRule` with min `length` constraint.
          * Applicable for string value.
          */
         minLength(length) {
-            return this.addRule(new rules_1.LengthRule(length, false));
+            return this.addRule(new rules_js_1.LengthRule(length, false));
         }
         /**
          * Applies an instance of `LengthRule` with max `length` constraint.
          * Applicable for string value.
          */
         maxLength(length) {
-            return this.addRule(new rules_1.LengthRule(length, true));
+            return this.addRule(new rules_js_1.LengthRule(length, true));
         }
         /**
          * Applies an instance of `SizeRule` with min `count` constraint.
          * Applicable for array value.
          */
         minItems(count) {
-            return this.addRule(new rules_1.SizeRule(count, false));
+            return this.addRule(new rules_js_1.SizeRule(count, false));
         }
         /**
          * Applies an instance of `SizeRule` with max `count` constraint.
          * Applicable for array value.
          */
         maxItems(count) {
-            return this.addRule(new rules_1.SizeRule(count, true));
+            return this.addRule(new rules_js_1.SizeRule(count, true));
         }
         /**
          * Applies an instance of `RangeRule` with [`constraint`,] interval.
          * Applicable for number value.
          */
         min(constraint) {
-            return this.addRule(new rules_1.RangeRule(true, { min: constraint }));
+            return this.addRule(new rules_js_1.RangeRule(true, { min: constraint }));
         }
         /**
          * Applies an instance of `RangeRule` with [,`constraint`] interval.
          * Applicable for number value.
          */
         max(constraint) {
-            return this.addRule(new rules_1.RangeRule(true, { max: constraint }));
+            return this.addRule(new rules_js_1.RangeRule(true, { max: constraint }));
         }
         /**
          * Applies an instance of `RangeRule` with [`min`,`max`] interval.
          * Applicable for number value.
          */
         range(min, max) {
-            return this.addRule(new rules_1.RangeRule(true, { min, max }));
+            return this.addRule(new rules_js_1.RangeRule(true, { min, max }));
         }
         /**
          * Applies an instance of `RangeRule` with (`min`,`max`) interval.
          * Applicable for number value.
          */
         between(min, max) {
-            return this.addRule(new rules_1.RangeRule(false, { min, max }));
+            return this.addRule(new rules_js_1.RangeRule(false, { min, max }));
         }
         /**
          * Applies an instance of `EqualsRule` with the `expectedValue`.
          */
         equals(expectedValue) {
-            return this.addRule(new rules_1.EqualsRule(expectedValue));
+            return this.addRule(new rules_js_1.EqualsRule(expectedValue));
         }
         ensure(property) {
             this.latestRule = void 0;
@@ -411,8 +411,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     ValidationRules = __decorate([
         __param(0, kernel_1.IServiceLocator),
         __param(1, runtime_1.IExpressionParser),
-        __param(2, rules_1.IValidationMessageProvider),
-        __param(3, rule_interfaces_1.IValidationExpressionHydrator),
+        __param(2, rules_js_1.IValidationMessageProvider),
+        __param(3, rule_interfaces_js_1.IValidationExpressionHydrator),
         __metadata("design:paramtypes", [Object, Object, Object, Object])
     ], ValidationRules);
     exports.ValidationRules = ValidationRules;
@@ -483,7 +483,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             this.registeredMessages = new WeakMap();
             this.logger = logger.scopeTo(ValidationMessageProvider.name);
             for (const { rule, aliases } of customMessages) {
-                rules_1.ValidationRuleAliasMessage.setDefaultMessage(rule, { aliases });
+                rules_js_1.ValidationRuleAliasMessage.setDefaultMessage(rule, { aliases });
             }
         }
         getMessage(rule) {
@@ -492,7 +492,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             if (parsedMessage !== void 0) {
                 return parsedMessage;
             }
-            const validationMessages = rules_1.ValidationRuleAliasMessage.getDefaultMessages(rule);
+            const validationMessages = rules_js_1.ValidationRuleAliasMessage.getDefaultMessages(rule);
             const messageKey = rule.messageKey;
             let message;
             const messageCount = validationMessages.length;
@@ -503,7 +503,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                 message = (_a = validationMessages.find(m => m.name === messageKey)) === null || _a === void 0 ? void 0 : _a.defaultMessage;
             }
             if (!message) {
-                message = rules_1.ValidationRuleAliasMessage.getDefaultMessages(rules_1.BaseValidationRule)[0].defaultMessage;
+                message = rules_js_1.ValidationRuleAliasMessage.getDefaultMessages(rules_js_1.BaseValidationRule)[0].defaultMessage;
             }
             return this.setMessage(rule, message);
         }

@@ -1,9 +1,9 @@
-import { $BuiltinFunction, } from '../types/function';
-import { $TypeError, } from '../types/error';
-import { $Object, } from '../types/object';
-import { $ProxyExoticObject, } from '../exotics/proxy';
-import { $CreateDataProperty, } from '../operations';
-import { $String, } from '../types/string';
+import { $BuiltinFunction, } from '../types/function.js';
+import { $TypeError, } from '../types/error.js';
+import { $Object, } from '../types/object.js';
+import { $ProxyExoticObject, } from '../exotics/proxy.js';
+import { $CreateDataProperty, } from '../operations.js';
+import { $String, } from '../types/string.js';
 // http://www.ecma-international.org/ecma-262/#sec-proxy-objects
 // 26.2 Proxy Objects
 // http://www.ecma-international.org/ecma-262/#sec-proxy-constructor

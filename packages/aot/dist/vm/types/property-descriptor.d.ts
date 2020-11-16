@@ -1,9 +1,9 @@
-import { Realm, ExecutionContext } from '../realm';
-import { $Boolean } from './boolean';
-import { $Undefined } from './undefined';
-import { $Empty } from './empty';
-import { $Function } from './function';
-import { $AnyNonError, $PropertyKey, $Any } from './_shared';
+import { Realm, ExecutionContext } from '../realm.js';
+import { $Boolean } from './boolean.js';
+import { $Undefined } from './undefined.js';
+import { $Empty } from './empty.js';
+import { $Function } from './function.js';
+import { $AnyNonError, $PropertyKey, $Any } from './_shared.js';
 import { IDisposable, Writable } from '@aurelia/kernel';
 export declare class $PropertyDescriptor implements IDisposable {
     readonly realm: Realm;

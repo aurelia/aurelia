@@ -4,22 +4,22 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "../types/function", "../types/error", "../types/object", "./function", "./iteration"], factory);
+        define(["require", "exports", "../types/function.js", "../types/error.js", "../types/object.js", "./function.js", "./iteration.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.$GeneratorYield = exports.$GetGeneratorKind = exports.GeneratorKind = exports.$GeneratorResumeAbrupt = exports.$GeneratorResume = exports.$GeneratorValidate = exports.$GeneratorState = exports.$GeneratorStart = exports.$GeneratorInstance = exports.GeneratorState = exports.$GeneratorPrototype_throw = exports.$GeneratorPrototype_return = exports.$GeneratorPrototype_next = exports.$GeneratorPrototype = exports.$GeneratorFunctionPrototype = exports.$GeneratorFunctionConstructor = void 0;
-    const function_1 = require("../types/function");
-    const error_1 = require("../types/error");
-    const object_1 = require("../types/object");
-    const function_2 = require("./function");
-    const iteration_1 = require("./iteration");
+    const function_js_1 = require("../types/function.js");
+    const error_js_1 = require("../types/error.js");
+    const object_js_1 = require("../types/object.js");
+    const function_js_2 = require("./function.js");
+    const iteration_js_1 = require("./iteration.js");
     // http://www.ecma-international.org/ecma-262/#sec-generatorfunction-objects
     // 25.2 GeneratorFunction Objects
     // http://www.ecma-international.org/ecma-262/#sec-generatorfunction-constructor
     // #region 25.2.1 The GeneratorFunction Constructor
-    class $GeneratorFunctionConstructor extends function_1.$BuiltinFunction {
+    class $GeneratorFunctionConstructor extends function_js_1.$BuiltinFunction {
         // http://www.ecma-international.org/ecma-262/#sec-generatorfunction.prototype
         // 25.2.2.2 GeneratorFunction.prototype
         get $prototype() {
@@ -45,14 +45,14 @@
             // 1. Let C be the active function object.
             // 2. Let args be the argumentsList that was passed to this function by [[Call]] or [[Construct]].
             // 3. Return ? CreateDynamicFunction(C, NewTarget, "generator", args).
-            return function_2.$CreateDynamicFunction(ctx, this, NewTarget, 4 /* generator */, argumentsList);
+            return function_js_2.$CreateDynamicFunction(ctx, this, NewTarget, 4 /* generator */, argumentsList);
         }
     }
     exports.$GeneratorFunctionConstructor = $GeneratorFunctionConstructor;
     // #endregion
     // http://www.ecma-international.org/ecma-262/#sec-properties-of-the-generatorfunction-prototype-object
     // #region 25.2.3 Properties of the GeneratorFunction Prototype Object
-    class $GeneratorFunctionPrototype extends object_1.$Object {
+    class $GeneratorFunctionPrototype extends object_js_1.$Object {
         // http://www.ecma-international.org/ecma-262/#sec-generatorfunction.prototype.constructor
         // 25.2.3.1 GeneratorFunction.prototype.constructor
         get $constructor() {
@@ -97,7 +97,7 @@
     // 25.4 Generator Objects
     // http://www.ecma-international.org/ecma-262/#sec-properties-of-generator-prototype
     // #region 25.4.1 Properties of the Generator Prototype Object
-    class $GeneratorPrototype extends object_1.$Object {
+    class $GeneratorPrototype extends object_js_1.$Object {
         // http://www.ecma-international.org/ecma-262/#sec-generator.prototype.constructor
         // 25.4.1.1 Generator.prototype.constructor
         get $constructor() {
@@ -144,7 +144,7 @@
         }
     }
     exports.$GeneratorPrototype = $GeneratorPrototype;
-    class $GeneratorPrototype_next extends function_1.$BuiltinFunction {
+    class $GeneratorPrototype_next extends function_js_1.$BuiltinFunction {
         // http://www.ecma-international.org/ecma-262/#sec-generator.prototype.next
         // 25.4.1.2 Generator.prototype.next ( value )
         performSteps(ctx, thisArgument, [value], NewTarget) {
@@ -160,7 +160,7 @@
         }
     }
     exports.$GeneratorPrototype_next = $GeneratorPrototype_next;
-    class $GeneratorPrototype_return extends function_1.$BuiltinFunction {
+    class $GeneratorPrototype_return extends function_js_1.$BuiltinFunction {
         // http://www.ecma-international.org/ecma-262/#sec-generator.prototype.return
         // 25.4.1.3 Generator.prototype.return ( value )
         performSteps(ctx, thisArgument, [value], NewTarget) {
@@ -178,7 +178,7 @@
         }
     }
     exports.$GeneratorPrototype_return = $GeneratorPrototype_return;
-    class $GeneratorPrototype_throw extends function_1.$BuiltinFunction {
+    class $GeneratorPrototype_throw extends function_js_1.$BuiltinFunction {
         // http://www.ecma-international.org/ecma-262/#sec-generator.prototype.throw
         // 25.4.1.4 Generator.prototype.throw ( exception )
         performSteps(ctx, thisArgument, [exception], NewTarget) {
@@ -207,7 +207,7 @@
         GeneratorState[GeneratorState["executing"] = 3] = "executing";
         GeneratorState[GeneratorState["completed"] = 4] = "completed";
     })(GeneratorState = exports.GeneratorState || (exports.GeneratorState = {}));
-    class $GeneratorInstance extends object_1.$Object {
+    class $GeneratorInstance extends object_js_1.$Object {
         constructor(realm, proto) {
             const intrinsics = realm['[[Intrinsics]]'];
             super(realm, 'GeneratorInstance', proto, 1 /* normal */, intrinsics.empty);
@@ -255,7 +255,7 @@
                 return result;
             }
             // 4. i. Return CreateIterResultObject(resultValue, true).
-            return iteration_1.$CreateIterResultObject(stack.top, resultValue, intrinsics.true);
+            return iteration_js_1.$CreateIterResultObject(stack.top, resultValue, intrinsics.true);
         };
         // 5. Set generator.[[GeneratorContext]] to genContext.
         generator['[[GeneratorContext]]'] = genContext;
@@ -280,13 +280,13 @@
         // 2. If generator does not have a [[GeneratorState]] internal slot, throw a TypeError exception.
         // 3. Assert: generator also has a [[GeneratorContext]] internal slot.
         if (!(generator instanceof $GeneratorInstance)) {
-            return new error_1.$TypeError(realm, `Expected generator to be an GeneratorInstance, but got: ${generator}`);
+            return new error_js_1.$TypeError(realm, `Expected generator to be an GeneratorInstance, but got: ${generator}`);
         }
         // 4. Let state be generator.[[GeneratorState]].
         const state = generator['[[GeneratorState]]'];
         // 5. If state is "executing", throw a TypeError exception.
         if (state === 3 /* executing */) {
-            return new error_1.$TypeError(realm, `Generator validation failed: already executing`);
+            return new error_js_1.$TypeError(realm, `Generator validation failed: already executing`);
         }
         // 6. Return state.
         return new $GeneratorState(state);
@@ -307,7 +307,7 @@
         const generator = _generator;
         // 2. If state is "completed", return CreateIterResultObject(undefined, true).
         if (state === 4 /* completed */) {
-            return iteration_1.$CreateIterResultObject(ctx, intrinsics.undefined, intrinsics.true);
+            return iteration_js_1.$CreateIterResultObject(ctx, intrinsics.undefined, intrinsics.true);
         }
         // 3. Assert: state is either "suspendedStart" or "suspendedYield".
         // 4. Let genContext be generator.[[GeneratorContext]].
@@ -354,7 +354,7 @@
             // 3. a. If abruptCompletion.[[Type]] is return, then
             if (abruptCompletion['[[Type]]'] === 4 /* return */) {
                 // 3. a. i. Return CreateIterResultObject(abruptCompletion.[[Value]], true).
-                return iteration_1.$CreateIterResultObject(ctx, abruptCompletion, intrinsics.true);
+                return iteration_js_1.$CreateIterResultObject(ctx, abruptCompletion, intrinsics.true);
             }
             // 3. b. Return Completion(abruptCompletion).
             return abruptCompletion;

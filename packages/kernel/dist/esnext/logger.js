@@ -10,9 +10,9 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-import { all, DI, ignore, optional, Registration } from './di';
-import { bound, toLookup } from './functions';
-import { Protocol } from './resource';
+import { all, DI, ignore, optional, Registration } from './di.js';
+import { bound, toLookup } from './functions.js';
+import { Protocol } from './resource.js';
 import { Metadata } from '@aurelia/metadata';
 export var LogLevel;
 (function (LogLevel) {

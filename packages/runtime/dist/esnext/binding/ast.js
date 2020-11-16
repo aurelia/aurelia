@@ -1,10 +1,10 @@
 /* eslint-disable eqeqeq */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { emptyArray, isNumberOrBigInt, isStringOrDate, } from '@aurelia/kernel';
-import { BindingContext } from '../observation/binding-context';
-import { ISignaler } from '../observation/signaler';
-import { BindingBehavior, BindingBehaviorFactory, } from '../binding-behavior';
-import { ValueConverter, } from '../value-converter';
+import { BindingContext } from '../observation/binding-context.js';
+import { ISignaler } from '../observation/signaler.js';
+import { BindingBehavior, BindingBehaviorFactory, } from '../binding-behavior.js';
+import { ValueConverter, } from '../value-converter.js';
 export var ExpressionKind;
 (function (ExpressionKind) {
     ExpressionKind[ExpressionKind["Connects"] = 32] = "Connects";

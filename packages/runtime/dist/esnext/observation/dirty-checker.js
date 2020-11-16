@@ -11,7 +11,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 import { DI, IPlatform } from '@aurelia/kernel';
-import { subscriberCollection } from './subscriber-collection';
+import { subscriberCollection } from './subscriber-collection.js';
 export const IDirtyChecker = DI.createInterface('IDirtyChecker').withDefault(x => x.singleton(DirtyChecker));
 export const DirtyCheckSettings = {
     /**

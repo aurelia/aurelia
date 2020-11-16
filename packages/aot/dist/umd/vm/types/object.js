@@ -4,24 +4,24 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./_shared", "./property-descriptor", "../operations", "./error", "./list"], factory);
+        define(["require", "exports", "./_shared.js", "./property-descriptor.js", "../operations.js", "./error.js", "./list.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.$Object = void 0;
-    const _shared_1 = require("./_shared");
-    const property_descriptor_1 = require("./property-descriptor");
-    const operations_1 = require("../operations");
-    const error_1 = require("./error");
-    const list_1 = require("./list");
+    const _shared_js_1 = require("./_shared.js");
+    const property_descriptor_js_1 = require("./property-descriptor.js");
+    const operations_js_1 = require("../operations.js");
+    const error_js_1 = require("./error.js");
+    const list_js_1 = require("./list.js");
     // http://www.ecma-international.org/ecma-262/#sec-object-type
     class $Object {
         constructor(realm, IntrinsicName, proto, type, target) {
             this.realm = realm;
             this.IntrinsicName = IntrinsicName;
             this.disposed = false;
-            this.id = _shared_1.nextValueId();
+            this.id = _shared_js_1.nextValueId();
             this.propertyMap = new Map();
             this.propertyDescriptors = [];
             this.propertyKeys = [];
@@ -171,7 +171,7 @@
             // 2. e. If exoticToPrim is not undefined, then
             if (!exoticToPrim.isUndefined) {
                 // 2. e. i. Let result be ? Call(exoticToPrim, input, « hint »).
-                const result = operations_1.$Call(ctx, exoticToPrim, input, new list_1.$List(hint));
+                const result = operations_js_1.$Call(ctx, exoticToPrim, input, new list_js_1.$List(hint));
                 if (result.isAbrupt) {
                     return result;
                 }
@@ -180,7 +180,7 @@
                     return result;
                 }
                 // 2. e. iii. Throw a TypeError exception.
-                return new error_1.$TypeError(realm, `Symbol.toPrimitive returned ${result}, but expected a primitive`);
+                return new error_js_1.$TypeError(realm, `Symbol.toPrimitive returned ${result}, but expected a primitive`);
             }
             // 2. f. If hint is "default", set hint to "number".
             if (hint['[[Value]]'] === 'default') {
@@ -211,7 +211,7 @@
                 // 5. b. If IsCallable(method) is true, then
                 if (method.isFunction) {
                     // 5. b. i. Let result be ? Call(method, O).
-                    const result = operations_1.$Call(ctx, method, O, intrinsics.undefined);
+                    const result = operations_js_1.$Call(ctx, method, O, intrinsics.undefined);
                     if (result.isAbrupt) {
                         return result;
                     }
@@ -227,7 +227,7 @@
                 // 5. b. If IsCallable(method) is true, then
                 if (method.isFunction) {
                     // 5. b. i. Let result be ? Call(method, O).
-                    const result = operations_1.$Call(ctx, method, O, intrinsics.undefined);
+                    const result = operations_js_1.$Call(ctx, method, O, intrinsics.undefined);
                     if (result.isAbrupt) {
                         return result;
                     }
@@ -236,10 +236,10 @@
                         return result;
                     }
                     // 6. Throw a TypeError exception.
-                    return new error_1.$TypeError(realm, `valueOf returned ${result}, but expected a primitive`);
+                    return new error_js_1.$TypeError(realm, `valueOf returned ${result}, but expected a primitive`);
                 }
                 // 6. Throw a TypeError exception.
-                return new error_1.$TypeError(realm, `${this} has neither a toString nor a valueOf method that returns a primitive`);
+                return new error_js_1.$TypeError(realm, `${this} has neither a toString nor a valueOf method that returns a primitive`);
             }
             // 4. Else,
             else {
@@ -253,7 +253,7 @@
                 // 5. b. If IsCallable(method) is true, then
                 if (method.isFunction) {
                     // 5. b. i. Let result be ? Call(method, O).
-                    const result = operations_1.$Call(ctx, method, O, intrinsics.undefined);
+                    const result = operations_js_1.$Call(ctx, method, O, intrinsics.undefined);
                     if (result.isAbrupt) {
                         return result;
                     }
@@ -269,7 +269,7 @@
                 // 5. b. If IsCallable(method) is true, then
                 if (method.isFunction) {
                     // 5. b. i. Let result be ? Call(method, O).
-                    const result = operations_1.$Call(ctx, method, O, intrinsics.undefined);
+                    const result = operations_js_1.$Call(ctx, method, O, intrinsics.undefined);
                     if (result.isAbrupt) {
                         return result;
                     }
@@ -278,10 +278,10 @@
                         return result;
                     }
                     // 6. Throw a TypeError exception.
-                    return new error_1.$TypeError(realm, `toString returned ${result}, but expected a primitive`);
+                    return new error_js_1.$TypeError(realm, `toString returned ${result}, but expected a primitive`);
                 }
                 // 6. Throw a TypeError exception.
-                return new error_1.$TypeError(realm, `${this} has neither a valueOf nor a toString method that returns a primitive`);
+                return new error_js_1.$TypeError(realm, `${this} has neither a valueOf nor a toString method that returns a primitive`);
             }
         }
         GetValue(ctx) {
@@ -305,7 +305,7 @@
             }
             // 4. If IsCallable(func) is false, throw a TypeError exception.
             if (!func.isFunction) {
-                return new error_1.$TypeError(realm, `Return value from GetMethod is ${func}, but expected a callable function`);
+                return new error_js_1.$TypeError(realm, `Return value from GetMethod is ${func}, but expected a callable function`);
             }
             // 5. Return func.
             return func;
@@ -338,7 +338,7 @@
         setDataProperty(name, value, writable = true, enumerable = false, configurable = true) {
             const realm = this.realm;
             const intrinsics = realm['[[Intrinsics]]'];
-            const desc = new property_descriptor_1.$PropertyDescriptor(realm, name);
+            const desc = new property_descriptor_js_1.$PropertyDescriptor(realm, name);
             desc['[[Value]]'] = value;
             desc['[[Writable]]'] = writable ? intrinsics.true : intrinsics.false;
             desc['[[Enumerable]]'] = enumerable ? intrinsics.true : intrinsics.false;
@@ -351,7 +351,7 @@
         setAccessorProperty(name, getter, setter, enumerable = false, configurable = true) {
             const realm = this.realm;
             const intrinsics = realm['[[Intrinsics]]'];
-            const desc = new property_descriptor_1.$PropertyDescriptor(realm, name);
+            const desc = new property_descriptor_js_1.$PropertyDescriptor(realm, name);
             desc['[[Enumerable]]'] = enumerable ? intrinsics.true : intrinsics.false;
             desc['[[Configurable]]'] = configurable ? intrinsics.true : intrinsics.false;
             if (getter !== null) {
@@ -465,7 +465,7 @@
                 return intrinsics.undefined;
             }
             // 3. Let D be a newly created Property Descriptor with no fields.
-            const D = new property_descriptor_1.$PropertyDescriptor(realm, P);
+            const D = new property_descriptor_js_1.$PropertyDescriptor(realm, P);
             // 4. Let X be O's own property whose key is P.
             const X = O.getProperty(P);
             // 5. If X is a data property, then
@@ -507,7 +507,7 @@
                 return extensible;
             }
             // 3. Return ValidateAndApplyPropertyDescriptor(O, P, extensible, Desc, current).
-            return operations_1.$ValidateAndApplyPropertyDescriptor(ctx, O, P, extensible, Desc, current);
+            return operations_js_1.$ValidateAndApplyPropertyDescriptor(ctx, O, P, extensible, Desc, current);
         }
         // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-hasproperty-p
         // 9.1.7 [[HasProperty]] ( P )
@@ -582,7 +582,7 @@
                 return getter;
             }
             // 8. Return ? Call(getter, Receiver).
-            return operations_1.$Call(ctx, getter, Receiver, intrinsics.undefined);
+            return operations_js_1.$Call(ctx, getter, Receiver, intrinsics.undefined);
         }
         // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-set-p-v-receiver
         // 9.1.9 [[Set]] ( P , V , Receiver )
@@ -598,7 +598,7 @@
                 return ownDesc;
             }
             // 3. Return OrdinarySetWithOwnDescriptor(O, P, V, Receiver, ownDesc).
-            return operations_1.$OrdinarySetWithOwnDescriptor(ctx, O, P, V, Receiver, ownDesc);
+            return operations_js_1.$OrdinarySetWithOwnDescriptor(ctx, O, P, V, Receiver, ownDesc);
         }
         // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-delete-p
         // 9.1.10 [[Delete]] ( P )
@@ -636,7 +636,7 @@
             // http://www.ecma-international.org/ecma-262/#sec-ordinaryownpropertykeys
             // 9.1.11.1 OrdinaryOwnPropertyKeys ( O )
             // 1. Let keys be a new empty List.
-            const keys = new list_1.$List();
+            const keys = new list_js_1.$List();
             let arrayIndexLen = 0;
             let stringLen = 0;
             let symbolLen = 0;
@@ -659,7 +659,7 @@
                     symbolProps[symbolLen++] = ownPropertyKey;
                 }
             }
-            arrayIndexProps.sort(_shared_1.compareIndices);
+            arrayIndexProps.sort(_shared_js_1.compareIndices);
             let i = 0;
             let keysLen = 0;
             // 2. For each own property key P of O that is an array index, in ascending numeric index order, do

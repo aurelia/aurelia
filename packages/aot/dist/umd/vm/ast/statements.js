@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "typescript", "@aurelia/kernel", "../types/environment-record", "../types/undefined", "../types/empty", "./_shared", "./modules", "../operations"], factory);
+        define(["require", "exports", "typescript", "@aurelia/kernel", "../types/environment-record.js", "../types/undefined.js", "../types/empty.js", "./_shared.js", "./modules.js", "../operations.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -12,14 +12,14 @@
     exports.$CatchClause = exports.$DefaultClause = exports.$CaseClause = exports.$CaseBlock = exports.$$clauseList = exports.$DebuggerStatement = exports.$TryStatement = exports.$ThrowStatement = exports.$LabeledStatement = exports.$SwitchStatement = exports.$WithStatement = exports.$ReturnStatement = exports.$BreakStatement = exports.$ContinueStatement = exports.$ForOfStatement = exports.$ForInStatement = exports.$ForStatement = exports.$WhileStatement = exports.$DoStatement = exports.$IfStatement = exports.$ExpressionStatement = exports.$EmptyStatement = exports.$Block = exports.$VariableDeclarationList = exports.$variableDeclarationList = exports.$VariableDeclaration = exports.$VariableStatement = void 0;
     const typescript_1 = require("typescript");
     const kernel_1 = require("@aurelia/kernel");
-    const environment_record_1 = require("../types/environment-record");
-    const undefined_1 = require("../types/undefined");
-    const empty_1 = require("../types/empty");
-    const _shared_1 = require("./_shared");
-    const modules_1 = require("./modules");
-    const operations_1 = require("../operations");
+    const environment_record_js_1 = require("../types/environment-record.js");
+    const undefined_js_1 = require("../types/undefined.js");
+    const empty_js_1 = require("../types/empty.js");
+    const _shared_js_1 = require("./_shared.js");
+    const modules_js_1 = require("./modules.js");
+    const operations_js_1 = require("../operations.js");
     class $VariableStatement {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.VariableStatement`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.VariableStatement`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -33,9 +33,9 @@
             this.TypeDeclarations = kernel_1.emptyArray;
             this.IsType = false;
             const intrinsics = realm['[[Intrinsics]]'];
-            this.modifierFlags = _shared_1.modifiersToModifierFlags(node.modifiers);
+            this.modifierFlags = _shared_js_1.modifiersToModifierFlags(node.modifiers);
             ctx |= 4 /* InVariableStatement */;
-            if (_shared_1.hasBit(this.modifierFlags, typescript_1.ModifierFlags.Export)) {
+            if (_shared_js_1.hasBit(this.modifierFlags, typescript_1.ModifierFlags.Export)) {
                 ctx |= 4096 /* InExport */;
             }
             const $declarationList = this.$declarationList = new $VariableDeclarationList(node.declarationList, this, ctx);
@@ -44,10 +44,10 @@
             const BoundNames = this.BoundNames = $declarationList.BoundNames;
             this.VarDeclaredNames = $declarationList.VarDeclaredNames;
             this.VarScopedDeclarations = $declarationList.VarScopedDeclarations;
-            if (_shared_1.hasBit(ctx, 4096 /* InExport */)) {
+            if (_shared_js_1.hasBit(ctx, 4096 /* InExport */)) {
                 this.ExportedBindings = BoundNames;
                 this.ExportedNames = BoundNames;
-                this.ExportEntries = BoundNames.map(name => new modules_1.ExportEntryRecord(
+                this.ExportEntries = BoundNames.map(name => new modules_js_1.ExportEntryRecord(
                 /* source */ this, 
                 /* ExportName */ name, 
                 /* ModuleRequest */ intrinsics.null, 
@@ -135,7 +135,7 @@
     }
     exports.$VariableStatement = $VariableStatement;
     class $VariableDeclaration {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.VariableDeclaration`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.VariableDeclaration`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -147,20 +147,20 @@
             this.path = path;
             this.LexicallyDeclaredNames = kernel_1.emptyArray;
             this.LexicallyScopedDeclarations = kernel_1.emptyArray;
-            const modifierFlags = this.modifierFlags = _shared_1.modifiersToModifierFlags(node.modifiers);
-            if (_shared_1.hasBit(ctx, 4 /* InVariableStatement */)) {
+            const modifierFlags = this.modifierFlags = _shared_js_1.modifiersToModifierFlags(node.modifiers);
+            if (_shared_js_1.hasBit(ctx, 4 /* InVariableStatement */)) {
                 this.combinedModifierFlags = modifierFlags | parent.combinedModifierFlags;
             }
             else {
                 this.combinedModifierFlags = modifierFlags;
             }
-            const $name = this.$name = _shared_1.$$bindingName(node.name, this, ctx, -1);
+            const $name = this.$name = _shared_js_1.$$bindingName(node.name, this, ctx, -1);
             // Clear this flag because it's used inside $Identifier to declare locals/exports
             // and we don't want to do that on the identifiers in types/initializers.
-            ctx = _shared_1.clearBit(ctx, 4 /* InVariableStatement */);
-            this.$initializer = _shared_1.$assignmentExpression(node.initializer, this, ctx, -1);
+            ctx = _shared_js_1.clearBit(ctx, 4 /* InVariableStatement */);
+            this.$initializer = _shared_js_1.$assignmentExpression(node.initializer, this, ctx, -1);
             this.BoundNames = $name.BoundNames;
-            if (_shared_1.hasBit(ctx, 32768 /* IsVar */)) { // TODO: what about parameter and for declarations?
+            if (_shared_js_1.hasBit(ctx, 32768 /* IsVar */)) { // TODO: what about parameter and for declarations?
                 this.VarDeclaredNames = this.BoundNames;
                 this.VarScopedDeclarations = [this];
                 this.IsConstantDeclaration = false;
@@ -168,7 +168,7 @@
             else {
                 this.VarDeclaredNames = kernel_1.emptyArray;
                 this.VarScopedDeclarations = kernel_1.emptyArray;
-                this.IsConstantDeclaration = _shared_1.hasBit(ctx, 8192 /* IsConst */);
+                this.IsConstantDeclaration = _shared_js_1.hasBit(ctx, 8192 /* IsConst */);
             }
         }
         get $kind() { return typescript_1.SyntaxKind.VariableDeclaration; }
@@ -246,32 +246,32 @@
             this.LexicallyScopedDeclarations = kernel_1.emptyArray;
             this.isLexical = (node.flags & (typescript_1.NodeFlags.Const | typescript_1.NodeFlags.Let)) > 0;
             this.IsConstantDeclaration = (node.flags & typescript_1.NodeFlags.Const) > 0;
-            if (_shared_1.hasBit(ctx, 4 /* InVariableStatement */)) {
+            if (_shared_js_1.hasBit(ctx, 4 /* InVariableStatement */)) {
                 this.combinedModifierFlags = parent.modifierFlags;
             }
             else {
                 this.combinedModifierFlags = typescript_1.ModifierFlags.None;
             }
-            if (_shared_1.hasBit(node.flags, typescript_1.NodeFlags.Const)) {
+            if (_shared_js_1.hasBit(node.flags, typescript_1.NodeFlags.Const)) {
                 ctx |= 8192 /* IsConst */;
             }
-            else if (_shared_1.hasBit(node.flags, typescript_1.NodeFlags.Let)) {
+            else if (_shared_js_1.hasBit(node.flags, typescript_1.NodeFlags.Let)) {
                 ctx |= 16384 /* IsLet */;
             }
             else {
                 ctx |= 32768 /* IsVar */;
             }
             const $declarations = this.$declarations = $variableDeclarationList(node.declarations, this, ctx);
-            this.BoundNames = $declarations.flatMap(_shared_1.getBoundNames);
-            this.VarDeclaredNames = $declarations.flatMap(_shared_1.getVarDeclaredNames);
-            this.VarScopedDeclarations = $declarations.flatMap(_shared_1.getVarScopedDeclarations);
+            this.BoundNames = $declarations.flatMap(_shared_js_1.getBoundNames);
+            this.VarDeclaredNames = $declarations.flatMap(_shared_js_1.getVarDeclaredNames);
+            this.VarScopedDeclarations = $declarations.flatMap(_shared_js_1.getVarScopedDeclarations);
         }
         get $kind() { return typescript_1.SyntaxKind.VariableDeclarationList; }
     }
     exports.$VariableDeclarationList = $VariableDeclarationList;
     // #region Statements
     class $Block {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.Block`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.Block`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -283,7 +283,7 @@
             this.path = path;
             this.TypeDeclarations = kernel_1.emptyArray;
             this.IsType = false;
-            const $statements = this.$statements = _shared_1.$$tsStatementList(node.statements, this, ctx);
+            const $statements = this.$statements = _shared_js_1.$$tsStatementList(node.statements, this, ctx);
             const LexicallyDeclaredNames = this.LexicallyDeclaredNames = [];
             const LexicallyScopedDeclarations = this.LexicallyScopedDeclarations = [];
             const TopLevelLexicallyDeclaredNames = this.TopLevelLexicallyDeclaredNames = [];
@@ -366,16 +366,16 @@
             // 1. Let oldEnv be the running execution context's LexicalEnvironment.
             const oldEnv = ctx.LexicalEnvironment;
             // 2. Let blockEnv be NewDeclarativeEnvironment(oldEnv).
-            const blockEnv = ctx.LexicalEnvironment = new environment_record_1.$DeclarativeEnvRec(this.logger, realm, oldEnv);
+            const blockEnv = ctx.LexicalEnvironment = new environment_record_js_1.$DeclarativeEnvRec(this.logger, realm, oldEnv);
             // 3. Perform BlockDeclarationInstantiation(StatementList, blockEnv).
-            const $BlockDeclarationInstantiationResult = _shared_1.BlockDeclarationInstantiation(ctx, this.LexicallyScopedDeclarations, blockEnv);
+            const $BlockDeclarationInstantiationResult = _shared_js_1.BlockDeclarationInstantiation(ctx, this.LexicallyScopedDeclarations, blockEnv);
             if ($BlockDeclarationInstantiationResult.isAbrupt) {
                 return $BlockDeclarationInstantiationResult;
             }
             // 4. Set the running execution context's LexicalEnvironment to blockEnv.
             realm.stack.push(ctx);
             // 5. Let blockValue be the result of evaluating StatementList.
-            const blockValue = _shared_1.evaluateStatementList(ctx, $statements);
+            const blockValue = _shared_js_1.evaluateStatementList(ctx, $statements);
             // 6. Set the running execution context's LexicalEnvironment to oldEnv.
             realm.stack.pop();
             ctx.LexicalEnvironment = oldEnv;
@@ -385,7 +385,7 @@
     }
     exports.$Block = $Block;
     class $EmptyStatement {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.EmptyStatement`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.EmptyStatement`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -419,7 +419,7 @@
     }
     exports.$EmptyStatement = $EmptyStatement;
     class $ExpressionStatement {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.ExpressionStatement`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.ExpressionStatement`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -437,7 +437,7 @@
             // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-varscopeddeclarations
             // 13.1.6 Static Semantics: VarScopedDeclarations
             this.VarScopedDeclarations = kernel_1.emptyArray;
-            this.$expression = _shared_1.$assignmentExpression(node.expression, this, ctx, -1);
+            this.$expression = _shared_js_1.$assignmentExpression(node.expression, this, ctx, -1);
         }
         get $kind() { return typescript_1.SyntaxKind.ExpressionStatement; }
         // http://www.ecma-international.org/ecma-262/#sec-expression-statement-runtime-semantics-evaluation
@@ -453,7 +453,7 @@
     }
     exports.$ExpressionStatement = $ExpressionStatement;
     class $IfStatement {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.IfStatement`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.IfStatement`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -465,15 +465,15 @@
             this.path = path;
             this.LexicallyDeclaredNames = kernel_1.emptyArray;
             this.LexicallyScopedDeclarations = kernel_1.emptyArray;
-            this.$expression = _shared_1.$assignmentExpression(node.expression, this, ctx, -1);
-            const $thenStatement = this.$thenStatement = _shared_1.$$esLabelledItem(node.thenStatement, this, ctx, -1);
+            this.$expression = _shared_js_1.$assignmentExpression(node.expression, this, ctx, -1);
+            const $thenStatement = this.$thenStatement = _shared_js_1.$$esLabelledItem(node.thenStatement, this, ctx, -1);
             if (node.elseStatement === void 0) {
                 this.$elseStatement = void 0;
                 this.VarDeclaredNames = $thenStatement.VarDeclaredNames;
                 this.VarScopedDeclarations = $thenStatement.VarScopedDeclarations;
             }
             else {
-                const $elseStatement = this.$elseStatement = _shared_1.$$esLabelledItem(node.elseStatement, this, ctx, -1);
+                const $elseStatement = this.$elseStatement = _shared_js_1.$$esLabelledItem(node.elseStatement, this, ctx, -1);
                 this.VarDeclaredNames = [
                     ...$thenStatement.VarDeclaredNames,
                     ...$elseStatement.VarDeclaredNames,
@@ -503,12 +503,12 @@
                 // 3. If exprValue is true, then
                 if (exprValue.is(intrinsics.true)) {
                     // 3. a. Let stmtCompletion be the result of evaluating the first Statement.
-                    stmtCompletion = _shared_1.evaluateStatement(ctx, $thenStatement);
+                    stmtCompletion = _shared_js_1.evaluateStatement(ctx, $thenStatement);
                 }
                 else {
                     // 4. Else,
                     // 4. a. Let stmtCompletion be the result of evaluating the second Statement.
-                    stmtCompletion = _shared_1.evaluateStatement(ctx, $elseStatement);
+                    stmtCompletion = _shared_js_1.evaluateStatement(ctx, $elseStatement);
                 }
                 // 5. Return Completion(UpdateEmpty(stmtCompletion, undefined)).
                 stmtCompletion.UpdateEmpty(intrinsics.undefined);
@@ -522,12 +522,12 @@
                 // 3. If exprValue is false, then
                 if (exprValue.is(intrinsics.false)) {
                     // 3. a. Return NormalCompletion(undefined).
-                    return new undefined_1.$Undefined(realm);
+                    return new undefined_js_1.$Undefined(realm);
                 }
                 else {
                     // 4. Else,
                     // 4. a. Let stmtCompletion be the result of evaluating Statement.
-                    stmtCompletion = _shared_1.evaluateStatement(ctx, $thenStatement);
+                    stmtCompletion = _shared_js_1.evaluateStatement(ctx, $thenStatement);
                     // 4. b. Return Completion(UpdateEmpty(stmtCompletion, undefined)).
                     stmtCompletion.UpdateEmpty(intrinsics.undefined);
                     return stmtCompletion;
@@ -537,7 +537,7 @@
     }
     exports.$IfStatement = $IfStatement;
     class $DoStatement {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.DoStatement`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.DoStatement`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -549,8 +549,8 @@
             this.path = path;
             this.LexicallyDeclaredNames = kernel_1.emptyArray;
             this.LexicallyScopedDeclarations = kernel_1.emptyArray;
-            const $statement = this.$statement = _shared_1.$$esLabelledItem(node.statement, this, ctx, -1);
-            this.$expression = _shared_1.$assignmentExpression(node.expression, this, ctx, -1);
+            const $statement = this.$statement = _shared_js_1.$$esLabelledItem(node.statement, this, ctx, -1);
+            this.$expression = _shared_js_1.$assignmentExpression(node.expression, this, ctx, -1);
             this.VarDeclaredNames = $statement.VarDeclaredNames;
             this.VarScopedDeclarations = $statement.VarScopedDeclarations;
         }
@@ -570,9 +570,9 @@
             // 2. Repeat,
             while (true) {
                 // 2. a. Let stmtResult be the result of evaluating Statement.
-                const stmtResult = _shared_1.evaluateStatement(ctx, stmt);
+                const stmtResult = _shared_js_1.evaluateStatement(ctx, stmt);
                 // 2. b. If LoopContinues(stmtResult, labelSet) is false, return Completion(UpdateEmpty(stmtResult, V)).
-                if (operations_1.$LoopContinues(ctx, stmtResult, labelSet).isFalsey) {
+                if (operations_js_1.$LoopContinues(ctx, stmtResult, labelSet).isFalsey) {
                     return stmtResult.UpdateEmpty(V);
                 }
                 // 2. c. If stmtResult.[[Value]] is not empty, set V to stmtResult.[[Value]].
@@ -599,7 +599,7 @@
     }
     exports.$DoStatement = $DoStatement;
     class $WhileStatement {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.WhileStatement`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.WhileStatement`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -611,8 +611,8 @@
             this.path = path;
             this.LexicallyDeclaredNames = kernel_1.emptyArray;
             this.LexicallyScopedDeclarations = kernel_1.emptyArray;
-            const $statement = this.$statement = _shared_1.$$esLabelledItem(node.statement, this, ctx, -1);
-            this.$expression = _shared_1.$assignmentExpression(node.expression, this, ctx, -1);
+            const $statement = this.$statement = _shared_js_1.$$esLabelledItem(node.statement, this, ctx, -1);
+            this.$expression = _shared_js_1.$assignmentExpression(node.expression, this, ctx, -1);
             this.VarDeclaredNames = $statement.VarDeclaredNames;
             this.VarScopedDeclarations = $statement.VarScopedDeclarations;
         }
@@ -647,9 +647,9 @@
                     return V.ToCompletion(1 /* normal */, intrinsics.empty);
                 }
                 // 2. d. Let stmtResult be the result of evaluating Statement.
-                const stmtResult = _shared_1.evaluateStatement(ctx, stmt);
+                const stmtResult = _shared_js_1.evaluateStatement(ctx, stmt);
                 // 2. e. If LoopContinues(stmtResult, labelSet) is false, return Completion(UpdateEmpty(stmtResult, V)).
-                if (operations_1.$LoopContinues(ctx, stmtResult, labelSet).isFalsey) {
+                if (operations_js_1.$LoopContinues(ctx, stmtResult, labelSet).isFalsey) {
                     return stmtResult.UpdateEmpty(V);
                 }
                 // 2. f. If stmtResult.[[Value]] is not empty, set V to stmtResult.[[Value]].
@@ -661,7 +661,7 @@
     }
     exports.$WhileStatement = $WhileStatement;
     class $ForStatement {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.ForStatement`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.ForStatement`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -673,9 +673,9 @@
             this.path = path;
             this.LexicallyDeclaredNames = kernel_1.emptyArray;
             this.LexicallyScopedDeclarations = kernel_1.emptyArray;
-            this.$condition = _shared_1.$assignmentExpression(node.condition, this, ctx, -1);
-            this.$incrementor = _shared_1.$assignmentExpression(node.incrementor, this, ctx, -1);
-            const $statement = this.$statement = _shared_1.$$esLabelledItem(node.statement, this, ctx, -1);
+            this.$condition = _shared_js_1.$assignmentExpression(node.condition, this, ctx, -1);
+            this.$incrementor = _shared_js_1.$assignmentExpression(node.incrementor, this, ctx, -1);
+            const $statement = this.$statement = _shared_js_1.$$esLabelledItem(node.statement, this, ctx, -1);
             if (node.initializer === void 0) {
                 this.$initializer = void 0;
                 this.VarDeclaredNames = $statement.VarDeclaredNames;
@@ -700,7 +700,7 @@
                     }
                 }
                 else {
-                    this.$initializer = _shared_1.$assignmentExpression(node.initializer, this, ctx, -1);
+                    this.$initializer = _shared_js_1.$assignmentExpression(node.initializer, this, ctx, -1);
                     this.VarDeclaredNames = $statement.VarDeclaredNames;
                     this.VarScopedDeclarations = $statement.VarScopedDeclarations;
                 }
@@ -748,7 +748,7 @@
     }
     exports.$ForStatement = $ForStatement;
     class $ForInStatement {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.ForInStatement`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.ForInStatement`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -760,8 +760,8 @@
             this.path = path;
             this.LexicallyDeclaredNames = kernel_1.emptyArray;
             this.LexicallyScopedDeclarations = kernel_1.emptyArray;
-            this.$expression = _shared_1.$assignmentExpression(node.expression, this, ctx, -1);
-            const $statement = this.$statement = _shared_1.$$esLabelledItem(node.statement, this, ctx, -1);
+            this.$expression = _shared_js_1.$assignmentExpression(node.expression, this, ctx, -1);
+            const $statement = this.$statement = _shared_js_1.$$esLabelledItem(node.statement, this, ctx, -1);
             if (node.initializer.kind === typescript_1.SyntaxKind.VariableDeclarationList) {
                 const $initializer = this.$initializer = new $VariableDeclarationList(node.initializer, this, ctx);
                 if ($initializer.isLexical) {
@@ -782,7 +782,7 @@
                 }
             }
             else {
-                this.$initializer = _shared_1.$assignmentExpression(node.initializer, this, ctx, -1);
+                this.$initializer = _shared_js_1.$assignmentExpression(node.initializer, this, ctx, -1);
                 this.BoundNames = kernel_1.emptyArray;
                 this.VarDeclaredNames = $statement.VarDeclaredNames;
                 this.VarScopedDeclarations = $statement.VarScopedDeclarations;
@@ -840,7 +840,7 @@
     }
     exports.$ForInStatement = $ForInStatement;
     class $ForOfStatement {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.ForOfStatement`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.ForOfStatement`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -852,8 +852,8 @@
             this.path = path;
             this.LexicallyDeclaredNames = kernel_1.emptyArray;
             this.LexicallyScopedDeclarations = kernel_1.emptyArray;
-            this.$expression = _shared_1.$assignmentExpression(node.expression, this, ctx, -1);
-            const $statement = this.$statement = _shared_1.$$esLabelledItem(node.statement, this, ctx, -1);
+            this.$expression = _shared_js_1.$assignmentExpression(node.expression, this, ctx, -1);
+            const $statement = this.$statement = _shared_js_1.$$esLabelledItem(node.statement, this, ctx, -1);
             if (node.initializer.kind === typescript_1.SyntaxKind.VariableDeclarationList) {
                 const $initializer = this.$initializer = new $VariableDeclarationList(node.initializer, this, ctx);
                 if ($initializer.isLexical) {
@@ -874,7 +874,7 @@
                 }
             }
             else {
-                this.$initializer = _shared_1.$assignmentExpression(node.initializer, this, ctx, -1);
+                this.$initializer = _shared_js_1.$assignmentExpression(node.initializer, this, ctx, -1);
                 this.BoundNames = kernel_1.emptyArray;
                 this.VarDeclaredNames = $statement.VarDeclaredNames;
                 this.VarScopedDeclarations = $statement.VarScopedDeclarations;
@@ -929,7 +929,7 @@
     }
     exports.$ForOfStatement = $ForOfStatement;
     class $ContinueStatement {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.ContinueStatement`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.ContinueStatement`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -947,7 +947,7 @@
             // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-varscopeddeclarations
             // 13.1.6 Static Semantics: VarScopedDeclarations
             this.VarScopedDeclarations = kernel_1.emptyArray;
-            this.$label = _shared_1.$identifier(node.label, this, ctx | 2048 /* IsLabelReference */, -1);
+            this.$label = _shared_js_1.$identifier(node.label, this, ctx | 2048 /* IsLabelReference */, -1);
         }
         get $kind() { return typescript_1.SyntaxKind.ContinueStatement; }
         // http://www.ecma-international.org/ecma-262/#sec-continue-statement-runtime-semantics-evaluation
@@ -960,17 +960,17 @@
             // ContinueStatement : continue ;
             // 1. Return Completion { [[Type]]: continue, [[Value]]: empty, [[Target]]: empty }.
             if (this.$label === void 0) {
-                return new empty_1.$Empty(realm, 3 /* continue */, intrinsics.empty, this);
+                return new empty_js_1.$Empty(realm, 3 /* continue */, intrinsics.empty, this);
             }
             // ContinueStatement : continue LabelIdentifier ;
             // 1. Let label be the StringValue of LabelIdentifier.
             // 2. Return Completion { [[Type]]: continue, [[Value]]: empty, [[Target]]: label }.
-            return new empty_1.$Empty(realm, 3 /* continue */, this.$label.StringValue, this);
+            return new empty_js_1.$Empty(realm, 3 /* continue */, this.$label.StringValue, this);
         }
     }
     exports.$ContinueStatement = $ContinueStatement;
     class $BreakStatement {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.BreakStatement`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.BreakStatement`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -988,7 +988,7 @@
             // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-varscopeddeclarations
             // 13.1.6 Static Semantics: VarScopedDeclarations
             this.VarScopedDeclarations = kernel_1.emptyArray;
-            this.$label = _shared_1.$identifier(node.label, this, ctx | 2048 /* IsLabelReference */, -1);
+            this.$label = _shared_js_1.$identifier(node.label, this, ctx | 2048 /* IsLabelReference */, -1);
         }
         get $kind() { return typescript_1.SyntaxKind.BreakStatement; }
         // http://www.ecma-international.org/ecma-262/#sec-break-statement-runtime-semantics-evaluation
@@ -1001,17 +1001,17 @@
             // BreakStatement : break ;
             // 1. Return Completion { [[Type]]: break, [[Value]]: empty, [[Target]]: empty }.
             if (this.$label === void 0) {
-                return new empty_1.$Empty(realm, 2 /* break */, intrinsics.empty, this);
+                return new empty_js_1.$Empty(realm, 2 /* break */, intrinsics.empty, this);
             }
             // BreakStatement : break LabelIdentifier ;
             // 1. Let label be the StringValue of LabelIdentifier.
             // 2. Return Completion { [[Type]]: break, [[Value]]: empty, [[Target]]: label }.
-            return new empty_1.$Empty(realm, 2 /* break */, this.$label.StringValue, this);
+            return new empty_js_1.$Empty(realm, 2 /* break */, this.$label.StringValue, this);
         }
     }
     exports.$BreakStatement = $BreakStatement;
     class $ReturnStatement {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.ReturnStatement`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.ReturnStatement`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -1033,7 +1033,7 @@
                 this.$expression = void 0;
             }
             else {
-                this.$expression = _shared_1.$assignmentExpression(node.expression, this, ctx, -1);
+                this.$expression = _shared_js_1.$assignmentExpression(node.expression, this, ctx, -1);
             }
         }
         get $kind() { return typescript_1.SyntaxKind.ReturnStatement; }
@@ -1047,7 +1047,7 @@
             // ReturnStatement : return ;
             // 1. Return Completion { [[Type]]: return, [[Value]]: undefined, [[Target]]: empty }.
             if (this.$expression === void 0) {
-                return new undefined_1.$Undefined(realm, 4 /* return */);
+                return new undefined_js_1.$Undefined(realm, 4 /* return */);
             }
             // ReturnStatement : return Expression ;
             // 1. Let exprRef be the result of evaluating Expression.
@@ -1064,7 +1064,7 @@
     }
     exports.$ReturnStatement = $ReturnStatement;
     class $WithStatement {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.WithStatement`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.WithStatement`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -1076,8 +1076,8 @@
             this.path = path;
             this.LexicallyDeclaredNames = kernel_1.emptyArray;
             this.LexicallyScopedDeclarations = kernel_1.emptyArray;
-            this.$expression = _shared_1.$assignmentExpression(node.expression, this, ctx, -1);
-            const $statement = this.$statement = _shared_1.$$esLabelledItem(node.statement, this, ctx, -1);
+            this.$expression = _shared_js_1.$assignmentExpression(node.expression, this, ctx, -1);
+            const $statement = this.$statement = _shared_js_1.$$esLabelledItem(node.statement, this, ctx, -1);
             this.VarDeclaredNames = $statement.VarDeclaredNames;
             this.VarScopedDeclarations = $statement.VarScopedDeclarations;
         }
@@ -1104,7 +1104,7 @@
     }
     exports.$WithStatement = $WithStatement;
     class $SwitchStatement {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.SwitchStatement`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.SwitchStatement`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -1114,7 +1114,7 @@
             this.depth = depth;
             this.logger = logger;
             this.path = path;
-            this.$expression = _shared_1.$assignmentExpression(node.expression, this, ctx, -1);
+            this.$expression = _shared_js_1.$assignmentExpression(node.expression, this, ctx, -1);
             const $caseBlock = this.$caseBlock = new $CaseBlock(node.caseBlock, this, ctx);
             this.LexicallyDeclaredNames = $caseBlock.LexicallyDeclaredNames;
             this.LexicallyScopedDeclarations = $caseBlock.LexicallyScopedDeclarations;
@@ -1138,9 +1138,9 @@
             // 3. Let oldEnv be the running execution context's LexicalEnvironment.
             const oldEnv = ctx.LexicalEnvironment;
             // 4. Let blockEnv be NewDeclarativeEnvironment(oldEnv).
-            const blockEnv = ctx.LexicalEnvironment = new environment_record_1.$DeclarativeEnvRec(this.logger, realm, oldEnv);
+            const blockEnv = ctx.LexicalEnvironment = new environment_record_js_1.$DeclarativeEnvRec(this.logger, realm, oldEnv);
             // 5. Perform BlockDeclarationInstantiation(CaseBlock, blockEnv).
-            const $BlockDeclarationInstantiationResult = _shared_1.BlockDeclarationInstantiation(ctx, this.LexicallyScopedDeclarations, blockEnv);
+            const $BlockDeclarationInstantiationResult = _shared_js_1.BlockDeclarationInstantiation(ctx, this.LexicallyScopedDeclarations, blockEnv);
             if ($BlockDeclarationInstantiationResult.isAbrupt) {
                 return $BlockDeclarationInstantiationResult;
             }
@@ -1165,7 +1165,7 @@
             // CaseBlock : { }
             // 1. Return NormalCompletion(undefined).
             if (clauses.length === 0) {
-                return new undefined_1.$Undefined(realm);
+                return new undefined_js_1.$Undefined(realm);
             }
             let V = $undefined;
             const defaultClauseIndex = clauses.findIndex((clause) => clause.$kind === typescript_1.SyntaxKind.DefaultClause);
@@ -1191,7 +1191,7 @@
                     // 4. b. If found is true, then
                     if (found) {
                         // 4. b. i. Let R be the result of evaluating C.
-                        const R = _shared_1.evaluateStatementList(ctx, C.$statements);
+                        const R = _shared_js_1.evaluateStatementList(ctx, C.$statements);
                         // 4. b. ii. If R.[[Value]] is not empty, set V to R.[[Value]].
                         if (R.hasValue) {
                             V = R;
@@ -1274,7 +1274,7 @@
     }
     exports.$SwitchStatement = $SwitchStatement;
     class $LabeledStatement {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.LabeledStatement`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.LabeledStatement`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -1292,8 +1292,8 @@
             this.TopLevelLexicallyScopedDeclarations = kernel_1.emptyArray;
             this.TypeDeclarations = kernel_1.emptyArray;
             this.IsType = false;
-            this.$label = _shared_1.$identifier(node.label, this, ctx | 1024 /* IsLabel */, -1);
-            const $statement = this.$statement = _shared_1.$$esLabelledItem(node.statement, this, ctx, -1);
+            this.$label = _shared_js_1.$identifier(node.label, this, ctx | 1024 /* IsLabel */, -1);
+            const $statement = this.$statement = _shared_js_1.$$esLabelledItem(node.statement, this, ctx, -1);
             if ($statement.$kind === typescript_1.SyntaxKind.FunctionDeclaration) {
                 this.LexicallyDeclaredNames = $statement.BoundNames;
                 this.LexicallyScopedDeclarations = [$statement];
@@ -1356,7 +1356,7 @@
     }
     exports.$LabeledStatement = $LabeledStatement;
     class $ThrowStatement {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.ThrowStatement`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.ThrowStatement`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -1374,7 +1374,7 @@
             // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-varscopeddeclarations
             // 13.1.6 Static Semantics: VarScopedDeclarations
             this.VarScopedDeclarations = kernel_1.emptyArray;
-            this.$expression = _shared_1.$assignmentExpression(node.expression, this, ctx, -1);
+            this.$expression = _shared_js_1.$assignmentExpression(node.expression, this, ctx, -1);
         }
         get $kind() { return typescript_1.SyntaxKind.ThrowStatement; }
         // http://www.ecma-international.org/ecma-262/#sec-throw-statement-runtime-semantics-evaluation
@@ -1398,7 +1398,7 @@
     }
     exports.$ThrowStatement = $ThrowStatement;
     class $TryStatement {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.TryStatement`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.TryStatement`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -1504,7 +1504,7 @@
             if (hasCatchParamteres) {
                 // 2. Let catchEnv be NewDeclarativeEnvironment(oldEnv).
                 // 3. Let catchEnvRec be catchEnv's EnvironmentRecord.
-                ctx.LexicalEnvironment = new environment_record_1.$DeclarativeEnvRec(this.logger, realm, oldEnv);
+                ctx.LexicalEnvironment = new environment_record_js_1.$DeclarativeEnvRec(this.logger, realm, oldEnv);
                 // 4. For each element argName of the BoundNames of CatchParameter, do
                 // 4. a. Perform ! catchEnvRec.CreateMutableBinding(argName, false).
                 // eslint-disable-next-line @typescript-eslint/no-unused-expressions
@@ -1535,7 +1535,7 @@
     }
     exports.$TryStatement = $TryStatement;
     class $DebuggerStatement {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.DebuggerStatement`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.DebuggerStatement`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -1602,16 +1602,16 @@
             this.logger = logger;
             this.path = path;
             const $clauses = this.$clauses = $$clauseList(node.clauses, this, ctx);
-            this.LexicallyDeclaredNames = $clauses.flatMap(_shared_1.getLexicallyDeclaredNames);
-            this.LexicallyScopedDeclarations = $clauses.flatMap(_shared_1.getLexicallyScopedDeclarations);
-            this.VarDeclaredNames = $clauses.flatMap(_shared_1.getVarDeclaredNames);
-            this.VarScopedDeclarations = $clauses.flatMap(_shared_1.getVarScopedDeclarations);
+            this.LexicallyDeclaredNames = $clauses.flatMap(_shared_js_1.getLexicallyDeclaredNames);
+            this.LexicallyScopedDeclarations = $clauses.flatMap(_shared_js_1.getLexicallyScopedDeclarations);
+            this.VarDeclaredNames = $clauses.flatMap(_shared_js_1.getVarDeclaredNames);
+            this.VarScopedDeclarations = $clauses.flatMap(_shared_js_1.getVarScopedDeclarations);
         }
         get $kind() { return typescript_1.SyntaxKind.CaseBlock; }
     }
     exports.$CaseBlock = $CaseBlock;
     class $CaseClause {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.CaseClause`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.CaseClause`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -1621,18 +1621,18 @@
             this.depth = depth;
             this.logger = logger;
             this.path = path;
-            this.$expression = _shared_1.$assignmentExpression(node.expression, this, ctx, -1);
-            const $statements = this.$statements = _shared_1.$$tsStatementList(node.statements, this, ctx);
-            this.LexicallyDeclaredNames = $statements.flatMap(_shared_1.getLexicallyDeclaredNames);
-            this.LexicallyScopedDeclarations = $statements.flatMap(_shared_1.getLexicallyScopedDeclarations);
-            this.VarDeclaredNames = $statements.flatMap(_shared_1.getVarDeclaredNames);
-            this.VarScopedDeclarations = $statements.flatMap(_shared_1.getVarScopedDeclarations);
+            this.$expression = _shared_js_1.$assignmentExpression(node.expression, this, ctx, -1);
+            const $statements = this.$statements = _shared_js_1.$$tsStatementList(node.statements, this, ctx);
+            this.LexicallyDeclaredNames = $statements.flatMap(_shared_js_1.getLexicallyDeclaredNames);
+            this.LexicallyScopedDeclarations = $statements.flatMap(_shared_js_1.getLexicallyScopedDeclarations);
+            this.VarDeclaredNames = $statements.flatMap(_shared_js_1.getVarDeclaredNames);
+            this.VarScopedDeclarations = $statements.flatMap(_shared_js_1.getVarScopedDeclarations);
         }
         get $kind() { return typescript_1.SyntaxKind.CaseClause; }
     }
     exports.$CaseClause = $CaseClause;
     class $DefaultClause {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.DefaultClause`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.DefaultClause`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -1642,11 +1642,11 @@
             this.depth = depth;
             this.logger = logger;
             this.path = path;
-            const $statements = this.$statements = _shared_1.$$tsStatementList(node.statements, this, ctx);
-            this.LexicallyDeclaredNames = $statements.flatMap(_shared_1.getLexicallyDeclaredNames);
-            this.LexicallyScopedDeclarations = $statements.flatMap(_shared_1.getLexicallyScopedDeclarations);
-            this.VarDeclaredNames = $statements.flatMap(_shared_1.getVarDeclaredNames);
-            this.VarScopedDeclarations = $statements.flatMap(_shared_1.getVarScopedDeclarations);
+            const $statements = this.$statements = _shared_js_1.$$tsStatementList(node.statements, this, ctx);
+            this.LexicallyDeclaredNames = $statements.flatMap(_shared_js_1.getLexicallyDeclaredNames);
+            this.LexicallyScopedDeclarations = $statements.flatMap(_shared_js_1.getLexicallyScopedDeclarations);
+            this.VarDeclaredNames = $statements.flatMap(_shared_js_1.getVarDeclaredNames);
+            this.VarScopedDeclarations = $statements.flatMap(_shared_js_1.getVarScopedDeclarations);
         }
         get $kind() { return typescript_1.SyntaxKind.DefaultClause; }
     }

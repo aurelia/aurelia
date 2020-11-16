@@ -1,8 +1,8 @@
 import { ILogger, IDisposable, Writable } from '@aurelia/kernel';
-import { $Any } from './types/_shared';
-import { Realm, ExecutionContext } from './realm';
-import { $Empty } from './types/empty';
-import { $$ESModuleOrScript } from './ast/modules';
+import { $Any } from './types/_shared.js';
+import { Realm, ExecutionContext } from './realm.js';
+import { $Empty } from './types/empty.js';
+import { $$ESModuleOrScript } from './ast/modules.js';
 export declare abstract class Job<MOS extends $$ESModuleOrScript = $$ESModuleOrScript> implements IDisposable {
     readonly logger: ILogger;
     '[[Realm]]': Realm;

@@ -1,10 +1,10 @@
-import { $BuiltinFunction, $Function } from '../types/function';
-import { Realm, ExecutionContext } from '../realm';
-import { $AnyNonEmpty, $AnyNonEmptyNonError } from '../types/_shared';
-import { $Undefined } from '../types/undefined';
-import { $Object } from '../types/object';
-import { $FunctionPrototype } from './function';
-import { $List } from '../types/list';
+import { $BuiltinFunction, $Function } from '../types/function.js';
+import { Realm, ExecutionContext } from '../realm.js';
+import { $AnyNonEmpty, $AnyNonEmptyNonError } from '../types/_shared.js';
+import { $Undefined } from '../types/undefined.js';
+import { $Object } from '../types/object.js';
+import { $FunctionPrototype } from './function.js';
+import { $List } from '../types/list.js';
 export declare class $ObjectConstructor extends $BuiltinFunction<'%Object%'> {
     get $prototype(): $ObjectPrototype;
     set $prototype(value: $ObjectPrototype);

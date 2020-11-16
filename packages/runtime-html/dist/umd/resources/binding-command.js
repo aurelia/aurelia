@@ -10,7 +10,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "../renderer", "../semantic-model"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "../renderer.js", "../semantic-model.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -18,8 +18,8 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     exports.RefBindingCommand = exports.ClassBindingCommand = exports.StyleBindingCommand = exports.AttrBindingCommand = exports.CaptureBindingCommand = exports.DelegateBindingCommand = exports.TriggerBindingCommand = exports.ForBindingCommand = exports.CallBindingCommand = exports.DefaultBindingCommand = exports.TwoWayBindingCommand = exports.FromViewBindingCommand = exports.ToViewBindingCommand = exports.OneTimeBindingCommand = exports.getTarget = exports.BindingCommand = exports.BindingCommandDefinition = exports.bindingCommand = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
-    const renderer_1 = require("../renderer");
-    const semantic_model_1 = require("../semantic-model");
+    const renderer_js_1 = require("../renderer.js");
+    const semantic_model_js_1 = require("../semantic-model.js");
     function bindingCommand(nameOrDefinition) {
         return function (target) {
             return exports.BindingCommand.define(nameOrDefinition, target);
@@ -101,7 +101,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
             this.bindingType = 49 /* OneTimeCommand */;
         }
         compile(binding) {
-            return new renderer_1.PropertyBindingInstruction(binding.expression, getTarget(binding, false), runtime_1.BindingMode.oneTime);
+            return new renderer_js_1.PropertyBindingInstruction(binding.expression, getTarget(binding, false), runtime_1.BindingMode.oneTime);
         }
     };
     OneTimeBindingCommand = __decorate([
@@ -113,7 +113,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
             this.bindingType = 50 /* ToViewCommand */;
         }
         compile(binding) {
-            return new renderer_1.PropertyBindingInstruction(binding.expression, getTarget(binding, false), runtime_1.BindingMode.toView);
+            return new renderer_js_1.PropertyBindingInstruction(binding.expression, getTarget(binding, false), runtime_1.BindingMode.toView);
         }
     };
     ToViewBindingCommand = __decorate([
@@ -125,7 +125,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
             this.bindingType = 51 /* FromViewCommand */;
         }
         compile(binding) {
-            return new renderer_1.PropertyBindingInstruction(binding.expression, getTarget(binding, false), runtime_1.BindingMode.fromView);
+            return new renderer_js_1.PropertyBindingInstruction(binding.expression, getTarget(binding, false), runtime_1.BindingMode.fromView);
         }
     };
     FromViewBindingCommand = __decorate([
@@ -137,7 +137,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
             this.bindingType = 52 /* TwoWayCommand */;
         }
         compile(binding) {
-            return new renderer_1.PropertyBindingInstruction(binding.expression, getTarget(binding, false), runtime_1.BindingMode.twoWay);
+            return new renderer_js_1.PropertyBindingInstruction(binding.expression, getTarget(binding, false), runtime_1.BindingMode.twoWay);
         }
     };
     TwoWayBindingCommand = __decorate([
@@ -150,7 +150,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
         }
         compile(binding) {
             let mode = runtime_1.BindingMode.default;
-            if (binding instanceof semantic_model_1.BindingSymbol) {
+            if (binding instanceof semantic_model_js_1.BindingSymbol) {
                 mode = binding.bindable.mode;
             }
             else {
@@ -171,7 +171,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
                         break;
                 }
             }
-            return new renderer_1.PropertyBindingInstruction(binding.expression, getTarget(binding, false), mode === runtime_1.BindingMode.default ? runtime_1.BindingMode.toView : mode);
+            return new renderer_js_1.PropertyBindingInstruction(binding.expression, getTarget(binding, false), mode === runtime_1.BindingMode.default ? runtime_1.BindingMode.toView : mode);
         }
     };
     DefaultBindingCommand = __decorate([
@@ -183,7 +183,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
             this.bindingType = 153 /* CallCommand */;
         }
         compile(binding) {
-            return new renderer_1.CallBindingInstruction(binding.expression, getTarget(binding, true));
+            return new renderer_js_1.CallBindingInstruction(binding.expression, getTarget(binding, true));
         }
     };
     CallBindingCommand = __decorate([
@@ -195,7 +195,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
             this.bindingType = 539 /* ForCommand */;
         }
         compile(binding) {
-            return new renderer_1.IteratorBindingInstruction(binding.expression, getTarget(binding, false));
+            return new renderer_js_1.IteratorBindingInstruction(binding.expression, getTarget(binding, false));
         }
     };
     ForBindingCommand = __decorate([
@@ -207,7 +207,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
             this.bindingType = 4182 /* TriggerCommand */;
         }
         compile(binding) {
-            return new renderer_1.ListenerBindingInstruction(binding.expression, getTarget(binding, false), true, runtime_1.DelegationStrategy.none);
+            return new renderer_js_1.ListenerBindingInstruction(binding.expression, getTarget(binding, false), true, runtime_1.DelegationStrategy.none);
         }
     };
     TriggerBindingCommand = __decorate([
@@ -219,7 +219,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
             this.bindingType = 4184 /* DelegateCommand */;
         }
         compile(binding) {
-            return new renderer_1.ListenerBindingInstruction(binding.expression, getTarget(binding, false), false, runtime_1.DelegationStrategy.bubbling);
+            return new renderer_js_1.ListenerBindingInstruction(binding.expression, getTarget(binding, false), false, runtime_1.DelegationStrategy.bubbling);
         }
     };
     DelegateBindingCommand = __decorate([
@@ -231,7 +231,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
             this.bindingType = 4183 /* CaptureCommand */;
         }
         compile(binding) {
-            return new renderer_1.ListenerBindingInstruction(binding.expression, getTarget(binding, false), false, runtime_1.DelegationStrategy.capturing);
+            return new renderer_js_1.ListenerBindingInstruction(binding.expression, getTarget(binding, false), false, runtime_1.DelegationStrategy.capturing);
         }
     };
     CaptureBindingCommand = __decorate([
@@ -247,7 +247,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
         }
         compile(binding) {
             const target = getTarget(binding, false);
-            return new renderer_1.AttributeBindingInstruction(target, binding.expression, target);
+            return new renderer_js_1.AttributeBindingInstruction(target, binding.expression, target);
         }
     };
     AttrBindingCommand = __decorate([
@@ -262,7 +262,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
             this.bindingType = 32 /* IsProperty */;
         }
         compile(binding) {
-            return new renderer_1.AttributeBindingInstruction('style', binding.expression, getTarget(binding, false));
+            return new renderer_js_1.AttributeBindingInstruction('style', binding.expression, getTarget(binding, false));
         }
     };
     StyleBindingCommand = __decorate([
@@ -277,7 +277,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
             this.bindingType = 32 /* IsProperty */;
         }
         compile(binding) {
-            return new renderer_1.AttributeBindingInstruction('class', binding.expression, getTarget(binding, false));
+            return new renderer_js_1.AttributeBindingInstruction('class', binding.expression, getTarget(binding, false));
         }
     };
     ClassBindingCommand = __decorate([
@@ -292,7 +292,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
             this.bindingType = 32 /* IsProperty */ | 4096 /* IgnoreCustomAttr */;
         }
         compile(binding) {
-            return new renderer_1.RefBindingInstruction(binding.expression, getTarget(binding, false));
+            return new renderer_js_1.RefBindingInstruction(binding.expression, getTarget(binding, false));
         }
     };
     RefBindingCommand = __decorate([

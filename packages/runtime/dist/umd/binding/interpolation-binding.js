@@ -13,17 +13,17 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "../observation", "../observation/observer-locator", "./connectable"], factory);
+        define(["require", "exports", "@aurelia/kernel", "../observation.js", "../observation/observer-locator.js", "./connectable.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ContentBinding = exports.InterpolationBinding = void 0;
     const kernel_1 = require("@aurelia/kernel");
-    const observation_1 = require("../observation");
-    const observer_locator_1 = require("../observation/observer-locator");
-    const connectable_1 = require("./connectable");
-    const { toView } = observation_1.BindingMode;
+    const observation_js_1 = require("../observation.js");
+    const observer_locator_js_1 = require("../observation/observer-locator.js");
+    const connectable_js_1 = require("./connectable.js");
+    const { toView } = observation_js_1.BindingMode;
     const queueTaskOptions = {
         reusable: false,
         preempt: true,
@@ -130,7 +130,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             this.interceptor = this;
             // at runtime, mode may be overriden by binding behavior
             // but it wouldn't matter here, just start with something for later check
-            this.mode = observation_1.BindingMode.toView;
+            this.mode = observation_js_1.BindingMode.toView;
             this.value = '';
             this.$hostScope = null;
             this.task = null;
@@ -207,7 +207,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         }
     };
     ContentBinding = __decorate([
-        connectable_1.connectable(),
+        connectable_js_1.connectable(),
         __metadata("design:paramtypes", [Object, Object, String, Object, Object, InterpolationBinding])
     ], ContentBinding);
     exports.ContentBinding = ContentBinding;

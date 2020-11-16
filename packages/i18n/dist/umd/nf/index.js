@@ -14,12 +14,12 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./number-format-binding-behavior", "./number-format-value-converter"], factory);
+        define(["require", "exports", "./number-format-binding-behavior.js", "./number-format-value-converter.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    __exportStar(require("./number-format-binding-behavior"), exports);
-    __exportStar(require("./number-format-value-converter"), exports);
+    __exportStar(require("./number-format-binding-behavior.js"), exports);
+    __exportStar(require("./number-format-value-converter.js"), exports);
 });
 //# sourceMappingURL=index.js.map

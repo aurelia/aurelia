@@ -1,11 +1,11 @@
 import { IServiceLocator } from '@aurelia/kernel';
 import { IDirtyChecker, INodeObserverLocator, IObserverLocator } from '@aurelia/runtime';
-import { IPlatform } from '../platform';
-import { EventSubscriber } from './event-delegator';
-import { ISVGAnalyzer } from './svg-analyzer';
+import { IPlatform } from '../platform.js';
+import { EventSubscriber } from './event-delegator.js';
+import { ISVGAnalyzer } from './svg-analyzer.js';
 import type { IContainer } from '@aurelia/kernel';
 import type { IAccessor, IObserver, ICollectionObserver, CollectionKind } from '@aurelia/runtime';
-import type { INode } from '../dom';
+import type { INode } from '../dom.js';
 export declare type IHtmlObserverConstructor = new (el: INode, key: PropertyKey, handler: EventSubscriber, observerLocator: IObserverLocator, locator: IServiceLocator) => IObserver;
 export interface INodeObserverConfig extends Partial<NodeObserverConfig> {
     events: string[];

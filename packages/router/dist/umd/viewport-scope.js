@@ -4,15 +4,15 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./scope", "./utils", "./runner"], factory);
+        define(["require", "exports", "./scope.js", "./utils.js", "./runner.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ViewportScope = void 0;
-    const scope_1 = require("./scope");
-    const utils_1 = require("./utils");
-    const runner_1 = require("./runner");
+    const scope_js_1 = require("./scope.js");
+    const utils_js_1 = require("./utils.js");
+    const runner_js_1 = require("./runner.js");
     class ViewportScope {
         constructor(name, router, connectedCE, owningScope, scope, rootComponentType = null, // temporary. Metadata will probably eliminate it
         options = {
@@ -32,7 +32,7 @@
             this.sourceItemIndex = -1;
             this.remove = false;
             this.add = false;
-            this.connectedScope = new scope_1.Scope(router, scope, owningScope, null, this);
+            this.connectedScope = new scope_js_1.Scope(router, scope, owningScope, null, this);
             if (this.catches.length > 0) {
                 this.content = router.createViewportInstruction(this.catches[0], this.name);
             }
@@ -119,7 +119,7 @@
         }
         transition(coordinator) {
             // console.log('ViewportScope swap'/*, this, coordinator*/);
-            runner_1.Runner.run(() => coordinator.addEntityState(this, 'guardedUnload'), () => coordinator.addEntityState(this, 'guardedLoad'), () => coordinator.addEntityState(this, 'guarded'), () => coordinator.addEntityState(this, 'loaded'), () => coordinator.addEntityState(this, 'unloaded'), () => coordinator.addEntityState(this, 'routed'), () => coordinator.addEntityState(this, 'swapped'), () => {
+            runner_js_1.Runner.run(() => coordinator.addEntityState(this, 'guardedUnload'), () => coordinator.addEntityState(this, 'guardedLoad'), () => coordinator.addEntityState(this, 'guarded'), () => coordinator.addEntityState(this, 'loaded'), () => coordinator.addEntityState(this, 'unloaded'), () => coordinator.addEntityState(this, 'routed'), () => coordinator.addEntityState(this, 'swapped'), () => {
                 this.content = !this.remove ? this.nextContent : null;
                 this.nextContent = null;
                 coordinator.addEntityState(this, 'completed');
@@ -185,7 +185,7 @@
         }
         unbinding() {
             if (this.sourceItem !== null && this.source !== null) {
-                utils_1.arrayRemove(this.source, (item) => item === this.sourceItem);
+                utils_js_1.arrayRemove(this.source, (item) => item === this.sourceItem);
             }
             this.sourceItem = null;
         }

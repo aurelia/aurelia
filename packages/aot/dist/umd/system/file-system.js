@@ -16,7 +16,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "fs", "path", "@aurelia/kernel", "./path-utils"], factory);
+        define(["require", "exports", "fs", "path", "@aurelia/kernel", "./path-utils.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -25,7 +25,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     const fs_1 = require("fs");
     const path_1 = require("path");
     const kernel_1 = require("@aurelia/kernel");
-    const path_utils_1 = require("./path-utils");
+    const path_utils_js_1 = require("./path-utils.js");
     const { access, lstat, mkdir, readdir, readFile, realpath, rmdir, stat, unlink, writeFile, } = fs_1.promises;
     function compareFilePath(a, b) {
         return a.path < b.path ? -1 : a.path > b.path ? 1 : 0;
@@ -329,21 +329,21 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             }
         }
         async getRealPath(path) {
-            path = path_utils_1.normalizePath(path);
+            path = path_utils_js_1.normalizePath(path);
             const realPathCache = this.realPathCache;
             let real = realPathCache.get(path);
             if (real === void 0) {
-                real = path_utils_1.normalizePath(await realpath(path));
+                real = path_utils_js_1.normalizePath(await realpath(path));
                 realPathCache.set(path, real);
             }
             return real;
         }
         getRealPathSync(path) {
-            path = path_utils_1.normalizePath(path);
+            path = path_utils_js_1.normalizePath(path);
             const realPathCache = this.realPathCache;
             let real = realPathCache.get(path);
             if (real === void 0) {
-                real = path_utils_1.normalizePath(fs_1.realpathSync(path));
+                real = path_utils_js_1.normalizePath(fs_1.realpathSync(path));
                 realPathCache.set(path, real);
             }
             return real;
@@ -370,7 +370,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             const files = [];
             const seen = {};
             const walk = async (dir, name) => {
-                const path = await this.getRealPath(path_utils_1.joinPath(dir, name));
+                const path = await this.getRealPath(path_utils_js_1.joinPath(dir, name));
                 if (seen[path] === void 0) {
                     seen[path] = true;
                     const stats = await stat(path);
@@ -398,7 +398,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             const files = [];
             const seen = {};
             const walk = (dir, name) => {
-                const path = this.getRealPathSync(path_utils_1.joinPath(dir, name));
+                const path = this.getRealPathSync(path_utils_js_1.joinPath(dir, name));
                 if (seen[path] === void 0) {
                     seen[path] = true;
                     const stats = fs_1.statSync(path);

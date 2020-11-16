@@ -16,16 +16,16 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "../../dom", "../../templating/view", "../custom-attribute"], factory);
+        define(["require", "exports", "@aurelia/kernel", "../../dom.js", "../../templating/view.js", "../custom-attribute.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ObserveShallow = exports.FrequentMutations = void 0;
     const kernel_1 = require("@aurelia/kernel");
-    const dom_1 = require("../../dom");
-    const view_1 = require("../../templating/view");
-    const custom_attribute_1 = require("../custom-attribute");
+    const dom_js_1 = require("../../dom.js");
+    const view_js_1 = require("../../templating/view.js");
+    const custom_attribute_js_1 = require("../custom-attribute.js");
     class FlagsTemplateController {
         constructor(factory, location, flags) {
             this.factory = factory;
@@ -57,8 +57,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
     };
     FrequentMutations = __decorate([
-        custom_attribute_1.templateController('frequent-mutations'),
-        __param(0, view_1.IViewFactory), __param(1, dom_1.IRenderLocation),
+        custom_attribute_js_1.templateController('frequent-mutations'),
+        __param(0, view_js_1.IViewFactory), __param(1, dom_js_1.IRenderLocation),
         __metadata("design:paramtypes", [Object, Object])
     ], FrequentMutations);
     exports.FrequentMutations = FrequentMutations;
@@ -68,8 +68,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
     };
     ObserveShallow = __decorate([
-        custom_attribute_1.templateController('observe-shallow'),
-        __param(0, view_1.IViewFactory), __param(1, dom_1.IRenderLocation),
+        custom_attribute_js_1.templateController('observe-shallow'),
+        __param(0, view_js_1.IViewFactory), __param(1, dom_js_1.IRenderLocation),
         __metadata("design:paramtypes", [Object, Object])
     ], ObserveShallow);
     exports.ObserveShallow = ObserveShallow;

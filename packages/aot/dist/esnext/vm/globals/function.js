@@ -1,13 +1,13 @@
-import { $BuiltinFunction, $Function, $GetPrototypeFromConstructor, } from '../types/function';
-import { $TypeError, } from '../types/error';
-import { $Object, } from '../types/object';
-import { $List, } from '../types/list';
-import { $Call, $HostEnsureCanCompileStrings, $DefinePropertyOrThrow, } from '../operations';
-import { $String, } from '../types/string';
+import { $BuiltinFunction, $Function, $GetPrototypeFromConstructor, } from '../types/function.js';
+import { $TypeError, } from '../types/error.js';
+import { $Object, } from '../types/object.js';
+import { $List, } from '../types/list.js';
+import { $Call, $HostEnsureCanCompileStrings, $DefinePropertyOrThrow, } from '../operations.js';
+import { $String, } from '../types/string.js';
 import { createSourceFile, ScriptTarget, } from 'typescript';
-import { $FunctionDeclaration, } from '../ast/functions';
-import { $Boolean, } from '../types/boolean';
-import { $PropertyDescriptor, } from '../types/property-descriptor';
+import { $FunctionDeclaration, } from '../ast/functions.js';
+import { $Boolean, } from '../types/boolean.js';
+import { $PropertyDescriptor, } from '../types/property-descriptor.js';
 // http://www.ecma-international.org/ecma-262/#sec-function-objects
 // 19.2 Function Objects
 // http://www.ecma-international.org/ecma-262/#sec-function-constructor

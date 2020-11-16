@@ -9,8 +9,8 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 var BindableObserver_1;
 import { noop } from '@aurelia/kernel';
-import { ILifecycle } from '../observation';
-import { subscriberCollection } from './subscriber-collection';
+import { ILifecycle } from '../observation.js';
+import { subscriberCollection } from './subscriber-collection.js';
 let BindableObserver = BindableObserver_1 = class BindableObserver {
     constructor(lifecycle, flags, obj, propertyKey, cbName, $set) {
         this.lifecycle = lifecycle;

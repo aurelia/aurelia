@@ -13,13 +13,13 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./subscriber-collection"], factory);
+        define(["require", "exports", "./subscriber-collection.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.CollectionLengthObserver = void 0;
-    const subscriber_collection_1 = require("./subscriber-collection");
+    const subscriber_collection_js_1 = require("./subscriber-collection.js");
     let CollectionLengthObserver = class CollectionLengthObserver {
         constructor(obj) {
             this.obj = obj;
@@ -38,7 +38,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         }
     };
     CollectionLengthObserver = __decorate([
-        subscriber_collection_1.subscriberCollection(),
+        subscriber_collection_js_1.subscriberCollection(),
         __metadata("design:paramtypes", [Array])
     ], CollectionLengthObserver);
     exports.CollectionLengthObserver = CollectionLengthObserver;

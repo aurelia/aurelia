@@ -1,15 +1,15 @@
 import { BigIntLiteral, BooleanLiteral, NoSubstitutionTemplateLiteral, NullLiteral, NumericLiteral, RegularExpressionLiteral, StringLiteral, SyntaxKind, TemplateHead, TemplateMiddle, TemplateSpan, TemplateTail } from 'typescript';
 import { ILogger } from '@aurelia/kernel';
-import { Realm, ExecutionContext } from '../realm';
-import { $String } from '../types/string';
-import { $AnyNonEmpty } from '../types/_shared';
-import { $Object } from '../types/object';
-import { $Number } from '../types/number';
-import { $Null } from '../types/null';
-import { $Boolean } from '../types/boolean';
-import { I$Node, Context, $$AssignmentExpressionOrHigher, $AnyParentNode } from './_shared';
-import { $$ESModuleOrScript } from './modules';
-import { $TemplateExpression } from './expressions';
+import { Realm, ExecutionContext } from '../realm.js';
+import { $String } from '../types/string.js';
+import { $AnyNonEmpty } from '../types/_shared.js';
+import { $Object } from '../types/object.js';
+import { $Number } from '../types/number.js';
+import { $Null } from '../types/null.js';
+import { $Boolean } from '../types/boolean.js';
+import { I$Node, Context, $$AssignmentExpressionOrHigher, $AnyParentNode } from './_shared.js';
+import { $$ESModuleOrScript } from './modules.js';
+import { $TemplateExpression } from './expressions.js';
 export declare class $TemplateHead implements I$Node {
     readonly node: TemplateHead;
     readonly parent: $TemplateExpression;

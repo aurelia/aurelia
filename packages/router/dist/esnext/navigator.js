@@ -1,6 +1,6 @@
-import { Queue } from './queue';
-import { Navigation } from './navigation';
-import { Runner } from './runner';
+import { Queue } from './queue.js';
+import { Navigation } from './navigation.js';
+import { Runner } from './runner.js';
 /**
  * @internal - Shouldn't be used directly
  */

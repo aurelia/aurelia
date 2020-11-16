@@ -4,15 +4,15 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "../operations", "./property-descriptor", "./error"], factory);
+        define(["require", "exports", "../operations.js", "./property-descriptor.js", "./error.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.$ModuleEnvRec = exports.$GlobalEnvRec = exports.$FunctionEnvRec = exports.$ObjectEnvRec = exports.$DeclarativeEnvRec = exports.$Binding = void 0;
-    const operations_1 = require("../operations");
-    const property_descriptor_1 = require("./property-descriptor");
-    const error_1 = require("./error");
+    const operations_js_1 = require("../operations.js");
+    const property_descriptor_js_1 = require("./property-descriptor.js");
+    const error_js_1 = require("./error.js");
     let bindingId = 0;
     class $Binding {
         constructor(isMutable, isStrict, isInitialized, canBeDeleted, value, name, origin, M = null, N2 = null) {
@@ -151,7 +151,7 @@
             if (binding === void 0) {
                 // 2. a. If S is true, throw a ReferenceError exception.
                 if (S.isTruthy) {
-                    return new error_1.$ReferenceError(ctx.Realm, `Cannot assign to non-existing binding ${N['[[Value]]']} in strict mode code.`);
+                    return new error_js_1.$ReferenceError(ctx.Realm, `Cannot assign to non-existing binding ${N['[[Value]]']} in strict mode code.`);
                 }
                 // 2. b. Perform envRec.CreateMutableBinding(N, true).
                 envRec.CreateMutableBinding(ctx, N, intrinsics.true);
@@ -166,7 +166,7 @@
             }
             // 4. If the binding for N in envRec has not yet been initialized, throw a ReferenceError exception.
             if (!binding.isInitialized) {
-                return new error_1.$ReferenceError(ctx.Realm, `Binding ${N['[[Value]]']} is not yet initialized.`);
+                return new error_js_1.$ReferenceError(ctx.Realm, `Binding ${N['[[Value]]']} is not yet initialized.`);
             }
             // 5. Else if the binding for N in envRec is a mutable binding, change its bound value to V.
             else if (binding.isMutable) {
@@ -177,7 +177,7 @@
                 // 6. a. Assert: This is an attempt to change the value of an immutable binding.
                 // 6. b. If S is true, throw a TypeError exception.
                 if (S.isTruthy) {
-                    return new error_1.$TypeError(ctx.Realm, `Cannot change the value of immutable binding ${N}`);
+                    return new error_js_1.$TypeError(ctx.Realm, `Cannot change the value of immutable binding ${N}`);
                 }
             }
             // 7. Return NormalCompletion(empty).
@@ -193,7 +193,7 @@
             const binding = envRec.bindings.get(N['[[Value]]']);
             // 3. If the binding for N in envRec is an uninitialized binding, throw a ReferenceError exception.
             if (!binding.isInitialized) {
-                return new error_1.$ReferenceError(ctx.Realm, `No binding exists for: ${N['[[Value]]']}.`);
+                return new error_js_1.$ReferenceError(ctx.Realm, `No binding exists for: ${N['[[Value]]']}.`);
             }
             // 4. Return the value currently bound to N in envRec.
             return binding.value;
@@ -335,12 +335,12 @@
             // 2. Let bindings be the binding object for envRec.
             const bindings = envRec.bindingObject;
             // 3. Return ? DefinePropertyOrThrow(bindings, N, PropertyDescriptor { [[Value]]: undefined, [[Writable]]: true, [[Enumerable]]: true, [[Configurable]]: D }).
-            const Desc = new property_descriptor_1.$PropertyDescriptor(realm, N);
+            const Desc = new property_descriptor_js_1.$PropertyDescriptor(realm, N);
             Desc['[[Value]]'] = intrinsics.undefined;
             Desc['[[Writable]]'] = intrinsics.true;
             Desc['[[Enumerable]]'] = intrinsics.true;
             Desc['[[Configurable]]'] = D;
-            return operations_1.$DefinePropertyOrThrow(ctx, bindings, N, Desc);
+            return operations_js_1.$DefinePropertyOrThrow(ctx, bindings, N, Desc);
         }
         // http://www.ecma-international.org/ecma-262/#sec-object-environment-records-createimmutablebinding-n-s
         // 8.1.1.2.3 CreateImmutableBinding ( N , S )
@@ -370,7 +370,7 @@
             // 2. Let bindings be the binding object for envRec.
             const bindings = envRec.bindingObject;
             // 3. Return ? Set(bindings, N, V, S).
-            return operations_1.$Set(ctx, bindings, N, V, S);
+            return operations_js_1.$Set(ctx, bindings, N, V, S);
         }
         // http://www.ecma-international.org/ecma-262/#sec-object-environment-records-getbindingvalue-n-s
         // 8.1.1.2.6 GetBindingValue ( N , S )
@@ -391,7 +391,7 @@
                 if (S.isFalsey) {
                     return intrinsics.undefined;
                 }
-                return new error_1.$ReferenceError(ctx.Realm, `Cannot read from non-existing binding ${N['[[Value]]']} in strict mode code.`);
+                return new error_js_1.$ReferenceError(ctx.Realm, `Cannot read from non-existing binding ${N['[[Value]]']} in strict mode code.`);
             }
             // 5. Return ? Get(bindings, N).
             return bindings['[[Get]]'](ctx, N, bindings);
@@ -526,7 +526,7 @@
             // 2. Assert: envRec.[[ThisBindingStatus]] is not "lexical".
             // 3. If envRec.[[ThisBindingStatus]] is "initialized", throw a ReferenceError exception.
             if (envRec['[[ThisBindingStatus]]'] === 'initialized') {
-                return new error_1.$ReferenceError(ctx.Realm, `The 'this' binding is already initialized.`);
+                return new error_js_1.$ReferenceError(ctx.Realm, `The 'this' binding is already initialized.`);
             }
             // 4. Set envRec.[[ThisValue]] to V.
             envRec['[[ThisValue]]'] = V;
@@ -543,7 +543,7 @@
             // 2. Assert: envRec.[[ThisBindingStatus]] is not "lexical".
             // 3. If envRec.[[ThisBindingStatus]] is "uninitialized", throw a ReferenceError exception.
             if (envRec['[[ThisBindingStatus]]'] === 'uninitialized') {
-                return new error_1.$ReferenceError(ctx.Realm, `The 'this' binding is not yet initialized.`);
+                return new error_js_1.$ReferenceError(ctx.Realm, `The 'this' binding is not yet initialized.`);
             }
             // 4. Return envRec.[[ThisValue]].
             return envRec['[[ThisValue]]'];
@@ -640,7 +640,7 @@
             const dclRec = envRec['[[DeclarativeRecord]]'];
             // 3. If DclRec.HasBinding(N) is true, throw a TypeError exception.
             if (dclRec.HasBinding(ctx, N).isTruthy) {
-                return new error_1.$TypeError(ctx.Realm, `A global binding for ${N} already exists`);
+                return new error_js_1.$TypeError(ctx.Realm, `A global binding for ${N} already exists`);
             }
             // 4. Return DclRec.CreateMutableBinding(N, D).
             return dclRec.CreateMutableBinding(ctx, N, D);
@@ -655,7 +655,7 @@
             const dclRec = envRec['[[DeclarativeRecord]]'];
             // 3. If DclRec.HasBinding(N) is true, throw a TypeError exception.
             if (dclRec.HasBinding(ctx, N).isTruthy) {
-                return new error_1.$TypeError(ctx.Realm, `A global binding for ${N} already exists`);
+                return new error_js_1.$TypeError(ctx.Realm, `A global binding for ${N} already exists`);
             }
             // 4. Return DclRec.CreateImmutableBinding(N, S).
             return dclRec.CreateImmutableBinding(ctx, N, S);
@@ -733,7 +733,7 @@
             // 5. Let globalObject be the binding object for ObjRec.
             const globalObject = objRec.bindingObject;
             // 6. Let existingProp be ? HasOwnProperty(globalObject, N).
-            const existingProp = operations_1.$HasOwnProperty(ctx, globalObject, N);
+            const existingProp = operations_js_1.$HasOwnProperty(ctx, globalObject, N);
             if (existingProp.isAbrupt) {
                 return existingProp;
             }
@@ -852,7 +852,7 @@
             // 3. Let globalObject be the binding object for ObjRec.
             const globalObject = objRec.bindingObject;
             // 4. Let hasProperty be ? HasOwnProperty(globalObject, N).
-            const hasProperty = operations_1.$HasOwnProperty(ctx, globalObject, N);
+            const hasProperty = operations_js_1.$HasOwnProperty(ctx, globalObject, N);
             if (hasProperty.isAbrupt) {
                 return hasProperty;
             }
@@ -905,7 +905,7 @@
             // 3. Let globalObject be the binding object for ObjRec.
             const globalObject = objRec.bindingObject;
             // 4. Let hasProperty be ? HasOwnProperty(globalObject, N).
-            const hasProperty = operations_1.$HasOwnProperty(ctx, globalObject, N);
+            const hasProperty = operations_js_1.$HasOwnProperty(ctx, globalObject, N);
             if (hasProperty.isAbrupt) {
                 return hasProperty;
             }
@@ -958,7 +958,7 @@
             // 5. If existingProp is undefined or existingProp.[[Configurable]] is true, then
             if (existingProp.isUndefined || existingProp['[[Configurable]]'].isTruthy) {
                 // 5. a. Let desc be the PropertyDescriptor { [[Value]]: V, [[Writable]]: true, [[Enumerable]]: true, [[Configurable]]: D }.
-                desc = new property_descriptor_1.$PropertyDescriptor(realm, N);
+                desc = new property_descriptor_js_1.$PropertyDescriptor(realm, N);
                 desc['[[Enumerable]]'] = intrinsics.true;
                 desc['[[Configurable]]'] = D;
                 desc['[[Value]]'] = V;
@@ -967,18 +967,18 @@
             // 6. Else,
             else {
                 // 6. a. Let desc be the PropertyDescriptor { [[Value]]: V }.
-                desc = new property_descriptor_1.$PropertyDescriptor(realm, N);
+                desc = new property_descriptor_js_1.$PropertyDescriptor(realm, N);
                 desc['[[Value]]'] = V;
             }
             // 7. Perform ? DefinePropertyOrThrow(globalObject, N, desc).
-            const $DefinePropertyOrThrowResult = operations_1.$DefinePropertyOrThrow(ctx, globalObject, N, desc);
+            const $DefinePropertyOrThrowResult = operations_js_1.$DefinePropertyOrThrow(ctx, globalObject, N, desc);
             if ($DefinePropertyOrThrowResult.isAbrupt) {
                 return $DefinePropertyOrThrowResult;
             }
             // 8. Record that the binding for N in ObjRec has been initialized.
             // TODO: record
             // 9. Perform ? Set(globalObject, N, V, false).
-            const $SetResult = operations_1.$Set(ctx, globalObject, N, V, intrinsics.false);
+            const $SetResult = operations_js_1.$Set(ctx, globalObject, N, V, intrinsics.false);
             if ($SetResult.isAbrupt) {
                 return $SetResult;
             }
@@ -1047,7 +1047,7 @@
                 const targetER = M['[[Environment]]'];
                 // 4. c. If targetEnv is undefined, throw a ReferenceError exception.
                 if (targetER.isUndefined) {
-                    return new error_1.$ReferenceError(ctx.Realm, `Cannot resolve export: ${N['[[Value]]']}`);
+                    return new error_js_1.$ReferenceError(ctx.Realm, `Cannot resolve export: ${N['[[Value]]']}`);
                 }
                 // 4. d. Let targetER be targetEnv's EnvironmentRecord.
                 // 4. e. Return ? targetER.GetBindingValue(N2, true).
@@ -1055,7 +1055,7 @@
             }
             // 5. If the binding for N in envRec is an uninitialized binding, throw a ReferenceError exception.
             if (!binding.isInitialized) {
-                return new error_1.$ReferenceError(ctx.Realm, `Binding for ${N['[[Value]]']} is not yet initialized`);
+                return new error_js_1.$ReferenceError(ctx.Realm, `Binding for ${N['[[Value]]']} is not yet initialized`);
             }
             // 6. Return the value currently bound to N in envRec.
             return binding.value;

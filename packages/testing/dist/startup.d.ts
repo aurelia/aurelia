@@ -1,6 +1,6 @@
 import { Constructable } from '@aurelia/kernel';
 import { Aurelia } from '@aurelia/runtime-html';
-import { TestContext } from './test-context';
+import { TestContext } from './test-context.js';
 export declare function createFixture<T>(template: string | Node, $class?: Constructable<T>, registrations?: any[], autoStart?: boolean, ctx?: TestContext): {
     startPromise: void | Promise<void>;
     ctx: TestContext;

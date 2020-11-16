@@ -1,14 +1,14 @@
-import { $BuiltinFunction, $Function } from '../types/function';
-import { Realm, ExecutionContext } from '../realm';
-import { $AnyNonEmpty, $AnyNonEmptyNonError } from '../types/_shared';
-import { $Undefined } from '../types/undefined';
-import { $Object } from '../types/object';
-import { $String } from '../types/string';
-import { $FunctionPrototype, $FunctionConstructor } from './function';
-import { $Number } from '../types/number';
-import { $Block } from '../ast/statements';
-import { $List } from '../types/list';
-import { $PromiseCapability } from './promise';
+import { $BuiltinFunction, $Function } from '../types/function.js';
+import { Realm, ExecutionContext } from '../realm.js';
+import { $AnyNonEmpty, $AnyNonEmptyNonError } from '../types/_shared.js';
+import { $Undefined } from '../types/undefined.js';
+import { $Object } from '../types/object.js';
+import { $String } from '../types/string.js';
+import { $FunctionPrototype, $FunctionConstructor } from './function.js';
+import { $Number } from '../types/number.js';
+import { $Block } from '../ast/statements.js';
+import { $List } from '../types/list.js';
+import { $PromiseCapability } from './promise.js';
 export declare class $AsyncFunctionConstructor extends $BuiltinFunction<'%AsyncFunction%'> {
     get $prototype(): $AsyncFunctionPrototype;
     set $prototype(value: $AsyncFunctionPrototype);

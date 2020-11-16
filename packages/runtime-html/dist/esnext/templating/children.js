@@ -11,7 +11,7 @@ var ChildrenObserver_1;
 /* eslint-disable @typescript-eslint/no-use-before-define */
 import { Protocol, Metadata, firstDefined, getPrototypeChain } from '@aurelia/kernel';
 import { subscriberCollection } from '@aurelia/runtime';
-import { CustomElement } from '../resources/custom-element';
+import { CustomElement } from '../resources/custom-element.js';
 export function children(configOrTarget, prop) {
     let config;
     function decorator($target, $prop) {

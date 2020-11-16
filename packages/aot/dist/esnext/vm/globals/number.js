@@ -1,6 +1,6 @@
-import { $BuiltinFunction, $OrdinaryCreateFromConstructor, } from '../types/function';
-import { $Number, } from '../types/number';
-import { $Object, } from '../types/object';
+import { $BuiltinFunction, $OrdinaryCreateFromConstructor, } from '../types/function.js';
+import { $Number, } from '../types/number.js';
+import { $Object, } from '../types/object.js';
 // http://www.ecma-international.org/ecma-262/#sec-number-constructor
 export class $NumberConstructor extends $BuiltinFunction {
     get $prototype() {

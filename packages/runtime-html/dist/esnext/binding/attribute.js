@@ -9,9 +9,9 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 import { IServiceLocator } from '@aurelia/kernel';
 import { BindingMode, connectable, IObserverLocator, } from '@aurelia/runtime';
-import { AttributeObserver } from '../observation/element-attribute-observer';
-import { IPlatform } from '../platform';
-import { INode } from '../dom';
+import { AttributeObserver } from '../observation/element-attribute-observer.js';
+import { IPlatform } from '../platform.js';
+import { INode } from '../dom.js';
 // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
 const { oneTime, toView, fromView } = BindingMode;
 // pre-combining flags for bitwise checks is a minor perf tweak

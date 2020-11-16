@@ -4,13 +4,13 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./types/empty"], factory);
+        define(["require", "exports", "./types/empty.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.JobQueue = exports.Job = void 0;
-    const empty_1 = require("./types/empty");
+    const empty_js_1 = require("./types/empty.js");
     // http://www.ecma-international.org/ecma-262/#table-25
     class Job {
         constructor(logger, realm, scriptOrModule) {
@@ -52,7 +52,7 @@
             // 9. Add pending at the back of the Job Queue named by queueName.
             this.queue.push(job);
             // 10. Return NormalCompletion(empty).
-            return new empty_1.$Empty(realm);
+            return new empty_js_1.$Empty(realm);
         }
         dispose() {
             this.queue.forEach(x => { x.dispose(); });

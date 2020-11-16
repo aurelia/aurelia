@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/platform-browser", "./app-root", "./platform"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/platform-browser", "./app-root.js", "./platform.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -12,8 +12,8 @@
     exports.Aurelia = exports.IAurelia = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const platform_browser_1 = require("@aurelia/platform-browser");
-    const app_root_1 = require("./app-root");
-    const platform_1 = require("./platform");
+    const app_root_js_1 = require("./app-root.js");
+    const platform_js_1 = require("./platform.js");
     exports.IAurelia = kernel_1.DI.createInterface('IAurelia').noDefault();
     class Aurelia {
         constructor(container = kernel_1.DI.createContainer()) {
@@ -29,7 +29,7 @@
                 throw new Error('An instance of Aurelia is already registered with the container or an ancestor of it.');
             }
             container.register(kernel_1.Registration.instance(exports.IAurelia, this));
-            container.registerResolver(app_root_1.IAppRoot, this.rootProvider = new kernel_1.InstanceProvider('IAppRoot'));
+            container.registerResolver(app_root_js_1.IAppRoot, this.rootProvider = new kernel_1.InstanceProvider('IAppRoot'));
         }
         get isRunning() { return this._isRunning; }
         get isStarting() { return this._isStarting; }
@@ -48,24 +48,24 @@
             return this;
         }
         app(config) {
-            this.next = new app_root_1.AppRoot(config, this.initPlatform(config.host), this.container, this.rootProvider, false);
+            this.next = new app_root_js_1.AppRoot(config, this.initPlatform(config.host), this.container, this.rootProvider, false);
             return this;
         }
         enhance(config) {
-            this.next = new app_root_1.AppRoot(config, this.initPlatform(config.host), this.container, this.rootProvider, true);
+            this.next = new app_root_js_1.AppRoot(config, this.initPlatform(config.host), this.container, this.rootProvider, true);
             return this;
         }
         initPlatform(host) {
             let p;
-            if (!this.container.has(platform_1.IPlatform, false)) {
+            if (!this.container.has(platform_js_1.IPlatform, false)) {
                 if (host.ownerDocument.defaultView === null) {
                     throw new Error(`Failed to initialize the platform object. The host element's ownerDocument does not have a defaultView`);
                 }
                 p = new platform_browser_1.BrowserPlatform(host.ownerDocument.defaultView);
-                this.container.register(kernel_1.Registration.instance(platform_1.IPlatform, p));
+                this.container.register(kernel_1.Registration.instance(platform_js_1.IPlatform, p));
             }
             else {
-                p = this.container.get(platform_1.IPlatform);
+                p = this.container.get(platform_js_1.IPlatform);
             }
             return p;
         }

@@ -2,7 +2,7 @@ import * as path from 'path';
 import { kebabCase } from '@aurelia/kernel';
 import modifyCode from 'modify-code';
 import * as ts from 'typescript';
-import { nameConvention } from './name-convention';
+import { nameConvention } from './name-convention.js';
 export function preprocessResource(unit, options) {
     const basename = path.basename(unit.path, path.extname(unit.path));
     const expectedResourceName = kebabCase(basename);

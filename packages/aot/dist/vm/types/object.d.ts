@@ -1,16 +1,16 @@
-import { $PropertyKey, $AnyNonError, $Primitive, PotentialNonEmptyCompletionType, CompletionTarget, $AnyNonEmpty, $AnyNonEmptyNonError, $AnyObject, $Any } from './_shared';
-import { $PropertyDescriptor } from './property-descriptor';
-import { $Null } from './null';
-import { $Boolean } from './boolean';
-import { Realm, ExecutionContext } from '../realm';
-import { $String } from './string';
-import { $Number } from './number';
-import { $Function } from './function';
-import { $Undefined } from './undefined';
-import { $Error } from './error';
-import { $List } from './list';
+import { $PropertyKey, $AnyNonError, $Primitive, PotentialNonEmptyCompletionType, CompletionTarget, $AnyNonEmpty, $AnyNonEmptyNonError, $AnyObject, $Any } from './_shared.js';
+import { $PropertyDescriptor } from './property-descriptor.js';
+import { $Null } from './null.js';
+import { $Boolean } from './boolean.js';
+import { Realm, ExecutionContext } from '../realm.js';
+import { $String } from './string.js';
+import { $Number } from './number.js';
+import { $Function } from './function.js';
+import { $Undefined } from './undefined.js';
+import { $Error } from './error.js';
+import { $List } from './list.js';
 import { Writable, IDisposable } from '@aurelia/kernel';
-import { I$Node } from '../ast/_shared';
+import { I$Node } from '../ast/_shared.js';
 export declare class $Object<T extends string = string> implements IDisposable {
     readonly realm: Realm;
     readonly IntrinsicName: T;

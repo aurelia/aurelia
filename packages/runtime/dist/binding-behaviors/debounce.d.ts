@@ -1,7 +1,7 @@
-import { LifecycleFlags } from '../observation';
-import { BindingInterceptor, IInterceptableBinding } from '../binding-behavior';
-import { BindingBehaviorExpression } from '../binding/ast';
-import type { Scope } from '../observation/binding-context';
+import { LifecycleFlags } from '../observation.js';
+import { BindingInterceptor, IInterceptableBinding } from '../binding-behavior.js';
+import { BindingBehaviorExpression } from '../binding/ast.js';
+import type { Scope } from '../observation/binding-context.js';
 export declare class DebounceBindingBehavior extends BindingInterceptor {
     private readonly taskQueue;
     private readonly opts;

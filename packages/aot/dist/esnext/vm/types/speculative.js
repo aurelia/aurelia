@@ -1,5 +1,5 @@
-import { nextValueId, getPath, } from './_shared';
-import { $TypeError, } from './error';
+import { nextValueId, getPath, } from './_shared.js';
+import { $TypeError, } from './error.js';
 export class $SpeculativeValue {
     constructor(realm, sourceNode, antecedents) {
         this.realm = realm;

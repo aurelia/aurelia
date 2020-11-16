@@ -1,5 +1,5 @@
 import { Constructable } from '@aurelia/kernel';
-import { BindingMode } from './observation';
+import { BindingMode } from './observation.js';
 export declare type InterceptorFunc<TInput = unknown, TOutput = unknown> = (value: TInput) => TOutput;
 export declare type PartialBindableDefinition = {
     mode?: BindingMode;

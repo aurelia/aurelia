@@ -1,12 +1,12 @@
-import { $Object, } from './object';
-import { $FunctionEnvRec, } from './environment-record';
-import { $String, } from './string';
-import { $PropertyDescriptor, } from './property-descriptor';
-import { $Number, } from './number';
-import { $DefinePropertyOrThrow, } from '../operations';
-import { $Undefined, } from './undefined';
-import { ExecutionContext, } from '../realm';
-import { $TypeError, } from './error';
+import { $Object, } from './object.js';
+import { $FunctionEnvRec, } from './environment-record.js';
+import { $String, } from './string.js';
+import { $PropertyDescriptor, } from './property-descriptor.js';
+import { $Number, } from './number.js';
+import { $DefinePropertyOrThrow, } from '../operations.js';
+import { $Undefined, } from './undefined.js';
+import { ExecutionContext, } from '../realm.js';
+import { $TypeError, } from './error.js';
 import { getLineAndCharacterOfPosition } from 'typescript';
 // http://www.ecma-international.org/ecma-262/#table-6
 // http://www.ecma-international.org/ecma-262/#sec-ecmascript-function-objects

@@ -1,5 +1,5 @@
 import { Primitive } from '@aurelia/kernel';
-import { TypedArray } from './util';
+import { TypedArray } from './util.js';
 export interface IInspectOptions {
     showHidden: boolean;
     depth: number;

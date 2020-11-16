@@ -1,8 +1,8 @@
 import { LifecycleFlags } from '@aurelia/runtime';
-import { IRenderLocation } from '../../dom';
-import { IPlatform } from '../../platform';
-import { IViewFactory } from '../../templating/view';
-import type { ControllerVisitor, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../templating/controller';
+import { IRenderLocation } from '../../dom.js';
+import { IPlatform } from '../../platform.js';
+import { IViewFactory } from '../../templating/view.js';
+import type { ControllerVisitor, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../templating/controller.js';
 export declare type PortalTarget<T extends Node & ParentNode = Node & ParentNode> = string | T | null | undefined;
 export declare type PortalLifecycleCallback = (target: PortalTarget, view: ISyntheticView) => void | Promise<void>;
 export declare class Portal<T extends Node & ParentNode = Node & ParentNode> implements ICustomAttributeViewModel {

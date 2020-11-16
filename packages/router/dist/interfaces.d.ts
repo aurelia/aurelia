@@ -1,8 +1,8 @@
 import { Constructable } from '@aurelia/kernel';
 import { CustomElementType, ICustomElementViewModel } from '@aurelia/runtime-html';
-import { Viewport } from './viewport';
-import { ViewportInstruction } from './viewport-instruction';
-import { Navigation } from './navigation';
+import { Viewport } from './viewport.js';
+import { ViewportInstruction } from './viewport-instruction.js';
+import { Navigation } from './navigation.js';
 export interface IPopStateEvent extends PopStateEvent {
 }
 export interface IHashChangeEvent extends HashChangeEvent {

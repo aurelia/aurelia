@@ -1,4 +1,4 @@
-import { IPlatform } from './platform';
+import { IPlatform } from './platform.js';
 export interface INode extends Node {
 }
 export declare const INode: import("@aurelia/kernel").InterfaceSymbol<INode>;

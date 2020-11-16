@@ -4,22 +4,22 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "typescript", "../operations", "../types/string", "../types/function", "../types/property-descriptor", "./_shared", "./functions", "./statements"], factory);
+        define(["require", "exports", "typescript", "../operations.js", "../types/string.js", "../types/function.js", "../types/property-descriptor.js", "./_shared.js", "./functions.js", "./statements.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.$SetAccessorDeclaration = exports.$GetAccessorDeclaration = exports.$MethodDeclaration = void 0;
     const typescript_1 = require("typescript");
-    const operations_1 = require("../operations");
-    const string_1 = require("../types/string");
-    const function_1 = require("../types/function");
-    const property_descriptor_1 = require("../types/property-descriptor");
-    const _shared_1 = require("./_shared");
-    const functions_1 = require("./functions");
-    const statements_1 = require("./statements");
+    const operations_js_1 = require("../operations.js");
+    const string_js_1 = require("../types/string.js");
+    const function_js_1 = require("../types/function.js");
+    const property_descriptor_js_1 = require("../types/property-descriptor.js");
+    const _shared_js_1 = require("./_shared.js");
+    const functions_js_1 = require("./functions.js");
+    const statements_js_1 = require("./statements.js");
     class $MethodDeclaration {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.MethodDeclaration`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.MethodDeclaration`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -29,18 +29,18 @@
             this.depth = depth;
             this.logger = logger;
             this.path = path;
-            const modifierFlags = this.modifierFlags = _shared_1.modifiersToModifierFlags(node.modifiers);
-            this.$decorators = _shared_1.$decoratorList(node.decorators, this, ctx);
-            const $name = this.$name = _shared_1.$$propertyName(node.name, this, ctx | 512 /* IsMemberName */, -1);
-            this.$parameters = new functions_1.$FormalParameterList(node.parameters, this, ctx);
-            const $body = this.$body = new statements_1.$Block(node.body, this, ctx, -1);
+            const modifierFlags = this.modifierFlags = _shared_js_1.modifiersToModifierFlags(node.modifiers);
+            this.$decorators = _shared_js_1.$decoratorList(node.decorators, this, ctx);
+            const $name = this.$name = _shared_js_1.$$propertyName(node.name, this, ctx | 512 /* IsMemberName */, -1);
+            this.$parameters = new functions_js_1.$FormalParameterList(node.parameters, this, ctx);
+            const $body = this.$body = new statements_js_1.$Block(node.body, this, ctx, -1);
             this.PropName = $name.PropName;
-            this.IsStatic = _shared_1.hasBit(modifierFlags, typescript_1.ModifierFlags.Static);
+            this.IsStatic = _shared_js_1.hasBit(modifierFlags, typescript_1.ModifierFlags.Static);
             this.LexicallyDeclaredNames = $body.TopLevelLexicallyDeclaredNames;
             this.LexicallyScopedDeclarations = $body.TopLevelLexicallyScopedDeclarations;
             this.VarDeclaredNames = $body.TopLevelVarDeclaredNames;
             this.VarScopedDeclarations = $body.TopLevelVarScopedDeclarations;
-            if (!_shared_1.hasBit(modifierFlags, typescript_1.ModifierFlags.Async)) {
+            if (!_shared_js_1.hasBit(modifierFlags, typescript_1.ModifierFlags.Async)) {
                 if (node.asteriskToken === void 0) {
                     this.functionKind = 0 /* normal */;
                 }
@@ -82,13 +82,13 @@
             // 6. b. Let prototype be the intrinsic object %FunctionPrototype%.
             const functionPrototype = intrinsics['%FunctionPrototype%'];
             // 7. Let closure be FunctionCreate(kind, UniqueFormalParameters, FunctionBody, scope, strict, prototype).
-            const closure = function_1.$Function.FunctionCreate(ctx, 'method', this, scope, strict, functionPrototype);
+            const closure = function_js_1.$Function.FunctionCreate(ctx, 'method', this, scope, strict, functionPrototype);
             // 8. Perform MakeMethod(closure, object).
             closure['[[HomeObject]]'] = object;
             // 9. Set closure.[[SourceText]] to the source text matched by MethodDefinition.
-            closure['[[SourceText]]'] = new string_1.$String(realm, this.node.getText(this.mos.node));
+            closure['[[SourceText]]'] = new string_js_1.$String(realm, this.node.getText(this.mos.node));
             // 10. Return the Record { [[Key]]: propKey, [[Closure]]: closure }.
-            return new functions_1.MethodDefinitionRecord(propKey, closure);
+            return new functions_js_1.MethodDefinitionRecord(propKey, closure);
         }
         // http://www.ecma-international.org/ecma-262/#sec-method-definitions-runtime-semantics-propertydefinitionevaluation
         // 14.3.8 Runtime Semantics: PropertyDefinitionEvaluation
@@ -106,25 +106,25 @@
             // 3. Perform SetFunctionName(methodDef.[[Closure]], methodDef.[[Key]]).
             methodDef['[[Closure]]'].SetFunctionName(ctx, methodDef['[[Key]]']);
             // 4. Let desc be the PropertyDescriptor { [[Value]]: methodDef.[[Closure]], [[Writable]]: true, [[Enumerable]]: enumerable, [[Configurable]]: true }.
-            const desc = new property_descriptor_1.$PropertyDescriptor(realm, methodDef['[[Key]]'], {
+            const desc = new property_descriptor_js_1.$PropertyDescriptor(realm, methodDef['[[Key]]'], {
                 '[[Value]]': methodDef['[[Closure]]'],
                 '[[Writable]]': intrinsics.true,
                 '[[Enumerable]]': enumerable,
                 '[[Configurable]]': intrinsics.true,
             });
             // 5. Return ? DefinePropertyOrThrow(object, methodDef.[[Key]], desc).
-            return operations_1.$DefinePropertyOrThrow(ctx, object, methodDef['[[Key]]'], desc).enrichWith(ctx, this);
+            return operations_js_1.$DefinePropertyOrThrow(ctx, object, methodDef['[[Key]]'], desc).enrichWith(ctx, this);
         }
         // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-evaluatebody
         // 14.1.18 Runtime Semantics: EvaluateBody
         EvaluateBody(ctx, functionObject, argumentsList) {
             ctx.checkTimeout();
-            return functions_1.$FunctionDeclaration.prototype.EvaluateBody.call(this, ctx, functionObject, argumentsList);
+            return functions_js_1.$FunctionDeclaration.prototype.EvaluateBody.call(this, ctx, functionObject, argumentsList);
         }
     }
     exports.$MethodDeclaration = $MethodDeclaration;
     class $GetAccessorDeclaration {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.GetAccessorDeclaration`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.GetAccessorDeclaration`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -135,13 +135,13 @@
             this.logger = logger;
             this.path = path;
             this.functionKind = 0 /* normal */;
-            const modifierFlags = this.modifierFlags = _shared_1.modifiersToModifierFlags(node.modifiers);
-            this.$decorators = _shared_1.$decoratorList(node.decorators, this, ctx);
-            const $name = this.$name = _shared_1.$$propertyName(node.name, this, ctx | 512 /* IsMemberName */, -1);
-            this.$parameters = new functions_1.$FormalParameterList(node.parameters, this, ctx);
-            const $body = this.$body = new statements_1.$Block(node.body, this, ctx, -1);
+            const modifierFlags = this.modifierFlags = _shared_js_1.modifiersToModifierFlags(node.modifiers);
+            this.$decorators = _shared_js_1.$decoratorList(node.decorators, this, ctx);
+            const $name = this.$name = _shared_js_1.$$propertyName(node.name, this, ctx | 512 /* IsMemberName */, -1);
+            this.$parameters = new functions_js_1.$FormalParameterList(node.parameters, this, ctx);
+            const $body = this.$body = new statements_js_1.$Block(node.body, this, ctx, -1);
             this.PropName = $name.PropName;
-            this.IsStatic = _shared_1.hasBit(modifierFlags, typescript_1.ModifierFlags.Static);
+            this.IsStatic = _shared_js_1.hasBit(modifierFlags, typescript_1.ModifierFlags.Static);
             this.LexicallyDeclaredNames = $body.TopLevelLexicallyDeclaredNames;
             this.LexicallyScopedDeclarations = $body.TopLevelLexicallyScopedDeclarations;
             this.VarDeclaredNames = $body.TopLevelVarDeclaredNames;
@@ -167,32 +167,32 @@
             const scope = ctx.LexicalEnvironment;
             // 5. Let formalParameterList be an instance of the production FormalParameters:[empty] .
             // 6. Let closure be FunctionCreate(Method, formalParameterList, FunctionBody, scope, strict).
-            const closure = function_1.$Function.FunctionCreate(ctx, 'method', this, scope, strict);
+            const closure = function_js_1.$Function.FunctionCreate(ctx, 'method', this, scope, strict);
             // 7. Perform MakeMethod(closure, object).
             closure['[[HomeObject]]'] = object;
             // 8. Perform SetFunctionName(closure, propKey, "get").
             closure.SetFunctionName(ctx, propKey, intrinsics.$get);
             // 9. Set closure.[[SourceText]] to the source text matched by MethodDefinition.
-            closure['[[SourceText]]'] = new string_1.$String(realm, this.node.getText(this.mos.node));
+            closure['[[SourceText]]'] = new string_js_1.$String(realm, this.node.getText(this.mos.node));
             // 10. Let desc be the PropertyDescriptor { [[Get]]: closure, [[Enumerable]]: enumerable, [[Configurable]]: true }.
-            const desc = new property_descriptor_1.$PropertyDescriptor(realm, propKey, {
+            const desc = new property_descriptor_js_1.$PropertyDescriptor(realm, propKey, {
                 '[[Get]]': closure,
                 '[[Enumerable]]': enumerable,
                 '[[Configurable]]': intrinsics.true,
             });
             // 11. Return ? DefinePropertyOrThrow(object, propKey, desc).
-            return operations_1.$DefinePropertyOrThrow(ctx, object, propKey, desc).enrichWith(ctx, this);
+            return operations_js_1.$DefinePropertyOrThrow(ctx, object, propKey, desc).enrichWith(ctx, this);
         }
         // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-evaluatebody
         // 14.1.18 Runtime Semantics: EvaluateBody
         EvaluateBody(ctx, functionObject, argumentsList) {
             ctx.checkTimeout();
-            return functions_1.$FunctionDeclaration.prototype.EvaluateBody.call(this, ctx, functionObject, argumentsList);
+            return functions_js_1.$FunctionDeclaration.prototype.EvaluateBody.call(this, ctx, functionObject, argumentsList);
         }
     }
     exports.$GetAccessorDeclaration = $GetAccessorDeclaration;
     class $SetAccessorDeclaration {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.SetAccessorDeclaration`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.SetAccessorDeclaration`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -203,13 +203,13 @@
             this.logger = logger;
             this.path = path;
             this.functionKind = 0 /* normal */;
-            const modifierFlags = this.modifierFlags = _shared_1.modifiersToModifierFlags(node.modifiers);
-            this.$decorators = _shared_1.$decoratorList(node.decorators, this, ctx);
-            const $name = this.$name = _shared_1.$$propertyName(node.name, this, ctx | 512 /* IsMemberName */, -1);
-            this.$parameters = new functions_1.$FormalParameterList(node.parameters, this, ctx);
-            const $body = this.$body = new statements_1.$Block(node.body, this, ctx, -1);
+            const modifierFlags = this.modifierFlags = _shared_js_1.modifiersToModifierFlags(node.modifiers);
+            this.$decorators = _shared_js_1.$decoratorList(node.decorators, this, ctx);
+            const $name = this.$name = _shared_js_1.$$propertyName(node.name, this, ctx | 512 /* IsMemberName */, -1);
+            this.$parameters = new functions_js_1.$FormalParameterList(node.parameters, this, ctx);
+            const $body = this.$body = new statements_js_1.$Block(node.body, this, ctx, -1);
             this.PropName = $name.PropName;
-            this.IsStatic = _shared_1.hasBit(modifierFlags, typescript_1.ModifierFlags.Static);
+            this.IsStatic = _shared_js_1.hasBit(modifierFlags, typescript_1.ModifierFlags.Static);
             this.LexicallyDeclaredNames = $body.TopLevelLexicallyDeclaredNames;
             this.LexicallyScopedDeclarations = $body.TopLevelLexicallyScopedDeclarations;
             this.VarDeclaredNames = $body.TopLevelVarDeclaredNames;
@@ -234,27 +234,27 @@
             // 4. Let scope be the running execution context's LexicalEnvironment.
             const scope = ctx.LexicalEnvironment;
             // 5. Let closure be FunctionCreate(Method, PropertySetParameterList, FunctionBody, scope, strict).
-            const closure = function_1.$Function.FunctionCreate(ctx, 'method', this, scope, strict);
+            const closure = function_js_1.$Function.FunctionCreate(ctx, 'method', this, scope, strict);
             // 6. Perform MakeMethod(closure, object).
             closure['[[HomeObject]]'] = object;
             // 7. Perform SetFunctionName(closure, propKey, "set").
             closure.SetFunctionName(ctx, propKey, intrinsics.$set);
             // 8. Set closure.[[SourceText]] to the source text matched by MethodDefinition.
-            closure['[[SourceText]]'] = new string_1.$String(realm, this.node.getText(this.mos.node));
+            closure['[[SourceText]]'] = new string_js_1.$String(realm, this.node.getText(this.mos.node));
             // 9. Let desc be the PropertyDescriptor { [[Set]]: closure, [[Enumerable]]: enumerable, [[Configurable]]: true }.
-            const desc = new property_descriptor_1.$PropertyDescriptor(realm, propKey, {
+            const desc = new property_descriptor_js_1.$PropertyDescriptor(realm, propKey, {
                 '[[Set]]': closure,
                 '[[Enumerable]]': enumerable,
                 '[[Configurable]]': intrinsics.true,
             });
             // 10. Return ? DefinePropertyOrThrow(object, propKey, desc).
-            return operations_1.$DefinePropertyOrThrow(ctx, object, propKey, desc).enrichWith(ctx, this);
+            return operations_js_1.$DefinePropertyOrThrow(ctx, object, propKey, desc).enrichWith(ctx, this);
         }
         // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-evaluatebody
         // 14.1.18 Runtime Semantics: EvaluateBody
         EvaluateBody(ctx, functionObject, argumentsList) {
             ctx.checkTimeout();
-            return functions_1.$FunctionDeclaration.prototype.EvaluateBody.call(this, ctx, functionObject, argumentsList);
+            return functions_js_1.$FunctionDeclaration.prototype.EvaluateBody.call(this, ctx, functionObject, argumentsList);
         }
     }
     exports.$SetAccessorDeclaration = $SetAccessorDeclaration;

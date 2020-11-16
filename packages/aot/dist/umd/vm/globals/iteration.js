@@ -4,21 +4,21 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "../types/object", "../types/function", "../operations", "../types/number", "../types/error", "../types/string", "../types/property-descriptor", "../types/list", "./promise"], factory);
+        define(["require", "exports", "../types/object.js", "../types/function.js", "../operations.js", "../types/number.js", "../types/error.js", "../types/string.js", "../types/property-descriptor.js", "../types/list.js", "./promise.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.$AsyncFromSyncIteratorContinuation = exports.$AsyncFromSyncIterator_Value_Unwrap = exports.$AsyncFromSyncIteratorPrototype_throw = exports.$AsyncFromSyncIteratorPrototype_return = exports.$AsyncFromSyncIteratorPrototype_next = exports.$AsyncFromSyncIteratorPrototype = exports.$CreateAsyncFromSyncIterator = exports.$AsyncIteratorPrototype = exports.$IteratorPrototype = exports.$Symbol_AsyncIterator = exports.$Symbol_Iterator = exports.$AsyncFromSyncIterator = exports.$IteratorRecord = exports.$ListIterator = exports.$ListIterator_next = exports.$CreateListIteratorRecord = exports.$CreateIterResultObject = exports.$AsyncIteratorClose = exports.$IteratorClose = exports.$IteratorStep = exports.$IteratorValue = exports.$IteratorComplete = exports.$IteratorNext = exports.$GetIterator = void 0;
-    const object_1 = require("../types/object");
-    const function_1 = require("../types/function");
-    const operations_1 = require("../operations");
-    const number_1 = require("../types/number");
-    const error_1 = require("../types/error");
-    const string_1 = require("../types/string");
-    const property_descriptor_1 = require("../types/property-descriptor");
-    const list_1 = require("../types/list");
-    const promise_1 = require("./promise");
+    const object_js_1 = require("../types/object.js");
+    const function_js_1 = require("../types/function.js");
+    const operations_js_1 = require("../operations.js");
+    const number_js_1 = require("../types/number.js");
+    const error_js_1 = require("../types/error.js");
+    const string_js_1 = require("../types/string.js");
+    const property_descriptor_js_1 = require("../types/property-descriptor.js");
+    const list_js_1 = require("../types/list.js");
+    const promise_js_1 = require("./promise.js");
     // http://www.ecma-international.org/ecma-262/#sec-getiterator
     function $GetIterator(ctx, obj, hint, method) {
         const realm = ctx.Realm;
@@ -33,7 +33,7 @@
             // 3. a. If hint is async, then
             if (hint === 'async') {
                 // 3. a. i. Set method to ? GetMethod(obj, @@asyncIterator).
-                const $method = operations_1.$GetMethod(ctx, obj, intrinsics['@@asyncIterator']);
+                const $method = operations_js_1.$GetMethod(ctx, obj, intrinsics['@@asyncIterator']);
                 if ($method.isAbrupt) {
                     return $method;
                 }
@@ -41,7 +41,7 @@
                 // 3. a. ii. If method is undefined, then
                 if (method.isUndefined) {
                     // 3. a. ii. 1. Let syncMethod be ? GetMethod(obj, @@iterator).
-                    const syncMethod = operations_1.$GetMethod(ctx, obj, intrinsics['@@iterator']);
+                    const syncMethod = operations_js_1.$GetMethod(ctx, obj, intrinsics['@@iterator']);
                     if (syncMethod.isAbrupt) {
                         return syncMethod;
                     }
@@ -56,7 +56,7 @@
             }
             else {
                 // 3. b. Otherwise, set method to ? GetMethod(obj, @@iterator).
-                const $method = operations_1.$GetMethod(ctx, obj, intrinsics['@@iterator']);
+                const $method = operations_js_1.$GetMethod(ctx, obj, intrinsics['@@iterator']);
                 if ($method.isAbrupt) {
                     return $method;
                 }
@@ -64,13 +64,13 @@
             }
         }
         // 4. Let iterator be ? Call(method, obj).
-        const iterator = operations_1.$Call(ctx, method, obj, intrinsics.undefined);
+        const iterator = operations_js_1.$Call(ctx, method, obj, intrinsics.undefined);
         if (iterator.isAbrupt) {
             return iterator;
         }
         // 5. If Type(iterator) is not Object, throw a TypeError exception.
         if (!iterator.isObject) {
-            return new error_1.$TypeError(realm, `The iterator is ${iterator}, but expected an object`);
+            return new error_js_1.$TypeError(realm, `The iterator is ${iterator}, but expected an object`);
         }
         // 6. Let nextMethod be ? GetV(iterator, "next").
         const nextMethod = iterator['[[Get]]'](ctx, intrinsics.next, iterator);
@@ -94,7 +94,7 @@
         // 1. If value is not present, then
         if (value === void 0) {
             // 1. a. Let result be ? Call(iteratorRecord.[[NextMethod]], iteratorRecord.[[Iterator]], « »).
-            const $result = operations_1.$Call(ctx, iteratorRecord['[[NextMethod]]'], iteratorRecord['[[Iterator]]'], intrinsics.undefined);
+            const $result = operations_js_1.$Call(ctx, iteratorRecord['[[NextMethod]]'], iteratorRecord['[[Iterator]]'], intrinsics.undefined);
             if ($result.isAbrupt) {
                 return $result;
             }
@@ -103,7 +103,7 @@
         // 2. Else,
         else {
             // 2. a. Let result be ? Call(iteratorRecord.[[NextMethod]], iteratorRecord.[[Iterator]], « value »).
-            const $result = operations_1.$Call(ctx, iteratorRecord['[[NextMethod]]'], iteratorRecord['[[Iterator]]'], new list_1.$List(value));
+            const $result = operations_js_1.$Call(ctx, iteratorRecord['[[NextMethod]]'], iteratorRecord['[[Iterator]]'], new list_js_1.$List(value));
             if ($result.isAbrupt) {
                 return $result;
             }
@@ -111,7 +111,7 @@
         }
         // 3. If Type(result) is not Object, throw a TypeError exception.
         if (!result.isObject) {
-            return new error_1.$TypeError(ctx.Realm, `The iterator next result is ${result}, but expected an object`);
+            return new error_js_1.$TypeError(ctx.Realm, `The iterator next result is ${result}, but expected an object`);
         }
         // 4. Return result.
         return result;
@@ -175,7 +175,7 @@
             return completion;
         }
         // 6. Let innerResult be Call(return, iterator, « »).
-        const innerResult = operations_1.$Call(ctx, $return, iterator, intrinsics.undefined);
+        const innerResult = operations_js_1.$Call(ctx, $return, iterator, intrinsics.undefined);
         // 7. If completion.[[Type]] is throw, return Completion(completion).
         if (completion['[[Type]]'] === 5 /* throw */) {
             return completion;
@@ -186,7 +186,7 @@
         }
         // 9. If Type(innerResult.[[Value]]) is not Object, throw a TypeError exception.
         if (!innerResult.isObject) {
-            return new error_1.$TypeError(realm, `The iterator close innerResult is ${innerResult}, but expected an object`);
+            return new error_js_1.$TypeError(realm, `The iterator close innerResult is ${innerResult}, but expected an object`);
         }
         // 10. Return Completion(completion).
         return completion;
@@ -210,7 +210,7 @@
             return completion;
         }
         // 6. Let innerResult be Call(return, iterator, « »).
-        const innerResult = operations_1.$Call(ctx, $return, iterator, intrinsics.undefined);
+        const innerResult = operations_js_1.$Call(ctx, $return, iterator, intrinsics.undefined);
         // 7. If innerResult.[[Type]] is normal, set innerResult to Await(innerResult.[[Value]]).
         if (innerResult['[[Type]]'] === 1 /* normal */) {
             // TODO: implement await
@@ -227,7 +227,7 @@
         }
         // 10. If Type(innerResult.[[Value]]) is not Object, throw a TypeError exception.
         if (!innerResult.isObject) {
-            return new error_1.$TypeError(realm, `The async iterator close innerResult is ${innerResult}, but expected an object`);
+            return new error_js_1.$TypeError(realm, `The async iterator close innerResult is ${innerResult}, but expected an object`);
         }
         // 11. Return Completion(completion).
         return completion;
@@ -239,11 +239,11 @@
         const intrinsics = realm['[[Intrinsics]]'];
         // 1. Assert: Type(done) is Boolean.
         // 2. Let obj be ObjectCreate(%ObjectPrototype%).
-        const obj = object_1.$Object.ObjectCreate(ctx, 'IterResultObject', intrinsics['%ObjectPrototype%']);
+        const obj = object_js_1.$Object.ObjectCreate(ctx, 'IterResultObject', intrinsics['%ObjectPrototype%']);
         // 3. Perform CreateDataProperty(obj, "value", value).
-        operations_1.$CreateDataProperty(ctx, obj, intrinsics.$value, value);
+        operations_js_1.$CreateDataProperty(ctx, obj, intrinsics.$value, value);
         // 4. Perform CreateDataProperty(obj, "done", done).
-        operations_1.$CreateDataProperty(ctx, obj, intrinsics.$done, done);
+        operations_js_1.$CreateDataProperty(ctx, obj, intrinsics.$done, done);
         // 5. Return obj.
         return obj;
     }
@@ -263,7 +263,7 @@
     }
     exports.$CreateListIteratorRecord = $CreateListIteratorRecord;
     // http://www.ecma-international.org/ecma-262/#sec-listiterator-next
-    class $ListIterator_next extends function_1.$BuiltinFunction {
+    class $ListIterator_next extends function_js_1.$BuiltinFunction {
         constructor(realm) {
             super(realm, 'ListIterator_next', realm['[[Intrinsics]]']['%FunctionPrototype%']);
         }
@@ -286,18 +286,18 @@
                 return $CreateIterResultObject(ctx, intrinsics.undefined, intrinsics.true);
             }
             // 8. Set O.[[ListIteratorNextIndex]] to index + 1.
-            O['[[ListIteratorNextIndex]]'] = new number_1.$Number(realm, index['[[Value]]'] + 1);
+            O['[[ListIteratorNextIndex]]'] = new number_js_1.$Number(realm, index['[[Value]]'] + 1);
             // 9. Return CreateIterResultObject(list[index], false).
             return $CreateIterResultObject(ctx, list[index['[[Value]]']], intrinsics.false);
         }
     }
     exports.$ListIterator_next = $ListIterator_next;
-    class $ListIterator extends object_1.$Object {
+    class $ListIterator extends object_js_1.$Object {
         constructor(realm, list) {
             const intrinsics = realm['[[Intrinsics]]'];
             super(realm, 'ListIterator', intrinsics['%IteratorPrototype%'], 1 /* normal */, intrinsics.empty);
             this['[[IteratedList]]'] = list;
-            this['[[ListIteratorNextIndex]]'] = new number_1.$Number(realm, 0);
+            this['[[ListIteratorNextIndex]]'] = new number_js_1.$Number(realm, 0);
         }
         get isAbrupt() { return false; }
     }
@@ -311,7 +311,7 @@
         get isAbrupt() { return false; }
     }
     exports.$IteratorRecord = $IteratorRecord;
-    class $AsyncFromSyncIterator extends object_1.$Object {
+    class $AsyncFromSyncIterator extends object_js_1.$Object {
         constructor(realm, syncIteratorRecord) {
             const intrinsics = realm['[[Intrinsics]]'];
             // 1. Let asyncIterator be ! ObjectCreate(%AsyncFromSyncIteratorPrototype%, « [[SyncIteratorRecord]] »).
@@ -323,10 +323,10 @@
     exports.$AsyncFromSyncIterator = $AsyncFromSyncIterator;
     // http://www.ecma-international.org/ecma-262/#sec-%iteratorprototype%-@@iterator
     // 25.1.2.1 %IteratorPrototype% [ @@iterator ] ( )
-    class $Symbol_Iterator extends function_1.$BuiltinFunction {
+    class $Symbol_Iterator extends function_js_1.$BuiltinFunction {
         constructor(realm) {
             super(realm, '[Symbol.iterator]', realm['[[Intrinsics]]']['%FunctionPrototype%']);
-            this.SetFunctionName(realm.stack.top, new string_1.$String(realm, '[Symbol.iterator]'));
+            this.SetFunctionName(realm.stack.top, new string_js_1.$String(realm, '[Symbol.iterator]'));
         }
         performSteps(ctx, thisArgument, argumentsList, NewTarget) {
             // 1. Return the this value.
@@ -336,10 +336,10 @@
     exports.$Symbol_Iterator = $Symbol_Iterator;
     // http://www.ecma-international.org/ecma-262/#sec-asynciteratorprototype-asynciterator
     // 25.1.3.1 %AsyncIteratorPrototype% [ @@asyncIterator ] ( )
-    class $Symbol_AsyncIterator extends function_1.$BuiltinFunction {
+    class $Symbol_AsyncIterator extends function_js_1.$BuiltinFunction {
         constructor(realm) {
             super(realm, '[Symbol.asyncIterator]', realm['[[Intrinsics]]']['%FunctionPrototype%']);
-            this.SetFunctionName(realm.stack.top, new string_1.$String(realm, '[Symbol.asyncIterator]'));
+            this.SetFunctionName(realm.stack.top, new string_js_1.$String(realm, '[Symbol.asyncIterator]'));
         }
         performSteps(ctx, thisArgument, argumentsList, NewTarget) {
             // 1. Return the this value.
@@ -349,11 +349,11 @@
     exports.$Symbol_AsyncIterator = $Symbol_AsyncIterator;
     // http://www.ecma-international.org/ecma-262/#sec-%iteratorprototype%-object
     // 25.1.2 The %IteratorPrototype% Object
-    class $IteratorPrototype extends object_1.$Object {
+    class $IteratorPrototype extends object_js_1.$Object {
         constructor(realm, proto) {
             const intrinsics = realm['[[Intrinsics]]'];
             super(realm, '%IteratorPrototype%', proto, 1 /* normal */, intrinsics.empty);
-            operations_1.$DefinePropertyOrThrow(realm.stack.top, this, intrinsics['@@iterator'], new property_descriptor_1.$PropertyDescriptor(realm, intrinsics['@@iterator'], {
+            operations_js_1.$DefinePropertyOrThrow(realm.stack.top, this, intrinsics['@@iterator'], new property_descriptor_js_1.$PropertyDescriptor(realm, intrinsics['@@iterator'], {
                 '[[Value]]': new $Symbol_Iterator(realm),
             }));
         }
@@ -361,11 +361,11 @@
     exports.$IteratorPrototype = $IteratorPrototype;
     // http://www.ecma-international.org/ecma-262/#sec-asynciteratorprototype
     // 25.1.3 The %AsyncIteratorPrototype% Object
-    class $AsyncIteratorPrototype extends object_1.$Object {
+    class $AsyncIteratorPrototype extends object_js_1.$Object {
         constructor(realm, proto) {
             const intrinsics = realm['[[Intrinsics]]'];
             super(realm, '%AsyncIteratorPrototype%', proto, 1 /* normal */, intrinsics.empty);
-            operations_1.$DefinePropertyOrThrow(realm.stack.top, this, intrinsics['@@asyncIterator'], new property_descriptor_1.$PropertyDescriptor(realm, intrinsics['@@asyncIterator'], {
+            operations_js_1.$DefinePropertyOrThrow(realm.stack.top, this, intrinsics['@@asyncIterator'], new property_descriptor_js_1.$PropertyDescriptor(realm, intrinsics['@@asyncIterator'], {
                 '[[Value]]': new $Symbol_AsyncIterator(realm),
             }));
         }
@@ -386,7 +386,7 @@
     exports.$CreateAsyncFromSyncIterator = $CreateAsyncFromSyncIterator;
     // http://www.ecma-international.org/ecma-262/#sec-%asyncfromsynciteratorprototype%-object
     // 25.1.4.2 The %AsyncFromSyncIteratorPrototype% Object
-    class $AsyncFromSyncIteratorPrototype extends object_1.$Object {
+    class $AsyncFromSyncIteratorPrototype extends object_js_1.$Object {
         // http://www.ecma-international.org/ecma-262/#sec-%asyncfromsynciteratorprototype%.next
         // 25.1.4.2.1 %AsyncFromSyncIteratorPrototype%.next ( value )
         get next() {
@@ -427,7 +427,7 @@
     exports.$AsyncFromSyncIteratorPrototype = $AsyncFromSyncIteratorPrototype;
     // http://www.ecma-international.org/ecma-262/#sec-%asyncfromsynciteratorprototype%.next
     // 25.1.4.2.1 %AsyncFromSyncIteratorPrototype%.next ( value )
-    class $AsyncFromSyncIteratorPrototype_next extends function_1.$BuiltinFunction {
+    class $AsyncFromSyncIteratorPrototype_next extends function_js_1.$BuiltinFunction {
         constructor(realm, proto) {
             super(realm, '%AsyncFromSyncIteratorPrototype%.next', proto);
         }
@@ -440,13 +440,13 @@
             // 1. Let O be the this value.
             const O = thisArgument;
             // 2. Let promiseCapability be ! NewPromiseCapability(%Promise%).
-            const promiseCapability = promise_1.$NewPromiseCapability(ctx, intrinsics['%Promise%']);
+            const promiseCapability = promise_js_1.$NewPromiseCapability(ctx, intrinsics['%Promise%']);
             // 3. If Type(O) is not Object, or if O does not have a [[SyncIteratorRecord]] internal slot, then
             if (!(O instanceof $AsyncFromSyncIterator)) {
                 // 3. a. Let invalidIteratorError be a newly created TypeError object.
-                const invalidIteratorError = new error_1.$TypeError(realm, `Expected AsyncFromSyncIterator, but got: ${O}`);
+                const invalidIteratorError = new error_js_1.$TypeError(realm, `Expected AsyncFromSyncIterator, but got: ${O}`);
                 // 3. b. Perform ! Call(promiseCapability.[[Reject]], undefined, « invalidIteratorError »).
-                operations_1.$Call(ctx, promiseCapability['[[Reject]]'], intrinsics.undefined, new list_1.$List(invalidIteratorError));
+                operations_js_1.$Call(ctx, promiseCapability['[[Reject]]'], intrinsics.undefined, new list_js_1.$List(invalidIteratorError));
                 // 3. c. Return promiseCapability.[[Promise]].
                 return promiseCapability['[[Promise]]'];
             }
@@ -455,7 +455,7 @@
             // 5. Let result be IteratorNext(syncIteratorRecord, value).
             const result = $IteratorNext(ctx, syncIteratorRecord, value);
             // 6. IfAbruptRejectPromise(result, promiseCapability).
-            const $IfAbruptRejectPromiseResult = promise_1.$IfAbruptRejectPromise(ctx, result, promiseCapability);
+            const $IfAbruptRejectPromiseResult = promise_js_1.$IfAbruptRejectPromise(ctx, result, promiseCapability);
             if ($IfAbruptRejectPromiseResult.isAbrupt) {
                 return $IfAbruptRejectPromiseResult;
             }
@@ -466,7 +466,7 @@
     exports.$AsyncFromSyncIteratorPrototype_next = $AsyncFromSyncIteratorPrototype_next;
     // http://www.ecma-international.org/ecma-262/#sec-%asyncfromsynciteratorprototype%.return
     // 25.1.4.2.2 %AsyncFromSyncIteratorPrototype%.return ( value )
-    class $AsyncFromSyncIteratorPrototype_return extends function_1.$BuiltinFunction {
+    class $AsyncFromSyncIteratorPrototype_return extends function_js_1.$BuiltinFunction {
         constructor(realm, proto) {
             super(realm, '%AsyncFromSyncIteratorPrototype%.return', proto);
         }
@@ -479,22 +479,22 @@
             // 1. Let O be the this value.
             const O = thisArgument;
             // 2. Let promiseCapability be ! NewPromiseCapability(%Promise%).
-            const promiseCapability = promise_1.$NewPromiseCapability(ctx, intrinsics['%Promise%']);
+            const promiseCapability = promise_js_1.$NewPromiseCapability(ctx, intrinsics['%Promise%']);
             // 3. If Type(O) is not Object, or if O does not have a [[SyncIteratorRecord]] internal slot, then
             if (!(O instanceof $AsyncFromSyncIterator)) {
                 // 3. a. Let invalidIteratorError be a newly created TypeError object.
-                const invalidIteratorError = new error_1.$TypeError(realm, `Expected AsyncFromSyncIterator, but got: ${O}`);
+                const invalidIteratorError = new error_js_1.$TypeError(realm, `Expected AsyncFromSyncIterator, but got: ${O}`);
                 // 3. b. Perform ! Call(promiseCapability.[[Reject]], undefined, « invalidIteratorError »).
-                operations_1.$Call(ctx, promiseCapability['[[Reject]]'], intrinsics.undefined, new list_1.$List(invalidIteratorError));
+                operations_js_1.$Call(ctx, promiseCapability['[[Reject]]'], intrinsics.undefined, new list_js_1.$List(invalidIteratorError));
                 // 3. c. Return promiseCapability.[[Promise]].
                 return promiseCapability['[[Promise]]'];
             }
             // 4. Let syncIterator be O.[[SyncIteratorRecord]].[[Iterator]].
             const syncIterator = O['[[SyncIteratorRecord]]']['[[Iterator]]'];
             // 5. Let return be GetMethod(syncIterator, "return").
-            const $return = operations_1.$GetMethod(ctx, syncIterator, intrinsics.return);
+            const $return = operations_js_1.$GetMethod(ctx, syncIterator, intrinsics.return);
             // 6. IfAbruptRejectPromise(return, promiseCapability).
-            let $IfAbruptRejectPromiseResult = promise_1.$IfAbruptRejectPromise(ctx, $return, promiseCapability);
+            let $IfAbruptRejectPromiseResult = promise_js_1.$IfAbruptRejectPromise(ctx, $return, promiseCapability);
             if ($IfAbruptRejectPromiseResult.isAbrupt) {
                 return $IfAbruptRejectPromiseResult;
             }
@@ -503,22 +503,22 @@
                 // 7. a. Let iterResult be ! CreateIterResultObject(value, true).
                 const iterResult = $CreateIterResultObject(ctx, value, intrinsics.true);
                 // 7. b. Perform ! Call(promiseCapability.[[Resolve]], undefined, « iterResult »).
-                operations_1.$Call(ctx, promiseCapability['[[Resolve]]'], intrinsics.undefined, new list_1.$List(iterResult));
+                operations_js_1.$Call(ctx, promiseCapability['[[Resolve]]'], intrinsics.undefined, new list_js_1.$List(iterResult));
                 // 7. c. Return promiseCapability.[[Promise]].
                 return promiseCapability['[[Promise]]'];
             }
             // 8. Let result be Call(return, syncIterator, « value »).
-            const result = operations_1.$Call(ctx, $return, syncIterator, new list_1.$List(value));
+            const result = operations_js_1.$Call(ctx, $return, syncIterator, new list_js_1.$List(value));
             // 9. IfAbruptRejectPromise(result, promiseCapability).
-            $IfAbruptRejectPromiseResult = promise_1.$IfAbruptRejectPromise(ctx, result, promiseCapability);
+            $IfAbruptRejectPromiseResult = promise_js_1.$IfAbruptRejectPromise(ctx, result, promiseCapability);
             if ($IfAbruptRejectPromiseResult.isAbrupt) {
                 return $IfAbruptRejectPromiseResult;
             }
             // 10. If Type(result) is not Object, then
             if (!result.isObject) {
                 // 10. a. Perform ! Call(promiseCapability.[[Reject]], undefined, « a newly created TypeError object »).
-                const err = new error_1.$TypeError(realm, `Expected syncIterator return result to be an object, but got: ${result}`);
-                operations_1.$Call(ctx, promiseCapability['[[Reject]]'], intrinsics.undefined, new list_1.$List(err));
+                const err = new error_js_1.$TypeError(realm, `Expected syncIterator return result to be an object, but got: ${result}`);
+                operations_js_1.$Call(ctx, promiseCapability['[[Reject]]'], intrinsics.undefined, new list_js_1.$List(err));
                 // 10. b. Return promiseCapability.[[Promise]].
                 return promiseCapability['[[Promise]]'];
             }
@@ -529,7 +529,7 @@
     exports.$AsyncFromSyncIteratorPrototype_return = $AsyncFromSyncIteratorPrototype_return;
     // http://www.ecma-international.org/ecma-262/#sec-%asyncfromsynciteratorprototype%.throw
     // 25.1.4.2.3 %AsyncFromSyncIteratorPrototype%.throw ( value )
-    class $AsyncFromSyncIteratorPrototype_throw extends function_1.$BuiltinFunction {
+    class $AsyncFromSyncIteratorPrototype_throw extends function_js_1.$BuiltinFunction {
         constructor(realm, proto) {
             super(realm, '%AsyncFromSyncIteratorPrototype%.throw', proto);
         }
@@ -542,44 +542,44 @@
             // 1. Let O be the this value.
             const O = thisArgument;
             // 2. Let promiseCapability be ! NewPromiseCapability(%Promise%).
-            const promiseCapability = promise_1.$NewPromiseCapability(ctx, intrinsics['%Promise%']);
+            const promiseCapability = promise_js_1.$NewPromiseCapability(ctx, intrinsics['%Promise%']);
             // 3. If Type(O) is not Object, or if O does not have a [[SyncIteratorRecord]] internal slot, then
             if (!(O instanceof $AsyncFromSyncIterator)) {
                 // 3. a. Let invalidIteratorError be a newly created TypeError object.
-                const invalidIteratorError = new error_1.$TypeError(realm, `Expected AsyncFromSyncIterator, but got: ${O}`);
+                const invalidIteratorError = new error_js_1.$TypeError(realm, `Expected AsyncFromSyncIterator, but got: ${O}`);
                 // 3. b. Perform ! Call(promiseCapability.[[Reject]], undefined, « invalidIteratorError »).
-                operations_1.$Call(ctx, promiseCapability['[[Reject]]'], intrinsics.undefined, new list_1.$List(invalidIteratorError));
+                operations_js_1.$Call(ctx, promiseCapability['[[Reject]]'], intrinsics.undefined, new list_js_1.$List(invalidIteratorError));
                 // 3. c. Return promiseCapability.[[Promise]].
                 return promiseCapability['[[Promise]]'];
             }
             // 4. Let syncIterator be O.[[SyncIteratorRecord]].[[Iterator]].
             const syncIterator = O['[[SyncIteratorRecord]]']['[[Iterator]]'];
             // 5. Let throw be GetMethod(syncIterator, "throw").
-            const $throw = operations_1.$GetMethod(ctx, syncIterator, intrinsics.throw);
+            const $throw = operations_js_1.$GetMethod(ctx, syncIterator, intrinsics.throw);
             // 6. IfAbruptRejectPromise(throw, promiseCapability).
-            let $IfAbruptRejectPromiseResult = promise_1.$IfAbruptRejectPromise(ctx, $throw, promiseCapability);
+            let $IfAbruptRejectPromiseResult = promise_js_1.$IfAbruptRejectPromise(ctx, $throw, promiseCapability);
             if ($IfAbruptRejectPromiseResult.isAbrupt) {
                 return $IfAbruptRejectPromiseResult;
             }
             // 7. If throw is undefined, then
             if ($throw.isUndefined) {
                 // 7. a. Perform ! Call(promiseCapability.[[Reject]], undefined, « value »).
-                operations_1.$Call(ctx, promiseCapability['[[Resolve]]'], intrinsics.undefined, new list_1.$List(value));
+                operations_js_1.$Call(ctx, promiseCapability['[[Resolve]]'], intrinsics.undefined, new list_js_1.$List(value));
                 // 7. b. Return promiseCapability.[[Promise]].
                 return promiseCapability['[[Promise]]'];
             }
             // 8. Let result be Call(throw, syncIterator, « value »).
-            const result = operations_1.$Call(ctx, $throw, syncIterator, new list_1.$List(value));
+            const result = operations_js_1.$Call(ctx, $throw, syncIterator, new list_js_1.$List(value));
             // 9. IfAbruptRejectPromise(result, promiseCapability).
-            $IfAbruptRejectPromiseResult = promise_1.$IfAbruptRejectPromise(ctx, result, promiseCapability);
+            $IfAbruptRejectPromiseResult = promise_js_1.$IfAbruptRejectPromise(ctx, result, promiseCapability);
             if ($IfAbruptRejectPromiseResult.isAbrupt) {
                 return $IfAbruptRejectPromiseResult;
             }
             // 10. If Type(result) is not Object, then
             if (!result.isObject) {
                 // 10. a. Perform ! Call(promiseCapability.[[Reject]], undefined, « a newly created TypeError object »).
-                const err = new error_1.$TypeError(realm, `Expected syncIterator return result to be an object, but got: ${result}`);
-                operations_1.$Call(ctx, promiseCapability['[[Reject]]'], intrinsics.undefined, new list_1.$List(err));
+                const err = new error_js_1.$TypeError(realm, `Expected syncIterator return result to be an object, but got: ${result}`);
+                operations_js_1.$Call(ctx, promiseCapability['[[Reject]]'], intrinsics.undefined, new list_js_1.$List(err));
                 // 10. b. Return promiseCapability.[[Promise]].
                 return promiseCapability['[[Promise]]'];
             }
@@ -590,7 +590,7 @@
     exports.$AsyncFromSyncIteratorPrototype_throw = $AsyncFromSyncIteratorPrototype_throw;
     // http://www.ecma-international.org/ecma-262/#sec-async-from-sync-iterator-value-unwrap-functions
     // 25.1.4.2.5 Async-from-Sync Iterator Value Unwrap Functions
-    class $AsyncFromSyncIterator_Value_Unwrap extends function_1.$BuiltinFunction {
+    class $AsyncFromSyncIterator_Value_Unwrap extends function_js_1.$BuiltinFunction {
         constructor(realm, done) {
             const intrinsics = realm['[[Intrinsics]]'];
             super(realm, 'Async-from-Sync Iterator Value Unwrap', intrinsics['%FunctionPrototype%']);
@@ -619,19 +619,19 @@
         // 1. Let done be IteratorComplete(result).
         const done = $IteratorComplete(ctx, result);
         // 2. IfAbruptRejectPromise(done, promiseCapability).
-        let $IfAbruptRejectPromiseResult = promise_1.$IfAbruptRejectPromise(ctx, done, promiseCapability);
+        let $IfAbruptRejectPromiseResult = promise_js_1.$IfAbruptRejectPromise(ctx, done, promiseCapability);
         if ($IfAbruptRejectPromiseResult.isAbrupt) {
             return $IfAbruptRejectPromiseResult;
         }
         // 3. Let value be IteratorValue(result).
         const value = $IteratorValue(ctx, result);
         // 4. IfAbruptRejectPromise(value, promiseCapability).
-        $IfAbruptRejectPromiseResult = promise_1.$IfAbruptRejectPromise(ctx, value, promiseCapability);
+        $IfAbruptRejectPromiseResult = promise_js_1.$IfAbruptRejectPromise(ctx, value, promiseCapability);
         if ($IfAbruptRejectPromiseResult.isAbrupt) {
             return $IfAbruptRejectPromiseResult;
         }
         // 5. Let valueWrapper be ? PromiseResolve(%Promise%, « value »).
-        const valueWrapper = promise_1.$PromiseResolve(ctx, intrinsics['%Promise%'], new list_1.$List(value)); // TODO: fix types
+        const valueWrapper = promise_js_1.$PromiseResolve(ctx, intrinsics['%Promise%'], new list_js_1.$List(value)); // TODO: fix types
         if (valueWrapper.isAbrupt) {
             return valueWrapper;
         }
@@ -640,7 +640,7 @@
         // 8. Set onFulfilled.[[Done]] to done.
         const onFulfilled = new $AsyncFromSyncIterator_Value_Unwrap(realm, done);
         // 9. Perform ! PerformPromiseThen(valueWrapper, onFulfilled, undefined, promiseCapability).
-        promise_1.$PerformPromiseThen(ctx, valueWrapper, onFulfilled, intrinsics.undefined, promiseCapability);
+        promise_js_1.$PerformPromiseThen(ctx, valueWrapper, onFulfilled, intrinsics.undefined, promiseCapability);
         // 10. Return promiseCapability.[[Promise]].
         return promiseCapability['[[Promise]]'];
     }

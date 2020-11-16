@@ -1,6 +1,6 @@
-import { HydrateElementInstruction, isInstruction, SetAttributeInstruction, } from './renderer';
-import { CustomElement, CustomElementDefinition } from './resources/custom-element';
-import { getRenderContext } from './templating/render-context';
+import { HydrateElementInstruction, isInstruction, SetAttributeInstruction, } from './renderer.js';
+import { CustomElement, CustomElementDefinition } from './resources/custom-element.js';
+import { getRenderContext } from './templating/render-context.js';
 export function createElement(p, tagOrType, props, children) {
     if (typeof tagOrType === 'string') {
         return createElementForTag(p, tagOrType, props, children);

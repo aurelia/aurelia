@@ -4,15 +4,15 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "../types/object"], factory);
+        define(["require", "exports", "../types/object.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.$SetValueInBuffer = exports.$GetValueFromBuffer = exports.$IsDetachedBuffer = exports.$IntegerIndexedExoticObject = void 0;
-    const object_1 = require("../types/object");
+    const object_js_1 = require("../types/object.js");
     // http://www.ecma-international.org/ecma-262/#sec-integer-indexed-exotic-objects
-    class $IntegerIndexedExoticObject extends object_1.$Object {
+    class $IntegerIndexedExoticObject extends object_js_1.$Object {
         // http://www.ecma-international.org/ecma-262/#sec-integerindexedobjectcreate
         // 9.4.5.7 IntegerIndexedObjectCreate ( prototype , internalSlotsList )
         constructor(realm, proto) {

@@ -1,4 +1,4 @@
-import { $Empty, } from './types/empty';
+import { $Empty, } from './types/empty.js';
 // http://www.ecma-international.org/ecma-262/#table-25
 export class Job {
     constructor(logger, realm, scriptOrModule) {

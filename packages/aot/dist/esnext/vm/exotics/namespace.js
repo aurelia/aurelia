@@ -1,8 +1,8 @@
-import { $Object, } from '../types/object';
-import { ResolveSet, } from '../realm';
-import { $SetImmutablePrototype, } from '../operations';
-import { $PropertyDescriptor, } from '../types/property-descriptor';
-import { $ReferenceError, } from '../types/error';
+import { $Object, } from '../types/object.js';
+import { ResolveSet, } from '../realm.js';
+import { $SetImmutablePrototype, } from '../operations.js';
+import { $PropertyDescriptor, } from '../types/property-descriptor.js';
+import { $ReferenceError, } from '../types/error.js';
 // http://www.ecma-international.org/ecma-262/#sec-module-namespace-exotic-objects
 export class $NamespaceExoticObject extends $Object {
     // http://www.ecma-international.org/ecma-262/#sec-modulenamespacecreate

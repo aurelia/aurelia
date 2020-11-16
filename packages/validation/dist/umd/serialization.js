@@ -16,7 +16,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "./ast-serialization", "./rule-provider", "./rules"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "./ast-serialization.js", "./rule-provider.js", "./rules.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -24,9 +24,9 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     exports.ModelValidationExpressionHydrator = exports.ValidationDeserializer = exports.ValidationSerializer = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
-    const ast_serialization_1 = require("./ast-serialization");
-    const rule_provider_1 = require("./rule-provider");
-    const rules_1 = require("./rules");
+    const ast_serialization_js_1 = require("./ast-serialization.js");
+    const rule_provider_js_1 = require("./rule-provider.js");
+    const rules_js_1 = require("./rules.js");
     class ValidationSerializer {
         static serialize(object) {
             if (object == null || typeof object.accept !== 'function') {
@@ -36,31 +36,31 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             return object.accept(visitor);
         }
         visitRequiredRule(rule) {
-            return `{"$TYPE":"${rules_1.RequiredRule.$TYPE}","messageKey":"${rule.messageKey}","tag":${ast_serialization_1.serializePrimitive(rule.tag)}}`;
+            return `{"$TYPE":"${rules_js_1.RequiredRule.$TYPE}","messageKey":"${rule.messageKey}","tag":${ast_serialization_js_1.serializePrimitive(rule.tag)}}`;
         }
         visitRegexRule(rule) {
             const pattern = rule.pattern;
-            return `{"$TYPE":"${rules_1.RegexRule.$TYPE}","messageKey":"${rule.messageKey}","tag":${ast_serialization_1.serializePrimitive(rule.tag)},"pattern":{"source":${ast_serialization_1.serializePrimitive(pattern.source)},"flags":"${pattern.flags}"}}`;
+            return `{"$TYPE":"${rules_js_1.RegexRule.$TYPE}","messageKey":"${rule.messageKey}","tag":${ast_serialization_js_1.serializePrimitive(rule.tag)},"pattern":{"source":${ast_serialization_js_1.serializePrimitive(pattern.source)},"flags":"${pattern.flags}"}}`;
         }
         visitLengthRule(rule) {
-            return `{"$TYPE":"${rules_1.LengthRule.$TYPE}","messageKey":"${rule.messageKey}","tag":${ast_serialization_1.serializePrimitive(rule.tag)},"length":${ast_serialization_1.serializePrimitive(rule.length)},"isMax":${ast_serialization_1.serializePrimitive(rule.isMax)}}`;
+            return `{"$TYPE":"${rules_js_1.LengthRule.$TYPE}","messageKey":"${rule.messageKey}","tag":${ast_serialization_js_1.serializePrimitive(rule.tag)},"length":${ast_serialization_js_1.serializePrimitive(rule.length)},"isMax":${ast_serialization_js_1.serializePrimitive(rule.isMax)}}`;
         }
         visitSizeRule(rule) {
-            return `{"$TYPE":"${rules_1.SizeRule.$TYPE}","messageKey":"${rule.messageKey}","tag":${ast_serialization_1.serializePrimitive(rule.tag)},"count":${ast_serialization_1.serializePrimitive(rule.count)},"isMax":${ast_serialization_1.serializePrimitive(rule.isMax)}}`;
+            return `{"$TYPE":"${rules_js_1.SizeRule.$TYPE}","messageKey":"${rule.messageKey}","tag":${ast_serialization_js_1.serializePrimitive(rule.tag)},"count":${ast_serialization_js_1.serializePrimitive(rule.count)},"isMax":${ast_serialization_js_1.serializePrimitive(rule.isMax)}}`;
         }
         visitRangeRule(rule) {
-            return `{"$TYPE":"${rules_1.RangeRule.$TYPE}","messageKey":"${rule.messageKey}","tag":${ast_serialization_1.serializePrimitive(rule.tag)},"isInclusive":${rule.isInclusive},"min":${this.serializeNumber(rule.min)},"max":${this.serializeNumber(rule.max)}}`;
+            return `{"$TYPE":"${rules_js_1.RangeRule.$TYPE}","messageKey":"${rule.messageKey}","tag":${ast_serialization_js_1.serializePrimitive(rule.tag)},"isInclusive":${rule.isInclusive},"min":${this.serializeNumber(rule.min)},"max":${this.serializeNumber(rule.max)}}`;
         }
         visitEqualsRule(rule) {
             const expectedValue = rule.expectedValue;
             let serializedExpectedValue;
             if (typeof expectedValue !== 'object' || expectedValue === null) {
-                serializedExpectedValue = ast_serialization_1.serializePrimitive(expectedValue);
+                serializedExpectedValue = ast_serialization_js_1.serializePrimitive(expectedValue);
             }
             else {
                 serializedExpectedValue = JSON.stringify(expectedValue);
             }
-            return `{"$TYPE":"${rules_1.EqualsRule.$TYPE}","messageKey":"${rule.messageKey}","tag":${ast_serialization_1.serializePrimitive(rule.tag)},"expectedValue":${serializedExpectedValue}}`;
+            return `{"$TYPE":"${rules_js_1.EqualsRule.$TYPE}","messageKey":"${rule.messageKey}","tag":${ast_serialization_js_1.serializePrimitive(rule.tag)},"expectedValue":${serializedExpectedValue}}`;
         }
         visitRuleProperty(property) {
             const displayName = property.displayName;
@@ -68,10 +68,10 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                 throw new Error('Serializing a non-string displayName for rule property is not supported.'); // TODO: use reporter/logger
             }
             const expression = property.expression;
-            return `{"$TYPE":"${rule_provider_1.RuleProperty.$TYPE}","name":${ast_serialization_1.serializePrimitive(property.name)},"expression":${expression ? ast_serialization_1.Serializer.serialize(expression) : null},"displayName":${ast_serialization_1.serializePrimitive(displayName)}}`;
+            return `{"$TYPE":"${rule_provider_js_1.RuleProperty.$TYPE}","name":${ast_serialization_js_1.serializePrimitive(property.name)},"expression":${expression ? ast_serialization_js_1.Serializer.serialize(expression) : null},"displayName":${ast_serialization_js_1.serializePrimitive(displayName)}}`;
         }
         visitPropertyRule(propertyRule) {
-            return `{"$TYPE":"${rule_provider_1.PropertyRule.$TYPE}","property":${propertyRule.property.accept(this)},"$rules":${this.serializeRules(propertyRule.$rules)}}`;
+            return `{"$TYPE":"${rule_provider_js_1.PropertyRule.$TYPE}","property":${propertyRule.property.accept(this)},"$rules":${this.serializeRules(propertyRule.$rules)}}`;
         }
         serializeNumber(num) {
             return num === Number.POSITIVE_INFINITY || num === Number.NEGATIVE_INFINITY ? null : num.toString();
@@ -86,13 +86,13 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             this.locator = locator;
             this.messageProvider = messageProvider;
             this.parser = parser;
-            this.astDeserializer = new ast_serialization_1.Deserializer();
+            this.astDeserializer = new ast_serialization_js_1.Deserializer();
         }
         static register(container) {
             this.container = container;
         }
         static deserialize(json, validationRules) {
-            const messageProvider = this.container.get(rules_1.IValidationMessageProvider);
+            const messageProvider = this.container.get(rules_js_1.IValidationMessageProvider);
             const parser = this.container.get(runtime_1.IExpressionParser);
             const deserializer = new ValidationDeserializer(this.container, messageProvider, parser);
             const raw = JSON.parse(json);
@@ -101,51 +101,51 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         hydrate(raw, validationRules) {
             var _a, _b;
             switch (raw.$TYPE) {
-                case rules_1.RequiredRule.$TYPE: {
+                case rules_js_1.RequiredRule.$TYPE: {
                     const $raw = raw;
-                    const rule = new rules_1.RequiredRule();
+                    const rule = new rules_js_1.RequiredRule();
                     rule.messageKey = $raw.messageKey;
                     rule.tag = this.astDeserializer.hydrate($raw.tag);
                     return rule;
                 }
-                case rules_1.RegexRule.$TYPE: {
+                case rules_js_1.RegexRule.$TYPE: {
                     const $raw = raw;
                     const pattern = $raw.pattern;
                     const astDeserializer = this.astDeserializer;
-                    const rule = new rules_1.RegexRule(new RegExp(astDeserializer.hydrate(pattern.source), pattern.flags), $raw.messageKey);
+                    const rule = new rules_js_1.RegexRule(new RegExp(astDeserializer.hydrate(pattern.source), pattern.flags), $raw.messageKey);
                     rule.tag = astDeserializer.hydrate($raw.tag);
                     return rule;
                 }
-                case rules_1.LengthRule.$TYPE: {
+                case rules_js_1.LengthRule.$TYPE: {
                     const $raw = raw;
-                    const rule = new rules_1.LengthRule($raw.length, $raw.isMax);
+                    const rule = new rules_js_1.LengthRule($raw.length, $raw.isMax);
                     rule.messageKey = $raw.messageKey;
                     rule.tag = this.astDeserializer.hydrate($raw.tag);
                     return rule;
                 }
-                case rules_1.SizeRule.$TYPE: {
+                case rules_js_1.SizeRule.$TYPE: {
                     const $raw = raw;
-                    const rule = new rules_1.SizeRule($raw.count, $raw.isMax);
+                    const rule = new rules_js_1.SizeRule($raw.count, $raw.isMax);
                     rule.messageKey = $raw.messageKey;
                     rule.tag = this.astDeserializer.hydrate($raw.tag);
                     return rule;
                 }
-                case rules_1.RangeRule.$TYPE: {
+                case rules_js_1.RangeRule.$TYPE: {
                     const $raw = raw;
-                    const rule = new rules_1.RangeRule($raw.isInclusive, { min: (_a = $raw.min) !== null && _a !== void 0 ? _a : Number.NEGATIVE_INFINITY, max: (_b = $raw.max) !== null && _b !== void 0 ? _b : Number.POSITIVE_INFINITY });
+                    const rule = new rules_js_1.RangeRule($raw.isInclusive, { min: (_a = $raw.min) !== null && _a !== void 0 ? _a : Number.NEGATIVE_INFINITY, max: (_b = $raw.max) !== null && _b !== void 0 ? _b : Number.POSITIVE_INFINITY });
                     rule.messageKey = $raw.messageKey;
                     rule.tag = this.astDeserializer.hydrate($raw.tag);
                     return rule;
                 }
-                case rules_1.EqualsRule.$TYPE: {
+                case rules_js_1.EqualsRule.$TYPE: {
                     const $raw = raw;
                     const astDeserializer = this.astDeserializer;
-                    const rule = new rules_1.EqualsRule(typeof $raw.expectedValue !== 'object' ? astDeserializer.hydrate($raw.expectedValue) : $raw.expectedValue);
+                    const rule = new rules_js_1.EqualsRule(typeof $raw.expectedValue !== 'object' ? astDeserializer.hydrate($raw.expectedValue) : $raw.expectedValue);
                     rule.messageKey = $raw.messageKey;
                     rule.tag = astDeserializer.hydrate($raw.tag);
                     return rule;
                 }
-                case rule_provider_1.RuleProperty.$TYPE: {
+                case rule_provider_js_1.RuleProperty.$TYPE: {
                     const $raw = raw;
                     const astDeserializer = this.astDeserializer;
                     let name = $raw.name;
@@ -155,18 +155,18 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                         expression = astDeserializer.hydrate(expression);
                     }
                     else if (name !== void 0) {
-                        ([, expression] = rule_provider_1.parsePropertyName(name, this.parser));
+                        ([, expression] = rule_provider_js_1.parsePropertyName(name, this.parser));
                     }
                     else {
                         expression = void 0;
                     }
                     let displayName = $raw.displayName;
                     displayName = displayName === 'undefined' ? void 0 : astDeserializer.hydrate(displayName);
-                    return new rule_provider_1.RuleProperty(expression, name, displayName);
+                    return new rule_provider_js_1.RuleProperty(expression, name, displayName);
                 }
-                case rule_provider_1.PropertyRule.$TYPE: {
+                case rule_provider_js_1.PropertyRule.$TYPE: {
                     const $raw = raw;
-                    return new rule_provider_1.PropertyRule(this.locator, validationRules, this.messageProvider, this.hydrate($raw.property, validationRules), $raw.$rules.map((rules) => rules.map((rule) => this.hydrate(rule, validationRules))));
+                    return new rule_provider_js_1.PropertyRule(this.locator, validationRules, this.messageProvider, this.hydrate($raw.property, validationRules), $raw.$rules.map((rules) => rules.map((rule) => this.hydrate(rule, validationRules))));
                 }
             }
         }
@@ -179,7 +179,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     };
     ValidationDeserializer = __decorate([
         __param(0, kernel_1.IServiceLocator),
-        __param(1, rules_1.IValidationMessageProvider),
+        __param(1, rules_js_1.IValidationMessageProvider),
         __param(2, runtime_1.IExpressionParser),
         __metadata("design:paramtypes", [Object, Object, Object])
     ], ValidationDeserializer);
@@ -189,7 +189,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             this.locator = locator;
             this.messageProvider = messageProvider;
             this.parser = parser;
-            this.astDeserializer = new ast_serialization_1.Deserializer();
+            this.astDeserializer = new ast_serialization_js_1.Deserializer();
         }
         hydrate(_raw, _validationRules) {
             throw new Error('Method not implemented.');
@@ -203,7 +203,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                         const rules = value.rules.map((rule) => Object.entries(rule).map(([ruleName, ruleConfig]) => this.hydrateRule(ruleName, ruleConfig)));
                         const propertyPrefix = propertyPath.join('.');
                         const property = this.hydrateRuleProperty({ name: propertyPrefix !== '' ? `${propertyPrefix}.${key}` : key, displayName: value.displayName });
-                        accRules.push(new rule_provider_1.PropertyRule(this.locator, validationRules, this.messageProvider, property, rules));
+                        accRules.push(new rule_provider_js_1.PropertyRule(this.locator, validationRules, this.messageProvider, property, rules));
                     }
                     else {
                         iterate(Object.entries(value), [...propertyPath, key]);
@@ -261,33 +261,33 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             return typeof value === 'object' && 'rules' in value;
         }
         hydrateRequiredRule(raw) {
-            const rule = new rules_1.RequiredRule();
+            const rule = new rules_js_1.RequiredRule();
             this.setCommonRuleProperties(raw, rule);
             return rule;
         }
         hydrateRegexRule(raw) {
             const pattern = raw.pattern;
-            const rule = new rules_1.RegexRule(new RegExp(pattern.source, pattern.flags), raw.messageKey);
+            const rule = new rules_js_1.RegexRule(new RegExp(pattern.source, pattern.flags), raw.messageKey);
             rule.tag = raw.tag;
             return rule;
         }
         hydrateLengthRule(raw) {
-            const rule = new rules_1.LengthRule(raw.length, raw.isMax);
+            const rule = new rules_js_1.LengthRule(raw.length, raw.isMax);
             this.setCommonRuleProperties(raw, rule);
             return rule;
         }
         hydrateSizeRule(raw) {
-            const rule = new rules_1.SizeRule(raw.count, raw.isMax);
+            const rule = new rules_js_1.SizeRule(raw.count, raw.isMax);
             this.setCommonRuleProperties(raw, rule);
             return rule;
         }
         hydrateRangeRule(raw) {
-            const rule = new rules_1.RangeRule(raw.isInclusive, { min: raw.min, max: raw.max });
+            const rule = new rules_js_1.RangeRule(raw.isInclusive, { min: raw.min, max: raw.max });
             this.setCommonRuleProperties(raw, rule);
             return rule;
         }
         hydrateEqualsRule(raw) {
-            const rule = new rules_1.EqualsRule(raw.expectedValue);
+            const rule = new rules_js_1.EqualsRule(raw.expectedValue);
             this.setCommonRuleProperties(raw, rule);
             return rule;
         }
@@ -296,13 +296,13 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             if (!rawName || typeof rawName !== 'string') {
                 throw new Error('The property name needs to be a non-empty string'); // TODO: use reporter
             }
-            const [name, expression] = rule_provider_1.parsePropertyName(rawName, this.parser);
-            return new rule_provider_1.RuleProperty(expression, name, raw.displayName);
+            const [name, expression] = rule_provider_js_1.parsePropertyName(rawName, this.parser);
+            return new rule_provider_js_1.RuleProperty(expression, name, raw.displayName);
         }
     };
     ModelValidationExpressionHydrator = __decorate([
         __param(0, kernel_1.IServiceLocator),
-        __param(1, rules_1.IValidationMessageProvider),
+        __param(1, rules_js_1.IValidationMessageProvider),
         __param(2, runtime_1.IExpressionParser),
         __metadata("design:paramtypes", [Object, Object, Object])
     ], ModelValidationExpressionHydrator);

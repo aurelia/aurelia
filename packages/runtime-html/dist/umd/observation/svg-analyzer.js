@@ -16,14 +16,14 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "../platform"], factory);
+        define(["require", "exports", "@aurelia/kernel", "../platform.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.SVGAnalyzer = exports.NoopSVGAnalyzer = exports.ISVGAnalyzer = void 0;
     const kernel_1 = require("@aurelia/kernel");
-    const platform_1 = require("../platform");
+    const platform_js_1 = require("../platform.js");
     exports.ISVGAnalyzer = kernel_1.DI.createInterface('ISVGAnalyzer').withDefault(x => x.singleton(NoopSVGAnalyzer));
     class NoopSVGAnalyzer {
         isStandardSvgAttribute(node, attributeName) {
@@ -273,7 +273,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
     };
     SVGAnalyzer = __decorate([
-        __param(0, platform_1.IPlatform),
+        __param(0, platform_js_1.IPlatform),
         __metadata("design:paramtypes", [Object])
     ], SVGAnalyzer);
     exports.SVGAnalyzer = SVGAnalyzer;

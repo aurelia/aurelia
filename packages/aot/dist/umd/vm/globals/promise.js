@@ -4,23 +4,23 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "../types/object", "../types/function", "../types/undefined", "./iteration", "../types/error", "../operations", "../types/list", "../job", "../types/empty", "./_shared", "../exotics/array"], factory);
+        define(["require", "exports", "../types/object.js", "../types/function.js", "../types/undefined.js", "./iteration.js", "../types/error.js", "../operations.js", "../types/list.js", "../job.js", "../types/empty.js", "./_shared.js", "../exotics/array.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.$PromiseInstance = exports.PromiseState = exports.$PerformPromiseThen = exports.$PromiseProto_then = exports.$Thrower = exports.$CatchFinally = exports.$ValueThunk = exports.$ThenFinally = exports.$PromiseProto_finally = exports.$PromiseProto_catch = exports.$PromisePrototype = exports.$PromiseResolve = exports.$Promise_resolve = exports.$Promise_reject = exports.$PerformPromiseRace = exports.$Promise_race = exports.$Promise_all_ResolveElement = exports.$Promise_all = exports.$PromiseConstructor = exports.PromiseResolveThenableJob = exports.PromiseReactionJob = exports.$HostPromiseRejectionTracker = exports.PromiseRejectionOperation = exports.$TriggerPromiseReactions = exports.$RejectPromise = exports.$GetCapabilitiesExecutor = exports.$NewPromiseCapability = exports.$FulfillPromise = exports.$PromiseResolveFunction = exports.$PromiseRejectFunction = exports.$PromiseResolvingFunctions = exports.$PromiseReaction = exports.PromiseReactionType = exports.$IfAbruptRejectPromise = exports.$PromiseCapability = void 0;
-    const object_1 = require("../types/object");
-    const function_1 = require("../types/function");
-    const undefined_1 = require("../types/undefined");
-    const iteration_1 = require("./iteration");
-    const error_1 = require("../types/error");
-    const operations_1 = require("../operations");
-    const list_1 = require("../types/list");
-    const job_1 = require("../job");
-    const empty_1 = require("../types/empty");
-    const _shared_1 = require("./_shared");
-    const array_1 = require("../exotics/array");
+    const object_js_1 = require("../types/object.js");
+    const function_js_1 = require("../types/function.js");
+    const undefined_js_1 = require("../types/undefined.js");
+    const iteration_js_1 = require("./iteration.js");
+    const error_js_1 = require("../types/error.js");
+    const operations_js_1 = require("../operations.js");
+    const list_js_1 = require("../types/list.js");
+    const job_js_1 = require("../job.js");
+    const empty_js_1 = require("../types/empty.js");
+    const _shared_js_1 = require("./_shared.js");
+    const array_js_1 = require("../exotics/array.js");
     // http://www.ecma-international.org/ecma-262/#sec-promise-abstract-operations
     // #region 25.6.1 Promise Abstract Operation
     // http://www.ecma-international.org/ecma-262/#sec-promisecapability-records
@@ -43,7 +43,7 @@
         // 1. If value is an abrupt completion, then
         if (value.isAbrupt) {
             // 1. a. Perform ? Call(capability.[[Reject]], undefined, « value.[[Value]] »).
-            const $CallResult = operations_1.$Call(ctx, capability['[[Reject]]'], intrinsics.undefined, new list_1.$List(value));
+            const $CallResult = operations_js_1.$Call(ctx, capability['[[Reject]]'], intrinsics.undefined, new list_js_1.$List(value));
             if ($CallResult.isAbrupt) {
                 return $CallResult;
             }
@@ -77,7 +77,7 @@
     class $PromiseResolvingFunctions {
         constructor(realm, promise) {
             // 1. Let alreadyResolved be a new Record { [[Value]]: false }.
-            const alreadyResolved = new _shared_1.$ValueRecord(false);
+            const alreadyResolved = new _shared_js_1.$ValueRecord(false);
             // 2. Let stepsResolve be the algorithm steps defined in Promise Resolve Functions (25.6.1.3.2).
             // 3. Let resolve be CreateBuiltinFunction(stepsResolve, « [[Promise]], [[AlreadyResolved]] »).
             // 4. Set resolve.[[Promise]] to promise.
@@ -94,7 +94,7 @@
     exports.$PromiseResolvingFunctions = $PromiseResolvingFunctions;
     // http://www.ecma-international.org/ecma-262/#sec-promise-reject-functions
     // 25.6.1.3.1 Promise Reject Functions
-    class $PromiseRejectFunction extends function_1.$BuiltinFunction {
+    class $PromiseRejectFunction extends function_js_1.$BuiltinFunction {
         constructor(realm, promise, alreadyResolved) {
             const intrinsics = realm['[[Intrinsics]]'];
             super(realm, 'PromiseRejectFunction', intrinsics['%FunctionPrototype%']);
@@ -127,7 +127,7 @@
     exports.$PromiseRejectFunction = $PromiseRejectFunction;
     // http://www.ecma-international.org/ecma-262/#sec-promise-resolve-functions
     // 25.6.1.3.2 Promise Resolve Functions
-    class $PromiseResolveFunction extends function_1.$BuiltinFunction {
+    class $PromiseResolveFunction extends function_js_1.$BuiltinFunction {
         constructor(realm, promise, alreadyResolved) {
             const intrinsics = realm['[[Intrinsics]]'];
             super(realm, 'PromiseResolveFunction', intrinsics['%FunctionPrototype%']);
@@ -156,7 +156,7 @@
             // 7. If SameValue(resolution, promise) is true, then
             if (resolution.is(promise)) {
                 // 7. a. Let selfResolutionError be a newly created TypeError object.
-                const selfResolutionError = new error_1.$TypeError(realm, `Failed to resolve self`); // ?
+                const selfResolutionError = new error_js_1.$TypeError(realm, `Failed to resolve self`); // ?
                 // 7. b. Return RejectPromise(promise, selfResolutionError).
                 return $RejectPromise(ctx, promise, selfResolutionError);
             }
@@ -185,7 +185,7 @@
             }
             realm.PromiseJobs.EnqueueJob(ctx, new PromiseResolveThenableJob(realm, mos, promise, resolution, then));
             // 14. Return undefined.
-            return new undefined_1.$Undefined(realm);
+            return new undefined_js_1.$Undefined(realm);
         }
     }
     exports.$PromiseResolveFunction = $PromiseResolveFunction;
@@ -216,7 +216,7 @@
         const intrinsics = realm['[[Intrinsics]]'];
         // 1. If IsConstructor(C) is false, throw a TypeError exception.
         if (!C.isFunction) {
-            return new error_1.$TypeError(realm, `Expected constructor, but got: ${C}`);
+            return new error_js_1.$TypeError(realm, `Expected constructor, but got: ${C}`);
         }
         // 2. NOTE: C is assumed to be a constructor function that supports the parameter conventions of the Promise constructor (see 25.6.3.1).
         // 3. Let promiseCapability be a new PromiseCapability { [[Promise]]: undefined, [[Resolve]]: undefined, [[Reject]]: undefined }.
@@ -226,14 +226,14 @@
         // 6. Set executor.[[Capability]] to promiseCapability.
         const executor = new $GetCapabilitiesExecutor(realm, promiseCapability);
         // 7. Let promise be ? Construct(C, « executor »).
-        const promise = operations_1.$Construct(ctx, C, new list_1.$List(executor), intrinsics.undefined);
+        const promise = operations_js_1.$Construct(ctx, C, new list_js_1.$List(executor), intrinsics.undefined);
         // 8. If IsCallable(promiseCapability.[[Resolve]]) is false, throw a TypeError exception.
         if (!promiseCapability['[[Resolve]]'].isFunction) {
-            return new error_1.$TypeError(realm, `Expected [[Resolve]] to be callable, but got: ${promiseCapability['[[Resolve]]']}`);
+            return new error_js_1.$TypeError(realm, `Expected [[Resolve]] to be callable, but got: ${promiseCapability['[[Resolve]]']}`);
         }
         // 9. If IsCallable(promiseCapability.[[Reject]]) is false, throw a TypeError exception.
         if (!promiseCapability['[[Reject]]'].isFunction) {
-            return new error_1.$TypeError(realm, `Expected [[Reject]] to be callable, but got: ${promiseCapability['[[Reject]]']}`);
+            return new error_js_1.$TypeError(realm, `Expected [[Reject]] to be callable, but got: ${promiseCapability['[[Reject]]']}`);
         }
         // 10. Set promiseCapability.[[Promise]] to promise.
         promiseCapability['[[Promise]]'] = promise;
@@ -243,7 +243,7 @@
     exports.$NewPromiseCapability = $NewPromiseCapability;
     // http://www.ecma-international.org/ecma-262/#sec-getcapabilitiesexecutor-functions
     // 25.6.1.5.1 GetCapabilitiesExecutor Functions
-    class $GetCapabilitiesExecutor extends function_1.$BuiltinFunction {
+    class $GetCapabilitiesExecutor extends function_js_1.$BuiltinFunction {
         constructor(realm, capability) {
             const intrinsics = realm['[[Intrinsics]]'];
             super(realm, 'GetCapabilitiesExecutor', intrinsics['%FunctionPrototype%']);
@@ -265,11 +265,11 @@
             const promiseCapability = F['[[Capability]]'];
             // 4. If promiseCapability.[[Resolve]] is not undefined, throw a TypeError exception.
             if (!promiseCapability['[[Resolve]]'].isUndefined) {
-                return new error_1.$TypeError(realm, `[[Resolve]] is already defined`);
+                return new error_js_1.$TypeError(realm, `[[Resolve]] is already defined`);
             }
             // 5. If promiseCapability.[[Reject]] is not undefined, throw a TypeError exception.
             if (!promiseCapability['[[Reject]]'].isUndefined) {
-                return new error_1.$TypeError(realm, `[[Reject]] is already defined`);
+                return new error_js_1.$TypeError(realm, `[[Reject]] is already defined`);
             }
             // 6. Set promiseCapability.[[Resolve]] to resolve.
             promiseCapability['[[Resolve]]'] = resolve;
@@ -320,7 +320,7 @@
             promiseJobs.EnqueueJob(ctx, new PromiseReactionJob(realm, mos, reaction, argument));
         }
         // 2. Return undefined.
-        return new undefined_1.$Undefined(realm);
+        return new undefined_js_1.$Undefined(realm);
     }
     exports.$TriggerPromiseReactions = $TriggerPromiseReactions;
     var PromiseRejectionOperation;
@@ -337,7 +337,7 @@
     // #endregion
     // http://www.ecma-international.org/ecma-262/#sec-promise-jobs
     // #region 25.6.2 Promise Jobs
-    class PromiseReactionJob extends job_1.Job {
+    class PromiseReactionJob extends job_js_1.Job {
         constructor(realm, scriptOrModule, reaction, argument) {
             super(realm.logger.root, realm, scriptOrModule);
             this.reaction = reaction;
@@ -374,31 +374,31 @@
             }
             // 6. Else, let handlerResult be Call(handler, undefined, « argument »).
             else {
-                handlerResult = operations_1.$Call(ctx, handler, intrinsics.undefined, new list_1.$List(argument));
+                handlerResult = operations_js_1.$Call(ctx, handler, intrinsics.undefined, new list_js_1.$List(argument));
             }
             // 7. If promiseCapability is undefined, then
             if (promiseCapability.isUndefined) {
                 // 7. a. Assert: handlerResult is not an abrupt completion.
                 // 7. b. Return NormalCompletion(empty).
-                return new empty_1.$Empty(realm);
+                return new empty_js_1.$Empty(realm);
             }
             let status;
             // 8. If handlerResult is an abrupt completion, then
             if (handlerResult.isAbrupt) {
                 // 8. a. Let status be Call(promiseCapability.[[Reject]], undefined, « handlerResult.[[Value]] »).
-                status = operations_1.$Call(ctx, promiseCapability['[[Reject]]'], intrinsics.undefined, new list_1.$List(handlerResult));
+                status = operations_js_1.$Call(ctx, promiseCapability['[[Reject]]'], intrinsics.undefined, new list_js_1.$List(handlerResult));
             }
             // 9. Else,
             else {
                 // 9. a. Let status be Call(promiseCapability.[[Resolve]], undefined, « handlerResult.[[Value]] »).
-                status = operations_1.$Call(ctx, promiseCapability['[[Resolve]]'], intrinsics.undefined, new list_1.$List(handlerResult));
+                status = operations_js_1.$Call(ctx, promiseCapability['[[Resolve]]'], intrinsics.undefined, new list_js_1.$List(handlerResult));
             }
             // 10. Return Completion(status).
             return status;
         }
     }
     exports.PromiseReactionJob = PromiseReactionJob;
-    class PromiseResolveThenableJob extends job_1.Job {
+    class PromiseResolveThenableJob extends job_js_1.Job {
         constructor(realm, scriptOrModule, promiseToResolve, thenable, then) {
             super(realm.logger.root, realm, scriptOrModule);
             this.promiseToResolve = promiseToResolve;
@@ -417,11 +417,11 @@
             // 1. Let resolvingFunctions be CreateResolvingFunctions(promiseToResolve).
             const resolvingFunctions = new $PromiseResolvingFunctions(realm, promiseToResolve);
             // 2. Let thenCallResult be Call(then, thenable, « resolvingFunctions.[[Resolve]], resolvingFunctions.[[Reject]] »).
-            const thenCallResult = operations_1.$Call(ctx, then, thenable, new list_1.$List(resolvingFunctions['[[Resolve]]'], resolvingFunctions['[[Reject]]']));
+            const thenCallResult = operations_js_1.$Call(ctx, then, thenable, new list_js_1.$List(resolvingFunctions['[[Resolve]]'], resolvingFunctions['[[Reject]]']));
             // 3. If thenCallResult is an abrupt completion, then
             if (thenCallResult.isAbrupt) {
                 // 3. a. Let status be Call(resolvingFunctions.[[Reject]], undefined, « thenCallResult.[[Value]] »).
-                const status = operations_1.$Call(ctx, resolvingFunctions['[[Reject]]'], intrinsics.undefined, new list_1.$List(thenCallResult));
+                const status = operations_js_1.$Call(ctx, resolvingFunctions['[[Reject]]'], intrinsics.undefined, new list_js_1.$List(thenCallResult));
                 // 3. b. Return Completion(status).
                 return status;
             }
@@ -433,7 +433,7 @@
     // #endregion
     // http://www.ecma-international.org/ecma-262/#sec-promise-constructor
     // #region 25.6.3 The Promise Constructor
-    class $PromiseConstructor extends function_1.$BuiltinFunction {
+    class $PromiseConstructor extends function_js_1.$BuiltinFunction {
         // http://www.ecma-international.org/ecma-262/#sec-promise.prototype
         // 25.6.4.2 Promise.prototype
         get $prototype() {
@@ -492,11 +492,11 @@
             const intrinsics = realm['[[Intrinsics]]'];
             // 1. If NewTarget is undefined, throw a TypeError exception.
             if (NewTarget.isUndefined) {
-                return new error_1.$TypeError(realm, `Promise cannot be called as a function.`);
+                return new error_js_1.$TypeError(realm, `Promise cannot be called as a function.`);
             }
             // 2. If IsCallable(executor) is false, throw a TypeError exception.
             if (executor === void 0 || !executor.isFunction) {
-                return new error_1.$TypeError(realm, `The promise constructor requires an executor function`);
+                return new error_js_1.$TypeError(realm, `The promise constructor requires an executor function`);
             }
             // 3. Let promise be ? OrdinaryCreateFromConstructor(NewTarget, "%PromisePrototype%", « [[PromiseState]], [[PromiseResult]], [[PromiseFulfillReactions]], [[PromiseRejectReactions]], [[PromiseIsHandled]] »).
             const promise = $PromiseInstance.Create(ctx, NewTarget);
@@ -506,19 +506,19 @@
             // 4. Set promise.[[PromiseState]] to "pending".
             promise['[[PromiseState]]'] = 1 /* pending */;
             // 5. Set promise.[[PromiseFulfillReactions]] to a new empty List.
-            promise['[[PromiseFulfillReactions]]'] = new list_1.$List();
+            promise['[[PromiseFulfillReactions]]'] = new list_js_1.$List();
             // 6. Set promise.[[PromiseRejectReactions]] to a new empty List.
-            promise['[[PromiseRejectReactions]]'] = new list_1.$List();
+            promise['[[PromiseRejectReactions]]'] = new list_js_1.$List();
             // 7. Set promise.[[PromiseIsHandled]] to false.
             promise['[[PromiseIsHandled]]'] = false;
             // 8. Let resolvingFunctions be CreateResolvingFunctions(promise).
             const resolvingFunctions = new $PromiseResolvingFunctions(realm, promise);
             // 9. Let completion be Call(executor, undefined, « resolvingFunctions.[[Resolve]], resolvingFunctions.[[Reject]] »).
-            const completion = operations_1.$Call(ctx, executor, intrinsics.undefined, new list_1.$List(resolvingFunctions['[[Resolve]]'], resolvingFunctions['[[Reject]]']));
+            const completion = operations_js_1.$Call(ctx, executor, intrinsics.undefined, new list_js_1.$List(resolvingFunctions['[[Resolve]]'], resolvingFunctions['[[Reject]]']));
             // 10. If completion is an abrupt completion, then
             if (completion.isAbrupt) {
                 // 10. a. Perform ? Call(resolvingFunctions.[[Reject]], undefined, « completion.[[Value]] »).
-                const $CallResult = operations_1.$Call(ctx, resolvingFunctions['[[Reject]]'], intrinsics.undefined, new list_1.$List(completion));
+                const $CallResult = operations_js_1.$Call(ctx, resolvingFunctions['[[Reject]]'], intrinsics.undefined, new list_js_1.$List(completion));
                 if ($CallResult.isAbrupt) {
                     return $CallResult;
                 }
@@ -532,7 +532,7 @@
     // 25.6.4 Properties of the Promise Constructor
     // http://www.ecma-international.org/ecma-262/#sec-promise.all
     // 25.6.4.1 Promise.all ( iterable )
-    class $Promise_all extends function_1.$BuiltinFunction {
+    class $Promise_all extends function_js_1.$BuiltinFunction {
         constructor(realm, functionPrototype) {
             super(realm, '%Promise_all%', functionPrototype);
         }
@@ -546,7 +546,7 @@
             const C = thisArgument;
             // 2. If Type(C) is not Object, throw a TypeError exception.
             if (!C.isObject) {
-                return new error_1.$TypeError(realm, `Expected 'this' to be an object, but got: ${C}`);
+                return new error_js_1.$TypeError(realm, `Expected 'this' to be an object, but got: ${C}`);
             }
             // 3. Let promiseCapability be ? NewPromiseCapability(C).
             const promiseCapability = $NewPromiseCapability(ctx, C);
@@ -554,7 +554,7 @@
                 return promiseCapability;
             }
             // 4. Let iteratorRecord be GetIterator(iterable).
-            const iteratorRecord = iteration_1.$GetIterator(ctx, iterable);
+            const iteratorRecord = iteration_js_1.$GetIterator(ctx, iterable);
             if (iteratorRecord.isAbrupt) {
                 return iteratorRecord;
             } // TODO: we sure about this? spec doesn't say
@@ -569,7 +569,7 @@
             if (result.isAbrupt) {
                 // 7. a. If iteratorRecord.[[Done]] is false, set result to IteratorClose(iteratorRecord, result).
                 if (iteratorRecord['[[Done]]'].isFalsey) {
-                    result = iteration_1.$IteratorClose(ctx, iteratorRecord, result);
+                    result = iteration_js_1.$IteratorClose(ctx, iteratorRecord, result);
                 }
                 // 7. b. IfAbruptRejectPromise(result, promiseCapability).
                 const maybeAbrupt = $IfAbruptRejectPromise(ctx, result, promiseCapability);
@@ -590,15 +590,15 @@
         // 1. Assert: IsConstructor(constructor) is true.
         // 2. Assert: resultCapability is a PromiseCapability Record.
         // 3. Let values be a new empty List.
-        const values = new list_1.$List();
+        const values = new list_js_1.$List();
         // 4. Let remainingElementsCount be a new Record { [[Value]]: 1 }.
-        const remainingElementsCount = new _shared_1.$ValueRecord(1);
+        const remainingElementsCount = new _shared_js_1.$ValueRecord(1);
         // 5. Let index be 0.
         let index = 0;
         // 6. Repeat,
         while (true) {
             // 6. a. Let next be IteratorStep(iteratorRecord).
-            const next = iteration_1.$IteratorStep(ctx, iteratorRecord);
+            const next = iteration_js_1.$IteratorStep(ctx, iteratorRecord);
             // 6. b. If next is an abrupt completion, set iteratorRecord.[[Done]] to true.
             // 6. c. ReturnIfAbrupt(next).
             if (next.isAbrupt) {
@@ -613,9 +613,9 @@
                 // 6. d. iii. If remainingElementsCount.[[Value]] is 0, then
                 if (--remainingElementsCount['[[Value]]'] === 0) {
                     // 6. d. iii. 1. Let valuesArray be CreateArrayFromList(values).
-                    const valuesArray = array_1.$CreateArrayFromList(ctx, values);
+                    const valuesArray = array_js_1.$CreateArrayFromList(ctx, values);
                     // 6. d. iii. 2. Perform ? Call(resultCapability.[[Resolve]], undefined, « valuesArray »).
-                    const $CallResult = operations_1.$Call(ctx, resultCapability['[[Resolve]]'], intrinsics.undefined, new list_1.$List(valuesArray));
+                    const $CallResult = operations_js_1.$Call(ctx, resultCapability['[[Resolve]]'], intrinsics.undefined, new list_js_1.$List(valuesArray));
                     if ($CallResult.isAbrupt) {
                         return $CallResult;
                     }
@@ -624,7 +624,7 @@
                 return resultCapability['[[Promise]]'];
             }
             // 6. e. Let nextValue be IteratorValue(next).
-            const nextValue = iteration_1.$IteratorValue(ctx, next);
+            const nextValue = iteration_js_1.$IteratorValue(ctx, next);
             // 6. f. If nextValue is an abrupt completion, set iteratorRecord.[[Done]] to true.
             // 6. g. ReturnIfAbrupt(nextValue).
             if (nextValue.isAbrupt) {
@@ -632,9 +632,9 @@
                 return nextValue;
             }
             // 6. h. Append undefined to values.
-            values.push(new undefined_1.$Undefined(realm));
+            values.push(new undefined_js_1.$Undefined(realm));
             // 6. i. Let nextPromise be ? Invoke(constructor, "resolve", « nextValue »).
-            const nextPromise = operations_1.$Invoke(ctx, constructor, intrinsics.resolve, new list_1.$List(nextValue)); // TODO: fix $Empty typing shenanigans
+            const nextPromise = operations_js_1.$Invoke(ctx, constructor, intrinsics.resolve, new list_js_1.$List(nextValue)); // TODO: fix $Empty typing shenanigans
             if (nextPromise.isAbrupt) {
                 return nextPromise;
             }
@@ -645,11 +645,11 @@
             // 6. n. Set resolveElement.[[Values]] to values.
             // 6. o. Set resolveElement.[[Capability]] to resultCapability.
             // 6. p. Set resolveElement.[[RemainingElements]] to remainingElementsCount.
-            const resolveElement = new $Promise_all_ResolveElement(realm, new _shared_1.$ValueRecord(false), index, values, resultCapability, remainingElementsCount);
+            const resolveElement = new $Promise_all_ResolveElement(realm, new _shared_js_1.$ValueRecord(false), index, values, resultCapability, remainingElementsCount);
             // 6. q. Set remainingElementsCount.[[Value]] to remainingElementsCount.[[Value]] + 1.
             ++remainingElementsCount['[[Value]]'];
             // 6. r. Perform ? Invoke(nextPromise, "then", « resolveElement, resultCapability.[[Reject]] »).
-            const $InvokeResult = operations_1.$Invoke(ctx, nextPromise, intrinsics.then, new list_1.$List(resolveElement, resultCapability['[[Reject]]']));
+            const $InvokeResult = operations_js_1.$Invoke(ctx, nextPromise, intrinsics.then, new list_js_1.$List(resolveElement, resultCapability['[[Reject]]']));
             if ($InvokeResult.isAbrupt) {
                 return $InvokeResult;
             }
@@ -659,7 +659,7 @@
     }
     // http://www.ecma-international.org/ecma-262/#sec-promise.all-resolve-element-functions
     // 25.6.4.1.2 Promise.all Resolve Element Functions
-    class $Promise_all_ResolveElement extends function_1.$BuiltinFunction {
+    class $Promise_all_ResolveElement extends function_js_1.$BuiltinFunction {
         constructor(realm, alreadyCalled, index, values, capability, remainingElements) {
             const intrinsics = realm['[[Intrinsics]]'];
             super(realm, 'Promise.all Resolve Element', intrinsics['%FunctionPrototype%']);
@@ -699,9 +699,9 @@
             // 11. If remainingElementsCount.[[Value]] is 0, then
             if (--remainingElementsCount['[[Value]]'] === 0) {
                 // 11. a. Let valuesArray be CreateArrayFromList(values).
-                const valuesArray = array_1.$CreateArrayFromList(ctx, values);
+                const valuesArray = array_js_1.$CreateArrayFromList(ctx, values);
                 // 11. b. Return ? Call(promiseCapability.[[Resolve]], undefined, « valuesArray »).
-                return operations_1.$Call(ctx, promiseCapability['[[Resolve]]'], intrinsics.undefined, new list_1.$List(valuesArray));
+                return operations_js_1.$Call(ctx, promiseCapability['[[Resolve]]'], intrinsics.undefined, new list_js_1.$List(valuesArray));
             }
             // 12. Return undefined.
             return intrinsics.undefined;
@@ -710,7 +710,7 @@
     exports.$Promise_all_ResolveElement = $Promise_all_ResolveElement;
     // http://www.ecma-international.org/ecma-262/#sec-promise.race
     // 25.6.4.3 Promise.race ( iterable )
-    class $Promise_race extends function_1.$BuiltinFunction {
+    class $Promise_race extends function_js_1.$BuiltinFunction {
         constructor(realm, functionPrototype) {
             super(realm, '%Promise_race%', functionPrototype);
         }
@@ -724,7 +724,7 @@
             const C = thisArgument;
             // 2. If Type(C) is not Object, throw a TypeError exception.
             if (!C.isObject) {
-                return new error_1.$TypeError(realm, `Expected 'this' to be an object, but got: ${C}`);
+                return new error_js_1.$TypeError(realm, `Expected 'this' to be an object, but got: ${C}`);
             }
             // 3. Let promiseCapability be ? NewPromiseCapability(C).
             const promiseCapability = $NewPromiseCapability(ctx, C);
@@ -732,7 +732,7 @@
                 return promiseCapability;
             }
             // 4. Let iteratorRecord be GetIterator(iterable).
-            const iteratorRecord = iteration_1.$GetIterator(ctx, iterable);
+            const iteratorRecord = iteration_js_1.$GetIterator(ctx, iterable);
             if (iteratorRecord.isAbrupt) {
                 return iteratorRecord;
             } // TODO: we sure about this? spec doesn't say
@@ -747,7 +747,7 @@
             if (result.isAbrupt) {
                 // 7. a. If iteratorRecord.[[Done]] is false, set result to IteratorClose(iteratorRecord, result).
                 if (iteratorRecord['[[Done]]'].isFalsey) {
-                    result = iteration_1.$IteratorClose(ctx, iteratorRecord, result);
+                    result = iteration_js_1.$IteratorClose(ctx, iteratorRecord, result);
                 }
                 // 7. b. IfAbruptRejectPromise(result, promiseCapability).
                 const maybeAbrupt = $IfAbruptRejectPromise(ctx, result, promiseCapability);
@@ -770,7 +770,7 @@
         // 3. Repeat,
         while (true) {
             // 3. a. Let next be IteratorStep(iteratorRecord).
-            const next = iteration_1.$IteratorStep(ctx, iteratorRecord);
+            const next = iteration_js_1.$IteratorStep(ctx, iteratorRecord);
             // 3. b. If next is an abrupt completion, set iteratorRecord.[[Done]] to true.
             // 3. c. ReturnIfAbrupt(next).
             if (next.isAbrupt) {
@@ -785,7 +785,7 @@
                 return resultCapability['[[Promise]]'];
             }
             // 3. e. Let nextValue be IteratorValue(next).
-            const nextValue = iteration_1.$IteratorValue(ctx, next);
+            const nextValue = iteration_js_1.$IteratorValue(ctx, next);
             // 3. f. If nextValue is an abrupt completion, set iteratorRecord.[[Done]] to true.
             // 3. g. ReturnIfAbrupt(nextValue).
             if (nextValue.isAbrupt) {
@@ -793,12 +793,12 @@
                 return nextValue;
             }
             // 3. h. Let nextPromise be ? Invoke(constructor, "resolve", « nextValue »).
-            const nextPromise = operations_1.$Invoke(ctx, constructor, intrinsics.resolve, new list_1.$List(nextValue)); // TODO: fix $Empty typing shenanigans
+            const nextPromise = operations_js_1.$Invoke(ctx, constructor, intrinsics.resolve, new list_js_1.$List(nextValue)); // TODO: fix $Empty typing shenanigans
             if (nextPromise.isAbrupt) {
                 return nextPromise;
             }
             // 3. i. Perform ? Invoke(nextPromise, "then", « resultCapability.[[Resolve]], resultCapability.[[Reject]] »).
-            const $InvokeResult = operations_1.$Invoke(ctx, nextPromise, intrinsics.then, new list_1.$List(resultCapability['[[Resolve]]'], resultCapability['[[Reject]]']));
+            const $InvokeResult = operations_js_1.$Invoke(ctx, nextPromise, intrinsics.then, new list_js_1.$List(resultCapability['[[Resolve]]'], resultCapability['[[Reject]]']));
             if ($InvokeResult.isAbrupt) {
                 return $InvokeResult;
             }
@@ -807,7 +807,7 @@
     exports.$PerformPromiseRace = $PerformPromiseRace;
     // http://www.ecma-international.org/ecma-262/#sec-promise.reject
     // 25.6.4.4 Promise.reject ( r )
-    class $Promise_reject extends function_1.$BuiltinFunction {
+    class $Promise_reject extends function_js_1.$BuiltinFunction {
         constructor(realm, functionPrototype) {
             super(realm, '%Promise_reject%', functionPrototype);
         }
@@ -821,7 +821,7 @@
             const C = thisArgument;
             // 2. If Type(C) is not Object, throw a TypeError exception.
             if (!C.isObject) {
-                return new error_1.$TypeError(realm, `Expected 'this' to be an object, but got: ${C}`);
+                return new error_js_1.$TypeError(realm, `Expected 'this' to be an object, but got: ${C}`);
             }
             // 3. Let promiseCapability be ? NewPromiseCapability(C).
             const promiseCapability = $NewPromiseCapability(ctx, C);
@@ -829,7 +829,7 @@
                 return promiseCapability;
             }
             // 4. Perform ? Call(promiseCapability.[[Reject]], undefined, « r »).
-            const $CallResult = operations_1.$Call(ctx, promiseCapability['[[Resolve]]'], intrinsics.undefined, new list_1.$List(r));
+            const $CallResult = operations_js_1.$Call(ctx, promiseCapability['[[Resolve]]'], intrinsics.undefined, new list_js_1.$List(r));
             if ($CallResult.isAbrupt) {
                 return $CallResult;
             }
@@ -840,7 +840,7 @@
     exports.$Promise_reject = $Promise_reject;
     // http://www.ecma-international.org/ecma-262/#sec-promise.resolve
     // 25.6.4.5 Promise.resolve ( x )
-    class $Promise_resolve extends function_1.$BuiltinFunction {
+    class $Promise_resolve extends function_js_1.$BuiltinFunction {
         constructor(realm, functionPrototype) {
             super(realm, '%Promise_resolve%', functionPrototype);
         }
@@ -854,7 +854,7 @@
             const C = thisArgument;
             // 2. If Type(C) is not Object, throw a TypeError exception.
             if (!C.isObject) {
-                return new error_1.$TypeError(realm, `Expected 'this' to be an object, but got: ${C}`);
+                return new error_js_1.$TypeError(realm, `Expected 'this' to be an object, but got: ${C}`);
             }
             // 3. Return ? PromiseResolve(C, x).
             return $PromiseResolve(ctx, C, x);
@@ -882,7 +882,7 @@
             return promiseCapability;
         }
         // 4. Perform ? Call(promiseCapability.[[Resolve]], undefined, « x »).
-        const $CallResult = operations_1.$Call(ctx, promiseCapability['[[Resolve]]'], intrinsics.undefined, new list_1.$List(x));
+        const $CallResult = operations_js_1.$Call(ctx, promiseCapability['[[Resolve]]'], intrinsics.undefined, new list_js_1.$List(x));
         if ($CallResult.isAbrupt) {
             return $CallResult;
         }
@@ -893,7 +893,7 @@
     // #endregion
     // http://www.ecma-international.org/ecma-262/#sec-properties-of-the-promise-prototype-object
     // #region 25.6.5 Properties of the Promise Prototype Object
-    class $PromisePrototype extends object_1.$Object {
+    class $PromisePrototype extends object_js_1.$Object {
         // http://www.ecma-international.org/ecma-262/#sec-promise.prototype.catch
         // 25.6.5.1 Promise.prototype.catch ( onRejected )
         get catch() {
@@ -942,7 +942,7 @@
     exports.$PromisePrototype = $PromisePrototype;
     // http://www.ecma-international.org/ecma-262/#sec-promise.prototype.catch
     // 25.6.5.1 Promise.prototype.catch ( onRejected )
-    class $PromiseProto_catch extends function_1.$BuiltinFunction {
+    class $PromiseProto_catch extends function_js_1.$BuiltinFunction {
         constructor(realm, proto) {
             super(realm, '%PromiseProto_catch%', proto);
         }
@@ -955,13 +955,13 @@
             // 1. Let promise be the this value.
             const promise = thisArgument;
             // 2. Return ? Invoke(promise, "then", « undefined, onRejected »).
-            return operations_1.$Invoke(ctx, promise, intrinsics.then, new list_1.$List(intrinsics.undefined, onRejected)); // TODO: fix $Empty typings
+            return operations_js_1.$Invoke(ctx, promise, intrinsics.then, new list_js_1.$List(intrinsics.undefined, onRejected)); // TODO: fix $Empty typings
         }
     }
     exports.$PromiseProto_catch = $PromiseProto_catch;
     // http://www.ecma-international.org/ecma-262/#sec-promise.prototype.finally
     // 25.6.5.3 Promise.prototype.finally ( onFinally )
-    class $PromiseProto_finally extends function_1.$BuiltinFunction {
+    class $PromiseProto_finally extends function_js_1.$BuiltinFunction {
         constructor(realm, proto) {
             super(realm, '%PromiseProto_finally%', proto);
         }
@@ -975,10 +975,10 @@
             const promise = thisArgument;
             // 2. If Type(promise) is not Object, throw a TypeError exception.
             if (!promise.isObject) {
-                return new error_1.$TypeError(realm, `Expected 'this' to be an object, but got: ${promise}`);
+                return new error_js_1.$TypeError(realm, `Expected 'this' to be an object, but got: ${promise}`);
             }
             // 3. Let C be ? SpeciesConstructor(promise, %Promise%).
-            const C = operations_1.$SpeciesConstructor(ctx, promise, intrinsics['%Promise%']);
+            const C = operations_js_1.$SpeciesConstructor(ctx, promise, intrinsics['%Promise%']);
             if (C.isAbrupt) {
                 return C;
             }
@@ -1006,13 +1006,13 @@
                 catchFinally = new $CatchFinally(realm, C, onFinally);
             }
             // 7. Return ? Invoke(promise, "then", « thenFinally, catchFinally »).
-            return operations_1.$Invoke(ctx, promise, intrinsics.then, new list_1.$List(thenFinally, catchFinally)); // TODO: fix typings $Empty shenanigans
+            return operations_js_1.$Invoke(ctx, promise, intrinsics.then, new list_js_1.$List(thenFinally, catchFinally)); // TODO: fix typings $Empty shenanigans
         }
     }
     exports.$PromiseProto_finally = $PromiseProto_finally;
     // http://www.ecma-international.org/ecma-262/#sec-thenfinallyfunctions
     // 25.6.5.3.1 Then Finally Functions
-    class $ThenFinally extends function_1.$BuiltinFunction {
+    class $ThenFinally extends function_js_1.$BuiltinFunction {
         constructor(realm, constructor, onFinally) {
             const intrinsics = realm['[[Intrinsics]]'];
             super(realm, 'Then Finally', intrinsics['%FunctionPrototype%']);
@@ -1031,7 +1031,7 @@
             const onFinally = F['[[OnFinally]]'];
             // 3. Assert: IsCallable(onFinally) is true.
             // 4. Let result be ? Call(onFinally, undefined).
-            const result = operations_1.$Call(ctx, onFinally, intrinsics.undefined, intrinsics.undefined);
+            const result = operations_js_1.$Call(ctx, onFinally, intrinsics.undefined, intrinsics.undefined);
             if (result.isAbrupt) {
                 return result;
             }
@@ -1046,11 +1046,11 @@
             // 8. Let valueThunk be equivalent to a function that returns value.
             const valueThunk = new $ValueThunk(realm, value);
             // 9. Return ? Invoke(promise, "then", « valueThunk »).
-            return operations_1.$Invoke(ctx, promise, intrinsics.then, new list_1.$List(valueThunk)); // TODO: fix typings $Empty shenanigans
+            return operations_js_1.$Invoke(ctx, promise, intrinsics.then, new list_js_1.$List(valueThunk)); // TODO: fix typings $Empty shenanigans
         }
     }
     exports.$ThenFinally = $ThenFinally;
-    class $ValueThunk extends function_1.$BuiltinFunction {
+    class $ValueThunk extends function_js_1.$BuiltinFunction {
         constructor(realm, value) {
             const intrinsics = realm['[[Intrinsics]]'];
             super(realm, 'ValueThunk', intrinsics['%FunctionPrototype%']);
@@ -1063,7 +1063,7 @@
     exports.$ValueThunk = $ValueThunk;
     // http://www.ecma-international.org/ecma-262/#sec-catchfinallyfunctions
     // 25.6.5.3.2 Catch Finally Functions
-    class $CatchFinally extends function_1.$BuiltinFunction {
+    class $CatchFinally extends function_js_1.$BuiltinFunction {
         constructor(realm, constructor, onFinally) {
             const intrinsics = realm['[[Intrinsics]]'];
             super(realm, 'Catch Finally', intrinsics['%FunctionPrototype%']);
@@ -1082,7 +1082,7 @@
             const onFinally = F['[[OnFinally]]'];
             // 3. Assert: IsCallable(onFinally) is true.
             // 4. Let result be ? Call(onFinally, undefined).
-            const result = operations_1.$Call(ctx, onFinally, intrinsics.undefined, intrinsics.undefined);
+            const result = operations_js_1.$Call(ctx, onFinally, intrinsics.undefined, intrinsics.undefined);
             if (result.isAbrupt) {
                 return result;
             }
@@ -1097,11 +1097,11 @@
             // 8. Let thrower be equivalent to a function that throws reason.
             const thrower = new $Thrower(realm, value);
             // 9. Return ? Invoke(promise, "then", « thrower »).
-            return operations_1.$Invoke(ctx, promise, intrinsics.then, new list_1.$List(thrower)); // TODO: fix typings $Empty shenanigans
+            return operations_js_1.$Invoke(ctx, promise, intrinsics.then, new list_js_1.$List(thrower)); // TODO: fix typings $Empty shenanigans
         }
     }
     exports.$CatchFinally = $CatchFinally;
-    class $Thrower extends function_1.$BuiltinFunction {
+    class $Thrower extends function_js_1.$BuiltinFunction {
         constructor(realm, reason) {
             const intrinsics = realm['[[Intrinsics]]'];
             super(realm, 'Thrower', intrinsics['%FunctionPrototype%']);
@@ -1115,7 +1115,7 @@
     exports.$Thrower = $Thrower;
     // http://www.ecma-international.org/ecma-262/#sec-promise.prototype.then
     // 25.6.5.4 Promise.prototype.then ( onFulfilled , onRejected )
-    class $PromiseProto_then extends function_1.$BuiltinFunction {
+    class $PromiseProto_then extends function_js_1.$BuiltinFunction {
         constructor(realm, proto) {
             super(realm, '%PromiseProto_then%', proto);
         }
@@ -1132,10 +1132,10 @@
             const promise = thisArgument;
             // 2. If IsPromise(promise) is false, throw a TypeError exception.
             if (!promise.isObject) {
-                return new error_1.$TypeError(realm, `Expected 'this' to be an object, but got: ${promise}`);
+                return new error_js_1.$TypeError(realm, `Expected 'this' to be an object, but got: ${promise}`);
             }
             // 3. Let C be ? SpeciesConstructor(promise, %Promise%).
-            const C = operations_1.$SpeciesConstructor(ctx, promise, intrinsics['%Promise%']);
+            const C = operations_js_1.$SpeciesConstructor(ctx, promise, intrinsics['%Promise%']);
             if (C.isAbrupt) {
                 return C;
             }
@@ -1231,7 +1231,7 @@
     })(PromiseState = exports.PromiseState || (exports.PromiseState = {}));
     // http://www.ecma-international.org/ecma-262/#sec-properties-of-promise-instances
     // 25.6.6 Properties of Promise Instances
-    class $PromiseInstance extends object_1.$Object {
+    class $PromiseInstance extends object_js_1.$Object {
         constructor(realm, proto) {
             const intrinsics = realm['[[Intrinsics]]'];
             super(realm, 'PromiseInstance', proto, 1 /* normal */, intrinsics.empty);
@@ -1239,14 +1239,14 @@
             this['[[PromiseState]]'] = 1 /* pending */;
             this['[[PromiseResult]]'] = void 0;
             // 5. Set promise.[[PromiseFulfillReactions]] to a new empty List.
-            this['[[PromiseFulfillReactions]]'] = new list_1.$List();
+            this['[[PromiseFulfillReactions]]'] = new list_js_1.$List();
             // 6. Set promise.[[PromiseRejectReactions]] to a new empty List.
-            this['[[PromiseRejectReactions]]'] = new list_1.$List();
+            this['[[PromiseRejectReactions]]'] = new list_js_1.$List();
             // 7. Set promise.[[PromiseIsHandled]] to false.
             this['[[PromiseIsHandled]]'] = false;
         }
         static Create(ctx, NewTarget) {
-            const proto = function_1.$GetPrototypeFromConstructor(ctx, NewTarget, '%PromisePrototype%');
+            const proto = function_js_1.$GetPrototypeFromConstructor(ctx, NewTarget, '%PromisePrototype%');
             if (proto.isAbrupt) {
                 return proto;
             }

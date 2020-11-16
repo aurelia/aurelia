@@ -1,21 +1,21 @@
-import { $Undefined } from './undefined';
-import { $Null } from './null';
-import { $Boolean } from './boolean';
-import { $String } from './string';
-import { $Symbol } from './symbol';
-import { $Number } from './number';
-import { $Empty } from './empty';
-import { $Object } from './object';
-import { $Function, $BuiltinFunction } from './function';
-import { $BoundFunctionExoticObject } from '../exotics/bound-function';
-import { $ArrayExoticObject } from '../exotics/array';
-import { $ProxyExoticObject } from '../exotics/proxy';
-import { $ImmutablePrototypeExoticObject } from '../exotics/immutable-prototype';
-import { $NamespaceExoticObject } from '../exotics/namespace';
-import { $StringExoticObject } from '../exotics/string';
-import { $IntegerIndexedExoticObject } from '../exotics/integer-indexed';
-import { $ArgumentsExoticObject } from '../exotics/arguments';
-import { $Error } from './error';
+import { $Undefined } from './undefined.js';
+import { $Null } from './null.js';
+import { $Boolean } from './boolean.js';
+import { $String } from './string.js';
+import { $Symbol } from './symbol.js';
+import { $Number } from './number.js';
+import { $Empty } from './empty.js';
+import { $Object } from './object.js';
+import { $Function, $BuiltinFunction } from './function.js';
+import { $BoundFunctionExoticObject } from '../exotics/bound-function.js';
+import { $ArrayExoticObject } from '../exotics/array.js';
+import { $ProxyExoticObject } from '../exotics/proxy.js';
+import { $ImmutablePrototypeExoticObject } from '../exotics/immutable-prototype.js';
+import { $NamespaceExoticObject } from '../exotics/namespace.js';
+import { $StringExoticObject } from '../exotics/string.js';
+import { $IntegerIndexedExoticObject } from '../exotics/integer-indexed.js';
+import { $ArgumentsExoticObject } from '../exotics/arguments.js';
+import { $Error } from './error.js';
 export declare const enum CompletionType {
     normal = 1,
     break = 2,

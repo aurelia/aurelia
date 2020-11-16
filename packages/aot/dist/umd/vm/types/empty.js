@@ -4,20 +4,20 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./_shared", "./error"], factory);
+        define(["require", "exports", "./_shared.js", "./error.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.$Empty = exports.empty = void 0;
-    const _shared_1 = require("./_shared");
-    const error_1 = require("./error");
+    const _shared_js_1 = require("./_shared.js");
+    const error_js_1 = require("./error.js");
     exports.empty = Symbol('empty');
     class $Empty {
         constructor(realm, type = 1 /* normal */, target = realm['[[Intrinsics]]'].empty, sourceNode = null) {
             this.realm = realm;
             this.sourceNode = sourceNode;
-            this.id = _shared_1.nextValueId();
+            this.id = _shared_js_1.nextValueId();
             this.IntrinsicName = 'empty';
             this['[[Value]]'] = exports.empty;
             this['[[Type]]'] = type;
@@ -27,7 +27,7 @@
         // The purpose is to ensure the `isAbrupt === true` flow narrows down to the $Error type.
         // It could be done correctly, but that would require complex conditional types which is not worth the effort right now.
         get isAbrupt() { return (this['[[Type]]'] !== 1 /* normal */); }
-        get Type() { return new error_1.$TypeError(this.realm, `[[empty]] has no Type`); }
+        get Type() { return new error_js_1.$TypeError(this.realm, `[[empty]] has no Type`); }
         get isEmpty() { return true; }
         get isUndefined() { return false; }
         get isNull() { return false; }
@@ -73,49 +73,49 @@
             return value.ToCompletion(this['[[Type]]'], this['[[Target]]']);
         }
         ToObject(ctx) {
-            return new error_1.$TypeError(ctx.Realm, `[[empty]] cannot be converted to object`);
+            return new error_js_1.$TypeError(ctx.Realm, `[[empty]] cannot be converted to object`);
         }
         ToPropertyKey(ctx) {
-            return new error_1.$TypeError(ctx.Realm, `[[empty]] cannot be converted to property key`);
+            return new error_js_1.$TypeError(ctx.Realm, `[[empty]] cannot be converted to property key`);
         }
         ToLength(ctx) {
-            return new error_1.$TypeError(ctx.Realm, `[[empty]] cannot be converted to length`);
+            return new error_js_1.$TypeError(ctx.Realm, `[[empty]] cannot be converted to length`);
         }
         ToPrimitive(ctx) {
-            return new error_1.$TypeError(ctx.Realm, `[[empty]] cannot be converted to primitive`);
+            return new error_js_1.$TypeError(ctx.Realm, `[[empty]] cannot be converted to primitive`);
         }
         ToBoolean(ctx) {
-            return new error_1.$TypeError(ctx.Realm, `[[empty]] cannot be converted to boolean`);
+            return new error_js_1.$TypeError(ctx.Realm, `[[empty]] cannot be converted to boolean`);
         }
         ToNumber(ctx) {
-            return new error_1.$TypeError(ctx.Realm, `[[empty]] cannot be converted to number`);
+            return new error_js_1.$TypeError(ctx.Realm, `[[empty]] cannot be converted to number`);
         }
         ToInt32(ctx) {
-            return new error_1.$TypeError(ctx.Realm, `[[empty]] cannot be converted to Int32`);
+            return new error_js_1.$TypeError(ctx.Realm, `[[empty]] cannot be converted to Int32`);
         }
         ToUint32(ctx) {
-            return new error_1.$TypeError(ctx.Realm, `[[empty]] cannot be converted to Uint32`);
+            return new error_js_1.$TypeError(ctx.Realm, `[[empty]] cannot be converted to Uint32`);
         }
         ToInt16(ctx) {
-            return new error_1.$TypeError(ctx.Realm, `[[empty]] cannot be converted to Int16`);
+            return new error_js_1.$TypeError(ctx.Realm, `[[empty]] cannot be converted to Int16`);
         }
         ToUint16(ctx) {
-            return new error_1.$TypeError(ctx.Realm, `[[empty]] cannot be converted to Uint16`);
+            return new error_js_1.$TypeError(ctx.Realm, `[[empty]] cannot be converted to Uint16`);
         }
         ToInt8(ctx) {
-            return new error_1.$TypeError(ctx.Realm, `[[empty]] cannot be converted to Int8`);
+            return new error_js_1.$TypeError(ctx.Realm, `[[empty]] cannot be converted to Int8`);
         }
         ToUint8(ctx) {
-            return new error_1.$TypeError(ctx.Realm, `[[empty]] cannot be converted to Uint8`);
+            return new error_js_1.$TypeError(ctx.Realm, `[[empty]] cannot be converted to Uint8`);
         }
         ToUint8Clamp(ctx) {
-            return new error_1.$TypeError(ctx.Realm, `[[empty]] cannot be converted to Uint8Clamp`);
+            return new error_js_1.$TypeError(ctx.Realm, `[[empty]] cannot be converted to Uint8Clamp`);
         }
         ToString(ctx) {
-            return new error_1.$TypeError(ctx.Realm, `[[empty]] cannot be converted to string`);
+            return new error_js_1.$TypeError(ctx.Realm, `[[empty]] cannot be converted to string`);
         }
         GetValue(ctx) {
-            return new error_1.$TypeError(ctx.Realm, `[[empty]] has no value`);
+            return new error_js_1.$TypeError(ctx.Realm, `[[empty]] has no value`);
         }
     }
     exports.$Empty = $Empty;

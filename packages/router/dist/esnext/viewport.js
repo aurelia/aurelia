@@ -1,8 +1,8 @@
 import { CustomElement } from '@aurelia/runtime-html';
-import { arrayRemove } from './utils';
-import { ViewportContent } from './viewport-content';
-import { Scope } from './scope';
-import { Runner } from './runner';
+import { arrayRemove } from './utils.js';
+import { ViewportContent } from './viewport-content.js';
+import { Scope } from './scope.js';
+import { Runner } from './runner.js';
 export class Viewport {
     constructor(router, name, connectedCE, owningScope, scope, options = {}) {
         this.router = router;

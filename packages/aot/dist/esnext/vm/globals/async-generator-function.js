@@ -1,12 +1,12 @@
-import { $BuiltinFunction, } from '../types/function';
-import { $TypeError, } from '../types/error';
-import { $Object, } from '../types/object';
-import { $CreateDynamicFunction, } from './function';
-import { $CreateIterResultObject, } from './iteration';
-import { $List, } from '../types/list';
-import { $PromiseResolve, $PerformPromiseThen, $NewPromiseCapability, } from './promise';
-import { $Call, } from '../operations';
-import { $Await, } from '../types/await';
+import { $BuiltinFunction, } from '../types/function.js';
+import { $TypeError, } from '../types/error.js';
+import { $Object, } from '../types/object.js';
+import { $CreateDynamicFunction, } from './function.js';
+import { $CreateIterResultObject, } from './iteration.js';
+import { $List, } from '../types/list.js';
+import { $PromiseResolve, $PerformPromiseThen, $NewPromiseCapability, } from './promise.js';
+import { $Call, } from '../operations.js';
+import { $Await, } from '../types/await.js';
 // http://www.ecma-international.org/ecma-262/#sec-asyncgeneratorfunction-objects
 // 25.3 AsyncGeneratorFunction Objects
 // http://www.ecma-international.org/ecma-262/#sec-asyncgeneratorfunction-constructor

@@ -1,11 +1,11 @@
 import { ModifierFlags, SyntaxKind, } from 'typescript';
-import { $DefinePropertyOrThrow, } from '../operations';
-import { $String, } from '../types/string';
-import { $Function, } from '../types/function';
-import { $PropertyDescriptor, } from '../types/property-descriptor';
-import { modifiersToModifierFlags, hasBit, $$propertyName, $decoratorList, $i, } from './_shared';
-import { MethodDefinitionRecord, $FormalParameterList, $FunctionDeclaration } from './functions';
-import { $Block, } from './statements';
+import { $DefinePropertyOrThrow, } from '../operations.js';
+import { $String, } from '../types/string.js';
+import { $Function, } from '../types/function.js';
+import { $PropertyDescriptor, } from '../types/property-descriptor.js';
+import { modifiersToModifierFlags, hasBit, $$propertyName, $decoratorList, $i, } from './_shared.js';
+import { MethodDefinitionRecord, $FormalParameterList, $FunctionDeclaration } from './functions.js';
+import { $Block, } from './statements.js';
 export class $MethodDeclaration {
     constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${$i(idx)}.MethodDeclaration`) {
         this.node = node;

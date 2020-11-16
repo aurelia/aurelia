@@ -13,15 +13,15 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "../observation", "./collection-length-observer", "./subscriber-collection"], factory);
+        define(["require", "exports", "../observation.js", "./collection-length-observer.js", "./subscriber-collection.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.synchronizeIndices = exports.applyMutationsToIndices = exports.getArrayObserver = exports.ArrayIndexObserver = exports.ArrayObserver = exports.disableArrayObservation = exports.enableArrayObservation = void 0;
-    const observation_1 = require("../observation");
-    const collection_length_observer_1 = require("./collection-length-observer");
-    const subscriber_collection_1 = require("./subscriber-collection");
+    const observation_js_1 = require("../observation.js");
+    const collection_length_observer_js_1 = require("./collection-length-observer.js");
+    const subscriber_collection_js_1 = require("./subscriber-collection.js");
     const observerLookup = new WeakMap();
     // https://tc39.github.io/ecma262/#sec-sortcompare
     function sortCompare(x, y) {
@@ -418,7 +418,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             this.indexObservers = {};
             this.collection = array;
             this.persistentFlags = flags & 15367 /* persistentBindingFlags */;
-            this.indexMap = observation_1.createIndexMap(array.length);
+            this.indexMap = observation_js_1.createIndexMap(array.length);
             this.lifecycle = lifecycle;
             this.lengthObserver = (void 0);
             observerLookup.set(array, this);
@@ -436,7 +436,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         }
         getLengthObserver() {
             if (this.lengthObserver === void 0) {
-                this.lengthObserver = new collection_length_observer_1.CollectionLengthObserver(this.collection);
+                this.lengthObserver = new collection_length_observer_js_1.CollectionLengthObserver(this.collection);
             }
             return this.lengthObserver;
         }
@@ -447,7 +447,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             const indexMap = this.indexMap;
             const length = this.collection.length;
             this.inBatch = false;
-            this.indexMap = observation_1.createIndexMap(length);
+            this.indexMap = observation_js_1.createIndexMap(length);
             this.callCollectionSubscribers(indexMap, 8 /* updateTarget */ | this.persistentFlags);
             if (this.lengthObserver !== void 0) {
                 this.lengthObserver.setValue(length, 8 /* updateTarget */);
@@ -478,7 +478,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         }
     };
     ArrayObserver = __decorate([
-        subscriber_collection_1.collectionSubscriberCollection(),
+        subscriber_collection_js_1.collectionSubscriberCollection(),
         __metadata("design:paramtypes", [Number, Object, Object])
     ], ArrayObserver);
     exports.ArrayObserver = ArrayObserver;
@@ -536,7 +536,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         }
     };
     ArrayIndexObserver = __decorate([
-        subscriber_collection_1.subscriberCollection(),
+        subscriber_collection_js_1.subscriberCollection(),
         __metadata("design:paramtypes", [ArrayObserver, Number])
     ], ArrayIndexObserver);
     exports.ArrayIndexObserver = ArrayIndexObserver;

@@ -13,15 +13,15 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "./binding/connectable", "./alias"], factory);
+        define(["require", "exports", "@aurelia/kernel", "./binding/connectable.js", "./alias.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.BindingBehavior = exports.BindingInterceptor = exports.BindingBehaviorFactory = exports.BindingBehaviorDefinition = exports.bindingBehavior = exports.BindingBehaviorStrategy = void 0;
     const kernel_1 = require("@aurelia/kernel");
-    const connectable_1 = require("./binding/connectable");
-    const alias_1 = require("./alias");
+    const connectable_js_1 = require("./binding/connectable.js");
+    const alias_js_1 = require("./alias.js");
     var BindingBehaviorStrategy;
     (function (BindingBehaviorStrategy) {
         BindingBehaviorStrategy[BindingBehaviorStrategy["singleton"] = 1] = "singleton";
@@ -66,7 +66,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                     break;
             }
             kernel_1.Registration.aliasTo(key, Type).register(container);
-            alias_1.registerAliases(aliases, exports.BindingBehavior, key, container);
+            alias_js_1.registerAliases(aliases, exports.BindingBehavior, key, container);
         }
     }
     exports.BindingBehaviorDefinition = BindingBehaviorDefinition;
@@ -142,7 +142,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         }
     };
     BindingInterceptor = __decorate([
-        connectable_1.connectable,
+        connectable_js_1.connectable,
         __metadata("design:paramtypes", [Object, Object])
     ], BindingInterceptor);
     exports.BindingInterceptor = BindingInterceptor;

@@ -4,29 +4,29 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./job", "@aurelia/kernel", "./realm", "./types/empty"], factory);
+        define(["require", "exports", "./job.js", "@aurelia/kernel", "./realm.js", "./types/empty.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ScriptEvaluationJob = exports.TopLevelModuleEvaluationJob = exports.Agent = exports.ISourceFileProvider = void 0;
-    const job_1 = require("./job");
+    const job_js_1 = require("./job.js");
     const kernel_1 = require("@aurelia/kernel");
-    const realm_1 = require("./realm");
-    const empty_1 = require("./types/empty");
+    const realm_js_1 = require("./realm.js");
+    const empty_js_1 = require("./types/empty.js");
     exports.ISourceFileProvider = kernel_1.DI.createInterface('ISourceFileProvider').noDefault();
     // http://www.ecma-international.org/ecma-262/#sec-agents
     class Agent {
         constructor(logger) {
             this.logger = logger;
-            this.ScriptJobs = new job_1.JobQueue(logger, 'Script');
-            this.PromiseJobs = new job_1.JobQueue(logger, 'Promise');
+            this.ScriptJobs = new job_js_1.JobQueue(logger, 'Script');
+            this.PromiseJobs = new job_js_1.JobQueue(logger, 'Promise');
         }
         // http://www.ecma-international.org/ecma-262/#sec-runjobs
         // 8.6 RunJobs ( )
         async RunJobs(container) {
             // 1. Perform ? InitializeHostDefinedRealm().
-            const realm = realm_1.Realm.Create(container, this.PromiseJobs);
+            const realm = realm_js_1.Realm.Create(container, this.PromiseJobs);
             const intrinsics = realm['[[Intrinsics]]'];
             const stack = realm.stack;
             // We always have 1 synthetic root context which should not be considered to be a part of the stack.
@@ -62,7 +62,7 @@
                 if (this.ScriptJobs.isEmpty) {
                     if (this.PromiseJobs.isEmpty) {
                         this.logger.debug(`Finished successfully`);
-                        return new empty_1.$Empty(realm, 1 /* normal */, intrinsics.empty, lastFile);
+                        return new empty_js_1.$Empty(realm, 1 /* normal */, intrinsics.empty, lastFile);
                     }
                     else {
                         // 3. d. Let nextPending be the PendingJob record at the front of nextQueue. Remove that record from nextQueue.
@@ -74,7 +74,7 @@
                     nextPending = this.ScriptJobs.queue.shift();
                 }
                 // 3. e. Let newContext be a new execution context.
-                const newContext = new realm_1.ExecutionContext(nextPending['[[Realm]]']);
+                const newContext = new realm_js_1.ExecutionContext(nextPending['[[Realm]]']);
                 // 3. f. Set newContext's Function to null.
                 newContext.Function = intrinsics.null;
                 // 3. g. Set newContext's Realm to nextPending.[[Realm]].
@@ -101,7 +101,7 @@
         }
     }
     exports.Agent = Agent;
-    class TopLevelModuleEvaluationJob extends job_1.Job {
+    class TopLevelModuleEvaluationJob extends job_js_1.Job {
         constructor(realm, mos) {
             super(realm.logger.scopeTo('TopLevelModuleEvaluationJob'), realm, mos);
         }
@@ -127,7 +127,7 @@
         }
     }
     exports.TopLevelModuleEvaluationJob = TopLevelModuleEvaluationJob;
-    class ScriptEvaluationJob extends job_1.Job {
+    class ScriptEvaluationJob extends job_js_1.Job {
         constructor(realm, mos) {
             super(realm.logger.scopeTo('ScriptEvaluationJob'), realm, mos);
         }

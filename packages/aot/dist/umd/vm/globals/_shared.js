@@ -4,13 +4,13 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "../types/function"], factory);
+        define(["require", "exports", "../types/function.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.$GetSpecies = exports.$ValueRecord = void 0;
-    const function_1 = require("../types/function");
+    const function_js_1 = require("../types/function.js");
     class $ValueRecord {
         constructor(value) {
             this['[[Value]]'] = value;
@@ -25,7 +25,7 @@
     // http://www.ecma-international.org/ecma-262/#sec-get-arraybuffer-@@species
     // http://www.ecma-international.org/ecma-262/#sec-sharedarraybuffer-@@species
     // http://www.ecma-international.org/ecma-262/#sec-get-promise-@@species
-    class $GetSpecies extends function_1.$BuiltinFunction {
+    class $GetSpecies extends function_js_1.$BuiltinFunction {
         constructor(realm) {
             const intrinsics = realm['[[Intrinsics]]'];
             super(realm, 'get [@@species]', intrinsics['%FunctionPrototype%']);

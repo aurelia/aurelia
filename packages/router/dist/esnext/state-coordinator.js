@@ -1,4 +1,4 @@
-import { OpenPromise } from './open-promise';
+import { OpenPromise } from './open-promise.js';
 export class Entity {
     constructor(entity) {
         this.entity = entity;

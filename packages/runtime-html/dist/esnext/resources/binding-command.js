@@ -6,8 +6,8 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 };
 import { camelCase, Registration, mergeArrays, Protocol, firstDefined, Metadata } from '@aurelia/kernel';
 import { BindingMode, DelegationStrategy, registerAliases } from '@aurelia/runtime';
-import { AttributeBindingInstruction, PropertyBindingInstruction, CallBindingInstruction, IteratorBindingInstruction, RefBindingInstruction, ListenerBindingInstruction, } from '../renderer';
-import { BindingSymbol } from '../semantic-model';
+import { AttributeBindingInstruction, PropertyBindingInstruction, CallBindingInstruction, IteratorBindingInstruction, RefBindingInstruction, ListenerBindingInstruction, } from '../renderer.js';
+import { BindingSymbol } from '../semantic-model.js';
 export function bindingCommand(nameOrDefinition) {
     return function (target) {
         return BindingCommand.define(nameOrDefinition, target);

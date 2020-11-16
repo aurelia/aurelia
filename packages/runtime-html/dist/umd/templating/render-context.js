@@ -4,20 +4,20 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "../dom", "../renderer", "../resources/custom-element", "./view", "../resources/custom-elements/au-slot", "../platform", "./controller"], factory);
+        define(["require", "exports", "@aurelia/kernel", "../dom.js", "../renderer.js", "../resources/custom-element.js", "./view.js", "../resources/custom-elements/au-slot.js", "../platform.js", "./controller.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ViewFactoryProvider = exports.RenderContext = exports.getRenderContext = exports.isRenderContext = void 0;
     const kernel_1 = require("@aurelia/kernel");
-    const dom_1 = require("../dom");
-    const renderer_1 = require("../renderer");
-    const custom_element_1 = require("../resources/custom-element");
-    const view_1 = require("./view");
-    const au_slot_1 = require("../resources/custom-elements/au-slot");
-    const platform_1 = require("../platform");
-    const controller_1 = require("./controller");
+    const dom_js_1 = require("../dom.js");
+    const renderer_js_1 = require("../renderer.js");
+    const custom_element_js_1 = require("../resources/custom-element.js");
+    const view_js_1 = require("./view.js");
+    const au_slot_js_1 = require("../resources/custom-elements/au-slot.js");
+    const platform_js_1 = require("../platform.js");
+    const controller_js_1 = require("./controller.js");
     const definitionContainerLookup = new WeakMap();
     const definitionContainerProjectionsLookup = new WeakMap();
     const fragmentCache = new WeakMap();
@@ -26,7 +26,7 @@
     }
     exports.isRenderContext = isRenderContext;
     function getRenderContext(partialDefinition, parentContainer, projections) {
-        const definition = custom_element_1.CustomElementDefinition.getOrCreate(partialDefinition);
+        const definition = custom_element_js_1.CustomElementDefinition.getOrCreate(partialDefinition);
         // injectable completely prevents caching, ensuring that each instance gets a new context context
         if (definition.injectable !== null) {
             return new RenderContext(definition, parentContainer);
@@ -70,19 +70,19 @@
             this.compiledDefinition = (void 0);
             const container = this.container = parentContainer.createChild();
             // TODO(fkleuver): get contextual + root renderers
-            const renderers = container.getAll(renderer_1.IRenderer);
+            const renderers = container.getAll(renderer_js_1.IRenderer);
             for (let i = 0; i < renderers.length; ++i) {
                 const renderer = renderers[i];
                 this.renderers[renderer.instructionType] = renderer;
             }
-            this.projectionProvider = container.get(au_slot_1.IProjectionProvider);
-            const p = this.platform = container.get(platform_1.IPlatform);
-            container.registerResolver(view_1.IViewFactory, this.factoryProvider = new ViewFactoryProvider(), true);
-            container.registerResolver(controller_1.IController, this.parentControllerProvider = new kernel_1.InstanceProvider('IController'), true);
-            container.registerResolver(renderer_1.IInstruction, this.instructionProvider = new kernel_1.InstanceProvider('IInstruction'), true);
-            container.registerResolver(dom_1.IRenderLocation, this.renderLocationProvider = new kernel_1.InstanceProvider('IRenderLocation'), true);
+            this.projectionProvider = container.get(au_slot_js_1.IProjectionProvider);
+            const p = this.platform = container.get(platform_js_1.IPlatform);
+            container.registerResolver(view_js_1.IViewFactory, this.factoryProvider = new ViewFactoryProvider(), true);
+            container.registerResolver(controller_js_1.IController, this.parentControllerProvider = new kernel_1.InstanceProvider('IController'), true);
+            container.registerResolver(renderer_js_1.IInstruction, this.instructionProvider = new kernel_1.InstanceProvider('IInstruction'), true);
+            container.registerResolver(dom_js_1.IRenderLocation, this.renderLocationProvider = new kernel_1.InstanceProvider('IRenderLocation'), true);
             const ep = this.elementProvider = new kernel_1.InstanceProvider('ElementResolver');
-            container.registerResolver(dom_1.INode, ep);
+            container.registerResolver(dom_js_1.INode, ep);
             container.registerResolver(p.Node, ep);
             container.registerResolver(p.Element, ep);
             container.registerResolver(p.HTMLElement, ep);
@@ -144,7 +144,7 @@
             const definition = this.definition;
             if (definition.needsCompile) {
                 const container = this.container;
-                const compiler = container.get(renderer_1.ITemplateCompiler);
+                const compiler = container.get(renderer_js_1.ITemplateCompiler);
                 compiledDefinition = this.compiledDefinition = compiler.compile(definition, container, targetedProjections);
             }
             else {
@@ -187,7 +187,7 @@
                 if (name === void 0) {
                     name = this.definition.name;
                 }
-                factory = this.factory = new view_1.ViewFactory(name, this, contentType, projectionScope);
+                factory = this.factory = new view_js_1.ViewFactory(name, this, contentType, projectionScope);
             }
             return factory;
         }
@@ -205,16 +205,16 @@
         // #region ICompiledRenderContext api
         createNodes() {
             if (this.compiledDefinition.enhance === true) {
-                return new dom_1.FragmentNodeSequence(this.platform, this.compiledDefinition.template);
+                return new dom_js_1.FragmentNodeSequence(this.platform, this.compiledDefinition.template);
             }
             if (this.fragment === null) {
                 let emptyNodes = emptyNodeCache.get(this.platform);
                 if (emptyNodes === void 0) {
-                    emptyNodeCache.set(this.platform, emptyNodes = new dom_1.FragmentNodeSequence(this.platform, this.platform.document.createDocumentFragment()));
+                    emptyNodeCache.set(this.platform, emptyNodes = new dom_js_1.FragmentNodeSequence(this.platform, this.platform.document.createDocumentFragment()));
                 }
                 return emptyNodes;
             }
-            return new dom_1.FragmentNodeSequence(this.platform, this.fragment.cloneNode(true));
+            return new dom_js_1.FragmentNodeSequence(this.platform, this.fragment.cloneNode(true));
         }
         // TODO: split up into 2 methods? getComponentFactory + getSyntheticFactory or something
         getComponentFactory(parentController, host, instruction, viewFactory, location) {

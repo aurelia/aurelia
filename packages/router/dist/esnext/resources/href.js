@@ -11,8 +11,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 import { customAttribute, INode, bindable, BindingMode } from '@aurelia/runtime-html';
-import { IRouter } from '../router';
-import { GotoCustomAttribute } from '../configuration';
+import { IRouter } from '../router.js';
+import { GotoCustomAttribute } from '../configuration.js';
 let HrefCustomAttribute = class HrefCustomAttribute {
     constructor(element, router) {
         this.router = router;

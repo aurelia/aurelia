@@ -1,7 +1,7 @@
 /// <reference types="node" />
 import { Dirent, Stats } from 'fs';
 import { ILogger } from '@aurelia/kernel';
-import { FileKind, IFileSystem, IFile, Encoding } from './interfaces';
+import { FileKind, IFileSystem, IFile, Encoding } from './interfaces.js';
 export declare class File implements IFile {
     private readonly fs;
     /**

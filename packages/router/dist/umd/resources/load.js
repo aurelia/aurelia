@@ -16,15 +16,15 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/runtime-html", "../router", "../type-resolvers"], factory);
+        define(["require", "exports", "@aurelia/runtime-html", "../router.js", "../type-resolvers.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.LoadCustomAttribute = void 0;
     const runtime_html_1 = require("@aurelia/runtime-html");
-    const router_1 = require("../router");
-    const type_resolvers_1 = require("../type-resolvers");
+    const router_js_1 = require("../router.js");
+    const type_resolvers_js_1 = require("../type-resolvers.js");
     let LoadCustomAttribute = class LoadCustomAttribute {
         constructor(element, router) {
             this.router = router;
@@ -58,8 +58,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
         handleChange() {
             const controller = runtime_html_1.CustomAttribute.for(this.element, 'load').parent;
-            const created = type_resolvers_1.NavigationInstructionResolver.createViewportInstructions(this.router, this.value, { context: controller });
-            const instructions = type_resolvers_1.NavigationInstructionResolver.toViewportInstructions(this.router, created.instructions);
+            const created = type_resolvers_js_1.NavigationInstructionResolver.createViewportInstructions(this.router, this.value, { context: controller });
+            const instructions = type_resolvers_js_1.NavigationInstructionResolver.toViewportInstructions(this.router, created.instructions);
             for (const instruction of instructions) {
                 if (instruction.scope === null) {
                     instruction.scope = created.scope;
@@ -81,7 +81,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     LoadCustomAttribute = __decorate([
         runtime_html_1.customAttribute('load'),
         __param(0, runtime_html_1.INode),
-        __param(1, router_1.IRouter),
+        __param(1, router_js_1.IRouter),
         __metadata("design:paramtypes", [Object, Object])
     ], LoadCustomAttribute);
     exports.LoadCustomAttribute = LoadCustomAttribute;

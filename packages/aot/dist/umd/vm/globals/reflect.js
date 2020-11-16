@@ -4,22 +4,22 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "../types/function", "../types/error", "../types/object", "../operations", "../exotics/array"], factory);
+        define(["require", "exports", "../types/function.js", "../types/error.js", "../types/object.js", "../operations.js", "../exotics/array.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.$Reflect_setPrototypeOf = exports.$Reflect_set = exports.$Reflect_preventExtensions = exports.$Reflect_ownKeys = exports.$Reflect_isExtensible = exports.$Reflect_has = exports.$Reflect_getPrototypeOf = exports.$Reflect_getOwnPropertyDescriptor = exports.$Reflect_get = exports.$Reflect_deleteProperty = exports.$Reflect_defineProperty = exports.$Reflect_construct = exports.$Reflect_apply = exports.$Reflect = void 0;
-    const function_1 = require("../types/function");
-    const error_1 = require("../types/error");
-    const object_1 = require("../types/object");
-    const operations_1 = require("../operations");
-    const array_1 = require("../exotics/array");
+    const function_js_1 = require("../types/function.js");
+    const error_js_1 = require("../types/error.js");
+    const object_js_1 = require("../types/object.js");
+    const operations_js_1 = require("../operations.js");
+    const array_js_1 = require("../exotics/array.js");
     // http://www.ecma-international.org/ecma-262/#sec-reflection
     // 26 Reflection
     // http://www.ecma-international.org/ecma-262/#sec-reflect-object
     // 26.1 The Reflect Object
-    class $Reflect extends object_1.$Object {
+    class $Reflect extends object_js_1.$Object {
         // http://www.ecma-international.org/ecma-262/#sec-reflect.apply
         // 26.1.1 Reflect.apply ( target , thisArgument , argumentsList )
         get $apply() {
@@ -131,7 +131,7 @@
     exports.$Reflect = $Reflect;
     // http://www.ecma-international.org/ecma-262/#sec-reflect.apply
     // 26.1.1 Reflect.apply ( target , thisArgument , argumentsList )
-    class $Reflect_apply extends function_1.$BuiltinFunction {
+    class $Reflect_apply extends function_js_1.$BuiltinFunction {
         constructor(realm, proto) {
             super(realm, 'Reflect.apply', proto);
         }
@@ -149,10 +149,10 @@
             }
             // 1. If IsCallable(target) is false, throw a TypeError exception.
             if (!target.isFunction) {
-                return new error_1.$TypeError(realm, `Expected target to be a function, but got: ${target}`);
+                return new error_js_1.$TypeError(realm, `Expected target to be a function, but got: ${target}`);
             }
             // 2. Let args be ? CreateListFromArrayLike(argumentsList).
-            const args = operations_1.$CreateListFromArrayLike(ctx, argumentsList);
+            const args = operations_js_1.$CreateListFromArrayLike(ctx, argumentsList);
             if (args.isAbrupt) {
                 return args;
             }
@@ -160,13 +160,13 @@
             ctx.suspend();
             realm.stack.pop();
             // 4. Return ? Call(target, thisArgument, args).
-            return operations_1.$Call(ctx, target, thisArgument, args); // TODO: is this cast safe?
+            return operations_js_1.$Call(ctx, target, thisArgument, args); // TODO: is this cast safe?
         }
     }
     exports.$Reflect_apply = $Reflect_apply;
     // http://www.ecma-international.org/ecma-262/#sec-reflect.construct
     // 26.1.2 Reflect.construct ( target , argumentsList [ , newTarget ] )
-    class $Reflect_construct extends function_1.$BuiltinFunction {
+    class $Reflect_construct extends function_js_1.$BuiltinFunction {
         constructor(realm, proto) {
             super(realm, 'Reflect.construct', proto);
         }
@@ -181,7 +181,7 @@
             }
             // 1. If IsConstructor(target) is false, throw a TypeError exception.
             if (!target.isFunction) {
-                return new error_1.$TypeError(realm, `Expected target to be a constructor function, but got: ${target}`);
+                return new error_js_1.$TypeError(realm, `Expected target to be a constructor function, but got: ${target}`);
             }
             // 2. If newTarget is not present, set newTarget to target.
             if (newTarget === void 0) {
@@ -189,21 +189,21 @@
             }
             // 3. Else if IsConstructor(newTarget) is false, throw a TypeError exception.
             else if (!newTarget.isFunction) {
-                return new error_1.$TypeError(realm, `Expected newTarget to be a constructor function, but got: ${newTarget}`);
+                return new error_js_1.$TypeError(realm, `Expected newTarget to be a constructor function, but got: ${newTarget}`);
             }
             // 4. Let args be ? CreateListFromArrayLike(argumentsList).
-            const args = operations_1.$CreateListFromArrayLike(ctx, argumentsList);
+            const args = operations_js_1.$CreateListFromArrayLike(ctx, argumentsList);
             if (args.isAbrupt) {
                 return args;
             }
             // 5. Return ? Construct(target, args, newTarget).
-            return operations_1.$Construct(ctx, target, args, newTarget);
+            return operations_js_1.$Construct(ctx, target, args, newTarget);
         }
     }
     exports.$Reflect_construct = $Reflect_construct;
     // http://www.ecma-international.org/ecma-262/#sec-reflect.defineproperty
     // 26.1.3 Reflect.defineProperty ( target , propertyKey , attributes )
-    class $Reflect_defineProperty extends function_1.$BuiltinFunction {
+    class $Reflect_defineProperty extends function_js_1.$BuiltinFunction {
         constructor(realm, proto) {
             super(realm, 'Reflect.defineProperty', proto);
         }
@@ -221,7 +221,7 @@
             }
             // 1. If Type(target) is not Object, throw a TypeError exception.
             if (!target.isObject) {
-                return new error_1.$TypeError(realm, `Expected target to be an object, but got: ${target}`);
+                return new error_js_1.$TypeError(realm, `Expected target to be an object, but got: ${target}`);
             }
             // 2. Let key be ? ToPropertyKey(propertyKey).
             const key = propertyKey.ToPropertyKey(ctx);
@@ -229,7 +229,7 @@
                 return key;
             }
             // 3. Let desc be ? ToPropertyDescriptor(attributes).
-            const desc = operations_1.$ToPropertyDescriptor(ctx, attributes, key);
+            const desc = operations_js_1.$ToPropertyDescriptor(ctx, attributes, key);
             if (desc.isAbrupt) {
                 return desc;
             }
@@ -240,7 +240,7 @@
     exports.$Reflect_defineProperty = $Reflect_defineProperty;
     // http://www.ecma-international.org/ecma-262/#sec-reflect.deleteproperty
     // 26.1.4 Reflect.deleteProperty ( target , propertyKey )
-    class $Reflect_deleteProperty extends function_1.$BuiltinFunction {
+    class $Reflect_deleteProperty extends function_js_1.$BuiltinFunction {
         constructor(realm, proto) {
             super(realm, 'Reflect.deleteProperty', proto);
         }
@@ -255,7 +255,7 @@
             }
             // 1. If Type(target) is not Object, throw a TypeError exception.
             if (!target.isObject) {
-                return new error_1.$TypeError(realm, `Expected target to be an object, but got: ${target}`);
+                return new error_js_1.$TypeError(realm, `Expected target to be an object, but got: ${target}`);
             }
             // 2. Let key be ? ToPropertyKey(propertyKey).
             const key = propertyKey.ToPropertyKey(ctx);
@@ -269,7 +269,7 @@
     exports.$Reflect_deleteProperty = $Reflect_deleteProperty;
     // http://www.ecma-international.org/ecma-262/#sec-reflect.get
     // 26.1.5 Reflect.get ( target , propertyKey [ , receiver ] )
-    class $Reflect_get extends function_1.$BuiltinFunction {
+    class $Reflect_get extends function_js_1.$BuiltinFunction {
         constructor(realm, proto) {
             super(realm, 'Reflect.get', proto);
         }
@@ -284,7 +284,7 @@
             }
             // 1. If Type(target) is not Object, throw a TypeError exception.
             if (!target.isObject) {
-                return new error_1.$TypeError(realm, `Expected target to be an object, but got: ${target}`);
+                return new error_js_1.$TypeError(realm, `Expected target to be an object, but got: ${target}`);
             }
             // 2. Let key be ? ToPropertyKey(propertyKey).
             const key = propertyKey.ToPropertyKey(ctx);
@@ -303,7 +303,7 @@
     exports.$Reflect_get = $Reflect_get;
     // http://www.ecma-international.org/ecma-262/#sec-reflect.getownpropertydescriptor
     // 26.1.6 Reflect.getOwnPropertyDescriptor ( target , propertyKey )
-    class $Reflect_getOwnPropertyDescriptor extends function_1.$BuiltinFunction {
+    class $Reflect_getOwnPropertyDescriptor extends function_js_1.$BuiltinFunction {
         constructor(realm, proto) {
             super(realm, 'Reflect.getOwnPropertyDescriptor', proto);
         }
@@ -318,7 +318,7 @@
             }
             // 1. If Type(target) is not Object, throw a TypeError exception.
             if (!target.isObject) {
-                return new error_1.$TypeError(realm, `Expected target to be an object, but got: ${target}`);
+                return new error_js_1.$TypeError(realm, `Expected target to be an object, but got: ${target}`);
             }
             // 2. Let key be ? ToPropertyKey(propertyKey).
             const key = propertyKey.ToPropertyKey(ctx);
@@ -331,13 +331,13 @@
                 return desc;
             }
             // 4. Return FromPropertyDescriptor(desc).
-            return operations_1.$FromPropertyDescriptor(ctx, desc);
+            return operations_js_1.$FromPropertyDescriptor(ctx, desc);
         }
     }
     exports.$Reflect_getOwnPropertyDescriptor = $Reflect_getOwnPropertyDescriptor;
     // http://www.ecma-international.org/ecma-262/#sec-reflect.getprototypeof
     // 26.1.7 Reflect.getPrototypeOf ( target )
-    class $Reflect_getPrototypeOf extends function_1.$BuiltinFunction {
+    class $Reflect_getPrototypeOf extends function_js_1.$BuiltinFunction {
         constructor(realm, proto) {
             super(realm, 'Reflect.getPrototypeOf', proto);
         }
@@ -349,7 +349,7 @@
             }
             // 1. If Type(target) is not Object, throw a TypeError exception.
             if (!target.isObject) {
-                return new error_1.$TypeError(realm, `Expected target to be an object, but got: ${target}`);
+                return new error_js_1.$TypeError(realm, `Expected target to be an object, but got: ${target}`);
             }
             // 2. Return ? target.[[GetPrototypeOf]]().
             return target['[[GetPrototypeOf]]'](ctx);
@@ -358,7 +358,7 @@
     exports.$Reflect_getPrototypeOf = $Reflect_getPrototypeOf;
     // http://www.ecma-international.org/ecma-262/#sec-reflect.has
     // 26.1.8 Reflect.has ( target , propertyKey )
-    class $Reflect_has extends function_1.$BuiltinFunction {
+    class $Reflect_has extends function_js_1.$BuiltinFunction {
         constructor(realm, proto) {
             super(realm, 'Reflect.has', proto);
         }
@@ -373,7 +373,7 @@
             }
             // 1. If Type(target) is not Object, throw a TypeError exception.
             if (!target.isObject) {
-                return new error_1.$TypeError(realm, `Expected target to be an object, but got: ${target}`);
+                return new error_js_1.$TypeError(realm, `Expected target to be an object, but got: ${target}`);
             }
             // 2. Let key be ? ToPropertyKey(propertyKey).
             const key = propertyKey.ToPropertyKey(ctx);
@@ -387,7 +387,7 @@
     exports.$Reflect_has = $Reflect_has;
     // http://www.ecma-international.org/ecma-262/#sec-reflect.isextensible
     // 26.1.9 Reflect.isExtensible ( target )
-    class $Reflect_isExtensible extends function_1.$BuiltinFunction {
+    class $Reflect_isExtensible extends function_js_1.$BuiltinFunction {
         constructor(realm, proto) {
             super(realm, 'Reflect.isExtensible', proto);
         }
@@ -399,7 +399,7 @@
             }
             // 1. If Type(target) is not Object, throw a TypeError exception.
             if (!target.isObject) {
-                return new error_1.$TypeError(realm, `Expected target to be an object, but got: ${target}`);
+                return new error_js_1.$TypeError(realm, `Expected target to be an object, but got: ${target}`);
             }
             // 2. Return ? target.[[IsExtensible]]().
             return target['[[IsExtensible]]'](ctx);
@@ -408,7 +408,7 @@
     exports.$Reflect_isExtensible = $Reflect_isExtensible;
     // http://www.ecma-international.org/ecma-262/#sec-reflect.ownkeys
     // 26.1.10 Reflect.ownKeys ( target )
-    class $Reflect_ownKeys extends function_1.$BuiltinFunction {
+    class $Reflect_ownKeys extends function_js_1.$BuiltinFunction {
         constructor(realm, proto) {
             super(realm, 'Reflect.ownKeys', proto);
         }
@@ -420,7 +420,7 @@
             }
             // 1. If Type(target) is not Object, throw a TypeError exception.
             if (!target.isObject) {
-                return new error_1.$TypeError(realm, `Expected target to be an object, but got: ${target}`);
+                return new error_js_1.$TypeError(realm, `Expected target to be an object, but got: ${target}`);
             }
             // 2. Let keys be ? target.[[OwnPropertyKeys]]().
             const keys = target['[[OwnPropertyKeys]]'](ctx);
@@ -428,13 +428,13 @@
                 return keys;
             }
             // 3. Return CreateArrayFromList(keys).
-            return array_1.$CreateArrayFromList(ctx, keys);
+            return array_js_1.$CreateArrayFromList(ctx, keys);
         }
     }
     exports.$Reflect_ownKeys = $Reflect_ownKeys;
     // http://www.ecma-international.org/ecma-262/#sec-reflect.preventextensions
     // 26.1.11 Reflect.preventExtensions ( target )
-    class $Reflect_preventExtensions extends function_1.$BuiltinFunction {
+    class $Reflect_preventExtensions extends function_js_1.$BuiltinFunction {
         constructor(realm, proto) {
             super(realm, 'Reflect.preventExtensions', proto);
         }
@@ -446,7 +446,7 @@
             }
             // 1. If Type(target) is not Object, throw a TypeError exception.
             if (!target.isObject) {
-                return new error_1.$TypeError(realm, `Expected target to be an object, but got: ${target}`);
+                return new error_js_1.$TypeError(realm, `Expected target to be an object, but got: ${target}`);
             }
             // 2. Return ? target.[[PreventExtensions]]().
             return target['[[PreventExtensions]]'](ctx);
@@ -455,7 +455,7 @@
     exports.$Reflect_preventExtensions = $Reflect_preventExtensions;
     // http://www.ecma-international.org/ecma-262/#sec-reflect.set
     // 26.1.12 Reflect.set ( target , propertyKey , V [ , receiver ] )
-    class $Reflect_set extends function_1.$BuiltinFunction {
+    class $Reflect_set extends function_js_1.$BuiltinFunction {
         constructor(realm, proto) {
             super(realm, 'Reflect.set', proto);
         }
@@ -473,7 +473,7 @@
             }
             // 1. If Type(target) is not Object, throw a TypeError exception.
             if (!target.isObject) {
-                return new error_1.$TypeError(realm, `Expected target to be an object, but got: ${target}`);
+                return new error_js_1.$TypeError(realm, `Expected target to be an object, but got: ${target}`);
             }
             // 2. Let key be ? ToPropertyKey(propertyKey).
             const key = propertyKey.ToPropertyKey(ctx);
@@ -492,7 +492,7 @@
     exports.$Reflect_set = $Reflect_set;
     // http://www.ecma-international.org/ecma-262/#sec-reflect.setprototypeof
     // 26.1.13 Reflect.setPrototypeOf ( target , proto )
-    class $Reflect_setPrototypeOf extends function_1.$BuiltinFunction {
+    class $Reflect_setPrototypeOf extends function_js_1.$BuiltinFunction {
         constructor(realm, proto) {
             super(realm, 'Reflect.setPrototypeOf', proto);
         }
@@ -507,11 +507,11 @@
             }
             // 1. If Type(target) is not Object, throw a TypeError exception.
             if (!target.isObject) {
-                return new error_1.$TypeError(realm, `Expected target to be an object, but got: ${target}`);
+                return new error_js_1.$TypeError(realm, `Expected target to be an object, but got: ${target}`);
             }
             // 2. If Type(proto) is not Object and proto is not null, throw a TypeError exception.
             if (!proto.isObject && !proto.isNull) {
-                return new error_1.$TypeError(realm, `Expected proto to be an object or null, but got: ${proto}`);
+                return new error_js_1.$TypeError(realm, `Expected proto to be an object or null, but got: ${proto}`);
             }
             // 3. Return ? target.[[SetPrototypeOf]](proto).
             return target['[[SetPrototypeOf]]'](ctx, proto);

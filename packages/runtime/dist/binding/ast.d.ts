@@ -1,7 +1,7 @@
 import { IServiceLocator, ResourceDefinition } from '@aurelia/kernel';
-import { LifecycleFlags as LF, Collection, IBindingContext, IOverrideContext, ObservedCollection, IConnectable } from '../observation';
-import { IConnectableBinding } from './connectable';
-import type { Scope } from '../observation/binding-context';
+import { LifecycleFlags as LF, Collection, IBindingContext, IOverrideContext, ObservedCollection, IConnectable } from '../observation.js';
+import { IConnectableBinding } from './connectable.js';
+import type { Scope } from '../observation/binding-context.js';
 export declare const enum ExpressionKind {
     Connects = 32,
     Observes = 64,

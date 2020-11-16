@@ -1,9 +1,9 @@
 import { Controller } from '@aurelia/runtime-html';
-import { parseQuery } from './parser';
-import { ViewportInstruction } from './viewport-instruction';
-import { Navigation } from './navigation';
-import { Runner } from './runner';
-import { AwaitableMap } from './awaitable-map';
+import { parseQuery } from './parser.js';
+import { ViewportInstruction } from './viewport-instruction.js';
+import { Navigation } from './navigation.js';
+import { Runner } from './runner.js';
+import { AwaitableMap } from './awaitable-map.js';
 /**
  * @internal - Shouldn't be used directly
  */

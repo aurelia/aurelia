@@ -10,20 +10,20 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./open-promise"], factory);
+        define(["require", "exports", "./open-promise.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.AwaitableMap = void 0;
-    const open_promise_1 = require("./open-promise");
+    const open_promise_js_1 = require("./open-promise.js");
     class AwaitableMap {
         constructor() {
             this.map = new Map();
         }
         set(key, value) {
             const openPromise = this.map.get(key);
-            if (openPromise instanceof open_promise_1.OpenPromise) {
+            if (openPromise instanceof open_promise_js_1.OpenPromise) {
                 openPromise.resolve(value);
                 // openPromise.isPending = false;
             }
@@ -31,7 +31,7 @@
         }
         delete(key) {
             const current = this.map.get(key);
-            if (current instanceof open_promise_1.OpenPromise) {
+            if (current instanceof open_promise_js_1.OpenPromise) {
                 current.reject();
                 // current.isPending = false;
             }
@@ -39,7 +39,7 @@
         }
         await(key) {
             if (!this.map.has(key)) {
-                const openPromise = new open_promise_1.OpenPromise();
+                const openPromise = new open_promise_js_1.OpenPromise();
                 // openPromise.promise = new Promise((res, rej) => {
                 //   openPromise.resolve = res;
                 //   openPromise.reject = rej;
@@ -48,13 +48,13 @@
                 return openPromise.promise;
             }
             const current = this.map.get(key);
-            if (current instanceof open_promise_1.OpenPromise) {
+            if (current instanceof open_promise_js_1.OpenPromise) {
                 return current.promise;
             }
             return current;
         }
         has(key) {
-            return this.map.has(key) && !(this.map.get(key) instanceof open_promise_1.OpenPromise);
+            return this.map.has(key) && !(this.map.get(key) instanceof open_promise_js_1.OpenPromise);
         }
         clone() {
             const clone = new AwaitableMap();

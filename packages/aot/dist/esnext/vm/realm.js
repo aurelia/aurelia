@@ -1,11 +1,11 @@
 import { ILogger, } from '@aurelia/kernel';
-import { Intrinsics, } from './intrinsics';
-import { $GlobalEnvRec, } from './types/environment-record';
-import { $PropertyDescriptor, } from './types/property-descriptor';
-import { $DefinePropertyOrThrow, } from './operations';
-import { $String, } from './types/string';
-import { $Object, } from './types/object';
-import { $Reference, } from './types/reference';
+import { Intrinsics, } from './intrinsics.js';
+import { $GlobalEnvRec, } from './types/environment-record.js';
+import { $PropertyDescriptor, } from './types/property-descriptor.js';
+import { $DefinePropertyOrThrow, } from './operations.js';
+import { $String, } from './types/string.js';
+import { $Object, } from './types/object.js';
+import { $Reference, } from './types/reference.js';
 export class ResolveSet {
     constructor() {
         this.modules = [];

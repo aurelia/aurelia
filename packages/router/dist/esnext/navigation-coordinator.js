@@ -1,4 +1,4 @@
-import { StateCoordinator } from './state-coordinator';
+import { StateCoordinator } from './state-coordinator.js';
 export class NavigationCoordinatorOptions {
     constructor(input) {
         var _a;

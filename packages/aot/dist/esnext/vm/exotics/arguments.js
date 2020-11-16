@@ -1,10 +1,10 @@
-import { $Object, } from '../types/object';
-import { $BuiltinFunction, } from '../types/function';
-import { $CreateDataProperty, $DefinePropertyOrThrow, $HasOwnProperty, $Set, } from '../operations';
-import { $String, } from '../types/string';
-import { $PropertyDescriptor, $IsDataDescriptor, } from '../types/property-descriptor';
-import { $Number, } from '../types/number';
-import { getBoundNames, } from '../ast/_shared';
+import { $Object, } from '../types/object.js';
+import { $BuiltinFunction, } from '../types/function.js';
+import { $CreateDataProperty, $DefinePropertyOrThrow, $HasOwnProperty, $Set, } from '../operations.js';
+import { $String, } from '../types/string.js';
+import { $PropertyDescriptor, $IsDataDescriptor, } from '../types/property-descriptor.js';
+import { $Number, } from '../types/number.js';
+import { getBoundNames, } from '../ast/_shared.js';
 // http://www.ecma-international.org/ecma-262/#sec-arguments-exotic-objects
 export class $ArgumentsExoticObject extends $Object {
     // http://www.ecma-international.org/ecma-262/#sec-createmappedargumentsobject

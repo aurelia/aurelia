@@ -1,8 +1,8 @@
 import { IObserverLocator, LifecycleFlags, PropertyBinding } from '@aurelia/runtime';
-import { CheckedObserver } from '../../observation/checked-observer';
-import { EventSubscriber } from '../../observation/event-delegator';
-import { SelectValueObserver } from '../../observation/select-value-observer';
-import { ValueAttributeObserver } from '../../observation/value-attribute-observer';
+import { CheckedObserver } from '../../observation/checked-observer.js';
+import { EventSubscriber } from '../../observation/event-delegator.js';
+import { SelectValueObserver } from '../../observation/select-value-observer.js';
+import { ValueAttributeObserver } from '../../observation/value-attribute-observer.js';
 import type { Scope } from '@aurelia/runtime';
 export declare type UpdateTriggerableObserver = ((ValueAttributeObserver & Required<ValueAttributeObserver>) | (CheckedObserver & Required<CheckedObserver>) | (SelectValueObserver & Required<SelectValueObserver>)) & {
     originalHandler?: EventSubscriber;

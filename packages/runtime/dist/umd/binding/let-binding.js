@@ -13,16 +13,16 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "../observation", "../observation/observer-locator", "./connectable"], factory);
+        define(["require", "exports", "@aurelia/kernel", "../observation.js", "../observation/observer-locator.js", "./connectable.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.LetBinding = void 0;
     const kernel_1 = require("@aurelia/kernel");
-    const observation_1 = require("../observation");
-    const observer_locator_1 = require("../observation/observer-locator");
-    const connectable_1 = require("./connectable");
+    const observation_js_1 = require("../observation.js");
+    const observer_locator_js_1 = require("../observation/observer-locator.js");
+    const connectable_js_1 = require("./connectable.js");
     let LetBinding = class LetBinding {
         constructor(sourceExpression, targetProperty, observerLocator, locator, toBindingContext = false) {
             this.sourceExpression = sourceExpression;
@@ -36,8 +36,8 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             this.$hostScope = null;
             this.task = null;
             this.target = null;
-            connectable_1.connectable.assignIdTo(this);
-            this.$lifecycle = locator.get(observation_1.ILifecycle);
+            connectable_js_1.connectable.assignIdTo(this);
+            this.$lifecycle = locator.get(observation_js_1.ILifecycle);
         }
         handleChange(_newValue, _previousValue, flags) {
             if (!this.isBound) {
@@ -91,7 +91,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         }
     };
     LetBinding = __decorate([
-        connectable_1.connectable(),
+        connectable_js_1.connectable(),
         __metadata("design:paramtypes", [Object, String, Object, Object, Boolean])
     ], LetBinding);
     exports.LetBinding = LetBinding;

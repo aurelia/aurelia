@@ -1,4 +1,4 @@
-import { $BuiltinFunction, } from '../types/function';
+import { $BuiltinFunction, } from '../types/function.js';
 // http://www.ecma-international.org/ecma-262/#sec-uri-handling-functions
 // 18.2.6 URI Handling Functions
 // http://www.ecma-international.org/ecma-262/#sec-uri-syntax-and-semantics

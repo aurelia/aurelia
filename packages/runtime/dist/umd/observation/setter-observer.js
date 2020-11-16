@@ -13,13 +13,13 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./subscriber-collection"], factory);
+        define(["require", "exports", "./subscriber-collection.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.SetterNotifier = exports.SetterObserver = void 0;
-    const subscriber_collection_1 = require("./subscriber-collection");
+    const subscriber_collection_js_1 = require("./subscriber-collection.js");
     const $is = Object.is;
     /**
      * Observer for the mutation of object property value employing getter-setter strategy.
@@ -101,7 +101,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         }
     };
     SetterObserver = __decorate([
-        subscriber_collection_1.subscriberCollection(),
+        subscriber_collection_js_1.subscriberCollection(),
         __metadata("design:paramtypes", [Object, String])
     ], SetterObserver);
     exports.SetterObserver = SetterObserver;
@@ -133,7 +133,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         }
     };
     SetterNotifier = __decorate([
-        subscriber_collection_1.subscriberCollection(),
+        subscriber_collection_js_1.subscriberCollection(),
         __metadata("design:paramtypes", [Function])
     ], SetterNotifier);
     exports.SetterNotifier = SetterNotifier;

@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime-html", "./df/date-format-binding-behavior", "./df/date-format-value-converter", "./i18n", "./i18n-configuration-options", "./i18next-wrapper", "./nf/number-format-binding-behavior", "./nf/number-format-value-converter", "./rt/relative-time-binding-behavior", "./rt/relative-time-value-converter", "./t/translation-binding-behavior", "./t/translation-parameters-renderer", "./t/translation-renderer", "./t/translation-value-converter"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime-html", "./df/date-format-binding-behavior.js", "./df/date-format-value-converter.js", "./i18n.js", "./i18n-configuration-options.js", "./i18next-wrapper.js", "./nf/number-format-binding-behavior.js", "./nf/number-format-value-converter.js", "./rt/relative-time-binding-behavior.js", "./rt/relative-time-value-converter.js", "./t/translation-binding-behavior.js", "./t/translation-parameters-renderer.js", "./t/translation-renderer.js", "./t/translation-value-converter.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -12,22 +12,22 @@
     exports.I18nConfiguration = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const runtime_html_1 = require("@aurelia/runtime-html");
-    const date_format_binding_behavior_1 = require("./df/date-format-binding-behavior");
-    const date_format_value_converter_1 = require("./df/date-format-value-converter");
-    const i18n_1 = require("./i18n");
-    const i18n_configuration_options_1 = require("./i18n-configuration-options");
-    const i18next_wrapper_1 = require("./i18next-wrapper");
-    const number_format_binding_behavior_1 = require("./nf/number-format-binding-behavior");
-    const number_format_value_converter_1 = require("./nf/number-format-value-converter");
-    const relative_time_binding_behavior_1 = require("./rt/relative-time-binding-behavior");
-    const relative_time_value_converter_1 = require("./rt/relative-time-value-converter");
-    const translation_binding_behavior_1 = require("./t/translation-binding-behavior");
-    const translation_parameters_renderer_1 = require("./t/translation-parameters-renderer");
-    const translation_renderer_1 = require("./t/translation-renderer");
-    const translation_value_converter_1 = require("./t/translation-value-converter");
+    const date_format_binding_behavior_js_1 = require("./df/date-format-binding-behavior.js");
+    const date_format_value_converter_js_1 = require("./df/date-format-value-converter.js");
+    const i18n_js_1 = require("./i18n.js");
+    const i18n_configuration_options_js_1 = require("./i18n-configuration-options.js");
+    const i18next_wrapper_js_1 = require("./i18next-wrapper.js");
+    const number_format_binding_behavior_js_1 = require("./nf/number-format-binding-behavior.js");
+    const number_format_value_converter_js_1 = require("./nf/number-format-value-converter.js");
+    const relative_time_binding_behavior_js_1 = require("./rt/relative-time-binding-behavior.js");
+    const relative_time_value_converter_js_1 = require("./rt/relative-time-value-converter.js");
+    const translation_binding_behavior_js_1 = require("./t/translation-binding-behavior.js");
+    const translation_parameters_renderer_js_1 = require("./t/translation-parameters-renderer.js");
+    const translation_renderer_js_1 = require("./t/translation-renderer.js");
+    const translation_value_converter_js_1 = require("./t/translation-value-converter.js");
     const translation = [
-        translation_value_converter_1.TranslationValueConverter,
-        translation_binding_behavior_1.TranslationBindingBehavior,
+        translation_value_converter_js_1.TranslationValueConverter,
+        translation_binding_behavior_js_1.TranslationBindingBehavior,
     ];
     function coreComponents(options) {
         const configuredAliases = options.translationAttributeAliases;
@@ -39,42 +39,42 @@
         for (const alias of aliases) {
             const bindAlias = `${alias}.bind`;
             patterns.push({ pattern: alias, symbols: '' });
-            translation_renderer_1.TranslationAttributePattern.registerAlias(alias);
+            translation_renderer_js_1.TranslationAttributePattern.registerAlias(alias);
             bindPatterns.push({ pattern: bindAlias, symbols: '.' });
-            translation_renderer_1.TranslationBindAttributePattern.registerAlias(alias);
+            translation_renderer_js_1.TranslationBindAttributePattern.registerAlias(alias);
             if (alias !== 't') {
                 commandAliases.push(alias);
                 bindCommandAliases.push(bindAlias);
             }
         }
         const renderers = [
-            runtime_html_1.AttributePattern.define(patterns, translation_renderer_1.TranslationAttributePattern),
-            runtime_html_1.BindingCommand.define({ name: 't', aliases: commandAliases }, translation_renderer_1.TranslationBindingCommand),
-            translation_renderer_1.TranslationBindingRenderer,
-            runtime_html_1.AttributePattern.define(bindPatterns, translation_renderer_1.TranslationBindAttributePattern),
-            runtime_html_1.BindingCommand.define({ name: 't.bind', aliases: bindCommandAliases }, translation_renderer_1.TranslationBindBindingCommand),
-            translation_renderer_1.TranslationBindBindingRenderer,
-            translation_parameters_renderer_1.TranslationParametersAttributePattern,
-            translation_parameters_renderer_1.TranslationParametersBindingCommand,
-            translation_parameters_renderer_1.TranslationParametersBindingRenderer
+            runtime_html_1.AttributePattern.define(patterns, translation_renderer_js_1.TranslationAttributePattern),
+            runtime_html_1.BindingCommand.define({ name: 't', aliases: commandAliases }, translation_renderer_js_1.TranslationBindingCommand),
+            translation_renderer_js_1.TranslationBindingRenderer,
+            runtime_html_1.AttributePattern.define(bindPatterns, translation_renderer_js_1.TranslationBindAttributePattern),
+            runtime_html_1.BindingCommand.define({ name: 't.bind', aliases: bindCommandAliases }, translation_renderer_js_1.TranslationBindBindingCommand),
+            translation_renderer_js_1.TranslationBindBindingRenderer,
+            translation_parameters_renderer_js_1.TranslationParametersAttributePattern,
+            translation_parameters_renderer_js_1.TranslationParametersBindingCommand,
+            translation_parameters_renderer_js_1.TranslationParametersBindingRenderer
         ];
         return {
             register(container) {
-                return container.register(kernel_1.Registration.callback(i18n_configuration_options_1.I18nInitOptions, () => options.initOptions), runtime_html_1.AppTask.with(i18n_1.I18N).beforeActivate().call(i18n => i18n.initPromise), kernel_1.Registration.singleton(i18next_wrapper_1.I18nWrapper, i18next_wrapper_1.I18nextWrapper), kernel_1.Registration.singleton(i18n_1.I18N, i18n_1.I18nService), ...renderers, ...translation);
+                return container.register(kernel_1.Registration.callback(i18n_configuration_options_js_1.I18nInitOptions, () => options.initOptions), runtime_html_1.AppTask.with(i18n_js_1.I18N).beforeActivate().call(i18n => i18n.initPromise), kernel_1.Registration.singleton(i18next_wrapper_js_1.I18nWrapper, i18next_wrapper_js_1.I18nextWrapper), kernel_1.Registration.singleton(i18n_js_1.I18N, i18n_js_1.I18nService), ...renderers, ...translation);
             }
         };
     }
     const dateFormat = [
-        date_format_value_converter_1.DateFormatValueConverter,
-        date_format_binding_behavior_1.DateFormatBindingBehavior,
+        date_format_value_converter_js_1.DateFormatValueConverter,
+        date_format_binding_behavior_js_1.DateFormatBindingBehavior,
     ];
     const numberFormat = [
-        number_format_value_converter_1.NumberFormatValueConverter,
-        number_format_binding_behavior_1.NumberFormatBindingBehavior,
+        number_format_value_converter_js_1.NumberFormatValueConverter,
+        number_format_binding_behavior_js_1.NumberFormatBindingBehavior,
     ];
     const relativeTimeFormat = [
-        relative_time_value_converter_1.RelativeTimeValueConverter,
-        relative_time_binding_behavior_1.RelativeTimeBindingBehavior,
+        relative_time_value_converter_js_1.RelativeTimeValueConverter,
+        relative_time_binding_behavior_js_1.RelativeTimeBindingBehavior,
     ];
     function createI18nConfiguration(optionsProvider) {
         return {

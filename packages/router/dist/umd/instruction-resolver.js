@@ -4,13 +4,13 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./viewport-instruction"], factory);
+        define(["require", "exports", "./viewport-instruction.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.InstructionResolver = void 0;
-    const viewport_instruction_1 = require("./viewport-instruction");
+    const viewport_instruction_js_1 = require("./viewport-instruction.js");
     class InstructionResolver {
         constructor() {
             this.separators = {
@@ -41,28 +41,28 @@
             return this.separators.add;
         }
         isClearViewportInstruction(instruction) {
-            return instruction instanceof viewport_instruction_1.ViewportInstruction
+            return instruction instanceof viewport_instruction_js_1.ViewportInstruction
                 ? instruction.componentName === this.clearViewportInstruction && !!instruction.viewportName
                 : instruction.startsWith(this.clearViewportInstruction) && instruction !== this.clearViewportInstruction;
         }
         isAddViewportInstruction(instruction) {
-            return instruction instanceof viewport_instruction_1.ViewportInstruction
+            return instruction instanceof viewport_instruction_js_1.ViewportInstruction
                 ? instruction.componentName === this.addViewportInstruction
                 : (instruction === this.addViewportInstruction
                     || instruction.startsWith(`${this.separators.add}${this.separators.viewport}`));
         }
         isClearViewportScopeInstruction(instruction) {
-            return instruction instanceof viewport_instruction_1.ViewportInstruction
+            return instruction instanceof viewport_instruction_js_1.ViewportInstruction
                 ? instruction.componentName === this.clearViewportInstruction && !!instruction.viewportScope
                 : instruction.startsWith(this.clearViewportInstruction) && instruction !== this.clearViewportInstruction;
         }
         isClearAllViewportsInstruction(instruction) {
-            return instruction instanceof viewport_instruction_1.ViewportInstruction
+            return instruction instanceof viewport_instruction_js_1.ViewportInstruction
                 ? instruction.componentName === this.clearViewportInstruction && !instruction.viewportName
                 : instruction === this.clearViewportInstruction;
         }
         isAddAllViewportsInstruction(instruction) {
-            return instruction instanceof viewport_instruction_1.ViewportInstruction
+            return instruction instanceof viewport_instruction_js_1.ViewportInstruction
                 ? instruction.componentName === this.addViewportInstruction && !instruction.viewportName
                 : instruction === this.addViewportInstruction;
         }
@@ -75,7 +75,7 @@
             // const instruction: ViewportInstruction = new ViewportInstruction(component, viewport, parameters, ownsScope, nextScopeInstructions);
             // instruction.setInstructionResolver(this);
             // return instruction;
-            return viewport_instruction_1.ViewportInstruction.create(this, component, viewport, parameters, ownsScope, nextScopeInstructions);
+            return viewport_instruction_js_1.ViewportInstruction.create(this, component, viewport, parameters, ownsScope, nextScopeInstructions);
         }
         parseViewportInstructions(instructions) {
             const match = /^[./]+/.exec(instructions);

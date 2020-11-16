@@ -1,12 +1,12 @@
 import { LifecycleFlags, IHydratedController, IHydratedParentController } from '@aurelia/runtime-html';
-import { ComponentAppellation, IRouteableComponent, IRoute, NavigationInstruction } from './interfaces';
-import { IRouter } from './router';
-import { ViewportContent } from './viewport-content';
-import { ViewportInstruction } from './viewport-instruction';
-import { IScopeOwner, IScopeOwnerOptions, NextContentAction, Scope } from './scope';
-import { Navigation } from './navigation';
-import { IRoutingController, IConnectedCustomElement } from './resources/viewport';
-import { NavigationCoordinator } from './navigation-coordinator';
+import { ComponentAppellation, IRouteableComponent, IRoute, NavigationInstruction } from './interfaces.js';
+import { IRouter } from './router.js';
+import { ViewportContent } from './viewport-content.js';
+import { ViewportInstruction } from './viewport-instruction.js';
+import { IScopeOwner, IScopeOwnerOptions, NextContentAction, Scope } from './scope.js';
+import { Navigation } from './navigation.js';
+import { IRoutingController, IConnectedCustomElement } from './resources/viewport.js';
+import { NavigationCoordinator } from './navigation-coordinator.js';
 export interface IViewportOptions extends IScopeOwnerOptions {
     scope?: boolean;
     usedBy?: string | string[];

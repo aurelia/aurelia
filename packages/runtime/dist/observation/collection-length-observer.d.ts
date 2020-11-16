@@ -1,4 +1,4 @@
-import { ISubscriberCollection, AccessorType, LifecycleFlags } from '../observation';
+import { ISubscriberCollection, AccessorType, LifecycleFlags } from '../observation.js';
 export interface CollectionLengthObserver extends ISubscriberCollection {
 }
 export declare class CollectionLengthObserver {

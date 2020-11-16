@@ -16,14 +16,14 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "./subscriber-collection"], factory);
+        define(["require", "exports", "@aurelia/kernel", "./subscriber-collection.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.DirtyCheckProperty = exports.DirtyChecker = exports.DirtyCheckSettings = exports.IDirtyChecker = void 0;
     const kernel_1 = require("@aurelia/kernel");
-    const subscriber_collection_1 = require("./subscriber-collection");
+    const subscriber_collection_js_1 = require("./subscriber-collection.js");
     exports.IDirtyChecker = kernel_1.DI.createInterface('IDirtyChecker').withDefault(x => x.singleton(DirtyChecker));
     exports.DirtyCheckSettings = {
         /**
@@ -141,7 +141,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
     };
     DirtyCheckProperty = __decorate([
-        subscriber_collection_1.subscriberCollection(),
+        subscriber_collection_js_1.subscriberCollection(),
         __metadata("design:paramtypes", [Object, Object, String])
     ], DirtyCheckProperty);
     exports.DirtyCheckProperty = DirtyCheckProperty;

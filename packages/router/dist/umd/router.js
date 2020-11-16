@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime-html", "./instruction-resolver", "./link-handler", "./nav", "./navigator", "./type-resolvers", "./utils", "./viewport", "./viewport-instruction", "./found-route", "./hook-manager", "./scope", "./viewport-scope", "./browser-viewer-store", "./navigation", "./navigation-coordinator", "./router-options", "./open-promise"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime-html", "./instruction-resolver.js", "./link-handler.js", "./nav.js", "./navigator.js", "./type-resolvers.js", "./utils.js", "./viewport.js", "./viewport-instruction.js", "./found-route.js", "./hook-manager.js", "./scope.js", "./viewport-scope.js", "./browser-viewer-store.js", "./navigation.js", "./navigation-coordinator.js", "./router-options.js", "./open-promise.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -15,23 +15,23 @@
     /* eslint-disable max-lines-per-function */
     const kernel_1 = require("@aurelia/kernel");
     const runtime_html_1 = require("@aurelia/runtime-html");
-    const instruction_resolver_1 = require("./instruction-resolver");
-    const link_handler_1 = require("./link-handler");
-    const nav_1 = require("./nav");
-    const navigator_1 = require("./navigator");
-    const type_resolvers_1 = require("./type-resolvers");
-    const utils_1 = require("./utils");
-    const viewport_1 = require("./viewport");
-    const viewport_instruction_1 = require("./viewport-instruction");
-    const found_route_1 = require("./found-route");
-    const hook_manager_1 = require("./hook-manager");
-    const scope_1 = require("./scope");
-    const viewport_scope_1 = require("./viewport-scope");
-    const browser_viewer_store_1 = require("./browser-viewer-store");
-    const navigation_1 = require("./navigation");
-    const navigation_coordinator_1 = require("./navigation-coordinator");
-    const router_options_1 = require("./router-options");
-    const open_promise_1 = require("./open-promise");
+    const instruction_resolver_js_1 = require("./instruction-resolver.js");
+    const link_handler_js_1 = require("./link-handler.js");
+    const nav_js_1 = require("./nav.js");
+    const navigator_js_1 = require("./navigator.js");
+    const type_resolvers_js_1 = require("./type-resolvers.js");
+    const utils_js_1 = require("./utils.js");
+    const viewport_js_1 = require("./viewport.js");
+    const viewport_instruction_js_1 = require("./viewport-instruction.js");
+    const found_route_js_1 = require("./found-route.js");
+    const hook_manager_js_1 = require("./hook-manager.js");
+    const scope_js_1 = require("./scope.js");
+    const viewport_scope_js_1 = require("./viewport-scope.js");
+    const browser_viewer_store_js_1 = require("./browser-viewer-store.js");
+    const navigation_js_1 = require("./navigation.js");
+    const navigation_coordinator_js_1 = require("./navigation-coordinator.js");
+    const router_options_js_1 = require("./router-options.js");
+    const open_promise_js_1 = require("./open-promise.js");
     // export type SwapStrategy = 'add-first-sequential' | 'add-first-parallel' | 'remove-first-sequential' | 'remove-first-parallel';
     // export type RoutingHookIntegration = 'integrated' | 'separate';
     // /**
@@ -233,7 +233,7 @@
             // eslint-disable-next-line @typescript-eslint/typedef
             this.browserNavigatorCallback = (browserNavigationEvent) => {
                 var _a;
-                const entry = new navigation_1.Navigation((_a = browserNavigationEvent.state) === null || _a === void 0 ? void 0 : _a.currentEntry);
+                const entry = new navigation_js_1.Navigation((_a = browserNavigationEvent.state) === null || _a === void 0 ? void 0 : _a.currentEntry);
                 entry.instruction = browserNavigationEvent.instruction;
                 entry.fromBrowser = true;
                 this.navigator.navigate(entry).catch(error => { throw error; });
@@ -260,7 +260,7 @@
                 //   clearScopeOwners,
                 //   clearViewportScopes,
                 // }
-                const coordinator = navigation_coordinator_1.NavigationCoordinator.create(this, instruction, { syncStates: this.options.navigationSyncStates });
+                const coordinator = navigation_coordinator_js_1.NavigationCoordinator.create(this, instruction, { syncStates: this.options.navigationSyncStates });
                 // const steps = [
                 //   () => coordinator.syncState('loaded'),
                 //   () => { console.log('SyncState loaded resolved!', steps); },
@@ -370,13 +370,13 @@
                             if (action === 'swap') {
                                 dontClear.push(...scopeOwner.scope.allScopes(true, true).map(scope => scope.owner));
                             }
-                            utils_1.arrayRemove(clearScopeOwners, value => dontClear.includes(value));
+                            utils_js_1.arrayRemove(clearScopeOwners, value => dontClear.includes(value));
                             // arrayRemove(clearScopeOwners, value => value === scopeOwner);
                             if (!this.instructionResolver.isClearViewportInstruction(viewportInstruction)
                                 && viewportInstruction.scope !== null
                                 && viewportInstruction.scope.parent !== null
                                 && viewportInstruction.scope.parent.isViewportScope) {
-                                utils_1.arrayRemove(clearViewportScopes, value => value === viewportInstruction.scope.parent.viewportScope);
+                                utils_js_1.arrayRemove(clearViewportScopes, value => value === viewportInstruction.scope.parent.viewportScope);
                             }
                         }
                     }
@@ -421,7 +421,7 @@
                     if (configuredRoute.hasRemaining &&
                         viewportInstructions.length === 0 &&
                         remainingInstructions.length === 0) {
-                        let configured = new found_route_1.FoundRoute();
+                        let configured = new found_route_js_1.FoundRoute();
                         const routeScopeOwners = alreadyFoundInstructions
                             .filter(instr => instr.owner !== null && instr.owner.path === configuredRoutePath)
                             .map(instr => instr.owner)
@@ -482,10 +482,10 @@
                             continue;
                         }
                         if (existingFound !== void 0) {
-                            utils_1.arrayRemove(viewportInstructions, value => value === existingFound);
+                            utils_js_1.arrayRemove(viewportInstructions, value => value === existingFound);
                         }
                         if (existingRemaining !== void 0) {
-                            utils_1.arrayRemove(remainingInstructions, value => value === existingRemaining);
+                            utils_js_1.arrayRemove(remainingInstructions, value => value === existingRemaining);
                         }
                         if (appendedInstruction.viewport !== null) {
                             viewportInstructions.push(appendedInstruction);
@@ -602,7 +602,7 @@
          * Public API
          */
         async loadUrl() {
-            const entry = new navigation_1.Navigation({
+            const entry = new navigation_js_1.Navigation({
                 ...this.navigation.viewerState,
                 ...{
                     fullStateInstruction: '',
@@ -633,7 +633,7 @@
             if (origin === void 0 || origin === null) {
                 return this.rootScope.scope;
             }
-            if (origin instanceof scope_1.Scope || origin instanceof viewport_1.Viewport) {
+            if (origin instanceof scope_js_1.Scope || origin instanceof viewport_js_1.Viewport) {
                 return origin.scope;
             }
             return this.getClosestScope(origin) || this.rootScope.scope;
@@ -726,7 +726,7 @@
                 viewport = parentScope.addViewport(name, connectedCE, options);
                 this.setClosestScope(connectedCE.container, viewport.connectedScope);
                 if (!this.isRestrictedNavigation) {
-                    this.pendingConnects.set(connectedCE, new open_promise_1.OpenPromise());
+                    this.pendingConnects.set(connectedCE, new open_promise_js_1.OpenPromise());
                 }
             }
             else {
@@ -772,7 +772,7 @@
          * Public API - THE navigation API
          */
         async goto(instructions, options) {
-            utils_1.deprecationWarning('"goto" method', '"load" method');
+            utils_js_1.deprecationWarning('"goto" method', '"load" method');
             return this.load(instructions, options);
         }
         async load(instructions, options) {
@@ -788,14 +788,14 @@
                 toOptions.context = options.origin;
             }
             let scope = null;
-            ({ instructions, scope } = type_resolvers_1.NavigationInstructionResolver.createViewportInstructions(this, instructions, toOptions));
+            ({ instructions, scope } = type_resolvers_js_1.NavigationInstructionResolver.createViewportInstructions(this, instructions, toOptions));
             if (options.append && this.processingNavigation) {
-                instructions = type_resolvers_1.NavigationInstructionResolver.toViewportInstructions(this, instructions);
+                instructions = type_resolvers_js_1.NavigationInstructionResolver.toViewportInstructions(this, instructions);
                 this.appendInstructions(instructions, scope);
                 // Can't return current navigation promise since it can lead to deadlock in load
                 return Promise.resolve();
             }
-            const entry = new navigation_1.Navigation({
+            const entry = new navigation_js_1.Navigation({
                 instruction: instructions,
                 fullStateInstruction: '',
                 scope: scope,
@@ -867,7 +867,7 @@
         addNav(name, routes, classes) {
             let nav = this.navs[name];
             if (nav === void 0 || nav === null) {
-                nav = this.navs[name] = new nav_1.Nav(this, name, [], classes);
+                nav = this.navs[name] = new nav_js_1.Nav(this, name, [], classes);
             }
             nav.addRoutes(routes);
             nav.update();
@@ -1016,7 +1016,7 @@
             if (!this.rootScope) {
                 const root = this.container.get(runtime_html_1.IAppRoot);
                 // root.config.component shouldn't be used in the end. Metadata will probably eliminate it
-                this.rootScope = new viewport_scope_1.ViewportScope('rootScope', this, root.controller.viewModel, null, true, root.config.component);
+                this.rootScope = new viewport_scope_js_1.ViewportScope('rootScope', this, root.controller.viewModel, null, true, root.config.component);
             }
             return this.rootScope;
         }
@@ -1134,10 +1134,10 @@
             if (typeof instruction === 'string') {
                 title = instruction;
             }
-            else if (instruction instanceof viewport_instruction_1.ViewportInstruction) {
+            else if (instruction instanceof viewport_instruction_js_1.ViewportInstruction) {
                 return instruction.viewport.getTitle(navigationInstruction);
             }
-            else if (instruction instanceof found_route_1.FoundRoute) {
+            else if (instruction instanceof found_route_js_1.FoundRoute) {
                 const routeTitle = (_a = instruction.match) === null || _a === void 0 ? void 0 : _a.title;
                 if (routeTitle !== void 0) {
                     if (typeof routeTitle === 'string') {
@@ -1213,6 +1213,6 @@
         }
     }
     exports.Router = Router;
-    Router.inject = [kernel_1.IContainer, navigator_1.Navigator, browser_viewer_store_1.BrowserViewerStore, link_handler_1.LinkHandler, instruction_resolver_1.InstructionResolver, hook_manager_1.HookManager, router_options_1.RouterOptions];
+    Router.inject = [kernel_1.IContainer, navigator_js_1.Navigator, browser_viewer_store_js_1.BrowserViewerStore, link_handler_js_1.LinkHandler, instruction_resolver_js_1.InstructionResolver, hook_manager_js_1.HookManager, router_options_js_1.RouterOptions];
 });
 //# sourceMappingURL=router.js.map

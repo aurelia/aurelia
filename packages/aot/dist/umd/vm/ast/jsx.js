@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "typescript", "@aurelia/kernel", "./_shared", "./expressions", "./literals"], factory);
+        define(["require", "exports", "typescript", "@aurelia/kernel", "./_shared.js", "./expressions.js", "./literals.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -12,9 +12,9 @@
     exports.$JsxExpression = exports.$JsxSpreadAttribute = exports.$JsxAttributes = exports.$$jsxAttributeLikeList = exports.$JsxAttribute = exports.$JsxClosingFragment = exports.$JsxOpeningFragment = exports.$JsxClosingElement = exports.$JsxOpeningElement = exports.$JsxText = exports.$JsxFragment = exports.$JsxSelfClosingElement = exports.$$jsxTagNameExpression = exports.$JsxElement = exports.$$jsxChildList = void 0;
     const typescript_1 = require("typescript");
     const kernel_1 = require("@aurelia/kernel");
-    const _shared_1 = require("./_shared");
-    const expressions_1 = require("./expressions");
-    const literals_1 = require("./literals");
+    const _shared_js_1 = require("./_shared.js");
+    const expressions_js_1 = require("./expressions.js");
+    const literals_js_1 = require("./literals.js");
     function $$jsxChildList(nodes, parent, ctx) {
         if (nodes === void 0 || nodes.length === 0) {
             return kernel_1.emptyArray;
@@ -44,7 +44,7 @@
     }
     exports.$$jsxChildList = $$jsxChildList;
     class $JsxElement {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.JsxElement`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.JsxElement`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -71,18 +71,18 @@
     function $$jsxTagNameExpression(node, parent, ctx, idx) {
         switch (node.kind) {
             case typescript_1.SyntaxKind.Identifier:
-                return new expressions_1.$Identifier(node, parent, ctx, idx);
+                return new expressions_js_1.$Identifier(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.ThisKeyword:
-                return new expressions_1.$ThisExpression(node, parent, ctx, idx);
+                return new expressions_js_1.$ThisExpression(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.PropertyAccessExpression:
-                return new expressions_1.$PropertyAccessExpression(node, parent, ctx, idx);
+                return new expressions_js_1.$PropertyAccessExpression(node, parent, ctx, idx);
             default:
                 throw new Error(`Unexpected syntax node: ${typescript_1.SyntaxKind[node.kind]}.`);
         }
     }
     exports.$$jsxTagNameExpression = $$jsxTagNameExpression;
     class $JsxSelfClosingElement {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.JsxSelfClosingElement`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.JsxSelfClosingElement`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -106,7 +106,7 @@
     }
     exports.$JsxSelfClosingElement = $JsxSelfClosingElement;
     class $JsxFragment {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.JsxFragment`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.JsxFragment`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -131,7 +131,7 @@
     }
     exports.$JsxFragment = $JsxFragment;
     class $JsxText {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.JsxText`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.JsxText`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -240,7 +240,7 @@
     }
     exports.$JsxClosingFragment = $JsxClosingFragment;
     class $JsxAttribute {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.JsxAttribute`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.JsxAttribute`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -250,13 +250,13 @@
             this.depth = depth;
             this.logger = logger;
             this.path = path;
-            this.$name = _shared_1.$identifier(node.name, this, ctx, -1);
+            this.$name = _shared_js_1.$identifier(node.name, this, ctx, -1);
             if (node.initializer === void 0) {
                 this.$initializer = void 0;
             }
             else {
                 if (node.initializer.kind === typescript_1.SyntaxKind.StringLiteral) {
-                    this.$initializer = new literals_1.$StringLiteral(node.initializer, this, ctx, -1);
+                    this.$initializer = new literals_js_1.$StringLiteral(node.initializer, this, ctx, -1);
                 }
                 else {
                     this.$initializer = new $JsxExpression(node.initializer, this, ctx, -1);
@@ -308,7 +308,7 @@
     }
     exports.$JsxAttributes = $JsxAttributes;
     class $JsxSpreadAttribute {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.JsxSpreadAttribute`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.JsxSpreadAttribute`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -318,7 +318,7 @@
             this.depth = depth;
             this.logger = logger;
             this.path = path;
-            this.$expression = _shared_1.$assignmentExpression(node.expression, this, ctx, -1);
+            this.$expression = _shared_js_1.$assignmentExpression(node.expression, this, ctx, -1);
         }
         get $kind() { return typescript_1.SyntaxKind.JsxSpreadAttribute; }
         Evaluate(ctx) {
@@ -331,7 +331,7 @@
     }
     exports.$JsxSpreadAttribute = $JsxSpreadAttribute;
     class $JsxExpression {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.JsxExpression`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.JsxExpression`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -341,7 +341,7 @@
             this.depth = depth;
             this.logger = logger;
             this.path = path;
-            this.$expression = _shared_1.$assignmentExpression(node.expression, this, ctx, -1);
+            this.$expression = _shared_js_1.$assignmentExpression(node.expression, this, ctx, -1);
         }
         get $kind() { return typescript_1.SyntaxKind.JsxExpression; }
         Evaluate(ctx) {

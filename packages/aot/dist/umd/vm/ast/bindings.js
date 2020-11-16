@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "typescript", "@aurelia/kernel", "../types/empty", "../globals/iteration", "../types/error", "./_shared", "../types/number", "../operations", "../types/list"], factory);
+        define(["require", "exports", "typescript", "@aurelia/kernel", "../types/empty.js", "../globals/iteration.js", "../types/error.js", "./_shared.js", "../types/number.js", "../operations.js", "../types/list.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -12,15 +12,15 @@
     exports.$OmittedExpression = exports.$SpreadElement = exports.$BindingElement = exports.$ArrayBindingPattern = exports.$bindingElementList = exports.$$arrayBindingElementList = exports.$$arrayBindingElement = exports.$ObjectBindingPattern = exports.$ComputedPropertyName = void 0;
     const typescript_1 = require("typescript");
     const kernel_1 = require("@aurelia/kernel");
-    const empty_1 = require("../types/empty");
-    const iteration_1 = require("../globals/iteration");
-    const error_1 = require("../types/error");
-    const _shared_1 = require("./_shared");
-    const number_1 = require("../types/number");
-    const operations_1 = require("../operations");
-    const list_1 = require("../types/list");
+    const empty_js_1 = require("../types/empty.js");
+    const iteration_js_1 = require("../globals/iteration.js");
+    const error_js_1 = require("../types/error.js");
+    const _shared_js_1 = require("./_shared.js");
+    const number_js_1 = require("../types/number.js");
+    const operations_js_1 = require("../operations.js");
+    const list_js_1 = require("../types/list.js");
     class $ComputedPropertyName {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.ComputedPropertyName`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.ComputedPropertyName`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -30,8 +30,8 @@
             this.depth = depth;
             this.logger = logger;
             this.path = path;
-            this.$expression = _shared_1.$assignmentExpression(node.expression, this, ctx, -1);
-            this.PropName = new empty_1.$Empty(realm, void 0, void 0, this);
+            this.$expression = _shared_js_1.$assignmentExpression(node.expression, this, ctx, -1);
+            this.PropName = new empty_js_1.$Empty(realm, void 0, void 0, this);
         }
         get $kind() { return typescript_1.SyntaxKind.ComputedPropertyName; }
         // http://www.ecma-international.org/ecma-262/#sec-object-initializer-runtime-semantics-evaluation
@@ -57,7 +57,7 @@
     }
     exports.$ComputedPropertyName = $ComputedPropertyName;
     class $ObjectBindingPattern {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.ObjectBindingPattern`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.ObjectBindingPattern`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -70,10 +70,10 @@
             this.combinedModifierFlags = parent.combinedModifierFlags;
             ctx |= 64 /* InBindingPattern */;
             const $elements = this.$elements = $bindingElementList(node.elements, this, ctx);
-            this.BoundNames = $elements.flatMap(_shared_1.getBoundNames);
-            this.ContainsExpression = $elements.some(_shared_1.getContainsExpression);
-            this.HasInitializer = $elements.some(_shared_1.getHasInitializer);
-            this.IsSimpleParameterList = $elements.every(_shared_1.getIsSimpleParameterList);
+            this.BoundNames = $elements.flatMap(_shared_js_1.getBoundNames);
+            this.ContainsExpression = $elements.some(_shared_js_1.getContainsExpression);
+            this.HasInitializer = $elements.some(_shared_js_1.getHasInitializer);
+            this.IsSimpleParameterList = $elements.every(_shared_js_1.getIsSimpleParameterList);
         }
         get $kind() { return typescript_1.SyntaxKind.ObjectBindingPattern; }
         // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-runtime-semantics-bindinginitialization
@@ -85,7 +85,7 @@
             // BindingPattern : ObjectBindingPattern
             // 1. Perform ? RequireObjectCoercible(value).
             if (value.isNil) {
-                return new error_1.$TypeError(realm, `Cannot destructure ${value['[[Value]]']} into object`).enrichWith(ctx, this);
+                return new error_js_1.$TypeError(realm, `Cannot destructure ${value['[[Value]]']} into object`).enrichWith(ctx, this);
             }
             // 2. Return the result of performing BindingInitialization for ObjectBindingPattern using value and environment as arguments.
             // ObjectBindingPattern : { }
@@ -112,7 +112,7 @@
                     // return result;
                 }
             }
-            return new empty_1.$Empty(realm);
+            return new empty_js_1.$Empty(realm);
         }
     }
     exports.$ObjectBindingPattern = $ObjectBindingPattern;
@@ -144,7 +144,7 @@
     }
     exports.$bindingElementList = $bindingElementList;
     class $ArrayBindingPattern {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.ArrayBindingPattern`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.ArrayBindingPattern`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -157,10 +157,10 @@
             this.combinedModifierFlags = parent.combinedModifierFlags;
             ctx |= 64 /* InBindingPattern */;
             const $elements = this.$elements = $$arrayBindingElementList(node.elements, this, ctx);
-            this.BoundNames = $elements.flatMap(_shared_1.getBoundNames);
-            this.ContainsExpression = $elements.some(_shared_1.getContainsExpression);
-            this.HasInitializer = $elements.some(_shared_1.getHasInitializer);
-            this.IsSimpleParameterList = $elements.every(_shared_1.getIsSimpleParameterList);
+            this.BoundNames = $elements.flatMap(_shared_js_1.getBoundNames);
+            this.ContainsExpression = $elements.some(_shared_js_1.getContainsExpression);
+            this.HasInitializer = $elements.some(_shared_js_1.getHasInitializer);
+            this.IsSimpleParameterList = $elements.every(_shared_js_1.getIsSimpleParameterList);
         }
         get $kind() { return typescript_1.SyntaxKind.ArrayBindingPattern; }
         // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-runtime-semantics-bindinginitialization
@@ -170,7 +170,7 @@
             this.logger.debug(`${this.path}.InitializeBinding(#${ctx.id})`);
             // BindingPattern : ArrayBindingPattern
             // 1. Let iteratorRecord be ? GetIterator(value).
-            const iteratorRecord = iteration_1.$GetIterator(ctx, value);
+            const iteratorRecord = iteration_js_1.$GetIterator(ctx, value);
             if (iteratorRecord.isAbrupt) {
                 return iteratorRecord.enrichWith(ctx, this);
             }
@@ -181,7 +181,7 @@
             } // TODO: we sure about this? Spec doesn't say it
             // 3. If iteratorRecord.[[Done]] is false, return ? IteratorClose(iteratorRecord, result).
             if (iteratorRecord['[[Done]]'].isFalsey) {
-                return iteration_1.$IteratorClose(ctx, iteratorRecord, result).enrichWith(ctx, this);
+                return iteration_js_1.$IteratorClose(ctx, iteratorRecord, result).enrichWith(ctx, this);
             }
             // 4. Return result.
             return result;
@@ -238,12 +238,12 @@
             }
             // ArrayBindingPattern : [ ]
             // 1. Return NormalCompletion(empty).
-            return new empty_1.$Empty(realm);
+            return new empty_js_1.$Empty(realm);
         }
     }
     exports.$ArrayBindingPattern = $ArrayBindingPattern;
     class $BindingElement {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.BindingElement`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.BindingElement`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -253,12 +253,12 @@
             this.depth = depth;
             this.logger = logger;
             this.path = path;
-            this.modifierFlags = _shared_1.modifiersToModifierFlags(node.modifiers);
+            this.modifierFlags = _shared_js_1.modifiersToModifierFlags(node.modifiers);
             this.combinedModifierFlags = this.modifierFlags | parent.combinedModifierFlags;
-            ctx = _shared_1.clearBit(ctx, 8 /* IsBindingName */);
+            ctx = _shared_js_1.clearBit(ctx, 8 /* IsBindingName */);
             if (node.propertyName === void 0) {
                 this.$propertyName = void 0;
-                const $name = this.$name = _shared_1.$$bindingName(node.name, this, ctx | 8 /* IsBindingName */, -1);
+                const $name = this.$name = _shared_js_1.$$bindingName(node.name, this, ctx | 8 /* IsBindingName */, -1);
                 this.BoundNames = $name.BoundNames;
                 if (node.initializer === void 0) {
                     this.$initializer = void 0;
@@ -267,15 +267,15 @@
                     this.IsSimpleParameterList = $name.$kind === typescript_1.SyntaxKind.Identifier;
                 }
                 else {
-                    this.$initializer = _shared_1.$assignmentExpression(node.initializer, this, ctx, -1);
+                    this.$initializer = _shared_js_1.$assignmentExpression(node.initializer, this, ctx, -1);
                     this.ContainsExpression = true;
                     this.HasInitializer = true;
                     this.IsSimpleParameterList = false;
                 }
             }
             else {
-                const $propertyName = this.$propertyName = _shared_1.$$propertyName(node.propertyName, this, ctx, -1);
-                const $name = this.$name = _shared_1.$$bindingName(node.name, this, ctx | 8 /* IsBindingName */, -1);
+                const $propertyName = this.$propertyName = _shared_js_1.$$propertyName(node.propertyName, this, ctx, -1);
+                const $name = this.$name = _shared_js_1.$$bindingName(node.name, this, ctx | 8 /* IsBindingName */, -1);
                 this.BoundNames = $name.BoundNames;
                 if (node.initializer === void 0) {
                     this.$initializer = void 0;
@@ -284,7 +284,7 @@
                     this.IsSimpleParameterList = $name.$kind === typescript_1.SyntaxKind.Identifier;
                 }
                 else {
-                    this.$initializer = _shared_1.$assignmentExpression(node.initializer, this, ctx, -1);
+                    this.$initializer = _shared_js_1.$assignmentExpression(node.initializer, this, ctx, -1);
                     this.ContainsExpression = true;
                     this.HasInitializer = true;
                     this.IsSimpleParameterList = false;
@@ -319,7 +319,7 @@
                 return result.enrichWith(ctx, this);
             }
             // 4. Return a new List containing P.
-            return new list_1.$List(P); // TODO: this cast is very wrong. Need to revisit later
+            return new list_js_1.$List(P); // TODO: this cast is very wrong. Need to revisit later
         }
         // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-keyedbindinginitialization
         // 13.3.3.9 Runtime Semantics: KeyedBindingInitialization
@@ -406,7 +406,7 @@
             // 1. If iteratorRecord.[[Done]] is false, then
             if (iteratorRecord['[[Done]]'].isFalsey) {
                 // 1. a. Let next be IteratorStep(iteratorRecord).
-                const next = iteration_1.$IteratorStep(ctx, iteratorRecord);
+                const next = iteration_js_1.$IteratorStep(ctx, iteratorRecord);
                 // 1. b. If next is an abrupt completion, set iteratorRecord.[[Done]] to true.
                 if (next.isAbrupt) {
                     iteratorRecord['[[Done]]'] = intrinsics.true;
@@ -422,7 +422,7 @@
                 // 1. e. Else,
                 else {
                     // 1. e. i. Let v be IteratorValue(next).
-                    v = iteration_1.$IteratorValue(ctx, next);
+                    v = iteration_js_1.$IteratorValue(ctx, next);
                     // 1. e. ii. If v is an abrupt completion, set iteratorRecord.[[Done]] to true.
                     if (v.isAbrupt) {
                         iteratorRecord['[[Done]]'] = intrinsics.true;
@@ -454,7 +454,7 @@
     }
     exports.$BindingElement = $BindingElement;
     class $SpreadElement {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.SpreadElement`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.SpreadElement`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -464,7 +464,7 @@
             this.depth = depth;
             this.logger = logger;
             this.path = path;
-            this.$expression = _shared_1.$assignmentExpression(node.expression, this, ctx, -1);
+            this.$expression = _shared_js_1.$assignmentExpression(node.expression, this, ctx, -1);
         }
         get $kind() { return typescript_1.SyntaxKind.SpreadElement; }
         // http://www.ecma-international.org/ecma-262/#sec-argument-lists-runtime-semantics-argumentlistevaluation
@@ -474,7 +474,7 @@
             // ArgumentList :
             //     ... AssignmentExpression
             // 1. Let list be a new empty List.
-            const list = new list_1.$List();
+            const list = new list_js_1.$List();
             // 2. Let spreadRef be the result of evaluating AssignmentExpression.
             const spreadRef = this.$expression.Evaluate(ctx);
             // 3. Let spreadObj be ? GetValue(spreadRef).
@@ -483,14 +483,14 @@
                 return spreadObj.enrichWith(ctx, this);
             }
             // 4. Let iteratorRecord be ? GetIterator(spreadObj).
-            const iteratorRecord = iteration_1.$GetIterator(ctx, spreadObj);
+            const iteratorRecord = iteration_js_1.$GetIterator(ctx, spreadObj);
             if (iteratorRecord.isAbrupt) {
                 return iteratorRecord.enrichWith(ctx, this);
             }
             // 5. Repeat,
             while (true) {
                 // 5. a. Let next be ? IteratorStep(iteratorRecord).
-                const next = iteration_1.$IteratorStep(ctx, iteratorRecord);
+                const next = iteration_js_1.$IteratorStep(ctx, iteratorRecord);
                 if (next.isAbrupt) {
                     return next.enrichWith(ctx, this);
                 }
@@ -499,7 +499,7 @@
                     return list;
                 }
                 // 5. c. Let nextArg be ? IteratorValue(next).
-                const nextArg = iteration_1.$IteratorValue(ctx, next);
+                const nextArg = iteration_js_1.$IteratorValue(ctx, next);
                 if (nextArg.isAbrupt) {
                     return nextArg.enrichWith(ctx, this);
                 }
@@ -521,14 +521,14 @@
                 return spreadObj.enrichWith(ctx, this);
             }
             // 3. Let iteratorRecord be ? GetIterator(spreadObj).
-            const iteratorRecord = iteration_1.$GetIterator(ctx, spreadObj);
+            const iteratorRecord = iteration_js_1.$GetIterator(ctx, spreadObj);
             if (iteratorRecord.isAbrupt) {
                 return iteratorRecord.enrichWith(ctx, this);
             }
             // 4. Repeat,
             while (true) {
                 // 4. a. Let next be ? IteratorStep(iteratorRecord).
-                const next = iteration_1.$IteratorStep(ctx, iteratorRecord);
+                const next = iteration_js_1.$IteratorStep(ctx, iteratorRecord);
                 if (next.isAbrupt) {
                     return next.enrichWith(ctx, this);
                 }
@@ -537,21 +537,21 @@
                     return nextIndex;
                 }
                 // 4. c. Let nextValue be ? IteratorValue(next).
-                const nextValue = iteration_1.$IteratorValue(ctx, next);
+                const nextValue = iteration_js_1.$IteratorValue(ctx, next);
                 if (nextValue.isAbrupt) {
                     return nextValue.enrichWith(ctx, this);
                 }
                 // 4. d. Let status be CreateDataProperty(array, ToString(ToUint32(nextIndex)), nextValue).
-                const status = operations_1.$CreateDataProperty(ctx, array, nextIndex.ToUint32(ctx).ToString(ctx), nextValue);
+                const status = operations_js_1.$CreateDataProperty(ctx, array, nextIndex.ToUint32(ctx).ToString(ctx), nextValue);
                 // 4. e. Assert: status is true.
                 // 4. f. Increase nextIndex by 1.
-                nextIndex = new number_1.$Number(realm, nextIndex['[[Value]]'] + 1);
+                nextIndex = new number_js_1.$Number(realm, nextIndex['[[Value]]'] + 1);
             }
         }
     }
     exports.$SpreadElement = $SpreadElement;
     class $OmittedExpression {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.OmittedExpression`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.OmittedExpression`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -586,7 +586,7 @@
             // 1. If iteratorRecord.[[Done]] is false, then
             if (iteratorRecord['[[Done]]'].isFalsey) {
                 // 1. a. Let next be IteratorStep(iteratorRecord).
-                const next = iteration_1.$IteratorStep(ctx, iteratorRecord);
+                const next = iteration_js_1.$IteratorStep(ctx, iteratorRecord);
                 // 1. b. If next is an abrupt completion, set iteratorRecord.[[Done]] to true.
                 if (next.isAbrupt) {
                     iteratorRecord['[[Done]]'] = intrinsics.true;
@@ -599,7 +599,7 @@
                 }
             }
             // 2. Return NormalCompletion(empty).
-            return new empty_1.$Empty(realm);
+            return new empty_js_1.$Empty(realm);
         }
         Evaluate(ctx) {
             ctx.checkTimeout();

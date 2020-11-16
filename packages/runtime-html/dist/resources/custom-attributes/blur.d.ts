@@ -1,6 +1,6 @@
-import { INode } from '../../dom';
-import { IPlatform } from '../../platform';
-import type { ICustomAttributeController, ICustomAttributeViewModel } from '../../templating/controller';
+import { INode } from '../../dom.js';
+import { IPlatform } from '../../platform.js';
+import type { ICustomAttributeController, ICustomAttributeViewModel } from '../../templating/controller.js';
 declare const unset: unique symbol;
 export declare class BlurManager {
     readonly platform: IPlatform;

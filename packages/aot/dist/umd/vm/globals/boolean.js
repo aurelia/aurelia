@@ -4,17 +4,17 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "../types/function", "../types/boolean", "../types/object"], factory);
+        define(["require", "exports", "../types/function.js", "../types/boolean.js", "../types/object.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.$BooleanPrototype = exports.$BooleanConstructor = void 0;
-    const function_1 = require("../types/function");
-    const boolean_1 = require("../types/boolean");
-    const object_1 = require("../types/object");
+    const function_js_1 = require("../types/function.js");
+    const boolean_js_1 = require("../types/boolean.js");
+    const object_js_1 = require("../types/object.js");
     // http://www.ecma-international.org/ecma-262/#sec-boolean-constructor
-    class $BooleanConstructor extends function_1.$BuiltinFunction {
+    class $BooleanConstructor extends function_js_1.$BuiltinFunction {
         get $prototype() {
             return this.getProperty(this.realm['[[Intrinsics]]'].$prototype)['[[Value]]'];
         }
@@ -42,16 +42,16 @@
             // 3. Let O be ? OrdinaryCreateFromConstructor(NewTarget, "%BooleanPrototype%", « [[BooleanData]] »).
             // 4. Set O.[[BooleanData]] to b.
             // 5. Return O.
-            return function_1.$OrdinaryCreateFromConstructor(ctx, NewTarget, '%BooleanPrototype%', { '[[BooleanData]]': b });
+            return function_js_1.$OrdinaryCreateFromConstructor(ctx, NewTarget, '%BooleanPrototype%', { '[[BooleanData]]': b });
         }
     }
     exports.$BooleanConstructor = $BooleanConstructor;
     // http://www.ecma-international.org/ecma-262/#sec-properties-of-the-boolean-prototype-object
-    class $BooleanPrototype extends object_1.$Object {
+    class $BooleanPrototype extends object_js_1.$Object {
         constructor(realm, objectPrototype) {
             const intrinsics = realm['[[Intrinsics]]'];
             super(realm, '%BooleanPrototype%', objectPrototype, 1 /* normal */, intrinsics.empty);
-            this['[[BooleanData]]'] = new boolean_1.$Boolean(realm, false);
+            this['[[BooleanData]]'] = new boolean_js_1.$Boolean(realm, false);
         }
         get $constructor() {
             return this.getProperty(this.realm['[[Intrinsics]]'].$constructor)['[[Value]]'];

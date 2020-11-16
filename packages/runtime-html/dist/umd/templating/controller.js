@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "../dom", "../resources/custom-element", "../resources/custom-attribute", "./render-context", "./children", "../app-root", "../platform", "./styles"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "../dom.js", "../resources/custom-element.js", "../resources/custom-attribute.js", "./render-context.js", "./children.js", "../app-root.js", "../platform.js", "./styles.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -14,14 +14,14 @@
     /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
-    const dom_1 = require("../dom");
-    const custom_element_1 = require("../resources/custom-element");
-    const custom_attribute_1 = require("../resources/custom-attribute");
-    const render_context_1 = require("./render-context");
-    const children_1 = require("./children");
-    const app_root_1 = require("../app-root");
-    const platform_1 = require("../platform");
-    const styles_1 = require("./styles");
+    const dom_js_1 = require("../dom.js");
+    const custom_element_js_1 = require("../resources/custom-element.js");
+    const custom_attribute_js_1 = require("../resources/custom-attribute.js");
+    const render_context_js_1 = require("./render-context.js");
+    const children_js_1 = require("./children.js");
+    const app_root_js_1 = require("../app-root.js");
+    const platform_js_1 = require("../platform.js");
+    const styles_js_1 = require("./styles.js");
     function callDispose(disposable) {
         disposable.dispose();
     }
@@ -81,10 +81,10 @@
             this.fullyNamed = false;
             this.$initiator = null;
             this.$flags = 0 /* none */;
-            if (root === null && container.has(app_root_1.IAppRoot, true)) {
-                this.root = container.get(app_root_1.IAppRoot);
+            if (root === null && container.has(app_root_js_1.IAppRoot, true)) {
+                this.root = container.get(app_root_js_1.IAppRoot);
             }
-            this.platform = container.get(platform_1.IPlatform);
+            this.platform = container.get(platform_js_1.IPlatform);
             this.lifecycle = container.get(runtime_1.ILifecycle);
             switch (vmKind) {
                 case 1 /* customAttribute */:
@@ -130,7 +130,7 @@
             if (controllerLookup.has(viewModel)) {
                 return controllerLookup.get(viewModel);
             }
-            definition = definition !== null && definition !== void 0 ? definition : custom_element_1.CustomElement.getDefinition(viewModel.constructor);
+            definition = definition !== null && definition !== void 0 ? definition : custom_element_js_1.CustomElement.getDefinition(viewModel.constructor);
             const controller = new Controller(
             /* root           */ root, 
             /* container      */ container, 0 /* customElement */, 
@@ -149,7 +149,7 @@
             if (controllerLookup.has(viewModel)) {
                 return controllerLookup.get(viewModel);
             }
-            const definition = custom_attribute_1.CustomAttribute.getDefinition(viewModel.constructor);
+            const definition = custom_attribute_js_1.CustomAttribute.getDefinition(viewModel.constructor);
             const controller = new Controller(
             /* root           */ root, 
             /* container      */ container, 1 /* customAttribute */, 
@@ -203,10 +203,10 @@
                 /* parentContainer */ parentContainer, 
                 /* definition      */ definition);
                 if (result !== void 0 && result !== definition) {
-                    definition = custom_element_1.CustomElementDefinition.getOrCreate(result);
+                    definition = custom_element_js_1.CustomElementDefinition.getOrCreate(result);
                 }
             }
-            const context = this.context = render_context_1.getRenderContext(definition, parentContainer, targetedProjections === null || targetedProjections === void 0 ? void 0 : targetedProjections.projections);
+            const context = this.context = render_context_js_1.getRenderContext(definition, parentContainer, targetedProjections === null || targetedProjections === void 0 ? void 0 : targetedProjections.projections);
             // Support Recursive Components by adding self to own context
             definition.register(context);
             if (definition.injectable !== null) {
@@ -243,11 +243,11 @@
                 if (containerless) {
                     throw new Error('You cannot combine the containerless custom element option with Shadow DOM.');
                 }
-                kernel_1.Metadata.define(custom_element_1.CustomElement.name, this, this.host);
+                kernel_1.Metadata.define(custom_element_js_1.CustomElement.name, this, this.host);
                 this.setShadowRoot(this.shadowRoot = this.host.attachShadow(shadowOptions !== null && shadowOptions !== void 0 ? shadowOptions : defaultShadowOptions));
             }
             else if (containerless) {
-                this.setLocation(this.location = dom_1.convertToRenderLocation(this.host));
+                this.setLocation(this.location = dom_js_1.convertToRenderLocation(this.host));
             }
             else {
                 this.setHost(this.host);
@@ -394,9 +394,9 @@
                     this.nodes.appendTo(this.host, (_a = this.definition) === null || _a === void 0 ? void 0 : _a.enhance);
                     break;
                 case 2 /* shadowRoot */: {
-                    const styles = this.context.has(styles_1.IShadowDOMStyles, false)
-                        ? this.context.get(styles_1.IShadowDOMStyles)
-                        : this.context.get(styles_1.IShadowDOMGlobalStyles);
+                    const styles = this.context.has(styles_js_1.IShadowDOMStyles, false)
+                        ? this.context.get(styles_js_1.IShadowDOMStyles)
+                        : this.context.get(styles_js_1.IShadowDOMGlobalStyles);
                     styles.applyTo(this.shadowRoot);
                     this.nodes.appendTo(this.shadowRoot);
                     break;
@@ -607,11 +607,11 @@
         is(name) {
             switch (this.vmKind) {
                 case 1 /* customAttribute */: {
-                    const def = custom_attribute_1.CustomAttribute.getDefinition(this.viewModel.constructor);
+                    const def = custom_attribute_js_1.CustomAttribute.getDefinition(this.viewModel.constructor);
                     return def.name === name;
                 }
                 case 0 /* customElement */: {
-                    const def = custom_element_1.CustomElement.getDefinition(this.viewModel.constructor);
+                    const def = custom_element_js_1.CustomElement.getDefinition(this.viewModel.constructor);
                     return def.name === name;
                 }
                 case 2 /* synthetic */:
@@ -624,7 +624,7 @@
         }
         setHost(host) {
             if (this.vmKind === 0 /* customElement */) {
-                kernel_1.Metadata.define(custom_element_1.CustomElement.name, this, host);
+                kernel_1.Metadata.define(custom_element_js_1.CustomElement.name, this, host);
             }
             this.host = host;
             this.mountTarget = 1 /* host */;
@@ -632,7 +632,7 @@
         }
         setShadowRoot(shadowRoot) {
             if (this.vmKind === 0 /* customElement */) {
-                kernel_1.Metadata.define(custom_element_1.CustomElement.name, this, shadowRoot);
+                kernel_1.Metadata.define(custom_element_js_1.CustomElement.name, this, shadowRoot);
             }
             this.shadowRoot = shadowRoot;
             this.mountTarget = 2 /* shadowRoot */;
@@ -640,7 +640,7 @@
         }
         setLocation(location) {
             if (this.vmKind === 0 /* customElement */) {
-                kernel_1.Metadata.define(custom_element_1.CustomElement.name, this, location);
+                kernel_1.Metadata.define(custom_element_js_1.CustomElement.name, this, location);
             }
             this.location = location;
             this.mountTarget = 3 /* location */;
@@ -744,7 +744,7 @@
                 name = childObserverNames[i];
                 if (observers[name] == void 0) {
                     const childrenDescription = childrenObservers[name];
-                    observers[name] = new children_1.ChildrenObserver(controller, instance, flags, name, childrenDescription.callback, childrenDescription.query, childrenDescription.filter, childrenDescription.map, childrenDescription.options);
+                    observers[name] = new children_js_1.ChildrenObserver(controller, instance, flags, name, childrenDescription.callback, childrenDescription.query, childrenDescription.filter, childrenDescription.map, childrenDescription.options);
                 }
             }
         }
@@ -793,7 +793,7 @@
     }
     exports.isCustomElementController = isCustomElementController;
     function isCustomElementViewModel(value) {
-        return kernel_1.isObject(value) && custom_element_1.CustomElement.isType(value.constructor);
+        return kernel_1.isObject(value) && custom_element_js_1.CustomElement.isType(value.constructor);
     }
     exports.isCustomElementViewModel = isCustomElementViewModel;
     class HooksDefinition {

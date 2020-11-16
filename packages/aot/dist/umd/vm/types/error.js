@@ -4,17 +4,17 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./_shared"], factory);
+        define(["require", "exports", "./_shared.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.$URIError = exports.$RangeError = exports.$ReferenceError = exports.$TypeError = exports.$SyntaxError = exports.$Error = void 0;
-    const _shared_1 = require("./_shared");
+    const _shared_js_1 = require("./_shared.js");
     class $Error {
         constructor(realm, err, intrinsicName) {
             this.realm = realm;
-            this.id = _shared_1.nextValueId();
+            this.id = _shared_js_1.nextValueId();
             this['[[Type]]'] = 5 /* throw */;
             this.nodeStack = [];
             this.ctx = null;

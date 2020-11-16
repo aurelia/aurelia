@@ -1,5 +1,5 @@
 import { DelegationStrategy, } from '@aurelia/runtime';
-import { IEventTarget } from '../dom';
+import { IEventTarget } from '../dom.js';
 const options = {
     [DelegationStrategy.capturing]: { capture: true },
     [DelegationStrategy.bubbling]: { capture: false },

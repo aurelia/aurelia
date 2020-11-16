@@ -4,14 +4,14 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "../operations", "./error"], factory);
+        define(["require", "exports", "../operations.js", "./error.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.$Reference = void 0;
-    const operations_1 = require("../operations");
-    const error_1 = require("./error");
+    const operations_js_1 = require("../operations.js");
+    const error_js_1 = require("./error.js");
     // http://www.ecma-international.org/ecma-262/#sec-reference-specification-type
     class $Reference {
         constructor(realm, baseValue, referencedName, strict, thisValue) {
@@ -98,7 +98,7 @@
             let base = this.GetBase();
             // 4. If IsUnresolvableReference(V) is true, throw a ReferenceError exception.
             if (this.IsUnresolvableReference().isTruthy) {
-                return new error_1.$ReferenceError(ctx.Realm, `${this.referencedName['[[Value]]']} is not defined.`);
+                return new error_js_1.$ReferenceError(ctx.Realm, `${this.referencedName['[[Value]]']} is not defined.`);
             }
             // 5. If IsPropertyReference(V) is true, then
             if (this.IsPropertyReference().isTruthy) {
@@ -132,12 +132,12 @@
                 // 5. a. If IsStrictReference(V) is true, then
                 if (this.IsStrictReference().isTruthy) {
                     // 5. a. i. Throw a ReferenceError exception.
-                    return new error_1.$ReferenceError(realm, `${this.referencedName['[[Value]]']} is not defined.`);
+                    return new error_js_1.$ReferenceError(realm, `${this.referencedName['[[Value]]']} is not defined.`);
                 }
                 // 5. b. Let globalObj be GetGlobalObject().
                 const globalObj = realm['[[GlobalObject]]'];
                 // 5. c. Return ? Set(globalObj, GetReferencedName(V), W, false).
-                return operations_1.$Set(ctx, globalObj, this.GetReferencedName(), W, intrinsics.false);
+                return operations_js_1.$Set(ctx, globalObj, this.GetReferencedName(), W, intrinsics.false);
             }
             // 6. Else if IsPropertyReference(V) is true, then
             else if (this.IsPropertyReference().isTruthy) {
@@ -154,7 +154,7 @@
                 }
                 // 6. c. If succeeded is false and IsStrictReference(V) is true, throw a TypeError exception.
                 if (succeeded.isFalsey && this.IsStrictReference().isTruthy) {
-                    return new error_1.$TypeError(realm, `${this.referencedName['[[Value]]']} is not writable.`);
+                    return new error_js_1.$TypeError(realm, `${this.referencedName['[[Value]]']} is not writable.`);
                 }
                 // 6. d. Return.
                 return intrinsics.undefined;

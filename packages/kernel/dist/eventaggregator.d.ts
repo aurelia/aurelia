@@ -1,5 +1,5 @@
-import { Constructable, IDisposable } from './interfaces';
-export declare const IEventAggregator: import("./di").InterfaceSymbol<IEventAggregator>;
+import { Constructable, IDisposable } from './interfaces.js';
+export declare const IEventAggregator: import("./di.js").InterfaceSymbol<IEventAggregator>;
 export interface IEventAggregator extends EventAggregator {
 }
 /**

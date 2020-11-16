@@ -6,13 +6,13 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./util"], factory);
+        define(["require", "exports", "./util.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.isDeepStrictEqual = exports.isDeepEqual = exports.objEquiv = exports.mapEquiv = exports.mapHasEqualEntry = exports.setEquiv = exports.mapMightHaveLoosePrimitive = exports.setMightHaveLoosePrimitive = exports.findLooseMatchingPrimitives = exports.setHasEqualElement = exports.keyCheck = exports.innerDeepEqual = exports.isEqualBoxedPrimitive = exports.areEqualArrayBuffers = exports.areSimilarTypedArrays = exports.compare = exports.areSimilarFloatArrays = exports.areSimilarRegExps = exports.IterationType = void 0;
-    const util_1 = require("./util");
+    const util_js_1 = require("./util.js");
     /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion, @typescript-eslint/ban-types */
     var IterationType;
     (function (IterationType) {
@@ -80,20 +80,20 @@
     }
     exports.areEqualArrayBuffers = areEqualArrayBuffers;
     function isEqualBoxedPrimitive(val1, val2) {
-        if (util_1.isNumberObject(val1)) {
-            return (util_1.isNumberObject(val2)
-                && util_1.Object_is(util_1.Number_valueOf(val1), util_1.Number_valueOf(val2)));
+        if (util_js_1.isNumberObject(val1)) {
+            return (util_js_1.isNumberObject(val2)
+                && util_js_1.Object_is(util_js_1.Number_valueOf(val1), util_js_1.Number_valueOf(val2)));
         }
-        if (util_1.isStringObject(val1)) {
-            return (util_1.isStringObject(val2)
-                && util_1.String_valueOf(val1) === util_1.String_valueOf(val2));
+        if (util_js_1.isStringObject(val1)) {
+            return (util_js_1.isStringObject(val2)
+                && util_js_1.String_valueOf(val1) === util_js_1.String_valueOf(val2));
         }
-        if (util_1.isBooleanObject(val1)) {
-            return (util_1.isBooleanObject(val2)
-                && util_1.Boolean_valueOf(val1) === util_1.Boolean_valueOf(val2));
+        if (util_js_1.isBooleanObject(val1)) {
+            return (util_js_1.isBooleanObject(val2)
+                && util_js_1.Boolean_valueOf(val1) === util_js_1.Boolean_valueOf(val2));
         }
-        return (util_1.isSymbolObject(val2)
-            && util_1.Symbol_valueOf(val1) === util_1.Symbol_valueOf(val2));
+        return (util_js_1.isSymbolObject(val2)
+            && util_js_1.Symbol_valueOf(val1) === util_js_1.Symbol_valueOf(val2));
     }
     exports.isEqualBoxedPrimitive = isEqualBoxedPrimitive;
     function innerDeepEqual(val1, val2, strict, memos) {
@@ -101,34 +101,34 @@
             if (val1 !== 0) {
                 return true;
             }
-            return strict ? util_1.Object_is(val1, val2) : true;
+            return strict ? util_js_1.Object_is(val1, val2) : true;
         }
         if (strict) {
             if (typeof val1 !== 'object') {
-                return (util_1.isNumber(val1)
-                    && util_1.Number_isNaN(val1)
-                    && util_1.Number_isNaN(val2));
+                return (util_js_1.isNumber(val1)
+                    && util_js_1.Number_isNaN(val1)
+                    && util_js_1.Number_isNaN(val2));
             }
             if (typeof val2 !== 'object' || val1 === null || val2 === null) {
                 return false;
             }
-            if (util_1.getPrototypeOf(val1) !== util_1.getPrototypeOf(val2)) {
+            if (util_js_1.getPrototypeOf(val1) !== util_js_1.getPrototypeOf(val2)) {
                 return false;
             }
         }
         else {
-            if (!util_1.isObject(val1)) {
-                if (!util_1.isObject(val2)) {
+            if (!util_js_1.isObject(val1)) {
+                if (!util_js_1.isObject(val2)) {
                     return val1 == val2;
                 }
                 return false;
             }
-            if (!util_1.isObject(val2)) {
+            if (!util_js_1.isObject(val2)) {
                 return false;
             }
         }
-        const val1Tag = util_1.Object_toString(val1);
-        const val2Tag = util_1.Object_toString(val2);
+        const val1Tag = util_js_1.Object_toString(val1);
+        const val2Tag = util_js_1.Object_toString(val2);
         if (val1Tag !== val2Tag) {
             return false;
         }
@@ -139,8 +139,8 @@
             if (val1.length !== val2.length) {
                 return false;
             }
-            const keys1 = util_1.getOwnNonIndexProperties(val1, false);
-            const keys2 = util_1.getOwnNonIndexProperties(val2, false);
+            const keys1 = util_js_1.getOwnNonIndexProperties(val1, false);
+            const keys2 = util_js_1.getOwnNonIndexProperties(val2, false);
             if (keys1.length !== keys2.length) {
                 return false;
             }
@@ -149,23 +149,23 @@
         if (val1Tag === '[object Object]') {
             return keyCheck(val1, val2, strict, memos, 0 /* noIterator */);
         }
-        if (util_1.isDate(val1)) {
-            if (util_1.Date_getTime(val1) !== util_1.Date_getTime(val2)) {
+        if (util_js_1.isDate(val1)) {
+            if (util_js_1.Date_getTime(val1) !== util_js_1.Date_getTime(val2)) {
                 return false;
             }
         }
-        else if (util_1.isRegExp(val1)) {
+        else if (util_js_1.isRegExp(val1)) {
             if (!areSimilarRegExps(val1, val2)) {
                 return false;
             }
         }
-        else if (util_1.isError(val1)) {
+        else if (util_js_1.isError(val1)) {
             if (val1.message !== val2.message || val1.name !== val2.name) {
                 return false;
             }
         }
-        else if (util_1.ArrayBuffer_isView(val1)) {
-            if (!strict && (util_1.isFloat32Array(val1) || util_1.isFloat64Array(val1))) {
+        else if (util_js_1.ArrayBuffer_isView(val1)) {
+            if (!strict && (util_js_1.isFloat32Array(val1) || util_js_1.isFloat64Array(val1))) {
                 if (!areSimilarFloatArrays(val1, val2)) {
                     return false;
                 }
@@ -173,31 +173,31 @@
             else if (!areSimilarTypedArrays(val1, val2)) {
                 return false;
             }
-            const keys1 = util_1.getOwnNonIndexProperties(val1, false);
-            const keys2 = util_1.getOwnNonIndexProperties(val2, false);
+            const keys1 = util_js_1.getOwnNonIndexProperties(val1, false);
+            const keys2 = util_js_1.getOwnNonIndexProperties(val2, false);
             if (keys1.length !== keys2.length) {
                 return false;
             }
             return keyCheck(val1, val2, strict, memos, 0 /* noIterator */, keys1);
         }
-        else if (util_1.isSet(val1)) {
-            if (!util_1.isSet(val2) || val1.size !== val2.size) {
+        else if (util_js_1.isSet(val1)) {
+            if (!util_js_1.isSet(val2) || val1.size !== val2.size) {
                 return false;
             }
             return keyCheck(val1, val2, strict, memos, 2 /* isSet */);
         }
-        else if (util_1.isMap(val1)) {
-            if (!util_1.isMap(val2) || val1.size !== val2.size) {
+        else if (util_js_1.isMap(val1)) {
+            if (!util_js_1.isMap(val2) || val1.size !== val2.size) {
                 return false;
             }
             return keyCheck(val1, val2, strict, memos, 3 /* isMap */);
         }
-        else if (util_1.isAnyArrayBuffer(val1)) {
+        else if (util_js_1.isAnyArrayBuffer(val1)) {
             if (!areEqualArrayBuffers(val1, val2)) {
                 return false;
             }
         }
-        else if (util_1.isBoxedPrimitive(val1) && !isEqualBoxedPrimitive(val1, val2)) {
+        else if (util_js_1.isBoxedPrimitive(val1) && !isEqualBoxedPrimitive(val1, val2)) {
             return false;
         }
         return keyCheck(val1, val2, strict, memos, 0 /* noIterator */);
@@ -205,45 +205,45 @@
     exports.innerDeepEqual = innerDeepEqual;
     function keyCheck(val1, val2, strict, memos, iterationType, aKeys) {
         if (arguments.length === 5) {
-            aKeys = util_1.Object_keys(val1);
-            const bKeys = util_1.Object_keys(val2);
+            aKeys = util_js_1.Object_keys(val1);
+            const bKeys = util_js_1.Object_keys(val2);
             if (aKeys.length !== bKeys.length) {
                 return false;
             }
         }
         let i = 0;
         for (; i < aKeys.length; i++) {
-            if (!util_1.hasOwnProperty(val2, aKeys[i])) {
+            if (!util_js_1.hasOwnProperty(val2, aKeys[i])) {
                 return false;
             }
         }
         if (strict && arguments.length === 5) {
-            const symbolKeysA = util_1.getOwnPropertySymbols(val1);
+            const symbolKeysA = util_js_1.getOwnPropertySymbols(val1);
             if (symbolKeysA.length !== 0) {
                 let count = 0;
                 for (i = 0; i < symbolKeysA.length; i++) {
                     const key = symbolKeysA[i];
-                    if (util_1.propertyIsEnumerable(val1, key)) {
-                        if (!util_1.propertyIsEnumerable(val2, key)) {
+                    if (util_js_1.propertyIsEnumerable(val1, key)) {
+                        if (!util_js_1.propertyIsEnumerable(val2, key)) {
                             return false;
                         }
                         aKeys.push(key);
                         count++;
                     }
-                    else if (util_1.propertyIsEnumerable(val2, key)) {
+                    else if (util_js_1.propertyIsEnumerable(val2, key)) {
                         return false;
                     }
                 }
-                const symbolKeysB = util_1.getOwnPropertySymbols(val2);
+                const symbolKeysB = util_js_1.getOwnPropertySymbols(val2);
                 if (symbolKeysA.length !== symbolKeysB.length
-                    && util_1.getEnumerables(val2, symbolKeysB).length !== count) {
+                    && util_js_1.getEnumerables(val2, symbolKeysB).length !== count) {
                     return false;
                 }
             }
             else {
-                const symbolKeysB = util_1.getOwnPropertySymbols(val2);
+                const symbolKeysB = util_js_1.getOwnPropertySymbols(val2);
                 if (symbolKeysB.length !== 0
-                    && util_1.getEnumerables(val2, symbolKeysB).length !== 0) {
+                    && util_js_1.getEnumerables(val2, symbolKeysB).length !== 0) {
                     return false;
                 }
             }
@@ -301,7 +301,7 @@
                 val = +val;
             // Fall through
             case 'number':
-                if (util_1.Number_isNaN(val)) {
+                if (util_js_1.Number_isNaN(val)) {
                     return false;
                 }
         }
@@ -332,7 +332,7 @@
     function setEquiv(a, b, strict, memos) {
         let set = null;
         for (const val of a) {
-            if (util_1.isObject(val)) {
+            if (util_js_1.isObject(val)) {
                 if (set === null) {
                     set = new Set();
                 }
@@ -353,7 +353,7 @@
         }
         if (set !== null) {
             for (const val of b) {
-                if (util_1.isObject(val)) {
+                if (util_js_1.isObject(val)) {
                     if (!setHasEqualElement(set, val, strict, memos)) {
                         return false;
                     }
@@ -383,7 +383,7 @@
     function mapEquiv(a, b, strict, memos) {
         let set = null;
         for (const [key, item1] of a) {
-            if (util_1.isObject(key)) {
+            if (util_js_1.isObject(key)) {
                 if (set === null) {
                     set = new Set();
                 }
@@ -408,7 +408,7 @@
         }
         if (set !== null) {
             for (const [key, item] of b) {
-                if (util_1.isObject(key)) {
+                if (util_js_1.isObject(key)) {
                     if (!mapHasEqualEntry(set, a, key, item, strict, memos)) {
                         return false;
                     }
@@ -438,25 +438,25 @@
         }
         else if (iterationType === 1 /* isArray */) {
             for (; i < a.length; i++) {
-                if (util_1.hasOwnProperty(a, i)) {
-                    if (!util_1.hasOwnProperty(b, i)
+                if (util_js_1.hasOwnProperty(a, i)) {
+                    if (!util_js_1.hasOwnProperty(b, i)
                         || !innerDeepEqual(a[i], b[i], strict, memos)) {
                         return false;
                     }
                 }
-                else if (util_1.hasOwnProperty(b, i)) {
+                else if (util_js_1.hasOwnProperty(b, i)) {
                     return false;
                 }
                 else {
-                    const keysA = util_1.Object_keys(a);
+                    const keysA = util_js_1.Object_keys(a);
                     for (; i < keysA.length; i++) {
                         const key = keysA[i];
-                        if (!util_1.hasOwnProperty(b, key)
+                        if (!util_js_1.hasOwnProperty(b, key)
                             || !innerDeepEqual(a[key], b[key], strict, memos)) {
                             return false;
                         }
                     }
-                    if (keysA.length !== util_1.Object_keys(b).length) {
+                    if (keysA.length !== util_js_1.Object_keys(b).length) {
                         return false;
                     }
                     return true;

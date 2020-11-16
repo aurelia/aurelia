@@ -1,4 +1,4 @@
-import { OpenPromise } from './open-promise';
+import { OpenPromise } from './open-promise.js';
 export declare class AwaitableMap<K, V> {
     map: Map<K, V | OpenPromise<V>>;
     set(key: K, value: V): void;

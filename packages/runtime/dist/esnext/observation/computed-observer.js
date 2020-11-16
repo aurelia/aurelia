@@ -9,12 +9,12 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 /* eslint-disable eqeqeq, compat/compat */
 import { emptyArray, isArrayIndex, IServiceLocator } from '@aurelia/kernel';
-import { IObserverLocator } from './observer-locator';
-import { subscriberCollection, collectionSubscriberCollection } from './subscriber-collection';
-import { enterWatcher, exitWatcher } from './watcher-switcher';
-import { connectable } from '../binding/connectable';
-import { getProxyOrSelf, getRawOrSelf } from './proxy-observation';
-import { Scope } from './binding-context';
+import { IObserverLocator } from './observer-locator.js';
+import { subscriberCollection, collectionSubscriberCollection } from './subscriber-collection.js';
+import { enterWatcher, exitWatcher } from './watcher-switcher.js';
+import { connectable } from '../binding/connectable.js';
+import { getProxyOrSelf, getRawOrSelf } from './proxy-observation.js';
+import { Scope } from './binding-context.js';
 export function computed(config) {
     return function (target, key) {
         /**

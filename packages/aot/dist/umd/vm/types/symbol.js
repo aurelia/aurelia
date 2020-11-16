@@ -4,23 +4,23 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./string", "./_shared", "./object", "./boolean", "./error"], factory);
+        define(["require", "exports", "./string.js", "./_shared.js", "./object.js", "./boolean.js", "./error.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.$Symbol = void 0;
-    const string_1 = require("./string");
-    const _shared_1 = require("./_shared");
-    const object_1 = require("./object");
-    const boolean_1 = require("./boolean");
-    const error_1 = require("./error");
+    const string_js_1 = require("./string.js");
+    const _shared_js_1 = require("./_shared.js");
+    const object_js_1 = require("./object.js");
+    const boolean_js_1 = require("./boolean.js");
+    const error_js_1 = require("./error.js");
     // http://www.ecma-international.org/ecma-262/#sec-ecmascript-language-types-symbol-type
     class $Symbol {
         constructor(realm, Description, value = Symbol(Description['[[Value]]']), type = 1 /* normal */, target = realm['[[Intrinsics]]'].empty) {
             this.realm = realm;
             this.Description = Description;
-            this.id = _shared_1.nextValueId();
+            this.id = _shared_js_1.nextValueId();
             this.IntrinsicName = 'symbol';
             this.nodeStack = [];
             this.ctx = null;
@@ -89,7 +89,7 @@
         ToObject(ctx) {
             const realm = ctx.Realm;
             const intrinsics = realm['[[Intrinsics]]'];
-            return object_1.$Object.ObjectCreate(ctx, 'symbol', intrinsics['%SymbolPrototype%'], {
+            return object_js_1.$Object.ObjectCreate(ctx, 'symbol', intrinsics['%SymbolPrototype%'], {
                 '[[SymbolData]]': this,
             });
         }
@@ -104,7 +104,7 @@
             return this;
         }
         ToBoolean(ctx) {
-            return new boolean_1.$Boolean(
+            return new boolean_js_1.$Boolean(
             /* realm */ this.realm, 
             /* value */ Boolean(this['[[Value]]']), 
             /* type */ this['[[Type]]'], 
@@ -113,7 +113,7 @@
             /* conversionSource */ this);
         }
         ToNumber(ctx) {
-            return new error_1.$TypeError(ctx.Realm, `${this} cannot be converted to number`);
+            return new error_js_1.$TypeError(ctx.Realm, `${this} cannot be converted to number`);
         }
         ToInt32(ctx) {
             // Short circuit
@@ -144,7 +144,7 @@
             return this.ToNumber(ctx);
         }
         ToString(ctx) {
-            return new string_1.$String(
+            return new string_js_1.$String(
             /* realm */ this.realm, 
             /* value */ String(this['[[Value]]']), 
             /* type */ this['[[Type]]'], 

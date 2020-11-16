@@ -4,26 +4,26 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "../types/function", "../types/error", "../types/object", "./function", "./iteration", "../types/list", "./promise", "../operations", "../types/await"], factory);
+        define(["require", "exports", "../types/function.js", "../types/error.js", "../types/object.js", "./function.js", "./iteration.js", "../types/list.js", "./promise.js", "../operations.js", "../types/await.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.$AsyncGeneratorYield = exports.$AsyncGeneratorEnqueue = exports.$AsyncGeneratorResumeNext_Return_Processor_Rejected = exports.$AsyncGeneratorResumeNext_Return_Processor_Fulfilled = exports.$AsyncGeneratorResumeNext = exports.$AsyncGeneratorReject = exports.$AsyncGeneratorResolve = exports.$AsyncGeneratorStart = exports.$AsyncGeneratorRequest = exports.$AsyncGeneratorInstance = exports.AsyncGeneratorState = exports.$AsyncGeneratorPrototype_throw = exports.$AsyncGeneratorPrototype_return = exports.$AsyncGeneratorPrototype_next = exports.$AsyncGeneratorPrototype = exports.$AsyncGeneratorFunctionPrototype = exports.$AsyncGeneratorFunctionConstructor = void 0;
-    const function_1 = require("../types/function");
-    const error_1 = require("../types/error");
-    const object_1 = require("../types/object");
-    const function_2 = require("./function");
-    const iteration_1 = require("./iteration");
-    const list_1 = require("../types/list");
-    const promise_1 = require("./promise");
-    const operations_1 = require("../operations");
-    const await_1 = require("../types/await");
+    const function_js_1 = require("../types/function.js");
+    const error_js_1 = require("../types/error.js");
+    const object_js_1 = require("../types/object.js");
+    const function_js_2 = require("./function.js");
+    const iteration_js_1 = require("./iteration.js");
+    const list_js_1 = require("../types/list.js");
+    const promise_js_1 = require("./promise.js");
+    const operations_js_1 = require("../operations.js");
+    const await_js_1 = require("../types/await.js");
     // http://www.ecma-international.org/ecma-262/#sec-asyncgeneratorfunction-objects
     // 25.3 AsyncGeneratorFunction Objects
     // http://www.ecma-international.org/ecma-262/#sec-asyncgeneratorfunction-constructor
     // #region 25.3.1 The AsyncGeneratorFunction Constructor
-    class $AsyncGeneratorFunctionConstructor extends function_1.$BuiltinFunction {
+    class $AsyncGeneratorFunctionConstructor extends function_js_1.$BuiltinFunction {
         // http://www.ecma-international.org/ecma-262/#sec-asyncgeneratorfunction-prototype
         // 25.3.2.2 AsyncGeneratorFunction.prototype
         get $prototype() {
@@ -49,14 +49,14 @@
             // 1. Let C be the active function object.
             // 2. Let args be the argumentsList that was passed to this function by [[Call]] or [[Construct]].
             // 3. Return ? CreateDynamicFunction(C, NewTarget, "async generator", args).
-            return function_2.$CreateDynamicFunction(ctx, this, NewTarget, 12 /* asyncGenerator */, argumentsList);
+            return function_js_2.$CreateDynamicFunction(ctx, this, NewTarget, 12 /* asyncGenerator */, argumentsList);
         }
     }
     exports.$AsyncGeneratorFunctionConstructor = $AsyncGeneratorFunctionConstructor;
     // #endregion
     // http://www.ecma-international.org/ecma-262/#sec-properties-of-asyncgeneratorfunction-prototype
     // #region 25.3.3 Properties of the AsyncGeneratorFunction Prototype Object
-    class $AsyncGeneratorFunctionPrototype extends object_1.$Object {
+    class $AsyncGeneratorFunctionPrototype extends object_js_1.$Object {
         // http://www.ecma-international.org/ecma-262/#sec-asyncgeneratorfunction-prototype-constructor
         // 25.3.3.1 AsyncGeneratorFunction.prototype.constructor
         get $constructor() {
@@ -101,7 +101,7 @@
     // 25.5 AsyncGenerator Objects
     // http://www.ecma-international.org/ecma-262/#sec-properties-of-asyncgenerator-prototype
     // #region 25.5.1 Properties of the AsyncGenerator Prototype Object
-    class $AsyncGeneratorPrototype extends object_1.$Object {
+    class $AsyncGeneratorPrototype extends object_js_1.$Object {
         // http://www.ecma-international.org/ecma-262/#sec-asyncgenerator-prototype-constructor
         // 25.5.1.1 AsyncGenerator.prototype.constructor
         get $constructor() {
@@ -148,7 +148,7 @@
         }
     }
     exports.$AsyncGeneratorPrototype = $AsyncGeneratorPrototype;
-    class $AsyncGeneratorPrototype_next extends function_1.$BuiltinFunction {
+    class $AsyncGeneratorPrototype_next extends function_js_1.$BuiltinFunction {
         constructor(realm, proto) {
             super(realm, 'AsyncGenerator.prototype.next', proto);
         }
@@ -169,7 +169,7 @@
         }
     }
     exports.$AsyncGeneratorPrototype_next = $AsyncGeneratorPrototype_next;
-    class $AsyncGeneratorPrototype_return extends function_1.$BuiltinFunction {
+    class $AsyncGeneratorPrototype_return extends function_js_1.$BuiltinFunction {
         constructor(realm, proto) {
             super(realm, 'AsyncGenerator.prototype.return', proto);
         }
@@ -190,7 +190,7 @@
         }
     }
     exports.$AsyncGeneratorPrototype_return = $AsyncGeneratorPrototype_return;
-    class $AsyncGeneratorPrototype_throw extends function_1.$BuiltinFunction {
+    class $AsyncGeneratorPrototype_throw extends function_js_1.$BuiltinFunction {
         constructor(realm, proto) {
             super(realm, 'AsyncGenerator.prototype.throw', proto);
         }
@@ -223,7 +223,7 @@
         AsyncGeneratorState[AsyncGeneratorState["awaitingReturn"] = 4] = "awaitingReturn";
         AsyncGeneratorState[AsyncGeneratorState["completed"] = 5] = "completed";
     })(AsyncGeneratorState = exports.AsyncGeneratorState || (exports.AsyncGeneratorState = {}));
-    class $AsyncGeneratorInstance extends object_1.$Object {
+    class $AsyncGeneratorInstance extends object_js_1.$Object {
         constructor(realm, proto) {
             const intrinsics = realm['[[Intrinsics]]'];
             super(realm, 'AsyncGeneratorInstance', proto, 1 /* normal */, intrinsics.empty);
@@ -290,7 +290,7 @@
         // 7. Set generator.[[AsyncGeneratorState]] to "suspendedStart".
         generator['[[AsyncGeneratorState]]'] = 1 /* suspendedStart */;
         // 8. Set generator.[[AsyncGeneratorQueue]] to a new empty List.
-        generator['[[AsyncGeneratorQueue]]'] = new list_1.$List();
+        generator['[[AsyncGeneratorQueue]]'] = new list_js_1.$List();
         // 9. Return undefined.
         return intrinsics.undefined;
     }
@@ -309,9 +309,9 @@
         // 5. Let promiseCapability be next.[[Capability]].
         const promiseCapability = next['[[Capability]]'];
         // 6. Let iteratorResult be ! CreateIterResultObject(value, done).
-        const iteratorResult = iteration_1.$CreateIterResultObject(ctx, value, done);
+        const iteratorResult = iteration_js_1.$CreateIterResultObject(ctx, value, done);
         // 7. Perform ! Call(promiseCapability.[[Resolve]], undefined, « iteratorResult »).
-        operations_1.$Call(ctx, promiseCapability['[[Resolve]]'], intrinsics.undefined, new list_1.$List(iteratorResult));
+        operations_js_1.$Call(ctx, promiseCapability['[[Resolve]]'], intrinsics.undefined, new list_js_1.$List(iteratorResult));
         // 8. Perform ! AsyncGeneratorResumeNext(generator).
         $AsyncGeneratorResumeNext(ctx, generator);
         // 9. Return undefined.
@@ -332,7 +332,7 @@
         // 5. Let promiseCapability be next.[[Capability]].
         const promiseCapability = next['[[Capability]]'];
         // 6. Perform ! Call(promiseCapability.[[Reject]], undefined, « exception »).
-        operations_1.$Call(ctx, promiseCapability['[[Reject]]'], intrinsics.undefined, new list_1.$List(exception));
+        operations_js_1.$Call(ctx, promiseCapability['[[Reject]]'], intrinsics.undefined, new list_js_1.$List(exception));
         // 7. Perform ! AsyncGeneratorResumeNext(generator).
         $AsyncGeneratorResumeNext(ctx, generator);
         // 8. Return undefined.
@@ -382,7 +382,7 @@
                     // 10. b. i. 1. Set generator.[[AsyncGeneratorState]] to "awaiting-return".
                     generator['[[AsyncGeneratorState]]'] = 4 /* awaitingReturn */;
                     // 10. b. i. 2. Let promise be ? PromiseResolve(%Promise%, « completion.[[Value]] »).
-                    const promise = promise_1.$PromiseResolve(ctx, intrinsics['%Promise%'], new list_1.$List(completion)); // TODO: this cast urgently needs to be addressed with corrected typings
+                    const promise = promise_js_1.$PromiseResolve(ctx, intrinsics['%Promise%'], new list_js_1.$List(completion)); // TODO: this cast urgently needs to be addressed with corrected typings
                     if (promise.isAbrupt) {
                         return promise;
                     }
@@ -395,7 +395,7 @@
                     // 10. b. i. 8. Set onRejected.[[Generator]] to generator.
                     const onRejected = new $AsyncGeneratorResumeNext_Return_Processor_Rejected(realm, generator);
                     // 10. b. i. 9. Perform ! PerformPromiseThen(promise, onFulfilled, onRejected).
-                    promise_1.$PerformPromiseThen(ctx, promise, onFulfilled, onRejected);
+                    promise_js_1.$PerformPromiseThen(ctx, promise, onFulfilled, onRejected);
                     // 10. b. i. 10. Return undefined.
                     return intrinsics.undefined;
                 }
@@ -435,7 +435,7 @@
     exports.$AsyncGeneratorResumeNext = $AsyncGeneratorResumeNext;
     // http://www.ecma-international.org/ecma-262/#async-generator-resume-next-return-processor-fulfilled
     // 25.5.3.5.1 AsyncGeneratorResumeNext Return Processor Fulfilled Functions
-    class $AsyncGeneratorResumeNext_Return_Processor_Fulfilled extends function_1.$BuiltinFunction {
+    class $AsyncGeneratorResumeNext_Return_Processor_Fulfilled extends function_js_1.$BuiltinFunction {
         constructor(realm, generator) {
             const intrinsics = realm['[[Intrinsics]]'];
             super(realm, 'AsyncGeneratorResumeNext Return Processor Fulfilled', intrinsics['%FunctionPrototype%']);
@@ -458,7 +458,7 @@
     exports.$AsyncGeneratorResumeNext_Return_Processor_Fulfilled = $AsyncGeneratorResumeNext_Return_Processor_Fulfilled;
     // http://www.ecma-international.org/ecma-262/#async-generator-resume-next-return-processor-rejected
     // 25.5.3.5.2 AsyncGeneratorResumeNext Return Processor Rejected Functions
-    class $AsyncGeneratorResumeNext_Return_Processor_Rejected extends function_1.$BuiltinFunction {
+    class $AsyncGeneratorResumeNext_Return_Processor_Rejected extends function_js_1.$BuiltinFunction {
         constructor(realm, generator) {
             const intrinsics = realm['[[Intrinsics]]'];
             super(realm, 'AsyncGeneratorResumeNext Return Processor Rejected', intrinsics['%FunctionPrototype%']);
@@ -486,13 +486,13 @@
         const intrinsics = realm['[[Intrinsics]]'];
         // 1. Assert: completion is a Completion Record.
         // 2. Let promiseCapability be ! NewPromiseCapability(%Promise%).
-        const promiseCapability = promise_1.$NewPromiseCapability(ctx, intrinsics['%Promise%']);
+        const promiseCapability = promise_js_1.$NewPromiseCapability(ctx, intrinsics['%Promise%']);
         // 3. If Type(generator) is not Object, or if generator does not have an [[AsyncGeneratorState]] internal slot, then
         if (!(generator instanceof $AsyncGeneratorInstance)) {
             // 3. a. Let badGeneratorError be a newly created TypeError object.
-            const badGeneratorError = new error_1.$TypeError(realm, `Expected generator to be AsyncGeneratorInstance, but got: ${generator}`);
+            const badGeneratorError = new error_js_1.$TypeError(realm, `Expected generator to be AsyncGeneratorInstance, but got: ${generator}`);
             // 3. b. Perform ! Call(promiseCapability.[[Reject]], undefined, « badGeneratorError »).
-            operations_1.$Call(ctx, promiseCapability['[[Reject]]'], intrinsics.undefined, new list_1.$List(badGeneratorError));
+            operations_js_1.$Call(ctx, promiseCapability['[[Reject]]'], intrinsics.undefined, new list_js_1.$List(badGeneratorError));
             // 3. c. Return promiseCapability.[[Promise]].
             return promiseCapability['[[Promise]]']; // TODO: is this cast safe?
         }
@@ -526,7 +526,7 @@
         const generator = genContext.Generator;
         // 4. Assert: GetGeneratorKind() is async.
         // 5. Set value to ? Await(value).
-        value = await_1.$Await(ctx, value); // TODO: something is not quite right here w.r.t. value propagation. Need to revisit
+        value = await_js_1.$Await(ctx, value); // TODO: something is not quite right here w.r.t. value propagation. Need to revisit
         // 6. Set generator.[[AsyncGeneratorState]] to "suspendedYield".
         generator['[[AsyncGeneratorState]]'] = 2 /* suspendedYield */;
         // 7. Remove genContext from the execution context stack and restore the execution context that is at the top of the execution context stack as the running execution context.
@@ -538,7 +538,7 @@
                 return resumptionValue;
             }
             // 8. b. Let awaited be Await(resumptionValue.[[Value]]).
-            const awaited = await_1.$Await(ctx, resumptionValue);
+            const awaited = await_js_1.$Await(ctx, resumptionValue);
             // 8. c. If awaited.[[Type]] is throw, return Completion(awaited).
             if (awaited['[[Type]]'] === 5 /* throw */) {
                 return awaited;

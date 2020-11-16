@@ -1,11 +1,11 @@
 import { CustomElementType } from '@aurelia/runtime-html';
-import { IRoute, NavigationInstruction } from './interfaces';
-import { IRouter } from './router';
-import { ViewportInstruction } from './viewport-instruction';
-import { IScopeOwner, IScopeOwnerOptions, NextContentAction, Scope } from './scope';
-import { Navigation } from './navigation';
-import { IConnectedCustomElement } from './resources/viewport';
-import { NavigationCoordinator } from './navigation-coordinator';
+import { IRoute, NavigationInstruction } from './interfaces.js';
+import { IRouter } from './router.js';
+import { ViewportInstruction } from './viewport-instruction.js';
+import { IScopeOwner, IScopeOwnerOptions, NextContentAction, Scope } from './scope.js';
+import { Navigation } from './navigation.js';
+import { IConnectedCustomElement } from './resources/viewport.js';
+import { NavigationCoordinator } from './navigation-coordinator.js';
 export interface IViewportScopeOptions extends IScopeOwnerOptions {
     catches?: string | string[];
     collection?: boolean;

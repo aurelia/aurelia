@@ -4,15 +4,15 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "../types/object"], factory);
+        define(["require", "exports", "../types/object.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.$ImmutablePrototypeExoticObject = void 0;
-    const object_1 = require("../types/object");
+    const object_js_1 = require("../types/object.js");
     // http://www.ecma-international.org/ecma-262/#sec-string-exotic-objects
-    class $ImmutablePrototypeExoticObject extends object_1.$Object {
+    class $ImmutablePrototypeExoticObject extends object_js_1.$Object {
         constructor(realm, proto) {
             super(realm, 'ImmutablePrototypeExoticObject', proto, 1 /* normal */, realm['[[Intrinsics]]'].empty);
         }

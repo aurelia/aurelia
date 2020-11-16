@@ -16,7 +16,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "../../dom", "../../platform", "../custom-attribute"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "../../dom.js", "../../platform.js", "../custom-attribute.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -24,9 +24,9 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     exports.Blur = exports.BlurManager = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
-    const dom_1 = require("../../dom");
-    const platform_1 = require("../../platform");
-    const custom_attribute_1 = require("../custom-attribute");
+    const dom_js_1 = require("../../dom.js");
+    const platform_js_1 = require("../../platform.js");
+    const custom_attribute_js_1 = require("../custom-attribute.js");
     const unset = Symbol();
     // Using passive to help with performance
     const defaultCaptureEventInit = {
@@ -230,8 +230,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         __metadata("design:type", Object)
     ], Blur.prototype, "linkingContext", void 0);
     Blur = __decorate([
-        custom_attribute_1.customAttribute('blur'),
-        __param(0, dom_1.INode), __param(1, platform_1.IPlatform),
+        custom_attribute_js_1.customAttribute('blur'),
+        __param(0, dom_js_1.INode), __param(1, platform_js_1.IPlatform),
         __metadata("design:paramtypes", [Object, Object])
     ], Blur);
     exports.Blur = Blur;

@@ -12,10 +12,10 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 import { nextId, onResolve } from '@aurelia/kernel';
 import { bindable } from '@aurelia/runtime';
-import { IRenderLocation, setEffectiveParentNode } from '../../dom';
-import { IPlatform } from '../../platform';
-import { IViewFactory } from '../../templating/view';
-import { templateController } from '../custom-attribute';
+import { IRenderLocation, setEffectiveParentNode } from '../../dom.js';
+import { IPlatform } from '../../platform.js';
+import { IViewFactory } from '../../templating/view.js';
+import { templateController } from '../custom-attribute.js';
 let Portal = class Portal {
     constructor(factory, originalLoc, p) {
         this.factory = factory;

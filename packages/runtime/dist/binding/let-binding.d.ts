@@ -1,10 +1,10 @@
 import { IIndexable, IServiceLocator } from '@aurelia/kernel';
 import { ITask } from '@aurelia/platform';
-import { ILifecycle, IObservable, LifecycleFlags } from '../observation';
-import { IObserverLocator } from '../observation/observer-locator';
-import { IsExpression } from './ast';
-import { IConnectableBinding, IPartialConnectableBinding } from './connectable';
-import type { Scope } from '../observation/binding-context';
+import { ILifecycle, IObservable, LifecycleFlags } from '../observation.js';
+import { IObserverLocator } from '../observation/observer-locator.js';
+import { IsExpression } from './ast.js';
+import { IConnectableBinding, IPartialConnectableBinding } from './connectable.js';
+import type { Scope } from '../observation/binding-context.js';
 export interface LetBinding extends IConnectableBinding {
 }
 export declare class LetBinding implements IPartialConnectableBinding {

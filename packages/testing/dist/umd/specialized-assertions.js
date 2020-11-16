@@ -4,14 +4,14 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/runtime-html", "./assert"], factory);
+        define(["require", "exports", "@aurelia/runtime-html", "./assert.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.verifyBindingInstructionsEqual = exports.instructionTypeName = exports.getVisibleText = exports.verifyEqual = void 0;
     const runtime_html_1 = require("@aurelia/runtime-html");
-    const assert_1 = require("./assert");
+    const assert_js_1 = require("./assert.js");
     // Disabling this as it this is nowhere used. And also the ast-serialization infra is moved to validation package.
     // export function verifyASTEqual(actual: any, expected: any, errors?: string[], path?: string): any {
     //   if (expected == null) {
@@ -39,7 +39,7 @@
             depth = 0;
         }
         if (typeof expected !== 'object' || expected === null) {
-            assert_1.assert.strictEqual(actual, expected, `actual, depth=${depth}, prop=${property}, index=${index}`);
+            assert_js_1.assert.strictEqual(actual, expected, `actual, depth=${depth}, prop=${property}, index=${index}`);
             return;
         }
         if (expected instanceof Array) {
@@ -55,13 +55,13 @@
                 }
             }
             else {
-                assert_1.assert.strictEqual(actual.outerHTML, expected.outerHTML, `actual.outerHTML, depth=${depth}, prop=${property}, index=${index}`);
+                assert_js_1.assert.strictEqual(actual.outerHTML, expected.outerHTML, `actual.outerHTML, depth=${depth}, prop=${property}, index=${index}`);
             }
             return;
         }
         if (actual) {
-            assert_1.assert.strictEqual(actual.constructor.name, expected.constructor.name, `actual.constructor.name, depth=${depth}, prop=${property}, index=${index}`);
-            assert_1.assert.strictEqual(actual.toString(), expected.toString(), `actual.toString(), depth=${depth}, prop=${property}, index=${index}`);
+            assert_js_1.assert.strictEqual(actual.constructor.name, expected.constructor.name, `actual.constructor.name, depth=${depth}, prop=${property}, index=${index}`);
+            assert_js_1.assert.strictEqual(actual.toString(), expected.toString(), `actual.toString(), depth=${depth}, prop=${property}, index=${index}`);
             for (const prop of Object.keys(expected)) {
                 verifyEqual(actual[prop], expected[prop], depth + 1, prop, index);
             }

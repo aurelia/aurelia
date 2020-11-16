@@ -1,7 +1,7 @@
-import { IScopeOwner } from './scope';
-import { IRouter } from './router';
-import { Navigation } from './navigation';
-import { StateCoordinator, Entity } from './state-coordinator';
+import { IScopeOwner } from './scope.js';
+import { IRouter } from './router.js';
+import { Navigation } from './navigation.js';
+import { StateCoordinator, Entity } from './state-coordinator.js';
 export declare type NavigationState = 'guardedUnload' | // fulfilled when canUnload has been called
 'guardedLoad' | // fulfilled when canLoad has been called
 'guarded' | // fulfilled when check hooks canUnload and canLoad (if any) have been called

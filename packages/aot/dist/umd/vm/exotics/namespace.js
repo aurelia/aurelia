@@ -4,19 +4,19 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "../types/object", "../realm", "../operations", "../types/property-descriptor", "../types/error"], factory);
+        define(["require", "exports", "../types/object.js", "../realm.js", "../operations.js", "../types/property-descriptor.js", "../types/error.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.$NamespaceExoticObject = void 0;
-    const object_1 = require("../types/object");
-    const realm_1 = require("../realm");
-    const operations_1 = require("../operations");
-    const property_descriptor_1 = require("../types/property-descriptor");
-    const error_1 = require("../types/error");
+    const object_js_1 = require("../types/object.js");
+    const realm_js_1 = require("../realm.js");
+    const operations_js_1 = require("../operations.js");
+    const property_descriptor_js_1 = require("../types/property-descriptor.js");
+    const error_js_1 = require("../types/error.js");
     // http://www.ecma-international.org/ecma-262/#sec-module-namespace-exotic-objects
-    class $NamespaceExoticObject extends object_1.$Object {
+    class $NamespaceExoticObject extends object_js_1.$Object {
         // http://www.ecma-international.org/ecma-262/#sec-modulenamespacecreate
         // 9.4.6.11 ModuleNamespaceCreate ( module , exports )
         constructor(realm, mod, exports) {
@@ -40,7 +40,7 @@
         // 9.4.6.1 [[SetPrototypeOf]] ( V )
         '[[SetPrototypeOf]]'(ctx, V) {
             // 1. Return ? SetImmutablePrototype(O, V).
-            return operations_1.$SetImmutablePrototype(ctx, this, V);
+            return operations_js_1.$SetImmutablePrototype(ctx, this, V);
         }
         // http://www.ecma-international.org/ecma-262/#sec-module-namespace-exotic-objects-isextensible
         // 9.4.6.2 [[IsExtensible]] ( )
@@ -76,7 +76,7 @@
                 return value;
             }
             // 5. Return PropertyDescriptor { [[Value]]: value, [[Writable]]: true, [[Enumerable]]: true, [[Configurable]]: false }.
-            const desc = new property_descriptor_1.$PropertyDescriptor(realm, P);
+            const desc = new property_descriptor_js_1.$PropertyDescriptor(realm, P);
             desc['[[Value]]'] = value;
             desc['[[Writable]]'] = intrinsics.true;
             desc['[[Enumerable]]'] = intrinsics.true;
@@ -168,7 +168,7 @@
             // 5. Let m be O.[[Module]].
             const m = O['[[Module]]'];
             // 6. Let binding be ! m.ResolveExport(P, « »).
-            const binding = m.ResolveExport(ctx, P, new realm_1.ResolveSet());
+            const binding = m.ResolveExport(ctx, P, new realm_js_1.ResolveSet());
             // 7. Assert: binding is a ResolvedBinding Record.
             // 8. Let targetModule be binding.[[Module]].
             const targetModule = binding.Module;
@@ -177,7 +177,7 @@
             const targetEnv = targetModule['[[Environment]]'];
             // 11. If targetEnv is undefined, throw a ReferenceError exception.
             if (targetEnv.isUndefined) {
-                return new error_1.$ReferenceError(realm, `${P['[[Value]]']} cannot be resolved from namespace.`);
+                return new error_js_1.$ReferenceError(realm, `${P['[[Value]]']} cannot be resolved from namespace.`);
             }
             // 12. Let targetEnvRec be targetEnv's EnvironmentRecord.
             // 13. Return ? targetEnvRec.GetBindingValue(binding.[[BindingName]], true).

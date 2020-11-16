@@ -13,14 +13,14 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/runtime", "./observer-locator"], factory);
+        define(["require", "exports", "@aurelia/runtime", "./observer-locator.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.CheckedObserver = void 0;
     const runtime_1 = require("@aurelia/runtime");
-    const observer_locator_1 = require("./observer-locator");
+    const observer_locator_js_1 = require("./observer-locator.js");
     function defaultMatcher(a, b) {
         return a === b;
     }
@@ -70,7 +70,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                 (_b = this.collectionObserver) === null || _b === void 0 ? void 0 : _b.unsubscribeFromCollection(this);
                 this.collectionObserver = void 0;
                 if (obj.type === 'checkbox') {
-                    (_c = (this.collectionObserver = observer_locator_1.getCollectionObserver(currentValue, this.observerLocator))) === null || _c === void 0 ? void 0 : _c.subscribeToCollection(this);
+                    (_c = (this.collectionObserver = observer_locator_js_1.getCollectionObserver(currentValue, this.observerLocator))) === null || _c === void 0 ? void 0 : _c.subscribeToCollection(this);
                 }
                 this.synchronizeElement();
             }

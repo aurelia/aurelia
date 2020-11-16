@@ -1,8 +1,8 @@
-import { $BuiltinFunction, } from '../types/function';
-import { $TypeError, } from '../types/error';
-import { $Object, } from '../types/object';
-import { $CreateDynamicFunction, } from './function';
-import { $CreateIterResultObject, } from './iteration';
+import { $BuiltinFunction, } from '../types/function.js';
+import { $TypeError, } from '../types/error.js';
+import { $Object, } from '../types/object.js';
+import { $CreateDynamicFunction, } from './function.js';
+import { $CreateIterResultObject, } from './iteration.js';
 // http://www.ecma-international.org/ecma-262/#sec-generatorfunction-objects
 // 25.2 GeneratorFunction Objects
 // http://www.ecma-international.org/ecma-262/#sec-generatorfunction-constructor

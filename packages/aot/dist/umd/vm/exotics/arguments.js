@@ -4,21 +4,21 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "../types/object", "../types/function", "../operations", "../types/string", "../types/property-descriptor", "../types/number", "../ast/_shared"], factory);
+        define(["require", "exports", "../types/object.js", "../types/function.js", "../operations.js", "../types/string.js", "../types/property-descriptor.js", "../types/number.js", "../ast/_shared.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.$CreateUnmappedArgumentsObject = exports.$ArgSetter = exports.$ArgGetter = exports.$ArgumentsExoticObject = void 0;
-    const object_1 = require("../types/object");
-    const function_1 = require("../types/function");
-    const operations_1 = require("../operations");
-    const string_1 = require("../types/string");
-    const property_descriptor_1 = require("../types/property-descriptor");
-    const number_1 = require("../types/number");
-    const _shared_1 = require("../ast/_shared");
+    const object_js_1 = require("../types/object.js");
+    const function_js_1 = require("../types/function.js");
+    const operations_js_1 = require("../operations.js");
+    const string_js_1 = require("../types/string.js");
+    const property_descriptor_js_1 = require("../types/property-descriptor.js");
+    const number_js_1 = require("../types/number.js");
+    const _shared_js_1 = require("../ast/_shared.js");
     // http://www.ecma-international.org/ecma-262/#sec-arguments-exotic-objects
-    class $ArgumentsExoticObject extends object_1.$Object {
+    class $ArgumentsExoticObject extends object_js_1.$Object {
         // http://www.ecma-international.org/ecma-262/#sec-createmappedargumentsobject
         // 9.4.4.7 CreateMappedArgumentsObject ( func , formals , argumentsList , env )
         constructor(realm, func, formals, argumentsList, env) {
@@ -38,11 +38,11 @@
             // 10. Set obj.[[Prototype]] to %ObjectPrototype%.
             // 11. Set obj.[[Extensible]] to true.
             // 12. Let map be ObjectCreate(null).
-            const map = new object_1.$Object(realm, '[[ParameterMap]]', intrinsics.null, 1 /* normal */, intrinsics.empty);
+            const map = new object_js_1.$Object(realm, '[[ParameterMap]]', intrinsics.null, 1 /* normal */, intrinsics.empty);
             // 13. Set obj.[[ParameterMap]] to map.
             this['[[ParameterMap]]'] = map;
             // 14. Let parameterNames be the BoundNames of formals.
-            const parameterNames = formals.flatMap(_shared_1.getBoundNames);
+            const parameterNames = formals.flatMap(_shared_js_1.getBoundNames);
             // 15. Let numberOfParameters be the number of elements in parameterNames.
             const numberOfParameters = parameterNames.length;
             // 16. Let index be 0.
@@ -52,13 +52,13 @@
                 // 17. a. Let val be argumentsList[index].
                 const val = argumentsList[index];
                 // 17. b. Perform CreateDataProperty(obj, ! ToString(index), val).
-                operations_1.$CreateDataProperty(ctx, this, new string_1.$String(realm, index.toString()), val);
+                operations_js_1.$CreateDataProperty(ctx, this, new string_js_1.$String(realm, index.toString()), val);
                 // 17. c. Increase index by 1.
                 ++index;
             }
             // 18. Perform DefinePropertyOrThrow(obj, "length", PropertyDescriptor { [[Value]]: len, [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: true }).
-            const desc = new property_descriptor_1.$PropertyDescriptor(realm, intrinsics.length);
-            desc['[[Value]]'] = new number_1.$Number(realm, len);
+            const desc = new property_descriptor_js_1.$PropertyDescriptor(realm, intrinsics.length);
+            desc['[[Value]]'] = new number_js_1.$Number(realm, len);
             // 19. Let mappedNames be a new empty List.
             const mappedNames = [];
             // 20. Let index be numberOfParameters - 1.
@@ -78,7 +78,7 @@
                         // 21. b. ii. 2. Let p be MakeArgSetter(name, env).
                         const p = new $ArgSetter(realm, name, env);
                         // 21. b. ii. 3. Perform map.[[DefineOwnProperty]](! ToString(index), PropertyDescriptor { [[Set]]: p, [[Get]]: g, [[Enumerable]]: false, [[Configurable]]: true }).
-                        const desc = new property_descriptor_1.$PropertyDescriptor(realm, new string_1.$String(realm, index.toString()), {
+                        const desc = new property_descriptor_js_1.$PropertyDescriptor(realm, new string_js_1.$String(realm, index.toString()), {
                             '[[Set]]': p,
                             '[[Get]]': g,
                             '[[Enumerable]]': intrinsics.false,
@@ -91,21 +91,21 @@
                 --index;
             }
             // 22. Perform ! DefinePropertyOrThrow(obj, @@iterator, PropertyDescriptor { [[Value]]: %ArrayProto_values%, [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: true }).
-            const iteratorDesc = new property_descriptor_1.$PropertyDescriptor(realm, intrinsics['@@iterator'], {
+            const iteratorDesc = new property_descriptor_js_1.$PropertyDescriptor(realm, intrinsics['@@iterator'], {
                 '[[Value]]': intrinsics['%ArrayProto_values%'],
                 '[[Writable]]': intrinsics.true,
                 '[[Enumerable]]': intrinsics.false,
                 '[[Configurable]]': intrinsics.true,
             });
-            operations_1.$DefinePropertyOrThrow(ctx, this, iteratorDesc.name, iteratorDesc);
+            operations_js_1.$DefinePropertyOrThrow(ctx, this, iteratorDesc.name, iteratorDesc);
             // 23. Perform ! DefinePropertyOrThrow(obj, "callee", PropertyDescriptor { [[Value]]: func, [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: true }).
-            const calleeDesc = new property_descriptor_1.$PropertyDescriptor(realm, intrinsics.$callee, {
+            const calleeDesc = new property_descriptor_js_1.$PropertyDescriptor(realm, intrinsics.$callee, {
                 '[[Value]]': func,
                 '[[Writable]]': intrinsics.true,
                 '[[Enumerable]]': intrinsics.false,
                 '[[Configurable]]': intrinsics.true,
             });
-            operations_1.$DefinePropertyOrThrow(ctx, this, calleeDesc.name, calleeDesc);
+            operations_js_1.$DefinePropertyOrThrow(ctx, this, calleeDesc.name, calleeDesc);
             // 24. Return obj.
         }
         // http://www.ecma-international.org/ecma-262/#sec-arguments-exotic-objects-getownproperty-p
@@ -121,7 +121,7 @@
             // 4. Let map be args.[[ParameterMap]].
             const map = this['[[ParameterMap]]'];
             // 5. Let isMapped be ! HasOwnProperty(map, P).
-            const isMapped = operations_1.$HasOwnProperty(ctx, map, P).isTruthy;
+            const isMapped = operations_js_1.$HasOwnProperty(ctx, map, P).isTruthy;
             // 6. If isMapped is true, then
             if (isMapped) {
                 // 6. a. Set desc.[[Value]] to Get(map, P).
@@ -139,15 +139,15 @@
             // 2. Let map be args.[[ParameterMap]].
             const map = this['[[ParameterMap]]'];
             // 3. Let isMapped be HasOwnProperty(map, P).
-            const isMapped = operations_1.$HasOwnProperty(ctx, map, P).isTruthy;
+            const isMapped = operations_js_1.$HasOwnProperty(ctx, map, P).isTruthy;
             // 4. Let newArgDesc be Desc.
             let newArgDesc = Desc;
             // 5. If isMapped is true and IsDataDescriptor(Desc) is true, then
-            if (isMapped && property_descriptor_1.$IsDataDescriptor(Desc)) {
+            if (isMapped && property_descriptor_js_1.$IsDataDescriptor(Desc)) {
                 // 5. a. If Desc.[[Value]] is not present and Desc.[[Writable]] is present and its value is false, then
                 if (Desc['[[Value]]'].isEmpty && Desc['[[Writable]]'].hasValue && Desc['[[Writable]]'].isFalsey) {
                     // 5. a. i. Set newArgDesc to a copy of Desc.
-                    newArgDesc = new property_descriptor_1.$PropertyDescriptor(Desc.realm, Desc.name, {
+                    newArgDesc = new property_descriptor_js_1.$PropertyDescriptor(Desc.realm, Desc.name, {
                         // 5. a. ii. Set newArgDesc.[[Value]] to Get(map, P).
                         '[[Value]]': map['[[Get]]'](ctx, P, map),
                         '[[Writable]]': Desc['[[Writable]]'],
@@ -178,7 +178,7 @@
                 // 8. b. i. If Desc.[[Value]] is present, then
                 if (Desc['[[Value]]'].hasValue) {
                     // 8. b. i. 1. Let setStatus be Set(map, P, Desc.[[Value]], false).
-                    const setStatus = operations_1.$Set(ctx, map, P, Desc['[[Value]]'], intrinsics.false);
+                    const setStatus = operations_js_1.$Set(ctx, map, P, Desc['[[Value]]'], intrinsics.false);
                     // 8. b. i. 2. Assert: setStatus is true because formal parameters mapped by argument objects are always writable.
                     // 8. b. ii. If Desc.[[Writable]] is present and its value is false, then
                     if (Desc['[[Writable]]'].hasValue && Desc['[[Writable]]'].isFalsey) {
@@ -197,7 +197,7 @@
             // 2. Let map be args.[[ParameterMap]].
             const map = this['[[ParameterMap]]'];
             // 3. Let isMapped be ! HasOwnProperty(map, P).
-            const isMapped = operations_1.$HasOwnProperty(ctx, map, P).isTruthy;
+            const isMapped = operations_js_1.$HasOwnProperty(ctx, map, P).isTruthy;
             // 4. If isMapped is false, then
             if (!isMapped) {
                 // 4. a. Return ? OrdinaryGet(args, P, Receiver).
@@ -226,9 +226,9 @@
             // 5. Return ? OrdinarySet(args, P, V, Receiver).
             if (this.is(Receiver)) {
                 const map = this['[[ParameterMap]]'];
-                const isMapped = operations_1.$HasOwnProperty(ctx, map, P).isTruthy;
+                const isMapped = operations_js_1.$HasOwnProperty(ctx, map, P).isTruthy;
                 if (isMapped) {
-                    const setStatus = operations_1.$Set(ctx, map, P, V, intrinsics.false);
+                    const setStatus = operations_js_1.$Set(ctx, map, P, V, intrinsics.false);
                 }
             }
             return super['[[Set]]'](ctx, P, V, Receiver);
@@ -240,7 +240,7 @@
             // 2. Let map be args.[[ParameterMap]].
             const map = this['[[ParameterMap]]'];
             // 3. Let isMapped be ! HasOwnProperty(map, P).
-            const isMapped = operations_1.$HasOwnProperty(ctx, map, P).isTruthy;
+            const isMapped = operations_js_1.$HasOwnProperty(ctx, map, P).isTruthy;
             // 4. Let result be ? OrdinaryDelete(args, P).
             const result = super['[[Delete]]'](ctx, P);
             if (result.isAbrupt) {
@@ -257,7 +257,7 @@
     }
     exports.$ArgumentsExoticObject = $ArgumentsExoticObject;
     // http://www.ecma-international.org/ecma-262/#sec-makearggetter
-    class $ArgGetter extends function_1.$BuiltinFunction {
+    class $ArgGetter extends function_js_1.$BuiltinFunction {
         constructor(realm, name, env) {
             super(realm, 'ArgGetter', realm['[[Intrinsics]]']['%FunctionPrototype%']);
             // 3. Set getter.[[Name]] to name.
@@ -279,7 +279,7 @@
     }
     exports.$ArgGetter = $ArgGetter;
     // http://www.ecma-international.org/ecma-262/#sec-makeargsetter
-    class $ArgSetter extends function_1.$BuiltinFunction {
+    class $ArgSetter extends function_js_1.$BuiltinFunction {
         constructor(realm, name, env) {
             super(realm, 'ArgSetter', realm['[[Intrinsics]]']['%FunctionPrototype%']);
             // 3. Set getter.[[Name]] to name.
@@ -307,13 +307,13 @@
         // 1. Let len be the number of elements in argumentsList.
         const len = argumentsList.length;
         // 2. Let obj be ObjectCreate(%ObjectPrototype%, « [[ParameterMap]] »).
-        const obj = object_1.$Object.ObjectCreate(ctx, 'UnmappedArgumentsObject', intrinsics['%ObjectPrototype%'], {
+        const obj = object_js_1.$Object.ObjectCreate(ctx, 'UnmappedArgumentsObject', intrinsics['%ObjectPrototype%'], {
             '[[ParameterMap]]': intrinsics.undefined,
         });
         // 3. Set obj.[[ParameterMap]] to undefined.
         // 4. Perform DefinePropertyOrThrow(obj, "length", PropertyDescriptor { [[Value]]: len, [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: true }).
-        operations_1.$DefinePropertyOrThrow(ctx, obj, intrinsics.length, new property_descriptor_1.$PropertyDescriptor(realm, intrinsics.length, {
-            '[[Value]]': new number_1.$Number(realm, len),
+        operations_js_1.$DefinePropertyOrThrow(ctx, obj, intrinsics.length, new property_descriptor_js_1.$PropertyDescriptor(realm, intrinsics.length, {
+            '[[Value]]': new number_js_1.$Number(realm, len),
             '[[Writable]]': intrinsics.true,
             '[[Enumerable]]': intrinsics.false,
             '[[Configurable]]': intrinsics.true,
@@ -325,19 +325,19 @@
             // 6. a. Let val be argumentsList[index].
             const val = argumentsList[index];
             // 6. b. Perform CreateDataProperty(obj, ! ToString(index), val).
-            operations_1.$CreateDataProperty(ctx, obj, new string_1.$String(realm, index.toString()), val);
+            operations_js_1.$CreateDataProperty(ctx, obj, new string_js_1.$String(realm, index.toString()), val);
             // 6. c. Increase index by 1.
             ++index;
         }
         // 7. Perform ! DefinePropertyOrThrow(obj, @@iterator, PropertyDescriptor { [[Value]]: %ArrayProto_values%, [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: true }).
-        operations_1.$DefinePropertyOrThrow(ctx, obj, intrinsics['@@iterator'], new property_descriptor_1.$PropertyDescriptor(realm, intrinsics['@@iterator'], {
+        operations_js_1.$DefinePropertyOrThrow(ctx, obj, intrinsics['@@iterator'], new property_descriptor_js_1.$PropertyDescriptor(realm, intrinsics['@@iterator'], {
             '[[Value]]': intrinsics['%ArrayProto_values%'],
             '[[Writable]]': intrinsics.true,
             '[[Enumerable]]': intrinsics.false,
             '[[Configurable]]': intrinsics.true,
         }));
         // 8. Perform ! DefinePropertyOrThrow(obj, "callee", PropertyDescriptor { [[Get]]: %ThrowTypeError%, [[Set]]: %ThrowTypeError%, [[Enumerable]]: false, [[Configurable]]: false }).
-        operations_1.$DefinePropertyOrThrow(ctx, obj, intrinsics.$callee, new property_descriptor_1.$PropertyDescriptor(realm, intrinsics.$callee, {
+        operations_js_1.$DefinePropertyOrThrow(ctx, obj, intrinsics.$callee, new property_descriptor_js_1.$PropertyDescriptor(realm, intrinsics.$callee, {
             '[[Get]]': intrinsics['%ThrowTypeError%'],
             '[[Set]]': intrinsics['%ThrowTypeError%'],
             '[[Enumerable]]': intrinsics.false,

@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "typescript", "@aurelia/kernel", "../types/environment-record", "../types/string", "../types/undefined", "../types/function", "../types/object", "../types/empty", "../exotics/arguments", "../globals/iteration", "./_shared", "./modules", "./statements", "../operations", "../types/property-descriptor", "../types/boolean"], factory);
+        define(["require", "exports", "typescript", "@aurelia/kernel", "../types/environment-record.js", "../types/string.js", "../types/undefined.js", "../types/function.js", "../types/object.js", "../types/empty.js", "../exotics/arguments.js", "../globals/iteration.js", "./_shared.js", "./modules.js", "./statements.js", "../operations.js", "../types/property-descriptor.js", "../types/boolean.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -12,20 +12,20 @@
     exports.$ParameterDeclaration = exports.$ConstructorDeclaration = exports.MethodDefinitionRecord = exports.$ArrowFunction = exports.$FunctionDeclarationInstantiation = exports.$FunctionDeclaration = exports.$FunctionExpression = exports.$FormalParameterList = void 0;
     const typescript_1 = require("typescript");
     const kernel_1 = require("@aurelia/kernel");
-    const environment_record_1 = require("../types/environment-record");
-    const string_1 = require("../types/string");
-    const undefined_1 = require("../types/undefined");
-    const function_1 = require("../types/function");
-    const object_1 = require("../types/object");
-    const empty_1 = require("../types/empty");
-    const arguments_1 = require("../exotics/arguments");
-    const iteration_1 = require("../globals/iteration");
-    const _shared_1 = require("./_shared");
-    const modules_1 = require("./modules");
-    const statements_1 = require("./statements");
-    const operations_1 = require("../operations");
-    const property_descriptor_1 = require("../types/property-descriptor");
-    const boolean_1 = require("../types/boolean");
+    const environment_record_js_1 = require("../types/environment-record.js");
+    const string_js_1 = require("../types/string.js");
+    const undefined_js_1 = require("../types/undefined.js");
+    const function_js_1 = require("../types/function.js");
+    const object_js_1 = require("../types/object.js");
+    const empty_js_1 = require("../types/empty.js");
+    const arguments_js_1 = require("../exotics/arguments.js");
+    const iteration_js_1 = require("../globals/iteration.js");
+    const _shared_js_1 = require("./_shared.js");
+    const modules_js_1 = require("./modules.js");
+    const statements_js_1 = require("./statements.js");
+    const operations_js_1 = require("../operations.js");
+    const property_descriptor_js_1 = require("../types/property-descriptor.js");
+    const boolean_js_1 = require("../types/boolean.js");
     class $FormalParameterList extends Array {
         constructor(nodes, parent, ctx) {
             super();
@@ -84,7 +84,7 @@
     }
     exports.$FormalParameterList = $FormalParameterList;
     class $FunctionExpression {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.FunctionExpression`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.FunctionExpression`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -102,14 +102,14 @@
             this.IsFunctionDefinition = true;
             this.TypeDeclarations = kernel_1.emptyArray;
             this.IsType = false;
-            const modifierFlags = this.modifierFlags = _shared_1.modifiersToModifierFlags(node.modifiers);
-            const DirectivePrologue = this.DirectivePrologue = _shared_1.GetDirectivePrologue(node.body.statements);
+            const modifierFlags = this.modifierFlags = _shared_js_1.modifiersToModifierFlags(node.modifiers);
+            const DirectivePrologue = this.DirectivePrologue = _shared_js_1.GetDirectivePrologue(node.body.statements);
             if (DirectivePrologue.ContainsUseStrict) {
                 ctx |= 65536 /* InStrictMode */;
             }
-            const $name = this.$name = _shared_1.$identifier(node.name, this, ctx, -1);
+            const $name = this.$name = _shared_js_1.$identifier(node.name, this, ctx, -1);
             this.$parameters = new $FormalParameterList(node.parameters, this, ctx);
-            const $body = this.$body = new statements_1.$Block(node.body, this, ctx, -1);
+            const $body = this.$body = new statements_js_1.$Block(node.body, this, ctx, -1);
             this.BoundNames = kernel_1.emptyArray;
             this.ContainsUseStrict = DirectivePrologue.ContainsUseStrict === true;
             this.HasName = $name !== void 0;
@@ -117,7 +117,7 @@
             this.LexicallyScopedDeclarations = $body.TopLevelLexicallyScopedDeclarations;
             this.VarDeclaredNames = $body.TopLevelVarDeclaredNames;
             this.VarScopedDeclarations = $body.TopLevelVarScopedDeclarations;
-            if (!_shared_1.hasBit(modifierFlags, typescript_1.ModifierFlags.Async)) {
+            if (!_shared_js_1.hasBit(modifierFlags, typescript_1.ModifierFlags.Async)) {
                 if (node.asteriskToken === void 0) {
                     this.functionKind = 0 /* normal */;
                 }
@@ -169,11 +169,11 @@
             // FunctionExpression :
             //     function BindingIdentifier ( FormalParameters ) { FunctionBody }
             // 1. If the function code for FunctionExpression is strict mode code, let strict be true. Otherwise let strict be false.
-            const strict = new boolean_1.$Boolean(realm, this.DirectivePrologue.ContainsUseStrict === true);
+            const strict = new boolean_js_1.$Boolean(realm, this.DirectivePrologue.ContainsUseStrict === true);
             // 2. Let scope be the running execution context's LexicalEnvironment.
             const scope = ctx.LexicalEnvironment;
             // 3. Let funcEnv be NewDeclarativeEnvironment(scope).
-            const funcEnv = new environment_record_1.$DeclarativeEnvRec(this.logger, realm, scope);
+            const funcEnv = new environment_record_js_1.$DeclarativeEnvRec(this.logger, realm, scope);
             // 4. Let envRec be funcEnv's EnvironmentRecord.
             // 5. Let name be StringValue of BindingIdentifier.
             const name = (_b = (_a = this.$name) === null || _a === void 0 ? void 0 : _a.StringValue) !== null && _b !== void 0 ? _b : void 0;
@@ -182,7 +182,7 @@
                 funcEnv.CreateImmutableBinding(ctx, name, intrinsics.false);
             }
             // 7. Let closure be FunctionCreate(Normal, FormalParameters, FunctionBody, funcEnv, strict).
-            const closure = function_1.$Function.FunctionCreate(ctx, 'normal', this, funcEnv, strict);
+            const closure = function_js_1.$Function.FunctionCreate(ctx, 'normal', this, funcEnv, strict);
             // 8. Perform MakeConstructor(closure).
             closure.MakeConstructor(ctx);
             if (name !== void 0) {
@@ -190,7 +190,7 @@
                 closure.SetFunctionName(ctx, name);
             }
             // 10. Set closure.[[SourceText]] to the source text matched by FunctionExpression.
-            closure['[[SourceText]]'] = new string_1.$String(realm, this.node.getText(this.mos.node));
+            closure['[[SourceText]]'] = new string_js_1.$String(realm, this.node.getText(this.mos.node));
             if (name !== void 0) {
                 // 11. Perform envRec.InitializeBinding(name, closure).
                 funcEnv.InitializeBinding(ctx, name, closure);
@@ -218,11 +218,11 @@
             // GeneratorExpression :
             //     function * BindingIdentifier ( FormalParameters ) { GeneratorBody }
             // 1. If the function code for this GeneratorExpression is strict mode code, let strict be true. Otherwise let strict be false.
-            const strict = new boolean_1.$Boolean(realm, this.DirectivePrologue.ContainsUseStrict === true);
+            const strict = new boolean_js_1.$Boolean(realm, this.DirectivePrologue.ContainsUseStrict === true);
             // 2. Let scope be the running execution context's LexicalEnvironment.
             const scope = ctx.LexicalEnvironment;
             // 3. Let funcEnv be NewDeclarativeEnvironment(scope).
-            const funcEnv = new environment_record_1.$DeclarativeEnvRec(this.logger, realm, scope);
+            const funcEnv = new environment_record_js_1.$DeclarativeEnvRec(this.logger, realm, scope);
             // 4. Let envRec be funcEnv's EnvironmentRecord.
             // 5. Let name be StringValue of BindingIdentifier.
             const name = (_b = (_a = this.$name) === null || _a === void 0 ? void 0 : _a.StringValue) !== null && _b !== void 0 ? _b : void 0;
@@ -231,11 +231,11 @@
                 funcEnv.CreateImmutableBinding(ctx, name, intrinsics.false);
             }
             // 7. Let closure be GeneratorFunctionCreate(Normal, FormalParameters, GeneratorBody, funcEnv, strict).
-            const closure = function_1.$Function.GeneratorFunctionCreate(ctx, 'normal', this, funcEnv, strict);
+            const closure = function_js_1.$Function.GeneratorFunctionCreate(ctx, 'normal', this, funcEnv, strict);
             // 8. Let prototype be ObjectCreate(%GeneratorPrototype%).
-            const prototype = object_1.$Object.ObjectCreate(ctx, 'Generator', intrinsics['%GeneratorPrototype%']);
+            const prototype = object_js_1.$Object.ObjectCreate(ctx, 'Generator', intrinsics['%GeneratorPrototype%']);
             // 9. Perform DefinePropertyOrThrow(closure, "prototype", PropertyDescriptor { [[Value]]: prototype, [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: false }).
-            const $DefinePropertyOrThrowResult = operations_1.$DefinePropertyOrThrow(ctx, closure, intrinsics.$prototype, new property_descriptor_1.$PropertyDescriptor(realm, intrinsics.$prototype, {
+            const $DefinePropertyOrThrowResult = operations_js_1.$DefinePropertyOrThrow(ctx, closure, intrinsics.$prototype, new property_descriptor_js_1.$PropertyDescriptor(realm, intrinsics.$prototype, {
                 '[[Value]]': prototype,
                 '[[Writable]]': intrinsics.true,
                 '[[Enumerable]]': intrinsics.false,
@@ -251,7 +251,7 @@
                 funcEnv.InitializeBinding(ctx, name, closure);
             }
             // 12. Set closure.[[SourceText]] to the source text matched by GeneratorExpression.
-            closure['[[SourceText]]'] = new string_1.$String(realm, this.node.getText(this.mos.node));
+            closure['[[SourceText]]'] = new string_js_1.$String(realm, this.node.getText(this.mos.node));
             // 13. Return closure.
             return closure;
         }
@@ -275,11 +275,11 @@
             // AsyncGeneratorExpression :
             //     async function * BindingIdentifier ( FormalParameters ) { AsyncGeneratorBody }
             // 1. If the function code for this AsyncGeneratorExpression is strict mode code, let strict be true. Otherwise let strict be false.
-            const strict = new boolean_1.$Boolean(realm, this.DirectivePrologue.ContainsUseStrict === true);
+            const strict = new boolean_js_1.$Boolean(realm, this.DirectivePrologue.ContainsUseStrict === true);
             // 2. Let scope be the running execution context's LexicalEnvironment.
             const scope = ctx.LexicalEnvironment;
             // 3. Let funcEnv be ! NewDeclarativeEnvironment(scope).
-            const funcEnv = new environment_record_1.$DeclarativeEnvRec(this.logger, realm, scope);
+            const funcEnv = new environment_record_js_1.$DeclarativeEnvRec(this.logger, realm, scope);
             // 4. Let envRec be funcEnv's EnvironmentRecord.
             // 5. Let name be StringValue of BindingIdentifier.
             const name = (_b = (_a = this.$name) === null || _a === void 0 ? void 0 : _a.StringValue) !== null && _b !== void 0 ? _b : void 0;
@@ -288,11 +288,11 @@
                 funcEnv.CreateImmutableBinding(ctx, name, intrinsics.false); // TODO: we sure about this?
             }
             // 7. Let closure be ! AsyncGeneratorFunctionCreate(Normal, FormalParameters, AsyncGeneratorBody, funcEnv, strict).
-            const closure = function_1.$Function.AsyncGeneratorFunctionCreate(ctx, 'normal', this, funcEnv, strict);
+            const closure = function_js_1.$Function.AsyncGeneratorFunctionCreate(ctx, 'normal', this, funcEnv, strict);
             // 8. Let prototype be ! ObjectCreate(%AsyncGeneratorPrototype%).
-            const prototype = object_1.$Object.ObjectCreate(ctx, 'AsyncGenerator', intrinsics['%AsyncGeneratorPrototype%']);
+            const prototype = object_js_1.$Object.ObjectCreate(ctx, 'AsyncGenerator', intrinsics['%AsyncGeneratorPrototype%']);
             // 9. Perform ! DefinePropertyOrThrow(closure, "prototype", PropertyDescriptor { [[Value]]: prototype, [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: false }).
-            const $DefinePropertyOrThrowResult = operations_1.$DefinePropertyOrThrow(ctx, closure, intrinsics.$prototype, new property_descriptor_1.$PropertyDescriptor(realm, intrinsics.$prototype, {
+            const $DefinePropertyOrThrowResult = operations_js_1.$DefinePropertyOrThrow(ctx, closure, intrinsics.$prototype, new property_descriptor_js_1.$PropertyDescriptor(realm, intrinsics.$prototype, {
                 '[[Value]]': prototype,
                 '[[Writable]]': intrinsics.true,
                 '[[Enumerable]]': intrinsics.false,
@@ -308,7 +308,7 @@
                 funcEnv.InitializeBinding(ctx, name, closure);
             }
             // 12. Set closure.[[SourceText]] to the source text matched by AsyncGeneratorExpression.
-            closure['[[SourceText]]'] = new string_1.$String(realm, this.node.getText(this.mos.node));
+            closure['[[SourceText]]'] = new string_js_1.$String(realm, this.node.getText(this.mos.node));
             // 13. Return closure.
             return closure;
         }
@@ -330,11 +330,11 @@
             // AsyncFunctionExpression :
             //     async function BindingIdentifier ( FormalParameters ) { AsyncFunctionBody }
             // 1. If the function code for AsyncFunctionExpression is strict mode code, let strict be true. Otherwise let strict be false.
-            const strict = new boolean_1.$Boolean(realm, this.DirectivePrologue.ContainsUseStrict === true);
+            const strict = new boolean_js_1.$Boolean(realm, this.DirectivePrologue.ContainsUseStrict === true);
             // 2. Let scope be the LexicalEnvironment of the running execution context.
             const scope = ctx.LexicalEnvironment;
             // 3. Let funcEnv be ! NewDeclarativeEnvironment(scope).
-            const funcEnv = new environment_record_1.$DeclarativeEnvRec(this.logger, realm, scope);
+            const funcEnv = new environment_record_js_1.$DeclarativeEnvRec(this.logger, realm, scope);
             // 4. Let envRec be funcEnv's EnvironmentRecord.
             // 5. Let name be StringValue of BindingIdentifier.
             const name = (_b = (_a = this.$name) === null || _a === void 0 ? void 0 : _a.StringValue) !== null && _b !== void 0 ? _b : void 0;
@@ -343,7 +343,7 @@
                 funcEnv.CreateImmutableBinding(ctx, name, intrinsics.false); // TODO: we sure about this?
             }
             // 7. Let closure be ! AsyncFunctionCreate(Normal, FormalParameters, AsyncFunctionBody, funcEnv, strict).
-            const closure = function_1.$Function.AsyncFunctionCreate(ctx, 'normal', this, funcEnv, strict);
+            const closure = function_js_1.$Function.AsyncFunctionCreate(ctx, 'normal', this, funcEnv, strict);
             if (name !== void 0) {
                 // 8. Perform ! SetFunctionName(closure, name).
                 closure.SetFunctionName(ctx, name);
@@ -351,7 +351,7 @@
                 funcEnv.InitializeBinding(ctx, name, closure);
             }
             // 10. Set closure.[[SourceText]] to the source text matched by AsyncFunctionExpression.
-            closure['[[SourceText]]'] = new string_1.$String(realm, this.node.getText(this.mos.node));
+            closure['[[SourceText]]'] = new string_js_1.$String(realm, this.node.getText(this.mos.node));
             // 11. Return closure.
             return closure;
         }
@@ -390,7 +390,7 @@
     }
     exports.$FunctionExpression = $FunctionExpression;
     class $FunctionDeclaration {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.FunctionDeclaration`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.FunctionDeclaration`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -424,18 +424,18 @@
             this.TypeDeclarations = kernel_1.emptyArray;
             this.IsType = false;
             const intrinsics = realm['[[Intrinsics]]'];
-            const modifierFlags = this.modifierFlags = _shared_1.modifiersToModifierFlags(node.modifiers);
-            if (_shared_1.hasBit(modifierFlags, typescript_1.ModifierFlags.Export)) {
+            const modifierFlags = this.modifierFlags = _shared_js_1.modifiersToModifierFlags(node.modifiers);
+            if (_shared_js_1.hasBit(modifierFlags, typescript_1.ModifierFlags.Export)) {
                 ctx |= 4096 /* InExport */;
             }
-            const DirectivePrologue = this.DirectivePrologue = _shared_1.GetDirectivePrologue(node.body.statements);
+            const DirectivePrologue = this.DirectivePrologue = _shared_js_1.GetDirectivePrologue(node.body.statements);
             if (this.DirectivePrologue.ContainsUseStrict) {
                 ctx |= 65536 /* InStrictMode */;
             }
-            this.$decorators = _shared_1.$decoratorList(node.decorators, this, ctx);
-            const $name = this.$name = _shared_1.$identifier(node.name, this, ctx, -1);
+            this.$decorators = _shared_js_1.$decoratorList(node.decorators, this, ctx);
+            const $name = this.$name = _shared_js_1.$identifier(node.name, this, ctx, -1);
             this.$parameters = new $FormalParameterList(node.parameters, this, ctx);
-            const $body = this.$body = new statements_1.$Block(node.body, this, ctx, -1);
+            const $body = this.$body = new statements_js_1.$Block(node.body, this, ctx, -1);
             this.ContainsUseStrict = DirectivePrologue.ContainsUseStrict === true;
             const HasName = this.HasName = $name !== void 0;
             this.LexicallyDeclaredNames = $body.TopLevelLexicallyDeclaredNames;
@@ -443,20 +443,20 @@
             this.VarDeclaredNames = $body.TopLevelVarDeclaredNames;
             this.VarScopedDeclarations = $body.TopLevelVarScopedDeclarations;
             if ($name === void 0) {
-                this.PropName = new undefined_1.$Undefined(realm);
+                this.PropName = new undefined_js_1.$Undefined(realm);
             }
             else {
                 this.PropName = $name.PropName;
             }
-            if (_shared_1.hasBit(ctx, 4096 /* InExport */)) {
-                if (_shared_1.hasBit(this.modifierFlags, typescript_1.ModifierFlags.Default)) {
+            if (_shared_js_1.hasBit(ctx, 4096 /* InExport */)) {
+                if (_shared_js_1.hasBit(this.modifierFlags, typescript_1.ModifierFlags.Default)) {
                     if (HasName) {
                         const [localName] = $name.BoundNames;
                         const BoundNames = this.BoundNames = [localName, intrinsics['*default*']];
                         this.ExportedBindings = BoundNames;
                         this.ExportedNames = [intrinsics['default']];
                         this.ExportEntries = [
-                            new modules_1.ExportEntryRecord(
+                            new modules_js_1.ExportEntryRecord(
                             /* source */ this, 
                             /* ExportName */ intrinsics['default'], 
                             /* ModuleRequest */ intrinsics.null, 
@@ -469,7 +469,7 @@
                         this.ExportedBindings = BoundNames;
                         this.ExportedNames = [intrinsics['default']];
                         this.ExportEntries = [
-                            new modules_1.ExportEntryRecord(
+                            new modules_js_1.ExportEntryRecord(
                             /* source */ this, 
                             /* ExportName */ intrinsics['default'], 
                             /* ModuleRequest */ intrinsics.null, 
@@ -485,7 +485,7 @@
                     this.ExportedBindings = BoundNames;
                     this.ExportedNames = BoundNames;
                     this.ExportEntries = [
-                        new modules_1.ExportEntryRecord(
+                        new modules_js_1.ExportEntryRecord(
                         /* source */ this, 
                         /* ExportName */ localName, 
                         /* ModuleRequest */ intrinsics.null, 
@@ -501,7 +501,7 @@
                 this.ExportedNames = kernel_1.emptyArray;
                 this.ExportEntries = kernel_1.emptyArray;
             }
-            if (!_shared_1.hasBit(modifierFlags, typescript_1.ModifierFlags.Async)) {
+            if (!_shared_js_1.hasBit(modifierFlags, typescript_1.ModifierFlags.Async)) {
                 if (node.asteriskToken === void 0) {
                     this.functionKind = 0 /* normal */;
                 }
@@ -546,17 +546,17 @@
             // FunctionDeclaration :
             //     function BindingIdentifier ( FormalParameters ) { FunctionBody }
             // 1. If the function code for FunctionDeclaration is strict mode code, let strict be true. Otherwise let strict be false.
-            const strict = new boolean_1.$Boolean(realm, this.DirectivePrologue.ContainsUseStrict === true);
+            const strict = new boolean_js_1.$Boolean(realm, this.DirectivePrologue.ContainsUseStrict === true);
             // 2. Let name be StringValue of BindingIdentifier.
             const name = this.$name === void 0 ? intrinsics.default : this.$name.StringValue;
             // 3. Let F be FunctionCreate(Normal, FormalParameters, FunctionBody, scope, strict).
-            const F = function_1.$Function.FunctionCreate(ctx, 'normal', this, Scope, strict);
+            const F = function_js_1.$Function.FunctionCreate(ctx, 'normal', this, Scope, strict);
             // 4. Perform MakeConstructor(F).
             F.MakeConstructor(ctx);
             // 5. Perform SetFunctionName(F, name).
             F.SetFunctionName(ctx, name);
             // 6. Set F.[[SourceText]] to the source text matched by FunctionDeclaration.
-            F['[[SourceText]]'] = new string_1.$String(realm, this.node.getText(this.mos.node));
+            F['[[SourceText]]'] = new string_js_1.$String(realm, this.node.getText(this.mos.node));
             // 7. Return F.
             return F;
         }
@@ -578,15 +578,15 @@
             // GeneratorDeclaration :
             //     function * BindingIdentifier ( FormalParameters ) { GeneratorBody }
             // 1. If the function code for GeneratorDeclaration is strict mode code, let strict be true. Otherwise let strict be false.
-            const strict = new boolean_1.$Boolean(realm, this.DirectivePrologue.ContainsUseStrict === true);
+            const strict = new boolean_js_1.$Boolean(realm, this.DirectivePrologue.ContainsUseStrict === true);
             // 2. Let name be StringValue of BindingIdentifier.
             const name = this.$name === void 0 ? intrinsics.default : this.$name.StringValue;
             // 3. Let F be GeneratorFunctionCreate(Normal, FormalParameters, GeneratorBody, scope, strict).
-            const F = function_1.$Function.GeneratorFunctionCreate(ctx, 'normal', this, Scope, strict);
+            const F = function_js_1.$Function.GeneratorFunctionCreate(ctx, 'normal', this, Scope, strict);
             // 4. Let prototype be ObjectCreate(%GeneratorPrototype%).
-            const prototype = object_1.$Object.ObjectCreate(ctx, 'Generator', intrinsics['%GeneratorPrototype%']);
+            const prototype = object_js_1.$Object.ObjectCreate(ctx, 'Generator', intrinsics['%GeneratorPrototype%']);
             // 5. Perform DefinePropertyOrThrow(F, "prototype", PropertyDescriptor { [[Value]]: prototype, [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: false }).
-            const $DefinePropertyOrThrowResult = operations_1.$DefinePropertyOrThrow(ctx, F, intrinsics.$prototype, new property_descriptor_1.$PropertyDescriptor(realm, intrinsics.$prototype, {
+            const $DefinePropertyOrThrowResult = operations_js_1.$DefinePropertyOrThrow(ctx, F, intrinsics.$prototype, new property_descriptor_js_1.$PropertyDescriptor(realm, intrinsics.$prototype, {
                 '[[Value]]': prototype,
                 '[[Writable]]': intrinsics.true,
                 '[[Enumerable]]': intrinsics.false,
@@ -598,7 +598,7 @@
             // 6. Perform SetFunctionName(F, name).
             F.SetFunctionName(ctx, name);
             // 7. Set F.[[SourceText]] to the source text matched by GeneratorDeclaration.
-            F['[[SourceText]]'] = new string_1.$String(realm, this.node.getText(this.mos.node));
+            F['[[SourceText]]'] = new string_js_1.$String(realm, this.node.getText(this.mos.node));
             // 8. Return F.
             return F;
         }
@@ -621,15 +621,15 @@
             // AsyncGeneratorDeclaration :
             //     async function * BindingIdentifier ( FormalParameters ) { AsyncGeneratorBody }
             // 1. If the function code for AsyncGeneratorDeclaration is strict mode code, let strict be true. Otherwise let strict be false.
-            const strict = new boolean_1.$Boolean(realm, this.DirectivePrologue.ContainsUseStrict === true);
+            const strict = new boolean_js_1.$Boolean(realm, this.DirectivePrologue.ContainsUseStrict === true);
             // 2. Let name be StringValue of BindingIdentifier.
             const name = this.$name === void 0 ? intrinsics.default : this.$name.StringValue;
             // 3. Let F be ! AsyncGeneratorFunctionCreate(Normal, FormalParameters, AsyncGeneratorBody, scope, strict).
-            const F = function_1.$Function.GeneratorFunctionCreate(ctx, 'normal', this, Scope, strict);
+            const F = function_js_1.$Function.GeneratorFunctionCreate(ctx, 'normal', this, Scope, strict);
             // 4. Let prototype be ! ObjectCreate(%AsyncGeneratorPrototype%).
-            const prototype = object_1.$Object.ObjectCreate(ctx, 'AsyncGenerator', intrinsics['%AsyncGeneratorPrototype%']);
+            const prototype = object_js_1.$Object.ObjectCreate(ctx, 'AsyncGenerator', intrinsics['%AsyncGeneratorPrototype%']);
             // 5. Perform ! DefinePropertyOrThrow(F, "prototype", PropertyDescriptor { [[Value]]: prototype, [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: false }).
-            const $DefinePropertyOrThrowResult = operations_1.$DefinePropertyOrThrow(ctx, F, intrinsics.$prototype, new property_descriptor_1.$PropertyDescriptor(realm, intrinsics.$prototype, {
+            const $DefinePropertyOrThrowResult = operations_js_1.$DefinePropertyOrThrow(ctx, F, intrinsics.$prototype, new property_descriptor_js_1.$PropertyDescriptor(realm, intrinsics.$prototype, {
                 '[[Value]]': prototype,
                 '[[Writable]]': intrinsics.true,
                 '[[Enumerable]]': intrinsics.false,
@@ -641,7 +641,7 @@
             // 6. Perform ! SetFunctionName(F, name).
             F.SetFunctionName(ctx, name);
             // 7. Set F.[[SourceText]] to the source text matched by AsyncGeneratorDeclaration.
-            F['[[SourceText]]'] = new string_1.$String(realm, this.node.getText(this.mos.node));
+            F['[[SourceText]]'] = new string_js_1.$String(realm, this.node.getText(this.mos.node));
             // 8. Return F.
             return F;
         }
@@ -662,15 +662,15 @@
             // AsyncFunctionDeclaration :
             //     async function BindingIdentifier ( FormalParameters ) { AsyncFunctionBody }
             // 1. If the function code for AsyncFunctionDeclaration is strict mode code, let strict be true. Otherwise, let strict be false.
-            const strict = new boolean_1.$Boolean(realm, this.DirectivePrologue.ContainsUseStrict === true);
+            const strict = new boolean_js_1.$Boolean(realm, this.DirectivePrologue.ContainsUseStrict === true);
             // 2. Let name be StringValue of BindingIdentifier.
             const name = this.$name === void 0 ? intrinsics.default : this.$name.StringValue;
             // 3. Let F be ! AsyncFunctionCreate(Normal, FormalParameters, AsyncFunctionBody, scope, strict).
-            const F = function_1.$Function.GeneratorFunctionCreate(ctx, 'normal', this, Scope, strict);
+            const F = function_js_1.$Function.GeneratorFunctionCreate(ctx, 'normal', this, Scope, strict);
             // 4. Perform ! SetFunctionName(F, name).
             F.SetFunctionName(ctx, name);
             // 5. Set F.[[SourceText]] to the source text matched by AsyncFunctionDeclaration.
-            F['[[SourceText]]'] = new string_1.$String(realm, this.node.getText(this.mos.node));
+            F['[[SourceText]]'] = new string_js_1.$String(realm, this.node.getText(this.mos.node));
             // 6. Return F.
             return F;
         }
@@ -692,7 +692,7 @@
             // FunctionDeclaration :
             //     function ( FormalParameters ) { FunctionBody }
             // 1. Return NormalCompletion(empty).
-            return new empty_1.$Empty(realm, 1 /* normal */, intrinsics.empty, this);
+            return new empty_js_1.$Empty(realm, 1 /* normal */, intrinsics.empty, this);
         }
     }
     exports.$FunctionDeclaration = $FunctionDeclaration;
@@ -809,13 +809,13 @@
             // 22. a. If strict is true or if simpleParameterList is false, then
             if (strict.isTruthy || !simpleParameterList) {
                 // 22. a. i. Let ao be CreateUnmappedArgumentsObject(argumentsList).
-                ao = arguments_1.$CreateUnmappedArgumentsObject(ctx, argumentsList);
+                ao = arguments_js_1.$CreateUnmappedArgumentsObject(ctx, argumentsList);
             }
             // 22. b. Else,
             else {
                 // 22. b. i. NOTE: mapped argument object is only provided for non-strict functions that don't have a rest parameter, any parameter default value initializers, or any destructured parameters.
                 // 22. b. ii. Let ao be CreateMappedArgumentsObject(func, formals, argumentsList, envRec).
-                ao = new arguments_1.$ArgumentsExoticObject(realm, func, formals, argumentsList, envRec);
+                ao = new arguments_js_1.$ArgumentsExoticObject(realm, func, formals, argumentsList, envRec);
             }
             // 22. c. If strict is true, then
             if (strict.isTruthy) {
@@ -838,7 +838,7 @@
             parameterBindings = parameterNames;
         }
         // 24. Let iteratorRecord be CreateListIteratorRecord(argumentsList).
-        const iteratorRecord = iteration_1.$CreateListIteratorRecord(ctx, argumentsList);
+        const iteratorRecord = iteration_js_1.$CreateListIteratorRecord(ctx, argumentsList);
         // 25. If hasDuplicates is true, then
         if (hasDuplicates) {
             // 25. a. Perform ? IteratorBindingInitialization for formals with iteratorRecord and undefined as arguments.
@@ -886,7 +886,7 @@
             // 28. a. NOTE: A separate Environment Record is needed to ensure that closures created by expressions in the formal parameter list do not have visibility of declarations in the function body.
             // 28. b. Let varEnv be NewDeclarativeEnvironment(env).
             // 28. c. Let varEnvRec be varEnv's EnvironmentRecord.
-            varEnvRec = new environment_record_1.$DeclarativeEnvRec(code.logger, realm, envRec);
+            varEnvRec = new environment_record_js_1.$DeclarativeEnvRec(code.logger, realm, envRec);
             // 28. d. Set the VariableEnvironment of calleeContext to varEnv.
             ctx.VariableEnvironment = varEnvRec;
             // 28. e. Let instantiatedVarNames be a new empty List.
@@ -920,7 +920,7 @@
         // 30. If strict is false, then
         if (strict.isFalsey) {
             // 30. a. Let lexEnv be NewDeclarativeEnvironment(varEnv).
-            lexEnvRec = new environment_record_1.$DeclarativeEnvRec(code.logger, realm, varEnvRec);
+            lexEnvRec = new environment_record_js_1.$DeclarativeEnvRec(code.logger, realm, varEnvRec);
             // 30. b. NOTE: Non-strict functions use a separate lexical Environment Record for top-level lexical declarations so that a direct eval can determine whether any var scoped declarations introduced by the eval code conflict with pre-existing top-level lexically scoped declarations. This is not needed for strict functions because a strict direct eval always places all declarations into a new Environment Record.
         }
         // 31. Else, let lexEnv be varEnv.
@@ -965,11 +965,11 @@
             }
         }
         // 37. Return NormalCompletion(empty).
-        return new empty_1.$Empty(realm, 1 /* normal */, intrinsics.empty);
+        return new empty_js_1.$Empty(realm, 1 /* normal */, intrinsics.empty);
     }
     exports.$FunctionDeclarationInstantiation = $FunctionDeclarationInstantiation;
     class $ArrowFunction {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.ArrowFunction`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.ArrowFunction`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -1011,9 +1011,9 @@
             this.VarScopedDeclarations = kernel_1.emptyArray;
             this.TypeDeclarations = kernel_1.emptyArray;
             this.IsType = false;
-            const modifierFlags = this.modifierFlags = _shared_1.modifiersToModifierFlags(node.modifiers);
+            const modifierFlags = this.modifierFlags = _shared_js_1.modifiersToModifierFlags(node.modifiers);
             if (node.body.kind === typescript_1.SyntaxKind.Block) {
-                const DirectivePrologue = this.DirectivePrologue = _shared_1.GetDirectivePrologue(node.body.statements);
+                const DirectivePrologue = this.DirectivePrologue = _shared_js_1.GetDirectivePrologue(node.body.statements);
                 if (DirectivePrologue.ContainsUseStrict) {
                     ctx |= 65536 /* InStrictMode */;
                     this.ContainsUseStrict = true;
@@ -1022,15 +1022,15 @@
                     this.ContainsUseStrict = false;
                 }
                 this.$parameters = this.CoveredFormalsList = new $FormalParameterList(node.parameters, this, ctx);
-                this.$body = new statements_1.$Block(node.body, this, ctx, -1);
+                this.$body = new statements_js_1.$Block(node.body, this, ctx, -1);
             }
             else {
                 this.DirectivePrologue = kernel_1.emptyArray;
                 this.ContainsUseStrict = false;
                 this.$parameters = this.CoveredFormalsList = new $FormalParameterList(node.parameters, this, ctx);
-                this.$body = _shared_1.$assignmentExpression(node.body, this, ctx, -1);
+                this.$body = _shared_js_1.$assignmentExpression(node.body, this, ctx, -1);
             }
-            this.functionKind = _shared_1.hasBit(modifierFlags, typescript_1.ModifierFlags.Async) ? 8 /* async */ : 0 /* normal */;
+            this.functionKind = _shared_js_1.hasBit(modifierFlags, typescript_1.ModifierFlags.Async) ? 8 /* async */ : 0 /* normal */;
         }
         get $kind() { return typescript_1.SyntaxKind.ArrowFunction; }
         // http://www.ecma-international.org/ecma-262/#sec-arrow-function-definitions-runtime-semantics-evaluation
@@ -1077,7 +1077,7 @@
     }
     exports.MethodDefinitionRecord = MethodDefinitionRecord;
     class $ConstructorDeclaration {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.ConstructorDeclaration`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.ConstructorDeclaration`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -1088,10 +1088,10 @@
             this.logger = logger;
             this.path = path;
             this.functionKind = 0 /* normal */;
-            this.modifierFlags = _shared_1.modifiersToModifierFlags(node.modifiers);
-            this.$decorators = _shared_1.$decoratorList(node.decorators, this, ctx);
+            this.modifierFlags = _shared_js_1.modifiersToModifierFlags(node.modifiers);
+            this.$decorators = _shared_js_1.$decoratorList(node.decorators, this, ctx);
             this.$parameters = new $FormalParameterList(node.parameters, this, ctx);
-            const $body = this.$body = new statements_1.$Block(node.body, this, ctx, -1);
+            const $body = this.$body = new statements_js_1.$Block(node.body, this, ctx, -1);
             this.LexicallyDeclaredNames = $body.TopLevelLexicallyDeclaredNames;
             this.LexicallyScopedDeclarations = $body.TopLevelLexicallyScopedDeclarations;
             this.VarDeclaredNames = $body.TopLevelVarDeclaredNames;
@@ -1120,11 +1120,11 @@
             // 6. a. Let kind be Method.
             // 6. b. Let prototype be the intrinsic object %FunctionPrototype%.
             // 7. Let closure be FunctionCreate(kind, UniqueFormalParameters, FunctionBody, scope, strict, prototype).
-            const closure = function_1.$Function.FunctionCreate(ctx, 'normal', this, scope, strict, functionPrototype);
+            const closure = function_js_1.$Function.FunctionCreate(ctx, 'normal', this, scope, strict, functionPrototype);
             // 8. Perform MakeMethod(closure, object).
             closure['[[HomeObject]]'] = object;
             // 9. Set closure.[[SourceText]] to the source text matched by MethodDefinition.
-            closure['[[SourceText]]'] = new string_1.$String(realm, this.parent.node.getText(this.mos.node));
+            closure['[[SourceText]]'] = new string_js_1.$String(realm, this.parent.node.getText(this.mos.node));
             // 10. Return the Record { [[Key]]: propKey, [[Closure]]: closure }.
             return new MethodDefinitionRecord(propKey, closure);
         }
@@ -1136,7 +1136,7 @@
     }
     exports.$ConstructorDeclaration = $ConstructorDeclaration;
     class $ParameterDeclaration {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.ParameterDeclaration`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.ParameterDeclaration`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -1146,10 +1146,10 @@
             this.depth = depth;
             this.logger = logger;
             this.path = path;
-            this.modifierFlags = this.combinedModifierFlags = _shared_1.modifiersToModifierFlags(node.modifiers);
+            this.modifierFlags = this.combinedModifierFlags = _shared_js_1.modifiersToModifierFlags(node.modifiers);
             ctx |= 16 /* InParameterDeclaration */;
-            this.$decorators = _shared_1.$decoratorList(node.decorators, this, ctx);
-            const $name = this.$name = _shared_1.$$bindingName(node.name, this, ctx, -1);
+            this.$decorators = _shared_js_1.$decoratorList(node.decorators, this, ctx);
+            const $name = this.$name = _shared_js_1.$$bindingName(node.name, this, ctx, -1);
             this.BoundNames = $name.BoundNames;
             if (node.initializer === void 0) {
                 this.$initializer = void 0;
@@ -1158,7 +1158,7 @@
                 this.IsSimpleParameterList = $name.IsSimpleParameterList;
             }
             else {
-                this.$initializer = _shared_1.$assignmentExpression(node.initializer, this, ctx, -1);
+                this.$initializer = _shared_js_1.$assignmentExpression(node.initializer, this, ctx, -1);
                 this.ContainsExpression = true;
                 this.HasInitializer = true;
                 this.IsSimpleParameterList = false;
@@ -1187,7 +1187,7 @@
                 // 1. If iteratorRecord.[[Done]] is false, then
                 if (iteratorRecord['[[Done]]'].isFalsey) {
                     // 1. a. Let next be IteratorStep(iteratorRecord).
-                    const next = iteration_1.$IteratorStep(ctx, iteratorRecord);
+                    const next = iteration_js_1.$IteratorStep(ctx, iteratorRecord);
                     // 1. b. If next is an abrupt completion, set iteratorRecord.[[Done]] to true.
                     if (next.isAbrupt) {
                         iteratorRecord['[[Done]]'] = intrinsics.true;
@@ -1203,7 +1203,7 @@
                     // 1. e. Else,
                     else {
                         // 1. e. i. Let v be IteratorValue(next).
-                        v = iteration_1.$IteratorValue(ctx, next);
+                        v = iteration_js_1.$IteratorValue(ctx, next);
                         // 1. e. ii. If v is an abrupt completion, set iteratorRecord.[[Done]] to true.
                         if (v.isAbrupt) {
                             iteratorRecord['[[Done]]'] = intrinsics.true;

@@ -4,20 +4,20 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./viewport-scope", "./found-route", "./type-resolvers", "./viewport", "./utils", "./collection", "./route-recognizer", "./runner"], factory);
+        define(["require", "exports", "./viewport-scope.js", "./found-route.js", "./type-resolvers.js", "./viewport.js", "./utils.js", "./collection.js", "./route-recognizer.js", "./runner.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Scope = void 0;
-    const viewport_scope_1 = require("./viewport-scope");
-    const found_route_1 = require("./found-route");
-    const type_resolvers_1 = require("./type-resolvers");
-    const viewport_1 = require("./viewport");
-    const utils_1 = require("./utils");
-    const collection_1 = require("./collection");
-    const route_recognizer_1 = require("./route-recognizer");
-    const runner_1 = require("./runner");
+    const viewport_scope_js_1 = require("./viewport-scope.js");
+    const found_route_js_1 = require("./found-route.js");
+    const type_resolvers_js_1 = require("./type-resolvers.js");
+    const viewport_js_1 = require("./viewport.js");
+    const utils_js_1 = require("./utils.js");
+    const collection_js_1 = require("./collection.js");
+    const route_recognizer_js_1 = require("./route-recognizer.js");
+    const runner_js_1 = require("./runner.js");
     /**
      * @internal - Shouldn't be used directly
      */
@@ -128,7 +128,7 @@
         }
         findInstructions(instruction) {
             var _a, _b;
-            let route = new found_route_1.FoundRoute();
+            let route = new found_route_js_1.FoundRoute();
             if (typeof instruction === 'string') {
                 const instructions = this.router.instructionResolver.parseViewportInstructions(instruction);
                 if (this.router.options.useConfiguredRoutes && !this.router.hasSiblingInstructions(instructions)) {
@@ -176,14 +176,14 @@
             for (const instruction of alreadyFound.filter(found => found.scope === this)) {
                 availableViewports[instruction.viewportName] = null;
             }
-            const viewportInstructions = new collection_1.Collection(...instructions.slice());
+            const viewportInstructions = new collection_js_1.Collection(...instructions.slice());
             let instruction = null;
             // The viewport scope is already known
             while ((instruction = viewportInstructions.next()) !== null) {
                 if (instruction.viewportScope !== null && !this.router.instructionResolver.isAddViewportInstruction(instruction)) {
                     remainingInstructions.push(...this.foundViewportScope(instruction, instruction.viewportScope));
                     foundViewports.push(instruction);
-                    utils_1.arrayRemove(availableViewportScopes, available => available === instruction.viewportScope);
+                    utils_js_1.arrayRemove(availableViewportScopes, available => available === instruction.viewportScope);
                     viewportInstructions.removeCurrent();
                 }
             }
@@ -216,7 +216,7 @@
                         }
                         remainingInstructions.push(...this.foundViewportScope(instruction, viewportScope));
                         foundViewports.push(instruction);
-                        utils_1.arrayRemove(availableViewportScopes, available => available === instruction.viewportScope);
+                        utils_js_1.arrayRemove(availableViewportScopes, available => available === instruction.viewportScope);
                         viewportInstructions.removeCurrent();
                         break;
                     }
@@ -353,7 +353,7 @@
                 }
             }
             if ((viewport !== null && viewport !== void 0 ? viewport : null) === null) {
-                viewport = new viewport_1.Viewport(this.router, name, connectedCE, this.scope, !!options.scope, options);
+                viewport = new viewport_js_1.Viewport(this.router, name, connectedCE, this.scope, !!options.scope, options);
                 this.addChild(viewport.connectedScope);
             }
             if ((connectedCE !== null && connectedCE !== void 0 ? connectedCE : null) !== null) {
@@ -369,7 +369,7 @@
             return false;
         }
         addViewportScope(name, connectedCE, options = {}) {
-            const viewportScope = new viewport_scope_1.ViewportScope(name, this.router, connectedCE, this.scope, true, null, options);
+            const viewportScope = new viewport_scope_js_1.ViewportScope(name, this.router, connectedCE, this.scope, true, null, options);
             this.addChild(viewportScope.connectedScope);
             return viewportScope;
         }
@@ -448,7 +448,7 @@
             return null;
         }
         canLoad(recurse) {
-            const results = runner_1.Runner.runAll(this.children.map(child => child.viewport !== null
+            const results = runner_js_1.Runner.runAll(this.children.map(child => child.viewport !== null
                 ? child.viewport.canLoad(recurse)
                 : child.canLoad(recurse)));
             if (results instanceof Promise) {
@@ -457,7 +457,7 @@
             return results.every(result => result);
         }
         canUnload() {
-            const results = runner_1.Runner.runAll(this.children.map(child => child.viewport !== null
+            const results = runner_js_1.Runner.runAll(this.children.map(child => child.viewport !== null
                 ? child.viewport.canUnload()
                 : child.canUnload()));
             if (results instanceof Promise) {
@@ -468,7 +468,7 @@
             return results.every(result => result);
         }
         load(recurse) {
-            const results = runner_1.Runner.runAll(this.children.map(child => child.viewport !== null
+            const results = runner_js_1.Runner.runAll(this.children.map(child => child.viewport !== null
                 ? child.viewport.load(recurse)
                 : child.load(recurse)));
             if (results instanceof Promise) {
@@ -476,7 +476,7 @@
             }
         }
         unload(recurse) {
-            const results = runner_1.Runner.runAll(this.children.map(child => child.viewport !== null
+            const results = runner_js_1.Runner.runAll(this.children.map(child => child.viewport !== null
                 ? child.viewport.unload(recurse)
                 : child.unload(recurse)));
             if (results instanceof Promise) {
@@ -484,7 +484,7 @@
             }
         }
         removeContent() {
-            const results = runner_1.Runner.runAll(this.children.map(child => child.viewport !== null
+            const results = runner_js_1.Runner.runAll(this.children.map(child => child.viewport !== null
                 ? child.viewport.removeContent()
                 : child.removeContent()));
             if (results instanceof Promise) {
@@ -507,11 +507,11 @@
                     path: `${cRoute.path}/*remainingPath`,
                 });
             }
-            const found = new found_route_1.FoundRoute();
+            const found = new found_route_js_1.FoundRoute();
             if (path.startsWith('/') || path.startsWith('+')) {
                 path = path.slice(1);
             }
-            const recognizer = new route_recognizer_1.RouteRecognizer();
+            const recognizer = new route_recognizer_js_1.RouteRecognizer();
             recognizer.add(cRoutes);
             const result = recognizer.recognize(path);
             if (result !== null) {
@@ -555,7 +555,7 @@
                         children: route.children,
                     }];
             }
-            route.instructions = type_resolvers_1.NavigationInstructionResolver.toViewportInstructions(this.router, route.instructions);
+            route.instructions = type_resolvers_js_1.NavigationInstructionResolver.toViewportInstructions(this.router, route.instructions);
             return route;
         }
     }

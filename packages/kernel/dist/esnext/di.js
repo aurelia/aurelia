@@ -1,8 +1,8 @@
 import { Metadata, isObject, applyMetadataPolyfill } from '@aurelia/metadata';
 applyMetadataPolyfill(Reflect);
-import { isArrayIndex, isNativeFunction } from './functions';
-import { emptyArray } from './platform';
-import { Protocol } from './resource';
+import { isArrayIndex, isNativeFunction } from './functions.js';
+import { emptyArray } from './platform.js';
+import { Protocol } from './resource.js';
 export class ResolverBuilder {
     constructor(container, key) {
         this.container = container;
@@ -50,12 +50,24 @@ export const DefaultResolver = {
     singleton(key) { return new Resolver(key, 1 /* singleton */, key); },
     transient(key) { return new Resolver(key, 2 /* transient */, key); },
 };
-export const DefaultContainerConfiguration = {
-    defaultResolver: DefaultResolver.singleton,
-};
+export class ContainerConfiguration {
+    constructor(inheritParentResources, defaultResolver) {
+        this.inheritParentResources = inheritParentResources;
+        this.defaultResolver = defaultResolver;
+    }
+    static from(config) {
+        var _a, _b;
+        if (config === void 0 ||
+            config === ContainerConfiguration.DEFAULT) {
+            return ContainerConfiguration.DEFAULT;
+        }
+        return new ContainerConfiguration((_a = config.inheritParentResources) !== null && _a !== void 0 ? _a : false, (_b = config.defaultResolver) !== null && _b !== void 0 ? _b : DefaultResolver.singleton);
+    }
+}
+ContainerConfiguration.DEFAULT = ContainerConfiguration.from({});
 export const DI = {
-    createContainer(config = DefaultContainerConfiguration) {
-        return new Container(null, config);
+    createContainer(config) {
+        return new Container(null, ContainerConfiguration.from(config));
     },
     getDesignParamtypes(Type) {
         return Metadata.getOwn('design:paramtypes', Type);
@@ -667,7 +679,7 @@ const factoryKey = 'di:factory';
 const factoryAnnotationKey = Protocol.annotation.keyFor(factoryKey);
 /** @internal */
 export class Container {
-    constructor(parent, config = DefaultContainerConfiguration) {
+    constructor(parent, config) {
         this.parent = parent;
         this.config = config;
         this.registerDepth = 0;
@@ -680,7 +692,12 @@ export class Container {
         else {
             this.root = parent.root;
             this.resolvers = new Map();
-            this.resourceResolvers = Object.assign(Object.create(null), this.root.resourceResolvers);
+            if (config.inheritParentResources) {
+                this.resourceResolvers = Object.assign(Object.create(null), parent.resourceResolvers, this.root.resourceResolvers);
+            }
+            else {
+                this.resourceResolvers = Object.assign(Object.create(null), this.root.resourceResolvers);
+            }
         }
         this.resolvers.set(IContainer, containerResolver);
     }
@@ -910,7 +927,16 @@ export class Container {
         Protocol.annotation.appendTo(key, factoryAnnotationKey);
     }
     createChild(config) {
-        return new Container(this, config !== null && config !== void 0 ? config : this.config);
+        if (config === void 0 && this.config.inheritParentResources) {
+            if (this.config === ContainerConfiguration.DEFAULT) {
+                return new Container(this, this.config);
+            }
+            return new Container(this, ContainerConfiguration.from({
+                ...this.config,
+                inheritParentResources: false,
+            }));
+        }
+        return new Container(this, ContainerConfiguration.from(config !== null && config !== void 0 ? config : this.config));
     }
     disposeResolvers() {
         var _a;

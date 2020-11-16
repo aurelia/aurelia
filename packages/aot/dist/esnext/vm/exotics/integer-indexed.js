@@ -1,4 +1,4 @@
-import { $Object, } from '../types/object';
+import { $Object, } from '../types/object.js';
 // http://www.ecma-international.org/ecma-262/#sec-integer-indexed-exotic-objects
 export class $IntegerIndexedExoticObject extends $Object {
     // http://www.ecma-international.org/ecma-262/#sec-integerindexedobjectcreate

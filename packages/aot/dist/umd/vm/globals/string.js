@@ -4,18 +4,18 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "../types/function", "../types/string", "../exotics/string", "../types/object"], factory);
+        define(["require", "exports", "../types/function.js", "../types/string.js", "../exotics/string.js", "../types/object.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.$StringSet = exports.$StringPrototype = exports.$StringConstructor = void 0;
-    const function_1 = require("../types/function");
-    const string_1 = require("../types/string");
-    const string_2 = require("../exotics/string");
-    const object_1 = require("../types/object");
+    const function_js_1 = require("../types/function.js");
+    const string_js_1 = require("../types/string.js");
+    const string_js_2 = require("../exotics/string.js");
+    const object_js_1 = require("../types/object.js");
     // http://www.ecma-international.org/ecma-262/#sec-string-constructor
-    class $StringConstructor extends function_1.$BuiltinFunction {
+    class $StringConstructor extends function_js_1.$BuiltinFunction {
         get $prototype() {
             return this.getProperty(this.realm['[[Intrinsics]]'].$prototype)['[[Value]]'];
         }
@@ -33,7 +33,7 @@
             let s;
             // 1. If no arguments were passed to this function invocation, let s be "".
             if (argumentsList.length === 0) {
-                s = new string_1.$String(realm, '');
+                s = new string_js_1.$String(realm, '');
             }
             // 2. Else,
             else {
@@ -54,20 +54,20 @@
                 return s;
             }
             // 4. Return ! StringCreate(s, ? GetPrototypeFromConstructor(NewTarget, "%StringPrototype%")).
-            const proto = function_1.$GetPrototypeFromConstructor(ctx, NewTarget, '%StringPrototype%');
+            const proto = function_js_1.$GetPrototypeFromConstructor(ctx, NewTarget, '%StringPrototype%');
             if (proto.isAbrupt) {
                 return proto;
             }
-            return new string_2.$StringExoticObject(realm, s, proto);
+            return new string_js_2.$StringExoticObject(realm, s, proto);
         }
     }
     exports.$StringConstructor = $StringConstructor;
     // http://www.ecma-international.org/ecma-262/#sec-properties-of-the-string-prototype-object
-    class $StringPrototype extends object_1.$Object {
+    class $StringPrototype extends object_js_1.$Object {
         constructor(realm, objectPrototype) {
             const intrinsics = realm['[[Intrinsics]]'];
             super(realm, '%StringPrototype%', objectPrototype, 1 /* normal */, intrinsics.empty);
-            this['[[StringData]]'] = new string_1.$String(realm, '');
+            this['[[StringData]]'] = new string_js_1.$String(realm, '');
         }
         get $constructor() {
             return this.getProperty(this.realm['[[Intrinsics]]'].$constructor)['[[Value]]'];

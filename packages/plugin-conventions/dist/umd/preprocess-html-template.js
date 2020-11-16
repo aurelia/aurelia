@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "path", "@aurelia/kernel", "modify-code", "./strip-meta-data"], factory);
+        define(["require", "exports", "path", "@aurelia/kernel", "modify-code", "./strip-meta-data.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -13,7 +13,7 @@
     const path = require("path");
     const kernel_1 = require("@aurelia/kernel");
     const modify_code_1 = require("modify-code");
-    const strip_meta_data_1 = require("./strip-meta-data");
+    const strip_meta_data_js_1 = require("./strip-meta-data.js");
     // stringModuleWrap is to deal with pure css text module import in shadowDOM mode.
     // For webpack:
     //   import d0 from '!!raw-loader!./foo.css';
@@ -24,7 +24,7 @@
     // because most bundler by default will inject that css into HTML head.
     function preprocessHtmlTemplate(unit, options) {
         const name = kernel_1.kebabCase(path.basename(unit.path, path.extname(unit.path)));
-        const stripped = strip_meta_data_1.stripMetaData(unit.contents);
+        const stripped = strip_meta_data_js_1.stripMetaData(unit.contents);
         const { html, deps, containerless, bindables, aliases } = stripped;
         let { shadowMode } = stripped;
         if (unit.filePair) {

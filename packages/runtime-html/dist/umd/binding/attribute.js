@@ -13,7 +13,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "../observation/element-attribute-observer", "../platform", "../dom"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "../observation/element-attribute-observer.js", "../platform.js", "../dom.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -21,9 +21,9 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     exports.AttributeBinding = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
-    const element_attribute_observer_1 = require("../observation/element-attribute-observer");
-    const platform_1 = require("../platform");
-    const dom_1 = require("../dom");
+    const element_attribute_observer_js_1 = require("../observation/element-attribute-observer.js");
+    const platform_js_1 = require("../platform.js");
+    const dom_js_1 = require("../dom.js");
     // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
     const { oneTime, toView, fromView } = runtime_1.BindingMode;
     // pre-combining flags for bitwise checks is a minor perf tweak
@@ -57,7 +57,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             this.persistentFlags = 0 /* none */;
             this.target = target;
             runtime_1.connectable.assignIdTo(this);
-            this.$platform = locator.get(platform_1.IPlatform);
+            this.$platform = locator.get(platform_js_1.IPlatform);
         }
         updateTarget(value, flags) {
             flags |= this.persistentFlags;
@@ -147,7 +147,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             }
             let targetObserver = this.targetObserver;
             if (!targetObserver) {
-                targetObserver = this.targetObserver = new element_attribute_observer_1.AttributeObserver(this.$platform, this.observerLocator, this.target, this.targetProperty, this.targetAttribute);
+                targetObserver = this.targetObserver = new element_attribute_observer_js_1.AttributeObserver(this.$platform, this.observerLocator, this.target, this.targetProperty, this.targetAttribute);
             }
             if (targetObserver.bind) {
                 targetObserver.bind(flags);

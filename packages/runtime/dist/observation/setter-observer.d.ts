@@ -1,6 +1,6 @@
 import { IIndexable } from '@aurelia/kernel';
-import { IPropertyObserver, ISubscriber, AccessorType, ISubscribable, IAccessor, ISubscriberCollection, LifecycleFlags } from '../observation';
-import { InterceptorFunc } from '../bindable';
+import { IPropertyObserver, ISubscriber, AccessorType, ISubscribable, IAccessor, ISubscriberCollection, LifecycleFlags } from '../observation.js';
+import { InterceptorFunc } from '../bindable.js';
 export interface SetterObserver extends IPropertyObserver<IIndexable, string> {
 }
 /**

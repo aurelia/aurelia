@@ -1,7 +1,7 @@
 import { ModifierFlags, SyntaxKind, } from 'typescript';
 import { emptyArray, } from '@aurelia/kernel';
-import { modifiersToModifierFlags, hasBit, $identifier, $heritageClauseList, $$propertyName, $assignmentExpression, $i, } from './_shared';
-import { ExportEntryRecord, } from './modules';
+import { modifiersToModifierFlags, hasBit, $identifier, $heritageClauseList, $$propertyName, $assignmentExpression, $i, } from './_shared.js';
+import { ExportEntryRecord, } from './modules.js';
 export class $InterfaceDeclaration {
     constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${$i(idx)}.InterfaceDeclaration`) {
         this.node = node;

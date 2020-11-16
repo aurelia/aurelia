@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "typescript", "@aurelia/kernel", "../types/environment-record", "../types/string", "../types/undefined", "../types/object", "../types/empty", "../types/error", "../types/property-descriptor", "./_shared", "./modules", "./expressions", "./functions"], factory);
+        define(["require", "exports", "typescript", "@aurelia/kernel", "../types/environment-record.js", "../types/string.js", "../types/undefined.js", "../types/object.js", "../types/empty.js", "../types/error.js", "../types/property-descriptor.js", "./_shared.js", "./modules.js", "./expressions.js", "./functions.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -12,17 +12,17 @@
     exports.$SemicolonClassElement = exports.$PropertyDeclaration = exports.$ClassDeclaration = exports.$ClassExpression = exports.$ExpressionWithTypeArguments = exports.$HeritageClause = exports.$expressionWithTypeArgumentsList = void 0;
     const typescript_1 = require("typescript");
     const kernel_1 = require("@aurelia/kernel");
-    const environment_record_1 = require("../types/environment-record");
-    const string_1 = require("../types/string");
-    const undefined_1 = require("../types/undefined");
-    const object_1 = require("../types/object");
-    const empty_1 = require("../types/empty");
-    const error_1 = require("../types/error");
-    const property_descriptor_1 = require("../types/property-descriptor");
-    const _shared_1 = require("./_shared");
-    const modules_1 = require("./modules");
-    const expressions_1 = require("./expressions");
-    const functions_1 = require("./functions");
+    const environment_record_js_1 = require("../types/environment-record.js");
+    const string_js_1 = require("../types/string.js");
+    const undefined_js_1 = require("../types/undefined.js");
+    const object_js_1 = require("../types/object.js");
+    const empty_js_1 = require("../types/empty.js");
+    const error_js_1 = require("../types/error.js");
+    const property_descriptor_js_1 = require("../types/property-descriptor.js");
+    const _shared_js_1 = require("./_shared.js");
+    const modules_js_1 = require("./modules.js");
+    const expressions_js_1 = require("./expressions.js");
+    const functions_js_1 = require("./functions.js");
     function $expressionWithTypeArgumentsList(nodes, parent, ctx) {
         if (nodes.length === 0) {
             return kernel_1.emptyArray;
@@ -36,7 +36,7 @@
     }
     exports.$expressionWithTypeArgumentsList = $expressionWithTypeArgumentsList;
     class $HeritageClause {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.HeritageClause`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.HeritageClause`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -52,7 +52,7 @@
     }
     exports.$HeritageClause = $HeritageClause;
     class $ExpressionWithTypeArguments {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.ExpressionWithTypeArguments`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.ExpressionWithTypeArguments`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -62,14 +62,14 @@
             this.depth = depth;
             this.logger = logger;
             this.path = path;
-            this.$expression = _shared_1.$LHSExpression(node.expression, this, ctx, -1);
+            this.$expression = _shared_js_1.$LHSExpression(node.expression, this, ctx, -1);
         }
         get $kind() { return typescript_1.SyntaxKind.ExpressionWithTypeArguments; }
     }
     exports.$ExpressionWithTypeArguments = $ExpressionWithTypeArguments;
     // #endregion
     class $ClassExpression {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.ClassExpression`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.ClassExpression`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -89,16 +89,16 @@
             // 14.6.8 Static Semantics: IsFunctionDefinition
             this.IsFunctionDefinition = true;
             const intrinsics = realm['[[Intrinsics]]'];
-            const modifierFlags = this.modifierFlags = _shared_1.modifiersToModifierFlags(node.modifiers);
-            const $name = this.$name = _shared_1.$identifier(node.name, this, ctx, -1);
-            const $heritageClauses = this.$heritageClauses = _shared_1.$heritageClauseList(node.heritageClauses, this, ctx);
-            const $members = this.$members = _shared_1.$$classElementList(node.members, this, ctx);
+            const modifierFlags = this.modifierFlags = _shared_js_1.modifiersToModifierFlags(node.modifiers);
+            const $name = this.$name = _shared_js_1.$identifier(node.name, this, ctx, -1);
+            const $heritageClauses = this.$heritageClauses = _shared_js_1.$heritageClauseList(node.heritageClauses, this, ctx);
+            const $members = this.$members = _shared_js_1.$$classElementList(node.members, this, ctx);
             this.ClassHeritage = $heritageClauses.find(h => h.node.token === typescript_1.SyntaxKind.ExtendsKeyword);
             if ($name === void 0) {
                 this.BoundNames = [intrinsics['*default*']];
             }
             else {
-                if (_shared_1.hasAllBits(modifierFlags, typescript_1.ModifierFlags.ExportDefault)) {
+                if (_shared_js_1.hasAllBits(modifierFlags, typescript_1.ModifierFlags.ExportDefault)) {
                     this.BoundNames = [...$name.BoundNames, intrinsics['*default*']];
                 }
                 else {
@@ -158,14 +158,14 @@
                 return value.enrichWith(ctx, this);
             }
             // 5. Set value.[[SourceText]] to the source text matched by ClassExpression.
-            value['[[SourceText]]'] = new string_1.$String(realm, this.node.getText(this.mos.node));
+            value['[[SourceText]]'] = new string_js_1.$String(realm, this.node.getText(this.mos.node));
             // 6. Return value.
             return value;
         }
     }
     exports.$ClassExpression = $ClassExpression;
     class $ClassDeclaration {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.ClassDeclaration`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.ClassDeclaration`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -191,20 +191,20 @@
             this.TypeDeclarations = kernel_1.emptyArray;
             this.IsType = false;
             const intrinsics = realm['[[Intrinsics]]'];
-            const modifierFlags = this.modifierFlags = _shared_1.modifiersToModifierFlags(node.modifiers);
-            if (_shared_1.hasBit(modifierFlags, typescript_1.ModifierFlags.Export)) {
+            const modifierFlags = this.modifierFlags = _shared_js_1.modifiersToModifierFlags(node.modifiers);
+            if (_shared_js_1.hasBit(modifierFlags, typescript_1.ModifierFlags.Export)) {
                 ctx |= 4096 /* InExport */;
             }
-            this.$decorators = _shared_1.$decoratorList(node.decorators, this, ctx);
+            this.$decorators = _shared_js_1.$decoratorList(node.decorators, this, ctx);
             let $name;
             if (node.name === void 0) {
-                $name = this.$name = new undefined_1.$Undefined(realm, void 0, void 0, this);
+                $name = this.$name = new undefined_js_1.$Undefined(realm, void 0, void 0, this);
             }
             else {
-                $name = this.$name = new expressions_1.$Identifier(node.name, this, ctx, -1);
+                $name = this.$name = new expressions_js_1.$Identifier(node.name, this, ctx, -1);
             }
-            const $heritageClauses = this.$heritageClauses = _shared_1.$heritageClauseList(node.heritageClauses, this, ctx);
-            const $members = this.$members = _shared_1.$$classElementList(node.members, this, ctx);
+            const $heritageClauses = this.$heritageClauses = _shared_js_1.$heritageClauseList(node.heritageClauses, this, ctx);
+            const $members = this.$members = _shared_js_1.$$classElementList(node.members, this, ctx);
             this.ClassHeritage = $heritageClauses.find(h => h.node.token === typescript_1.SyntaxKind.ExtendsKeyword);
             const NonConstructorMethodDefinitions = this.NonConstructorMethodDefinitions = [];
             const PrototypePropertyNameList = this.PrototypePropertyNameList = [];
@@ -229,15 +229,15 @@
                 }
             }
             const HasName = this.HasName = !$name.isUndefined;
-            if (_shared_1.hasBit(ctx, 4096 /* InExport */)) {
-                if (_shared_1.hasBit(this.modifierFlags, typescript_1.ModifierFlags.Default)) {
+            if (_shared_js_1.hasBit(ctx, 4096 /* InExport */)) {
+                if (_shared_js_1.hasBit(this.modifierFlags, typescript_1.ModifierFlags.Default)) {
                     if (HasName) {
                         const [localName] = $name.BoundNames;
                         const BoundNames = this.BoundNames = [localName, intrinsics['*default*']];
                         this.ExportedBindings = BoundNames;
                         this.ExportedNames = [intrinsics['default']];
                         this.ExportEntries = [
-                            new modules_1.ExportEntryRecord(
+                            new modules_js_1.ExportEntryRecord(
                             /* source */ this, 
                             /* ExportName */ intrinsics['default'], 
                             /* ModuleRequest */ intrinsics.null, 
@@ -250,7 +250,7 @@
                         this.ExportedBindings = BoundNames;
                         this.ExportedNames = [intrinsics['default']];
                         this.ExportEntries = [
-                            new modules_1.ExportEntryRecord(
+                            new modules_js_1.ExportEntryRecord(
                             /* source */ this, 
                             /* ExportName */ intrinsics['default'], 
                             /* ModuleRequest */ intrinsics.null, 
@@ -267,7 +267,7 @@
                     this.ExportedBindings = BoundNames;
                     this.ExportedNames = BoundNames;
                     this.ExportEntries = [
-                        new modules_1.ExportEntryRecord(
+                        new modules_js_1.ExportEntryRecord(
                         /* source */ this, 
                         /* ExportName */ localName, 
                         /* ModuleRequest */ intrinsics.null, 
@@ -298,7 +298,7 @@
             // 1. Let lex be the LexicalEnvironment of the running execution context.
             const lex = ctx.LexicalEnvironment;
             // 2. Let classScope be NewDeclarativeEnvironment(lex).
-            const classScope = new environment_record_1.$DeclarativeEnvRec(this.logger, realm, lex);
+            const classScope = new environment_record_js_1.$DeclarativeEnvRec(this.logger, realm, lex);
             // 3. Let classScopeEnvRec be classScope's EnvironmentRecord.
             // 4. If classBinding is not undefined, then
             if (!classBinding.isUndefined) {
@@ -336,7 +336,7 @@
                 }
                 // 6. f. Else if IsConstructor(superclass) is false, throw a TypeError exception.
                 else if (!superClass.isFunction) {
-                    return new error_1.$TypeError(realm, `Superclass is ${superClass}, but expected a function`);
+                    return new error_js_1.$TypeError(realm, `Superclass is ${superClass}, but expected a function`);
                 }
                 // 6. g. Else,
                 else {
@@ -347,7 +347,7 @@
                     }
                     // 6. g. ii. If Type(protoParent) is neither Object nor Null, throw a TypeError exception.
                     if (!$protoParent.isObject && !$protoParent.isNull) {
-                        return new error_1.$TypeError(realm, `Superclass prototype is ${superClass}, but expected null or an object`);
+                        return new error_js_1.$TypeError(realm, `Superclass prototype is ${superClass}, but expected null or an object`);
                     }
                     protoParent = $protoParent;
                     // 6. g. iii. Let constructorParent be superclass.
@@ -355,7 +355,7 @@
                 }
             }
             // 7. Let proto be ObjectCreate(protoParent).
-            const proto = new object_1.$Object(realm, 'proto', protoParent, 1 /* normal */, intrinsics.empty);
+            const proto = new object_js_1.$Object(realm, 'proto', protoParent, 1 /* normal */, intrinsics.empty);
             let constructor;
             // 8. If ClassBodyopt is not present, let constructor be empty.
             if (this.ConstructorMethod === void 0) {
@@ -366,11 +366,11 @@
                 constructor = this.ConstructorMethod;
             }
             // 10. If constructor is empty, then
-            if (constructor instanceof empty_1.$Empty) {
+            if (constructor instanceof empty_js_1.$Empty) {
                 // 10. a. If ClassHeritageopt is present, then
                 if (this.ClassHeritage !== void 0) {
                     // 10. a. i. Set constructor to the result of parsing the source text constructor(... args){ super (...args);} using the syntactic grammar with the goal symbol MethodDefinition[~Yield, ~Await].
-                    constructor = this.ConstructorMethod = new functions_1.$ConstructorDeclaration(typescript_1.createConstructor(void 0, void 0, [
+                    constructor = this.ConstructorMethod = new functions_js_1.$ConstructorDeclaration(typescript_1.createConstructor(void 0, void 0, [
                         typescript_1.createParameter(void 0, void 0, typescript_1.createToken(typescript_1.SyntaxKind.DotDotDotToken), typescript_1.createIdentifier('args')),
                     ], typescript_1.createBlock([
                         typescript_1.createExpressionStatement(typescript_1.createCall(typescript_1.createSuper(), void 0, [
@@ -381,7 +381,7 @@
                 // 10. b. Else,
                 else {
                     // 10. b. i. Set constructor to the result of parsing the source text constructor(){ } using the syntactic grammar with the goal symbol MethodDefinition[~Yield, ~Await].
-                    constructor = this.ConstructorMethod = new functions_1.$ConstructorDeclaration(typescript_1.createConstructor(void 0, void 0, [], typescript_1.createBlock([])), this, this.ctx, -1);
+                    constructor = this.ConstructorMethod = new functions_js_1.$ConstructorDeclaration(typescript_1.createConstructor(void 0, void 0, [], typescript_1.createBlock([])), this, this.ctx, -1);
                 }
             }
             // 11. Set the running execution context's LexicalEnvironment to classScope.
@@ -405,7 +405,7 @@
                 F.SetFunctionName(ctx, className);
             }
             // 19. Perform CreateMethodProperty(proto, "constructor", F).
-            proto['[[DefineOwnProperty]]'](ctx, intrinsics.$constructor, new property_descriptor_1.$PropertyDescriptor(realm, intrinsics.$constructor, {
+            proto['[[DefineOwnProperty]]'](ctx, intrinsics.$constructor, new property_descriptor_js_1.$PropertyDescriptor(realm, intrinsics.$constructor, {
                 '[[Value]]': F,
                 '[[Writable]]': intrinsics.true,
                 '[[Enumerable]]': intrinsics.false,
@@ -461,7 +461,7 @@
                     return value.enrichWith(ctx, this);
                 }
                 // 3. Set value.[[SourceText]] to the source text matched by ClassDeclaration.
-                value['[[SourceText]]'] = new string_1.$String(realm, this.node.getText(this.mos.node));
+                value['[[SourceText]]'] = new string_js_1.$String(realm, this.node.getText(this.mos.node));
                 // 4. Return value.
                 return value;
             }
@@ -475,7 +475,7 @@
                 return value.enrichWith(ctx, this);
             }
             // 4. Set value.[[SourceText]] to the source text matched by ClassDeclaration.
-            value['[[SourceText]]'] = new string_1.$String(realm, this.node.getText(this.mos.node));
+            value['[[SourceText]]'] = new string_js_1.$String(realm, this.node.getText(this.mos.node));
             // 5. Let env be the running execution context's LexicalEnvironment.
             // 6. Perform ? InitializeBoundName(className, value, env).
             const $InitializeBoundNameResult = ctx.LexicalEnvironment.InitializeBinding(ctx, className, value);
@@ -509,7 +509,7 @@
     }
     exports.$ClassDeclaration = $ClassDeclaration;
     class $PropertyDeclaration {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.PropertyDeclaration`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.PropertyDeclaration`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -519,17 +519,17 @@
             this.depth = depth;
             this.logger = logger;
             this.path = path;
-            const modifierFlags = this.modifierFlags = _shared_1.modifiersToModifierFlags(node.modifiers);
-            this.$decorators = _shared_1.$decoratorList(node.decorators, this, ctx);
-            this.$name = _shared_1.$$propertyName(node.name, this, ctx | 512 /* IsMemberName */, -1);
-            this.$initializer = _shared_1.$assignmentExpression(node.initializer, this, ctx, -1);
-            this.IsStatic = _shared_1.hasBit(modifierFlags, typescript_1.ModifierFlags.Static);
+            const modifierFlags = this.modifierFlags = _shared_js_1.modifiersToModifierFlags(node.modifiers);
+            this.$decorators = _shared_js_1.$decoratorList(node.decorators, this, ctx);
+            this.$name = _shared_js_1.$$propertyName(node.name, this, ctx | 512 /* IsMemberName */, -1);
+            this.$initializer = _shared_js_1.$assignmentExpression(node.initializer, this, ctx, -1);
+            this.IsStatic = _shared_js_1.hasBit(modifierFlags, typescript_1.ModifierFlags.Static);
         }
         get $kind() { return typescript_1.SyntaxKind.PropertyDeclaration; }
     }
     exports.$PropertyDeclaration = $PropertyDeclaration;
     class $SemicolonClassElement {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.SemicolonClassElement`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.SemicolonClassElement`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -544,7 +544,7 @@
             this.IsStatic = false;
             // http://www.ecma-international.org/ecma-262/#sec-method-definitions-static-semantics-propname
             // 14.3.5 Static Semantics: PropName
-            this.PropName = empty_1.empty;
+            this.PropName = empty_js_1.empty;
         }
         get $kind() { return typescript_1.SyntaxKind.SemicolonClassElement; }
     }

@@ -12,14 +12,14 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 import { emptyArray, Registration, mergeArrays, toArray, ILogger, } from '@aurelia/kernel';
 import { IExpressionParser, BindingMode, Bindable, } from '@aurelia/runtime';
-import { IAttrSyntaxTransformer } from './attribute-syntax-transformer';
-import { TemplateBinder } from './template-binder';
-import { ITemplateElementFactory } from './template-element-factory';
-import { HydrateAttributeInstruction, HydrateElementInstruction, HydrateLetElementInstruction, HydrateTemplateController, InterpolationInstruction, LetBindingInstruction, SetAttributeInstruction, SetClassAttributeInstruction, SetPropertyInstruction, SetStyleAttributeInstruction, TextBindingInstruction, ITemplateCompiler, } from './renderer';
-import { IAttributeParser } from './resources/attribute-pattern';
-import { AuSlotContentType, ProjectionContext, SlotInfo } from './resources/custom-elements/au-slot';
-import { CustomElement, CustomElementDefinition } from './resources/custom-element';
-import { IPlatform } from './platform';
+import { IAttrSyntaxTransformer } from './attribute-syntax-transformer.js';
+import { TemplateBinder } from './template-binder.js';
+import { ITemplateElementFactory } from './template-element-factory.js';
+import { HydrateAttributeInstruction, HydrateElementInstruction, HydrateLetElementInstruction, HydrateTemplateController, InterpolationInstruction, LetBindingInstruction, SetAttributeInstruction, SetClassAttributeInstruction, SetPropertyInstruction, SetStyleAttributeInstruction, TextBindingInstruction, ITemplateCompiler, } from './renderer.js';
+import { IAttributeParser } from './resources/attribute-pattern.js';
+import { AuSlotContentType, ProjectionContext, SlotInfo } from './resources/custom-elements/au-slot.js';
+import { CustomElement, CustomElementDefinition } from './resources/custom-element.js';
+import { IPlatform } from './platform.js';
 class CustomElementCompilationUnit {
     constructor(partialDefinition, surrogate, template) {
         this.partialDefinition = partialDefinition;

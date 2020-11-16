@@ -4,17 +4,17 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "../types/function", "../types/number", "../types/object"], factory);
+        define(["require", "exports", "../types/function.js", "../types/number.js", "../types/object.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.$NumberPrototype = exports.$NumberConstructor = void 0;
-    const function_1 = require("../types/function");
-    const number_1 = require("../types/number");
-    const object_1 = require("../types/object");
+    const function_js_1 = require("../types/function.js");
+    const number_js_1 = require("../types/number.js");
+    const object_js_1 = require("../types/object.js");
     // http://www.ecma-international.org/ecma-262/#sec-number-constructor
-    class $NumberConstructor extends function_1.$BuiltinFunction {
+    class $NumberConstructor extends function_js_1.$BuiltinFunction {
         get $prototype() {
             return this.getProperty(this.realm['[[Intrinsics]]'].$prototype)['[[Value]]'];
         }
@@ -49,16 +49,16 @@
             // 4. Let O be ? OrdinaryCreateFromConstructor(NewTarget, "%NumberPrototype%", « [[NumberData]] »).
             // 5. Set O.[[NumberData]] to n.
             // 6. Return O.
-            return function_1.$OrdinaryCreateFromConstructor(ctx, NewTarget, '%NumberPrototype%', { '[[NumberData]]': n });
+            return function_js_1.$OrdinaryCreateFromConstructor(ctx, NewTarget, '%NumberPrototype%', { '[[NumberData]]': n });
         }
     }
     exports.$NumberConstructor = $NumberConstructor;
     // http://www.ecma-international.org/ecma-262/#sec-properties-of-the-number-prototype-object
-    class $NumberPrototype extends object_1.$Object {
+    class $NumberPrototype extends object_js_1.$Object {
         constructor(realm, objectPrototype) {
             const intrinsics = realm['[[Intrinsics]]'];
             super(realm, '%NumberPrototype%', objectPrototype, 1 /* normal */, intrinsics.empty);
-            this['[[NumberData]]'] = new number_1.$Number(realm, 0);
+            this['[[NumberData]]'] = new number_js_1.$Number(realm, 0);
         }
         get $constructor() {
             return this.getProperty(this.realm['[[Intrinsics]]'].$constructor)['[[Value]]'];

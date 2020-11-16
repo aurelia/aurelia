@@ -1,5 +1,5 @@
 import { CustomElement, Aurelia } from '@aurelia/runtime-html';
-import { TestContext } from './test-context';
+import { TestContext } from './test-context.js';
 export function createFixture(template, $class, registrations = [], autoStart = true, ctx = TestContext.create()) {
     const { container, lifecycle, platform, observerLocator } = ctx;
     container.register(...registrations);

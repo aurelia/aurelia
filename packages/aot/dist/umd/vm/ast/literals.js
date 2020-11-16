@@ -4,18 +4,18 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "typescript", "../types/string", "../types/number", "../types/null", "../types/boolean", "./_shared"], factory);
+        define(["require", "exports", "typescript", "../types/string.js", "../types/number.js", "../types/null.js", "../types/boolean.js", "./_shared.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.$BooleanLiteral = exports.$NullLiteral = exports.$NoSubstitutionTemplateLiteral = exports.$RegularExpressionLiteral = exports.$StringLiteral = exports.$BigIntLiteral = exports.$NumericLiteral = exports.$TemplateSpan = exports.$TemplateTail = exports.$TemplateMiddle = exports.$TemplateHead = void 0;
     const typescript_1 = require("typescript");
-    const string_1 = require("../types/string");
-    const number_1 = require("../types/number");
-    const null_1 = require("../types/null");
-    const boolean_1 = require("../types/boolean");
-    const _shared_1 = require("./_shared");
+    const string_js_1 = require("../types/string.js");
+    const number_js_1 = require("../types/number.js");
+    const null_js_1 = require("../types/null.js");
+    const boolean_js_1 = require("../types/boolean.js");
+    const _shared_js_1 = require("./_shared.js");
     // #region Pseudo-literals
     class $TemplateHead {
         constructor(node, parent, ctx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}.TemplateHead`) {
@@ -90,7 +90,7 @@
     }
     exports.$TemplateTail = $TemplateTail;
     class $TemplateSpan {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.TemplateSpan`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.TemplateSpan`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -100,7 +100,7 @@
             this.depth = depth;
             this.logger = logger;
             this.path = path;
-            this.$expression = _shared_1.$assignmentExpression(node.expression, this, ctx, -1);
+            this.$expression = _shared_js_1.$assignmentExpression(node.expression, this, ctx, -1);
             if (node.literal.kind === typescript_1.SyntaxKind.TemplateMiddle) {
                 this.$literal = new $TemplateMiddle(node.literal, this, ctx);
             }
@@ -141,7 +141,7 @@
     exports.$TemplateSpan = $TemplateSpan;
     // #endregion
     class $NumericLiteral {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.NumericLiteral`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.NumericLiteral`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -167,8 +167,8 @@
             // 12.2.1.5 Static Semantics: AssignmentTargetType
             this.AssignmentTargetType = 'invalid';
             const num = Number(node.text);
-            this.PropName = new string_1.$String(realm, num.toString(), void 0, void 0, this);
-            this.Value = new number_1.$Number(realm, num, void 0, void 0, this);
+            this.PropName = new string_js_1.$String(realm, num.toString(), void 0, void 0, this);
+            this.Value = new number_js_1.$Number(realm, num, void 0, void 0, this);
         }
         get $kind() { return typescript_1.SyntaxKind.NumericLiteral; }
         // http://www.ecma-international.org/ecma-262/#sec-literals-runtime-semantics-evaluation
@@ -186,7 +186,7 @@
     }
     exports.$NumericLiteral = $NumericLiteral;
     class $BigIntLiteral {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.BigIntLiteral`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.BigIntLiteral`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -223,7 +223,7 @@
     }
     exports.$BigIntLiteral = $BigIntLiteral;
     class $StringLiteral {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.StringLiteral`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.StringLiteral`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -248,7 +248,7 @@
             // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-assignmenttargettype
             // 12.2.1.5 Static Semantics: AssignmentTargetType
             this.AssignmentTargetType = 'invalid';
-            const StringValue = this.StringValue = new string_1.$String(realm, node.text, void 0, void 0, this);
+            const StringValue = this.StringValue = new string_js_1.$String(realm, node.text, void 0, void 0, this);
             this.PropName = StringValue;
             this.Value = StringValue;
         }
@@ -269,7 +269,7 @@
     }
     exports.$StringLiteral = $StringLiteral;
     class $RegularExpressionLiteral {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.RegularExpressionLiteral`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.RegularExpressionLiteral`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -312,7 +312,7 @@
     }
     exports.$RegularExpressionLiteral = $RegularExpressionLiteral;
     class $NoSubstitutionTemplateLiteral {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.NoSubstitutionTemplateLiteral`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.NoSubstitutionTemplateLiteral`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -352,7 +352,7 @@
     }
     exports.$NoSubstitutionTemplateLiteral = $NoSubstitutionTemplateLiteral;
     class $NullLiteral {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.NullLiteral`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.NullLiteral`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -377,7 +377,7 @@
             // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-assignmenttargettype
             // 12.2.1.5 Static Semantics: AssignmentTargetType
             this.AssignmentTargetType = 'invalid';
-            this.Value = new null_1.$Null(realm, void 0, void 0, this);
+            this.Value = new null_js_1.$Null(realm, void 0, void 0, this);
         }
         get $kind() { return typescript_1.SyntaxKind.NullKeyword; }
         // http://www.ecma-international.org/ecma-262/#sec-literals-runtime-semantics-evaluation
@@ -391,7 +391,7 @@
     }
     exports.$NullLiteral = $NullLiteral;
     class $BooleanLiteral {
-        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_1.$i(idx)}.BooleanLiteral`) {
+        constructor(node, parent, ctx, idx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}${_shared_js_1.$i(idx)}.BooleanLiteral`) {
             this.node = node;
             this.parent = parent;
             this.ctx = ctx;
@@ -417,7 +417,7 @@
             // 12.2.1.5 Static Semantics: AssignmentTargetType
             this.AssignmentTargetType = 'invalid';
             this.$kind = node.kind;
-            this.Value = new boolean_1.$Boolean(realm, node.kind === typescript_1.SyntaxKind.TrueKeyword, void 0, void 0, this);
+            this.Value = new boolean_js_1.$Boolean(realm, node.kind === typescript_1.SyntaxKind.TrueKeyword, void 0, void 0, this);
         }
         // http://www.ecma-international.org/ecma-262/#sec-literals-runtime-semantics-evaluation
         // 12.2.4.1 Runtime Semantics: Evaluation

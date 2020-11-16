@@ -1,12 +1,12 @@
-import { $Object, } from '../types/object';
-import { $BuiltinFunction, } from '../types/function';
-import { $CreateDataProperty, $Call, $DefinePropertyOrThrow, $GetMethod, } from '../operations';
-import { $Number, } from '../types/number';
-import { $TypeError, } from '../types/error';
-import { $String, } from '../types/string';
-import { $PropertyDescriptor, } from '../types/property-descriptor';
-import { $List, } from '../types/list';
-import { $NewPromiseCapability, $IfAbruptRejectPromise, $PromiseResolve, $PerformPromiseThen, } from './promise';
+import { $Object, } from '../types/object.js';
+import { $BuiltinFunction, } from '../types/function.js';
+import { $CreateDataProperty, $Call, $DefinePropertyOrThrow, $GetMethod, } from '../operations.js';
+import { $Number, } from '../types/number.js';
+import { $TypeError, } from '../types/error.js';
+import { $String, } from '../types/string.js';
+import { $PropertyDescriptor, } from '../types/property-descriptor.js';
+import { $List, } from '../types/list.js';
+import { $NewPromiseCapability, $IfAbruptRejectPromise, $PromiseResolve, $PerformPromiseThen, } from './promise.js';
 // http://www.ecma-international.org/ecma-262/#sec-getiterator
 export function $GetIterator(ctx, obj, hint, method) {
     const realm = ctx.Realm;

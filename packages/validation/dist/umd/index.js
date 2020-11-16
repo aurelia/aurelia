@@ -14,18 +14,18 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./configuration", "./rule-provider", "./rules", "./validator", "./rule-interfaces", "./serialization", "./ast-serialization", "./validation-customization-options"], factory);
+        define(["require", "exports", "./configuration.js", "./rule-provider.js", "./rules.js", "./validator.js", "./rule-interfaces.js", "./serialization.js", "./ast-serialization.js", "./validation-customization-options.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    __exportStar(require("./configuration"), exports);
-    __exportStar(require("./rule-provider"), exports);
-    __exportStar(require("./rules"), exports);
-    __exportStar(require("./validator"), exports);
-    __exportStar(require("./rule-interfaces"), exports);
-    __exportStar(require("./serialization"), exports);
-    __exportStar(require("./ast-serialization"), exports);
-    __exportStar(require("./validation-customization-options"), exports);
+    __exportStar(require("./configuration.js"), exports);
+    __exportStar(require("./rule-provider.js"), exports);
+    __exportStar(require("./rules.js"), exports);
+    __exportStar(require("./validator.js"), exports);
+    __exportStar(require("./rule-interfaces.js"), exports);
+    __exportStar(require("./serialization.js"), exports);
+    __exportStar(require("./ast-serialization.js"), exports);
+    __exportStar(require("./validation-customization-options.js"), exports);
 });
 //# sourceMappingURL=index.js.map

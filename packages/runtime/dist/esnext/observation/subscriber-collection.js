@@ -1,4 +1,4 @@
-import { ensureProto } from '../utilities-objects';
+import { ensureProto } from '../utilities-objects.js';
 // TODO: see if we can de-duplicate these 3 decorators and their functions without killing performance or readability
 export function subscriberCollection() {
     // eslint-disable-next-line @typescript-eslint/ban-types

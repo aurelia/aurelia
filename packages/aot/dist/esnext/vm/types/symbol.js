@@ -1,8 +1,8 @@
-import { $String, } from './string';
-import { nextValueId, } from './_shared';
-import { $Object, } from './object';
-import { $Boolean, } from './boolean';
-import { $TypeError, } from './error';
+import { $String, } from './string.js';
+import { nextValueId, } from './_shared.js';
+import { $Object, } from './object.js';
+import { $Boolean, } from './boolean.js';
+import { $TypeError, } from './error.js';
 // http://www.ecma-international.org/ecma-262/#sec-ecmascript-language-types-symbol-type
 export class $Symbol {
     constructor(realm, Description, value = Symbol(Description['[[Value]]']), type = 1 /* normal */, target = realm['[[Intrinsics]]'].empty) {

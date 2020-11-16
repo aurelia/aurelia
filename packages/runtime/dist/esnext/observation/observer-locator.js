@@ -11,15 +11,15 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 import { DI, isArrayIndex, ILogger } from '@aurelia/kernel';
-import { ILifecycle, } from '../observation';
-import { getArrayObserver } from './array-observer';
-import { createComputedObserver } from './computed-observer';
-import { IDirtyChecker } from './dirty-checker';
-import { getMapObserver } from './map-observer';
-import { PrimitiveObserver } from './primitive-observer';
-import { propertyAccessor } from './property-accessor';
-import { getSetObserver } from './set-observer';
-import { SetterObserver } from './setter-observer';
+import { ILifecycle, } from '../observation.js';
+import { getArrayObserver } from './array-observer.js';
+import { createComputedObserver } from './computed-observer.js';
+import { IDirtyChecker } from './dirty-checker.js';
+import { getMapObserver } from './map-observer.js';
+import { PrimitiveObserver } from './primitive-observer.js';
+import { propertyAccessor } from './property-accessor.js';
+import { getSetObserver } from './set-observer.js';
+import { SetterObserver } from './setter-observer.js';
 export const IObserverLocator = DI.createInterface('IObserverLocator').withDefault(x => x.singleton(ObserverLocator));
 export const INodeObserverLocator = DI
     .createInterface('INodeObserverLocator')

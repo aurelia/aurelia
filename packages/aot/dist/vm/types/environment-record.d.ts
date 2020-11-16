@@ -1,13 +1,13 @@
-import { IModule, Realm, ExecutionContext } from '../realm';
-import { $AnyNonError, $AnyNonEmpty, $AnyObject } from './_shared';
-import { $String } from './string';
-import { $Null } from './null';
-import { $Boolean } from './boolean';
-import { $Empty } from './empty';
-import { $Undefined } from './undefined';
-import { $Function } from './function';
+import { IModule, Realm, ExecutionContext } from '../realm.js';
+import { $AnyNonError, $AnyNonEmpty, $AnyObject } from './_shared.js';
+import { $String } from './string.js';
+import { $Null } from './null.js';
+import { $Boolean } from './boolean.js';
+import { $Empty } from './empty.js';
+import { $Undefined } from './undefined.js';
+import { $Function } from './function.js';
 import { ILogger, IDisposable, Writable } from '@aurelia/kernel';
-import { $Error } from './error';
+import { $Error } from './error.js';
 export declare type $EnvRec = ($DeclarativeEnvRec | $ObjectEnvRec | $FunctionEnvRec | $GlobalEnvRec | $ModuleEnvRec);
 export declare class $Binding implements IDisposable {
     isMutable: boolean;

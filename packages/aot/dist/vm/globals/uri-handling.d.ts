@@ -1,9 +1,9 @@
-import { $BuiltinFunction, $Function } from '../types/function';
-import { Realm, ExecutionContext } from '../realm';
-import { $AnyNonEmpty, $AnyNonEmptyNonError } from '../types/_shared';
-import { $Undefined } from '../types/undefined';
-import { $FunctionPrototype } from './function';
-import { $List } from '../types/list';
+import { $BuiltinFunction, $Function } from '../types/function.js';
+import { Realm, ExecutionContext } from '../realm.js';
+import { $AnyNonEmpty, $AnyNonEmptyNonError } from '../types/_shared.js';
+import { $Undefined } from '../types/undefined.js';
+import { $FunctionPrototype } from './function.js';
+import { $List } from '../types/list.js';
 export declare function $Encode(ctx: ExecutionContext, string: any, unescapedSet: any): any;
 export declare function $Decode(ctx: ExecutionContext, string: any, reservedSet: any): any;
 export declare class $DecodeURI extends $BuiltinFunction<'%decodeURI%'> {

@@ -7,9 +7,9 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-import { bindingBehavior, BindingInterceptor } from '../binding-behavior';
+import { bindingBehavior, BindingInterceptor } from '../binding-behavior.js';
 import { IPlatform } from '@aurelia/kernel';
-import { BindingBehaviorExpression } from '../binding/ast';
+import { BindingBehaviorExpression } from '../binding/ast.js';
 let ThrottleBindingBehavior = class ThrottleBindingBehavior extends BindingInterceptor {
     constructor(binding, expr) {
         super(binding, expr);

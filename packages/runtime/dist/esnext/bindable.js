@@ -8,7 +8,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 import { kebabCase, Metadata, Protocol, firstDefined, getPrototypeChain, noop, } from '@aurelia/kernel';
-import { BindingMode, } from './observation';
+import { BindingMode, } from './observation.js';
 export function bindable(configOrTarget, prop) {
     let config;
     function decorator($target, $prop) {

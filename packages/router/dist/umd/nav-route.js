@@ -4,13 +4,13 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./type-resolvers"], factory);
+        define(["require", "exports", "./type-resolvers.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.NavRoute = void 0;
-    const type_resolvers_1 = require("./type-resolvers");
+    const type_resolvers_js_1 = require("./type-resolvers.js");
     /**
      * @internal - Used by au-nav
      */
@@ -32,8 +32,8 @@
                 this.link = this.computeLink(this.instructions);
             }
             this.linkActive = route.consideredActive !== null && route.consideredActive !== void 0 ? route.consideredActive : this.link;
-            if (this.linkActive !== null && (!(this.linkActive instanceof Function) || type_resolvers_1.ComponentAppellationResolver.isType(this.linkActive))) {
-                this.linkActive = type_resolvers_1.NavigationInstructionResolver.toViewportInstructions(this.nav.router, this.linkActive);
+            if (this.linkActive !== null && (!(this.linkActive instanceof Function) || type_resolvers_js_1.ComponentAppellationResolver.isType(this.linkActive))) {
+                this.linkActive = type_resolvers_js_1.NavigationInstructionResolver.toViewportInstructions(this.nav.router, this.linkActive);
             }
             this.execute = route.execute;
             this.compareParameters = !!route.compareParameters;
@@ -62,7 +62,7 @@
             this.active = (this.active.startsWith('nav-active') ? '' : 'nav-active');
         }
         parseRoute(routes) {
-            return type_resolvers_1.NavigationInstructionResolver.toViewportInstructions(this.nav.router, routes);
+            return type_resolvers_js_1.NavigationInstructionResolver.toViewportInstructions(this.nav.router, routes);
         }
         computeVisible() {
             if (this.linkVisible instanceof Function) {

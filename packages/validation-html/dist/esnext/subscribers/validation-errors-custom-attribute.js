@@ -11,8 +11,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 import { bindable, BindingMode, customAttribute, INode } from '@aurelia/runtime-html';
-import { IValidationController, ValidationResultTarget } from '../validation-controller';
-import { compareDocumentPositionFlat } from './common';
+import { IValidationController, ValidationResultTarget } from '../validation-controller.js';
+import { compareDocumentPositionFlat } from './common.js';
 import { optional } from '@aurelia/kernel';
 /**
  * A validation errors subscriber in form of a custom attribute.

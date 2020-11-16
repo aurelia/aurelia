@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "typescript", "@aurelia/kernel", "../types/function", "./bindings", "./expressions", "./functions", "./statements", "./classes", "./types", "./methods", "./jsx", "./literals", "../globals/string"], factory);
+        define(["require", "exports", "typescript", "@aurelia/kernel", "../types/function.js", "./bindings.js", "./expressions.js", "./functions.js", "./statements.js", "./classes.js", "./types.js", "./methods.js", "./jsx.js", "./literals.js", "../globals/string.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -12,32 +12,32 @@
     exports.$i = exports.FunctionKind = exports.modifiersToModifierFlags = exports.Context = exports.clearBit = exports.hasAllBits = exports.hasBit = exports.$$classElement = exports.$$classElementList = exports.$heritageClauseList = exports.getReferencedBindings = exports.getExportEntriesForModule = exports.getExportedNames = exports.getImportEntriesForModule = exports.getLocalName = exports.getVarScopedDeclarations = exports.getVarDeclaredNames = exports.getLexicallyScopedDeclarations = exports.getLexicallyDeclaredNames = exports.getBoundNames = exports.getIsSimpleParameterList = exports.getHasInitializer = exports.getContainsExpression = exports.$decoratorList = exports.IsConstructor = exports.BlockDeclarationInstantiation = exports.evaluateStatementList = exports.evaluateStatement = exports.GetExpectedArgumentCount = exports.GetDirectivePrologue = exports.$$esLabelledItem = exports.$$tsStatementList = exports.$$tsStatementListItem = exports.$$esStatement = exports.$$bindingName = exports.$$propertyName = exports.$identifier = exports.$LHSExpression = exports.$unaryExpression = exports.$assignmentExpression = void 0;
     const typescript_1 = require("typescript");
     const kernel_1 = require("@aurelia/kernel");
-    const function_1 = require("../types/function");
-    const bindings_1 = require("./bindings");
-    const expressions_1 = require("./expressions");
-    const functions_1 = require("./functions");
-    const statements_1 = require("./statements");
-    const classes_1 = require("./classes");
-    const types_1 = require("./types");
-    const methods_1 = require("./methods");
-    const jsx_1 = require("./jsx");
-    const literals_1 = require("./literals");
-    const string_1 = require("../globals/string");
+    const function_js_1 = require("../types/function.js");
+    const bindings_js_1 = require("./bindings.js");
+    const expressions_js_1 = require("./expressions.js");
+    const functions_js_1 = require("./functions.js");
+    const statements_js_1 = require("./statements.js");
+    const classes_js_1 = require("./classes.js");
+    const types_js_1 = require("./types.js");
+    const methods_js_1 = require("./methods.js");
+    const jsx_js_1 = require("./jsx.js");
+    const literals_js_1 = require("./literals.js");
+    const string_js_1 = require("../globals/string.js");
     function $assignmentExpression(node, parent, ctx, idx) {
         if (node === void 0) {
             return void 0;
         }
         switch (node.kind) {
             case typescript_1.SyntaxKind.AsExpression:
-                return new expressions_1.$AsExpression(node, parent, ctx, idx);
+                return new expressions_js_1.$AsExpression(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.BinaryExpression:
-                return new expressions_1.$BinaryExpression(node, parent, ctx, idx);
+                return new expressions_js_1.$BinaryExpression(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.ArrowFunction:
-                return new functions_1.$ArrowFunction(node, parent, ctx, idx);
+                return new functions_js_1.$ArrowFunction(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.ConditionalExpression:
-                return new expressions_1.$ConditionalExpression(node, parent, ctx, idx);
+                return new expressions_js_1.$ConditionalExpression(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.YieldExpression:
-                return new expressions_1.$YieldExpression(node, parent, ctx, idx);
+                return new expressions_js_1.$YieldExpression(node, parent, ctx, idx);
             default:
                 return $unaryExpression(node, parent, ctx, idx);
         }
@@ -46,25 +46,25 @@
     function $unaryExpression(node, parent, ctx, idx) {
         switch (node.kind) {
             case typescript_1.SyntaxKind.JsxElement:
-                return new jsx_1.$JsxElement(node, parent, ctx, idx);
+                return new jsx_js_1.$JsxElement(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.JsxFragment:
-                return new jsx_1.$JsxFragment(node, parent, ctx, idx);
+                return new jsx_js_1.$JsxFragment(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.JsxSelfClosingElement:
-                return new jsx_1.$JsxSelfClosingElement(node, parent, ctx, idx);
+                return new jsx_js_1.$JsxSelfClosingElement(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.PostfixUnaryExpression:
-                return new expressions_1.$PostfixUnaryExpression(node, parent, ctx, idx);
+                return new expressions_js_1.$PostfixUnaryExpression(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.PrefixUnaryExpression:
-                return new expressions_1.$PrefixUnaryExpression(node, parent, ctx, idx);
+                return new expressions_js_1.$PrefixUnaryExpression(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.AwaitExpression:
-                return new expressions_1.$AwaitExpression(node, parent, ctx, idx);
+                return new expressions_js_1.$AwaitExpression(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.DeleteExpression:
-                return new expressions_1.$DeleteExpression(node, parent, ctx, idx);
+                return new expressions_js_1.$DeleteExpression(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.TypeAssertionExpression:
-                return new expressions_1.$TypeAssertion(node, parent, ctx, idx);
+                return new expressions_js_1.$TypeAssertion(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.TypeOfExpression:
-                return new expressions_1.$TypeOfExpression(node, parent, ctx, idx);
+                return new expressions_js_1.$TypeOfExpression(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.VoidExpression:
-                return new expressions_1.$VoidExpression(node, parent, ctx, idx);
+                return new expressions_js_1.$VoidExpression(node, parent, ctx, idx);
             default:
                 return $LHSExpression(node, parent, ctx, idx);
         }
@@ -73,52 +73,52 @@
     function $LHSExpression(node, parent, ctx, idx) {
         switch (node.kind) {
             case typescript_1.SyntaxKind.ArrayLiteralExpression:
-                return new expressions_1.$ArrayLiteralExpression(node, parent, ctx, idx);
+                return new expressions_js_1.$ArrayLiteralExpression(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.ClassExpression:
-                return new classes_1.$ClassExpression(node, parent, ctx, idx);
+                return new classes_js_1.$ClassExpression(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.FunctionExpression:
-                return new functions_1.$FunctionExpression(node, parent, ctx, idx);
+                return new functions_js_1.$FunctionExpression(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.Identifier:
-                return new expressions_1.$Identifier(node, parent, ctx, idx);
+                return new expressions_js_1.$Identifier(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.NewExpression:
-                return new expressions_1.$NewExpression(node, parent, ctx, idx);
+                return new expressions_js_1.$NewExpression(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.ObjectLiteralExpression:
-                return new expressions_1.$ObjectLiteralExpression(node, parent, ctx, idx);
+                return new expressions_js_1.$ObjectLiteralExpression(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.ParenthesizedExpression:
-                return new expressions_1.$ParenthesizedExpression(node, parent, ctx, idx);
+                return new expressions_js_1.$ParenthesizedExpression(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.TemplateExpression:
-                return new expressions_1.$TemplateExpression(node, parent, ctx, idx);
+                return new expressions_js_1.$TemplateExpression(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.ElementAccessExpression:
-                return new expressions_1.$ElementAccessExpression(node, parent, ctx, idx);
+                return new expressions_js_1.$ElementAccessExpression(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.NonNullExpression:
-                return new expressions_1.$NonNullExpression(node, parent, ctx, idx);
+                return new expressions_js_1.$NonNullExpression(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.PropertyAccessExpression:
-                return new expressions_1.$PropertyAccessExpression(node, parent, ctx, idx);
+                return new expressions_js_1.$PropertyAccessExpression(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.TaggedTemplateExpression:
-                return new expressions_1.$TaggedTemplateExpression(node, parent, ctx, idx);
+                return new expressions_js_1.$TaggedTemplateExpression(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.CallExpression:
-                return new expressions_1.$CallExpression(node, parent, ctx, idx);
+                return new expressions_js_1.$CallExpression(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.MetaProperty:
-                return new expressions_1.$MetaProperty(node, parent, ctx, idx);
+                return new expressions_js_1.$MetaProperty(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.ThisKeyword:
-                return new expressions_1.$ThisExpression(node, parent, ctx, idx);
+                return new expressions_js_1.$ThisExpression(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.SuperKeyword:
-                return new expressions_1.$SuperExpression(node, parent, ctx, idx);
+                return new expressions_js_1.$SuperExpression(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.NumericLiteral:
-                return new literals_1.$NumericLiteral(node, parent, ctx, idx);
+                return new literals_js_1.$NumericLiteral(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.BigIntLiteral:
-                return new literals_1.$BigIntLiteral(node, parent, ctx, idx);
+                return new literals_js_1.$BigIntLiteral(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.StringLiteral:
-                return new literals_1.$StringLiteral(node, parent, ctx, idx);
+                return new literals_js_1.$StringLiteral(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.RegularExpressionLiteral:
-                return new literals_1.$RegularExpressionLiteral(node, parent, ctx, idx);
+                return new literals_js_1.$RegularExpressionLiteral(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.NoSubstitutionTemplateLiteral:
-                return new literals_1.$NoSubstitutionTemplateLiteral(node, parent, ctx, idx);
+                return new literals_js_1.$NoSubstitutionTemplateLiteral(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.NullKeyword:
-                return new literals_1.$NullLiteral(node, parent, ctx, idx);
+                return new literals_js_1.$NullLiteral(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.TrueKeyword:
             case typescript_1.SyntaxKind.FalseKeyword:
-                return new literals_1.$BooleanLiteral(node, parent, ctx, idx);
+                return new literals_js_1.$BooleanLiteral(node, parent, ctx, idx);
             default:
                 throw new Error(`Unexpected syntax node: ${typescript_1.SyntaxKind[node.kind]}.`);
         }
@@ -128,71 +128,71 @@
         if (node === void 0) {
             return void 0;
         }
-        return new expressions_1.$Identifier(node, parent, ctx, idx);
+        return new expressions_js_1.$Identifier(node, parent, ctx, idx);
     }
     exports.$identifier = $identifier;
     function $$propertyName(node, parent, ctx, idx) {
         switch (node.kind) {
             case typescript_1.SyntaxKind.Identifier:
-                return new expressions_1.$Identifier(node, parent, ctx, idx);
+                return new expressions_js_1.$Identifier(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.StringLiteral:
-                return new literals_1.$StringLiteral(node, parent, ctx, idx);
+                return new literals_js_1.$StringLiteral(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.NumericLiteral:
-                return new literals_1.$NumericLiteral(node, parent, ctx, idx);
+                return new literals_js_1.$NumericLiteral(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.ComputedPropertyName:
-                return new bindings_1.$ComputedPropertyName(node, parent, ctx, idx);
+                return new bindings_js_1.$ComputedPropertyName(node, parent, ctx, idx);
         }
     }
     exports.$$propertyName = $$propertyName;
     function $$bindingName(node, parent, ctx, idx) {
         switch (node.kind) {
             case typescript_1.SyntaxKind.Identifier:
-                return new expressions_1.$Identifier(node, parent, ctx | 8 /* IsBindingName */, idx);
+                return new expressions_js_1.$Identifier(node, parent, ctx | 8 /* IsBindingName */, idx);
             case typescript_1.SyntaxKind.ObjectBindingPattern:
-                return new bindings_1.$ObjectBindingPattern(node, parent, ctx, idx);
+                return new bindings_js_1.$ObjectBindingPattern(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.ArrayBindingPattern:
-                return new bindings_1.$ArrayBindingPattern(node, parent, ctx, idx);
+                return new bindings_js_1.$ArrayBindingPattern(node, parent, ctx, idx);
         }
     }
     exports.$$bindingName = $$bindingName;
     function $$esStatement(node, parent, ctx, idx) {
         switch (node.kind) {
             case typescript_1.SyntaxKind.Block:
-                return new statements_1.$Block(node, parent, ctx, idx);
+                return new statements_js_1.$Block(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.EmptyStatement:
-                return new statements_1.$EmptyStatement(node, parent, ctx, idx);
+                return new statements_js_1.$EmptyStatement(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.ExpressionStatement:
-                return new statements_1.$ExpressionStatement(node, parent, ctx, idx);
+                return new statements_js_1.$ExpressionStatement(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.IfStatement:
-                return new statements_1.$IfStatement(node, parent, ctx, idx);
+                return new statements_js_1.$IfStatement(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.DoStatement:
-                return new statements_1.$DoStatement(node, parent, ctx, idx);
+                return new statements_js_1.$DoStatement(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.WhileStatement:
-                return new statements_1.$WhileStatement(node, parent, ctx, idx);
+                return new statements_js_1.$WhileStatement(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.ForStatement:
-                return new statements_1.$ForStatement(node, parent, ctx, idx);
+                return new statements_js_1.$ForStatement(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.ForInStatement:
-                return new statements_1.$ForInStatement(node, parent, ctx, idx);
+                return new statements_js_1.$ForInStatement(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.ForOfStatement:
-                return new statements_1.$ForOfStatement(node, parent, ctx, idx);
+                return new statements_js_1.$ForOfStatement(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.ContinueStatement:
-                return new statements_1.$ContinueStatement(node, parent, ctx, idx);
+                return new statements_js_1.$ContinueStatement(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.BreakStatement:
-                return new statements_1.$BreakStatement(node, parent, ctx, idx);
+                return new statements_js_1.$BreakStatement(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.ReturnStatement:
-                return new statements_1.$ReturnStatement(node, parent, ctx, idx);
+                return new statements_js_1.$ReturnStatement(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.WithStatement:
-                return new statements_1.$WithStatement(node, parent, ctx, idx);
+                return new statements_js_1.$WithStatement(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.SwitchStatement:
-                return new statements_1.$SwitchStatement(node, parent, ctx, idx);
+                return new statements_js_1.$SwitchStatement(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.LabeledStatement:
-                return new statements_1.$LabeledStatement(node, parent, ctx, idx);
+                return new statements_js_1.$LabeledStatement(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.ThrowStatement:
-                return new statements_1.$ThrowStatement(node, parent, ctx, idx);
+                return new statements_js_1.$ThrowStatement(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.TryStatement:
-                return new statements_1.$TryStatement(node, parent, ctx, idx);
+                return new statements_js_1.$TryStatement(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.DebuggerStatement:
-                return new statements_1.$DebuggerStatement(node, parent, ctx, idx);
+                return new statements_js_1.$DebuggerStatement(node, parent, ctx, idx);
             default:
                 throw new Error(`Unexpected syntax node: ${typescript_1.SyntaxKind[node.kind]}.`);
         }
@@ -201,17 +201,17 @@
     function $$tsStatementListItem(node, parent, ctx, idx) {
         switch (node.kind) {
             case typescript_1.SyntaxKind.VariableStatement:
-                return new statements_1.$VariableStatement(node, parent, ctx, idx);
+                return new statements_js_1.$VariableStatement(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.FunctionDeclaration:
-                return new functions_1.$FunctionDeclaration(node, parent, ctx, idx);
+                return new functions_js_1.$FunctionDeclaration(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.ClassDeclaration:
-                return new classes_1.$ClassDeclaration(node, parent, ctx, idx);
+                return new classes_js_1.$ClassDeclaration(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.InterfaceDeclaration:
-                return new types_1.$InterfaceDeclaration(node, parent, ctx, idx);
+                return new types_js_1.$InterfaceDeclaration(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.TypeAliasDeclaration:
-                return new types_1.$TypeAliasDeclaration(node, parent, ctx, idx);
+                return new types_js_1.$TypeAliasDeclaration(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.EnumDeclaration:
-                return new types_1.$EnumDeclaration(node, parent, ctx, idx);
+                return new types_js_1.$EnumDeclaration(node, parent, ctx, idx);
             default:
                 return $$esStatement(node, parent, ctx, idx);
         }
@@ -236,9 +236,9 @@
     function $$esLabelledItem(node, parent, ctx, idx) {
         switch (node.kind) {
             case typescript_1.SyntaxKind.VariableStatement:
-                return new statements_1.$VariableStatement(node, parent, ctx, idx);
+                return new statements_js_1.$VariableStatement(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.FunctionDeclaration:
-                return new functions_1.$FunctionDeclaration(node, parent, ctx, idx);
+                return new functions_js_1.$FunctionDeclaration(node, parent, ctx, idx);
             default:
                 return $$esStatement(node, parent, ctx, idx);
         }
@@ -307,7 +307,7 @@
             case typescript_1.SyntaxKind.ForStatement:
             case typescript_1.SyntaxKind.ForInStatement:
             case typescript_1.SyntaxKind.ForOfStatement:
-                stmtCompletion = statement.EvaluateLabelled(ctx, new string_1.$StringSet());
+                stmtCompletion = statement.EvaluateLabelled(ctx, new string_js_1.$StringSet());
                 break;
             // Note that no default case is needed here as the cases above are exhausetive $$ESStatement (http://www.ecma-international.org/ecma-262/#prod-Statement)
         }
@@ -381,7 +381,7 @@
             return intrinsics.false.GetValue(ctx)['[[Value]]'];
         }
         // 2. If argument has a [[Construct]] internal method, return true.
-        if (argument instanceof function_1.$Function && argument['[[Construct]]'] !== void 0) {
+        if (argument instanceof function_js_1.$Function && argument['[[Construct]]'] !== void 0) {
             return intrinsics.true.GetValue(ctx)['[[Value]]'];
         }
         // 3. Return false.
@@ -393,12 +393,12 @@
             return kernel_1.emptyArray;
         }
         if (nodes.length === 1) {
-            return [new expressions_1.$Decorator(nodes[0], parent, ctx, 0)];
+            return [new expressions_js_1.$Decorator(nodes[0], parent, ctx, 0)];
         }
         const len = nodes.length;
         const $nodes = Array(len);
         for (let i = 0; i < len; ++i) {
-            $nodes[i] = new expressions_1.$Decorator(nodes[i], parent, ctx, i);
+            $nodes[i] = new expressions_js_1.$Decorator(nodes[i], parent, ctx, i);
         }
         return $nodes;
     }
@@ -438,7 +438,7 @@
         const len = nodes.length;
         const $nodes = Array(len);
         for (let i = 0; i < len; ++i) {
-            $nodes[i] = new classes_1.$HeritageClause(nodes[i], parent, ctx, i);
+            $nodes[i] = new classes_js_1.$HeritageClause(nodes[i], parent, ctx, i);
         }
         return $nodes;
     }
@@ -466,17 +466,17 @@
     function $$classElement(node, parent, ctx, idx) {
         switch (node.kind) {
             case typescript_1.SyntaxKind.PropertyDeclaration:
-                return new classes_1.$PropertyDeclaration(node, parent, ctx, idx);
+                return new classes_js_1.$PropertyDeclaration(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.SemicolonClassElement:
-                return new classes_1.$SemicolonClassElement(node, parent, ctx, idx);
+                return new classes_js_1.$SemicolonClassElement(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.MethodDeclaration:
-                return new methods_1.$MethodDeclaration(node, parent, ctx, idx);
+                return new methods_js_1.$MethodDeclaration(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.Constructor:
-                return new functions_1.$ConstructorDeclaration(node, parent, ctx, idx);
+                return new functions_js_1.$ConstructorDeclaration(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.GetAccessor:
-                return new methods_1.$GetAccessorDeclaration(node, parent, ctx, idx);
+                return new methods_js_1.$GetAccessorDeclaration(node, parent, ctx, idx);
             case typescript_1.SyntaxKind.SetAccessor:
-                return new methods_1.$SetAccessorDeclaration(node, parent, ctx, idx);
+                return new methods_js_1.$SetAccessorDeclaration(node, parent, ctx, idx);
             default:
                 return void 0;
         }

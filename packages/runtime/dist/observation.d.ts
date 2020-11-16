@@ -1,7 +1,7 @@
 import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
-import type { Scope } from './observation/binding-context';
-import type { CollectionLengthObserver } from './observation/collection-length-observer';
-import type { CollectionSizeObserver } from './observation/collection-size-observer';
+import type { Scope } from './observation/binding-context.js';
+import type { CollectionLengthObserver } from './observation/collection-length-observer.js';
+import type { CollectionSizeObserver } from './observation/collection-size-observer.js';
 export interface IBinding {
     interceptor: this;
     readonly locator: IServiceLocator;

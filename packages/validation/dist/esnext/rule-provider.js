@@ -13,8 +13,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 /* eslint-disable no-template-curly-in-string */
 import { DI, Protocol, Metadata, ILogger, IServiceLocator } from '@aurelia/kernel';
 import { IExpressionParser, PrimitiveLiteralExpression, Scope, } from '@aurelia/runtime';
-import { RequiredRule, RegexRule, LengthRule, SizeRule, RangeRule, EqualsRule, IValidationMessageProvider, ValidationRuleAliasMessage, BaseValidationRule, } from './rules';
-import { IValidationExpressionHydrator, } from './rule-interfaces';
+import { RequiredRule, RegexRule, LengthRule, SizeRule, RangeRule, EqualsRule, IValidationMessageProvider, ValidationRuleAliasMessage, BaseValidationRule, } from './rules.js';
+import { IValidationExpressionHydrator, } from './rule-interfaces.js';
 /* @internal */
 export const ICustomMessages = DI.createInterface('ICustomMessages').noDefault();
 export class RuleProperty {

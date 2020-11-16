@@ -4,13 +4,13 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./nav-route"], factory);
+        define(["require", "exports", "./nav-route.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Nav = void 0;
-    const nav_route_1 = require("./nav-route");
+    const nav_route_js_1 = require("./nav-route.js");
     /**
      * Public API - Used by au-nav and Router add/setNav
      */
@@ -33,7 +33,7 @@
             this.routes = this.routes.slice();
         }
         addRoute(routes, route) {
-            const newRoute = new nav_route_1.NavRoute(this, route);
+            const newRoute = new nav_route_js_1.NavRoute(this, route);
             routes.push(newRoute);
             if (route.children) {
                 newRoute.children = [];

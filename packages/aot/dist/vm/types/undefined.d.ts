@@ -1,13 +1,13 @@
-import { $AnyNonError, PotentialNonEmptyCompletionType, CompletionTarget, $Any } from './_shared';
-import { Realm, ExecutionContext } from '../realm';
-import { $String } from './string';
-import { $Number } from './number';
-import { $Boolean } from './boolean';
-import { $Error } from './error';
-import { $ESModule, $ExportSpecifier, $ImportSpecifier, $ImportClause, $ImportDeclaration } from '../ast/modules';
-import { $FunctionDeclaration } from '../ast/functions';
-import { $ClassDeclaration } from '../ast/classes';
-import { I$Node } from '../ast/_shared';
+import { $AnyNonError, PotentialNonEmptyCompletionType, CompletionTarget, $Any } from './_shared.js';
+import { Realm, ExecutionContext } from '../realm.js';
+import { $String } from './string.js';
+import { $Number } from './number.js';
+import { $Boolean } from './boolean.js';
+import { $Error } from './error.js';
+import { $ESModule, $ExportSpecifier, $ImportSpecifier, $ImportClause, $ImportDeclaration } from '../ast/modules.js';
+import { $FunctionDeclaration } from '../ast/functions.js';
+import { $ClassDeclaration } from '../ast/classes.js';
+import { I$Node } from '../ast/_shared.js';
 export declare class $Undefined {
     readonly realm: Realm;
     readonly sourceNode: $ESModule | $FunctionDeclaration | $ExportSpecifier | $ImportSpecifier | $ImportClause | $ImportDeclaration | $ClassDeclaration | null;

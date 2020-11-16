@@ -1,9 +1,9 @@
 import { IServiceLocator, ITask, TaskQueue } from '@aurelia/kernel';
-import { ICollectionSubscriber, IndexMap, BindingMode, IBinding, LifecycleFlags } from '../observation';
-import { IObserverLocator } from '../observation/observer-locator';
-import { Interpolation, IsExpression } from './ast';
-import { IConnectableBinding } from './connectable';
-import type { Scope } from '../observation/binding-context';
+import { ICollectionSubscriber, IndexMap, BindingMode, IBinding, LifecycleFlags } from '../observation.js';
+import { IObserverLocator } from '../observation/observer-locator.js';
+import { Interpolation, IsExpression } from './ast.js';
+import { IConnectableBinding } from './connectable.js';
+import type { Scope } from '../observation/binding-context.js';
 export declare class InterpolationBinding implements IBinding {
     observerLocator: IObserverLocator;
     interpolation: Interpolation;

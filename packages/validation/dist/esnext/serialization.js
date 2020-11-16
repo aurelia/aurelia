@@ -12,9 +12,9 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 import { IServiceLocator } from '@aurelia/kernel';
 import { IExpressionParser, Scope } from '@aurelia/runtime';
-import { Deserializer, serializePrimitive, Serializer } from './ast-serialization';
-import { parsePropertyName, PropertyRule, RuleProperty } from './rule-provider';
-import { EqualsRule, IValidationMessageProvider, LengthRule, RangeRule, RegexRule, RequiredRule, SizeRule, } from './rules';
+import { Deserializer, serializePrimitive, Serializer } from './ast-serialization.js';
+import { parsePropertyName, PropertyRule, RuleProperty } from './rule-provider.js';
+import { EqualsRule, IValidationMessageProvider, LengthRule, RangeRule, RegexRule, RequiredRule, SizeRule, } from './rules.js';
 export class ValidationSerializer {
     static serialize(object) {
         if (object == null || typeof object.accept !== 'function') {

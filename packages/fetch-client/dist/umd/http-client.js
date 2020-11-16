@@ -4,14 +4,14 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./http-client-configuration", "./retry-interceptor"], factory);
+        define(["require", "exports", "./http-client-configuration.js", "./retry-interceptor.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.HttpClient = void 0;
-    const http_client_configuration_1 = require("./http-client-configuration");
-    const retry_interceptor_1 = require("./retry-interceptor");
+    const http_client_configuration_js_1 = require("./http-client-configuration.js");
+    const retry_interceptor_js_1 = require("./retry-interceptor.js");
     const absoluteUrlRegexp = /^([a-z][a-z0-9+\-.]*:)?\/\//i;
     /**
      * An HTTP client based on the Fetch API.
@@ -44,13 +44,13 @@
                 normalizedConfig = requestInitConfiguration;
             }
             else if (typeof config === 'function') {
-                normalizedConfig = new http_client_configuration_1.HttpClientConfiguration();
+                normalizedConfig = new http_client_configuration_js_1.HttpClientConfiguration();
                 normalizedConfig.baseUrl = this.baseUrl;
                 normalizedConfig.defaults = { ...this.defaults };
                 normalizedConfig.interceptors = this.interceptors;
                 normalizedConfig.dispatcher = this.dispatcher;
                 const c = config(normalizedConfig);
-                if (Object.prototype.isPrototypeOf.call(http_client_configuration_1.HttpClientConfiguration.prototype, c)) {
+                if (Object.prototype.isPrototypeOf.call(http_client_configuration_js_1.HttpClientConfiguration.prototype, c)) {
                     normalizedConfig = c;
                 }
             }
@@ -66,10 +66,10 @@
             const interceptors = normalizedConfig.interceptors;
             if (interceptors !== undefined && interceptors.length) {
                 // find if there is a RetryInterceptor
-                if (interceptors.filter(x => Object.prototype.isPrototypeOf.call(retry_interceptor_1.RetryInterceptor.prototype, x)).length > 1) {
+                if (interceptors.filter(x => Object.prototype.isPrototypeOf.call(retry_interceptor_js_1.RetryInterceptor.prototype, x)).length > 1) {
                     throw new Error('Only one RetryInterceptor is allowed.');
                 }
-                const retryInterceptorIndex = interceptors.findIndex(x => Object.prototype.isPrototypeOf.call(retry_interceptor_1.RetryInterceptor.prototype, x));
+                const retryInterceptorIndex = interceptors.findIndex(x => Object.prototype.isPrototypeOf.call(retry_interceptor_js_1.RetryInterceptor.prototype, x));
                 if (retryInterceptorIndex >= 0 && retryInterceptorIndex !== interceptors.length - 1) {
                     throw new Error('The retry interceptor must be the last interceptor defined.');
                 }

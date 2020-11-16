@@ -1,5 +1,5 @@
 import { Registration, Metadata, Protocol, mergeArrays, firstDefined, } from '@aurelia/kernel';
-import { registerAliases } from './alias';
+import { registerAliases } from './alias.js';
 export function valueConverter(nameOrDef) {
     return function (target) {
         return ValueConverter.define(nameOrDef, target);

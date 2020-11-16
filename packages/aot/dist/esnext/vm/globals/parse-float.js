@@ -1,4 +1,4 @@
-import { $BuiltinFunction, } from '../types/function';
+import { $BuiltinFunction, } from '../types/function.js';
 // http://www.ecma-international.org/ecma-262/#sec-parsefloat-string
 // 18.2.4 parseFloat ( string )
 export class $ParseFloat extends $BuiltinFunction {

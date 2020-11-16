@@ -1,4 +1,4 @@
-import { Constructable, Overwrite } from './interfaces';
+import { Constructable, Overwrite } from './interfaces.js';
 /**
  * Efficiently determine whether the provided property key is numeric
  * (and thus could be an array indexer) or not.

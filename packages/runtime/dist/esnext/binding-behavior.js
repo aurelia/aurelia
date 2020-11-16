@@ -8,8 +8,8 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 import { Registration, Metadata, Protocol, mergeArrays, firstDefined, DI, fromAnnotationOrDefinitionOrTypeOrDefault, } from '@aurelia/kernel';
-import { connectable } from './binding/connectable';
-import { registerAliases } from './alias';
+import { connectable } from './binding/connectable.js';
+import { registerAliases } from './alias.js';
 export var BindingBehaviorStrategy;
 (function (BindingBehaviorStrategy) {
     BindingBehaviorStrategy[BindingBehaviorStrategy["singleton"] = 1] = "singleton";

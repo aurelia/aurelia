@@ -1,4 +1,4 @@
-import { $BuiltinFunction, } from '../types/function';
+import { $BuiltinFunction, } from '../types/function.js';
 export class $ValueRecord {
     constructor(value) {
         this['[[Value]]'] = value;

@@ -4,20 +4,20 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "./intrinsics", "./types/environment-record", "./types/property-descriptor", "./operations", "./types/string", "./types/object", "./types/reference"], factory);
+        define(["require", "exports", "@aurelia/kernel", "./intrinsics.js", "./types/environment-record.js", "./types/property-descriptor.js", "./operations.js", "./types/string.js", "./types/object.js", "./types/reference.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ExecutionContext = exports.ExecutionContextStack = exports.Realm = exports.DeferredModule = exports.ResolvedBindingRecord = exports.ResolveSet = void 0;
     const kernel_1 = require("@aurelia/kernel");
-    const intrinsics_1 = require("./intrinsics");
-    const environment_record_1 = require("./types/environment-record");
-    const property_descriptor_1 = require("./types/property-descriptor");
-    const operations_1 = require("./operations");
-    const string_1 = require("./types/string");
-    const object_1 = require("./types/object");
-    const reference_1 = require("./types/reference");
+    const intrinsics_js_1 = require("./intrinsics.js");
+    const environment_record_js_1 = require("./types/environment-record.js");
+    const property_descriptor_js_1 = require("./types/property-descriptor.js");
+    const operations_js_1 = require("./operations.js");
+    const string_js_1 = require("./types/string.js");
+    const object_js_1 = require("./types/object.js");
+    const reference_js_1 = require("./types/reference.js");
     class ResolveSet {
         constructor() {
             this.modules = [];
@@ -103,7 +103,7 @@
             // 1. Let realmRec be a new Realm Record.
             const realm = new Realm(container, logger, promiseJobs);
             // 2. Perform CreateIntrinsics(realmRec).
-            new intrinsics_1.Intrinsics(realm);
+            new intrinsics_js_1.Intrinsics(realm);
             // 3. Set realmRec.[[GlobalObject]] to undefined.
             realm['[[GlobalObject]]'] = (void 0);
             // 4. Set realmRec.[[GlobalEnv]] to undefined.
@@ -125,7 +125,7 @@
             // 6. Push newContext onto the execution context stack; newContext is now the running execution context.
             realm.stack.push(newContext);
             // 7. If the host requires use of an exotic object to serve as realm's global object, let global be such an object created in an implementation-defined manner. Otherwise, let global be undefined, indicating that an ordinary object should be created as the global object.
-            const globalObj = object_1.$Object.ObjectCreate(newContext, 'GlobalObject', intrinsics['%ObjectPrototype%']);
+            const globalObj = object_js_1.$Object.ObjectCreate(newContext, 'GlobalObject', intrinsics['%ObjectPrototype%']);
             // 8. If the host requires that the this binding in realm's global scope return an object other than the global object, let thisValue be such an object created in an implementation-defined manner. Otherwise, let thisValue be undefined, indicating that realm's global this binding should be the global object.
             const thisValue = globalObj;
             // Note: the two steps above are consolidated with setrealmglobalobject steps
@@ -140,7 +140,7 @@
             // 4. Set realmRec.[[GlobalObject]] to globalObj.
             realm['[[GlobalObject]]'] = globalObj;
             // 5. Let newGlobalEnv be NewGlobalEnvironment(globalObj, thisValue).
-            const newGlobalEnv = new environment_record_1.$GlobalEnvRec(logger, realm, globalObj, thisValue);
+            const newGlobalEnv = new environment_record_js_1.$GlobalEnvRec(logger, realm, globalObj, thisValue);
             // 6. Set realmRec.[[GlobalEnv]] to newGlobalEnv.
             realm['[[GlobalEnv]]'] = newGlobalEnv;
             // 7. Return realmRec.
@@ -155,13 +155,13 @@
             // 2. c. Perform ? DefinePropertyOrThrow(global, name, desc).
             // 3. Return global.
             function def(propertyName, intrinsicName) {
-                const name = new string_1.$String(realm, propertyName);
-                const desc = new property_descriptor_1.$PropertyDescriptor(realm, name);
+                const name = new string_js_1.$String(realm, propertyName);
+                const desc = new property_descriptor_js_1.$PropertyDescriptor(realm, name);
                 desc['[[Writable]]'] = intrinsics.false;
                 desc['[[Enumerable]]'] = intrinsics.false;
                 desc['[[Configurable]]'] = intrinsics.false;
                 desc['[[Value]]'] = intrinsics[intrinsicName];
-                operations_1.$DefinePropertyOrThrow(newContext, global, name, desc);
+                operations_js_1.$DefinePropertyOrThrow(newContext, global, name, desc);
             }
             // http://www.ecma-international.org/ecma-262/#sec-value-properties-of-the-global-object
             // 18.1 Value Properties of the Global Object
@@ -316,7 +316,7 @@
             // 1. If lex is the value null, then
             if (lex.isNull) {
                 // 1. a. Return a value of type Reference whose base value component is undefined, whose referenced name component is name, and whose strict reference flag is strict.
-                return new reference_1.$Reference(this, intrinsics.undefined, name, strict, intrinsics.undefined);
+                return new reference_js_1.$Reference(this, intrinsics.undefined, name, strict, intrinsics.undefined);
             }
             // 2. Let envRec be lex's EnvironmentRecord.
             const envRec = lex;
@@ -328,7 +328,7 @@
             // 4. If exists is true, then
             if (exists.isTruthy) {
                 // 4. a. Return a value of type Reference whose base value component is envRec, whose referenced name component is name, and whose strict reference flag is strict.
-                return new reference_1.$Reference(this, envRec, name, strict, intrinsics.undefined);
+                return new reference_js_1.$Reference(this, envRec, name, strict, intrinsics.undefined);
             }
             // 5. Else,
             else {

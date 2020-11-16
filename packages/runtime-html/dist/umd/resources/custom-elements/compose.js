@@ -16,7 +16,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "../../create-element", "../../renderer", "../../platform", "../../templating/render-context", "../custom-element"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "../../create-element.js", "../../renderer.js", "../../platform.js", "../../templating/render-context.js", "../custom-element.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -24,11 +24,11 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     exports.Compose = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
-    const create_element_1 = require("../../create-element");
-    const renderer_1 = require("../../renderer");
-    const platform_1 = require("../../platform");
-    const render_context_1 = require("../../templating/render-context");
-    const custom_element_1 = require("../custom-element");
+    const create_element_js_1 = require("../../create-element.js");
+    const renderer_js_1 = require("../../renderer.js");
+    const platform_js_1 = require("../../platform.js");
+    const render_context_js_1 = require("../../templating/render-context.js");
+    const custom_element_js_1 = require("../custom-element.js");
     function toLookup(acc, item) {
         const to = item.to;
         if (to !== void 0 && to !== 'subject' && to !== 'composing') {
@@ -118,11 +118,11 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                 return subject.create(flags);
             }
             if ('template' in subject) { // Raw Template Definition
-                const definition = custom_element_1.CustomElementDefinition.getOrCreate(subject);
-                return render_context_1.getRenderContext(definition, this.$controller.context).getViewFactory().create(flags);
+                const definition = custom_element_js_1.CustomElementDefinition.getOrCreate(subject);
+                return render_context_js_1.getRenderContext(definition, this.$controller.context).getViewFactory().create(flags);
             }
             // Constructable (Custom Element Constructor)
-            return create_element_1.createElement(this.p, subject, this.properties, this.$controller.host.childNodes).createView(this.$controller.context);
+            return create_element_js_1.createElement(this.p, subject, this.properties, this.$controller.host.childNodes).createView(this.$controller.context);
         }
         dispose() {
             var _a;
@@ -145,10 +145,10 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         __metadata("design:type", Boolean)
     ], Compose.prototype, "composing", void 0);
     Compose = __decorate([
-        custom_element_1.customElement({ name: 'au-compose', template: null, containerless: true }),
-        __param(0, platform_1.IPlatform),
-        __param(1, renderer_1.IInstruction),
-        __metadata("design:paramtypes", [Object, renderer_1.HydrateElementInstruction])
+        custom_element_js_1.customElement({ name: 'au-compose', template: null, containerless: true }),
+        __param(0, platform_js_1.IPlatform),
+        __param(1, renderer_js_1.IInstruction),
+        __metadata("design:paramtypes", [Object, renderer_js_1.HydrateElementInstruction])
     ], Compose);
     exports.Compose = Compose;
     function isController(subject) {

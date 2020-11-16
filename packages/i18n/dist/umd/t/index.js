@@ -14,15 +14,15 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./translation-binding", "./translation-binding-behavior", "./translation-parameters-renderer", "./translation-renderer", "./translation-value-converter"], factory);
+        define(["require", "exports", "./translation-binding.js", "./translation-binding-behavior.js", "./translation-parameters-renderer.js", "./translation-renderer.js", "./translation-value-converter.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    __exportStar(require("./translation-binding"), exports);
-    __exportStar(require("./translation-binding-behavior"), exports);
-    __exportStar(require("./translation-parameters-renderer"), exports);
-    __exportStar(require("./translation-renderer"), exports);
-    __exportStar(require("./translation-value-converter"), exports);
+    __exportStar(require("./translation-binding.js"), exports);
+    __exportStar(require("./translation-binding-behavior.js"), exports);
+    __exportStar(require("./translation-parameters-renderer.js"), exports);
+    __exportStar(require("./translation-renderer.js"), exports);
+    __exportStar(require("./translation-value-converter.js"), exports);
 });
 //# sourceMappingURL=index.js.map

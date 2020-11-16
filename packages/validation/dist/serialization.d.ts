@@ -1,9 +1,9 @@
 import { IContainer, IServiceLocator } from '@aurelia/kernel';
 import { IExpressionParser } from '@aurelia/runtime';
-import { Deserializer } from './ast-serialization';
-import { IPropertyRule, IRuleProperty, IValidationExpressionHydrator, IValidationRule, IValidationVisitor, IValidateable } from './rule-interfaces';
-import { IValidationRules, PropertyRule, RuleProperty } from './rule-provider';
-import { EqualsRule, IValidationMessageProvider, LengthRule, RangeRule, RegexRule, RequiredRule, SizeRule } from './rules';
+import { Deserializer } from './ast-serialization.js';
+import { IPropertyRule, IRuleProperty, IValidationExpressionHydrator, IValidationRule, IValidationVisitor, IValidateable } from './rule-interfaces.js';
+import { IValidationRules, PropertyRule, RuleProperty } from './rule-provider.js';
+import { EqualsRule, IValidationMessageProvider, LengthRule, RangeRule, RegexRule, RequiredRule, SizeRule } from './rules.js';
 export declare type Visitable<T extends IValidationRule> = (PropertyRule | RuleProperty | T) & {
     accept(visitor: ValidationSerializer): string;
 };

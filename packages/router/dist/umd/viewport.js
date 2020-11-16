@@ -4,17 +4,17 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/runtime-html", "./utils", "./viewport-content", "./scope", "./runner"], factory);
+        define(["require", "exports", "@aurelia/runtime-html", "./utils.js", "./viewport-content.js", "./scope.js", "./runner.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Viewport = void 0;
     const runtime_html_1 = require("@aurelia/runtime-html");
-    const utils_1 = require("./utils");
-    const viewport_content_1 = require("./viewport-content");
-    const scope_1 = require("./scope");
-    const runner_1 = require("./runner");
+    const utils_js_1 = require("./utils.js");
+    const viewport_content_js_1 = require("./viewport-content.js");
+    const scope_js_1 = require("./scope.js");
+    const runner_js_1 = require("./runner.js");
     class Viewport {
         constructor(router, name, connectedCE, owningScope, scope, options = {}) {
             this.router = router;
@@ -30,8 +30,8 @@
             this.previousViewportState = null;
             this.cache = [];
             this.historyCache = [];
-            this.content = new viewport_content_1.ViewportContent();
-            this.connectedScope = new scope_1.Scope(router, scope, owningScope, this);
+            this.content = new viewport_content_js_1.ViewportContent();
+            this.connectedScope = new scope_js_1.Scope(router, scope, owningScope, this);
         }
         get scope() {
             return this.connectedScope.scope;
@@ -101,7 +101,7 @@
             viewportInstruction.setViewport(this);
             this.clear = this.router.instructionResolver.isClearViewportInstruction(viewportInstruction);
             // Can have a (resolved) type or a string (to be resolved later)
-            this.nextContent = new viewport_content_1.ViewportContent(!this.clear ? viewportInstruction : void 0, navigation, (_a = this.connectedCE) !== null && _a !== void 0 ? _a : null);
+            this.nextContent = new viewport_content_js_1.ViewportContent(!this.clear ? viewportInstruction : void 0, navigation, (_a = this.connectedCE) !== null && _a !== void 0 ? _a : null);
             this.nextContent.fromHistory = this.nextContent.componentInstance && navigation.navigation
                 ? !!navigation.navigation.back || !!navigation.navigation.forward
                 : false;
@@ -225,7 +225,7 @@
         }
         remove(connectedCE) {
             if (this.connectedCE === connectedCE) {
-                return runner_1.Runner.run(() => {
+                return runner_js_1.Runner.run(() => {
                     if (this.content.componentInstance) {
                         return this.content.freeContent(this.connectedCE, (this.nextContent ? this.nextContent.instruction : null), this.historyCache, this.doForceRemove ? false : this.router.statefulHistory || this.options.stateful); // .catch(error => { throw error; });
                     }
@@ -236,7 +236,7 @@
                             removes.push(() => content.freeContent(null, null, this.historyCache, false));
                         }
                         removes.push(() => { this.historyCache = []; });
-                        return runner_1.Runner.run(...removes);
+                        return runner_js_1.Runner.run(...removes);
                         // return Promise.all(this.historyCache.map(content => content.freeContent(
                         //   null,
                         //   null,
@@ -261,7 +261,7 @@
                 () => performLoad ? this.canUnload() : true,
                 (canUnloadResult) => {
                     if (!canUnloadResult) {
-                        runner_1.Runner.cancel(void 0);
+                        runner_js_1.Runner.cancel(void 0);
                         coordinator.cancel();
                         return;
                     }
@@ -275,7 +275,7 @@
                 (canLoadResult) => {
                     if (typeof canLoadResult === 'boolean') {
                         if (!canLoadResult) {
-                            runner_1.Runner.cancel(void 0);
+                            runner_js_1.Runner.cancel(void 0);
                             coordinator.cancel();
                             return;
                         }
@@ -283,7 +283,7 @@
                         coordinator.addEntityState(this, 'guarded');
                     }
                     else { // Denied and (probably) redirected
-                        runner_1.Runner.run(() => this.router.load(canLoadResult, { append: true }), () => this.abortContentChange());
+                        runner_js_1.Runner.run(() => this.router.load(canLoadResult, { append: true }), () => this.abortContentChange());
                     }
                 },
             ];
@@ -309,10 +309,10 @@
                 if (this.router.options.swapStrategy.includes('parallel')) {
                     lifecycleSteps.push(() => {
                         if (this.router.options.swapStrategy.includes('add')) {
-                            return runner_1.Runner.run(this.addContent(), this.removeContent());
+                            return runner_js_1.Runner.run(this.addContent(), this.removeContent());
                         }
                         else {
-                            return runner_1.Runner.run(this.removeContent(), this.addContent());
+                            return runner_js_1.Runner.run(this.removeContent(), this.addContent());
                         }
                     });
                 }
@@ -329,10 +329,10 @@
             //   () => coordinator.addEntityState(this, 'swapped'),
             // ];
             // run =
-            runner_1.Runner.run(...guardSteps, ...routingSteps, ...lifecycleSteps, () => coordinator.addEntityState(this, 'completed'));
+            runner_js_1.Runner.run(...guardSteps, ...routingSteps, ...lifecycleSteps, () => coordinator.addEntityState(this, 'completed'));
         }
         canUnload() {
-            return runner_1.Runner.run(() => {
+            return runner_js_1.Runner.run(() => {
                 // console.log('viewport canUnload run', this.name, 'before');
                 // eslint-disable-next-line sonarjs/prefer-immediate-return
                 const result = this.connectedScope.canUnload();
@@ -361,7 +361,7 @@
             if (((_b = (_a = this.nextContent) === null || _a === void 0 ? void 0 : _a.content) !== null && _b !== void 0 ? _b : null) === null) {
                 return true;
             }
-            return runner_1.Runner.run(() => this.waitForConnected(), () => {
+            return runner_js_1.Runner.run(() => this.waitForConnected(), () => {
                 this.nextContent.createComponent(this.connectedCE, this.options.fallback);
                 // This shouldn't happen
                 // // Don't stop it because we're not going to actually do anything
@@ -382,31 +382,31 @@
             // if (this.nextContent === this.content) {
             //   return;
             // }
-            return runner_1.Runner.run(() => { var _a; return (_a = this.nextContent) === null || _a === void 0 ? void 0 : _a.load(this.content.instruction); });
+            return runner_js_1.Runner.run(() => { var _a; return (_a = this.nextContent) === null || _a === void 0 ? void 0 : _a.load(this.content.instruction); });
             // return this.nextContent?.load(this.content.instruction);
             // await this.nextContent.activateComponent(null, this.connectedCE!.$controller as ICustomElementController<ICustomElementViewModel>, LifecycleFlags.none, this.connectedCE!);
             // return true;
         }
         addContent() {
             // console.log('addContent', this.toString());
-            return runner_1.Runner.run(() => this.activate(null, this.connectedController, 0 /* none */, this.parentNextContentActivated));
+            return runner_js_1.Runner.run(() => this.activate(null, this.connectedController, 0 /* none */, this.parentNextContentActivated));
         }
         removeContent() {
             if (this.isEmpty) {
                 return;
             }
             // console.log('removeContent', this.toString());
-            return runner_1.Runner.run(() => this.connectedScope.removeContent(), () => this.deactivate(null, null /* TODO: verify this.connectedController */, 0 /* none */), () => this.dispose());
+            return runner_js_1.Runner.run(() => this.connectedScope.removeContent(), () => this.deactivate(null, null /* TODO: verify this.connectedController */, 0 /* none */), () => this.dispose());
         }
         removeChildrenContent() {
             // console.log(this.name, 'removeContent', this.content.content);
-            return runner_1.Runner.run(() => !this.isEmpty ? this.connectedScope.removeContent() : void 0);
+            return runner_js_1.Runner.run(() => !this.isEmpty ? this.connectedScope.removeContent() : void 0);
         }
         activate(initiator, parent, flags, fromParent) {
             // console.log('activate' /* , { ...this } */);
             if (this.activeContent.componentInstance !== null) {
                 this.connectedScope.reenableReplacedChildren();
-                return runner_1.Runner.run(() => this.activeContent.load(this.activeContent.instruction), // Only acts if not already loaded
+                return runner_js_1.Runner.run(() => this.activeContent.load(this.activeContent.instruction), // Only acts if not already loaded
                 () => this.activeContent.activateComponent(initiator, parent, flags, this.connectedCE, fromParent));
             }
         }
@@ -415,12 +415,12 @@
             if (this.content.componentInstance &&
                 !this.content.reentry &&
                 this.content.componentInstance !== ((_a = this.nextContent) === null || _a === void 0 ? void 0 : _a.componentInstance)) {
-                return runner_1.Runner.run(() => { var _a; return (_a = this.content) === null || _a === void 0 ? void 0 : _a.unload(this.content.instruction); }, // Only acts if not already unloaded
+                return runner_js_1.Runner.run(() => { var _a; return (_a = this.content) === null || _a === void 0 ? void 0 : _a.unload(this.content.instruction); }, // Only acts if not already unloaded
                 () => { var _a; return (_a = this.content) === null || _a === void 0 ? void 0 : _a.deactivateComponent(initiator, parent, flags, this.connectedCE, this.router.statefulHistory || this.options.stateful); });
             }
         }
         unload(recurse) {
-            return runner_1.Runner.run(() => recurse ? this.connectedScope.unload(recurse) : true, () => {
+            return runner_js_1.Runner.run(() => recurse ? this.connectedScope.unload(recurse) : true, () => {
                 // console.log(this.connectedScope.toString(), 'viewport content unload', this.content.content.componentName);
                 // This shouldn't happen
                 // // TODO: Verify this
@@ -438,7 +438,7 @@
             if (this.content.componentInstance &&
                 !this.content.reentry &&
                 this.content.componentInstance !== ((_a = this.nextContent) === null || _a === void 0 ? void 0 : _a.componentInstance)) {
-                return runner_1.Runner.run(
+                return runner_js_1.Runner.run(
                 // () => this.content!.unloadComponent(
                 //   this.historyCache,
                 //   this.router.statefulHistory || this.options.stateful),
@@ -458,7 +458,7 @@
                 this.content.reentry = false;
             }
             if (this.clear) {
-                this.content = new viewport_content_1.ViewportContent(void 0, this.nextContent.instruction);
+                this.content = new viewport_content_js_1.ViewportContent(void 0, this.nextContent.instruction);
             }
             this.nextContent = null;
             this.nextContentAction = '';
@@ -467,7 +467,7 @@
         }
         abortContentChange() {
             this.connectedScope.reenableReplacedChildren();
-            return runner_1.Runner.run(() => this.nextContent.freeContent(this.connectedCE, this.nextContent.instruction, this.historyCache, this.router.statefulHistory || this.options.stateful), () => {
+            return runner_js_1.Runner.run(() => this.nextContent.freeContent(this.connectedCE, this.nextContent.instruction, this.historyCache, this.router.statefulHistory || this.options.stateful), () => {
                 if (this.previousViewportState) {
                     Object.assign(this, this.previousViewportState);
                 }
@@ -505,12 +505,12 @@
         freeContent(component) {
             const content = this.historyCache.find(cached => cached.componentInstance === component);
             if (content !== void 0) {
-                return runner_1.Runner.run(() => {
+                return runner_js_1.Runner.run(() => {
                     this.forceRemove = true;
                     return content.freeContent(null, null, this.historyCache, false);
                 }, () => {
                     this.forceRemove = false;
-                    utils_1.arrayRemove(this.historyCache, (cached => cached === content));
+                    utils_js_1.arrayRemove(this.historyCache, (cached => cached === content));
                 });
             }
         }
@@ -577,7 +577,7 @@
         }
         clearState() {
             this.options = {};
-            this.content = new viewport_content_1.ViewportContent();
+            this.content = new viewport_content_js_1.ViewportContent();
             this.cache = [];
         }
         waitForConnected() {

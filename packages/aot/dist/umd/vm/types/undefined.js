@@ -4,23 +4,23 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./_shared", "./string", "./number", "./boolean", "./error"], factory);
+        define(["require", "exports", "./_shared.js", "./string.js", "./number.js", "./boolean.js", "./error.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.$Undefined = void 0;
-    const _shared_1 = require("./_shared");
-    const string_1 = require("./string");
-    const number_1 = require("./number");
-    const boolean_1 = require("./boolean");
-    const error_1 = require("./error");
+    const _shared_js_1 = require("./_shared.js");
+    const string_js_1 = require("./string.js");
+    const number_js_1 = require("./number.js");
+    const boolean_js_1 = require("./boolean.js");
+    const error_js_1 = require("./error.js");
     // http://www.ecma-international.org/ecma-262/#sec-ecmascript-language-types-undefined-type
     class $Undefined {
         constructor(realm, type = 1 /* normal */, target = realm['[[Intrinsics]]'].empty, sourceNode = null) {
             this.realm = realm;
             this.sourceNode = sourceNode;
-            this.id = _shared_1.nextValueId();
+            this.id = _shared_js_1.nextValueId();
             this.IntrinsicName = 'undefined';
             this['[[Value]]'] = void 0;
             this.nodeStack = [];
@@ -87,7 +87,7 @@
             // 3. Return Completion { [[Type]]: completionRecord.[[Type]], [[Value]]: value, [[Target]]: completionRecord.[[Target]] }.
         }
         ToObject(ctx) {
-            return new error_1.$TypeError(ctx.Realm, `${this} cannot be converted to object`);
+            return new error_js_1.$TypeError(ctx.Realm, `${this} cannot be converted to object`);
         }
         ToPropertyKey(ctx) {
             return this.ToString(ctx);
@@ -99,7 +99,7 @@
             return this;
         }
         ToBoolean(ctx) {
-            return new boolean_1.$Boolean(
+            return new boolean_js_1.$Boolean(
             /* realm */ this.realm, 
             /* value */ Boolean(this['[[Value]]']), 
             /* type */ this['[[Type]]'], 
@@ -108,7 +108,7 @@
             /* conversionSource */ this);
         }
         ToNumber(ctx) {
-            return new number_1.$Number(
+            return new number_js_1.$Number(
             /* realm */ this.realm, 
             /* value */ Number(this['[[Value]]']), 
             /* type */ this['[[Type]]'], 
@@ -117,70 +117,70 @@
             /* conversionSource */ this);
         }
         ToInt32(ctx) {
-            return new number_1.$Number(
+            return new number_js_1.$Number(
             /* realm */ this.realm, 
-            /* value */ _shared_1.Int32(this['[[Value]]']), 
+            /* value */ _shared_js_1.Int32(this['[[Value]]']), 
             /* type */ this['[[Type]]'], 
             /* target */ this['[[Target]]'], 
             /* sourceNode */ null, 
             /* conversionSource */ this);
         }
         ToUint32(ctx) {
-            return new number_1.$Number(
+            return new number_js_1.$Number(
             /* realm */ this.realm, 
-            /* value */ _shared_1.Uint32(this['[[Value]]']), 
+            /* value */ _shared_js_1.Uint32(this['[[Value]]']), 
             /* type */ this['[[Type]]'], 
             /* target */ this['[[Target]]'], 
             /* sourceNode */ null, 
             /* conversionSource */ this);
         }
         ToInt16(ctx) {
-            return new number_1.$Number(
+            return new number_js_1.$Number(
             /* realm */ this.realm, 
-            /* value */ _shared_1.Int16(this['[[Value]]']), 
+            /* value */ _shared_js_1.Int16(this['[[Value]]']), 
             /* type */ this['[[Type]]'], 
             /* target */ this['[[Target]]'], 
             /* sourceNode */ null, 
             /* conversionSource */ this);
         }
         ToUint16(ctx) {
-            return new number_1.$Number(
+            return new number_js_1.$Number(
             /* realm */ this.realm, 
-            /* value */ _shared_1.Uint16(this['[[Value]]']), 
+            /* value */ _shared_js_1.Uint16(this['[[Value]]']), 
             /* type */ this['[[Type]]'], 
             /* target */ this['[[Target]]'], 
             /* sourceNode */ null, 
             /* conversionSource */ this);
         }
         ToInt8(ctx) {
-            return new number_1.$Number(
+            return new number_js_1.$Number(
             /* realm */ this.realm, 
-            /* value */ _shared_1.Int8(this['[[Value]]']), 
+            /* value */ _shared_js_1.Int8(this['[[Value]]']), 
             /* type */ this['[[Type]]'], 
             /* target */ this['[[Target]]'], 
             /* sourceNode */ null, 
             /* conversionSource */ this);
         }
         ToUint8(ctx) {
-            return new number_1.$Number(
+            return new number_js_1.$Number(
             /* realm */ this.realm, 
-            /* value */ _shared_1.Uint8(this['[[Value]]']), 
+            /* value */ _shared_js_1.Uint8(this['[[Value]]']), 
             /* type */ this['[[Type]]'], 
             /* target */ this['[[Target]]'], 
             /* sourceNode */ null, 
             /* conversionSource */ this);
         }
         ToUint8Clamp(ctx) {
-            return new number_1.$Number(
+            return new number_js_1.$Number(
             /* realm */ this.realm, 
-            /* value */ _shared_1.Uint8Clamp(this['[[Value]]']), 
+            /* value */ _shared_js_1.Uint8Clamp(this['[[Value]]']), 
             /* type */ this['[[Type]]'], 
             /* target */ this['[[Target]]'], 
             /* sourceNode */ null, 
             /* conversionSource */ this);
         }
         ToString(ctx) {
-            return new string_1.$String(
+            return new string_js_1.$String(
             /* realm */ this.realm, 
             /* value */ String(this['[[Value]]']), 
             /* type */ this['[[Type]]'], 

@@ -1,7 +1,7 @@
 import { DI } from '@aurelia/kernel';
-import { IAppRoot } from './app-root';
-import { IPlatform } from './platform';
-import { CustomElement } from './resources/custom-element';
+import { IAppRoot } from './app-root.js';
+import { IPlatform } from './platform.js';
+import { CustomElement } from './resources/custom-element.js';
 export const INode = DI.createInterface('INode').noDefault();
 export const IEventTarget = DI.createInterface('IEventTarget').withDefault(x => x.cachedCallback(handler => {
     if (handler.has(IAppRoot, true)) {

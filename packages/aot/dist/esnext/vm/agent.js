@@ -1,7 +1,7 @@
-import { JobQueue, Job, } from './job';
+import { JobQueue, Job, } from './job.js';
 import { DI, } from '@aurelia/kernel';
-import { Realm, ExecutionContext, } from './realm';
-import { $Empty, } from './types/empty';
+import { Realm, ExecutionContext, } from './realm.js';
+import { $Empty, } from './types/empty.js';
 export const ISourceFileProvider = DI.createInterface('ISourceFileProvider').noDefault();
 // http://www.ecma-international.org/ecma-262/#sec-agents
 export class Agent {

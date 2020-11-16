@@ -6,25 +6,25 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./comparison", "./inspect", "./specialized-assertions", "./util", "@aurelia/runtime-html", "./scheduler", "./test-context"], factory);
+        define(["require", "exports", "./comparison.js", "./inspect.js", "./specialized-assertions.js", "./util.js", "@aurelia/runtime-html", "./scheduler.js", "./test-context.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.assert = exports.isCustomAttributeType = exports.isCustomElementType = exports.notMatch = exports.match = exports.notStrictEqual = exports.strictEqual = exports.notDeepStrictEqual = exports.deepStrictEqual = exports.notDeepEqual = exports.deepEqual = exports.notEqual = exports.lessThanOrEqualTo = exports.lessThan = exports.greaterThanOrEqualTo = exports.greaterThan = exports.notContains = exports.contains = exports.notIncludes = exports.includes = exports.notInstanceOf = exports.instanceOf = exports.typeOf = exports.equal = exports.visibleTextEqual = exports.fail = exports.ok = exports.ifError = exports.doesNotReject = exports.doesNotThrow = exports.rejects = exports.throws = void 0;
-    const comparison_1 = require("./comparison");
-    const inspect_1 = require("./inspect");
-    const specialized_assertions_1 = require("./specialized-assertions");
-    const util_1 = require("./util");
+    const comparison_js_1 = require("./comparison.js");
+    const inspect_js_1 = require("./inspect.js");
+    const specialized_assertions_js_1 = require("./specialized-assertions.js");
+    const util_js_1 = require("./util.js");
     const runtime_html_1 = require("@aurelia/runtime-html");
-    const scheduler_1 = require("./scheduler");
-    const test_context_1 = require("./test-context");
+    const scheduler_js_1 = require("./scheduler.js");
+    const test_context_js_1 = require("./test-context.js");
     const noException = Symbol('noException');
     function innerFail(obj) {
-        if (util_1.isError(obj.message)) {
+        if (util_js_1.isError(obj.message)) {
             throw obj.message;
         }
-        throw new inspect_1.AssertionError(obj);
+        throw new inspect_js_1.AssertionError(obj);
     }
     function innerOk(fn, argLen, value, message) {
         if (!value) {
@@ -33,10 +33,10 @@
                 generatedMessage = true;
                 message = 'No value argument passed to `assert.ok()`';
             }
-            else if (util_1.isError(message)) {
+            else if (util_js_1.isError(message)) {
                 throw message;
             }
-            const err = new inspect_1.AssertionError({
+            const err = new inspect_js_1.AssertionError({
                 actual: value,
                 expected: true,
                 message,
@@ -51,9 +51,9 @@
         constructor(obj, keys, actual) {
             for (const key of keys) {
                 if (key in obj) {
-                    if (!util_1.isUndefined(actual)
-                        && util_1.isString(actual[key])
-                        && util_1.isRegExp(obj[key])
+                    if (!util_js_1.isUndefined(actual)
+                        && util_js_1.isString(actual[key])
+                        && util_js_1.isRegExp(obj[key])
                         && obj[key].test(actual[key])) {
                         this[key] = actual[key];
                     }
@@ -66,12 +66,12 @@
     }
     function compareExceptionKey(actual, expected, key, message, keys) {
         if (!(key in actual)
-            || !comparison_1.isDeepStrictEqual(actual[key], expected[key])) {
+            || !comparison_js_1.isDeepStrictEqual(actual[key], expected[key])) {
             if (!message) {
                 // Create placeholder objects to create a nice output.
                 const a = new Comparison(actual, keys);
                 const b = new Comparison(expected, keys, actual);
-                const err = new inspect_1.AssertionError({
+                const err = new inspect_js_1.AssertionError({
                     actual: a,
                     expected: b,
                     operator: 'deepStrictEqual',
@@ -92,12 +92,12 @@
         }
     }
     function expectedException(actual, expected, msg) {
-        if (!util_1.isFunction(expected)) {
-            if (util_1.isRegExp(expected)) {
+        if (!util_js_1.isFunction(expected)) {
+            if (util_js_1.isRegExp(expected)) {
                 return expected.test(actual);
             }
-            if (util_1.isPrimitive(actual)) {
-                const err = new inspect_1.AssertionError({
+            if (util_js_1.isPrimitive(actual)) {
+                const err = new inspect_js_1.AssertionError({
                     actual,
                     expected,
                     message: msg,
@@ -107,13 +107,13 @@
                 err.operator = 'throws';
                 throw err;
             }
-            const keys = util_1.Object_keys(expected);
-            if (util_1.isError(expected)) {
+            const keys = util_js_1.Object_keys(expected);
+            if (util_js_1.isError(expected)) {
                 keys.push('name', 'message');
             }
             for (const key of keys) {
-                if (util_1.isString(actual[key])
-                    && util_1.isRegExp(expected[key])
+                if (util_js_1.isString(actual[key])
+                    && util_js_1.isRegExp(expected[key])
                     && expected[key].test(actual[key])) {
                     continue;
                 }
@@ -140,7 +140,7 @@
     }
     async function waitForActual(promiseFn) {
         let resultPromise;
-        if (util_1.isFunction(promiseFn)) {
+        if (util_js_1.isFunction(promiseFn)) {
             resultPromise = promiseFn();
         }
         else {
@@ -155,7 +155,7 @@
         return noException;
     }
     function expectsError(stackStartFn, actual, error, message) {
-        if (util_1.isString(error)) {
+        if (util_js_1.isString(error)) {
             message = error;
             error = void 0;
         }
@@ -182,7 +182,7 @@
         if (actual === noException) {
             return;
         }
-        if (util_1.isString(error)) {
+        if (util_js_1.isString(error)) {
             message = error;
             error = void 0;
         }
@@ -216,9 +216,9 @@
     }
     exports.doesNotReject = doesNotReject;
     function ifError(err) {
-        if (!util_1.isNullOrUndefined(err)) {
+        if (!util_js_1.isNullOrUndefined(err)) {
             let message = 'ifError got unwanted exception: ';
-            if (util_1.isObject(err) && util_1.isString(err.message)) {
+            if (util_js_1.isObject(err) && util_js_1.isString(err.message)) {
                 if (err.message.length === 0 && err.constructor) {
                     message += err.constructor.name;
                 }
@@ -227,9 +227,9 @@
                 }
             }
             else {
-                message += inspect_1.inspect(err);
+                message += inspect_js_1.inspect(err);
             }
-            const newErr = new inspect_1.AssertionError({
+            const newErr = new inspect_js_1.AssertionError({
                 actual: err,
                 expected: null,
                 operator: 'ifError',
@@ -237,7 +237,7 @@
                 stackStartFn: ifError
             });
             const origStack = err.stack;
-            if (util_1.isString(origStack)) {
+            if (util_js_1.isString(origStack)) {
                 const tmp2 = origStack.split('\n');
                 tmp2.shift();
                 let tmp1 = newErr.stack.split('\n');
@@ -259,10 +259,10 @@
     }
     exports.ok = ok;
     function fail(message = 'Failed') {
-        if (util_1.isError(message)) {
+        if (util_js_1.isError(message)) {
             throw message;
         }
-        const err = new inspect_1.AssertionError({
+        const err = new inspect_js_1.AssertionError({
             message,
             actual: void 0,
             expected: void 0,
@@ -274,7 +274,7 @@
     }
     exports.fail = fail;
     function visibleTextEqual(root, expectedText, message) {
-        const actualText = specialized_assertions_1.getVisibleText(root.controller, root.host);
+        const actualText = specialized_assertions_js_1.getVisibleText(root.controller, root.host);
         if (actualText !== expectedText) {
             innerFail({
                 actual: actualText,
@@ -443,7 +443,7 @@
     }
     exports.notEqual = notEqual;
     function deepEqual(actual, expected, message) {
-        if (!comparison_1.isDeepEqual(actual, expected)) {
+        if (!comparison_js_1.isDeepEqual(actual, expected)) {
             innerFail({
                 actual,
                 expected,
@@ -455,7 +455,7 @@
     }
     exports.deepEqual = deepEqual;
     function notDeepEqual(actual, expected, message) {
-        if (comparison_1.isDeepEqual(actual, expected)) {
+        if (comparison_js_1.isDeepEqual(actual, expected)) {
             innerFail({
                 actual,
                 expected,
@@ -467,7 +467,7 @@
     }
     exports.notDeepEqual = notDeepEqual;
     function deepStrictEqual(actual, expected, message) {
-        if (!comparison_1.isDeepStrictEqual(actual, expected)) {
+        if (!comparison_js_1.isDeepStrictEqual(actual, expected)) {
             innerFail({
                 actual,
                 expected,
@@ -479,7 +479,7 @@
     }
     exports.deepStrictEqual = deepStrictEqual;
     function notDeepStrictEqual(actual, expected, message) {
-        if (comparison_1.isDeepStrictEqual(actual, expected)) {
+        if (comparison_js_1.isDeepStrictEqual(actual, expected)) {
             innerFail({
                 actual,
                 expected,
@@ -491,7 +491,7 @@
     }
     exports.notDeepStrictEqual = notDeepStrictEqual;
     function strictEqual(actual, expected, message) {
-        if (!util_1.Object_is(actual, expected)) {
+        if (!util_js_1.Object_is(actual, expected)) {
             innerFail({
                 actual,
                 expected,
@@ -503,7 +503,7 @@
     }
     exports.strictEqual = strictEqual;
     function notStrictEqual(actual, expected, message) {
-        if (util_1.Object_is(actual, expected)) {
+        if (util_js_1.Object_is(actual, expected)) {
             innerFail({
                 actual,
                 expected,
@@ -562,14 +562,14 @@
         }
     }
     exports.isCustomAttributeType = isCustomAttributeType;
-    function getNode(elementOrSelector, root = test_context_1.PLATFORM.document) {
+    function getNode(elementOrSelector, root = test_context_js_1.PLATFORM.document) {
         return typeof elementOrSelector === "string"
             ? root.querySelector(elementOrSelector)
             : elementOrSelector;
     }
     function isTextContentEqual(elementOrSelector, expectedText, message, root) {
         const host = getNode(elementOrSelector, root);
-        const actualText = host && specialized_assertions_1.getVisibleText((void 0), host, true);
+        const actualText = host && specialized_assertions_js_1.getVisibleText((void 0), host, true);
         if (actualText !== expectedText) {
             innerFail({
                 actual: actualText,
@@ -614,7 +614,7 @@
         }
     }
     function matchStyle(element, expectedStyles) {
-        const styles = test_context_1.PLATFORM.window.getComputedStyle(element);
+        const styles = test_context_js_1.PLATFORM.window.getComputedStyle(element);
         for (const [property, expected] of Object.entries(expectedStyles)) {
             const actual = styles[property];
             if (actual !== expected) {
@@ -715,7 +715,7 @@
             }
             if (!isEmpty) {
                 if (clearBeforeThrow === true) {
-                    scheduler_1.ensureTaskQueuesEmpty(platform);
+                    scheduler_js_1.ensureTaskQueuesEmpty(platform);
                 }
                 innerFail({
                     actual: void 0,
@@ -727,7 +727,7 @@
             }
         };
     })();
-    const assert = util_1.Object_freeze({
+    const assert = util_js_1.Object_freeze({
         throws,
         doesNotThrow,
         rejects,

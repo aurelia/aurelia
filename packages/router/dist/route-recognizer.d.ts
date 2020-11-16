@@ -1,5 +1,5 @@
 import { RouteRecognizer as $RouteRecognizer, IConfigurableRoute as $IConfigurableRoute, ConfigurableRoute as $ConfigurableRoute, RecognizedRoute as $RecognizedRoute, Endpoint as $Endpoint } from '@aurelia/route-recognizer';
-import { IRoute } from './interfaces';
+import { IRoute } from './interfaces.js';
 declare class $$RouteRecognizer extends $RouteRecognizer<IRoute> {
 }
 declare class $$ConfigurableRoute extends $ConfigurableRoute<IRoute> {

@@ -10,7 +10,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var TranslationBinding_1;
 import { toArray } from '@aurelia/kernel';
 import { connectable, CustomElement, CustomExpression, Interpolation, IPlatform, } from '@aurelia/runtime-html';
-import { I18N } from '../i18n';
+import { I18N } from '../i18n.js';
 const contentAttributes = ['textContent', 'innerHTML', 'prepend', 'append'];
 const attributeAliases = new Map([['text', 'textContent'], ['html', 'innerHTML']]);
 const forOpts = { optional: true };

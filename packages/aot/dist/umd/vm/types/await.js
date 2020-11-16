@@ -4,17 +4,17 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./function", "./list", "./undefined", "../globals/promise", "./number"], factory);
+        define(["require", "exports", "./function.js", "./list.js", "./undefined.js", "../globals/promise.js", "./number.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.$Await_Rejected = exports.$Await_Fulfilled = exports.$Await = void 0;
-    const function_1 = require("./function");
-    const list_1 = require("./list");
-    const undefined_1 = require("./undefined");
-    const promise_1 = require("../globals/promise");
-    const number_1 = require("./number");
+    const function_js_1 = require("./function.js");
+    const list_js_1 = require("./list.js");
+    const undefined_js_1 = require("./undefined.js");
+    const promise_js_1 = require("../globals/promise.js");
+    const number_js_1 = require("./number.js");
     // http://www.ecma-international.org/ecma-262/#await
     // 6.2.3.1 Await
     function $Await(ctx, value) {
@@ -24,7 +24,7 @@
         // 1. Let asyncContext be the running execution context.
         const asyncContext = ctx;
         // 2. Let promise be ? PromiseResolve(%Promise%, « value »).
-        const promise = promise_1.$PromiseResolve(ctx, intrinsics['%Promise%'], new list_1.$List(value)); // TODO: this cast urgently needs to be addressed with corrected typings
+        const promise = promise_js_1.$PromiseResolve(ctx, intrinsics['%Promise%'], new list_js_1.$List(value)); // TODO: this cast urgently needs to be addressed with corrected typings
         if (promise.isAbrupt) {
             return promise;
         }
@@ -37,7 +37,7 @@
         // 8. Set onRejected.[[AsyncContext]] to asyncContext.
         const onRejected = new $Await_Rejected(realm, asyncContext);
         // 9. Perform ! PerformPromiseThen(promise, onFulfilled, onRejected).
-        promise_1.$PerformPromiseThen(ctx, promise, onFulfilled, onRejected);
+        promise_js_1.$PerformPromiseThen(ctx, promise, onFulfilled, onRejected);
         // 10. Remove asyncContext from the execution context stack and restore the execution context that is at the top of the execution context stack as the running execution context.
         stack.pop();
         // 11. Set the code evaluation state of asyncContext such that when evaluation is resumed with a Completion completion, the following steps of the algorithm that invoked Await will be performed, with completion available.
@@ -45,18 +45,18 @@
             return completion; // TODO: sure about this? Seems like a writing muckup in the spec
         };
         // 12. Return.
-        return new undefined_1.$Undefined(realm);
+        return new undefined_js_1.$Undefined(realm);
         // 13. NOTE: This returns to the evaluation of the operation that had most previously resumed evaluation of asyncContext.
     }
     exports.$Await = $Await;
     // http://www.ecma-international.org/ecma-262/#await-fulfilled
     // 6.2.3.1.1 Await Fulfilled
-    class $Await_Fulfilled extends function_1.$BuiltinFunction {
+    class $Await_Fulfilled extends function_js_1.$BuiltinFunction {
         constructor(realm, asyncContext) {
             const intrinsics = realm['[[Intrinsics]]'];
             super(realm, 'Await_Fulfilled', intrinsics['%FunctionPrototype%']);
             this['[[AsyncContext]]'] = asyncContext;
-            this.length = new number_1.$Number(realm, 1);
+            this.length = new number_js_1.$Number(realm, 1);
         }
         get length() {
             return this.getProperty(this.realm['[[Intrinsics]]'].length)['[[Value]]'];
@@ -92,12 +92,12 @@
     exports.$Await_Fulfilled = $Await_Fulfilled;
     // http://www.ecma-international.org/ecma-262/#await-rejected
     // 6.2.3.1.2 Await Rejected Functions
-    class $Await_Rejected extends function_1.$BuiltinFunction {
+    class $Await_Rejected extends function_js_1.$BuiltinFunction {
         constructor(realm, asyncContext) {
             const intrinsics = realm['[[Intrinsics]]'];
             super(realm, 'Await_Rejected', intrinsics['%FunctionPrototype%']);
             this['[[AsyncContext]]'] = asyncContext;
-            this.length = new number_1.$Number(realm, 1);
+            this.length = new number_js_1.$Number(realm, 1);
         }
         get length() {
             return this.getProperty(this.realm['[[Intrinsics]]'].length)['[[Value]]'];

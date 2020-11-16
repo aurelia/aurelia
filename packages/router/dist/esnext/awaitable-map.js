@@ -4,7 +4,7 @@
 //   public resolve!: (value: T | PromiseLike<T>) => void;
 //   public reject!: () => void;
 // }
-import { OpenPromise } from './open-promise';
+import { OpenPromise } from './open-promise.js';
 export class AwaitableMap {
     constructor() {
         this.map = new Map();

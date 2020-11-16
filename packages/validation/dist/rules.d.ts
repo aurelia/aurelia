@@ -1,6 +1,6 @@
 import { Constructable, Class } from '@aurelia/kernel';
 import { Interpolation, PrimitiveLiteralExpression } from '@aurelia/runtime';
-import { IValidateable, IValidationRule, IRequiredRule, IRegexRule, ILengthRule, ISizeRule, IRangeRule, IEqualsRule, IValidationVisitor, ValidationDisplayNameAccessor } from './rule-interfaces';
+import { IValidateable, IValidationRule, IRequiredRule, IRegexRule, ILengthRule, ISizeRule, IRangeRule, IEqualsRule, IValidationVisitor, ValidationDisplayNameAccessor } from './rule-interfaces.js';
 /**
  * Retrieves validation messages and property display names.
  */

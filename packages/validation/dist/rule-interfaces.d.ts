@@ -1,8 +1,8 @@
 import { Class } from '@aurelia/kernel';
 import { IsBindingBehavior, IExpressionParser } from '@aurelia/runtime';
-import { Deserializer } from './ast-serialization';
-import { IValidationRules } from './rule-provider';
-import { IValidationMessageProvider } from './rules';
+import { Deserializer } from './ast-serialization.js';
+import { IValidationRules } from './rule-provider.js';
+import { IValidationMessageProvider } from './rules.js';
 export declare type IValidateable<T = any> = (Class<T> | object) & {
     [key in PropertyKey]: any;
 };

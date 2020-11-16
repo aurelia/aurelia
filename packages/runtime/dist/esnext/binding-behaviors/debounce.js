@@ -8,8 +8,8 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 import { IPlatform } from '@aurelia/kernel';
-import { bindingBehavior, BindingInterceptor } from '../binding-behavior';
-import { BindingBehaviorExpression } from '../binding/ast';
+import { bindingBehavior, BindingInterceptor } from '../binding-behavior.js';
+import { BindingBehaviorExpression } from '../binding/ast.js';
 let DebounceBindingBehavior = class DebounceBindingBehavior extends BindingInterceptor {
     constructor(binding, expr) {
         super(binding, expr);

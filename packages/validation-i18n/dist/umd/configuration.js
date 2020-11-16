@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/validation-html", "./localization"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/validation-html", "./localization.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -12,15 +12,15 @@
     exports.ValidationI18nConfiguration = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const validation_html_1 = require("@aurelia/validation-html");
-    const localization_1 = require("./localization");
+    const localization_js_1 = require("./localization.js");
     function createConfiguration(optionsProvider) {
         return {
             optionsProvider,
             register(container) {
                 const options = {
                     ...validation_html_1.getDefaultValidationHtmlConfiguration(),
-                    MessageProviderType: localization_1.LocalizedValidationMessageProvider,
-                    ValidationControllerFactoryType: localization_1.LocalizedValidationControllerFactory,
+                    MessageProviderType: localization_js_1.LocalizedValidationMessageProvider,
+                    ValidationControllerFactoryType: localization_js_1.LocalizedValidationControllerFactory,
                     DefaultNamespace: void 0,
                     DefaultKeyPrefix: void 0,
                 };
@@ -36,7 +36,7 @@
                             opt[key] = options[key]; // TS cannot infer that the value of the same key is being copied from A to B, and rejects the assignment due to type broadening
                         }
                     }
-                }), kernel_1.Registration.callback(localization_1.I18nKeyConfiguration, () => keyConfiguration));
+                }), kernel_1.Registration.callback(localization_js_1.I18nKeyConfiguration, () => keyConfiguration));
             },
             customize(cb) {
                 return createConfiguration(cb !== null && cb !== void 0 ? cb : optionsProvider);

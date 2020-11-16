@@ -4,22 +4,22 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "../types/function", "../types/object", "./function", "../types/list", "../operations"], factory);
+        define(["require", "exports", "../types/function.js", "../types/object.js", "./function.js", "../types/list.js", "../operations.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.$AsyncFunctionStart = exports.$AsyncFunctionPrototype = exports.$AsyncFunctionConstructor = void 0;
-    const function_1 = require("../types/function");
-    const object_1 = require("../types/object");
-    const function_2 = require("./function");
-    const list_1 = require("../types/list");
-    const operations_1 = require("../operations");
+    const function_js_1 = require("../types/function.js");
+    const object_js_1 = require("../types/object.js");
+    const function_js_2 = require("./function.js");
+    const list_js_1 = require("../types/list.js");
+    const operations_js_1 = require("../operations.js");
     // http://www.ecma-international.org/ecma-262/#sec-async-function-objects
     // 25.7 AsyncFunction Objects
     // http://www.ecma-international.org/ecma-262/#sec-async-function-constructor
     // 25.7.1 The AsyncFunction Constructor
-    class $AsyncFunctionConstructor extends function_1.$BuiltinFunction {
+    class $AsyncFunctionConstructor extends function_js_1.$BuiltinFunction {
         // http://www.ecma-international.org/ecma-262/#sec-async-function-constructor-prototype
         // 25.7.2.2 AsyncFunction.prototype
         get $prototype() {
@@ -45,13 +45,13 @@
             // 1. Let C be the active function object.
             // 2. Let args be the argumentsList that was passed to this function by [[Call]] or [[Construct]].
             // 3. Return CreateDynamicFunction(C, NewTarget, "async", args).
-            return function_2.$CreateDynamicFunction(ctx, this, NewTarget, 8 /* async */, argumentsList);
+            return function_js_2.$CreateDynamicFunction(ctx, this, NewTarget, 8 /* async */, argumentsList);
         }
     }
     exports.$AsyncFunctionConstructor = $AsyncFunctionConstructor;
     // http://www.ecma-international.org/ecma-262/#sec-async-function-prototype-properties
     // 25.7.3 Properties of the AsyncFunction Prototype Object
-    class $AsyncFunctionPrototype extends object_1.$Object {
+    class $AsyncFunctionPrototype extends object_js_1.$Object {
         // http://www.ecma-international.org/ecma-262/#sec-async-function-prototype-properties-constructor
         // 25.7.3.1 AsyncFunction.prototype.constructor
         get $constructor() {
@@ -105,18 +105,18 @@
             // 3. d. If result.[[Type]] is normal, then
             if (result['[[Type]]'] === 1 /* normal */) {
                 // 3. d. i. Perform ! Call(promiseCapability.[[Resolve]], undefined, « undefined »).
-                operations_1.$Call(asyncContext, promiseCapability['[[Resolve]]'], intrinsics.undefined, new list_1.$List(intrinsics.undefined));
+                operations_js_1.$Call(asyncContext, promiseCapability['[[Resolve]]'], intrinsics.undefined, new list_js_1.$List(intrinsics.undefined));
             }
             // 3. e. Else if result.[[Type]] is return, then
             else if (result['[[Type]]'] === 4 /* return */) {
                 // 3. e. i. Perform ! Call(promiseCapability.[[Resolve]], undefined, « result.[[Value]] »).
-                operations_1.$Call(asyncContext, promiseCapability['[[Resolve]]'], intrinsics.undefined, new list_1.$List(result));
+                operations_js_1.$Call(asyncContext, promiseCapability['[[Resolve]]'], intrinsics.undefined, new list_js_1.$List(result));
             }
             // 3. f. Else,
             else {
                 // 3. f. i. Assert: result.[[Type]] is throw.
                 // 3. f. ii. Perform ! Call(promiseCapability.[[Reject]], undefined, « result.[[Value]] »).
-                operations_1.$Call(asyncContext, promiseCapability['[[Reject]]'], intrinsics.undefined, new list_1.$List(result)); // TODO: is this cast safe?
+                operations_js_1.$Call(asyncContext, promiseCapability['[[Reject]]'], intrinsics.undefined, new list_js_1.$List(result)); // TODO: is this cast safe?
             }
             // 3. g. Return.
             return intrinsics.undefined;

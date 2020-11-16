@@ -16,13 +16,13 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./translation-binding", "@aurelia/runtime-html"], factory);
+        define(["require", "exports", "./translation-binding.js", "@aurelia/runtime-html"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.TranslationParametersBindingRenderer = exports.TranslationParametersBindingCommand = exports.TranslationParametersBindingInstruction = exports.TranslationParametersAttributePattern = exports.TranslationParametersInstructionType = void 0;
-    const translation_binding_1 = require("./translation-binding");
+    const translation_binding_js_1 = require("./translation-binding.js");
     const runtime_html_1 = require("@aurelia/runtime-html");
     exports.TranslationParametersInstructionType = 'tpt';
     // `.bind` part is needed here only for vCurrent compliance
@@ -63,7 +63,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             this.observerLocator = observerLocator;
         }
         render(flags, context, controller, target, instruction) {
-            translation_binding_1.TranslationBinding.create({ parser: this.parser, observerLocator: this.observerLocator, context, controller: controller, target, instruction, isParameterContext: true });
+            translation_binding_js_1.TranslationBinding.create({ parser: this.parser, observerLocator: this.observerLocator, context, controller: controller, target, instruction, isParameterContext: true });
         }
     };
     TranslationParametersBindingRenderer = __decorate([

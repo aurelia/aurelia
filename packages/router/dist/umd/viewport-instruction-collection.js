@@ -4,13 +4,13 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./utils"], factory);
+        define(["require", "exports", "./utils.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ViewportInstructionCollection = void 0;
-    const utils_1 = require("./utils");
+    const utils_js_1 = require("./utils.js");
     /**
      * @internal - Shouldn't be used directly
      */
@@ -34,7 +34,7 @@
                 .filter((value, index, arr) => arr.indexOf(value) === index);
         }
         remove(instruction) {
-            utils_1.arrayRemove(this, value => value === instruction);
+            utils_js_1.arrayRemove(this, value => value === instruction);
         }
     }
     exports.ViewportInstructionCollection = ViewportInstructionCollection;

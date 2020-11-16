@@ -16,13 +16,13 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./translation-binding", "@aurelia/runtime-html"], factory);
+        define(["require", "exports", "./translation-binding.js", "@aurelia/runtime-html"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.TranslationBindBindingRenderer = exports.TranslationBindBindingCommand = exports.TranslationBindBindingInstruction = exports.TranslationBindAttributePattern = exports.TranslationBindInstructionType = exports.TranslationBindingRenderer = exports.TranslationBindingCommand = exports.TranslationBindingInstruction = exports.TranslationAttributePattern = exports.TranslationInstructionType = void 0;
-    const translation_binding_1 = require("./translation-binding");
+    const translation_binding_js_1 = require("./translation-binding.js");
     const runtime_html_1 = require("@aurelia/runtime-html");
     exports.TranslationInstructionType = 'tt';
     class TranslationAttributePattern {
@@ -57,7 +57,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             this.observerLocator = observerLocator;
         }
         render(flags, context, controller, target, instruction) {
-            translation_binding_1.TranslationBinding.create({ parser: this.parser, observerLocator: this.observerLocator, context, controller, target, instruction });
+            translation_binding_js_1.TranslationBinding.create({ parser: this.parser, observerLocator: this.observerLocator, context, controller, target, instruction });
         }
     };
     TranslationBindingRenderer = __decorate([
@@ -101,7 +101,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             this.observerLocator = observerLocator;
         }
         render(flags, context, controller, target, instruction) {
-            translation_binding_1.TranslationBinding.create({ parser: this.parser, observerLocator: this.observerLocator, context, controller, target, instruction });
+            translation_binding_js_1.TranslationBinding.create({ parser: this.parser, observerLocator: this.observerLocator, context, controller, target, instruction });
         }
     };
     TranslationBindBindingRenderer = __decorate([

@@ -1,4 +1,4 @@
-import { ensureProto } from '../utilities-objects';
+import { ensureProto } from '../utilities-objects.js';
 // TODO: add connect-queue (or something similar) back in when everything else is working, to improve startup time
 const slotNames = [];
 const versionSlotNames = [];

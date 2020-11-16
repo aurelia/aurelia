@@ -4,13 +4,13 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./state-coordinator"], factory);
+        define(["require", "exports", "./state-coordinator.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.NavigationCoordinator = exports.NavigationCoordinatorOptions = void 0;
-    const state_coordinator_1 = require("./state-coordinator");
+    const state_coordinator_js_1 = require("./state-coordinator.js");
     class NavigationCoordinatorOptions {
         constructor(input) {
             var _a;
@@ -19,7 +19,7 @@
         }
     }
     exports.NavigationCoordinatorOptions = NavigationCoordinatorOptions;
-    class NavigationCoordinator extends state_coordinator_1.StateCoordinator {
+    class NavigationCoordinator extends state_coordinator_js_1.StateCoordinator {
         constructor() {
             super(...arguments);
             this.running = false;

@@ -4,14 +4,14 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "./alias"], factory);
+        define(["require", "exports", "@aurelia/kernel", "./alias.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ValueConverter = exports.ValueConverterDefinition = exports.valueConverter = void 0;
     const kernel_1 = require("@aurelia/kernel");
-    const alias_1 = require("./alias");
+    const alias_js_1 = require("./alias.js");
     function valueConverter(nameOrDef) {
         return function (target) {
             return exports.ValueConverter.define(nameOrDef, target);
@@ -42,7 +42,7 @@
             const { Type, key, aliases } = this;
             kernel_1.Registration.singleton(key, Type).register(container);
             kernel_1.Registration.aliasTo(key, Type).register(container);
-            alias_1.registerAliases(aliases, exports.ValueConverter, key, container);
+            alias_js_1.registerAliases(aliases, exports.ValueConverter, key, container);
         }
     }
     exports.ValueConverterDefinition = ValueConverterDefinition;

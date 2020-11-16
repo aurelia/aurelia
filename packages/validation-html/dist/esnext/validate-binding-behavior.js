@@ -10,7 +10,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 import { DI } from '@aurelia/kernel';
 import { bindingBehavior, BindingInterceptor, BindingMediator, PropertyBinding, BindingBehaviorExpression, IPlatform, } from '@aurelia/runtime-html';
 import { PropertyRule } from '@aurelia/validation';
-import { IValidationController, ValidationController, BindingInfo } from './validation-controller';
+import { IValidationController, ValidationController, BindingInfo } from './validation-controller.js';
 /**
  * Validation triggers.
  */

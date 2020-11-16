@@ -1,9 +1,9 @@
 import { noop, Registration } from '@aurelia/kernel';
 import { getDefaultValidationConfiguration, ValidationConfiguration } from '@aurelia/validation';
-import { ValidationContainerCustomElement, defaultContainerDefinition, defaultContainerTemplate } from './subscribers/validation-container-custom-element';
-import { ValidationErrorsCustomAttribute } from './subscribers/validation-errors-custom-attribute';
-import { IDefaultTrigger, ValidateBindingBehavior, ValidationTrigger } from './validate-binding-behavior';
-import { IValidationController, ValidationControllerFactory } from './validation-controller';
+import { ValidationContainerCustomElement, defaultContainerDefinition, defaultContainerTemplate } from './subscribers/validation-container-custom-element.js';
+import { ValidationErrorsCustomAttribute } from './subscribers/validation-errors-custom-attribute.js';
+import { IDefaultTrigger, ValidateBindingBehavior, ValidationTrigger } from './validate-binding-behavior.js';
+import { IValidationController, ValidationControllerFactory } from './validation-controller.js';
 import { CustomElement } from '@aurelia/runtime-html';
 export function getDefaultValidationHtmlConfiguration() {
     return {

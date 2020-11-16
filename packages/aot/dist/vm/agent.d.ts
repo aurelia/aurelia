@@ -1,8 +1,8 @@
-import { JobQueue, Job } from './job';
+import { JobQueue, Job } from './job.js';
 import { IContainer, ILogger, IDisposable, Writable } from '@aurelia/kernel';
-import { Realm, ExecutionContext } from './realm';
-import { $Any } from './types/_shared';
-import { $ESModule, $$ESModuleOrScript, $ESScript } from './ast/modules';
+import { Realm, ExecutionContext } from './realm.js';
+import { $Any } from './types/_shared.js';
+import { $ESModule, $$ESModuleOrScript, $ESScript } from './ast/modules.js';
 export declare const ISourceFileProvider: import("@aurelia/kernel").InterfaceSymbol<ISourceFileProvider>;
 export interface ISourceFileProvider {
     GetSourceFiles(ctx: ExecutionContext): Promise<readonly $$ESModuleOrScript[]>;

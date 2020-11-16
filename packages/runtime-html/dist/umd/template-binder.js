@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "./resources/binding-command", "./resources/custom-attribute", "./resources/custom-element", "./semantic-model"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "./resources/binding-command.js", "./resources/custom-attribute.js", "./resources/custom-element.js", "./semantic-model.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -12,10 +12,10 @@
     exports.TemplateBinder = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
-    const binding_command_1 = require("./resources/binding-command");
-    const custom_attribute_1 = require("./resources/custom-attribute");
-    const custom_element_1 = require("./resources/custom-element");
-    const semantic_model_1 = require("./semantic-model");
+    const binding_command_js_1 = require("./resources/binding-command.js");
+    const custom_attribute_js_1 = require("./resources/custom-attribute.js");
+    const custom_element_js_1 = require("./resources/custom-element.js");
+    const semantic_model_js_1 = require("./semantic-model.js");
     const invalidSurrogateAttribute = Object.assign(Object.create(null), {
         'id': true,
         'au-slot': true,
@@ -99,7 +99,7 @@
             this.commandLookup = Object.create(null);
         }
         bind(node) {
-            const surrogate = new semantic_model_1.PlainElementSymbol(node);
+            const surrogate = new semantic_model_js_1.PlainElementSymbol(node);
             const attrSyntaxTransformer = this.attrSyntaxTransformer;
             const attributes = node.attributes;
             let i = 0;
@@ -112,7 +112,7 @@
                 }
                 const bindingCommand = this.getBindingCommand(attrSyntax, true);
                 if (bindingCommand === null || (bindingCommand.bindingType & 4096 /* IgnoreCustomAttr */) === 0) {
-                    const attrInfo = semantic_model_1.AttrInfo.from(this.container.find(custom_attribute_1.CustomAttribute, attrSyntax.target));
+                    const attrInfo = semantic_model_js_1.AttrInfo.from(this.container.find(custom_attribute_js_1.CustomAttribute, attrSyntax.target));
                     if (attrInfo === null) {
                         // map special html attributes to their corresponding properties
                         attrSyntaxTransformer.transform(node, attrSyntax);
@@ -176,15 +176,15 @@
             if (name === null) {
                 name = node.nodeName.toLowerCase();
             }
-            const elementInfo = semantic_model_1.ElementInfo.from(this.container.find(custom_element_1.CustomElement, name));
+            const elementInfo = semantic_model_js_1.ElementInfo.from(this.container.find(custom_element_js_1.CustomElement, name));
             if (elementInfo === null) {
                 // there is no registered custom element with this name
-                manifest = new semantic_model_1.PlainElementSymbol(node);
+                manifest = new semantic_model_js_1.PlainElementSymbol(node);
             }
             else {
                 // it's a custom element so we set the manifestRoot as well (for storing replaces)
                 parentManifestRoot = manifestRoot;
-                const ceSymbol = new semantic_model_1.CustomElementSymbol(this.platform, node, elementInfo);
+                const ceSymbol = new semantic_model_js_1.CustomElementSymbol(this.platform, node, elementInfo);
                 if (isAuSlot) {
                     ceSymbol.flags = 512 /* isAuSlot */;
                     ceSymbol.slotName = (_a = node.getAttribute("name")) !== null && _a !== void 0 ? _a : "default";
@@ -215,7 +215,7 @@
             }
         }
         bindLetElement(parentManifest, node) {
-            const symbol = new semantic_model_1.LetElementSymbol(this.platform, node);
+            const symbol = new semantic_model_js_1.LetElementSymbol(this.platform, node);
             parentManifest.childNodes.push(symbol);
             const attributes = node.attributes;
             let i = 0;
@@ -231,8 +231,8 @@
                 const bindingType = command === null ? 2048 /* Interpolation */ : command.bindingType;
                 const expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
                 const to = kernel_1.camelCase(attrSyntax.target);
-                const info = new semantic_model_1.BindableInfo(to, runtime_1.BindingMode.toView);
-                symbol.bindings.push(new semantic_model_1.BindingSymbol(command, info, expr, attrSyntax.rawValue, to));
+                const info = new semantic_model_js_1.BindableInfo(to, runtime_1.BindingMode.toView);
+                symbol.bindings.push(new semantic_model_js_1.BindingSymbol(command, info, expr, attrSyntax.rawValue, to));
                 ++i;
             }
             node.parentNode.replaceChild(symbol.marker, node);
@@ -256,7 +256,7 @@
                 const attrSyntax = this.attrParser.parse(attr.name, attr.value);
                 const bindingCommand = this.getBindingCommand(attrSyntax, true);
                 if (bindingCommand === null || (bindingCommand.bindingType & 4096 /* IgnoreCustomAttr */) === 0) {
-                    const attrInfo = semantic_model_1.AttrInfo.from(this.container.find(custom_attribute_1.CustomAttribute, attrSyntax.target));
+                    const attrInfo = semantic_model_js_1.AttrInfo.from(this.container.find(custom_attribute_js_1.CustomAttribute, attrSyntax.target));
                     if (attrInfo === null) {
                         // map special html attributes to their corresponding properties
                         this.attrSyntaxTransformer.transform(node, attrSyntax);
@@ -330,7 +330,7 @@
             if (hasProjection
                 && (manifestRoot === null
                     || parentName === void 0
-                    || this.container.find(custom_element_1.CustomElement, parentName) === null)) {
+                    || this.container.find(custom_element_js_1.CustomElement, parentName) === null)) {
                 /**
                  * Prevents the following cases:
                  * - <template><div au-slot></div></template>
@@ -346,7 +346,7 @@
                 parentManifest.childNodes.push(manifestProxy);
             }
             else if (hasProjection) {
-                projectionOwner.projections.push(new semantic_model_1.ProjectionSymbol(projection, manifestProxy));
+                projectionOwner.projections.push(new semantic_model_js_1.ProjectionSymbol(projection, manifestProxy));
                 node.removeAttribute('au-slot');
                 node.remove();
             }
@@ -418,7 +418,7 @@
         bindText(textNode, manifest) {
             const interpolation = this.exprParser.parse(textNode.wholeText, 2048 /* Interpolation */);
             if (interpolation !== null) {
-                const symbol = new semantic_model_1.TextSymbol(this.platform, textNode, interpolation);
+                const symbol = new semantic_model_js_1.TextSymbol(this.platform, textNode, interpolation);
                 manifest.childNodes.push(symbol);
                 processInterpolationText(symbol);
             }
@@ -435,14 +435,14 @@
             // multi-bindings logic here is similar to (and explained in) bindCustomAttribute
             const isMultiBindings = attrInfo.noMultiBindings === false && command === null && hasInlineBindings(attrRawValue);
             if (isMultiBindings) {
-                symbol = new semantic_model_1.TemplateControllerSymbol(this.platform, attrSyntax, attrInfo);
+                symbol = new semantic_model_js_1.TemplateControllerSymbol(this.platform, attrSyntax, attrInfo);
                 this.bindMultiAttribute(symbol, attrInfo, attrRawValue);
             }
             else {
-                symbol = new semantic_model_1.TemplateControllerSymbol(this.platform, attrSyntax, attrInfo);
+                symbol = new semantic_model_js_1.TemplateControllerSymbol(this.platform, attrSyntax, attrInfo);
                 const bindingType = command === null ? 2048 /* Interpolation */ : command.bindingType;
                 const expr = this.exprParser.parse(attrRawValue, bindingType);
-                symbol.bindings.push(new semantic_model_1.BindingSymbol(command, attrInfo.bindable, expr, attrRawValue, attrSyntax.target));
+                symbol.bindings.push(new semantic_model_js_1.BindingSymbol(command, attrInfo.bindable, expr, attrRawValue, attrSyntax.target));
             }
             return symbol;
         }
@@ -461,14 +461,14 @@
             if (isMultiBindings) {
                 // a multiple-bindings attribute usage (semicolon separated binding) is only valid without a binding command;
                 // the binding commands must be declared in each of the property bindings
-                symbol = new semantic_model_1.CustomAttributeSymbol(attrSyntax, attrInfo);
+                symbol = new semantic_model_js_1.CustomAttributeSymbol(attrSyntax, attrInfo);
                 this.bindMultiAttribute(symbol, attrInfo, attrRawValue);
             }
             else {
-                symbol = new semantic_model_1.CustomAttributeSymbol(attrSyntax, attrInfo);
+                symbol = new semantic_model_js_1.CustomAttributeSymbol(attrSyntax, attrInfo);
                 const bindingType = command === null ? 2048 /* Interpolation */ : command.bindingType;
                 const expr = this.exprParser.parse(attrRawValue, bindingType);
-                symbol.bindings.push(new semantic_model_1.BindingSymbol(command, attrInfo.bindable, expr, attrRawValue, attrSyntax.target));
+                symbol.bindings.push(new semantic_model_js_1.BindingSymbol(command, attrInfo.bindable, expr, attrRawValue, attrSyntax.target));
             }
             manifest.customAttributes.push(symbol);
             manifest.isTarget = true;
@@ -516,9 +516,9 @@
                     if (bindable === undefined) {
                         // everything in a multi-bindings expression must be used,
                         // so if it's not a bindable then we create one on the spot
-                        bindable = bindables[attrTarget] = new semantic_model_1.BindableInfo(attrTarget, runtime_1.BindingMode.toView);
+                        bindable = bindables[attrTarget] = new semantic_model_js_1.BindableInfo(attrTarget, runtime_1.BindingMode.toView);
                     }
-                    symbol.bindings.push(new semantic_model_1.BindingSymbol(command, bindable, expr, attrValue, attrTarget));
+                    symbol.bindings.push(new semantic_model_js_1.BindingSymbol(command, bindable, expr, attrValue, attrTarget));
                     // Skip whitespace after semicolon
                     while (i < valueLength && value.charCodeAt(++i) <= 32 /* Space */)
                         ;
@@ -552,24 +552,24 @@
                 if (bindable != null) {
                     // if the attribute name matches a bindable property name, add it regardless of whether it's a command, interpolation, or just a plain string;
                     // the template compiler will translate it to the correct instruction
-                    manifest.bindings.push(new semantic_model_1.BindingSymbol(command, bindable, expr, attrRawValue, attrTarget));
+                    manifest.bindings.push(new semantic_model_js_1.BindingSymbol(command, bindable, expr, attrRawValue, attrTarget));
                     manifest.isTarget = true;
                 }
                 else if (expr != null) {
                     // if it does not map to a bindable, only add it if we were able to parse an expression (either a command or interpolation)
-                    manifest.plainAttributes.push(new semantic_model_1.PlainAttributeSymbol(attrSyntax, command, expr));
+                    manifest.plainAttributes.push(new semantic_model_js_1.PlainAttributeSymbol(attrSyntax, command, expr));
                     manifest.isTarget = true;
                 }
             }
             else if (expr != null) {
                 // either a binding command, an interpolation, or a ref
-                manifest.plainAttributes.push(new semantic_model_1.PlainAttributeSymbol(attrSyntax, command, expr));
+                manifest.plainAttributes.push(new semantic_model_js_1.PlainAttributeSymbol(attrSyntax, command, expr));
                 manifest.isTarget = true;
             }
             else if (manifest === surrogate) {
                 // any attributes, even if they are plain (no command/interpolation etc), should be added if they
                 // are on the surrogate element
-                manifest.plainAttributes.push(new semantic_model_1.PlainAttributeSymbol(attrSyntax, command, expr));
+                manifest.plainAttributes.push(new semantic_model_js_1.PlainAttributeSymbol(attrSyntax, command, expr));
             }
             if (command == null && expr != null) {
                 // if it's an interpolation, clear the attribute value
@@ -590,7 +590,7 @@
             }
             let result = this.commandLookup[name];
             if (result === void 0) {
-                result = this.container.create(binding_command_1.BindingCommand, name);
+                result = this.container.create(binding_command_js_1.BindingCommand, name);
                 if (result === null) {
                     if (optional) {
                         return null;

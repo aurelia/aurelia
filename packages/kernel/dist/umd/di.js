@@ -4,17 +4,17 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/metadata", "./functions", "./platform", "./resource"], factory);
+        define(["require", "exports", "@aurelia/metadata", "./functions.js", "./platform.js", "./resource.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.validateKey = exports.InstanceProvider = exports.Registration = exports.ParameterizedRegistry = exports.Container = exports.Factory = exports.Resolver = exports.ResolverStrategy = exports.newInstanceOf = exports.newInstanceForScope = exports.ignore = exports.optional = exports.lazy = exports.all = exports.singleton = exports.transient = exports.inject = exports.IServiceLocator = exports.IContainer = exports.DI = exports.DefaultContainerConfiguration = exports.DefaultResolver = exports.ResolverBuilder = void 0;
+    exports.validateKey = exports.InstanceProvider = exports.Registration = exports.ParameterizedRegistry = exports.Container = exports.Factory = exports.Resolver = exports.ResolverStrategy = exports.newInstanceOf = exports.newInstanceForScope = exports.ignore = exports.optional = exports.lazy = exports.all = exports.singleton = exports.transient = exports.inject = exports.IServiceLocator = exports.IContainer = exports.DI = exports.ContainerConfiguration = exports.DefaultResolver = exports.ResolverBuilder = void 0;
     const metadata_1 = require("@aurelia/metadata");
     metadata_1.applyMetadataPolyfill(Reflect);
-    const functions_1 = require("./functions");
-    const platform_1 = require("./platform");
-    const resource_1 = require("./resource");
+    const functions_js_1 = require("./functions.js");
+    const platform_js_1 = require("./platform.js");
+    const resource_js_1 = require("./resource.js");
     class ResolverBuilder {
         constructor(container, key) {
             this.container = container;
@@ -52,7 +52,7 @@
         let key;
         for (let i = 0; i < len; ++i) {
             key = keys[i];
-            if (!functions_1.isArrayIndex(key)) {
+            if (!functions_js_1.isArrayIndex(key)) {
                 clone[key] = source[key];
             }
         }
@@ -63,26 +63,39 @@
         singleton(key) { return new Resolver(key, 1 /* singleton */, key); },
         transient(key) { return new Resolver(key, 2 /* transient */, key); },
     };
-    exports.DefaultContainerConfiguration = {
-        defaultResolver: exports.DefaultResolver.singleton,
-    };
+    class ContainerConfiguration {
+        constructor(inheritParentResources, defaultResolver) {
+            this.inheritParentResources = inheritParentResources;
+            this.defaultResolver = defaultResolver;
+        }
+        static from(config) {
+            var _a, _b;
+            if (config === void 0 ||
+                config === ContainerConfiguration.DEFAULT) {
+                return ContainerConfiguration.DEFAULT;
+            }
+            return new ContainerConfiguration((_a = config.inheritParentResources) !== null && _a !== void 0 ? _a : false, (_b = config.defaultResolver) !== null && _b !== void 0 ? _b : exports.DefaultResolver.singleton);
+        }
+    }
+    exports.ContainerConfiguration = ContainerConfiguration;
+    ContainerConfiguration.DEFAULT = ContainerConfiguration.from({});
     exports.DI = {
-        createContainer(config = exports.DefaultContainerConfiguration) {
-            return new Container(null, config);
+        createContainer(config) {
+            return new Container(null, ContainerConfiguration.from(config));
         },
         getDesignParamtypes(Type) {
             return metadata_1.Metadata.getOwn('design:paramtypes', Type);
         },
         getAnnotationParamtypes(Type) {
-            const key = resource_1.Protocol.annotation.keyFor('di:paramtypes');
+            const key = resource_js_1.Protocol.annotation.keyFor('di:paramtypes');
             return metadata_1.Metadata.getOwn(key, Type);
         },
         getOrCreateAnnotationParamTypes(Type) {
-            const key = resource_1.Protocol.annotation.keyFor('di:paramtypes');
+            const key = resource_js_1.Protocol.annotation.keyFor('di:paramtypes');
             let annotationParamtypes = metadata_1.Metadata.getOwn(key, Type);
             if (annotationParamtypes === void 0) {
                 metadata_1.Metadata.define(key, annotationParamtypes = [], Type);
-                resource_1.Protocol.annotation.appendTo(Type, key);
+                resource_js_1.Protocol.annotation.appendTo(Type, key);
             }
             return annotationParamtypes;
         },
@@ -90,7 +103,7 @@
             // Note: Every detail of this getDependencies method is pretty deliberate at the moment, and probably not yet 100% tested from every possible angle,
             // so be careful with making changes here as it can have a huge impact on complex end user apps.
             // Preferably, only make changes to the dependency resolution process via a RFC.
-            const key = resource_1.Protocol.annotation.keyFor('di:dependencies');
+            const key = resource_js_1.Protocol.annotation.keyFor('di:dependencies');
             let dependencies = metadata_1.Metadata.getOwn(key, Type);
             if (dependencies === void 0) {
                 // Type.length is the number of constructor parameters. If this is 0, it could mean the class has an empty constructor
@@ -140,7 +153,7 @@
                         let key;
                         for (let i = 0; i < len; ++i) {
                             key = keys[i];
-                            if (!functions_1.isArrayIndex(key)) {
+                            if (!functions_js_1.isArrayIndex(key)) {
                                 dependencies[key] = annotationParamtypes[key];
                             }
                         }
@@ -151,7 +164,7 @@
                     dependencies = cloneArrayWithPossibleProps(inject);
                 }
                 metadata_1.Metadata.define(key, dependencies, Type);
-                resource_1.Protocol.annotation.appendTo(Type, key);
+                resource_js_1.Protocol.annotation.appendTo(Type, key);
             }
             return dependencies;
         },
@@ -618,7 +631,7 @@
             invokeWithDynamicDependencies
         };
         return function (Type) {
-            if (functions_1.isNativeFunction(Type)) {
+            if (functions_js_1.isNativeFunction(Type)) {
                 throw new Error(`${Type.name} is a native function and therefore cannot be safely constructed by DI. If this is intentional, please use a callback or cachedCallback resolver.`);
             }
             const dependencies = exports.DI.getDependencies(Type);
@@ -682,10 +695,10 @@
         'WeakSet',
     ]);
     const factoryKey = 'di:factory';
-    const factoryAnnotationKey = resource_1.Protocol.annotation.keyFor(factoryKey);
+    const factoryAnnotationKey = resource_js_1.Protocol.annotation.keyFor(factoryKey);
     /** @internal */
     class Container {
-        constructor(parent, config = exports.DefaultContainerConfiguration) {
+        constructor(parent, config) {
             this.parent = parent;
             this.config = config;
             this.registerDepth = 0;
@@ -698,7 +711,12 @@
             else {
                 this.root = parent.root;
                 this.resolvers = new Map();
-                this.resourceResolvers = Object.assign(Object.create(null), this.root.resourceResolvers);
+                if (config.inheritParentResources) {
+                    this.resourceResolvers = Object.assign(Object.create(null), parent.resourceResolvers, this.root.resourceResolvers);
+                }
+                else {
+                    this.resourceResolvers = Object.assign(Object.create(null), this.root.resourceResolvers);
+                }
             }
             this.resolvers.set(exports.IContainer, containerResolver);
         }
@@ -725,8 +743,8 @@
                 if (isRegistry(current)) {
                     current.register(this);
                 }
-                else if (resource_1.Protocol.resource.has(current)) {
-                    const defs = resource_1.Protocol.resource.getAll(current);
+                else if (resource_js_1.Protocol.resource.has(current)) {
+                    const defs = resource_js_1.Protocol.resource.getAll(current);
                     if (defs.length === 1) {
                         // Fast path for the very common case
                         defs[0].register(this);
@@ -889,7 +907,7 @@
             let current = requestor;
             let resolver;
             if (searchAncestors) {
-                let resolutions = platform_1.emptyArray;
+                let resolutions = platform_js_1.emptyArray;
                 while (current != null) {
                     resolver = current.resolvers.get(key);
                     if (resolver != null) {
@@ -905,7 +923,7 @@
                     if (resolver == null) {
                         current = current.parent;
                         if (current == null) {
-                            return platform_1.emptyArray;
+                            return platform_js_1.emptyArray;
                         }
                     }
                     else {
@@ -913,22 +931,31 @@
                     }
                 }
             }
-            return platform_1.emptyArray;
+            return platform_js_1.emptyArray;
         }
         getFactory(Type) {
             let factory = metadata_1.Metadata.getOwn(factoryAnnotationKey, Type);
             if (factory === void 0) {
                 metadata_1.Metadata.define(factoryAnnotationKey, factory = createFactory(Type), Type);
-                resource_1.Protocol.annotation.appendTo(Type, factoryAnnotationKey);
+                resource_js_1.Protocol.annotation.appendTo(Type, factoryAnnotationKey);
             }
             return factory;
         }
         registerFactory(key, factory) {
-            resource_1.Protocol.annotation.set(key, factoryKey, factory);
-            resource_1.Protocol.annotation.appendTo(key, factoryAnnotationKey);
+            resource_js_1.Protocol.annotation.set(key, factoryKey, factory);
+            resource_js_1.Protocol.annotation.appendTo(key, factoryAnnotationKey);
         }
         createChild(config) {
-            return new Container(this, config !== null && config !== void 0 ? config : this.config);
+            if (config === void 0 && this.config.inheritParentResources) {
+                if (this.config === ContainerConfiguration.DEFAULT) {
+                    return new Container(this, this.config);
+                }
+                return new Container(this, ContainerConfiguration.from({
+                    ...this.config,
+                    inheritParentResources: false,
+                }));
+            }
+            return new Container(this, ContainerConfiguration.from(config !== null && config !== void 0 ? config : this.config));
         }
         disposeResolvers() {
             var _a;
@@ -999,8 +1026,8 @@
                 }
                 return registrationResolver;
             }
-            else if (resource_1.Protocol.resource.has(keyAsValue)) {
-                const defs = resource_1.Protocol.resource.getAll(keyAsValue);
+            else if (resource_js_1.Protocol.resource.has(keyAsValue)) {
+                const defs = resource_js_1.Protocol.resource.getAll(keyAsValue);
                 if (defs.length === 1) {
                     // Fast path for the very common case
                     defs[0].register(handler);

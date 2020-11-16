@@ -1,23 +1,23 @@
 import { ArrowFunction, ConstructorDeclaration, FunctionDeclaration, FunctionExpression, ModifierFlags, ParameterDeclaration, SyntaxKind } from 'typescript';
 import { ILogger } from '@aurelia/kernel';
-import { Realm, ExecutionContext } from '../realm';
-import { $EnvRec, $DeclarativeEnvRec, $FunctionEnvRec } from '../types/environment-record';
-import { $String } from '../types/string';
-import { $Undefined } from '../types/undefined';
-import { $Function } from '../types/function';
-import { $Any, $AnyNonEmpty, $PropertyKey } from '../types/_shared';
-import { $Object } from '../types/object';
-import { $Empty } from '../types/empty';
-import { $IteratorRecord } from '../globals/iteration';
-import { $Error } from '../types/error';
-import { I$Node, Context, $$ESDeclaration, $NodeWithStatements, $$AssignmentExpressionOrHigher, $$TSDeclaration, $$BindingName, $AnyParentNode, $$ESVarDeclaration, FunctionKind } from './_shared';
-import { ExportEntryRecord, $$ESModuleOrScript } from './modules';
-import { $Identifier, $Decorator } from './expressions';
-import { $ClassDeclaration, $ClassExpression } from './classes';
-import { $Block, DirectivePrologue } from './statements';
-import { $MethodDeclaration, $SetAccessorDeclaration, $GetAccessorDeclaration } from './methods';
-import { $Boolean } from '../types/boolean';
-import { $List } from '../types/list';
+import { Realm, ExecutionContext } from '../realm.js';
+import { $EnvRec, $DeclarativeEnvRec, $FunctionEnvRec } from '../types/environment-record.js';
+import { $String } from '../types/string.js';
+import { $Undefined } from '../types/undefined.js';
+import { $Function } from '../types/function.js';
+import { $Any, $AnyNonEmpty, $PropertyKey } from '../types/_shared.js';
+import { $Object } from '../types/object.js';
+import { $Empty } from '../types/empty.js';
+import { $IteratorRecord } from '../globals/iteration.js';
+import { $Error } from '../types/error.js';
+import { I$Node, Context, $$ESDeclaration, $NodeWithStatements, $$AssignmentExpressionOrHigher, $$TSDeclaration, $$BindingName, $AnyParentNode, $$ESVarDeclaration, FunctionKind } from './_shared.js';
+import { ExportEntryRecord, $$ESModuleOrScript } from './modules.js';
+import { $Identifier, $Decorator } from './expressions.js';
+import { $ClassDeclaration, $ClassExpression } from './classes.js';
+import { $Block, DirectivePrologue } from './statements.js';
+import { $MethodDeclaration, $SetAccessorDeclaration, $GetAccessorDeclaration } from './methods.js';
+import { $Boolean } from '../types/boolean.js';
+import { $List } from '../types/list.js';
 export declare type $$Function = ($FunctionDeclaration | $FunctionExpression | $MethodDeclaration | $ConstructorDeclaration | $SetAccessorDeclaration | $GetAccessorDeclaration | $ArrowFunction);
 export declare class $FormalParameterList extends Array<$ParameterDeclaration> {
     readonly BoundNames: readonly $String[];
@@ -190,6 +190,6 @@ export declare class $ParameterDeclaration implements I$Node {
     readonly HasInitializer: boolean;
     readonly IsSimpleParameterList: boolean;
     constructor(node: ParameterDeclaration, parent: $$Function, ctx: Context, idx: number, mos?: $$ESModuleOrScript, realm?: Realm, depth?: number, logger?: ILogger, path?: string);
-    InitializeIteratorBinding(ctx: ExecutionContext, iteratorRecord: $IteratorRecord, environment: $EnvRec | undefined): $Object<string> | import("../..").$Null | $Error<Error, string> | $Empty | $Undefined | $Boolean<boolean> | $String<string> | import("../..").$Symbol<$Undefined | $String<string>> | import("../..").$Number<number> | undefined;
+    InitializeIteratorBinding(ctx: ExecutionContext, iteratorRecord: $IteratorRecord, environment: $EnvRec | undefined): $Object<string> | import("../types/null.js").$Null | $Error<Error, string> | $Empty | $Undefined | $Boolean<boolean> | $String<string> | import("../types/symbol.js").$Symbol<$Undefined | $String<string>> | import("../types/number.js").$Number<number> | undefined;
 }
 //# sourceMappingURL=functions.d.ts.map

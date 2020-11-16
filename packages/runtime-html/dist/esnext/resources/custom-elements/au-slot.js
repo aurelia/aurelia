@@ -11,9 +11,9 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 import { DI } from '@aurelia/kernel';
-import { IRenderLocation } from '../../dom';
-import { customElement } from '../custom-element';
-import { IViewFactory } from '../../templating/view';
+import { IRenderLocation } from '../../dom.js';
+import { customElement } from '../custom-element.js';
+import { IViewFactory } from '../../templating/view.js';
 export const IProjections = DI.createInterface("IProjections").noDefault();
 export var AuSlotContentType;
 (function (AuSlotContentType) {

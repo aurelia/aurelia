@@ -1,4 +1,4 @@
-import { SetterNotifier } from './setter-observer';
+import { SetterNotifier } from './setter-observer.js';
 function getObserversLookup(obj) {
     if (obj.$observers === void 0) {
         Reflect.defineProperty(obj, '$observers', { value: {} });

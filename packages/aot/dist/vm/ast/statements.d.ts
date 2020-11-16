@@ -1,13 +1,13 @@
 import { Block, BreakStatement, CaseBlock, CaseClause, CatchClause, ContinueStatement, DebuggerStatement, DefaultClause, DoStatement, EmptyStatement, ExpressionStatement, ForInStatement, ForOfStatement, ForStatement, IfStatement, LabeledStatement, ModifierFlags, ReturnStatement, StringLiteral, SwitchStatement, SyntaxKind, ThrowStatement, TryStatement, VariableDeclaration, VariableDeclarationList, VariableStatement, WhileStatement, WithStatement, Expression, CaseOrDefaultClause } from 'typescript';
 import { ILogger } from '@aurelia/kernel';
-import { Realm, ExecutionContext } from '../realm';
-import { $String } from '../types/string';
-import { $Any, $AnyNonEmpty } from '../types/_shared';
-import { $Empty } from '../types/empty';
-import { I$Node, Context, $$ESDeclaration, $NodeWithStatements, $$AssignmentExpressionOrHigher, $$TSDeclaration, $$BindingName, $$TSStatementListItem, $$ESLabelledItem, $$ESVarDeclaration } from './_shared';
-import { ExportEntryRecord, $$ESModuleOrScript } from './modules';
-import { $Identifier } from './expressions';
-import { $StringSet } from '../globals/string';
+import { Realm, ExecutionContext } from '../realm.js';
+import { $String } from '../types/string.js';
+import { $Any, $AnyNonEmpty } from '../types/_shared.js';
+import { $Empty } from '../types/empty.js';
+import { I$Node, Context, $$ESDeclaration, $NodeWithStatements, $$AssignmentExpressionOrHigher, $$TSDeclaration, $$BindingName, $$TSStatementListItem, $$ESLabelledItem, $$ESVarDeclaration } from './_shared.js';
+import { ExportEntryRecord, $$ESModuleOrScript } from './modules.js';
+import { $Identifier } from './expressions.js';
+import { $StringSet } from '../globals/string.js';
 export declare class $VariableStatement implements I$Node {
     readonly node: VariableStatement;
     readonly parent: $NodeWithStatements;

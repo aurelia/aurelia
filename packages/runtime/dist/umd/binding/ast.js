@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "../observation/binding-context", "../observation/signaler", "../binding-behavior", "../value-converter"], factory);
+        define(["require", "exports", "@aurelia/kernel", "../observation/binding-context.js", "../observation/signaler.js", "../binding-behavior.js", "../value-converter.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -13,10 +13,10 @@
     /* eslint-disable eqeqeq */
     /* eslint-disable @typescript-eslint/restrict-template-expressions */
     const kernel_1 = require("@aurelia/kernel");
-    const binding_context_1 = require("../observation/binding-context");
-    const signaler_1 = require("../observation/signaler");
-    const binding_behavior_1 = require("../binding-behavior");
-    const value_converter_1 = require("../value-converter");
+    const binding_context_js_1 = require("../observation/binding-context.js");
+    const signaler_js_1 = require("../observation/signaler.js");
+    const binding_behavior_js_1 = require("../binding-behavior.js");
+    const value_converter_js_1 = require("../value-converter.js");
     var ExpressionKind;
     (function (ExpressionKind) {
         ExpressionKind[ExpressionKind["Connects"] = 32] = "Connects";
@@ -309,7 +309,7 @@
             this.expression = expression;
             this.name = name;
             this.args = args;
-            this.behaviorKey = binding_behavior_1.BindingBehavior.keyFrom(name);
+            this.behaviorKey = binding_behavior_js_1.BindingBehavior.keyFrom(name);
         }
         get $kind() { return 38962 /* BindingBehavior */; }
         get hasBind() { return true; }
@@ -328,7 +328,7 @@
             if (behavior == null) {
                 throw new Error(`BindingBehavior named '${this.name}' could not be found. Did you forget to register it as a dependency?`);
             }
-            if (!(behavior instanceof binding_behavior_1.BindingBehaviorFactory)) {
+            if (!(behavior instanceof binding_behavior_js_1.BindingBehaviorFactory)) {
                 if (b[this.behaviorKey] === void 0) {
                     b[this.behaviorKey] = behavior;
                     behavior.bind.call(behavior, f, s, hs, b, ...this.args.map(a => a.evaluate(f, s, hs, b.locator, null)));
@@ -364,7 +364,7 @@
             this.expression = expression;
             this.name = name;
             this.args = args;
-            this.converterKey = value_converter_1.ValueConverter.keyFrom(name);
+            this.converterKey = value_converter_js_1.ValueConverter.keyFrom(name);
         }
         get $kind() { return 36913 /* ValueConverter */; }
         get hasBind() { return false; }
@@ -380,7 +380,7 @@
             if (c !== null && ('handleChange' in c)) {
                 const signals = vc.signals;
                 if (signals != null) {
-                    const signaler = l.get(signaler_1.ISignaler);
+                    const signaler = l.get(signaler_js_1.ISignaler);
                     for (let i = 0, ii = signals.length; i < ii; ++i) {
                         signaler.addSignalListener(signals[i], c);
                     }
@@ -406,7 +406,7 @@
             if (vc.signals === void 0) {
                 return;
             }
-            const signaler = b.locator.get(signaler_1.ISignaler);
+            const signaler = b.locator.get(signaler_js_1.ISignaler);
             for (let i = 0; i < vc.signals.length; ++i) {
                 signaler.removeSignalListener(vc.signals[i], b);
             }
@@ -511,7 +511,7 @@
         get hasBind() { return false; }
         get hasUnbind() { return false; }
         evaluate(f, s, hs, _l, c) {
-            const obj = binding_context_1.BindingContext.get(chooseScope(this.accessHostScope, s, hs), this.name, this.ancestor, f, hs);
+            const obj = binding_context_js_1.BindingContext.get(chooseScope(this.accessHostScope, s, hs), this.name, this.ancestor, f, hs);
             if (c !== null) {
                 c.observeProperty(f, obj, this.name);
             }
@@ -523,7 +523,7 @@
         }
         assign(f, s, hs, _l, val) {
             var _a;
-            const obj = binding_context_1.BindingContext.get(chooseScope(this.accessHostScope, s, hs), this.name, this.ancestor, f, hs);
+            const obj = binding_context_js_1.BindingContext.get(chooseScope(this.accessHostScope, s, hs), this.name, this.ancestor, f, hs);
             if (obj instanceof Object) {
                 if (((_a = obj.$observers) === null || _a === void 0 ? void 0 : _a[this.name]) !== void 0) {
                     obj.$observers[this.name].setValue(val, f);
@@ -635,7 +635,7 @@
         evaluate(f, s, hs, l, c) {
             s = chooseScope(this.accessHostScope, s, hs);
             const args = this.args.map(a => a.evaluate(f, s, hs, l, c));
-            const context = binding_context_1.BindingContext.get(s, this.name, this.ancestor, f, hs);
+            const context = binding_context_js_1.BindingContext.get(s, this.name, this.ancestor, f, hs);
             // ideally, should observe property represents by this.name as well
             // because it could be changed
             // todo: did it ever surprise anyone?

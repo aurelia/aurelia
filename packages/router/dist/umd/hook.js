@@ -4,14 +4,14 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./type-resolvers", "./viewport-instruction"], factory);
+        define(["require", "exports", "./type-resolvers.js", "./viewport-instruction.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Hook = void 0;
-    const type_resolvers_1 = require("./type-resolvers");
-    const viewport_instruction_1 = require("./viewport-instruction");
+    const type_resolvers_js_1 = require("./type-resolvers.js");
+    const viewport_instruction_js_1 = require("./viewport-instruction.js");
     /**
      * @internal - Shouldn't be used directly
      */
@@ -59,21 +59,21 @@
             if (typeof target === 'string') {
                 this.componentName = target;
             }
-            else if (type_resolvers_1.ComponentAppellationResolver.isType(target)) {
+            else if (type_resolvers_js_1.ComponentAppellationResolver.isType(target)) {
                 this.componentType = target;
-                this.componentName = type_resolvers_1.ComponentAppellationResolver.getName(target);
+                this.componentName = type_resolvers_js_1.ComponentAppellationResolver.getName(target);
             }
             else {
                 const cvTarget = target;
                 if (cvTarget.component) {
-                    this.componentType = type_resolvers_1.ComponentAppellationResolver.isType(cvTarget.component)
-                        ? type_resolvers_1.ComponentAppellationResolver.getType(cvTarget.component)
+                    this.componentType = type_resolvers_js_1.ComponentAppellationResolver.isType(cvTarget.component)
+                        ? type_resolvers_js_1.ComponentAppellationResolver.getType(cvTarget.component)
                         : null;
-                    this.componentName = type_resolvers_1.ComponentAppellationResolver.getName(cvTarget.component);
+                    this.componentName = type_resolvers_js_1.ComponentAppellationResolver.getName(cvTarget.component);
                 }
                 if (cvTarget.viewport) {
-                    this.viewport = type_resolvers_1.ViewportHandleResolver.isInstance(cvTarget.viewport) ? cvTarget.viewport : null;
-                    this.viewportName = type_resolvers_1.ViewportHandleResolver.getName(cvTarget.viewport);
+                    this.viewport = type_resolvers_js_1.ViewportHandleResolver.isInstance(cvTarget.viewport) ? cvTarget.viewport : null;
+                    this.viewportName = type_resolvers_js_1.ViewportHandleResolver.getName(cvTarget.viewport);
                 }
             }
         }
@@ -81,7 +81,7 @@
             const instructions = viewportInstructions.slice();
             if (!instructions.length) {
                 // instructions.push(new ViewportInstruction(''));
-                instructions.push(viewport_instruction_1.ViewportInstruction.create(null, ''));
+                instructions.push(viewport_instruction_js_1.ViewportInstruction.create(null, ''));
             }
             for (const instruction of instructions) {
                 if ((this.componentName !== null && this.componentName === instruction.componentName) ||

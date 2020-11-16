@@ -4,15 +4,15 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/runtime-html", "./test-context"], factory);
+        define(["require", "exports", "@aurelia/runtime-html", "./test-context.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.createFixture = void 0;
     const runtime_html_1 = require("@aurelia/runtime-html");
-    const test_context_1 = require("./test-context");
-    function createFixture(template, $class, registrations = [], autoStart = true, ctx = test_context_1.TestContext.create()) {
+    const test_context_js_1 = require("./test-context.js");
+    function createFixture(template, $class, registrations = [], autoStart = true, ctx = test_context_js_1.TestContext.create()) {
         const { container, lifecycle, platform, observerLocator } = ctx;
         container.register(...registrations);
         const root = ctx.doc.body.appendChild(ctx.doc.createElement('div'));

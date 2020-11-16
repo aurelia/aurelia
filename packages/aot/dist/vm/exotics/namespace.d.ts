@@ -1,12 +1,12 @@
-import { $Object } from '../types/object';
-import { IModule, ExecutionContext, Realm } from '../realm';
-import { $String } from '../types/string';
-import { $Boolean } from '../types/boolean';
-import { $PropertyKey, $AnyNonEmpty, $AnyNonEmptyNonError, $AnyObject } from '../types/_shared';
-import { $PropertyDescriptor } from '../types/property-descriptor';
-import { $Undefined } from '../types/undefined';
-import { $Error } from '../types/error';
-import { $List } from '../types/list';
+import { $Object } from '../types/object.js';
+import { IModule, ExecutionContext, Realm } from '../realm.js';
+import { $String } from '../types/string.js';
+import { $Boolean } from '../types/boolean.js';
+import { $PropertyKey, $AnyNonEmpty, $AnyNonEmptyNonError, $AnyObject } from '../types/_shared.js';
+import { $PropertyDescriptor } from '../types/property-descriptor.js';
+import { $Undefined } from '../types/undefined.js';
+import { $Error } from '../types/error.js';
+import { $List } from '../types/list.js';
 export declare class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
     readonly '[[Module]]': IModule;
     readonly '[[Exports]]': $List<$String>;

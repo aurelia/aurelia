@@ -1,11 +1,11 @@
 import { InstanceProvider, } from '@aurelia/kernel';
-import { FragmentNodeSequence, INode, IRenderLocation } from '../dom';
-import { IRenderer, ITemplateCompiler, IInstruction } from '../renderer';
-import { CustomElementDefinition } from '../resources/custom-element';
-import { IViewFactory, ViewFactory } from './view';
-import { IProjectionProvider } from '../resources/custom-elements/au-slot';
-import { IPlatform } from '../platform';
-import { IController } from './controller';
+import { FragmentNodeSequence, INode, IRenderLocation } from '../dom.js';
+import { IRenderer, ITemplateCompiler, IInstruction } from '../renderer.js';
+import { CustomElementDefinition } from '../resources/custom-element.js';
+import { IViewFactory, ViewFactory } from './view.js';
+import { IProjectionProvider } from '../resources/custom-elements/au-slot.js';
+import { IPlatform } from '../platform.js';
+import { IController } from './controller.js';
 const definitionContainerLookup = new WeakMap();
 const definitionContainerProjectionsLookup = new WeakMap();
 const fragmentCache = new WeakMap();

@@ -1,4 +1,4 @@
-import { Interceptor, RetryConfiguration } from './interfaces';
+import { Interceptor, RetryConfiguration } from './interfaces.js';
 /**
  * A class for configuring HttpClients.
  */

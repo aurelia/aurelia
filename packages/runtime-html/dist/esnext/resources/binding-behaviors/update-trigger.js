@@ -11,8 +11,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 import { BindingMode, IObserverLocator, bindingBehavior } from '@aurelia/runtime';
-import { EventSubscriber } from '../../observation/event-delegator';
-import { NodeObserverConfig } from '../../observation/observer-locator';
+import { EventSubscriber } from '../../observation/event-delegator.js';
+import { NodeObserverConfig } from '../../observation/observer-locator.js';
 let UpdateTriggerBindingBehavior = class UpdateTriggerBindingBehavior {
     constructor(observerLocator) {
         this.observerLocator = observerLocator;

@@ -4,27 +4,27 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "../types/function", "../types/error", "../types/object", "../types/list", "../operations", "../types/string", "typescript", "../ast/functions", "../types/boolean", "../types/property-descriptor"], factory);
+        define(["require", "exports", "../types/function.js", "../types/error.js", "../types/object.js", "../types/list.js", "../operations.js", "../types/string.js", "typescript", "../ast/functions.js", "../types/boolean.js", "../types/property-descriptor.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.$CreateDynamicFunction = exports.$FunctionPrototype_hasInstance = exports.$FunctionPrototype_toString = exports.$FunctionPrototype_call = exports.$FunctionPrototype_bind = exports.$FunctionPrototype_apply = exports.$FunctionPrototype = exports.$FunctionConstructor = void 0;
-    const function_1 = require("../types/function");
-    const error_1 = require("../types/error");
-    const object_1 = require("../types/object");
-    const list_1 = require("../types/list");
-    const operations_1 = require("../operations");
-    const string_1 = require("../types/string");
+    const function_js_1 = require("../types/function.js");
+    const error_js_1 = require("../types/error.js");
+    const object_js_1 = require("../types/object.js");
+    const list_js_1 = require("../types/list.js");
+    const operations_js_1 = require("../operations.js");
+    const string_js_1 = require("../types/string.js");
     const typescript_1 = require("typescript");
-    const functions_1 = require("../ast/functions");
-    const boolean_1 = require("../types/boolean");
-    const property_descriptor_1 = require("../types/property-descriptor");
+    const functions_js_1 = require("../ast/functions.js");
+    const boolean_js_1 = require("../types/boolean.js");
+    const property_descriptor_js_1 = require("../types/property-descriptor.js");
     // http://www.ecma-international.org/ecma-262/#sec-function-objects
     // 19.2 Function Objects
     // http://www.ecma-international.org/ecma-262/#sec-function-constructor
     // 19.2.1 The Function Constructor
-    class $FunctionConstructor extends function_1.$BuiltinFunction {
+    class $FunctionConstructor extends function_js_1.$BuiltinFunction {
         // http://www.ecma-international.org/ecma-262/#sec-function.length
         // 19.2.2.1 Function.length
         get length() {
@@ -56,7 +56,7 @@
     exports.$FunctionConstructor = $FunctionConstructor;
     // http://www.ecma-international.org/ecma-262/#sec-properties-of-the-function-prototype-object
     // 19.2.3 Properties of the Function Prototype Object
-    class $FunctionPrototype extends object_1.$Object {
+    class $FunctionPrototype extends object_js_1.$Object {
         // http://www.ecma-international.org/ecma-262/#sec-function.prototype.apply
         // 19.2.3.1 Function.prototype.apply ( thisArg , argArray )
         get $apply() {
@@ -111,7 +111,7 @@
         }
     }
     exports.$FunctionPrototype = $FunctionPrototype;
-    class $FunctionPrototype_apply extends function_1.$BuiltinFunction {
+    class $FunctionPrototype_apply extends function_js_1.$BuiltinFunction {
         constructor(realm, proto) {
             super(realm, 'Function.prototype.apply', proto);
         }
@@ -135,7 +135,7 @@
         }
     }
     exports.$FunctionPrototype_apply = $FunctionPrototype_apply;
-    class $FunctionPrototype_bind extends function_1.$BuiltinFunction {
+    class $FunctionPrototype_bind extends function_js_1.$BuiltinFunction {
         constructor(realm, proto) {
             super(realm, 'Function.prototype.bind', proto);
         }
@@ -168,7 +168,7 @@
         }
     }
     exports.$FunctionPrototype_bind = $FunctionPrototype_bind;
-    class $FunctionPrototype_call extends function_1.$BuiltinFunction {
+    class $FunctionPrototype_call extends function_js_1.$BuiltinFunction {
         constructor(realm, proto) {
             super(realm, 'Function.prototype.call', proto);
         }
@@ -184,10 +184,10 @@
             const func = thisArgument;
             // 2. If IsCallable(func) is false, throw a TypeError exception.
             if (!func.isFunction) {
-                return new error_1.$TypeError(realm, `Function.prototype.call called on ${func}, but expected a callable function`);
+                return new error_js_1.$TypeError(realm, `Function.prototype.call called on ${func}, but expected a callable function`);
             }
             // 3. Let argList be a new empty List.
-            const argList = new list_1.$List();
+            const argList = new list_js_1.$List();
             // 4. If this method was called with more than one argument, then in left to right order, starting with the second argument, append each argument as the last element of argList.
             if (args.length > 0) {
                 argList.push(...args);
@@ -196,11 +196,11 @@
             ctx.suspend();
             realm.stack.pop();
             // 6. Return ? Call(func, thisArg, argList).
-            return operations_1.$Call(realm.stack.top, func, thisArg, argList);
+            return operations_js_1.$Call(realm.stack.top, func, thisArg, argList);
         }
     }
     exports.$FunctionPrototype_call = $FunctionPrototype_call;
-    class $FunctionPrototype_toString extends function_1.$BuiltinFunction {
+    class $FunctionPrototype_toString extends function_js_1.$BuiltinFunction {
         constructor(realm, proto) {
             super(realm, 'Function.prototype.toString', proto);
         }
@@ -221,7 +221,7 @@
         }
     }
     exports.$FunctionPrototype_toString = $FunctionPrototype_toString;
-    class $FunctionPrototype_hasInstance extends function_1.$BuiltinFunction {
+    class $FunctionPrototype_hasInstance extends function_js_1.$BuiltinFunction {
         constructor(realm, proto) {
             super(realm, 'Function.prototype.hasInstance', proto);
         }
@@ -250,7 +250,7 @@
         // 4. Let calleeRealm be the current Realm Record.
         const calleeRealm = realm;
         // 5. Perform ? HostEnsureCanCompileStrings(callerRealm, calleeRealm).
-        const $HostEnsureCanCompileStringsResult = operations_1.$HostEnsureCanCompileStrings(ctx, callerRealm, calleeRealm);
+        const $HostEnsureCanCompileStringsResult = operations_js_1.$HostEnsureCanCompileStrings(ctx, callerRealm, calleeRealm);
         if ($HostEnsureCanCompileStringsResult.isAbrupt) {
             return $HostEnsureCanCompileStringsResult;
         }
@@ -333,7 +333,7 @@
                     return nextArgString;
                 }
                 // 15. d. iii. Set P to the string-concatenation of the previous value of P, "," (a comma), and nextArgString.
-                P = new string_1.$String(realm, `${P['[[Value]]']},${nextArgString['[[Value]]']}`);
+                P = new string_js_1.$String(realm, `${P['[[Value]]']},${nextArgString['[[Value]]']}`);
                 // 15. d. iv. Increase k by 1.
                 ++k;
             }
@@ -355,7 +355,7 @@
         // 18. Let body be the result of parsing bodyText, interpreted as UTF-16 encoded Unicode text as described in 6.1.4, using goal as the goal symbol. Throw a SyntaxError exception if the parse fails.
         const node = typescript_1.createSourceFile('', sourceText, typescript_1.ScriptTarget.Latest).statements[0];
         const ScriptOrModule = callerContext.ScriptOrModule;
-        const $functionDeclaration = new functions_1.$FunctionDeclaration(node, ScriptOrModule, 2 /* Dynamic */, -1, ScriptOrModule, calleeRealm, 1, ScriptOrModule.logger, `${ScriptOrModule.path}[Dynamic].FunctionDeclaration`);
+        const $functionDeclaration = new functions_js_1.$FunctionDeclaration(node, ScriptOrModule, 2 /* Dynamic */, -1, ScriptOrModule, calleeRealm, 1, ScriptOrModule.logger, `${ScriptOrModule.path}[Dynamic].FunctionDeclaration`);
         // 19. Let strict be ContainsUseStrict of body.
         const strict = $functionDeclaration.ContainsUseStrict;
         // TODO: revisit whether we need to implement these early errors. See what 262 tests fail, if any, etc.
@@ -373,24 +373,24 @@
         // 29. If strict is true, then
         // 29. a. If BoundNames of parameters contains any duplicate elements, throw a SyntaxError exception.
         // 30. Let proto be ? GetPrototypeFromConstructor(newTarget, fallbackProto).
-        const proto = function_1.$GetPrototypeFromConstructor(ctx, newTarget, fallbackProto);
+        const proto = function_js_1.$GetPrototypeFromConstructor(ctx, newTarget, fallbackProto);
         if (proto.isAbrupt) {
             return proto;
         }
         // 31. Let F be FunctionAllocate(proto, strict, kind).
-        const F = function_1.$Function.FunctionAllocate(ctx, proto, new boolean_1.$Boolean(realm, strict), kind);
+        const F = function_js_1.$Function.FunctionAllocate(ctx, proto, new boolean_js_1.$Boolean(realm, strict), kind);
         // 32. Let realmF be F.[[Realm]].
         const realmF = F['[[Realm]]'];
         // 33. Let scope be realmF.[[GlobalEnv]].
         const scope = realmF['[[GlobalEnv]]'];
         // 34. Perform FunctionInitialize(F, Normal, parameters, body, scope).
-        function_1.$Function.FunctionInitialize(ctx, F, 'normal', $functionDeclaration, scope);
+        function_js_1.$Function.FunctionInitialize(ctx, F, 'normal', $functionDeclaration, scope);
         // 35. If kind is "generator", then
         if (kind === 4 /* generator */) {
             // 35. a. Let prototype be ObjectCreate(%GeneratorPrototype%).
-            const prototype = new object_1.$Object(realm, 'anonymous generator', intrinsics['%GeneratorPrototype%'], 1 /* normal */, intrinsics.empty);
+            const prototype = new object_js_1.$Object(realm, 'anonymous generator', intrinsics['%GeneratorPrototype%'], 1 /* normal */, intrinsics.empty);
             // 35. b. Perform DefinePropertyOrThrow(F, "prototype", PropertyDescriptor { [[Value]]: prototype, [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: false }).
-            operations_1.$DefinePropertyOrThrow(ctx, F, intrinsics.$prototype, new property_descriptor_1.$PropertyDescriptor(realm, intrinsics.$prototype, {
+            operations_js_1.$DefinePropertyOrThrow(ctx, F, intrinsics.$prototype, new property_descriptor_js_1.$PropertyDescriptor(realm, intrinsics.$prototype, {
                 '[[Value]]': prototype,
                 '[[Writable]]': intrinsics.true,
                 '[[Enumerable]]': intrinsics.false,
@@ -400,9 +400,9 @@
         // 36. Else if kind is "async generator", then
         else if (kind === 12 /* asyncGenerator */) {
             // 36. a. Let prototype be ObjectCreate(%AsyncGeneratorPrototype%).
-            const prototype = new object_1.$Object(realm, 'anonymous async generator', intrinsics['%AsyncGeneratorPrototype%'], 1 /* normal */, intrinsics.empty);
+            const prototype = new object_js_1.$Object(realm, 'anonymous async generator', intrinsics['%AsyncGeneratorPrototype%'], 1 /* normal */, intrinsics.empty);
             // 36. b. Perform DefinePropertyOrThrow(F, "prototype", PropertyDescriptor { [[Value]]: prototype, [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: false }).
-            operations_1.$DefinePropertyOrThrow(ctx, F, intrinsics.$prototype, new property_descriptor_1.$PropertyDescriptor(realm, intrinsics.$prototype, {
+            operations_js_1.$DefinePropertyOrThrow(ctx, F, intrinsics.$prototype, new property_descriptor_js_1.$PropertyDescriptor(realm, intrinsics.$prototype, {
                 '[[Value]]': prototype,
                 '[[Writable]]': intrinsics.true,
                 '[[Enumerable]]': intrinsics.false,
@@ -415,11 +415,11 @@
         }
         // 38. NOTE: Async functions are not constructable and do not have a [[Construct]] internal method or a "prototype" property.
         // 39. Perform SetFunctionName(F, "anonymous").
-        F.SetFunctionName(ctx, new string_1.$String(realm, 'anonymous'));
+        F.SetFunctionName(ctx, new string_js_1.$String(realm, 'anonymous'));
         // 40. Let prefix be the prefix associated with kind in Table 47.
         // 41. Let sourceText be the string-concatenation of prefix, " anonymous(", P, 0x000A (LINE FEED), ") {", 0x000A (LINE FEED), bodyText, 0x000A (LINE FEED), and "}".
         // 42. Set F.[[SourceText]] to sourceText.
-        F['[[SourceText]]'] = new string_1.$String(realm, sourceText);
+        F['[[SourceText]]'] = new string_js_1.$String(realm, sourceText);
         // 43. Return F.
         return F;
     }

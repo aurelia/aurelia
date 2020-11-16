@@ -1,5 +1,5 @@
 import { ILogger, } from '@aurelia/kernel';
-import { joinPath, resolvePath, } from './path-utils';
+import { joinPath, resolvePath, } from './path-utils.js';
 const lookup = new WeakMap();
 export class PatternMatcher {
     constructor(logger, compilerOptions) {

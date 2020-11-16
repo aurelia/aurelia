@@ -1,5 +1,5 @@
 import { ILogger, IContainer } from '@aurelia/kernel';
-import { IFile, $CompilerOptions } from './interfaces';
+import { IFile, $CompilerOptions } from './interfaces.js';
 export declare class PatternMatcher {
     private readonly logger;
     readonly compilerOptions: $CompilerOptions;

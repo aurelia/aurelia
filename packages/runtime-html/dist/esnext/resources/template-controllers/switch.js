@@ -12,9 +12,9 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 import { ILogger, nextId, onResolve, resolveAll, } from '@aurelia/kernel';
 import { bindable, BindingMode, IObserverLocator, } from '@aurelia/runtime';
-import { IRenderLocation } from '../../dom';
-import { templateController } from '../custom-attribute';
-import { IViewFactory } from '../../templating/view';
+import { IRenderLocation } from '../../dom.js';
+import { templateController } from '../custom-attribute.js';
+import { IViewFactory } from '../../templating/view.js';
 let Switch = class Switch {
     constructor(factory, location) {
         this.factory = factory;

@@ -16,7 +16,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "./i18n-configuration-options", "./i18next-wrapper"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "./i18n-configuration-options.js", "./i18next-wrapper.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -24,8 +24,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     exports.I18nService = exports.I18N = exports.I18nKeyEvaluationResult = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
-    const i18n_configuration_options_1 = require("./i18n-configuration-options");
-    const i18next_wrapper_1 = require("./i18next-wrapper");
+    const i18n_configuration_options_js_1 = require("./i18n-configuration-options.js");
+    const i18next_wrapper_js_1 = require("./i18next-wrapper.js");
     var TimeSpan;
     (function (TimeSpan) {
         TimeSpan[TimeSpan["Second"] = 1000] = "Second";
@@ -183,11 +183,11 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
     };
     I18nService = __decorate([
-        __param(0, i18next_wrapper_1.I18nWrapper),
-        __param(1, i18n_configuration_options_1.I18nInitOptions),
+        __param(0, i18next_wrapper_js_1.I18nWrapper),
+        __param(1, i18n_configuration_options_js_1.I18nInitOptions),
         __param(2, kernel_1.IEventAggregator),
         __param(3, runtime_1.ISignaler),
-        __metadata("design:paramtypes", [i18next_wrapper_1.I18nextWrapper, Object, Object, Object])
+        __metadata("design:paramtypes", [i18next_wrapper_js_1.I18nextWrapper, Object, Object, Object])
     ], I18nService);
     exports.I18nService = I18nService;
 });

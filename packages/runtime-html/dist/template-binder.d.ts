@@ -1,9 +1,9 @@
 import { IContainer } from '@aurelia/kernel';
 import { IExpressionParser } from '@aurelia/runtime';
-import { IAttributeParser } from './resources/attribute-pattern';
-import { IAttrSyntaxTransformer } from './attribute-syntax-transformer';
-import { IPlatform } from './platform';
-import { PlainElementSymbol } from './semantic-model';
+import { IAttributeParser } from './resources/attribute-pattern.js';
+import { IAttrSyntaxTransformer } from './attribute-syntax-transformer.js';
+import { IPlatform } from './platform.js';
+import { PlainElementSymbol } from './semantic-model.js';
 /**
  * TemplateBinder. Todo: describe goal of this class
  */

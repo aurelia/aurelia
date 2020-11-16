@@ -10,8 +10,8 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-import { ISignaler } from '../observation/signaler';
-import { bindingBehavior } from '../binding-behavior';
+import { ISignaler } from '../observation/signaler.js';
+import { bindingBehavior } from '../binding-behavior.js';
 let SignalBindingBehavior = class SignalBindingBehavior {
     constructor(signaler) {
         this.signaler = signaler;

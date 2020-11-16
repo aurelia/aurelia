@@ -1,19 +1,19 @@
 import { ModifierFlags, SyntaxKind, } from 'typescript';
 import { emptyArray, } from '@aurelia/kernel';
-import { $DeclarativeEnvRec, } from '../types/environment-record';
-import { $String, } from '../types/string';
-import { $Undefined, } from '../types/undefined';
-import { $Function, } from '../types/function';
-import { $Object, } from '../types/object';
-import { $Empty, } from '../types/empty';
-import { $CreateUnmappedArgumentsObject, $ArgumentsExoticObject, } from '../exotics/arguments';
-import { $CreateListIteratorRecord, $IteratorStep, $IteratorValue, } from '../globals/iteration';
-import { modifiersToModifierFlags, hasBit, $identifier, $assignmentExpression, $$bindingName, GetDirectivePrologue, $decoratorList, $i, } from './_shared';
-import { ExportEntryRecord, } from './modules';
-import { $Block, } from './statements';
-import { $DefinePropertyOrThrow, } from '../operations';
-import { $PropertyDescriptor, } from '../types/property-descriptor';
-import { $Boolean, } from '../types/boolean';
+import { $DeclarativeEnvRec, } from '../types/environment-record.js';
+import { $String, } from '../types/string.js';
+import { $Undefined, } from '../types/undefined.js';
+import { $Function, } from '../types/function.js';
+import { $Object, } from '../types/object.js';
+import { $Empty, } from '../types/empty.js';
+import { $CreateUnmappedArgumentsObject, $ArgumentsExoticObject, } from '../exotics/arguments.js';
+import { $CreateListIteratorRecord, $IteratorStep, $IteratorValue, } from '../globals/iteration.js';
+import { modifiersToModifierFlags, hasBit, $identifier, $assignmentExpression, $$bindingName, GetDirectivePrologue, $decoratorList, $i, } from './_shared.js';
+import { ExportEntryRecord, } from './modules.js';
+import { $Block, } from './statements.js';
+import { $DefinePropertyOrThrow, } from '../operations.js';
+import { $PropertyDescriptor, } from '../types/property-descriptor.js';
+import { $Boolean, } from '../types/boolean.js';
 export class $FormalParameterList extends Array {
     constructor(nodes, parent, ctx) {
         super();

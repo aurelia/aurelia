@@ -1,12 +1,12 @@
 import { DI } from '@aurelia/kernel';
 import { AppTask } from '@aurelia/runtime-html';
-import { NavCustomElement } from './resources/nav';
-import { ViewportCustomElement } from './resources/viewport';
-import { ViewportScopeCustomElement } from './resources/viewport-scope';
-import { GotoCustomAttribute } from './resources/goto';
-import { LoadCustomAttribute } from './resources/load';
-import { HrefCustomAttribute } from './resources/href';
-import { IRouter } from './router';
+import { NavCustomElement } from './resources/nav.js';
+import { ViewportCustomElement } from './resources/viewport.js';
+import { ViewportScopeCustomElement } from './resources/viewport-scope.js';
+import { GotoCustomAttribute } from './resources/goto.js';
+import { LoadCustomAttribute } from './resources/load.js';
+import { HrefCustomAttribute } from './resources/href.js';
+import { IRouter } from './router.js';
 export const RouterRegistration = IRouter;
 /**
  * Default runtime/environment-agnostic implementations for the following interfaces:

@@ -8,7 +8,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 import { IObserverLocator, subscriberCollection } from '@aurelia/runtime';
-import { IPlatform } from '../platform';
+import { IPlatform } from '../platform.js';
 /**
  * Observer for handling two-way binding with attributes
  * Has different strategy for class/style and normal attributes

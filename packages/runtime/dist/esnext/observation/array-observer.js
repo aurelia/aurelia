@@ -7,9 +7,9 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-import { createIndexMap, ILifecycle } from '../observation';
-import { CollectionLengthObserver } from './collection-length-observer';
-import { collectionSubscriberCollection, subscriberCollection } from './subscriber-collection';
+import { createIndexMap, ILifecycle } from '../observation.js';
+import { CollectionLengthObserver } from './collection-length-observer.js';
+import { collectionSubscriberCollection, subscriberCollection } from './subscriber-collection.js';
 const observerLookup = new WeakMap();
 // https://tc39.github.io/ecma262/#sec-sortcompare
 function sortCompare(x, y) {

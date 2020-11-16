@@ -1,6 +1,6 @@
-import { $Object, } from '../types/object';
-import { $Call, $Construct, } from '../operations';
-import { $List, } from '../types/list';
+import { $Object, } from '../types/object.js';
+import { $Call, $Construct, } from '../operations.js';
+import { $List, } from '../types/list.js';
 // http://www.ecma-international.org/ecma-262/#sec-bound-function-exotic-objects
 export class $BoundFunctionExoticObject extends $Object {
     // http://www.ecma-international.org/ecma-262/#sec-boundfunctioncreate

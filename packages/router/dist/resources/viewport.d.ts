@@ -1,7 +1,7 @@
 import { IContainer } from '@aurelia/kernel';
 import { INode, LifecycleFlags, ICompiledCustomElementController, ICustomElementViewModel, ICustomElementController, IHydratedController, IHydratedParentController, ISyntheticView } from '@aurelia/runtime-html';
-import { IRouter } from '../router';
-import { Viewport } from '../viewport';
+import { IRouter } from '../router.js';
+import { Viewport } from '../viewport.js';
 export interface IRoutingController extends ICustomElementController {
     routingContainer?: IContainer;
 }

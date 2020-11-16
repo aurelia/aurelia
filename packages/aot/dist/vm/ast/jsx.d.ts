@@ -1,11 +1,11 @@
 import { JsxAttribute, JsxAttributes, JsxChild, JsxClosingElement, JsxClosingFragment, JsxElement, JsxExpression, JsxFragment, JsxOpeningElement, JsxOpeningFragment, JsxSelfClosingElement, JsxSpreadAttribute, JsxTagNameExpression, JsxText, SyntaxKind, JsxAttributeLike } from 'typescript';
 import { ILogger } from '@aurelia/kernel';
-import { Realm, ExecutionContext } from '../realm';
-import { $Any, $AnyNonEmpty } from '../types/_shared';
-import { I$Node, Context, $$AssignmentExpressionOrHigher, $$JsxOpeningLikeElement } from './_shared';
-import { $$ESModuleOrScript } from './modules';
-import { $Identifier, $PropertyAccessExpression, $ThisExpression } from './expressions';
-import { $StringLiteral } from './literals';
+import { Realm, ExecutionContext } from '../realm.js';
+import { $Any, $AnyNonEmpty } from '../types/_shared.js';
+import { I$Node, Context, $$AssignmentExpressionOrHigher, $$JsxOpeningLikeElement } from './_shared.js';
+import { $$ESModuleOrScript } from './modules.js';
+import { $Identifier, $PropertyAccessExpression, $ThisExpression } from './expressions.js';
+import { $StringLiteral } from './literals.js';
 export declare type $$JsxParent = ($JsxElement | $JsxFragment);
 export declare type $$JsxChild = ($JsxText | $JsxExpression | $JsxElement | $JsxSelfClosingElement | $JsxFragment);
 export declare function $$jsxChildList(nodes: readonly JsxChild[], parent: $$JsxParent, ctx: Context): readonly $$JsxChild[];

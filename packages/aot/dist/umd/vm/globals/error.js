@@ -4,20 +4,20 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "../types/function", "../types/error", "../types/object", "../types/property-descriptor", "../operations", "../types/string"], factory);
+        define(["require", "exports", "../types/function.js", "../types/error.js", "../types/object.js", "../types/property-descriptor.js", "../operations.js", "../types/string.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.$URIErrorPrototype = exports.$URIErrorConstructor = exports.$TypeErrorPrototype = exports.$TypeErrorConstructor = exports.$SyntaxErrorPrototype = exports.$SyntaxErrorConstructor = exports.$ReferenceErrorPrototype = exports.$ReferenceErrorConstructor = exports.$RangeErrorPrototype = exports.$RangeErrorConstructor = exports.$EvalErrorPrototype = exports.$EvalErrorConstructor = exports.$ErrorPrototype_toString = exports.$ErrorPrototype = exports.$ErrorConstructor = void 0;
-    const function_1 = require("../types/function");
-    const error_1 = require("../types/error");
-    const object_1 = require("../types/object");
-    const property_descriptor_1 = require("../types/property-descriptor");
-    const operations_1 = require("../operations");
-    const string_1 = require("../types/string");
+    const function_js_1 = require("../types/function.js");
+    const error_js_1 = require("../types/error.js");
+    const object_js_1 = require("../types/object.js");
+    const property_descriptor_js_1 = require("../types/property-descriptor.js");
+    const operations_js_1 = require("../operations.js");
+    const string_js_1 = require("../types/string.js");
     // http://www.ecma-international.org/ecma-262/#sec-error-constructor
-    class $ErrorConstructor extends function_1.$BuiltinFunction {
+    class $ErrorConstructor extends function_js_1.$BuiltinFunction {
         get $prototype() {
             return this.getProperty(this.realm['[[Intrinsics]]'].$prototype)['[[Value]]'];
         }
@@ -35,7 +35,7 @@
             // 1. If NewTarget is undefined, let newTarget be the active function object, else let newTarget be NewTarget.
             const newTarget = NewTarget.isUndefined ? ctx.Function : NewTarget;
             // 2. Let O be ? OrdinaryCreateFromConstructor(newTarget, "%ErrorPrototype%", « [[ErrorData]] »).
-            const O = function_1.$OrdinaryCreateFromConstructor(ctx, newTarget, '%ErrorPrototype%', { '[[ErrorData]]': void 0 });
+            const O = function_js_1.$OrdinaryCreateFromConstructor(ctx, newTarget, '%ErrorPrototype%', { '[[ErrorData]]': void 0 });
             if (O.isAbrupt) {
                 return O;
             }
@@ -47,14 +47,14 @@
                     return msg;
                 }
                 // 3. b. Let msgDesc be the PropertyDescriptor { [[Value]]: msg, [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: true }.
-                const msgDesc = new property_descriptor_1.$PropertyDescriptor(realm, intrinsics.message, {
+                const msgDesc = new property_descriptor_js_1.$PropertyDescriptor(realm, intrinsics.message, {
                     '[[Value]]': msg,
                     '[[Writable]]': intrinsics.true,
                     '[[Enumerable]]': intrinsics.false,
                     '[[Configurable]]': intrinsics.true,
                 });
                 // 3. c. Perform ! DefinePropertyOrThrow(O, "message", msgDesc).
-                operations_1.$DefinePropertyOrThrow(ctx, O, intrinsics.message, msgDesc);
+                operations_js_1.$DefinePropertyOrThrow(ctx, O, intrinsics.message, msgDesc);
             }
             // 4. Return O.
             return O;
@@ -62,7 +62,7 @@
     }
     exports.$ErrorConstructor = $ErrorConstructor;
     // http://www.ecma-international.org/ecma-262/#sec-properties-of-the-error-prototype-object
-    class $ErrorPrototype extends object_1.$Object {
+    class $ErrorPrototype extends object_js_1.$Object {
         get $constructor() {
             return this.getProperty(this.realm['[[Intrinsics]]'].$constructor)['[[Value]]'];
         }
@@ -94,7 +94,7 @@
     }
     exports.$ErrorPrototype = $ErrorPrototype;
     // http://www.ecma-international.org/ecma-262/#sec-error.prototype.tostring
-    class $ErrorPrototype_toString extends function_1.$BuiltinFunction {
+    class $ErrorPrototype_toString extends function_js_1.$BuiltinFunction {
         performSteps(ctx, thisArgument, argumentsList, NewTarget) {
             const realm = ctx.Realm;
             const intrinsics = realm['[[Intrinsics]]'];
@@ -102,7 +102,7 @@
             const O = thisArgument;
             // 2. If Type(O) is not Object, throw a TypeError exception.
             if (!O.isObject) {
-                return new error_1.$TypeError(realm, `Error.prototype.toString called on ${O}, but expected an object`);
+                return new error_js_1.$TypeError(realm, `Error.prototype.toString called on ${O}, but expected an object`);
             }
             // 3. Let name be ? Get(O, "name").
             let name = O['[[Get]]'](ctx, intrinsics.$name, O);
@@ -111,7 +111,7 @@
             }
             // 4. If name is undefined, set name to "Error"; otherwise set name to ? ToString(name).
             if (name.isUndefined) {
-                name = new string_1.$String(realm, 'Error');
+                name = new string_js_1.$String(realm, 'Error');
             }
             else {
                 name = name.ToString(ctx);
@@ -126,7 +126,7 @@
             }
             // 6. If msg is undefined, set msg to the empty String; otherwise set msg to ? ToString(msg).
             if (msg.isUndefined) {
-                msg = new string_1.$String(realm, '');
+                msg = new string_js_1.$String(realm, '');
             }
             else {
                 msg = msg.ToString(ctx);
@@ -143,12 +143,12 @@
                 return name;
             }
             // 9. Return the string-concatenation of name, the code unit 0x003A (COLON), the code unit 0x0020 (SPACE), and msg.
-            return new string_1.$String(realm, `${name['[[Value]]']}: ${msg['[[Value]]']}`);
+            return new string_js_1.$String(realm, `${name['[[Value]]']}: ${msg['[[Value]]']}`);
         }
     }
     exports.$ErrorPrototype_toString = $ErrorPrototype_toString;
     // http://www.ecma-international.org/ecma-262/#sec-nativeerror-constructors
-    class $EvalErrorConstructor extends function_1.$BuiltinFunction {
+    class $EvalErrorConstructor extends function_js_1.$BuiltinFunction {
         get $prototype() {
             return this.getProperty(this.realm['[[Intrinsics]]'].$prototype)['[[Value]]'];
         }
@@ -166,7 +166,7 @@
             // 1. If NewTarget is undefined, let newTarget be the active function object, else let newTarget be NewTarget.
             const newTarget = NewTarget.isUndefined ? ctx.Function : NewTarget;
             // 2. Let O be ? OrdinaryCreateFromConstructor(newTarget, "%EvalErrorPrototype%", « [[ErrorData]] »).
-            const O = function_1.$OrdinaryCreateFromConstructor(ctx, newTarget, '%EvalErrorPrototype%', { '[[ErrorData]]': void 0 });
+            const O = function_js_1.$OrdinaryCreateFromConstructor(ctx, newTarget, '%EvalErrorPrototype%', { '[[ErrorData]]': void 0 });
             if (O.isAbrupt) {
                 return O;
             }
@@ -178,14 +178,14 @@
                     return msg;
                 }
                 // 3. b. Let msgDesc be the PropertyDescriptor { [[Value]]: msg, [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: true }.
-                const msgDesc = new property_descriptor_1.$PropertyDescriptor(realm, intrinsics.message, {
+                const msgDesc = new property_descriptor_js_1.$PropertyDescriptor(realm, intrinsics.message, {
                     '[[Value]]': msg,
                     '[[Writable]]': intrinsics.true,
                     '[[Enumerable]]': intrinsics.false,
                     '[[Configurable]]': intrinsics.true,
                 });
                 // 3. c. Perform ! DefinePropertyOrThrow(O, "message", msgDesc).
-                operations_1.$DefinePropertyOrThrow(ctx, O, intrinsics.message, msgDesc);
+                operations_js_1.$DefinePropertyOrThrow(ctx, O, intrinsics.message, msgDesc);
             }
             // 4. Return O.
             return O;
@@ -193,7 +193,7 @@
     }
     exports.$EvalErrorConstructor = $EvalErrorConstructor;
     // http://www.ecma-international.org/ecma-262/#sec-properties-of-the-nativeerror-prototype-objects
-    class $EvalErrorPrototype extends object_1.$Object {
+    class $EvalErrorPrototype extends object_js_1.$Object {
         get $constructor() {
             return this.getProperty(this.realm['[[Intrinsics]]'].$constructor)['[[Value]]'];
         }
@@ -219,7 +219,7 @@
     }
     exports.$EvalErrorPrototype = $EvalErrorPrototype;
     // http://www.ecma-international.org/ecma-262/#sec-nativeerror-constructors
-    class $RangeErrorConstructor extends function_1.$BuiltinFunction {
+    class $RangeErrorConstructor extends function_js_1.$BuiltinFunction {
         get $prototype() {
             return this.getProperty(this.realm['[[Intrinsics]]'].$prototype)['[[Value]]'];
         }
@@ -237,7 +237,7 @@
             // 1. If NewTarget is undefined, let newTarget be the active function object, else let newTarget be NewTarget.
             const newTarget = NewTarget.isUndefined ? ctx.Function : NewTarget;
             // 2. Let O be ? OrdinaryCreateFromConstructor(newTarget, "%RangeErrorPrototype%", « [[ErrorData]] »).
-            const O = function_1.$OrdinaryCreateFromConstructor(ctx, newTarget, '%RangeErrorPrototype%', { '[[ErrorData]]': void 0 });
+            const O = function_js_1.$OrdinaryCreateFromConstructor(ctx, newTarget, '%RangeErrorPrototype%', { '[[ErrorData]]': void 0 });
             if (O.isAbrupt) {
                 return O;
             }
@@ -249,14 +249,14 @@
                     return msg;
                 }
                 // 3. b. Let msgDesc be the PropertyDescriptor { [[Value]]: msg, [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: true }.
-                const msgDesc = new property_descriptor_1.$PropertyDescriptor(realm, intrinsics.message, {
+                const msgDesc = new property_descriptor_js_1.$PropertyDescriptor(realm, intrinsics.message, {
                     '[[Value]]': msg,
                     '[[Writable]]': intrinsics.true,
                     '[[Enumerable]]': intrinsics.false,
                     '[[Configurable]]': intrinsics.true,
                 });
                 // 3. c. Perform ! DefinePropertyOrThrow(O, "message", msgDesc).
-                operations_1.$DefinePropertyOrThrow(ctx, O, intrinsics.message, msgDesc);
+                operations_js_1.$DefinePropertyOrThrow(ctx, O, intrinsics.message, msgDesc);
             }
             // 4. Return O.
             return O;
@@ -264,7 +264,7 @@
     }
     exports.$RangeErrorConstructor = $RangeErrorConstructor;
     // http://www.ecma-international.org/ecma-262/#sec-properties-of-the-nativeerror-prototype-objects
-    class $RangeErrorPrototype extends object_1.$Object {
+    class $RangeErrorPrototype extends object_js_1.$Object {
         get $constructor() {
             return this.getProperty(this.realm['[[Intrinsics]]'].$constructor)['[[Value]]'];
         }
@@ -290,7 +290,7 @@
     }
     exports.$RangeErrorPrototype = $RangeErrorPrototype;
     // http://www.ecma-international.org/ecma-262/#sec-nativeerror-constructors
-    class $ReferenceErrorConstructor extends function_1.$BuiltinFunction {
+    class $ReferenceErrorConstructor extends function_js_1.$BuiltinFunction {
         get $prototype() {
             return this.getProperty(this.realm['[[Intrinsics]]'].$prototype)['[[Value]]'];
         }
@@ -308,7 +308,7 @@
             // 1. If NewTarget is undefined, let newTarget be the active function object, else let newTarget be NewTarget.
             const newTarget = NewTarget.isUndefined ? ctx.Function : NewTarget;
             // 2. Let O be ? OrdinaryCreateFromConstructor(newTarget, "%ReferenceErrorPrototype%", « [[ErrorData]] »).
-            const O = function_1.$OrdinaryCreateFromConstructor(ctx, newTarget, '%ReferenceErrorPrototype%', { '[[ErrorData]]': void 0 });
+            const O = function_js_1.$OrdinaryCreateFromConstructor(ctx, newTarget, '%ReferenceErrorPrototype%', { '[[ErrorData]]': void 0 });
             if (O.isAbrupt) {
                 return O;
             }
@@ -320,14 +320,14 @@
                     return msg;
                 }
                 // 3. b. Let msgDesc be the PropertyDescriptor { [[Value]]: msg, [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: true }.
-                const msgDesc = new property_descriptor_1.$PropertyDescriptor(realm, intrinsics.message, {
+                const msgDesc = new property_descriptor_js_1.$PropertyDescriptor(realm, intrinsics.message, {
                     '[[Value]]': msg,
                     '[[Writable]]': intrinsics.true,
                     '[[Enumerable]]': intrinsics.false,
                     '[[Configurable]]': intrinsics.true,
                 });
                 // 3. c. Perform ! DefinePropertyOrThrow(O, "message", msgDesc).
-                operations_1.$DefinePropertyOrThrow(ctx, O, intrinsics.message, msgDesc);
+                operations_js_1.$DefinePropertyOrThrow(ctx, O, intrinsics.message, msgDesc);
             }
             // 4. Return O.
             return O;
@@ -335,7 +335,7 @@
     }
     exports.$ReferenceErrorConstructor = $ReferenceErrorConstructor;
     // http://www.ecma-international.org/ecma-262/#sec-properties-of-the-nativeerror-prototype-objects
-    class $ReferenceErrorPrototype extends object_1.$Object {
+    class $ReferenceErrorPrototype extends object_js_1.$Object {
         get $constructor() {
             return this.getProperty(this.realm['[[Intrinsics]]'].$constructor)['[[Value]]'];
         }
@@ -361,7 +361,7 @@
     }
     exports.$ReferenceErrorPrototype = $ReferenceErrorPrototype;
     // http://www.ecma-international.org/ecma-262/#sec-nativeerror-constructors
-    class $SyntaxErrorConstructor extends function_1.$BuiltinFunction {
+    class $SyntaxErrorConstructor extends function_js_1.$BuiltinFunction {
         get $prototype() {
             return this.getProperty(this.realm['[[Intrinsics]]'].$prototype)['[[Value]]'];
         }
@@ -379,7 +379,7 @@
             // 1. If NewTarget is undefined, let newTarget be the active function object, else let newTarget be NewTarget.
             const newTarget = NewTarget.isUndefined ? ctx.Function : NewTarget;
             // 2. Let O be ? OrdinaryCreateFromConstructor(newTarget, "%SyntaxErrorPrototype%", « [[ErrorData]] »).
-            const O = function_1.$OrdinaryCreateFromConstructor(ctx, newTarget, '%SyntaxErrorPrototype%', { '[[ErrorData]]': void 0 });
+            const O = function_js_1.$OrdinaryCreateFromConstructor(ctx, newTarget, '%SyntaxErrorPrototype%', { '[[ErrorData]]': void 0 });
             if (O.isAbrupt) {
                 return O;
             }
@@ -391,14 +391,14 @@
                     return msg;
                 }
                 // 3. b. Let msgDesc be the PropertyDescriptor { [[Value]]: msg, [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: true }.
-                const msgDesc = new property_descriptor_1.$PropertyDescriptor(realm, intrinsics.message, {
+                const msgDesc = new property_descriptor_js_1.$PropertyDescriptor(realm, intrinsics.message, {
                     '[[Value]]': msg,
                     '[[Writable]]': intrinsics.true,
                     '[[Enumerable]]': intrinsics.false,
                     '[[Configurable]]': intrinsics.true,
                 });
                 // 3. c. Perform ! DefinePropertyOrThrow(O, "message", msgDesc).
-                operations_1.$DefinePropertyOrThrow(ctx, O, intrinsics.message, msgDesc);
+                operations_js_1.$DefinePropertyOrThrow(ctx, O, intrinsics.message, msgDesc);
             }
             // 4. Return O.
             return O;
@@ -406,7 +406,7 @@
     }
     exports.$SyntaxErrorConstructor = $SyntaxErrorConstructor;
     // http://www.ecma-international.org/ecma-262/#sec-properties-of-the-nativeerror-prototype-objects
-    class $SyntaxErrorPrototype extends object_1.$Object {
+    class $SyntaxErrorPrototype extends object_js_1.$Object {
         get $constructor() {
             return this.getProperty(this.realm['[[Intrinsics]]'].$constructor)['[[Value]]'];
         }
@@ -432,7 +432,7 @@
     }
     exports.$SyntaxErrorPrototype = $SyntaxErrorPrototype;
     // http://www.ecma-international.org/ecma-262/#sec-nativeerror-constructors
-    class $TypeErrorConstructor extends function_1.$BuiltinFunction {
+    class $TypeErrorConstructor extends function_js_1.$BuiltinFunction {
         get $prototype() {
             return this.getProperty(this.realm['[[Intrinsics]]'].$prototype)['[[Value]]'];
         }
@@ -450,7 +450,7 @@
             // 1. If NewTarget is undefined, let newTarget be the active function object, else let newTarget be NewTarget.
             const newTarget = NewTarget.isUndefined ? ctx.Function : NewTarget;
             // 2. Let O be ? OrdinaryCreateFromConstructor(newTarget, "%TypeErrorPrototype%", « [[ErrorData]] »).
-            const O = function_1.$OrdinaryCreateFromConstructor(ctx, newTarget, '%TypeErrorPrototype%', { '[[ErrorData]]': void 0 });
+            const O = function_js_1.$OrdinaryCreateFromConstructor(ctx, newTarget, '%TypeErrorPrototype%', { '[[ErrorData]]': void 0 });
             if (O.isAbrupt) {
                 return O;
             }
@@ -462,14 +462,14 @@
                     return msg;
                 }
                 // 3. b. Let msgDesc be the PropertyDescriptor { [[Value]]: msg, [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: true }.
-                const msgDesc = new property_descriptor_1.$PropertyDescriptor(realm, intrinsics.message, {
+                const msgDesc = new property_descriptor_js_1.$PropertyDescriptor(realm, intrinsics.message, {
                     '[[Value]]': msg,
                     '[[Writable]]': intrinsics.true,
                     '[[Enumerable]]': intrinsics.false,
                     '[[Configurable]]': intrinsics.true,
                 });
                 // 3. c. Perform ! DefinePropertyOrThrow(O, "message", msgDesc).
-                operations_1.$DefinePropertyOrThrow(ctx, O, intrinsics.message, msgDesc);
+                operations_js_1.$DefinePropertyOrThrow(ctx, O, intrinsics.message, msgDesc);
             }
             // 4. Return O.
             return O;
@@ -477,7 +477,7 @@
     }
     exports.$TypeErrorConstructor = $TypeErrorConstructor;
     // http://www.ecma-international.org/ecma-262/#sec-properties-of-the-nativeerror-prototype-objects
-    class $TypeErrorPrototype extends object_1.$Object {
+    class $TypeErrorPrototype extends object_js_1.$Object {
         get $constructor() {
             return this.getProperty(this.realm['[[Intrinsics]]'].$constructor)['[[Value]]'];
         }
@@ -503,7 +503,7 @@
     }
     exports.$TypeErrorPrototype = $TypeErrorPrototype;
     // http://www.ecma-international.org/ecma-262/#sec-nativeerror-constructors
-    class $URIErrorConstructor extends function_1.$BuiltinFunction {
+    class $URIErrorConstructor extends function_js_1.$BuiltinFunction {
         get $prototype() {
             return this.getProperty(this.realm['[[Intrinsics]]'].$prototype)['[[Value]]'];
         }
@@ -521,7 +521,7 @@
             // 1. If NewTarget is undefined, let newTarget be the active function object, else let newTarget be NewTarget.
             const newTarget = NewTarget.isUndefined ? ctx.Function : NewTarget;
             // 2. Let O be ? OrdinaryCreateFromConstructor(newTarget, "%URIErrorPrototype%", « [[ErrorData]] »).
-            const O = function_1.$OrdinaryCreateFromConstructor(ctx, newTarget, '%URIErrorPrototype%', { '[[ErrorData]]': void 0 });
+            const O = function_js_1.$OrdinaryCreateFromConstructor(ctx, newTarget, '%URIErrorPrototype%', { '[[ErrorData]]': void 0 });
             if (O.isAbrupt) {
                 return O;
             }
@@ -533,14 +533,14 @@
                     return msg;
                 }
                 // 3. b. Let msgDesc be the PropertyDescriptor { [[Value]]: msg, [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: true }.
-                const msgDesc = new property_descriptor_1.$PropertyDescriptor(realm, intrinsics.message, {
+                const msgDesc = new property_descriptor_js_1.$PropertyDescriptor(realm, intrinsics.message, {
                     '[[Value]]': msg,
                     '[[Writable]]': intrinsics.true,
                     '[[Enumerable]]': intrinsics.false,
                     '[[Configurable]]': intrinsics.true,
                 });
                 // 3. c. Perform ! DefinePropertyOrThrow(O, "message", msgDesc).
-                operations_1.$DefinePropertyOrThrow(ctx, O, intrinsics.message, msgDesc);
+                operations_js_1.$DefinePropertyOrThrow(ctx, O, intrinsics.message, msgDesc);
             }
             // 4. Return O.
             return O;
@@ -548,7 +548,7 @@
     }
     exports.$URIErrorConstructor = $URIErrorConstructor;
     // http://www.ecma-international.org/ecma-262/#sec-properties-of-the-nativeerror-prototype-objects
-    class $URIErrorPrototype extends object_1.$Object {
+    class $URIErrorPrototype extends object_js_1.$Object {
         get $constructor() {
             return this.getProperty(this.realm['[[Intrinsics]]'].$constructor)['[[Value]]'];
         }

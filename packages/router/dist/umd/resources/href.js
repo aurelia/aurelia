@@ -16,15 +16,15 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/runtime-html", "../router", "../configuration"], factory);
+        define(["require", "exports", "@aurelia/runtime-html", "../router.js", "../configuration.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.HrefCustomAttribute = void 0;
     const runtime_html_1 = require("@aurelia/runtime-html");
-    const router_1 = require("../router");
-    const configuration_1 = require("../configuration");
+    const router_js_1 = require("../router.js");
+    const configuration_js_1 = require("../configuration.js");
     let HrefCustomAttribute = class HrefCustomAttribute {
         constructor(element, router) {
             this.router = router;
@@ -49,7 +49,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             const parent = this.$controller.parent;
             const siblings = parent.children;
             return siblings !== null
-                && siblings.some(c => c.vmKind === 1 /* customAttribute */ && c.viewModel instanceof configuration_1.GotoCustomAttribute);
+                && siblings.some(c => c.vmKind === 1 /* customAttribute */ && c.viewModel instanceof configuration_js_1.GotoCustomAttribute);
         }
     };
     __decorate([
@@ -62,7 +62,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             noMultiBindings: true
         }),
         __param(0, runtime_html_1.INode),
-        __param(1, router_1.IRouter),
+        __param(1, router_js_1.IRouter),
         __metadata("design:paramtypes", [Object, Object])
     ], HrefCustomAttribute);
     exports.HrefCustomAttribute = HrefCustomAttribute;

@@ -7,7 +7,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-import { subscriberCollection } from './subscriber-collection';
+import { subscriberCollection } from './subscriber-collection.js';
 const $is = Object.is;
 /**
  * Observer for the mutation of object property value employing getter-setter strategy.

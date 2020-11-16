@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import { DI } from './di';
+import { DI } from './di.js';
 /**
  * Represents a handler for an EventAggregator event.
  */

@@ -12,9 +12,9 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 import { emptyArray } from '@aurelia/kernel';
 import { bindable } from '@aurelia/runtime';
-import { INode } from '../../dom';
-import { IPlatform } from '../../platform';
-import { customAttribute } from '../custom-attribute';
+import { INode } from '../../dom.js';
+import { IPlatform } from '../../platform.js';
+import { customAttribute } from '../custom-attribute.js';
 const unset = Symbol();
 // Using passive to help with performance
 const defaultCaptureEventInit = {

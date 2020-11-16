@@ -16,14 +16,14 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/runtime-html", "./task-queue"], factory);
+        define(["require", "exports", "@aurelia/runtime-html", "./task-queue.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.BrowserViewerStore = void 0;
     const runtime_html_1 = require("@aurelia/runtime-html");
-    const task_queue_1 = require("./task-queue");
+    const task_queue_js_1 = require("./task-queue.js");
     /**
      * @internal - Shouldn't be used directly
      */
@@ -52,7 +52,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                     task.resolve();
                 }, 1).wait();
             };
-            this.pendingCalls = new task_queue_1.TaskQueue();
+            this.pendingCalls = new task_queue_js_1.TaskQueue();
         }
         start(options) {
             if (this.isActive) {

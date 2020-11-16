@@ -1,11 +1,11 @@
-import { $AnyNonError, PotentialEmptyCompletionType, CompletionTarget, $Any } from './_shared';
-import { Realm, ExecutionContext } from '../realm';
-import { $TypeError } from './error';
-import { $ESModule, $ESScript } from '../ast/modules';
-import { $ComputedPropertyName } from '../ast/bindings';
-import { $ContinueStatement, $BreakStatement } from '../ast/statements';
-import { $FunctionDeclaration } from '../ast/functions';
-import { I$Node } from '../ast/_shared';
+import { $AnyNonError, PotentialEmptyCompletionType, CompletionTarget, $Any } from './_shared.js';
+import { Realm, ExecutionContext } from '../realm.js';
+import { $TypeError } from './error.js';
+import { $ESModule, $ESScript } from '../ast/modules.js';
+import { $ComputedPropertyName } from '../ast/bindings.js';
+import { $ContinueStatement, $BreakStatement } from '../ast/statements.js';
+import { $FunctionDeclaration } from '../ast/functions.js';
+import { I$Node } from '../ast/_shared.js';
 export interface empty {
     '<empty>': unknown;
 }

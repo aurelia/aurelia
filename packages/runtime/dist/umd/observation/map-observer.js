@@ -13,15 +13,15 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "../observation", "./collection-size-observer", "./subscriber-collection"], factory);
+        define(["require", "exports", "../observation.js", "./collection-size-observer.js", "./subscriber-collection.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.getMapObserver = exports.MapObserver = exports.disableMapObservation = exports.enableMapObservation = void 0;
-    const observation_1 = require("../observation");
-    const collection_size_observer_1 = require("./collection-size-observer");
-    const subscriber_collection_1 = require("./subscriber-collection");
+    const observation_js_1 = require("../observation.js");
+    const collection_size_observer_js_1 = require("./collection-size-observer.js");
+    const subscriber_collection_js_1 = require("./subscriber-collection.js");
     const observerLookup = new WeakMap();
     const proto = Map.prototype;
     const $set = proto.set;
@@ -162,7 +162,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             this.inBatch = false;
             this.collection = map;
             this.persistentFlags = flags & 15367 /* persistentBindingFlags */;
-            this.indexMap = observation_1.createIndexMap(map.size);
+            this.indexMap = observation_js_1.createIndexMap(map.size);
             this.lifecycle = lifecycle;
             this.lengthObserver = (void 0);
             observerLookup.set(map, this);
@@ -180,7 +180,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         }
         getLengthObserver() {
             if (this.lengthObserver === void 0) {
-                this.lengthObserver = new collection_size_observer_1.CollectionSizeObserver(this.collection);
+                this.lengthObserver = new collection_size_observer_js_1.CollectionSizeObserver(this.collection);
             }
             return this.lengthObserver;
         }
@@ -191,7 +191,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             const indexMap = this.indexMap;
             const size = this.collection.size;
             this.inBatch = false;
-            this.indexMap = observation_1.createIndexMap(size);
+            this.indexMap = observation_js_1.createIndexMap(size);
             this.callCollectionSubscribers(indexMap, 8 /* updateTarget */ | this.persistentFlags);
             if (this.lengthObserver !== void 0) {
                 this.lengthObserver.notify();
@@ -199,7 +199,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         }
     };
     MapObserver = __decorate([
-        subscriber_collection_1.collectionSubscriberCollection(),
+        subscriber_collection_js_1.collectionSubscriberCollection(),
         __metadata("design:paramtypes", [Number, Object, Object])
     ], MapObserver);
     exports.MapObserver = MapObserver;

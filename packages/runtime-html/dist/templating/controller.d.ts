@@ -1,14 +1,14 @@
 import { IContainer, Writable, IDisposable } from '@aurelia/kernel';
 import { IBinding, Scope, LifecycleFlags, ILifecycle, IBindingTargetAccessor } from '@aurelia/runtime';
-import { INode, INodeSequence, IRenderLocation } from '../dom';
-import { CustomElementDefinition, PartialCustomElementDefinition } from '../resources/custom-element';
-import { CustomAttributeDefinition } from '../resources/custom-attribute';
-import { IRenderContext, RenderContext, ICompiledRenderContext } from './render-context';
-import { IAppRoot } from '../app-root';
-import { IPlatform } from '../platform';
-import type { RegisteredProjections } from '../resources/custom-elements/au-slot';
-import type { IViewFactory } from './view';
-import type { Instruction } from '../renderer';
+import { INode, INodeSequence, IRenderLocation } from '../dom.js';
+import { CustomElementDefinition, PartialCustomElementDefinition } from '../resources/custom-element.js';
+import { CustomAttributeDefinition } from '../resources/custom-attribute.js';
+import { IRenderContext, RenderContext, ICompiledRenderContext } from './render-context.js';
+import { IAppRoot } from '../app-root.js';
+import { IPlatform } from '../platform.js';
+import type { RegisteredProjections } from '../resources/custom-elements/au-slot.js';
+import type { IViewFactory } from './view.js';
+import type { Instruction } from '../renderer.js';
 declare type BindingContext<C extends IViewModel> = Required<ICompileHooks> & Required<IActivationHooks<IHydratedParentController | null>> & C;
 export declare const enum MountTarget {
     none = 0,

@@ -4,19 +4,19 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "../types/function", "../types/error", "../types/symbol", "../types/undefined", "../types/object"], factory);
+        define(["require", "exports", "../types/function.js", "../types/error.js", "../types/symbol.js", "../types/undefined.js", "../types/object.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.$SymbolPrototype = exports.$SymbolConstructor = void 0;
-    const function_1 = require("../types/function");
-    const error_1 = require("../types/error");
-    const symbol_1 = require("../types/symbol");
-    const undefined_1 = require("../types/undefined");
-    const object_1 = require("../types/object");
+    const function_js_1 = require("../types/function.js");
+    const error_js_1 = require("../types/error.js");
+    const symbol_js_1 = require("../types/symbol.js");
+    const undefined_js_1 = require("../types/undefined.js");
+    const object_js_1 = require("../types/object.js");
     // http://www.ecma-international.org/ecma-262/#sec-symbol-constructor
-    class $SymbolConstructor extends function_1.$BuiltinFunction {
+    class $SymbolConstructor extends function_js_1.$BuiltinFunction {
         get $prototype() {
             return this.getProperty(this.realm['[[Intrinsics]]'].$prototype)['[[Value]]'];
         }
@@ -33,12 +33,12 @@
             const intrinsics = realm['[[Intrinsics]]'];
             // 1. If NewTarget is not undefined, throw a TypeError exception.
             if (!NewTarget.isUndefined) {
-                return new error_1.$TypeError(realm, `Symbol is not a constructor`);
+                return new error_js_1.$TypeError(realm, `Symbol is not a constructor`);
             }
             // 2. If description is undefined, let descString be undefined.
             if (description === void 0 || description.isUndefined) {
                 // 4. Return a new unique Symbol value whose [[Description]] value is descString.
-                return new symbol_1.$Symbol(realm, new undefined_1.$Undefined(realm));
+                return new symbol_js_1.$Symbol(realm, new undefined_js_1.$Undefined(realm));
             }
             // 3. Else, let descString be ? ToString(description).
             else {
@@ -47,13 +47,13 @@
                     return descString;
                 }
                 // 4. Return a new unique Symbol value whose [[Description]] value is descString.
-                return new symbol_1.$Symbol(realm, descString);
+                return new symbol_js_1.$Symbol(realm, descString);
             }
         }
     }
     exports.$SymbolConstructor = $SymbolConstructor;
     // http://www.ecma-international.org/ecma-262/#sec-properties-of-the-symbol-prototype-object
-    class $SymbolPrototype extends object_1.$Object {
+    class $SymbolPrototype extends object_js_1.$Object {
         get $constructor() {
             return this.getProperty(this.realm['[[Intrinsics]]'].$constructor)['[[Value]]'];
         }

@@ -12,15 +12,15 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 import { Metadata, Registration, DI } from '@aurelia/kernel';
 import { BindingMode, IExpressionParser, IObserverLocator, InterpolationBinding, PropertyBinding, BindingBehaviorExpression, CallBinding, LetBinding, RefBinding, BindingBehaviorFactory, } from '@aurelia/runtime';
-import { AttributeBinding } from './binding/attribute';
-import { Listener } from './binding/listener';
-import { IEventDelegator } from './observation/event-delegator';
-import { CustomElement } from './resources/custom-element';
-import { getRenderContext } from './templating/render-context';
-import { CustomAttribute } from './resources/custom-attribute';
-import { convertToRenderLocation } from './dom';
-import { Controller } from './templating/controller';
-import { IPlatform } from './platform';
+import { AttributeBinding } from './binding/attribute.js';
+import { Listener } from './binding/listener.js';
+import { IEventDelegator } from './observation/event-delegator.js';
+import { CustomElement } from './resources/custom-element.js';
+import { getRenderContext } from './templating/render-context.js';
+import { CustomAttribute } from './resources/custom-attribute.js';
+import { convertToRenderLocation } from './dom.js';
+import { Controller } from './templating/controller.js';
+import { IPlatform } from './platform.js';
 export var InstructionType;
 (function (InstructionType) {
     InstructionType["hydrateElement"] = "ra";

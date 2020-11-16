@@ -11,9 +11,9 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 import { nextId } from '@aurelia/kernel';
-import { IRenderLocation } from '../../dom';
-import { IViewFactory } from '../../templating/view';
-import { templateController } from '../custom-attribute';
+import { IRenderLocation } from '../../dom.js';
+import { IViewFactory } from '../../templating/view.js';
+import { templateController } from '../custom-attribute.js';
 class FlagsTemplateController {
     constructor(factory, location, flags) {
         this.factory = factory;

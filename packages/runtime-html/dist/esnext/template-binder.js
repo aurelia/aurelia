@@ -1,9 +1,9 @@
 import { camelCase, } from '@aurelia/kernel';
 import { BindingMode, } from '@aurelia/runtime';
-import { BindingCommand } from './resources/binding-command';
-import { CustomAttribute } from './resources/custom-attribute';
-import { CustomElement } from './resources/custom-element';
-import { BindingSymbol, CustomAttributeSymbol, CustomElementSymbol, LetElementSymbol, PlainAttributeSymbol, PlainElementSymbol, TemplateControllerSymbol, TextSymbol, ProjectionSymbol, AttrInfo, ElementInfo, BindableInfo, } from './semantic-model';
+import { BindingCommand } from './resources/binding-command.js';
+import { CustomAttribute } from './resources/custom-attribute.js';
+import { CustomElement } from './resources/custom-element.js';
+import { BindingSymbol, CustomAttributeSymbol, CustomElementSymbol, LetElementSymbol, PlainAttributeSymbol, PlainElementSymbol, TemplateControllerSymbol, TextSymbol, ProjectionSymbol, AttrInfo, ElementInfo, BindableInfo, } from './semantic-model.js';
 const invalidSurrogateAttribute = Object.assign(Object.create(null), {
     'id': true,
     'au-slot': true,

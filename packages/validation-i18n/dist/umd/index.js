@@ -14,12 +14,12 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./localization", "./configuration"], factory);
+        define(["require", "exports", "./localization.js", "./configuration.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    __exportStar(require("./localization"), exports);
-    __exportStar(require("./configuration"), exports);
+    __exportStar(require("./localization.js"), exports);
+    __exportStar(require("./configuration.js"), exports);
 });
 //# sourceMappingURL=index.js.map

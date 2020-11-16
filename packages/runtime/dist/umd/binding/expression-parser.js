@@ -4,14 +4,14 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "./ast"], factory);
+        define(["require", "exports", "@aurelia/kernel", "./ast.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.parse = exports.parseExpression = exports.ParserState = exports.BindingType = exports.Precedence = exports.Access = exports.Char = exports.ExpressionParser = exports.IExpressionParser = void 0;
     const kernel_1 = require("@aurelia/kernel");
-    const ast_1 = require("./ast");
+    const ast_js_1 = require("./ast.js");
     exports.IExpressionParser = kernel_1.DI.createInterface('IExpressionParser').withDefault(x => x.singleton(ExpressionParser));
     class ExpressionParser {
         constructor() {
@@ -39,7 +39,7 @@
                     // Allow empty strings for normal bindings and those that are empty by default (such as a custom attribute without an equals sign)
                     // But don't cache it, because empty strings are always invalid for any other type of binding
                     if (expression.length === 0 && (bindingType & (53 /* BindCommand */ | 49 /* OneTimeCommand */ | 50 /* ToViewCommand */))) {
-                        return ast_1.PrimitiveLiteralExpression.$empty;
+                        return ast_js_1.PrimitiveLiteralExpression.$empty;
                     }
                     let found = this.expressionLookup[expression];
                     if (found === void 0) {
@@ -262,13 +262,13 @@
         Token[Token["TemplateContinuation"] = 540715] = "TemplateContinuation";
         Token[Token["OfKeyword"] = 1051180] = "OfKeyword";
     })(Token || (Token = {}));
-    const $false = ast_1.PrimitiveLiteralExpression.$false;
-    const $true = ast_1.PrimitiveLiteralExpression.$true;
-    const $null = ast_1.PrimitiveLiteralExpression.$null;
-    const $undefined = ast_1.PrimitiveLiteralExpression.$undefined;
-    const $this = ast_1.AccessThisExpression.$this;
-    const $host = ast_1.AccessThisExpression.$host;
-    const $parent = ast_1.AccessThisExpression.$parent;
+    const $false = ast_js_1.PrimitiveLiteralExpression.$false;
+    const $true = ast_js_1.PrimitiveLiteralExpression.$true;
+    const $null = ast_js_1.PrimitiveLiteralExpression.$null;
+    const $undefined = ast_js_1.PrimitiveLiteralExpression.$undefined;
+    const $this = ast_js_1.AccessThisExpression.$this;
+    const $host = ast_js_1.AccessThisExpression.$host;
+    const $parent = ast_js_1.AccessThisExpression.$parent;
     /* eslint-disable @typescript-eslint/indent */
     var BindingType;
     (function (BindingType) {
@@ -339,7 +339,7 @@
     // eslint-disable-next-line max-lines-per-function
     function parse(state, access, minPrecedence, bindingType) {
         if (bindingType === 284 /* CustomCommand */) {
-            return new ast_1.CustomExpression(state.input);
+            return new ast_js_1.CustomExpression(state.input);
         }
         if (state.index === 0) {
             if (bindingType & 2048 /* Interpolation */) {
@@ -373,7 +373,7 @@
              */
             const op = TokenValues[state.currentToken & 63 /* Type */];
             nextToken(state);
-            result = new ast_1.UnaryExpression(op, parse(state, access, 449 /* LeftHandSide */, bindingType));
+            result = new ast_js_1.UnaryExpression(op, parse(state, access, 449 /* LeftHandSide */, bindingType));
             state.assignable = false;
         }
         else {
@@ -418,7 +418,7 @@
                         }
                         else if (state.currentToken & 524288 /* AccessScopeTerminal */) {
                             const ancestor = access & 511 /* Ancestor */;
-                            result = ancestor === 0 ? $this : ancestor === 1 ? $parent : new ast_1.AccessThisExpression(ancestor);
+                            result = ancestor === 0 ? $this : ancestor === 1 ? $parent : new ast_js_1.AccessThisExpression(ancestor);
                             access = 512 /* This */;
                             break primary;
                         }
@@ -429,10 +429,10 @@
                 // falls through
                 case 1024 /* Identifier */: // identifier
                     if (bindingType & 512 /* IsIterator */) {
-                        result = new ast_1.BindingIdentifier(state.tokenValue);
+                        result = new ast_js_1.BindingIdentifier(state.tokenValue);
                     }
                     else {
-                        result = new ast_1.AccessScopeExpression(state.tokenValue, access & 511 /* Ancestor */);
+                        result = new ast_js_1.AccessScopeExpression(state.tokenValue, access & 511 /* Ancestor */);
                         access = 1024 /* Scope */;
                     }
                     state.assignable = true;
@@ -465,7 +465,7 @@
                     access = 0 /* Reset */;
                     break;
                 case 540714 /* TemplateTail */:
-                    result = new ast_1.TemplateExpression([state.tokenValue]);
+                    result = new ast_js_1.TemplateExpression([state.tokenValue]);
                     state.assignable = false;
                     nextToken(state);
                     access = 0 /* Reset */;
@@ -476,7 +476,7 @@
                     break;
                 case 4096 /* StringLiteral */:
                 case 8192 /* NumericLiteral */:
-                    result = new ast_1.PrimitiveLiteralExpression(state.tokenValue);
+                    result = new ast_js_1.PrimitiveLiteralExpression(state.tokenValue);
                     state.assignable = false;
                     nextToken(state);
                     access = 0 /* Reset */;
@@ -552,17 +552,17 @@
                             continue;
                         }
                         if (access & 1024 /* Scope */) {
-                            result = new ast_1.AccessScopeExpression(name, result.ancestor, result === $host);
+                            result = new ast_js_1.AccessScopeExpression(name, result.ancestor, result === $host);
                         }
                         else { // if it's not $Scope, it's $Member
-                            result = new ast_1.AccessMemberExpression(result, name);
+                            result = new ast_js_1.AccessMemberExpression(result, name);
                         }
                         continue;
                     case 671757 /* OpenBracket */:
                         state.assignable = true;
                         nextToken(state);
                         access = 4096 /* Keyed */;
-                        result = new ast_1.AccessKeyedExpression(result, parse(state, 0 /* Reset */, 62 /* Assign */, bindingType));
+                        result = new ast_js_1.AccessKeyedExpression(result, parse(state, 0 /* Reset */, 62 /* Assign */, bindingType));
                         consume(state, 1835022 /* CloseBracket */);
                         break;
                     case 671751 /* OpenParen */:
@@ -576,20 +576,20 @@
                         }
                         consume(state, 1835019 /* CloseParen */);
                         if (access & 1024 /* Scope */) {
-                            result = new ast_1.CallScopeExpression(name, args, result.ancestor, result === $host);
+                            result = new ast_js_1.CallScopeExpression(name, args, result.ancestor, result === $host);
                         }
                         else if (access & 2048 /* Member */) {
-                            result = new ast_1.CallMemberExpression(result, name, args);
+                            result = new ast_js_1.CallMemberExpression(result, name, args);
                         }
                         else {
-                            result = new ast_1.CallFunctionExpression(result, args);
+                            result = new ast_js_1.CallFunctionExpression(result, args);
                         }
                         access = 0;
                         break;
                     case 540714 /* TemplateTail */:
                         state.assignable = false;
                         strings = [state.tokenValue];
-                        result = new ast_1.TaggedTemplateExpression(strings, strings, result);
+                        result = new ast_js_1.TaggedTemplateExpression(strings, strings, result);
                         nextToken(state);
                         break;
                     case 540715 /* TemplateContinuation */:
@@ -635,7 +635,7 @@
                 break;
             }
             nextToken(state);
-            result = new ast_1.BinaryExpression(TokenValues[opToken & 63 /* Type */], result, parse(state, access, opToken & 448 /* Precedence */, bindingType));
+            result = new ast_js_1.BinaryExpression(TokenValues[opToken & 63 /* Type */], result, parse(state, access, opToken & 448 /* Precedence */, bindingType));
             state.assignable = false;
         }
         if (63 /* Conditional */ < minPrecedence) {
@@ -656,7 +656,7 @@
         if (consumeOpt(state, 1572880 /* Question */)) {
             const yes = parse(state, access, 62 /* Assign */, bindingType);
             consume(state, 1572879 /* Colon */);
-            result = new ast_1.ConditionalExpression(result, yes, parse(state, access, 62 /* Assign */, bindingType));
+            result = new ast_js_1.ConditionalExpression(result, yes, parse(state, access, 62 /* Assign */, bindingType));
             state.assignable = false;
         }
         if (62 /* Assign */ < minPrecedence) {
@@ -678,7 +678,7 @@
             if (!state.assignable) {
                 throw new Error(`Left hand side of expression is not assignable: '${state.input}'`);
             }
-            result = new ast_1.AssignExpression(result, parse(state, access, 62 /* Assign */, bindingType));
+            result = new ast_js_1.AssignExpression(result, parse(state, access, 62 /* Assign */, bindingType));
         }
         if (61 /* Variadic */ < minPrecedence) {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -696,7 +696,7 @@
             while (consumeOpt(state, 1572879 /* Colon */)) {
                 args.push(parse(state, access, 62 /* Assign */, bindingType));
             }
-            result = new ast_1.ValueConverterExpression(result, name, args);
+            result = new ast_js_1.ValueConverterExpression(result, name, args);
         }
         /** parseBindingBehavior
          */
@@ -710,7 +710,7 @@
             while (consumeOpt(state, 1572879 /* Colon */)) {
                 args.push(parse(state, access, 62 /* Assign */, bindingType));
             }
-            result = new ast_1.BindingBehaviorExpression(result, name, args);
+            result = new ast_js_1.BindingBehaviorExpression(result, name, args);
         }
         if (state.currentToken !== 1572864 /* EOF */) {
             if (bindingType & 2048 /* Interpolation */) {
@@ -767,11 +767,11 @@
         }
         consume(state, 1835022 /* CloseBracket */);
         if (bindingType & 512 /* IsIterator */) {
-            return new ast_1.ArrayBindingPattern(elements);
+            return new ast_js_1.ArrayBindingPattern(elements);
         }
         else {
             state.assignable = false;
-            return new ast_1.ArrayLiteralExpression(elements);
+            return new ast_js_1.ArrayLiteralExpression(elements);
         }
     }
     function parseForOfStatement(state, result) {
@@ -784,7 +784,7 @@
         nextToken(state);
         const declaration = result;
         const statement = parse(state, 0 /* Reset */, 61 /* Variadic */, 0 /* None */);
-        return new ast_1.ForOfStatement(declaration, statement);
+        return new ast_js_1.ForOfStatement(declaration, statement);
     }
     /**
      * parseObjectLiteralExpression
@@ -843,11 +843,11 @@
         }
         consume(state, 1835018 /* CloseBrace */);
         if (bindingType & 512 /* IsIterator */) {
-            return new ast_1.ObjectBindingPattern(keys, values);
+            return new ast_js_1.ObjectBindingPattern(keys, values);
         }
         else {
             state.assignable = false;
-            return new ast_1.ObjectLiteralExpression(keys, values);
+            return new ast_js_1.ObjectLiteralExpression(keys, values);
         }
     }
     function parseInterpolation(state) {
@@ -882,7 +882,7 @@
         }
         if (expressions.length) {
             parts.push(result);
-            return new ast_1.Interpolation(parts, expressions);
+            return new ast_js_1.Interpolation(parts, expressions);
         }
         return null;
     }
@@ -932,11 +932,11 @@
         state.assignable = false;
         if (tagged) {
             nextToken(state);
-            return new ast_1.TaggedTemplateExpression(cooked, cooked, result, expressions);
+            return new ast_js_1.TaggedTemplateExpression(cooked, cooked, result, expressions);
         }
         else {
             nextToken(state);
-            return new ast_1.TemplateExpression(cooked, expressions);
+            return new ast_js_1.TemplateExpression(cooked, expressions);
         }
     }
     function nextToken(state) {

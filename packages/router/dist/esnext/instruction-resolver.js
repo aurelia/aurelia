@@ -1,4 +1,4 @@
-import { ViewportInstruction } from './viewport-instruction';
+import { ViewportInstruction } from './viewport-instruction.js';
 export class InstructionResolver {
     constructor() {
         this.separators = {

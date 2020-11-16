@@ -13,18 +13,18 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "../observation", "../observation/observer-locator", "./connectable"], factory);
+        define(["require", "exports", "@aurelia/kernel", "../observation.js", "../observation/observer-locator.js", "./connectable.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.PropertyBinding = void 0;
     const kernel_1 = require("@aurelia/kernel");
-    const observation_1 = require("../observation");
-    const observer_locator_1 = require("../observation/observer-locator");
-    const connectable_1 = require("./connectable");
+    const observation_js_1 = require("../observation.js");
+    const observer_locator_js_1 = require("../observation/observer-locator.js");
+    const connectable_js_1 = require("./connectable.js");
     // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
-    const { oneTime, toView, fromView } = observation_1.BindingMode;
+    const { oneTime, toView, fromView } = observation_js_1.BindingMode;
     // pre-combining flags for bitwise checks is a minor perf tweak
     const toViewOrOneTime = toView | oneTime;
     const updateTaskOpts = {
@@ -47,8 +47,8 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             this.targetObserver = void 0;
             this.persistentFlags = 0 /* none */;
             this.task = null;
-            connectable_1.connectable.assignIdTo(this);
-            this.$lifecycle = locator.get(observation_1.ILifecycle);
+            connectable_js_1.connectable.assignIdTo(this);
+            this.$lifecycle = locator.get(observation_js_1.ILifecycle);
         }
         updateTarget(value, flags) {
             flags |= this.persistentFlags;
@@ -143,7 +143,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                 }
                 this.targetObserver = targetObserver;
             }
-            if ($mode !== observation_1.BindingMode.oneTime && targetObserver.bind) {
+            if ($mode !== observation_js_1.BindingMode.oneTime && targetObserver.bind) {
                 targetObserver.bind(flags);
             }
             // deepscan-disable-next-line
@@ -191,7 +191,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         }
     };
     PropertyBinding = __decorate([
-        connectable_1.connectable(),
+        connectable_js_1.connectable(),
         __metadata("design:paramtypes", [Object, Object, String, Number, Object, Object, kernel_1.TaskQueue])
     ], PropertyBinding);
     exports.PropertyBinding = PropertyBinding;

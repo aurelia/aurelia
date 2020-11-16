@@ -10,17 +10,17 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/runtime", "../utils"], factory);
+        define(["require", "exports", "@aurelia/runtime", "../utils.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.RelativeTimeBindingBehavior = void 0;
     const runtime_1 = require("@aurelia/runtime");
-    const utils_1 = require("../utils");
+    const utils_js_1 = require("../utils.js");
     let RelativeTimeBindingBehavior = class RelativeTimeBindingBehavior {
         bind(flags, _scope, _hostScope, binding) {
-            utils_1.createIntlFormatValueConverterExpression("rt" /* relativeTimeValueConverterName */, binding);
+            utils_js_1.createIntlFormatValueConverterExpression("rt" /* relativeTimeValueConverterName */, binding);
         }
     };
     RelativeTimeBindingBehavior = __decorate([

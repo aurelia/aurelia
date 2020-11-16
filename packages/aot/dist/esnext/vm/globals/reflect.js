@@ -1,8 +1,8 @@
-import { $BuiltinFunction, } from '../types/function';
-import { $TypeError, } from '../types/error';
-import { $Object, } from '../types/object';
-import { $ToPropertyDescriptor, $CreateListFromArrayLike, $Call, $Construct, $FromPropertyDescriptor, } from '../operations';
-import { $CreateArrayFromList, } from '../exotics/array';
+import { $BuiltinFunction, } from '../types/function.js';
+import { $TypeError, } from '../types/error.js';
+import { $Object, } from '../types/object.js';
+import { $ToPropertyDescriptor, $CreateListFromArrayLike, $Call, $Construct, $FromPropertyDescriptor, } from '../operations.js';
+import { $CreateArrayFromList, } from '../exotics/array.js';
 // http://www.ecma-international.org/ecma-262/#sec-reflection
 // 26 Reflection
 // http://www.ecma-international.org/ecma-262/#sec-reflect-object

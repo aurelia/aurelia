@@ -1,9 +1,9 @@
 import { SyntaxKind, } from 'typescript';
-import { $String, } from '../types/string';
-import { $Number, } from '../types/number';
-import { $Null, } from '../types/null';
-import { $Boolean, } from '../types/boolean';
-import { $assignmentExpression, $i, } from './_shared';
+import { $String, } from '../types/string.js';
+import { $Number, } from '../types/number.js';
+import { $Null, } from '../types/null.js';
+import { $Boolean, } from '../types/boolean.js';
+import { $assignmentExpression, $i, } from './_shared.js';
 // #region Pseudo-literals
 export class $TemplateHead {
     constructor(node, parent, ctx, mos = parent.mos, realm = parent.realm, depth = parent.depth + 1, logger = parent.logger, path = `${parent.path}.TemplateHead`) {

@@ -2,14 +2,14 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 import { nextId, isObject, ILogger, resolveAll, Metadata, DI, } from '@aurelia/kernel';
 import { AccessScopeExpression, Scope, ILifecycle, BindableObserver, IObserverLocator, ComputedWatcher, ExpressionWatcher, IExpressionParser, } from '@aurelia/runtime';
-import { convertToRenderLocation } from '../dom';
-import { CustomElementDefinition, CustomElement } from '../resources/custom-element';
-import { CustomAttribute } from '../resources/custom-attribute';
-import { getRenderContext } from './render-context';
-import { ChildrenObserver } from './children';
-import { IAppRoot } from '../app-root';
-import { IPlatform } from '../platform';
-import { IShadowDOMGlobalStyles, IShadowDOMStyles } from './styles';
+import { convertToRenderLocation } from '../dom.js';
+import { CustomElementDefinition, CustomElement } from '../resources/custom-element.js';
+import { CustomAttribute } from '../resources/custom-attribute.js';
+import { getRenderContext } from './render-context.js';
+import { ChildrenObserver } from './children.js';
+import { IAppRoot } from '../app-root.js';
+import { IPlatform } from '../platform.js';
+import { IShadowDOMGlobalStyles, IShadowDOMStyles } from './styles.js';
 function callDispose(disposable) {
     disposable.dispose();
 }

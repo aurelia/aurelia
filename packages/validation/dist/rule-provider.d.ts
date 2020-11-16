@@ -1,7 +1,7 @@
 import { Class, ILogger, IServiceLocator } from '@aurelia/kernel';
 import { IExpressionParser, Interpolation, IsBindingBehavior, LifecycleFlags, PrimitiveLiteralExpression, AccessScopeExpression, Scope } from '@aurelia/runtime';
-import { ValidationRuleAlias, IValidationMessageProvider } from './rules';
-import { IValidateable, ValidationRuleExecutionPredicate, IValidationVisitor, ValidationDisplayNameAccessor, IRuleProperty, IPropertyRule, IValidationExpressionHydrator, IValidationRule } from './rule-interfaces';
+import { ValidationRuleAlias, IValidationMessageProvider } from './rules.js';
+import { IValidateable, ValidationRuleExecutionPredicate, IValidationVisitor, ValidationDisplayNameAccessor, IRuleProperty, IPropertyRule, IValidationExpressionHydrator, IValidationRule } from './rule-interfaces.js';
 /**
  * Contract to register the custom messages for rules, during plugin registration.
  */

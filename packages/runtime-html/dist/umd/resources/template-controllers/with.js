@@ -16,7 +16,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "../../dom", "../../templating/view", "../custom-attribute"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "../../dom.js", "../../templating/view.js", "../custom-attribute.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -24,9 +24,9 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     exports.With = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
-    const dom_1 = require("../../dom");
-    const view_1 = require("../../templating/view");
-    const custom_attribute_1 = require("../custom-attribute");
+    const dom_js_1 = require("../../dom.js");
+    const view_js_1 = require("../../templating/view.js");
+    const custom_attribute_js_1 = require("../custom-attribute.js");
     let With = class With {
         constructor(factory, location) {
             this.factory = factory;
@@ -69,9 +69,9 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         __metadata("design:type", Object)
     ], With.prototype, "value", void 0);
     With = __decorate([
-        custom_attribute_1.templateController('with'),
-        __param(0, view_1.IViewFactory),
-        __param(1, dom_1.IRenderLocation),
+        custom_attribute_js_1.templateController('with'),
+        __param(0, view_js_1.IViewFactory),
+        __param(1, dom_js_1.IRenderLocation),
         __metadata("design:paramtypes", [Object, Object])
     ], With);
     exports.With = With;

@@ -1,13 +1,13 @@
 import { Constructable, IContainer, IDisposable, IFactory, IResolver, IResourceKind, Key, Resolved, ResourceDefinition, ResourceType, Transformer } from '@aurelia/kernel';
 import { Scope, LifecycleFlags } from '@aurelia/runtime';
-import { INode, INodeSequence, IRenderLocation } from '../dom';
-import { IInstruction, Instruction } from '../renderer';
-import { CustomElementDefinition, PartialCustomElementDefinition } from '../resources/custom-element';
-import { IViewFactory } from './view';
-import { AuSlotContentType, IProjectionProvider, RegisteredProjections } from '../resources/custom-elements/au-slot';
-import { IPlatform } from '../platform';
-import { IController } from './controller';
-import type { ICustomAttributeViewModel, ICustomElementViewModel, IHydratableController } from './controller';
+import { INode, INodeSequence, IRenderLocation } from '../dom.js';
+import { IInstruction, Instruction } from '../renderer.js';
+import { CustomElementDefinition, PartialCustomElementDefinition } from '../resources/custom-element.js';
+import { IViewFactory } from './view.js';
+import { AuSlotContentType, IProjectionProvider, RegisteredProjections } from '../resources/custom-elements/au-slot.js';
+import { IPlatform } from '../platform.js';
+import { IController } from './controller.js';
+import type { ICustomAttributeViewModel, ICustomElementViewModel, IHydratableController } from './controller.js';
 export declare function isRenderContext(value: unknown): value is IRenderContext;
 /**
  * A render context that wraps an `IContainer` and must be compiled before it can be used for composing.

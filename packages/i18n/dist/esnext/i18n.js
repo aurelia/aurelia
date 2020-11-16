@@ -12,8 +12,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 import { DI, IEventAggregator } from '@aurelia/kernel';
 import { ISignaler } from '@aurelia/runtime';
-import { I18nInitOptions } from './i18n-configuration-options';
-import { I18nextWrapper, I18nWrapper } from './i18next-wrapper';
+import { I18nInitOptions } from './i18n-configuration-options.js';
+import { I18nextWrapper, I18nWrapper } from './i18next-wrapper.js';
 var TimeSpan;
 (function (TimeSpan) {
     TimeSpan[TimeSpan["Second"] = 1000] = "Second";

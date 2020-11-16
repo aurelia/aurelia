@@ -16,7 +16,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/runtime-html", "@aurelia/kernel", "../router", "./viewport"], factory);
+        define(["require", "exports", "@aurelia/runtime-html", "@aurelia/kernel", "../router.js", "./viewport.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -25,8 +25,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     exports.ViewportScopeCustomElement = exports.ParentViewportScope = void 0;
     const runtime_html_1 = require("@aurelia/runtime-html");
     const kernel_1 = require("@aurelia/kernel");
-    const router_1 = require("../router");
-    const viewport_1 = require("./viewport");
+    const router_js_1 = require("../router.js");
+    const viewport_js_1 = require("./viewport.js");
     exports.ParentViewportScope = runtime_html_1.CustomElement.createInjectable();
     let ViewportScopeCustomElement = ViewportScopeCustomElement_1 = class ViewportScopeCustomElement {
         constructor(router, element, container, parent, parentController) {
@@ -147,7 +147,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             let parent = this.controller.parent;
             let customElement = null;
             while (parent !== null && customElement === null) {
-                if (parent.viewModel instanceof viewport_1.ViewportCustomElement || parent.viewModel instanceof ViewportScopeCustomElement_1) {
+                if (parent.viewModel instanceof viewport_js_1.ViewportCustomElement || parent.viewModel instanceof ViewportScopeCustomElement_1) {
                     customElement = parent.viewModel;
                 }
                 parent = parent.parent;
@@ -178,7 +178,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             containerless: false,
             injectable: exports.ParentViewportScope
         }),
-        __param(0, router_1.IRouter),
+        __param(0, router_js_1.IRouter),
         __param(1, runtime_html_1.INode),
         __param(2, kernel_1.IContainer),
         __param(3, exports.ParentViewportScope),

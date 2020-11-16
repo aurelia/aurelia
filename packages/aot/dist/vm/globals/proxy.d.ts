@@ -1,11 +1,11 @@
-import { $BuiltinFunction, $Function } from '../types/function';
-import { Realm, ExecutionContext } from '../realm';
-import { $AnyNonEmpty, $AnyNonEmptyNonError } from '../types/_shared';
-import { $Undefined } from '../types/undefined';
-import { $FunctionPrototype } from './function';
-import { $List } from '../types/list';
-import { $ProxyExoticObject } from '../exotics/proxy';
-import { $Null } from '../types/null';
+import { $BuiltinFunction, $Function } from '../types/function.js';
+import { Realm, ExecutionContext } from '../realm.js';
+import { $AnyNonEmpty, $AnyNonEmptyNonError } from '../types/_shared.js';
+import { $Undefined } from '../types/undefined.js';
+import { $FunctionPrototype } from './function.js';
+import { $List } from '../types/list.js';
+import { $ProxyExoticObject } from '../exotics/proxy.js';
+import { $Null } from '../types/null.js';
 export declare class $ProxyConstructor extends $BuiltinFunction<'%Proxy%'> {
     get revocable(): $Proxy_revocable;
     set revocable(value: $Proxy_revocable);

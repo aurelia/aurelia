@@ -1,4 +1,4 @@
-import { ForOfStatement, Interpolation, AnyBindingExpression, IsBindingBehavior } from './ast';
+import { ForOfStatement, Interpolation, AnyBindingExpression, IsBindingBehavior } from './ast.js';
 export interface IExpressionParser extends ExpressionParser {
 }
 export declare const IExpressionParser: import("@aurelia/kernel").InterfaceSymbol<IExpressionParser>;

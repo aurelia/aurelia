@@ -16,22 +16,22 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/runtime-html", "../router", "../type-resolvers", "../utils"], factory);
+        define(["require", "exports", "@aurelia/runtime-html", "../router.js", "../type-resolvers.js", "../utils.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.GotoCustomAttribute = void 0;
     const runtime_html_1 = require("@aurelia/runtime-html");
-    const router_1 = require("../router");
-    const type_resolvers_1 = require("../type-resolvers");
-    const utils_1 = require("../utils");
+    const router_js_1 = require("../router.js");
+    const type_resolvers_js_1 = require("../type-resolvers.js");
+    const utils_js_1 = require("../utils.js");
     let GotoCustomAttribute = class GotoCustomAttribute {
         constructor(element, router) {
             this.router = router;
             this.hasHref = null;
             this.activeClass = 'goto-active';
-            utils_1.deprecationWarning('"goto" custom attribute', '"load" custom attribute');
+            utils_js_1.deprecationWarning('"goto" custom attribute', '"load" custom attribute');
             this.element = element;
         }
         binding() {
@@ -60,8 +60,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
         handleChange() {
             const controller = runtime_html_1.CustomAttribute.for(this.element, 'goto').parent;
-            const created = type_resolvers_1.NavigationInstructionResolver.createViewportInstructions(this.router, this.value, { context: controller });
-            const instructions = type_resolvers_1.NavigationInstructionResolver.toViewportInstructions(this.router, created.instructions);
+            const created = type_resolvers_js_1.NavigationInstructionResolver.createViewportInstructions(this.router, this.value, { context: controller });
+            const instructions = type_resolvers_js_1.NavigationInstructionResolver.toViewportInstructions(this.router, created.instructions);
             for (const instruction of instructions) {
                 if (instruction.scope === null) {
                     instruction.scope = created.scope;
@@ -83,7 +83,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     GotoCustomAttribute = __decorate([
         runtime_html_1.customAttribute('goto'),
         __param(0, runtime_html_1.INode),
-        __param(1, router_1.IRouter),
+        __param(1, router_js_1.IRouter),
         __metadata("design:paramtypes", [Object, Object])
     ], GotoCustomAttribute);
     exports.GotoCustomAttribute = GotoCustomAttribute;

@@ -1,7 +1,7 @@
-import { nextValueId, Int32, Uint32, Int16, Uint16, Int8, Uint8, Uint8Clamp, } from './_shared';
-import { $Number, } from './number';
-import { $Object, } from './object';
-import { $Boolean, } from './boolean';
+import { nextValueId, Int32, Uint32, Int16, Uint16, Int8, Uint8, Uint8Clamp, } from './_shared.js';
+import { $Number, } from './number.js';
+import { $Object, } from './object.js';
+import { $Boolean, } from './boolean.js';
 // http://www.ecma-international.org/ecma-262/#sec-ecmascript-language-types-string-type
 export class $String {
     constructor(realm, value, type = 1 /* normal */, target = realm['[[Intrinsics]]'].empty, sourceNode = null, conversionSource = null) {

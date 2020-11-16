@@ -1,9 +1,9 @@
-import { $BuiltinFunction, $OrdinaryCreateFromConstructor, } from '../types/function';
-import { $TypeError, } from '../types/error';
-import { $Object, } from '../types/object';
-import { $PropertyDescriptor, } from '../types/property-descriptor';
-import { $DefinePropertyOrThrow, } from '../operations';
-import { $String, } from '../types/string';
+import { $BuiltinFunction, $OrdinaryCreateFromConstructor, } from '../types/function.js';
+import { $TypeError, } from '../types/error.js';
+import { $Object, } from '../types/object.js';
+import { $PropertyDescriptor, } from '../types/property-descriptor.js';
+import { $DefinePropertyOrThrow, } from '../operations.js';
+import { $String, } from '../types/string.js';
 // http://www.ecma-international.org/ecma-262/#sec-error-constructor
 export class $ErrorConstructor extends $BuiltinFunction {
     get $prototype() {

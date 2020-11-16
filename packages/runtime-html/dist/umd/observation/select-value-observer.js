@@ -13,14 +13,14 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/runtime", "../platform"], factory);
+        define(["require", "exports", "@aurelia/runtime", "../platform.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.SelectValueObserver = void 0;
     const runtime_1 = require("@aurelia/runtime");
-    const platform_1 = require("../platform");
+    const platform_js_1 = require("../platform.js");
     const hasOwn = Object.prototype.hasOwnProperty;
     const childObserverOptions = {
         childList: true,
@@ -47,7 +47,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             this.nodeObserver = void 0;
             this.observing = false;
             this.obj = obj;
-            this.platform = locator.get(platform_1.IPlatform);
+            this.platform = locator.get(platform_js_1.IPlatform);
         }
         getValue() {
             // is it safe to assume the observer has the latest value?

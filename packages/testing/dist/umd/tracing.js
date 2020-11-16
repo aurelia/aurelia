@@ -4,14 +4,14 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "./util"], factory);
+        define(["require", "exports", "@aurelia/kernel", "./util.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.trace = exports.stopRecordingCalls = exports.recordCalls = exports.CallCollection = exports.Call = void 0;
     const kernel_1 = require("@aurelia/kernel");
-    const util_1 = require("./util");
+    const util_js_1 = require("./util.js");
     class Call {
         constructor(instance, args, method, index) {
             this.instance = instance;
@@ -36,7 +36,7 @@
     exports.CallCollection = CallCollection;
     function recordCalls(ctor, calls) {
         const proto = ctor.prototype;
-        const properties = util_1.getOwnPropertyDescriptors(proto);
+        const properties = util_js_1.getOwnPropertyDescriptors(proto);
         for (const key in properties) {
             const property = properties[key];
             if (key !== 'constructor'
@@ -46,7 +46,7 @@
                 const original = property.value;
                 const wrapper = function (...args) {
                     calls.addCall(this, key, ...args);
-                    return util_1.Reflect_apply(original, this, args);
+                    return util_js_1.Reflect_apply(original, this, args);
                 };
                 Reflect.defineProperty(wrapper, 'original', {
                     value: original,
@@ -67,14 +67,14 @@
                 if (get) {
                     newGet = function () {
                         calls.addCall(this, `get ${key}`, kernel_1.emptyArray);
-                        return util_1.Reflect_apply(get, this, kernel_1.emptyArray);
+                        return util_js_1.Reflect_apply(get, this, kernel_1.emptyArray);
                     };
                     Reflect.defineProperty(newGet, 'original', { value: get });
                 }
                 if (set) {
                     newSet = function (valueToSet) {
                         calls.addCall(this, `get ${key}`, kernel_1.emptyArray);
-                        util_1.Reflect_apply(set, this, [valueToSet]);
+                        util_js_1.Reflect_apply(set, this, [valueToSet]);
                     };
                     Reflect.defineProperty(newSet, 'original', { value: set });
                 }
@@ -87,7 +87,7 @@
     exports.recordCalls = recordCalls;
     function stopRecordingCalls(ctor) {
         const proto = ctor.prototype;
-        const properties = util_1.getOwnPropertyDescriptors(proto);
+        const properties = util_js_1.getOwnPropertyDescriptors(proto);
         for (const key in properties) {
             const property = properties[key];
             if (key !== 'constructor'

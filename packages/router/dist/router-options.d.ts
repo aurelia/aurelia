@@ -1,9 +1,9 @@
-import { INavigatorOptions } from './navigator';
-import { IHookDefinition } from './hook-manager';
-import { NavigationState } from './navigation-coordinator';
-import { Navigation } from './navigation';
-import { ViewportInstruction } from './viewport-instruction';
-import { FoundRoute } from './found-route';
+import { INavigatorOptions } from './navigator.js';
+import { IHookDefinition } from './hook-manager.js';
+import { NavigationState } from './navigation-coordinator.js';
+import { Navigation } from './navigation.js';
+import { ViewportInstruction } from './viewport-instruction.js';
+import { FoundRoute } from './found-route.js';
 export declare type SwapStrategy = 'add-first-sequential' | 'add-first-parallel' | 'remove-first-sequential' | 'remove-first-parallel';
 export declare type RoutingHookIntegration = 'integrated' | 'separate';
 /**

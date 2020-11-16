@@ -1,16 +1,16 @@
 import { ModifierFlags, SyntaxKind, } from 'typescript';
 import { emptyArray, } from '@aurelia/kernel';
-import { $Function, } from '../types/function';
-import { $ArrayBindingPattern, $ComputedPropertyName, $ObjectBindingPattern, } from './bindings';
-import { $ArrayLiteralExpression, $AsExpression, $AwaitExpression, $BinaryExpression, $CallExpression, $ConditionalExpression, $Decorator, $DeleteExpression, $ElementAccessExpression, $MetaProperty, $NewExpression, $NonNullExpression, $ObjectLiteralExpression, $ParenthesizedExpression, $PostfixUnaryExpression, $PrefixUnaryExpression, $PropertyAccessExpression, $TaggedTemplateExpression, $TemplateExpression, $TypeAssertion, $TypeOfExpression, $VoidExpression, $YieldExpression, $Identifier, $ThisExpression, $SuperExpression, } from './expressions';
-import { $ArrowFunction, $ConstructorDeclaration, $FunctionExpression, $FunctionDeclaration, } from './functions';
-import { $Block, $BreakStatement, $ContinueStatement, $DoStatement, $ExpressionStatement, $ForInStatement, $ForOfStatement, $ForStatement, $IfStatement, $LabeledStatement, $ReturnStatement, $SwitchStatement, $ThrowStatement, $TryStatement, $WhileStatement, $WithStatement, $VariableStatement, $EmptyStatement, $DebuggerStatement, } from './statements';
-import { $ClassExpression, $HeritageClause, $PropertyDeclaration, $ClassDeclaration, $SemicolonClassElement, } from './classes';
-import { $InterfaceDeclaration, $TypeAliasDeclaration, $EnumDeclaration, } from './types';
-import { $GetAccessorDeclaration, $MethodDeclaration, $SetAccessorDeclaration, } from './methods';
-import { $JsxElement, $JsxFragment, $JsxSelfClosingElement, } from './jsx';
-import { $BigIntLiteral, $BooleanLiteral, $NoSubstitutionTemplateLiteral, $NullLiteral, $NumericLiteral, $RegularExpressionLiteral, $StringLiteral, } from './literals';
-import { $StringSet, } from '../globals/string';
+import { $Function, } from '../types/function.js';
+import { $ArrayBindingPattern, $ComputedPropertyName, $ObjectBindingPattern, } from './bindings.js';
+import { $ArrayLiteralExpression, $AsExpression, $AwaitExpression, $BinaryExpression, $CallExpression, $ConditionalExpression, $Decorator, $DeleteExpression, $ElementAccessExpression, $MetaProperty, $NewExpression, $NonNullExpression, $ObjectLiteralExpression, $ParenthesizedExpression, $PostfixUnaryExpression, $PrefixUnaryExpression, $PropertyAccessExpression, $TaggedTemplateExpression, $TemplateExpression, $TypeAssertion, $TypeOfExpression, $VoidExpression, $YieldExpression, $Identifier, $ThisExpression, $SuperExpression, } from './expressions.js';
+import { $ArrowFunction, $ConstructorDeclaration, $FunctionExpression, $FunctionDeclaration, } from './functions.js';
+import { $Block, $BreakStatement, $ContinueStatement, $DoStatement, $ExpressionStatement, $ForInStatement, $ForOfStatement, $ForStatement, $IfStatement, $LabeledStatement, $ReturnStatement, $SwitchStatement, $ThrowStatement, $TryStatement, $WhileStatement, $WithStatement, $VariableStatement, $EmptyStatement, $DebuggerStatement, } from './statements.js';
+import { $ClassExpression, $HeritageClause, $PropertyDeclaration, $ClassDeclaration, $SemicolonClassElement, } from './classes.js';
+import { $InterfaceDeclaration, $TypeAliasDeclaration, $EnumDeclaration, } from './types.js';
+import { $GetAccessorDeclaration, $MethodDeclaration, $SetAccessorDeclaration, } from './methods.js';
+import { $JsxElement, $JsxFragment, $JsxSelfClosingElement, } from './jsx.js';
+import { $BigIntLiteral, $BooleanLiteral, $NoSubstitutionTemplateLiteral, $NullLiteral, $NumericLiteral, $RegularExpressionLiteral, $StringLiteral, } from './literals.js';
+import { $StringSet, } from '../globals/string.js';
 export function $assignmentExpression(node, parent, ctx, idx) {
     if (node === void 0) {
         return void 0;

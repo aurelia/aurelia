@@ -1,6 +1,6 @@
-import { CompletionTarget, CompletionType, $AnyNonError, PotentialNonEmptyCompletionType, $Any } from './_shared';
-import { Realm, ExecutionContext } from '../realm';
-import { I$Node } from '../ast/_shared';
+import { CompletionTarget, CompletionType, $AnyNonError, PotentialNonEmptyCompletionType, $Any } from './_shared.js';
+import { Realm, ExecutionContext } from '../realm.js';
+import { I$Node } from '../ast/_shared.js';
 export declare abstract class $Error<T extends Error = Error, N extends string = string> {
     readonly realm: Realm;
     readonly '<$Error>': unknown;

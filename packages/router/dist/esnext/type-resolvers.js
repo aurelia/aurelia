@@ -1,6 +1,6 @@
 import { CustomElement } from '@aurelia/runtime-html';
-import { Viewport } from './viewport';
-import { ViewportInstruction } from './viewport-instruction';
+import { Viewport } from './viewport.js';
+import { ViewportInstruction } from './viewport-instruction.js';
 export const ComponentAppellationResolver = {
     isName(component) {
         return typeof component === 'string';

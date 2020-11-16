@@ -1,11 +1,11 @@
 import { EnumDeclaration, EnumMember, InterfaceDeclaration, ModifierFlags, SyntaxKind, TypeAliasDeclaration } from 'typescript';
 import { ILogger } from '@aurelia/kernel';
-import { Realm } from '../realm';
-import { $String } from '../types/string';
-import { I$Node, Context, $$ESDeclaration, $NodeWithStatements, $$PropertyName, $$AssignmentExpressionOrHigher, $$ESVarDeclaration } from './_shared';
-import { ExportEntryRecord, $$ESModuleOrScript } from './modules';
-import { $Identifier } from './expressions';
-import { $HeritageClause } from './classes';
+import { Realm } from '../realm.js';
+import { $String } from '../types/string.js';
+import { I$Node, Context, $$ESDeclaration, $NodeWithStatements, $$PropertyName, $$AssignmentExpressionOrHigher, $$ESVarDeclaration } from './_shared.js';
+import { ExportEntryRecord, $$ESModuleOrScript } from './modules.js';
+import { $Identifier } from './expressions.js';
+import { $HeritageClause } from './classes.js';
 export declare class $InterfaceDeclaration implements I$Node {
     readonly node: InterfaceDeclaration;
     readonly parent: $NodeWithStatements;

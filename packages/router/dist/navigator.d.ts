@@ -1,8 +1,8 @@
-import { IRoute } from './interfaces';
-import { ViewportInstruction } from './viewport-instruction';
-import { Scope } from './scope';
+import { IRoute } from './interfaces.js';
+import { ViewportInstruction } from './viewport-instruction.js';
+import { Scope } from './scope.js';
 import { ICustomElementViewModel } from '@aurelia/runtime-html';
-import { Navigation } from './navigation';
+import { Navigation } from './navigation.js';
 export interface IStoredNavigatorEntry {
     instruction: string | ViewportInstruction[];
     fullStateInstruction: string | ViewportInstruction[];

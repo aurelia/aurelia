@@ -16,14 +16,14 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/runtime", "../i18n"], factory);
+        define(["require", "exports", "@aurelia/runtime", "../i18n.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.RelativeTimeValueConverter = void 0;
     const runtime_1 = require("@aurelia/runtime");
-    const i18n_1 = require("../i18n");
+    const i18n_js_1 = require("../i18n.js");
     let RelativeTimeValueConverter = class RelativeTimeValueConverter {
         constructor(i18n) {
             this.i18n = i18n;
@@ -38,7 +38,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     };
     RelativeTimeValueConverter = __decorate([
         runtime_1.valueConverter("rt" /* relativeTimeValueConverterName */),
-        __param(0, i18n_1.I18N),
+        __param(0, i18n_js_1.I18N),
         __metadata("design:paramtypes", [Object])
     ], RelativeTimeValueConverter);
     exports.RelativeTimeValueConverter = RelativeTimeValueConverter;

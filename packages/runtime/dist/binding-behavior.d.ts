@@ -1,9 +1,9 @@
 import { Constructable, IContainer, ResourceDefinition, IResourceKind, ResourceType, PartialResourceDefinition, IServiceLocator } from '@aurelia/kernel';
-import { IBinding, ISubscribable, LifecycleFlags } from './observation';
-import { IConnectableBinding } from './binding/connectable';
-import { IObserverLocator } from './observation/observer-locator';
-import { BindingBehaviorExpression, IBindingBehaviorExpression } from './binding/ast';
-import type { Scope } from './observation/binding-context';
+import { IBinding, ISubscribable, LifecycleFlags } from './observation.js';
+import { IConnectableBinding } from './binding/connectable.js';
+import { IObserverLocator } from './observation/observer-locator.js';
+import { BindingBehaviorExpression, IBindingBehaviorExpression } from './binding/ast.js';
+import type { Scope } from './observation/binding-context.js';
 export declare type PartialBindingBehaviorDefinition = PartialResourceDefinition<{
     strategy?: BindingBehaviorStrategy;
 }>;

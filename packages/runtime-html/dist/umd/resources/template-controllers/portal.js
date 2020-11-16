@@ -16,7 +16,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "../../dom", "../../platform", "../../templating/view", "../custom-attribute"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "../../dom.js", "../../platform.js", "../../templating/view.js", "../custom-attribute.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -24,10 +24,10 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     exports.Portal = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
-    const dom_1 = require("../../dom");
-    const platform_1 = require("../../platform");
-    const view_1 = require("../../templating/view");
-    const custom_attribute_1 = require("../custom-attribute");
+    const dom_js_1 = require("../../dom.js");
+    const platform_js_1 = require("../../platform.js");
+    const view_js_1 = require("../../templating/view.js");
+    const custom_attribute_js_1 = require("../custom-attribute.js");
     let Portal = class Portal {
         constructor(factory, originalLoc, p) {
             this.factory = factory;
@@ -39,7 +39,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             // todo: is this necessary
             this.currentTarget = p.document.createElement('div');
             this.view = this.factory.create();
-            dom_1.setEffectiveParentNode(this.view.nodes, originalLoc);
+            dom_js_1.setEffectiveParentNode(this.view.nodes, originalLoc);
         }
         attaching(initiator, parent, flags) {
             if (this.callbackContext == null) {
@@ -195,10 +195,10 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         __metadata("design:type", Object)
     ], Portal.prototype, "callbackContext", void 0);
     Portal = __decorate([
-        custom_attribute_1.templateController('portal'),
-        __param(0, view_1.IViewFactory),
-        __param(1, dom_1.IRenderLocation),
-        __param(2, platform_1.IPlatform),
+        custom_attribute_js_1.templateController('portal'),
+        __param(0, view_js_1.IViewFactory),
+        __param(1, dom_js_1.IRenderLocation),
+        __param(2, platform_js_1.IPlatform),
         __metadata("design:paramtypes", [Object, Object, Object])
     ], Portal);
     exports.Portal = Portal;

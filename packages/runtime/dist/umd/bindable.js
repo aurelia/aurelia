@@ -13,14 +13,14 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "./observation"], factory);
+        define(["require", "exports", "@aurelia/kernel", "./observation.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.BindableDefinition = exports.Bindable = exports.bindable = void 0;
     const kernel_1 = require("@aurelia/kernel");
-    const observation_1 = require("./observation");
+    const observation_js_1 = require("./observation.js");
     function bindable(configOrTarget, prop) {
         let config;
         function decorator($target, $prop) {
@@ -163,7 +163,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             this.set = set;
         }
         static create(prop, def = {}) {
-            return new BindableDefinition(kernel_1.firstDefined(def.attribute, kernel_1.kebabCase(prop)), kernel_1.firstDefined(def.callback, `${prop}Changed`), kernel_1.firstDefined(def.mode, observation_1.BindingMode.toView), kernel_1.firstDefined(def.primary, false), kernel_1.firstDefined(def.property, prop), kernel_1.firstDefined(def.set, kernel_1.noop));
+            return new BindableDefinition(kernel_1.firstDefined(def.attribute, kernel_1.kebabCase(prop)), kernel_1.firstDefined(def.callback, `${prop}Changed`), kernel_1.firstDefined(def.mode, observation_js_1.BindingMode.toView), kernel_1.firstDefined(def.primary, false), kernel_1.firstDefined(def.property, prop), kernel_1.firstDefined(def.set, kernel_1.noop));
         }
     }
     exports.BindableDefinition = BindableDefinition;
@@ -188,14 +188,14 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             // > expected error - 'property' does not exist on decorator input object
             //@bindable({ property: 'prop' })
             ,
-            bindable({ mode: observation_1.BindingMode.twoWay }),
+            bindable({ mode: observation_js_1.BindingMode.twoWay }),
             bindable({ callback: 'propChanged' }),
             bindable({ attribute: 'prop' }),
             bindable({ primary: true }),
             bindable({ set: value => String(value) }),
             bindable({ set: value => Number(value) }),
             bindable({
-                mode: observation_1.BindingMode.twoWay,
+                mode: observation_js_1.BindingMode.twoWay,
                 callback: 'propChanged',
                 attribute: 'prop',
                 primary: true,
@@ -214,11 +214,11 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             // > expected error - 'property' is a required property on the fluent api
             //.add({})
             .add({ property: 'prop' })
-            .add({ property: 'prop', mode: observation_1.BindingMode.twoWay })
+            .add({ property: 'prop', mode: observation_js_1.BindingMode.twoWay })
             .add({ property: 'prop', callback: 'propChanged' })
             .add({ property: 'prop', attribute: 'prop' })
             .add({ property: 'prop', primary: true })
-            .add({ property: 'prop', mode: observation_1.BindingMode.twoWay, callback: 'propChanged', attribute: 'prop', primary: true })
+            .add({ property: 'prop', mode: observation_js_1.BindingMode.twoWay, callback: 'propChanged', attribute: 'prop', primary: true })
             .add('prop')
             // > expected error - the add() method that accepts an object literal does not return a fluent api
             //.add({ property: 'prop' }).mode(BindingMode.twoWay)
@@ -232,12 +232,12 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             // > expected error - wrong invocation order
             //.add('prop').callback('propChanged').mode(BindingMode.twoWay)
             //.add('prop').primary().mode(BindingMode.twoWay)  // etc
-            .add('prop').mode(observation_1.BindingMode.twoWay)
-            .add('prop').mode(observation_1.BindingMode.twoWay).callback('propChanged')
-            .add('prop').mode(observation_1.BindingMode.twoWay).callback('propChanged').attribute('prop')
-            .add('prop').mode(observation_1.BindingMode.twoWay).callback('propChanged').attribute('prop').primary()
-            .add('prop').mode(observation_1.BindingMode.twoWay).set((value) => Number(value))
-            .add('prop').mode(observation_1.BindingMode.twoWay).callback('propChanged').set(value => Number(value))
+            .add('prop').mode(observation_js_1.BindingMode.twoWay)
+            .add('prop').mode(observation_js_1.BindingMode.twoWay).callback('propChanged')
+            .add('prop').mode(observation_js_1.BindingMode.twoWay).callback('propChanged').attribute('prop')
+            .add('prop').mode(observation_js_1.BindingMode.twoWay).callback('propChanged').attribute('prop').primary()
+            .add('prop').mode(observation_js_1.BindingMode.twoWay).set((value) => Number(value))
+            .add('prop').mode(observation_js_1.BindingMode.twoWay).callback('propChanged').set(value => Number(value))
             .add('prop').callback('propChanged')
             .add('prop').callback('propChanged').attribute('prop')
             .add('prop').callback('propChanged').attribute('prop').primary()

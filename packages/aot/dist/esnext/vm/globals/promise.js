@@ -1,14 +1,14 @@
-import { $Object, } from '../types/object';
-import { $BuiltinFunction, $GetPrototypeFromConstructor, } from '../types/function';
-import { $Undefined, } from '../types/undefined';
-import { $GetIterator, $IteratorStep, $IteratorValue, $IteratorClose, } from './iteration';
-import { $TypeError, } from '../types/error';
-import { $Call, $Construct, $Invoke, $SpeciesConstructor, } from '../operations';
-import { $List, } from '../types/list';
-import { Job, } from '../job';
-import { $Empty, } from '../types/empty';
-import { $ValueRecord, } from './_shared';
-import { $CreateArrayFromList, } from '../exotics/array';
+import { $Object, } from '../types/object.js';
+import { $BuiltinFunction, $GetPrototypeFromConstructor, } from '../types/function.js';
+import { $Undefined, } from '../types/undefined.js';
+import { $GetIterator, $IteratorStep, $IteratorValue, $IteratorClose, } from './iteration.js';
+import { $TypeError, } from '../types/error.js';
+import { $Call, $Construct, $Invoke, $SpeciesConstructor, } from '../operations.js';
+import { $List, } from '../types/list.js';
+import { Job, } from '../job.js';
+import { $Empty, } from '../types/empty.js';
+import { $ValueRecord, } from './_shared.js';
+import { $CreateArrayFromList, } from '../exotics/array.js';
 // http://www.ecma-international.org/ecma-262/#sec-promise-abstract-operations
 // #region 25.6.1 Promise Abstract Operation
 // http://www.ecma-international.org/ecma-262/#sec-promisecapability-records

@@ -4,15 +4,15 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/runtime-html", "./viewport", "./viewport-instruction"], factory);
+        define(["require", "exports", "@aurelia/runtime-html", "./viewport.js", "./viewport-instruction.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.NavigationInstructionResolver = exports.ViewportHandleResolver = exports.ComponentAppellationResolver = void 0;
     const runtime_html_1 = require("@aurelia/runtime-html");
-    const viewport_1 = require("./viewport");
-    const viewport_instruction_1 = require("./viewport-instruction");
+    const viewport_js_1 = require("./viewport.js");
+    const viewport_instruction_js_1 = require("./viewport-instruction.js");
     exports.ComponentAppellationResolver = {
         isName(component) {
             return typeof component === 'string';
@@ -59,7 +59,7 @@
             return typeof viewport === 'string';
         },
         isInstance(viewport) {
-            return viewport instanceof viewport_1.Viewport;
+            return viewport instanceof viewport_js_1.Viewport;
         },
         getName(viewport) {
             if (exports.ViewportHandleResolver.isName(viewport)) {
@@ -131,7 +131,7 @@
                 if (typeof instruction === 'string') {
                     instructions.push(...router.instructionResolver.parseViewportInstructions(instruction));
                 }
-                else if (instruction instanceof viewport_instruction_1.ViewportInstruction) {
+                else if (instruction instanceof viewport_instruction_js_1.ViewportInstruction) {
                     instructions.push(instruction);
                 }
                 else if (instruction.component) {

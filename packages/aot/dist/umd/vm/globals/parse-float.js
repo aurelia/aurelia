@@ -4,16 +4,16 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "../types/function"], factory);
+        define(["require", "exports", "../types/function.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.$ParseFloat = void 0;
-    const function_1 = require("../types/function");
+    const function_js_1 = require("../types/function.js");
     // http://www.ecma-international.org/ecma-262/#sec-parsefloat-string
     // 18.2.4 parseFloat ( string )
-    class $ParseFloat extends function_1.$BuiltinFunction {
+    class $ParseFloat extends function_js_1.$BuiltinFunction {
         constructor(realm, proto) {
             super(realm, '%parseFloat%', proto);
         }

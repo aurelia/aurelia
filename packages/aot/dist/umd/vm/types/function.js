@@ -4,25 +4,25 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./object", "./environment-record", "./string", "./property-descriptor", "./number", "../operations", "./undefined", "../realm", "./error", "typescript"], factory);
+        define(["require", "exports", "./object.js", "./environment-record.js", "./string.js", "./property-descriptor.js", "./number.js", "../operations.js", "./undefined.js", "../realm.js", "./error.js", "typescript"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.$BuiltinFunction = exports.$GetPrototypeFromConstructor = exports.$OrdinaryCreateFromConstructor = exports.$Function = void 0;
-    const object_1 = require("./object");
-    const environment_record_1 = require("./environment-record");
-    const string_1 = require("./string");
-    const property_descriptor_1 = require("./property-descriptor");
-    const number_1 = require("./number");
-    const operations_1 = require("../operations");
-    const undefined_1 = require("./undefined");
-    const realm_1 = require("../realm");
-    const error_1 = require("./error");
+    const object_js_1 = require("./object.js");
+    const environment_record_js_1 = require("./environment-record.js");
+    const string_js_1 = require("./string.js");
+    const property_descriptor_js_1 = require("./property-descriptor.js");
+    const number_js_1 = require("./number.js");
+    const operations_js_1 = require("../operations.js");
+    const undefined_js_1 = require("./undefined.js");
+    const realm_js_1 = require("../realm.js");
+    const error_js_1 = require("./error.js");
     const typescript_1 = require("typescript");
     // http://www.ecma-international.org/ecma-262/#table-6
     // http://www.ecma-international.org/ecma-262/#sec-ecmascript-function-objects
-    class $Function extends object_1.$Object {
+    class $Function extends object_js_1.$Object {
         constructor(realm, IntrinsicName, proto) {
             super(realm, IntrinsicName, proto, 1 /* normal */, realm['[[Intrinsics]]'].empty);
         }
@@ -51,7 +51,7 @@
             const intrinsics = realm['[[Intrinsics]]'];
             // 2. If F.[[FunctionKind]] is "classConstructor", throw a TypeError exception.
             if (F['[[FunctionKind]]'] === 2 /* classConstructor */) {
-                return new error_1.$TypeError(realm, `Cannot call classConstructor (${F.propertyMap.has('name') ? F.propertyDescriptors[F.propertyMap.get('name')]['[[Value]]'] : 'anonymous'}) as a function`);
+                return new error_js_1.$TypeError(realm, `Cannot call classConstructor (${F.propertyMap.has('name') ? F.propertyDescriptors[F.propertyMap.get('name')]['[[Value]]'] : 'anonymous'}) as a function`);
             }
             // 3. Let callerContext be the running execution context.
             // 4. Let calleeContext be PrepareForOrdinaryCall(F, undefined).
@@ -73,7 +73,7 @@
                 return result;
             }
             // 11. Return NormalCompletion(undefined).
-            return new undefined_1.$Undefined(realm, 1 /* normal */, intrinsics.empty);
+            return new undefined_js_1.$Undefined(realm, 1 /* normal */, intrinsics.empty);
         }
         // http://www.ecma-international.org/ecma-262/#sec-ecmascript-function-objects-construct-argumentslist-newtarget
         // 9.2.2 [[Construct]] ( argumentsList , newTarget )
@@ -127,7 +127,7 @@
                 }
                 // 13. c. If result.[[Value]] is not undefined, throw a TypeError exception.
                 if (!result.isUndefined) {
-                    return new error_1.$TypeError(realm, `base constructor for ${F.propertyMap.has('name') ? F.propertyDescriptors[F.propertyMap.get('name')]['[[Value]]'] : 'anonymous'} returned ${result}, but expected undefined`);
+                    return new error_js_1.$TypeError(realm, `base constructor for ${F.propertyMap.has('name') ? F.propertyDescriptors[F.propertyMap.get('name')]['[[Value]]'] : 'anonymous'} returned ${result}, but expected undefined`);
                 }
             }
             // 14. Else, ReturnIfAbrupt(result).
@@ -184,12 +184,12 @@
             // 1. Let len be the ExpectedArgumentCount of ParameterList.
             const len = code.$parameters.ExpectedArgumentCount;
             // 2. Perform ! SetFunctionLength(F, len).
-            const Desc = new property_descriptor_1.$PropertyDescriptor(realm, intrinsics.length);
-            Desc['[[Value]]'] = new number_1.$Number(realm, len);
+            const Desc = new property_descriptor_js_1.$PropertyDescriptor(realm, intrinsics.length);
+            Desc['[[Value]]'] = new number_js_1.$Number(realm, len);
             Desc['[[Writable]]'] = intrinsics.false;
             Desc['[[Enumerable]]'] = intrinsics.false;
             Desc['[[Configurable]]'] = intrinsics.true;
-            operations_1.$DefinePropertyOrThrow(ctx, F, intrinsics.length, Desc);
+            operations_js_1.$DefinePropertyOrThrow(ctx, F, intrinsics.length, Desc);
             // 3. Let Strict be F.[[Strict]].
             const Strict = F['[[Strict]]'];
             // 4. Set F.[[Environment]] to Scope.
@@ -294,22 +294,22 @@
             // 5. If prototype is not present, then
             if (prototype === void 0) {
                 // 5. a. Set prototype to ObjectCreate(%ObjectPrototype%).
-                prototype = object_1.$Object.ObjectCreate(ctx, 'constructor', intrinsics['%ObjectPrototype%']);
+                prototype = object_js_1.$Object.ObjectCreate(ctx, 'constructor', intrinsics['%ObjectPrototype%']);
                 // 5. b. Perform ! DefinePropertyOrThrow(prototype, "constructor", PropertyDescriptor { [[Value]]: F, [[Writable]]: writablePrototype, [[Enumerable]]: false, [[Configurable]]: true }).
-                const Desc = new property_descriptor_1.$PropertyDescriptor(realm, intrinsics.$constructor);
+                const Desc = new property_descriptor_js_1.$PropertyDescriptor(realm, intrinsics.$constructor);
                 Desc['[[Value]]'] = F;
                 Desc['[[Writable]]'] = writablePrototype;
                 Desc['[[Enumerable]]'] = intrinsics.false;
                 Desc['[[Configurable]]'] = intrinsics.true;
-                operations_1.$DefinePropertyOrThrow(ctx, prototype, intrinsics.$constructor, Desc);
+                operations_js_1.$DefinePropertyOrThrow(ctx, prototype, intrinsics.$constructor, Desc);
             }
             // 6. Perform ! DefinePropertyOrThrow(F, "prototype", PropertyDescriptor { [[Value]]: prototype, [[Writable]]: writablePrototype, [[Enumerable]]: false, [[Configurable]]: false }).
-            const Desc = new property_descriptor_1.$PropertyDescriptor(realm, intrinsics.$prototype);
+            const Desc = new property_descriptor_js_1.$PropertyDescriptor(realm, intrinsics.$prototype);
             Desc['[[Value]]'] = prototype;
             Desc['[[Writable]]'] = writablePrototype;
             Desc['[[Enumerable]]'] = intrinsics.false;
             Desc['[[Configurable]]'] = intrinsics.false;
-            operations_1.$DefinePropertyOrThrow(ctx, F, intrinsics.$prototype, Desc);
+            operations_js_1.$DefinePropertyOrThrow(ctx, F, intrinsics.$prototype, Desc);
             // 7. Return NormalCompletion(undefined).
             return intrinsics.undefined;
         }
@@ -331,21 +331,21 @@
                 }
                 // 4. c. Else, set name to the string-concatenation of "[", description, and "]".
                 else {
-                    name = new string_1.$String(realm, `[${description['[[Value]]']}]`);
+                    name = new string_js_1.$String(realm, `[${description['[[Value]]']}]`);
                 }
             }
             // 5. If prefix is present, then
             if (prefix !== void 0) {
                 // 5. a. Set name to the string-concatenation of prefix, the code unit 0x0020 (SPACE), and name.
-                name = new string_1.$String(realm, `${prefix['[[Value]]']} ${name['[[Value]]']}`);
+                name = new string_js_1.$String(realm, `${prefix['[[Value]]']} ${name['[[Value]]']}`);
             }
             // 6. Return ! DefinePropertyOrThrow(F, "name", PropertyDescriptor { [[Value]]: name, [[Writable]]: false, [[Enumerable]]: false, [[Configurable]]: true }).
-            const Desc = new property_descriptor_1.$PropertyDescriptor(realm, intrinsics.$name);
+            const Desc = new property_descriptor_js_1.$PropertyDescriptor(realm, intrinsics.$name);
             Desc['[[Value]]'] = name;
             Desc['[[Writable]]'] = intrinsics.false;
             Desc['[[Enumerable]]'] = intrinsics.false;
             Desc['[[Configurable]]'] = intrinsics.true;
-            return operations_1.$DefinePropertyOrThrow(ctx, this, intrinsics.$name, Desc);
+            return operations_js_1.$DefinePropertyOrThrow(ctx, this, intrinsics.$name, Desc);
         }
     }
     exports.$Function = $Function;
@@ -358,7 +358,7 @@
             return proto;
         }
         // 3. Return ObjectCreate(proto, internalSlotsList).
-        return object_1.$Object.ObjectCreate(ctx, intrinsicDefaultProto, proto, internalSlotsList);
+        return object_js_1.$Object.ObjectCreate(ctx, intrinsicDefaultProto, proto, internalSlotsList);
     }
     exports.$OrdinaryCreateFromConstructor = $OrdinaryCreateFromConstructor;
     // http://www.ecma-international.org/ecma-262/#sec-getprototypefromconstructor
@@ -389,7 +389,7 @@
         const callerContext = ctx;
         // 3. Let calleeContext be a new ECMAScript code execution context.
         const calleeRealm = F['[[Realm]]'];
-        const calleeContext = new realm_1.ExecutionContext(calleeRealm);
+        const calleeContext = new realm_js_1.ExecutionContext(calleeRealm);
         // 4. Set the Function of calleeContext to F.
         calleeContext.Function = F;
         // 5. Let calleeRealm be F.[[Realm]].
@@ -397,7 +397,7 @@
         // 7. Set the ScriptOrModule of calleeContext to F.[[ScriptOrModule]].
         calleeContext.ScriptOrModule = F['[[ScriptOrModule]]'];
         // 8. Let localEnv be NewFunctionEnvironment(F, newTarget).
-        const localEnv = new environment_record_1.$FunctionEnvRec(F['[[ECMAScriptCode]]'].logger, calleeRealm, F, newTarget);
+        const localEnv = new environment_record_js_1.$FunctionEnvRec(F['[[ECMAScriptCode]]'].logger, calleeRealm, F, newTarget);
         // 9. Set the LexicalEnvironment of calleeContext to localEnv.
         calleeContext.LexicalEnvironment = localEnv;
         // 10. Set the VariableEnvironment of calleeContext to localEnv.
@@ -418,7 +418,7 @@
         const thisMode = F['[[ThisMode]]'];
         // 2. If thisMode is lexical, return NormalCompletion(undefined).
         if (thisMode === 'lexical') {
-            return new undefined_1.$Undefined(ctx.Realm);
+            return new undefined_js_1.$Undefined(ctx.Realm);
         }
         // 3. Let calleeRealm be F.[[Realm]].'];
         const calleeRealm = F['[[Realm]]'];
@@ -486,7 +486,7 @@
             }
             // 3. Let calleeContext be a new ECMAScript code execution context.
             const calleeRealm = this['[[Realm]]'];
-            const calleeContext = new realm_1.ExecutionContext(calleeRealm);
+            const calleeContext = new realm_js_1.ExecutionContext(calleeRealm);
             // 4. Set the Function of calleeContext to F.
             calleeContext.Function = this;
             // 5. Let calleeRealm be F.[[Realm]].
@@ -517,7 +517,7 @@
             }
             // 3. Let calleeContext be a new ECMAScript code execution context.
             const calleeRealm = this['[[Realm]]'];
-            const calleeContext = new realm_1.ExecutionContext(calleeRealm);
+            const calleeContext = new realm_js_1.ExecutionContext(calleeRealm);
             // 4. Set the Function of calleeContext to F.
             calleeContext.Function = this;
             // 5. Let calleeRealm be F.[[Realm]].

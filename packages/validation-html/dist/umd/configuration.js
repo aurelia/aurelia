@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/validation", "./subscribers/validation-container-custom-element", "./subscribers/validation-errors-custom-attribute", "./validate-binding-behavior", "./validation-controller", "@aurelia/runtime-html"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/validation", "./subscribers/validation-container-custom-element.js", "./subscribers/validation-errors-custom-attribute.js", "./validate-binding-behavior.js", "./validation-controller.js", "@aurelia/runtime-html"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -12,18 +12,18 @@
     exports.ValidationHtmlConfiguration = exports.getDefaultValidationHtmlConfiguration = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const validation_1 = require("@aurelia/validation");
-    const validation_container_custom_element_1 = require("./subscribers/validation-container-custom-element");
-    const validation_errors_custom_attribute_1 = require("./subscribers/validation-errors-custom-attribute");
-    const validate_binding_behavior_1 = require("./validate-binding-behavior");
-    const validation_controller_1 = require("./validation-controller");
+    const validation_container_custom_element_js_1 = require("./subscribers/validation-container-custom-element.js");
+    const validation_errors_custom_attribute_js_1 = require("./subscribers/validation-errors-custom-attribute.js");
+    const validate_binding_behavior_js_1 = require("./validate-binding-behavior.js");
+    const validation_controller_js_1 = require("./validation-controller.js");
     const runtime_html_1 = require("@aurelia/runtime-html");
     function getDefaultValidationHtmlConfiguration() {
         return {
             ...validation_1.getDefaultValidationConfiguration(),
-            ValidationControllerFactoryType: validation_controller_1.ValidationControllerFactory,
-            DefaultTrigger: validate_binding_behavior_1.ValidationTrigger.focusout,
+            ValidationControllerFactoryType: validation_controller_js_1.ValidationControllerFactory,
+            DefaultTrigger: validate_binding_behavior_js_1.ValidationTrigger.focusout,
             UseSubscriberCustomAttribute: true,
-            SubscriberCustomElementTemplate: validation_container_custom_element_1.defaultContainerTemplate
+            SubscriberCustomElementTemplate: validation_container_custom_element_js_1.defaultContainerTemplate
         };
     }
     exports.getDefaultValidationHtmlConfiguration = getDefaultValidationHtmlConfiguration;
@@ -33,7 +33,7 @@
             register(container) {
                 const options = getDefaultValidationHtmlConfiguration();
                 optionsProvider(options);
-                container.registerFactory(validation_controller_1.IValidationController, new options.ValidationControllerFactoryType());
+                container.registerFactory(validation_controller_js_1.IValidationController, new options.ValidationControllerFactoryType());
                 container.register(validation_1.ValidationConfiguration.customize((opt) => {
                     // copy the customization iff the key exists in validation configuration
                     for (const optKey of Object.keys(opt)) {
@@ -41,13 +41,13 @@
                             opt[optKey] = options[optKey]; // TS cannot infer that the value of the same key is being copied from A to B, and rejects the assignment due to type broadening
                         }
                     }
-                }), kernel_1.Registration.instance(validate_binding_behavior_1.IDefaultTrigger, options.DefaultTrigger), validate_binding_behavior_1.ValidateBindingBehavior);
+                }), kernel_1.Registration.instance(validate_binding_behavior_js_1.IDefaultTrigger, options.DefaultTrigger), validate_binding_behavior_js_1.ValidateBindingBehavior);
                 if (options.UseSubscriberCustomAttribute) {
-                    container.register(validation_errors_custom_attribute_1.ValidationErrorsCustomAttribute);
+                    container.register(validation_errors_custom_attribute_js_1.ValidationErrorsCustomAttribute);
                 }
                 const template = options.SubscriberCustomElementTemplate;
                 if (template) { // we need the boolean coercion here to ignore null, undefined, and ''
-                    container.register(runtime_html_1.CustomElement.define({ ...validation_container_custom_element_1.defaultContainerDefinition, template }, validation_container_custom_element_1.ValidationContainerCustomElement));
+                    container.register(runtime_html_1.CustomElement.define({ ...validation_container_custom_element_js_1.defaultContainerDefinition, template }, validation_container_custom_element_js_1.ValidationContainerCustomElement));
                 }
                 return container;
             },

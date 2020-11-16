@@ -14,17 +14,17 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./configuration", "./validate-binding-behavior", "./validation-controller", "./subscribers/validation-container-custom-element", "./subscribers/validation-errors-custom-attribute", "./subscribers/validation-result-presenter-service", "./validation-customization-options"], factory);
+        define(["require", "exports", "./configuration.js", "./validate-binding-behavior.js", "./validation-controller.js", "./subscribers/validation-container-custom-element.js", "./subscribers/validation-errors-custom-attribute.js", "./subscribers/validation-result-presenter-service.js", "./validation-customization-options.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    __exportStar(require("./configuration"), exports);
-    __exportStar(require("./validate-binding-behavior"), exports);
-    __exportStar(require("./validation-controller"), exports);
-    __exportStar(require("./subscribers/validation-container-custom-element"), exports);
-    __exportStar(require("./subscribers/validation-errors-custom-attribute"), exports);
-    __exportStar(require("./subscribers/validation-result-presenter-service"), exports);
-    __exportStar(require("./validation-customization-options"), exports);
+    __exportStar(require("./configuration.js"), exports);
+    __exportStar(require("./validate-binding-behavior.js"), exports);
+    __exportStar(require("./validation-controller.js"), exports);
+    __exportStar(require("./subscribers/validation-container-custom-element.js"), exports);
+    __exportStar(require("./subscribers/validation-errors-custom-attribute.js"), exports);
+    __exportStar(require("./subscribers/validation-result-presenter-service.js"), exports);
+    __exportStar(require("./validation-customization-options.js"), exports);
 });
 //# sourceMappingURL=index.js.map

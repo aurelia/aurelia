@@ -1,8 +1,8 @@
 import { SyntaxKind, } from 'typescript';
 import { emptyArray, } from '@aurelia/kernel';
-import { $identifier, $assignmentExpression, $i, } from './_shared';
-import { $Identifier, $PropertyAccessExpression, $ThisExpression, } from './expressions';
-import { $StringLiteral, } from './literals';
+import { $identifier, $assignmentExpression, $i, } from './_shared.js';
+import { $Identifier, $PropertyAccessExpression, $ThisExpression, } from './expressions.js';
+import { $StringLiteral, } from './literals.js';
 export function $$jsxChildList(nodes, parent, ctx) {
     if (nodes === void 0 || nodes.length === 0) {
         return emptyArray;

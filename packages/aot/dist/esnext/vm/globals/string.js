@@ -1,7 +1,7 @@
-import { $BuiltinFunction, $GetPrototypeFromConstructor, } from '../types/function';
-import { $String, } from '../types/string';
-import { $StringExoticObject, } from '../exotics/string';
-import { $Object, } from '../types/object';
+import { $BuiltinFunction, $GetPrototypeFromConstructor, } from '../types/function.js';
+import { $String, } from '../types/string.js';
+import { $StringExoticObject, } from '../exotics/string.js';
+import { $Object, } from '../types/object.js';
 // http://www.ecma-international.org/ecma-262/#sec-string-constructor
 export class $StringConstructor extends $BuiltinFunction {
     get $prototype() {

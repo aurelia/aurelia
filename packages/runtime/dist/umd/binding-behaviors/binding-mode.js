@@ -13,14 +13,14 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "../observation", "../binding-behavior"], factory);
+        define(["require", "exports", "../observation.js", "../binding-behavior.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.TwoWayBindingBehavior = exports.FromViewBindingBehavior = exports.ToViewBindingBehavior = exports.OneTimeBindingBehavior = exports.BindingModeBehavior = void 0;
-    const observation_1 = require("../observation");
-    const binding_behavior_1 = require("../binding-behavior");
+    const observation_js_1 = require("../observation.js");
+    const binding_behavior_js_1 = require("../binding-behavior.js");
     class BindingModeBehavior {
         constructor(mode) {
             this.mode = mode;
@@ -38,41 +38,41 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     exports.BindingModeBehavior = BindingModeBehavior;
     let OneTimeBindingBehavior = class OneTimeBindingBehavior extends BindingModeBehavior {
         constructor() {
-            super(observation_1.BindingMode.oneTime);
+            super(observation_js_1.BindingMode.oneTime);
         }
     };
     OneTimeBindingBehavior = __decorate([
-        binding_behavior_1.bindingBehavior('oneTime'),
+        binding_behavior_js_1.bindingBehavior('oneTime'),
         __metadata("design:paramtypes", [])
     ], OneTimeBindingBehavior);
     exports.OneTimeBindingBehavior = OneTimeBindingBehavior;
     let ToViewBindingBehavior = class ToViewBindingBehavior extends BindingModeBehavior {
         constructor() {
-            super(observation_1.BindingMode.toView);
+            super(observation_js_1.BindingMode.toView);
         }
     };
     ToViewBindingBehavior = __decorate([
-        binding_behavior_1.bindingBehavior('toView'),
+        binding_behavior_js_1.bindingBehavior('toView'),
         __metadata("design:paramtypes", [])
     ], ToViewBindingBehavior);
     exports.ToViewBindingBehavior = ToViewBindingBehavior;
     let FromViewBindingBehavior = class FromViewBindingBehavior extends BindingModeBehavior {
         constructor() {
-            super(observation_1.BindingMode.fromView);
+            super(observation_js_1.BindingMode.fromView);
         }
     };
     FromViewBindingBehavior = __decorate([
-        binding_behavior_1.bindingBehavior('fromView'),
+        binding_behavior_js_1.bindingBehavior('fromView'),
         __metadata("design:paramtypes", [])
     ], FromViewBindingBehavior);
     exports.FromViewBindingBehavior = FromViewBindingBehavior;
     let TwoWayBindingBehavior = class TwoWayBindingBehavior extends BindingModeBehavior {
         constructor() {
-            super(observation_1.BindingMode.twoWay);
+            super(observation_js_1.BindingMode.twoWay);
         }
     };
     TwoWayBindingBehavior = __decorate([
-        binding_behavior_1.bindingBehavior('twoWay'),
+        binding_behavior_js_1.bindingBehavior('twoWay'),
         __metadata("design:paramtypes", [])
     ], TwoWayBindingBehavior);
     exports.TwoWayBindingBehavior = TwoWayBindingBehavior;

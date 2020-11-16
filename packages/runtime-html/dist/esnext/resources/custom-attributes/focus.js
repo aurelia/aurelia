@@ -11,9 +11,9 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 import { bindable, BindingMode } from '@aurelia/runtime';
-import { INode } from '../../dom';
-import { IPlatform } from '../../platform';
-import { customAttribute } from '../custom-attribute';
+import { INode } from '../../dom.js';
+import { IPlatform } from '../../platform.js';
+import { customAttribute } from '../custom-attribute.js';
 /**
  * Focus attribute for element focus binding
  */

@@ -1,5 +1,5 @@
-import { IContainer } from './di';
-import { Constructable } from './interfaces';
+import { IContainer } from './di.js';
+import { Constructable } from './interfaces.js';
 export declare type ResourceType<TUserType extends Constructable = Constructable, TResInstance extends {} = {}, TResType extends {} = {}, TUserInstance extends InstanceType<TUserType> = InstanceType<TUserType>> = (new (...args: any[]) => TResInstance & TUserInstance) & {
     readonly aliases?: readonly string[];
 } & TResType & TUserType;

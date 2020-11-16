@@ -1,6 +1,6 @@
-import { Scope } from './scope';
-import { arrayRemove } from './utils';
-import { Runner } from './runner';
+import { Scope } from './scope.js';
+import { arrayRemove } from './utils.js';
+import { Runner } from './runner.js';
 export class ViewportScope {
     constructor(name, router, connectedCE, owningScope, scope, rootComponentType = null, // temporary. Metadata will probably eliminate it
     options = {

@@ -8,9 +8,9 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 import { IServiceLocator, } from '@aurelia/kernel';
-import { ILifecycle, } from '../observation';
-import { IObserverLocator } from '../observation/observer-locator';
-import { connectable, } from './connectable';
+import { ILifecycle, } from '../observation.js';
+import { IObserverLocator } from '../observation/observer-locator.js';
+import { connectable, } from './connectable.js';
 let LetBinding = class LetBinding {
     constructor(sourceExpression, targetProperty, observerLocator, locator, toBindingContext = false) {
         this.sourceExpression = sourceExpression;

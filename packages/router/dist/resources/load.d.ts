@@ -1,5 +1,5 @@
 import { INode, ICustomAttributeController, ICustomAttributeViewModel } from '@aurelia/runtime-html';
-import { IRouter } from '../router';
+import { IRouter } from '../router.js';
 export declare class LoadCustomAttribute implements ICustomAttributeViewModel {
     private readonly router;
     value: unknown;

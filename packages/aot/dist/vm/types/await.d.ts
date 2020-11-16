@@ -1,10 +1,10 @@
-import { $BuiltinFunction, $Function } from './function';
-import { $AnyNonEmptyNonError, $Any, $AnyNonEmpty } from './_shared';
-import { $List } from './list';
-import { ExecutionContext, Realm } from '../realm';
-import { $Undefined } from './undefined';
-import { $Error } from './error';
-import { $Number } from './number';
+import { $BuiltinFunction, $Function } from './function.js';
+import { $AnyNonEmptyNonError, $Any, $AnyNonEmpty } from './_shared.js';
+import { $List } from './list.js';
+import { ExecutionContext, Realm } from '../realm.js';
+import { $Undefined } from './undefined.js';
+import { $Error } from './error.js';
+import { $Number } from './number.js';
 export declare function $Await(ctx: ExecutionContext, value: $Any): $Undefined | $Error;
 export declare class $Await_Fulfilled extends $BuiltinFunction<'Await_Fulfilled'> {
     '[[AsyncContext]]': ExecutionContext;

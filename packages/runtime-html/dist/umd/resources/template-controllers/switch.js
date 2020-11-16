@@ -16,7 +16,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "../../dom", "../custom-attribute", "../../templating/view"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "../../dom.js", "../custom-attribute.js", "../../templating/view.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -24,9 +24,9 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     exports.DefaultCase = exports.Case = exports.Switch = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
-    const dom_1 = require("../../dom");
-    const custom_attribute_1 = require("../custom-attribute");
-    const view_1 = require("../../templating/view");
+    const dom_js_1 = require("../../dom.js");
+    const custom_attribute_js_1 = require("../custom-attribute.js");
+    const view_js_1 = require("../../templating/view.js");
     let Switch = class Switch {
         constructor(factory, location) {
             this.factory = factory;
@@ -204,9 +204,9 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         __metadata("design:type", Object)
     ], Switch.prototype, "value", void 0);
     Switch = __decorate([
-        custom_attribute_1.templateController('switch'),
-        __param(0, view_1.IViewFactory),
-        __param(1, dom_1.IRenderLocation),
+        custom_attribute_js_1.templateController('switch'),
+        __param(0, view_js_1.IViewFactory),
+        __param(1, dom_js_1.IRenderLocation),
         __metadata("design:paramtypes", [Object, Object])
     ], Switch);
     exports.Switch = Switch;
@@ -316,10 +316,10 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         __metadata("design:type", Boolean)
     ], Case.prototype, "fallThrough", void 0);
     Case = __decorate([
-        custom_attribute_1.templateController('case'),
-        __param(0, view_1.IViewFactory),
+        custom_attribute_js_1.templateController('case'),
+        __param(0, view_js_1.IViewFactory),
         __param(1, runtime_1.IObserverLocator),
-        __param(2, dom_1.IRenderLocation),
+        __param(2, dom_js_1.IRenderLocation),
         __param(3, kernel_1.ILogger),
         __metadata("design:paramtypes", [Object, Object, Object, Object])
     ], Case);
@@ -333,7 +333,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
     };
     DefaultCase = __decorate([
-        custom_attribute_1.templateController('default-case')
+        custom_attribute_js_1.templateController('default-case')
     ], DefaultCase);
     exports.DefaultCase = DefaultCase;
 });

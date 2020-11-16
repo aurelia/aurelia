@@ -1,9 +1,9 @@
-import { $PropertyDescriptor, } from './types/property-descriptor';
-import { $String, } from './types/string';
-import { $TypeError, } from './types/error';
-import { $Object, } from './types/object';
-import { $List, } from './types/list';
-import { $Empty, } from './types/empty';
+import { $PropertyDescriptor, } from './types/property-descriptor.js';
+import { $String, } from './types/string.js';
+import { $TypeError, } from './types/error.js';
+import { $Object, } from './types/object.js';
+import { $List, } from './types/list.js';
+import { $Empty, } from './types/empty.js';
 // http://www.ecma-international.org/ecma-262/#sec-set-o-p-v-throw
 export function $Set(ctx, O, P, V, Throw) {
     // 1. Assert: Type(O) is Object.

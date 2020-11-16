@@ -1,11 +1,11 @@
 import { IContainer, Key } from '@aurelia/kernel';
-import { ComponentAppellation, ComponentParameters, IRouteableComponent, RouteableComponentType, ViewportHandle } from './interfaces';
-import { IRouter } from './router';
-import { Viewport } from './viewport';
-import { IComponentParameter, InstructionResolver } from './instruction-resolver';
-import { Scope, IScopeOwner } from './scope';
-import { ViewportScope } from './viewport-scope';
-import { FoundRoute } from './found-route';
+import { ComponentAppellation, ComponentParameters, IRouteableComponent, RouteableComponentType, ViewportHandle } from './interfaces.js';
+import { IRouter } from './router.js';
+import { Viewport } from './viewport.js';
+import { IComponentParameter, InstructionResolver } from './instruction-resolver.js';
+import { Scope, IScopeOwner } from './scope.js';
+import { ViewportScope } from './viewport-scope.js';
+import { FoundRoute } from './found-route.js';
 export declare type Params = {
     [key: string]: unknown;
 };

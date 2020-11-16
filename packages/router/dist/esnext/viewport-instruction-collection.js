@@ -1,4 +1,4 @@
-import { arrayRemove } from './utils';
+import { arrayRemove } from './utils.js';
 /**
  * @internal - Shouldn't be used directly
  */

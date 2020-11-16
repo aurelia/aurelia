@@ -1,11 +1,11 @@
 import { Constructable } from '@aurelia/kernel';
 import { LifecycleFlags } from '@aurelia/runtime';
-import { RenderPlan } from '../../create-element';
-import { HydrateElementInstruction } from '../../renderer';
-import { IPlatform } from '../../platform';
-import { IViewFactory } from '../../templating/view';
-import { CustomElementDefinition } from '../custom-element';
-import type { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../templating/controller';
+import { RenderPlan } from '../../create-element.js';
+import { HydrateElementInstruction } from '../../renderer.js';
+import { IPlatform } from '../../platform.js';
+import { IViewFactory } from '../../templating/view.js';
+import { CustomElementDefinition } from '../custom-element.js';
+import type { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../templating/controller.js';
 export declare type Subject = IViewFactory | ISyntheticView | RenderPlan | Constructable | CustomElementDefinition;
 export declare type MaybeSubjectPromise = Subject | Promise<Subject> | undefined;
 export declare class Compose implements ICustomElementViewModel {

@@ -4,23 +4,23 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./_shared", "./number", "./object", "./boolean"], factory);
+        define(["require", "exports", "./_shared.js", "./number.js", "./object.js", "./boolean.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.$String = void 0;
-    const _shared_1 = require("./_shared");
-    const number_1 = require("./number");
-    const object_1 = require("./object");
-    const boolean_1 = require("./boolean");
+    const _shared_js_1 = require("./_shared.js");
+    const number_js_1 = require("./number.js");
+    const object_js_1 = require("./object.js");
+    const boolean_js_1 = require("./boolean.js");
     // http://www.ecma-international.org/ecma-262/#sec-ecmascript-language-types-string-type
     class $String {
         constructor(realm, value, type = 1 /* normal */, target = realm['[[Intrinsics]]'].empty, sourceNode = null, conversionSource = null) {
             this.realm = realm;
             this.sourceNode = sourceNode;
             this.conversionSource = conversionSource;
-            this.id = _shared_1.nextValueId();
+            this.id = _shared_js_1.nextValueId();
             this.IntrinsicName = 'string';
             this.nodeStack = [];
             this.ctx = null;
@@ -118,7 +118,7 @@
         ToObject(ctx) {
             const realm = ctx.Realm;
             const intrinsics = realm['[[Intrinsics]]'];
-            return object_1.$Object.ObjectCreate(ctx, 'string', intrinsics['%StringPrototype%'], {
+            return object_js_1.$Object.ObjectCreate(ctx, 'string', intrinsics['%StringPrototype%'], {
                 '[[StringData]]': this,
             });
         }
@@ -132,7 +132,7 @@
             return this;
         }
         ToBoolean(ctx) {
-            return new boolean_1.$Boolean(
+            return new boolean_js_1.$Boolean(
             /* realm */ this.realm, 
             /* value */ Boolean(this['[[Value]]']), 
             /* type */ this['[[Type]]'], 
@@ -141,7 +141,7 @@
             /* conversionSource */ this);
         }
         ToNumber(ctx) {
-            return new number_1.$Number(
+            return new number_js_1.$Number(
             /* realm */ this.realm, 
             /* value */ Number(this['[[Value]]']), 
             /* type */ this['[[Type]]'], 
@@ -150,63 +150,63 @@
             /* conversionSource */ this);
         }
         ToInt32(ctx) {
-            return new number_1.$Number(
+            return new number_js_1.$Number(
             /* realm */ this.realm, 
-            /* value */ _shared_1.Int32(this['[[Value]]']), 
+            /* value */ _shared_js_1.Int32(this['[[Value]]']), 
             /* type */ this['[[Type]]'], 
             /* target */ this['[[Target]]'], 
             /* sourceNode */ null, 
             /* conversionSource */ this);
         }
         ToUint32(ctx) {
-            return new number_1.$Number(
+            return new number_js_1.$Number(
             /* realm */ this.realm, 
-            /* value */ _shared_1.Uint32(this['[[Value]]']), 
+            /* value */ _shared_js_1.Uint32(this['[[Value]]']), 
             /* type */ this['[[Type]]'], 
             /* target */ this['[[Target]]'], 
             /* sourceNode */ null, 
             /* conversionSource */ this);
         }
         ToInt16(ctx) {
-            return new number_1.$Number(
+            return new number_js_1.$Number(
             /* realm */ this.realm, 
-            /* value */ _shared_1.Int16(this['[[Value]]']), 
+            /* value */ _shared_js_1.Int16(this['[[Value]]']), 
             /* type */ this['[[Type]]'], 
             /* target */ this['[[Target]]'], 
             /* sourceNode */ null, 
             /* conversionSource */ this);
         }
         ToUint16(ctx) {
-            return new number_1.$Number(
+            return new number_js_1.$Number(
             /* realm */ this.realm, 
-            /* value */ _shared_1.Uint16(this['[[Value]]']), 
+            /* value */ _shared_js_1.Uint16(this['[[Value]]']), 
             /* type */ this['[[Type]]'], 
             /* target */ this['[[Target]]'], 
             /* sourceNode */ null, 
             /* conversionSource */ this);
         }
         ToInt8(ctx) {
-            return new number_1.$Number(
+            return new number_js_1.$Number(
             /* realm */ this.realm, 
-            /* value */ _shared_1.Int8(this['[[Value]]']), 
+            /* value */ _shared_js_1.Int8(this['[[Value]]']), 
             /* type */ this['[[Type]]'], 
             /* target */ this['[[Target]]'], 
             /* sourceNode */ null, 
             /* conversionSource */ this);
         }
         ToUint8(ctx) {
-            return new number_1.$Number(
+            return new number_js_1.$Number(
             /* realm */ this.realm, 
-            /* value */ _shared_1.Uint8(this['[[Value]]']), 
+            /* value */ _shared_js_1.Uint8(this['[[Value]]']), 
             /* type */ this['[[Type]]'], 
             /* target */ this['[[Target]]'], 
             /* sourceNode */ null, 
             /* conversionSource */ this);
         }
         ToUint8Clamp(ctx) {
-            return new number_1.$Number(
+            return new number_js_1.$Number(
             /* realm */ this.realm, 
-            /* value */ _shared_1.Uint8Clamp(this['[[Value]]']), 
+            /* value */ _shared_js_1.Uint8Clamp(this['[[Value]]']), 
             /* type */ this['[[Type]]'], 
             /* target */ this['[[Target]]'], 
             /* sourceNode */ null, 

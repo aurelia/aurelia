@@ -4,13 +4,13 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "../types/function"], factory);
+        define(["require", "exports", "../types/function.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.$EncodeURIComponent = exports.$EncodeURI = exports.$DecodeURIComponent = exports.$DecodeURI = exports.$Decode = exports.$Encode = void 0;
-    const function_1 = require("../types/function");
+    const function_js_1 = require("../types/function.js");
     // http://www.ecma-international.org/ecma-262/#sec-uri-handling-functions
     // 18.2.6 URI Handling Functions
     // http://www.ecma-international.org/ecma-262/#sec-uri-syntax-and-semantics
@@ -114,7 +114,7 @@
     exports.$Decode = $Decode;
     // http://www.ecma-international.org/ecma-262/#sec-decodeuri-encodeduri
     // 18.2.6.2 decodeURI ( encodedURI )
-    class $DecodeURI extends function_1.$BuiltinFunction {
+    class $DecodeURI extends function_js_1.$BuiltinFunction {
         constructor(realm, proto) {
             super(realm, '%decodeURI%', proto);
         }
@@ -128,7 +128,7 @@
     exports.$DecodeURI = $DecodeURI;
     // http://www.ecma-international.org/ecma-262/#sec-decodeuricomponent-encodeduricomponent
     // 18.2.6.3 decodeURIComponent ( encodedURIComponent )
-    class $DecodeURIComponent extends function_1.$BuiltinFunction {
+    class $DecodeURIComponent extends function_js_1.$BuiltinFunction {
         constructor(realm, proto) {
             super(realm, '%decodeURIComponent%', proto);
         }
@@ -142,7 +142,7 @@
     exports.$DecodeURIComponent = $DecodeURIComponent;
     // http://www.ecma-international.org/ecma-262/#sec-encodeuri-uri
     // 18.2.6.4 encodeURI ( uri )
-    class $EncodeURI extends function_1.$BuiltinFunction {
+    class $EncodeURI extends function_js_1.$BuiltinFunction {
         constructor(realm, proto) {
             super(realm, '%encodeURI%', proto);
         }
@@ -156,7 +156,7 @@
     exports.$EncodeURI = $EncodeURI;
     // http://www.ecma-international.org/ecma-262/#sec-encodeuricomponent-uricomponent
     // 18.2.6.5 encodeURIComponent ( uriComponent )
-    class $EncodeURIComponent extends function_1.$BuiltinFunction {
+    class $EncodeURIComponent extends function_js_1.$BuiltinFunction {
         constructor(realm, proto) {
             super(realm, '%encodeURIComponent%', proto);
         }

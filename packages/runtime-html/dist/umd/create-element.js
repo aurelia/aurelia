@@ -4,20 +4,20 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./renderer", "./resources/custom-element", "./templating/render-context"], factory);
+        define(["require", "exports", "./renderer.js", "./resources/custom-element.js", "./templating/render-context.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.RenderPlan = exports.createElement = void 0;
-    const renderer_1 = require("./renderer");
-    const custom_element_1 = require("./resources/custom-element");
-    const render_context_1 = require("./templating/render-context");
+    const renderer_js_1 = require("./renderer.js");
+    const custom_element_js_1 = require("./resources/custom-element.js");
+    const render_context_js_1 = require("./templating/render-context.js");
     function createElement(p, tagOrType, props, children) {
         if (typeof tagOrType === 'string') {
             return createElementForTag(p, tagOrType, props, children);
         }
-        else if (custom_element_1.CustomElement.isType(tagOrType)) {
+        else if (custom_element_js_1.CustomElement.isType(tagOrType)) {
             return createElementForType(p, tagOrType, props, children);
         }
         else {
@@ -37,8 +37,8 @@
         }
         get definition() {
             if (this.lazyDefinition === void 0) {
-                this.lazyDefinition = custom_element_1.CustomElementDefinition.create({
-                    name: custom_element_1.CustomElement.generateName(),
+                this.lazyDefinition = custom_element_js_1.CustomElementDefinition.create({
+                    name: custom_element_js_1.CustomElement.generateName(),
                     template: this.node,
                     needsCompile: typeof this.node === 'string',
                     instructions: this.instructions,
@@ -48,7 +48,7 @@
             return this.lazyDefinition;
         }
         getContext(parentContainer) {
-            return render_context_1.getRenderContext(this.definition, parentContainer);
+            return render_context_js_1.getRenderContext(this.definition, parentContainer);
         }
         createView(parentContainer) {
             return this.getViewFactory(parentContainer).create();
@@ -74,7 +74,7 @@
             Object.keys(props)
                 .forEach(to => {
                 const value = props[to];
-                if (renderer_1.isInstruction(value)) {
+                if (renderer_js_1.isInstruction(value)) {
                     hasInstructions = true;
                     instructions.push(value);
                 }
@@ -93,7 +93,7 @@
         return new RenderPlan(element, allInstructions, dependencies);
     }
     function createElementForType(p, Type, props, children) {
-        const definition = custom_element_1.CustomElement.getDefinition(Type);
+        const definition = custom_element_js_1.CustomElement.getDefinition(Type);
         const tagName = definition.name;
         const instructions = [];
         const allInstructions = [instructions];
@@ -105,12 +105,12 @@
         if (!dependencies.includes(Type)) {
             dependencies.push(Type);
         }
-        instructions.push(new renderer_1.HydrateElementInstruction(tagName, childInstructions, null));
+        instructions.push(new renderer_js_1.HydrateElementInstruction(tagName, childInstructions, null));
         if (props) {
             Object.keys(props)
                 .forEach(to => {
                 const value = props[to];
-                if (renderer_1.isInstruction(value)) {
+                if (renderer_js_1.isInstruction(value)) {
                     childInstructions.push(value);
                 }
                 else {
@@ -123,7 +123,7 @@
                         });
                     }
                     else {
-                        childInstructions.push(new renderer_1.SetAttributeInstruction(value, to));
+                        childInstructions.push(new renderer_js_1.SetAttributeInstruction(value, to));
                     }
                 }
             });

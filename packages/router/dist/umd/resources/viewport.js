@@ -16,7 +16,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime-html", "../router", "./viewport-scope", "../runner"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime-html", "../router.js", "./viewport-scope.js", "../runner.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -25,9 +25,9 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     exports.ViewportCustomElement = exports.ParentViewport = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const runtime_html_1 = require("@aurelia/runtime-html");
-    const router_1 = require("../router");
-    const viewport_scope_1 = require("./viewport-scope");
-    const runner_1 = require("../runner");
+    const router_js_1 = require("../router.js");
+    const viewport_scope_js_1 = require("./viewport-scope.js");
+    const runner_js_1 = require("../runner.js");
     exports.ParentViewport = runtime_html_1.CustomElement.createInjectable();
     let ViewportCustomElement = ViewportCustomElement_1 = class ViewportCustomElement {
         constructor(router, element, container, parentViewport) {
@@ -52,7 +52,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             this.controller = controller;
             this.container = controller.context.get(kernel_1.IContainer);
             // The first viewport(s) might be compiled before the router is active
-            return runner_1.Runner.run(() => this.waitForRouterStart(), () => {
+            return runner_js_1.Runner.run(() => this.waitForRouterStart(), () => {
                 if (this.router.isRestrictedNavigation) {
                     this.connect();
                 }
@@ -60,7 +60,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
         binding(initiator, parent, flags) {
             this.isBound = true;
-            return runner_1.Runner.run(() => this.waitForRouterStart(), () => {
+            return runner_js_1.Runner.run(() => this.waitForRouterStart(), () => {
                 if (!this.router.isRestrictedNavigation) {
                     this.connect();
                 }
@@ -95,7 +95,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                 //   }
                 // }
                 // TODO: Save scroll state before detach
-                return runner_1.Runner.run(() => this.viewport.deactivate(initiator, parent, flags), () => {
+                return runner_js_1.Runner.run(() => this.viewport.deactivate(initiator, parent, flags), () => {
                     this.isBound = false;
                     this.viewport.enabled = false;
                 });
@@ -112,7 +112,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         // }
         dispose() {
             if (this.viewport !== null) {
-                return runner_1.Runner.run(() => { var _a, _b, _c; return ((_b = (_a = this.viewport) === null || _a === void 0 ? void 0 : _a.nextContent) !== null && _b !== void 0 ? _b : null) === null ? (_c = this.viewport) === null || _c === void 0 ? void 0 : _c.dispose() : void 0; }, () => this.disconnect());
+                return runner_js_1.Runner.run(() => { var _a, _b, _c; return ((_b = (_a = this.viewport) === null || _a === void 0 ? void 0 : _a.nextContent) !== null && _b !== void 0 ? _b : null) === null ? (_c = this.viewport) === null || _c === void 0 ? void 0 : _c.dispose() : void 0; }, () => this.disconnect());
             }
         }
         connect() {
@@ -193,7 +193,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             let parent = this.controller.parent;
             let customElement = null;
             while (parent !== null && customElement === null) {
-                if (parent.viewModel instanceof ViewportCustomElement_1 || parent.viewModel instanceof viewport_scope_1.ViewportScopeCustomElement) {
+                if (parent.viewModel instanceof ViewportCustomElement_1 || parent.viewModel instanceof viewport_scope_js_1.ViewportScopeCustomElement) {
                     customElement = parent.viewModel;
                 }
                 parent = parent.parent;
@@ -251,7 +251,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             name: 'au-viewport',
             injectable: exports.ParentViewport
         }),
-        __param(0, router_1.IRouter),
+        __param(0, router_js_1.IRouter),
         __param(1, runtime_html_1.INode),
         __param(2, kernel_1.IContainer),
         __param(3, exports.ParentViewport),

@@ -1,6 +1,6 @@
-import { $BuiltinFunction, $OrdinaryCreateFromConstructor, } from '../types/function';
-import { $Boolean, } from '../types/boolean';
-import { $Object, } from '../types/object';
+import { $BuiltinFunction, $OrdinaryCreateFromConstructor, } from '../types/function.js';
+import { $Boolean, } from '../types/boolean.js';
+import { $Object, } from '../types/object.js';
 // http://www.ecma-international.org/ecma-262/#sec-boolean-constructor
 export class $BooleanConstructor extends $BuiltinFunction {
     get $prototype() {

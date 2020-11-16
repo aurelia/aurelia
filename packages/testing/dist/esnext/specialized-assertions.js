@@ -1,5 +1,5 @@
 import { If, Repeat, With, Compose } from '@aurelia/runtime-html';
-import { assert } from './assert';
+import { assert } from './assert.js';
 // Disabling this as it this is nowhere used. And also the ast-serialization infra is moved to validation package.
 // export function verifyASTEqual(actual: any, expected: any, errors?: string[], path?: string): any {
 //   if (expected == null) {

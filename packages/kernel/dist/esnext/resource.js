@@ -1,5 +1,5 @@
 import { Metadata } from '@aurelia/metadata';
-import { emptyArray } from './platform';
+import { emptyArray } from './platform.js';
 const annotation = {
     name: 'au:annotation',
     appendTo(target, key) {

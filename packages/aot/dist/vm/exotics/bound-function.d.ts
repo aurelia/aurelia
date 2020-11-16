@@ -1,9 +1,9 @@
-import { $Object } from '../types/object';
-import { $Function } from '../types/function';
-import { $AnyNonEmpty, $AnyNonEmptyNonError } from '../types/_shared';
-import { Realm, ExecutionContext } from '../realm';
-import { $Undefined } from '../types/undefined';
-import { $List } from '../types/list';
+import { $Object } from '../types/object.js';
+import { $Function } from '../types/function.js';
+import { $AnyNonEmpty, $AnyNonEmptyNonError } from '../types/_shared.js';
+import { Realm, ExecutionContext } from '../realm.js';
+import { $Undefined } from '../types/undefined.js';
+import { $List } from '../types/list.js';
 export declare class $BoundFunctionExoticObject extends $Object<'BoundFunctionExoticObject'> {
     '[[BoundTargetFunction]]': $Function;
     '[[BoundThis]]': $AnyNonEmptyNonError;

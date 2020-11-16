@@ -4,18 +4,18 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./types/property-descriptor", "./types/string", "./types/error", "./types/object", "./types/list", "./types/empty"], factory);
+        define(["require", "exports", "./types/property-descriptor.js", "./types/string.js", "./types/error.js", "./types/object.js", "./types/list.js", "./types/empty.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.$SpeciesConstructor = exports.$Invoke = exports.$HostEnsureCanCompileStrings = exports.$LoopContinues = exports.$CopyDataProperties = exports.$GetFunctionRealm = exports.$CreateListFromArrayLike = exports.$FromPropertyDescriptor = exports.$ToPropertyDescriptor = exports.$OrdinaryHasInstance = exports.$InstanceOfOperator = exports.$StrictEqualityComparison = exports.$AbstractEqualityComparison = exports.$AbstractRelationalComparison = exports.$SetImmutablePrototype = exports.$ValidateAndApplyPropertyDescriptor = exports.$DefinePropertyOrThrow = exports.$Construct = exports.$Call = exports.$HasOwnProperty = exports.$OrdinarySetWithOwnDescriptor = exports.$CreateDataProperty = exports.$GetMethod = exports.$GetV = exports.$Set = void 0;
-    const property_descriptor_1 = require("./types/property-descriptor");
-    const string_1 = require("./types/string");
-    const error_1 = require("./types/error");
-    const object_1 = require("./types/object");
-    const list_1 = require("./types/list");
-    const empty_1 = require("./types/empty");
+    const property_descriptor_js_1 = require("./types/property-descriptor.js");
+    const string_js_1 = require("./types/string.js");
+    const error_js_1 = require("./types/error.js");
+    const object_js_1 = require("./types/object.js");
+    const list_js_1 = require("./types/list.js");
+    const empty_js_1 = require("./types/empty.js");
     // http://www.ecma-international.org/ecma-262/#sec-set-o-p-v-throw
     function $Set(ctx, O, P, V, Throw) {
         // 1. Assert: Type(O) is Object.
@@ -28,7 +28,7 @@
         }
         // 5. If success is false and Throw is true, throw a TypeError exception.
         if (success.isFalsey && Throw.isTruthy) {
-            return new error_1.$TypeError(ctx.Realm, `Cannot set property ${P}`);
+            return new error_js_1.$TypeError(ctx.Realm, `Cannot set property ${P}`);
         }
         // 6. Return success.
         return success;
@@ -62,7 +62,7 @@
         }
         // 4. If IsCallable(func) is false, throw a TypeError exception.
         if (!func.isFunction) {
-            return new error_1.$TypeError(ctx.Realm, `Property ${P} of ${V} is ${func}, but expected a callable function`);
+            return new error_js_1.$TypeError(ctx.Realm, `Property ${P} of ${V} is ${func}, but expected a callable function`);
         }
         // 5. Return func.
         return func;
@@ -75,7 +75,7 @@
         // 1. Assert: Type(O) is Object.
         // 2. Assert: IsPropertyKey(P) is true.
         // 3. Let newDesc be the PropertyDescriptor { [[Value]]: V, [[Writable]]: true, [[Enumerable]]: true, [[Configurable]]: true }.
-        const newDesc = new property_descriptor_1.$PropertyDescriptor(realm, P);
+        const newDesc = new property_descriptor_js_1.$PropertyDescriptor(realm, P);
         newDesc['[[Value]]'] = V;
         newDesc['[[Writable]]'] = intrinsics.true;
         newDesc['[[Enumerable]]'] = intrinsics.true;
@@ -104,7 +104,7 @@
             // 2. c. Else,
             else {
                 // 2. c. i. Set ownDesc to the PropertyDescriptor { [[Value]]: undefined, [[Writable]]: true, [[Enumerable]]: true, [[Configurable]]: true }.
-                ownDesc = new property_descriptor_1.$PropertyDescriptor(realm, P);
+                ownDesc = new property_descriptor_js_1.$PropertyDescriptor(realm, P);
                 ownDesc['[[Value]]'] = intrinsics.undefined;
                 ownDesc['[[Writable]]'] = intrinsics.true;
                 ownDesc['[[Enumerable]]'] = intrinsics.true;
@@ -137,7 +137,7 @@
                     return intrinsics.false;
                 }
                 // 3. d. iii. Let valueDesc be the PropertyDescriptor { [[Value]]: V }.
-                const valueDesc = new property_descriptor_1.$PropertyDescriptor(realm, P);
+                const valueDesc = new property_descriptor_js_1.$PropertyDescriptor(realm, P);
                 valueDesc['[[Value]]'] = V;
                 // 3. d. iv. Return ? Receiver.[[DefineOwnProperty]](P, valueDesc).
                 return Receiver['[[DefineOwnProperty]]'](ctx, P, valueDesc);
@@ -156,7 +156,7 @@
             return intrinsics.false;
         }
         // 7. Perform ? Call(setter, Receiver, « V »).
-        $Call(ctx, setter, Receiver, new list_1.$List(V));
+        $Call(ctx, setter, Receiver, new list_js_1.$List(V));
         // 8. Return true.
         return intrinsics.true;
     }
@@ -184,11 +184,11 @@
     function $Call(ctx, F, V, argumentsList) {
         // 1. If argumentsList is not present, set argumentsList to a new empty List.
         if (!argumentsList.isList) {
-            argumentsList = new list_1.$List();
+            argumentsList = new list_js_1.$List();
         }
         // 2. If IsCallable(F) is false, throw a TypeError exception.
         if (!F.isFunction) {
-            return new error_1.$TypeError(ctx.Realm, `${F} is not callable`);
+            return new error_js_1.$TypeError(ctx.Realm, `${F} is not callable`);
         }
         // 3. Return ? F.[[Call]](V, argumentsList).
         return F['[[Call]]'](ctx, V, argumentsList);
@@ -202,7 +202,7 @@
         }
         // 2. If argumentsList is not present, set argumentsList to a new empty List.
         if (!argumentsList.isList) {
-            argumentsList = new list_1.$List();
+            argumentsList = new list_js_1.$List();
         }
         // 3. Assert: IsConstructor(F) is true.
         // 4. Assert: IsConstructor(newTarget) is true.
@@ -221,7 +221,7 @@
         }
         // 4. If success is false, throw a TypeError exception.
         if (success.isFalsey) {
-            return new error_1.$TypeError(ctx.Realm, `Failed to define property ${P} on ${O}`);
+            return new error_js_1.$TypeError(ctx.Realm, `Failed to define property ${P} on ${O}`);
         }
         // 5. Return success.
         return success;
@@ -243,7 +243,7 @@
             if (Desc.isGenericDescriptor || Desc.isDataDescriptor) {
                 // 2. c. i. If O is not undefined, create an own data property named P of object O whose [[Value]], [[Writable]], [[Enumerable]] and [[Configurable]] attribute values are described by Desc. If the value of an attribute field of Desc is absent, the attribute of the newly created property is set to its default value.
                 if (!O.isUndefined) {
-                    const newDesc = new property_descriptor_1.$PropertyDescriptor(realm, P);
+                    const newDesc = new property_descriptor_js_1.$PropertyDescriptor(realm, P);
                     if (Desc['[[Value]]'].isEmpty) {
                         newDesc['[[Value]]'] = intrinsics.undefined;
                     }
@@ -275,7 +275,7 @@
             else {
                 // 2. d. i. If O is not undefined, create an own accessor property named P of object O whose [[Get]], [[Set]], [[Enumerable]] and [[Configurable]] attribute values are described by Desc. If the value of an attribute field of Desc is absent, the attribute of the newly created property is set to its default value.
                 if (!O.isUndefined) {
-                    const newDesc = new property_descriptor_1.$PropertyDescriptor(realm, P);
+                    const newDesc = new property_descriptor_js_1.$PropertyDescriptor(realm, P);
                     if (Desc['[[Get]]'].isEmpty) {
                         newDesc['[[Get]]'] = intrinsics.undefined;
                     }
@@ -341,7 +341,7 @@
                 // 6. b. i. If O is not undefined, convert the property named P of object O from a data property to an accessor property. Preserve the existing values of the converted property's [[Configurable]] and [[Enumerable]] attributes and set the rest of the property's attributes to their default values.
                 if (!O.isUndefined) {
                     const existingDesc = O['getProperty'](P);
-                    const newDesc = new property_descriptor_1.$PropertyDescriptor(realm, P);
+                    const newDesc = new property_descriptor_js_1.$PropertyDescriptor(realm, P);
                     newDesc['[[Configurable]]'] = existingDesc['[[Configurable]]'];
                     newDesc['[[Enumerable]]'] = existingDesc['[[Enumerable]]'];
                     newDesc['[[Get]]'] = intrinsics.undefined;
@@ -354,7 +354,7 @@
                 // 6. c. i. If O is not undefined, convert the property named P of object O from an accessor property to a data property. Preserve the existing values of the converted property's [[Configurable]] and [[Enumerable]] attributes and set the rest of the property's attributes to their default values.
                 if (!O.isUndefined) {
                     const existingDesc = O['getProperty'](P);
-                    const newDesc = new property_descriptor_1.$PropertyDescriptor(realm, P);
+                    const newDesc = new property_descriptor_js_1.$PropertyDescriptor(realm, P);
                     newDesc['[[Configurable]]'] = existingDesc['[[Configurable]]'];
                     newDesc['[[Enumerable]]'] = existingDesc['[[Enumerable]]'];
                     newDesc['[[Writable]]'] = intrinsics.false;
@@ -628,7 +628,7 @@
         const intrinsics = realm['[[Intrinsics]]'];
         // 1. If Type(target) is not Object, throw a TypeError exception.
         if (!target.isObject) {
-            return new error_1.$TypeError(realm, `Right-hand side of 'instanceof' operator is ${target}, but expected an object`);
+            return new error_js_1.$TypeError(realm, `Right-hand side of 'instanceof' operator is ${target}, but expected an object`);
         }
         // 2. Let instOfHandler be ? GetMethod(target, @@hasInstance).
         const instOfhandler = target.GetMethod(ctx, intrinsics['@@hasInstance']);
@@ -638,11 +638,11 @@
         // 3. If instOfHandler is not undefined, then
         if (!instOfhandler.isUndefined) {
             // 3. a. Return ToBoolean(? Call(instOfHandler, target, « V »)).
-            return $Call(ctx, instOfhandler, target, new list_1.$List(V)).ToBoolean(ctx);
+            return $Call(ctx, instOfhandler, target, new list_js_1.$List(V)).ToBoolean(ctx);
         }
         // 4. If IsCallable(target) is false, throw a TypeError exception.
         if (!target.isFunction) {
-            return new error_1.$TypeError(realm, `Right-hand side of 'instanceof' operator is ${target}, but expected a callable function`);
+            return new error_js_1.$TypeError(realm, `Right-hand side of 'instanceof' operator is ${target}, but expected a callable function`);
         }
         // 5. Return ? OrdinaryHasInstance(target, V).
         return $OrdinaryHasInstance(ctx, target, V);
@@ -674,7 +674,7 @@
         }
         // 5. If Type(P) is not Object, throw a TypeError exception.
         if (!P.isObject) {
-            return new error_1.$TypeError(realm, `Prototype of right-hand side of 'instanceof' operator ${O} is ${P}, but expected an object`);
+            return new error_js_1.$TypeError(realm, `Prototype of right-hand side of 'instanceof' operator ${O} is ${P}, but expected an object`);
         }
         // 6. Repeat,
         while (true) {
@@ -701,10 +701,10 @@
         const intrinsics = realm['[[Intrinsics]]'];
         // 1. If Type(Obj) is not Object, throw a TypeError exception.
         if (!Obj.isObject) {
-            return new error_1.$TypeError(realm, `Cannot convert ${Obj} to property descriptor for property ${key}: expected an object`);
+            return new error_js_1.$TypeError(realm, `Cannot convert ${Obj} to property descriptor for property ${key}: expected an object`);
         }
         // 2. Let desc be a new Property Descriptor that initially has no fields.
-        const desc = new property_descriptor_1.$PropertyDescriptor(Obj.realm, key);
+        const desc = new property_descriptor_js_1.$PropertyDescriptor(Obj.realm, key);
         // 3. Let hasEnumerable be ? HasProperty(Obj, "enumerable").
         const hasEnumerable = Obj['[[HasProperty]]'](ctx, intrinsics.$enumerable);
         if (hasEnumerable.isAbrupt) {
@@ -779,7 +779,7 @@
             }
             // 12. b. If IsCallable(getter) is false and getter is not undefined, throw a TypeError exception.
             if (!getter.isFunction && !getter.isUndefined) {
-                return new error_1.$TypeError(realm, `Cannot convert ${Obj} to property descriptor for property ${key}: the getter is neither a callable function nor undefined`);
+                return new error_js_1.$TypeError(realm, `Cannot convert ${Obj} to property descriptor for property ${key}: the getter is neither a callable function nor undefined`);
             }
             // 12. c. Set desc.[[Get]] to getter.
             desc['[[Get]]'] = getter;
@@ -798,7 +798,7 @@
             }
             // 14. b. If IsCallable(setter) is false and setter is not undefined, throw a TypeError exception.
             if (!setter.isFunction && !setter.isUndefined) {
-                return new error_1.$TypeError(realm, `Cannot convert ${Obj} to property descriptor for property ${key}: the setter is neither a callable function nor undefined`);
+                return new error_js_1.$TypeError(realm, `Cannot convert ${Obj} to property descriptor for property ${key}: the setter is neither a callable function nor undefined`);
             }
             // 14. c. Set desc.[[Set]] to setter.
             desc['[[Set]]'] = setter;
@@ -807,7 +807,7 @@
         if (desc['[[Get]]'].hasValue || desc['[[Set]]'].hasValue) {
             // 15. a. If desc.[[Value]] is present or desc.[[Writable]] is present, throw a TypeError exception.
             if (desc['[[Value]]'].hasValue || desc['[[Writable]]'].hasValue) {
-                return new error_1.$TypeError(realm, `Cannot convert ${Obj} to property descriptor for property ${key}: there is a getter and/or setter, as well as a writable and/or value property`);
+                return new error_js_1.$TypeError(realm, `Cannot convert ${Obj} to property descriptor for property ${key}: there is a getter and/or setter, as well as a writable and/or value property`);
             }
         }
         // 16. Return desc.
@@ -822,7 +822,7 @@
             return intrinsics.undefined;
         }
         // 2. Let obj be ObjectCreate(%ObjectPrototype%).
-        const obj = object_1.$Object.ObjectCreate(ctx, 'PropertyDescriptor', intrinsics['%ObjectPrototype%']);
+        const obj = object_js_1.$Object.ObjectCreate(ctx, 'PropertyDescriptor', intrinsics['%ObjectPrototype%']);
         // 3. Assert: obj is an extensible ordinary object with no own properties.
         // 4. If Desc has a [[Value]] field, then
         if (Desc['[[Value]]'].hasValue) {
@@ -875,7 +875,7 @@
         // 1. If elementTypes is not present, set elementTypes to « Undefined, Null, Boolean, String, Symbol, Number, Object ».
         // 2. If Type(obj) is not Object, throw a TypeError exception.
         if (!obj.isObject) {
-            return new error_1.$TypeError(realm, `Cannot convert ${obj} to list: expected an object`);
+            return new error_js_1.$TypeError(realm, `Cannot convert ${obj} to list: expected an object`);
         }
         // 3. Let len be ? ToLength(? Get(obj, "length")).
         const len = obj['[[Get]]'](ctx, intrinsics.length, obj).ToLength(ctx);
@@ -883,13 +883,13 @@
             return len;
         }
         // 4. Let list be a new empty List.
-        const list = new list_1.$List();
+        const list = new list_js_1.$List();
         // 5. Let index be 0.
         let index = 0;
         // 6. Repeat, while index < len
         while (index < len['[[Value]]']) {
             // 6. a. Let indexName be ! ToString(index).
-            const indexName = new string_1.$String(realm, index.toString());
+            const indexName = new string_js_1.$String(realm, index.toString());
             // 6. b. Let next be ? Get(obj, indexName).
             const next = obj['[[Get]]'](ctx, indexName, obj);
             if (next.isAbrupt) {
@@ -897,7 +897,7 @@
             }
             // 6. c. If Type(next) is not an element of elementTypes, throw a TypeError exception.
             if (!elementTypes.includes(next.Type)) {
-                return new error_1.$TypeError(realm, `Cannot convert ${obj} to list: one of the elements (${next}) is of type ${next.Type}, but expected one of: ${elementTypes}`);
+                return new error_js_1.$TypeError(realm, `Cannot convert ${obj} to list: one of the elements (${next}) is of type ${next.Type}, but expected one of: ${elementTypes}`);
             }
             // 6. d. Append next as the last element of list.
             list[index++] = next;
@@ -927,7 +927,7 @@
         if (obj.isProxy) {
             // 4. a. If obj.[[ProxyHandler]] is null, throw a TypeError exception.
             if (obj['[[ProxyHandler]]'].isNull) {
-                return new error_1.$TypeError(realm, `Cannot retrieve function realm of proxy object with a null handler`);
+                return new error_js_1.$TypeError(realm, `Cannot retrieve function realm of proxy object with a null handler`);
             }
             // 4. b. Let proxyTarget be obj.[[ProxyTarget]].
             const proxyTarget = obj['[[ProxyTarget]]'];
@@ -1016,7 +1016,7 @@
         // An implementation of HostEnsureCanCompileStrings may complete normally or abruptly.
         // Any abrupt completions will be propagated to its callers.
         // The default implementation of HostEnsureCanCompileStrings is to unconditionally return an empty normal completion.
-        return new empty_1.$Empty(calleeRealm);
+        return new empty_js_1.$Empty(calleeRealm);
     }
     exports.$HostEnsureCanCompileStrings = $HostEnsureCanCompileStrings;
     // http://www.ecma-international.org/ecma-262/#sec-invoke
@@ -1025,7 +1025,7 @@
         // 1. Assert: IsPropertyKey(P) is true.
         // 2. If argumentsList is not present, set argumentsList to a new empty List.
         if (!argumentsList.isList) {
-            argumentsList = new list_1.$List();
+            argumentsList = new list_js_1.$List();
         }
         // 3. Let func be ? GetV(V, P).
         const func = $GetV(ctx, V, P);
@@ -1053,7 +1053,7 @@
         }
         // 4. If Type(C) is not Object, throw a TypeError exception.
         if (!C.isObject) {
-            return new error_1.$TypeError(realm, `Expected 'this' to be an object, but got: ${C}`);
+            return new error_js_1.$TypeError(realm, `Expected 'this' to be an object, but got: ${C}`);
         }
         // 5. Let S be ? Get(C, @@species).
         const S = C['[[Get]]'](ctx, intrinsics['@@species'], C);
@@ -1069,7 +1069,7 @@
             return S;
         }
         // 8. Throw a TypeError exception.
-        return new error_1.$TypeError(realm, `Expected return value of @@species to be null, undefined or a function, but got: ${S}`);
+        return new error_js_1.$TypeError(realm, `Expected return value of @@species to be null, undefined or a function, but got: ${S}`);
     }
     exports.$SpeciesConstructor = $SpeciesConstructor;
 });

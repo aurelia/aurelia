@@ -1,8 +1,8 @@
-import { $BuiltinFunction, } from './function';
-import { $List, } from './list';
-import { $Undefined, } from './undefined';
-import { $PromiseResolve, $PerformPromiseThen, } from '../globals/promise';
-import { $Number, } from './number';
+import { $BuiltinFunction, } from './function.js';
+import { $List, } from './list.js';
+import { $Undefined, } from './undefined.js';
+import { $PromiseResolve, $PerformPromiseThen, } from '../globals/promise.js';
+import { $Number, } from './number.js';
 // http://www.ecma-international.org/ecma-262/#await
 // 6.2.3.1 Await
 export function $Await(ctx, value) {

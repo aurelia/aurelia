@@ -14,12 +14,12 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./relative-time-binding-behavior", "./relative-time-value-converter"], factory);
+        define(["require", "exports", "./relative-time-binding-behavior.js", "./relative-time-value-converter.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    __exportStar(require("./relative-time-binding-behavior"), exports);
-    __exportStar(require("./relative-time-value-converter"), exports);
+    __exportStar(require("./relative-time-binding-behavior.js"), exports);
+    __exportStar(require("./relative-time-value-converter.js"), exports);
 });
 //# sourceMappingURL=index.js.map

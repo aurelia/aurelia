@@ -11,7 +11,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 import { IWindow, IHistory, ILocation, IPlatform } from '@aurelia/runtime-html';
-import { TaskQueue } from './task-queue';
+import { TaskQueue } from './task-queue.js';
 /**
  * @internal - Shouldn't be used directly
  */

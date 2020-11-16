@@ -4,22 +4,22 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "./app-root", "./platform", "./resources/custom-element"], factory);
+        define(["require", "exports", "@aurelia/kernel", "./app-root.js", "./platform.js", "./resources/custom-element.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.IHistory = exports.ILocation = exports.IWindow = exports.FragmentNodeSequence = exports.isRenderLocation = exports.convertToRenderLocation = exports.setEffectiveParentNode = exports.getEffectiveParentNode = exports.NodeType = exports.IRenderLocation = exports.IEventTarget = exports.INode = void 0;
     const kernel_1 = require("@aurelia/kernel");
-    const app_root_1 = require("./app-root");
-    const platform_1 = require("./platform");
-    const custom_element_1 = require("./resources/custom-element");
+    const app_root_js_1 = require("./app-root.js");
+    const platform_js_1 = require("./platform.js");
+    const custom_element_js_1 = require("./resources/custom-element.js");
     exports.INode = kernel_1.DI.createInterface('INode').noDefault();
     exports.IEventTarget = kernel_1.DI.createInterface('IEventTarget').withDefault(x => x.cachedCallback(handler => {
-        if (handler.has(app_root_1.IAppRoot, true)) {
-            return handler.get(app_root_1.IAppRoot).host;
+        if (handler.has(app_root_js_1.IAppRoot, true)) {
+            return handler.get(app_root_js_1.IAppRoot).host;
         }
-        return handler.get(platform_1.IPlatform).document;
+        return handler.get(platform_js_1.IPlatform).document;
     }));
     exports.IRenderLocation = kernel_1.DI.createInterface('IRenderLocation').noDefault();
     var NodeType;
@@ -80,7 +80,7 @@
         }
         if (node.parentNode === null && node.nodeType === 11 /* DocumentFragment */) {
             // Could be a shadow root; see if there's a controller and if so, get the original host via the projector
-            const controller = custom_element_1.CustomElement.for(node);
+            const controller = custom_element_js_1.CustomElement.for(node);
             if (controller === void 0) {
                 // Not a shadow root (or at least, not one created by Aurelia)
                 // Nothing more we can try, just return null
@@ -276,7 +276,7 @@
         }
     }
     exports.FragmentNodeSequence = FragmentNodeSequence;
-    exports.IWindow = kernel_1.DI.createInterface('IWindow').withDefault(x => x.callback(handler => handler.get(platform_1.IPlatform).window));
+    exports.IWindow = kernel_1.DI.createInterface('IWindow').withDefault(x => x.callback(handler => handler.get(platform_js_1.IPlatform).window));
     exports.ILocation = kernel_1.DI.createInterface('ILocation').withDefault(x => x.callback(handler => handler.get(exports.IWindow).location));
     exports.IHistory = kernel_1.DI.createInterface('IHistory').withDefault(x => x.callback(handler => handler.get(exports.IWindow).history));
 });

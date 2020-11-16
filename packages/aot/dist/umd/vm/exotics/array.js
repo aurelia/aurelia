@@ -4,21 +4,21 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "../types/object", "../types/number", "../types/property-descriptor", "../operations", "../types/string", "../types/error", "../types/list"], factory);
+        define(["require", "exports", "../types/object.js", "../types/number.js", "../types/property-descriptor.js", "../operations.js", "../types/string.js", "../types/error.js", "../types/list.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.$CreateArrayFromList = exports.$ArraySpeciesCreate = exports.$ArrayExoticObject = void 0;
-    const object_1 = require("../types/object");
-    const number_1 = require("../types/number");
-    const property_descriptor_1 = require("../types/property-descriptor");
-    const operations_1 = require("../operations");
-    const string_1 = require("../types/string");
-    const error_1 = require("../types/error");
-    const list_1 = require("../types/list");
+    const object_js_1 = require("../types/object.js");
+    const number_js_1 = require("../types/number.js");
+    const property_descriptor_js_1 = require("../types/property-descriptor.js");
+    const operations_js_1 = require("../operations.js");
+    const string_js_1 = require("../types/string.js");
+    const error_js_1 = require("../types/error.js");
+    const list_js_1 = require("../types/list.js");
     // http://www.ecma-international.org/ecma-262/#sec-array-exotic-objects
-    class $ArrayExoticObject extends object_1.$Object {
+    class $ArrayExoticObject extends object_js_1.$Object {
         get isArray() { return true; }
         // http://www.ecma-international.org/ecma-262/#sec-arraycreate
         // 9.4.2.2 ArrayCreate ( length [ , proto ] )
@@ -45,7 +45,7 @@
             // 8. Set A.[[Prototype]] to proto.
             // 9. Set A.[[Extensible]] to true.
             // 10. Perform ! OrdinaryDefineOwnProperty(A, "length", PropertyDescriptor { [[Value]]: length, [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: false }).
-            super['[[DefineOwnProperty]]'](realm.stack.top, intrinsics.length, new property_descriptor_1.$PropertyDescriptor(realm, intrinsics.length, {
+            super['[[DefineOwnProperty]]'](realm.stack.top, intrinsics.length, new property_descriptor_js_1.$PropertyDescriptor(realm, intrinsics.length, {
                 '[[Value]]': length,
                 '[[Writable]]': intrinsics.true,
                 '[[Enumerable]]': intrinsics.false,
@@ -86,7 +86,7 @@
                 // 3. h. If index ≥ oldLen, then
                 if (index['[[Value]]'] >= oldLen['[[Value]]']) {
                     // 3. h. i. Set oldLenDesc.[[Value]] to index + 1.
-                    oldLenDesc['[[Value]]'] = new number_1.$Number(realm, index['[[Value]]'] + 1);
+                    oldLenDesc['[[Value]]'] = new number_js_1.$Number(realm, index['[[Value]]'] + 1);
                     // 3. h. ii. Let succeeded be OrdinaryDefineOwnProperty(A, "length", oldLenDesc).
                     const succeeded = super['[[DefineOwnProperty]]'](ctx, intrinsics.length, oldLenDesc);
                     // 3. h. iii. Assert: succeeded is true.
@@ -108,7 +108,7 @@
                 return super['[[DefineOwnProperty]]'](ctx, intrinsics.length, Desc);
             }
             // 2. Let newLenDesc be a copy of Desc.
-            const newLenDesc = new property_descriptor_1.$PropertyDescriptor(Desc.realm, Desc.name, {
+            const newLenDesc = new property_descriptor_js_1.$PropertyDescriptor(Desc.realm, Desc.name, {
                 '[[Writable]]': Desc['[[Writable]]'],
                 '[[Enumerable]]': Desc['[[Enumerable]]'],
                 '[[Configurable]]': Desc['[[Configurable]]'],
@@ -125,7 +125,7 @@
             }
             // 5. If newLen ≠ numberLen, throw a RangeError exception.
             if (!newLen.is(numberLen)) {
-                return new error_1.$RangeError(ctx.Realm, '5. If newLen ≠ numberLen, throw a RangeError exception.');
+                return new error_js_1.$RangeError(ctx.Realm, '5. If newLen ≠ numberLen, throw a RangeError exception.');
             }
             // 6. Set newLenDesc.[[Value]] to newLen.
             newLenDesc['[[Value]]'] = newLen;
@@ -169,11 +169,11 @@
                 // 16. a. Decrease oldLen by 1.
                 --$oldLen;
                 // 16. b. Let deleteSucceeded be ! A.[[Delete]](! ToString(oldLen)).
-                const deleteSucceeded = this['[[Delete]]'](ctx, new number_1.$Number(realm, $oldLen).ToString(ctx));
+                const deleteSucceeded = this['[[Delete]]'](ctx, new number_js_1.$Number(realm, $oldLen).ToString(ctx));
                 // 16. c. If deleteSucceeded is false, then
                 if (deleteSucceeded.isFalsey) {
                     // 16. c. i. Set newLenDesc.[[Value]] to oldLen + 1.
-                    newLenDesc['[[Value]]'] = new number_1.$Number(realm, $oldLen + 1);
+                    newLenDesc['[[Value]]'] = new number_js_1.$Number(realm, $oldLen + 1);
                     // 16. c. ii. If newWritable is false, set newLenDesc.[[Writable]] to false.
                     if (!newWritable) {
                         newLenDesc['[[Writable]]'] = intrinsics.false;
@@ -187,7 +187,7 @@
             // 17. If newWritable is false, then
             if (!newWritable) {
                 // 17. a. Return OrdinaryDefineOwnProperty(A, "length", PropertyDescriptor { [[Writable]]: false }). This call will always return true.
-                return super['[[DefineOwnProperty]]'](ctx, intrinsics.length, new property_descriptor_1.$PropertyDescriptor(realm, intrinsics.length, {
+                return super['[[DefineOwnProperty]]'](ctx, intrinsics.length, new property_descriptor_js_1.$PropertyDescriptor(realm, intrinsics.length, {
                     '[[Writable]]': intrinsics.false,
                 }));
             }
@@ -220,7 +220,7 @@
             // 6. a. Let thisRealm be the current Realm Record.
             const thisRealm = realm;
             // 6. b. Let realmC be ? GetFunctionRealm(C).
-            const realmC = operations_1.$GetFunctionRealm(ctx, C);
+            const realmC = operations_js_1.$GetFunctionRealm(ctx, C);
             if (realmC.isAbrupt) {
                 return realmC;
             }
@@ -250,10 +250,10 @@
         }
         // 9. If IsConstructor(C) is false, throw a TypeError exception.
         if (!C.isFunction) {
-            return new error_1.$TypeError(realm, `${C} is not a constructor`);
+            return new error_js_1.$TypeError(realm, `${C} is not a constructor`);
         }
         // 10. Return ? Construct(C, « length »).
-        return operations_1.$Construct(ctx, C, new list_1.$List(length), intrinsics.undefined);
+        return operations_js_1.$Construct(ctx, C, new list_js_1.$List(length), intrinsics.undefined);
     }
     exports.$ArraySpeciesCreate = $ArraySpeciesCreate;
     // http://www.ecma-international.org/ecma-262/#sec-createarrayfromlist
@@ -268,7 +268,7 @@
         // 4. For each element e of elements, do
         for (const e of elements) {
             // 4. a. Let status be CreateDataProperty(array, ! ToString(n), e).
-            const status = operations_1.$CreateDataProperty(ctx, array, new string_1.$String(realm, n.toString()), e);
+            const status = operations_js_1.$CreateDataProperty(ctx, array, new string_js_1.$String(realm, n.toString()), e);
             // 4. b. Assert: status is true.
             // 4. c. Increment n by 1.
             ++n;

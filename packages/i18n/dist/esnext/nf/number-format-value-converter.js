@@ -11,7 +11,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 import { valueConverter } from '@aurelia/runtime';
-import { I18N } from '../i18n';
+import { I18N } from '../i18n.js';
 let NumberFormatValueConverter = class NumberFormatValueConverter {
     constructor(i18n) {
         this.i18n = i18n;

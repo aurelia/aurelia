@@ -4,13 +4,13 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./platform"], factory);
+        define(["require", "exports", "./platform.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.resolveAll = exports.onResolve = exports.isNativeFunction = exports.toLookup = exports.getPrototypeChain = exports.firstDefined = exports.mergeObjects = exports.mergeArrays = exports.bound = exports.mergeDistinct = exports.compareNumber = exports.resetId = exports.nextId = exports.toArray = exports.kebabCase = exports.pascalCase = exports.camelCase = exports.isStringOrDate = exports.isNumberOrBigInt = exports.isArrayIndex = void 0;
-    const platform_1 = require("./platform");
+    const platform_js_1 = require("./platform.js");
     const isNumericLookup = {};
     /**
      * Efficiently determine whether the provided property key is numeric
@@ -284,15 +284,15 @@
      * @param slice - If `true`, always returns a new array copy (unless neither array is/has a value)
      */
     function mergeDistinct(arr1, arr2, slice) {
-        if (arr1 === void 0 || arr1 === null || arr1 === platform_1.emptyArray) {
-            if (arr2 === void 0 || arr2 === null || arr2 === platform_1.emptyArray) {
-                return platform_1.emptyArray;
+        if (arr1 === void 0 || arr1 === null || arr1 === platform_js_1.emptyArray) {
+            if (arr2 === void 0 || arr2 === null || arr2 === platform_js_1.emptyArray) {
+                return platform_js_1.emptyArray;
             }
             else {
                 return slice ? arr2.slice(0) : arr2;
             }
         }
-        else if (arr2 === void 0 || arr2 === null || arr2 === platform_1.emptyArray) {
+        else if (arr2 === void 0 || arr2 === null || arr2 === platform_js_1.emptyArray) {
             return slice ? arr1.slice(0) : arr1;
         }
         const lookup = {};

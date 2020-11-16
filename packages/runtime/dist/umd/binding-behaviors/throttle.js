@@ -13,16 +13,16 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "../binding-behavior", "@aurelia/kernel", "../binding/ast"], factory);
+        define(["require", "exports", "../binding-behavior.js", "@aurelia/kernel", "../binding/ast.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ThrottleBindingBehavior = void 0;
-    const binding_behavior_1 = require("../binding-behavior");
+    const binding_behavior_js_1 = require("../binding-behavior.js");
     const kernel_1 = require("@aurelia/kernel");
-    const ast_1 = require("../binding/ast");
-    let ThrottleBindingBehavior = class ThrottleBindingBehavior extends binding_behavior_1.BindingInterceptor {
+    const ast_js_1 = require("../binding/ast.js");
+    let ThrottleBindingBehavior = class ThrottleBindingBehavior extends binding_behavior_js_1.BindingInterceptor {
         constructor(binding, expr) {
             super(binding, expr);
             this.opts = { delay: 0 };
@@ -79,8 +79,8 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         }
     };
     ThrottleBindingBehavior = __decorate([
-        binding_behavior_1.bindingBehavior('throttle'),
-        __metadata("design:paramtypes", [Object, ast_1.BindingBehaviorExpression])
+        binding_behavior_js_1.bindingBehavior('throttle'),
+        __metadata("design:paramtypes", [Object, ast_js_1.BindingBehaviorExpression])
     ], ThrottleBindingBehavior);
     exports.ThrottleBindingBehavior = ThrottleBindingBehavior;
 });

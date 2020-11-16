@@ -13,7 +13,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "./observer-locator", "./subscriber-collection", "./watcher-switcher", "../binding/connectable", "./proxy-observation", "./binding-context"], factory);
+        define(["require", "exports", "@aurelia/kernel", "./observer-locator.js", "./subscriber-collection.js", "./watcher-switcher.js", "../binding/connectable.js", "./proxy-observation.js", "./binding-context.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -21,12 +21,12 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     exports.ExpressionWatcher = exports.ComputedWatcher = exports.GetterObserver = exports.CustomSetterObserver = exports.createComputedObserver = exports.computed = void 0;
     /* eslint-disable eqeqeq, compat/compat */
     const kernel_1 = require("@aurelia/kernel");
-    const observer_locator_1 = require("./observer-locator");
-    const subscriber_collection_1 = require("./subscriber-collection");
-    const watcher_switcher_1 = require("./watcher-switcher");
-    const connectable_1 = require("../binding/connectable");
-    const proxy_observation_1 = require("./proxy-observation");
-    const binding_context_1 = require("./binding-context");
+    const observer_locator_js_1 = require("./observer-locator.js");
+    const subscriber_collection_js_1 = require("./subscriber-collection.js");
+    const watcher_switcher_js_1 = require("./watcher-switcher.js");
+    const connectable_js_1 = require("../binding/connectable.js");
+    const proxy_observation_js_1 = require("./proxy-observation.js");
+    const binding_context_js_1 = require("./binding-context.js");
     function computed(config) {
         return function (target, key) {
             /**
@@ -108,7 +108,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         }
     };
     CustomSetterObserver = __decorate([
-        subscriber_collection_1.subscriberCollection(),
+        subscriber_collection_js_1.subscriberCollection(),
         __metadata("design:paramtypes", [Object, String, Object])
     ], CustomSetterObserver);
     exports.CustomSetterObserver = CustomSetterObserver;
@@ -205,7 +205,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         }
     };
     GetterObserver = __decorate([
-        subscriber_collection_1.subscriberCollection(),
+        subscriber_collection_js_1.subscriberCollection(),
         __metadata("design:paramtypes", [Number, Object, Object, String, Object, Object])
     ], GetterObserver);
     exports.GetterObserver = GetterObserver;
@@ -268,7 +268,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             this.running = false;
             this.value = void 0;
             this.isBound = false;
-            connectable_1.connectable.assignIdTo(this);
+            connectable_js_1.connectable.assignIdTo(this);
         }
         handleChange() {
             this.run();
@@ -319,11 +319,11 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             this.running = true;
             this.version++;
             try {
-                watcher_switcher_1.enterWatcher(this);
-                this.value = proxy_observation_1.getRawOrSelf(this.get(this.useProxy ? proxy_observation_1.getProxyOrSelf(this.obj) : this.obj, this));
+                watcher_switcher_js_1.enterWatcher(this);
+                this.value = proxy_observation_js_1.getRawOrSelf(this.get(this.useProxy ? proxy_observation_js_1.getProxyOrSelf(this.obj) : this.obj, this));
             }
             finally {
-                watcher_switcher_1.exitWatcher(this);
+                watcher_switcher_js_1.exitWatcher(this);
                 this.unobserve(false);
                 this.unobserveCollection(false);
                 this.running = false;
@@ -359,9 +359,9 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         }
     };
     ComputedWatcher = __decorate([
-        connectable_1.connectable(),
-        subscriber_collection_1.subscriberCollection(),
-        subscriber_collection_1.collectionSubscriberCollection(),
+        connectable_js_1.connectable(),
+        subscriber_collection_js_1.subscriberCollection(),
+        subscriber_collection_js_1.collectionSubscriberCollection(),
         __metadata("design:paramtypes", [Object, Object, Function, Function, Boolean])
     ], ComputedWatcher);
     exports.ComputedWatcher = ComputedWatcher;
@@ -374,7 +374,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             this.callback = callback;
             this.isBound = false;
             this.obj = scope.bindingContext;
-            connectable_1.connectable.assignIdTo(this);
+            connectable_js_1.connectable.assignIdTo(this);
         }
         handleChange(value) {
             const expr = this.expression;
@@ -411,8 +411,8 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         }
     };
     ExpressionWatcher = __decorate([
-        connectable_1.connectable(),
-        __metadata("design:paramtypes", [binding_context_1.Scope, Object, Object, Object, Function])
+        connectable_js_1.connectable(),
+        __metadata("design:paramtypes", [binding_context_js_1.Scope, Object, Object, Object, Function])
     ], ExpressionWatcher);
     exports.ExpressionWatcher = ExpressionWatcher;
 });

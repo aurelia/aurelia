@@ -4,14 +4,14 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/metadata", "./platform"], factory);
+        define(["require", "exports", "@aurelia/metadata", "./platform.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.fromDefinitionOrDefault = exports.fromAnnotationOrTypeOrDefault = exports.fromAnnotationOrDefinitionOrTypeOrDefault = exports.Protocol = void 0;
     const metadata_1 = require("@aurelia/metadata");
-    const platform_1 = require("./platform");
+    const platform_js_1 = require("./platform.js");
     const annotation = {
         name: 'au:annotation',
         appendTo(target, key) {
@@ -63,7 +63,7 @@
         getAll(target) {
             const keys = metadata_1.Metadata.getOwn(resource.name, target);
             if (keys === void 0) {
-                return platform_1.emptyArray;
+                return platform_js_1.emptyArray;
             }
             else {
                 return keys.map(k => metadata_1.Metadata.getOwn(k, target));

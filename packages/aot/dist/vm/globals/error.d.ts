@@ -1,12 +1,12 @@
-import { $BuiltinFunction, $Function } from '../types/function';
-import { Realm, ExecutionContext } from '../realm';
-import { $AnyNonEmpty, $AnyNonEmptyNonError } from '../types/_shared';
-import { $Undefined } from '../types/undefined';
-import { $FunctionPrototype } from './function';
-import { $Object } from '../types/object';
-import { $ObjectPrototype } from './object';
-import { $String } from '../types/string';
-import { $List } from '../types/list';
+import { $BuiltinFunction, $Function } from '../types/function.js';
+import { Realm, ExecutionContext } from '../realm.js';
+import { $AnyNonEmpty, $AnyNonEmptyNonError } from '../types/_shared.js';
+import { $Undefined } from '../types/undefined.js';
+import { $FunctionPrototype } from './function.js';
+import { $Object } from '../types/object.js';
+import { $ObjectPrototype } from './object.js';
+import { $String } from '../types/string.js';
+import { $List } from '../types/list.js';
 export declare class $ErrorConstructor extends $BuiltinFunction<'%Error%'> {
     get $prototype(): $ErrorPrototype;
     set $prototype(value: $ErrorPrototype);

@@ -73,7 +73,7 @@ function nextNode(host: Node, node: Node): Node | null {
 
 export function getVisibleText(host: Node, removeWhiteSpace?: boolean): string | null {
   let text = '';
-  let cur = CustomElement.for(host, { optional: true })?.shadowRoot?.firstChild ?? host.firstChild as Node | null;;
+  let cur = CustomElement.for(host, { optional: true })?.shadowRoot?.firstChild ?? host.firstChild as Node | null;
   while (cur !== null) {
     if (cur.nodeType === NodeType.Text) {
       text += (cur as Text).data;

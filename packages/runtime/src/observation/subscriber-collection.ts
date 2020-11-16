@@ -9,8 +9,6 @@ import {
 } from '../observation.js';
 import { ensureProto } from '../utilities-objects.js';
 
-// TODO: see if we can de-duplicate these 3 decorators and their functions without killing performance or readability
-
 export function subscriberCollection(): ClassDecorator {
   // eslint-disable-next-line @typescript-eslint/ban-types
   return function (target: Function): void { // ClassDecorator expects it to be derived from Function

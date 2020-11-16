@@ -1,4 +1,4 @@
-import { Collection } from '../observation';
+import type { Collection } from '../observation.js';
 
 // todo:
 // merge collection subscription to property subscription

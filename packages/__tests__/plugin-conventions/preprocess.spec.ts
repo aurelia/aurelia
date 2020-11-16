@@ -266,7 +266,7 @@ export class AbcBindingCommand {
 
 }
 `;
-    const expected = `import * as __au2ViewDef from './foo-bar.haml.js';
+    const expected = `import * as __au2ViewDef from './foo-bar.haml';
 import {Foo} from './foo.js';
 import { valueConverter, other, customElement, customAttribute, bindingBehavior, bindingCommand } from '@aurelia/runtime-html';
 

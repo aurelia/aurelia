@@ -20,6 +20,7 @@ export var MountTarget;
     MountTarget[MountTarget["shadowRoot"] = 2] = "shadowRoot";
     MountTarget[MountTarget["location"] = 3] = "location";
 })(MountTarget || (MountTarget = {}));
+const optional = { optional: true };
 const controllerLookup = new WeakMap();
 export class Controller {
     constructor(root, container, vmKind, flags, definition, 
@@ -58,6 +59,10 @@ export class Controller {
         this.isStrictBinding = false;
         this.scope = null;
         this.hostScope = null;
+        // If a host from another custom element was passed in, then this will be the controller for that custom element (could be `au-viewport` for example).
+        // In that case, this controller will create a new host node (with the definition's name) and use that as the target host for the nodes instead.
+        // That host node is separately mounted to the host controller's original host node.
+        this.hostController = null;
         this.mountTarget = 0 /* none */;
         this.shadowRoot = null;
         this.nodes = null;
@@ -227,18 +232,23 @@ export class Controller {
         // once the projections are registered, we can cleanup the projection map to prevent memory leaks.
         projectionsMap.clear();
         this.isStrictBinding = isStrictBinding;
+        if ((this.hostController = CustomElement.for(this.host, optional)) !== null) {
+            this.host = this.platform.document.createElement(this.context.definition.name);
+        }
+        Metadata.define(CustomElement.name, this, this.host);
         if (shadowOptions !== null || hasSlots) {
             if (containerless) {
                 throw new Error('You cannot combine the containerless custom element option with Shadow DOM.');
             }
-            Metadata.define(CustomElement.name, this, this.host);
-            this.setShadowRoot(this.shadowRoot = this.host.attachShadow(shadowOptions !== null && shadowOptions !== void 0 ? shadowOptions : defaultShadowOptions));
+            Metadata.define(CustomElement.name, this, this.shadowRoot = this.host.attachShadow(shadowOptions !== null && shadowOptions !== void 0 ? shadowOptions : defaultShadowOptions));
+            this.mountTarget = 2 /* shadowRoot */;
         }
         else if (containerless) {
-            this.setLocation(this.location = convertToRenderLocation(this.host));
+            Metadata.define(CustomElement.name, this, this.location = convertToRenderLocation(this.host));
+            this.mountTarget = 3 /* location */;
         }
         else {
-            this.setHost(this.host);
+            this.mountTarget = 1 /* host */;
         }
         this.viewModel.$controller = this;
         this.nodes = compiledContext.createNodes();
@@ -372,10 +382,36 @@ export class Controller {
         }
         return this.attach();
     }
+    append(...nodes) {
+        switch (this.mountTarget) {
+            case 1 /* host */:
+                this.host.append(...nodes);
+                break;
+            case 2 /* shadowRoot */:
+                this.shadowRoot.append(...nodes);
+                break;
+            case 3 /* location */:
+                for (let i = 0; i < nodes.length; ++i) {
+                    this.location.parentNode.insertBefore(nodes[i], this.location);
+                }
+                break;
+        }
+    }
     attach() {
         var _a;
         if (this.debug) {
             this.logger.trace(`attach()`);
+        }
+        if (this.hostController !== null) {
+            switch (this.mountTarget) {
+                case 1 /* host */:
+                case 2 /* shadowRoot */:
+                    this.hostController.append(this.host);
+                    break;
+                case 3 /* location */:
+                    this.hostController.append(this.location.$start, this.location);
+                    break;
+            }
         }
         switch (this.mountTarget) {
             case 1 /* host */:
@@ -492,16 +528,32 @@ export class Controller {
         }
         return this.detach();
     }
-    detach() {
-        if (this.debug) {
-            this.logger.trace(`detach()`);
-        }
+    removeNodes() {
         switch (this.vmKind) {
             case 0 /* customElement */:
             case 2 /* synthetic */:
                 this.nodes.remove();
                 this.nodes.unlink();
         }
+        if (this.hostController !== null) {
+            switch (this.mountTarget) {
+                case 1 /* host */:
+                case 2 /* shadowRoot */:
+                    this.host.remove();
+                    break;
+                case 3 /* location */:
+                    this.location.$start.remove();
+                    this.location.remove();
+                    break;
+            }
+        }
+    }
+    detach() {
+        // Note: if this method is called, then this controller is the initiator
+        if (this.debug) {
+            this.logger.trace(`detach()`);
+        }
+        this.removeNodes();
         let promises = void 0;
         let ret = void 0;
         let cur = this.$initiator.head;
@@ -511,12 +563,7 @@ export class Controller {
                 if (cur.debug) {
                     cur.logger.trace(`detach()`);
                 }
-                switch (cur.vmKind) {
-                    case 0 /* customElement */:
-                    case 2 /* synthetic */:
-                        cur.nodes.remove();
-                        cur.nodes.unlink();
-                }
+                cur.removeNodes();
             }
             ret = cur.unbinding();
             if (ret instanceof Promise) {
@@ -652,6 +699,7 @@ export class Controller {
             this.children.forEach(callDispose);
             this.children = null;
         }
+        this.hostController = null;
         this.scope = null;
         this.nodes = null;
         this.context = null;

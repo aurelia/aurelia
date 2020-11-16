@@ -20,6 +20,7 @@ export const ParentViewport = CustomElement.createInjectable();
 let ViewportCustomElement = ViewportCustomElement_1 = class ViewportCustomElement {
     constructor(router, element, container, parentViewport) {
         this.router = router;
+        this.element = element;
         this.container = container;
         this.parentViewport = parentViewport;
         this.name = 'default';
@@ -33,7 +34,6 @@ let ViewportCustomElement = ViewportCustomElement_1 = class ViewportCustomElemen
         this.stateful = false;
         this.viewport = null;
         this.isBound = false;
-        this.element = element;
     }
     hydrated(controller) {
         // console.log('hydrated', this.name, this.router.isActive);

@@ -31,12 +31,12 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
      */
     let Focus = class Focus {
         constructor(element, p) {
+            this.element = element;
             this.p = p;
             /**
              * Indicates whether `apply` should be called when `attached` callback is invoked
              */
             this.needsApply = false;
-            this.element = element;
         }
         binding() {
             this.valueChanged();
@@ -127,7 +127,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     ], Focus.prototype, "value", void 0);
     Focus = __decorate([
         custom_attribute_js_1.customAttribute('focus'),
-        __param(0, dom_js_1.INode), __param(1, platform_js_1.IPlatform),
+        __param(0, dom_js_1.INode),
+        __param(1, platform_js_1.IPlatform),
         __metadata("design:paramtypes", [Object, Object])
     ], Focus);
     exports.Focus = Focus;

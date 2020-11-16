@@ -28,11 +28,11 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     const utils_js_1 = require("../utils.js");
     let GotoCustomAttribute = class GotoCustomAttribute {
         constructor(element, router) {
+            this.element = element;
             this.router = router;
             this.hasHref = null;
             this.activeClass = 'goto-active';
             utils_js_1.deprecationWarning('"goto" custom attribute', '"load" custom attribute');
-            this.element = element;
         }
         binding() {
             this.element.addEventListener('click', this.router.linkHandler.handler);

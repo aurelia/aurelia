@@ -46,10 +46,10 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
      */
     let ValidationErrorsCustomAttribute = class ValidationErrorsCustomAttribute {
         constructor(host, scopedController) {
+            this.host = host;
             this.scopedController = scopedController;
             this.errors = [];
             this.errorsInternal = [];
-            this.host = host;
         }
         handleValidationEvent(event) {
             for (const { result } of event.removedResults) {

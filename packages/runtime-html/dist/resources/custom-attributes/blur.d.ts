@@ -17,6 +17,7 @@ export interface HasContains {
     contains(el: Element): boolean;
 }
 export declare class Blur implements ICustomAttributeViewModel {
+    private readonly element;
     private readonly p;
     readonly $controller: ICustomAttributeController<this>;
     value: boolean | typeof unset;
@@ -43,8 +44,7 @@ export declare class Blur implements ICustomAttributeViewModel {
      * Determine from which node/ nodes, search for elements
      */
     linkingContext: string | Element | null;
-    private readonly element;
-    constructor(element: INode, p: IPlatform);
+    constructor(element: INode<HTMLElement>, p: IPlatform);
     attached(): void;
     detaching(): void;
     handleEventTarget(target: EventTarget): void;

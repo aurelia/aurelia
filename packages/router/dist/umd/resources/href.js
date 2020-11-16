@@ -27,8 +27,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     const configuration_js_1 = require("../configuration.js");
     let HrefCustomAttribute = class HrefCustomAttribute {
         constructor(element, router) {
-            this.router = router;
             this.element = element;
+            this.router = router;
         }
         binding() {
             if (this.router.options.useHref && !this.hasGoto()) {

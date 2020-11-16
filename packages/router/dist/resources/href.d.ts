@@ -1,11 +1,11 @@
 import { INode, ICustomAttributeViewModel, ICustomAttributeController } from '@aurelia/runtime-html';
 import { IRouter } from '../router.js';
 export declare class HrefCustomAttribute implements ICustomAttributeViewModel {
+    private readonly element;
     private readonly router;
     value: string | undefined;
-    private readonly element;
     readonly $controller: ICustomAttributeController<this>;
-    constructor(element: INode, router: IRouter);
+    constructor(element: INode<Element>, router: IRouter);
     binding(): void;
     unbinding(): void;
     valueChanged(): void;

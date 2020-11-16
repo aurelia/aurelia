@@ -1,4 +1,3 @@
-import { IAppRoot } from '@aurelia/runtime-html';
 declare type ErrorMatcher = string | Error | RegExp | Function;
 export declare function throws(fn: () => any, errorMatcher?: ErrorMatcher, message?: string): void;
 export declare function rejects(promiseFn: () => Promise<any>, errorMatcher?: ErrorMatcher, message?: string): Promise<void>;
@@ -7,7 +6,7 @@ export declare function doesNotReject(promiseFn: () => Promise<any>, errorMatche
 export declare function ifError(err?: Error): void;
 export declare function ok(...args: [any, string | Error]): void;
 export declare function fail(message?: string | Error): never;
-export declare function visibleTextEqual(root: IAppRoot, expectedText: string, message?: string): void;
+export declare function visibleTextEqual(host: Node, expectedText: string, message?: string): void;
 export declare function equal(actual: any, expected: any, message?: string): void;
 export declare function typeOf(actual: any, expected: any, message?: string): void;
 export declare function instanceOf(actual: any, expected: any, message?: string): void;

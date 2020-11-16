@@ -13,6 +13,7 @@ export interface IConnectedCustomElement extends ICustomElementViewModel {
 export declare const ParentViewport: import("@aurelia/runtime-html/dist/resources/custom-element").InjectableToken<any>;
 export declare class ViewportCustomElement implements ICustomElementViewModel {
     private readonly router;
+    readonly element: INode<HTMLElement>;
     container: IContainer;
     readonly parentViewport: ViewportCustomElement;
     name: string;
@@ -27,9 +28,8 @@ export declare class ViewportCustomElement implements ICustomElementViewModel {
     viewport: Viewport | null;
     readonly $controller: ICustomElementController<this>;
     controller: IRoutingController;
-    readonly element: HTMLElement;
     private isBound;
-    constructor(router: IRouter, element: INode, container: IContainer, parentViewport: ViewportCustomElement);
+    constructor(router: IRouter, element: INode<HTMLElement>, container: IContainer, parentViewport: ViewportCustomElement);
     hydrated(controller: ICompiledCustomElementController): unknown;
     binding(initiator: IHydratedController, parent: IHydratedParentController | null, flags: LifecycleFlags): void | Promise<void>;
     attaching(initiator: IHydratedController, parent: IHydratedParentController | null, flags: LifecycleFlags): void | Promise<void>;

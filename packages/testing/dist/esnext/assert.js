@@ -254,8 +254,8 @@ export function fail(message = 'Failed') {
     err.generatedMessage = message === 'Failed';
     throw err;
 }
-export function visibleTextEqual(root, expectedText, message) {
-    const actualText = getVisibleText(root.controller, root.host);
+export function visibleTextEqual(host, expectedText, message) {
+    const actualText = getVisibleText(host);
     if (actualText !== expectedText) {
         innerFail({
             actual: actualText,
@@ -526,7 +526,7 @@ function getNode(elementOrSelector, root = PLATFORM.document) {
 }
 function isTextContentEqual(elementOrSelector, expectedText, message, root) {
     const host = getNode(elementOrSelector, root);
-    const actualText = host && getVisibleText((void 0), host, true);
+    const actualText = host && getVisibleText(host, true);
     if (actualText !== expectedText) {
         innerFail({
             actual: actualText,

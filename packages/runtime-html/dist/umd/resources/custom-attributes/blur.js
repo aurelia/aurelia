@@ -96,8 +96,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     exports.BlurManager = BlurManager;
     let Blur = class Blur {
         constructor(element, p) {
-            this.p = p;
             this.element = element;
+            this.p = p;
             /**
              * By default, the behavior should be least surprise possible, that:
              *
@@ -231,7 +231,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     ], Blur.prototype, "linkingContext", void 0);
     Blur = __decorate([
         custom_attribute_js_1.customAttribute('blur'),
-        __param(0, dom_js_1.INode), __param(1, platform_js_1.IPlatform),
+        __param(0, dom_js_1.INode),
+        __param(1, platform_js_1.IPlatform),
         __metadata("design:paramtypes", [Object, Object])
     ], Blur);
     exports.Blur = Blur;

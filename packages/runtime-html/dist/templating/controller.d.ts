@@ -49,6 +49,7 @@ export declare class Controller<C extends IViewModel = IViewModel> implements IC
     isStrictBinding: boolean;
     scope: Scope | null;
     hostScope: Scope | null;
+    hostController: Controller | null;
     mountTarget: MountTarget;
     shadowRoot: ShadowRoot | null;
     nodes: INodeSequence | null;
@@ -91,9 +92,11 @@ export declare class Controller<C extends IViewModel = IViewModel> implements IC
     private $flags;
     activate(initiator: Controller, parent: Controller | null, flags: LifecycleFlags, scope?: Scope | null, hostScope?: Scope | null): void | Promise<void>;
     private bind;
+    private append;
     private attach;
     private attached;
     deactivate(initiator: Controller, parent: Controller | null, flags: LifecycleFlags): void | Promise<void>;
+    private removeNodes;
     private detach;
     private unbinding;
     private unbind;

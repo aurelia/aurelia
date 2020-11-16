@@ -95,15 +95,13 @@ export function convertToRenderLocation(node) {
     if (isRenderLocation(node)) {
         return node; // it's already a IRenderLocation (converted by FragmentNodeSequence)
     }
-    if (node.parentNode == null) {
-        throw new Error('Cannot convert an element without a parent to a RenderLocation');
-    }
     const locationEnd = node.ownerDocument.createComment('au-end');
     const locationStart = node.ownerDocument.createComment('au-start');
-    node.parentNode.replaceChild(locationEnd, node);
-    locationEnd.parentNode.insertBefore(locationStart, locationEnd);
+    if (node.parentNode !== null) {
+        node.parentNode.replaceChild(locationEnd, node);
+        locationEnd.parentNode.insertBefore(locationStart, locationEnd);
+    }
     locationEnd.$start = locationStart;
-    locationStart.$nodes = null;
     return locationEnd;
 }
 export function isRenderLocation(node) {

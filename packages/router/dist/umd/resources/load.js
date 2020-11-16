@@ -27,10 +27,10 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     const type_resolvers_js_1 = require("../type-resolvers.js");
     let LoadCustomAttribute = class LoadCustomAttribute {
         constructor(element, router) {
+            this.element = element;
             this.router = router;
             this.hasHref = null;
             this.activeClass = 'load-active';
-            this.element = element;
         }
         binding() {
             this.element.addEventListener('click', this.router.linkHandler.handler);

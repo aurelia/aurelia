@@ -29,9 +29,9 @@ export const defaultContainerDefinition = {
 };
 let ValidationContainerCustomElement = class ValidationContainerCustomElement {
     constructor(host, scopedController) {
+        this.host = host;
         this.scopedController = scopedController;
         this.errors = [];
-        this.host = host;
     }
     handleValidationEvent(event) {
         for (const { result } of event.removedResults) {

@@ -15,10 +15,10 @@ import { IRouter } from '../router.js';
 import { NavigationInstructionResolver } from '../type-resolvers.js';
 let LoadCustomAttribute = class LoadCustomAttribute {
     constructor(element, router) {
+        this.element = element;
         this.router = router;
         this.hasHref = null;
         this.activeClass = 'load-active';
-        this.element = element;
     }
     binding() {
         this.element.addEventListener('click', this.router.linkHandler.handler);

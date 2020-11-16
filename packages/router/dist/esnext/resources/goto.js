@@ -16,11 +16,11 @@ import { NavigationInstructionResolver } from '../type-resolvers.js';
 import { deprecationWarning } from '../utils.js';
 let GotoCustomAttribute = class GotoCustomAttribute {
     constructor(element, router) {
+        this.element = element;
         this.router = router;
         this.hasHref = null;
         this.activeClass = 'goto-active';
         deprecationWarning('"goto" custom attribute', '"load" custom attribute');
-        this.element = element;
     }
     binding() {
         this.element.addEventListener('click', this.router.linkHandler.handler);

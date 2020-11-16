@@ -32,6 +32,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     let ViewportCustomElement = ViewportCustomElement_1 = class ViewportCustomElement {
         constructor(router, element, container, parentViewport) {
             this.router = router;
+            this.element = element;
             this.container = container;
             this.parentViewport = parentViewport;
             this.name = 'default';
@@ -45,7 +46,6 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             this.stateful = false;
             this.viewport = null;
             this.isBound = false;
-            this.element = element;
         }
         hydrated(controller) {
             // console.log('hydrated', this.name, this.router.isActive);

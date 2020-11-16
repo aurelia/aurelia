@@ -83,8 +83,8 @@ export class BlurManager {
 }
 let Blur = class Blur {
     constructor(element, p) {
-        this.p = p;
         this.element = element;
+        this.p = p;
         /**
          * By default, the behavior should be least surprise possible, that:
          *
@@ -218,7 +218,8 @@ __decorate([
 ], Blur.prototype, "linkingContext", void 0);
 Blur = __decorate([
     customAttribute('blur'),
-    __param(0, INode), __param(1, IPlatform),
+    __param(0, INode),
+    __param(1, IPlatform),
     __metadata("design:paramtypes", [Object, Object])
 ], Blur);
 export { Blur };

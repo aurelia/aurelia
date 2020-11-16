@@ -68,51 +68,31 @@
         }
     }
     exports.verifyEqual = verifyEqual;
-    function getVisibleText(root, host, removeWhiteSpace) {
-        const context = { text: host.textContent };
-        $getVisibleText(root, context);
-        const text = context.text;
+    function nextAncestor(host, node) {
+        var _a, _b, _c;
+        const parent = (_b = (_a = node.parentNode) !== null && _a !== void 0 ? _a : node.host) !== null && _b !== void 0 ? _b : null;
+        if (parent === null || parent === host) {
+            return null;
+        }
+        return (_c = parent.nextSibling) !== null && _c !== void 0 ? _c : nextAncestor(host, parent);
+    }
+    function nextNode(host, node) {
+        var _a, _b, _c, _d, _e;
+        return (_e = (_d = (_c = (_b = (_a = runtime_html_1.CustomElement.for(node, { optional: true })) === null || _a === void 0 ? void 0 : _a.shadowRoot) === null || _b === void 0 ? void 0 : _b.firstChild) !== null && _c !== void 0 ? _c : node.firstChild) !== null && _d !== void 0 ? _d : node.nextSibling) !== null && _e !== void 0 ? _e : nextAncestor(host, node);
+    }
+    function getVisibleText(host, removeWhiteSpace) {
+        var _a, _b, _c;
+        let text = '';
+        let cur = (_c = (_b = (_a = runtime_html_1.CustomElement.for(host, { optional: true })) === null || _a === void 0 ? void 0 : _a.shadowRoot) === null || _b === void 0 ? void 0 : _b.firstChild) !== null && _c !== void 0 ? _c : host.firstChild;
+        while (cur !== null) {
+            if (cur.nodeType === 3 /* Text */) {
+                text += cur.data;
+            }
+            cur = nextNode(host, cur);
+        }
         return removeWhiteSpace && text ? text.replace(/\s\s+/g, ' ').trim() : text;
     }
     exports.getVisibleText = getVisibleText;
-    function $getVisibleText(root, context) {
-        if (root == void 0) {
-            return;
-        }
-        const { children } = root;
-        if (children == void 0) {
-            return;
-        }
-        const { length } = children;
-        let controller;
-        for (let i = 0; i < length; ++i) {
-            controller = children[i];
-            switch (controller.vmKind) {
-                case 0 /* customElement */:
-                    if (controller.mountTarget === 2 /* shadowRoot */) {
-                        context.text += controller.shadowRoot.textContent;
-                        $getVisibleText(controller, context);
-                    }
-                    else if (controller.viewModel instanceof runtime_html_1.Compose) {
-                        $getVisibleText(controller.viewModel.view, context);
-                    }
-                    break;
-                case 1 /* customAttribute */:
-                    if (controller.viewModel instanceof runtime_html_1.With) {
-                        $getVisibleText(controller.viewModel.view, context);
-                    }
-                    else if (controller.viewModel instanceof runtime_html_1.If) {
-                        $getVisibleText(controller.viewModel.view, context);
-                    }
-                    else if (controller.viewModel instanceof runtime_html_1.Repeat) {
-                        for (const view of controller.viewModel.views) {
-                            $getVisibleText(view, context);
-                        }
-                    }
-                    break;
-            }
-        }
-    }
     function instructionTypeName(type) {
         switch (type) {
             case "ha" /* textBinding */:

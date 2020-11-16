@@ -273,8 +273,8 @@
         throw err;
     }
     exports.fail = fail;
-    function visibleTextEqual(root, expectedText, message) {
-        const actualText = specialized_assertions_js_1.getVisibleText(root.controller, root.host);
+    function visibleTextEqual(host, expectedText, message) {
+        const actualText = specialized_assertions_js_1.getVisibleText(host);
         if (actualText !== expectedText) {
             innerFail({
                 actual: actualText,
@@ -569,7 +569,7 @@
     }
     function isTextContentEqual(elementOrSelector, expectedText, message, root) {
         const host = getNode(elementOrSelector, root);
-        const actualText = host && specialized_assertions_js_1.getVisibleText((void 0), host, true);
+        const actualText = host && specialized_assertions_js_1.getVisibleText(host, true);
         if (actualText !== expectedText) {
             innerFail({
                 actual: actualText,

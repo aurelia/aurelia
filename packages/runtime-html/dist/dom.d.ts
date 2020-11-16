@@ -1,15 +1,12 @@
 import { IPlatform } from './platform.js';
-export interface INode extends Node {
-}
-export declare const INode: import("@aurelia/kernel").InterfaceSymbol<INode>;
-export interface IEventTarget extends EventTarget {
-}
-export declare const IEventTarget: import("@aurelia/kernel").InterfaceSymbol<IEventTarget>;
-export declare const IRenderLocation: import("@aurelia/kernel").InterfaceSymbol<IRenderLocation<Node>>;
-export interface IRenderLocation<T extends Node = Node> extends Node {
+export declare type INode<T extends Node = Node> = T;
+export declare const INode: import("@aurelia/kernel").InterfaceSymbol<Node>;
+export declare type IEventTarget<T extends EventTarget = EventTarget> = T;
+export declare const IEventTarget: import("@aurelia/kernel").InterfaceSymbol<EventTarget>;
+export declare const IRenderLocation: import("@aurelia/kernel").InterfaceSymbol<IRenderLocation<ChildNode>>;
+export declare type IRenderLocation<T extends ChildNode = ChildNode> = T & {
     $start?: IRenderLocation<T>;
-    $nodes?: INodeSequence<T> | Readonly<{}>;
-}
+};
 /**
  * Represents a DocumentFragment
  */
@@ -31,7 +28,7 @@ export interface INodeSequence<T extends INode = INode> {
     /**
      * Insert this sequence as a sibling before refNode
      */
-    insertBefore(refNode: T | IRenderLocation<T>): void;
+    insertBefore(refNode: T | IRenderLocation): void;
     /**
      * Append this sequence as a child to parent
      */
@@ -42,7 +39,7 @@ export interface INodeSequence<T extends INode = INode> {
     remove(): void;
     addToLinked(): void;
     unlink(): void;
-    link(next: INodeSequence<T> | IRenderLocation<T> | undefined): void;
+    link(next: INodeSequence<T> | IRenderLocation | undefined): void;
 }
 export declare const enum NodeType {
     Element = 1,

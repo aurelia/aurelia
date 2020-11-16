@@ -19,6 +19,7 @@ export const ParentViewportScope = CustomElement.createInjectable();
 let ViewportScopeCustomElement = ViewportScopeCustomElement_1 = class ViewportScopeCustomElement {
     constructor(router, element, container, parent, parentController) {
         this.router = router;
+        this.element = element;
         this.container = container;
         this.parent = parent;
         this.parentController = parentController;
@@ -28,7 +29,6 @@ let ViewportScopeCustomElement = ViewportScopeCustomElement_1 = class ViewportSc
         this.source = null;
         this.viewportScope = null;
         this.isBound = false;
-        this.element = element;
     }
     // Maybe this really should be here. Check with Fred
     // public create(

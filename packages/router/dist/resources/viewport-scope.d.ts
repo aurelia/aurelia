@@ -6,6 +6,7 @@ import { IRoutingController } from './viewport.js';
 export declare const ParentViewportScope: import("@aurelia/runtime-html/dist/resources/custom-element").InjectableToken<any>;
 export declare class ViewportScopeCustomElement implements ICustomElementViewModel {
     private readonly router;
+    readonly element: INode<HTMLElement>;
     container: IContainer;
     private readonly parent;
     private readonly parentController;
@@ -16,9 +17,8 @@ export declare class ViewportScopeCustomElement implements ICustomElementViewMod
     viewportScope: ViewportScope | null;
     readonly $controller: ICustomElementController<this>;
     controller: IRoutingController;
-    readonly element: HTMLElement;
     private isBound;
-    constructor(router: IRouter, element: INode, container: IContainer, parent: ViewportScopeCustomElement, parentController: IHydratedController);
+    constructor(router: IRouter, element: INode<HTMLElement>, container: IContainer, parent: ViewportScopeCustomElement, parentController: IHydratedController);
     hydrated(controller: ICompiledCustomElementController): void;
     bound(initiator: IHydratedController, parent: ISyntheticView | ICustomElementController | null, flags: LifecycleFlags): void;
     unbinding(initiator: IHydratedController, parent: ISyntheticView | ICustomElementController | null, flags: LifecycleFlags): void | Promise<void>;

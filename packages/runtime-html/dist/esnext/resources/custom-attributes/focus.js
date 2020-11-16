@@ -19,12 +19,12 @@ import { customAttribute } from '../custom-attribute.js';
  */
 let Focus = class Focus {
     constructor(element, p) {
+        this.element = element;
         this.p = p;
         /**
          * Indicates whether `apply` should be called when `attached` callback is invoked
          */
         this.needsApply = false;
-        this.element = element;
     }
     binding() {
         this.valueChanged();
@@ -115,7 +115,8 @@ __decorate([
 ], Focus.prototype, "value", void 0);
 Focus = __decorate([
     customAttribute('focus'),
-    __param(0, INode), __param(1, IPlatform),
+    __param(0, INode),
+    __param(1, IPlatform),
     __metadata("design:paramtypes", [Object, Object])
 ], Focus);
 export { Focus };

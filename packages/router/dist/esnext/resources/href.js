@@ -15,8 +15,8 @@ import { IRouter } from '../router.js';
 import { GotoCustomAttribute } from '../configuration.js';
 let HrefCustomAttribute = class HrefCustomAttribute {
     constructor(element, router) {
-        this.router = router;
         this.element = element;
+        this.router = router;
     }
     binding() {
         if (this.router.options.useHref && !this.hasGoto()) {

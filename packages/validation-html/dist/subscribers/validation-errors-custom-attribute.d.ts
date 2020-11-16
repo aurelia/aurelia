@@ -19,12 +19,12 @@ import { IValidationController, ValidationResultsSubscriber, ValidationEvent, Va
  * ```
  */
 export declare class ValidationErrorsCustomAttribute implements ValidationResultsSubscriber {
+    private readonly host;
     private readonly scopedController;
     controller?: IValidationController;
     errors: ValidationResultTarget[];
     private readonly errorsInternal;
-    private readonly host;
-    constructor(host: INode, scopedController: IValidationController);
+    constructor(host: INode<HTMLElement>, scopedController: IValidationController);
     handleValidationEvent(event: ValidationEvent): void;
     binding(): void;
     unbinding(): void;

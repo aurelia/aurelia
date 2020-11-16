@@ -5,6 +5,7 @@ import type { ICustomAttributeController, ICustomAttributeViewModel } from '../.
  * Focus attribute for element focus binding
  */
 export declare class Focus implements ICustomAttributeViewModel {
+    private readonly element;
     private readonly p;
     readonly $controller: ICustomAttributeController<this>;
     value: unknown;
@@ -12,8 +13,7 @@ export declare class Focus implements ICustomAttributeViewModel {
      * Indicates whether `apply` should be called when `attached` callback is invoked
      */
     private needsApply;
-    private readonly element;
-    constructor(element: INode, p: IPlatform);
+    constructor(element: INode<HTMLElement>, p: IPlatform);
     binding(): void;
     /**
      * Invoked everytime the bound value changes.

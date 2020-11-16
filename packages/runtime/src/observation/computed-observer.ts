@@ -392,7 +392,9 @@ export class ComputedObserver implements IWatcherImpl {
       writable: true,
       configurable: true,
       get: () => observer.getValue(),
-      set: (v) => observer.setValue(v, LifecycleFlags.none),
+      set: (v) => {
+        observer.setValue(v, LifecycleFlags.none);
+      },
     });
 
     return observer;
@@ -430,13 +432,17 @@ export class ComputedObserver implements IWatcherImpl {
   }
 
   public setValue(v: unknown, flags: LifecycleFlags): void {
-    if (typeof this.set === 'function' && v !== this.value) {
-      const oldValue = this.value;
-      this.set.call(this.obj, v);
-      if (!this.useProxy) {
-        this.isDirty = true;
-        this.callSubscribers(this.getValue(), oldValue, flags);
-        this.isDirty = false;
+    if (typeof this.set === 'function') {
+      if (v !== this.value) {
+        const oldValue = this.value;
+        this.set.call(this.obj, v);
+        if (!this.useProxy) {
+          this.isDirty = true;
+          this.callSubscribers(this.getValue(), oldValue, flags);
+          this.isDirty = false;
+        }
+      } else {
+        throw new Error('Property is readonly');
       }
     }
   }

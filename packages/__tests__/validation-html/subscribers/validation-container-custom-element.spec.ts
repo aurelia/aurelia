@@ -9,8 +9,8 @@ import {
   ValidationHtmlConfiguration,
   ValidationResultsSubscriber,
 } from '@aurelia/validation-html';
-import { createSpecFunction, TestExecutionContext, TestFunction, ToNumberValueConverter } from '../../util';
-import { Person } from '../../validation/_test-resources';
+import { createSpecFunction, TestExecutionContext, TestFunction, ToNumberValueConverter } from '../../util.js';
+import { Person } from '../../validation/_test-resources.js';
 
 describe('validation-container-custom-element', function () {
 
@@ -135,8 +135,8 @@ describe('validation-container-custom-element', function () {
       await assertEventHandler(input1, platform, controllerSpy, spy1, ctx);
       await assertEventHandler(input2, platform, controllerSpy, spy2, ctx);
 
-      const errors1 = toArray(ceEl1.shadowRoot.querySelectorAll('span')).map((el) => getVisibleText(void 0, el, true));
-      const errors2 = toArray(ceEl2.shadowRoot.querySelectorAll('span')).map((el) => getVisibleText(void 0, el, true));
+      const errors1 = toArray(ceEl1.shadowRoot.querySelectorAll('span')).map((el) => getVisibleText(el, true));
+      const errors2 = toArray(ceEl2.shadowRoot.querySelectorAll('span')).map((el) => getVisibleText(el, true));
 
       assert.deepStrictEqual(errors1, ['Name is required.']);
       assert.deepStrictEqual(errors2, ['Age is required.']);
@@ -168,7 +168,7 @@ describe('validation-container-custom-element', function () {
       await assertEventHandler(target1, platform, controllerSpy, spy, ctx);
       await assertEventHandler(target2, platform, controllerSpy, spy, ctx);
 
-      const errors = toArray(ceEl.shadowRoot.querySelectorAll('span')).map((el) => getVisibleText(void 0, el, true));
+      const errors = toArray(ceEl.shadowRoot.querySelectorAll('span')).map((el) => getVisibleText(el, true));
       assert.deepStrictEqual(errors, ['Age is required.', 'Name is required.']);
     },
     {
@@ -195,8 +195,8 @@ describe('validation-container-custom-element', function () {
       const spy1 = createSpy(ceVm1, 'handleValidationEvent', true);
       await assertEventHandler(input1, platform, controllerSpy, spy1, ctx);
 
-      assert.deepStrictEqual(toArray(ceEl1.shadowRoot.querySelectorAll('span')).map((el) => getVisibleText(void 0, el, true)), ['Name is required.']);
-      assert.deepStrictEqual(toArray(ceEl1.querySelectorAll('small')).map((el) => getVisibleText(void 0, el, true)), ['Name is required.']);
+      assert.deepStrictEqual(toArray(ceEl1.shadowRoot.querySelectorAll('span')).map((el) => getVisibleText(el, true)), ['Name is required.']);
+      assert.deepStrictEqual(toArray(ceEl1.querySelectorAll('small')).map((el) => getVisibleText(el, true)), ['Name is required.']);
     },
     {
       template: `
@@ -315,7 +315,7 @@ describe('validation-container-custom-element', function () {
     const spy1 = createSpy(ceVm1, 'handleValidationEvent', true);
     await assertEventHandler(input1, platform, controllerSpy, spy1, ctx);
 
-    const errors1 = toArray(ceEl1.shadowRoot.querySelectorAll('span')).map((el) => getVisibleText(void 0, el, true));
+    const errors1 = toArray(ceEl1.shadowRoot.querySelectorAll('span')).map((el) => getVisibleText(el, true));
 
     assert.deepStrictEqual(errors1, ['Name is required.']);
 

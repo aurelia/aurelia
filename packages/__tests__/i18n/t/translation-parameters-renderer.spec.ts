@@ -119,6 +119,6 @@ describe('TranslationParametersBindingRenderer', function () {
       callBindingInstruction,
     );
 
-    assert.equal(binding.parametersExpr, paramExpr);
+    assert.equal(binding['parameter'].expr, paramExpr);
   });
 });

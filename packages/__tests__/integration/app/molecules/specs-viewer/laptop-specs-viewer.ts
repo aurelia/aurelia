@@ -1,6 +1,6 @@
 import { bindable, customElement } from '@aurelia/runtime-html';
 import template from './camera-specs-viewer.html';
-import { Thing } from './thing-viewer';
+import { Thing } from './thing-viewer.js';
 
 export class Storage {
   public constructor(

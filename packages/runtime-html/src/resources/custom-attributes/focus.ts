@@ -1,8 +1,8 @@
 import { bindable, BindingMode } from '@aurelia/runtime';
-import { INode } from '../../dom';
-import { IPlatform } from '../../platform';
-import { customAttribute } from '../custom-attribute';
-import type { ICustomAttributeController, ICustomAttributeViewModel } from '../../templating/controller';
+import { INode } from '../../dom.js';
+import { IPlatform } from '../../platform.js';
+import { customAttribute } from '../custom-attribute.js';
+import type { ICustomAttributeController, ICustomAttributeViewModel } from '../../templating/controller.js';
 
 /**
  * Focus attribute for element focus binding
@@ -20,11 +20,10 @@ export class Focus implements ICustomAttributeViewModel {
    */
   private needsApply: boolean = false;
 
-  private readonly element: HTMLElement;
-
-  public constructor(@INode element: INode, @IPlatform private readonly p: IPlatform) {
-    this.element = element as HTMLElement;
-  }
+  public constructor(
+    @INode private readonly element: INode<HTMLElement>,
+    @IPlatform private readonly p: IPlatform,
+  ) {}
 
   public binding(): void {
     this.valueChanged();

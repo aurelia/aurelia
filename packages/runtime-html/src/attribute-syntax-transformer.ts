@@ -1,5 +1,5 @@
 import { DI } from '@aurelia/kernel';
-import { AttrSyntax } from './resources/attribute-pattern';
+import { AttrSyntax } from './resources/attribute-pattern.js';
 
 export interface IAttrSyntaxTransformer extends AttrSyntaxTransformer {}
 export const IAttrSyntaxTransformer = DI.createInterface<IAttrSyntaxTransformer>('IAttrSyntaxTransformer').withDefault(x => x.singleton(AttrSyntaxTransformer));

@@ -1,5 +1,5 @@
-import { IRoute } from './interfaces';
-import { ViewportInstruction } from './viewport-instruction';
+import { IRoute } from './interfaces.js';
+import { ViewportInstruction } from './viewport-instruction.js';
 
 /**
  * @internal - Used when founding route/instructions

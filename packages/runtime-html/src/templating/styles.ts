@@ -1,10 +1,10 @@
 import { IContainer, IRegistry, Registration, DI, noop } from '@aurelia/kernel';
 import { bindable } from '@aurelia/runtime';
-import { AppTask } from '../app-task';
-import { INode } from '../dom';
-import { getClassesToAdd } from '../observation/class-attribute-accessor';
-import { IPlatform } from '../platform';
-import { customAttribute } from '../resources/custom-attribute';
+import { AppTask } from '../app-task.js';
+import { INode } from '../dom.js';
+import { getClassesToAdd } from '../observation/class-attribute-accessor.js';
+import { IPlatform } from '../platform.js';
+import { customAttribute } from '../resources/custom-attribute.js';
 
 export function cssModules(...modules: (Record<string, string>)[]): CSSModulesProcessorRegistry {
   return new CSSModulesProcessorRegistry(modules);
@@ -22,11 +22,9 @@ export class CSSModulesProcessorRegistry implements IRegistry {
     class ClassCustomAttribute {
       @bindable public value!: string;
 
-      private element: HTMLElement;
-
-      public constructor(@INode element: INode) {
-        this.element = element as HTMLElement;
-      }
+      public constructor(
+        @INode private readonly element: INode<HTMLElement>,
+      ) {}
 
       public binding() {
         this.valueChanged();

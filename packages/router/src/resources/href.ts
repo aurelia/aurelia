@@ -1,6 +1,6 @@
 import { customAttribute, INode, bindable, BindingMode, ViewModelKind, ICustomAttributeViewModel, ICustomAttributeController } from '@aurelia/runtime-html';
-import { IRouter } from '../router';
-import { GotoCustomAttribute } from '../configuration';
+import { IRouter } from '../router.js';
+import { GotoCustomAttribute } from '../configuration.js';
 
 @customAttribute({
   name: 'href',
@@ -10,15 +10,12 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
   @bindable({ mode: BindingMode.toView })
   public value: string | undefined;
 
-  private readonly element: Element;
   public readonly $controller!: ICustomAttributeController<this>;
 
   public constructor(
-    @INode element: INode,
+    @INode private readonly element: INode<Element>,
     @IRouter private readonly router: IRouter,
-  ) {
-    this.element = element as Element;
-  }
+  ) {}
 
   public binding(): void {
     if (this.router.options.useHref && !this.hasGoto()) {

@@ -2,10 +2,10 @@ import { Metadata, isObject, applyMetadataPolyfill } from '@aurelia/metadata';
 
 applyMetadataPolyfill(Reflect);
 
-import { isArrayIndex, isNativeFunction } from './functions';
-import { Class, Constructable, IDisposable } from './interfaces';
-import { emptyArray } from './platform';
-import { IResourceKind, Protocol, ResourceDefinition, ResourceType } from './resource';
+import { isArrayIndex, isNativeFunction } from './functions.js';
+import { Class, Constructable, IDisposable } from './interfaces.js';
+import { emptyArray } from './platform.js';
+import { IResourceKind, Protocol, ResourceDefinition, ResourceType } from './resource.js';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -146,7 +146,15 @@ function cloneArrayWithPossibleProps<T>(source: readonly T[]): T[] {
 }
 
 export interface IContainerConfiguration {
-  defaultResolver(key: Key, handler: IContainer): IResolver;
+  /**
+   * If `true`, `createChild` will inherit the resource resolvers from its parent container
+   * instead of only from the root container.
+   *
+   * Setting this flag will not implicitly perpetuate it in the child container hierarchy.
+   * It must be explicitly set on each call to `createChild`.
+   */
+  inheritParentResources?: boolean;
+  defaultResolver?(key: Key, handler: IContainer): IResolver;
 }
 
 export const DefaultResolver = {
@@ -155,13 +163,31 @@ export const DefaultResolver = {
   transient(key: Key): IResolver {return new Resolver(key, ResolverStrategy.transient, key);},
 };
 
-export const DefaultContainerConfiguration: IContainerConfiguration = {
-  defaultResolver: DefaultResolver.singleton,
-};
+export class ContainerConfiguration implements IContainerConfiguration {
+  public static readonly DEFAULT: ContainerConfiguration = ContainerConfiguration.from({});
+
+  private constructor(
+    public readonly inheritParentResources: boolean,
+    public readonly defaultResolver: (key: Key, handler: IContainer) => IResolver,
+  ) {}
+
+  public static from(config?: IContainerConfiguration): ContainerConfiguration {
+    if (
+      config === void 0 ||
+      config === ContainerConfiguration.DEFAULT
+    ) {
+      return ContainerConfiguration.DEFAULT;
+    }
+    return new ContainerConfiguration(
+      config.inheritParentResources ?? false,
+      config.defaultResolver ?? DefaultResolver.singleton,
+    );
+  }
+}
 
 export const DI = {
-  createContainer(config: IContainerConfiguration = DefaultContainerConfiguration): IContainer {
-      return new Container(null, config);
+  createContainer(config?: Partial<IContainerConfiguration>): IContainer {
+      return new Container(null, ContainerConfiguration.from(config));
   },
   getDesignParamtypes(Type: Constructable | Injectable): readonly Key[] | undefined {
     return Metadata.getOwn('design:paramtypes', Type);
@@ -928,7 +954,7 @@ export class Container implements IContainer {
 
   public constructor(
     private readonly parent: Container | null,
-    private readonly config: IContainerConfiguration = DefaultContainerConfiguration,
+    private readonly config: ContainerConfiguration,
   ) {
     if (parent === null) {
       this.root = this;
@@ -941,7 +967,18 @@ export class Container implements IContainer {
 
       this.resolvers = new Map();
 
-      this.resourceResolvers = Object.assign(Object.create(null), this.root.resourceResolvers);
+      if (config.inheritParentResources) {
+        this.resourceResolvers = Object.assign(
+          Object.create(null),
+          parent.resourceResolvers,
+          this.root.resourceResolvers,
+        );
+      } else {
+        this.resourceResolvers = Object.assign(
+          Object.create(null),
+          this.root.resourceResolvers,
+        );
+      }
     }
 
     this.resolvers.set(IContainer, containerResolver);
@@ -1198,8 +1235,20 @@ export class Container implements IContainer {
     Protocol.annotation.appendTo(key, factoryAnnotationKey);
   }
 
-  public createChild(config?: IContainerConfiguration): IContainer {
-    return new Container(this, config ?? this.config);
+  public createChild(config?: Partial<IContainerConfiguration>): IContainer {
+    if (config === void 0 && this.config.inheritParentResources) {
+      if (this.config === ContainerConfiguration.DEFAULT) {
+        return new Container(this, this.config);
+      }
+      return new Container(
+        this,
+        ContainerConfiguration.from({
+          ...this.config,
+          inheritParentResources: false,
+        }),
+      );
+    }
+    return new Container(this, ContainerConfiguration.from(config ?? this.config));
   }
 
   public disposeResolvers() {

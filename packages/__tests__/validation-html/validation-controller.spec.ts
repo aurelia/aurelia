@@ -16,8 +16,8 @@ import {
   ValidationEvent,
   ValidationHtmlConfiguration,
 } from '@aurelia/validation-html';
-import { createSpecFunction, TestExecutionContext, TestFunction, ToNumberValueConverter } from '../util';
-import { Person } from '../validation/_test-resources';
+import { createSpecFunction, TestExecutionContext, TestFunction, ToNumberValueConverter } from '../util.js';
+import { Person } from '../validation/_test-resources.js';
 
 describe('validation controller factory', function () {
   @customElement({

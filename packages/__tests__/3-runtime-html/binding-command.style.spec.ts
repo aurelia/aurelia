@@ -1,7 +1,7 @@
 import { Constructable } from '@aurelia/kernel';
 import { CustomElement, IPlatform, Aurelia, IEventDelegator, StandardConfiguration } from '@aurelia/runtime-html';
 import { assert, eachCartesianJoin, PLATFORM, TestContext } from '@aurelia/testing';
-import { StyleAttributePattern } from './attribute-pattern';
+import { StyleAttributePattern } from './attribute-pattern.js';
 
 // Remove certain defaults/fallbacks which are added by certain browsers to allow the assertion to pass
 function getNormalizedStyle(el: HTMLElement, ruleName: string): string {

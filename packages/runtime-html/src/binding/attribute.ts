@@ -15,12 +15,12 @@ import {
   AccessorType,
   QueueTaskOptions,
 } from '@aurelia/runtime';
-import { AttributeObserver, IHtmlElement } from '../observation/element-attribute-observer';
+import { AttributeObserver, IHtmlElement } from '../observation/element-attribute-observer.js';
 
 import type { Scope } from '@aurelia/runtime';
-import { IPlatform } from '../platform';
-import { CustomElementDefinition } from '../resources/custom-element';
-import { INode } from '../dom';
+import { IPlatform } from '../platform.js';
+import { CustomElementDefinition } from '../resources/custom-element.js';
+import { INode } from '../dom.js';
 
 // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
 const { oneTime, toView, fromView } = BindingMode;
@@ -184,7 +184,6 @@ export class AttributeBinding implements IPartialConnectableBinding {
     if (!targetObserver) {
       targetObserver = this.targetObserver = new AttributeObserver(
         this.$platform,
-        flags,
         this.observerLocator,
         this.target as IHtmlElement,
         this.targetProperty,

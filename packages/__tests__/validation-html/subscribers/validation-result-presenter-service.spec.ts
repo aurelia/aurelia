@@ -12,8 +12,8 @@ import {
   ValidationResultsSubscriber,
   ValidationResultPresenterService,
 } from '@aurelia/validation-html';
-import { Person } from '../../validation/_test-resources';
-import { TestFunction, TestExecutionContext, ToNumberValueConverter, createSpecFunction } from '../../util';
+import { Person } from '../../validation/_test-resources.js';
+import { TestFunction, TestExecutionContext, ToNumberValueConverter, createSpecFunction } from '../../util.js';
 
 describe('validation-result-presenter-service', function () {
 
@@ -193,8 +193,8 @@ describe('validation-result-presenter-service', function () {
       assert.deepStrictEqual([(showResultsArgs[0][0] as HTMLElement).tagName, ...getResult(showResultsArgs[0][1])], ['DIV', false, nameError]);
       assert.deepStrictEqual([(showResultsArgs[1][0] as HTMLElement).tagName, ...getResult(showResultsArgs[1][1])], ['DIV', false, ageRequiredError, false, ageFizbazError]);
 
-      assert.deepStrictEqual(toArray(div1.querySelectorAll('span')).map((el) => getVisibleText(void 0, el, true)), [nameError]);
-      assert.deepStrictEqual(toArray(div2.querySelectorAll('span')).map((el) => getVisibleText(void 0, el, true)), [ageRequiredError, ageFizbazError]);
+      assert.deepStrictEqual(toArray(div1.querySelectorAll('span')).map((el) => getVisibleText(el, true)), [nameError]);
+      assert.deepStrictEqual(toArray(div2.querySelectorAll('span')).map((el) => getVisibleText(el, true)), [ageRequiredError, ageFizbazError]);
 
       addSpy.reset();
       removeSpy.reset();
@@ -219,8 +219,8 @@ describe('validation-result-presenter-service', function () {
       assert.deepStrictEqual([(removeResultsArgs[0][0] as HTMLElement).tagName, ...getResult(removeResultsArgs[0][1])], ['DIV', false, ageRequiredError, false, ageFizbazError]);
       assert.deepStrictEqual([(showResultsArgs[0][0] as HTMLElement).tagName, ...getResult(showResultsArgs[0][1])], ['DIV', true, undefined, false, ageFizbazError]);
 
-      assert.deepStrictEqual(toArray(div1.querySelectorAll('span')).map((el) => getVisibleText(void 0, el, true)), [nameError]);
-      assert.deepStrictEqual(toArray(div2.querySelectorAll('span')).map((el) => getVisibleText(void 0, el, true)), [ageFizbazError]);
+      assert.deepStrictEqual(toArray(div1.querySelectorAll('span')).map((el) => getVisibleText(el, true)), [nameError]);
+      assert.deepStrictEqual(toArray(div2.querySelectorAll('span')).map((el) => getVisibleText(el, true)), [ageFizbazError]);
 
       addSpy.reset();
       removeSpy.reset();
@@ -245,8 +245,8 @@ describe('validation-result-presenter-service', function () {
       assert.deepStrictEqual([(removeResultsArgs[0][0] as HTMLElement).tagName, ...getResult(removeResultsArgs[0][1])], ['DIV', true, undefined, false, ageFizbazError]);
       assert.deepStrictEqual([(showResultsArgs[0][0] as HTMLElement).tagName, ...getResult(showResultsArgs[0][1])], ['DIV', true, undefined, true, undefined]);
 
-      assert.deepStrictEqual(toArray(div1.querySelectorAll('span')).map((el) => getVisibleText(void 0, el, true)), [nameError]);
-      assert.deepStrictEqual(toArray(div2.querySelectorAll('span')).map((el) => getVisibleText(void 0, el, true)), []);
+      assert.deepStrictEqual(toArray(div1.querySelectorAll('span')).map((el) => getVisibleText(el, true)), [nameError]);
+      assert.deepStrictEqual(toArray(div2.querySelectorAll('span')).map((el) => getVisibleText(el, true)), []);
     },
     {
       template: `
@@ -300,8 +300,8 @@ describe('validation-result-presenter-service', function () {
       assert.deepStrictEqual([(showResultsArgs[0][0] as HTMLElement).tagName, ...getResult(showResultsArgs[0][1])], ['SMALL', false, nameError]);
       assert.deepStrictEqual([(showResultsArgs[1][0] as HTMLElement).tagName, ...getResult(showResultsArgs[1][1])], ['SMALL', false, ageRequiredError, false, ageFizbazError]);
 
-      assert.equal(getVisibleText(void 0, validationContainer1.shadowRoot.querySelector('small'), true), nameError);
-      assert.equal(getVisibleText(void 0, validationContainer2.shadowRoot.querySelector('small'), true), `${ageRequiredError}${ageFizbazError}`);
+      assert.equal(getVisibleText(validationContainer1.shadowRoot.querySelector('small'), true), nameError);
+      assert.equal(getVisibleText(validationContainer2.shadowRoot.querySelector('small'), true), `${ageRequiredError}${ageFizbazError}`);
 
       addSpy.reset();
       removeSpy.reset();
@@ -326,8 +326,8 @@ describe('validation-result-presenter-service', function () {
       assert.deepStrictEqual([(removeResultsArgs[0][0] as HTMLElement).tagName, ...getResult(removeResultsArgs[0][1])], ['SMALL', false, ageRequiredError, false, ageFizbazError]);
       assert.deepStrictEqual([(showResultsArgs[0][0] as HTMLElement).tagName, ...getResult(showResultsArgs[0][1])], ['SMALL', true, undefined, false, ageFizbazError]);
 
-      assert.equal(getVisibleText(void 0, validationContainer1.shadowRoot.querySelector('small'), true), nameError);
-      assert.equal(getVisibleText(void 0, validationContainer2.shadowRoot.querySelector('small'), true), ageFizbazError);
+      assert.equal(getVisibleText(validationContainer1.shadowRoot.querySelector('small'), true), nameError);
+      assert.equal(getVisibleText(validationContainer2.shadowRoot.querySelector('small'), true), ageFizbazError);
 
       addSpy.reset();
       removeSpy.reset();
@@ -352,8 +352,8 @@ describe('validation-result-presenter-service', function () {
       assert.deepStrictEqual([(removeResultsArgs[0][0] as HTMLElement).tagName, ...getResult(removeResultsArgs[0][1])], ['SMALL', true, undefined, false, ageFizbazError]);
       assert.deepStrictEqual([(showResultsArgs[0][0] as HTMLElement).tagName, ...getResult(showResultsArgs[0][1])], ['SMALL', true, undefined, true, undefined]);
 
-      assert.equal(getVisibleText(void 0, validationContainer1.shadowRoot.querySelector('small'), true), nameError);
-      assert.equal(getVisibleText(void 0, validationContainer2.shadowRoot.querySelector('small'), true), '');
+      assert.equal(getVisibleText(validationContainer1.shadowRoot.querySelector('small'), true), nameError);
+      assert.equal(getVisibleText(validationContainer2.shadowRoot.querySelector('small'), true), '');
     },
     {
       presenterService: new CustomPresenterService(PLATFORM),

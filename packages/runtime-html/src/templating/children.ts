@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 import { Constructable, Protocol, Metadata, firstDefined, getPrototypeChain, IIndexable } from '@aurelia/kernel';
 import { LifecycleFlags, subscriberCollection, ISubscriberCollection, IAccessor, ISubscribable, IPropertyObserver, ISubscriber } from '@aurelia/runtime';
-import { INode } from '../dom';
-import { CustomElement } from '../resources/custom-element';
-import type { ICustomElementViewModel, ICustomElementController } from './controller';
+import { INode } from '../dom.js';
+import { CustomElement } from '../resources/custom-element.js';
+import type { ICustomElementViewModel, ICustomElementController } from './controller.js';
 
 export type PartialChildrenDefinition = {
   callback?: string;
@@ -171,7 +171,6 @@ export class ChildrenObserver {
   public constructor(
     private readonly controller: ICustomElementController,
     public readonly obj: IIndexable,
-    flags: LifecycleFlags,
     public readonly propertyKey: string,
     cbName: string,
     private readonly query = defaultChildQuery,
@@ -180,7 +179,6 @@ export class ChildrenObserver {
     private readonly options?: MutationObserverInit
   ) {
     this.callback = obj[cbName] as typeof ChildrenObserver.prototype.callback;
-    this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
     Reflect.defineProperty(
       this.obj,
       this.propertyKey,
@@ -221,7 +219,7 @@ export class ChildrenObserver {
       this.callback.call(this.obj);
     }
 
-    this.callSubscribers(this.children, undefined, this.persistentFlags | LifecycleFlags.updateTarget);
+    this.callSubscribers(this.children, undefined, LifecycleFlags.updateTarget);
   }
 }
 

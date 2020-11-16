@@ -7,9 +7,9 @@ import {
   AccessorType,
   ILifecycle,
   LifecycleFlags,
-} from '../observation';
-import { CollectionSizeObserver } from './collection-size-observer';
-import { collectionSubscriberCollection } from './subscriber-collection';
+} from '../observation.js';
+import { CollectionSizeObserver } from './collection-size-observer.js';
+import { collectionSubscriberCollection } from './subscriber-collection.js';
 
 const observerLookup = new WeakMap<Map<unknown, unknown>, MapObserver>();
 
@@ -74,7 +74,8 @@ const observe = {
     if (size > 0) {
       const indexMap = o.indexMap;
       let i = 0;
-      for (const entry of $this.keys()) {
+      // deepscan-disable-next-line
+      for (const _ of $this.keys()) {
         if (indexMap[i] > -1) {
           indexMap.deletedItems.push(indexMap[i]);
         }
@@ -150,8 +151,6 @@ export function disableMapObservation(): void {
   }
 }
 
-const slice = Array.prototype.slice;
-
 export interface MapObserver extends ICollectionObserver<CollectionKind.map> {}
 
 @collectionSubscriberCollection()
@@ -159,7 +158,7 @@ export class MapObserver {
   public inBatch: boolean;
   public type: AccessorType = AccessorType.Map;
 
-  public constructor(flags: LifecycleFlags, lifecycle: ILifecycle, map: IObservedMap) {
+  public constructor(lifecycle: ILifecycle, map: IObservedMap) {
 
     if (!enableMapObservationCalled) {
       enableMapObservationCalled = true;
@@ -169,7 +168,6 @@ export class MapObserver {
     this.inBatch = false;
 
     this.collection = map;
-    this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
     this.indexMap = createIndexMap(map.size);
     this.lifecycle = lifecycle;
     this.lengthObserver = (void 0)!;
@@ -205,17 +203,17 @@ export class MapObserver {
 
     this.inBatch = false;
     this.indexMap = createIndexMap(size);
-    this.callCollectionSubscribers(indexMap, LifecycleFlags.updateTarget | this.persistentFlags);
+    this.callCollectionSubscribers(indexMap, LifecycleFlags.updateTarget);
     if (this.lengthObserver !== void 0) {
       this.lengthObserver.notify();
     }
   }
 }
 
-export function getMapObserver(flags: LifecycleFlags, lifecycle: ILifecycle, map: IObservedMap): MapObserver {
+export function getMapObserver(lifecycle: ILifecycle, map: IObservedMap): MapObserver {
   const observer = observerLookup.get(map);
   if (observer === void 0) {
-    return new MapObserver(flags, lifecycle, map);
+    return new MapObserver(lifecycle, map);
   }
   return observer;
 }

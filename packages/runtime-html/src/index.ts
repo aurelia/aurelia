@@ -125,8 +125,7 @@ export {
 
   IObjectObservationAdapter,
   IObserverLocator,
-  ITargetObserverLocator,
-  ITargetAccessorLocator,
+  INodeObserverLocator,
   getCollectionObserver,
   ObserverLocator,
 
@@ -236,17 +235,17 @@ export {
 export {
   Aurelia,
   IAurelia,
-} from './aurelia';
+} from './aurelia.js';
 export {
   ISinglePageApp,
   AppRoot,
   IAppRoot,
-} from './app-root';
+} from './app-root.js';
 export {
   TaskSlot,
   AppTask,
   IAppTask,
-} from './app-task';
+} from './app-task.js';
 export {
   AttrSyntax,
   IAttributeParser,
@@ -260,7 +259,7 @@ export {
   ColonPrefixedBindAttributePattern,
   DotSeparatedAttributePattern,
   RefAttributePattern,
-} from './resources/attribute-pattern';
+} from './resources/attribute-pattern.js';
 export {
   bindingCommand,
   BindingCommand ,
@@ -282,16 +281,16 @@ export {
   AttrBindingCommand,
   ClassBindingCommand,
   StyleBindingCommand,
-} from './resources/binding-command';
+} from './resources/binding-command.js';
 export {
   IAttrSyntaxTransformer
-} from './attribute-syntax-transformer';
+} from './attribute-syntax-transformer.js';
 export {
   Listener
-} from './binding/listener';
+} from './binding/listener.js';
 export {
   AttributeBinding
-} from './binding/attribute';
+} from './binding/attribute.js';
 
 export {
   IRenderer,
@@ -324,62 +323,64 @@ export {
   Instruction,
   IInstruction,
   InstructionType,
-} from './renderer';
+} from './renderer.js';
 
 export {
-  AttributeNSAccessor
-} from './observation/attribute-ns-accessor';
+  AttributeNSAccessor,
+} from './observation/attribute-ns-accessor.js';
 export {
   IInputElement,
-  CheckedObserver
-} from './observation/checked-observer';
+  CheckedObserver,
+} from './observation/checked-observer.js';
 export {
-  ClassAttributeAccessor
-} from './observation/class-attribute-accessor';
+  ClassAttributeAccessor,
+} from './observation/class-attribute-accessor.js';
 export {
-  DataAttributeAccessor
-} from './observation/data-attribute-accessor';
+  DataAttributeAccessor,
+} from './observation/data-attribute-accessor.js';
 export {
-  ElementPropertyAccessor
-} from './observation/element-property-accessor';
+  ElementPropertyAccessor,
+} from './observation/element-property-accessor.js';
 export {
   IEventDelegator,
   EventSubscriber,
-  EventDelegator
-} from './observation/event-delegator';
+  EventDelegator,
+} from './observation/event-delegator.js';
 export {
-  TargetAccessorLocator,
-  TargetObserverLocator
-} from './observation/observer-locator';
+  NodeObserverConfig,
+  NodeObserverLocator,
+  INodeObserverConfig,
+  IHtmlObserverConstructor,
+} from './observation/observer-locator.js';
 export {
   ISelectElement,
   IOptionElement,
   SelectValueObserver
-} from './observation/select-value-observer';
+} from './observation/select-value-observer.js';
 export {
   StyleAttributeAccessor
-} from './observation/style-attribute-accessor';
+} from './observation/style-attribute-accessor.js';
 export {
   ISVGAnalyzer,
   SVGAnalyzer,
   NoopSVGAnalyzer,
-} from './observation/svg-analyzer';
+} from './observation/svg-analyzer.js';
 export {
-  ValueAttributeObserver
-} from './observation/value-attribute-observer';
+  ValueAttributeObserver,
+} from './observation/value-attribute-observer.js';
 
 export {
-  AttrBindingBehavior
-} from './resources/binding-behaviors/attr';
+  AttrBindingBehavior,
+} from './resources/binding-behaviors/attr.js';
 export {
   SelfableBinding,
-  SelfBindingBehavior
-} from './resources/binding-behaviors/self';
+  SelfBindingBehavior,
+} from './resources/binding-behaviors/self.js';
 export {
   UpdateTriggerBindingBehavior,
   UpdateTriggerableBinding,
-  UpdateTriggerableObserver
-} from './resources/binding-behaviors/update-trigger';
+  UpdateTriggerableObserver,
+} from './resources/binding-behaviors/update-trigger.js';
 
 export {
   customAttribute,
@@ -390,41 +391,41 @@ export {
   CustomAttributeType,
   PartialCustomAttributeDefinition,
   templateController,
-} from './resources/custom-attribute';
+} from './resources/custom-attribute.js';
 export {
   FrequentMutations,
   ObserveShallow,
-} from './resources/template-controllers/flags';
+} from './resources/template-controllers/flags.js';
 export {
   If,
-  Else
-} from './resources/template-controllers/if';
+  Else,
+} from './resources/template-controllers/if.js';
 export {
   Repeat
-} from './resources/template-controllers/repeat';
+} from './resources/template-controllers/repeat.js';
 export {
   With
-} from './resources/template-controllers/with';
+} from './resources/template-controllers/with.js';
 export {
   Switch,
   Case,
   DefaultCase,
-} from './resources/template-controllers/switch';
+} from './resources/template-controllers/switch.js';
 
 export {
   Blur,
-  BlurManager
-} from './resources/custom-attributes/blur';
+  BlurManager,
+} from './resources/custom-attributes/blur.js';
 
 export {
-  Focus
-} from './resources/custom-attributes/focus';
+  Focus,
+} from './resources/custom-attributes/focus.js';
 
 export {
   Portal,
   PortalTarget,
-  PortalLifecycleCallback
-} from './resources/template-controllers/portal';
+  PortalLifecycleCallback,
+} from './resources/template-controllers/portal.js';
 
 export {
   AuSlot,
@@ -434,7 +435,7 @@ export {
   RegisteredProjections,
   IProjectionProvider,
   ProjectionContext,
-} from './resources/custom-elements/au-slot';
+} from './resources/custom-elements/au-slot.js';
 
 export {
   containerless,
@@ -445,25 +446,24 @@ export {
   CustomElementType,
   CustomElementDefinition,
   PartialCustomElementDefinition,
-  useShadowDOM
-} from './resources/custom-element';
+  useShadowDOM,
+} from './resources/custom-element.js';
 
 export {
   Subject,
-  Compose
-} from './resources/custom-elements/compose';
+  Compose,
+} from './resources/custom-elements/compose.js';
 export {
   ISanitizer,
   SanitizeValueConverter,
-} from './resources/value-converters/sanitize';
+} from './resources/value-converters/sanitize.js';
 export {
   ViewValueConverter,
-} from './resources/value-converters/view';
+} from './resources/value-converters/view.js';
 
 export {
   ITemplateCompilerRegistration,
-  ITargetAccessorLocatorRegistration,
-  ITargetObserverLocatorRegistration,
+  INodeObserverLocatorRegistration,
 
   DefaultComponents,
 
@@ -531,13 +531,13 @@ export {
   DefaultRenderers,
 
   StandardConfiguration
-} from './configuration';
+} from './configuration.js';
 export {
   TemplateBinder,
-} from './template-binder';
+} from './template-binder.js';
 export {
   ITemplateElementFactory
-} from './template-element-factory';
+} from './template-element-factory.js';
 
 export {
   PartialChildrenDefinition,
@@ -545,7 +545,7 @@ export {
   Children,
   children,
   ChildrenObserver,
-} from './templating/children';
+} from './templating/children.js';
 
 // These exports are temporary until we have a proper way to unit test them
 export {
@@ -571,14 +571,14 @@ export {
   IHydratedCustomElementViewModel,
   IHydratedCustomAttributeViewModel,
   ISyntheticView,
-} from './templating/controller';
+} from './templating/controller.js';
 export {
   getRenderContext,
   isRenderContext,
   IRenderContext,
   ICompiledRenderContext,
   IComponentFactory,
-} from './templating/render-context';
+} from './templating/render-context.js';
 export {
   ViewFactory,
   IViewFactory,
@@ -586,11 +586,11 @@ export {
   ViewLocator,
   view,
   Views,
-} from './templating/view';
+} from './templating/view.js';
 export {
   createElement,
   RenderPlan
-} from './create-element';
+} from './create-element.js';
 export {
   INode,
   IEventTarget,
@@ -605,10 +605,10 @@ export {
   setEffectiveParentNode,
   convertToRenderLocation,
   isRenderLocation,
-} from './dom';
+} from './dom.js';
 export {
   IPlatform,
-} from './platform';
+} from './platform.js';
 
 export {
   BindableInfo,
@@ -632,7 +632,7 @@ export {
   TemplateControllerSymbol,
   TextSymbol,
   ProjectionSymbol,
-} from './semantic-model';
+} from './semantic-model.js';
 
 export {
   CSSModulesProcessorRegistry,
@@ -646,4 +646,4 @@ export {
   StyleElementStyles,
   IShadowDOMStyles,
   IShadowDOMGlobalStyles,
-} from './templating/styles';
+} from './templating/styles.js';

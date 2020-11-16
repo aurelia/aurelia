@@ -10,15 +10,15 @@ import {
   BindingMode,
   IBinding,
   LifecycleFlags,
-} from '../observation';
-import { IObserverLocator } from '../observation/observer-locator';
-import { ExpressionKind, Interpolation, IsExpression } from './ast';
+} from '../observation.js';
+import { IObserverLocator } from '../observation/observer-locator.js';
+import { ExpressionKind, Interpolation, IsExpression } from './ast.js';
 import {
   connectable,
   IConnectableBinding,
-} from './connectable';
+} from './connectable.js';
 
-import type { Scope } from '../observation/binding-context';
+import type { Scope } from '../observation/binding-context.js';
 
 const { toView } = BindingMode;
 const queueTaskOptions: QueueTaskOptions = {

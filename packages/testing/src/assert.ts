@@ -27,13 +27,13 @@ import { IIndexable, Task, TaskQueue } from '@aurelia/kernel';
 import {
   isDeepEqual,
   isDeepStrictEqual,
-} from './comparison';
+} from './comparison.js';
 import {
   AssertionError,
   IAssertionErrorOpts,
   inspect,
-} from './inspect';
-import { getVisibleText } from './specialized-assertions';
+} from './inspect.js';
+import { getVisibleText } from './specialized-assertions.js';
 import {
   isError,
   isFunction,
@@ -46,7 +46,7 @@ import {
   Object_freeze,
   Object_is,
   Object_keys,
-} from './util';
+} from './util.js';
 import {
   IAppRoot,
   CustomElement,
@@ -54,8 +54,8 @@ import {
   TaskQueuePriority,
   BrowserPlatform,
 } from '@aurelia/runtime-html';
-import { ensureTaskQueuesEmpty } from './scheduler';
-import { PLATFORM } from './test-context';
+import { ensureTaskQueuesEmpty } from './scheduler.js';
+import { PLATFORM } from './test-context.js';
 
 /* eslint-disable @typescript-eslint/ban-types, @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-explicit-any */
 
@@ -382,8 +382,8 @@ export function fail(message: string | Error = 'Failed'): never {
   throw err;
 }
 
-export function visibleTextEqual(root: IAppRoot, expectedText: string, message?: string): void {
-  const actualText = getVisibleText(root.controller!, root.host as Node);
+export function visibleTextEqual(host: Node, expectedText: string, message?: string): void {
+  const actualText = getVisibleText(host);
   if (actualText !== expectedText) {
     innerFail({
       actual: actualText,
@@ -682,7 +682,7 @@ function getNode(elementOrSelector: string | Node, root: Node = PLATFORM.documen
 }
 function isTextContentEqual(elementOrSelector: string | Node, expectedText: string, message?: string, root?: Node) {
   const host = getNode(elementOrSelector, root);
-  const actualText = host && getVisibleText((void 0)!, host, true);
+  const actualText = host && getVisibleText(host, true);
   if (actualText !== expectedText) {
     innerFail({
       actual: actualText,

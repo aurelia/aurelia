@@ -1,42 +1,42 @@
 import {
   $Object,
-} from '../types/object';
+} from '../types/object.js';
 import {
   IModule,
   ResolveSet,
   ResolvedBindingRecord,
   ExecutionContext,
   Realm,
-} from '../realm';
+} from '../realm.js';
 import {
   $String,
-} from '../types/string';
+} from '../types/string.js';
 import {
   $Boolean,
-} from '../types/boolean';
+} from '../types/boolean.js';
 import {
   $SetImmutablePrototype,
-} from '../operations';
+} from '../operations.js';
 import {
   $PropertyKey,
   $AnyNonEmpty,
   $AnyNonEmptyNonError,
   $AnyObject,
   CompletionType,
-} from '../types/_shared';
+} from '../types/_shared.js';
 import {
   $PropertyDescriptor,
-} from '../types/property-descriptor';
+} from '../types/property-descriptor.js';
 import {
   $Undefined,
-} from '../types/undefined';
+} from '../types/undefined.js';
 import {
   $Error,
   $ReferenceError,
-} from '../types/error';
+} from '../types/error.js';
 import {
   $List,
-} from '../types/list';
+} from '../types/list.js';
 
 // http://www.ecma-international.org/ecma-262/#sec-module-namespace-exotic-objects
 export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {

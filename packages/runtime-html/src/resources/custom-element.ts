@@ -17,14 +17,22 @@ import {
   fromAnnotationOrDefinitionOrTypeOrDefault,
   Injectable,
   IResolver,
+  emptyArray,
 } from '@aurelia/kernel';
-import { PartialBindableDefinition, BindableDefinition, Bindable, registerAliases } from '@aurelia/runtime';
-import { IProjections } from './custom-elements/au-slot';
-import { INode, getEffectiveParentNode } from '../dom';
-import { IInstruction } from '../renderer';
-import { PartialChildrenDefinition, ChildrenDefinition, Children } from '../templating/children';
-import { Controller } from '../templating/controller';
-import type { ICustomElementViewModel, ICustomElementController } from '../templating/controller';
+import {
+  PartialBindableDefinition,
+  BindableDefinition,
+  Bindable,
+  registerAliases,
+  IWatchDefinition,
+  Watch,
+} from '@aurelia/runtime';
+import { IProjections } from './custom-elements/au-slot.js';
+import { INode, getEffectiveParentNode } from '../dom.js';
+import { IInstruction } from '../renderer.js';
+import { PartialChildrenDefinition, ChildrenDefinition, Children } from '../templating/children.js';
+import { Controller } from '../templating/controller.js';
+import type { ICustomElementViewModel, ICustomElementController } from '../templating/controller.js';
 
 export type PartialCustomElementDefinition = PartialResourceDefinition<{
   readonly cache?: '*' | number;
@@ -42,6 +50,7 @@ export type PartialCustomElementDefinition = PartialResourceDefinition<{
   readonly hasSlots?: boolean;
   readonly enhance?: boolean;
   readonly projectionsMap?: Map<IInstruction, IProjections>;
+  readonly watches?: IWatchDefinition[];
 }>;
 
 export type CustomElementType<C extends Constructable = Constructable> = ResourceType<C, ICustomElementViewModel & (C extends Constructable<infer P> ? P : {}), PartialCustomElementDefinition>;
@@ -208,6 +217,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
     public readonly hasSlots: boolean,
     public readonly enhance: boolean,
     public readonly projectionsMap: Map<IInstruction, IProjections>,
+    public readonly watches: IWatchDefinition[],
   ) {}
 
   public static create<T extends Constructable = Constructable>(
@@ -264,6 +274,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         fromDefinitionOrDefault('hasSlots', def, () => false),
         fromDefinitionOrDefault('enhance', def, () => false),
         fromDefinitionOrDefault('projectionsMap', def as CustomElementDefinition, () => new Map<IInstruction, IProjections>()),
+        fromDefinitionOrDefault('watches', def as CustomElementDefinition, () => emptyArray),
       );
     }
 
@@ -299,6 +310,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         fromAnnotationOrTypeOrDefault('hasSlots', Type, () => false),
         fromAnnotationOrTypeOrDefault('enhance', Type, () => false),
         fromAnnotationOrTypeOrDefault('projectionsMap', Type, () => new Map<IInstruction, IProjections>()),
+        mergeArrays(Watch.getAnnotation(Type), Type.watches),
       );
     }
 
@@ -339,6 +351,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
       fromAnnotationOrDefinitionOrTypeOrDefault('hasSlots', nameOrDef, Type, () => false),
       fromAnnotationOrDefinitionOrTypeOrDefault('enhance', nameOrDef, Type, () => false),
       fromAnnotationOrDefinitionOrTypeOrDefault('projectionsMap', nameOrDef, Type, () => new Map<IInstruction, IProjections>()),
+      mergeArrays(nameOrDef.watches, Watch.getAnnotation(Type), Type.watches),
     );
   }
 

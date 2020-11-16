@@ -23,48 +23,48 @@ import {
   IFile,
   FileKind,
   $CompilerOptions,
-} from './system/interfaces';
+} from './system/interfaces.js';
 import {
   normalizePath,
   isRelativeModulePath,
   joinPath,
   resolvePath,
-} from './system/path-utils';
+} from './system/path-utils.js';
 import {
   NPMPackage,
   NPMPackageLoader,
-} from './system/npm-package-loader';
+} from './system/npm-package-loader.js';
 import {
   File,
-} from './system/file-system';
+} from './system/file-system.js';
 
 import {
   IModule,
   DeferredModule,
   ExecutionContext,
-} from './vm/realm';
+} from './vm/realm.js';
 import {
   $ESModule,
   $DocumentFragment,
   $ESScript,
   $$ESModuleOrScript,
-} from './vm/ast/modules';
+} from './vm/ast/modules.js';
 import {
   $String,
-} from './vm/types/string';
+} from './vm/types/string.js';
 import {
   PatternMatcher,
-} from './system/pattern-matcher';
+} from './system/pattern-matcher.js';
 import {
   ISourceFileProvider,
   Agent,
-} from './vm/agent';
+} from './vm/agent.js';
 import {
   $Any,
-} from './vm/types/_shared';
+} from './vm/types/_shared.js';
 import {
   $Error,
-} from './vm/types/error';
+} from './vm/types/error.js';
 
 function comparePathLength(a: { path: { length: number } }, b: { path: { length: number } }): number {
   return a.path.length - b.path.length;

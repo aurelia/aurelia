@@ -1,6 +1,6 @@
 import { INode, bindable, PartialCustomElementDefinition } from '@aurelia/runtime-html';
-import { ValidationResultsSubscriber, ValidationEvent, ValidationResultTarget, IValidationController } from '../validation-controller';
-import { compareDocumentPositionFlat } from './common';
+import { ValidationResultsSubscriber, ValidationEvent, ValidationResultTarget, IValidationController } from '../validation-controller.js';
+import { compareDocumentPositionFlat } from './common.js';
 import { optional } from '@aurelia/kernel';
 
 export const defaultContainerTemplate = `
@@ -19,14 +19,11 @@ export const defaultContainerDefinition: PartialCustomElementDefinition = {
 export class ValidationContainerCustomElement implements ValidationResultsSubscriber {
   @bindable public controller!: IValidationController;
   @bindable public errors: ValidationResultTarget[] = [];
-  private readonly host: HTMLElement;
 
   public constructor(
-    @INode host: INode,
+    @INode private readonly host: INode<HTMLElement>,
     @optional(IValidationController) private readonly scopedController: IValidationController
-  ) {
-    this.host = host as HTMLElement;
-  }
+  ) {}
 
   public handleValidationEvent(event: ValidationEvent): void {
     for (const { result } of event.removedResults) {

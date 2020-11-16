@@ -1,25 +1,26 @@
-import { IContainer, IResolver, Registration, IIndexable } from '@aurelia/kernel';
+import { IServiceLocator, Registration } from '@aurelia/kernel';
 import {
-  IBindingTargetAccessor,
-  IBindingTargetObserver,
-  ILifecycle,
+  IDirtyChecker,
+  INodeObserverLocator,
   IObserverLocator,
-  ITargetAccessorLocator,
-  ITargetObserverLocator,
   LifecycleFlags,
   SetterObserver,
 } from '@aurelia/runtime';
-import { IPlatform } from '../platform';
-import { AttributeNSAccessor } from './attribute-ns-accessor';
-import { CheckedObserver, IInputElement } from './checked-observer';
-import { ClassAttributeAccessor } from './class-attribute-accessor';
-import { attrAccessor } from './data-attribute-accessor';
-import { elementPropertyAccessor } from './element-property-accessor';
-import { EventSubscriber } from './event-delegator';
-import { ISelectElement, SelectValueObserver } from './select-value-observer';
-import { StyleAttributeAccessor } from './style-attribute-accessor';
-import { ISVGAnalyzer } from './svg-analyzer';
-import { ValueAttributeObserver } from './value-attribute-observer';
+import { IPlatform } from '../platform.js';
+import { AttributeNSAccessor } from './attribute-ns-accessor.js';
+import { CheckedObserver } from './checked-observer.js';
+import { ClassAttributeAccessor } from './class-attribute-accessor.js';
+import { attrAccessor } from './data-attribute-accessor.js';
+import { elementPropertyAccessor } from './element-property-accessor.js';
+import { EventSubscriber } from './event-delegator.js';
+import { SelectValueObserver } from './select-value-observer.js';
+import { StyleAttributeAccessor } from './style-attribute-accessor.js';
+import { ISVGAnalyzer } from './svg-analyzer.js';
+import { ValueAttributeObserver } from './value-attribute-observer.js';
+
+import type { IIndexable, IContainer } from '@aurelia/kernel';
+import type { IAccessor, IBindingTargetAccessor, IObserver, ICollectionObserver, CollectionKind } from '@aurelia/runtime';
+import type { INode } from '../dom.js';
 
 // https://infra.spec.whatwg.org/#namespaces
 const htmlNS = 'http://www.w3.org/1999/xhtml';
@@ -31,7 +32,7 @@ const xmlnsNS = 'http://www.w3.org/2000/xmlns/';
 
 // https://html.spec.whatwg.org/multipage/syntax.html#attributes-2
 const nsAttributes = Object.assign(
-  Object.create(null),
+  createLookup<[string, string]>(),
   {
     'xlink:actuate': ['actuate', xlinkNS],
     'xlink:arcrole': ['arcrole', xlinkNS],
@@ -44,125 +45,160 @@ const nsAttributes = Object.assign(
     'xml:space': ['space', xmlNS],
     'xmlns': ['xmlns', xmlnsNS],
     'xmlns:xlink': ['xlink', xmlnsNS],
-  }
-) as Record<string, [string, string]>;
+  },
+);
 
-const inputEvents = ['change', 'input'];
-const selectEvents = ['change'];
-const contentEvents = ['change', 'input', 'blur', 'keyup', 'paste'];
-const scrollEvents = ['scroll'];
-
-const overrideProps = Object.assign(
-  Object.create(null),
-  {
-    'class': true,
-    'style': true,
-    'css': true,
-    'checked': true,
-    'value': true,
-    'model': true,
-    'xlink:actuate': true,
-    'xlink:arcrole': true,
-    'xlink:href': true,
-    'xlink:role': true,
-    'xlink:show': true,
-    'xlink:title': true,
-    'xlink:type': true,
-    'xml:lang': true,
-    'xml:space': true,
-    'xmlns': true,
-    'xmlns:xlink': true,
-  }
-) as Record<string, boolean>;
-
-export class TargetObserverLocator implements ITargetObserverLocator {
-  public constructor(
-    @IPlatform private readonly platform: IPlatform,
-    @ILifecycle private readonly lifecycle: ILifecycle,
-    @ISVGAnalyzer private readonly svgAnalyzer: ISVGAnalyzer,
-  ) {}
-
-  public static register(container: IContainer): IResolver<ITargetObserverLocator> {
-    return Registration.singleton(ITargetObserverLocator, this).register(container);
-  }
-
-  public getObserver(
-    flags: LifecycleFlags,
+export type IHtmlObserverConstructor =
+  new (
+    el: INode,
+    key: PropertyKey,
+    handler: EventSubscriber,
     observerLocator: IObserverLocator,
-    obj: Node,
-    propertyName: string,
-  ): IBindingTargetObserver | IBindingTargetAccessor | null {
-    switch (propertyName) {
-      case 'checked':
-        return new CheckedObserver(flags, this.lifecycle, new EventSubscriber(inputEvents), obj as IInputElement);
-      case 'value':
-        if ((obj as Element).tagName === 'SELECT') {
-          return new SelectValueObserver(observerLocator, this.platform, new EventSubscriber(selectEvents), obj as ISelectElement);
-        }
-        return new ValueAttributeObserver(flags, new EventSubscriber(inputEvents), obj as Node & IIndexable, propertyName);
-      case 'files':
-        return new ValueAttributeObserver(flags, new EventSubscriber(inputEvents), obj as Node & IIndexable, propertyName);
-      case 'textContent':
-      case 'innerHTML':
-        return new ValueAttributeObserver(flags, new EventSubscriber(contentEvents), obj as Node & IIndexable, propertyName);
-      case 'scrollTop':
-      case 'scrollLeft':
-        return new ValueAttributeObserver(flags, new EventSubscriber(scrollEvents), obj as Node & IIndexable, propertyName);
-      case 'class':
-        return new ClassAttributeAccessor(flags, obj as HTMLElement);
-      case 'style':
-      case 'css':
-        return new StyleAttributeAccessor(flags, obj as HTMLElement);
-      case 'model':
-        return new SetterObserver(flags, obj as Node & IIndexable, propertyName);
-      case 'role':
-        return attrAccessor;
-      default:
-        if (nsAttributes[propertyName] !== undefined) {
-          const nsProps = nsAttributes[propertyName];
-          return AttributeNSAccessor.forNs(nsProps[1]) as IBindingTargetAccessor;
-        }
-        if (isDataAttribute(obj, propertyName, this.svgAnalyzer)) {
-          return attrAccessor;
-        }
-    }
-    return null!;
-  }
+    locator: IServiceLocator,
+  ) => IObserver;
 
-  public overridesAccessor(flags: LifecycleFlags, obj: Node, propertyName: string): boolean {
-    return overrideProps[propertyName] === true;
-  }
+export interface INodeObserverConfig extends Partial<NodeObserverConfig> {
+  events: string[];
+}
 
-  // consider a scenario where user would want to provide a Date object observation via patching a few mutation method on it
-  // then this extension point of this default implementaion cannot be used,
-  // and a new implementation of ITargetObserverLocator should be used instead
-  // This default implementation only accounts for the most common target scenarios
-  public handles(flags: LifecycleFlags, obj: unknown): boolean {
-    return obj instanceof this.platform.Node;
+export class NodeObserverConfig {
+  /**
+   * The observer constructor to use
+   */
+  public type: IHtmlObserverConstructor;
+  /**
+   * Indicates the list of events can be used to observe a particular property
+   */
+  public readonly events!: string[];
+  /**
+   * Indicates whether this property is readonly, so observer wont attempt to assign value
+   * example: input.files
+   */
+  public readonly readonly?: boolean;
+  /**
+   * A default value to assign to the corresponding property if the incoming value is null/undefined
+   */
+  public readonly default?: unknown;
+
+  public constructor(config: INodeObserverConfig) {
+    this.type = config.type ?? ValueAttributeObserver;
+    this.events = config.events;
+    this.readonly = config.readonly;
+    this.default = config.default;
   }
 }
 
-export class TargetAccessorLocator implements ITargetAccessorLocator {
-  public constructor(
-    @IPlatform private readonly platform: IPlatform,
-    @ISVGAnalyzer private readonly svgAnalyzer: ISVGAnalyzer,
-  ) {}
+export class NodeObserverLocator implements INodeObserverLocator {
+  public allowDirtyCheck: boolean = true;
 
-  public static register(container: IContainer): IResolver<ITargetAccessorLocator> {
-    return Registration.singleton(ITargetAccessorLocator, this).register(container);
+  private readonly globalLookup: Record<string, NodeObserverConfig> = createLookup();
+  private readonly eventsLookup: Record<string, Record<string, NodeObserverConfig>> = createLookup();
+  private readonly overrides: Record<string, true> = getDefaultOverrideProps();
+
+  public constructor(
+    @IServiceLocator private readonly locator: IServiceLocator,
+    @IPlatform private readonly platform: IPlatform,
+    @IDirtyChecker private readonly dirtyChecker: IDirtyChecker,
+    @ISVGAnalyzer private readonly svgAnalyzer: ISVGAnalyzer,
+  ) {
+    // todo: atm, platform is required to be resolved too eagerly for the `.handles()` check
+    // also a lot of tests assume default availability of observation
+    // those 2 assumptions make it not the right time to extract the following line into a
+    // default configuration for NodeObserverLocator yet
+    // but in the future, they should be, so apps that don't use check box/select, or implement a different
+    // observer don't have to pay the of the default implementation
+    const inputEvents = ['change', 'input'];
+    const inputEventsConfig: INodeObserverConfig = { events: inputEvents, default: '' };
+    this.useConfig({
+      INPUT: {
+        value: inputEventsConfig,
+        checked: { type: CheckedObserver, events: inputEvents } ,
+        files: { events: inputEvents, readonly: true },
+      },
+      SELECT: {
+        value: { type: SelectValueObserver, events: ['change'], default: '' },
+      },
+      TEXTAREA: {
+        value: inputEventsConfig,
+      },
+    });
+
+    const contentEventsConfig: INodeObserverConfig = { events: ['change', 'input', 'blur', 'keyup', 'paste'], default: '' };
+    const scrollEventsConfig: INodeObserverConfig = { events: ['scroll'], default: 0 };
+    this.useGlobalConfig({
+      scrollTop: scrollEventsConfig,
+      scrollLeft: scrollEventsConfig,
+      textContent: contentEventsConfig,
+      innerHTML: contentEventsConfig,
+    });
   }
 
-  public getAccessor(
-    flags: LifecycleFlags,
-    obj: Node,
-    propertyName: string,
-  ): IBindingTargetAccessor {
-    switch (propertyName) {
-      case 'class':
-        return new ClassAttributeAccessor(flags, obj as HTMLElement);
-      case 'style':
-      case 'css':
-        return new StyleAttributeAccessor(flags, obj as HTMLElement);
+  public static register(container: IContainer) {
+    Registration.aliasTo(INodeObserverLocator, NodeObserverLocator).register(container);
+    Registration.singleton(INodeObserverLocator, NodeObserverLocator).register(container);
+  }
+
+  // deepscan-disable-next-line
+  public handles(obj: unknown, _key: PropertyKey): boolean {
+    return obj instanceof this.platform.Node;
+  }
+
+  public useConfig(config: Record<string, Record<string, INodeObserverConfig>>): void;
+  public useConfig(nodeName: string, key: PropertyKey, events: INodeObserverConfig): void;
+  public useConfig(nodeNameOrConfig: string | Record<string, Record<string, INodeObserverConfig>>, key?: PropertyKey, eventsConfig?: INodeObserverConfig): void {
+    const lookup = this.eventsLookup;
+    let existingMapping: Record<string, NodeObserverConfig>;
+    if (typeof nodeNameOrConfig === 'string') {
+      existingMapping = lookup[nodeNameOrConfig] ??= createLookup();
+      if (existingMapping[key as string] == null) {
+        existingMapping[key as string] = new NodeObserverConfig(eventsConfig!);
+      } else {
+        throwMappingExisted(nodeNameOrConfig, key!);
+      }
+    } else {
+      for (const nodeName in nodeNameOrConfig) {
+        existingMapping = lookup[nodeName] ??= createLookup();
+        const newMapping = nodeNameOrConfig[nodeName];
+        for (key in newMapping) {
+          if (existingMapping[key] == null) {
+            existingMapping[key] = new NodeObserverConfig(newMapping[key]);
+          } else {
+            throwMappingExisted(nodeName, key);
+          }
+        }
+      }
+    }
+  }
+
+  public useGlobalConfig(config: Record<string, INodeObserverConfig>): void;
+  public useGlobalConfig(key: PropertyKey, events: INodeObserverConfig): void;
+  public useGlobalConfig(configOrKey: PropertyKey | Record<string, INodeObserverConfig>, eventsConfig?: INodeObserverConfig): void {
+    const lookup = this.globalLookup;
+    if (typeof configOrKey === 'object') {
+      for (const key in configOrKey) {
+        if (lookup[key] == null) {
+          lookup[key] = new NodeObserverConfig(configOrKey[key]);
+        } else {
+          throwMappingExisted('*', key);
+        }
+      }
+    } else {
+      if (lookup[configOrKey as string] == null) {
+        lookup[configOrKey as string] = new NodeObserverConfig(eventsConfig!);
+      } else {
+        throwMappingExisted('*', configOrKey);
+      }
+    }
+  }
+
+  // deepscan-disable-nextline
+  public getAccessor(obj: HTMLElement, key: PropertyKey, requestor: IObserverLocator): IAccessor | IObserver {
+    if (this.overrides[key as string] === true) {
+      return this.getObserver(obj, key, requestor);
+    }
+    switch (key) {
+      // class / style / css attribute will be observed using .getObserver() per overrides
+      //
       // TODO: there are (many) more situation where we want to default to DataAttributeAccessor,
       // but for now stick to what vCurrent does
       case 'src':
@@ -170,34 +206,109 @@ export class TargetAccessorLocator implements ITargetAccessorLocator {
       // https://html.spec.whatwg.org/multipage/dom.html#wai-aria
       case 'role':
         return attrAccessor;
-      default:
-        if (nsAttributes[propertyName] !== undefined) {
-          const nsProps = nsAttributes[propertyName];
+      default: {
+        const nsProps = nsAttributes[key as string];
+        if (nsProps !== undefined) {
           return AttributeNSAccessor.forNs(nsProps[1]) as IBindingTargetAccessor;
         }
-        if (isDataAttribute(obj, propertyName, this.svgAnalyzer)) {
+        if (isDataAttribute(obj, key, this.svgAnalyzer)) {
           return attrAccessor;
         }
         return elementPropertyAccessor;
+      }
     }
   }
 
-  public handles(flags: LifecycleFlags, obj: Node): boolean {
-    return obj instanceof this.platform.Node;
+  public getObserver(el: HTMLElement, key: PropertyKey, requestor: IObserverLocator): IAccessor | IObserver {
+    switch (key) {
+      case 'role':
+        return attrAccessor;
+      case 'class':
+        return new ClassAttributeAccessor(el);
+      case 'css':
+      case 'style':
+        return new StyleAttributeAccessor(el);
+    }
+    const eventsConfig: NodeObserverConfig | undefined = this.eventsLookup[el.tagName]?.[key as string] ?? this.globalLookup[key as string];
+    if (eventsConfig != null) {
+      return new eventsConfig.type(el, key, new EventSubscriber(eventsConfig), requestor, this.locator);
+    }
+
+    const nsProps = nsAttributes[key as string];
+    if (nsProps !== undefined) {
+      return AttributeNSAccessor.forNs(nsProps[1]) as IBindingTargetAccessor;
+    }
+    if (isDataAttribute(el, key, this.svgAnalyzer)) {
+      // todo: should observe
+      return attrAccessor;
+    }
+    if (key in el.constructor.prototype) {
+      if (this.allowDirtyCheck) {
+        return this.dirtyChecker.createProperty(el, key as string);
+      }
+      // consider:
+      // - maybe add a adapter API to handle unknown obj/key combo
+      throw new Error(`Unable to observe property ${String(key)}. Register observation mapping with .useConfig().`);
+    } else {
+      // todo: probably still needs to get the property descriptor via getOwnPropertyDescriptor
+      // but let's start with simplest scenario
+      return new SetterObserver(el as HTMLElement & IIndexable, key as string);
+    }
   }
 }
 
-const IsDataAttribute: Record<string, boolean> = {};
+function getDefaultOverrideProps() {
+  return [
+    'class',
+    'style',
+    'css',
+    'checked',
+    'value',
+    'model',
+    'xml:lang',
+    'xml:space',
+    'xmlns',
+    'xmlns:xlink',
+  ].reduce((overrides, attr) => {
+    overrides[attr] = true;
+    return overrides;
+  },createLookup<true>());
+}
 
-function isDataAttribute(obj: Node, propertyName: string, svgAnalyzer: ISVGAnalyzer): boolean {
-  if (IsDataAttribute[propertyName] === true) {
+export function getCollectionObserver(collection: unknown, observerLocator: IObserverLocator): ICollectionObserver<CollectionKind> | undefined {
+  if (collection instanceof Array) {
+    return observerLocator.getArrayObserver(LifecycleFlags.none, collection);
+  }
+  if (collection instanceof Map) {
+    return observerLocator.getMapObserver(LifecycleFlags.none, collection);
+  }
+  if (collection instanceof Set) {
+    return observerLocator.getSetObserver(LifecycleFlags.none, collection);
+  }
+}
+
+function throwMappingExisted(nodeName: string, key: PropertyKey): never {
+  throw new Error(`Mapping for property ${String(key)} of <${nodeName} /> already exists`);
+}
+
+const IsDataAttribute: Record<string, boolean> = createLookup();
+
+function isDataAttribute(obj: Node, key: PropertyKey, svgAnalyzer: ISVGAnalyzer): boolean {
+  if (IsDataAttribute[key as string] === true) {
     return true;
   }
-  const prefix = propertyName.slice(0, 5);
+  if (typeof key !== 'string') {
+    return false;
+  }
+  const prefix = key.slice(0, 5);
   // https://html.spec.whatwg.org/multipage/dom.html#wai-aria
   // https://html.spec.whatwg.org/multipage/dom.html#custom-data-attribute
-  return IsDataAttribute[propertyName] =
+  return IsDataAttribute[key] =
     prefix === 'aria-' ||
     prefix === 'data-' ||
-    svgAnalyzer.isStandardSvgAttribute(obj, propertyName);
+    svgAnalyzer.isStandardSvgAttribute(obj, key);
+}
+
+function createLookup<T = unknown>(){
+  return Object.create(null) as Record<string, T>;
 }

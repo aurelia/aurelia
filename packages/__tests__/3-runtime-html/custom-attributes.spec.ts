@@ -16,10 +16,7 @@ describe('custom-attributes', function () {
     class Fooatt5 {
       @bindable({ primary: true })
       public value: any;
-      private readonly element: Element;
-      public constructor(@INode element: INode) {
-        this.element = element as Element;
-      }
+      public constructor(@INode private readonly element: INode<Element>) {}
 
       public bound() {
         this.element.setAttribute('test', this.value);
@@ -31,10 +28,7 @@ describe('custom-attributes', function () {
     class Fooatt4 {
       @bindable({ primary: true })
       public value: any;
-      private readonly element: Element;
-      public constructor(@INode element: INode) {
-        this.element = element as Element;
-      }
+      public constructor(@INode private readonly element: INode<Element>) {}
 
       public bound() {
         this.element.setAttribute('test', this.value);
@@ -47,10 +41,7 @@ describe('custom-attributes', function () {
     class FooMultipleAlias {
       @bindable({ primary: true })
       public value: any;
-      private readonly element: Element;
-      public constructor(@INode element: INode) {
-        this.element = element as Element;
-      }
+      public constructor(@INode private readonly element: INode<Element>) {}
 
       public bound() {
         this.element.setAttribute('test', this.value);
@@ -142,9 +133,7 @@ describe('custom-attributes', function () {
       @bindable public b: string;
       public aResult: boolean;
       public bResult: string;
-      private readonly element: Element;
-      public constructor(@INode element: INode) {
-        this.element = element as Element;
+      public constructor(@INode private readonly element: INode<Element>) {
         this.element.innerHTML = 'Created';
       }
       public bound() {
@@ -169,9 +158,7 @@ describe('custom-attributes', function () {
       @bindable({ primary: true }) public b: string;
       public aResult: boolean;
       public bResult: string;
-      private readonly element: Element;
-      public constructor(@INode element: INode) {
-        this.element = element as Element;
+      public constructor(@INode private readonly element: INode<Element>) {
         this.element.innerHTML = 'Created';
       }
       public bound() {

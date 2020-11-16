@@ -1,17 +1,20 @@
 import {
   CollectionKind,
-  IAccessor,
-  ICollectionObserver,
-  IndexMap,
-  IObserverLocator,
-  ISubscriber,
-  ISubscriberCollection,
   LifecycleFlags as LF,
   subscriberCollection,
   AccessorType,
 } from '@aurelia/runtime';
-import { EventSubscriber } from './event-delegator';
-import { IPlatform } from '../platform';
+
+import type { INode } from '../dom';
+import type { EventSubscriber } from './event-delegator';
+import type {
+  ICollectionObserver,
+  IndexMap,
+  IObserver,
+  IObserverLocator,
+  ISubscriber,
+  ISubscriberCollection,
+} from '@aurelia/runtime';
 
 const hasOwn = Object.prototype.hasOwnProperty;
 const childObserverOptions = {
@@ -36,11 +39,11 @@ export interface SelectValueObserver extends
   ISubscriberCollection {}
 
 @subscriberCollection()
-export class SelectValueObserver implements IAccessor {
+export class SelectValueObserver implements IObserver {
   public currentValue: unknown = void 0;
   public oldValue: unknown = void 0;
 
-  public readonly persistentFlags: LF = LF.none;
+  public readonly obj: ISelectElement;
 
   public hasChanges: boolean = false;
   // ObserverType.Layout is not always true
@@ -53,11 +56,13 @@ export class SelectValueObserver implements IAccessor {
   private observing: boolean = false;
 
   public constructor(
-    public readonly observerLocator: IObserverLocator,
-    public readonly platform: IPlatform,
+    obj: INode,
+    // deepscan-disable-next-line
+    _key: PropertyKey,
     public readonly handler: EventSubscriber,
-    public readonly obj: ISelectElement,
+    public readonly observerLocator: IObserverLocator,
   ) {
+    this.obj = obj as ISelectElement;
   }
 
   public getValue(): unknown {
@@ -219,7 +224,8 @@ export class SelectValueObserver implements IAccessor {
   }
 
   private start(): void {
-    (this.nodeObserver = new this.platform.MutationObserver(this.handleNodeChange.bind(this))).observe(this.obj, childObserverOptions);
+    (this.nodeObserver = new this.obj.ownerDocument.defaultView!.MutationObserver(this.handleNodeChange.bind(this)))
+      .observe(this.obj, childObserverOptions);
     this.observeArray(this.currentValue instanceof Array ? this.currentValue : null);
     this.observing = true;
   }

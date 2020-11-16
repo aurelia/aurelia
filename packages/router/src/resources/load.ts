@@ -1,6 +1,6 @@
 import { customAttribute, INode, bindable, BindingMode, IObserverLocator, LifecycleFlags, CustomAttribute, ICustomAttributeController, ICustomAttributeViewModel } from '@aurelia/runtime-html';
-import { IRouter } from '../router';
-import { NavigationInstructionResolver } from '../type-resolvers';
+import { IRouter } from '../router.js';
+import { NavigationInstructionResolver } from '../type-resolvers.js';
 
 @customAttribute('load')
 export class LoadCustomAttribute implements ICustomAttributeViewModel {
@@ -9,18 +9,15 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
 
   private hasHref: boolean | null = null;
 
-  private readonly element: Element;
   private observer: any;
 
   public readonly $controller!: ICustomAttributeController<this>;
 
   private readonly activeClass: string = 'load-active';
   public constructor(
-    @INode element: INode,
+    @INode private readonly element: INode<Element>,
     @IRouter private readonly router: IRouter,
-  ) {
-    this.element = element as Element;
-  }
+  ) {}
 
   public binding(): void {
     this.element.addEventListener('click', this.router.linkHandler.handler);

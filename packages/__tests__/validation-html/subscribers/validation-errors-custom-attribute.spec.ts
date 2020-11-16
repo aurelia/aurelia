@@ -9,8 +9,8 @@ import {
   ValidationHtmlConfiguration,
   ValidationResultsSubscriber,
 } from '@aurelia/validation-html';
-import { createSpecFunction, TestExecutionContext, TestFunction, ToNumberValueConverter } from '../../util';
-import { Person } from '../../validation/_test-resources';
+import { createSpecFunction, TestExecutionContext, TestFunction, ToNumberValueConverter } from '../../util.js';
+import { Person } from '../../validation/_test-resources.js';
 
 describe('validation-errors-custom-attribute', function () {
 
@@ -157,7 +157,7 @@ describe('validation-errors-custom-attribute', function () {
       assert.html.textContent(div1.querySelector('span.error'), 'Name is required.');
       assert.deepEqual(
         toArray(div2.querySelectorAll('span.error'))
-          .map((span) => getVisibleText((void 0)!, span, true)),
+          .map((span) => getVisibleText(span, true)),
         ['Age is required.', 'Age is not fizbaz']
       );
 
@@ -223,7 +223,7 @@ describe('validation-errors-custom-attribute', function () {
 
       assert.deepEqual(
         toArray(div.querySelectorAll('span.error'))
-          .map((span) => getVisibleText((void 0)!, span, true)),
+          .map((span) => getVisibleText(span, true)),
         ['Name is required.', 'Age is required.', 'Age is not fizbaz']
       );
     },
@@ -277,7 +277,7 @@ describe('validation-errors-custom-attribute', function () {
       assert.html.textContent(div1.querySelector('span.error'), 'Name is required.');
       assert.deepEqual(
         toArray(div2.querySelectorAll('span.error'))
-          .map((span) => getVisibleText((void 0)!, span, true)),
+          .map((span) => getVisibleText(span, true)),
         ['Age is required.', 'Age is not fizbaz']
       );
 

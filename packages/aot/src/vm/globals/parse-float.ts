@@ -1,24 +1,24 @@
 import {
   $BuiltinFunction,
   $Function,
-} from '../types/function';
+} from '../types/function.js';
 import {
   Realm,
   ExecutionContext,
-} from '../realm';
+} from '../realm.js';
 import {
   $AnyNonEmpty,
   $AnyNonEmptyNonError,
-} from '../types/_shared';
+} from '../types/_shared.js';
 import {
   $Undefined,
-} from '../types/undefined';
+} from '../types/undefined.js';
 import {
   $FunctionPrototype,
-} from './function';
+} from './function.js';
 import {
   $List,
-} from '../types/list';
+} from '../types/list.js';
 
 // http://www.ecma-international.org/ecma-262/#sec-parsefloat-string
 // 18.2.4 parseFloat ( string )

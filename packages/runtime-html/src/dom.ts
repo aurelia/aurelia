@@ -1,13 +1,13 @@
 import { DI, Writable } from '@aurelia/kernel';
-import { IAppRoot } from './app-root';
-import { IPlatform } from './platform';
-import { CustomElement } from './resources/custom-element';
-import { MountTarget } from './templating/controller';
+import { IAppRoot } from './app-root.js';
+import { IPlatform } from './platform.js';
+import { CustomElement } from './resources/custom-element.js';
+import { MountTarget } from './templating/controller.js';
 
-export interface INode extends Node {}
+export type INode<T extends Node = Node> = T;
 export const INode = DI.createInterface<INode>('INode').noDefault();
 
-export interface IEventTarget extends EventTarget {}
+export type IEventTarget<T extends EventTarget = EventTarget> = T;
 export const IEventTarget = DI.createInterface<IEventTarget>('IEventTarget').withDefault(x => x.cachedCallback(handler => {
   if (handler.has(IAppRoot, true)) {
     return handler.get(IAppRoot).host;
@@ -16,10 +16,9 @@ export const IEventTarget = DI.createInterface<IEventTarget>('IEventTarget').wit
 }));
 
 export const IRenderLocation = DI.createInterface<IRenderLocation>('IRenderLocation').noDefault();
-export interface IRenderLocation<T extends Node = Node> extends Node {
+export type IRenderLocation<T extends ChildNode = ChildNode> = T & {
   $start?: IRenderLocation<T>;
-  $nodes?: INodeSequence<T> | Readonly<{}>;
-}
+};
 
 /**
  * Represents a DocumentFragment
@@ -48,7 +47,7 @@ export interface INodeSequence<T extends INode = INode> {
   /**
    * Insert this sequence as a sibling before refNode
    */
-  insertBefore(refNode: T | IRenderLocation<T>): void;
+  insertBefore(refNode: T | IRenderLocation): void;
 
   /**
    * Append this sequence as a child to parent
@@ -64,7 +63,7 @@ export interface INodeSequence<T extends INode = INode> {
 
   unlink(): void;
 
-  link(next: INodeSequence<T> | IRenderLocation<T> | undefined): void;
+  link(next: INodeSequence<T> | IRenderLocation | undefined): void;
 }
 
 export const enum NodeType {
@@ -176,19 +175,15 @@ export function convertToRenderLocation(node: Node): IRenderLocation {
     return node; // it's already a IRenderLocation (converted by FragmentNodeSequence)
   }
 
-  if (node.parentNode == null) {
-    throw new Error('Cannot convert an element without a parent to a RenderLocation');
-  }
-
   const locationEnd = node.ownerDocument!.createComment('au-end');
   const locationStart = node.ownerDocument!.createComment('au-start');
 
-  node.parentNode.replaceChild(locationEnd, node);
-
-  locationEnd.parentNode!.insertBefore(locationStart, locationEnd);
+  if (node.parentNode !== null) {
+    node.parentNode.replaceChild(locationEnd, node);
+    locationEnd.parentNode!.insertBefore(locationStart, locationEnd);
+  }
 
   (locationEnd as IRenderLocation).$start = locationStart as IRenderLocation;
-  (locationStart as IRenderLocation).$nodes = null!;
 
   return locationEnd as IRenderLocation;
 }

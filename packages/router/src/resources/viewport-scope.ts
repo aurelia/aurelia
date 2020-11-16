@@ -36,19 +36,16 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel {
   public readonly $controller!: ICustomElementController<this>;
 
   public controller!: IRoutingController;
-  public readonly element: HTMLElement;
 
   private isBound: boolean = false;
 
   public constructor(
     @IRouter private readonly router: IRouter,
-    @INode element: INode,
+    @INode public readonly element: INode<HTMLElement>,
     @IContainer public container: IContainer,
     @ParentViewportScope private readonly parent: ViewportScopeCustomElement,
     @IController private readonly parentController: IHydratedController,
-  ) {
-    this.element = element as HTMLElement;
-  }
+  ) {}
 
   // Maybe this really should be here. Check with Fred
   // public create(

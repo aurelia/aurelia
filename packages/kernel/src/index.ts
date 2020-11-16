@@ -42,7 +42,7 @@ export {
   Transformer,
   newInstanceForScope,
   newInstanceOf,
-  DefaultContainerConfiguration,
+  ContainerConfiguration,
   DefaultResolver,
   IContainerConfiguration,
 } from './di';
@@ -82,6 +82,12 @@ export {
   format,
   sink,
 } from './logger';
+export {
+  IModule,
+  IModuleLoader,
+  AnalyzedModule,
+  ModuleItem,
+} from './module-loader';
 export {
   noop,
   emptyArray,

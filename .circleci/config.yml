@@ -467,6 +467,7 @@ jobs:
           name: "Run playwright test"
           command: |
             cd test/playwright
+            npm run build
             npm run e2e:<< parameters.suite >>
 
 # # # # # # # # # # # # # # # #

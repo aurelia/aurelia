@@ -5,8 +5,6 @@ export class ClassAttributeAccessor implements IAccessor {
   public currentValue: unknown = '';
   public oldValue: unknown = '';
 
-  public readonly persistentFlags: LifecycleFlags = LifecycleFlags.none;
-
   public readonly doNotCache: true = true;
   public nameIndex: Record<string, number> = {};
   public version: number = 0;

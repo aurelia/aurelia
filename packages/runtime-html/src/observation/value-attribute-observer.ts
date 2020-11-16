@@ -15,8 +15,6 @@ export class ValueAttributeObserver implements IObserver {
   public currentValue: unknown = '';
   public oldValue: unknown = '';
 
-  public readonly persistentFlags: LifecycleFlags = LifecycleFlags.none;
-
   public hasChanges: boolean = false;
   // ObserverType.Layout is not always true, it depends on the element & property combo
   // but for simplicity, always treat as such

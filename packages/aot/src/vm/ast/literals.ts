@@ -18,25 +18,25 @@ import {
 import {
   Realm,
   ExecutionContext,
-} from '../realm';
+} from '../realm.js';
 import {
   $String,
-} from '../types/string';
+} from '../types/string.js';
 import {
   $AnyNonEmpty,
-} from '../types/_shared';
+} from '../types/_shared.js';
 import {
   $Object,
-} from '../types/object';
+} from '../types/object.js';
 import {
   $Number,
-} from '../types/number';
+} from '../types/number.js';
 import {
   $Null,
-} from '../types/null';
+} from '../types/null.js';
 import {
   $Boolean,
-} from '../types/boolean';
+} from '../types/boolean.js';
 import {
   I$Node,
   Context,
@@ -45,13 +45,13 @@ import {
   $AssignmentExpressionNode,
   $AnyParentNode,
   $i,
-} from './_shared';
+} from './_shared.js';
 import {
   $$ESModuleOrScript,
-} from './modules';
+} from './modules.js';
 import {
   $TemplateExpression,
-} from './expressions';
+} from './expressions.js';
 
 // #region Pseudo-literals
 

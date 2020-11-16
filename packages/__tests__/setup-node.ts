@@ -1,7 +1,7 @@
 import { noop } from '@aurelia/kernel';
 import { BrowserPlatform } from '@aurelia/platform-browser';
 import { JSDOM } from 'jsdom';
-import { $setup } from './setup-shared';
+import { $setup } from './setup-shared.js';
 
 const jsdom = new JSDOM(`<!DOCTYPE html><html><head></head><body></body></html>`, { pretendToBeVisual: true });
 

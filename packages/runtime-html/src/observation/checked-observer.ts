@@ -5,10 +5,10 @@ import {
   subscriberCollection,
   AccessorType,
 } from '@aurelia/runtime';
-import { getCollectionObserver } from './observer-locator';
-import type { INode } from '../dom';
-import type { EventSubscriber } from './event-delegator';
-import type { ValueAttributeObserver } from './value-attribute-observer';
+import { getCollectionObserver } from './observer-locator.js';
+import type { INode } from '../dom.js';
+import type { EventSubscriber } from './event-delegator.js';
+import type { ValueAttributeObserver } from './value-attribute-observer.js';
 import type {
   ICollectionObserver,
   IndexMap,

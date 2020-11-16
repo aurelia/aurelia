@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
-import { Navigation } from './navigation';
-import { OpenPromise } from './open-promise';
+import { Navigation } from './navigation.js';
+import { OpenPromise } from './open-promise.js';
 
 export class Entity<T, S> {
   public running: boolean = false;

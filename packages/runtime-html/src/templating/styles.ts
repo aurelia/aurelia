@@ -1,10 +1,10 @@
 import { IContainer, IRegistry, Registration, DI, noop } from '@aurelia/kernel';
 import { bindable } from '@aurelia/runtime';
-import { AppTask } from '../app-task';
-import { INode } from '../dom';
-import { getClassesToAdd } from '../observation/class-attribute-accessor';
-import { IPlatform } from '../platform';
-import { customAttribute } from '../resources/custom-attribute';
+import { AppTask } from '../app-task.js';
+import { INode } from '../dom.js';
+import { getClassesToAdd } from '../observation/class-attribute-accessor.js';
+import { IPlatform } from '../platform.js';
+import { customAttribute } from '../resources/custom-attribute.js';
 
 export function cssModules(...modules: (Record<string, string>)[]): CSSModulesProcessorRegistry {
   return new CSSModulesProcessorRegistry(modules);

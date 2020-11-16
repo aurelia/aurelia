@@ -2,12 +2,12 @@
 import { toArray } from '@aurelia/kernel';
 import { DirtyCheckProperty, IDirtyChecker } from '@aurelia/runtime';
 import { assert, getVisibleText, eachCartesianJoin } from '@aurelia/testing';
-import { App, Product } from './app/app';
-import { Cards } from './app/molecules/cards/cards';
-import { LetDemo } from './app/molecules/let-demo/let-demo';
-import { RandomGenerator } from './app/molecules/random-generator/random-generator';
-import { $it, assertCalls, getViewModel } from './util';
-import { ComponentMode } from './app/startup';
+import { App, Product } from './app/app.js';
+import { Cards } from './app/molecules/cards/cards.js';
+import { LetDemo } from './app/molecules/let-demo/let-demo.js';
+import { RandomGenerator } from './app/molecules/random-generator/random-generator.js';
+import { $it, assertCalls, getViewModel } from './util.js';
+import { ComponentMode } from './app/startup.js';
 
 describe('app', function () {
 

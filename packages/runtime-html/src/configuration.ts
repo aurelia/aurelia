@@ -13,7 +13,7 @@ import {
   ColonPrefixedBindAttributePattern,
   DotSeparatedAttributePattern,
   RefAttributePattern,
-} from './resources/attribute-pattern';
+} from './resources/attribute-pattern.js';
 import {
   CallBindingCommand,
   DefaultBindingCommand,
@@ -29,8 +29,8 @@ import {
   RefBindingCommand,
   StyleBindingCommand,
   TriggerBindingCommand,
-} from './resources/binding-command';
-import { TemplateCompiler } from './template-compiler';
+} from './resources/binding-command.js';
+import { TemplateCompiler } from './template-compiler.js';
 import {
   CallBindingRenderer,
   CustomAttributeRenderer,
@@ -49,24 +49,24 @@ import {
   TextBindingRenderer,
   SetClassAttributeRenderer,
   SetStyleAttributeRenderer,
-} from './renderer';
-import { SVGAnalyzer } from './observation/svg-analyzer';
-import { AttrBindingBehavior } from './resources/binding-behaviors/attr';
-import { SelfBindingBehavior } from './resources/binding-behaviors/self';
-import { UpdateTriggerBindingBehavior } from './resources/binding-behaviors/update-trigger';
-import { Blur } from './resources/custom-attributes/blur';
-import { Focus } from './resources/custom-attributes/focus';
-import { Portal } from './resources/template-controllers/portal';
-import { FrequentMutations, ObserveShallow } from './resources/template-controllers/flags';
-import { Else, If } from './resources/template-controllers/if';
-import { Repeat } from './resources/template-controllers/repeat';
-import { With } from './resources/template-controllers/with';
-import { Switch, Case, DefaultCase } from './resources/template-controllers/switch';
-import { Compose } from './resources/custom-elements/compose';
-import { AuSlot } from './resources/custom-elements/au-slot';
-import { SanitizeValueConverter } from './resources/value-converters/sanitize';
-import { ViewValueConverter } from './resources/value-converters/view';
-import { NodeObserverLocator } from './observation/observer-locator';
+} from './renderer.js';
+import { SVGAnalyzer } from './observation/svg-analyzer.js';
+import { AttrBindingBehavior } from './resources/binding-behaviors/attr.js';
+import { SelfBindingBehavior } from './resources/binding-behaviors/self.js';
+import { UpdateTriggerBindingBehavior } from './resources/binding-behaviors/update-trigger.js';
+import { Blur } from './resources/custom-attributes/blur.js';
+import { Focus } from './resources/custom-attributes/focus.js';
+import { Portal } from './resources/template-controllers/portal.js';
+import { FrequentMutations, ObserveShallow } from './resources/template-controllers/flags.js';
+import { Else, If } from './resources/template-controllers/if.js';
+import { Repeat } from './resources/template-controllers/repeat.js';
+import { With } from './resources/template-controllers/with.js';
+import { Switch, Case, DefaultCase } from './resources/template-controllers/switch.js';
+import { Compose } from './resources/custom-elements/compose.js';
+import { AuSlot } from './resources/custom-elements/au-slot.js';
+import { SanitizeValueConverter } from './resources/value-converters/sanitize.js';
+import { ViewValueConverter } from './resources/value-converters/view.js';
+import { NodeObserverLocator } from './observation/observer-locator.js';
 
 export const ITemplateCompilerRegistration = TemplateCompiler as IRegistry;
 export const INodeObserverLocatorRegistration = NodeObserverLocator as IRegistry;

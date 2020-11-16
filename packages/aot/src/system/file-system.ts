@@ -29,11 +29,11 @@ import {
   IFileSystem,
   IFile,
   Encoding,
-} from './interfaces';
+} from './interfaces.js';
 import {
   normalizePath,
   joinPath,
-} from './path-utils';
+} from './path-utils.js';
 
 const {
   access,

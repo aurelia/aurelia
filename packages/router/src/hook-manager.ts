@@ -1,7 +1,7 @@
-import { Hook } from './hook';
-import { ComponentAppellation, IComponentAndOrViewportOrNothing } from './interfaces';
-import { ViewportInstruction } from './viewport-instruction';
-import { Navigation } from './navigation';
+import { Hook } from './hook.js';
+import { ComponentAppellation, IComponentAndOrViewportOrNothing } from './interfaces.js';
+import { ViewportInstruction } from './viewport-instruction.js';
+import { Navigation } from './navigation.js';
 
 /**
  * Public API

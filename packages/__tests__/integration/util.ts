@@ -1,4 +1,4 @@
-import { TestExecutionContext, StartupConfiguration, startup } from './app/startup';
+import { TestExecutionContext, StartupConfiguration, startup } from './app/startup.js';
 import { fail } from 'assert';
 import { CustomElement } from '@aurelia/runtime-html';
 import { Call, assert } from '@aurelia/testing';

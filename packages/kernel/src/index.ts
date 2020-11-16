@@ -1,5 +1,5 @@
 import { Platform } from '@aurelia/platform';
-import { DI } from './di';
+import { DI } from './di.js';
 
 export interface IPlatform extends Platform {}
 export const IPlatform = DI.createInterface<IPlatform>('IPlatform').noDefault();
@@ -45,7 +45,7 @@ export {
   ContainerConfiguration,
   DefaultResolver,
   IContainerConfiguration,
-} from './di';
+} from './di.js';
 
 export {
   Class,
@@ -56,7 +56,7 @@ export {
   Overwrite,
   Primitive,
   Writable,
-} from './interfaces';
+} from './interfaces.js';
 export {
   metadata,
   Metadata,
@@ -81,7 +81,7 @@ export {
   LoggerConfiguration,
   format,
   sink,
-} from './logger';
+} from './logger.js';
 export {
   IModule,
   IModuleLoader,
@@ -92,7 +92,7 @@ export {
   noop,
   emptyArray,
   emptyObject,
-} from './platform';
+} from './platform.js';
 export {
   IResourceKind,
   PartialResourceDefinition,
@@ -102,11 +102,11 @@ export {
   fromAnnotationOrDefinitionOrTypeOrDefault,
   fromAnnotationOrTypeOrDefault,
   fromDefinitionOrDefault,
-} from './resource';
+} from './resource.js';
 export {
   EventAggregator,
   IEventAggregator,
-} from './eventaggregator';
+} from './eventaggregator.js';
 export {
   isArrayIndex,
   camelCase,
@@ -127,4 +127,4 @@ export {
   isNativeFunction,
   onResolve,
   resolveAll,
-} from './functions';
+} from './functions.js';

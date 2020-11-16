@@ -15,11 +15,11 @@ import {
   Scope,
   synchronizeIndices,
 } from '@aurelia/runtime';
-import { IRenderLocation } from '../../dom';
-import { IViewFactory } from '../../templating/view';
-import { templateController } from '../custom-attribute';
-import type { ISyntheticView, ICustomAttributeController, IHydratableController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller';
-import { IController } from '../../templating/controller';
+import { IRenderLocation } from '../../dom.js';
+import { IViewFactory } from '../../templating/view.js';
+import { templateController } from '../custom-attribute.js';
+import type { ISyntheticView, ICustomAttributeController, IHydratableController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller.js';
+import { IController } from '../../templating/controller.js';
 
 type Items<C extends ObservedCollection = IObservedArray> = C | undefined;
 

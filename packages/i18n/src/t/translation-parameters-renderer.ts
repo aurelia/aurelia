@@ -1,5 +1,5 @@
 import { IContainer } from '@aurelia/kernel';
-import { TranslationBinding } from './translation-binding';
+import { TranslationBinding } from './translation-binding.js';
 import {
   BindingMode,
   BindingType,

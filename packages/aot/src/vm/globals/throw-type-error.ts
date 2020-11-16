@@ -1,23 +1,23 @@
 import {
   $TypeError,
-} from '../types/error';
+} from '../types/error.js';
 import {
   $BuiltinFunction,
   $Function,
-} from '../types/function';
+} from '../types/function.js';
 import {
   ExecutionContext,
-} from '../realm';
+} from '../realm.js';
 import {
   $AnyNonEmpty,
   $AnyNonEmptyNonError,
-} from '../types/_shared';
+} from '../types/_shared.js';
 import {
   $Undefined,
-} from '../types/undefined';
+} from '../types/undefined.js';
 import {
   $List
-} from '../types/list';
+} from '../types/list.js';
 
 // http://www.ecma-international.org/ecma-262/#sec-%throwtypeerror%
 // 9.2.9.1 %ThrowTypeError% ( )

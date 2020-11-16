@@ -9,12 +9,12 @@ import {
   resolveAll
 } from '@aurelia/kernel';
 import { LifecycleFlags } from '@aurelia/runtime';
-import { INode } from './dom';
-import { IAppTask, TaskSlot } from './app-task';
-import { CustomElement, CustomElementDefinition } from './resources/custom-element';
-import { Controller } from './templating/controller';
-import { IPlatform } from './platform';
-import type { ICustomElementViewModel, ICustomElementController } from './templating/controller';
+import { INode } from './dom.js';
+import { IAppTask, TaskSlot } from './app-task.js';
+import { CustomElement, CustomElementDefinition } from './resources/custom-element.js';
+import { Controller } from './templating/controller.js';
+import { IPlatform } from './platform.js';
+import type { ICustomElementViewModel, ICustomElementController } from './templating/controller.js';
 
 export interface ISinglePageApp {
   host: HTMLElement;

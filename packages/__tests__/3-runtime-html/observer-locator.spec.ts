@@ -1,14 +1,12 @@
+import { ComputedObserver } from '@aurelia/runtime';
 import {
   CollectionLengthObserver,
-  CustomSetterObserver,
   DirtyCheckProperty,
   LifecycleFlags as LF,
   PrimitiveObserver,
   PropertyAccessor,
   SetterObserver,
   CollectionSizeObserver,
-  computed,
-  GetterObserver,
   AttributeNSAccessor,
   CheckedObserver,
   ClassAttributeAccessor,
@@ -233,13 +231,10 @@ describe('ObserverLocator', function () {
                         function setter() { return; }
                         descriptor.set = setter;
                       }
-                      const proto = obj.constructor.prototype;
-                      if (hasOverrides) {
-                        computed({ volatile: isVolatile })(proto, 'foo');
-                      }
                       Reflect.defineProperty(obj, 'foo', descriptor);
                       if (hasSetter && !hasGetter && !(hasAdapterObserver && adapterIsDefined)) {
-                        assert.throws(() => sut.getObserver(LF.none, obj, 'foo'), /You cannot observe a setter only property/, `() => sut.getObserver(LF.none, obj, 'foo')`);
+                        const actual = sut.getObserver(LF.none, obj, 'foo');
+                        assert.instanceOf(actual, configurable ? ComputedObserver : DirtyCheckProperty, 'actual instanceof');
                       } else {
                         const actual = sut.getObserver(LF.none, obj, 'foo');
                         if ((hasGetter || hasSetter) && !hasGetObserver && hasAdapterObserver && adapterIsDefined) {
@@ -257,18 +252,11 @@ describe('ObserverLocator', function () {
                             if (hasGetObserver) {
                               assert.strictEqual(actual, dummyObserver, `actual`);
                             } else {
-                              if (hasSetter) {
-                                if(isVolatile){
-                                  assert.strictEqual(actual.constructor.name, GetterObserver.name, `actual.constructor.name`);
-                                } else {
-                                  assert.strictEqual(actual.constructor.name, CustomSetterObserver.name, `actual.constructor.name`);
-                                }
-                              }
+                              assert.strictEqual(actual.constructor.name, ComputedObserver.name, `actual.constructor.name`);
                             }
                           }
                         }
                       }
-                      delete proto.computed;
                     });
                   }
                 }

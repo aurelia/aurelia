@@ -145,12 +145,7 @@ export {
   CollectionSizeObserver,
 } from './observation/collection-size-observer.js';
 export {
-  ComputedOverrides,
-  ComputedLookup,
-  computed,
-  createComputedObserver,
-  CustomSetterObserver,
-  GetterObserver,
+  ComputedObserver,
   ComputedWatcher,
   ExpressionWatcher,
 } from './observation/computed-observer.js';

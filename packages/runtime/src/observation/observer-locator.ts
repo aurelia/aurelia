@@ -1,4 +1,4 @@
-import { DI, Primitive, isArrayIndex, ILogger } from '@aurelia/kernel';
+import { DI, Primitive, isArrayIndex, ILogger, IPlatform } from '@aurelia/kernel';
 import {
   AccessorOrObserver,
   CollectionKind,
@@ -16,7 +16,7 @@ import {
   LifecycleFlags,
 } from '../observation.js';
 import { getArrayObserver } from './array-observer.js';
-import { createComputedObserver } from './computed-observer.js';
+import { ComputedObserver } from './computed-observer.js';
 import { IDirtyChecker } from './dirty-checker.js';
 import { getMapObserver } from './map-observer.js';
 import { PrimitiveObserver } from './primitive-observer.js';
@@ -57,11 +57,10 @@ class DefaultNodeObserverLocator implements INodeObserverLocator {
   }
 }
 
-type ExtendedPropertyDescriptor = PropertyDescriptor & {
-  get: PropertyDescriptor['get'] & {
-    getObserver(obj: IObservable): IBindingTargetObserver;
-  };
+export type ExtendedPropertyDescriptor = PropertyDescriptor & {
+  get: ObservableGetter;
 };
+export type ObservableGetter = PropertyDescriptor['get'] & { getObserver(obj: unknown): IObserver };
 
 export class ObserverLocator {
   private readonly adapters: IObjectObservationAdapter[] = [];
@@ -70,6 +69,7 @@ export class ObserverLocator {
     @ILifecycle private readonly lifecycle: ILifecycle,
     @IDirtyChecker private readonly dirtyChecker: IDirtyChecker,
     @INodeObserverLocator private readonly nodeObserverLocator: INodeObserverLocator,
+    @IPlatform private readonly platform: IPlatform,
   ) {}
 
   public addAdapter(adapter: IObjectObservationAdapter): void {
@@ -150,28 +150,27 @@ export class ObserverLocator {
 
     // If the descriptor does not have a 'value' prop, it must have a getter and/or setter
     if (pd !== void 0 && !(Object.prototype.hasOwnProperty.call(pd, 'value') as boolean)) {
+      let obs: AccessorOrObserver | undefined | null;
       if (pd.get === void 0) {
         // The user could decide to read from a different prop, so don't assume the absense of a setter won't work for custom adapters
-        const obs = this.getAdapterObserver(flags, obj, key, pd);
-        if (obs !== null) {
-          return obs;
+        obs = this.getAdapterObserver(flags, obj, key, pd) as AccessorOrObserver;
+      } else {
+        // Check custom getter-specific override first
+        if ((pd.get as ObservableGetter).getObserver !== void 0) {
+          obs = (pd.get as ObservableGetter).getObserver(obj) as AccessorOrObserver;
         }
-        // None of our built-in stuff can read a setter-only without throwing, so just throw right away
-        throw new Error(`You cannot observe a setter only property: '${key}'`);
-      }
-
-      // Check custom getter-specific override first
-      if ((pd as ExtendedPropertyDescriptor).get.getObserver !== void 0) {
-        return (pd as ExtendedPropertyDescriptor).get.getObserver(obj);
       }
 
       // Then check if any custom adapter handles it (the obj could be any object, including a node )
-      const obs = this.getAdapterObserver(flags, obj, key, pd);
-      if (obs !== null) {
-        return obs;
+      if (obs == null) {
+        obs = this.getAdapterObserver(flags, obj, key, pd) as AccessorOrObserver;
       }
 
-      return createComputedObserver(flags, this, this.dirtyChecker, this.lifecycle, obj, key, pd);
+      return obs == null
+        ? pd.configurable
+          ? ComputedObserver.create(obj, key, pd, typeof this.platform.Proxy !== 'undefined', this)
+          : this.dirtyChecker.createProperty(obj, key)
+        : obs;
     }
 
     // Ordinary get/set observation (the common use case)

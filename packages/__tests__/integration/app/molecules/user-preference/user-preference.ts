@@ -1,4 +1,4 @@
-import { computed, customElement, bindable } from '@aurelia/runtime-html';
+import { customElement, bindable } from '@aurelia/runtime-html';
 import template from './user-preference.html';
 import { trace } from '@aurelia/testing';
 import { callCollection } from '../../debug.js';
@@ -34,7 +34,6 @@ export class User {
     this.arr = new TestArray();
   }
 
-  @computed({ static: true })
   public get fullNameStatic() {
     return `${this.firstName}${this.lastName ? ` ${this.lastName}` : ''}`;
   }
@@ -47,7 +46,6 @@ export class User {
     return `${this.firstName}${this.lastName ? ` ${this.lastName}` : ''}`;
   }
 
-  @computed({ static: true })
   public get fullNameWrongStatic() {
     if (this.age < 1) {
       return `infant`;
@@ -62,7 +60,6 @@ export class User {
     this.role = value;
   }
 
-  @computed({ volatile: true })
   public get locationVolatile() {
     return `${this.city}, ${this.country}`;
   }

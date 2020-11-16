@@ -1,316 +1,32 @@
 /* eslint-disable eqeqeq, compat/compat */
 import {
-  Constructable,
-  IIndexable,
-  emptyArray,
-  isArrayIndex,
-  IServiceLocator
-} from '@aurelia/kernel';
-import {
-  IBindingContext,
-  IBindingTargetObserver,
-  ICollectionSubscribable,
-  ILifecycle,
-  IObservable,
-  ISubscribable,
-  ISubscriber,
   Collection,
-  ICollectionObserver,
   CollectionKind,
   LifecycleFlags,
+  AccessorType,
+} from '../observation.js';
+import { ExpressionKind } from '../binding/ast.js';
+import { subscriberCollection, collectionSubscriberCollection } from './subscriber-collection.js';
+import { enterWatcher, exitWatcher } from './watcher-switcher.js';
+import { connectable } from '../binding/connectable.js';
+import { getProxyOrSelf, getRawOrSelf } from './proxy-observation.js';
+import { defineHiddenProp, ensureProto } from '../utilities-objects.js';
+
+import type {
+  IBindingTargetObserver,
+  IObservable,
+  ISubscriber,
+  ICollectionObserver,
   ICollectionSubscriber,
   ISubscriberCollection,
 } from '../observation.js';
-import type { IDirtyChecker } from './dirty-checker.js';
-import { IObserverLocator } from './observer-locator.js';
-import { subscriberCollection, collectionSubscriberCollection } from './subscriber-collection.js';
-import { IWatcher, enterWatcher, exitWatcher } from './watcher-switcher.js';
-import { connectable, IConnectableBinding } from '../binding/connectable.js';
-import { IWatcherCallback } from './watch.js';
-import { ExpressionKind, IsBindingBehavior } from '../binding/ast.js';
-import { getProxyOrSelf, getRawOrSelf } from './proxy-observation.js';
-import { Scope } from './binding-context.js';
-import { defineHiddenProp, ensureProto } from '../utilities-objects.js';
-
-export interface ComputedOverrides {
-  // Indicates that a getter doesn't need to re-calculate its dependencies after the first observation.
-  static?: boolean;
-
-  // Indicates that the getter of a getter/setter pair can change its value based on side-effects outside the setter.
-  volatile?: boolean;
-}
-
-export type ComputedLookup = { computed?: Record<string, ComputedOverrides> };
-
-export function computed(config: ComputedOverrides): PropertyDecorator {
-  return function (target: Constructable & ComputedLookup, key: string): void {
-    /**
-     * The 'computed' property defined on prototype needs to be non-enumerable to prevent getting this in loops,
-     * iterating over object properties, such as for..in.
-     *
-     * The 'value' of the property should not have any prototype. Otherwise if by mistake the target passed
-     * here is `Object`, then we are in soup. Because then every instance of `Object` will have the `computed`
-     * property, including the `value` (in the descriptor of the property), when assigned `{}`. This might
-     * lead to infinite recursion for the cases as mentioned above.
-     */
-    if (target.computed == null) {
-      Reflect.defineProperty(target, 'computed', {
-        writable: true,
-        configurable: true,
-        enumerable: false,
-        value: Object.create(null)
-      });
-    }
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-    target.computed![key] = config;
-  } as PropertyDecorator;
-}
-
-const computedOverrideDefaults: ComputedOverrides = { static: false, volatile: false };
-
-/* @internal */
-export function createComputedObserver(
-  flags: LifecycleFlags,
-  observerLocator: IObserverLocator,
-  dirtyChecker: IDirtyChecker,
-  lifecycle: ILifecycle,
-  instance: IObservable,
-  propertyName: string,
-  descriptor: PropertyDescriptor): IBindingTargetObserver {
-
-  if (descriptor.configurable === false) {
-    return dirtyChecker.createProperty(instance, propertyName);
-  }
-
-  if (descriptor.get != null) {
-    const { constructor: { prototype: { computed: givenOverrides } } }: IObservable & { constructor: { prototype: ComputedLookup } } = instance;
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-type-assertion
-    const overrides: ComputedOverrides = givenOverrides && givenOverrides![propertyName] || computedOverrideDefaults;
-
-    if (descriptor.set != null) {
-      if (overrides.volatile) {
-        return new GetterObserver(flags, overrides, instance, propertyName, descriptor, observerLocator);
-      }
-      return new CustomSetterObserver(instance, propertyName, descriptor);
-    }
-    return new GetterObserver(flags, overrides, instance, propertyName, descriptor, observerLocator);
-  }
-  throw new Error(`You cannot observe a setter only property: '${propertyName}'`);
-}
-
-export interface CustomSetterObserver extends IBindingTargetObserver { }
-
-// Used when the getter is dependent solely on changes that happen within the setter.
-@subscriberCollection()
-export class CustomSetterObserver implements CustomSetterObserver {
-  public currentValue: unknown = void 0;
-  public oldValue: unknown = void 0;
-
-  private observing: boolean = false;
-
-  public constructor(
-    public readonly obj: IObservable & IIndexable,
-    public readonly propertyKey: string,
-    private readonly descriptor: PropertyDescriptor,
-  ) { }
-
-  public setValue(newValue: unknown): void {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-unnecessary-type-assertion
-    this.descriptor.set!.call(this.obj, newValue); // Non-null is implied because descriptors without setters won't end up here
-    if (this.currentValue !== newValue) {
-      this.oldValue = this.currentValue;
-      this.currentValue = newValue;
-      this.callSubscribers(newValue, this.oldValue, LifecycleFlags.updateTarget);
-    }
-  }
-
-  public subscribe(subscriber: ISubscriber): void {
-    if (!this.observing) {
-      this.convertProperty();
-    }
-    this.addSubscriber(subscriber);
-  }
-
-  public unsubscribe(subscriber: ISubscriber): void {
-    this.removeSubscriber(subscriber);
-  }
-
-  public convertProperty(): void {
-    this.observing = true;
-    this.currentValue = this.obj[this.propertyKey];
-
-    const set = (newValue: unknown): void => { this.setValue(newValue); };
-    Reflect.defineProperty(this.obj, this.propertyKey, { set, get: this.descriptor.get });
-  }
-}
-
-export interface GetterObserver extends IBindingTargetObserver { }
-
-// Used when there is no setter, and the getter is dependent on other properties of the object;
-// Used when there is a setter but the value of the getter can change based on properties set outside of the setter.
-@subscriberCollection()
-export class GetterObserver implements GetterObserver {
-  public currentValue: unknown = void 0;
-  public oldValue: unknown = void 0;
-
-  private readonly proxy: ProxyHandler<object>;
-  private readonly propertyDeps: ISubscribable[] = [];
-  private readonly collectionDeps: ICollectionSubscribable[] = [];
-  private subscriberCount: number = 0;
-  private isCollecting: boolean = false;
-
-  public constructor(
-    flags: LifecycleFlags,
-    private readonly overrides: ComputedOverrides,
-    public readonly obj: IObservable,
-    public readonly propertyKey: string,
-    private readonly descriptor: PropertyDescriptor,
-    observerLocator: IObserverLocator,
-  ) {
-    this.proxy = new Proxy(obj, createGetterTraps(flags, observerLocator, this));
-
-    const get = (): unknown => this.getValue();
-    Reflect.defineProperty(obj, propertyKey, { get, set: descriptor.set });
-  }
-
-  public addPropertyDep(subscribable: ISubscribable): void {
-    if (!this.propertyDeps.includes(subscribable)) {
-      this.propertyDeps.push(subscribable);
-    }
-  }
-
-  public addCollectionDep(subscribable: ICollectionSubscribable): void {
-    if (!this.collectionDeps.includes(subscribable)) {
-      this.collectionDeps.push(subscribable);
-    }
-  }
-
-  public getValue(): unknown {
-    if (this.subscriberCount > 0 || this.isCollecting) {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      this.currentValue = Reflect.apply(this.descriptor.get!, this.proxy, emptyArray); // Non-null is implied because descriptors without getters won't end up here
-    } else {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      this.currentValue = Reflect.apply(this.descriptor.get!, this.obj, emptyArray); // Non-null is implied because descriptors without getters won't end up here
-    }
-    return this.currentValue;
-  }
-
-  public subscribe(subscriber: ISubscriber): void {
-    this.addSubscriber(subscriber);
-    if (++this.subscriberCount === 1) {
-      this.getValueAndCollectDependencies(true);
-    }
-  }
-
-  public unsubscribe(subscriber: ISubscriber): void {
-    this.removeSubscriber(subscriber);
-    if (--this.subscriberCount === 0) {
-      this.unsubscribeAllDependencies();
-    }
-  }
-
-  public handleChange(): void {
-    const oldValue = this.currentValue;
-    const newValue = this.getValueAndCollectDependencies(false);
-    if (oldValue !== newValue) {
-      this.callSubscribers(newValue, oldValue, LifecycleFlags.updateTarget);
-    }
-  }
-
-  public handleCollectionChange(): void {
-    const oldValue = this.currentValue;
-    const newValue = this.getValueAndCollectDependencies(false);
-    if (oldValue !== newValue) {
-      this.callSubscribers(newValue, oldValue, LifecycleFlags.updateTarget);
-    }
-  }
-
-  public getValueAndCollectDependencies(requireCollect: boolean): unknown {
-    const dynamicDependencies = !this.overrides.static || requireCollect;
-
-    if (dynamicDependencies) {
-      this.unsubscribeAllDependencies();
-      this.isCollecting = true;
-    }
-
-    this.currentValue = this.getValue();
-
-    if (dynamicDependencies) {
-      this.propertyDeps.forEach(x => { x.subscribe(this); });
-      this.collectionDeps.forEach(x => { x.subscribeToCollection(this); });
-      this.isCollecting = false;
-    }
-
-    return this.currentValue;
-  }
-
-  public doNotCollect(target: IObservable | IBindingContext, key: PropertyKey, receiver?: unknown): boolean {
-    return !this.isCollecting
-      || key === '$observers'
-      || key === '$synthetic'
-      || key === 'constructor';
-  }
-
-  private unsubscribeAllDependencies(): void {
-    this.propertyDeps.forEach(x => { x.unsubscribe(this); });
-    this.propertyDeps.length = 0;
-    this.collectionDeps.forEach(x => { x.unsubscribeFromCollection(this); });
-    this.collectionDeps.length = 0;
-  }
-}
-
-const toStringTag = Object.prototype.toString;
-
-/**
- * _@param observer The owning observer of current evaluation, will subscribe to all observers created via proxy
- */
-function createGetterTraps(flags: LifecycleFlags, observerLocator: IObserverLocator, observer: GetterObserver): ProxyHandler<object> {
-  return {
-    get: function (target: IObservable | IBindingContext, key: PropertyKey, receiver?: unknown): unknown {
-      if (observer.doNotCollect(target, key, receiver)) {
-        return Reflect.get(target, key, receiver);
-      }
-
-      // The length and iterator properties need to be invoked on the original object
-      // (for Map and Set at least) or they will throw.
-      switch (toStringTag.call(target)) {
-        case '[object Array]':
-          if (key === 'length' || isArrayIndex(key)) {
-            observer.addCollectionDep(observerLocator.getArrayObserver(flags, target as unknown[]));
-            return proxyOrValue(flags, target, key, observerLocator, observer);
-          }
-          break;
-        case '[object Map]':
-          if (key === 'size') {
-            observer.addCollectionDep(observerLocator.getMapObserver(flags, target as Map<unknown, unknown>));
-            return Reflect.get(target, key, target);
-          }
-          break;
-        case '[object Set]':
-          if (key === 'size') {
-            observer.addCollectionDep(observerLocator.getSetObserver(flags, target as Set<unknown>));
-            return Reflect.get(target, key, target);
-          }
-          break;
-      }
-      observer.addPropertyDep(observerLocator.getObserver(flags, target, key as string) as IBindingTargetObserver);
-
-      return proxyOrValue(flags, target, key, observerLocator, observer);
-    }
-  };
-}
-
-/**
- * _@param observer The owning observer of current evaluation, will subscribe to all observers created via proxy
- */
-function proxyOrValue(flags: LifecycleFlags, target: object, key: PropertyKey, observerLocator: IObserverLocator, observer: GetterObserver): ProxyHandler<object> {
-  const value = Reflect.get(target, key, target);
-  if (typeof value !== 'object' || typeof value === 'function' || value === null) {
-    return value;
-  }
-  return new Proxy(value, createGetterTraps(flags, observerLocator, observer));
-}
+import type { Constructable, IServiceLocator } from '@aurelia/kernel';
+import type { IConnectableBinding } from '../binding/connectable.js';
+import type { IsBindingBehavior } from '../binding/ast.js';
+import type { IWatcher } from './watcher-switcher.js';
+import type { IWatcherCallback } from './watch.js';
+import type { IObserverLocator, ObservableGetter } from './observer-locator.js';
+import type { Scope } from './binding-context.js';
 
 interface IWatcherImpl extends IWatcher, IConnectableBinding, ISubscriber, ICollectionSubscriber {
   id: number;
@@ -381,17 +97,24 @@ function getCollectionObserver(observerLocator: IObserverLocator, collection: Co
 export interface ComputedObserver extends IWatcherImpl, IConnectableBinding, ISubscriberCollection {}
 
 @watcherImpl
-export class ComputedObserver implements IWatcherImpl {
+export class ComputedObserver implements IWatcherImpl, IConnectableBinding, ISubscriberCollection {
 
-  public static create(obj: object, key: PropertyKey, descriptor: PropertyDescriptor, useProxy: boolean): ComputedObserver {
+  public static create(
+    obj: object,
+    key: PropertyKey,
+    descriptor: PropertyDescriptor,
+    useProxy: boolean,
+    observerLocator: IObserverLocator,
+  ): ComputedObserver {
     const getter = descriptor.get!;
     const setter = descriptor.set;
-    const observer = new ComputedObserver(obj, getter, setter, useProxy);
+    const observer = new ComputedObserver(obj, getter, setter, useProxy, observerLocator);
+    const $get = (() => observer.getValue()) as ObservableGetter;
+    $get.getObserver = () => observer;
     Reflect.defineProperty(obj, key, {
       enumerable: descriptor.enumerable,
-      writable: true,
       configurable: true,
-      get: () => observer.getValue(),
+      get: $get,
       set: (v) => {
         observer.setValue(v, LifecycleFlags.none);
       },
@@ -401,6 +124,7 @@ export class ComputedObserver implements IWatcherImpl {
   }
 
   public observers: Map<ICollectionObserver<CollectionKind>, number> = new Map();
+  public type: AccessorType = AccessorType.Obj;
 
   /**
    * @internal
@@ -420,30 +144,34 @@ export class ComputedObserver implements IWatcherImpl {
     public readonly get: (watcher: IWatcher) => unknown,
     public readonly set: undefined | ((v: unknown) => void),
     public readonly useProxy: boolean,
+    public readonly observerLocator: IObserverLocator,
   ) {
     connectable.assignIdTo(this);
   }
 
   public getValue() {
+    if (this.subscriberCount === 0) {
+      return this.get.call(this.obj, this);
+    }
     if (this.isDirty) {
       this.compute();
     }
     return this.value;
   }
 
-  public setValue(v: unknown, flags: LifecycleFlags): void {
+  // deepscan-disable-next-line
+  public setValue(v: unknown, _flags: LifecycleFlags): void {
     if (typeof this.set === 'function') {
       if (v !== this.value) {
-        const oldValue = this.value;
+        // setting running true as a form of batching
+        this.running = true;
         this.set.call(this.obj, v);
-        if (!this.useProxy) {
-          this.isDirty = true;
-          this.callSubscribers(this.getValue(), oldValue, flags);
-          this.isDirty = false;
-        }
-      } else {
-        throw new Error('Property is readonly');
+        this.running = false;
+
+        this.run();
       }
+    } else {
+      throw new Error('Property is readonly');
     }
   }
 
@@ -477,7 +205,7 @@ export class ComputedObserver implements IWatcherImpl {
   }
 
   private run(): void {
-    if (!this.isBound || this.running) {
+    if (this.running) {
       return;
     }
     const oldValue = this.value;

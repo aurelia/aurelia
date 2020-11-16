@@ -27,7 +27,7 @@ function doNotCollect(key: PropertyKey): boolean {
     || key === '__proto__'
     // probably should revert to v1 naming style for consistency with builtin?
     // __o__ is shorters & less chance of conflict with other libs as well
-    || key === 'observers'
+    || key === '$observers'
     || key === Symbol.toPrimitive
     || key === Symbol.toStringTag;
 }

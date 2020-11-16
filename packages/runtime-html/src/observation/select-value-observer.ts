@@ -158,7 +158,7 @@ export class SelectValueObserver implements IObserver {
 
     if (obj.multiple) {
       // A.
-      if (!Array.isArray(currentValue)) {
+      if (!(currentValue instanceof Array)) {
         // A.1.a
         return true;
       }

@@ -109,13 +109,6 @@ export {
 
   CollectionSizeObserver,
 
-  ComputedOverrides,
-  ComputedLookup,
-  computed,
-  createComputedObserver,
-  CustomSetterObserver,
-  GetterObserver,
-
   IDirtyChecker,
   DirtyCheckProperty,
   DirtyCheckSettings,

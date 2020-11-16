@@ -494,14 +494,13 @@ export class ComputedObserver implements IWatcherImpl {
     this.version++;
     try {
       enterWatcher(this);
-      this.value = getRawOrSelf(this.get.call(this.useProxy ? getProxyOrSelf(this.obj) : this.obj, this));
+      return this.value = getRawOrSelf(this.get.call(this.useProxy ? getProxyOrSelf(this.obj) : this.obj, this));
     } finally {
-      exitWatcher(this);
       this.unobserve(false);
       this.unobserveCollection(false);
       this.running = false;
+      exitWatcher(this);
     }
-    return this.value;
   }
 }
 
@@ -578,14 +577,13 @@ export class ComputedWatcher implements IWatcher {
     this.version++;
     try {
       enterWatcher(this);
-      this.value = getRawOrSelf(this.get.call(void 0, this.useProxy ? getProxyOrSelf(this.obj) : this.obj, this));
+      return this.value = getRawOrSelf(this.get.call(void 0, this.useProxy ? getProxyOrSelf(this.obj) : this.obj, this));
     } finally {
-      exitWatcher(this);
       this.unobserve(false);
       this.unobserveCollection(false);
       this.running = false;
+      exitWatcher(this);
     }
-    return this.value;
   }
 }
 

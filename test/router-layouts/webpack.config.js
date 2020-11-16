@@ -25,6 +25,13 @@ module.exports = function (env, { mode }) {
         { test: /\.html$/i, loader: 'html-loader' }
       ]
     },
-    plugins: [new HtmlWebpackPlugin({ template: 'index.ejs' })]
+    plugins: [
+      new HtmlWebpackPlugin({
+        template: 'index.ejs',
+        metadata: {
+          baseUrl: '/'
+        }
+      })
+    ]
   };
 };

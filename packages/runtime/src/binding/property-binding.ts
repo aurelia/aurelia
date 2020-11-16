@@ -8,24 +8,23 @@ import {
   AccessorOrObserver,
   IBindingTargetObserver,
   AccessorType,
-  INodeAccessor,
   BindingMode,
   ILifecycle,
   LifecycleFlags,
-} from '../observation';
-import { IObserverLocator } from '../observation/observer-locator';
+} from '../observation.js';
+import { IObserverLocator } from '../observation/observer-locator.js';
 import {
   ExpressionKind,
   ForOfStatement,
   IsBindingBehavior,
-} from './ast';
+} from './ast.js';
 import {
   connectable,
   IConnectableBinding,
   IPartialConnectableBinding,
-} from './connectable';
+} from './connectable.js';
 
-import type { Scope } from '../observation/binding-context';
+import type { Scope } from '../observation/binding-context.js';
 
 // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
 const { oneTime, toView, fromView } = BindingMode;
@@ -116,15 +115,16 @@ export class PropertyBinding implements IPartialConnectableBinding {
       // todo(fred): maybe let the obsrever decides whether it updates
       if (newValue !== oldValue) {
         if (shouldQueueFlush) {
-          flags |= LifecycleFlags.noTargetObserverQueue;
           this.task?.cancel();
           this.task = this.taskQueue.queueTask(() => {
-            (targetObserver as Partial<INodeAccessor>).flushChanges?.(flags);
+            if (this.isBound) {
+              interceptor.updateTarget(newValue, flags);
+            }
             this.task = null;
           }, updateTaskOpts);
+        } else {
+          interceptor.updateTarget(newValue, flags);
         }
-
-        interceptor.updateTarget(newValue, flags);
       }
 
       return;
@@ -199,7 +199,6 @@ export class PropertyBinding implements IPartialConnectableBinding {
       targetObserver[this.id] |= LifecycleFlags.updateSource;
     }
 
-    // add isBound flag and remove isBinding flag
     this.isBound = true;
   }
 
@@ -208,7 +207,6 @@ export class PropertyBinding implements IPartialConnectableBinding {
       return;
     }
 
-    // clear persistent flags
     this.persistentFlags = LifecycleFlags.none;
 
     if (this.sourceExpression.hasUnbind) {
@@ -229,9 +227,6 @@ export class PropertyBinding implements IPartialConnectableBinding {
     }
     if (task != null) {
       task.cancel();
-      if (task === targetObserver.task) {
-        targetObserver.task = null;
-      }
       this.task = null;
     }
     this.interceptor.unobserve(true);

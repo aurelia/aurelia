@@ -13,12 +13,11 @@ import {
   getRenderContext,
   IHydratableController,
   IRenderLocation,
-  ITargetAccessorLocatorRegistration,
-  ITargetObserverLocatorRegistration,
   PropertyBindingRendererRegistration,
   TextBindingRendererRegistration,
   TextBindingInstruction,
   Interpolation,
+  INodeObserverLocatorRegistration,
 } from '@aurelia/runtime-html';
 import {
   eachCartesianJoin,
@@ -521,8 +520,7 @@ describe(`Repeat`, function () {
   ];
 
   const container = createContainer().register(
-    ITargetAccessorLocatorRegistration,
-    ITargetObserverLocatorRegistration,
+    INodeObserverLocatorRegistration,
     PropertyBindingRendererRegistration,
     TextBindingRendererRegistration,
   );

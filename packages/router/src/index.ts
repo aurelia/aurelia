@@ -1,6 +1,6 @@
 export {
   IViewport,
-} from './resources/viewport';
+} from './resources/viewport.js';
 
 export {
   RouterConfiguration,
@@ -13,25 +13,25 @@ export {
   LoadCustomAttributeRegistration,
   HrefCustomAttribute,
   HrefCustomAttributeRegistration,
-} from './configuration';
+} from './configuration.js';
 
 export {
   IRouteViewModel,
   ComponentAgent,
-} from './component-agent';
+} from './component-agent.js';
 export {
   ILinkHandler,
-} from './link-handler';
+} from './link-handler.js';
 export {
   RouteableComponent,
   NavigationInstruction,
   IViewportInstruction,
   Params,
-} from './instructions';
+} from './instructions.js';
 export {
   ILocationManager,
   IBaseHrefProvider,
-} from './location-manager';
+} from './location-manager.js';
 export {
   Routeable,
   IRouteConfig,
@@ -41,11 +41,11 @@ export {
   Route,
   RouteType,
   route,
-} from './route';
+} from './route.js';
 export {
   IRouteContext,
   RouteContext,
-} from './route-context';
+} from './route-context.js';
 export {
   RouteDefinition,
 } from './route-definition';
@@ -62,16 +62,16 @@ export {
   ParameterListExpression,
   ParameterExpression,
   ExpressionKind,
-} from './route-expression';
+} from './route-expression.js';
 export {
   Endpoint,
   RecognizedRoute,
   RouteRecognizer,
-} from './route-recognizer';
+} from './route-recognizer.js';
 export {
   RouteNode,
   RouteTree,
-} from './route-tree';
+} from './route-tree.js';
 export {
   AuNavId,
   ManagedState,
@@ -92,7 +92,7 @@ export {
   FragmentStrategy,
   HistoryStrategy,
   SameUrlStrategy,
-} from './router';
+} from './router.js';
 export {
   IRouterEvents,
   RouterEvent,
@@ -101,10 +101,10 @@ export {
   NavigationEndEvent,
   NavigationCancelEvent,
   NavigationErrorEvent,
-} from './router-events';
+} from './router-events.js';
 export {
   IStateManager,
-} from './state-manager';
+} from './state-manager.js';
 export {
   ViewportAgent,
-} from './viewport-agent';
+} from './viewport-agent.js';

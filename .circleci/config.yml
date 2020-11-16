@@ -62,7 +62,7 @@ executors:
     parameters:
       node:
         type: string
-        default: "12.10.0"
+        default: "14.15.0"
     working_directory: *working_dir
     docker:
       - image: "circleci/node:<< parameters.node >>-stretch-browsers"
@@ -410,12 +410,15 @@ jobs:
           command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
       - run: npm run publish:<< parameters.channel >>
 
-  # Standalone wdio test jobs
-  e2e_wdio:
+  # Standalone playwright test jobs
+  e2e_playwright:
     executor: docker-circleci
     parameters:
       path:
         type: string
+      suite:
+        type: string
+        default: "examples"
       use_verdaccio:
         type: boolean
         default: true
@@ -429,9 +432,9 @@ jobs:
           channel: dev
           suffix: "-${CIRCLE_BUILD_NUM}"
       - run:
-          name: "Install wdio"
+          name: "Install playwright"
           command: |
-            cd test/wdio
+            cd test/playwright
             npm ci
       - when:
           condition: << parameters.use_verdaccio >>
@@ -455,16 +458,17 @@ jobs:
             cd << parameters.path >>
             npm run build
       - run:
-          name: "Serve wdio test app"
+          name: "Serve playwright test app"
           background: true
           command: |
             cd << parameters.path >>
             npm run serve
       - run:
-          name: "Run wdio test"
+          name: "Run playwright test"
           command: |
-            cd test/wdio
-            npm run test
+            cd test/playwright
+            npm run build
+            npm run e2e:<< parameters.suite >>
 
 # # # # # # # # # # # # # # # #
 # - Workflows -
@@ -508,13 +512,13 @@ workflows:
          <<: *filter_ignore_develop_release
       #- e2e_cypress_doc_example:
       #    <<: *filter_ignore_develop_release
-      - e2e_wdio:
+      - e2e_playwright:
           <<: *filter_ignore_develop_release
           name: jit-webpack-conventions-ts
           path: "examples/jit-webpack-conventions-ts"
           requires:
             - lint_packages # not a real requirement but forces long-running jobs to go first
-      - e2e_wdio:
+      - e2e_playwright:
           <<: *filter_ignore_develop_release
           name: jit-webpack-vanilla-ts
           path: "examples/jit-webpack-vanilla-ts"

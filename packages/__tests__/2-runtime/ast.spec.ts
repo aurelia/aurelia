@@ -58,7 +58,7 @@ const $this = AccessThisExpression.$this;
 const $host = AccessThisExpression.$host;
 const $parent = AccessThisExpression.$parent;
 
-const dummyLocator = {} as unknown as IServiceLocator;
+const dummyLocator = { get: () => null } as unknown as IServiceLocator;
 const dummyLocatorThatReturnsNull = {
   get() {
     return null;
@@ -109,24 +109,14 @@ function assignDoesNotThrow(inputs: [string, IsBindingBehavior][]) {
   });
 }
 
-function connectThrowsWhenHostScopeIsNullForHostScopedExpr(inputs: [string, IsBindingBehavior][]) {
+function connectWhileEvaluatingThrowsWhenHostScopeIsNullForHostScopedExpr(inputs: [string, IsBindingBehavior][]) {
   describe('connect() throws when hostScope is null for a hostScoped expression', function () {
     for (const [text, expr] of inputs) {
       if (text.startsWith('$host')) {
         it(`${text}, null`, function () {
-          throwsOn(expr, 'connect', 'Host scope is missing. Are you using `$host` outside the `au-slot`? Or missing the `au-slot` attribute?', LF.none, dummyScope, null, dummyBinding);
+          throwsOn(expr, 'evaluate', 'Host scope is missing. Are you using `$host` outside the `au-slot`? Or missing the `au-slot` attribute?', LF.none, dummyScope, null, dummyLocator, dummyBinding);
         });
       }
-    }
-  });
-}
-
-function connectDoesNotThrow(inputs: [string, IsBindingBehavior][]) {
-  describe('connect() does not throw / is a no-op', function () {
-    for (const [text, expr] of inputs) {
-      it(`${text}, null`, function () {
-        expr.connect(null, null, null, dummyBinding);
-      });
     }
   });
 }
@@ -400,14 +390,6 @@ describe('AST', function () {
       }
     });
 
-    connectDoesNotThrow([
-      ...StringLiteralList,
-      ...NumberLiteralList,
-      ...KeywordLiteralList,
-      ...TemplateLiteralList,
-      ...ArrayLiteralList,
-      ...ObjectLiteralList
-    ]);
     assignDoesNotThrow([
       ...StringLiteralList,
       ...NumberLiteralList,
@@ -420,7 +402,6 @@ describe('AST', function () {
 
   describe('Context Accessors', function () {
     assignDoesNotThrow(AccessThisList);
-    connectDoesNotThrow(AccessThisList);
   });
 
   describe('Scope Accessors', function () {
@@ -442,7 +423,7 @@ describe('AST', function () {
       ...SimpleTaggedTemplateList
     ]);
 
-    connectThrowsWhenHostScopeIsNullForHostScopedExpr([
+    connectWhileEvaluatingThrowsWhenHostScopeIsNullForHostScopedExpr([
       ...AccessScopeList,
       ...SimpleAccessKeyedList,
       ...SimpleAccessMemberList,
@@ -463,16 +444,15 @@ describe('AST', function () {
       ...SimpleCallMemberList
     ]);
 
-    connectThrowsWhenHostScopeIsNullForHostScopedExpr([
+    connectWhileEvaluatingThrowsWhenHostScopeIsNullForHostScopedExpr([
       ...SimpleCallMemberList,
       ...SimpleCallFunctionList
     ]);
-    connectDoesNotThrow(SimpleCallScopeList);
   });
 
   describe('UnaryExpression', function () {
     assignDoesNotThrow(SimpleUnaryList);
-    connectThrowsWhenHostScopeIsNullForHostScopedExpr(SimpleUnaryList);
+    connectWhileEvaluatingThrowsWhenHostScopeIsNullForHostScopedExpr(SimpleUnaryList);
   });
 
   describe('BinaryExpression', function () {
@@ -485,17 +465,16 @@ describe('AST', function () {
       ...SimpleLogicalORList
     ];
     assignDoesNotThrow(SimplyBinaryList);
-    connectThrowsWhenHostScopeIsNullForHostScopedExpr(SimplyBinaryList);
+    connectWhileEvaluatingThrowsWhenHostScopeIsNullForHostScopedExpr(SimplyBinaryList);
   });
 
   describe('ConditionalExpression', function () {
     assignDoesNotThrow(SimpleConditionalList);
-    connectThrowsWhenHostScopeIsNullForHostScopedExpr(SimpleConditionalList);
+    connectWhileEvaluatingThrowsWhenHostScopeIsNullForHostScopedExpr(SimpleConditionalList);
   });
 
-  describe('AssignExpression', function () {
-    connectDoesNotThrow(SimpleAssignList);
-  });
+  // describe('AssignExpression', function () {
+  // });
 
   describe('ValueConverterExpression', function () {
     describe('evaluate() throws when returned converter is nil', function () {
@@ -514,12 +493,12 @@ describe('AST', function () {
       }
     });
 
-    connectThrowsWhenHostScopeIsNullForHostScopedExpr(SimpleValueConverterList);
+    connectWhileEvaluatingThrowsWhenHostScopeIsNullForHostScopedExpr(SimpleValueConverterList);
 
     describe('connect() throws when returned converter is null', function () {
       for (const [text, expr] of SimpleValueConverterList) {
         it(`${text}, undefined`, function () {
-          throwsOn(expr, 'connect', `ValueConverter named 'b' could not be found. Did you forget to register it as a dependency?`, LF.none, dummyScope, dummyHostScope, dummyBindingWithLocatorThatReturnsNull);
+          throwsOn(expr, 'evaluate', `ValueConverter named 'b' could not be found. Did you forget to register it as a dependency?`, LF.none, dummyScope, dummyHostScope, dummyLocator, dummyBindingWithLocatorThatReturnsNull);
         });
       }
     });
@@ -608,7 +587,7 @@ describe('AccessKeyedExpression', function () {
     const expression2 = new AccessKeyedExpression(new AccessScopeExpression('foo', 0), new PrimitiveLiteralExpression(0));
     assert.strictEqual(expression2.evaluate(LF.none, scope, null, null, null), 'hello world', `expression2.evaluate(LF.none, scope, null)`);
     const binding = new MockBinding();
-    expression2.connect(LF.none, scope, null, binding);
+    expression2.evaluate(LF.none, scope, null, dummyLocator, binding);
     assert.deepStrictEqual(binding.calls[0], ['observeProperty', LF.none, scope.bindingContext, 'foo'], 'binding.calls[0]');
     assert.deepStrictEqual(binding.calls[1], ['observeProperty', LF.none, scope.bindingContext.foo, 0], 'binding.calls[1]');
     assert.strictEqual(binding.calls.length, 2, 'binding.calls.length');
@@ -617,7 +596,7 @@ describe('AccessKeyedExpression', function () {
     makeHostScoped(expression2, true);
     assert.strictEqual(expression2.evaluate(LF.none, scope, hs, null, null), 'hello hostScope', `expression2.evaluate(LF.none, scope, null)`);
     const binding2 = new MockBinding();
-    expression2.connect(LF.none, scope, hs, binding2);
+    expression2.evaluate(LF.none, scope, hs, dummyLocator, binding2);
     assert.deepStrictEqual(binding2.calls[0], ['observeProperty', LF.none, hs.bindingContext, 'foo'], 'binding.calls[0]');
     assert.deepStrictEqual(binding2.calls[1], ['observeProperty', LF.none, hs.bindingContext.foo, 0], 'binding.calls[1]');
     assert.strictEqual(binding2.calls.length, 2, 'binding.calls.length');
@@ -628,7 +607,7 @@ describe('AccessKeyedExpression', function () {
     const expression3 = new AccessKeyedExpression(new AccessScopeExpression('foo', 0), new PrimitiveLiteralExpression(0));
     assert.strictEqual(expression3.evaluate(LF.none, scope, null, null, null), 'hello world', `expression3.evaluate(LF.none, scope, null)`);
     const binding = new MockBinding();
-    expression3.connect(LF.none, scope, null, binding);
+    expression3.evaluate(LF.none, scope, null, dummyLocator, binding);
     assert.deepStrictEqual(binding.calls[0], ['observeProperty', LF.none, scope.bindingContext, 'foo'], 'binding.calls[0]');
     assert.strictEqual(binding.calls.length, 2, 'binding.calls.length');
 
@@ -636,7 +615,7 @@ describe('AccessKeyedExpression', function () {
     makeHostScoped(expression3, true);
     assert.strictEqual(expression3.evaluate(LF.none, scope, hs, null, null), 'hello hostScope', `expression3.evaluate(LF.none, scope, null)`);
     const binding2 = new MockBinding();
-    expression3.connect(LF.none, scope, hs, binding2);
+    expression3.evaluate(LF.none, scope, hs, dummyLocator, binding2);
     assert.deepStrictEqual(binding2.calls[0], ['observeProperty', LF.none, hs.bindingContext, 'foo'], 'binding.calls[0]');
     assert.strictEqual(binding2.calls.length, 2, 'binding.calls.length');
   });
@@ -662,13 +641,13 @@ describe('AccessKeyedExpression', function () {
         const scope = createScopeForTest({ foo: obj });
         const sut = new AccessKeyedExpression(new AccessScopeExpression('foo', 0), key);
         const binding = new MockBinding();
-        sut.connect(LF.none, scope, null, binding);
+        sut.evaluate(LF.none, scope, null, dummyLocator, binding);
         assert.strictEqual(binding.calls.length, 1);
         assert.strictEqual(binding.calls[0][0], 'observeProperty');
 
         makeHostScoped(sut, true);
         const binding2 = new MockBinding();
-        sut.connect(LF.none, createScopeForTest({}), scope, binding2);
+        sut.evaluate(LF.none, createScopeForTest({}), scope, dummyLocator, binding2);
         assert.strictEqual(binding2.calls.length, 1);
         assert.strictEqual(binding2.calls[0][0], 'observeProperty');
 
@@ -790,7 +769,7 @@ describe('AccessMemberExpression', function () {
         }
       }
       const binding = new MockBinding();
-      sut.connect(LF.none, scope, hs, binding);
+      sut.evaluate(LF.none, scope, hs, dummyLocator, binding);
       if (canHaveProperty) {
         assert.strictEqual(binding.calls.filter(c => c[0] === 'observeProperty').length, 2, `binding.calls.filter(c => c[0] === 'observeProperty').length`);
       } else {
@@ -822,7 +801,7 @@ describe('AccessMemberExpression', function () {
         }
       }
       const binding = new MockBinding();
-      sut.connect(LF.none, scope, hs, binding);
+      sut.evaluate(LF.none, scope, hs, dummyLocator, binding);
       if (canHaveProperty) {
         assert.strictEqual(binding.calls.filter(c => c[0] === 'observeProperty').length, 2, `binding.calls.filter(c => c[0] === 'observeProperty').length`);
       } else {
@@ -907,7 +886,7 @@ describe('AccessMemberExpression', function () {
         const hs = isHostScoped ? createScopeForTest({ foo: obj }) : null;
         const sut = new AccessMemberExpression(new AccessScopeExpression('foo', 0, isHostScoped), prop);
         const binding = new MockBinding();
-        sut.connect(LF.none, scope, hs, binding);
+        sut.evaluate(LF.none, scope, hs, dummyLocator, binding);
         assert.strictEqual(binding.calls.filter(c => c[0] === 'observeProperty').length, 1, `binding.calls.filter(c => c[0] === 'observeProperty').length`);
       });
     }));
@@ -933,7 +912,7 @@ describe('AccessMemberExpression', function () {
         const hs = isHostScoped ? createScopeForTest({ foo: obj }) : null;
         const expression2 = new AccessMemberExpression(new AccessScopeExpression('foo', 0, isHostScoped), prop);
         const binding = new MockBinding();
-        expression2.connect(LF.none, scope, hs, binding);
+        expression2.evaluate(LF.none, scope, hs, dummyLocator, binding);
         assert.strictEqual(binding.calls.filter(c => c[0] === 'observeProperty').length, 1, `binding.calls.filter(c => c[0] === 'observeProperty').length`);
       });
     }));
@@ -990,7 +969,7 @@ describe('AccessScopeExpression', function () {
         makeHostScoped(foo, true);
       }
       const binding = new MockBinding();
-      foo.connect(LF.none, scope, hs, binding);
+      foo.evaluate(LF.none, scope, hs, dummyLocator, binding);
       assert.strictEqual(binding.calls.length, 1, 'binding.calls.length');
       assert.deepStrictEqual(binding.calls[0], ['observeProperty', LF.none, (hs ?? scope).overrideContext, 'foo'], 'binding.calls[0]');
     });
@@ -1034,7 +1013,7 @@ describe('AccessScopeExpression', function () {
         makeHostScoped(foo, true);
       }
       const binding = new MockBinding();
-      foo.connect(LF.none, scope, hs, binding);
+      foo.evaluate(LF.none, scope, hs, dummyLocator, binding);
       assert.strictEqual(binding.calls.length, 1, 'binding.calls.length');
       assert.deepStrictEqual(binding.calls[0], ['observeProperty', LF.none, (hs ?? scope).overrideContext, 'foo'], 'binding.calls[0]');
     });
@@ -1108,7 +1087,7 @@ describe('AccessScopeExpression', function () {
         makeHostScoped(foo, true);
       }
       const binding = new MockBinding();
-      foo.connect(LF.none, scope, hs, binding);
+      foo.evaluate(LF.none, scope, hs, dummyLocator, binding);
       assert.strictEqual(binding.calls.length, 1, 'binding.calls.length');
       assert.deepStrictEqual(binding.calls[0], ['observeProperty', LF.none, (hs ?? scope).bindingContext, 'foo'], 'binding.calls[0]');
     });
@@ -1123,7 +1102,7 @@ describe('AccessScopeExpression', function () {
         makeHostScoped(foo, true);
       }
       const binding = new MockBinding();
-      foo.connect(LF.none, scope, hs, binding);
+      foo.evaluate(LF.none, scope, hs, dummyLocator, binding);
       assert.strictEqual(binding.calls.length, 1, 'binding.calls.length');
       assert.deepStrictEqual(binding.calls[0], ['observeProperty', LF.none, (hs ?? scope).overrideContext, 'foo'], 'binding.calls[0]');
     });
@@ -1137,7 +1116,7 @@ describe('AccessScopeExpression', function () {
         makeHostScoped(foo, true);
       }
       const binding = new MockBinding();
-      foo.connect(LF.none, scope, hs, binding);
+      foo.evaluate(LF.none, scope, hs, dummyLocator, binding);
       assert.strictEqual(binding.calls.length, 1, 'binding.calls.length');
       assert.deepStrictEqual(binding.calls[0], ['observeProperty', LF.none, (hs ?? scope).bindingContext, 'foo'], 'binding.calls[0]');
     });
@@ -1199,11 +1178,11 @@ describe('AccessScopeExpression', function () {
         makeHostScoped(foo, true);
       }
       let binding = new MockBinding();
-      foo.connect(LF.none, scope, hs, binding);
+      foo.evaluate(LF.none, scope, hs, dummyLocator, binding);
       assert.strictEqual(binding.calls.length, 1, 'binding.calls.length');
       assert.deepStrictEqual(binding.calls[0], ['observeProperty', LF.none, (hs ?? scope).parentScope.overrideContext.bindingContext, 'foo'], 'binding.calls[0]');
       binding = new MockBinding();
-      $parentfoo.connect(LF.none, hs ?? scope, hs, binding);
+      $parentfoo.evaluate(LF.none, hs ?? scope, hs, dummyLocator, binding);
       assert.strictEqual(binding.calls.length, 1, 'binding.calls.length');
       assert.deepStrictEqual(binding.calls[0], ['observeProperty', LF.none, (hs ?? scope).parentScope.overrideContext.bindingContext, 'foo'], 'binding.calls[0]');
     });
@@ -1218,11 +1197,11 @@ describe('AccessScopeExpression', function () {
         makeHostScoped(foo, true);
       }
       let binding = new MockBinding();
-      foo.connect(LF.none, scope, hs, binding);
+      foo.evaluate(LF.none, scope, hs, dummyLocator, binding);
       assert.strictEqual(binding.calls.length, 1, 'binding.calls.length');
       assert.deepStrictEqual(binding.calls[0], ['observeProperty', LF.none, (hs ?? scope).parentScope.overrideContext, 'foo'], 'binding.calls[0]');
       binding = new MockBinding();
-      $parentfoo.connect(LF.none, hs ?? scope, hs, binding);
+      $parentfoo.evaluate(LF.none, hs ?? scope, hs, dummyLocator, binding);
       assert.strictEqual(binding.calls.length, 1, 'binding.calls.length');
       assert.deepStrictEqual(binding.calls[0], ['observeProperty', LF.none, (hs ?? scope).parentScope.overrideContext, 'foo'], 'binding.calls[0]');
     });
@@ -1237,7 +1216,7 @@ describe('AccessScopeExpression', function () {
         makeHostScoped(foo, true);
       }
       const binding = new MockBinding();
-      $parentfoo.connect(LF.none, hs ?? scope, hs, binding);
+      $parentfoo.evaluate(LF.none, hs ?? scope, hs, dummyLocator, binding);
       assert.strictEqual(binding.calls.length, 1, 'binding.calls.length');
       assert.deepStrictEqual(binding.calls[0], ['observeProperty', LF.none, (hs ?? scope).parentScope.overrideContext.bindingContext, 'foo'], 'binding.calls[0]');
     });
@@ -1372,7 +1351,7 @@ describe('ConditionalExpression', function () {
     const no = new MockTracingExpression($obj);
     const sut = new ConditionalExpression(condition, yes as any, no as any);
 
-    sut.connect(null, null, null, dummyBinding);
+    sut.evaluate(null, null, null, dummyLocator, dummyBinding);
     assert.strictEqual(yes.calls.length, 1, `yes.calls.length`);
     assert.strictEqual(no.calls.length, 0, `no.calls.length`);
   });
@@ -1383,7 +1362,7 @@ describe('ConditionalExpression', function () {
     const no = new MockTracingExpression($obj);
     const sut = new ConditionalExpression(condition, yes as any, no as any);
 
-    sut.connect(null, null, null, dummyBinding);
+    sut.evaluate(null, null, null, dummyLocator, dummyBinding);
     assert.strictEqual(yes.calls.length, 0, `yes.calls.length`);
     assert.strictEqual(no.calls.length, 1, `no.calls.length`);
   });
@@ -1734,9 +1713,9 @@ describe('CallScopeExpression', function () {
     it(`connects undefined bindingContext${isHostScoped ? ' - hostScoped' : ''}`, function () {
       const [scope, hs] = getScopes(Scope.create(LF.none, undefined, null), isHostScoped);
       const binding = new MockBinding();
-      foo.connect(LF.none, scope, hs, binding);
+      foo.evaluate(LF.none, scope, hs, dummyLocator, binding);
       assert.strictEqual(binding.calls.filter(c => c[0] === 'observeProperty').length, 0, `binding.calls.filter(c => c[0] === 'observeProperty').length`);
-      hello.connect(LF.none, scope, hs, binding);
+      hello.evaluate(LF.none, scope, hs, dummyLocator, binding);
       assert.strictEqual(binding.calls.length, 1, 'binding.calls.length');
       assert.deepStrictEqual(binding.calls[0], ['observeProperty', LF.none, (hs ?? scope).overrideContext, 'arg'], 'binding.calls[0]');
     });
@@ -1757,9 +1736,9 @@ describe('CallScopeExpression', function () {
     it(`connects null bindingContext${isHostScoped ? ' - hostScoped' : ''}`, function () {
       const [scope, hs] = getScopes(Scope.create(LF.none, null, null), isHostScoped);
       const binding = new MockBinding();
-      foo.connect(LF.none, scope, hs, binding);
+      foo.evaluate(LF.none, scope, hs, dummyLocator, binding);
       assert.strictEqual(binding.calls.filter(c => c[0] === 'observeProperty').length, 0, `binding.calls.filter(c => c[0] === 'observeProperty').length`);
-      hello.connect(LF.none, scope, hs, binding);
+      hello.evaluate(LF.none, scope, hs, dummyLocator, binding);
       assert.strictEqual(binding.calls.length, 1, 'binding.calls.length');
       assert.deepStrictEqual(binding.calls[0], ['observeProperty', LF.none, (hs ?? scope).overrideContext, 'arg'], 'binding.calls[0]');
     });
@@ -1780,12 +1759,12 @@ describe('CallScopeExpression', function () {
       assert.strictEqual(hello.evaluate(LF.none, scope, hs, null, null), 'world', `hello.evaluate(LF.none, scope, hs, null, null)`);
     });
 
-    it(`connects defined property on bindingContext${isHostScoped ? ' - hostScoped' : ''}`, function () {
-      const [scope, hs] = getScopes(createScopeForTest({ foo: 'bar' }), isHostScoped);
+    it(`evaluate with connects defined property on bindingContext${isHostScoped ? ' - hostScoped' : ''}`, function () {
+      const [scope, hs] = getScopes(createScopeForTest({ foo: () => 'bar' }), isHostScoped);
       const binding = new MockBinding();
-      foo.connect(LF.none, scope, hs, binding);
+      foo.evaluate(LF.none, scope, hs, dummyLocator, binding);
       assert.strictEqual(binding.calls.filter(c => c[0] === 'observeProperty').length, 0, `binding.calls.filter(c => c[0] === 'observeProperty').length`);
-      hello.connect(LF.none, scope, hs, binding);
+      hello.evaluate(LF.none, scope, hs, dummyLocator, binding);
       assert.strictEqual(binding.calls.length, 1, 'binding.calls.length');
       assert.deepStrictEqual(binding.calls[0], ['observeProperty', LF.none, (hs ?? scope).bindingContext, 'arg'], 'binding.calls[0]');
     });
@@ -1797,9 +1776,9 @@ describe('CallScopeExpression', function () {
       s1.overrideContext.arg = 'world';
       const [scope, hs] = getScopes(s1, isHostScoped);
       const binding = new MockBinding();
-      foo.connect(LF.none, scope, hs, binding);
+      foo.evaluate(LF.none, scope, hs, dummyLocator, binding);
       assert.strictEqual(binding.calls.filter(c => c[0] === 'observeProperty').length, 0, `binding.calls.filter(c => c[0] === 'observeProperty').length`);
-      hello.connect(LF.none, scope, hs, binding);
+      hello.evaluate(LF.none, scope, hs, dummyLocator, binding);
       assert.strictEqual(binding.calls.length, 1, 'binding.calls.length');
       assert.deepStrictEqual(binding.calls[0], ['observeProperty', LF.none, (hs ?? scope).overrideContext, 'arg'], 'binding.calls[0]');
     });
@@ -1807,9 +1786,9 @@ describe('CallScopeExpression', function () {
     it(`connects undefined property on bindingContext${isHostScoped ? ' - hostScoped' : ''}`, function () {
       const [scope, hs] = getScopes(createScopeForTest({ abc: 'xyz' }), isHostScoped);
       const binding = new MockBinding();
-      foo.connect(LF.none, scope, hs, binding);
+      foo.evaluate(LF.none, scope, hs, dummyLocator, binding);
       assert.strictEqual(binding.calls.filter(c => c[0] === 'observeProperty').length, 0, `binding.calls.filter(c => c[0] === 'observeProperty').length`);
-      hello.connect(LF.none, scope, hs, binding);
+      hello.evaluate(LF.none, scope, hs, dummyLocator, binding);
       assert.strictEqual(binding.calls.length, 1, 'binding.calls.length');
       assert.deepStrictEqual(binding.calls[0], ['observeProperty', LF.none, (hs ?? scope).bindingContext, 'arg'], 'binding.calls[0]');
     });
@@ -1833,9 +1812,9 @@ describe('CallScopeExpression', function () {
     it(`connects defined property on first ancestor bindingContext${isHostScoped ? ' - hostScoped' : ''}`, function () {
       const [scope, hs] = getScopes(createScopeForTest({ abc: 'xyz' }, { foo: () => 'bar', hello: arg => arg, arg: 'world' }), isHostScoped);
       const binding = new MockBinding();
-      foo.connect(LF.none, scope, hs, binding);
+      foo.evaluate(LF.none, scope, hs, dummyLocator, binding);
       assert.strictEqual(binding.calls.filter(c => c[0] === 'observeProperty').length, 0, `binding.calls.filter(c => c[0] === 'observeProperty').length`);
-      hello.connect(LF.none, scope, hs, binding);
+      hello.evaluate(LF.none, scope, hs, dummyLocator, binding);
       assert.strictEqual(binding.calls.length, 1, 'binding.calls.length');
       assert.deepStrictEqual(binding.calls[0], ['observeProperty', LF.none, (hs ?? scope).parentScope.overrideContext.bindingContext, 'arg'], 'binding.calls[0]');
     });
@@ -1847,9 +1826,9 @@ describe('CallScopeExpression', function () {
       s1.parentScope.overrideContext.arg = 'world';
       const [scope, hs] = getScopes(s1, isHostScoped);
       const binding = new MockBinding();
-      foo.connect(LF.none, scope, hs, binding);
+      foo.evaluate(LF.none, scope, hs, dummyLocator, binding);
       assert.strictEqual(binding.calls.filter(c => c[0] === 'observeProperty').length, 0, `binding.calls.filter(c => c[0] === 'observeProperty').length`);
-      hello.connect(LF.none, scope, hs, binding);
+      hello.evaluate(LF.none, scope, hs, dummyLocator, binding);
       assert.strictEqual(binding.calls.length, 1, 'binding.calls.length');
       assert.deepStrictEqual(binding.calls[0], ['observeProperty', LF.none, (hs ?? scope).parentScope.overrideContext, 'arg'], 'binding.calls[0]');
     });
@@ -2348,7 +2327,7 @@ describe('BindingBehaviorExpression', function () {
       assert.strictEqual(binding.observerSlots, undefined, `binding.observerSlots`);
 
       // act
-      sut.connect(flags, scope, hs, binding);
+      sut.evaluate(flags, scope, hs, locator, binding);
 
       // assert
       assert.strictEqual(binding.observerSlots, 1, `binding.observerSlots`);
@@ -2359,12 +2338,13 @@ describe('BindingBehaviorExpression', function () {
 
       const callCount = ($kind & ExpressionKind.HasBind) > 0 ? 3 : 2;
       assert.strictEqual(expr.calls.length, callCount, `expr.calls.length`);
-      assert.strictEqual(expr.calls[callCount - 1].length, 5, `expr.calls[callCount - 1].length`);
-      assert.strictEqual(expr.calls[callCount - 1][0], 'connect', `expr.calls[callCount - 1][0]`);
+      assert.strictEqual(expr.calls[callCount - 1].length, 6, `expr.calls[callCount - 1].length`);
+      assert.strictEqual(expr.calls[callCount - 1][0], 'evaluate', `expr.calls[callCount - 1][0]`);
       assert.strictEqual(expr.calls[callCount - 1][1], flags, `expr.calls[callCount - 1][1]`);
       assert.strictEqual(expr.calls[callCount - 1][2], scope, `expr.calls[callCount - 1][2]`);
       assert.strictEqual(expr.calls[callCount - 1][3], hs, `expr.calls[callCount - 1][3]`);
-      assert.strictEqual(expr.calls[callCount - 1][4], binding, `expr.calls[callCount - 1][4]`);
+      assert.strictEqual(expr.calls[callCount - 1][4], locator, `expr.calls[callCount - 1][4]`);
+      assert.strictEqual(expr.calls[callCount - 1][5], binding, `expr.calls[callCount - 1][5]`);
     }
   ];
 
@@ -2684,40 +2664,42 @@ describe('ValueConverterExpression', function () {
     }
   ];
 
-  const connectVariations: (($1: $1, $2: $2, $3: $3) => /* connect */() => void)[] = [
+  const evaluateWithConnectVariations: (($1: $1, $2: $2, $3: $3) => /* connect */() => void)[] = [
     ([t1, flags], [t2, signals, signaler], [t3, scope, hs, sut, mock, locator, binding, value, argValues, methods]) => () => {
       assert.strictEqual(binding.observerSlots, undefined, `binding.observerSlots`);
 
       // act
-      sut.connect(flags, scope, hs, binding);
+      sut.evaluate(flags, scope, hs, locator, binding);
 
       // assert
       assert.strictEqual(binding.observerSlots, 1 + argValues.length, `binding.observerSlots`);
 
       const hasToView = methods.includes('toView');
-      assert.strictEqual(mock.calls.length, hasToView ? 1 : 0, `mock.calls.length`);
+      assert.strictEqual(mock.calls.length, hasToView ? 2 : 0, `mock.calls.length`);
 
       const expr = sut.expression as any as MockTracingExpression;
 
       assert.strictEqual(expr.calls.length, 2, `expr.calls.length`);
-      assert.strictEqual(expr.calls[1].length, 5, `expr.calls[1].length`);
-      assert.strictEqual(expr.calls[1][0], 'connect', `expr.calls[1][0]`);
+      assert.strictEqual(expr.calls[1].length, 6, `expr.calls[1].length`);
+      assert.strictEqual(expr.calls[1][0], 'evaluate', `expr.calls[1][0]`);
       assert.strictEqual(expr.calls[1][1], flags, `expr.calls[1][1]`);
       assert.strictEqual(expr.calls[1][2], scope, `expr.calls[1][2]`);
       assert.strictEqual(expr.calls[1][3], hs, `expr.calls[1][3]`);
-      assert.strictEqual(expr.calls[1][4], binding, `expr.calls[1][4]`);
+      assert.strictEqual(expr.calls[1][4], locator, `expr.calls[1][4]`);
+      assert.strictEqual(expr.calls[1][5], binding, `expr.calls[1][5]`);
 
       const args = sut.args as any as MockTracingExpression[];
       for (let i = 0, ii = args.length; i < ii; ++i) {
         const arg = args[i];
         const offset = hasToView ? 1 : 0;
         assert.strictEqual(arg.calls.length, offset + 1, `arg.calls.length`);
-        assert.strictEqual(arg.calls[offset].length, 5, `arg.calls[offset].length`);
-        assert.strictEqual(arg.calls[offset][0], 'connect', `arg.calls[offset][0]`);
+        assert.strictEqual(arg.calls[offset].length, 6, `arg.calls[offset].length`);
+        assert.strictEqual(arg.calls[offset][0], 'evaluate', `arg.calls[offset][0]`);
         assert.strictEqual(arg.calls[offset][1], flags, `arg.calls[offset][1]`);
         assert.strictEqual(arg.calls[offset][2], scope, `arg.calls[offset][2]`);
         assert.strictEqual(arg.calls[offset][3], hs, `arg.calls[offset][3]`);
-        assert.strictEqual(arg.calls[offset][4], binding, `arg.calls[offset][4]`);
+        assert.strictEqual(arg.calls[offset][4], locator, `arg.calls[offset][4]`);
+        assert.strictEqual(arg.calls[offset][5], binding, `arg.calls[offset][5]`);
       }
 
       if (signals) {
@@ -2749,9 +2731,13 @@ describe('ValueConverterExpression', function () {
 
       const hasToView = methods.includes('toView');
       const hasFromView = methods.includes('fromView');
-      assert.strictEqual(mock.calls.length, methods.length, `mock.calls.length`);
+      // methods.length + 1 because there were 2 evaluate calls:
+      // 1 in normal evaluate, 1 in connect
+      // so total calls = 1 toView + 1 toView + 1 fromView
+      assert.strictEqual(mock.calls.length, methods.length + Number(hasToView), `mock.calls.length`);
+
       if (hasFromView) {
-        const offset = hasToView ? 1 : 0;
+        const offset = Number(hasToView) * 2;
         assert.strictEqual(mock.calls[offset].length, 2 + args.length, `mock.calls[offset].length`);
         assert.strictEqual(mock.calls[offset][0], 'fromView', `mock.calls[offset][0]`);
         assert.strictEqual(mock.calls[offset][1], newValue, `mock.calls[offset][1]`);
@@ -2802,8 +2788,8 @@ describe('ValueConverterExpression', function () {
 
       const hasToView = methods.includes('toView');
       const hasFromView = methods.includes('fromView');
-      const callCount = hasToView ? (hasFromView ? 3 : 2) : (hasFromView ? 1 : 0);
-      $2ndAssertStrictEqual(mock.calls.length, callCount, `mock.calls.length`);
+      const callCount = 0 + Number(hasToView) * 3 + Number(hasFromView);
+      $2ndAssertStrictEqual(mock.calls.length, callCount, `mock.calls.length + method: ${methods}`);
       if (hasToView) {
         $2ndAssertStrictEqual(mock.calls[callCount - 1].length, 2 + args.length, `mock.calls[callCount - 1].length`);
         $2ndAssertStrictEqual(mock.calls[callCount - 1][0], 'toView', `mock.calls[callCount - 1][0]`);
@@ -2815,7 +2801,7 @@ describe('ValueConverterExpression', function () {
 
       for (let i = 0, ii = args.length; i < ii; ++i) {
         const arg = args[i];
-        $2ndAssertStrictEqual(arg.calls.length, callCount + 1, `arg.calls.length`);
+        $2ndAssertStrictEqual(arg.calls.length, callCount, `arg.calls.length`);
         if (hasToView) {
           $2ndAssertStrictEqual(arg.calls[callCount - 1].length, 6, `arg.calls[callCount - 1].length`);
           $2ndAssertStrictEqual(arg.calls[callCount - 1][0], 'evaluate', `arg.calls[callCount - 1][0]`);
@@ -2864,11 +2850,11 @@ describe('ValueConverterExpression', function () {
     }
   ];
 
-  const inputs: [typeof flagVariations, typeof kindVariations, typeof inputVariations, typeof evaluateVariations, typeof connectVariations, typeof assignVariations, typeof $2ndEvaluateVariations, typeof unbindVariations]
-    = [flagVariations, kindVariations, inputVariations, evaluateVariations, connectVariations, assignVariations, $2ndEvaluateVariations, unbindVariations];
+  const inputs: [typeof flagVariations, typeof kindVariations, typeof inputVariations, typeof evaluateVariations, typeof evaluateWithConnectVariations, typeof assignVariations, typeof $2ndEvaluateVariations, typeof unbindVariations]
+    = [flagVariations, kindVariations, inputVariations, evaluateVariations, evaluateWithConnectVariations, assignVariations, $2ndEvaluateVariations, unbindVariations];
 
   eachCartesianJoinFactory.call(this, inputs, ([t1], [t2], [t3], evaluate1, connect, assign, evaluate2, unbind) => {
-    it(`flags=${t1}, signalr=${t2} expr=${t3} -> evaluate() -> connect() -> assign() -> evaluate() -> unbind()`, function () {
+    it(`flags=${t1}, signalr=${t2} expr=${t3} -> evaluate() -> evaluate(connect) -> assign() -> evaluate() -> unbind()`, function () {
       evaluate1();
       connect();
       const newValue = assign();

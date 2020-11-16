@@ -3,8 +3,8 @@ import { Aurelia } from '@aurelia/runtime-html';
 import { IRouterOptions, RouterConfiguration, IRouter } from '@aurelia/router';
 import { TestContext } from '@aurelia/testing';
 
-import { IHIAConfig, IHookInvocationAggregator } from './hook-invocation-tracker';
-import { TestRouterConfiguration } from './configuration';
+import { IHIAConfig, IHookInvocationAggregator } from './hook-invocation-tracker.js';
+import { TestRouterConfiguration } from './configuration.js';
 
 export const IActivityTracker = DI.createInterface<IActivityTracker>('IActivityTracker').withDefault(x => x.singleton(ActivityTracker));
 export interface IActivityTracker extends ActivityTracker {}

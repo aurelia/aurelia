@@ -455,6 +455,7 @@ const defaultCustomElementDefinitionProperties = {
   hasSlots: false,
   shadowOptions: null,
   surrogates: [],
+  watches: [],
 };
 
 function createTplCtrlAttributeInstruction(attr: string, value: string) {
@@ -603,6 +604,7 @@ function createCustomElement(
     needsCompile: false,
     enhance: false,
     projectionsMap: new Map<IInstruction, IProjections>(),
+    watches: [],
   };
   return [input, output];
 }
@@ -641,6 +643,7 @@ function createCustomAttribute(
     needsCompile: false,
     enhance: false,
     projectionsMap: new Map<IInstruction, IProjections>(),
+    watches: [],
   };
   return [input, output];
 }
@@ -828,6 +831,7 @@ describe(`TemplateCompiler - combinations`, function () {
           needsCompile: false,
           enhance: false,
           projectionsMap: new Map<IInstruction, IProjections>(),
+          watches: [],
         };
 
         const $def = CustomAttribute.define(def, ctor);
@@ -1015,7 +1019,8 @@ describe(`TemplateCompiler - combinations`, function () {
       [
         (ctx, $1, $2, $3, [input, output]) => createTemplateController(ctx, 'quux',       'quux',   '',              null,       true, output.instructions[0][0], input.template)
       ] as ((ctx: TestContext, $1: CTCResult, $2: CTCResult, $3: CTCResult, $4: CTCResult) => CTCResult)[]
-    ],                       (ctx, $1, $2, $3, $4, [input, output]) => {
+    ],
+    (ctx, $1, $2, $3, $4, [input, output]) => {
 
       it(`${input.template}`, function () {
 
@@ -1094,6 +1099,7 @@ describe(`TemplateCompiler - combinations`, function () {
           needsCompile: false,
           enhance: false,
           projectionsMap: new Map<IInstruction, IProjections>(),
+          watches: [],
         };
         // enableTracing();
         // Tracer.enableLiveLogging(SymbolTraceWriter);
@@ -1216,7 +1222,8 @@ describe(`TemplateCompiler - combinations`, function () {
       //   ($1, [input, output]) => createCustomElement(`baz`, true, [], [], [], output.instructions, output, input)
       // ]
       // ], ($1, $2, [input, output]) => {
-    ],                       (ctx, [input, output]) => {
+    ],
+    (ctx, [input, output]) => {
       it(`${input.template}`, function () {
 
         const { sut, container } = createFixture(
@@ -1579,6 +1586,22 @@ describe('TemplateCompiler - local templates', function () {
       'Bindable property and attribute needs to be unique; found property: prop2, attribute: bar'
     );
   });
+
+  for (const attr of ['if.bind="true"', 'if.bind="false"', 'else', 'repeat.for="item of items"', 'with.bind="{a:1}"', 'switch.bind="cond"', 'case="case1"']) {
+    it(`throws error if local-template surrogate has template controller - ${attr}`, function () {
+      const template = `<template as-custom-element="foo-bar" ${attr}>
+      <bindable property="prop1" attribute="bar"></bindable>
+    </template>
+    <foo-bar></foo-bar>`;
+      const { ctx, container } = createFixture();
+
+      assert.throws(() =>
+        new Aurelia(container)
+          .app({ host: ctx.doc.createElement('div'), component: CustomElement.define({ name: 'lorem-ipsum', template }, class { }) }),
+        /Cannot have template controller on surrogate element./
+      );
+    });
+  }
 
   it('warns if bindable element has more attributes other than the allowed', function () {
     const template = `<template as-custom-element="foo-bar">

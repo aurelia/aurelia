@@ -12,11 +12,10 @@ import {
   IHydratableController,
   IRenderLocation,
   PropertyBindingRendererRegistration,
-  ITargetAccessorLocatorRegistration,
-  ITargetObserverLocatorRegistration,
   TextBindingRendererRegistration,
   TextBindingInstruction,
   Interpolation,
+  INodeObserverLocatorRegistration,
 } from '@aurelia/runtime-html';
 import {
   eachCartesianJoin,
@@ -95,8 +94,7 @@ describe(`If/Else`, function () {
   ];
 
   const container = createContainer().register(
-    ITargetAccessorLocatorRegistration,
-    ITargetObserverLocatorRegistration,
+    INodeObserverLocatorRegistration,
     PropertyBindingRendererRegistration,
     TextBindingRendererRegistration,
   );

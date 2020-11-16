@@ -1,4 +1,3 @@
-import { ITask } from '@aurelia/kernel';
 import {
   CollectionKind,
   createIndexMap,
@@ -10,14 +9,14 @@ import {
   AccessorType,
   ILifecycle,
   LifecycleFlags
-} from '../observation';
+} from '../observation.js';
 import {
   CollectionLengthObserver
-} from './collection-length-observer';
+} from './collection-length-observer.js';
 import {
   collectionSubscriberCollection,
   subscriberCollection
-} from './subscriber-collection';
+} from './subscriber-collection.js';
 
 const observerLookup = new WeakMap<unknown[], ArrayObserver>();
 
@@ -390,7 +389,6 @@ export interface ArrayObserver extends ICollectionObserver<CollectionKind.array>
 export class ArrayObserver {
   public inBatch: boolean;
   public type: AccessorType = AccessorType.Array;
-  public task: ITask | null = null;
 
   private readonly indexObservers: Record<string | number, ArrayIndexObserver | undefined>;
 

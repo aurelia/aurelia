@@ -1,5 +1,5 @@
-import { IBindingTargetObserver, IObserverLocator, ISubscriber, ISubscriberCollection, LifecycleFlags, subscriberCollection, ITask, AccessorType } from '@aurelia/runtime';
-import { IPlatform } from '../platform';
+import { IBindingTargetObserver, IObserverLocator, ISubscriber, ISubscriberCollection, LifecycleFlags, subscriberCollection, AccessorType } from '@aurelia/runtime';
+import { IPlatform } from '../platform.js';
 
 export interface IHtmlElement extends HTMLElement {
   $mObserver: MutationObserver;
@@ -25,23 +25,20 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
   public currentValue: unknown = null;
   public oldValue: unknown = null;
 
-  public readonly persistentFlags: LifecycleFlags;
+  public readonly persistentFlags: LifecycleFlags = LifecycleFlags.none;
 
   public hasChanges: boolean = false;
-  public task: ITask | null = null;
   // layout is not certain, depends on the attribute being flushed to owner element
   // but for simple start, always treat as such
   public type: AccessorType = AccessorType.Node | AccessorType.Observer | AccessorType.Layout;
 
   public constructor(
     private readonly platform: IPlatform,
-    flags: LifecycleFlags,
     public readonly observerLocator: IObserverLocator,
     public readonly obj: IHtmlElement,
     public readonly propertyKey: string,
     public readonly targetAttribute: string,
   ) {
-    this.persistentFlags = flags & LifecycleFlags.targetObserverFlags;
   }
 
   public getValue(): unknown {
@@ -53,7 +50,7 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
   public setValue(newValue: unknown, flags: LifecycleFlags): void {
     this.currentValue = newValue;
     this.hasChanges = newValue !== this.oldValue;
-    if ((flags & LifecycleFlags.noTargetObserverQueue) === 0) {
+    if ((flags & LifecycleFlags.noFlush) === 0) {
       this.flushChanges(flags);
     }
   }
@@ -65,17 +62,19 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
       this.oldValue = currentValue;
       switch (this.targetAttribute) {
         case 'class': {
-          // Why is class attribute observer setValue look different with class attribute accessor?
+          // Why does class attribute observer setValue look different with class attribute accessor?
           // ==============
           // For class list
           // newValue is simply checked if truthy or falsy
           // and toggle the class accordingly
           // -- the rule of this is quite different to normal attribute
           //
-          // for class attribute, observer is different in a way that it only observe a particular class at a time
+          // for class attribute, observer is different in a way that it only observes one class at a time
           // this also comes from syntax, where it would typically be my-class.class="someProperty"
           //
           // so there is no need for separating class by space and add all of them like class accessor
+          //
+          // note: not using .toggle API so that environment with broken impl (IE11) won't need to polfyfill by default
           if (!!currentValue) {
             this.obj.classList.add(this.propertyKey);
           } else {

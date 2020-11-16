@@ -1,7 +1,7 @@
 import { Constructable, IIndexable } from '@aurelia/kernel';
-import { InterceptorFunc } from '../bindable';
-import { IBindingContext, PropertyObserver, ISubscriber, IObservable, LifecycleFlags } from '../observation';
-import { SetterObserver, SetterNotifier } from './setter-observer';
+import { InterceptorFunc } from '../bindable.js';
+import { IBindingContext, PropertyObserver, ISubscriber, IObservable, LifecycleFlags } from '../observation.js';
+import { SetterObserver, SetterNotifier } from './setter-observer.js';
 
 // todo(bigopon): static obs here
 
@@ -63,12 +63,12 @@ export function observable(
     //    @observable('prop')
     //    class {}
     //
-    //    @observable({ name: 'prop', changeHandler: ... })
+    //    @observable({ name: 'prop', callback: ... })
     //    class {}
     //
     //    class {
     //      @observable() prop
-    //      @observable({ changeHandler: ... }) prop2
+    //      @observable({ callback: ... }) prop2
     //    }
     return ((t: Constructable, k: PropertyKey, d: PropertyDescriptor) => deco(t, k, d, targetOrConfig)) as ClassDecorator;
   }

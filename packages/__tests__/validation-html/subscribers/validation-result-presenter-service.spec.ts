@@ -12,8 +12,8 @@ import {
   ValidationResultsSubscriber,
   ValidationResultPresenterService,
 } from '@aurelia/validation-html';
-import { Person } from '../../validation/_test-resources';
-import { TestFunction, TestExecutionContext, ToNumberValueConverter, createSpecFunction } from '../../util';
+import { Person } from '../../validation/_test-resources.js';
+import { TestFunction, TestExecutionContext, ToNumberValueConverter, createSpecFunction } from '../../util.js';
 
 describe('validation-result-presenter-service', function () {
 

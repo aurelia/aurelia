@@ -1,11 +1,11 @@
 import { IDisposable } from '@aurelia/kernel';
 import { customAttribute, bindable, BindingMode, ICustomAttributeViewModel, IEventDelegator, IEventTarget, INode } from '@aurelia/runtime-html';
 
-import { IRouter } from '../router';
-import { ILinkHandler } from '../link-handler';
-import { IRouterEvents } from '../router-events';
-import { IRouteContext } from '../route-context';
-import { NavigationInstruction } from '../instructions';
+import { IRouter } from '../router.js';
+import { ILinkHandler } from '../link-handler.js';
+import { IRouterEvents } from '../router-events.js';
+import { IRouteContext } from '../route-context.js';
+import { NavigationInstruction } from '../instructions.js';
 
 @customAttribute('load')
 export class LoadCustomAttribute implements ICustomAttributeViewModel {

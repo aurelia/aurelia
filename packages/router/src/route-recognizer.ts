@@ -1,5 +1,5 @@
-import { RouteDefinition } from './route-definition';
-import { Params } from './instructions';
+import { RouteDefinition } from './route-definition.js';
+import { Params } from './instructions.js';
 
 export class Endpoint {
   public constructor(

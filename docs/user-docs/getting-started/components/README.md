@@ -47,7 +47,7 @@ export class SayHello {
 {% hint style="warning" %}
 **Naming Components**
 
-The component name, derived from the file name, **must** contain a hyphen when working with Shadow DOM \(see [Styling Components](../app-basics/styling-components.md)\). This is part of the W3C Web Components standard and is designed to serve as a namespacing mechanism for custom HTML elements. A typical best practice is to choose a two to three character prefix to use consistently across your app or company. For example, all components provided by Aurelia have the prefix `au-`.
+The component name, derived from the file name, **must** contain a hyphen when working with Shadow DOM \(see [Styling Components](../../app-basics/styling-components.md)\). This is part of the W3C Web Components standard and is designed to serve as a namespacing mechanism for custom HTML elements. A typical best practice is to choose a two to three character prefix to use consistently across your app or company. For example, all components provided by Aurelia have the prefix `au-`.
 {% endhint %}
 
 The `say-hello` custom element we've created isn't very interesting yet, so lets spice it up by allowing the user to providing a "to" property so that we can personalize the message. To create "bindable" properties for your HTML element, you declare them using the `@bindable` decorator as shown in the next example.
@@ -121,7 +121,7 @@ Now, when the user clicks the button, the `leave` method will get called. It the
 {% hint style="info" %}
 **Further Reading**
 
-Interested to learn more about how you can display data with Aurelia's templating engine or how you can leverage events to respond to changes and interactions within your app? The next few docs on [Displaying Basic Data](displaying-basic-data.md), [Rendering Collections](rendering-collections.md), [Conditional Rendering](conditional-rendering.md), and [Handling Events](handling-events.md) will give you all the nitty, gritty details.
+Interested to learn more about how you can display data with Aurelia's templating engine or how you can leverage events to respond to changes and interactions within your app? The next few docs on [Displaying Basic Data](../displaying-basic-data.md), [Rendering Collections](../rendering-collections.md), [Conditional Rendering](../conditional-rendering.md), and [Handling Events](../handling-events.md) will give you all the nitty, gritty details.
 {% endhint %}
 
 ### Component Registration
@@ -278,8 +278,7 @@ Every lifecycle callback is optional. Implement whatever makes sense for your co
 | `attaching` | If your component has a method named "attaching", then the framework will invoke it when it has attached the component's HTML element. You can queue animations and/or initialize certain 3rd party libraries. If you return a `Promise` from this method, it will not suspend binding/attaching of child components but it will be awaited before the `attached` hook is invoked. |
 | `attached` | If your component has a method named "attached", then the framework will invoke it when it has attached the current component as well as all of its children. In terms of the component hierarchy, the attached hooks execute bottom-up. This is the best time to invoke code that requires measuring of elements or integrating a 3rd party JavaScript library that requires the whole component subtree to be mounted to the DOM. |
 | `detaching` | If your component has a method named "detaching", then the framework will invoke it when it is about to remove your HTML element from the document. In terms of the component hierarchy, the detaching hooks execute bottom-up. If you return a `Promise` (for example, from an outgoing animation), it will be awaited before the element is detached. It will run in parallel with promises returned from the `detaching` hooks of siblings / parents. |
-| `unbinding` | If your component has a method named "afterDetach", then the framework will invoke it when it has fully removed your HTML element from the document. In terms of the component hierarchy, the afterDetach hooks execute bottom-up. |
-| `unbinding` | If your component has a method named "unbinding", then the framework will invoke it when it is about to disconnect bindings from your component. In terms of the component hierarchy, the unbinding hooks execute bottom-up. You can optionally return a `Promise`. If you do so, it will be awaited by the top-level component that initiated the removal, but it will run in parallel with any parent/siblings. This is useful for fetch/save of data before final data disconnect. |
+| `unbinding` | If your component has a method named "unbinding", then the framework will invoke it when it has fully removed your HTML element from the document. In terms of the component hierarchy, the `unbinding` hooks execute bottom-up. |
 | `dispose` | If your component has a method named "dispose", then the framework will invoke it when the component is to be cleared from memory completely. It may be called for example when a component is in a repeater, and some items are removed that are not returned to cache. This is an advanced hook mostly useful for clean up of resources and references that might cause memory leaks if never dereferenced explicitly. |
 
 To tap into any of these hooks, simply implement the method on your class:
@@ -318,16 +317,18 @@ export class SayHello {
 {% hint style="info" %}
 **Dependency Injection**
 
-There are various ways to tell the framework what you want to inject. The above code sample shows the most vanilla JS approach, by using a TypeScript constructor param. This works automatically for components that use conventions. See [the dependency injection documentation](../app-basics/dependency-injection.md) for more information on other approaches, as well as an in-depth look at dependency injection in general.
+There are various ways to tell the framework what you want to inject. The above code sample shows the most vanilla JS approach, by using a TypeScript constructor param. This works automatically for components that use conventions. See [the dependency injection documentation](../../app-basics/dependency-injection.md) for more information on other approaches, as well as an in-depth look at dependency injection in general.
 {% endhint %}
 
 {% hint style="success" %}
 **Referencing View Elements**
 
-If you need access to a DOM element from within your view, rather than the host, place a `ref` attribute on the desired element in your template and the framework will set a property of the same name on your class to reference that element. For more information on this, see the documentation on [displaying basic data](displaying-basic-data.md#referencing-dom-elements).
+If you need access to a DOM element from within your view, rather than the host, place a `ref` attribute on the desired element in your template and the framework will set a property of the same name on your class to reference that element. For more information on this, see the documentation on [displaying basic data](../displaying-basic-data.md#referencing-dom-elements).
 {% endhint %}
 
 ## So Much More...
 
-So far, we've only scratched the surface of what Aurelia's component system can do. If you'd like to continue on to additional component scenarios, including component composition, Shadow DOM and slots, HTML-only components, and more, you can pick up from here in our App Basics article [Components Revisited](../app-basics/components-revisited.md).
-
+So far, we've only scratched the surface of what Aurelia's component system can do. If you'd like to continue on to additional component scenarios, including component composition, Shadow DOM and slots, HTML-only components, and more, you can pick up from here in our Component Basics articles:
+- [Local Templates](./local-templates.md).
+- [Watching data](./watching-data.md).
+- [Components Revisited](../app-basics/components-revisited.md).

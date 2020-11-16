@@ -1,7 +1,7 @@
 import { computed, customElement, bindable } from '@aurelia/runtime-html';
 import template from './user-preference.html';
 import { trace } from '@aurelia/testing';
-import { callCollection } from '../../debug';
+import { callCollection } from '../../debug.js';
 
 export class TestArray extends Array {
   public indeterminate: string = 'test';

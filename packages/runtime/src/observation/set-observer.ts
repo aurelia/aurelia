@@ -1,7 +1,6 @@
-import { ITask } from '@aurelia/kernel';
-import { CollectionKind, createIndexMap, ICollectionObserver, IObservedSet, ICollectionIndexObserver, AccessorType, ILifecycle, LifecycleFlags } from '../observation';
-import { CollectionSizeObserver } from './collection-size-observer';
-import { collectionSubscriberCollection } from './subscriber-collection';
+import { CollectionKind, createIndexMap, ICollectionObserver, IObservedSet, ICollectionIndexObserver, AccessorType, ILifecycle, LifecycleFlags } from '../observation.js';
+import { CollectionSizeObserver } from './collection-size-observer.js';
+import { collectionSubscriberCollection } from './subscriber-collection.js';
 
 const observerLookup = new WeakMap<Set<unknown>, SetObserver>();
 
@@ -53,7 +52,8 @@ const observe = {
     if (size > 0) {
       const indexMap = o.indexMap;
       let i = 0;
-      for (const entry of $this.keys()) {
+      // deepscan-disable-next-line
+      for (const _ of $this.keys()) {
         if (indexMap[i] > -1) {
           indexMap.deletedItems.push(indexMap[i]);
         }
@@ -129,15 +129,12 @@ export function disableSetObservation(): void {
   }
 }
 
-const slice = Array.prototype.slice;
-
 export interface SetObserver extends ICollectionObserver<CollectionKind.set> {}
 
 @collectionSubscriberCollection()
 export class SetObserver {
   public inBatch: boolean;
   public type: AccessorType = AccessorType.Set;
-  public task: ITask | null = null;
 
   public constructor(flags: LifecycleFlags, lifecycle: ILifecycle, observedSet: IObservedSet) {
 
@@ -187,7 +184,7 @@ export class SetObserver {
     this.indexMap = createIndexMap(size);
     this.callCollectionSubscribers(indexMap, LifecycleFlags.updateTarget | this.persistentFlags);
     if (this.lengthObserver !== void 0) {
-      this.lengthObserver.setValue(size, LifecycleFlags.updateTarget);
+      this.lengthObserver.notify();
     }
   }
 }

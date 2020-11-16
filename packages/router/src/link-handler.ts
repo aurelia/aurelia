@@ -1,8 +1,8 @@
 import { bound, DI } from '@aurelia/kernel';
 import { CustomAttribute, IWindow } from '@aurelia/runtime-html';
 
-import { LoadCustomAttribute } from './resources/load';
-import { IRouter } from './router';
+import { LoadCustomAttribute } from './resources/load.js';
+import { IRouter } from './router.js';
 
 export interface IMouseEvent extends MouseEvent {}
 export interface IElement extends Element {}

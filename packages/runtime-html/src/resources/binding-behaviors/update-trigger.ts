@@ -1,11 +1,12 @@
 import { Writable } from '@aurelia/kernel';
 import { BindingMode, IObserverLocator, LifecycleFlags, PropertyBinding, bindingBehavior } from '@aurelia/runtime';
-import { CheckedObserver } from '../../observation/checked-observer';
-import { EventSubscriber } from '../../observation/event-delegator';
-import { SelectValueObserver } from '../../observation/select-value-observer';
-import { ValueAttributeObserver } from '../../observation/value-attribute-observer';
+import { CheckedObserver } from '../../observation/checked-observer.js';
+import { EventSubscriber } from '../../observation/event-delegator.js';
+import { SelectValueObserver } from '../../observation/select-value-observer.js';
+import { ValueAttributeObserver } from '../../observation/value-attribute-observer.js';
 
 import type { Scope } from '@aurelia/runtime';
+import { NodeObserverConfig } from '../../observation/observer-locator.js';
 
 export type UpdateTriggerableObserver = (
   (ValueAttributeObserver & Required<ValueAttributeObserver>) |
@@ -47,10 +48,15 @@ export class UpdateTriggerBindingBehavior {
     binding.targetObserver = targetObserver;
 
     // stash the original element subscribe function.
-    targetObserver.originalHandler = binding.targetObserver.handler;
+    const originalHandler = targetObserver.handler;
+    targetObserver.originalHandler = originalHandler;
 
     // replace the element subscribe function with one that uses the correct events.
-    (targetObserver as Writable<typeof targetObserver>).handler = new EventSubscriber(events);
+    (targetObserver as Writable<typeof targetObserver>).handler = new EventSubscriber(new NodeObserverConfig({
+      default: originalHandler.config.default,
+      events,
+      readonly: originalHandler.config.readonly
+    }));
   }
 
   public unbind(flags: LifecycleFlags, _scope: Scope, _hostScope: Scope | null, binding: UpdateTriggerableBinding): void {

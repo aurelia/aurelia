@@ -15,9 +15,9 @@ import {
   BindingMode,
   Bindable,
 } from '@aurelia/runtime';
-import { IAttrSyntaxTransformer } from './attribute-syntax-transformer';
-import { TemplateBinder } from './template-binder';
-import { ITemplateElementFactory } from './template-element-factory';
+import { IAttrSyntaxTransformer } from './attribute-syntax-transformer.js';
+import { TemplateBinder } from './template-binder.js';
+import { ITemplateElementFactory } from './template-element-factory.js';
 import {
   BindingSymbol,
   CustomElementSymbol,
@@ -32,7 +32,7 @@ import {
   TemplateControllerSymbol,
   TextSymbol,
   SymbolFlags
-} from './semantic-model';
+} from './semantic-model.js';
 import {
   AttributeInstruction,
   HydrateAttributeInstruction,
@@ -49,11 +49,11 @@ import {
   SetStyleAttributeInstruction,
   TextBindingInstruction,
   ITemplateCompiler,
-} from './renderer';
-import { IAttributeParser } from './resources/attribute-pattern';
-import { AuSlotContentType, IProjections, ProjectionContext, RegisteredProjections, SlotInfo } from './resources/custom-elements/au-slot';
-import { CustomElement, CustomElementDefinition, PartialCustomElementDefinition } from './resources/custom-element';
-import { IPlatform } from './platform';
+} from './renderer.js';
+import { IAttributeParser } from './resources/attribute-pattern.js';
+import { AuSlotContentType, IProjections, ProjectionContext, RegisteredProjections, SlotInfo } from './resources/custom-elements/au-slot.js';
+import { CustomElement, CustomElementDefinition, PartialCustomElementDefinition } from './resources/custom-element.js';
+import { IPlatform } from './platform.js';
 
 class CustomElementCompilationUnit {
   public readonly instructions: Instruction[][] = [];
@@ -459,7 +459,7 @@ export class TemplateCompiler implements ITemplateCompiler {
   }
 }
 
-function getTemplateName(localTemplate: HTMLTemplateElement, localTemplateNames: Set<string>): string {
+function processTemplateName(localTemplate: HTMLTemplateElement, localTemplateNames: Set<string>): string {
   const name = localTemplate.getAttribute(localTemplateIdentifier);
   if (name === null || name === '') {
     throw new Error('The value of "as-custom-element" attribute cannot be empty for local template');
@@ -468,6 +468,7 @@ function getTemplateName(localTemplate: HTMLTemplateElement, localTemplateNames:
     throw new Error(`Duplicate definition of the local template named ${name}`);
   } else {
     localTemplateNames.add(name);
+    localTemplate.removeAttribute(localTemplateIdentifier);
   }
   return name;
 }
@@ -517,7 +518,7 @@ function processLocalTemplates(
     if (localTemplate.parentNode !== root) {
       throw new Error('Local templates needs to be defined directly under root.');
     }
-    const name = getTemplateName(localTemplate, localTemplateNames);
+    const name = processTemplateName(localTemplate, localTemplateNames);
 
     const localTemplateType = class LocalTemplate { };
     const content = localTemplate.content;
@@ -556,9 +557,7 @@ function processLocalTemplates(
       content.removeChild(bindableEl);
     }
 
-    const div = p.document.createElement('div');
-    div.appendChild(content);
-    const localTemplateDefinition = CustomElement.define({ name, template: div.innerHTML }, localTemplateType);
+    const localTemplateDefinition = CustomElement.define({ name, template: localTemplate }, localTemplateType);
     // the casting is needed here as the dependencies are typed as readonly array
     (definition.dependencies as Key[]).push(localTemplateDefinition);
     context.register(localTemplateDefinition);

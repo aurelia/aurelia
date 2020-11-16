@@ -1,8 +1,8 @@
 import { Writable } from '@aurelia/kernel';
 import { ICustomElementController, IHydratedController, IHydratedParentController, LifecycleFlags } from '@aurelia/runtime-html';
 import { Params, RouteNode, NavigationInstruction, IRouteViewModel } from '@aurelia/router';
-import { IHookInvocationAggregator } from './hook-invocation-tracker';
-import { IHookSpec, hookSpecsMap } from './hook-spec';
+import { IHookInvocationAggregator } from './hook-invocation-tracker.js';
+import { IHookSpec, hookSpecsMap } from './hook-spec.js';
 
 export interface ITestRouteViewModel extends IRouteViewModel {
   readonly $controller: ICustomElementController<this>;

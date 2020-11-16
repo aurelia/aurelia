@@ -11,10 +11,12 @@ import {
   ILogger,
   LogLevel,
   resolveAll,
+  IServiceLocator,
   Metadata,
   DI,
 } from '@aurelia/kernel';
 import {
+  AccessScopeExpression,
   IBinding,
   Scope,
   LifecycleFlags,
@@ -23,18 +25,26 @@ import {
   PropertyBinding,
   BindableObserver,
   BindableDefinition,
+  BindingType,
+  IObserverLocator,
+  IWatchDefinition,
+  ComputedWatcher,
+  ExpressionWatcher,
+  IWatcherCallback,
+  IObservable,
+  IExpressionParser,
 } from '@aurelia/runtime';
-import { convertToRenderLocation, INode, INodeSequence, IRenderLocation } from '../dom';
-import { CustomElementDefinition, CustomElement, PartialCustomElementDefinition } from '../resources/custom-element';
-import { CustomAttributeDefinition, CustomAttribute } from '../resources/custom-attribute';
-import { IRenderContext, getRenderContext, RenderContext, ICompiledRenderContext } from './render-context';
-import { ChildrenObserver } from './children';
-import { IAppRoot } from '../app-root';
-import { IPlatform } from '../platform';
-import { IShadowDOMGlobalStyles, IShadowDOMStyles } from './styles';
-import type { RegisteredProjections } from '../resources/custom-elements/au-slot';
-import type { IViewFactory } from './view';
-import type { Instruction } from '../renderer';
+import { convertToRenderLocation, INode, INodeSequence, IRenderLocation } from '../dom.js';
+import { CustomElementDefinition, CustomElement, PartialCustomElementDefinition } from '../resources/custom-element.js';
+import { CustomAttributeDefinition, CustomAttribute } from '../resources/custom-attribute.js';
+import { IRenderContext, getRenderContext, RenderContext, ICompiledRenderContext } from './render-context.js';
+import { ChildrenObserver } from './children.js';
+import { IAppRoot } from '../app-root.js';
+import { IPlatform } from '../platform.js';
+import { IShadowDOMGlobalStyles, IShadowDOMStyles } from './styles.js';
+import type { RegisteredProjections } from '../resources/custom-elements/au-slot.js';
+import type { IViewFactory } from './view.js';
+import type { Instruction } from '../renderer.js';
 
 function callDispose(disposable: IDisposable): void {
   disposable.dispose();
@@ -256,13 +266,15 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     let definition = this.definition as CustomElementDefinition;
     const flags = this.flags;
     const instance = this.viewModel as BindingContext<C>;
+    this.scope = Scope.create(flags, instance, null, true);
+
+    if (definition.watches.length > 0) {
+      createWatchers(this, this.container, definition, instance);
+    }
     createObservers(this.lifecycle, definition, flags, instance);
     createChildrenObservers(this as Controller, definition, flags, instance);
 
-    this.scope = Scope.create(flags, this.viewModel!, null);
-
-    const hooks = this.hooks;
-    if (hooks.hasDefine) {
+    if (this.hooks.hasDefine) {
       if (this.debug) { this.logger.trace(`invoking define() hook`); }
       const result = instance.define(
         /* controller      */this as ICustomElementController,
@@ -349,6 +361,10 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   private hydrateCustomAttribute(): void {
     const definition = this.definition as CustomElementDefinition;
     const instance = this.viewModel!;
+
+    if (definition.watches.length > 0) {
+      createWatchers(this, this.container, definition, instance);
+    }
     createObservers(this.lifecycle, definition, this.flags, instance);
 
     (instance as Writable<C>).$controller = this;
@@ -901,6 +917,64 @@ function createChildrenObservers(
           childrenDescription.options,
         );
       }
+    }
+  }
+}
+
+const AccessScopeAst = {
+  map: new Map<PropertyKey, AccessScopeExpression>(),
+  for(key: PropertyKey) {
+    let ast = AccessScopeAst.map.get(key);
+    if (ast == null) {
+      ast = new AccessScopeExpression(key as string, 0);
+      AccessScopeAst.map.set(key, ast);
+    }
+    return ast;
+  },
+};
+
+function createWatchers(
+  controller: Controller,
+  context: IServiceLocator,
+  definition: CustomElementDefinition | CustomAttributeDefinition,
+  instance: object,
+) {
+  const observerLocator = context!.get(IObserverLocator);
+  const expressionParser = context.get(IExpressionParser);
+  const watches = definition.watches;
+  const hasProxy = controller.platform.Proxy != null;
+  let expression: IWatchDefinition['expression'];
+  let callback: IWatchDefinition['callback'];
+
+  for (let i = 0, ii = watches.length; ii > i; ++i) {
+    ({ expression, callback } = watches[i]);
+    callback = typeof callback === 'function'
+      ? callback
+      : Reflect.get(instance, callback) as IWatcherCallback<object>;
+    if (typeof callback !== 'function') {
+      throw new Error(`Invalid callback for @watch decorator: ${String(callback)}`);
+    }
+    if (typeof expression === 'function') {
+      controller.addBinding(new ComputedWatcher(
+        instance as IObservable,
+        observerLocator,
+        expression,
+        callback,
+        // there should be a flag to purposely disable proxy
+        hasProxy,
+      ));
+    } else {
+      const ast = typeof expression === 'string'
+        ? expressionParser.parse(expression, BindingType.BindCommand)
+        : AccessScopeAst.for(expression);
+
+      controller.addBinding(new ExpressionWatcher(
+        controller.scope!,
+        context,
+        observerLocator,
+        ast,
+        callback
+      ) as unknown as IBinding);
     }
   }
 }

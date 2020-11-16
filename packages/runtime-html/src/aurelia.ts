@@ -1,7 +1,7 @@
 import { DI, IContainer, Registration, InstanceProvider, IDisposable, onResolve } from '@aurelia/kernel';
 import { BrowserPlatform } from '@aurelia/platform-browser';
-import { AppRoot, IAppRoot, ISinglePageApp } from './app-root';
-import { IPlatform } from './platform';
+import { AppRoot, IAppRoot, ISinglePageApp } from './app-root.js';
+import { IPlatform } from './platform.js';
 
 export interface IAurelia extends Aurelia {}
 export const IAurelia = DI.createInterface<IAurelia>('IAurelia').noDefault();

@@ -1,27 +1,21 @@
-import { IAccessor, LifecycleFlags, ITask, AccessorType } from '@aurelia/runtime';
+import { IAccessor, LifecycleFlags, AccessorType } from '@aurelia/runtime';
 import { emptyArray, kebabCase } from '@aurelia/kernel';
-import { INode } from '../dom';
 
 export class StyleAttributeAccessor implements IAccessor {
-  public readonly obj: HTMLElement;
   public currentValue: unknown = '';
   public oldValue: unknown = '';
 
-  public readonly persistentFlags: LifecycleFlags;
+  public readonly persistentFlags: LifecycleFlags = LifecycleFlags.none;
 
   public styles: Record<string, number> = {};
   public version: number = 0;
 
   public hasChanges: boolean = false;
-  public task: ITask | null = null;
   public type: AccessorType = AccessorType.Node | AccessorType.Layout;
 
   public constructor(
-    flags: LifecycleFlags,
-    obj: INode,
+    public readonly obj: HTMLElement,
   ) {
-    this.obj = obj as HTMLElement;
-    this.persistentFlags = flags & LifecycleFlags.targetObserverFlags;
   }
 
   public getValue(): string {
@@ -31,7 +25,7 @@ export class StyleAttributeAccessor implements IAccessor {
   public setValue(newValue: unknown, flags: LifecycleFlags): void {
     this.currentValue = newValue;
     this.hasChanges = newValue !== this.oldValue;
-    if ((flags & LifecycleFlags.noTargetObserverQueue) === 0) {
+    if ((flags & LifecycleFlags.noFlush) === 0) {
       this.flushChanges(flags);
     }
   }

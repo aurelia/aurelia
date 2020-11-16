@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { IIndexable } from '@aurelia/kernel';
-import { IBinding, IBindingContext, IOverrideContext, LifecycleFlags } from '../observation';
+import { IBinding, IBindingContext, IOverrideContext, LifecycleFlags } from '../observation.js';
 
 const marker = Object.freeze({});
 
@@ -52,6 +52,7 @@ export class BindingContext implements IBindingContext {
       throw new Error(`Scope is ${scope} and HostScope is ${hostScope}.`);
     }
 
+    const hasOtherScope = hostScope !== scope && hostScope != null;
     /* eslint-disable jsdoc/check-indentation */
     /**
      * This fallback is needed to support the following case:
@@ -65,9 +66,13 @@ export class BindingContext implements IBindingContext {
      */
     /* eslint-enable jsdoc/check-indentation */
     let context = chooseContext(scope, name, ancestor);
-    if (context !== null) { return context; }
-    if (hostScope !== scope && hostScope != null) {
-      context = chooseContext(hostScope, name, ancestor);
+    if (
+      context !== null
+      && ((context == null ? false : name in context)
+        || !hasOtherScope)
+    ) { return context; }
+    if (hasOtherScope) {
+      context = chooseContext(hostScope!, name, ancestor);
       if (context !== null) { return context; }
     }
 
@@ -81,7 +86,7 @@ export class BindingContext implements IBindingContext {
   }
 }
 
-function chooseContext(scope: Scope, name: string, ancestor: number) {
+function chooseContext(scope: Scope, name: string, ancestor: number): IBindingContext | undefined | null {
   let overrideContext: IOverrideContext | null = scope.overrideContext;
   let currentScope: Scope | null = scope;
 
@@ -100,13 +105,20 @@ function chooseContext(scope: Scope, name: string, ancestor: number) {
   }
 
   // traverse the context and it's ancestors, searching for a context that has the name.
-  while (overrideContext && !(name in overrideContext) && !(overrideContext.bindingContext && name in overrideContext.bindingContext)) {
+  while (
+    !currentScope?.isComponentBoundary
+    && overrideContext
+    && !(name in overrideContext)
+    && !(
+      overrideContext.bindingContext
+      && name in overrideContext.bindingContext
+    )
+  ) {
     currentScope = currentScope!.parentScope ?? null;
     overrideContext = currentScope?.overrideContext ?? null;
   }
 
   if (overrideContext) {
-    // we located a context with the property.  return it.
     return name in overrideContext ? overrideContext : overrideContext.bindingContext;
   }
 
@@ -118,6 +130,7 @@ export class Scope {
     public parentScope: Scope | null,
     public bindingContext: IBindingContext,
     public overrideContext: IOverrideContext,
+    public readonly isComponentBoundary: boolean,
   ) {}
 
   /**
@@ -138,7 +151,7 @@ export class Scope {
    * during binding, it will traverse up via the `parentScope` of the scope until
    * it finds the property.
    */
-  public static create(flags: LifecycleFlags, bc: object, oc: IOverrideContext): Scope;
+  public static create(flags: LifecycleFlags, bc: object, oc: IOverrideContext, isComponentBoundary?: boolean): Scope;
   /**
    * Create a new `Scope` backed by the provided `BindingContext` and `OverrideContext`.
    *
@@ -148,27 +161,28 @@ export class Scope {
    * @param bc - The `BindingContext` to back the `Scope` with.
    * @param oc - null. This overload is functionally equivalent to not passing this argument at all.
    */
-  public static create(flags: LifecycleFlags, bc: object, oc: null): Scope;
+  public static create(flags: LifecycleFlags, bc: object, oc: null, isComponentBoundary?: boolean): Scope;
   public static create(
     flags: LifecycleFlags,
     bc: object,
     oc?: IOverrideContext | null,
+    isComponentBoundary?: boolean,
   ): Scope {
-    return new Scope(null, bc as IBindingContext, oc == null ? OverrideContext.create(flags, bc) : oc);
+    return new Scope(null, bc as IBindingContext, oc == null ? OverrideContext.create(flags, bc) : oc, isComponentBoundary ?? false);
   }
 
   public static fromOverride(flags: LifecycleFlags, oc: IOverrideContext): Scope {
     if (oc == null) {
       throw new Error(`OverrideContext is ${oc}`);
     }
-    return new Scope(null, oc.bindingContext, oc);
+    return new Scope(null, oc.bindingContext, oc, false);
   }
 
   public static fromParent(flags: LifecycleFlags, ps: Scope | null, bc: object): Scope {
     if (ps == null) {
       throw new Error(`ParentScope is ${ps}`);
     }
-    return new Scope(ps, bc as IBindingContext, OverrideContext.create(flags, bc));
+    return new Scope(ps, bc as IBindingContext, OverrideContext.create(flags, bc), false);
   }
 }
 

@@ -17,8 +17,10 @@ import {
   BindableDefinition,
   Bindable,
   registerAliases,
+  IWatchDefinition,
+  Watch,
 } from '@aurelia/runtime';
-import type { ICustomAttributeViewModel, ICustomAttributeController } from '../templating/controller';
+import type { ICustomAttributeViewModel, ICustomAttributeController } from '../templating/controller.js';
 
 export type PartialCustomAttributeDefinition = PartialResourceDefinition<{
   readonly defaultBindingMode?: BindingMode;
@@ -38,6 +40,7 @@ export type PartialCustomAttributeDefinition = PartialResourceDefinition<{
    * to a property name `http`, with value equal to literal string `//bla.bla.com`
    */
   readonly noMultiBindings?: boolean;
+  readonly watches?: IWatchDefinition[];
 }>;
 
 export type CustomAttributeType<T extends Constructable = Constructable> = ResourceType<T, ICustomAttributeViewModel, PartialCustomAttributeDefinition>;
@@ -95,6 +98,7 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
     public readonly isTemplateController: boolean,
     public readonly bindables: Record<string, BindableDefinition>,
     public readonly noMultiBindings: boolean,
+    public readonly watches: IWatchDefinition[],
   ) {}
 
   public static create<T extends Constructable = Constructable>(
@@ -121,6 +125,7 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
       firstDefined(CustomAttribute.getAnnotation(Type, 'isTemplateController'), def.isTemplateController, Type.isTemplateController, false),
       Bindable.from(...Bindable.getAll(Type), CustomAttribute.getAnnotation(Type, 'bindables'), Type.bindables, def.bindables),
       firstDefined(CustomAttribute.getAnnotation(Type, 'noMultiBindings'), def.noMultiBindings, Type.noMultiBindings, false),
+      mergeArrays(Watch.getAnnotation(Type), Type.watches),
     );
   }
 

@@ -2,8 +2,8 @@ import * as path from 'path';
 import { kebabCase } from '@aurelia/kernel';
 import modifyCode, { ModifyCodeResult } from 'modify-code';
 import * as ts from 'typescript';
-import { nameConvention } from './name-convention';
-import { IFileUnit, IPreprocessOptions, ResourceType } from './options';
+import { nameConvention } from './name-convention.js';
+import { IFileUnit, IPreprocessOptions, ResourceType } from './options.js';
 
 interface ICapturedImport {
   names: string[];

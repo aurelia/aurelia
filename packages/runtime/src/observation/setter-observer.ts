@@ -1,7 +1,7 @@
-import { IIndexable, ITask } from '@aurelia/kernel';
-import { IPropertyObserver, ISubscriber, AccessorType, ISubscribable, IAccessor, ISubscriberCollection, LifecycleFlags } from '../observation';
-import { subscriberCollection } from './subscriber-collection';
-import { InterceptorFunc } from '../bindable';
+import { IIndexable } from '@aurelia/kernel';
+import { IPropertyObserver, ISubscriber, AccessorType, ISubscribable, IAccessor, ISubscriberCollection, LifecycleFlags } from '../observation.js';
+import { subscriberCollection } from './subscriber-collection.js';
+import { InterceptorFunc } from '../bindable.js';
 
 const $is = Object.is;
 
@@ -16,18 +16,16 @@ export class SetterObserver {
   public currentValue: unknown = void 0;
   public oldValue: unknown = void 0;
 
-  public readonly persistentFlags: LifecycleFlags;
+  public readonly persistentFlags: LifecycleFlags = LifecycleFlags.none;
   public inBatch: boolean = false;
   public observing: boolean = false;
   // todo(bigopon): tweak the flag based on typeof obj (array/set/map/iterator/proxy etc...)
   public type: AccessorType = AccessorType.Obj;
 
   public constructor(
-    flags: LifecycleFlags,
     public readonly obj: IIndexable,
     public readonly propertyKey: string,
   ) {
-    this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
   }
 
   public getValue(): unknown {
@@ -38,7 +36,7 @@ export class SetterObserver {
     if (this.observing) {
       const currentValue = this.currentValue;
       this.currentValue = newValue;
-      this.callSubscribers(newValue, currentValue, this.persistentFlags | flags);
+      this.callSubscribers(newValue, currentValue, flags);
     } else {
       // If subscribe() has been called, the target property descriptor is replaced by these getter/setter methods,
       // so calling obj[propertyKey] will actually return this.currentValue.
@@ -55,7 +53,7 @@ export class SetterObserver {
     const currentValue = this.currentValue;
     const oldValue = this.oldValue;
     this.oldValue = currentValue;
-    this.callSubscribers(currentValue, oldValue, this.persistentFlags | flags);
+    this.callSubscribers(currentValue, oldValue, flags);
   }
 
   public subscribe(subscriber: ISubscriber): void {
@@ -114,7 +112,6 @@ export class SetterNotifier implements IAccessor, ISubscribable {
    * @internal
    */
   public v: unknown = void 0;
-  public task: ITask | null = null;
 
   public readonly persistentFlags: LifecycleFlags = LifecycleFlags.none;
 

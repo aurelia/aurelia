@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import { Constructable, ResourceType, IContainer, IResourceKind, ResourceDefinition, Key, IResolver, Resolved, IFactory, Transformer, DI, InstanceProvider, Registration, ILogger, IModuleLoader, IModuleAnalyzer, IModule } from '@aurelia/kernel';
+import { Constructable, ResourceType, IContainer, IResourceKind, ResourceDefinition, Key, IResolver, Resolved, IFactory, Transformer, DI, InstanceProvider, Registration, ILogger, IModuleLoader, IModule } from '@aurelia/kernel';
 import { ICompiledRenderContext, CustomElementDefinition, CustomElement, ICustomElementController, IController, isCustomElementViewModel, isCustomElementController, IAppRoot, IPlatform } from '@aurelia/runtime-html';
 
 import { RouteDefinition } from './route-definition';
@@ -94,7 +94,6 @@ export class RouteContext implements IContainer {
   }
 
   private readonly moduleLoader: IModuleLoader;
-  private readonly moduleAnalyzer: IModuleAnalyzer;
   private readonly logger: ILogger;
   private readonly container: IContainer;
   private readonly hostControllerProvider: InstanceProvider<ICustomElementController>;
@@ -121,7 +120,6 @@ export class RouteContext implements IContainer {
     this.logger.trace('constructor()');
 
     this.moduleLoader = parentContainer.get(IModuleLoader);
-    this.moduleAnalyzer = parentContainer.get(IModuleAnalyzer);
 
     const container = this.container = parentContainer.createChild({ inheritParentResources: true });
 
@@ -363,12 +361,11 @@ export class RouteContext implements IContainer {
     this.recognizer.add(routeDef, true);
   }
 
-  public resolveLazy(pathOrPromise: string | Promise<IModule>): Promise<CustomElementDefinition> | CustomElementDefinition {
-    return this.moduleLoader.load(pathOrPromise, m => {
-      const analyzed = this.moduleAnalyzer.analyze(m);
+  public resolveLazy(promise: Promise<IModule>): Promise<CustomElementDefinition> | CustomElementDefinition {
+    return this.moduleLoader.load(promise, m => {
       let defaultExport: CustomElementDefinition | undefined = void 0;
       let firstNonDefaultExport: CustomElementDefinition | undefined = void 0;
-      for (const item of analyzed.items) {
+      for (const item of m.items) {
         if (item.isConstructable) {
           const def = item.definitions.find(isCustomElementDefinition);
           if (def !== void 0) {
@@ -384,7 +381,7 @@ export class RouteContext implements IContainer {
       if (defaultExport === void 0) {
         if (firstNonDefaultExport === void 0) {
           // TODO: make error more accurate and add potential causes/solutions
-          throw new Error(`${pathOrPromise} does not appear to be a component or CustomElement recognizable by Aurelia`);
+          throw new Error(`${promise} does not appear to be a component or CustomElement recognizable by Aurelia`);
         }
         return firstNonDefaultExport;
       }

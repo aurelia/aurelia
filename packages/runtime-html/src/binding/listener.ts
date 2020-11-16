@@ -6,11 +6,11 @@ import {
   IsBindingBehavior,
   LifecycleFlags,
 } from '@aurelia/runtime';
-import { IEventDelegator } from '../observation/event-delegator';
+import { IEventDelegator } from '../observation/event-delegator.js';
 
 import type { Scope } from '@aurelia/runtime';
-import { IPlatform } from '../platform';
-import { IEventTarget } from '../dom';
+import { IPlatform } from '../platform.js';
+import { IEventTarget } from '../dom.js';
 
 const options = {
   [DelegationStrategy.capturing]: { capture: true } as const,

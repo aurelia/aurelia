@@ -1,9 +1,9 @@
 import { nextId } from '@aurelia/kernel';
 import { LifecycleFlags } from '@aurelia/runtime';
-import { IRenderLocation } from '../../dom';
-import { IViewFactory } from '../../templating/view';
-import { templateController } from '../custom-attribute';
-import type { ISyntheticView, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller';
+import { IRenderLocation } from '../../dom.js';
+import { IViewFactory } from '../../templating/view.js';
+import { templateController } from '../custom-attribute.js';
+import type { ISyntheticView, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller.js';
 
 abstract class FlagsTemplateController implements ICustomAttributeViewModel {
   public readonly id: number;
@@ -48,13 +48,6 @@ abstract class FlagsTemplateController implements ICustomAttributeViewModel {
     if (this.view?.accept(visitor) === true) {
       return true;
     }
-  }
-}
-
-@templateController('infrequent-mutations')
-export class InfrequentMutations extends FlagsTemplateController {
-  public constructor(@IViewFactory factory: IViewFactory, @IRenderLocation location: IRenderLocation) {
-    super(factory, location, LifecycleFlags.noTargetObserverQueue);
   }
 }
 

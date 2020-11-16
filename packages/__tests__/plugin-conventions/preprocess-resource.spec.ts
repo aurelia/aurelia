@@ -558,7 +558,7 @@ export class FooBarBindingCommand {}
 describe('preprocessResource for complex resource', function () {
 
   it('injects various decorators when there is no implicit custom element', function () {
-    const code = `import {Foo} from './foo';
+    const code = `import {Foo} from './foo.js';
 import Aurelia, { valueConverter } from 'aurelia';
 
 export class LeaveMeAlone {}
@@ -589,7 +589,7 @@ export class AbcBindingCommand {
 }
 `;
     const expected = `import { customAttribute, bindingBehavior, bindingCommand } from '@aurelia/runtime-html';
-import {Foo} from './foo';
+import {Foo} from './foo.js';
 import Aurelia, { valueConverter } from 'aurelia';
 
 export class LeaveMeAlone {}
@@ -635,7 +635,7 @@ export class AbcBindingCommand {
   });
 
   it('injects various decorators when there is implicit custom element', function () {
-    const code = `import {Foo} from './foo';
+    const code = `import {Foo} from './foo.js';
 import { templateController, other } from '@aurelia/runtime-html';
 
 export class LeaveMeAlone {}
@@ -665,7 +665,7 @@ export class AbcBindingCommand {
 }
 `;
     const expected = `import * as __au2ViewDef from './foo-bar.html';
-import {Foo} from './foo';
+import {Foo} from './foo.js';
 import { templateController, other, customElement, customAttribute, valueConverter, bindingBehavior, bindingCommand } from '@aurelia/runtime-html';
 
 export class LeaveMeAlone {}
@@ -713,7 +713,7 @@ export class FooBar {}
   });
 
   it('injects various decorators when there is implicit custom element with customized name', function () {
-    const code = `import {Foo} from './foo';
+    const code = `import {Foo} from './foo.js';
 import { templateController, customElement, other } from '@aurelia/runtime-html';
 
 export class LeaveMeAlone {}
@@ -744,7 +744,7 @@ export class AbcBindingCommand {
 }
 `;
     const expected = `import * as __au2ViewDef from './foo-bar.html';
-import {Foo} from './foo';
+import {Foo} from './foo.js';
 import { templateController, customElement, other, customAttribute, valueConverter, bindingBehavior, bindingCommand } from '@aurelia/runtime-html';
 
 export class LeaveMeAlone {}

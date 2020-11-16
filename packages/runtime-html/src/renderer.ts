@@ -22,18 +22,18 @@ import {
   ForOfStatement,
   DelegationStrategy,
 } from '@aurelia/runtime';
-import { AttributeBinding } from './binding/attribute';
-import { Listener } from './binding/listener';
-import { IEventDelegator } from './observation/event-delegator';
-import { CustomElement, CustomElementDefinition, PartialCustomElementDefinition } from './resources/custom-element';
-import { getRenderContext, ICompiledRenderContext } from './templating/render-context';
-import { RegisteredProjections, SlotInfo } from './resources/custom-elements/au-slot';
-import { CustomAttribute } from './resources/custom-attribute';
-import { convertToRenderLocation, INode } from './dom';
-import { Controller } from './templating/controller';
-import { IViewFactory } from './templating/view';
-import { IPlatform } from './platform';
-import type { IHydratableController, IController, ICustomAttributeViewModel, ICustomElementViewModel } from './templating/controller';
+import { AttributeBinding } from './binding/attribute.js';
+import { Listener } from './binding/listener.js';
+import { IEventDelegator } from './observation/event-delegator.js';
+import { CustomElement, CustomElementDefinition, PartialCustomElementDefinition } from './resources/custom-element.js';
+import { getRenderContext, ICompiledRenderContext } from './templating/render-context.js';
+import { RegisteredProjections, SlotInfo } from './resources/custom-elements/au-slot.js';
+import { CustomAttribute } from './resources/custom-attribute.js';
+import { convertToRenderLocation, INode } from './dom.js';
+import { Controller } from './templating/controller.js';
+import { IViewFactory } from './templating/view.js';
+import { IPlatform } from './platform.js';
+import type { IHydratableController, IController, ICustomAttributeViewModel, ICustomElementViewModel } from './templating/controller.js';
 
 export const enum InstructionType {
   hydrateElement = 'ra',

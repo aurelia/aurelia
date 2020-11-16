@@ -1,5 +1,5 @@
-import { HttpClient } from './http-client';
-import { Interceptor, RetryableRequest, RetryConfiguration } from './interfaces';
+import { HttpClient } from './http-client.js';
+import { Interceptor, RetryableRequest, RetryConfiguration } from './interfaces.js';
 
 export const retryStrategy: {
   fixed: 0;

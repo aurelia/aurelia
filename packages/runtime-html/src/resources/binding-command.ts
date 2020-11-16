@@ -22,8 +22,8 @@ import {
   AttributeInstruction,
   RefBindingInstruction,
   ListenerBindingInstruction,
-} from '../renderer';
-import { BindingSymbol, PlainAttributeSymbol, SymbolFlags } from '../semantic-model';
+} from '../renderer.js';
+import { BindingSymbol, PlainAttributeSymbol, SymbolFlags } from '../semantic-model.js';
 
 export type PartialBindingCommandDefinition = PartialResourceDefinition<{
   readonly type?: string | null;

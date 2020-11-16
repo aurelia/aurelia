@@ -1,8 +1,8 @@
 import { DI, InterfaceSymbol, Writable } from '@aurelia/kernel';
 import { IAppRoot } from './app-root';
-import { IPlatform } from './platform';
-import { CustomElement } from './resources/custom-element';
-import { MountTarget } from './templating/controller';
+import { IPlatform } from './platform.js';
+import { CustomElement } from './resources/custom-element.js';
+import { MountTarget } from './templating/controller.js';
 
 export type INode<T extends Node = Node> = T;
 export const INode = DI.createInterface<INode>('INode').noDefault();

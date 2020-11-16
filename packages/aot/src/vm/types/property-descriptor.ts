@@ -1,24 +1,24 @@
 import {
   Realm,
   ExecutionContext,
-} from '../realm';
+} from '../realm.js';
 import {
   $Boolean,
-} from './boolean';
+} from './boolean.js';
 import {
   $Undefined,
-} from './undefined';
+} from './undefined.js';
 import {
   $Empty,
-} from './empty';
+} from './empty.js';
 import {
   $Function,
-} from './function';
+} from './function.js';
 import {
   $AnyNonError,
   $PropertyKey,
   $Any,
-} from './_shared';
+} from './_shared.js';
 import {
   IDisposable,
   Writable,

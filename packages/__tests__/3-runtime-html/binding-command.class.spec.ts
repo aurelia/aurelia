@@ -1,7 +1,7 @@
 import { Constructable } from '@aurelia/kernel';
 import { Aurelia, IEventDelegator, StandardConfiguration, BindingMode, CustomElement, IPlatform } from '@aurelia/runtime-html';
 import { TestContext, eachCartesianJoin, eachCartesianJoinAsync, assert } from '@aurelia/testing';
-import { ClassAttributePattern } from './attribute-pattern';
+import { ClassAttributePattern } from './attribute-pattern.js';
 
 // TemplateCompiler - Binding Commands integration
 describe('template-compiler.binding-commands.class', function () {

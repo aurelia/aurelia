@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.7.0",
   "devDependencies": {
-    "chromedriver": "^77.0.0",
+    "chromedriver": "^85.0.0",
     "fibers": "^4.0.2",
     "mocha": "~6.1.4",
     "wdio": "^4.0.0",

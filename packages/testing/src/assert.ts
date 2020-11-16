@@ -382,8 +382,8 @@ export function fail(message: string | Error = 'Failed'): never {
   throw err;
 }
 
-export function visibleTextEqual(root: IAppRoot, expectedText: string, message?: string): void {
-  const actualText = getVisibleText(root.controller!, root.host as Node);
+export function visibleTextEqual(host: Node, expectedText: string, message?: string): void {
+  const actualText = getVisibleText(host);
   if (actualText !== expectedText) {
     innerFail({
       actual: actualText,
@@ -682,7 +682,7 @@ function getNode(elementOrSelector: string | Node, root: Node = PLATFORM.documen
 }
 function isTextContentEqual(elementOrSelector: string | Node, expectedText: string, message?: string, root?: Node) {
   const host = getNode(elementOrSelector, root);
-  const actualText = host && getVisibleText((void 0)!, host, true);
+  const actualText = host && getVisibleText(host, true);
   if (actualText !== expectedText) {
     innerFail({
       actual: actualText,

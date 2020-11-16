@@ -1,5 +1,4 @@
-import { If, Repeat, With, ICustomElementController, ViewModelKind, ISyntheticView, Compose, InstructionType } from '@aurelia/runtime-html';
-import { MountTarget } from '@aurelia/runtime-html/dist/templating/controller';
+import { InstructionType, NodeType, CustomElement } from '@aurelia/runtime-html';
 import { assert } from './assert.js';
 
 // Disabling this as it this is nowhere used. And also the ast-serialization infra is moved to validation package.
@@ -60,48 +59,28 @@ export function verifyEqual(actual: any, expected: any, depth?: number, property
   }
 }
 
-export function getVisibleText(root: ICustomElementController, host: Node, removeWhiteSpace?: boolean): string | null {
-  const context = { text: host.textContent };
-  $getVisibleText(root, context);
-  const text = context.text;
-  return removeWhiteSpace && text ? text.replace(/\s\s+/g, ' ').trim() : text;
+function nextAncestor(host: Node, node: Node): Node | null {
+  const parent = node.parentNode ?? (node as ShadowRoot).host ?? null;
+  if (parent === null || parent === host) {
+    return null;
+  }
+  return parent.nextSibling ?? nextAncestor(host, parent);
 }
 
-function $getVisibleText(root: ICustomElementController | ISyntheticView, context: { text: string | null}): void {
-  if (root == void 0) {
-    return;
-  }
+function nextNode(host: Node, node: Node): Node | null {
+  return CustomElement.for(node, { optional: true })?.shadowRoot?.firstChild ?? node.firstChild ?? node.nextSibling ?? nextAncestor(host, node);
+}
 
-  const { children } = root;
-  if (children == void 0) {
-    return;
-  }
-  const { length } = children;
-  let controller;
-  for (let i = 0; i < length; ++i) {
-    controller = children[i];
-    switch (controller.vmKind) {
-      case ViewModelKind.customElement:
-        if (controller.mountTarget === MountTarget.shadowRoot) {
-          context.text += controller.shadowRoot!.textContent!;
-          $getVisibleText(controller, context);
-        } else if (controller.viewModel instanceof Compose) {
-          $getVisibleText((controller.viewModel as Compose).view!, context);
-        }
-        break;
-      case ViewModelKind.customAttribute:
-        if (controller.viewModel instanceof With) {
-          $getVisibleText((controller.viewModel as With).view, context);
-        } else if (controller.viewModel instanceof If) {
-          $getVisibleText((controller.viewModel as If).view!, context);
-        } else if (controller.viewModel instanceof Repeat) {
-          for (const view of (controller.viewModel as Repeat).views) {
-            $getVisibleText(view, context);
-          }
-        }
-        break;
+export function getVisibleText(host: Node, removeWhiteSpace?: boolean): string | null {
+  let text = '';
+  let cur = CustomElement.for(host, { optional: true })?.shadowRoot?.firstChild ?? host.firstChild as Node | null;;
+  while (cur !== null) {
+    if (cur.nodeType === NodeType.Text) {
+      text += (cur as Text).data;
     }
+    cur = nextNode(host, cur);
   }
+  return removeWhiteSpace && text ? text.replace(/\s\s+/g, ' ').trim() : text;
 }
 
 export function instructionTypeName(type: string): string {

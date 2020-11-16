@@ -1,6 +1,5 @@
 import { IIndexable } from '@aurelia/kernel';
 import { watching, currentWatcher } from './watcher-switcher';
-import { isMap, isSet, isObject, isArray } from '../utilities-objects';
 
 const R$get = Reflect.get;
 const proxyMap = new WeakMap<object, object>();
@@ -8,7 +7,7 @@ const proxyMap = new WeakMap<object, object>();
 export const rawKey = '__raw__';
 
 export function getProxyOrSelf<T extends unknown>(v: T): T {
-  return isObject(v) ? getProxy(v) : v;
+  return v instanceof Object ? getProxy(v) : v;
 }
 export function getProxy<T extends object>(obj: T): T {
   // deepscan-disable-next-line
@@ -20,7 +19,7 @@ export function getRaw<T extends object>(obj: T): T {
   return (obj as IIndexable)[rawKey] as T ?? obj;
 }
 export function getRawOrSelf<T extends unknown>(v: T): T {
-  return isObject(v) ? (v as IIndexable)[rawKey] as T : v;
+  return v instanceof Object ? (v as IIndexable)[rawKey] as T : v;
 }
 
 function doNotCollect(key: PropertyKey): boolean {
@@ -34,9 +33,9 @@ function doNotCollect(key: PropertyKey): boolean {
 }
 
 function createProxy<T extends object>(obj: T): T {
-  const handler: ProxyHandler<object> = isArray(obj)
+  const handler: ProxyHandler<object> = obj instanceof Array
     ? arrayHandler
-    : isMap(obj) || isSet(obj)
+    : obj instanceof Map || obj instanceof Set
       ? collectionHandler
       : objectHandler;
 
@@ -289,17 +288,17 @@ const collectionHandler: ProxyHandler<$MapOrSet> = {
       case 'forEach':
         return wrappedForEach;
       case 'add':
-        if (isSet(target)) {
+        if (target instanceof Set) {
           return wrappedAdd;
         }
         break;
       case 'get':
-        if (isMap(target)) {
+        if (target instanceof Map) {
           return wrappedGet;
         }
         break;
       case 'set':
-        if (isMap(target)) {
+        if (target instanceof Map) {
           return wrappedSet;
         }
         break;
@@ -312,7 +311,7 @@ const collectionHandler: ProxyHandler<$MapOrSet> = {
       case 'entries':
         return wrappedEntries;
       case Symbol.iterator:
-        return isMap(target) ? wrappedEntries : wrappedValues;
+        return target instanceof Map ? wrappedEntries : wrappedValues;
     }
 
     return getProxyOrSelf(R$get(target, key, receiver));

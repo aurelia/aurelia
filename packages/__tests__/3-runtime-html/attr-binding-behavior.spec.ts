@@ -2,7 +2,7 @@ import { IContainer } from '@aurelia/kernel';
 import { PropertyBinding, AttrBindingBehavior, DataAttributeAccessor } from '@aurelia/runtime-html';
 import { TestContext, assert } from '@aurelia/testing';
 
-describe('AttrBindingBehavior', function () {
+describe('3-runtime-html/attr-binding-behavior.spec.ts', function () {
   let target: any;
   let targetProperty: string;
   let container: IContainer;
@@ -22,8 +22,6 @@ describe('AttrBindingBehavior', function () {
 
   it('bind()   should put a DataAttributeObserver on the binding', function () {
     assert.strictEqual(binding.targetObserver instanceof DataAttributeAccessor, true, `binding.targetObserver instanceof DataAttributeAccessor`);
-    assert.strictEqual(binding.targetObserver['obj'] === target, true, `binding.targetObserver['obj'] === target`);
-    assert.strictEqual(binding.targetObserver['propertyKey'] === targetProperty, true, `binding.targetObserver['propertyKey'] === targetProperty`);
   });
 
   // it('unbind() should clear the DataAttributeObserver from the binding', function () {

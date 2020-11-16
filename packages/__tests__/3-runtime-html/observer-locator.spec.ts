@@ -309,16 +309,8 @@ describe('ObserverLocator', function () {
               assert.strictEqual(actual.constructor.name, ValueAttributeObserver.name, `actual.constructor.name`);
             } else if (property === 'style' || property === 'css') {
               assert.strictEqual(actual.constructor.name, StyleAttributeAccessor.name, `actual.constructor.name`);
-            } else if (descriptors[property].get === undefined) {
-              assert.strictEqual(actual.constructor.name, SetterObserver.name, `actual.constructor.name`);
             } else {
-              if (!(hasAdapterObserver && adapterIsDefined)) {
-                assert.strictEqual(actual.constructor.name, DirtyCheckProperty.name, `actual.constructor.name`);
-              } else if ((!hasGetObserver && hasAdapterObserver && adapterIsDefined) || hasGetObserver) {
-                assert.strictEqual(actual, dummyObserver, `actual`);
-              } else {
-                assert.strictEqual(actual.constructor.name, DirtyCheckProperty.name, `actual.constructor.name`);
-              }
+              assert.strictEqual(actual.constructor.name, DirtyCheckProperty.name, `actual.constructor.name`);
             }
           });
         }

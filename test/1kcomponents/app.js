@@ -1,4 +1,5 @@
-import { Aurelia, SVGAnalyzerRegistration, StandardConfiguration } from '@aurelia/runtime-html';
+// @ts-check
+import { Aurelia, CustomElement, IPlatform, ValueConverter, SVGAnalyzerRegistration, StandardConfiguration } from '@aurelia/runtime-html';
 import { startFPSMonitor, startMemMonitor } from 'perf-monitor';
 import { interpolateViridis } from 'd3-scale-chromatic';
 
@@ -165,7 +166,6 @@ const App = CustomElement.define(
               class="point"
               transform.bind="point.transform"
               fill.bind="point.color"
-              view.one-time="point.$controller = $view"
             />
           </g>
         </svg>
@@ -194,13 +194,13 @@ const App = CustomElement.define(
     ]
   },
   class {
-    static get inject() { return [IScheduler]; }
+    static get inject() { return [IPlatform]; }
 
     /**
-     * @param {IScheduler} scheduler
+     * @param {IPlatform} platform
      */
-    constructor(scheduler) {
-      this.scheduler = scheduler;
+    constructor(platform) {
+      this.platform = platform;
       this.points = [];
       this.count = 0;
       this.fps = 30;
@@ -209,7 +209,7 @@ const App = CustomElement.define(
     attaching() {
       this.count = 1000;
       // this.scheduler.enqueueRAF(Point.update, Point, Priority.preempt);
-      this.scheduler.queueRenderTask(
+      this.platform.domWriteQueue.queueTask(
         () => {
           Point.update();
           this.points.forEach(point => point.flushRAF());
@@ -218,10 +218,6 @@ const App = CustomElement.define(
         persistent: true,
       });
     }
-
-    // fpsChanged(fps) {
-    //   this.$controller.lifecycle.minFPS = fps;
-    // }
 
     countChanged(count) {
       Phyllotaxis.count = count;

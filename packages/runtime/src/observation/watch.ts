@@ -84,7 +84,7 @@ export function watch<T extends object = object>(
 
 const noDefinitions: IWatchDefinition[] = emptyArray;
 export const Watch = {
-  name: Protocol.annotation.keyFor('@watch'),
+  name: Protocol.annotation.keyFor('watch'),
   add(Type: Constructable, definition: IWatchDefinition): void {
     let watchDefinitions: IWatchDefinition[] = Metadata.getOwn(Watch.name, Type);
     if (watchDefinitions == null) {

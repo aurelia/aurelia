@@ -4,8 +4,7 @@ import {
   IDirtyChecker,
   ILifecycle,
   IObserverLocator,
-  ITargetAccessorLocator,
-  ITargetObserverLocator,
+  INodeObserverLocator,
   LifecycleFlags as LF,
   ComputedOverrides,
   createComputedObserver,
@@ -24,8 +23,7 @@ describe.skip('ComputedObserver', function () {
     const innerLocator = {
       handles() { return false; }
     };
-    Registration.instance(ITargetAccessorLocator, innerLocator).register(container);
-    Registration.instance(ITargetObserverLocator, innerLocator).register(container);
+    Registration.instance(INodeObserverLocator, innerLocator).register(container);
     const locator = container.get(IObserverLocator);
     const dirtyChecker = container.get(IDirtyChecker);
     const lifecycle = container.get(ILifecycle);

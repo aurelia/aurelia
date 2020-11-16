@@ -34,14 +34,12 @@ describe('checked-observer.spec.ts', function () {
         assert.strictEqual(inputEls.every(el => !el.checked), true, 'all checkbox NOT checked');
 
         component.selected.push(0);
-        ctx.platform.domWriteQueue.flush();
         assert.strictEqual(inputEls[0].checked, true, 'after push(0), 1st checkbox should be checked');
 
         simulateStateChange(ctx, inputEls[0], false);
         assert.strictEqual(component.selected.length, 0, 'after unticking 1st checkbox, selected length should be 0');
 
         component.selected.push(10);
-        ctx.platform.domWriteQueue.flush();
         assert.strictEqual(inputEls.every(el => !el.checked), true, 'After push(10), no checkbox should be checked');
 
         component.selected = Array.from({ length: 10 }, (_, i) => i);
@@ -62,14 +60,12 @@ describe('checked-observer.spec.ts', function () {
         assert.strictEqual(inputEls.every(el => !el.checked), true, 'all checkbox NOT checked');
 
         component.selected.add(0);
-        ctx.platform.domWriteQueue.flush();
         assert.strictEqual(inputEls[0].checked, true, 'first input is checked');
 
         simulateStateChange(ctx, inputEls[0], false);
         assert.strictEqual(component.selected.size, 0);
 
         component.selected.add(10);
-        ctx.platform.domWriteQueue.flush();
         assert.strictEqual(inputEls.every(el => !el.checked), true, 'all not checked');
 
         component.selected = new Set(Array.from({ length: 10 }, (_, i) => i));
@@ -90,14 +86,12 @@ describe('checked-observer.spec.ts', function () {
         assert.strictEqual(inputEls.every(el => !el.checked), true, 'all checkbox NOT checked');
 
         component.selected.set(0, true);
-        ctx.platform.domWriteQueue.flush();
         assert.strictEqual(inputEls[0].checked, true, 'first input is checked');
 
         simulateStateChange(ctx, inputEls[0], false);
         assert.strictEqual(component.selected.size, 1);
 
         component.selected.set(10, true);
-        ctx.platform.domWriteQueue.flush();
         assert.strictEqual(inputEls.every(el => !el.checked), true, 'all not checked');
 
         component.selected = new Map(Array.from({ length: 10 }, (_, i) => [i, true]));
@@ -123,14 +117,12 @@ describe('checked-observer.spec.ts', function () {
         assert.strictEqual(inputEls.every(el => !el.checked), true, 'all checkbox NOT checked');
 
         component.selected.push({ name: 'item 0', value: 0 });
-        ctx.platform.domWriteQueue.flush();
         assert.strictEqual(inputEls[0].checked, true, 'first input is checked');
 
         simulateStateChange(ctx, inputEls[0], false);
         assert.strictEqual(component.selected.length, 0);
 
         component.selected.push({ name: 'item 10', value: 10 });
-        ctx.platform.domWriteQueue.flush();
         assert.strictEqual(inputEls.every(el => !el.checked), true, 'all not checked');
 
         component.selected = createItems(10);
@@ -156,14 +148,12 @@ describe('checked-observer.spec.ts', function () {
         assert.strictEqual(inputEls.every(el => !el.checked), true, 'all checkbox NOT checked');
 
         component.selected.add({ name: 'item 0', value: 0 });
-        ctx.platform.domWriteQueue.flush();
         assert.strictEqual(inputEls[0].checked, true, 'first input is checked');
 
         simulateStateChange(ctx, inputEls[0], false);
         assert.strictEqual(component.selected.size, 0);
 
         component.selected.add({ name: 'item 10', value: 10 });
-        ctx.platform.domWriteQueue.flush();
         assert.strictEqual(inputEls.every(el => !el.checked), true, 'all not checked');
 
         component.selected = new Set(createItems(10));
@@ -190,7 +180,6 @@ describe('checked-observer.spec.ts', function () {
 
         const firstItemValue = { name: 'item 0', value: 0 };
         component.selected.set(firstItemValue, true);
-        ctx.platform.domWriteQueue.flush();
         assert.strictEqual(inputEls[0].checked, true, 'first input is checked');
 
         simulateStateChange(ctx, inputEls[0], false);
@@ -198,7 +187,6 @@ describe('checked-observer.spec.ts', function () {
         assert.strictEqual(component.selected.get(firstItemValue), false);
 
         component.selected.set({ name: 'item 10', value: 10 }, true);
-        ctx.platform.domWriteQueue.flush();
         assert.strictEqual(inputEls.every(el => !el.checked), true, 'all not checked');
 
         component.selected = new Map(Array.from(createItems(10), item => [item, true]));
@@ -390,7 +378,6 @@ describe.skip('CheckedObserver', function () {
 
                 sut.setValue(propValue, LF.none);
                 // assert.strictEqual(lifecycle.flushCount, changeCountBefore, 'lifecycle.flushCount 1');
-                platform.domWriteQueue.flush();
                 assert.strictEqual(el.checked, checkedBefore, 'el.checked 1');
                 assert.strictEqual(sut.getValue(), expectedPropValue, 'sut.getValue() 1');
 
@@ -398,7 +385,6 @@ describe.skip('CheckedObserver', function () {
                 assert.strictEqual(el.checked, checkedBefore, 'el.checked 2');
                 assert.strictEqual(sut.getValue(), expectedNewValue, 'sut.getValue() 2');
                 // assert.strictEqual(lifecycle.flushCount, changeCountAfter, 'lifecycle.flushCount 2');
-                platform.domWriteQueue.flush();
 
                 assert.strictEqual(el.checked, checkedAfter, 'el.checked 3');
                 assert.deepStrictEqual(
@@ -541,7 +527,7 @@ describe.skip('CheckedObserver', function () {
             sutB.setValue(checkedBefore, LF.none);
             sutC.setValue(checkedBefore, LF.none);
             // assert.strictEqual(lifecycle.flushCount, changeCountBefore, 'lifecycle.flushCount 1');
-            platform.domWriteQueue.flush();
+
             assert.strictEqual(elA.checked, checkedBefore === 'A', 'elA.checked 1');
             assert.strictEqual(elB.checked, checkedBefore === 'B', 'elB.checked 1');
             assert.strictEqual(elC.checked, checkedBefore === 'C', 'elC.checked 1');
@@ -559,7 +545,6 @@ describe.skip('CheckedObserver', function () {
             assert.strictEqual(sutB.getValue(), expectedNewValue, 'sutB.getValue() 2');
             assert.strictEqual(sutC.getValue(), expectedNewValue, 'sutC.getValue() 2');
             // assert.strictEqual(lifecycle.flushCount, changeCountAfter, 'lifecycle.flushCount 2');
-            platform.domWriteQueue.flush();
 
             assert.strictEqual(elA.checked, checkedAfter === 'A', 'elA.checked 3');
             assert.strictEqual(elB.checked, checkedAfter === 'B', 'elB.checked 3');
@@ -710,7 +695,7 @@ describe.skip('CheckedObserver', function () {
 
                     sut.setValue(propValue, LF.none);
                     // assert.strictEqual(lifecycle.flushCount, changeCountBefore, 'lifecycle.flushCount 1');
-                    platform.domWriteQueue.flush();
+
                     assert.strictEqual(el.checked, valueCanBeChecked && checkedBefore, 'el.checked 1');
                     assert.strictEqual(sut.getValue(), propValue, 'sut.getValue() 1');
 
@@ -718,7 +703,6 @@ describe.skip('CheckedObserver', function () {
                     assert.strictEqual(el.checked, valueCanBeChecked && checkedBefore, 'el.checked 2');
                     assert.strictEqual(sut.getValue(), newValue, 'sut.getValue() 2');
                     // assert.strictEqual(lifecycle.flushCount, changeCountAfter, 'lifecycle.flushCount 2');
-                    platform.domWriteQueue.flush();
 
                     assert.strictEqual(el.checked, valueCanBeChecked && checkedAfter, 'el.checked 3');
                     assert.deepStrictEqual(
@@ -777,20 +761,20 @@ describe.skip('CheckedObserver', function () {
 
             sut.setValue(array, LF.none);
             // assert.strictEqual(lifecycle.flushCount, 1, 'lifecycle.flushCount 1');
-            platform.domWriteQueue.flush();
+
             assert.strictEqual(el.checked, false, 'el.checked 1');
             assert.strictEqual(sut.getValue(), array, 'sut.getValue() 1');
 
             array.push(value);
             assert.strictEqual(el.checked, false, 'el.checked 2');
             // assert.strictEqual(lifecycle.flushCount, 1, 'lifecycle.flushCount 2');
-            platform.domWriteQueue.flush();
+
             assert.strictEqual(el.checked, valueCanBeChecked, 'el.checked 3');
 
             array.pop();
             assert.strictEqual(el.checked, valueCanBeChecked, 'el.checked 4');
             // assert.strictEqual(lifecycle.flushCount, 1, 'lifecycle.flushCount 3');
-            platform.domWriteQueue.flush();
+
             assert.strictEqual(el.checked, false, 'el.checked 5');
             assert.deepStrictEqual(
               subscriber.handleChange,
@@ -915,22 +899,22 @@ describe.skip('CheckedObserver', function () {
                     const { ctx, sut, el, subscriber, valueOrModelObserver, lifecycle, platform } = createFixture(hasSubscriber, value, prop);
 
                     sut.setValue(propValue, LF.none);
-                    platform.domWriteQueue.flush();
+
                     assert.strictEqual(sut.getValue(), propValue, 'sut.getValue() 1');
 
                     assert.strictEqual(el.checked, prop === 'model' && value === undefined && propValue === checkedValue, 'el.checked 1');
                     valueOrModelObserver.setValue(value, LF.none);
                     assert.strictEqual(el.checked, valueCanBeChecked && checkedBefore, 'el.checked 2');
-                    platform.domWriteQueue.flush();
+
                     assert.strictEqual(el.checked, valueCanBeChecked && checkedBefore, 'el.checked 3');
 
                     sut.setValue(newValue, LF.none);
-                    platform.domWriteQueue.flush();
+
                     assert.strictEqual(sut.getValue(), newValue, 'sut.getValue() 2');
 
                     valueOrModelObserver.setValue(value, LF.none);
                     assert.strictEqual(el.checked, valueCanBeChecked && checkedAfter, 'el.checked 4');
-                    platform.domWriteQueue.flush();
+
                     assert.strictEqual(el.checked, valueCanBeChecked && checkedAfter, 'el.checked 5');
                     assert.deepStrictEqual(
                       subscriber.handleChange,

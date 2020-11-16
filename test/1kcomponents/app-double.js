@@ -1,4 +1,5 @@
-import { SVGAnalyzerRegistration, StandardConfiguration, Aurelia, CustomElementResource, ValueConverterResource, ILifecycle, Priority, LifecycleFlags } from '@aurelia/runtime-html';
+// @ts-check
+import { SVGAnalyzerRegistration, StandardConfiguration, Aurelia, CustomElement, ValueConverter } from '@aurelia/runtime-html';
 import { startFPSMonitor, startMemMonitor } from 'perf-monitor';
 import { interpolateViridis } from 'd3-scale-chromatic';
 
@@ -137,12 +138,9 @@ class Point {
   }
 
   flushRAF() {
-    if (this.transform === void 0) {
-      this.transform = this.$controller.getTargetAccessor('transform');
-    }
     this.x = this[Point.pxProp] + (this[Point.nxProp] - this[Point.pxProp]) * Point.pct;
     this.y = this[Point.pyProp] + (this[Point.nyProp] - this[Point.pyProp]) * Point.pct;
-    this.transform.setValue(`translate(${~~this.x}, ${~~this.y})`, LifecycleFlags.fromBind);
+    this.transform = `translate(${~~this.x}, ${~~this.y})`;
   }
 }
 
@@ -157,7 +155,7 @@ Point.pyProp = '';
 Point.nyProp = '';
 
 function defineApp(fps, count) {
-  return CustomElementResource.define(
+  return CustomElement.define(
     {
       name: 'app',
       template: `
@@ -194,14 +192,12 @@ function defineApp(fps, count) {
       `,
       bindables: ['count', 'fps'],
       dependencies: [
-        ValueConverterResource.define('num', class { fromView(str) { return parseInt(str, 10); } })
+        ValueConverter.define('num', class { fromView(str) { return parseInt(str, 10); } })
       ]
     },
     class {
-      static get inject() { return [ILifecycle]; }
 
-      constructor(lifecycle) {
-        this.lifecycle = lifecycle;
+      constructor() {
         this.points = [];
         this.count = 0;
         this.fps = fps;
@@ -209,11 +205,6 @@ function defineApp(fps, count) {
 
       attached() {
         this.count = count;
-        this.lifecycle.enqueueRAF(Point.update, Point, Priority.preempt);
-      }
-
-      fpsChanged(fps) {
-        this.$controller.lifecycle.minFPS = fps;
       }
 
       countChanged(count) {
@@ -237,19 +228,12 @@ function defineApp(fps, count) {
           for (let i = 0; i < count; ++i) {
             points[i].update(i, count);
           }
-          let point;
-          for (let i = count; i < length; ++i) {
-            point = points[i];
-            this.lifecycle.dequeueRAF(point.flushRAF, point);
-          }
           points.splice(count, length - count);
         }
       }
 
       createPoint(count, i) {
-        const point = new Point(i, count);
-        this.lifecycle.enqueueRAF(point.flushRAF, point, Priority.low);
-        return point;
+        return new Point(i, count);
       }
     }
   );

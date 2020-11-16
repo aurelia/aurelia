@@ -67,9 +67,9 @@ describe('PrimitiveObserver', function () {
 class Foo {}
 
 describe('SetterObserver', function () {
-  function createFixture(flags: LF, obj: IIndexable, key: string) {
+  function createFixture(obj: IIndexable, key: string) {
     const ctx = TestContext.create();
-    const sut = new SetterObserver(flags, obj, key);
+    const sut = new SetterObserver(obj, key);
 
     return { ctx, sut };
   }
@@ -80,7 +80,7 @@ describe('SetterObserver', function () {
     for (const object of objectArr) {
       for (const propertyName of propertyNameArr) {
         it(`should correctly handle ${getName(object)}[${typeof propertyName}]`, function () {
-          const { sut } = createFixture(LF.none, object, propertyName as any);
+          const { sut } = createFixture(object, propertyName as any);
           sut.subscribe(new SpySubscriber());
           const actual = sut.getValue();
           assert.strictEqual(actual, object[propertyName], `actual`);
@@ -98,7 +98,7 @@ describe('SetterObserver', function () {
       for (const propertyName of propertyNameArr) {
         for (const value of valueArr) {
           it(`should correctly handle ${getName(object)}[${typeof propertyName}]=${getName(value)}`, function () {
-            const { sut } = createFixture(LF.none, object, propertyName as any);
+            const { sut } = createFixture(object, propertyName as any);
             sut.subscribe(new SpySubscriber());
             sut.setValue(value, flags);
             assert.strictEqual(object[propertyName], value, `object[propertyName]`);
@@ -115,7 +115,7 @@ describe('SetterObserver', function () {
     for (const object of objectArr) {
       for (const propertyName of propertyNameArr) {
         it(`can handle ${getName(object)}[${typeof propertyName}]`, function () {
-          const { sut } = createFixture(LF.none, object, propertyName as any);
+          const { sut } = createFixture(object, propertyName as any);
           sut.subscribe(new SpySubscriber());
         });
       }
@@ -134,7 +134,7 @@ describe('SetterObserver', function () {
           for (const subscribers of subscribersArr) {
             const object = {};
             it(`should notify ${subscribers.length} subscriber(s) for ${getName(object)}[${typeof propertyName}]=${getName(value)}`, function () {
-              const { sut } = createFixture(LF.none, object, propertyName as any);
+              const { sut } = createFixture(object, propertyName as any);
               for (const subscriber of subscribers) {
                 sut.subscribe(subscriber);
               }

@@ -2,6 +2,7 @@ import { IDisposable } from '@aurelia/kernel';
 import {
   EventDelegator,
   EventSubscriber,
+  NodeObserverConfig,
 } from '@aurelia/runtime-html';
 import { _, TestContext, assert, createSpy } from '@aurelia/testing';
 
@@ -194,7 +195,7 @@ describe('EventSubscriber', function () {
       });
     });
 
-    const sut = new EventSubscriber(eventNames);
+    const sut = new EventSubscriber(new NodeObserverConfig({ events: eventNames }));
 
     return { ctx, sut, handler, listener, events, el };
   }

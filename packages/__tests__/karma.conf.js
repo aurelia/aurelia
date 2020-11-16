@@ -74,7 +74,7 @@ module.exports = function (config) {
           'module', 'main'
         ],
       },
-      devtool: 'inline-source-map',
+      devtool: browsers.includes('ChromeDebugging') ? 'eval-source-map' : 'inline-source-map',
       performance: {
         hints: false,
       },

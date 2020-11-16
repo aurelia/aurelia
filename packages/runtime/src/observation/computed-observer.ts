@@ -30,7 +30,7 @@ import { IWatcherCallback } from './watch';
 import { ExpressionKind, IsBindingBehavior } from '../binding/ast';
 import { getProxyOrSelf, getRawOrSelf } from './proxy-observation';
 import { Scope } from './binding-context';
-import { defineHiddenProp, ensureProto, isArray, isMap, isSet } from '../utilities-objects';
+import { defineHiddenProp, ensureProto } from '../utilities-objects';
 
 export interface ComputedOverrides {
   // Indicates that a getter doesn't need to re-calculate its dependencies after the first observation.
@@ -366,11 +366,11 @@ function unobserveCollection(this: IWatcherImpl, all?: boolean): void {
 
 function getCollectionObserver(observerLocator: IObserverLocator, collection: Collection): ICollectionObserver<CollectionKind> {
   let observer: ICollectionObserver<CollectionKind>;
-  if (isArray(collection)) {
+  if (collection instanceof Array) {
     observer = observerLocator.getArrayObserver(LifecycleFlags.none, collection);
-  } else if (isSet(collection)) {
+  } else if (collection instanceof Set) {
     observer = observerLocator.getSetObserver(LifecycleFlags.none, collection);
-  } else if (isMap(collection)) {
+  } else if (collection instanceof Map) {
     observer = observerLocator.getMapObserver(LifecycleFlags.none, collection);
   } else {
     throw new Error('Unrecognised collection type.');
@@ -593,7 +593,7 @@ export class ExpressionWatcher implements IConnectableBinding {
   /**
    * @internal
    */
-  private value: any;
+  private value: unknown;
   /**
    * @internal
    */
@@ -648,4 +648,3 @@ export class ExpressionWatcher implements IConnectableBinding {
     this.value = void 0;
   }
 }
-

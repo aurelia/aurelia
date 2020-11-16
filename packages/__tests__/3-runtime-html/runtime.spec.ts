@@ -1,4 +1,4 @@
-// import { TestBuilder as Test, DefinitionBuilder as D, InstructionBuilder as I } from './test-builder';
+// import { TestBuilder as Test, DefinitionBuilder as D, InstructionBuilder as I } from './test-builder.js';
 
 // describe('runtime', function () {
 //   it('1', function () {

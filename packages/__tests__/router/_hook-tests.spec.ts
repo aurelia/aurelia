@@ -5,12 +5,12 @@ import { CustomElement, customElement } from '@aurelia/runtime-html';
 import { IRouterActivateOptions, IRouter } from '@aurelia/router';
 import { assert } from '@aurelia/testing';
 
-import { IHookInvocationAggregator, IHIAConfig, HookName, MaybeHookName } from './_shared/hook-invocation-tracker';
-import { TestRouteViewModelBase, HookSpecs } from './_shared/view-models';
-import { hookSpecsMap } from './_shared/hook-spec';
-import { createFixture, DeferralJuncture, SwapStrategy, translateOptions, transformNotifications, IRouterOptionsSpec } from './_shared/create-fixture';
+import { IHookInvocationAggregator, IHIAConfig, HookName, MaybeHookName } from './_shared/hook-invocation-tracker.js';
+import { TestRouteViewModelBase, HookSpecs } from './_shared/view-models.js';
+import { hookSpecsMap } from './_shared/hook-spec.js';
+import { createFixture, DeferralJuncture, SwapStrategy, translateOptions, transformNotifications, IRouterOptionsSpec } from './_shared/create-fixture.js';
 import { IContainer } from '@aurelia/kernel';
-import { addHooks, assertHooks, getParentChildHooks, getSingleHooks, getStartHooks, getStopHooks, removeHooks } from './_shared/hooks';
+import { addHooks, assertHooks, getParentChildHooks, getSingleHooks, getStartHooks, getStopHooks, removeHooks } from './_shared/hooks.js';
 
 function vp(count: number, name = ''): string {
   if (count === 1) {

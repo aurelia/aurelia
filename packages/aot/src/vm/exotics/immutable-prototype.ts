@@ -1,23 +1,23 @@
 import {
   $Object,
-} from '../types/object';
+} from '../types/object.js';
 import {
   $Null,
-} from '../types/null';
+} from '../types/null.js';
 import {
   Realm,
   ExecutionContext,
-} from '../realm';
+} from '../realm.js';
 import {
   $Boolean,
-} from '../types/boolean';
+} from '../types/boolean.js';
 import {
   $Error,
-} from '../types/error';
+} from '../types/error.js';
 import {
   $AnyObject,
   CompletionType,
-} from '../types/_shared';
+} from '../types/_shared.js';
 
 // http://www.ecma-international.org/ecma-262/#sec-string-exotic-objects
 export class $ImmutablePrototypeExoticObject extends $Object<'ImmutablePrototypeExoticObject'> {

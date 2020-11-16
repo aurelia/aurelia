@@ -15,8 +15,8 @@ import {
   ValidationController,
 } from '@aurelia/validation-html';
 import { LocalizedValidationController, LocalizedValidationControllerFactory, LocalizedValidationMessageProvider, ValidationI18nConfiguration } from '@aurelia/validation-i18n';
-import { Spy } from '../Spy';
-import { createSpecFunction, TestExecutionContext, TestFunction } from '../util';
+import { Spy } from '../Spy.js';
+import { createSpecFunction, TestExecutionContext, TestFunction } from '../util.js';
 
 describe('validation-i18n', function () {
 

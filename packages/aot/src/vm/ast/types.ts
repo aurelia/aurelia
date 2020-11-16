@@ -12,10 +12,10 @@ import {
 } from '@aurelia/kernel';
 import {
   Realm,
-} from '../realm';
+} from '../realm.js';
 import {
   $String,
-} from '../types/string';
+} from '../types/string.js';
 import {
   I$Node,
   Context,
@@ -32,17 +32,17 @@ import {
   $AssignmentExpressionNode,
   $i,
   $$ESVarDeclaration,
-} from './_shared';
+} from './_shared.js';
 import {
   ExportEntryRecord,
   $$ESModuleOrScript,
-} from './modules';
+} from './modules.js';
 import {
   $Identifier,
-} from './expressions';
+} from './expressions.js';
 import {
   $HeritageClause,
-} from './classes';
+} from './classes.js';
 
 export class $InterfaceDeclaration implements I$Node {
   public get $kind(): SyntaxKind.InterfaceDeclaration { return SyntaxKind.InterfaceDeclaration; }

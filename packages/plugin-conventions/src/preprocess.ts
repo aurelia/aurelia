@@ -1,9 +1,9 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { ModifyCodeResult } from 'modify-code';
-import { IFileUnit, IOptionalPreprocessOptions, preprocessOptions } from './options';
-import { preprocessHtmlTemplate } from './preprocess-html-template';
-import { preprocessResource } from './preprocess-resource';
+import { IFileUnit, IOptionalPreprocessOptions, preprocessOptions } from './options.js';
+import { preprocessHtmlTemplate } from './preprocess-html-template.js';
+import { preprocessResource } from './preprocess-resource.js';
 
 export function preprocess(
   unit: IFileUnit,

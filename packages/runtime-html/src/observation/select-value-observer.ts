@@ -5,10 +5,10 @@ import {
   AccessorType,
 } from '@aurelia/runtime';
 
-import { IPlatform } from '../platform';
+import { IPlatform } from '../platform.js';
 
-import type { INode } from '../dom';
-import type { EventSubscriber } from './event-delegator';
+import type { INode } from '../dom.js';
+import type { EventSubscriber } from './event-delegator.js';
 import type { IServiceLocator } from '@aurelia/kernel';
 import type {
   ICollectionObserver,

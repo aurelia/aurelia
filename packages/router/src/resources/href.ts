@@ -1,6 +1,6 @@
 import { customAttribute, INode, bindable, BindingMode, ViewModelKind, ICustomAttributeViewModel, ICustomAttributeController } from '@aurelia/runtime-html';
-import { IRouter } from '../router';
-import { GotoCustomAttribute } from '../configuration';
+import { IRouter } from '../router.js';
+import { GotoCustomAttribute } from '../configuration.js';
 
 @customAttribute({
   name: 'href',

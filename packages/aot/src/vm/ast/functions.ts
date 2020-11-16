@@ -15,46 +15,46 @@ import {
 import {
   Realm,
   ExecutionContext,
-} from '../realm';
+} from '../realm.js';
 import {
   $EnvRec,
   $DeclarativeEnvRec,
   $FunctionEnvRec,
-} from '../types/environment-record';
+} from '../types/environment-record.js';
 import {
   $String,
-} from '../types/string';
+} from '../types/string.js';
 import {
   $Undefined,
-} from '../types/undefined';
+} from '../types/undefined.js';
 import {
   $Function,
-} from '../types/function';
+} from '../types/function.js';
 import {
   $Any,
   CompletionType,
   $AnyNonEmpty,
   $PropertyKey,
-} from '../types/_shared';
+} from '../types/_shared.js';
 import {
   $Object,
-} from '../types/object';
+} from '../types/object.js';
 import {
   $Empty,
-} from '../types/empty';
+} from '../types/empty.js';
 import {
   $CreateUnmappedArgumentsObject,
   $ArgumentsExoticObject,
-} from '../exotics/arguments';
+} from '../exotics/arguments.js';
 import {
   $CreateListIteratorRecord,
   $IteratorRecord,
   $IteratorStep,
   $IteratorValue,
-} from '../globals/iteration';
+} from '../globals/iteration.js';
 import {
   $Error,
-} from '../types/error';
+} from '../types/error.js';
 import {
   I$Node,
   Context,
@@ -75,40 +75,40 @@ import {
   $i,
   $$ESVarDeclaration,
   FunctionKind,
-} from './_shared';
+} from './_shared.js';
 import {
   ExportEntryRecord,
   $$ESModuleOrScript,
-} from './modules';
+} from './modules.js';
 import {
   $Identifier,
   $Decorator,
-} from './expressions';
+} from './expressions.js';
 import {
   $ClassDeclaration,
   $ClassExpression,
-} from './classes';
+} from './classes.js';
 import {
   $Block,
   DirectivePrologue,
-} from './statements';
+} from './statements.js';
 import {
   $MethodDeclaration,
   $SetAccessorDeclaration,
   $GetAccessorDeclaration,
-} from './methods';
+} from './methods.js';
 import {
   $DefinePropertyOrThrow,
-} from '../operations';
+} from '../operations.js';
 import {
   $PropertyDescriptor,
-} from '../types/property-descriptor';
+} from '../types/property-descriptor.js';
 import {
   $Boolean,
-} from '../types/boolean';
+} from '../types/boolean.js';
 import {
   $List,
-} from '../types/list';
+} from '../types/list.js';
 
 export type $$Function = (
   $FunctionDeclaration |

@@ -1,6 +1,6 @@
 import { DI, IContainer, IResolver, Registration } from '@aurelia/kernel';
-import { INode } from '../dom';
-import { IPlatform } from '../platform';
+import { INode } from '../dom.js';
+import { IPlatform } from '../platform.js';
 
 export interface ISVGAnalyzer extends NoopSVGAnalyzer {}
 export const ISVGAnalyzer = DI.createInterface<ISVGAnalyzer>('ISVGAnalyzer').withDefault(x => x.singleton(NoopSVGAnalyzer));

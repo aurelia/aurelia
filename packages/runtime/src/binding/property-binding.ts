@@ -11,20 +11,20 @@ import {
   BindingMode,
   ILifecycle,
   LifecycleFlags,
-} from '../observation';
-import { IObserverLocator } from '../observation/observer-locator';
+} from '../observation.js';
+import { IObserverLocator } from '../observation/observer-locator.js';
 import {
   ExpressionKind,
   ForOfStatement,
   IsBindingBehavior,
-} from './ast';
+} from './ast.js';
 import {
   connectable,
   IConnectableBinding,
   IPartialConnectableBinding,
-} from './connectable';
+} from './connectable.js';
 
-import type { Scope } from '../observation/binding-context';
+import type { Scope } from '../observation/binding-context.js';
 
 // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
 const { oneTime, toView, fromView } = BindingMode;

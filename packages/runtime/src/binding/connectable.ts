@@ -10,10 +10,10 @@ import {
   ISubscriber,
   IBinding,
   LifecycleFlags,
-} from '../observation';
-import { IObserverLocator } from '../observation/observer-locator';
-import { ensureProto } from '../utilities-objects';
-import type { Scope } from '../observation/binding-context';
+} from '../observation.js';
+import { IObserverLocator } from '../observation/observer-locator.js';
+import { ensureProto } from '../utilities-objects.js';
+import type { Scope } from '../observation/binding-context.js';
 
 // TODO: add connect-queue (or something similar) back in when everything else is working, to improve startup time
 

@@ -1,7 +1,7 @@
 import { IIndexable } from '@aurelia/kernel';
-import { IPropertyObserver, ISubscriber, AccessorType, ISubscribable, IAccessor, ISubscriberCollection, LifecycleFlags } from '../observation';
-import { subscriberCollection } from './subscriber-collection';
-import { InterceptorFunc } from '../bindable';
+import { IPropertyObserver, ISubscriber, AccessorType, ISubscribable, IAccessor, ISubscriberCollection, LifecycleFlags } from '../observation.js';
+import { subscriberCollection } from './subscriber-collection.js';
+import { InterceptorFunc } from '../bindable.js';
 
 const $is = Object.is;
 

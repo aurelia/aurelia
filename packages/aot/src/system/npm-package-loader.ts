@@ -9,18 +9,18 @@ import {
 import {
   IFileSystem,
   IFile,
-} from './interfaces';
+} from './interfaces.js';
 import {
   normalizePath,
   joinPath,
-} from './path-utils';
+} from './path-utils.js';
 import {
   basename,
   dirname,
 } from 'path';
 import {
   Package,
-} from './package-types';
+} from './package-types.js';
 
 function countSlashes(path: string): number {
   let count = 0;

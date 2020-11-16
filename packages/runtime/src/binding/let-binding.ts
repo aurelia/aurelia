@@ -8,16 +8,16 @@ import {
 import {
   ILifecycle,
   IObservable, LifecycleFlags,
-} from '../observation';
-import { IObserverLocator } from '../observation/observer-locator';
-import { IsExpression } from './ast';
+} from '../observation.js';
+import { IObserverLocator } from '../observation/observer-locator.js';
+import { IsExpression } from './ast.js';
 import {
   connectable,
   IConnectableBinding,
   IPartialConnectableBinding,
-} from './connectable';
+} from './connectable.js';
 
-import type { Scope } from '../observation/binding-context';
+import type { Scope } from '../observation/binding-context.js';
 
 export interface LetBinding extends IConnectableBinding {}
 

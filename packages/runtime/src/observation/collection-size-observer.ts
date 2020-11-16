@@ -1,5 +1,5 @@
-import { ISubscriberCollection, AccessorType, LifecycleFlags } from '../observation';
-import { subscriberCollection } from './subscriber-collection';
+import { ISubscriberCollection, AccessorType, LifecycleFlags } from '../observation.js';
+import { subscriberCollection } from './subscriber-collection.js';
 
 export interface CollectionSizeObserver extends ISubscriberCollection {}
 

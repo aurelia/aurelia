@@ -4,11 +4,11 @@ import {
 } from '@aurelia/kernel';
 import {
   IsBindingBehavior,
-} from './ast';
-import { IConnectableBinding } from './connectable';
+} from './ast.js';
+import { IConnectableBinding } from './connectable.js';
 
-import type { Scope } from '../observation/binding-context';
-import { IBinding, LifecycleFlags } from '..';
+import type { Scope } from '../observation/binding-context.js';
+import { IBinding, LifecycleFlags } from '../observation.js';
 
 export interface RefBinding extends IConnectableBinding {}
 export class RefBinding implements IBinding {

@@ -14,9 +14,9 @@ import {
   isCustomElementViewModel,
 } from '@aurelia/runtime-html';
 import { IContainer, Writable } from '@aurelia/kernel';
-import { IRouter } from '../router';
-import { ViewportScope, IViewportScopeOptions } from '../viewport-scope';
-import { IRoutingController, ViewportCustomElement } from './viewport';
+import { IRouter } from '../router.js';
+import { ViewportScope, IViewportScopeOptions } from '../viewport-scope.js';
+import { IRoutingController, ViewportCustomElement } from './viewport.js';
 
 export const ParentViewportScope = CustomElement.createInjectable();
 

@@ -1,4 +1,4 @@
-import { AccessorType, IAccessor, IObservable, LifecycleFlags } from '../observation';
+import { AccessorType, IAccessor, IObservable, LifecycleFlags } from '../observation.js';
 
 export class PropertyAccessor implements IAccessor {
   // the only thing can be guaranteed is it's an object

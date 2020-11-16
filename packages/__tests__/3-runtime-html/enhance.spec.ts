@@ -2,7 +2,7 @@
 import { Constructable, IContainer } from '@aurelia/kernel';
 import { CustomElement, ICustomElementViewModel, IPlatform, Aurelia } from '@aurelia/runtime-html';
 import { assert, TestContext, eachCartesianJoin } from '@aurelia/testing';
-import { createSpecFunction, TestExecutionContext, TestFunction } from '../util';
+import { createSpecFunction, TestExecutionContext, TestFunction } from '../util.js';
 
 describe('2-runtime/enhance.spec.ts', function () {
   interface TestSetupContext {

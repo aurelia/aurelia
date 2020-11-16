@@ -26,42 +26,42 @@ import {
 import {
   Realm,
   ExecutionContext,
-} from '../realm';
+} from '../realm.js';
 import {
   $DeclarativeEnvRec,
   $FunctionEnvRec,
-} from '../types/environment-record';
+} from '../types/environment-record.js';
 import {
   $String,
-} from '../types/string';
+} from '../types/string.js';
 import {
   $Undefined,
-} from '../types/undefined';
+} from '../types/undefined.js';
 import {
   $Function,
-} from '../types/function';
+} from '../types/function.js';
 import {
   $Any,
   CompletionType,
   $AnyNonEmpty,
-} from '../types/_shared';
+} from '../types/_shared.js';
 import {
   $Object,
-} from '../types/object';
+} from '../types/object.js';
 import {
   $Null,
-} from '../types/null';
+} from '../types/null.js';
 import {
   $Empty,
   empty,
-} from '../types/empty';
+} from '../types/empty.js';
 import {
   $TypeError,
   $Error,
-} from '../types/error';
+} from '../types/error.js';
 import {
   $PropertyDescriptor,
-} from '../types/property-descriptor';
+} from '../types/property-descriptor.js';
 import {
   I$Node,
   Context,
@@ -90,24 +90,24 @@ import {
   $i,
   $$ESVarDeclaration,
   FunctionKind,
-} from './_shared';
+} from './_shared.js';
 import {
   ExportEntryRecord,
   $$ESModuleOrScript,
-} from './modules';
+} from './modules.js';
 import {
   $Identifier,
   $Decorator,
-} from './expressions';
+} from './expressions.js';
 import {
   $InterfaceDeclaration,
-} from './types';
+} from './types.js';
 import {
   $ConstructorDeclaration,
-} from './functions';
+} from './functions.js';
 import {
   $List,
-} from '../types/list';
+} from '../types/list.js';
 
 // #region Declaration members
 

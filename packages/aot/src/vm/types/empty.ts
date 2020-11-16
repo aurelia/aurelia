@@ -5,30 +5,30 @@ import {
   CompletionTarget,
   CompletionType,
   $Any,
-} from './_shared';
+} from './_shared.js';
 import {
   Realm,
   ExecutionContext,
-} from '../realm';
+} from '../realm.js';
 import {
   $TypeError,
-} from './error';
+} from './error.js';
 import {
   $ESModule, $ESScript,
-} from '../ast/modules';
+} from '../ast/modules.js';
 import {
   $ComputedPropertyName,
-} from '../ast/bindings';
+} from '../ast/bindings.js';
 import {
   $ContinueStatement,
   $BreakStatement,
-} from '../ast/statements';
+} from '../ast/statements.js';
 import {
   $FunctionDeclaration,
-} from '../ast/functions';
+} from '../ast/functions.js';
 import {
   I$Node,
-} from '../ast/_shared';
+} from '../ast/_shared.js';
 
 export interface empty { '<empty>': unknown }
 export const empty = Symbol('empty') as unknown as empty;

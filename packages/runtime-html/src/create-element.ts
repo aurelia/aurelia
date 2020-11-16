@@ -6,12 +6,12 @@ import {
   IInstruction,
   InstructionType,
   Instruction,
-} from './renderer';
-import { IPlatform } from './platform';
-import { CustomElement, CustomElementDefinition, CustomElementType } from './resources/custom-element';
-import { getRenderContext, IRenderContext } from './templating/render-context';
-import { IViewFactory } from './templating/view';
-import type { ISyntheticView } from './templating/controller';
+} from './renderer.js';
+import { IPlatform } from './platform.js';
+import { CustomElement, CustomElementDefinition, CustomElementType } from './resources/custom-element.js';
+import { getRenderContext, IRenderContext } from './templating/render-context.js';
+import { IViewFactory } from './templating/view.js';
+import type { ISyntheticView } from './templating/controller.js';
 
 export function createElement<C extends Constructable = Constructable>(
   p: IPlatform,

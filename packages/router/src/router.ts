@@ -3,27 +3,27 @@
 /* eslint-disable max-lines-per-function */
 import { DI, IContainer, Registration, IIndexable, Key, Metadata } from '@aurelia/kernel';
 import { CustomElementType, CustomElement, INode, ICustomElementController, ICustomElementViewModel, IAppRoot, isRenderContext, getEffectiveParentNode } from '@aurelia/runtime-html';
-import { InstructionResolver } from './instruction-resolver';
-import { IRouteableComponent, NavigationInstruction, IRoute, ComponentAppellation, ViewportHandle, ComponentParameters } from './interfaces';
-import { AnchorEventInfo, LinkHandler } from './link-handler';
-import { INavRoute, Nav } from './nav';
-import { INavigatorViewerEvent, IStoredNavigatorEntry, Navigator } from './navigator';
-import { QueueItem } from './queue';
-import { INavClasses } from './resources/nav';
-import { NavigationInstructionResolver, IViewportInstructionsOptions } from './type-resolvers';
-import { arrayRemove, deprecationWarning } from './utils';
-import { IViewportOptions, Viewport } from './viewport';
-import { ViewportInstruction } from './viewport-instruction';
-import { FoundRoute } from './found-route';
-import { HookManager, IHookDefinition, HookIdentity, HookFunction, IHookOptions, BeforeNavigationHookFunction, TransformFromUrlHookFunction, TransformToUrlHookFunction, SetTitleHookFunction } from './hook-manager';
-import { Scope, IScopeOwner } from './scope';
-import { IViewportScopeOptions, ViewportScope } from './viewport-scope';
-import { BrowserViewerStore } from './browser-viewer-store';
-import { Navigation } from './navigation';
-import { IConnectedCustomElement } from './resources/viewport';
-import { NavigationCoordinator } from './navigation-coordinator';
-import { IRouterActivateOptions, RouterOptions } from './router-options';
-import { OpenPromise } from './open-promise';
+import { InstructionResolver } from './instruction-resolver.js';
+import { IRouteableComponent, NavigationInstruction, IRoute, ComponentAppellation, ViewportHandle, ComponentParameters } from './interfaces.js';
+import { AnchorEventInfo, LinkHandler } from './link-handler.js';
+import { INavRoute, Nav } from './nav.js';
+import { INavigatorViewerEvent, IStoredNavigatorEntry, Navigator } from './navigator.js';
+import { QueueItem } from './queue.js';
+import { INavClasses } from './resources/nav.js';
+import { NavigationInstructionResolver, IViewportInstructionsOptions } from './type-resolvers.js';
+import { arrayRemove, deprecationWarning } from './utils.js';
+import { IViewportOptions, Viewport } from './viewport.js';
+import { ViewportInstruction } from './viewport-instruction.js';
+import { FoundRoute } from './found-route.js';
+import { HookManager, IHookDefinition, HookIdentity, HookFunction, IHookOptions, BeforeNavigationHookFunction, TransformFromUrlHookFunction, TransformToUrlHookFunction, SetTitleHookFunction } from './hook-manager.js';
+import { Scope, IScopeOwner } from './scope.js';
+import { IViewportScopeOptions, ViewportScope } from './viewport-scope.js';
+import { BrowserViewerStore } from './browser-viewer-store.js';
+import { Navigation } from './navigation.js';
+import { IConnectedCustomElement } from './resources/viewport.js';
+import { NavigationCoordinator } from './navigation-coordinator.js';
+import { IRouterActivateOptions, RouterOptions } from './router-options.js';
+import { OpenPromise } from './open-promise.js';
 
 /**
  * Public API

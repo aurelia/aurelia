@@ -1,10 +1,10 @@
 import { DI, Writable } from '@aurelia/kernel';
 import { Scope, LifecycleFlags } from '@aurelia/runtime';
-import { IRenderLocation } from '../../dom';
-import { customElement, CustomElementDefinition } from '../custom-element';
-import { IViewFactory } from '../../templating/view';
-import { IInstruction, Instruction } from '../../renderer';
-import type { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../templating/controller';
+import { IRenderLocation } from '../../dom.js';
+import { customElement, CustomElementDefinition } from '../custom-element.js';
+import { IViewFactory } from '../../templating/view.js';
+import { IInstruction, Instruction } from '../../renderer.js';
+import type { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../templating/controller.js';
 
 export type IProjections = Record<string, CustomElementDefinition>;
 export const IProjections = DI.createInterface<IProjections>("IProjections").noDefault();

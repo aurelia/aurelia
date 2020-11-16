@@ -6,8 +6,8 @@ import {
   ISubscriber,
   ISubscriberCollection,
   SubscriberFlags as SF
-} from '../observation';
-import { ensureProto } from '../utilities-objects';
+} from '../observation.js';
+import { ensureProto } from '../utilities-objects.js';
 
 // TODO: see if we can de-duplicate these 3 decorators and their functions without killing performance or readability
 

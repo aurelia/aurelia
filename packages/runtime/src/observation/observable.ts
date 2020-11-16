@@ -1,7 +1,7 @@
 import { Constructable, IIndexable } from '@aurelia/kernel';
-import { InterceptorFunc } from '../bindable';
-import { IBindingContext, PropertyObserver, ISubscriber, IObservable, LifecycleFlags } from '../observation';
-import { SetterObserver, SetterNotifier } from './setter-observer';
+import { InterceptorFunc } from '../bindable.js';
+import { IBindingContext, PropertyObserver, ISubscriber, IObservable, LifecycleFlags } from '../observation.js';
+import { SetterObserver, SetterNotifier } from './setter-observer.js';
 
 // todo(bigopon): static obs here
 

@@ -53,17 +53,17 @@ export class User {
     return `${this.firstName}${this.lastName ? ` ${this.lastName}` : ''}`;
   }
 
-  public get roleNonVolatile() {
+  public get $role() {
     return `${this.role}, ${this.organization}`;
   }
-  public set roleNonVolatile(value: string) {
+  public set $role(value: string) {
     this.role = value;
   }
 
-  public get locationVolatile() {
+  public get $location() {
     return `${this.city}, ${this.country}`;
   }
-  public set locationVolatile(value: string) {
+  public set $location(value: string) {
     this.country = value;
   }
 }

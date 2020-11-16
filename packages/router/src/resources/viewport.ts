@@ -12,10 +12,10 @@ import {
   IHydratedParentController,
   ISyntheticView,
 } from '@aurelia/runtime-html';
-import { IRouter } from '../router';
-import { Viewport, IViewportOptions } from '../viewport';
-import { ViewportScopeCustomElement } from './viewport-scope';
-import { Runner } from '../runner';
+import { IRouter } from '../router.js';
+import { Viewport, IViewportOptions } from '../viewport.js';
+import { ViewportScopeCustomElement } from './viewport-scope.js';
+import { Runner } from '../runner.js';
 
 export interface IRoutingController extends ICustomElementController {
   routingContainer?: IContainer;

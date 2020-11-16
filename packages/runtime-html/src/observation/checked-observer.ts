@@ -5,10 +5,10 @@ import {
   subscriberCollection,
   AccessorType,
 } from '@aurelia/runtime';
-import { getCollectionObserver } from './observer-locator';
-import type { INode } from '../dom';
-import type { EventSubscriber } from './event-delegator';
-import type { ValueAttributeObserver } from './value-attribute-observer';
+import { getCollectionObserver } from './observer-locator.js';
+import type { INode } from '../dom.js';
+import type { EventSubscriber } from './event-delegator.js';
+import type { ValueAttributeObserver } from './value-attribute-observer.js';
 import type {
   ICollectionObserver,
   IndexMap,
@@ -40,7 +40,6 @@ export class CheckedObserver implements IObserver {
   public oldValue: unknown = void 0;
 
   public readonly obj: IInputElement;
-  public readonly persistentFlags: LifecycleFlags = LifecycleFlags.none;
 
   public hasChanges: boolean = false;
   public type: AccessorType = AccessorType.Node | AccessorType.Observer | AccessorType.Layout;

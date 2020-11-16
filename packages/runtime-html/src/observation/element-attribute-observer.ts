@@ -1,5 +1,5 @@
 import { IBindingTargetObserver, IObserverLocator, ISubscriber, ISubscriberCollection, LifecycleFlags, subscriberCollection, AccessorType } from '@aurelia/runtime';
-import { IPlatform } from '../platform';
+import { IPlatform } from '../platform.js';
 
 export interface IHtmlElement extends HTMLElement {
   $mObserver: MutationObserver;
@@ -24,8 +24,6 @@ export interface AttributeObserver extends
 export class AttributeObserver implements AttributeObserver, ElementMutationSubscription {
   public currentValue: unknown = null;
   public oldValue: unknown = null;
-
-  public readonly persistentFlags: LifecycleFlags = LifecycleFlags.none;
 
   public hasChanges: boolean = false;
   // layout is not certain, depends on the attribute being flushed to owner element

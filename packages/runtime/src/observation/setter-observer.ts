@@ -1,7 +1,7 @@
 import { IIndexable } from '@aurelia/kernel';
-import { IPropertyObserver, ISubscriber, AccessorType, ISubscribable, IAccessor, ISubscriberCollection, LifecycleFlags } from '../observation';
-import { subscriberCollection } from './subscriber-collection';
-import { InterceptorFunc } from '../bindable';
+import { IPropertyObserver, ISubscriber, AccessorType, ISubscribable, IAccessor, ISubscriberCollection, LifecycleFlags } from '../observation.js';
+import { subscriberCollection } from './subscriber-collection.js';
+import { InterceptorFunc } from '../bindable.js';
 
 const $is = Object.is;
 
@@ -16,7 +16,6 @@ export class SetterObserver {
   public currentValue: unknown = void 0;
   public oldValue: unknown = void 0;
 
-  public readonly persistentFlags: LifecycleFlags = LifecycleFlags.none;
   public inBatch: boolean = false;
   public observing: boolean = false;
   // todo(bigopon): tweak the flag based on typeof obj (array/set/map/iterator/proxy etc...)
@@ -112,8 +111,6 @@ export class SetterNotifier implements IAccessor, ISubscribable {
    * @internal
    */
   public v: unknown = void 0;
-
-  public readonly persistentFlags: LifecycleFlags = LifecycleFlags.none;
 
   // todo(bigopon): remove flag aware assignment in ast, move to the decorator itself
   public constructor(

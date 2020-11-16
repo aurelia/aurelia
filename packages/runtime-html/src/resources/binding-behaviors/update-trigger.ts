@@ -1,12 +1,12 @@
 import { Writable } from '@aurelia/kernel';
 import { BindingMode, IObserverLocator, LifecycleFlags, PropertyBinding, bindingBehavior } from '@aurelia/runtime';
-import { CheckedObserver } from '../../observation/checked-observer';
-import { EventSubscriber } from '../../observation/event-delegator';
-import { SelectValueObserver } from '../../observation/select-value-observer';
-import { ValueAttributeObserver } from '../../observation/value-attribute-observer';
+import { CheckedObserver } from '../../observation/checked-observer.js';
+import { EventSubscriber } from '../../observation/event-delegator.js';
+import { SelectValueObserver } from '../../observation/select-value-observer.js';
+import { ValueAttributeObserver } from '../../observation/value-attribute-observer.js';
 
 import type { Scope } from '@aurelia/runtime';
-import { NodeObserverConfig } from '../../observation/observer-locator';
+import { NodeObserverConfig } from '../../observation/observer-locator.js';
 
 export type UpdateTriggerableObserver = (
   (ValueAttributeObserver & Required<ValueAttributeObserver>) |
@@ -22,7 +22,6 @@ export type UpdateTriggerableBinding = PropertyBinding & {
 
 @bindingBehavior('updateTrigger')
 export class UpdateTriggerBindingBehavior {
-  public persistentFlags!: LifecycleFlags;
 
   public constructor(
     @IObserverLocator private readonly observerLocator: IObserverLocator
@@ -37,10 +36,8 @@ export class UpdateTriggerBindingBehavior {
       throw new Error('The updateTrigger binding behavior can only be applied to two-way/ from-view bindings on input/select elements.');
     }
 
-    this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
-
     // ensure the binding's target observer has been set.
-    const targetObserver = this.observerLocator.getObserver(this.persistentFlags | flags, binding.target, binding.targetProperty) as UpdateTriggerableObserver;
+    const targetObserver = this.observerLocator.getObserver(flags, binding.target, binding.targetProperty) as UpdateTriggerableObserver;
     if (!targetObserver.handler) {
       throw new Error('The updateTrigger binding behavior can only be applied to two-way/ from-view bindings on input/select elements.');
     }

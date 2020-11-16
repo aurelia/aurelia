@@ -34,17 +34,17 @@ import {
   IObservable,
   IExpressionParser,
 } from '@aurelia/runtime';
-import { convertToRenderLocation, INode, INodeSequence, IRenderLocation } from '../dom';
-import { CustomElementDefinition, CustomElement, PartialCustomElementDefinition } from '../resources/custom-element';
-import { CustomAttributeDefinition, CustomAttribute } from '../resources/custom-attribute';
-import { IRenderContext, getRenderContext, RenderContext, ICompiledRenderContext } from './render-context';
-import { ChildrenObserver } from './children';
-import { IAppRoot } from '../app-root';
-import { IPlatform } from '../platform';
-import { IShadowDOMGlobalStyles, IShadowDOMStyles } from './styles';
-import type { RegisteredProjections } from '../resources/custom-elements/au-slot';
-import type { IViewFactory } from './view';
-import type { Instruction } from '../renderer';
+import { convertToRenderLocation, INode, INodeSequence, IRenderLocation } from '../dom.js';
+import { CustomElementDefinition, CustomElement, PartialCustomElementDefinition } from '../resources/custom-element.js';
+import { CustomAttributeDefinition, CustomAttribute } from '../resources/custom-attribute.js';
+import { IRenderContext, getRenderContext, RenderContext, ICompiledRenderContext } from './render-context.js';
+import { ChildrenObserver } from './children.js';
+import { IAppRoot } from '../app-root.js';
+import { IPlatform } from '../platform.js';
+import { IShadowDOMGlobalStyles, IShadowDOMStyles } from './styles.js';
+import type { RegisteredProjections } from '../resources/custom-elements/au-slot.js';
+import type { IViewFactory } from './view.js';
+import type { Instruction } from '../renderer.js';
 
 function callDispose(disposable: IDisposable): void {
   disposable.dispose();
@@ -857,7 +857,8 @@ function getLookup(instance: IIndexable): Record<string, BindableObserver | Chil
 function createObservers(
   lifecycle: ILifecycle,
   definition: CustomElementDefinition | CustomAttributeDefinition,
-  flags: LifecycleFlags,
+  // deepscan-disable-next-line
+  _flags: LifecycleFlags,
   instance: object,
 ): void {
   const bindables = definition.bindables;
@@ -876,7 +877,6 @@ function createObservers(
 
         observers[name] = new BindableObserver(
           lifecycle,
-          flags,
           instance as IIndexable,
           name,
           bindable.callback,
@@ -890,7 +890,8 @@ function createObservers(
 function createChildrenObservers(
   controller: Controller,
   definition: CustomElementDefinition,
-  flags: LifecycleFlags,
+  // deepscan-disable-next-line
+  _flags: LifecycleFlags,
   instance: object,
 ): void {
   const childrenObservers = definition.childrenObservers;
@@ -908,7 +909,6 @@ function createChildrenObservers(
         observers[name] = new ChildrenObserver(
           controller as ICustomElementController,
           instance as IIndexable,
-          flags,
           name,
           childrenDescription.callback,
           childrenDescription.query,

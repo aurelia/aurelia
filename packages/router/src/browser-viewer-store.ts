@@ -1,6 +1,6 @@
 import { IWindow, IHistory, ILocation, IPlatform } from '@aurelia/runtime-html';
-import { INavigatorState, INavigatorStore, INavigatorViewer, INavigatorViewerOptions, INavigatorViewerState } from './navigator';
-import { QueueTask, TaskQueue } from './task-queue';
+import { INavigatorState, INavigatorStore, INavigatorViewer, INavigatorViewerOptions, INavigatorViewerState } from './navigator.js';
+import { QueueTask, TaskQueue } from './task-queue.js';
 
 /**
  * @internal

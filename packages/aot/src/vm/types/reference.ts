@@ -1,46 +1,46 @@
 import {
   Realm,
   ExecutionContext,
-} from '../realm';
+} from '../realm.js';
 import {
   $Object,
-} from './object';
+} from './object.js';
 import {
   $Boolean,
-} from './boolean';
+} from './boolean.js';
 import {
   $String,
-} from './string';
+} from './string.js';
 import {
   $Symbol,
-} from './symbol';
+} from './symbol.js';
 import {
   $Number,
-} from './number';
+} from './number.js';
 import {
   $EnvRec,
-} from './environment-record';
+} from './environment-record.js';
 import {
   $Undefined,
-} from './undefined';
+} from './undefined.js';
 import {
   $AnyNonEmpty,
   $AnyObject,
-} from './_shared';
+} from './_shared.js';
 import {
   $Empty,
-} from './empty';
+} from './empty.js';
 import {
   $Set,
-} from '../operations';
+} from '../operations.js';
 import {
   $TypeError,
   $ReferenceError,
   $Error,
-} from './error';
+} from './error.js';
 import {
   I$Node,
-} from '../ast/_shared';
+} from '../ast/_shared.js';
 
 // http://www.ecma-international.org/ecma-262/#sec-reference-specification-type
 export class $Reference {

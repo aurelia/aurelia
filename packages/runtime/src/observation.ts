@@ -1,9 +1,9 @@
 import { DI } from '@aurelia/kernel';
 import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
-import type { Scope } from './observation/binding-context';
+import type { Scope } from './observation/binding-context.js';
 
-import type { CollectionLengthObserver } from './observation/collection-length-observer';
-import type { CollectionSizeObserver } from './observation/collection-size-observer';
+import type { CollectionLengthObserver } from './observation/collection-length-observer.js';
+import type { CollectionSizeObserver } from './observation/collection-size-observer.js';
 
 export interface IBinding {
   interceptor: this;
@@ -211,7 +211,6 @@ export interface IPropertyObserver<TObj extends object, TProp extends keyof TObj
   type: AccessorType;
   inBatch: boolean;
   observing: boolean;
-  persistentFlags: LifecycleFlags;
 }
 
 /**
@@ -430,7 +429,6 @@ export interface ICollectionObserver<T extends CollectionKind> extends
   type: AccessorType;
   inBatch: boolean;
   lifecycle: ILifecycle;
-  persistentFlags: LifecycleFlags;
   collection: ObservedCollectionKindToType<T>;
   lengthObserver: T extends CollectionKind.array ? CollectionLengthObserver : CollectionSizeObserver;
   getLengthObserver(): T extends CollectionKind.array ? CollectionLengthObserver : CollectionSizeObserver;

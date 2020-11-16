@@ -27,13 +27,13 @@ import { IIndexable, Task, TaskQueue } from '@aurelia/kernel';
 import {
   isDeepEqual,
   isDeepStrictEqual,
-} from './comparison';
+} from './comparison.js';
 import {
   AssertionError,
   IAssertionErrorOpts,
   inspect,
-} from './inspect';
-import { getVisibleText } from './specialized-assertions';
+} from './inspect.js';
+import { getVisibleText } from './specialized-assertions.js';
 import {
   isError,
   isFunction,
@@ -46,7 +46,7 @@ import {
   Object_freeze,
   Object_is,
   Object_keys,
-} from './util';
+} from './util.js';
 import {
   IAppRoot,
   CustomElement,
@@ -54,8 +54,8 @@ import {
   TaskQueuePriority,
   BrowserPlatform,
 } from '@aurelia/runtime-html';
-import { ensureTaskQueuesEmpty } from './scheduler';
-import { PLATFORM } from './test-context';
+import { ensureTaskQueuesEmpty } from './scheduler.js';
+import { PLATFORM } from './test-context.js';
 
 /* eslint-disable @typescript-eslint/ban-types, @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-explicit-any */
 

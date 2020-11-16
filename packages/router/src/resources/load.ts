@@ -1,6 +1,6 @@
 import { customAttribute, INode, bindable, BindingMode, IObserverLocator, LifecycleFlags, CustomAttribute, ICustomAttributeController, ICustomAttributeViewModel } from '@aurelia/runtime-html';
-import { IRouter } from '../router';
-import { NavigationInstructionResolver } from '../type-resolvers';
+import { IRouter } from '../router.js';
+import { NavigationInstructionResolver } from '../type-resolvers.js';
 
 @customAttribute('load')
 export class LoadCustomAttribute implements ICustomAttributeViewModel {

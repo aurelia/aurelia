@@ -28,8 +28,8 @@ import {
   ValidationHtmlConfiguration,
   ValidationTrigger,
 } from '@aurelia/validation-html';
-import { createSpecFunction, TestExecutionContext, TestFunction, ToNumberValueConverter, $TestSetupContext } from '../util';
-import { Organization, Person } from '../validation/_test-resources';
+import { createSpecFunction, TestExecutionContext, TestFunction, ToNumberValueConverter, $TestSetupContext } from '../util.js';
+import { Organization, Person } from '../validation/_test-resources.js';
 
 describe('validate-binding-behavior', function () {
   const $atob = typeof atob === 'function' ? atob : (b64: string) => Buffer.from(b64, 'base64').toString();
@@ -104,7 +104,7 @@ describe('validate-binding-behavior', function () {
 
       if (observeCollection) {
         this.employeesMediator = new BindingMediator('handleEmployeesChange', this, observerLocator, serviceLocator);
-        this.employeeObserver = new ArrayObserver(LifecycleFlags.none, lifecycle, this.org.employees);
+        this.employeeObserver = new ArrayObserver(lifecycle, this.org.employees);
         this.employeeObserver.getLengthObserver().addSubscriber(this.employeesMediator);
       }
 

@@ -1,8 +1,8 @@
-import { PropertyBinding } from '../binding/property-binding';
-import { BindingMode, LifecycleFlags } from '../observation';
-import { bindingBehavior, BindingBehaviorInstance } from '../binding-behavior';
+import { PropertyBinding } from '../binding/property-binding.js';
+import { BindingMode, LifecycleFlags } from '../observation.js';
+import { bindingBehavior, BindingBehaviorInstance } from '../binding-behavior.js';
 
-import type { Scope } from '../observation/binding-context';
+import type { Scope } from '../observation/binding-context.js';
 
 export abstract class BindingModeBehavior implements BindingBehaviorInstance {
   private readonly originalModes: Map<PropertyBinding, BindingMode> = new Map();

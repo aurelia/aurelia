@@ -15,7 +15,6 @@
   ],
   "ignorePaths": [
     "**/node_modules/**",
-    "test/wdio",
     "test/js-framework-benchmark",
     "test/js-framework-benchmark/webdriver-ts",
     "test/js-framework-benchmark/webdriver-ts-results",

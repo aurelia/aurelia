@@ -39,7 +39,7 @@ import {
   createSpecFunction,
   TestExecutionContext,
   TestFunction,
-} from '../util';
+} from '../util.js';
 
 describe('switch', function () {
 

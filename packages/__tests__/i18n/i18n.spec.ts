@@ -2,7 +2,7 @@ import { I18nInitOptions, I18nService, Signals } from '@aurelia/i18n';
 import { EventAggregator } from '@aurelia/kernel';
 import { assert, MockSignaler } from '@aurelia/testing';
 import i18next from 'i18next';
-import { Spy } from '../Spy';
+import { Spy } from '../Spy.js';
 
 const translation = {
   simple: {

@@ -3,13 +3,13 @@ import {
 } from '@aurelia/kernel';
 import {
   IAccessor, LifecycleFlags,
-} from '../observation';
-import { IObserverLocator } from '../observation/observer-locator';
+} from '../observation.js';
+import { IObserverLocator } from '../observation/observer-locator.js';
 import {
   IsBindingBehavior,
-} from './ast';
-import { IConnectableBinding } from './connectable';
-import type { Scope } from '../observation/binding-context';
+} from './ast.js';
+import { IConnectableBinding } from './connectable.js';
+import type { Scope } from '../observation/binding-context.js';
 
 export interface CallBinding extends IConnectableBinding {}
 export class CallBinding {

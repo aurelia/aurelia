@@ -18,7 +18,7 @@ import {
   IValidationRule,
 } from '@aurelia/validation';
 import { assert } from '@aurelia/testing';
-import { Person, Address, Organization } from './_test-resources';
+import { Person, Address, Organization } from './_test-resources.js';
 
 describe('IValidator', function () {
   function setup(validator?: Class<IValidator>) {

@@ -1,8 +1,8 @@
 import { Constructable } from '@aurelia/kernel';
 import { CustomElementType, INode, ICustomElementViewModel } from '@aurelia/runtime-html';
-import { Viewport } from './viewport';
-import { ViewportInstruction } from './viewport-instruction';
-import { Navigation } from './navigation';
+import { Viewport } from './viewport.js';
+import { ViewportInstruction } from './viewport-instruction.js';
+import { Navigation } from './navigation.js';
 
 // These interfaces exclusively exist to prevent TS decorator metadata emission from having the runtime
 // side-effect of causing a ReferenceError in node, because these are not defined as globals there.

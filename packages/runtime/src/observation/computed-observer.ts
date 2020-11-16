@@ -18,19 +18,19 @@ import {
   ICollectionObserver,
   CollectionKind,
   LifecycleFlags,
-  ISubscriberCollection,
   ICollectionSubscriber,
-} from '../observation';
-import { IDirtyChecker } from './dirty-checker';
-import { IObserverLocator } from './observer-locator';
-import { subscriberCollection, collectionSubscriberCollection } from './subscriber-collection';
-import { IWatcher, enterWatcher, exitWatcher } from './watcher-switcher';
-import { connectable, IConnectableBinding } from '../binding/connectable';
-import { IWatcherCallback } from './watch';
-import { ExpressionKind, IsBindingBehavior } from '../binding/ast';
-import { getProxyOrSelf, getRawOrSelf } from './proxy-observation';
-import { Scope } from './binding-context';
-import { defineHiddenProp, ensureProto } from '../utilities-objects';
+  ISubscriberCollection,
+} from '../observation.js';
+import type { IDirtyChecker } from './dirty-checker.js';
+import { IObserverLocator } from './observer-locator.js';
+import { subscriberCollection, collectionSubscriberCollection } from './subscriber-collection.js';
+import { IWatcher, enterWatcher, exitWatcher } from './watcher-switcher.js';
+import { connectable, IConnectableBinding } from '../binding/connectable.js';
+import { IWatcherCallback } from './watch.js';
+import { ExpressionKind, IsBindingBehavior } from '../binding/ast.js';
+import { getProxyOrSelf, getRawOrSelf } from './proxy-observation.js';
+import { Scope } from './binding-context.js';
+import { defineHiddenProp, ensureProto } from '../utilities-objects.js';
 
 export interface ComputedOverrides {
   // Indicates that a getter doesn't need to re-calculate its dependencies after the first observation.

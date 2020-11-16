@@ -12,26 +12,26 @@ import {
   PotentialNonEmptyCompletionType,
   CompletionTarget,
   $Any,
-} from './_shared';
+} from './_shared.js';
 import {
   Realm,
   ExecutionContext,
-} from '../realm';
+} from '../realm.js';
 import {
   $Object,
-} from './object';
+} from './object.js';
 import {
   $String,
-} from './string';
+} from './string.js';
 import {
   $Number,
-} from './number';
+} from './number.js';
 import {
   $BooleanLiteral,
-} from '../ast/literals';
+} from '../ast/literals.js';
 import {
   I$Node,
-} from '../ast/_shared';
+} from '../ast/_shared.js';
 
 // http://www.ecma-international.org/ecma-262/#sec-ecmascript-language-types-boolean-type
 export class $Boolean<T extends boolean = boolean> {

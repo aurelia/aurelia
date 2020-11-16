@@ -1,7 +1,7 @@
 import { LifecycleFlags, subscriberCollection, AccessorType } from '@aurelia/runtime';
 
-import type { EventSubscriber } from './event-delegator';
-import type { INode } from '../dom';
+import type { EventSubscriber } from './event-delegator.js';
+import type { INode } from '../dom.js';
 import type { IIndexable } from '@aurelia/kernel';
 import type { ISubscriberCollection, ISubscriber, IObserver } from '@aurelia/runtime';
 
@@ -14,8 +14,6 @@ export class ValueAttributeObserver implements IObserver {
   public readonly obj: INode & IIndexable;
   public currentValue: unknown = '';
   public oldValue: unknown = '';
-
-  public readonly persistentFlags: LifecycleFlags = LifecycleFlags.none;
 
   public hasChanges: boolean = false;
   // ObserverType.Layout is not always true, it depends on the element & property combo

@@ -5,14 +5,14 @@ import {
   $AnyNonError,
   PotentialNonEmptyCompletionType,
   $Any,
-} from './_shared';
+} from './_shared.js';
 import {
   Realm,
   ExecutionContext,
-} from '../realm';
+} from '../realm.js';
 import {
   I$Node,
-} from '../ast/_shared';
+} from '../ast/_shared.js';
 
 export abstract class $Error<T extends Error = Error, N extends string = string> {
   public readonly '<$Error>': unknown;

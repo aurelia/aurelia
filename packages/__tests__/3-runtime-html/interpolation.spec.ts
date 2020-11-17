@@ -17,8 +17,9 @@ import {
   AccessScopeExpression,
   BindingMode,
   LifecycleFlags,
+  SVGAnalyzerRegistration,
 } from '@aurelia/runtime-html';
-import { DI } from '@aurelia/kernel';
+
 type CaseType = {
   expected: number | string; expectedStrictMode?: number | string; expectedValueAfterChange?: number | string; changeFnc?: (val) => any; app: any; interpolation: string; it: string;
 };
@@ -26,7 +27,7 @@ type CaseType = {
 const testDateString = new Date('Sat Feb 02 2002 00:00:00 GMT+0000 (Coordinated Universal Time)').toString();
 const ThreeHoursAheadDateString = new Date('Sat Feb 02 2002 03:00:00 GMT+0000 (Coordinated Universal Time)').toString();
 const ThreeDaysDateString = new Date('Sat Feb 03 2002 00:00:00 GMT+0000 (Coordinated Universal Time)').toString();
-describe('interpolation', function () {
+describe('3-runtime/interpolation.spec.ts -- [UNIT]interpolation', function () {
   const cases: CaseType[] = [
     {
       expected: 'wOOt', expectedStrictMode: 'wOOt', app: class { public value?: string | number = 'wOOt'; public value1?: string | number; }, interpolation: `$\{value}`, it: 'Renders expected text'
@@ -407,5 +408,91 @@ describe('interpolation', function () {
         [1, 1, 3],
       );
     });
+  });
+});
+
+describe('3-runtime/interpolation.spec.ts -- interpolation -- attributes', function () {
+  it('interpolates on value attr of <progress/>', async function () {
+    const { ctx, component, appHost, startPromise, tearDown } = createFixture(
+      `<progress value="\${progress}">`,
+      class App {
+        progress = 0
+      },
+    );
+
+    await startPromise;
+    const progress = appHost.querySelector('progress');
+    assert.strictEqual(progress.value, 0);
+
+    component.progress = 1;
+    ctx.platform.domWriteQueue.flush();
+    assert.strictEqual(progress.value, 1);
+
+    await tearDown();
+  });
+
+  it('interpolates value attr of <input />', async function () {
+    const { ctx, component, appHost, startPromise, tearDown } = createFixture(
+      `<input value="\${progress}">`,
+      class App {
+        public progress = 0;
+      },
+    );
+
+    await startPromise;
+    const input = appHost.querySelector('input');
+    assert.strictEqual(input.value, '0');
+
+    component.progress = 1;
+    assert.strictEqual(input.value, '0');
+    ctx.platform.domWriteQueue.flush();
+    assert.strictEqual(input.value, '1');
+
+    await tearDown();
+  });
+
+  it('interpolates value attr of <textarea />', async function () {
+    const { ctx, component, appHost, startPromise, tearDown } = createFixture(
+      `<textarea value="\${progress}">`,
+      class App {
+        public progress = 0;
+      },
+    );
+
+    await startPromise;
+    const textArea = appHost.querySelector('textarea');
+    assert.strictEqual(textArea.value, '0');
+
+    component.progress = 1;
+    assert.strictEqual(textArea.value, '0');
+    ctx.platform.domWriteQueue.flush();
+    assert.strictEqual(textArea.value, '1');
+
+    await tearDown();
+  });
+
+  it('interpolates the xlint:href attr of <use />', async function () {
+    const { ctx, component, appHost, startPromise, tearDown } = createFixture(
+      `<svg>
+        <circle id="blue" cx="5" cy="5" r="40" stroke="blue"/>
+        <circle id="red" cx="5" cy="5" r="40" stroke="red"/>
+        <use href="#\${progress > 0 ? 'blue' : 'red'}" x="10" fill="blue" />
+      `,
+      class App {
+        public progress = 0;
+      },
+      [SVGAnalyzerRegistration],
+    );
+
+    await startPromise;
+    const textArea = appHost.querySelector('use');
+    assert.strictEqual(textArea.getAttribute('href'), '#red');
+
+    component.progress = 1;
+    assert.strictEqual(textArea.getAttribute('href'), '#red');
+    ctx.platform.domWriteQueue.flush();
+    assert.strictEqual(textArea.getAttribute('href'), '#blue');
+
+    await tearDown();
   });
 });

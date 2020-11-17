@@ -14,6 +14,7 @@
 * [Building Components](getting-started/components/README.md)
   * [Creating a Custom Element](getting-started/components/creating-a-custom-element.md)
   * [Creating a Custom Attribute](getting-started/components/creating-a-custom-attribute.md)
+  * [Components Lifecycles](getting-started/components/component-lifecycles.md)
   * [Watching Data](getting-started/components/watching-data.md)
   * [Templating - Local Template](getting-started/components/local-templates.md)
 * [Displaying Basic Data](getting-started/displaying-basic-data.md)

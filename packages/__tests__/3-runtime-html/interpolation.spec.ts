@@ -416,7 +416,7 @@ describe('3-runtime/interpolation.spec.ts -- interpolation -- attributes', funct
     const { ctx, component, appHost, startPromise, tearDown } = createFixture(
       `<progress value="\${progress}">`,
       class App {
-        progress = 0
+        public progress = 0;
       },
     );
 

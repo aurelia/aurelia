@@ -1,7 +1,7 @@
 import { Platform } from '@aurelia/platform';
 import { DI } from './di.js';
 
-export interface IPlatform extends Platform {}
+export interface IPlatform extends Platform { }
 export const IPlatform = DI.createInterface<IPlatform>('IPlatform').noDefault();
 
 export {
@@ -92,6 +92,7 @@ export {
   noop,
   emptyArray,
   emptyObject,
+  customPropertyPrefix
 } from './platform.js';
 export {
   IResourceKind,

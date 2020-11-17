@@ -22,11 +22,11 @@ const watchers: IWatcher[] = [];
 export let watching = false;
 
 // todo: layer based collection pause/resume?
-export function pauseSubscription() {
+export function pauseWatching() {
   watching = false;
 }
 
-export function resumeSubscription() {
+export function resumeWatching() {
   watching = true;
 }
 

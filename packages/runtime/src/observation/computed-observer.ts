@@ -9,7 +9,7 @@ import { ExpressionKind } from '../binding/ast.js';
 import { subscriberCollection, collectionSubscriberCollection } from './subscriber-collection.js';
 import { enterWatcher, exitWatcher } from './watcher-switcher.js';
 import { connectable } from '../binding/connectable.js';
-import { getProxyOrSelf, getRawOrSelf } from './proxy-observation.js';
+import { wrap, unwrap } from './proxy-observation.js';
 import { defineHiddenProp, ensureProto } from '../utilities-objects.js';
 
 import type {
@@ -222,7 +222,7 @@ export class ComputedObserver implements IWatcherImpl, IConnectableBinding, ISub
     this.version++;
     try {
       enterWatcher(this);
-      return this.value = getRawOrSelf(this.get.call(this.useProxy ? getProxyOrSelf(this.obj) : this.obj, this));
+      return this.value = unwrap(this.get.call(this.useProxy ? wrap(this.obj) : this.obj, this));
     } finally {
       this.unobserve(false);
       this.unobserveCollection(false);
@@ -305,7 +305,7 @@ export class ComputedWatcher implements IWatcher {
     this.version++;
     try {
       enterWatcher(this);
-      return this.value = getRawOrSelf(this.get.call(void 0, this.useProxy ? getProxyOrSelf(this.obj) : this.obj, this));
+      return this.value = unwrap(this.get.call(void 0, this.useProxy ? wrap(this.obj) : this.obj, this));
     } finally {
       this.unobserve(false);
       this.unobserveCollection(false);

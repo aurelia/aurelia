@@ -208,7 +208,6 @@ export interface IPropertyObserver<TObj extends object, TProp extends keyof TObj
   IPropertyChangeTracker<TObj, TProp>,
   ISubscriberCollection,
   IBatchable {
-  type: AccessorType;
   inBatch: boolean;
   observing: boolean;
 }

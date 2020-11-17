@@ -378,3 +378,19 @@ By default, a watcher will be created for a `@watch()` decorator. This watcher w
   }
   ```
   In this example, even if `options` on a `MyClass` instance has never been changed, the comparison of `myClass.options === defaultOptions` will still return false, as the actual value for `myClass.options` is a proxied object wrapping the real object, and thus is always different with `defaultOptions`.
+
+- Dependency tracking inside a watch computed getter is done synchronously, which means returning a promise, or having an async function won't work property. Don't do the following:
+  ```typescript
+  class MyClass {
+
+    @watch(async myClassInstance => myClassinstance.options)
+    applyCustomOptions() {}
+
+    // or
+    @watch(myClassInstance => {
+      Promise.resolve().then(() => {
+        return myClassinstance.options
+      })
+    })
+  }
+  ```

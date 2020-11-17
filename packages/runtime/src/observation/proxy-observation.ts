@@ -1,13 +1,30 @@
 import { IIndexable } from '@aurelia/kernel';
-import { watching, currentWatcher } from './watcher-switcher';
+import { watching, currentWatcher } from './watcher-switcher.js';
 
 const R$get = Reflect.get;
+const toStringTag = Object.prototype.toString
 const proxyMap = new WeakMap<object, object>();
+
+function toRawType(value: unknown): string {
+  return toStringTag.call(value).slice(8, -1);
+}
+
+function canWrap(obj: unknown): obj is Object {
+  switch (toRawType(obj)) {
+    case 'Object':
+    case 'Array':
+    case 'Map':
+    case 'Set':
+      return true;
+    default:
+      return false;
+  }
+}
 
 export const rawKey = '__raw__';
 
 export function wrap<T extends unknown>(v: T): T {
-  return v instanceof Object ? getProxy(v) : v;
+  return canWrap(v) ? getProxy(v) : v;
 }
 export function getProxy<T extends object>(obj: T): T {
   // deepscan-disable-next-line
@@ -19,7 +36,8 @@ export function getRaw<T extends object>(obj: T): T {
   return (obj as IIndexable)[rawKey] as T ?? obj;
 }
 export function unwrap<T extends unknown>(v: T): T {
-  return v instanceof Object ? (v as IIndexable)[rawKey] as T : v;
+  // eslint-disable-next-line
+  return canWrap(v) && (v as IIndexable)[rawKey] as T || v;
 }
 
 function doNotCollect(key: PropertyKey): boolean {

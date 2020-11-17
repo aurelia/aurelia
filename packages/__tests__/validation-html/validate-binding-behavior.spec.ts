@@ -206,11 +206,8 @@ describe('validate-binding-behavior', function () {
     public static staticText: string = 'from foo-bar ca';
     @bindable public value: unknown;
     @bindable public triggeringEvents: string[];
-    private readonly node: HTMLElement;
 
-    public constructor(@INode node: INode) {
-      this.node = node as HTMLElement;
-    }
+    public constructor(@INode private readonly node: INode<Element>) {}
 
     public binding() {
       for (const event of this.triggeringEvents) {

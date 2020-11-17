@@ -587,13 +587,13 @@ describe('app', function () {
       products.sort((pa, pb) => (pa.name < pb.name ? -1 : 1));
       ctx.platform.domWriteQueue.flush();
       inputs = getInputs();
-      assert.deepEqual(inputs.map(i => getVisibleText(undefined, i.parentElement as any, true)), products.map(p => `${p.id}-${p.name}`));
+      assert.deepEqual(inputs.map(i => getVisibleText(i.parentElement as any, true)), products.map(p => `${p.id}-${p.name}`));
 
       // reverse
       products.reverse();
       ctx.platform.domWriteQueue.flush();
       inputs = getInputs();
-      assert.deepEqual(inputs.map(i => getVisibleText(undefined, i.parentElement as any, true)), products.map(p => `${p.id}-${p.name}`));
+      assert.deepEqual(inputs.map(i => getVisibleText(i.parentElement as any, true)), products.map(p => `${p.id}-${p.name}`));
 
       // clear
       products.splice(0);

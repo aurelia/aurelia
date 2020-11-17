@@ -48,18 +48,15 @@ export class ViewportCustomElement implements ICustomElementViewModel {
   public readonly $controller!: ICustomElementController<this>;
 
   public controller!: IRoutingController;
-  public readonly element: HTMLElement;
 
   private isBound: boolean = false;
 
   public constructor(
     @IRouter private readonly router: IRouter,
-    @INode element: INode,
+    @INode public readonly element: INode<HTMLElement>,
     @IContainer public container: IContainer,
     @ParentViewport public readonly parentViewport: ViewportCustomElement,
-  ) {
-    this.element = element as HTMLElement;
-  }
+  ) {}
 
   public hydrated(controller: ICompiledCustomElementController) {
     // console.log('hydrated', this.name, this.router.isActive);

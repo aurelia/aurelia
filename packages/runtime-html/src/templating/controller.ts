@@ -59,6 +59,8 @@ export const enum MountTarget {
   location = 3,
 }
 
+const optional = { optional: true } as const;
+
 const controllerLookup: WeakMap<object, Controller> = new WeakMap();
 export class Controller<C extends IViewModel = IViewModel> implements IController<C> {
   public readonly id: number = nextId('au$component');
@@ -78,6 +80,10 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   public scope: Scope | null = null;
   public hostScope: Scope | null = null;
 
+  // If a host from another custom element was passed in, then this will be the controller for that custom element (could be `au-viewport` for example).
+  // In that case, this controller will create a new host node (with the definition's name) and use that as the target host for the nodes instead.
+  // That host node is separately mounted to the host controller's original host node.
+  public hostController: Controller | null = null;
   public mountTarget: MountTarget = MountTarget.none;
   public shadowRoot: ShadowRoot | null = null;
   public nodes: INodeSequence | null = null;
@@ -322,14 +328,20 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     projectionsMap.clear();
     this.isStrictBinding = isStrictBinding;
 
+    if ((this.hostController = CustomElement.for(this.host!, optional) as Controller | null) !== null) {
+      this.host = this.platform.document.createElement(this.context!.definition.name);
+    }
+
+    Metadata.define(CustomElement.name, this, this.host);
     if (shadowOptions !== null || hasSlots) {
       if (containerless) { throw new Error('You cannot combine the containerless custom element option with Shadow DOM.'); }
-      Metadata.define(CustomElement.name, this, this.host);
-      this.setShadowRoot(this.shadowRoot = (this.host as HTMLElement).attachShadow(shadowOptions ?? defaultShadowOptions));
+      Metadata.define(CustomElement.name, this, this.shadowRoot = this.host!.attachShadow(shadowOptions ?? defaultShadowOptions));
+      this.mountTarget = MountTarget.shadowRoot;
     } else if (containerless) {
-      this.setLocation(this.location = convertToRenderLocation(this.host!));
+      Metadata.define(CustomElement.name, this, this.location = convertToRenderLocation(this.host!));
+      this.mountTarget = MountTarget.location;
     } else {
-      this.setHost(this.host!);
+      this.mountTarget = MountTarget.host;
     }
 
     (this.viewModel as Writable<C>).$controller = this;
@@ -488,8 +500,36 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     return this.attach();
   }
 
+  private append(...nodes: Node[]): void {
+    switch (this.mountTarget) {
+      case MountTarget.host:
+        this.host!.append(...nodes);
+        break;
+      case MountTarget.shadowRoot:
+        this.shadowRoot!.append(...nodes);
+        break;
+      case MountTarget.location:
+        for (let i = 0; i < nodes.length; ++i) {
+          this.location!.parentNode!.insertBefore(nodes[i], this.location);
+        }
+        break;
+    }
+  }
+
   private attach(): void | Promise<void> {
     if (this.debug) { this.logger!.trace(`attach()`); }
+
+    if (this.hostController !== null) {
+      switch (this.mountTarget) {
+        case MountTarget.host:
+        case MountTarget.shadowRoot:
+          this.hostController.append(this.host!);
+          break;
+        case MountTarget.location:
+          this.hostController.append(this.location!.$start!, this.location!);
+          break;
+      }
+    }
 
     switch (this.mountTarget) {
       case MountTarget.host:
@@ -619,15 +659,33 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     return this.detach();
   }
 
-  private detach(): void | Promise<void> {
-    if (this.debug) { this.logger!.trace(`detach()`); }
-
+  private removeNodes(): void {
     switch (this.vmKind) {
       case ViewModelKind.customElement:
       case ViewModelKind.synthetic:
         this.nodes!.remove();
         this.nodes!.unlink();
     }
+
+    if (this.hostController !== null) {
+      switch (this.mountTarget) {
+        case MountTarget.host:
+        case MountTarget.shadowRoot:
+          this.host!.remove();
+          break;
+        case MountTarget.location:
+          this.location!.$start!.remove();
+          this.location!.remove();
+          break;
+      }
+    }
+  }
+
+  private detach(): void | Promise<void> {
+    // Note: if this method is called, then this controller is the initiator
+    if (this.debug) { this.logger!.trace(`detach()`); }
+
+    this.removeNodes();
 
     let promises: Promise<void>[] | undefined = void 0;
     let ret: Promise<void> | void = void 0;
@@ -637,12 +695,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       if (cur !== this) {
         if (cur.debug) { cur.logger!.trace(`detach()`); }
 
-        switch (cur.vmKind) {
-          case ViewModelKind.customElement:
-          case ViewModelKind.synthetic:
-            cur.nodes!.remove();
-            cur.nodes!.unlink();
-        }
+        cur.removeNodes();
       }
       ret = cur.unbinding();
       if (ret instanceof Promise) {
@@ -791,6 +844,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       this.children = null;
     }
 
+    this.hostController = null;
     this.scope = null;
 
     this.nodes = null;

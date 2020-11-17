@@ -189,6 +189,7 @@ export {
 } from './observation/subscriber-collection.js';
 export {
   IWatcher,
+  WatcherSwitcher,
 } from './observation/watcher-switcher.js';
 
 export {

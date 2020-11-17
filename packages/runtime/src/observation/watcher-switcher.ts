@@ -64,3 +64,16 @@ export function exitWatcher(watcher: IWatcher): void {
   $watcher = watchers.length > 0 ? watchers[watchers.length - 1] : null;
   watching = $watcher != null;
 }
+
+export const WatcherSwitcher = Object.freeze({
+  get current() {
+    return $watcher;
+  },
+  get watching() {
+    return watching;
+  },
+  enter: enterWatcher,
+  exit: exitWatcher,
+  pause: pauseWatching,
+  resume: resumeWatching,
+});

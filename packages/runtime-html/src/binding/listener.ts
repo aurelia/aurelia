@@ -6,9 +6,8 @@ import {
 import { IEventTarget } from '../dom.js';
 
 import type { IDisposable, IIndexable, IServiceLocator } from '@aurelia/kernel';
-import type { IBinding, IConnectableBinding, IsBindingBehavior } from '@aurelia/runtime';
+import type { IBinding, IConnectableBinding, IsBindingBehavior, Scope } from '@aurelia/runtime';
 import type { IEventDelegator } from '../observation/event-delegator.js';
-import type { Scope } from '@aurelia/runtime';
 import type { IPlatform } from '../platform.js';
 
 const options = {

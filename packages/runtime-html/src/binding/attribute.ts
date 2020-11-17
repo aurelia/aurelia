@@ -21,9 +21,9 @@ import type {
   IsBindingBehavior,
   ITask,
   QueueTaskOptions,
+  Scope,
 } from '@aurelia/runtime';
 import type { IHtmlElement } from '../observation/element-attribute-observer.js';
-import type { Scope } from '@aurelia/runtime';
 import type { INode } from '../dom.js';
 
 // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak

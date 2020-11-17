@@ -36,17 +36,31 @@ export declare class NodeObserverLocator implements INodeObserverLocator {
     private readonly dirtyChecker;
     private readonly svgAnalyzer;
     allowDirtyCheck: boolean;
-    private readonly globalLookup;
-    private readonly eventsLookup;
+    private readonly events;
+    private readonly globalEvents;
     private readonly overrides;
+    private readonly globalOverrides;
     constructor(locator: IServiceLocator, platform: IPlatform, dirtyChecker: IDirtyChecker, svgAnalyzer: ISVGAnalyzer);
     static register(container: IContainer): void;
     handles(obj: unknown, _key: PropertyKey): boolean;
     useConfig(config: Record<string, Record<string, INodeObserverConfig>>): void;
     useConfig(nodeName: string, key: PropertyKey, events: INodeObserverConfig): void;
-    useGlobalConfig(config: Record<string, INodeObserverConfig>): void;
-    useGlobalConfig(key: PropertyKey, events: INodeObserverConfig): void;
+    useConfigGlobal(config: Record<string, INodeObserverConfig>): void;
+    useConfigGlobal(key: PropertyKey, events: INodeObserverConfig): void;
     getAccessor(obj: HTMLElement, key: PropertyKey, requestor: IObserverLocator): IAccessor | IObserver;
+    /**
+     * For a list of specific elements
+     * compose a list of properties, based on different tag name,
+     * indicating that an overser should be returned instead of an accessor in `.getAccessor()`
+     */
+    overrideAccessor(overrides: Record<string, string[]>): void;
+    overrideAccessor(tagName: string, key: PropertyKey): void;
+    /**
+     * For all elements:
+     * compose a list of properties,
+     * to indicate that an overser should be returned instead of an accessor in `.getAccessor()`
+     */
+    overrideAccessorGlobal(...keys: string[]): void;
     getObserver(el: HTMLElement, key: PropertyKey, requestor: IObserverLocator): IAccessor | IObserver;
 }
 export declare function getCollectionObserver(collection: unknown, observerLocator: IObserverLocator): ICollectionObserver<CollectionKind> | undefined;

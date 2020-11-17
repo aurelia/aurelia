@@ -73,9 +73,10 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             this.dirtyChecker = dirtyChecker;
             this.svgAnalyzer = svgAnalyzer;
             this.allowDirtyCheck = true;
-            this.globalLookup = createLookup();
-            this.eventsLookup = createLookup();
-            this.overrides = getDefaultOverrideProps();
+            this.events = createLookup();
+            this.globalEvents = createLookup();
+            this.overrides = createLookup();
+            this.globalOverrides = createLookup();
             // todo: atm, platform is required to be resolved too eagerly for the `.handles()` check
             // also a lot of tests assume default availability of observation
             // those 2 assumptions make it not the right time to extract the following line into a
@@ -99,11 +100,17 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             });
             const contentEventsConfig = { events: ['change', 'input', 'blur', 'keyup', 'paste'], default: '' };
             const scrollEventsConfig = { events: ['scroll'], default: 0 };
-            this.useGlobalConfig({
+            this.useConfigGlobal({
                 scrollTop: scrollEventsConfig,
                 scrollLeft: scrollEventsConfig,
                 textContent: contentEventsConfig,
                 innerHTML: contentEventsConfig,
+            });
+            this.overrideAccessorGlobal('css', 'style', 'class');
+            this.overrideAccessor({
+                INPUT: ['value', 'checked', 'model'],
+                SELECT: ['value'],
+                TEXTAREA: ['value'],
             });
         }
         static register(container) {
@@ -116,7 +123,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
         useConfig(nodeNameOrConfig, key, eventsConfig) {
             var _a, _b;
-            const lookup = this.eventsLookup;
+            const lookup = this.events;
             let existingMapping;
             if (typeof nodeNameOrConfig === 'string') {
                 existingMapping = (_a = lookup[nodeNameOrConfig]) !== null && _a !== void 0 ? _a : (lookup[nodeNameOrConfig] = createLookup());
@@ -142,8 +149,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                 }
             }
         }
-        useGlobalConfig(configOrKey, eventsConfig) {
-            const lookup = this.globalLookup;
+        useConfigGlobal(configOrKey, eventsConfig) {
+            const lookup = this.globalEvents;
             if (typeof configOrKey === 'object') {
                 for (const key in configOrKey) {
                     if (lookup[key] == null) {
@@ -165,7 +172,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
         // deepscan-disable-nextline
         getAccessor(obj, key, requestor) {
-            if (this.overrides[key] === true) {
+            var _a;
+            if (key in this.globalOverrides || (key in ((_a = this.overrides[obj.tagName]) !== null && _a !== void 0 ? _a : kernel_1.emptyObject))) {
                 return this.getObserver(obj, key, requestor);
             }
             switch (key) {
@@ -190,6 +198,33 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                 }
             }
         }
+        overrideAccessor(tagNameOrOverrides, key) {
+            var _a, _b;
+            var _c, _d;
+            let existingTagOverride;
+            if (typeof tagNameOrOverrides === 'string') {
+                existingTagOverride = (_a = (_c = this.overrides)[tagNameOrOverrides]) !== null && _a !== void 0 ? _a : (_c[tagNameOrOverrides] = createLookup());
+                existingTagOverride[key] = true;
+            }
+            else {
+                for (const tagName in tagNameOrOverrides) {
+                    for (const key of tagNameOrOverrides[tagName]) {
+                        existingTagOverride = (_b = (_d = this.overrides)[tagName]) !== null && _b !== void 0 ? _b : (_d[tagName] = createLookup());
+                        existingTagOverride[key] = true;
+                    }
+                }
+            }
+        }
+        /**
+         * For all elements:
+         * compose a list of properties,
+         * to indicate that an overser should be returned instead of an accessor in `.getAccessor()`
+         */
+        overrideAccessorGlobal(...keys) {
+            for (const key of keys) {
+                this.globalOverrides[key] = true;
+            }
+        }
         getObserver(el, key, requestor) {
             var _a, _b;
             switch (key) {
@@ -201,7 +236,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                 case 'style':
                     return new style_attribute_accessor_js_1.StyleAttributeAccessor(el);
             }
-            const eventsConfig = (_b = (_a = this.eventsLookup[el.tagName]) === null || _a === void 0 ? void 0 : _a[key]) !== null && _b !== void 0 ? _b : this.globalLookup[key];
+            const eventsConfig = (_b = (_a = this.events[el.tagName]) === null || _a === void 0 ? void 0 : _a[key]) !== null && _b !== void 0 ? _b : this.globalEvents[key];
             if (eventsConfig != null) {
                 return new eventsConfig.type(el, key, new event_delegator_js_1.EventSubscriber(eventsConfig), requestor, this.locator);
             }
@@ -236,23 +271,6 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         __metadata("design:paramtypes", [Object, Object, Object, Object])
     ], NodeObserverLocator);
     exports.NodeObserverLocator = NodeObserverLocator;
-    function getDefaultOverrideProps() {
-        return [
-            'class',
-            'style',
-            'css',
-            'checked',
-            'value',
-            'model',
-            'xml:lang',
-            'xml:space',
-            'xmlns',
-            'xmlns:xlink',
-        ].reduce((overrides, attr) => {
-            overrides[attr] = true;
-            return overrides;
-        }, createLookup());
-    }
     function getCollectionObserver(collection, observerLocator) {
         if (collection instanceof Array) {
             return observerLocator.getArrayObserver(0 /* none */, collection);

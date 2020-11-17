@@ -1,6 +1,9 @@
-import { DI, IIndexable, ITask, IPlatform, QueueTaskOptions } from '@aurelia/kernel';
-import { IBindingTargetObserver, IObservable, ISubscriber, AccessorType, LifecycleFlags } from '../observation.js';
+import { DI, IPlatform } from '@aurelia/kernel';
+import { AccessorType, LifecycleFlags } from '../observation.js';
 import { subscriberCollection } from './subscriber-collection.js';
+
+import type { IIndexable, ITask, QueueTaskOptions } from '@aurelia/kernel';
+import type { IBindingTargetObserver, IObservable, ISubscriber } from '../observation';
 
 export interface IDirtyChecker extends DirtyChecker {}
 export const IDirtyChecker = DI.createInterface<IDirtyChecker>('IDirtyChecker').withDefault(x => x.singleton(DirtyChecker));

@@ -1,5 +1,7 @@
-import { IAccessor, LifecycleFlags, AccessorType } from '@aurelia/runtime';
 import { emptyArray } from '@aurelia/kernel';
+import { AccessorType, LifecycleFlags } from '@aurelia/runtime';
+
+import type { IAccessor } from '@aurelia/runtime';
 
 export class ClassAttributeAccessor implements IAccessor {
   public currentValue: unknown = '';

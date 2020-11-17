@@ -1,29 +1,13 @@
-import {
-  IServiceLocator,
-  ITask,
-  QueueTaskOptions,
-  TaskQueue,
-} from '@aurelia/kernel';
-import {
-  AccessorOrObserver,
-  IBindingTargetObserver,
-  AccessorType,
-  BindingMode,
-  ILifecycle,
-  LifecycleFlags,
-} from '../observation.js';
-import { IObserverLocator } from '../observation/observer-locator.js';
-import {
-  ExpressionKind,
-  ForOfStatement,
-  IsBindingBehavior,
-} from './ast.js';
-import {
-  connectable,
-  IConnectableBinding,
-  IPartialConnectableBinding,
-} from './connectable.js';
+import { TaskQueue } from '@aurelia/kernel';
+import { BindingMode, LifecycleFlags, ILifecycle, AccessorType } from '../observation.js';
+import { ExpressionKind } from './ast.js';
+import { connectable } from './connectable.js';
 
+import type { IServiceLocator, ITask, QueueTaskOptions } from '@aurelia/kernel';
+import type { AccessorOrObserver, IBindingTargetObserver } from '../observation.js';
+import type { IObserverLocator } from '../observation/observer-locator.js';
+import type { ForOfStatement, IsBindingBehavior, } from './ast.js';
+import type { IConnectableBinding, IPartialConnectableBinding } from './connectable.js';
 import type { Scope } from '../observation/binding-context.js';
 
 // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak

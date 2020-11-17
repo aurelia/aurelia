@@ -1,4 +1,5 @@
 import { BrowserPlatform } from '@aurelia/platform-browser';
+import { WatcherSwitcher } from '@aurelia/runtime';
 import { setPlatform, assert, ensureTaskQueuesEmpty } from '@aurelia/testing';
 
 interface ExtendedSuite extends Mocha.Suite {
@@ -69,6 +70,17 @@ export function $setup(platform: BrowserPlatform) {
     } catch (ex) {
       ensureTaskQueuesEmpty();
       throw ex;
+    } finally {
+      let hasWatcher = false;
+      let currentWatcher = WatcherSwitcher.current;
+      while (currentWatcher != null) {
+        hasWatcher = true;
+        WatcherSwitcher.exit(currentWatcher);
+        currentWatcher = WatcherSwitcher.current;
+      }
+      if (hasWatcher) {
+        throw new Error('There is still some watcher not removed.');
+      }
     }
   });
 }

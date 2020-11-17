@@ -4,9 +4,6 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
 (function (factory) {
     if (typeof module === "object" && typeof module.exports === "object") {
         var v = factory(require, exports);
@@ -42,8 +39,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         }
     };
     OneTimeBindingBehavior = __decorate([
-        binding_behavior_js_1.bindingBehavior('oneTime'),
-        __metadata("design:paramtypes", [])
+        binding_behavior_js_1.bindingBehavior('oneTime')
     ], OneTimeBindingBehavior);
     exports.OneTimeBindingBehavior = OneTimeBindingBehavior;
     let ToViewBindingBehavior = class ToViewBindingBehavior extends BindingModeBehavior {
@@ -52,8 +48,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         }
     };
     ToViewBindingBehavior = __decorate([
-        binding_behavior_js_1.bindingBehavior('toView'),
-        __metadata("design:paramtypes", [])
+        binding_behavior_js_1.bindingBehavior('toView')
     ], ToViewBindingBehavior);
     exports.ToViewBindingBehavior = ToViewBindingBehavior;
     let FromViewBindingBehavior = class FromViewBindingBehavior extends BindingModeBehavior {
@@ -62,8 +57,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         }
     };
     FromViewBindingBehavior = __decorate([
-        binding_behavior_js_1.bindingBehavior('fromView'),
-        __metadata("design:paramtypes", [])
+        binding_behavior_js_1.bindingBehavior('fromView')
     ], FromViewBindingBehavior);
     exports.FromViewBindingBehavior = FromViewBindingBehavior;
     let TwoWayBindingBehavior = class TwoWayBindingBehavior extends BindingModeBehavior {
@@ -72,8 +66,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         }
     };
     TwoWayBindingBehavior = __decorate([
-        binding_behavior_js_1.bindingBehavior('twoWay'),
-        __metadata("design:paramtypes", [])
+        binding_behavior_js_1.bindingBehavior('twoWay')
     ], TwoWayBindingBehavior);
     exports.TwoWayBindingBehavior = TwoWayBindingBehavior;
 });

@@ -4,11 +4,8 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
 import { DI } from '@aurelia/kernel';
-import { bindingBehavior, BindingInterceptor, BindingMediator, PropertyBinding, BindingBehaviorExpression, IPlatform, } from '@aurelia/runtime-html';
+import { bindingBehavior, BindingInterceptor, BindingMediator, PropertyBinding, IPlatform, } from '@aurelia/runtime-html';
 import { PropertyRule } from '@aurelia/validation';
 import { IValidationController, ValidationController, BindingInfo } from './validation-controller.js';
 /**
@@ -265,8 +262,7 @@ let ValidateBindingBehavior = class ValidateBindingBehavior extends BindingInter
     }
 };
 ValidateBindingBehavior = __decorate([
-    bindingBehavior('validate'),
-    __metadata("design:paramtypes", [Object, BindingBehaviorExpression])
+    bindingBehavior('validate')
 ], ValidateBindingBehavior);
 export { ValidateBindingBehavior };
 class ValidateArgumentsDelta {

@@ -1,4 +1,5 @@
-import { IAccessor, LifecycleFlags, AccessorType } from '@aurelia/runtime';
+import { AccessorType } from '@aurelia/runtime';
+import type { IAccessor, LifecycleFlags } from '@aurelia/runtime';
 /**
  * Attribute accessor in a XML document/element that can be accessed via a namespace.
  * Wraps [`getAttributeNS`](https://developer.mozilla.org/en-US/docs/Web/API/Element/getAttributeNS).

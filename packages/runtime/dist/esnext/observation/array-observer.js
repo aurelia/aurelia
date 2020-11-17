@@ -4,12 +4,9 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
-import { createIndexMap, ILifecycle } from '../observation.js';
-import { CollectionLengthObserver } from './collection-length-observer.js';
-import { collectionSubscriberCollection, subscriberCollection } from './subscriber-collection.js';
+import { createIndexMap, } from '../observation.js';
+import { CollectionLengthObserver, } from './collection-length-observer.js';
+import { collectionSubscriberCollection, subscriberCollection, } from './subscriber-collection.js';
 const observerLookup = new WeakMap();
 // https://tc39.github.io/ecma262/#sec-sortcompare
 function sortCompare(x, y) {
@@ -463,8 +460,7 @@ let ArrayObserver = class ArrayObserver {
     }
 };
 ArrayObserver = __decorate([
-    collectionSubscriberCollection(),
-    __metadata("design:paramtypes", [Object, Object])
+    collectionSubscriberCollection()
 ], ArrayObserver);
 export { ArrayObserver };
 let ArrayIndexObserver = class ArrayIndexObserver {
@@ -521,8 +517,7 @@ let ArrayIndexObserver = class ArrayIndexObserver {
     }
 };
 ArrayIndexObserver = __decorate([
-    subscriberCollection(),
-    __metadata("design:paramtypes", [ArrayObserver, Number])
+    subscriberCollection()
 ], ArrayIndexObserver);
 export { ArrayIndexObserver };
 export function getArrayObserver(lifecycle, array) {

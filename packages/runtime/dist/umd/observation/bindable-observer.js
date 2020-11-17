@@ -4,16 +4,13 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
 (function (factory) {
     if (typeof module === "object" && typeof module.exports === "object") {
         var v = factory(require, exports);
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "../observation.js", "./subscriber-collection.js"], factory);
+        define(["require", "exports", "@aurelia/kernel", "./subscriber-collection.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -21,7 +18,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.BindableObserver = void 0;
     const kernel_1 = require("@aurelia/kernel");
-    const observation_js_1 = require("../observation.js");
     const subscriber_collection_js_1 = require("./subscriber-collection.js");
     let BindableObserver = BindableObserver_1 = class BindableObserver {
         constructor(lifecycle, obj, propertyKey, cbName, $set) {
@@ -115,8 +111,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         }
     };
     BindableObserver = BindableObserver_1 = __decorate([
-        subscriber_collection_js_1.subscriberCollection(),
-        __metadata("design:paramtypes", [Object, Object, String, String, Function])
+        subscriber_collection_js_1.subscriberCollection()
     ], BindableObserver);
     exports.BindableObserver = BindableObserver;
 });

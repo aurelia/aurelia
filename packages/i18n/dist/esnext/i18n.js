@@ -4,16 +4,13 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 import { DI, IEventAggregator } from '@aurelia/kernel';
 import { ISignaler } from '@aurelia/runtime';
 import { I18nInitOptions } from './i18n-configuration-options.js';
-import { I18nextWrapper, I18nWrapper } from './i18next-wrapper.js';
+import { I18nWrapper } from './i18next-wrapper.js';
 var TimeSpan;
 (function (TimeSpan) {
     TimeSpan[TimeSpan["Second"] = 1000] = "Second";
@@ -173,8 +170,7 @@ I18nService = __decorate([
     __param(0, I18nWrapper),
     __param(1, I18nInitOptions),
     __param(2, IEventAggregator),
-    __param(3, ISignaler),
-    __metadata("design:paramtypes", [I18nextWrapper, Object, Object, Object])
+    __param(3, ISignaler)
 ], I18nService);
 export { I18nService };
 //# sourceMappingURL=i18n.js.map

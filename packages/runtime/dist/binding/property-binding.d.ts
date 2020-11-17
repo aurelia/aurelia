@@ -1,8 +1,10 @@
-import { IServiceLocator, TaskQueue } from '@aurelia/kernel';
-import { AccessorOrObserver, BindingMode, ILifecycle, LifecycleFlags } from '../observation.js';
-import { IObserverLocator } from '../observation/observer-locator.js';
-import { ForOfStatement, IsBindingBehavior } from './ast.js';
-import { IConnectableBinding, IPartialConnectableBinding } from './connectable.js';
+import { TaskQueue } from '@aurelia/kernel';
+import { BindingMode, LifecycleFlags, ILifecycle } from '../observation.js';
+import type { IServiceLocator } from '@aurelia/kernel';
+import type { AccessorOrObserver } from '../observation.js';
+import type { IObserverLocator } from '../observation/observer-locator.js';
+import type { ForOfStatement, IsBindingBehavior } from './ast.js';
+import type { IConnectableBinding, IPartialConnectableBinding } from './connectable.js';
 import type { Scope } from '../observation/binding-context.js';
 export interface PropertyBinding extends IConnectableBinding {
 }

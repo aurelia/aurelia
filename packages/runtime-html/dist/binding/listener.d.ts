@@ -1,8 +1,8 @@
-import { IIndexable, IServiceLocator } from '@aurelia/kernel';
-import { DelegationStrategy, IBinding, IConnectableBinding, IsBindingBehavior, LifecycleFlags } from '@aurelia/runtime';
-import { IEventDelegator } from '../observation/event-delegator.js';
-import type { Scope } from '@aurelia/runtime';
-import { IPlatform } from '../platform.js';
+import { DelegationStrategy, LifecycleFlags } from '@aurelia/runtime';
+import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
+import type { IBinding, IConnectableBinding, IsBindingBehavior, Scope } from '@aurelia/runtime';
+import type { IEventDelegator } from '../observation/event-delegator.js';
+import type { IPlatform } from '../platform.js';
 export interface Listener extends IConnectableBinding {
 }
 /**

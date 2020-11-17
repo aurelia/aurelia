@@ -4,17 +4,12 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
 /* eslint-disable eqeqeq, compat/compat */
-import { emptyArray, isArrayIndex, IServiceLocator } from '@aurelia/kernel';
-import { IObserverLocator } from './observer-locator.js';
+import { emptyArray, isArrayIndex } from '@aurelia/kernel';
 import { subscriberCollection, collectionSubscriberCollection } from './subscriber-collection.js';
 import { enterWatcher, exitWatcher } from './watcher-switcher.js';
 import { connectable } from '../binding/connectable.js';
 import { getProxyOrSelf, getRawOrSelf } from './proxy-observation.js';
-import { Scope } from './binding-context.js';
 export function computed(config) {
     return function (target, key) {
         /**
@@ -94,8 +89,7 @@ let CustomSetterObserver = class CustomSetterObserver {
     }
 };
 CustomSetterObserver = __decorate([
-    subscriberCollection(),
-    __metadata("design:paramtypes", [Object, String, Object])
+    subscriberCollection()
 ], CustomSetterObserver);
 export { CustomSetterObserver };
 // Used when there is no setter, and the getter is dependent on other properties of the object;
@@ -191,8 +185,7 @@ let GetterObserver = class GetterObserver {
     }
 };
 GetterObserver = __decorate([
-    subscriberCollection(),
-    __metadata("design:paramtypes", [Number, Object, Object, String, Object, Object])
+    subscriberCollection()
 ], GetterObserver);
 export { GetterObserver };
 const toStringTag = Object.prototype.toString;
@@ -347,8 +340,7 @@ let ComputedWatcher = class ComputedWatcher {
 ComputedWatcher = __decorate([
     connectable(),
     subscriberCollection(),
-    collectionSubscriberCollection(),
-    __metadata("design:paramtypes", [Object, Object, Function, Function, Boolean])
+    collectionSubscriberCollection()
 ], ComputedWatcher);
 export { ComputedWatcher };
 let ExpressionWatcher = class ExpressionWatcher {
@@ -397,8 +389,7 @@ let ExpressionWatcher = class ExpressionWatcher {
     }
 };
 ExpressionWatcher = __decorate([
-    connectable(),
-    __metadata("design:paramtypes", [Scope, Object, Object, Object, Function])
+    connectable()
 ], ExpressionWatcher);
 export { ExpressionWatcher };
 //# sourceMappingURL=computed-observer.js.map

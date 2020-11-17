@@ -1,4 +1,5 @@
-import { ISubscriberCollection, AccessorType } from '../observation.js';
+import { AccessorType } from '../observation.js';
+import type { ISubscriberCollection } from '../observation.js';
 export interface CollectionSizeObserver extends ISubscriberCollection {
 }
 export declare class CollectionSizeObserver {

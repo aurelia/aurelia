@@ -4,9 +4,6 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
@@ -438,8 +435,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         /** @internal */
         ,
         __param(0, runtime_1.IExpressionParser),
-        __param(1, runtime_1.IObserverLocator),
-        __metadata("design:paramtypes", [Object, Object])
+        __param(1, runtime_1.IObserverLocator)
     ], LetElementRenderer);
     exports.LetElementRenderer = LetElementRenderer;
     let CallBindingRenderer = 
@@ -460,8 +456,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         /** @internal */
         ,
         __param(0, runtime_1.IExpressionParser),
-        __param(1, runtime_1.IObserverLocator),
-        __metadata("design:paramtypes", [Object, Object])
+        __param(1, runtime_1.IObserverLocator)
     ], CallBindingRenderer);
     exports.CallBindingRenderer = CallBindingRenderer;
     let RefBindingRenderer = 
@@ -480,8 +475,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         renderer("rj" /* refBinding */)
         /** @internal */
         ,
-        __param(0, runtime_1.IExpressionParser),
-        __metadata("design:paramtypes", [Object])
+        __param(0, runtime_1.IExpressionParser)
     ], RefBindingRenderer);
     exports.RefBindingRenderer = RefBindingRenderer;
     let InterpolationBindingRenderer = 
@@ -510,8 +504,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         ,
         __param(0, runtime_1.IExpressionParser),
         __param(1, runtime_1.IObserverLocator),
-        __param(2, platform_js_1.IPlatform),
-        __metadata("design:paramtypes", [Object, Object, Object])
+        __param(2, platform_js_1.IPlatform)
     ], InterpolationBindingRenderer);
     exports.InterpolationBindingRenderer = InterpolationBindingRenderer;
     let PropertyBindingRenderer = 
@@ -534,8 +527,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         ,
         __param(0, runtime_1.IExpressionParser),
         __param(1, runtime_1.IObserverLocator),
-        __param(2, platform_js_1.IPlatform),
-        __metadata("design:paramtypes", [Object, Object, Object])
+        __param(2, platform_js_1.IPlatform)
     ], PropertyBindingRenderer);
     exports.PropertyBindingRenderer = PropertyBindingRenderer;
     let IteratorBindingRenderer = 
@@ -558,8 +550,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         ,
         __param(0, runtime_1.IExpressionParser),
         __param(1, runtime_1.IObserverLocator),
-        __param(2, platform_js_1.IPlatform),
-        __metadata("design:paramtypes", [Object, Object, Object])
+        __param(2, platform_js_1.IPlatform)
     ], IteratorBindingRenderer);
     exports.IteratorBindingRenderer = IteratorBindingRenderer;
     let behaviorExpressionIndex = 0;
@@ -610,8 +601,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         ,
         __param(0, runtime_1.IExpressionParser),
         __param(1, runtime_1.IObserverLocator),
-        __param(2, platform_js_1.IPlatform),
-        __metadata("design:paramtypes", [Object, Object, Object])
+        __param(2, platform_js_1.IPlatform)
     ], TextBindingRenderer);
     exports.TextBindingRenderer = TextBindingRenderer;
     let ListenerBindingRenderer = 
@@ -633,8 +623,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         /** @internal */
         ,
         __param(0, runtime_1.IExpressionParser),
-        __param(1, event_delegator_js_1.IEventDelegator),
-        __metadata("design:paramtypes", [Object, Object])
+        __param(1, event_delegator_js_1.IEventDelegator)
     ], ListenerBindingRenderer);
     exports.ListenerBindingRenderer = ListenerBindingRenderer;
     let SetAttributeRenderer = 
@@ -687,8 +676,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         ,
         __param(0, runtime_1.IExpressionParser),
         __param(1, runtime_1.IObserverLocator),
-        __param(2, platform_js_1.IPlatform),
-        __metadata("design:paramtypes", [Object, Object, Object])
+        __param(2, platform_js_1.IPlatform)
     ], StylePropertyBindingRenderer);
     exports.StylePropertyBindingRenderer = StylePropertyBindingRenderer;
     let AttributeBindingRenderer = 
@@ -709,8 +697,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         /** @internal */
         ,
         __param(0, runtime_1.IExpressionParser),
-        __param(1, runtime_1.IObserverLocator),
-        __metadata("design:paramtypes", [Object, Object])
+        __param(1, runtime_1.IObserverLocator)
     ], AttributeBindingRenderer);
     exports.AttributeBindingRenderer = AttributeBindingRenderer;
     // http://jsben.ch/7n5Kt

@@ -4,9 +4,6 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
@@ -406,8 +403,7 @@ LetElementRenderer = __decorate([
     /** @internal */
     ,
     __param(0, IExpressionParser),
-    __param(1, IObserverLocator),
-    __metadata("design:paramtypes", [Object, Object])
+    __param(1, IObserverLocator)
 ], LetElementRenderer);
 export { LetElementRenderer };
 let CallBindingRenderer = 
@@ -428,8 +424,7 @@ CallBindingRenderer = __decorate([
     /** @internal */
     ,
     __param(0, IExpressionParser),
-    __param(1, IObserverLocator),
-    __metadata("design:paramtypes", [Object, Object])
+    __param(1, IObserverLocator)
 ], CallBindingRenderer);
 export { CallBindingRenderer };
 let RefBindingRenderer = 
@@ -448,8 +443,7 @@ RefBindingRenderer = __decorate([
     renderer("rj" /* refBinding */)
     /** @internal */
     ,
-    __param(0, IExpressionParser),
-    __metadata("design:paramtypes", [Object])
+    __param(0, IExpressionParser)
 ], RefBindingRenderer);
 export { RefBindingRenderer };
 let InterpolationBindingRenderer = 
@@ -478,8 +472,7 @@ InterpolationBindingRenderer = __decorate([
     ,
     __param(0, IExpressionParser),
     __param(1, IObserverLocator),
-    __param(2, IPlatform),
-    __metadata("design:paramtypes", [Object, Object, Object])
+    __param(2, IPlatform)
 ], InterpolationBindingRenderer);
 export { InterpolationBindingRenderer };
 let PropertyBindingRenderer = 
@@ -502,8 +495,7 @@ PropertyBindingRenderer = __decorate([
     ,
     __param(0, IExpressionParser),
     __param(1, IObserverLocator),
-    __param(2, IPlatform),
-    __metadata("design:paramtypes", [Object, Object, Object])
+    __param(2, IPlatform)
 ], PropertyBindingRenderer);
 export { PropertyBindingRenderer };
 let IteratorBindingRenderer = 
@@ -526,8 +518,7 @@ IteratorBindingRenderer = __decorate([
     ,
     __param(0, IExpressionParser),
     __param(1, IObserverLocator),
-    __param(2, IPlatform),
-    __metadata("design:paramtypes", [Object, Object, Object])
+    __param(2, IPlatform)
 ], IteratorBindingRenderer);
 export { IteratorBindingRenderer };
 let behaviorExpressionIndex = 0;
@@ -577,8 +568,7 @@ TextBindingRenderer = __decorate([
     ,
     __param(0, IExpressionParser),
     __param(1, IObserverLocator),
-    __param(2, IPlatform),
-    __metadata("design:paramtypes", [Object, Object, Object])
+    __param(2, IPlatform)
 ], TextBindingRenderer);
 export { TextBindingRenderer };
 let ListenerBindingRenderer = 
@@ -600,8 +590,7 @@ ListenerBindingRenderer = __decorate([
     /** @internal */
     ,
     __param(0, IExpressionParser),
-    __param(1, IEventDelegator),
-    __metadata("design:paramtypes", [Object, Object])
+    __param(1, IEventDelegator)
 ], ListenerBindingRenderer);
 export { ListenerBindingRenderer };
 let SetAttributeRenderer = 
@@ -654,8 +643,7 @@ StylePropertyBindingRenderer = __decorate([
     ,
     __param(0, IExpressionParser),
     __param(1, IObserverLocator),
-    __param(2, IPlatform),
-    __metadata("design:paramtypes", [Object, Object, Object])
+    __param(2, IPlatform)
 ], StylePropertyBindingRenderer);
 export { StylePropertyBindingRenderer };
 let AttributeBindingRenderer = 
@@ -676,8 +664,7 @@ AttributeBindingRenderer = __decorate([
     /** @internal */
     ,
     __param(0, IExpressionParser),
-    __param(1, IObserverLocator),
-    __metadata("design:paramtypes", [Object, Object])
+    __param(1, IObserverLocator)
 ], AttributeBindingRenderer);
 export { AttributeBindingRenderer };
 // http://jsben.ch/7n5Kt

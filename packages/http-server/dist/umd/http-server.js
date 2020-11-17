@@ -4,9 +4,6 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
@@ -73,17 +70,13 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
     };
     __decorate([
-        kernel_1.bound,
-        __metadata("design:type", Function),
-        __metadata("design:paramtypes", [http_1.IncomingMessage, http_1.ServerResponse]),
-        __metadata("design:returntype", Promise)
+        kernel_1.bound
     ], HttpServer.prototype, "handleRequest", null);
     HttpServer = __decorate([
         __param(0, kernel_1.ILogger),
         __param(1, interfaces_1.IHttpServerOptions),
         __param(2, kernel_1.IContainer),
-        __param(3, kernel_1.all(interfaces_1.IRequestHandler)),
-        __metadata("design:paramtypes", [Object, Object, Object, Array])
+        __param(3, kernel_1.all(interfaces_1.IRequestHandler))
     ], HttpServer);
     exports.HttpServer = HttpServer;
     let Http2Server = class Http2Server {
@@ -127,17 +120,13 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
     };
     __decorate([
-        kernel_1.bound,
-        __metadata("design:type", Function),
-        __metadata("design:paramtypes", [http2_1.Http2ServerRequest, http2_1.Http2ServerResponse]),
-        __metadata("design:returntype", void 0)
+        kernel_1.bound
     ], Http2Server.prototype, "handleRequest", null);
     Http2Server = __decorate([
         __param(0, kernel_1.ILogger),
         __param(1, interfaces_1.IHttpServerOptions),
         __param(2, kernel_1.IContainer),
-        __param(3, interfaces_1.IHttp2FileServer),
-        __metadata("design:paramtypes", [Object, Object, Object, Object])
+        __param(3, interfaces_1.IHttp2FileServer)
     ], Http2Server);
     exports.Http2Server = Http2Server;
 });

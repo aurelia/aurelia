@@ -4,9 +4,6 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
@@ -186,8 +183,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         __param(0, i18next_wrapper_js_1.I18nWrapper),
         __param(1, i18n_configuration_options_js_1.I18nInitOptions),
         __param(2, kernel_1.IEventAggregator),
-        __param(3, runtime_1.ISignaler),
-        __metadata("design:paramtypes", [i18next_wrapper_js_1.I18nextWrapper, Object, Object, Object])
+        __param(3, runtime_1.ISignaler)
     ], I18nService);
     exports.I18nService = I18nService;
 });

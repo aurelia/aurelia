@@ -4,9 +4,6 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
@@ -303,15 +300,13 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
     };
     __decorate([
-        runtime_1.bindable,
-        __metadata("design:type", Object)
+        runtime_1.bindable
     ], Repeat.prototype, "items", void 0);
     Repeat = __decorate([
         custom_attribute_js_1.templateController('repeat'),
         __param(0, dom_js_1.IRenderLocation),
         __param(1, controller_js_1.IController),
-        __param(2, view_js_1.IViewFactory),
-        __metadata("design:paramtypes", [Object, Object, Object])
+        __param(2, view_js_1.IViewFactory)
     ], Repeat);
     exports.Repeat = Repeat;
     let maxLen = 16;

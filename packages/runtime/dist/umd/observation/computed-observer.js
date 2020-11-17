@@ -4,16 +4,13 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
 (function (factory) {
     if (typeof module === "object" && typeof module.exports === "object") {
         var v = factory(require, exports);
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "./observer-locator.js", "./subscriber-collection.js", "./watcher-switcher.js", "../binding/connectable.js", "./proxy-observation.js", "./binding-context.js"], factory);
+        define(["require", "exports", "@aurelia/kernel", "./subscriber-collection.js", "./watcher-switcher.js", "../binding/connectable.js", "./proxy-observation.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -21,12 +18,10 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     exports.ExpressionWatcher = exports.ComputedWatcher = exports.GetterObserver = exports.CustomSetterObserver = exports.createComputedObserver = exports.computed = void 0;
     /* eslint-disable eqeqeq, compat/compat */
     const kernel_1 = require("@aurelia/kernel");
-    const observer_locator_js_1 = require("./observer-locator.js");
     const subscriber_collection_js_1 = require("./subscriber-collection.js");
     const watcher_switcher_js_1 = require("./watcher-switcher.js");
     const connectable_js_1 = require("../binding/connectable.js");
     const proxy_observation_js_1 = require("./proxy-observation.js");
-    const binding_context_js_1 = require("./binding-context.js");
     function computed(config) {
         return function (target, key) {
             /**
@@ -108,8 +103,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         }
     };
     CustomSetterObserver = __decorate([
-        subscriber_collection_js_1.subscriberCollection(),
-        __metadata("design:paramtypes", [Object, String, Object])
+        subscriber_collection_js_1.subscriberCollection()
     ], CustomSetterObserver);
     exports.CustomSetterObserver = CustomSetterObserver;
     // Used when there is no setter, and the getter is dependent on other properties of the object;
@@ -205,8 +199,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         }
     };
     GetterObserver = __decorate([
-        subscriber_collection_js_1.subscriberCollection(),
-        __metadata("design:paramtypes", [Number, Object, Object, String, Object, Object])
+        subscriber_collection_js_1.subscriberCollection()
     ], GetterObserver);
     exports.GetterObserver = GetterObserver;
     const toStringTag = Object.prototype.toString;
@@ -361,8 +354,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     ComputedWatcher = __decorate([
         connectable_js_1.connectable(),
         subscriber_collection_js_1.subscriberCollection(),
-        subscriber_collection_js_1.collectionSubscriberCollection(),
-        __metadata("design:paramtypes", [Object, Object, Function, Function, Boolean])
+        subscriber_collection_js_1.collectionSubscriberCollection()
     ], ComputedWatcher);
     exports.ComputedWatcher = ComputedWatcher;
     let ExpressionWatcher = class ExpressionWatcher {
@@ -411,8 +403,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         }
     };
     ExpressionWatcher = __decorate([
-        connectable_js_1.connectable(),
-        __metadata("design:paramtypes", [binding_context_js_1.Scope, Object, Object, Object, Function])
+        connectable_js_1.connectable()
     ], ExpressionWatcher);
     exports.ExpressionWatcher = ExpressionWatcher;
 });

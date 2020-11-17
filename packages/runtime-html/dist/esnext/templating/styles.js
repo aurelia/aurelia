@@ -4,9 +4,6 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
@@ -42,13 +39,11 @@ export class CSSModulesProcessorRegistry {
             }
         };
         __decorate([
-            bindable,
-            __metadata("design:type", String)
+            bindable
         ], ClassCustomAttribute.prototype, "value", void 0);
         ClassCustomAttribute = __decorate([
             customAttribute('class'),
-            __param(0, INode),
-            __metadata("design:paramtypes", [Object])
+            __param(0, INode)
         ], ClassCustomAttribute);
         container.register(ClassCustomAttribute);
     }
@@ -82,8 +77,7 @@ let AdoptedStyleSheetsStylesFactory = class AdoptedStyleSheetsStylesFactory {
     }
 };
 AdoptedStyleSheetsStylesFactory = __decorate([
-    __param(0, IPlatform),
-    __metadata("design:paramtypes", [Object])
+    __param(0, IPlatform)
 ], AdoptedStyleSheetsStylesFactory);
 let StyleElementStylesFactory = class StyleElementStylesFactory {
     constructor(p) {
@@ -94,8 +88,7 @@ let StyleElementStylesFactory = class StyleElementStylesFactory {
     }
 };
 StyleElementStylesFactory = __decorate([
-    __param(0, IPlatform),
-    __metadata("design:paramtypes", [Object])
+    __param(0, IPlatform)
 ], StyleElementStylesFactory);
 export const IShadowDOMStyles = DI.createInterface('IShadowDOMStyles').noDefault();
 export const IShadowDOMGlobalStyles = DI.createInterface('IShadowDOMGlobalStyles').withDefault(x => x.instance({ applyTo: noop }));

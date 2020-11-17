@@ -4,10 +4,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
-import { createIndexMap, ILifecycle } from '../observation.js';
+import { createIndexMap } from '../observation.js';
 import { CollectionSizeObserver } from './collection-size-observer.js';
 import { collectionSubscriberCollection } from './subscriber-collection.js';
 const observerLookup = new WeakMap();
@@ -151,28 +148,24 @@ let SetObserver = class SetObserver {
         }
     }
     getLengthObserver() {
-        if (this.lengthObserver === void 0) {
-            this.lengthObserver = new CollectionSizeObserver(this.collection);
-        }
-        return this.lengthObserver;
+        var _a;
+        return (_a = this.lengthObserver) !== null && _a !== void 0 ? _a : (this.lengthObserver = new CollectionSizeObserver(this.collection));
     }
     getIndexObserver(index) {
         throw new Error('Set index observation not supported');
     }
     flushBatch(flags) {
+        var _a;
         const indexMap = this.indexMap;
         const size = this.collection.size;
         this.inBatch = false;
         this.indexMap = createIndexMap(size);
         this.callCollectionSubscribers(indexMap, 8 /* updateTarget */);
-        if (this.lengthObserver !== void 0) {
-            this.lengthObserver.notify();
-        }
+        (_a = this.lengthObserver) === null || _a === void 0 ? void 0 : _a.notify();
     }
 };
 SetObserver = __decorate([
-    collectionSubscriberCollection(),
-    __metadata("design:paramtypes", [Object, Object])
+    collectionSubscriberCollection()
 ], SetObserver);
 export { SetObserver };
 export function getSetObserver(lifecycle, observedSet) {

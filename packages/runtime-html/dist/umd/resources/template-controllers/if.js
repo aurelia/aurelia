@@ -4,9 +4,6 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
@@ -104,14 +101,12 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
     };
     __decorate([
-        runtime_1.bindable,
-        __metadata("design:type", Boolean)
+        runtime_1.bindable
     ], If.prototype, "value", void 0);
     If = __decorate([
         custom_attribute_js_1.templateController('if'),
         __param(0, view_js_1.IViewFactory),
-        __param(1, dom_js_1.IRenderLocation),
-        __metadata("design:paramtypes", [Object, Object])
+        __param(1, dom_js_1.IRenderLocation)
     ], If);
     exports.If = If;
     let Else = class Else {
@@ -135,8 +130,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     };
     Else = __decorate([
         custom_attribute_js_1.templateController({ name: 'else' }),
-        __param(0, view_js_1.IViewFactory),
-        __metadata("design:paramtypes", [Object])
+        __param(0, view_js_1.IViewFactory)
     ], Else);
     exports.Else = Else;
 });

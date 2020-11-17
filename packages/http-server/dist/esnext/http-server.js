@@ -4,16 +4,13 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 import { readFileSync } from 'fs';
-import { createServer, IncomingMessage, ServerResponse } from 'http';
+import { createServer } from 'http';
 import * as https from 'https';
-import { createSecureServer, Http2ServerRequest, Http2ServerResponse } from 'http2';
+import { createSecureServer } from 'http2';
 import { ILogger, bound, all, IContainer } from '@aurelia/kernel';
 import { IHttpServerOptions, IRequestHandler, StartOutput, IHttp2FileServer } from './interfaces';
 import { readBuffer } from './http-utils';
@@ -61,17 +58,13 @@ let HttpServer = class HttpServer {
     }
 };
 __decorate([
-    bound,
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [IncomingMessage, ServerResponse]),
-    __metadata("design:returntype", Promise)
+    bound
 ], HttpServer.prototype, "handleRequest", null);
 HttpServer = __decorate([
     __param(0, ILogger),
     __param(1, IHttpServerOptions),
     __param(2, IContainer),
-    __param(3, all(IRequestHandler)),
-    __metadata("design:paramtypes", [Object, Object, Object, Array])
+    __param(3, all(IRequestHandler))
 ], HttpServer);
 export { HttpServer };
 let Http2Server = class Http2Server {
@@ -115,17 +108,13 @@ let Http2Server = class Http2Server {
     }
 };
 __decorate([
-    bound,
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Http2ServerRequest, Http2ServerResponse]),
-    __metadata("design:returntype", void 0)
+    bound
 ], Http2Server.prototype, "handleRequest", null);
 Http2Server = __decorate([
     __param(0, ILogger),
     __param(1, IHttpServerOptions),
     __param(2, IContainer),
-    __param(3, IHttp2FileServer),
-    __metadata("design:paramtypes", [Object, Object, Object, Object])
+    __param(3, IHttp2FileServer)
 ], Http2Server);
 export { Http2Server };
 //# sourceMappingURL=http-server.js.map

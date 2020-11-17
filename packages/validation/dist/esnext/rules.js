@@ -4,9 +4,6 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
 import { Protocol, Metadata, DI, toArray } from '@aurelia/kernel';
 export const IValidationMessageProvider = DI.createInterface('IValidationMessageProvider').noDefault();
 export const ValidationRuleAliasMessage = Object.freeze({
@@ -55,8 +52,7 @@ let BaseValidationRule = class BaseValidationRule {
 };
 BaseValidationRule.$TYPE = '';
 BaseValidationRule = __decorate([
-    validationRule({ aliases: [{ name: (void 0), defaultMessage: `\${$displayName} is invalid.` }] }),
-    __metadata("design:paramtypes", [String])
+    validationRule({ aliases: [{ name: (void 0), defaultMessage: `\${$displayName} is invalid.` }] })
 ], BaseValidationRule);
 export { BaseValidationRule };
 /**
@@ -78,8 +74,7 @@ let RequiredRule = class RequiredRule extends BaseValidationRule {
 };
 RequiredRule.$TYPE = 'RequiredRule';
 RequiredRule = __decorate([
-    validationRule({ aliases: [{ name: 'required', defaultMessage: `\${$displayName} is required.` }] }),
-    __metadata("design:paramtypes", [])
+    validationRule({ aliases: [{ name: 'required', defaultMessage: `\${$displayName} is required.` }] })
 ], RequiredRule);
 export { RequiredRule };
 /**
@@ -111,8 +106,7 @@ RegexRule = __decorate([
             { name: 'matches', defaultMessage: `\${$displayName} is not correctly formatted.` },
             { name: 'email', defaultMessage: `\${$displayName} is not a valid email.` },
         ]
-    }),
-    __metadata("design:paramtypes", [RegExp, String])
+    })
 ], RegexRule);
 export { RegexRule };
 /**
@@ -145,8 +139,7 @@ LengthRule = __decorate([
             { name: 'minLength', defaultMessage: `\${$displayName} must be at least \${$rule.length} character\${$rule.length === 1 ? '' : 's'}.` },
             { name: 'maxLength', defaultMessage: `\${$displayName} cannot be longer than \${$rule.length} character\${$rule.length === 1 ? '' : 's'}.` },
         ]
-    }),
-    __metadata("design:paramtypes", [Number, Boolean])
+    })
 ], LengthRule);
 export { LengthRule };
 /**
@@ -178,8 +171,7 @@ SizeRule = __decorate([
             { name: 'minItems', defaultMessage: `\${$displayName} must contain at least \${$rule.count} item\${$rule.count === 1 ? '' : 's'}.` },
             { name: 'maxItems', defaultMessage: `\${$displayName} cannot contain more than \${$rule.count} item\${$rule.count === 1 ? '' : 's'}.` },
         ]
-    }),
-    __metadata("design:paramtypes", [Number, Boolean])
+    })
 ], SizeRule);
 export { SizeRule };
 /**
@@ -222,8 +214,7 @@ RangeRule = __decorate([
             { name: 'range', defaultMessage: `\${$displayName} must be between or equal to \${$rule.min} and \${$rule.max}.` },
             { name: 'between', defaultMessage: `\${$displayName} must be between but not equal to \${$rule.min} and \${$rule.max}.` },
         ]
-    }),
-    __metadata("design:paramtypes", [Boolean, Object])
+    })
 ], RangeRule);
 export { RangeRule };
 /**
@@ -252,8 +243,7 @@ EqualsRule = __decorate([
         aliases: [
             { name: 'equals', defaultMessage: `\${$displayName} must be \${$rule.expectedValue}.` },
         ]
-    }),
-    __metadata("design:paramtypes", [Object])
+    })
 ], EqualsRule);
 export { EqualsRule };
 //# sourceMappingURL=rules.js.map

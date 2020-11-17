@@ -4,9 +4,6 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
 (function (factory) {
     if (typeof module === "object" && typeof module.exports === "object") {
         var v = factory(require, exports);
@@ -214,8 +211,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         }
     };
     TranslationBinding = TranslationBinding_1 = __decorate([
-        runtime_html_1.connectable(),
-        __metadata("design:paramtypes", [Object, Object, Object])
+        runtime_html_1.connectable()
     ], TranslationBinding);
     exports.TranslationBinding = TranslationBinding;
     let ParameterBinding = class ParameterBinding {
@@ -262,8 +258,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         }
     };
     ParameterBinding = __decorate([
-        runtime_html_1.connectable(),
-        __metadata("design:paramtypes", [TranslationBinding, Object, Function])
+        runtime_html_1.connectable()
     ], ParameterBinding);
 });
 //# sourceMappingURL=translation-binding.js.map

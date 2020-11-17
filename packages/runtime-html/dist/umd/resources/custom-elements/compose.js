@@ -4,9 +4,6 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
@@ -137,18 +134,15 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
     };
     __decorate([
-        runtime_1.bindable,
-        __metadata("design:type", Object)
+        runtime_1.bindable
     ], Compose.prototype, "subject", void 0);
     __decorate([
-        runtime_1.bindable({ mode: runtime_1.BindingMode.fromView }),
-        __metadata("design:type", Boolean)
+        runtime_1.bindable({ mode: runtime_1.BindingMode.fromView })
     ], Compose.prototype, "composing", void 0);
     Compose = __decorate([
         custom_element_js_1.customElement({ name: 'au-compose', template: null, containerless: true }),
         __param(0, platform_js_1.IPlatform),
-        __param(1, renderer_js_1.IInstruction),
-        __metadata("design:paramtypes", [Object, renderer_js_1.HydrateElementInstruction])
+        __param(1, renderer_js_1.IInstruction)
     ], Compose);
     exports.Compose = Compose;
     function isController(subject) {

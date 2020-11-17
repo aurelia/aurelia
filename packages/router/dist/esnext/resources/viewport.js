@@ -4,9 +4,6 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
@@ -199,40 +196,31 @@ let ViewportCustomElement = ViewportCustomElement_1 = class ViewportCustomElemen
     }
 };
 __decorate([
-    bindable,
-    __metadata("design:type", String)
+    bindable
 ], ViewportCustomElement.prototype, "name", void 0);
 __decorate([
-    bindable,
-    __metadata("design:type", String)
+    bindable
 ], ViewportCustomElement.prototype, "usedBy", void 0);
 __decorate([
-    bindable,
-    __metadata("design:type", String)
+    bindable
 ], ViewportCustomElement.prototype, "default", void 0);
 __decorate([
-    bindable,
-    __metadata("design:type", String)
+    bindable
 ], ViewportCustomElement.prototype, "fallback", void 0);
 __decorate([
-    bindable,
-    __metadata("design:type", Boolean)
+    bindable
 ], ViewportCustomElement.prototype, "noScope", void 0);
 __decorate([
-    bindable,
-    __metadata("design:type", Boolean)
+    bindable
 ], ViewportCustomElement.prototype, "noLink", void 0);
 __decorate([
-    bindable,
-    __metadata("design:type", Boolean)
+    bindable
 ], ViewportCustomElement.prototype, "noTitle", void 0);
 __decorate([
-    bindable,
-    __metadata("design:type", Boolean)
+    bindable
 ], ViewportCustomElement.prototype, "noHistory", void 0);
 __decorate([
-    bindable,
-    __metadata("design:type", Boolean)
+    bindable
 ], ViewportCustomElement.prototype, "stateful", void 0);
 ViewportCustomElement = ViewportCustomElement_1 = __decorate([
     customElement({
@@ -242,8 +230,7 @@ ViewportCustomElement = ViewportCustomElement_1 = __decorate([
     __param(0, IRouter),
     __param(1, INode),
     __param(2, IContainer),
-    __param(3, ParentViewport),
-    __metadata("design:paramtypes", [Object, Object, Object, ViewportCustomElement])
+    __param(3, ParentViewport)
 ], ViewportCustomElement);
 export { ViewportCustomElement };
 //# sourceMappingURL=viewport.js.map

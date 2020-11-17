@@ -4,9 +4,6 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
@@ -211,8 +208,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
     };
     DefaultLogEventFactory = __decorate([
-        __param(0, exports.ILogConfig),
-        __metadata("design:paramtypes", [Object])
+        __param(0, exports.ILogConfig)
     ], DefaultLogEventFactory);
     exports.DefaultLogEventFactory = DefaultLogEventFactory;
     class ConsoleSink {
@@ -387,48 +383,29 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
     };
     __decorate([
-        functions_js_1.bound,
-        __metadata("design:type", Function),
-        __metadata("design:paramtypes", [Object, Object]),
-        __metadata("design:returntype", void 0)
+        functions_js_1.bound
     ], DefaultLogger.prototype, "trace", null);
     __decorate([
-        functions_js_1.bound,
-        __metadata("design:type", Function),
-        __metadata("design:paramtypes", [Object, Object]),
-        __metadata("design:returntype", void 0)
+        functions_js_1.bound
     ], DefaultLogger.prototype, "debug", null);
     __decorate([
-        functions_js_1.bound,
-        __metadata("design:type", Function),
-        __metadata("design:paramtypes", [Object, Object]),
-        __metadata("design:returntype", void 0)
+        functions_js_1.bound
     ], DefaultLogger.prototype, "info", null);
     __decorate([
-        functions_js_1.bound,
-        __metadata("design:type", Function),
-        __metadata("design:paramtypes", [Object, Object]),
-        __metadata("design:returntype", void 0)
+        functions_js_1.bound
     ], DefaultLogger.prototype, "warn", null);
     __decorate([
-        functions_js_1.bound,
-        __metadata("design:type", Function),
-        __metadata("design:paramtypes", [Object, Object]),
-        __metadata("design:returntype", void 0)
+        functions_js_1.bound
     ], DefaultLogger.prototype, "error", null);
     __decorate([
-        functions_js_1.bound,
-        __metadata("design:type", Function),
-        __metadata("design:paramtypes", [Object, Object]),
-        __metadata("design:returntype", void 0)
+        functions_js_1.bound
     ], DefaultLogger.prototype, "fatal", null);
     DefaultLogger = __decorate([
         __param(0, exports.ILogConfig),
         __param(1, exports.ILogEventFactory),
         __param(2, di_js_1.all(exports.ISink)),
         __param(3, di_js_1.optional(exports.ILogScopes)),
-        __param(4, di_js_1.ignore),
-        __metadata("design:paramtypes", [Object, Object, Array, Array, Object])
+        __param(4, di_js_1.ignore)
     ], DefaultLogger);
     exports.DefaultLogger = DefaultLogger;
     /**

@@ -1,5 +1,6 @@
-import { IIndexable } from '@aurelia/kernel';
-import { IAccessor, LifecycleFlags, AccessorType } from '@aurelia/runtime';
+import { AccessorType } from '@aurelia/runtime';
+import type { IIndexable } from '@aurelia/kernel';
+import type { IAccessor, LifecycleFlags } from '@aurelia/runtime';
 /**
  * Property accessor for HTML Elements.
  * Note that Aurelia works with properties, so in all case it will try to assign to property instead of attributes.

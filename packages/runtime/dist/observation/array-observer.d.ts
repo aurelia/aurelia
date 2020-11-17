@@ -1,5 +1,6 @@
-import { CollectionKind, ICollectionObserver, IndexMap, IObservedArray, ICollectionIndexObserver, ISubscriber, AccessorType, ILifecycle, LifecycleFlags } from '../observation.js';
+import { CollectionKind, IndexMap, LifecycleFlags, AccessorType } from '../observation.js';
 import { CollectionLengthObserver } from './collection-length-observer.js';
+import type { ICollectionObserver, ICollectionIndexObserver, ILifecycle, IObservedArray, ISubscriber } from '../observation.js';
 export declare function enableArrayObservation(): void;
 export declare function disableArrayObservation(): void;
 export interface ArrayObserver extends ICollectionObserver<CollectionKind.array> {

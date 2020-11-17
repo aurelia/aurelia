@@ -4,11 +4,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
 import { subscriberCollection } from './subscriber-collection.js';
-const $is = Object.is;
 /**
  * Observer for the mutation of object property value employing getter-setter strategy.
  * This is used for observing object properties that has no decorator.
@@ -88,8 +84,7 @@ let SetterObserver = class SetterObserver {
     }
 };
 SetterObserver = __decorate([
-    subscriberCollection(),
-    __metadata("design:paramtypes", [Object, String])
+    subscriberCollection()
 ], SetterObserver);
 export { SetterObserver };
 let SetterNotifier = class SetterNotifier {
@@ -112,15 +107,14 @@ let SetterNotifier = class SetterNotifier {
             value = this.s(value);
         }
         const oldValue = this.v;
-        if (!$is(value, oldValue)) {
+        if (!Object.is(value, oldValue)) {
             this.v = value;
             this.callSubscribers(value, oldValue, flags);
         }
     }
 };
 SetterNotifier = __decorate([
-    subscriberCollection(),
-    __metadata("design:paramtypes", [Function])
+    subscriberCollection()
 ], SetterNotifier);
 export { SetterNotifier };
 //# sourceMappingURL=setter-observer.js.map

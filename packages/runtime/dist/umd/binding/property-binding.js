@@ -4,24 +4,19 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
 (function (factory) {
     if (typeof module === "object" && typeof module.exports === "object") {
         var v = factory(require, exports);
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "../observation.js", "../observation/observer-locator.js", "./connectable.js"], factory);
+        define(["require", "exports", "../observation.js", "./connectable.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.PropertyBinding = void 0;
-    const kernel_1 = require("@aurelia/kernel");
     const observation_js_1 = require("../observation.js");
-    const observer_locator_js_1 = require("../observation/observer-locator.js");
     const connectable_js_1 = require("./connectable.js");
     // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
     const { oneTime, toView, fromView } = observation_js_1.BindingMode;
@@ -191,8 +186,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         }
     };
     PropertyBinding = __decorate([
-        connectable_js_1.connectable(),
-        __metadata("design:paramtypes", [Object, Object, String, Number, Object, Object, kernel_1.TaskQueue])
+        connectable_js_1.connectable()
     ], PropertyBinding);
     exports.PropertyBinding = PropertyBinding;
 });

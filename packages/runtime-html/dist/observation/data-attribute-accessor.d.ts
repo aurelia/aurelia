@@ -1,4 +1,5 @@
-import { IAccessor, LifecycleFlags, AccessorType } from '@aurelia/runtime';
+import { AccessorType } from '@aurelia/runtime';
+import type { IAccessor, LifecycleFlags } from '@aurelia/runtime';
 /**
  * Attribute accessor for HTML elements.
  * Note that Aurelia works with properties, so in all case it will try to assign to property instead of attributes.

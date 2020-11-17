@@ -4,16 +4,13 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
 (function (factory) {
     if (typeof module === "object" && typeof module.exports === "object") {
         var v = factory(require, exports);
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "../binding-behavior.js", "@aurelia/kernel", "../binding/ast.js"], factory);
+        define(["require", "exports", "../binding-behavior.js", "@aurelia/kernel"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -21,7 +18,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     exports.ThrottleBindingBehavior = void 0;
     const binding_behavior_js_1 = require("../binding-behavior.js");
     const kernel_1 = require("@aurelia/kernel");
-    const ast_js_1 = require("../binding/ast.js");
     let ThrottleBindingBehavior = class ThrottleBindingBehavior extends binding_behavior_js_1.BindingInterceptor {
         constructor(binding, expr) {
             super(binding, expr);
@@ -79,8 +75,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         }
     };
     ThrottleBindingBehavior = __decorate([
-        binding_behavior_js_1.bindingBehavior('throttle'),
-        __metadata("design:paramtypes", [Object, ast_js_1.BindingBehaviorExpression])
+        binding_behavior_js_1.bindingBehavior('throttle')
     ], ThrottleBindingBehavior);
     exports.ThrottleBindingBehavior = ThrottleBindingBehavior;
 });

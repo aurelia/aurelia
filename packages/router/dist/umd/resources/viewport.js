@@ -4,9 +4,6 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
@@ -211,40 +208,31 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
     };
     __decorate([
-        runtime_html_1.bindable,
-        __metadata("design:type", String)
+        runtime_html_1.bindable
     ], ViewportCustomElement.prototype, "name", void 0);
     __decorate([
-        runtime_html_1.bindable,
-        __metadata("design:type", String)
+        runtime_html_1.bindable
     ], ViewportCustomElement.prototype, "usedBy", void 0);
     __decorate([
-        runtime_html_1.bindable,
-        __metadata("design:type", String)
+        runtime_html_1.bindable
     ], ViewportCustomElement.prototype, "default", void 0);
     __decorate([
-        runtime_html_1.bindable,
-        __metadata("design:type", String)
+        runtime_html_1.bindable
     ], ViewportCustomElement.prototype, "fallback", void 0);
     __decorate([
-        runtime_html_1.bindable,
-        __metadata("design:type", Boolean)
+        runtime_html_1.bindable
     ], ViewportCustomElement.prototype, "noScope", void 0);
     __decorate([
-        runtime_html_1.bindable,
-        __metadata("design:type", Boolean)
+        runtime_html_1.bindable
     ], ViewportCustomElement.prototype, "noLink", void 0);
     __decorate([
-        runtime_html_1.bindable,
-        __metadata("design:type", Boolean)
+        runtime_html_1.bindable
     ], ViewportCustomElement.prototype, "noTitle", void 0);
     __decorate([
-        runtime_html_1.bindable,
-        __metadata("design:type", Boolean)
+        runtime_html_1.bindable
     ], ViewportCustomElement.prototype, "noHistory", void 0);
     __decorate([
-        runtime_html_1.bindable,
-        __metadata("design:type", Boolean)
+        runtime_html_1.bindable
     ], ViewportCustomElement.prototype, "stateful", void 0);
     ViewportCustomElement = ViewportCustomElement_1 = __decorate([
         runtime_html_1.customElement({
@@ -254,8 +242,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         __param(0, router_js_1.IRouter),
         __param(1, runtime_html_1.INode),
         __param(2, kernel_1.IContainer),
-        __param(3, exports.ParentViewport),
-        __metadata("design:paramtypes", [Object, Object, Object, ViewportCustomElement])
+        __param(3, exports.ParentViewport)
     ], ViewportCustomElement);
     exports.ViewportCustomElement = ViewportCustomElement;
 });

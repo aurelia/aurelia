@@ -4,9 +4,6 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
@@ -55,13 +52,11 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                 }
             };
             __decorate([
-                runtime_1.bindable,
-                __metadata("design:type", String)
+                runtime_1.bindable
             ], ClassCustomAttribute.prototype, "value", void 0);
             ClassCustomAttribute = __decorate([
                 custom_attribute_js_1.customAttribute('class'),
-                __param(0, dom_js_1.INode),
-                __metadata("design:paramtypes", [Object])
+                __param(0, dom_js_1.INode)
             ], ClassCustomAttribute);
             container.register(ClassCustomAttribute);
         }
@@ -98,8 +93,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
     };
     AdoptedStyleSheetsStylesFactory = __decorate([
-        __param(0, platform_js_1.IPlatform),
-        __metadata("design:paramtypes", [Object])
+        __param(0, platform_js_1.IPlatform)
     ], AdoptedStyleSheetsStylesFactory);
     let StyleElementStylesFactory = class StyleElementStylesFactory {
         constructor(p) {
@@ -110,8 +104,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
     };
     StyleElementStylesFactory = __decorate([
-        __param(0, platform_js_1.IPlatform),
-        __metadata("design:paramtypes", [Object])
+        __param(0, platform_js_1.IPlatform)
     ], StyleElementStylesFactory);
     exports.IShadowDOMStyles = kernel_1.DI.createInterface('IShadowDOMStyles').noDefault();
     exports.IShadowDOMGlobalStyles = kernel_1.DI.createInterface('IShadowDOMGlobalStyles').withDefault(x => x.instance({ applyTo: kernel_1.noop }));

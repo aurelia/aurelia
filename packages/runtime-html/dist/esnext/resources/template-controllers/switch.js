@@ -4,9 +4,6 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
@@ -188,14 +185,12 @@ let Switch = class Switch {
     }
 };
 __decorate([
-    bindable,
-    __metadata("design:type", Object)
+    bindable
 ], Switch.prototype, "value", void 0);
 Switch = __decorate([
     templateController('switch'),
     __param(0, IViewFactory),
-    __param(1, IRenderLocation),
-    __metadata("design:paramtypes", [Object, Object])
+    __param(1, IRenderLocation)
 ], Switch);
 export { Switch };
 let Case = class Case {
@@ -286,8 +281,7 @@ let Case = class Case {
     }
 };
 __decorate([
-    bindable,
-    __metadata("design:type", Object)
+    bindable
 ], Case.prototype, "value", void 0);
 __decorate([
     bindable({
@@ -300,16 +294,14 @@ __decorate([
             }
         },
         mode: BindingMode.oneTime
-    }),
-    __metadata("design:type", Boolean)
+    })
 ], Case.prototype, "fallThrough", void 0);
 Case = __decorate([
     templateController('case'),
     __param(0, IViewFactory),
     __param(1, IObserverLocator),
     __param(2, IRenderLocation),
-    __param(3, ILogger),
-    __metadata("design:paramtypes", [Object, Object, Object, Object])
+    __param(3, ILogger)
 ], Case);
 export { Case };
 let DefaultCase = class DefaultCase extends Case {

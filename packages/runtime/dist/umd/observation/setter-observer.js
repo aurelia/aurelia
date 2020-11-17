@@ -4,9 +4,6 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
 (function (factory) {
     if (typeof module === "object" && typeof module.exports === "object") {
         var v = factory(require, exports);
@@ -20,7 +17,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.SetterNotifier = exports.SetterObserver = void 0;
     const subscriber_collection_js_1 = require("./subscriber-collection.js");
-    const $is = Object.is;
     /**
      * Observer for the mutation of object property value employing getter-setter strategy.
      * This is used for observing object properties that has no decorator.
@@ -100,8 +96,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         }
     };
     SetterObserver = __decorate([
-        subscriber_collection_js_1.subscriberCollection(),
-        __metadata("design:paramtypes", [Object, String])
+        subscriber_collection_js_1.subscriberCollection()
     ], SetterObserver);
     exports.SetterObserver = SetterObserver;
     let SetterNotifier = class SetterNotifier {
@@ -124,15 +119,14 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                 value = this.s(value);
             }
             const oldValue = this.v;
-            if (!$is(value, oldValue)) {
+            if (!Object.is(value, oldValue)) {
                 this.v = value;
                 this.callSubscribers(value, oldValue, flags);
             }
         }
     };
     SetterNotifier = __decorate([
-        subscriber_collection_js_1.subscriberCollection(),
-        __metadata("design:paramtypes", [Function])
+        subscriber_collection_js_1.subscriberCollection()
     ], SetterNotifier);
     exports.SetterNotifier = SetterNotifier;
 });

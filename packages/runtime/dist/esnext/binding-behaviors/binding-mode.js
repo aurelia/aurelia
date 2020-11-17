@@ -4,9 +4,6 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
 import { BindingMode } from '../observation.js';
 import { bindingBehavior } from '../binding-behavior.js';
 export class BindingModeBehavior {
@@ -29,8 +26,7 @@ let OneTimeBindingBehavior = class OneTimeBindingBehavior extends BindingModeBeh
     }
 };
 OneTimeBindingBehavior = __decorate([
-    bindingBehavior('oneTime'),
-    __metadata("design:paramtypes", [])
+    bindingBehavior('oneTime')
 ], OneTimeBindingBehavior);
 export { OneTimeBindingBehavior };
 let ToViewBindingBehavior = class ToViewBindingBehavior extends BindingModeBehavior {
@@ -39,8 +35,7 @@ let ToViewBindingBehavior = class ToViewBindingBehavior extends BindingModeBehav
     }
 };
 ToViewBindingBehavior = __decorate([
-    bindingBehavior('toView'),
-    __metadata("design:paramtypes", [])
+    bindingBehavior('toView')
 ], ToViewBindingBehavior);
 export { ToViewBindingBehavior };
 let FromViewBindingBehavior = class FromViewBindingBehavior extends BindingModeBehavior {
@@ -49,8 +44,7 @@ let FromViewBindingBehavior = class FromViewBindingBehavior extends BindingModeB
     }
 };
 FromViewBindingBehavior = __decorate([
-    bindingBehavior('fromView'),
-    __metadata("design:paramtypes", [])
+    bindingBehavior('fromView')
 ], FromViewBindingBehavior);
 export { FromViewBindingBehavior };
 let TwoWayBindingBehavior = class TwoWayBindingBehavior extends BindingModeBehavior {
@@ -59,8 +53,7 @@ let TwoWayBindingBehavior = class TwoWayBindingBehavior extends BindingModeBehav
     }
 };
 TwoWayBindingBehavior = __decorate([
-    bindingBehavior('twoWay'),
-    __metadata("design:paramtypes", [])
+    bindingBehavior('twoWay')
 ], TwoWayBindingBehavior);
 export { TwoWayBindingBehavior };
 //# sourceMappingURL=binding-mode.js.map

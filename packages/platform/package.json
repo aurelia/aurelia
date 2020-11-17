@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/platform",
-  "version": "0.8.0-dev.202011170842",
+  "version": "0.8.0-dev.202011170948",
   "main": "dist/umd/index.js",
   "module": "dist/esnext/index.js",
   "types": "dist/index.d.ts",

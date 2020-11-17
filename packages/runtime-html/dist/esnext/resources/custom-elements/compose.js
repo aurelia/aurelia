@@ -4,16 +4,13 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 import { nextId, onResolve } from '@aurelia/kernel';
 import { BindingMode, bindable } from '@aurelia/runtime';
 import { createElement } from '../../create-element.js';
-import { HydrateElementInstruction, IInstruction } from '../../renderer.js';
+import { IInstruction } from '../../renderer.js';
 import { IPlatform } from '../../platform.js';
 import { getRenderContext } from '../../templating/render-context.js';
 import { customElement, CustomElementDefinition } from '../custom-element.js';
@@ -125,18 +122,15 @@ let Compose = class Compose {
     }
 };
 __decorate([
-    bindable,
-    __metadata("design:type", Object)
+    bindable
 ], Compose.prototype, "subject", void 0);
 __decorate([
-    bindable({ mode: BindingMode.fromView }),
-    __metadata("design:type", Boolean)
+    bindable({ mode: BindingMode.fromView })
 ], Compose.prototype, "composing", void 0);
 Compose = __decorate([
     customElement({ name: 'au-compose', template: null, containerless: true }),
     __param(0, IPlatform),
-    __param(1, IInstruction),
-    __metadata("design:paramtypes", [Object, HydrateElementInstruction])
+    __param(1, IInstruction)
 ], Compose);
 export { Compose };
 function isController(subject) {

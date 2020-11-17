@@ -1,4 +1,5 @@
-import { IAccessor, LifecycleFlags, AccessorType } from '@aurelia/runtime';
+import { AccessorType, LifecycleFlags } from '@aurelia/runtime';
+import type { IAccessor } from '@aurelia/runtime';
 export declare class ClassAttributeAccessor implements IAccessor {
     readonly obj: HTMLElement;
     currentValue: unknown;

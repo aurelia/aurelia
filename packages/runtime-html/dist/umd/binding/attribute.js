@@ -4,26 +4,21 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
 (function (factory) {
     if (typeof module === "object" && typeof module.exports === "object") {
         var v = factory(require, exports);
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "../observation/element-attribute-observer.js", "../platform.js", "../dom.js"], factory);
+        define(["require", "exports", "@aurelia/runtime", "../observation/element-attribute-observer.js", "../platform.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.AttributeBinding = void 0;
-    const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
     const element_attribute_observer_js_1 = require("../observation/element-attribute-observer.js");
     const platform_js_1 = require("../platform.js");
-    const dom_js_1 = require("../dom.js");
     // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
     const { oneTime, toView, fromView } = runtime_1.BindingMode;
     // pre-combining flags for bitwise checks is a minor perf tweak
@@ -195,8 +190,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         }
     };
     AttributeBinding = __decorate([
-        runtime_1.connectable(),
-        __metadata("design:paramtypes", [Object, Object, String, String, Number, Object, Object])
+        runtime_1.connectable()
     ], AttributeBinding);
     exports.AttributeBinding = AttributeBinding;
 });

@@ -1,9 +1,9 @@
 import { IServiceLocator } from '@aurelia/kernel';
-import { AccessorOrObserver, BindingMode, IConnectableBinding, ForOfStatement, IObserverLocator, IPartialConnectableBinding, IsBindingBehavior, LifecycleFlags, ITask } from '@aurelia/runtime';
-import type { Scope } from '@aurelia/runtime';
+import { BindingMode, LifecycleFlags } from '@aurelia/runtime';
 import { IPlatform } from '../platform.js';
 import { CustomElementDefinition } from '../resources/custom-element.js';
-import { INode } from '../dom.js';
+import type { AccessorOrObserver, IConnectableBinding, ForOfStatement, IObserverLocator, IPartialConnectableBinding, IsBindingBehavior, ITask, Scope } from '@aurelia/runtime';
+import type { INode } from '../dom.js';
 export interface AttributeBinding extends IConnectableBinding {
 }
 /**

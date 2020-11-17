@@ -20,7 +20,7 @@ describe('2-runtime/proxy-observable.spec.ts', function () {
     { title: 'Map subclass', v: new class extends Map {}(), canWrap: true },
     { title: 'Set', v: new Set(), canWrap: true },
     { title: 'Set subclass', v: new class extends Set {}(), canWrap: true },
-  ] as { title: string, v: unknown, canWrap: boolean }[]) {
+  ] as { title: string; v: unknown; canWrap: boolean }[]) {
     it(`it wraps/unwraps (${title}) (can${canWrap ? '' : 'not'} wrap)`, function () {
       const wrapped = ProxyObservable.wrap(v);
       if (canWrap) {

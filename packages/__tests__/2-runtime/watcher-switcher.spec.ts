@@ -3,7 +3,8 @@ import { assert } from '@aurelia/testing';
 
 describe('2-runtime/watcher-switcher.spec.ts', function () {
   it('enters/exits', function () {
-    const dummyWatcher = {} as IWatcher;
+    // eslint-disable-next-line
+    const dummyWatcher: IWatcher = {} as IWatcher;
 
     WatcherSwitcher.enter(dummyWatcher);
     assert.strictEqual(dummyWatcher, WatcherSwitcher.current);
@@ -14,7 +15,8 @@ describe('2-runtime/watcher-switcher.spec.ts', function () {
   });
 
   it('throws when entering with the same watcher/null', function () {
-    const dummyWatcher = {} as IWatcher;
+    // eslint-disable-next-line
+    const dummyWatcher: IWatcher = {} as IWatcher;
 
     WatcherSwitcher.enter(dummyWatcher);
     assert.strictEqual(dummyWatcher, WatcherSwitcher.current);
@@ -25,7 +27,8 @@ describe('2-runtime/watcher-switcher.spec.ts', function () {
   });
 
   it('throws when exiting with non-peek watcher/null', function () {
-    const dummyWatcher = {} as IWatcher;
+    // eslint-disable-next-line
+    const dummyWatcher: IWatcher = {} as IWatcher;
 
     WatcherSwitcher.enter(dummyWatcher);
     assert.strictEqual(dummyWatcher, WatcherSwitcher.current);
@@ -35,15 +38,15 @@ describe('2-runtime/watcher-switcher.spec.ts', function () {
     WatcherSwitcher.exit(dummyWatcher);
   });
 
-  it('watches', () => {
+  it('watches', function () {
     const logs = [];
     const loggingWatcher: IWatcher = {
       id: 0,
       observe(obj, key) {
         logs.push([obj, key]);
       },
-      observeCollection(collection) {},
-      observeLength(collection) {},
+      observeCollection(collection) {/* empty */},
+      observeLength(collection) {/* empty */},
     };
 
     WatcherSwitcher.enter(loggingWatcher);
@@ -53,6 +56,7 @@ describe('2-runtime/watcher-switcher.spec.ts', function () {
     const obj = ProxyObservable.getProxy({
       profile: { first: 'first', last: 'last' },
     });
+    // eslint-disable-next-line
     obj.profile.first;
 
     assert.strictEqual(logs.length, 2);
@@ -65,15 +69,15 @@ describe('2-runtime/watcher-switcher.spec.ts', function () {
     WatcherSwitcher.exit(loggingWatcher);
   });
 
-  it('watches + pause/resume', () => {
+  it('watches + pause/resume', function () {
     const logs = [];
     const loggingWatcher: IWatcher = {
       id: 0,
       observe(obj, key) {
         logs.push([obj, key]);
       },
-      observeCollection(collection) {},
-      observeLength(collection) {},
+      observeCollection(collection) {/* empty */},
+      observeLength(collection) {/* empty */},
     };
 
     WatcherSwitcher.enter(loggingWatcher);
@@ -83,6 +87,7 @@ describe('2-runtime/watcher-switcher.spec.ts', function () {
     const obj = ProxyObservable.getProxy({
       profile: { first: 'first', last: 'last' },
     });
+    // eslint-disable-next-line
     obj.profile.first;
 
     assert.strictEqual(logs.length, 2);
@@ -93,6 +98,7 @@ describe('2-runtime/watcher-switcher.spec.ts', function () {
     assert.strictEqual(logs.length, 2);
 
     WatcherSwitcher.pause();
+    // eslint-disable-next-line
     obj.profile.first;
     assert.strictEqual(logs.length, 2);
     assert.deepStrictEqual(logs, [
@@ -102,6 +108,7 @@ describe('2-runtime/watcher-switcher.spec.ts', function () {
     assert.strictEqual(logs.length, 2);
     WatcherSwitcher.resume();
 
+    // eslint-disable-next-line
     obj.profile.first;
     assert.strictEqual(logs.length, 4);
     assert.deepStrictEqual(logs, [

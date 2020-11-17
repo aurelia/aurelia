@@ -2,14 +2,14 @@ import { IIndexable } from '@aurelia/kernel';
 import { watching, currentWatcher } from './watcher-switcher.js';
 
 const R$get = Reflect.get;
-const toStringTag = Object.prototype.toString
+const toStringTag = Object.prototype.toString;
 const proxyMap = new WeakMap<object, object>();
 
 function toRawType(value: unknown): string {
   return toStringTag.call(value).slice(8, -1);
 }
 
-function canWrap(obj: unknown): obj is Object {
+function canWrap(obj: unknown): obj is object {
   switch (toRawType(obj)) {
     case 'Object':
     case 'Array':

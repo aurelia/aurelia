@@ -1,22 +1,25 @@
 import {
   CollectionKind,
   createIndexMap,
-  ICollectionObserver,
   IndexMap,
-  IObservedArray,
-  ICollectionIndexObserver,
-  ISubscriber,
+  LifecycleFlags,
   AccessorType,
-  ILifecycle,
-  LifecycleFlags
 } from '../observation.js';
 import {
-  CollectionLengthObserver
+  CollectionLengthObserver,
 } from './collection-length-observer.js';
 import {
   collectionSubscriberCollection,
-  subscriberCollection
+  subscriberCollection,
 } from './subscriber-collection.js';
+
+import type {
+  ICollectionObserver,
+  ICollectionIndexObserver,
+  ILifecycle,
+  IObservedArray,
+  ISubscriber,
+} from '../observation.js';
 
 const observerLookup = new WeakMap<unknown[], ArrayObserver>();
 

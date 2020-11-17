@@ -1,5 +1,6 @@
 import { DI } from '@aurelia/kernel';
-import { ISubscriber, LifecycleFlags } from '../observation.js';
+import { LifecycleFlags } from '../observation.js';
+import type { ISubscriber } from '../observation.js';
 
 type Signal = string;
 

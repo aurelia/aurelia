@@ -1,4 +1,6 @@
-import { IAccessor, LifecycleFlags, AccessorType } from '@aurelia/runtime';
+import { AccessorType } from '@aurelia/runtime';
+
+import type { IAccessor, LifecycleFlags } from '@aurelia/runtime';
 
 /**
  * Attribute accessor for HTML elements.

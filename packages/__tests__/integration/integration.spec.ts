@@ -149,7 +149,6 @@ describe('app', function () {
     $it.skip("uses specs-viewer to 'compose' display for heterogenous collection of things", function ({ host }) {
       const specsViewer = host.querySelector('specs-viewer');
       assert.notEqual(specsViewer, null);
-      console.log(specsViewer.outerHTML);
 
       const vm = getViewModel<App>(host);
       const [camera, /* laptop */] = vm.things;

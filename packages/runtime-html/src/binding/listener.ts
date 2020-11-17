@@ -1,16 +1,15 @@
-import { IDisposable, IIndexable, IServiceLocator } from '@aurelia/kernel';
 import {
   DelegationStrategy,
-  IBinding,
-  IConnectableBinding,
-  IsBindingBehavior,
   LifecycleFlags,
 } from '@aurelia/runtime';
-import { IEventDelegator } from '../observation/event-delegator.js';
 
-import type { Scope } from '@aurelia/runtime';
-import { IPlatform } from '../platform.js';
 import { IEventTarget } from '../dom.js';
+
+import type { IDisposable, IIndexable, IServiceLocator } from '@aurelia/kernel';
+import type { IBinding, IConnectableBinding, IsBindingBehavior } from '@aurelia/runtime';
+import type { IEventDelegator } from '../observation/event-delegator.js';
+import type { Scope } from '@aurelia/runtime';
+import type { IPlatform } from '../platform.js';
 
 const options = {
   [DelegationStrategy.capturing]: { capture: true } as const,

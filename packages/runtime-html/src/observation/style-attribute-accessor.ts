@@ -1,5 +1,6 @@
-import { IAccessor, LifecycleFlags, AccessorType } from '@aurelia/runtime';
+import { LifecycleFlags, AccessorType } from '@aurelia/runtime';
 import { emptyArray, kebabCase } from '@aurelia/kernel';
+import type { IAccessor } from '@aurelia/runtime';
 
 const customPropertyPrefix: string = '--';
 

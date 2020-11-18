@@ -165,10 +165,7 @@ export class SetObserver {
   }
 
   public getLengthObserver(): CollectionSizeObserver {
-    if (this.lengthObserver === void 0) {
-      this.lengthObserver = new CollectionSizeObserver(this.collection);
-    }
-    return this.lengthObserver as CollectionSizeObserver;
+    return this.lengthObserver ??= new CollectionSizeObserver(this.collection);
   }
 
   public getIndexObserver(index: number): ICollectionIndexObserver {
@@ -182,9 +179,7 @@ export class SetObserver {
     this.inBatch = false;
     this.indexMap = createIndexMap(size);
     this.callCollectionSubscribers(indexMap, LifecycleFlags.updateTarget);
-    if (this.lengthObserver !== void 0) {
-      this.lengthObserver.notify();
-    }
+    this.lengthObserver?.notify();
   }
 }
 

@@ -14,12 +14,12 @@ export function subscriberCollection(): ClassDecorator {
   return function (target: Function): void { // ClassDecorator expects it to be derived from Function
     const proto = target.prototype as ISubscriberCollection;
 
-    ensureProto(proto, '_subscriberFlags', SF.None);
-    ensureProto(proto, 'addSubscriber', addSubscriber);
-    ensureProto(proto, 'removeSubscriber', removeSubscriber);
-    ensureProto(proto, 'hasSubscriber', hasSubscriber);
-    ensureProto(proto, 'hasSubscribers', hasSubscribers);
-    ensureProto(proto, 'callSubscribers', callSubscribers);
+    ensureProto(proto, '_subscriberFlags', SF.None, true);
+    ensureProto(proto, 'addSubscriber', addSubscriber, true);
+    ensureProto(proto, 'removeSubscriber', removeSubscriber, true);
+    ensureProto(proto, 'hasSubscriber', hasSubscriber, true);
+    ensureProto(proto, 'hasSubscribers', hasSubscribers, true);
+    ensureProto(proto, 'callSubscribers', callSubscribers, true);
 
     ensureProto(proto, 'subscribe', addSubscriber);
     ensureProto(proto, 'unsubscribe', removeSubscriber);
@@ -31,12 +31,12 @@ export function collectionSubscriberCollection(): ClassDecorator {
   return function (target: Function): void { // ClassDecorator expects it to be derived from Function
     const proto = target.prototype as ICollectionSubscriberCollection;
 
-    ensureProto(proto, '_collectionSubscriberFlags', SF.None);
-    ensureProto(proto, 'addCollectionSubscriber', addCollectionSubscriber);
-    ensureProto(proto, 'removeCollectionSubscriber', removeCollectionSubscriber);
-    ensureProto(proto, 'hasCollectionSubscriber', hasCollectionSubscriber);
-    ensureProto(proto, 'hasCollectionSubscribers', hasCollectionSubscribers);
-    ensureProto(proto, 'callCollectionSubscribers', callCollectionSubscribers);
+    ensureProto(proto, '_collectionSubscriberFlags', SF.None, true);
+    ensureProto(proto, 'addCollectionSubscriber', addCollectionSubscriber, true);
+    ensureProto(proto, 'removeCollectionSubscriber', removeCollectionSubscriber, true);
+    ensureProto(proto, 'hasCollectionSubscriber', hasCollectionSubscriber, true);
+    ensureProto(proto, 'hasCollectionSubscribers', hasCollectionSubscribers, true);
+    ensureProto(proto, 'callCollectionSubscribers', callCollectionSubscribers, true);
 
     ensureProto(proto, 'subscribeToCollection', addCollectionSubscriber);
     ensureProto(proto, 'unsubscribeFromCollection', removeCollectionSubscriber);
@@ -208,6 +208,25 @@ function hasCollectionSubscriber(this: ICollectionSubscriberCollection, subscrib
   return false;
 }
 
+const batches: Map<ISubscriber, [newValue: unknown, oldValue: unknown, flags: LF]> = new Map();
+let batching = false;
+
+function startBatch() {
+  batching = true;
+}
+function releaseBatch() {
+  batches.forEach(invokeHandleChange);
+  batching = false;
+}
+function invokeHandleChange(changeArguments: [unknown, unknown, LF], subscriber: ISubscriber): void {
+  subscriber.handleChange(...changeArguments);
+}
+export function batch(fn: () => unknown) {
+  startBatch();
+  fn();
+  releaseBatch();
+};
+
 function callSubscribers(this: ISubscriberCollection, newValue: unknown, previousValue: unknown, flags: LF): void {
   /**
    * Note: change handlers may have the side-effect of adding/removing subscribers to this collection during this
@@ -223,6 +242,28 @@ function callSubscribers(this: ISubscriberCollection, newValue: unknown, previou
   if (subscribers !== void 0) {
     subscribers = subscribers.slice();
   }
+  if (batching) {
+    if (subscriber0 !== void 0) {
+      batches.set(subscriber0, [newValue, previousValue, flags]);
+    }
+    if (subscriber1 !== void 0) {
+      batches.set(subscriber1, [newValue, previousValue, flags]);
+    }
+    if (subscriber2 !== void 0) {
+      batches.set(subscriber2, [newValue, previousValue, flags]);
+    }
+    if (subscribers !== void 0) {
+      const length = subscribers.length;
+      let subscriber: ISubscriber | undefined;
+      for (let i = 0; i < length; ++i) {
+        subscriber = subscribers[i];
+        if (subscriber !== void 0) {
+          batches.set(subscriber, [newValue, previousValue, flags]);
+        }
+      }
+    }
+    return;
+  }
   if (subscriber0 !== void 0) {
     callSubscriber(subscriber0, newValue, previousValue, flags, subscriber0.id === void 0 ? 0 : this[subscriber0.id]);
   }
@@ -233,7 +274,7 @@ function callSubscribers(this: ISubscriberCollection, newValue: unknown, previou
     callSubscriber(subscriber2, newValue, previousValue, flags, subscriber2.id === void 0 ? 0 : this[subscriber2.id]);
   }
   if (subscribers !== void 0) {
-    const { length } = subscribers;
+    const length = subscribers.length;
     let subscriber: ISubscriber | undefined;
     for (let i = 0; i < length; ++i) {
       subscriber = subscribers[i];

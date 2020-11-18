@@ -31,10 +31,15 @@ export class App {
     this.people = personRepository.all();
   }
 
-  public changeLocale() {
+  public changeLocale(): void {
     startMeasure('localeChange');
     this.locale = this.locale === 'en' ? 'de' : 'en';
     stopMeasure('localeChange');
+  }
+  public toggleAddressDetails(): void {
+    startMeasure('toggleAddressDetails');
+    this.showAddressDetails = !this.showAddressDetails;
+    stopMeasure('toggleAddressDetails');
   }
 
   // public run() {

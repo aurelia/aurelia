@@ -40,18 +40,30 @@ export class PersonRepository extends BaseRepository<Person> {
 
   public createRandom(): Person {
     const person = new Person();
-    this.associateRandomAddresses(void 0, person);
+    this.associateRandomAddresses(person);
     return person;
   }
 
-  private associateRandomAddresses(maxAddresses: number = this.maxAddresses, person?: Person) {
+  private associateRandomAddresses(person?: Person) {
+    const maxAddresses: number = this.maxAddresses;
     if (person !== void 0) {
-      person.addresses.push(...AddressAssociation.getN(randomNumber(maxAddresses)));
+      const n = randomNumber(maxAddresses, 1);
+      person.addresses.push(...this.createNAddressAssociation(n));
       return;
     }
 
-    for (const person of this.database.people) {
-      person.addresses.push(...AddressAssociation.getN(randomNumber(maxAddresses)));
+    for (const $person of this.database.people) {
+      const n = randomNumber(maxAddresses, 1);
+      $person.addresses.push(...this.createNAddressAssociation(n));
     }
+  }
+
+  private createNAddressAssociation(n: number) {
+    const ret = new Array<AddressAssociation>(n);
+    const db = this.database;
+    for (let i = 0; i < n; i++) {
+      ret[i] = AddressAssociation.create(db.getRandomAddress());
+    }
+    return ret;
   }
 }

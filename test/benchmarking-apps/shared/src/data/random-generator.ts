@@ -14,7 +14,12 @@ const {
   countries,
   countries: { length: numCountries },
 } = data;
-export function randomNumber(max = 1e6): number { return Math.round(Math.random() * max); }
+export function randomNumber(max = 1e6, min: number | undefined = void 0): number {
+  if (min === void 0) {
+    return Math.round(Math.random() * max);
+  }
+  return Math.max(Math.round(Math.random() * max), min);
+}
 export function randomStreet(): string { return streets[randomNumber(numStreets)]; }
 export function randomCity(): string { return cities[randomNumber(numCities)]; }
 export function randomPin(): string { return pins[randomNumber(numPins)]; }

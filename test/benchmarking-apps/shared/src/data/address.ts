@@ -49,7 +49,7 @@ export class AddressAssociation implements IEntity {
   private static getRandomType() {
     const types = this.types;
     const len = types.length;
-    const mixN = Math.max(randomNumber(len), 1);
+    const mixN = randomNumber(len, 1);
     let type: AddressType = 0;
     for (let i = 0; i < mixN; i++) {
       type |= types[Math.floor(Math.random() * len)];
@@ -61,13 +61,6 @@ export class AddressAssociation implements IEntity {
       address,
       type ?? this.getRandomType()
     );
-  }
-  public static getN(n: number): AddressAssociation[] {
-    const items = new Array<AddressAssociation>(n);
-    for (let i = 0; i < n; i++) {
-      items[i] = this.create(new Address());
-    }
-    return items;
   }
 }
 

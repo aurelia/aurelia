@@ -1,5 +1,6 @@
 import { Address } from './data/address';
 import { Person } from './data/person';
+import { randomNumber } from './data/random-generator';
 import { Writable } from './utils';
 
 export class Database {
@@ -29,7 +30,10 @@ export class Database {
     for (let i = 0; i < numPeople; i++) {
       people[i] = new Person();
     }
+  }
 
-
+  public getRandomAddress(): Address {
+    const addresses = this.addresses;
+    return addresses[randomNumber(addresses.length)];
   }
 }

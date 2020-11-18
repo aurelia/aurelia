@@ -1,12 +1,9 @@
-<div style="display: flex; flex-direction: column; row-gap: 1em;">
+<div style="display: flex; flex-direction: column; row-gap: 1.5em;">
   <div style="display: flex;">
     <button click.delegate="changeLocale()">Toggle to ${locale ? 'de' : 'en'}</button>
-    <label for="show-address-details">
-      <input name="show-address-details" type="checkbox" checked.two-way="showAddressDetails">
-      Show address details
-    </label>
+    <button click.delegate="toggleAddressDetails()">Toggle address details</button>
   </div>
-  <div style="display: grid; grid-template-columns: repeat(5, 1fr);">
+  <div style="display: grid; grid-template-columns: repeat(5, 1fr); row-gap: 0.75em;">
     <strong>First name</strong>
     <strong>Last name</strong>
     <strong>Date of birth</strong>
@@ -17,7 +14,7 @@
       <span>${person.lastName}</span>
       <span>${person.dob | formatDate:locale}</span>
       <span>${person.isDeceased ? 'Yes' : ''}</span>
-      <address-viewer addresses.bind="person.addresses" show-details.bind="showAddressDetails"></address-viewer>
+      <address-viewer addresses.bind="person.addresses" show-details.to-view="showAddressDetails"></address-viewer>
     </template>
   </div>
 </div>

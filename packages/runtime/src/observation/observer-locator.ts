@@ -1,4 +1,4 @@
-import { DI, Primitive, isArrayIndex, ILogger, IPlatform } from '@aurelia/kernel';
+import { DI, Primitive, isArrayIndex, ILogger, IPlatform, emptyArray } from '@aurelia/kernel';
 import {
   AccessorOrObserver,
   CollectionKind,
@@ -25,7 +25,7 @@ import { getSetObserver } from './set-observer.js';
 import { SetterObserver } from './setter-observer.js';
 
 export interface IObjectObservationAdapter {
-  getObserver(flags: LifecycleFlags, object: unknown, propertyName: string, descriptor: PropertyDescriptor): IBindingTargetObserver | null;
+  getObserver(flags: LifecycleFlags, object: unknown, propertyName: string, descriptor: PropertyDescriptor, requestor: IObserverLocator): IBindingTargetObserver | null;
 }
 
 export interface IObserverLocator extends ObserverLocator {}
@@ -58,9 +58,15 @@ class DefaultNodeObserverLocator implements INodeObserverLocator {
 }
 
 export type ExtendedPropertyDescriptor = PropertyDescriptor & {
-  get: ObservableGetter;
+  get?: ObservableGetter;
+  set?: ObservableSetter;
 };
-export type ObservableGetter = PropertyDescriptor['get'] & { getObserver(obj: unknown): IObserver };
+export type ObservableGetter = PropertyDescriptor['get'] & {
+  getObserver?(obj: unknown, requestor: IObserverLocator): IObserver;
+};
+export type ObservableSetter = PropertyDescriptor['set'] & {
+  getObserver?(obj: unknown, requestor: IObserverLocator): IObserver;
+};
 
 export class ObserverLocator {
   private readonly adapters: IObjectObservationAdapter[] = [];
@@ -134,12 +140,12 @@ export class ObserverLocator {
         break;
     }
 
-    let pd = Object.getOwnPropertyDescriptor(obj, key);
+    let pd = Object.getOwnPropertyDescriptor(obj, key) as ExtendedPropertyDescriptor;
     // Only instance properties will yield a descriptor here, otherwise walk up the proto chain
     if (pd === void 0) {
       let proto = Object.getPrototypeOf(obj) as object | null;
       while (proto !== null) {
-        pd = Object.getOwnPropertyDescriptor(proto, key);
+        pd = Object.getOwnPropertyDescriptor(proto, key) as ExtendedPropertyDescriptor;
         if (pd === void 0) {
           proto = Object.getPrototypeOf(proto) as object | null;
         } else {
@@ -150,20 +156,12 @@ export class ObserverLocator {
 
     // If the descriptor does not have a 'value' prop, it must have a getter and/or setter
     if (pd !== void 0 && !(Object.prototype.hasOwnProperty.call(pd, 'value') as boolean)) {
-      let obs: AccessorOrObserver | undefined | null;
-      if (pd.get === void 0) {
-        // The user could decide to read from a different prop, so don't assume the absense of a setter won't work for custom adapters
-        obs = this.getAdapterObserver(flags, obj, key, pd) as AccessorOrObserver;
-      } else {
-        // Check custom getter-specific override first
-        if ((pd.get as ObservableGetter).getObserver !== void 0) {
-          obs = (pd.get as ObservableGetter).getObserver(obj) as AccessorOrObserver;
-        }
-      }
-
-      // Then check if any custom adapter handles it (the obj could be any object, including a node )
+      let obs: AccessorOrObserver | undefined | null = this.getAdapterObserver(flags, obj, key, pd);
       if (obs == null) {
-        obs = this.getAdapterObserver(flags, obj, key, pd) as AccessorOrObserver;
+        const getObserver = pd.get?.getObserver ?? pd.set?.getObserver;
+        if (getObserver != null) {
+          obs = getObserver(obj, this) as AccessorOrObserver;
+        }
       }
 
       return obs == null
@@ -181,7 +179,7 @@ export class ObserverLocator {
   private getAdapterObserver(flags: LifecycleFlags, obj: IObservable, propertyName: string, pd: PropertyDescriptor): IBindingTargetObserver | null {
     if (this.adapters.length > 0) {
       for (const adapter of this.adapters) {
-        const observer = adapter.getObserver(flags, obj, propertyName, pd);
+        const observer = adapter.getObserver(flags, obj, propertyName, pd, this);
         if (observer != null) {
           return observer;
         }

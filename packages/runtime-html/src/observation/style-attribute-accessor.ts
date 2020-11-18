@@ -1,5 +1,7 @@
 import { IAccessor, LifecycleFlags, AccessorType } from '@aurelia/runtime';
-import { emptyArray, kebabCase, customPropertyPrefix } from '@aurelia/kernel';
+import { emptyArray, kebabCase } from '@aurelia/kernel';
+
+const customPropertyPrefix: string = '--';
 
 export class StyleAttributeAccessor implements IAccessor {
   public currentValue: unknown = '';

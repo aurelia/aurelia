@@ -92,7 +92,6 @@ export {
   noop,
   emptyArray,
   emptyObject,
-  customPropertyPrefix
 } from './platform.js';
 export {
   IResourceKind,

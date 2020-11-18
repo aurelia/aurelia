@@ -69,18 +69,26 @@ export function $setup(platform: BrowserPlatform) {
       assert.areTaskQueuesEmpty();
     } catch (ex) {
       ensureTaskQueuesEmpty();
+      assertNoWatcher(false);
       throw ex;
-    } finally {
-      let hasWatcher = false;
-      let currentWatcher = WatcherSwitcher.current;
-      while (currentWatcher != null) {
-        hasWatcher = true;
-        WatcherSwitcher.exit(currentWatcher);
-        currentWatcher = WatcherSwitcher.current;
-      }
-      if (hasWatcher) {
+    }
+    assertNoWatcher(true);
+  });
+
+  function assertNoWatcher(shouldThrow: boolean) {
+    let hasWatcher = false;
+    let currentWatcher = WatcherSwitcher.current;
+    while (currentWatcher != null) {
+      hasWatcher = true;
+      WatcherSwitcher.exit(currentWatcher);
+      currentWatcher = WatcherSwitcher.current;
+    }
+    if (hasWatcher) {
+      if (shouldThrow) {
         throw new Error('There is still some watcher not removed.');
+      } else {
+        console.error('There is still some watcher not removed.');
       }
     }
-  });
+  }
 }

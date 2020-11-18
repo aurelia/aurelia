@@ -33,6 +33,7 @@ describe('2-runtime/watcher-switcher.spec.ts', function () {
     WatcherSwitcher.enter(dummyWatcher);
     assert.strictEqual(dummyWatcher, WatcherSwitcher.current);
     assert.strictEqual(true, WatcherSwitcher.watching);
+    // eslint-disable-next-line
     assert.throws(() => WatcherSwitcher.exit({} as IWatcher));
     assert.throws(() => WatcherSwitcher.exit(null));
     WatcherSwitcher.exit(dummyWatcher);

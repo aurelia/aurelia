@@ -1,15 +1,14 @@
-<div if.bind="showDetails" style="display: flex; flex-direction: column; row-gap: 0.5em;">
+<div if.bind="showDetails" class="details-container">
   <div repeat.for="item of addresses" with.bind="{address: item.address}">
     ${address.street} ${address.houseNumber}<br>
     ${address.pin} ${address.city} <br>
     ${address.country}
-    <div style="display: flex; column-gap: 0.1em;">
-      <span repeat.for="type of item | getAllTypes"
-        style="display: inline-block; border-radius: 0.2em; padding: 0.2em; background-color: #555555; color: #eeeeee;">${type}</span>
+    <div class="types-container">
+      <span repeat.for="type of item | getAllTypes" class="type-badge">${type}</span>
     </div>
   </div>
 </div>
-<ul else style="list-style: none; padding-left: 0; margin:0;">
+<ul else class="summary">
   <li repeat.for="item of addresses" with.bind="{address: item.address}">
     ${address.city}, ${address.country}
   </li>

@@ -7,6 +7,7 @@ import { AddressViewer, GetAllTypes } from './address-viewer';
 
 import { App, FormatDate } from './app';
 import { iar, ipr } from './registrations';
+import './styles.css';
 
 (global as any)['Aurelia'] = new Aurelia()
   .register(

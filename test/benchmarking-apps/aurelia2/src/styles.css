@@ -1,0 +1,48 @@
+:root {
+  --gap: 0.5rem;
+  --gap-sm: calc(var(--gap) / 2);
+  --gap-md: calc(var(--gap) * 1.5);
+  --gap-lg: calc(var(--gap) * 3);
+}
+
+app {
+  display: flex;
+  flex-direction: column;
+  row-gap: var(--gap);
+}
+
+.toolbar {
+  display: flex;
+  column-gap: var(--gap-sm);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  row-gap: var(--gap-md);
+}
+
+address-viewer .details-container {
+  display: flex;
+  flex-direction: column;
+  row-gap: var(--gap);
+}
+
+address-viewer .types-container {
+  display: flex;
+  column-gap: 0.1em;
+}
+
+address-viewer .type-badge {
+  display: inline-block;
+  border-radius: 0.2em;
+  padding: 0.2em;
+  background-color: #555555;
+  color: #eeeeee;
+}
+
+address-viewer .summary {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}

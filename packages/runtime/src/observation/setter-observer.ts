@@ -3,8 +3,6 @@ import { IPropertyObserver, ISubscriber, AccessorType, ISubscribable, IAccessor,
 import { subscriberCollection } from './subscriber-collection.js';
 import { InterceptorFunc } from '../bindable.js';
 
-const $is = Object.is;
-
 export interface SetterObserver extends IPropertyObserver<IIndexable, string> {}
 
 /**
@@ -79,7 +77,7 @@ export class SetterObserver {
           set: value => {
             this.setValue(value, LifecycleFlags.none);
           },
-        }
+        },
       );
     }
     return this;
@@ -126,7 +124,7 @@ export class SetterNotifier implements IAccessor, ISubscribable {
       value = this.s(value);
     }
     const oldValue = this.v;
-    if (!$is(value, oldValue)) {
+    if (!Object.is(value, oldValue)) {
       this.v = value;
       this.callSubscribers(value, oldValue, flags);
     }

@@ -1,18 +1,9 @@
-import { DI, Primitive, isArrayIndex, ILogger, IPlatform, emptyArray } from '@aurelia/kernel';
+import { DI, Primitive, isArrayIndex, ILogger } from '@aurelia/kernel';
 import {
   AccessorOrObserver,
   CollectionKind,
   CollectionObserver,
-  IAccessor,
-  IBindingTargetAccessor,
-  IBindingTargetObserver,
-  ICollectionObserver,
   ILifecycle,
-  IObservable,
-  IObservedArray,
-  IObservedMap,
-  IObservedSet,
-  IObserver,
   LifecycleFlags,
 } from '../observation.js';
 import { getArrayObserver } from './array-observer.js';
@@ -23,6 +14,18 @@ import { PrimitiveObserver } from './primitive-observer.js';
 import { propertyAccessor } from './property-accessor.js';
 import { getSetObserver } from './set-observer.js';
 import { SetterObserver } from './setter-observer.js';
+
+import type {
+  IAccessor,
+  IBindingTargetAccessor,
+  IBindingTargetObserver,
+  ICollectionObserver,
+  IObservable,
+  IObservedArray,
+  IObservedMap,
+  IObservedSet,
+  IObserver,
+} from '../observation.js';
 
 export interface IObjectObservationAdapter {
   getObserver(flags: LifecycleFlags, object: unknown, propertyName: string, descriptor: PropertyDescriptor, requestor: IObserverLocator): IBindingTargetObserver | null;
@@ -75,7 +78,6 @@ export class ObserverLocator {
     @ILifecycle private readonly lifecycle: ILifecycle,
     @IDirtyChecker private readonly dirtyChecker: IDirtyChecker,
     @INodeObserverLocator private readonly nodeObserverLocator: INodeObserverLocator,
-    @IPlatform private readonly platform: IPlatform,
   ) {}
 
   public addAdapter(adapter: IObjectObservationAdapter): void {
@@ -166,7 +168,7 @@ export class ObserverLocator {
 
       return obs == null
         ? pd.configurable
-          ? ComputedObserver.create(obj, key, pd, typeof this.platform.Proxy !== 'undefined', this)
+          ? ComputedObserver.create(obj, key, pd, typeof Proxy !== 'undefined', this)
           : this.dirtyChecker.createProperty(obj, key)
         : obs;
     }

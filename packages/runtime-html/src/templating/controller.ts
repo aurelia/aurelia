@@ -996,7 +996,7 @@ function createWatchers(
   const observerLocator = context!.get(IObserverLocator);
   const expressionParser = context.get(IExpressionParser);
   const watches = definition.watches;
-  const hasProxy = controller.platform.Proxy != null;
+  const hasProxy = typeof Proxy !== 'undefined';
   let expression: IWatchDefinition['expression'];
   let callback: IWatchDefinition['callback'];
 

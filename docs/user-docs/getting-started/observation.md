@@ -58,12 +58,12 @@ export interface INodeObserverLocator {
   useConfig(config): void;
   useConfig(nodeName, key, eventsConfig): void;
 
-  useGlobalConfig(config): void;
-  useGlobalConfig(key, eventsConfig): void;
+  useConfigGlobal(config): void;
+  useConfigGlobal(key, eventsConfig): void;
 }
 ```
 
-`useConfig` and `useGlobalConfig` are two methods that can be used to teach the default node observer locator what events can be used to observe a property of a specific element, or any element.
+`useConfig` and `useConfigGlobal` are two methods that can be used to teach the default node observer locator what events can be used to observe a property of a specific element, or any element.
 
 - An example of how to teach Aurelia observe property `value` of a `<textarea />` element:
   ```ts
@@ -79,7 +79,7 @@ export interface INodeObserverLocator {
 
 - Another example of how to teach Aurelia observe property `scrollTop` of all elements:
   ```ts
-  nodeObserverLocator.useGlobalConfig('scrollTop', { events: ['scroll'] });
+  nodeObserverLocator.useConfigGlobal('scrollTop', { events: ['scroll'] });
   ```
   In this example, `eventsConfig` argument has the value `{ events: ['scroll']}`.
 

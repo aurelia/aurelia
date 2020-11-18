@@ -157,13 +157,10 @@ export class ObserverLocator {
     }
 
     // If the descriptor does not have a 'value' prop, it must have a getter and/or setter
-    if (pd !== void 0 && !(Object.prototype.hasOwnProperty.call(pd, 'value') as boolean)) {
+    if (pd !== void 0 && !Object.prototype.hasOwnProperty.call(pd, 'value')) {
       let obs: AccessorOrObserver | undefined | null = this.getAdapterObserver(flags, obj, key, pd);
       if (obs == null) {
-        const getObserver = pd.get?.getObserver ?? pd.set?.getObserver;
-        if (getObserver != null) {
-          obs = getObserver(obj, this) as AccessorOrObserver;
-        }
+        obs = (pd.get?.getObserver ?? pd.set?.getObserver)?.(obj, this) as AccessorOrObserver;
       }
 
       return obs == null

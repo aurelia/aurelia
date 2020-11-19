@@ -165,7 +165,7 @@ export class ObserverLocator {
 
       return obs == null
         ? pd.configurable
-          ? ComputedObserver.create(obj, key, pd, typeof Proxy !== 'undefined', this)
+          ? ComputedObserver.create(obj, key, pd, this, /* AOT: not true for IE11 */ true)
           : this.dirtyChecker.createProperty(obj, key)
         : obs;
     }

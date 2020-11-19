@@ -996,7 +996,6 @@ function createWatchers(
   const observerLocator = context!.get(IObserverLocator);
   const expressionParser = context.get(IExpressionParser);
   const watches = definition.watches;
-  const hasProxy = typeof Proxy !== 'undefined';
   let expression: IWatchDefinition['expression'];
   let callback: IWatchDefinition['callback'];
 
@@ -1015,7 +1014,8 @@ function createWatchers(
         expression,
         callback,
         // there should be a flag to purposely disable proxy
-        hasProxy,
+        // AOT: not true for IE11
+        true,
       ));
     } else {
       const ast = typeof expression === 'string'

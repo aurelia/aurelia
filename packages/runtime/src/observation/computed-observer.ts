@@ -103,8 +103,8 @@ export class ComputedObserver implements IWatcherImpl, IConnectableBinding, ISub
     obj: object,
     key: PropertyKey,
     descriptor: PropertyDescriptor,
-    useProxy: boolean,
     observerLocator: IObserverLocator,
+    useProxy: boolean,
   ): ComputedObserver {
     const getter = descriptor.get!;
     const setter = descriptor.set;

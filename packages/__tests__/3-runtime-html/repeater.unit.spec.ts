@@ -577,7 +577,7 @@ describe(`Repeat`, function () {
         binding.target = sut as any;
 
         // -- Round 1 --
-        const scope = Scope.create(baseFlags, BindingContext.create(baseFlags));
+        const scope = Scope.create(BindingContext.create());
 
         sut.items = items;
         const expectedText1 = sut.items ? sut.items.join('') : '';

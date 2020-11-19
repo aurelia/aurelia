@@ -246,11 +246,7 @@ describe('simple Computed Observer test case', function () {
 
         const observerLocator = ctx.container.get(IObserverLocator);
         const namePropValueObserver = observerLocator
-          .getObserver(
-            LifecycleFlags.none,
-            component.nameProp,
-            'value',
-          ) as ComputedObserver;
+          .getObserver(component.nameProp, 'value') as ComputedObserver;
 
         assert.instanceOf(namePropValueObserver, ComputedObserver);
         assert.strictEqual(
@@ -298,11 +294,7 @@ describe('simple Computed Observer test case', function () {
 
         const observerLocator = ctx.container.get(IObserverLocator);
         const namePropValueObserver = observerLocator
-          .getObserver(
-            LifecycleFlags.none,
-            component.nameProp,
-            'value',
-          ) as ComputedObserver;
+          .getObserver(component.nameProp, 'value',) as ComputedObserver;
 
         assert.instanceOf(namePropValueObserver, ComputedObserver);
       },

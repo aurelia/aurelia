@@ -5,16 +5,16 @@ const R$get = Reflect.get;
 const toStringTag = Object.prototype.toString;
 const proxyMap = new WeakMap<object, object>();
 
-function toRawType(value: unknown): string {
-  return toStringTag.call(value).slice(8, -1);
-}
-
 function canWrap(obj: unknown): obj is object {
-  switch (toRawType(obj)) {
-    case 'Object':
-    case 'Array':
-    case 'Map':
-    case 'Set':
+  switch (toStringTag.call(obj)) {
+    case '[object Object]':
+    case '[object Array]':
+    case '[object Map]':
+    case '[object Set]':
+    // it's unlikely that methods on the following 2 objects need to be observed for changes
+    // so while they are valid/ we don't wrap them either
+    // case '[object Math]':
+    // case '[object Reflect]':
       return true;
     default:
       return false;
@@ -140,6 +140,8 @@ const arrayHandler: ProxyHandler<unknown[]> = {
         return wrappedArraySplice;
       case 'some':
         return wrappedArraySome;
+      case 'sort':
+        return wrappedArraySort;
       case 'keys':
         return wrappedKeys;
       case 'values':
@@ -258,6 +260,13 @@ function wrappedArraySome(this: unknown[], cb: (v: unknown, i: number, arr: unkn
   const res = raw.some((v, i) => unwrap(cb.call(thisArg, wrap(v), i, this)));
   currentWatcher()?.observeCollection(raw);
   return res;
+}
+
+function wrappedArraySort(this: unknown[], cb?: (a: unknown, b: unknown) => number): unknown[] {
+  const raw = getRaw(this);
+  const res = raw.sort(cb);
+  currentWatcher()?.observeCollection(raw);
+  return wrap(res);
 }
 
 function wrappedArraySlice(this: unknown[], start?: number, end?: number): unknown[] {

@@ -1,6 +1,5 @@
 import {
   IContainer,
-  IPlatform,
   Registration,
 } from '@aurelia/kernel';
 import {

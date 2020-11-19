@@ -24,7 +24,7 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
     this.updateValue();
 
     const observerLocator = this.router.container.get(IObserverLocator);
-    this.observer = observerLocator.getObserver(LifecycleFlags.none, this.router, 'activeComponents') as any;
+    this.observer = observerLocator.getObserver(this.router, 'activeComponents') as any;
     this.observer.subscribe(this);
   }
 

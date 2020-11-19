@@ -8,9 +8,9 @@
     <button click.delegate="toggleAddressDetails()">Toggle address details</button>
   </div>
   <div class="grid">
-    <strong>First name</strong>
-    <strong>Last name</strong>
-    <strong>Date of birth</strong>
+    <strong data-sortable.bind="currentSorting.property === 'firstName' ? currentSorting.direction : ''" click.delegate="applySorting('firstName')">First name</strong>
+    <strong data-sortable.bind="currentSorting.property === 'lastName' ? currentSorting.direction : ''" click.delegate="applySorting('lastName')">Last name</strong>
+    <strong data-sortable.bind="currentSorting.property === 'dob' ? currentSorting.direction : ''" click.delegate="applySorting('dob')">Date of birth</strong>
     <strong>Deceased</strong>
     <strong>Addresses</strong>
     <template repeat.for="person of people">

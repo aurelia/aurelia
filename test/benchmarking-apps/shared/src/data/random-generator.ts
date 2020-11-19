@@ -16,9 +16,9 @@ const {
 } = data;
 export function randomNumber(max = 1e6, min: number | undefined = void 0): number {
   if (min === void 0) {
-    return Math.round(Math.random() * max);
+    return Math.floor(Math.random() * max);
   }
-  return Math.max(Math.round(Math.random() * max), min);
+  return Math.max(Math.floor(Math.random() * max), min);
 }
 export function randomStreet(): string { return streets[randomNumber(numStreets)]; }
 export function randomCity(): string { return cities[randomNumber(numCities)]; }

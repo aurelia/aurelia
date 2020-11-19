@@ -1,4 +1,4 @@
-import { customElement, valueConverter } from '@aurelia/runtime-html';
+import { computed, customElement, valueConverter } from '@aurelia/runtime-html';
 import { IAddressRepository, IPersonRepository, Person } from '@benchmarking-apps/shared';
 import template from './app.html';
 import { iar, ipr } from './registrations';
@@ -7,7 +7,7 @@ import { iar, ipr } from './registrations';
 // let startTime: number;
 // let lastMeasure: string;
 const startMeasure = function (name: string) {
-  console.time(name)
+  console.time(name);
   // startTime = performance.now();
   // lastMeasure = name;
 };
@@ -19,11 +19,33 @@ const stopMeasure = function (name: string) {
   }, 0);
 };
 
+enum SortingDirection {
+  Ascending = 0,
+  Descending = 1,
+}
+class SortingOptions<TObject> {
+  private _direction: SortingDirection = SortingDirection.Ascending;
+  public constructor(
+    public readonly property: keyof TObject,
+  ) { }
+  @computed({ static: true })
+  public get direction(): SortingDirection {
+    return this._direction;
+  }
+  public toggleDirection() {
+    this._direction = 1 - this._direction;
+  }
+  public toString() {
+    return `${this.property.toString()} - ${this._direction === SortingDirection.Ascending ? 'asc' : 'desc'}`;
+  }
+}
+
 @customElement({ name: 'app', template })
 export class App {
   private people: Person[];
   private locale: string = 'en';
   private showAddressDetails: boolean = false;
+  private currentSorting: SortingOptions<Person> | null = null;
   public constructor(
     @ipr private readonly personRepository: IPersonRepository,
     @iar private readonly addressRepository: IAddressRepository,
@@ -36,10 +58,34 @@ export class App {
     this.locale = this.locale === 'en' ? 'de' : 'en';
     stopMeasure('localeChange');
   }
+
   public toggleAddressDetails(): void {
     startMeasure('toggleAddressDetails');
     this.showAddressDetails = !this.showAddressDetails;
     stopMeasure('toggleAddressDetails');
+  }
+
+  public applySorting(property: keyof Person): void {
+    const label = `sorting - ${property}`;
+    startMeasure(label);
+    let sortingOption = this.currentSorting;
+    if (sortingOption === null || sortingOption.property !== property) {
+      sortingOption = this.currentSorting = new SortingOptions(property);
+    } else {
+      sortingOption.toggleDirection();
+    }
+    const people = this.people;
+    const value = this.people[0][property];
+    const direction = sortingOption.direction === SortingDirection.Ascending ? 1 : -1;
+    switch (true) {
+      case typeof value === 'string':
+        people.sort((p1, p2) => direction * (p1[property] as string).localeCompare(p2[property] as string));
+        break;
+      case value instanceof Date:
+        people.sort((p1, p2) => direction * ((p1[property] as Date).getTime() - (p2[property] as Date).getTime()));
+        break;
+    }
+    stopMeasure(label);
   }
 
   // public run() {

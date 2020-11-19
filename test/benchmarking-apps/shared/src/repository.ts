@@ -18,7 +18,7 @@ export abstract class BaseRepository<TEntity extends IEntity> implements IReposi
   }
 
   public all(): TEntity[] {
-    return this.collection;
+    return this.collection.slice(0);
   }
 
   public find(id: number): TEntity | undefined {

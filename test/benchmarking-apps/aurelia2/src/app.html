@@ -1,18 +1,27 @@
-<div class="toolbar">
-  <button click.delegate="changeLocale()">Toggle to ${locale ? 'de' : 'en'}</button>
-  <button click.delegate="toggleAddressDetails()">Toggle address details</button>
+<div class="header">
+  <!-- header -->
 </div>
-<div class="grid">
-  <strong>First name</strong>
-  <strong>Last name</strong>
-  <strong>Date of birth</strong>
-  <strong>Deceased</strong>
-  <strong>Addresses</strong>
-  <template repeat.for="person of people">
-    <span>${person.firstName}</span>
-    <span>${person.lastName}</span>
-    <span>${person.dob | formatDate:locale}</span>
-    <span>${person.isDeceased ? 'Yes' : ''}</span>
-    <address-viewer addresses.bind="person.addresses" show-details.to-view="showAddressDetails"></address-viewer>
-  </template>
+<div class="content">
+  <!-- content -->
+  <div class="toolbar">
+    <button click.delegate="changeLocale()">Toggle to ${locale ? 'de' : 'en'}</button>
+    <button click.delegate="toggleAddressDetails()">Toggle address details</button>
+  </div>
+  <div class="grid">
+    <strong>First name</strong>
+    <strong>Last name</strong>
+    <strong>Date of birth</strong>
+    <strong>Deceased</strong>
+    <strong>Addresses</strong>
+    <template repeat.for="person of people">
+      <span>${person.firstName}</span>
+      <span>${person.lastName}</span>
+      <span>${person.dob | formatDate:locale}</span>
+      <span>${person.isDeceased ? 'Yes' : ''}</span>
+      <address-viewer addresses.bind="person.addresses" show-details.to-view="showAddressDetails"></address-viewer>
+    </template>
+  </div>
+</div>
+<div class="footer">
+  <!-- footer -->
 </div>

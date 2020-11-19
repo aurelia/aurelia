@@ -3,12 +3,33 @@
   --gap-sm: calc(var(--gap) / 2);
   --gap-md: calc(var(--gap) * 1.5);
   --gap-lg: calc(var(--gap) * 3);
+  --gap-xxl: calc(var(--gap) * 10);
 }
 
 app {
+  display: grid;
+  width: 100vw;
+  height: 100vh;
+  grid-template-areas: "head head head"
+    "left-gap content right-gap"
+    "foot foot foot";
+  grid-template-rows: 3vh 90vh 3vh;
+  grid-template-columns: var(--gap-xxl) 1fr var(--gap-xxl);
+}
+
+app>.header {
+  grid-area: head;
+}
+
+app>.footer {
+  grid-area: foot;
+}
+
+app>.content {
+  grid-area: content;
   display: flex;
   flex-direction: column;
-  row-gap: var(--gap);
+  row-gap: var(--gap-md);
 }
 
 .toolbar {
@@ -20,6 +41,7 @@ app {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   row-gap: var(--gap-md);
+  overflow: auto;
 }
 
 address-viewer .details-container {

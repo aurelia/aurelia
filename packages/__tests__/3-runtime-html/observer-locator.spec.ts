@@ -2,7 +2,6 @@ import { ComputedObserver } from '@aurelia/runtime';
 import {
   CollectionLengthObserver,
   DirtyCheckProperty,
-  LifecycleFlags as LF,
   PrimitiveObserver,
   PropertyAccessor,
   SetterObserver,

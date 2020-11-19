@@ -8,7 +8,6 @@ import {
   ILifecycle,
   IObserverLocator,
   Scope,
-  LifecycleFlags as LF,
   OverrideContext,
   INodeObserverLocator,
 } from '@aurelia/runtime-html';

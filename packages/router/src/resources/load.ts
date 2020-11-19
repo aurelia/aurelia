@@ -1,4 +1,4 @@
-import { customAttribute, INode, bindable, BindingMode, IObserverLocator, LifecycleFlags, CustomAttribute, ICustomAttributeController, ICustomAttributeViewModel } from '@aurelia/runtime-html';
+import { customAttribute, INode, bindable, BindingMode, IObserverLocator, CustomAttribute, ICustomAttributeController, ICustomAttributeViewModel } from '@aurelia/runtime-html';
 import { IRouter } from '../router.js';
 import { NavigationInstructionResolver } from '../type-resolvers.js';
 

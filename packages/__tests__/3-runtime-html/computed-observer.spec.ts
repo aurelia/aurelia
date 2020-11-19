@@ -1,7 +1,6 @@
 import { ComputedObserver } from '@aurelia/runtime';
 import {
   IObserverLocator,
-  LifecycleFlags,
   CustomElement,
   IDirtyChecker,
   Aurelia,

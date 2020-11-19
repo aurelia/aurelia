@@ -588,8 +588,8 @@ describe('AccessKeyedExpression', function () {
     assert.strictEqual(expression2.evaluate(LF.none, scope, null, null, null), 'hello world', `expression2.evaluate(LF.none, scope, null)`);
     const binding = new MockBinding();
     expression2.evaluate(LF.none, scope, null, dummyLocator, binding);
-    assert.deepStrictEqual(binding.calls[0], ['observeProperty', LF.none, scope.bindingContext, 'foo'], 'binding.calls[0]');
-    assert.deepStrictEqual(binding.calls[1], ['observeProperty', LF.none, scope.bindingContext.foo, 0], 'binding.calls[1]');
+    assert.deepStrictEqual(binding.calls[0], ['observeProperty', scope.bindingContext, 'foo'], 'binding.calls[0]');
+    assert.deepStrictEqual(binding.calls[1], ['observeProperty', scope.bindingContext.foo, 0], 'binding.calls[1]');
     assert.strictEqual(binding.calls.length, 2, 'binding.calls.length');
 
     const hs = createScopeForTest({ foo: { '0': 'hello hostScope' } });
@@ -597,8 +597,8 @@ describe('AccessKeyedExpression', function () {
     assert.strictEqual(expression2.evaluate(LF.none, scope, hs, null, null), 'hello hostScope', `expression2.evaluate(LF.none, scope, null)`);
     const binding2 = new MockBinding();
     expression2.evaluate(LF.none, scope, hs, dummyLocator, binding2);
-    assert.deepStrictEqual(binding2.calls[0], ['observeProperty', LF.none, hs.bindingContext, 'foo'], 'binding.calls[0]');
-    assert.deepStrictEqual(binding2.calls[1], ['observeProperty', LF.none, hs.bindingContext.foo, 0], 'binding.calls[1]');
+    assert.deepStrictEqual(binding2.calls[0], ['observeProperty', hs.bindingContext, 'foo'], 'binding.calls[0]');
+    assert.deepStrictEqual(binding2.calls[1], ['observeProperty', hs.bindingContext.foo, 0], 'binding.calls[1]');
     assert.strictEqual(binding2.calls.length, 2, 'binding.calls.length');
   });
 
@@ -608,7 +608,7 @@ describe('AccessKeyedExpression', function () {
     assert.strictEqual(expression3.evaluate(LF.none, scope, null, null, null), 'hello world', `expression3.evaluate(LF.none, scope, null)`);
     const binding = new MockBinding();
     expression3.evaluate(LF.none, scope, null, dummyLocator, binding);
-    assert.deepStrictEqual(binding.calls[0], ['observeProperty', LF.none, scope.bindingContext, 'foo'], 'binding.calls[0]');
+    assert.deepStrictEqual(binding.calls[0], ['observeProperty', scope.bindingContext, 'foo'], 'binding.calls[0]');
     assert.strictEqual(binding.calls.length, 2, 'binding.calls.length');
 
     const hs = createScopeForTest({ foo: ['hello hostScope'] });
@@ -616,7 +616,7 @@ describe('AccessKeyedExpression', function () {
     assert.strictEqual(expression3.evaluate(LF.none, scope, hs, null, null), 'hello hostScope', `expression3.evaluate(LF.none, scope, null)`);
     const binding2 = new MockBinding();
     expression3.evaluate(LF.none, scope, hs, dummyLocator, binding2);
-    assert.deepStrictEqual(binding2.calls[0], ['observeProperty', LF.none, hs.bindingContext, 'foo'], 'binding.calls[0]');
+    assert.deepStrictEqual(binding2.calls[0], ['observeProperty', hs.bindingContext, 'foo'], 'binding.calls[0]');
     assert.strictEqual(binding2.calls.length, 2, 'binding.calls.length');
   });
 
@@ -971,7 +971,7 @@ describe('AccessScopeExpression', function () {
       const binding = new MockBinding();
       foo.evaluate(LF.none, scope, hs, dummyLocator, binding);
       assert.strictEqual(binding.calls.length, 1, 'binding.calls.length');
-      assert.deepStrictEqual(binding.calls[0], ['observeProperty', LF.none, (hs ?? scope).overrideContext, 'foo'], 'binding.calls[0]');
+      assert.deepStrictEqual(binding.calls[0], ['observeProperty', (hs ?? scope).overrideContext, 'foo'], 'binding.calls[0]');
     });
 
     it(`evaluates null bindingContext${isHostScoped ? ' - hostScoped' : ''}`, function () {
@@ -1015,7 +1015,7 @@ describe('AccessScopeExpression', function () {
       const binding = new MockBinding();
       foo.evaluate(LF.none, scope, hs, dummyLocator, binding);
       assert.strictEqual(binding.calls.length, 1, 'binding.calls.length');
-      assert.deepStrictEqual(binding.calls[0], ['observeProperty', LF.none, (hs ?? scope).overrideContext, 'foo'], 'binding.calls[0]');
+      assert.deepStrictEqual(binding.calls[0], ['observeProperty', (hs ?? scope).overrideContext, 'foo'], 'binding.calls[0]');
     });
 
     it(`evaluates defined property on bindingContext${isHostScoped ? ' - hostScoped' : ''}`, function () {
@@ -1089,7 +1089,7 @@ describe('AccessScopeExpression', function () {
       const binding = new MockBinding();
       foo.evaluate(LF.none, scope, hs, dummyLocator, binding);
       assert.strictEqual(binding.calls.length, 1, 'binding.calls.length');
-      assert.deepStrictEqual(binding.calls[0], ['observeProperty', LF.none, (hs ?? scope).bindingContext, 'foo'], 'binding.calls[0]');
+      assert.deepStrictEqual(binding.calls[0], ['observeProperty', (hs ?? scope).bindingContext, 'foo'], 'binding.calls[0]');
     });
 
     it(`connects defined property on overrideContext${isHostScoped ? ' - hostScoped' : ''}`, function () {
@@ -1104,7 +1104,7 @@ describe('AccessScopeExpression', function () {
       const binding = new MockBinding();
       foo.evaluate(LF.none, scope, hs, dummyLocator, binding);
       assert.strictEqual(binding.calls.length, 1, 'binding.calls.length');
-      assert.deepStrictEqual(binding.calls[0], ['observeProperty', LF.none, (hs ?? scope).overrideContext, 'foo'], 'binding.calls[0]');
+      assert.deepStrictEqual(binding.calls[0], ['observeProperty', (hs ?? scope).overrideContext, 'foo'], 'binding.calls[0]');
     });
 
     it(`connects undefined property on bindingContext${isHostScoped ? ' - hostScoped' : ''}`, function () {
@@ -1118,7 +1118,7 @@ describe('AccessScopeExpression', function () {
       const binding = new MockBinding();
       foo.evaluate(LF.none, scope, hs, dummyLocator, binding);
       assert.strictEqual(binding.calls.length, 1, 'binding.calls.length');
-      assert.deepStrictEqual(binding.calls[0], ['observeProperty', LF.none, (hs ?? scope).bindingContext, 'foo'], 'binding.calls[0]');
+      assert.deepStrictEqual(binding.calls[0], ['observeProperty', (hs ?? scope).bindingContext, 'foo'], 'binding.calls[0]');
     });
 
     it(`evaluates defined property on first ancestor bindingContext${isHostScoped ? ' - hostScoped' : ''}`, function () {
@@ -1180,11 +1180,11 @@ describe('AccessScopeExpression', function () {
       let binding = new MockBinding();
       foo.evaluate(LF.none, scope, hs, dummyLocator, binding);
       assert.strictEqual(binding.calls.length, 1, 'binding.calls.length');
-      assert.deepStrictEqual(binding.calls[0], ['observeProperty', LF.none, (hs ?? scope).parentScope.overrideContext.bindingContext, 'foo'], 'binding.calls[0]');
+      assert.deepStrictEqual(binding.calls[0], ['observeProperty', (hs ?? scope).parentScope.overrideContext.bindingContext, 'foo'], 'binding.calls[0]');
       binding = new MockBinding();
       $parentfoo.evaluate(LF.none, hs ?? scope, hs, dummyLocator, binding);
       assert.strictEqual(binding.calls.length, 1, 'binding.calls.length');
-      assert.deepStrictEqual(binding.calls[0], ['observeProperty', LF.none, (hs ?? scope).parentScope.overrideContext.bindingContext, 'foo'], 'binding.calls[0]');
+      assert.deepStrictEqual(binding.calls[0], ['observeProperty', (hs ?? scope).parentScope.overrideContext.bindingContext, 'foo'], 'binding.calls[0]');
     });
 
     it(`connects defined property on first ancestor overrideContext${isHostScoped ? ' - hostScoped' : ''}`, function () {
@@ -1199,11 +1199,11 @@ describe('AccessScopeExpression', function () {
       let binding = new MockBinding();
       foo.evaluate(LF.none, scope, hs, dummyLocator, binding);
       assert.strictEqual(binding.calls.length, 1, 'binding.calls.length');
-      assert.deepStrictEqual(binding.calls[0], ['observeProperty', LF.none, (hs ?? scope).parentScope.overrideContext, 'foo'], 'binding.calls[0]');
+      assert.deepStrictEqual(binding.calls[0], ['observeProperty', (hs ?? scope).parentScope.overrideContext, 'foo'], 'binding.calls[0]');
       binding = new MockBinding();
       $parentfoo.evaluate(LF.none, hs ?? scope, hs, dummyLocator, binding);
       assert.strictEqual(binding.calls.length, 1, 'binding.calls.length');
-      assert.deepStrictEqual(binding.calls[0], ['observeProperty', LF.none, (hs ?? scope).parentScope.overrideContext, 'foo'], 'binding.calls[0]');
+      assert.deepStrictEqual(binding.calls[0], ['observeProperty', (hs ?? scope).parentScope.overrideContext, 'foo'], 'binding.calls[0]');
     });
 
     it(`connects undefined property on first ancestor bindingContext${isHostScoped ? ' - hostScoped' : ''}`, function () {
@@ -1218,7 +1218,7 @@ describe('AccessScopeExpression', function () {
       const binding = new MockBinding();
       $parentfoo.evaluate(LF.none, hs ?? scope, hs, dummyLocator, binding);
       assert.strictEqual(binding.calls.length, 1, 'binding.calls.length');
-      assert.deepStrictEqual(binding.calls[0], ['observeProperty', LF.none, (hs ?? scope).parentScope.overrideContext.bindingContext, 'foo'], 'binding.calls[0]');
+      assert.deepStrictEqual(binding.calls[0], ['observeProperty', (hs ?? scope).parentScope.overrideContext.bindingContext, 'foo'], 'binding.calls[0]');
     });
   }
 });
@@ -1717,7 +1717,7 @@ describe('CallScopeExpression', function () {
       assert.strictEqual(binding.calls.filter(c => c[0] === 'observeProperty').length, 0, `binding.calls.filter(c => c[0] === 'observeProperty').length`);
       hello.evaluate(LF.none, scope, hs, dummyLocator, binding);
       assert.strictEqual(binding.calls.length, 1, 'binding.calls.length');
-      assert.deepStrictEqual(binding.calls[0], ['observeProperty', LF.none, (hs ?? scope).overrideContext, 'arg'], 'binding.calls[0]');
+      assert.deepStrictEqual(binding.calls[0], ['observeProperty', (hs ?? scope).overrideContext, 'arg'], 'binding.calls[0]');
     });
 
     it(`evaluates null bindingContext${isHostScoped ? ' - hostScoped' : ''}`, function () {
@@ -1740,7 +1740,7 @@ describe('CallScopeExpression', function () {
       assert.strictEqual(binding.calls.filter(c => c[0] === 'observeProperty').length, 0, `binding.calls.filter(c => c[0] === 'observeProperty').length`);
       hello.evaluate(LF.none, scope, hs, dummyLocator, binding);
       assert.strictEqual(binding.calls.length, 1, 'binding.calls.length');
-      assert.deepStrictEqual(binding.calls[0], ['observeProperty', LF.none, (hs ?? scope).overrideContext, 'arg'], 'binding.calls[0]');
+      assert.deepStrictEqual(binding.calls[0], ['observeProperty', (hs ?? scope).overrideContext, 'arg'], 'binding.calls[0]');
     });
 
     it(`evaluates defined property on bindingContext${isHostScoped ? ' - hostScoped' : ''}`, function () {
@@ -1766,7 +1766,7 @@ describe('CallScopeExpression', function () {
       assert.strictEqual(binding.calls.filter(c => c[0] === 'observeProperty').length, 0, `binding.calls.filter(c => c[0] === 'observeProperty').length`);
       hello.evaluate(LF.none, scope, hs, dummyLocator, binding);
       assert.strictEqual(binding.calls.length, 1, 'binding.calls.length');
-      assert.deepStrictEqual(binding.calls[0], ['observeProperty', LF.none, (hs ?? scope).bindingContext, 'arg'], 'binding.calls[0]');
+      assert.deepStrictEqual(binding.calls[0], ['observeProperty', (hs ?? scope).bindingContext, 'arg'], 'binding.calls[0]');
     });
 
     it(`connects defined property on overrideContext${isHostScoped ? ' - hostScoped' : ''}`, function () {
@@ -1780,7 +1780,7 @@ describe('CallScopeExpression', function () {
       assert.strictEqual(binding.calls.filter(c => c[0] === 'observeProperty').length, 0, `binding.calls.filter(c => c[0] === 'observeProperty').length`);
       hello.evaluate(LF.none, scope, hs, dummyLocator, binding);
       assert.strictEqual(binding.calls.length, 1, 'binding.calls.length');
-      assert.deepStrictEqual(binding.calls[0], ['observeProperty', LF.none, (hs ?? scope).overrideContext, 'arg'], 'binding.calls[0]');
+      assert.deepStrictEqual(binding.calls[0], ['observeProperty', (hs ?? scope).overrideContext, 'arg'], 'binding.calls[0]');
     });
 
     it(`connects undefined property on bindingContext${isHostScoped ? ' - hostScoped' : ''}`, function () {
@@ -1790,7 +1790,7 @@ describe('CallScopeExpression', function () {
       assert.strictEqual(binding.calls.filter(c => c[0] === 'observeProperty').length, 0, `binding.calls.filter(c => c[0] === 'observeProperty').length`);
       hello.evaluate(LF.none, scope, hs, dummyLocator, binding);
       assert.strictEqual(binding.calls.length, 1, 'binding.calls.length');
-      assert.deepStrictEqual(binding.calls[0], ['observeProperty', LF.none, (hs ?? scope).bindingContext, 'arg'], 'binding.calls[0]');
+      assert.deepStrictEqual(binding.calls[0], ['observeProperty', (hs ?? scope).bindingContext, 'arg'], 'binding.calls[0]');
     });
 
     it(`evaluates defined property on first ancestor bindingContext${isHostScoped ? ' - hostScoped' : ''}`, function () {
@@ -1816,7 +1816,7 @@ describe('CallScopeExpression', function () {
       assert.strictEqual(binding.calls.filter(c => c[0] === 'observeProperty').length, 0, `binding.calls.filter(c => c[0] === 'observeProperty').length`);
       hello.evaluate(LF.none, scope, hs, dummyLocator, binding);
       assert.strictEqual(binding.calls.length, 1, 'binding.calls.length');
-      assert.deepStrictEqual(binding.calls[0], ['observeProperty', LF.none, (hs ?? scope).parentScope.overrideContext.bindingContext, 'arg'], 'binding.calls[0]');
+      assert.deepStrictEqual(binding.calls[0], ['observeProperty', (hs ?? scope).parentScope.overrideContext.bindingContext, 'arg'], 'binding.calls[0]');
     });
 
     it(`connects defined property on first ancestor overrideContext${isHostScoped ? ' - hostScoped' : ''}`, function () {
@@ -1830,7 +1830,7 @@ describe('CallScopeExpression', function () {
       assert.strictEqual(binding.calls.filter(c => c[0] === 'observeProperty').length, 0, `binding.calls.filter(c => c[0] === 'observeProperty').length`);
       hello.evaluate(LF.none, scope, hs, dummyLocator, binding);
       assert.strictEqual(binding.calls.length, 1, 'binding.calls.length');
-      assert.deepStrictEqual(binding.calls[0], ['observeProperty', LF.none, (hs ?? scope).parentScope.overrideContext, 'arg'], 'binding.calls[0]');
+      assert.deepStrictEqual(binding.calls[0], ['observeProperty', (hs ?? scope).parentScope.overrideContext, 'arg'], 'binding.calls[0]');
     });
   }
 });

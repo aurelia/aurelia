@@ -170,11 +170,11 @@ describe(`If/Else`, function () {
 
         // -- Round 1 --
 
-        const ctx = BindingContext.create(baseFlags, {
+        const ctx = BindingContext.create({
           [ifPropName]: ifText,
           [elsePropName]: elseText
         });
-        const scope = Scope.create(baseFlags, ctx);
+        const scope = Scope.create(ctx);
 
         sut.value = value1;
 

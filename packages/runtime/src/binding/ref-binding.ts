@@ -66,7 +66,7 @@ export class RefBinding implements IBinding {
     this.isBound = false;
   }
 
-  public observeProperty(flags: LifecycleFlags, obj: IIndexable, propertyName: string): void {
+  public observeProperty(obj: IIndexable, propertyName: string): void {
     return;
   }
 

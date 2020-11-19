@@ -42,8 +42,8 @@ export class MockBinding implements IConnectableBinding {
     this.trace('handleChange', newValue, _previousValue, flags);
   }
 
-  public observeProperty(flags: LifecycleFlags, obj: IIndexable, propertyName: string): void {
-    this.trace('observeProperty', flags, obj, propertyName);
+  public observeProperty(obj: IIndexable, propertyName: string): void {
+    this.trace('observeProperty', obj, propertyName);
   }
 
   public unobserve(all?: boolean): void {

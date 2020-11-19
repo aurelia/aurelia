@@ -55,7 +55,7 @@ function watcherImplDecorator(klass: Constructable<IWatcher>) {
 }
 
 function observe(this: IWatcherImpl, obj: object, key: PropertyKey): void {
-  const observer = this.observerLocator.getObserver(LifecycleFlags.none, obj, key as string) as IBindingTargetObserver;
+  const observer = this.observerLocator.getObserver(obj, key as string) as IBindingTargetObserver;
   this.addObserver(observer);
 }
 
@@ -83,11 +83,11 @@ function unobserveCollection(this: IWatcherImpl, all?: boolean): void {
 function getCollectionObserver(observerLocator: IObserverLocator, collection: Collection): ICollectionObserver<CollectionKind> {
   let observer: ICollectionObserver<CollectionKind>;
   if (collection instanceof Array) {
-    observer = observerLocator.getArrayObserver(LifecycleFlags.none, collection);
+    observer = observerLocator.getArrayObserver(collection);
   } else if (collection instanceof Set) {
-    observer = observerLocator.getSetObserver(LifecycleFlags.none, collection);
+    observer = observerLocator.getSetObserver(collection);
   } else if (collection instanceof Map) {
-    observer = observerLocator.getMapObserver(LifecycleFlags.none, collection);
+    observer = observerLocator.getMapObserver(collection);
   } else {
     throw new Error('Unrecognised collection type.');
   }

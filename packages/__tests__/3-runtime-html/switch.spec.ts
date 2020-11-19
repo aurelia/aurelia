@@ -1487,7 +1487,7 @@ describe('switch', function () {
           );
 
           const arr = [Status.received, Status.delivered];
-          const observer = ctx.container.get(IObserverLocator).getArrayObserver(LifecycleFlags.none, arr);
+          const observer = ctx.container.get(IObserverLocator).getArrayObserver(arr);
           const addSpy = createSpy(observer, "addCollectionSubscriber", true);
           const removeSpy = createSpy(observer, "removeCollectionSubscriber", true);
 
@@ -1509,7 +1509,7 @@ describe('switch', function () {
           );
 
           const arr2 = [Status.received, Status.dispatched];
-          const observer2 = ctx.container.get(IObserverLocator).getArrayObserver(LifecycleFlags.none, arr2);
+          const observer2 = ctx.container.get(IObserverLocator).getArrayObserver(arr2);
           const addSpy2 = createSpy(observer2, "addCollectionSubscriber", true);
           const removeSpy2 = createSpy(observer2, "removeCollectionSubscriber", true);
 

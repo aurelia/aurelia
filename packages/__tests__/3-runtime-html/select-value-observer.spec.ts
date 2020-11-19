@@ -12,7 +12,7 @@ describe('SelectValueObserver', function () {
     const optionElements = options.map(o => `<option value="${o}">${o}</option>`).join('\n');
     const markup = `<select ${multiple ? 'multiple' : ''}>\n${optionElements}\n</select>`;
     const el = ctx.createElementFromMarkup(markup) as HTMLSelectElement;
-    const sut = observerLocator.getObserver(LF.none, el, 'value') as SelectValueObserver;
+    const sut = observerLocator.getObserver(el, 'value') as SelectValueObserver;
     sut.setValue(initialValue, LF.fromBind);
 
     return { ctx, lifecycle, el, sut, platform };
@@ -256,7 +256,7 @@ describe('SelectValueObserver', function () {
         const { observerLocator } = ctx;
 
         const el = select(...optionFactories.map(create => create(ctx)))(ctx);
-        const sut = observerLocator.getObserver(LF.none, el, 'value') as SelectValueObserver;
+        const sut = observerLocator.getObserver(el, 'value') as SelectValueObserver;
 
         sut.oldValue = sut.currentValue = initialValue;
         return { ctx, el, sut };

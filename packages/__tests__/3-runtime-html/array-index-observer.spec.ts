@@ -218,7 +218,7 @@ describe('3-runtime-html/array-index-observer.spec.ts', function () {
   it('observer array index correctly', function () {
     const { observerLocator, tearDown } = createFixture();
     const arr = [1, 2, 3];
-    const indexZeroObserver = observerLocator.getObserver(LifecycleFlags.none, arr, '0') as ArrayIndexObserver;
+    const indexZeroObserver = observerLocator.getObserver(arr, '0') as ArrayIndexObserver;
 
     let callcount = 0;
     const indexZeroSubscriber: ISubscriber = {
@@ -249,8 +249,8 @@ describe('3-runtime-html/array-index-observer.spec.ts', function () {
     const el = ctx.createElementFromMarkup(`<input />`) as IInputElement;
     ctx.doc.body.appendChild(el);
 
-    const sut = ctx.observerLocator.getObserver(LifecycleFlags.none, el, 'value') as ValueAttributeObserver;
-    const observer = ctx.observerLocator.getObserver(LifecycleFlags.none, el, 'value');
+    const sut = ctx.observerLocator.getObserver(el, 'value') as ValueAttributeObserver;
+    const observer = ctx.observerLocator.getObserver(el, 'value');
 
     const tearDown = () => {
       el.remove();

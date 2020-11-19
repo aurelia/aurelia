@@ -1,4 +1,5 @@
 import { emptyArray, kebabCase } from '@aurelia/kernel';
+const customPropertyPrefix = '--';
 export class StyleAttributeAccessor {
     constructor(obj) {
         this.obj = obj;
@@ -21,15 +22,30 @@ export class StyleAttributeAccessor {
     }
     getStyleTuplesFromString(currentValue) {
         const styleTuples = [];
-        const rx = /\s*([\w-]+)\s*:\s*((?:(?:[\w-]+\(\s*(?:"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[\w-]+\(\s*(?:[^"](?:\\"|[^"])*"|'(?:\\'|[^'])*'|[^)]*)\),?|[^)]*)\),?|"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[^;]*),?\s*)+);?/g;
-        let pair;
-        let name;
-        while ((pair = rx.exec(currentValue)) !== null) {
-            name = pair[1];
-            if (name.length === 0) {
+        const urlRegexTester = /url\([^)]+$/;
+        let offset = 0;
+        let currentChunk = '';
+        let nextSplit;
+        let indexOfColon;
+        let attribute;
+        let value;
+        while (offset < currentValue.length) {
+            nextSplit = currentValue.indexOf(';', offset);
+            if (nextSplit === -1) {
+                nextSplit = currentValue.length;
+            }
+            currentChunk += currentValue.substring(offset, nextSplit);
+            offset = nextSplit + 1;
+            // Make sure we never split a url so advance to next
+            if (urlRegexTester.test(currentChunk)) {
+                currentChunk += ';';
                 continue;
             }
-            styleTuples.push([name, pair[2]]);
+            indexOfColon = currentChunk.indexOf(':');
+            attribute = currentChunk.substring(0, indexOfColon).trim();
+            value = currentChunk.substring(indexOfColon + 1).trim();
+            styleTuples.push([attribute, value]);
+            currentChunk = '';
         }
         return styleTuples;
     }
@@ -42,6 +58,11 @@ export class StyleAttributeAccessor {
                 continue;
             }
             if (typeof value === 'string') {
+                // Custom properties should not be tampered with
+                if (property.startsWith(customPropertyPrefix)) {
+                    styles.push([property, value]);
+                    continue;
+                }
                 styles.push([kebabCase(property), value]);
                 continue;
             }

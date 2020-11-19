@@ -470,8 +470,8 @@ export function createObserverLocator(containerOrLifecycle?: IContainer | ILifec
 
 export function createScopeForTest(bindingContext: any = {}, parentBindingContext?: any, isComponentBoundary?: boolean): Scope {
   return parentBindingContext
-    ? Scope.fromParent(LF.none, Scope.create(LF.none, parentBindingContext), bindingContext)
-    : Scope.create(LF.none, bindingContext, OverrideContext.create(LF.none, bindingContext), isComponentBoundary);
+    ? Scope.fromParent(Scope.create(parentBindingContext), bindingContext)
+    : Scope.create(bindingContext, OverrideContext.create(bindingContext), isComponentBoundary);
 }
 
 // export type CustomAttribute = Writable<IViewModel> & IComponentLifecycleMock;

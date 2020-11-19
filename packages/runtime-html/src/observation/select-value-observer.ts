@@ -251,7 +251,7 @@ export class SelectValueObserver implements IObserver {
       this.arrayObserver = void 0;
     }
     if (array != null) {
-      (this.arrayObserver = this.observerLocator.getArrayObserver(LF.none, array)).subscribeToCollection(this);
+      (this.arrayObserver = this.observerLocator.getArrayObserver(array)).subscribeToCollection(this);
     }
   }
 

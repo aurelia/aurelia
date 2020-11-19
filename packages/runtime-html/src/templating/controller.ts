@@ -272,7 +272,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     let definition = this.definition as CustomElementDefinition;
     const flags = this.flags;
     const instance = this.viewModel as BindingContext<C>;
-    this.scope = Scope.create(flags, instance, null, true);
+    this.scope = Scope.create(instance, null, true);
 
     if (definition.watches.length > 0) {
       createWatchers(this, this.container, definition, instance);

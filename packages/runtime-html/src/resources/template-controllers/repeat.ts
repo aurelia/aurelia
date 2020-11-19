@@ -208,7 +208,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray> implements IC
     this.forOf.iterate(flags, items, (arr, i, item) => {
       view = views[i] = factory.create(flags).setLocation(location);
       view.nodes!.unlink();
-      viewScope = Scope.fromParent(flags, parentScope, BindingContext.create(flags, local, item));
+      viewScope = Scope.fromParent(parentScope, BindingContext.create(local, item));
 
       setContextualProperties(viewScope.overrideContext as IRepeatOverrideContext, i, newLen);
 
@@ -332,7 +332,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray> implements IC
       view.nodes!.link(next?.nodes ?? location);
 
       if (indexMap[i] === -2) {
-        viewScope = Scope.fromParent(flags, parentScope, BindingContext.create(flags, local, normalizedItems![i]));
+        viewScope = Scope.fromParent(parentScope, BindingContext.create(local, normalizedItems![i]));
         setContextualProperties(viewScope.overrideContext as IRepeatOverrideContext, i, newLen);
         view.setLocation(location);
 

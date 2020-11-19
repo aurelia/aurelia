@@ -37,7 +37,7 @@ export class UpdateTriggerBindingBehavior {
     }
 
     // ensure the binding's target observer has been set.
-    const targetObserver = this.observerLocator.getObserver(flags, binding.target, binding.targetProperty) as UpdateTriggerableObserver;
+    const targetObserver = this.observerLocator.getObserver(binding.target, binding.targetProperty) as UpdateTriggerableObserver;
     if (!targetObserver.handler) {
       throw new Error('The updateTrigger binding behavior can only be applied to two-way/ from-view bindings on input/select elements.');
     }

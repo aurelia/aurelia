@@ -1,14 +1,8 @@
 import { IIndexable, IServiceLocator, ITask, QueueTaskOptions, TaskQueue} from '@aurelia/kernel';
 import {
-  IBindingTargetAccessor,
   AccessorType,
-  IObservedArray,
-  ICollectionSubscriber,
-  IndexMap,
-  ICollectionObserver,
   CollectionKind,
   BindingMode,
-  IBinding,
   LifecycleFlags,
 } from '../observation.js';
 import { IObserverLocator } from '../observation/observer-locator.js';
@@ -18,6 +12,14 @@ import {
   IConnectableBinding,
 } from './connectable.js';
 
+import type {
+  IBindingTargetAccessor,
+  IObservedArray,
+  ICollectionSubscriber,
+  IndexMap,
+  ICollectionObserver,
+  IBinding,
+} from '../observation.js';
 import type { Scope } from '../observation/binding-context.js';
 
 const { toView } = BindingMode;
@@ -52,7 +54,7 @@ export class InterpolationBinding implements IBinding {
     public locator: IServiceLocator,
     private readonly taskQueue: TaskQueue,
   ) {
-    this.targetObserver = observerLocator.getAccessor(LifecycleFlags.none, target, targetProperty);
+    this.targetObserver = observerLocator.getAccessor(target, targetProperty);
     const expressions = interpolation.expressions;
     const partBindings = this.partBindings = Array(expressions.length);
     for (let i = 0, ii = expressions.length; i < ii; ++i) {
@@ -185,7 +187,7 @@ export class ContentBinding implements ContentBinding, ICollectionSubscriber {
       this.value = newValue;
       this.unobserveArray();
       if (newValue instanceof Array) {
-        this.observeArray(flags, newValue);
+        this.observeArray(newValue);
       }
       this.owner.updateTarget(newValue, flags);
     }
@@ -219,7 +221,7 @@ export class ContentBinding implements ContentBinding, ICollectionSubscriber {
       (this.mode & toView) > 0 ?  this.interceptor : null,
     );
     if (v instanceof Array) {
-      this.observeArray(flags, v);
+      this.observeArray(v);
     }
   }
 
@@ -239,8 +241,8 @@ export class ContentBinding implements ContentBinding, ICollectionSubscriber {
     this.unobserveArray();
   }
 
-  private observeArray(flags: LifecycleFlags, arr: IObservedArray): void {
-    const newObserver = this.arrayObserver = this.observerLocator.getArrayObserver(flags, arr);
+  private observeArray(arr: IObservedArray): void {
+    const newObserver = this.arrayObserver = this.observerLocator.getArrayObserver(arr);
     newObserver.addCollectionSubscriber(this.interceptor);
   }
 

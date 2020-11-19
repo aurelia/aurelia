@@ -1,13 +1,16 @@
 import {
   LifecycleFlags as LF,
+  SubscriberFlags as SF,
+} from '../observation.js';
+import { ensureProto } from '../utilities-objects.js';
+
+import type {
   ICollectionSubscriber,
   ICollectionSubscriberCollection,
   IndexMap,
   ISubscriber,
   ISubscriberCollection,
-  SubscriberFlags as SF
 } from '../observation.js';
-import { ensureProto } from '../utilities-objects.js';
 
 export function subscriberCollection(): ClassDecorator {
   // eslint-disable-next-line @typescript-eslint/ban-types

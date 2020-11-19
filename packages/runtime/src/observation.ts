@@ -126,7 +126,7 @@ export const enum LifecycleFlags {
 
 export interface IConnectable {
   readonly locator: IServiceLocator;
-  observeProperty(flags: LifecycleFlags, obj: object, propertyName: string): void;
+  observeProperty(obj: object, propertyName: string): void;
 }
 
 /** @internal */

@@ -2,7 +2,7 @@
 /* eslint-disable no-fallthrough */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { ILogger, onResolve } from '@aurelia/kernel';
-import { IHydratedController, IHydratedParentController, LifecycleFlags, ICompiledCustomElementController, ICustomElementController, Controller } from '@aurelia/runtime-html';
+import { IHydratedController, IHydratedParentController, LifecycleFlags, ICustomElementController, Controller } from '@aurelia/runtime-html';
 
 import { IViewport } from './resources/viewport';
 import { ComponentAgent } from './component-agent';
@@ -61,7 +61,7 @@ export class ViewportAgent {
 
   public constructor(
     public readonly viewport: IViewport,
-    public readonly hostController: ICompiledCustomElementController,
+    public readonly hostController: ICustomElementController,
     public readonly ctx: IRouteContext,
   ) {
     this.logger = ctx.get(ILogger).scopeTo(`ViewportAgent<${ctx.friendlyPath}>`);
@@ -136,7 +136,7 @@ export class ViewportAgent {
           throw new Error(`Unexpected viewport deactivation outside of a transition context at ${this}`);
         }
         this.logger.trace(`deactivateFromViewport() - running ordinary deactivate at %s`, this);
-        return this.deactivate(this.currTransition);
+        return this.deactivate(initiator, this.currTransition);
     }
   }
 
@@ -229,12 +229,8 @@ export class ViewportAgent {
               case 'invoke-lifecycles':
                 return this.curCA!.canLoad(tr, this.nextNode!);
               case 'replace':
-                return (
-                  this.nextCA = this.nextNode!.context.createComponentAgent(
-                    this.hostController as ICustomElementController,
-                    this.nextNode!
-                  )
-                ).canLoad(tr, this.nextNode!);
+                this.nextCA = this.nextNode!.context.createComponentAgent(this.hostController, this.nextNode!);
+                return this.nextCA.canLoad(tr, this.nextNode!);
             }
           case State.nextIsEmpty:
             this.logger.trace(`canLoad() - nothing to load at %s`, this);
@@ -372,40 +368,33 @@ export class ViewportAgent {
     );
   }
 
-  public deactivate(tr: Transition): void | Promise<void> {
+  public deactivate(initiator: IHydratedController | null, tr: Transition): void | Promise<void> {
     ensureTransitionHasNotErrored(tr);
     ensureGuardsResultIsTrue(this, tr);
 
-    // run deactivate bottom-up
-    return runSequence(
-      () => {
-        return resolveAll(this.currNode!.children.map(node => {
-          return node.context.vpa.deactivate(tr);
-        }));
-      },
-      () => {
-        switch (this.currState) {
-          case State.currUnloadDone:
-            this.logger.trace(`deactivate() - invoking on existing component at %s`, this);
-            this.currState = State.currDeactivate;
-            switch (this.$plan) {
-              case 'none':
-              case 'invoke-lifecycles':
-                return;
-              case 'replace': {
-                const controller = this.hostController as ICustomElementController;
-                const deactivateFlags = this.viewport.stateful ? LifecycleFlags.none : LifecycleFlags.dispose;
-                return this.curCA!.deactivate(null, controller, deactivateFlags);
-              }
-            }
-          case State.currIsEmpty:
-            this.logger.trace(`deactivate() - nothing to deactivate at %s`, this);
+    switch (this.currState) {
+      case State.currUnloadDone:
+        this.logger.trace(`deactivate() - invoking on existing component at %s`, this);
+        this.currState = State.currDeactivate;
+        switch (this.$plan) {
+          case 'none':
+          case 'invoke-lifecycles':
             return;
-          default:
-            this.unexpectedState('deactivate');
+          case 'replace': {
+            const controller = this.hostController;
+            const deactivateFlags = this.viewport.stateful ? LifecycleFlags.none : LifecycleFlags.dispose;
+            return this.curCA!.deactivate(initiator, controller, deactivateFlags);
+          }
         }
-      },
-    );
+      case State.currIsEmpty:
+        this.logger.trace(`deactivate() - nothing to deactivate at %s`, this);
+        return;
+      case State.currDeactivate:
+        this.logger.trace(`deactivate() - already deactivating at %s`, this);
+        return;
+      default:
+        this.unexpectedState('deactivate');
+    }
   }
 
   public activate(tr: Transition): void | Promise<void> {
@@ -421,6 +410,7 @@ export class ViewportAgent {
       return runSequence(
         () => { return this.canLoad(tr); },
         () => { return this.load(tr); },
+        // The next call will result in the code down below to be executed, because this.nextState is updated by canLoad+load
         () => { return this.activate(tr); },
       );
     }
@@ -460,71 +450,62 @@ export class ViewportAgent {
     }
     if (this.nextState === State.nextIsEmpty) {
       this.logger.trace(`swap() - running deactivate on current instead, because there is nothing to activate at %s`, this);
-      return this.deactivate(tr);
+      return this.deactivate(null, tr);
     }
 
     ensureTransitionHasNotErrored(tr);
     ensureGuardsResultIsTrue(this, tr);
 
-    if (
+    if (!(
       this.currState === State.currUnloadDone &&
       this.nextState === State.nextLoadDone
-    ) {
-      this.currState = State.currDeactivate;
-      this.nextState = State.nextActivate;
-
-      return runSequence(
-        () => {
-          switch (this.$plan) {
-            case 'none':
-            case 'invoke-lifecycles': {
-              this.logger.trace(`swap() - skipping this level and swapping children instead at %s`, this);
-              // No swapping at this level due to the lifecycle strategy, so grab all child nodes similar to
-              // how the router does at the top-level (in `dequeue`'s `runSequence`) and try to initiate a proper swap on all the children in parallel
-              const nodes = mergeDistinct(this.nextNode!.children, this.currNode!.children);
-              return resolveAll(nodes.map(x => { return x.context.vpa.swap(tr); }));
-            }
-            case 'replace': {
-              return runSequence(
-                () => {
-                  return resolveAll(this.currNode!.children.map(node => {
-                    return node.context.vpa.deactivate(tr);
-                  }));
-                },
-                () => {
-                  this.logger.trace(`swap() - running normally at %s`, this);
-                  const controller = this.hostController as ICustomElementController;
-                  const curCA = this.curCA!;
-                  const nextCA = this.nextCA!;
-                  const deactivateFlags = this.viewport.stateful ? LifecycleFlags.none : LifecycleFlags.dispose;
-                  const activateFlags = LifecycleFlags.none;
-                  switch (tr.options.swapStrategy) {
-                    case 'sequential-add-first':
-                      return runSequence(
-                        () => { return nextCA.activate(null, controller, activateFlags); },
-                        () => { return curCA.deactivate(null, controller, deactivateFlags); },
-                      );
-                    case 'sequential-remove-first':
-                      return runSequence(
-                        () => { return curCA.deactivate(null, controller, deactivateFlags); },
-                        () => { return nextCA.activate(null, controller, activateFlags); },
-                      );
-                    case 'parallel-remove-first':
-                      return resolveAll([
-                        curCA.deactivate(null, controller, deactivateFlags),
-                        nextCA.activate(null, controller, activateFlags),
-                      ]);
-                  }
-                },
-              );
-            }
-          }
-        },
-        () => { return this.processResidue(tr); },
-      );
+    )) {
+      this.unexpectedState('swap');
     }
 
-    this.unexpectedState('swap');
+    this.currState = State.currDeactivate;
+    this.nextState = State.nextActivate;
+
+    switch (this.$plan) {
+      case 'none':
+      case 'invoke-lifecycles': {
+        this.logger.trace(`swap() - skipping this level and swapping children instead at %s`, this);
+        // No swapping at this level due to the lifecycle strategy, so grab all child nodes similar to
+        // how the router does at the top-level (in `dequeue`'s `runSequence`) and try to initiate a proper swap on all the children in parallel
+        const nodes = mergeDistinct(this.nextNode!.children, this.currNode!.children);
+        return resolveAll(nodes.map(x => { return x.context.vpa.swap(tr); }));
+      }
+      case 'replace': {
+        this.logger.trace(`swap() - running normally at %s`, this);
+        const controller = this.hostController;
+        const curCA = this.curCA!;
+        const nextCA = this.nextCA!;
+        const deactivateFlags = this.viewport.stateful ? LifecycleFlags.none : LifecycleFlags.dispose;
+        const activateFlags = LifecycleFlags.none;
+        switch (tr.options.swapStrategy) {
+          case 'sequential-add-first':
+            return runSequence(
+              () => { return nextCA.activate(null, controller, activateFlags); },
+              () => { return this.processResidue(tr); },
+              () => { return curCA.deactivate(null, controller, deactivateFlags); },
+            );
+          case 'sequential-remove-first':
+            return runSequence(
+              () => { return curCA.deactivate(null, controller, deactivateFlags); },
+              () => { return nextCA.activate(null, controller, activateFlags); },
+              () => { return this.processResidue(tr); },
+            );
+          case 'parallel-remove-first':
+            return resolveAll([
+              curCA.deactivate(null, controller, deactivateFlags),
+              runSequence(
+                () => { return nextCA.activate(null, controller, activateFlags); },
+                () => { return this.processResidue(tr); },
+              ),
+            ]);
+        }
+      }
+    }
   }
 
   private processResidue(tr: Transition): void | Promise<void> {

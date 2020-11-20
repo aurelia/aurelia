@@ -298,6 +298,75 @@ describe('simple Computed Observer test case', function () {
         assert.instanceOf(namePropValueObserver, ComputedObserver);
       },
     },
+    ...[
+      () => new ArrayBuffer(0),
+      () => new Boolean(),
+      () => new DataView(new ArrayBuffer(0)),
+      () => new Date(),
+      () => new Error(),
+      () => new EvalError(),
+      () => new Float32Array(),
+      () => new Float64Array(),
+      () => new Function(),
+      () => new Int8Array(),
+      () => new Int16Array(),
+      () => new Int32Array(),
+      () => new Number(),
+      () => new Promise(r => r()),
+      () => new RangeError(),
+      () => new ReferenceError(),
+      () => new RegExp('a'),
+      // ideally, properties on Map & Set that are not special (methods & 'size')
+      // should be treated as normal properties, and should be observable by getter/setter
+      // though probably it's good to start with not observing unless there's a need for it
+      // example: Map/Set subclasses that have special properties.
+      // todo: add connectable.observe(target, key) in proxy-observation.ts
+      () => new Map(),
+      () => new Set(),
+      () => new SharedArrayBuffer(0),
+      () => new String(),
+      () => new SyntaxError(),
+      () => new TypeError(),
+      () => new Uint8Array(),
+      () => new Uint8ClampedArray(),
+      () => new Uint16Array(),
+      () => new Uint32Array(),
+      () => new URIError(),
+      () => new WeakMap(),
+      () => new WeakSet(),
+      () => Math,
+      () => JSON,
+      () => Reflect,
+      () => Atomics,
+    ].map((createInstrinsic) => {
+      return <IComputedObserverTestCase>{
+        only: true,
+        title: `does not observe ${Object.prototype.toString.call(createInstrinsic)}`,
+        template: `<div>\${someProp || 'no value'}</div>`,
+        ViewModel: class App {
+          public items: IAppItem[] = [];
+          public total: number = 0;
+          public instrinsic: any = createInstrinsic();
+
+          public get someProp() {
+            return this.instrinsic.someProp;
+          }
+        },
+        assertFn: (ctx, host, component: IApp & { instrinsic: any; someProp: any }) => {
+          assert.strictEqual(host.textContent, 'no value');
+
+          component.instrinsic.someProp = 'value';
+          assert.strictEqual(host.textContent, 'no value');
+          ctx.platform.domWriteQueue.flush();
+          assert.strictEqual(host.textContent, 'no value');
+
+          component.instrinsic = { someProp: 'has value' };
+          assert.strictEqual(host.textContent, 'no value');
+          ctx.platform.domWriteQueue.flush();
+          assert.strictEqual(host.textContent, 'has value');
+        },
+      }
+    })
   ];
 
   eachCartesianJoin(

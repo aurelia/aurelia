@@ -298,6 +298,7 @@ describe('simple Computed Observer test case', function () {
         assert.instanceOf(namePropValueObserver, ComputedObserver);
       },
     },
+    /* eslint-disable */
     ...[
       () => new ArrayBuffer(0),
       () => new Boolean(),
@@ -307,7 +308,7 @@ describe('simple Computed Observer test case', function () {
       () => new EvalError(),
       () => new Float32Array(),
       () => new Float64Array(),
-      () => new Function(),
+      () => new Function(''),
       () => new Int8Array(),
       () => new Int16Array(),
       () => new Int32Array(),
@@ -338,10 +339,15 @@ describe('simple Computed Observer test case', function () {
       () => JSON,
       () => Reflect,
       () => Atomics,
-    ].map((createInstrinsic) => {
+    ].filter(createInstrinsic => {
+      try {
+        return !!createInstrinsic();
+      } catch {
+        return false;
+      }
+    }).map((createInstrinsic) => {
       return <IComputedObserverTestCase>{
-        only: true,
-        title: `does not observe ${Object.prototype.toString.call(createInstrinsic)}`,
+        title: `does not observe ${Object.prototype.toString.call(createInstrinsic())}`,
         template: `<div>\${someProp || 'no value'}</div>`,
         ViewModel: class App {
           public items: IAppItem[] = [];
@@ -366,7 +372,8 @@ describe('simple Computed Observer test case', function () {
           assert.strictEqual(host.textContent, 'has value');
         },
       }
-    })
+    }),
+    /* eslint-enable */
   ];
 
   eachCartesianJoin(

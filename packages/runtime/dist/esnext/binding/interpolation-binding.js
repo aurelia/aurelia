@@ -30,7 +30,7 @@ export class InterpolationBinding {
         this.isBound = false;
         this.$scope = void 0;
         this.task = null;
-        this.targetObserver = observerLocator.getAccessor(0 /* none */, target, targetProperty);
+        this.targetObserver = observerLocator.getAccessor(target, targetProperty);
         const expressions = interpolation.expressions;
         const partBindings = this.partBindings = Array(expressions.length);
         for (let i = 0, ii = expressions.length; i < ii; ++i) {
@@ -139,7 +139,7 @@ let ContentBinding = class ContentBinding {
             this.value = newValue;
             this.unobserveArray();
             if (newValue instanceof Array) {
-                this.observeArray(flags, newValue);
+                this.observeArray(newValue);
             }
             this.owner.updateTarget(newValue, flags);
         }
@@ -162,7 +162,7 @@ let ContentBinding = class ContentBinding {
         }
         const v = this.value = this.sourceExpression.evaluate(flags, scope, hostScope, this.locator, (this.mode & toView) > 0 ? this.interceptor : null);
         if (v instanceof Array) {
-            this.observeArray(flags, v);
+            this.observeArray(v);
         }
     }
     $unbind(flags) {
@@ -178,8 +178,8 @@ let ContentBinding = class ContentBinding {
         this.interceptor.unobserve(true);
         this.unobserveArray();
     }
-    observeArray(flags, arr) {
-        const newObserver = this.arrayObserver = this.observerLocator.getArrayObserver(flags, arr);
+    observeArray(arr) {
+        const newObserver = this.arrayObserver = this.observerLocator.getArrayObserver(arr);
         newObserver.addCollectionSubscriber(this.interceptor);
     }
     unobserveArray() {

@@ -19,7 +19,7 @@
             this.interceptor = this;
             this.isBound = false;
             this.$hostScope = null;
-            this.targetObserver = observerLocator.getObserver(0 /* none */, target, targetProperty);
+            this.targetObserver = observerLocator.getObserver(target, targetProperty);
         }
         callSource(args) {
             const overrideContext = this.$scope.overrideContext;
@@ -57,7 +57,7 @@
             this.targetObserver.setValue(null, flags, this.target, this.targetProperty);
             this.isBound = false;
         }
-        observeProperty(flags, obj, propertyName) {
+        observeProperty(obj, propertyName) {
             return;
         }
         handleChange(newValue, previousValue, flags) {

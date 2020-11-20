@@ -47,7 +47,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
         activateView(initiator, flags) {
             const { $controller, value } = this;
-            const scope = runtime_1.Scope.fromParent(flags, $controller.scope, value === void 0 ? {} : value);
+            const scope = runtime_1.Scope.fromParent($controller.scope, value === void 0 ? {} : value);
             return this.view.activate(initiator, $controller, flags, scope, $controller.hostScope);
         }
         dispose() {

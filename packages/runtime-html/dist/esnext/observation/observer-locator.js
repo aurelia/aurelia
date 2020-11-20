@@ -256,13 +256,13 @@ NodeObserverLocator = __decorate([
 export { NodeObserverLocator };
 export function getCollectionObserver(collection, observerLocator) {
     if (collection instanceof Array) {
-        return observerLocator.getArrayObserver(0 /* none */, collection);
+        return observerLocator.getArrayObserver(collection);
     }
     if (collection instanceof Map) {
-        return observerLocator.getMapObserver(0 /* none */, collection);
+        return observerLocator.getMapObserver(collection);
     }
     if (collection instanceof Set) {
-        return observerLocator.getSetObserver(0 /* none */, collection);
+        return observerLocator.getSetObserver(collection);
     }
 }
 function throwMappingExisted(nodeName, key) {

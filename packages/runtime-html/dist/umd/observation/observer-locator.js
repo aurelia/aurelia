@@ -269,13 +269,13 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     exports.NodeObserverLocator = NodeObserverLocator;
     function getCollectionObserver(collection, observerLocator) {
         if (collection instanceof Array) {
-            return observerLocator.getArrayObserver(0 /* none */, collection);
+            return observerLocator.getArrayObserver(collection);
         }
         if (collection instanceof Map) {
-            return observerLocator.getMapObserver(0 /* none */, collection);
+            return observerLocator.getMapObserver(collection);
         }
         if (collection instanceof Set) {
-            return observerLocator.getSetObserver(0 /* none */, collection);
+            return observerLocator.getSetObserver(collection);
         }
     }
     exports.getCollectionObserver = getCollectionObserver;

@@ -9,7 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.exitWatcher = exports.enterWatcher = exports.currentWatcher = exports.resumeSubscription = exports.pauseSubscription = exports.watching = void 0;
+    exports.WatcherSwitcher = exports.exitWatcher = exports.enterWatcher = exports.currentWatcher = exports.resumeWatching = exports.pauseWatching = exports.watching = void 0;
     /**
      * Current subscription collector
      */
@@ -18,14 +18,14 @@
     // eslint-disable-next-line
     exports.watching = false;
     // todo: layer based collection pause/resume?
-    function pauseSubscription() {
+    function pauseWatching() {
         exports.watching = false;
     }
-    exports.pauseSubscription = pauseSubscription;
-    function resumeSubscription() {
+    exports.pauseWatching = pauseWatching;
+    function resumeWatching() {
         exports.watching = true;
     }
-    exports.resumeSubscription = resumeSubscription;
+    exports.resumeWatching = resumeWatching;
     function currentWatcher() {
         return $watcher;
     }
@@ -60,5 +60,17 @@
         exports.watching = $watcher != null;
     }
     exports.exitWatcher = exitWatcher;
+    exports.WatcherSwitcher = Object.freeze({
+        get current() {
+            return $watcher;
+        },
+        get watching() {
+            return exports.watching;
+        },
+        enter: enterWatcher,
+        exit: exitWatcher,
+        pause: pauseWatching,
+        resume: resumeWatching,
+    });
 });
 //# sourceMappingURL=watcher-switcher.js.map

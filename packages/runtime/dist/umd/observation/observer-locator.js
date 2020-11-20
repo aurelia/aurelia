@@ -59,11 +59,11 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         addAdapter(adapter) {
             this.adapters.push(adapter);
         }
-        getObserver(flags, obj, key) {
+        getObserver(obj, key) {
             var _a, _b;
-            return (_b = (_a = obj.$observers) === null || _a === void 0 ? void 0 : _a[key]) !== null && _b !== void 0 ? _b : this.cache(obj, key, this.createObserver(flags, obj, key));
+            return (_b = (_a = obj.$observers) === null || _a === void 0 ? void 0 : _a[key]) !== null && _b !== void 0 ? _b : this.cache(obj, key, this.createObserver(obj, key));
         }
-        getAccessor(flags, obj, key) {
+        getAccessor(obj, key) {
             var _a;
             const cached = (_a = obj.$observers) === null || _a === void 0 ? void 0 : _a[key];
             if (cached !== void 0) {
@@ -74,16 +74,17 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             }
             return property_accessor_js_1.propertyAccessor;
         }
-        getArrayObserver(flags, observedArray) {
+        getArrayObserver(observedArray) {
             return array_observer_js_1.getArrayObserver(this.lifecycle, observedArray);
         }
-        getMapObserver(flags, observedMap) {
+        getMapObserver(observedMap) {
             return map_observer_js_1.getMapObserver(this.lifecycle, observedMap);
         }
-        getSetObserver(flags, observedSet) {
+        getSetObserver(observedSet) {
             return set_observer_js_1.getSetObserver(this.lifecycle, observedSet);
         }
-        createObserver(flags, obj, key) {
+        createObserver(obj, key) {
+            var _a, _b, _c, _d;
             if (!(obj instanceof Object)) {
                 return new primitive_observer_js_1.PrimitiveObserver(obj, key);
             }
@@ -126,34 +127,24 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             }
             // If the descriptor does not have a 'value' prop, it must have a getter and/or setter
             if (pd !== void 0 && !Object.prototype.hasOwnProperty.call(pd, 'value')) {
-                if (pd.get === void 0) {
-                    // The user could decide to read from a different prop, so don't assume the absense of a setter won't work for custom adapters
-                    const obs = this.getAdapterObserver(flags, obj, key, pd);
-                    if (obs !== null) {
-                        return obs;
-                    }
-                    // None of our built-in stuff can read a setter-only without throwing, so just throw right away
-                    throw new Error(`You cannot observe a setter only property: '${key}'`);
+                let obs = this.getAdapterObserver(obj, key, pd);
+                if (obs == null) {
+                    obs = (_d = ((_b = (_a = pd.get) === null || _a === void 0 ? void 0 : _a.getObserver) !== null && _b !== void 0 ? _b : (_c = pd.set) === null || _c === void 0 ? void 0 : _c.getObserver)) === null || _d === void 0 ? void 0 : _d(obj, this);
                 }
-                // Check custom getter-specific override first
-                if (pd.get.getObserver !== void 0) {
-                    return pd.get.getObserver(obj);
-                }
-                // Then check if any custom adapter handles it (the obj could be any object, including a node )
-                const obs = this.getAdapterObserver(flags, obj, key, pd);
-                if (obs !== null) {
-                    return obs;
-                }
-                return computed_observer_js_1.createComputedObserver(flags, this, this.dirtyChecker, this.lifecycle, obj, key, pd);
+                return obs == null
+                    ? pd.configurable
+                        ? computed_observer_js_1.ComputedObserver.create(obj, key, pd, this, /* AOT: not true for IE11 */ true)
+                        : this.dirtyChecker.createProperty(obj, key)
+                    : obs;
             }
             // Ordinary get/set observation (the common use case)
             // TODO: think about how to handle a data property that does not sit on the instance (should we do anything different?)
             return new setter_observer_js_1.SetterObserver(obj, key);
         }
-        getAdapterObserver(flags, obj, propertyName, pd) {
+        getAdapterObserver(obj, propertyName, pd) {
             if (this.adapters.length > 0) {
                 for (const adapter of this.adapters) {
-                    const observer = adapter.getObserver(flags, obj, propertyName, pd);
+                    const observer = adapter.getObserver(obj, propertyName, pd, this);
                     if (observer != null) {
                         return observer;
                     }

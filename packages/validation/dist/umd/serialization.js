@@ -245,7 +245,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                     const parsed = this.parser.parse(when, 0 /* None */);
                     rule.canExecute = (object) => {
                         const flags = 0 /* none */; // TODO? need to get the flags propagated here?
-                        return parsed.evaluate(flags, runtime_1.Scope.create(flags, { $object: object }), null, this.locator, null); // TODO get hostScope?
+                        return parsed.evaluate(flags, runtime_1.Scope.create({ $object: object }), null, this.locator, null); // TODO get hostScope?
                     };
                 }
                 else if (typeof when === 'function') {

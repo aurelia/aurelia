@@ -411,8 +411,8 @@ export function createObserverLocator(containerOrLifecycle) {
 }
 export function createScopeForTest(bindingContext = {}, parentBindingContext, isComponentBoundary) {
     return parentBindingContext
-        ? Scope.fromParent(0 /* none */, Scope.create(0 /* none */, parentBindingContext), bindingContext)
-        : Scope.create(0 /* none */, bindingContext, OverrideContext.create(0 /* none */, bindingContext), isComponentBoundary);
+        ? Scope.fromParent(Scope.create(parentBindingContext), bindingContext)
+        : Scope.create(bindingContext, OverrideContext.create(bindingContext), isComponentBoundary);
 }
 // export type CustomAttribute = Writable<IViewModel> & IComponentLifecycleMock;
 // export function createCustomAttribute(nameOrDef: string | PartialCustomAttributeDefinition = 'foo') {

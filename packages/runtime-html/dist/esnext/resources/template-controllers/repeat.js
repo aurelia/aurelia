@@ -153,7 +153,7 @@ let Repeat = class Repeat {
         this.forOf.iterate(flags, items, (arr, i, item) => {
             view = views[i] = factory.create(flags).setLocation(location);
             view.nodes.unlink();
-            viewScope = Scope.fromParent(flags, parentScope, BindingContext.create(flags, local, item));
+            viewScope = Scope.fromParent(parentScope, BindingContext.create(local, item));
             setContextualProperties(viewScope.overrideContext, i, newLen);
             ret = view.activate(initiator !== null && initiator !== void 0 ? initiator : view, $controller, flags, viewScope, hostScope);
             if (ret instanceof Promise) {
@@ -247,7 +247,7 @@ let Repeat = class Repeat {
             next = views[i + 1];
             view.nodes.link((_a = next === null || next === void 0 ? void 0 : next.nodes) !== null && _a !== void 0 ? _a : location);
             if (indexMap[i] === -2) {
-                viewScope = Scope.fromParent(flags, parentScope, BindingContext.create(flags, local, normalizedItems[i]));
+                viewScope = Scope.fromParent(parentScope, BindingContext.create(local, normalizedItems[i]));
                 setContextualProperties(viewScope.overrideContext, i, newLen);
                 view.setLocation(location);
                 ret = view.activate(view, $controller, flags, viewScope, hostScope);

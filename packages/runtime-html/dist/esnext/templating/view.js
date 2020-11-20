@@ -154,7 +154,7 @@ export class ViewLocator {
                 }
                 define(controller, parentContainer, definition) {
                     const vm = this.viewModel;
-                    controller.scope = Scope.fromParent(controller.flags, controller.scope, vm);
+                    controller.scope = Scope.fromParent(controller.scope, vm);
                     if (vm.define !== void 0) {
                         return vm.define(controller, parentContainer, definition);
                     }

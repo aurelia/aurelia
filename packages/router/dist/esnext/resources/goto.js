@@ -23,7 +23,7 @@ let GotoCustomAttribute = class GotoCustomAttribute {
         this.element.addEventListener('click', this.router.linkHandler.handler);
         this.updateValue();
         const observerLocator = this.router.container.get(IObserverLocator);
-        this.observer = observerLocator.getObserver(0 /* none */, this.router, 'activeComponents');
+        this.observer = observerLocator.getObserver(this.router, 'activeComponents');
         this.observer.subscribe(this);
     }
     unbinding() {

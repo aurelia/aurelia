@@ -181,7 +181,7 @@ export class Controller {
         let definition = this.definition;
         const flags = this.flags;
         const instance = this.viewModel;
-        this.scope = Scope.create(flags, instance, null, true);
+        this.scope = Scope.create(instance, null, true);
         if (definition.watches.length > 0) {
             createWatchers(this, this.container, definition, instance);
         }
@@ -803,7 +803,6 @@ function createWatchers(controller, context, definition, instance) {
     const observerLocator = context.get(IObserverLocator);
     const expressionParser = context.get(IExpressionParser);
     const watches = definition.watches;
-    const hasProxy = controller.platform.Proxy != null;
     let expression;
     let callback;
     for (let i = 0, ii = watches.length; ii > i; ++i) {
@@ -817,7 +816,8 @@ function createWatchers(controller, context, definition, instance) {
         if (typeof expression === 'function') {
             controller.addBinding(new ComputedWatcher(instance, observerLocator, expression, callback, 
             // there should be a flag to purposely disable proxy
-            hasProxy));
+            // AOT: not true for IE11
+            true));
         }
         else {
             const ast = typeof expression === 'string'

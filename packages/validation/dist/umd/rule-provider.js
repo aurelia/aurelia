@@ -113,7 +113,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                 flags = 0 /* none */;
             }
             if (scope === void 0) {
-                scope = runtime_1.Scope.create(flags, { [exports.rootObjectSymbol]: object });
+                scope = runtime_1.Scope.create({ [exports.rootObjectSymbol]: object });
             }
             const expression = this.property.expression;
             let value;
@@ -134,7 +134,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                     const { displayName, name } = this.property;
                     let message;
                     if (!isValidOrPromise) {
-                        const messageEvaluationScope = runtime_1.Scope.create(flags, new ValidationMessageEvaluationContext(this.messageProvider, this.messageProvider.getDisplayName(name, displayName), name, value, rule, object));
+                        const messageEvaluationScope = runtime_1.Scope.create(new ValidationMessageEvaluationContext(this.messageProvider, this.messageProvider.getDisplayName(name, displayName), name, value, rule, object));
                         message = this.messageProvider.getMessage(rule).evaluate(flags, messageEvaluationScope, null, null, null);
                     }
                     return new ValidationResult(isValidOrPromise, message, name, object, rule, this);

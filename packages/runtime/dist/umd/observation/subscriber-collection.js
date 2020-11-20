@@ -11,7 +11,6 @@
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.collectionSubscriberCollection = exports.subscriberCollection = void 0;
     const utilities_objects_js_1 = require("../utilities-objects.js");
-    // TODO: see if we can de-duplicate these 3 decorators and their functions without killing performance or readability
     function subscriberCollection() {
         // eslint-disable-next-line @typescript-eslint/ban-types
         return function (target) {

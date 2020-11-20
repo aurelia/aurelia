@@ -27,7 +27,7 @@ export declare class Listener implements IBinding {
     handleEvent(event: Event): void;
     $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void;
     $unbind(flags: LifecycleFlags): void;
-    observeProperty(flags: LifecycleFlags, obj: IIndexable, propertyName: string): void;
+    observeProperty(obj: IIndexable, propertyName: string): void;
     handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void;
 }
 //# sourceMappingURL=listener.d.ts.map

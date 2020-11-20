@@ -127,7 +127,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
             let i = 0;
             if (obj.multiple) {
                 // A.
-                if (!Array.isArray(currentValue)) {
+                if (!(currentValue instanceof Array)) {
                     // A.1.a
                     return true;
                 }
@@ -216,7 +216,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
                 this.arrayObserver = void 0;
             }
             if (array != null) {
-                (this.arrayObserver = this.observerLocator.getArrayObserver(0 /* none */, array)).subscribeToCollection(this);
+                (this.arrayObserver = this.observerLocator.getArrayObserver(array)).subscribeToCollection(this);
             }
         }
         handleNodeChange() {

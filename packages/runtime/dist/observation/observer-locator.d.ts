@@ -1,7 +1,8 @@
-import { AccessorOrObserver, CollectionKind, CollectionObserver, IAccessor, IBindingTargetAccessor, IBindingTargetObserver, ICollectionObserver, ILifecycle, IObservedArray, IObservedMap, IObservedSet, IObserver, LifecycleFlags } from '../observation.js';
+import { AccessorOrObserver, CollectionKind, CollectionObserver, ILifecycle } from '../observation.js';
 import { IDirtyChecker } from './dirty-checker.js';
+import type { IAccessor, IBindingTargetAccessor, IBindingTargetObserver, ICollectionObserver, IObservedArray, IObservedMap, IObservedSet, IObserver } from '../observation.js';
 export interface IObjectObservationAdapter {
-    getObserver(flags: LifecycleFlags, object: unknown, propertyName: string, descriptor: PropertyDescriptor): IBindingTargetObserver | null;
+    getObserver(object: unknown, propertyName: string, descriptor: PropertyDescriptor, requestor: IObserverLocator): IBindingTargetObserver | null;
 }
 export interface IObserverLocator extends ObserverLocator {
 }
@@ -12,6 +13,16 @@ export interface INodeObserverLocator {
     getAccessor(obj: object, key: PropertyKey, requestor: IObserverLocator): IAccessor | IObserver;
 }
 export declare const INodeObserverLocator: import("@aurelia/kernel").InterfaceSymbol<INodeObserverLocator>;
+export declare type ExtendedPropertyDescriptor = PropertyDescriptor & {
+    get?: ObservableGetter;
+    set?: ObservableSetter;
+};
+export declare type ObservableGetter = PropertyDescriptor['get'] & {
+    getObserver?(obj: unknown, requestor: IObserverLocator): IObserver;
+};
+export declare type ObservableSetter = PropertyDescriptor['set'] & {
+    getObserver?(obj: unknown, requestor: IObserverLocator): IObserver;
+};
 export declare class ObserverLocator {
     private readonly lifecycle;
     private readonly dirtyChecker;
@@ -19,11 +30,11 @@ export declare class ObserverLocator {
     private readonly adapters;
     constructor(lifecycle: ILifecycle, dirtyChecker: IDirtyChecker, nodeObserverLocator: INodeObserverLocator);
     addAdapter(adapter: IObjectObservationAdapter): void;
-    getObserver(flags: LifecycleFlags, obj: object, key: string): AccessorOrObserver;
-    getAccessor(flags: LifecycleFlags, obj: object, key: string): IBindingTargetAccessor;
-    getArrayObserver(flags: LifecycleFlags, observedArray: IObservedArray): ICollectionObserver<CollectionKind.array>;
-    getMapObserver(flags: LifecycleFlags, observedMap: IObservedMap): ICollectionObserver<CollectionKind.map>;
-    getSetObserver(flags: LifecycleFlags, observedSet: IObservedSet): ICollectionObserver<CollectionKind.set>;
+    getObserver(obj: object, key: string): AccessorOrObserver;
+    getAccessor(obj: object, key: string): IBindingTargetAccessor;
+    getArrayObserver(observedArray: IObservedArray): ICollectionObserver<CollectionKind.array>;
+    getMapObserver(observedMap: IObservedMap): ICollectionObserver<CollectionKind.map>;
+    getSetObserver(observedSet: IObservedSet): ICollectionObserver<CollectionKind.set>;
     private createObserver;
     private getAdapterObserver;
     private cache;

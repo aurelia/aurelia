@@ -417,23 +417,20 @@ let ArrayObserver = class ArrayObserver {
         }
     }
     getLengthObserver() {
-        if (this.lengthObserver === void 0) {
-            this.lengthObserver = new CollectionLengthObserver(this.collection);
-        }
-        return this.lengthObserver;
+        var _a;
+        return (_a = this.lengthObserver) !== null && _a !== void 0 ? _a : (this.lengthObserver = new CollectionLengthObserver(this.collection));
     }
     getIndexObserver(index) {
         return this.getOrCreateIndexObserver(index);
     }
     flushBatch(flags) {
+        var _a;
         const indexMap = this.indexMap;
         const length = this.collection.length;
         this.inBatch = false;
         this.indexMap = createIndexMap(length);
         this.callCollectionSubscribers(indexMap, 8 /* updateTarget */);
-        if (this.lengthObserver !== void 0) {
-            this.lengthObserver.setValue(length, 8 /* updateTarget */);
-        }
+        (_a = this.lengthObserver) === null || _a === void 0 ? void 0 : _a.setValue(length, 8 /* updateTarget */);
     }
     /**
      * @internal used by friend class ArrayIndexObserver only
@@ -451,12 +448,9 @@ let ArrayObserver = class ArrayObserver {
      * @internal
      */
     getOrCreateIndexObserver(index) {
-        const indexObservers = this.indexObservers;
-        let observer = indexObservers[index];
-        if (observer === void 0) {
-            observer = indexObservers[index] = new ArrayIndexObserver(this, index);
-        }
-        return observer;
+        var _a;
+        var _b;
+        return (_a = (_b = this.indexObservers)[index]) !== null && _a !== void 0 ? _a : (_b[index] = new ArrayIndexObserver(this, index));
     }
 };
 ArrayObserver = __decorate([

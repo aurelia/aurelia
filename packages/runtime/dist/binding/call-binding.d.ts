@@ -1,9 +1,10 @@
-import { IServiceLocator } from '@aurelia/kernel';
-import { IAccessor, LifecycleFlags } from '../observation.js';
-import { IObserverLocator } from '../observation/observer-locator.js';
-import { IsBindingBehavior } from './ast.js';
-import { IConnectableBinding } from './connectable.js';
+import { LifecycleFlags } from '../observation.js';
+import type { IServiceLocator } from '@aurelia/kernel';
+import type { IObserverLocator } from '../observation/observer-locator.js';
 import type { Scope } from '../observation/binding-context.js';
+import type { IsBindingBehavior } from './ast.js';
+import type { IAccessor } from '../observation.js';
+import type { IConnectableBinding } from './connectable.js';
 export interface CallBinding extends IConnectableBinding {
 }
 export declare class CallBinding {
@@ -20,7 +21,7 @@ export declare class CallBinding {
     callSource(args: object): unknown;
     $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void;
     $unbind(flags: LifecycleFlags): void;
-    observeProperty(flags: LifecycleFlags, obj: object, propertyName: string): void;
+    observeProperty(obj: object, propertyName: string): void;
     handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void;
 }
 //# sourceMappingURL=call-binding.d.ts.map

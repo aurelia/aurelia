@@ -129,8 +129,8 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
         updateAttribute(attribute, value, flags) {
             const controller = runtime_html_1.CustomElement.for(this.target, forOpts);
             const observer = controller && controller.viewModel
-                ? this.observerLocator.getAccessor(0 /* none */, controller.viewModel, attribute)
-                : this.observerLocator.getAccessor(0 /* none */, this.target, attribute);
+                ? this.observerLocator.getAccessor(controller.viewModel, attribute)
+                : this.observerLocator.getAccessor(this.target, attribute);
             observer.setValue(value, flags, this.target, attribute);
             this.targetObservers.add(observer);
         }

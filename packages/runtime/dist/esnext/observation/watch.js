@@ -16,11 +16,14 @@ export function watch(expressionOrPropertyAccessFn, changeHandlerOrCallback) {
         else if (typeof (descriptor === null || descriptor === void 0 ? void 0 : descriptor.value) !== 'function') {
             throw new Error(`decorated target ${String(key)} is not a class method.`);
         }
-        Watch.add(Type, {
-            expression: expressionOrPropertyAccessFn,
-            callback: isClassDecorator ? changeHandlerOrCallback : descriptor.value,
-        });
+        Watch.add(Type, new WatchDefinition(expressionOrPropertyAccessFn, isClassDecorator ? changeHandlerOrCallback : descriptor.value));
     };
+}
+class WatchDefinition {
+    constructor(expression, callback) {
+        this.expression = expression;
+        this.callback = callback;
+    }
 }
 const noDefinitions = emptyArray;
 export const Watch = {

@@ -494,7 +494,7 @@ export class AccessScopeExpression {
     evaluate(f, s, hs, _l, c) {
         const obj = BindingContext.get(chooseScope(this.accessHostScope, s, hs), this.name, this.ancestor, f, hs);
         if (c !== null) {
-            c.observeProperty(f, obj, this.name);
+            c.observeProperty(obj, this.name);
         }
         const evaluatedValue = obj[this.name];
         if (f & 4 /* isStrictBindingStrategy */) {
@@ -538,12 +538,12 @@ export class AccessMemberExpression {
                 return instance;
             }
             if (c !== null) {
-                c.observeProperty(f, instance, this.name);
+                c.observeProperty(instance, this.name);
             }
             return instance[this.name];
         }
         if (c !== null && instance instanceof Object) {
-            c.observeProperty(f, instance, this.name);
+            c.observeProperty(instance, this.name);
         }
         return instance ? instance[this.name] : '';
     }
@@ -582,7 +582,7 @@ export class AccessKeyedExpression {
         if (instance instanceof Object) {
             const key = this.key.evaluate(f, s, hs, l, (f & 2048 /* observeLeafPropertiesOnly */) > 0 ? null : c);
             if (c !== null) {
-                c.observeProperty(f, instance, key);
+                c.observeProperty(instance, key);
             }
             return instance[key];
         }

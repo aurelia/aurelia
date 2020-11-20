@@ -69,7 +69,7 @@ export declare const enum LifecycleFlags {
 }
 export interface IConnectable {
     readonly locator: IServiceLocator;
-    observeProperty(flags: LifecycleFlags, obj: object, propertyName: string): void;
+    observeProperty(obj: object, propertyName: string): void;
 }
 export declare enum DelegationStrategy {
     none = 0,
@@ -114,7 +114,6 @@ export interface ICollectionSubscriberCollection extends ICollectionSubscribable
  * Describes a complete property observer with an accessor, change tracking fields, normal and batched subscribers
  */
 export interface IPropertyObserver<TObj extends object, TProp extends keyof TObj> extends IAccessor<TObj[TProp]>, IPropertyChangeTracker<TObj, TProp>, ISubscriberCollection, IBatchable {
-    type: AccessorType;
     inBatch: boolean;
     observing: boolean;
 }

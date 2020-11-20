@@ -40,7 +40,7 @@ export class RefBinding {
         this.$scope = void 0;
         this.isBound = false;
     }
-    observeProperty(flags, obj, propertyName) {
+    observeProperty(obj, propertyName) {
         return;
     }
     handleChange(newValue, previousValue, flags) {

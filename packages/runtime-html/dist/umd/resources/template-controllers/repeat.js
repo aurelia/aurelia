@@ -165,7 +165,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             this.forOf.iterate(flags, items, (arr, i, item) => {
                 view = views[i] = factory.create(flags).setLocation(location);
                 view.nodes.unlink();
-                viewScope = runtime_1.Scope.fromParent(flags, parentScope, runtime_1.BindingContext.create(flags, local, item));
+                viewScope = runtime_1.Scope.fromParent(parentScope, runtime_1.BindingContext.create(local, item));
                 setContextualProperties(viewScope.overrideContext, i, newLen);
                 ret = view.activate(initiator !== null && initiator !== void 0 ? initiator : view, $controller, flags, viewScope, hostScope);
                 if (ret instanceof Promise) {
@@ -259,7 +259,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                 next = views[i + 1];
                 view.nodes.link((_a = next === null || next === void 0 ? void 0 : next.nodes) !== null && _a !== void 0 ? _a : location);
                 if (indexMap[i] === -2) {
-                    viewScope = runtime_1.Scope.fromParent(flags, parentScope, runtime_1.BindingContext.create(flags, local, normalizedItems[i]));
+                    viewScope = runtime_1.Scope.fromParent(parentScope, runtime_1.BindingContext.create(local, normalizedItems[i]));
                     setContextualProperties(viewScope.overrideContext, i, newLen);
                     view.setLocation(location);
                     ret = view.activate(view, $controller, flags, viewScope, hostScope);

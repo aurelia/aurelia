@@ -89,7 +89,7 @@
             // remove isBound and isUnbinding flags
             this.isBound = false;
         }
-        observeProperty(flags, obj, propertyName) {
+        observeProperty(obj, propertyName) {
             return;
         }
         handleChange(newValue, previousValue, flags) {

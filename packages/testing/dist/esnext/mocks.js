@@ -13,8 +13,8 @@ export class MockBinding {
     handleChange(newValue, _previousValue, flags) {
         this.trace('handleChange', newValue, _previousValue, flags);
     }
-    observeProperty(flags, obj, propertyName) {
-        this.trace('observeProperty', flags, obj, propertyName);
+    observeProperty(obj, propertyName) {
+        this.trace('observeProperty', obj, propertyName);
     }
     unobserve(all) {
         this.trace('unobserve', all);

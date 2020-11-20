@@ -26,7 +26,7 @@ export { SetObserver, enableSetObservation, disableSetObservation } from './obse
 export { BindingContext, Scope, OverrideContext, } from './observation/binding-context.js';
 export { CollectionLengthObserver, } from './observation/collection-length-observer.js';
 export { CollectionSizeObserver, } from './observation/collection-size-observer.js';
-export { computed, createComputedObserver, CustomSetterObserver, GetterObserver, ComputedWatcher, ExpressionWatcher, } from './observation/computed-observer.js';
+export { ComputedObserver, ComputedWatcher, ExpressionWatcher, } from './observation/computed-observer.js';
 export { IDirtyChecker, DirtyCheckProperty, DirtyCheckSettings, } from './observation/dirty-checker.js';
 export { observable, } from './observation/observable.js';
 export { IObserverLocator, INodeObserverLocator, getCollectionObserver, ObserverLocator, } from './observation/observer-locator.js';
@@ -37,6 +37,7 @@ export { BindableObserver, } from './observation/bindable-observer.js';
 export { SetterObserver, } from './observation/setter-observer.js';
 export { ISignaler, } from './observation/signaler.js';
 export { subscriberCollection, collectionSubscriberCollection, } from './observation/subscriber-collection.js';
+export { WatcherSwitcher, } from './observation/watcher-switcher.js';
 export { bindingBehavior, BindingBehavior, BindingBehaviorDefinition, BindingInterceptor, BindingBehaviorFactory, BindingBehaviorStrategy, } from './binding-behavior.js';
 export { BindingModeBehavior, OneTimeBindingBehavior, ToViewBindingBehavior, FromViewBindingBehavior, TwoWayBindingBehavior, } from './binding-behaviors/binding-mode.js';
 export { DebounceBindingBehavior, } from './binding-behaviors/debounce.js';

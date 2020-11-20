@@ -280,7 +280,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             auSwitch.cases.push(this);
         }
         observeCollection(flags, $value) {
-            const observer = this.locator.getArrayObserver(flags, $value);
+            const observer = this.locator.getArrayObserver($value);
             observer.addCollectionSubscriber(this);
             return observer;
         }

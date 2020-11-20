@@ -17,7 +17,7 @@ export declare class RefBinding implements IBinding {
     constructor(sourceExpression: IsBindingBehavior, target: object, locator: IServiceLocator);
     $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void;
     $unbind(flags: LifecycleFlags): void;
-    observeProperty(flags: LifecycleFlags, obj: IIndexable, propertyName: string): void;
+    observeProperty(obj: IIndexable, propertyName: string): void;
     handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void;
 }
 //# sourceMappingURL=ref-binding.d.ts.map

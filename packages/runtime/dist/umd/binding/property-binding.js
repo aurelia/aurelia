@@ -131,10 +131,10 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
             if (!targetObserver) {
                 const observerLocator = this.observerLocator;
                 if ($mode & fromView) {
-                    targetObserver = observerLocator.getObserver(flags, this.target, this.targetProperty);
+                    targetObserver = observerLocator.getObserver(this.target, this.targetProperty);
                 }
                 else {
-                    targetObserver = observerLocator.getAccessor(flags, this.target, this.targetProperty);
+                    targetObserver = observerLocator.getAccessor(this.target, this.targetProperty);
                 }
                 this.targetObserver = targetObserver;
             }

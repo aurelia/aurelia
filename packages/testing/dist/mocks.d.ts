@@ -14,7 +14,7 @@ export declare class MockBinding implements IConnectableBinding {
     updateTarget(value: unknown, flags: LifecycleFlags): void;
     updateSource(value: unknown, flags: LifecycleFlags): void;
     handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void;
-    observeProperty(flags: LifecycleFlags, obj: IIndexable, propertyName: string): void;
+    observeProperty(obj: IIndexable, propertyName: string): void;
     unobserve(all?: boolean): void;
     addObserver(observer: ISubscribable): void;
     $bind(flags: LifecycleFlags, scope: Scope): void;

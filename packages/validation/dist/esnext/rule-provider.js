@@ -100,7 +100,7 @@ export class PropertyRule {
             flags = 0 /* none */;
         }
         if (scope === void 0) {
-            scope = Scope.create(flags, { [rootObjectSymbol]: object });
+            scope = Scope.create({ [rootObjectSymbol]: object });
         }
         const expression = this.property.expression;
         let value;
@@ -121,7 +121,7 @@ export class PropertyRule {
                 const { displayName, name } = this.property;
                 let message;
                 if (!isValidOrPromise) {
-                    const messageEvaluationScope = Scope.create(flags, new ValidationMessageEvaluationContext(this.messageProvider, this.messageProvider.getDisplayName(name, displayName), name, value, rule, object));
+                    const messageEvaluationScope = Scope.create(new ValidationMessageEvaluationContext(this.messageProvider, this.messageProvider.getDisplayName(name, displayName), name, value, rule, object));
                     message = this.messageProvider.getMessage(rule).evaluate(flags, messageEvaluationScope, null, null, null);
                 }
                 return new ValidationResult(isValidOrPromise, message, name, object, rule, this);

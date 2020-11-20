@@ -1,69 +1,49 @@
-import { IIndexable, IServiceLocator } from '@aurelia/kernel';
-import { IBindingContext, IBindingTargetObserver, ICollectionSubscribable, IObservable, ISubscribable, ISubscriber, Collection, LifecycleFlags } from '../observation.js';
-import { IObserverLocator } from './observer-locator.js';
-import { IWatcher } from './watcher-switcher.js';
-import { IConnectableBinding } from '../binding/connectable.js';
-import { IWatcherCallback } from './watch.js';
-import { IsBindingBehavior } from '../binding/ast.js';
-import { Scope } from './binding-context.js';
-export interface ComputedOverrides {
-    static?: boolean;
-    volatile?: boolean;
+import { CollectionKind, LifecycleFlags, AccessorType } from '../observation.js';
+import type { IObservable, ISubscriber, ICollectionObserver, ICollectionSubscriber, ISubscriberCollection } from '../observation.js';
+import type { IServiceLocator } from '@aurelia/kernel';
+import type { IConnectableBinding } from '../binding/connectable.js';
+import type { IsBindingBehavior } from '../binding/ast.js';
+import type { IWatcher } from './watcher-switcher.js';
+import type { IWatcherCallback } from './watch.js';
+import type { IObserverLocator } from './observer-locator.js';
+import type { Scope } from './binding-context.js';
+interface IWatcherImpl extends IWatcher, IConnectableBinding, ISubscriber, ICollectionSubscriber {
+    id: number;
+    observers: Map<ICollectionObserver<CollectionKind>, number>;
+    readonly useProxy: boolean;
+    unobserveCollection(all?: boolean): void;
 }
-export declare type ComputedLookup = {
-    computed?: Record<string, ComputedOverrides>;
-};
-export declare function computed(config: ComputedOverrides): PropertyDecorator;
-export interface CustomSetterObserver extends IBindingTargetObserver {
+export interface ComputedObserver extends IWatcherImpl, IConnectableBinding, ISubscriberCollection {
 }
-export declare class CustomSetterObserver implements CustomSetterObserver {
-    readonly obj: IObservable & IIndexable;
-    readonly propertyKey: string;
-    private readonly descriptor;
-    currentValue: unknown;
-    oldValue: unknown;
-    private observing;
-    constructor(obj: IObservable & IIndexable, propertyKey: string, descriptor: PropertyDescriptor);
-    setValue(newValue: unknown): void;
-    subscribe(subscriber: ISubscriber): void;
-    unsubscribe(subscriber: ISubscriber): void;
-    convertProperty(): void;
-}
-export interface GetterObserver extends IBindingTargetObserver {
-}
-export declare class GetterObserver implements GetterObserver {
-    private readonly overrides;
-    readonly obj: IObservable;
-    readonly propertyKey: string;
-    private readonly descriptor;
-    currentValue: unknown;
-    oldValue: unknown;
-    private readonly proxy;
-    private readonly propertyDeps;
-    private readonly collectionDeps;
-    private subscriberCount;
-    private isCollecting;
-    constructor(flags: LifecycleFlags, overrides: ComputedOverrides, obj: IObservable, propertyKey: string, descriptor: PropertyDescriptor, observerLocator: IObserverLocator);
-    addPropertyDep(subscribable: ISubscribable): void;
-    addCollectionDep(subscribable: ICollectionSubscribable): void;
+export declare class ComputedObserver implements IWatcherImpl, IConnectableBinding, ISubscriberCollection {
+    readonly obj: object;
+    readonly get: (watcher: IWatcher) => unknown;
+    readonly set: undefined | ((v: unknown) => void);
+    readonly useProxy: boolean;
+    readonly observerLocator: IObserverLocator;
+    static create(obj: object, key: PropertyKey, descriptor: PropertyDescriptor, observerLocator: IObserverLocator, useProxy: boolean): ComputedObserver;
+    observers: Map<ICollectionObserver<CollectionKind>, number>;
+    type: AccessorType;
+    private value;
+    private isDirty;
+    constructor(obj: object, get: (watcher: IWatcher) => unknown, set: undefined | ((v: unknown) => void), useProxy: boolean, observerLocator: IObserverLocator);
     getValue(): unknown;
-    subscribe(subscriber: ISubscriber): void;
-    unsubscribe(subscriber: ISubscriber): void;
+    setValue(v: unknown, _flags: LifecycleFlags): void;
     handleChange(): void;
     handleCollectionChange(): void;
-    getValueAndCollectDependencies(requireCollect: boolean): unknown;
-    doNotCollect(target: IObservable | IBindingContext, key: PropertyKey, receiver?: unknown): boolean;
-    private unsubscribeAllDependencies;
+    subscribe(subscriber: ISubscriber): void;
+    unsubscribe(subscriber: ISubscriber): void;
+    private run;
+    private compute;
 }
-export interface ComputedWatcher extends IConnectableBinding {
+export interface ComputedWatcher extends IWatcherImpl, IConnectableBinding {
 }
 export declare class ComputedWatcher implements IWatcher {
     readonly obj: IObservable;
     readonly observerLocator: IObserverLocator;
     readonly get: (obj: object, watcher: IWatcher) => unknown;
     private readonly cb;
-    private readonly useProxy;
-    private readonly observers;
+    readonly useProxy: boolean;
     private running;
     private value;
     isBound: boolean;
@@ -72,13 +52,8 @@ export declare class ComputedWatcher implements IWatcher {
     handleCollectionChange(): void;
     $bind(): void;
     $unbind(): void;
-    observe(obj: object, key: PropertyKey): void;
-    observeCollection(collection: Collection): void;
-    observeLength(collection: Collection): void;
     private run;
     private compute;
-    private forCollection;
-    private unobserveCollection;
 }
 export declare class ExpressionWatcher implements IConnectableBinding {
     scope: Scope;
@@ -92,4 +67,5 @@ export declare class ExpressionWatcher implements IConnectableBinding {
     $bind(): void;
     $unbind(): void;
 }
+export {};
 //# sourceMappingURL=computed-observer.d.ts.map

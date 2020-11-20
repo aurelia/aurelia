@@ -424,8 +424,8 @@
     exports.createObserverLocator = createObserverLocator;
     function createScopeForTest(bindingContext = {}, parentBindingContext, isComponentBoundary) {
         return parentBindingContext
-            ? runtime_html_1.Scope.fromParent(0 /* none */, runtime_html_1.Scope.create(0 /* none */, parentBindingContext), bindingContext)
-            : runtime_html_1.Scope.create(0 /* none */, bindingContext, runtime_html_1.OverrideContext.create(0 /* none */, bindingContext), isComponentBoundary);
+            ? runtime_html_1.Scope.fromParent(runtime_html_1.Scope.create(parentBindingContext), bindingContext)
+            : runtime_html_1.Scope.create(bindingContext, runtime_html_1.OverrideContext.create(bindingContext), isComponentBoundary);
     }
     exports.createScopeForTest = createScopeForTest;
 });

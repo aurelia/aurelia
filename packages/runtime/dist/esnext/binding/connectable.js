@@ -43,8 +43,8 @@ export function addObserver(observer) {
     ensureEnoughSlotNames(i);
 }
 /** @internal */
-export function observeProperty(flags, obj, propertyName) {
-    const observer = this.observerLocator.getObserver(flags, obj, propertyName);
+export function observeProperty(obj, propertyName) {
+    const observer = this.observerLocator.getObserver(obj, propertyName);
     /* Note: we need to cast here because we can indeed get an accessor instead of an observer,
      *  in which case the call to observer.subscribe will throw. It's not very clean and we can solve this in 2 ways:
      *  1. Fail earlier: only let the locator resolve observers from .getObserver, and throw if no branches are left (e.g. it would otherwise return an accessor)

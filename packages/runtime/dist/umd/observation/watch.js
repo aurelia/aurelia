@@ -28,13 +28,16 @@
             else if (typeof (descriptor === null || descriptor === void 0 ? void 0 : descriptor.value) !== 'function') {
                 throw new Error(`decorated target ${String(key)} is not a class method.`);
             }
-            exports.Watch.add(Type, {
-                expression: expressionOrPropertyAccessFn,
-                callback: isClassDecorator ? changeHandlerOrCallback : descriptor.value,
-            });
+            exports.Watch.add(Type, new WatchDefinition(expressionOrPropertyAccessFn, isClassDecorator ? changeHandlerOrCallback : descriptor.value));
         };
     }
     exports.watch = watch;
+    class WatchDefinition {
+        constructor(expression, callback) {
+            this.expression = expression;
+            this.callback = callback;
+        }
+    }
     const noDefinitions = kernel_1.emptyArray;
     exports.Watch = {
         name: kernel_1.Protocol.annotation.keyFor('watch'),

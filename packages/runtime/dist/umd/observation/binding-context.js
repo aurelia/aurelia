@@ -28,7 +28,7 @@
                 }
             }
         }
-        static create(flags, keyOrObj, value) {
+        static create(keyOrObj, value) {
             return new BindingContext(keyOrObj, value);
         }
         static get(scope, name, ancestor, flags, hostScope) {
@@ -107,20 +107,20 @@
             this.overrideContext = overrideContext;
             this.isComponentBoundary = isComponentBoundary;
         }
-        static create(flags, bc, oc, isComponentBoundary) {
-            return new Scope(null, bc, oc == null ? OverrideContext.create(flags, bc) : oc, isComponentBoundary !== null && isComponentBoundary !== void 0 ? isComponentBoundary : false);
+        static create(bc, oc, isComponentBoundary) {
+            return new Scope(null, bc, oc == null ? OverrideContext.create(bc) : oc, isComponentBoundary !== null && isComponentBoundary !== void 0 ? isComponentBoundary : false);
         }
-        static fromOverride(flags, oc) {
+        static fromOverride(oc) {
             if (oc == null) {
                 throw new Error(`OverrideContext is ${oc}`);
             }
             return new Scope(null, oc.bindingContext, oc, false);
         }
-        static fromParent(flags, ps, bc) {
+        static fromParent(ps, bc) {
             if (ps == null) {
                 throw new Error(`ParentScope is ${ps}`);
             }
-            return new Scope(ps, bc, OverrideContext.create(flags, bc), false);
+            return new Scope(ps, bc, OverrideContext.create(bc), false);
         }
     }
     exports.Scope = Scope;
@@ -128,7 +128,7 @@
         constructor(bindingContext) {
             this.bindingContext = bindingContext;
         }
-        static create(flags, bc) {
+        static create(bc) {
             return new OverrideContext(bc);
         }
     }

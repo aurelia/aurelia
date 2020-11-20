@@ -268,7 +268,7 @@ let Case = class Case {
         auSwitch.cases.push(this);
     }
     observeCollection(flags, $value) {
-        const observer = this.locator.getArrayObserver(flags, $value);
+        const observer = this.locator.getArrayObserver($value);
         observer.addCollectionSubscriber(this);
         return observer;
     }

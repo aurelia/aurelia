@@ -168,7 +168,7 @@
                     }
                     define(controller, parentContainer, definition) {
                         const vm = this.viewModel;
-                        controller.scope = runtime_1.Scope.fromParent(controller.flags, controller.scope, vm);
+                        controller.scope = runtime_1.Scope.fromParent(controller.scope, vm);
                         if (vm.define !== void 0) {
                             return vm.define(controller, parentContainer, definition);
                         }

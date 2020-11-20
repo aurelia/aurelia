@@ -682,7 +682,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   }
 
   private detach(): void | Promise<void> {
-    // Note: if this method is called, then this controller is the initiator
+    // Note: this controller is the initiator (detach is only ever called on the initiator)
     if (this.debug) { this.logger!.trace(`detach()`); }
 
     this.removeNodes();
@@ -690,7 +690,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     let promises: Promise<void>[] | undefined = void 0;
     let ret: Promise<void> | void = void 0;
     let cur = this.$initiator.head as Controller | null;
-    let next: Controller | null = null;
     while (cur !== null) {
       if (cur !== this) {
         if (cur.debug) { cur.logger!.trace(`detach()`); }
@@ -701,29 +700,38 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       if (ret instanceof Promise) {
         (promises ??= []).push(ret);
       }
-      next = cur.next as Controller;
-      cur.next = null;
-      cur = next;
+      cur = cur.next as Controller;
     }
 
-    this.head = this.tail = null;
-
-    if (promises !== void 0) {
-      return resolveAll(...promises);
+    ret = promises === void 0 ? void 0 : resolveAll(...promises);
+    if (ret instanceof Promise) {
+      return ret.then(this.runUnbind.bind(this));
     }
+    this.runUnbind();
   }
 
   private unbinding(): void | Promise<void> {
     if (this.hooks.hasUnbinding) {
       if (this.debug) { this.logger!.trace(`unbinding()`); }
 
-      const ret = this.viewModel!.unbinding(this.$initiator as IHydratedController, this.parent as IHydratedParentController, this.$flags);
-      if (ret instanceof Promise) {
-        return ret.then(this.unbind.bind(this));
+      return this.viewModel!.unbinding(this.$initiator as IHydratedController, this.parent as IHydratedParentController, this.$flags);
+    }
+  }
+
+  private runUnbind(): void {
+    let cur = this.$initiator.head as Controller | null;
+    let next: Controller | null = null;
+    while (cur !== null) {
+      if (cur !== this) {
+        cur.unbind();
       }
+      next = cur.next as Controller;
+      cur.next = null;
+      cur = next;
     }
 
-    return this.unbind();
+    this.head = this.tail = null;
+    this.unbind();
   }
 
   private unbind(): void {
@@ -750,7 +758,8 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
         if (
           (this.state & State.released) === State.released &&
-          !this.viewFactory!.tryReturnToCache(this as ISyntheticView)
+          !this.viewFactory!.tryReturnToCache(this as ISyntheticView) &&
+          this.$initiator === this
         ) {
           this.dispose();
         }
@@ -760,10 +769,11 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         break;
     }
 
-    if ((flags & LifecycleFlags.dispose) === LifecycleFlags.dispose) {
+    if ((flags & LifecycleFlags.dispose) === LifecycleFlags.dispose && this.$initiator === this) {
       this.dispose();
     }
     this.state = (this.state & State.disposed) | State.deactivated;
+    this.$initiator = null!;
   }
 
   public addBinding(binding: IBinding): void {

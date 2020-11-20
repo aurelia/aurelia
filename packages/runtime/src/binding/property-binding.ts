@@ -151,9 +151,9 @@ export class PropertyBinding implements IPartialConnectableBinding {
     if (!targetObserver) {
       const observerLocator = this.observerLocator;
       if ($mode & fromView) {
-        targetObserver = observerLocator.getObserver(flags, this.target, this.targetProperty) as IBindingTargetObserver;
+        targetObserver = observerLocator.getObserver(this.target, this.targetProperty) as IBindingTargetObserver;
       } else {
-        targetObserver = observerLocator.getAccessor(flags, this.target, this.targetProperty) as IBindingTargetObserver;
+        targetObserver = observerLocator.getAccessor(this.target, this.targetProperty) as IBindingTargetObserver;
       }
       this.targetObserver = targetObserver;
     }

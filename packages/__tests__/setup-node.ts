@@ -13,7 +13,6 @@ function $queueMicrotask(cb: () => void): void {
 }
 const w = Object.assign(jsdom.window as unknown as Window & typeof globalThis);
 const platform = new BrowserPlatform(w, {
-  Proxy,
   queueMicrotask: typeof w.queueMicrotask === 'function'
     ? w.queueMicrotask.bind(w)
     : $queueMicrotask,

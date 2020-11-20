@@ -25,7 +25,7 @@ describe.skip('ValueAttributeObserver', function () {
         const el = ctx.createElementFromMarkup(`<input type="${inputType}"/>`) as HTMLInputElement;
         ctx.doc.body.appendChild(el);
 
-        const sut = observerLocator.getObserver(LF.none, el, 'value') as ValueAttributeObserver;
+        const sut = observerLocator.getObserver(el, 'value') as ValueAttributeObserver;
 
         const subscriber = { handleChange: createSpy() };
         if (hasSubscriber) {
@@ -106,7 +106,7 @@ describe.skip('ValueAttributeObserver', function () {
         const el = ctx.createElementFromMarkup(`<input type="${inputType}"/>`) as HTMLInputElement;
         ctx.doc.body.appendChild(el);
 
-        const sut = observerLocator.getObserver(LF.none, el, 'value') as ValueAttributeObserver;
+        const sut = observerLocator.getObserver(el, 'value') as ValueAttributeObserver;
 
         const subscriber = { handleChange: createSpy() };
         sut.subscribe(subscriber);

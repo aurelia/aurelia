@@ -150,7 +150,7 @@ export interface IInterceptableBinding extends IBinding {
   callSource?(args: object): unknown;
   handleChange?(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void;
 
-  observeProperty?(flags: LifecycleFlags, obj: object, propertyName: string): void;
+  observeProperty?(obj: object, propertyName: string): void;
   addObserver?(observer: ISubscribable): void;
   unobserve?(all?: boolean): void;
 }

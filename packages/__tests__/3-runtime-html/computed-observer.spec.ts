@@ -1,16 +1,12 @@
+import { ComputedObserver } from '@aurelia/runtime';
 import {
   IObserverLocator,
-  LifecycleFlags,
   CustomElement,
-  GetterObserver,
-  SetterObserver,
-  MapObserver,
-  CustomSetterObserver,
   IDirtyChecker,
   Aurelia,
 } from '@aurelia/runtime-html';
 import {
-  Constructable
+  Constructable,
 } from '@aurelia/kernel';
 import {
   assert,
@@ -70,7 +66,7 @@ describe('simple Computed Observer test case', function () {
         assert.strictEqual(host.textContent, '140');
         ctx.platform.domWriteQueue.flush();
         assert.strictEqual(host.textContent, '240');
-      }
+      },
     },
     {
       title: 'works with [].filter https://github.com/aurelia/aurelia/issues/534',
@@ -85,28 +81,12 @@ describe('simple Computed Observer test case', function () {
         }
       },
       assertFn: (ctx, host, component) => {
-        const observer = ctx
-          .container
-          .get(IObserverLocator)
-          .getObserver(
-            LifecycleFlags.none,
-            component,
-            'total'
-          ) as GetterObserver;
-
-        assert.strictEqual(observer['propertyDeps']?.length, 12);
-        assert.strictEqual(observer['collectionDeps']?.length, 1);
-
-        observer['propertyDeps'].forEach((observerDep: SetterObserver) => {
-          return assert.instanceOf(observerDep, SetterObserver);
-        });
-
         assert.strictEqual(host.textContent, '5');
         component.items[1].isDone = true;
         assert.strictEqual(host.textContent, '5');
         ctx.platform.domWriteQueue.flush();
         assert.strictEqual(host.textContent, '6');
-      }
+      },
     },
     {
       title: 'works with multiple layers of fn call',
@@ -125,28 +105,12 @@ describe('simple Computed Observer test case', function () {
         }
       },
       assertFn: (ctx, host, component) => {
-        const observer = ctx
-          .container
-          .get(IObserverLocator)
-          .getObserver(
-            LifecycleFlags.none,
-            component,
-            'total'
-          ) as GetterObserver;
-
-        assert.strictEqual(observer['propertyDeps']?.length, 17);
-        assert.strictEqual(observer['collectionDeps']?.length, 1);
-
-        observer['propertyDeps'].forEach((observerDep: SetterObserver) => {
-          assert.instanceOf(observerDep, SetterObserver);
-        });
-
         assert.html.textContent(host, '4');
         component.items[1].isDone = true;
         assert.html.textContent(host, '4');
         ctx.platform.domWriteQueue.flush();
         assert.html.textContent(host, '5');
-      }
+      },
     },
     {
       title: 'works with Map.size',
@@ -156,38 +120,19 @@ describe('simple Computed Observer test case', function () {
           return { name: `i-${idx}`, value: idx + 1, isDone: idx % 2 === 0 };
         });
 
-        public itemMap: Map<any, any> = new Map([1,2,3].map(i => [`item - ${i}`, i]));
+        public itemMap: Map<any, any> = new Map([1, 2, 3].map(i => [`item - ${i}`, i]));
 
         public get total(): number {
           return this.itemMap.size;
         }
       },
       assertFn: (ctx, host, component) => {
-        const observer = ctx
-          .container
-          .get(IObserverLocator)
-          .getObserver(
-            LifecycleFlags.none,
-            component,
-            'total'
-          ) as GetterObserver;
-
-        assert.strictEqual(observer['propertyDeps']?.length, 1);
-        assert.strictEqual(observer['collectionDeps']?.length, 1);
-
-        observer['propertyDeps'].forEach((observerDep: SetterObserver) => {
-          assert.instanceOf(observerDep, SetterObserver);
-        });
-        observer['collectionDeps'].forEach((observerCollectionDep: MapObserver) => {
-          assert.instanceOf(observerCollectionDep, MapObserver);
-        });
-
         assert.strictEqual(host.textContent, '3');
         component.itemMap.set(`item - 4`, 10);
         assert.strictEqual(host.textContent, '3');
         ctx.platform.domWriteQueue.flush();
         assert.strictEqual(host.textContent, '4');
-      }
+      },
     },
     {
       title: 'works with multiple computed dependencies',
@@ -206,31 +151,13 @@ describe('simple Computed Observer test case', function () {
         }
       },
       assertFn: (ctx, host, component) => {
-        const observerLocator = ctx.container.get(IObserverLocator);
-        const totalPropObserver = observerLocator.getObserver(
-          LifecycleFlags.none,
-          component,
-          'total'
-        ) as GetterObserver;
-
-        assert.strictEqual(totalPropObserver['propertyDeps']?.length, 7);
-        assert.strictEqual(totalPropObserver['collectionDeps']?.length, 1);
-
-        totalPropObserver['propertyDeps'].forEach((observerDep: SetterObserver, idx: number) => {
-          if (idx === 0) {
-            assert.instanceOf(observerDep, GetterObserver);
-          } else {
-            assert.instanceOf(observerDep, SetterObserver);
-          }
-        });
-
         assert.strictEqual(host.textContent, '30' /* idx 0, 2, 4, 6, 8 only */);
         component.items[0].isDone = false;
         assert.strictEqual(component.activeItems.length, 6);
         assert.strictEqual(host.textContent, '30');
         ctx.platform.domWriteQueue.flush();
         assert.strictEqual(host.textContent, '31');
-      }
+      },
     },
     {
       title: 'works with array index',
@@ -252,7 +179,7 @@ describe('simple Computed Observer test case', function () {
         assert.html.textContent(host, '1');
         ctx.platform.domWriteQueue.flush();
         assert.html.textContent(host, '1000');
-      }
+      },
     },
     {
       title: 'Works with <let/>',
@@ -272,7 +199,7 @@ describe('simple Computed Observer test case', function () {
         assert.strictEqual(host.textContent, '110');
         ctx.platform.domWriteQueue.flush();
         assert.strictEqual(host.textContent, '308');
-      }
+      },
     },
     {
       title: 'Works with [repeat]',
@@ -295,7 +222,7 @@ describe('simple Computed Observer test case', function () {
         component.items[1].isDone = true;
         // todo: why so eagerly?
         assert.strictEqual(host.textContent, '4.6.8.10.');
-      }
+      },
     },
     {
       title: 'Works with set/get (class property)',
@@ -318,24 +245,20 @@ describe('simple Computed Observer test case', function () {
 
         const observerLocator = ctx.container.get(IObserverLocator);
         const namePropValueObserver = observerLocator
-          .getObserver(
-            LifecycleFlags.none,
-            component.nameProp,
-            'value'
-          ) as CustomSetterObserver;
+          .getObserver(component.nameProp, 'value') as ComputedObserver;
 
-        assert.instanceOf(namePropValueObserver, CustomSetterObserver);
+        assert.instanceOf(namePropValueObserver, ComputedObserver);
         assert.strictEqual(
-          namePropValueObserver['descriptor']?.get,
+          namePropValueObserver.get,
           Object.getOwnPropertyDescriptor(Property.prototype, 'value').get,
-          'It should have kept information about the original descriptor [[get]]'
+          'It should have kept information about the original descriptor [[get]]',
         );
         assert.strictEqual(
-          namePropValueObserver['descriptor']?.set,
+          namePropValueObserver.set,
           Object.getOwnPropertyDescriptor(Property.prototype, 'value').set,
-          'It should have kept information about the original descriptor [[set]]'
+          'It should have kept information about the original descriptor [[set]]',
         );
-      }
+      },
     },
     {
       title: 'Works with set/get (object literal property)',
@@ -353,8 +276,8 @@ describe('simple Computed Observer test case', function () {
             this.valueChanged.publish();
           },
           valueChanged: {
-            publish() {/*  */}
-          }
+            publish() {/*  */ },
+          },
         };
       },
       assertFn: (ctx, host, component) => {
@@ -370,15 +293,95 @@ describe('simple Computed Observer test case', function () {
 
         const observerLocator = ctx.container.get(IObserverLocator);
         const namePropValueObserver = observerLocator
-          .getObserver(
-            LifecycleFlags.none,
-            component.nameProp,
-            'value'
-          ) as CustomSetterObserver;
+          .getObserver(component.nameProp, 'value',) as ComputedObserver;
 
-        assert.instanceOf(namePropValueObserver, CustomSetterObserver);
+        assert.instanceOf(namePropValueObserver, ComputedObserver);
+      },
+    },
+    /* eslint-disable */
+    ...(<[string, () => any][]>[
+      ['ArrayBuffer', () => new ArrayBuffer(0)],
+      ['Boolean', () => new Boolean()],
+      ['DataView', () => new DataView(new ArrayBuffer(0))],
+      ['Date', () => new Date()],
+      ['Error', () => new Error()],
+      ['EvalError', () => new EvalError()],
+      ['Float32Array', () => new Float32Array()],
+      ['Float64Array', () => new Float64Array()],
+      ['Function', () => new Function('')],
+      ['Int8Array', () => new Int8Array()],
+      ['Int16Array', () => new Int16Array()],
+      ['Int64Array', () => new Int32Array()],
+      ['Number', () => new Number()],
+      ['Promise', () => new Promise(r => r())],
+      ['RangeError', () => new RangeError()],
+      ['ReferenceError', () => new ReferenceError()],
+      ['RegExp', () => new RegExp('a')],
+      // ideally, properties on Map & Set that are not special (methods & 'size')
+      // should be treated as normal properties, and should be observable by getter/setter
+      // though probably it's good to start with not observing unless there's a need for it
+      // example: Map/Set subclasses that have special properties.
+      // todo: add connectable.observe(target, key) in proxy-observation.ts
+      ['Map', () => new Map()],
+      ['Set', () => new Set()],
+      ['SharedArrayBuffer', () => new SharedArrayBuffer(0)],
+      ['String', () => new String()],
+      ['SyntaxError', () => new SyntaxError()],
+      ['TypeError', () => new TypeError()],
+      ['Uint8Array', () => new Uint8Array()],
+      ['Uint8ClampedArray', () => new Uint8ClampedArray()],
+      ['Uint16Array', () => new Uint16Array()],
+      ['Uint32Array', () => new Uint32Array()],
+      ['URIError', () => new URIError()],
+      ['WeakMap', () => new WeakMap()],
+      ['WeakSet', () => new WeakSet()],
+      ['Math', () => Math],
+      ['JSON', () => JSON],
+      ['Reflect', () => Reflect],
+      ['Atomics', () => Atomics],
+    ]).filter(([title, createInstrinsic]) => {
+      try {
+        switch (Object.prototype.toString.call(createInstrinsic())) {
+          case '[object Object]':
+          case '[object Array]':
+          case '[object Set]':
+          case '[object Map]':
+            return false;
+          default:
+            return true;
+        }
+      } catch {
+        return false;
       }
-    }
+    }).map(([title, createInstrinsic]) => {
+      return <IComputedObserverTestCase>{
+        title: `does not observe ${title}`,
+        template: `<div>\${someProp || 'no value'}</div>`,
+        ViewModel: class App {
+          public items: IAppItem[] = [];
+          public total: number = 0;
+          public instrinsic: any = createInstrinsic();
+
+          public get someProp() {
+            return this.instrinsic.someProp;
+          }
+        },
+        assertFn: (ctx, host, component: IApp & { instrinsic: any; someProp: any }) => {
+          assert.strictEqual(host.textContent, 'no value');
+
+          component.instrinsic.someProp = 'value';
+          assert.strictEqual(host.textContent, 'no value');
+          ctx.platform.domWriteQueue.flush();
+          assert.strictEqual(host.textContent, 'no value');
+
+          component.instrinsic = { someProp: 'has value' };
+          assert.strictEqual(host.textContent, 'no value');
+          ctx.platform.domWriteQueue.flush();
+          assert.strictEqual(host.textContent, 'has value');
+        },
+      }
+    }),
+    /* eslint-enable */
   ];
 
   eachCartesianJoin(
@@ -390,14 +393,14 @@ describe('simple Computed Observer test case', function () {
       $it(title, async function () {
         const { ctx, component, testHost, tearDown } = await createFixture<any>(
           template,
-          ViewModel
+          ViewModel,
         );
         await assertFn(ctx, testHost, component);
         // test cases could be sharing the same context document
         // so wait a bit before running the next test
         await tearDown();
       });
-    }
+    },
   );
 
   async function createFixture<T>(template: string | Node, $class: Constructable | null, ...registrations: any[]) {
@@ -428,7 +431,7 @@ describe('simple Computed Observer test case', function () {
         testHost.remove();
 
         au.dispose();
-      }
+      },
     };
   }
 

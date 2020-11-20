@@ -425,10 +425,7 @@ export class ArrayObserver {
   }
 
   public getLengthObserver(): CollectionLengthObserver {
-    if (this.lengthObserver === void 0) {
-      this.lengthObserver = new CollectionLengthObserver(this.collection);
-    }
-    return this.lengthObserver as CollectionLengthObserver;
+    return this.lengthObserver ??= new CollectionLengthObserver(this.collection);
   }
 
   public getIndexObserver(index: number): ICollectionIndexObserver {
@@ -442,9 +439,7 @@ export class ArrayObserver {
     this.inBatch = false;
     this.indexMap = createIndexMap(length);
     this.callCollectionSubscribers(indexMap, LifecycleFlags.updateTarget);
-    if (this.lengthObserver !== void 0) {
-      this.lengthObserver.setValue(length, LifecycleFlags.updateTarget);
-    }
+    this.lengthObserver?.setValue(length, LifecycleFlags.updateTarget);
   }
 
   /**
@@ -465,12 +460,7 @@ export class ArrayObserver {
    * @internal
    */
   private getOrCreateIndexObserver(index: number): ICollectionIndexObserver {
-    const indexObservers = this.indexObservers;
-    let observer = indexObservers[index];
-    if (observer === void 0) {
-      observer = indexObservers[index] = new ArrayIndexObserver(this, index);
-    }
-    return observer;
+    return this.indexObservers[index] ??= new ArrayIndexObserver(this, index);
   }
 }
 

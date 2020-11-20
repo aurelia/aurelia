@@ -57,7 +57,7 @@ export class With implements ICustomAttributeViewModel {
     flags: LifecycleFlags,
   ): void | Promise<void> {
     const { $controller, value } = this;
-    const scope = Scope.fromParent(flags, $controller.scope, value === void 0 ? {} : value);
+    const scope = Scope.fromParent($controller.scope, value === void 0 ? {} : value);
     return this.view.activate(initiator, $controller, flags, scope, $controller.hostScope);
   }
 

@@ -341,8 +341,8 @@ describe.skip('CheckedObserver', function () {
       const el = ctx.createElementFromMarkup(`<input type="checkbox"/>`) as IInputElement;
       ctx.doc.body.appendChild(el);
 
-      const sut = ctx.observerLocator.getObserver(LF.none, el, 'checked') as CheckedObserver;
-      ctx.observerLocator.getObserver(LF.none, el, 'value');
+      const sut = ctx.observerLocator.getObserver(el, 'checked') as CheckedObserver;
+      ctx.observerLocator.getObserver(el, 'value');
 
       const subscriber = { handleChange: createSpy() };
       if (hasSubscriber) {
@@ -409,7 +409,7 @@ describe.skip('CheckedObserver', function () {
       const el = ctx.createElementFromMarkup(`<input type="checkbox"/>`) as IInputElement;
       ctx.doc.body.appendChild(el);
 
-      const sut = ctx.observerLocator.getObserver(LF.none, el, 'checked') as CheckedObserver;
+      const sut = ctx.observerLocator.getObserver(el, 'checked') as CheckedObserver;
 
       const subscriber = { handleChange: createSpy() };
       sut.subscribe(subscriber);
@@ -481,12 +481,12 @@ describe.skip('CheckedObserver', function () {
       ctx.doc.body.appendChild(elA);
       ctx.doc.body.appendChild(elB);
       ctx.doc.body.appendChild(elC);
-      const sutA = observerLocator.getObserver(LF.none, elA, 'checked') as CheckedObserver;
-      const sutB = observerLocator.getObserver(LF.none, elB, 'checked') as CheckedObserver;
-      const sutC = observerLocator.getObserver(LF.none, elC, 'checked') as CheckedObserver;
-      observerLocator.getObserver(LF.none, elA, 'value');
-      observerLocator.getObserver(LF.none, elB, 'value');
-      observerLocator.getObserver(LF.none, elC, 'value');
+      const sutA = observerLocator.getObserver(elA, 'checked') as CheckedObserver;
+      const sutB = observerLocator.getObserver(elB, 'checked') as CheckedObserver;
+      const sutC = observerLocator.getObserver(elC, 'checked') as CheckedObserver;
+      observerLocator.getObserver(elA, 'value');
+      observerLocator.getObserver(elB, 'value');
+      observerLocator.getObserver(elC, 'value');
 
       const subscriberA = { handleChange: createSpy() };
       const subscriberB = { handleChange: createSpy() };
@@ -584,9 +584,9 @@ describe.skip('CheckedObserver', function () {
       ctx.doc.body.appendChild(elA);
       ctx.doc.body.appendChild(elB);
       ctx.doc.body.appendChild(elC);
-      const sutA = observerLocator.getObserver(LF.none, elA, 'checked') as CheckedObserver;
-      const sutB = observerLocator.getObserver(LF.none, elB, 'checked') as CheckedObserver;
-      const sutC = observerLocator.getObserver(LF.none, elC, 'checked') as CheckedObserver;
+      const sutA = observerLocator.getObserver(elA, 'checked') as CheckedObserver;
+      const sutB = observerLocator.getObserver(elB, 'checked') as CheckedObserver;
+      const sutC = observerLocator.getObserver(elC, 'checked') as CheckedObserver;
       const subscriberA = { handleChange: createSpy() };
       const subscriberB = { handleChange: createSpy() };
       const subscriberC = { handleChange: createSpy() };
@@ -656,8 +656,8 @@ describe.skip('CheckedObserver', function () {
       el[prop] = value;
       ctx.doc.body.appendChild(el);
 
-      const sut = observerLocator.getObserver(LF.none, el, 'checked') as CheckedObserver;
-      observerLocator.getObserver(LF.none, el, prop);
+      const sut = observerLocator.getObserver(el, 'checked') as CheckedObserver;
+      observerLocator.getObserver(el, prop);
 
       const subscriber = { handleChange: createSpy() };
       if (hasSubscriber) {
@@ -731,8 +731,8 @@ describe.skip('CheckedObserver', function () {
       el[prop] = value;
       ctx.doc.body.appendChild(el);
 
-      const sut = observerLocator.getObserver(LF.none, el, 'checked') as CheckedObserver;
-      observerLocator.getObserver(LF.none, el, prop);
+      const sut = observerLocator.getObserver(el, 'checked') as CheckedObserver;
+      observerLocator.getObserver(el, prop);
 
       const subscriber = { handleChange: createSpy() };
       if (hasSubscriber) {
@@ -798,7 +798,7 @@ describe.skip('CheckedObserver', function () {
       el[prop] = value;
       ctx.doc.body.appendChild(el);
 
-      const sut = observerLocator.getObserver(LF.none, el, 'checked') as CheckedObserver;
+      const sut = observerLocator.getObserver(el, 'checked') as CheckedObserver;
 
       const subscriber = { handleChange: createSpy() };
       sut.subscribe(subscriber);
@@ -864,8 +864,8 @@ describe.skip('CheckedObserver', function () {
       const el = ctx.createElementFromMarkup(`<input type="checkbox"/>`) as ObservedInputElement;
       ctx.doc.body.appendChild(el);
 
-      const sut = observerLocator.getObserver(LF.none, el, 'checked') as CheckedObserver;
-      const valueOrModelObserver = observerLocator.getObserver(LF.none, el, prop) as IBindingTargetObserver;
+      const sut = observerLocator.getObserver(el, 'checked') as CheckedObserver;
+      const valueOrModelObserver = observerLocator.getObserver(el, prop) as IBindingTargetObserver;
 
       const subscriber = { handleChange: createSpy() };
       if (hasSubscriber) {

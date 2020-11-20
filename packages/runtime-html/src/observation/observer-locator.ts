@@ -3,7 +3,6 @@ import {
   IDirtyChecker,
   INodeObserverLocator,
   IObserverLocator,
-  LifecycleFlags,
   SetterObserver,
 } from '@aurelia/runtime';
 import { IPlatform } from '../platform.js';
@@ -300,13 +299,13 @@ export class NodeObserverLocator implements INodeObserverLocator {
 
 export function getCollectionObserver(collection: unknown, observerLocator: IObserverLocator): ICollectionObserver<CollectionKind> | undefined {
   if (collection instanceof Array) {
-    return observerLocator.getArrayObserver(LifecycleFlags.none, collection);
+    return observerLocator.getArrayObserver(collection);
   }
   if (collection instanceof Map) {
-    return observerLocator.getMapObserver(LifecycleFlags.none, collection);
+    return observerLocator.getMapObserver(collection);
   }
   if (collection instanceof Set) {
-    return observerLocator.getSetObserver(LifecycleFlags.none, collection);
+    return observerLocator.getSetObserver(collection);
   }
 }
 

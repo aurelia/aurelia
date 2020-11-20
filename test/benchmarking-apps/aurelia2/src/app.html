@@ -6,18 +6,21 @@
   <div class="toolbar">
     <button click.delegate="changeLocale()">Toggle to ${locale ? 'de' : 'en'}</button>
     <button click.delegate="toggleAddressDetails()">Toggle address details</button>
+    <button click.delegate="filterEmployed('employed')">Show only employed</button>
+    <button click.delegate="filterEmployed('unemployed')">Show only unemployed</button>
+    <button click.delegate="filterEmployed()">Show all</button>
   </div>
   <div class="grid">
     <strong data-sortable.bind="currentSorting.property === 'firstName' ? currentSorting.direction : ''" click.delegate="applySorting('firstName')">First name</strong>
     <strong data-sortable.bind="currentSorting.property === 'lastName' ? currentSorting.direction : ''" click.delegate="applySorting('lastName')">Last name</strong>
     <strong data-sortable.bind="currentSorting.property === 'dob' ? currentSorting.direction : ''" click.delegate="applySorting('dob')">Date of birth</strong>
-    <strong>Deceased</strong>
+    <strong>Job title</strong>
     <strong>Addresses</strong>
-    <template repeat.for="person of people">
+    <template repeat.for="person of people | filterEmployed:employmentStatus">
       <span>${person.firstName}</span>
       <span>${person.lastName}</span>
       <span>${person.dob | formatDate:locale}</span>
-      <span>${person.isDeceased ? 'Yes' : ''}</span>
+      <span>${person.jobTitle ? person.jobTitle : '' }</span> <!-- TODO use show.bind when available -->
       <address-viewer addresses.bind="person.addresses" show-details.to-view="showAddressDetails"></address-viewer>
     </template>
   </div>

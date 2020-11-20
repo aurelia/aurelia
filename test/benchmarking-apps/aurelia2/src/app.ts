@@ -46,6 +46,7 @@ export class App {
   private locale: string = 'en';
   private showAddressDetails: boolean = false;
   private currentSorting: SortingOptions<Person> | null = null;
+  private employmentStatus: 'employed' | 'unemployed' | undefined = void 0;
   public constructor(
     @ipr private readonly personRepository: IPersonRepository,
     @iar private readonly addressRepository: IAddressRepository,
@@ -54,18 +55,30 @@ export class App {
   }
 
   public changeLocale(): void {
+    // change in a single binding
     startMeasure('localeChange');
     this.locale = this.locale === 'en' ? 'de' : 'en';
     stopMeasure('localeChange');
   }
 
   public toggleAddressDetails(): void {
+    // de/activates more bindings
     startMeasure('toggleAddressDetails');
     this.showAddressDetails = !this.showAddressDetails;
     stopMeasure('toggleAddressDetails');
   }
 
+  public filterEmployed(status: 'employed' | 'unemployed' | undefined): void {
+    if (this.employmentStatus === status) { return; }
+    const label = `filter - ${status ?? 'all'}`;
+    // filter/subset
+    startMeasure(label);
+    this.employmentStatus = status;
+    stopMeasure(label);
+  }
+
   public applySorting(property: keyof Person): void {
+    // this is bench artifact; in a real app, this will go to the repository/service.
     const label = `sorting - ${property}`;
     startMeasure(label);
     let sortingOption = this.currentSorting;
@@ -135,9 +148,10 @@ export class App {
 
 @valueConverter('formatDate')
 export class FormatDate {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   private static formatters: Record<string, Intl.DateTimeFormat> = Object.create(null);
 
-  public toView(value: Date, locale: string = 'en') {
+  public toView(value: Date, locale: string = 'en'): string {
     const formatter = FormatDate.formatters[locale]
       ?? (FormatDate.formatters[locale] = new Intl.DateTimeFormat(locale, {
         year: 'numeric',
@@ -145,5 +159,16 @@ export class FormatDate {
         day: '2-digit'
       }));
     return formatter.format(value);
+  }
+}
+
+@valueConverter('filterEmployed')
+export class FilterEmployed {
+  public toView(value: Person[], status?: 'employed' | 'unemployed'): Person[] {
+    if (status == null) { return value; }
+    const predicate = status === 'employed'
+      ? (p: Person) => p.jobTitle !== void 0
+      : (p: Person) => p.jobTitle === void 0;
+    return value.filter(predicate);
   }
 }

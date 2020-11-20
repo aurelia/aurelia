@@ -9,14 +9,16 @@ const opts: Opts = {
     street: 's',
     pin: 'p',
     city: 'ct',
-    country: 'cn'
+    country: 'cn',
+    jobs: 'j',
   },
   default: {
     name: 150,
     street: 100,
     pin: 100,
     city: 100,
-    country: 20
+    country: 20,
+    jobs: 100,
   }
 };
 const args = minisist(process.argv.slice(2), opts);
@@ -44,6 +46,7 @@ writeFileSync(
     pins: generateSet(args.street, () => address.zipCode()),
     cities: generateSet(args.street, () => address.city()),
     countries: generateSet(args.street, () => address.country()),
+    jobs: generateSet(args.jobs, () => name.jobTitle()),
   }, undefined, 2),
   'utf8'
 );

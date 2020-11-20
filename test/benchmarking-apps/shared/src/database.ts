@@ -19,7 +19,7 @@ export class Database {
   private seed() {
     // TODO: probably move this to package configuration option
     const numAddresses = 100;
-    const numPeople = 200;
+    const numPeople = 100;
 
     const addresses = (this as Writable<this>).addresses = new Array<Address>(numAddresses);
     const people = (this as Writable<this>).people = new Array<Person>(numPeople);

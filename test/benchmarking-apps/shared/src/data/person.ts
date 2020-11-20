@@ -1,6 +1,6 @@
 import { AddressAssociation } from './address';
 import { IEntity } from '../contracts';
-import { randomBoolean, randomDate, randomFirstName, randomLastName, randomNumber } from './random-generator';
+import { randomBoolean, randomDate, randomFirstName, randomJobs, randomLastName, randomNumber } from './random-generator';
 import { Writable } from '../utils';
 import { BaseRepository } from '../repository';
 import { Database } from '../database';
@@ -11,7 +11,7 @@ export class Person implements IEntity {
     public firstName: string = randomFirstName(),
     public lastName: string = randomLastName(),
     public dob: Date = randomDate(),
-    public isDeceased: boolean = randomBoolean(),
+    public jobTitle: string | undefined = randomBoolean() ? randomJobs() : void 0,
     public readonly id = randomNumber(),
   ) { }
 
@@ -20,7 +20,7 @@ export class Person implements IEntity {
       /* firstName  */this.firstName,
       /* lastName   */this.lastName,
       /* dob        */this.dob,
-      /* isDeceased */this.isDeceased,
+      /* jobTitle   */this.jobTitle,
       /* id         */this.id,
     );
     (person as Writable<Person>).addresses = this.addresses.map((a) => a.clone());

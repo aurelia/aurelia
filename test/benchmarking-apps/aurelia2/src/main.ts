@@ -5,7 +5,7 @@ import {
 } from '@aurelia/runtime-html';
 import { AddressViewer, GetAllTypes } from './address-viewer';
 
-import { App, FormatDate } from './app';
+import { App, FilterEmployed, FormatDate } from './app';
 import { iar, ipr } from './registrations';
 import './styles.css';
 
@@ -15,6 +15,7 @@ import './styles.css';
     ipr,
     iar,
     FormatDate,
+    FilterEmployed,
     AddressViewer,
     GetAllTypes,
   )

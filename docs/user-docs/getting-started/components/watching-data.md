@@ -10,7 +10,7 @@ Aurelia provides a way to author your components in a reactive programming model
 **Intended usages**
 
 - The `@watch` decorator can only be used on custom element and custom attribute view models.
-- Corresponding watchers of `@watch` decorator will be created once, and bound after `beforeBind`, and unbound before `afterBind` lifecycles. This means mutation during `beforeBind`/ `afterUnbind` & after won't be reacted to, as watchers haven't started or have stopped.
+- Corresponding watchers of `@watch` decorator will be created once, and bound after `binding`, and unbound before `unbinding` lifecycles. This means mutation during `binding`/ after `unbinding` won't be reacted to, as watchers haven't started or have stopped.
 
 {% endhint %}
 
@@ -221,7 +221,7 @@ class App {
 
 # @watch reactivity examples
 
-> During `beforeBind` lifecycle, bindings created by `@watch` decorator havent' been activated yet, which means mutations won't be reacted to:
+> During `binding` lifecycle, bindings created by `@watch` decorator havent' been activated yet, which means mutations won't be reacted to:
 
 ```typescript
 class PostOffice {
@@ -233,14 +233,14 @@ class PostOffice {
   }
 
   // lifecycle
-  beforeBind() {
+  binding() {
     this.packages.push({ id: 1, name: 'xmas toy', delivered: false });
   }
 }
 ```
 There will be no log in the console.
 
-> During `afterBind` lifecycle, bindings created by `@watch` decorator have been activated, and mutations will be reacted to:
+> During `bound` lifecycle, bindings created by `@watch` decorator have been activated, and mutations will be reacted to:
 
 ```typescript
 class PostOffice {
@@ -252,7 +252,7 @@ class PostOffice {
   }
 
   // lifecycle
-  beforeBind() {
+  bound() {
     this.packages.push({ id: 1, name: 'xmas toy', delivered: false });
   }
 }
@@ -262,10 +262,10 @@ There will be 1 log in the console that looks like this: `packages changes: 0 ->
 
 {% hint style="info" %}
 **Other lifecycles**
-Lifecycles that are invoked after `afterBind` and before `afterUnbind` are not sensitive to the working of the `@watch` decorator, and thus don't need special mentions. Those lifecycles are `afterAttach`, `afterAttachChildren`, and `beforeDetach`.
+Lifecycles that are invoked after `binding` and before `unbinding` are not sensitive to the working of the `@watch` decorator, and thus don't need special mentions. Those lifecycles are `attaching`, `attached`, and `detaching`.
 {% endhint %}
 
-> During `beforeUnbind` lifeycle, bindings created by `@watch` decorator have not been de-activated yet, and mutations will still be reacted to:
+> During `detaching` lifeycle, bindings created by `@watch` decorator have not been de-activated yet, and mutations will still be reacted to:
 
 ```typescript
 class PostOffice {
@@ -277,14 +277,14 @@ class PostOffice {
   }
 
   // lifecycle
-  beforeUnbind() {
+  detaching() {
     this.packages.push({ id: 1, name: 'xmas toy', delivered: false });
   }
 }
 ```
 There will be 1 log in the console that looks like this: `packages changes: 0 -> 1`.
 
-> During `afterUnbind` lifecycle, bindings created by `@watch` decorator have been deactivated, and mutations won't be reacted to:
+> During `unbinding` lifecycle, bindings created by `@watch` decorator have been deactivated, and mutations won't be reacted to:
 
 ```typescript
 class PostOffice {
@@ -296,7 +296,7 @@ class PostOffice {
   }
 
   // lifecycle
-  beforeUnbind() {
+  unbinding() {
     this.packages.push({ id: 1, name: 'xmas toy', delivered: false });
   }
 }
@@ -306,7 +306,7 @@ There will be no log in the console.
 
 # How it works
 
-By default, a watcher will be created for a `@watch()` decorator. This watcher will start observing before `afterBind` lifecycle of components. How the observation works will depend on the first parameter given.
+By default, a watcher will be created for a `@watch()` decorator. This watcher will start observing before `bound` lifecycle of components. How the observation works will depend on the first parameter given.
 
 - If a string, or a symbol is given, it will be used as an expression to observe, similar to how an expression in Aurelia templating works.
 - If a function is given, it will be used as a computed getter to observe dependencies and evaluate the value to pass into the specified method. There are two mechanisms that can be employed:
@@ -378,3 +378,19 @@ By default, a watcher will be created for a `@watch()` decorator. This watcher w
   }
   ```
   In this example, even if `options` on a `MyClass` instance has never been changed, the comparison of `myClass.options === defaultOptions` will still return false, as the actual value for `myClass.options` is a proxied object wrapping the real object, and thus is always different with `defaultOptions`.
+
+- Dependency tracking inside a watch computed getter is done synchronously, which means returning a promise, or having an async function won't work property. Don't do the following:
+  ```typescript
+  class MyClass {
+
+    @watch(async myClassInstance => myClassinstance.options)
+    applyCustomOptions() {}
+
+    // or
+    @watch(myClassInstance => {
+      Promise.resolve().then(() => {
+        return myClassinstance.options
+      })
+    })
+  }
+  ```

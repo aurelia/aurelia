@@ -56,7 +56,7 @@ export class StandardValidator implements IValidator {
     const flags = instruction.flags;
 
     const rules = instruction.rules ?? validationRulesRegistrar.get(object, instruction.objectTag) ?? [];
-    const scope = Scope.create(flags, { [rootObjectSymbol]: object });
+    const scope = Scope.create({ [rootObjectSymbol]: object });
 
     if (propertyName !== void 0) {
       return (await rules.find((r) => r.property.name === propertyName)?.validate(object, propertyTag, flags, scope)) ?? [];

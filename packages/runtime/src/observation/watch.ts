@@ -1,5 +1,5 @@
 import { Constructable, Protocol, Metadata, emptyArray } from '@aurelia/kernel';
-import type { IWatcher } from './watcher-switcher';
+import type { IWatcher } from './watcher-switcher.js';
 
 export type IDepCollectionFn<TType extends object, TReturn = unknown> = (vm: TType, watcher: IWatcher) => TReturn;
 export type IWatcherCallback<TType extends object, TValue = unknown>
@@ -75,11 +75,18 @@ export function watch<T extends object = object>(
       throw new Error(`decorated target ${String(key)} is not a class method.`);
     }
 
-    Watch.add(Type, {
-      expression: expressionOrPropertyAccessFn,
-      callback: isClassDecorator ? changeHandlerOrCallback : descriptor!.value,
-    });
+    Watch.add(
+      Type,
+      new WatchDefinition(expressionOrPropertyAccessFn, isClassDecorator ? changeHandlerOrCallback : descriptor!.value)
+    );
   };
+}
+
+class WatchDefinition<T extends object> implements IWatchDefinition<T> {
+  public constructor(
+    public expression: PropertyKey | IDepCollectionFn<T>,
+    public callback: IWatcherCallback<T>,
+  ) {}
 }
 
 const noDefinitions: IWatchDefinition[] = emptyArray;

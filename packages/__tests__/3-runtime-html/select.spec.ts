@@ -55,7 +55,7 @@
 //       // vCurrent does not attempt to correct <select/> value
 //       // vNext shouldn't for compat
 //       assert.strictEqual(select3.value, `select3.value`, '3', `select3.value, `select3.value``);
-//       const observer3 = observerLocator.getObserver(LF.none, select3, 'value') as SelectValueObserver;
+//       const observer3 = observerLocator.getObserver(select3, 'value') as SelectValueObserver;
 //       assert.strictEqual(observer3.currentValue, `observer3.currentValue`, '2', `observer3.currentValue, `observer3.currentValue``);
 
 //       // expect no state changes after flushing
@@ -103,7 +103,7 @@
 //       assert.strictEqual(component.selectedValue, `component.selectedValue #1`, '2', `component.selectedValue, `component.selectedValue #1``);
 
 //       // Verify observer 3 will take the view model value, regardless valid value from view model
-//       const observer3 = observerLocator.getObserver(LF.none, select3, 'value') as SelectValueObserver;
+//       const observer3 = observerLocator.getObserver(select3, 'value') as SelectValueObserver;
 //       assert.strictEqual(observer3.currentValue, `observer3.currentValue #2`, '2', `observer3.currentValue, `observer3.currentValue #2``);
 
 //       // simulate change from under input
@@ -111,7 +111,7 @@
 //       select2.dispatchEvent(new ctx.CustomEvent('change', { bubbles: true }));
 
 //       assert.strictEqual(component.selectedValue, `component.selectedValue #3`, '1', `component.selectedValue, `component.selectedValue #3``);
-//       const observer1 = observerLocator.getObserver(LF.none, select1, 'value') as SelectValueObserver;
+//       const observer1 = observerLocator.getObserver(select1, 'value') as SelectValueObserver;
 //       assert.strictEqual(observer1.currentValue, `observer1.currentValue #4`, '1', `observer1.currentValue, `observer1.currentValue #4``);
 //       // verify observer 3 will take the view model value from changes, regardless valid value from view model
 //       assert.strictEqual(observer3.currentValue, `observer3.currentValue #5`, '1', `observer3.currentValue, `observer3.currentValue #5``);
@@ -161,9 +161,9 @@
 //       const select1 = host.querySelector('#select1');
 //       const select2 = host.querySelector('#select2');
 //       const select3 = host.querySelector('#select3');
-//       const observer1 = observerLocator.getObserver(LF.none, select1, 'value') as SelectValueObserver;
-//       const observer2 = observerLocator.getObserver(LF.none, select2, 'value') as SelectValueObserver;
-//       const observer3 = observerLocator.getObserver(LF.none, select3, 'value') as SelectValueObserver;
+//       const observer1 = observerLocator.getObserver(select1, 'value') as SelectValueObserver;
+//       const observer2 = observerLocator.getObserver(select2, 'value') as SelectValueObserver;
+//       const observer3 = observerLocator.getObserver(select3, 'value') as SelectValueObserver;
 //       assert.strictEqual(observer1.currentValue, `observer1.currentValue`, component.selectedValues, `observer1.currentValue, `observer1.currentValue``);
 //       assert.strictEqual(observer2.currentValue, `observer2.currentValue`, component.selectedValues, `observer2.currentValue, `observer2.currentValue``);
 //       assert.strictEqual(observer3.currentValue, `observer3.currentValue`, component.selectedValues, `observer3.currentValue, `observer3.currentValue``);
@@ -219,9 +219,9 @@
 //       const select1: HTMLSelectElement = host.querySelector('#select1');
 //       const select2: HTMLSelectElement = host.querySelector('#select2');
 //       const select3: HTMLSelectElement = host.querySelector('#select3');
-//       const observer1 = observerLocator.getObserver(LF.none, select1, 'value') as SelectValueObserver;
-//       const observer2 = observerLocator.getObserver(LF.none, select2, 'value') as SelectValueObserver;
-//       const observer3 = observerLocator.getObserver(LF.none, select3, 'value') as SelectValueObserver;
+//       const observer1 = observerLocator.getObserver(select1, 'value') as SelectValueObserver;
+//       const observer2 = observerLocator.getObserver(select2, 'value') as SelectValueObserver;
+//       const observer3 = observerLocator.getObserver(select3, 'value') as SelectValueObserver;
 //       assert.strictEqual(observer1.currentValue, `observer1.currentValue`, component.selectedValues, `observer1.currentValue, `observer1.currentValue``);
 //       assert.strictEqual(observer2.currentValue, `observer2.currentValue`, component.selectedValues, `observer2.currentValue, `observer2.currentValue``);
 //       assert.strictEqual(observer3.currentValue, `observer3.currentValue`, component.selectedValues, `observer3.currentValue, `observer3.currentValue``);

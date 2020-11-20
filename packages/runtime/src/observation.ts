@@ -126,7 +126,7 @@ export const enum LifecycleFlags {
 
 export interface IConnectable {
   readonly locator: IServiceLocator;
-  observeProperty(flags: LifecycleFlags, obj: object, propertyName: string): void;
+  observeProperty(obj: object, propertyName: string): void;
 }
 
 /** @internal */
@@ -208,7 +208,6 @@ export interface IPropertyObserver<TObj extends object, TProp extends keyof TObj
   IPropertyChangeTracker<TObj, TProp>,
   ISubscriberCollection,
   IBatchable {
-  type: AccessorType;
   inBatch: boolean;
   observing: boolean;
 }

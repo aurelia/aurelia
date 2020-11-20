@@ -1,15 +1,13 @@
 import {
-  IServiceLocator,
-} from '@aurelia/kernel';
-import {
-  IAccessor, LifecycleFlags,
+  LifecycleFlags,
 } from '../observation.js';
-import { IObserverLocator } from '../observation/observer-locator.js';
-import {
-  IsBindingBehavior,
-} from './ast.js';
-import { IConnectableBinding } from './connectable.js';
+
+import type { IServiceLocator } from '@aurelia/kernel';
+import type { IObserverLocator } from '../observation/observer-locator.js';
 import type { Scope } from '../observation/binding-context.js';
+import type { IsBindingBehavior } from './ast.js';
+import type { IAccessor } from '../observation.js';
+import type { IConnectableBinding } from './connectable.js';
 
 export interface CallBinding extends IConnectableBinding {}
 export class CallBinding {
@@ -28,7 +26,7 @@ export class CallBinding {
     observerLocator: IObserverLocator,
     public locator: IServiceLocator,
   ) {
-    this.targetObserver = observerLocator.getObserver(LifecycleFlags.none, target, targetProperty);
+    this.targetObserver = observerLocator.getObserver(target, targetProperty);
   }
 
   public callSource(args: object): unknown {
@@ -80,7 +78,7 @@ export class CallBinding {
     this.isBound = false;
   }
 
-  public observeProperty(flags: LifecycleFlags, obj: object, propertyName: string): void {
+  public observeProperty(obj: object, propertyName: string): void {
     return;
   }
 

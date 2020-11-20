@@ -298,6 +298,90 @@ describe('simple Computed Observer test case', function () {
         assert.instanceOf(namePropValueObserver, ComputedObserver);
       },
     },
+    /* eslint-disable */
+    ...(<[string, () => any][]>[
+      ['ArrayBuffer', () => new ArrayBuffer(0)],
+      ['Boolean', () => new Boolean()],
+      ['DataView', () => new DataView(new ArrayBuffer(0))],
+      ['Date', () => new Date()],
+      ['Error', () => new Error()],
+      ['EvalError', () => new EvalError()],
+      ['Float32Array', () => new Float32Array()],
+      ['Float64Array', () => new Float64Array()],
+      ['Function', () => new Function('')],
+      ['Int8Array', () => new Int8Array()],
+      ['Int16Array', () => new Int16Array()],
+      ['Int64Array', () => new Int32Array()],
+      ['Number', () => new Number()],
+      ['Promise', () => new Promise(r => r())],
+      ['RangeError', () => new RangeError()],
+      ['ReferenceError', () => new ReferenceError()],
+      ['RegExp', () => new RegExp('a')],
+      // ideally, properties on Map & Set that are not special (methods & 'size')
+      // should be treated as normal properties, and should be observable by getter/setter
+      // though probably it's good to start with not observing unless there's a need for it
+      // example: Map/Set subclasses that have special properties.
+      // todo: add connectable.observe(target, key) in proxy-observation.ts
+      ['Map', () => new Map()],
+      ['Set', () => new Set()],
+      ['SharedArrayBuffer', () => new SharedArrayBuffer(0)],
+      ['String', () => new String()],
+      ['SyntaxError', () => new SyntaxError()],
+      ['TypeError', () => new TypeError()],
+      ['Uint8Array', () => new Uint8Array()],
+      ['Uint8ClampedArray', () => new Uint8ClampedArray()],
+      ['Uint16Array', () => new Uint16Array()],
+      ['Uint32Array', () => new Uint32Array()],
+      ['URIError', () => new URIError()],
+      ['WeakMap', () => new WeakMap()],
+      ['WeakSet', () => new WeakSet()],
+      ['Math', () => Math],
+      ['JSON', () => JSON],
+      ['Reflect', () => Reflect],
+      ['Atomics', () => Atomics],
+    ]).filter(([title, createInstrinsic]) => {
+      try {
+        switch (Object.prototype.toString.call(createInstrinsic())) {
+          case '[object Object]':
+          case '[object Array]':
+          case '[object Set]':
+          case '[object Map]':
+            return false;
+          default:
+            return true;
+        }
+      } catch {
+        return false;
+      }
+    }).map(([title, createInstrinsic]) => {
+      return <IComputedObserverTestCase>{
+        title: `does not observe ${title}`,
+        template: `<div>\${someProp || 'no value'}</div>`,
+        ViewModel: class App {
+          public items: IAppItem[] = [];
+          public total: number = 0;
+          public instrinsic: any = createInstrinsic();
+
+          public get someProp() {
+            return this.instrinsic.someProp;
+          }
+        },
+        assertFn: (ctx, host, component: IApp & { instrinsic: any; someProp: any }) => {
+          assert.strictEqual(host.textContent, 'no value');
+
+          component.instrinsic.someProp = 'value';
+          assert.strictEqual(host.textContent, 'no value');
+          ctx.platform.domWriteQueue.flush();
+          assert.strictEqual(host.textContent, 'no value');
+
+          component.instrinsic = { someProp: 'has value' };
+          assert.strictEqual(host.textContent, 'no value');
+          ctx.platform.domWriteQueue.flush();
+          assert.strictEqual(host.textContent, 'has value');
+        },
+      }
+    }),
+    /* eslint-enable */
   ];
 
   eachCartesianJoin(

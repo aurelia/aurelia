@@ -63,7 +63,7 @@ describe.skip('CallBinding', function () {
         // - Arrange -
         const { sut, lifecycle, observerLocator } = createFixture(expr, target, prop);
         const flags = LF.none;
-        const targetObserver = observerLocator.getObserver(LF.none, target, prop);
+        const targetObserver = observerLocator.getObserver(target, prop);
 
         // massSpy(scope.bindingContext, 'theFunc');
         // massSpy(sut, 'callSource');
@@ -159,7 +159,7 @@ describe.skip('CallBinding', function () {
         // - Arrange -
         const { sut, lifecycle, observerLocator } = createFixture(expr, target, prop);
         const flags = LF.none;
-        const targetObserver = observerLocator.getObserver(LF.none, target, prop);
+        const targetObserver = observerLocator.getObserver(target, prop);
 
         // massSpy(scope.bindingContext, 'theFunc');
         // massSpy(sut, 'callSource');
@@ -263,7 +263,7 @@ describe.skip('CallBinding', function () {
         // - Arrange -
         const { sut, lifecycle, observerLocator } = createFixture(expr, target, prop);
         const flags = LF.none;
-        const targetObserver = observerLocator.getObserver(LF.none, target, prop);
+        const targetObserver = observerLocator.getObserver(target, prop);
 
         // massSpy(scope.bindingContext, 'theFunc');
         // massSpy(sut, 'callSource');

@@ -1,4 +1,4 @@
-import { customAttribute, INode, bindable, BindingMode, IObserverLocator, LifecycleFlags, CustomAttribute, ICustomAttributeController, ICustomAttributeViewModel } from '@aurelia/runtime-html';
+import { customAttribute, INode, bindable, BindingMode, IObserverLocator, CustomAttribute, ICustomAttributeController, ICustomAttributeViewModel } from '@aurelia/runtime-html';
 import { IRouter } from '../router.js';
 import { NavigationInstructionResolver } from '../type-resolvers.js';
 
@@ -24,7 +24,7 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
     this.updateValue();
 
     const observerLocator = this.router.container.get(IObserverLocator);
-    this.observer = observerLocator.getObserver(LifecycleFlags.none, this.router, 'activeComponents') as any;
+    this.observer = observerLocator.getObserver(this.router, 'activeComponents') as any;
     this.observer.subscribe(this);
   }
 

@@ -346,7 +346,7 @@ export class Case implements ICustomAttributeViewModel {
   }
 
   private observeCollection(flags: LifecycleFlags, $value: unknown[]) {
-    const observer = this.locator.getArrayObserver(flags, $value);
+    const observer = this.locator.getArrayObserver($value);
     observer.addCollectionSubscriber(this);
     return observer;
   }

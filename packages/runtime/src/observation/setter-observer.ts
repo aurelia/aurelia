@@ -1,9 +1,11 @@
-import { IIndexable } from '@aurelia/kernel';
-import { IPropertyObserver, ISubscriber, AccessorType, ISubscribable, IAccessor, ISubscriberCollection, LifecycleFlags } from '../observation.js';
+import { AccessorType, LifecycleFlags } from '../observation.js';
 import { subscriberCollection } from './subscriber-collection.js';
-import { InterceptorFunc } from '../bindable.js';
 
-export interface SetterObserver extends IPropertyObserver<IIndexable, string> {}
+import type { IIndexable } from '@aurelia/kernel';
+import type { IObserver, ISubscriber, ISubscribable, IAccessor, ISubscriberCollection } from '../observation.js';
+import type { InterceptorFunc } from '../bindable.js';
+
+export interface SetterObserver extends IObserver, ISubscriberCollection {}
 
 /**
  * Observer for the mutation of object property value employing getter-setter strategy.

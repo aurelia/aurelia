@@ -1,5 +1,6 @@
 import { TestExecutionContext, StartupConfiguration, startup } from './app/startup.js';
 import { fail } from 'assert';
+import { ProxyObservable } from '@aurelia/runtime';
 import { CustomElement } from '@aurelia/runtime-html';
 import { Call, assert } from '@aurelia/testing';
 
@@ -33,7 +34,7 @@ export function getViewModel<T>(element: Element) {
   return viewModel;
 }
 export function assertCalls(calls: Call[], fromIndex: number, instance: any, expectedCalls: string[], unexpectedCalls?: string[], message?: string) {
-  const recentCalls = new Set(calls.slice(fromIndex).map(c => Object.is(c.instance, instance) && c.method));
+  const recentCalls = new Set(calls.slice(fromIndex).map(c => Object.is(ProxyObservable.unwrap(c.instance), instance) && c.method));
   for (const expectedCall of expectedCalls) {
     assert.equal(recentCalls.has(expectedCall), true, `${message || ''} expected ${expectedCall}`);
   }

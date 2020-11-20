@@ -183,6 +183,12 @@ describe('StyleAccessor', function () {
       expected: 'display: block; background-color: red; border-color: black;',
     },
     {
+      title: `style binding array string/object with custom property correct with static style`,
+      staticStyle: `display: block;`,
+      input: ['background-color:red', { '--border-color': 'black' }],
+      expected: 'display: block; background-color: red; --border-color:black;',
+    },
+    {
       title: `style binding array string/object (kebab) returns correct with static style`,
       staticStyle: `display: block;`,
       input: ['background-color:red', { ['border-color']: 'black' }],
@@ -192,6 +198,11 @@ describe('StyleAccessor', function () {
       title: `style binding array string/object (kebab) returns correct with no static style`,
       input: ['background-color:red', { ['border-color']: 'black' }],
       expected: 'background-color: red; border-color: black;',
+    },
+    {
+      title: `style binding array string/object with custom property correct with no static style`,
+      input: ['background-color:red', { '--border-color': 'black' }],
+      expected: 'background-color: red; --border-color:black;',
     },
     {
       title: `style binding array string/object returns correct without static style`,
@@ -205,15 +216,32 @@ describe('StyleAccessor', function () {
       expected: 'display: block; background-color: red; height: 32px;',
     },
     {
+      title: `style binding array string/string with custom property name returns correct with static style`,
+      input: ['background-color:red', '--superHeight:32px'],
+      staticStyle: `display: block;`,
+      expected: 'display: block; background-color: red; --superHeight:32px;',
+    },
+    {
       title: `style binding array string/string returns correct with no static style`,
       input: ['background-color:red', 'height:32px'],
       expected: 'background-color: red; height: 32px;',
+    },
+    {
+      title: `style binding array string/string with custom property name returns correct with no static style`,
+      input: ['background-color:red', '--superHeight:32px'],
+      expected: 'background-color: red; --superHeight:32px;',
     },
     {
       title: `style string returns correct with static style`,
       input: 'background-color:red;height:32px;',
       staticStyle: `display: block;`,
       expected: 'display: block; background-color: red; height: 32px;',
+    },
+    {
+      title: `style string returns correct with static style with base64 encoded url`,
+      input: 'height:32px;background: linear-gradient(90deg, rgba(255,255,255,1) 40%, rgba(255,255,255,0) 70%, rgba(255,255,255,1) 95%), url(data:image/png;base64,TEST) 110px -60px no-repeat;',
+      staticStyle: `display: block;`,
+      expected: 'display: block; height: 32px; background: linear-gradient(90deg, rgb(255, 255, 255) 40%, rgba(255, 255, 255, 0) 70%, rgb(255, 255, 255) 95%), url("data:image/png;base64,TEST") 110px -60px no-repeat;',
     },
     {
       title: `style string returns correct with no static style`,
@@ -227,15 +255,27 @@ describe('StyleAccessor', function () {
       expected: 'display: block; background-color: red; height: 32px;',
     },
     {
-      title: `style object (non kebab) returns correct without static style`,
-      input: { backgroundColor: 'red', height: '32px' },
-      expected: 'background-color: red; height: 32px;',
+      title: `style object (non kebab) with base64 url returns correct with static style`,
+      input: { background: 'linear-gradient(90deg, rgba(255,255,255,1) 40%, rgba(255,255,255,0) 70%, rgba(255,255,255,1) 95%), url(data:image/png;base64,TEST) 110px -60px no-repeat', height: '32px' },
+      staticStyle: `display: block;`,
+      expected: 'display: block; background: linear-gradient(90deg, rgb(255, 255, 255) 40%, rgba(255, 255, 255, 0) 70%, rgb(255, 255, 255) 95%), url("data:image/png;base64,TEST") 110px -60px no-repeat; height: 32px;',
+    },
+    {
+      title: `style object (non kebab) with base64 url returns correct without static style`,
+      input: { background: 'linear-gradient(90deg, rgba(255,255,255,1) 40%, rgba(255,255,255,0) 70%, rgba(255,255,255,1) 95%), url(data:image/png;base64,TEST) 110px -60px no-repeat', height: '32px' },
+      expected: 'background: linear-gradient(90deg, rgb(255, 255, 255) 40%, rgba(255, 255, 255, 0) 70%, rgb(255, 255, 255) 95%), url("data:image/png;base64,TEST") 110px -60px no-repeat; height: 32px;',
     },
     {
       title: `style object (kebab) returns correct with static style`,
       input: { ['background-color']: 'red', height: '32px' },
       staticStyle: `display: block;`,
       expected: 'display: block; background-color: red; height: 32px;',
+    },
+    {
+      title: `style object (kebab) with base64 url string returns correct with static style`,
+      input: { ['background']: 'linear-gradient(90deg, rgba(255,255,255,1) 40%, rgba(255,255,255,0) 70%, rgba(255,255,255,1) 95%), url(data:image/png;base64,TEST) 110px -60px no-repeat', height: '32px' },
+      staticStyle: `display: block;`,
+      expected: 'display: block; background: linear-gradient(90deg, rgb(255, 255, 255) 40%, rgba(255, 255, 255, 0) 70%, rgb(255, 255, 255) 95%), url("data:image/png;base64,TEST") 110px -60px no-repeat; height: 32px;',
     },
     {
       title: `style object (kebab) returns correct without static style`,
@@ -289,6 +329,8 @@ describe('StyleAccessor', function () {
   ];
 
   for (const { title, staticStyle, input, expected } of specs) {
+    // skip url checks since node incorrectly fails as background url images are not supported
+    if (title.includes('url') && typeof process !== 'undefined') { continue; }
     it(title, function () {
       const ctx = TestContext.create();
       const el = ctx.createElementFromMarkup(`<div style="${staticStyle}"></div>`);
@@ -296,7 +338,9 @@ describe('StyleAccessor', function () {
       sut.setValue(input, LifecycleFlags.none);
 
       const actual = sut.getValue();
-      assert.strictEqual(actual, expected);
+      // normalize by removing the space after colon since it differs faily randomly from env
+      // but has no impact on whether a test should or should not pass
+      assert.strictEqual(actual.replace(/:\s/g, ':'), expected.replace(/:\s/g, ':'));
     });
   }
 });

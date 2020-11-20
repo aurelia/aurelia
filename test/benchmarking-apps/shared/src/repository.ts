@@ -3,7 +3,7 @@ import { Database } from './database';
 
 export abstract class BaseRepository<TEntity extends IEntity> implements IRepository<TEntity> {
 
-  protected readonly collection: TEntity[];
+  protected collection: TEntity[];
 
   protected constructor(
     protected readonly database: Database,
@@ -18,11 +18,11 @@ export abstract class BaseRepository<TEntity extends IEntity> implements IReposi
   }
 
   public all(): TEntity[] {
-    return this.collection.slice(0);
+    return this.collection;
   }
 
   public find(id: number): TEntity | undefined {
-    return this.collection.find((e) => e.id === id)?.clone() as TEntity;
+    return this.collection.find((e) => e.id === id);
   }
 
   public update(id: number, entity: TEntity): void {
@@ -33,6 +33,10 @@ export abstract class BaseRepository<TEntity extends IEntity> implements IReposi
   public delete(id: number): void {
     const { existing, idx } = this.findCore(id, true);
     this.deleteCore(idx, existing);
+  }
+
+  public removeAll(): void {
+    this.collection = [];
   }
 
   // hook so that the derived classes can handle interesting parts of the update;

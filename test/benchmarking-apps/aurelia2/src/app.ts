@@ -101,7 +101,21 @@ export class App {
     stopMeasure(label);
   }
 
-  // public run() {
+  public haveN(n: number): void {
+    const label = `${n}rows`;
+    startMeasure(label);
+    this.personRepository.createNewTill(n);
+    stopMeasure(label);
+  }
+
+  public removeAll() {
+    startMeasure('removeAll');
+    const repository = this.personRepository;
+    repository.removeAll();
+    this.people = repository.all();
+    stopMeasure('removeAll');
+  }
+
   //   startMeasure("run");
   //   this.store.run();
   //   stopMeasure();
@@ -133,12 +147,6 @@ export class App {
   //   stopMeasure();
   // }
 
-  // public clear() {
-  //   startMeasure("clear");
-  //   this.store.clear();
-  //   stopMeasure();
-  // }
-
   // public swapRows() {
   //   startMeasure("swapRows");
   //   this.store.swapRows();
@@ -165,7 +173,7 @@ export class FormatDate {
 @valueConverter('filterEmployed')
 export class FilterEmployed {
   public toView(value: Person[], status?: 'employed' | 'unemployed'): Person[] {
-    if (status == null) { return value; }
+    if (status == null || ((value?.length ?? 0) > 0)) { return value; }
     const predicate = status === 'employed'
       ? (p: Person) => p.jobTitle !== void 0
       : (p: Person) => p.jobTitle === void 0;

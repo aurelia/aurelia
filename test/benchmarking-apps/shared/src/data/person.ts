@@ -44,6 +44,18 @@ export class PersonRepository extends BaseRepository<Person> {
     return person;
   }
 
+  public createNewTill(n: number): void {
+    const currentLength = this.collection.length;
+    const delta = n - currentLength;
+    if (delta > 0) {
+      const newArr = new Array(delta);
+      for (let i = 0; i < delta; i++) {
+        newArr[i] = this.createRandom();
+      }
+      this.collection.push(...newArr);
+    }
+  }
+
   private associateRandomAddresses(person?: Person) {
     const maxAddresses: number = this.maxAddresses;
     if (person !== void 0) {

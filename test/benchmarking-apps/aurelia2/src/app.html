@@ -4,11 +4,15 @@
 <div class="content">
   <!-- content -->
   <div class="toolbar">
-    <button click.delegate="changeLocale()">Toggle to ${locale ? 'de' : 'en'}</button>
-    <button click.delegate="toggleAddressDetails()">Toggle address details</button>
-    <button click.delegate="filterEmployed('employed')">Show only employed</button>
-    <button click.delegate="filterEmployed('unemployed')">Show only unemployed</button>
-    <button click.delegate="filterEmployed()">Show all</button>
+    <button id="locale" click.delegate="changeLocale()">Toggle to ${locale ? 'de' : 'en'}</button>
+    <button id="details" click.delegate="toggleAddressDetails()">Toggle address details</button>
+    <button id="employed" click.delegate="filterEmployed('employed')">Show only employed</button>
+    <button id="unemployed" click.delegate="filterEmployed('unemployed')">Show only unemployed</button>
+    <button id="all" click.delegate="filterEmployed()">Show all</button>
+    <button id="hundred" click.delegate="haveN(100)">100</button>
+    <button id="thousand" click.delegate="haveN(1000)">1000</button>
+    <button id="ten-thousand" click.delegate="haveN(10000)">10K</button>
+    <button id="remove-all" click.delegate="removeAll()">Remove all</button>
   </div>
   <div class="grid">
     <strong data-sortable.bind="currentSorting.property === 'firstName' ? currentSorting.direction : ''" click.delegate="applySorting('firstName')">First name</strong>

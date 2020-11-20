@@ -10,6 +10,7 @@ export const enum AddressType {
 }
 
 export class Address implements IEntity {
+  public selected: boolean = false;
   public constructor(
     public street: string = randomStreet(),
     public houseNumber: number = randomNumber(),
@@ -31,6 +32,7 @@ export class Address implements IEntity {
 }
 
 export class AddressAssociation implements IEntity {
+  public selected: boolean = false;
   public constructor(
     public address: Address,
     public type: AddressType,

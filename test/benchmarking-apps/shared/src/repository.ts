@@ -3,6 +3,7 @@ import { Database } from './database';
 
 export abstract class BaseRepository<TEntity extends IEntity> implements IRepository<TEntity> {
 
+  protected selectedIndex = -1;
   protected collection: TEntity[];
 
   protected constructor(
@@ -30,13 +31,35 @@ export abstract class BaseRepository<TEntity extends IEntity> implements IReposi
     this.updateCore(entity, existing, idx);
   }
 
-  public delete(id: number): void {
+  public updateEvery10th(): void {
+    console.warn('default impl. is noop');
+  }
+
+  public deleteById(id: number): void {
     const { existing, idx } = this.findCore(id, true);
     this.deleteCore(idx, existing);
   }
 
+  public deleteByIndex(index: number): void {
+    this.deleteCore(index, this.collection[index]);
+  }
+
   public removeAll(): void {
     this.collection = [];
+  }
+
+  public select(index: number): void {
+    const data = this.collection;
+    const currentIndex = this.selectedIndex;
+    const prev = data[currentIndex];
+    if (currentIndex > -1 && prev !== void 0) {
+      prev.selected = false;
+    }
+    const current = data[index];
+    if (current !== void 0) {
+      current.selected = true;
+      this.selectedIndex = index;
+    }
   }
 
   // hook so that the derived classes can handle interesting parts of the update;

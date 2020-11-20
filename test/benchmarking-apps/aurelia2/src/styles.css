@@ -4,6 +4,7 @@
   --gap-md: calc(var(--gap) * 1.5);
   --gap-lg: calc(var(--gap) * 3);
   --gap-xxl: calc(var(--gap) * 10);
+  --gray: #999999;
 }
 
 body {
@@ -43,7 +44,7 @@ app>.content {
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(6, auto);
   row-gap: var(--gap-md);
   overflow: auto;
 }
@@ -61,6 +62,21 @@ app>.content {
   content: "\25BC";
   padding-left: var(--gap-sm);
 }
+
+.grid .delete {
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.grid .delete::after {
+  content: "\00D7";
+}
+
+.grid [data-selected="true"],
+.grid [data-selected="true"]+* {
+  background-color: var(--gray);
+}
+
 
 address-viewer .details-container {
   display: flex;

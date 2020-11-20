@@ -1,5 +1,6 @@
 export interface IEntity {
   id: number;
+  selected: boolean;
   clone(): IEntity;
 }
 
@@ -9,5 +10,9 @@ export interface IRepository<TEntity extends IEntity> {
   all(): TEntity[];
   find(id: number): TEntity | undefined;
   update(id: number, entity: TEntity): void;
-  delete(id: number): void;
+  deleteById(id: number): void;
+  deleteByIndex(index: number): void;
+  removeAll(): void;
+  select(index: number): void;
+  updateEvery10th(): void;
 }

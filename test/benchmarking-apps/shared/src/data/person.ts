@@ -6,6 +6,7 @@ import { BaseRepository } from '../repository';
 import { Database } from '../database';
 
 export class Person implements IEntity {
+  public selected: boolean = false;
   public readonly addresses: AddressAssociation[] = [];
   public constructor(
     public firstName: string = randomFirstName(),
@@ -53,6 +54,14 @@ export class PersonRepository extends BaseRepository<Person> {
         newArr[i] = this.createRandom();
       }
       this.collection.push(...newArr);
+    }
+  }
+
+  public updateEvery10th(): void {
+    const data = this.collection;
+    const len = data.length;
+    for (let i = 0; i < len; i += 10) {
+      data[i].firstName += ' !!!';
     }
   }
 

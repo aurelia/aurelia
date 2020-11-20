@@ -1,7 +1,7 @@
-import { computed, customElement, valueConverter } from '@aurelia/runtime-html';
-import { IAddressRepository, IPersonRepository, Person } from '@benchmarking-apps/shared';
+import { computed, customElement, ILifecycle, valueConverter } from '@aurelia/runtime-html';
+import { IPersonRepository, Person } from '@benchmarking-apps/shared';
 import template from './app.html';
-import { iar, ipr } from './registrations';
+import { ipr } from './registrations';
 
 // Can we do better? Or this needs to be here for other Fx compat?
 // let startTime: number;
@@ -49,7 +49,7 @@ export class App {
   private employmentStatus: 'employed' | 'unemployed' | undefined = void 0;
   public constructor(
     @ipr private readonly personRepository: IPersonRepository,
-    @iar private readonly addressRepository: IAddressRepository,
+    @ILifecycle private readonly lifecycle: ILifecycle,
   ) {
     this.people = personRepository.all();
   }
@@ -108,7 +108,14 @@ export class App {
     stopMeasure(label);
   }
 
-  public removeAll() {
+  public plusN(n: number): void {
+    const label = `plus ${n}rows`;
+    startMeasure(label);
+    this.personRepository.createNewTill(this.people.length + n);
+    stopMeasure(label);
+  }
+
+  public removeAll(): void {
     startMeasure('removeAll');
     const repository = this.personRepository;
     repository.removeAll();
@@ -116,42 +123,38 @@ export class App {
     stopMeasure('removeAll');
   }
 
-  //   startMeasure("run");
-  //   this.store.run();
-  //   stopMeasure();
-  // }
-  // public add() {
-  //   startMeasure("add");
-  //   this.store.add();
-  //   stopMeasure();
-  // }
-  // public remove(item: { id: any }) {
-  //   startMeasure("delete");
-  //   this.store.delete(item.id);
-  //   stopMeasure();
-  // }
-  // public select(item: { id: any }) {
-  //   startMeasure("select");
-  //   this.store.select(item.id);
-  //   stopMeasure();
-  // }
-  // public update() {
-  //   startMeasure("update");
-  //   this.store.update();
-  //   stopMeasure();
-  // }
+  public delete(index: number): void {
+    startMeasure('delete');
+    this.personRepository.deleteByIndex(index);
+    stopMeasure('delete');
+  }
 
-  // public runLots() {
-  //   startMeasure("runLots");
-  //   this.store.runLots();
-  //   stopMeasure();
-  // }
+  public select(index: number): void {
+    startMeasure('select');
+    this.personRepository.select(index);
+    stopMeasure('select');
+  }
 
-  // public swapRows() {
-  //   startMeasure("swapRows");
-  //   this.store.swapRows();
-  //   stopMeasure();
-  // }
+  public updateEvery10th(): void {
+    startMeasure('update');
+    this.personRepository.updateEvery10th();
+    stopMeasure('update');
+  }
+
+  public swapRows(): void {
+    const label = `swapRows - #${this.people.length}`;
+    startMeasure(label);
+    const data = this.people;
+    if (data.length > 998) {
+      const temp = data[1];
+      const temp2 = data[998];
+      this.lifecycle.batch.inline(() => {
+        data.splice(1, 1, temp2);
+        data.splice(998, 1, temp);
+      });
+    }
+    stopMeasure(label);
+  }
 }
 
 @valueConverter('formatDate')

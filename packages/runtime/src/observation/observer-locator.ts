@@ -15,14 +15,12 @@ import { getSetObserver } from './set-observer.js';
 import { SetterObserver } from './setter-observer.js';
 
 import type {
+  Collection,
   IAccessor,
   IBindingTargetAccessor,
   IBindingTargetObserver,
   ICollectionObserver,
   IObservable,
-  IObservedArray,
-  IObservedMap,
-  IObservedSet,
   IObserver,
 } from '../observation.js';
 
@@ -100,16 +98,16 @@ export class ObserverLocator {
     return propertyAccessor as IBindingTargetAccessor;
   }
 
-  public getArrayObserver(observedArray: IObservedArray): ICollectionObserver<CollectionKind.array> {
-    return getArrayObserver(this.lifecycle, observedArray);
+  public getArrayObserver(observedArray: unknown[]): ICollectionObserver<CollectionKind.array> {
+    return getArrayObserver(observedArray, this.lifecycle);
   }
 
-  public getMapObserver(observedMap: IObservedMap): ICollectionObserver<CollectionKind.map>  {
-    return getMapObserver(this.lifecycle, observedMap);
+  public getMapObserver(observedMap: Map<unknown, unknown>): ICollectionObserver<CollectionKind.map>  {
+    return getMapObserver(observedMap, this.lifecycle);
   }
 
-  public getSetObserver(observedSet: IObservedSet): ICollectionObserver<CollectionKind.set>  {
-    return getSetObserver(this.lifecycle, observedSet);
+  public getSetObserver(observedSet: Set<unknown>): ICollectionObserver<CollectionKind.set>  {
+    return getSetObserver(observedSet, this.lifecycle);
   }
 
   private createObserver(obj: IObservable, key: string): AccessorOrObserver {
@@ -124,19 +122,19 @@ export class ObserverLocator {
     switch (key) {
       case 'length':
         if (obj instanceof Array) {
-          return getArrayObserver(this.lifecycle, obj).getLengthObserver();
+          return getArrayObserver(obj, this.lifecycle).getLengthObserver();
         }
         break;
       case 'size':
         if (obj instanceof Map) {
-          return getMapObserver(this.lifecycle, obj).getLengthObserver();
+          return getMapObserver(obj, this.lifecycle).getLengthObserver();
         } else if (obj instanceof Set) {
-          return getSetObserver(this.lifecycle, obj).getLengthObserver();
+          return getSetObserver(obj, this.lifecycle).getLengthObserver();
         }
         break;
       default:
         if (obj instanceof Array && isArrayIndex(key)) {
-          return getArrayObserver(this.lifecycle, obj).getIndexObserver(Number(key));
+          return getArrayObserver(obj, this.lifecycle).getIndexObserver(Number(key));
         }
         break;
     }
@@ -198,15 +196,16 @@ export class ObserverLocator {
   }
 }
 
-export type RepeatableCollection = IObservedMap | IObservedSet | IObservedArray | null | undefined | number;
+export type RepeatableCollection = Collection | null | undefined | number;
 
-export function getCollectionObserver(lifecycle: ILifecycle, collection: RepeatableCollection): CollectionObserver | undefined {
+export function getCollectionObserver(collection: RepeatableCollection, lifecycle: ILifecycle | null): CollectionObserver | undefined {
+  let obs: CollectionObserver | undefined;
   if (collection instanceof Array) {
-    return getArrayObserver(lifecycle, collection as IObservedArray);
+    obs = getArrayObserver(collection, lifecycle);
   } else if (collection instanceof Map) {
-    return getMapObserver(lifecycle, collection as IObservedMap);
+    obs = getMapObserver(collection, lifecycle);
   } else if (collection instanceof Set) {
-    return getSetObserver(lifecycle, collection as IObservedSet);
+    obs = getSetObserver(collection, lifecycle);
   }
-  return void 0;
+  return obs;
 }

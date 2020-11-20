@@ -1,4 +1,3 @@
-import { DI } from '@aurelia/kernel';
 import {
   AccessMemberExpression,
   AccessScopeExpression,
@@ -39,9 +38,6 @@ export function padRight(input: unknown, len: number): string {
   return str + new Array(len - strLen + 1).join(' ');
 }
 
-const $nil: any = undefined;
-const getName = (o: any) => Object.prototype.toString.call(o).slice(8, -1);
-
 describe('PropertyBinding', function () {
   let dummySourceExpression: IsBindingBehavior;
   let dummyTarget: Record<string, unknown>;
@@ -63,16 +59,6 @@ describe('PropertyBinding', function () {
     dummyTarget = {foo: 'bar'};
     dummyTargetProperty = 'foo';
     dummyMode = BindingMode.twoWay;
-  });
-
-  describe('constructor', function () {
-    const invalidInputs: any[] = [null, undefined, {}];
-
-    for (const ii of invalidInputs) {
-      it(`throws on invalid input parameters of type ${getName(ii)}`, function () {
-        assert.throws(() => new PropertyBinding(ii, ii, ii, ii, ii, ii, ii), `() => new PropertyBinding(ii, ii, ii, ii, ii, ii)`);
-      });
-    }
   });
 
   describe('updateTarget()', function () {

@@ -1,9 +1,8 @@
-import { TaskQueue } from '@aurelia/kernel';
-import { BindingMode, LifecycleFlags, ILifecycle, AccessorType } from '../observation.js';
+import { BindingMode, LifecycleFlags, AccessorType } from '../observation.js';
 import { ExpressionKind } from './ast.js';
 import { connectable } from './connectable.js';
 
-import type { IServiceLocator, ITask, QueueTaskOptions } from '@aurelia/kernel';
+import type { IServiceLocator, ITask, QueueTaskOptions, TaskQueue } from '@aurelia/kernel';
 import type { AccessorOrObserver, IBindingTargetObserver } from '../observation.js';
 import type { IObserverLocator } from '../observation/observer-locator.js';
 import type { ForOfStatement, IsBindingBehavior, } from './ast.js';
@@ -29,7 +28,6 @@ export class PropertyBinding implements IPartialConnectableBinding {
 
   public id!: number;
   public isBound: boolean = false;
-  public $lifecycle: ILifecycle;
   public $scope?: Scope = void 0;
   public $hostScope: Scope | null = null;
 
@@ -49,7 +47,6 @@ export class PropertyBinding implements IPartialConnectableBinding {
     private readonly taskQueue: TaskQueue,
   ) {
     connectable.assignIdTo(this);
-    this.$lifecycle = locator.get(ILifecycle);
   }
 
   public updateTarget(value: unknown, flags: LifecycleFlags): void {

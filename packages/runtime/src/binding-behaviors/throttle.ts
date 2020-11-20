@@ -1,8 +1,10 @@
+import { IPlatform } from '@aurelia/kernel';
 import { LifecycleFlags } from '../observation.js';
-import { bindingBehavior, BindingInterceptor, IInterceptableBinding } from '../binding-behavior.js';
-import { IPlatform, ITask, TaskQueue, QueueTaskOptions } from '@aurelia/kernel';
+import { bindingBehavior, BindingInterceptor } from '../binding-behavior.js';
 import { BindingBehaviorExpression, IsAssign } from '../binding/ast.js';
 
+import type { ITask, TaskQueue, QueueTaskOptions } from '@aurelia/kernel';
+import type { IInterceptableBinding } from '../binding-behavior.js';
 import type { Scope } from '../observation/binding-context.js';
 
 @bindingBehavior('throttle')

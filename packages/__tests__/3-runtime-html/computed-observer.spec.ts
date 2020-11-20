@@ -299,55 +299,63 @@ describe('simple Computed Observer test case', function () {
       },
     },
     /* eslint-disable */
-    ...[
-      () => new ArrayBuffer(0),
-      () => new Boolean(),
-      () => new DataView(new ArrayBuffer(0)),
-      () => new Date(),
-      () => new Error(),
-      () => new EvalError(),
-      () => new Float32Array(),
-      () => new Float64Array(),
-      () => new Function(''),
-      () => new Int8Array(),
-      () => new Int16Array(),
-      () => new Int32Array(),
-      () => new Number(),
-      () => new Promise(r => r()),
-      () => new RangeError(),
-      () => new ReferenceError(),
-      () => new RegExp('a'),
+    ...(<[string, () => any][]>[
+      ['ArrayBuffer', () => new ArrayBuffer(0)],
+      ['Boolean', () => new Boolean()],
+      ['DataView', () => new DataView(new ArrayBuffer(0))],
+      ['Date', () => new Date()],
+      ['Error', () => new Error()],
+      ['EvalError', () => new EvalError()],
+      ['Float32Array', () => new Float32Array()],
+      ['Float64Array', () => new Float64Array()],
+      ['Function', () => new Function('')],
+      ['Int8Array', () => new Int8Array()],
+      ['Int16Array', () => new Int16Array()],
+      ['Int64Array', () => new Int32Array()],
+      ['Number', () => new Number()],
+      ['Promise', () => new Promise(r => r())],
+      ['RangeError', () => new RangeError()],
+      ['ReferenceError', () => new ReferenceError()],
+      ['RegExp', () => new RegExp('a')],
       // ideally, properties on Map & Set that are not special (methods & 'size')
       // should be treated as normal properties, and should be observable by getter/setter
       // though probably it's good to start with not observing unless there's a need for it
       // example: Map/Set subclasses that have special properties.
       // todo: add connectable.observe(target, key) in proxy-observation.ts
-      () => new Map(),
-      () => new Set(),
-      () => new SharedArrayBuffer(0),
-      () => new String(),
-      () => new SyntaxError(),
-      () => new TypeError(),
-      () => new Uint8Array(),
-      () => new Uint8ClampedArray(),
-      () => new Uint16Array(),
-      () => new Uint32Array(),
-      () => new URIError(),
-      () => new WeakMap(),
-      () => new WeakSet(),
-      () => Math,
-      () => JSON,
-      () => Reflect,
-      () => Atomics,
-    ].filter(createInstrinsic => {
+      ['Map', () => new Map()],
+      ['Set', () => new Set()],
+      ['SharedArrayBuffer', () => new SharedArrayBuffer(0)],
+      ['String', () => new String()],
+      ['SyntaxError', () => new SyntaxError()],
+      ['TypeError', () => new TypeError()],
+      ['Uint8Array', () => new Uint8Array()],
+      ['Uint8ClampedArray', () => new Uint8ClampedArray()],
+      ['Uint16Array', () => new Uint16Array()],
+      ['Uint32Array', () => new Uint32Array()],
+      ['URIError', () => new URIError()],
+      ['WeakMap', () => new WeakMap()],
+      ['WeakSet', () => new WeakSet()],
+      ['Math', () => Math],
+      ['JSON', () => JSON],
+      ['Reflect', () => Reflect],
+      ['Atomics', () => Atomics],
+    ]).filter(([title, createInstrinsic]) => {
       try {
-        return !!createInstrinsic();
+        switch (Object.prototype.toString.call(createInstrinsic())) {
+          case '[object Object]':
+          case '[object Array]':
+          case '[object Set]':
+          case '[object Map]':
+            return false;
+          default:
+            return true;
+        }
       } catch {
         return false;
       }
-    }).map((createInstrinsic) => {
+    }).map(([title, createInstrinsic]) => {
       return <IComputedObserverTestCase>{
-        title: `does not observe ${Object.prototype.toString.call(createInstrinsic())}`,
+        title: `does not observe ${title}`,
         template: `<div>\${someProp || 'no value'}</div>`,
         ViewModel: class App {
           public items: IAppItem[] = [];

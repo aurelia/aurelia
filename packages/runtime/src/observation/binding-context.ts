@@ -164,11 +164,7 @@ export class Scope {
    * @param oc - null. This overload is functionally equivalent to not passing this argument at all.
    */
   public static create(bc: object, oc: null, isComponentBoundary?: boolean): Scope;
-  public static create(
-    bc: object,
-    oc?: IOverrideContext | null,
-    isComponentBoundary?: boolean,
-  ): Scope {
+  public static create(bc: object, oc?: IOverrideContext | null, isComponentBoundary?: boolean): Scope {
     return new Scope(null, bc as IBindingContext, oc == null ? OverrideContext.create(bc) : oc, isComponentBoundary ?? false);
   }
 

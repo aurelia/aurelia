@@ -1,8 +1,9 @@
-import { IConnectableBinding } from '../binding/connectable.js';
-import { IBinding, LifecycleFlags } from '../observation.js';
+import { LifecycleFlags } from '../observation.js';
 import { ISignaler } from '../observation/signaler.js';
 import { bindingBehavior, BindingBehaviorInstance } from '../binding-behavior.js';
 
+import type { IBinding } from '../observation.js';
+import type { IConnectableBinding } from '../binding/connectable.js';
 import type { Scope } from '../observation/binding-context.js';
 
 @bindingBehavior('signal')

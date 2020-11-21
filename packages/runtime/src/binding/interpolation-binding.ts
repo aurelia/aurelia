@@ -1,20 +1,18 @@
-import { IIndexable, IServiceLocator, ITask, QueueTaskOptions, TaskQueue} from '@aurelia/kernel';
 import {
   AccessorType,
   CollectionKind,
   BindingMode,
   LifecycleFlags,
 } from '../observation.js';
-import { IObserverLocator } from '../observation/observer-locator.js';
-import { ExpressionKind, Interpolation, IsExpression } from './ast.js';
-import {
-  connectable,
-  IConnectableBinding,
-} from './connectable.js';
+import { ExpressionKind } from './ast.js';
+import { connectable } from './connectable.js';
 
+import type { IIndexable, IServiceLocator, ITask, QueueTaskOptions, TaskQueue} from '@aurelia/kernel';
+import type { Interpolation, IsExpression } from './ast.js';
+import type { IConnectableBinding } from './connectable.js';
+import type { IObserverLocator } from '../observation/observer-locator.js';
 import type {
   IBindingTargetAccessor,
-  IObservedArray,
   ICollectionSubscriber,
   IndexMap,
   ICollectionObserver,
@@ -241,7 +239,7 @@ export class ContentBinding implements ContentBinding, ICollectionSubscriber {
     this.unobserveArray();
   }
 
-  private observeArray(arr: IObservedArray): void {
+  private observeArray(arr: unknown[]): void {
     const newObserver = this.arrayObserver = this.observerLocator.getArrayObserver(arr);
     newObserver.addCollectionSubscriber(this.interceptor);
   }

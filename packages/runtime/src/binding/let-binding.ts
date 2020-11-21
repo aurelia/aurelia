@@ -1,22 +1,12 @@
-import {
-  IIndexable,
-  IServiceLocator,
-} from '@aurelia/kernel';
-import {
-  ITask,
-} from '@aurelia/platform';
-import {
-  ILifecycle,
-  IObservable, LifecycleFlags,
-} from '../observation.js';
-import { IObserverLocator } from '../observation/observer-locator.js';
-import { IsExpression } from './ast.js';
-import {
-  connectable,
-  IConnectableBinding,
-  IPartialConnectableBinding,
-} from './connectable.js';
+import { LifecycleFlags } from '../observation.js';
+import { connectable } from './connectable.js';
 
+import type { ITask } from '@aurelia/platform';
+import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
+import type { IConnectableBinding, IPartialConnectableBinding } from './connectable.js';
+import type { IObservable } from '../observation.js';
+import type { IObserverLocator } from '../observation/observer-locator.js';
+import type { IsExpression } from './ast.js';
 import type { Scope } from '../observation/binding-context.js';
 
 export interface LetBinding extends IConnectableBinding {}
@@ -27,7 +17,6 @@ export class LetBinding implements IPartialConnectableBinding {
 
   public id!: number;
   public isBound: boolean = false;
-  public $lifecycle: ILifecycle;
   public $scope?: Scope = void 0;
   public $hostScope: Scope | null = null;
   public task: ITask | null = null;
@@ -42,7 +31,6 @@ export class LetBinding implements IPartialConnectableBinding {
     private readonly toBindingContext: boolean = false,
   ) {
     connectable.assignIdTo(this);
-    this.$lifecycle = locator.get(ILifecycle);
   }
 
   public handleChange(_newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {

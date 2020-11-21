@@ -1,4 +1,5 @@
-import { Constructable, Protocol, Metadata, IResourceKind, ResourceDefinition, IContainer, Registration } from '@aurelia/kernel';
+import { Protocol, Metadata, Registration } from '@aurelia/kernel';
+import type { Constructable, IResourceKind, ResourceDefinition, IContainer } from '@aurelia/kernel';
 
 export function alias(...aliases: readonly string[]) {
   return function (target: Constructable) {

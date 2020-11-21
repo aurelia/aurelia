@@ -1,6 +1,6 @@
-import { CollectionKind, IndexMap, LifecycleFlags, AccessorType } from '../observation.js';
+import { LifecycleFlags, AccessorType } from '../observation.js';
 import { CollectionLengthObserver } from './collection-length-observer.js';
-import type { ICollectionObserver, ICollectionIndexObserver, ILifecycle, IObservedArray, ISubscriber } from '../observation.js';
+import type { CollectionKind, ICollectionObserver, ICollectionIndexObserver, ILifecycle, IndexMap, ISubscriber } from '../observation.js';
 export declare function enableArrayObservation(): void;
 export declare function disableArrayObservation(): void;
 export interface ArrayObserver extends ICollectionObserver<CollectionKind.array> {
@@ -9,7 +9,7 @@ export declare class ArrayObserver {
     inBatch: boolean;
     type: AccessorType;
     private readonly indexObservers;
-    constructor(lifecycle: ILifecycle, array: IObservedArray);
+    constructor(array: unknown[]);
     notify(): void;
     getLengthObserver(): CollectionLengthObserver;
     getIndexObserver(index: number): ICollectionIndexObserver;
@@ -32,7 +32,7 @@ export declare class ArrayIndexObserver implements ICollectionIndexObserver {
     subscribe(subscriber: ISubscriber): void;
     unsubscribe(subscriber: ISubscriber): void;
 }
-export declare function getArrayObserver(lifecycle: ILifecycle, array: IObservedArray): ArrayObserver;
+export declare function getArrayObserver(array: unknown[], lifecycle: ILifecycle | null): ArrayObserver;
 /**
  * Applies offsets to the non-negative indices in the IndexMap
  * based on added and deleted items relative to those indices.

@@ -4,8 +4,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-import { ILifecycle, } from '../observation.js';
-import { connectable, } from './connectable.js';
+import { connectable } from './connectable.js';
 let LetBinding = class LetBinding {
     constructor(sourceExpression, targetProperty, observerLocator, locator, toBindingContext = false) {
         this.sourceExpression = sourceExpression;
@@ -20,7 +19,6 @@ let LetBinding = class LetBinding {
         this.task = null;
         this.target = null;
         connectable.assignIdTo(this);
-        this.$lifecycle = locator.get(ILifecycle);
     }
     handleChange(_newValue, _previousValue, flags) {
         if (!this.isBound) {

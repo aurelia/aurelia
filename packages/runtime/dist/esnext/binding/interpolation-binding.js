@@ -5,7 +5,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 import { BindingMode, } from '../observation.js';
-import { connectable, } from './connectable.js';
+import { connectable } from './connectable.js';
 const { toView } = BindingMode;
 const queueTaskOptions = {
     reusable: false,

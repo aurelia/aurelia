@@ -75,13 +75,13 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             return property_accessor_js_1.propertyAccessor;
         }
         getArrayObserver(observedArray) {
-            return array_observer_js_1.getArrayObserver(this.lifecycle, observedArray);
+            return array_observer_js_1.getArrayObserver(observedArray, this.lifecycle);
         }
         getMapObserver(observedMap) {
-            return map_observer_js_1.getMapObserver(this.lifecycle, observedMap);
+            return map_observer_js_1.getMapObserver(observedMap, this.lifecycle);
         }
         getSetObserver(observedSet) {
-            return set_observer_js_1.getSetObserver(this.lifecycle, observedSet);
+            return set_observer_js_1.getSetObserver(observedSet, this.lifecycle);
         }
         createObserver(obj, key) {
             var _a, _b, _c, _d;
@@ -94,20 +94,20 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             switch (key) {
                 case 'length':
                     if (obj instanceof Array) {
-                        return array_observer_js_1.getArrayObserver(this.lifecycle, obj).getLengthObserver();
+                        return array_observer_js_1.getArrayObserver(obj, this.lifecycle).getLengthObserver();
                     }
                     break;
                 case 'size':
                     if (obj instanceof Map) {
-                        return map_observer_js_1.getMapObserver(this.lifecycle, obj).getLengthObserver();
+                        return map_observer_js_1.getMapObserver(obj, this.lifecycle).getLengthObserver();
                     }
                     else if (obj instanceof Set) {
-                        return set_observer_js_1.getSetObserver(this.lifecycle, obj).getLengthObserver();
+                        return set_observer_js_1.getSetObserver(obj, this.lifecycle).getLengthObserver();
                     }
                     break;
                 default:
                     if (obj instanceof Array && kernel_1.isArrayIndex(key)) {
-                        return array_observer_js_1.getArrayObserver(this.lifecycle, obj).getIndexObserver(Number(key));
+                        return array_observer_js_1.getArrayObserver(obj, this.lifecycle).getIndexObserver(Number(key));
                     }
                     break;
             }
@@ -169,17 +169,18 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         __param(2, exports.INodeObserverLocator)
     ], ObserverLocator);
     exports.ObserverLocator = ObserverLocator;
-    function getCollectionObserver(lifecycle, collection) {
+    function getCollectionObserver(collection, lifecycle) {
+        let obs;
         if (collection instanceof Array) {
-            return array_observer_js_1.getArrayObserver(lifecycle, collection);
+            obs = array_observer_js_1.getArrayObserver(collection, lifecycle);
         }
         else if (collection instanceof Map) {
-            return map_observer_js_1.getMapObserver(lifecycle, collection);
+            obs = map_observer_js_1.getMapObserver(collection, lifecycle);
         }
         else if (collection instanceof Set) {
-            return set_observer_js_1.getSetObserver(lifecycle, collection);
+            obs = set_observer_js_1.getSetObserver(collection, lifecycle);
         }
-        return void 0;
+        return obs;
     }
     exports.getCollectionObserver = getCollectionObserver;
 });

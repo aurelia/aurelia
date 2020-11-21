@@ -1,5 +1,5 @@
-import { Constructable } from '@aurelia/kernel';
 import { InterceptorFunc } from '../bindable.js';
+import type { Constructable } from '@aurelia/kernel';
 export interface IObservableDefinition {
     name?: PropertyKey;
     callback?: PropertyKey;

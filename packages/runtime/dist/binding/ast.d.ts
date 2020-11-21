@@ -1,6 +1,7 @@
-import { IServiceLocator, ResourceDefinition } from '@aurelia/kernel';
-import { LifecycleFlags as LF, Collection, IBindingContext, IOverrideContext, ObservedCollection, IConnectable } from '../observation.js';
-import { IConnectableBinding } from './connectable.js';
+import { LifecycleFlags as LF } from '../observation.js';
+import type { IServiceLocator, ResourceDefinition } from '@aurelia/kernel';
+import type { IConnectableBinding } from './connectable.js';
+import type { Collection, IBindingContext, IOverrideContext, IConnectable } from '../observation.js';
 import type { Scope } from '../observation/binding-context.js';
 export declare const enum ExpressionKind {
     Connects = 32,
@@ -415,8 +416,8 @@ export declare class ForOfStatement {
     constructor(declaration: BindingIdentifierOrPattern, iterable: IsBindingBehavior);
     evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, c: IConnectable | null): unknown;
     assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown): unknown;
-    count(_f: LF, result: ObservedCollection | number | null | undefined): number;
-    iterate(f: LF, result: ObservedCollection | number | null | undefined, func: (arr: Collection, index: number, item: unknown) => void): void;
+    count(_f: LF, result: Collection | number | null | undefined): number;
+    iterate(f: LF, result: Collection | number | null | undefined, func: (arr: Collection, index: number, item: unknown) => void): void;
     bind(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void;
     unbind(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void;
     accept<T>(visitor: IVisitor<T>): T;

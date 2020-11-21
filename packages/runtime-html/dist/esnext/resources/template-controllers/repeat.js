@@ -115,7 +115,7 @@ let Repeat = class Repeat {
             }
         }
         else if (this.$controller.isActive) {
-            const newObserver = this.observer = getCollectionObserver(this.$controller.lifecycle, this.items);
+            const newObserver = this.observer = getCollectionObserver(this.items, this.$controller.lifecycle);
             if (oldObserver !== newObserver && oldObserver) {
                 oldObserver.unsubscribeFromCollection(this);
             }

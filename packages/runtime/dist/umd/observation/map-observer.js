@@ -31,22 +31,18 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     const observe = {
         // https://tc39.github.io/ecma262/#sec-map.prototype.map
         set: function (key, value) {
-            let $this = this;
-            if ($this.$raw !== undefined) {
-                $this = $this.$raw;
-            }
-            const o = observerLookup.get($this);
+            const o = observerLookup.get(this);
             if (o === undefined) {
-                $set.call($this, key, value);
+                $set.call(this, key, value);
                 return this;
             }
-            const oldValue = $this.get(key);
-            const oldSize = $this.size;
-            $set.call($this, key, value);
-            const newSize = $this.size;
+            const oldValue = this.get(key);
+            const oldSize = this.size;
+            $set.call(this, key, value);
+            const newSize = this.size;
             if (newSize === oldSize) {
                 let i = 0;
-                for (const entry of $this.entries()) {
+                for (const entry of this.entries()) {
                     if (entry[0] === key) {
                         if (entry[1] !== oldValue) {
                             o.indexMap.deletedItems.push(o.indexMap[i]);
@@ -65,26 +61,22 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
         },
         // https://tc39.github.io/ecma262/#sec-map.prototype.clear
         clear: function () {
-            let $this = this;
-            if ($this.$raw !== undefined) {
-                $this = $this.$raw;
-            }
-            const o = observerLookup.get($this);
+            const o = observerLookup.get(this);
             if (o === undefined) {
-                return $clear.call($this);
+                return $clear.call(this);
             }
-            const size = $this.size;
+            const size = this.size;
             if (size > 0) {
                 const indexMap = o.indexMap;
                 let i = 0;
                 // deepscan-disable-next-line
-                for (const _ of $this.keys()) {
+                for (const _ of this.keys()) {
                     if (indexMap[i] > -1) {
                         indexMap.deletedItems.push(indexMap[i]);
                     }
                     i++;
                 }
-                $clear.call($this);
+                $clear.call(this);
                 indexMap.length = 0;
                 o.notify();
             }
@@ -92,27 +84,23 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
         },
         // https://tc39.github.io/ecma262/#sec-map.prototype.delete
         delete: function (value) {
-            let $this = this;
-            if ($this.$raw !== undefined) {
-                $this = $this.$raw;
-            }
-            const o = observerLookup.get($this);
+            const o = observerLookup.get(this);
             if (o === undefined) {
-                return $delete.call($this, value);
+                return $delete.call(this, value);
             }
-            const size = $this.size;
+            const size = this.size;
             if (size === 0) {
                 return false;
             }
             let i = 0;
             const indexMap = o.indexMap;
-            for (const entry of $this.keys()) {
+            for (const entry of this.keys()) {
                 if (entry === value) {
                     if (indexMap[i] > -1) {
                         indexMap.deletedItems.push(indexMap[i]);
                     }
                     indexMap.splice(i, 1);
-                    const deleteResult = $delete.call($this, value);
+                    const deleteResult = $delete.call(this, value);
                     if (deleteResult === true) {
                         o.notify();
                     }
@@ -150,7 +138,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     }
     exports.disableMapObservation = disableMapObservation;
     let MapObserver = class MapObserver {
-        constructor(lifecycle, map) {
+        constructor(map) {
             this.type = 34 /* Map */;
             if (!enableMapObservationCalled) {
                 enableMapObservationCalled = true;
@@ -159,12 +147,12 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
             this.inBatch = false;
             this.collection = map;
             this.indexMap = observation_js_1.createIndexMap(map.size);
-            this.lifecycle = lifecycle;
             this.lengthObserver = (void 0);
             observerLookup.set(map, this);
         }
         notify() {
-            if (this.lifecycle.batch.depth > 0) {
+            var _a;
+            if ((_a = this.lifecycle) === null || _a === void 0 ? void 0 : _a.batch.depth) {
                 if (!this.inBatch) {
                     this.inBatch = true;
                     this.lifecycle.batch.add(this);
@@ -195,10 +183,13 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
         subscriber_collection_js_1.collectionSubscriberCollection()
     ], MapObserver);
     exports.MapObserver = MapObserver;
-    function getMapObserver(lifecycle, map) {
-        const observer = observerLookup.get(map);
+    function getMapObserver(map, lifecycle) {
+        let observer = observerLookup.get(map);
         if (observer === void 0) {
-            return new MapObserver(lifecycle, map);
+            observer = new MapObserver(map);
+            if (lifecycle != null) {
+                observer.lifecycle = lifecycle;
+            }
         }
         return observer;
     }

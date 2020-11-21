@@ -1,6 +1,7 @@
 import { LifecycleFlags } from '../observation.js';
-import { BindingInterceptor, IInterceptableBinding } from '../binding-behavior.js';
+import { BindingInterceptor } from '../binding-behavior.js';
 import { BindingBehaviorExpression } from '../binding/ast.js';
+import type { IInterceptableBinding } from '../binding-behavior.js';
 import type { Scope } from '../observation/binding-context.js';
 export declare class ThrottleBindingBehavior extends BindingInterceptor {
     private readonly taskQueue;

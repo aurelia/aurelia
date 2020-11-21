@@ -1,5 +1,5 @@
-import { IIndexable, IServiceLocator } from '@aurelia/kernel';
 import { LifecycleFlags } from '../observation.js';
+import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
 import type { IsBindingBehavior } from './ast.js';
 import type { IConnectableBinding } from './connectable.js';
 import type { Scope } from '../observation/binding-context.js';

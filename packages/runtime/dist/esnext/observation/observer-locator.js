@@ -63,13 +63,13 @@ let ObserverLocator = class ObserverLocator {
         return propertyAccessor;
     }
     getArrayObserver(observedArray) {
-        return getArrayObserver(this.lifecycle, observedArray);
+        return getArrayObserver(observedArray, this.lifecycle);
     }
     getMapObserver(observedMap) {
-        return getMapObserver(this.lifecycle, observedMap);
+        return getMapObserver(observedMap, this.lifecycle);
     }
     getSetObserver(observedSet) {
-        return getSetObserver(this.lifecycle, observedSet);
+        return getSetObserver(observedSet, this.lifecycle);
     }
     createObserver(obj, key) {
         var _a, _b, _c, _d;
@@ -82,20 +82,20 @@ let ObserverLocator = class ObserverLocator {
         switch (key) {
             case 'length':
                 if (obj instanceof Array) {
-                    return getArrayObserver(this.lifecycle, obj).getLengthObserver();
+                    return getArrayObserver(obj, this.lifecycle).getLengthObserver();
                 }
                 break;
             case 'size':
                 if (obj instanceof Map) {
-                    return getMapObserver(this.lifecycle, obj).getLengthObserver();
+                    return getMapObserver(obj, this.lifecycle).getLengthObserver();
                 }
                 else if (obj instanceof Set) {
-                    return getSetObserver(this.lifecycle, obj).getLengthObserver();
+                    return getSetObserver(obj, this.lifecycle).getLengthObserver();
                 }
                 break;
             default:
                 if (obj instanceof Array && isArrayIndex(key)) {
-                    return getArrayObserver(this.lifecycle, obj).getIndexObserver(Number(key));
+                    return getArrayObserver(obj, this.lifecycle).getIndexObserver(Number(key));
                 }
                 break;
         }
@@ -157,16 +157,17 @@ ObserverLocator = __decorate([
     __param(2, INodeObserverLocator)
 ], ObserverLocator);
 export { ObserverLocator };
-export function getCollectionObserver(lifecycle, collection) {
+export function getCollectionObserver(collection, lifecycle) {
+    let obs;
     if (collection instanceof Array) {
-        return getArrayObserver(lifecycle, collection);
+        obs = getArrayObserver(collection, lifecycle);
     }
     else if (collection instanceof Map) {
-        return getMapObserver(lifecycle, collection);
+        obs = getMapObserver(collection, lifecycle);
     }
     else if (collection instanceof Set) {
-        return getSetObserver(lifecycle, collection);
+        obs = getSetObserver(collection, lifecycle);
     }
-    return void 0;
+    return obs;
 }
 //# sourceMappingURL=observer-locator.js.map

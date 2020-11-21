@@ -1,6 +1,5 @@
-import { TaskQueue } from '@aurelia/kernel';
-import { BindingMode, LifecycleFlags, ILifecycle } from '../observation.js';
-import type { IServiceLocator } from '@aurelia/kernel';
+import { BindingMode, LifecycleFlags } from '../observation.js';
+import type { IServiceLocator, TaskQueue } from '@aurelia/kernel';
 import type { AccessorOrObserver } from '../observation.js';
 import type { IObserverLocator } from '../observation/observer-locator.js';
 import type { ForOfStatement, IsBindingBehavior } from './ast.js';
@@ -19,7 +18,6 @@ export declare class PropertyBinding implements IPartialConnectableBinding {
     interceptor: this;
     id: number;
     isBound: boolean;
-    $lifecycle: ILifecycle;
     $scope?: Scope;
     $hostScope: Scope | null;
     targetObserver?: AccessorOrObserver;

@@ -1,6 +1,6 @@
 import { AccessorOrObserver, CollectionKind, CollectionObserver, ILifecycle } from '../observation.js';
 import { IDirtyChecker } from './dirty-checker.js';
-import type { IAccessor, IBindingTargetAccessor, IBindingTargetObserver, ICollectionObserver, IObservedArray, IObservedMap, IObservedSet, IObserver } from '../observation.js';
+import type { Collection, IAccessor, IBindingTargetAccessor, IBindingTargetObserver, ICollectionObserver, IObserver } from '../observation.js';
 export interface IObjectObservationAdapter {
     getObserver(object: unknown, propertyName: string, descriptor: PropertyDescriptor, requestor: IObserverLocator): IBindingTargetObserver | null;
 }
@@ -32,13 +32,13 @@ export declare class ObserverLocator {
     addAdapter(adapter: IObjectObservationAdapter): void;
     getObserver(obj: object, key: string): AccessorOrObserver;
     getAccessor(obj: object, key: string): IBindingTargetAccessor;
-    getArrayObserver(observedArray: IObservedArray): ICollectionObserver<CollectionKind.array>;
-    getMapObserver(observedMap: IObservedMap): ICollectionObserver<CollectionKind.map>;
-    getSetObserver(observedSet: IObservedSet): ICollectionObserver<CollectionKind.set>;
+    getArrayObserver(observedArray: unknown[]): ICollectionObserver<CollectionKind.array>;
+    getMapObserver(observedMap: Map<unknown, unknown>): ICollectionObserver<CollectionKind.map>;
+    getSetObserver(observedSet: Set<unknown>): ICollectionObserver<CollectionKind.set>;
     private createObserver;
     private getAdapterObserver;
     private cache;
 }
-export declare type RepeatableCollection = IObservedMap | IObservedSet | IObservedArray | null | undefined | number;
-export declare function getCollectionObserver(lifecycle: ILifecycle, collection: RepeatableCollection): CollectionObserver | undefined;
+export declare type RepeatableCollection = Collection | null | undefined | number;
+export declare function getCollectionObserver(collection: RepeatableCollection, lifecycle: ILifecycle | null): CollectionObserver | undefined;
 //# sourceMappingURL=observer-locator.d.ts.map

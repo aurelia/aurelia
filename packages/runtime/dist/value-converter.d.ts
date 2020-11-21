@@ -1,4 +1,4 @@
-import { Constructable, IContainer, ResourceDefinition, IResourceKind, ResourceType, PartialResourceDefinition } from '@aurelia/kernel';
+import type { Constructable, IContainer, ResourceDefinition, IResourceKind, ResourceType, PartialResourceDefinition } from '@aurelia/kernel';
 export declare type PartialValueConverterDefinition = PartialResourceDefinition;
 export declare type ValueConverterInstance<T extends {} = {}> = {
     toView(input: unknown, ...args: unknown[]): unknown;

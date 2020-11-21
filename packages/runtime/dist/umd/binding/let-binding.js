@@ -10,13 +10,12 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "../observation.js", "./connectable.js"], factory);
+        define(["require", "exports", "./connectable.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.LetBinding = void 0;
-    const observation_js_1 = require("../observation.js");
     const connectable_js_1 = require("./connectable.js");
     let LetBinding = class LetBinding {
         constructor(sourceExpression, targetProperty, observerLocator, locator, toBindingContext = false) {
@@ -32,7 +31,6 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
             this.task = null;
             this.target = null;
             connectable_js_1.connectable.assignIdTo(this);
-            this.$lifecycle = locator.get(observation_js_1.ILifecycle);
         }
         handleChange(_newValue, _previousValue, flags) {
             if (!this.isBound) {

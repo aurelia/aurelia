@@ -10,14 +10,14 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "../binding-behavior.js", "@aurelia/kernel"], factory);
+        define(["require", "exports", "@aurelia/kernel", "../binding-behavior.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ThrottleBindingBehavior = void 0;
-    const binding_behavior_js_1 = require("../binding-behavior.js");
     const kernel_1 = require("@aurelia/kernel");
+    const binding_behavior_js_1 = require("../binding-behavior.js");
     let ThrottleBindingBehavior = class ThrottleBindingBehavior extends binding_behavior_js_1.BindingInterceptor {
         constructor(binding, expr) {
             super(binding, expr);

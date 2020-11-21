@@ -43,7 +43,6 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
             this.persistentFlags = 0 /* none */;
             this.task = null;
             connectable_js_1.connectable.assignIdTo(this);
-            this.$lifecycle = locator.get(observation_js_1.ILifecycle);
         }
         updateTarget(value, flags) {
             flags |= this.persistentFlags;

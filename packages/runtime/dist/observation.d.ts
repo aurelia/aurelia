@@ -68,7 +68,6 @@ export declare const enum LifecycleFlags {
     dispose = 512
 }
 export interface IConnectable {
-    readonly locator: IServiceLocator;
     observeProperty(obj: object, propertyName: string): void;
 }
 export declare enum DelegationStrategy {
@@ -125,28 +124,6 @@ export declare type PropertyObserver = IPropertyObserver<IIndexable, string>;
  * A collection (array, set or map)
  */
 export declare type Collection = unknown[] | Set<unknown> | Map<unknown, unknown>;
-interface IObservedCollection<T extends CollectionKind = CollectionKind> {
-    $raw?: this;
-}
-/**
- * An array that is being observed for mutations
- */
-export interface IObservedArray<T = unknown> extends IObservedCollection<CollectionKind.array>, Array<T> {
-}
-/**
- * A set that is being observed for mutations
- */
-export interface IObservedSet<T = unknown> extends IObservedCollection<CollectionKind.set>, Set<T> {
-}
-/**
- * A map that is being observed for mutations
- */
-export interface IObservedMap<K = unknown, V = unknown> extends IObservedCollection<CollectionKind.map>, Map<K, V> {
-}
-/**
- * A collection that is being observed for mutations
- */
-export declare type ObservedCollection = IObservedArray | IObservedSet | IObservedMap;
 export declare const enum CollectionKind {
     indexed = 8,
     keyed = 4,
@@ -157,7 +134,7 @@ export declare const enum CollectionKind {
 export declare type LengthPropertyName<T> = T extends unknown[] ? 'length' : T extends Set<unknown> ? 'size' : T extends Map<unknown, unknown> ? 'size' : never;
 export declare type CollectionTypeToKind<T> = T extends unknown[] ? CollectionKind.array | CollectionKind.indexed : T extends Set<unknown> ? CollectionKind.set | CollectionKind.keyed : T extends Map<unknown, unknown> ? CollectionKind.map | CollectionKind.keyed : never;
 export declare type CollectionKindToType<T> = T extends CollectionKind.array ? unknown[] : T extends CollectionKind.indexed ? unknown[] : T extends CollectionKind.map ? Map<unknown, unknown> : T extends CollectionKind.set ? Set<unknown> : T extends CollectionKind.keyed ? Set<unknown> | Map<unknown, unknown> : never;
-export declare type ObservedCollectionKindToType<T> = T extends CollectionKind.array ? IObservedArray : T extends CollectionKind.indexed ? IObservedArray : T extends CollectionKind.map ? IObservedMap : T extends CollectionKind.set ? IObservedSet : T extends CollectionKind.keyed ? IObservedSet | IObservedMap : never;
+export declare type ObservedCollectionKindToType<T> = T extends CollectionKind.array ? unknown[] : T extends CollectionKind.indexed ? unknown[] : T extends CollectionKind.map ? Map<unknown, unknown> : T extends CollectionKind.set ? Set<unknown> : T extends CollectionKind.keyed ? Map<unknown, unknown> | Set<unknown> : never;
 export declare const enum AccessorType {
     None = 0,
     Observer = 1,
@@ -232,7 +209,7 @@ export interface ICollectionChangeTracker<T extends Collection> {
 export interface ICollectionObserver<T extends CollectionKind> extends ICollectionChangeTracker<CollectionKindToType<T>>, ICollectionSubscriberCollection, IBatchable {
     type: AccessorType;
     inBatch: boolean;
-    lifecycle: ILifecycle;
+    lifecycle?: ILifecycle;
     collection: ObservedCollectionKindToType<T>;
     lengthObserver: T extends CollectionKind.array ? CollectionLengthObserver : CollectionSizeObserver;
     getLengthObserver(): T extends CollectionKind.array ? CollectionLengthObserver : CollectionSizeObserver;
@@ -250,5 +227,4 @@ export interface IOverrideContext {
 export declare type IObservable<T = IIndexable> = T & {
     $observers?: IIndexable<{}, AccessorOrObserver>;
 };
-export {};
 //# sourceMappingURL=observation.d.ts.map

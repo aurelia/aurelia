@@ -19,18 +19,14 @@ const methods = ['add', 'clear', 'delete'];
 const observe = {
     // https://tc39.github.io/ecma262/#sec-set.prototype.add
     add: function (value) {
-        let $this = this;
-        if ($this.$raw !== undefined) {
-            $this = $this.$raw;
-        }
-        const o = observerLookup.get($this);
+        const o = observerLookup.get(this);
         if (o === undefined) {
-            $add.call($this, value);
+            $add.call(this, value);
             return this;
         }
-        const oldSize = $this.size;
-        $add.call($this, value);
-        const newSize = $this.size;
+        const oldSize = this.size;
+        $add.call(this, value);
+        const newSize = this.size;
         if (newSize === oldSize) {
             return this;
         }
@@ -40,26 +36,22 @@ const observe = {
     },
     // https://tc39.github.io/ecma262/#sec-set.prototype.clear
     clear: function () {
-        let $this = this;
-        if ($this.$raw !== undefined) {
-            $this = $this.$raw;
-        }
-        const o = observerLookup.get($this);
+        const o = observerLookup.get(this);
         if (o === undefined) {
-            return $clear.call($this);
+            return $clear.call(this);
         }
-        const size = $this.size;
+        const size = this.size;
         if (size > 0) {
             const indexMap = o.indexMap;
             let i = 0;
             // deepscan-disable-next-line
-            for (const _ of $this.keys()) {
+            for (const _ of this.keys()) {
                 if (indexMap[i] > -1) {
                     indexMap.deletedItems.push(indexMap[i]);
                 }
                 i++;
             }
-            $clear.call($this);
+            $clear.call(this);
             indexMap.length = 0;
             o.notify();
         }
@@ -67,27 +59,23 @@ const observe = {
     },
     // https://tc39.github.io/ecma262/#sec-set.prototype.delete
     delete: function (value) {
-        let $this = this;
-        if ($this.$raw !== undefined) {
-            $this = $this.$raw;
-        }
-        const o = observerLookup.get($this);
+        const o = observerLookup.get(this);
         if (o === undefined) {
-            return $delete.call($this, value);
+            return $delete.call(this, value);
         }
-        const size = $this.size;
+        const size = this.size;
         if (size === 0) {
             return false;
         }
         let i = 0;
         const indexMap = o.indexMap;
-        for (const entry of $this.keys()) {
+        for (const entry of this.keys()) {
             if (entry === value) {
                 if (indexMap[i] > -1) {
                     indexMap.deletedItems.push(indexMap[i]);
                 }
                 indexMap.splice(i, 1);
-                const deleteResult = $delete.call($this, value);
+                const deleteResult = $delete.call(this, value);
                 if (deleteResult === true) {
                     o.notify();
                 }
@@ -123,7 +111,7 @@ export function disableSetObservation() {
     }
 }
 let SetObserver = class SetObserver {
-    constructor(lifecycle, observedSet) {
+    constructor(observedSet) {
         this.type = 18 /* Set */;
         if (!enableSetObservationCalled) {
             enableSetObservationCalled = true;
@@ -132,12 +120,12 @@ let SetObserver = class SetObserver {
         this.inBatch = false;
         this.collection = observedSet;
         this.indexMap = createIndexMap(observedSet.size);
-        this.lifecycle = lifecycle;
         this.lengthObserver = (void 0);
         observerLookup.set(observedSet, this);
     }
     notify() {
-        if (this.lifecycle.batch.depth > 0) {
+        var _a;
+        if ((_a = this.lifecycle) === null || _a === void 0 ? void 0 : _a.batch.depth) {
             if (!this.inBatch) {
                 this.inBatch = true;
                 this.lifecycle.batch.add(this);
@@ -168,10 +156,13 @@ SetObserver = __decorate([
     collectionSubscriberCollection()
 ], SetObserver);
 export { SetObserver };
-export function getSetObserver(lifecycle, observedSet) {
-    const observer = observerLookup.get(observedSet);
+export function getSetObserver(observedSet, lifecycle) {
+    let observer = observerLookup.get(observedSet);
     if (observer === void 0) {
-        return new SetObserver(lifecycle, observedSet);
+        observer = new SetObserver(observedSet);
+        if (lifecycle != null) {
+            observer.lifecycle = lifecycle;
+        }
     }
     return observer;
 }

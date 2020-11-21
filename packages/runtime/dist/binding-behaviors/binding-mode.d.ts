@@ -1,6 +1,6 @@
-import { PropertyBinding } from '../binding/property-binding.js';
 import { BindingMode, LifecycleFlags } from '../observation.js';
 import { BindingBehaviorInstance } from '../binding-behavior.js';
+import type { PropertyBinding } from '../binding/property-binding.js';
 import type { Scope } from '../observation/binding-context.js';
 export declare abstract class BindingModeBehavior implements BindingBehaviorInstance {
     private readonly mode;

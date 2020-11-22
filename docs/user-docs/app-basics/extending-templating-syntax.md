@@ -4,20 +4,20 @@ Sometimes you will see the following template in an Aurelia application:
 ```html
 <input value.bind="message">
 ```
-Aurelia undertstands that `value.bind="message"` means `value.two-way="message"`, and later creates a two way binding between view model `message` property, and input `value` property. How does Aurelia know this?
+Aurelia understands that `value.bind="message"` means `value.two-way="message"`, and later creates a two way binding between view model `message` property, and input `value` property. How does Aurelia know this?
 
 By default, Aurelia is taught how to interpret a `bind` binding command on a property of an element via a Attribute Syntax Transformer. Application can also tap into this class to teach Aurelia some extra knowledge so that it understands more than just `value.bind` on an `<input/>` element.
 
 # Examples
 
-You may sometimes come accross some custom input element in a component library, some examples are:
+You may sometimes come across some custom input element in a component library, some examples are:
 
 - Microsoft FAST `text-field` element: https://explore.fast.design/components/fast-text-field
 - Ionic `ion-input` element: https://ionicframework.com/docs/api/input
 - Polymer `paper-input` element: https://www.webcomponents.org/element/@polymer/paper-input
 - and many more...
 
-Regardless of lib choice an application takes, what is needed in common is the ability to have a concise syntax to describe two way binding with those custom elements. Some examples for the above:
+Regardless of the lib choice an application takes, what is needed in common is the ability to have a concise syntax to describe the two way binding intention with those custom elements. Some examples for the above custom input elements:
 
 ```html
 <fast-text-field value.bind="message">

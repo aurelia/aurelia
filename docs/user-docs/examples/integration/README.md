@@ -17,3 +17,10 @@ description: The basics of integrating web component libraries with Aurelia.
 # Integrating with [Ionic web components](https://ionicframework.com/docs/components)
 
 [The guide for the integration here](./ionic.md)
+
+
+{% hint style="info" %}
+**For our community**
+
+It is difficult for the core team members to try and test and document all possible integrations with web component frameworks/libraries. It is helpful that everyone in our community could lend a hand building the examples together, starting with the library choice of yours.
+{% endhint %}

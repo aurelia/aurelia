@@ -1,34 +1,11 @@
 import { IContainer, IPlatform } from '@aurelia/kernel';
-import { AppTask, IAttrSyntaxTransformer, NodeObserverLocator } from '@aurelia/runtime-html';
+import { AppTask, BrowserPlatform, IAttrSyntaxTransformer, NodeObserverLocator } from '@aurelia/runtime-html';
 import { assert, createFixture } from '@aurelia/testing';
 
 describe('3-runtime-html/attr-syntax-extension.spec.ts', function () {
   let elementNameSeed = 0;
   it('understands how to transform .bind on web component custom elements', async function () {
-    class MyElement extends HTMLElement {
-
-      public select: HTMLSelectElement;
-
-      public constructor() {
-        super();
-        this.innerHTML = '<select><option>1</option><option>2</option><option>3</option></select>';
-        this.select = this.firstElementChild as any;
-        this.select.addEventListener('change', () => {
-          this.dispatchEvent(new CustomEvent('my-el-change'));
-        });
-      }
-
-      public get value() {
-        return this.select.value;
-      }
-
-      public set value(v) {
-        this.select.value = v;
-      }
-    }
-
     const elName = `my-el-${elementNameSeed++}`;
-
     const { ctx, component, appHost, startPromise } = createFixture(
       `<${elName} value.bind="option"></${elName}>`,
       class App {
@@ -36,8 +13,28 @@ describe('3-runtime-html/attr-syntax-extension.spec.ts', function () {
       },
       [
         AppTask.with(IContainer).beforeCreate().call(container => {
-          const platform = container.get(IPlatform);
-          platform.globalThis.customElements.define(elName, MyElement);
+          const platform = container.get(IPlatform) as BrowserPlatform;
+          platform.customElements.define(elName, class MyElement extends platform.HTMLElement {
+
+            public select: HTMLSelectElement;
+
+            public constructor() {
+              super();
+              this.innerHTML = '<select><option>1</option><option>2</option><option>3</option></select>';
+              this.select = this.firstElementChild as any;
+              this.select.addEventListener('change', () => {
+                this.dispatchEvent(new CustomEvent('my-el-change'));
+              });
+            }
+
+            public get value() {
+              return this.select.value;
+            }
+
+            public set value(v) {
+              this.select.value = v;
+            }
+          });
 
           const transformer = container.get(IAttrSyntaxTransformer);
           transformer.useTwoWay((el, property) => {

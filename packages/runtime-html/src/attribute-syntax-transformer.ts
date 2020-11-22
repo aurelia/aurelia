@@ -14,26 +14,26 @@ export class AttrSyntaxTransformer {
    */
   private readonly fns: ITwoWayTransformerFn[] = [];
   public constructor() {
-    this.useTwoWay((element, attr) => {
+    this.useTwoWay((element, property) => {
       switch (element.tagName) {
         case 'INPUT':
           switch ((element as HTMLInputElement).type) {
             case 'checkbox':
             case 'radio':
-              return attr === 'checked';
+              return property === 'checked';
             default:
-              return attr === 'value' || attr === 'files';
+              return property === 'value' || property === 'files';
           }
         case 'TEXTAREA':
         case 'SELECT':
-          return attr === 'value';
+          return property === 'value';
         default:
-          switch (attr) {
-            case 'textcontent':
-            case 'innerhtml':
+          switch (property) {
+            case 'textContent':
+            case 'innerHTML':
               return element.hasAttribute('contenteditable');
-            case 'scrolltop':
-            case 'scrollleft':
+            case 'scrollTop':
+            case 'scrollLeft':
               return true;
             default:
               return false;
@@ -48,6 +48,10 @@ export class AttrSyntaxTransformer {
    *
    * If one of those functions in this lists returns true, the `'bind'` command
    * will be transformed into `'two-way'` command.
+   *
+   * The function will be called with 2 parameters:
+   * - element: the element that the template compiler is currently working with
+   * - property: the target property name
    */
   public useTwoWay(fn: ITwoWayTransformerFn): void {
     this.fns.push(fn);

@@ -69,6 +69,7 @@ export class AttrSyntaxTransformer {
 
   /**
    * todo: this should be in the form of a lookup. the following is not extensible
+   *
    * @internal
    */
   public map(tagName: string, attr: string): string {

@@ -3,10 +3,14 @@ import { AppTask, BrowserPlatform, IAttrSyntaxTransformer, NodeObserverLocator }
 import { assert, createFixture } from '@aurelia/testing';
 
 describe('3-runtime-html/attr-syntax-extension.spec.ts', function () {
+  // cant deal with custom elements on nodejs
+  if (typeof process !== 'undefined') {
+    return;
+  }
   let elementNameSeed = 0;
   it('understands how to transform .bind on web component custom elements', async function () {
     const elName = `my-el-${elementNameSeed++}`;
-    const { ctx, component, appHost, startPromise } = createFixture(
+    const { ctx, component, appHost, startPromise, tearDown } = createFixture(
       `<${elName} value.bind="option"></${elName}>`,
       class App {
         public option = '1';
@@ -14,7 +18,7 @@ describe('3-runtime-html/attr-syntax-extension.spec.ts', function () {
       [
         AppTask.with(IContainer).beforeCreate().call(container => {
           const platform = container.get(IPlatform) as BrowserPlatform;
-          platform.customElements.define(elName, class MyElement extends platform.HTMLElement {
+          platform.window.customElements.define(elName, class MyElement extends platform.window.HTMLElement {
 
             public select: HTMLSelectElement;
 
@@ -62,5 +66,7 @@ describe('3-runtime-html/attr-syntax-extension.spec.ts', function () {
     assert.strictEqual(selectEl.value, '2');
     ctx.platform.domWriteQueue.flush();
     assert.strictEqual(selectEl.value, '3');
+
+    await tearDown();
   });
 });

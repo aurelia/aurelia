@@ -2,16 +2,70 @@ import { DI } from '@aurelia/kernel';
 import { AttrSyntax } from './resources/attribute-pattern.js';
 
 export interface IAttrSyntaxTransformer extends AttrSyntaxTransformer {}
-export const IAttrSyntaxTransformer = DI.createInterface<IAttrSyntaxTransformer>('IAttrSyntaxTransformer').withDefault(x => x.singleton(AttrSyntaxTransformer));
+export const IAttrSyntaxTransformer = DI
+  .createInterface<IAttrSyntaxTransformer>('IAttrSyntaxTransformer')
+  .withDefault(x => x.singleton(AttrSyntaxTransformer));
+
+type ITwoWayTransformerFn = (element: HTMLElement, property: PropertyKey) => boolean;
 
 export class AttrSyntaxTransformer {
+  /**
+   * @internal
+   */
+  private fns: ITwoWayTransformerFn[] = [];
+  public constructor() {
+    this.useTwoWay((element, attr) => {
+      switch (element.tagName) {
+        case 'INPUT':
+          switch ((element as HTMLInputElement).type) {
+            case 'checkbox':
+            case 'radio':
+              return attr === 'checked';
+            default:
+              return attr === 'value' || attr === 'files';
+          }
+        case 'TEXTAREA':
+        case 'SELECT':
+          return attr === 'value';
+        default:
+          switch (attr) {
+            case 'textcontent':
+            case 'innerhtml':
+              return element.hasAttribute('contenteditable');
+            case 'scrolltop':
+            case 'scrollleft':
+              return true;
+            default:
+              return false;
+          }
+      }
+    });
+  }
+
+  /**
+   * Add a given function to a list of fns that will be used
+   * to check if `'bind'` command can be transformed to `'two-way'` command.
+   *
+   * If one of those functions in this lists returns true, the `'bind'` command
+   * will be transformed into `'two-way'` command.
+   */
+  public useTwoWay(fn: ITwoWayTransformerFn): void {
+    this.fns.push(fn);
+  }
+
+  /**
+   * @internal
+   */
   public transform(node: HTMLElement, attrSyntax: AttrSyntax): void {
-    if (attrSyntax.command === 'bind' && shouldDefaultToTwoWay(node, attrSyntax)) {
+    if (attrSyntax.command === 'bind' && this.fns.some(fn => fn(node, attrSyntax.target))) {
       attrSyntax.command = 'two-way';
     }
     attrSyntax.target = this.map(node.tagName, attrSyntax.target);
   }
 
+  /**
+   * @internal
+   */
   public map(tagName: string, attr: string): string {
     switch (tagName) {
       case 'LABEL':
@@ -88,32 +142,5 @@ export class AttrSyntaxTransformer {
             return attr;
         }
     }
-  }
-}
-
-function shouldDefaultToTwoWay(element: HTMLElement, attr: AttrSyntax): boolean {
-  switch (element.tagName) {
-    case 'INPUT':
-      switch ((element as HTMLInputElement).type) {
-        case 'checkbox':
-        case 'radio':
-          return attr.target === 'checked';
-        default:
-          return attr.target === 'value' || attr.target === 'files';
-      }
-    case 'TEXTAREA':
-    case 'SELECT':
-      return attr.target === 'value';
-    default:
-      switch (attr.target) {
-        case 'textcontent':
-        case 'innerhtml':
-          return element.hasAttribute('contenteditable');
-        case 'scrolltop':
-        case 'scrollleft':
-          return true;
-        default:
-          return false;
-      }
   }
 }

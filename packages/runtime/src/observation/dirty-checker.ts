@@ -112,6 +112,12 @@ export class DirtyCheckProperty implements DirtyCheckProperty {
     public propertyKey: string,
   ) {}
 
+  public setValue(v: unknown, f: LifecycleFlags) {
+    // todo: this should be allowed, probably
+    // but the construction of dirty checker should throw instead
+    throw new Error(`Trying to set value for property ${this.propertyKey} in dirty checker`);
+  }
+
   public isDirty(): boolean {
     return this.oldValue !== this.obj[this.propertyKey];
   }

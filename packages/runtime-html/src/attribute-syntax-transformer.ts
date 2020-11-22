@@ -1,5 +1,5 @@
 import { DI } from '@aurelia/kernel';
-import { AttrSyntax } from './resources/attribute-pattern.js';
+import type { AttrSyntax } from './resources/attribute-pattern.js';
 
 export interface IAttrSyntaxTransformer extends AttrSyntaxTransformer {}
 export const IAttrSyntaxTransformer = DI
@@ -12,7 +12,7 @@ export class AttrSyntaxTransformer {
   /**
    * @internal
    */
-  private fns: ITwoWayTransformerFn[] = [];
+  private readonly fns: ITwoWayTransformerFn[] = [];
   public constructor() {
     this.useTwoWay((element, attr) => {
       switch (element.tagName) {
@@ -57,13 +57,14 @@ export class AttrSyntaxTransformer {
    * @internal
    */
   public transform(node: HTMLElement, attrSyntax: AttrSyntax): void {
+    attrSyntax.target = this.map(node.tagName, attrSyntax.target);
     if (attrSyntax.command === 'bind' && this.fns.some(fn => fn(node, attrSyntax.target))) {
       attrSyntax.command = 'two-way';
     }
-    attrSyntax.target = this.map(node.tagName, attrSyntax.target);
   }
 
   /**
+   * todo: this should be in the form of a lookup. the following is not extensible
    * @internal
    */
   public map(tagName: string, attr: string): string {

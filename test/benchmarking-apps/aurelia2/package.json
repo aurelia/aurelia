@@ -6,7 +6,7 @@
   "scripts": {
     "start": "webpack-dev-server --no-inline",
     "build": "webpack",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "serve": "node -r esm ./node_modules/@aurelia/http-server/dist/esnext/cli.js au.conf.js"
   },
   "keywords": [],
   "author": "",
@@ -22,6 +22,7 @@
     "@benchmarking-apps/shared": "1.0.0"
   },
   "devDependencies": {
+    "@aurelia/http-server": "0.7.0",
     "clean-webpack-plugin": "^3.0.0",
     "css-loader": "^4.3.0",
     "html-entities": "^1.3.1",

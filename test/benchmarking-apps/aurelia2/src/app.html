@@ -12,9 +12,9 @@
     <button id="hundred" click.delegate="haveN(100)">100</button>
     <button id="thousand" click.delegate="haveN(1000)">1000</button>
     <button id="ten-thousand" click.delegate="haveN(10000)">10K</button>
-    <button id="hundred" click.delegate="plusN(100)">+100</button>
-    <button id="thousand" click.delegate="plusN(1000)">+1000</button>
-    <button id="ten-thousand" click.delegate="plusN(10000)">+10K</button>
+    <button id="plus-hundred" click.delegate="plusN(100)">+100</button>
+    <button id="plus-thousand" click.delegate="plusN(1000)">+1000</button>
+    <button id="plus-ten-thousand" click.delegate="plusN(10000)">+10K</button>
     <button id="remove-all" click.delegate="removeAll()">Remove all</button>
     <button id="update-10" click.delegate="updateEvery10th()">Update every 10th row</button>
     <button id="swapRows" click.delegate="swapRows()">Swap rows</button>
@@ -30,7 +30,7 @@
     <strong>Addresses</strong>
     <strong></strong>
     <template repeat.for="person of people | filterEmployed:employmentStatus">
-      <span data-selected.bind="person.selected"  click.delegate="select($index)">${person.firstName}</span>
+      <span class="selection-target" data-selected.bind="person.selected"  click.delegate="select($index)">${person.firstName}</span>
       <span>${person.lastName}</span>
       <span>${person.dob | formatDate:locale}</span>
       <span>${person.jobTitle ? person.jobTitle : '' }</span> <!-- TODO use show.bind when available -->

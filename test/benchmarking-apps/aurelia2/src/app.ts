@@ -1,21 +1,18 @@
-import { computed, customElement, ILifecycle, valueConverter } from '@aurelia/runtime-html';
+import { customElement, ILifecycle, valueConverter } from '@aurelia/runtime-html';
 import { IPersonRepository, Person } from '@benchmarking-apps/shared';
 import template from './app.html';
 import { ipr } from './registrations';
 
-// Can we do better? Or this needs to be here for other Fx compat?
-// let startTime: number;
-// let lastMeasure: string;
+let startTime: number;
+let lastMeasure: string;
 const startMeasure = function (name: string) {
-  console.time(name);
-  // startTime = performance.now();
-  // lastMeasure = name;
+  startTime = performance.now();
+  lastMeasure = name;
 };
 const stopMeasure = function (name: string) {
   window.setTimeout(function () {
-    console.timeEnd(name);
-    // const stop = performance.now();
-    // console.log(`${lastMeasure} took ${stop - startTime}`);
+    const stop = performance.now();
+    console.log(`${lastMeasure}:${stop - startTime}`);
   }, 0);
 };
 
@@ -28,7 +25,6 @@ class SortingOptions<TObject> {
   public constructor(
     public readonly property: keyof TObject,
   ) { }
-  @computed({ static: true })
   public get direction(): SortingDirection {
     return this._direction;
   }
@@ -56,16 +52,20 @@ export class App {
 
   public changeLocale(): void {
     // change in a single binding
-    startMeasure('localeChange');
-    this.locale = this.locale === 'en' ? 'de' : 'en';
-    stopMeasure('localeChange');
+    const newLocale = this.locale === 'en' ? 'de' : 'en';
+    const label = `localeChange - ${newLocale}`;
+    startMeasure(label);
+    this.locale = newLocale;
+    stopMeasure(label);
   }
 
   public toggleAddressDetails(): void {
     // de/activates more bindings
-    startMeasure('toggleAddressDetails');
-    this.showAddressDetails = !this.showAddressDetails;
-    stopMeasure('toggleAddressDetails');
+    const newValue = !this.showAddressDetails;
+    const label = `toggleAddressDetails - ${newValue ? 'show' : 'hide'}`;
+    startMeasure(label);
+    this.showAddressDetails = newValue;
+    stopMeasure(label);
   }
 
   public filterEmployed(status: 'employed' | 'unemployed' | undefined): void {

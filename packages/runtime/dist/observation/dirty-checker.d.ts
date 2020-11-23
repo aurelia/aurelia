@@ -53,6 +53,7 @@ export declare class DirtyCheckProperty implements DirtyCheckProperty {
     oldValue: unknown;
     type: AccessorType;
     constructor(dirtyChecker: IDirtyChecker, obj: IObservable & IIndexable, propertyKey: string);
+    setValue(v: unknown, f: LifecycleFlags): void;
     isDirty(): boolean;
     flush(flags: LifecycleFlags): void;
     subscribe(subscriber: ISubscriber): void;

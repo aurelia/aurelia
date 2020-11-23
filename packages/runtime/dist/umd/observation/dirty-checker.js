@@ -114,6 +114,11 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             this.propertyKey = propertyKey;
             this.type = 4 /* Obj */;
         }
+        setValue(v, f) {
+            // todo: this should be allowed, probably
+            // but the construction of dirty checker should throw instead
+            throw new Error(`Trying to set value for property ${this.propertyKey} in dirty checker`);
+        }
         isDirty() {
             return this.oldValue !== this.obj[this.propertyKey];
         }

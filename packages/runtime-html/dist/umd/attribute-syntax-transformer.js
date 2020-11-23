@@ -11,14 +11,50 @@
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.AttrSyntaxTransformer = exports.IAttrSyntaxTransformer = void 0;
     const kernel_1 = require("@aurelia/kernel");
-    exports.IAttrSyntaxTransformer = kernel_1.DI.createInterface('IAttrSyntaxTransformer').withDefault(x => x.singleton(AttrSyntaxTransformer));
+    exports.IAttrSyntaxTransformer = kernel_1.DI
+        .createInterface('IAttrSyntaxTransformer')
+        .withDefault(x => x.singleton(AttrSyntaxTransformer));
     class AttrSyntaxTransformer {
+        constructor() {
+            /**
+             * @internal
+             */
+            this.fns = [];
+        }
+        /**
+         * Add a given function to a list of fns that will be used
+         * to check if `'bind'` command can be transformed to `'two-way'` command.
+         *
+         * If one of those functions in this lists returns true, the `'bind'` command
+         * will be transformed into `'two-way'` command.
+         *
+         * The function will be called with 2 parameters:
+         * - element: the element that the template compiler is currently working with
+         * - property: the target property name
+         */
+        useTwoWay(fn) {
+            this.fns.push(fn);
+        }
+        /**
+         * @internal
+         */
         transform(node, attrSyntax) {
-            if (attrSyntax.command === 'bind' && shouldDefaultToTwoWay(node, attrSyntax)) {
+            if (attrSyntax.command === 'bind' &&
+                (
+                // note: even though target could possibly be mapped to a different name
+                // the final property name shouldn't affect the two way transformation
+                // as they both should work with original source attribute name
+                shouldDefaultToTwoWay(node, attrSyntax.target) ||
+                    this.fns.length > 0 && this.fns.some(fn => fn(node, attrSyntax.target)))) {
                 attrSyntax.command = 'two-way';
             }
             attrSyntax.target = this.map(node.tagName, attrSyntax.target);
         }
+        /**
+         * todo: this should be in the form of a lookup. the following is not extensible
+         *
+         * @internal
+         */
         map(tagName, attr) {
             switch (tagName) {
                 case 'LABEL':
@@ -104,15 +140,15 @@
                 switch (element.type) {
                     case 'checkbox':
                     case 'radio':
-                        return attr.target === 'checked';
+                        return attr === 'checked';
                     default:
-                        return attr.target === 'value' || attr.target === 'files';
+                        return attr === 'value' || attr === 'files';
                 }
             case 'TEXTAREA':
             case 'SELECT':
-                return attr.target === 'value';
+                return attr === 'value';
             default:
-                switch (attr.target) {
+                switch (attr) {
                     case 'textcontent':
                     case 'innerhtml':
                         return element.hasAttribute('contenteditable');

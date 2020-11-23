@@ -29,8 +29,8 @@ Aurelia.register(AppTask.with(IContainer).beforeCreate().call(container => {
     }
   });
 
-  // teaching Aurelia what events to use to observe properties of elements
-  // because fast component simply use a single change even to notify
+  // Teach Aurelia what events to use to observe properties of elements.
+  // Because FAST components all use a single change event to notify,
   // we can use a single common object
   const valuePropertyConfig = { events: ['change'] };
   nodeObserverLocator.useConfig({

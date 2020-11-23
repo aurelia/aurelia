@@ -7,9 +7,8 @@ describe('3-runtime-html/attr-syntax-extension.spec.ts', function () {
   if (typeof process !== 'undefined') {
     return;
   }
-  let elementNameSeed = 0;
   it('understands how to transform .bind on web component custom elements', async function () {
-    const elName = `my-el-${elementNameSeed++}`;
+    const elName = CustomElement.generateName();
     const { ctx, component, appHost, startPromise, tearDown } = createFixture(
       `<${elName} value.bind="option"></${elName}>`,
       class App {

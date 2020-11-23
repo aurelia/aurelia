@@ -6,7 +6,7 @@ export const IAttrSyntaxTransformer = DI
   .createInterface<IAttrSyntaxTransformer>('IAttrSyntaxTransformer')
   .withDefault(x => x.singleton(AttrSyntaxTransformer));
 
-type ITwoWayTransformerFn = (element: HTMLElement, property: PropertyKey) => boolean;
+type IsTwoWayPredicate = (element: HTMLElement, property: string) => boolean;
 
 export class AttrSyntaxTransformer {
   /**
@@ -62,7 +62,13 @@ export class AttrSyntaxTransformer {
    */
   public transform(node: HTMLElement, attrSyntax: AttrSyntax): void {
     attrSyntax.target = this.map(node.tagName, attrSyntax.target);
-    if (attrSyntax.command === 'bind' && this.fns.some(fn => fn(node, attrSyntax.target))) {
+    if (
+      attrSyntax.command === 'bind' &&
+      (
+        shouldDefaultToTwoWay(node, attrSyntax) ||
+        this.fns.length > 0 && this.fns.some(fn => fn(node, attrSyntax.target))
+      )
+    ) {
       attrSyntax.command = 'two-way';
     }
   }

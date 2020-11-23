@@ -29,6 +29,7 @@
 * [Dependency Injection](app-basics/dependency-injection.md)
 * [Components Revisited](app-basics/components-revisited.md)
 * [Styling Components](app-basics/styling-components.md)
+* [Extending Templating Syntax](app-basics/extending-templating-syntax.md)
 * [Routing](app-basics/routing.md)
 * [Tooling](app-basics/tooling.md)
 * [Building a Dashboard App](app-basics/building-a-dashboard-app.md)
@@ -90,6 +91,9 @@
   * [Binding to Element Size](examples/custom-attributes/binding-to-element-size.md)
 * [Routing](examples/routing/README.md)
   * [Configuring Auth-Protected Routes](examples/routing/configuring-auth-protected-routes.md)
+* [Integration](examples/integration/README.md)
+  * [Microsoft FAST](examples/integration/ms-fast.md)
+  * [Ionic](examples/integration/ionic.md)
 
 ## Community Contribution
 

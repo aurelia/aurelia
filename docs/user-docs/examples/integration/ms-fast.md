@@ -1,7 +1,7 @@
 # Integrating with Microsoft FAST Web Components
 
 If the example doesn't seem obvious, the following prerequisite reads are recommended:
-- [extending templating syntax](/app-basics/extening-templating-syntax.md)
+- [extending templating syntax](../../app-basics/extening-templating-syntax.md)
 
 The following is a code example of how to teach Aurelia to work seamlessly with [Microsoft FAST](https://www.fast.design/):
 

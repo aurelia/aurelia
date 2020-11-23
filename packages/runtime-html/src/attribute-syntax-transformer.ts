@@ -6,41 +6,13 @@ export const IAttrSyntaxTransformer = DI
   .createInterface<IAttrSyntaxTransformer>('IAttrSyntaxTransformer')
   .withDefault(x => x.singleton(AttrSyntaxTransformer));
 
-type IsTwoWayPredicate = (element: HTMLElement, property: string) => boolean;
+type IsTwoWayPredicate = (element: HTMLElement, attribute: string) => boolean;
 
 export class AttrSyntaxTransformer {
   /**
    * @internal
    */
-  private readonly fns: ITwoWayTransformerFn[] = [];
-  public constructor() {
-    this.useTwoWay((element, property) => {
-      switch (element.tagName) {
-        case 'INPUT':
-          switch ((element as HTMLInputElement).type) {
-            case 'checkbox':
-            case 'radio':
-              return property === 'checked';
-            default:
-              return property === 'value' || property === 'files';
-          }
-        case 'TEXTAREA':
-        case 'SELECT':
-          return property === 'value';
-        default:
-          switch (property) {
-            case 'textContent':
-            case 'innerHTML':
-              return element.hasAttribute('contenteditable');
-            case 'scrollTop':
-            case 'scrollLeft':
-              return true;
-            default:
-              return false;
-          }
-      }
-    });
-  }
+  private readonly fns: IsTwoWayPredicate[] = [];
 
   /**
    * Add a given function to a list of fns that will be used
@@ -53,7 +25,7 @@ export class AttrSyntaxTransformer {
    * - element: the element that the template compiler is currently working with
    * - property: the target property name
    */
-  public useTwoWay(fn: ITwoWayTransformerFn): void {
+  public useTwoWay(fn: IsTwoWayPredicate): void {
     this.fns.push(fn);
   }
 
@@ -61,16 +33,19 @@ export class AttrSyntaxTransformer {
    * @internal
    */
   public transform(node: HTMLElement, attrSyntax: AttrSyntax): void {
-    attrSyntax.target = this.map(node.tagName, attrSyntax.target);
     if (
       attrSyntax.command === 'bind' &&
       (
-        shouldDefaultToTwoWay(node, attrSyntax) ||
+        // note: even though target could possibly be mapped to a different name
+        // the final property name shouldn't affect the two way transformation
+        // as they both should work with original source attribute name
+        shouldDefaultToTwoWay(node, attrSyntax.target) ||
         this.fns.length > 0 && this.fns.some(fn => fn(node, attrSyntax.target))
       )
     ) {
       attrSyntax.command = 'two-way';
     }
+    attrSyntax.target = this.map(node.tagName, attrSyntax.target);
   }
 
   /**
@@ -154,5 +129,32 @@ export class AttrSyntaxTransformer {
             return attr;
         }
     }
+  }
+}
+
+function shouldDefaultToTwoWay(element: HTMLElement, attr: string): boolean {
+  switch (element.tagName) {
+    case 'INPUT':
+      switch ((element as HTMLInputElement).type) {
+        case 'checkbox':
+        case 'radio':
+          return attr === 'checked';
+        default:
+          return attr === 'value' || attr === 'files';
+      }
+    case 'TEXTAREA':
+    case 'SELECT':
+      return attr === 'value';
+    default:
+      switch (attr) {
+        case 'textcontent':
+        case 'innerhtml':
+          return element.hasAttribute('contenteditable');
+        case 'scrolltop':
+        case 'scrollleft':
+          return true;
+        default:
+          return false;
+      }
   }
 }

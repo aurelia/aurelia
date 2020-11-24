@@ -63,7 +63,7 @@ _.each(testable, function ([dir,name]) {
   const fullname = dir + name;
   if(fs.statSync(fullname).isDirectory() && fs.existsSync(path.join(fullname, "package.json"))) {
     console.log(`*** Executing npm run selenium for ${fullname}`);
-    exec(`npm run selenium -- --count 10 --fork false --framework ${name}`, {
+    exec(`npm run selenium -- --count 10 --framework ${name}-keyed`, {
       cwd: "webdriver-ts",
       stdio: 'inherit'
     });

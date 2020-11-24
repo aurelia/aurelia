@@ -101,7 +101,7 @@ class App {
 Decorating on a class, string as watch expression, with method name as callback
 {% endhint %}
 
-> ❗❗❗❗ method name will be used to resolve the function `ONCE`, which means changing method after the instance has been created will not be recognised.
+> ❗❗❗❗ method name will be used to resolve the function `ONCE`, which means changing method after the instance has been created will not be recognized.
 
 ```ts
 @watch('counter', 'log')
@@ -221,7 +221,7 @@ class App {
 
 # @watch reactivity examples
 
-> During `binding` lifecycle, bindings created by `@watch` decorator havent' been activated yet, which means mutations won't be reacted to:
+> During `binding` lifecycle, bindings created by `@watch` decorator haven't been activated yet, which means mutations won't be reacted to:
 
 ```typescript
 class PostOffice {
@@ -337,7 +337,7 @@ By default, a watcher will be created for a `@watch()` decorator. This watcher w
     }
   }
   ```
-  The `firstName` and `lastName` properties of `contact` components is being observed manually. And everytime either `firstName`, or `lastName` change, the computed getter is run again and the dependencies will be observed again. Observers are cached and the same observer won't be added more than once, old observers from the old computed getter run will also be disposed, so you won't have to worry about stale dependencies or memory leak.
+  The `firstName` and `lastName` properties of `contact` components is being observed manually. And every time either `firstName`, or `lastName` change, the computed getter is run again and the dependencies will be observed again. Observers are cached and the same observer won't be added more than once, old observers from the old computed getter run will also be disposed, so you won't have to worry about stale dependencies or memory leak.
 
 {% hint style="warning" %}
 **Automatic array observation**
@@ -364,7 +364,7 @@ By default, a watcher will be created for a `@watch()` decorator. This watcher w
   someMethod() {}
   ```
 
-- To ensure idenity equality with proxies, always be careful with objects that are not accessed from the first parameter passed into the computed getter. Better, get the raw underlying object before doing the strict comparison with `===`. For example:
+- To ensure identity equality with proxies, always be careful with objects that are not accessed from the first parameter passed into the computed getter. Better, get the raw underlying object before doing the strict comparison with `===`. For example:
   ```typescript
   const defaultOptions = {};
 
@@ -379,7 +379,7 @@ By default, a watcher will be created for a `@watch()` decorator. This watcher w
   ```
   In this example, even if `options` on a `MyClass` instance has never been changed, the comparison of `myClass.options === defaultOptions` will still return false, as the actual value for `myClass.options` is a proxied object wrapping the real object, and thus is always different with `defaultOptions`.
 
-- Dependency tracking inside a watch computed getter is done synchronously, which means returning a promise, or having an async function won't work property. Don't do the following:
+- Dependency tracking inside a watch computed getter is done synchronously, which means returning a promise, or having an async function won't work properly. Don't do the following:
   ```typescript
   class MyClass {
 

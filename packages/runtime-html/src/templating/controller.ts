@@ -23,8 +23,6 @@ import {
   ILifecycle,
   IBindingTargetAccessor,
   PropertyBinding,
-  BindableObserver,
-  BindableDefinition,
   BindingType,
   IObserverLocator,
   IWatchDefinition,
@@ -34,6 +32,8 @@ import {
   IObservable,
   IExpressionParser,
 } from '@aurelia/runtime';
+import { BindableDefinition } from '../bindable';
+import { BindableObserver } from '../observation/bindable-observer';
 import { convertToRenderLocation, INode, INodeSequence, IRenderLocation } from '../dom.js';
 import { CustomElementDefinition, CustomElement, PartialCustomElementDefinition } from '../resources/custom-element.js';
 import { CustomAttributeDefinition, CustomAttribute } from '../resources/custom-attribute.js';
@@ -277,7 +277,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     if (definition.watches.length > 0) {
       createWatchers(this, this.container, definition, instance);
     }
-    createObservers(this.lifecycle, definition, flags, instance);
+    createObservers(this, definition, flags, instance);
     createChildrenObservers(this as Controller, definition, flags, instance);
 
     if (this.hooks.hasDefine) {
@@ -377,7 +377,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     if (definition.watches.length > 0) {
       createWatchers(this, this.container, definition, instance);
     }
-    createObservers(this.lifecycle, definition, this.flags, instance);
+    createObservers(this, definition, this.flags, instance);
 
     (instance as Writable<C>).$controller = this;
   }
@@ -482,6 +482,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   private bind(): void | Promise<void> {
     if (this.debug) { this.logger!.trace(`bind()`); }
 
+    this.state |= State.binding;
     if (this.bindings !== null) {
       for (let i = 0; i < this.bindings.length; ++i) {
         this.bindings[i].$bind(this.$flags, this.scope!, this.hostScope);
@@ -519,6 +520,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   private attach(): void | Promise<void> {
     if (this.debug) { this.logger!.trace(`attach()`); }
 
+    this.state &= ~State.binding;
     if (this.hostController !== null) {
       switch (this.mountTarget) {
         case MountTarget.host:
@@ -705,7 +707,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       cur.next = null;
       cur = next;
     }
-
     this.head = this.tail = null;
 
     if (promises !== void 0) {
@@ -714,6 +715,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   }
 
   private unbinding(): void | Promise<void> {
+    this.state |= State.unbinding;
     if (this.hooks.hasUnbinding) {
       if (this.debug) { this.logger!.trace(`unbinding()`); }
 
@@ -737,6 +739,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       }
     }
 
+    this.state &= ~State.unbinding;
     this.parent = null;
 
     switch (this.vmKind) {
@@ -909,7 +912,7 @@ function getLookup(instance: IIndexable): Record<string, BindableObserver | Chil
 }
 
 function createObservers(
-  lifecycle: ILifecycle,
+  controller: Controller,
   definition: CustomElementDefinition | CustomAttributeDefinition,
   // deepscan-disable-next-line
   _flags: LifecycleFlags,
@@ -930,11 +933,11 @@ function createObservers(
         bindable = bindables[name];
 
         observers[name] = new BindableObserver(
-          lifecycle,
           instance as IIndexable,
           name,
           bindable.callback,
           bindable.set,
+          controller,
         );
       }
     }
@@ -1189,13 +1192,15 @@ export interface IHydratableController<C extends IViewModel = IViewModel> extend
 }
 
 export const enum State {
-  none                     = 0b00_00_00,
-  activating               = 0b00_00_01,
-  activated                = 0b00_00_10,
-  deactivating             = 0b00_01_00,
-  deactivated              = 0b00_10_00,
-  released                 = 0b01_00_00,
-  disposed                 = 0b10_00_00,
+  none                     = 0b00_00_00_00,
+  activating               = 0b00_00_00_01,
+  activated                = 0b00_00_00_10,
+  deactivating             = 0b00_00_01_00,
+  deactivated              = 0b00_00_10_00,
+  released                 = 0b00_01_00_00,
+  disposed                 = 0b00_10_00_00,
+  binding                  = 0b01_00_00_00,
+  unbinding                = 0b10_00_00_00,
 }
 
 export function stringifyState(state: State): string {

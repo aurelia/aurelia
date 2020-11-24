@@ -2,9 +2,9 @@ import { noop, Primitive, IIndexable } from '@aurelia/kernel';
 import {
   LifecycleFlags as LF,
   PrimitiveObserver,
-  BindableObserver,
   SetterObserver
 } from '@aurelia/runtime';
+import { BindableObserver } from '@aurelia/runtime-html';
 import { SpySubscriber, assert, TestContext, ChangeSet } from '@aurelia/testing';
 
 const getName = (o: any) => Object.prototype.toString.call(o).slice(8, -1);

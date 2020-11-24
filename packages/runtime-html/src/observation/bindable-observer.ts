@@ -82,7 +82,7 @@ export class BindableObserver {
       this.currentValue = newValue;
       if (this.lifecycle.batch.depth === 0) {
         this.callSubscribers(newValue, currentValue, flags);
-        if ((this.$controller.state & State.binding) === 0) {
+        if ((this.$controller.state & State.bound) === 0) {
           this.callback?.call(this.obj, newValue, currentValue, flags);
 
           if (this.hasPropertyChangedCallback) {

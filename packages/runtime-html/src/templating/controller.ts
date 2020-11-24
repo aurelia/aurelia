@@ -482,13 +482,13 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   private bind(): void | Promise<void> {
     if (this.debug) { this.logger!.trace(`bind()`); }
 
-    this.state |= State.binding;
     if (this.bindings !== null) {
       for (let i = 0; i < this.bindings.length; ++i) {
         this.bindings[i].$bind(this.$flags, this.scope!, this.hostScope);
       }
     }
 
+    this.state |= State.bound;
     if (this.hooks.hasBound) {
       if (this.debug) { this.logger!.trace(`bound()`); }
 
@@ -520,7 +520,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   private attach(): void | Promise<void> {
     if (this.debug) { this.logger!.trace(`attach()`); }
 
-    this.state &= ~State.binding;
     if (this.hostController !== null) {
       switch (this.mountTarget) {
         case MountTarget.host:
@@ -715,7 +714,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   }
 
   private unbinding(): void | Promise<void> {
-    this.state |= State.unbinding;
     if (this.hooks.hasUnbinding) {
       if (this.debug) { this.logger!.trace(`unbinding()`); }
 
@@ -731,6 +729,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   private unbind(): void {
     if (this.debug) { this.logger!.trace(`unbind()`); }
 
+    this.state &= ~State.bound;
     const flags = this.$flags | LifecycleFlags.fromUnbind;
 
     if (this.bindings !== null) {
@@ -739,7 +738,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       }
     }
 
-    this.state &= ~State.unbinding;
     this.parent = null;
 
     switch (this.vmKind) {
@@ -1199,8 +1197,7 @@ export const enum State {
   deactivated              = 0b00_00_10_00,
   released                 = 0b00_01_00_00,
   disposed                 = 0b00_10_00_00,
-  binding                  = 0b01_00_00_00,
-  unbinding                = 0b10_00_00_00,
+  bound                    = 0b01_00_00_00,
 }
 
 export function stringifyState(state: State): string {

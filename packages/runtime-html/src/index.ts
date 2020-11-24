@@ -17,7 +17,11 @@ export {
   Bindable,
   BindableDefinition,
   PartialBindableDefinition,
-} from './bindable.js'
+} from './bindable.js';
+
+export {
+  BindableObserver,
+} from './observation/bindable-observer.js';
 
 export {
   alias,
@@ -137,7 +141,6 @@ export {
 
   PropertyAccessor,
 
-  BindableObserver,
 
   SetterObserver,
 

@@ -20,13 +20,15 @@ import {
   emptyArray,
 } from '@aurelia/kernel';
 import {
-  PartialBindableDefinition,
-  BindableDefinition,
-  Bindable,
   registerAliases,
   IWatchDefinition,
   Watch,
 } from '@aurelia/runtime';
+import {
+  Bindable,
+  BindableDefinition,
+  PartialBindableDefinition,
+} from '../bindable.js';
 import { IProjections } from './custom-elements/au-slot.js';
 import { INode, getEffectiveParentNode } from '../dom.js';
 import { IInstruction } from '../renderer.js';

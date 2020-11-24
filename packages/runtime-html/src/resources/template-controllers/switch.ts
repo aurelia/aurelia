@@ -7,7 +7,6 @@ import {
   Writable,
 } from '@aurelia/kernel';
 import {
-  bindable,
   LifecycleFlags,
   BindingMode,
   ICollectionObserver,
@@ -16,13 +15,16 @@ import {
   IndexMap,
   Scope,
 } from '@aurelia/runtime';
-import { INode, IRenderLocation } from '../../dom.js';
+import { IRenderLocation } from '../../dom.js';
 import { templateController } from '../custom-attribute.js';
-import { Controller } from '../../templating/controller.js';
-import { ICompiledRenderContext } from '../../templating/render-context.js';
 import { IViewFactory } from '../../templating/view.js';
+import { bindable } from '../../bindable.js';
+
 import type { ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, IHydratableController, ISyntheticView, ControllerVisitor } from '../../templating/controller.js';
-import { Instruction } from '../../renderer.js';
+import type { ICompiledRenderContext } from '../../templating/render-context.js';
+import type { Controller } from '../../templating/controller.js';
+import type { INode } from '../../dom.js';
+import type { Instruction } from '../../renderer.js';
 
 @templateController('switch')
 export class Switch implements ICustomAttributeViewModel {

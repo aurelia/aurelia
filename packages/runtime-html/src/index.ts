@@ -14,9 +14,9 @@ export {
 
 export {
   bindable,
-  PartialBindableDefinition,
-  BindableDefinition,
   Bindable,
+  BindableDefinition,
+  PartialBindableDefinition,
 } from './bindable.js'
 
 export {

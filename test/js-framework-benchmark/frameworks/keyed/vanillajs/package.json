@@ -6,7 +6,6 @@
   "js-framework-benchmark": {
     "frameworkVersion": "",
     "customURL": "/"
-
   },
   "scripts": {
     "build-dev": "webpack -w -d",

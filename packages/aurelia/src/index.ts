@@ -520,6 +520,7 @@ export {
   // TaskAbortError,
   // TaskCallback,
   // TaskQueue,
+  AppTask,
   TaskQueuePriority,
   // TaskStatus,
   // QueueTaskTargetOptions,
@@ -802,6 +803,7 @@ export {
   // IAttributePatternHandler,
   // Interpretation,
   // ISyntaxInterpreter,
+  IAttrSyntaxTransformer,
 
   // AtPrefixedTriggerAttributePattern,
   // ColonPrefixedBindAttributePattern,

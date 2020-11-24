@@ -738,6 +738,8 @@ export {
   // EventSubscription,
   // EventDelegator,
 
+  NodeObserverLocator,
+
   // TargetAccessorLocator,
   // TargetObserverLocator,
 

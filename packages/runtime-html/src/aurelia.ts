@@ -55,6 +55,12 @@ export class Aurelia implements IDisposable {
     return this;
   }
 
+  public async waitForIdle(): Promise<void> {
+    const platform = this.root.platform;
+    await platform.domWriteQueue.yield();
+    await platform.domReadQueue.yield();
+  }
+
   private initPlatform(host: HTMLElement): IPlatform {
     let p: IPlatform;
     if (!this.container.has(IPlatform, false)) {

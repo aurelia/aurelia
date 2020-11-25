@@ -9,7 +9,9 @@ import { App, FilterEmployed, FormatDate } from './app';
 import { iar, ipr } from './registrations';
 import './styles.css';
 
-(global as any)['Aurelia'] = new Aurelia()
+const au = new Aurelia();
+(globalThis as any)['waitForIdle'] = au.waitForIdle.bind(au);
+au
   .register(
     StandardConfiguration,
     ipr,

@@ -12,6 +12,6 @@
     "build": "tsc -p tsconfig.json",
     "dev": "tsc -b -w --preserveWatchOutput",
     "::e2e": "mocha --ui bdd --colors --reporter spec --timeout 1200000",
-    "e2e:examples": "npm run ::e2e -- dist/examples.spec.js"
+    "bench": "npm run ::e2e -- dist/bench.spec.js"
   }
 }

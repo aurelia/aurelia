@@ -20,9 +20,8 @@ import { templateController } from '../custom-attribute.js';
 import { IViewFactory } from '../../templating/view.js';
 import { bindable } from '../../bindable.js';
 
-import type { ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, IHydratableController, ISyntheticView, ControllerVisitor } from '../../templating/controller.js';
+import type { Controller, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, IHydratableController, ISyntheticView, ControllerVisitor } from '../../templating/controller.js';
 import type { ICompiledRenderContext } from '../../templating/render-context.js';
-import type { Controller } from '../../templating/controller.js';
 import type { INode } from '../../dom.js';
 import type { Instruction } from '../../renderer.js';
 

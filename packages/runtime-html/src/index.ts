@@ -141,7 +141,6 @@ export {
 
   PropertyAccessor,
 
-
   SetterObserver,
 
   ISignaler,

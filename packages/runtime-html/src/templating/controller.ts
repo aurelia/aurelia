@@ -488,7 +488,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       }
     }
 
-    this.state |= State.bound;
     if (this.hooks.hasBound) {
       if (this.debug) { this.logger!.trace(`bound()`); }
 
@@ -729,7 +728,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   private unbind(): void {
     if (this.debug) { this.logger!.trace(`unbind()`); }
 
-    this.state &= ~State.bound;
     const flags = this.$flags | LifecycleFlags.fromUnbind;
 
     if (this.bindings !== null) {
@@ -1190,14 +1188,13 @@ export interface IHydratableController<C extends IViewModel = IViewModel> extend
 }
 
 export const enum State {
-  none                     = 0b00_00_00_00,
-  activating               = 0b00_00_00_01,
-  activated                = 0b00_00_00_10,
-  deactivating             = 0b00_00_01_00,
-  deactivated              = 0b00_00_10_00,
-  released                 = 0b00_01_00_00,
-  disposed                 = 0b00_10_00_00,
-  bound                    = 0b01_00_00_00,
+  none                     = 0b00_00_00,
+  activating               = 0b00_00_01,
+  activated                = 0b00_00_10,
+  deactivating             = 0b00_01_00,
+  deactivated              = 0b00_10_00,
+  released                 = 0b01_00_00,
+  disposed                 = 0b10_00_00,
 }
 
 export function stringifyState(state: State): string {

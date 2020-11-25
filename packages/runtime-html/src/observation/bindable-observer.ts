@@ -1,6 +1,5 @@
 import { noop } from '@aurelia/kernel';
 import { subscriberCollection, AccessorType, LifecycleFlags } from '@aurelia/runtime';
-import { State } from '../templating/controller';
 
 import type { IIndexable } from '@aurelia/kernel';
 import type { InterceptorFunc, IPropertyObserver, ISubscriber, ILifecycle } from '@aurelia/runtime';
@@ -22,7 +21,7 @@ export class BindableObserver {
   public inBatch: boolean = false;
   public observing: boolean;
   public type: AccessorType = AccessorType.Obj;
-  
+
   private readonly lifecycle: ILifecycle;
   private readonly callback?: (newValue: unknown, oldValue: unknown, flags: LifecycleFlags) => void;
   private readonly propertyChangedCallback?: HasPropertyChangedCallback['propertyChanged'];
@@ -82,7 +81,7 @@ export class BindableObserver {
       this.currentValue = newValue;
       if (this.lifecycle.batch.depth === 0) {
         this.callSubscribers(newValue, currentValue, flags);
-        if ((this.$controller.state & State.bound) === 0) {
+        if ((flags & LifecycleFlags.fromBind) === 0 || (flags & LifecycleFlags.updateSource) > 0) {
           this.callback?.call(this.obj, newValue, currentValue, flags);
 
           if (this.hasPropertyChangedCallback) {

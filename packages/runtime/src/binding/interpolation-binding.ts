@@ -86,12 +86,10 @@ export class InterpolationBinding implements IBinding {
     if (shouldQueueFlush) {
       // an optimization: only create & queue a task when there's NOT already a task queued
       // inside the lambda, use this.value instead of result, since it would always be the latest value
-      if (this.task == null) {
-        this.task = this.taskQueue.queueTask(() => {
-          targetObserver.setValue(this.value, flags, this.target, this.targetProperty);
-          this.task = null;
-        }, queueTaskOptions);
-      }
+      this.task ??= this.taskQueue.queueTask(() => {
+        targetObserver.setValue(this.value, flags, this.target, this.targetProperty);
+        this.task = null;
+      }, queueTaskOptions);
     } else {
       targetObserver.setValue(result, flags, this.target, this.targetProperty);
     }

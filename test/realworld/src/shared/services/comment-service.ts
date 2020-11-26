@@ -1,12 +1,13 @@
-import { inject } from '@aurelia/kernel';
+import { DI } from '@aurelia/kernel';
 
 import { Comment } from 'shared/models/comment';
-import { ApiService } from './api-service';
+import { IApiService } from './api-service';
 
-@inject(ApiService)
+export interface ICommentService extends CommentService {}
+export const ICommentService = DI.createInterface<ICommentService>('ICommentService').withDefault(x => x.singleton(CommentService));
 export class CommentService {
   public constructor(
-    private readonly apiService: ApiService,
+    @IApiService private readonly apiService: IApiService,
   ) {}
 
   public async add(slug: string, payload: string): Promise<Comment> {

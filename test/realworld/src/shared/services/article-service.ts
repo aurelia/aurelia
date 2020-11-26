@@ -1,17 +1,18 @@
-import { inject } from '@aurelia/kernel';
+import { DI, inject } from '@aurelia/kernel';
 
 import { Article } from 'shared/models/article';
-import { ApiService } from './api-service';
+import { IApiService } from './api-service';
 
 export interface ArticleResponse {
   articles: Article[];
   articlesCount: number;
 }
 
-@inject(ApiService)
+export interface IArticleService extends ArticleService {}
+export const IArticleService = DI.createInterface<IArticleService>('IArticleService').withDefault(x => x.singleton(ArticleService));
 export class ArticleService {
   public constructor(
-    private readonly apiService: ApiService,
+    @IApiService private readonly apiService: IApiService,
   ) {}
 
   public getList(type: string, params: any): Promise<ArticleResponse> {

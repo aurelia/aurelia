@@ -1,11 +1,12 @@
-import { inject } from '@aurelia/kernel';
+import { DI } from '@aurelia/kernel';
 
-import { ApiService } from './api-service';
+import { IApiService } from './api-service';
 
-@inject(ApiService)
+export interface ITagService extends TagService {}
+export const ITagService = DI.createInterface<ITagService>('ITagService').withDefault(x => x.singleton(TagService));
 export class TagService {
   public constructor(
-    private readonly apiService: ApiService,
+    @IApiService private readonly apiService: IApiService,
   ) {}
 
   public async getList() {

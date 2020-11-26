@@ -1,10 +1,7 @@
-import { inject } from '@aurelia/kernel';
-
 import { getPages } from 'shared/get-pages';
 import { Article } from 'shared/models/article';
-import { ArticleService } from 'shared/services/article-service';
+import { IArticleService } from 'shared/services/article-service';
 
-@inject(ArticleService)
 export class ProfileArticle {
   public static parameters: string[] = ['name'];
 
@@ -16,7 +13,7 @@ export class ProfileArticle {
   private username?: string;
 
   public constructor(
-    private readonly articleService: ArticleService,
+    @IArticleService private readonly articleService: IArticleService,
   ) {}
 
   public enter(params: any) {

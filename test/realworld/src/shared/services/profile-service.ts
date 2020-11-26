@@ -1,12 +1,13 @@
-import { inject } from '@aurelia/kernel';
+import { DI } from '@aurelia/kernel';
 
 import { Profile } from 'shared/models/profile';
-import { ApiService } from './api-service';
+import { IApiService } from './api-service';
 
-@inject(ApiService)
+export interface IProfileService extends ProfileService {}
+export const IProfileService = DI.createInterface<IProfileService>('IProfileService').withDefault(x => x.singleton(ProfileService));
 export class ProfileService {
   public constructor(
-    private readonly apiService: ApiService,
+    @IApiService private readonly apiService: IApiService,
   ) {}
 
   public get(username: string): Promise<Profile> {

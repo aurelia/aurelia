@@ -1,14 +1,12 @@
-import { inject } from '@aurelia/kernel';
 import { IRouter, NavRoute } from '@aurelia/router';
 
 import { Article } from 'models/article';
 import { ArticleRequest } from 'models/article-request';
 import { getPages } from 'shared/get-pages';
-import { ArticleService } from 'shared/services/article-service';
-import { TagService } from 'shared/services/tag-service';
-import { SharedState } from 'shared/state/shared-state';
+import { IArticleService } from 'shared/services/article-service';
+import { ITagService } from 'shared/services/tag-service';
+import { ISharedState } from 'shared/state/shared-state';
 
-@inject(SharedState, IRouter, ArticleService, TagService)
 export class Home {
   private articles: Article[] = [];
   private shownList = 'all';
@@ -20,10 +18,10 @@ export class Home {
   private readonly limit = 10;
 
   public constructor(
-    private readonly sharedState: SharedState,
-    private readonly router: IRouter,
-    private readonly articleService: ArticleService,
-    private readonly tagService: TagService,
+    @ISharedState private readonly sharedState: ISharedState,
+    @IRouter private readonly router: IRouter,
+    @IArticleService private readonly articleService: IArticleService,
+    @ITagService private readonly tagService: ITagService,
   ) {}
 
   public attached() {

@@ -1,18 +1,16 @@
-import { inject } from '@aurelia/kernel';
 import { IRouter } from '@aurelia/router';
 
 import { User } from 'shared/models/user';
-import { UserService } from 'shared/services/user-service';
+import { IUserService } from 'shared/services/user-service';
 
-@inject(UserService, IRouter)
 export class Auth {
   private readonly user: User = {};
   private type: string = 'login';
   private errors?: string[];
 
   public constructor(
-    private readonly userService: UserService,
-    private readonly router: IRouter,
+    @IUserService private readonly userService: IUserService,
+    @IRouter private readonly router: IRouter,
   ) {}
 
   public enter(parameters: { type: string }) {

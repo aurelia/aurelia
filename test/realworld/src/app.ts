@@ -10,12 +10,11 @@ import { Profile } from './components/profile/profile';
 import { Settings } from './components/settings/settings';
 import { FooterLayout } from './shared/layouts/footer-layout';
 import { HeaderLayout } from './shared/layouts/header-layout';
-import { UserService } from './shared/services/user-service';
-import { SharedState } from './shared/state/shared-state';
+import { IUserService } from './shared/services/user-service';
+import { ISharedState } from './shared/state/shared-state';
 
 import template from './app.html';
 
-@inject(IRouter, UserService, SharedState)
 @customElement({
   name: 'app',
   dependencies: [
@@ -35,9 +34,9 @@ export class App implements IViewModel {
   private readonly message: string;
 
   public constructor(
-    private readonly router: IRouter,
-    private readonly userService: UserService,
-    private readonly state: SharedState,
+    @IRouter private readonly router: IRouter,
+    @IUserService private readonly userService: IUserService,
+    @ISharedState private readonly state: ISharedState,
   ) {
     this.message = 'Hello World!'; // just for unit testing ;)
   }

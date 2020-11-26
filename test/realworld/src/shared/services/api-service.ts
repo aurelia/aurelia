@@ -1,18 +1,19 @@
-import { HttpClient, json } from '@aurelia/fetch-client';
-import { inject } from '@aurelia/kernel';
+import { IHttpClient, json } from '@aurelia/fetch-client';
+import { DI } from '@aurelia/kernel';
 
 import * as qs from 'querystringify';
 import { config } from './config';
-import { HttpInterceptor } from './http-interceptor';
-import { JwtService } from './jwt-service';
+import { IHttpInterceptor } from './http-interceptor';
+import { IJwtService } from './jwt-service';
 import { parseError, status } from './service-helper';
 
-@inject(HttpClient, JwtService, HttpInterceptor)
+export interface IApiService extends ApiService {}
+export const IApiService = DI.createInterface<IApiService>('IApiService').withDefault(x => x.singleton(ApiService));
 export class ApiService {
   public constructor(
-    private readonly http: HttpClient,
-    private readonly jwtService: JwtService,
-    private readonly interceptor: HttpInterceptor,
+    @IHttpClient private readonly http: IHttpClient,
+    @IJwtService private readonly jwtService: IJwtService,
+    @IHttpInterceptor private readonly interceptor: IHttpInterceptor,
   ) {
     http.configure((httpConfiguration) => {
       httpConfiguration

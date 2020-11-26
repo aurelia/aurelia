@@ -1,14 +1,15 @@
 import { Interceptor } from '@aurelia/fetch-client';
-import { inject } from '@aurelia/kernel';
+import { DI } from '@aurelia/kernel';
 
-import { JwtService } from './jwt-service';
+import { IJwtService } from './jwt-service';
 
 const AUTHORIZATION_HEADER = 'Authorization';
 
-@inject(JwtService)
+export interface IHttpInterceptor extends HttpInterceptor {}
+export const IHttpInterceptor = DI.createInterface<IHttpInterceptor>('IHttpInterceptor').withDefault(x => x.singleton(HttpInterceptor));
 export class HttpInterceptor implements Interceptor {
   public constructor(
-    private readonly jwtService: JwtService,
+    @IJwtService private readonly jwtService: IJwtService,
   ) {}
 
   public request(request: Request) {

@@ -1,4 +1,3 @@
-import { HttpClient } from '@aurelia/fetch-client';
 import { RouterConfiguration } from '@aurelia/router';
 import { Aurelia, StandardConfiguration } from '@aurelia/runtime-html';
 
@@ -10,7 +9,6 @@ import { DateValueConverter } from './resources/value-converters/date';
 import { FormatHtmlValueConverter } from './resources/value-converters/format-html';
 import { KeysValueConverter } from './resources/value-converters/keys';
 import { MarkdownHtmlValueConverter } from './resources/value-converters/markdown-html';
-import { SharedState } from './shared/state/shared-state';
 
 const globalResources = [
   Auth,
@@ -19,9 +17,6 @@ const globalResources = [
   FormatHtmlValueConverter,
   KeysValueConverter,
   MarkdownHtmlValueConverter,
-
-  SharedState,
-  HttpClient,
 ];
 
 new Aurelia()

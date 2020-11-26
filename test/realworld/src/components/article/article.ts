@@ -1,12 +1,9 @@
-import { inject } from '@aurelia/kernel';
-
 import { Article as ArticleModel} from 'shared/models/article';
 import { Comment } from 'shared/models/comment';
-import { ArticleService } from 'shared/services/article-service';
-import { CommentService } from 'shared/services/comment-service';
-import { SharedState } from 'shared/state/shared-state';
+import { IArticleService } from 'shared/services/article-service';
+import { ICommentService } from 'shared/services/comment-service';
+import { ISharedState } from 'shared/state/shared-state';
 
-@inject(ArticleService, CommentService, SharedState)
 export class Article {
   private article?: ArticleModel;
   private comments?: Comment[];
@@ -14,9 +11,9 @@ export class Article {
   private slug: any;
 
   public constructor(
-    private readonly articleService: ArticleService,
-    private readonly commentService: CommentService,
-    private readonly sharedState: SharedState,
+    @IArticleService private readonly articleService: IArticleService,
+    @ICommentService private readonly commentService: ICommentService,
+    @ISharedState private readonly sharedState: ISharedState,
   ) {}
 
   public async enter(params: { slug: any }) {

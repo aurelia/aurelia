@@ -1,19 +1,17 @@
-import { inject } from '@aurelia/kernel';
 import { IRouter } from '@aurelia/router';
 import { bindable } from '@aurelia/runtime-html';
 
-import { ProfileService } from 'shared/services/profile-service';
-import { SharedState } from 'shared/state/shared-state';
+import { IProfileService } from 'shared/services/profile-service';
+import { ISharedState } from 'shared/state/shared-state';
 
-@inject(IRouter, SharedState, ProfileService)
 export class FollowButton {
   @bindable public article: any;
   @bindable public toggle: any;
 
   public constructor(
-    private readonly router: IRouter,
-    private readonly sharedState: SharedState,
-    private readonly profileService: ProfileService,
+    @IRouter private readonly router: IRouter,
+    @ISharedState private readonly sharedState: ISharedState,
+    @IProfileService private readonly profileService: IProfileService,
   ) {}
 
   public onToggleFollowing() {

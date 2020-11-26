@@ -1,16 +1,17 @@
-import { inject } from '@aurelia/kernel';
+import { DI } from '@aurelia/kernel';
 
 import { User } from 'models/user';
-import { SharedState } from 'shared/state/shared-state';
-import { ApiService } from './api-service';
-import { JwtService } from './jwt-service';
+import { ISharedState } from 'shared/state/shared-state';
+import { IApiService } from './api-service';
+import { IJwtService } from './jwt-service';
 
-@inject(ApiService, JwtService, SharedState)
+export interface IUserService extends UserService {}
+export const IUserService = DI.createInterface<IUserService>('IUserService').withDefault(x => x.singleton(UserService));
 export class UserService {
   public constructor(
-    private readonly apiService: ApiService,
-    private readonly jwtService: JwtService,
-    private readonly sharedState: SharedState,
+    @IApiService private readonly apiService: IApiService,
+    @IJwtService private readonly jwtService: IJwtService,
+    @ISharedState private readonly sharedState: ISharedState,
   ) {}
 
   // Verify JWT in localstorage with server & load user's info.

@@ -2,10 +2,9 @@ import { inject } from '@aurelia/kernel';
 import { IRouter, ReentryBehavior } from '@aurelia/router';
 
 import { Profile as ProfileModel } from 'shared/models/profile';
-import { ProfileService } from 'shared/services/profile-service';
-import { SharedState } from 'shared/state/shared-state';
+import { IProfileService } from 'shared/services/profile-service';
+import { ISharedState } from 'shared/state/shared-state';
 
-@inject(SharedState, ProfileService, IRouter)
 export class Profile {
   public static parameters: string[] = ['name'];
   public reentryBehavior: string = ReentryBehavior.refresh;
@@ -14,9 +13,9 @@ export class Profile {
   private profile?: ProfileModel;
 
   public constructor(
-    private readonly sharedState: SharedState,
-    private readonly profileService: ProfileService,
-    private readonly router: IRouter,
+    @ISharedState private readonly sharedState: ISharedState,
+    @IProfileService private readonly profileService: IProfileService,
+    @IRouter private readonly router: IRouter,
   ) {}
 
   public async enter(parameters: { name: string }) {

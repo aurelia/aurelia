@@ -1,3 +1,7 @@
+import { DI } from '@aurelia/kernel';
+
+export interface IJwtService extends JwtService {}
+export const IJwtService = DI.createInterface<IJwtService>('IJwtService').withDefault(x => x.singleton(JwtService));
 export class JwtService {
   public getToken() {
     return window.localStorage.jwtToken;

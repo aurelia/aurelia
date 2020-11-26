@@ -1,16 +1,13 @@
-import { inject } from '@aurelia/kernel';
-import { IRouter, lifecycleLogger } from '@aurelia/router';
+import { IRouter } from '@aurelia/router';
 
-import { UserService } from 'shared/services/user-service';
-import { SharedState } from 'shared/state/shared-state';
+import { IUserService } from 'shared/services/user-service';
+import { ISharedState } from 'shared/state/shared-state';
 
-@lifecycleLogger('settings')
-@inject(UserService, SharedState, IRouter)
 export class Settings {
   public constructor(
-    private readonly userService: UserService,
-    private readonly sharedState: SharedState,
-    private readonly router: IRouter,
+    @IUserService private readonly userService: IUserService,
+    @ISharedState private readonly sharedState: ISharedState,
+    @IRouter private readonly router: IRouter,
   ) {}
 
   public define() { return; }

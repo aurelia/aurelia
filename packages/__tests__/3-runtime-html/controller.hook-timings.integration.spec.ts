@@ -1633,12 +1633,12 @@ describe('controller.hook-timings.integration', function () {
         'swap.c-2.attaching.tick(3)',
         'swap.c-2.attaching.leave',
         // end of the part that's relevant to this test
-        'swap.c-2.attached.enter',
-        'swap.c-2.attached.leave',
         'swap.c-1.unbinding.enter',
         'swap.c-1.unbinding.leave',
         'swap.p-1.unbinding.enter',
         'swap.p-1.unbinding.leave',
+        'swap.c-2.attached.enter',
+        'swap.c-2.attached.leave',
         'swap.p-2.attached.enter',
         'swap.p-2.attached.leave',
 
@@ -1867,19 +1867,26 @@ class DelayedInvoker<T extends HookName> {
       this.mgr[this.name].leave(vm);
     } else {
       let i = -1;
-      const next = (): void | Promise<void> => {
+      let resolve: () => void;
+      let p = new Promise<void>(r => {
+        resolve = r;
+      });
+      const next = (): void => {
         if (++i === 0) {
           this.mgr[this.name].enter(vm);
         } else {
           this.mgr[this.name].tick(vm, i);
         }
         if (i < this.ticks) {
-          return Promise.resolve().then(next);
+          Promise.resolve().then(next);
+        } else {
+          cb();
+          this.mgr[this.name].leave(vm);
+          resolve();
         }
-        cb();
-        this.mgr[this.name].leave(vm);
       };
-      return next();
+      next();
+      return p;
     }
   }
 

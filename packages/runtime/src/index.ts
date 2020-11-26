@@ -175,9 +175,6 @@ export {
   ProxyObservable,
 } from './observation/proxy-observation.js';
 export {
-  BindableObserver,
-} from './observation/bindable-observer.js';
-export {
   SetterObserver,
 } from './observation/setter-observer.js';
 export {
@@ -235,13 +232,6 @@ export {
 } from './value-converter.js';
 
 export {
-  bindable,
-  PartialBindableDefinition,
-  BindableDefinition,
-  Bindable,
-} from './bindable.js';
-
-export {
   watch,
   Watch,
   IWatchDefinition,
@@ -272,6 +262,7 @@ export {
   IObserver,
   IObservable,
   IOverrideContext,
+  InterceptorFunc,
   IPropertyChangeTracker,
   IPropertyObserver,
   ISubscribable,

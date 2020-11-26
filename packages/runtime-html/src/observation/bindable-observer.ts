@@ -1,10 +1,9 @@
 import { noop } from '@aurelia/kernel';
-import { AccessorType, LifecycleFlags } from '../observation.js';
-import { subscriberCollection } from './subscriber-collection.js';
+import { subscriberCollection, AccessorType, LifecycleFlags } from '@aurelia/runtime';
 
 import type { IIndexable } from '@aurelia/kernel';
-import type { InterceptorFunc } from '../bindable.js';
-import type { IPropertyObserver, ISubscriber, ILifecycle } from '../observation.js';
+import type { InterceptorFunc, IPropertyObserver, ISubscriber, ILifecycle } from '@aurelia/runtime';
+import type { IController } from '../templating/controller';
 
 export interface BindableObserver extends IPropertyObserver<IIndexable, string> {}
 
@@ -23,19 +22,21 @@ export class BindableObserver {
   public observing: boolean;
   public type: AccessorType = AccessorType.Obj;
 
+  private readonly lifecycle: ILifecycle;
   private readonly callback?: (newValue: unknown, oldValue: unknown, flags: LifecycleFlags) => void;
   private readonly propertyChangedCallback?: HasPropertyChangedCallback['propertyChanged'];
   private readonly hasPropertyChangedCallback: boolean;
   private readonly shouldInterceptSet: boolean;
 
   public constructor(
-    public readonly lifecycle: ILifecycle,
     public readonly obj: IIndexable,
     public readonly propertyKey: string,
     cbName: string,
     private readonly $set: InterceptorFunc,
+    public readonly $controller: IController,
   ) {
     this.callback = this.obj[cbName] as typeof BindableObserver.prototype.callback;
+    this.lifecycle = $controller.lifecycle;
 
     const propertyChangedCallback = this.propertyChangedCallback = (this.obj as IMayHavePropertyChangedCallback).propertyChanged;
     const hasPropertyChangedCallback = this.hasPropertyChangedCallback = typeof propertyChangedCallback === 'function';

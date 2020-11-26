@@ -39,3 +39,29 @@ export function createSpecFunction<TTestContext extends TestExecutionContext<any
 export class ToNumberValueConverter {
   public fromView(value: string): number { return Number(value) || void 0; }
 }
+
+export class TickLogger {
+  public ticks: number = 0;
+  private running: boolean = false;
+  private cb: (() => void) | null = null;
+
+  public start(): void {
+    this.running = true;
+    const next = (): void => {
+      ++this.ticks;
+      this.cb?.call(void 0);
+      if (this.running) {
+        void Promise.resolve().then(next);
+      }
+    };
+    void Promise.resolve().then(next);
+  }
+
+  public stop(): void {
+    this.running = false;
+  }
+
+  public onTick(cb: () => void): void {
+    this.cb = cb;
+  }
+}

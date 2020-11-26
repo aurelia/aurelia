@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "../dom.js", "../resources/custom-element.js", "../resources/custom-attribute.js", "./render-context.js", "./children.js", "../app-root.js", "../platform.js", "./styles.js"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "../observation/bindable-observer", "../dom.js", "../resources/custom-element.js", "../resources/custom-attribute.js", "./render-context.js", "./children.js", "../app-root.js", "../platform.js", "./styles.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -14,6 +14,7 @@
     /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
+    const bindable_observer_1 = require("../observation/bindable-observer");
     const dom_js_1 = require("../dom.js");
     const custom_element_js_1 = require("../resources/custom-element.js");
     const custom_attribute_js_1 = require("../resources/custom-attribute.js");
@@ -197,7 +198,7 @@
             if (definition.watches.length > 0) {
                 createWatchers(this, this.container, definition, instance);
             }
-            createObservers(this.lifecycle, definition, flags, instance);
+            createObservers(this, definition, flags, instance);
             createChildrenObservers(this, definition, flags, instance);
             if (this.hooks.hasDefine) {
                 if (this.debug) {
@@ -293,7 +294,7 @@
             if (definition.watches.length > 0) {
                 createWatchers(this, this.container, definition, instance);
             }
-            createObservers(this.lifecycle, definition, this.flags, instance);
+            createObservers(this, definition, this.flags, instance);
             instance.$controller = this;
         }
         hydrateSynthetic(context) {
@@ -764,7 +765,7 @@
         }
         return lookup;
     }
-    function createObservers(lifecycle, definition, 
+    function createObservers(controller, definition, 
     // deepscan-disable-next-line
     _flags, instance) {
         const bindables = definition.bindables;
@@ -778,7 +779,7 @@
                 name = observableNames[i];
                 if (observers[name] === void 0) {
                     bindable = bindables[name];
-                    observers[name] = new runtime_1.BindableObserver(lifecycle, instance, name, bindable.callback, bindable.set);
+                    observers[name] = new bindable_observer_1.BindableObserver(instance, name, bindable.callback, bindable.set, controller);
                 }
             }
         }

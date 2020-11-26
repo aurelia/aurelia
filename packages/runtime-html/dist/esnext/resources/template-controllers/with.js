@@ -8,10 +8,11 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 import { nextId } from '@aurelia/kernel';
-import { bindable, Scope } from '@aurelia/runtime';
+import { Scope } from '@aurelia/runtime';
 import { IRenderLocation } from '../../dom.js';
 import { IViewFactory } from '../../templating/view.js';
 import { templateController } from '../custom-attribute.js';
+import { bindable } from '../../bindable.js';
 let With = class With {
     constructor(factory, location) {
         this.factory = factory;

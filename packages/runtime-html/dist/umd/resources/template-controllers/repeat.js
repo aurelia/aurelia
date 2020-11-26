@@ -13,7 +13,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "../../dom.js", "../../templating/view.js", "../custom-attribute.js", "../../templating/controller.js"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "../../dom.js", "../../templating/view.js", "../custom-attribute.js", "../../templating/controller.js", "../../bindable.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -25,6 +25,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     const view_js_1 = require("../../templating/view.js");
     const custom_attribute_js_1 = require("../custom-attribute.js");
     const controller_js_1 = require("../../templating/controller.js");
+    const bindable_js_1 = require("../../bindable.js");
     function dispose(disposable) {
         disposable.dispose();
     }
@@ -300,7 +301,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
     };
     __decorate([
-        runtime_1.bindable
+        bindable_js_1.bindable
     ], Repeat.prototype, "items", void 0);
     Repeat = __decorate([
         custom_attribute_js_1.templateController('repeat'),

@@ -1,5 +1,6 @@
 import { DI, Registration, Protocol, Metadata, mergeArrays, fromDefinitionOrDefault, pascalCase, fromAnnotationOrTypeOrDefault, fromAnnotationOrDefinitionOrTypeOrDefault, emptyArray, } from '@aurelia/kernel';
-import { Bindable, registerAliases, Watch, } from '@aurelia/runtime';
+import { registerAliases, Watch, } from '@aurelia/runtime';
+import { Bindable, } from '../bindable.js';
 import { getEffectiveParentNode } from '../dom.js';
 import { Children } from '../templating/children.js';
 export function customElement(nameOrDef) {

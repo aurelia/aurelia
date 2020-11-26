@@ -1,7 +1,6 @@
 import { AccessorType, LifecycleFlags } from '../observation.js';
 import type { IIndexable } from '@aurelia/kernel';
-import type { IObserver, ISubscriber, ISubscribable, IAccessor, ISubscriberCollection } from '../observation.js';
-import type { InterceptorFunc } from '../bindable.js';
+import type { IAccessor, IObserver, InterceptorFunc, ISubscriber, ISubscribable, ISubscriberCollection } from '../observation.js';
 export interface SetterObserver extends IObserver, ISubscriberCollection {
 }
 /**

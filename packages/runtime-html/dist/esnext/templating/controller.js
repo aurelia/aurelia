@@ -1,7 +1,8 @@
 /* eslint-disable max-lines-per-function */
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 import { nextId, isObject, ILogger, resolveAll, Metadata, DI, } from '@aurelia/kernel';
-import { AccessScopeExpression, Scope, ILifecycle, BindableObserver, IObserverLocator, ComputedWatcher, ExpressionWatcher, IExpressionParser, } from '@aurelia/runtime';
+import { AccessScopeExpression, Scope, ILifecycle, IObserverLocator, ComputedWatcher, ExpressionWatcher, IExpressionParser, } from '@aurelia/runtime';
+import { BindableObserver } from '../observation/bindable-observer';
 import { convertToRenderLocation } from '../dom.js';
 import { CustomElementDefinition, CustomElement } from '../resources/custom-element.js';
 import { CustomAttribute } from '../resources/custom-attribute.js';
@@ -185,7 +186,7 @@ export class Controller {
         if (definition.watches.length > 0) {
             createWatchers(this, this.container, definition, instance);
         }
-        createObservers(this.lifecycle, definition, flags, instance);
+        createObservers(this, definition, flags, instance);
         createChildrenObservers(this, definition, flags, instance);
         if (this.hooks.hasDefine) {
             if (this.debug) {
@@ -281,7 +282,7 @@ export class Controller {
         if (definition.watches.length > 0) {
             createWatchers(this, this.container, definition, instance);
         }
-        createObservers(this.lifecycle, definition, this.flags, instance);
+        createObservers(this, definition, this.flags, instance);
         instance.$controller = this;
     }
     hydrateSynthetic(context) {
@@ -751,7 +752,7 @@ function getLookup(instance) {
     }
     return lookup;
 }
-function createObservers(lifecycle, definition, 
+function createObservers(controller, definition, 
 // deepscan-disable-next-line
 _flags, instance) {
     const bindables = definition.bindables;
@@ -765,7 +766,7 @@ _flags, instance) {
             name = observableNames[i];
             if (observers[name] === void 0) {
                 bindable = bindables[name];
-                observers[name] = new BindableObserver(lifecycle, instance, name, bindable.callback, bindable.set);
+                observers[name] = new BindableObserver(instance, name, bindable.callback, bindable.set, controller);
             }
         }
     }

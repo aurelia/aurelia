@@ -8,15 +8,16 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 import { emptyArray, Registration, mergeArrays, toArray, ILogger, } from '@aurelia/kernel';
-import { IExpressionParser, BindingMode, Bindable, } from '@aurelia/runtime';
+import { IExpressionParser, BindingMode, } from '@aurelia/runtime';
 import { IAttrSyntaxTransformer } from './attribute-syntax-transformer.js';
 import { TemplateBinder } from './template-binder.js';
 import { ITemplateElementFactory } from './template-element-factory.js';
 import { HydrateAttributeInstruction, HydrateElementInstruction, HydrateLetElementInstruction, HydrateTemplateController, InterpolationInstruction, LetBindingInstruction, SetAttributeInstruction, SetClassAttributeInstruction, SetPropertyInstruction, SetStyleAttributeInstruction, TextBindingInstruction, ITemplateCompiler, } from './renderer.js';
+import { IPlatform } from './platform.js';
+import { Bindable } from './bindable.js';
 import { IAttributeParser } from './resources/attribute-pattern.js';
 import { AuSlotContentType, ProjectionContext, SlotInfo } from './resources/custom-elements/au-slot.js';
 import { CustomElement, CustomElementDefinition } from './resources/custom-element.js';
-import { IPlatform } from './platform.js';
 class CustomElementCompilationUnit {
     constructor(partialDefinition, surrogate, template) {
         this.partialDefinition = partialDefinition;

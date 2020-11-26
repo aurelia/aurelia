@@ -13,17 +13,17 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "../../dom.js", "../../templating/view.js", "../custom-attribute.js"], factory);
+        define(["require", "exports", "@aurelia/kernel", "../../dom.js", "../../templating/view.js", "../custom-attribute.js", "../../bindable.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Else = exports.If = void 0;
     const kernel_1 = require("@aurelia/kernel");
-    const runtime_1 = require("@aurelia/runtime");
     const dom_js_1 = require("../../dom.js");
     const view_js_1 = require("../../templating/view.js");
     const custom_attribute_js_1 = require("../custom-attribute.js");
+    const bindable_js_1 = require("../../bindable.js");
     let If = class If {
         constructor(ifFactory, location) {
             this.ifFactory = ifFactory;
@@ -101,7 +101,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
     };
     __decorate([
-        runtime_1.bindable
+        bindable_js_1.bindable
     ], If.prototype, "value", void 0);
     If = __decorate([
         custom_attribute_js_1.templateController('if'),

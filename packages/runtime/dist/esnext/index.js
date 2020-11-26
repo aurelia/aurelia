@@ -33,7 +33,6 @@ export { IObserverLocator, INodeObserverLocator, getCollectionObserver, Observer
 export { PrimitiveObserver, } from './observation/primitive-observer.js';
 export { PropertyAccessor, } from './observation/property-accessor.js';
 export { ProxyObservable, } from './observation/proxy-observation.js';
-export { BindableObserver, } from './observation/bindable-observer.js';
 export { SetterObserver, } from './observation/setter-observer.js';
 export { ISignaler, } from './observation/signaler.js';
 export { subscriberCollection, collectionSubscriberCollection, } from './observation/subscriber-collection.js';
@@ -44,7 +43,6 @@ export { DebounceBindingBehavior, } from './binding-behaviors/debounce.js';
 export { SignalBindingBehavior, } from './binding-behaviors/signals.js';
 export { ThrottleBindingBehavior, } from './binding-behaviors/throttle.js';
 export { ValueConverter, ValueConverterDefinition, valueConverter, } from './value-converter.js';
-export { bindable, BindableDefinition, Bindable, } from './bindable.js';
 export { watch, Watch, } from './observation/watch.js';
 export { BindingMode, LifecycleFlags, ILifecycle, AccessorType, CollectionKind, DelegationStrategy, isIndexMap, copyIndexMap, cloneIndexMap, createIndexMap, } from './observation.js';
 //# sourceMappingURL=index.js.map

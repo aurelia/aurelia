@@ -13,17 +13,17 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "../../dom.js", "../../platform.js", "../custom-attribute.js"], factory);
+        define(["require", "exports", "@aurelia/kernel", "../../dom.js", "../../platform.js", "../custom-attribute.js", "../../bindable.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Blur = exports.BlurManager = void 0;
     const kernel_1 = require("@aurelia/kernel");
-    const runtime_1 = require("@aurelia/runtime");
     const dom_js_1 = require("../../dom.js");
     const platform_js_1 = require("../../platform.js");
     const custom_attribute_js_1 = require("../custom-attribute.js");
+    const bindable_js_1 = require("../../bindable.js");
     const unset = Symbol();
     // Using passive to help with performance
     const defaultCaptureEventInit = {
@@ -203,22 +203,22 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
     };
     __decorate([
-        runtime_1.bindable()
+        bindable_js_1.bindable()
     ], Blur.prototype, "value", void 0);
     __decorate([
-        runtime_1.bindable()
+        bindable_js_1.bindable()
     ], Blur.prototype, "onBlur", void 0);
     __decorate([
-        runtime_1.bindable()
+        bindable_js_1.bindable()
     ], Blur.prototype, "linkedWith", void 0);
     __decorate([
-        runtime_1.bindable()
+        bindable_js_1.bindable()
     ], Blur.prototype, "linkedMultiple", void 0);
     __decorate([
-        runtime_1.bindable()
+        bindable_js_1.bindable()
     ], Blur.prototype, "searchSubTree", void 0);
     __decorate([
-        runtime_1.bindable()
+        bindable_js_1.bindable()
     ], Blur.prototype, "linkingContext", void 0);
     Blur = __decorate([
         custom_attribute_js_1.customAttribute('blur'),

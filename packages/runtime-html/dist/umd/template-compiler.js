@@ -13,7 +13,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "./attribute-syntax-transformer.js", "./template-binder.js", "./template-element-factory.js", "./renderer.js", "./resources/attribute-pattern.js", "./resources/custom-elements/au-slot.js", "./resources/custom-element.js", "./platform.js"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "./attribute-syntax-transformer.js", "./template-binder.js", "./template-element-factory.js", "./renderer.js", "./platform.js", "./bindable.js", "./resources/attribute-pattern.js", "./resources/custom-elements/au-slot.js", "./resources/custom-element.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -25,10 +25,11 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     const template_binder_js_1 = require("./template-binder.js");
     const template_element_factory_js_1 = require("./template-element-factory.js");
     const renderer_js_1 = require("./renderer.js");
+    const platform_js_1 = require("./platform.js");
+    const bindable_js_1 = require("./bindable.js");
     const attribute_pattern_js_1 = require("./resources/attribute-pattern.js");
     const au_slot_js_1 = require("./resources/custom-elements/au-slot.js");
     const custom_element_js_1 = require("./resources/custom-element.js");
-    const platform_js_1 = require("./platform.js");
     class CustomElementCompilationUnit {
         constructor(partialDefinition, surrogate, template) {
             this.partialDefinition = partialDefinition;
@@ -409,7 +410,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             };
             const content = localTemplate.content;
             const bindableEls = kernel_1.toArray(content.querySelectorAll('bindable'));
-            const bindableInstructions = runtime_1.Bindable.for(localTemplateType);
+            const bindableInstructions = bindable_js_1.Bindable.for(localTemplateType);
             const properties = new Set();
             const attributes = new Set();
             for (const bindableEl of bindableEls) {

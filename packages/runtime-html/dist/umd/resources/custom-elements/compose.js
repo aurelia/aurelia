@@ -13,7 +13,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "../../create-element.js", "../../renderer.js", "../../platform.js", "../../templating/render-context.js", "../custom-element.js"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "../../create-element.js", "../../renderer.js", "../../platform.js", "../../templating/render-context.js", "../custom-element.js", "../../bindable.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -26,6 +26,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     const platform_js_1 = require("../../platform.js");
     const render_context_js_1 = require("../../templating/render-context.js");
     const custom_element_js_1 = require("../custom-element.js");
+    const bindable_js_1 = require("../../bindable.js");
     function toLookup(acc, item) {
         const to = item.to;
         if (to !== void 0 && to !== 'subject' && to !== 'composing') {
@@ -134,10 +135,10 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
     };
     __decorate([
-        runtime_1.bindable
+        bindable_js_1.bindable
     ], Compose.prototype, "subject", void 0);
     __decorate([
-        runtime_1.bindable({ mode: runtime_1.BindingMode.fromView })
+        bindable_js_1.bindable({ mode: runtime_1.BindingMode.fromView })
     ], Compose.prototype, "composing", void 0);
     Compose = __decorate([
         custom_element_js_1.customElement({ name: 'au-compose', template: null, containerless: true }),

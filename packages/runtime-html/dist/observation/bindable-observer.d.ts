@@ -1,24 +1,25 @@
-import { AccessorType, LifecycleFlags } from '../observation.js';
+import { AccessorType, LifecycleFlags } from '@aurelia/runtime';
 import type { IIndexable } from '@aurelia/kernel';
-import type { InterceptorFunc } from '../bindable.js';
-import type { IPropertyObserver, ISubscriber, ILifecycle } from '../observation.js';
+import type { InterceptorFunc, IPropertyObserver, ISubscriber } from '@aurelia/runtime';
+import type { IController } from '../templating/controller';
 export interface BindableObserver extends IPropertyObserver<IIndexable, string> {
 }
 export declare class BindableObserver {
-    readonly lifecycle: ILifecycle;
     readonly obj: IIndexable;
     readonly propertyKey: string;
     private readonly $set;
+    readonly $controller: IController;
     currentValue: unknown;
     oldValue: unknown;
     inBatch: boolean;
     observing: boolean;
     type: AccessorType;
+    private readonly lifecycle;
     private readonly callback?;
     private readonly propertyChangedCallback?;
     private readonly hasPropertyChangedCallback;
     private readonly shouldInterceptSet;
-    constructor(lifecycle: ILifecycle, obj: IIndexable, propertyKey: string, cbName: string, $set: InterceptorFunc);
+    constructor(obj: IIndexable, propertyKey: string, cbName: string, $set: InterceptorFunc, $controller: IController);
     handleChange(newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void;
     getValue(): unknown;
     setValue(newValue: unknown, flags: LifecycleFlags): void;

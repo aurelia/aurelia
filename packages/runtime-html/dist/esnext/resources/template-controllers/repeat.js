@@ -8,11 +8,12 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 import { compareNumber, nextId, onResolve } from '@aurelia/kernel';
-import { applyMutationsToIndices, bindable, BindingContext, getCollectionObserver, Scope, synchronizeIndices, } from '@aurelia/runtime';
+import { applyMutationsToIndices, BindingContext, getCollectionObserver, Scope, synchronizeIndices, } from '@aurelia/runtime';
 import { IRenderLocation } from '../../dom.js';
 import { IViewFactory } from '../../templating/view.js';
 import { templateController } from '../custom-attribute.js';
 import { IController } from '../../templating/controller.js';
+import { bindable } from '../../bindable.js';
 function dispose(disposable) {
     disposable.dispose();
 }

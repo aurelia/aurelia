@@ -8,7 +8,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 import { IContainer, Registration, DI, noop } from '@aurelia/kernel';
-import { bindable } from '@aurelia/runtime';
+import { bindable } from '../bindable.js';
 import { AppTask } from '../app-task.js';
 import { INode } from '../dom.js';
 import { getClassesToAdd } from '../observation/class-attribute-accessor.js';

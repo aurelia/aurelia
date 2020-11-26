@@ -6,18 +6,19 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 };
 var BindableObserver_1;
 import { noop } from '@aurelia/kernel';
-import { subscriberCollection } from './subscriber-collection.js';
+import { subscriberCollection } from '@aurelia/runtime';
 let BindableObserver = BindableObserver_1 = class BindableObserver {
-    constructor(lifecycle, obj, propertyKey, cbName, $set) {
-        this.lifecycle = lifecycle;
+    constructor(obj, propertyKey, cbName, $set, $controller) {
         this.obj = obj;
         this.propertyKey = propertyKey;
         this.$set = $set;
+        this.$controller = $controller;
         this.currentValue = void 0;
         this.oldValue = void 0;
         this.inBatch = false;
         this.type = 4 /* Obj */;
         this.callback = this.obj[cbName];
+        this.lifecycle = $controller.lifecycle;
         const propertyChangedCallback = this.propertyChangedCallback = this.obj.propertyChanged;
         const hasPropertyChangedCallback = this.hasPropertyChangedCallback = typeof propertyChangedCallback === 'function';
         const shouldInterceptSet = this.shouldInterceptSet = $set !== noop;

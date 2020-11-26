@@ -1,5 +1,6 @@
 import { Registration, Protocol, Metadata, mergeArrays, firstDefined, } from '@aurelia/kernel';
-import { BindingMode, Bindable, registerAliases, Watch, } from '@aurelia/runtime';
+import { BindingMode, registerAliases, Watch, } from '@aurelia/runtime';
+import { Bindable, } from '../bindable.js';
 export function customAttribute(nameOrDef) {
     return function (target) {
         return CustomAttribute.define(nameOrDef, target);

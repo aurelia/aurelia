@@ -8,12 +8,13 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 import { nextId, onResolve } from '@aurelia/kernel';
-import { BindingMode, bindable } from '@aurelia/runtime';
+import { BindingMode } from '@aurelia/runtime';
 import { createElement } from '../../create-element.js';
 import { IInstruction } from '../../renderer.js';
 import { IPlatform } from '../../platform.js';
 import { getRenderContext } from '../../templating/render-context.js';
 import { customElement, CustomElementDefinition } from '../custom-element.js';
+import { bindable } from '../../bindable.js';
 function toLookup(acc, item) {
     const to = item.to;
     if (to !== void 0 && to !== 'subject' && to !== 'composing') {

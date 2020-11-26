@@ -1,10 +1,11 @@
 import { ILogger } from '@aurelia/kernel';
 import { LifecycleFlags, IObserverLocator, IndexMap, Scope } from '@aurelia/runtime';
-import { INode, IRenderLocation } from '../../dom.js';
-import { ICompiledRenderContext } from '../../templating/render-context.js';
+import { IRenderLocation } from '../../dom.js';
 import { IViewFactory } from '../../templating/view.js';
 import type { ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, IHydratableController, ISyntheticView, ControllerVisitor } from '../../templating/controller.js';
-import { Instruction } from '../../renderer.js';
+import type { ICompiledRenderContext } from '../../templating/render-context.js';
+import type { INode } from '../../dom.js';
+import type { Instruction } from '../../renderer.js';
 export declare class Switch implements ICustomAttributeViewModel {
     private readonly factory;
     private readonly location;

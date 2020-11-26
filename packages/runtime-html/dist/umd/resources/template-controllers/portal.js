@@ -13,18 +13,18 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "../../dom.js", "../../platform.js", "../../templating/view.js", "../custom-attribute.js"], factory);
+        define(["require", "exports", "@aurelia/kernel", "../../dom.js", "../../platform.js", "../../templating/view.js", "../custom-attribute.js", "../../bindable.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Portal = void 0;
     const kernel_1 = require("@aurelia/kernel");
-    const runtime_1 = require("@aurelia/runtime");
     const dom_js_1 = require("../../dom.js");
     const platform_js_1 = require("../../platform.js");
     const view_js_1 = require("../../templating/view.js");
     const custom_attribute_js_1 = require("../custom-attribute.js");
+    const bindable_js_1 = require("../../bindable.js");
     let Portal = class Portal {
         constructor(factory, originalLoc, p) {
             this.factory = factory;
@@ -160,28 +160,28 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
     };
     __decorate([
-        runtime_1.bindable({ primary: true })
+        bindable_js_1.bindable({ primary: true })
     ], Portal.prototype, "target", void 0);
     __decorate([
-        runtime_1.bindable({ callback: 'targetChanged' })
+        bindable_js_1.bindable({ callback: 'targetChanged' })
     ], Portal.prototype, "renderContext", void 0);
     __decorate([
-        runtime_1.bindable()
+        bindable_js_1.bindable()
     ], Portal.prototype, "strict", void 0);
     __decorate([
-        runtime_1.bindable()
+        bindable_js_1.bindable()
     ], Portal.prototype, "deactivating", void 0);
     __decorate([
-        runtime_1.bindable()
+        bindable_js_1.bindable()
     ], Portal.prototype, "activating", void 0);
     __decorate([
-        runtime_1.bindable()
+        bindable_js_1.bindable()
     ], Portal.prototype, "deactivated", void 0);
     __decorate([
-        runtime_1.bindable()
+        bindable_js_1.bindable()
     ], Portal.prototype, "activated", void 0);
     __decorate([
-        runtime_1.bindable()
+        bindable_js_1.bindable()
     ], Portal.prototype, "callbackContext", void 0);
     Portal = __decorate([
         custom_attribute_js_1.templateController('portal'),

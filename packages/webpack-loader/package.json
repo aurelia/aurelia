@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/webpack-loader",
-  "version": "0.8.0-dev.202011241501",
+  "version": "0.8.0-dev.202011262310",
   "main": "dist/umd/index.js",
   "module": "dist/esnext/index.js",
   "types": "dist/index.d.ts",
@@ -34,11 +34,11 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "0.8.0-dev.202011241501",
-    "@aurelia/metadata": "0.8.0-dev.202011241501",
-    "@aurelia/platform": "0.8.0-dev.202011241501",
-    "@aurelia/plugin-conventions": "0.8.0-dev.202011241501",
-    "@aurelia/runtime": "0.8.0-dev.202011241501",
+    "@aurelia/kernel": "0.8.0-dev.202011262310",
+    "@aurelia/metadata": "0.8.0-dev.202011262310",
+    "@aurelia/platform": "0.8.0-dev.202011262310",
+    "@aurelia/plugin-conventions": "0.8.0-dev.202011262310",
+    "@aurelia/runtime": "0.8.0-dev.202011262310",
     "loader-utils": "^2.0.0",
     "webpack": "^4.41.4"
   },

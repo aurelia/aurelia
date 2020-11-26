@@ -8,10 +8,11 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 import { ILogger, nextId, onResolve, resolveAll, } from '@aurelia/kernel';
-import { bindable, BindingMode, IObserverLocator, } from '@aurelia/runtime';
+import { BindingMode, IObserverLocator, } from '@aurelia/runtime';
 import { IRenderLocation } from '../../dom.js';
 import { templateController } from '../custom-attribute.js';
 import { IViewFactory } from '../../templating/view.js';
+import { bindable } from '../../bindable.js';
 let Switch = class Switch {
     constructor(factory, location) {
         this.factory = factory;

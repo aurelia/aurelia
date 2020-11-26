@@ -8,11 +8,11 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 import { nextId, onResolve } from '@aurelia/kernel';
-import { bindable } from '@aurelia/runtime';
 import { IRenderLocation, setEffectiveParentNode } from '../../dom.js';
 import { IPlatform } from '../../platform.js';
 import { IViewFactory } from '../../templating/view.js';
 import { templateController } from '../custom-attribute.js';
+import { bindable } from '../../bindable.js';
 let Portal = class Portal {
     constructor(factory, originalLoc, p) {
         this.factory = factory;

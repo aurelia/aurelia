@@ -5,7 +5,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 import { kebabCase, Metadata, Protocol, firstDefined, getPrototypeChain, noop, } from '@aurelia/kernel';
-import { BindingMode, } from './observation.js';
+import { BindingMode, } from '@aurelia/runtime';
 export function bindable(configOrTarget, prop) {
     let config;
     function decorator($target, $prop) {

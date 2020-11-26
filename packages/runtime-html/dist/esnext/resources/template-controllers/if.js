@@ -8,10 +8,10 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 import { nextId, onResolve } from '@aurelia/kernel';
-import { bindable } from '@aurelia/runtime';
 import { IRenderLocation } from '../../dom.js';
 import { IViewFactory } from '../../templating/view.js';
 import { templateController } from '../custom-attribute.js';
+import { bindable } from '../../bindable.js';
 let If = class If {
     constructor(ifFactory, location) {
         this.ifFactory = ifFactory;

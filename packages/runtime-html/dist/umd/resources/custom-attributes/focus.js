@@ -13,7 +13,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/runtime", "../../dom.js", "../../platform.js", "../custom-attribute.js"], factory);
+        define(["require", "exports", "@aurelia/runtime", "../../dom.js", "../../platform.js", "../custom-attribute.js", "../../bindable.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -23,6 +23,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     const dom_js_1 = require("../../dom.js");
     const platform_js_1 = require("../../platform.js");
     const custom_attribute_js_1 = require("../custom-attribute.js");
+    const bindable_js_1 = require("../../bindable.js");
     /**
      * Focus attribute for element focus binding
      */
@@ -119,7 +120,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
     };
     __decorate([
-        runtime_1.bindable({ mode: runtime_1.BindingMode.twoWay })
+        bindable_js_1.bindable({ mode: runtime_1.BindingMode.twoWay })
     ], Focus.prototype, "value", void 0);
     Focus = __decorate([
         custom_attribute_js_1.customAttribute('focus'),

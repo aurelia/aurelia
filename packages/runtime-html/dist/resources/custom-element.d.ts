@@ -1,5 +1,6 @@
 import { Constructable, IContainer, IResourceKind, ResourceType, PartialResourceDefinition, Key, ResourceDefinition, Injectable } from '@aurelia/kernel';
-import { PartialBindableDefinition, BindableDefinition, IWatchDefinition } from '@aurelia/runtime';
+import { IWatchDefinition } from '@aurelia/runtime';
+import { BindableDefinition, PartialBindableDefinition } from '../bindable.js';
 import { IProjections } from './custom-elements/au-slot.js';
 import { IInstruction } from '../renderer.js';
 import { PartialChildrenDefinition, ChildrenDefinition } from '../templating/children.js';

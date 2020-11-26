@@ -13,7 +13,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "../../dom.js", "../../templating/view.js", "../custom-attribute.js"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "../../dom.js", "../../templating/view.js", "../custom-attribute.js", "../../bindable.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -24,6 +24,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     const dom_js_1 = require("../../dom.js");
     const view_js_1 = require("../../templating/view.js");
     const custom_attribute_js_1 = require("../custom-attribute.js");
+    const bindable_js_1 = require("../../bindable.js");
     let With = class With {
         constructor(factory, location) {
             this.factory = factory;
@@ -62,7 +63,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
     };
     __decorate([
-        runtime_1.bindable
+        bindable_js_1.bindable
     ], With.prototype, "value", void 0);
     With = __decorate([
         custom_attribute_js_1.templateController('with'),

@@ -10,6 +10,7 @@ export interface IBinding {
     $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void;
     $unbind(flags: LifecycleFlags): void;
 }
+export declare type InterceptorFunc<TInput = unknown, TOutput = unknown> = (value: TInput) => TOutput;
 export interface ILifecycle extends Lifecycle {
 }
 export declare const ILifecycle: import("@aurelia/kernel").InterfaceSymbol<ILifecycle>;

@@ -10,7 +10,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "./subscriber-collection.js"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -18,18 +18,19 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.BindableObserver = void 0;
     const kernel_1 = require("@aurelia/kernel");
-    const subscriber_collection_js_1 = require("./subscriber-collection.js");
+    const runtime_1 = require("@aurelia/runtime");
     let BindableObserver = BindableObserver_1 = class BindableObserver {
-        constructor(lifecycle, obj, propertyKey, cbName, $set) {
-            this.lifecycle = lifecycle;
+        constructor(obj, propertyKey, cbName, $set, $controller) {
             this.obj = obj;
             this.propertyKey = propertyKey;
             this.$set = $set;
+            this.$controller = $controller;
             this.currentValue = void 0;
             this.oldValue = void 0;
             this.inBatch = false;
             this.type = 4 /* Obj */;
             this.callback = this.obj[cbName];
+            this.lifecycle = $controller.lifecycle;
             const propertyChangedCallback = this.propertyChangedCallback = this.obj.propertyChanged;
             const hasPropertyChangedCallback = this.hasPropertyChangedCallback = typeof propertyChangedCallback === 'function';
             const shouldInterceptSet = this.shouldInterceptSet = $set !== kernel_1.noop;
@@ -111,7 +112,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
         }
     };
     BindableObserver = BindableObserver_1 = __decorate([
-        subscriber_collection_js_1.subscriberCollection()
+        runtime_1.subscriberCollection()
     ], BindableObserver);
     exports.BindableObserver = BindableObserver;
 });

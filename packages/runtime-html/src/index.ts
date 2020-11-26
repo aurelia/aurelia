@@ -13,6 +13,17 @@ export {
 } from '@aurelia/platform-browser';
 
 export {
+  bindable,
+  Bindable,
+  BindableDefinition,
+  PartialBindableDefinition,
+} from './bindable.js';
+
+export {
+  BindableObserver,
+} from './observation/bindable-observer.js';
+
+export {
   alias,
   registerAliases,
 
@@ -130,8 +141,6 @@ export {
 
   PropertyAccessor,
 
-  BindableObserver,
-
   SetterObserver,
 
   ISignaler,
@@ -172,11 +181,6 @@ export {
   ValueConverterInstance,
   ValueConverterType,
   valueConverter,
-
-  bindable,
-  PartialBindableDefinition,
-  BindableDefinition,
-  Bindable,
 
   DebounceBindingBehaviorRegistration,
   OneTimeBindingBehaviorRegistration,

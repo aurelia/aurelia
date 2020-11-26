@@ -1,9 +1,10 @@
 import { nextId, onResolve } from '@aurelia/kernel';
-import { bindable, LifecycleFlags } from '@aurelia/runtime';
+import { LifecycleFlags } from '@aurelia/runtime';
 import { IRenderLocation, setEffectiveParentNode } from '../../dom.js';
 import { IPlatform } from '../../platform.js';
 import { IViewFactory } from '../../templating/view.js';
 import { templateController } from '../custom-attribute.js';
+import { bindable } from '../../bindable.js';
 import type { ControllerVisitor, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../templating/controller.js';
 
 export type PortalTarget<T extends Node & ParentNode = Node & ParentNode> = string | T | null | undefined;

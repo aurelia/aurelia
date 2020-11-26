@@ -1,7 +1,6 @@
 import { compareNumber, nextId, IDisposable, onResolve } from '@aurelia/kernel';
 import {
   applyMutationsToIndices,
-  bindable,
   BindingContext,
   Collection,
   CollectionObserver,
@@ -19,6 +18,7 @@ import { IViewFactory } from '../../templating/view.js';
 import { templateController } from '../custom-attribute.js';
 import type { ISyntheticView, ICustomAttributeController, IHydratableController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller.js';
 import { IController } from '../../templating/controller.js';
+import { bindable } from '../../bindable.js';
 
 type Items<C extends Collection = unknown[]> = C | undefined;
 

@@ -22,8 +22,6 @@ import {
   ILifecycle,
   IBindingTargetAccessor,
   PropertyBinding,
-  BindableObserver,
-  BindableDefinition,
   BindingType,
   IObserverLocator,
   IWatchDefinition,
@@ -33,6 +31,8 @@ import {
   IObservable,
   IExpressionParser,
 } from '@aurelia/runtime';
+import { BindableDefinition } from '../bindable';
+import { BindableObserver } from '../observation/bindable-observer';
 import { convertToRenderLocation, INode, INodeSequence, IRenderLocation } from '../dom.js';
 import { CustomElementDefinition, CustomElement, PartialCustomElementDefinition } from '../resources/custom-element.js';
 import { CustomAttributeDefinition, CustomAttribute } from '../resources/custom-attribute.js';
@@ -285,7 +285,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     if (definition.watches.length > 0) {
       createWatchers(this, this.container, definition, instance);
     }
-    createObservers(this.lifecycle, definition, flags, instance);
+    createObservers(this, definition, flags, instance);
     createChildrenObservers(this as Controller, definition, flags, instance);
 
     if (this.hooks.hasDefine) {
@@ -385,7 +385,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     if (definition.watches.length > 0) {
       createWatchers(this, this.container, definition, instance);
     }
-    createObservers(this.lifecycle, definition, this.flags, instance);
+    createObservers(this, definition, this.flags, instance);
 
     (instance as Writable<C>).$controller = this;
   }
@@ -1021,7 +1021,7 @@ function getLookup(instance: IIndexable): Record<string, BindableObserver | Chil
 }
 
 function createObservers(
-  lifecycle: ILifecycle,
+  controller: Controller,
   definition: CustomElementDefinition | CustomAttributeDefinition,
   // deepscan-disable-next-line
   _flags: LifecycleFlags,
@@ -1042,11 +1042,11 @@ function createObservers(
         bindable = bindables[name];
 
         observers[name] = new BindableObserver(
-          lifecycle,
           instance as IIndexable,
           name,
           bindable.callback,
           bindable.set,
+          controller,
         );
       }
     }

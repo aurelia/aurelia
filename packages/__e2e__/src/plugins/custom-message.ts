@@ -1,5 +1,4 @@
-import { bindable } from '@aurelia/runtime';
-import { customElement } from '@aurelia/runtime-html';
+import { bindable, customElement } from '@aurelia/runtime-html';
 
 @customElement({
   name: 'custom-message',

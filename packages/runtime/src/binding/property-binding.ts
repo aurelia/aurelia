@@ -97,13 +97,16 @@ export class PropertyBinding implements IPartialConnectableBinding {
       if (newValue !== this.value) {
         this.value = newValue;
         if (shouldQueueFlush) {
-          this.task?.cancel();
-          this.task = this.taskQueue.queueTask(() => {
-            if (this.isBound) {
-              interceptor.updateTarget(newValue, flags);
-            }
-            this.task = null;
-          }, updateTaskOpts);
+          // an optimization: only create & queue a task when there's NOT already a task queued
+          // inside the lambda, use this.value instead of result, since it would always be the latest value
+          if (this.task == null) {
+            this.task = this.taskQueue.queueTask(() => {
+              if (this.isBound) {
+                interceptor.updateTarget(this.value, flags);
+              }
+              this.task = null;
+            }, updateTaskOpts);
+          }
         } else {
           interceptor.updateTarget(newValue, flags);
         }

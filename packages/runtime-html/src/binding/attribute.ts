@@ -119,7 +119,6 @@ export class AttributeBinding implements IPartialConnectableBinding {
       //  (1). determine whether this should be the behavior
       //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start()
       const shouldQueueFlush = (flags & LifecycleFlags.fromBind) === 0 && (targetObserver.type & AccessorType.Layout) > 0;
-      const oldValue = this.value;
 
       if (sourceExpression.$kind !== ExpressionKind.AccessScope || this.observerSlots > 1) {
         const shouldConnect = (mode & oneTime) === 0;
@@ -132,7 +131,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
         }
       }
 
-      if (newValue !== oldValue) {
+      if (newValue !== this.value) {
         this.value = newValue;
         if (shouldQueueFlush) {
           this.task?.cancel();

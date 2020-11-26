@@ -1,9 +1,8 @@
-import { InterceptorFunc } from '../bindable.js';
 import { LifecycleFlags } from '../observation.js';
 import { SetterNotifier } from './setter-observer.js';
 
 import type { Constructable, IIndexable } from '@aurelia/kernel';
-import type { IBindingContext, PropertyObserver, ISubscriber, IObservable } from '../observation.js';
+import type { IBindingContext, InterceptorFunc, PropertyObserver, ISubscriber, IObservable } from '../observation.js';
 import type { ObservableGetter } from './observer-locator.js';
 import type { SetterObserver } from './setter-observer.js';
 

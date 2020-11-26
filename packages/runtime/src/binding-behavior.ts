@@ -9,7 +9,7 @@ import {
   fromAnnotationOrDefinitionOrTypeOrDefault,
 } from '@aurelia/kernel';
 import { LifecycleFlags } from './observation.js';
-import { connectable, IConnectableBinding } from './binding/connectable.js';
+import { IConnectableBinding } from './binding/connectable.js';
 import { BindingBehaviorExpression, IBindingBehaviorExpression } from './binding/ast.js';
 import { registerAliases } from './alias.js';
 
@@ -160,7 +160,6 @@ export interface IInterceptableBinding extends IBinding {
 
 export interface BindingInterceptor extends IConnectableBinding {}
 
-@connectable
 export class BindingInterceptor implements IInterceptableBinding {
   public interceptor: this = this;
   public get id(): number {
@@ -177,6 +176,15 @@ export class BindingInterceptor implements IInterceptableBinding {
   }
   public get isBound(): boolean {
     return this.binding.isBound;
+  }
+  /**
+   * @internal
+   */
+  public get version(): number {
+    return (this.binding as IConnectableBinding).version;
+  }
+  public get value(): unknown {
+    return this.binding.value;
   }
 
   public constructor(
@@ -202,6 +210,24 @@ export class BindingInterceptor implements IInterceptableBinding {
   }
   public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
     this.binding.handleChange!(newValue, previousValue, flags);
+  }
+  /**
+   * @internal
+   */
+  public observeProperty(obj: object, key: string): void {
+    this.binding.observeProperty!(obj, key as string);
+  }
+  /**
+   * @internal
+   */
+  public addObserver(observer: ISubscribable): void {
+    this.binding.addObserver!(observer);
+  }
+  /**
+   * @internal
+   */
+  public unobserve(all?: boolean): void {
+    this.binding.unobserve!(all);
   }
 
   public $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void {

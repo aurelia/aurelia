@@ -479,6 +479,7 @@ export {
   // IDOMInitializer,
   // ISinglePageApp,
   IAppRoot,
+  IWorkTracker,
 
   // IfRegistration,
   // ElseRegistration,

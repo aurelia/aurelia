@@ -240,6 +240,7 @@ export {
   ISinglePageApp,
   AppRoot,
   IAppRoot,
+  IWorkTracker,
 } from './app-root.js';
 export {
   TaskSlot,

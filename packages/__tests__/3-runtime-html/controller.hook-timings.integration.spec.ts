@@ -1868,7 +1868,7 @@ class DelayedInvoker<T extends HookName> {
     } else {
       let i = -1;
       let resolve: () => void;
-      let p = new Promise<void>(r => {
+      const p = new Promise<void>(r => {
         resolve = r;
       });
       const next = (): void => {
@@ -1878,7 +1878,7 @@ class DelayedInvoker<T extends HookName> {
           this.mgr[this.name].tick(vm, i);
         }
         if (i < this.ticks) {
-          Promise.resolve().then(next);
+          void Promise.resolve().then(next);
         } else {
           cb();
           this.mgr[this.name].leave(vm);

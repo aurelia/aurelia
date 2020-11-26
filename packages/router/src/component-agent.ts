@@ -1,5 +1,5 @@
-import { ICustomElementController, Controller, IHydratedController, IHydratedParentController, LifecycleFlags, ICustomElementViewModel, IAppRoot } from '@aurelia/runtime-html';
-import { Constructable, ILogger, onResolve, resolveAll } from '@aurelia/kernel';
+import { ICustomElementController, Controller, IHydratedController, LifecycleFlags, ICustomElementViewModel, IAppRoot } from '@aurelia/runtime-html';
+import { Constructable, ILogger } from '@aurelia/kernel';
 
 import { RouteDefinition } from './route-definition';
 import { RouteNode } from './route-tree';
@@ -7,6 +7,7 @@ import { IRouteContext } from './route-context';
 import { Params, NavigationInstruction, ViewportInstructionTree } from './instructions';
 import { instantiateHook, RouterHookObject } from './hooks';
 import { Transition } from './router';
+import { Batch } from './util';
 
 export interface IRouteViewModel extends ICustomElementViewModel {
   canLoad?(params: Params, next: RouteNode, current: RouteNode | null): boolean | NavigationInstruction | NavigationInstruction[] | Promise<boolean | NavigationInstruction | NavigationInstruction[]>;
@@ -70,16 +71,26 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     return componentAgent as ComponentAgent<T>;
   }
 
-  public activate(initiator: IHydratedController | null, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void> {
-    this.logger.trace(`activate()`);
+  public activate(initiator: IHydratedController | null, parent: IHydratedController, flags: LifecycleFlags): void | Promise<void> {
+    if (initiator === null) {
+      this.logger.trace(`activate() - initial`);
+      return this.controller.activate(this.controller, parent, flags);
+    }
 
-    return this.controller.activate(initiator ?? this.controller, parent, flags);
+    this.logger.trace(`activate()`);
+    // Promise return values from user VM hooks are awaited by the initiator
+    void this.controller.activate(initiator, parent, flags);
   }
 
-  public deactivate(initiator: IHydratedController | null, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void> {
-    this.logger.trace(`deactivate()`);
+  public deactivate(initiator: IHydratedController | null, parent: IHydratedController, flags: LifecycleFlags): void | Promise<void> {
+    if (initiator === null) {
+      this.logger.trace(`deactivate() - initial`);
+      return this.controller.deactivate(this.controller, parent, flags);
+    }
 
-    return this.controller.deactivate(initiator ?? this.controller, parent, flags);
+    this.logger.trace(`deactivate()`);
+    // Promise return values from user VM hooks are awaited by the initiator
+    void this.controller.deactivate(initiator, parent, flags);
   }
 
   public dispose(): void {
@@ -88,52 +99,66 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     this.controller.dispose();
   }
 
-  public canLoad(tr: Transition, next: RouteNode): void | Promise<void> {
-    this.logger.trace(`canLoad(next:%s) - invoking ${this.canLoadHooks.length} hooks`, next);
-    return resolveAll(...this.canLoadHooks.map(x => {
-      if (tr.guardsResult === true) {
-        return onResolve(x.canLoad(next.params, next, this.routeNode), result => {
-          if (tr.guardsResult === true && result !== true) {
-            tr.guardsResult = result === false ? false : ViewportInstructionTree.create(result);
-          }
-        });
-      }
-      return void 0;
-    }));
-  }
-
-  public load(tr: Transition, next: RouteNode): void | Promise<void> {
-    this.logger.trace(`load(next:%s) - invoking ${this.loadHooks.length} hooks`, next);
-    return resolveAll(...this.loadHooks.map(x => {
-      if (tr.guardsResult === true) {
-        return x.load(next.params, next, this.routeNode);
-      }
-      return void 0;
-    }));
-  }
-
-  public canUnload(tr: Transition, next: RouteNode | null): void | Promise<void> {
+  public canUnload(tr: Transition, next: RouteNode | null, b: Batch): void {
     this.logger.trace(`canUnload(next:%s) - invoking ${this.canUnloadHooks.length} hooks`, next);
-    return resolveAll(...this.canUnloadHooks.map(x => {
-      if (tr.guardsResult === true) {
-        return onResolve(x.canUnload(next, this.routeNode), result => {
-          if (tr.guardsResult === true && result !== true) {
-            tr.guardsResult = false;
-          }
-        });
-      }
-      return void 0;
-    }));
+    b.push();
+    for (const hook of this.canUnloadHooks) {
+      tr.run(() => {
+        b.push();
+        return hook.canUnload(next, this.routeNode);
+      }, ret => {
+        if (tr.guardsResult === true && ret !== true) {
+          tr.guardsResult = false;
+        }
+        b.pop();
+      });
+    }
+    b.pop();
   }
 
-  public unload(tr: Transition, next: RouteNode | null): void | Promise<void> {
+  public canLoad(tr: Transition, next: RouteNode, b: Batch): void {
+    this.logger.trace(`canLoad(next:%s) - invoking ${this.canLoadHooks.length} hooks`, next);
+    b.push();
+    for (const hook of this.canLoadHooks) {
+      tr.run(() => {
+        b.push();
+        return hook.canLoad(next.params, next, this.routeNode);
+      }, ret => {
+        if (tr.guardsResult === true && ret !== true) {
+          tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret);
+        }
+        b.pop();
+      });
+    }
+    b.pop();
+  }
+
+  public unload(tr: Transition, next: RouteNode | null, b: Batch): void {
     this.logger.trace(`unload(next:%s) - invoking ${this.unloadHooks.length} hooks`, next);
-    return resolveAll(...this.unloadHooks.map(x => {
-      if (tr.guardsResult === true) {
-        return x.unload(next, this.routeNode);
-      }
-      return void 0;
-    }));
+    b.push();
+    for (const hook of this.unloadHooks) {
+      tr.run(() => {
+        b.push();
+        return hook.unload(next, this.routeNode);
+      }, () => {
+        b.pop();
+      });
+    }
+    b.pop();
+  }
+
+  public load(tr: Transition, next: RouteNode, b: Batch): void {
+    this.logger.trace(`load(next:%s) - invoking ${this.loadHooks.length} hooks`, next);
+    b.push();
+    for (const hook of this.loadHooks) {
+      tr.run(() => {
+        b.push();
+        return hook.load(next.params, next, this.routeNode);
+      }, () => {
+        b.pop();
+      });
+    }
+    b.pop();
   }
 
   public toString(): string {

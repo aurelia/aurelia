@@ -53,7 +53,7 @@ async function createFixture<T extends Constructable>(
 
   au.app({ component, host });
 
-  await au.start()
+  await au.start();
 
   assertComponentsVisible(host, [Component]);
 
@@ -349,7 +349,7 @@ describe('router (smoke tests)', function () {
     });
 
     it(`root1 can load a11/a01,a11/a02 in order`, async function () {
-      const { router, host, tearDown, startTracing, stopTracing } = await createFixture(Root1, Z);
+      const { router, host, tearDown } = await createFixture(Root1, Z);
 
       await router.load(`a11/a01`);
       assertComponentsVisible(host, [Root1, A11, A01]);

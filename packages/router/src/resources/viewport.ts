@@ -1,5 +1,5 @@
 import { ILogger } from '@aurelia/kernel';
-import { bindable, customElement, ICustomElementViewModel, IHydratedController, IHydratedParentController, LifecycleFlags, ICustomElementController, ICompiledCustomElementController } from '@aurelia/runtime-html';
+import { bindable, customElement, ICustomElementViewModel, IHydratedController, LifecycleFlags, ICustomElementController, ICompiledCustomElementController } from '@aurelia/runtime-html';
 
 import { ViewportAgent } from '../viewport-agent.js';
 import { IRouteContext } from '../route-context.js';
@@ -45,13 +45,13 @@ export class ViewportCustomElement implements ICustomElementViewModel, IViewport
     this.agent = this.ctx.registerViewport(this);
   }
 
-  public attaching(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void> {
+  public attaching(initiator: IHydratedController, parent: IHydratedController, flags: LifecycleFlags): void | Promise<void> {
     this.logger.trace('attaching()');
 
     return this.agent.activateFromViewport(initiator, this.controller, flags);
   }
 
-  public detaching(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void> {
+  public detaching(initiator: IHydratedController, parent: IHydratedController, flags: LifecycleFlags): void | Promise<void> {
     this.logger.trace('detaching()');
 
     return this.agent.deactivateFromViewport(initiator, this.controller, flags);

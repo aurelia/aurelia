@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { IContainer, ILogger, isObject, DI, IDisposable, onResolve } from '@aurelia/kernel';
 import { CustomElementDefinition, ICompiledRenderContext, IPlatform, PartialCustomElementDefinition } from '@aurelia/runtime-html';
@@ -9,7 +10,7 @@ import { RouteType } from './route.js';
 import { IRouteViewModel } from './component-agent.js';
 import { RouteTree, RouteNode, RouteTreeCompiler } from './route-tree.js';
 import { IViewportInstruction, NavigationInstruction, RouteContextLike, ViewportInstructionTree, Params } from './instructions.js';
-import { mergeDistinct, resolveAll, runSequence } from './util.js';
+import { Batch, mergeDistinct, UnwrapPromise } from './util.js';
 import { RouteDefinition } from './route-definition.js';
 import { ViewportAgent } from './viewport-agent.js';
 
@@ -250,7 +251,6 @@ export class Navigation {
     return `N(id:${this.id},instructions:${this.instructions},trigger:'${this.trigger}')`;
   }
 }
-
 export class Transition {
   private constructor(
     public readonly id: number,
@@ -270,7 +270,7 @@ export class Transition {
     public error: unknown,
   ) { }
 
-  public static create(input: Omit<Transition, 'abortIfNeeded'>): Transition {
+  public static create(input: Omit<Transition, 'abortIfNeeded' | 'run' | 'handleError'>): Transition {
     return new Transition(
       input.id,
       input.prevInstructions,
@@ -290,12 +290,26 @@ export class Transition {
     );
   }
 
-  public abortIfNeeded() {
-    return (abort: () => void): void => {
-      if (this.guardsResult !== true) {
-        abort();
+  public run<T>(cb: () => T, next: (value: UnwrapPromise<T>) => void): void {
+    if (this.guardsResult !== true) {
+      return;
+    }
+    try {
+      const ret = cb();
+      if (ret instanceof Promise) {
+        ret.then(next).catch(err => {
+          this.handleError(err);
+        });
+      } else {
+        next(ret as UnwrapPromise<T>);
       }
-    };
+    } catch (err) {
+      this.handleError(err);
+    }
+  }
+
+  public handleError(err: unknown): void {
+    this.reject!(this.error = err);
   }
 
   public toString(): string {
@@ -537,9 +551,9 @@ export class Router {
    * })
    * ```
    */
-  public load(viewportInstruction: IViewportInstruction, options?: INavigationOptions): Promise<boolean>;
-  public load(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options?: INavigationOptions): Promise<boolean>;
-  public load(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options?: INavigationOptions): Promise<boolean> {
+  public load(viewportInstruction: IViewportInstruction, options?: INavigationOptions): boolean | Promise<boolean>;
+  public load(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options?: INavigationOptions): boolean | Promise<boolean>;
+  public load(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options?: INavigationOptions): boolean | Promise<boolean> {
     const instructions = this.createViewportInstructions(instructionOrInstructions, options);
 
     this.logger.trace('load(instructions:%s)', instructions);
@@ -624,12 +638,12 @@ export class Router {
    * @param state - The state to restore, if any.
    * @param failedTr - If this is a redirect / fallback from a failed transition, the previous transition is passed forward to ensure the orinal promise resolves with the latest result.
    */
-  private async enqueue(
+  private enqueue(
     instructions: ViewportInstructionTree,
     trigger: 'popstate' | 'hashchange' | 'api',
     state: ManagedState | null,
     failedTr: Transition | null,
-  ): Promise<boolean> {
+  ): boolean | Promise<boolean> {
     const lastTr = this.currentTr;
     lastTr.finalInstructions = this.instructions;
 
@@ -679,21 +693,23 @@ export class Router {
 
     if (this.activeNavigation === null) {
       // Catch any errors that might be thrown by `run` and reject the original promise which is awaited down below
-      this.run(nextTr).catch(err => { nextTr.reject!(nextTr.error = err); });
+      try {
+        this.run(nextTr);
+      } catch (err) {
+        nextTr.handleError(err);
+      }
     }
 
-    try {
-      // Explicitly await so we can catch, log and re-throw
-      const result = await promise;
+    return nextTr.promise!.then(ret => {
       this.logger.debug(`Transition succeeded: %s`, nextTr);
-      return result;
-    } catch (err) {
+      return ret;
+    }).catch(err => {
       this.logger.error(`Navigation failed: %s`, nextTr, err);
       throw err;
-    }
+    });
   }
 
-  private async run(tr: Transition): Promise<void> {
+  private run(tr: Transition): void {
     this.currentTr = tr;
     this.nextTr = null;
 
@@ -753,43 +769,68 @@ export class Router {
     //
     // ---
 
-    return onResolve(RouteTreeCompiler.compileRoot(this.routeTree, tr.finalInstructions, navigationContext), () => {
+    tr.run(() => {
+      this.logger.trace(`run() - compiling route tree: %s`, tr.finalInstructions);
+      return RouteTreeCompiler.compileRoot(this.routeTree, tr.finalInstructions, navigationContext);
+    }, () => {
       this.instructions = tr.finalInstructions;
 
-      const abortIfNeeded = (abort: () => void) => {
-        if (tr.guardsResult !== true) {
-          abort();
-          return this.cancelNavigation(tr);
-        }
-      };
       const prev = tr.previousRouteTree.root.children;
       const next = tr.routeTree.root.children;
       const all = mergeDistinct(prev, next);
-      return runSequence(
-        () => { return resolveAll(prev.map(p => { return p.context.vpa.canUnload(tr); })); },
-        abortIfNeeded,
-        () => { return resolveAll(next.map(n => { return n.context.vpa.canLoad(tr); })); },
-        abortIfNeeded,
-        () => { return resolveAll(prev.map(p => { return p.context.vpa.unload(tr); })); },
-        () => { return resolveAll(next.map(n => { return n.context.vpa.load(tr); })); },
-        () => { return resolveAll(all.map(x => { return x.context.vpa.swap(tr); })); },
-        () => {
-          // order doesn't matter for this operation
-          all.forEach(function (node) {
-            node.context.vpa.endTransition();
-          });
-          this.navigated = true;
 
-          this.events.publish(new NavigationEndEvent(tr.id, tr.instructions, this.instructions));
+      Batch.start(b => {
+        this.logger.trace(`run() - invoking canUnload on ${prev.length} nodes`);
+        for (const node of prev) {
+          node.context.vpa.canUnload(tr, b);
+        }
+      }).continueWith(b => {
+        if (tr.guardsResult !== true) {
+          b.push(); // prevent the next step in the batch from running
+          this.cancelNavigation(tr);
+        }
+      }).continueWith(b => {
+        this.logger.trace(`run() - invoking canLoad on ${next.length} nodes`);
+        for (const node of next) {
+          node.context.vpa.canLoad(tr, b);
+        }
+      }).continueWith(b => {
+        if (tr.guardsResult !== true) {
+          b.push();
+          this.cancelNavigation(tr);
+        }
+      }).continueWith(b => {
+        this.logger.trace(`run() - invoking unload on ${prev.length} nodes`);
+        for (const node of prev) {
+          node.context.vpa.unload(tr, b);
+        }
+      }).continueWith(b => {
+        this.logger.trace(`run() - invoking load on ${next.length} nodes`);
+        for (const node of next) {
+          node.context.vpa.load(tr, b);
+        }
+      }).continueWith(b => {
+        this.logger.trace(`run() - invoking swap on ${all.length} nodes`);
+        for (const node of all) {
+          node.context.vpa.swap(tr, b);
+        }
+      }).continueWith(() => {
+        this.logger.trace(`run() - finalizing transition`);
+        // order doesn't matter for this operation
+        all.forEach(function (node) {
+          node.context.vpa.endTransition();
+        });
+        this.navigated = true;
 
-          this.lastSuccessfulNavigation = this.activeNavigation;
-          this.activeNavigation = null;
-          this.applyHistoryState(tr);
-          tr.resolve!(true);
+        this.events.publish(new NavigationEndEvent(tr.id, tr.instructions, this.instructions));
 
-          this.runNextTransition(tr);
-        },
-      );
+        this.lastSuccessfulNavigation = this.activeNavigation;
+        this.activeNavigation = null;
+        this.applyHistoryState(tr);
+        tr.resolve!(true);
+
+        this.runNextTransition(tr);
+      }).start();
     });
   }
 
@@ -807,7 +848,7 @@ export class Router {
     }
   }
 
-  private cancelNavigation(tr: Transition): void | Promise<void> {
+  private cancelNavigation(tr: Transition): void {
     this.logger.trace(`cancelNavigation(tr:%s)`, tr);
 
     const prev = tr.previousRouteTree.root.children;
@@ -829,10 +870,9 @@ export class Router {
       // In case a new navigation was requested in the meantime, immediately start processing it
       this.runNextTransition(tr);
     } else {
-      return runSequence(
-        () => { return this.enqueue(tr.guardsResult as ViewportInstructionTree, 'api', tr.managedState, tr); },
-        () => { this.logger.trace(`cancelNavigation(tr:%s) - finished redirect`, tr); }
-      );
+      void onResolve(this.enqueue(tr.guardsResult as ViewportInstructionTree, 'api', tr.managedState, tr), () => {
+        this.logger.trace(`cancelNavigation(tr:%s) - finished redirect`, tr);
+      });
     }
   }
 
@@ -845,7 +885,11 @@ export class Router {
           // so we need to check it for null again when the scheduled task runs.
           const nextTr = this.nextTr;
           if (nextTr !== null) {
-            this.run(nextTr).catch(reason => { nextTr.reject!(nextTr.error = reason);});
+            try {
+              this.run(nextTr);
+            } catch (err) {
+              nextTr.handleError(err);
+            }
           }
         },
       );

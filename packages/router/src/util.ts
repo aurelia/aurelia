@@ -1,121 +1,64 @@
 import { RouteNode } from './route-tree';
 
-type UnwrapPromise<T> = T extends Promise<infer R> ? R : T;
-type MaybePromise<T> = T extends Promise<infer R> ? (T | R) : (T | Promise<T>);
+export type UnwrapPromise<T> = T extends Promise<infer R> ? R : T;
 
-/**
- * Normalize a series of callbacks that may or may not return promises, while staying synchronous wherever possible.
- */
-export function runSequence<T1, T2>(
-  call1: (abort: () => void) => T1,
-  call2: (abort: () => void, value: UnwrapPromise<T1>) => T2,
-): MaybePromise<T2>;
-export function runSequence<T1, T2, T3>(
-  call1: (abort: () => void) => T1,
-  call2: (abort: () => void, value: UnwrapPromise<T1>) => T2,
-  call3: (abort: () => void, value: UnwrapPromise<T2>) => T3,
-): MaybePromise<T3>;
-export function runSequence<T1, T2, T3, T4>(
-  call1: (abort: () => void) => T1,
-  call2: (abort: () => void, value: UnwrapPromise<T1>) => T2,
-  call3: (abort: () => void, value: UnwrapPromise<T2>) => T3,
-  call4: (abort: () => void, value: UnwrapPromise<T3>) => T4,
-): MaybePromise<T4>;
-export function runSequence<T1, T2, T3, T4, T5>(
-  call1: (abort: () => void) => T1,
-  call2: (abort: () => void, value: UnwrapPromise<T1>) => T2,
-  call3: (abort: () => void, value: UnwrapPromise<T2>) => T3,
-  call4: (abort: () => void, value: UnwrapPromise<T3>) => T4,
-  call5: (abort: () => void, value: UnwrapPromise<T4>) => T5,
-): MaybePromise<T5>;
-export function runSequence<T1, T2, T3, T4, T5, T6>(
-  call1: (abort: () => void) => T1,
-  call2: (abort: () => void, value: UnwrapPromise<T1>) => T2,
-  call3: (abort: () => void, value: UnwrapPromise<T2>) => T3,
-  call4: (abort: () => void, value: UnwrapPromise<T3>) => T4,
-  call5: (abort: () => void, value: UnwrapPromise<T4>) => T5,
-  call6: (abort: () => void, value: UnwrapPromise<T5>) => T6,
-): MaybePromise<T6>;
-export function runSequence<T1, T2, T3, T4, T5, T6, T7>(
-  call1: (abort: () => void) => T1,
-  call2: (abort: () => void, value: UnwrapPromise<T1>) => T2,
-  call3: (abort: () => void, value: UnwrapPromise<T2>) => T3,
-  call4: (abort: () => void, value: UnwrapPromise<T3>) => T4,
-  call5: (abort: () => void, value: UnwrapPromise<T4>) => T5,
-  call6: (abort: () => void, value: UnwrapPromise<T5>) => T6,
-  call7: (abort: () => void, value: UnwrapPromise<T6>) => T7,
-): MaybePromise<T7>;
-export function runSequence<T1, T2, T3, T4, T5, T6, T7, T8>(
-  call1: (abort: () => void) => T1,
-  call2: (abort: () => void, value: UnwrapPromise<T1>) => T2,
-  call3: (abort: () => void, value: UnwrapPromise<T2>) => T3,
-  call4: (abort: () => void, value: UnwrapPromise<T3>) => T4,
-  call5: (abort: () => void, value: UnwrapPromise<T4>) => T5,
-  call6: (abort: () => void, value: UnwrapPromise<T5>) => T6,
-  call7: (abort: () => void, value: UnwrapPromise<T6>) => T7,
-  call8: (abort: () => void, value: UnwrapPromise<T7>) => T8,
-): MaybePromise<T8>;
-export function runSequence<T1, T2, T3, T4, T5, T6, T7, T8, T9>(
-  call1: (abort: () => void) => T1,
-  call2: (abort: () => void, value: UnwrapPromise<T1>) => T2,
-  call3: (abort: () => void, value: UnwrapPromise<T2>) => T3,
-  call4: (abort: () => void, value: UnwrapPromise<T3>) => T4,
-  call5: (abort: () => void, value: UnwrapPromise<T4>) => T5,
-  call6: (abort: () => void, value: UnwrapPromise<T5>) => T6,
-  call7: (abort: () => void, value: UnwrapPromise<T6>) => T7,
-  call8: (abort: () => void, value: UnwrapPromise<T7>) => T8,
-  call9: (abort: () => void, value: UnwrapPromise<T8>) => T9,
-): MaybePromise<T9>;
-export function runSequence<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(
-  call1: (abort: () => void) => T1,
-  call2: (abort: () => void, value: UnwrapPromise<T1>) => T2,
-  call3: (abort: () => void, value: UnwrapPromise<T2>) => T3,
-  call4: (abort: () => void, value: UnwrapPromise<T3>) => T4,
-  call5: (abort: () => void, value: UnwrapPromise<T4>) => T5,
-  call6: (abort: () => void, value: UnwrapPromise<T5>) => T6,
-  call7: (abort: () => void, value: UnwrapPromise<T6>) => T7,
-  call8: (abort: () => void, value: UnwrapPromise<T7>) => T8,
-  call9: (abort: () => void, value: UnwrapPromise<T8>) => T9,
-  call10: (abort: () => void, value: UnwrapPromise<T9>) => T10,
-): MaybePromise<T10>;
-export function runSequence<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(
-  call1: (abort: () => void) => T1,
-  call2: (abort: () => void, value: UnwrapPromise<T1>) => T2,
-  call3: (abort: () => void, value: UnwrapPromise<T2>) => T3,
-  call4: (abort: () => void, value: UnwrapPromise<T3>) => T4,
-  call5: (abort: () => void, value: UnwrapPromise<T4>) => T5,
-  call6: (abort: () => void, value: UnwrapPromise<T5>) => T6,
-  call7: (abort: () => void, value: UnwrapPromise<T6>) => T7,
-  call8: (abort: () => void, value: UnwrapPromise<T7>) => T8,
-  call9: (abort: () => void, value: UnwrapPromise<T8>) => T9,
-  call10: (abort: () => void, value: UnwrapPromise<T9>) => T10,
-  call11: (abort: () => void, value: UnwrapPromise<T10>) => T11,
-): MaybePromise<T11>;
-export function runSequence(...calls: ((abort: () => void, value: unknown) => unknown)[]): unknown {
-  let aborted = false;
-  function abort(): void {
-    aborted = true;
+export class Batch {
+  public done: boolean = false;
+  public readonly head: Batch;
+  private next: Batch | null = null;
+
+  private constructor(
+    private stack: number,
+    private cb: ((b: Batch) => void) | null,
+    head: Batch | null,
+  ) {
+    this.head = head ?? this;
   }
 
-  function runNext(prevResult: unknown): unknown {
-    if (aborted) {
-      return prevResult;
-    }
-
-    const nextCall = calls.shift()!;
-    const nextValue = nextCall(abort, prevResult);
-    if (calls.length === 0) {
-      return nextValue;
-    }
-
-    if (nextValue instanceof Promise) {
-      return nextValue.then(runNext);
-    }
-
-    return runNext(nextValue);
+  public static start(cb: (b: Batch) => void): Batch {
+    return new Batch(0, cb, null);
   }
 
-  return runNext(void 0);
+  public push(): void {
+    let cur = this as Batch;
+    do {
+      ++cur.stack;
+      cur = cur.next!;
+    } while (cur !== null);
+  }
+
+  public pop(): void {
+    let cur = this as Batch;
+    do {
+      if (--cur.stack === 0) {
+        cur.invoke();
+      }
+      cur = cur.next!;
+    } while (cur !== null);
+  }
+
+  private invoke(): void {
+    const cb = this.cb;
+    if (cb !== null) {
+      this.cb = null;
+      cb(this);
+      this.done = true;
+    }
+  }
+
+  public continueWith(cb: (b: Batch) => void): Batch {
+    if (this.next === null) {
+      return this.next = new Batch(this.stack, cb, this.head);
+    } else {
+      return this.next.continueWith(cb);
+    }
+  }
+
+  public start(): Batch {
+    this.head.push();
+    this.head.pop();
+    return this;
+  }
 }
 
 /**
@@ -168,7 +111,7 @@ export function mergeDistinct(prev: RouteNode[], next: RouteNode[]): RouteNode[]
   const merged: RouteNode[] = [];
   while (prev.length > 0) {
     const p = prev.shift()!;
-    if (merged.every(m => m.context.vpa !== p.context.vpa))  {
+    if (merged.every(m => m.context.vpa !== p.context.vpa)) {
       const i = next.findIndex(n => n.context.vpa === p.context.vpa);
       if (i >= 0) {
         merged.push(...next.splice(0, i + 1));

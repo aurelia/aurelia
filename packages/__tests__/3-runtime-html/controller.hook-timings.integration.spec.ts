@@ -1566,7 +1566,7 @@ describe('controller.hook-timings.integration', function () {
 
       mgr.setPrefix('swap');
       app.n = 2;
-      await waitTicks(10);
+      await au.root.work.wait();
 
       mgr.setPrefix('stop');
       await au.stop(true);

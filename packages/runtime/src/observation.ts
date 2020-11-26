@@ -14,6 +14,8 @@ export interface IBinding {
   $unbind(flags: LifecycleFlags): void;
 }
 
+export type InterceptorFunc<TInput = unknown, TOutput = unknown> = (value: TInput) => TOutput;
+
 export interface ILifecycle extends Lifecycle {}
 export const ILifecycle = DI.createInterface<ILifecycle>('ILifecycle').withDefault(x => x.singleton(Lifecycle));
 

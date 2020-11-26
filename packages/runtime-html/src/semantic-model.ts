@@ -1,10 +1,11 @@
 import { kebabCase } from '@aurelia/kernel';
-import { AnyBindingExpression, BindableDefinition, BindingMode, Interpolation } from '@aurelia/runtime';
+import { AnyBindingExpression, BindingMode, Interpolation } from '@aurelia/runtime';
 import { AttrSyntax } from './resources/attribute-pattern.js';
 import { BindingCommandInstance } from './resources/binding-command.js';
 import { IPlatform } from './platform.js';
 import { CustomElementDefinition } from './resources/custom-element.js';
 import { CustomAttributeDefinition } from './resources/custom-attribute.js';
+import { BindableDefinition } from './bindable.js';
 
 export const enum SymbolFlags {
   type                 = 0b000000_1111111111,

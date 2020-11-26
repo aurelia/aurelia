@@ -13,7 +13,6 @@ import {
   Interpolation,
   IsBindingBehavior,
   BindingMode,
-  Bindable,
 } from '@aurelia/runtime';
 import { IAttrSyntaxTransformer } from './attribute-syntax-transformer.js';
 import { TemplateBinder } from './template-binder.js';
@@ -50,10 +49,11 @@ import {
   TextBindingInstruction,
   ITemplateCompiler,
 } from './renderer.js';
+import { IPlatform } from './platform.js';
+import { Bindable } from './bindable.js';
 import { IAttributeParser } from './resources/attribute-pattern.js';
 import { AuSlotContentType, IProjections, ProjectionContext, RegisteredProjections, SlotInfo } from './resources/custom-elements/au-slot.js';
 import { CustomElement, CustomElementDefinition, PartialCustomElementDefinition } from './resources/custom-element.js';
-import { IPlatform } from './platform.js';
 
 class CustomElementCompilationUnit {
   public readonly instructions: Instruction[][] = [];

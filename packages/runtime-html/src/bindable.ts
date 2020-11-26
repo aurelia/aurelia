@@ -10,9 +10,8 @@ import {
 } from '@aurelia/kernel';
 import {
   BindingMode,
-} from './observation.js';
-
-export type InterceptorFunc<TInput = unknown, TOutput = unknown> = (value: TInput) => TOutput;
+  InterceptorFunc,
+} from '@aurelia/runtime';
 
 export type PartialBindableDefinition = {
   mode?: BindingMode;

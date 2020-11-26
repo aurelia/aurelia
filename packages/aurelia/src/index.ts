@@ -69,7 +69,8 @@ export {
 
   HttpClientConfiguration,
 
-  HttpClient
+  HttpClient,
+  IHttpClient,
 } from '@aurelia/fetch-client';
 
 export {

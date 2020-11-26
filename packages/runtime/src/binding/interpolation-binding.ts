@@ -37,6 +37,7 @@ export class InterpolationBinding implements IBinding {
 
   public isBound: boolean = false;
   public $scope?: Scope = void 0;
+  public value: unknown = void 0;
 
   public partBindings: ContentBinding[];
 
@@ -73,6 +74,8 @@ export class InterpolationBinding implements IBinding {
         result += partBindings[i].value + staticParts[i + 1];
       }
     }
+
+    this.value = result;
 
     const targetObserver = this.targetObserver;
     // Alpha: during bind a simple strategy for bind is always flush immediately

@@ -94,7 +94,7 @@ function getCollectionObserver(observerLocator: IObserverLocator, collection: Co
   return observer;
 }
 
-export interface ComputedObserver extends IWatcherImpl, IConnectableBinding, ISubscriberCollection {}
+export interface ComputedObserver extends IWatcherImpl, IConnectableBinding, ISubscriberCollection { }
 
 @watcherImpl
 export class ComputedObserver implements IWatcherImpl, IConnectableBinding, ISubscriberCollection {
@@ -125,6 +125,7 @@ export class ComputedObserver implements IWatcherImpl, IConnectableBinding, ISub
 
   public observers: Map<ICollectionObserver<CollectionKind>, number> = new Map();
   public type: AccessorType = AccessorType.Obj;
+  public value: unknown = void 0;
 
   /**
    * @internal
@@ -135,7 +136,6 @@ export class ComputedObserver implements IWatcherImpl, IConnectableBinding, ISub
    * @internal
    */
   private running: boolean = false;
-  private value: unknown = void 0;
 
   private isDirty: boolean = false;
 
@@ -247,8 +247,8 @@ export class ComputedWatcher implements IWatcher {
 
   // todo: maybe use a counter allow recursive call to a certain level
   private running: boolean = false;
-  private value: unknown = void 0;
 
+  public value: unknown = void 0;
   public isBound: boolean = false;
 
   public constructor(
@@ -322,15 +322,13 @@ export interface ExpressionWatcher extends IConnectableBinding { }
 
 @connectable()
 export class ExpressionWatcher implements IConnectableBinding {
-  /**
-   * @internal
-   */
-  private value: unknown;
+
   /**
    * @internal
    */
   private readonly obj: object;
 
+  public value: unknown;
   public isBound: boolean = false;
 
   public constructor(

@@ -35,6 +35,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
 
   public persistentFlags: LifecycleFlags = LifecycleFlags.none;
 
+  public value: unknown = void 0;
   private task: ITask | null = null;
 
   public constructor(
@@ -78,7 +79,8 @@ export class PropertyBinding implements IPartialConnectableBinding {
       //  (1). determine whether this should be the behavior
       //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start()
       const shouldQueueFlush = (flags & LifecycleFlags.fromBind) === 0 && (targetObserver.type & AccessorType.Layout) > 0;
-      const oldValue = targetObserver.getValue(this.target, this.targetProperty);
+      // const oldValue = targetObserver.getValue(this.target, this.targetProperty);
+      const oldValue = this.value;
 
       // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
       if (sourceExpression.$kind !== ExpressionKind.AccessScope || this.observerSlots > 1) {
@@ -94,7 +96,8 @@ export class PropertyBinding implements IPartialConnectableBinding {
       }
 
       // todo(fred): maybe let the obsrever decides whether it updates
-      if (newValue !== oldValue) {
+      if (newValue !== this.value) {
+        this.value = newValue;
         if (shouldQueueFlush) {
           this.task?.cancel();
           this.task = this.taskQueue.queueTask(() => {
@@ -168,7 +171,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
     const shouldConnect = ($mode & toView) > 0;
     if ($mode & toViewOrOneTime) {
       interceptor.updateTarget(
-        sourceExpression.evaluate(flags, scope, this.$hostScope, this.locator, shouldConnect ? interceptor : null),
+        this.value = sourceExpression.evaluate(flags, scope, this.$hostScope, this.locator, shouldConnect ? interceptor : null),
         flags,
       );
     }
@@ -194,7 +197,10 @@ export class PropertyBinding implements IPartialConnectableBinding {
       this.sourceExpression.unbind(flags, this.$scope!, this.$hostScope, this.interceptor);
     }
 
-    this.$scope = void 0;
+    this.$scope
+      = this.value
+      = void 0;
+    this.$hostScope = null;
 
     const targetObserver = this.targetObserver as IBindingTargetObserver;
     const task = this.task;

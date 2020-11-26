@@ -119,9 +119,6 @@ export class AttributeBinding implements IPartialConnectableBinding {
       //  (1). determine whether this should be the behavior
       //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start()
       const shouldQueueFlush = (flags & LifecycleFlags.fromBind) === 0 && (targetObserver.type & AccessorType.Layout) > 0;
-      // unlike property binding
-      // attr binding read can be potentially expensive
-      // so caching the read. Consider a way to force read configurably
       const oldValue = this.value;
 
       if (sourceExpression.$kind !== ExpressionKind.AccessScope || this.observerSlots > 1) {

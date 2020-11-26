@@ -1944,14 +1944,22 @@ describe('router hooks', function () {
               );
 
               yield* interleave(
-                (function* () {
-                  yield* $(phase1, ['a1', 'a2'], 1, 'binding', 'bound', 'attaching');
-                  yield* $(phase1, ['a2', 'a1'], 1, 'attached');
-                })(),
-                (function* () {
-                  yield* $(phase1, ['b1', 'b2'], 1, 'binding', 'bound', 'attaching');
-                  yield* $(phase1, ['b2', 'b1'], 1, 'attached');
-                })(),
+                $(phase1, 'a1', 1, 'binding', 'bound'),
+                $(phase1, 'b1', 1, 'binding', 'bound'),
+              );
+              yield* interleave(
+                $(phase1, 'a1', 1, 'attaching'),
+                $(phase1, 'a2', 1, 'binding'),
+                $(phase1, 'b1', 1, 'attaching'),
+                $(phase1, 'b2', 1, 'binding'),
+              );
+              yield* interleave(
+                $(phase1, 'a2', 1, 'bound', 'attaching', 'attached'),
+                $(phase1, 'b2', 1, 'bound', 'attaching', 'attached'),
+              );
+              yield* interleave(
+                $(phase1, 'a1', 1, 'attached'),
+                $(phase1, 'b1', 1, 'attached'),
               );
               break;
           }

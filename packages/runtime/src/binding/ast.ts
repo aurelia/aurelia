@@ -1,32 +1,22 @@
 /* eslint-disable eqeqeq */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import {
-  IIndexable,
-  IServiceLocator,
-  emptyArray,
-  isNumberOrBigInt,
-  isStringOrDate,
-  ResourceDefinition,
-} from '@aurelia/kernel';
-import {
-  LifecycleFlags as LF,
+import { emptyArray, isNumberOrBigInt, isStringOrDate } from '@aurelia/kernel';
+import { LifecycleFlags as LF } from '../observation.js';
+import { BindingContext } from '../observation/binding-context.js';
+import { ISignaler } from '../observation/signaler.js';
+import { BindingBehavior, BindingBehaviorInstance, BindingBehaviorFactory } from '../binding-behavior.js';
+import { ValueConverter, ValueConverterInstance } from '../value-converter.js';
+
+import type { IIndexable, IServiceLocator, ResourceDefinition } from '@aurelia/kernel';
+import type { IConnectableBinding } from './connectable.js';
+import type {
   Collection,
   IBindingContext,
   IObservable,
   IOverrideContext,
-  ObservedCollection,
   IConnectable,
   ISubscriber,
 } from '../observation.js';
-import { BindingContext } from '../observation/binding-context.js';
-import { ISignaler } from '../observation/signaler.js';
-import {
-  BindingBehavior, BindingBehaviorInstance, BindingBehaviorFactory,
-} from '../binding-behavior.js';
-import {
-  ValueConverter, ValueConverterInstance,
-} from '../value-converter.js';
-import { IConnectableBinding } from './connectable.js';
 import type { Scope } from '../observation/binding-context.js';
 
 export const enum ExpressionKind {
@@ -632,7 +622,7 @@ export class AccessScopeExpression {
   public evaluate(f: LF, s: Scope, hs: Scope | null, _l: IServiceLocator, c: IConnectable | null): IBindingContext | IOverrideContext {
     const obj = BindingContext.get(chooseScope(this.accessHostScope, s, hs), this.name, this.ancestor, f, hs) as IBindingContext;
     if (c !== null) {
-      c.observeProperty(f, obj, this.name);
+      c.observeProperty(obj, this.name);
     }
     const evaluatedValue = obj[this.name] as ReturnType<AccessScopeExpression['evaluate']>;
     if (f & LF.isStrictBindingStrategy) {
@@ -680,12 +670,12 @@ export class AccessMemberExpression {
         return instance;
       }
       if (c !== null) {
-        c.observeProperty(f, instance, this.name);
+        c.observeProperty(instance, this.name);
       }
       return instance[this.name];
     }
     if (c !== null && instance instanceof Object) {
-      c.observeProperty(f, instance, this.name);
+      c.observeProperty(instance, this.name);
     }
     return instance ? instance[this.name] : '';
   }
@@ -728,7 +718,7 @@ export class AccessKeyedExpression {
     if (instance instanceof Object) {
       const key = this.key.evaluate(f, s, hs, l, (f & LF.observeLeafPropertiesOnly) > 0 ? null : c) as string;
       if (c !== null) {
-        c.observeProperty(f, instance, key);
+        c.observeProperty(instance, key);
       }
       return instance[key];
     }
@@ -1296,7 +1286,7 @@ export class ForOfStatement {
     return void 0;
   }
 
-  public count(_f: LF, result: ObservedCollection | number | null | undefined): number {
+  public count(_f: LF, result: Collection | number | null | undefined): number {
     switch (toStringTag.call(result)) {
       case '[object Array]': return (result as unknown[]).length;
       case '[object Map]': return (result as Map<unknown, unknown>).size;
@@ -1309,7 +1299,7 @@ export class ForOfStatement {
   }
 
   // deepscan-disable-next-line
-  public iterate(f: LF, result: ObservedCollection | number | null | undefined, func: (arr: Collection, index: number, item: unknown) => void): void {
+  public iterate(f: LF, result: Collection | number | null | undefined, func: (arr: Collection, index: number, item: unknown) => void): void {
     switch (toStringTag.call(result)) {
       case '[object Array]': return $array(result as unknown[], func);
       case '[object Map]': return $map(result as Map<unknown, unknown>, func);

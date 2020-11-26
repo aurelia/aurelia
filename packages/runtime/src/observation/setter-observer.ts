@@ -1,11 +1,11 @@
-import { IIndexable } from '@aurelia/kernel';
-import { IPropertyObserver, ISubscriber, AccessorType, ISubscribable, IAccessor, ISubscriberCollection, LifecycleFlags } from '../observation.js';
+import { AccessorType, LifecycleFlags } from '../observation.js';
 import { subscriberCollection } from './subscriber-collection.js';
-import { InterceptorFunc } from '../bindable.js';
 
-const $is = Object.is;
+import type { IIndexable } from '@aurelia/kernel';
+import type { IObserver, ISubscriber, ISubscribable, IAccessor, ISubscriberCollection } from '../observation.js';
+import type { InterceptorFunc } from '../bindable.js';
 
-export interface SetterObserver extends IPropertyObserver<IIndexable, string> {}
+export interface SetterObserver extends IObserver, ISubscriberCollection {}
 
 /**
  * Observer for the mutation of object property value employing getter-setter strategy.
@@ -79,7 +79,7 @@ export class SetterObserver {
           set: value => {
             this.setValue(value, LifecycleFlags.none);
           },
-        }
+        },
       );
     }
     return this;
@@ -126,7 +126,7 @@ export class SetterNotifier implements IAccessor, ISubscribable {
       value = this.s(value);
     }
     const oldValue = this.v;
-    if (!$is(value, oldValue)) {
+    if (!Object.is(value, oldValue)) {
       this.v = value;
       this.callSubscribers(value, oldValue, flags);
     }

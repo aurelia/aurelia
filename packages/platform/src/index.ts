@@ -22,9 +22,6 @@ export class Platform<TGlobal extends typeof globalThis = typeof globalThis> {
   // http://www.ecma-international.org/ecma-262/#sec-other-properties-of-the-global-object
   public readonly Reflect: TGlobal['Reflect'];
 
-  // http://www.ecma-international.org/ecma-262/#sec-proxy-constructor
-  public readonly Proxy: TGlobal['Proxy'];
-
   // https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope
   // Note: we're essentially assuming that all of these are available, even if we aren't even
   // in a browser environment. They are available in major envs as well (NodeJS, NativeScript, etc),
@@ -51,7 +48,6 @@ export class Platform<TGlobal extends typeof globalThis = typeof globalThis> {
     this.Date = 'Date' in overrides ? overrides.Date! : g.Date;
 
     this.Reflect = 'Reflect' in overrides ? overrides.Reflect! : g.Reflect;
-    this.Proxy = 'Proxy' in overrides ? overrides.Proxy! : g.Proxy;
 
     this.clearInterval = 'clearInterval' in overrides ? overrides.clearInterval! : g.clearInterval?.bind(g) ?? notImplemented('clearInterval');
     this.clearTimeout = 'clearTimeout' in overrides ? overrides.clearTimeout! : g.clearTimeout?.bind(g) ?? notImplemented('clearTimeout');

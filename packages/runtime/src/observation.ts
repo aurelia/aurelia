@@ -125,8 +125,7 @@ export const enum LifecycleFlags {
 }
 
 export interface IConnectable {
-  readonly locator: IServiceLocator;
-  observeProperty(flags: LifecycleFlags, obj: object, propertyName: string): void;
+  observeProperty(obj: object, propertyName: string): void;
 }
 
 /** @internal */
@@ -208,7 +207,6 @@ export interface IPropertyObserver<TObj extends object, TProp extends keyof TObj
   IPropertyChangeTracker<TObj, TProp>,
   ISubscriberCollection,
   IBatchable {
-  type: AccessorType;
   inBatch: boolean;
   observing: boolean;
 }
@@ -222,26 +220,6 @@ export type PropertyObserver = IPropertyObserver<IIndexable, string>;
  * A collection (array, set or map)
  */
 export type Collection = unknown[] | Set<unknown> | Map<unknown, unknown>;
-interface IObservedCollection<T extends CollectionKind = CollectionKind> {
-  $raw?: this;
-}
-
-/**
- * An array that is being observed for mutations
- */
-export interface IObservedArray<T = unknown> extends IObservedCollection<CollectionKind.array>, Array<T> { }
-/**
- * A set that is being observed for mutations
- */
-export interface IObservedSet<T = unknown> extends IObservedCollection<CollectionKind.set>, Set<T> { }
-/**
- * A map that is being observed for mutations
- */
-export interface IObservedMap<K = unknown, V = unknown> extends IObservedCollection<CollectionKind.map>, Map<K, V> { }
-/**
- * A collection that is being observed for mutations
- */
-export type ObservedCollection = IObservedArray | IObservedSet | IObservedMap;
 
 export const enum CollectionKind {
   indexed = 0b1000,
@@ -272,11 +250,11 @@ export type CollectionKindToType<T> =
             never;
 
 export type ObservedCollectionKindToType<T> =
-  T extends CollectionKind.array ? IObservedArray :
-    T extends CollectionKind.indexed ? IObservedArray :
-      T extends CollectionKind.map ? IObservedMap :
-        T extends CollectionKind.set ? IObservedSet :
-          T extends CollectionKind.keyed ? IObservedSet | IObservedMap :
+  T extends CollectionKind.array ? unknown[] :
+    T extends CollectionKind.indexed ? unknown[] :
+      T extends CollectionKind.map ? Map<unknown, unknown> :
+        T extends CollectionKind.set ? Set<unknown> :
+          T extends CollectionKind.keyed ? Map<unknown, unknown> | Set<unknown> :
             never;
 
 export const enum AccessorType {
@@ -428,7 +406,7 @@ export interface ICollectionObserver<T extends CollectionKind> extends
   IBatchable {
   type: AccessorType;
   inBatch: boolean;
-  lifecycle: ILifecycle;
+  lifecycle?: ILifecycle;
   collection: ObservedCollectionKindToType<T>;
   lengthObserver: T extends CollectionKind.array ? CollectionLengthObserver : CollectionSizeObserver;
   getLengthObserver(): T extends CollectionKind.array ? CollectionLengthObserver : CollectionSizeObserver;

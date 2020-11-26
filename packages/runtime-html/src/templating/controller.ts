@@ -280,7 +280,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     let definition = this.definition as CustomElementDefinition;
     const flags = this.flags;
     const instance = this.viewModel as BindingContext<C>;
-    this.scope = Scope.create(flags, instance, null, true);
+    this.scope = Scope.create(instance, null, true);
 
     if (definition.watches.length > 0) {
       createWatchers(this, this.container, definition, instance);
@@ -1109,7 +1109,6 @@ function createWatchers(
   const observerLocator = context!.get(IObserverLocator);
   const expressionParser = context.get(IExpressionParser);
   const watches = definition.watches;
-  const hasProxy = controller.platform.Proxy != null;
   let expression: IWatchDefinition['expression'];
   let callback: IWatchDefinition['callback'];
 
@@ -1128,7 +1127,8 @@ function createWatchers(
         expression,
         callback,
         // there should be a flag to purposely disable proxy
-        hasProxy,
+        // AOT: not true for IE11
+        true,
       ));
     } else {
       const ast = typeof expression === 'string'

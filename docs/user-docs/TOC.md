@@ -14,6 +14,7 @@
 * [Building Components](getting-started/components/README.md)
   * [Creating a Custom Element](getting-started/components/creating-a-custom-element.md)
   * [Creating a Custom Attribute](getting-started/components/creating-a-custom-attribute.md)
+  * [Components Lifecycles](getting-started/components/component-lifecycles.md)
   * [Watching Data](getting-started/components/watching-data.md)
   * [Templating - Local Template](getting-started/components/local-templates.md)
 * [Displaying Basic Data](getting-started/displaying-basic-data.md)
@@ -28,6 +29,7 @@
 * [Dependency Injection](app-basics/dependency-injection.md)
 * [Components Revisited](app-basics/components-revisited.md)
 * [Styling Components](app-basics/styling-components.md)
+* [Extending Templating Syntax](app-basics/extending-templating-syntax.md)
 * [Routing](app-basics/routing.md)
 * [Tooling](app-basics/tooling.md)
 * [Building a Dashboard App](app-basics/building-a-dashboard-app.md)
@@ -89,6 +91,9 @@
   * [Binding to Element Size](examples/custom-attributes/binding-to-element-size.md)
 * [Routing](examples/routing/README.md)
   * [Configuring Auth-Protected Routes](examples/routing/configuring-auth-protected-routes.md)
+* [Integration](examples/integration/README.md)
+  * [Microsoft FAST](examples/integration/ms-fast.md)
+  * [Ionic](examples/integration/ionic.md)
 
 ## Community Contribution
 

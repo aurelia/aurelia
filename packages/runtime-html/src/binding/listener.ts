@@ -1,16 +1,14 @@
-import { IDisposable, IIndexable, IServiceLocator } from '@aurelia/kernel';
 import {
   DelegationStrategy,
-  IBinding,
-  IConnectableBinding,
-  IsBindingBehavior,
   LifecycleFlags,
 } from '@aurelia/runtime';
-import { IEventDelegator } from '../observation/event-delegator.js';
 
-import type { Scope } from '@aurelia/runtime';
-import { IPlatform } from '../platform.js';
 import { IEventTarget } from '../dom.js';
+
+import type { IDisposable, IIndexable, IServiceLocator } from '@aurelia/kernel';
+import type { IBinding, IConnectableBinding, IsBindingBehavior, Scope } from '@aurelia/runtime';
+import type { IEventDelegator } from '../observation/event-delegator.js';
+import type { IPlatform } from '../platform.js';
 
 const options = {
   [DelegationStrategy.capturing]: { capture: true } as const,
@@ -116,7 +114,7 @@ export class Listener implements IBinding {
     this.isBound = false;
   }
 
-  public observeProperty(flags: LifecycleFlags, obj: IIndexable, propertyName: string): void {
+  public observeProperty(obj: IIndexable, propertyName: string): void {
     return;
   }
 

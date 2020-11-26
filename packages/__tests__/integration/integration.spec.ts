@@ -149,7 +149,6 @@ describe('app', function () {
     $it.skip("uses specs-viewer to 'compose' display for heterogenous collection of things", function ({ host }) {
       const specsViewer = host.querySelector('specs-viewer');
       assert.notEqual(specsViewer, null);
-      console.log(specsViewer.outerHTML);
 
       const vm = getViewModel<App>(host);
       const [camera, /* laptop */] = vm.things;
@@ -179,87 +178,68 @@ describe('app', function () {
       ctx.platform.domWriteQueue.flush();
       assert.html.textContent(statc, 'Jane Doe', 'incorrect text statc - fname');
       assert.html.textContent(nonStatic, 'infant', 'incorrect text nonStatic - fname');
-      assert.html.textContent(wrongStatic, 'infant', 'incorrect text wrongStatic - fname');
       assert.greaterThan(calls.length, index);
-      // commented test: if there's no setter, then it should be volatile by default
-      // todo: have ability to configure GetterObserver to be 1 time static deps collection
-      // assertCalls(calls, index, user, ['get fullNameStatic'], ['get fullNameNonStatic', 'get fullNameWrongStatic']);
 
       index = calls.length;
       user.age = 10;
       ctx.platform.domWriteQueue.flush();
       assert.html.textContent(statc, 'Jane Doe', 'incorrect text statc - age');
       assert.html.textContent(nonStatic, 'Jane Doe', 'incorrect text nonStatic - age');
-      assert.html.textContent(wrongStatic, 'Jane Doe', 'incorrect text wrongStatic - age');
       assert.greaterThan(calls.length, index);
-      // commented test: if there's no setter, then it should be volatile by default
-      // todo: have ability to configure GetterObserver to be 1 time static deps collection
-      // assertCalls(calls, index, user, ['get fullNameNonStatic', 'get fullNameWrongStatic'], ['get fullNameStatic']);
 
       index = calls.length;
       user.lastName = 'Smith';
       ctx.platform.domWriteQueue.flush();
       assert.html.textContent(statc, 'Jane Smith', 'incorrect text statc - lname');
       assert.html.textContent(nonStatic, 'Jane Smith', 'incorrect text nonStatic - lname');
-      assert.html.textContent(wrongStatic, 'Jane Doe', 'incorrect text wrongStatic - lname');
       assert.greaterThan(calls.length, index);
-      // commented test: if there's no setter, then it should be volatile by default
-      // todo: have ability to configure GetterObserver to be 1 time static deps collection
-      // assertCalls(calls, index, user, ['get fullNameStatic', 'get fullNameNonStatic'], ['get fullNameWrongStatic']);
     }, { method, componentMode });
 
-    $it(`uses a user preference control that 'computes' the organization of the user correctly - volatile - ${method} - ${componentMode}`, function ({ host, ctx, callCollection: { calls } }) {
+    $it(`uses a user preference control that 'computes' the organization of the user correctly ${method} - ${componentMode}`, function ({ host, ctx, callCollection: { calls } }) {
       const { user } = getViewModel<App>(host);
 
       const userPref = host.querySelector('user-preference');
 
-      const nonVolatile = userPref.querySelector('#nonVolatile');
-      const volatile = userPref.querySelector('#volatile');
+      const $userRole = userPref.querySelector('#user_role');
+      const $userLocation = userPref.querySelector('#user_location');
 
-      assert.html.textContent(nonVolatile, 'Role1, Org1', 'incorrect text nonVolatile');
-      assert.html.textContent(volatile, 'City1, Country1', 'incorrect text volatile');
+      assert.html.textContent($userRole, 'Role1, Org1', 'incorrect text #user_role');
+      assert.html.textContent($userLocation, 'City1, Country1', 'incorrect text #user_location');
 
       const dirtyChecker = ctx.container.get(IDirtyChecker);
       const dirty = (dirtyChecker['tracked'] as DirtyCheckProperty[]).filter(prop => Object.is(user, prop.obj) && ['roleNonVolatile', 'locationVolatile'].includes(prop.propertyKey));
       assert.equal(dirty.length, 0, 'dirty checker should not have been applied');
 
       let index = calls.length;
-      user.roleNonVolatile = 'Role2';
-      user.locationVolatile = 'Country2';
+      user.$role = 'Role2';
+      user.$location = 'Country2';
       ctx.platform.domWriteQueue.flush();
-      assert.html.textContent(nonVolatile, 'Role2, Org1', 'incorrect text nonVolatile - role');
-      assert.html.textContent(volatile, 'City1, Country2', 'incorrect text volatile - country');
+      assert.html.textContent($userRole, 'Role2, Org1', 'incorrect text #user_role - role');
+      assert.html.textContent($userLocation, 'City1, Country2', 'incorrect text #user_location - country');
       assert.greaterThan(calls.length, index);
       assertCalls(
         calls,
         index,
         user,
         [
-          'get roleNonVolatile',
-          // commented test: if there's no setter, then it should be volatile by default
-          // todo: have ability to configure GetterObserver to be 1 time static deps collection
-          // 'get locationVolatile'
+          'get $role',
         ],
-        []
+        [],
       );
 
       index = calls.length;
       user.organization = 'Org2';
       user.city = 'City2';
       ctx.platform.domWriteQueue.flush();
-      assert.html.textContent(nonVolatile, 'Role2, Org1', 'incorrect text nonVolatile - role');
-      assert.html.textContent(volatile, 'City2, Country2', 'incorrect text volatile - country');
+      assert.html.textContent($userRole, 'Role2, Org2', 'incorrect text #user_role - role');
+      assert.html.textContent($userLocation, 'City2, Country2', 'incorrect text #user_location - country');
       assert.greaterThan(calls.length, index);
       assertCalls(
         calls,
         index,
         user,
-        [
-          // commented test: if there's no setter, then it should be volatile by default
-          // todo: have ability to configure GetterObserver to be 1 time static deps collection
-          // 'get locationVolatile'
-        ],
-        ['get roleNonVolatile']
+        ['get $role'],
+        [],
       );
     }, { method, componentMode });
 

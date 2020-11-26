@@ -1,13 +1,13 @@
-import { Constructable, IIndexable } from '@aurelia/kernel';
 import { InterceptorFunc } from '../bindable.js';
-import { IBindingContext, PropertyObserver, ISubscriber, IObservable, LifecycleFlags } from '../observation.js';
-import { SetterObserver, SetterNotifier } from './setter-observer.js';
+import { LifecycleFlags } from '../observation.js';
+import { SetterNotifier } from './setter-observer.js';
+
+import type { Constructable, IIndexable } from '@aurelia/kernel';
+import type { IBindingContext, PropertyObserver, ISubscriber, IObservable } from '../observation.js';
+import type { ObservableGetter } from './observer-locator.js';
+import type { SetterObserver } from './setter-observer.js';
 
 // todo(bigopon): static obs here
-
-type $Getter = PropertyDescriptor['get'] & {
-  getObserver(obj: IIndexable): SetterObserver | SetterNotifier;
-};
 
 export interface IObservableDefinition {
   name?: PropertyKey;
@@ -125,7 +125,7 @@ export function observable(
     descriptor.set = function s(this: SetterObserverOwningObject, newValue: unknown) {
       getNotifier(this, key!, callback, initialValue, $set).setValue(newValue, LifecycleFlags.none);
     };
-    (descriptor.get as $Getter).getObserver = function gO(obj: SetterObserverOwningObject) {
+    (descriptor.get as ObservableGetter).getObserver = function gO(obj: SetterObserverOwningObject) {
       return getNotifier(obj, key!, callback, initialValue, $set);
     };
 

@@ -1,9 +1,8 @@
-import { IServiceLocator, Registration } from '@aurelia/kernel';
+import { emptyObject, IServiceLocator, Registration } from '@aurelia/kernel';
 import {
   IDirtyChecker,
   INodeObserverLocator,
   IObserverLocator,
-  LifecycleFlags,
   SetterObserver,
 } from '@aurelia/runtime';
 import { IPlatform } from '../platform.js';
@@ -91,9 +90,10 @@ export class NodeObserverConfig {
 export class NodeObserverLocator implements INodeObserverLocator {
   public allowDirtyCheck: boolean = true;
 
-  private readonly globalLookup: Record<string, NodeObserverConfig> = createLookup();
-  private readonly eventsLookup: Record<string, Record<string, NodeObserverConfig>> = createLookup();
-  private readonly overrides: Record<string, true> = getDefaultOverrideProps();
+  private readonly events: Record<string, Record<string, NodeObserverConfig>> = createLookup();
+  private readonly globalEvents: Record<string, NodeObserverConfig> = createLookup();
+  private readonly overrides: Record<string, Record<string, true>> = createLookup();
+  private readonly globalOverrides: Record<string, true> = createLookup();
 
   public constructor(
     @IServiceLocator private readonly locator: IServiceLocator,
@@ -125,11 +125,18 @@ export class NodeObserverLocator implements INodeObserverLocator {
 
     const contentEventsConfig: INodeObserverConfig = { events: ['change', 'input', 'blur', 'keyup', 'paste'], default: '' };
     const scrollEventsConfig: INodeObserverConfig = { events: ['scroll'], default: 0 };
-    this.useGlobalConfig({
+    this.useConfigGlobal({
       scrollTop: scrollEventsConfig,
       scrollLeft: scrollEventsConfig,
       textContent: contentEventsConfig,
       innerHTML: contentEventsConfig,
+    });
+
+    this.overrideAccessorGlobal('css', 'style', 'class');
+    this.overrideAccessor({
+      INPUT: ['value', 'checked', 'model'],
+      SELECT: ['value'],
+      TEXTAREA: ['value'],
     });
   }
 
@@ -146,7 +153,7 @@ export class NodeObserverLocator implements INodeObserverLocator {
   public useConfig(config: Record<string, Record<string, INodeObserverConfig>>): void;
   public useConfig(nodeName: string, key: PropertyKey, events: INodeObserverConfig): void;
   public useConfig(nodeNameOrConfig: string | Record<string, Record<string, INodeObserverConfig>>, key?: PropertyKey, eventsConfig?: INodeObserverConfig): void {
-    const lookup = this.eventsLookup;
+    const lookup = this.events;
     let existingMapping: Record<string, NodeObserverConfig>;
     if (typeof nodeNameOrConfig === 'string') {
       existingMapping = lookup[nodeNameOrConfig] ??= createLookup();
@@ -170,10 +177,10 @@ export class NodeObserverLocator implements INodeObserverLocator {
     }
   }
 
-  public useGlobalConfig(config: Record<string, INodeObserverConfig>): void;
-  public useGlobalConfig(key: PropertyKey, events: INodeObserverConfig): void;
-  public useGlobalConfig(configOrKey: PropertyKey | Record<string, INodeObserverConfig>, eventsConfig?: INodeObserverConfig): void {
-    const lookup = this.globalLookup;
+  public useConfigGlobal(config: Record<string, INodeObserverConfig>): void;
+  public useConfigGlobal(key: PropertyKey, events: INodeObserverConfig): void;
+  public useConfigGlobal(configOrKey: PropertyKey | Record<string, INodeObserverConfig>, eventsConfig?: INodeObserverConfig): void {
+    const lookup = this.globalEvents;
     if (typeof configOrKey === 'object') {
       for (const key in configOrKey) {
         if (lookup[key] == null) {
@@ -193,7 +200,7 @@ export class NodeObserverLocator implements INodeObserverLocator {
 
   // deepscan-disable-nextline
   public getAccessor(obj: HTMLElement, key: PropertyKey, requestor: IObserverLocator): IAccessor | IObserver {
-    if (this.overrides[key as string] === true) {
+    if (key in this.globalOverrides || (key in (this.overrides[obj.tagName] ?? emptyObject))) {
       return this.getObserver(obj, key, requestor);
     }
     switch (key) {
@@ -219,6 +226,39 @@ export class NodeObserverLocator implements INodeObserverLocator {
     }
   }
 
+  /**
+   * For a list of specific elements
+   * compose a list of properties, based on different tag name,
+   * indicating that an overser should be returned instead of an accessor in `.getAccessor()`
+   */
+  public overrideAccessor(overrides: Record<string, string[]>): void;
+  public overrideAccessor(tagName: string, key: PropertyKey): void;
+  public overrideAccessor(tagNameOrOverrides: string | Record<string, string[]>, key?: PropertyKey): void {
+    let existingTagOverride: Record<string, true> | undefined;
+    if (typeof tagNameOrOverrides === 'string') {
+      existingTagOverride = this.overrides[tagNameOrOverrides] ??= createLookup();
+      existingTagOverride[key as string] = true;
+    } else {
+      for (const tagName in tagNameOrOverrides) {
+        for (const key of tagNameOrOverrides[tagName]) {
+          existingTagOverride =this.overrides[tagName] ??= createLookup();
+          existingTagOverride[key] = true;
+        }
+      }
+    }
+  }
+
+  /**
+   * For all elements:
+   * compose a list of properties,
+   * to indicate that an overser should be returned instead of an accessor in `.getAccessor()`
+   */
+  public overrideAccessorGlobal(...keys: string[]): void {
+    for (const key of keys) {
+      this.globalOverrides[key] = true;
+    }
+  }
+
   public getObserver(el: HTMLElement, key: PropertyKey, requestor: IObserverLocator): IAccessor | IObserver {
     switch (key) {
       case 'role':
@@ -229,7 +269,7 @@ export class NodeObserverLocator implements INodeObserverLocator {
       case 'style':
         return new StyleAttributeAccessor(el);
     }
-    const eventsConfig: NodeObserverConfig | undefined = this.eventsLookup[el.tagName]?.[key as string] ?? this.globalLookup[key as string];
+    const eventsConfig: NodeObserverConfig | undefined = this.events[el.tagName]?.[key as string] ?? this.globalEvents[key as string];
     if (eventsConfig != null) {
       return new eventsConfig.type(el, key, new EventSubscriber(eventsConfig), requestor, this.locator);
     }
@@ -257,33 +297,15 @@ export class NodeObserverLocator implements INodeObserverLocator {
   }
 }
 
-function getDefaultOverrideProps() {
-  return [
-    'class',
-    'style',
-    'css',
-    'checked',
-    'value',
-    'model',
-    'xml:lang',
-    'xml:space',
-    'xmlns',
-    'xmlns:xlink',
-  ].reduce((overrides, attr) => {
-    overrides[attr] = true;
-    return overrides;
-  },createLookup<true>());
-}
-
 export function getCollectionObserver(collection: unknown, observerLocator: IObserverLocator): ICollectionObserver<CollectionKind> | undefined {
   if (collection instanceof Array) {
-    return observerLocator.getArrayObserver(LifecycleFlags.none, collection);
+    return observerLocator.getArrayObserver(collection);
   }
   if (collection instanceof Map) {
-    return observerLocator.getMapObserver(LifecycleFlags.none, collection);
+    return observerLocator.getMapObserver(collection);
   }
   if (collection instanceof Set) {
-    return observerLocator.getSetObserver(LifecycleFlags.none, collection);
+    return observerLocator.getSetObserver(collection);
   }
 }
 

@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import { IIndexable } from '@aurelia/kernel';
-import { IBinding, IBindingContext, IOverrideContext, LifecycleFlags } from '../observation.js';
+import { LifecycleFlags } from '../observation.js';
+
+import type { IIndexable } from '@aurelia/kernel';
+import type { IBinding, IBindingContext, IOverrideContext } from '../observation.js';
 
 const marker = Object.freeze({});
 
@@ -28,22 +30,22 @@ export class BindingContext implements IBindingContext {
    *
    * @param obj - Optional. An existing object or `BindingContext` to (shallow) clone (own) properties from.
    */
-  public static create(flags: LifecycleFlags, obj?: IIndexable): BindingContext;
+  public static create(obj?: IIndexable): BindingContext;
   /**
    * Create a new synthetic `BindingContext` for use in a `Scope`.
    *
    * @param key - The name of the only property to initialize this `BindingContext` with.
    * @param value - The value of the only property to initialize this `BindingContext` with.
    */
-  public static create(flags: LifecycleFlags, key: string, value: unknown): BindingContext;
+  public static create(key: string, value: unknown): BindingContext;
   /**
    * Create a new synthetic `BindingContext` for use in a `Scope`.
    *
    * This overload signature is simply the combined signatures of the other two, and can be used
    * to keep strong typing in situations where the arguments are dynamic.
    */
-  public static create(flags: LifecycleFlags, keyOrObj?: string | IIndexable, value?: unknown): BindingContext;
-  public static create(flags: LifecycleFlags, keyOrObj?: string | IIndexable, value?: unknown): BindingContext {
+  public static create(keyOrObj?: string | IIndexable, value?: unknown): BindingContext;
+  public static create(keyOrObj?: string | IIndexable, value?: unknown): BindingContext {
     return new BindingContext(keyOrObj, value);
   }
 
@@ -141,7 +143,7 @@ export class Scope {
    *
    * @param bc - The `BindingContext` to back the `Scope` with.
    */
-  public static create(flags: LifecycleFlags, bc: object): Scope;
+  public static create(bc: object): Scope;
   /**
    * Create a new `Scope` backed by the provided `BindingContext` and `OverrideContext`.
    *
@@ -151,7 +153,7 @@ export class Scope {
    * during binding, it will traverse up via the `parentScope` of the scope until
    * it finds the property.
    */
-  public static create(flags: LifecycleFlags, bc: object, oc: IOverrideContext, isComponentBoundary?: boolean): Scope;
+  public static create(bc: object, oc: IOverrideContext, isComponentBoundary?: boolean): Scope;
   /**
    * Create a new `Scope` backed by the provided `BindingContext` and `OverrideContext`.
    *
@@ -161,28 +163,23 @@ export class Scope {
    * @param bc - The `BindingContext` to back the `Scope` with.
    * @param oc - null. This overload is functionally equivalent to not passing this argument at all.
    */
-  public static create(flags: LifecycleFlags, bc: object, oc: null, isComponentBoundary?: boolean): Scope;
-  public static create(
-    flags: LifecycleFlags,
-    bc: object,
-    oc?: IOverrideContext | null,
-    isComponentBoundary?: boolean,
-  ): Scope {
-    return new Scope(null, bc as IBindingContext, oc == null ? OverrideContext.create(flags, bc) : oc, isComponentBoundary ?? false);
+  public static create(bc: object, oc: null, isComponentBoundary?: boolean): Scope;
+  public static create(bc: object, oc?: IOverrideContext | null, isComponentBoundary?: boolean): Scope {
+    return new Scope(null, bc as IBindingContext, oc == null ? OverrideContext.create(bc) : oc, isComponentBoundary ?? false);
   }
 
-  public static fromOverride(flags: LifecycleFlags, oc: IOverrideContext): Scope {
+  public static fromOverride(oc: IOverrideContext): Scope {
     if (oc == null) {
       throw new Error(`OverrideContext is ${oc}`);
     }
     return new Scope(null, oc.bindingContext, oc, false);
   }
 
-  public static fromParent(flags: LifecycleFlags, ps: Scope | null, bc: object): Scope {
+  public static fromParent(ps: Scope | null, bc: object): Scope {
     if (ps == null) {
       throw new Error(`ParentScope is ${ps}`);
     }
-    return new Scope(ps, bc as IBindingContext, OverrideContext.create(flags, bc), false);
+    return new Scope(ps, bc as IBindingContext, OverrideContext.create(bc), false);
   }
 }
 
@@ -195,7 +192,7 @@ export class OverrideContext implements IOverrideContext {
     this.bindingContext = bindingContext;
   }
 
-  public static create(flags: LifecycleFlags, bc: object): OverrideContext {
+  public static create(bc: object): OverrideContext {
     return new OverrideContext(bc as IBindingContext);
   }
 }

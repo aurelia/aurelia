@@ -1,5 +1,8 @@
-import { IAccessor, LifecycleFlags, AccessorType } from '@aurelia/runtime';
+import { LifecycleFlags, AccessorType } from '@aurelia/runtime';
 import { emptyArray, kebabCase } from '@aurelia/kernel';
+import type { IAccessor } from '@aurelia/runtime';
+
+const customPropertyPrefix: string = '--';
 
 export class StyleAttributeAccessor implements IAccessor {
   public currentValue: unknown = '';
@@ -30,16 +33,32 @@ export class StyleAttributeAccessor implements IAccessor {
 
   private getStyleTuplesFromString(currentValue: string): [string, string][] {
     const styleTuples: [string, string][] = [];
-    const rx = /\s*([\w-]+)\s*:\s*((?:(?:[\w-]+\(\s*(?:"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[\w-]+\(\s*(?:[^"](?:\\"|[^"])*"|'(?:\\'|[^'])*'|[^)]*)\),?|[^)]*)\),?|"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[^;]*),?\s*)+);?/g;
-    let pair: RegExpExecArray;
-    let name: string;
-    while ((pair = rx.exec(currentValue)!) !== null) {
-      name = pair[1];
-      if (name.length === 0) {
+    const urlRegexTester = /url\([^)]+$/;
+    let offset = 0;
+    let currentChunk = '';
+    let nextSplit: number;
+    let indexOfColon: number;
+    let attribute: string;
+    let value: string;
+    while (offset < currentValue.length) {
+      nextSplit = currentValue.indexOf(';', offset);
+      if (nextSplit === -1) { nextSplit = currentValue.length; }
+      currentChunk += currentValue.substring(offset, nextSplit);
+      offset = nextSplit + 1;
+
+      // Make sure we never split a url so advance to next
+      if (urlRegexTester.test(currentChunk)) {
+        currentChunk += ';';
         continue;
       }
-      styleTuples.push([name, pair[2]]);
+
+      indexOfColon = currentChunk.indexOf(':');
+      attribute = currentChunk.substring(0, indexOfColon).trim();
+      value = currentChunk.substring(indexOfColon + 1).trim();
+      styleTuples.push([attribute, value]);
+      currentChunk = '';
     }
+
     return styleTuples;
   }
 
@@ -52,6 +71,11 @@ export class StyleAttributeAccessor implements IAccessor {
         continue;
       }
       if (typeof value === 'string') {
+        // Custom properties should not be tampered with
+        if (property.startsWith(customPropertyPrefix)) {
+          styles.push([property, value]);
+          continue;
+        }
         styles.push([kebabCase(property), value]);
         continue;
       }

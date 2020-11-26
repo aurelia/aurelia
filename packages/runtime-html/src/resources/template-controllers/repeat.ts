@@ -3,14 +3,13 @@ import {
   applyMutationsToIndices,
   bindable,
   BindingContext,
+  Collection,
   CollectionObserver,
   ForOfStatement,
   getCollectionObserver,
   IndexMap,
-  IObservedArray,
   IOverrideContext,
   LifecycleFlags as LF,
-  ObservedCollection,
   PropertyBinding,
   Scope,
   synchronizeIndices,
@@ -21,14 +20,14 @@ import { templateController } from '../custom-attribute.js';
 import type { ISyntheticView, ICustomAttributeController, IHydratableController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller.js';
 import { IController } from '../../templating/controller.js';
 
-type Items<C extends ObservedCollection = IObservedArray> = C | undefined;
+type Items<C extends Collection = unknown[]> = C | undefined;
 
 function dispose(disposable: IDisposable): void {
   disposable.dispose();
 }
 
 @templateController('repeat')
-export class Repeat<C extends ObservedCollection = IObservedArray> implements ICustomAttributeViewModel {
+export class Repeat<C extends Collection = unknown[]> implements ICustomAttributeViewModel {
   public readonly id: number = nextId('au$component');
 
   public hasPendingInstanceMutation: boolean = false;
@@ -43,7 +42,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray> implements IC
 
   @bindable public items: Items<C>;
 
-  private normalizedItems?: IObservedArray = void 0;
+  private normalizedItems?: unknown[] = void 0;
 
   public constructor(
     @IRenderLocation public location: IRenderLocation,
@@ -163,7 +162,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray> implements IC
         oldObserver.unsubscribeFromCollection(this);
       }
     } else if (this.$controller.isActive) {
-      const newObserver = this.observer = getCollectionObserver(this.$controller.lifecycle, this.items);
+      const newObserver = this.observer = getCollectionObserver(this.items, this.$controller.lifecycle);
       if (oldObserver !== newObserver && oldObserver) {
         oldObserver.unsubscribeFromCollection(this);
       }
@@ -183,7 +182,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray> implements IC
     if (forOf === void 0) {
       return;
     }
-    const normalizedItems: IObservedArray = [];
+    const normalizedItems: unknown[] = [];
     this.forOf.iterate(flags, items, (arr, index, item) => {
       normalizedItems[index] = item;
     });
@@ -208,7 +207,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray> implements IC
     this.forOf.iterate(flags, items, (arr, i, item) => {
       view = views[i] = factory.create(flags).setLocation(location);
       view.nodes!.unlink();
-      viewScope = Scope.fromParent(flags, parentScope, BindingContext.create(flags, local, item));
+      viewScope = Scope.fromParent(parentScope, BindingContext.create(local, item));
 
       setContextualProperties(viewScope.overrideContext as IRepeatOverrideContext, i, newLen);
 
@@ -332,7 +331,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray> implements IC
       view.nodes!.link(next?.nodes ?? location);
 
       if (indexMap[i] === -2) {
-        viewScope = Scope.fromParent(flags, parentScope, BindingContext.create(flags, local, normalizedItems![i]));
+        viewScope = Scope.fromParent(parentScope, BindingContext.create(local, normalizedItems![i]));
         setContextualProperties(viewScope.overrideContext as IRepeatOverrideContext, i, newLen);
         view.setLocation(location);
 

@@ -1,4 +1,3 @@
-import { DI } from '@aurelia/kernel';
 import {
   AccessMemberExpression,
   AccessScopeExpression,
@@ -39,9 +38,6 @@ export function padRight(input: unknown, len: number): string {
   return str + new Array(len - strLen + 1).join(' ');
 }
 
-const $nil: any = undefined;
-const getName = (o: any) => Object.prototype.toString.call(o).slice(8, -1);
-
 describe('PropertyBinding', function () {
   let dummySourceExpression: IsBindingBehavior;
   let dummyTarget: Record<string, unknown>;
@@ -63,16 +59,6 @@ describe('PropertyBinding', function () {
     dummyTarget = {foo: 'bar'};
     dummyTargetProperty = 'foo';
     dummyMode = BindingMode.twoWay;
-  });
-
-  describe('constructor', function () {
-    const invalidInputs: any[] = [null, undefined, {}];
-
-    for (const ii of invalidInputs) {
-      it(`throws on invalid input parameters of type ${getName(ii)}`, function () {
-        assert.throws(() => new PropertyBinding(ii, ii, ii, ii, ii, ii, ii), `() => new PropertyBinding(ii, ii, ii, ii, ii, ii)`);
-      });
-    }
   });
 
   describe('updateTarget()', function () {
@@ -107,7 +93,7 @@ describe('PropertyBinding', function () {
     const observerLocator = createObserverLocator(container);
     const target = {val: 0};
     const sut = new PropertyBinding(expr as any, target, 'val', BindingMode.toView, observerLocator, container, {} as any);
-    const scope = Scope.create(LF.none, ctx, null);
+    const scope = Scope.create(ctx, null);
 
     sut.$bind(LF.fromBind, scope, null);
 
@@ -123,7 +109,7 @@ describe('PropertyBinding', function () {
     for (let i = 0; i < count; ++i) {
       ctx2[args[i]] = 3;
     }
-    const scope2 = Scope.create(LF.none, ctx2, null);
+    const scope2 = Scope.create(ctx2, null);
 
     sut.$bind(LF.fromBind, scope2, null);
 
@@ -170,7 +156,7 @@ describe('PropertyBinding', function () {
         // - Arrange -
         const { sut, lifecycle, container, observerLocator } = createFixture(expr, target, prop, BindingMode.oneTime);
         const srcVal = expr.evaluate(LF.none, scope, null, container, null);
-        const targetObserver = observerLocator.getAccessor(LF.none, target, prop);
+        const targetObserver = observerLocator.getAccessor(target, prop);
         // const $stub = stub(observerLocator, 'getAccessor').returns(targetObserver);
         // $stub.withArgs(LF.none, target, prop);
 
@@ -242,7 +228,7 @@ describe('PropertyBinding', function () {
         // - Arrange - Part 1
         const { sut, lifecycle, container, observerLocator } = createFixture(expr, target, prop, BindingMode.toView);
         const srcVal = expr.evaluate(LF.none, scope, null, container, null);
-        const targetObserver = observerLocator.getAccessor(LF.none, target, prop);
+        const targetObserver = observerLocator.getAccessor(target, prop);
 
         // const $stub = stub(observerLocator, 'getAccessor').returns(targetObserver);
         // $stub.withArgs(LF.none, target, prop);
@@ -466,7 +452,7 @@ describe('PropertyBinding', function () {
       it(`$bind() [from-view]  target=${$1} prop=${$2} newValue=${$3} expr=${$4} flags=${$5} scope=${$6}`, function () {
         // - Arrange - Part 1
         const { sut, lifecycle, container, observerLocator } = createFixture(expr, target, prop, BindingMode.fromView);
-        const targetObserver = observerLocator.getObserver(LF.none, target, prop) as IBindingTargetObserver;
+        const targetObserver = observerLocator.getObserver(target, prop) as IBindingTargetObserver;
         // massSpy(targetObserver, 'subscribe');
 
         // ensureNotCalled(expr, 'evaluate', 'connect', 'assign');
@@ -589,7 +575,7 @@ describe('PropertyBinding', function () {
         // - Arrange - Part 1
         const { sut, lifecycle, container, observerLocator } = createFixture(expr, target, prop, BindingMode.twoWay);
         const srcVal = expr.evaluate(LF.none, scope, null, container, null);
-        const targetObserver = observerLocator.getObserver(LF.none, target, prop) as IBindingTargetObserver;
+        const targetObserver = observerLocator.getObserver(target, prop) as IBindingTargetObserver;
 
         // massSpy(targetObserver, 'setValue', 'getValue', 'callSubscribers', 'subscribe');
         // massSpy(expr, 'evaluate', 'connect', 'assign');

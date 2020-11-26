@@ -1,15 +1,8 @@
-import {
-  CollectionKind,
-  createIndexMap,
-  ICollectionObserver,
-  IObservedMap,
-  ICollectionIndexObserver,
-  AccessorType,
-  ILifecycle,
-  LifecycleFlags,
-} from '../observation.js';
+import { CollectionKind, createIndexMap, AccessorType, LifecycleFlags } from '../observation.js';
 import { CollectionSizeObserver } from './collection-size-observer.js';
 import { collectionSubscriberCollection } from './subscriber-collection.js';
+
+import type { ICollectionObserver, ICollectionIndexObserver, ILifecycle } from '../observation.js';
 
 const observerLookup = new WeakMap<Map<unknown, unknown>, MapObserver>();
 
@@ -27,23 +20,19 @@ const methods: ['set', 'clear', 'delete'] = ['set', 'clear', 'delete'];
 
 const observe = {
   // https://tc39.github.io/ecma262/#sec-map.prototype.map
-  set: function (this: IObservedMap, key: unknown, value: unknown): ReturnType<typeof $set> {
-    let $this = this;
-    if ($this.$raw !== undefined) {
-      $this = $this.$raw;
-    }
-    const o = observerLookup.get($this);
+  set: function (this: Map<unknown, unknown>, key: unknown, value: unknown): ReturnType<typeof $set> {
+    const o = observerLookup.get(this);
     if (o === undefined) {
-      $set.call($this, key, value);
+      $set.call(this, key, value);
       return this;
     }
-    const oldValue = $this.get(key);
-    const oldSize = $this.size;
-    $set.call($this, key, value);
-    const newSize = $this.size;
+    const oldValue = this.get(key);
+    const oldSize = this.size;
+    $set.call(this, key, value);
+    const newSize = this.size;
     if (newSize === oldSize) {
       let i = 0;
-      for (const entry of $this.entries()) {
+      for (const entry of this.entries()) {
         if (entry[0] === key) {
           if (entry[1] !== oldValue) {
             o.indexMap.deletedItems.push(o.indexMap[i]);
@@ -61,55 +50,47 @@ const observe = {
     return this;
   },
   // https://tc39.github.io/ecma262/#sec-map.prototype.clear
-  clear: function (this: IObservedMap): ReturnType<typeof $clear>  {
-    let $this = this;
-    if ($this.$raw !== undefined) {
-      $this = $this.$raw;
-    }
-    const o = observerLookup.get($this);
+  clear: function (this: Map<unknown, unknown>): ReturnType<typeof $clear>  {
+    const o = observerLookup.get(this);
     if (o === undefined) {
-      return $clear.call($this);
+      return $clear.call(this);
     }
-    const size = $this.size;
+    const size = this.size;
     if (size > 0) {
       const indexMap = o.indexMap;
       let i = 0;
       // deepscan-disable-next-line
-      for (const _ of $this.keys()) {
+      for (const _ of this.keys()) {
         if (indexMap[i] > -1) {
           indexMap.deletedItems.push(indexMap[i]);
         }
         i++;
       }
-      $clear.call($this);
+      $clear.call(this);
       indexMap.length = 0;
       o.notify();
     }
     return undefined;
   },
   // https://tc39.github.io/ecma262/#sec-map.prototype.delete
-  delete: function (this: IObservedMap, value: unknown): ReturnType<typeof $delete> {
-    let $this = this;
-    if ($this.$raw !== undefined) {
-      $this = $this.$raw;
-    }
-    const o = observerLookup.get($this);
+  delete: function (this: Map<unknown, unknown>, value: unknown): ReturnType<typeof $delete> {
+    const o = observerLookup.get(this);
     if (o === undefined) {
-      return $delete.call($this, value);
+      return $delete.call(this, value);
     }
-    const size = $this.size;
+    const size = this.size;
     if (size === 0) {
       return false;
     }
     let i = 0;
     const indexMap = o.indexMap;
-    for (const entry of $this.keys()) {
+    for (const entry of this.keys()) {
       if (entry === value) {
         if (indexMap[i] > -1) {
           indexMap.deletedItems.push(indexMap[i]);
         }
         indexMap.splice(i, 1);
-        const deleteResult = $delete.call($this, value);
+        const deleteResult = $delete.call(this, value);
         if (deleteResult === true) {
           o.notify();
         }
@@ -158,7 +139,7 @@ export class MapObserver {
   public inBatch: boolean;
   public type: AccessorType = AccessorType.Map;
 
-  public constructor(lifecycle: ILifecycle, map: IObservedMap) {
+  public constructor(map: Map<unknown, unknown>) {
 
     if (!enableMapObservationCalled) {
       enableMapObservationCalled = true;
@@ -169,14 +150,13 @@ export class MapObserver {
 
     this.collection = map;
     this.indexMap = createIndexMap(map.size);
-    this.lifecycle = lifecycle;
     this.lengthObserver = (void 0)!;
 
     observerLookup.set(map, this);
   }
 
   public notify(): void {
-    if (this.lifecycle.batch.depth > 0) {
+    if (this.lifecycle?.batch.depth) {
       if (!this.inBatch) {
         this.inBatch = true;
         this.lifecycle.batch.add(this);
@@ -187,10 +167,7 @@ export class MapObserver {
   }
 
   public getLengthObserver(): CollectionSizeObserver {
-    if (this.lengthObserver === void 0) {
-      this.lengthObserver = new CollectionSizeObserver(this.collection);
-    }
-    return this.lengthObserver as CollectionSizeObserver;
+    return this.lengthObserver ??= new CollectionSizeObserver(this.collection);
   }
 
   public getIndexObserver(index: number): ICollectionIndexObserver {
@@ -204,16 +181,17 @@ export class MapObserver {
     this.inBatch = false;
     this.indexMap = createIndexMap(size);
     this.callCollectionSubscribers(indexMap, LifecycleFlags.updateTarget);
-    if (this.lengthObserver !== void 0) {
-      this.lengthObserver.notify();
-    }
+    this.lengthObserver?.notify();
   }
 }
 
-export function getMapObserver(lifecycle: ILifecycle, map: IObservedMap): MapObserver {
-  const observer = observerLookup.get(map);
+export function getMapObserver(map: Map<unknown, unknown>, lifecycle: ILifecycle | null): MapObserver {
+  let observer = observerLookup.get(map);
   if (observer === void 0) {
-    return new MapObserver(lifecycle, map);
+    observer = new MapObserver(map);
+    if (lifecycle != null) {
+      observer.lifecycle = lifecycle;
+    }
   }
   return observer;
 }

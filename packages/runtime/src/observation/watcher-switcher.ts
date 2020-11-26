@@ -1,4 +1,4 @@
-import { Collection } from '../observation';
+import type { Collection } from '../observation.js';
 
 // todo:
 // merge collection subscription to property subscription
@@ -22,11 +22,11 @@ const watchers: IWatcher[] = [];
 export let watching = false;
 
 // todo: layer based collection pause/resume?
-export function pauseSubscription() {
+export function pauseWatching() {
   watching = false;
 }
 
-export function resumeSubscription() {
+export function resumeWatching() {
   watching = true;
 }
 
@@ -64,3 +64,16 @@ export function exitWatcher(watcher: IWatcher): void {
   $watcher = watchers.length > 0 ? watchers[watchers.length - 1] : null;
   watching = $watcher != null;
 }
+
+export const WatcherSwitcher = Object.freeze({
+  get current() {
+    return $watcher;
+  },
+  get watching() {
+    return watching;
+  },
+  enter: enterWatcher,
+  exit: exitWatcher,
+  pause: pauseWatching,
+  resume: resumeWatching,
+});

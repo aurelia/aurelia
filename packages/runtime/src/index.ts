@@ -145,12 +145,7 @@ export {
   CollectionSizeObserver,
 } from './observation/collection-size-observer.js';
 export {
-  ComputedOverrides,
-  ComputedLookup,
-  computed,
-  createComputedObserver,
-  CustomSetterObserver,
-  GetterObserver,
+  ComputedObserver,
   ComputedWatcher,
   ExpressionWatcher,
 } from './observation/computed-observer.js';
@@ -194,6 +189,7 @@ export {
 } from './observation/subscriber-collection.js';
 export {
   IWatcher,
+  WatcherSwitcher,
 } from './observation/watcher-switcher.js';
 
 export {
@@ -275,15 +271,11 @@ export {
   IBatchable,
   IObserver,
   IObservable,
-  IObservedArray,
-  IObservedMap,
-  IObservedSet,
   IOverrideContext,
   IPropertyChangeTracker,
   IPropertyObserver,
   ISubscribable,
   ISubscriberCollection,
-  ObservedCollection,
   PropertyObserver,
   CollectionObserver,
   ICollectionSubscriberCollection,

@@ -143,7 +143,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
       flags = LifecycleFlags.none;
     }
     if (scope === void 0) {
-      scope = Scope.create(flags, { [rootObjectSymbol]: object });
+      scope = Scope.create({ [rootObjectSymbol]: object });
     }
     const expression = this.property.expression;
     let value: unknown;
@@ -164,7 +164,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
         const { displayName, name } = this.property;
         let message: string | undefined;
         if (!isValidOrPromise) {
-          const messageEvaluationScope = Scope.create(flags!,
+          const messageEvaluationScope = Scope.create(
             new ValidationMessageEvaluationContext(
               this.messageProvider,
               this.messageProvider.getDisplayName(name, displayName),

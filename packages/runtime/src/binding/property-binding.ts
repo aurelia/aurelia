@@ -1,29 +1,12 @@
-import {
-  IServiceLocator,
-  ITask,
-  QueueTaskOptions,
-  TaskQueue,
-} from '@aurelia/kernel';
-import {
-  AccessorOrObserver,
-  IBindingTargetObserver,
-  AccessorType,
-  BindingMode,
-  ILifecycle,
-  LifecycleFlags,
-} from '../observation.js';
-import { IObserverLocator } from '../observation/observer-locator.js';
-import {
-  ExpressionKind,
-  ForOfStatement,
-  IsBindingBehavior,
-} from './ast.js';
-import {
-  connectable,
-  IConnectableBinding,
-  IPartialConnectableBinding,
-} from './connectable.js';
+import { BindingMode, LifecycleFlags, AccessorType } from '../observation.js';
+import { ExpressionKind } from './ast.js';
+import { connectable } from './connectable.js';
 
+import type { IServiceLocator, ITask, QueueTaskOptions, TaskQueue } from '@aurelia/kernel';
+import type { AccessorOrObserver, IBindingTargetObserver } from '../observation.js';
+import type { IObserverLocator } from '../observation/observer-locator.js';
+import type { ForOfStatement, IsBindingBehavior, } from './ast.js';
+import type { IConnectableBinding, IPartialConnectableBinding } from './connectable.js';
 import type { Scope } from '../observation/binding-context.js';
 
 // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
@@ -45,7 +28,6 @@ export class PropertyBinding implements IPartialConnectableBinding {
 
   public id!: number;
   public isBound: boolean = false;
-  public $lifecycle: ILifecycle;
   public $scope?: Scope = void 0;
   public $hostScope: Scope | null = null;
 
@@ -65,7 +47,6 @@ export class PropertyBinding implements IPartialConnectableBinding {
     private readonly taskQueue: TaskQueue,
   ) {
     connectable.assignIdTo(this);
-    this.$lifecycle = locator.get(ILifecycle);
   }
 
   public updateTarget(value: unknown, flags: LifecycleFlags): void {
@@ -167,9 +148,9 @@ export class PropertyBinding implements IPartialConnectableBinding {
     if (!targetObserver) {
       const observerLocator = this.observerLocator;
       if ($mode & fromView) {
-        targetObserver = observerLocator.getObserver(flags, this.target, this.targetProperty) as IBindingTargetObserver;
+        targetObserver = observerLocator.getObserver(this.target, this.targetProperty) as IBindingTargetObserver;
       } else {
-        targetObserver = observerLocator.getAccessor(flags, this.target, this.targetProperty) as IBindingTargetObserver;
+        targetObserver = observerLocator.getAccessor(this.target, this.targetProperty) as IBindingTargetObserver;
       }
       this.targetObserver = targetObserver;
     }

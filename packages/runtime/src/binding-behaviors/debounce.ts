@@ -1,10 +1,11 @@
-
-import { ITask, TaskQueue, QueueTaskOptions, IPlatform } from '@aurelia/kernel';
+import { IPlatform } from '@aurelia/kernel';
 import { LifecycleFlags } from '../observation.js';
-import { bindingBehavior, BindingInterceptor, IInterceptableBinding } from '../binding-behavior.js';
-import { BindingBehaviorExpression, IsAssign } from '../binding/ast.js';
+import { bindingBehavior, BindingInterceptor } from '../binding-behavior.js';
 
+import type { ITask, TaskQueue, QueueTaskOptions } from '@aurelia/kernel';
+import type { IInterceptableBinding } from '../binding-behavior.js';
 import type { Scope } from '../observation/binding-context.js';
+import type { BindingBehaviorExpression, IsAssign } from '../binding/ast.js';
 
 @bindingBehavior('debounce')
 export class DebounceBindingBehavior extends BindingInterceptor {

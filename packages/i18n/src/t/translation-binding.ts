@@ -188,8 +188,8 @@ export class TranslationBinding implements IPartialConnectableBinding {
   private updateAttribute(attribute: string, value: string, flags: LifecycleFlags) {
     const controller = CustomElement.for(this.target, forOpts);
     const observer = controller && controller.viewModel
-      ? this.observerLocator.getAccessor(LifecycleFlags.none, controller.viewModel, attribute)
-      : this.observerLocator.getAccessor(LifecycleFlags.none, this.target, attribute);
+      ? this.observerLocator.getAccessor(controller.viewModel, attribute)
+      : this.observerLocator.getAccessor(this.target, attribute);
     observer.setValue(value, flags, this.target, attribute);
     this.targetObservers.add(observer);
   }

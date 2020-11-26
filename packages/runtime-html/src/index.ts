@@ -109,16 +109,13 @@ export {
 
   CollectionSizeObserver,
 
-  ComputedOverrides,
-  ComputedLookup,
-  computed,
-  createComputedObserver,
-  CustomSetterObserver,
-  GetterObserver,
-
   IDirtyChecker,
   DirtyCheckProperty,
   DirtyCheckSettings,
+
+  ComputedObserver,
+  ComputedWatcher,
+  ExpressionWatcher,
 
   IObservableDefinition,
   observable,
@@ -212,15 +209,11 @@ export {
   IndexMap,
   IBatchable,
   IObservable,
-  IObservedArray,
-  IObservedMap,
-  IObservedSet,
   IOverrideContext,
   IPropertyChangeTracker,
   IPropertyObserver,
   ISubscribable,
   ISubscriberCollection,
-  ObservedCollection,
   PropertyObserver,
   CollectionObserver,
   ICollectionSubscriberCollection,

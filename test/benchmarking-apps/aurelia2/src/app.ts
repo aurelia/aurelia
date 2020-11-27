@@ -51,7 +51,7 @@ export class App {
 
   public filterEmployed(status: 'employed' | 'unemployed' | undefined): void {
     if (this.employmentStatus === status) { return; }
-    // // filter/subset
+    // filter/subset
     this.employmentStatus = status;
   }
 
@@ -135,7 +135,7 @@ export class FormatDate {
 @valueConverter('filterEmployed')
 export class FilterEmployed {
   public toView(value: Person[], status?: 'employed' | 'unemployed'): Person[] {
-    if (status == null || ((value?.length ?? 0) > 0)) { return value; }
+    if (status == null || ((value?.length ?? 0) === 0)) { return value; }
     const predicate = status === 'employed'
       ? (p: Person) => p.jobTitle !== void 0
       : (p: Person) => p.jobTitle === void 0;

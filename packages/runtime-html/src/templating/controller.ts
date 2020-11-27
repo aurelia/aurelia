@@ -10,7 +10,6 @@ import {
   isObject,
   ILogger,
   LogLevel,
-  resolveAll,
   IServiceLocator,
   Metadata,
   DI,
@@ -50,7 +49,7 @@ function callDispose(disposable: IDisposable): void {
   disposable.dispose();
 }
 
-type BindingContext<C extends IViewModel> = Required<ICompileHooks> & Required<IActivationHooks<IHydratedParentController | null>> & C;
+type BindingContext<C extends IViewModel> = Required<ICompileHooks> & Required<IActivationHooks<IHydratedController | null>> & C;
 
 export const enum MountTarget {
   none = 0,
@@ -69,7 +68,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   public tail: IHydratedController | null = null;
   public next: IHydratedController | null = null;
 
-  public parent: Controller | null = null;
+  public parent: IHydratedController | null = null;
   public bindings: IBinding[] | null = null;
   public children: Controller[] | null = null;
 
@@ -96,15 +95,25 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   }
 
   private get name(): string {
-    let parentName = this.parent?.name ?? '';
-    parentName = parentName.length > 0 ? `${parentName} -> ` : '';
+    if (this.parent === null) {
+      switch (this.vmKind) {
+        case ViewModelKind.customAttribute:
+          return `[${this.definition!.name}]`;
+        case ViewModelKind.customElement:
+          return this.definition!.name;
+        case ViewModelKind.synthetic:
+          return this.viewFactory!.name;
+      }
+    }
     switch (this.vmKind) {
       case ViewModelKind.customAttribute:
-        return `${parentName}Attribute<${this.viewModel?.constructor.name}>`;
+        return `${(this.parent as Controller).name}>[${this.definition!.name}]`;
       case ViewModelKind.customElement:
-        return `${parentName}Element<${this.viewModel?.constructor.name}>`;
+        return `${(this.parent as Controller).name}>${this.definition!.name}`;
       case ViewModelKind.synthetic:
-        return `${parentName}View<${this.viewFactory?.name}>`;
+        return this.viewFactory!.name === this.parent.definition?.name
+          ? `${(this.parent as Controller).name}[view]`
+          : `${(this.parent as Controller).name}[view:${this.viewFactory!.name}]`;
     }
   }
 
@@ -253,8 +262,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       /* viewModel      */null,
       /* host           */null,
     );
-    // deepscan-disable-next-line
-    controller.parent = parentController as Controller ?? null;
+    controller.parent = parentController ?? null;
 
     controller.hydrateSynthetic(context);
 
@@ -400,11 +408,11 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     );
   }
 
-  private $initiator: Controller = null!;
+  private $initiator: IHydratedController = null!;
   private $flags: LifecycleFlags = LifecycleFlags.none;
   public activate(
-    initiator: Controller,
-    parent: Controller | null,
+    initiator: IHydratedController,
+    parent: IHydratedController | null,
     flags: LifecycleFlags,
     scope?: Scope | null,
     hostScope?: Scope | null,
@@ -467,19 +475,29 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     this.$initiator = initiator;
     this.$flags = flags;
 
+    // opposing leave is called in attach() (which will trigger attached())
+    this.enterActivating();
+
     if (this.hooks.hasBinding) {
       if (this.debug) { this.logger!.trace(`binding()`); }
 
-      const ret = this.viewModel!.binding(this.$initiator as IHydratedController, this.parent as IHydratedParentController, this.$flags);
+      const ret = this.viewModel!.binding(this.$initiator, this.parent, this.$flags);
       if (ret instanceof Promise) {
-        return ret.then(this.bind.bind(this));
+        this.ensurePromise();
+        ret.then(() => {
+          this.bind();
+        }).catch(err => {
+          this.reject(err);
+        });
+        return this.$promise;
       }
     }
 
-    return this.bind();
+    this.bind();
+    return this.$promise;
   }
 
-  private bind(): void | Promise<void> {
+  private bind(): void {
     if (this.debug) { this.logger!.trace(`bind()`); }
 
     if (this.bindings !== null) {
@@ -491,13 +509,19 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     if (this.hooks.hasBound) {
       if (this.debug) { this.logger!.trace(`bound()`); }
 
-      const ret = this.viewModel!.bound(this.$initiator as IHydratedController, this.parent as IHydratedParentController, this.$flags);
+      const ret = this.viewModel!.bound(this.$initiator, this.parent, this.$flags);
       if (ret instanceof Promise) {
-        return ret.then(this.attach.bind(this));
+        this.ensurePromise();
+        ret.then(() => {
+          this.attach();
+        }).catch(err => {
+          this.reject(err);
+        });
+        return;
       }
     }
 
-    return this.attach();
+    this.attach();
   }
 
   private append(...nodes: Node[]): void {
@@ -516,7 +540,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
   }
 
-  private attach(): void | Promise<void> {
+  private attach(): void {
     if (this.debug) { this.logger!.trace(`attach()`); }
 
     if (this.hostController !== null) {
@@ -548,45 +572,36 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         break;
     }
 
-    let ret: Promise<void> | void = void 0;
-    let promises: Promise<void>[] | undefined = void 0;
     if (this.hooks.hasAttaching) {
       if (this.debug) { this.logger!.trace(`attaching()`); }
 
-      ret = this.viewModel!.attaching(this.$initiator as IHydratedController, this.parent as IHydratedParentController, this.$flags);
+      const ret = this.viewModel!.attaching(this.$initiator, this.parent, this.$flags);
       if (ret instanceof Promise) {
-        promises = [ret];
+        this.ensurePromise();
+        this.enterActivating();
+        ret.then(() => {
+          this.leaveActivating();
+        }).catch(err => {
+          this.reject(err);
+        });
       }
     }
+
+    // attaching() and child activation run in parallel, and attached() is called when both are finished
     if (this.children !== null) {
       for (let i = 0; i < this.children.length; ++i) {
-        ret = this.children[i].activate(this.$initiator, this as Controller, this.$flags, this.scope, this.hostScope);
-        if (ret instanceof Promise) {
-          (promises ??= []).push(ret);
-        }
+        // Any promises returned from child activation are cumulatively awaited before this.$promise resolves
+        void this.children[i].activate(this.$initiator, this as IHydratedController, this.$flags, this.scope, this.hostScope);
       }
     }
 
-    ret = promises === void 0 ? void 0 : resolveAll(...promises);
-    if (ret instanceof Promise) {
-      return ret.then(this.attached.bind(this));
-    }
-    return this.attached();
-  }
-
-  private attached(): void | Promise<void> {
-    this.state = State.activated;
-
-    if (this.hooks.hasAttached) {
-      if (this.debug) { this.logger!.trace(`attached()`); }
-
-      return this.viewModel!.attached!(this.$initiator as IHydratedController, this.$flags);
-    }
+    // attached() is invoked by Controller#leaveActivating when `activatingStack` reaches 0
+    this.leaveActivating();
   }
 
   public deactivate(
-    initiator: Controller,
-    parent: Controller | null,
+    initiator: IHydratedController,
+    parent: IHydratedController | null,
     flags: LifecycleFlags,
   ): void | Promise<void> {
     switch ((this.state & ~State.released)) {
@@ -609,23 +624,29 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     this.$initiator = initiator;
     this.$flags = flags;
 
-    let promises: Promise<void>[] | undefined = void 0;
-    let ret: Promise<void> | void = void 0;
+    if (initiator === this) {
+      this.enterDetaching();
+    }
+
     if (this.children !== null) {
       for (let i = 0; i < this.children.length; ++i) {
-        ret = this.children[i].deactivate(initiator, this as Controller, flags);
-        if (ret instanceof Promise) {
-          (promises ??= []).push(ret);
-        }
+        // Child promise results are tracked by enter/leave combo's
+        void this.children[i].deactivate(initiator, this as IHydratedController, flags);
       }
     }
 
     if (this.hooks.hasDetaching) {
       if (this.debug) { this.logger!.trace(`detaching()`); }
 
-      ret = this.viewModel!.detaching(this.$initiator as IHydratedController, this.parent as IHydratedParentController, this.$flags);
+      const ret = this.viewModel!.detaching(this.$initiator, this.parent, this.$flags);
       if (ret instanceof Promise) {
-        (promises ??= []).push(ret);
+        this.ensurePromise();
+        (initiator as Controller).enterDetaching();
+        ret.then(() => {
+          (initiator as Controller).leaveDetaching();
+        }).catch(err => {
+          (initiator as Controller).reject(err);
+        });
       }
     }
 
@@ -642,21 +663,16 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
     initiator.tail = this as IHydratedController;
 
-    ret = promises === void 0 ? void 0 : resolveAll(...promises);
-
     if (initiator !== this) {
       // Only detaching is called + the linked list is built when any controller that is not the initiator, is deactivated.
       // The rest is handled by the initiator.
       // This means that descendant controllers have to make sure to await the initiator's promise before doing any subsequent
       // controller api calls, or race conditions might occur.
-      return ret;
+      return;
     }
 
-    if (ret instanceof Promise) {
-      return ret.then(this.detach.bind(this));
-    }
-
-    return this.detach();
+    this.leaveDetaching();
+    return this.$promise;
   }
 
   private removeNodes(): void {
@@ -679,50 +695,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
           break;
       }
     }
-  }
-
-  private detach(): void | Promise<void> {
-    // Note: if this method is called, then this controller is the initiator
-    if (this.debug) { this.logger!.trace(`detach()`); }
-
-    this.removeNodes();
-
-    let promises: Promise<void>[] | undefined = void 0;
-    let ret: Promise<void> | void = void 0;
-    let cur = this.$initiator.head as Controller | null;
-    let next: Controller | null = null;
-    while (cur !== null) {
-      if (cur !== this) {
-        if (cur.debug) { cur.logger!.trace(`detach()`); }
-
-        cur.removeNodes();
-      }
-      ret = cur.unbinding();
-      if (ret instanceof Promise) {
-        (promises ??= []).push(ret);
-      }
-      next = cur.next as Controller;
-      cur.next = null;
-      cur = next;
-    }
-    this.head = this.tail = null;
-
-    if (promises !== void 0) {
-      return resolveAll(...promises);
-    }
-  }
-
-  private unbinding(): void | Promise<void> {
-    if (this.hooks.hasUnbinding) {
-      if (this.debug) { this.logger!.trace(`unbinding()`); }
-
-      const ret = this.viewModel!.unbinding(this.$initiator as IHydratedController, this.parent as IHydratedParentController, this.$flags);
-      if (ret instanceof Promise) {
-        return ret.then(this.unbind.bind(this));
-      }
-    }
-
-    return this.unbind();
   }
 
   private unbind(): void {
@@ -763,6 +735,147 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       this.dispose();
     }
     this.state = (this.state & State.disposed) | State.deactivated;
+    this.$initiator = null!;
+    this.resolve();
+  }
+
+  private $resolve: (() => void) | undefined = void 0;
+  private $reject: ((err: unknown) => void) | undefined = void 0;
+  private $promise: Promise<void> | undefined = void 0;
+
+  private ensurePromise(): void {
+    if (this.$promise === void 0) {
+      this.$promise = new Promise((resolve, reject) => {
+        this.$resolve = resolve;
+        this.$reject = reject;
+      });
+      if (this.$initiator !== this) {
+        (this.parent as Controller).ensurePromise();
+      }
+    }
+  }
+
+  private resolve(): void {
+    if (this.$promise !== void 0) {
+      const resolve = this.$resolve!;
+      this.$resolve = this.$reject = this.$promise = void 0;
+      resolve();
+    }
+  }
+
+  private reject(err: Error): void {
+    if (this.$promise !== void 0) {
+      const reject = this.$reject!;
+      this.$resolve = this.$reject = this.$promise = void 0;
+      reject(err);
+    }
+    if (this.$initiator !== this) {
+      (this.parent as Controller).reject(err);
+    }
+  }
+
+  private activatingStack: number = 0;
+  private enterActivating(): void {
+    ++this.activatingStack;
+    if (this.$initiator !== this) {
+      (this.parent as Controller).enterActivating();
+    }
+  }
+  private leaveActivating(): void {
+    if (--this.activatingStack === 0) {
+      if (this.hooks.hasAttached) {
+        if (this.debug) { this.logger!.trace(`attached()`); }
+
+        const ret = this.viewModel!.attached!(this.$initiator, this.$flags);
+        if (ret instanceof Promise) {
+          this.ensurePromise();
+          ret.then(() => {
+            this.state = State.activated;
+            // Resolve this.$promise, signaling that activation is done (path 1 of 2)
+            this.resolve();
+            if (this.$initiator !== this) {
+              (this.parent as Controller).leaveActivating();
+            }
+          }).catch(err => {
+            this.reject(err);
+          });
+          return;
+        }
+      }
+
+      this.state = State.activated;
+      // Resolve this.$promise (if present), signaling that activation is done (path 2 of 2)
+      this.resolve();
+    }
+    if (this.$initiator !== this) {
+      (this.parent as Controller).leaveActivating();
+    }
+  }
+
+  private detachingStack: number = 0;
+  private enterDetaching(): void {
+    ++this.detachingStack;
+  }
+  private leaveDetaching(): void {
+    if (--this.detachingStack === 0) {
+      // Note: this controller is the initiator (detach is only ever called on the initiator)
+      if (this.debug) { this.logger!.trace(`detach()`); }
+
+      this.enterUnbinding();
+      this.removeNodes();
+
+      let cur = this.$initiator.head as Controller | null;
+      while (cur !== null) {
+        if (cur !== this) {
+          if (cur.debug) { cur.logger!.trace(`detach()`); }
+
+          cur.removeNodes();
+        }
+
+        if (cur.hooks.hasUnbinding) {
+          if (cur.debug) { cur.logger!.trace('unbinding()'); }
+
+          const ret = cur.viewModel!.unbinding(cur.$initiator, cur.parent, cur.$flags);
+          if (ret instanceof Promise) {
+            this.ensurePromise();
+            this.enterUnbinding();
+            ret.then(() => {
+              this.leaveUnbinding();
+            }).catch(err => {
+              this.reject(err);
+            });
+          }
+        }
+
+        cur = cur.next as Controller;
+      }
+
+      this.leaveUnbinding();
+    }
+  }
+
+  private unbindingStack: number = 0;
+  private enterUnbinding(): void {
+    ++this.unbindingStack;
+  }
+  private leaveUnbinding(): void {
+    if (--this.unbindingStack === 0) {
+      if (this.debug) { this.logger!.trace(`unbind()`); }
+
+      let cur = this.$initiator.head as Controller | null;
+      let next: Controller | null = null;
+      while (cur !== null) {
+        if (cur !== this) {
+          cur.unbind();
+        }
+        next = cur.next as Controller;
+        cur.next = null;
+        cur = next;
+      }
+
+      this.head = this.tail = null;
+      this.unbind();
+    }
   }
 
   public addBinding(binding: IBinding): void {
@@ -1139,6 +1252,7 @@ export interface IController<C extends IViewModel = IViewModel> extends IDisposa
   readonly host: HTMLElement | null;
   readonly state: State;
   readonly isActive: boolean;
+  readonly parent: IHydratedController | null;
 
   /** @internal */head: IHydratedController | null;
   /** @internal */tail: IHydratedController | null;
@@ -1218,8 +1332,6 @@ export function stringifyState(state: State): string {
  * It has either its own synthetic binding context or is locked to some externally sourced scope (in the case of `au-compose`)
  */
 export interface ISyntheticView extends IHydratableController {
-  parent: IHydratedComponentController | null;
-
   readonly vmKind: ViewModelKind.synthetic;
   readonly definition: null;
   readonly viewModel: null;
@@ -1236,17 +1348,16 @@ export interface ISyntheticView extends IHydratableController {
 
   activate(
     initiator: IHydratedController,
-    parent: IHydratedComponentController,
+    parent: IHydratedController,
     flags: LifecycleFlags,
     scope: Scope,
     hostScope?: Scope | null,
   ): void | Promise<void>;
   deactivate(
     initiator: IHydratedController,
-    parent: IHydratedComponentController,
+    parent: IHydratedController,
     flags: LifecycleFlags,
   ): void | Promise<void>;
-
   /**
    * Lock this view's scope to the provided `Scope`. The scope, which is normally set during `activate()`, will then not change anymore.
    *
@@ -1300,8 +1411,6 @@ export interface ISyntheticView extends IHydratableController {
 }
 
 export interface ICustomAttributeController<C extends ICustomAttributeViewModel = ICustomAttributeViewModel> extends IComponentController<C> {
-  parent: IHydratedParentController | null;
-
   readonly vmKind: ViewModelKind.customAttribute;
   readonly definition: CustomAttributeDefinition;
   /**
@@ -1319,17 +1428,16 @@ export interface ICustomAttributeController<C extends ICustomAttributeViewModel 
   hostScope: Scope | null;
   readonly children: null;
   readonly bindings: null;
-
   activate(
     initiator: IHydratedController,
-    parent: IHydratedParentController,
+    parent: IHydratedController,
     flags: LifecycleFlags,
     scope: Scope,
     hostScope?: Scope | null,
   ): void | Promise<void>;
   deactivate(
     initiator: IHydratedController,
-    parent: IHydratedParentController,
+    parent: IHydratedController,
     flags: LifecycleFlags,
   ): void | Promise<void>;
 }
@@ -1402,8 +1510,6 @@ export interface ICompiledCustomElementController<C extends IViewModel = IViewMo
  * A fully hydrated custom element controller.
  */
 export interface ICustomElementController<C extends ICustomElementViewModel = ICustomElementViewModel> extends ICompiledCustomElementController<C> {
-  parent: IHydratedParentController | null;
-
   /**
    * @inheritdoc
    */
@@ -1411,14 +1517,14 @@ export interface ICustomElementController<C extends ICustomElementViewModel = IC
 
   activate(
     initiator: IHydratedController,
-    parent: IHydratedParentController | null,
+    parent: IHydratedController | null,
     flags: LifecycleFlags,
     scope?: Scope,
     hostScope?: Scope | null,
   ): void | Promise<void>;
   deactivate(
     initiator: IHydratedController,
-    parent: IHydratedParentController | null,
+    parent: IHydratedController | null,
     flags: LifecycleFlags,
   ): void | Promise<void>;
 }
@@ -1493,11 +1599,11 @@ export interface IViewModel {
   readonly $controller?: IController<this>;
 }
 
-export interface ICustomElementViewModel extends IViewModel, IActivationHooks<IHydratedParentController | null>, ICompileHooks {
+export interface ICustomElementViewModel extends IViewModel, IActivationHooks<IHydratedController | null>, ICompileHooks {
   readonly $controller?: ICustomElementController<this>;
 }
 
-export interface ICustomAttributeViewModel extends IViewModel, IActivationHooks<IHydratedParentController> {
+export interface ICustomAttributeViewModel extends IViewModel, IActivationHooks<IHydratedController> {
   readonly $controller?: ICustomAttributeController<this>;
   link?(
     flags: LifecycleFlags,

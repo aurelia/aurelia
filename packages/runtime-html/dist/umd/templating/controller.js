@@ -87,6 +87,12 @@
             this.fullyNamed = false;
             this.$initiator = null;
             this.$flags = 0 /* none */;
+            this.$resolve = void 0;
+            this.$reject = void 0;
+            this.$promise = void 0;
+            this.activatingStack = 0;
+            this.detachingStack = 0;
+            this.unbindingStack = 0;
             if (root === null && container.has(app_root_js_1.IAppRoot, true)) {
                 this.root = container.get(app_root_js_1.IAppRoot);
             }
@@ -106,16 +112,26 @@
             return (this.state & (1 /* activating */ | 2 /* activated */)) > 0 && (this.state & 4 /* deactivating */) === 0;
         }
         get name() {
-            var _a, _b, _c, _d, _e;
-            let parentName = (_b = (_a = this.parent) === null || _a === void 0 ? void 0 : _a.name) !== null && _b !== void 0 ? _b : '';
-            parentName = parentName.length > 0 ? `${parentName} -> ` : '';
+            var _a;
+            if (this.parent === null) {
+                switch (this.vmKind) {
+                    case 1 /* customAttribute */:
+                        return `[${this.definition.name}]`;
+                    case 0 /* customElement */:
+                        return this.definition.name;
+                    case 2 /* synthetic */:
+                        return this.viewFactory.name;
+                }
+            }
             switch (this.vmKind) {
                 case 1 /* customAttribute */:
-                    return `${parentName}Attribute<${(_c = this.viewModel) === null || _c === void 0 ? void 0 : _c.constructor.name}>`;
+                    return `${this.parent.name}>[${this.definition.name}]`;
                 case 0 /* customElement */:
-                    return `${parentName}Element<${(_d = this.viewModel) === null || _d === void 0 ? void 0 : _d.constructor.name}>`;
+                    return `${this.parent.name}>${this.definition.name}`;
                 case 2 /* synthetic */:
-                    return `${parentName}View<${(_e = this.viewFactory) === null || _e === void 0 ? void 0 : _e.name}>`;
+                    return this.viewFactory.name === ((_a = this.parent.definition) === null || _a === void 0 ? void 0 : _a.name)
+                        ? `${this.parent.name}[view]`
+                        : `${this.parent.name}[view:${this.viewFactory.name}]`;
             }
         }
         static getCached(viewModel) {
@@ -169,7 +185,6 @@
             return controller;
         }
         static forSyntheticView(root, context, viewFactory, flags = 0 /* none */, parentController = void 0) {
-            var _a;
             const controller = new Controller(
             /* root           */ root, 
             /* container      */ context, 2 /* synthetic */, 
@@ -178,8 +193,7 @@
             /* viewFactory    */ viewFactory, 
             /* viewModel      */ null, 
             /* host           */ null);
-            // deepscan-disable-next-line
-            controller.parent = (_a = parentController) !== null && _a !== void 0 ? _a : null;
+            controller.parent = parentController !== null && parentController !== void 0 ? parentController : null;
             controller.hydrateSynthetic(context);
             return controller;
         }
@@ -364,16 +378,25 @@
             }
             this.$initiator = initiator;
             this.$flags = flags;
+            // opposing leave is called in attach() (which will trigger attached())
+            this.enterActivating();
             if (this.hooks.hasBinding) {
                 if (this.debug) {
                     this.logger.trace(`binding()`);
                 }
                 const ret = this.viewModel.binding(this.$initiator, this.parent, this.$flags);
                 if (ret instanceof Promise) {
-                    return ret.then(this.bind.bind(this));
+                    this.ensurePromise();
+                    ret.then(() => {
+                        this.bind();
+                    }).catch(err => {
+                        this.reject(err);
+                    });
+                    return this.$promise;
                 }
             }
-            return this.bind();
+            this.bind();
+            return this.$promise;
         }
         bind() {
             if (this.debug) {
@@ -390,10 +413,16 @@
                 }
                 const ret = this.viewModel.bound(this.$initiator, this.parent, this.$flags);
                 if (ret instanceof Promise) {
-                    return ret.then(this.attach.bind(this));
+                    this.ensurePromise();
+                    ret.then(() => {
+                        this.attach();
+                    }).catch(err => {
+                        this.reject(err);
+                    });
+                    return;
                 }
             }
-            return this.attach();
+            this.attach();
         }
         append(...nodes) {
             switch (this.mountTarget) {
@@ -442,39 +471,30 @@
                     this.nodes.insertBefore(this.location);
                     break;
             }
-            let ret = void 0;
-            let promises = void 0;
             if (this.hooks.hasAttaching) {
                 if (this.debug) {
                     this.logger.trace(`attaching()`);
                 }
-                ret = this.viewModel.attaching(this.$initiator, this.parent, this.$flags);
+                const ret = this.viewModel.attaching(this.$initiator, this.parent, this.$flags);
                 if (ret instanceof Promise) {
-                    promises = [ret];
+                    this.ensurePromise();
+                    this.enterActivating();
+                    ret.then(() => {
+                        this.leaveActivating();
+                    }).catch(err => {
+                        this.reject(err);
+                    });
                 }
             }
+            // attaching() and child activation run in parallel, and attached() is called when both are finished
             if (this.children !== null) {
                 for (let i = 0; i < this.children.length; ++i) {
-                    ret = this.children[i].activate(this.$initiator, this, this.$flags, this.scope, this.hostScope);
-                    if (ret instanceof Promise) {
-                        (promises !== null && promises !== void 0 ? promises : (promises = [])).push(ret);
-                    }
+                    // Any promises returned from child activation are cumulatively awaited before this.$promise resolves
+                    void this.children[i].activate(this.$initiator, this, this.$flags, this.scope, this.hostScope);
                 }
             }
-            ret = promises === void 0 ? void 0 : kernel_1.resolveAll(...promises);
-            if (ret instanceof Promise) {
-                return ret.then(this.attached.bind(this));
-            }
-            return this.attached();
-        }
-        attached() {
-            this.state = 2 /* activated */;
-            if (this.hooks.hasAttached) {
-                if (this.debug) {
-                    this.logger.trace(`attached()`);
-                }
-                return this.viewModel.attached(this.$initiator, this.$flags);
-            }
+            // attached() is invoked by Controller#leaveActivating when `activatingStack` reaches 0
+            this.leaveActivating();
         }
         deactivate(initiator, parent, flags) {
             switch ((this.state & ~16 /* released */)) {
@@ -496,23 +516,28 @@
             }
             this.$initiator = initiator;
             this.$flags = flags;
-            let promises = void 0;
-            let ret = void 0;
+            if (initiator === this) {
+                this.enterDetaching();
+            }
             if (this.children !== null) {
                 for (let i = 0; i < this.children.length; ++i) {
-                    ret = this.children[i].deactivate(initiator, this, flags);
-                    if (ret instanceof Promise) {
-                        (promises !== null && promises !== void 0 ? promises : (promises = [])).push(ret);
-                    }
+                    // Child promise results are tracked by enter/leave combo's
+                    void this.children[i].deactivate(initiator, this, flags);
                 }
             }
             if (this.hooks.hasDetaching) {
                 if (this.debug) {
                     this.logger.trace(`detaching()`);
                 }
-                ret = this.viewModel.detaching(this.$initiator, this.parent, this.$flags);
+                const ret = this.viewModel.detaching(this.$initiator, this.parent, this.$flags);
                 if (ret instanceof Promise) {
-                    (promises !== null && promises !== void 0 ? promises : (promises = [])).push(ret);
+                    this.ensurePromise();
+                    initiator.enterDetaching();
+                    ret.then(() => {
+                        initiator.leaveDetaching();
+                    }).catch(err => {
+                        initiator.reject(err);
+                    });
                 }
             }
             // Note: if a 3rd party plugin happens to do any async stuff in a template controller before calling deactivate on its view,
@@ -528,18 +553,15 @@
                 initiator.tail.next = this;
             }
             initiator.tail = this;
-            ret = promises === void 0 ? void 0 : kernel_1.resolveAll(...promises);
             if (initiator !== this) {
                 // Only detaching is called + the linked list is built when any controller that is not the initiator, is deactivated.
                 // The rest is handled by the initiator.
                 // This means that descendant controllers have to make sure to await the initiator's promise before doing any subsequent
                 // controller api calls, or race conditions might occur.
-                return ret;
+                return;
             }
-            if (ret instanceof Promise) {
-                return ret.then(this.detach.bind(this));
-            }
-            return this.detach();
+            this.leaveDetaching();
+            return this.$promise;
         }
         removeNodes() {
             switch (this.vmKind) {
@@ -560,48 +582,6 @@
                         break;
                 }
             }
-        }
-        detach() {
-            // Note: if this method is called, then this controller is the initiator
-            if (this.debug) {
-                this.logger.trace(`detach()`);
-            }
-            this.removeNodes();
-            let promises = void 0;
-            let ret = void 0;
-            let cur = this.$initiator.head;
-            let next = null;
-            while (cur !== null) {
-                if (cur !== this) {
-                    if (cur.debug) {
-                        cur.logger.trace(`detach()`);
-                    }
-                    cur.removeNodes();
-                }
-                ret = cur.unbinding();
-                if (ret instanceof Promise) {
-                    (promises !== null && promises !== void 0 ? promises : (promises = [])).push(ret);
-                }
-                next = cur.next;
-                cur.next = null;
-                cur = next;
-            }
-            this.head = this.tail = null;
-            if (promises !== void 0) {
-                return kernel_1.resolveAll(...promises);
-            }
-        }
-        unbinding() {
-            if (this.hooks.hasUnbinding) {
-                if (this.debug) {
-                    this.logger.trace(`unbinding()`);
-                }
-                const ret = this.viewModel.unbinding(this.$initiator, this.parent, this.$flags);
-                if (ret instanceof Promise) {
-                    return ret.then(this.unbind.bind(this));
-                }
-            }
-            return this.unbind();
         }
         unbind() {
             if (this.debug) {
@@ -635,6 +615,133 @@
                 this.dispose();
             }
             this.state = (this.state & 32 /* disposed */) | 8 /* deactivated */;
+            this.$initiator = null;
+            this.resolve();
+        }
+        ensurePromise() {
+            if (this.$promise === void 0) {
+                this.$promise = new Promise((resolve, reject) => {
+                    this.$resolve = resolve;
+                    this.$reject = reject;
+                });
+                if (this.$initiator !== this) {
+                    this.parent.ensurePromise();
+                }
+            }
+        }
+        resolve() {
+            if (this.$promise !== void 0) {
+                const resolve = this.$resolve;
+                this.$resolve = this.$reject = this.$promise = void 0;
+                resolve();
+            }
+        }
+        reject(err) {
+            if (this.$promise !== void 0) {
+                const reject = this.$reject;
+                this.$resolve = this.$reject = this.$promise = void 0;
+                reject(err);
+            }
+            if (this.$initiator !== this) {
+                this.parent.reject(err);
+            }
+        }
+        enterActivating() {
+            ++this.activatingStack;
+            if (this.$initiator !== this) {
+                this.parent.enterActivating();
+            }
+        }
+        leaveActivating() {
+            if (--this.activatingStack === 0) {
+                if (this.hooks.hasAttached) {
+                    if (this.debug) {
+                        this.logger.trace(`attached()`);
+                    }
+                    const ret = this.viewModel.attached(this.$initiator, this.$flags);
+                    if (ret instanceof Promise) {
+                        this.ensurePromise();
+                        ret.then(() => {
+                            this.state = 2 /* activated */;
+                            // Resolve this.$promise, signaling that activation is done (path 1 of 2)
+                            this.resolve();
+                            if (this.$initiator !== this) {
+                                this.parent.leaveActivating();
+                            }
+                        }).catch(err => {
+                            this.reject(err);
+                        });
+                        return;
+                    }
+                }
+                this.state = 2 /* activated */;
+                // Resolve this.$promise (if present), signaling that activation is done (path 2 of 2)
+                this.resolve();
+            }
+            if (this.$initiator !== this) {
+                this.parent.leaveActivating();
+            }
+        }
+        enterDetaching() {
+            ++this.detachingStack;
+        }
+        leaveDetaching() {
+            if (--this.detachingStack === 0) {
+                // Note: this controller is the initiator (detach is only ever called on the initiator)
+                if (this.debug) {
+                    this.logger.trace(`detach()`);
+                }
+                this.enterUnbinding();
+                this.removeNodes();
+                let cur = this.$initiator.head;
+                while (cur !== null) {
+                    if (cur !== this) {
+                        if (cur.debug) {
+                            cur.logger.trace(`detach()`);
+                        }
+                        cur.removeNodes();
+                    }
+                    if (cur.hooks.hasUnbinding) {
+                        if (cur.debug) {
+                            cur.logger.trace('unbinding()');
+                        }
+                        const ret = cur.viewModel.unbinding(cur.$initiator, cur.parent, cur.$flags);
+                        if (ret instanceof Promise) {
+                            this.ensurePromise();
+                            this.enterUnbinding();
+                            ret.then(() => {
+                                this.leaveUnbinding();
+                            }).catch(err => {
+                                this.reject(err);
+                            });
+                        }
+                    }
+                    cur = cur.next;
+                }
+                this.leaveUnbinding();
+            }
+        }
+        enterUnbinding() {
+            ++this.unbindingStack;
+        }
+        leaveUnbinding() {
+            if (--this.unbindingStack === 0) {
+                if (this.debug) {
+                    this.logger.trace(`unbind()`);
+                }
+                let cur = this.$initiator.head;
+                let next = null;
+                while (cur !== null) {
+                    if (cur !== this) {
+                        cur.unbind();
+                    }
+                    next = cur.next;
+                    cur.next = null;
+                    cur = next;
+                }
+                this.head = this.tail = null;
+                this.unbind();
+            }
         }
         addBinding(binding) {
             if (this.bindings === null) {

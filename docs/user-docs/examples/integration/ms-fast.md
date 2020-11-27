@@ -6,11 +6,11 @@ If the example doesn't seem obvious, the following prerequisite reads are recomm
 The following is a code example of how to teach Aurelia to work seamlessly with [Microsoft FAST](https://www.fast.design/):
 
 ```ts
-import { AppTask, IContainer, IAttrSyntaxTransformer, INodeObserverLocator } from 'aurelia';
+import { AppTask, IContainer, IAttrSyntaxTransformer, NodeObserverLocator } from 'aurelia';
 
 Aurelia.register(AppTask.with(IContainer).beforeCreate().call(container => {
   const attrSyntaxTransformer = container.get(IAttrSyntaxTransformer);
-  const nodeObserverLocator = container.get(INodeObserverLocator);
+  const nodeObserverLocator = container.get(NodeObserverLocator);
   attrSyntaxTransformer.useTwoWay((el, property) => {
     switch (el.tagName) {
       case 'FAST-SLIDER':

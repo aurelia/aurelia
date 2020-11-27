@@ -1,5 +1,5 @@
 /* eslint-disable no-fallthrough */
-import { IContainer } from '@aurelia/kernel';
+import { IContainer, Writable } from '@aurelia/kernel';
 import { Controller, LifecycleFlags, ILifecycle, IHydratedController, ICustomElementController, ICustomElementViewModel } from '@aurelia/runtime-html';
 import { IRouteableComponent, RouteableComponentType, ReentryBehavior, NavigationInstruction } from './interfaces.js';
 import { parseQuery } from './parser.js';
@@ -124,7 +124,7 @@ export class ViewportContent {
     // Don't load cached content or instantiated history content
     if (!this.fromCache || !this.fromHistory) {
       const controller = this.contentController(connectedCE);
-      controller.parent = connectedCE.controller; // CustomElement.for(connectedCE.element)!;
+      (controller as Writable<typeof controller>).parent = connectedCE.controller; // CustomElement.for(connectedCE.element)!;
     }
   }
 

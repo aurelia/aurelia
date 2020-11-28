@@ -289,6 +289,8 @@ interface ParameterBinding extends IConnectableBinding {}
 @connectable()
 class ParameterBinding {
 
+  public interceptor = this;
+
   public value!: i18next.TOptions;
   public readonly observerLocator: IObserverLocator;
   public readonly locator: IServiceLocator;

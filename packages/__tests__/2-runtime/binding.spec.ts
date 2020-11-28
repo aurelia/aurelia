@@ -15,6 +15,7 @@ import {
   Scope,
   SetterObserver,
   IsBindingBehavior,
+  ISubscribable,
 } from '@aurelia/runtime';
 import {
   createObserverLocator,
@@ -74,6 +75,8 @@ describe('PropertyBinding', function () {
   });
 
   it(`$bind() [to-view] works with 200 observers`, function () {
+    this.timeout(20000);
+
     let expr: AccessScopeExpression | BinaryExpression;
 
     const count = 200;
@@ -114,7 +117,7 @@ describe('PropertyBinding', function () {
     sut.$bind(LF.fromBind, scope2, null);
 
     assert.strictEqual(target.val, count * 3, `target.val`);
-  }).timeout(20000);
+  })
 
   describe('$bind() [one-time] assigns the target value', function () {
     const targetVariations: (() => [{foo?: string}, string])[] = [
@@ -244,9 +247,9 @@ describe('PropertyBinding', function () {
 
         // - Assert - Part 1
         // verify the behavior inside $bind
-        const observer00: SetterObserver = sut['_observer0'];
-        const observer01: SetterObserver = sut['_observer1'];
-        const observer02: SetterObserver = sut['_observer2'];
+        const observer00: SetterObserver = sut.record['_o0'] as SetterObserver;
+        const observer01: SetterObserver = sut.record['_o1'] as SetterObserver;
+        const observer02: SetterObserver = sut.record['_o2'] as SetterObserver;
         if (expr instanceof AccessScopeExpression) {
           assert.instanceOf(observer00, SetterObserver, `observer00 #01`);
           assert.strictEqual(observer01, undefined, `observer01 #02`);
@@ -321,9 +324,9 @@ describe('PropertyBinding', function () {
 
         // - Assert - Part 2
         // verify that no observers were added/removed/changed (redundant)
-        const observer10: SetterObserver = sut['_observer0'];
-        const observer11: SetterObserver = sut['_observer1'];
-        const observer12: SetterObserver = sut['_observer2'];
+        const observer10: SetterObserver = sut.record['_o0'] as SetterObserver;
+        const observer11: SetterObserver = sut.record['_o1'] as SetterObserver;
+        const observer12: SetterObserver = sut.record['_o2'] as SetterObserver;
         if (expr instanceof AccessScopeExpression) {
           assert.instanceOf(observer10, SetterObserver, `observer10 #25`);
           assert.strictEqual(observer10, observer00, `observer10 #26`);
@@ -470,8 +473,8 @@ describe('PropertyBinding', function () {
         assert.instanceOf(sut.targetObserver, SetterObserver, `sut.targetObserver`);
         assert.instanceOf(target['$observers'][prop], SetterObserver, `target['$observers'][prop]`);
 
-        assert.strictEqual(sut['_observer0'], undefined, `sut['_observer0']`);
-        assert.strictEqual(sut['_observer1'], undefined, `sut['_observer1']`);
+        assert.strictEqual(sut.record['_o0'], undefined, `sut.record['_o0']`);
+        assert.strictEqual(sut.record['_o1'], undefined, `sut.record['_o1']`);
 
         // verify the behavior inside $bind
         // expect(targetObserver.subscribe, `targetObserver.subscribe`).to.have.been.calledOnce;
@@ -495,8 +498,8 @@ describe('PropertyBinding', function () {
         // assert.strictEqual(lifecycle.flushCount, 0, `lifecycle.flushCount`);
 
         // verify the behavior of the targetObserver (redundant)
-        assert.strictEqual(sut['_observer0'], undefined, `sut['_observer0']`);
-        assert.strictEqual(sut['_observer1'], undefined, `sut['_observer1']`);
+        assert.strictEqual(sut.record['_o0'], undefined, `sut['_o0']`);
+        assert.strictEqual(sut.record['_o1'], undefined, `sut['_o1']`);
 
         if (initialVal !== newValue) {
           // expect(sut.handleChange, `sut.handleChange`).to.have.been.calledOnce;
@@ -586,9 +589,9 @@ describe('PropertyBinding', function () {
 
         // - Assert - Part 1
         // verify the behavior inside $bind
-        const observer00: SetterObserver = sut['_observer0'];
-        const observer01: SetterObserver = sut['_observer1'];
-        const observer02: SetterObserver = sut['_observer2'];
+        const observer00: SetterObserver = sut.record['_o0'] as SetterObserver;
+        const observer01: SetterObserver = sut.record['_o1'] as SetterObserver;
+        const observer02: SetterObserver = sut.record['_o2'] as SetterObserver;
 
         const subscriber00: ISubscriber = targetObserver['_subscriber0'];
         const subscriber01: ISubscriber = targetObserver['_subscriber1'];
@@ -684,9 +687,9 @@ describe('PropertyBinding', function () {
         // - Assert - Part 2
         // assert.strictEqual(lifecycle.flushCount, 0, `lifecycle.flushCount #37`);
         // verify that no observers were added/removed/changed (redundant)
-        const observer10: SetterObserver = sut['_observer0'];
-        const observer11: SetterObserver = sut['_observer1'];
-        const observer12: SetterObserver = sut['_observer2'];
+        const observer10: SetterObserver = sut.record['_o0'] as SetterObserver;
+        const observer11: SetterObserver = sut.record['_o1'] as SetterObserver;
+        const observer12: SetterObserver = sut.record['_o2'] as SetterObserver;
 
         const subscriber10: ISubscriber = targetObserver['_subscriber0'];
         const subscriber11: ISubscriber = targetObserver['_subscriber1'];
@@ -874,8 +877,8 @@ describe('PropertyBinding', function () {
         while (i < count) {
           const observer = new MockObserver();
           sut.addObserver(observer);
-          assert.strictEqual(sut[`_observer${i}`] === observer, true, `sut[\`_observer\${i}\`] === observer`);
-          assert.strictEqual(sut[`_observerVersion${i}`] === 0, true, `sut[\`_observerVersion\${i}\`] === 0`);
+          assert.strictEqual(sut.record[`_o${i}`] === observer, true, `sut.record[\`_o\${i}\`] === observer`);
+          assert.strictEqual(sut.record[`_v${i}`] === 0, true, `sut.record[\`_v\${i}\`] === 0`);
           i++;
         }
       });
@@ -889,7 +892,7 @@ describe('PropertyBinding', function () {
           assert.deepStrictEqual(
             observer.subscribe.calls,
             [
-              [sut],
+              [sut.record],
             ],
             `observer.subscribe.calls`,
           );
@@ -908,7 +911,7 @@ describe('PropertyBinding', function () {
         }
         i = 0;
         while (i < count) {
-          const observer = sut[`_observer${i}`];
+          const observer = sut.record[`_o${i}`] as ISubscribable;
           sut.addObserver(observer);
           // expect(observer.subscribe).not.to.have.been.called;
           i++;
@@ -923,12 +926,12 @@ describe('PropertyBinding', function () {
           sut.addObserver(observer);
           i++;
         }
-        const version = sut['version'] = 5;
+        const version = sut.record.version = 5;
         i = 0;
         while (i < count) {
-          const observer = sut[`_observer${i}`];
+          const observer = sut.record[`_o${i}`] as ISubscribable;
           sut.addObserver(observer);
-          assert.strictEqual(sut[`_observerVersion${i}`] === version, true, `sut[\`_observerVersion\${i}\`] === version`);
+          assert.strictEqual(sut.record[`_v${i}`] === version, true, `sut.record[\`_v\${i}\`] === version`);
           i++;
         }
       });
@@ -941,17 +944,17 @@ describe('PropertyBinding', function () {
           sut.addObserver(observer);
           i++;
         }
-        const version = sut['version'] = 5;
+        const version = sut.record.version = 5;
         i = 0;
         while (i < count) {
-          const observer = sut[`_observer${i}`];
+          const observer = sut.record[`_o${i}`] as ISubscribable;
           sut.addObserver(observer);
           i += 2;
         }
         i = 0;
         while (i < count) {
-          assert.strictEqual(sut[`_observerVersion${i}`] === version, true, `sut[\`_observerVersion\${i}\`] === version`);
-          assert.strictEqual(sut[`_observerVersion${i + 1}`] === version, false, `sut[\`_observerVersion\${i + 1}\`] === version`);
+          assert.strictEqual(sut.record[`_v${i}`] === version, true, `sut.record[\`_v\${i}\`] === version`);
+          assert.strictEqual(sut.record[`_v${i + 1}`] === version, false, `sut.record[\`_v\${i + 1}\`] === version`);
           i += 2;
         }
       });

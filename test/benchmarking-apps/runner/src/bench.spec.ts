@@ -1,3 +1,4 @@
+/* eslint-disable no-await-in-loop */
 /* eslint-disable no-console */
 /* eslint-disable no-undef */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
@@ -9,7 +10,7 @@ import type { ElementHandle, Page } from 'playwright';
 
 const gridColCount = 6;
 
-const browserTypes = ['chromium', 'firefox', 'webkit'] as const;
+const browserTypes = ['chromium'/* , 'firefox', 'webkit' */] as const;
 const baseUrl = 'http://localhost:9000/';
 
 describe('benchmark', function () {
@@ -31,11 +32,12 @@ describe('benchmark', function () {
 
   for (const browserType of browserTypes) {
     describe(browserType, function () {
-      it('hundred', async function () {
+      it.only('hundred', async function () {
         const measurement = measurements[`${browserType} - hundred`] = Object.create(null);
         const { page, browser } = await setup(browserType);
 
         await new PopulateHundred(page, measurement).run();
+        await new UpdateEvery10thRow(page, measurement).run();
         await new ToggleDetails(page, measurement).run();
         await new ToggleLocale(page, measurement).run();
         await new FirstNameSort(page, measurement).run();
@@ -54,6 +56,7 @@ describe('benchmark', function () {
         const { page, browser } = await setup(browserType);
 
         await new PopulateThousand(page, measurement).run();
+        await new UpdateEvery10thRow(page, measurement).run();
         await new ToggleDetails(page, measurement).run();
         await new ToggleLocale(page, measurement).run();
         await new FirstNameSort(page, measurement).run();
@@ -67,11 +70,12 @@ describe('benchmark', function () {
         await browser.close();
       });
 
-      it('ten-thousand', async function () {
+      it.skip('ten-thousand', async function () {
         const measurement = measurements[`${browserType} - ten-thousand`] = Object.create(null);
         const { page, browser } = await setup(browserType);
 
         await new PopulateTenThousand(page, measurement).run();
+        await new UpdateEvery10thRow(page, measurement).run();
         await new ToggleDetails(page, measurement).run();
         await new ToggleLocale(page, measurement).run();
         await new FirstNameSort(page, measurement).run();
@@ -507,5 +511,28 @@ class SelectFirst extends BaseActMeasureAssert {
         [getComputedStyle(cell2).backgroundColor],
       ] as const;
     });
+  }
+}
+
+class UpdateEvery10thRow extends BaseActMeasureAssert {
+  public constructor(
+    page: Page,
+    measurement: Record<string, number>,
+  ) {
+    super('update every 10th row', 'button#update-10', page, measurement);
+  }
+  protected async getPreRunState(): Promise<(string | null)[]> {
+    return this.getFirstNameCol();
+  }
+
+  protected async assert(preState: (string | null)[]): Promise<void> {
+    const current = await this.getFirstNameCol();
+    for (let i = 0, ii = current.length; i < ii; i += 10) {
+      assert.strictEqual(current[i], `${preState[i]} !!!`, `content ${i}`);
+    }
+  }
+
+  private async getFirstNameCol() {
+    return Promise.all((await this.page.$$('div.grid>span:nth-child(6n+1)')).map((el) => el.textContent()));
   }
 }

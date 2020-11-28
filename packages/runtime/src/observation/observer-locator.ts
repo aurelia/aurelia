@@ -10,7 +10,7 @@ import { ComputedObserver } from './computed-observer.js';
 import { IDirtyChecker } from './dirty-checker.js';
 import { getMapObserver } from './map-observer.js';
 import { PrimitiveObserver } from './primitive-observer.js';
-import { propertyAccessor } from './property-accessor.js';
+import { PropertyAccessor } from './property-accessor.js';
 import { getSetObserver } from './set-observer.js';
 import { SetterObserver } from './setter-observer.js';
 
@@ -23,6 +23,8 @@ import type {
   IObservable,
   IObserver,
 } from '../observation.js';
+
+export const propertyAccessor = new PropertyAccessor();
 
 export interface IObjectObservationAdapter {
   getObserver(object: unknown, propertyName: string, descriptor: PropertyDescriptor, requestor: IObserverLocator): IBindingTargetObserver | null;

@@ -61,7 +61,7 @@ function observe(this: IWatcherImpl, obj: object, key: PropertyKey): void {
 
 function observeCollection(this: IWatcherImpl, collection: Collection): void {
   const obs = getCollectionObserver(this.observerLocator, collection);
-  this.observers.set(obs, this.version);
+  this.observers.set(obs, this.record.version);
   obs.subscribeToCollection(this);
 }
 
@@ -70,7 +70,7 @@ function observeLength(this: IWatcherImpl, collection: Collection): void {
 }
 
 function unobserveCollection(this: IWatcherImpl, all?: boolean): void {
-  const version = this.version;
+  const version = this.record.version;
   const observers = this.observers;
   observers.forEach((v, o) => {
     if (all || v !== version) {
@@ -94,10 +94,12 @@ function getCollectionObserver(observerLocator: IObserverLocator, collection: Co
   return observer;
 }
 
-export interface ComputedObserver extends IWatcherImpl, IConnectableBinding, ISubscriberCollection {}
+export interface ComputedObserver extends IWatcherImpl, IConnectableBinding, ISubscriberCollection { }
 
 @watcherImpl
 export class ComputedObserver implements IWatcherImpl, IConnectableBinding, ISubscriberCollection {
+
+  public interceptor = this;
 
   public static create(
     obj: object,
@@ -125,6 +127,7 @@ export class ComputedObserver implements IWatcherImpl, IConnectableBinding, ISub
 
   public observers: Map<ICollectionObserver<CollectionKind>, number> = new Map();
   public type: AccessorType = AccessorType.Obj;
+  public value: unknown = void 0;
 
   /**
    * @internal
@@ -135,7 +138,6 @@ export class ComputedObserver implements IWatcherImpl, IConnectableBinding, ISub
    * @internal
    */
   private running: boolean = false;
-  private value: unknown = void 0;
 
   private isDirty: boolean = false;
 
@@ -177,14 +179,14 @@ export class ComputedObserver implements IWatcherImpl, IConnectableBinding, ISub
 
   public handleChange(): void {
     this.isDirty = true;
-    if (this.observerSlots > 0) {
+    if (this.record.count > 0) {
       this.run();
     }
   }
 
   public handleCollectionChange(): void {
     this.isDirty = true;
-    if (this.observerSlots > 0) {
+    if (this.record.count > 0) {
       this.run();
     }
   }
@@ -219,7 +221,7 @@ export class ComputedObserver implements IWatcherImpl, IConnectableBinding, ISub
 
   private compute(): unknown {
     this.running = true;
-    this.version++;
+    this.record.version++;
     try {
       enterWatcher(this);
       return this.value = unwrap(this.get.call(this.useProxy ? wrap(this.obj) : this.obj, this));
@@ -239,6 +241,7 @@ export interface ComputedWatcher extends IWatcherImpl, IConnectableBinding { }
 
 @watcherImpl
 export class ComputedWatcher implements IWatcher {
+  public interceptor = this;
 
   /**
    * @internal
@@ -247,8 +250,8 @@ export class ComputedWatcher implements IWatcher {
 
   // todo: maybe use a counter allow recursive call to a certain level
   private running: boolean = false;
-  private value: unknown = void 0;
 
+  public value: unknown = void 0;
   public isBound: boolean = false;
 
   public constructor(
@@ -302,7 +305,7 @@ export class ComputedWatcher implements IWatcher {
 
   private compute(): unknown {
     this.running = true;
-    this.version++;
+    this.record.version++;
     try {
       enterWatcher(this);
       return this.value = unwrap(this.get.call(void 0, this.useProxy ? wrap(this.obj) : this.obj, this));
@@ -322,15 +325,13 @@ export interface ExpressionWatcher extends IConnectableBinding { }
 
 @connectable()
 export class ExpressionWatcher implements IConnectableBinding {
-  /**
-   * @internal
-   */
-  private value: unknown;
+  public interceptor = this;
   /**
    * @internal
    */
   private readonly obj: object;
 
+  public value: unknown;
   public isBound: boolean = false;
 
   public constructor(
@@ -348,11 +349,11 @@ export class ExpressionWatcher implements IConnectableBinding {
     const expr = this.expression;
     const obj = this.obj;
     const oldValue = this.value;
-    const canOptimize = expr.$kind === ExpressionKind.AccessScope && this.observerSlots === 1;
+    const canOptimize = expr.$kind === ExpressionKind.AccessScope && this.record.count === 1;
     if (!canOptimize) {
-      this.version++;
+      this.record.version++;
       value = expr.evaluate(0, this.scope, null, this.locator, this);
-      this.unobserve(false);
+      this.record.clear(false);
     }
     if (!Object.is(value, oldValue)) {
       this.value = value;
@@ -366,9 +367,9 @@ export class ExpressionWatcher implements IConnectableBinding {
       return;
     }
     this.isBound = true;
-    this.version++;
+    this.record.version++;
     this.value = this.expression.evaluate(LifecycleFlags.none, this.scope, null, this.locator, this);
-    this.unobserve(false);
+    this.record.clear(false);
   }
 
   public $unbind(): void {

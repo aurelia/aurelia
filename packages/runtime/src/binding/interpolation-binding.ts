@@ -37,6 +37,8 @@ export class InterpolationBinding implements IBinding {
 
   public isBound: boolean = false;
   public $scope?: Scope = void 0;
+  public $hostScope: Scope | null = null;
+  public value: unknown = '';
 
   public partBindings: ContentBinding[];
 
@@ -74,6 +76,8 @@ export class InterpolationBinding implements IBinding {
       }
     }
 
+    this.value = result;
+
     const targetObserver = this.targetObserver;
     // Alpha: during bind a simple strategy for bind is always flush immediately
     // todo:
@@ -81,9 +85,10 @@ export class InterpolationBinding implements IBinding {
     //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start().wait()
     const shouldQueueFlush = (flags & LifecycleFlags.fromBind) === 0 && (targetObserver.type & AccessorType.Layout) > 0;
     if (shouldQueueFlush) {
-      this.task?.cancel();
-      this.task = this.taskQueue.queueTask(() => {
-        targetObserver.setValue(result, flags, this.target, this.targetProperty);
+      // an optimization: only create & queue a task when there's NOT already a task queued
+      // inside the lambda, use this.value instead of result, since it would always be the latest value
+      this.task ??= this.taskQueue.queueTask(() => {
+        targetObserver.setValue(this.value, flags, this.target, this.targetProperty);
         this.task = null;
       }, queueTaskOptions);
     } else {
@@ -146,7 +151,6 @@ export class ContentBinding implements ContentBinding, ICollectionSubscriber {
   // but it wouldn't matter here, just start with something for later check
   public readonly mode: BindingMode = BindingMode.toView;
   public value: unknown = '';
-  public id!: number;
   public $scope?: Scope;
   public $hostScope: Scope | null = null;
   public task: ITask | null = null;
@@ -170,15 +174,16 @@ export class ContentBinding implements ContentBinding, ICollectionSubscriber {
       return;
     }
     const sourceExpression = this.sourceExpression;
-    const canOptimize = sourceExpression.$kind === ExpressionKind.AccessScope && this.observerSlots > 1;
+    const obsRecord = this.record;
+    const canOptimize = sourceExpression.$kind === ExpressionKind.AccessScope && obsRecord.count === 1;
     if (!canOptimize) {
       const shouldConnect = (this.mode & toView) > 0;
       if (shouldConnect) {
-        this.version++;
+        obsRecord.version++;
       }
       newValue = sourceExpression.evaluate(flags, this.$scope!, this.$hostScope, this.locator, shouldConnect ? this.interceptor : null);
       if (shouldConnect) {
-        this.interceptor.unobserve(false);
+        obsRecord.clear(false);
       }
     }
     if (newValue != this.value) {

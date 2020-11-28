@@ -12,7 +12,7 @@ import {
   LifecycleFlags,
 } from '../observation.js';
 import { IObserverLocator } from '../observation/observer-locator.js';
-import { ensureProto } from '../utilities-objects.js';
+import { defineHiddenProp, ensureProto } from '../utilities-objects.js';
 import type { Scope } from '../observation/binding-context.js';
 
 // TODO: add connect-queue (or something similar) back in when everything else is working, to improve startup time
@@ -25,8 +25,8 @@ function ensureEnoughSlotNames(currentSlot: number): void {
     lastSlot += 5;
     const ii = slotNames.length = versionSlotNames.length = lastSlot + 1;
     for (let i = currentSlot + 1; i < ii; ++i) {
-      slotNames[i] = `_observer${i}`;
-      versionSlotNames[i] = `_observerVersion${i}`;
+      slotNames[i] = `_o${i}`;
+      versionSlotNames[i] = `_v${i}`;
     }
   }
 }
@@ -37,9 +37,9 @@ export interface IPartialConnectableBinding extends IBinding, ISubscriber {
 }
 
 export interface IConnectableBinding extends IPartialConnectableBinding, IConnectable {
+  // probably this id shouldn't be on binding
   id: number;
-  observerSlots: number;
-  version: number;
+  record: BindingObserverRecord;
   addObserver(observer: ISubscribable): void;
   unobserve(all?: boolean): void;
 }
@@ -49,32 +49,7 @@ export function addObserver(
   this: IConnectableBinding & { [key: string]: ISubscribable & { [id: number]: number } | number },
   observer: ISubscribable & { [id: number]: number }
 ): void {
-  // find the observer.
-  const observerSlots = this.observerSlots == null ? 0 : this.observerSlots;
-  let i = observerSlots;
-
-  while (i-- && this[slotNames[i]] !== observer);
-
-  // if we are not already observing, put the observer in an open slot and subscribe.
-  if (i === -1) {
-    i = 0;
-    while (this[slotNames[i]]) {
-      i++;
-    }
-    this[slotNames[i]] = observer;
-    observer.subscribe(this);
-    observer[this.id] |= LifecycleFlags.updateTarget;
-    // increment the slot count.
-    if (i === observerSlots) {
-      this.observerSlots = i + 1;
-    }
-  }
-  // set the "version" when the observer was used.
-  if (this.version == null) {
-    this.version = 0;
-  }
-  this[versionSlotNames[i]] = this.version;
-  ensureEnoughSlotNames(i);
+  this.record.add(observer);
 }
 
 /** @internal */
@@ -92,31 +67,89 @@ export function observeProperty(this: IConnectableBinding, obj: object, property
 
 /** @internal */
 export function unobserve(this: IConnectableBinding & { [key: string]: unknown }, all?: boolean): void {
-  const slots = this.observerSlots;
-  let slotName: string;
-  let observer: IBindingTargetObserver & { [key: string]: number };
-  if (all === true) {
-    for (let i = 0; i < slots; ++i) {
-      slotName = slotNames[i];
-      observer = this[slotName] as IBindingTargetObserver & { [key: string]: number };
-      if (observer != null) {
-        this[slotName] = void 0;
-        observer.unsubscribe(this);
-        observer[this.id] &= ~LifecycleFlags.updateTarget;
+  this.record.clear(all);
+}
+
+export function getRecord(this: IConnectableBinding) {
+  const record = new BindingObserverRecord(this);
+  defineHiddenProp(this, 'record', record);
+  return record;
+}
+
+type ObservationRecordImplType = {
+  id: number;
+  version: number;
+  count: number;
+  binding: IConnectableBinding;
+} & ISubscriber & Record<string, unknown>;
+
+export interface BindingObserverRecord extends ISubscriber, ObservationRecordImplType {}
+export class BindingObserverRecord implements ISubscriber {
+  public id!: number;
+  public version: number = 0;
+  public count: number = 0;
+
+  public constructor(
+    public binding: IConnectableBinding
+  ) {
+    connectable.assignIdTo(this);
+  }
+
+  public handleChange(value: unknown, oldValue: unknown, flags: LifecycleFlags): unknown {
+    return this.binding.interceptor.handleChange(value, oldValue, flags);
+  }
+
+  public add(observer: ISubscribable & { [id: number]: number }): void {
+    // find the observer.
+    const observerSlots = this.count == null ? 0 : this.count;
+    let i = observerSlots;
+
+    while (i-- && this[slotNames[i]] !== observer);
+
+    // if we are not already observing, put the observer in an open slot and subscribe.
+    if (i === -1) {
+      i = 0;
+      while (this[slotNames[i]]) {
+        i++;
+      }
+      this[slotNames[i]] = observer;
+      observer.subscribe(this);
+      observer[this.id] |= LifecycleFlags.updateTarget;
+      // increment the slot count.
+      if (i === observerSlots) {
+        this.count = i + 1;
       }
     }
-    this.observerSlots = 0;
-  } else {
-    const version = this.version;
-    for (let i = 0; i < slots; ++i) {
-      if (this[versionSlotNames[i]] !== version) {
+    this[versionSlotNames[i]] = this.version;
+    ensureEnoughSlotNames(i);
+  }
+
+  public clear(all?: boolean): void {
+    const slotCount = this.count;
+    let slotName: string;
+    let observer: IBindingTargetObserver & { [key: string]: number };
+    if (all === true) {
+      for (let i = 0; i < slotCount; ++i) {
         slotName = slotNames[i];
         observer = this[slotName] as IBindingTargetObserver & { [key: string]: number };
         if (observer != null) {
           this[slotName] = void 0;
           observer.unsubscribe(this);
           observer[this.id] &= ~LifecycleFlags.updateTarget;
-          this.observerSlots--;
+        }
+      }
+      this.count = 0;
+    } else {
+      for (let i = 0; i < slotCount; ++i) {
+        if (this[versionSlotNames[i]] !== this.version) {
+          slotName = slotNames[i];
+          observer = this[slotName] as IBindingTargetObserver & { [key: string]: number };
+          if (observer != null) {
+            this[slotName] = void 0;
+            observer.unsubscribe(this);
+            observer[this.id] &= ~LifecycleFlags.updateTarget;
+            this.count--;
+          }
         }
       }
     }
@@ -128,10 +161,13 @@ type DecoratedConnectable<TProto, TClass> = Class<TProto & IConnectableBinding, 
 
 function connectableDecorator<TProto, TClass>(target: DecoratableConnectable<TProto, TClass>): DecoratedConnectable<TProto, TClass> {
   const proto = target.prototype;
-  ensureProto(proto, 'version', 0);
-  ensureProto(proto, 'observeProperty', observeProperty);
-  ensureProto(proto, 'unobserve', unobserve);
-  ensureProto(proto, 'addObserver', addObserver);
+  ensureProto(proto, 'observeProperty', observeProperty, true);
+  ensureProto(proto, 'unobserve', unobserve, true);
+  ensureProto(proto, 'addObserver', addObserver, true);
+  Reflect.defineProperty(proto, 'record', {
+    configurable: true,
+    get: getRecord,
+  });
   return target as DecoratedConnectable<TProto, TClass>;
 }
 
@@ -143,7 +179,7 @@ export function connectable<TProto, TClass>(target?: DecoratableConnectable<TPro
 
 let value = 0;
 
-connectable.assignIdTo = (instance: IConnectableBinding): void => {
+connectable.assignIdTo = (instance: IConnectableBinding | BindingObserverRecord): void => {
   instance.id = ++value;
 };
 
@@ -154,6 +190,8 @@ export type MediatedBinding<K extends string> = {
 export interface BindingMediator<K extends string> extends IConnectableBinding { }
 // @connectable
 export class BindingMediator<K extends string> implements IConnectableBinding {
+  public interceptor = this;
+
   public constructor(
     public readonly key: K,
     public readonly binding: MediatedBinding<K>,
@@ -176,8 +214,4 @@ export class BindingMediator<K extends string> implements IConnectableBinding {
   }
 }
 
-(proto => {
-  ensureProto(proto, 'observeProperty', observeProperty);
-  ensureProto(proto, 'unobserve', unobserve);
-  ensureProto(proto, 'addObserver', addObserver);
-})(BindingMediator.prototype);
+connectableDecorator(BindingMediator);

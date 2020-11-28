@@ -7,19 +7,18 @@ export class Database {
   public readonly addresses!: Address[];
   public readonly people!: Person[];
 
-  public constructor(skipSeed: boolean = false) {
+  public constructor(numPeople?: number, skipSeed: boolean = false) {
     if (skipSeed) {
       this.addresses = [];
       this.people = [];
     } else {
-      this.seed();
+      this.seed(numPeople);
     }
   }
 
-  private seed() {
+  private seed(numPeople = 0) {
     // TODO: probably move this to package configuration option
     const numAddresses = 100;
-    const numPeople = 0;
 
     const addresses = (this as Writable<this>).addresses = new Array<Address>(numAddresses);
     const people = (this as Writable<this>).people = new Array<Person>(numPeople);

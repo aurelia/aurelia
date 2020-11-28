@@ -5,99 +5,259 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { strict as assert } from 'assert';
-import * as playwright from 'playwright';
+import { performance } from 'perf_hooks';
 import type { ElementHandle, Page } from 'playwright';
+import * as playwright from 'playwright';
+import { URL } from 'url';
 
+// This is fixed and needs to be kept in sync with the apps.
 const gridColCount = 6;
+const browserTypes = ['chromium', 'firefox', 'webkit'] as const;
+type BrowserType = typeof browserTypes[number];
 
-const browserTypes = ['chromium'/* , 'firefox', 'webkit' */] as const;
-const baseUrl = 'http://localhost:9000/';
+const iterations = 5; // 100;
+
+function roundDurationMs(val: number) { return Math.round(val * 1e3) / 1e3; }
+
+type WritableMeasurement = Omit<Measurement, 'name' | 'browser' | 'testName' | 'initialPopulation' | 'totalPopulation' | 'durationInitialLoad'>;
+type WritableMeasurementKeys = {
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  [key in keyof WritableMeasurement]: Measurement[key] extends Function ? never : key
+}[keyof WritableMeasurement];
+class Measurement {
+  public durationInitialLoad: number = Number.POSITIVE_INFINITY;
+  public durationPopulation: number | undefined = void 0;
+  public durationUpdate: number = Number.POSITIVE_INFINITY;
+  public durationShowDetails: number = Number.POSITIVE_INFINITY;
+  public durationHideDetails: number = Number.POSITIVE_INFINITY;
+  public durationLocaleDe: number = Number.POSITIVE_INFINITY;
+  public durationLocaleEn: number = Number.POSITIVE_INFINITY;
+  public durationSortFirstName: number = Number.POSITIVE_INFINITY;
+  public durationSortFirstNameDesc: number = Number.POSITIVE_INFINITY;
+  public durationSortLastName: number = Number.POSITIVE_INFINITY;
+  public durationSortLastNameDesc: number = Number.POSITIVE_INFINITY;
+  public durationSortDob: number = Number.POSITIVE_INFINITY;
+  public durationSortDobDesc: number = Number.POSITIVE_INFINITY;
+  public durationFilterEmployed: number = Number.POSITIVE_INFINITY;
+  public durationFilterUnemployed: number = Number.POSITIVE_INFINITY;
+  public durationFilterNone: number = Number.POSITIVE_INFINITY;
+  public durationSelectFirst: number = Number.POSITIVE_INFINITY;
+  public durationDeleteFirst: number = Number.POSITIVE_INFINITY;
+  public durationDeleteAll: number = Number.POSITIVE_INFINITY;
+
+  public get name(): string {
+    return `${this.browser} - ${this.initialPopulation} - ${this.totalPopulation}`;
+  }
+  public constructor(
+    public readonly browser: BrowserType,
+    public readonly initialPopulation: number,
+    public readonly totalPopulation: number,
+    initializeWithZero = false,
+  ) {
+    if (initializeWithZero) {
+      this.durationInitialLoad = 0;
+      this.durationUpdate = 0;
+      this.durationShowDetails = 0;
+      this.durationHideDetails = 0;
+      this.durationLocaleDe = 0;
+      this.durationLocaleEn = 0;
+      this.durationSortFirstName = 0;
+      this.durationSortFirstNameDesc = 0;
+      this.durationSortLastName = 0;
+      this.durationSortLastNameDesc = 0;
+      this.durationSortDob = 0;
+      this.durationSortDobDesc = 0;
+      this.durationFilterEmployed = 0;
+      this.durationFilterUnemployed = 0;
+      this.durationFilterNone = 0;
+      this.durationSelectFirst = 0;
+      this.durationDeleteFirst = 0;
+      this.durationDeleteAll = 0;
+    }
+  }
+}
+
+class Measurements extends Array<Measurement> {
+
+  public get means(): Measurement[] {
+    return this.getGroups().map((measurements) => measurements.mean);
+  }
+
+  private getGroups(): Measurements[] {
+    const map = new Map<string, Measurements>();
+    for (const measurement of this) {
+      const name = measurement.name;
+      let measurements = map.get(name);
+      if (measurements === void 0) {
+        map.set(name, measurements = new Measurements());
+      }
+      measurements.push(measurement);
+    }
+    return Array.from(map.values());
+  }
+
+  public get mean(): Measurement {
+    const item0 = this[0];
+    const mean = new Measurement(item0.browser, item0.initialPopulation, item0.totalPopulation, true);
+    const length = this.length;
+    for (let i = 0, ii = length; i < ii; i++) {
+      const item = this[i];
+      mean.durationInitialLoad += item.durationInitialLoad;
+      if (mean.initialPopulation === 0) {
+        if (mean.durationPopulation === void 0) {
+          mean.durationPopulation = 0;
+        }
+        mean.durationPopulation! += item.durationPopulation!;
+      }
+      mean.durationUpdate += item.durationUpdate;
+      mean.durationShowDetails += item.durationShowDetails;
+      mean.durationHideDetails += item.durationHideDetails;
+      mean.durationLocaleDe += item.durationLocaleDe;
+      mean.durationLocaleEn += item.durationLocaleEn;
+      mean.durationSortFirstName += item.durationSortFirstName;
+      mean.durationSortFirstNameDesc += item.durationSortFirstNameDesc;
+      mean.durationSortLastName += item.durationSortLastName;
+      mean.durationSortLastNameDesc += item.durationSortLastNameDesc;
+      mean.durationSortDob += item.durationSortDob;
+      mean.durationSortDobDesc += item.durationSortDobDesc;
+      mean.durationFilterEmployed += item.durationFilterEmployed;
+      mean.durationFilterUnemployed += item.durationFilterUnemployed;
+      mean.durationFilterNone += item.durationFilterNone;
+      mean.durationSelectFirst += item.durationSelectFirst;
+      mean.durationDeleteFirst += item.durationDeleteFirst;
+      mean.durationDeleteAll += item.durationDeleteAll;
+    }
+
+    mean.durationInitialLoad = roundDurationMs(mean.durationInitialLoad / length);
+    if (mean.initialPopulation === 0) {
+      mean.durationPopulation! = roundDurationMs(mean.durationPopulation! / length);
+    }
+    mean.durationUpdate = roundDurationMs(mean.durationUpdate / length);
+    mean.durationShowDetails = roundDurationMs(mean.durationShowDetails / length);
+    mean.durationHideDetails = roundDurationMs(mean.durationHideDetails / length);
+    mean.durationLocaleDe = roundDurationMs(mean.durationLocaleDe / length);
+    mean.durationLocaleEn = roundDurationMs(mean.durationLocaleEn / length);
+    mean.durationSortFirstName = roundDurationMs(mean.durationSortFirstName / length);
+    mean.durationSortFirstNameDesc = roundDurationMs(mean.durationSortFirstNameDesc / length);
+    mean.durationSortLastName = roundDurationMs(mean.durationSortLastName / length);
+    mean.durationSortLastNameDesc = roundDurationMs(mean.durationSortLastNameDesc / length);
+    mean.durationSortDob = roundDurationMs(mean.durationSortDob / length);
+    mean.durationSortDobDesc = roundDurationMs(mean.durationSortDobDesc / length);
+    mean.durationFilterEmployed = roundDurationMs(mean.durationFilterEmployed / length);
+    mean.durationFilterUnemployed = roundDurationMs(mean.durationFilterUnemployed / length);
+    mean.durationFilterNone = roundDurationMs(mean.durationFilterNone / length);
+    mean.durationSelectFirst = roundDurationMs(mean.durationSelectFirst / length);
+    mean.durationDeleteFirst = roundDurationMs(mean.durationDeleteFirst / length);
+    mean.durationDeleteAll = roundDurationMs(mean.durationDeleteAll / length);
+
+    return mean;
+  }
+}
 
 describe('benchmark', function () {
 
-  async function setup(browserType: 'chromium' | 'firefox' | 'webkit') {
+  async function setup(browserType: BrowserType, initialPopulation = 0) {
     const browser = await playwright[browserType].launch();
     const context = await browser.newContext();
     const page = await context.newPage();
-    await page.goto(baseUrl);
-    await page.waitForSelector('app div.grid');
-    return { page, browser };
+
+    const url = new URL('http://localhost:9000/');
+    url.searchParams.set('initialPopulation', initialPopulation.toString());
+
+    const start = performance.now();
+    await page.goto(url.toString());
+    await page.waitForFunction((config) => {
+      const [population, numCol] = config.split('_');
+      const grid = document.querySelector<HTMLDivElement>('app div.grid');
+      return grid?.childElementCount === (Number(population) + 1) * Number(numCol);
+    }, `${initialPopulation}_${gridColCount}`);
+    const durationLoad = performance.now() - start;
+    return { page, browser, durationLoad };
   }
 
-  // browser+#records -> label -> measurement
-  const measurements: Record<string, Record<string, number>> = Object.create(null);
+  async function runCommonSequence(page: playwright.Page, measurement: Measurement) {
+    await new UpdateEvery10thRow(page, measurement).run();
+    await new ToggleDetails(page, measurement).run();
+    await new ToggleLocale(page, measurement).run();
+    await new FirstNameSort(page, measurement).run();
+    await new LastNameSort(page, measurement).run();
+    await new DobSort(page, measurement).run();
+    await new Filter(page, measurement).run();
+    await new SelectFirst(page, measurement).run();
+    await new DeleteFirst(page, measurement).run();
+    await new DeleteAll(page, measurement).run();
+  }
+
+  const measurements: Measurements = new Measurements();
   after(function () {
-    console.table(measurements);
+    // TODO push to azure storage
+    console.table(measurements.means);
   });
 
   for (const browserType of browserTypes) {
     describe(browserType, function () {
-      it.only('hundred', async function () {
-        const measurement = measurements[`${browserType} - hundred`] = Object.create(null);
-        const { page, browser } = await setup(browserType);
+      for (let i = 0; i < iterations; i++) {
+        describe(`iteration-#${i}`, function () {
+          for (const initialPopulation of [0, 100]) {
+            it(`hundred - initial population: ${initialPopulation}`, async function () {
+              const { page, browser, durationLoad } = await setup(browserType, initialPopulation);
+              const measurement = new Measurement(browserType, initialPopulation, 100);
+              measurement.durationInitialLoad = durationLoad;
+              measurements.push(measurement);
 
-        await new PopulateHundred(page, measurement).run();
-        await new UpdateEvery10thRow(page, measurement).run();
-        await new ToggleDetails(page, measurement).run();
-        await new ToggleLocale(page, measurement).run();
-        await new FirstNameSort(page, measurement).run();
-        await new LastNameSort(page, measurement).run();
-        await new DobSort(page, measurement).run();
-        await new Filter(page, measurement).run();
-        await new SelectFirst(page, measurement).run();
-        await new DeleteFirst(page, measurement).run();
-        await new DeleteAll(page, measurement).run();
+              if (initialPopulation === 0) {
+                await new PopulateHundred(page, measurement).run();
+              }
+              await runCommonSequence(page, measurement);
 
-        await browser.close();
-      });
+              await browser.close();
+            });
+          }
 
-      it('thousand', async function () {
-        const measurement = measurements[`${browserType} - thousand`] = Object.create(null);
-        const { page, browser } = await setup(browserType);
+          for (const initialPopulation of [0, 1_000]) {
+            it(`thousand - initial population: ${initialPopulation}`, async function () {
+              const { page, browser, durationLoad } = await setup(browserType, initialPopulation);
+              const measurement = new Measurement(browserType, initialPopulation, 1_000);
+              measurement.durationInitialLoad = durationLoad;
+              measurements.push(measurement);
 
-        await new PopulateThousand(page, measurement).run();
-        await new UpdateEvery10thRow(page, measurement).run();
-        await new ToggleDetails(page, measurement).run();
-        await new ToggleLocale(page, measurement).run();
-        await new FirstNameSort(page, measurement).run();
-        await new LastNameSort(page, measurement).run();
-        await new DobSort(page, measurement).run();
-        await new Filter(page, measurement).run();
-        await new SelectFirst(page, measurement).run();
-        await new DeleteFirst(page, measurement).run();
-        await new DeleteAll(page, measurement).run();
+              if (initialPopulation === 0) {
+                await new PopulateThousand(page, measurement).run();
+              }
+              await runCommonSequence(page, measurement);
 
-        await browser.close();
-      });
+              await browser.close();
+            });
+          }
 
-      it.skip('ten-thousand', async function () {
-        const measurement = measurements[`${browserType} - ten-thousand`] = Object.create(null);
-        const { page, browser } = await setup(browserType);
+          for (const initialPopulation of [0, 10_000]) {
+            it.skip(`ten-thousand - initial population: ${initialPopulation}`, async function () {
+              const { page, browser, durationLoad } = await setup(browserType, initialPopulation);
+              const measurement = new Measurement(browserType, initialPopulation, 10_000);
+              measurement.durationInitialLoad = durationLoad;
+              measurements.push(measurement);
 
-        await new PopulateTenThousand(page, measurement).run();
-        await new UpdateEvery10thRow(page, measurement).run();
-        await new ToggleDetails(page, measurement).run();
-        await new ToggleLocale(page, measurement).run();
-        await new FirstNameSort(page, measurement).run();
-        await new LastNameSort(page, measurement).run();
-        await new DobSort(page, measurement).run();
-        await new Filter(page, measurement).run();
-        await new SelectFirst(page, measurement).run();
-        await new DeleteFirst(page, measurement).run();
-        await new DeleteAll(page, measurement).run();
+              if (initialPopulation === 0) {
+                await new PopulateTenThousand(page, measurement).run();
+              }
+              await runCommonSequence(page, measurement);
 
-        await browser.close();
-      });
+              await browser.close();
+            });
+          }
+        });
+      }
     });
   }
 });
 
 abstract class BaseActMeasureAssert<TPreState = unknown> {
+  public abstract measurementKey: WritableMeasurementKeys;
   public constructor(
     public readonly label: string,
     public readonly selector: string,
     public readonly page: Page,
-    public readonly measurement: Record<string, number>,
+    public readonly measurement: Measurement,
   ) { }
 
   // Act, measures, and asserts
@@ -107,7 +267,7 @@ abstract class BaseActMeasureAssert<TPreState = unknown> {
 
     const preState = await this.getPreRunState();
 
-    await this.actAndMeasure(label);
+    await this.actAndMeasure(this.measurementKey);
 
     await this.assert(preState);
     console.log(`finished ${label}`);
@@ -116,14 +276,13 @@ abstract class BaseActMeasureAssert<TPreState = unknown> {
   protected abstract getPreRunState(): Promise<TPreState>;
   protected abstract assert(preState: TPreState): Promise<void>;
 
-  protected async actAndMeasure(label: string, $selector = this.selector) {
-    const duration = await this.page.evaluate(async (selector: string) => {
-      const start = performance.now();
+  protected async actAndMeasure(key: WritableMeasurementKeys, $selector = this.selector) {
+    this.measurement[key] = await this.page.evaluate(async (selector: string) => {
+      const start = globalThis.performance.now();
       document.querySelector<HTMLElement>(selector)!.click();
       await (globalThis as any).waitForIdle();
-      return performance.now() - start;
+      return globalThis.performance.now() - start;
     }, $selector);
-    this.measurement[label] = Math.round(duration * 1e3) / 1e3;
   }
 
   public async getGridContent(): Promise<ElementHandle<SVGElement | HTMLElement>[]> {
@@ -137,6 +296,7 @@ abstract class BaseMultiStateActMeasureAssert<
   TPreState = unknown
   > extends BaseActMeasureAssert<TPreState> {
 
+  public measurementKey!: WritableMeasurementKeys;
   public abstract stateNames: TStates;
   private _currentState!: TStates[number];
 
@@ -144,7 +304,7 @@ abstract class BaseMultiStateActMeasureAssert<
     label: string,
     selector: string,
     page: Page,
-    measurement: Record<string, number>,
+    measurement: Measurement,
   ) {
     super(label, selector, page, measurement);
   }
@@ -160,25 +320,26 @@ abstract class BaseMultiStateActMeasureAssert<
 
       const preState = await this.getPreRunState();
 
-      await this.actAndMeasure(label);
+      await this.actAndMeasure(this.getMeasurementKey());
 
       await this.assert(preState);
       console.log(`finished ${label}`);
     }
     /* eslint-enable no-await-in-loop */
   }
+
+  protected abstract getMeasurementKey(): WritableMeasurementKeys;
 }
 
 class Populate extends BaseActMeasureAssert {
-
+  public measurementKey: WritableMeasurementKeys = 'durationPopulation';
   public constructor(
-    label: string,
     selector: string,
     page: Page,
-    measurement: Record<string, number>,
+    measurement: Measurement,
     public readonly population: number,
   ) {
-    super(label, selector, page, measurement);
+    super(`populate ${population}`, selector, page, measurement);
   }
 
   protected async getPreRunState(): Promise<ElementHandle<SVGElement | HTMLElement>[]> {
@@ -200,34 +361,35 @@ class Populate extends BaseActMeasureAssert {
 class PopulateHundred extends Populate {
   public constructor(
     page: Page,
-    measurement: Record<string, number>,
+    measurement: Measurement,
   ) {
-    super('hundred', 'button#hundred', page, measurement, 100);
+    super('button#hundred', page, measurement, 100);
   }
 }
 
 class PopulateThousand extends Populate {
   public constructor(
     page: Page,
-    measurement: Record<string, number>,
+    measurement: Measurement,
   ) {
-    super('thousand', 'button#thousand', page, measurement, 1_000);
+    super('button#thousand', page, measurement, 1_000);
   }
 }
 
 class PopulateTenThousand extends Populate {
   public constructor(
     page: Page,
-    measurement: Record<string, number>,
+    measurement: Measurement,
   ) {
-    super('ten-thousand', 'button#ten-thousand', page, measurement, 10_000);
+    super('button#ten-thousand', page, measurement, 10_000);
   }
 }
 
 class DeleteFirst extends BaseActMeasureAssert {
+  public measurementKey: WritableMeasurementKeys = 'durationDeleteFirst';
   public constructor(
     page: Page,
-    measurement: Record<string, number>,
+    measurement: Measurement,
   ) {
     super('delete first', 'span.delete', page, measurement);
   }
@@ -244,9 +406,10 @@ class DeleteFirst extends BaseActMeasureAssert {
 }
 
 class DeleteAll extends BaseActMeasureAssert {
+  public measurementKey: WritableMeasurementKeys = 'durationDeleteAll';
   public constructor(
     page: Page,
-    measurement: Record<string, number>,
+    measurement: Measurement,
   ) {
     super('delete all', 'button#remove-all', page, measurement);
   }
@@ -265,7 +428,7 @@ class ToggleDetails extends BaseMultiStateActMeasureAssert<readonly ['show', 'hi
   public stateNames = ['show', 'hide'] as const;
   public constructor(
     page: Page,
-    measurement: Record<string, number>,
+    measurement: Measurement,
   ) {
     super('toggle details', 'button#details', page, measurement);
   }
@@ -290,13 +453,22 @@ class ToggleDetails extends BaseMultiStateActMeasureAssert<readonly ['show', 'hi
       }
     }
   }
+
+  protected getMeasurementKey(): WritableMeasurementKeys {
+    switch (this.currentState) {
+      case 'show':
+        return 'durationShowDetails';
+      case 'hide':
+        return 'durationHideDetails';
+    }
+  }
 }
 
 class ToggleLocale extends BaseMultiStateActMeasureAssert<readonly ['de', 'en']> {
   public stateNames = ['de', 'en'] as const;
   public constructor(
     page: Page,
-    measurement: Record<string, number>,
+    measurement: Measurement,
   ) {
     super('toggle localize-date', 'button#locale', page, measurement);
   }
@@ -318,12 +490,22 @@ class ToggleLocale extends BaseMultiStateActMeasureAssert<readonly ['de', 'en']>
         break;
     }
   }
+
+  protected getMeasurementKey(): WritableMeasurementKeys {
+    switch (this.currentState) {
+      case 'de':
+        return 'durationLocaleDe';
+      case 'en':
+        return 'durationLocaleEn';
+    }
+  }
 }
 
 class Filter extends BaseActMeasureAssert {
+  public measurementKey!: WritableMeasurementKeys;
   public constructor(
     page: Page,
-    measurement: Record<string, number>,
+    measurement: Measurement,
   ) {
     super('', '', page, measurement);
   }
@@ -339,7 +521,7 @@ class Filter extends BaseActMeasureAssert {
     let previous = await page.$$(selector);
     const all = previous;
 
-    await this.actAndMeasure(label, 'button#employed');
+    await this.actAndMeasure('durationFilterEmployed', 'button#employed');
 
     let current = await page.$$(selector);
 
@@ -354,7 +536,7 @@ class Filter extends BaseActMeasureAssert {
 
     previous = current;
 
-    await this.actAndMeasure(label, 'button#unemployed');
+    await this.actAndMeasure('durationFilterUnemployed', 'button#unemployed');
 
     current = await page.$$(selector);
 
@@ -369,7 +551,7 @@ class Filter extends BaseActMeasureAssert {
 
     previous = current;
 
-    await this.actAndMeasure(label, 'button#all');
+    await this.actAndMeasure('durationFilterNone', 'button#all');
 
     current = await page.$$(selector);
 
@@ -392,13 +574,13 @@ class Filter extends BaseActMeasureAssert {
   }
 }
 
-class Sort extends BaseMultiStateActMeasureAssert<readonly ['asc', 'desc']> {
+abstract class Sort extends BaseMultiStateActMeasureAssert<readonly ['asc', 'desc']> {
   public stateNames = ['asc', 'desc'] as const;
   public constructor(
     label: string,
     selector: string,
     page: Page,
-    measurement: Record<string, number>,
+    measurement: Measurement,
     public readonly colSelector: string,
   ) {
     super(label, selector, page, measurement);
@@ -432,25 +614,43 @@ class Sort extends BaseMultiStateActMeasureAssert<readonly ['asc', 'desc']> {
 class FirstNameSort extends Sort {
   public constructor(
     page: Page,
-    measurement: Record<string, number>,
+    measurement: Measurement,
   ) {
     super('sort by firstName', 'div.grid>strong:nth-of-type(1)', page, measurement, 'div.grid>span:nth-child(6n+1)');
+  }
+
+  protected getMeasurementKey(): WritableMeasurementKeys {
+    switch (this.currentState) {
+      case 'asc':
+        return 'durationSortFirstName';
+      case 'desc':
+        return 'durationSortFirstNameDesc';
+    }
   }
 }
 
 class LastNameSort extends Sort {
   public constructor(
     page: Page,
-    measurement: Record<string, number>,
+    measurement: Measurement,
   ) {
     super('sort by lastName', 'div.grid>strong:nth-of-type(2)', page, measurement, 'div.grid>span:nth-child(6n+2)');
+  }
+
+  protected getMeasurementKey(): WritableMeasurementKeys {
+    switch (this.currentState) {
+      case 'asc':
+        return 'durationSortLastName';
+      case 'desc':
+        return 'durationSortLastNameDesc';
+    }
   }
 }
 
 class DobSort extends Sort {
   public constructor(
     page: Page,
-    measurement: Record<string, number>,
+    measurement: Measurement,
   ) {
     super('sort by dob', 'div.grid>strong:nth-of-type(3)', page, measurement, 'div.grid>span:nth-child(6n+3)');
   }
@@ -473,12 +673,22 @@ class DobSort extends Sort {
     const sorted = content.slice(0).sort((a, b) => direction * (a.getTime() - b.getTime()));
     assert.deepStrictEqual(content, sorted, `${this.label} ${this.currentState} - content`);
   }
+
+  protected getMeasurementKey(): WritableMeasurementKeys {
+    switch (this.currentState) {
+      case 'asc':
+        return 'durationSortDob';
+      case 'desc':
+        return 'durationSortDobDesc';
+    }
+  }
 }
 
 class SelectFirst extends BaseActMeasureAssert {
+  public measurementKey: WritableMeasurementKeys = 'durationSelectFirst';
   public constructor(
     page: Page,
-    measurement: Record<string, number>,
+    measurement: Measurement,
   ) {
     super('select first', 'div.grid>span.selection-target', page, measurement);
   }
@@ -515,9 +725,10 @@ class SelectFirst extends BaseActMeasureAssert {
 }
 
 class UpdateEvery10thRow extends BaseActMeasureAssert {
+  public measurementKey: WritableMeasurementKeys = 'durationUpdate';
   public constructor(
     page: Page,
-    measurement: Record<string, number>,
+    measurement: Measurement,
   ) {
     super('update every 10th row', 'button#update-10', page, measurement);
   }

@@ -26,7 +26,6 @@ const updateTaskOpts: QueueTaskOptions = {
 export class PropertyBinding implements IPartialConnectableBinding {
   public interceptor: this = this;
 
-  public id!: number;
   public isBound: boolean = false;
   public $scope?: Scope = void 0;
   public $hostScope: Scope | null = null;
@@ -35,7 +34,6 @@ export class PropertyBinding implements IPartialConnectableBinding {
 
   public persistentFlags: LifecycleFlags = LifecycleFlags.none;
 
-  public value: unknown = void 0;
   private task: ITask | null = null;
 
   public constructor(
@@ -79,37 +77,30 @@ export class PropertyBinding implements IPartialConnectableBinding {
       //  (1). determine whether this should be the behavior
       //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start()
       const shouldQueueFlush = (flags & LifecycleFlags.fromBind) === 0 && (targetObserver.type & AccessorType.Layout) > 0;
+      const obsRecord = this.record;
 
       // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
-      if (sourceExpression.$kind !== ExpressionKind.AccessScope || this.observerSlots > 1) {
+      if (sourceExpression.$kind !== ExpressionKind.AccessScope || obsRecord.count > 1) {
         // todo: in VC expressions, from view also requires connect
         const shouldConnect = this.mode > oneTime;
         if (shouldConnect) {
-          this.version++;
+          obsRecord.version++;
         }
         newValue = sourceExpression.evaluate(flags, $scope!, this.$hostScope, locator, interceptor);
         if (shouldConnect) {
-          interceptor.unobserve(false);
+          obsRecord.clear(false);
         }
       }
 
-      // todo(fred): maybe let the obsrever decides whether it updates
-      if (newValue !== this.value) {
-        this.value = newValue;
-        if (shouldQueueFlush) {
-          // an optimization: only create & queue a task when there's NOT already a task queued
-          // inside the lambda, use this.value instead of result, since it would always be the latest value
-          this.task ??= this.taskQueue.queueTask(() => {
-            if (this.isBound) {
-              interceptor.updateTarget(this.value, flags);
-            }
-            this.task = null;
-          }, updateTaskOpts);
-        } else {
+      if (shouldQueueFlush) {
+        this.task?.cancel();
+        this.task = this.taskQueue.queueTask(() => {
           interceptor.updateTarget(newValue, flags);
-        }
+          this.task = null;
+        }, updateTaskOpts);
+      } else {
+        interceptor.updateTarget(newValue, flags);
       }
-
       return;
     }
 
@@ -170,7 +161,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
     const shouldConnect = ($mode & toView) > 0;
     if ($mode & toViewOrOneTime) {
       interceptor.updateTarget(
-        this.value = sourceExpression.evaluate(flags, scope, this.$hostScope, this.locator, shouldConnect ? interceptor : null),
+        sourceExpression.evaluate(flags, scope, this.$hostScope, this.locator, shouldConnect ? interceptor : null),
         flags,
       );
     }
@@ -196,9 +187,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
       this.sourceExpression.unbind(flags, this.$scope!, this.$hostScope, this.interceptor);
     }
 
-    this.$scope
-      = this.value
-      = void 0;
+    this.$scope = void 0;
     this.$hostScope = null;
 
     const targetObserver = this.targetObserver as IBindingTargetObserver;

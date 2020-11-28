@@ -14,10 +14,6 @@ export class RefBinding implements IBinding {
   public $scope?: Scope = void 0;
   public $hostScope: Scope | null = null;
 
-  public get value(): unknown {
-    return this.target;
-  }
-
   public constructor(
     public sourceExpression: IsBindingBehavior,
     public target: object,

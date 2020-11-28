@@ -20,7 +20,6 @@ export class LetBinding implements IPartialConnectableBinding {
   public $scope?: Scope = void 0;
   public $hostScope: Scope | null = null;
 
-  public value: unknown = void 0;
   public task: ITask | null = null;
 
   public target: (IObservable & IIndexable) | null = null;
@@ -44,9 +43,9 @@ export class LetBinding implements IPartialConnectableBinding {
       const target = this.target as IIndexable;
       const targetProperty = this.targetProperty as string;
       const previousValue: unknown = target[targetProperty];
-      this.version++;
-      const newValue: unknown = this.value = this.sourceExpression.evaluate(flags, this.$scope!, this.$hostScope, this.locator, this.interceptor);
-      this.interceptor.unobserve(false);
+      this.record.version++;
+      const newValue: unknown = this.sourceExpression.evaluate(flags, this.$scope!, this.$hostScope, this.locator, this.interceptor);
+      this.record.clear(false);
       if (newValue !== previousValue) {
         target[targetProperty] = newValue;
       }
@@ -74,7 +73,6 @@ export class LetBinding implements IPartialConnectableBinding {
     }
     // sourceExpression might have been changed during bind
     this.target[this.targetProperty]
-      = this.value
       = this.sourceExpression.evaluate(flags | LifecycleFlags.fromBind, scope, hostScope, this.locator, this.interceptor);
 
     // add isBound flag and remove isBinding flag
@@ -90,9 +88,7 @@ export class LetBinding implements IPartialConnectableBinding {
     if (sourceExpression.hasUnbind) {
       sourceExpression.unbind(flags, this.$scope!, this.$hostScope, this.interceptor);
     }
-    this.$scope
-      = this.value
-      = void 0;
+    this.$scope = void 0;
     this.$hostScope = null;
     this.interceptor.unobserve(true);
 

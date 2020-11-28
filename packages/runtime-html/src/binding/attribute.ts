@@ -63,7 +63,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
   public persistentFlags: LifecycleFlags = LifecycleFlags.none;
 
   public target: Element;
-  public value: unknown;
+  public value: unknown = void 0;
 
   public constructor(
     public sourceExpression: IsBindingBehavior | ForOfStatement,
@@ -135,9 +135,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
         this.value = newValue;
         if (shouldQueueFlush) {
           this.task ??= this.$platform.domWriteQueue.queueTask(() => {
-            if (this.isBound) {
-              interceptor.updateTarget(this.value, flags);
-            }
+            interceptor.updateTarget(this.value, flags);
             this.task = null;
           }, taskOptions);
         } else {
@@ -224,7 +222,10 @@ export class AttributeBinding implements IPartialConnectableBinding {
     if (this.sourceExpression.hasUnbind) {
       this.sourceExpression.unbind(flags, this.$scope, this.$hostScope, this.interceptor);
     }
-    this.$scope = null!;
+    this.$scope
+      = this.$hostScope
+      = null!;
+    this.value = void 0;
 
     const targetObserver = this.targetObserver as IBindingTargetObserver;
     const task = this.task;

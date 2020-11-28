@@ -92,7 +92,8 @@ export {
   IConnectableBinding,
   connectable,
   BindingMediator,
-  MediatedBinding
+  MediatedBinding,
+  BindingObserverRecord,
 } from './binding/connectable.js';
 export {
   IExpressionParser,

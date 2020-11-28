@@ -42,6 +42,9 @@ describe('benchmark', function () {
         await new PopulateHundred(page, measurement).run();
         await new ToggleDetails(page, measurement).run();
         await new ToggleLocale(page, measurement).run();
+        await new FirstNameSort(page, measurement).run();
+        await new LastNameSort(page, measurement).run();
+        await new DobSort(page, measurement).run();
         await new Filter(page, measurement).run();
         await new DeleteFirst(page, measurement).run();
         await new DeleteAll(page, measurement).run();
@@ -56,6 +59,9 @@ describe('benchmark', function () {
         await new PopulateThousand(page, measurement).run();
         await new ToggleDetails(page, measurement).run();
         await new ToggleLocale(page, measurement).run();
+        await new FirstNameSort(page, measurement).run();
+        await new LastNameSort(page, measurement).run();
+        await new DobSort(page, measurement).run();
         await new Filter(page, measurement).run();
         await new DeleteFirst(page, measurement).run();
         await new DeleteAll(page, measurement).run();
@@ -70,6 +76,9 @@ describe('benchmark', function () {
         await new PopulateTenThousand(page, measurement).run();
         await new ToggleDetails(page, measurement).run();
         await new ToggleLocale(page, measurement).run();
+        await new FirstNameSort(page, measurement).run();
+        await new LastNameSort(page, measurement).run();
+        await new DobSort(page, measurement).run();
         await new Filter(page, measurement).run();
         await new DeleteFirst(page, measurement).run();
         await new DeleteAll(page, measurement).run();
@@ -318,19 +327,20 @@ class Filter extends BaseActMeasureAssert {
 
   public async run() {
     const selector = 'div.grid>span:nth-child(6n+4)';
+    const page = this.page;
 
     // #region filter - employed
     let label = 'filter - employed';
     console.log(`starting ${label}`);
 
-    let previous = await this.page.$$(selector);
+    let previous = await page.$$(selector);
     const all = previous;
 
     await this.actAndMeasure(label, 'button#employed');
 
-    let current = await this.page.$$(selector);
+    let current = await page.$$(selector);
 
-    assert.strictEqual(current.length <= previous.length, true, `${label} - count`);
+    assert.strictEqual(current.length <= all.length, true, `${label} - count`);
     assert.strictEqual((await Promise.all(current.map((e) => e.textContent()))).every((t) => !!t), true, `${label} - content`);
     console.log(`finished ${label}`);
     // #endregion
@@ -343,9 +353,9 @@ class Filter extends BaseActMeasureAssert {
 
     await this.actAndMeasure(label, 'button#unemployed');
 
-    current = await this.page.$$(selector);
+    current = await page.$$(selector);
 
-    assert.notEqual(current.length, previous.length, `${label} - count`);
+    assert.notEqual(current.length <= all.length, `${label} - count`);
     assert.strictEqual((await Promise.all(current.map((e) => e.textContent()))).every((t) => !t), true, `${label} - content`);
     console.log(`finished ${label}`);
     // #endregion
@@ -358,7 +368,7 @@ class Filter extends BaseActMeasureAssert {
 
     await this.actAndMeasure(label, 'button#all');
 
-    current = await this.page.$$(selector);
+    current = await page.$$(selector);
 
     assert.notEqual(current.length >= previous.length, `${label} - count`);
     assert.deepStrictEqual(
@@ -376,5 +386,88 @@ class Filter extends BaseActMeasureAssert {
 
   protected async assert(_preState: undefined): Promise<void> {
     return undefined!;
+  }
+}
+
+class Sort extends BaseMultiStateActMeasureAssert<readonly ['asc', 'desc']> {
+  public stateNames = ['asc', 'desc'] as const;
+  public constructor(
+    label: string,
+    selector: string,
+    page: Page,
+    measurement: Record<string, number>,
+    public readonly colSelector: string,
+  ) {
+    super(label, selector, page, measurement);
+  }
+
+  protected getPreRunState(): Promise<(string | null)[]> {
+    return this.getColContent();
+  }
+
+  protected async assert(_preState: ElementHandle<SVGElement | HTMLElement>[]): Promise<void> {
+    const content = await this.getColContent();
+    let direction: number;
+    switch (this.currentState) {
+      case 'asc':
+        direction = 1;
+        break;
+      case 'desc':
+        direction = -1;
+        break;
+    }
+
+    const sorted = content.slice(0).sort((a, b) => direction * a!.localeCompare(b!));
+    assert.deepStrictEqual(content, sorted, `${this.label} ${this.currentState} - content`);
+  }
+
+  protected async getColContent() {
+    return Promise.all((await this.page.$$(this.colSelector)).map((i) => i.textContent()));
+  }
+}
+
+class FirstNameSort extends Sort {
+  public constructor(
+    page: Page,
+    measurement: Record<string, number>,
+  ) {
+    super('sort by firstName', 'div.grid>strong:nth-of-type(1)', page, measurement, 'div.grid>span:nth-child(6n+1)');
+  }
+}
+
+class LastNameSort extends Sort {
+  public constructor(
+    page: Page,
+    measurement: Record<string, number>,
+  ) {
+    super('sort by lastName', 'div.grid>strong:nth-of-type(2)', page, measurement, 'div.grid>span:nth-child(6n+2)');
+  }
+}
+
+class DobSort extends Sort {
+  public constructor(
+    page: Page,
+    measurement: Record<string, number>,
+  ) {
+    super('sort by dob', 'div.grid>strong:nth-of-type(3)', page, measurement, 'div.grid>span:nth-child(6n+3)');
+  }
+
+  protected async assert(_preState: ElementHandle<SVGElement | HTMLElement>[]): Promise<void> {
+    const content = (await this.getColContent()).map((dateStr) => {
+      const [mm, dd, yyyy] = dateStr!.split('/');
+      return new Date(Number(yyyy), Number(mm) - 1, Number(dd));
+    });
+    let direction: number;
+    switch (this.currentState) {
+      case 'asc':
+        direction = 1;
+        break;
+      case 'desc':
+        direction = -1;
+        break;
+    }
+
+    const sorted = content.slice(0).sort((a, b) => direction * (a.getTime() - b.getTime()));
+    assert.deepStrictEqual(content, sorted, `${this.label} ${this.currentState} - content`);
   }
 }

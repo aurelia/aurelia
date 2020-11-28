@@ -336,9 +336,6 @@ export {
   DataAttributeAccessor,
 } from './observation/data-attribute-accessor.js';
 export {
-  ElementPropertyAccessor,
-} from './observation/element-property-accessor.js';
-export {
   IEventDelegator,
   EventSubscriber,
   EventDelegator,

@@ -14,5 +14,3 @@ export class PropertyAccessor implements IAccessor {
     (obj as IObservable)[key] = value;
   }
 }
-
-export const propertyAccessor = new PropertyAccessor();

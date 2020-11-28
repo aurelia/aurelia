@@ -2324,13 +2324,13 @@ describe('BindingBehaviorExpression', function () {
 
   const connectVariations: (($1: $1, $2: $2, $3: $3) => /* connect */() => void)[] = [
     ([t1, flags], [t2, $kind], [t3, scope, hs, sut, mock, locator, binding, value, argValues]) => () => {
-      assert.strictEqual(binding.observerSlots, undefined, `binding.observerSlots`);
+      assert.strictEqual(binding.record.count, 0, `binding.record.count`);
 
       // act
       sut.evaluate(flags, scope, hs, locator, binding);
 
       // assert
-      assert.strictEqual(binding.observerSlots, 1, `binding.observerSlots`);
+      assert.strictEqual(binding.record.count, 1, `binding.record.count`);
 
       assert.strictEqual(mock.calls.length, 1, `mock.calls.length`);
 
@@ -2666,13 +2666,13 @@ describe('ValueConverterExpression', function () {
 
   const evaluateWithConnectVariations: (($1: $1, $2: $2, $3: $3) => /* connect */() => void)[] = [
     ([t1, flags], [t2, signals, signaler], [t3, scope, hs, sut, mock, locator, binding, value, argValues, methods]) => () => {
-      assert.strictEqual(binding.observerSlots, undefined, `binding.observerSlots`);
+      assert.strictEqual(binding.record.count, 0, `binding.observerSlots`);
 
       // act
       sut.evaluate(flags, scope, hs, locator, binding);
 
       // assert
-      assert.strictEqual(binding.observerSlots, 1 + argValues.length, `binding.observerSlots`);
+      assert.strictEqual(binding.record.count, 1 + argValues.length, `binding.observerSlots`);
 
       const hasToView = methods.includes('toView');
       assert.strictEqual(mock.calls.length, hasToView ? 2 : 0, `mock.calls.length`);

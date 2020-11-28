@@ -17,6 +17,7 @@ import {
 } from '@aurelia/runtime-html';
 
 import type { Scope } from '@aurelia/runtime-html';
+import { BindingObserverRecord } from '@aurelia/runtime';
 
 export class MockBinding implements IConnectableBinding {
   public interceptor: this = this;
@@ -26,8 +27,10 @@ export class MockBinding implements IConnectableBinding {
   public observerLocator!: IObserverLocator;
   public locator!: IServiceLocator;
   public $scope?: Scope | undefined;
+  public $hostScope!: Scope | null;
   public isBound!: boolean;
   public value: unknown;
+  public record!: BindingObserverRecord;
 
   public calls: [keyof MockBinding, ...any[]][] = [];
 

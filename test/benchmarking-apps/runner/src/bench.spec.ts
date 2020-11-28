@@ -35,10 +35,6 @@ describe('benchmark', function () {
         const measurement = measurements[`${browserType} - hundred`] = Object.create(null);
         const { page, browser } = await setup(browserType);
 
-        page.on('console', (message) => {
-          console.log(`console.log from browser:  ${message.text()}`);
-        });
-
         await new PopulateHundred(page, measurement).run();
         await new ToggleDetails(page, measurement).run();
         await new ToggleLocale(page, measurement).run();
@@ -46,6 +42,7 @@ describe('benchmark', function () {
         await new LastNameSort(page, measurement).run();
         await new DobSort(page, measurement).run();
         await new Filter(page, measurement).run();
+        await new SelectFirst(page, measurement).run();
         await new DeleteFirst(page, measurement).run();
         await new DeleteAll(page, measurement).run();
 
@@ -63,13 +60,14 @@ describe('benchmark', function () {
         await new LastNameSort(page, measurement).run();
         await new DobSort(page, measurement).run();
         await new Filter(page, measurement).run();
+        await new SelectFirst(page, measurement).run();
         await new DeleteFirst(page, measurement).run();
         await new DeleteAll(page, measurement).run();
 
         await browser.close();
       });
 
-      it.skip('ten-thousand', async function () {
+      it('ten-thousand', async function () {
         const measurement = measurements[`${browserType} - ten-thousand`] = Object.create(null);
         const { page, browser } = await setup(browserType);
 
@@ -80,6 +78,7 @@ describe('benchmark', function () {
         await new LastNameSort(page, measurement).run();
         await new DobSort(page, measurement).run();
         await new Filter(page, measurement).run();
+        await new SelectFirst(page, measurement).run();
         await new DeleteFirst(page, measurement).run();
         await new DeleteAll(page, measurement).run();
 
@@ -469,5 +468,44 @@ class DobSort extends Sort {
 
     const sorted = content.slice(0).sort((a, b) => direction * (a.getTime() - b.getTime()));
     assert.deepStrictEqual(content, sorted, `${this.label} ${this.currentState} - content`);
+  }
+}
+
+class SelectFirst extends BaseActMeasureAssert {
+  public constructor(
+    page: Page,
+    measurement: Record<string, number>,
+  ) {
+    super('select first', 'div.grid>span.selection-target', page, measurement);
+  }
+  protected async getPreRunState(): Promise<void> {
+    assert.deepStrictEqual(
+      await this.getInfo(),
+      [
+        ['false', 'rgba(0, 0, 0, 0)'],
+        ['rgba(0, 0, 0, 0)'],
+      ]
+    );
+  }
+
+  protected async assert(): Promise<void> {
+    assert.deepStrictEqual(
+      await this.getInfo(),
+      [
+        ['true', 'rgb(153, 153, 153)'],
+        ['rgb(153, 153, 153)'],
+      ]
+    );
+  }
+
+  private async getInfo() {
+    return this.page.evaluate(() => {
+      const cell1 = document.querySelector<HTMLSpanElement>('div.grid>span.selection-target')!;
+      const cell2 = cell1.nextElementSibling! as HTMLSpanElement;
+      return [
+        [cell1.dataset['selected'], getComputedStyle(cell1).backgroundColor],
+        [getComputedStyle(cell2).backgroundColor],
+      ] as const;
+    });
   }
 }

@@ -28,9 +28,9 @@ let LetBinding = class LetBinding {
             const target = this.target;
             const targetProperty = this.targetProperty;
             const previousValue = target[targetProperty];
-            this.version++;
+            this.record.version++;
             const newValue = this.sourceExpression.evaluate(flags, this.$scope, this.$hostScope, this.locator, this.interceptor);
-            this.interceptor.unobserve(false);
+            this.record.clear(false);
             if (newValue !== previousValue) {
                 target[targetProperty] = newValue;
             }
@@ -53,7 +53,8 @@ let LetBinding = class LetBinding {
             sourceExpression.bind(flags, scope, hostScope, this.interceptor);
         }
         // sourceExpression might have been changed during bind
-        this.target[this.targetProperty] = this.sourceExpression.evaluate(flags | 32 /* fromBind */, scope, hostScope, this.locator, this.interceptor);
+        this.target[this.targetProperty]
+            = this.sourceExpression.evaluate(flags | 32 /* fromBind */, scope, hostScope, this.locator, this.interceptor);
         // add isBound flag and remove isBinding flag
         this.isBound = true;
     }
@@ -66,6 +67,7 @@ let LetBinding = class LetBinding {
             sourceExpression.unbind(flags, this.$scope, this.$hostScope, this.interceptor);
         }
         this.$scope = void 0;
+        this.$hostScope = null;
         this.interceptor.unobserve(true);
         // remove isBound and isUnbinding flags
         this.isBound = false;

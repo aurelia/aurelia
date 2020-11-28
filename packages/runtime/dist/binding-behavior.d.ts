@@ -1,10 +1,10 @@
 import { ResourceType } from '@aurelia/kernel';
 import { LifecycleFlags } from './observation.js';
-import { IConnectableBinding } from './binding/connectable.js';
-import { BindingBehaviorExpression, IBindingBehaviorExpression } from './binding/ast.js';
 import type { Constructable, IContainer, ResourceDefinition, IResourceKind, PartialResourceDefinition, IServiceLocator } from '@aurelia/kernel';
+import type { IConnectableBinding } from './binding/connectable.js';
+import type { BindingBehaviorExpression, IBindingBehaviorExpression } from './binding/ast.js';
 import type { IObserverLocator } from './observation/observer-locator.js';
-import type { IBinding, ISubscribable } from './observation.js';
+import type { IBinding } from './observation.js';
 import type { Scope } from './observation/binding-context.js';
 export declare type PartialBindingBehaviorDefinition = PartialResourceDefinition<{
     strategy?: BindingBehaviorStrategy;
@@ -48,17 +48,12 @@ export declare class BindingBehaviorFactory<T extends Constructable = Constructa
     constructor(container: IContainer, Type: BindingBehaviorType<T>);
     construct(binding: IInterceptableBinding, expr: BindingBehaviorExpression): IInterceptableBinding;
 }
-export interface IInterceptableBinding extends IBinding {
-    id?: number;
-    readonly observerLocator?: IObserverLocator;
+export declare type IInterceptableBinding = Exclude<IConnectableBinding, 'updateTarget' | 'updateSource' | 'callSource' | 'handleChange'> & {
     updateTarget?(value: unknown, flags: LifecycleFlags): void;
     updateSource?(value: unknown, flags: LifecycleFlags): void;
     callSource?(args: object): unknown;
     handleChange?(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void;
-    observeProperty?(obj: object, propertyName: string): void;
-    addObserver?(observer: ISubscribable): void;
-    unobserve?(all?: boolean): void;
-}
+};
 export interface BindingInterceptor extends IConnectableBinding {
 }
 export declare class BindingInterceptor implements IInterceptableBinding {
@@ -69,6 +64,7 @@ export declare class BindingInterceptor implements IInterceptableBinding {
     get observerLocator(): IObserverLocator;
     get locator(): IServiceLocator;
     get $scope(): Scope | undefined;
+    get $hostScope(): Scope | null;
     get isBound(): boolean;
     constructor(binding: IInterceptableBinding, expr: IBindingBehaviorExpression);
     updateTarget(value: unknown, flags: LifecycleFlags): void;

@@ -11,5 +11,4 @@ export class PropertyAccessor {
         obj[key] = value;
     }
 }
-export const propertyAccessor = new PropertyAccessor();
 //# sourceMappingURL=property-accessor.js.map

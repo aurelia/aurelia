@@ -1,11 +1,4 @@
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
 import { Registration, Metadata, Protocol, mergeArrays, firstDefined, DI, fromAnnotationOrDefinitionOrTypeOrDefault, } from '@aurelia/kernel';
-import { connectable } from './binding/connectable.js';
 import { registerAliases } from './alias.js';
 export var BindingBehaviorStrategy;
 (function (BindingBehaviorStrategy) {
@@ -77,7 +70,7 @@ export class BindingBehaviorFactory {
         }
     }
 }
-let BindingInterceptor = class BindingInterceptor {
+export class BindingInterceptor {
     constructor(binding, expr) {
         this.binding = binding;
         this.expr = expr;
@@ -101,8 +94,15 @@ let BindingInterceptor = class BindingInterceptor {
     get $scope() {
         return this.binding.$scope;
     }
+    get $hostScope() {
+        return this.binding.$hostScope;
+    }
     get isBound() {
         return this.binding.isBound;
+    }
+    /** @internal */
+    get record() {
+        return this.binding.record;
     }
     updateTarget(value, flags) {
         this.binding.updateTarget(value, flags);
@@ -116,17 +116,31 @@ let BindingInterceptor = class BindingInterceptor {
     handleChange(newValue, previousValue, flags) {
         this.binding.handleChange(newValue, previousValue, flags);
     }
+    /**
+     * @internal
+     */
+    observeProperty(obj, key) {
+        this.binding.observeProperty(obj, key);
+    }
+    /**
+     * @internal
+     */
+    addObserver(observer) {
+        this.binding.addObserver(observer);
+    }
+    /**
+     * @internal
+     */
+    unobserve(all) {
+        this.binding.unobserve(all);
+    }
     $bind(flags, scope, hostScope) {
         this.binding.$bind(flags, scope, hostScope);
     }
     $unbind(flags) {
         this.binding.$unbind(flags);
     }
-};
-BindingInterceptor = __decorate([
-    connectable
-], BindingInterceptor);
-export { BindingInterceptor };
+}
 export const BindingBehavior = {
     name: Protocol.resource.keyFor('binding-behavior'),
     keyFrom(name) {

@@ -1,6 +1,8 @@
 import { AccessorOrObserver, CollectionKind, CollectionObserver, ILifecycle } from '../observation.js';
 import { IDirtyChecker } from './dirty-checker.js';
+import { PropertyAccessor } from './property-accessor.js';
 import type { Collection, IAccessor, IBindingTargetAccessor, IBindingTargetObserver, ICollectionObserver, IObserver } from '../observation.js';
+export declare const propertyAccessor: PropertyAccessor;
 export interface IObjectObservationAdapter {
     getObserver(object: unknown, propertyName: string, descriptor: PropertyDescriptor, requestor: IObserverLocator): IBindingTargetObserver | null;
 }

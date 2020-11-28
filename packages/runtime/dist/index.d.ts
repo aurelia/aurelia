@@ -12,7 +12,7 @@ export { alias, registerAliases, } from './alias.js';
 export { ExpressionKind, CallFunctionExpression, CustomExpression, BindingBehaviorExpression, ValueConverterExpression, AssignExpression, ConditionalExpression, AccessThisExpression, AccessScopeExpression, AccessMemberExpression, AccessKeyedExpression, CallScopeExpression, CallMemberExpression, BinaryExpression, UnaryExpression, PrimitiveLiteralExpression, HtmlLiteralExpression, ArrayLiteralExpression, ObjectLiteralExpression, TemplateExpression, TaggedTemplateExpression, ArrayBindingPattern, ObjectBindingPattern, BindingIdentifier, ForOfStatement, Interpolation, AnyBindingExpression, IsPrimary, IsLiteral, IsLeftHandSide, IsUnary, IsBinary, IsConditional, IsAssign, IsValueConverter, IsBindingBehavior, IsAssignable, IsExpression, IsExpressionOrStatement, IVisitor, BinaryOperator, BindingIdentifierOrPattern, UnaryOperator, IExpressionHydrator, } from './binding/ast.js';
 export { PropertyBinding } from './binding/property-binding.js';
 export { CallBinding } from './binding/call-binding.js';
-export { IPartialConnectableBinding, IConnectableBinding, connectable, BindingMediator, MediatedBinding } from './binding/connectable.js';
+export { IPartialConnectableBinding, IConnectableBinding, connectable, BindingMediator, MediatedBinding, BindingObserverRecord, } from './binding/connectable.js';
 export { IExpressionParser, BindingType, parseExpression, Char, Access, Precedence, parse, ParserState, } from './binding/expression-parser.js';
 export { ContentBinding, InterpolationBinding, } from './binding/interpolation-binding.js';
 export { LetBinding, } from './binding/let-binding.js';

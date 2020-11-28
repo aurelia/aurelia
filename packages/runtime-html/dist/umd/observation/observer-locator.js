@@ -13,7 +13,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "../platform.js", "./attribute-ns-accessor.js", "./checked-observer.js", "./class-attribute-accessor.js", "./data-attribute-accessor.js", "./element-property-accessor.js", "./event-delegator.js", "./select-value-observer.js", "./style-attribute-accessor.js", "./svg-analyzer.js", "./value-attribute-observer.js"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "../platform.js", "./attribute-ns-accessor.js", "./checked-observer.js", "./class-attribute-accessor.js", "./data-attribute-accessor.js", "./event-delegator.js", "./select-value-observer.js", "./style-attribute-accessor.js", "./svg-analyzer.js", "./value-attribute-observer.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -26,7 +26,6 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     const checked_observer_js_1 = require("./checked-observer.js");
     const class_attribute_accessor_js_1 = require("./class-attribute-accessor.js");
     const data_attribute_accessor_js_1 = require("./data-attribute-accessor.js");
-    const element_property_accessor_js_1 = require("./element-property-accessor.js");
     const event_delegator_js_1 = require("./event-delegator.js");
     const select_value_observer_js_1 = require("./select-value-observer.js");
     const style_attribute_accessor_js_1 = require("./style-attribute-accessor.js");
@@ -53,6 +52,12 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         'xmlns': ['xmlns', xmlnsNS],
         'xmlns:xlink': ['xlink', xmlnsNS],
     });
+    // in terms on get/set value
+    // there's no difference for a property accessor between a normal object, and a node
+    // only type needs to be differentiated, so that binding queue the set call
+    // doing it this way to avoid deopt in JS engines
+    const elementPropertyAccessor = new runtime_1.PropertyAccessor();
+    elementPropertyAccessor.type = 2 /* Node */ | 64 /* Layout */;
     class NodeObserverConfig {
         constructor(config) {
             var _a;
@@ -191,7 +196,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                     if (isDataAttribute(obj, key, this.svgAnalyzer)) {
                         return data_attribute_accessor_js_1.attrAccessor;
                     }
-                    return element_property_accessor_js_1.elementPropertyAccessor;
+                    return elementPropertyAccessor;
                 }
             }
         }

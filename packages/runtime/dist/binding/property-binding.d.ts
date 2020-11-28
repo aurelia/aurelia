@@ -16,7 +16,6 @@ export declare class PropertyBinding implements IPartialConnectableBinding {
     locator: IServiceLocator;
     private readonly taskQueue;
     interceptor: this;
-    id: number;
     isBound: boolean;
     $scope?: Scope;
     $hostScope: Scope | null;

@@ -41,14 +41,14 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     }
     function observeCollection(collection) {
         const obs = getCollectionObserver(this.observerLocator, collection);
-        this.observers.set(obs, this.version);
+        this.observers.set(obs, this.record.version);
         obs.subscribeToCollection(this);
     }
     function observeLength(collection) {
         getCollectionObserver(this.observerLocator, collection).getLengthObserver().subscribe(this);
     }
     function unobserveCollection(all) {
-        const version = this.version;
+        const version = this.record.version;
         const observers = this.observers;
         observers.forEach((v, o) => {
             if (all || v !== version) {
@@ -80,8 +80,10 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
             this.set = set;
             this.useProxy = useProxy;
             this.observerLocator = observerLocator;
+            this.interceptor = this;
             this.observers = new Map();
             this.type = 4 /* Obj */;
+            this.value = void 0;
             /**
              * @internal
              */
@@ -91,7 +93,6 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
              * @internal
              */
             this.running = false;
-            this.value = void 0;
             this.isDirty = false;
             connectable_js_1.connectable.assignIdTo(this);
         }
@@ -137,13 +138,13 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
         }
         handleChange() {
             this.isDirty = true;
-            if (this.observerSlots > 0) {
+            if (this.record.count > 0) {
                 this.run();
             }
         }
         handleCollectionChange() {
             this.isDirty = true;
-            if (this.observerSlots > 0) {
+            if (this.record.count > 0) {
                 this.run();
             }
         }
@@ -173,7 +174,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
         }
         compute() {
             this.running = true;
-            this.version++;
+            this.record.version++;
             try {
                 watcher_switcher_js_1.enterWatcher(this);
                 return this.value = proxy_observation_js_1.unwrap(this.get.call(this.useProxy ? proxy_observation_js_1.wrap(this.obj) : this.obj, this));
@@ -197,6 +198,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
             this.get = get;
             this.cb = cb;
             this.useProxy = useProxy;
+            this.interceptor = this;
             /**
              * @internal
              */
@@ -242,7 +244,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
         }
         compute() {
             this.running = true;
-            this.version++;
+            this.record.version++;
             try {
                 watcher_switcher_js_1.enterWatcher(this);
                 return this.value = proxy_observation_js_1.unwrap(this.get.call(void 0, this.useProxy ? proxy_observation_js_1.wrap(this.obj) : this.obj, this));
@@ -266,6 +268,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
             this.observerLocator = observerLocator;
             this.expression = expression;
             this.callback = callback;
+            this.interceptor = this;
             this.isBound = false;
             this.obj = scope.bindingContext;
             connectable_js_1.connectable.assignIdTo(this);
@@ -274,11 +277,11 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
             const expr = this.expression;
             const obj = this.obj;
             const oldValue = this.value;
-            const canOptimize = expr.$kind === 10082 /* AccessScope */ && this.observerSlots === 1;
+            const canOptimize = expr.$kind === 10082 /* AccessScope */ && this.record.count === 1;
             if (!canOptimize) {
-                this.version++;
+                this.record.version++;
                 value = expr.evaluate(0, this.scope, null, this.locator, this);
-                this.unobserve(false);
+                this.record.clear(false);
             }
             if (!Object.is(value, oldValue)) {
                 this.value = value;
@@ -291,9 +294,9 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
                 return;
             }
             this.isBound = true;
-            this.version++;
+            this.record.version++;
             this.value = this.expression.evaluate(0 /* none */, this.scope, null, this.locator, this);
-            this.unobserve(false);
+            this.record.clear(false);
         }
         $unbind() {
             if (!this.isBound) {

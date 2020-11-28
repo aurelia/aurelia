@@ -6,8 +6,8 @@ export function defineHiddenProp(obj, key, value) {
         value
     });
 }
-export function ensureProto(proto, key, defaultValue) {
-    if (!Object.prototype.hasOwnProperty.call(proto, key)) {
+export function ensureProto(proto, key, defaultValue, force = false) {
+    if (force || !Object.prototype.hasOwnProperty.call(proto, key)) {
         defineHiddenProp(proto, key, defaultValue);
     }
 }

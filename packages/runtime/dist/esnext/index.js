@@ -15,7 +15,7 @@ export { alias, registerAliases, } from './alias.js';
 export { ExpressionKind, CallFunctionExpression, CustomExpression, BindingBehaviorExpression, ValueConverterExpression, AssignExpression, ConditionalExpression, AccessThisExpression, AccessScopeExpression, AccessMemberExpression, AccessKeyedExpression, CallScopeExpression, CallMemberExpression, BinaryExpression, UnaryExpression, PrimitiveLiteralExpression, HtmlLiteralExpression, ArrayLiteralExpression, ObjectLiteralExpression, TemplateExpression, TaggedTemplateExpression, ArrayBindingPattern, ObjectBindingPattern, BindingIdentifier, ForOfStatement, Interpolation, } from './binding/ast.js';
 export { PropertyBinding } from './binding/property-binding.js';
 export { CallBinding } from './binding/call-binding.js';
-export { connectable, BindingMediator } from './binding/connectable.js';
+export { connectable, BindingMediator, BindingObserverRecord, } from './binding/connectable.js';
 export { IExpressionParser, BindingType, parseExpression, Char, Access, Precedence, parse, ParserState, } from './binding/expression-parser.js';
 export { ContentBinding, InterpolationBinding, } from './binding/interpolation-binding.js';
 export { LetBinding, } from './binding/let-binding.js';

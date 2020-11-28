@@ -1,23 +1,16 @@
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
 (function (factory) {
     if (typeof module === "object" && typeof module.exports === "object") {
         var v = factory(require, exports);
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "./binding/connectable.js", "./alias.js"], factory);
+        define(["require", "exports", "@aurelia/kernel", "./alias.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.BindingBehavior = exports.BindingInterceptor = exports.BindingBehaviorFactory = exports.BindingBehaviorDefinition = exports.bindingBehavior = exports.BindingBehaviorStrategy = void 0;
     const kernel_1 = require("@aurelia/kernel");
-    const connectable_js_1 = require("./binding/connectable.js");
     const alias_js_1 = require("./alias.js");
     var BindingBehaviorStrategy;
     (function (BindingBehaviorStrategy) {
@@ -92,7 +85,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
         }
     }
     exports.BindingBehaviorFactory = BindingBehaviorFactory;
-    let BindingInterceptor = class BindingInterceptor {
+    class BindingInterceptor {
         constructor(binding, expr) {
             this.binding = binding;
             this.expr = expr;
@@ -116,8 +109,15 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
         get $scope() {
             return this.binding.$scope;
         }
+        get $hostScope() {
+            return this.binding.$hostScope;
+        }
         get isBound() {
             return this.binding.isBound;
+        }
+        /** @internal */
+        get record() {
+            return this.binding.record;
         }
         updateTarget(value, flags) {
             this.binding.updateTarget(value, flags);
@@ -131,16 +131,31 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
         handleChange(newValue, previousValue, flags) {
             this.binding.handleChange(newValue, previousValue, flags);
         }
+        /**
+         * @internal
+         */
+        observeProperty(obj, key) {
+            this.binding.observeProperty(obj, key);
+        }
+        /**
+         * @internal
+         */
+        addObserver(observer) {
+            this.binding.addObserver(observer);
+        }
+        /**
+         * @internal
+         */
+        unobserve(all) {
+            this.binding.unobserve(all);
+        }
         $bind(flags, scope, hostScope) {
             this.binding.$bind(flags, scope, hostScope);
         }
         $unbind(flags) {
             this.binding.$unbind(flags);
         }
-    };
-    BindingInterceptor = __decorate([
-        connectable_js_1.connectable
-    ], BindingInterceptor);
+    }
     exports.BindingInterceptor = BindingInterceptor;
     exports.BindingBehavior = {
         name: kernel_1.Protocol.resource.keyFor('binding-behavior'),

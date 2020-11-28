@@ -9,7 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.BindingMediator = exports.connectable = exports.unobserve = exports.observeProperty = exports.addObserver = void 0;
+    exports.BindingMediator = exports.connectable = exports.BindingObserverRecord = exports.getRecord = exports.unobserve = exports.observeProperty = exports.addObserver = void 0;
     const utilities_objects_js_1 = require("../utilities-objects.js");
     // TODO: add connect-queue (or something similar) back in when everything else is working, to improve startup time
     const slotNames = [];
@@ -20,39 +20,15 @@
             lastSlot += 5;
             const ii = slotNames.length = versionSlotNames.length = lastSlot + 1;
             for (let i = currentSlot + 1; i < ii; ++i) {
-                slotNames[i] = `_observer${i}`;
-                versionSlotNames[i] = `_observerVersion${i}`;
+                slotNames[i] = `_o${i}`;
+                versionSlotNames[i] = `_v${i}`;
             }
         }
     }
     ensureEnoughSlotNames(-1);
     /** @internal */
     function addObserver(observer) {
-        // find the observer.
-        const observerSlots = this.observerSlots == null ? 0 : this.observerSlots;
-        let i = observerSlots;
-        while (i-- && this[slotNames[i]] !== observer)
-            ;
-        // if we are not already observing, put the observer in an open slot and subscribe.
-        if (i === -1) {
-            i = 0;
-            while (this[slotNames[i]]) {
-                i++;
-            }
-            this[slotNames[i]] = observer;
-            observer.subscribe(this);
-            observer[this.id] |= 8 /* updateTarget */;
-            // increment the slot count.
-            if (i === observerSlots) {
-                this.observerSlots = i + 1;
-            }
-        }
-        // set the "version" when the observer was used.
-        if (this.version == null) {
-            this.version = 0;
-        }
-        this[versionSlotNames[i]] = this.version;
-        ensureEnoughSlotNames(i);
+        this.record.add(observer);
     }
     exports.addObserver = addObserver;
     /** @internal */
@@ -70,44 +46,90 @@
     exports.observeProperty = observeProperty;
     /** @internal */
     function unobserve(all) {
-        const slots = this.observerSlots;
-        let slotName;
-        let observer;
-        if (all === true) {
-            for (let i = 0; i < slots; ++i) {
-                slotName = slotNames[i];
-                observer = this[slotName];
-                if (observer != null) {
-                    this[slotName] = void 0;
-                    observer.unsubscribe(this);
-                    observer[this.id] &= ~8 /* updateTarget */;
+        this.record.clear(all);
+    }
+    exports.unobserve = unobserve;
+    function getRecord() {
+        const record = new BindingObserverRecord(this);
+        utilities_objects_js_1.defineHiddenProp(this, 'record', record);
+        return record;
+    }
+    exports.getRecord = getRecord;
+    class BindingObserverRecord {
+        constructor(binding) {
+            this.binding = binding;
+            this.version = 0;
+            this.count = 0;
+            connectable.assignIdTo(this);
+        }
+        handleChange(value, oldValue, flags) {
+            return this.binding.interceptor.handleChange(value, oldValue, flags);
+        }
+        add(observer) {
+            // find the observer.
+            const observerSlots = this.count == null ? 0 : this.count;
+            let i = observerSlots;
+            while (i-- && this[slotNames[i]] !== observer)
+                ;
+            // if we are not already observing, put the observer in an open slot and subscribe.
+            if (i === -1) {
+                i = 0;
+                while (this[slotNames[i]]) {
+                    i++;
+                }
+                this[slotNames[i]] = observer;
+                observer.subscribe(this);
+                observer[this.id] |= 8 /* updateTarget */;
+                // increment the slot count.
+                if (i === observerSlots) {
+                    this.count = i + 1;
                 }
             }
-            this.observerSlots = 0;
+            this[versionSlotNames[i]] = this.version;
+            ensureEnoughSlotNames(i);
         }
-        else {
-            const version = this.version;
-            for (let i = 0; i < slots; ++i) {
-                if (this[versionSlotNames[i]] !== version) {
+        clear(all) {
+            const slotCount = this.count;
+            let slotName;
+            let observer;
+            if (all === true) {
+                for (let i = 0; i < slotCount; ++i) {
                     slotName = slotNames[i];
                     observer = this[slotName];
                     if (observer != null) {
                         this[slotName] = void 0;
                         observer.unsubscribe(this);
                         observer[this.id] &= ~8 /* updateTarget */;
-                        this.observerSlots--;
+                    }
+                }
+                this.count = 0;
+            }
+            else {
+                for (let i = 0; i < slotCount; ++i) {
+                    if (this[versionSlotNames[i]] !== this.version) {
+                        slotName = slotNames[i];
+                        observer = this[slotName];
+                        if (observer != null) {
+                            this[slotName] = void 0;
+                            observer.unsubscribe(this);
+                            observer[this.id] &= ~8 /* updateTarget */;
+                            this.count--;
+                        }
                     }
                 }
             }
         }
     }
-    exports.unobserve = unobserve;
+    exports.BindingObserverRecord = BindingObserverRecord;
     function connectableDecorator(target) {
         const proto = target.prototype;
-        utilities_objects_js_1.ensureProto(proto, 'version', 0);
-        utilities_objects_js_1.ensureProto(proto, 'observeProperty', observeProperty);
-        utilities_objects_js_1.ensureProto(proto, 'unobserve', unobserve);
-        utilities_objects_js_1.ensureProto(proto, 'addObserver', addObserver);
+        utilities_objects_js_1.ensureProto(proto, 'observeProperty', observeProperty, true);
+        utilities_objects_js_1.ensureProto(proto, 'unobserve', unobserve, true);
+        utilities_objects_js_1.ensureProto(proto, 'addObserver', addObserver, true);
+        Reflect.defineProperty(proto, 'record', {
+            configurable: true,
+            get: getRecord,
+        });
         return target;
     }
     function connectable(target) {
@@ -125,6 +147,7 @@
             this.binding = binding;
             this.observerLocator = observerLocator;
             this.locator = locator;
+            this.interceptor = this;
             connectable.assignIdTo(this);
         }
         $bind(flags, scope, hostScope, projection) {
@@ -138,10 +161,6 @@
         }
     }
     exports.BindingMediator = BindingMediator;
-    (proto => {
-        utilities_objects_js_1.ensureProto(proto, 'observeProperty', observeProperty);
-        utilities_objects_js_1.ensureProto(proto, 'unobserve', unobserve);
-        utilities_objects_js_1.ensureProto(proto, 'addObserver', addObserver);
-    })(BindingMediator.prototype);
+    connectableDecorator(BindingMediator);
 });
 //# sourceMappingURL=connectable.js.map

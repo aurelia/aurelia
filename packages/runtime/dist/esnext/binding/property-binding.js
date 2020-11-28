@@ -57,33 +57,28 @@ let PropertyBinding = class PropertyBinding {
             //  (1). determine whether this should be the behavior
             //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start()
             const shouldQueueFlush = (flags & 32 /* fromBind */) === 0 && (targetObserver.type & 64 /* Layout */) > 0;
-            const oldValue = targetObserver.getValue(this.target, this.targetProperty);
+            const obsRecord = this.record;
             // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
-            if (sourceExpression.$kind !== 10082 /* AccessScope */ || this.observerSlots > 1) {
+            if (sourceExpression.$kind !== 10082 /* AccessScope */ || obsRecord.count > 1) {
                 // todo: in VC expressions, from view also requires connect
                 const shouldConnect = this.mode > oneTime;
                 if (shouldConnect) {
-                    this.version++;
+                    obsRecord.version++;
                 }
                 newValue = sourceExpression.evaluate(flags, $scope, this.$hostScope, locator, interceptor);
                 if (shouldConnect) {
-                    interceptor.unobserve(false);
+                    obsRecord.clear(false);
                 }
             }
-            // todo(fred): maybe let the obsrever decides whether it updates
-            if (newValue !== oldValue) {
-                if (shouldQueueFlush) {
-                    (_a = this.task) === null || _a === void 0 ? void 0 : _a.cancel();
-                    this.task = this.taskQueue.queueTask(() => {
-                        if (this.isBound) {
-                            interceptor.updateTarget(newValue, flags);
-                        }
-                        this.task = null;
-                    }, updateTaskOpts);
-                }
-                else {
+            if (shouldQueueFlush) {
+                (_a = this.task) === null || _a === void 0 ? void 0 : _a.cancel();
+                this.task = this.taskQueue.queueTask(() => {
                     interceptor.updateTarget(newValue, flags);
-                }
+                    this.task = null;
+                }, updateTaskOpts);
+            }
+            else {
+                interceptor.updateTarget(newValue, flags);
             }
             return;
         }
@@ -155,6 +150,7 @@ let PropertyBinding = class PropertyBinding {
             this.sourceExpression.unbind(flags, this.$scope, this.$hostScope, this.interceptor);
         }
         this.$scope = void 0;
+        this.$hostScope = null;
         const targetObserver = this.targetObserver;
         const task = this.task;
         if (targetObserver.unbind) {
@@ -168,7 +164,7 @@ let PropertyBinding = class PropertyBinding {
             task.cancel();
             this.task = null;
         }
-        this.interceptor.unobserve(true);
+        this.record.clear(true);
         this.isBound = false;
     }
 };

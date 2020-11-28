@@ -76,11 +76,11 @@ let TranslationBinding = TranslationBinding_1 = class TranslationBinding {
         this.unobserve(true);
     }
     handleChange(newValue, _previousValue, flags) {
-        this.version++;
+        this.record.version++;
         this.keyExpression = this.isInterpolation
             ? this.expr.evaluate(flags, this.scope, this.hostScope, this.locator, this)
             : newValue;
-        this.unobserve(false);
+        this.record.clear(false);
         this.ensureKeyExpression();
         this.updateTranslations(flags);
     }
@@ -207,6 +207,7 @@ let ParameterBinding = class ParameterBinding {
         this.owner = owner;
         this.expr = expr;
         this.updater = updater;
+        this.interceptor = this;
         this.isBound = false;
         this.hostScope = null;
         this.observerLocator = owner.observerLocator;
@@ -217,9 +218,9 @@ let ParameterBinding = class ParameterBinding {
         if ((flags & 8 /* updateTarget */) === 0) {
             throw new Error('Unexpected context in a ParameterBinding.');
         }
-        this.version++;
+        this.record.version++;
         this.value = this.expr.evaluate(flags, this.scope, this.hostScope, this.locator, this);
-        this.unobserve(false);
+        this.record.clear(false);
         this.updater(flags);
     }
     $bind(flags, scope, hostScope) {

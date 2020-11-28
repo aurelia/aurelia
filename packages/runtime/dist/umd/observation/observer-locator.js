@@ -18,7 +18,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.getCollectionObserver = exports.ObserverLocator = exports.INodeObserverLocator = exports.IObserverLocator = void 0;
+    exports.getCollectionObserver = exports.ObserverLocator = exports.INodeObserverLocator = exports.IObserverLocator = exports.propertyAccessor = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const observation_js_1 = require("../observation.js");
     const array_observer_js_1 = require("./array-observer.js");
@@ -29,6 +29,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     const property_accessor_js_1 = require("./property-accessor.js");
     const set_observer_js_1 = require("./set-observer.js");
     const setter_observer_js_1 = require("./setter-observer.js");
+    exports.propertyAccessor = new property_accessor_js_1.PropertyAccessor();
     exports.IObserverLocator = kernel_1.DI.createInterface('IObserverLocator').withDefault(x => x.singleton(ObserverLocator));
     exports.INodeObserverLocator = kernel_1.DI
         .createInterface('INodeObserverLocator')
@@ -43,10 +44,10 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             return false;
         }
         getObserver() {
-            return property_accessor_js_1.propertyAccessor;
+            return exports.propertyAccessor;
         }
         getAccessor() {
-            return property_accessor_js_1.propertyAccessor;
+            return exports.propertyAccessor;
         }
     }
     let ObserverLocator = class ObserverLocator {
@@ -72,7 +73,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             if (this.nodeObserverLocator.handles(obj, key, this)) {
                 return this.nodeObserverLocator.getAccessor(obj, key, this);
             }
-            return property_accessor_js_1.propertyAccessor;
+            return exports.propertyAccessor;
         }
         getArrayObserver(observedArray) {
             return array_observer_js_1.getArrayObserver(observedArray, this.lifecycle);

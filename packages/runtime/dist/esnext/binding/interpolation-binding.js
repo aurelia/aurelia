@@ -29,6 +29,8 @@ export class InterpolationBinding {
         this.interceptor = this;
         this.isBound = false;
         this.$scope = void 0;
+        this.$hostScope = null;
+        this.value = '';
         this.task = null;
         this.targetObserver = observerLocator.getAccessor(target, targetProperty);
         const expressions = interpolation.expressions;
@@ -52,6 +54,7 @@ export class InterpolationBinding {
                 result += partBindings[i].value + staticParts[i + 1];
             }
         }
+        this.value = result;
         const targetObserver = this.targetObserver;
         // Alpha: during bind a simple strategy for bind is always flush immediately
         // todo:
@@ -59,11 +62,12 @@ export class InterpolationBinding {
         //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start().wait()
         const shouldQueueFlush = (flags & 32 /* fromBind */) === 0 && (targetObserver.type & 64 /* Layout */) > 0;
         if (shouldQueueFlush) {
-            (_a = this.task) === null || _a === void 0 ? void 0 : _a.cancel();
-            this.task = this.taskQueue.queueTask(() => {
-                targetObserver.setValue(result, flags, this.target, this.targetProperty);
+            // an optimization: only create & queue a task when there's NOT already a task queued
+            // inside the lambda, use this.value instead of result, since it would always be the latest value
+            (_a = this.task) !== null && _a !== void 0 ? _a : (this.task = this.taskQueue.queueTask(() => {
+                targetObserver.setValue(this.value, flags, this.target, this.targetProperty);
                 this.task = null;
-            }, queueTaskOptions);
+            }, queueTaskOptions));
         }
         else {
             targetObserver.setValue(result, flags, this.target, this.targetProperty);
@@ -124,15 +128,16 @@ let ContentBinding = class ContentBinding {
             return;
         }
         const sourceExpression = this.sourceExpression;
-        const canOptimize = sourceExpression.$kind === 10082 /* AccessScope */ && this.observerSlots > 1;
+        const obsRecord = this.record;
+        const canOptimize = sourceExpression.$kind === 10082 /* AccessScope */ && obsRecord.count === 1;
         if (!canOptimize) {
             const shouldConnect = (this.mode & toView) > 0;
             if (shouldConnect) {
-                this.version++;
+                obsRecord.version++;
             }
             newValue = sourceExpression.evaluate(flags, this.$scope, this.$hostScope, this.locator, shouldConnect ? this.interceptor : null);
             if (shouldConnect) {
-                this.interceptor.unobserve(false);
+                obsRecord.clear(false);
             }
         }
         if (newValue != this.value) {

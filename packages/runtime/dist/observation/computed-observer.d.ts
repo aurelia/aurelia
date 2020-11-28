@@ -21,10 +21,11 @@ export declare class ComputedObserver implements IWatcherImpl, IConnectableBindi
     readonly set: undefined | ((v: unknown) => void);
     readonly useProxy: boolean;
     readonly observerLocator: IObserverLocator;
+    interceptor: this;
     static create(obj: object, key: PropertyKey, descriptor: PropertyDescriptor, observerLocator: IObserverLocator, useProxy: boolean): ComputedObserver;
     observers: Map<ICollectionObserver<CollectionKind>, number>;
     type: AccessorType;
-    private value;
+    value: unknown;
     private isDirty;
     constructor(obj: object, get: (watcher: IWatcher) => unknown, set: undefined | ((v: unknown) => void), useProxy: boolean, observerLocator: IObserverLocator);
     getValue(): unknown;
@@ -44,8 +45,9 @@ export declare class ComputedWatcher implements IWatcher {
     readonly get: (obj: object, watcher: IWatcher) => unknown;
     private readonly cb;
     readonly useProxy: boolean;
+    interceptor: this;
     private running;
-    private value;
+    value: unknown;
     isBound: boolean;
     constructor(obj: IObservable, observerLocator: IObserverLocator, get: (obj: object, watcher: IWatcher) => unknown, cb: IWatcherCallback<object>, useProxy: boolean);
     handleChange(): void;
@@ -61,6 +63,8 @@ export declare class ExpressionWatcher implements IConnectableBinding {
     observerLocator: IObserverLocator;
     private readonly expression;
     private readonly callback;
+    interceptor: this;
+    value: unknown;
     isBound: boolean;
     constructor(scope: Scope, locator: IServiceLocator, observerLocator: IObserverLocator, expression: IsBindingBehavior, callback: IWatcherCallback<object>);
     handleChange(value: unknown): void;

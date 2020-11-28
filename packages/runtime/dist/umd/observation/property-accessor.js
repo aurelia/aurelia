@@ -9,7 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.propertyAccessor = exports.PropertyAccessor = void 0;
+    exports.PropertyAccessor = void 0;
     class PropertyAccessor {
         constructor() {
             // the only thing can be guaranteed is it's an object
@@ -24,6 +24,5 @@
         }
     }
     exports.PropertyAccessor = PropertyAccessor;
-    exports.propertyAccessor = new PropertyAccessor();
 });
 //# sourceMappingURL=property-accessor.js.map

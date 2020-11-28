@@ -16,6 +16,8 @@ export declare class InterpolationBinding implements IBinding {
     interceptor: this;
     isBound: boolean;
     $scope?: Scope;
+    $hostScope: Scope | null;
+    value: unknown;
     partBindings: ContentBinding[];
     private readonly targetObserver;
     private task;
@@ -36,7 +38,6 @@ export declare class ContentBinding implements ContentBinding, ICollectionSubscr
     interceptor: this;
     readonly mode: BindingMode;
     value: unknown;
-    id: number;
     $scope?: Scope;
     $hostScope: Scope | null;
     task: ITask | null;

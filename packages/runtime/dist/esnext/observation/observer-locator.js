@@ -14,9 +14,10 @@ import { ComputedObserver } from './computed-observer.js';
 import { IDirtyChecker } from './dirty-checker.js';
 import { getMapObserver } from './map-observer.js';
 import { PrimitiveObserver } from './primitive-observer.js';
-import { propertyAccessor } from './property-accessor.js';
+import { PropertyAccessor } from './property-accessor.js';
 import { getSetObserver } from './set-observer.js';
 import { SetterObserver } from './setter-observer.js';
+export const propertyAccessor = new PropertyAccessor();
 export const IObserverLocator = DI.createInterface('IObserverLocator').withDefault(x => x.singleton(ObserverLocator));
 export const INodeObserverLocator = DI
     .createInterface('INodeObserverLocator')

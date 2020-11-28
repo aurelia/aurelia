@@ -29,14 +29,14 @@ function observe(obj, key) {
 }
 function observeCollection(collection) {
     const obs = getCollectionObserver(this.observerLocator, collection);
-    this.observers.set(obs, this.version);
+    this.observers.set(obs, this.record.version);
     obs.subscribeToCollection(this);
 }
 function observeLength(collection) {
     getCollectionObserver(this.observerLocator, collection).getLengthObserver().subscribe(this);
 }
 function unobserveCollection(all) {
-    const version = this.version;
+    const version = this.record.version;
     const observers = this.observers;
     observers.forEach((v, o) => {
         if (all || v !== version) {
@@ -68,8 +68,10 @@ let ComputedObserver = ComputedObserver_1 = class ComputedObserver {
         this.set = set;
         this.useProxy = useProxy;
         this.observerLocator = observerLocator;
+        this.interceptor = this;
         this.observers = new Map();
         this.type = 4 /* Obj */;
+        this.value = void 0;
         /**
          * @internal
          */
@@ -79,7 +81,6 @@ let ComputedObserver = ComputedObserver_1 = class ComputedObserver {
          * @internal
          */
         this.running = false;
-        this.value = void 0;
         this.isDirty = false;
         connectable.assignIdTo(this);
     }
@@ -125,13 +126,13 @@ let ComputedObserver = ComputedObserver_1 = class ComputedObserver {
     }
     handleChange() {
         this.isDirty = true;
-        if (this.observerSlots > 0) {
+        if (this.record.count > 0) {
             this.run();
         }
     }
     handleCollectionChange() {
         this.isDirty = true;
-        if (this.observerSlots > 0) {
+        if (this.record.count > 0) {
             this.run();
         }
     }
@@ -161,7 +162,7 @@ let ComputedObserver = ComputedObserver_1 = class ComputedObserver {
     }
     compute() {
         this.running = true;
-        this.version++;
+        this.record.version++;
         try {
             enterWatcher(this);
             return this.value = unwrap(this.get.call(this.useProxy ? wrap(this.obj) : this.obj, this));
@@ -185,6 +186,7 @@ let ComputedWatcher = class ComputedWatcher {
         this.get = get;
         this.cb = cb;
         this.useProxy = useProxy;
+        this.interceptor = this;
         /**
          * @internal
          */
@@ -230,7 +232,7 @@ let ComputedWatcher = class ComputedWatcher {
     }
     compute() {
         this.running = true;
-        this.version++;
+        this.record.version++;
         try {
             enterWatcher(this);
             return this.value = unwrap(this.get.call(void 0, this.useProxy ? wrap(this.obj) : this.obj, this));
@@ -254,6 +256,7 @@ let ExpressionWatcher = class ExpressionWatcher {
         this.observerLocator = observerLocator;
         this.expression = expression;
         this.callback = callback;
+        this.interceptor = this;
         this.isBound = false;
         this.obj = scope.bindingContext;
         connectable.assignIdTo(this);
@@ -262,11 +265,11 @@ let ExpressionWatcher = class ExpressionWatcher {
         const expr = this.expression;
         const obj = this.obj;
         const oldValue = this.value;
-        const canOptimize = expr.$kind === 10082 /* AccessScope */ && this.observerSlots === 1;
+        const canOptimize = expr.$kind === 10082 /* AccessScope */ && this.record.count === 1;
         if (!canOptimize) {
-            this.version++;
+            this.record.version++;
             value = expr.evaluate(0, this.scope, null, this.locator, this);
-            this.unobserve(false);
+            this.record.clear(false);
         }
         if (!Object.is(value, oldValue)) {
             this.value = value;
@@ -279,9 +282,9 @@ let ExpressionWatcher = class ExpressionWatcher {
             return;
         }
         this.isBound = true;
-        this.version++;
+        this.record.version++;
         this.value = this.expression.evaluate(0 /* none */, this.scope, null, this.locator, this);
-        this.unobserve(false);
+        this.record.clear(false);
     }
     $unbind() {
         if (!this.isBound) {

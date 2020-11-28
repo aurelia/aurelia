@@ -16,7 +16,6 @@ export { AttributeNSAccessor, } from './observation/attribute-ns-accessor.js';
 export { CheckedObserver, } from './observation/checked-observer.js';
 export { ClassAttributeAccessor, } from './observation/class-attribute-accessor.js';
 export { DataAttributeAccessor, } from './observation/data-attribute-accessor.js';
-export { ElementPropertyAccessor, } from './observation/element-property-accessor.js';
 export { IEventDelegator, EventSubscriber, EventDelegator, } from './observation/event-delegator.js';
 export { NodeObserverConfig, NodeObserverLocator, } from './observation/observer-locator.js';
 export { SelectValueObserver } from './observation/select-value-observer.js';

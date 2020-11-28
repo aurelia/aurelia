@@ -8,13 +8,12 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 import { emptyObject, IServiceLocator, Registration } from '@aurelia/kernel';
-import { IDirtyChecker, INodeObserverLocator, SetterObserver, } from '@aurelia/runtime';
+import { IDirtyChecker, INodeObserverLocator, PropertyAccessor, SetterObserver, } from '@aurelia/runtime';
 import { IPlatform } from '../platform.js';
 import { AttributeNSAccessor } from './attribute-ns-accessor.js';
 import { CheckedObserver } from './checked-observer.js';
 import { ClassAttributeAccessor } from './class-attribute-accessor.js';
 import { attrAccessor } from './data-attribute-accessor.js';
-import { elementPropertyAccessor } from './element-property-accessor.js';
 import { EventSubscriber } from './event-delegator.js';
 import { SelectValueObserver } from './select-value-observer.js';
 import { StyleAttributeAccessor } from './style-attribute-accessor.js';
@@ -41,6 +40,12 @@ const nsAttributes = Object.assign(createLookup(), {
     'xmlns': ['xmlns', xmlnsNS],
     'xmlns:xlink': ['xlink', xmlnsNS],
 });
+// in terms on get/set value
+// there's no difference for a property accessor between a normal object, and a node
+// only type needs to be differentiated, so that binding queue the set call
+// doing it this way to avoid deopt in JS engines
+const elementPropertyAccessor = new PropertyAccessor();
+elementPropertyAccessor.type = 2 /* Node */ | 64 /* Layout */;
 export class NodeObserverConfig {
     constructor(config) {
         var _a;

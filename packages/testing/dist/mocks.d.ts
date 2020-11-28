@@ -1,6 +1,7 @@
 import { IContainer, IDisposable, IIndexable, IServiceLocator } from '@aurelia/kernel';
 import { ExpressionKind, IBinding, IConnectableBinding, IndexMap, IObserverLocator, ISignaler, ISubscribable, LifecycleFlags } from '@aurelia/runtime-html';
 import type { Scope } from '@aurelia/runtime-html';
+import { BindingObserverRecord } from '@aurelia/runtime';
 export declare class MockBinding implements IConnectableBinding {
     interceptor: this;
     id: number;
@@ -9,7 +10,10 @@ export declare class MockBinding implements IConnectableBinding {
     observerLocator: IObserverLocator;
     locator: IServiceLocator;
     $scope?: Scope | undefined;
+    $hostScope: Scope | null;
     isBound: boolean;
+    value: unknown;
+    record: BindingObserverRecord;
     calls: [keyof MockBinding, ...any[]][];
     updateTarget(value: unknown, flags: LifecycleFlags): void;
     updateSource(value: unknown, flags: LifecycleFlags): void;

@@ -150,7 +150,7 @@ export type IInterceptableBinding = Exclude<IConnectableBinding, 'updateTarget' 
 
   callSource?(args: object): unknown;
   handleChange?(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void;
-}
+};
 
 export interface BindingInterceptor extends IConnectableBinding {}
 

@@ -50,32 +50,6 @@ export function addObserver(
   observer: ISubscribable & { [id: number]: number }
 ): void {
   this.record.add(observer);
-  // // find the observer.
-  // const observerSlots = this.observerSlots == null ? 0 : this.observerSlots;
-  // let i = observerSlots;
-
-  // while (i-- && this[slotNames[i]] !== observer);
-
-  // // if we are not already observing, put the observer in an open slot and subscribe.
-  // if (i === -1) {
-  //   i = 0;
-  //   while (this[slotNames[i]]) {
-  //     i++;
-  //   }
-  //   this[slotNames[i]] = observer;
-  //   observer.subscribe(this);
-  //   observer[this.id] |= LifecycleFlags.updateTarget;
-  //   // increment the slot count.
-  //   if (i === observerSlots) {
-  //     this.observerSlots = i + 1;
-  //   }
-  // }
-  // // set the "version" when the observer was used.
-  // if (this.version == null) {
-  //   this.version = 0;
-  // }
-  // this[versionSlotNames[i]] = this.version;
-  // ensureEnoughSlotNames(i);
 }
 
 /** @internal */
@@ -94,35 +68,6 @@ export function observeProperty(this: IConnectableBinding, obj: object, property
 /** @internal */
 export function unobserve(this: IConnectableBinding & { [key: string]: unknown }, all?: boolean): void {
   this.record.clear(all);
-  // const slots = this.observerSlots;
-  // let slotName: string;
-  // let observer: IBindingTargetObserver & { [key: string]: number };
-  // if (all === true) {
-  //   for (let i = 0; i < slots; ++i) {
-  //     slotName = slotNames[i];
-  //     observer = this[slotName] as IBindingTargetObserver & { [key: string]: number };
-  //     if (observer != null) {
-  //       this[slotName] = void 0;
-  //       observer.unsubscribe(this);
-  //       observer[this.id] &= ~LifecycleFlags.updateTarget;
-  //     }
-  //   }
-  //   this.observerSlots = 0;
-  // } else {
-  //   const version = this.version;
-  //   for (let i = 0; i < slots; ++i) {
-  //     if (this[versionSlotNames[i]] !== version) {
-  //       slotName = slotNames[i];
-  //       observer = this[slotName] as IBindingTargetObserver & { [key: string]: number };
-  //       if (observer != null) {
-  //         this[slotName] = void 0;
-  //         observer.unsubscribe(this);
-  //         observer[this.id] &= ~LifecycleFlags.updateTarget;
-  //         this.observerSlots--;
-  //       }
-  //     }
-  //   }
-  // }
 }
 
 export function getRecord(this: IConnectableBinding) {

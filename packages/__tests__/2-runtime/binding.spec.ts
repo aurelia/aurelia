@@ -117,7 +117,7 @@ describe('PropertyBinding', function () {
     sut.$bind(LF.fromBind, scope2, null);
 
     assert.strictEqual(target.val, count * 3, `target.val`);
-  })
+  });
 
   describe('$bind() [one-time] assigns the target value', function () {
     const targetVariations: (() => [{foo?: string}, string])[] = [

@@ -364,7 +364,7 @@ describe('PropertyBinding', function () {
             // expect(sut.handleChange, `sut.handleChange #39`).to.have.been.calledWithExactly(newValue, srcVal, flags);
 
             // verify the behavior inside handleChange
-            if (expr.$kind === ExpressionKind.AccessScope && sut.observerSlots < 2) {
+            if (expr.$kind === ExpressionKind.AccessScope && sut.record.count < 2) {
               // expect(expr.evaluate).not.to.have.been.called;
             } else {
               // expect(expr.evaluate, `expr.evaluate #40`).to.have.been.calledOnce;
@@ -503,7 +503,7 @@ describe('PropertyBinding', function () {
           // expect(sut.handleChange, `sut.handleChange`).to.have.been.calledWithExactly(newValue, initialVal, flags);
 
           // verify the behavior inside handleChange
-          if (expr.$kind === ExpressionKind.AccessScope && sut.observerSlots < 2) {
+          if (expr.$kind === ExpressionKind.AccessScope && sut.record.count < 2) {
             // expect(expr.evaluate).not.to.have.been.called;
           } else {
             // expect(expr.evaluate, `expr.evaluate`).to.have.been.calledOnce;
@@ -743,7 +743,7 @@ describe('PropertyBinding', function () {
             // expect(sut.handleChange, `sut.handleChange #55`).to.have.been.calledWithExactly(newValue1, srcVal, flags);
 
             // verify the behavior inside handleChange
-            if (expr.$kind === ExpressionKind.AccessScope && sut.observerSlots < 2) {
+            if (expr.$kind === ExpressionKind.AccessScope && sut.record.count < 2) {
               // expect(expr.evaluate, `expr.evaluate #56`).not.to.have.been.called;
             } else {
               // expect(expr.evaluate, `expr.evaluate #57`).to.have.been.calledOnce;

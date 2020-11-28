@@ -245,6 +245,8 @@ export type MediatedBinding<K extends string> = {
 export interface BindingMediator<K extends string> extends IConnectableBinding { }
 // @connectable
 export class BindingMediator<K extends string> implements IConnectableBinding {
+  public interceptor = this;
+
   public constructor(
     public readonly key: K,
     public readonly binding: MediatedBinding<K>,

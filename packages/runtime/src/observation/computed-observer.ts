@@ -99,6 +99,8 @@ export interface ComputedObserver extends IWatcherImpl, IConnectableBinding, ISu
 @watcherImpl
 export class ComputedObserver implements IWatcherImpl, IConnectableBinding, ISubscriberCollection {
 
+  public interceptor = this;
+
   public static create(
     obj: object,
     key: PropertyKey,
@@ -239,6 +241,7 @@ export interface ComputedWatcher extends IWatcherImpl, IConnectableBinding { }
 
 @watcherImpl
 export class ComputedWatcher implements IWatcher {
+  public interceptor = this;
 
   /**
    * @internal
@@ -322,7 +325,7 @@ export interface ExpressionWatcher extends IConnectableBinding { }
 
 @connectable()
 export class ExpressionWatcher implements IConnectableBinding {
-
+  public interceptor = this;
   /**
    * @internal
    */

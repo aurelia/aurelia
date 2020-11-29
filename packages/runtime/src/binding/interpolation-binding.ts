@@ -240,7 +240,7 @@ export class ContentBinding implements ContentBinding, ICollectionSubscriber {
 
     this.$scope = void 0;
     this.$hostScope = null;
-    this.interceptor.unobserve(true);
+    this.record.clear(true);
     this.unobserveArray();
   }
 

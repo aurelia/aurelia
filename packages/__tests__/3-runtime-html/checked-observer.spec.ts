@@ -354,7 +354,6 @@ describe.skip('CheckedObserver', function () {
 
     function tearDown({ ctx, sut, el }: Partial<ReturnType<typeof createFixture>>) {
       ctx.doc.body.removeChild(el);
-      sut.unbind(LF.none);
     }
 
     for (const hasSubscriber of [true, false]) {
@@ -419,7 +418,6 @@ describe.skip('CheckedObserver', function () {
 
     function tearDown({ ctx, sut, el }: Partial<ReturnType<typeof createFixture>>) {
       ctx.doc.body.removeChild(el);
-      sut.unbind(LF.none);
     }
 
     for (const checkedBefore of [true, false]) {
@@ -504,9 +502,6 @@ describe.skip('CheckedObserver', function () {
       ctx.doc.body.removeChild(elA);
       ctx.doc.body.removeChild(elB);
       ctx.doc.body.removeChild(elC);
-      sutA.unbind(LF.none);
-      sutB.unbind(LF.none);
-      sutC.unbind(LF.none);
     }
 
     for (const hasSubscriber of [true, false]) {
@@ -601,9 +596,6 @@ describe.skip('CheckedObserver', function () {
       ctx.doc.body.removeChild(elA);
       ctx.doc.body.removeChild(elB);
       ctx.doc.body.removeChild(elC);
-      sutA.unbind(LF.none);
-      sutB.unbind(LF.none);
-      sutC.unbind(LF.none);
     }
 
     for (const checkedBefore of ['A', 'B', 'C']) {
@@ -669,7 +661,6 @@ describe.skip('CheckedObserver', function () {
 
     function tearDown({ ctx, sut, el }: Partial<ReturnType<typeof createFixture>>) {
       ctx.doc.body.removeChild(el);
-      sut.unbind(LF.none);
     }
 
     for (const hasSubscriber of [true, false]) {
@@ -744,7 +735,6 @@ describe.skip('CheckedObserver', function () {
 
     function tearDown({ ctx, sut, el }: Partial<ReturnType<typeof createFixture>>) {
       ctx.doc.body.removeChild(el);
-      sut.unbind(LF.none);
     }
 
     for (const hasSubscriber of [true, false]) {
@@ -808,7 +798,6 @@ describe.skip('CheckedObserver', function () {
 
     function tearDown({ ctx, sut, el }: Partial<ReturnType<typeof createFixture>>) {
       ctx.doc.body.removeChild(el);
-      sut.unbind(LF.none);
     }
 
     for (const prop of ['value', 'model']) {
@@ -877,7 +866,6 @@ describe.skip('CheckedObserver', function () {
 
     function tearDown({ ctx, sut, el }: Partial<ReturnType<typeof createFixture>>) {
       ctx.doc.body.removeChild(el);
-      sut.unbind(LF.none);
     }
 
     for (const hasSubscriber of [true, false]) {

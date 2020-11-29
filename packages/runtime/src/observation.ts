@@ -15,6 +15,18 @@ export interface IBinding {
   $unbind(flags: LifecycleFlags): void;
 }
 
+// todo:
+// merge collection subscription to property subscription
+// and make IWatcher simpler, so observers in static observation won't have to implement many methods
+// An alternative way is to make collection observation manual & user controllable
+// so it works even without proxy
+// todo: maybe enhance @connectable so that it provides these interfaces
+export interface IWatcher {
+  id: number;
+  observeProperty(obj: object, property: PropertyKey): void;
+  observeCollection(collection: Collection): void;
+}
+
 export type InterceptorFunc<TInput = unknown, TOutput = unknown> = (value: TInput) => TOutput;
 
 export interface ILifecycle extends Lifecycle {}
@@ -128,7 +140,7 @@ export const enum LifecycleFlags {
 }
 
 export interface IConnectable {
-  observeProperty(obj: object, propertyName: string): void;
+  observeProperty(obj: object, propertyName: PropertyKey): void;
 }
 
 /** @internal */
@@ -306,8 +318,6 @@ export interface IBindingTargetAccessor<
   TValue = unknown>
   extends IAccessor<TValue>,
   IPropertyChangeTracker<TObj, TProp> {
-  bind?(flags: LifecycleFlags): void;
-  unbind?(flags: LifecycleFlags): void;
 }
 
 /**

@@ -186,7 +186,6 @@ export {
   collectionSubscriberCollection,
 } from './observation/subscriber-collection.js';
 export {
-  IWatcher,
   WatcherSwitcher,
 } from './observation/watcher-switcher.js';
 
@@ -273,6 +272,7 @@ export {
   ICollectionSubscriberCollection,
   ICollectionSubscribable,
   ISubscriber,
+  IWatcher,
   isIndexMap,
   copyIndexMap,
   cloneIndexMap,

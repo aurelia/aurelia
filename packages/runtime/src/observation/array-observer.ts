@@ -409,7 +409,7 @@ export class ArrayObserver {
     this.inBatch = false;
     this.indexMap = createIndexMap(length);
     this.callCollectionSubscribers(indexMap, LifecycleFlags.updateTarget);
-    this.lengthObserver?.setValue(length, LifecycleFlags.updateTarget);
+    this.lengthObserver?.setValue(length, LifecycleFlags.updateTarget | LifecycleFlags.noFlush);
   }
 
   /**

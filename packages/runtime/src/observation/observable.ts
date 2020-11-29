@@ -118,13 +118,13 @@ export function observable(
 
     // todo(bigopon/fred): discuss string api for converter
     const $set = config.set;
-    descriptor.get = function g(this: SetterObserverOwningObject) {
+    descriptor.get = function g(/* @observable */this: SetterObserverOwningObject) {
       return getNotifier(this, key!, callback, initialValue, $set).getValue();
     };
-    descriptor.set = function s(this: SetterObserverOwningObject, newValue: unknown) {
+    descriptor.set = function s(/* @observable */this: SetterObserverOwningObject, newValue: unknown) {
       getNotifier(this, key!, callback, initialValue, $set).setValue(newValue, LifecycleFlags.none);
     };
-    (descriptor.get as ObservableGetter).getObserver = function gO(obj: SetterObserverOwningObject) {
+    (descriptor.get as ObservableGetter).getObserver = function gO(/* @observable */obj: SetterObserverOwningObject) {
       return getNotifier(obj, key!, callback, initialValue, $set);
     };
 

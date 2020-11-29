@@ -1,3 +1,4 @@
+import { isArrayIndex } from '@aurelia/kernel';
 import { AccessorType, LifecycleFlags } from '../observation.js';
 import { subscriberCollection } from './subscriber-collection.js';
 
@@ -20,7 +21,10 @@ export class CollectionLengthObserver {
   }
   public setValue(newValue: number, flags: LifecycleFlags): void {
     const currentValue = this.currentValue;
-    if (newValue !== currentValue) {
+    if (newValue !== currentValue && isArrayIndex(newValue)) {
+      if ((flags & LifecycleFlags.noFlush) === 0) {
+        this.obj.length  = newValue;
+      }
       this.currentValue = newValue;
       this.callSubscribers(newValue, currentValue, flags | LifecycleFlags.updateTarget);
     }

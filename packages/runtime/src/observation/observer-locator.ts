@@ -83,9 +83,9 @@ export class ObserverLocator {
     this.adapters.push(adapter);
   }
 
-  public getObserver(obj: object, key: string): AccessorOrObserver {
-    return (obj as IObservable).$observers?.[key] as AccessorOrObserver | undefined
-      ?? this.cache((obj as IObservable), key, this.createObserver((obj as IObservable), key));
+  public getObserver(obj: object, key: PropertyKey): AccessorOrObserver {
+    return (obj as IObservable).$observers?.[key as string] as AccessorOrObserver | undefined
+      ?? this.cache((obj as IObservable), key as string, this.createObserver((obj as IObservable), key as string));
   }
 
   public getAccessor(obj: object, key: string): IBindingTargetAccessor {

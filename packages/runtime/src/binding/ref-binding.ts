@@ -59,6 +59,7 @@ export class RefBinding implements IBinding {
     }
 
     this.$scope = void 0;
+    this.$hostScope = null;
 
     this.isBound = false;
   }

@@ -8,7 +8,7 @@ import { IViewport } from './resources/viewport';
 import { ComponentAgent } from './component-agent';
 import { RouteNode, RouteTreeCompiler } from './route-tree';
 import { IRouteContext } from './route-context';
-import { Transition, DeferralJuncture, SwapStrategy } from './router';
+import { Transition, ResolutionStrategy, SwapStrategy } from './router';
 import { TransitionPlan } from './route';
 import { Batch, mergeDistinct } from './util';
 
@@ -16,7 +16,7 @@ export class ViewportRequest {
   public constructor(
     public readonly viewportName: string,
     public readonly componentName: string,
-    public readonly deferUntil: DeferralJuncture,
+    public readonly resolution: ResolutionStrategy,
     public readonly append: boolean,
   ) { }
 
@@ -24,13 +24,13 @@ export class ViewportRequest {
     return new ViewportRequest(
       input.viewportName,
       input.componentName,
-      input.deferUntil,
+      input.resolution,
       input.append,
     );
   }
 
   public toString(): string {
-    return `VR(viewport:'${this.viewportName}',component:'${this.componentName}',deferral:'${this.deferUntil}',append:${this.append})`;
+    return `VR(viewport:'${this.viewportName}',component:'${this.componentName}',resolution:'${this.resolution}',append:${this.append})`;
   }
 }
 
@@ -51,7 +51,7 @@ export class ViewportAgent {
   private get nextState(): NextState { return this.state & State.next; }
   private set nextState(state: NextState) { this.state = (this.state & State.curr) | state; }
 
-  private $deferral: DeferralJuncture = 'none';
+  private $resolution: ResolutionStrategy = 'dynamic';
   private $plan: TransitionPlan = 'replace';
   private currNode: RouteNode | null = null;
   private nextNode: RouteNode | null = null;
@@ -103,7 +103,7 @@ export class ViewportAgent {
         if (this.currTransition === null) {
           throw new Error(`Unexpected viewport activation outside of a transition context at ${this}`);
         }
-        if (this.$deferral !== 'load-hooks') {
+        if (this.$resolution !== 'static') {
           throw new Error(`Unexpected viewport activation at ${this}`);
         }
         this.logger.trace(`activateFromViewport() - running ordinary activate at %s`, this);
@@ -147,7 +147,7 @@ export class ViewportAgent {
   }
 
   public handles(req: ViewportRequest): boolean {
-    if (req.deferUntil === 'none' && !this.isActive) {
+    if (req.resolution === 'dynamic' && !this.isActive) {
       this.logger.trace(`handles(req:%s) -> false (viewport is not active and we're in dynamic resolution mode)`, req);
       return false;
     }
@@ -271,13 +271,13 @@ export class ViewportAgent {
           return;
         case 'replace':
           // In the case of 'replace', always process this node and its subtree as if it's a new one
-          switch (this.$deferral) {
-            case 'none':
+          switch (this.$resolution) {
+            case 'dynamic':
               // Residue compilation will happen at `ViewportAgent#processResidue`
-              this.logger.trace(`canLoad(next:%s) - (deferral: 'none'), delaying residue compilation until activate`, next, this.$plan);
+              this.logger.trace(`canLoad(next:%s) - (resolution: 'dynamic'), delaying residue compilation until activate`, next, this.$plan);
               return;
-            case 'load-hooks':
-              this.logger.trace(`canLoad(next:%s) - (deferral: '${this.$deferral}'), creating nextCA and compiling residue`, next, this.$plan);
+            case 'static':
+              this.logger.trace(`canLoad(next:%s) - (resolution: '${this.$resolution}'), creating nextCA and compiling residue`, next, this.$plan);
               b1.push();
               void onResolve(RouteTreeCompiler.compileResidue(next.tree, next.tree.instructions, next.context), () => {
                 b1.pop();
@@ -447,9 +447,9 @@ export class ViewportAgent {
 
     if (
       this.nextState === State.nextIsScheduled &&
-      this.$deferral === 'none'
+      this.$resolution === 'dynamic'
     ) {
-      this.logger.trace(`activate() - invoking canLoad(), load() and activate() on new component due to deferral 'none' at %s`, this);
+      this.logger.trace(`activate() - invoking canLoad(), load() and activate() on new component due to resolution 'dynamic' at %s`, this);
       // This is the default v2 mode "lazy loading" situation
       Batch.start(b1 => {
         this.canLoad(tr, b1);
@@ -657,12 +657,12 @@ export class ViewportAgent {
     }
   }
 
-  public scheduleUpdate(deferUntil: DeferralJuncture, swapStrategy: SwapStrategy, next: RouteNode): void {
+  public scheduleUpdate(resolution: ResolutionStrategy, swapStrategy: SwapStrategy, next: RouteNode): void {
     switch (this.nextState) {
       case State.nextIsEmpty:
         this.nextNode = next;
         this.nextState = State.nextIsScheduled;
-        this.$deferral = deferUntil;
+        this.$resolution = resolution;
         break;
       default:
         this.unexpectedState('scheduleUpdate 1');
@@ -804,7 +804,7 @@ export class ViewportAgent {
   }
 
   public toString(): string {
-    return `VPA(state:${this.$state},plan:'${this.$plan}',deferral:'${this.$deferral}',n:${this.nextNode},c:${this.currNode},viewport:${this.viewport})`;
+    return `VPA(state:${this.$state},plan:'${this.$plan}',resolution:'${this.$resolution}',n:${this.nextNode},c:${this.currNode},viewport:${this.viewport})`;
   }
 
   private unexpectedState(label: string): never {

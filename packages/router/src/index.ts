@@ -86,7 +86,7 @@ export {
   Transition,
   Navigation,
   RoutingMode,
-  DeferralJuncture,
+  ResolutionStrategy,
   SwapStrategy,
   QueryParamsStrategy,
   FragmentStrategy,

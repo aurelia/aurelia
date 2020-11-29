@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { customElement, ICustomElementController } from '@aurelia/runtime-html';
-import { IRouterOptions, DeferralJuncture, SwapStrategy, route, Route } from '@aurelia/router';
+import { IRouterOptions, ResolutionStrategy, SwapStrategy, route, Route } from '@aurelia/router';
 import { assert } from '@aurelia/testing';
 
 import { IHookInvocationAggregator, IHIAConfig, HookName } from './_shared/hook-invocation-tracker';
@@ -42,10 +42,10 @@ export function* prepend(
 export function* prependDeferrable(
   prefix: string,
   component: string,
-  deferUntil: DeferralJuncture,
+  resolution: ResolutionStrategy,
   ...calls: (HookName | '')[]
 ) {
-  if (deferUntil === 'none') {
+  if (resolution === 'dynamic') {
     yield `${prefix}.${component}.canLoad`;
     yield `${prefix}.${component}.load`;
   }
@@ -81,7 +81,7 @@ export function* interleave(
 }
 
 export interface IRouterOptionsSpec {
-  deferUntil: DeferralJuncture;
+  resolution: ResolutionStrategy;
   swapStrategy: SwapStrategy;
   toString(): string;
 }
@@ -109,9 +109,9 @@ export abstract class SimpleActivityTrackingVMBase {
 
 describe('router config', function () {
   describe.skip('monomorphic timings', function () {
-    const deferUntils: DeferralJuncture[] = [
-      'none',
-      'load-hooks',
+    const deferUntils: ResolutionStrategy[] = [
+      'dynamic',
+      'static',
     ];
     const swapStrategies: SwapStrategy[] = [
       'parallel-remove-first',
@@ -119,13 +119,13 @@ describe('router config', function () {
       'sequential-remove-first',
     ];
     const routerOptionsSpecs: IRouterOptionsSpec[] = [];
-    for (const deferUntil of deferUntils) {
+    for (const resolution of deferUntils) {
       for (const swapStrategy of swapStrategies) {
         routerOptionsSpecs.push({
-          deferUntil,
+          resolution,
           swapStrategy,
           toString() {
-            return `deferUntil:'${deferUntil}',swapStrategy:'${swapStrategy}'`;
+            return `resolution:'${resolution}',swapStrategy:'${swapStrategy}'`;
           },
         });
       }

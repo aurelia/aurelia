@@ -42,7 +42,7 @@ async function createFixture<T extends Constructable>(
   const { container, platform } = ctx;
 
   container.register(TestRouterConfiguration.for(ctx, level));
-  container.register(RouterConfiguration.customize({ deferUntil: 'none' }));
+  container.register(RouterConfiguration.customize({ resolutionStrategy: 'dynamic' }));
   container.register(...deps);
 
   const component = container.get(Component);

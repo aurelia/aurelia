@@ -15,7 +15,7 @@ import {
 } from '@aurelia/runtime-html';
 import {
   IRouterOptions,
-  DeferralJuncture,
+  ResolutionStrategy,
   SwapStrategy,
   IRouter,
   Params as P,
@@ -473,7 +473,7 @@ function* interleave(
   }
 }
 export interface Iopts {
-  deferUntil: DeferralJuncture;
+  resolution: ResolutionStrategy;
   swapStrategy: SwapStrategy;
 }
 
@@ -537,18 +537,18 @@ async function createFixture<T extends Constructable>(
 
 function $forEachRouterOptions(cb: (opts: Iopts) => void) {
   return function () {
-    for (const deferUntil of [
-      'none',
-      'load-hooks',
-    ] as DeferralJuncture[]) {
+    for (const resolution of [
+      'dynamic',
+      'static',
+    ] as ResolutionStrategy[]) {
       for (const swapStrategy of [
         'parallel-remove-first',
         'sequential-add-first',
         'sequential-remove-first',
       ] as SwapStrategy[]) {
-        describe(`defer:'${deferUntil}', swap:'${swapStrategy}'`, function () {
+        describe(`defer:'${resolution}', swap:'${swapStrategy}'`, function () {
           cb({
-            deferUntil,
+            resolution,
             swapStrategy,
           });
         });
@@ -1014,11 +1014,11 @@ describe('router hooks', function () {
                   case 0:
                     yield* $('start', 'root2', ticks, 'binding', 'bound', 'attaching', 'attached');
 
-                    switch (opts.deferUntil) {
-                      case 'none':
+                    switch (opts.resolution) {
+                      case 'dynamic':
                         yield* $(phase1, [t1.p, t1.c], ticks, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached');
                         break;
-                      case 'load-hooks':
+                      case 'static':
                         yield* $(phase1, [t1.p, t1.c], ticks, 'canLoad');
                         yield* $(phase1, [t1.p, t1.c], ticks, 'load');
 
@@ -1054,12 +1054,12 @@ describe('router hooks', function () {
                         yield* $(phase, [$t1.c, $t1.p], ticks, 'canUnload');
                         yield* $(phase, $t2.p, ticks, 'canLoad');
 
-                        switch (opts.deferUntil) {
-                          case 'none':
+                        switch (opts.resolution) {
+                          case 'dynamic':
                             yield* $(phase, [$t1.c, $t1.p], ticks, 'unload');
                             yield* $(phase, $t2.p, ticks, 'load');
                             break;
-                          case 'load-hooks':
+                          case 'static':
                             yield* $(phase, $t2.c, ticks, 'canLoad');
                             yield* $(phase, [$t1.c, $t1.p], ticks, 'unload');
                             yield* $(phase, [$t2.p, $t2.c], ticks, 'load');
@@ -1079,12 +1079,12 @@ describe('router hooks', function () {
                             break;
                         }
 
-                        switch (opts.deferUntil) {
-                          case 'none':
+                        switch (opts.resolution) {
+                          case 'dynamic':
                             yield* $(phase, $t2.p, ticks, 'attached');
                             yield* $(phase, $t2.c, ticks, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached');
                             break;
-                          case 'load-hooks':
+                          case 'static':
                             yield* $(phase, $t2.c, ticks, 'binding', 'bound', 'attaching', 'attached');
                             yield* $(phase, $t2.p, ticks, 'attached');
                             break;
@@ -1107,11 +1107,11 @@ describe('router hooks', function () {
                   case 1:
                     yield* $('start', 'root2', ticks, 'binding', 'bound', 'attaching', 'attached');
 
-                    switch (opts.deferUntil) {
-                      case 'none':
+                    switch (opts.resolution) {
+                      case 'dynamic':
                         yield* $(phase1, [t1.p, t1.c], ticks, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached');
                         break;
-                      case 'load-hooks':
+                      case 'static':
                         yield* $(phase1, [t1.p, t1.c], ticks, 'canLoad');
                         yield* $(phase1, [t1.p, t1.c], ticks, 'load');
 
@@ -1156,12 +1156,12 @@ describe('router hooks', function () {
                         yield* $(phase, [$t1.c, $t1.p], ticks, 'canUnload');
                         yield* $(phase, $t2.p, ticks, 'canLoad');
 
-                        switch (opts.deferUntil) {
-                          case 'none':
+                        switch (opts.resolution) {
+                          case 'dynamic':
                             yield* $(phase, [$t1.c, $t1.p], ticks, 'unload');
                             yield* $(phase, $t2.p, ticks, 'load');
                             break;
-                          case 'load-hooks':
+                          case 'static':
                             yield* $(phase, $t2.c, ticks, 'canLoad');
                             yield* $(phase, [$t1.c, $t1.p], ticks, 'unload');
                             yield* $(phase, [$t2.p, $t2.c], ticks, 'load');
@@ -1190,8 +1190,8 @@ describe('router hooks', function () {
                               })(),
                             );
 
-                            switch (opts.deferUntil) {
-                              case 'none':
+                            switch (opts.resolution) {
+                              case 'dynamic':
                                 yield* interleave(
                                   (function* () {
                                     yield* $(phase, $t1.p, ticks, 'dispose');
@@ -1206,7 +1206,7 @@ describe('router hooks', function () {
                                 yield* $(phase, $t2.p, ticks, 'attached');
                                 yield* $(phase, $t2.c, ticks, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached');
                                 break;
-                              case 'load-hooks':
+                              case 'static':
                                 yield* interleave(
                                   (function* () {
                                     yield* $(phase, $t1.p, ticks, 'dispose');
@@ -1233,12 +1233,12 @@ describe('router hooks', function () {
                             );
                             yield* $(phase, [$t1.p, $t1.c], ticks, 'dispose');
 
-                            switch (opts.deferUntil) {
-                              case 'none':
+                            switch (opts.resolution) {
+                              case 'dynamic':
                                 yield* $(phase, $t2.p, ticks, 'binding', 'bound', 'attaching', 'attached');
                                 yield* $(phase, $t2.c, ticks, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached');
                                 break;
-                              case 'load-hooks':
+                              case 'static':
                                 yield* $(phase, $t2.p, ticks, 'binding', 'bound');
                                 yield* interleave(
                                   $(phase, $t2.p, ticks, 'attaching'),
@@ -1249,12 +1249,12 @@ describe('router hooks', function () {
                             }
                             break;
                           case 'sequential-add-first':
-                            switch (opts.deferUntil) {
-                              case 'none':
+                            switch (opts.resolution) {
+                              case 'dynamic':
                                 yield* $(phase, $t2.p, ticks, 'binding', 'bound', 'attaching', 'attached');
                                 yield* $(phase, $t2.c, ticks, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached');
                                 break;
-                              case 'load-hooks':
+                              case 'static':
                                 yield* $(phase, $t2.p, ticks, 'binding', 'bound');
                                 yield* interleave(
                                   $(phase, $t2.p, ticks, 'attaching'),
@@ -1356,8 +1356,8 @@ describe('router hooks', function () {
           yield* $('start', 'root', 0, 'binding', 'bound', 'attaching', 'attached');
 
           const hookName = hookSpec.toString().slice(0, -3) as typeof hookNames[number];
-          switch (opts.deferUntil) {
-            case 'none':
+          switch (opts.resolution) {
+            case 'dynamic':
               yield* $(phase1, ['a', 'b'], 0, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached');
               switch (hookName) {
                 case 'canLoad':
@@ -1396,7 +1396,7 @@ describe('router hooks', function () {
 
               yield* $(phase1, 'd', 0, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached');
               break;
-            case 'load-hooks':
+            case 'static':
               switch (hookName) {
                 case 'canLoad':
                   yield* $(phase1, ['a', 'b'], 0, 'canLoad');
@@ -1675,8 +1675,8 @@ describe('router hooks', function () {
         const expected = [...(function* () {
           yield* $(`start`, 'root', 0, 'binding', 'bound', 'attaching', 'attached');
 
-          switch (opts.deferUntil) {
-            case 'none':
+          switch (opts.resolution) {
+            case 'dynamic':
               yield* $(phase1, 'a1', a1CanLoad, 'canLoad');
               yield* $(phase1, 'a1', a1Load, 'load');
               yield* $(phase1, 'a1', 1, 'binding', 'bound', 'attaching', 'attached');
@@ -1685,7 +1685,7 @@ describe('router hooks', function () {
               yield* $(phase1, 'a2', a2Load, 'load');
               yield* $(phase1, 'a2', 1, 'binding', 'bound', 'attaching', 'attached');
               break;
-            case 'load-hooks':
+            case 'static':
               yield* $(phase1, 'a1', a1CanLoad, 'canLoad');
               yield* $(phase1, 'a2', a2CanLoad, 'canLoad');
 
@@ -1891,8 +1891,8 @@ describe('router hooks', function () {
         const expected = [...(function* () {
           yield* $(`start`, 'root', 0, 'binding', 'bound', 'attaching', 'attached');
 
-          switch (opts.deferUntil) {
-            case 'none':
+          switch (opts.resolution) {
+            case 'dynamic':
               yield* interleave(
                 $(phase1, 'a1', a1CanLoad, 'canLoad'),
                 $(phase1, 'b1', b1CanLoad, 'canLoad'),
@@ -1920,7 +1920,7 @@ describe('router hooks', function () {
                 })(),
               );
               break;
-            case 'load-hooks':
+            case 'static':
               yield* interleave(
                 (function* () {
                   yield* $(phase1, 'a1', a1CanLoad, 'canLoad');

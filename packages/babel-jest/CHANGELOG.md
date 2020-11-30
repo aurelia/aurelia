@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="0.8.0"></a>
+# 0.8.0 (2020-11-30)
+
+### Refactorings:
+
+* **all:** move scheduler implementation to platform ([e22285a](https://github.com/aurelia/aurelia/commit/e22285a))
+
 <a name="0.7.0"></a>
 # 0.7.0 (2020-05-08)
 

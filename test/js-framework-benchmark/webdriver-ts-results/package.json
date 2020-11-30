@@ -1,6 +1,6 @@
 {
   "name": "js-framework-benchmark-react",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "React demo",
   "main": "index.js",
   "scripts": {

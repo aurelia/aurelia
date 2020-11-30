@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="0.8.0"></a>
+# 0.8.0 (2020-11-30)
+
+### Bug Fixes:
+
+* **conventions:** update package imports ([8e91cc3](https://github.com/aurelia/aurelia/commit/8e91cc3))
+
+
+### Refactorings:
+
+* **all:** add .js extensions for native esm compat ([0308e2e](https://github.com/aurelia/aurelia/commit/0308e2e))
+* **all:** move scheduler implementation to platform ([e22285a](https://github.com/aurelia/aurelia/commit/e22285a))
+* **all:** finish renaming render to compose ([ede127b](https://github.com/aurelia/aurelia/commit/ede127b))
+* **preprocess-resource:** move bindingCommand from jit to runtime ([f02aba8](https://github.com/aurelia/aurelia/commit/f02aba8))
+* **all:** merge jit into runtime and remove jit package + references ([d7b626b](https://github.com/aurelia/aurelia/commit/d7b626b))
+
 <a name="0.7.0"></a>
 # 0.7.0 (2020-05-08)
 

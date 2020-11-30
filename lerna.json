@@ -54,5 +54,5 @@
     "test/router-tutorial",
     "test/router-wizard"
   ],
-  "version": "0.8.0"
+  "version": "0.8.1-dev.202011301909"
 }

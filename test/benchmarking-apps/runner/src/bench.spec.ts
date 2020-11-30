@@ -9,7 +9,7 @@ import { performance } from 'perf_hooks';
 import type { ElementHandle, Page } from 'playwright';
 import * as playwright from 'playwright';
 import { URL } from 'url';
-import { Measurement, Measurements, browserTypes, WritableMeasurementKeys, BrowserType, BenchOptions, IStorage } from './shared';
+import { Measurement, Measurements, browserTypes, WritableMeasurementKeys, BrowserType } from './shared';
 
 // This is fixed and needs to be kept in sync with the apps.
 const gridColCount = 6;
@@ -397,8 +397,6 @@ class Filter extends BaseActMeasureAssert {
     // #region filter - unemployed
     label = 'filter - unemployed';
     console.log(`starting ${label}`);
-
-    previous = current;
 
     await this.actAndMeasure('durationFilterUnemployed', 'button#unemployed');
 

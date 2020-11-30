@@ -480,7 +480,7 @@ jobs:
           name: "Prepare cosmos db configuration and run test"
           command: |
             cd test/benchmarking-apps/runner
-            echo "{\"endpoint\": \"$BENCHMARK_STORAGE_COSMOS_ENDPOINT\",\"key\": \"$BENCHMARK_STORAGE_COSMOS_KEY\"}" > cosmos.config.json
+            echo "{\"endpoint\": \"https://aurelia.documents.azure.com:443/\",\"key\": \"$AZURE_COSMOS_DB_KEY\"}" > cosmos.config.json
             node dist/run-benchmarks --i 100 --storage cosmos
 
 # # # # # # # # # # # # # # # #

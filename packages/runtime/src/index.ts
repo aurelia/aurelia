@@ -141,10 +141,8 @@ export {
 } from './observation/binding-context.js';
 export {
   CollectionLengthObserver,
-} from './observation/collection-length-observer.js';
-export {
   CollectionSizeObserver,
-} from './observation/collection-size-observer.js';
+} from './observation/collection-length-observer.js';
 export {
   ComputedObserver,
   ComputedWatcher,

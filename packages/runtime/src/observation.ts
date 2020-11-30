@@ -2,8 +2,7 @@ import { DI } from '@aurelia/kernel';
 import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
 import type { Scope } from './observation/binding-context.js';
 
-import type { CollectionLengthObserver } from './observation/collection-length-observer.js';
-import type { CollectionSizeObserver } from './observation/collection-size-observer.js';
+import type { CollectionLengthObserver, CollectionSizeObserver } from './observation/collection-length-observer.js';
 
 export interface IBinding {
   interceptor: this;

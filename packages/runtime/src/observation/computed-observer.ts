@@ -189,7 +189,7 @@ export class ComputedObserver implements IWatcherImpl, ISubscriberCollection {
   public unsubscribe(subscriber: ISubscriber): void {
     if (this.removeSubscriber(subscriber) && --this.subscriberCount === 0) {
       this.isDirty = true;
-      this.unobserve(true);
+      this.record.clear(true);
       this.unobserveCollection(true);
     }
   }
@@ -214,7 +214,7 @@ export class ComputedObserver implements IWatcherImpl, ISubscriberCollection {
       enterWatcher(this);
       return this.value = unwrap(this.get.call(this.useProxy ? wrap(this.obj) : this.obj, this));
     } finally {
-      this.unobserve(false);
+      this.record.clear(false);
       this.unobserveCollection(false);
       this.running = false;
       exitWatcher(this);
@@ -273,7 +273,7 @@ export class ComputedWatcher implements IWatcher {
       return;
     }
     this.isBound = false;
-    this.unobserve(true);
+    this.record.clear(true);
     this.unobserveCollection(true);
   }
 
@@ -298,7 +298,7 @@ export class ComputedWatcher implements IWatcher {
       enterWatcher(this);
       return this.value = unwrap(this.get.call(void 0, this.useProxy ? wrap(this.obj) : this.obj, this));
     } finally {
-      this.unobserve(false);
+      this.record.clear(false);
       this.unobserveCollection(false);
       this.running = false;
       exitWatcher(this);
@@ -365,7 +365,7 @@ export class ExpressionWatcher implements IConnectableBinding {
       return;
     }
     this.isBound = false;
-    this.unobserve(true);
+    this.record.clear(true);
     this.value = void 0;
   }
 }

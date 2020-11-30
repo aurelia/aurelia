@@ -31,6 +31,11 @@ export class CallBinding {
 
   public callSource(args: object): unknown {
     const overrideContext = this.$scope!.overrideContext;
+    // really need to delete the following line
+    // and the for..in loop below
+    // convenience in the template won't outweight the draw back of such confusing feature
+    // OR, at the very least, use getter/setter for each property in args to get/set original source
+    // ---
     Object.assign(overrideContext, args);
     const result = this.sourceExpression.evaluate(LifecycleFlags.mustEvaluate, this.$scope!, this.$hostScope, this.locator, null);
 

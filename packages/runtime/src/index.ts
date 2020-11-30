@@ -92,7 +92,8 @@ export {
   IConnectableBinding,
   connectable,
   BindingMediator,
-  MediatedBinding
+  MediatedBinding,
+  BindingObserverRecord,
 } from './binding/connectable.js';
 export {
   IExpressionParser,
@@ -175,9 +176,6 @@ export {
   ProxyObservable,
 } from './observation/proxy-observation.js';
 export {
-  BindableObserver,
-} from './observation/bindable-observer.js';
-export {
   SetterObserver,
 } from './observation/setter-observer.js';
 export {
@@ -235,13 +233,6 @@ export {
 } from './value-converter.js';
 
 export {
-  bindable,
-  PartialBindableDefinition,
-  BindableDefinition,
-  Bindable,
-} from './bindable.js';
-
-export {
   watch,
   Watch,
   IWatchDefinition,
@@ -271,15 +262,12 @@ export {
   IBatchable,
   IObserver,
   IObservable,
-  IObservedArray,
-  IObservedMap,
-  IObservedSet,
   IOverrideContext,
+  InterceptorFunc,
   IPropertyChangeTracker,
   IPropertyObserver,
   ISubscribable,
   ISubscriberCollection,
-  ObservedCollection,
   PropertyObserver,
   CollectionObserver,
   ICollectionSubscriberCollection,

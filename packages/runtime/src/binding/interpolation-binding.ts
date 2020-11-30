@@ -1,20 +1,18 @@
-import { IIndexable, IServiceLocator, ITask, QueueTaskOptions, TaskQueue} from '@aurelia/kernel';
 import {
   AccessorType,
   CollectionKind,
   BindingMode,
   LifecycleFlags,
 } from '../observation.js';
-import { IObserverLocator } from '../observation/observer-locator.js';
-import { ExpressionKind, Interpolation, IsExpression } from './ast.js';
-import {
-  connectable,
-  IConnectableBinding,
-} from './connectable.js';
+import { ExpressionKind } from './ast.js';
+import { connectable } from './connectable.js';
 
+import type { IIndexable, IServiceLocator, ITask, QueueTaskOptions, TaskQueue} from '@aurelia/kernel';
+import type { Interpolation, IsExpression } from './ast.js';
+import type { IConnectableBinding } from './connectable.js';
+import type { IObserverLocator } from '../observation/observer-locator.js';
 import type {
   IBindingTargetAccessor,
-  IObservedArray,
   ICollectionSubscriber,
   IndexMap,
   ICollectionObserver,
@@ -39,6 +37,8 @@ export class InterpolationBinding implements IBinding {
 
   public isBound: boolean = false;
   public $scope?: Scope = void 0;
+  public $hostScope: Scope | null = null;
+  public value: unknown = '';
 
   public partBindings: ContentBinding[];
 
@@ -76,6 +76,8 @@ export class InterpolationBinding implements IBinding {
       }
     }
 
+    this.value = result;
+
     const targetObserver = this.targetObserver;
     // Alpha: during bind a simple strategy for bind is always flush immediately
     // todo:
@@ -83,9 +85,10 @@ export class InterpolationBinding implements IBinding {
     //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start().wait()
     const shouldQueueFlush = (flags & LifecycleFlags.fromBind) === 0 && (targetObserver.type & AccessorType.Layout) > 0;
     if (shouldQueueFlush) {
-      this.task?.cancel();
-      this.task = this.taskQueue.queueTask(() => {
-        targetObserver.setValue(result, flags, this.target, this.targetProperty);
+      // an optimization: only create & queue a task when there's NOT already a task queued
+      // inside the lambda, use this.value instead of result, since it would always be the latest value
+      this.task ??= this.taskQueue.queueTask(() => {
+        targetObserver.setValue(this.value, flags, this.target, this.targetProperty);
         this.task = null;
       }, queueTaskOptions);
     } else {
@@ -148,7 +151,6 @@ export class ContentBinding implements ContentBinding, ICollectionSubscriber {
   // but it wouldn't matter here, just start with something for later check
   public readonly mode: BindingMode = BindingMode.toView;
   public value: unknown = '';
-  public id!: number;
   public $scope?: Scope;
   public $hostScope: Scope | null = null;
   public task: ITask | null = null;
@@ -172,15 +174,16 @@ export class ContentBinding implements ContentBinding, ICollectionSubscriber {
       return;
     }
     const sourceExpression = this.sourceExpression;
-    const canOptimize = sourceExpression.$kind === ExpressionKind.AccessScope && this.observerSlots > 1;
+    const obsRecord = this.record;
+    const canOptimize = sourceExpression.$kind === ExpressionKind.AccessScope && obsRecord.count === 1;
     if (!canOptimize) {
       const shouldConnect = (this.mode & toView) > 0;
       if (shouldConnect) {
-        this.version++;
+        obsRecord.version++;
       }
       newValue = sourceExpression.evaluate(flags, this.$scope!, this.$hostScope, this.locator, shouldConnect ? this.interceptor : null);
       if (shouldConnect) {
-        this.interceptor.unobserve(false);
+        obsRecord.clear(false);
       }
     }
     if (newValue != this.value) {
@@ -241,7 +244,7 @@ export class ContentBinding implements ContentBinding, ICollectionSubscriber {
     this.unobserveArray();
   }
 
-  private observeArray(arr: IObservedArray): void {
+  private observeArray(arr: unknown[]): void {
     const newObserver = this.arrayObserver = this.observerLocator.getArrayObserver(arr);
     newObserver.addCollectionSubscriber(this.interceptor);
   }

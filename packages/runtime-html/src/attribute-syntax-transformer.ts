@@ -1,17 +1,58 @@
 import { DI } from '@aurelia/kernel';
-import { AttrSyntax } from './resources/attribute-pattern.js';
+import type { AttrSyntax } from './resources/attribute-pattern.js';
 
 export interface IAttrSyntaxTransformer extends AttrSyntaxTransformer {}
-export const IAttrSyntaxTransformer = DI.createInterface<IAttrSyntaxTransformer>('IAttrSyntaxTransformer').withDefault(x => x.singleton(AttrSyntaxTransformer));
+export const IAttrSyntaxTransformer = DI
+  .createInterface<IAttrSyntaxTransformer>('IAttrSyntaxTransformer')
+  .withDefault(x => x.singleton(AttrSyntaxTransformer));
+
+type IsTwoWayPredicate = (element: HTMLElement, attribute: string) => boolean;
 
 export class AttrSyntaxTransformer {
+  /**
+   * @internal
+   */
+  private readonly fns: IsTwoWayPredicate[] = [];
+
+  /**
+   * Add a given function to a list of fns that will be used
+   * to check if `'bind'` command can be transformed to `'two-way'` command.
+   *
+   * If one of those functions in this lists returns true, the `'bind'` command
+   * will be transformed into `'two-way'` command.
+   *
+   * The function will be called with 2 parameters:
+   * - element: the element that the template compiler is currently working with
+   * - property: the target property name
+   */
+  public useTwoWay(fn: IsTwoWayPredicate): void {
+    this.fns.push(fn);
+  }
+
+  /**
+   * @internal
+   */
   public transform(node: HTMLElement, attrSyntax: AttrSyntax): void {
-    if (attrSyntax.command === 'bind' && shouldDefaultToTwoWay(node, attrSyntax)) {
+    if (
+      attrSyntax.command === 'bind' &&
+      (
+        // note: even though target could possibly be mapped to a different name
+        // the final property name shouldn't affect the two way transformation
+        // as they both should work with original source attribute name
+        shouldDefaultToTwoWay(node, attrSyntax.target) ||
+        this.fns.length > 0 && this.fns.some(fn => fn(node, attrSyntax.target))
+      )
+    ) {
       attrSyntax.command = 'two-way';
     }
     attrSyntax.target = this.map(node.tagName, attrSyntax.target);
   }
 
+  /**
+   * todo: this should be in the form of a lookup. the following is not extensible
+   *
+   * @internal
+   */
   public map(tagName: string, attr: string): string {
     switch (tagName) {
       case 'LABEL':
@@ -91,21 +132,21 @@ export class AttrSyntaxTransformer {
   }
 }
 
-function shouldDefaultToTwoWay(element: HTMLElement, attr: AttrSyntax): boolean {
+function shouldDefaultToTwoWay(element: HTMLElement, attr: string): boolean {
   switch (element.tagName) {
     case 'INPUT':
       switch ((element as HTMLInputElement).type) {
         case 'checkbox':
         case 'radio':
-          return attr.target === 'checked';
+          return attr === 'checked';
         default:
-          return attr.target === 'value' || attr.target === 'files';
+          return attr === 'value' || attr === 'files';
       }
     case 'TEXTAREA':
     case 'SELECT':
-      return attr.target === 'value';
+      return attr === 'value';
     default:
-      switch (attr.target) {
+      switch (attr) {
         case 'textcontent':
         case 'innerhtml':
           return element.hasAttribute('contenteditable');

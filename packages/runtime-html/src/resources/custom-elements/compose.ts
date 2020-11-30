@@ -1,11 +1,12 @@
 import { Constructable, nextId, onResolve } from '@aurelia/kernel';
-import { BindingMode, LifecycleFlags, bindable } from '@aurelia/runtime';
+import { BindingMode, LifecycleFlags } from '@aurelia/runtime';
 import { createElement, RenderPlan } from '../../create-element.js';
 import { HydrateElementInstruction, IInstruction, Instruction } from '../../renderer.js';
 import { IPlatform } from '../../platform.js';
 import { getRenderContext } from '../../templating/render-context.js';
 import { IViewFactory } from '../../templating/view.js';
 import { customElement, CustomElementDefinition } from '../custom-element.js';
+import { bindable } from '../../bindable.js';
 import type { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../templating/controller.js';
 
 export type Subject = IViewFactory | ISyntheticView | RenderPlan | Constructable | CustomElementDefinition;

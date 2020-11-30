@@ -1,32 +1,22 @@
 /* eslint-disable eqeqeq */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import {
-  IIndexable,
-  IServiceLocator,
-  emptyArray,
-  isNumberOrBigInt,
-  isStringOrDate,
-  ResourceDefinition,
-} from '@aurelia/kernel';
-import {
-  LifecycleFlags as LF,
+import { emptyArray, isNumberOrBigInt, isStringOrDate } from '@aurelia/kernel';
+import { LifecycleFlags as LF } from '../observation.js';
+import { BindingContext } from '../observation/binding-context.js';
+import { ISignaler } from '../observation/signaler.js';
+import { BindingBehavior, BindingBehaviorInstance, BindingBehaviorFactory } from '../binding-behavior.js';
+import { ValueConverter, ValueConverterInstance } from '../value-converter.js';
+
+import type { IIndexable, IServiceLocator, ResourceDefinition } from '@aurelia/kernel';
+import type { IConnectableBinding } from './connectable.js';
+import type {
   Collection,
   IBindingContext,
   IObservable,
   IOverrideContext,
-  ObservedCollection,
   IConnectable,
   ISubscriber,
 } from '../observation.js';
-import { BindingContext } from '../observation/binding-context.js';
-import { ISignaler } from '../observation/signaler.js';
-import {
-  BindingBehavior, BindingBehaviorInstance, BindingBehaviorFactory,
-} from '../binding-behavior.js';
-import {
-  ValueConverter, ValueConverterInstance,
-} from '../value-converter.js';
-import { IConnectableBinding } from './connectable.js';
 import type { Scope } from '../observation/binding-context.js';
 
 export const enum ExpressionKind {
@@ -1296,7 +1286,7 @@ export class ForOfStatement {
     return void 0;
   }
 
-  public count(_f: LF, result: ObservedCollection | number | null | undefined): number {
+  public count(_f: LF, result: Collection | number | null | undefined): number {
     switch (toStringTag.call(result)) {
       case '[object Array]': return (result as unknown[]).length;
       case '[object Map]': return (result as Map<unknown, unknown>).size;
@@ -1309,7 +1299,7 @@ export class ForOfStatement {
   }
 
   // deepscan-disable-next-line
-  public iterate(f: LF, result: ObservedCollection | number | null | undefined, func: (arr: Collection, index: number, item: unknown) => void): void {
+  public iterate(f: LF, result: Collection | number | null | undefined, func: (arr: Collection, index: number, item: unknown) => void): void {
     switch (toStringTag.call(result)) {
       case '[object Array]': return $array(result as unknown[], func);
       case '[object Map]': return $map(result as Map<unknown, unknown>, func);

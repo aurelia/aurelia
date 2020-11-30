@@ -1,7 +1,7 @@
 {
   "name": "examples-e2e",
   "private": true,
-  "version": "0.7.0",
+  "version": "0.8.0",
   "devDependencies": {
     "@types/mocha": "^8.0.3",
     "@types/node": "^14.11.5",

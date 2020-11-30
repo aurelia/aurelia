@@ -520,6 +520,7 @@ export {
   // TaskAbortError,
   // TaskCallback,
   // TaskQueue,
+  AppTask,
   TaskQueuePriority,
   // TaskStatus,
   // QueueTaskTargetOptions,
@@ -738,6 +739,8 @@ export {
   // EventSubscription,
   // EventDelegator,
 
+  NodeObserverLocator,
+
   // TargetAccessorLocator,
   // TargetObserverLocator,
 
@@ -800,6 +803,7 @@ export {
   // IAttributePatternHandler,
   // Interpretation,
   // ISyntaxInterpreter,
+  IAttrSyntaxTransformer,
 
   // AtPrefixedTriggerAttributePattern,
   // ColonPrefixedBindAttributePattern,

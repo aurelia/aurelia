@@ -1,17 +1,20 @@
 import {
+  Registration,
+  Metadata,
+  Protocol,
+  mergeArrays,
+  firstDefined,
+} from '@aurelia/kernel';
+import { registerAliases } from './alias.js';
+
+import type {
   Constructable,
   IContainer,
   ResourceDefinition,
   IResourceKind,
   ResourceType,
-  Registration,
-  Metadata,
-  Protocol,
   PartialResourceDefinition,
-  mergeArrays,
-  firstDefined,
 } from '@aurelia/kernel';
-import { registerAliases } from './alias.js';
 
 export type PartialValueConverterDefinition = PartialResourceDefinition;
 

@@ -1,27 +1,30 @@
 import {
-  Constructable,
-  IContainer,
-  ResourceDefinition,
-  IResourceKind,
   ResourceType,
   Registration,
   Metadata,
   Protocol,
-  PartialResourceDefinition,
   mergeArrays,
   firstDefined,
-  IServiceLocator,
   DI,
-  Key,
   fromAnnotationOrDefinitionOrTypeOrDefault,
 } from '@aurelia/kernel';
-import { IBinding, ISubscribable, LifecycleFlags } from './observation.js';
-import { connectable, IConnectableBinding } from './binding/connectable.js';
-import { IObserverLocator } from './observation/observer-locator.js';
-import { BindingBehaviorExpression, IBindingBehaviorExpression } from './binding/ast.js';
-
-import type { Scope } from './observation/binding-context.js';
+import { LifecycleFlags } from './observation.js';
 import { registerAliases } from './alias.js';
+
+import type {
+  Constructable,
+  IContainer,
+  ResourceDefinition,
+  IResourceKind,
+  PartialResourceDefinition,
+  IServiceLocator,
+  Key,
+} from '@aurelia/kernel';
+import type { BindingObserverRecord, IConnectableBinding } from './binding/connectable.js';
+import type { BindingBehaviorExpression, IBindingBehaviorExpression } from './binding/ast.js';
+import type { IObserverLocator } from './observation/observer-locator.js';
+import type { IBinding, ISubscribable } from './observation.js';
+import type { Scope } from './observation/binding-context.js';
 
 export type PartialBindingBehaviorDefinition = PartialResourceDefinition<{
   strategy?: BindingBehaviorStrategy;
@@ -141,23 +144,16 @@ export class BindingBehaviorFactory<T extends Constructable = Constructable> {
   }
 }
 
-export interface IInterceptableBinding extends IBinding {
-  id?: number;
-  readonly observerLocator?: IObserverLocator;
+export type IInterceptableBinding = Exclude<IConnectableBinding, 'updateTarget' | 'updateSource' | 'callSource' | 'handleChange'> & {
   updateTarget?(value: unknown, flags: LifecycleFlags): void;
   updateSource?(value: unknown, flags: LifecycleFlags): void;
 
   callSource?(args: object): unknown;
   handleChange?(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void;
-
-  observeProperty?(obj: object, propertyName: string): void;
-  addObserver?(observer: ISubscribable): void;
-  unobserve?(all?: boolean): void;
-}
+};
 
 export interface BindingInterceptor extends IConnectableBinding {}
 
-@connectable
 export class BindingInterceptor implements IInterceptableBinding {
   public interceptor: this = this;
   public get id(): number {
@@ -172,8 +168,15 @@ export class BindingInterceptor implements IInterceptableBinding {
   public get $scope(): Scope | undefined {
     return this.binding.$scope;
   }
+  public get $hostScope(): Scope | null {
+    return this.binding.$hostScope;
+  }
   public get isBound(): boolean {
     return this.binding.isBound;
+  }
+  /** @internal */
+  public get record(): BindingObserverRecord {
+    return this.binding.record!;
   }
 
   public constructor(
@@ -184,7 +187,7 @@ export class BindingInterceptor implements IInterceptableBinding {
     while (binding.interceptor !== this) {
       interceptor = binding.interceptor;
       binding.interceptor = this;
-      binding = interceptor;
+      binding = interceptor as IInterceptableBinding;
     }
   }
 
@@ -199,6 +202,24 @@ export class BindingInterceptor implements IInterceptableBinding {
   }
   public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
     this.binding.handleChange!(newValue, previousValue, flags);
+  }
+  /**
+   * @internal
+   */
+  public observeProperty(obj: object, key: string): void {
+    this.binding.observeProperty!(obj, key as string);
+  }
+  /**
+   * @internal
+   */
+  public addObserver(observer: ISubscribable): void {
+    this.binding.addObserver!(observer);
+  }
+  /**
+   * @internal
+   */
+  public unobserve(all?: boolean): void {
+    this.binding.unobserve!(all);
   }
 
   public $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void {

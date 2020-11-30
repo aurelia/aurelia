@@ -63,7 +63,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
   public persistentFlags: LifecycleFlags = LifecycleFlags.none;
 
   public target: Element;
-  public value: unknown;
+  public value: unknown = void 0;
 
   public constructor(
     public sourceExpression: IsBindingBehavior | ForOfStatement,
@@ -119,30 +119,23 @@ export class AttributeBinding implements IPartialConnectableBinding {
       //  (1). determine whether this should be the behavior
       //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start()
       const shouldQueueFlush = (flags & LifecycleFlags.fromBind) === 0 && (targetObserver.type & AccessorType.Layout) > 0;
-      // unlike property binding
-      // attr binding read can be potentially expensive
-      // so caching the read. Consider a way to force read configurably
-      const oldValue = this.value;
 
-      if (sourceExpression.$kind !== ExpressionKind.AccessScope || this.observerSlots > 1) {
+      if (sourceExpression.$kind !== ExpressionKind.AccessScope || this.record.count > 1) {
         const shouldConnect = (mode & oneTime) === 0;
         if (shouldConnect) {
-          this.version++;
+          this.record.version++;
         }
         newValue = sourceExpression.evaluate(flags, $scope, this.$hostScope, locator, interceptor);
         if (shouldConnect) {
-          interceptor.unobserve(false);
+          this.record.clear(false);
         }
       }
 
-      if (newValue !== oldValue) {
+      if (newValue !== this.value) {
         this.value = newValue;
         if (shouldQueueFlush) {
-          this.task?.cancel();
-          this.task = this.$platform.domWriteQueue.queueTask(() => {
-            if (this.isBound) {
-              interceptor.updateTarget(newValue, flags);
-            }
+          this.task ??= this.$platform.domWriteQueue.queueTask(() => {
+            interceptor.updateTarget(this.value, flags);
             this.task = null;
           }, taskOptions);
         } else {
@@ -229,7 +222,10 @@ export class AttributeBinding implements IPartialConnectableBinding {
     if (this.sourceExpression.hasUnbind) {
       this.sourceExpression.unbind(flags, this.$scope, this.$hostScope, this.interceptor);
     }
-    this.$scope = null!;
+    this.$scope
+      = this.$hostScope
+      = null!;
+    this.value = void 0;
 
     const targetObserver = this.targetObserver as IBindingTargetObserver;
     const task = this.task;
@@ -244,7 +240,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
       task.cancel();
       this.task = null;
     }
-    this.interceptor.unobserve(true);
+    this.record.clear(true);
 
     // remove isBound and isUnbinding flags
     this.isBound = false;

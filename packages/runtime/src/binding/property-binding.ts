@@ -1,9 +1,8 @@
-import { TaskQueue } from '@aurelia/kernel';
-import { BindingMode, LifecycleFlags, ILifecycle, AccessorType } from '../observation.js';
+import { BindingMode, LifecycleFlags, AccessorType } from '../observation.js';
 import { ExpressionKind } from './ast.js';
 import { connectable } from './connectable.js';
 
-import type { IServiceLocator, ITask, QueueTaskOptions } from '@aurelia/kernel';
+import type { IServiceLocator, ITask, QueueTaskOptions, TaskQueue } from '@aurelia/kernel';
 import type { AccessorOrObserver, IBindingTargetObserver } from '../observation.js';
 import type { IObserverLocator } from '../observation/observer-locator.js';
 import type { ForOfStatement, IsBindingBehavior, } from './ast.js';
@@ -27,9 +26,7 @@ const updateTaskOpts: QueueTaskOptions = {
 export class PropertyBinding implements IPartialConnectableBinding {
   public interceptor: this = this;
 
-  public id!: number;
   public isBound: boolean = false;
-  public $lifecycle: ILifecycle;
   public $scope?: Scope = void 0;
   public $hostScope: Scope | null = null;
 
@@ -49,7 +46,6 @@ export class PropertyBinding implements IPartialConnectableBinding {
     private readonly taskQueue: TaskQueue,
   ) {
     connectable.assignIdTo(this);
-    this.$lifecycle = locator.get(ILifecycle);
   }
 
   public updateTarget(value: unknown, flags: LifecycleFlags): void {
@@ -81,36 +77,30 @@ export class PropertyBinding implements IPartialConnectableBinding {
       //  (1). determine whether this should be the behavior
       //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start()
       const shouldQueueFlush = (flags & LifecycleFlags.fromBind) === 0 && (targetObserver.type & AccessorType.Layout) > 0;
-      const oldValue = targetObserver.getValue(this.target, this.targetProperty);
+      const obsRecord = this.record;
 
       // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
-      if (sourceExpression.$kind !== ExpressionKind.AccessScope || this.observerSlots > 1) {
+      if (sourceExpression.$kind !== ExpressionKind.AccessScope || obsRecord.count > 1) {
         // todo: in VC expressions, from view also requires connect
         const shouldConnect = this.mode > oneTime;
         if (shouldConnect) {
-          this.version++;
+          obsRecord.version++;
         }
         newValue = sourceExpression.evaluate(flags, $scope!, this.$hostScope, locator, interceptor);
         if (shouldConnect) {
-          interceptor.unobserve(false);
+          obsRecord.clear(false);
         }
       }
 
-      // todo(fred): maybe let the obsrever decides whether it updates
-      if (newValue !== oldValue) {
-        if (shouldQueueFlush) {
-          this.task?.cancel();
-          this.task = this.taskQueue.queueTask(() => {
-            if (this.isBound) {
-              interceptor.updateTarget(newValue, flags);
-            }
-            this.task = null;
-          }, updateTaskOpts);
-        } else {
+      if (shouldQueueFlush) {
+        this.task?.cancel();
+        this.task = this.taskQueue.queueTask(() => {
           interceptor.updateTarget(newValue, flags);
-        }
+          this.task = null;
+        }, updateTaskOpts);
+      } else {
+        interceptor.updateTarget(newValue, flags);
       }
-
       return;
     }
 
@@ -198,6 +188,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
     }
 
     this.$scope = void 0;
+    this.$hostScope = null;
 
     const targetObserver = this.targetObserver as IBindingTargetObserver;
     const task = this.task;
@@ -213,7 +204,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
       task.cancel();
       this.task = null;
     }
-    this.interceptor.unobserve(true);
+    this.record.clear(true);
 
     this.isBound = false;
   }

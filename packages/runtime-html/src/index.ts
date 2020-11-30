@@ -13,6 +13,17 @@ export {
 } from '@aurelia/platform-browser';
 
 export {
+  bindable,
+  Bindable,
+  BindableDefinition,
+  PartialBindableDefinition,
+} from './bindable.js';
+
+export {
+  BindableObserver,
+} from './observation/bindable-observer.js';
+
+export {
   alias,
   registerAliases,
 
@@ -130,8 +141,6 @@ export {
 
   PropertyAccessor,
 
-  BindableObserver,
-
   SetterObserver,
 
   ISignaler,
@@ -173,11 +182,6 @@ export {
   ValueConverterType,
   valueConverter,
 
-  bindable,
-  PartialBindableDefinition,
-  BindableDefinition,
-  Bindable,
-
   DebounceBindingBehaviorRegistration,
   OneTimeBindingBehaviorRegistration,
   ToViewBindingBehaviorRegistration,
@@ -209,15 +213,11 @@ export {
   IndexMap,
   IBatchable,
   IObservable,
-  IObservedArray,
-  IObservedMap,
-  IObservedSet,
   IOverrideContext,
   IPropertyChangeTracker,
   IPropertyObserver,
   ISubscribable,
   ISubscriberCollection,
-  ObservedCollection,
   PropertyObserver,
   CollectionObserver,
   ICollectionSubscriberCollection,
@@ -335,9 +335,6 @@ export {
 export {
   DataAttributeAccessor,
 } from './observation/data-attribute-accessor.js';
-export {
-  ElementPropertyAccessor,
-} from './observation/element-property-accessor.js';
 export {
   IEventDelegator,
   EventSubscriber,

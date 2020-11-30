@@ -21,6 +21,7 @@ async function main({ framework, iterations }: { framework: Data<FrameworkMetada
 
     // Run bench
     // Inject globals
+    (globalThis as any).$$framework = framework.name;
     (globalThis as any).$$port = port;
     (globalThis as any).$$iterations = iterations;
     const measurements = (globalThis as any).$$measurements = [];

@@ -9,11 +9,11 @@ type Writable<TClass> = { -readonly [key in keyof TClass]: TClass[key] };
 type DataMembers<TClass> = { [key in keyof TClass]: TClass[key] extends Function ? never : key }[keyof TClass];
 export type Data<TClass> = { [key in DataMembers<TClass>]: TClass[key] };
 
-export const browserTypes = ['chromium'/* , 'firefox', 'webkit' */] as const;
+export const browserTypes = ['chromium', 'firefox', 'webkit'] as const;
 export type BrowserType = typeof browserTypes[number];
 function roundDurationMs(val: number) { return Math.round(val * 1e3) / 1e3; }
 
-export type WritableMeasurement = Omit<Measurement, 'name' | 'browser' | 'testName' | 'initialPopulation' | 'totalPopulation' | 'durationInitialLoad'>;
+export type WritableMeasurement = Omit<Measurement, 'framework' | 'browser' | 'initialPopulation' | 'totalPopulation' | 'name'>;
 export type WritableMeasurementKeys = {
   // eslint-disable-next-line @typescript-eslint/ban-types
   [key in keyof WritableMeasurement]: Measurement[key] extends Function ? never : key
@@ -41,9 +41,10 @@ export class Measurement {
   public durationDeleteAll: number = Number.POSITIVE_INFINITY;
 
   public get name(): string {
-    return `${this.browser} - ${this.initialPopulation} - ${this.totalPopulation}`;
+    return `${this.framework} - ${this.browser} - ${this.initialPopulation} - ${this.totalPopulation}`;
   }
   public constructor(
+    public readonly framework: string,
     public readonly browser: BrowserType,
     public readonly initialPopulation: number,
     public readonly totalPopulation: number,
@@ -93,7 +94,7 @@ export class Measurements extends Array<Measurement> {
 
   public get mean(): Measurement {
     const item0 = this[0];
-    const mean = new Measurement(item0.browser, item0.initialPopulation, item0.totalPopulation, true);
+    const mean = new Measurement(item0.framework, item0.browser, item0.initialPopulation, item0.totalPopulation, true);
     const length = this.length;
     for (let i = 0, ii = length; i < ii; i++) {
       const item = this[i];
@@ -151,13 +152,12 @@ export class Measurements extends Array<Measurement> {
 
 export class FrameworkMetadata {
   /**
-   * Used to uniquely identify the fx in cosmos DB.
-   * `undefined` when data dumping to cosmos DB is skipped.
+   * @param {string} name - Unique name identifying the framework.
+   * @param {string} localPath - Local path to the app relative to this runner npm module root.
+   * @param {string} port - Unique port where the app will hosted.
    */
-  public frameworkId: number | undefined;
   public constructor(
     public readonly name: string,
-    public readonly description: string,
     public readonly localPath: string,
     public readonly port: string,
   ) { }
@@ -167,7 +167,6 @@ export class FrameworkMetadata {
 export const frameworksMetadata: Record<string, FrameworkMetadata> = {
   aurelia2: new FrameworkMetadata(
     /* name         */'aurelia2',
-    /* description  */'The shining successor of Aurelia.',
     /* localPath    */'../aurelia2',
     /* port         */'9000',
   )
@@ -309,10 +308,12 @@ class CosmosStorage implements IStorage {
   public async persist(): Promise<void> {
     const database = (await this.client.databases.createIfNotExists({ id: 'benchmarks' })).database;
     const container = (await database.containers.createIfNotExists({ id: 'measurements' })).container;
+    const batchId = this.batchId;
     await container.items.create({
-      batchId: this.batchId,
+      id: batchId,
       measurements: this.measurements
     });
+    console.log(`Persisted the result for batch ${batchId} in cosmos DB.`);
   }
 }
 

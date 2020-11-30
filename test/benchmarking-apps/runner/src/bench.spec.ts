@@ -13,6 +13,7 @@ import { Measurement, Measurements, browserTypes, WritableMeasurementKeys, Brows
 
 // This is fixed and needs to be kept in sync with the apps.
 const gridColCount = 6;
+declare const $$framework: string;
 declare const $$port: string;
 declare const $$iterations: number;
 declare const $$measurements: Measurement[];
@@ -62,9 +63,9 @@ describe('benchmark', function () {
       for (let i = 0; i < $$iterations; i++) {
         describe(`iteration-#${i}`, function () {
           for (const initialPopulation of [0, 100]) {
-            it.only(`hundred - initial population: ${initialPopulation}`, async function () {
+            it(`hundred - initial population: ${initialPopulation}`, async function () {
               const { page, browser, durationLoad } = await setup(browserType, initialPopulation);
-              const measurement = new Measurement(browserType, initialPopulation, 100);
+              const measurement = new Measurement($$framework, browserType, initialPopulation, 100);
               measurement.durationInitialLoad = durationLoad;
               measurements.push(measurement);
 
@@ -80,7 +81,7 @@ describe('benchmark', function () {
           for (const initialPopulation of [0, 1_000]) {
             it(`thousand - initial population: ${initialPopulation}`, async function () {
               const { page, browser, durationLoad } = await setup(browserType, initialPopulation);
-              const measurement = new Measurement(browserType, initialPopulation, 1_000);
+              const measurement = new Measurement($$framework, browserType, initialPopulation, 1_000);
               measurement.durationInitialLoad = durationLoad;
               measurements.push(measurement);
 
@@ -96,7 +97,7 @@ describe('benchmark', function () {
           for (const initialPopulation of [0, 10_000]) {
             it.skip(`ten-thousand - initial population: ${initialPopulation}`, async function () {
               const { page, browser, durationLoad } = await setup(browserType, initialPopulation);
-              const measurement = new Measurement(browserType, initialPopulation, 10_000);
+              const measurement = new Measurement($$framework, browserType, initialPopulation, 10_000);
               measurement.durationInitialLoad = durationLoad;
               measurements.push(measurement);
 

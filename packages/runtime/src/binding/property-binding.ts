@@ -136,7 +136,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
       sourceExpression.bind(flags, scope, hostScope, this.interceptor);
     }
 
-    let $mode = this.mode;
+    const $mode = this.mode;
     let targetObserver = this.targetObserver as IBindingTargetObserver;
     if (!targetObserver) {
       const observerLocator = this.observerLocator;

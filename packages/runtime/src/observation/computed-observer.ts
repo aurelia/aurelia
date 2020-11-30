@@ -13,17 +13,16 @@ import { wrap, unwrap } from './proxy-observation.js';
 import { defineHiddenProp, ensureProto } from '../utilities-objects.js';
 
 import type {
-  IBindingTargetObserver,
   IObservable,
   ISubscriber,
   ICollectionObserver,
   ICollectionSubscriber,
   ISubscriberCollection,
+  IWatcher,
 } from '../observation.js';
 import type { Constructable, IServiceLocator } from '@aurelia/kernel';
 import type { IConnectableBinding } from '../binding/connectable.js';
 import type { IsBindingBehavior } from '../binding/ast.js';
-import type { IWatcher } from '../observation.js';
 import type { IWatcherCallback } from './watch.js';
 import type { IObserverLocator, ObservableGetter } from './observer-locator.js';
 import type { Scope } from './binding-context.js';

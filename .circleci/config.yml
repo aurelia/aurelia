@@ -521,6 +521,8 @@ workflows:
           <<: *filter_ignore_develop_release
       - js_framework_benchmark:
           <<: *filter_ignore_develop_release
+      - benchmark_playwright:
+          <<: *filter_ignore_develop_release
       - e2e_cypress:
          <<: *filter_ignore_develop_release
       #- e2e_cypress_doc_example:

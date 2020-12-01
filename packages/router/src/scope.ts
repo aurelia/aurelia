@@ -636,7 +636,7 @@ export class Scope {
     const recognizer = new RouteRecognizer();
 
     recognizer.add(cRoutes);
-    const result = recognizer.recognize(path);
+    let result = recognizer.recognize(path);
     if (result !== null) {
       found.match = result.endpoint.route.handler;
       found.matching = path;
@@ -647,6 +647,13 @@ export class Scope {
         found.matching = found.matching.slice(0, found.matching.indexOf(found.remaining));
       }
       found.params = $params;
+      if (found.match.redirectTo !== null) {
+        let redirectedTo = found.match.redirectTo;
+        if ((found.remaining ?? '').length > 0) {
+          redirectedTo += `/${found.remaining}`;
+        }
+        return this.findMatchingRouteInRoutes(redirectedTo, routes);
+      }
     }
     if (found.foundConfiguration) {
       // clone it so config doesn't get modified
@@ -679,7 +686,9 @@ export class Scope {
         children: route.children,
       }];
     }
-    route.instructions = LoadInstructionResolver.toViewportInstructions(this.router, route.instructions!);
+    if (route.redirectTo === null) {
+      route.instructions = LoadInstructionResolver.toViewportInstructions(this.router, route.instructions!);
+    }
     return route as Route;
   }
 }

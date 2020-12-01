@@ -28,7 +28,7 @@ export function route(config: IRoute): RouteDecorator;
  * ```
  */
 export function route(path: string): RouteDecorator;
-export function route(configOrPath: IRoute | string): RouteDecorator {
+export function route(configOrPath?: IRoute | string): RouteDecorator {
   return function (target) {
     return Route.configure(configOrPath, target);
   };

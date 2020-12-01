@@ -87,8 +87,8 @@ export class Route {
   /**
    * Apply the specified configuration to the specified type, overwriting any existing configuration.
    */
-  public static configure<T extends RouteType>(configOrPath: IRoute | string, Type: T): T {
-    const config = Route.create(configOrPath as IRoute);
+  public static configure<T extends RouteType>(configOrPath: IRoute | string | undefined, Type: T): T {
+    const config = Route.create(configOrPath as IRoute, Type as RouteableComponentType);
     Metadata.define(Route.resourceKey, config, Type);
 
     return Type;
@@ -107,11 +107,11 @@ export class Route {
       config.title = Type.title;
     }
 
-    if (Object.keys(config).length === 0) {
-      return {};
-    }
+    // if (Object.keys(config).length === 0) {
+    //   return {};
+    // }
 
-    return config instanceof Route ? config : Route.create(config);
+    return config instanceof Route ? config : Route.create(config, Type);
   }
 
   protected constructor(
@@ -167,26 +167,24 @@ export class Route {
     // public readonly unload: readonly Unload[],
   ) { }
 
-  public static create(configOrType: IRoute | RouteableComponentType): Route {
-    let config: IRoute;
-    let path: string | undefined;
-    let component: ComponentAppellation | undefined;
-
-    if (CustomElement.isType(configOrType)) {
-      config = Route.getConfiguration(configOrType);
-      if ((config.path ?? null) === null) {
-        config.path = CustomElement.getDefinition(configOrType).name;
-      }
-      if (!('component' in config)
-        && !('redirectTo' in config)
-        && !('instructions' in config)) {
-        config.component = configOrType;
-      }
-    } else {
-      config = configOrType;
+  /**
+   * Create a valid Route or throw if it can't.
+   * @param configOrType - Configuration or type the route is created from.
+   * @param Type - Ir specified, the Route is routing to Type, regardless of what config says, as with `@route` decorator.
+   */
+  public static create(configOrType: IRoute | RouteableComponentType | undefined, Type: RouteableComponentType | null = null): Route {
+    // If a fixed type is specified, component is fixed to that type and
+    // configOrType is set to a config with that.
+    if (Type !== null) {
+      configOrType = Route.transferTypeToComponent(configOrType, Type);
     }
 
-    Route.transferIndividualIntoInstructions(config);
+    // Another component queries our route configuration
+    if (CustomElement.isType(configOrType)) {
+      configOrType = Route.getConfiguration(configOrType);
+    }
+
+    const config = Route.transferIndividualIntoInstructions(configOrType!);
 
     Route.validateRouteConfiguration(config);
 
@@ -207,12 +205,40 @@ export class Route {
   }
 
   /**
+   * Transfers the (only allowed) Type for the Route to the `component` property, creating
+   * a new configuration if necessary.
+   *
+   * It also validates that that the `component` and `instructions` are not used.
+   */
+  private static transferTypeToComponent(configOrType: IRoute | RouteableComponentType | undefined, Type: RouteableComponentType): IRoute {
+    if (CustomElement.isType(configOrType)) {
+      throw new Error(`Invalid route configuration: A component ` +
+        `can't be specified in a component route configuration.`);
+    }
+
+    const config: IRoute = configOrType ?? {};
+
+    if ('component' in config || 'instructions' in config) {
+      throw new Error(`Invalid route configuration: The 'component' and 'instructions' properties ` +
+        `can't be specified in a component route configuration.`);
+    }
+    if (!('redirectTo' in config)) {
+      config.component = Type;
+    }
+    if (!('path' in config) && !('redirectTo' in config)) {
+      config.path = CustomElement.getDefinition(Type).name;
+    }
+
+    return config;
+  }
+
+  /**
    * Transfers individual load instruction properties into the `instructions` property.
    *
    * It also validates that not both individual load instruction parts and the `instructions`
-   * is used
+   * is used.
    */
-  private static transferIndividualIntoInstructions(config: IRoute): void {
+  private static transferIndividualIntoInstructions(config: IRoute): IRoute {
     if (config === null || config === void 0) {
       throw new Error(`Invalid route configuration: expected an object.`);
     }
@@ -233,6 +259,8 @@ export class Route {
         children: config.children,
       }];
     }
+
+    return config;
   }
 
   /**

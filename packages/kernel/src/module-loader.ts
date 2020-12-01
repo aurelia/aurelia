@@ -12,7 +12,7 @@ export interface IModule {
 }
 
 export interface IModuleLoader extends ModuleLoader {}
-export const IModuleLoader = DI.createInterface<IModuleLoader>().withDefault(x => x.singleton(ModuleLoader));
+export const IModuleLoader = DI.createInterface<IModuleLoader>(x => x.singleton(ModuleLoader));
 
 function noTransform<TRet = AnalyzedModule>(m: AnalyzedModule): TRet {
   return m as unknown as TRet;

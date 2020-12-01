@@ -12,7 +12,7 @@ export interface ISanitizer {
   sanitize(input: string): string;
 }
 
-export const ISanitizer = DI.createInterface<ISanitizer>('ISanitizer').withDefault(x => x.singleton(class {
+export const ISanitizer = DI.createInterface<ISanitizer>('ISanitizer', x => x.singleton(class {
   public sanitize(input: string): string {
     return input.replace(SCRIPT_REGEX, '');
   }

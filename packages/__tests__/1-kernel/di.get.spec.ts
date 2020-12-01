@@ -146,7 +146,7 @@ describe('DI.get', function () {
     });
 
     it('interface with default', function () {
-      const Strings = DI.createInterface<string[]>().withDefault(x => x.instance([]));
+      const Strings = DI.createInterface<string[]>(x => x.instance([]));
       class Foo {
         public constructor(@optional(Strings) public readonly test: string[]) {}
       }
@@ -155,7 +155,7 @@ describe('DI.get', function () {
     });
 
     it('interface with default and default in constructor', function () {
-      const MyStr = DI.createInterface<string>().withDefault(x => x.instance('hello'));
+      const MyStr = DI.createInterface<string>(x => x.instance('hello'));
       class Foo {
         public constructor(@optional(MyStr) public readonly test: string = 'test') {}
       }
@@ -164,7 +164,7 @@ describe('DI.get', function () {
     });
 
     it('interface with default registered and default in constructor', function () {
-      const MyStr = DI.createInterface<string>().withDefault(x => x.instance('hello'));
+      const MyStr = DI.createInterface<string>(x => x.instance('hello'));
       container.register(MyStr);
       class Foo {
         public constructor(@optional(MyStr) public readonly test: string = 'test') {}

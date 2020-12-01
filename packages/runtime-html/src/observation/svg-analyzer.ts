@@ -3,7 +3,7 @@ import { INode } from '../dom.js';
 import { IPlatform } from '../platform.js';
 
 export interface ISVGAnalyzer extends NoopSVGAnalyzer {}
-export const ISVGAnalyzer = DI.createInterface<ISVGAnalyzer>('ISVGAnalyzer').withDefault(x => x.singleton(NoopSVGAnalyzer));
+export const ISVGAnalyzer = DI.createInterface<ISVGAnalyzer>('ISVGAnalyzer', x => x.singleton(NoopSVGAnalyzer));
 
 export class NoopSVGAnalyzer {
   public isStandardSvgAttribute(node: INode, attributeName: string): boolean {

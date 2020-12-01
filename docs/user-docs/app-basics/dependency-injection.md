@@ -295,7 +295,7 @@ This is slightly more verbose, but it has the advantage that the symbol created 
 
 #### Default Interface Implementations
 
-In many front-end scenarios, it's common to have a single default implementation of your interface, which you provide "out of the box". To facilitate this scenario, the `DI.createInterface()` method returns an `IDefaultableInterfaceSymbol`, exposing a method named `withDefault` that you can call to associate a default implementation with your interface. The consumer who sets up the container can still specify their own implementation of the interface at runtime, but if one is not provided, it will fallback to the default implementation specified through this method. This allows the container to use auto-registration with the symbols created by the `DI.createInterface()` helper.
+In many front-end scenarios, it's common to have a single default implementation of your interface, which you provide "out of the box". To facilitate this scenario, the `DI.createInterface()` method accepts a callback that you can use to associate a default implementation with your interface. The consumer who sets up the container can still specify their own implementation of the interface at runtime, but if one is not provided, it will fallback to the default implementation specified through this method. This allows the container to use auto-registration with the symbols created by the `DI.createInterface()` helper.
 
 ```typescript
 import { DI } from 'aurelia';
@@ -304,13 +304,11 @@ export interface ITaskQueue {
     // ...api...
 }
 
-export const ITaskQueue = DI.createInterface<ITaskQueue>()
-  .withDefault(x => x.singleton(TaskQueue));
+export const ITaskQueue = DI.createInterface<ITaskQueue>(x => x.singleton(TaskQueue));
 
 class TaskQueue implements ITaskQueue {
     // ...implementation...
 }
 ```
 
-The `withDefault()` method allows the implementor to provide a callback that creates the default registration. This API looks nearly identical to the `Registration` DSL described above.
-
+The callback that creates the default registration. This API looks nearly identical to the `Registration` DSL described above.

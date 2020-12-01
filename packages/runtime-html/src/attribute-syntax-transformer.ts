@@ -3,8 +3,7 @@ import type { AttrSyntax } from './resources/attribute-pattern.js';
 
 export interface IAttrSyntaxTransformer extends AttrSyntaxTransformer {}
 export const IAttrSyntaxTransformer = DI
-  .createInterface<IAttrSyntaxTransformer>('IAttrSyntaxTransformer')
-  .withDefault(x => x.singleton(AttrSyntaxTransformer));
+  .createInterface<IAttrSyntaxTransformer>('IAttrSyntaxTransformer', x => x.singleton(AttrSyntaxTransformer));
 
 type IsTwoWayPredicate = (element: HTMLElement, attribute: string) => boolean;
 

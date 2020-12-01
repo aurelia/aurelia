@@ -26,7 +26,7 @@ import {
   $ESScript,
 } from './ast/modules.js';
 
-export const ISourceFileProvider = DI.createInterface<ISourceFileProvider>('ISourceFileProvider').noDefault();
+export const ISourceFileProvider = DI.createInterface<ISourceFileProvider>('ISourceFileProvider');
 export interface ISourceFileProvider {
   GetSourceFiles(ctx: ExecutionContext): Promise<readonly $$ESModuleOrScript[]>;
 }

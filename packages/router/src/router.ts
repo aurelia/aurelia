@@ -88,7 +88,7 @@ export interface ILoadOptions {
 /**
  * Public API
  */
-export const IRouter = DI.createInterface<IRouter>('IRouter').withDefault(x => x.singleton(Router));
+export const IRouter = DI.createInterface<IRouter>('IRouter', x => x.singleton(Router));
 
 export interface IRouter extends Router { }
 

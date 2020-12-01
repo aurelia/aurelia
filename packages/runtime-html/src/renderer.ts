@@ -86,7 +86,7 @@ export type InstructionTypeName = string;
 export interface IInstruction {
   readonly type: InstructionTypeName;
 }
-export const IInstruction = DI.createInterface<IInstruction>('Instruction').noDefault();
+export const IInstruction = DI.createInterface<IInstruction>('Instruction');
 
 export function isInstruction(value: unknown): value is IInstruction {
   const type = (value as { type?: string }).type;
@@ -271,7 +271,7 @@ export interface ITemplateCompiler {
   ): CustomElementDefinition;
 }
 
-export const ITemplateCompiler = DI.createInterface<ITemplateCompiler>('ITemplateCompiler').noDefault();
+export const ITemplateCompiler = DI.createInterface<ITemplateCompiler>('ITemplateCompiler');
 
 export interface IInstructionTypeClassifier<TType extends string = string> {
   instructionType: TType;
@@ -288,7 +288,7 @@ export interface IRenderer<
   ): void;
 }
 
-export const IRenderer = DI.createInterface<IRenderer>('IRenderer').noDefault();
+export const IRenderer = DI.createInterface<IRenderer>('IRenderer');
 
 type DecoratableInstructionRenderer<TType extends string, TProto, TClass> = Class<TProto & Partial<IInstructionTypeClassifier<TType> & Pick<IRenderer, 'render'>>, TClass> & Partial<IRegistry>;
 type DecoratedInstructionRenderer<TType extends string, TProto, TClass> =  Class<TProto & IInstructionTypeClassifier<TType> & Pick<IRenderer, 'render'>, TClass> & IRegistry;

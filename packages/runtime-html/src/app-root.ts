@@ -22,7 +22,7 @@ export interface ISinglePageApp {
 }
 
 export interface IAppRoot extends AppRoot {}
-export const IAppRoot = DI.createInterface<IAppRoot>('IAppRoot').noDefault();
+export const IAppRoot = DI.createInterface<IAppRoot>('IAppRoot');
 
 export class AppRoot implements IDisposable {
   public readonly host: HTMLElement;

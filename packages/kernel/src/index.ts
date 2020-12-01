@@ -2,7 +2,7 @@ import { Platform } from '@aurelia/platform';
 import { DI } from './di.js';
 
 export interface IPlatform extends Platform {}
-export const IPlatform = DI.createInterface<IPlatform>('IPlatform').noDefault();
+export const IPlatform = DI.createInterface<IPlatform>('IPlatform');
 
 export {
   Platform,
@@ -19,7 +19,6 @@ export {
   all,
   DI,
   IContainer,
-  IDefaultableInterfaceSymbol,
   IFactory,
   inject,
   IRegistration,

@@ -17,7 +17,7 @@ import { TestFunction, TestExecutionContext, ToNumberValueConverter, createSpecF
 
 describe('validation-result-presenter-service', function () {
 
-  const IValidationResultPresenterService = DI.createInterface<ValidationResultPresenterService>('ValidationResultPresenterService').noDefault();
+  const IValidationResultPresenterService = DI.createInterface<ValidationResultPresenterService>('ValidationResultPresenterService');
 
   class App {
     public person: Person = new Person((void 0)!, (void 0)!);

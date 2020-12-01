@@ -95,7 +95,7 @@ export interface I18N {
    */
   subscribeLocaleChange(subscriber: ILocalChangeSubscriber): void;
 }
-export const I18N = DI.createInterface<I18N>('I18N').noDefault();
+export const I18N = DI.createInterface<I18N>('I18N');
 
 export interface ILocalChangeSubscriber {
   handleLocaleChange(locales: { oldLocale: string; newLocale: string }): void;

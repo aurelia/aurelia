@@ -59,8 +59,8 @@ describe('switch', function () {
     delivered = 4,
   }
 
-  const InitialStatus = DI.createInterface<Status>('InitialStatus').noDefault();
-  const InitialStatusNum = DI.createInterface<StatusNum>('InitialStatusNum').noDefault();
+  const InitialStatus = DI.createInterface<Status>('InitialStatus');
+  const InitialStatusNum = DI.createInterface<StatusNum>('InitialStatusNum');
 
   class Config {
     public constructor(

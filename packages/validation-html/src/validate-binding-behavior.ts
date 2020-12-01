@@ -52,7 +52,7 @@ export enum ValidationTrigger {
 }
 
 /* @internal */
-export const IDefaultTrigger = DI.createInterface<ValidationTrigger>('IDefaultTrigger').noDefault();
+export const IDefaultTrigger = DI.createInterface<ValidationTrigger>('IDefaultTrigger');
 
 /**
  * Binding behavior. Indicates the bound property should be validated.

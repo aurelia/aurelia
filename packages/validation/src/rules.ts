@@ -35,7 +35,7 @@ export interface IValidationMessageProvider {
   getDisplayName(propertyName: string | number | undefined, displayName?: string | null | ValidationDisplayNameAccessor): string | undefined;
 }
 
-export const IValidationMessageProvider = DI.createInterface<IValidationMessageProvider>('IValidationMessageProvider').noDefault();
+export const IValidationMessageProvider = DI.createInterface<IValidationMessageProvider>('IValidationMessageProvider');
 
 export interface ValidationRuleAlias {
   name: string;

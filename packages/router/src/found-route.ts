@@ -1,12 +1,18 @@
-import { IRoute } from './interfaces.js';
-import { ViewportInstruction } from './viewport-instruction.js';
+/**
+ *
+ * NOTE: This file is still WIP and will go through at least one more iteration of refactoring, commenting and clean up!
+ *       In its current state, it is NOT a good source for learning about the inner workings and design of the router.
+ *
+ */
+import { Route } from './route';
+import { ViewportInstruction } from './viewport-instruction';
 
 /**
  * @internal - Used when founding route/instructions
  */
 export class FoundRoute {
   public constructor(
-    public match: IRoute | null = null,
+    public match: Route | null = null,
     public matching: string = '',
     public instructions: ViewportInstruction[] = [],
     public remaining: string = '',

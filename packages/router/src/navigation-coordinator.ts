@@ -1,7 +1,13 @@
-import { IScopeOwner } from './scope.js';
-import { IRouter } from './router.js';
-import { Navigation } from './navigation.js';
-import { StateCoordinator, Entity } from './state-coordinator.js';
+/**
+ *
+ * NOTE: This file is still WIP and will go through at least one more iteration of refactoring, commenting and clean up!
+ *       In its current state, it is NOT a good source for learning about the inner workings and design of the router.
+ *
+ */
+import { IScopeOwner } from './scope';
+import { IRouter } from './router';
+import { Navigation } from './navigation';
+import { StateCoordinator, Entity } from './state-coordinator';
 
 export type NavigationState =
   'guardedUnload' | // fulfilled when canUnload has been called
@@ -94,6 +100,7 @@ export class NavigationCoordinator extends StateCoordinator<IScopeOwner, Navigat
       }
     });
     this.router.navigator.cancel(this.navigation).then(() => {
+      // console.log('then', 'cancel');
       this.router.processingNavigation = null;
       (this.navigation.resolve as ((value: void | PromiseLike<void>) => void))();
     }).catch(error => { throw error; });

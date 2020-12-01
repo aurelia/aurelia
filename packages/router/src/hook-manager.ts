@@ -1,7 +1,13 @@
-import { Hook } from './hook.js';
-import { ComponentAppellation, IComponentAndOrViewportOrNothing } from './interfaces.js';
-import { ViewportInstruction } from './viewport-instruction.js';
-import { Navigation } from './navigation.js';
+/**
+ *
+ * NOTE: This file is still WIP and will go through at least one more iteration of refactoring, commenting and clean up!
+ *       In its current state, it is NOT a good source for learning about the inner workings and design of the router.
+ *
+ */
+import { Hook } from './hook';
+import { ComponentAppellation, IComponentAndOrViewportOrNothing } from './interfaces';
+import { ViewportInstruction } from './viewport-instruction';
+import { Navigation } from './navigation';
 
 /**
  * Public API

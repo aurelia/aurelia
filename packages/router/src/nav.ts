@@ -1,16 +1,22 @@
-import { NavigationInstruction } from './interfaces.js';
-import { NavRoute } from './nav-route.js';
-import { INavClasses } from './resources/nav.js';
-import { IRouter } from './router.js';
+/**
+ *
+ * NOTE: This file is still WIP and will go through at least one more iteration of refactoring, commenting and clean up!
+ *       In its current state, it is NOT a good source for learning about the inner workings and design of the router.
+ *
+ */
+import { LoadInstruction } from './interfaces';
+import { NavRoute } from './nav-route';
+import { INavClasses } from './resources/nav';
+import { IRouter } from './router';
 
 /**
  * Public API - Used by au-nav and Router add/setNav
  */
 export interface INavRoute {
-  route?: NavigationInstruction | NavigationInstruction[];
+  route?: LoadInstruction | LoadInstruction[];
   execute?: ((route: NavRoute) => void);
   condition?: boolean | ((route: NavRoute) => boolean);
-  consideredActive?: NavigationInstruction | NavigationInstruction[] | ((route: NavRoute) => boolean);
+  consideredActive?: LoadInstruction | LoadInstruction[] | ((route: NavRoute) => boolean);
   compareParameters?: boolean;
   link?: string;
   title: string;

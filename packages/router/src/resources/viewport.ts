@@ -1,3 +1,9 @@
+/**
+ *
+ * NOTE: This file is still WIP and will go through at least one more iteration of refactoring, commenting and clean up!
+ *       In its current state, it is NOT a good source for learning about the inner workings and design of the router.
+ *
+ */
 import { IContainer } from '@aurelia/kernel';
 import {
   bindable,
@@ -64,7 +70,8 @@ export class ViewportCustomElement implements ICustomElementViewModel {
     this.container = controller.context.get(IContainer);
 
     // The first viewport(s) might be compiled before the router is active
-    return Runner.run(
+    // console.log('>>> Runner.run', 'hydrated');
+    return Runner.run(null,
       () => this.waitForRouterStart(),
       () => {
         if (this.router.isRestrictedNavigation) {
@@ -76,7 +83,7 @@ export class ViewportCustomElement implements ICustomElementViewModel {
 
   public binding(initiator: IHydratedController, parent: IHydratedParentController | null, flags: LifecycleFlags): void | Promise<void> {
     this.isBound = true;
-    return Runner.run(
+    return Runner.run(null,
       () => this.waitForRouterStart(),
       () => {
         if (!this.router.isRestrictedNavigation) {
@@ -95,54 +102,77 @@ export class ViewportCustomElement implements ICustomElementViewModel {
     }
   }
 
-  public unbinding(initiator: IHydratedController, parent: ISyntheticView | ICustomElementController | null, flags: LifecycleFlags): void | Promise<void> {
-    if (this.viewport !== null && (this.router.processingNavigation ?? null) === null) {
-      // console.log('beforeUnbind', this.viewport?.toString());
-      // TODO: Save to cache, something like
-      // this.viewport.cacheContent();
-      // From viewport-content:
-      // public unloadComponent(cache: ViewportContent[], stateful: boolean = false): void {
-      //   // TODO: We might want to do something here eventually, who knows?
-      //   if (this.contentStatus !== ContentStatus.loaded) {
-      //     return;
-      //   }
+  // public unbinding(initiator: IHydratedController, parent: ISyntheticView | ICustomElementController | null, flags: LifecycleFlags): void | Promise<void> {
+  //   if (this.viewport !== null && (this.router.processingNavigation ?? null) === null) {
+  //     // console.log('beforeUnbind', this.viewport?.toString());
+  //     // TODO: Save to cache, something like
+  //     // this.viewport.cacheContent();
+  //     // From viewport-content:
+  //     // public unloadComponent(cache: ViewportContent[], stateful: boolean = false): void {
+  //     //   // TODO: We might want to do something here eventually, who knows?
+  //     //   if (this.contentStatus !== ContentStatus.loaded) {
+  //     //     return;
+  //     //   }
 
-      //   // Don't unload components when stateful
-      //   if (!stateful) {
-      //     this.contentStatus = ContentStatus.created;
-      //   } else {
-      //     cache.push(this);
-      //   }
-      // }
+  //     //   // Don't unload components when stateful
+  //     //   if (!stateful) {
+  //     //     this.contentStatus = ContentStatus.created;
+  //     //   } else {
+  //     //     cache.push(this);
+  //     //   }
+  //     // }
 
-      // TODO: Save scroll state before detach
+  //     // TODO: Save scroll state before detach
 
-      return Runner.run(
-        () => this.viewport!.deactivate(initiator, parent, flags),
-        () => {
-          this.isBound = false;
-          this.viewport!.enabled = false;
-        }
-      );
+  //     return Runner.run(null,
+  //       () => {
+  //         this.isBound = false;
+  //         this.viewport!.enabled = false;
+  //         return this.viewport!.deactivate(initiator, parent, flags);
+  //       }
+  //     );
 
-      // this.isBound = false;
+  //     // this.isBound = false;
 
-      // this.viewport.enabled = false;
-      // return this.viewport.deactivate(initiator, parent, flags);
-      // // this.viewport.enabled = false;
-    }
-  }
-
-  // public detaching(initiator: IHydratedController, parent: ISyntheticView | ICustomElementController<ICustomElementViewModel> | null, flags: LifecycleFlags): void | Promise<void> {
-  //   if (this.viewport !== null && (this.viewport.nextContent ?? null) === null) {
-  //     console.log('detaching', this.viewport?.toString());
+  //     // this.viewport.enabled = false;
+  //     // return this.viewport.deactivate(initiator, parent, flags);
+  //     // // this.viewport.enabled = false;
   //   }
   // }
 
+  public detaching(initiator: IHydratedController, parent: ISyntheticView | ICustomElementController<ICustomElementViewModel> | null, flags: LifecycleFlags): void | Promise<void> {
+    // if (this.viewport !== null && (this.viewport.nextContent ?? null) === null) {
+    //   console.log('detaching', this.viewport?.toString());
+    // }
+    // if (this.viewport !== null && (this.router.processingNavigation ?? null) === null) {
+
+    if (this.viewport !== null) {
+      // TODO: Save scroll state before detach
+
+      // console.log('>>> Runner.run', 'detaching');
+      return Runner.run(null,
+        () => {
+          // console.log('detaching', this.viewport?.toString());
+          this.isBound = false;
+          this.viewport!.enabled = false;
+          const result = (this.viewport!.deactivate(initiator, parent, flags) as Promise<void>);
+          if (result instanceof Promise) {
+            return result;/* .then(() => {
+              console.log('detaching done', this.viewport?.toString());
+            }); */
+          }
+        },
+        // () => {
+        //   console.log('detaching done', this.viewport?.toString());
+        // }
+      );
+    }
+  }
+
   public dispose(): void | Promise<void> {
     if (this.viewport !== null) {
-      return Runner.run(
-        () => (this.router.processingNavigation ?? null) === null ? this.viewport?.dispose() : void 0,
+      return Runner.run(null,
+        () => /* (this.router.processingNavigation ?? null) === null ? */ this.viewport?.dispose() /* : void 0 */,
         () => this.disconnect()
       );
     }

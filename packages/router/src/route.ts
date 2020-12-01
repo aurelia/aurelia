@@ -23,7 +23,7 @@ const noUnloadHooks = emptyArray as RouteConfig['unload'];
  */
 export type Routeable = string | IChildRouteConfig | IRedirectRouteConfig | RouteableComponent;
 
-export interface IRouteConfig extends Partial<RouteConfig> { }
+export interface IRouteConfig extends Partial<Omit<RouteConfig, 'saveTo'>> { }
 export interface IChildRouteConfig extends IRouteConfig, Pick<ChildRouteConfig, 'component'> { }
 export interface IRedirectRouteConfig extends Pick<IRouteConfig, 'caseSensitive'>, Pick<RouteConfig, 'redirectTo' | 'path'> { }
 
@@ -50,7 +50,7 @@ export class RouteConfig {
      *
      * If left blank, the path will be derived from the component's static `path` property (if it exists), or otherwise the component name will be used (if direct routing is enabled).
      */
-    public readonly path: string | null,
+    public readonly path: string | string[] | null,
     /**
      * The path to which to redirect when the url matches the path in this config.
      *
@@ -91,89 +91,86 @@ export class RouteConfig {
     public readonly unload: readonly Unload[],
   ) { }
 
-  public static create(configOrPath: IRouteConfig | string, Type: RouteType | null): RouteConfig {
-    switch (typeof configOrPath) {
-      case 'string': {
-        const path = configOrPath;
+  public static create(configOrPath: IRouteConfig | string | string[], Type: RouteType | null): RouteConfig {
+    if (typeof configOrPath === 'string' || configOrPath instanceof Array) {
+      const path = configOrPath;
 
-        const redirectTo = Type?.redirectTo ?? null;
-        const caseSensitive = Type?.caseSensitive ?? false;
-        const id = Type?.id ?? path;
-        const reentryBehavior = Type?.transitionPlan ?? defaultReentryBehavior;
-        const viewport = Type?.viewport ?? null;
-        const data = Type?.data ?? {};
-        const children = Type?.children ?? noChildren;
-        const canLoad = Type?.canLoad ?? noCanLoadHooks;
-        const canUnload = Type?.canUnload ?? noCanUnloadHooks;
-        const load = Type?.load ?? noLoadHooks;
-        const unload = Type?.unload ?? noUnloadHooks;
+      const redirectTo = Type?.redirectTo ?? null;
+      const caseSensitive = Type?.caseSensitive ?? false;
+      const id = Type?.id ?? (path instanceof Array ? path[0] : path);
+      const reentryBehavior = Type?.transitionPlan ?? defaultReentryBehavior;
+      const viewport = Type?.viewport ?? null;
+      const data = Type?.data ?? {};
+      const children = Type?.children ?? noChildren;
+      const canLoad = Type?.canLoad ?? noCanLoadHooks;
+      const canUnload = Type?.canUnload ?? noCanUnloadHooks;
+      const load = Type?.load ?? noLoadHooks;
+      const unload = Type?.unload ?? noUnloadHooks;
 
-        return new RouteConfig(
-          id,
-          path,
-          redirectTo,
-          caseSensitive,
-          reentryBehavior,
-          viewport,
-          data,
-          children,
-          canLoad,
-          canUnload,
-          load,
-          unload,
-        );
-      }
-      case 'object': {
-        const config = configOrPath;
-        validateRouteConfig(config, '');
+      return new RouteConfig(
+        id,
+        path,
+        redirectTo,
+        caseSensitive,
+        reentryBehavior,
+        viewport,
+        data,
+        children,
+        canLoad,
+        canUnload,
+        load,
+        unload,
+      );
+    } else if (typeof configOrPath === 'object') {
+      const config = configOrPath;
+      validateRouteConfig(config, '');
 
-        const path = config.path ?? Type?.path ?? null;
-        const redirectTo = config.redirectTo ?? Type?.redirectTo ?? null;
-        const caseSensitive = config.caseSensitive ?? Type?.caseSensitive ?? false;
-        const id = config.id ?? Type?.id ?? path;
-        const reentryBehavior = config.transitionPlan ?? Type?.transitionPlan ?? defaultReentryBehavior;
-        const viewport = config.viewport ?? Type?.viewport ?? null;
-        const data = {
-          ...Type?.data,
-          ...config.data,
-        };
-        const children = [
-          ...(config.children ?? noChildren),
-          ...(Type?.children ?? noChildren),
-        ];
-        const canLoad = [
-          ...(config.canLoad ?? noCanLoadHooks),
-          ...(Type?.canLoad ?? noCanLoadHooks),
-        ];
-        const canUnload = [
-          ...(config.canUnload ?? noCanUnloadHooks),
-          ...(Type?.canUnload ?? noCanUnloadHooks),
-        ];
-        const load = [
-          ...(config.load ?? noLoadHooks),
-          ...(Type?.load ?? noLoadHooks),
-        ];
-        const unload = [
-          ...(config.unload ?? noUnloadHooks),
-          ...(Type?.unload ?? noUnloadHooks),
-        ];
-        return new RouteConfig(
-          id,
-          path,
-          redirectTo,
-          caseSensitive,
-          reentryBehavior,
-          viewport,
-          data,
-          children,
-          canLoad,
-          canUnload,
-          load,
-          unload,
-        );
-      }
-      default:
-        expectType('string, function/class or object', '', configOrPath);
+      const path = config.path ?? Type?.path ?? null;
+      const redirectTo = config.redirectTo ?? Type?.redirectTo ?? null;
+      const caseSensitive = config.caseSensitive ?? Type?.caseSensitive ?? false;
+      const id = config.id ?? Type?.id ?? (path instanceof Array ? path[0] : path);
+      const reentryBehavior = config.transitionPlan ?? Type?.transitionPlan ?? defaultReentryBehavior;
+      const viewport = config.viewport ?? Type?.viewport ?? null;
+      const data = {
+        ...Type?.data,
+        ...config.data,
+      };
+      const children = [
+        ...(config.children ?? noChildren),
+        ...(Type?.children ?? noChildren),
+      ];
+      const canLoad = [
+        ...(config.canLoad ?? noCanLoadHooks),
+        ...(Type?.canLoad ?? noCanLoadHooks),
+      ];
+      const canUnload = [
+        ...(config.canUnload ?? noCanUnloadHooks),
+        ...(Type?.canUnload ?? noCanUnloadHooks),
+      ];
+      const load = [
+        ...(config.load ?? noLoadHooks),
+        ...(Type?.load ?? noLoadHooks),
+      ];
+      const unload = [
+        ...(config.unload ?? noUnloadHooks),
+        ...(Type?.unload ?? noUnloadHooks),
+      ];
+      return new RouteConfig(
+        id,
+        path,
+        redirectTo,
+        caseSensitive,
+        reentryBehavior,
+        viewport,
+        data,
+        children,
+        canLoad,
+        canUnload,
+        load,
+        unload,
+      );
+    } else {
+      expectType('string, function/class or object', '', configOrPath);
     }
   }
 
@@ -202,7 +199,7 @@ export class RouteConfig {
 export class ChildRouteConfig extends RouteConfig {
   private constructor(
     id: string | null,
-    path: string | null,
+    path: string | string[] | null,
     redirectTo: string | null,
     caseSensitive: boolean,
     reentryBehavior: TransitionPlanOrFunc,
@@ -237,7 +234,7 @@ export class ChildRouteConfig extends RouteConfig {
 
 export class RedirectRouteConfig {
   private constructor(
-    public readonly path: string,
+    public readonly path: string | string[],
     public readonly redirectTo: string,
     public readonly caseSensitive: boolean,
   ) {}
@@ -254,7 +251,7 @@ export const Route = {
   /**
    * Apply the specified configuration to the specified type, overwriting any existing configuration.
    */
-  configure<T extends RouteType>(configOrPath: IRouteConfig | string, Type: T): T {
+  configure<T extends RouteType>(configOrPath: IRouteConfig | string | string[], Type: T): T {
     const config = RouteConfig.create(configOrPath, Type);
     Metadata.define(Route.name, config, Type);
 
@@ -300,8 +297,8 @@ export function route(config: IRouteConfig): RouteDecorator;
  * export class ProductDetail {}
  * ```
  */
-export function route(path: string): RouteDecorator;
-export function route(configOrPath: IRouteConfig | string): RouteDecorator {
+export function route(path: string | string[]): RouteDecorator;
+export function route(configOrPath: IRouteConfig | string | string[]): RouteDecorator {
   return function (target) {
     return Route.configure(configOrPath, target);
   };

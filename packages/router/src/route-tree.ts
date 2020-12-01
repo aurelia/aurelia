@@ -399,7 +399,7 @@ export class RouteTreeCompiler {
     let endpoint = recognizedRoute.endpoint;
     while (endpoint.route.redirectTo !== null) {
       // Migrate parameters to the redirect
-      const originalPath = RouteExpression.parse(endpoint.route.path, false);
+      const originalPath = RouteExpression.parse(endpoint.path, false);
       const redirectPath = RouteExpression.parse(endpoint.route.redirectTo, false);
       let originalCur: ScopedSegmentExpression | SegmentExpression;
       let redirectCur: ScopedSegmentExpression | SegmentExpression;

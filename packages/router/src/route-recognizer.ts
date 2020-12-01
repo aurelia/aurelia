@@ -5,6 +5,7 @@ export class Endpoint {
   public constructor(
     public readonly collectsResidue: boolean,
     public readonly route: RouteDefinition,
+    public readonly path: string,
     public readonly paramNames: readonly string[],
   ) {}
 }
@@ -316,17 +317,19 @@ export class RouteRecognizer {
   }
 
   public add(route: RouteDefinition, collectResidue: boolean): void {
-    this.$add(route, false);
-    if (collectResidue) {
-      this.$add(route, true);
+    for (const path of route.path) {
+      this.$add(path, route, false);
+      if (collectResidue) {
+        this.$add(path, route, true);
+      }
     }
 
     // Clear the cache whenever there are state changes, because the recognizeResults could be arbitrarily different as a result
     this.cache.clear();
   }
 
-  private $add(route: RouteDefinition, collectResidue: boolean): void {
-    const path = collectResidue ? `${route.path}/*${RESIDUE}` : route.path;
+  private $add(path: string, route: RouteDefinition, collectResidue: boolean): void {
+    path = collectResidue ? `${path}/*${RESIDUE}` : path;
 
     // Normalize leading, trailing and double slashes by ignoring empty segments
     const parts = path === '' ? [''] : path.split('/').filter(function (part) {
@@ -361,7 +364,7 @@ export class RouteRecognizer {
       }
     }
 
-    const endpoint = new Endpoint(collectResidue, route, paramNames);
+    const endpoint = new Endpoint(collectResidue, route, path, paramNames);
 
     state.setEndpoint(endpoint);
   }

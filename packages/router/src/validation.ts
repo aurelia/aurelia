@@ -72,10 +72,20 @@ export function validateRouteConfig(config: Partial<IChildRouteConfig> | null | 
     const path = `${parentPath}${key}`;
     switch (key) {
       case 'id':
-      case 'path':
       case 'viewport':
         if (typeof value !== 'string') {
           expectType('string', path, value);
+        }
+        break;
+      case 'path':
+        if (value instanceof Array) {
+          for (let i = 0; i < value.length; ++i) {
+            if (typeof value[i] !== 'string') {
+              expectType('string', `${path}[${i}]`, value[i]);
+            }
+          }
+        } else if (typeof value !== 'string') {
+          expectType('string or Array of strings', path, value);
         }
         break;
       case 'component':
@@ -86,7 +96,7 @@ export function validateRouteConfig(config: Partial<IChildRouteConfig> | null | 
           expectType('Array', path, value);
         }
         for (const child of value) {
-          const childPath = `${path}[${value.indexOf(child)}]`;
+          const childPath = `${path}[${value.indexOf(child as any)}]`; // TODO(fkleuver): remove 'any' (this type got very messy for some reason)
           validateComponent(child, childPath);
         }
         break;

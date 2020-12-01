@@ -2710,12 +2710,12 @@ describe(RouteRecognizer.name, function () {
                 // Arrange
                 const sut = new RouteRecognizer([]);
                 for (const route of routes) {
-                  sut.add({ path: route } as unknown as RouteDefinition, false);
+                  sut.add({ path: [route] } as unknown as RouteDefinition, false);
                 }
 
                 const params = { ...$params };
                 const paramNames = Object.keys(params);
-                const endpoint = new Endpoint(false, { path: match } as unknown as RouteDefinition, paramNames);
+                const endpoint = new Endpoint(false, { path: [match] } as unknown as RouteDefinition, match, paramNames);
                 const expected = new RecognizedRoute(endpoint, params, null);
 
                 // Act

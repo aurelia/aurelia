@@ -1447,8 +1447,8 @@ describe(RouteRecognizer.name, function () {
       tests: [
         ['',      ':1?/:2?', { 1: void 0, 2: void 0 }],
         ['a',     ':1?/a',   { 1: void 0 }],
-        ['aa',    null,      null],
-        ['aaa',   null,      null],
+        ['aa',    ':1?/:2?', { 1: 'aa', 2: void 0 }],
+        ['aaa',   ':1?/:2?', { 1: 'aaa', 2: void 0 }],
         ['a/a',   'a/a',     null],
         ['a/aa',  ':1?/:2?', { 1: 'a', 2: 'aa' }],
         ['aa/a',  ':1?/a',   { 1: 'aa' }],
@@ -1468,7 +1468,7 @@ describe(RouteRecognizer.name, function () {
         ['',       ':1?/:2?', { 1: void 0, 2: void 0 }],
         ['a',      ':1?/a',   { 1: void 0 }],
         ['aa',     ':1?/aa',  { 1: void 0 }],
-        ['aaa',    null,      null],
+        ['aaa',    ':1?/:2?', { 1: 'aaa', 2: void 0 }],
         ['a/a',    'a/a',     null],
         ['a/aa',   ':1?/aa',  { 1: 'a' }],
         ['a/aaa',  ':1?/:2?', { 1: 'a', 2: 'aaa' }],
@@ -1489,8 +1489,8 @@ describe(RouteRecognizer.name, function () {
       tests: [
         ['',      ':1?/:2?', { 1: void 0, 2: void 0 }],
         ['a',     ':1?/a',   { 1: void 0 }],
-        ['aa',    null,      null],
-        ['aaa',   null,      null],
+        ['aa',    ':1?/:2?', { 1: 'aa', 2: void 0 }],
+        ['aaa',   ':1?/:2?', { 1: 'aaa', 2: void 0 }],
         ['a/a',   'a/a',     null],
         ['a/aa',  ':1?/:2?', { 1: 'a', 2: 'aa' }],
         ['aa/a',  'aa/a',    null],
@@ -1512,7 +1512,7 @@ describe(RouteRecognizer.name, function () {
         ['',       ':1?/:2?', { 1: void 0, 2: void 0 }],
         ['a',      ':1?/a',   { 1: void 0 }],
         ['aa',     ':1?/aa',  { 1: void 0 }],
-        ['aaa',    null,      null],
+        ['aaa',    ':1?/:2?', { 1: 'aaa', 2: void 0 }],
         ['a/a',    'a/a',     null],
         ['a/aa',   ':1?/aa',  { 1: 'a' }],
         ['a/aaa',  ':1?/:2?', { 1: 'a', 2: 'aaa' }],
@@ -1533,8 +1533,8 @@ describe(RouteRecognizer.name, function () {
       tests: [
         ['',      ':1?/:2?', { 1: void 0, 2: void 0 }],
         ['a',     'a/:2?',   { 2: void 0 }],
-        ['aa',    null,      null],
-        ['aaa',   null,      null],
+        ['aa',    ':1?/:2?', { 1: 'aa', 2: void 0 }],
+        ['aaa',   ':1?/:2?', { 1: 'aaa', 2: void 0 }],
         ['a/a',   'a/a',     null],
         ['a/aa',  'a/:2?',   { 2: 'aa' }],
         ['aa/a',  ':1?/:2?', { 1: 'aa', 2: 'a' }],
@@ -1554,7 +1554,7 @@ describe(RouteRecognizer.name, function () {
         ['',       ':1?/:2?', { 1: void 0, 2: void 0 }],
         ['a',      'a/:2?',   { 2: void 0 }],
         ['aa',     'aa/:2?',  { 2: void 0 }],
-        ['aaa',    null,      null],
+        ['aaa',    ':1?/:2?', { 1: 'aaa', 2: void 0 }],
         ['a/a',    'a/a',     null],
         ['a/aa',   'a/:2?',   { 2: 'aa' }],
         ['aa/a',   'aa/:2?',  { 2: 'a' }],
@@ -1574,8 +1574,8 @@ describe(RouteRecognizer.name, function () {
       tests: [
         ['',      ':1?/:2?', { 1: void 0, 2: void 0 }],
         ['a',     'a/:2?',   { 2: void 0 }],
-        ['aa',    null,      null],
-        ['aaa',   null,      null],
+        ['aa',    ':1?/:2?', { 1: 'aa', 2: void 0 }],
+        ['aaa',   ':1?/:2?', { 1: 'aaa', 2: void 0 }],
         ['a/a',   'a/a',     null],
         ['a/aa',  'a/aa',    null],
         ['a/aaa', 'a/:2?',   { 2: 'aaa' }],
@@ -1597,7 +1597,7 @@ describe(RouteRecognizer.name, function () {
         ['',       ':1?/:2?', { 1: void 0, 2: void 0 }],
         ['a',      'a/:2?',   { 2: void 0 }],
         ['aa',     'aa/:2?',  { 2: void 0 }],
-        ['aaa',    null,      null],
+        ['aaa',    ':1?/:2?', { 1: 'aaa', 2: void 0 }],
         ['a/a',    'a/a',     null],
         ['a/aa',   'a/aa',    null],
         ['a/aaa',  'a/:2?',   { 2: 'aaa' }],
@@ -1618,8 +1618,8 @@ describe(RouteRecognizer.name, function () {
       tests: [
         ['',      ':1?/:2?', { 1: void 0, 2: void 0 }],
         ['a',     'a/:2?',   { 2: void 0 }],
-        ['aa',    null,      null],
-        ['aaa',   null,      null],
+        ['aa',    ':1?/:2?', { 1: 'aa', 2: void 0 }],
+        ['aaa',   ':1?/:2?', { 1: 'aaa', 2: void 0 }],
         ['a/a',   'a/a',     null],
         ['a/aa',  'a/:2?',   { 2: 'aa' }],
         ['aa/a',  ':1?/a',   { 1: 'aa' }],
@@ -1640,7 +1640,7 @@ describe(RouteRecognizer.name, function () {
         ['',       ':1?/:2?', { 1: void 0, 2: void 0 }],
         ['a',      'a/:2?',   { 2: void 0 }],
         ['aa',     ':1?/aa',  { 1: void 0 }],
-        ['aaa',    null,      null],
+        ['aaa',    ':1?/:2?', { 1: 'aaa', 2: void 0 }],
         ['a/a',    'a/a',     null],
         ['a/aa',   'a/:2?',   { 2: 'aa' }],
         ['aa/a',   ':1?/a',   { 1: 'aa' }],
@@ -1662,7 +1662,7 @@ describe(RouteRecognizer.name, function () {
         ['',       ':1?/:2?', { 1: void 0, 2: void 0 }],
         ['a',      'a/:2?',   { 2: void 0 }],
         ['aa',     'aa/:2?',  { 2: void 0 }],
-        ['aaa',    null,      null],
+        ['aaa',    ':1?/:2?', { 1: 'aaa', 2: void 0 }],
         ['a/a',    'a/a',     null],
         ['a/aa',   'a/:2?',   { 2: 'aa' }],
         ['aa/a',   'aa/:2?',  { 2: 'a' }],
@@ -1685,7 +1685,7 @@ describe(RouteRecognizer.name, function () {
         ['',        ':1?/:2?', { 1: void 0, 2: void 0 }],
         ['a',       'a/:2?',   { 2: void 0 }],
         ['aa',      'aa/:2?',  { 2: void 0 }],
-        ['aaa',     null,      null],
+        ['aaa',     ':1?/:2?', { 1: 'aaa', 2: void 0 }],
         ['a/a',     'a/a',     null],
         ['a/aa',    'a/:2?',   { 2: 'aa' }],
         ['aa/a',    'aa/:2?',  { 2: 'a' }],
@@ -2695,6 +2695,9 @@ describe(RouteRecognizer.name, function () {
               it(title, function () {
                 // Arrange
                 const sut = new RouteRecognizer([]);
+                for (const route of routes) {
+                  sut.add({ path: [route] } as unknown as RouteDefinition, false);
+                }
 
                 // Act
                 const actual = sut.recognize(path);

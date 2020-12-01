@@ -21,12 +21,19 @@ export function* getStartHooks(root: string) {
 
 export function* getStopHooks(root: string, p: string, c: string = '', c3 = '', c4 = '') {
   yield `stop.${root}.detaching`;
+
+  if (p) { yield* prepend('stop', p, 'unload', 'detaching'); }
+
   yield `stop.${root}.unbinding`;
 
-  if (p) { yield* prepend('stop', p, 'unload', 'detaching', 'unbinding'); }
-  if (c) { yield* prepend('stop', c, 'unload', 'detaching', 'unbinding'); }
-  if (c3) { yield* prepend('stop', c3, 'unload', 'detaching', 'unbinding'); }
-  if (c4) { yield* prepend('stop', c4, 'unload', 'detaching', 'unbinding'); }
+  if (c) { yield* prepend('stop', c, 'unload', 'detaching'); }
+  if (c3) { yield* prepend('stop', c3, 'unload', 'detaching'); }
+  if (c4) { yield* prepend('stop', c4, 'unload', 'detaching'); }
+
+  if (p) { yield* prepend('stop', p, 'unbinding'); }
+  if (c) { yield* prepend('stop', c, 'unbinding'); }
+  if (c3) { yield* prepend('stop', c3, 'unbinding'); }
+  if (c4) { yield* prepend('stop', c4, 'unbinding'); }
 }
 
 function removeIndex(transitions: (string | TransitionComponent)[], index: number): number {
@@ -57,15 +64,15 @@ function getViewports(transitions: Transition[], forceParallel: boolean): {
   let topViewport: TransitionViewport;
 
   if (transitions.length > 0) {
-    const { from, to } = transitions[0];
-    topViewport = new TransitionViewport(new Transition({ from, to }, forceParallel), true);
+    const { from, to, viewport } = transitions[0];
+    topViewport = new TransitionViewport(new Transition({ from, to, viewport }), true);
     viewports.push(topViewport);
 
     // The "old" viewports being cleared
     for (let i = 1; i < transitions.length; i++) {
       const { from } = transitions[i];
       if (!from.isEmpty) {
-        viewports.push(new TransitionViewport(new Transition({ from, to: '' }, forceParallel), i === 0));
+        viewports.push(new TransitionViewport(new Transition({ from, to: '', viewport }), i === 0));
       }
     }
 
@@ -73,7 +80,7 @@ function getViewports(transitions: Transition[], forceParallel: boolean): {
     for (let i = 1; i < transitions.length; i++) {
       const { to } = transitions[i];
       if (!to.isEmpty) {
-        viewports.push(new TransitionViewport(new Transition({ from: '', to }, forceParallel), i === 0));
+        viewports.push(new TransitionViewport(new Transition({ from: '', to, viewport }), i === 0));
       }
     }
   }
@@ -166,11 +173,11 @@ export function getHooks(deferUntil, swapStrategy, phase, ...siblingTransitions)
 // working properly
 //
 export function getNonSiblingHooks(deferUntil, swapStrategy, phase, transitionComponents) {
-  // console.log('transitions', JSON.parse(JSON.stringify(transitionComponents)));
+  console.log('transitions', JSON.parse(JSON.stringify(transitionComponents)));
 
   const transitions: Transition[] = [];
   for (let i = 0; i < transitionComponents.length; i++) {
-    transitions[i] = new Transition(transitionComponents[i], swapStrategy);
+    transitions[i] = new Transition(transitionComponents[i]);
   }
 
   // Ignore unchanged viewports
@@ -191,8 +198,17 @@ export function getNonSiblingHooks(deferUntil, swapStrategy, phase, transitionCo
     topTo,
   } = getViewports(transitions, false /* swapStrategy.includes('parallel') && deferUntil !== 'none' */);
 
+  // // Remove hooks are added to the viewport that's first processed (in the tests)
+  // let hookViewport: TransitionViewport;
+  // if (swapStrategy.includes('add') && topTo !== void 0) {
+  //   hookViewport = topTo;
+  // }
+  // if (hookViewport === void 0 && topFrom !== void 0) {
+  //   hookViewport = topFrom;
+  // }
+
   // Set the appropriate routing hooks
-  viewports.forEach(viewport => viewport.setRoutingHooks(deferUntil, phase, true, topFrom, removeViewports));
+  viewports.forEach(viewport => viewport.setRoutingHooks(deferUntil, phase, true, topViewport, removeViewports));
 
   // hooks.push(...getRoutingHooks(deferUntil, phase, viewports));
   // // console.log('viewports and hooks', viewports, hooks);
@@ -208,7 +224,7 @@ export function getNonSiblingHooks(deferUntil, swapStrategy, phase, transitionCo
 
   // Each viewport's hooks are independent of other viewports so we can set all of them
   // at once (as long as we don't add them at once)
-  viewports.forEach(viewport => viewport.setLifecycleHooks(deferUntil, swapStrategy, phase, topFrom, removeViewports));
+  viewports.forEach(viewport => viewport.setLifecycleHooks(deferUntil, swapStrategy, phase, topViewport, removeViewports));
 
   //  if (deferUntil === 'none') {
   // Sync appropriate hooks between viewports and order within viewport
@@ -217,20 +233,35 @@ export function getNonSiblingHooks(deferUntil, swapStrategy, phase, transitionCo
   //   hooks.push(...getInterweaved(...viewports));
   // }
 
+  for (const viewport of removeViewports) {
+    if (!viewport.isTop) {
+      if (viewport.hooks.some(hook => hook !== '')) {
+        console.log('##### Removed viewport has hooks', viewport.hooks);
+      }
+    }
+  }
+
   if (deferUntil === 'none') {
     // TODO: This might not be appropriate for all cases once lifecycle hooks
     // are properly implemented in the runtime
     if (topFrom === void 0) {
       // Transition viewports top-down
       addViewports.forEach(viewport => hooks.push(...viewport.retrieveHooks()));
+    } else if (topTo === void 0) {
+      // Transition top viewport
+      hooks.push(...topViewport.retrieveHooks());
     } else {
       switch (swapStrategy) {
         case 'sequential-add-first':
+
+          // hooks.push(...getInterweaved(...addViewports, ...removeViewports));
+
           // Transition viewports top-down
           addViewports.forEach(viewport => hooks.push(...viewport.retrieveHooks()));
 
           // Unload viewports bottom-up
-          removeViewports.forEach(viewport => hooks.push(...viewport.retrieveHooks()));
+          // removeViewports are always empty
+          // removeViewports.forEach(viewport => hooks.push(...viewport.retrieveHooks()));
 
           // if (topTo !== void 0) {
           //   hooks.push(...topTo.retrieveHooks());
@@ -244,7 +275,8 @@ export function getNonSiblingHooks(deferUntil, swapStrategy, phase, transitionCo
           break;
         case 'sequential-remove-first':
           // Unload viewports bottom-up
-          removeViewports.forEach(viewport => hooks.push(...viewport.retrieveHooks()));
+          // removeViewports are always empty
+          // removeViewports.forEach(viewport => hooks.push(...viewport.retrieveHooks()));
 
           // Transition viewports top-down
           addViewports.forEach(viewport => hooks.push(...viewport.retrieveHooks()));
@@ -270,27 +302,34 @@ export function getNonSiblingHooks(deferUntil, swapStrategy, phase, transitionCo
     if (topFrom === void 0) {
       // Transition viewports top-down interweaved
       hooks.push(...getInterweaved(...addViewports));
+    } else if (topTo === void 0) {
+      // Transition top viewport
+      hooks.push(...topViewport.retrieveHooks());
     } else {
       switch (swapStrategy) {
         case 'sequential-add-first':
           // All lifecycle hooks are sync so unload of all happens sync after top load
           if (addViewports.every(viewport => viewport.to.isLifecycleSync)) {
-            // Transition top viewport
-            if (topTo !== void 0) {
-              hooks.push(...topTo.retrieveHooks());
-            }
+            // Load viewports top-down
+            addViewports.forEach(viewport => hooks.push(...viewport.retrieveHooks()));
+            // // Transition top viewport
+            // if (topTo !== void 0) {
+            //   hooks.push(...topTo.retrieveHooks());
+            // }
 
-            // Unload viewports bottom-up
-            removeViewports.forEach(viewport => hooks.push(...viewport.retrieveHooks()));
+            // // Unload viewports bottom-up
+            // // removeViewports are always empty
+            // // removeViewports.forEach(viewport => hooks.push(...viewport.retrieveHooks()));
 
-            // Load underlying viewports top-down
-            underlyingAdd.forEach(viewport => hooks.push(...viewport.retrieveHooks()));
+            // // Load underlying viewports top-down
+            // underlyingAdd.forEach(viewport => hooks.push(...viewport.retrieveHooks()));
           } else {
             // Transition viewports top-down interweaved
             hooks.push(...getInterweaved(...addViewports));
 
             // Unload viewports bottom-up
-            removeViewports.forEach(viewport => hooks.push(...viewport.retrieveHooks()));
+            // removeViewports are always empty
+            // removeViewports.forEach(viewport => hooks.push(...viewport.retrieveHooks()));
           }
           break;
         case 'sequential-remove-first':
@@ -302,45 +341,49 @@ export function getNonSiblingHooks(deferUntil, swapStrategy, phase, transitionCo
           // All lifecycle hooks are sync so unload of all happens sync first
           if (addViewports.every(viewport => viewport.to.isLifecycleSync)) {
             // Unload viewports bottom-up
-            removeViewports.forEach(viewport => hooks.push(...viewport.retrieveHooks()));
+            // removeViewports are always empty
+            // removeViewports.forEach(viewport => hooks.push(...viewport.retrieveHooks()));
 
             // Load viewports top-down
             addViewports.forEach(viewport => hooks.push(...viewport.retrieveHooks()));
           } else { // TODO: This can possibly be simplified with proper lifecycle hooks
-            // Transition underlying viewports interweaved bottom-up
-            const interweavedViewports = [];
-            // If there are no underlying removed viewports, use the top one (if any)
-            const underRemoves = [...underlyingRemove];
-            let topRemoved = false;
-            if (underRemoves.length === 0) {
-              if (topFrom !== void 0) {
-                underRemoves.push(topFrom);
-                topRemoved = true;
-              }
-            }
-            for (let a = underlyingAdd.length - 1, r = 0; a >= 0 || r < underRemoves.length; a--, r++) {
-              if (r < underRemoves.length) {
-                interweavedViewports.push(underRemoves[r]);
-              }
-              if (a >= 0) {
-                interweavedViewports.push(underlyingAdd[a]);
-              }
-            }
-            // console.log('interweavedViewports', interweavedViewports);
-            hooks.push(...getInterweaved(...interweavedViewports));
+            hooks.push(...getInterweaved(...addViewports));
 
-            // Transition top viewport
-            if (!topRemoved && topFrom !== void 0) {
-              hooks.push(...topFrom.retrieveHooks());
-            }
-            if (topTo !== void 0) {
-              hooks.push(...topTo.retrieveHooks());
-            }
+            // // Transition underlying viewports interweaved bottom-up
+            // const interweavedViewports = [];
+            // // If there are no underlying removed viewports, use the top one (if any)
+            // const underRemoves = [...underlyingRemove];
+            // let topRemoved = false;
+            // if (underRemoves.length === 0) {
+            //   if (topFrom !== void 0) {
+            //     underRemoves.push(topFrom);
+            //     topRemoved = true;
+            //   }
+            // }
+            // for (let a = underlyingAdd.length - 1, r = 0; a >= 0 || r < underRemoves.length; a--, r++) {
+            //   if (r < underRemoves.length) {
+            //     interweavedViewports.push(underRemoves[r]);
+            //   }
+            //   if (a >= 0) {
+            //     interweavedViewports.push(underlyingAdd[a]);
+            //   }
+            // }
+            // // console.log('interweavedViewports', interweavedViewports);
+            // hooks.push(...getInterweaved(...interweavedViewports));
+
+            // // Transition top viewport
+            // if (!topRemoved && topFrom !== void 0) {
+            //   hooks.push(...topFrom.retrieveHooks());
+            // }
+            // if (topTo !== void 0) {
+            //   hooks.push(...topTo.retrieveHooks());
+            // }
           }
           // }
           break;
         case 'parallel-remove-first':
-          hooks.push(...getInterweaved(...removeViewports, ...addViewports));
+          // hooks.push(...getInterweaved(...removeViewports, ...addViewports));
+          hooks.push(...getInterweaved(...addViewports));
           break;
       }
     }
@@ -350,6 +393,9 @@ export function getNonSiblingHooks(deferUntil, swapStrategy, phase, transitionCo
     if (topFrom === void 0) {
       // Transition viewports top-down
       addViewports.forEach(viewport => hooks.push(...viewport.retrieveHooks()));
+    } else if (topTo === void 0) {
+      // Transition top viewport
+      hooks.push(...topViewport.retrieveHooks());
     } else {
       switch (swapStrategy) {
         case 'sequential-add-first':
@@ -361,7 +407,8 @@ export function getNonSiblingHooks(deferUntil, swapStrategy, phase, transitionCo
             }
 
             // Unload viewports bottom-up
-            removeViewports.forEach(viewport => hooks.push(...viewport.retrieveHooks()));
+            // removeViewports are always empty
+            // removeViewports.forEach(viewport => hooks.push(...viewport.retrieveHooks()));
 
             // Load underlying viewports top-down
             underlyingAdd.forEach(viewport => hooks.push(...viewport.retrieveHooks()));
@@ -370,7 +417,8 @@ export function getNonSiblingHooks(deferUntil, swapStrategy, phase, transitionCo
             hooks.push(...getInterweaved(...addViewports));
 
             // Unload viewports bottom-up
-            removeViewports.forEach(viewport => hooks.push(...viewport.retrieveHooks()));
+            // removeViewports are always empty
+            // removeViewports.forEach(viewport => hooks.push(...viewport.retrieveHooks()));
           }
           break;
         case 'sequential-remove-first':
@@ -382,12 +430,13 @@ export function getNonSiblingHooks(deferUntil, swapStrategy, phase, transitionCo
           // All lifecycle hooks are sync so unload of all happens sync first
           if (addViewports.every(viewport => viewport.to.isLifecycleSync)) {
             // Unload viewports bottom-up
-            removeViewports.forEach(viewport => hooks.push(...viewport.retrieveHooks()));
+            // removeViewports are always empty
+            // removeViewports.forEach(viewport => hooks.push(...viewport.retrieveHooks()));
 
             // Load viewports top-down
             addViewports.forEach(viewport => hooks.push(...viewport.retrieveHooks()));
           } else {
-            hooks.push(...getInterweaved(topViewport, ...underlyingRemove, ...addViewports));
+            hooks.push(...getInterweaved(topViewport, ...underlyingAdd));
 
             // // Transition underlying viewports interweaved bottom-up
             // const interweavedViewports = [];
@@ -425,12 +474,13 @@ export function getNonSiblingHooks(deferUntil, swapStrategy, phase, transitionCo
           // All lifecycle hooks are sync so unload of all happens sync first
           if (viewports.every(viewport => viewport.to.isLifecycleSync)) {
             // Unload viewports bottom-up
-            removeViewports.forEach(viewport => hooks.push(...viewport.retrieveHooks()));
+            // removeViewports are always empty
+            // removeViewports.forEach(viewport => hooks.push(...viewport.retrieveHooks()));
 
             // Load viewports top-down
             addViewports.forEach(viewport => hooks.push(...viewport.retrieveHooks()));
           } else {
-            hooks.push(...getInterweaved(topViewport, ...underlyingRemove, ...addViewports));
+            hooks.push(...getInterweaved(topViewport, ...underlyingAdd));
           }
           break;
       }
@@ -979,13 +1029,13 @@ function* getNothing() { /* return nothing */ }
 export function assertHooks(actual: any, expected: any): void {
   try {
     assert.deepStrictEqual(
-      filterHooks(actual),
-      filterHooks(expected),
+      actual,
+      expected,
     );
   } catch (err) {
     logOutcome(
-      actual, //.filter(hook => !hook.startsWith('stop.')),
-      expected, //.filter(hook => !hook.startsWith('stop.')),
+      filterHooks(actual), //.filter(hook => !hook.startsWith('stop.')),
+      filterHooks(expected), //.filter(hook => !hook.startsWith('stop.')),
       'HOOK OUTCOME'
     );
     throw err;
@@ -994,9 +1044,9 @@ export function assertHooks(actual: any, expected: any): void {
 
 function filterHooks(hooks: string[]): string[] {
   return hooks.filter(hook => hook
-    //!hook.startsWith('stop.')
-    && (hook.endsWith('canUnload') || hook.endsWith('canLoad') || hook.endsWith('unload') || hook.endsWith('load'))
-  );
+    && !hook.startsWith('stop.')
+    // && (hook.endsWith('canUnload') || hook.endsWith('canLoad') || hook.endsWith('unload') || hook.endsWith('load'))
+  ).map(hook => hook.replace(/<.*?>/gi, ''));
 }
 
 function logOutcome(actual: any, expected: any, msg: any): any {

@@ -79,11 +79,11 @@ export {
 export {
   IRoute,
   Route,
-} from './route';
+} from './route.js';
 
 export {
   route,
-} from './decorators/route';
+} from './decorators/route.js';
 
 export {
   RouteRecognizer,
@@ -108,9 +108,9 @@ export {
 } from './router-options.js';
 
 export {
-  Routes as RoutesConfiguration,
+  Routes,
   routes,
-} from './decorators/routes';
+} from './decorators/routes.js';
 
 export {
   IViewportOptions,

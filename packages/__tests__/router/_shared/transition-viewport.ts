@@ -10,6 +10,7 @@ export class TransitionViewport {
   public canLoad: boolean = true;
   public unload: boolean = true;
   public load: boolean = true;
+  public deactivate: boolean = true;
 
   public static routingHooks: HookName[] = ['canUnload', 'canLoad', 'unload', 'load'];
   public static addHooks: HookName[] = ['binding', 'bound', 'attaching', 'attached'];
@@ -32,7 +33,9 @@ export class TransitionViewport {
           let value;
           do {
             value = list.shift();
-            hooks.push(value);
+            if (value !== void 0) {
+              hooks.push(value);
+            }
           } while (value);
         }
       }
@@ -93,6 +96,7 @@ export class TransitionViewport {
     if (transition.from.isEmpty) {
       this.canUnload = false;
       this.unload = false;
+      this.deactivate = false;
     }
     if (transition.to.isEmpty) {
       this.canLoad = false;
@@ -123,20 +127,6 @@ export class TransitionViewport {
     lastNonBlank = lastNonBlank < 0 ? this.hooks.length : lastNonBlank + 1;
 
     return this.hooks.splice(0, lastNonBlank);
-  }
-
-  public setRoutingHook(phase: string, hook: HookName, onlyDelay = false): string[] {
-    if (this[hook] as boolean) {
-      const component = hook === 'canUnload' || hook === 'unload' ? this.from : this.to;
-      const hooks = TransitionViewport.getPrepended(phase, component.name, ...component.getTimed(hook));
-      if (onlyDelay) {
-        this.hooks.push('', ...hooks.slice(1));
-      } else {
-        this.hooks.push(...hooks);
-      }
-      this[hook] = false;
-      return hooks;
-    }
   }
 
   // public setRoutingHooks(deferUntil: DeferralJuncture, swapStrategy: SwapStrategy, componentKind: 'all-sync' | 'all-async', phase: string, hook, transitions) {
@@ -195,11 +185,12 @@ export class TransitionViewport {
   // }
 
   // Set the appropriate routing hooks either during the routing step or the lifecycle step
-  public setRoutingHooks(deferUntil: DeferralJuncture, phase: string, routingStep: boolean, topFrom: TransitionViewport, removeViewports: TransitionViewport[]) {
+  public setRoutingHooks(deferUntil: DeferralJuncture, phase: string, routingStep: boolean, topViewport: TransitionViewport, removeViewports: TransitionViewport[]) {
     // canUnload is always known and where it starts so it's always added
     if (routingStep && this.canUnload) {
-      if (this === topFrom) {
-        TransitionViewport.setRemoveHooks(deferUntil, phase, 'canUnload', topFrom, removeViewports);
+      if (this.isTop) {
+        // TransitionViewport.setRemoveHooks(deferUntil, phase, 'canUnload', false, topViewport, removeViewports);
+        TransitionViewport.getRemoveHooks(deferUntil, phase, 'canUnload', topViewport, removeViewports).forEach(hooks => this.hooks.push(...hooks));
       }
       this.canUnload = false;
     }
@@ -220,8 +211,9 @@ export class TransitionViewport {
         //     this.setRoutingHook(phase, 'unload');
         //     this.hooks.push('');
         // } else {
-        if (this === topFrom) {
-          TransitionViewport.setRemoveHooks(deferUntil, phase, 'unload', topFrom, removeViewports);
+        if (this.isTop) {
+          // TransitionViewport.setRemoveHooks(deferUntil, phase, 'unload', false, topViewport, removeViewports);
+          TransitionViewport.getRemoveHooks(deferUntil, phase, 'unload', topViewport, removeViewports).forEach(hooks => this.hooks.push(...hooks));
         }
         // }
         this.unload = false;
@@ -240,50 +232,135 @@ export class TransitionViewport {
   }
 
   // Set the remaining routing hooks and the lifecycle hooks
-  public setLifecycleHooks(deferUntil: DeferralJuncture, swapStrategy: SwapStrategy, phase: string, topFrom: TransitionViewport, removeViewports: TransitionViewport[]) {
+  public setLifecycleHooks(deferUntil: DeferralJuncture, swapStrategy: SwapStrategy, phase: string, topViewport: TransitionViewport, removeViewports: TransitionViewport[]) {
     const { from, to } = this.transition;
 
     // Set the remaining routing hooks
-    this.setRoutingHooks(deferUntil, phase, false, topFrom, removeViewports);
+    this.setRoutingHooks(deferUntil, phase, false, topViewport, removeViewports);
 
     switch (swapStrategy) {
       case 'parallel-remove-first':
-        this.hooks.push(...TransitionViewport.getInterweaved(
-          !from.isEmpty ? TransitionViewport.getPrepended(phase, from.name, ...from.getTimed(...TransitionViewport.removeHooks)) : [],
-          !to.isEmpty ? TransitionViewport.getPrepended(phase, to.name, ...to.getTimed(...TransitionViewport.addHooks)) : [],
-        ));
+        {
+          const hooks = [];
+          if (!from.isEmpty && this.isTop) {
+            // hooks.push(...TransitionViewport.getRemoveHooks(deferUntil, phase, 'deactivate', topViewport, removeViewports));
+            hooks.push(...TransitionViewport.getDeactivateHooks(phase, topViewport, removeViewports));
+          }
+          if (!to.isEmpty) {
+            hooks.push(TransitionViewport.getPrepended(phase, to.name, ...to.getTimed(...TransitionViewport.addHooks)));
+          }
+          this.hooks.push(...TransitionViewport.getInterweaved(...hooks));
+        }
         break;
       case 'sequential-add-first':
         // this.hooks.push(...getInterweaved(
         //   to ? getPrepended(phase, to.name, ...to.getTimed(...addHooks)) : [],
         //   from ? getPrepended(phase, from.name, ...from.getTimed(...removeHooks)) : [],
         // ));
-        if (!to.isEmpty) { this.hooks.push(...TransitionViewport.getPrepended(phase, to.name, ...to.getTimed(...TransitionViewport.addHooks))); }
-        if (!from.isEmpty) { this.hooks.push(...TransitionViewport.getPrepended(phase, from.name, ...from.getTimed(...TransitionViewport.removeHooks))); }
+        if (!to.isEmpty) {
+          this.hooks.push(...TransitionViewport.getPrepended(phase, to.name, ...to.getTimed(...TransitionViewport.addHooks)));
+        }
+        // if (!from.isEmpty) { this.hooks.push(...TransitionViewport.getPrepended(phase, from.name, ...from.getTimed(...TransitionViewport.removeHooks))); }
+        if (!from.isEmpty && this.isTop) {
+          // TransitionViewport.getRemoveHooks(deferUntil, phase, 'deactivate', topViewport, removeViewports).forEach(hooks => this.hooks.push(...hooks));
+          TransitionViewport.getDeactivateHooks(phase, topViewport, removeViewports).forEach(hooks => this.hooks.push(...hooks));
+        }
         break;
       case 'sequential-remove-first':
-        if (!from.isEmpty) { this.hooks.push(...TransitionViewport.getPrepended(phase, from.name, ...from.getTimed(...TransitionViewport.removeHooks))); }
-        if (!to.isEmpty) { this.hooks.push(...TransitionViewport.getPrepended(phase, to.name, ...to.getTimed(...TransitionViewport.addHooks))); }
+        // if (!from.isEmpty) { this.hooks.push(...TransitionViewport.getPrepended(phase, from.name, ...from.getTimed(...TransitionViewport.removeHooks))); }
+        if (!from.isEmpty && this.isTop) {
+          // TransitionViewport.getRemoveHooks(deferUntil, phase, 'deactivate', topViewport, removeViewports).forEach(hooks => this.hooks.push(...hooks));
+          TransitionViewport.getDeactivateHooks(phase, topViewport, removeViewports).forEach(hooks => this.hooks.push(...hooks));
+        }
+        if (!to.isEmpty) {
+          this.hooks.push(...TransitionViewport.getPrepended(phase, to.name, ...to.getTimed(...TransitionViewport.addHooks)));
+        }
         break;
     }
   }
 
-  private static setRemoveHooks(deferUntil: DeferralJuncture, phase: string, hook: HookName, topFrom: TransitionViewport, removeViewports: TransitionViewport[]) {
-    if (topFrom === void 0) {
-      return;
+  private setRoutingHook(phase: string, hook: HookName, onlyDelay = false): string[] {
+    if (this[hook] as boolean) {
+      const component = hook === 'canUnload' || hook === 'unload' ? this.from : this.to;
+      const hooks = TransitionViewport.getPrepended(phase, component.name, ...component.getTimed(hook));
+      if (onlyDelay) {
+        this.hooks.push('', ...hooks.slice(1));
+      } else {
+        this.hooks.push(...hooks);
+      }
+      this[hook] = false;
+      return hooks;
+    }
+    return [];
+  }
+
+  private setDeactivateHook(phase: string, onlyDelay = false): string[] {
+    if (this.deactivate as boolean) {
+      const { from } = this;
+      const hooks = TransitionViewport.getPrepended(phase, from.name, ...from.getTimed(...TransitionViewport.removeHooks));
+      if (onlyDelay) {
+        this.hooks.push(...(new Array(hooks.length).fill('')));
+      } else {
+        this.hooks.push(...hooks);
+      }
+      this.deactivate = false;
+      return hooks;
+    }
+    return [];
+  }
+
+  private static getRemoveHooks(deferUntil: DeferralJuncture, phase: string, hook: HookName | 'deactivate', topViewport: TransitionViewport, removeViewports: TransitionViewport[]): string[][] {
+    const viewportHooks = [];
+    if (topViewport === void 0) {
+      return [];
     }
     for (const viewport of removeViewports) {
       if (viewport === void 0) {
         continue;
       }
-      const hooks = viewport.setRoutingHook(phase, hook, viewport !== topFrom);
-      if (viewport !== topFrom) {
-        topFrom.hooks.push(...hooks);
+      let prevLen: number;
+      // If it's the top viewport, it'll get hooks added so note original length...
+      if (viewport.isTop) {
+        prevLen = viewport.hooks.length;
+      }
+      viewportHooks.push(hook === 'deactivate'
+        ? viewport.setDeactivateHook(phase, !viewport.isTop)
+        : viewport.setRoutingHook(phase, hook, !viewport.isTop));
+      // ...and remove the added hooks
+      if (viewport.isTop) {
+        viewport.hooks.splice(prevLen);
       }
     }
-    if ((hook === 'canUnload' && deferUntil === 'guard-hooks') || deferUntil === 'load-hooks') {
-      topFrom.hooks.push('');
+    // The deactivate hooks are syncing on slowest hook
+    if (hook === 'deactivate') {
+
     }
+    if ((hook === 'canUnload' && deferUntil === 'guard-hooks') || deferUntil === 'load-hooks') {
+      viewportHooks.push(['']);
+    }
+    return viewportHooks;
+  }
+
+  private static getDeactivateHooks(phase: string, topViewport: TransitionViewport, removeViewports: TransitionViewport[]): string[][] {
+    const deactivateHooks = [...TransitionViewport.removeHooks];
+    const dispose = deactivateHooks.pop();
+    const viewportHooks = [];
+    if (topViewport === void 0) {
+      return [];
+    }
+    for (const hook of deactivateHooks) {
+      const maxTiming = Math.max(...removeViewports.map(viewport => viewport.from.getTiming(hook)));
+      for (const viewport of removeViewports) {
+        const { from } = viewport;
+        viewportHooks.push(...TransitionViewport.getPrepended(phase, from.name, hook));
+      }
+      viewportHooks.push(...Array(removeViewports.length + ((maxTiming + 1) * removeViewports.length)).fill(''));
+    }
+    for (let i = removeViewports.length - 1; i >= 0; i--) {
+      const { from } = removeViewports[i];
+      viewportHooks.push(...TransitionViewport.getPrepended(phase, from.name, dispose));
+    }
+    return [viewportHooks];
   }
 
   private static ensureConfiguredHookOrder(deferUntil: DeferralJuncture, viewports: TransitionViewport[], removeViewports: TransitionViewport[], addViewports: TransitionViewport[]): boolean {
@@ -320,6 +397,9 @@ export class TransitionViewport {
 
       for (let i = 0; i <= addViewports.length - 2; i++) {
         delayed = TransitionViewport.delayHook(addViewports[i], addViewports[i + 1], 'load') || delayed;
+      }
+      for (let i = 0; i <= addViewports.length - 2; i++) {
+        delayed = TransitionViewport.delayHook(addViewports[i], addViewports[i + 1], 'binding') || delayed;
       }
     }
 

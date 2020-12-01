@@ -9,17 +9,20 @@ export type TransitionComponent = {
 };
 
 export class Component {
-  public static Empty: Component = new Component('', false);
+  public static Empty: Component = new Component('', '');
 
   public name: string;
   public timings: ComponentTimings;
 
-  public constructor(transition: string | TransitionComponent | Component, public forceParallel: boolean) {
+  public constructor(transition: string | TransitionComponent | Component, public viewport: string) {
     if (transition instanceof Component) {
       this.name = transition.name;
       this.timings = transition.timings;
     } else {
       this.name = typeof transition === 'string' ? transition : transition.component;
+      // if (this.name) {
+      //   this.name = `${this.name}${viewport}`;
+      // }
       this.timings = (transition as TransitionComponent)?.timings;
     }
   }
@@ -37,19 +40,21 @@ export class Component {
     if (timing !== void 0) {
       return timing;
     }
-    if (this.forceParallel) {
-      return 0;
-    }
   }
 
   public getTimed(...names: HookName[]): MaybeHookName[] {
     const hooks: (HookName | '')[] = [];
     for (const name of names) {
-      const count = this.getTiming(name);
-      hooks.push(name);
-      if (count !== void 0) {
-        hooks.push(...Array(count + 1).fill(''));
-      }
+      hooks.push(...this.getTimedHook(name, this.getTiming(name)));
+    }
+    return hooks;
+  }
+
+  public getTimedHook(name: HookName, timing: number): MaybeHookName[] {
+    const hooks: MaybeHookName[] = [];
+    hooks.push(name);
+    if (timing !== void 0) {
+      hooks.push(...Array(timing + 1).fill(''));
     }
     return hooks;
   }

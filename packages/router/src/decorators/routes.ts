@@ -3,7 +3,12 @@ import { IRoute, Route } from '../route';
 import { RouteableComponentType } from '../interfaces';
 import { CustomElementType } from '@aurelia/runtime-html';
 
-export const Routes = {
+export const Routes: {
+  name: string;
+  isConfigured<T extends CustomElementType>(Type: T): boolean;
+  configure<T extends CustomElementType>(configurationsOrTypes: (IRoute | RouteableComponentType)[], Type: T): T;
+  getConfiguration<T extends CustomElementType>(Type: T): Route[];
+} = {
   name: Protocol.resource.keyFor('routes'),
   /**
    * Returns `true` if the specified type has any static routes configuration (either via static properties or a &#64;route decorator)
@@ -11,6 +16,7 @@ export const Routes = {
   isConfigured<T extends CustomElementType>(Type: T): boolean {
     return Metadata.hasOwn(Routes.name, Type) || 'routes' in Type;
   },
+
   /**
    * Apply the specified configuration to the specified type, overwriting any existing configuration.
    */
@@ -20,6 +26,7 @@ export const Routes = {
 
     return Type;
   },
+
   /**
    * Get the `RouteConfiguration`s associated with the specified type.
    */

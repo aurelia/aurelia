@@ -1,4 +1,4 @@
-import { IRouter, RouterConfiguration, IRoute, IRouterTitle, ViewportInstruction } from '@aurelia/router';
+import { IRouter, RouterConfiguration, IRoute, IRouterTitle, ViewportInstruction, routes } from '@aurelia/router';
 import { CustomElement, customElement, IPlatform, Aurelia } from '@aurelia/runtime-html';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 
@@ -451,6 +451,7 @@ describe('Router', function () {
         if (params.name) { this.name = params.name; }
       }
     });
+    @routes([{ path: 'a-route-decorator', component: 'my-decorated-component' }])
     @customElement({
       name: 'app',
       dependencies: [IdName],
@@ -742,7 +743,7 @@ describe('Router', function () {
     await tearDown();
   });
 
-  it.skip('loads default when added by if condition becoming true', async function () {
+  it('loads default when added by if condition becoming true', async function () {
     this.timeout(5000);
 
     const { platform, host, router, tearDown } = await createFixture();

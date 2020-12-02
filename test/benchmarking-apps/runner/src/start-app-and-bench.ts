@@ -58,7 +58,7 @@ async function buildApp(fxName: string, appPath: string) {
   return new Promise<void>((res, rej) => {
     const build = spawn(
       process.platform === 'win32' ? 'npm.cmd' : 'npm',
-      ['run', 'build'],
+      ['run', 'build-app'],
       { cwd: appPath }
     );
     build.stdout.on('data', function (d) { console.log(d.toString()); });

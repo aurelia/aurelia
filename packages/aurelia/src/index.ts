@@ -198,6 +198,7 @@ export {
 export {
   RouterOptions,
   IRouter,
+  IRouterEvents,
   Router,
   RouteNode,
   route,

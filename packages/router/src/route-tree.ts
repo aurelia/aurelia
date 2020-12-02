@@ -3,7 +3,7 @@ import { ILogger, resolveAll, onResolve, emptyArray } from '@aurelia/kernel';
 import { CustomElementDefinition, CustomElement } from '@aurelia/runtime-html';
 
 import { IRouteContext } from './route-context';
-import { RoutingMode, ResolutionStrategy, SwapStrategy, IRouter } from './router';
+import { RoutingMode, ResolutionMode, SwapStrategy, IRouter } from './router';
 import { ViewportInstructionTree, ViewportInstruction, NavigationInstructionType, Params, ITypedNavigationInstruction_ResolvedComponent } from './instructions';
 import { RecognizedRoute } from './route-recognizer';
 import { RouteDefinition } from './route-definition';
@@ -204,7 +204,7 @@ export class RouteTreeCompiler {
   private readonly router: IRouter;
   private readonly logger: ILogger;
   private readonly mode: RoutingMode;
-  private readonly resolution: ResolutionStrategy;
+  private readonly resolution: ResolutionMode;
   private readonly swapStrategy: SwapStrategy;
 
   public constructor(
@@ -213,7 +213,7 @@ export class RouteTreeCompiler {
     private readonly ctx: IRouteContext,
   ) {
     this.mode = instructions.options.getRoutingMode(instructions);
-    this.resolution = instructions.options.resolutionStrategy;
+    this.resolution = instructions.options.resolutionMode;
     this.swapStrategy = instructions.options.swapStrategy;
     this.logger = ctx.get(ILogger).scopeTo('RouteTreeBuilder');
     this.router = ctx.get(IRouter);

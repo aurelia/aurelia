@@ -86,7 +86,7 @@ export {
   Transition,
   Navigation,
   RoutingMode,
-  ResolutionStrategy,
+  ResolutionMode,
   SwapStrategy,
   QueryParamsStrategy,
   FragmentStrategy,

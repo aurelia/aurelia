@@ -31,7 +31,7 @@ export function toManagedState(state: {} | null, navId: number): ManagedState {
 
 export type RoutingMode = 'configured-only' | 'configured-first';
 export type SwapStrategy = 'sequential-add-first' | 'sequential-remove-first' | 'parallel-remove-first';
-export type ResolutionStrategy = 'static' | 'dynamic';
+export type ResolutionMode = 'static' | 'dynamic';
 export type QueryParamsStrategy = 'overwrite' | 'preserve' | 'merge';
 export type FragmentStrategy = 'overwrite' | 'preserve';
 export type HistoryStrategy = 'none' | 'replace' | 'push';
@@ -63,7 +63,7 @@ export class RouterOptions {
      */
     public readonly routingMode: ValueOrFunc<RoutingMode>,
     public readonly swapStrategy: SwapStrategy,
-    public readonly resolutionStrategy: ResolutionStrategy,
+    public readonly resolutionMode: ResolutionMode,
     /**
      * The strategy to use for determining the query parameters when both the previous and the new url has a query string.
      *
@@ -115,7 +115,7 @@ export class RouterOptions {
       input.statefulHistoryLength ?? 0,
       input.routingMode ?? 'configured-first',
       input.swapStrategy ?? 'sequential-add-first',
-      input.resolutionStrategy ?? 'dynamic',
+      input.resolutionMode ?? 'dynamic',
       input.queryParamsStrategy ?? 'overwrite',
       input.fragmentStrategy ?? 'overwrite',
       input.historyStrategy ?? 'push',
@@ -147,7 +147,7 @@ export class RouterOptions {
     return ([
       ['routingMode', 'mode'],
       ['swapStrategy', 'swap'],
-      ['resolutionStrategy', 'resolution'],
+      ['resolutionMode', 'resolution'],
       ['queryParamsStrategy', 'queryParams'],
       ['fragmentStrategy', 'fragment'],
       ['historyStrategy', 'history'],
@@ -200,7 +200,7 @@ export class NavigationOptions extends RouterOptions {
       routerOptions.statefulHistoryLength,
       routerOptions.routingMode,
       routerOptions.swapStrategy,
-      routerOptions.resolutionStrategy,
+      routerOptions.resolutionMode,
       routerOptions.queryParamsStrategy,
       routerOptions.fragmentStrategy,
       routerOptions.historyStrategy,

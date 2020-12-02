@@ -15,7 +15,7 @@ import {
 } from '@aurelia/runtime-html';
 import {
   IRouterOptions,
-  ResolutionStrategy,
+  ResolutionMode,
   SwapStrategy,
   IRouter,
   Params as P,
@@ -473,7 +473,7 @@ function* interleave(
   }
 }
 export interface Iopts {
-  resolution: ResolutionStrategy;
+  resolutionMode: ResolutionMode;
   swapStrategy: SwapStrategy;
 }
 
@@ -537,18 +537,18 @@ async function createFixture<T extends Constructable>(
 
 function $forEachRouterOptions(cb: (opts: Iopts) => void) {
   return function () {
-    for (const resolution of [
+    for (const resolutionMode of [
       'dynamic',
       'static',
-    ] as ResolutionStrategy[]) {
+    ] as ResolutionMode[]) {
       for (const swapStrategy of [
         'parallel-remove-first',
         'sequential-add-first',
         'sequential-remove-first',
       ] as SwapStrategy[]) {
-        describe(`defer:'${resolution}', swap:'${swapStrategy}'`, function () {
+        describe(`resolution:'${resolutionMode}', swap:'${swapStrategy}'`, function () {
           cb({
-            resolution,
+            resolutionMode,
             swapStrategy,
           });
         });
@@ -1014,7 +1014,7 @@ describe('router hooks', function () {
                   case 0:
                     yield* $('start', 'root2', ticks, 'binding', 'bound', 'attaching', 'attached');
 
-                    switch (opts.resolution) {
+                    switch (opts.resolutionMode) {
                       case 'dynamic':
                         yield* $(phase1, [t1.p, t1.c], ticks, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached');
                         break;
@@ -1054,7 +1054,7 @@ describe('router hooks', function () {
                         yield* $(phase, [$t1.c, $t1.p], ticks, 'canUnload');
                         yield* $(phase, $t2.p, ticks, 'canLoad');
 
-                        switch (opts.resolution) {
+                        switch (opts.resolutionMode) {
                           case 'dynamic':
                             yield* $(phase, [$t1.c, $t1.p], ticks, 'unload');
                             yield* $(phase, $t2.p, ticks, 'load');
@@ -1079,7 +1079,7 @@ describe('router hooks', function () {
                             break;
                         }
 
-                        switch (opts.resolution) {
+                        switch (opts.resolutionMode) {
                           case 'dynamic':
                             yield* $(phase, $t2.p, ticks, 'attached');
                             yield* $(phase, $t2.c, ticks, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached');
@@ -1107,7 +1107,7 @@ describe('router hooks', function () {
                   case 1:
                     yield* $('start', 'root2', ticks, 'binding', 'bound', 'attaching', 'attached');
 
-                    switch (opts.resolution) {
+                    switch (opts.resolutionMode) {
                       case 'dynamic':
                         yield* $(phase1, [t1.p, t1.c], ticks, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached');
                         break;
@@ -1156,7 +1156,7 @@ describe('router hooks', function () {
                         yield* $(phase, [$t1.c, $t1.p], ticks, 'canUnload');
                         yield* $(phase, $t2.p, ticks, 'canLoad');
 
-                        switch (opts.resolution) {
+                        switch (opts.resolutionMode) {
                           case 'dynamic':
                             yield* $(phase, [$t1.c, $t1.p], ticks, 'unload');
                             yield* $(phase, $t2.p, ticks, 'load');
@@ -1190,7 +1190,7 @@ describe('router hooks', function () {
                               })(),
                             );
 
-                            switch (opts.resolution) {
+                            switch (opts.resolutionMode) {
                               case 'dynamic':
                                 yield* interleave(
                                   (function* () {
@@ -1233,7 +1233,7 @@ describe('router hooks', function () {
                             );
                             yield* $(phase, [$t1.p, $t1.c], ticks, 'dispose');
 
-                            switch (opts.resolution) {
+                            switch (opts.resolutionMode) {
                               case 'dynamic':
                                 yield* $(phase, $t2.p, ticks, 'binding', 'bound', 'attaching', 'attached');
                                 yield* $(phase, $t2.c, ticks, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached');
@@ -1249,7 +1249,7 @@ describe('router hooks', function () {
                             }
                             break;
                           case 'sequential-add-first':
-                            switch (opts.resolution) {
+                            switch (opts.resolutionMode) {
                               case 'dynamic':
                                 yield* $(phase, $t2.p, ticks, 'binding', 'bound', 'attaching', 'attached');
                                 yield* $(phase, $t2.c, ticks, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached');
@@ -1356,7 +1356,7 @@ describe('router hooks', function () {
           yield* $('start', 'root', 0, 'binding', 'bound', 'attaching', 'attached');
 
           const hookName = hookSpec.toString().slice(0, -3) as typeof hookNames[number];
-          switch (opts.resolution) {
+          switch (opts.resolutionMode) {
             case 'dynamic':
               yield* $(phase1, ['a', 'b'], 0, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached');
               switch (hookName) {
@@ -1675,7 +1675,7 @@ describe('router hooks', function () {
         const expected = [...(function* () {
           yield* $(`start`, 'root', 0, 'binding', 'bound', 'attaching', 'attached');
 
-          switch (opts.resolution) {
+          switch (opts.resolutionMode) {
             case 'dynamic':
               yield* $(phase1, 'a1', a1CanLoad, 'canLoad');
               yield* $(phase1, 'a1', a1Load, 'load');
@@ -1891,7 +1891,7 @@ describe('router hooks', function () {
         const expected = [...(function* () {
           yield* $(`start`, 'root', 0, 'binding', 'bound', 'attaching', 'attached');
 
-          switch (opts.resolution) {
+          switch (opts.resolutionMode) {
             case 'dynamic':
               yield* interleave(
                 $(phase1, 'a1', a1CanLoad, 'canLoad'),

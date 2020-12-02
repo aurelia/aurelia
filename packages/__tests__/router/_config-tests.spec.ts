@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { customElement, ICustomElementController } from '@aurelia/runtime-html';
-import { IRouterOptions, ResolutionStrategy, SwapStrategy, route, Route } from '@aurelia/router';
+import { IRouterOptions, ResolutionMode, SwapStrategy, route, Route } from '@aurelia/router';
 import { assert } from '@aurelia/testing';
 
 import { IHookInvocationAggregator, IHIAConfig, HookName } from './_shared/hook-invocation-tracker';
@@ -42,7 +42,7 @@ export function* prepend(
 export function* prependDeferrable(
   prefix: string,
   component: string,
-  resolution: ResolutionStrategy,
+  resolution: ResolutionMode,
   ...calls: (HookName | '')[]
 ) {
   if (resolution === 'dynamic') {
@@ -81,7 +81,7 @@ export function* interleave(
 }
 
 export interface IRouterOptionsSpec {
-  resolution: ResolutionStrategy;
+  resolution: ResolutionMode;
   swapStrategy: SwapStrategy;
   toString(): string;
 }
@@ -109,7 +109,7 @@ export abstract class SimpleActivityTrackingVMBase {
 
 describe('router config', function () {
   describe.skip('monomorphic timings', function () {
-    const deferUntils: ResolutionStrategy[] = [
+    const deferUntils: ResolutionMode[] = [
       'dynamic',
       'static',
     ];

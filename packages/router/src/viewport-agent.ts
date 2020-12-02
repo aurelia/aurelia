@@ -8,7 +8,7 @@ import { IViewport } from './resources/viewport';
 import { ComponentAgent } from './component-agent';
 import { RouteNode, RouteTreeCompiler } from './route-tree';
 import { IRouteContext } from './route-context';
-import { Transition, ResolutionStrategy, SwapStrategy } from './router';
+import { Transition, ResolutionMode, SwapStrategy } from './router';
 import { TransitionPlan } from './route';
 import { Batch, mergeDistinct } from './util';
 
@@ -16,7 +16,7 @@ export class ViewportRequest {
   public constructor(
     public readonly viewportName: string,
     public readonly componentName: string,
-    public readonly resolution: ResolutionStrategy,
+    public readonly resolution: ResolutionMode,
     public readonly append: boolean,
   ) { }
 
@@ -51,7 +51,7 @@ export class ViewportAgent {
   private get nextState(): NextState { return this.state & State.next; }
   private set nextState(state: NextState) { this.state = (this.state & State.curr) | state; }
 
-  private $resolution: ResolutionStrategy = 'dynamic';
+  private $resolution: ResolutionMode = 'dynamic';
   private $plan: TransitionPlan = 'replace';
   private currNode: RouteNode | null = null;
   private nextNode: RouteNode | null = null;
@@ -657,7 +657,7 @@ export class ViewportAgent {
     }
   }
 
-  public scheduleUpdate(resolution: ResolutionStrategy, swapStrategy: SwapStrategy, next: RouteNode): void {
+  public scheduleUpdate(resolution: ResolutionMode, swapStrategy: SwapStrategy, next: RouteNode): void {
     switch (this.nextState) {
       case State.nextIsEmpty:
         this.nextNode = next;

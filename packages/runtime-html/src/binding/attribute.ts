@@ -134,9 +134,10 @@ export class AttributeBinding implements IPartialConnectableBinding {
       if (newValue !== this.value) {
         this.value = newValue;
         if (shouldQueueFlush) {
-          this.task ??= this.$platform.domWriteQueue.queueTask(() => {
-            interceptor.updateTarget(this.value, flags);
+          this.task?.cancel();
+          this.task = this.$platform.domWriteQueue.queueTask(() => {
             this.task = null;
+            interceptor.updateTarget(newValue, flags);
           }, taskOptions);
         } else {
           interceptor.updateTarget(newValue, flags);

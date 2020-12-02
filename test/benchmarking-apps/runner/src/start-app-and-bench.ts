@@ -15,14 +15,15 @@ async function main({ framework, iterations }: { framework: Data<FrameworkMetada
   try {
     const fxName = framework.name;
     const appPath = resolve(process.cwd(), framework.localPath);
-    await buildApp(fxName, appPath);
+    await buildApp(fxName, framework.version !== 'local', appPath);
 
     const port = framework.port;
     app = await startApp(fxName, appPath, port);
 
     // Run bench
     // Inject globals
-    (globalThis as any).$$framework = framework.name;
+    (globalThis as any).$$framework = fxName;
+    (globalThis as any).$$frameworkVersion = framework.version;
     (globalThis as any).$$port = port;
     (globalThis as any).$$iterations = iterations;
     const measurements = (globalThis as any).$$measurements = [];
@@ -54,13 +55,18 @@ async function main({ framework, iterations }: { framework: Data<FrameworkMetada
   }
 }
 
-async function buildApp(fxName: string, appPath: string) {
+async function buildApp(fxName: string, needDepsInstallation: boolean, appPath: string) {
+  const cmd = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+  if (needDepsInstallation) {
+    await new Promise<void>((res) => {
+      const installation = spawn(cmd, ['ci'], { cwd: appPath, shell: true });
+      installation.stdout.on('data', function (d) { console.log(d.toString()); });
+      installation.stderr.on('data', function (d) { console.warn(d.toString()); });
+      installation.on('exit', res);
+    });
+  }
   return new Promise<void>((res, rej) => {
-    const build = spawn(
-      process.platform === 'win32' ? 'npm.cmd' : 'npm',
-      ['run', 'build-app'],
-      { cwd: appPath }
-    );
+    const build = spawn(cmd, ['run', 'build-app'], { cwd: appPath });
     build.stdout.on('data', function (d) { console.log(d.toString()); });
     build.stderr.on('data', function (d) {
       rej(new Error(`The app for the framework '${fxName}' cannot be built. Error: ${d.toString()}`));

@@ -13,7 +13,7 @@ export const browserTypes = ['chromium',  /* 'firefox', 'webkit' */] as const; /
 export type BrowserType = typeof browserTypes[number];
 function roundDurationMs(val: number) { return Math.round(val * 1e3) / 1e3; }
 
-export type WritableMeasurement = Omit<Measurement, 'framework' | 'browser' | 'initialPopulation' | 'totalPopulation' | 'name'>;
+export type WritableMeasurement = Omit<Measurement, 'framework' | 'frameworkVersion' | 'browser' | 'browserVersion' | 'initialPopulation' | 'totalPopulation' | 'name'>;
 export type WritableMeasurementKeys = {
   // eslint-disable-next-line @typescript-eslint/ban-types
   [key in keyof WritableMeasurement]: Measurement[key] extends Function ? never : key
@@ -45,7 +45,9 @@ export class Measurement {
   }
   public constructor(
     public readonly framework: string,
+    public readonly frameworkVersion: string,
     public readonly browser: BrowserType,
+    public readonly browserVersion: string,
     public readonly initialPopulation: number,
     public readonly totalPopulation: number,
     initializeWithZero = false,
@@ -94,7 +96,7 @@ export class Measurements extends Array<Measurement> {
 
   public get mean(): Measurement {
     const item0 = this[0];
-    const mean = new Measurement(item0.framework, item0.browser, item0.initialPopulation, item0.totalPopulation, true);
+    const mean = new Measurement(item0.framework, item0.frameworkVersion, item0.browser, item0.browserVersion, item0.initialPopulation, item0.totalPopulation, true);
     const length = this.length;
     for (let i = 0, ii = length; i < ii; i++) {
       const item = this[i];
@@ -158,6 +160,7 @@ export class FrameworkMetadata {
    */
   public constructor(
     public readonly name: string,
+    public readonly version: string,
     public readonly localPath: string,
     public readonly port: string,
   ) { }
@@ -167,9 +170,17 @@ export class FrameworkMetadata {
 export const frameworksMetadata: Record<string, FrameworkMetadata> = {
   aurelia2: new FrameworkMetadata(
     /* name         */'aurelia2',
+    /* version      */'local',
     /* localPath    */'../aurelia2',
     /* port         */'9000',
-  )
+  ),
+  // The following can only be activated after the PR #1021 is merged.
+  // aurelia2_npm: new FrameworkMetadata(
+  //   /* name         */'aurelia2_npm',
+  //   /* version      */'0.8.0',
+  //   /* localPath    */'../aurelia2-npm',
+  //   /* port         */'9001',
+  // ),
 } as const;
 
 export class BenchOptions {
@@ -311,6 +322,7 @@ class CosmosStorage implements IStorage {
     const batchId = this.batchId;
     await container.items.create({
       id: batchId,
+      timestamp: new Date().getTime(),
       measurements: this.measurements
     });
     console.log(`Persisted the result for batch ${batchId} in cosmos DB.`);

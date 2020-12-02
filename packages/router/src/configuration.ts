@@ -43,8 +43,6 @@ export type RouterConfig = IRouterOptions | ((router: IRouter) => ReturnType<IRo
 function configure(container: IContainer, config?: RouterConfig): IContainer {
   return container.register(
     AppTask.with(IContainer).hydrated().call(RouteContext.setRoot),
-    // TODO(fkleuver): hook this up to MountQueue after that's added back in, to delay mounting until the whole tree
-    // has loaded. This to prevent flicker in case of cancellation.
     AppTask.with(IRouter).afterActivate().call(router => {
       if (isObject(config)) {
         if (typeof config === 'function') {
@@ -54,6 +52,9 @@ function configure(container: IContainer, config?: RouterConfig): IContainer {
         }
       }
       return router.start({}, true) as void | Promise<void>;
+    }),
+    AppTask.with(IRouter).afterDeactivate().call(router => {
+      router.stop();
     }),
     ...DefaultComponents,
     ...DefaultResources,

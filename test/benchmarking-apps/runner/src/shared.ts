@@ -9,7 +9,7 @@ type Writable<TClass> = { -readonly [key in keyof TClass]: TClass[key] };
 type DataMembers<TClass> = { [key in keyof TClass]: TClass[key] extends Function ? never : key }[keyof TClass];
 export type Data<TClass> = { [key in DataMembers<TClass>]: TClass[key] };
 
-export const browserTypes = ['chromium', 'firefox', 'webkit'] as const;
+export const browserTypes = ['chromium','firefox',  /* 'webkit' */] as const; // TODO: Enable the rest as soon as the container image (in CI) is fixed.
 export type BrowserType = typeof browserTypes[number];
 function roundDurationMs(val: number) { return Math.round(val * 1e3) / 1e3; }
 

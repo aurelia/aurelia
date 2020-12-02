@@ -8,6 +8,7 @@ async function main() {
 
   console.debug('active options:', options.toString());
 
+  const errors: string[] = [];
   let $res: () => void;
   const promise = new Promise<void>((res) => $res = res);
 
@@ -19,8 +20,10 @@ async function main() {
     childProcesses.push(cp);
     cp.send({ framework, iterations: options.iterations });
     cp.on('message', addMeasurements);
-    cp.on('exit', () => {
-      console.log(`Done ${framework.name}`);
+    cp.on('exit', (exitCode: number) => {
+      if (exitCode !== 0) {
+        errors.push(framework.name);
+      }
       childProcesses.splice(childProcesses.indexOf(cp), 1);
       if (childProcesses.length === 0) {
         $res();
@@ -28,7 +31,20 @@ async function main() {
     });
   }
   await promise;
-  await storage.persist();
+
+  let persistenceFailed = false;
+  try {
+    await storage.persist();
+  } catch {
+    persistenceFailed = true;
+  }
+  const hasFrameworkFailures = errors.length > 0;
+  if (hasFrameworkFailures) {
+    console.error(`Benchmarking failed for the following frameworks\n${errors.join('\n')}`);
+  }
+  if (hasFrameworkFailures || persistenceFailed) {
+    process.exit(1);
+  }
 
   function addMeasurements(measurements: Data<Measurement>[]) {
     storage.addMeasurements(...measurements);

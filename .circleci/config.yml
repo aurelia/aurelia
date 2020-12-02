@@ -481,7 +481,7 @@ jobs:
           command: |
             cd test/benchmarking-apps/runner
             echo "{\"endpoint\": \"https://aurelia.documents.azure.com:443/\",\"key\": \"$AZURE_COSMOS_DB_KEY\"}" > cosmos.config.json
-            node dist/run-benchmarks --i 100 --storage cosmos
+            node dist/run-benchmarks --i 3 --storage cosmos
 
 # # # # # # # # # # # # # # # #
 # - Workflows -

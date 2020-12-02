@@ -11,6 +11,7 @@ import { Data, FrameworkMetadata } from './shared';
 
 async function main({ framework, iterations }: { framework: Data<FrameworkMetadata>; iterations: number }) {
   let app: ChildProcessWithoutNullStreams = null!;
+  let failures: number = 0;
   try {
     const fxName = framework.name;
     const appPath = resolve(process.cwd(), framework.localPath);
@@ -33,8 +34,9 @@ async function main({ framework, iterations }: { framework: Data<FrameworkMetada
     });
     mocha.addFile(join(__dirname, 'bench.spec.js'));
     await new Promise<void>((res, rej) => {
-      mocha.run(function (failures) {
-        if (failures === 0) {
+      mocha.run(function ($failures) {
+        failures = $failures;
+        if ($failures === 0) {
           res();
         } else {
           rej(new Error(`mocha failed for '${fxName}'.`));
@@ -48,7 +50,7 @@ async function main({ framework, iterations }: { framework: Data<FrameworkMetada
     if (app !== null) {
       kill(app.pid);
     }
-    process.exit();
+    process.exit(failures);
   }
 }
 

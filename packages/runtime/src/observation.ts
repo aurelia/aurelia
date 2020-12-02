@@ -278,10 +278,6 @@ export const enum AccessorType {
   Node          = 0b0_0000_0010,
   Obj           = 0b0_0000_0100,
 
-  Array         = 0b0_0000_1010,
-  Set           = 0b0_0001_0010,
-  Map           = 0b0_0010_0010,
-
   // misc characteristic of accessors/observers when update
   //
   // by default, everything is synchronous
@@ -290,11 +286,11 @@ export const enum AccessorType {
   // queue it instead
   // todo: https://gist.github.com/paulirish/5d52fb081b3570c81e3a
   // todo: https://csstriggers.com/
-  Layout        = 0b0_0100_0000,
+  Layout        = 0b0_0000_1000,
 
-  // there needs to be a flag to signal that accessor real value
-  // may get out of sync with binding value
-  // so that binding can ask for a force read instead of cache read
+  Array         = 0b0_0001_0010,
+  Set           = 0b0_0010_0010,
+  Map           = 0b0_0100_0010,
 }
 
 /**

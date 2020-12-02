@@ -15,30 +15,6 @@ import type {
 
 export interface CollectionLengthObserver extends ISubscriberCollection {}
 
-interface CollectionLengthObserverImpl extends IObserver, ISubscriberCollection, ICollectionSubscriber {
-  subCount: number;
-  owner: ICollectionObserver<CollectionKind>;
-}
-
-function implementLengthObserver(klass: Constructable<CollectionLengthObserverImpl>) {
-  const proto = klass.prototype as CollectionLengthObserverImpl;
-  subscriberCollection()(klass);
-  ensureProto(proto, 'subscribe', subscribe);
-  ensureProto(proto, 'unsubscribe', unsubscribe)
-}
-
-function subscribe(this: CollectionLengthObserverImpl, subscriber: ISubscriber): void {
-  if (this.addSubscriber(subscriber) && ++this.subCount === 1) {
-    this.owner.addCollectionSubscriber(this);
-  }
-}
-
-function unsubscribe(this: CollectionLengthObserverImpl, subscriber: ISubscriber): void {
-  if (this.removeSubscriber(subscriber) && --this.subCount) {
-    this.owner.removeCollectionSubscriber(this);
-  }
-}
-
 export class CollectionLengthObserver {
   public value: number;
   public readonly type: AccessorType = AccessorType.Array;
@@ -60,9 +36,12 @@ export class CollectionLengthObserver {
 
   public setValue(newValue: number, flags: LifecycleFlags): void {
     const currentValue = this.value;
+    // if in the template, length is two-way bound directly
+    // then there's a chance that the new value is invalid
+    // add a guard so that we don't accidentally broadcast invalid values
     if (newValue !== currentValue && isArrayIndex(newValue)) {
       if ((flags & LifecycleFlags.noFlush) === 0) {
-        this.obj.length  = newValue;
+        this.obj.length = newValue;
       }
       this.value = newValue;
       this.callSubscribers(newValue, currentValue, flags | LifecycleFlags.updateTarget);
@@ -72,21 +51,8 @@ export class CollectionLengthObserver {
   public handleCollectionChange(_: IndexMap, flags: LifecycleFlags) {
     const oldValue = this.value;
     const value = this.obj.length;
-    this.value = value;
-    if (value !== oldValue) {
+    if ((this.value = value) !== oldValue) {
       this.callSubscribers(value, oldValue, flags);
-    }
-  }
-
-  public subscribe(subscriber: ISubscriber): void {
-    if (this.addSubscriber(subscriber) && ++this.subCount === 1) {
-      this.owner.addCollectionSubscriber(this);
-    }
-  }
-
-  public unsubscribe(subscriber: ISubscriber): void {
-    if (this.removeSubscriber(subscriber) && --this.subCount) {
-      this.owner.removeCollectionSubscriber(this);
     }
   }
 }
@@ -117,13 +83,37 @@ export class CollectionSizeObserver {
     throw new Error('Map/Set "size" is a readonly property');
   }
 
-  public handleCollectionChange(_: IndexMap, flags: LifecycleFlags) {
+  public handleCollectionChange(_: IndexMap, flags: LifecycleFlags): void {
     const oldValue = this.value;
     const value = this.obj.size;
     this.value = value;
     if (value !== oldValue) {
       this.callSubscribers(value, oldValue, flags);
     }
+  }
+}
+
+interface CollectionLengthObserverImpl extends IObserver, ISubscriberCollection, ICollectionSubscriber {
+  subCount: number;
+  owner: ICollectionObserver<CollectionKind>;
+}
+
+function implementLengthObserver(klass: Constructable<CollectionLengthObserverImpl>) {
+  const proto = klass.prototype as CollectionLengthObserverImpl;
+  ensureProto(proto, 'subscribe', subscribe, true);
+  ensureProto(proto, 'unsubscribe', unsubscribe, true);
+  subscriberCollection()(klass);
+}
+
+function subscribe(this: CollectionLengthObserverImpl, subscriber: ISubscriber): void {
+  if (this.addSubscriber(subscriber) && ++this.subCount === 1) {
+    this.owner.addCollectionSubscriber(this);
+  }
+}
+
+function unsubscribe(this: CollectionLengthObserverImpl, subscriber: ISubscriber): void {
+  if (this.removeSubscriber(subscriber) && --this.subCount) {
+    this.owner.removeCollectionSubscriber(this);
   }
 }
 

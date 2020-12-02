@@ -38,7 +38,6 @@ export class InterpolationBinding implements IBinding {
   public isBound: boolean = false;
   public $scope?: Scope = void 0;
   public $hostScope: Scope | null = null;
-  public value: unknown = '';
 
   public partBindings: ContentBinding[];
 
@@ -76,8 +75,6 @@ export class InterpolationBinding implements IBinding {
       }
     }
 
-    this.value = result;
-
     const targetObserver = this.targetObserver;
     // Alpha: during bind a simple strategy for bind is always flush immediately
     // todo:
@@ -85,11 +82,10 @@ export class InterpolationBinding implements IBinding {
     //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start().wait()
     const shouldQueueFlush = (flags & LifecycleFlags.fromBind) === 0 && (targetObserver.type & AccessorType.Layout) > 0;
     if (shouldQueueFlush) {
-      // an optimization: only create & queue a task when there's NOT already a task queued
-      // inside the lambda, use this.value instead of result, since it would always be the latest value
-      this.task ??= this.taskQueue.queueTask(() => {
-        targetObserver.setValue(this.value, flags, this.target, this.targetProperty);
+      this.task?.cancel();
+      this.task = this.taskQueue.queueTask(() => {
         this.task = null;
+        targetObserver.setValue(result, flags, this.target, this.targetProperty);
       }, queueTaskOptions);
     } else {
       targetObserver.setValue(result, flags, this.target, this.targetProperty);

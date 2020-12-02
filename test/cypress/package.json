@@ -1,6 +1,6 @@
 {
   "name": "test-cypress",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "The Cypress integration tests.",
   "private": true,
   "main": "index.js",

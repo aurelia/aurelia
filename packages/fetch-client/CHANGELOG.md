@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="0.8.0"></a>
+# 0.8.0 (2020-11-30)
+
+### Refactorings:
+
+* **all:** add .js extensions for native esm compat ([0308e2e](https://github.com/aurelia/aurelia/commit/0308e2e))
+* **fetch-client:** remove dom dep ([fa511d4](https://github.com/aurelia/aurelia/commit/fa511d4))
+* **all:** move html-specific stuff from runtime to runtime-html and remove Node generics ([c745963](https://github.com/aurelia/aurelia/commit/c745963))
+
 <a name="0.7.0"></a>
 # 0.7.0 (2020-05-08)
 

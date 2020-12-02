@@ -3,6 +3,23 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="0.8.0"></a>
+# 0.8.0 (2020-11-30)
+
+### Bug Fixes:
+
+* ***:** build issue ([3f93359](https://github.com/aurelia/aurelia/commit/3f93359))
+
+
+### Refactorings:
+
+* **all:** add .js extensions for native esm compat ([0308e2e](https://github.com/aurelia/aurelia/commit/0308e2e))
+* **all:** move scheduler implementation to platform ([e22285a](https://github.com/aurelia/aurelia/commit/e22285a))
+* **all:** remove debug package ([a1bdb60](https://github.com/aurelia/aurelia/commit/a1bdb60))
+* **all:** remove PLATFORM global ([fdef656](https://github.com/aurelia/aurelia/commit/fdef656))
+* **all:** merge jit into runtime and remove jit package + references ([d7b626b](https://github.com/aurelia/aurelia/commit/d7b626b))
+* **jit:** move expression parser to runtime ([709a56a](https://github.com/aurelia/aurelia/commit/709a56a))
+
 <a name="0.7.0"></a>
 # 0.7.0 (2020-05-08)
 

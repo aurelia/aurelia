@@ -127,6 +127,8 @@ export {
   ComputedObserver,
   ComputedWatcher,
   ExpressionWatcher,
+  Watch,
+  watch,
 
   IObservableDefinition,
   observable,

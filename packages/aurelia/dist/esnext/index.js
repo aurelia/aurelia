@@ -282,7 +282,7 @@ export {
 // IDirtyChecker,
 // DirtyCheckProperty,
 // DirtyCheckSettings,
-ComputedObserver, ComputedWatcher, ExpressionWatcher, 
+ComputedObserver, ComputedWatcher, ExpressionWatcher, Watch, watch, 
 // IObjectObservationAdapter,
 IObserverLocator, 
 // ITargetObserverLocator,

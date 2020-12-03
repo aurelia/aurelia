@@ -319,14 +319,13 @@ export class RouteRecognizer<T> {
   private readonly rootState: SeparatorState<T> = new State(null, null, '') as SeparatorState<T>;
   private readonly cache: Map<string, RecognizedRoute<T> | null> = new Map<string, RecognizedRoute<T> | null>();
 
-
   public add(routeOrRoutes: IConfigurableRoute<T> | readonly IConfigurableRoute<T>[]): void {
     if (routeOrRoutes instanceof Array) {
       for (const route of routeOrRoutes) {
         this.$add(route);
       }
     } else {
-      this.$add(routeOrRoutes as IConfigurableRoute<T>)
+      this.$add(routeOrRoutes as IConfigurableRoute<T>);
     }
 
     // Clear the cache whenever there are state changes, because the recognizeResults could be arbitrarily different as a result

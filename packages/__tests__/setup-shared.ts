@@ -65,13 +65,13 @@ export function $setup(platform: BrowserPlatform) {
       suite.$duration = (suite.$duration || 0) + elapsed;
       suite = suite.parent;
     } while (suite);
-    // try {
-    //   assert.areTaskQueuesEmpty();
-    // } catch (ex) {
-    //   ensureTaskQueuesEmpty();
-    //   assertNoWatcher(false);
-    //   throw ex;
-    // }
+    try {
+      assert.areTaskQueuesEmpty();
+    } catch (ex) {
+      ensureTaskQueuesEmpty();
+      assertNoWatcher(false);
+      throw ex;
+    }
     assertNoWatcher(true);
   });
 

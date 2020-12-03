@@ -355,11 +355,13 @@ describe('router config', function () {
             @customElement({ name: 'root', template: vp(1), dependencies: inDependencies ? [A01] : [] })
             class Root extends SimpleActivityTrackingVMBase { }
 
-            const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig, () => translateOptions({ routingMode }));
+            const { router, activityTracker, tearDown } = await createFixture(Root, [], getDefaultHIAConfig, () => translateOptions({ routingMode }));
 
             await router.load('a');
 
             verifyInvocationsEqual(activityTracker.activeVMs, ['root', 'a01']);
+
+            await tearDown();
           });
 
           it(`can load a configured child route with indirect path and explicit component`, async function () {
@@ -371,11 +373,13 @@ describe('router config', function () {
             @customElement({ name: 'root', template: vp(1), dependencies: inDependencies ? [A01] : [] })
             class Root extends SimpleActivityTrackingVMBase { }
 
-            const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig, () => translateOptions({ routingMode }));
+            const { router, activityTracker, tearDown } = await createFixture(Root, [], getDefaultHIAConfig, () => translateOptions({ routingMode }));
 
             await router.load('a');
 
             verifyInvocationsEqual(activityTracker.activeVMs, ['root', 'a01']);
+
+            await tearDown();
           });
         });
       }
@@ -389,11 +393,13 @@ describe('router config', function () {
     @customElement({ name: 'root', template: vp(1), dependencies: [A01] })
     class Root extends SimpleActivityTrackingVMBase { }
 
-    const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig, () => translateOptions({ routingMode: 'configured-first' }));
+    const { router, activityTracker, tearDown } = await createFixture(Root, [], getDefaultHIAConfig, () => translateOptions({ routingMode: 'configured-first' }));
 
     await router.load('a01');
 
     verifyInvocationsEqual(activityTracker.activeVMs, ['root', 'a01']);
+
+    await tearDown();
   });
 
   it(`can load a configured child route by name when routingMode is 'configured-first'`, async function () {
@@ -404,11 +410,13 @@ describe('router config', function () {
     @customElement({ name: 'root', template: vp(1) })
     class Root extends SimpleActivityTrackingVMBase { }
 
-    const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig, () => translateOptions({ routingMode: 'configured-first' }));
+    const { router, activityTracker, tearDown } = await createFixture(Root, [], getDefaultHIAConfig, () => translateOptions({ routingMode: 'configured-first' }));
 
     await router.load('a01');
 
     verifyInvocationsEqual(activityTracker.activeVMs, ['root', 'a01']);
+
+    await tearDown();
   });
 
   it(`can load a configured child route by name when routingMode is 'configured-only'`, async function () {
@@ -419,11 +427,13 @@ describe('router config', function () {
     @customElement({ name: 'root', template: vp(1) })
     class Root extends SimpleActivityTrackingVMBase { }
 
-    const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig, () => translateOptions({ routingMode: 'configured-only' }));
+    const { router, activityTracker, tearDown } = await createFixture(Root, [], getDefaultHIAConfig, () => translateOptions({ routingMode: 'configured-only' }));
 
     await router.load('a01');
 
     verifyInvocationsEqual(activityTracker.activeVMs, ['root', 'a01']);
+
+    await tearDown();
   });
 
   it(`can navigate to deep dependencies as long as they are declared`, async function () {
@@ -439,11 +449,13 @@ describe('router config', function () {
     @customElement({ name: 'root', template: vp(1), dependencies: [A11] })
     class Root extends SimpleActivityTrackingVMBase { }
 
-    const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig, () => ({}));
+    const { router, activityTracker, tearDown } = await createFixture(Root, [], getDefaultHIAConfig, () => ({}));
 
     await router.load('a11/b11/c01');
 
     verifyInvocationsEqual(activityTracker.activeVMs, ['root', 'a11', 'b11', 'c01']);
+
+    await tearDown();
   });
 
   it(`works with single multi segment static path`, async function () {
@@ -454,11 +466,13 @@ describe('router config', function () {
     @customElement({ name: 'root', template: vp(1) })
     class Root extends SimpleActivityTrackingVMBase { }
 
-    const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig, () => ({}));
+    const { router, activityTracker, tearDown } = await createFixture(Root, [], getDefaultHIAConfig, () => ({}));
 
     await router.load('a/x');
 
     verifyInvocationsEqual(activityTracker.activeVMs, ['root', 'a01']);
+
+    await tearDown();
   });
 
   it(`works with single multi segment dynamic path`, async function () {
@@ -469,11 +483,13 @@ describe('router config', function () {
     @customElement({ name: 'root', template: vp(1) })
     class Root extends SimpleActivityTrackingVMBase { }
 
-    const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig, () => ({}));
+    const { router, activityTracker, tearDown } = await createFixture(Root, [], getDefaultHIAConfig, () => ({}));
 
     await router.load('a/1');
 
     verifyInvocationsEqual(activityTracker.activeVMs, ['root', 'a01']);
+
+    await tearDown();
   });
 
   it(`works with single multi segment static path with single child`, async function () {
@@ -488,11 +504,13 @@ describe('router config', function () {
     @customElement({ name: 'root', template: vp(1) })
     class Root extends SimpleActivityTrackingVMBase { }
 
-    const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig, () => ({}));
+    const { router, activityTracker, tearDown } = await createFixture(Root, [], getDefaultHIAConfig, () => ({}));
 
     await router.load('a/x/b');
 
     verifyInvocationsEqual(activityTracker.activeVMs, ['root', 'a11', 'b01']);
+
+    await tearDown();
   });
 
   it(`works with single multi segment static path with single multi segment static child`, async function () {
@@ -507,11 +525,13 @@ describe('router config', function () {
     @customElement({ name: 'root', template: vp(1) })
     class Root extends SimpleActivityTrackingVMBase { }
 
-    const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig, () => ({}));
+    const { router, activityTracker, tearDown } = await createFixture(Root, [], getDefaultHIAConfig, () => ({}));
 
     await router.load('a/x/b/x');
 
     verifyInvocationsEqual(activityTracker.activeVMs, ['root', 'a11', 'b01']);
+
+    await tearDown();
   });
 
   it(`works with single static path with single multi segment static child`, async function () {
@@ -526,14 +546,16 @@ describe('router config', function () {
     @customElement({ name: 'root', template: vp(1) })
     class Root extends SimpleActivityTrackingVMBase { }
 
-    const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig, () => ({}));
+    const { router, activityTracker, tearDown } = await createFixture(Root, [], getDefaultHIAConfig, () => ({}));
 
     await router.load('a/b/x');
 
     verifyInvocationsEqual(activityTracker.activeVMs, ['root', 'a11', 'b01']);
+
+    await tearDown();
   });
 
-  it(`works with single empty static path redirect`, async function () {
+  it.skip(`works with single empty static path redirect`, async function () {
     @customElement({ name: 'a01', template: null })
     class A01 extends SimpleActivityTrackingVMBase { }
 
@@ -541,11 +563,13 @@ describe('router config', function () {
     @customElement({ name: 'root', template: vp(1) })
     class Root extends SimpleActivityTrackingVMBase { }
 
-    const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig, () => ({}));
+    const { router, activityTracker, tearDown } = await createFixture(Root, [], getDefaultHIAConfig, () => ({}));
 
     await router.load('');
 
     verifyInvocationsEqual(activityTracker.activeVMs, ['root', 'a01']);
+
+    await tearDown();
   });
 
   it(`works with single static path redirect`, async function () {
@@ -556,11 +580,13 @@ describe('router config', function () {
     @customElement({ name: 'root', template: vp(1) })
     class Root extends SimpleActivityTrackingVMBase { }
 
-    const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig, () => ({}));
+    const { router, activityTracker, tearDown } = await createFixture(Root, [], getDefaultHIAConfig, () => ({}));
 
     await router.load('x');
 
     verifyInvocationsEqual(activityTracker.activeVMs, ['root', 'a01']);
+
+    await tearDown();
   });
 
   describe.skip(`throw error when`, function () {
@@ -606,7 +632,7 @@ describe('router config', function () {
           @customElement({ name: 'root', template: vp(1) })
           class Root extends SimpleActivityTrackingVMBase { }
 
-          const { router } = await createFixture(Root, [], getDefaultHIAConfig, getRouterOptions);
+          const { router, tearDown } = await createFixture(Root, [], getDefaultHIAConfig, getRouterOptions);
 
           let e: Error | null = null;
           try {
@@ -623,6 +649,8 @@ describe('router config', function () {
             parent: 'root',
             parentPath: 'root',
           }));
+
+          await tearDown();
         });
 
         it(`load a direct route by indirect path when listed only as a dependency`, async function () {
@@ -633,7 +661,7 @@ describe('router config', function () {
           @customElement({ name: 'root', template: vp(1), dependencies: [A01] })
           class Root extends SimpleActivityTrackingVMBase { }
 
-          const { router } = await createFixture(Root, [], getDefaultHIAConfig, getRouterOptions);
+          const { router, tearDown } = await createFixture(Root, [], getDefaultHIAConfig, getRouterOptions);
 
           let e: Error | null = null;
           try {
@@ -650,6 +678,8 @@ describe('router config', function () {
             parent: 'root',
             parentPath: 'root',
           }));
+
+          await tearDown();
         });
       });
     }
@@ -668,7 +698,7 @@ describe('router config', function () {
         @customElement({ name: 'root', template: vp(1), dependencies: [A11] })
         class Root extends SimpleActivityTrackingVMBase { }
 
-        const { router } = await createFixture(Root, [], getDefaultHIAConfig, getRouterOptions);
+        const { router, tearDown } = await createFixture(Root, [], getDefaultHIAConfig, getRouterOptions);
 
         let e: Error | null = null;
         try {
@@ -685,6 +715,8 @@ describe('router config', function () {
           parent: 'b11',
           parentPath: 'root/a11/b11',
         }));
+
+        await tearDown();
       });
     });
 
@@ -699,7 +731,7 @@ describe('router config', function () {
         @customElement({ name: 'root', template: vp(1), dependencies: [A01] })
         class Root extends SimpleActivityTrackingVMBase { }
 
-        const { router } = await createFixture(Root, [], getDefaultHIAConfig, getRouterOptions);
+        const { router, tearDown } = await createFixture(Root, [], getDefaultHIAConfig, getRouterOptions);
 
         let e: Error | null = null;
         try {
@@ -716,6 +748,8 @@ describe('router config', function () {
           parent: 'root',
           parentPath: 'root',
         }));
+
+        await tearDown();
       });
     });
   });

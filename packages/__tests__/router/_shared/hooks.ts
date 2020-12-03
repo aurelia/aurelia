@@ -2,7 +2,6 @@
 /* eslint-disable sonarjs/no-all-duplicated-branches */
 import { DeferralJuncture } from './create-fixture';
 import { assert } from '@aurelia/testing';
-import { interleave, prepend } from '../__hook-tests.spec';
 import { HookName } from './hook-invocation-tracker';
 import { TransitionComponent } from './component';
 import { Transition } from './transition';
@@ -1064,3 +1063,39 @@ function logOutcome(actual: any, expected: any, msg: any): any {
     console.log(`%c ${left}`, `color: dark${left === right ? 'green' : 'red'}; padding-right: ${(leftMax - (left ?? '').length) / 2}em;`, ` ${right}`);
   }
 }
+
+function* prepend(
+  prefix: string,
+  component: string,
+  ...calls: (HookName | '')[]
+) {
+  for (const call of calls) {
+    if (call === '') {
+      yield '';
+    } else {
+      yield `${prefix}.${component}.${call}`;
+    }
+  }
+}
+
+function* interleave(
+  ...generators: Generator<string, void>[]
+) {
+  while (generators.length > 0) {
+    for (let i = 0, ii = generators.length; i < ii; ++i) {
+      const gen = generators[i];
+      const next = gen.next();
+      if (next.done) {
+        generators.splice(i, 1);
+        --i;
+        --ii;
+      } else {
+        const value = next.value as string;
+        if (value) {
+          yield value;
+        }
+      }
+    }
+  }
+}
+

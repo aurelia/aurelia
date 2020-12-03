@@ -1354,11 +1354,13 @@ describe('Router', function () {
     }
 
     function $removeViewport(instructions) {
-      for (const instruction of instructions) {
-        instruction.viewport = null;
-        instruction.viewportName = null;
-        if (Array.isArray(instruction.nextScopeInstructions)) {
-          $removeViewport(instruction.nextScopeInstructions);
+      if (Array.isArray(instructions)) {
+        for (const instruction of instructions) {
+          instruction.viewport = null;
+          instruction.viewportName = null;
+          if (Array.isArray(instruction.nextScopeInstructions)) {
+            $removeViewport(instruction.nextScopeInstructions);
+          }
         }
       }
     }
@@ -1867,10 +1869,10 @@ describe('Router', function () {
     };
 
     const tests = [
-      { anchor: 0, result: '!my-siblings!OneTwo:!my-one!|OneTwo:', url: 'my-siblings/my-one', title: '', name: 'first my-one'},
-      { anchor: 1, result: '!my-siblings!OneTwo:!my-two!|OneTwo:', url: 'my-siblings/my-two', title: '', name: 'first my-two'},
-      { anchor: 2, result: '!my-siblings!OneTwo:|OneTwo:!my-one!', url: 'my-siblings/my-two', title: '', name: 'second my-one'},
-      { anchor: 3, result: '!my-siblings!OneTwo:|OneTwo:!my-two!', url: 'my-siblings/my-two', title: '', name: 'second my-two'},
+      { anchor: 0, result: '!my-siblings!OneTwo:!my-one!|OneTwo:', url: 'my-siblings/my-one', title: '', name: 'first my-one' },
+      { anchor: 1, result: '!my-siblings!OneTwo:!my-two!|OneTwo:', url: 'my-siblings/my-two', title: '', name: 'first my-two' },
+      { anchor: 2, result: '!my-siblings!OneTwo:|OneTwo:!my-one!', url: 'my-siblings/my-two', title: '', name: 'second my-one' },
+      { anchor: 3, result: '!my-siblings!OneTwo:|OneTwo:!my-two!', url: 'my-siblings/my-two', title: '', name: 'second my-two' },
     ];
 
     for (let j = 0; j < tests.length; j++) {

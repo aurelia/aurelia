@@ -72,7 +72,7 @@ export class CollectionSizeObserver {
     public readonly owner: ICollectionObserver<CollectionKind.map | CollectionKind.set>,
   ) {
     this.value = (this.obj = owner.collection).size;
-    this.type = this.obj instanceof Map ? AccessorType.Map : AccessorType.Set
+    this.type = this.obj instanceof Map ? AccessorType.Map : AccessorType.Set;
   }
 
   public getValue(): number {

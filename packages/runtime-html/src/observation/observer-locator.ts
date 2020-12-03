@@ -48,7 +48,7 @@ const nsAttributes = Object.assign(
   },
 );
 
-const elementPropertyAccessor = (function() {
+const elementPropertyAccessor = (function () {
   // error when having .type = AccessorType.Node | AccessorType.Layout directly???
   const node = AccessorType.Node;
   const layout = AccessorType.Layout;

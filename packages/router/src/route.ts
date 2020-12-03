@@ -175,6 +175,7 @@ export class Route {
   public static create(configOrType: IRoute | RouteableComponentType | undefined, Type: RouteableComponentType | null = null): Route {
     // If a fixed type is specified, component is fixed to that type and
     // configOrType is set to a config with that.
+    // This also clones the route (not deep)
     if (Type !== null) {
       configOrType = Route.transferTypeToComponent(configOrType, Type);
     }
@@ -182,6 +183,8 @@ export class Route {
     // Another component queries our route configuration
     if (CustomElement.isType(configOrType)) {
       configOrType = Route.getConfiguration(configOrType);
+    } else if (Type === null) { // We need to clone the route (not deep)
+      configOrType = { ...configOrType };
     }
 
     const config = Route.transferIndividualIntoInstructions(configOrType!);
@@ -216,7 +219,9 @@ export class Route {
         `can't be specified in a component route configuration.`);
     }
 
-    const config: IRoute = configOrType ?? {};
+    // Clone it so that original route isn't affected
+    // NOTE that it's not a deep clone (yet)
+    const config: IRoute = { ...configOrType } ?? {};
 
     if ('component' in config || 'instructions' in config) {
       throw new Error(`Invalid route configuration: The 'component' and 'instructions' properties ` +
@@ -248,7 +253,7 @@ export class Route {
       || (config.parameters ?? null) !== null
       || (config.children ?? null) !== null
     ) {
-      if ((config.instructions ?? null) !== null) {
+      if (config.instructions != null) {
         throw new Error(`Invalid route configuration: The 'instructions' property can't be used together with ` +
           `the 'component', 'viewport', 'parameters' or 'children' properties.`);
       }

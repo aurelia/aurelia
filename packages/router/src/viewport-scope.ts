@@ -5,7 +5,7 @@
  *
  */
 import { CustomElementType } from '@aurelia/runtime-html';
-import { LoadInstruction } from './interfaces.js';
+import { LoadInstruction, RouteableComponentType } from './interfaces.js';
 import { IRouter } from './router.js';
 import { ViewportInstruction } from './viewport-instruction.js';
 import { IScopeOwner, IScopeOwnerOptions, NextContentAction, Scope } from './scope.js';
@@ -270,7 +270,12 @@ export class ViewportScope implements IScopeOwner {
 
   public getRoutes(): Route[] | null {
     if (this.rootComponentType !== null) {
-      const routes = Routes.getConfiguration((this.rootComponentType as any).constructor);
+      // TODO: Fix it so that this isn't necessary!
+      const Type = this.rootComponentType.constructor === this.rootComponentType.constructor.constructor
+        ? this.rootComponentType
+        : this.rootComponentType.constructor as RouteableComponentType;
+
+      const routes = Routes.getConfiguration(Type);
       // console.log('RoutesConfiguration.getConfiguration', routes);
       return routes;
     }

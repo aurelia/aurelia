@@ -740,10 +740,14 @@ export class Viewport implements IScopeOwner {
   }
 
   public getRoutes(): Route[] | null {
-    const componentType = this.getComponentType();
+    let componentType = this.getComponentType();
     if (componentType === null) {
       return null;
     }
+    componentType = componentType.constructor === componentType.constructor.constructor
+      ? componentType
+      : componentType.constructor as RouteableComponentType;
+
     const routes: Route[] = Routes.getConfiguration(componentType);
     // console.log('Routes.getConfiguration', routes);
     return Array.isArray(routes) ? routes : null;

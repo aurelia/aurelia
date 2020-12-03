@@ -101,8 +101,6 @@ export class ViewportCustomElement implements ICustomElementViewModel {
       this.viewport.enabled = true;
       return this.viewport.activate(initiator, this.$controller, flags, true);
       // TODO: Restore scroll state
-    } else {
-      console.log('############ Viewport attaching outside navigation', this.viewport);
     }
   }
 

@@ -1,5 +1,8 @@
 import { HttpClientConfiguration } from './http-client-configuration.js';
 import { Interceptor } from './interfaces.js';
+export declare const IHttpClient: import("@aurelia/kernel").InterfaceSymbol<IHttpClient>;
+export interface IHttpClient extends HttpClient {
+}
 /**
  * An HTTP client based on the Fetch API.
  */

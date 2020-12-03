@@ -49,7 +49,7 @@ export {
 json, 
 // retryStrategy,
 // RetryInterceptor,
-HttpClientConfiguration, HttpClient } from '@aurelia/fetch-client';
+HttpClientConfiguration, HttpClient, IHttpClient, } from '@aurelia/fetch-client';
 export { all, DI, IContainer, 
 // IDefaultableInterfaceSymbol,
 // IFactory,

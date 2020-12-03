@@ -4,15 +4,17 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./http-client-configuration.js", "./retry-interceptor.js"], factory);
+        define(["require", "exports", "@aurelia/kernel", "./http-client-configuration.js", "./retry-interceptor.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.HttpClient = void 0;
+    exports.HttpClient = exports.IHttpClient = void 0;
+    const kernel_1 = require("@aurelia/kernel");
     const http_client_configuration_js_1 = require("./http-client-configuration.js");
     const retry_interceptor_js_1 = require("./retry-interceptor.js");
     const absoluteUrlRegexp = /^([a-z][a-z0-9+\-.]*:)?\/\//i;
+    exports.IHttpClient = kernel_1.DI.createInterface('IHttpClient').withDefault(x => x.singleton(HttpClient));
     /**
      * An HTTP client based on the Fetch API.
      */

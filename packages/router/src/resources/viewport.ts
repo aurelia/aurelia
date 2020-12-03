@@ -74,6 +74,7 @@ export class ViewportCustomElement implements ICustomElementViewModel {
     return Runner.run(null,
       () => this.waitForRouterStart(),
       () => {
+        // Only call connect this early if we need to
         if (this.router.isRestrictedNavigation) {
           this.connect();
         }
@@ -86,6 +87,7 @@ export class ViewportCustomElement implements ICustomElementViewModel {
     return Runner.run(null,
       () => this.waitForRouterStart(),
       () => {
+        // Prefer to connect here since we've got bound data in component
         if (!this.router.isRestrictedNavigation) {
           this.connect();
         }
@@ -99,46 +101,10 @@ export class ViewportCustomElement implements ICustomElementViewModel {
       this.viewport.enabled = true;
       return this.viewport.activate(initiator, this.$controller, flags, true);
       // TODO: Restore scroll state
+    } else {
+      console.log('############ Viewport attaching outside navigation', this.viewport);
     }
   }
-
-  // public unbinding(initiator: IHydratedController, parent: ISyntheticView | ICustomElementController | null, flags: LifecycleFlags): void | Promise<void> {
-  //   if (this.viewport !== null && (this.router.processingNavigation ?? null) === null) {
-  //     // console.log('beforeUnbind', this.viewport?.toString());
-  //     // TODO: Save to cache, something like
-  //     // this.viewport.cacheContent();
-  //     // From viewport-content:
-  //     // public unloadComponent(cache: ViewportContent[], stateful: boolean = false): void {
-  //     //   // TODO: We might want to do something here eventually, who knows?
-  //     //   if (this.contentStatus !== ContentStatus.loaded) {
-  //     //     return;
-  //     //   }
-
-  //     //   // Don't unload components when stateful
-  //     //   if (!stateful) {
-  //     //     this.contentStatus = ContentStatus.created;
-  //     //   } else {
-  //     //     cache.push(this);
-  //     //   }
-  //     // }
-
-  //     // TODO: Save scroll state before detach
-
-  //     return Runner.run(null,
-  //       () => {
-  //         this.isBound = false;
-  //         this.viewport!.enabled = false;
-  //         return this.viewport!.deactivate(initiator, parent, flags);
-  //       }
-  //     );
-
-  //     // this.isBound = false;
-
-  //     // this.viewport.enabled = false;
-  //     // return this.viewport.deactivate(initiator, parent, flags);
-  //     // // this.viewport.enabled = false;
-  //   }
-  // }
 
   public detaching(initiator: IHydratedController, parent: ISyntheticView | ICustomElementController<ICustomElementViewModel> | null, flags: LifecycleFlags): void | Promise<void> {
     // if (this.viewport !== null && (this.viewport.nextContent ?? null) === null) {
@@ -169,11 +135,22 @@ export class ViewportCustomElement implements ICustomElementViewModel {
     }
   }
 
+    public unbinding(initiator: IHydratedController, parent: ISyntheticView | ICustomElementController | null, flags: LifecycleFlags): void | Promise<void> {
+    if (this.viewport !== null) {
+      // TODO: Don't unload when stateful, instead save to cache. Something like
+      // this.viewport.cacheContent();
+
+      return Runner.run(null,
+          () => this.disconnect(), // Disconnect doesn't destroy anything, just disconnects it
+      );
+    }
+  }
+
   public dispose(): void | Promise<void> {
     if (this.viewport !== null) {
       return Runner.run(null,
         () => /* (this.router.processingNavigation ?? null) === null ? */ this.viewport?.dispose() /* : void 0 */,
-        () => this.disconnect()
+//        () => this.disconnect()
       );
     }
   }

@@ -18,7 +18,7 @@ import {
   TestContext,
 } from '@aurelia/testing';
 
-describe('checked-observer.spec.ts', function () {
+describe('3-runtime-html/checked-observer.spec.ts', function () {
 
   const testCases: ITestCase[] = [
     {
@@ -327,7 +327,7 @@ type ObservedInputElement = HTMLInputElement & {
 
 const eventDefaults = { bubbles: true };
 
-describe.skip('CheckedObserver', function () {
+describe.skip('3-runtime/checked-observer.spec.ts/CheckedObserver', function () {
 
   // eslint-disable-next-line mocha/no-hooks
   before(function () {

@@ -114,15 +114,12 @@ export class InterpolationBinding implements IBinding {
     }
     this.isBound = false;
     this.$scope = void 0;
-    const task = this.task;
     const partBindings = this.partBindings;
     for (let i = 0, ii = partBindings.length; i < ii; ++i) {
       partBindings[i].interceptor.$unbind(flags);
     }
-    if (task != null) {
-      task.cancel();
-      this.task = null;
-    }
+    this.task?.cancel();
+    this.task = null;
   }
 }
 

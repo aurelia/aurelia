@@ -4,12 +4,12 @@
  *       In its current state, it is NOT a good source for learning about the inner workings and design of the router.
  *
  */
-import { HookFunction, HookTarget, HookIdentity, HookTypes, IHookOptions, HookResult, HookParameter, } from './hook-manager';
-import { IComponentAndOrViewportOrNothing, RouteableComponentType } from './interfaces';
-import { ComponentAppellationResolver, ViewportHandleResolver } from './type-resolvers';
-import { Viewport } from './viewport';
-import { ViewportInstruction } from './viewport-instruction';
-import { Navigation } from './navigation';
+import { HookFunction, HookTarget, HookIdentity, HookTypes, IHookOptions, HookResult, HookParameter, } from './hook-manager.js';
+import { IComponentAndOrViewportOrNothing, RouteableComponentType } from './interfaces.js';
+import { ComponentAppellationResolver, ViewportHandleResolver } from './type-resolvers.js';
+import { Viewport } from './viewport.js';
+import { ViewportInstruction } from './viewport-instruction.js';
+import { Navigation } from './navigation.js';
 
 /**
  * @internal - Shouldn't be used directly

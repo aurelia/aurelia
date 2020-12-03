@@ -5,7 +5,7 @@
  *
  */
 /* eslint-disable max-lines-per-function */
-import { OpenPromise } from './open-promise';
+import { OpenPromise } from './open-promise.js';
 
 /**
  * Class for running a sequence of steps with values,

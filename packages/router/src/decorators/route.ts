@@ -1,5 +1,5 @@
 import { Constructable, ResourceType } from '@aurelia/kernel';
-import { IRoute, Route } from '../route';
+import { IRoute, Route } from '../route.js';
 
 export type RouteType<T extends Constructable = Constructable> = ResourceType<T, InstanceType<T>, IRoute>;
 export type RouteDecorator = <T extends Constructable>(Type: T) => T;

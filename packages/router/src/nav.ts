@@ -4,10 +4,10 @@
  *       In its current state, it is NOT a good source for learning about the inner workings and design of the router.
  *
  */
-import { LoadInstruction } from './interfaces';
-import { NavRoute } from './nav-route';
-import { INavClasses } from './resources/nav';
-import { IRouter } from './router';
+import { LoadInstruction } from './interfaces.js';
+import { NavRoute } from './nav-route.js';
+import { INavClasses } from './resources/nav.js';
+import { IRouter } from './router.js';
 
 /**
  * Public API - Used by au-nav and Router add/setNav

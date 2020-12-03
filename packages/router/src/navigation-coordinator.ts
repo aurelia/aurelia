@@ -4,10 +4,10 @@
  *       In its current state, it is NOT a good source for learning about the inner workings and design of the router.
  *
  */
-import { IScopeOwner } from './scope';
-import { IRouter } from './router';
-import { Navigation } from './navigation';
-import { StateCoordinator, Entity } from './state-coordinator';
+import { IScopeOwner } from './scope.js';
+import { IRouter } from './router.js';
+import { Navigation } from './navigation.js';
+import { StateCoordinator, Entity } from './state-coordinator.js';
 
 export type NavigationState =
   'guardedUnload' | // fulfilled when canUnload has been called

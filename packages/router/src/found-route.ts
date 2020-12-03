@@ -4,8 +4,8 @@
  *       In its current state, it is NOT a good source for learning about the inner workings and design of the router.
  *
  */
-import { Route } from './route';
-import { ViewportInstruction } from './viewport-instruction';
+import { Route } from './route.js';
+import { ViewportInstruction } from './viewport-instruction.js';
 
 /**
  * @internal - Used when founding route/instructions

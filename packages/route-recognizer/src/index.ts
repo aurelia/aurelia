@@ -11,14 +11,14 @@ export class ConfigurableRoute<T> implements IConfigurableRoute<T> {
     public readonly path: string,
     public readonly caseSensitive: boolean,
     public readonly handler: T,
-  ) {}
+  ) { }
 }
 
 export class Endpoint<T> {
   public constructor(
     public readonly route: ConfigurableRoute<T>,
     public readonly paramNames: readonly string[],
-  ) {}
+  ) { }
 }
 
 export class RecognizedRoute<T> {
@@ -28,7 +28,7 @@ export class RecognizedRoute<T> {
     public readonly searchParams: URLSearchParams,
     public readonly isDynamic: boolean,
     public readonly queryString: string,
-  ) {}
+  ) { }
 }
 
 class Candidate<T> {
@@ -324,6 +324,8 @@ class RecognizeResult<T> {
 export class RouteRecognizer<T> {
   private readonly rootState: SeparatorState<T> = new State(null, null, '') as SeparatorState<T>;
 
+  private emptyPathHandler: any;
+
   public add(
     routeOrRoutes: IConfigurableRoute<T> | readonly IConfigurableRoute<T>[],
   ): void {
@@ -335,6 +337,11 @@ export class RouteRecognizer<T> {
     }
 
     const route = routeOrRoutes as IConfigurableRoute<T>;
+
+    if (route.path === '') {
+      this.emptyPathHandler = { endpoint: { route: { handler: route.handler } } };
+    }
+
     const $route = new ConfigurableRoute(route.path, route.caseSensitive === true, route.handler);
     const parts = parsePath($route.path);
     const paramNames: string[] = [];
@@ -372,6 +379,10 @@ export class RouteRecognizer<T> {
   }
 
   public recognize(path: string): RecognizedRoute<T> | null {
+    if (path === '') {
+      return this.emptyPathHandler ?? null;
+    }
+
     let searchParams: URLSearchParams;
     let queryString = '';
 
@@ -588,9 +599,9 @@ type AnySegment<T> = (
 );
 
 const enum SegmentKind {
-  star    = 1,
+  star = 1,
   dynamic = 2,
-  static  = 3,
+  static = 3,
 }
 
 class StaticSegment<T> {
@@ -599,7 +610,7 @@ class StaticSegment<T> {
   public constructor(
     public readonly value: string,
     public readonly caseSensitive: boolean,
-  ) {}
+  ) { }
 
   public appendTo(state: AnyState<T>): StaticState<T> {
     const { value, value: { length } } = this;
@@ -639,7 +650,7 @@ class DynamicSegment<T> {
   public constructor(
     public readonly name: string,
     public readonly optional: boolean,
-  ) {}
+  ) { }
 
   public appendTo(state: AnyState<T>): DynamicState<T> {
     state = state.append(
@@ -664,7 +675,7 @@ class StarSegment<T> {
 
   public constructor(
     public readonly name: string,
-  ) {}
+  ) { }
 
   public appendTo(state: AnyState<T>): StarState<T> {
     state = state.append(

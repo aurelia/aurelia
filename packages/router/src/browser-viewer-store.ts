@@ -1,8 +1,8 @@
 import { EventAggregator, IEventAggregator } from '@aurelia/kernel';
 import { IWindow, IHistory, ILocation, IPlatform } from '@aurelia/runtime-html';
-import { NavigatorStateChangeEvent } from './events';
-import { INavigatorState, INavigatorStore, INavigatorViewer, INavigatorViewerOptions, NavigatorViewerState } from './navigator';
-import { QueueTask, TaskQueue } from './task-queue';
+import { NavigatorStateChangeEvent } from './events.js';
+import { INavigatorState, INavigatorStore, INavigatorViewer, INavigatorViewerOptions, NavigatorViewerState } from './navigator.js';
+import { QueueTask, TaskQueue } from './task-queue.js';
 
 /**
  * @internal

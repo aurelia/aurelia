@@ -6,12 +6,9 @@
  */
 import { Constructable, Metadata, Protocol, ResourceType, Writable } from '@aurelia/kernel';
 import { CustomElement } from '@aurelia/runtime-html';
-import { IRouteableComponent, LoadInstruction, ComponentAppellation, ViewportHandle, ComponentParameters, RouteableComponentType } from './interfaces';
+import { IRouteableComponent, LoadInstruction, ComponentAppellation, ViewportHandle, ComponentParameters, RouteableComponentType } from './interfaces.js';
 
-// // import { validateRouteConfig, expectType, shallowEquals } from './validation';
-// // import { RouteableComponent, Params } from './instructions';
-// // import { RouteNode } from './route-tree';
-// // import { CanLoad, CanUnload, Load, Unload } from './hooks';
+// import { CanLoad, CanUnload, Load, Unload } from './hooks.js';
 
 export type RouteableComponent = IRouteableComponent;
 

@@ -17,14 +17,14 @@ export declare class Endpoint<T> {
 export declare class RecognizedRoute<T> {
     readonly endpoint: Endpoint<T>;
     readonly params: Readonly<Record<string, string | undefined>>;
-    readonly searchParams: URLSearchParams;
-    readonly isDynamic: boolean;
-    readonly queryString: string;
-    constructor(endpoint: Endpoint<T>, params: Readonly<Record<string, string | undefined>>, searchParams: URLSearchParams, isDynamic: boolean, queryString: string);
+    constructor(endpoint: Endpoint<T>, params: Readonly<Record<string, string | undefined>>);
 }
 export declare class RouteRecognizer<T> {
     private readonly rootState;
+    private readonly cache;
     add(routeOrRoutes: IConfigurableRoute<T> | readonly IConfigurableRoute<T>[]): void;
+    private $add;
     recognize(path: string): RecognizedRoute<T> | null;
+    private $recognize;
 }
 //# sourceMappingURL=index.d.ts.map

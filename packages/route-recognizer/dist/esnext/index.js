@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 export class ConfigurableRoute {
     constructor(path, caseSensitive, handler) {
         this.path = path;
@@ -13,22 +12,21 @@ export class Endpoint {
     }
 }
 export class RecognizedRoute {
-    constructor(endpoint, params, searchParams, isDynamic, queryString) {
+    constructor(endpoint, params) {
         this.endpoint = endpoint;
         this.params = params;
-        this.searchParams = searchParams;
-        this.isDynamic = isDynamic;
-        this.queryString = queryString;
     }
 }
 class Candidate {
     constructor(chars, states, skippedStates, result) {
+        var _a;
         this.chars = chars;
         this.states = states;
         this.skippedStates = skippedStates;
         this.result = result;
         this.head = states[states.length - 1];
-        this.endpoint = this.head.endpoint;
+        // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
+        this.endpoint = (_a = this.head) === null || _a === void 0 ? void 0 : _a.endpoint;
     }
     advance(ch) {
         const { chars, states, skippedStates, result } = this;
@@ -255,17 +253,25 @@ class RecognizeResult {
 export class RouteRecognizer {
     constructor() {
         this.rootState = new State(null, null, '');
+        this.cache = new Map();
     }
     add(routeOrRoutes) {
         if (routeOrRoutes instanceof Array) {
             for (const route of routeOrRoutes) {
-                this.add(route);
+                this.$add(route);
             }
-            return;
         }
-        const route = routeOrRoutes;
+        else {
+            this.$add(routeOrRoutes);
+        }
+        // Clear the cache whenever there are state changes, because the recognizeResults could be arbitrarily different as a result
+        this.cache.clear();
+    }
+    $add(route) {
+        const path = route.path;
         const $route = new ConfigurableRoute(route.path, route.caseSensitive === true, route.handler);
-        const parts = parsePath($route.path);
+        // Normalize leading, trailing and double slashes by ignoring empty segments
+        const parts = path === '' ? [''] : path.split('/').filter(isNotEmpty);
         const paramNames = [];
         let state = this.rootState;
         for (const part of parts) {
@@ -295,17 +301,13 @@ export class RouteRecognizer {
         state.setEndpoint(endpoint);
     }
     recognize(path) {
-        let searchParams;
-        let queryString = '';
-        const queryStart = path.indexOf('?');
-        if (queryStart >= 0) {
-            queryString = path.slice(queryStart + 1);
-            path = path.slice(0, queryStart);
-            searchParams = new URLSearchParams(queryString);
+        let result = this.cache.get(path);
+        if (result === void 0) {
+            this.cache.set(path, result = this.$recognize(path));
         }
-        else {
-            searchParams = new URLSearchParams();
-        }
+        return result;
+    }
+    $recognize(path) {
         path = decodeURI(path);
         if (!path.startsWith('/')) {
             path = `/${path}`;
@@ -327,8 +329,7 @@ export class RouteRecognizer {
         }
         const { endpoint } = candidate;
         const params = candidate.getParams();
-        const isDynamic = candidate.endpoint.paramNames.length > 0;
-        return new RecognizedRoute(endpoint, params, searchParams, isDynamic, queryString);
+        return new RecognizedRoute(endpoint, params);
     }
 }
 class State {
@@ -385,7 +386,7 @@ class State {
     }
     setEndpoint(endpoint) {
         if (this.endpoint !== null) {
-            throw new Error(`Cannot add ambiguous route. The pattern ${endpoint.route.path} clashes with ${this.endpoint.route.path}`);
+            throw new Error(`Cannot add ambiguous route. The pattern '${endpoint.route.path}' clashes with '${this.endpoint.route.path}'`);
         }
         this.endpoint = endpoint;
         if (this.isOptional) {
@@ -411,10 +412,6 @@ class State {
 }
 function isNotEmpty(segment) {
     return segment.length > 0;
-}
-function parsePath(path) {
-    // Normalize leading, trailing and double slashes by ignoring empty segments
-    return path.split('/').filter(isNotEmpty);
 }
 var SegmentKind;
 (function (SegmentKind) {

@@ -113,10 +113,10 @@ export class ViewportContent {
           try {
             this.content.componentInstance = this.toComponentInstance(connectedCE.container);
           } catch (ee) {
-            throw e;
+            throw new Error(`'${this.content.componentName}' did not match any configured route or registered component name - did you forget to add the component '${this.content.componentName}' to the dependencies or to register it as a global dependency?`);
           }
         } else {
-          throw e;
+          throw new Error(`'${this.content.componentName}' did not match any configured route or registered component name - did you forget to add the component '${this.content.componentName}' to the dependencies or to register it as a global dependency?`);
         }
       }
     }

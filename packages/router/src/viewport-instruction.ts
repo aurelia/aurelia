@@ -203,14 +203,13 @@ export class ViewportInstruction {
       if (container === null) {
         throw new Error(`No container available when trying to resolve component '${this.componentName}'!`);
       }
-      if (!container.has<RouteableComponentType>(CustomElement.keyFrom(this.componentName), true)) {
-        throw new Error(`'${this.componentName}' did not match any configured route or registered component name - did you forget to add the component '${this.componentName}' to the dependencies or to register it as a global dependency?`);
-      }
-      const resolver = container.getResolver<RouteableComponentType>(CustomElement.keyFrom(this.componentName));
-      if (resolver !== null && resolver.getFactory !== void 0) {
-        const factory = resolver.getFactory(container);
-        if (factory) {
-          return factory.Type;
+      if (container.has<RouteableComponentType>(CustomElement.keyFrom(this.componentName), true)) {
+        const resolver = container.getResolver<RouteableComponentType>(CustomElement.keyFrom(this.componentName));
+        if (resolver !== null && resolver.getFactory !== void 0) {
+          const factory = resolver.getFactory(container);
+          if (factory) {
+            return factory.Type;
+          }
         }
       }
     }

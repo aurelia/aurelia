@@ -419,6 +419,8 @@ export {
   ComputedObserver,
   ComputedWatcher,
   ExpressionWatcher,
+  Watch,
+  watch,
 
   // IObjectObservationAdapter,
   IObserverLocator,

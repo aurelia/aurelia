@@ -2,7 +2,7 @@
 /* eslint-disable sonarjs/no-all-duplicated-branches */
 import { DeferralJuncture } from './create-fixture';
 import { assert } from '@aurelia/testing';
-import { interleave, prepend } from '../_hook-tests.spec';
+import { interleave, prepend } from '../__hook-tests.spec';
 import { HookName } from './hook-invocation-tracker';
 import { TransitionComponent } from './component';
 import { Transition } from './transition';

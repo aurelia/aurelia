@@ -40,6 +40,7 @@ export class Component {
     if (timing !== void 0) {
       return timing;
     }
+    return 0;
   }
 
   public getTimed(...names: HookName[]): MaybeHookName[] {

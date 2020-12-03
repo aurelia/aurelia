@@ -129,8 +129,6 @@ export async function createFixture<T extends Constructable>(
     async tearDown() {
       hia.setPhase('stop');
 
-      await platform.domWriteQueue.yield();
-
       await au.stop(true);
 
       //      au.dispose();
@@ -140,9 +138,8 @@ export async function createFixture<T extends Constructable>(
       const index = href.indexOf('#');
       if (index >= 0) {
         platform.history.replaceState(state, '', href.slice(0, index));
-        await Promise.resolve();
+        // await Promise.resolve();
       }
-      // platform.history.replaceState(state, '', href);
     },
     logTicks(callback: (tick: number) => void): () => void {
       return startTickLogging(window, callback);

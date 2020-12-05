@@ -1,5 +1,5 @@
 import { CollectionKind, AccessorType, LifecycleFlags } from '../observation.js';
-import { CollectionSizeObserver } from './collection-size-observer.js';
+import { CollectionSizeObserver } from './collection-length-observer.js';
 import type { ICollectionObserver, ICollectionIndexObserver, ILifecycle } from '../observation.js';
 export declare function enableMapObservation(): void;
 export declare function disableMapObservation(): void;

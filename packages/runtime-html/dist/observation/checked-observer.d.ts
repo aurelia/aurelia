@@ -17,10 +17,9 @@ export interface CheckedObserver extends ISubscriberCollection {
 export declare class CheckedObserver implements IObserver {
     readonly handler: EventSubscriber;
     readonly observerLocator: IObserverLocator;
-    currentValue: unknown;
+    value: unknown;
     oldValue: unknown;
     readonly obj: IInputElement;
-    hasChanges: boolean;
     type: AccessorType;
     collectionObserver?: ICollectionObserver<CollectionKind>;
     valueObserver?: ValueAttributeObserver | SetterObserver;
@@ -28,17 +27,15 @@ export declare class CheckedObserver implements IObserver {
     constructor(obj: INode, _key: PropertyKey, handler: EventSubscriber, observerLocator: IObserverLocator);
     getValue(): unknown;
     setValue(newValue: unknown, flags: LifecycleFlags): void;
-    flushChanges(flags: LifecycleFlags): void;
     handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void;
     handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void;
     synchronizeElement(): void;
     handleEvent(): void;
-    bind(_flags: LifecycleFlags): void;
-    unbind(_flags: LifecycleFlags): void;
     start(): void;
     stop(): void;
     subscribe(subscriber: ISubscriber): void;
     unsubscribe(subscriber: ISubscriber): void;
+    private observe;
 }
 export {};
 //# sourceMappingURL=checked-observer.d.ts.map

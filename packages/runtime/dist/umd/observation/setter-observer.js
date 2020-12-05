@@ -71,10 +71,8 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
                 Reflect.defineProperty(this.obj, this.propertyKey, {
                     enumerable: true,
                     configurable: true,
-                    get: () => {
-                        return this.getValue();
-                    },
-                    set: value => {
+                    get: ( /* Setter Observer */) => this.getValue(),
+                    set: (/* Setter Observer */ value) => {
                         this.setValue(value, 0 /* none */);
                     },
                 });

@@ -21,8 +21,7 @@ export { ArrayObserver, ArrayIndexObserver, enableArrayObservation, disableArray
 export { MapObserver, enableMapObservation, disableMapObservation, } from './observation/map-observer.js';
 export { SetObserver, enableSetObservation, disableSetObservation } from './observation/set-observer.js';
 export { BindingContext, Scope, OverrideContext, } from './observation/binding-context.js';
-export { CollectionLengthObserver, } from './observation/collection-length-observer.js';
-export { CollectionSizeObserver, } from './observation/collection-size-observer.js';
+export { CollectionLengthObserver, CollectionSizeObserver, } from './observation/collection-length-observer.js';
 export { ComputedObserver, ComputedWatcher, ExpressionWatcher, } from './observation/computed-observer.js';
 export { IDirtyChecker, DirtyCheckProperty, DirtyCheckSettings, } from './observation/dirty-checker.js';
 export { IObservableDefinition, observable, } from './observation/observable.js';
@@ -33,7 +32,7 @@ export { ProxyObservable, } from './observation/proxy-observation.js';
 export { SetterObserver, } from './observation/setter-observer.js';
 export { ISignaler, } from './observation/signaler.js';
 export { subscriberCollection, collectionSubscriberCollection, } from './observation/subscriber-collection.js';
-export { IWatcher, WatcherSwitcher, } from './observation/watcher-switcher.js';
+export { WatcherSwitcher, } from './observation/watcher-switcher.js';
 export { bindingBehavior, BindingBehavior, BindingBehaviorDefinition, PartialBindingBehaviorDefinition, BindingBehaviorKind, BindingBehaviorDecorator, BindingBehaviorInstance, BindingBehaviorType, BindingInterceptor, BindingBehaviorFactory, BindingBehaviorStrategy, IInterceptableBinding, } from './binding-behavior.js';
 export { BindingModeBehavior, OneTimeBindingBehavior, ToViewBindingBehavior, FromViewBindingBehavior, TwoWayBindingBehavior, } from './binding-behaviors/binding-mode.js';
 export { DebounceBindingBehavior, } from './binding-behaviors/debounce.js';
@@ -41,5 +40,5 @@ export { SignalBindingBehavior, } from './binding-behaviors/signals.js';
 export { ThrottleBindingBehavior, } from './binding-behaviors/throttle.js';
 export { ValueConverter, ValueConverterDefinition, PartialValueConverterDefinition, ValueConverterKind, ValueConverterDecorator, ValueConverterInstance, ValueConverterType, valueConverter, } from './value-converter.js';
 export { watch, Watch, IWatchDefinition, IWatcherCallback, IDepCollectionFn, } from './observation/watch.js';
-export { BindingMode, LifecycleFlags, AccessorOrObserver, IBinding, ILifecycle, AccessorType, Collection, CollectionKind, DelegationStrategy, IAccessor, IBindingContext, IBindingTargetAccessor, IBindingTargetObserver, ICollectionChangeTracker, ICollectionObserver, ICollectionIndexObserver, ICollectionSubscriber, IndexMap, IBatchable, IObserver, IObservable, IOverrideContext, InterceptorFunc, IPropertyChangeTracker, IPropertyObserver, ISubscribable, ISubscriberCollection, PropertyObserver, CollectionObserver, ICollectionSubscriberCollection, ICollectionSubscribable, ISubscriber, isIndexMap, copyIndexMap, cloneIndexMap, createIndexMap, } from './observation.js';
+export { BindingMode, LifecycleFlags, AccessorOrObserver, IBinding, ILifecycle, AccessorType, Collection, CollectionKind, DelegationStrategy, IAccessor, IBindingContext, IBindingTargetAccessor, IBindingTargetObserver, ICollectionChangeTracker, ICollectionObserver, ICollectionIndexObserver, ICollectionSubscriber, IndexMap, IBatchable, IObserver, IObservable, IOverrideContext, InterceptorFunc, IPropertyChangeTracker, IPropertyObserver, ISubscribable, ISubscriberCollection, PropertyObserver, CollectionObserver, ICollectionSubscriberCollection, ICollectionSubscribable, ISubscriber, IWatcher, isIndexMap, copyIndexMap, cloneIndexMap, createIndexMap, } from './observation.js';
 //# sourceMappingURL=index.d.ts.map

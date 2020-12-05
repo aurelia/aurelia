@@ -27,60 +27,36 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
         _key, handler, observerLocator) {
             this.handler = handler;
             this.observerLocator = observerLocator;
-            this.currentValue = void 0;
+            this.value = void 0;
             this.oldValue = void 0;
-            this.hasChanges = false;
-            this.type = 2 /* Node */ | 1 /* Observer */ | 64 /* Layout */;
+            this.type = 2 /* Node */ | 1 /* Observer */ | 8 /* Layout */;
             this.collectionObserver = void 0;
             this.valueObserver = void 0;
             this.subscriberCount = 0;
             this.obj = obj;
         }
         getValue() {
-            return this.currentValue;
+            return this.value;
         }
         setValue(newValue, flags) {
-            this.currentValue = newValue;
-            this.hasChanges = newValue !== this.oldValue;
-            if ((flags & 4096 /* noFlush */) === 0) {
-                this.flushChanges(flags);
+            const currentValue = this.value;
+            if (newValue === currentValue) {
+                return;
             }
-        }
-        flushChanges(flags) {
-            var _a, _b, _c;
-            if (this.hasChanges) {
-                this.hasChanges = false;
-                const obj = this.obj;
-                const currentValue = this.oldValue = this.currentValue;
-                if (this.valueObserver === void 0) {
-                    if (obj.$observers !== void 0) {
-                        if (obj.$observers.model !== void 0) {
-                            this.valueObserver = obj.$observers.model;
-                        }
-                        else if (obj.$observers.value !== void 0) {
-                            this.valueObserver = obj.$observers.value;
-                        }
-                    }
-                    (_a = this.valueObserver) === null || _a === void 0 ? void 0 : _a.subscribe(this);
-                }
-                (_b = this.collectionObserver) === null || _b === void 0 ? void 0 : _b.unsubscribeFromCollection(this);
-                this.collectionObserver = void 0;
-                if (obj.type === 'checkbox') {
-                    (_c = (this.collectionObserver = observer_locator_js_1.getCollectionObserver(currentValue, this.observerLocator))) === null || _c === void 0 ? void 0 : _c.subscribeToCollection(this);
-                }
-                this.synchronizeElement();
-            }
+            this.value = newValue;
+            this.oldValue = currentValue;
+            this.observe();
+            this.synchronizeElement();
+            this.callSubscribers(newValue, currentValue, flags);
         }
         handleCollectionChange(indexMap, flags) {
             this.synchronizeElement();
         }
         handleChange(newValue, previousValue, flags) {
             this.synchronizeElement();
-            this.callSubscribers(newValue, previousValue, flags);
-            this.flushChanges(flags);
         }
         synchronizeElement() {
-            const currentValue = this.currentValue;
+            const currentValue = this.value;
             const obj = this.obj;
             const elementValue = Object.prototype.hasOwnProperty.call(obj, 'model') ? obj.model : obj.value;
             const isRadio = obj.type === 'radio';
@@ -120,7 +96,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
             }
         }
         handleEvent() {
-            let currentValue = this.oldValue = this.currentValue;
+            let currentValue = this.oldValue = this.value;
             const obj = this.obj;
             const elementValue = Object.prototype.hasOwnProperty.call(obj, 'model') ? obj.model : obj.value;
             const isChecked = obj.checked;
@@ -223,33 +199,20 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
                 // a radio cannot be unchecked by user
                 return;
             }
-            this.currentValue = currentValue;
-            this.callSubscribers(this.currentValue, this.oldValue, 0 /* none */);
-        }
-        // deepscan-disable-next-line
-        bind(_flags) {
-            // this is incorrect, needs to find a different way to initialize observer value,
-            // relative to binding value
-            // for now keeping this to do everything at once later
-            this.currentValue = this.obj.checked;
-        }
-        // deepscan-disable-next-line
-        unbind(_flags) {
-            this.currentValue = void 0;
+            this.value = currentValue;
+            this.callSubscribers(this.value, this.oldValue, 0 /* none */);
         }
         start() {
             this.handler.subscribe(this.obj, this);
+            this.observe();
         }
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         stop() {
+            var _a, _b;
             this.handler.dispose();
-            if (this.collectionObserver !== void 0) {
-                this.collectionObserver.unsubscribeFromCollection(this);
-                this.collectionObserver = void 0;
-            }
-            if (this.valueObserver !== void 0) {
-                this.valueObserver.unsubscribe(this);
-            }
+            (_a = this.collectionObserver) === null || _a === void 0 ? void 0 : _a.unsubscribeFromCollection(this);
+            this.collectionObserver = void 0;
+            (_b = this.valueObserver) === null || _b === void 0 ? void 0 : _b.unsubscribe(this);
         }
         subscribe(subscriber) {
             if (this.addSubscriber(subscriber) && ++this.subscriberCount === 1) {
@@ -259,6 +222,16 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
         unsubscribe(subscriber) {
             if (this.removeSubscriber(subscriber) && --this.subscriberCount === 0) {
                 this.stop();
+            }
+        }
+        observe() {
+            var _a, _b, _c, _d, _e, _f, _g;
+            const obj = this.obj;
+            (_e = ((_a = this.valueObserver) !== null && _a !== void 0 ? _a : (this.valueObserver = (_c = (_b = obj.$observers) === null || _b === void 0 ? void 0 : _b.model) !== null && _c !== void 0 ? _c : (_d = obj.$observers) === null || _d === void 0 ? void 0 : _d.value))) === null || _e === void 0 ? void 0 : _e.subscribe(this);
+            (_f = this.collectionObserver) === null || _f === void 0 ? void 0 : _f.unsubscribeFromCollection(this);
+            this.collectionObserver = void 0;
+            if (obj.type === 'checkbox') {
+                (_g = (this.collectionObserver = observer_locator_js_1.getCollectionObserver(this.value, this.observerLocator))) === null || _g === void 0 ? void 0 : _g.subscribeToCollection(this);
             }
         }
     };

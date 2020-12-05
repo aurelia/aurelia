@@ -5,7 +5,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 import { createIndexMap } from '../observation.js';
-import { CollectionSizeObserver } from './collection-size-observer.js';
+import { CollectionSizeObserver } from './collection-length-observer.js';
 import { collectionSubscriberCollection } from './subscriber-collection.js';
 const observerLookup = new WeakMap();
 const proto = Map.prototype;
@@ -125,7 +125,7 @@ export function disableMapObservation() {
 }
 let MapObserver = class MapObserver {
     constructor(map) {
-        this.type = 34 /* Map */;
+        this.type = 66 /* Map */;
         if (!enableMapObservationCalled) {
             enableMapObservationCalled = true;
             enableMapObservation();
@@ -150,19 +150,17 @@ let MapObserver = class MapObserver {
     }
     getLengthObserver() {
         var _a;
-        return (_a = this.lengthObserver) !== null && _a !== void 0 ? _a : (this.lengthObserver = new CollectionSizeObserver(this.collection));
+        return (_a = this.lengthObserver) !== null && _a !== void 0 ? _a : (this.lengthObserver = new CollectionSizeObserver(this));
     }
     getIndexObserver(index) {
         throw new Error('Map index observation not supported');
     }
     flushBatch(flags) {
-        var _a;
         const indexMap = this.indexMap;
         const size = this.collection.size;
         this.inBatch = false;
         this.indexMap = createIndexMap(size);
         this.callCollectionSubscribers(indexMap, 8 /* updateTarget */);
-        (_a = this.lengthObserver) === null || _a === void 0 ? void 0 : _a.notify();
     }
 };
 MapObserver = __decorate([

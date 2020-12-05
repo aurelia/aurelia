@@ -22,7 +22,7 @@ let AttributeObserver = class AttributeObserver {
         this.hasChanges = false;
         // layout is not certain, depends on the attribute being flushed to owner element
         // but for simple start, always treat as such
-        this.type = 2 /* Node */ | 1 /* Observer */ | 64 /* Layout */;
+        this.type = 2 /* Node */ | 1 /* Observer */ | 8 /* Layout */;
     }
     getValue() {
         // is it safe to assume the observer has the latest value?

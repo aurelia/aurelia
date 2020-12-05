@@ -30,22 +30,13 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
         connectable_js_1.connectable()(klass);
         subscriber_collection_js_1.subscriberCollection()(klass);
         subscriber_collection_js_1.collectionSubscriberCollection()(klass);
-        utilities_objects_js_1.ensureProto(proto, 'observe', observe);
         utilities_objects_js_1.ensureProto(proto, 'observeCollection', observeCollection);
-        utilities_objects_js_1.ensureProto(proto, 'observeLength', observeLength);
         utilities_objects_js_1.defineHiddenProp(proto, 'unobserveCollection', unobserveCollection);
-    }
-    function observe(obj, key) {
-        const observer = this.observerLocator.getObserver(obj, key);
-        this.addObserver(observer);
     }
     function observeCollection(collection) {
         const obs = getCollectionObserver(this.observerLocator, collection);
         this.observers.set(obs, this.record.version);
         obs.subscribeToCollection(this);
-    }
-    function observeLength(collection) {
-        getCollectionObserver(this.observerLocator, collection).getLengthObserver().subscribe(this);
     }
     function unobserveCollection(all) {
         const version = this.record.version;
@@ -100,13 +91,13 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
             const getter = descriptor.get;
             const setter = descriptor.set;
             const observer = new ComputedObserver_1(obj, getter, setter, useProxy, observerLocator);
-            const $get = (() => observer.getValue());
+            const $get = (( /* Computed Observer */) => observer.getValue());
             $get.getObserver = () => observer;
             Reflect.defineProperty(obj, key, {
                 enumerable: descriptor.enumerable,
                 configurable: true,
                 get: $get,
-                set: (v) => {
+                set: (/* Computed Observer */ v) => {
                     observer.setValue(v, 0 /* none */);
                 },
             });
@@ -157,7 +148,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
         unsubscribe(subscriber) {
             if (this.removeSubscriber(subscriber) && --this.subscriberCount === 0) {
                 this.isDirty = true;
-                this.unobserve(true);
+                this.record.clear(true);
                 this.unobserveCollection(true);
             }
         }
@@ -180,7 +171,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
                 return this.value = proxy_observation_js_1.unwrap(this.get.call(this.useProxy ? proxy_observation_js_1.wrap(this.obj) : this.obj, this));
             }
             finally {
-                this.unobserve(false);
+                this.record.clear(false);
                 this.unobserveCollection(false);
                 this.running = false;
                 watcher_switcher_js_1.exitWatcher(this);
@@ -227,7 +218,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
                 return;
             }
             this.isBound = false;
-            this.unobserve(true);
+            this.record.clear(true);
             this.unobserveCollection(true);
         }
         run() {
@@ -250,7 +241,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
                 return this.value = proxy_observation_js_1.unwrap(this.get.call(void 0, this.useProxy ? proxy_observation_js_1.wrap(this.obj) : this.obj, this));
             }
             finally {
-                this.unobserve(false);
+                this.record.clear(false);
                 this.unobserveCollection(false);
                 this.running = false;
                 watcher_switcher_js_1.exitWatcher(this);
@@ -303,7 +294,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
                 return;
             }
             this.isBound = false;
-            this.unobserve(true);
+            this.record.clear(true);
             this.value = void 0;
         }
     };

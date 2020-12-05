@@ -83,9 +83,9 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
                 this.expr.unbind(flags, this.scope, this.hostScope, this);
             }
             (_a = this.parameter) === null || _a === void 0 ? void 0 : _a.$unbind(flags);
-            this.unobserveTargets(flags);
+            this.targetObservers.clear();
             this.scope = (void 0);
-            this.unobserve(true);
+            this.record.clear(true);
         }
         handleChange(newValue, _previousValue, flags) {
             this.record.version++;
@@ -109,7 +109,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
             var _a;
             const results = this.i18n.evaluate(this.keyExpression, (_a = this.parameter) === null || _a === void 0 ? void 0 : _a.value);
             const content = Object.create(null);
-            this.unobserveTargets(flags);
+            this.targetObservers.clear();
             for (const item of results) {
                 const value = item.value;
                 const attributes = this.preprocessAttributes(item.attributes);
@@ -193,14 +193,6 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
             }
             return false;
         }
-        unobserveTargets(flags) {
-            for (const observer of this.targetObservers) {
-                if (observer.unbind) {
-                    observer.unbind(flags);
-                }
-            }
-            this.targetObservers.clear();
-        }
         ensureKeyExpression() {
             var _a;
             const expr = (_a = this.keyExpression) !== null && _a !== void 0 ? _a : (this.keyExpression = '');
@@ -255,7 +247,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
                 this.expr.unbind(flags, this.scope, this.hostScope, this);
             }
             this.scope = (void 0);
-            this.unobserve(true);
+            this.record.clear(true);
         }
     };
     ParameterBinding = __decorate([

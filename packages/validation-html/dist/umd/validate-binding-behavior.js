@@ -73,7 +73,6 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
             const locator = this.locator;
             this.platform = locator.get(runtime_html_1.IPlatform);
             this.defaultTrigger = locator.get(exports.IDefaultTrigger);
-            this.platform = locator.get(runtime_html_1.IPlatform);
             if (locator.has(validation_controller_js_1.IValidationController, true)) {
                 this.scopedController = locator.get(validation_controller_js_1.IValidationController);
             }

@@ -1,10 +1,4 @@
-import type { Collection } from '../observation.js';
-export interface IWatcher {
-    id: number;
-    observe(obj: object, property: PropertyKey): void;
-    observeCollection(collection: Collection): void;
-    observeLength(collection: Collection): void;
-}
+import type { IWatcher } from '../observation';
 export declare let watching: boolean;
 export declare function pauseWatching(): void;
 export declare function resumeWatching(): void;

@@ -46,7 +46,6 @@ export declare class TranslationBinding implements IPartialConnectableBinding {
     private updateContent;
     private prepareTemplate;
     private addContentToTemplate;
-    private unobserveTargets;
     private ensureKeyExpression;
 }
 export {};

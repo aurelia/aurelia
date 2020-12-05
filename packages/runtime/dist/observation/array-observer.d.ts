@@ -20,8 +20,8 @@ export interface ArrayIndexObserver extends ICollectionIndexObserver {
 export declare class ArrayIndexObserver implements ICollectionIndexObserver {
     readonly owner: ArrayObserver;
     readonly index: number;
-    private subscriberCount;
-    currentValue: unknown;
+    value: unknown;
+    private subCount;
     constructor(owner: ArrayObserver, index: number);
     getValue(): unknown;
     setValue(newValue: unknown, flags: LifecycleFlags): void;

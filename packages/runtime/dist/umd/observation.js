@@ -144,9 +144,6 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         AccessorType[AccessorType["Observer"] = 1] = "Observer";
         AccessorType[AccessorType["Node"] = 2] = "Node";
         AccessorType[AccessorType["Obj"] = 4] = "Obj";
-        AccessorType[AccessorType["Array"] = 10] = "Array";
-        AccessorType[AccessorType["Set"] = 18] = "Set";
-        AccessorType[AccessorType["Map"] = 34] = "Map";
         // misc characteristic of accessors/observers when update
         //
         // by default, everything is synchronous
@@ -155,10 +152,10 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         // queue it instead
         // todo: https://gist.github.com/paulirish/5d52fb081b3570c81e3a
         // todo: https://csstriggers.com/
-        AccessorType[AccessorType["Layout"] = 64] = "Layout";
-        // there needs to be a flag to signal that accessor real value
-        // may get out of sync with binding value
-        // so that binding can ask for a force read instead of cache read
+        AccessorType[AccessorType["Layout"] = 8] = "Layout";
+        AccessorType[AccessorType["Array"] = 18] = "Array";
+        AccessorType[AccessorType["Set"] = 34] = "Set";
+        AccessorType[AccessorType["Map"] = 66] = "Map";
     })(AccessorType = exports.AccessorType || (exports.AccessorType = {}));
     function copyIndexMap(existing, deletedItems) {
         const { length } = existing;

@@ -42,7 +42,6 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
             this.isBound = false;
             this.$scope = void 0;
             this.$hostScope = null;
-            this.value = '';
             this.task = null;
             this.targetObserver = observerLocator.getAccessor(target, targetProperty);
             const expressions = interpolation.expressions;
@@ -66,20 +65,18 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
                     result += partBindings[i].value + staticParts[i + 1];
                 }
             }
-            this.value = result;
             const targetObserver = this.targetObserver;
             // Alpha: during bind a simple strategy for bind is always flush immediately
             // todo:
             //  (1). determine whether this should be the behavior
             //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start().wait()
-            const shouldQueueFlush = (flags & 32 /* fromBind */) === 0 && (targetObserver.type & 64 /* Layout */) > 0;
+            const shouldQueueFlush = (flags & 32 /* fromBind */) === 0 && (targetObserver.type & 8 /* Layout */) > 0;
             if (shouldQueueFlush) {
-                // an optimization: only create & queue a task when there's NOT already a task queued
-                // inside the lambda, use this.value instead of result, since it would always be the latest value
-                (_a = this.task) !== null && _a !== void 0 ? _a : (this.task = this.taskQueue.queueTask(() => {
-                    targetObserver.setValue(this.value, flags, this.target, this.targetProperty);
+                (_a = this.task) === null || _a === void 0 ? void 0 : _a.cancel();
+                this.task = this.taskQueue.queueTask(() => {
                     this.task = null;
-                }, queueTaskOptions));
+                    targetObserver.setValue(result, flags, this.target, this.targetProperty);
+                }, queueTaskOptions);
             }
             else {
                 targetObserver.setValue(result, flags, this.target, this.targetProperty);
@@ -101,20 +98,18 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
             this.updateTarget(void 0, flags);
         }
         $unbind(flags) {
+            var _a;
             if (!this.isBound) {
                 return;
             }
             this.isBound = false;
             this.$scope = void 0;
-            const task = this.task;
             const partBindings = this.partBindings;
             for (let i = 0, ii = partBindings.length; i < ii; ++i) {
                 partBindings[i].interceptor.$unbind(flags);
             }
-            if (task != null) {
-                task.cancel();
-                this.task = null;
-            }
+            (_a = this.task) === null || _a === void 0 ? void 0 : _a.cancel();
+            this.task = null;
         }
     }
     exports.InterpolationBinding = InterpolationBinding;
@@ -193,7 +188,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
             }
             this.$scope = void 0;
             this.$hostScope = null;
-            this.interceptor.unobserve(true);
+            this.record.clear(true);
             this.unobserveArray();
         }
         observeArray(arr) {

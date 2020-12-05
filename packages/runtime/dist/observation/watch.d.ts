@@ -1,5 +1,5 @@
 import { Constructable } from '@aurelia/kernel';
-import type { IWatcher } from './watcher-switcher.js';
+import type { IWatcher } from '../observation.js';
 export declare type IDepCollectionFn<TType extends object, TReturn = unknown> = (vm: TType, watcher: IWatcher) => TReturn;
 export declare type IWatcherCallback<TType extends object, TValue = unknown> = (this: TType, newValue: TValue, oldValue: TValue, vm: TType) => unknown;
 export interface IWatchDefinition<T extends object = object> {

@@ -72,7 +72,7 @@ let AttributeBinding = class AttributeBinding {
             // todo:
             //  (1). determine whether this should be the behavior
             //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start()
-            const shouldQueueFlush = (flags & 32 /* fromBind */) === 0 && (targetObserver.type & 64 /* Layout */) > 0;
+            const shouldQueueFlush = (flags & 32 /* fromBind */) === 0 && (targetObserver.type & 8 /* Layout */) > 0;
             if (sourceExpression.$kind !== 10082 /* AccessScope */ || this.record.count > 1) {
                 const shouldConnect = (mode & oneTime) === 0;
                 if (shouldConnect) {
@@ -86,10 +86,11 @@ let AttributeBinding = class AttributeBinding {
             if (newValue !== this.value) {
                 this.value = newValue;
                 if (shouldQueueFlush) {
-                    (_a = this.task) !== null && _a !== void 0 ? _a : (this.task = this.$platform.domWriteQueue.queueTask(() => {
-                        interceptor.updateTarget(this.value, flags);
+                    (_a = this.task) === null || _a === void 0 ? void 0 : _a.cancel();
+                    this.task = this.$platform.domWriteQueue.queueTask(() => {
                         this.task = null;
-                    }, taskOptions));
+                        interceptor.updateTarget(newValue, flags);
+                    }, taskOptions);
                 }
                 else {
                     interceptor.updateTarget(newValue, flags);
@@ -126,9 +127,6 @@ let AttributeBinding = class AttributeBinding {
         if (!targetObserver) {
             targetObserver = this.targetObserver = new AttributeObserver(this.$platform, this.observerLocator, this.target, this.targetProperty, this.targetAttribute);
         }
-        if (targetObserver.bind) {
-            targetObserver.bind(flags);
-        }
         // during bind, binding behavior might have changed sourceExpression
         sourceExpression = this.sourceExpression;
         const $mode = this.mode;
@@ -144,6 +142,7 @@ let AttributeBinding = class AttributeBinding {
         this.isBound = true;
     }
     $unbind(flags) {
+        var _a;
         if (!this.isBound) {
             return;
         }
@@ -157,18 +156,12 @@ let AttributeBinding = class AttributeBinding {
                 = null;
         this.value = void 0;
         const targetObserver = this.targetObserver;
-        const task = this.task;
-        if (targetObserver.unbind) {
-            targetObserver.unbind(flags);
-        }
         if (targetObserver.unsubscribe) {
             targetObserver.unsubscribe(this.interceptor);
             targetObserver[this.id] &= ~16 /* updateSource */;
         }
-        if (task != null) {
-            task.cancel();
-            this.task = null;
-        }
+        (_a = this.task) === null || _a === void 0 ? void 0 : _a.cancel();
+        this.task = null;
         this.record.clear(true);
         // remove isBound and isUnbinding flags
         this.isBound = false;

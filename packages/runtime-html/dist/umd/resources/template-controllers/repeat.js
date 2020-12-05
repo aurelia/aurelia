@@ -47,7 +47,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             let binding = (void 0);
             for (let i = 0, ii = bindings.length; i < ii; ++i) {
                 binding = bindings[i];
-                if (binding.target.id === this.id && binding.targetProperty === 'items') {
+                if (binding.target === this && binding.targetProperty === 'items') {
                     this.forOf = binding.sourceExpression;
                     break;
                 }

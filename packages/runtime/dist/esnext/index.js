@@ -24,8 +24,7 @@ export { ArrayObserver, ArrayIndexObserver, enableArrayObservation, disableArray
 export { MapObserver, enableMapObservation, disableMapObservation, } from './observation/map-observer.js';
 export { SetObserver, enableSetObservation, disableSetObservation } from './observation/set-observer.js';
 export { BindingContext, Scope, OverrideContext, } from './observation/binding-context.js';
-export { CollectionLengthObserver, } from './observation/collection-length-observer.js';
-export { CollectionSizeObserver, } from './observation/collection-size-observer.js';
+export { CollectionLengthObserver, CollectionSizeObserver, } from './observation/collection-length-observer.js';
 export { ComputedObserver, ComputedWatcher, ExpressionWatcher, } from './observation/computed-observer.js';
 export { IDirtyChecker, DirtyCheckProperty, DirtyCheckSettings, } from './observation/dirty-checker.js';
 export { observable, } from './observation/observable.js';

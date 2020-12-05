@@ -1,29 +1,81 @@
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
+import { isArrayIndex } from '@aurelia/kernel';
 import { subscriberCollection } from './subscriber-collection.js';
-let CollectionLengthObserver = class CollectionLengthObserver {
-    constructor(obj) {
-        this.obj = obj;
-        this.type = 10 /* Array */;
-        this.currentValue = obj.length;
+import { ensureProto } from '../utilities-objects.js';
+export class CollectionLengthObserver {
+    constructor(owner) {
+        this.owner = owner;
+        this.type = 18 /* Array */;
+        /**
+         * @internal
+         */
+        this.subCount = 0;
+        this.value = (this.obj = owner.collection).length;
     }
     getValue() {
         return this.obj.length;
     }
     setValue(newValue, flags) {
-        const currentValue = this.currentValue;
-        if (newValue !== currentValue) {
-            this.currentValue = newValue;
+        const currentValue = this.value;
+        // if in the template, length is two-way bound directly
+        // then there's a chance that the new value is invalid
+        // add a guard so that we don't accidentally broadcast invalid values
+        if (newValue !== currentValue && isArrayIndex(newValue)) {
+            if ((flags & 4096 /* noFlush */) === 0) {
+                this.obj.length = newValue;
+            }
+            this.value = newValue;
             this.callSubscribers(newValue, currentValue, flags | 8 /* updateTarget */);
         }
     }
-};
-CollectionLengthObserver = __decorate([
-    subscriberCollection()
-], CollectionLengthObserver);
-export { CollectionLengthObserver };
+    handleCollectionChange(_, flags) {
+        const oldValue = this.value;
+        const value = this.obj.length;
+        if ((this.value = value) !== oldValue) {
+            this.callSubscribers(value, oldValue, flags);
+        }
+    }
+}
+export class CollectionSizeObserver {
+    constructor(owner) {
+        this.owner = owner;
+        /**
+         * @internal
+         */
+        this.subCount = 0;
+        this.value = (this.obj = owner.collection).size;
+        this.type = this.obj instanceof Map ? 66 /* Map */ : 34 /* Set */;
+    }
+    getValue() {
+        return this.obj.size;
+    }
+    setValue() {
+        throw new Error('Map/Set "size" is a readonly property');
+    }
+    handleCollectionChange(_, flags) {
+        const oldValue = this.value;
+        const value = this.obj.size;
+        this.value = value;
+        if (value !== oldValue) {
+            this.callSubscribers(value, oldValue, flags);
+        }
+    }
+}
+function implementLengthObserver(klass) {
+    const proto = klass.prototype;
+    ensureProto(proto, 'subscribe', subscribe, true);
+    ensureProto(proto, 'unsubscribe', unsubscribe, true);
+    subscriberCollection()(klass);
+}
+function subscribe(subscriber) {
+    if (this.addSubscriber(subscriber) && ++this.subCount === 1) {
+        this.owner.addCollectionSubscriber(this);
+    }
+}
+function unsubscribe(subscriber) {
+    if (this.removeSubscriber(subscriber) && --this.subCount) {
+        this.owner.removeCollectionSubscriber(this);
+    }
+}
+implementLengthObserver(CollectionLengthObserver);
+implementLengthObserver(CollectionSizeObserver);
 //# sourceMappingURL=collection-length-observer.js.map

@@ -68,7 +68,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
                 // todo:
                 //  (1). determine whether this should be the behavior
                 //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start()
-                const shouldQueueFlush = (flags & 32 /* fromBind */) === 0 && (targetObserver.type & 64 /* Layout */) > 0;
+                const shouldQueueFlush = (flags & 32 /* fromBind */) === 0 && (targetObserver.type & 8 /* Layout */) > 0;
                 const obsRecord = this.record;
                 // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
                 if (sourceExpression.$kind !== 10082 /* AccessScope */ || obsRecord.count > 1) {
@@ -120,7 +120,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
             if (sourceExpression.hasBind) {
                 sourceExpression.bind(flags, scope, hostScope, this.interceptor);
             }
-            let $mode = this.mode;
+            const $mode = this.mode;
             let targetObserver = this.targetObserver;
             if (!targetObserver) {
                 const observerLocator = this.observerLocator;
@@ -132,11 +132,6 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
                 }
                 this.targetObserver = targetObserver;
             }
-            if ($mode !== observation_js_1.BindingMode.oneTime && targetObserver.bind) {
-                targetObserver.bind(flags);
-            }
-            // deepscan-disable-next-line
-            $mode = this.mode;
             // during bind, binding behavior might have changed sourceExpression
             sourceExpression = this.sourceExpression;
             const interceptor = this.interceptor;
@@ -165,9 +160,6 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
             this.$hostScope = null;
             const targetObserver = this.targetObserver;
             const task = this.task;
-            if (targetObserver.unbind) {
-                targetObserver.unbind(flags);
-            }
             if (targetObserver.unsubscribe) {
                 targetObserver.unsubscribe(this.interceptor);
                 targetObserver[this.id] &= ~16 /* updateSource */;

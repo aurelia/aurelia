@@ -40,12 +40,8 @@ const nsAttributes = Object.assign(createLookup(), {
     'xmlns': ['xmlns', xmlnsNS],
     'xmlns:xlink': ['xlink', xmlnsNS],
 });
-// in terms on get/set value
-// there's no difference for a property accessor between a normal object, and a node
-// only type needs to be differentiated, so that binding queue the set call
-// doing it this way to avoid deopt in JS engines
 const elementPropertyAccessor = new PropertyAccessor();
-elementPropertyAccessor.type = 2 /* Node */ | 64 /* Layout */;
+elementPropertyAccessor.type = 2 /* Node */ | 8 /* Layout */;
 export class NodeObserverConfig {
     constructor(config) {
         var _a;

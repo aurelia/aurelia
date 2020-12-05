@@ -364,7 +364,7 @@ export function disableArrayObservation() {
 }
 let ArrayObserver = class ArrayObserver {
     constructor(array) {
-        this.type = 10 /* Array */;
+        this.type = 18 /* Array */;
         if (!enableArrayObservationCalled) {
             enableArrayObservationCalled = true;
             enableArrayObservation();
@@ -390,34 +390,23 @@ let ArrayObserver = class ArrayObserver {
     }
     getLengthObserver() {
         var _a;
-        return (_a = this.lengthObserver) !== null && _a !== void 0 ? _a : (this.lengthObserver = new CollectionLengthObserver(this.collection));
+        return (_a = this.lengthObserver) !== null && _a !== void 0 ? _a : (this.lengthObserver = new CollectionLengthObserver(this));
     }
     getIndexObserver(index) {
         return this.getOrCreateIndexObserver(index);
     }
     flushBatch(flags) {
-        var _a;
         const indexMap = this.indexMap;
         const length = this.collection.length;
         this.inBatch = false;
         this.indexMap = createIndexMap(length);
         this.callCollectionSubscribers(indexMap, 8 /* updateTarget */);
-        (_a = this.lengthObserver) === null || _a === void 0 ? void 0 : _a.setValue(length, 8 /* updateTarget */);
-    }
-    /**
-     * @internal used by friend class ArrayIndexObserver only
-     */
-    addIndexObserver(indexObserver) {
-        this.addCollectionSubscriber(indexObserver);
-    }
-    /**
-     * @internal used by friend class ArrayIndexObserver only
-     */
-    removeIndexObserver(indexObserver) {
-        this.removeCollectionSubscriber(indexObserver);
     }
     /**
      * @internal
+     *
+     * It's unnecessary to destroy/recreate index observer all the time,
+     * so just create once, and add/remove instead
      */
     getOrCreateIndexObserver(index) {
         var _a;
@@ -433,8 +422,8 @@ let ArrayIndexObserver = class ArrayIndexObserver {
     constructor(owner, index) {
         this.owner = owner;
         this.index = index;
-        this.subscriberCount = 0;
-        this.currentValue = this.getValue();
+        this.subCount = 0;
+        this.value = this.getValue();
     }
     getValue() {
         return this.owner.collection[this.index];
@@ -464,21 +453,21 @@ let ArrayIndexObserver = class ArrayIndexObserver {
         if (noChange) {
             return;
         }
-        const prevValue = this.currentValue;
-        const currValue = this.currentValue = this.getValue();
+        const prevValue = this.value;
+        const currValue = this.value = this.getValue();
         // hmm
         if (prevValue !== currValue) {
             this.callSubscribers(currValue, prevValue, flags);
         }
     }
     subscribe(subscriber) {
-        if (this.addSubscriber(subscriber) && ++this.subscriberCount === 1) {
-            this.owner.addIndexObserver(this);
+        if (this.addSubscriber(subscriber) && ++this.subCount === 1) {
+            this.owner.addCollectionSubscriber(this);
         }
     }
     unsubscribe(subscriber) {
-        if (this.removeSubscriber(subscriber) && --this.subscriberCount === 0) {
-            this.owner.removeIndexObserver(this);
+        if (this.removeSubscriber(subscriber) && --this.subCount === 0) {
+            this.owner.removeCollectionSubscriber(this);
         }
     }
 };

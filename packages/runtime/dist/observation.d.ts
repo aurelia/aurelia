@@ -1,7 +1,6 @@
 import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
 import type { Scope } from './observation/binding-context.js';
-import type { CollectionLengthObserver } from './observation/collection-length-observer.js';
-import type { CollectionSizeObserver } from './observation/collection-size-observer.js';
+import type { CollectionLengthObserver, CollectionSizeObserver } from './observation/collection-length-observer.js';
 export interface IBinding {
     interceptor: this;
     readonly locator: IServiceLocator;
@@ -10,6 +9,11 @@ export interface IBinding {
     readonly isBound: boolean;
     $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void;
     $unbind(flags: LifecycleFlags): void;
+}
+export interface IWatcher {
+    id: number;
+    observeProperty(obj: object, property: PropertyKey): void;
+    observeCollection(collection: Collection): void;
 }
 export declare type InterceptorFunc<TInput = unknown, TOutput = unknown> = (value: TInput) => TOutput;
 export interface ILifecycle extends Lifecycle {
@@ -70,7 +74,7 @@ export declare const enum LifecycleFlags {
     dispose = 512
 }
 export interface IConnectable {
-    observeProperty(obj: object, propertyName: string): void;
+    observeProperty(obj: object, propertyName: PropertyKey): void;
 }
 export declare enum DelegationStrategy {
     none = 0,
@@ -142,10 +146,10 @@ export declare const enum AccessorType {
     Observer = 1,
     Node = 2,
     Obj = 4,
-    Array = 10,
-    Set = 18,
-    Map = 34,
-    Layout = 64
+    Layout = 8,
+    Array = 18,
+    Set = 34,
+    Map = 66
 }
 /**
  * Basic interface to normalize getting/setting a value of any property on any object
@@ -161,8 +165,6 @@ export interface IObserver extends IAccessor, ISubscribable {
  * Describes a target observer for to-view bindings (in other words, an observer without the observation).
  */
 export interface IBindingTargetAccessor<TObj = any, TProp = keyof TObj, TValue = unknown> extends IAccessor<TValue>, IPropertyChangeTracker<TObj, TProp> {
-    bind?(flags: LifecycleFlags): void;
-    unbind?(flags: LifecycleFlags): void;
 }
 /**
  * Describes a target observer for from-view or two-way bindings.

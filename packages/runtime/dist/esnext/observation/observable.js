@@ -63,13 +63,13 @@ export function observable(targetOrConfig, key, descriptor) {
         }
         // todo(bigopon/fred): discuss string api for converter
         const $set = config.set;
-        descriptor.get = function g() {
+        descriptor.get = function g( /* @observable */) {
             return getNotifier(this, key, callback, initialValue, $set).getValue();
         };
         descriptor.set = function s(newValue) {
             getNotifier(this, key, callback, initialValue, $set).setValue(newValue, 0 /* none */);
         };
-        descriptor.get.getObserver = function gO(obj) {
+        descriptor.get.getObserver = function gO(/* @observable */ obj) {
             return getNotifier(obj, key, callback, initialValue, $set);
         };
         if (isClassDecorator) {

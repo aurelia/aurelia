@@ -1,9 +1,8 @@
 import { CollectionKind, LifecycleFlags, AccessorType } from '../observation.js';
-import type { IObservable, ISubscriber, ICollectionObserver, ICollectionSubscriber, ISubscriberCollection } from '../observation.js';
+import type { IObservable, ISubscriber, ICollectionObserver, ICollectionSubscriber, ISubscriberCollection, IWatcher } from '../observation.js';
 import type { IServiceLocator } from '@aurelia/kernel';
 import type { IConnectableBinding } from '../binding/connectable.js';
 import type { IsBindingBehavior } from '../binding/ast.js';
-import type { IWatcher } from './watcher-switcher.js';
 import type { IWatcherCallback } from './watch.js';
 import type { IObserverLocator } from './observer-locator.js';
 import type { Scope } from './binding-context.js';
@@ -13,9 +12,9 @@ interface IWatcherImpl extends IWatcher, IConnectableBinding, ISubscriber, IColl
     readonly useProxy: boolean;
     unobserveCollection(all?: boolean): void;
 }
-export interface ComputedObserver extends IWatcherImpl, IConnectableBinding, ISubscriberCollection {
+export interface ComputedObserver extends IWatcherImpl, ISubscriberCollection {
 }
-export declare class ComputedObserver implements IWatcherImpl, IConnectableBinding, ISubscriberCollection {
+export declare class ComputedObserver implements IWatcherImpl, ISubscriberCollection {
     readonly obj: object;
     readonly get: (watcher: IWatcher) => unknown;
     readonly set: undefined | ((v: unknown) => void);
@@ -37,7 +36,7 @@ export declare class ComputedObserver implements IWatcherImpl, IConnectableBindi
     private run;
     private compute;
 }
-export interface ComputedWatcher extends IWatcherImpl, IConnectableBinding {
+export interface ComputedWatcher extends IWatcherImpl {
 }
 export declare class ComputedWatcher implements IWatcher {
     readonly obj: IObservable;

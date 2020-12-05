@@ -38,6 +38,7 @@ export class RefBinding {
             sourceExpression.unbind(flags, this.$scope, this.$hostScope, this.interceptor);
         }
         this.$scope = void 0;
+        this.$hostScope = null;
         this.isBound = false;
     }
     observeProperty(obj, propertyName) {

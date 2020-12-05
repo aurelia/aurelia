@@ -10,14 +10,14 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "../observation.js", "./collection-size-observer.js", "./subscriber-collection.js"], factory);
+        define(["require", "exports", "../observation.js", "./collection-length-observer.js", "./subscriber-collection.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.getMapObserver = exports.MapObserver = exports.disableMapObservation = exports.enableMapObservation = void 0;
     const observation_js_1 = require("../observation.js");
-    const collection_size_observer_js_1 = require("./collection-size-observer.js");
+    const collection_length_observer_js_1 = require("./collection-length-observer.js");
     const subscriber_collection_js_1 = require("./subscriber-collection.js");
     const observerLookup = new WeakMap();
     const proto = Map.prototype;
@@ -139,7 +139,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     exports.disableMapObservation = disableMapObservation;
     let MapObserver = class MapObserver {
         constructor(map) {
-            this.type = 34 /* Map */;
+            this.type = 66 /* Map */;
             if (!enableMapObservationCalled) {
                 enableMapObservationCalled = true;
                 enableMapObservation();
@@ -164,19 +164,17 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
         }
         getLengthObserver() {
             var _a;
-            return (_a = this.lengthObserver) !== null && _a !== void 0 ? _a : (this.lengthObserver = new collection_size_observer_js_1.CollectionSizeObserver(this.collection));
+            return (_a = this.lengthObserver) !== null && _a !== void 0 ? _a : (this.lengthObserver = new collection_length_observer_js_1.CollectionSizeObserver(this));
         }
         getIndexObserver(index) {
             throw new Error('Map index observation not supported');
         }
         flushBatch(flags) {
-            var _a;
             const indexMap = this.indexMap;
             const size = this.collection.size;
             this.inBatch = false;
             this.indexMap = observation_js_1.createIndexMap(size);
             this.callCollectionSubscribers(indexMap, 8 /* updateTarget */);
-            (_a = this.lengthObserver) === null || _a === void 0 ? void 0 : _a.notify();
         }
     };
     MapObserver = __decorate([

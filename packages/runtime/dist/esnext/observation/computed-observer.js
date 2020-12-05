@@ -18,22 +18,13 @@ function watcherImplDecorator(klass) {
     connectable()(klass);
     subscriberCollection()(klass);
     collectionSubscriberCollection()(klass);
-    ensureProto(proto, 'observe', observe);
     ensureProto(proto, 'observeCollection', observeCollection);
-    ensureProto(proto, 'observeLength', observeLength);
     defineHiddenProp(proto, 'unobserveCollection', unobserveCollection);
-}
-function observe(obj, key) {
-    const observer = this.observerLocator.getObserver(obj, key);
-    this.addObserver(observer);
 }
 function observeCollection(collection) {
     const obs = getCollectionObserver(this.observerLocator, collection);
     this.observers.set(obs, this.record.version);
     obs.subscribeToCollection(this);
-}
-function observeLength(collection) {
-    getCollectionObserver(this.observerLocator, collection).getLengthObserver().subscribe(this);
 }
 function unobserveCollection(all) {
     const version = this.record.version;
@@ -88,13 +79,13 @@ let ComputedObserver = ComputedObserver_1 = class ComputedObserver {
         const getter = descriptor.get;
         const setter = descriptor.set;
         const observer = new ComputedObserver_1(obj, getter, setter, useProxy, observerLocator);
-        const $get = (() => observer.getValue());
+        const $get = (( /* Computed Observer */) => observer.getValue());
         $get.getObserver = () => observer;
         Reflect.defineProperty(obj, key, {
             enumerable: descriptor.enumerable,
             configurable: true,
             get: $get,
-            set: (v) => {
+            set: (/* Computed Observer */ v) => {
                 observer.setValue(v, 0 /* none */);
             },
         });
@@ -145,7 +136,7 @@ let ComputedObserver = ComputedObserver_1 = class ComputedObserver {
     unsubscribe(subscriber) {
         if (this.removeSubscriber(subscriber) && --this.subscriberCount === 0) {
             this.isDirty = true;
-            this.unobserve(true);
+            this.record.clear(true);
             this.unobserveCollection(true);
         }
     }
@@ -168,7 +159,7 @@ let ComputedObserver = ComputedObserver_1 = class ComputedObserver {
             return this.value = unwrap(this.get.call(this.useProxy ? wrap(this.obj) : this.obj, this));
         }
         finally {
-            this.unobserve(false);
+            this.record.clear(false);
             this.unobserveCollection(false);
             this.running = false;
             exitWatcher(this);
@@ -215,7 +206,7 @@ let ComputedWatcher = class ComputedWatcher {
             return;
         }
         this.isBound = false;
-        this.unobserve(true);
+        this.record.clear(true);
         this.unobserveCollection(true);
     }
     run() {
@@ -238,7 +229,7 @@ let ComputedWatcher = class ComputedWatcher {
             return this.value = unwrap(this.get.call(void 0, this.useProxy ? wrap(this.obj) : this.obj, this));
         }
         finally {
-            this.unobserve(false);
+            this.record.clear(false);
             this.unobserveCollection(false);
             this.running = false;
             exitWatcher(this);
@@ -291,7 +282,7 @@ let ExpressionWatcher = class ExpressionWatcher {
             return;
         }
         this.isBound = false;
-        this.unobserve(true);
+        this.record.clear(true);
         this.value = void 0;
     }
 };

@@ -37,7 +37,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
             this.hasChanges = false;
             // ObserverType.Layout is not always true
             // but for simplicity, always treat as such
-            this.type = 2 /* Node */ | 1 /* Observer */ | 64 /* Layout */;
+            this.type = 2 /* Node */ | 1 /* Observer */ | 8 /* Layout */;
             this.arrayObserver = void 0;
             this.nodeObserver = void 0;
             this.observing = false;

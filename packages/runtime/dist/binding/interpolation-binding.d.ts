@@ -17,7 +17,6 @@ export declare class InterpolationBinding implements IBinding {
     isBound: boolean;
     $scope?: Scope;
     $hostScope: Scope | null;
-    value: unknown;
     partBindings: ContentBinding[];
     private readonly targetObserver;
     private task;

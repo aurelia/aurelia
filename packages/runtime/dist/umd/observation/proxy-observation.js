@@ -81,7 +81,7 @@
                 return R$get(target, key, receiver);
             }
             // todo: static
-            connectable.observe(target, key);
+            connectable.observeProperty(target, key);
             return wrap(R$get(target, key, receiver));
         },
     };
@@ -97,7 +97,7 @@
             }
             switch (key) {
                 case 'length':
-                    connectable.observeLength(target);
+                    connectable.observeProperty(target, 'length');
                     return target.length;
                 case 'map':
                     return wrappedArrayMap;
@@ -149,13 +149,13 @@
                 case 'entries':
                     return wrappedEntries;
             }
-            connectable.observe(target, key);
+            connectable.observeProperty(target, key);
             return wrap(R$get(target, key, receiver));
         },
         // for (let i in array) ...
         ownKeys(target) {
             var _a;
-            (_a = watcher_switcher_js_1.currentWatcher()) === null || _a === void 0 ? void 0 : _a.observeLength(target);
+            (_a = watcher_switcher_js_1.currentWatcher()) === null || _a === void 0 ? void 0 : _a.observeProperty(target, 'length');
             return Reflect.ownKeys(target);
         },
     };
@@ -300,7 +300,7 @@
             }
             switch (key) {
                 case 'size':
-                    connectable.observeLength(target);
+                    connectable.observeProperty(target, 'size');
                     return target.size;
                 case 'clear':
                     return wrappedClear;

@@ -92,8 +92,8 @@ let BindableObserver = BindableObserver_1 = class BindableObserver {
         Reflect.defineProperty(this.obj, this.propertyKey, {
             enumerable: true,
             configurable: true,
-            get: () => this.currentValue,
-            set: (value) => {
+            get: ( /* Bindable Observer */) => this.currentValue,
+            set: (/* Bindable Observer */ value) => {
                 this.setValue(value, 0 /* none */);
             }
         });

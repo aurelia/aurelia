@@ -32,7 +32,7 @@ export declare class ObserverLocator {
     private readonly adapters;
     constructor(lifecycle: ILifecycle, dirtyChecker: IDirtyChecker, nodeObserverLocator: INodeObserverLocator);
     addAdapter(adapter: IObjectObservationAdapter): void;
-    getObserver(obj: object, key: string): AccessorOrObserver;
+    getObserver(obj: object, key: PropertyKey): AccessorOrObserver;
     getAccessor(obj: object, key: string): IBindingTargetAccessor;
     getArrayObserver(observedArray: unknown[]): ICollectionObserver<CollectionKind.array>;
     getMapObserver(observedMap: Map<unknown, unknown>): ICollectionObserver<CollectionKind.map>;

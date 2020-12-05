@@ -5,7 +5,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 import { createIndexMap } from '../observation.js';
-import { CollectionSizeObserver } from './collection-size-observer.js';
+import { CollectionSizeObserver } from './collection-length-observer.js';
 import { collectionSubscriberCollection } from './subscriber-collection.js';
 const observerLookup = new WeakMap();
 const proto = Set.prototype;
@@ -112,7 +112,7 @@ export function disableSetObservation() {
 }
 let SetObserver = class SetObserver {
     constructor(observedSet) {
-        this.type = 18 /* Set */;
+        this.type = 34 /* Set */;
         if (!enableSetObservationCalled) {
             enableSetObservationCalled = true;
             enableSetObservation();
@@ -137,19 +137,17 @@ let SetObserver = class SetObserver {
     }
     getLengthObserver() {
         var _a;
-        return (_a = this.lengthObserver) !== null && _a !== void 0 ? _a : (this.lengthObserver = new CollectionSizeObserver(this.collection));
+        return (_a = this.lengthObserver) !== null && _a !== void 0 ? _a : (this.lengthObserver = new CollectionSizeObserver(this));
     }
     getIndexObserver(index) {
         throw new Error('Set index observation not supported');
     }
     flushBatch(flags) {
-        var _a;
         const indexMap = this.indexMap;
         const size = this.collection.size;
         this.inBatch = false;
         this.indexMap = createIndexMap(size);
         this.callCollectionSubscribers(indexMap, 8 /* updateTarget */);
-        (_a = this.lengthObserver) === null || _a === void 0 ? void 0 : _a.notify();
     }
 };
 SetObserver = __decorate([

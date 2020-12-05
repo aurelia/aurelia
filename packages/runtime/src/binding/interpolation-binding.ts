@@ -38,7 +38,6 @@ export class InterpolationBinding implements IBinding {
   public isBound: boolean = false;
   public $scope?: Scope = void 0;
   public $hostScope: Scope | null = null;
-  public value: unknown = '';
 
   public partBindings: ContentBinding[];
 
@@ -76,8 +75,6 @@ export class InterpolationBinding implements IBinding {
       }
     }
 
-    this.value = result;
-
     const targetObserver = this.targetObserver;
     // Alpha: during bind a simple strategy for bind is always flush immediately
     // todo:
@@ -85,11 +82,10 @@ export class InterpolationBinding implements IBinding {
     //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start().wait()
     const shouldQueueFlush = (flags & LifecycleFlags.fromBind) === 0 && (targetObserver.type & AccessorType.Layout) > 0;
     if (shouldQueueFlush) {
-      // an optimization: only create & queue a task when there's NOT already a task queued
-      // inside the lambda, use this.value instead of result, since it would always be the latest value
-      this.task ??= this.taskQueue.queueTask(() => {
-        targetObserver.setValue(this.value, flags, this.target, this.targetProperty);
+      this.task?.cancel();
+      this.task = this.taskQueue.queueTask(() => {
         this.task = null;
+        targetObserver.setValue(result, flags, this.target, this.targetProperty);
       }, queueTaskOptions);
     } else {
       targetObserver.setValue(result, flags, this.target, this.targetProperty);
@@ -118,15 +114,12 @@ export class InterpolationBinding implements IBinding {
     }
     this.isBound = false;
     this.$scope = void 0;
-    const task = this.task;
     const partBindings = this.partBindings;
     for (let i = 0, ii = partBindings.length; i < ii; ++i) {
       partBindings[i].interceptor.$unbind(flags);
     }
-    if (task != null) {
-      task.cancel();
-      this.task = null;
-    }
+    this.task?.cancel();
+    this.task = null;
   }
 }
 
@@ -240,7 +233,7 @@ export class ContentBinding implements ContentBinding, ICollectionSubscriber {
 
     this.$scope = void 0;
     this.$hostScope = null;
-    this.interceptor.unobserve(true);
+    this.record.clear(true);
     this.unobserveArray();
   }
 

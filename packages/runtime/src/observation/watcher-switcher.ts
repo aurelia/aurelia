@@ -1,17 +1,4 @@
-import type { Collection } from '../observation.js';
-
-// todo:
-// merge collection subscription to property subscription
-// and make IWatcher simpler, so observers in static observation won't have to implement many methods
-// An alternative way is to make collection observation manual & user controllable
-// so it works even without proxy
-// todo: maybe enhance @connectable so that it provides these interfaces
-export interface IWatcher {
-  id: number;
-  observe(obj: object, property: PropertyKey): void;
-  observeCollection(collection: Collection): void;
-  observeLength(collection: Collection): void;
-}
+import type { IWatcher } from '../observation';
 
 /**
  * Current subscription collector

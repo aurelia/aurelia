@@ -90,7 +90,7 @@ export class LetBinding implements IPartialConnectableBinding {
     }
     this.$scope = void 0;
     this.$hostScope = null;
-    this.interceptor.unobserve(true);
+    this.record.clear(true);
 
     // remove isBound and isUnbinding flags
     this.isBound = false;

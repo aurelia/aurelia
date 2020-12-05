@@ -72,10 +72,8 @@ export class SetterObserver {
         {
           enumerable: true,
           configurable: true,
-          get: () => {
-            return this.getValue();
-          },
-          set: value => {
+          get: (/* Setter Observer */) => this.getValue(),
+          set: (/* Setter Observer */value) => {
             this.setValue(value, LifecycleFlags.none);
           },
         },

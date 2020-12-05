@@ -137,10 +137,10 @@ export class TranslationBinding implements IPartialConnectableBinding {
     }
 
     this.parameter?.$unbind(flags);
-    this.unobserveTargets(flags);
+    this.targetObservers.clear();
 
     this.scope = (void 0)!;
-    this.unobserve(true);
+    this.record.clear(true);
   }
 
   public handleChange(newValue: string | i18next.TOptions, _previousValue: string | i18next.TOptions, flags: LifecycleFlags): void {
@@ -167,7 +167,7 @@ export class TranslationBinding implements IPartialConnectableBinding {
   private updateTranslations(flags: LifecycleFlags) {
     const results = this.i18n.evaluate(this.keyExpression!, this.parameter?.value);
     const content: ContentValue = Object.create(null);
-    this.unobserveTargets(flags);
+    this.targetObservers.clear();
 
     for (const item of results) {
       const value = item.value;
@@ -266,15 +266,6 @@ export class TranslationBinding implements IPartialConnectableBinding {
     return false;
   }
 
-  private unobserveTargets(flags: LifecycleFlags) {
-    for (const observer of this.targetObservers) {
-      if (observer.unbind) {
-        observer.unbind(flags);
-      }
-    }
-    this.targetObservers.clear();
-  }
-
   private ensureKeyExpression() {
     const expr = this.keyExpression ??= '';
     const exprType = typeof expr;
@@ -344,6 +335,6 @@ class ParameterBinding {
     }
 
     this.scope = (void 0)!;
-    this.unobserve(true);
+    this.record.clear(true);
   }
 }

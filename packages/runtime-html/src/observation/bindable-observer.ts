@@ -120,8 +120,8 @@ export class BindableObserver {
       {
         enumerable: true,
         configurable: true,
-        get: () => this.currentValue,
-        set: (value: unknown) => {
+        get: (/* Bindable Observer */) => this.currentValue,
+        set: (/* Bindable Observer */value: unknown) => {
           this.setValue(value, LifecycleFlags.none);
         }
       }

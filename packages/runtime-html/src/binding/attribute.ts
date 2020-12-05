@@ -134,9 +134,10 @@ export class AttributeBinding implements IPartialConnectableBinding {
       if (newValue !== this.value) {
         this.value = newValue;
         if (shouldQueueFlush) {
-          this.task ??= this.$platform.domWriteQueue.queueTask(() => {
-            interceptor.updateTarget(this.value, flags);
+          this.task?.cancel();
+          this.task = this.$platform.domWriteQueue.queueTask(() => {
             this.task = null;
+            interceptor.updateTarget(newValue, flags);
           }, taskOptions);
         } else {
           interceptor.updateTarget(newValue, flags);
@@ -187,9 +188,6 @@ export class AttributeBinding implements IPartialConnectableBinding {
         this.targetAttribute,
       );
     }
-    if (targetObserver.bind) {
-      targetObserver.bind(flags);
-    }
 
     // during bind, binding behavior might have changed sourceExpression
     sourceExpression = this.sourceExpression;
@@ -228,18 +226,13 @@ export class AttributeBinding implements IPartialConnectableBinding {
     this.value = void 0;
 
     const targetObserver = this.targetObserver as IBindingTargetObserver;
-    const task = this.task;
-    if (targetObserver.unbind) {
-      targetObserver.unbind!(flags);
-    }
     if (targetObserver.unsubscribe) {
       targetObserver.unsubscribe(this.interceptor);
       targetObserver[this.id] &= ~LifecycleFlags.updateSource;
     }
-    if (task != null) {
-      task.cancel();
-      this.task = null;
-    }
+
+    this.task?.cancel();
+    this.task = null;
     this.record.clear(true);
 
     // remove isBound and isUnbinding flags

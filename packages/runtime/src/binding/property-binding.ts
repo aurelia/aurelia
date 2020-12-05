@@ -136,7 +136,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
       sourceExpression.bind(flags, scope, hostScope, this.interceptor);
     }
 
-    let $mode = this.mode;
+    const $mode = this.mode;
     let targetObserver = this.targetObserver as IBindingTargetObserver;
     if (!targetObserver) {
       const observerLocator = this.observerLocator;
@@ -147,12 +147,6 @@ export class PropertyBinding implements IPartialConnectableBinding {
       }
       this.targetObserver = targetObserver;
     }
-    if ($mode !== BindingMode.oneTime && targetObserver.bind) {
-      targetObserver.bind(flags);
-    }
-
-    // deepscan-disable-next-line
-    $mode = this.mode;
 
     // during bind, binding behavior might have changed sourceExpression
     sourceExpression = this.sourceExpression;
@@ -193,9 +187,6 @@ export class PropertyBinding implements IPartialConnectableBinding {
     const targetObserver = this.targetObserver as IBindingTargetObserver;
     const task = this.task;
 
-    if (targetObserver.unbind) {
-      targetObserver.unbind!(flags);
-    }
     if (targetObserver.unsubscribe) {
       targetObserver.unsubscribe(this.interceptor);
       targetObserver[this.id] &= ~LifecycleFlags.updateSource;

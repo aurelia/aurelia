@@ -862,7 +862,7 @@ describe('[UNIT] 3-runtime/checked-observer.spec.ts/CheckedObserver', function (
                   );
                 }
                 let actual = sut.getValue() as IInputElement[];
-                
+
                 if (checkedBefore) {
                   assert.strictEqual(actual[0], prop === 'value' ? (value !== null ? `${value}` : '') : value, `actual[0]`); // TODO: maybe we should coerce value in the observer
                 } else {

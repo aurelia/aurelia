@@ -10,7 +10,6 @@ export interface SetterObserver extends IObserver, ISubscriberCollection {}
  * Observer for the mutation of object property value employing getter-setter strategy.
  * This is used for observing object properties that has no decorator.
  */
-@subscriberCollection()
 export class SetterObserver {
   public currentValue: unknown = void 0;
   public oldValue: unknown = void 0;
@@ -98,7 +97,7 @@ export class SetterObserver {
 }
 
 export interface SetterNotifier extends ISubscriberCollection {}
-@subscriberCollection()
+
 export class SetterNotifier implements IAccessor, ISubscribable {
   // ideally, everything is an object,
   // probably this flag is redundant, just None?
@@ -129,3 +128,6 @@ export class SetterNotifier implements IAccessor, ISubscribable {
     }
   }
 }
+
+subscriberCollection()(SetterObserver);
+subscriberCollection()(SetterNotifier);

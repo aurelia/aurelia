@@ -184,11 +184,11 @@ export interface ICollectionSubscribable {
 export interface ISubscriberCollection extends ISubscribable {
   [key: number]: LifecycleFlags;
 
-  /** @internal */_subscriberFlags: SubscriberFlags;
-  /** @internal */_subscriber0?: ISubscriber;
-  /** @internal */_subscriber1?: ISubscriber;
-  /** @internal */_subscriber2?: ISubscriber;
-  /** @internal */_subscribersRest?: ISubscriber[];
+  /** @internal */_sFlags: SubscriberFlags;
+  /** @internal */_s0?: ISubscriber;
+  /** @internal */_s1?: ISubscriber;
+  /** @internal */_s2?: ISubscriber;
+  /** @internal */_sRest?: ISubscriber[];
 
   callSubscribers(newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void;
   hasSubscribers(): boolean;
@@ -200,11 +200,11 @@ export interface ISubscriberCollection extends ISubscribable {
 export interface ICollectionSubscriberCollection extends ICollectionSubscribable {
   [key: number]: LifecycleFlags;
 
-  /** @internal */_collectionSubscriberFlags: SubscriberFlags;
-  /** @internal */_collectionSubscriber0?: ICollectionSubscriber;
-  /** @internal */_collectionSubscriber1?: ICollectionSubscriber;
-  /** @internal */_collectionSubscriber2?: ICollectionSubscriber;
-  /** @internal */_collectionSubscribersRest?: ICollectionSubscriber[];
+  /** @internal */_csFlags: SubscriberFlags;
+  /** @internal */_cs0?: ICollectionSubscriber;
+  /** @internal */_cs1?: ICollectionSubscriber;
+  /** @internal */_cs2?: ICollectionSubscriber;
+  /** @internal */_csRest?: ICollectionSubscriber[];
 
   callCollectionSubscribers(indexMap: IndexMap, flags: LifecycleFlags): void;
   hasCollectionSubscribers(): boolean;

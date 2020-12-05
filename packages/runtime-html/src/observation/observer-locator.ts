@@ -48,14 +48,8 @@ const nsAttributes = Object.assign(
   },
 );
 
-const elementPropertyAccessor = (function () {
-  // error when having .type = AccessorType.Node | AccessorType.Layout directly???
-  const node = AccessorType.Node;
-  const layout = AccessorType.Layout;
-  const accessor = new PropertyAccessor();
-  accessor.type = node | layout;
-  return accessor;
-})();
+const elementPropertyAccessor = new PropertyAccessor();
+elementPropertyAccessor.type = AccessorType.Node | AccessorType.Layout;
 
 export type IHtmlObserverConstructor =
   new (

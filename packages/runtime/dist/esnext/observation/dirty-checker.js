@@ -101,6 +101,7 @@ let DirtyCheckProperty = class DirtyCheckProperty {
         this.obj = obj;
         this.propertyKey = propertyKey;
         this.type = 4 /* Obj */;
+        this.subCount = 0;
     }
     setValue(v, f) {
         // todo: this should be allowed, probably
@@ -117,14 +118,13 @@ let DirtyCheckProperty = class DirtyCheckProperty {
         this.oldValue = newValue;
     }
     subscribe(subscriber) {
-        if (!this.hasSubscribers()) {
+        if (this.addSubscriber(subscriber) && ++this.subCount === 1) {
             this.oldValue = this.obj[this.propertyKey];
             this.dirtyChecker.addProperty(this);
         }
-        this.addSubscriber(subscriber);
     }
     unsubscribe(subscriber) {
-        if (this.removeSubscriber(subscriber) && !this.hasSubscribers()) {
+        if (this.removeSubscriber(subscriber) && --this.subCount === 0) {
             this.dirtyChecker.removeProperty(this);
         }
     }

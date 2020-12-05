@@ -7,6 +7,9 @@ export interface IPartialConnectableBinding extends IBinding, ISubscriber {
 }
 export interface IConnectableBinding extends IPartialConnectableBinding, IConnectable {
     id: number;
+    /**
+     * A record storing observers that are currently subscribed by this binding
+     */
     record: BindingObserverRecord;
     addObserver(observer: ISubscribable): void;
     unobserve(all?: boolean): void;
@@ -27,9 +30,15 @@ export declare class BindingObserverRecord implements ISubscriber {
     count: number;
     constructor(binding: IConnectableBinding);
     handleChange(value: unknown, oldValue: unknown, flags: LifecycleFlags): unknown;
+    /**
+     * Add, and subscribe to a given observer
+     */
     add(observer: ISubscribable & {
         [id: number]: number;
     }): void;
+    /**
+     * Unsubscribe the observers that are not up to date with the record version
+     */
     clear(all?: boolean): void;
 }
 declare type DecoratableConnectable<TProto, TClass> = Class<TProto & Partial<IConnectableBinding> & IPartialConnectableBinding, TClass>;

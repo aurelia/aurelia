@@ -49,6 +49,9 @@ export class BindingObserverRecord {
     handleChange(value, oldValue, flags) {
         return this.binding.interceptor.handleChange(value, oldValue, flags);
     }
+    /**
+     * Add, and subscribe to a given observer
+     */
     add(observer) {
         // find the observer.
         const observerSlots = this.count == null ? 0 : this.count;
@@ -72,6 +75,9 @@ export class BindingObserverRecord {
         this[versionSlotNames[i]] = this.version;
         ensureEnoughSlotNames(i);
     }
+    /**
+     * Unsubscribe the observers that are not up to date with the record version
+     */
     clear(all) {
         const slotCount = this.count;
         let slotName;

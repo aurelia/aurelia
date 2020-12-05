@@ -1,6 +1,6 @@
 {
   "name": "au",
-  "version": "0.9.0-dev.202012051729",
+  "version": "0.9.0-dev.202012051732",
   "main": "dist/umd/index.js",
   "module": "dist/esnext/index.js",
   "types": "dist/index.d.ts",
@@ -40,10 +40,10 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/metadata": "0.9.0-dev.202012051729",
-    "@aurelia/platform": "0.9.0-dev.202012051729",
-    "@aurelia/kernel": "0.9.0-dev.202012051729",
-    "@aurelia/http-server": "0.9.0-dev.202012051729"
+    "@aurelia/metadata": "0.9.0-dev.202012051732",
+    "@aurelia/platform": "0.9.0-dev.202012051732",
+    "@aurelia/kernel": "0.9.0-dev.202012051732",
+    "@aurelia/http-server": "0.9.0-dev.202012051732"
   },
   "devDependencies": {
     "@types/node": "^14.11.5",

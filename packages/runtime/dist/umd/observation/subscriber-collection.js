@@ -15,12 +15,12 @@
         // eslint-disable-next-line @typescript-eslint/ban-types
         return function (target) {
             const proto = target.prototype;
-            utilities_objects_js_1.ensureProto(proto, '_subscriberFlags', 0 /* None */);
-            utilities_objects_js_1.ensureProto(proto, 'addSubscriber', addSubscriber);
-            utilities_objects_js_1.ensureProto(proto, 'removeSubscriber', removeSubscriber);
-            utilities_objects_js_1.ensureProto(proto, 'hasSubscriber', hasSubscriber);
-            utilities_objects_js_1.ensureProto(proto, 'hasSubscribers', hasSubscribers);
-            utilities_objects_js_1.ensureProto(proto, 'callSubscribers', callSubscribers);
+            utilities_objects_js_1.ensureProto(proto, '_sFlags', 0 /* None */, true);
+            utilities_objects_js_1.ensureProto(proto, 'addSubscriber', addSubscriber, true);
+            utilities_objects_js_1.ensureProto(proto, 'removeSubscriber', removeSubscriber, true);
+            utilities_objects_js_1.ensureProto(proto, 'hasSubscriber', hasSubscriber, true);
+            utilities_objects_js_1.ensureProto(proto, 'hasSubscribers', hasSubscribers, true);
+            utilities_objects_js_1.ensureProto(proto, 'callSubscribers', callSubscribers, true);
             utilities_objects_js_1.ensureProto(proto, 'subscribe', addSubscriber);
             utilities_objects_js_1.ensureProto(proto, 'unsubscribe', removeSubscriber);
         };
@@ -30,12 +30,12 @@
         // eslint-disable-next-line @typescript-eslint/ban-types
         return function (target) {
             const proto = target.prototype;
-            utilities_objects_js_1.ensureProto(proto, '_collectionSubscriberFlags', 0 /* None */);
-            utilities_objects_js_1.ensureProto(proto, 'addCollectionSubscriber', addCollectionSubscriber);
-            utilities_objects_js_1.ensureProto(proto, 'removeCollectionSubscriber', removeCollectionSubscriber);
-            utilities_objects_js_1.ensureProto(proto, 'hasCollectionSubscriber', hasCollectionSubscriber);
-            utilities_objects_js_1.ensureProto(proto, 'hasCollectionSubscribers', hasCollectionSubscribers);
-            utilities_objects_js_1.ensureProto(proto, 'callCollectionSubscribers', callCollectionSubscribers);
+            utilities_objects_js_1.ensureProto(proto, '_csFlags', 0 /* None */, true);
+            utilities_objects_js_1.ensureProto(proto, 'addCollectionSubscriber', addCollectionSubscriber, true);
+            utilities_objects_js_1.ensureProto(proto, 'removeCollectionSubscriber', removeCollectionSubscriber, true);
+            utilities_objects_js_1.ensureProto(proto, 'hasCollectionSubscriber', hasCollectionSubscriber, true);
+            utilities_objects_js_1.ensureProto(proto, 'hasCollectionSubscribers', hasCollectionSubscribers, true);
+            utilities_objects_js_1.ensureProto(proto, 'callCollectionSubscribers', callCollectionSubscribers, true);
             utilities_objects_js_1.ensureProto(proto, 'subscribeToCollection', addCollectionSubscriber);
             utilities_objects_js_1.ensureProto(proto, 'unsubscribeFromCollection', removeCollectionSubscriber);
         };
@@ -45,26 +45,26 @@
         if (this.hasSubscriber(subscriber)) {
             return false;
         }
-        const subscriberFlags = this._subscriberFlags;
+        const subscriberFlags = this._sFlags;
         if ((subscriberFlags & 1 /* Subscriber0 */) === 0) {
-            this._subscriber0 = subscriber;
-            this._subscriberFlags |= 1 /* Subscriber0 */;
+            this._s0 = subscriber;
+            this._sFlags |= 1 /* Subscriber0 */;
         }
         else if ((subscriberFlags & 2 /* Subscriber1 */) === 0) {
-            this._subscriber1 = subscriber;
-            this._subscriberFlags |= 2 /* Subscriber1 */;
+            this._s1 = subscriber;
+            this._sFlags |= 2 /* Subscriber1 */;
         }
         else if ((subscriberFlags & 4 /* Subscriber2 */) === 0) {
-            this._subscriber2 = subscriber;
-            this._subscriberFlags |= 4 /* Subscriber2 */;
+            this._s2 = subscriber;
+            this._sFlags |= 4 /* Subscriber2 */;
         }
         else if ((subscriberFlags & 8 /* SubscribersRest */) === 0) {
-            this._subscribersRest = [subscriber];
-            this._subscriberFlags |= 8 /* SubscribersRest */;
+            this._sRest = [subscriber];
+            this._sFlags |= 8 /* SubscribersRest */;
         }
         else {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            this._subscribersRest.push(subscriber); // Non-null is implied by else branch of (subscriberFlags & SF.SubscribersRest) === 0
+            this._sRest.push(subscriber); // Non-null is implied by else branch of (subscriberFlags & SF.SubscribersRest) === 0
         }
         return true;
     }
@@ -72,54 +72,54 @@
         if (this.hasCollectionSubscriber(subscriber)) {
             return false;
         }
-        const subscriberFlags = this._collectionSubscriberFlags;
+        const subscriberFlags = this._csFlags;
         if ((subscriberFlags & 1 /* Subscriber0 */) === 0) {
-            this._collectionSubscriber0 = subscriber;
-            this._collectionSubscriberFlags |= 1 /* Subscriber0 */;
+            this._cs0 = subscriber;
+            this._csFlags |= 1 /* Subscriber0 */;
         }
         else if ((subscriberFlags & 2 /* Subscriber1 */) === 0) {
-            this._collectionSubscriber1 = subscriber;
-            this._collectionSubscriberFlags |= 2 /* Subscriber1 */;
+            this._cs1 = subscriber;
+            this._csFlags |= 2 /* Subscriber1 */;
         }
         else if ((subscriberFlags & 4 /* Subscriber2 */) === 0) {
-            this._collectionSubscriber2 = subscriber;
-            this._collectionSubscriberFlags |= 4 /* Subscriber2 */;
+            this._cs2 = subscriber;
+            this._csFlags |= 4 /* Subscriber2 */;
         }
         else if ((subscriberFlags & 8 /* SubscribersRest */) === 0) {
-            this._collectionSubscribersRest = [subscriber];
-            this._collectionSubscriberFlags |= 8 /* SubscribersRest */;
+            this._csRest = [subscriber];
+            this._csFlags |= 8 /* SubscribersRest */;
         }
         else {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            this._collectionSubscribersRest.push(subscriber); // Non-null is implied by else branch of (subscriberFlags & SF.SubscribersRest) === 0
+            this._csRest.push(subscriber); // Non-null is implied by else branch of (subscriberFlags & SF.SubscribersRest) === 0
         }
         return true;
     }
     function removeSubscriber(subscriber) {
-        const subscriberFlags = this._subscriberFlags;
-        if ((subscriberFlags & 1 /* Subscriber0 */) > 0 && this._subscriber0 === subscriber) {
-            this._subscriber0 = void 0;
-            this._subscriberFlags = (this._subscriberFlags | 1 /* Subscriber0 */) ^ 1 /* Subscriber0 */;
+        const subscriberFlags = this._sFlags;
+        if ((subscriberFlags & 1 /* Subscriber0 */) > 0 && this._s0 === subscriber) {
+            this._s0 = void 0;
+            this._sFlags = (this._sFlags | 1 /* Subscriber0 */) ^ 1 /* Subscriber0 */;
             return true;
         }
-        else if ((subscriberFlags & 2 /* Subscriber1 */) > 0 && this._subscriber1 === subscriber) {
-            this._subscriber1 = void 0;
-            this._subscriberFlags = (this._subscriberFlags | 2 /* Subscriber1 */) ^ 2 /* Subscriber1 */;
+        else if ((subscriberFlags & 2 /* Subscriber1 */) > 0 && this._s1 === subscriber) {
+            this._s1 = void 0;
+            this._sFlags = (this._sFlags | 2 /* Subscriber1 */) ^ 2 /* Subscriber1 */;
             return true;
         }
-        else if ((subscriberFlags & 4 /* Subscriber2 */) > 0 && this._subscriber2 === subscriber) {
-            this._subscriber2 = void 0;
-            this._subscriberFlags = (this._subscriberFlags | 4 /* Subscriber2 */) ^ 4 /* Subscriber2 */;
+        else if ((subscriberFlags & 4 /* Subscriber2 */) > 0 && this._s2 === subscriber) {
+            this._s2 = void 0;
+            this._sFlags = (this._sFlags | 4 /* Subscriber2 */) ^ 4 /* Subscriber2 */;
             return true;
         }
         else if ((subscriberFlags & 8 /* SubscribersRest */) > 0) {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            const subscribers = this._subscribersRest; // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
+            const subscribers = this._sRest; // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
             for (let i = 0, ii = subscribers.length; i < ii; ++i) {
                 if (subscribers[i] === subscriber) {
                     subscribers.splice(i, 1);
                     if (ii === 1) {
-                        this._subscriberFlags = (this._subscriberFlags | 8 /* SubscribersRest */) ^ 8 /* SubscribersRest */;
+                        this._sFlags = (this._sFlags | 8 /* SubscribersRest */) ^ 8 /* SubscribersRest */;
                     }
                     return true;
                 }
@@ -128,30 +128,30 @@
         return false;
     }
     function removeCollectionSubscriber(subscriber) {
-        const subscriberFlags = this._collectionSubscriberFlags;
-        if ((subscriberFlags & 1 /* Subscriber0 */) > 0 && this._collectionSubscriber0 === subscriber) {
-            this._collectionSubscriber0 = void 0;
-            this._collectionSubscriberFlags = (this._collectionSubscriberFlags | 1 /* Subscriber0 */) ^ 1 /* Subscriber0 */;
+        const subscriberFlags = this._csFlags;
+        if ((subscriberFlags & 1 /* Subscriber0 */) > 0 && this._cs0 === subscriber) {
+            this._cs0 = void 0;
+            this._csFlags = (this._csFlags | 1 /* Subscriber0 */) ^ 1 /* Subscriber0 */;
             return true;
         }
-        else if ((subscriberFlags & 2 /* Subscriber1 */) > 0 && this._collectionSubscriber1 === subscriber) {
-            this._collectionSubscriber1 = void 0;
-            this._collectionSubscriberFlags = (this._collectionSubscriberFlags | 2 /* Subscriber1 */) ^ 2 /* Subscriber1 */;
+        else if ((subscriberFlags & 2 /* Subscriber1 */) > 0 && this._cs1 === subscriber) {
+            this._cs1 = void 0;
+            this._csFlags = (this._csFlags | 2 /* Subscriber1 */) ^ 2 /* Subscriber1 */;
             return true;
         }
-        else if ((subscriberFlags & 4 /* Subscriber2 */) > 0 && this._collectionSubscriber2 === subscriber) {
-            this._collectionSubscriber2 = void 0;
-            this._collectionSubscriberFlags = (this._collectionSubscriberFlags | 4 /* Subscriber2 */) ^ 4 /* Subscriber2 */;
+        else if ((subscriberFlags & 4 /* Subscriber2 */) > 0 && this._cs2 === subscriber) {
+            this._cs2 = void 0;
+            this._csFlags = (this._csFlags | 4 /* Subscriber2 */) ^ 4 /* Subscriber2 */;
             return true;
         }
         else if ((subscriberFlags & 8 /* SubscribersRest */) > 0) {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            const subscribers = this._collectionSubscribersRest; // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
+            const subscribers = this._csRest; // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
             for (let i = 0, ii = subscribers.length; i < ii; ++i) {
                 if (subscribers[i] === subscriber) {
                     subscribers.splice(i, 1);
                     if (ii === 1) {
-                        this._collectionSubscriberFlags = (this._collectionSubscriberFlags | 8 /* SubscribersRest */) ^ 8 /* SubscribersRest */;
+                        this._csFlags = (this._csFlags | 8 /* SubscribersRest */) ^ 8 /* SubscribersRest */;
                     }
                     return true;
                 }
@@ -160,28 +160,28 @@
         return false;
     }
     function hasSubscribers() {
-        return this._subscriberFlags !== 0 /* None */;
+        return this._sFlags !== 0 /* None */;
     }
     function hasCollectionSubscribers() {
-        return this._collectionSubscriberFlags !== 0 /* None */;
+        return this._csFlags !== 0 /* None */;
     }
     function hasSubscriber(subscriber) {
         // Flags here is just a perf tweak
         // Compared to not using flags, it's a moderate speed-up when this collection does not have the subscriber;
         // and minor slow-down when it does, and the former is more common than the latter.
-        const subscriberFlags = this._subscriberFlags;
-        if ((subscriberFlags & 1 /* Subscriber0 */) > 0 && this._subscriber0 === subscriber) {
+        const subscriberFlags = this._sFlags;
+        if ((subscriberFlags & 1 /* Subscriber0 */) > 0 && this._s0 === subscriber) {
             return true;
         }
-        if ((subscriberFlags & 2 /* Subscriber1 */) > 0 && this._subscriber1 === subscriber) {
+        if ((subscriberFlags & 2 /* Subscriber1 */) > 0 && this._s1 === subscriber) {
             return true;
         }
-        if ((subscriberFlags & 4 /* Subscriber2 */) > 0 && this._subscriber2 === subscriber) {
+        if ((subscriberFlags & 4 /* Subscriber2 */) > 0 && this._s2 === subscriber) {
             return true;
         }
         if ((subscriberFlags & 8 /* SubscribersRest */) > 0) {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            const subscribers = this._subscribersRest; // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
+            const subscribers = this._sRest; // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
             for (let i = 0, ii = subscribers.length; i < ii; ++i) {
                 if (subscribers[i] === subscriber) {
                     return true;
@@ -191,19 +191,19 @@
         return false;
     }
     function hasCollectionSubscriber(subscriber) {
-        const subscriberFlags = this._collectionSubscriberFlags;
-        if ((subscriberFlags & 1 /* Subscriber0 */) > 0 && this._collectionSubscriber0 === subscriber) {
+        const subscriberFlags = this._csFlags;
+        if ((subscriberFlags & 1 /* Subscriber0 */) > 0 && this._cs0 === subscriber) {
             return true;
         }
-        if ((subscriberFlags & 2 /* Subscriber1 */) > 0 && this._collectionSubscriber1 === subscriber) {
+        if ((subscriberFlags & 2 /* Subscriber1 */) > 0 && this._cs1 === subscriber) {
             return true;
         }
-        if ((subscriberFlags & 4 /* Subscriber2 */) > 0 && this._collectionSubscriber2 === subscriber) {
+        if ((subscriberFlags & 4 /* Subscriber2 */) > 0 && this._cs2 === subscriber) {
             return true;
         }
         if ((subscriberFlags & 8 /* SubscribersRest */) > 0) {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            const subscribers = this._collectionSubscribersRest; // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
+            const subscribers = this._csRest; // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
             for (let i = 0, ii = subscribers.length; i < ii; ++i) {
                 if (subscribers[i] === subscriber) {
                     return true;
@@ -220,10 +220,10 @@
          * Subscribers removed during this invocation will still be invoked (and they also shouldn't be,
          * however this is accounted for via $isBound and similar flags on the subscriber objects)
          */
-        const subscriber0 = this._subscriber0;
-        const subscriber1 = this._subscriber1;
-        const subscriber2 = this._subscriber2;
-        let subscribers = this._subscribersRest;
+        const subscriber0 = this._s0;
+        const subscriber1 = this._s1;
+        const subscriber2 = this._s2;
+        let subscribers = this._sRest;
         if (subscribers !== void 0) {
             subscribers = subscribers.slice();
         }
@@ -237,7 +237,7 @@
             callSubscriber(subscriber2, newValue, previousValue, flags, subscriber2.id === void 0 ? 0 : this[subscriber2.id]);
         }
         if (subscribers !== void 0) {
-            const { length } = subscribers;
+            const length = subscribers.length;
             let subscriber;
             for (let i = 0; i < length; ++i) {
                 subscriber = subscribers[i];
@@ -251,10 +251,10 @@
         subscriber.handleChange(newValue, previousValue, ((flags | 24 /* update */) ^ 24 /* update */) | ownFlags);
     }
     function callCollectionSubscribers(indexMap, flags) {
-        const subscriber0 = this._collectionSubscriber0;
-        const subscriber1 = this._collectionSubscriber1;
-        const subscriber2 = this._collectionSubscriber2;
-        let subscribers = this._collectionSubscribersRest;
+        const subscriber0 = this._cs0;
+        const subscriber1 = this._cs1;
+        const subscriber2 = this._cs2;
+        let subscribers = this._csRest;
         if (subscribers !== void 0) {
             subscribers = subscribers.slice();
         }
@@ -268,7 +268,7 @@
             subscriber2.handleCollectionChange(indexMap, flags);
         }
         if (subscribers !== void 0) {
-            const { length } = subscribers;
+            const length = subscribers.length;
             let subscriber;
             for (let i = 0; i < length; ++i) {
                 subscriber = subscribers[i];

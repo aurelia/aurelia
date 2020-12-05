@@ -1,9 +1,3 @@
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
 (function (factory) {
     if (typeof module === "object" && typeof module.exports === "object") {
         var v = factory(require, exports);
@@ -21,7 +15,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
      * Observer for the mutation of object property value employing getter-setter strategy.
      * This is used for observing object properties that has no decorator.
      */
-    let SetterObserver = class SetterObserver {
+    class SetterObserver {
         constructor(obj, propertyKey) {
             this.obj = obj;
             this.propertyKey = propertyKey;
@@ -92,12 +86,9 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
             }
             return this;
         }
-    };
-    SetterObserver = __decorate([
-        subscriber_collection_js_1.subscriberCollection()
-    ], SetterObserver);
+    }
     exports.SetterObserver = SetterObserver;
-    let SetterNotifier = class SetterNotifier {
+    class SetterNotifier {
         // todo(bigopon): remove flag aware assignment in ast, move to the decorator itself
         constructor(s) {
             this.s = s;
@@ -122,10 +113,9 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
                 this.callSubscribers(value, oldValue, flags);
             }
         }
-    };
-    SetterNotifier = __decorate([
-        subscriber_collection_js_1.subscriberCollection()
-    ], SetterNotifier);
+    }
     exports.SetterNotifier = SetterNotifier;
+    subscriber_collection_js_1.subscriberCollection()(SetterObserver);
+    subscriber_collection_js_1.subscriberCollection()(SetterNotifier);
 });
 //# sourceMappingURL=setter-observer.js.map

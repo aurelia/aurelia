@@ -1012,7 +1012,18 @@
         get hasBind() { return false; }
         get hasUnbind() { return false; }
         evaluate(_f, _s, _hs, _l, _c) {
-            // TODO
+            // TODO: this should come after batch
+            // as a destructuring expression like [x, y] = value
+            //
+            // should only trigger change only once:
+            // batch(() => {
+            //   object.x = value[0]
+            //   object.y = value[1]
+            // })
+            //
+            // instead of twice:
+            // object.x = value[0]
+            // object.y = value[1]
             return void 0;
         }
         assign(_f, _s, _hs, _l, _obj) {
@@ -1038,6 +1049,9 @@
         get hasUnbind() { return false; }
         evaluate(_f, _s, _hs, _l, _c) {
             // TODO
+            // similar to array binding ast, this should only come after batch
+            // for a single notification per destructing,
+            // regardless number of property assignments on the scope binding context
             return void 0;
         }
         assign(_f, _s, _hs, _l, _obj) {

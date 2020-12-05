@@ -1,15 +1,9 @@
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
 import { subscriberCollection } from './subscriber-collection.js';
 /**
  * Observer for the mutation of object property value employing getter-setter strategy.
  * This is used for observing object properties that has no decorator.
  */
-let SetterObserver = class SetterObserver {
+export class SetterObserver {
     constructor(obj, propertyKey) {
         this.obj = obj;
         this.propertyKey = propertyKey;
@@ -80,12 +74,8 @@ let SetterObserver = class SetterObserver {
         }
         return this;
     }
-};
-SetterObserver = __decorate([
-    subscriberCollection()
-], SetterObserver);
-export { SetterObserver };
-let SetterNotifier = class SetterNotifier {
+}
+export class SetterNotifier {
     // todo(bigopon): remove flag aware assignment in ast, move to the decorator itself
     constructor(s) {
         this.s = s;
@@ -110,9 +100,7 @@ let SetterNotifier = class SetterNotifier {
             this.callSubscribers(value, oldValue, flags);
         }
     }
-};
-SetterNotifier = __decorate([
-    subscriberCollection()
-], SetterNotifier);
-export { SetterNotifier };
+}
+subscriberCollection()(SetterObserver);
+subscriberCollection()(SetterNotifier);
 //# sourceMappingURL=setter-observer.js.map

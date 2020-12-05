@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/aot",
-  "version": "0.9.0-dev.202012051732",
+  "version": "0.9.0-dev.202012051838",
   "main": "dist/umd/index.js",
   "module": "dist/esnext/index.js",
   "types": "dist/index.d.ts",
@@ -35,10 +35,10 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "0.9.0-dev.202012051732",
-    "@aurelia/metadata": "0.9.0-dev.202012051732",
-    "@aurelia/platform": "0.9.0-dev.202012051732",
-    "@aurelia/runtime": "0.9.0-dev.202012051732",
+    "@aurelia/kernel": "0.9.0-dev.202012051838",
+    "@aurelia/metadata": "0.9.0-dev.202012051838",
+    "@aurelia/platform": "0.9.0-dev.202012051838",
+    "@aurelia/runtime": "0.9.0-dev.202012051838",
     "jsdom": "^15.2.1",
     "typescript": "^4.0.3"
   },

@@ -593,8 +593,8 @@ describe('PropertyBinding', function () {
         const observer01: SetterObserver = sut.record['_o1'] as SetterObserver;
         const observer02: SetterObserver = sut.record['_o2'] as SetterObserver;
 
-        const subscriber00: ISubscriber = targetObserver['_subscriber0'];
-        const subscriber01: ISubscriber = targetObserver['_subscriber1'];
+        const subscriber00: ISubscriber = targetObserver['_s0'];
+        const subscriber01: ISubscriber = targetObserver['_s1'];
         if (expr instanceof AccessScopeExpression) {
           assert.instanceOf(observer00, SetterObserver, `observer00 #01`);
           assert.strictEqual(observer01, undefined, `observer01 #02`);
@@ -691,8 +691,8 @@ describe('PropertyBinding', function () {
         const observer11: SetterObserver = sut.record['_o1'] as SetterObserver;
         const observer12: SetterObserver = sut.record['_o2'] as SetterObserver;
 
-        const subscriber10: ISubscriber = targetObserver['_subscriber0'];
-        const subscriber11: ISubscriber = targetObserver['_subscriber1'];
+        const subscriber10: ISubscriber = targetObserver['_s0'];
+        const subscriber11: ISubscriber = targetObserver['_s1'];
         if (expr instanceof AccessScopeExpression) {
           assert.instanceOf(observer10, SetterObserver, `observer10 #38`);
           assert.strictEqual(observer10, observer00, `observer10 #39`);
@@ -982,11 +982,11 @@ describe('PropertyBinding', function () {
 });
 
 class MockObserver {
-  public _subscriberFlags?: number;
-  public _subscriber0?: ISubscriber;
-  public _subscriber1?: ISubscriber;
-  public _subscriber2?: ISubscriber;
-  public _subscribersRest?: ISubscriber[];
+  public _sFlags?: number;
+  public _s0?: ISubscriber;
+  public _s1?: ISubscriber;
+  public _s2?: ISubscriber;
+  public _sRest?: ISubscriber[];
   public callSubscribers: any;
   public hasSubscribers: IBindingTargetObserver['hasSubscribers'];
   public hasSubscriber: IBindingTargetObserver['hasSubscriber'];

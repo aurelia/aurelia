@@ -2,8 +2,7 @@ import { DI } from '@aurelia/kernel';
 import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
 import type { Scope } from './observation/binding-context.js';
 
-import type { CollectionLengthObserver } from './observation/collection-length-observer.js';
-import type { CollectionSizeObserver } from './observation/collection-size-observer.js';
+import type { CollectionLengthObserver, CollectionSizeObserver } from './observation/collection-length-observer.js';
 
 export interface IBinding {
   interceptor: this;
@@ -13,6 +12,18 @@ export interface IBinding {
   readonly isBound: boolean;
   $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void;
   $unbind(flags: LifecycleFlags): void;
+}
+
+// todo:
+// merge collection subscription to property subscription
+// and make IWatcher simpler, so observers in static observation won't have to implement many methods
+// An alternative way is to make collection observation manual & user controllable
+// so it works even without proxy
+// todo: maybe enhance @connectable so that it provides these interfaces
+export interface IWatcher {
+  id: number;
+  observeProperty(obj: object, property: PropertyKey): void;
+  observeCollection(collection: Collection): void;
 }
 
 export type InterceptorFunc<TInput = unknown, TOutput = unknown> = (value: TInput) => TOutput;
@@ -128,7 +139,7 @@ export const enum LifecycleFlags {
 }
 
 export interface IConnectable {
-  observeProperty(obj: object, propertyName: string): void;
+  observeProperty(obj: object, propertyName: PropertyKey): void;
 }
 
 /** @internal */
@@ -267,10 +278,6 @@ export const enum AccessorType {
   Node          = 0b0_0000_0010,
   Obj           = 0b0_0000_0100,
 
-  Array         = 0b0_0000_1010,
-  Set           = 0b0_0001_0010,
-  Map           = 0b0_0010_0010,
-
   // misc characteristic of accessors/observers when update
   //
   // by default, everything is synchronous
@@ -279,11 +286,11 @@ export const enum AccessorType {
   // queue it instead
   // todo: https://gist.github.com/paulirish/5d52fb081b3570c81e3a
   // todo: https://csstriggers.com/
-  Layout        = 0b0_0100_0000,
+  Layout        = 0b0_0000_1000,
 
-  // there needs to be a flag to signal that accessor real value
-  // may get out of sync with binding value
-  // so that binding can ask for a force read instead of cache read
+  Array         = 0b0_0001_0010,
+  Set           = 0b0_0010_0010,
+  Map           = 0b0_0100_0010,
 }
 
 /**
@@ -306,8 +313,6 @@ export interface IBindingTargetAccessor<
   TValue = unknown>
   extends IAccessor<TValue>,
   IPropertyChangeTracker<TObj, TProp> {
-  bind?(flags: LifecycleFlags): void;
-  unbind?(flags: LifecycleFlags): void;
 }
 
 /**

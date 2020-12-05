@@ -141,10 +141,8 @@ export {
 } from './observation/binding-context.js';
 export {
   CollectionLengthObserver,
-} from './observation/collection-length-observer.js';
-export {
   CollectionSizeObserver,
-} from './observation/collection-size-observer.js';
+} from './observation/collection-length-observer.js';
 export {
   ComputedObserver,
   ComputedWatcher,
@@ -186,7 +184,6 @@ export {
   collectionSubscriberCollection,
 } from './observation/subscriber-collection.js';
 export {
-  IWatcher,
   WatcherSwitcher,
 } from './observation/watcher-switcher.js';
 
@@ -273,6 +270,7 @@ export {
   ICollectionSubscriberCollection,
   ICollectionSubscribable,
   ISubscriber,
+  IWatcher,
   isIndexMap,
   copyIndexMap,
   cloneIndexMap,

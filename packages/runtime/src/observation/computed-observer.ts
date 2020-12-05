@@ -13,17 +13,16 @@ import { wrap, unwrap } from './proxy-observation.js';
 import { defineHiddenProp, ensureProto } from '../utilities-objects.js';
 
 import type {
-  IBindingTargetObserver,
   IObservable,
   ISubscriber,
   ICollectionObserver,
   ICollectionSubscriber,
   ISubscriberCollection,
+  IWatcher,
 } from '../observation.js';
 import type { Constructable, IServiceLocator } from '@aurelia/kernel';
 import type { IConnectableBinding } from '../binding/connectable.js';
 import type { IsBindingBehavior } from '../binding/ast.js';
-import type { IWatcher } from './watcher-switcher.js';
 import type { IWatcherCallback } from './watch.js';
 import type { IObserverLocator, ObservableGetter } from './observer-locator.js';
 import type { Scope } from './binding-context.js';
@@ -47,26 +46,15 @@ function watcherImplDecorator(klass: Constructable<IWatcher>) {
   subscriberCollection()(klass);
   collectionSubscriberCollection()(klass);
 
-  ensureProto(proto, 'observe', observe);
   ensureProto(proto, 'observeCollection', observeCollection);
-  ensureProto(proto, 'observeLength', observeLength);
 
   defineHiddenProp(proto as IWatcherImpl, 'unobserveCollection', unobserveCollection);
-}
-
-function observe(this: IWatcherImpl, obj: object, key: PropertyKey): void {
-  const observer = this.observerLocator.getObserver(obj, key as string) as IBindingTargetObserver;
-  this.addObserver(observer);
 }
 
 function observeCollection(this: IWatcherImpl, collection: Collection): void {
   const obs = getCollectionObserver(this.observerLocator, collection);
   this.observers.set(obs, this.record.version);
   obs.subscribeToCollection(this);
-}
-
-function observeLength(this: IWatcherImpl, collection: Collection): void {
-  getCollectionObserver(this.observerLocator, collection).getLengthObserver().subscribe(this);
 }
 
 function unobserveCollection(this: IWatcherImpl, all?: boolean): void {
@@ -94,10 +82,10 @@ function getCollectionObserver(observerLocator: IObserverLocator, collection: Co
   return observer;
 }
 
-export interface ComputedObserver extends IWatcherImpl, IConnectableBinding, ISubscriberCollection { }
+export interface ComputedObserver extends IWatcherImpl, ISubscriberCollection { }
 
 @watcherImpl
-export class ComputedObserver implements IWatcherImpl, IConnectableBinding, ISubscriberCollection {
+export class ComputedObserver implements IWatcherImpl, ISubscriberCollection {
 
   public interceptor = this;
 
@@ -111,13 +99,13 @@ export class ComputedObserver implements IWatcherImpl, IConnectableBinding, ISub
     const getter = descriptor.get!;
     const setter = descriptor.set;
     const observer = new ComputedObserver(obj, getter, setter, useProxy, observerLocator);
-    const $get = (() => observer.getValue()) as ObservableGetter;
+    const $get = ((/* Computed Observer */) => observer.getValue()) as ObservableGetter;
     $get.getObserver = () => observer;
     Reflect.defineProperty(obj, key, {
       enumerable: descriptor.enumerable,
       configurable: true,
       get: $get,
-      set: (v) => {
+      set: (/* Computed Observer */v) => {
         observer.setValue(v, LifecycleFlags.none);
       },
     });
@@ -201,7 +189,7 @@ export class ComputedObserver implements IWatcherImpl, IConnectableBinding, ISub
   public unsubscribe(subscriber: ISubscriber): void {
     if (this.removeSubscriber(subscriber) && --this.subscriberCount === 0) {
       this.isDirty = true;
-      this.unobserve(true);
+      this.record.clear(true);
       this.unobserveCollection(true);
     }
   }
@@ -226,7 +214,7 @@ export class ComputedObserver implements IWatcherImpl, IConnectableBinding, ISub
       enterWatcher(this);
       return this.value = unwrap(this.get.call(this.useProxy ? wrap(this.obj) : this.obj, this));
     } finally {
-      this.unobserve(false);
+      this.record.clear(false);
       this.unobserveCollection(false);
       this.running = false;
       exitWatcher(this);
@@ -237,7 +225,7 @@ export class ComputedObserver implements IWatcherImpl, IConnectableBinding, ISub
 // watchers (Computed & Expression) are basically binding,
 // they are treated as special and setup before all other bindings
 
-export interface ComputedWatcher extends IWatcherImpl, IConnectableBinding { }
+export interface ComputedWatcher extends IWatcherImpl { }
 
 @watcherImpl
 export class ComputedWatcher implements IWatcher {
@@ -285,7 +273,7 @@ export class ComputedWatcher implements IWatcher {
       return;
     }
     this.isBound = false;
-    this.unobserve(true);
+    this.record.clear(true);
     this.unobserveCollection(true);
   }
 
@@ -310,7 +298,7 @@ export class ComputedWatcher implements IWatcher {
       enterWatcher(this);
       return this.value = unwrap(this.get.call(void 0, this.useProxy ? wrap(this.obj) : this.obj, this));
     } finally {
-      this.unobserve(false);
+      this.record.clear(false);
       this.unobserveCollection(false);
       this.running = false;
       exitWatcher(this);
@@ -377,7 +365,7 @@ export class ExpressionWatcher implements IConnectableBinding {
       return;
     }
     this.isBound = false;
-    this.unobserve(true);
+    this.record.clear(true);
     this.value = void 0;
   }
 }

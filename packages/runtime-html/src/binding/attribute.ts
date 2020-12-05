@@ -5,6 +5,7 @@ import {
   ExpressionKind,
   LifecycleFlags,
   AccessorType,
+  IObserver,
 } from '@aurelia/runtime';
 
 import { AttributeObserver } from '../observation/element-attribute-observer.js';
@@ -12,8 +13,6 @@ import { IPlatform } from '../platform.js';
 import { CustomElementDefinition } from '../resources/custom-element.js';
 
 import type {
-  AccessorOrObserver,
-  IBindingTargetObserver,
   IConnectableBinding,
   ForOfStatement,
   IObserverLocator,
@@ -58,7 +57,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
    * Target key. In case Attr has inner structure, such as class -> classList, style -> CSSStyleDeclaration
    */
 
-  public targetObserver!: AccessorOrObserver;
+  public targetObserver!: IObserver;
 
   public persistentFlags: LifecycleFlags = LifecycleFlags.none;
 
@@ -178,7 +177,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
       sourceExpression.bind(flags, scope, hostScope, this.interceptor);
     }
 
-    let targetObserver = this.targetObserver as IBindingTargetObserver;
+    let targetObserver = this.targetObserver as IObserver;
     if (!targetObserver) {
       targetObserver = this.targetObserver = new AttributeObserver(
         this.$platform,
@@ -225,7 +224,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
       = null!;
     this.value = void 0;
 
-    const targetObserver = this.targetObserver as IBindingTargetObserver;
+    const targetObserver = this.targetObserver as IObserver;
     if (targetObserver.unsubscribe) {
       targetObserver.unsubscribe(this.interceptor);
       targetObserver[this.id] &= ~LifecycleFlags.updateSource;

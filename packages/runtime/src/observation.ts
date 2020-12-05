@@ -302,33 +302,15 @@ export interface IAccessor<TValue = unknown> {
   setValue(newValue: TValue, flags: LifecycleFlags, obj?: object, key?: PropertyKey): void;
 }
 
-export interface IObserver extends IAccessor, ISubscribable {}
-
-/**
- * Describes a target observer for to-view bindings (in other words, an observer without the observation).
- */
-export interface IBindingTargetAccessor<
-  TObj = any,
-  TProp = keyof TObj,
-  TValue = unknown>
-  extends IAccessor<TValue>,
-  IPropertyChangeTracker<TObj, TProp> {
+export interface IObserver extends IAccessor, ISubscribable {
+  [id: number]: number;
 }
 
-/**
- * Describes a target observer for from-view or two-way bindings.
- */
-export interface IBindingTargetObserver<
-  TObj = any,
-  TProp = keyof TObj,
-  TValue = unknown>
-  extends IBindingTargetAccessor<TObj, TProp, TValue>,
-  ISubscribable,
-  ISubscriberCollection {}
-
-export type AccessorOrObserver = (IBindingTargetAccessor | IBindingTargetObserver) & {
+export type AccessorOrObserver = (IAccessor | IObserver) & {
   doNotCache?: boolean;
-};
+} & {
+  [id: number]: number;
+}
 
 /**
  * An array of indices, where the index of an element represents the index to map FROM, and the numeric value of the element itself represents the index to map TO
@@ -393,7 +375,7 @@ export interface IPropertyChangeTracker<TObj, TProp = keyof TObj, TValue = unkno
   currentValue?: TValue;
 }
 
-export interface ICollectionIndexObserver extends ICollectionSubscriber, IPropertyObserver<IIndexable, string> {
+export interface IArrayIndexObserver extends ICollectionSubscriber, IPropertyObserver<IIndexable, string> {
   owner: ICollectionObserver<CollectionKind.array>;
 }
 
@@ -418,7 +400,6 @@ export interface ICollectionObserver<T extends CollectionKind> extends
   collection: ObservedCollectionKindToType<T>;
   lengthObserver: T extends CollectionKind.array ? CollectionLengthObserver : CollectionSizeObserver;
   getLengthObserver(): T extends CollectionKind.array ? CollectionLengthObserver : CollectionSizeObserver;
-  getIndexObserver(index: number): ICollectionIndexObserver;
   notify(): void;
 }
 export type CollectionObserver = ICollectionObserver<CollectionKind>;

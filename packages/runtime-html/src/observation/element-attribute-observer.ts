@@ -1,7 +1,7 @@
 import { LifecycleFlags, subscriberCollection, AccessorType } from '@aurelia/runtime';
 import { IPlatform } from '../platform.js';
 
-import type { IBindingTargetObserver, IObserverLocator, ISubscriber, ISubscriberCollection } from '@aurelia/runtime';
+import type { IObserver, IObserverLocator, ISubscriber, ISubscriberCollection } from '@aurelia/runtime';
 
 export interface IHtmlElement extends HTMLElement {
   $mObserver: MutationObserver;
@@ -13,7 +13,7 @@ export interface ElementMutationSubscription {
 }
 
 export interface AttributeObserver extends
-  IBindingTargetObserver<IHtmlElement, string>,
+  IObserver,
   ISubscriber,
   ISubscriberCollection { }
 

@@ -651,8 +651,6 @@ export {
   // DelegationStrategy,
   // IAccessor,
   // IBindingContext,
-  // IBindingTargetAccessor,
-  // IBindingTargetObserver,
   // ICollectionChangeTracker,
   // ICollectionObserver,
   // ICollectionSubscriber,

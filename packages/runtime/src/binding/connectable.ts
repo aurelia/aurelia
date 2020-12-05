@@ -5,7 +5,7 @@ import {
 } from '@aurelia/kernel';
 import {
   IConnectable,
-  IBindingTargetObserver,
+  IObserver,
   ISubscribable,
   ISubscriber,
   IBinding,
@@ -60,7 +60,7 @@ export function addObserver(
 
 /** @internal */
 export function observeProperty(this: IConnectableBinding, obj: object, key: PropertyKey): void {
-  const observer = this.observerLocator.getObserver(obj, key) as IBindingTargetObserver;
+  const observer = this.observerLocator.getObserver(obj, key);
   /* Note: we need to cast here because we can indeed get an accessor instead of an observer,
    *  in which case the call to observer.subscribe will throw. It's not very clean and we can solve this in 2 ways:
    *  1. Fail earlier: only let the locator resolve observers from .getObserver, and throw if no branches are left (e.g. it would otherwise return an accessor)
@@ -139,11 +139,11 @@ export class BindingObserverRecord implements ISubscriber {
   public clear(all?: boolean): void {
     const slotCount = this.count;
     let slotName: string;
-    let observer: IBindingTargetObserver & { [key: string]: number };
+    let observer: IObserver & { [key: string]: number };
     if (all === true) {
       for (let i = 0; i < slotCount; ++i) {
         slotName = slotNames[i];
-        observer = this[slotName] as IBindingTargetObserver & { [key: string]: number };
+        observer = this[slotName] as IObserver & { [key: string]: number };
         if (observer != null) {
           this[slotName] = void 0;
           observer.unsubscribe(this);
@@ -155,7 +155,7 @@ export class BindingObserverRecord implements ISubscriber {
       for (let i = 0; i < slotCount; ++i) {
         if (this[versionSlotNames[i]] !== this.version) {
           slotName = slotNames[i];
-          observer = this[slotName] as IBindingTargetObserver & { [key: string]: number };
+          observer = this[slotName] as IObserver & { [key: string]: number };
           if (observer != null) {
             this[slotName] = void 0;
             observer.unsubscribe(this);

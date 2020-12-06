@@ -20,7 +20,6 @@ import {
   Scope,
   LifecycleFlags,
   ILifecycle,
-  IBindingTargetAccessor,
   PropertyBinding,
   BindingType,
   IObserverLocator,
@@ -30,6 +29,7 @@ import {
   IWatcherCallback,
   IObservable,
   IExpressionParser,
+  AccessorOrObserver,
 } from '@aurelia/runtime';
 import { BindableDefinition } from '../bindable';
 import { BindableObserver } from '../observation/bindable-observer';
@@ -993,7 +993,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
   }
 
-  public getTargetAccessor(propertyName: string): IBindingTargetAccessor | undefined {
+  public getTargetAccessor(propertyName: string): AccessorOrObserver | undefined {
     const { bindings } = this;
     if (bindings !== null) {
       const binding = bindings.find(b => (b as PropertyBinding).targetProperty === propertyName) as PropertyBinding;
@@ -1295,7 +1295,7 @@ export interface IHydratableController<C extends IViewModel = IViewModel> extend
   readonly bindings: readonly IBinding[] | null;
   readonly children: readonly IHydratedController[] | null;
 
-  getTargetAccessor(propertyName: string): IBindingTargetAccessor | null;
+  getTargetAccessor(propertyName: string): AccessorOrObserver | null;
 
   addBinding(binding: IBinding): void;
   addController(controller: IController): void;

@@ -1,8 +1,8 @@
-import { LifecycleFlags } from '../observation.js';
+import { IObserver, LifecycleFlags } from '../observation.js';
 import { SetterNotifier } from './setter-observer.js';
 
 import type { Constructable, IIndexable } from '@aurelia/kernel';
-import type { IBindingContext, InterceptorFunc, PropertyObserver, ISubscriber, IObservable } from '../observation.js';
+import type { IBindingContext, InterceptorFunc, ISubscriber, IObservable } from '../observation.js';
 import type { ObservableGetter } from './observer-locator.js';
 import type { SetterObserver } from './setter-observer.js';
 
@@ -24,7 +24,7 @@ function getObserversLookup(obj: IObservable): IIndexable<{}, SetterObserver | S
 
 const noValue: unknown = {};
 
-type SetterObserverOwningObject = IIndexable<IBindingContext, PropertyObserver>;
+type SetterObserverOwningObject = IIndexable<IBindingContext, IObserver>;
 
 // for
 //    class {

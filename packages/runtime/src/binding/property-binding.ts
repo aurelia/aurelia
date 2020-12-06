@@ -3,7 +3,7 @@ import { ExpressionKind } from './ast.js';
 import { connectable } from './connectable.js';
 
 import type { IServiceLocator, ITask, QueueTaskOptions, TaskQueue } from '@aurelia/kernel';
-import type { AccessorOrObserver, IBindingTargetObserver } from '../observation.js';
+import type { AccessorOrObserver, IObserver, ISubscriberCollection } from '../observation.js';
 import type { IObserverLocator } from '../observation/observer-locator.js';
 import type { ForOfStatement, IsBindingBehavior, } from './ast.js';
 import type { IConnectableBinding, IPartialConnectableBinding } from './connectable.js';
@@ -137,13 +137,13 @@ export class PropertyBinding implements IPartialConnectableBinding {
     }
 
     const $mode = this.mode;
-    let targetObserver = this.targetObserver as IBindingTargetObserver;
+    let targetObserver = this.targetObserver;
     if (!targetObserver) {
       const observerLocator = this.observerLocator;
       if ($mode & fromView) {
-        targetObserver = observerLocator.getObserver(this.target, this.targetProperty) as IBindingTargetObserver;
+        targetObserver = observerLocator.getObserver(this.target, this.targetProperty);
       } else {
-        targetObserver = observerLocator.getAccessor(this.target, this.targetProperty) as IBindingTargetObserver;
+        targetObserver = observerLocator.getAccessor(this.target, this.targetProperty);
       }
       this.targetObserver = targetObserver;
     }
@@ -160,7 +160,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
       );
     }
     if ($mode & fromView) {
-      targetObserver.subscribe(interceptor);
+      (targetObserver as IObserver).subscribe(interceptor);
       if (!shouldConnect) {
         interceptor.updateSource(targetObserver.getValue(this.target, this.targetProperty), flags);
       }
@@ -184,7 +184,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
     this.$scope = void 0;
     this.$hostScope = null;
 
-    const targetObserver = this.targetObserver as IBindingTargetObserver;
+    const targetObserver = this.targetObserver as AccessorOrObserver & ISubscriberCollection;
     const task = this.task;
 
     if (targetObserver.unsubscribe) {

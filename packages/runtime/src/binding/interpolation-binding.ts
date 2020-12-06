@@ -3,6 +3,7 @@ import {
   CollectionKind,
   BindingMode,
   LifecycleFlags,
+  AccessorOrObserver,
 } from '../observation.js';
 import { ExpressionKind } from './ast.js';
 import { connectable } from './connectable.js';
@@ -12,7 +13,6 @@ import type { Interpolation, IsExpression } from './ast.js';
 import type { IConnectableBinding } from './connectable.js';
 import type { IObserverLocator } from '../observation/observer-locator.js';
 import type {
-  IBindingTargetAccessor,
   ICollectionSubscriber,
   IndexMap,
   ICollectionObserver,
@@ -41,7 +41,7 @@ export class InterpolationBinding implements IBinding {
 
   public partBindings: ContentBinding[];
 
-  private readonly targetObserver: IBindingTargetAccessor;
+  private readonly targetObserver: AccessorOrObserver;
   private task: ITask | null = null;
 
   public constructor(

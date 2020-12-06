@@ -16,11 +16,11 @@ import type {
   Scope,
   IsBindingBehavior,
   IsExpression,
-  IBindingTargetAccessor,
   IConnectableBinding,
   IExpressionParser,
   IObserverLocator,
   IPartialConnectableBinding,
+  IAccessor,
 } from '@aurelia/runtime';
 import type { CallBindingInstruction, IHydratableController, INode } from '@aurelia/runtime-html';
 
@@ -60,7 +60,7 @@ export class TranslationBinding implements IPartialConnectableBinding {
   private scope!: Scope;
   private hostScope: Scope | null = null;
   private isInterpolation!: boolean;
-  private readonly targetObservers: Set<IBindingTargetAccessor>;
+  private readonly targetObservers: Set<IAccessor>;
 
   public target: HTMLElement;
   private readonly platform: IPlatform;
@@ -74,7 +74,7 @@ export class TranslationBinding implements IPartialConnectableBinding {
     this.target = target as HTMLElement;
     this.i18n = this.locator.get(I18N);
     this.platform = this.locator.get(IPlatform);
-    this.targetObservers = new Set<IBindingTargetAccessor>();
+    this.targetObservers = new Set<IAccessor>();
     this.i18n.subscribeLocaleChange(this);
     connectable.assignIdTo(this);
   }

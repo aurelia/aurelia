@@ -1,8 +1,11 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
-import { Constructable, Protocol, Metadata, firstDefined, getPrototypeChain, IIndexable } from '@aurelia/kernel';
-import { LifecycleFlags, subscriberCollection, ISubscriberCollection, IAccessor, ISubscribable, IPropertyObserver, ISubscriber } from '@aurelia/runtime';
-import { INode } from '../dom.js';
+import { Protocol, Metadata, firstDefined, getPrototypeChain, IIndexable } from '@aurelia/kernel';
+import { LifecycleFlags, subscriberCollection } from '@aurelia/runtime';
 import { CustomElement } from '../resources/custom-element.js';
+
+import type { Constructable } from '@aurelia/kernel';
+import type { ISubscriberCollection, IAccessor, ISubscribable, ISubscriber, IObserver } from '@aurelia/runtime';
+import type { INode } from '../dom.js';
 import type { ICustomElementViewModel, ICustomElementController } from './controller.js';
 
 export type PartialChildrenDefinition = {
@@ -158,7 +161,7 @@ export interface ChildrenObserver extends
   IAccessor,
   ISubscribable,
   ISubscriberCollection,
-  IPropertyObserver<IIndexable, string>{ }
+  IObserver { }
 
 /** @internal */
 @subscriberCollection()

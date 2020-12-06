@@ -15,7 +15,7 @@ import { stripMetaData } from './strip-meta-data.js';
 export function preprocessHtmlTemplate(unit: IFileUnit, options: IPreprocessOptions): ModifyCodeResult {
   const name = kebabCase(path.basename(unit.path, path.extname(unit.path)));
   const stripped = stripMetaData(unit.contents);
-  const { html, deps, containerless, bindables, aliases } = stripped;
+  const { html, deps, containerless, hasSlot, bindables, aliases } = stripped;
   let { shadowMode } = stripped;
 
   if (unit.filePair) {
@@ -43,6 +43,10 @@ export function preprocessHtmlTemplate(unit: IFileUnit, options: IPreprocessOpti
     const error = `WARN: ShadowDOM is disabled for ${unit.path}. ShadowDOM requires element name to contain at least one dash (-), you have to refactor <${name}> to something like <lorem-${name}>.`;
     console.warn(error);
     statements.push(`console.warn(${JSON.stringify(error)});\n`);
+  }
+
+  if (shadowMode === null && hasSlot) {
+    throw new Error(`<slot> cannot be used in ${unit.path}. <slot> is only available when using ShadowDOM. Please turn on ShadowDOM, or use <au-slot> in non-ShadowDOM mode. https://docs.aurelia.io/app-basics/components-revisited#au-slot`);
   }
 
   deps.forEach((d, i) => {

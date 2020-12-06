@@ -681,4 +681,62 @@ export function register(container) {
     assert.equal(result.code, expected);
   });
 
+  it('rejects <slot> usage in non-ShadowDOM mode', function () {
+    const html = '<slot></slot>';
+
+    assert.throws(() => {
+      preprocessHtmlTemplate(
+        { path: path.join('lo', 'FooBar.html'), contents: html },
+        preprocessOptions()
+      );
+    });
+  });
+
+  it('does not reject <slot> usage in ShadowDOM mode', function () {
+    const html = '<slot></slot>';
+    const expected = `import { CustomElement } from '@aurelia/runtime-html';
+export const name = "foo-bar";
+export const template = "<slot></slot>";
+export default template;
+export const dependencies = [  ];
+export const shadowOptions = { mode: 'open' };
+let _e;
+export function register(container) {
+  if (!_e) {
+    _e = CustomElement.define({ name, template, dependencies, shadowOptions });
+  }
+  container.register(_e);
+}
+`;
+    const result = preprocessHtmlTemplate(
+      { path: path.join('lo', 'FooBar.html'), contents: html },
+      preprocessOptions({
+        defaultShadowOptions: { mode: 'open' }
+      })
+    );
+    assert.equal(result.code, expected);
+  });
+
+  it('does not reject <slot> usage in local ShadowDOM mode', function () {
+    const html = '<use-shadow-dom><slot></slot>';
+    const expected = `import { CustomElement } from '@aurelia/runtime-html';
+export const name = "foo-bar";
+export const template = "<slot></slot>";
+export default template;
+export const dependencies = [  ];
+export const shadowOptions = { mode: 'open' };
+let _e;
+export function register(container) {
+  if (!_e) {
+    _e = CustomElement.define({ name, template, dependencies, shadowOptions });
+  }
+  container.register(_e);
+}
+`;
+    const result = preprocessHtmlTemplate(
+      { path: path.join('lo', 'FooBar.html'), contents: html },
+      preprocessOptions()
+    );
+    assert.equal(result.code, expected);
+  });
 });

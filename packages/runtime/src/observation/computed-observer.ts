@@ -120,7 +120,7 @@ export class ComputedObserver implements IWatcherImpl, ISubscriberCollection {
   /**
    * @internal
    */
-  private subscriberCount: number = 0;
+  private subCount: number = 0;
   // todo: maybe use a counter allow recursive call to a certain level
   /**
    * @internal
@@ -140,7 +140,7 @@ export class ComputedObserver implements IWatcherImpl, ISubscriberCollection {
   }
 
   public getValue() {
-    if (this.subscriberCount === 0) {
+    if (this.subCount === 0) {
       return this.get.call(this.obj, this);
     }
     if (this.isDirty) {
@@ -180,14 +180,14 @@ export class ComputedObserver implements IWatcherImpl, ISubscriberCollection {
   }
 
   public subscribe(subscriber: ISubscriber): void {
-    if (this.addSubscriber(subscriber) && ++this.subscriberCount === 1) {
+    if (this.addSubscriber(subscriber) && ++this.subCount === 1) {
       this.compute();
       this.isDirty = false;
     }
   }
 
   public unsubscribe(subscriber: ISubscriber): void {
-    if (this.removeSubscriber(subscriber) && --this.subscriberCount === 0) {
+    if (this.removeSubscriber(subscriber) && --this.subCount === 0) {
       this.isDirty = true;
       this.record.clear(true);
       this.unobserveCollection(true);

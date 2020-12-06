@@ -6,7 +6,7 @@ import {
 } from '../observation.js';
 import { ExpressionKind } from '../binding/ast.js';
 import { subscriberCollection, collectionSubscriberCollection } from './subscriber-collection.js';
-import { enterConnectable, exitConnectable } from './watcher-switcher.js';
+import { enterConnectable, exitConnectable } from './connectable-switcher.js';
 import { connectable } from '../binding/connectable.js';
 import { wrap, unwrap } from './proxy-observation.js';
 

@@ -14,7 +14,6 @@ import type { IObserverLocator } from '../observation/observer-locator.js';
 import type {
   ICollectionSubscriber,
   IndexMap,
-  ICollectionObserver,
   IBinding,
 } from '../observation.js';
 import type { Scope } from '../observation/binding-context.js';

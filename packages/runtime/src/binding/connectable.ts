@@ -101,7 +101,7 @@ function getRecord(this: IConnectableBinding): BindingObserverRecord {
 
 function observeCollection(this: IConnectableBinding, collection: Collection): void {
   const obs = getCollectionObserver(collection, this.observerLocator);
-  this.addObserver(obs);
+  this.addCollectionObserver(obs);
 }
 
 function unobserveCollection(this: IConnectableBinding, all?: boolean): void {
@@ -238,6 +238,7 @@ export class BindingCollectionObserverRecord {
   }
 
   public add(observer: ICollectionSubscribable): void {
+    observer.subscribeToCollection(this);
     this.count = this.observers.set(observer, this.version).size;
   }
 

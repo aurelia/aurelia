@@ -94,6 +94,7 @@ export {
   BindingMediator,
   MediatedBinding,
   BindingObserverRecord,
+  BindingCollectionObserverRecord,
 } from './binding/connectable.js';
 export {
   IExpressionParser,
@@ -185,7 +186,7 @@ export {
 } from './observation/subscriber-collection.js';
 export {
   ConnectableSwitcher,
-} from './observation/watcher-switcher.js';
+} from './observation/connectable-switcher.js';
 
 export {
   bindingBehavior,
@@ -251,6 +252,7 @@ export {
   IBindingContext,
   ICollectionChangeTracker,
   ICollectionObserver,
+  IConnectable,
   IArrayIndexObserver,
   ICollectionSubscriber,
   IndexMap,

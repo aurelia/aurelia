@@ -11,7 +11,6 @@ import type { Scope } from '../observation/binding-context.js';
 
 export interface LetBinding extends IConnectableBinding {}
 
-@connectable()
 export class LetBinding implements IPartialConnectableBinding {
   public interceptor: this = this;
 
@@ -96,3 +95,5 @@ export class LetBinding implements IPartialConnectableBinding {
     this.isBound = false;
   }
 }
+
+connectable(LetBinding);

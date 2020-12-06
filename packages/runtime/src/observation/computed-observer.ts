@@ -1,16 +1,14 @@
 /* eslint-disable eqeqeq, compat/compat */
 import {
-  Collection,
   CollectionKind,
   LifecycleFlags,
   AccessorType,
 } from '../observation.js';
 import { ExpressionKind } from '../binding/ast.js';
 import { subscriberCollection, collectionSubscriberCollection } from './subscriber-collection.js';
-import { enterWatcher, exitWatcher } from './watcher-switcher.js';
+import { enterConnectable, exitConnectable } from './watcher-switcher.js';
 import { connectable } from '../binding/connectable.js';
 import { wrap, unwrap } from './proxy-observation.js';
-import { defineHiddenProp, ensureProto } from '../utilities-objects.js';
 
 import type {
   IObservable,
@@ -18,7 +16,7 @@ import type {
   ICollectionObserver,
   ICollectionSubscriber,
   ISubscriberCollection,
-  IWatcher,
+  IConnectable,
 } from '../observation.js';
 import type { Constructable, IServiceLocator } from '@aurelia/kernel';
 import type { IConnectableBinding } from '../binding/connectable.js';
@@ -27,64 +25,14 @@ import type { IWatcherCallback } from './watch.js';
 import type { IObserverLocator, ObservableGetter } from './observer-locator.js';
 import type { Scope } from './binding-context.js';
 
-interface IWatcherImpl extends IWatcher, IConnectableBinding, ISubscriber, ICollectionSubscriber {
+interface IWatcherImpl extends IConnectableBinding, ISubscriber, ICollectionSubscriber {
   id: number;
   observers: Map<ICollectionObserver<CollectionKind>, number>;
   readonly useProxy: boolean;
-  unobserveCollection(all?: boolean): void;
-}
-
-function watcherImpl(): ClassDecorator;
-function watcherImpl(klass?: Constructable<IWatcher>): void;
-function watcherImpl(klass?: Constructable<IWatcher>): ClassDecorator | void {
-  return klass == null ? watcherImplDecorator as ClassDecorator : watcherImplDecorator(klass);
-}
-
-function watcherImplDecorator(klass: Constructable<IWatcher>) {
-  const proto = klass.prototype as IWatcher;
-  connectable()(klass);
-  subscriberCollection()(klass);
-  collectionSubscriberCollection()(klass);
-
-  ensureProto(proto, 'observeCollection', observeCollection);
-
-  defineHiddenProp(proto as IWatcherImpl, 'unobserveCollection', unobserveCollection);
-}
-
-function observeCollection(this: IWatcherImpl, collection: Collection): void {
-  const obs = getCollectionObserver(this.observerLocator, collection);
-  this.observers.set(obs, this.record.version);
-  obs.subscribeToCollection(this);
-}
-
-function unobserveCollection(this: IWatcherImpl, all?: boolean): void {
-  const version = this.record.version;
-  const observers = this.observers;
-  observers.forEach((v, o) => {
-    if (all || v !== version) {
-      o.unsubscribeFromCollection(this);
-      observers.delete(o);
-    }
-  });
-}
-
-function getCollectionObserver(observerLocator: IObserverLocator, collection: Collection): ICollectionObserver<CollectionKind> {
-  let observer: ICollectionObserver<CollectionKind>;
-  if (collection instanceof Array) {
-    observer = observerLocator.getArrayObserver(collection);
-  } else if (collection instanceof Set) {
-    observer = observerLocator.getSetObserver(collection);
-  } else if (collection instanceof Map) {
-    observer = observerLocator.getMapObserver(collection);
-  } else {
-    throw new Error('Unrecognised collection type.');
-  }
-  return observer;
 }
 
 export interface ComputedObserver extends IWatcherImpl, ISubscriberCollection { }
 
-@watcherImpl
 export class ComputedObserver implements IWatcherImpl, ISubscriberCollection {
 
   public interceptor = this;
@@ -131,7 +79,7 @@ export class ComputedObserver implements IWatcherImpl, ISubscriberCollection {
 
   public constructor(
     public readonly obj: object,
-    public readonly get: (watcher: IWatcher) => unknown,
+    public readonly get: (watcher: IConnectable) => unknown,
     public readonly set: undefined | ((v: unknown) => void),
     public readonly useProxy: boolean,
     public readonly observerLocator: IObserverLocator,
@@ -180,6 +128,9 @@ export class ComputedObserver implements IWatcherImpl, ISubscriberCollection {
   }
 
   public subscribe(subscriber: ISubscriber): void {
+    // in theory, a collection subscriber could be added before a property subscriber
+    // and it should be handled similarly in subscribeToCollection
+    // though not handling for now, and wait until the merge of normal + collection subscription
     if (this.addSubscriber(subscriber) && ++this.subCount === 1) {
       this.compute();
       this.isDirty = false;
@@ -190,7 +141,7 @@ export class ComputedObserver implements IWatcherImpl, ISubscriberCollection {
     if (this.removeSubscriber(subscriber) && --this.subCount === 0) {
       this.isDirty = true;
       this.record.clear(true);
-      this.unobserveCollection(true);
+      this.cRecord.clear(true);
     }
   }
 
@@ -211,13 +162,13 @@ export class ComputedObserver implements IWatcherImpl, ISubscriberCollection {
     this.running = true;
     this.record.version++;
     try {
-      enterWatcher(this);
+      enterConnectable(this);
       return this.value = unwrap(this.get.call(this.useProxy ? wrap(this.obj) : this.obj, this));
     } finally {
       this.record.clear(false);
-      this.unobserveCollection(false);
+      this.cRecord.clear(false);
       this.running = false;
-      exitWatcher(this);
+      exitConnectable(this);
     }
   }
 }
@@ -227,8 +178,7 @@ export class ComputedObserver implements IWatcherImpl, ISubscriberCollection {
 
 export interface ComputedWatcher extends IWatcherImpl { }
 
-@watcherImpl
-export class ComputedWatcher implements IWatcher {
+export class ComputedWatcher implements IConnectable {
   public interceptor = this;
 
   /**
@@ -245,7 +195,7 @@ export class ComputedWatcher implements IWatcher {
   public constructor(
     public readonly obj: IObservable,
     public readonly observerLocator: IObserverLocator,
-    public readonly get: (obj: object, watcher: IWatcher) => unknown,
+    public readonly get: (obj: object, watcher: IConnectable) => unknown,
     private readonly cb: IWatcherCallback<object>,
     public readonly useProxy: boolean,
   ) {
@@ -274,7 +224,7 @@ export class ComputedWatcher implements IWatcher {
     }
     this.isBound = false;
     this.record.clear(true);
-    this.unobserveCollection(true);
+    this.cRecord.clear(true);
   }
 
   private run(): void {
@@ -295,13 +245,12 @@ export class ComputedWatcher implements IWatcher {
     this.running = true;
     this.record.version++;
     try {
-      enterWatcher(this);
+      enterConnectable(this);
       return this.value = unwrap(this.get.call(void 0, this.useProxy ? wrap(this.obj) : this.obj, this));
     } finally {
       this.record.clear(false);
-      this.unobserveCollection(false);
       this.running = false;
-      exitWatcher(this);
+      exitConnectable(this);
     }
   }
 }
@@ -311,7 +260,6 @@ export class ComputedWatcher implements IWatcher {
  */
 export interface ExpressionWatcher extends IConnectableBinding { }
 
-@connectable()
 export class ExpressionWatcher implements IConnectableBinding {
   public interceptor = this;
   /**
@@ -368,4 +316,20 @@ export class ExpressionWatcher implements IConnectableBinding {
     this.record.clear(true);
     this.value = void 0;
   }
+}
+
+watcherImpl(ComputedObserver);
+watcherImpl(ComputedWatcher);
+connectable(ExpressionWatcher);
+
+function watcherImpl(): ClassDecorator;
+function watcherImpl(klass?: Constructable<IConnectable>): void;
+function watcherImpl(klass?: Constructable<IConnectable>): ClassDecorator | void {
+  return klass == null ? watcherImplDecorator as ClassDecorator : watcherImplDecorator(klass);
+}
+
+function watcherImplDecorator(klass: Constructable<IConnectable>) {
+  connectable(klass);
+  subscriberCollection()(klass);
+  collectionSubscriberCollection()(klass);
 }

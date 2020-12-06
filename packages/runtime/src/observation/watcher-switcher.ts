@@ -1,66 +1,66 @@
-import type { IWatcher } from '../observation';
+import type { IConnectable } from '../observation';
 
 /**
  * Current subscription collector
  */
-let $watcher: IWatcher | null = null;
-const watchers: IWatcher[] = [];
+let _connectable: IConnectable | null = null;
+const connectables: IConnectable[] = [];
 // eslint-disable-next-line
-export let watching = false;
+export let connecting = false;
 
 // todo: layer based collection pause/resume?
-export function pauseWatching() {
-  watching = false;
+export function pauseConnecting() {
+  connecting = false;
 }
 
-export function resumeWatching() {
-  watching = true;
+export function resumeConnecting() {
+  connecting = true;
 }
 
-export function currentWatcher(): IWatcher | null {
-  return $watcher;
+export function currentConnectable(): IConnectable | null {
+  return _connectable;
 }
 
-export function enterWatcher(watcher: IWatcher): void {
-  if (watcher == null) {
-    throw new Error('watcher cannot be null/undefined');
+export function enterConnectable(connectable: IConnectable): void {
+  if (connectable == null) {
+    throw new Error('connectable cannot be null/undefined');
   }
-  if ($watcher == null) {
-    $watcher = watcher;
-    watchers[0] = $watcher;
-    watching = true;
+  if (_connectable == null) {
+    _connectable = connectable;
+    connectables[0] = _connectable;
+    connecting = true;
     return;
   }
-  if ($watcher === watcher) {
-    throw new Error(`Already in this watcher ${watcher.id}`);
+  if (_connectable === connectable) {
+    throw new Error(`Already in this connectable ${connectable.id}`);
   }
-  watchers.push($watcher);
-  $watcher = watcher;
-  watching = true;
+  connectables.push(_connectable);
+  _connectable = connectable;
+  connecting = true;
 }
 
-export function exitWatcher(watcher: IWatcher): void {
-  if (watcher == null) {
-    throw new Error('watcher cannot be null/undefined');
+export function exitConnectable(connectable: IConnectable): void {
+  if (connectable == null) {
+    throw new Error('Connectable cannot be null/undefined');
   }
-  if ($watcher !== watcher) {
-    throw new Error(`${watcher.id} is not currently collecting`);
+  if (_connectable !== connectable) {
+    throw new Error(`${connectable.id} is not currently collecting`);
   }
 
-  watchers.pop();
-  $watcher = watchers.length > 0 ? watchers[watchers.length - 1] : null;
-  watching = $watcher != null;
+  connectables.pop();
+  _connectable = connectables.length > 0 ? connectables[connectables.length - 1] : null;
+  connecting = _connectable != null;
 }
 
-export const WatcherSwitcher = Object.freeze({
+export const ConnectableSwitcher = Object.freeze({
   get current() {
-    return $watcher;
+    return _connectable;
   },
-  get watching() {
-    return watching;
+  get connecting() {
+    return connecting;
   },
-  enter: enterWatcher,
-  exit: exitWatcher,
-  pause: pauseWatching,
-  resume: resumeWatching,
+  enter: enterConnectable,
+  exit: exitConnectable,
+  pause: pauseConnecting,
+  resume: resumeConnecting,
 });

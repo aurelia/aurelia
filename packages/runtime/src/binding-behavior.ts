@@ -8,7 +8,7 @@ import {
   DI,
   fromAnnotationOrDefinitionOrTypeOrDefault,
 } from '@aurelia/kernel';
-import { LifecycleFlags } from './observation.js';
+import { Collection, ICollectionSubscribable, LifecycleFlags } from './observation.js';
 import { registerAliases } from './alias.js';
 
 import type {
@@ -20,7 +20,7 @@ import type {
   IServiceLocator,
   Key,
 } from '@aurelia/kernel';
-import type { BindingObserverRecord, IConnectableBinding } from './binding/connectable.js';
+import type { BindingCollectionObserverRecord, BindingObserverRecord, IConnectableBinding } from './binding/connectable.js';
 import type { BindingBehaviorExpression, IBindingBehaviorExpression } from './binding/ast.js';
 import type { IObserverLocator } from './observation/observer-locator.js';
 import type { IBinding, ISubscribable } from './observation.js';
@@ -176,7 +176,13 @@ export class BindingInterceptor implements IInterceptableBinding {
   }
   /** @internal */
   public get record(): BindingObserverRecord {
-    return this.binding.record!;
+    return this.binding.record;
+  }
+  /**
+   * @internal
+   */
+  public get cRecord(): BindingCollectionObserverRecord {
+    return this.binding.cRecord;
   }
 
   public constructor(
@@ -220,6 +226,24 @@ export class BindingInterceptor implements IInterceptableBinding {
    */
   public unobserve(all?: boolean): void {
     this.binding.unobserve!(all);
+  }
+  /**
+   * @internal
+   */
+  public observeCollection(observer: Collection): void {
+    this.binding.observeCollection(observer);
+  }
+  /**
+   * @internal
+   */
+  public addCollectionObserver(observer: ICollectionSubscribable): void {
+    this.binding.addCollectionObserver(observer);
+  }
+  /**
+   * @internal
+   */
+  public unobserveCollection(all?: boolean): void {
+    this.binding.unobserveCollection(all);
   }
 
   public $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void {

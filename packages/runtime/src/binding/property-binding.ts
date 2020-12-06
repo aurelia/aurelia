@@ -22,7 +22,6 @@ const updateTaskOpts: QueueTaskOptions = {
   preempt: true,
 };
 
-@connectable()
 export class PropertyBinding implements IPartialConnectableBinding {
   public interceptor: this = this;
 
@@ -200,3 +199,5 @@ export class PropertyBinding implements IPartialConnectableBinding {
     this.isBound = false;
   }
 }
+
+connectable(PropertyBinding);

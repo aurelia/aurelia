@@ -4,6 +4,7 @@ interface IStrippedHtml {
     deps: string[];
     shadowMode: 'open' | 'closed' | null;
     containerless: boolean;
+    hasSlot: boolean;
     bindables: Record<string, PartialBindableDefinition>;
     aliases: string[];
 }

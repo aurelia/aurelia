@@ -5,6 +5,7 @@ export function stripMetaData(rawHtml) {
     const deps = [];
     let shadowMode = null;
     let containerless = false;
+    let hasSlot = false;
     const bindables = {};
     const aliases = [];
     const toRemove = [];
@@ -32,6 +33,9 @@ export function stripMetaData(rawHtml) {
             aliases.push(...aliasArray);
             toRemove.push(...ranges);
         });
+        if (node.tagName === 'slot') {
+            hasSlot = true;
+        }
     });
     let html = '';
     let lastIdx = 0;
@@ -40,7 +44,7 @@ export function stripMetaData(rawHtml) {
         lastIdx = end;
     });
     html += rawHtml.slice(lastIdx);
-    return { html, deps, shadowMode, containerless, bindables, aliases };
+    return { html, deps, shadowMode, containerless, hasSlot, bindables, aliases };
 }
 function traverse(tree, cb) {
     tree.childNodes.forEach((n) => {

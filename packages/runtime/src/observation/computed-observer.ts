@@ -311,23 +311,3 @@ subscriberCollection()(ComputedObserver);
 
 connectable(ComputedWatcher);
 connectable(ExpressionWatcher);
-
-// function watcherImpl(): ClassDecorator;
-// function watcherImpl(klass?: Constructable<IConnectable>): void;
-// function watcherImpl(klass?: Constructable<IConnectable>): ClassDecorator | void {
-//   return klass == null ? watcherImplDecorator as ClassDecorator : watcherImplDecorator(klass);
-// }
-
-// function watcherImplDecorator(klass: Constructable<IConnectable>) {
-//   // watchers are connectable
-//   // as they track reads, based on observers subscription, inside their getter functions
-//   connectable(klass);
-//   // watchers are also subscribable
-//   // as they notify changes whenever their dependencies notify changes
-//   //
-//   // watcher change notification works in the same way with a property observer
-//   // as they compute their value based on their getter functions
-//   // and notify changes if the newer evaluation yields a different value
-//   // compared to the previous one
-//   subscriberCollection()(klass);
-// }

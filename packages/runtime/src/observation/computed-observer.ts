@@ -1,11 +1,10 @@
 /* eslint-disable eqeqeq, compat/compat */
 import {
-  CollectionKind,
   LifecycleFlags,
   AccessorType,
 } from '../observation.js';
 import { ExpressionKind } from '../binding/ast.js';
-import { subscriberCollection, collectionSubscriberCollection } from './subscriber-collection.js';
+import { subscriberCollection } from './subscriber-collection.js';
 import { enterConnectable, exitConnectable } from './connectable-switcher.js';
 import { connectable } from '../binding/connectable.js';
 import { wrap, unwrap } from './proxy-observation.js';
@@ -13,30 +12,21 @@ import { wrap, unwrap } from './proxy-observation.js';
 import type {
   IObservable,
   ISubscriber,
-  ICollectionObserver,
   ICollectionSubscriber,
   ISubscriberCollection,
   IConnectable,
 } from '../observation.js';
-import type { Constructable, IServiceLocator } from '@aurelia/kernel';
+import type { IServiceLocator } from '@aurelia/kernel';
 import type { IConnectableBinding } from '../binding/connectable.js';
 import type { IsBindingBehavior } from '../binding/ast.js';
 import type { IWatcherCallback } from './watch.js';
 import type { IObserverLocator, ObservableGetter } from './observer-locator.js';
 import type { Scope } from './binding-context.js';
 
-interface IWatcherImpl extends IConnectableBinding, ISubscriber, ICollectionSubscriber {
-  id: number;
-  observers: Map<ICollectionObserver<CollectionKind>, number>;
-  readonly useProxy: boolean;
-}
 
-export interface ComputedObserver extends IWatcherImpl, ISubscriberCollection { }
+export interface ComputedObserver extends IConnectableBinding, ISubscriberCollection { }
 
-export class ComputedObserver implements IWatcherImpl, ISubscriberCollection {
-
-  public interceptor = this;
-
+export class ComputedObserver implements IConnectableBinding, ISubscriber, ICollectionSubscriber, ISubscriberCollection {
   public static create(
     obj: object,
     key: PropertyKey,
@@ -61,7 +51,8 @@ export class ComputedObserver implements IWatcherImpl, ISubscriberCollection {
     return observer;
   }
 
-  public observers: Map<ICollectionObserver<CollectionKind>, number> = new Map();
+  public id!: number;
+  public interceptor = this;
   public type: AccessorType = AccessorType.Obj;
   public value: unknown = void 0;
 
@@ -115,14 +106,14 @@ export class ComputedObserver implements IWatcherImpl, ISubscriberCollection {
 
   public handleChange(): void {
     this.isDirty = true;
-    if (this.record.count > 0) {
+    if (this.subCount > 0) {
       this.run();
     }
   }
 
   public handleCollectionChange(): void {
     this.isDirty = true;
-    if (this.record.count > 0) {
+    if (this.subCount > 0) {
       this.run();
     }
   }
@@ -176,21 +167,17 @@ export class ComputedObserver implements IWatcherImpl, ISubscriberCollection {
 // watchers (Computed & Expression) are basically binding,
 // they are treated as special and setup before all other bindings
 
-export interface ComputedWatcher extends IWatcherImpl { }
+export interface ComputedWatcher extends IConnectableBinding { }
 
-export class ComputedWatcher implements IConnectable {
+export class ComputedWatcher implements IConnectableBinding, ISubscriber, ICollectionSubscriber {
   public interceptor = this;
 
-  /**
-   * @internal
-   */
-  public observers: Map<ICollectionObserver<CollectionKind>, number> = new Map();
+  public id!: number;
+  public value: unknown = void 0;
+  public isBound: boolean = false;
 
   // todo: maybe use a counter allow recursive call to a certain level
   private running: boolean = false;
-
-  public value: unknown = void 0;
-  public isBound: boolean = false;
 
   public constructor(
     public readonly obj: IObservable,
@@ -249,6 +236,7 @@ export class ComputedWatcher implements IConnectable {
       return this.value = unwrap(this.get.call(void 0, this.useProxy ? wrap(this.obj) : this.obj, this));
     } finally {
       this.record.clear(false);
+      this.cRecord.clear(false);
       this.running = false;
       exitConnectable(this);
     }
@@ -318,18 +306,28 @@ export class ExpressionWatcher implements IConnectableBinding {
   }
 }
 
-watcherImpl(ComputedObserver);
-watcherImpl(ComputedWatcher);
+connectable(ComputedObserver);
+subscriberCollection()(ComputedObserver);
+
+connectable(ComputedWatcher);
 connectable(ExpressionWatcher);
 
-function watcherImpl(): ClassDecorator;
-function watcherImpl(klass?: Constructable<IConnectable>): void;
-function watcherImpl(klass?: Constructable<IConnectable>): ClassDecorator | void {
-  return klass == null ? watcherImplDecorator as ClassDecorator : watcherImplDecorator(klass);
-}
+// function watcherImpl(): ClassDecorator;
+// function watcherImpl(klass?: Constructable<IConnectable>): void;
+// function watcherImpl(klass?: Constructable<IConnectable>): ClassDecorator | void {
+//   return klass == null ? watcherImplDecorator as ClassDecorator : watcherImplDecorator(klass);
+// }
 
-function watcherImplDecorator(klass: Constructable<IConnectable>) {
-  connectable(klass);
-  subscriberCollection()(klass);
-  collectionSubscriberCollection()(klass);
-}
+// function watcherImplDecorator(klass: Constructable<IConnectable>) {
+//   // watchers are connectable
+//   // as they track reads, based on observers subscription, inside their getter functions
+//   connectable(klass);
+//   // watchers are also subscribable
+//   // as they notify changes whenever their dependencies notify changes
+//   //
+//   // watcher change notification works in the same way with a property observer
+//   // as they compute their value based on their getter functions
+//   // and notify changes if the newer evaluation yields a different value
+//   // compared to the previous one
+//   subscriberCollection()(klass);
+// }

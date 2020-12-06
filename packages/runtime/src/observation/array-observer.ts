@@ -2,6 +2,7 @@ import {
   createIndexMap,
   LifecycleFlags,
   AccessorType,
+  ISubscriberCollection,
 } from '../observation.js';
 import {
   CollectionLengthObserver,
@@ -422,7 +423,7 @@ export class ArrayObserver {
   }
 }
 
-export interface ArrayIndexObserver extends IArrayIndexObserver {}
+export interface ArrayIndexObserver extends IArrayIndexObserver, ISubscriberCollection {}
 
 @subscriberCollection()
 export class ArrayIndexObserver implements IArrayIndexObserver {

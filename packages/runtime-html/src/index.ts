@@ -213,7 +213,6 @@ export {
   IBatchable,
   IObservable,
   IOverrideContext,
-  IPropertyChangeTracker,
   ISubscribable,
   ISubscriberCollection,
   CollectionObserver,

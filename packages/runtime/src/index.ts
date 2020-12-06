@@ -259,7 +259,6 @@ export {
   IObservable,
   IOverrideContext,
   InterceptorFunc,
-  IPropertyChangeTracker,
   ISubscribable,
   ISubscriberCollection,
   CollectionObserver,

@@ -153,9 +153,9 @@ export const enum SubscriberFlags {
 }
 
 export enum DelegationStrategy {
-  none = 0,
+  none      = 0,
   capturing = 1,
-  bubbling = 2
+  bubbling  = 2,
 }
 
 export interface IBatchable {
@@ -223,7 +223,7 @@ export const enum CollectionKind {
   keyed   = 0b0100,
   array   = 0b1001,
   map     = 0b0110,
-  set     = 0b0111
+  set     = 0b0111,
 }
 
 export type LengthPropertyName<T> =
@@ -293,7 +293,7 @@ export type AccessorOrObserver = (IAccessor | IObserver) & {
   doNotCache?: boolean;
 } & {
   [id: number]: number;
-}
+};
 
 /**
  * An array of indices, where the index of an element represents the index to map FROM, and the numeric value of the element itself represents the index to map TO
@@ -347,15 +347,6 @@ export function cloneIndexMap(indexMap: IndexMap): IndexMap {
 
 export function isIndexMap(value: unknown): value is IndexMap {
   return value instanceof Array && (value as IndexMap).isIndexMap === true;
-}
-
-/**
- * Describes a type that specifically tracks changes in an object property, or simply something that can have a getter and/or setter
- */
-export interface IPropertyChangeTracker<TObj, TProp = keyof TObj, TValue = unknown> {
-  obj: TObj;
-  propertyKey?: TProp;
-  currentValue?: TValue;
 }
 
 export interface IArrayIndexObserver extends IObserver {

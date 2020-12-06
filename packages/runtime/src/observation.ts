@@ -153,9 +153,9 @@ export const enum SubscriberFlags {
 }
 
 export enum DelegationStrategy {
-  none = 0,
+  none      = 0,
   capturing = 1,
-  bubbling = 2
+  bubbling  = 2,
 }
 
 export interface IBatchable {
@@ -214,23 +214,6 @@ export interface ICollectionSubscriberCollection extends ICollectionSubscribable
 }
 
 /**
- * Describes a complete property observer with an accessor, change tracking fields, normal and batched subscribers
- */
-export interface IPropertyObserver<TObj extends object, TProp extends keyof TObj> extends
-  IAccessor<TObj[TProp]>,
-  IPropertyChangeTracker<TObj, TProp>,
-  ISubscriberCollection,
-  IBatchable {
-  inBatch: boolean;
-  observing: boolean;
-}
-
-/**
- * An any-typed property observer
- */
-export type PropertyObserver = IPropertyObserver<IIndexable, string>;
-
-/**
  * A collection (array, set or map)
  */
 export type Collection = unknown[] | Set<unknown> | Map<unknown, unknown>;
@@ -240,7 +223,7 @@ export const enum CollectionKind {
   keyed   = 0b0100,
   array   = 0b1001,
   map     = 0b0110,
-  set     = 0b0111
+  set     = 0b0111,
 }
 
 export type LengthPropertyName<T> =
@@ -302,32 +285,14 @@ export interface IAccessor<TValue = unknown> {
   setValue(newValue: TValue, flags: LifecycleFlags, obj?: object, key?: PropertyKey): void;
 }
 
-export interface IObserver extends IAccessor, ISubscribable {}
-
-/**
- * Describes a target observer for to-view bindings (in other words, an observer without the observation).
- */
-export interface IBindingTargetAccessor<
-  TObj = any,
-  TProp = keyof TObj,
-  TValue = unknown>
-  extends IAccessor<TValue>,
-  IPropertyChangeTracker<TObj, TProp> {
+export interface IObserver extends IAccessor, ISubscribable {
+  [id: number]: number;
 }
 
-/**
- * Describes a target observer for from-view or two-way bindings.
- */
-export interface IBindingTargetObserver<
-  TObj = any,
-  TProp = keyof TObj,
-  TValue = unknown>
-  extends IBindingTargetAccessor<TObj, TProp, TValue>,
-  ISubscribable,
-  ISubscriberCollection {}
-
-export type AccessorOrObserver = (IBindingTargetAccessor | IBindingTargetObserver) & {
+export type AccessorOrObserver = (IAccessor | IObserver) & {
   doNotCache?: boolean;
+} & {
+  [id: number]: number;
 };
 
 /**
@@ -384,16 +349,7 @@ export function isIndexMap(value: unknown): value is IndexMap {
   return value instanceof Array && (value as IndexMap).isIndexMap === true;
 }
 
-/**
- * Describes a type that specifically tracks changes in an object property, or simply something that can have a getter and/or setter
- */
-export interface IPropertyChangeTracker<TObj, TProp = keyof TObj, TValue = unknown> {
-  obj: TObj;
-  propertyKey?: TProp;
-  currentValue?: TValue;
-}
-
-export interface ICollectionIndexObserver extends ICollectionSubscriber, IPropertyObserver<IIndexable, string> {
+export interface IArrayIndexObserver extends IObserver {
   owner: ICollectionObserver<CollectionKind.array>;
 }
 
@@ -418,7 +374,6 @@ export interface ICollectionObserver<T extends CollectionKind> extends
   collection: ObservedCollectionKindToType<T>;
   lengthObserver: T extends CollectionKind.array ? CollectionLengthObserver : CollectionSizeObserver;
   getLengthObserver(): T extends CollectionKind.array ? CollectionLengthObserver : CollectionSizeObserver;
-  getIndexObserver(index: number): ICollectionIndexObserver;
   notify(): void;
 }
 export type CollectionObserver = ICollectionObserver<CollectionKind>;

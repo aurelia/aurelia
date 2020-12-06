@@ -2,7 +2,7 @@ import { CollectionKind, createIndexMap, AccessorType, LifecycleFlags } from '..
 import { CollectionSizeObserver } from './collection-length-observer.js';
 import { collectionSubscriberCollection } from './subscriber-collection.js';
 
-import type { ICollectionObserver, ICollectionIndexObserver, ILifecycle } from '../observation.js';
+import type { ICollectionObserver, ILifecycle } from '../observation.js';
 
 const observerLookup = new WeakMap<Map<unknown, unknown>, MapObserver>();
 
@@ -168,10 +168,6 @@ export class MapObserver {
 
   public getLengthObserver(): CollectionSizeObserver {
     return this.lengthObserver ??= new CollectionSizeObserver(this);
-  }
-
-  public getIndexObserver(index: number): ICollectionIndexObserver {
-    throw new Error('Map index observation not supported');
   }
 
   public flushBatch(flags: LifecycleFlags): void {

@@ -2,8 +2,10 @@ import {
   Constructable
 } from '@aurelia/kernel';
 import {
+  IObserver,
+} from '@aurelia/runtime';
+import {
   enableArrayObservation,
-  IBindingTargetObserver,
   LifecycleFlags as LF,
   CustomElement,
   Aurelia,
@@ -319,7 +321,7 @@ describe('3-runtime-html/checked-observer.spec.ts', function () {
 });
 
 type ObservedInputElement = HTMLInputElement & {
-  $observers: Record<string, IBindingTargetObserver>;
+  $observers: Record<string, IObserver>;
   model: any;
   children: HTMLCollectionOf<ObservedInputElement>;
   matcher(a: any, b: any): boolean;
@@ -915,7 +917,7 @@ describe('[UNIT] 3-runtime/checked-observer.spec.ts/CheckedObserver', function (
       ctx.doc.body.appendChild(el);
 
       const sut = observerLocator.getObserver(el, 'checked') as CheckedObserver;
-      const valueOrModelObserver = observerLocator.getObserver(el, prop) as IBindingTargetObserver;
+      const valueOrModelObserver = observerLocator.getObserver(el, prop) as IObserver;
 
       const subscriber = { handleChange: createSpy() };
       if (hasSubscriber) {

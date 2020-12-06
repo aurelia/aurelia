@@ -2,10 +2,10 @@ import { noop } from '@aurelia/kernel';
 import { subscriberCollection, AccessorType, LifecycleFlags } from '@aurelia/runtime';
 
 import type { IIndexable } from '@aurelia/kernel';
-import type { InterceptorFunc, IPropertyObserver, ISubscriber, ILifecycle } from '@aurelia/runtime';
+import type { InterceptorFunc, IObserver, ISubscriber, ILifecycle, ISubscriberCollection, IBatchable } from '@aurelia/runtime';
 import type { IController } from '../templating/controller';
 
-export interface BindableObserver extends IPropertyObserver<IIndexable, string> {}
+export interface BindableObserver extends IObserver, ISubscriberCollection, IBatchable {}
 
 interface IMayHavePropertyChangedCallback {
   propertyChanged?(name: string, newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void;
@@ -13,7 +13,6 @@ interface IMayHavePropertyChangedCallback {
 
 type HasPropertyChangedCallback = Required<IMayHavePropertyChangedCallback>;
 
-@subscriberCollection()
 export class BindableObserver {
   public currentValue: unknown = void 0;
   public oldValue: unknown = void 0;
@@ -128,3 +127,5 @@ export class BindableObserver {
     );
   }
 }
+
+subscriberCollection()(BindableObserver);

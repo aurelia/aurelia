@@ -2,6 +2,7 @@ import {
   createIndexMap,
   LifecycleFlags,
   AccessorType,
+  ISubscriberCollection,
 } from '../observation.js';
 import {
   CollectionLengthObserver,
@@ -14,7 +15,7 @@ import {
 import type {
   CollectionKind,
   ICollectionObserver,
-  ICollectionIndexObserver,
+  IArrayIndexObserver,
   ILifecycle,
   IndexMap,
   ISubscriber,
@@ -398,7 +399,7 @@ export class ArrayObserver {
     return this.lengthObserver ??= new CollectionLengthObserver(this);
   }
 
-  public getIndexObserver(index: number): ICollectionIndexObserver {
+  public getIndexObserver(index: number): IArrayIndexObserver {
     return this.getOrCreateIndexObserver(index);
   }
 
@@ -417,15 +418,15 @@ export class ArrayObserver {
    * It's unnecessary to destroy/recreate index observer all the time,
    * so just create once, and add/remove instead
    */
-  private getOrCreateIndexObserver(index: number): ICollectionIndexObserver {
+  private getOrCreateIndexObserver(index: number): IArrayIndexObserver {
     return this.indexObservers[index] ??= new ArrayIndexObserver(this, index);
   }
 }
 
-export interface ArrayIndexObserver extends ICollectionIndexObserver {}
+export interface ArrayIndexObserver extends IArrayIndexObserver, ISubscriberCollection {}
 
 @subscriberCollection()
-export class ArrayIndexObserver implements ICollectionIndexObserver {
+export class ArrayIndexObserver implements IArrayIndexObserver {
 
   public value: unknown;
   private subCount: number = 0;

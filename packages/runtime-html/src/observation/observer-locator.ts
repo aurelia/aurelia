@@ -19,7 +19,7 @@ import { ISVGAnalyzer } from './svg-analyzer.js';
 import { ValueAttributeObserver } from './value-attribute-observer.js';
 
 import type { IIndexable, IContainer } from '@aurelia/kernel';
-import type { IAccessor, IBindingTargetAccessor, IObserver, ICollectionObserver, CollectionKind } from '@aurelia/runtime';
+import type { IAccessor, IObserver, ICollectionObserver, CollectionKind } from '@aurelia/runtime';
 import type { INode } from '../dom.js';
 
 // https://infra.spec.whatwg.org/#namespaces
@@ -220,7 +220,7 @@ export class NodeObserverLocator implements INodeObserverLocator {
       default: {
         const nsProps = nsAttributes[key as string];
         if (nsProps !== undefined) {
-          return AttributeNSAccessor.forNs(nsProps[1]) as IBindingTargetAccessor;
+          return AttributeNSAccessor.forNs(nsProps[1]);
         }
         if (isDataAttribute(obj, key, this.svgAnalyzer)) {
           return attrAccessor;
@@ -280,7 +280,7 @@ export class NodeObserverLocator implements INodeObserverLocator {
 
     const nsProps = nsAttributes[key as string];
     if (nsProps !== undefined) {
-      return AttributeNSAccessor.forNs(nsProps[1]) as IBindingTargetAccessor;
+      return AttributeNSAccessor.forNs(nsProps[1]);
     }
     if (isDataAttribute(el, key, this.svgAnalyzer)) {
       // todo: should observe

@@ -1,5 +1,5 @@
-import { Constructable, IIndexable } from '@aurelia/kernel';
-import { ISubscriberCollection, IAccessor, ISubscribable, IPropertyObserver } from '@aurelia/runtime';
+import type { Constructable } from '@aurelia/kernel';
+import type { ISubscriberCollection, IAccessor, ISubscribable, IObserver } from '@aurelia/runtime';
 import type { ICustomElementViewModel, ICustomElementController } from './controller.js';
 export declare type PartialChildrenDefinition = {
     callback?: string;
@@ -44,6 +44,6 @@ export declare class ChildrenDefinition {
     private constructor();
     static create(prop: string, def?: PartialChildrenDefinition): ChildrenDefinition;
 }
-export interface ChildrenObserver extends IAccessor, ISubscribable, ISubscriberCollection, IPropertyObserver<IIndexable, string> {
+export interface ChildrenObserver extends IAccessor, ISubscribable, ISubscriberCollection, IObserver {
 }
 //# sourceMappingURL=children.d.ts.map

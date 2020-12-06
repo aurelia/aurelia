@@ -107,13 +107,16 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         __param(0, kernel_1.IPlatform)
     ], DirtyChecker);
     exports.DirtyChecker = DirtyChecker;
-    let DirtyCheckProperty = class DirtyCheckProperty {
+    class DirtyCheckProperty {
         constructor(dirtyChecker, obj, propertyKey) {
             this.dirtyChecker = dirtyChecker;
             this.obj = obj;
             this.propertyKey = propertyKey;
             this.type = 4 /* Obj */;
             this.subCount = 0;
+        }
+        getValue() {
+            return this.obj[this.propertyKey];
         }
         setValue(v, f) {
             // todo: this should be allowed, probably
@@ -125,7 +128,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
         flush(flags) {
             const oldValue = this.oldValue;
-            const newValue = this.obj[this.propertyKey];
+            const newValue = this.getValue();
             this.callSubscribers(newValue, oldValue, flags | 8 /* updateTarget */);
             this.oldValue = newValue;
         }
@@ -140,10 +143,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                 this.dirtyChecker.removeProperty(this);
             }
         }
-    };
-    DirtyCheckProperty = __decorate([
-        subscriber_collection_js_1.subscriberCollection()
-    ], DirtyCheckProperty);
+    }
     exports.DirtyCheckProperty = DirtyCheckProperty;
+    subscriber_collection_js_1.subscriberCollection()(DirtyCheckProperty);
 });
 //# sourceMappingURL=dirty-checker.js.map

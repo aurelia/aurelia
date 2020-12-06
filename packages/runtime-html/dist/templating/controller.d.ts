@@ -1,5 +1,5 @@
 import { IContainer, Writable, IDisposable } from '@aurelia/kernel';
-import { IBinding, Scope, LifecycleFlags, ILifecycle, IBindingTargetAccessor } from '@aurelia/runtime';
+import { IBinding, Scope, LifecycleFlags, ILifecycle, AccessorOrObserver } from '@aurelia/runtime';
 import { INode, INodeSequence, IRenderLocation } from '../dom.js';
 import { CustomElementDefinition, PartialCustomElementDefinition } from '../resources/custom-element.js';
 import { CustomAttributeDefinition } from '../resources/custom-attribute.js';
@@ -122,7 +122,7 @@ export declare class Controller<C extends IViewModel = IViewModel> implements IC
     release(): void;
     dispose(): void;
     accept(visitor: ControllerVisitor): void | true;
-    getTargetAccessor(propertyName: string): IBindingTargetAccessor | undefined;
+    getTargetAccessor(propertyName: string): AccessorOrObserver | undefined;
 }
 export declare function isCustomElementController<C extends ICustomElementViewModel = ICustomElementViewModel>(value: unknown): value is ICustomElementController<C>;
 export declare function isCustomElementViewModel(value: unknown): value is ICustomElementViewModel;
@@ -225,7 +225,7 @@ export interface IHydratableController<C extends IViewModel = IViewModel> extend
     readonly definition: CustomElementDefinition | null;
     readonly bindings: readonly IBinding[] | null;
     readonly children: readonly IHydratedController[] | null;
-    getTargetAccessor(propertyName: string): IBindingTargetAccessor | null;
+    getTargetAccessor(propertyName: string): AccessorOrObserver | null;
     addBinding(binding: IBinding): void;
     addController(controller: IController): void;
 }

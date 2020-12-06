@@ -139,9 +139,6 @@ let SetObserver = class SetObserver {
         var _a;
         return (_a = this.lengthObserver) !== null && _a !== void 0 ? _a : (this.lengthObserver = new CollectionSizeObserver(this));
     }
-    getIndexObserver(index) {
-        throw new Error('Set index observation not supported');
-    }
     flushBatch(flags) {
         const indexMap = this.indexMap;
         const size = this.collection.size;

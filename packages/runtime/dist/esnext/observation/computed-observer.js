@@ -66,7 +66,7 @@ let ComputedObserver = ComputedObserver_1 = class ComputedObserver {
         /**
          * @internal
          */
-        this.subscriberCount = 0;
+        this.subCount = 0;
         // todo: maybe use a counter allow recursive call to a certain level
         /**
          * @internal
@@ -92,7 +92,7 @@ let ComputedObserver = ComputedObserver_1 = class ComputedObserver {
         return observer;
     }
     getValue() {
-        if (this.subscriberCount === 0) {
+        if (this.subCount === 0) {
             return this.get.call(this.obj, this);
         }
         if (this.isDirty) {
@@ -128,13 +128,13 @@ let ComputedObserver = ComputedObserver_1 = class ComputedObserver {
         }
     }
     subscribe(subscriber) {
-        if (this.addSubscriber(subscriber) && ++this.subscriberCount === 1) {
+        if (this.addSubscriber(subscriber) && ++this.subCount === 1) {
             this.compute();
             this.isDirty = false;
         }
     }
     unsubscribe(subscriber) {
-        if (this.removeSubscriber(subscriber) && --this.subscriberCount === 0) {
+        if (this.removeSubscriber(subscriber) && --this.subCount === 0) {
             this.isDirty = true;
             this.record.clear(true);
             this.unobserveCollection(true);

@@ -1,6 +1,6 @@
-import { LifecycleFlags, AccessorType } from '../observation.js';
+import { LifecycleFlags, AccessorType, ISubscriberCollection } from '../observation.js';
 import { CollectionLengthObserver } from './collection-length-observer.js';
-import type { CollectionKind, ICollectionObserver, ICollectionIndexObserver, ILifecycle, IndexMap, ISubscriber } from '../observation.js';
+import type { CollectionKind, ICollectionObserver, IArrayIndexObserver, ILifecycle, IndexMap, ISubscriber } from '../observation.js';
 export declare function enableArrayObservation(): void;
 export declare function disableArrayObservation(): void;
 export interface ArrayObserver extends ICollectionObserver<CollectionKind.array> {
@@ -12,12 +12,12 @@ export declare class ArrayObserver {
     constructor(array: unknown[]);
     notify(): void;
     getLengthObserver(): CollectionLengthObserver;
-    getIndexObserver(index: number): ICollectionIndexObserver;
+    getIndexObserver(index: number): IArrayIndexObserver;
     flushBatch(flags: LifecycleFlags): void;
 }
-export interface ArrayIndexObserver extends ICollectionIndexObserver {
+export interface ArrayIndexObserver extends IArrayIndexObserver, ISubscriberCollection {
 }
-export declare class ArrayIndexObserver implements ICollectionIndexObserver {
+export declare class ArrayIndexObserver implements IArrayIndexObserver {
     readonly owner: ArrayObserver;
     readonly index: number;
     value: unknown;

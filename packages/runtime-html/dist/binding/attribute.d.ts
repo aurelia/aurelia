@@ -1,8 +1,8 @@
 import { IServiceLocator } from '@aurelia/kernel';
-import { BindingMode, LifecycleFlags } from '@aurelia/runtime';
+import { BindingMode, LifecycleFlags, IObserver } from '@aurelia/runtime';
 import { IPlatform } from '../platform.js';
 import { CustomElementDefinition } from '../resources/custom-element.js';
-import type { AccessorOrObserver, IConnectableBinding, ForOfStatement, IObserverLocator, IPartialConnectableBinding, IsBindingBehavior, ITask, Scope } from '@aurelia/runtime';
+import type { IConnectableBinding, ForOfStatement, IObserverLocator, IPartialConnectableBinding, IsBindingBehavior, ITask, Scope } from '@aurelia/runtime';
 import type { INode } from '../dom.js';
 export interface AttributeBinding extends IConnectableBinding {
 }
@@ -27,7 +27,7 @@ export declare class AttributeBinding implements IPartialConnectableBinding {
     /**
      * Target key. In case Attr has inner structure, such as class -> classList, style -> CSSStyleDeclaration
      */
-    targetObserver: AccessorOrObserver;
+    targetObserver: IObserver;
     persistentFlags: LifecycleFlags;
     target: Element;
     value: unknown;

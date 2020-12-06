@@ -1,8 +1,8 @@
 import { AccessorType, LifecycleFlags } from '@aurelia/runtime';
 import type { IIndexable } from '@aurelia/kernel';
-import type { InterceptorFunc, IPropertyObserver, ISubscriber } from '@aurelia/runtime';
+import type { InterceptorFunc, IObserver, ISubscriber, ISubscriberCollection, IBatchable } from '@aurelia/runtime';
 import type { IController } from '../templating/controller';
-export interface BindableObserver extends IPropertyObserver<IIndexable, string> {
+export interface BindableObserver extends IObserver, ISubscriberCollection, IBatchable {
 }
 export declare class BindableObserver {
     readonly obj: IIndexable;

@@ -95,13 +95,16 @@ DirtyChecker = __decorate([
     __param(0, IPlatform)
 ], DirtyChecker);
 export { DirtyChecker };
-let DirtyCheckProperty = class DirtyCheckProperty {
+export class DirtyCheckProperty {
     constructor(dirtyChecker, obj, propertyKey) {
         this.dirtyChecker = dirtyChecker;
         this.obj = obj;
         this.propertyKey = propertyKey;
         this.type = 4 /* Obj */;
         this.subCount = 0;
+    }
+    getValue() {
+        return this.obj[this.propertyKey];
     }
     setValue(v, f) {
         // todo: this should be allowed, probably
@@ -113,7 +116,7 @@ let DirtyCheckProperty = class DirtyCheckProperty {
     }
     flush(flags) {
         const oldValue = this.oldValue;
-        const newValue = this.obj[this.propertyKey];
+        const newValue = this.getValue();
         this.callSubscribers(newValue, oldValue, flags | 8 /* updateTarget */);
         this.oldValue = newValue;
     }
@@ -128,9 +131,6 @@ let DirtyCheckProperty = class DirtyCheckProperty {
             this.dirtyChecker.removeProperty(this);
         }
     }
-};
-DirtyCheckProperty = __decorate([
-    subscriberCollection()
-], DirtyCheckProperty);
-export { DirtyCheckProperty };
+}
+subscriberCollection()(DirtyCheckProperty);
 //# sourceMappingURL=dirty-checker.js.map

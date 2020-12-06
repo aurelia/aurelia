@@ -1,10 +1,10 @@
 import { AccessorOrObserver, CollectionKind, CollectionObserver, ILifecycle } from '../observation.js';
 import { IDirtyChecker } from './dirty-checker.js';
 import { PropertyAccessor } from './property-accessor.js';
-import type { Collection, IAccessor, IBindingTargetAccessor, IBindingTargetObserver, ICollectionObserver, IObserver } from '../observation.js';
+import type { Collection, IAccessor, ICollectionObserver, IObserver } from '../observation.js';
 export declare const propertyAccessor: PropertyAccessor;
 export interface IObjectObservationAdapter {
-    getObserver(object: unknown, propertyName: string, descriptor: PropertyDescriptor, requestor: IObserverLocator): IBindingTargetObserver | null;
+    getObserver(object: unknown, propertyName: string, descriptor: PropertyDescriptor, requestor: IObserverLocator): AccessorOrObserver | null;
 }
 export interface IObserverLocator extends ObserverLocator {
 }
@@ -32,8 +32,8 @@ export declare class ObserverLocator {
     private readonly adapters;
     constructor(lifecycle: ILifecycle, dirtyChecker: IDirtyChecker, nodeObserverLocator: INodeObserverLocator);
     addAdapter(adapter: IObjectObservationAdapter): void;
-    getObserver(obj: object, key: PropertyKey): AccessorOrObserver;
-    getAccessor(obj: object, key: string): IBindingTargetAccessor;
+    getObserver(obj: object, key: PropertyKey): IObserver;
+    getAccessor(obj: object, key: string): AccessorOrObserver;
     getArrayObserver(observedArray: unknown[]): ICollectionObserver<CollectionKind.array>;
     getMapObserver(observedMap: Map<unknown, unknown>): ICollectionObserver<CollectionKind.map>;
     getSetObserver(observedSet: Set<unknown>): ICollectionObserver<CollectionKind.set>;

@@ -153,9 +153,6 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
             var _a;
             return (_a = this.lengthObserver) !== null && _a !== void 0 ? _a : (this.lengthObserver = new collection_length_observer_js_1.CollectionSizeObserver(this));
         }
-        getIndexObserver(index) {
-            throw new Error('Set index observation not supported');
-        }
         flushBatch(flags) {
             const indexMap = this.indexMap;
             const size = this.collection.size;

@@ -214,23 +214,6 @@ export interface ICollectionSubscriberCollection extends ICollectionSubscribable
 }
 
 /**
- * Describes a complete property observer with an accessor, change tracking fields, normal and batched subscribers
- */
-export interface IPropertyObserver<TObj extends object, TProp extends keyof TObj> extends
-  IAccessor<TObj[TProp]>,
-  IPropertyChangeTracker<TObj, TProp>,
-  ISubscriberCollection,
-  IBatchable {
-  inBatch: boolean;
-  observing: boolean;
-}
-
-/**
- * An any-typed property observer
- */
-export type PropertyObserver = IPropertyObserver<IIndexable, string>;
-
-/**
  * A collection (array, set or map)
  */
 export type Collection = unknown[] | Set<unknown> | Map<unknown, unknown>;
@@ -375,7 +358,7 @@ export interface IPropertyChangeTracker<TObj, TProp = keyof TObj, TValue = unkno
   currentValue?: TValue;
 }
 
-export interface IArrayIndexObserver extends ICollectionSubscriber, IPropertyObserver<IIndexable, string> {
+export interface IArrayIndexObserver extends IObserver {
   owner: ICollectionObserver<CollectionKind.array>;
 }
 

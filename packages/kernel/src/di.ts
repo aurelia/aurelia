@@ -709,7 +709,7 @@ export class Resolver implements IResolver, IRegistration {
       case ResolverStrategy.array:
         return (this.state as IResolver[])[0].resolve(handler, requestor);
       case ResolverStrategy.alias:
-        return handler.get(this.state);
+        return requestor.get(this.state);
       default:
         throw new Error(`Invalid resolver strategy specified: ${this.strategy}.`);
     }

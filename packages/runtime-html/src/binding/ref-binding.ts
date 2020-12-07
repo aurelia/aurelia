@@ -1,10 +1,7 @@
-import { LifecycleFlags } from '../observation.js';
+import { LifecycleFlags } from '@aurelia/runtime';
 
 import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
-import type { IsBindingBehavior } from './ast.js';
-import type { IConnectableBinding } from './connectable.js';
-import type { Scope } from '../observation/binding-context.js';
-import type { IBinding } from '../observation.js';
+import type { IBinding, IConnectableBinding, IsBindingBehavior, Scope } from '@aurelia/runtime';
 
 export interface RefBinding extends IConnectableBinding {}
 export class RefBinding implements IBinding {

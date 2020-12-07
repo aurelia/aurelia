@@ -1,13 +1,9 @@
 import { IPlatform } from '@aurelia/kernel';
-import { LifecycleFlags } from '../observation.js';
-import { bindingBehavior, BindingInterceptor } from '../binding-behavior.js';
-import { BindingBehaviorExpression, IsAssign } from '../binding/ast.js';
+import { bindingBehavior, BindingInterceptor, LifecycleFlags } from '@aurelia/runtime';
 
-import type { ITask, TaskQueue, QueueTaskOptions } from '@aurelia/kernel';
-import type { IInterceptableBinding } from '../binding-behavior.js';
-import type { Scope } from '../observation/binding-context.js';
+import type { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/kernel';
+import type { BindingBehaviorExpression, IInterceptableBinding, IsAssign, Scope } from '@aurelia/runtime';
 
-@bindingBehavior('throttle')
 export class ThrottleBindingBehavior extends BindingInterceptor {
   private readonly taskQueue: TaskQueue;
   private readonly platform: IPlatform;
@@ -75,3 +71,5 @@ export class ThrottleBindingBehavior extends BindingInterceptor {
     super.$unbind(flags);
   }
 }
+
+bindingBehavior('throttle')(ThrottleBindingBehavior);

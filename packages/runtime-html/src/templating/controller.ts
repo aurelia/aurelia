@@ -20,7 +20,6 @@ import {
   Scope,
   LifecycleFlags,
   ILifecycle,
-  PropertyBinding,
   BindingType,
   IObserverLocator,
   IWatchDefinition,
@@ -31,6 +30,7 @@ import {
   IExpressionParser,
   AccessorOrObserver,
 } from '@aurelia/runtime';
+import { PropertyBinding } from '../binding/property-binding.js';
 import { BindableDefinition } from '../bindable';
 import { BindableObserver } from '../observation/bindable-observer';
 import { convertToRenderLocation, INode, INodeSequence, IRenderLocation } from '../dom.js';

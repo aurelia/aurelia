@@ -1,22 +1,23 @@
 import {
+  AccessorOrObserver,
   AccessorType,
   BindingMode,
+  ExpressionKind,
   LifecycleFlags,
-  AccessorOrObserver,
-} from '../observation.js';
-import { ExpressionKind } from './ast.js';
-import { connectable } from './connectable.js';
+  connectable,
+} from '@aurelia/runtime';
 
-import type { IIndexable, IServiceLocator, ITask, QueueTaskOptions, TaskQueue} from '@aurelia/kernel';
-import type { Interpolation, IsExpression } from './ast.js';
-import type { IConnectableBinding } from './connectable.js';
-import type { IObserverLocator } from '../observation/observer-locator.js';
+import type { IIndexable, IServiceLocator, ITask, QueueTaskOptions, TaskQueue } from '@aurelia/kernel';
 import type {
   ICollectionSubscriber,
   IndexMap,
+  Interpolation,
+  IConnectableBinding,
+  IObserverLocator,
+  IsExpression,
   IBinding,
-} from '../observation.js';
-import type { Scope } from '../observation/binding-context.js';
+  Scope,
+} from '@aurelia/runtime';
 
 const { toView } = BindingMode;
 const queueTaskOptions: QueueTaskOptions = {

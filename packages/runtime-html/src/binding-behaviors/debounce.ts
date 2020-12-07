@@ -1,13 +1,10 @@
 import { IPlatform } from '@aurelia/kernel';
-import { LifecycleFlags } from '../observation.js';
-import { bindingBehavior, BindingInterceptor } from '../binding-behavior.js';
+import { LifecycleFlags } from '@aurelia/runtime';
+import { bindingBehavior, BindingInterceptor } from '@aurelia/runtime';
 
-import type { ITask, TaskQueue, QueueTaskOptions } from '@aurelia/kernel';
-import type { IInterceptableBinding } from '../binding-behavior.js';
-import type { Scope } from '../observation/binding-context.js';
-import type { BindingBehaviorExpression, IsAssign } from '../binding/ast.js';
+import type { IInterceptableBinding, BindingBehaviorExpression, IsAssign, Scope } from '@aurelia/runtime';
+import type { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/kernel';
 
-@bindingBehavior('debounce')
 export class DebounceBindingBehavior extends BindingInterceptor {
   private readonly taskQueue: TaskQueue;
   private readonly opts: QueueTaskOptions = { delay: 0 };
@@ -60,3 +57,5 @@ export class DebounceBindingBehavior extends BindingInterceptor {
     this.binding.$unbind(flags);
   }
 }
+
+bindingBehavior('debounce')(DebounceBindingBehavior);

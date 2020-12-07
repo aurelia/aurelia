@@ -1,10 +1,9 @@
 import { IContainer, IRegistry, Registration, DI, noop } from '@aurelia/kernel';
-import { bindable } from '../bindable.js';
 import { AppTask } from '../app-task.js';
 import { INode } from '../dom.js';
 import { getClassesToAdd } from '../observation/class-attribute-accessor.js';
 import { IPlatform } from '../platform.js';
-import { customAttribute } from '../resources/custom-attribute.js';
+import { CustomAttribute } from '../resources/custom-attribute.js';
 
 export function cssModules(...modules: (Record<string, string>)[]): CSSModulesProcessorRegistry {
   return new CSSModulesProcessorRegistry(modules);
@@ -17,13 +16,15 @@ export class CSSModulesProcessorRegistry implements IRegistry {
 
   public register(container: IContainer): void {
     const classLookup = Object.assign({}, ...this.modules) as Record<string, string>;
+    const ClassCustomAttribute = CustomAttribute.define({
+      name: 'class',
+      bindables: ['value'],
+    }, class CustomAttributeClass {
+      public static inject = [INode];
 
-    @customAttribute('class')
-    class ClassCustomAttribute {
-      @bindable public value!: string;
-
+      public value!: string;
       public constructor(
-        @INode private readonly element: INode<HTMLElement>,
+        private readonly element: INode<HTMLElement>,
       ) {}
 
       public binding() {
@@ -38,7 +39,7 @@ export class CSSModulesProcessorRegistry implements IRegistry {
 
         this.element.className = getClassesToAdd(this.value).map(x => classLookup[x] || x).join(' ');
       }
-    }
+    });
 
     container.register(ClassCustomAttribute);
   }

@@ -8,7 +8,6 @@ import { BindingBehavior, BindingBehaviorInstance, BindingBehaviorFactory } from
 import { ValueConverter, ValueConverterInstance } from '../value-converter.js';
 
 import type { IIndexable, IServiceLocator, ResourceDefinition } from '@aurelia/kernel';
-import type { IConnectableBinding } from './connectable.js';
 import type {
   Collection,
   IBindingContext,
@@ -16,8 +15,10 @@ import type {
   IOverrideContext,
   IConnectable,
   ISubscriber,
+  IBinding,
 } from '../observation.js';
 import type { Scope } from '../observation/binding-context.js';
+import { IConnectableBinding } from './connectable.js';
 
 export const enum ExpressionKind {
   Connects             = 0b000000000001_00000, // The expression's connect() function calls observeProperty and/or calls connect() on another expression that it wraps (all expressions except for AccessThis, PrimitiveLiteral, CallMember/Function and Assign)
@@ -359,7 +360,7 @@ export class Unparser implements IVisitor<void> {
   }
 }
 
-function chooseScope(accessHostScope: boolean, s: Scope, hs: Scope | null){
+function chooseScope(accessHostScope: boolean, s: Scope, hs: Scope | null) {
   if (accessHostScope) {
     if (hs === null || hs === void 0) { throw new Error('Host scope is missing. Are you using `$host` outside the `au-slot`? Or missing the `au-slot` attribute?'); }
     return hs;
@@ -463,9 +464,9 @@ export class ValueConverterExpression {
     if (vc == null) {
       throw new Error(`ValueConverter named '${this.name}' could not be found. Did you forget to register it as a dependency?`);
     }
-    // note: everything should be ISubscriber eventually
-    // for now, it's sort of internal thing where only built-in bindings are passed as connectable
-    // so it by default satisfies ISubscriber constrain
+    // note: the cast is unsatisfactory. to connect, it needs to be a IConnectable
+    // so having `handleChange` as a guard in the connectable as a safe measure is needed
+    // to make sure signaler works
     if (c !== null && ('handleChange' in (c  as unknown as ISubscriber))) {
       const signals = vc.signals;
       if (signals != null) {
@@ -499,7 +500,9 @@ export class ValueConverterExpression {
     }
     const signaler = b.locator.get(ISignaler);
     for (let i = 0; i < vc.signals.length; ++i) {
-      signaler.removeSignalListener(vc.signals[i], b);
+      // the cast is correct, as the value converter expression would only add
+      // a IConnectable that also implements `ISubscriber` interface to the signaler
+      signaler.removeSignalListener(vc.signals[i], b as unknown as ISubscriber);
     }
   }
 

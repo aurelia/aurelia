@@ -1,13 +1,17 @@
-import { BindingMode, LifecycleFlags, AccessorType } from '../observation.js';
-import { ExpressionKind } from './ast.js';
-import { connectable } from './connectable.js';
+import { AccessorType, BindingMode, connectable, ExpressionKind, LifecycleFlags } from '@aurelia/runtime';
 
 import type { IServiceLocator, ITask, QueueTaskOptions, TaskQueue } from '@aurelia/kernel';
-import type { AccessorOrObserver, IObserver, ISubscriberCollection } from '../observation.js';
-import type { IObserverLocator } from '../observation/observer-locator.js';
-import type { ForOfStatement, IsBindingBehavior, } from './ast.js';
-import type { IConnectableBinding, IPartialConnectableBinding } from './connectable.js';
-import type { Scope } from '../observation/binding-context.js';
+import type {
+  AccessorOrObserver,
+  ForOfStatement,
+  IConnectableBinding,
+  IObserver,
+  IObserverLocator,
+  IPartialConnectableBinding,
+  IsBindingBehavior,
+  ISubscriberCollection,
+  Scope,
+} from '@aurelia/runtime';
 
 // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
 const { oneTime, toView, fromView } = BindingMode;

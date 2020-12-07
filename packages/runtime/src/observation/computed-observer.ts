@@ -84,6 +84,7 @@ export class ComputedObserver implements IConnectableBinding, ISubscriber, IColl
     }
     if (this.isDirty) {
       this.compute();
+      this.isDirty = false;
     }
     return this.value;
   }
@@ -142,6 +143,8 @@ export class ComputedObserver implements IConnectableBinding, ISubscriber, IColl
     }
     const oldValue = this.value;
     const newValue = this.compute();
+
+    this.isDirty = false;
 
     if (!Object.is(newValue, oldValue)) {
       // should optionally queue

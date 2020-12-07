@@ -248,9 +248,10 @@ export class BindingCollectionObserverRecord {
     }
     const observers = this.observers;
     const version = this.version;
-    for (const [observer, obsVersion] of observers) {
-      if (all || obsVersion !== version) {
-        observers.delete(observer);
+    for (const [o, oVersion] of observers) {
+      if (all || oVersion !== version) {
+        o.unsubscribeFromCollection(this);
+        observers.delete(o);
       }
     }
     this.count = observers.size;

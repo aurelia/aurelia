@@ -34,7 +34,6 @@ function defaultMatcher(a: unknown, b: unknown): boolean {
 export interface CheckedObserver extends
   ISubscriberCollection { }
 
-@subscriberCollection()
 export class CheckedObserver implements IObserver {
   public value: unknown = void 0;
   public oldValue: unknown = void 0;
@@ -266,3 +265,5 @@ export class CheckedObserver implements IObserver {
     }
   }
 }
+
+subscriberCollection()(CheckedObserver);

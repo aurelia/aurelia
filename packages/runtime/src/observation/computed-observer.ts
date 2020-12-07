@@ -23,7 +23,6 @@ import type { IWatcherCallback } from './watch.js';
 import type { IObserverLocator, ObservableGetter } from './observer-locator.js';
 import type { Scope } from './binding-context.js';
 
-
 export interface ComputedObserver extends IConnectableBinding, ISubscriberCollection { }
 
 export class ComputedObserver implements IConnectableBinding, ISubscriber, ICollectionSubscriber, ISubscriberCollection {

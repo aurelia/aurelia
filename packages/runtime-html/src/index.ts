@@ -141,10 +141,6 @@ export {
   DirtyCheckSettings,
 
   ComputedObserver,
-  ComputedWatcher,
-  ExpressionWatcher,
-  Watch,
-  watch,
 
   IObservableDefinition,
   observable,
@@ -648,3 +644,16 @@ export {
   IShadowDOMStyles,
   IShadowDOMGlobalStyles,
 } from './templating/styles.js';
+
+export {
+  Watch,
+  watch,
+  IWatchDefinition,
+  IWatcherCallback,
+  IDepCollectionFn,
+} from './watch';
+
+export {
+  ComputedWatcher,
+  ExpressionWatcher,
+} from './templating/watchers.js';

@@ -112,8 +112,6 @@ export {
 } from './observation/collection-length-observer.js';
 export {
   ComputedObserver,
-  ComputedWatcher,
-  ExpressionWatcher,
 } from './observation/computed-observer.js';
 export {
   IDirtyChecker,
@@ -130,6 +128,8 @@ export {
   INodeObserverLocator,
   getCollectionObserver,
   ObserverLocator,
+  ObservableGetter,
+  ObservableSetter,
 } from './observation/observer-locator.js';
 export {
   PrimitiveObserver,
@@ -179,14 +179,6 @@ export {
   ValueConverterType,
   valueConverter,
 } from './value-converter.js';
-
-export {
-  watch,
-  Watch,
-  IWatchDefinition,
-  IWatcherCallback,
-  IDepCollectionFn,
-} from './observation/watch.js';
 
 export {
   BindingMode,

@@ -2,6 +2,7 @@ import {
   createIndexMap,
   LifecycleFlags,
   AccessorType,
+  ISubscriberCollection,
 } from '../observation.js';
 import {
   CollectionLengthObserver,
@@ -14,7 +15,7 @@ import {
 import type {
   CollectionKind,
   ICollectionObserver,
-  ICollectionIndexObserver,
+  IArrayIndexObserver,
   ILifecycle,
   IndexMap,
   ISubscriber,
@@ -395,10 +396,10 @@ export class ArrayObserver {
   }
 
   public getLengthObserver(): CollectionLengthObserver {
-    return this.lengthObserver ??= new CollectionLengthObserver(this.collection);
+    return this.lengthObserver ??= new CollectionLengthObserver(this);
   }
 
-  public getIndexObserver(index: number): ICollectionIndexObserver {
+  public getIndexObserver(index: number): IArrayIndexObserver {
     return this.getOrCreateIndexObserver(index);
   }
 
@@ -409,44 +410,32 @@ export class ArrayObserver {
     this.inBatch = false;
     this.indexMap = createIndexMap(length);
     this.callCollectionSubscribers(indexMap, LifecycleFlags.updateTarget);
-    this.lengthObserver?.setValue(length, LifecycleFlags.updateTarget);
-  }
-
-  /**
-   * @internal used by friend class ArrayIndexObserver only
-   */
-  public addIndexObserver(indexObserver: ArrayIndexObserver): void {
-    this.addCollectionSubscriber(indexObserver);
-  }
-
-  /**
-   * @internal used by friend class ArrayIndexObserver only
-   */
-  public removeIndexObserver(indexObserver: ArrayIndexObserver): void {
-    this.removeCollectionSubscriber(indexObserver);
   }
 
   /**
    * @internal
+   *
+   * It's unnecessary to destroy/recreate index observer all the time,
+   * so just create once, and add/remove instead
    */
-  private getOrCreateIndexObserver(index: number): ICollectionIndexObserver {
+  private getOrCreateIndexObserver(index: number): IArrayIndexObserver {
     return this.indexObservers[index] ??= new ArrayIndexObserver(this, index);
   }
 }
 
-export interface ArrayIndexObserver extends ICollectionIndexObserver {}
+export interface ArrayIndexObserver extends IArrayIndexObserver, ISubscriberCollection {}
 
 @subscriberCollection()
-export class ArrayIndexObserver implements ICollectionIndexObserver {
+export class ArrayIndexObserver implements IArrayIndexObserver {
 
-  private subscriberCount: number = 0;
-  public currentValue: unknown;
+  public value: unknown;
+  private subCount: number = 0;
 
   public constructor(
     public readonly owner: ArrayObserver,
     public readonly index: number
   ) {
-    this.currentValue = this.getValue();
+    this.value = this.getValue();
   }
 
   public getValue(): unknown {
@@ -480,8 +469,8 @@ export class ArrayIndexObserver implements ICollectionIndexObserver {
     if (noChange) {
       return;
     }
-    const prevValue = this.currentValue;
-    const currValue = this.currentValue = this.getValue();
+    const prevValue = this.value;
+    const currValue = this.value = this.getValue();
     // hmm
     if (prevValue !== currValue) {
       this.callSubscribers(currValue, prevValue, flags);
@@ -489,14 +478,14 @@ export class ArrayIndexObserver implements ICollectionIndexObserver {
   }
 
   public subscribe(subscriber: ISubscriber): void {
-    if (this.addSubscriber(subscriber) && ++this.subscriberCount === 1) {
-      this.owner.addIndexObserver(this);
+    if (this.addSubscriber(subscriber) && ++this.subCount === 1) {
+      this.owner.addCollectionSubscriber(this);
     }
   }
 
   public unsubscribe(subscriber: ISubscriber): void {
-    if (this.removeSubscriber(subscriber) && --this.subscriberCount === 0) {
-      this.owner.removeIndexObserver(this);
+    if (this.removeSubscriber(subscriber) && --this.subCount === 0) {
+      this.owner.removeCollectionSubscriber(this);
     }
   }
 }

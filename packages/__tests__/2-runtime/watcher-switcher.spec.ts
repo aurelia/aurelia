@@ -43,11 +43,10 @@ describe('2-runtime/watcher-switcher.spec.ts', function () {
     const logs = [];
     const loggingWatcher: IWatcher = {
       id: 0,
-      observe(obj, key) {
+      observeProperty(obj, key) {
         logs.push([obj, key]);
       },
       observeCollection(collection) {/* empty */},
-      observeLength(collection) {/* empty */},
     };
 
     WatcherSwitcher.enter(loggingWatcher);
@@ -74,11 +73,10 @@ describe('2-runtime/watcher-switcher.spec.ts', function () {
     const logs = [];
     const loggingWatcher: IWatcher = {
       id: 0,
-      observe(obj, key) {
+      observeProperty(obj, key) {
         logs.push([obj, key]);
       },
       observeCollection(collection) {/* empty */},
-      observeLength(collection) {/* empty */},
     };
 
     WatcherSwitcher.enter(loggingWatcher);

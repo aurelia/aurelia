@@ -141,10 +141,8 @@ export {
 } from './observation/binding-context.js';
 export {
   CollectionLengthObserver,
-} from './observation/collection-length-observer.js';
-export {
   CollectionSizeObserver,
-} from './observation/collection-size-observer.js';
+} from './observation/collection-length-observer.js';
 export {
   ComputedObserver,
   ComputedWatcher,
@@ -186,7 +184,6 @@ export {
   collectionSubscriberCollection,
 } from './observation/subscriber-collection.js';
 export {
-  IWatcher,
   WatcherSwitcher,
 } from './observation/watcher-switcher.js';
 
@@ -252,11 +249,9 @@ export {
   DelegationStrategy,
   IAccessor,
   IBindingContext,
-  IBindingTargetAccessor,
-  IBindingTargetObserver,
   ICollectionChangeTracker,
   ICollectionObserver,
-  ICollectionIndexObserver,
+  IArrayIndexObserver,
   ICollectionSubscriber,
   IndexMap,
   IBatchable,
@@ -264,15 +259,13 @@ export {
   IObservable,
   IOverrideContext,
   InterceptorFunc,
-  IPropertyChangeTracker,
-  IPropertyObserver,
   ISubscribable,
   ISubscriberCollection,
-  PropertyObserver,
   CollectionObserver,
   ICollectionSubscriberCollection,
   ICollectionSubscribable,
   ISubscriber,
+  IWatcher,
   isIndexMap,
   copyIndexMap,
   cloneIndexMap,

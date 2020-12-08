@@ -5,7 +5,7 @@ import {
 } from '@aurelia/kernel';
 import {
   IConnectable,
-  IBindingTargetObserver,
+  IObserver,
   ISubscribable,
   ISubscriber,
   IBinding,
@@ -39,6 +39,12 @@ export interface IPartialConnectableBinding extends IBinding, ISubscriber {
 export interface IConnectableBinding extends IPartialConnectableBinding, IConnectable {
   // probably this id shouldn't be on binding
   id: number;
+  /**
+   * A record storing observers that are currently subscribed by this binding
+   */
+  // this is an implementation detail that leaks, should be either:
+  // - removed with the removal of the interceptor
+  // - tweak the interfaces, so that record is a natural part of the binding interface contract
   record: BindingObserverRecord;
   addObserver(observer: ISubscribable): void;
   unobserve(all?: boolean): void;
@@ -53,8 +59,8 @@ export function addObserver(
 }
 
 /** @internal */
-export function observeProperty(this: IConnectableBinding, obj: object, propertyName: string): void {
-  const observer = this.observerLocator.getObserver(obj, propertyName) as IBindingTargetObserver;
+export function observeProperty(this: IConnectableBinding, obj: object, key: PropertyKey): void {
+  const observer = this.observerLocator.getObserver(obj, key);
   /* Note: we need to cast here because we can indeed get an accessor instead of an observer,
    *  in which case the call to observer.subscribe will throw. It's not very clean and we can solve this in 2 ways:
    *  1. Fail earlier: only let the locator resolve observers from .getObserver, and throw if no branches are left (e.g. it would otherwise return an accessor)
@@ -99,6 +105,9 @@ export class BindingObserverRecord implements ISubscriber {
     return this.binding.interceptor.handleChange(value, oldValue, flags);
   }
 
+  /**
+   * Add, and subscribe to a given observer
+   */
   public add(observer: ISubscribable & { [id: number]: number }): void {
     // find the observer.
     const observerSlots = this.count == null ? 0 : this.count;
@@ -124,14 +133,17 @@ export class BindingObserverRecord implements ISubscriber {
     ensureEnoughSlotNames(i);
   }
 
+  /**
+   * Unsubscribe the observers that are not up to date with the record version
+   */
   public clear(all?: boolean): void {
     const slotCount = this.count;
     let slotName: string;
-    let observer: IBindingTargetObserver & { [key: string]: number };
+    let observer: IObserver & { [key: string]: number };
     if (all === true) {
       for (let i = 0; i < slotCount; ++i) {
         slotName = slotNames[i];
-        observer = this[slotName] as IBindingTargetObserver & { [key: string]: number };
+        observer = this[slotName] as IObserver & { [key: string]: number };
         if (observer != null) {
           this[slotName] = void 0;
           observer.unsubscribe(this);
@@ -143,7 +155,7 @@ export class BindingObserverRecord implements ISubscriber {
       for (let i = 0; i < slotCount; ++i) {
         if (this[versionSlotNames[i]] !== this.version) {
           slotName = slotNames[i];
-          observer = this[slotName] as IBindingTargetObserver & { [key: string]: number };
+          observer = this[slotName] as IObserver & { [key: string]: number };
           if (observer != null) {
             this[slotName] = void 0;
             observer.unsubscribe(this);

@@ -33,9 +33,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "dependencies": {
-    "@aurelia/platform": "0.8.0"
-  },
+  "dependencies": {},
   "devDependencies": {
     "typescript": "^4.0.3"
   }

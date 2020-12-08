@@ -5,7 +5,6 @@ import {
   PropertyBinding,
   BindingMode,
   ExpressionKind,
-  IBindingTargetObserver,
   ILifecycle,
   ISubscriber,
   LifecycleFlags as LF,
@@ -16,6 +15,7 @@ import {
   SetterObserver,
   IsBindingBehavior,
   ISubscribable,
+  ISubscriberCollection,
 } from '@aurelia/runtime';
 import {
   createObserverLocator,
@@ -455,7 +455,7 @@ describe('PropertyBinding', function () {
       it(`$bind() [from-view]  target=${$1} prop=${$2} newValue=${$3} expr=${$4} flags=${$5} scope=${$6}`, function () {
         // - Arrange - Part 1
         const { sut, lifecycle, container, observerLocator } = createFixture(expr, target, prop, BindingMode.fromView);
-        const targetObserver = observerLocator.getObserver(target, prop) as IBindingTargetObserver;
+        const targetObserver = observerLocator.getObserver(target, prop);
         // massSpy(targetObserver, 'subscribe');
 
         // ensureNotCalled(expr, 'evaluate', 'connect', 'assign');
@@ -578,7 +578,7 @@ describe('PropertyBinding', function () {
         // - Arrange - Part 1
         const { sut, lifecycle, container, observerLocator } = createFixture(expr, target, prop, BindingMode.twoWay);
         const srcVal = expr.evaluate(LF.none, scope, null, container, null);
-        const targetObserver = observerLocator.getObserver(target, prop) as IBindingTargetObserver;
+        const targetObserver = observerLocator.getObserver(target, prop);
 
         // massSpy(targetObserver, 'setValue', 'getValue', 'callSubscribers', 'subscribe');
         // massSpy(expr, 'evaluate', 'connect', 'assign');
@@ -593,8 +593,8 @@ describe('PropertyBinding', function () {
         const observer01: SetterObserver = sut.record['_o1'] as SetterObserver;
         const observer02: SetterObserver = sut.record['_o2'] as SetterObserver;
 
-        const subscriber00: ISubscriber = targetObserver['_subscriber0'];
-        const subscriber01: ISubscriber = targetObserver['_subscriber1'];
+        const subscriber00: ISubscriber = targetObserver['_s0'];
+        const subscriber01: ISubscriber = targetObserver['_s1'];
         if (expr instanceof AccessScopeExpression) {
           assert.instanceOf(observer00, SetterObserver, `observer00 #01`);
           assert.strictEqual(observer01, undefined, `observer01 #02`);
@@ -650,10 +650,10 @@ describe('PropertyBinding', function () {
         // verify the behavior of the targetObserver (redundant)
         if (srcVal instanceof Object) {
           assert.deepStrictEqual(target[prop], srcVal, `target[prop] #30`);
-          assert.deepStrictEqual(targetObserver.currentValue, srcVal, `targetObserver.currentValue #31`);
+          assert.deepStrictEqual(targetObserver.getValue(), srcVal, `targetObserver.currentValue #31`);
         } else {
           assert.strictEqual(target[prop], srcVal, `target[prop] #32`);
-          assert.strictEqual(targetObserver.currentValue, srcVal, `targetObserver.currentValue #33`);
+          assert.strictEqual(targetObserver.getValue(), srcVal, `targetObserver.currentValue #33`);
         }
 
         if (!(flags & LF.fromBind)) {
@@ -691,8 +691,8 @@ describe('PropertyBinding', function () {
         const observer11: SetterObserver = sut.record['_o1'] as SetterObserver;
         const observer12: SetterObserver = sut.record['_o2'] as SetterObserver;
 
-        const subscriber10: ISubscriber = targetObserver['_subscriber0'];
-        const subscriber11: ISubscriber = targetObserver['_subscriber1'];
+        const subscriber10: ISubscriber = targetObserver['_s0'];
+        const subscriber11: ISubscriber = targetObserver['_s1'];
         if (expr instanceof AccessScopeExpression) {
           assert.instanceOf(observer10, SetterObserver, `observer10 #38`);
           assert.strictEqual(observer10, observer00, `observer10 #39`);
@@ -786,7 +786,7 @@ describe('PropertyBinding', function () {
               // expect(sut.addObserver, `sut.addObserver #77`).to.have.been.calledWithExactly(observer00);
             }
 
-            assert.strictEqual(targetObserver.currentValue, newValue1, `targetObserver.currentValue #78`);
+            assert.strictEqual(targetObserver.getValue(), newValue1, `targetObserver.currentValue #78`);
             assert.strictEqual(target[prop], newValue1, `target[prop] #79`);
           }
         }
@@ -835,7 +835,7 @@ describe('PropertyBinding', function () {
         sut.$bind(flags, originalScope, null);
 
         verifyEqual(target[prop], srcVal);
-        verifyEqual(targetObserver.currentValue, srcVal);
+        verifyEqual(targetObserver.getValue(), srcVal);
       });
     }
     );
@@ -982,16 +982,16 @@ describe('PropertyBinding', function () {
 });
 
 class MockObserver {
-  public _subscriberFlags?: number;
-  public _subscriber0?: ISubscriber;
-  public _subscriber1?: ISubscriber;
-  public _subscriber2?: ISubscriber;
-  public _subscribersRest?: ISubscriber[];
+  public _sFlags?: number;
+  public _s0?: ISubscriber;
+  public _s1?: ISubscriber;
+  public _s2?: ISubscriber;
+  public _sRest?: ISubscriber[];
   public callSubscribers: any;
-  public hasSubscribers: IBindingTargetObserver['hasSubscribers'];
-  public hasSubscriber: IBindingTargetObserver['hasSubscriber'];
-  public removeSubscriber: IBindingTargetObserver['removeSubscriber'];
-  public addSubscriber: IBindingTargetObserver['addSubscriber'];
+  public hasSubscribers: ISubscriberCollection['hasSubscribers'];
+  public hasSubscriber: ISubscriberCollection['hasSubscriber'];
+  public removeSubscriber: ISubscriberCollection['removeSubscriber'];
+  public addSubscriber: ISubscriberCollection['addSubscriber'];
   public bind = createSpy();
   public unbind = createSpy();
   public dispose = createSpy();

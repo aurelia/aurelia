@@ -1,9 +1,9 @@
 import { DI, IPlatform } from '@aurelia/kernel';
-import { AccessorType, LifecycleFlags } from '../observation.js';
+import { AccessorType, IObserver, ISubscriberCollection, LifecycleFlags } from '../observation.js';
 import { subscriberCollection } from './subscriber-collection.js';
 
 import type { IIndexable, ITask, QueueTaskOptions } from '@aurelia/kernel';
-import type { IBindingTargetObserver, IObservable, ISubscriber } from '../observation';
+import type { IObservable, ISubscriber } from '../observation';
 
 export interface IDirtyChecker extends DirtyChecker {}
 export const IDirtyChecker = DI.createInterface<IDirtyChecker>('IDirtyChecker').withDefault(x => x.singleton(DirtyChecker));
@@ -99,18 +99,23 @@ export class DirtyChecker {
   };
 }
 
-export interface DirtyCheckProperty extends IBindingTargetObserver { }
+export interface DirtyCheckProperty extends IObserver, ISubscriberCollection { }
 
-@subscriberCollection()
 export class DirtyCheckProperty implements DirtyCheckProperty {
   public oldValue: unknown;
   public type: AccessorType = AccessorType.Obj;
+
+  private subCount: number = 0;
 
   public constructor(
     private readonly dirtyChecker: IDirtyChecker,
     public obj: IObservable & IIndexable,
     public propertyKey: string,
   ) {}
+
+  public getValue() {
+    return this.obj[this.propertyKey];
+  }
 
   public setValue(v: unknown, f: LifecycleFlags) {
     // todo: this should be allowed, probably
@@ -124,7 +129,7 @@ export class DirtyCheckProperty implements DirtyCheckProperty {
 
   public flush(flags: LifecycleFlags): void {
     const oldValue = this.oldValue;
-    const newValue = this.obj[this.propertyKey];
+    const newValue = this.getValue();
 
     this.callSubscribers(newValue, oldValue, flags | LifecycleFlags.updateTarget);
 
@@ -132,16 +137,17 @@ export class DirtyCheckProperty implements DirtyCheckProperty {
   }
 
   public subscribe(subscriber: ISubscriber): void {
-    if (!this.hasSubscribers()) {
+    if (this.addSubscriber(subscriber) && ++this.subCount === 1) {
       this.oldValue = this.obj[this.propertyKey];
       this.dirtyChecker.addProperty(this);
     }
-    this.addSubscriber(subscriber);
   }
 
   public unsubscribe(subscriber: ISubscriber): void {
-    if (this.removeSubscriber(subscriber) && !this.hasSubscribers()) {
+    if (this.removeSubscriber(subscriber) && --this.subCount === 0) {
       this.dirtyChecker.removeProperty(this);
     }
   }
 }
+
+subscriberCollection()(DirtyCheckProperty);

@@ -1,4 +1,4 @@
-import { Constructable, LogLevel, Registration, ILogConfig, LoggerConfiguration, DI } from '@aurelia/kernel';
+import { Constructable, LogLevel, Registration, ILogConfig, LoggerConfiguration, DI, IPlatform } from '@aurelia/kernel';
 import { Aurelia } from '@aurelia/runtime-html';
 import { RouterConfiguration, IRouter, IRouterActivateOptions, NavigationState } from '@aurelia/router';
 import { TestContext } from '@aurelia/testing';
@@ -70,23 +70,18 @@ export class ActivityTracker {
 }
 export async function createFixture<T extends Constructable>(
   Component: T,
-  deps: Constructable[],
-  createHIAConfig: () => IHIAConfig,
-  createRouterOptions: () => IRouterActivateOptions,
+  deps: Constructable[] = [],
+  createHIAConfig: () => IHIAConfig = null,
+  createRouterOptions: () => IRouterActivateOptions = null,
   level: LogLevel = LogLevel.warn,
 ) {
-  const hiaConfig = createHIAConfig();
-  const routerOptions = createRouterOptions();
+  const hiaConfig = createHIAConfig != null ? createHIAConfig() : null;
+  const routerOptions = createRouterOptions != null ? createRouterOptions() : null;
   const ctx = TestContext.create();
   const { container, platform } = ctx;
 
-  const { href } = platform.location;
-  const { state } = platform.history;
-  const index = href.indexOf('#');
-  if (index >= 0) {
-    platform.history.replaceState(state, '', href.slice(0, index));
-    await Promise.resolve();
-  }
+  // clearBrowserState(platform);
+
   container.register(Registration.instance(IHIAConfig, hiaConfig));
   container.register(TestRouterConfiguration.for(ctx, level));
   container.register(RouterConfiguration.customize(routerOptions));
@@ -129,20 +124,30 @@ export async function createFixture<T extends Constructable>(
     async tearDown() {
       hia.setPhase('stop');
 
+      RouterConfiguration.customize();
+
       await au.stop(true);
-
-      //      au.dispose();
-
-      const { href } = platform.location;
-      const { state } = platform.history;
-      const index = href.indexOf('#');
-      if (index >= 0) {
-        platform.history.replaceState(state, '', href.slice(0, index));
-        // await Promise.resolve();
-      }
     },
     logTicks(callback: (tick: number) => void): () => void {
       return startTickLogging(window, callback);
     }
   };
+}
+
+export async function clearBrowserState(platform: any, router: IRouter | null = null): Promise<void> {
+  const { href } = platform.location;
+  // const { state } = platform.history;
+  const index = href.indexOf('#');
+  if (index >= 0) {
+    if (router?.navigation?.replaceNavigatorState == null) {
+      platform.history.replaceState({}, '', href.slice(0, index));
+      await Promise.resolve();
+    } else {
+      await router.navigation.replaceNavigatorState({}, '', href.slice(0, index))
+    }
+  }
+}
+
+export async function wait(milliseconds: number): Promise<void> {
+  return new Promise(res => { setTimeout(res, milliseconds); });
 }

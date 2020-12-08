@@ -18,8 +18,8 @@ export interface INavigation extends IStoredNavigation {
   refreshing?: boolean;
   untracked?: boolean;
   historyMovement?: number;
-  resolve?: ((value?: void | PromiseLike<void>) => void);
-  reject?: ((value?: void | PromiseLike<void>) => void);
+  resolve?: ((value?: boolean | PromiseLike<boolean>) => void);
+  reject?: ((value?: boolean | PromiseLike<boolean>) => void);
 }
 
 export interface IStoredNavigation {
@@ -51,8 +51,8 @@ export class Navigation {
   public refreshing?: boolean;
   public untracked?: boolean;
   public historyMovement?: number;
-  public resolve?: ((value?: void | PromiseLike<void>) => void);
-  public reject?: ((value?: void | PromiseLike<void>) => void);
+  public resolve?: ((value?: boolean | PromiseLike<boolean>) => void);
+  public reject?: ((value?: boolean | PromiseLike<boolean>) => void);
 
   // IStoredNavigatorEntry
   public instruction: string | ViewportInstruction[];

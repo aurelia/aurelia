@@ -102,7 +102,9 @@ export class NavigationCoordinator extends StateCoordinator<IScopeOwner, Navigat
     this.router.navigator.cancel(this.navigation).then(() => {
       // console.log('then', 'cancel');
       this.router.processingNavigation = null;
-      (this.navigation.resolve as ((value: void | PromiseLike<void>) => void))();
+      if (this.navigation.resolve != null) {
+        this.navigation.resolve(false);
+      }
     }).catch(error => { throw error; });
   }
 

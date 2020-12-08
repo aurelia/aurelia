@@ -344,5 +344,5 @@ interface IForwardedState {
  * @internal
  */
 interface IAction {
-  execute(task: QueueTask<IAction>, resolve?: ((value?: void | PromiseLike<void>) => void) | null | undefined, suppressEvent?: boolean): void;
+  execute(task: QueueTask<IAction>, resolve?: ((value?: void | boolean | PromiseLike<void> | PromiseLike<boolean>) => void) | null | undefined, suppressEvent?: boolean): void;
 }

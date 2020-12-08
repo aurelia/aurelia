@@ -1,3 +1,4 @@
+/* eslint-disable compat/compat */
 /**
  *
  * NOTE: This file is still WIP and will go through at least one more iteration of refactoring, commenting and clean up!
@@ -11,8 +12,8 @@ import { bound } from '@aurelia/kernel';
  * @internal - Shouldn't be used directly
  */
 export interface QueueItem<T> {
-  resolve?: ((value: void | PromiseLike<void>) => void);
-  reject?: ((value: void | PromiseLike<void>) => void);
+  resolve?: ((value: boolean | PromiseLike<boolean>) => void);
+  reject?: ((value: boolean | PromiseLike<boolean>) => void);
   cost?: number;
 }
 
@@ -72,22 +73,22 @@ export class Queue<T> {
     this.clear();
   }
 
-  public enqueue(item: T, cost?: number): Promise<void>;
-  public enqueue(items: T[], cost?: number): Promise<void>[];
-  public enqueue(items: T[], costs?: number[]): Promise<void>[];
-  public enqueue(itemOrItems: T | T[], costOrCosts?: number | number[]): Promise<void> | Promise<void>[] {
+  public enqueue(item: T, cost?: number): Promise<boolean | void>;
+  public enqueue(items: T[], cost?: number): Promise<boolean | void>[];
+  public enqueue(items: T[], costs?: number[]): Promise<boolean | void>[];
+  public enqueue(itemOrItems: T | T[], costOrCosts?: number | number[]): Promise<boolean | void> | Promise<boolean | void>[] {
     const list = Array.isArray(itemOrItems);
     const items: T[] = list ? itemOrItems as T[] : [itemOrItems as T];
     const costs: number[] = items
       .map((value, index) => !Array.isArray(costOrCosts) ? costOrCosts : costOrCosts[index])
       .map(value => value !== undefined ? value : 1);
-    const promises: Promise<void>[] = [];
+    const promises: Promise<boolean | void>[] = [];
     for (const item of items) {
       const qItem: QueueItem<T> = { ...item };
       qItem.cost = costs.shift();
-      promises.push(new Promise((resolve, reject) => {
-        qItem.resolve = () => {
-          resolve();
+      promises.push(new Promise<boolean>((resolve, reject) => {
+        qItem.resolve = (value: boolean | PromiseLike<boolean>) => {
+          resolve(value);
           this.processing = null;
           this.dequeue();
         };

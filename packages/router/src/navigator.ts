@@ -80,8 +80,8 @@ export interface INavigatorEntry extends IStoredNavigatorEntry {
   repeating?: boolean;
   untracked?: boolean;
   historyMovement?: number;
-  resolve?: ((value?: void | PromiseLike<void>) => void);
-  reject?: ((value?: void | PromiseLike<void>) => void);
+  resolve?: ((value?: boolean | PromiseLike<boolean>) => void);
+  reject?: ((value?: boolean | PromiseLike<boolean>) => void);
 }
 
 export interface INavigatorOptions {
@@ -170,7 +170,7 @@ export class Navigator {
     this.isActive = false;
   }
 
-  public async navigate(entry: Navigation): Promise<void> {
+  public async navigate(entry: Navigation): Promise<boolean | void> {
     return this.pendingNavigations.enqueue(entry);
   }
 
@@ -225,7 +225,7 @@ export class Navigator {
     this.invokeCallback(entry, navigationFlags, this.currentEntry);
   };
 
-  public async refresh(): Promise<void> {
+  public async refresh(): Promise<boolean | void> {
     const entry = this.currentEntry;
     if (entry === this.uninitializedEntry) {
       return Promise.reject();
@@ -235,7 +235,7 @@ export class Navigator {
     return this.navigate(entry);
   }
 
-  public async go(movement: number): Promise<void> {
+  public async go(movement: number): Promise<boolean | void> {
     const newIndex = (this.currentEntry.index !== undefined ? this.currentEntry.index : 0) + movement;
     if (newIndex >= this.entries.length) {
       return Promise.reject();
@@ -364,7 +364,7 @@ export class Navigator {
       await this.saveState(true);
     }
     if (this.currentEntry.resolve) {
-      this.currentEntry.resolve();
+      this.currentEntry.resolve(true);
     }
   }
 
@@ -377,7 +377,7 @@ export class Navigator {
       }
     }
     if (this.currentEntry.resolve) {
-      this.currentEntry.resolve();
+      this.currentEntry.resolve(false);
     }
   }
 

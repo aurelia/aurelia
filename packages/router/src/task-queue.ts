@@ -1,3 +1,4 @@
+/* eslint-disable compat/compat */
 /**
  *
  * NOTE: This file is still WIP and will go through at least one more iteration of refactoring, commenting and clean up!
@@ -23,9 +24,9 @@ export type QueueableFunction = ((task: QueueTask<void>) => void | Promise<void>
  */
 export class QueueTask<T> {
   public done: boolean = false;
-  private readonly promise: Promise<void>;
+  private readonly promise: Promise<boolean | void>;
 
-  public resolve!: ((value: void | PromiseLike<void>) => void);
+  public resolve!: ((value: boolean | PromiseLike<boolean>) => void);
   public reject!: ((value: unknown | PromiseLike<unknown>) => void);
 
   public constructor(
@@ -33,7 +34,7 @@ export class QueueTask<T> {
     public item: IQueueableItem<T> | QueueableFunction,
     public cost = 0,
   ) {
-    this.promise = new Promise((resolve, reject) => {
+    this.promise = new Promise<boolean | void>((resolve, reject) => {
       this.resolve = () => {
         this.taskQueue.resolve(this, resolve);
       };
@@ -50,7 +51,7 @@ export class QueueTask<T> {
       await this.item(this);
     }
   }
-  public wait(): Promise<void> {
+  public wait(): Promise<boolean | void> {
     return this.promise;
   }
 }
@@ -179,7 +180,7 @@ export class TaskQueue<T> {
     this.pending.splice(0, this.pending.length);
   }
 
-  public resolve(task: QueueTask<T>, resolve: ((value: void | PromiseLike<void>) => void)): void {
+  public resolve(task: QueueTask<T>, resolve: ((value: void | boolean | PromiseLike<void> | PromiseLike<boolean>) => void)): void {
     resolve();
     this.processing = null;
     this.dequeue();

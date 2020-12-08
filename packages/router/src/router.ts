@@ -1185,7 +1185,9 @@ export class Router implements IRouter {
     });
     await this.navigator.cancel(qInstruction as Navigation);
     this.processingNavigation = null;
-    (qInstruction.resolve as ((value: void | PromiseLike<void>) => void))();
+    if (qInstruction.resolve != null) {
+      qInstruction.resolve(false);
+    }
   }
 
   private ensureRootScope(): ViewportScope {

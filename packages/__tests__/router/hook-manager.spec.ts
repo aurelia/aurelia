@@ -9,12 +9,6 @@ describe('HookManager', function () {
     const ctx = TestContext.create();
     const { container, platform, doc, wnd } = ctx;
 
-    let path = wnd.location.href;
-    const hash = path.indexOf('#');
-    if (hash >= 0) {
-      path = path.slice(0, hash);
-    }
-    wnd.history.replaceState({}, '', path);
 
     const host = doc.createElement('div');
     if (App === void 0) {
@@ -39,9 +33,7 @@ describe('HookManager', function () {
     async function tearDown() {
       unspyNavigationStates(router, _pushState, _replaceState);
       RouterConfiguration.customize();
-      await au.stop();
-
-      au.dispose();
+      await au.stop(true);
     }
 
     const navigationInstruction = new Navigation({ instruction: 'test', fullStateInstruction: 'full-test' });

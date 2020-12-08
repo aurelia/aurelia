@@ -63,7 +63,7 @@ export interface IContainer extends IServiceLocator, IDisposable {
   registerTransformer<K extends Key, T = K>(key: K, transformer: Transformer<T>): boolean;
   getResolver<K extends Key, T = K>(key: K | Key, autoRegister?: boolean): IResolver<T> | null;
   registerFactory<T extends Constructable>(key: T, factory: IFactory<T>): void;
-  getFactory<T extends Constructable>(key: T): IFactory<T> | null;
+  getFactory<T extends Constructable>(key: T): IFactory<T>;
   createChild(config?: IContainerConfiguration): IContainer;
   disposeResolvers(): void;
   find<TType extends ResourceType, TDef extends ResourceDefinition>(kind: IResourceKind<TType, TDef>, name: string): TDef | null;
@@ -187,7 +187,7 @@ export class ContainerConfiguration implements IContainerConfiguration {
 
 export const DI = {
   createContainer(config?: Partial<IContainerConfiguration>): IContainer {
-      return new Container(null, ContainerConfiguration.from(config));
+    return new Container(null, ContainerConfiguration.from(config));
   },
   getDesignParamtypes(Type: Constructable | Injectable): readonly Key[] | undefined {
     return Metadata.getOwn('design:paramtypes', Type);
@@ -645,11 +645,7 @@ export const newInstanceForScope = createResolver((key: any, handler: IContainer
 export const newInstanceOf = createResolver((key: any, handler: IContainer, _requestor: IContainer) => createNewInstance(key, handler));
 
 function createNewInstance(key: any, handler: IContainer) {
-  const factory = handler.getFactory(key);
-  if (factory === null) {
-    throw new Error(`No factory registered for ${key}`);
-  }
-  return factory.construct(handler);
+  return handler.getFactory(key).construct(handler);
 }
 
 /** @internal */
@@ -687,11 +683,7 @@ export class Resolver implements IResolver, IRegistration {
           throw new Error(`Cyclic dependency found: ${this.state.name}`);
         }
         this.resolving = true;
-        const factory = handler.getFactory(this.state as Constructable);
-        if (factory === null) {
-          throw new Error(`Resolver for ${String(this.key)} returned a null factory`);
-        }
-        this.state = factory.construct(requestor);
+        this.state = handler.getFactory(this.state as Constructable).construct(requestor);
         this.strategy = ResolverStrategy.instance;
         this.resolving = false;
         return this.state;
@@ -716,17 +708,12 @@ export class Resolver implements IResolver, IRegistration {
   }
 
   public getFactory(container: IContainer): IFactory | null {
-    let resolver: IResolver | null;
     switch (this.strategy) {
       case ResolverStrategy.singleton:
       case ResolverStrategy.transient:
         return container.getFactory(this.state as Constructable);
       case ResolverStrategy.alias:
-        resolver = container.getResolver(this.state);
-        if (resolver == null || resolver.getFactory === void 0) {
-          return null;
-        }
-        return resolver.getFactory(container);
+        return container.getResolver(this.state)?.getFactory?.(container) ?? null;
       default:
         return null;
     }
@@ -852,6 +839,8 @@ export class Container implements IContainer {
   private readonly root: Container;
 
   private readonly resolvers: Map<Key, IResolver | IDisposableResolver>;
+  // Factories are "global" per container tree
+  private readonly factories: Map<Constructable, Factory>;
 
   private resourceResolvers: Record<string, IResolver | IDisposableResolver | undefined>;
 
@@ -865,12 +854,14 @@ export class Container implements IContainer {
       this.root = this;
 
       this.resolvers = new Map();
+      this.factories = new Map<Constructable, Factory>();
 
       this.resourceResolvers = Object.create(null);
     } else {
       this.root = parent.root;
 
       this.resolvers = new Map();
+      this.factories = parent.factories;
 
       if (config.inheritParentResources) {
         this.resourceResolvers = Object.assign(
@@ -1127,21 +1118,19 @@ export class Container implements IContainer {
     return emptyArray;
   }
 
-  public getFactory<K extends Constructable>(Type: K): IFactory<K> | null {
-    let factory = Metadata.getOwn(factoryAnnotationKey, Type);
+  public getFactory<K extends Constructable>(Type: K): IFactory<K> {
+    let factory = this.factories.get(Type);
     if (factory === void 0) {
       if (isNativeFunction(Type)) {
         throw new Error(`${Type.name} is a native function and therefore cannot be safely constructed by DI. If this is intentional, please use a callback or cachedCallback resolver.`);
       }
-      Metadata.define(factoryAnnotationKey, factory = new Factory<K>(Type, DI.getDependencies(Type)), Type);
-      Protocol.annotation.appendTo(Type, factoryAnnotationKey);
+      this.factories.set(Type, factory = new Factory<K>(Type, DI.getDependencies(Type)));
     }
     return factory;
   }
 
   public registerFactory<K extends Constructable>(key: K, factory: IFactory<K>): void {
-    Protocol.annotation.set(key, factoryKey, factory);
-    Protocol.annotation.appendTo(key, factoryAnnotationKey);
+    this.factories.set(key, factory as Factory);
   }
 
   public createChild(config?: Partial<IContainerConfiguration>): IContainer {

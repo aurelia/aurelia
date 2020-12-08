@@ -651,7 +651,7 @@ export class Viewport implements IScopeOwner {
 
   public finalizeContentChange(): void {
     // console.log('finalizeContent', this.nextContent!.content?.componentName);
-    if (this.nextContent!.componentInstance) {
+    if (this.nextContent?.componentInstance != null) {
       this.content = this.nextContent!;
       this.content.reentry = false;
     }
@@ -662,8 +662,8 @@ export class Viewport implements IScopeOwner {
     this.nextContent = null;
     this.nextContentAction = '';
 
-    //    this.content.contentStates.delete('checkedUnload');
-    //    this.content.contentStates.delete('checkedLoad');
+    this.content.contentStates.delete('checkedUnload');
+    this.content.contentStates.delete('checkedLoad');
 
     this.previousViewportState = null;
     this.connectedScope.clearReplacedChildren();
@@ -681,10 +681,11 @@ export class Viewport implements IScopeOwner {
         if (this.previousViewportState) {
           Object.assign(this, this.previousViewportState);
         }
+        this.nextContent = null;
         this.nextContentAction = '';
 
-        //        this.content.contentStates.delete('checkedUnload');
-        //        this.content.contentStates.delete('checkedLoad');
+        this.content.contentStates.delete('checkedUnload');
+        this.content.contentStates.delete('checkedLoad');
       });
   }
 

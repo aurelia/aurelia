@@ -1,5 +1,5 @@
 import { BrowserPlatform } from '@aurelia/platform-browser';
-import { WatcherSwitcher } from '@aurelia/runtime';
+import { ConnectableSwitcher } from '@aurelia/runtime';
 import { setPlatform, assert, ensureTaskQueuesEmpty } from '@aurelia/testing';
 
 interface ExtendedSuite extends Mocha.Suite {
@@ -77,11 +77,11 @@ export function $setup(platform: BrowserPlatform) {
 
   function assertNoWatcher(shouldThrow: boolean) {
     let hasWatcher = false;
-    let currentWatcher = WatcherSwitcher.current;
+    let currentWatcher = ConnectableSwitcher.current;
     while (currentWatcher != null) {
       hasWatcher = true;
-      WatcherSwitcher.exit(currentWatcher);
-      currentWatcher = WatcherSwitcher.current;
+      ConnectableSwitcher.exit(currentWatcher);
+      currentWatcher = ConnectableSwitcher.current;
     }
     if (hasWatcher) {
       if (shouldThrow) {

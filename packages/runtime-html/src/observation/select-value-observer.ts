@@ -38,7 +38,6 @@ export interface IOptionElement extends HTMLOptionElement {
 export interface SelectValueObserver extends
   ISubscriberCollection {}
 
-@subscriberCollection()
 export class SelectValueObserver implements IObserver {
   public currentValue: unknown = void 0;
   public oldValue: unknown = void 0;
@@ -279,3 +278,5 @@ export class SelectValueObserver implements IObserver {
     }
   }
 }
+
+subscriberCollection()(SelectValueObserver);

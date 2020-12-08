@@ -22,7 +22,6 @@ export interface AttributeObserver extends
  * Has different strategy for class/style and normal attributes
  * TODO: handle SVG/attributes with namespace
  */
-@subscriberCollection()
 export class AttributeObserver implements AttributeObserver, ElementMutationSubscription {
   public currentValue: unknown = null;
   public oldValue: unknown = null;
@@ -142,6 +141,8 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
     }
   }
 }
+
+subscriberCollection()(AttributeObserver);
 
 const startObservation = ($MutationObserver: typeof MutationObserver, element: IHtmlElement, subscription: ElementMutationSubscription): void => {
   if (element.$eMObservers === undefined) {

@@ -1,14 +1,5 @@
 import { DI, IContainer, IRegistry } from '@aurelia/kernel';
 import {
-  DebounceBindingBehaviorRegistration,
-  OneTimeBindingBehaviorRegistration,
-  ToViewBindingBehaviorRegistration,
-  FromViewBindingBehaviorRegistration,
-  SignalBindingBehaviorRegistration,
-  ThrottleBindingBehaviorRegistration,
-  TwoWayBindingBehaviorRegistration,
-} from '@aurelia/runtime';
-import {
   AtPrefixedTriggerAttributePattern,
   ColonPrefixedBindAttributePattern,
   DotSeparatedAttributePattern,
@@ -50,6 +41,15 @@ import {
   SetClassAttributeRenderer,
   SetStyleAttributeRenderer,
 } from './renderer.js';
+import {
+  FromViewBindingBehavior,
+  OneTimeBindingBehavior,
+  ToViewBindingBehavior,
+  TwoWayBindingBehavior,
+} from './binding-behaviors/binding-mode.js';
+import { DebounceBindingBehavior } from './binding-behaviors/debounce.js';
+import { SignalBindingBehavior } from './binding-behaviors/signals.js';
+import { ThrottleBindingBehavior } from './binding-behaviors/throttle.js';
 import { SVGAnalyzer } from './observation/svg-analyzer.js';
 import { AttrBindingBehavior } from './resources/binding-behaviors/attr.js';
 import { SelfBindingBehavior } from './resources/binding-behaviors/self.js';
@@ -67,6 +67,14 @@ import { AuSlot } from './resources/custom-elements/au-slot.js';
 import { SanitizeValueConverter } from './resources/value-converters/sanitize.js';
 import { ViewValueConverter } from './resources/value-converters/view.js';
 import { NodeObserverLocator } from './observation/observer-locator.js';
+
+export const DebounceBindingBehaviorRegistration = DebounceBindingBehavior as unknown as IRegistry;
+export const OneTimeBindingBehaviorRegistration = OneTimeBindingBehavior as unknown as IRegistry;
+export const ToViewBindingBehaviorRegistration = ToViewBindingBehavior as unknown as IRegistry;
+export const FromViewBindingBehaviorRegistration = FromViewBindingBehavior as unknown as IRegistry;
+export const SignalBindingBehaviorRegistration = SignalBindingBehavior as unknown as IRegistry;
+export const ThrottleBindingBehaviorRegistration = ThrottleBindingBehavior as unknown as IRegistry;
+export const TwoWayBindingBehaviorRegistration = TwoWayBindingBehavior as unknown as IRegistry;
 
 export const ITemplateCompilerRegistration = TemplateCompiler as IRegistry;
 export const INodeObserverLocatorRegistration = NodeObserverLocator as IRegistry;

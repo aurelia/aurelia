@@ -858,7 +858,6 @@ describe('PropertyBinding', function () {
       sut['$scope'] = scope;
       sut.isBound = true;
       sut['targetObserver'] = {} as any;
-      const unobserveSpy = createSpy(sut, 'unobserve');
       const unbindSpy = (dummySourceExpression as any).unbind = createSpy();
       (dummySourceExpression as any).$kind |= ExpressionKind.HasUnbind;
       sut.$unbind(LF.fromUnbind);
@@ -878,7 +877,7 @@ describe('PropertyBinding', function () {
         let i = 0;
         while (i < count) {
           const observer = new MockObserver();
-          sut.addObserver(observer);
+          sut.record.add(observer);
           assert.strictEqual(sut.record[`_o${i}`] === observer, true, `sut.record[\`_o\${i}\`] === observer`);
           assert.strictEqual(sut.record[`_v${i}`] === 0, true, `sut.record[\`_v\${i}\`] === 0`);
           i++;
@@ -890,7 +889,7 @@ describe('PropertyBinding', function () {
         let i = 0;
         while (i < count) {
           const observer = new MockObserver();
-          sut.addObserver(observer);
+          sut.record.add(observer);
           assert.deepStrictEqual(
             observer.subscribe.calls,
             [
@@ -907,14 +906,14 @@ describe('PropertyBinding', function () {
         let i = 0;
         while (i < count) {
           const observer = new MockObserver();
-          sut.addObserver(observer);
+          sut.record.add(observer);
           observer.subscribe.reset();
           i++;
         }
         i = 0;
         while (i < count) {
-          const observer = sut.record[`_o${i}`] as ISubscribable;
-          sut.addObserver(observer);
+          const observer = sut.record[`_o${i}`] as ISubscribable & { [id: number]: number };
+          sut.record.add(observer);
           // expect(observer.subscribe).not.to.have.been.called;
           i++;
         }
@@ -925,14 +924,14 @@ describe('PropertyBinding', function () {
         let i = 0;
         while (i < count) {
           const observer = new MockObserver();
-          sut.addObserver(observer);
+          sut.record.add(observer);
           i++;
         }
         const version = sut.record.version = 5;
         i = 0;
         while (i < count) {
-          const observer = sut.record[`_o${i}`] as ISubscribable;
-          sut.addObserver(observer);
+          const observer = sut.record[`_o${i}`] as ISubscribable & { [id: number]: number };
+          sut.record.add(observer);
           assert.strictEqual(sut.record[`_v${i}`] === version, true, `sut.record[\`_v\${i}\`] === version`);
           i++;
         }
@@ -943,14 +942,14 @@ describe('PropertyBinding', function () {
         let i = 0;
         while (i < count) {
           const observer = new MockObserver();
-          sut.addObserver(observer);
+          sut.record.add(observer);
           i++;
         }
         const version = sut.record.version = 5;
         i = 0;
         while (i < count) {
-          const observer = sut.record[`_o${i}`] as ISubscribable;
-          sut.addObserver(observer);
+          const observer = sut.record[`_o${i}`] as ISubscribable & { [id: number]: number };
+          sut.record.add(observer);
           i += 2;
         }
         i = 0;
@@ -984,6 +983,7 @@ describe('PropertyBinding', function () {
 });
 
 class MockObserver {
+  [id: number]: number;
   public _sFlags?: number;
   public _s0?: ISubscriber;
   public _s1?: ISubscriber;

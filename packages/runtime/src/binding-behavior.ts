@@ -174,13 +174,9 @@ export class BindingInterceptor implements IInterceptableBinding {
   public get isBound(): boolean {
     return this.binding.isBound;
   }
-  /** @internal */
   public get record(): BindingObserverRecord {
     return this.binding.record;
   }
-  /**
-   * @internal
-   */
   public get cRecord(): BindingCollectionObserverRecord {
     return this.binding.cRecord;
   }
@@ -209,41 +205,11 @@ export class BindingInterceptor implements IInterceptableBinding {
   public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
     this.binding.handleChange!(newValue, previousValue, flags);
   }
-  /**
-   * @internal
-   */
   public observeProperty(obj: object, key: string): void {
     this.binding.observeProperty!(obj, key as string);
   }
-  /**
-   * @internal
-   */
-  public addObserver(observer: ISubscribable): void {
-    this.binding.addObserver!(observer);
-  }
-  /**
-   * @internal
-   */
-  public unobserve(all?: boolean): void {
-    this.binding.unobserve!(all);
-  }
-  /**
-   * @internal
-   */
   public observeCollection(observer: Collection): void {
     this.binding.observeCollection(observer);
-  }
-  /**
-   * @internal
-   */
-  public addCollectionObserver(observer: ICollectionSubscribable): void {
-    this.binding.addCollectionObserver(observer);
-  }
-  /**
-   * @internal
-   */
-  public unobserveCollection(all?: boolean): void {
-    this.binding.unobserveCollection(all);
   }
 
   public $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void {

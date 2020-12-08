@@ -46,12 +46,7 @@ export interface IConnectableBinding extends IPartialConnectableBinding, IConnec
   /**
    * A record storing observers that are currently subscribed to by this binding
    */
-  // this is an implementation detail that leaks, should be either:
-  // - removed with the removal of the interceptor
-  // - tweak the interfaces, so that record is a natural part of the binding interface contract
   record: BindingObserverRecord;
-  addObserver(observer: ISubscribable): void;
-  unobserve(all?: boolean): void;
 
   // todo:
   // merge collection subscribable, and generally collection subscription
@@ -60,21 +55,7 @@ export interface IConnectableBinding extends IPartialConnectableBinding, IConnec
   /**
    * A record storing collection observers that are currently subscribed to by this binding
    */
-  // similar to record, this is an implementation detail
   cRecord: BindingCollectionObserverRecord;
-  unobserveCollection(all?: boolean): void;
-  addCollectionObserver(observer: ICollectionSubscribable): void;
-}
-
-function addObserver(
-  this: IConnectableBinding & { [key: string]: ISubscribable & { [id: number]: number } | number },
-  observer: ISubscribable & { [id: number]: number }
-): void {
-  this.record.add(observer);
-}
-
-function addCollectionObserver(this: IConnectableBinding, observer: ICollectionSubscribable): void {
-  this.cRecord.add(observer);
 }
 
 function observeProperty(this: IConnectableBinding, obj: object, key: PropertyKey): void {
@@ -86,13 +67,8 @@ function observeProperty(this: IConnectableBinding, obj: object, key: PropertyKe
    *
    * We'll probably want to implement some global configuration (like a "strict" toggle) so users can pick between enforced correctness vs. ease-of-use
    */
-  this.addObserver(observer);
+  this.record.add(observer);
 }
-
-function unobserve(this: IConnectableBinding & { [key: string]: unknown }, all?: boolean): void {
-  this.record.clear(all);
-}
-
 function getRecord(this: IConnectableBinding): BindingObserverRecord {
   const record = new BindingObserverRecord(this);
   defineHiddenProp(this, 'record', record);
@@ -101,11 +77,7 @@ function getRecord(this: IConnectableBinding): BindingObserverRecord {
 
 function observeCollection(this: IConnectableBinding, collection: Collection): void {
   const obs = getCollectionObserver(collection, this.observerLocator);
-  this.addCollectionObserver(obs);
-}
-
-function unobserveCollection(this: IConnectableBinding, all?: boolean): void {
-  this.cRecord.clear(all);
+  this.cRecord.add(obs);
 }
 function getCollectionRecord(this: IConnectableBinding): BindingCollectionObserverRecord {
   const record = new BindingCollectionObserverRecord(this);
@@ -144,13 +116,14 @@ type ObservationRecordImplType = {
 
 export interface BindingObserverRecord extends ISubscriber, ObservationRecordImplType { }
 export class BindingObserverRecord implements ISubscriber {
-  public id: number = idValue++;
+  public id!: number;
   public version: number = 0;
   public count: number = 0;
 
   public constructor(
     public binding: IConnectableBinding
   ) {
+    connectable.assignIdTo(this);
   }
 
   public handleChange(value: unknown, oldValue: unknown, flags: LifecycleFlags): unknown {
@@ -222,7 +195,7 @@ export class BindingObserverRecord implements ISubscriber {
 
 export interface BindingCollectionObserverRecord extends ICollectionSubscriber, ObservationRecordImplType { }
 export class BindingCollectionObserverRecord {
-  public id: number = idValue++;
+  public id!: number;
   public count: number = 0;
   public get version(): number {
     return this.binding.record.version;
@@ -231,7 +204,9 @@ export class BindingCollectionObserverRecord {
   private readonly observers = new Map<ICollectionSubscribable, number>();
   public constructor(
     public readonly binding: IConnectableBinding,
-  ) {}
+  ) {
+    connectable.assignIdTo(this);
+  }
 
   public handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void {
     this.binding.interceptor.handleCollectionChange(indexMap, flags);
@@ -248,8 +223,11 @@ export class BindingCollectionObserverRecord {
     }
     const observers = this.observers;
     const version = this.version;
-    for (const [o, oVersion] of observers) {
-      if (all || oVersion !== version) {
+    let observerAndVersionPair: [ICollectionSubscribable, number];
+    let o: ICollectionSubscribable;
+    for (observerAndVersionPair of observers) {
+      if (all || observerAndVersionPair[1] !== version) {
+        o = observerAndVersionPair[0];
         o.unsubscribeFromCollection(this);
         observers.delete(o);
       }
@@ -266,10 +244,6 @@ function connectableDecorator<TProto, TClass>(target: DecoratableConnectable<TPr
   const defProp = Reflect.defineProperty;
   ensureProto(proto, 'observeProperty', observeProperty, true);
   ensureProto(proto, 'observeCollection', observeCollection, true);
-  ensureProto(proto, 'unobserve', unobserve, true);
-  ensureProto(proto, 'unobserveCollection', unobserveCollection, true);
-  ensureProto(proto, 'addObserver', addObserver, true);
-  ensureProto(proto, 'addCollectionObserver', addCollectionObserver, true);
   defProp(proto, 'record', {
     configurable: true,
     get: getRecord,
@@ -293,7 +267,7 @@ export function connectable<TProto, TClass>(target?: DecoratableConnectable<TPro
 
 let idValue = 0;
 
-connectable.assignIdTo = (instance: IConnectableBinding | BindingObserverRecord): void => {
+connectable.assignIdTo = (instance: IConnectableBinding | BindingObserverRecord | BindingCollectionObserverRecord): void => {
   instance.id = ++idValue;
 };
 

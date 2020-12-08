@@ -234,20 +234,20 @@ export class ViewportContent {
       // () => this.contentStates.await('checkedUnload'),
       () => {
         */
-        // if (!this.loaded) {
-        if (!this.contentStates.has('loaded')) {
-          return;
-        }
-        // this.loaded = false;
-        // console.log('loaded', this.content.componentName, 'deleted');
-        this.contentStates.delete('loaded');
-        if (this.content.componentInstance && this.content.componentInstance.unload) {
-          return this.content.componentInstance.unload(this.viewport!, nextInstruction, this.instruction);
-        }
-        /*
-      }
-    );
-    */
+    // if (!this.loaded) {
+    if (!this.contentStates.has('loaded')) {
+      return;
+    }
+    // this.loaded = false;
+    // console.log('loaded', this.content.componentName, 'deleted');
+    this.contentStates.delete('loaded');
+    if (this.content.componentInstance && this.content.componentInstance.unload) {
+      return this.content.componentInstance.unload(this.viewport!, nextInstruction, this.instruction);
+    }
+    /*
+  }
+);
+*/
   }
 
   // public unloadComponent(cache: ViewportContent[], stateful: boolean = false): void {
@@ -309,7 +309,7 @@ export class ViewportContent {
         }
       },
     */
-   );
+    );
   }
   // public async activateComponent(initiator: IHydratedController | null, parent: ICustomElementController<ICustomElementViewModel> | null, flags: LifecycleFlags, connectedCE: IConnectedCustomElement): Promise<void> {
   //   // if (this.contentStatus !== ContentStatus.created) {
@@ -340,35 +340,35 @@ export class ViewportContent {
     return Runner.run(null,
       () => {
         */
-        // console.log('deactivateComponent', this.contentStates.has('activated'), this.viewport?.toString());
-        // if (this.contentStatus !== ContentStatus.activated) {
-        if (!this.contentStates.has('activated')) {
-          return;
-        }
-        // this.contentStatus = ContentStatus.created;
-        this.contentStates.delete('activated');
+    // console.log('deactivateComponent', this.contentStates.has('activated'), this.viewport?.toString());
+    // if (this.contentStatus !== ContentStatus.activated) {
+    if (!this.contentStates.has('activated')) {
+      return;
+    }
+    // this.contentStatus = ContentStatus.created;
+    this.contentStates.delete('activated');
 
-        if (stateful && connectedCE.element !== null) {
-          // const contentController = this.content.componentInstance!.$controller!;
-          const elements = Array.from(connectedCE.element.getElementsByTagName('*'));
-          for (const el of elements) {
-            if (el.scrollTop > 0 || el.scrollLeft) {
-              el.setAttribute('au-element-scroll', `${el.scrollTop},${el.scrollLeft}`);
-            }
-          }
+    if (stateful && connectedCE.element !== null) {
+      // const contentController = this.content.componentInstance!.$controller!;
+      const elements = Array.from(connectedCE.element.getElementsByTagName('*'));
+      for (const el of elements) {
+        if (el.scrollTop > 0 || el.scrollLeft) {
+          el.setAttribute('au-element-scroll', `${el.scrollTop},${el.scrollLeft}`);
         }
+      }
+    }
 
-        const contentController = this.contentController(connectedCE);
-        return contentController.deactivate(initiator ?? contentController, parent!, flags);
-        /*
-      },
-    );
-    */
+    const contentController = this.contentController(connectedCE);
+    return contentController.deactivate(initiator ?? contentController, parent!, flags);
+    /*
+  },
+);
+*/
   }
 
   public disposeComponent(connectedCE: IConnectedCustomElement, cache: ViewportContent[], stateful: boolean = false): void {
     // console.log('disposeComponent', this.contentStates.has('created'), this.viewport?.toString());
-    if (!this.contentStates.has('created')) {
+    if (!this.contentStates.has('created') || this.content.componentInstance == null) {
       return;
     }
 

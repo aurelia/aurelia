@@ -13,6 +13,7 @@ import { SelfBindingBehavior } from './resources/binding-behaviors/self.js';
 import { UpdateTriggerBindingBehavior } from './resources/binding-behaviors/update-trigger.js';
 import { Blur } from './resources/custom-attributes/blur.js';
 import { Focus } from './resources/custom-attributes/focus.js';
+import { Show } from './resources/custom-attributes/show.js';
 import { Portal } from './resources/template-controllers/portal.js';
 import { FrequentMutations, ObserveShallow } from './resources/template-controllers/flags.js';
 import { Else, If } from './resources/template-controllers/if.js';
@@ -121,6 +122,7 @@ export const ComposeRegistration = Compose;
 export const PortalRegistration = Portal;
 export const FocusRegistration = Focus;
 export const BlurRegistration = Blur;
+export const ShowRegistration = Show;
 /**
  * Default HTML-specific (but environment-agnostic) resources:
  * - Binding Behaviors: `oneTime`, `toView`, `fromView`, `twoWay`, `signal`, `debounce`, `throttle`, `attr`, `self`, `updateTrigger`
@@ -155,6 +157,7 @@ export const DefaultResources = [
     PortalRegistration,
     FocusRegistration,
     BlurRegistration,
+    ShowRegistration,
     AuSlot,
 ];
 export const CallBindingRendererRegistration = CallBindingRenderer;

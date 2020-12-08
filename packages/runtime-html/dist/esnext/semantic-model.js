@@ -266,8 +266,9 @@ const elementInfoLookup = new WeakMap();
  * for consumption by the template compiler.
  */
 export class ElementInfo {
-    constructor(name, containerless) {
+    constructor(name, alias, containerless) {
         this.name = name;
+        this.alias = alias;
         this.containerless = containerless;
         /**
          * A lookup of the bindables of this element, indexed by the (pre-processed)
@@ -275,13 +276,17 @@ export class ElementInfo {
          */
         this.bindables = Object.create(null);
     }
-    static from(def) {
+    static from(def, alias) {
         if (def === null) {
             return null;
         }
-        let info = elementInfoLookup.get(def);
+        let rec = elementInfoLookup.get(def);
+        if (rec === void 0) {
+            elementInfoLookup.set(def, rec = Object.create(null));
+        }
+        let info = rec[alias];
         if (info === void 0) {
-            info = new ElementInfo(def.name, def.containerless);
+            info = rec[alias] = new ElementInfo(def.name, alias === def.name ? void 0 : alias, def.containerless);
             const bindables = def.bindables;
             const defaultBindingMode = BindingMode.toView;
             let bindable;
@@ -310,7 +315,6 @@ export class ElementInfo {
                 }
                 info.bindables[attr] = new BindableInfo(prop, mode);
             }
-            elementInfoLookup.set(def, info);
         }
         return info;
     }
@@ -321,8 +325,9 @@ const attrInfoLookup = new WeakMap();
  * for consumption by the template compiler.
  */
 export class AttrInfo {
-    constructor(name, isTemplateController, noMultiBindings) {
+    constructor(name, alias, isTemplateController, noMultiBindings) {
         this.name = name;
+        this.alias = alias;
         this.isTemplateController = isTemplateController;
         this.noMultiBindings = noMultiBindings;
         /**
@@ -341,13 +346,17 @@ export class AttrInfo {
          */
         this.bindable = null;
     }
-    static from(def) {
+    static from(def, alias) {
         if (def === null) {
             return null;
         }
-        let info = attrInfoLookup.get(def);
+        let rec = attrInfoLookup.get(def);
+        if (rec === void 0) {
+            attrInfoLookup.set(def, rec = Object.create(null));
+        }
+        let info = rec[alias];
         if (info === void 0) {
-            info = new AttrInfo(def.name, def.isTemplateController, def.noMultiBindings);
+            info = rec[alias] = new AttrInfo(def.name, alias === def.name ? void 0 : alias, def.isTemplateController, def.noMultiBindings);
             const bindables = def.bindables;
             const defaultBindingMode = def.defaultBindingMode !== void 0 && def.defaultBindingMode !== BindingMode.default
                 ? def.defaultBindingMode
@@ -388,7 +397,6 @@ export class AttrInfo {
             if (info.bindable === null) {
                 info.bindable = new BindableInfo('value', defaultBindingMode);
             }
-            attrInfoLookup.set(def, info);
         }
         return info;
     }

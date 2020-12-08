@@ -205,14 +205,15 @@ export declare class BindableInfo {
  */
 export declare class ElementInfo {
     name: string;
+    alias: string | undefined;
     containerless: boolean;
     /**
      * A lookup of the bindables of this element, indexed by the (pre-processed)
      * attribute names as they would be found in parsed markup.
      */
     bindables: Record<string, BindableInfo | undefined>;
-    constructor(name: string, containerless: boolean);
-    static from(def: CustomElementDefinition | null): ElementInfo | null;
+    constructor(name: string, alias: string | undefined, containerless: boolean);
+    static from(def: CustomElementDefinition | null, alias: string): ElementInfo | null;
 }
 /**
  * Pre-processed information about a custom attribute resource, optimized
@@ -220,6 +221,7 @@ export declare class ElementInfo {
  */
 export declare class AttrInfo {
     name: string;
+    alias: string | undefined;
     isTemplateController: boolean;
     noMultiBindings: boolean;
     /**
@@ -237,7 +239,7 @@ export declare class AttrInfo {
      * contains no semicolons)
      */
     bindable: BindableInfo | null;
-    constructor(name: string, isTemplateController: boolean, noMultiBindings: boolean);
-    static from(def: CustomAttributeDefinition | null): AttrInfo | null;
+    constructor(name: string, alias: string | undefined, isTemplateController: boolean, noMultiBindings: boolean);
+    static from(def: CustomAttributeDefinition | null, alias: string): AttrInfo | null;
 }
 //# sourceMappingURL=semantic-model.d.ts.map

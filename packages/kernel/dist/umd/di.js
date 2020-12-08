@@ -457,11 +457,7 @@
     });
     exports.newInstanceOf = createResolver((key, handler, _requestor) => createNewInstance(key, handler));
     function createNewInstance(key, handler) {
-        const factory = handler.getFactory(key);
-        if (factory === null) {
-            throw new Error(`No factory registered for ${key}`);
-        }
-        return factory.construct(handler);
+        return handler.getFactory(key).construct(handler);
     }
     /** @internal */
     var ResolverStrategy;
@@ -494,11 +490,7 @@
                         throw new Error(`Cyclic dependency found: ${this.state.name}`);
                     }
                     this.resolving = true;
-                    const factory = handler.getFactory(this.state);
-                    if (factory === null) {
-                        throw new Error(`Resolver for ${String(this.key)} returned a null factory`);
-                    }
-                    this.state = factory.construct(requestor);
+                    this.state = handler.getFactory(this.state).construct(requestor);
                     this.strategy = 0 /* instance */;
                     this.resolving = false;
                     return this.state;
@@ -516,23 +508,19 @@
                 case 4 /* array */:
                     return this.state[0].resolve(handler, requestor);
                 case 5 /* alias */:
-                    return handler.get(this.state);
+                    return requestor.get(this.state);
                 default:
                     throw new Error(`Invalid resolver strategy specified: ${this.strategy}.`);
             }
         }
         getFactory(container) {
-            let resolver;
+            var _a, _b, _c;
             switch (this.strategy) {
                 case 1 /* singleton */:
                 case 2 /* transient */:
                     return container.getFactory(this.state);
                 case 5 /* alias */:
-                    resolver = container.getResolver(this.state);
-                    if (resolver == null || resolver.getFactory === void 0) {
-                        return null;
-                    }
-                    return resolver.getFactory(container);
+                    return (_c = (_b = (_a = container.getResolver(this.state)) === null || _a === void 0 ? void 0 : _a.getFactory) === null || _b === void 0 ? void 0 : _b.call(_a, container)) !== null && _c !== void 0 ? _c : null;
                 default:
                     return null;
             }
@@ -541,104 +529,36 @@
     exports.Resolver = Resolver;
     /** @internal */
     class Factory {
-        constructor(Type, invoker, dependencies) {
+        constructor(Type, dependencies) {
             this.Type = Type;
-            this.invoker = invoker;
             this.dependencies = dependencies;
             this.transformers = null;
         }
         construct(container, dynamicDependencies) {
-            const transformers = this.transformers;
-            let instance = dynamicDependencies !== void 0
-                ? this.invoker.invokeWithDynamicDependencies(container, this.Type, this.dependencies, dynamicDependencies)
-                : this.invoker.invoke(container, this.Type, this.dependencies);
-            if (transformers == null) {
+            let instance;
+            if (dynamicDependencies === void 0) {
+                instance = new this.Type(...this.dependencies.map(function (d) {
+                    return container.get(d);
+                }));
+            }
+            else {
+                instance = new this.Type(...this.dependencies.map(function (d) {
+                    return container.get(d);
+                }), ...dynamicDependencies);
+            }
+            if (this.transformers == null) {
                 return instance;
             }
-            for (let i = 0, ii = transformers.length; i < ii; ++i) {
-                instance = transformers[i](instance);
-            }
-            return instance;
+            return this.transformers.reduce(function (inst, transform) {
+                return transform(inst);
+            }, instance);
         }
         registerTransformer(transformer) {
-            if (this.transformers == null) {
-                this.transformers = [];
-            }
-            this.transformers.push(transformer);
-            return true;
+            var _a;
+            ((_a = this.transformers) !== null && _a !== void 0 ? _a : (this.transformers = [])).push(transformer);
         }
     }
     exports.Factory = Factory;
-    const createFactory = (function () {
-        function invokeWithDynamicDependencies(container, Type, staticDependencies, dynamicDependencies) {
-            let i = staticDependencies.length;
-            let args = new Array(i);
-            let lookup;
-            while (i-- > 0) {
-                lookup = staticDependencies[i];
-                if (lookup == null) {
-                    throw new Error(`Constructor Parameter with index (${i}) cannot be null or undefined. Are you trying to inject/register something that doesn't exist with DI?`);
-                }
-                else {
-                    args[i] = container.get(lookup);
-                }
-            }
-            if (dynamicDependencies !== void 0) {
-                args = args.concat(dynamicDependencies);
-            }
-            return Reflect.construct(Type, args);
-        }
-        const classInvokers = [
-            {
-                invoke(container, Type) {
-                    return new Type();
-                },
-                invokeWithDynamicDependencies
-            },
-            {
-                invoke(container, Type, deps) {
-                    return new Type(container.get(deps[0]));
-                },
-                invokeWithDynamicDependencies
-            },
-            {
-                invoke(container, Type, deps) {
-                    return new Type(container.get(deps[0]), container.get(deps[1]));
-                },
-                invokeWithDynamicDependencies
-            },
-            {
-                invoke(container, Type, deps) {
-                    return new Type(container.get(deps[0]), container.get(deps[1]), container.get(deps[2]));
-                },
-                invokeWithDynamicDependencies
-            },
-            {
-                invoke(container, Type, deps) {
-                    return new Type(container.get(deps[0]), container.get(deps[1]), container.get(deps[2]), container.get(deps[3]));
-                },
-                invokeWithDynamicDependencies
-            },
-            {
-                invoke(container, Type, deps) {
-                    return new Type(container.get(deps[0]), container.get(deps[1]), container.get(deps[2]), container.get(deps[3]), container.get(deps[4]));
-                },
-                invokeWithDynamicDependencies
-            }
-        ];
-        const fallbackInvoker = {
-            invoke: invokeWithDynamicDependencies,
-            invokeWithDynamicDependencies
-        };
-        return function (Type) {
-            if (functions_js_1.isNativeFunction(Type)) {
-                throw new Error(`${Type.name} is a native function and therefore cannot be safely constructed by DI. If this is intentional, please use a callback or cachedCallback resolver.`);
-            }
-            const dependencies = exports.DI.getDependencies(Type);
-            const invoker = classInvokers.length > dependencies.length ? classInvokers[dependencies.length] : fallbackInvoker;
-            return new Factory(Type, invoker, dependencies);
-        };
-    })();
     const containerResolver = {
         $isResolver: true,
         resolve(handler, requestor) {
@@ -706,11 +626,13 @@
             if (parent === null) {
                 this.root = this;
                 this.resolvers = new Map();
+                this.factories = new Map();
                 this.resourceResolvers = Object.create(null);
             }
             else {
                 this.root = parent.root;
                 this.resolvers = new Map();
+                this.factories = parent.factories;
                 if (config.inheritParentResources) {
                     this.resourceResolvers = Object.assign(Object.create(null), parent.resourceResolvers, this.root.resourceResolvers);
                 }
@@ -845,7 +767,8 @@
                 // Problem is that that interface's type arg can be of type Key, but the getFactory method only works on
                 // type Constructable. So the return type of that optional method has this additional constraint, which
                 // seems to confuse the type checker.
-                return factory.registerTransformer(transformer);
+                factory.registerTransformer(transformer);
+                return true;
             }
             return false;
         }
@@ -934,16 +857,17 @@
             return platform_js_1.emptyArray;
         }
         getFactory(Type) {
-            let factory = metadata_1.Metadata.getOwn(factoryAnnotationKey, Type);
+            let factory = this.factories.get(Type);
             if (factory === void 0) {
-                metadata_1.Metadata.define(factoryAnnotationKey, factory = createFactory(Type), Type);
-                resource_js_1.Protocol.annotation.appendTo(Type, factoryAnnotationKey);
+                if (functions_js_1.isNativeFunction(Type)) {
+                    throw new Error(`${Type.name} is a native function and therefore cannot be safely constructed by DI. If this is intentional, please use a callback or cachedCallback resolver.`);
+                }
+                this.factories.set(Type, factory = new Factory(Type, exports.DI.getDependencies(Type)));
             }
             return factory;
         }
         registerFactory(key, factory) {
-            resource_js_1.Protocol.annotation.set(key, factoryKey, factory);
-            resource_js_1.Protocol.annotation.appendTo(key, factoryAnnotationKey);
+            this.factories.set(key, factory);
         }
         createChild(config) {
             if (config === void 0 && this.config.inheritParentResources) {

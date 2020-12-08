@@ -105,7 +105,7 @@
         if (!dependencies.includes(Type)) {
             dependencies.push(Type);
         }
-        instructions.push(new renderer_js_1.HydrateElementInstruction(tagName, childInstructions, null));
+        instructions.push(new renderer_js_1.HydrateElementInstruction(tagName, void 0, childInstructions, null));
         if (props) {
             Object.keys(props)
                 .forEach(to => {

@@ -76,23 +76,26 @@ export declare class SetPropertyInstruction {
 }
 export declare class HydrateElementInstruction {
     res: string;
+    alias: string | undefined;
     instructions: IInstruction[];
     slotInfo: SlotInfo | null;
     get type(): InstructionType.hydrateElement;
-    constructor(res: string, instructions: IInstruction[], slotInfo: SlotInfo | null);
+    constructor(res: string, alias: string | undefined, instructions: IInstruction[], slotInfo: SlotInfo | null);
 }
 export declare class HydrateAttributeInstruction {
     res: string;
+    alias: string | undefined;
     instructions: IInstruction[];
     get type(): InstructionType.hydrateAttribute;
-    constructor(res: string, instructions: IInstruction[]);
+    constructor(res: string, alias: string | undefined, instructions: IInstruction[]);
 }
 export declare class HydrateTemplateController {
     def: PartialCustomElementDefinition;
     res: string;
+    alias: string | undefined;
     instructions: IInstruction[];
     get type(): InstructionType.hydrateTemplateController;
-    constructor(def: PartialCustomElementDefinition, res: string, instructions: IInstruction[]);
+    constructor(def: PartialCustomElementDefinition, res: string, alias: string | undefined, instructions: IInstruction[]);
 }
 export declare class HydrateLetElementInstruction {
     instructions: LetBindingInstruction[];

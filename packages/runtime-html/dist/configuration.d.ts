@@ -73,6 +73,7 @@ export declare const ComposeRegistration: IRegistry;
 export declare const PortalRegistration: IRegistry;
 export declare const FocusRegistration: IRegistry;
 export declare const BlurRegistration: IRegistry;
+export declare const ShowRegistration: IRegistry;
 /**
  * Default HTML-specific (but environment-agnostic) resources:
  * - Binding Behaviors: `oneTime`, `toView`, `fromView`, `twoWay`, `signal`, `debounce`, `throttle`, `attr`, `self`, `updateTrigger`

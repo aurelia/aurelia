@@ -112,8 +112,9 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     }
     exports.SetPropertyInstruction = SetPropertyInstruction;
     class HydrateElementInstruction {
-        constructor(res, instructions, slotInfo) {
+        constructor(res, alias, instructions, slotInfo) {
             this.res = res;
+            this.alias = alias;
             this.instructions = instructions;
             this.slotInfo = slotInfo;
         }
@@ -121,17 +122,19 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     }
     exports.HydrateElementInstruction = HydrateElementInstruction;
     class HydrateAttributeInstruction {
-        constructor(res, instructions) {
+        constructor(res, alias, instructions) {
             this.res = res;
+            this.alias = alias;
             this.instructions = instructions;
         }
         get type() { return "rb" /* hydrateAttribute */; }
     }
     exports.HydrateAttributeInstruction = HydrateAttributeInstruction;
     class HydrateTemplateController {
-        constructor(def, res, instructions) {
+        constructor(def, res, alias, instructions) {
             this.def = def;
             this.res = res;
+            this.alias = alias;
             this.instructions = instructions;
         }
         get type() { return "rc" /* hydrateTemplateController */; }

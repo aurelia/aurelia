@@ -147,7 +147,7 @@ let TemplateCompiler = class TemplateCompiler {
                 ? new SlotInfo(slotName, AuSlotContentType.Projection, new ProjectionContext(targetedProjection, targetedProjections === null || targetedProjections === void 0 ? void 0 : targetedProjections.scope))
                 : new SlotInfo(slotName, AuSlotContentType.Fallback, new ProjectionContext(this.compileProjectionFallback(symbol, projections, targetedProjections)));
         }
-        const instruction = instructionRow[0] = new HydrateElementInstruction(symbol.res, this.compileBindings(symbol), slotInfo);
+        const instruction = instructionRow[0] = new HydrateElementInstruction(symbol.res, symbol.info.alias, this.compileBindings(symbol), slotInfo);
         const compiledProjections = this.compileProjections(symbol, projections, targetedProjections);
         if (compiledProjections !== null) {
             projections.set(instruction, compiledProjections);
@@ -178,16 +178,17 @@ let TemplateCompiler = class TemplateCompiler {
         }
     }
     compileTemplateController(symbol, instructionRows, projections, targetedProjections) {
+        var _a;
         const bindings = this.compileBindings(symbol);
         const controllerInstructionRows = [];
         this.compileParentNode(symbol.template, controllerInstructionRows, projections, targetedProjections);
         const def = CustomElementDefinition.create({
-            name: symbol.res,
+            name: (_a = symbol.info.alias) !== null && _a !== void 0 ? _a : symbol.info.name,
             template: symbol.physicalNode,
             instructions: controllerInstructionRows,
             needsCompile: false,
         });
-        instructionRows.push([new HydrateTemplateController(def, symbol.res, bindings)]);
+        instructionRows.push([new HydrateTemplateController(def, symbol.res, symbol.info.alias, bindings)]);
     }
     compileBindings(symbol) {
         let bindingInstructions;
@@ -254,7 +255,7 @@ let TemplateCompiler = class TemplateCompiler {
     compileCustomAttribute(symbol) {
         // a normal custom attribute (not template controller)
         const bindings = this.compileBindings(symbol);
-        return new HydrateAttributeInstruction(symbol.res, bindings);
+        return new HydrateAttributeInstruction(symbol.res, symbol.info.alias, bindings);
     }
     compilePlainAttribute(symbol, isOnSurrogate) {
         if (symbol.command === null) {

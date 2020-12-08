@@ -159,7 +159,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                     ? new au_slot_js_1.SlotInfo(slotName, au_slot_js_1.AuSlotContentType.Projection, new au_slot_js_1.ProjectionContext(targetedProjection, targetedProjections === null || targetedProjections === void 0 ? void 0 : targetedProjections.scope))
                     : new au_slot_js_1.SlotInfo(slotName, au_slot_js_1.AuSlotContentType.Fallback, new au_slot_js_1.ProjectionContext(this.compileProjectionFallback(symbol, projections, targetedProjections)));
             }
-            const instruction = instructionRow[0] = new renderer_js_1.HydrateElementInstruction(symbol.res, this.compileBindings(symbol), slotInfo);
+            const instruction = instructionRow[0] = new renderer_js_1.HydrateElementInstruction(symbol.res, symbol.info.alias, this.compileBindings(symbol), slotInfo);
             const compiledProjections = this.compileProjections(symbol, projections, targetedProjections);
             if (compiledProjections !== null) {
                 projections.set(instruction, compiledProjections);
@@ -190,16 +190,17 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             }
         }
         compileTemplateController(symbol, instructionRows, projections, targetedProjections) {
+            var _a;
             const bindings = this.compileBindings(symbol);
             const controllerInstructionRows = [];
             this.compileParentNode(symbol.template, controllerInstructionRows, projections, targetedProjections);
             const def = custom_element_js_1.CustomElementDefinition.create({
-                name: symbol.res,
+                name: (_a = symbol.info.alias) !== null && _a !== void 0 ? _a : symbol.info.name,
                 template: symbol.physicalNode,
                 instructions: controllerInstructionRows,
                 needsCompile: false,
             });
-            instructionRows.push([new renderer_js_1.HydrateTemplateController(def, symbol.res, bindings)]);
+            instructionRows.push([new renderer_js_1.HydrateTemplateController(def, symbol.res, symbol.info.alias, bindings)]);
         }
         compileBindings(symbol) {
             let bindingInstructions;
@@ -266,7 +267,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         compileCustomAttribute(symbol) {
             // a normal custom attribute (not template controller)
             const bindings = this.compileBindings(symbol);
-            return new renderer_js_1.HydrateAttributeInstruction(symbol.res, bindings);
+            return new renderer_js_1.HydrateAttributeInstruction(symbol.res, symbol.info.alias, bindings);
         }
         compilePlainAttribute(symbol, isOnSurrogate) {
             if (symbol.command === null) {

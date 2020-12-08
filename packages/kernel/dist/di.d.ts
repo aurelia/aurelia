@@ -22,7 +22,7 @@ export interface IRegistration<K = any> {
 export declare type Transformer<K> = (instance: Resolved<K>) => Resolved<K>;
 export interface IFactory<T extends Constructable = any> {
     readonly Type: T;
-    registerTransformer(transformer: Transformer<T>): boolean;
+    registerTransformer(transformer: Transformer<T>): void;
     construct(container: IContainer, dynamicDependencies?: Key[]): Resolved<T>;
 }
 export interface IServiceLocator {
@@ -43,7 +43,7 @@ export interface IContainer extends IServiceLocator, IDisposable {
     registerTransformer<K extends Key, T = K>(key: K, transformer: Transformer<T>): boolean;
     getResolver<K extends Key, T = K>(key: K | Key, autoRegister?: boolean): IResolver<T> | null;
     registerFactory<T extends Constructable>(key: T, factory: IFactory<T>): void;
-    getFactory<T extends Constructable>(key: T): IFactory<T> | null;
+    getFactory<T extends Constructable>(key: T): IFactory<T>;
     createChild(config?: IContainerConfiguration): IContainer;
     disposeResolvers(): void;
     find<TType extends ResourceType, TDef extends ResourceDefinition>(kind: IResourceKind<TType, TDef>, name: string): TDef | null;

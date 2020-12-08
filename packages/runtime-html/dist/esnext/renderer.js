@@ -93,24 +93,27 @@ export class SetPropertyInstruction {
     get type() { return "re" /* setProperty */; }
 }
 export class HydrateElementInstruction {
-    constructor(res, instructions, slotInfo) {
+    constructor(res, alias, instructions, slotInfo) {
         this.res = res;
+        this.alias = alias;
         this.instructions = instructions;
         this.slotInfo = slotInfo;
     }
     get type() { return "ra" /* hydrateElement */; }
 }
 export class HydrateAttributeInstruction {
-    constructor(res, instructions) {
+    constructor(res, alias, instructions) {
         this.res = res;
+        this.alias = alias;
         this.instructions = instructions;
     }
     get type() { return "rb" /* hydrateAttribute */; }
 }
 export class HydrateTemplateController {
-    constructor(def, res, instructions) {
+    constructor(def, res, alias, instructions) {
         this.def = def;
         this.res = res;
+        this.alias = alias;
         this.instructions = instructions;
     }
     get type() { return "rc" /* hydrateTemplateController */; }

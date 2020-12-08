@@ -273,6 +273,7 @@ export class Router implements IRouter {
    * Public API
    */
   public async loadUrl(): Promise<void> {
+    // console.log('### loadUrl', this.navigation.viewerState);
     const entry = new Navigation({
       ...this.navigation.viewerState,
       ...{
@@ -912,20 +913,21 @@ export class Router implements IRouter {
     return this.load(instructions, options);
   }
   public async load(instructions: LoadInstruction | LoadInstruction[], options?: ILoadOptions): Promise<void> {
-    options = options || {};
-    // TODO: Review query extraction; different pos for path and fragment!
-    if (typeof instructions === 'string' && !options.query) {
-      const [path, search] = instructions.split('?');
-      instructions = path;
-      options.query = search;
-    }
-    const toOptions: IViewportInstructionsOptions = {};
-    if (options.origin) {
-      toOptions.context = options.origin;
-    }
+    options = options ?? {};
+    instructions = this.extractQuery(instructions, options);
+    // // TODO: Review query extraction; different pos for path and fragment!
+    // if (typeof instructions === 'string' && !options.query) {
+    //   const [path, search] = instructions.split('?');
+    //   instructions = path;
+    //   options.query = search;
+    // }
+    // const toOptions: IViewportInstructionsOptions = {};
+    // if (options.origin) {
+    //   toOptions.context = options.origin;
+    // }
 
     let scope: Scope | null = null;
-    ({ instructions, scope } = LoadInstructionResolver.createViewportInstructions(this, instructions, toOptions));
+    ({ instructions, scope } = LoadInstructionResolver.createViewportInstructions(this, instructions, options));
 
     if (options.append && (!this.loadedFirst || this.processingNavigation !== null)) {
       instructions = LoadInstructionResolver.toViewportInstructions(this, instructions);
@@ -980,8 +982,17 @@ export class Router implements IRouter {
   /**
    * Public API
    */
-  public checkActive(instructions: ViewportInstruction[]): boolean {
-    for (const instruction of instructions) {
+  public checkActive(instructions: LoadInstruction | LoadInstruction[], options?: ILoadOptions): boolean {
+    // TODO: Look into allowing strings/routes as well
+    if (typeof instructions === 'string') {
+      throw new Error(`Parameter instructions to checkActivate can not be a string ('${instructions}')!`);
+    }
+    options = options ?? {};
+
+    let scope: Scope | null = null;
+    ({ instructions, scope } = LoadInstructionResolver.createViewportInstructions(this, instructions, options));
+
+    for (const instruction of instructions as ViewportInstruction[]) {
       const scopeInstructions = this.instructionResolver.matchScope(this.activeComponents, instruction.scope!);
       const matching = scopeInstructions.filter(instr => instr.sameComponent(instruction, true));
       if (matching.length === 0) {
@@ -1344,6 +1355,16 @@ export class Router implements IRouter {
         await this.freeComponents(nextInstruction, excludeComponents, alreadyDone);
       }
     }
+  }
+
+  // TODO: Review query extraction; different pos for path and fragment!
+  private extractQuery(instructions: LoadInstruction | LoadInstruction[], options: ILoadOptions): LoadInstruction | LoadInstruction[] {
+    if (typeof instructions === 'string' && !options.query) {
+      const [path, search] = instructions.split('?');
+      instructions = path;
+      options.query = search;
+    }
+    return instructions;
   }
 
   private getClosestContainer(viewModelOrElement: ICustomElementViewModel | Element | ICustomElementController): IContainer | null {

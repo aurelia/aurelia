@@ -13,14 +13,13 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "../bindable.js", "../app-task.js", "../dom.js", "../observation/class-attribute-accessor.js", "../platform.js", "../resources/custom-attribute.js"], factory);
+        define(["require", "exports", "@aurelia/kernel", "../app-task.js", "../dom.js", "../observation/class-attribute-accessor.js", "../platform.js", "../resources/custom-attribute.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.StyleConfiguration = exports.StyleElementStyles = exports.AdoptedStyleSheetsStyles = exports.IShadowDOMGlobalStyles = exports.IShadowDOMStyles = exports.ShadowDOMRegistry = exports.IShadowDOMStyleFactory = exports.shadowCSS = exports.CSSModulesProcessorRegistry = exports.cssModules = void 0;
     const kernel_1 = require("@aurelia/kernel");
-    const bindable_js_1 = require("../bindable.js");
     const app_task_js_1 = require("../app-task.js");
     const dom_js_1 = require("../dom.js");
     const class_attribute_accessor_js_1 = require("../observation/class-attribute-accessor.js");
@@ -35,29 +34,28 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             this.modules = modules;
         }
         register(container) {
+            var _a;
             const classLookup = Object.assign({}, ...this.modules);
-            let ClassCustomAttribute = class ClassCustomAttribute {
-                constructor(element) {
-                    this.element = element;
-                }
-                binding() {
-                    this.valueChanged();
-                }
-                valueChanged() {
-                    if (!this.value) {
-                        this.element.className = '';
-                        return;
+            const ClassCustomAttribute = custom_attribute_js_1.CustomAttribute.define({
+                name: 'class',
+                bindables: ['value'],
+            }, (_a = class CustomAttributeClass {
+                    constructor(element) {
+                        this.element = element;
                     }
-                    this.element.className = class_attribute_accessor_js_1.getClassesToAdd(this.value).map(x => classLookup[x] || x).join(' ');
-                }
-            };
-            __decorate([
-                bindable_js_1.bindable
-            ], ClassCustomAttribute.prototype, "value", void 0);
-            ClassCustomAttribute = __decorate([
-                custom_attribute_js_1.customAttribute('class'),
-                __param(0, dom_js_1.INode)
-            ], ClassCustomAttribute);
+                    binding() {
+                        this.valueChanged();
+                    }
+                    valueChanged() {
+                        if (!this.value) {
+                            this.element.className = '';
+                            return;
+                        }
+                        this.element.className = class_attribute_accessor_js_1.getClassesToAdd(this.value).map(x => classLookup[x] || x).join(' ');
+                    }
+                },
+                _a.inject = [dom_js_1.INode],
+                _a));
             container.register(ClassCustomAttribute);
         }
     }

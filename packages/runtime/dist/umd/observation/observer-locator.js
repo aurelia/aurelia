@@ -1,12 +1,3 @@
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __param = (this && this.__param) || function (paramIndex, decorator) {
-    return function (target, key) { decorator(target, key, paramIndex); }
-};
 (function (factory) {
     if (typeof module === "object" && typeof module.exports === "object") {
         var v = factory(require, exports);
@@ -50,7 +41,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             return exports.propertyAccessor;
         }
     }
-    let ObserverLocator = class ObserverLocator {
+    class ObserverLocator {
         constructor(lifecycle, dirtyChecker, nodeObserverLocator) {
             this.lifecycle = lifecycle;
             this.dirtyChecker = dirtyChecker;
@@ -163,13 +154,12 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             }
             return obj.$observers[key] = observer;
         }
-    };
-    ObserverLocator = __decorate([
-        __param(0, observation_js_1.ILifecycle),
-        __param(1, dirty_checker_js_1.IDirtyChecker),
-        __param(2, exports.INodeObserverLocator)
-    ], ObserverLocator);
+    }
     exports.ObserverLocator = ObserverLocator;
+    /**
+     * @internal
+     */
+    ObserverLocator.inject = [observation_js_1.ILifecycle, dirty_checker_js_1.IDirtyChecker, exports.INodeObserverLocator];
     function getCollectionObserver(collection, lifecycle) {
         let obs;
         if (collection instanceof Array) {

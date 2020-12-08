@@ -1,12 +1,3 @@
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __param = (this && this.__param) || function (paramIndex, decorator) {
-    return function (target, key) { decorator(target, key, paramIndex); }
-};
 (function (factory) {
     if (typeof module === "object" && typeof module.exports === "object") {
         var v = factory(require, exports);
@@ -64,7 +55,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
     }
     exports.NodeObserverConfig = NodeObserverConfig;
-    let NodeObserverLocator = class NodeObserverLocator {
+    class NodeObserverLocator {
         constructor(locator, platform, dirtyChecker, svgAnalyzer) {
             this.locator = locator;
             this.platform = platform;
@@ -260,14 +251,12 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                 return new runtime_1.SetterObserver(el, key);
             }
         }
-    };
-    NodeObserverLocator = __decorate([
-        __param(0, kernel_1.IServiceLocator),
-        __param(1, platform_js_1.IPlatform),
-        __param(2, runtime_1.IDirtyChecker),
-        __param(3, svg_analyzer_js_1.ISVGAnalyzer)
-    ], NodeObserverLocator);
+    }
     exports.NodeObserverLocator = NodeObserverLocator;
+    /**
+     * @internal
+     */
+    NodeObserverLocator.inject = [kernel_1.IServiceLocator, platform_js_1.IPlatform, runtime_1.IDirtyChecker, svg_analyzer_js_1.ISVGAnalyzer];
     function getCollectionObserver(collection, observerLocator) {
         if (collection instanceof Array) {
             return observerLocator.getArrayObserver(collection);

@@ -1,7 +1,7 @@
 /* eslint-disable max-lines-per-function */
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 import { nextId, isObject, ILogger, Metadata, DI, } from '@aurelia/kernel';
-import { AccessScopeExpression, Scope, ILifecycle, IObserverLocator, ComputedWatcher, ExpressionWatcher, IExpressionParser, } from '@aurelia/runtime';
+import { AccessScopeExpression, Scope, ILifecycle, IObserverLocator, IExpressionParser, } from '@aurelia/runtime';
 import { BindableObserver } from '../observation/bindable-observer';
 import { convertToRenderLocation } from '../dom.js';
 import { CustomElementDefinition, CustomElement } from '../resources/custom-element.js';
@@ -11,6 +11,7 @@ import { ChildrenObserver } from './children.js';
 import { IAppRoot } from '../app-root.js';
 import { IPlatform } from '../platform.js';
 import { IShadowDOMGlobalStyles, IShadowDOMStyles } from './styles.js';
+import { ComputedWatcher, ExpressionWatcher } from './watchers.js';
 function callDispose(disposable) {
     disposable.dispose();
 }

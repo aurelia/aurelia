@@ -1,12 +1,3 @@
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __param = (this && this.__param) || function (paramIndex, decorator) {
-    return function (target, key) { decorator(target, key, paramIndex); }
-};
 (function (factory) {
     if (typeof module === "object" && typeof module.exports === "object") {
         var v = factory(require, exports);
@@ -35,7 +26,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
         return lookup;
     }
-    let SVGAnalyzer = class SVGAnalyzer {
+    class SVGAnalyzer {
         constructor(platform) {
             this.svgElements = Object.assign(Object.create(null), {
                 'a': o(['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'target', 'transform', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space']),
@@ -268,10 +259,11 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             return (this.svgPresentationElements[node.nodeName] === true && this.svgPresentationAttributes[attributeName] === true ||
                 ((_a = this.svgElements[node.nodeName]) === null || _a === void 0 ? void 0 : _a[attributeName]) === true);
         }
-    };
-    SVGAnalyzer = __decorate([
-        __param(0, platform_js_1.IPlatform)
-    ], SVGAnalyzer);
+    }
     exports.SVGAnalyzer = SVGAnalyzer;
+    /**
+     * @internal
+     */
+    SVGAnalyzer.inject = [platform_js_1.IPlatform];
 });
 //# sourceMappingURL=svg-analyzer.js.map

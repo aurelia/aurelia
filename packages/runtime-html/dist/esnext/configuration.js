@@ -1,9 +1,12 @@
 import { DI } from '@aurelia/kernel';
-import { DebounceBindingBehaviorRegistration, OneTimeBindingBehaviorRegistration, ToViewBindingBehaviorRegistration, FromViewBindingBehaviorRegistration, SignalBindingBehaviorRegistration, ThrottleBindingBehaviorRegistration, TwoWayBindingBehaviorRegistration, } from '@aurelia/runtime';
 import { AtPrefixedTriggerAttributePattern, ColonPrefixedBindAttributePattern, DotSeparatedAttributePattern, RefAttributePattern, } from './resources/attribute-pattern.js';
 import { CallBindingCommand, DefaultBindingCommand, ForBindingCommand, FromViewBindingCommand, OneTimeBindingCommand, ToViewBindingCommand, TwoWayBindingCommand, AttrBindingCommand, CaptureBindingCommand, ClassBindingCommand, DelegateBindingCommand, RefBindingCommand, StyleBindingCommand, TriggerBindingCommand, } from './resources/binding-command.js';
 import { TemplateCompiler } from './template-compiler.js';
 import { CallBindingRenderer, CustomAttributeRenderer, CustomElementRenderer, InterpolationBindingRenderer, IteratorBindingRenderer, LetElementRenderer, PropertyBindingRenderer, RefBindingRenderer, SetPropertyRenderer, TemplateControllerRenderer, AttributeBindingRenderer, ListenerBindingRenderer, SetAttributeRenderer, StylePropertyBindingRenderer, TextBindingRenderer, SetClassAttributeRenderer, SetStyleAttributeRenderer, } from './renderer.js';
+import { FromViewBindingBehavior, OneTimeBindingBehavior, ToViewBindingBehavior, TwoWayBindingBehavior, } from './binding-behaviors/binding-mode.js';
+import { DebounceBindingBehavior } from './binding-behaviors/debounce.js';
+import { SignalBindingBehavior } from './binding-behaviors/signals.js';
+import { ThrottleBindingBehavior } from './binding-behaviors/throttle.js';
 import { SVGAnalyzer } from './observation/svg-analyzer.js';
 import { AttrBindingBehavior } from './resources/binding-behaviors/attr.js';
 import { SelfBindingBehavior } from './resources/binding-behaviors/self.js';
@@ -21,6 +24,13 @@ import { AuSlot } from './resources/custom-elements/au-slot.js';
 import { SanitizeValueConverter } from './resources/value-converters/sanitize.js';
 import { ViewValueConverter } from './resources/value-converters/view.js';
 import { NodeObserverLocator } from './observation/observer-locator.js';
+export const DebounceBindingBehaviorRegistration = DebounceBindingBehavior;
+export const OneTimeBindingBehaviorRegistration = OneTimeBindingBehavior;
+export const ToViewBindingBehaviorRegistration = ToViewBindingBehavior;
+export const FromViewBindingBehaviorRegistration = FromViewBindingBehavior;
+export const SignalBindingBehaviorRegistration = SignalBindingBehavior;
+export const ThrottleBindingBehaviorRegistration = ThrottleBindingBehavior;
+export const TwoWayBindingBehaviorRegistration = TwoWayBindingBehavior;
 export const ITemplateCompilerRegistration = TemplateCompiler;
 export const INodeObserverLocatorRegistration = NodeObserverLocator;
 /**

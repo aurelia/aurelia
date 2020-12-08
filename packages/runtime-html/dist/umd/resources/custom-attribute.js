@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "../bindable.js"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "../bindable.js", "../watch.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -13,6 +13,7 @@
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
     const bindable_js_1 = require("../bindable.js");
+    const watch_js_1 = require("../watch.js");
     function customAttribute(nameOrDef) {
         return function (target) {
             return exports.CustomAttribute.define(nameOrDef, target);
@@ -50,7 +51,7 @@
                 name = nameOrDef.name;
                 def = nameOrDef;
             }
-            return new CustomAttributeDefinition(Type, kernel_1.firstDefined(exports.CustomAttribute.getAnnotation(Type, 'name'), name), kernel_1.mergeArrays(exports.CustomAttribute.getAnnotation(Type, 'aliases'), def.aliases, Type.aliases), exports.CustomAttribute.keyFrom(name), kernel_1.firstDefined(exports.CustomAttribute.getAnnotation(Type, 'defaultBindingMode'), def.defaultBindingMode, Type.defaultBindingMode, runtime_1.BindingMode.toView), kernel_1.firstDefined(exports.CustomAttribute.getAnnotation(Type, 'isTemplateController'), def.isTemplateController, Type.isTemplateController, false), bindable_js_1.Bindable.from(...bindable_js_1.Bindable.getAll(Type), exports.CustomAttribute.getAnnotation(Type, 'bindables'), Type.bindables, def.bindables), kernel_1.firstDefined(exports.CustomAttribute.getAnnotation(Type, 'noMultiBindings'), def.noMultiBindings, Type.noMultiBindings, false), kernel_1.mergeArrays(runtime_1.Watch.getAnnotation(Type), Type.watches));
+            return new CustomAttributeDefinition(Type, kernel_1.firstDefined(exports.CustomAttribute.getAnnotation(Type, 'name'), name), kernel_1.mergeArrays(exports.CustomAttribute.getAnnotation(Type, 'aliases'), def.aliases, Type.aliases), exports.CustomAttribute.keyFrom(name), kernel_1.firstDefined(exports.CustomAttribute.getAnnotation(Type, 'defaultBindingMode'), def.defaultBindingMode, Type.defaultBindingMode, runtime_1.BindingMode.toView), kernel_1.firstDefined(exports.CustomAttribute.getAnnotation(Type, 'isTemplateController'), def.isTemplateController, Type.isTemplateController, false), bindable_js_1.Bindable.from(...bindable_js_1.Bindable.getAll(Type), exports.CustomAttribute.getAnnotation(Type, 'bindables'), Type.bindables, def.bindables), kernel_1.firstDefined(exports.CustomAttribute.getAnnotation(Type, 'noMultiBindings'), def.noMultiBindings, Type.noMultiBindings, false), kernel_1.mergeArrays(watch_js_1.Watch.getAnnotation(Type), Type.watches));
         }
         register(container) {
             const { Type, key, aliases } = this;

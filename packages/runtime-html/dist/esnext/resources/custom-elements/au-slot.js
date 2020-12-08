@@ -1,12 +1,3 @@
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __param = (this && this.__param) || function (paramIndex, decorator) {
-    return function (target, key) { decorator(target, key, paramIndex); }
-};
 import { DI } from '@aurelia/kernel';
 import { IRenderLocation } from '../../dom.js';
 import { customElement } from '../custom-element.js';
@@ -49,7 +40,7 @@ export class ProjectionProvider {
         return (_a = projectionMap.get(instruction)) !== null && _a !== void 0 ? _a : null;
     }
 }
-let AuSlot = class AuSlot {
+export class AuSlot {
     constructor(factory, location) {
         this.factory = factory;
         this.hostScope = null;
@@ -57,6 +48,10 @@ let AuSlot = class AuSlot {
         this.isProjection = factory.contentType === AuSlotContentType.Projection;
         this.outerScope = factory.projectionScope;
     }
+    /**
+     * @internal
+     */
+    static get inject() { return [IViewFactory, IRenderLocation]; }
     binding(initiator, parent, flags) {
         this.hostScope = this.$controller.scope.parentScope;
     }
@@ -78,11 +73,6 @@ let AuSlot = class AuSlot {
             return true;
         }
     }
-};
-AuSlot = __decorate([
-    customElement({ name: 'au-slot', template: null, containerless: true }),
-    __param(0, IViewFactory),
-    __param(1, IRenderLocation)
-], AuSlot);
-export { AuSlot };
+}
+customElement({ name: 'au-slot', template: null, containerless: true })(AuSlot);
 //# sourceMappingURL=au-slot.js.map

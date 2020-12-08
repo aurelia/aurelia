@@ -1,9 +1,3 @@
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
 (function (factory) {
     if (typeof module === "object" && typeof module.exports === "object") {
         var v = factory(require, exports);
@@ -124,7 +118,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
         }
     }
     exports.disableSetObservation = disableSetObservation;
-    let SetObserver = class SetObserver {
+    class SetObserver {
         constructor(observedSet) {
             this.type = 34 /* Set */;
             if (!enableSetObservationCalled) {
@@ -160,11 +154,9 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
             this.indexMap = observation_js_1.createIndexMap(size);
             this.callCollectionSubscribers(indexMap, 8 /* updateTarget */);
         }
-    };
-    SetObserver = __decorate([
-        subscriber_collection_js_1.collectionSubscriberCollection()
-    ], SetObserver);
+    }
     exports.SetObserver = SetObserver;
+    subscriber_collection_js_1.collectionSubscriberCollection()(SetObserver);
     function getSetObserver(observedSet, lifecycle) {
         let observer = observerLookup.get(observedSet);
         if (observer === void 0) {

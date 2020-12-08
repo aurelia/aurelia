@@ -18,8 +18,8 @@ let ViewValueConverter = class ViewValueConverter {
     }
 };
 ViewValueConverter = __decorate([
-    valueConverter('view'),
     __param(0, IViewLocator)
 ], ViewValueConverter);
 export { ViewValueConverter };
+valueConverter('view')(ViewValueConverter);
 //# sourceMappingURL=view.js.map

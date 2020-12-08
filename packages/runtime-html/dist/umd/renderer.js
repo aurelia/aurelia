@@ -13,7 +13,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "./binding/attribute.js", "./binding/listener.js", "./observation/event-delegator.js", "./resources/custom-element.js", "./templating/render-context.js", "./resources/custom-attribute.js", "./dom.js", "./templating/controller.js", "./platform.js"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "./binding/call-binding.js", "./binding/attribute.js", "./binding/interpolation-binding.js", "./binding/let-binding.js", "./binding/property-binding.js", "./binding/ref-binding.js", "./binding/listener.js", "./observation/event-delegator.js", "./resources/custom-element.js", "./templating/render-context.js", "./resources/custom-attribute.js", "./dom.js", "./templating/controller.js", "./platform.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -21,7 +21,12 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     exports.AttributeBindingRenderer = exports.StylePropertyBindingRenderer = exports.SetStyleAttributeRenderer = exports.SetClassAttributeRenderer = exports.SetAttributeRenderer = exports.ListenerBindingRenderer = exports.TextBindingRenderer = exports.applyBindingBehavior = exports.IteratorBindingRenderer = exports.PropertyBindingRenderer = exports.InterpolationBindingRenderer = exports.RefBindingRenderer = exports.CallBindingRenderer = exports.LetElementRenderer = exports.TemplateControllerRenderer = exports.CustomAttributeRenderer = exports.CustomElementRenderer = exports.SetPropertyRenderer = exports.renderer = exports.IRenderer = exports.ITemplateCompiler = exports.AttributeBindingInstruction = exports.SetStyleAttributeInstruction = exports.SetClassAttributeInstruction = exports.SetAttributeInstruction = exports.StylePropertyBindingInstruction = exports.ListenerBindingInstruction = exports.TextBindingInstruction = exports.LetBindingInstruction = exports.HydrateLetElementInstruction = exports.HydrateTemplateController = exports.HydrateAttributeInstruction = exports.HydrateElementInstruction = exports.SetPropertyInstruction = exports.RefBindingInstruction = exports.CallBindingInstruction = exports.IteratorBindingInstruction = exports.PropertyBindingInstruction = exports.InterpolationInstruction = exports.isInstruction = exports.IInstruction = exports.InstructionType = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
+    const call_binding_js_1 = require("./binding/call-binding.js");
     const attribute_js_1 = require("./binding/attribute.js");
+    const interpolation_binding_js_1 = require("./binding/interpolation-binding.js");
+    const let_binding_js_1 = require("./binding/let-binding.js");
+    const property_binding_js_1 = require("./binding/property-binding.js");
+    const ref_binding_js_1 = require("./binding/ref-binding.js");
     const listener_js_1 = require("./binding/listener.js");
     const event_delegator_js_1 = require("./observation/event-delegator.js");
     const custom_element_js_1 = require("./resources/custom-element.js");
@@ -425,7 +430,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
                 childInstruction = childInstructions[i];
                 expr = ensureExpression(this.parser, childInstruction.from, 48 /* IsPropertyCommand */);
-                binding = applyBindingBehavior(new runtime_1.LetBinding(expr, childInstruction.to, this.observerLocator, context, toBindingContext), expr, context);
+                binding = applyBindingBehavior(new let_binding_js_1.LetBinding(expr, childInstruction.to, this.observerLocator, context, toBindingContext), expr, context);
                 controller.addBinding(binding);
             }
         }
@@ -447,7 +452,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
         render(flags, context, controller, target, instruction) {
             const expr = ensureExpression(this.parser, instruction.from, 153 /* CallCommand */);
-            const binding = applyBindingBehavior(new runtime_1.CallBinding(expr, getTarget(target), instruction.to, this.observerLocator, context), expr, context);
+            const binding = applyBindingBehavior(new call_binding_js_1.CallBinding(expr, getTarget(target), instruction.to, this.observerLocator, context), expr, context);
             controller.addBinding(binding);
         }
     };
@@ -467,7 +472,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
         render(flags, context, controller, target, instruction) {
             const expr = ensureExpression(this.parser, instruction.from, 5376 /* IsRef */);
-            const binding = applyBindingBehavior(new runtime_1.RefBinding(expr, getRefTarget(target, instruction.to), context), expr, context);
+            const binding = applyBindingBehavior(new ref_binding_js_1.RefBinding(expr, getRefTarget(target, instruction.to), context), expr, context);
             controller.addBinding(binding);
         }
     };
@@ -488,7 +493,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
         render(flags, context, controller, target, instruction) {
             const expr = ensureExpression(this.parser, instruction.from, 2048 /* Interpolation */);
-            const binding = new runtime_1.InterpolationBinding(this.observerLocator, expr, getTarget(target), instruction.to, runtime_1.BindingMode.toView, context, this.platform.domWriteQueue);
+            const binding = new interpolation_binding_js_1.InterpolationBinding(this.observerLocator, expr, getTarget(target), instruction.to, runtime_1.BindingMode.toView, context, this.platform.domWriteQueue);
             const partBindings = binding.partBindings;
             let partBinding;
             for (let i = 0, ii = partBindings.length; ii > i; ++i) {
@@ -517,7 +522,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
         render(flags, context, controller, target, instruction) {
             const expr = ensureExpression(this.parser, instruction.from, 48 /* IsPropertyCommand */ | instruction.mode);
-            const binding = applyBindingBehavior(new runtime_1.PropertyBinding(expr, getTarget(target), instruction.to, instruction.mode, this.observerLocator, context, this.platform.domWriteQueue), expr, context);
+            const binding = applyBindingBehavior(new property_binding_js_1.PropertyBinding(expr, getTarget(target), instruction.to, instruction.mode, this.observerLocator, context, this.platform.domWriteQueue), expr, context);
             controller.addBinding(binding);
         }
     };
@@ -540,7 +545,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
         render(flags, context, controller, target, instruction) {
             const expr = ensureExpression(this.parser, instruction.from, 539 /* ForCommand */);
-            const binding = applyBindingBehavior(new runtime_1.PropertyBinding(expr, getTarget(target), instruction.to, runtime_1.BindingMode.toView, this.observerLocator, context, this.platform.domWriteQueue), expr, context);
+            const binding = applyBindingBehavior(new property_binding_js_1.PropertyBinding(expr, getTarget(target), instruction.to, runtime_1.BindingMode.toView, this.observerLocator, context, this.platform.domWriteQueue), expr, context);
             controller.addBinding(binding);
         }
     };
@@ -585,7 +590,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                 target.remove();
             }
             const expr = ensureExpression(this.parser, instruction.from, 2048 /* Interpolation */);
-            const binding = new runtime_1.InterpolationBinding(this.observerLocator, expr, next, 'textContent', runtime_1.BindingMode.toView, context, this.platform.domWriteQueue);
+            const binding = new interpolation_binding_js_1.InterpolationBinding(this.observerLocator, expr, next, 'textContent', runtime_1.BindingMode.toView, context, this.platform.domWriteQueue);
             const partBindings = binding.partBindings;
             let partBinding;
             for (let i = 0, ii = partBindings.length; ii > i; ++i) {
@@ -666,7 +671,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
         render(flags, context, controller, target, instruction) {
             const expr = ensureExpression(this.parser, instruction.from, 48 /* IsPropertyCommand */ | runtime_1.BindingMode.toView);
-            const binding = applyBindingBehavior(new runtime_1.PropertyBinding(expr, target.style, instruction.to, runtime_1.BindingMode.toView, this.observerLocator, context, this.platform.domWriteQueue), expr, context);
+            const binding = applyBindingBehavior(new property_binding_js_1.PropertyBinding(expr, target.style, instruction.to, runtime_1.BindingMode.toView, this.observerLocator, context, this.platform.domWriteQueue), expr, context);
             controller.addBinding(binding);
         }
     };

@@ -8,12 +8,11 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 import { IContainer, Registration, DI, noop } from '@aurelia/kernel';
-import { bindable } from '../bindable.js';
 import { AppTask } from '../app-task.js';
 import { INode } from '../dom.js';
 import { getClassesToAdd } from '../observation/class-attribute-accessor.js';
 import { IPlatform } from '../platform.js';
-import { customAttribute } from '../resources/custom-attribute.js';
+import { CustomAttribute } from '../resources/custom-attribute.js';
 export function cssModules(...modules) {
     return new CSSModulesProcessorRegistry(modules);
 }
@@ -22,29 +21,28 @@ export class CSSModulesProcessorRegistry {
         this.modules = modules;
     }
     register(container) {
+        var _a;
         const classLookup = Object.assign({}, ...this.modules);
-        let ClassCustomAttribute = class ClassCustomAttribute {
-            constructor(element) {
-                this.element = element;
-            }
-            binding() {
-                this.valueChanged();
-            }
-            valueChanged() {
-                if (!this.value) {
-                    this.element.className = '';
-                    return;
+        const ClassCustomAttribute = CustomAttribute.define({
+            name: 'class',
+            bindables: ['value'],
+        }, (_a = class CustomAttributeClass {
+                constructor(element) {
+                    this.element = element;
                 }
-                this.element.className = getClassesToAdd(this.value).map(x => classLookup[x] || x).join(' ');
-            }
-        };
-        __decorate([
-            bindable
-        ], ClassCustomAttribute.prototype, "value", void 0);
-        ClassCustomAttribute = __decorate([
-            customAttribute('class'),
-            __param(0, INode)
-        ], ClassCustomAttribute);
+                binding() {
+                    this.valueChanged();
+                }
+                valueChanged() {
+                    if (!this.value) {
+                        this.element.className = '';
+                        return;
+                    }
+                    this.element.className = getClassesToAdd(this.value).map(x => classLookup[x] || x).join(' ');
+                }
+            },
+            _a.inject = [INode],
+            _a));
         container.register(ClassCustomAttribute);
     }
 }

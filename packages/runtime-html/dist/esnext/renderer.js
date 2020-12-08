@@ -8,8 +8,13 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 import { Metadata, Registration, DI } from '@aurelia/kernel';
-import { BindingMode, IExpressionParser, IObserverLocator, InterpolationBinding, PropertyBinding, BindingBehaviorExpression, CallBinding, LetBinding, RefBinding, BindingBehaviorFactory, } from '@aurelia/runtime';
+import { BindingMode, IExpressionParser, IObserverLocator, BindingBehaviorExpression, BindingBehaviorFactory, } from '@aurelia/runtime';
+import { CallBinding } from './binding/call-binding.js';
 import { AttributeBinding } from './binding/attribute.js';
+import { InterpolationBinding } from './binding/interpolation-binding.js';
+import { LetBinding } from './binding/let-binding.js';
+import { PropertyBinding } from './binding/property-binding.js';
+import { RefBinding } from './binding/ref-binding.js';
 import { Listener } from './binding/listener.js';
 import { IEventDelegator } from './observation/event-delegator.js';
 import { CustomElement } from './resources/custom-element.js';

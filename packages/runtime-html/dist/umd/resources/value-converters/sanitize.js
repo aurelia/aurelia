@@ -47,9 +47,9 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
     };
     SanitizeValueConverter = __decorate([
-        runtime_1.valueConverter('sanitize'),
         __param(0, exports.ISanitizer)
     ], SanitizeValueConverter);
     exports.SanitizeValueConverter = SanitizeValueConverter;
+    runtime_1.valueConverter('sanitize')(SanitizeValueConverter);
 });
 //# sourceMappingURL=sanitize.js.map

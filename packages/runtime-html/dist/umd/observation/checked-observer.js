@@ -1,9 +1,3 @@
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
 (function (factory) {
     if (typeof module === "object" && typeof module.exports === "object") {
         var v = factory(require, exports);
@@ -21,7 +15,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     function defaultMatcher(a, b) {
         return a === b;
     }
-    let CheckedObserver = class CheckedObserver {
+    class CheckedObserver {
         constructor(obj, 
         // deepscan-disable-next-line
         _key, handler, observerLocator) {
@@ -234,10 +228,8 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
                 (_g = (this.collectionObserver = observer_locator_js_1.getCollectionObserver(this.value, this.observerLocator))) === null || _g === void 0 ? void 0 : _g.subscribeToCollection(this);
             }
         }
-    };
-    CheckedObserver = __decorate([
-        runtime_1.subscriberCollection()
-    ], CheckedObserver);
+    }
     exports.CheckedObserver = CheckedObserver;
+    runtime_1.subscriberCollection()(CheckedObserver);
 });
 //# sourceMappingURL=checked-observer.js.map

@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "../observation/bindable-observer", "../dom.js", "../resources/custom-element.js", "../resources/custom-attribute.js", "./render-context.js", "./children.js", "../app-root.js", "../platform.js", "./styles.js"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "../observation/bindable-observer", "../dom.js", "../resources/custom-element.js", "../resources/custom-attribute.js", "./render-context.js", "./children.js", "../app-root.js", "../platform.js", "./styles.js", "./watchers.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -23,6 +23,7 @@
     const app_root_js_1 = require("../app-root.js");
     const platform_js_1 = require("../platform.js");
     const styles_js_1 = require("./styles.js");
+    const watchers_js_1 = require("./watchers.js");
     function callDispose(disposable) {
         disposable.dispose();
     }
@@ -935,7 +936,7 @@
                 throw new Error(`Invalid callback for @watch decorator: ${String(callback)}`);
             }
             if (typeof expression === 'function') {
-                controller.addBinding(new runtime_1.ComputedWatcher(instance, observerLocator, expression, callback, 
+                controller.addBinding(new watchers_js_1.ComputedWatcher(instance, observerLocator, expression, callback, 
                 // there should be a flag to purposely disable proxy
                 // AOT: not true for IE11
                 true));
@@ -944,7 +945,7 @@
                 const ast = typeof expression === 'string'
                     ? expressionParser.parse(expression, 53 /* BindCommand */)
                     : AccessScopeAst.for(expression);
-                controller.addBinding(new runtime_1.ExpressionWatcher(controller.scope, context, observerLocator, ast, callback));
+                controller.addBinding(new watchers_js_1.ExpressionWatcher(controller.scope, context, observerLocator, ast, callback));
             }
         }
     }

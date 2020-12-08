@@ -1,12 +1,3 @@
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __param = (this && this.__param) || function (paramIndex, decorator) {
-    return function (target, key) { decorator(target, key, paramIndex); }
-};
 (function (factory) {
     if (typeof module === "object" && typeof module.exports === "object") {
         var v = factory(require, exports);
@@ -48,25 +39,27 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             }
         }
     }
-    let FrequentMutations = class FrequentMutations extends FlagsTemplateController {
+    class FrequentMutations extends FlagsTemplateController {
         constructor(factory, location) {
             super(factory, location, 8192 /* persistentTargetObserverQueue */);
         }
-    };
-    FrequentMutations = __decorate([
-        custom_attribute_js_1.templateController('frequent-mutations'),
-        __param(0, view_js_1.IViewFactory), __param(1, dom_js_1.IRenderLocation)
-    ], FrequentMutations);
+    }
     exports.FrequentMutations = FrequentMutations;
-    let ObserveShallow = class ObserveShallow extends FlagsTemplateController {
+    /**
+     * @internal
+     */
+    FrequentMutations.inject = [view_js_1.IViewFactory, dom_js_1.IRenderLocation];
+    class ObserveShallow extends FlagsTemplateController {
         constructor(factory, location) {
             super(factory, location, 2048 /* observeLeafPropertiesOnly */);
         }
-    };
-    ObserveShallow = __decorate([
-        custom_attribute_js_1.templateController('observe-shallow'),
-        __param(0, view_js_1.IViewFactory), __param(1, dom_js_1.IRenderLocation)
-    ], ObserveShallow);
+    }
     exports.ObserveShallow = ObserveShallow;
+    /**
+     * @internal
+     */
+    ObserveShallow.inject = [view_js_1.IViewFactory, dom_js_1.IRenderLocation];
+    custom_attribute_js_1.templateController('frequent-mutations')(FrequentMutations);
+    custom_attribute_js_1.templateController('observe-shallow')(ObserveShallow);
 });
 //# sourceMappingURL=flags.js.map

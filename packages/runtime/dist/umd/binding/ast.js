@@ -374,9 +374,9 @@
             if (vc == null) {
                 throw new Error(`ValueConverter named '${this.name}' could not be found. Did you forget to register it as a dependency?`);
             }
-            // note: everything should be ISubscriber eventually
-            // for now, it's sort of internal thing where only built-in bindings are passed as connectable
-            // so it by default satisfies ISubscriber constrain
+            // note: the cast is unsatisfactory. to connect, it needs to be a IConnectable
+            // so having `handleChange` as a guard in the connectable as a safe measure is needed
+            // to make sure signaler works
             if (c !== null && ('handleChange' in c)) {
                 const signals = vc.signals;
                 if (signals != null) {
@@ -408,6 +408,8 @@
             }
             const signaler = b.locator.get(signaler_js_1.ISignaler);
             for (let i = 0; i < vc.signals.length; ++i) {
+                // the cast is correct, as the value converter expression would only add
+                // a IConnectable that also implements `ISubscriber` interface to the signaler
                 signaler.removeSignalListener(vc.signals[i], b);
             }
         }

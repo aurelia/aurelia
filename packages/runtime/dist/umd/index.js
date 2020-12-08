@@ -4,12 +4,12 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/platform", "./binding-behaviors/binding-mode.js", "./binding-behaviors/debounce.js", "./binding-behaviors/signals.js", "./binding-behaviors/throttle.js", "./alias.js", "./binding/ast.js", "./binding/property-binding.js", "./binding/call-binding.js", "./binding/connectable.js", "./binding/expression-parser.js", "./binding/interpolation-binding.js", "./binding/let-binding.js", "./binding/ref-binding.js", "./observation/array-observer.js", "./observation/map-observer.js", "./observation/set-observer.js", "./observation/binding-context.js", "./observation/collection-length-observer.js", "./observation/computed-observer.js", "./observation/dirty-checker.js", "./observation/observable.js", "./observation/observer-locator.js", "./observation/primitive-observer.js", "./observation/property-accessor.js", "./observation/proxy-observation.js", "./observation/setter-observer.js", "./observation/signaler.js", "./observation/subscriber-collection.js", "./observation/connectable-switcher.js", "./binding-behavior.js", "./binding-behaviors/binding-mode.js", "./binding-behaviors/debounce.js", "./binding-behaviors/signals.js", "./binding-behaviors/throttle.js", "./value-converter.js", "./observation/watch.js", "./observation.js"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/platform", "./alias.js", "./binding/ast.js", "./binding/connectable.js", "./binding/expression-parser.js", "./observation/array-observer.js", "./observation/map-observer.js", "./observation/set-observer.js", "./observation/binding-context.js", "./observation/collection-length-observer.js", "./observation/computed-observer.js", "./observation/dirty-checker.js", "./observation/observable.js", "./observation/observer-locator.js", "./observation/primitive-observer.js", "./observation/property-accessor.js", "./observation/proxy-observation.js", "./observation/setter-observer.js", "./observation/signaler.js", "./observation/subscriber-collection.js", "./observation/connectable-switcher.js", "./binding-behavior.js", "./value-converter.js", "./observation.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.createIndexMap = exports.cloneIndexMap = exports.copyIndexMap = exports.isIndexMap = exports.DelegationStrategy = exports.CollectionKind = exports.AccessorType = exports.ILifecycle = exports.LifecycleFlags = exports.BindingMode = exports.Watch = exports.watch = exports.valueConverter = exports.ValueConverterDefinition = exports.ValueConverter = exports.ThrottleBindingBehavior = exports.SignalBindingBehavior = exports.DebounceBindingBehavior = exports.TwoWayBindingBehavior = exports.FromViewBindingBehavior = exports.ToViewBindingBehavior = exports.OneTimeBindingBehavior = exports.BindingModeBehavior = exports.BindingBehaviorStrategy = exports.BindingBehaviorFactory = exports.BindingInterceptor = exports.BindingBehaviorDefinition = exports.BindingBehavior = exports.bindingBehavior = exports.ConnectableSwitcher = exports.collectionSubscriberCollection = exports.subscriberCollection = exports.ISignaler = exports.SetterObserver = exports.ProxyObservable = exports.PropertyAccessor = exports.PrimitiveObserver = exports.ObserverLocator = exports.getCollectionObserver = exports.INodeObserverLocator = exports.IObserverLocator = exports.observable = exports.DirtyCheckSettings = exports.DirtyCheckProperty = exports.IDirtyChecker = exports.ExpressionWatcher = exports.ComputedWatcher = exports.ComputedObserver = exports.CollectionSizeObserver = exports.CollectionLengthObserver = exports.OverrideContext = exports.Scope = exports.BindingContext = exports.disableSetObservation = exports.enableSetObservation = exports.SetObserver = exports.disableMapObservation = exports.enableMapObservation = exports.MapObserver = exports.synchronizeIndices = exports.applyMutationsToIndices = exports.disableArrayObservation = exports.enableArrayObservation = exports.ArrayIndexObserver = exports.ArrayObserver = exports.RefBinding = exports.LetBinding = exports.InterpolationBinding = exports.ContentBinding = exports.ParserState = exports.parse = exports.Precedence = exports.Access = exports.Char = exports.parseExpression = exports.BindingType = exports.IExpressionParser = exports.BindingCollectionObserverRecord = exports.BindingObserverRecord = exports.BindingMediator = exports.connectable = exports.CallBinding = exports.PropertyBinding = exports.Interpolation = exports.ForOfStatement = exports.BindingIdentifier = exports.ObjectBindingPattern = exports.ArrayBindingPattern = exports.TaggedTemplateExpression = exports.TemplateExpression = exports.ObjectLiteralExpression = exports.ArrayLiteralExpression = exports.HtmlLiteralExpression = exports.PrimitiveLiteralExpression = exports.UnaryExpression = exports.BinaryExpression = exports.CallMemberExpression = exports.CallScopeExpression = exports.AccessKeyedExpression = exports.AccessMemberExpression = exports.AccessScopeExpression = exports.AccessThisExpression = exports.ConditionalExpression = exports.AssignExpression = exports.ValueConverterExpression = exports.BindingBehaviorExpression = exports.CustomExpression = exports.CallFunctionExpression = exports.ExpressionKind = exports.registerAliases = exports.alias = exports.TwoWayBindingBehaviorRegistration = exports.ThrottleBindingBehaviorRegistration = exports.SignalBindingBehaviorRegistration = exports.FromViewBindingBehaviorRegistration = exports.ToViewBindingBehaviorRegistration = exports.OneTimeBindingBehaviorRegistration = exports.DebounceBindingBehaviorRegistration = exports.TaskStatus = exports.TaskQueuePriority = exports.TaskAbortError = exports.Task = exports.TaskQueue = exports.Platform = exports.IPlatform = void 0;
+    exports.createIndexMap = exports.cloneIndexMap = exports.copyIndexMap = exports.isIndexMap = exports.DelegationStrategy = exports.CollectionKind = exports.AccessorType = exports.ILifecycle = exports.LifecycleFlags = exports.BindingMode = exports.valueConverter = exports.ValueConverterDefinition = exports.ValueConverter = exports.BindingBehaviorStrategy = exports.BindingBehaviorFactory = exports.BindingInterceptor = exports.BindingBehaviorDefinition = exports.BindingBehavior = exports.bindingBehavior = exports.ConnectableSwitcher = exports.collectionSubscriberCollection = exports.subscriberCollection = exports.ISignaler = exports.SetterObserver = exports.ProxyObservable = exports.PropertyAccessor = exports.PrimitiveObserver = exports.ObserverLocator = exports.getCollectionObserver = exports.INodeObserverLocator = exports.IObserverLocator = exports.observable = exports.DirtyCheckSettings = exports.DirtyCheckProperty = exports.IDirtyChecker = exports.ComputedObserver = exports.CollectionSizeObserver = exports.CollectionLengthObserver = exports.OverrideContext = exports.Scope = exports.BindingContext = exports.disableSetObservation = exports.enableSetObservation = exports.SetObserver = exports.disableMapObservation = exports.enableMapObservation = exports.MapObserver = exports.synchronizeIndices = exports.applyMutationsToIndices = exports.disableArrayObservation = exports.enableArrayObservation = exports.ArrayIndexObserver = exports.ArrayObserver = exports.ParserState = exports.parse = exports.Precedence = exports.Access = exports.Char = exports.parseExpression = exports.BindingType = exports.IExpressionParser = exports.BindingCollectionObserverRecord = exports.BindingObserverRecord = exports.BindingMediator = exports.connectable = exports.Interpolation = exports.ForOfStatement = exports.BindingIdentifier = exports.ObjectBindingPattern = exports.ArrayBindingPattern = exports.TaggedTemplateExpression = exports.TemplateExpression = exports.ObjectLiteralExpression = exports.ArrayLiteralExpression = exports.HtmlLiteralExpression = exports.PrimitiveLiteralExpression = exports.UnaryExpression = exports.BinaryExpression = exports.CallMemberExpression = exports.CallScopeExpression = exports.AccessKeyedExpression = exports.AccessMemberExpression = exports.AccessScopeExpression = exports.AccessThisExpression = exports.ConditionalExpression = exports.AssignExpression = exports.ValueConverterExpression = exports.BindingBehaviorExpression = exports.CustomExpression = exports.CallFunctionExpression = exports.ExpressionKind = exports.registerAliases = exports.alias = exports.TaskStatus = exports.TaskQueuePriority = exports.TaskAbortError = exports.Task = exports.TaskQueue = exports.Platform = exports.IPlatform = void 0;
     var kernel_1 = require("@aurelia/kernel");
     Object.defineProperty(exports, "IPlatform", { enumerable: true, get: function () { return kernel_1.IPlatform; } });
     var platform_1 = require("@aurelia/platform");
@@ -19,17 +19,6 @@
     Object.defineProperty(exports, "TaskAbortError", { enumerable: true, get: function () { return platform_1.TaskAbortError; } });
     Object.defineProperty(exports, "TaskQueuePriority", { enumerable: true, get: function () { return platform_1.TaskQueuePriority; } });
     Object.defineProperty(exports, "TaskStatus", { enumerable: true, get: function () { return platform_1.TaskStatus; } });
-    const binding_mode_js_1 = require("./binding-behaviors/binding-mode.js");
-    const debounce_js_1 = require("./binding-behaviors/debounce.js");
-    const signals_js_1 = require("./binding-behaviors/signals.js");
-    const throttle_js_1 = require("./binding-behaviors/throttle.js");
-    exports.DebounceBindingBehaviorRegistration = debounce_js_1.DebounceBindingBehavior;
-    exports.OneTimeBindingBehaviorRegistration = binding_mode_js_1.OneTimeBindingBehavior;
-    exports.ToViewBindingBehaviorRegistration = binding_mode_js_1.ToViewBindingBehavior;
-    exports.FromViewBindingBehaviorRegistration = binding_mode_js_1.FromViewBindingBehavior;
-    exports.SignalBindingBehaviorRegistration = signals_js_1.SignalBindingBehavior;
-    exports.ThrottleBindingBehaviorRegistration = throttle_js_1.ThrottleBindingBehavior;
-    exports.TwoWayBindingBehaviorRegistration = binding_mode_js_1.TwoWayBindingBehavior;
     var alias_js_1 = require("./alias.js");
     Object.defineProperty(exports, "alias", { enumerable: true, get: function () { return alias_js_1.alias; } });
     Object.defineProperty(exports, "registerAliases", { enumerable: true, get: function () { return alias_js_1.registerAliases; } });
@@ -60,10 +49,6 @@
     Object.defineProperty(exports, "BindingIdentifier", { enumerable: true, get: function () { return ast_js_1.BindingIdentifier; } });
     Object.defineProperty(exports, "ForOfStatement", { enumerable: true, get: function () { return ast_js_1.ForOfStatement; } });
     Object.defineProperty(exports, "Interpolation", { enumerable: true, get: function () { return ast_js_1.Interpolation; } });
-    var property_binding_js_1 = require("./binding/property-binding.js");
-    Object.defineProperty(exports, "PropertyBinding", { enumerable: true, get: function () { return property_binding_js_1.PropertyBinding; } });
-    var call_binding_js_1 = require("./binding/call-binding.js");
-    Object.defineProperty(exports, "CallBinding", { enumerable: true, get: function () { return call_binding_js_1.CallBinding; } });
     var connectable_js_1 = require("./binding/connectable.js");
     Object.defineProperty(exports, "connectable", { enumerable: true, get: function () { return connectable_js_1.connectable; } });
     Object.defineProperty(exports, "BindingMediator", { enumerable: true, get: function () { return connectable_js_1.BindingMediator; } });
@@ -78,13 +63,6 @@
     Object.defineProperty(exports, "Precedence", { enumerable: true, get: function () { return expression_parser_js_1.Precedence; } });
     Object.defineProperty(exports, "parse", { enumerable: true, get: function () { return expression_parser_js_1.parse; } });
     Object.defineProperty(exports, "ParserState", { enumerable: true, get: function () { return expression_parser_js_1.ParserState; } });
-    var interpolation_binding_js_1 = require("./binding/interpolation-binding.js");
-    Object.defineProperty(exports, "ContentBinding", { enumerable: true, get: function () { return interpolation_binding_js_1.ContentBinding; } });
-    Object.defineProperty(exports, "InterpolationBinding", { enumerable: true, get: function () { return interpolation_binding_js_1.InterpolationBinding; } });
-    var let_binding_js_1 = require("./binding/let-binding.js");
-    Object.defineProperty(exports, "LetBinding", { enumerable: true, get: function () { return let_binding_js_1.LetBinding; } });
-    var ref_binding_js_1 = require("./binding/ref-binding.js");
-    Object.defineProperty(exports, "RefBinding", { enumerable: true, get: function () { return ref_binding_js_1.RefBinding; } });
     var array_observer_js_1 = require("./observation/array-observer.js");
     Object.defineProperty(exports, "ArrayObserver", { enumerable: true, get: function () { return array_observer_js_1.ArrayObserver; } });
     Object.defineProperty(exports, "ArrayIndexObserver", { enumerable: true, get: function () { return array_observer_js_1.ArrayIndexObserver; } });
@@ -109,8 +87,6 @@
     Object.defineProperty(exports, "CollectionSizeObserver", { enumerable: true, get: function () { return collection_length_observer_js_1.CollectionSizeObserver; } });
     var computed_observer_js_1 = require("./observation/computed-observer.js");
     Object.defineProperty(exports, "ComputedObserver", { enumerable: true, get: function () { return computed_observer_js_1.ComputedObserver; } });
-    Object.defineProperty(exports, "ComputedWatcher", { enumerable: true, get: function () { return computed_observer_js_1.ComputedWatcher; } });
-    Object.defineProperty(exports, "ExpressionWatcher", { enumerable: true, get: function () { return computed_observer_js_1.ExpressionWatcher; } });
     var dirty_checker_js_1 = require("./observation/dirty-checker.js");
     Object.defineProperty(exports, "IDirtyChecker", { enumerable: true, get: function () { return dirty_checker_js_1.IDirtyChecker; } });
     Object.defineProperty(exports, "DirtyCheckProperty", { enumerable: true, get: function () { return dirty_checker_js_1.DirtyCheckProperty; } });
@@ -144,25 +120,10 @@
     Object.defineProperty(exports, "BindingInterceptor", { enumerable: true, get: function () { return binding_behavior_js_1.BindingInterceptor; } });
     Object.defineProperty(exports, "BindingBehaviorFactory", { enumerable: true, get: function () { return binding_behavior_js_1.BindingBehaviorFactory; } });
     Object.defineProperty(exports, "BindingBehaviorStrategy", { enumerable: true, get: function () { return binding_behavior_js_1.BindingBehaviorStrategy; } });
-    var binding_mode_js_2 = require("./binding-behaviors/binding-mode.js");
-    Object.defineProperty(exports, "BindingModeBehavior", { enumerable: true, get: function () { return binding_mode_js_2.BindingModeBehavior; } });
-    Object.defineProperty(exports, "OneTimeBindingBehavior", { enumerable: true, get: function () { return binding_mode_js_2.OneTimeBindingBehavior; } });
-    Object.defineProperty(exports, "ToViewBindingBehavior", { enumerable: true, get: function () { return binding_mode_js_2.ToViewBindingBehavior; } });
-    Object.defineProperty(exports, "FromViewBindingBehavior", { enumerable: true, get: function () { return binding_mode_js_2.FromViewBindingBehavior; } });
-    Object.defineProperty(exports, "TwoWayBindingBehavior", { enumerable: true, get: function () { return binding_mode_js_2.TwoWayBindingBehavior; } });
-    var debounce_js_2 = require("./binding-behaviors/debounce.js");
-    Object.defineProperty(exports, "DebounceBindingBehavior", { enumerable: true, get: function () { return debounce_js_2.DebounceBindingBehavior; } });
-    var signals_js_2 = require("./binding-behaviors/signals.js");
-    Object.defineProperty(exports, "SignalBindingBehavior", { enumerable: true, get: function () { return signals_js_2.SignalBindingBehavior; } });
-    var throttle_js_2 = require("./binding-behaviors/throttle.js");
-    Object.defineProperty(exports, "ThrottleBindingBehavior", { enumerable: true, get: function () { return throttle_js_2.ThrottleBindingBehavior; } });
     var value_converter_js_1 = require("./value-converter.js");
     Object.defineProperty(exports, "ValueConverter", { enumerable: true, get: function () { return value_converter_js_1.ValueConverter; } });
     Object.defineProperty(exports, "ValueConverterDefinition", { enumerable: true, get: function () { return value_converter_js_1.ValueConverterDefinition; } });
     Object.defineProperty(exports, "valueConverter", { enumerable: true, get: function () { return value_converter_js_1.valueConverter; } });
-    var watch_js_1 = require("./observation/watch.js");
-    Object.defineProperty(exports, "watch", { enumerable: true, get: function () { return watch_js_1.watch; } });
-    Object.defineProperty(exports, "Watch", { enumerable: true, get: function () { return watch_js_1.Watch; } });
     var observation_js_1 = require("./observation.js");
     Object.defineProperty(exports, "BindingMode", { enumerable: true, get: function () { return observation_js_1.BindingMode; } });
     Object.defineProperty(exports, "LifecycleFlags", { enumerable: true, get: function () { return observation_js_1.LifecycleFlags; } });

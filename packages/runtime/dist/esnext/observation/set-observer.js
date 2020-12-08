@@ -1,9 +1,3 @@
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
 import { createIndexMap } from '../observation.js';
 import { CollectionSizeObserver } from './collection-length-observer.js';
 import { collectionSubscriberCollection } from './subscriber-collection.js';
@@ -110,7 +104,7 @@ export function disableSetObservation() {
         }
     }
 }
-let SetObserver = class SetObserver {
+export class SetObserver {
     constructor(observedSet) {
         this.type = 34 /* Set */;
         if (!enableSetObservationCalled) {
@@ -146,11 +140,8 @@ let SetObserver = class SetObserver {
         this.indexMap = createIndexMap(size);
         this.callCollectionSubscribers(indexMap, 8 /* updateTarget */);
     }
-};
-SetObserver = __decorate([
-    collectionSubscriberCollection()
-], SetObserver);
-export { SetObserver };
+}
+collectionSubscriberCollection()(SetObserver);
 export function getSetObserver(observedSet, lifecycle) {
     let observer = observerLookup.get(observedSet);
     if (observer === void 0) {

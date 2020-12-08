@@ -30,9 +30,9 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
     };
     ViewValueConverter = __decorate([
-        runtime_1.valueConverter('view'),
         __param(0, view_js_1.IViewLocator)
     ], ViewValueConverter);
     exports.ViewValueConverter = ViewValueConverter;
+    runtime_1.valueConverter('view')(ViewValueConverter);
 });
 //# sourceMappingURL=view.js.map

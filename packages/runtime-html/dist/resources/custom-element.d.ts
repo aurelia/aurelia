@@ -1,10 +1,10 @@
 import { Constructable, IContainer, IResourceKind, ResourceType, PartialResourceDefinition, Key, ResourceDefinition, Injectable } from '@aurelia/kernel';
-import { IWatchDefinition } from '@aurelia/runtime';
 import { BindableDefinition, PartialBindableDefinition } from '../bindable.js';
 import { IProjections } from './custom-elements/au-slot.js';
 import { IInstruction } from '../renderer.js';
 import { PartialChildrenDefinition, ChildrenDefinition } from '../templating/children.js';
 import type { ICustomElementViewModel, ICustomElementController } from '../templating/controller.js';
+import type { IWatchDefinition } from '../watch.js';
 export declare type PartialCustomElementDefinition = PartialResourceDefinition<{
     readonly cache?: '*' | number;
     readonly template?: null | string | Node;

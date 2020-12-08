@@ -1,16 +1,10 @@
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
 import { subscriberCollection } from '@aurelia/runtime';
 /**
  * Observer for handling two-way binding with attributes
  * Has different strategy for class/style and normal attributes
  * TODO: handle SVG/attributes with namespace
  */
-let AttributeObserver = class AttributeObserver {
+export class AttributeObserver {
     constructor(platform, observerLocator, obj, propertyKey, targetAttribute) {
         this.platform = platform;
         this.observerLocator = observerLocator;
@@ -118,11 +112,8 @@ let AttributeObserver = class AttributeObserver {
             stopObservation(this.obj, this);
         }
     }
-};
-AttributeObserver = __decorate([
-    subscriberCollection()
-], AttributeObserver);
-export { AttributeObserver };
+}
+subscriberCollection()(AttributeObserver);
 const startObservation = ($MutationObserver, element, subscription) => {
     if (element.$eMObservers === undefined) {
         element.$eMObservers = new Set();

@@ -35,8 +35,8 @@ let SanitizeValueConverter = class SanitizeValueConverter {
     }
 };
 SanitizeValueConverter = __decorate([
-    valueConverter('sanitize'),
     __param(0, ISanitizer)
 ], SanitizeValueConverter);
 export { SanitizeValueConverter };
+valueConverter('sanitize')(SanitizeValueConverter);
 //# sourceMappingURL=sanitize.js.map

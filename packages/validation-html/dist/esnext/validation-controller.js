@@ -10,7 +10,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 import { DI, IServiceLocator, } from '@aurelia/kernel';
 import { IExpressionParser } from '@aurelia/runtime';
 import { parsePropertyName, PropertyRule, ValidationResult, IValidator, ValidateInstruction } from '@aurelia/validation';
-import { IPlatform } from '@aurelia/runtime-html';
+import { IPlatform, } from '@aurelia/runtime-html';
 export var ValidateEventKind;
 (function (ValidateEventKind) {
     ValidateEventKind["validate"] = "validate";

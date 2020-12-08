@@ -4,18 +4,21 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "./resources/attribute-pattern.js", "./resources/binding-command.js", "./template-compiler.js", "./renderer.js", "./observation/svg-analyzer.js", "./resources/binding-behaviors/attr.js", "./resources/binding-behaviors/self.js", "./resources/binding-behaviors/update-trigger.js", "./resources/custom-attributes/blur.js", "./resources/custom-attributes/focus.js", "./resources/template-controllers/portal.js", "./resources/template-controllers/flags.js", "./resources/template-controllers/if.js", "./resources/template-controllers/repeat.js", "./resources/template-controllers/with.js", "./resources/template-controllers/switch.js", "./resources/custom-elements/compose.js", "./resources/custom-elements/au-slot.js", "./resources/value-converters/sanitize.js", "./resources/value-converters/view.js", "./observation/observer-locator.js"], factory);
+        define(["require", "exports", "@aurelia/kernel", "./resources/attribute-pattern.js", "./resources/binding-command.js", "./template-compiler.js", "./renderer.js", "./binding-behaviors/binding-mode.js", "./binding-behaviors/debounce.js", "./binding-behaviors/signals.js", "./binding-behaviors/throttle.js", "./observation/svg-analyzer.js", "./resources/binding-behaviors/attr.js", "./resources/binding-behaviors/self.js", "./resources/binding-behaviors/update-trigger.js", "./resources/custom-attributes/blur.js", "./resources/custom-attributes/focus.js", "./resources/template-controllers/portal.js", "./resources/template-controllers/flags.js", "./resources/template-controllers/if.js", "./resources/template-controllers/repeat.js", "./resources/template-controllers/with.js", "./resources/template-controllers/switch.js", "./resources/custom-elements/compose.js", "./resources/custom-elements/au-slot.js", "./resources/value-converters/sanitize.js", "./resources/value-converters/view.js", "./observation/observer-locator.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.StandardConfiguration = exports.DefaultRenderers = exports.TextBindingRendererRegistration = exports.StylePropertyBindingRendererRegistration = exports.SetStyleAttributeRendererRegistration = exports.SetClassAttributeRendererRegistration = exports.SetAttributeRendererRegistration = exports.AttributeBindingRendererRegistration = exports.ListenerBindingRendererRegistration = exports.TemplateControllerRendererRegistration = exports.SetPropertyRendererRegistration = exports.RefBindingRendererRegistration = exports.PropertyBindingRendererRegistration = exports.LetElementRendererRegistration = exports.IteratorBindingRendererRegistration = exports.InterpolationBindingRendererRegistration = exports.CustomElementRendererRegistration = exports.CustomAttributeRendererRegistration = exports.CallBindingRendererRegistration = exports.DefaultResources = exports.BlurRegistration = exports.FocusRegistration = exports.PortalRegistration = exports.ComposeRegistration = exports.UpdateTriggerBindingBehaviorRegistration = exports.SelfBindingBehaviorRegistration = exports.AttrBindingBehaviorRegistration = exports.DefaultCaseRegistration = exports.CaseRegistration = exports.SwitchRegistration = exports.WithRegistration = exports.RepeatRegistration = exports.ElseRegistration = exports.IfRegistration = exports.ObserveShallowRegistration = exports.FrequentMutationsRegistration = exports.ViewValueConverterRegistration = exports.SanitizeValueConverterRegistration = exports.DefaultBindingLanguage = exports.StyleBindingCommandRegistration = exports.ClassBindingCommandRegistration = exports.AttrBindingCommandRegistration = exports.CaptureBindingCommandRegistration = exports.DelegateBindingCommandRegistration = exports.TriggerBindingCommandRegistration = exports.RefBindingCommandRegistration = exports.TwoWayBindingCommandRegistration = exports.ToViewBindingCommandRegistration = exports.OneTimeBindingCommandRegistration = exports.FromViewBindingCommandRegistration = exports.ForBindingCommandRegistration = exports.DefaultBindingCommandRegistration = exports.CallBindingCommandRegistration = exports.ShortHandBindingSyntax = exports.DefaultBindingSyntax = exports.DotSeparatedAttributePatternRegistration = exports.RefAttributePatternRegistration = exports.ColonPrefixedBindAttributePatternRegistration = exports.AtPrefixedTriggerAttributePatternRegistration = exports.SVGAnalyzerRegistration = exports.DefaultComponents = exports.INodeObserverLocatorRegistration = exports.ITemplateCompilerRegistration = void 0;
+    exports.StandardConfiguration = exports.DefaultRenderers = exports.TextBindingRendererRegistration = exports.StylePropertyBindingRendererRegistration = exports.SetStyleAttributeRendererRegistration = exports.SetClassAttributeRendererRegistration = exports.SetAttributeRendererRegistration = exports.AttributeBindingRendererRegistration = exports.ListenerBindingRendererRegistration = exports.TemplateControllerRendererRegistration = exports.SetPropertyRendererRegistration = exports.RefBindingRendererRegistration = exports.PropertyBindingRendererRegistration = exports.LetElementRendererRegistration = exports.IteratorBindingRendererRegistration = exports.InterpolationBindingRendererRegistration = exports.CustomElementRendererRegistration = exports.CustomAttributeRendererRegistration = exports.CallBindingRendererRegistration = exports.DefaultResources = exports.BlurRegistration = exports.FocusRegistration = exports.PortalRegistration = exports.ComposeRegistration = exports.UpdateTriggerBindingBehaviorRegistration = exports.SelfBindingBehaviorRegistration = exports.AttrBindingBehaviorRegistration = exports.DefaultCaseRegistration = exports.CaseRegistration = exports.SwitchRegistration = exports.WithRegistration = exports.RepeatRegistration = exports.ElseRegistration = exports.IfRegistration = exports.ObserveShallowRegistration = exports.FrequentMutationsRegistration = exports.ViewValueConverterRegistration = exports.SanitizeValueConverterRegistration = exports.DefaultBindingLanguage = exports.StyleBindingCommandRegistration = exports.ClassBindingCommandRegistration = exports.AttrBindingCommandRegistration = exports.CaptureBindingCommandRegistration = exports.DelegateBindingCommandRegistration = exports.TriggerBindingCommandRegistration = exports.RefBindingCommandRegistration = exports.TwoWayBindingCommandRegistration = exports.ToViewBindingCommandRegistration = exports.OneTimeBindingCommandRegistration = exports.FromViewBindingCommandRegistration = exports.ForBindingCommandRegistration = exports.DefaultBindingCommandRegistration = exports.CallBindingCommandRegistration = exports.ShortHandBindingSyntax = exports.DefaultBindingSyntax = exports.DotSeparatedAttributePatternRegistration = exports.RefAttributePatternRegistration = exports.ColonPrefixedBindAttributePatternRegistration = exports.AtPrefixedTriggerAttributePatternRegistration = exports.SVGAnalyzerRegistration = exports.DefaultComponents = exports.INodeObserverLocatorRegistration = exports.ITemplateCompilerRegistration = exports.TwoWayBindingBehaviorRegistration = exports.ThrottleBindingBehaviorRegistration = exports.SignalBindingBehaviorRegistration = exports.FromViewBindingBehaviorRegistration = exports.ToViewBindingBehaviorRegistration = exports.OneTimeBindingBehaviorRegistration = exports.DebounceBindingBehaviorRegistration = void 0;
     const kernel_1 = require("@aurelia/kernel");
-    const runtime_1 = require("@aurelia/runtime");
     const attribute_pattern_js_1 = require("./resources/attribute-pattern.js");
     const binding_command_js_1 = require("./resources/binding-command.js");
     const template_compiler_js_1 = require("./template-compiler.js");
     const renderer_js_1 = require("./renderer.js");
+    const binding_mode_js_1 = require("./binding-behaviors/binding-mode.js");
+    const debounce_js_1 = require("./binding-behaviors/debounce.js");
+    const signals_js_1 = require("./binding-behaviors/signals.js");
+    const throttle_js_1 = require("./binding-behaviors/throttle.js");
     const svg_analyzer_js_1 = require("./observation/svg-analyzer.js");
     const attr_js_1 = require("./resources/binding-behaviors/attr.js");
     const self_js_1 = require("./resources/binding-behaviors/self.js");
@@ -33,6 +36,13 @@
     const sanitize_js_1 = require("./resources/value-converters/sanitize.js");
     const view_js_1 = require("./resources/value-converters/view.js");
     const observer_locator_js_1 = require("./observation/observer-locator.js");
+    exports.DebounceBindingBehaviorRegistration = debounce_js_1.DebounceBindingBehavior;
+    exports.OneTimeBindingBehaviorRegistration = binding_mode_js_1.OneTimeBindingBehavior;
+    exports.ToViewBindingBehaviorRegistration = binding_mode_js_1.ToViewBindingBehavior;
+    exports.FromViewBindingBehaviorRegistration = binding_mode_js_1.FromViewBindingBehavior;
+    exports.SignalBindingBehaviorRegistration = signals_js_1.SignalBindingBehavior;
+    exports.ThrottleBindingBehaviorRegistration = throttle_js_1.ThrottleBindingBehavior;
+    exports.TwoWayBindingBehaviorRegistration = binding_mode_js_1.TwoWayBindingBehavior;
     exports.ITemplateCompilerRegistration = template_compiler_js_1.TemplateCompiler;
     exports.INodeObserverLocatorRegistration = observer_locator_js_1.NodeObserverLocator;
     /**
@@ -132,13 +142,13 @@
      * - Value Converters: `sanitize`
      */
     exports.DefaultResources = [
-        runtime_1.DebounceBindingBehaviorRegistration,
-        runtime_1.OneTimeBindingBehaviorRegistration,
-        runtime_1.ToViewBindingBehaviorRegistration,
-        runtime_1.FromViewBindingBehaviorRegistration,
-        runtime_1.SignalBindingBehaviorRegistration,
-        runtime_1.ThrottleBindingBehaviorRegistration,
-        runtime_1.TwoWayBindingBehaviorRegistration,
+        exports.DebounceBindingBehaviorRegistration,
+        exports.OneTimeBindingBehaviorRegistration,
+        exports.ToViewBindingBehaviorRegistration,
+        exports.FromViewBindingBehaviorRegistration,
+        exports.SignalBindingBehaviorRegistration,
+        exports.ThrottleBindingBehaviorRegistration,
+        exports.TwoWayBindingBehaviorRegistration,
         exports.SanitizeValueConverterRegistration,
         exports.ViewValueConverterRegistration,
         exports.FrequentMutationsRegistration,

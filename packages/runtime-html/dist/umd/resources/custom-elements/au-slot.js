@@ -1,12 +1,3 @@
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __param = (this && this.__param) || function (paramIndex, decorator) {
-    return function (target, key) { decorator(target, key, paramIndex); }
-};
 (function (factory) {
     if (typeof module === "object" && typeof module.exports === "object") {
         var v = factory(require, exports);
@@ -65,7 +56,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
     }
     exports.ProjectionProvider = ProjectionProvider;
-    let AuSlot = class AuSlot {
+    class AuSlot {
         constructor(factory, location) {
             this.factory = factory;
             this.hostScope = null;
@@ -73,6 +64,10 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             this.isProjection = factory.contentType === AuSlotContentType.Projection;
             this.outerScope = factory.projectionScope;
         }
+        /**
+         * @internal
+         */
+        static get inject() { return [view_js_1.IViewFactory, dom_js_1.IRenderLocation]; }
         binding(initiator, parent, flags) {
             this.hostScope = this.$controller.scope.parentScope;
         }
@@ -94,12 +89,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                 return true;
             }
         }
-    };
-    AuSlot = __decorate([
-        custom_element_js_1.customElement({ name: 'au-slot', template: null, containerless: true }),
-        __param(0, view_js_1.IViewFactory),
-        __param(1, dom_js_1.IRenderLocation)
-    ], AuSlot);
+    }
     exports.AuSlot = AuSlot;
+    custom_element_js_1.customElement({ name: 'au-slot', template: null, containerless: true })(AuSlot);
 });
 //# sourceMappingURL=au-slot.js.map

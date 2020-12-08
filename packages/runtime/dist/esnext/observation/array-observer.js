@@ -1,9 +1,3 @@
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
 import { createIndexMap, } from '../observation.js';
 import { CollectionLengthObserver, } from './collection-length-observer.js';
 import { collectionSubscriberCollection, subscriberCollection, } from './subscriber-collection.js';
@@ -362,7 +356,7 @@ export function disableArrayObservation() {
         }
     }
 }
-let ArrayObserver = class ArrayObserver {
+export class ArrayObserver {
     constructor(array) {
         this.type = 18 /* Array */;
         if (!enableArrayObservationCalled) {
@@ -413,12 +407,8 @@ let ArrayObserver = class ArrayObserver {
         var _b;
         return (_a = (_b = this.indexObservers)[index]) !== null && _a !== void 0 ? _a : (_b[index] = new ArrayIndexObserver(this, index));
     }
-};
-ArrayObserver = __decorate([
-    collectionSubscriberCollection()
-], ArrayObserver);
-export { ArrayObserver };
-let ArrayIndexObserver = class ArrayIndexObserver {
+}
+export class ArrayIndexObserver {
     constructor(owner, index) {
         this.owner = owner;
         this.index = index;
@@ -470,11 +460,9 @@ let ArrayIndexObserver = class ArrayIndexObserver {
             this.owner.removeCollectionSubscriber(this);
         }
     }
-};
-ArrayIndexObserver = __decorate([
-    subscriberCollection()
-], ArrayIndexObserver);
-export { ArrayIndexObserver };
+}
+collectionSubscriberCollection()(ArrayObserver);
+subscriberCollection()(ArrayIndexObserver);
 export function getArrayObserver(array, lifecycle) {
     let observer = observerLookup.get(array);
     if (observer === void 0) {

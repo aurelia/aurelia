@@ -56,6 +56,7 @@ import { SelfBindingBehavior } from './resources/binding-behaviors/self.js';
 import { UpdateTriggerBindingBehavior } from './resources/binding-behaviors/update-trigger.js';
 import { Blur } from './resources/custom-attributes/blur.js';
 import { Focus } from './resources/custom-attributes/focus.js';
+import { Show } from './resources/custom-attributes/show.js';
 import { Portal } from './resources/template-controllers/portal.js';
 import { FrequentMutations, ObserveShallow } from './resources/template-controllers/flags.js';
 import { Else, If } from './resources/template-controllers/if.js';
@@ -174,6 +175,7 @@ export const ComposeRegistration = Compose as unknown as IRegistry;
 export const PortalRegistration = Portal as unknown as IRegistry;
 export const FocusRegistration = Focus as unknown as IRegistry;
 export const BlurRegistration = Blur as unknown as IRegistry;
+export const ShowRegistration = Show as unknown as IRegistry;
 
 /**
  * Default HTML-specific (but environment-agnostic) resources:
@@ -209,6 +211,7 @@ export const DefaultResources = [
   PortalRegistration,
   FocusRegistration,
   BlurRegistration,
+  ShowRegistration,
   AuSlot,
 ];
 

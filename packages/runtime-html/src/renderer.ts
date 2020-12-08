@@ -152,6 +152,7 @@ export class HydrateElementInstruction {
 
   public constructor(
     public res: string,
+    public alias: string | undefined,
     public instructions: IInstruction[],
     public slotInfo: SlotInfo | null,
   ) {}
@@ -162,6 +163,7 @@ export class HydrateAttributeInstruction {
 
   public constructor(
     public res: string,
+    public alias: string | undefined,
     public instructions: IInstruction[],
   ) {}
 }
@@ -172,6 +174,7 @@ export class HydrateTemplateController {
   public constructor(
     public def: PartialCustomElementDefinition,
     public res: string,
+    public alias: string | undefined,
     public instructions: IInstruction[],
   ) {}
 }

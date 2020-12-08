@@ -19,11 +19,9 @@ import type {
   IndexMap,
   IObserverLocator,
   ISignaler,
-  ISubscribable,
   BindingObserverRecord,
   BindingCollectionObserverRecord,
   Collection,
-  ICollectionSubscribable,
 } from '@aurelia/runtime';
 
 export class MockBinding implements IConnectableBinding {
@@ -64,22 +62,6 @@ export class MockBinding implements IConnectableBinding {
 
   public observeCollection(col: Collection): void {
     this.trace('observeCollection', col);
-  }
-
-  public unobserve(all?: boolean): void {
-    this.trace('unobserve', all);
-  }
-
-  public unobserveCollection(all?: boolean): void {
-    this.trace('unobserveCollection', all);
-  }
-
-  public addObserver(observer: ISubscribable): void {
-    this.trace('addObserver', observer);
-  }
-
-  public addCollectionObserver(observer: ICollectionSubscribable): void {
-    this.trace('addCollectionObserver', observer);
   }
 
   public $bind(flags: LifecycleFlags, scope: Scope): void {

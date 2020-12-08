@@ -275,14 +275,14 @@ describe('router (smoke tests)', function () {
       await tearDown();
     });
 
-    it.skip(`${name(Root1)} can load ${name(A11)},${name(A11)}/${name(A02)} in order with context and can determine if it's active`, async function () {
+    it(`${name(Root1)} can load ${name(A11)},${name(A11)}/${name(A02)} in order with context and can determine if it's active`, async function () {
       const { router, host, tearDown } = await createFixture(Root1, Z, getDefaultHIAConfig, getRouterOptions);
 
       await router.load(A11);
       assertComponentsVisible(host, [Root1, A11]);
       assertIsActive(router, A11, router/* .routeTree.root.context */, true, 1);
 
-      const loadOptions = {}; // context = router /* .routeTree.root.children[0].context */;
+      const loadOptions = { origin: router.allViewports()[0].content.componentInstance }; // A11 view model
 
       await router.load(A02, loadOptions);
       assertComponentsVisible(host, [Root1, A11, A02]);
@@ -293,13 +293,13 @@ describe('router (smoke tests)', function () {
       await tearDown();
     });
 
-    it.skip(`${name(Root1)} can load ${name(A11)}/${name(A01)},${name(A11)}/${name(A02)} in order with context`, async function () {
+    it(`${name(Root1)} can load ${name(A11)}/${name(A01)},${name(A11)}/${name(A02)} in order with context`, async function () {
       const { router, host, tearDown } = await createFixture(Root1, Z, getDefaultHIAConfig, getRouterOptions);
 
       await router.load({ component: A11, children: [A01] });
       assertComponentsVisible(host, [Root1, A11, A01]);
 
-      const loadOptions = {}; // context = router /* .routeTree.root.children[0].context */;
+      const loadOptions = { origin: router.allViewports()[0].content.componentInstance }; // A11 view model
 
       await router.load(A02, loadOptions);
       assertComponentsVisible(host, [Root1, A11, A02]);
@@ -307,8 +307,7 @@ describe('router (smoke tests)', function () {
       await tearDown();
     });
 
-    // TODO: Add boolean return from load()
-    it.skip(`${name(Root1)} correctly handles canUnload with goto ${name(B01)},${name(A01)} in order`, async function () {
+    it(`${name(Root1)} correctly handles canUnload with goto ${name(B01)},${name(A01)} in order`, async function () {
       const { router, host, tearDown } = await createFixture(Root1, Z, getDefaultHIAConfig, getRouterOptions);
 
       let result = await router.load(B01);
@@ -322,8 +321,7 @@ describe('router (smoke tests)', function () {
       await tearDown();
     });
 
-    // TODO: Add boolean return from load()
-    it.skip(`${name(Root1)} correctly handles canUnload with goto ${name(B02)},${name(A01)} in order`, async function () {
+    it(`${name(Root1)} correctly handles canUnload with goto ${name(B02)},${name(A01)} in order`, async function () {
       const { router, host, tearDown } = await createFixture(Root1, Z, getDefaultHIAConfig, getRouterOptions);
 
       let result = await router.load(B02);
@@ -338,7 +336,7 @@ describe('router (smoke tests)', function () {
     });
 
     // TODO: Add boolean return from load()
-    it.skip(`${name(Root1)} correctly handles canUnload with goto ${name(B02)},${name(A01)},${name(A02)} in order`, async function () {
+    it(`${name(Root1)} correctly handles canUnload with goto ${name(B02)},${name(A01)},${name(A02)} in order`, async function () {
       const { router, host, tearDown } = await createFixture(Root1, Z, getDefaultHIAConfig, getRouterOptions);
 
       let result = await router.load(B02);
@@ -356,8 +354,7 @@ describe('router (smoke tests)', function () {
       await tearDown();
     });
 
-    // TODO: Add boolean return from load()
-    it.skip(`${name(Root1)} correctly handles canUnload with goto ${name(B11)}/${name(B02)},${name(B11)}/${name(A02)} in order`, async function () {
+    it(`${name(Root1)} correctly handles canUnload with goto ${name(B11)}/${name(B02)},${name(B11)}/${name(A02)} in order`, async function () {
       const { router, host, tearDown } = await createFixture(Root1, Z, getDefaultHIAConfig, getRouterOptions);
 
       let result = await router.load(`${name(B11)}/${name(B02)}`);
@@ -371,8 +368,7 @@ describe('router (smoke tests)', function () {
       await tearDown();
     });
 
-    // TODO: Add boolean return from load()
-    it.skip(`${name(Root1)} correctly handles canUnload with goto ${name(B12)}/${name(B01)},${name(B11)}/${name(B01)} in order`, async function () {
+    it(`${name(Root1)} correctly handles canUnload with goto ${name(B12)}/${name(B01)},${name(B11)}/${name(B01)} in order`, async function () {
       const { router, host, tearDown } = await createFixture(Root1, Z, getDefaultHIAConfig, getRouterOptions);
 
       let result = await router.load(`${name(B12)}/${name(B01)}`);
@@ -386,8 +382,7 @@ describe('router (smoke tests)', function () {
       await tearDown();
     });
 
-    // TODO: Add boolean return from load()
-    it.skip(`${name(Root1)} correctly handles canUnload with goto ${name(B12)}/${name(B01)},${name(B12)}/${name(A01)} in order`, async function () {
+    it(`${name(Root1)} correctly handles canUnload with goto ${name(B12)}/${name(B01)},${name(B12)}/${name(A01)} in order`, async function () {
       const { router, host, tearDown } = await createFixture(Root1, Z, getDefaultHIAConfig, getRouterOptions);
 
       let result = await router.load(`${name(B12)}/${name(B01)}`);
@@ -479,20 +474,22 @@ describe('router (smoke tests)', function () {
       await tearDown();
     });
 
-    it.skip(`${name(Root2)} can load ${name(A11)}@$0/${name(A12)}/${name(A01)}+${name(A12)}@$1/${name(A01)},${name(A11)}@$0/${name(A12)}/${name(A01)}+${name(A12)}@$1/${name(A11)}/${name(A01)},${name(A11)}@$0/${name(A12)}/${name(A02)}+${name(A12)}@$1/${name(A11)}/${name(A01)} in order with context`, async function () {
+    it(`${name(Root2)} can load ${name(A11)}@$0/${name(A12)}/${name(A01)}+${name(A12)}@$1/${name(A01)},${name(A11)}@$0/${name(A12)}/${name(A01)}+${name(A12)}@$1/${name(A11)}/${name(A01)},${name(A11)}@$0/${name(A12)}/${name(A02)}+${name(A12)}@$1/${name(A11)}/${name(A01)} in order with context`, async function () {
       const { router, host, tearDown } = await createFixture(Root2, Z, getDefaultHIAConfig, getRouterOptions);
 
       await router.load(`${name(A11)}@$0/${name(A12)}/${name(A01)}+${name(A12)}@$1/${name(A01)}`);
       assertComponentsVisible(host, [Root2, [A11, [A12, [A01]]], [A12, [A01]]], '#1');
 
-      const loadOptions = {}; // context = router /* .routeTree.root.children[0].context */;
+      // const loadOptions = {}; // context = router /* .routeTree.root.children[0].context */;
+      let loadOptions = { origin: router.allViewports()[1].content.componentInstance }; // Top A12 view model
 
       await router.load(`${name(A11)}@$0/${name(A01)}`, loadOptions);
       assertComponentsVisible(host, [Root2, [A11, [A12, [A01]]], [A12, [A11, [A01]]]], '#2');
 
       // context = router /*.routeTree.root.children[0].children[0].context */;
+      loadOptions = { origin: router.allViewports()[2].content.componentInstance }; // Second level A12 view model
 
-      await router.load(`${name(A02)}@$0`, loadOptions);
+      await router.load(`${name(A02)}`, loadOptions);
       assertComponentsVisible(host, [Root2, [A11, [A12, [A02]]], [A12, [A11, [A01]]]], '#3');
 
       await tearDown();

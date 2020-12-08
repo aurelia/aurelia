@@ -1,0 +1,16 @@
+{
+  "name": "@benchmarking-apps/shared",
+  "version": "1.0.0",
+  "description": "Shared classes for the benchmarking apps",
+  "main": "dist/esnext/index.js",
+  "module": "dist/esnext/index.js",
+  "typings": "dist/types/index.d.ts",
+  "scripts": {
+    "build": "tsc -b",
+    "dev": "tsc -b -w --preserveWatchOutput",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

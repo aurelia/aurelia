@@ -239,14 +239,14 @@ function defineApp(fps, count) {
   );
 }
 
-new Aurelia().register(StandardConfiguration, SVGAnalyzerRegistration).app(
+void new Aurelia().register(StandardConfiguration, SVGAnalyzerRegistration).app(
   {
     host: document.getElementById('app-left'),
     component: defineApp(5, 2000)
   }
 ).start();
 
-new Aurelia().register(StandardConfiguration, SVGAnalyzerRegistration).app(
+void new Aurelia().register(StandardConfiguration, SVGAnalyzerRegistration).app(
   {
     host: document.getElementById('app-right'),
     component: defineApp(25, 1000)

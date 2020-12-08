@@ -24,7 +24,7 @@ const globalResources = [
   HttpClient,
 ];
 
-new Aurelia()
+void new Aurelia()
   .register(
     StandardConfiguration,
     RouterConfiguration.customize({ useUrlFragmentHash: false, statefulHistoryLength: 3 }),

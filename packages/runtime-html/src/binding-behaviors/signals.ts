@@ -1,12 +1,6 @@
-import { LifecycleFlags } from '../observation.js';
-import { ISignaler } from '../observation/signaler.js';
-import { bindingBehavior, BindingBehaviorInstance } from '../binding-behavior.js';
+import { bindingBehavior, ISignaler, LifecycleFlags } from '@aurelia/runtime';
+import type { BindingBehaviorInstance, IBinding, IConnectableBinding, Scope } from '@aurelia/runtime';
 
-import type { IBinding } from '../observation.js';
-import type { IConnectableBinding } from '../binding/connectable.js';
-import type { Scope } from '../observation/binding-context.js';
-
-@bindingBehavior('signal')
 export class SignalBindingBehavior implements BindingBehaviorInstance {
   private readonly lookup: Map<IBinding, string[]> = new Map();
 
@@ -36,3 +30,5 @@ export class SignalBindingBehavior implements BindingBehaviorInstance {
     }
   }
 }
+
+bindingBehavior('signal')(SignalBindingBehavior);

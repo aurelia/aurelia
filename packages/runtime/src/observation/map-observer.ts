@@ -134,7 +134,6 @@ export function disableMapObservation(): void {
 
 export interface MapObserver extends ICollectionObserver<CollectionKind.map> {}
 
-@collectionSubscriberCollection()
 export class MapObserver {
   public inBatch: boolean;
   public type: AccessorType = AccessorType.Map;
@@ -179,6 +178,8 @@ export class MapObserver {
     this.callCollectionSubscribers(indexMap, LifecycleFlags.updateTarget);
   }
 }
+
+collectionSubscriberCollection()(MapObserver);
 
 export function getMapObserver(map: Map<unknown, unknown>, lifecycle: ILifecycle | null): MapObserver {
   let observer = observerLookup.get(map);

@@ -11,7 +11,7 @@ import {
   assert,
 } from '@aurelia/testing';
 
-describe('2-runtime/computed-observer.spec.ts', function () {
+describe('[UNIT] 2-runtime/computed-observer.spec.ts', function () {
   function createFixture() {
     const container = DI.createContainer(); // Note: used to be RuntimeConfiguration.createContainer, needs deps
     const nodeLocator = {
@@ -350,5 +350,62 @@ describe('2-runtime/computed-observer.spec.ts', function () {
       foo.sortFn = (a: number, b: number) => a - b;
       verifyCalled(1, ++i);
     }
+  });
+
+  it('invokes getter efficiently', function () {
+    let getterCallCount = 0;
+    const { locator } = createFixture();
+    const obj = { prop: 1, prop1: 1 };
+    const observer = ComputedObserver.create(
+      obj,
+      'prop',
+      {
+        get() {
+          getterCallCount++;
+          return this.prop1;
+        }
+      },
+      locator,
+      true,
+    );
+    let handleChangeCallCount = 0;
+    observer.subscribe({
+      handleChange() {
+        handleChangeCallCount++;
+      }
+    });
+
+    const arr = [];
+    observer.observeCollection(arr);
+
+    assert.strictEqual(getterCallCount, 1);
+    assert.strictEqual(obj.prop, 1);
+    assert.strictEqual(getterCallCount, 1);
+
+    assert.strictEqual(observer.getValue(), 1);
+    // shouldn't compute again
+    assert.strictEqual(getterCallCount, 1);
+
+    assert.strictEqual(obj.prop, 1);
+    // shouldn't compute again
+    assert.strictEqual(getterCallCount, 1);
+
+    obj.prop1 = 2;
+    assert.strictEqual(getterCallCount, 2);
+    assert.strictEqual(obj.prop, 2);
+    // shouldn't compute again
+    assert.strictEqual(observer.getValue(), 2);
+    // shouldn't compute again
+    assert.strictEqual(obj.prop, 2);
+
+    // array observation should be dropped last run
+    // as it's not part of the getter
+    arr.push(2);
+    assert.strictEqual(getterCallCount, 2);
+    assert.strictEqual(obj.prop, 2);
+    // shouldn't compute again
+    assert.strictEqual(observer.getValue(), 2);
+    // shouldn't compute again
+    assert.strictEqual(obj.prop, 2);
   });
 });

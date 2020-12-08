@@ -46,7 +46,6 @@ describe('CustomAttribute', function () {
       $class['au:annotation'],
       [
         'au:annotation:di:dependencies',
-        'au:annotation:di:factory',
       ],
       `$class['au:annotation']`,
     );
@@ -117,7 +116,6 @@ describe('CustomAttribute', function () {
       $class['au:annotation'],
       [
         'au:annotation:di:dependencies',
-        'au:annotation:di:factory',
       ],
       `$class['au:annotation']`,
     );

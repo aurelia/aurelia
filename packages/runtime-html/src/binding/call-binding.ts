@@ -1,13 +1,7 @@
-import {
-  LifecycleFlags,
-} from '../observation.js';
+import { LifecycleFlags } from '@aurelia/runtime';
 
 import type { IServiceLocator } from '@aurelia/kernel';
-import type { IObserverLocator } from '../observation/observer-locator.js';
-import type { Scope } from '../observation/binding-context.js';
-import type { IsBindingBehavior } from './ast.js';
-import type { IAccessor } from '../observation.js';
-import type { IConnectableBinding } from './connectable.js';
+import type { IAccessor, IConnectableBinding, IObserverLocator, IsBindingBehavior, Scope } from '@aurelia/runtime';
 
 export interface CallBinding extends IConnectableBinding {}
 export class CallBinding {

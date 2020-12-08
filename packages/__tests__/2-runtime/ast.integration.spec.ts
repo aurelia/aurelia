@@ -1,19 +1,20 @@
-import { DI } from '@aurelia/kernel';
-import {
-  createScopeForTest,
-  createObserverLocator,
-  assert,
-  createContainer,
-} from '@aurelia/testing';
 import {
   AccessScopeExpression,
-  PropertyBinding,
-  ConditionalExpression,
   BindingMode,
-  LifecycleFlags,
-  LetBinding,
+  ConditionalExpression,
+  LifecycleFlags
 } from '@aurelia/runtime';
-import { IPlatform } from '@aurelia/runtime-html';
+import {
+  IPlatform,
+  LetBinding,
+  PropertyBinding,
+} from '@aurelia/runtime-html';
+import {
+  assert,
+  createContainer,
+  createObserverLocator,
+  createScopeForTest,
+} from '@aurelia/testing';
 
 describe('2-runtime/ast.integration.spec.ts', function () {
   describe('[[AccessScope]]', function () {

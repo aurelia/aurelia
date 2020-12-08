@@ -92,6 +92,8 @@ export class NodeObserverConfig {
 }
 
 export class NodeObserverLocator implements INodeObserverLocator {
+  protected static readonly inject = [IServiceLocator, IPlatform, IDirtyChecker, ISVGAnalyzer];
+
   public allowDirtyCheck: boolean = true;
 
   private readonly events: Record<string, Record<string, NodeObserverConfig>> = createLookup();
@@ -100,10 +102,10 @@ export class NodeObserverLocator implements INodeObserverLocator {
   private readonly globalOverrides: Record<string, true> = createLookup();
 
   public constructor(
-    @IServiceLocator private readonly locator: IServiceLocator,
-    @IPlatform private readonly platform: IPlatform,
-    @IDirtyChecker private readonly dirtyChecker: IDirtyChecker,
-    @ISVGAnalyzer private readonly svgAnalyzer: ISVGAnalyzer,
+    private readonly locator: IServiceLocator,
+    private readonly platform: IPlatform,
+    private readonly dirtyChecker: IDirtyChecker,
+    private readonly svgAnalyzer: ISVGAnalyzer,
   ) {
     // todo: atm, platform is required to be resolved too eagerly for the `.handles()` check
     // also a lot of tests assume default availability of observation

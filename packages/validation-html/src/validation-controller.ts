@@ -11,7 +11,6 @@ import {
   BindingBehaviorExpression,
   IExpressionParser,
   LifecycleFlags,
-  PropertyBinding,
   ExpressionKind,
   IsBindingBehavior
 } from '@aurelia/runtime';
@@ -27,7 +26,10 @@ import {
 } from '@aurelia/validation';
 
 import type { Scope } from '@aurelia/runtime';
-import { IPlatform } from '@aurelia/runtime-html';
+import {
+  IPlatform,
+  PropertyBinding,
+} from '@aurelia/runtime-html';
 
 export type BindingWithBehavior = PropertyBinding & {
   sourceExpression: BindingBehaviorExpression;

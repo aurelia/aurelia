@@ -8,7 +8,7 @@ import {
   DI,
   fromAnnotationOrDefinitionOrTypeOrDefault,
 } from '@aurelia/kernel';
-import { Collection, ICollectionSubscribable, LifecycleFlags } from './observation.js';
+import { Collection, LifecycleFlags } from './observation.js';
 import { registerAliases } from './alias.js';
 
 import type {
@@ -23,7 +23,7 @@ import type {
 import type { BindingCollectionObserverRecord, BindingObserverRecord, IConnectableBinding } from './binding/connectable.js';
 import type { BindingBehaviorExpression, IBindingBehaviorExpression } from './binding/ast.js';
 import type { IObserverLocator } from './observation/observer-locator.js';
-import type { IBinding, ISubscribable } from './observation.js';
+import type { IBinding } from './observation.js';
 import type { Scope } from './observation/binding-context.js';
 
 export type PartialBindingBehaviorDefinition = PartialResourceDefinition<{

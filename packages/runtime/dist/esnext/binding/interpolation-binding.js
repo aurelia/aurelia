@@ -1,9 +1,3 @@
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
 import { BindingMode, } from '../observation.js';
 import { connectable } from './connectable.js';
 const { toView } = BindingMode;
@@ -100,7 +94,7 @@ export class InterpolationBinding {
         this.task = null;
     }
 }
-let ContentBinding = class ContentBinding {
+export class ContentBinding {
     constructor(sourceExpression, target, targetProperty, locator, observerLocator, owner) {
         this.sourceExpression = sourceExpression;
         this.target = target;
@@ -116,7 +110,6 @@ let ContentBinding = class ContentBinding {
         this.$hostScope = null;
         this.task = null;
         this.isBound = false;
-        this.arrayObserver = void 0;
     }
     handleChange(newValue, oldValue, flags) {
         if (!this.isBound) {
@@ -137,9 +130,9 @@ let ContentBinding = class ContentBinding {
         }
         if (newValue != this.value) {
             this.value = newValue;
-            this.unobserveArray();
+            this.unobserveCollection();
             if (newValue instanceof Array) {
-                this.observeArray(newValue);
+                this.observeCollection(newValue);
             }
             this.owner.updateTarget(newValue, flags);
         }
@@ -162,7 +155,7 @@ let ContentBinding = class ContentBinding {
         }
         const v = this.value = this.sourceExpression.evaluate(flags, scope, hostScope, this.locator, (this.mode & toView) > 0 ? this.interceptor : null);
         if (v instanceof Array) {
-            this.observeArray(v);
+            this.observeCollection(v);
         }
     }
     $unbind(flags) {
@@ -176,20 +169,8 @@ let ContentBinding = class ContentBinding {
         this.$scope = void 0;
         this.$hostScope = null;
         this.record.clear(true);
-        this.unobserveArray();
+        this.cRecord.clear(true);
     }
-    observeArray(arr) {
-        const newObserver = this.arrayObserver = this.observerLocator.getArrayObserver(arr);
-        newObserver.addCollectionSubscriber(this.interceptor);
-    }
-    unobserveArray() {
-        var _a;
-        (_a = this.arrayObserver) === null || _a === void 0 ? void 0 : _a.removeCollectionSubscriber(this.interceptor);
-        this.arrayObserver = void 0;
-    }
-};
-ContentBinding = __decorate([
-    connectable()
-], ContentBinding);
-export { ContentBinding };
+}
+connectable(ContentBinding);
 //# sourceMappingURL=interpolation-binding.js.map

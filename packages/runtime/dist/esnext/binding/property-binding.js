@@ -1,9 +1,3 @@
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
 import { BindingMode } from '../observation.js';
 import { connectable } from './connectable.js';
 // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
@@ -14,7 +8,7 @@ const updateTaskOpts = {
     reusable: false,
     preempt: true,
 };
-let PropertyBinding = class PropertyBinding {
+export class PropertyBinding {
     constructor(sourceExpression, target, targetProperty, mode, observerLocator, locator, taskQueue) {
         this.sourceExpression = sourceExpression;
         this.target = target;
@@ -159,9 +153,6 @@ let PropertyBinding = class PropertyBinding {
         this.record.clear(true);
         this.isBound = false;
     }
-};
-PropertyBinding = __decorate([
-    connectable()
-], PropertyBinding);
-export { PropertyBinding };
+}
+connectable(PropertyBinding);
 //# sourceMappingURL=property-binding.js.map

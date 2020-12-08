@@ -1,9 +1,3 @@
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
 (function (factory) {
     if (typeof module === "object" && typeof module.exports === "object") {
         var v = factory(require, exports);
@@ -30,7 +24,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     /**
      * Attribute binding. Handle attribute binding betwen view/view model. Understand Html special attributes
      */
-    let AttributeBinding = class AttributeBinding {
+    class AttributeBinding {
         constructor(sourceExpression, target, 
         // some attributes may have inner structure
         // such as class -> collection of class names
@@ -178,10 +172,8 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
             // remove isBound and isUnbinding flags
             this.isBound = false;
         }
-    };
-    AttributeBinding = __decorate([
-        runtime_1.connectable()
-    ], AttributeBinding);
+    }
     exports.AttributeBinding = AttributeBinding;
+    runtime_1.connectable(AttributeBinding);
 });
 //# sourceMappingURL=attribute.js.map

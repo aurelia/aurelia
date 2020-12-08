@@ -1,58 +1,8 @@
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var ComputedObserver_1;
-import { subscriberCollection, collectionSubscriberCollection } from './subscriber-collection.js';
-import { enterWatcher, exitWatcher } from './watcher-switcher.js';
+import { subscriberCollection } from './subscriber-collection.js';
+import { enterConnectable, exitConnectable } from './connectable-switcher.js';
 import { connectable } from '../binding/connectable.js';
 import { wrap, unwrap } from './proxy-observation.js';
-import { defineHiddenProp, ensureProto } from '../utilities-objects.js';
-function watcherImpl(klass) {
-    return klass == null ? watcherImplDecorator : watcherImplDecorator(klass);
-}
-function watcherImplDecorator(klass) {
-    const proto = klass.prototype;
-    connectable()(klass);
-    subscriberCollection()(klass);
-    collectionSubscriberCollection()(klass);
-    ensureProto(proto, 'observeCollection', observeCollection);
-    defineHiddenProp(proto, 'unobserveCollection', unobserveCollection);
-}
-function observeCollection(collection) {
-    const obs = getCollectionObserver(this.observerLocator, collection);
-    this.observers.set(obs, this.record.version);
-    obs.subscribeToCollection(this);
-}
-function unobserveCollection(all) {
-    const version = this.record.version;
-    const observers = this.observers;
-    observers.forEach((v, o) => {
-        if (all || v !== version) {
-            o.unsubscribeFromCollection(this);
-            observers.delete(o);
-        }
-    });
-}
-function getCollectionObserver(observerLocator, collection) {
-    let observer;
-    if (collection instanceof Array) {
-        observer = observerLocator.getArrayObserver(collection);
-    }
-    else if (collection instanceof Set) {
-        observer = observerLocator.getSetObserver(collection);
-    }
-    else if (collection instanceof Map) {
-        observer = observerLocator.getMapObserver(collection);
-    }
-    else {
-        throw new Error('Unrecognised collection type.');
-    }
-    return observer;
-}
-let ComputedObserver = ComputedObserver_1 = class ComputedObserver {
+export class ComputedObserver {
     constructor(obj, get, set, useProxy, observerLocator) {
         this.obj = obj;
         this.get = get;
@@ -60,7 +10,6 @@ let ComputedObserver = ComputedObserver_1 = class ComputedObserver {
         this.useProxy = useProxy;
         this.observerLocator = observerLocator;
         this.interceptor = this;
-        this.observers = new Map();
         this.type = 4 /* Obj */;
         this.value = void 0;
         /**
@@ -78,7 +27,7 @@ let ComputedObserver = ComputedObserver_1 = class ComputedObserver {
     static create(obj, key, descriptor, observerLocator, useProxy) {
         const getter = descriptor.get;
         const setter = descriptor.set;
-        const observer = new ComputedObserver_1(obj, getter, setter, useProxy, observerLocator);
+        const observer = new ComputedObserver(obj, getter, setter, useProxy, observerLocator);
         const $get = (( /* Computed Observer */) => observer.getValue());
         $get.getObserver = () => observer;
         Reflect.defineProperty(obj, key, {
@@ -97,6 +46,7 @@ let ComputedObserver = ComputedObserver_1 = class ComputedObserver {
         }
         if (this.isDirty) {
             this.compute();
+            this.isDirty = false;
         }
         return this.value;
     }
@@ -117,17 +67,20 @@ let ComputedObserver = ComputedObserver_1 = class ComputedObserver {
     }
     handleChange() {
         this.isDirty = true;
-        if (this.record.count > 0) {
+        if (this.subCount > 0) {
             this.run();
         }
     }
     handleCollectionChange() {
         this.isDirty = true;
-        if (this.record.count > 0) {
+        if (this.subCount > 0) {
             this.run();
         }
     }
     subscribe(subscriber) {
+        // in theory, a collection subscriber could be added before a property subscriber
+        // and it should be handled similarly in subscribeToCollection
+        // though not handling for now, and wait until the merge of normal + collection subscription
         if (this.addSubscriber(subscriber) && ++this.subCount === 1) {
             this.compute();
             this.isDirty = false;
@@ -137,7 +90,7 @@ let ComputedObserver = ComputedObserver_1 = class ComputedObserver {
         if (this.removeSubscriber(subscriber) && --this.subCount === 0) {
             this.isDirty = true;
             this.record.clear(true);
-            this.unobserveCollection(true);
+            this.cRecord.clear(true);
         }
     }
     run() {
@@ -146,6 +99,7 @@ let ComputedObserver = ComputedObserver_1 = class ComputedObserver {
         }
         const oldValue = this.value;
         const newValue = this.compute();
+        this.isDirty = false;
         if (!Object.is(newValue, oldValue)) {
             // should optionally queue
             this.callSubscribers(newValue, oldValue, 0 /* none */);
@@ -155,22 +109,18 @@ let ComputedObserver = ComputedObserver_1 = class ComputedObserver {
         this.running = true;
         this.record.version++;
         try {
-            enterWatcher(this);
+            enterConnectable(this);
             return this.value = unwrap(this.get.call(this.useProxy ? wrap(this.obj) : this.obj, this));
         }
         finally {
             this.record.clear(false);
-            this.unobserveCollection(false);
+            this.cRecord.clear(false);
             this.running = false;
-            exitWatcher(this);
+            exitConnectable(this);
         }
     }
-};
-ComputedObserver = ComputedObserver_1 = __decorate([
-    watcherImpl
-], ComputedObserver);
-export { ComputedObserver };
-let ComputedWatcher = class ComputedWatcher {
+}
+export class ComputedWatcher {
     constructor(obj, observerLocator, get, cb, useProxy) {
         this.obj = obj;
         this.observerLocator = observerLocator;
@@ -178,14 +128,10 @@ let ComputedWatcher = class ComputedWatcher {
         this.cb = cb;
         this.useProxy = useProxy;
         this.interceptor = this;
-        /**
-         * @internal
-         */
-        this.observers = new Map();
-        // todo: maybe use a counter allow recursive call to a certain level
-        this.running = false;
         this.value = void 0;
         this.isBound = false;
+        // todo: maybe use a counter allow recursive call to a certain level
+        this.running = false;
         connectable.assignIdTo(this);
     }
     handleChange() {
@@ -207,7 +153,7 @@ let ComputedWatcher = class ComputedWatcher {
         }
         this.isBound = false;
         this.record.clear(true);
-        this.unobserveCollection(true);
+        this.cRecord.clear(true);
     }
     run() {
         if (!this.isBound || this.running) {
@@ -225,22 +171,18 @@ let ComputedWatcher = class ComputedWatcher {
         this.running = true;
         this.record.version++;
         try {
-            enterWatcher(this);
+            enterConnectable(this);
             return this.value = unwrap(this.get.call(void 0, this.useProxy ? wrap(this.obj) : this.obj, this));
         }
         finally {
             this.record.clear(false);
-            this.unobserveCollection(false);
+            this.cRecord.clear(false);
             this.running = false;
-            exitWatcher(this);
+            exitConnectable(this);
         }
     }
-};
-ComputedWatcher = __decorate([
-    watcherImpl
-], ComputedWatcher);
-export { ComputedWatcher };
-let ExpressionWatcher = class ExpressionWatcher {
+}
+export class ExpressionWatcher {
     constructor(scope, locator, observerLocator, expression, callback) {
         this.scope = scope;
         this.locator = locator;
@@ -285,9 +227,9 @@ let ExpressionWatcher = class ExpressionWatcher {
         this.record.clear(true);
         this.value = void 0;
     }
-};
-ExpressionWatcher = __decorate([
-    connectable()
-], ExpressionWatcher);
-export { ExpressionWatcher };
+}
+connectable(ComputedObserver);
+subscriberCollection()(ComputedObserver);
+connectable(ComputedWatcher);
+connectable(ExpressionWatcher);
 //# sourceMappingURL=computed-observer.js.map

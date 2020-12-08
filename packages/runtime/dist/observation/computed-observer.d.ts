@@ -1,32 +1,26 @@
-import { CollectionKind, LifecycleFlags, AccessorType } from '../observation.js';
-import type { IObservable, ISubscriber, ICollectionObserver, ICollectionSubscriber, ISubscriberCollection, IWatcher } from '../observation.js';
+import { LifecycleFlags, AccessorType } from '../observation.js';
+import type { IObservable, ISubscriber, ICollectionSubscriber, ISubscriberCollection, IConnectable } from '../observation.js';
 import type { IServiceLocator } from '@aurelia/kernel';
 import type { IConnectableBinding } from '../binding/connectable.js';
 import type { IsBindingBehavior } from '../binding/ast.js';
 import type { IWatcherCallback } from './watch.js';
 import type { IObserverLocator } from './observer-locator.js';
 import type { Scope } from './binding-context.js';
-interface IWatcherImpl extends IWatcher, IConnectableBinding, ISubscriber, ICollectionSubscriber {
-    id: number;
-    observers: Map<ICollectionObserver<CollectionKind>, number>;
-    readonly useProxy: boolean;
-    unobserveCollection(all?: boolean): void;
+export interface ComputedObserver extends IConnectableBinding, ISubscriberCollection {
 }
-export interface ComputedObserver extends IWatcherImpl, ISubscriberCollection {
-}
-export declare class ComputedObserver implements IWatcherImpl, ISubscriberCollection {
+export declare class ComputedObserver implements IConnectableBinding, ISubscriber, ICollectionSubscriber, ISubscriberCollection {
     readonly obj: object;
-    readonly get: (watcher: IWatcher) => unknown;
+    readonly get: (watcher: IConnectable) => unknown;
     readonly set: undefined | ((v: unknown) => void);
     readonly useProxy: boolean;
     readonly observerLocator: IObserverLocator;
-    interceptor: this;
     static create(obj: object, key: PropertyKey, descriptor: PropertyDescriptor, observerLocator: IObserverLocator, useProxy: boolean): ComputedObserver;
-    observers: Map<ICollectionObserver<CollectionKind>, number>;
+    id: number;
+    interceptor: this;
     type: AccessorType;
     value: unknown;
     private isDirty;
-    constructor(obj: object, get: (watcher: IWatcher) => unknown, set: undefined | ((v: unknown) => void), useProxy: boolean, observerLocator: IObserverLocator);
+    constructor(obj: object, get: (watcher: IConnectable) => unknown, set: undefined | ((v: unknown) => void), useProxy: boolean, observerLocator: IObserverLocator);
     getValue(): unknown;
     setValue(v: unknown, _flags: LifecycleFlags): void;
     handleChange(): void;
@@ -36,19 +30,20 @@ export declare class ComputedObserver implements IWatcherImpl, ISubscriberCollec
     private run;
     private compute;
 }
-export interface ComputedWatcher extends IWatcherImpl {
+export interface ComputedWatcher extends IConnectableBinding {
 }
-export declare class ComputedWatcher implements IWatcher {
+export declare class ComputedWatcher implements IConnectableBinding, ISubscriber, ICollectionSubscriber {
     readonly obj: IObservable;
     readonly observerLocator: IObserverLocator;
-    readonly get: (obj: object, watcher: IWatcher) => unknown;
+    readonly get: (obj: object, watcher: IConnectable) => unknown;
     private readonly cb;
     readonly useProxy: boolean;
     interceptor: this;
-    private running;
+    id: number;
     value: unknown;
     isBound: boolean;
-    constructor(obj: IObservable, observerLocator: IObserverLocator, get: (obj: object, watcher: IWatcher) => unknown, cb: IWatcherCallback<object>, useProxy: boolean);
+    private running;
+    constructor(obj: IObservable, observerLocator: IObserverLocator, get: (obj: object, watcher: IConnectable) => unknown, cb: IWatcherCallback<object>, useProxy: boolean);
     handleChange(): void;
     handleCollectionChange(): void;
     $bind(): void;
@@ -70,5 +65,4 @@ export declare class ExpressionWatcher implements IConnectableBinding {
     $bind(): void;
     $unbind(): void;
 }
-export {};
 //# sourceMappingURL=computed-observer.d.ts.map

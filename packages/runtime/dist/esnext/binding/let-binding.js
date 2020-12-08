@@ -1,11 +1,5 @@
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
 import { connectable } from './connectable.js';
-let LetBinding = class LetBinding {
+export class LetBinding {
     constructor(sourceExpression, targetProperty, observerLocator, locator, toBindingContext = false) {
         this.sourceExpression = sourceExpression;
         this.targetProperty = targetProperty;
@@ -72,9 +66,6 @@ let LetBinding = class LetBinding {
         // remove isBound and isUnbinding flags
         this.isBound = false;
     }
-};
-LetBinding = __decorate([
-    connectable()
-], LetBinding);
-export { LetBinding };
+}
+connectable(LetBinding);
 //# sourceMappingURL=let-binding.js.map

@@ -14,12 +14,13 @@ function ensureEnoughSlotNames(currentSlot) {
     }
 }
 ensureEnoughSlotNames(-1);
-/** @internal */
-export function addObserver(observer) {
+function addObserver(observer) {
     this.record.add(observer);
 }
-/** @internal */
-export function observeProperty(obj, key) {
+function addCollectionObserver(observer) {
+    this.cRecord.add(observer);
+}
+function observeProperty(obj, key) {
     const observer = this.observerLocator.getObserver(obj, key);
     /* Note: we need to cast here because we can indeed get an accessor instead of an observer,
      *  in which case the call to observer.subscribe will throw. It's not very clean and we can solve this in 2 ways:
@@ -30,21 +31,54 @@ export function observeProperty(obj, key) {
      */
     this.addObserver(observer);
 }
-/** @internal */
-export function unobserve(all) {
+function unobserve(all) {
     this.record.clear(all);
 }
-export function getRecord() {
+function getRecord() {
     const record = new BindingObserverRecord(this);
     defineHiddenProp(this, 'record', record);
     return record;
 }
+function observeCollection(collection) {
+    const obs = getCollectionObserver(collection, this.observerLocator);
+    this.addCollectionObserver(obs);
+}
+function unobserveCollection(all) {
+    this.cRecord.clear(all);
+}
+function getCollectionRecord() {
+    const record = new BindingCollectionObserverRecord(this);
+    defineHiddenProp(this, 'cRecord', record);
+    return record;
+}
+function getCollectionObserver(collection, observerLocator) {
+    let observer;
+    if (collection instanceof Array) {
+        observer = observerLocator.getArrayObserver(collection);
+    }
+    else if (collection instanceof Set) {
+        observer = observerLocator.getSetObserver(collection);
+    }
+    else if (collection instanceof Map) {
+        observer = observerLocator.getMapObserver(collection);
+    }
+    else {
+        throw new Error('Unrecognised collection type.');
+    }
+    return observer;
+}
+function noopHandleChange() {
+    throw new Error('method "handleChange" not implemented');
+}
+function noopHandleCollectionChange() {
+    throw new Error('method "handleCollectionChange" not implemented');
+}
 export class BindingObserverRecord {
     constructor(binding) {
         this.binding = binding;
+        this.id = idValue++;
         this.version = 0;
         this.count = 0;
-        connectable.assignIdTo(this);
     }
     handleChange(value, oldValue, flags) {
         return this.binding.interceptor.handleChange(value, oldValue, flags);
@@ -110,23 +144,66 @@ export class BindingObserverRecord {
         }
     }
 }
+export class BindingCollectionObserverRecord {
+    constructor(binding) {
+        this.binding = binding;
+        this.id = idValue++;
+        this.count = 0;
+        this.observers = new Map();
+    }
+    get version() {
+        return this.binding.record.version;
+    }
+    handleCollectionChange(indexMap, flags) {
+        this.binding.interceptor.handleCollectionChange(indexMap, flags);
+    }
+    add(observer) {
+        observer.subscribeToCollection(this);
+        this.count = this.observers.set(observer, this.version).size;
+    }
+    clear(all) {
+        if (this.count === 0) {
+            return;
+        }
+        const observers = this.observers;
+        const version = this.version;
+        for (const [o, oVersion] of observers) {
+            if (all || oVersion !== version) {
+                o.unsubscribeFromCollection(this);
+                observers.delete(o);
+            }
+        }
+        this.count = observers.size;
+    }
+}
 function connectableDecorator(target) {
     const proto = target.prototype;
+    const defProp = Reflect.defineProperty;
     ensureProto(proto, 'observeProperty', observeProperty, true);
+    ensureProto(proto, 'observeCollection', observeCollection, true);
     ensureProto(proto, 'unobserve', unobserve, true);
+    ensureProto(proto, 'unobserveCollection', unobserveCollection, true);
     ensureProto(proto, 'addObserver', addObserver, true);
-    Reflect.defineProperty(proto, 'record', {
+    ensureProto(proto, 'addCollectionObserver', addCollectionObserver, true);
+    defProp(proto, 'record', {
         configurable: true,
         get: getRecord,
     });
+    defProp(proto, 'cRecord', {
+        configurable: true,
+        get: getCollectionRecord,
+    });
+    // optionally add these two methods to normalize a connectable impl
+    ensureProto(proto, 'handleChange', noopHandleChange);
+    ensureProto(proto, 'handleCollectionChange', noopHandleCollectionChange);
     return target;
 }
 export function connectable(target) {
     return target == null ? connectableDecorator : connectableDecorator(target);
 }
-let value = 0;
+let idValue = 0;
 connectable.assignIdTo = (instance) => {
-    instance.id = ++value;
+    instance.id = ++idValue;
 };
 // @connectable
 export class BindingMediator {

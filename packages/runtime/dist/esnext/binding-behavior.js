@@ -104,6 +104,12 @@ export class BindingInterceptor {
     get record() {
         return this.binding.record;
     }
+    /**
+     * @internal
+     */
+    get cRecord() {
+        return this.binding.cRecord;
+    }
     updateTarget(value, flags) {
         this.binding.updateTarget(value, flags);
     }
@@ -133,6 +139,24 @@ export class BindingInterceptor {
      */
     unobserve(all) {
         this.binding.unobserve(all);
+    }
+    /**
+     * @internal
+     */
+    observeCollection(observer) {
+        this.binding.observeCollection(observer);
+    }
+    /**
+     * @internal
+     */
+    addCollectionObserver(observer) {
+        this.binding.addCollectionObserver(observer);
+    }
+    /**
+     * @internal
+     */
+    unobserveCollection(all) {
+        this.binding.unobserveCollection(all);
     }
     $bind(flags, scope, hostScope) {
         this.binding.$bind(flags, scope, hostScope);

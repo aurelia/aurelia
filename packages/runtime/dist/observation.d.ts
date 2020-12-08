@@ -10,11 +10,6 @@ export interface IBinding {
     $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void;
     $unbind(flags: LifecycleFlags): void;
 }
-export interface IWatcher {
-    id: number;
-    observeProperty(obj: object, property: PropertyKey): void;
-    observeCollection(collection: Collection): void;
-}
 export declare type InterceptorFunc<TInput = unknown, TOutput = unknown> = (value: TInput) => TOutput;
 export interface ILifecycle extends Lifecycle {
 }
@@ -74,7 +69,9 @@ export declare const enum LifecycleFlags {
     dispose = 512
 }
 export interface IConnectable {
+    id: number;
     observeProperty(obj: object, propertyName: PropertyKey): void;
+    observeCollection(obj: Collection): void;
 }
 export declare enum DelegationStrategy {
     none = 0,
@@ -92,8 +89,8 @@ export interface ICollectionSubscriber {
     handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void;
 }
 export interface ISubscribable {
-    subscribe(subscriber: ISubscriber): void;
-    unsubscribe(subscriber: ISubscriber): void;
+    subscribe(subscriber: ISubscriber | ICollectionSubscriber): void;
+    unsubscribe(subscriber: ISubscriber | ICollectionSubscriber): void;
 }
 export interface ICollectionSubscribable {
     subscribeToCollection(subscriber: ICollectionSubscriber): void;
@@ -107,7 +104,7 @@ export interface ISubscriberCollection extends ISubscribable {
     removeSubscriber(subscriber: ISubscriber): boolean;
     addSubscriber(subscriber: ISubscriber): boolean;
 }
-export interface ICollectionSubscriberCollection extends ICollectionSubscribable {
+export interface ICollectionSubscriberCollection extends ICollectionSubscribable, ISubscribable {
     [key: number]: LifecycleFlags;
     callCollectionSubscribers(indexMap: IndexMap, flags: LifecycleFlags): void;
     hasCollectionSubscribers(): boolean;

@@ -9,7 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.BindingMediator = exports.connectable = exports.BindingObserverRecord = exports.getRecord = exports.unobserve = exports.observeProperty = exports.addObserver = void 0;
+    exports.BindingMediator = exports.connectable = exports.BindingCollectionObserverRecord = exports.BindingObserverRecord = void 0;
     const utilities_objects_js_1 = require("../utilities-objects.js");
     // TODO: add connect-queue (or something similar) back in when everything else is working, to improve startup time
     const slotNames = [];
@@ -26,12 +26,12 @@
         }
     }
     ensureEnoughSlotNames(-1);
-    /** @internal */
     function addObserver(observer) {
         this.record.add(observer);
     }
-    exports.addObserver = addObserver;
-    /** @internal */
+    function addCollectionObserver(observer) {
+        this.cRecord.add(observer);
+    }
     function observeProperty(obj, key) {
         const observer = this.observerLocator.getObserver(obj, key);
         /* Note: we need to cast here because we can indeed get an accessor instead of an observer,
@@ -43,24 +43,54 @@
          */
         this.addObserver(observer);
     }
-    exports.observeProperty = observeProperty;
-    /** @internal */
     function unobserve(all) {
         this.record.clear(all);
     }
-    exports.unobserve = unobserve;
     function getRecord() {
         const record = new BindingObserverRecord(this);
         utilities_objects_js_1.defineHiddenProp(this, 'record', record);
         return record;
     }
-    exports.getRecord = getRecord;
+    function observeCollection(collection) {
+        const obs = getCollectionObserver(collection, this.observerLocator);
+        this.addCollectionObserver(obs);
+    }
+    function unobserveCollection(all) {
+        this.cRecord.clear(all);
+    }
+    function getCollectionRecord() {
+        const record = new BindingCollectionObserverRecord(this);
+        utilities_objects_js_1.defineHiddenProp(this, 'cRecord', record);
+        return record;
+    }
+    function getCollectionObserver(collection, observerLocator) {
+        let observer;
+        if (collection instanceof Array) {
+            observer = observerLocator.getArrayObserver(collection);
+        }
+        else if (collection instanceof Set) {
+            observer = observerLocator.getSetObserver(collection);
+        }
+        else if (collection instanceof Map) {
+            observer = observerLocator.getMapObserver(collection);
+        }
+        else {
+            throw new Error('Unrecognised collection type.');
+        }
+        return observer;
+    }
+    function noopHandleChange() {
+        throw new Error('method "handleChange" not implemented');
+    }
+    function noopHandleCollectionChange() {
+        throw new Error('method "handleCollectionChange" not implemented');
+    }
     class BindingObserverRecord {
         constructor(binding) {
             this.binding = binding;
+            this.id = idValue++;
             this.version = 0;
             this.count = 0;
-            connectable.assignIdTo(this);
         }
         handleChange(value, oldValue, flags) {
             return this.binding.interceptor.handleChange(value, oldValue, flags);
@@ -127,24 +157,68 @@
         }
     }
     exports.BindingObserverRecord = BindingObserverRecord;
+    class BindingCollectionObserverRecord {
+        constructor(binding) {
+            this.binding = binding;
+            this.id = idValue++;
+            this.count = 0;
+            this.observers = new Map();
+        }
+        get version() {
+            return this.binding.record.version;
+        }
+        handleCollectionChange(indexMap, flags) {
+            this.binding.interceptor.handleCollectionChange(indexMap, flags);
+        }
+        add(observer) {
+            observer.subscribeToCollection(this);
+            this.count = this.observers.set(observer, this.version).size;
+        }
+        clear(all) {
+            if (this.count === 0) {
+                return;
+            }
+            const observers = this.observers;
+            const version = this.version;
+            for (const [o, oVersion] of observers) {
+                if (all || oVersion !== version) {
+                    o.unsubscribeFromCollection(this);
+                    observers.delete(o);
+                }
+            }
+            this.count = observers.size;
+        }
+    }
+    exports.BindingCollectionObserverRecord = BindingCollectionObserverRecord;
     function connectableDecorator(target) {
         const proto = target.prototype;
+        const defProp = Reflect.defineProperty;
         utilities_objects_js_1.ensureProto(proto, 'observeProperty', observeProperty, true);
+        utilities_objects_js_1.ensureProto(proto, 'observeCollection', observeCollection, true);
         utilities_objects_js_1.ensureProto(proto, 'unobserve', unobserve, true);
+        utilities_objects_js_1.ensureProto(proto, 'unobserveCollection', unobserveCollection, true);
         utilities_objects_js_1.ensureProto(proto, 'addObserver', addObserver, true);
-        Reflect.defineProperty(proto, 'record', {
+        utilities_objects_js_1.ensureProto(proto, 'addCollectionObserver', addCollectionObserver, true);
+        defProp(proto, 'record', {
             configurable: true,
             get: getRecord,
         });
+        defProp(proto, 'cRecord', {
+            configurable: true,
+            get: getCollectionRecord,
+        });
+        // optionally add these two methods to normalize a connectable impl
+        utilities_objects_js_1.ensureProto(proto, 'handleChange', noopHandleChange);
+        utilities_objects_js_1.ensureProto(proto, 'handleCollectionChange', noopHandleCollectionChange);
         return target;
     }
     function connectable(target) {
         return target == null ? connectableDecorator : connectableDecorator(target);
     }
     exports.connectable = connectable;
-    let value = 0;
+    let idValue = 0;
     connectable.assignIdTo = (instance) => {
-        instance.id = ++value;
+        instance.id = ++idValue;
     };
     // @connectable
     class BindingMediator {

@@ -25,14 +25,26 @@
         handleChange(newValue, _previousValue, flags) {
             this.trace('handleChange', newValue, _previousValue, flags);
         }
+        handleCollectionChange(indexMap, flags) {
+            this.trace('handleCollectionChange', indexMap, flags);
+        }
         observeProperty(obj, propertyName) {
             this.trace('observeProperty', obj, propertyName);
+        }
+        observeCollection(col) {
+            this.trace('observeCollection', col);
         }
         unobserve(all) {
             this.trace('unobserve', all);
         }
+        unobserveCollection(all) {
+            this.trace('unobserveCollection', all);
+        }
         addObserver(observer) {
             this.trace('addObserver', observer);
+        }
+        addCollectionObserver(observer) {
+            this.trace('addCollectionObserver', observer);
         }
         $bind(flags, scope) {
             this.trace('$bind', flags, scope);

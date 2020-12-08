@@ -4,13 +4,13 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./watcher-switcher.js"], factory);
+        define(["require", "exports", "./connectable-switcher.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ProxyObservable = exports.unwrap = exports.getRaw = exports.getProxy = exports.wrap = exports.rawKey = void 0;
-    const watcher_switcher_js_1 = require("./watcher-switcher.js");
+    const connectable_switcher_js_1 = require("./connectable-switcher.js");
     const R$get = Reflect.get;
     const toStringTag = Object.prototype.toString;
     const proxyMap = new WeakMap();
@@ -76,8 +76,8 @@
             if (key === exports.rawKey) {
                 return target;
             }
-            const connectable = watcher_switcher_js_1.currentWatcher();
-            if (!watcher_switcher_js_1.watching || doNotCollect(key) || connectable == null) {
+            const connectable = connectable_switcher_js_1.currentConnectable();
+            if (!connectable_switcher_js_1.connecting || doNotCollect(key) || connectable == null) {
                 return R$get(target, key, receiver);
             }
             // todo: static
@@ -91,8 +91,8 @@
             if (key === exports.rawKey) {
                 return target;
             }
-            const connectable = watcher_switcher_js_1.currentWatcher();
-            if (!watcher_switcher_js_1.watching || doNotCollect(key) || connectable == null) {
+            const connectable = connectable_switcher_js_1.currentConnectable();
+            if (!connectable_switcher_js_1.connecting || doNotCollect(key) || connectable == null) {
                 return R$get(target, key, receiver);
             }
             switch (key) {
@@ -155,7 +155,7 @@
         // for (let i in array) ...
         ownKeys(target) {
             var _a;
-            (_a = watcher_switcher_js_1.currentWatcher()) === null || _a === void 0 ? void 0 : _a.observeProperty(target, 'length');
+            (_a = connectable_switcher_js_1.currentConnectable()) === null || _a === void 0 ? void 0 : _a.observeProperty(target, 'length');
             return Reflect.ownKeys(target);
         },
     };
@@ -165,14 +165,14 @@
         const res = raw.map((v, i) => 
         // do we wrap `thisArg`?
         unwrap(cb.call(thisArg, wrap(v), i, this)));
-        (_a = watcher_switcher_js_1.currentWatcher()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
+        (_a = connectable_switcher_js_1.currentConnectable()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
         return wrap(res);
     }
     function wrappedArrayEvery(cb, thisArg) {
         var _a;
         const raw = getRaw(this);
         const res = raw.every((v, i) => cb.call(thisArg, wrap(v), i, this));
-        (_a = watcher_switcher_js_1.currentWatcher()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
+        (_a = connectable_switcher_js_1.currentConnectable()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
         return res;
     }
     function wrappedArrayFilter(cb, thisArg) {
@@ -181,53 +181,53 @@
         const res = raw.filter((v, i) => 
         // do we wrap `thisArg`?
         unwrap(cb.call(thisArg, wrap(v), i, this)));
-        (_a = watcher_switcher_js_1.currentWatcher()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
+        (_a = connectable_switcher_js_1.currentConnectable()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
         return wrap(res);
     }
     function wrappedArrayIncludes(v) {
         var _a;
         const raw = getRaw(this);
         const res = raw.includes(unwrap(v));
-        (_a = watcher_switcher_js_1.currentWatcher()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
+        (_a = connectable_switcher_js_1.currentConnectable()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
         return res;
     }
     function wrappedArrayIndexOf(v) {
         var _a;
         const raw = getRaw(this);
         const res = raw.indexOf(unwrap(v));
-        (_a = watcher_switcher_js_1.currentWatcher()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
+        (_a = connectable_switcher_js_1.currentConnectable()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
         return res;
     }
     function wrappedArrayLastIndexOf(v) {
         var _a;
         const raw = getRaw(this);
         const res = raw.lastIndexOf(unwrap(v));
-        (_a = watcher_switcher_js_1.currentWatcher()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
+        (_a = connectable_switcher_js_1.currentConnectable()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
         return res;
     }
     function wrappedArrayFindIndex(cb, thisArg) {
         var _a;
         const raw = getRaw(this);
         const res = raw.findIndex((v, i) => unwrap(cb.call(thisArg, wrap(v), i, this)));
-        (_a = watcher_switcher_js_1.currentWatcher()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
+        (_a = connectable_switcher_js_1.currentConnectable()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
         return res;
     }
     function wrappedArrayFlat() {
         var _a;
         const raw = getRaw(this);
-        (_a = watcher_switcher_js_1.currentWatcher()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
+        (_a = connectable_switcher_js_1.currentConnectable()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
         return wrap(raw.flat());
     }
     function wrappedArrayFlatMap(cb, thisArg) {
         var _a;
         const raw = getRaw(this);
-        (_a = watcher_switcher_js_1.currentWatcher()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
+        (_a = connectable_switcher_js_1.currentConnectable()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
         return getProxy(raw.flatMap((v, i) => wrap(cb.call(thisArg, wrap(v), i, this))));
     }
     function wrappedArrayJoin(separator) {
         var _a;
         const raw = getRaw(this);
-        (_a = watcher_switcher_js_1.currentWatcher()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
+        (_a = connectable_switcher_js_1.currentConnectable()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
         return raw.join(separator);
     }
     function wrappedArrayPop() {
@@ -249,41 +249,41 @@
         var _a;
         const raw = getRaw(this);
         const res = raw.reverse();
-        (_a = watcher_switcher_js_1.currentWatcher()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
+        (_a = connectable_switcher_js_1.currentConnectable()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
         return wrap(res);
     }
     function wrappedArraySome(cb, thisArg) {
         var _a;
         const raw = getRaw(this);
         const res = raw.some((v, i) => unwrap(cb.call(thisArg, wrap(v), i, this)));
-        (_a = watcher_switcher_js_1.currentWatcher()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
+        (_a = connectable_switcher_js_1.currentConnectable()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
         return res;
     }
     function wrappedArraySort(cb) {
         var _a;
         const raw = getRaw(this);
         const res = raw.sort(cb);
-        (_a = watcher_switcher_js_1.currentWatcher()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
+        (_a = connectable_switcher_js_1.currentConnectable()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
         return wrap(res);
     }
     function wrappedArraySlice(start, end) {
         var _a;
         const raw = getRaw(this);
-        (_a = watcher_switcher_js_1.currentWatcher()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
+        (_a = connectable_switcher_js_1.currentConnectable()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
         return getProxy(raw.slice(start, end));
     }
     function wrappedReduce(cb, initValue) {
         var _a;
         const raw = getRaw(this);
         const res = raw.reduce((curr, v, i) => cb(curr, wrap(v), i, this), initValue);
-        (_a = watcher_switcher_js_1.currentWatcher()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
+        (_a = connectable_switcher_js_1.currentConnectable()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
         return wrap(res);
     }
     function wrappedReduceRight(cb, initValue) {
         var _a;
         const raw = getRaw(this);
         const res = raw.reduceRight((curr, v, i) => cb(curr, wrap(v), i, this), initValue);
-        (_a = watcher_switcher_js_1.currentWatcher()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
+        (_a = connectable_switcher_js_1.currentConnectable()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
         return wrap(res);
     }
     // the below logic takes inspiration from Vue, Mobx
@@ -294,8 +294,8 @@
             if (key === exports.rawKey) {
                 return target;
             }
-            const connectable = watcher_switcher_js_1.currentWatcher();
-            if (!watcher_switcher_js_1.watching || doNotCollect(key) || connectable == null) {
+            const connectable = connectable_switcher_js_1.currentConnectable();
+            if (!connectable_switcher_js_1.connecting || doNotCollect(key) || connectable == null) {
                 return R$get(target, key, receiver);
             }
             switch (key) {
@@ -340,7 +340,7 @@
     function wrappedForEach(cb, thisArg) {
         var _a;
         const raw = getRaw(this);
-        (_a = watcher_switcher_js_1.currentWatcher()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
+        (_a = connectable_switcher_js_1.currentConnectable()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
         return raw.forEach((v, key) => {
             cb.call(/* should wrap or not?? */ thisArg, wrap(v), wrap(key), this);
         });
@@ -348,13 +348,13 @@
     function wrappedHas(v) {
         var _a;
         const raw = getRaw(this);
-        (_a = watcher_switcher_js_1.currentWatcher()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
+        (_a = connectable_switcher_js_1.currentConnectable()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
         return raw.has(unwrap(v));
     }
     function wrappedGet(k) {
         var _a;
         const raw = getRaw(this);
-        (_a = watcher_switcher_js_1.currentWatcher()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
+        (_a = connectable_switcher_js_1.currentConnectable()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
         return wrap(raw.get(unwrap(k)));
     }
     function wrappedSet(k, v) {
@@ -372,7 +372,7 @@
     function wrappedKeys() {
         var _a;
         const raw = getRaw(this);
-        (_a = watcher_switcher_js_1.currentWatcher()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
+        (_a = connectable_switcher_js_1.currentConnectable()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
         const iterator = raw.keys();
         return {
             next() {
@@ -391,7 +391,7 @@
     function wrappedValues() {
         var _a;
         const raw = getRaw(this);
-        (_a = watcher_switcher_js_1.currentWatcher()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
+        (_a = connectable_switcher_js_1.currentConnectable()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
         const iterator = raw.values();
         return {
             next() {
@@ -410,7 +410,7 @@
     function wrappedEntries() {
         var _a;
         const raw = getRaw(this);
-        (_a = watcher_switcher_js_1.currentWatcher()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
+        (_a = connectable_switcher_js_1.currentConnectable()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
         const iterator = raw.entries();
         // return a wrapped iterator which returns observed versions of the
         // values emitted from the real iterator

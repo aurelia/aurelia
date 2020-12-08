@@ -41,13 +41,10 @@ export declare class ContentBinding implements ContentBinding, ICollectionSubscr
     $hostScope: Scope | null;
     task: ITask | null;
     isBound: boolean;
-    private arrayObserver?;
     constructor(sourceExpression: IsExpression, target: object, targetProperty: string, locator: IServiceLocator, observerLocator: IObserverLocator, owner: InterpolationBinding);
     handleChange(newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void;
     handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void;
     $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void;
     $unbind(flags: LifecycleFlags): void;
-    private observeArray;
-    private unobserveArray;
 }
 //# sourceMappingURL=interpolation-binding.d.ts.map

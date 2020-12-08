@@ -60,18 +60,13 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer {
    */
   private forwardedState: IForwardedState = { eventTask: null, suppressPopstate: false };
 
-  private readonly window: IWindow;
-  private readonly history: IHistory;
-  private readonly location: ILocation;
-
   public constructor(
     @IPlatform private readonly platform: IPlatform,
+    @IWindow private readonly window: IWindow,
+    @IHistory private readonly history: IHistory,
+    @ILocation private readonly location: ILocation,
     @IEventAggregator private readonly ea: EventAggregator,
   ) {
-    this.window = platform.window;
-    this.history = platform.history;
-    this.location = platform.location;
-
     this.pendingCalls = new TaskQueue<IAction>();
   }
 
@@ -176,7 +171,12 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer {
         const titleOrEmpty: string = title || '';
         const url: string = `${fragment}${path}`;
 
-        history.pushState(data, titleOrEmpty, url);
+        try {
+          history.pushState(data, titleOrEmpty, url);
+        } catch (err) {
+          const clean = this.tryCleanState(data, 'push', err);
+          history.pushState(clean, titleOrEmpty, url);
+        }
         task.resolve();
       }, 1).wait();
   }
@@ -187,8 +187,10 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer {
    *
    * @param state - The state to replace with
    */
-  public async replaceNavigatorState(state: INavigatorState): Promise<void> {
-    const { title, path } = state.currentEntry;
+  public async replaceNavigatorState(state: INavigatorState, title?: string, path?: string): Promise<void> {
+    // const { title, path } = state.currentEntry;
+    title ??= state.currentEntry?.title;
+    path ??= state.currentEntry?.path;
     const fragment = this.options.useUrlFragmentHash ? '#/' : '';
 
     return this.pendingCalls.enqueue(
@@ -198,7 +200,12 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer {
         const titleOrEmpty: string = title || '';
         const url: string = `${fragment}${path}`;
 
-        history.replaceState(data, titleOrEmpty, url);
+        try {
+          history.replaceState(data, titleOrEmpty, url);
+        } catch (err) {
+          const clean = this.tryCleanState(data, 'replace', err);
+          history.replaceState(clean, titleOrEmpty, url);
+        }
         task.resolve();
       }, 1).wait();
   }
@@ -307,6 +314,21 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer {
    */
   private forwardState(state: IForwardedState): void {
     this.forwardedState = state;
+  }
+
+  /**
+   * Tries to clean up the state for pushing or replacing to browser History.
+   *
+   * @param data - The state to attempt to clean
+   * @param type - The type of action, push or replace, that failed
+   * @param originalError - The origial error when trying to push or replace
+   */
+  private tryCleanState(data: unknown, type: 'push' | 'replace', originalError: Error): unknown {
+    try {
+      return JSON.parse(JSON.stringify(data));
+    } catch (err) {
+      throw new Error(`Failed to ${type} state, probably due to unserializable data and/or parameters: ${err}${originalError}`);
+    }
   }
 }
 

@@ -4,7 +4,7 @@
  *       In its current state, it is NOT a good source for learning about the inner workings and design of the router.
  *
  */
-import { IPlatform, CustomAttribute } from '@aurelia/runtime-html';
+import { IWindow, CustomAttribute } from '@aurelia/runtime-html';
 import { GotoCustomAttribute } from './resources/goto.js';
 import { LoadCustomAttribute } from './resources/load.js';
 
@@ -52,19 +52,15 @@ export interface AnchorEventInfo {
  * TODO: remove the space between @ and i again at some point (this stripInternal currently screws up the types in the __tests__ package for some reason)
  */
 export class LinkHandler {
-  public window: Window;
-  public document: Document;
-
   private options: ILinkHandlerOptions = {
     useHref: true,
     callback: () => { return; }
   };
   private isActive: boolean = false;
 
-  public constructor(@IPlatform p: IPlatform) {
-    this.window = p.window;
-    this.document = p.document;
-  }
+  public constructor(
+    @IWindow private readonly window: IWindow,
+  ) { }
   /**
    * Gets the href and a "should handle" recommendation, given an Event.
    *

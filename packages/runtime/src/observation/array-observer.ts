@@ -360,7 +360,6 @@ export function disableArrayObservation(): void {
 
 export interface ArrayObserver extends ICollectionObserver<CollectionKind.array> {}
 
-@collectionSubscriberCollection()
 export class ArrayObserver {
   public inBatch: boolean;
   public type: AccessorType = AccessorType.Array;
@@ -425,7 +424,6 @@ export class ArrayObserver {
 
 export interface ArrayIndexObserver extends IArrayIndexObserver, ISubscriberCollection {}
 
-@subscriberCollection()
 export class ArrayIndexObserver implements IArrayIndexObserver {
 
   public value: unknown;
@@ -489,6 +487,9 @@ export class ArrayIndexObserver implements IArrayIndexObserver {
     }
   }
 }
+
+collectionSubscriberCollection()(ArrayObserver);
+subscriberCollection()(ArrayIndexObserver);
 
 export function getArrayObserver(array: unknown[], lifecycle: ILifecycle | null): ArrayObserver {
   let observer = observerLookup.get(array);

@@ -69,8 +69,10 @@ export type ObservableSetter = PropertyDescriptor['set'] & {
 };
 
 export class ObserverLocator {
-
-  static inject = [ILifecycle, IDirtyChecker, INodeObserverLocator];
+  /**
+   * @internal
+   */
+  public static inject = [ILifecycle, IDirtyChecker, INodeObserverLocator];
 
   private readonly adapters: IObjectObservationAdapter[] = [];
 

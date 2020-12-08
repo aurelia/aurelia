@@ -121,7 +121,6 @@ export function disableSetObservation(): void {
 
 export interface SetObserver extends ICollectionObserver<CollectionKind.set> {}
 
-@collectionSubscriberCollection()
 export class SetObserver {
   public inBatch: boolean;
   public type: AccessorType = AccessorType.Set;
@@ -166,6 +165,8 @@ export class SetObserver {
     this.callCollectionSubscribers(indexMap, LifecycleFlags.updateTarget);
   }
 }
+
+collectionSubscriberCollection()(SetObserver);
 
 export function getSetObserver(observedSet: Set<unknown>, lifecycle: ILifecycle | null): SetObserver {
   let observer = observerLookup.get(observedSet);

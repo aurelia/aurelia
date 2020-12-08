@@ -378,17 +378,18 @@ export class ElementInfo {
 
   public constructor(
     public name: string,
+    public alias: string | undefined,
     public containerless: boolean,
   ) {}
 
-  public static from(def: CustomElementDefinition | null): ElementInfo | null {
+  public static from(def: CustomElementDefinition | null, alias: string): ElementInfo | null {
     if (def === null) {
       return null;
     }
 
     let info = elementInfoLookup.get(def);
     if (info === void 0) {
-      info = new ElementInfo(def.name, def.containerless);
+      info = new ElementInfo(def.name, alias === def.name ? void 0 : alias, def.containerless);
       const bindables = def.bindables;
       const defaultBindingMode = BindingMode.toView;
 
@@ -448,17 +449,18 @@ export class AttrInfo {
 
   public constructor(
     public name: string,
+    public alias: string | undefined,
     public isTemplateController: boolean,
     public noMultiBindings: boolean,
   ) {}
 
-  public static from(def: CustomAttributeDefinition | null): AttrInfo | null {
+  public static from(def: CustomAttributeDefinition | null, alias: string): AttrInfo | null {
     if (def === null) {
       return null;
     }
     let info = attrInfoLookup.get(def);
     if (info === void 0) {
-      info = new AttrInfo(def.name, def.isTemplateController, def.noMultiBindings);
+      info = new AttrInfo(def.name, alias === def.name ? void 0 : alias, def.isTemplateController, def.noMultiBindings);
       const bindables = def.bindables;
       const defaultBindingMode = def.defaultBindingMode !== void 0 && def.defaultBindingMode !== BindingMode.default
         ? def.defaultBindingMode

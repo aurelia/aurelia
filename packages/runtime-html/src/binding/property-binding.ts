@@ -152,6 +152,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
     }
 
     // during bind, binding behavior might have changed sourceExpression
+    // deepscan-disable-next-line
     sourceExpression = this.sourceExpression;
     const interceptor = this.interceptor;
 

@@ -46,7 +46,9 @@ const queueTaskOpts: QueueTaskOptions = {
 };
 
 export class DirtyChecker {
-  /**@internal */
+  /**
+   * @internal
+   */
   public static inject = [IPlatform];
   private readonly tracked: DirtyCheckProperty[] = [];
 

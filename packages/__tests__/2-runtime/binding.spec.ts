@@ -2,7 +2,6 @@ import {
   AccessMemberExpression,
   AccessScopeExpression,
   BinaryExpression,
-  PropertyBinding,
   BindingMode,
   ExpressionKind,
   ILifecycle,
@@ -17,6 +16,9 @@ import {
   ISubscribable,
   ISubscriberCollection,
 } from '@aurelia/runtime';
+import {
+  PropertyBinding,
+} from '@aurelia/runtime-html';
 import {
   createObserverLocator,
   createScopeForTest,

@@ -15,7 +15,6 @@ import type {
   IOverrideContext,
   IConnectable,
   ISubscriber,
-  IBinding,
 } from '../observation.js';
 import type { Scope } from '../observation/binding-context.js';
 import { IConnectableBinding } from './connectable.js';

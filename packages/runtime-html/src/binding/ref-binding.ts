@@ -50,6 +50,7 @@ export class RefBinding implements IBinding {
     }
 
     // source expression might have been modified durring assign, via a BB
+    // deepscan-disable-next-line
     sourceExpression = this.sourceExpression;
     if (sourceExpression.hasUnbind) {
       sourceExpression.unbind(flags, this.$scope!, this.$hostScope, this.interceptor);

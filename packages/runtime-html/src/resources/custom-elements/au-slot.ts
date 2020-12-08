@@ -52,7 +52,6 @@ export class ProjectionProvider {
   }
 }
 
-@customElement({ name: 'au-slot', template: null, containerless: true })
 export class AuSlot implements ICustomElementViewModel {
   /**
    * @internal
@@ -111,3 +110,5 @@ export class AuSlot implements ICustomElementViewModel {
     }
   }
 }
+
+customElement({ name: 'au-slot', template: null, containerless: true })(AuSlot);

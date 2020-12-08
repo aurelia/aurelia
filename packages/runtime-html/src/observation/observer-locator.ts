@@ -92,10 +92,7 @@ export class NodeObserverConfig {
 }
 
 export class NodeObserverLocator implements INodeObserverLocator {
-  /**
-   * @internal
-   */
-  public static inject = [IServiceLocator, IPlatform, IDirtyChecker, ISVGAnalyzer];
+  protected static readonly inject = [IServiceLocator, IPlatform, IDirtyChecker, ISVGAnalyzer];
 
   public allowDirtyCheck: boolean = true;
 

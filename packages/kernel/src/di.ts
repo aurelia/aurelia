@@ -39,7 +39,7 @@ export type Transformer<K> = (instance: Resolved<K>) => Resolved<K>;
 
 export interface IFactory<T extends Constructable = any> {
   readonly Type: T;
-  registerTransformer(transformer: Transformer<T>): boolean;
+  registerTransformer(transformer: Transformer<T>): void;
   construct(container: IContainer, dynamicDependencies?: Key[]): Resolved<T>;
 }
 
@@ -749,129 +749,34 @@ export class Factory<T extends Constructable = any> implements IFactory<T> {
   private transformers: ((instance: any) => any)[] | null = null;
   public constructor(
     public Type: T,
-    private readonly invoker: IInvoker,
     private readonly dependencies: Key[],
   ) {}
 
   public construct(container: IContainer, dynamicDependencies?: Key[]): Resolved<T> {
-    const transformers = this.transformers;
-    let instance = dynamicDependencies !== void 0
-      ? this.invoker.invokeWithDynamicDependencies(container, this.Type, this.dependencies, dynamicDependencies)
-      : this.invoker.invoke(container, this.Type, this.dependencies);
+    let instance: Resolved<T>;
+    if (dynamicDependencies === void 0) {
+      instance = new this.Type(...this.dependencies.map(function (d) {
+        return container.get(d);
+      })) as Resolved<T>;
+    } else {
+      instance = new this.Type(...this.dependencies.map(function (d) {
+        return container.get(d);
+      }), ...dynamicDependencies) as Resolved<T>;
+    }
 
-    if (transformers == null) {
+    if (this.transformers == null) {
       return instance;
     }
 
-    for (let i = 0, ii = transformers.length; i < ii; ++i) {
-      instance = transformers[i](instance);
-    }
-
-    return instance;
+    return this.transformers.reduce(function (inst, transform) {
+      return transform(inst);
+    }, instance);
   }
 
-  public registerTransformer(transformer: (instance: any) => any): boolean {
-    if (this.transformers == null) {
-      this.transformers = [];
-    }
-
-    this.transformers.push(transformer);
-    return true;
+  public registerTransformer(transformer: (instance: any) => any): void {
+    (this.transformers ??= []).push(transformer);
   }
 }
-
-const createFactory = (function () {
-  function invokeWithDynamicDependencies<T>(
-    container: IContainer,
-    Type: Constructable<T>,
-    staticDependencies: Key[],
-    dynamicDependencies: Key[]
-  ): T {
-    let i = staticDependencies.length;
-    let args: Key[] = new Array(i);
-    let lookup: Key;
-
-    while (i-- > 0) {
-      lookup = staticDependencies[i];
-
-      if (lookup == null) {
-        throw new Error(`Constructor Parameter with index (${i}) cannot be null or undefined. Are you trying to inject/register something that doesn't exist with DI?`);
-      } else {
-        args[i] = container.get(lookup);
-      }
-    }
-
-    if (dynamicDependencies !== void 0) {
-      args = args.concat(dynamicDependencies);
-    }
-
-    return Reflect.construct(Type, args);
-  }
-
-  const classInvokers: IInvoker[] = [
-    {
-      invoke<T>(container: IContainer, Type: Constructable<T>): T {
-        return new Type();
-      },
-      invokeWithDynamicDependencies
-    },
-    {
-      invoke<T>(container: IContainer, Type: Constructable<T>, deps: Key[]): T {
-        return new Type(container.get(deps[0]));
-      },
-      invokeWithDynamicDependencies
-    },
-    {
-      invoke<T>(container: IContainer, Type: Constructable<T>, deps: Key[]): T {
-        return new Type(container.get(deps[0]), container.get(deps[1]));
-      },
-      invokeWithDynamicDependencies
-    },
-    {
-      invoke<T>(container: IContainer, Type: Constructable<T>, deps: Key[]): T {
-        return new Type(container.get(deps[0]), container.get(deps[1]), container.get(deps[2]));
-      },
-      invokeWithDynamicDependencies
-    },
-    {
-      invoke<T>(container: IContainer, Type: Constructable<T>, deps: Key[]): T {
-        return new Type(
-          container.get(deps[0]),
-          container.get(deps[1]),
-          container.get(deps[2]),
-          container.get(deps[3])
-        );
-      },
-      invokeWithDynamicDependencies
-    },
-    {
-      invoke<T>(container: IContainer, Type: Constructable<T>, deps: Key[]): T {
-        return new Type(
-          container.get(deps[0]),
-          container.get(deps[1]),
-          container.get(deps[2]),
-          container.get(deps[3]),
-          container.get(deps[4])
-        );
-      },
-      invokeWithDynamicDependencies
-    }
-  ];
-
-  const fallbackInvoker: IInvoker = {
-    invoke: invokeWithDynamicDependencies as (container: IContainer, fn: Constructable, dependencies: Key[]) => Constructable,
-    invokeWithDynamicDependencies
-  };
-
-  return function <T extends Constructable> (Type: T): Factory<T> {
-    if (isNativeFunction(Type)) {
-      throw new Error(`${Type.name} is a native function and therefore cannot be safely constructed by DI. If this is intentional, please use a callback or cachedCallback resolver.`);
-    }
-    const dependencies = DI.getDependencies(Type);
-    const invoker = classInvokers.length > dependencies.length ? classInvokers[dependencies.length] : fallbackInvoker;
-    return new Factory<T>(Type, invoker, dependencies);
-  };
-})();
 
 const containerResolver: IResolver = {
   $isResolver: true,
@@ -1114,7 +1019,8 @@ export class Container implements IContainer {
       // Problem is that that interface's type arg can be of type Key, but the getFactory method only works on
       // type Constructable. So the return type of that optional method has this additional constraint, which
       // seems to confuse the type checker.
-      return factory.registerTransformer(transformer as unknown as Transformer<Constructable>);
+      factory.registerTransformer(transformer as unknown as Transformer<Constructable>);
+      return true;
     }
 
     return false;
@@ -1224,7 +1130,10 @@ export class Container implements IContainer {
   public getFactory<K extends Constructable>(Type: K): IFactory<K> | null {
     let factory = Metadata.getOwn(factoryAnnotationKey, Type);
     if (factory === void 0) {
-      Metadata.define(factoryAnnotationKey, factory = createFactory(Type), Type);
+      if (isNativeFunction(Type)) {
+        throw new Error(`${Type.name} is a native function and therefore cannot be safely constructed by DI. If this is intentional, please use a callback or cachedCallback resolver.`);
+      }
+      Metadata.define(factoryAnnotationKey, factory = new Factory<K>(Type, DI.getDependencies(Type)), Type);
       Protocol.annotation.appendTo(Type, factoryAnnotationKey);
     }
     return factory;

@@ -1,7 +1,7 @@
 import { ResourceType } from '@aurelia/kernel';
-import { LifecycleFlags } from './observation.js';
+import { Collection, LifecycleFlags } from './observation.js';
 import type { Constructable, IContainer, ResourceDefinition, IResourceKind, PartialResourceDefinition, IServiceLocator } from '@aurelia/kernel';
-import type { IConnectableBinding } from './binding/connectable.js';
+import type { BindingCollectionObserverRecord, BindingObserverRecord, IConnectableBinding } from './binding/connectable.js';
 import type { BindingBehaviorExpression, IBindingBehaviorExpression } from './binding/ast.js';
 import type { IObserverLocator } from './observation/observer-locator.js';
 import type { IBinding } from './observation.js';
@@ -66,11 +66,15 @@ export declare class BindingInterceptor implements IInterceptableBinding {
     get $scope(): Scope | undefined;
     get $hostScope(): Scope | null;
     get isBound(): boolean;
+    get record(): BindingObserverRecord;
+    get cRecord(): BindingCollectionObserverRecord;
     constructor(binding: IInterceptableBinding, expr: IBindingBehaviorExpression);
     updateTarget(value: unknown, flags: LifecycleFlags): void;
     updateSource(value: unknown, flags: LifecycleFlags): void;
     callSource(args: object): unknown;
     handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void;
+    observeProperty(obj: object, key: string): void;
+    observeCollection(observer: Collection): void;
     $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void;
     $unbind(flags: LifecycleFlags): void;
 }

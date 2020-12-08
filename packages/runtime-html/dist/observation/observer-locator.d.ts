@@ -35,6 +35,7 @@ export declare class NodeObserverLocator implements INodeObserverLocator {
     private readonly platform;
     private readonly dirtyChecker;
     private readonly svgAnalyzer;
+    protected static readonly inject: (import("@aurelia/kernel").InterfaceSymbol<IPlatform> | import("@aurelia/kernel").InterfaceSymbol<ISVGAnalyzer> | import("@aurelia/kernel").InterfaceSymbol<IServiceLocator> | import("@aurelia/kernel").InterfaceSymbol<IDirtyChecker>)[];
     allowDirtyCheck: boolean;
     private readonly events;
     private readonly globalEvents;

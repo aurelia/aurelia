@@ -26,12 +26,6 @@
         }
     }
     ensureEnoughSlotNames(-1);
-    function addObserver(observer) {
-        this.record.add(observer);
-    }
-    function addCollectionObserver(observer) {
-        this.cRecord.add(observer);
-    }
     function observeProperty(obj, key) {
         const observer = this.observerLocator.getObserver(obj, key);
         /* Note: we need to cast here because we can indeed get an accessor instead of an observer,
@@ -41,10 +35,7 @@
          *
          * We'll probably want to implement some global configuration (like a "strict" toggle) so users can pick between enforced correctness vs. ease-of-use
          */
-        this.addObserver(observer);
-    }
-    function unobserve(all) {
-        this.record.clear(all);
+        this.record.add(observer);
     }
     function getRecord() {
         const record = new BindingObserverRecord(this);
@@ -53,10 +44,7 @@
     }
     function observeCollection(collection) {
         const obs = getCollectionObserver(collection, this.observerLocator);
-        this.addCollectionObserver(obs);
-    }
-    function unobserveCollection(all) {
-        this.cRecord.clear(all);
+        this.cRecord.add(obs);
     }
     function getCollectionRecord() {
         const record = new BindingCollectionObserverRecord(this);
@@ -88,9 +76,9 @@
     class BindingObserverRecord {
         constructor(binding) {
             this.binding = binding;
-            this.id = idValue++;
             this.version = 0;
             this.count = 0;
+            connectable.assignIdTo(this);
         }
         handleChange(value, oldValue, flags) {
             return this.binding.interceptor.handleChange(value, oldValue, flags);
@@ -160,9 +148,9 @@
     class BindingCollectionObserverRecord {
         constructor(binding) {
             this.binding = binding;
-            this.id = idValue++;
             this.count = 0;
             this.observers = new Map();
+            connectable.assignIdTo(this);
         }
         get version() {
             return this.binding.record.version;
@@ -180,8 +168,11 @@
             }
             const observers = this.observers;
             const version = this.version;
-            for (const [o, oVersion] of observers) {
-                if (all || oVersion !== version) {
+            let observerAndVersionPair;
+            let o;
+            for (observerAndVersionPair of observers) {
+                if (all || observerAndVersionPair[1] !== version) {
+                    o = observerAndVersionPair[0];
                     o.unsubscribeFromCollection(this);
                     observers.delete(o);
                 }
@@ -195,10 +186,6 @@
         const defProp = Reflect.defineProperty;
         utilities_objects_js_1.ensureProto(proto, 'observeProperty', observeProperty, true);
         utilities_objects_js_1.ensureProto(proto, 'observeCollection', observeCollection, true);
-        utilities_objects_js_1.ensureProto(proto, 'unobserve', unobserve, true);
-        utilities_objects_js_1.ensureProto(proto, 'unobserveCollection', unobserveCollection, true);
-        utilities_objects_js_1.ensureProto(proto, 'addObserver', addObserver, true);
-        utilities_objects_js_1.ensureProto(proto, 'addCollectionObserver', addCollectionObserver, true);
         defProp(proto, 'record', {
             configurable: true,
             get: getRecord,

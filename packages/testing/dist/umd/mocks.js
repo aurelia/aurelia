@@ -34,18 +34,6 @@
         observeCollection(col) {
             this.trace('observeCollection', col);
         }
-        unobserve(all) {
-            this.trace('unobserve', all);
-        }
-        unobserveCollection(all) {
-            this.trace('unobserveCollection', all);
-        }
-        addObserver(observer) {
-            this.trace('addObserver', observer);
-        }
-        addCollectionObserver(observer) {
-            this.trace('addCollectionObserver', observer);
-        }
         $bind(flags, scope) {
             this.trace('$bind', flags, scope);
         }

@@ -100,13 +100,9 @@ export class BindingInterceptor {
     get isBound() {
         return this.binding.isBound;
     }
-    /** @internal */
     get record() {
         return this.binding.record;
     }
-    /**
-     * @internal
-     */
     get cRecord() {
         return this.binding.cRecord;
     }
@@ -122,41 +118,11 @@ export class BindingInterceptor {
     handleChange(newValue, previousValue, flags) {
         this.binding.handleChange(newValue, previousValue, flags);
     }
-    /**
-     * @internal
-     */
     observeProperty(obj, key) {
         this.binding.observeProperty(obj, key);
     }
-    /**
-     * @internal
-     */
-    addObserver(observer) {
-        this.binding.addObserver(observer);
-    }
-    /**
-     * @internal
-     */
-    unobserve(all) {
-        this.binding.unobserve(all);
-    }
-    /**
-     * @internal
-     */
     observeCollection(observer) {
         this.binding.observeCollection(observer);
-    }
-    /**
-     * @internal
-     */
-    addCollectionObserver(observer) {
-        this.binding.addCollectionObserver(observer);
-    }
-    /**
-     * @internal
-     */
-    unobserveCollection(all) {
-        this.binding.unobserveCollection(all);
     }
     $bind(flags, scope, hostScope) {
         this.binding.$bind(flags, scope, hostScope);

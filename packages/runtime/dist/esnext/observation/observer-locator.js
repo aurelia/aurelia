@@ -143,9 +143,6 @@ export class ObserverLocator {
         return obj.$observers[key] = observer;
     }
 }
-/**
- * @internal
- */
 ObserverLocator.inject = [ILifecycle, IDirtyChecker, INodeObserverLocator];
 export function getCollectionObserver(collection, lifecycle) {
     let obs;

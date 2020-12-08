@@ -11,14 +11,10 @@ export interface IConnectableBinding extends IPartialConnectableBinding, IConnec
      * A record storing observers that are currently subscribed to by this binding
      */
     record: BindingObserverRecord;
-    addObserver(observer: ISubscribable): void;
-    unobserve(all?: boolean): void;
     /**
      * A record storing collection observers that are currently subscribed to by this binding
      */
     cRecord: BindingCollectionObserverRecord;
-    unobserveCollection(all?: boolean): void;
-    addCollectionObserver(observer: ICollectionSubscribable): void;
 }
 declare type ObservationRecordImplType = {
     id: number;
@@ -64,11 +60,11 @@ declare type DecoratedConnectable<TProto, TClass> = Class<TProto & IConnectableB
 declare function connectableDecorator<TProto, TClass>(target: DecoratableConnectable<TProto, TClass>): DecoratedConnectable<TProto, TClass>;
 export declare function connectable(): typeof connectableDecorator;
 export declare namespace connectable {
-    var assignIdTo: (instance: IConnectableBinding | BindingObserverRecord) => void;
+    var assignIdTo: (instance: IConnectableBinding | BindingObserverRecord | BindingCollectionObserverRecord) => void;
 }
 export declare function connectable<TProto, TClass>(target: DecoratableConnectable<TProto, TClass>): DecoratedConnectable<TProto, TClass>;
 export declare namespace connectable {
-    var assignIdTo: (instance: IConnectableBinding | BindingObserverRecord) => void;
+    var assignIdTo: (instance: IConnectableBinding | BindingObserverRecord | BindingCollectionObserverRecord) => void;
 }
 export declare type MediatedBinding<K extends string> = {
     [key in K]: (newValue: unknown, previousValue: unknown, flags: LifecycleFlags) => void;

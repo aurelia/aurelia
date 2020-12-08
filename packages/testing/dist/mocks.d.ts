@@ -1,7 +1,7 @@
 import { ExpressionKind, LifecycleFlags } from '@aurelia/runtime-html';
 import type { IContainer, IDisposable, IIndexable, IServiceLocator } from '@aurelia/kernel';
 import type { Scope } from '@aurelia/runtime-html';
-import type { IBinding, IConnectableBinding, IndexMap, IObserverLocator, ISignaler, ISubscribable, BindingObserverRecord, BindingCollectionObserverRecord, Collection, ICollectionSubscribable } from '@aurelia/runtime';
+import type { IBinding, IConnectableBinding, IndexMap, IObserverLocator, ISignaler, BindingObserverRecord, BindingCollectionObserverRecord, Collection } from '@aurelia/runtime';
 export declare class MockBinding implements IConnectableBinding {
     interceptor: this;
     id: number;
@@ -22,10 +22,6 @@ export declare class MockBinding implements IConnectableBinding {
     handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void;
     observeProperty(obj: IIndexable, propertyName: string): void;
     observeCollection(col: Collection): void;
-    unobserve(all?: boolean): void;
-    unobserveCollection(all?: boolean): void;
-    addObserver(observer: ISubscribable): void;
-    addCollectionObserver(observer: ICollectionSubscribable): void;
     $bind(flags: LifecycleFlags, scope: Scope): void;
     $unbind(flags: LifecycleFlags): void;
     trace(fnName: keyof MockBinding, ...args: any[]): void;

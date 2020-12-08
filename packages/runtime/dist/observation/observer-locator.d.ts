@@ -29,6 +29,7 @@ export declare class ObserverLocator {
     private readonly lifecycle;
     private readonly dirtyChecker;
     private readonly nodeObserverLocator;
+    protected static readonly inject: (import("@aurelia/kernel").InterfaceSymbol<ILifecycle> | import("@aurelia/kernel").InterfaceSymbol<IDirtyChecker> | import("@aurelia/kernel").InterfaceSymbol<INodeObserverLocator>)[];
     private readonly adapters;
     constructor(lifecycle: ILifecycle, dirtyChecker: IDirtyChecker, nodeObserverLocator: INodeObserverLocator);
     addAdapter(adapter: IObjectObservationAdapter): void;

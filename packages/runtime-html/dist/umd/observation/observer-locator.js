@@ -253,9 +253,6 @@
         }
     }
     exports.NodeObserverLocator = NodeObserverLocator;
-    /**
-     * @internal
-     */
     NodeObserverLocator.inject = [kernel_1.IServiceLocator, platform_js_1.IPlatform, runtime_1.IDirtyChecker, svg_analyzer_js_1.ISVGAnalyzer];
     function getCollectionObserver(collection, observerLocator) {
         if (collection instanceof Array) {

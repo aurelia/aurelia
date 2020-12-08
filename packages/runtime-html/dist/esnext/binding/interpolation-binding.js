@@ -129,7 +129,7 @@ export class ContentBinding {
         }
         if (newValue != this.value) {
             this.value = newValue;
-            this.unobserveCollection();
+            this.cRecord.clear();
             if (newValue instanceof Array) {
                 this.observeCollection(newValue);
             }

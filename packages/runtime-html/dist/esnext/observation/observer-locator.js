@@ -239,9 +239,6 @@ export class NodeObserverLocator {
         }
     }
 }
-/**
- * @internal
- */
 NodeObserverLocator.inject = [IServiceLocator, IPlatform, IDirtyChecker, ISVGAnalyzer];
 export function getCollectionObserver(collection, observerLocator) {
     if (collection instanceof Array) {

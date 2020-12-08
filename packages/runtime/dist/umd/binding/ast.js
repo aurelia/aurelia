@@ -374,7 +374,8 @@
             if (vc == null) {
                 throw new Error(`ValueConverter named '${this.name}' could not be found. Did you forget to register it as a dependency?`);
             }
-            // note: the cast is unsatisfactory. to connect, it needs to be a IConnectable
+            // note: the cast is expected. To connect, it just needs to be a IConnectable
+            // though to work with signal, it needs to have `handleChange`
             // so having `handleChange` as a guard in the connectable as a safe measure is needed
             // to make sure signaler works
             if (c !== null && ('handleChange' in c)) {
@@ -387,7 +388,7 @@
                 }
             }
             if ('toView' in vc) {
-                return vc.toView.call(vc, this.expression.evaluate(f, s, hs, l, c), ...this.args.map(a => a.evaluate(f, s, hs, l, c)));
+                return vc.toView(this.expression.evaluate(f, s, hs, l, c), ...this.args.map(a => a.evaluate(f, s, hs, l, c)));
             }
             return this.expression.evaluate(f, s, hs, l, c);
         }
@@ -397,7 +398,7 @@
                 throw new Error(`ValueConverter named '${this.name}' could not be found. Did you forget to register it as a dependency?`);
             }
             if ('fromView' in vc) {
-                val = vc.fromView.call(vc, val, ...this.args.map(a => a.evaluate(f, s, hs, l, null)));
+                val = vc.fromView(val, ...this.args.map(a => a.evaluate(f, s, hs, l, null)));
             }
             return this.expression.assign(f, s, hs, l, val);
         }

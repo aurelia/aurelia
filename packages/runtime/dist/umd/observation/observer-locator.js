@@ -156,9 +156,6 @@
         }
     }
     exports.ObserverLocator = ObserverLocator;
-    /**
-     * @internal
-     */
     ObserverLocator.inject = [observation_js_1.ILifecycle, dirty_checker_js_1.IDirtyChecker, exports.INodeObserverLocator];
     function getCollectionObserver(collection, lifecycle) {
         let obs;

@@ -41,7 +41,6 @@ export interface AttributeBinding extends IConnectableBinding {}
 /**
  * Attribute binding. Handle attribute binding betwen view/view model. Understand Html special attributes
  */
-@connectable()
 export class AttributeBinding implements IPartialConnectableBinding {
   public interceptor: this = this;
 
@@ -238,3 +237,5 @@ export class AttributeBinding implements IPartialConnectableBinding {
     this.isBound = false;
   }
 }
+
+connectable(AttributeBinding);

@@ -21,7 +21,6 @@ import {
   ArrayLiteralExpression,
   AssignExpression,
   BinaryExpression,
-  PropertyBinding,
   BindingBehaviorExpression,
   CallFunctionExpression,
   CallMemberExpression,
@@ -45,6 +44,9 @@ import {
   UnaryExpression,
   ValueConverterExpression,
 } from '@aurelia/runtime';
+import {
+  PropertyBinding,
+} from '@aurelia/runtime-html';
 
 const $false = PrimitiveLiteralExpression.$false;
 const $true = PrimitiveLiteralExpression.$true;

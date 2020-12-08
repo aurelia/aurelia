@@ -11,7 +11,7 @@ import {
   ToViewBindingBehavior,
   TwoWayBindingBehavior,
   IPlatform,
-} from '@aurelia/runtime';
+} from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 
 const tests = [

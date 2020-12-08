@@ -2,27 +2,26 @@ import { Metadata, IServiceLocator, IContainer, Registration, Class, DI, IRegist
 import {
   BindingMode,
   BindingType,
-  ContentBinding,
   IExpressionParser,
   IObserverLocator,
   Interpolation,
   IsBindingBehavior,
   LifecycleFlags,
-  InterpolationBinding,
-  PropertyBinding,
   AnyBindingExpression,
   BindingBehaviorExpression,
   BindingBehaviorInstance,
-  CallBinding,
   IInterceptableBinding,
   IObservable,
-  LetBinding,
-  RefBinding,
   BindingBehaviorFactory,
   ForOfStatement,
   DelegationStrategy,
 } from '@aurelia/runtime';
+import { CallBinding } from './binding/call-binding.js';
 import { AttributeBinding } from './binding/attribute.js';
+import { InterpolationBinding, ContentBinding } from './binding/interpolation-binding.js';
+import { LetBinding } from './binding/let-binding.js';
+import { PropertyBinding } from './binding/property-binding.js';
+import { RefBinding } from './binding/ref-binding.js';
 import { Listener } from './binding/listener.js';
 import { IEventDelegator } from './observation/event-delegator.js';
 import { CustomElement, CustomElementDefinition, PartialCustomElementDefinition } from './resources/custom-element.js';

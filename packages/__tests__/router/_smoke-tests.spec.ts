@@ -6,26 +6,19 @@ import {
 } from '@aurelia/kernel';
 import {
   assert,
-  TestContext,
 } from '@aurelia/testing';
 import {
-  RouterConfiguration,
   Router,
   IRouter,
   LoadInstruction,
-  // TODO? IRouteContext,
   Navigation,
   IRouterActivateOptions,
 } from '@aurelia/router';
 import {
-  Aurelia,
   customElement,
   CustomElement,
 } from '@aurelia/runtime-html';
 
-import {
-  TestRouterConfiguration,
-} from './_shared/configuration';
 import { createFixture, translateOptions } from './_shared/create-fixture';
 import { IHIAConfig } from './_shared/hook-invocation-tracker';
 
@@ -66,71 +59,16 @@ function assertComponentsVisible(host: HTMLElement, spec: CSpec, msg: string = '
 function assertIsActive(
   router: IRouter,
   instruction: LoadInstruction,
-  options: any, // TODO? IRouteContext,
+  options: any,
   expected: boolean,
   assertId: number,
 ): void {
-  // const isActive = expected; // TODO: router.isActive(instruction, context);
   if (options instanceof Router) {
     options = {};
   }
   const isActive = router.checkActive(instruction, options);
   assert.strictEqual(isActive, expected, `expected isActive to return ${expected} (assertId ${assertId})`);
 }
-
-// async function createFixture<T extends Constructable>(
-//   Component: T,
-//   deps: Constructable[],
-//   level: LogLevel = LogLevel.warn,
-// ) {
-//   const ctx = TestContext.createHTMLTestContext();
-//   const { container, scheduler } = ctx;
-
-//   container.register(TestRouterConfiguration.for(ctx, level));
-//   container.register(RouterConfiguration.customize({ deferUntil: 'none' }));
-//   container.register(...deps);
-
-//   const component = container.get(Component);
-//   const router = container.get(IRouter);
-
-//   const au = new Aurelia(container);
-//   const host = ctx.createElement('div');
-//   ctx.doc.body.appendChild(host as any);
-
-//   au.app({ component, host });
-
-//   await au.start();
-
-//   assertComponentsVisible(host, [Component]);
-
-//   const logConfig = container.get(ILogConfig);
-
-//   return {
-//     ctx,
-//     au,
-//     host,
-//     component,
-//     scheduler,
-//     container,
-//     router,
-//     startTracing() {
-//       logConfig.level = LogLevel.trace;
-//     },
-//     stopTracing() {
-//       logConfig.level = level;
-//     },
-//     async tearDown() {
-//       // scheduler.getRenderTaskQueue().flush();
-//       // assert.areTaskQueuesEmpty();
-
-//       await au.stop();
-//       ctx.doc.body.removeChild(host);
-
-//       // scheduler.getRenderTaskQueue().flush();
-//       // assert.areTaskQueuesEmpty();
-//     }
-//   };
-// }
 
 describe('router (smoke tests)', function () {
   describe('without any configuration, deps registered globally', function () {
@@ -214,7 +152,7 @@ describe('router (smoke tests)', function () {
 
       await router.load(name(A01));
       assertComponentsVisible(host, [Root1, A01]);
-      assertIsActive(router, A01, router/* .routeTree.root.context */, true, 1);
+      assertIsActive(router, A01, {}, true, 1);
 
       await tearDown();
     });
@@ -224,7 +162,7 @@ describe('router (smoke tests)', function () {
 
       await router.load(A01);
       assertComponentsVisible(host, [Root1, A01]);
-      assertIsActive(router, A01, router/* .routeTree.root.context */, true, 1);
+      assertIsActive(router, A01, {}, true, 1);
 
       await tearDown();
     });
@@ -234,7 +172,7 @@ describe('router (smoke tests)', function () {
 
       await router.load({ component: A01 });
       assertComponentsVisible(host, [Root1, A01]);
-      assertIsActive(router, { component: A01 }, router/* .routeTree.root.context */, true, 1);
+      assertIsActive(router, { component: A01 }, {}, true, 1);
 
       await tearDown();
     });
@@ -244,7 +182,7 @@ describe('router (smoke tests)', function () {
 
       await router.load(CustomElement.getDefinition(A01));
       assertComponentsVisible(host, [Root1, A01]);
-      assertIsActive(router, CustomElement.getDefinition(A01), router/* .routeTree.root.context */, true, 1);
+      assertIsActive(router, CustomElement.getDefinition(A01), {}, true, 1);
 
       await tearDown();
     });
@@ -256,7 +194,7 @@ describe('router (smoke tests)', function () {
       await router.load(def);
       const A31 = CustomElement.define(def);
       assertComponentsVisible(host, [Root1, A31]);
-      assertIsActive(router, CustomElement.getDefinition(A31), router/* .routeTree.root.context */, true, 1);
+      assertIsActive(router, CustomElement.getDefinition(A31), {}, true, 1);
 
       await tearDown();
     });
@@ -266,11 +204,11 @@ describe('router (smoke tests)', function () {
 
       await router.load(name(A01));
       assertComponentsVisible(host, [Root1, A01]);
-      assertIsActive(router, A01, router/* .routeTree.root.context */, true, 1);
+      assertIsActive(router, A01, {}, true, 1);
 
       await router.load(name(A02));
       assertComponentsVisible(host, [Root1, A02]);
-      assertIsActive(router, A02, router/* .routeTree.root.context */, true, 2);
+      assertIsActive(router, A02, {}, true, 2);
 
       await tearDown();
     });
@@ -280,15 +218,15 @@ describe('router (smoke tests)', function () {
 
       await router.load(A11);
       assertComponentsVisible(host, [Root1, A11]);
-      assertIsActive(router, A11, router/* .routeTree.root.context */, true, 1);
+      assertIsActive(router, A11, {}, true, 1);
 
       const loadOptions = { origin: router.allViewports()[0].content.componentInstance }; // A11 view model
 
       await router.load(A02, loadOptions);
       assertComponentsVisible(host, [Root1, A11, A02]);
       assertIsActive(router, A02, loadOptions, true, 2);
-      assertIsActive(router, A02, router/* .routeTree.root.context */, false, 3);
-      assertIsActive(router, A11, router/* .routeTree.root.context */, true, 3);
+      assertIsActive(router, A02, {}, false, 3);
+      assertIsActive(router, A11, {}, true, 3);
 
       await tearDown();
     });
@@ -335,7 +273,6 @@ describe('router (smoke tests)', function () {
       await tearDown();
     });
 
-    // TODO: Add boolean return from load()
     it(`${name(Root1)} correctly handles canUnload with goto ${name(B02)},${name(A01)},${name(A02)} in order`, async function () {
       const { router, host, tearDown } = await createFixture(Root1, Z, getDefaultHIAConfig, getRouterOptions);
 
@@ -480,13 +417,11 @@ describe('router (smoke tests)', function () {
       await router.load(`${name(A11)}@$0/${name(A12)}/${name(A01)}+${name(A12)}@$1/${name(A01)}`);
       assertComponentsVisible(host, [Root2, [A11, [A12, [A01]]], [A12, [A01]]], '#1');
 
-      // const loadOptions = {}; // context = router /* .routeTree.root.children[0].context */;
       let loadOptions = { origin: router.allViewports()[1].content.componentInstance }; // Top A12 view model
 
       await router.load(`${name(A11)}@$0/${name(A01)}`, loadOptions);
       assertComponentsVisible(host, [Root2, [A11, [A12, [A01]]], [A12, [A11, [A01]]]], '#2');
 
-      // context = router /*.routeTree.root.children[0].children[0].context */;
       loadOptions = { origin: router.allViewports()[2].content.componentInstance }; // Second level A12 view model
 
       await router.load(`${name(A02)}`, loadOptions);

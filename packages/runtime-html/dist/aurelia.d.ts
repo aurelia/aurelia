@@ -19,6 +19,7 @@ export declare class Aurelia implements IDisposable {
     register(...params: any[]): this;
     app(config: ISinglePageApp): Omit<this, 'register' | 'app' | 'enhance'>;
     enhance(config: ISinglePageApp): Omit<this, 'register' | 'app' | 'enhance'>;
+    waitForIdle(): Promise<void>;
     private initPlatform;
     private startPromise;
     start(root?: IAppRoot | undefined): void | Promise<void>;

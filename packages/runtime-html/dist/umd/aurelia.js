@@ -55,6 +55,12 @@
             this.next = new app_root_js_1.AppRoot(config, this.initPlatform(config.host), this.container, this.rootProvider, true);
             return this;
         }
+        async waitForIdle() {
+            const platform = this.root.platform;
+            await platform.domWriteQueue.yield();
+            await platform.domReadQueue.yield();
+            await platform.macroTaskQueue.yield();
+        }
         initPlatform(host) {
             let p;
             if (!this.container.has(platform_js_1.IPlatform, false)) {

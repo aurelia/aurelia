@@ -1,13 +1,15 @@
-import { LifecycleFlags } from '../observation.js';
-import { connectable } from './connectable.js';
+import { connectable, LifecycleFlags } from '@aurelia/runtime';
 
 import type { ITask } from '@aurelia/platform';
 import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
-import type { IConnectableBinding, IPartialConnectableBinding } from './connectable.js';
-import type { IObservable } from '../observation.js';
-import type { IObserverLocator } from '../observation/observer-locator.js';
-import type { IsExpression } from './ast.js';
-import type { Scope } from '../observation/binding-context.js';
+import type {
+  IConnectableBinding,
+  IObservable,
+  IObserverLocator,
+  IPartialConnectableBinding,
+  IsExpression,
+  Scope,
+} from '@aurelia/runtime';
 
 export interface LetBinding extends IConnectableBinding {}
 

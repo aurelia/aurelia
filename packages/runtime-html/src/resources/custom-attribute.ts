@@ -14,15 +14,15 @@ import {
 import {
   BindingMode,
   registerAliases,
-  IWatchDefinition,
-  Watch,
 } from '@aurelia/runtime';
 import {
   Bindable,
   BindableDefinition,
   PartialBindableDefinition,
 } from '../bindable.js';
+import { Watch } from '../watch.js';
 import type { ICustomAttributeViewModel, ICustomAttributeController } from '../templating/controller.js';
+import type { IWatchDefinition } from '../watch.js';
 
 export type PartialCustomAttributeDefinition = PartialResourceDefinition<{
   readonly defaultBindingMode?: BindingMode;

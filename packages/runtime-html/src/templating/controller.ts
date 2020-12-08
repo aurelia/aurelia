@@ -20,17 +20,13 @@ import {
   Scope,
   LifecycleFlags,
   ILifecycle,
-  PropertyBinding,
   BindingType,
   IObserverLocator,
-  IWatchDefinition,
-  ComputedWatcher,
-  ExpressionWatcher,
-  IWatcherCallback,
   IObservable,
   IExpressionParser,
   AccessorOrObserver,
 } from '@aurelia/runtime';
+import { PropertyBinding } from '../binding/property-binding.js';
 import { BindableDefinition } from '../bindable';
 import { BindableObserver } from '../observation/bindable-observer';
 import { convertToRenderLocation, INode, INodeSequence, IRenderLocation } from '../dom.js';
@@ -41,9 +37,11 @@ import { ChildrenObserver } from './children.js';
 import { IAppRoot } from '../app-root.js';
 import { IPlatform } from '../platform.js';
 import { IShadowDOMGlobalStyles, IShadowDOMStyles } from './styles.js';
+import { ComputedWatcher, ExpressionWatcher } from './watchers.js';
 import type { RegisteredProjections } from '../resources/custom-elements/au-slot.js';
 import type { IViewFactory } from './view.js';
 import type { Instruction } from '../renderer.js';
+import type { IWatchDefinition, IWatcherCallback } from '../watch.js';
 
 function callDispose(disposable: IDisposable): void {
   disposable.dispose();

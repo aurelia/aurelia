@@ -46,13 +46,17 @@ const queueTaskOpts: QueueTaskOptions = {
 };
 
 export class DirtyChecker {
+  /**
+   * @internal
+   */
+  public static inject = [IPlatform];
   private readonly tracked: DirtyCheckProperty[] = [];
 
   private task: ITask | null = null;
   private elapsedFrames: number = 0;
 
   public constructor(
-    @IPlatform private readonly platform: IPlatform,
+    private readonly platform: IPlatform,
   ) {}
 
   public createProperty(obj: object, propertyName: string): DirtyCheckProperty {

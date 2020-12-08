@@ -10,6 +10,11 @@ import {
   ISubscriber,
   IBinding,
   LifecycleFlags,
+  Collection,
+  CollectionObserver,
+  ICollectionSubscriber,
+  IndexMap,
+  ICollectionSubscribable,
 } from '../observation.js';
 import { IObserverLocator } from '../observation/observer-locator.js';
 import { defineHiddenProp, ensureProto } from '../utilities-objects.js';
@@ -32,15 +37,14 @@ function ensureEnoughSlotNames(currentSlot: number): void {
 }
 ensureEnoughSlotNames(-1);
 
-export interface IPartialConnectableBinding extends IBinding, ISubscriber {
+export interface IPartialConnectableBinding extends IBinding, ISubscriber, ICollectionSubscriber {
   observerLocator: IObserverLocator;
 }
 
 export interface IConnectableBinding extends IPartialConnectableBinding, IConnectable {
-  // probably this id shouldn't be on binding
   id: number;
   /**
-   * A record storing observers that are currently subscribed by this binding
+   * A record storing observers that are currently subscribed to by this binding
    */
   // this is an implementation detail that leaks, should be either:
   // - removed with the removal of the interceptor
@@ -48,18 +52,32 @@ export interface IConnectableBinding extends IPartialConnectableBinding, IConnec
   record: BindingObserverRecord;
   addObserver(observer: ISubscribable): void;
   unobserve(all?: boolean): void;
+
+  // todo:
+  // merge collection subscribable, and generally collection subscription
+  // with normal subscription
+  // there should be only unobserve()
+  /**
+   * A record storing collection observers that are currently subscribed to by this binding
+   */
+  // similar to record, this is an implementation detail
+  cRecord: BindingCollectionObserverRecord;
+  unobserveCollection(all?: boolean): void;
+  addCollectionObserver(observer: ICollectionSubscribable): void;
 }
 
-/** @internal */
-export function addObserver(
+function addObserver(
   this: IConnectableBinding & { [key: string]: ISubscribable & { [id: number]: number } | number },
   observer: ISubscribable & { [id: number]: number }
 ): void {
   this.record.add(observer);
 }
 
-/** @internal */
-export function observeProperty(this: IConnectableBinding, obj: object, key: PropertyKey): void {
+function addCollectionObserver(this: IConnectableBinding, observer: ICollectionSubscribable): void {
+  this.cRecord.add(observer);
+}
+
+function observeProperty(this: IConnectableBinding, obj: object, key: PropertyKey): void {
   const observer = this.observerLocator.getObserver(obj, key);
   /* Note: we need to cast here because we can indeed get an accessor instead of an observer,
    *  in which case the call to observer.subscribe will throw. It's not very clean and we can solve this in 2 ways:
@@ -71,15 +89,50 @@ export function observeProperty(this: IConnectableBinding, obj: object, key: Pro
   this.addObserver(observer);
 }
 
-/** @internal */
-export function unobserve(this: IConnectableBinding & { [key: string]: unknown }, all?: boolean): void {
+function unobserve(this: IConnectableBinding & { [key: string]: unknown }, all?: boolean): void {
   this.record.clear(all);
 }
 
-export function getRecord(this: IConnectableBinding) {
+function getRecord(this: IConnectableBinding): BindingObserverRecord {
   const record = new BindingObserverRecord(this);
   defineHiddenProp(this, 'record', record);
   return record;
+}
+
+function observeCollection(this: IConnectableBinding, collection: Collection): void {
+  const obs = getCollectionObserver(collection, this.observerLocator);
+  this.addCollectionObserver(obs);
+}
+
+function unobserveCollection(this: IConnectableBinding, all?: boolean): void {
+  this.cRecord.clear(all);
+}
+function getCollectionRecord(this: IConnectableBinding): BindingCollectionObserverRecord {
+  const record = new BindingCollectionObserverRecord(this);
+  defineHiddenProp(this, 'cRecord', record);
+  return record;
+}
+
+function getCollectionObserver(collection: Collection, observerLocator: IObserverLocator): CollectionObserver {
+  let observer: CollectionObserver;
+  if (collection instanceof Array) {
+    observer = observerLocator.getArrayObserver(collection);
+  } else if (collection instanceof Set) {
+    observer = observerLocator.getSetObserver(collection);
+  } else if (collection instanceof Map) {
+    observer = observerLocator.getMapObserver(collection);
+  } else {
+    throw new Error('Unrecognised collection type.');
+  }
+  return observer;
+}
+
+function noopHandleChange() {
+  throw new Error('method "handleChange" not implemented');
+}
+
+function noopHandleCollectionChange() {
+  throw new Error('method "handleCollectionChange" not implemented');
 }
 
 type ObservationRecordImplType = {
@@ -89,16 +142,15 @@ type ObservationRecordImplType = {
   binding: IConnectableBinding;
 } & ISubscriber & Record<string, unknown>;
 
-export interface BindingObserverRecord extends ISubscriber, ObservationRecordImplType {}
+export interface BindingObserverRecord extends ISubscriber, ObservationRecordImplType { }
 export class BindingObserverRecord implements ISubscriber {
-  public id!: number;
+  public id: number = idValue++;
   public version: number = 0;
   public count: number = 0;
 
   public constructor(
     public binding: IConnectableBinding
   ) {
-    connectable.assignIdTo(this);
   }
 
   public handleChange(value: unknown, oldValue: unknown, flags: LifecycleFlags): unknown {
@@ -168,18 +220,68 @@ export class BindingObserverRecord implements ISubscriber {
   }
 }
 
+export interface BindingCollectionObserverRecord extends ICollectionSubscriber, ObservationRecordImplType { }
+export class BindingCollectionObserverRecord {
+  public id: number = idValue++;
+  public count: number = 0;
+  public get version(): number {
+    return this.binding.record.version;
+  }
+
+  private readonly observers = new Map<ICollectionSubscribable, number>();
+  public constructor(
+    public readonly binding: IConnectableBinding,
+  ) {}
+
+  public handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void {
+    this.binding.interceptor.handleCollectionChange(indexMap, flags);
+  }
+
+  public add(observer: ICollectionSubscribable): void {
+    observer.subscribeToCollection(this);
+    this.count = this.observers.set(observer, this.version).size;
+  }
+
+  public clear(all?: boolean): void {
+    if (this.count === 0) {
+      return;
+    }
+    const observers = this.observers;
+    const version = this.version;
+    for (const [o, oVersion] of observers) {
+      if (all || oVersion !== version) {
+        o.unsubscribeFromCollection(this);
+        observers.delete(o);
+      }
+    }
+    this.count = observers.size;
+  }
+}
+
 type DecoratableConnectable<TProto, TClass> = Class<TProto & Partial<IConnectableBinding> & IPartialConnectableBinding, TClass>;
 type DecoratedConnectable<TProto, TClass> = Class<TProto & IConnectableBinding, TClass>;
 
 function connectableDecorator<TProto, TClass>(target: DecoratableConnectable<TProto, TClass>): DecoratedConnectable<TProto, TClass> {
   const proto = target.prototype;
+  const defProp = Reflect.defineProperty;
   ensureProto(proto, 'observeProperty', observeProperty, true);
+  ensureProto(proto, 'observeCollection', observeCollection, true);
   ensureProto(proto, 'unobserve', unobserve, true);
+  ensureProto(proto, 'unobserveCollection', unobserveCollection, true);
   ensureProto(proto, 'addObserver', addObserver, true);
-  Reflect.defineProperty(proto, 'record', {
+  ensureProto(proto, 'addCollectionObserver', addCollectionObserver, true);
+  defProp(proto, 'record', {
     configurable: true,
     get: getRecord,
   });
+  defProp(proto, 'cRecord', {
+    configurable: true,
+    get: getCollectionRecord,
+  });
+  // optionally add these two methods to normalize a connectable impl
+  ensureProto(proto, 'handleChange', noopHandleChange);
+  ensureProto(proto, 'handleCollectionChange', noopHandleCollectionChange);
+
   return target as DecoratedConnectable<TProto, TClass>;
 }
 
@@ -189,10 +291,10 @@ export function connectable<TProto, TClass>(target?: DecoratableConnectable<TPro
   return target == null ? connectableDecorator : connectableDecorator(target);
 }
 
-let value = 0;
+let idValue = 0;
 
 connectable.assignIdTo = (instance: IConnectableBinding | BindingObserverRecord): void => {
-  instance.id = ++value;
+  instance.id = ++idValue;
 };
 
 export type MediatedBinding<K extends string> = {

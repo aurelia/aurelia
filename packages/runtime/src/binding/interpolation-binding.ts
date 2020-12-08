@@ -1,6 +1,5 @@
 import {
   AccessorType,
-  CollectionKind,
   BindingMode,
   LifecycleFlags,
   AccessorOrObserver,
@@ -15,7 +14,6 @@ import type { IObserverLocator } from '../observation/observer-locator.js';
 import type {
   ICollectionSubscriber,
   IndexMap,
-  ICollectionObserver,
   IBinding,
 } from '../observation.js';
 import type { Scope } from '../observation/binding-context.js';
@@ -136,7 +134,6 @@ export class InterpolationBinding implements IBinding {
 // this composability is similar to how FAST is doing, and quite familiar with VDOM libs component props
 export interface ContentBinding extends IConnectableBinding {}
 
-@connectable()
 export class ContentBinding implements ContentBinding, ICollectionSubscriber {
   public interceptor: this = this;
 
@@ -148,8 +145,6 @@ export class ContentBinding implements ContentBinding, ICollectionSubscriber {
   public $hostScope: Scope | null = null;
   public task: ITask | null = null;
   public isBound: boolean = false;
-
-  private arrayObserver?: ICollectionObserver<CollectionKind.array> = void 0;
 
   public constructor(
     public readonly sourceExpression: IsExpression,
@@ -181,9 +176,9 @@ export class ContentBinding implements ContentBinding, ICollectionSubscriber {
     }
     if (newValue != this.value) {
       this.value = newValue;
-      this.unobserveArray();
+      this.unobserveCollection();
       if (newValue instanceof Array) {
-        this.observeArray(newValue);
+        this.observeCollection(newValue);
       }
       this.owner.updateTarget(newValue, flags);
     }
@@ -217,7 +212,7 @@ export class ContentBinding implements ContentBinding, ICollectionSubscriber {
       (this.mode & toView) > 0 ?  this.interceptor : null,
     );
     if (v instanceof Array) {
-      this.observeArray(v);
+      this.observeCollection(v);
     }
   }
 
@@ -234,16 +229,8 @@ export class ContentBinding implements ContentBinding, ICollectionSubscriber {
     this.$scope = void 0;
     this.$hostScope = null;
     this.record.clear(true);
-    this.unobserveArray();
-  }
-
-  private observeArray(arr: unknown[]): void {
-    const newObserver = this.arrayObserver = this.observerLocator.getArrayObserver(arr);
-    newObserver.addCollectionSubscriber(this.interceptor);
-  }
-
-  private unobserveArray(): void {
-    this.arrayObserver?.removeCollectionSubscriber(this.interceptor);
-    this.arrayObserver = void 0;
+    this.cRecord.clear(true);
   }
 }
+
+connectable(ContentBinding);

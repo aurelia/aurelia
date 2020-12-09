@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
-import { HookInvocationTracker } from './hook-invocation-tracker.js';
+import { HookName, HookInvocationTracker } from './hook-invocation-tracker.js';
 import { setTimeoutWaiter } from './waiters.js';
-import { HookName } from './hook-invocation-tracker.js';
 import { ITestRouteViewModel } from './view-models.js';
 
 export interface IHookSpec<T extends HookName> {
@@ -141,5 +140,5 @@ function filterHooks(hooks: string[]): string[] {
     // && !hook.endsWith('.dispose')
     // && !hook.startsWith('stop.')
     // && (hook.endsWith('canUnload') || hook.endsWith('canLoad') || hook.endsWith('unload') || hook.endsWith('load'))
-  ).map(hook => hook.replace(/\:.*?\./gi, '.').replace(/\.enter$/, ''));
+  ).map(hook => hook.replace(/:.*?\./gi, '.').replace(/\.enter$/, ''));
 }

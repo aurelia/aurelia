@@ -30,7 +30,6 @@ export function translateOptions(routerOptionsSpec: IRouterOptionsSpec): IRouter
       swap = 'remove-first-parallel';
       break;
     default:
-    case 'sequential-add-first':
       swap = 'add-first-sequential';
       break;
   }

@@ -195,39 +195,33 @@ export class TransitionViewport {
       this.canUnload = false;
     }
 
-    if (!routingStep || deferUntil === 'guard-hooks' || deferUntil === 'load-hooks') {
-      if (this.canLoad) {
-        this.setRoutingHook(phase, 'canLoad');
-        if (deferUntil === 'guard-hooks' || deferUntil === 'load-hooks') {
-          this.hooks.push('');
-        }
-        this.canLoad = false;
+    if (!routingStep || deferUntil === 'guard-hooks' || deferUntil === 'load-hooks' && this.canLoad) {
+      this.setRoutingHook(phase, 'canLoad');
+      if (deferUntil === 'guard-hooks' || deferUntil === 'load-hooks') {
+        this.hooks.push('');
       }
+      this.canLoad = false;
     }
 
-    if (!routingStep || deferUntil === 'load-hooks') {
-      if (this.unload) {
-        //   if (deferUntil === 'guard-hooks') {
-        //     this.setRoutingHook(phase, 'unload');
-        //     this.hooks.push('');
-        // } else {
-        if (this.isTop) {
-          // TransitionViewport.setRemoveHooks(deferUntil, phase, 'unload', false, topViewport, removeViewports);
-          TransitionViewport.getRemoveHooks(deferUntil, phase, 'unload', topViewport, removeViewports).forEach(hooks => this.hooks.push(...hooks));
-        }
-        // }
-        this.unload = false;
+    if (!routingStep || deferUntil === 'load-hooks' && this.unload) {
+      //   if (deferUntil === 'guard-hooks') {
+      //     this.setRoutingHook(phase, 'unload');
+      //     this.hooks.push('');
+      // } else {
+      if (this.isTop) {
+        // TransitionViewport.setRemoveHooks(deferUntil, phase, 'unload', false, topViewport, removeViewports);
+        TransitionViewport.getRemoveHooks(deferUntil, phase, 'unload', topViewport, removeViewports).forEach(hooks => this.hooks.push(...hooks));
       }
+      // }
+      this.unload = false;
     }
 
-    if (!routingStep || deferUntil === 'load-hooks') {
-      if (this.load) {
-        this.setRoutingHook(phase, 'load');
-        if (deferUntil === 'load-hooks') {
-          this.hooks.push('');
-        }
-        this.load = false;
+    if (!routingStep || deferUntil === 'load-hooks' && this.load) {
+      this.setRoutingHook(phase, 'load');
+      if (deferUntil === 'load-hooks') {
+        this.hooks.push('');
       }
+      this.load = false;
     }
   }
 
@@ -332,9 +326,8 @@ export class TransitionViewport {
       }
     }
     // The deactivate hooks are syncing on slowest hook
-    if (hook === 'deactivate') {
-
-    }
+    // if (hook === 'deactivate') {
+    // }
     if ((hook === 'canUnload' && deferUntil === 'guard-hooks') || deferUntil === 'load-hooks') {
       viewportHooks.push(['']);
     }

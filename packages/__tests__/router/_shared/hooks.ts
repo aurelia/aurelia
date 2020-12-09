@@ -233,10 +233,8 @@ export function getNonSiblingHooks(deferUntil, swapStrategy, phase, transitionCo
   // }
 
   for (const viewport of removeViewports) {
-    if (!viewport.isTop) {
-      if (viewport.hooks.some(hook => hook !== '')) {
-        console.log('##### Removed viewport has hooks', viewport.hooks);
-      }
+    if (!viewport.isTop && viewport.hooks.some(hook => hook !== '')) {
+      console.log('##### Removed viewport has hooks', viewport.hooks);
     }
   }
 

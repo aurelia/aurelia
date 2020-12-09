@@ -555,7 +555,7 @@ describe('router config', function () {
     await tearDown();
   });
 
-  it.skip(`works with single empty static path redirect`, async function () {
+  it(`works with single empty static path redirect`, async function () {
     @customElement({ name: 'a01', template: null })
     class A01 extends SimpleActivityTrackingVMBase { }
 
@@ -565,7 +565,8 @@ describe('router config', function () {
 
     const { router, activityTracker, tearDown } = await createFixture(Root, [], getDefaultHIAConfig, () => ({}));
 
-    await router.load('');
+    // '' is loaded automatically when starting router
+    // await router.load('');
 
     verifyInvocationsEqual(activityTracker.activeVMs, ['root', 'a01']);
 

@@ -19,10 +19,6 @@ export class CollectionLengthObserver {
   public value: number;
   public readonly type: AccessorType = AccessorType.Array;
   public readonly obj: unknown[];
-  /**
-   * @internal
-   */
-  public subCount: number = 0;
 
   public constructor(
     public readonly owner: ICollectionObserver<CollectionKind.array>,
@@ -63,10 +59,6 @@ export class CollectionSizeObserver {
   public value: number;
   public readonly type: AccessorType;
   public readonly obj: Set<unknown> | Map<unknown, unknown>;
-  /**
-   * @internal
-   */
-  public subCount: number = 0;
 
   public constructor(
     public readonly owner: ICollectionObserver<CollectionKind.map | CollectionKind.set>,
@@ -94,7 +86,6 @@ export class CollectionSizeObserver {
 }
 
 interface CollectionLengthObserverImpl extends IObserver, ISubscriberCollection, ICollectionSubscriber {
-  subCount: number;
   owner: ICollectionObserver<CollectionKind>;
 }
 

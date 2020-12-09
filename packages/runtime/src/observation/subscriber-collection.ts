@@ -60,9 +60,9 @@ export class SubscriberRecord<T extends IAnySubscriber> implements ISubscriberRe
   private _sRest?: T[];
 
   public count: number = 0;
-  public readonly owner: ISubscriberCollection;
+  public readonly owner: ISubscriberCollection | ICollectionSubscriberCollection;
 
-  public constructor(owner: ISubscriberCollection) {
+  public constructor(owner: ISubscriberCollection | ICollectionSubscriberCollection) {
     this.owner = owner;
   }
 

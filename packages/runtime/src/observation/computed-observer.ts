@@ -49,10 +49,6 @@ export class ComputedObserver implements IConnectableBinding, ISubscriber, IColl
   public type: AccessorType = AccessorType.Obj;
   public value: unknown = void 0;
 
-  /**
-   * @internal
-   */
-  private subCount: number = 0;
   // todo: maybe use a counter allow recursive call to a certain level
   /**
    * @internal
@@ -72,7 +68,7 @@ export class ComputedObserver implements IConnectableBinding, ISubscriber, IColl
   }
 
   public getValue() {
-    if (this.subCount === 0) {
+    if (this.subs.count === 0) {
       return this.get.call(this.obj, this);
     }
     if (this.isDirty) {
@@ -100,14 +96,14 @@ export class ComputedObserver implements IConnectableBinding, ISubscriber, IColl
 
   public handleChange(): void {
     this.isDirty = true;
-    if (this.subCount > 0) {
+    if (this.subs.count > 0) {
       this.run();
     }
   }
 
   public handleCollectionChange(): void {
     this.isDirty = true;
-    if (this.subCount > 0) {
+    if (this.subs.count > 0) {
       this.run();
     }
   }

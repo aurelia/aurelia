@@ -44,7 +44,6 @@ export class CheckedObserver implements IObserver {
 
   public collectionObserver?: ICollectionObserver<CollectionKind> = void 0;
   public valueObserver?: ValueAttributeObserver | SetterObserver = void 0;
-  public subscriberCount: number = 0;
 
   public constructor(
     obj: INode,

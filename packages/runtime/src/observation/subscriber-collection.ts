@@ -13,6 +13,8 @@ import type {
   ISubscriberCollection,
 } from '../observation.js';
 
+type IAnySubscriber = ISubscriber | ICollectionSubscriber;
+
 export function subscriberCollection(): ClassDecorator {
   // eslint-disable-next-line @typescript-eslint/ban-types
   return function (target: Function): void { // ClassDecorator expects it to be derived from Function
@@ -50,7 +52,7 @@ export function collectionSubscriberCollection(): ClassDecorator {
   };
 }
 
-export class SubscriberRecord<T extends ISubscriber | ICollectionSubscriber> implements ISubscriberRecord<T> {
+export class SubscriberRecord<T extends IAnySubscriber> implements ISubscriberRecord<T> {
   private _sFlags: SF = SF.None;
   private _s0?: T;
   private _s1?: T;
@@ -234,15 +236,15 @@ function getSubscriberRecord(this: ISubscriberCollection) {
   return record;
 }
 
-function addSubscriber(this: ISubscriberCollection, subscriber: ISubscriber): boolean {
+function addSubscriber(this: ISubscriberCollection, subscriber: IAnySubscriber): boolean {
   return this.subs.add(subscriber);
 }
 
-function removeSubscriber(this: ISubscriberCollection, subscriber: ISubscriber): boolean {
+function removeSubscriber(this: ISubscriberCollection, subscriber: IAnySubscriber): boolean {
   return this.subs.remove(subscriber);
 }
 
-function hasSubscriber(this: ISubscriberCollection, subscriber: ISubscriber): boolean {
+function hasSubscriber(this: ISubscriberCollection, subscriber: IAnySubscriber): boolean {
   return this.subs.has(subscriber);
 }
 

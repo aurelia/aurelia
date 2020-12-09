@@ -46,16 +46,15 @@ export interface IConnectableBinding extends IPartialConnectableBinding, IConnec
   /**
    * A record storing observers that are currently subscribed to by this binding
    */
-  record: BindingObserverRecord;
+  obs: BindingObserverRecord;
 
   // todo:
   // merge collection subscribable, and generally collection subscription
   // with normal subscription
-  // there should be only unobserve()
   /**
    * A record storing collection observers that are currently subscribed to by this binding
    */
-  cRecord: BindingCollectionObserverRecord;
+  cObs: BindingCollectionObserverRecord;
 }
 
 function observeProperty(this: IConnectableBinding, obj: object, key: PropertyKey): void {
@@ -67,21 +66,21 @@ function observeProperty(this: IConnectableBinding, obj: object, key: PropertyKe
    *
    * We'll probably want to implement some global configuration (like a "strict" toggle) so users can pick between enforced correctness vs. ease-of-use
    */
-  this.record.add(observer);
+  this.obs.add(observer);
 }
-function getRecord(this: IConnectableBinding): BindingObserverRecord {
+function getObserverRecord(this: IConnectableBinding): BindingObserverRecord {
   const record = new BindingObserverRecord(this);
-  defineHiddenProp(this, 'record', record);
+  defineHiddenProp(this, 'obs', record);
   return record;
 }
 
 function observeCollection(this: IConnectableBinding, collection: Collection): void {
   const obs = getCollectionObserver(collection, this.observerLocator);
-  this.cRecord.add(obs);
+  this.cObs.add(obs);
 }
-function getCollectionRecord(this: IConnectableBinding): BindingCollectionObserverRecord {
+function getCollectionObserverRecord(this: IConnectableBinding): BindingCollectionObserverRecord {
   const record = new BindingCollectionObserverRecord(this);
-  defineHiddenProp(this, 'cRecord', record);
+  defineHiddenProp(this, 'cObs', record);
   return record;
 }
 
@@ -198,7 +197,7 @@ export class BindingCollectionObserverRecord {
   public id!: number;
   public count: number = 0;
   public get version(): number {
-    return this.binding.record.version;
+    return this.binding.obs.version;
   }
 
   private readonly observers = new Map<ICollectionSubscribable, number>();
@@ -244,14 +243,8 @@ function connectableDecorator<TProto, TClass>(target: DecoratableConnectable<TPr
   const defProp = Reflect.defineProperty;
   ensureProto(proto, 'observeProperty', observeProperty, true);
   ensureProto(proto, 'observeCollection', observeCollection, true);
-  defProp(proto, 'record', {
-    configurable: true,
-    get: getRecord,
-  });
-  defProp(proto, 'cRecord', {
-    configurable: true,
-    get: getCollectionRecord,
-  });
+  defProp(proto, 'obs', { get: getObserverRecord });
+  defProp(proto, 'cObs', { get: getCollectionObserverRecord });
   // optionally add these two methods to normalize a connectable impl
   ensureProto(proto, 'handleChange', noopHandleChange);
   ensureProto(proto, 'handleCollectionChange', noopHandleCollectionChange);

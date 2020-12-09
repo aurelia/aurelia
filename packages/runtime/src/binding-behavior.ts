@@ -174,11 +174,11 @@ export class BindingInterceptor implements IInterceptableBinding {
   public get isBound(): boolean {
     return this.binding.isBound;
   }
-  public get record(): BindingObserverRecord {
-    return this.binding.record;
+  public get obs(): BindingObserverRecord {
+    return this.binding.obs;
   }
-  public get cRecord(): BindingCollectionObserverRecord {
-    return this.binding.cRecord;
+  public get cObs(): BindingCollectionObserverRecord {
+    return this.binding.cObs;
   }
 
   public constructor(

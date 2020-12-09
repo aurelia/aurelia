@@ -5,16 +5,12 @@ import {
   BindingMode,
   ExpressionKind,
   ILifecycle,
-  ISubscriber,
   LifecycleFlags as LF,
   ObjectLiteralExpression,
   PrimitiveLiteralExpression,
   PropertyAccessor,
   Scope,
   SetterObserver,
-  IsBindingBehavior,
-  ISubscribable,
-  ISubscriberCollection,
 } from '@aurelia/runtime';
 import {
   PropertyBinding,
@@ -28,6 +24,14 @@ import {
   createSpy,
   createContainer,
 } from '@aurelia/testing';
+import type {
+  ISubscriberRecord,
+  IsBindingBehavior,
+  ISubscribable,
+  ISubscriberCollection,
+  IObserver,
+  ISubscriber,
+} from '@aurelia/runtime';
 
 /**
  * pad a string with spaces on the right-hand side until it's the specified length
@@ -249,9 +253,9 @@ describe('PropertyBinding', function () {
 
         // - Assert - Part 1
         // verify the behavior inside $bind
-        const observer00: SetterObserver = sut.record['_o0'] as SetterObserver;
-        const observer01: SetterObserver = sut.record['_o1'] as SetterObserver;
-        const observer02: SetterObserver = sut.record['_o2'] as SetterObserver;
+        const observer00: SetterObserver = sut.obs['_o0'] as SetterObserver;
+        const observer01: SetterObserver = sut.obs['_o1'] as SetterObserver;
+        const observer02: SetterObserver = sut.obs['_o2'] as SetterObserver;
         if (expr instanceof AccessScopeExpression) {
           assert.instanceOf(observer00, SetterObserver, `observer00 #01`);
           assert.strictEqual(observer01, undefined, `observer01 #02`);
@@ -326,9 +330,9 @@ describe('PropertyBinding', function () {
 
         // - Assert - Part 2
         // verify that no observers were added/removed/changed (redundant)
-        const observer10: SetterObserver = sut.record['_o0'] as SetterObserver;
-        const observer11: SetterObserver = sut.record['_o1'] as SetterObserver;
-        const observer12: SetterObserver = sut.record['_o2'] as SetterObserver;
+        const observer10: SetterObserver = sut.obs['_o0'] as SetterObserver;
+        const observer11: SetterObserver = sut.obs['_o1'] as SetterObserver;
+        const observer12: SetterObserver = sut.obs['_o2'] as SetterObserver;
         if (expr instanceof AccessScopeExpression) {
           assert.instanceOf(observer10, SetterObserver, `observer10 #25`);
           assert.strictEqual(observer10, observer00, `observer10 #26`);
@@ -369,7 +373,7 @@ describe('PropertyBinding', function () {
             // expect(sut.handleChange, `sut.handleChange #39`).to.have.been.calledWithExactly(newValue, srcVal, flags);
 
             // verify the behavior inside handleChange
-            if (expr.$kind === ExpressionKind.AccessScope && sut.record.count < 2) {
+            if (expr.$kind === ExpressionKind.AccessScope && sut.obs.count < 2) {
               // expect(expr.evaluate).not.to.have.been.called;
             } else {
               // expect(expr.evaluate, `expr.evaluate #40`).to.have.been.calledOnce;
@@ -475,8 +479,8 @@ describe('PropertyBinding', function () {
         assert.instanceOf(sut.targetObserver, SetterObserver, `sut.targetObserver`);
         assert.instanceOf(target['$observers'][prop], SetterObserver, `target['$observers'][prop]`);
 
-        assert.strictEqual(sut.record['_o0'], undefined, `sut.record['_o0']`);
-        assert.strictEqual(sut.record['_o1'], undefined, `sut.record['_o1']`);
+        assert.strictEqual(sut.obs['_o0'], undefined, `sut.record['_o0']`);
+        assert.strictEqual(sut.obs['_o1'], undefined, `sut.record['_o1']`);
 
         // verify the behavior inside $bind
         // expect(targetObserver.subscribe, `targetObserver.subscribe`).to.have.been.calledOnce;
@@ -500,15 +504,15 @@ describe('PropertyBinding', function () {
         // assert.strictEqual(lifecycle.flushCount, 0, `lifecycle.flushCount`);
 
         // verify the behavior of the targetObserver (redundant)
-        assert.strictEqual(sut.record['_o0'], undefined, `sut['_o0']`);
-        assert.strictEqual(sut.record['_o1'], undefined, `sut['_o1']`);
+        assert.strictEqual(sut.obs['_o0'], undefined, `sut['_o0']`);
+        assert.strictEqual(sut.obs['_o1'], undefined, `sut['_o1']`);
 
         if (initialVal !== newValue) {
           // expect(sut.handleChange, `sut.handleChange`).to.have.been.calledOnce;
           // expect(sut.handleChange, `sut.handleChange`).to.have.been.calledWithExactly(newValue, initialVal, flags);
 
           // verify the behavior inside handleChange
-          if (expr.$kind === ExpressionKind.AccessScope && sut.record.count < 2) {
+          if (expr.$kind === ExpressionKind.AccessScope && sut.obs.count < 2) {
             // expect(expr.evaluate).not.to.have.been.called;
           } else {
             // expect(expr.evaluate, `expr.evaluate`).to.have.been.calledOnce;
@@ -580,7 +584,7 @@ describe('PropertyBinding', function () {
         // - Arrange - Part 1
         const { sut, lifecycle, container, observerLocator } = createFixture(expr, target, prop, BindingMode.twoWay);
         const srcVal = expr.evaluate(LF.none, scope, null, container, null);
-        const targetObserver = observerLocator.getObserver(target, prop);
+        const targetObserver = observerLocator.getObserver(target, prop) as IObserver & ISubscriberCollection;
 
         // massSpy(targetObserver, 'setValue', 'getValue', 'callSubscribers', 'subscribe');
         // massSpy(expr, 'evaluate', 'connect', 'assign');
@@ -591,12 +595,12 @@ describe('PropertyBinding', function () {
 
         // - Assert - Part 1
         // verify the behavior inside $bind
-        const observer00: SetterObserver = sut.record['_o0'] as SetterObserver;
-        const observer01: SetterObserver = sut.record['_o1'] as SetterObserver;
-        const observer02: SetterObserver = sut.record['_o2'] as SetterObserver;
+        const observer00: SetterObserver = sut.obs['_o0'] as SetterObserver;
+        const observer01: SetterObserver = sut.obs['_o1'] as SetterObserver;
+        const observer02: SetterObserver = sut.obs['_o2'] as SetterObserver;
 
-        const subscriber00: ISubscriber = targetObserver['_s0'];
-        const subscriber01: ISubscriber = targetObserver['_s1'];
+        const subscriber00: ISubscriber = targetObserver.subs['_s0'];
+        const subscriber01: ISubscriber = targetObserver.subs['_s1'];
         if (expr instanceof AccessScopeExpression) {
           assert.instanceOf(observer00, SetterObserver, `observer00 #01`);
           assert.strictEqual(observer01, undefined, `observer01 #02`);
@@ -689,12 +693,12 @@ describe('PropertyBinding', function () {
         // - Assert - Part 2
         // assert.strictEqual(lifecycle.flushCount, 0, `lifecycle.flushCount #37`);
         // verify that no observers were added/removed/changed (redundant)
-        const observer10: SetterObserver = sut.record['_o0'] as SetterObserver;
-        const observer11: SetterObserver = sut.record['_o1'] as SetterObserver;
-        const observer12: SetterObserver = sut.record['_o2'] as SetterObserver;
+        const observer10: SetterObserver = sut.obs['_o0'] as SetterObserver;
+        const observer11: SetterObserver = sut.obs['_o1'] as SetterObserver;
+        const observer12: SetterObserver = sut.obs['_o2'] as SetterObserver;
 
-        const subscriber10: ISubscriber = targetObserver['_s0'];
-        const subscriber11: ISubscriber = targetObserver['_s1'];
+        const subscriber10: ISubscriber = targetObserver.subs['_s0'];
+        const subscriber11: ISubscriber = targetObserver.subs['_s1'];
         if (expr instanceof AccessScopeExpression) {
           assert.instanceOf(observer10, SetterObserver, `observer10 #38`);
           assert.strictEqual(observer10, observer00, `observer10 #39`);
@@ -748,7 +752,7 @@ describe('PropertyBinding', function () {
             // expect(sut.handleChange, `sut.handleChange #55`).to.have.been.calledWithExactly(newValue1, srcVal, flags);
 
             // verify the behavior inside handleChange
-            if (expr.$kind === ExpressionKind.AccessScope && sut.record.count < 2) {
+            if (expr.$kind === ExpressionKind.AccessScope && sut.obs.count < 2) {
               // expect(expr.evaluate, `expr.evaluate #56`).not.to.have.been.called;
             } else {
               // expect(expr.evaluate, `expr.evaluate #57`).to.have.been.calledOnce;
@@ -877,9 +881,9 @@ describe('PropertyBinding', function () {
         let i = 0;
         while (i < count) {
           const observer = new MockObserver();
-          sut.record.add(observer);
-          assert.strictEqual(sut.record[`_o${i}`] === observer, true, `sut.record[\`_o\${i}\`] === observer`);
-          assert.strictEqual(sut.record[`_v${i}`] === 0, true, `sut.record[\`_v\${i}\`] === 0`);
+          sut.obs.add(observer);
+          assert.strictEqual(sut.obs[`_o${i}`] === observer, true, `sut.record[\`_o\${i}\`] === observer`);
+          assert.strictEqual(sut.obs[`_v${i}`] === 0, true, `sut.record[\`_v\${i}\`] === 0`);
           i++;
         }
       });
@@ -889,11 +893,11 @@ describe('PropertyBinding', function () {
         let i = 0;
         while (i < count) {
           const observer = new MockObserver();
-          sut.record.add(observer);
+          sut.obs.add(observer);
           assert.deepStrictEqual(
             observer.subscribe.calls,
             [
-              [sut.record],
+              [sut.obs],
             ],
             `observer.subscribe.calls`,
           );
@@ -906,14 +910,14 @@ describe('PropertyBinding', function () {
         let i = 0;
         while (i < count) {
           const observer = new MockObserver();
-          sut.record.add(observer);
+          sut.obs.add(observer);
           observer.subscribe.reset();
           i++;
         }
         i = 0;
         while (i < count) {
-          const observer = sut.record[`_o${i}`] as ISubscribable & { [id: number]: number };
-          sut.record.add(observer);
+          const observer = sut.obs[`_o${i}`] as ISubscribable & { [id: number]: number };
+          sut.obs.add(observer);
           // expect(observer.subscribe).not.to.have.been.called;
           i++;
         }
@@ -924,15 +928,15 @@ describe('PropertyBinding', function () {
         let i = 0;
         while (i < count) {
           const observer = new MockObserver();
-          sut.record.add(observer);
+          sut.obs.add(observer);
           i++;
         }
-        const version = sut.record.version = 5;
+        const version = sut.obs.version = 5;
         i = 0;
         while (i < count) {
-          const observer = sut.record[`_o${i}`] as ISubscribable & { [id: number]: number };
-          sut.record.add(observer);
-          assert.strictEqual(sut.record[`_v${i}`] === version, true, `sut.record[\`_v\${i}\`] === version`);
+          const observer = sut.obs[`_o${i}`] as ISubscribable & { [id: number]: number };
+          sut.obs.add(observer);
+          assert.strictEqual(sut.obs[`_v${i}`] === version, true, `sut.record[\`_v\${i}\`] === version`);
           i++;
         }
       });
@@ -942,20 +946,20 @@ describe('PropertyBinding', function () {
         let i = 0;
         while (i < count) {
           const observer = new MockObserver();
-          sut.record.add(observer);
+          sut.obs.add(observer);
           i++;
         }
-        const version = sut.record.version = 5;
+        const version = sut.obs.version = 5;
         i = 0;
         while (i < count) {
-          const observer = sut.record[`_o${i}`] as ISubscribable & { [id: number]: number };
-          sut.record.add(observer);
+          const observer = sut.obs[`_o${i}`] as ISubscribable & { [id: number]: number };
+          sut.obs.add(observer);
           i += 2;
         }
         i = 0;
         while (i < count) {
-          assert.strictEqual(sut.record[`_v${i}`] === version, true, `sut.record[\`_v\${i}\`] === version`);
-          assert.strictEqual(sut.record[`_v${i + 1}`] === version, false, `sut.record[\`_v\${i + 1}\`] === version`);
+          assert.strictEqual(sut.obs[`_v${i}`] === version, true, `sut.record[\`_v\${i}\`] === version`);
+          assert.strictEqual(sut.obs[`_v${i + 1}`] === version, false, `sut.record[\`_v\${i + 1}\`] === version`);
           i += 2;
         }
       });
@@ -984,11 +988,7 @@ describe('PropertyBinding', function () {
 
 class MockObserver {
   [id: number]: number;
-  public _sFlags?: number;
-  public _s0?: ISubscriber;
-  public _s1?: ISubscriber;
-  public _s2?: ISubscriber;
-  public _sRest?: ISubscriber[];
+  public subs?: ISubscriberRecord;
   public callSubscribers: any;
   public hasSubscribers: ISubscriberCollection['hasSubscribers'];
   public hasSubscriber: ISubscriberCollection['hasSubscriber'];

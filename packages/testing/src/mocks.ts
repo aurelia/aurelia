@@ -35,8 +35,8 @@ export class MockBinding implements IConnectableBinding {
   public $hostScope!: Scope | null;
   public isBound!: boolean;
   public value: unknown;
-  public record!: BindingObserverRecord;
-  public cRecord!: BindingCollectionObserverRecord;
+  public obs!: BindingObserverRecord;
+  public cObs!: BindingCollectionObserverRecord;
 
   public calls: [keyof MockBinding, ...any[]][] = [];
 

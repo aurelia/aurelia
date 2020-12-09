@@ -109,7 +109,7 @@ export abstract class SimpleActivityTrackingVMBase {
 }
 
 describe('router config', function () {
-  describe.skip('monomorphic timings', function () {
+  describe('monomorphic timings', function () {
     const deferUntils: DeferralJuncture[] = [
       'none',
       'load-hooks',
@@ -236,7 +236,7 @@ describe('router config', function () {
                 const { t1: [t1, t1c], t2: [t2, t2c], t3: [t3, t3c], t4: [t4, t4c] } = spec;
                 spec.configure();
                 it(`'${t1}' -> '${t2}' -> '${t3}' -> '${t4}'`, async function () {
-                  const { router, hia, tearDown } = await createFixture(Root2, A, getDefaultHIAConfig, getRouterOptions);
+                  const { router, hia, host, tearDown } = await createFixture(Root1, A, getDefaultHIAConfig, getRouterOptions);
 
                   const phase1 = `('' -> '${t1}')#1`;
                   const phase2 = `('${t1}' -> '${t2}')#2`;
@@ -258,12 +258,12 @@ describe('router config', function () {
                   await tearDown();
 
                   const expected = [...(function* () {
-                    yield `start.root2.binding`;
-                    yield `start.root2.bound`;
-                    yield `start.root2.attaching`;
-                    yield `start.root2.attached`;
+                    yield `start.root1.binding`;
+                    yield `start.root1.bound`;
+                    yield `start.root1.attaching`;
+                    yield `start.root1.attached`;
 
-                    yield* prepend(phase1, t1, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached');
+                    yield* prepend(phase1, t1c, 'canLoad', 'load', 'binding', 'bound', 'attaching', 'attached');
 
                     for (const [phase, { $t1c, $t2c }] of [
                       [phase2, { $t1c: t1c, $t2c: t2c }],
@@ -284,7 +284,7 @@ describe('router config', function () {
                               break;
                             case 'all-async':
                               yield* interleave(
-                                prepend(phase, $t1c, 'detaching', 'unbinding', 'dispose'),
+                                prepend(phase, $t1c, 'detaching', 'unbinding', '', 'dispose'),
                                 prepend(phase, $t2c, 'binding', 'bound', 'attaching', 'attached'),
                               );
                               break;
@@ -301,10 +301,10 @@ describe('router config', function () {
                       }
                     }
 
-                    yield `stop.root2.detaching`;
-                    yield `stop.root2.unbinding`;
-
-                    yield* prepend('stop', t4, 'detaching', 'unbinding');
+                    yield* interleave(
+                      prepend('stop', t4c, 'detaching', 'unbinding'),
+                      prepend('stop', 'root1', 'detaching', 'unbinding', 'dispose'),
+                    );
                   })()];
                   verifyInvocationsEqual(hia.notifyHistory, expected);
 
@@ -328,7 +328,7 @@ describe('router config', function () {
                         path: '2',
                         component: A02,
                       },
-                    ], Root2);
+                    ], Root1);
                   },
                 },
               ];
@@ -606,7 +606,7 @@ describe('router config', function () {
     }) {
       switch (routingMode) {
         case 'configured-first':
-        return `'${instruction}' did not match any configured route or registered component name - did you forget to add the component '${instruction}' to the dependencies or to register it as a global dependency?`;
+          return `'${instruction}' did not match any configured route or registered component name - did you forget to add the component '${instruction}' to the dependencies or to register it as a global dependency?`;
         // return `'${instruction}' did not match any configured route or registered component name at '${parentPath}' - did you forget to add the component '${instruction}' to the dependencies of '${parent}' or to register it as a global dependency?`;
         case 'configured-only':
           if (isRegistered) {

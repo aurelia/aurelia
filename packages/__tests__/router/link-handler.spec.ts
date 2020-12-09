@@ -1,5 +1,5 @@
-import { AnchorEventInfo, LinkHandler, GotoCustomAttribute, HrefCustomAttribute } from '@aurelia/router';
-import { assert, createSpy, PLATFORM, TestContext } from '@aurelia/testing';
+import { AnchorEventInfo, LinkHandler, LoadCustomAttribute, GotoCustomAttribute, HrefCustomAttribute } from '@aurelia/router';
+import { assert, createSpy, TestContext } from '@aurelia/testing';
 import { Writable, IRegistry } from '@aurelia/kernel';
 import { CustomElement, Aurelia } from '@aurelia/runtime-html';
 
@@ -21,7 +21,11 @@ describe('LinkHandler', function () {
     doc.body.appendChild(host as any);
 
     const au = new Aurelia(container)
-      .register(GotoCustomAttribute as unknown as IRegistry, HrefCustomAttribute as unknown as IRegistry)
+      .register(
+        LoadCustomAttribute as unknown as IRegistry,
+        GotoCustomAttribute as unknown as IRegistry,
+        HrefCustomAttribute as unknown as IRegistry,
+      )
       .app({ host, component: App });
 
     await au.start();
@@ -120,7 +124,7 @@ describe('LinkHandler', function () {
     assert.includes(err.message, 'Link handler has not been started', `err.message`);
   });
 
-  if (PLATFORM.navigator.userAgent.includes('jsdom')) {
+  // if (!PLATFORM.navigator.userAgent.includes('jsdom')) {
     // TODO: figure out why it doesn't work in nodejs and fix it
     const tests = [
       { useHref: true, href: true, load: true, result: 'load' },
@@ -174,5 +178,5 @@ describe('LinkHandler', function () {
         await tearDown();
       });
     }
-  }
+  // }
 });

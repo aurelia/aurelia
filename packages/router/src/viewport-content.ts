@@ -292,7 +292,7 @@ export class ViewportContent {
         // }
 
         const contentController = this.contentController(connectedCE);
-        return contentController.activate(initiator ?? contentController, null /* TODO: take back: parent! */, flags);
+        return contentController.activate(initiator ?? contentController, parent, flags);
       },
       /*
       () => {

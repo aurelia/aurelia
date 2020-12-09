@@ -127,7 +127,7 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer {
    * @param delta - The amount of steps, positive or negative, to move in the states history
    * @param suppressEvent - If true, no state change event is fired when the go task is executed
    */
-  public async go(delta: number, suppressEvent: boolean = false): Promise<void> {
+  public async go(delta: number, suppressEvent: boolean = false): Promise<boolean | void> {
     const doneTask: QueueTask<IAction> = this.pendingCalls.createQueueTask((task: QueueTask<IAction>) => task.resolve(), 1);
 
     this.pendingCalls.enqueue([
@@ -160,7 +160,7 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer {
    *
    * @param state - The state to push
    */
-  public async pushNavigatorState(state: INavigatorState): Promise<void> {
+  public async pushNavigatorState(state: INavigatorState): Promise<boolean | void> {
     const { title, path } = state.currentEntry;
     const fragment = this.options.useUrlFragmentHash ? '#/' : '';
 
@@ -187,7 +187,7 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer {
    *
    * @param state - The state to replace with
    */
-  public async replaceNavigatorState(state: INavigatorState, title?: string, path?: string): Promise<void> {
+  public async replaceNavigatorState(state: INavigatorState, title?: string, path?: string): Promise<boolean | void> {
     // const { title, path } = state.currentEntry;
     title ??= state.currentEntry?.title;
     path ??= state.currentEntry?.path;
@@ -213,7 +213,7 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer {
   /**
    * Enqueue an awaitable 'pop state' task that pops the last of the historical states.
    */
-  public async popNavigatorState(): Promise<void> {
+  public async popNavigatorState(): Promise<boolean | void> {
     const doneTask: QueueTask<IAction> = this.pendingCalls.createQueueTask((task: QueueTask<IAction>) => task.resolve(), 1);
 
     this.pendingCalls.enqueue(
@@ -237,8 +237,8 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer {
    *
    * @param event - The browser's PopStateEvent
    */
-  private readonly handlePopStateEvent: (event: PopStateEvent) => Promise<void> =
-    async (event: PopStateEvent): Promise<void> => {
+  private readonly handlePopStateEvent: (event: PopStateEvent) => Promise<boolean | void> =
+    async (event: PopStateEvent): Promise<boolean | void> => {
       // Get event to resolve when done and whether state change event should be suppressed
       const { eventTask, suppressPopstate } = this.forwardedState;
       this.forwardedState = { eventTask: null, suppressPopstate: false };

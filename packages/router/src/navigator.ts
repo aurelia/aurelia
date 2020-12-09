@@ -20,10 +20,10 @@ import { IRoute } from './route.js';
 export interface INavigatorStore {
   readonly length: number;
   readonly state: Record<string, unknown> | null;
-  go(delta?: number, suppressPopstate?: boolean): Promise<void>;
-  pushNavigatorState(state: IStoredNavigatorState): Promise<void>;
-  replaceNavigatorState(state: IStoredNavigatorState): Promise<void>;
-  popNavigatorState(): Promise<void>;
+  go(delta?: number, suppressPopstate?: boolean): Promise<boolean | void>;
+  pushNavigatorState(state: IStoredNavigatorState): Promise<boolean | void>;
+  replaceNavigatorState(state: IStoredNavigatorState): Promise<boolean | void>;
+  popNavigatorState(): Promise<boolean | void>;
 }
 
 /**
@@ -244,7 +244,7 @@ export class Navigator {
     return this.navigate(entry);
   }
 
-  public async setEntryTitle(title: string): Promise<void> {
+  public async setEntryTitle(title: string): Promise<boolean | void> {
     this.currentEntry.title = title;
     return this.saveState();
   }
@@ -275,7 +275,7 @@ export class Navigator {
   }
 
   // Save storeable versions of Navigation entries
-  public async saveState(push: boolean = false): Promise<void> {
+  public async saveState(push: boolean = false): Promise<boolean | void> {
     if (this.currentEntry === this.uninitializedEntry) {
       return Promise.resolve();
     }

@@ -272,7 +272,7 @@ export class Router implements IRouter {
   /**
    * Public API
    */
-  public async loadUrl(): Promise<void> {
+  public async loadUrl(): Promise<boolean | void> {
     // console.log('### loadUrl', this.navigation.viewerState);
     const entry = new Navigation({
       ...this.navigation.viewerState,
@@ -908,11 +908,11 @@ export class Router implements IRouter {
   /**
    * Public API - THE navigation API
    */
-  public async goto(instructions: LoadInstruction | LoadInstruction[], options?: ILoadOptions): Promise<void> {
+  public async goto(instructions: LoadInstruction | LoadInstruction[], options?: ILoadOptions): Promise<boolean | void> {
     deprecationWarning('"goto" method', '"load" method');
     return this.load(instructions, options);
   }
-  public async load(instructions: LoadInstruction | LoadInstruction[], options?: ILoadOptions): Promise<void> {
+  public async load(instructions: LoadInstruction | LoadInstruction[], options?: ILoadOptions): Promise<boolean | void> {
     options = options ?? {};
     instructions = this.extractQuery(instructions, options);
     // // TODO: Review query extraction; different pos for path and fragment!
@@ -954,28 +954,28 @@ export class Router implements IRouter {
   /**
    * Public API
    */
-  public refresh(): Promise<void> {
+  public refresh(): Promise<boolean | void> {
     return this.navigator.refresh();
   }
 
   /**
    * Public API
    */
-  public back(): Promise<void> {
+  public back(): Promise<boolean | void> {
     return this.navigator.go(-1);
   }
 
   /**
    * Public API
    */
-  public forward(): Promise<void> {
+  public forward(): Promise<boolean | void> {
     return this.navigator.go(1);
   }
 
   /**
    * Public API
    */
-  public go(delta: number): Promise<void> {
+  public go(delta: number): Promise<boolean | void> {
     return this.navigator.go(delta);
   }
 

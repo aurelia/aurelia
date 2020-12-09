@@ -26,8 +26,8 @@ export class QueueTask<T> {
   public done: boolean = false;
   private readonly promise: Promise<boolean | void>;
 
-  public resolve!: ((value: boolean | PromiseLike<boolean>) => void);
-  public reject!: ((value: unknown | PromiseLike<unknown>) => void);
+  public resolve!: ((value?: boolean | PromiseLike<boolean>) => void);
+  public reject!: ((value?: unknown | PromiseLike<unknown>) => void);
 
   public constructor(
     private readonly taskQueue: TaskQueue<T>,

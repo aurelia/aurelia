@@ -170,17 +170,19 @@ export class SubscriberRecord<T extends ISubscriber | ICollectionSubscriber> imp
     const sub1 = this._s1 as ISubscriber;
     const sub2 = this._s2 as ISubscriber;
     let subRest = this._sRest as ISubscriber[];
+    flags = (flags | LF.update) ^ LF.update;
+
     if (subRest !== void 0) {
       subRest = subRest.slice();
     }
     if (sub0 !== void 0) {
-      sub0.handleChange(val, oldVal, ((flags | LF.update) ^ LF.update) | (sub0.id === void 0 ? 0 : owner[sub0.id]));
+      sub0.handleChange(val, oldVal, flags | /* sub own flags */(sub0.id === void 0 ? 0 : owner[sub0.id]));
     }
     if (sub1 !== void 0) {
-      sub1.handleChange(val, oldVal, ((flags | LF.update) ^ LF.update) | (sub1.id === void 0 ? 0 : owner[sub1.id]));
+      sub1.handleChange(val, oldVal, flags | /* sub own flags */(sub1.id === void 0 ? 0 : owner[sub1.id]));
     }
     if (sub2 !== void 0) {
-      sub2.handleChange(val, oldVal, ((flags | LF.update) ^ LF.update) | (sub2.id === void 0 ? 0 : owner[sub2.id]));
+      sub2.handleChange(val, oldVal, flags | /* sub own flags */(sub2.id === void 0 ? 0 : owner[sub2.id]));
     }
     if (subRest !== void 0) {
       const length = subRest.length;
@@ -189,7 +191,7 @@ export class SubscriberRecord<T extends ISubscriber | ICollectionSubscriber> imp
       for (; i < length; ++i) {
         sub = subRest[i];
         if (sub !== void 0) {
-          sub.handleChange(val, oldVal, ((flags | LF.update) ^ LF.update) | (sub.id === void 0 ? 0 : owner[sub.id]));
+          sub.handleChange(val, oldVal, flags | /* sub own flags */(sub.id === void 0 ? 0 : owner[sub.id]));
         }
       }
     }

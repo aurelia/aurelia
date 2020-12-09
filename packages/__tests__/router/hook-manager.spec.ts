@@ -9,7 +9,6 @@ describe('HookManager', function () {
     const ctx = TestContext.create();
     const { container, platform, doc, wnd } = ctx;
 
-
     const host = doc.createElement('div');
     if (App === void 0) {
       dependencies = dependencies.map(dep => typeof dep === 'string'

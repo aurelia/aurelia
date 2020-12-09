@@ -1033,8 +1033,8 @@ export function assertHooks(actual: any, expected: any): void {
     );
   } catch (err) {
     logOutcome(
-      filterHooks(actual), //.filter(hook => !hook.startsWith('stop.')),
-      filterHooks(expected), //.filter(hook => !hook.startsWith('stop.')),
+      filterHooks(actual), // .filter(hook => !hook.startsWith('stop.')),
+      filterHooks(expected), // .filter(hook => !hook.startsWith('stop.')),
       'HOOK OUTCOME'
     );
     throw err;

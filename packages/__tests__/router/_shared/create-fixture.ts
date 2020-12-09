@@ -143,7 +143,7 @@ export async function clearBrowserState(platform: any, router: IRouter | null = 
       platform.history.replaceState({}, '', href.slice(0, index));
       await Promise.resolve();
     } else {
-      await router.navigation.replaceNavigatorState({}, '', href.slice(0, index))
+      await router.navigation.replaceNavigatorState({}, '', href.slice(0, index));
     }
   }
 }

@@ -157,7 +157,7 @@ describe.skip('Runner', function () {
         } else if (this.name.startsWith('child')) {
           indent += '        ';
         }
-        console.log(`>>> ${indent}${this.name}.${msg}`)
+        console.log(`>>> ${indent}${this.name}.${msg}`);
       }
     }
 
@@ -212,8 +212,8 @@ describe.skip('Runner', function () {
       }
 
       const activate = root1.activate(null, 'start');
-      const done = `>>> DONE. ticks: #TICKS#; components: ${components}; ${connected ? 'connected' : 'not connected'}; defaults: [${defaults.join(',')}]; ` +
-        `timings: ` + Object.keys(timings).map(key => `${key}: [${timings[key].join(',')}]; `);
+      const done = `${`>>> DONE. ticks: #TICKS#; components: ${components}; ${connected ? 'connected' : 'not connected'}; defaults: [${defaults.join(',')}]; ` +
+        `timings: `}${  Object.keys(timings).map(key => `${key}: [${timings[key].join(',')}]; `)}`;
 
       let ticks = 0;
       if (activate instanceof Promise) {
@@ -246,7 +246,7 @@ describe.skip('Runner', function () {
       return activate;
     }
 
-    for (let connected of [true, false]) {
+    for (const connected of [true, false]) {
       // await testIt(1, connected);
       // await testIt(2, connected, [0, 0], { 'child-1.1': [0, 0] });
       await testIt(2, connected, [1, 1], { 'child-1.1': [1, 1] });

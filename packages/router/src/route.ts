@@ -70,7 +70,7 @@ export class Route {
   /**
    * The metadata resource key for a configured route.
    */
-  private static resourceKey = Protocol.resource.keyFor('route');
+  private static readonly resourceKey = Protocol.resource.keyFor('route');
 
   /**
    * Returns `true` if the specified type has any static route configuration (either via static properties or a &#64;route decorator)
@@ -166,6 +166,7 @@ export class Route {
 
   /**
    * Create a valid Route or throw if it can't.
+   *
    * @param configOrType - Configuration or type the route is created from.
    * @param Type - Ir specified, the Route is routing to Type, regardless of what config says, as with `@route` decorator.
    */

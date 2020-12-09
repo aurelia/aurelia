@@ -636,7 +636,7 @@ export class Scope {
     const recognizer = new RouteRecognizer();
 
     recognizer.add(cRoutes);
-    let result = recognizer.recognize(path);
+    const result = recognizer.recognize(path);
     if (result !== null) {
       found.match = result.endpoint.route.handler;
       found.matching = path;

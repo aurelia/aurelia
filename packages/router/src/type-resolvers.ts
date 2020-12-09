@@ -12,7 +12,6 @@ import { Viewport } from './viewport.js';
 import { ViewportInstruction } from './viewport-instruction.js';
 import { Scope } from './scope.js';
 
-
 export const ComponentAppellationResolver = {
   isName(component: ComponentAppellation): component is string {
     return typeof component === 'string';

@@ -85,7 +85,7 @@ export class ViewportContent {
   }
 
   public contentController(connectedCE: IConnectedCustomElement): ICustomElementController {
-    const controller = Controller.forCustomElement(
+    return Controller.forCustomElement(
       null,
       connectedCE.container,
       this.content.componentInstance as ICustomElementViewModel,
@@ -93,8 +93,6 @@ export class ViewportContent {
       null,
       void 0,
     );
-    // console.log(this.content?.componentName, controller);
-    return controller;
   }
 
   public createComponent(connectedCE: IConnectedCustomElement, fallback?: string): void {

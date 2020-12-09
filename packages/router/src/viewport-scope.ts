@@ -275,9 +275,7 @@ export class ViewportScope implements IScopeOwner {
         ? this.rootComponentType
         : this.rootComponentType.constructor as RouteableComponentType;
 
-      const routes = Routes.getConfiguration(Type);
-      // console.log('RoutesConfiguration.getConfiguration', routes);
-      return routes;
+      return Routes.getConfiguration(Type);
     }
     return null;
   }

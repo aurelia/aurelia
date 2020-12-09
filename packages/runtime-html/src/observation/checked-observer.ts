@@ -69,7 +69,7 @@ export class CheckedObserver implements IObserver {
     this.oldValue = currentValue;
     this.observe();
     this.synchronizeElement();
-    this.callSubscribers(newValue, currentValue, flags);
+    this.subs.notify(newValue, currentValue, flags);
   }
 
   public handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void {
@@ -222,7 +222,7 @@ export class CheckedObserver implements IObserver {
       return;
     }
     this.value = currentValue;
-    this.callSubscribers(this.value, this.oldValue, LifecycleFlags.none);
+    this.subs.notify(this.value, this.oldValue, LifecycleFlags.none);
   }
 
   public start() {
@@ -240,13 +240,13 @@ export class CheckedObserver implements IObserver {
   }
 
   public subscribe(subscriber: ISubscriber): void {
-    if (this.addSubscriber(subscriber) && ++this.subscriberCount === 1) {
+    if (this.subs.add(subscriber) && this.subs.count === 1) {
       this.start();
     }
   }
 
   public unsubscribe(subscriber: ISubscriber): void {
-    if (this.removeSubscriber(subscriber) && --this.subscriberCount === 0) {
+    if (this.subs.remove(subscriber) && this.subs.count === 0) {
       this.stop();
     }
   }

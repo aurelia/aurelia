@@ -20,6 +20,7 @@ import type {
   IndexMap,
   ISubscriber,
 } from '../observation.js';
+import { def, defineHiddenProp } from '../utilities-objects.js';
 
 const observerLookup = new WeakMap<unknown[], ArrayObserver>();
 
@@ -328,14 +329,6 @@ const observe = {
   }
 };
 
-const descriptorProps = {
-  writable: true,
-  enumerable: false,
-  configurable: true
-};
-
-const def = Reflect.defineProperty;
-
 for (const method of methods) {
   def(observe[method], 'observing', { value: true, writable: false, configurable: false, enumerable: false });
 }
@@ -345,7 +338,7 @@ let enableArrayObservationCalled = false;
 export function enableArrayObservation(): void {
   for (const method of methods) {
     if (proto[method].observing !== true) {
-      def(proto, method, { ...descriptorProps, value: observe[method] });
+      defineHiddenProp(proto, method, observe[method]);
     }
   }
 }
@@ -353,7 +346,7 @@ export function enableArrayObservation(): void {
 export function disableArrayObservation(): void {
   for (const method of methods) {
     if (proto[method].observing === true) {
-      def(proto, method, { ...descriptorProps, value: native[method] });
+      defineHiddenProp(proto, method, native[method]);
     }
   }
 }
@@ -408,7 +401,7 @@ export class ArrayObserver {
 
     this.inBatch = false;
     this.indexMap = createIndexMap(length);
-    this.callCollectionSubscribers(indexMap, LifecycleFlags.updateTarget);
+    this.subs.notifyCollection(indexMap, LifecycleFlags.updateTarget);
   }
 
   /**
@@ -427,7 +420,6 @@ export interface ArrayIndexObserver extends IArrayIndexObserver, ISubscriberColl
 export class ArrayIndexObserver implements IArrayIndexObserver {
 
   public value: unknown;
-  private subCount: number = 0;
 
   public constructor(
     public readonly owner: ArrayObserver,
@@ -471,19 +463,19 @@ export class ArrayIndexObserver implements IArrayIndexObserver {
     const currValue = this.value = this.getValue();
     // hmm
     if (prevValue !== currValue) {
-      this.callSubscribers(currValue, prevValue, flags);
+      this.subs.notify(currValue, prevValue, flags);
     }
   }
 
   public subscribe(subscriber: ISubscriber): void {
-    if (this.addSubscriber(subscriber) && ++this.subCount === 1) {
-      this.owner.addCollectionSubscriber(this);
+    if (this.subs.add(subscriber) && this.subs.count === 1) {
+      this.owner.subs.add(this);
     }
   }
 
   public unsubscribe(subscriber: ISubscriber): void {
-    if (this.removeSubscriber(subscriber) && --this.subCount === 0) {
-      this.owner.removeCollectionSubscriber(this);
+    if (this.subs.remove(subscriber) && this.subs.count === 0) {
+      this.owner.subs.remove(this);
     }
   }
 }

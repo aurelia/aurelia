@@ -125,8 +125,8 @@ export class ComputedObserver implements IConnectableBinding, ISubscriber, IColl
   public unsubscribe(subscriber: ISubscriber): void {
     if (this.removeSubscriber(subscriber) && --this.subCount === 0) {
       this.isDirty = true;
-      this.record.clear(true);
-      this.cRecord.clear(true);
+      this.obs.clear(true);
+      this.cObs.clear(true);
     }
   }
 
@@ -141,19 +141,19 @@ export class ComputedObserver implements IConnectableBinding, ISubscriber, IColl
 
     if (!Object.is(newValue, oldValue)) {
       // should optionally queue
-      this.callSubscribers(newValue, oldValue, LifecycleFlags.none);
+      this.subs.notify(newValue, oldValue, LifecycleFlags.none);
     }
   }
 
   private compute(): unknown {
     this.running = true;
-    this.record.version++;
+    this.obs.version++;
     try {
       enterConnectable(this);
       return this.value = unwrap(this.get.call(this.useProxy ? wrap(this.obj) : this.obj, this));
     } finally {
-      this.record.clear(false);
-      this.cRecord.clear(false);
+      this.obs.clear(false);
+      this.cObs.clear(false);
       this.running = false;
       exitConnectable(this);
     }

@@ -1,6 +1,7 @@
 import { CollectionKind, createIndexMap, AccessorType, LifecycleFlags } from '../observation.js';
 import { CollectionSizeObserver } from './collection-length-observer.js';
 import { collectionSubscriberCollection } from './subscriber-collection.js';
+import { def } from '../utilities-objects.js';
 
 import type { ICollectionObserver, ILifecycle } from '../observation.js';
 
@@ -108,8 +109,6 @@ const descriptorProps = {
   configurable: true
 };
 
-const def = Reflect.defineProperty;
-
 for (const method of methods) {
   def(observe[method], 'observing', { value: true, writable: false, configurable: false, enumerable: false });
 }
@@ -175,7 +174,7 @@ export class MapObserver {
 
     this.inBatch = false;
     this.indexMap = createIndexMap(size);
-    this.callCollectionSubscribers(indexMap, LifecycleFlags.updateTarget);
+    this.subs.notifyCollection(indexMap, LifecycleFlags.updateTarget);
   }
 }
 

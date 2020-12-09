@@ -4,6 +4,10 @@ import { AccessorType } from '../observation.js';
 import type { IAccessor, ISubscribable } from '../observation.js';
 
 export class PrimitiveObserver implements IAccessor, ISubscribable {
+  /**
+   * @internal
+   */
+  [id: number]: number;
   public get doNotCache(): true { return true; }
   public type: AccessorType = AccessorType.None;
 

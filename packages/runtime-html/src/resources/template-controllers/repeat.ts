@@ -9,16 +9,17 @@ import {
   IndexMap,
   IOverrideContext,
   LifecycleFlags as LF,
-  PropertyBinding,
   Scope,
   synchronizeIndices,
 } from '@aurelia/runtime';
 import { IRenderLocation } from '../../dom.js';
 import { IViewFactory } from '../../templating/view.js';
 import { templateController } from '../custom-attribute.js';
-import type { ISyntheticView, ICustomAttributeController, IHydratableController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller.js';
 import { IController } from '../../templating/controller.js';
 import { bindable } from '../../bindable.js';
+
+import type { PropertyBinding } from '../../binding/property-binding.js';
+import type { ISyntheticView, ICustomAttributeController, IHydratableController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller.js';
 
 type Items<C extends Collection = unknown[]> = C | undefined;
 
@@ -60,7 +61,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     let binding: PropertyBinding = (void 0)!;
     for (let i = 0, ii = bindings.length; i < ii; ++i) {
       binding = bindings[i];
-      if ((binding.target as { id?: number }).id === this.id && binding.targetProperty === 'items') {
+      if (binding.target === this && binding.targetProperty === 'items') {
         this.forOf = binding.sourceExpression as ForOfStatement;
         break;
       }

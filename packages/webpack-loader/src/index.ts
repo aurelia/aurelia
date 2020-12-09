@@ -1,6 +1,6 @@
 import { IOptionalPreprocessOptions, preprocess, preprocessOptions } from '@aurelia/plugin-conventions';
 import { getOptions } from 'loader-utils';
-import * as webpack from 'webpack';
+import type * as webpack from 'webpack';
 
 export default function (
   this: webpack.loader.LoaderContext,

@@ -1,8 +1,8 @@
 import { CollectionKind, createIndexMap, AccessorType, LifecycleFlags } from '../observation.js';
-import { CollectionSizeObserver } from './collection-size-observer.js';
+import { CollectionSizeObserver } from './collection-length-observer.js';
 import { collectionSubscriberCollection } from './subscriber-collection.js';
 
-import type { ICollectionObserver, ICollectionIndexObserver, ILifecycle } from '../observation.js';
+import type { ICollectionObserver, ILifecycle } from '../observation.js';
 
 const observerLookup = new WeakMap<Map<unknown, unknown>, MapObserver>();
 
@@ -134,7 +134,6 @@ export function disableMapObservation(): void {
 
 export interface MapObserver extends ICollectionObserver<CollectionKind.map> {}
 
-@collectionSubscriberCollection()
 export class MapObserver {
   public inBatch: boolean;
   public type: AccessorType = AccessorType.Map;
@@ -167,11 +166,7 @@ export class MapObserver {
   }
 
   public getLengthObserver(): CollectionSizeObserver {
-    return this.lengthObserver ??= new CollectionSizeObserver(this.collection);
-  }
-
-  public getIndexObserver(index: number): ICollectionIndexObserver {
-    throw new Error('Map index observation not supported');
+    return this.lengthObserver ??= new CollectionSizeObserver(this);
   }
 
   public flushBatch(flags: LifecycleFlags): void {
@@ -181,9 +176,10 @@ export class MapObserver {
     this.inBatch = false;
     this.indexMap = createIndexMap(size);
     this.callCollectionSubscribers(indexMap, LifecycleFlags.updateTarget);
-    this.lengthObserver?.notify();
   }
 }
+
+collectionSubscriberCollection()(MapObserver);
 
 export function getMapObserver(map: Map<unknown, unknown>, lifecycle: ILifecycle | null): MapObserver {
   let observer = observerLookup.get(map);

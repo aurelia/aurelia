@@ -1,8 +1,8 @@
-import { LifecycleFlags } from '../observation.js';
+import { IObserver, LifecycleFlags } from '../observation.js';
 import { SetterNotifier } from './setter-observer.js';
 
 import type { Constructable, IIndexable } from '@aurelia/kernel';
-import type { IBindingContext, InterceptorFunc, PropertyObserver, ISubscriber, IObservable } from '../observation.js';
+import type { IBindingContext, InterceptorFunc, ISubscriber, IObservable } from '../observation.js';
 import type { ObservableGetter } from './observer-locator.js';
 import type { SetterObserver } from './setter-observer.js';
 
@@ -24,7 +24,7 @@ function getObserversLookup(obj: IObservable): IIndexable<{}, SetterObserver | S
 
 const noValue: unknown = {};
 
-type SetterObserverOwningObject = IIndexable<IBindingContext, PropertyObserver>;
+type SetterObserverOwningObject = IIndexable<IBindingContext, IObserver>;
 
 // for
 //    class {
@@ -118,13 +118,13 @@ export function observable(
 
     // todo(bigopon/fred): discuss string api for converter
     const $set = config.set;
-    descriptor.get = function g(this: SetterObserverOwningObject) {
+    descriptor.get = function g(/* @observable */this: SetterObserverOwningObject) {
       return getNotifier(this, key!, callback, initialValue, $set).getValue();
     };
-    descriptor.set = function s(this: SetterObserverOwningObject, newValue: unknown) {
+    descriptor.set = function s(/* @observable */this: SetterObserverOwningObject, newValue: unknown) {
       getNotifier(this, key!, callback, initialValue, $set).setValue(newValue, LifecycleFlags.none);
     };
-    (descriptor.get as ObservableGetter).getObserver = function gO(obj: SetterObserverOwningObject) {
+    (descriptor.get as ObservableGetter).getObserver = function gO(/* @observable */obj: SetterObserverOwningObject) {
       return getNotifier(obj, key!, callback, initialValue, $set);
     };
 

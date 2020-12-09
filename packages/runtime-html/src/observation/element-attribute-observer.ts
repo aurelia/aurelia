@@ -1,7 +1,7 @@
 import { LifecycleFlags, subscriberCollection, AccessorType } from '@aurelia/runtime';
 import { IPlatform } from '../platform.js';
 
-import type { IBindingTargetObserver, IObserverLocator, ISubscriber, ISubscriberCollection } from '@aurelia/runtime';
+import type { IObserver, IObserverLocator, ISubscriber, ISubscriberCollection } from '@aurelia/runtime';
 
 export interface IHtmlElement extends HTMLElement {
   $mObserver: MutationObserver;
@@ -13,7 +13,7 @@ export interface ElementMutationSubscription {
 }
 
 export interface AttributeObserver extends
-  IBindingTargetObserver<IHtmlElement, string>,
+  IObserver,
   ISubscriber,
   ISubscriberCollection { }
 
@@ -22,7 +22,6 @@ export interface AttributeObserver extends
  * Has different strategy for class/style and normal attributes
  * TODO: handle SVG/attributes with namespace
  */
-@subscriberCollection()
 export class AttributeObserver implements AttributeObserver, ElementMutationSubscription {
   public currentValue: unknown = null;
   public oldValue: unknown = null;
@@ -142,6 +141,8 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
     }
   }
 }
+
+subscriberCollection()(AttributeObserver);
 
 const startObservation = ($MutationObserver: typeof MutationObserver, element: IHtmlElement, subscription: ElementMutationSubscription): void => {
   if (element.$eMObservers === undefined) {

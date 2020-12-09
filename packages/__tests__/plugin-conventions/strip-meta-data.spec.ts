@@ -10,6 +10,7 @@ describe('stripMetaData', function () {
       shadowMode: null,
       deps: [],
       containerless: false,
+      hasSlot: false,
       bindables: {}
     });
   });
@@ -32,6 +33,7 @@ describe('stripMetaData', function () {
       shadowMode: null,
       deps: ['./a'],
       containerless: false,
+      hasSlot: false,
       bindables: {}
     });
   });
@@ -58,6 +60,7 @@ ${'  ' /* leading space is untouched */}
       shadowMode: null,
       deps: ['./a', 'b', './c.css'],
       containerless: false,
+      hasSlot: false,
       bindables: {}
     });
   });
@@ -80,6 +83,7 @@ ${'  ' /* leading space is untouched */}
       shadowMode: null,
       deps: ['./a'],
       containerless: false,
+      hasSlot: false,
       bindables: {}
     });
   });
@@ -106,6 +110,7 @@ ${'  ' /* leading space is untouched */}
       shadowMode: null,
       deps: ['./a', 'foo', 'b', './c.css'],
       containerless: false,
+      hasSlot: false,
       bindables: {}
     });
   });
@@ -125,6 +130,7 @@ ${'  ' /* leading space is untouched */}
       shadowMode: 'open',
       deps: [],
       containerless: false,
+      hasSlot: false,
       bindables: {}
     });
   });
@@ -133,11 +139,13 @@ ${'  ' /* leading space is untouched */}
     const html = `<use-shadow-dom mode="closed">
 <template>
 <require from="./a"></require>
+<slot></slot>
 </template>
 `;
     const expected = `
 <template>
 
+<slot></slot>
 </template>
 `;
     assert.deepEqual(stripMetaData(html), {
@@ -146,6 +154,7 @@ ${'  ' /* leading space is untouched */}
       shadowMode: 'closed',
       deps: ['./a'],
       containerless: false,
+      hasSlot: true,
       bindables: {}
     });
   });
@@ -163,6 +172,7 @@ ${'  ' /* leading space is untouched */}
       shadowMode: 'open',
       deps: [],
       containerless: false,
+      hasSlot: false,
       bindables: {}
     });
   });
@@ -182,6 +192,7 @@ ${'  ' /* leading space is untouched */}
       shadowMode: 'closed',
       deps: ['./a'],
       containerless: false,
+      hasSlot: false,
       bindables: {}
     });
   });
@@ -201,6 +212,7 @@ ${'  ' /* leading space is untouched */}
       shadowMode: null,
       deps: [],
       containerless: true,
+      hasSlot: false,
       bindables: {}
     });
   });
@@ -220,6 +232,7 @@ ${'  ' /* leading space is untouched */}
       shadowMode: null,
       deps: [],
       containerless: true,
+      hasSlot: false,
       bindables: {}
     });
   });
@@ -237,6 +250,7 @@ ${'  ' /* leading space is untouched */}
       shadowMode: null,
       deps: [],
       containerless: true,
+      hasSlot: false,
       bindables: {}
     });
   });
@@ -256,6 +270,7 @@ ${'  ' /* leading space is untouched */}
       shadowMode: null,
       deps: [],
       containerless: false,
+      hasSlot: false,
       bindables: { firstName: {} }
     });
   });
@@ -283,6 +298,7 @@ ${'  ' /* leading space is untouched */}
       shadowMode: null,
       deps: [],
       containerless: false,
+      hasSlot: false,
       bindables: {
         firstName: { mode: BindingMode.toView },
         lastName: { mode: BindingMode.twoWay, attribute: 'surname' },
@@ -306,6 +322,7 @@ ${'  ' /* leading space is untouched */}
       shadowMode: null,
       deps: [],
       containerless: false,
+      hasSlot: false,
       bindables: { firstName: {} }
     });
   });
@@ -323,6 +340,7 @@ ${'  ' /* leading space is untouched */}
       shadowMode: null,
       deps: [],
       containerless: false,
+      hasSlot: false,
       bindables: { firstName: {}, lastName: {} }
     });
   });
@@ -342,6 +360,7 @@ ${'  ' /* leading space is untouched */}
       shadowMode: null,
       deps: [],
       containerless: false,
+      hasSlot: false,
       bindables: { firstName: {}, lastName: {}, age: {} }
     });
   });
@@ -360,6 +379,7 @@ ${'  ' /* leading space is untouched */}
       shadowMode: null,
       deps: [],
       containerless: false,
+      hasSlot: false,
       bindables: {}
     });
   });
@@ -377,6 +397,7 @@ ${'  ' /* leading space is untouched */}
       shadowMode: null,
       deps: [],
       containerless: false,
+      hasSlot: false,
       bindables: {}
     });
   });
@@ -394,6 +415,7 @@ ${'  ' /* leading space is untouched */}
       shadowMode: null,
       deps: [],
       containerless: false,
+      hasSlot: false,
       bindables: {}
     });
   });
@@ -411,6 +433,7 @@ ${'  ' /* leading space is untouched */}
       shadowMode: null,
       deps: [],
       containerless: false,
+      hasSlot: false,
       bindables: {}
     });
   });
@@ -428,6 +451,7 @@ ${'  ' /* leading space is untouched */}
       shadowMode: null,
       deps: [],
       containerless: false,
+      hasSlot: false,
       bindables: {}
     });
   });
@@ -445,6 +469,7 @@ ${'  ' /* leading space is untouched */}
       shadowMode: null,
       deps: [],
       containerless: false,
+      hasSlot: false,
       bindables: {}
     });
   });
@@ -462,8 +487,28 @@ ${'  ' /* leading space is untouched */}
       shadowMode: null,
       deps: [],
       containerless: false,
+      hasSlot: false,
       bindables: {}
     });
   });
 
+  it('checks slot tag', function () {
+    const html = `<template>
+  <slot></slot>
+</template>
+`;
+    const expected = `<template>
+  <slot></slot>
+</template>
+`;
+    assert.deepEqual(stripMetaData(html), {
+      aliases: [],
+      html: expected,
+      shadowMode: null,
+      deps: [],
+      containerless: false,
+      hasSlot: true,
+      bindables: {}
+    });
+  });
 });

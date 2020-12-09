@@ -21,8 +21,6 @@ import {
 } from '@aurelia/kernel';
 import {
   registerAliases,
-  IWatchDefinition,
-  Watch,
 } from '@aurelia/runtime';
 import {
   Bindable,
@@ -34,7 +32,9 @@ import { INode, getEffectiveParentNode } from '../dom.js';
 import { IInstruction } from '../renderer.js';
 import { PartialChildrenDefinition, ChildrenDefinition, Children } from '../templating/children.js';
 import { Controller } from '../templating/controller.js';
+import { Watch } from '../watch.js';
 import type { ICustomElementViewModel, ICustomElementController } from '../templating/controller.js';
+import type { IWatchDefinition } from '../watch.js';
 
 export type PartialCustomElementDefinition = PartialResourceDefinition<{
   readonly cache?: '*' | number;

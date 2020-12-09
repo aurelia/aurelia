@@ -9,7 +9,6 @@ export interface ValueAttributeObserver extends ISubscriberCollection {}
 /**
  * Observer for non-radio, non-checkbox input.
  */
-@subscriberCollection()
 export class ValueAttributeObserver implements IObserver {
   public readonly obj: INode & IIndexable;
   public currentValue: unknown = '';
@@ -79,3 +78,5 @@ export class ValueAttributeObserver implements IObserver {
     }
   }
 }
+
+subscriberCollection()(ValueAttributeObserver);

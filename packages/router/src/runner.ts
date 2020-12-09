@@ -282,7 +282,7 @@ export class Runner {
 export class Step<T = unknown> {
   public static id: number = 0;
 
-  public value?: T | Promise<T>;
+  public value?: T | Promise<T> | ((value?: T, step?: Step) => T | Promise<T>);
   public promise: Promise<T> | null = null;
   public promises: Promise<T>[] | null = null;
   public resultType: 'value' | 'promise' | 'promises' = 'value';
@@ -311,7 +311,7 @@ export class Step<T = unknown> {
   // TODO: Convert to open promise if ROOT and promise
   public get result(): T | Promise<T> | void {
     return this.resultType === 'value'
-      ? this.value
+      ? this.value as T
       : (this.promise !== null ? this.promise : void 0);
   }
 
@@ -514,11 +514,8 @@ export class Step<T = unknown> {
             //   console.log('======= then in parallel origin', origin.doneParallels, origin.path, ' ||| ', step!.path);
             // }
             const parallelParent = step!.parallelParent;
-            if (parallelParent !== null) {
-              // console.log('======= then in parallel parent', step!.doneParallels, parallelParent.path, '<<<', step!.path);
-              if (step!.doneParallels) {
-                parallelParent!.isDone = true;
-              }
+            if (parallelParent !== null && step!.doneParallels) {
+              parallelParent!.isDone = true;
             }
 
             Step.runNext(origin, step!, result);
@@ -540,11 +537,8 @@ export class Step<T = unknown> {
           //   console.log('======= sync in parallel origin', origin.doneParallels, origin.path, ' ||| ', step!.path);
           // }
           const parallelParent = step.parallelParent;
-          if (parallelParent !== null) {
-            // console.log('======= sync in parallel parent', step.doneParallels, parallelParent.path, '<<<', step.path);
-            if (step.doneParallels) {
-              parallelParent!.isDone = true;
-            }
+          if (parallelParent !== null && step.doneParallels) {
+            parallelParent!.isDone = true;
           }
 
           const doing = step;
@@ -658,10 +652,10 @@ export class Step<T = unknown> {
 
   public run(): T | Promise<T> {
     console.log('step.run', this.path);
-    this.value = this.step as T | Promise<T>;
+    this.value = this.step as T | Promise<T> | ((value?: T, step?: Step) => T | Promise<T>);
     // Iteratively resolve Functions (until value or Promise)
     while (this.value instanceof Function && !this.stop) {
-      this.value = (this.value as Function)(this.previous?.value, this);
+      this.value = (this.value as unknown as (value?: T, step?: Step<T>) => T | Promise<T>)(this.previous?.value as T, this);
     }
     if (!this.stop) {
       // If we've got a Promise, run the remaining
@@ -763,7 +757,7 @@ export class Step<T = unknown> {
   public resolvePromise(): void {
     if (this.finally?.isPending ?? false) {
       // console.log('### Resolving open promise', this.path);
-      this.finally?.resolve(this.value);
+      this.finally?.resolve(this.value as T);
     }
   }
 

@@ -129,7 +129,7 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
   public subscribe(subscriber: ISubscriber): void {
     if (this.subs.add(subscriber) && this.subs.count === 1) {
       this.currentValue = this.oldValue = this.obj.getAttribute(this.propertyKey);
-      startObservation(this.obj.ownerDocument.defaultView?.MutationObserver!, this.obj, this);
+      startObservation(this.obj.ownerDocument.defaultView!.MutationObserver, this.obj, this);
     }
   }
 

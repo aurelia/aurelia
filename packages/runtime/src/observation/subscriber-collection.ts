@@ -124,17 +124,17 @@ export class SubscriberRecord<T extends ISubscriber | ICollectionSubscriber> imp
     if ((subscriberFlags & SF.Subscriber0) > 0 && this._s0 === subscriber) {
       this._s0 = void 0;
       this._sFlags = (this._sFlags | SF.Subscriber0) ^ SF.Subscriber0;
-      this.count--;
+      --this.count;
       return true;
     } else if ((subscriberFlags & SF.Subscriber1) > 0 && this._s1 === subscriber) {
       this._s1 = void 0;
       this._sFlags = (this._sFlags | SF.Subscriber1) ^ SF.Subscriber1;
-      this.count--;
+      --this.count;
       return true;
     } else if ((subscriberFlags & SF.Subscriber2) > 0 && this._s2 === subscriber) {
       this._s2 = void 0;
       this._sFlags = (this._sFlags | SF.Subscriber2) ^ SF.Subscriber2;
-      this.count--;
+      --this.count;
       return true;
     } else if ((subscriberFlags & SF.SubscribersRest) > 0) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -147,8 +147,8 @@ export class SubscriberRecord<T extends ISubscriber | ICollectionSubscriber> imp
           if (ii === 1) {
             this._sFlags = (this._sFlags | SF.SubscribersRest) ^ SF.SubscribersRest;
           }
-          --i;
-          --ii;
+          // deepscan-disable-next-line
+          --i; --ii;
           --this.count;
           return true;
         }

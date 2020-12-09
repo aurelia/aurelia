@@ -116,14 +116,14 @@ export class ComputedObserver implements IConnectableBinding, ISubscriber, IColl
     // in theory, a collection subscriber could be added before a property subscriber
     // and it should be handled similarly in subscribeToCollection
     // though not handling for now, and wait until the merge of normal + collection subscription
-    if (this.addSubscriber(subscriber) && ++this.subCount === 1) {
+    if (this.subs.add(subscriber) && this.subs.count === 1) {
       this.compute();
       this.isDirty = false;
     }
   }
 
   public unsubscribe(subscriber: ISubscriber): void {
-    if (this.removeSubscriber(subscriber) && --this.subCount === 0) {
+    if (this.subs.remove(subscriber) && this.subs.count === 0) {
       this.isDirty = true;
       this.obs.clear(true);
       this.cObs.clear(true);

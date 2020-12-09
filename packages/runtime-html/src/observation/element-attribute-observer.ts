@@ -121,7 +121,7 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
         const { currentValue } = this;
         this.currentValue = this.oldValue = newValue;
         this.hasChanges = false;
-        this.callSubscribers(newValue, currentValue, LifecycleFlags.none);
+        this.subs.notify(newValue, currentValue, LifecycleFlags.none);
       }
     }
   }

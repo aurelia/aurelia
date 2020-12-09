@@ -270,7 +270,7 @@ export class SelectValueObserver implements IObserver {
   }
 
   public unsubscribe(subscriber: ISubscriber): void {
-    if (this.removeSubscriber(subscriber) && this.subs.count === 0) {
+    if (this.subs.remove(subscriber) && this.subs.count === 0) {
       this.handler.dispose();
       this.stop();
     }

@@ -109,8 +109,6 @@ export class DirtyCheckProperty implements DirtyCheckProperty {
   public oldValue: unknown;
   public type: AccessorType = AccessorType.Obj;
 
-  private subCount: number = 0;
-
   public constructor(
     private readonly dirtyChecker: IDirtyChecker,
     public obj: IObservable & IIndexable,
@@ -135,20 +133,20 @@ export class DirtyCheckProperty implements DirtyCheckProperty {
     const oldValue = this.oldValue;
     const newValue = this.getValue();
 
-    this.callSubscribers(newValue, oldValue, flags | LifecycleFlags.updateTarget);
+    this.subs.notify(newValue, oldValue, flags | LifecycleFlags.updateTarget);
 
     this.oldValue = newValue;
   }
 
   public subscribe(subscriber: ISubscriber): void {
-    if (this.addSubscriber(subscriber) && ++this.subCount === 1) {
+    if (this.subs.add(subscriber) && this.subs.count === 1) {
       this.oldValue = this.obj[this.propertyKey];
       this.dirtyChecker.addProperty(this);
     }
   }
 
   public unsubscribe(subscriber: ISubscriber): void {
-    if (this.removeSubscriber(subscriber) && --this.subCount === 0) {
+    if (this.subs.remove(subscriber) && this.subs.count === 0) {
       this.dirtyChecker.removeProperty(this);
     }
   }

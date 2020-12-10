@@ -1,0 +1,31 @@
+<div repeat.for="group of [
+  'measurement_0_100',
+  'measurement_100_100',
+  'measurement_0_1000',
+  'measurement_1000_1000',
+]">
+  <hr>
+  <h2>${group}</h2>
+  <table>
+    <thead>
+      <tr>
+        <th scope="col">Branch</th>
+        <th repeat.for="i of data.items" title="${i.branch}" scope="col">${i.branch}</th>
+      </tr>
+      <tr>
+        <th scope="col">UTC Date (MM-DD)</th>
+        <th repeat.for="i of data.items" title="${i.ts_end | shortDate}" scope="col">${i.ts_end | shortDate}</th>
+      </tr>
+      <tr>
+        <th scope="col">UTC Time (HH:MM)</th>
+        <th repeat.for="i of data.items" title="${i.ts_end | shortTime}" scope="col">${i.ts_end | shortTime}</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr repeat.for="k of data.durationKeys">
+        <th scope="col" title="${k | formatDurationKey}">${k | formatDurationKey}</th>
+        <td repeat.for="i of data.items" title="${i[group][k] | round}">${i[group][k] | round}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>

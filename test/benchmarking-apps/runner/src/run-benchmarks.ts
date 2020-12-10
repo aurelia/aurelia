@@ -1,8 +1,28 @@
-import { ChildProcess, fork } from 'child_process';
+import { ChildProcess, fork, exec } from 'child_process';
 import { join } from 'path';
 import { BenchOptions, Data, Measurement } from './shared';
 
+async function execSafe(command: string, fallback: string): Promise<string> {
+  return new Promise<string>(resolve => {
+    exec(command, (err, stdout, _stderr) => {
+      if (err) {
+        console.warn(`Error executing '${command}', falling back to result '${fallback}' (err: ${err.message})`);
+        resolve(fallback);
+      } else {
+        resolve(stdout);
+      }
+    });
+  });
+}
+
 async function main() {
+  const metadata = {
+    ts_start: Date.now(),
+    ts_end: 0,
+    branch: await execSafe('git branch --show-current', process.env.CIRCLE_BRANCH || ''),
+    commit: await execSafe('git rev-parse HEAD', ''),
+  };
+
   const options = await BenchOptions.createFromCliArgs();
   const storage = options.storage;
 
@@ -32,9 +52,11 @@ async function main() {
   }
   await promise;
 
+  metadata.ts_end = Date.now();
+
   let persistenceFailed = false;
   try {
-    await storage.persist();
+    await storage.persist(metadata);
   } catch {
     persistenceFailed = true;
   }

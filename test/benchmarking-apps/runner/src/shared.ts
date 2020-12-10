@@ -268,7 +268,7 @@ export interface IStorage {
   measurements: Measurement[];
   batchId: string;
   addMeasurements(...measurements: Measurement[]): void;
-  persist(): void | Promise<void>;
+  persist(metadata?: Record<string, unknown>): void | Promise<void>;
 }
 
 class JsonFileStorage implements IStorage {
@@ -283,9 +283,12 @@ class JsonFileStorage implements IStorage {
     this.measurements.push(...measurements);
   }
 
-  public persist(): void {
+  public persist(metadata: Record<string, unknown> = {}): void {
     const fileName = join(process.cwd(), '.bench-results', `${this.batchId}.json`);
-    writeFileSync(fileName, JSON.stringify(this.measurements, undefined, 2), 'utf8');
+    writeFileSync(fileName, JSON.stringify({
+      ...metadata,
+      measurements: this.measurements,
+    }, undefined, 2), 'utf8');
     console.log(`The results are written to ${fileName}.`);
   }
 }
@@ -316,14 +319,14 @@ class CosmosStorage implements IStorage {
     this.measurements.push(...measurements);
   }
 
-  public async persist(): Promise<void> {
+  public async persist(metadata: Record<string, unknown> = {}): Promise<void> {
     const database = (await this.client.databases.createIfNotExists({ id: 'benchmarks' })).database;
     const container = (await database.containers.createIfNotExists({ id: 'measurements' })).container;
     const batchId = this.batchId;
     await container.items.create({
+      ...metadata,
       id: batchId,
-      timestamp: new Date().getTime(),
-      measurements: this.measurements
+      measurements: this.measurements,
     });
     console.log(`Persisted the result for batch ${batchId} in cosmos DB.`);
   }

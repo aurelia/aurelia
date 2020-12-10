@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/validation-i18n",
-  "version": "0.9.0-dev.202012101853",
+  "version": "0.9.0-dev.202012102113",
   "main": "dist/umd/index.js",
   "module": "dist/esnext/index.js",
   "types": "dist/index.d.ts",
@@ -35,15 +35,15 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/i18n": "0.9.0-dev.202012101853",
-    "@aurelia/kernel": "0.9.0-dev.202012101853",
-    "@aurelia/metadata": "0.9.0-dev.202012101853",
-    "@aurelia/platform": "0.9.0-dev.202012101853",
-    "@aurelia/platform-browser": "0.9.0-dev.202012101853",
-    "@aurelia/runtime-html": "0.9.0-dev.202012101853",
-    "@aurelia/runtime": "0.9.0-dev.202012101853",
-    "@aurelia/validation-html": "0.9.0-dev.202012101853",
-    "@aurelia/validation": "0.9.0-dev.202012101853",
+    "@aurelia/i18n": "0.9.0-dev.202012102113",
+    "@aurelia/kernel": "0.9.0-dev.202012102113",
+    "@aurelia/metadata": "0.9.0-dev.202012102113",
+    "@aurelia/platform": "0.9.0-dev.202012102113",
+    "@aurelia/platform-browser": "0.9.0-dev.202012102113",
+    "@aurelia/runtime-html": "0.9.0-dev.202012102113",
+    "@aurelia/runtime": "0.9.0-dev.202012102113",
+    "@aurelia/validation-html": "0.9.0-dev.202012102113",
+    "@aurelia/validation": "0.9.0-dev.202012102113",
     "i18next": "^17.0.0"
   },
   "devDependencies": {

@@ -6,7 +6,7 @@ async function execSafe(command: string, fallback: string): Promise<string> {
   return new Promise<string>(resolve => {
     exec(command, (err, stdout, _stderr) => {
       if (err) {
-        console.warn(`Error executing '${command}', falling back to result '${fallback}'`);
+        console.warn(`Error executing '${command}', falling back to result '${fallback}' (err: ${err.message})`);
         resolve(fallback);
       } else {
         resolve(stdout);
@@ -19,7 +19,7 @@ async function main() {
   const metadata = {
     ts_start: Date.now(),
     ts_end: 0,
-    branch: await execSafe('git branch --show-current', ''),
+    branch: await execSafe('git branch --show-current', process.env.CIRCLE_BRANCH || ''),
     commit: await execSafe('git rev-parse HEAD', ''),
   };
 

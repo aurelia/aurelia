@@ -19,7 +19,7 @@ export class BindableObserver {
 
   public inBatch: boolean = false;
   public observing: boolean;
-  public type: AccessorType = AccessorType.Obj;
+  public type: AccessorType = AccessorType.Observer;
 
   private readonly lifecycle: ILifecycle;
   private readonly callback?: (newValue: unknown, oldValue: unknown, flags: LifecycleFlags) => void;
@@ -56,10 +56,6 @@ export class BindableObserver {
         : currentValue;
       this.createGetterSetter();
     }
-  }
-
-  public handleChange(newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void {
-    this.setValue(newValue, flags);
   }
 
   public getValue(): unknown {

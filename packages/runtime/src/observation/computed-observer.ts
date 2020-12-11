@@ -46,7 +46,7 @@ export class ComputedObserver implements IConnectableBinding, ISubscriber, IColl
 
   public id!: number;
   public interceptor = this;
-  public type: AccessorType = AccessorType.Obj;
+  public type: AccessorType = AccessorType.Observer;
   public value: unknown = void 0;
 
   // todo: maybe use a counter allow recursive call to a certain level

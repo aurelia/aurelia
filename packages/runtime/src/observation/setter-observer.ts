@@ -17,7 +17,7 @@ export class SetterObserver {
   public inBatch: boolean = false;
   public observing: boolean = false;
   // todo(bigopon): tweak the flag based on typeof obj (array/set/map/iterator/proxy etc...)
-  public type: AccessorType = AccessorType.Obj;
+  public type: AccessorType = AccessorType.Observer;
 
   public constructor(
     public readonly obj: IIndexable,
@@ -43,14 +43,6 @@ export class SetterObserver {
       // This wasn't visible in vCurrent due to connect-queue always doing a delayed update, so in many cases it didn't matter whether $bind updated the target or not.
       this.obj[this.propertyKey] = newValue;
     }
-  }
-
-  public flushBatch(flags: LifecycleFlags): void {
-    this.inBatch = false;
-    const currentValue = this.currentValue;
-    const oldValue = this.oldValue;
-    this.oldValue = currentValue;
-    this.subs.notify(currentValue, oldValue, flags);
   }
 
   public subscribe(subscriber: ISubscriber): void {
@@ -101,7 +93,7 @@ export interface SetterNotifier extends ISubscriberCollection {}
 export class SetterNotifier implements IAccessor, ISubscribable {
   // ideally, everything is an object,
   // probably this flag is redundant, just None?
-  public type: AccessorType = AccessorType.Obj;
+  public type: AccessorType = AccessorType.Observer;
 
   /**
    * @internal

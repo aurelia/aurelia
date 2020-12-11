@@ -128,7 +128,7 @@ export const enum LifecycleFlags {
 
 export interface IConnectable {
   id: number;
-  observeProperty(obj: object, propertyName: PropertyKey): void;
+  observeProperty(obj: object, key: PropertyKey): void;
   observeCollection(obj: Collection): void;
 }
 
@@ -171,7 +171,7 @@ export interface ICollectionSubscribable {
   unsubscribeFromCollection(subscriber: ICollectionSubscriber): void;
 }
 
-export interface ISubscriberRecord<T extends ISubscriber | ICollectionSubscriber = ISubscriber | ICollectionSubscriber> {
+export interface ISubscriberRecord<T extends ISubscriber | ICollectionSubscriber> {
   readonly count: number;
   add(subscriber: T): boolean;
   has(subscriber: T): boolean;
@@ -186,7 +186,7 @@ export interface ISubscriberCollection extends ISubscribable {
   /**
    * The backing subscriber record for all subscriber methods of this collection
    */
-  readonly subs: ISubscriberRecord;
+  readonly subs: ISubscriberRecord<ISubscriber>;
 
   callSubscribers(newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void;
   hasSubscribers(): boolean;
@@ -201,7 +201,7 @@ export interface ICollectionSubscriberCollection extends ICollectionSubscribable
   /**
    * The backing subscriber record for all subscriber methods of this collection
    */
-  readonly subs: ISubscriberRecord;
+  readonly subs: ISubscriberRecord<ICollectionSubscriber>;
 
   callCollectionSubscribers(indexMap: IndexMap, flags: LifecycleFlags): void;
   hasCollectionSubscribers(): boolean;
@@ -256,7 +256,6 @@ export const enum AccessorType {
   Observer      = 0b0_0000_0001,
 
   Node          = 0b0_0000_0010,
-  Obj           = 0b0_0000_0100,
 
   // misc characteristic of accessors/observers when update
   //
@@ -266,7 +265,11 @@ export const enum AccessorType {
   // queue it instead
   // todo: https://gist.github.com/paulirish/5d52fb081b3570c81e3a
   // todo: https://csstriggers.com/
-  Layout        = 0b0_0000_1000,
+  Layout        = 0b0_0000_0100,
+  // by default, everything is an object
+  // eg: a property is accessed on an object
+  // unless explicitly not so
+  Primtive      = 0b0_0000_1000,
 
   Array         = 0b0_0001_0010,
   Set           = 0b0_0010_0010,
@@ -277,19 +280,16 @@ export const enum AccessorType {
  * Basic interface to normalize getting/setting a value of any property on any object
  */
 export interface IAccessor<TValue = unknown> {
+  [id: number]: number;
   type: AccessorType;
   getValue(obj?: object, key?: PropertyKey): TValue;
   setValue(newValue: TValue, flags: LifecycleFlags, obj?: object, key?: PropertyKey): void;
 }
 
-export interface IObserver extends IAccessor, ISubscribable {
-  [id: number]: number;
-}
+export interface IObserver extends IAccessor, ISubscribable {}
 
 export type AccessorOrObserver = (IAccessor | IObserver) & {
   doNotCache?: boolean;
-} & {
-  [id: number]: number;
 };
 
 /**

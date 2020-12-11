@@ -107,7 +107,7 @@ export interface DirtyCheckProperty extends IObserver, ISubscriberCollection { }
 
 export class DirtyCheckProperty implements DirtyCheckProperty {
   public oldValue: unknown;
-  public type: AccessorType = AccessorType.Obj;
+  public type: AccessorType = AccessorType.None;
 
   public constructor(
     private readonly dirtyChecker: IDirtyChecker,

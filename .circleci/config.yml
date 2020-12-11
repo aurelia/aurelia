@@ -81,11 +81,6 @@ commands:
       - checkout
       - run: npm ci --ignore-scripts
 
-  checkout_install:
-    steps:
-      - checkout
-      - run: npm ci --ignore-scripts
-
   checkout_install_build_bundle_publish_verdaccio:
     parameters:
       from:

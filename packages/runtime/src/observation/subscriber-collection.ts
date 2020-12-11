@@ -108,7 +108,9 @@ export class SubscriberRecord<T extends IAnySubscriber> implements ISubscriberRe
     if ((subscriberFlags & SF.SubscribersRest) > 0) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const subscribers = this._sRest!; // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
-      for (let i = 0, ii = subscribers.length; i < ii; ++i) {
+      let i = 0;
+      let ii = subscribers!.length;
+      for (; i < ii; ++i) {
         if (subscribers[i] === subscriber) {
           return true;
         }
@@ -171,12 +173,18 @@ export class SubscriberRecord<T extends IAnySubscriber> implements ISubscriberRe
     const sub0 = this._s0 as ISubscriber;
     const sub1 = this._s1 as ISubscriber;
     const sub2 = this._s2 as ISubscriber;
-    let subRest = this._sRest as ISubscriber[];
+    let subs = this._sRest as ISubscriber[];
+    if (subs !== void 0) {
+      subs = subs.slice();
+    }
+
+    if (batching) {
+      batches.set(this, [val, oldVal, flags]);
+      return;
+    }
+
     flags = (flags | LF.update) ^ LF.update;
 
-    if (subRest !== void 0) {
-      subRest = subRest.slice();
-    }
     if (sub0 !== void 0) {
       sub0.handleChange(val, oldVal, flags | /* sub own flags */(sub0.id === void 0 ? 0 : owner[sub0.id]));
     }
@@ -186,12 +194,12 @@ export class SubscriberRecord<T extends IAnySubscriber> implements ISubscriberRe
     if (sub2 !== void 0) {
       sub2.handleChange(val, oldVal, flags | /* sub own flags */(sub2.id === void 0 ? 0 : owner[sub2.id]));
     }
-    if (subRest !== void 0) {
-      const length = subRest.length;
+    if (subs !== void 0) {
+      const length = subs.length;
       let sub: ISubscriber | undefined;
       let i = 0;
       for (; i < length; ++i) {
-        sub = subRest[i];
+        sub = subs[i];
         if (sub !== void 0) {
           sub.handleChange(val, oldVal, flags | /* sub own flags */(sub.id === void 0 ? 0 : owner[sub.id]));
         }
@@ -200,30 +208,36 @@ export class SubscriberRecord<T extends IAnySubscriber> implements ISubscriberRe
   }
 
   public notifyCollection(indexMap: IndexMap, flags: LF): void {
-    const subscriber0 = this._s0 as ICollectionSubscriber;
-    const subscriber1 = this._s1 as ICollectionSubscriber;
-    const subscriber2 = this._s2 as ICollectionSubscriber;
-    let subscribers = this._sRest as ICollectionSubscriber[];
-    if (subscribers !== void 0) {
-      subscribers = subscribers.slice();
+    const sub0 = this._s0 as ICollectionSubscriber;
+    const sub1 = this._s1 as ICollectionSubscriber;
+    const sub2 = this._s2 as ICollectionSubscriber;
+    let subs = this._sRest as ICollectionSubscriber[];
+    if (subs !== void 0) {
+      subs = subs.slice();
     }
-    if (subscriber0 !== void 0) {
-      subscriber0.handleCollectionChange(indexMap, flags);
+
+    if (batching) {
+      batches.set(this, [indexMap, flags]);
+      return;
     }
-    if (subscriber1 !== void 0) {
-      subscriber1.handleCollectionChange(indexMap, flags);
+
+    if (sub0 !== void 0) {
+      sub0.handleCollectionChange(indexMap, flags);
     }
-    if (subscriber2 !== void 0) {
-      subscriber2.handleCollectionChange(indexMap, flags);
+    if (sub1 !== void 0) {
+      sub1.handleCollectionChange(indexMap, flags);
     }
-    if (subscribers !== void 0) {
-      const length = subscribers.length;
-      let subscriber: ICollectionSubscriber | undefined;
+    if (sub2 !== void 0) {
+      sub2.handleCollectionChange(indexMap, flags);
+    }
+    if (subs !== void 0) {
+      const length = subs.length;
+      let sub: ICollectionSubscriber | undefined;
       let i = 0;
       for (; i < length; ++i) {
-        subscriber = subscribers[i];
-        if (subscriber !== void 0) {
-          subscriber.handleCollectionChange(indexMap, flags);
+        sub = subs[i];
+        if (sub !== void 0) {
+          sub.handleCollectionChange(indexMap, flags);
         }
       }
     }
@@ -237,15 +251,15 @@ function getSubscriberRecord(this: ISubscriberCollection) {
 }
 
 function addSubscriber(this: ISubscriberCollection, subscriber: IAnySubscriber): boolean {
-  return this.subs.add(subscriber);
+  return this.subs.add(subscriber as ISubscriber & ICollectionSubscriber);
 }
 
 function removeSubscriber(this: ISubscriberCollection, subscriber: IAnySubscriber): boolean {
-  return this.subs.remove(subscriber);
+  return this.subs.remove(subscriber as ISubscriber & ICollectionSubscriber);
 }
 
-function hasSubscriber(this: ISubscriberCollection, subscriber: IAnySubscriber): boolean {
-  return this.subs.has(subscriber);
+function hasSubscriber(this: ISubscriberCollection | ICollectionSubscriberCollection, subscriber: IAnySubscriber): boolean {
+  return this.subs.has(subscriber as ISubscriber & ICollectionSubscriber);
 }
 
 function hasSubscribers(this: ISubscriberCollection): boolean {
@@ -259,3 +273,26 @@ function callSubscribers(this: ISubscriberCollection, newValue: unknown, previou
 function callCollectionSubscribers(this: ICollectionSubscriberCollection, indexMap: IndexMap, flags: LF): void {
   this.subs.notifyCollection(indexMap, flags);
 }
+
+const batches: Map<SubscriberRecord<IAnySubscriber>, [unknown, unknown, LF] | [IndexMap, LF]> = new Map();
+let batching = false;
+
+function startBatch() {
+  batching = true;
+}
+function releaseBatch() {
+  batches.forEach(invokeHandleChange);
+  batching = false;
+}
+function invokeHandleChange(changeArguments: [unknown, unknown, LF] | [IndexMap, LF], record: SubscriberRecord<IAnySubscriber>): void {
+  if (changeArguments.length === 3) {
+    record.notify(changeArguments[0], changeArguments[1], changeArguments[2]);
+  } else {
+    record.notifyCollection(changeArguments[0], changeArguments[1]);
+  }
+}
+export function batch(fn: () => unknown) {
+  startBatch();
+  fn();
+  releaseBatch();
+};

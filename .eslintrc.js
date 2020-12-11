@@ -7,7 +7,6 @@ module.exports = {
     'plugin:@typescript-eslint/eslint-recommended',
     'plugin:@typescript-eslint/recommended',
     'plugin:@typescript-eslint/recommended-requiring-type-checking',
-    'plugin:sonarjs/recommended',
     'plugin:import/typescript'
   ],
   parserOptions: {
@@ -32,7 +31,6 @@ module.exports = {
     'compat',
     'import',
     'jsdoc',
-    'sonarjs'
   ],
   reportUnusedDisableDirectives: true,
   rules: {
@@ -45,9 +43,6 @@ module.exports = {
     '@typescript-eslint/no-non-null-assertion': 'off',
     '@typescript-eslint/no-use-before-define': 'off',
     'security/detect-object-injection': 'off',
-    'sonarjs/cognitive-complexity': 'off',
-    'sonarjs/no-identical-functions': 'off',
-    'sonarjs/no-duplicate-string': 'off',
     'no-dupe-class-members': 'off',
 
     // Opinionated non default rules:
@@ -138,9 +133,6 @@ module.exports = {
     'jsdoc/check-syntax': 'error',
     'jsdoc/newline-after-description': 'error',
     'jsdoc/require-hyphen-before-param-description': ['error', 'always'],
-    'sonarjs/no-small-switch': 'off',
-    'sonarjs/no-useless-catch': 'error',
-    'sonarjs/prefer-immediate-return': 'error',
     'array-callback-return': 'error',
     'eol-last': ['error', 'always'],
     'func-call-spacing': 'off', // See @typescript-eslint/func-call-spacing
@@ -231,10 +223,6 @@ module.exports = {
     'jsdoc/require-param-type': 'off',
     'jsdoc/require-returns': 'off',
     'jsdoc/require-returns-type': 'off',
-    'sonarjs/no-all-duplicated-branches': 'warn',
-    'sonarjs/no-duplicated-branches': 'warn',
-    'sonarjs/no-extra-arguments': 'warn',
-    'sonarjs/no-inverted-boolean-check': 'warn',
     'default-param-last': ['warn'],
     'eqeqeq': 'warn',
     'no-await-in-loop': 'warn',

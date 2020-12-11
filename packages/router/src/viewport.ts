@@ -419,7 +419,6 @@ export class Viewport implements IScopeOwner {
     return Runner.run(
       () => {
         // console.log('viewport canUnload run', this.name, 'before');
-        // eslint-disable-next-line sonarjs/prefer-immediate-return
         const result = this.connectedScope.canUnload();
         // console.log('viewport canUnload run', this.name, 'after');
         return result;

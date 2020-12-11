@@ -25,7 +25,6 @@ module.exports = {
     'mocha/no-mocha-arrows': 'error',
     'mocha/no-return-from-async': 'error',
     'mocha/no-top-level-hooks': 'error',
-    'sonarjs/no-useless-catch': 'off',
     'max-lines-per-function': 'off',
     'no-console': 'off',
     'no-useless-catch': 'off',

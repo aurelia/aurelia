@@ -11,7 +11,6 @@ const args = yargs(process.argv)
   .boolean('minimal')
   .argv;
 
-// eslint-disable-next-line sonarjs/no-redundant-boolean
 if (args.bootstrap ^ args.minimal == false) {
   console.log("ERROR: You must either choose bootstrap or minimal");
 } else {

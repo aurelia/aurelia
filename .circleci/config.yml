@@ -390,8 +390,6 @@ workflows:
       #   submodules: true
       - lint_packages:
           <<: *filter_ignore_develop_release
-      - js_framework_benchmark:
-          <<: *filter_ignore_develop_release
       - benchmark_playwright:
           <<: *filter_ignore_develop_release
       - e2e_playwright:

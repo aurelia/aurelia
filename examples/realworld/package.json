@@ -1,5 +1,5 @@
 {
-  "name": "test-realworld",
+  "name": "@examples/realworld",
   "description": "An Aurelia 2 client application.",
   "version": "0.8.0",
   "private": true,

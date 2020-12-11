@@ -1,5 +1,5 @@
 {
-  "name": "test-navigation-skeleton-app",
+  "name": "@examples/navigation-skeleton",
   "private": true,
   "version": "0.8.0",
   "scripts": {

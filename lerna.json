@@ -35,8 +35,6 @@
     "test/doc-example/app",
     "test/fractals-tree",
     "test/i18n",
-    "test/js-framework-benchmark",
-    "test/js-framework-benchmark/frameworks/keyed/aurelia2-local",
     "test/navigation-skeleton/app",
     "test/rainbow-spiral",
     "test/realworld",

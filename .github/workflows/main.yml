@@ -71,8 +71,8 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: npm run build
-        working-directory: test/1kcomponents
+        working-directory: examples/1kcomponents
       - run: npm run build
-        working-directory: test/fractals-tree
+        working-directory: examples/fractals-tree
       - run: npm run build
-        working-directory: test/sierpinski-triangle
+        working-directory: examples/sierpinski-triangle

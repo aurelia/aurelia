@@ -23,20 +23,20 @@ function observeProperty(obj, key) {
      *
      * We'll probably want to implement some global configuration (like a "strict" toggle) so users can pick between enforced correctness vs. ease-of-use
      */
-    this.record.add(observer);
+    this.obs.add(observer);
 }
-function getRecord() {
+function getObserverRecord() {
     const record = new BindingObserverRecord(this);
-    defineHiddenProp(this, 'record', record);
+    defineHiddenProp(this, 'obs', record);
     return record;
 }
 function observeCollection(collection) {
     const obs = getCollectionObserver(collection, this.observerLocator);
-    this.cRecord.add(obs);
+    this.cObs.add(obs);
 }
-function getCollectionRecord() {
+function getCollectionObserverRecord() {
     const record = new BindingCollectionObserverRecord(this);
-    defineHiddenProp(this, 'cRecord', record);
+    defineHiddenProp(this, 'cObs', record);
     return record;
 }
 function getCollectionObserver(collection, observerLocator) {
@@ -140,7 +140,7 @@ export class BindingCollectionObserverRecord {
         connectable.assignIdTo(this);
     }
     get version() {
-        return this.binding.record.version;
+        return this.binding.obs.version;
     }
     handleCollectionChange(indexMap, flags) {
         this.binding.interceptor.handleCollectionChange(indexMap, flags);
@@ -172,14 +172,8 @@ function connectableDecorator(target) {
     const defProp = Reflect.defineProperty;
     ensureProto(proto, 'observeProperty', observeProperty, true);
     ensureProto(proto, 'observeCollection', observeCollection, true);
-    defProp(proto, 'record', {
-        configurable: true,
-        get: getRecord,
-    });
-    defProp(proto, 'cRecord', {
-        configurable: true,
-        get: getCollectionRecord,
-    });
+    defProp(proto, 'obs', { get: getObserverRecord });
+    defProp(proto, 'cObs', { get: getCollectionObserverRecord });
     // optionally add these two methods to normalize a connectable impl
     ensureProto(proto, 'handleChange', noopHandleChange);
     ensureProto(proto, 'handleCollectionChange', noopHandleCollectionChange);

@@ -115,11 +115,11 @@
         get isBound() {
             return this.binding.isBound;
         }
-        get record() {
-            return this.binding.record;
+        get obs() {
+            return this.binding.obs;
         }
-        get cRecord() {
-            return this.binding.cRecord;
+        get cObs() {
+            return this.binding.cObs;
         }
         updateTarget(value, flags) {
             this.binding.updateTarget(value, flags);

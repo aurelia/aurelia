@@ -46,7 +46,7 @@
                 this.oldValue = currentValue;
                 this.obj[this.propertyKey] = currentValue !== null && currentValue !== void 0 ? currentValue : this.handler.config.default;
                 if ((flags & 32 /* fromBind */) === 0) {
-                    this.callSubscribers(currentValue, oldValue, flags);
+                    this.subs.notify(currentValue, oldValue, flags);
                 }
             }
         }
@@ -55,18 +55,17 @@
             const currentValue = this.currentValue = this.obj[this.propertyKey];
             if (oldValue !== currentValue) {
                 this.oldValue = currentValue;
-                this.callSubscribers(currentValue, oldValue, 0 /* none */);
+                this.subs.notify(currentValue, oldValue, 0 /* none */);
             }
         }
         subscribe(subscriber) {
-            if (!this.hasSubscribers()) {
+            if (this.subs.add(subscriber) && this.subs.count === 1) {
                 this.handler.subscribe(this.obj, this);
                 this.currentValue = this.oldValue = this.obj[this.propertyKey];
             }
-            this.addSubscriber(subscriber);
         }
         unsubscribe(subscriber) {
-            if (this.removeSubscriber(subscriber) && !this.hasSubscribers()) {
+            if (this.subs.remove(subscriber) && this.subs.count === 0) {
                 this.handler.dispose();
             }
         }

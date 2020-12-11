@@ -21,7 +21,6 @@ export declare class ArrayIndexObserver implements IArrayIndexObserver {
     readonly owner: ArrayObserver;
     readonly index: number;
     value: unknown;
-    private subCount;
     constructor(owner: ArrayObserver, index: number);
     getValue(): unknown;
     setValue(newValue: unknown, flags: LifecycleFlags): void;

@@ -152,7 +152,7 @@
             const size = this.collection.size;
             this.inBatch = false;
             this.indexMap = observation_js_1.createIndexMap(size);
-            this.callCollectionSubscribers(indexMap, 8 /* updateTarget */);
+            this.subs.notifyCollection(indexMap, 8 /* updateTarget */);
         }
     }
     exports.SetObserver = SetObserver;

@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "../observation.js", "./collection-length-observer.js", "./subscriber-collection.js"], factory);
+        define(["require", "exports", "../observation.js", "./collection-length-observer.js", "./subscriber-collection.js", "../utilities-objects.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -13,6 +13,7 @@
     const observation_js_1 = require("../observation.js");
     const collection_length_observer_js_1 = require("./collection-length-observer.js");
     const subscriber_collection_js_1 = require("./subscriber-collection.js");
+    const utilities_objects_js_1 = require("../utilities-objects.js");
     const observerLookup = new WeakMap();
     const proto = Map.prototype;
     const $set = proto.set;
@@ -110,15 +111,14 @@
         enumerable: false,
         configurable: true
     };
-    const def = Reflect.defineProperty;
     for (const method of methods) {
-        def(observe[method], 'observing', { value: true, writable: false, configurable: false, enumerable: false });
+        utilities_objects_js_1.def(observe[method], 'observing', { value: true, writable: false, configurable: false, enumerable: false });
     }
     let enableMapObservationCalled = false;
     function enableMapObservation() {
         for (const method of methods) {
             if (proto[method].observing !== true) {
-                def(proto, method, { ...descriptorProps, value: observe[method] });
+                utilities_objects_js_1.def(proto, method, { ...descriptorProps, value: observe[method] });
             }
         }
     }
@@ -126,7 +126,7 @@
     function disableMapObservation() {
         for (const method of methods) {
             if (proto[method].observing === true) {
-                def(proto, method, { ...descriptorProps, value: native[method] });
+                utilities_objects_js_1.def(proto, method, { ...descriptorProps, value: native[method] });
             }
         }
     }
@@ -165,7 +165,7 @@
             const size = this.collection.size;
             this.inBatch = false;
             this.indexMap = observation_js_1.createIndexMap(size);
-            this.callCollectionSubscribers(indexMap, 8 /* updateTarget */);
+            this.subs.notifyCollection(indexMap, 8 /* updateTarget */);
         }
     }
     exports.MapObserver = MapObserver;

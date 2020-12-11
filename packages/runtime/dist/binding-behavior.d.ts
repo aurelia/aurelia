@@ -66,8 +66,8 @@ export declare class BindingInterceptor implements IInterceptableBinding {
     get $scope(): Scope | undefined;
     get $hostScope(): Scope | null;
     get isBound(): boolean;
-    get record(): BindingObserverRecord;
-    get cRecord(): BindingCollectionObserverRecord;
+    get obs(): BindingObserverRecord;
+    get cObs(): BindingCollectionObserverRecord;
     constructor(binding: IInterceptableBinding, expr: IBindingBehaviorExpression);
     updateTarget(value: unknown, flags: LifecycleFlags): void;
     updateSource(value: unknown, flags: LifecycleFlags): void;

@@ -1,6 +1,7 @@
 import { createIndexMap } from '../observation.js';
 import { CollectionSizeObserver } from './collection-length-observer.js';
 import { collectionSubscriberCollection } from './subscriber-collection.js';
+import { def } from '../utilities-objects.js';
 const observerLookup = new WeakMap();
 const proto = Map.prototype;
 const $set = proto.set;
@@ -98,7 +99,6 @@ const descriptorProps = {
     enumerable: false,
     configurable: true
 };
-const def = Reflect.defineProperty;
 for (const method of methods) {
     def(observe[method], 'observing', { value: true, writable: false, configurable: false, enumerable: false });
 }
@@ -151,7 +151,7 @@ export class MapObserver {
         const size = this.collection.size;
         this.inBatch = false;
         this.indexMap = createIndexMap(size);
-        this.callCollectionSubscribers(indexMap, 8 /* updateTarget */);
+        this.subs.notifyCollection(indexMap, 8 /* updateTarget */);
     }
 }
 collectionSubscriberCollection()(MapObserver);

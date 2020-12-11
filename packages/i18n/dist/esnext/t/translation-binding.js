@@ -73,14 +73,14 @@ let TranslationBinding = TranslationBinding_1 = class TranslationBinding {
         (_a = this.parameter) === null || _a === void 0 ? void 0 : _a.$unbind(flags);
         this.targetObservers.clear();
         this.scope = (void 0);
-        this.record.clear(true);
+        this.obs.clear(true);
     }
     handleChange(newValue, _previousValue, flags) {
-        this.record.version++;
+        this.obs.version++;
         this.keyExpression = this.isInterpolation
             ? this.expr.evaluate(flags, this.scope, this.hostScope, this.locator, this)
             : newValue;
-        this.record.clear(false);
+        this.obs.clear(false);
         this.ensureKeyExpression();
         this.updateTranslations(flags);
     }
@@ -210,9 +210,9 @@ let ParameterBinding = class ParameterBinding {
         if ((flags & 8 /* updateTarget */) === 0) {
             throw new Error('Unexpected context in a ParameterBinding.');
         }
-        this.record.version++;
+        this.obs.version++;
         this.value = this.expr.evaluate(flags, this.scope, this.hostScope, this.locator, this);
-        this.record.clear(false);
+        this.obs.clear(false);
         this.updater(flags);
     }
     $bind(flags, scope, hostScope) {
@@ -235,7 +235,7 @@ let ParameterBinding = class ParameterBinding {
             this.expr.unbind(flags, this.scope, this.hostScope, this);
         }
         this.scope = (void 0);
-        this.record.clear(true);
+        this.obs.clear(true);
     }
 };
 ParameterBinding = __decorate([

@@ -33,7 +33,7 @@
             if (this.observing) {
                 const currentValue = this.currentValue;
                 this.currentValue = newValue;
-                this.callSubscribers(newValue, currentValue, flags);
+                this.subs.notify(newValue, currentValue, flags);
             }
             else {
                 // If subscribe() has been called, the target property descriptor is replaced by these getter/setter methods,
@@ -50,13 +50,13 @@
             const currentValue = this.currentValue;
             const oldValue = this.oldValue;
             this.oldValue = currentValue;
-            this.callSubscribers(currentValue, oldValue, flags);
+            this.subs.notify(currentValue, oldValue, flags);
         }
         subscribe(subscriber) {
             if (this.observing === false) {
                 this.start();
             }
-            this.addSubscriber(subscriber);
+            this.subs.add(subscriber);
         }
         start() {
             if (this.observing === false) {
@@ -110,7 +110,7 @@
             const oldValue = this.v;
             if (!Object.is(value, oldValue)) {
                 this.v = value;
-                this.callSubscribers(value, oldValue, flags);
+                this.subs.notify(value, oldValue, flags);
             }
         }
     }

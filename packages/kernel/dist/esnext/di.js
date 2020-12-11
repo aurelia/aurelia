@@ -509,6 +509,12 @@ export class Resolver {
         }
     }
 }
+function containerGetKey(d) {
+    return this.get(d);
+}
+function transformInstance(inst, transform) {
+    return transform(inst);
+}
 /** @internal */
 export class Factory {
     constructor(Type, dependencies) {
@@ -519,21 +525,15 @@ export class Factory {
     construct(container, dynamicDependencies) {
         let instance;
         if (dynamicDependencies === void 0) {
-            instance = new this.Type(...this.dependencies.map(function (d) {
-                return container.get(d);
-            }));
+            instance = new this.Type(...this.dependencies.map(containerGetKey, container));
         }
         else {
-            instance = new this.Type(...this.dependencies.map(function (d) {
-                return container.get(d);
-            }), ...dynamicDependencies);
+            instance = new this.Type(...this.dependencies.map(containerGetKey, container), ...dynamicDependencies);
         }
         if (this.transformers == null) {
             return instance;
         }
-        return this.transformers.reduce(function (inst, transform) {
-            return transform(inst);
-        }, instance);
+        return this.transformers.reduce(transformInstance, instance);
     }
     registerTransformer(transformer) {
         var _a;

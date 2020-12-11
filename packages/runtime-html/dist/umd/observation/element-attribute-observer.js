@@ -107,20 +107,18 @@
                     const { currentValue } = this;
                     this.currentValue = this.oldValue = newValue;
                     this.hasChanges = false;
-                    this.callSubscribers(newValue, currentValue, 0 /* none */);
+                    this.subs.notify(newValue, currentValue, 0 /* none */);
                 }
             }
         }
         subscribe(subscriber) {
-            if (!this.hasSubscribers()) {
+            if (this.subs.add(subscriber) && this.subs.count === 1) {
                 this.currentValue = this.oldValue = this.obj.getAttribute(this.propertyKey);
-                startObservation(this.platform.MutationObserver, this.obj, this);
+                startObservation(this.obj.ownerDocument.defaultView.MutationObserver, this.obj, this);
             }
-            this.addSubscriber(subscriber);
         }
         unsubscribe(subscriber) {
-            this.removeSubscriber(subscriber);
-            if (!this.hasSubscribers()) {
+            if (this.subs.remove(subscriber) && this.subs.count === 0) {
                 stopObservation(this.obj, this);
             }
         }

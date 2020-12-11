@@ -14,7 +14,6 @@ export class CheckedObserver {
         this.type = 2 /* Node */ | 1 /* Observer */ | 8 /* Layout */;
         this.collectionObserver = void 0;
         this.valueObserver = void 0;
-        this.subscriberCount = 0;
         this.obj = obj;
     }
     getValue() {
@@ -29,7 +28,7 @@ export class CheckedObserver {
         this.oldValue = currentValue;
         this.observe();
         this.synchronizeElement();
-        this.callSubscribers(newValue, currentValue, flags);
+        this.subs.notify(newValue, currentValue, flags);
     }
     handleCollectionChange(indexMap, flags) {
         this.synchronizeElement();
@@ -182,7 +181,7 @@ export class CheckedObserver {
             return;
         }
         this.value = currentValue;
-        this.callSubscribers(this.value, this.oldValue, 0 /* none */);
+        this.subs.notify(this.value, this.oldValue, 0 /* none */);
     }
     start() {
         this.handler.subscribe(this.obj, this);
@@ -197,12 +196,12 @@ export class CheckedObserver {
         (_b = this.valueObserver) === null || _b === void 0 ? void 0 : _b.unsubscribe(this);
     }
     subscribe(subscriber) {
-        if (this.addSubscriber(subscriber) && ++this.subscriberCount === 1) {
+        if (this.subs.add(subscriber) && this.subs.count === 1) {
             this.start();
         }
     }
     unsubscribe(subscriber) {
-        if (this.removeSubscriber(subscriber) && --this.subscriberCount === 0) {
+        if (this.subs.remove(subscriber) && this.subs.count === 0) {
             this.stop();
         }
     }

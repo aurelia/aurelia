@@ -128,7 +128,7 @@
                 return;
             }
             const sourceExpression = this.sourceExpression;
-            const obsRecord = this.record;
+            const obsRecord = this.obs;
             const canOptimize = sourceExpression.$kind === 10082 /* AccessScope */ && obsRecord.count === 1;
             if (!canOptimize) {
                 const shouldConnect = (this.mode & toView) > 0;
@@ -142,7 +142,7 @@
             }
             if (newValue != this.value) {
                 this.value = newValue;
-                this.cRecord.clear();
+                this.cObs.clear();
                 if (newValue instanceof Array) {
                     this.observeCollection(newValue);
                 }
@@ -180,8 +180,8 @@
             }
             this.$scope = void 0;
             this.$hostScope = null;
-            this.record.clear(true);
-            this.cRecord.clear(true);
+            this.obs.clear(true);
+            this.cObs.clear(true);
         }
     }
     exports.ContentBinding = ContentBinding;

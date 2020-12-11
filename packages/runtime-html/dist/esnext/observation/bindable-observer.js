@@ -50,7 +50,7 @@ export class BindableObserver {
             }
             this.currentValue = newValue;
             if (this.lifecycle.batch.depth === 0) {
-                this.callSubscribers(newValue, currentValue, flags);
+                this.subs.notify(newValue, currentValue, flags);
                 if ((flags & 32 /* fromBind */) === 0 || (flags & 16 /* updateSource */) > 0) {
                     (_a = this.callback) === null || _a === void 0 ? void 0 : _a.call(this.obj, newValue, currentValue, flags);
                     if (this.hasPropertyChangedCallback) {
@@ -79,7 +79,7 @@ export class BindableObserver {
                 : currentValue;
             this.createGetterSetter();
         }
-        this.addSubscriber(subscriber);
+        this.subs.add(subscriber);
     }
     createGetterSetter() {
         Reflect.defineProperty(this.obj, this.propertyKey, {

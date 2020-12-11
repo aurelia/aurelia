@@ -10,11 +10,11 @@ export interface IConnectableBinding extends IPartialConnectableBinding, IConnec
     /**
      * A record storing observers that are currently subscribed to by this binding
      */
-    record: BindingObserverRecord;
+    obs: BindingObserverRecord;
     /**
      * A record storing collection observers that are currently subscribed to by this binding
      */
-    cRecord: BindingCollectionObserverRecord;
+    cObs: BindingCollectionObserverRecord;
 }
 declare type ObservationRecordImplType = {
     id: number;

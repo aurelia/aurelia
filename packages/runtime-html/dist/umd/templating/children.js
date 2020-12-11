@@ -152,7 +152,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
         setValue(newValue) { }
         subscribe(subscriber) {
             this.tryStartObserving();
-            this.addSubscriber(subscriber);
+            this.subs.add(subscriber);
         }
         tryStartObserving() {
             if (!this.observing) {
@@ -167,7 +167,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
             if (this.callback !== void 0) {
                 this.callback.call(this.obj);
             }
-            this.callSubscribers(this.children, undefined, 8 /* updateTarget */);
+            this.subs.notify(this.children, undefined, 8 /* updateTarget */);
         }
     };
     ChildrenObserver = ChildrenObserver_1 = __decorate([

@@ -34,9 +34,9 @@
                 const target = this.target;
                 const targetProperty = this.targetProperty;
                 const previousValue = target[targetProperty];
-                this.record.version++;
+                this.obs.version++;
                 const newValue = this.sourceExpression.evaluate(flags, this.$scope, this.$hostScope, this.locator, this.interceptor);
-                this.record.clear(false);
+                this.obs.clear(false);
                 if (newValue !== previousValue) {
                     target[targetProperty] = newValue;
                 }
@@ -74,7 +74,7 @@
             }
             this.$scope = void 0;
             this.$hostScope = null;
-            this.record.clear(true);
+            this.obs.clear(true);
             // remove isBound and isUnbinding flags
             this.isBound = false;
         }

@@ -74,12 +74,12 @@
             if (newValue === oldValue) {
                 return;
             }
-            this.callSubscribers(newValue, oldValue, flags);
+            this.subs.notify(newValue, oldValue, flags);
         }
         handleEvent() {
             const shouldNotify = this.synchronizeValue();
             if (shouldNotify) {
-                this.callSubscribers(this.currentValue, this.oldValue, 0 /* none */);
+                this.subs.notify(this.currentValue, this.oldValue, 0 /* none */);
             }
         }
         synchronizeOptions(indexMap) {
@@ -221,15 +221,13 @@
             }
         }
         subscribe(subscriber) {
-            if (!this.hasSubscribers()) {
+            if (this.subs.add(subscriber) && this.subs.count === 1) {
                 this.handler.subscribe(this.obj, this);
                 this.start();
             }
-            this.addSubscriber(subscriber);
         }
         unsubscribe(subscriber) {
-            this.removeSubscriber(subscriber);
-            if (!this.hasSubscribers()) {
+            if (this.subs.remove(subscriber) && this.subs.count === 0) {
                 this.handler.dispose();
                 this.stop();
             }

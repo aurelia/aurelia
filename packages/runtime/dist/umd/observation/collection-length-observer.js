@@ -17,10 +17,6 @@
         constructor(owner) {
             this.owner = owner;
             this.type = 18 /* Array */;
-            /**
-             * @internal
-             */
-            this.subCount = 0;
             this.value = (this.obj = owner.collection).length;
         }
         getValue() {
@@ -36,14 +32,14 @@
                     this.obj.length = newValue;
                 }
                 this.value = newValue;
-                this.callSubscribers(newValue, currentValue, flags | 8 /* updateTarget */);
+                this.subs.notify(newValue, currentValue, flags | 8 /* updateTarget */);
             }
         }
         handleCollectionChange(_, flags) {
             const oldValue = this.value;
             const value = this.obj.length;
             if ((this.value = value) !== oldValue) {
-                this.callSubscribers(value, oldValue, flags);
+                this.subs.notify(value, oldValue, flags);
             }
         }
     }
@@ -51,10 +47,6 @@
     class CollectionSizeObserver {
         constructor(owner) {
             this.owner = owner;
-            /**
-             * @internal
-             */
-            this.subCount = 0;
             this.value = (this.obj = owner.collection).size;
             this.type = this.obj instanceof Map ? 66 /* Map */ : 34 /* Set */;
         }
@@ -69,7 +61,7 @@
             const value = this.obj.size;
             this.value = value;
             if (value !== oldValue) {
-                this.callSubscribers(value, oldValue, flags);
+                this.subs.notify(value, oldValue, flags);
             }
         }
     }
@@ -81,13 +73,13 @@
         subscriber_collection_js_1.subscriberCollection()(klass);
     }
     function subscribe(subscriber) {
-        if (this.addSubscriber(subscriber) && ++this.subCount === 1) {
-            this.owner.addCollectionSubscriber(this);
+        if (this.subs.add(subscriber) && this.subs.count === 1) {
+            this.owner.subs.add(this);
         }
     }
     function unsubscribe(subscriber) {
-        if (this.removeSubscriber(subscriber) && --this.subCount) {
-            this.owner.removeCollectionSubscriber(this);
+        if (this.subs.remove(subscriber) && this.subs.count === 0) {
+            this.owner.subs.remove(this);
         }
     }
     implementLengthObserver(CollectionLengthObserver);

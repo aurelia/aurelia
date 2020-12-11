@@ -13,8 +13,8 @@ export declare class MockBinding implements IConnectableBinding {
     $hostScope: Scope | null;
     isBound: boolean;
     value: unknown;
-    record: BindingObserverRecord;
-    cRecord: BindingCollectionObserverRecord;
+    obs: BindingObserverRecord;
+    cObs: BindingCollectionObserverRecord;
     calls: [keyof MockBinding, ...any[]][];
     updateTarget(value: unknown, flags: LifecycleFlags): void;
     updateSource(value: unknown, flags: LifecycleFlags): void;

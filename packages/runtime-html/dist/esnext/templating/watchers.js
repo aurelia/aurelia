@@ -34,8 +34,8 @@ export class ComputedWatcher {
             return;
         }
         this.isBound = false;
-        this.record.clear(true);
-        this.cRecord.clear(true);
+        this.obs.clear(true);
+        this.cObs.clear(true);
     }
     run() {
         if (!this.isBound || this.running) {
@@ -51,14 +51,14 @@ export class ComputedWatcher {
     }
     compute() {
         this.running = true;
-        this.record.version++;
+        this.obs.version++;
         try {
             enter(this);
             return this.value = unwrap(this.get.call(void 0, this.useProxy ? wrap(this.obj) : this.obj, this));
         }
         finally {
-            this.record.clear(false);
-            this.cRecord.clear(false);
+            this.obs.clear(false);
+            this.cObs.clear(false);
             this.running = false;
             exit(this);
         }
@@ -80,11 +80,11 @@ export class ExpressionWatcher {
         const expr = this.expression;
         const obj = this.obj;
         const oldValue = this.value;
-        const canOptimize = expr.$kind === 10082 /* AccessScope */ && this.record.count === 1;
+        const canOptimize = expr.$kind === 10082 /* AccessScope */ && this.obs.count === 1;
         if (!canOptimize) {
-            this.record.version++;
+            this.obs.version++;
             value = expr.evaluate(0, this.scope, null, this.locator, this);
-            this.record.clear(false);
+            this.obs.clear(false);
         }
         if (!Object.is(value, oldValue)) {
             this.value = value;
@@ -97,16 +97,16 @@ export class ExpressionWatcher {
             return;
         }
         this.isBound = true;
-        this.record.version++;
+        this.obs.version++;
         this.value = this.expression.evaluate(0 /* none */, this.scope, null, this.locator, this);
-        this.record.clear(false);
+        this.obs.clear(false);
     }
     $unbind() {
         if (!this.isBound) {
             return;
         }
         this.isBound = false;
-        this.record.clear(true);
+        this.obs.clear(true);
         this.value = void 0;
     }
 }

@@ -96,8 +96,21 @@ export interface ICollectionSubscribable {
     subscribeToCollection(subscriber: ICollectionSubscriber): void;
     unsubscribeFromCollection(subscriber: ICollectionSubscriber): void;
 }
+export interface ISubscriberRecord<T extends ISubscriber | ICollectionSubscriber = ISubscriber | ICollectionSubscriber> {
+    readonly count: number;
+    add(subscriber: T): boolean;
+    has(subscriber: T): boolean;
+    remove(subscriber: T): boolean;
+    any(): boolean;
+    notify(value: unknown, oldValue: unknown, flags: LifecycleFlags): void;
+    notifyCollection(indexMap: IndexMap, flags: LifecycleFlags): void;
+}
 export interface ISubscriberCollection extends ISubscribable {
     [key: number]: LifecycleFlags;
+    /**
+     * The backing subscriber record for all subscriber methods of this collection
+     */
+    readonly subs: ISubscriberRecord;
     callSubscribers(newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void;
     hasSubscribers(): boolean;
     hasSubscriber(subscriber: ISubscriber): boolean;
@@ -106,6 +119,10 @@ export interface ISubscriberCollection extends ISubscribable {
 }
 export interface ICollectionSubscriberCollection extends ICollectionSubscribable, ISubscribable {
     [key: number]: LifecycleFlags;
+    /**
+     * The backing subscriber record for all subscriber methods of this collection
+     */
+    readonly subs: ISubscriberRecord;
     callCollectionSubscribers(indexMap: IndexMap, flags: LifecycleFlags): void;
     hasCollectionSubscribers(): boolean;
     hasCollectionSubscriber(subscriber: ICollectionSubscriber): boolean;

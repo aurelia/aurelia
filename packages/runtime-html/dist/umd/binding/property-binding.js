@@ -62,7 +62,7 @@
                 //  (1). determine whether this should be the behavior
                 //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start()
                 const shouldQueueFlush = (flags & 32 /* fromBind */) === 0 && (targetObserver.type & 8 /* Layout */) > 0;
-                const obsRecord = this.record;
+                const obsRecord = this.obs;
                 // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
                 if (sourceExpression.$kind !== 10082 /* AccessScope */ || obsRecord.count > 1) {
                     // todo: in VC expressions, from view also requires connect
@@ -162,7 +162,7 @@
                 task.cancel();
                 this.task = null;
             }
-            this.record.clear(true);
+            this.obs.clear(true);
             this.isBound = false;
         }
     }

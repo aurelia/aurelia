@@ -18,7 +18,7 @@ export { PropertyAccessor, } from './observation/property-accessor.js';
 export { ProxyObservable, } from './observation/proxy-observation.js';
 export { SetterObserver, } from './observation/setter-observer.js';
 export { ISignaler, } from './observation/signaler.js';
-export { subscriberCollection, collectionSubscriberCollection, } from './observation/subscriber-collection.js';
+export { subscriberCollection, collectionSubscriberCollection, SubscriberRecord, } from './observation/subscriber-collection.js';
 export { ConnectableSwitcher, } from './observation/connectable-switcher.js';
 export { bindingBehavior, BindingBehavior, BindingBehaviorDefinition, BindingInterceptor, BindingBehaviorFactory, BindingBehaviorStrategy, } from './binding-behavior.js';
 export { ValueConverter, ValueConverterDefinition, valueConverter, } from './value-converter.js';

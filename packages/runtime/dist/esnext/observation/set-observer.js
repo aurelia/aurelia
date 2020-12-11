@@ -138,7 +138,7 @@ export class SetObserver {
         const size = this.collection.size;
         this.inBatch = false;
         this.indexMap = createIndexMap(size);
-        this.callCollectionSubscribers(indexMap, 8 /* updateTarget */);
+        this.subs.notifyCollection(indexMap, 8 /* updateTarget */);
     }
 }
 collectionSubscriberCollection()(SetObserver);

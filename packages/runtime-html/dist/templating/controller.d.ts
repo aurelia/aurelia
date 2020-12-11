@@ -1,11 +1,12 @@
 import { IContainer, Writable, IDisposable } from '@aurelia/kernel';
-import { IBinding, Scope, LifecycleFlags, ILifecycle, AccessorOrObserver } from '@aurelia/runtime';
+import { Scope, LifecycleFlags, ILifecycle } from '@aurelia/runtime';
 import { INode, INodeSequence, IRenderLocation } from '../dom.js';
 import { CustomElementDefinition, PartialCustomElementDefinition } from '../resources/custom-element.js';
 import { CustomAttributeDefinition } from '../resources/custom-attribute.js';
 import { IRenderContext, RenderContext, ICompiledRenderContext } from './render-context.js';
 import { IAppRoot } from '../app-root.js';
 import { IPlatform } from '../platform.js';
+import type { IBinding, AccessorOrObserver } from '@aurelia/runtime';
 import type { RegisteredProjections } from '../resources/custom-elements/au-slot.js';
 import type { IViewFactory } from './view.js';
 import type { Instruction } from '../renderer.js';

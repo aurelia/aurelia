@@ -9,7 +9,8 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.ensureProto = exports.defineHiddenProp = void 0;
+    exports.ensureProto = exports.defineHiddenProp = exports.def = void 0;
+    exports.def = Reflect.defineProperty;
     function defineHiddenProp(obj, key, value) {
         Reflect.defineProperty(obj, key, {
             enumerable: false,

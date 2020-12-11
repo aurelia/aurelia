@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "../observation.js", "./collection-length-observer.js", "./subscriber-collection.js"], factory);
+        define(["require", "exports", "../observation.js", "./collection-length-observer.js", "./subscriber-collection.js", "../utilities-objects.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -13,6 +13,7 @@
     const observation_js_1 = require("../observation.js");
     const collection_length_observer_js_1 = require("./collection-length-observer.js");
     const subscriber_collection_js_1 = require("./subscriber-collection.js");
+    const utilities_objects_js_1 = require("../utilities-objects.js");
     const observerLookup = new WeakMap();
     // https://tc39.github.io/ecma262/#sec-sortcompare
     function sortCompare(x, y) {
@@ -344,20 +345,14 @@
             return this;
         }
     };
-    const descriptorProps = {
-        writable: true,
-        enumerable: false,
-        configurable: true
-    };
-    const def = Reflect.defineProperty;
     for (const method of methods) {
-        def(observe[method], 'observing', { value: true, writable: false, configurable: false, enumerable: false });
+        utilities_objects_js_1.def(observe[method], 'observing', { value: true, writable: false, configurable: false, enumerable: false });
     }
     let enableArrayObservationCalled = false;
     function enableArrayObservation() {
         for (const method of methods) {
             if (proto[method].observing !== true) {
-                def(proto, method, { ...descriptorProps, value: observe[method] });
+                utilities_objects_js_1.defineHiddenProp(proto, method, observe[method]);
             }
         }
     }
@@ -365,7 +360,7 @@
     function disableArrayObservation() {
         for (const method of methods) {
             if (proto[method].observing === true) {
-                def(proto, method, { ...descriptorProps, value: native[method] });
+                utilities_objects_js_1.defineHiddenProp(proto, method, native[method]);
             }
         }
     }
@@ -408,7 +403,7 @@
             const length = this.collection.length;
             this.inBatch = false;
             this.indexMap = observation_js_1.createIndexMap(length);
-            this.callCollectionSubscribers(indexMap, 8 /* updateTarget */);
+            this.subs.notifyCollection(indexMap, 8 /* updateTarget */);
         }
         /**
          * @internal
@@ -427,7 +422,6 @@
         constructor(owner, index) {
             this.owner = owner;
             this.index = index;
-            this.subCount = 0;
             this.value = this.getValue();
         }
         getValue() {
@@ -462,17 +456,17 @@
             const currValue = this.value = this.getValue();
             // hmm
             if (prevValue !== currValue) {
-                this.callSubscribers(currValue, prevValue, flags);
+                this.subs.notify(currValue, prevValue, flags);
             }
         }
         subscribe(subscriber) {
-            if (this.addSubscriber(subscriber) && ++this.subCount === 1) {
-                this.owner.addCollectionSubscriber(this);
+            if (this.subs.add(subscriber) && this.subs.count === 1) {
+                this.owner.subs.add(this);
             }
         }
         unsubscribe(subscriber) {
-            if (this.removeSubscriber(subscriber) && --this.subCount === 0) {
-                this.owner.removeCollectionSubscriber(this);
+            if (this.subs.remove(subscriber) && this.subs.count === 0) {
+                this.owner.subs.remove(this);
             }
         }
     }

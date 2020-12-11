@@ -92,7 +92,6 @@ export class DirtyCheckProperty {
         this.obj = obj;
         this.propertyKey = propertyKey;
         this.type = 4 /* Obj */;
-        this.subCount = 0;
     }
     getValue() {
         return this.obj[this.propertyKey];
@@ -108,17 +107,17 @@ export class DirtyCheckProperty {
     flush(flags) {
         const oldValue = this.oldValue;
         const newValue = this.getValue();
-        this.callSubscribers(newValue, oldValue, flags | 8 /* updateTarget */);
+        this.subs.notify(newValue, oldValue, flags | 8 /* updateTarget */);
         this.oldValue = newValue;
     }
     subscribe(subscriber) {
-        if (this.addSubscriber(subscriber) && ++this.subCount === 1) {
+        if (this.subs.add(subscriber) && this.subs.count === 1) {
             this.oldValue = this.obj[this.propertyKey];
             this.dirtyChecker.addProperty(this);
         }
     }
     unsubscribe(subscriber) {
-        if (this.removeSubscriber(subscriber) && --this.subCount === 0) {
+        if (this.subs.remove(subscriber) && this.subs.count === 0) {
             this.dirtyChecker.removeProperty(this);
         }
     }

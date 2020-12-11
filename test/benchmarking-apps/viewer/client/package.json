@@ -1,6 +1,7 @@
 {
   "name": "@benchmarking-apps/viewer-client",
   "version": "1.0.0",
+  "private": true,
   "scripts": {
     "watch": "webpack-dev-server --no-inline",
     "build": "rimraf dist && webpack"

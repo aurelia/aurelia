@@ -1,6 +1,7 @@
 {
   "name": "@benchmarking-apps/viewer-server",
   "version": "1.0.0",
+  "private": true,
   "dependencies": {
     "@aurelia/metadata": "dev",
     "@aurelia/platform": "dev",

@@ -1,6 +1,7 @@
 {
   "name": "@benchmarking-apps/runner",
   "version": "1.0.0",
+  "private": true,
   "devDependencies": {
     "@aurelia/http-server": "0.8.0",
     "@azure/cosmos": "^3.9.3",

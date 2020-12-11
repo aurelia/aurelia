@@ -1,6 +1,7 @@
 {
   "name": "@benchmarking-apps/aurelia2",
   "version": "1.0.0",
+  "private": true,
   "description": "Aurelia2 app",
   "main": "index.js",
   "scripts": {

@@ -149,6 +149,7 @@ export {
 export {
   subscriberCollection,
   collectionSubscriberCollection,
+  SubscriberRecord,
 } from './observation/subscriber-collection.js';
 export {
   ConnectableSwitcher,
@@ -209,6 +210,7 @@ export {
   ICollectionSubscriberCollection,
   ICollectionSubscribable,
   ISubscriber,
+  ISubscriberRecord,
   isIndexMap,
   copyIndexMap,
   cloneIndexMap,

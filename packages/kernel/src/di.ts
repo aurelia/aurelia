@@ -731,6 +731,14 @@ export interface IInvoker<T extends Constructable = any> {
   ): Resolved<T>;
 }
 
+function containerGetKey(this: IContainer, d: Key) {
+  return this.get(d);
+}
+
+function transformInstance<T>(inst: Resolved<T>, transform: (instance: any) => any) {
+  return transform(inst);
+}
+
 /** @internal */
 export class Factory<T extends Constructable = any> implements IFactory<T> {
   private transformers: ((instance: any) => any)[] | null = null;
@@ -742,22 +750,16 @@ export class Factory<T extends Constructable = any> implements IFactory<T> {
   public construct(container: IContainer, dynamicDependencies?: Key[]): Resolved<T> {
     let instance: Resolved<T>;
     if (dynamicDependencies === void 0) {
-      instance = new this.Type(...this.dependencies.map(function (d) {
-        return container.get(d);
-      })) as Resolved<T>;
+      instance = new this.Type(...this.dependencies.map(containerGetKey, container)) as Resolved<T>;
     } else {
-      instance = new this.Type(...this.dependencies.map(function (d) {
-        return container.get(d);
-      }), ...dynamicDependencies) as Resolved<T>;
+      instance = new this.Type(...this.dependencies.map(containerGetKey, container), ...dynamicDependencies) as Resolved<T>;
     }
 
     if (this.transformers == null) {
       return instance;
     }
 
-    return this.transformers.reduce(function (inst, transform) {
-      return transform(inst);
-    }, instance);
+    return this.transformers.reduce(transformInstance, instance);
   }
 
   public registerTransformer(transformer: (instance: any) => any): void {

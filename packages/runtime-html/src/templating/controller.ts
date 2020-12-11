@@ -16,18 +16,13 @@ import {
 } from '@aurelia/kernel';
 import {
   AccessScopeExpression,
-  IBinding,
+  BindingType,
   Scope,
   LifecycleFlags,
   ILifecycle,
-  BindingType,
   IObserverLocator,
-  IObservable,
   IExpressionParser,
-  AccessorOrObserver,
 } from '@aurelia/runtime';
-import { PropertyBinding } from '../binding/property-binding.js';
-import { BindableDefinition } from '../bindable';
 import { BindableObserver } from '../observation/bindable-observer';
 import { convertToRenderLocation, INode, INodeSequence, IRenderLocation } from '../dom.js';
 import { CustomElementDefinition, CustomElement, PartialCustomElementDefinition } from '../resources/custom-element.js';
@@ -38,6 +33,13 @@ import { IAppRoot } from '../app-root.js';
 import { IPlatform } from '../platform.js';
 import { IShadowDOMGlobalStyles, IShadowDOMStyles } from './styles.js';
 import { ComputedWatcher, ExpressionWatcher } from './watchers.js';
+import type {
+  IBinding,
+  IObservable,
+  AccessorOrObserver,
+} from '@aurelia/runtime';
+import type { BindableDefinition } from '../bindable.js';
+import type { PropertyBinding } from '../binding/property-binding.js';
 import type { RegisteredProjections } from '../resources/custom-elements/au-slot.js';
 import type { IViewFactory } from './view.js';
 import type { Instruction } from '../renderer.js';

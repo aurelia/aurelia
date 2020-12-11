@@ -171,14 +171,22 @@ export interface ICollectionSubscribable {
   unsubscribeFromCollection(subscriber: ICollectionSubscriber): void;
 }
 
+export interface ISubscriberRecord<T extends ISubscriber | ICollectionSubscriber = ISubscriber | ICollectionSubscriber> {
+  readonly count: number;
+  add(subscriber: T): boolean;
+  has(subscriber: T): boolean;
+  remove(subscriber: T): boolean;
+  any(): boolean;
+  notify(value: unknown, oldValue: unknown, flags: LifecycleFlags): void;
+  notifyCollection(indexMap: IndexMap, flags: LifecycleFlags): void;
+}
+
 export interface ISubscriberCollection extends ISubscribable {
   [key: number]: LifecycleFlags;
-
-  /** @internal */_sFlags: SubscriberFlags;
-  /** @internal */_s0?: ISubscriber;
-  /** @internal */_s1?: ISubscriber;
-  /** @internal */_s2?: ISubscriber;
-  /** @internal */_sRest?: ISubscriber[];
+  /**
+   * The backing subscriber record for all subscriber methods of this collection
+   */
+  readonly subs: ISubscriberRecord;
 
   callSubscribers(newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void;
   hasSubscribers(): boolean;
@@ -190,11 +198,10 @@ export interface ISubscriberCollection extends ISubscribable {
 export interface ICollectionSubscriberCollection extends ICollectionSubscribable, ISubscribable {
   [key: number]: LifecycleFlags;
 
-  /** @internal */_csFlags: SubscriberFlags;
-  /** @internal */_cs0?: ICollectionSubscriber;
-  /** @internal */_cs1?: ICollectionSubscriber;
-  /** @internal */_cs2?: ICollectionSubscriber;
-  /** @internal */_csRest?: ICollectionSubscriber[];
+  /**
+   * The backing subscriber record for all subscriber methods of this collection
+   */
+  readonly subs: ISubscriberRecord;
 
   callCollectionSubscribers(indexMap: IndexMap, flags: LifecycleFlags): void;
   hasCollectionSubscribers(): boolean;

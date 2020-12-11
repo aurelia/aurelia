@@ -203,7 +203,7 @@ export class ChildrenObserver {
 
   public subscribe(subscriber: ISubscriber): void {
     this.tryStartObserving();
-    this.addSubscriber(subscriber);
+    this.subs.add(subscriber);
   }
 
   private tryStartObserving() {
@@ -222,7 +222,7 @@ export class ChildrenObserver {
       this.callback.call(this.obj);
     }
 
-    this.callSubscribers(this.children, undefined, LifecycleFlags.updateTarget);
+    this.subs.notify(this.children, undefined, LifecycleFlags.updateTarget);
   }
 }
 

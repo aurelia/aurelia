@@ -44,9 +44,9 @@ export class LetBinding implements IPartialConnectableBinding {
       const target = this.target as IIndexable;
       const targetProperty = this.targetProperty as string;
       const previousValue: unknown = target[targetProperty];
-      this.record.version++;
+      this.obs.version++;
       const newValue: unknown = this.sourceExpression.evaluate(flags, this.$scope!, this.$hostScope, this.locator, this.interceptor);
-      this.record.clear(false);
+      this.obs.clear(false);
       if (newValue !== previousValue) {
         target[targetProperty] = newValue;
       }
@@ -91,7 +91,7 @@ export class LetBinding implements IPartialConnectableBinding {
     }
     this.$scope = void 0;
     this.$hostScope = null;
-    this.record.clear(true);
+    this.obs.clear(true);
 
     // remove isBound and isUnbinding flags
     this.isBound = false;

@@ -140,15 +140,15 @@ export class TranslationBinding implements IPartialConnectableBinding {
     this.targetObservers.clear();
 
     this.scope = (void 0)!;
-    this.record.clear(true);
+    this.obs.clear(true);
   }
 
   public handleChange(newValue: string | i18next.TOptions, _previousValue: string | i18next.TOptions, flags: LifecycleFlags): void {
-    this.record.version++;
+    this.obs.version++;
     this.keyExpression = this.isInterpolation
         ? this.expr.evaluate(flags, this.scope, this.hostScope, this.locator, this) as string
         : newValue as string;
-    this.record.clear(false);
+    this.obs.clear(false);
     this.ensureKeyExpression();
     this.updateTranslations(flags);
   }
@@ -304,9 +304,9 @@ class ParameterBinding {
     if ((flags & LifecycleFlags.updateTarget) === 0) {
       throw new Error('Unexpected context in a ParameterBinding.');
     }
-    this.record.version++;
+    this.obs.version++;
     this.value = this.expr.evaluate(flags, this.scope, this.hostScope, this.locator, this) as i18next.TOptions;
-    this.record.clear(false);
+    this.obs.clear(false);
     this.updater(flags);
   }
 
@@ -335,6 +335,6 @@ class ParameterBinding {
     }
 
     this.scope = (void 0)!;
-    this.record.clear(true);
+    this.obs.clear(true);
   }
 }

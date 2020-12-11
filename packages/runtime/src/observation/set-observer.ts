@@ -162,7 +162,7 @@ export class SetObserver {
 
     this.inBatch = false;
     this.indexMap = createIndexMap(size);
-    this.callCollectionSubscribers(indexMap, LifecycleFlags.updateTarget);
+    this.subs.notifyCollection(indexMap, LifecycleFlags.updateTarget);
   }
 }
 

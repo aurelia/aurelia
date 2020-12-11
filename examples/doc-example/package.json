@@ -1,5 +1,5 @@
 {
-  "name": "test-doc-example-app",
+  "name": "@examples/doc-example",
   "private": true,
   "description": "An Aurelia 2 client application.",
   "version": "0.8.0",

@@ -49,10 +49,6 @@ export class ComputedObserver implements IConnectableBinding, ISubscriber, IColl
   public type: AccessorType = AccessorType.Obj;
   public value: unknown = void 0;
 
-  /**
-   * @internal
-   */
-  private subCount: number = 0;
   // todo: maybe use a counter allow recursive call to a certain level
   /**
    * @internal
@@ -72,7 +68,7 @@ export class ComputedObserver implements IConnectableBinding, ISubscriber, IColl
   }
 
   public getValue() {
-    if (this.subCount === 0) {
+    if (this.subs.count === 0) {
       return this.get.call(this.obj, this);
     }
     if (this.isDirty) {
@@ -100,14 +96,14 @@ export class ComputedObserver implements IConnectableBinding, ISubscriber, IColl
 
   public handleChange(): void {
     this.isDirty = true;
-    if (this.subCount > 0) {
+    if (this.subs.count > 0) {
       this.run();
     }
   }
 
   public handleCollectionChange(): void {
     this.isDirty = true;
-    if (this.subCount > 0) {
+    if (this.subs.count > 0) {
       this.run();
     }
   }
@@ -116,17 +112,17 @@ export class ComputedObserver implements IConnectableBinding, ISubscriber, IColl
     // in theory, a collection subscriber could be added before a property subscriber
     // and it should be handled similarly in subscribeToCollection
     // though not handling for now, and wait until the merge of normal + collection subscription
-    if (this.addSubscriber(subscriber) && ++this.subCount === 1) {
+    if (this.subs.add(subscriber) && this.subs.count === 1) {
       this.compute();
       this.isDirty = false;
     }
   }
 
   public unsubscribe(subscriber: ISubscriber): void {
-    if (this.removeSubscriber(subscriber) && --this.subCount === 0) {
+    if (this.subs.remove(subscriber) && this.subs.count === 0) {
       this.isDirty = true;
-      this.record.clear(true);
-      this.cRecord.clear(true);
+      this.obs.clear(true);
+      this.cObs.clear(true);
     }
   }
 
@@ -141,19 +137,19 @@ export class ComputedObserver implements IConnectableBinding, ISubscriber, IColl
 
     if (!Object.is(newValue, oldValue)) {
       // should optionally queue
-      this.callSubscribers(newValue, oldValue, LifecycleFlags.none);
+      this.subs.notify(newValue, oldValue, LifecycleFlags.none);
     }
   }
 
   private compute(): unknown {
     this.running = true;
-    this.record.version++;
+    this.obs.version++;
     try {
       enterConnectable(this);
       return this.value = unwrap(this.get.call(this.useProxy ? wrap(this.obj) : this.obj, this));
     } finally {
-      this.record.clear(false);
-      this.cRecord.clear(false);
+      this.obs.clear(false);
+      this.cObs.clear(false);
       this.running = false;
       exitConnectable(this);
     }

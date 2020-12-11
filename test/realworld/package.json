@@ -31,7 +31,6 @@
     "@types/querystringify": "^2.0.0",
     "css-loader": "^4.3.0",
     "html-webpack-plugin": "^4.5.0",
-    "htmlhint": "^0.11.0",
     "rimraf": "^3.0.0",
     "style-loader": "^1.1.1",
     "ts-loader": "^8.0.4",
@@ -41,7 +40,6 @@
     "webpack-dev-server": "^3.10.1"
   },
   "scripts": {
-    "lint:html": "htmlhint -c .htmlhintrc src",
     "start": "webpack-dev-server",
     "build": "rimraf dist && webpack"
   }

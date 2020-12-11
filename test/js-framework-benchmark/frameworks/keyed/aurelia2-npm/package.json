@@ -23,7 +23,6 @@
     "css-loader": "^3.4.0",
     "html-loader": "^0.5.5",
     "html-webpack-plugin": "^3.2.0",
-    "htmlhint": "^0.11.0",
     "local-web-server": "^3.0.7",
     "loglevel": "^1.6.6",
     "rimraf": "^3.0.0",
@@ -35,8 +34,6 @@
     "webpack-dev-server": "^3.10.1"
   },
   "scripts": {
-    "lint:html": "htmlhint -c .htmlhintrc src",
-    "lint": "npm run lint:js && npm run lint:html",
     "start": "npm run build && npm run serve",
     "build": "rimraf dist && webpack",
     "build-dev": "npm run build",

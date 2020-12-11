@@ -17,7 +17,6 @@
   },
   "devDependencies": {
     "@aurelia/http-server": "0.8.0",
-    "htmlhint": "^0.11.0",
     "rimraf": "^3.0.0",
     "webpack": "^4.41.4",
     "webpack-cli": "^3.3.10",
@@ -34,7 +33,6 @@
     "eslint": "^7.10.0"
   },
   "scripts": {
-    "lint:html": "htmlhint -c .htmlhintrc src",
     "start": "webpack-dev-server",
     "build": "rimraf dist && webpack --mode=production",
     "watch": "webpack-dev-server --no-inline",

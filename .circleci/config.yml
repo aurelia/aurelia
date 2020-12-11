@@ -343,50 +343,6 @@ jobs:
             cd test/browserstack
             npm run e2e
 
-  e2e_cypress_doc_example:
-    executor: docker-circleci
-    steps:
-      - checkout_install_bootstrap
-      - run: npm run build
-      - run:
-          name: "Install cypress"
-          command: |
-            cd test/doc-example
-            npm i
-      - run:
-          name: "Install and build test app"
-          command: |
-            cd test/doc-example/app
-            npm run build
-      - run:
-          name: "Serve test app in the background"
-          background: true
-          command: |
-            cd test/doc-example/app
-            npm run serve
-      - run:
-          name: "Run e2e tests"
-          command: |
-            cd test/doc-example
-            npm run test
-
-  e2e_cypress:
-    executor: docker-circleci
-    steps:
-      - checkout_install_bootstrap
-      - run: npm run build
-      - run:
-          name: "Install cypress"
-          command: |
-            cd packages/__e2e__
-            npm i
-      - run:
-          name: "Run e2e tests"
-          background: true
-          command: |
-            cd packages/__e2e__
-            npm run e2e
-
   publish_npm:
     executor: docker-aurelia
     parameters:
@@ -523,10 +479,6 @@ workflows:
           <<: *filter_ignore_develop_release
       - benchmark_playwright:
           <<: *filter_ignore_develop_release
-      - e2e_cypress:
-         <<: *filter_ignore_develop_release
-      #- e2e_cypress_doc_example:
-      #    <<: *filter_ignore_develop_release
       - e2e_playwright:
           <<: *filter_ignore_develop_release
           name: jit-webpack-conventions-ts
@@ -549,8 +501,6 @@ workflows:
             #- test_test262
             - lint_packages
             - e2e_browserstack
-            - e2e_cypress
-            #- e2e_cypress_doc_example
             - jit-webpack-conventions-ts
             - jit-webpack-vanilla-ts
           from: master
@@ -567,8 +517,6 @@ workflows:
             - unit_test_node
             - lint_packages
             - e2e_browserstack
-            - e2e_cypress
-            #- e2e_cypress_doc_example
             - jit-webpack-conventions-ts
             - jit-webpack-vanilla-ts
           from: master
@@ -614,10 +562,6 @@ workflows:
           <<: *filter_only_tag
       - e2e_browserstack:
           <<: *filter_only_tag
-      - e2e_cypress:
-         <<: *filter_only_tag
-      #- e2e_cypress_doc_example:
-      #    <<: *filter_only_tag
       - merge_and_dist:
           <<: *filter_only_tag
           requires:
@@ -627,8 +571,6 @@ workflows:
             #- test_test262
             - lint_packages
             - e2e_browserstack
-            - e2e_cypress
-            #- e2e_cypress_doc_example
           from: $CIRCLE_TAG
           to: release
           channel: latest

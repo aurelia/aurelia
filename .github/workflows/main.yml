@@ -76,15 +76,3 @@ jobs:
         working-directory: test/fractals-tree
       - run: npm run build
         working-directory: test/sierpinski-triangle
-
-  cypress:
-    runs-on: ubuntu-latest
-    container:
-      image: "cypress/browsers:node12.13.0-chrome80-ff74"
-      options: --user 1001
-    steps:
-      - uses: actions/checkout@v2
-      - run: npm ci
-      - run: npm run build
-      - run: npm run e2e
-        working-directory: packages/__e2e__

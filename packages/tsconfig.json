@@ -1,7 +1,6 @@
 {
   "files": [],
   "references": [
-    { "path": "__e2e__" },
     { "path": "__tests__" },
     { "path": "aot" },
     { "path": "au" },

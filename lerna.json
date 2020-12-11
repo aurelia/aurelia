@@ -5,7 +5,6 @@
     }
   },
   "packages": [
-    "packages/__e2e__",
     "packages/__tests__",
     "packages/aot",
     "packages/au",
@@ -38,6 +37,7 @@
     "test/doc-example/app",
     "test/fractals-tree",
     "test/grid",
+    "test/i18n",
     "test/js-framework-benchmark",
     "test/js-framework-benchmark/frameworks/keyed/aurelia2-local",
     "test/kitchen-sink",

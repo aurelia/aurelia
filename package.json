@@ -75,7 +75,6 @@
     "change-tsconfigs:restore": "ts-node -P tsconfig.json scripts/change-tsconfigs.ts restore",
     "post-benchmark-result": "ts-node -P tsconfig.json scripts/post-benchmark-result.ts",
     "prepare-release": "ts-node -P tsconfig.json scripts/prepare-release.ts",
-    "prepare-release:conventional": "lerna version --conventional-commits --no-push --no-git-tag-version --exact --loglevel verbose -y",
     "publish:dev": "ts-node -P tsconfig.json scripts/publish.ts dev",
     "publish:latest": "ts-node -P tsconfig.json scripts/publish.ts latest",
     "bump-version:dev": "ts-node -P tsconfig.json scripts/bump-version.ts dev",
@@ -93,9 +92,7 @@
     "@typescript-eslint/parser": "^4.4.0",
     "chalk": "^4.1.0",
     "codecov": "^3.6.1",
-    "commitizen": "^4.0.3",
     "cross-env": "^7.0.2",
-    "cz-conventional-changelog": "^3.0.2",
     "eslint": "^7.10.0",
     "eslint-plugin-compat": "^3.8.0",
     "eslint-plugin-import": "^2.22.1",
@@ -108,11 +105,6 @@
     "ts-node": "^9.0.0",
     "tsconfig-paths": "^3.9.0",
     "typescript": "^4.0.3"
-  },
-  "config": {
-    "commitizen": {
-      "path": "./node_modules/cz-conventional-changelog"
-    }
   },
   "commitlint": {
     "rules": {

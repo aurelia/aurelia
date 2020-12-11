@@ -1,5 +1,5 @@
 {
-  "name": "test-rainbow-spiral",
+  "name": "@examples/rainbow-spiral",
   "license": "MIT",
   "private": true,
   "engines": {

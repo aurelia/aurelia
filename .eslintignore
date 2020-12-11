@@ -1,5 +1,4 @@
 dist
 node_modules
-test/browserstack/browserstack.conf.js
 test/js-framework-benchmark/css/bootstrap
 .eslintrc.js

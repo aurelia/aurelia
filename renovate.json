@@ -37,14 +37,7 @@
     "babel-jest",
     "karma-coverage-istanbul-reporter",
     "jsdom",
-    "copy-webpack-plugin",
-    "@wdio/browserstack-service",
-    "@wdio/cli",
-    "@wdio/local-runner",
-    "@wdio/mocha-framework",
-    "@wdio/selenium-standalone-service",
-    "@wdio/spec-reporter",
-    "@wdio/sync"
+    "copy-webpack-plugin"
   ],
   "packageRules": [
     {

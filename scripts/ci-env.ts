@@ -226,12 +226,6 @@ export class CIEnv {
   }
 
   // custom variables
-  public static get BS_KEY(): string {
-    return logSecretVariable(toString(process.env.BS_KEY), 'BS_KEY');
-  }
-  public static get BS_USER(): string {
-    return logSecretVariable(toString(process.env.BS_USER), 'BS_USER');
-  }
   public static get NPM_TOKEN(): string {
     return logSecretVariable(toString(process.env.NPM_TOKEN), 'NPM_TOKEN');
   }
@@ -240,9 +234,6 @@ export class CIEnv {
   }
   public static get GITHUB_TOKEN(): string {
     return logSecretVariable(toString(process.env.GITHUB_TOKEN), 'GITHUB_TOKEN');
-  }
-  public static get BS_COMPAT_CHECK(): boolean {
-    return logVariable(toBoolean(process.env.BS_COMPAT_CHECK), 'BS_COMPAT_CHECK');
   }
   public static get APP_PORT(): string {
     return logVariable(process.env.APP_PORT || '9000', 'APP_PORT');
@@ -295,27 +286,6 @@ export class CIEnv {
       }, (_err, resp, _body) => {
         resolve(resp);
       });
-    });
-  }
-
-  public static async browserstackPut(path: string, body: any): Promise<any> {
-    const baseUrl = 'https://api.browserstack.com/automate';
-    const auth = new Buffer(`${CIEnv.BS_USER}:${CIEnv.BS_KEY}`).toString('base64');
-    return new Promise(resolve => {
-      request.put(
-        {
-          url: `${baseUrl}/${path}`,
-          headers: {
-            'Authorization': `Basic ${auth}`,
-            'Content-Type': 'application/json',
-            'User-Agent': 'request'
-          },
-          body: JSON.stringify(body)
-        },
-        (_err, resp, _body) => {
-          resolve(resp);
-        }
-      );
     });
   }
 }

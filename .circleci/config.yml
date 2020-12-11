@@ -321,28 +321,6 @@ jobs:
           steps:
             - run: git push origin << parameters.to >>
 
-  e2e_browserstack:
-    executor: docker-circleci
-    steps:
-      - checkout_install_bootstrap
-      - run: npm run build
-      - run:
-          name: "Install e2e tests"
-          command: |
-            cd test/browserstack
-            npm run build
-      - run:
-          name: "Serve e2e app in the background"
-          background: true
-          command: |
-            cd test/browserstack
-            npm run start
-      - run:
-          name: "Run e2e tests"
-          command: |
-            cd test/browserstack
-            npm run e2e
-
   publish_npm:
     executor: docker-aurelia
     parameters:
@@ -473,8 +451,6 @@ workflows:
       #   submodules: true
       - lint_packages:
           <<: *filter_ignore_develop_release
-      - e2e_browserstack:
-          <<: *filter_ignore_develop_release
       - js_framework_benchmark:
           <<: *filter_ignore_develop_release
       - benchmark_playwright:
@@ -500,7 +476,6 @@ workflows:
             - unit_test_node
             #- test_test262
             - lint_packages
-            - e2e_browserstack
             - jit-webpack-conventions-ts
             - jit-webpack-vanilla-ts
           from: master
@@ -516,7 +491,6 @@ workflows:
             - unit_test_firefox
             - unit_test_node
             - lint_packages
-            - e2e_browserstack
             - jit-webpack-conventions-ts
             - jit-webpack-vanilla-ts
           from: master
@@ -560,8 +534,6 @@ workflows:
       #   submodules: true
       - lint_packages:
           <<: *filter_only_tag
-      - e2e_browserstack:
-          <<: *filter_only_tag
       - merge_and_dist:
           <<: *filter_only_tag
           requires:
@@ -570,7 +542,6 @@ workflows:
             - unit_test_node
             #- test_test262
             - lint_packages
-            - e2e_browserstack
           from: $CIRCLE_TAG
           to: release
           channel: latest

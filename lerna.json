@@ -32,7 +32,6 @@
     "packages/babel-jest",
     "packages/ts-jest",
     "test/1kcomponents",
-    "test/browserstack",
     "test/doc-example/app",
     "test/fractals-tree",
     "test/i18n",

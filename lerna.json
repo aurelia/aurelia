@@ -1,9 +1,4 @@
 {
-  "command": {
-    "bootstrap": {
-      "hoist": "**"
-    }
-  },
   "packages": [
     "packages/__tests__",
     "packages/aot",

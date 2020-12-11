@@ -81,13 +81,12 @@ commands:
       - checkout
       - run: npm ci --ignore-scripts
 
-  checkout_install_bootstrap:
+  checkout_install:
     steps:
       - checkout
       - run: npm ci --ignore-scripts
-      - run: npm run bootstrap
 
-  checkout_install_bootstrap_build_bundle_publish_verdaccio:
+  checkout_install_build_bundle_publish_verdaccio:
     parameters:
       from:
         type: string
@@ -103,7 +102,7 @@ commands:
         default: "http://localhost:4873"
     steps:
       - common/configure_git
-      - checkout_install_bootstrap
+      - checkout_install
       - run: npm run build:release
       - run: npm run change-tsconfigs:overwrite:umd
       - run: npm run build:release
@@ -180,7 +179,7 @@ jobs:
         default: false
     executor: << parameters.e >>
     steps:
-      - checkout_install_bootstrap
+      - checkout_install
       - run: npm run build
       - when:
           condition: << parameters.submodules >>
@@ -220,7 +219,7 @@ jobs:
   lint_packages:
     executor: docker-circleci
     steps:
-      - checkout_install_bootstrap
+      - checkout_install
       # TODO: Remove the " -- -- -- --quiet" once warning numbers are down to an acceptable level.
       - run: npm run lint:packages -- -- -- --quiet
       - run: npm run lint:other -- --quiet
@@ -244,7 +243,7 @@ jobs:
         type: boolean
         default: true
     steps:
-      - checkout_install_bootstrap
+      - checkout_install
       - run: set -o pipefail && npm run build:release
       - run: set -o pipefail && npm run change-tsconfigs:overwrite:umd
       - run: set -o pipefail && npm run build:release
@@ -299,7 +298,7 @@ jobs:
         type: string
         default: "http://localhost:4873"
     steps:
-      - checkout_install_bootstrap_build_bundle_publish_verdaccio:
+      - checkout_install_build_bundle_publish_verdaccio:
           from: ${CIRCLE_BRANCH}
           to: develop
           channel: dev
@@ -347,7 +346,7 @@ jobs:
   benchmark_playwright:
     executor: docker-circleci
     steps:
-      - checkout_install_bootstrap
+      - checkout_install
       - run: npm run build
       - run:
           name: "Prepare cosmos db configuration and run test"

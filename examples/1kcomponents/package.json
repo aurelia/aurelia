@@ -1,5 +1,5 @@
 {
-  "name": "test-1kcomponents",
+  "name": "@examples/1kcomponents",
   "license": "MIT",
   "private": true,
   "engines": {

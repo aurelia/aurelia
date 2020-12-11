@@ -4,7 +4,6 @@
  * In its current state, it is NOT a good source for learning about the inner workings and design of the router.
  *
  */
-/* eslint-disable max-lines-per-function */
 import { OpenPromise } from './open-promise.js';
 
 /**
@@ -99,7 +98,12 @@ export class Runner {
 
     if (parent === parent.root) {
       Step.run(parent);
+    } else {
+      for (const child of parent.children) {
+        Step.run(child);
+      }
     }
+
     return parent.result;
 
     // switch (promises.length) {
@@ -498,7 +502,7 @@ export class Step<T = unknown> {
         if (step.value instanceof Promise) {
           step.isAsync = true;
 
-          // Store promise since propageResult can change it for OpenPromise
+          // Store promise since propagateResult can change it for OpenPromise
           const promise = step.promise = step.value;
 
           origin.propagateResult(step.value);

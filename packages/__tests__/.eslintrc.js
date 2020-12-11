@@ -1,7 +1,6 @@
 module.exports = {
   extends: [
     '../../.eslintrc.js',
-    'plugin:cypress/recommended',
     'plugin:mocha/recommended'
   ],
   parserOptions: {

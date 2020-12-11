@@ -8,14 +8,10 @@
           "es2015",
           "dom"
       ],
-      "types": [
-          "cypress"
-      ],
       "resolveJsonModule": true
   },
   "include": [
       "**/*.ts",
-      "node_modules/cypress",
       "integration/*"
   ],
   "exclude": [

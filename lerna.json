@@ -33,7 +33,6 @@
     "packages/ts-jest",
     "test/1kcomponents",
     "test/browserstack",
-    "test/cypress",
     "test/doc-example/app",
     "test/fractals-tree",
     "test/grid",

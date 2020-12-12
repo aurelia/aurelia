@@ -126,7 +126,7 @@ describe('subscriberCollection', function () {
         removalCount++;
       }
     }
-    assert.strictEqual(observer['subs']['_sRest'].length, subscribers.length - 3 - removalCount, `observer['subs']['_sRest'].length`);
+    assert.strictEqual(observer['subs']['_sr'].length, subscribers.length - 3 - removalCount, `observer['subs']['_sr'].length`);
 
     assert.strictEqual(observer['removeSubscriber']({} as any), false, `observer['removeSubscriber']({} as any)`);
   });

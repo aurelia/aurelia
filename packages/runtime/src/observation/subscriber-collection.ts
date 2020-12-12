@@ -53,11 +53,15 @@ export function collectionSubscriberCollection(): ClassDecorator {
 }
 
 export class SubscriberRecord<T extends IAnySubscriber> implements ISubscriberRecord<T> {
-  private _sFlags: SF = SF.None;
+  /**
+   * The subscriber flags: bits indicating the existence status of the subscribers of this record
+   */
+  private _sf: SF = SF.None;
   private _s0?: T;
   private _s1?: T;
   private _s2?: T;
-  private _sRest?: T[];
+  // subscriber rest: When there's more than 3 subscribers, use an array to store the subscriber references
+  private _sr?: T[];
 
   public count: number = 0;
   public readonly owner: ISubscriberCollection | ICollectionSubscriberCollection;
@@ -70,22 +74,22 @@ export class SubscriberRecord<T extends IAnySubscriber> implements ISubscriberRe
     if (this.has(subscriber)) {
       return false;
     }
-    const subscriberFlags = this._sFlags;
+    const subscriberFlags = this._sf;
     if ((subscriberFlags & SF.Subscriber0) === 0) {
       this._s0 = subscriber;
-      this._sFlags |= SF.Subscriber0;
+      this._sf |= SF.Subscriber0;
     } else if ((subscriberFlags & SF.Subscriber1) === 0) {
       this._s1 = subscriber;
-      this._sFlags |= SF.Subscriber1;
+      this._sf |= SF.Subscriber1;
     } else if ((subscriberFlags & SF.Subscriber2) === 0) {
       this._s2 = subscriber;
-      this._sFlags |= SF.Subscriber2;
+      this._sf |= SF.Subscriber2;
     } else if ((subscriberFlags & SF.SubscribersRest) === 0) {
-      this._sRest = [subscriber];
-      this._sFlags |= SF.SubscribersRest;
+      this._sr = [subscriber];
+      this._sf |= SF.SubscribersRest;
     } else {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      this._sRest!.push(subscriber); // Non-null is implied by else branch of (subscriberFlags & SF.SubscribersRest) === 0
+      this._sr!.push(subscriber); // Non-null is implied by else branch of (subscriberFlags & SF.SubscribersRest) === 0
     }
     ++this.count;
     return true;
@@ -95,7 +99,7 @@ export class SubscriberRecord<T extends IAnySubscriber> implements ISubscriberRe
     // Flags here is just a perf tweak
     // Compared to not using flags, it's a moderate speed-up when this collection does not have the subscriber;
     // and minor slow-down when it does, and the former is more common than the latter.
-    const subscriberFlags = this._sFlags;
+    const subscriberFlags = this._sf;
     if ((subscriberFlags & SF.Subscriber0) > 0 && this._s0 === subscriber) {
       return true;
     }
@@ -107,7 +111,7 @@ export class SubscriberRecord<T extends IAnySubscriber> implements ISubscriberRe
     }
     if ((subscriberFlags & SF.SubscribersRest) > 0) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const subscribers = this._sRest!; // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
+      const subscribers = this._sr!; // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
       let i = 0;
       let ii = subscribers!.length;
       for (; i < ii; ++i) {
@@ -120,36 +124,36 @@ export class SubscriberRecord<T extends IAnySubscriber> implements ISubscriberRe
   }
 
   public any(): boolean {
-    return this._sFlags !== SF.None;
+    return this._sf !== SF.None;
   }
 
   public remove(subscriber: T): boolean {
-    const subscriberFlags = this._sFlags;
+    const subscriberFlags = this._sf;
     if ((subscriberFlags & SF.Subscriber0) > 0 && this._s0 === subscriber) {
       this._s0 = void 0;
-      this._sFlags = (this._sFlags | SF.Subscriber0) ^ SF.Subscriber0;
+      this._sf = (this._sf | SF.Subscriber0) ^ SF.Subscriber0;
       --this.count;
       return true;
     } else if ((subscriberFlags & SF.Subscriber1) > 0 && this._s1 === subscriber) {
       this._s1 = void 0;
-      this._sFlags = (this._sFlags | SF.Subscriber1) ^ SF.Subscriber1;
+      this._sf = (this._sf | SF.Subscriber1) ^ SF.Subscriber1;
       --this.count;
       return true;
     } else if ((subscriberFlags & SF.Subscriber2) > 0 && this._s2 === subscriber) {
       this._s2 = void 0;
-      this._sFlags = (this._sFlags | SF.Subscriber2) ^ SF.Subscriber2;
+      this._sf = (this._sf | SF.Subscriber2) ^ SF.Subscriber2;
       --this.count;
       return true;
     } else if ((subscriberFlags & SF.SubscribersRest) > 0) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const subscribers = this._sRest!; // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
+      const subscribers = this._sr!; // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
       let i = 0;
       let ii = subscribers.length;
       for (; i < ii; ++i) {
         if (subscribers[i] === subscriber) {
           subscribers.splice(i, 1);
           if (ii === 1) {
-            this._sFlags = (this._sFlags | SF.SubscribersRest) ^ SF.SubscribersRest;
+            this._sf = (this._sf | SF.SubscribersRest) ^ SF.SubscribersRest;
           }
           // deepscan-disable-next-line
           --i; --ii;
@@ -173,13 +177,13 @@ export class SubscriberRecord<T extends IAnySubscriber> implements ISubscriberRe
     const sub0 = this._s0 as ISubscriber;
     const sub1 = this._s1 as ISubscriber;
     const sub2 = this._s2 as ISubscriber;
-    let subs = this._sRest as ISubscriber[];
+    let subs = this._sr as ISubscriber[];
     if (subs !== void 0) {
       subs = subs.slice();
     }
 
     if (batching) {
-      batches.set(this, [val, oldVal, flags]);
+      batches.set(this, new BatchRecord(this as SubscriberRecord<ISubscriber>, val, oldVal, flags));
       return;
     }
 
@@ -211,13 +215,13 @@ export class SubscriberRecord<T extends IAnySubscriber> implements ISubscriberRe
     const sub0 = this._s0 as ICollectionSubscriber;
     const sub1 = this._s1 as ICollectionSubscriber;
     const sub2 = this._s2 as ICollectionSubscriber;
-    let subs = this._sRest as ICollectionSubscriber[];
+    let subs = this._sr as ICollectionSubscriber[];
     if (subs !== void 0) {
       subs = subs.slice();
     }
 
     if (batching) {
-      batches.set(this, [indexMap, flags]);
+      batches.set(this, new CollectionBatchRecord(this as SubscriberRecord<ICollectionSubscriber>, indexMap, flags));
       return;
     }
 
@@ -274,25 +278,66 @@ function callCollectionSubscribers(this: ICollectionSubscriberCollection, indexM
   this.subs.notifyCollection(indexMap, flags);
 }
 
-const batches: Map<SubscriberRecord<IAnySubscriber>, [unknown, unknown, LF] | [IndexMap, LF]> = new Map();
+interface IBatchRecord {
+  type: 1;
+  rec: SubscriberRecord<IAnySubscriber>;
+  call(): void;
+}
+
+interface ICollectionBatchRecord {
+  type: 2;
+  rec: ISubscriberRecord<ICollectionSubscriber>;
+  call2(): void;
+}
+
+export function batch(fn: () => unknown) {
+  startBatch();
+  fn();
+  releaseBatch();
+};
+const batches: Map<SubscriberRecord<IAnySubscriber>, IBatchRecord | ICollectionBatchRecord> = new Map();
 let batching = false;
 
 function startBatch() {
   batching = true;
 }
 function releaseBatch() {
-  batches.forEach(invokeHandleChange);
+  const releasingBatch = new Map(batches);
+  batches.clear();
   batching = false;
+  releasingBatch.forEach(invokeBatch);
 }
-function invokeHandleChange(changeArguments: [unknown, unknown, LF] | [IndexMap, LF], record: SubscriberRecord<IAnySubscriber>): void {
-  if (changeArguments.length === 3) {
-    record.notify(changeArguments[0], changeArguments[1], changeArguments[2]);
+function invokeBatch(batchRecord: IBatchRecord | ICollectionBatchRecord): void {
+  if (batchRecord.type === 1) {
+    batchRecord.call();
   } else {
-    record.notifyCollection(changeArguments[0], changeArguments[1]);
+    batchRecord.call2();
   }
 }
-export function batch(fn: () => unknown) {
-  startBatch();
-  fn();
-  releaseBatch();
-};
+
+class BatchRecord implements IBatchRecord {
+  public type: 1 = 1;
+  public constructor(
+    public readonly rec: SubscriberRecord<ISubscriber>,
+    public readonly val: unknown,
+    public readonly old: unknown,
+    public readonly f: LF,
+  ) {}
+
+  public call(): void {
+    this.rec.notify(this.val, this.old, this.f);
+  }
+}
+
+class CollectionBatchRecord implements ICollectionBatchRecord {
+  public type: 2 = 2;
+  public constructor(
+    public readonly rec: SubscriberRecord<ICollectionSubscriber>,
+    public readonly map: IndexMap,
+    public readonly f: LF,
+  ) {}
+
+  public call2(): void {
+    this.rec.notifyCollection(this.map, this.f);
+  }
+}

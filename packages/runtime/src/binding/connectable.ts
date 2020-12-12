@@ -17,7 +17,7 @@ import {
   ICollectionSubscribable,
 } from '../observation.js';
 import { IObserverLocator } from '../observation/observer-locator.js';
-import { defineHiddenProp, ensureProto } from '../utilities-objects.js';
+import { def, defineHiddenProp, ensureProto } from '../utilities-objects.js';
 import type { Scope } from '../observation/binding-context.js';
 
 // TODO: add connect-queue (or something similar) back in when everything else is working, to improve startup time
@@ -240,11 +240,10 @@ type DecoratedConnectable<TProto, TClass> = Class<TProto & IConnectableBinding, 
 
 function connectableDecorator<TProto, TClass>(target: DecoratableConnectable<TProto, TClass>): DecoratedConnectable<TProto, TClass> {
   const proto = target.prototype;
-  const defProp = Reflect.defineProperty;
   ensureProto(proto, 'observeProperty', observeProperty, true);
   ensureProto(proto, 'observeCollection', observeCollection, true);
-  defProp(proto, 'obs', { get: getObserverRecord });
-  defProp(proto, 'cObs', { get: getCollectionObserverRecord });
+  def(proto, 'obs', { get: getObserverRecord });
+  def(proto, 'cObs', { get: getCollectionObserverRecord });
   // optionally add these two methods to normalize a connectable impl
   ensureProto(proto, 'handleChange', noopHandleChange);
   ensureProto(proto, 'handleCollectionChange', noopHandleCollectionChange);

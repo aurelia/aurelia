@@ -1,5 +1,6 @@
 import { AccessorType, LifecycleFlags } from '../observation.js';
 import { subscriberCollection } from './subscriber-collection.js';
+import { def } from '../utilities-objects.js';
 
 import type { IIndexable } from '@aurelia/kernel';
 import type { IAccessor, IObserver, InterceptorFunc, ISubscriber, ISubscribable, ISubscriberCollection } from '../observation.js';
@@ -57,7 +58,7 @@ export class SetterObserver {
     if (this.observing === false) {
       this.observing = true;
       this.currentValue = this.obj[this.propertyKey];
-      Reflect.defineProperty(
+      def(
         this.obj,
         this.propertyKey,
         {
@@ -75,7 +76,7 @@ export class SetterObserver {
 
   public stop(): this {
     if (this.observing) {
-      Reflect.defineProperty(this.obj, this.propertyKey, {
+      def(this.obj, this.propertyKey, {
         enumerable: true,
         configurable: true,
         writable: true,

@@ -1,5 +1,6 @@
 import { IObserver, LifecycleFlags } from '../observation.js';
 import { SetterNotifier } from './setter-observer.js';
+import { def } from '../utilities-objects.js';
 
 import type { Constructable, IIndexable } from '@aurelia/kernel';
 import type { IBindingContext, InterceptorFunc, ISubscriber, IObservable } from '../observation.js';
@@ -16,7 +17,7 @@ export interface IObservableDefinition {
 
 function getObserversLookup(obj: IObservable): IIndexable<{}, SetterObserver | SetterNotifier> {
   if (obj.$observers === void 0) {
-    Reflect.defineProperty(obj, '$observers', { value: {} });
+    def(obj, '$observers', { value: {} });
     // todo: define in a weakmap
   }
   return obj.$observers as IIndexable<{}, SetterObserver | SetterNotifier>;
@@ -129,7 +130,7 @@ export function observable(
     };
 
     if (isClassDecorator) {
-      Reflect.defineProperty((target as Constructable).prototype, key, descriptor);
+      def((target as Constructable).prototype, key, descriptor);
     } else {
       return descriptor;
     }

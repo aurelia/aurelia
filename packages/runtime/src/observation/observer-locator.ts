@@ -13,6 +13,7 @@ import { PrimitiveObserver } from './primitive-observer.js';
 import { PropertyAccessor } from './property-accessor.js';
 import { getSetObserver } from './set-observer.js';
 import { SetterObserver } from './setter-observer.js';
+import { def } from '../utilities-objects.js';
 
 import type {
   Collection,
@@ -191,7 +192,7 @@ export class ObserverLocator {
       return observer;
     }
     if (obj.$observers === void 0) {
-      Reflect.defineProperty(obj, '$observers', { value: { [key]: observer } });
+      def(obj, '$observers', { value: { [key]: observer } });
       return observer;
     }
     return obj.$observers[key] = observer;

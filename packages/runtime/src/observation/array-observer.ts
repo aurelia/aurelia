@@ -480,8 +480,8 @@ export class ArrayIndexObserver implements IArrayIndexObserver {
   }
 }
 
-collectionSubscriberCollection()(ArrayObserver);
-subscriberCollection()(ArrayIndexObserver);
+collectionSubscriberCollection(ArrayObserver);
+subscriberCollection(ArrayIndexObserver);
 
 export function getArrayObserver(array: unknown[], lifecycle: ILifecycle | null): ArrayObserver {
   let observer = observerLookup.get(array);

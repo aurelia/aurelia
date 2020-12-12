@@ -152,4 +152,4 @@ export class DirtyCheckProperty implements DirtyCheckProperty {
   }
 }
 
-subscriberCollection()(DirtyCheckProperty);
+subscriberCollection(DirtyCheckProperty);

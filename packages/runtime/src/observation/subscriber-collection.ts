@@ -15,42 +15,49 @@ import type {
 
 type IAnySubscriber = ISubscriber | ICollectionSubscriber;
 
-export function subscriberCollection(): ClassDecorator {
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  return function (target: Function): void { // ClassDecorator expects it to be derived from Function
-    const proto = target.prototype as ISubscriberCollection;
-
-    ensureProto(proto, 'addSubscriber', addSubscriber, true);
-    ensureProto(proto, 'removeSubscriber', removeSubscriber, true);
-    ensureProto(proto, 'hasSubscriber', hasSubscriber, true);
-    ensureProto(proto, 'hasSubscribers', hasSubscribers, true);
-    ensureProto(proto, 'callSubscribers', callSubscribers, true);
-    // not configurable, as in devtool, the getter could be invoked on the prototype,
-    // and become permanently broken
-    def(proto, 'subs', { get: getSubscriberRecord });
-
-    ensureProto(proto, 'subscribe', addSubscriber);
-    ensureProto(proto, 'unsubscribe', removeSubscriber);
-  };
+/* eslint-disable @typescript-eslint/ban-types */
+export function subscriberCollection(): ClassDecorator;
+export function subscriberCollection(target: Function): void;
+export function subscriberCollection(target?: Function): ClassDecorator | void {
+  return target == null ? subscriberCollectionDeco : subscriberCollectionDeco(target);
 }
 
-export function collectionSubscriberCollection(): ClassDecorator {
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  return function (target: Function): void { // ClassDecorator expects it to be derived from Function
-    const proto = target.prototype as ICollectionSubscriberCollection;
-
-    ensureProto(proto, 'addCollectionSubscriber', addSubscriber, true);
-    ensureProto(proto, 'removeCollectionSubscriber', removeSubscriber, true);
-    ensureProto(proto, 'hasCollectionSubscriber', hasSubscriber, true);
-    ensureProto(proto, 'hasCollectionSubscribers', hasSubscribers, true);
-    ensureProto(proto, 'callCollectionSubscribers', callCollectionSubscribers, true);
-    // not configurable, as in devtool, the getter could be invoked on the prototype,
-    // and become permanently broken
-    def(proto, 'subs', { get: getSubscriberRecord });
-    ensureProto(proto, 'subscribeToCollection', addSubscriber);
-    ensureProto(proto, 'unsubscribeFromCollection', removeSubscriber);
-  };
+export function collectionSubscriberCollection(): ClassDecorator;
+export function collectionSubscriberCollection(target: Function): void;
+export function collectionSubscriberCollection(target?: Function): ClassDecorator | void {
+  return target == null ? collectionSubscriberCollectionDeco : collectionSubscriberCollectionDeco(target);
 }
+
+function subscriberCollectionDeco(target: Function): void { // ClassDecorator expects it to be derived from Function
+  const proto = target.prototype as ISubscriberCollection;
+
+  ensureProto(proto, 'addSubscriber', addSubscriber, true);
+  ensureProto(proto, 'removeSubscriber', removeSubscriber, true);
+  ensureProto(proto, 'hasSubscriber', hasSubscriber, true);
+  ensureProto(proto, 'hasSubscribers', hasSubscribers, true);
+  ensureProto(proto, 'callSubscribers', callSubscribers, true);
+  // not configurable, as in devtool, the getter could be invoked on the prototype,
+  // and become permanently broken
+  def(proto, 'subs', { get: getSubscriberRecord });
+
+  ensureProto(proto, 'subscribe', addSubscriber);
+  ensureProto(proto, 'unsubscribe', removeSubscriber);
+}
+function collectionSubscriberCollectionDeco(target: Function): void { // ClassDecorator expects it to be derived from Function
+  const proto = target.prototype as ICollectionSubscriberCollection;
+
+  ensureProto(proto, 'addCollectionSubscriber', addSubscriber, true);
+  ensureProto(proto, 'removeCollectionSubscriber', removeSubscriber, true);
+  ensureProto(proto, 'hasCollectionSubscriber', hasSubscriber, true);
+  ensureProto(proto, 'hasCollectionSubscribers', hasSubscribers, true);
+  ensureProto(proto, 'callCollectionSubscribers', callCollectionSubscribers, true);
+  // not configurable, as in devtool, the getter could be invoked on the prototype,
+  // and become permanently broken
+  def(proto, 'subs', { get: getSubscriberRecord });
+  ensureProto(proto, 'subscribeToCollection', addSubscriber);
+  ensureProto(proto, 'unsubscribeFromCollection', removeSubscriber);
+}
+/* eslint-enable @typescript-eslint/ban-types */
 
 export class SubscriberRecord<T extends IAnySubscriber> implements ISubscriberRecord<T> {
   /**

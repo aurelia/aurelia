@@ -178,7 +178,7 @@ export class MapObserver {
   }
 }
 
-collectionSubscriberCollection()(MapObserver);
+collectionSubscriberCollection(MapObserver);
 
 export function getMapObserver(map: Map<unknown, unknown>, lifecycle: ILifecycle | null): MapObserver {
   let observer = observerLookup.get(map);

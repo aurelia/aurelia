@@ -158,4 +158,4 @@ export class ComputedObserver implements IConnectableBinding, ISubscriber, IColl
 }
 
 connectable(ComputedObserver);
-subscriberCollection()(ComputedObserver);
+subscriberCollection(ComputedObserver);

@@ -122,5 +122,5 @@ export class SetterNotifier implements IAccessor, ISubscribable {
   }
 }
 
-subscriberCollection()(SetterObserver);
-subscriberCollection()(SetterNotifier);
+subscriberCollection(SetterObserver);
+subscriberCollection(SetterNotifier);

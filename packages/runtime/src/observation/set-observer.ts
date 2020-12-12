@@ -165,7 +165,7 @@ export class SetObserver {
   }
 }
 
-collectionSubscriberCollection()(SetObserver);
+collectionSubscriberCollection(SetObserver);
 
 export function getSetObserver(observedSet: Set<unknown>, lifecycle: ILifecycle | null): SetObserver {
   let observer = observerLookup.get(observedSet);

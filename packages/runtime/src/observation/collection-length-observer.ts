@@ -93,7 +93,7 @@ function implementLengthObserver(klass: Constructable<CollectionLengthObserverIm
   const proto = klass.prototype as CollectionLengthObserverImpl;
   ensureProto(proto, 'subscribe', subscribe, true);
   ensureProto(proto, 'unsubscribe', unsubscribe, true);
-  subscriberCollection()(klass);
+  subscriberCollection(klass);
 }
 
 function subscribe(this: CollectionLengthObserverImpl, subscriber: ISubscriber): void {

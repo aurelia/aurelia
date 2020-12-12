@@ -14,7 +14,6 @@ module.exports = {
     '@typescript-eslint/no-explicit-any': 'off',
     '@typescript-eslint/restrict-template-expressions': 'off',
     '@typescript-eslint/promise-function-async': 'off',
-    'compat/compat': 'off',
     'import/no-nodejs-modules': 'off',
     'jsdoc/require-jsdoc': 'off',
     'mocha/no-async-describe': 'error',

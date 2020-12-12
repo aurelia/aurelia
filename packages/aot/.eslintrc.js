@@ -19,7 +19,6 @@ module.exports = {
     '@typescript-eslint/no-this-alias': 'off', // needed for spec readability
     '@typescript-eslint/indent': 'off', // deviation often needed for spec step comments
     'no-irregular-whitespace': 'off', // doesn't make sense
-    'compat/compat': 'off',
     'import/no-nodejs-modules': 'off',
     'jsdoc/require-jsdoc': 'off',
     'max-lines-per-function': 'off',

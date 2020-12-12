@@ -5,6 +5,7 @@ import type { IAccessor } from '@aurelia/runtime';
 const customPropertyPrefix: string = '--';
 
 export class StyleAttributeAccessor implements IAccessor {
+  [id: number]: number;
   public currentValue: unknown = '';
   public oldValue: unknown = '';
 

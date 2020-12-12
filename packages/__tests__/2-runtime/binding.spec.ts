@@ -31,6 +31,7 @@ import type {
   ISubscriberCollection,
   IObserver,
   ISubscriber,
+  ICollectionSubscriber,
 } from '@aurelia/runtime';
 
 /**
@@ -988,7 +989,7 @@ describe('PropertyBinding', function () {
 
 class MockObserver {
   [id: number]: number;
-  public subs?: ISubscriberRecord;
+  public subs?: ISubscriberRecord<ISubscriber | ICollectionSubscriber>;
   public callSubscribers: any;
   public hasSubscribers: ISubscriberCollection['hasSubscribers'];
   public hasSubscriber: ISubscriberCollection['hasSubscriber'];

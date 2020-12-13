@@ -174,8 +174,7 @@ describe('SetterObserver', function () {
 describe('BindableObserver', function () {
   function createFixture(flags: LF, obj: IIndexable, key: string) {
     const ctx = TestContext.create();
-    const lifecycle = ctx.lifecycle;
-    const sut = new BindableObserver(obj, key, `${key ? key.toString() : `${key}`}Changed`, noop, { lifecycle } as any);
+    const sut = new BindableObserver(obj, key, `${key ? key.toString() : `${key}`}Changed`, noop, { } as any);
 
     return { sut };
   }

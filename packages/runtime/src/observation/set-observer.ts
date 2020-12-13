@@ -3,7 +3,7 @@ import { CollectionSizeObserver } from './collection-length-observer.js';
 import { collectionSubscriberCollection } from './subscriber-collection.js';
 import { def } from '../utilities-objects.js';
 
-import type { ICollectionObserver, ILifecycle } from '../observation.js';
+import type { ICollectionObserver } from '../observation.js';
 
 const observerLookup = new WeakMap<Set<unknown>, SetObserver>();
 

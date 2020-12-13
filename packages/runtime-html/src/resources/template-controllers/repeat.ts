@@ -163,7 +163,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
         oldObserver.unsubscribeFromCollection(this);
       }
     } else if (this.$controller.isActive) {
-      const newObserver = this.observer = getCollectionObserver(this.items, this.$controller.lifecycle);
+      const newObserver = this.observer = getCollectionObserver(this.items);
       if (oldObserver !== newObserver && oldObserver) {
         oldObserver.unsubscribeFromCollection(this);
       }

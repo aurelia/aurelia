@@ -581,7 +581,6 @@ export {
 
   // DefaultResources as RuntimeDefaultResources,
   // IObserverLocatorRegistration,
-  // ILifecycleRegistration,
   // IRendererRegistration,
   // RuntimeConfiguration,
 
@@ -635,7 +634,6 @@ export {
 
   // ViewModelKind,
   // IBinding,
-  ILifecycle,
   // IViewModel,
   ICustomAttributeViewModel,
   ICustomElementViewModel,

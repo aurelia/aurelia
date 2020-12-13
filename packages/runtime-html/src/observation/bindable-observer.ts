@@ -2,10 +2,10 @@ import { noop } from '@aurelia/kernel';
 import { subscriberCollection, AccessorType, LifecycleFlags } from '@aurelia/runtime';
 
 import type { IIndexable } from '@aurelia/kernel';
-import type { InterceptorFunc, IObserver, ISubscriber, ILifecycle, ISubscriberCollection, IBatchable } from '@aurelia/runtime';
+import type { InterceptorFunc, IObserver, ISubscriber, ISubscriberCollection } from '@aurelia/runtime';
 import type { IController } from '../templating/controller';
 
-export interface BindableObserver extends IObserver, ISubscriberCollection, IBatchable {}
+export interface BindableObserver extends IObserver, ISubscriberCollection {}
 
 interface IMayHavePropertyChangedCallback {
   propertyChanged?(name: string, newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void;
@@ -21,7 +21,6 @@ export class BindableObserver {
   public observing: boolean;
   public type: AccessorType = AccessorType.Observer;
 
-  private readonly lifecycle: ILifecycle;
   private readonly callback?: (newValue: unknown, oldValue: unknown, flags: LifecycleFlags) => void;
   private readonly propertyChangedCallback?: HasPropertyChangedCallback['propertyChanged'];
   private readonly hasPropertyChangedCallback: boolean;
@@ -35,7 +34,6 @@ export class BindableObserver {
     public readonly $controller: IController,
   ) {
     this.callback = this.obj[cbName] as typeof BindableObserver.prototype.callback;
-    this.lifecycle = $controller.lifecycle;
 
     const propertyChangedCallback = this.propertyChangedCallback = (this.obj as IMayHavePropertyChangedCallback).propertyChanged;
     const hasPropertyChangedCallback = this.hasPropertyChangedCallback = typeof propertyChangedCallback === 'function';
@@ -74,20 +72,16 @@ export class BindableObserver {
         return;
       }
       this.currentValue = newValue;
-      if (this.lifecycle.batch.depth === 0) {
-        this.subs.notify(newValue, currentValue, flags);
-        if ((flags & LifecycleFlags.fromBind) === 0 || (flags & LifecycleFlags.updateSource) > 0) {
-          this.callback?.call(this.obj, newValue, currentValue, flags);
+      this.subs.notify(newValue, currentValue, flags);
+      // an inconsistent behavior with batch:
+      // change handler will be invoked while other subscribers won't
+      if ((flags & LifecycleFlags.fromBind) === 0 || (flags & LifecycleFlags.updateSource) > 0) {
+        this.callback?.call(this.obj, newValue, currentValue, flags);
 
-          if (this.hasPropertyChangedCallback) {
-            // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-            this.propertyChangedCallback!.call(this.obj, this.propertyKey, newValue, currentValue, flags);
-          }
+        if (this.hasPropertyChangedCallback) {
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+          this.propertyChangedCallback!.call(this.obj, this.propertyKey, newValue, currentValue, flags);
         }
-      } else if (!this.inBatch) {
-        this.inBatch = true;
-        this.oldValue = currentValue;
-        this.lifecycle.batch.add(this);
       }
     } else {
       // See SetterObserver.setValue for explanation
@@ -124,4 +118,4 @@ export class BindableObserver {
   }
 }
 
-subscriberCollection()(BindableObserver);
+subscriberCollection(BindableObserver);

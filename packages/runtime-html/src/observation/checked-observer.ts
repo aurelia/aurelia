@@ -265,4 +265,4 @@ export class CheckedObserver implements IObserver {
   }
 }
 
-subscriberCollection()(CheckedObserver);
+subscriberCollection(CheckedObserver);

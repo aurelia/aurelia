@@ -10,7 +10,6 @@ import {
   CustomElement,
   customElement,
   IBinding,
-  ILifecycle,
   INode,
   IObserverLocator,
   IPlatform,
@@ -64,7 +63,6 @@ describe('validate-binding-behavior', function () {
       @IValidationRules private readonly validationRules: IValidationRules,
       @IObserverLocator observerLocator: IObserverLocator,
       @IServiceLocator serviceLocator: IServiceLocator,
-      @ILifecycle lifecycle: ILifecycle,
       @IObserveCollection observeCollection = false,
     ) {
       this.controllerRegisterBindingSpy = createSpy(controller, 'registerBinding', true);
@@ -105,7 +103,6 @@ describe('validate-binding-behavior', function () {
       if (observeCollection) {
         this.employeesMediator = new BindingMediator('handleEmployeesChange', this, observerLocator, serviceLocator);
         this.employeeObserver = new ArrayObserver(this.org.employees);
-        this.employeeObserver.lifecycle = lifecycle;
         this.employeeObserver.getLengthObserver().addSubscriber(this.employeesMediator);
       }
 

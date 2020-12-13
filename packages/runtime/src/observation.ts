@@ -1,7 +1,6 @@
 import { DI } from '@aurelia/kernel';
 import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
 import type { Scope } from './observation/binding-context.js';
-
 import type { CollectionLengthObserver, CollectionSizeObserver } from './observation/collection-length-observer.js';
 
 export interface IBinding {
@@ -16,74 +15,8 @@ export interface IBinding {
 
 export type InterceptorFunc<TInput = unknown, TOutput = unknown> = (value: TInput) => TOutput;
 
-export interface ILifecycle extends Lifecycle {}
-export const ILifecycle = DI.createInterface<ILifecycle>('ILifecycle').withDefault(x => x.singleton(Lifecycle));
-
-export class Lifecycle  {
-  public readonly batch: IAutoProcessingQueue<IBatchable> = new BatchQueue(this);
-}
-
-export interface IProcessingQueue<T> {
-  add(requestor: T): void;
-  process(flags: LifecycleFlags): void;
-}
-
-export interface IAutoProcessingQueue<T> extends IProcessingQueue<T> {
-  readonly depth: number;
-  begin(): void;
-  end(flags?: LifecycleFlags): void;
-  inline(fn: () => void, flags?: LifecycleFlags): void;
-}
-
-export class BatchQueue implements IAutoProcessingQueue<IBatchable> {
-  public queue: IBatchable[] = [];
-  public depth: number = 0;
-
-  public constructor(
-    @ILifecycle public readonly lifecycle: ILifecycle,
-  ) {}
-
-  public begin(): void {
-    ++this.depth;
-  }
-
-  public end(flags?: LifecycleFlags): void {
-    if (flags === void 0) {
-      flags = LifecycleFlags.none;
-    }
-    if (--this.depth === 0) {
-      this.process(flags);
-    }
-  }
-
-  public inline(fn: () => void, flags?: LifecycleFlags): void {
-    this.begin();
-    fn();
-    this.end(flags);
-  }
-
-  public add(requestor: IBatchable): void {
-    this.queue.push(requestor);
-  }
-
-  public remove(requestor: IBatchable): void {
-    const index = this.queue.indexOf(requestor);
-    if (index > -1) {
-      this.queue.splice(index, 1);
-    }
-  }
-
-  public process(flags: LifecycleFlags): void {
-    while (this.queue.length > 0) {
-      const batch = this.queue.slice();
-      this.queue = [];
-      const { length } = batch;
-      for (let i = 0; i < length; ++i) {
-        batch[i].flushBatch(flags);
-      }
-    }
-  }
-}
+export interface ILifecycle {}
+export const ILifecycle = DI.createInterface<ILifecycle>('ILifecycle').noDefault();
 
 /*
 * Note: the oneTime binding now has a non-zero value for 2 reasons:
@@ -363,11 +296,9 @@ export interface ICollectionChangeTracker<T extends Collection> {
  */
 export interface ICollectionObserver<T extends CollectionKind> extends
   ICollectionChangeTracker<CollectionKindToType<T>>,
-  ICollectionSubscriberCollection,
-  IBatchable {
+  ICollectionSubscriberCollection {
   type: AccessorType;
   inBatch: boolean;
-  lifecycle?: ILifecycle;
   collection: ObservedCollectionKindToType<T>;
   lengthObserver: T extends CollectionKind.array ? CollectionLengthObserver : CollectionSizeObserver;
   getLengthObserver(): T extends CollectionKind.array ? CollectionLengthObserver : CollectionSizeObserver;

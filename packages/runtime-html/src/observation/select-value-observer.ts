@@ -277,4 +277,4 @@ export class SelectValueObserver implements IObserver {
   }
 }
 
-subscriberCollection()(SelectValueObserver);
+subscriberCollection(SelectValueObserver);

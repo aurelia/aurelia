@@ -1,8 +1,11 @@
 import {
-  LifecycleFlags,
+  batch,
+  LifecycleFlags as LifecycleFlags,
   subscriberCollection
 } from '@aurelia/runtime';
 import { createSpy, assert } from '@aurelia/testing';
+
+import type { ISubscriberCollection } from '@aurelia/runtime';
 
 @subscriberCollection()
 class Test {}
@@ -129,5 +132,56 @@ describe('subscriberCollection', function () {
     assert.strictEqual(observer['subs']['_sr'].length, subscribers.length - 3 - removalCount, `observer['subs']['_sr'].length`);
 
     assert.strictEqual(observer['removeSubscriber']({} as any), false, `observer['removeSubscriber']({} as any)`);
+  });
+
+  describe('+ batching', function () {
+    interface SubCollection extends ISubscriberCollection {}
+    @subscriberCollection
+    class SubCollection {};
+
+    it('batch notifies', function () {
+      const observer = new SubCollection();  
+      const sub1Values = [];
+
+      observer.addSubscriber({
+        handleChange(newValue, oldValue) {
+          sub1Values.push([newValue, oldValue]);
+        }
+      });
+  
+      batch(() => {
+        observer.callSubscribers(1, 0, LifecycleFlags.none);
+        assert.deepStrictEqual(sub1Values, []);
+      });
+      assert.deepStrictEqual(sub1Values, [[1, 0]]);
+    });
+
+    it('handles nested batch()', function () {
+      const observer = new SubCollection();
+      const sub1Values = [];
+      const sub2Values = [];
+      const subscriber1 = {
+        handleChange(val: number, oldVal: number) {
+          sub1Values.push([`level ${sub1Values.length}`, val, oldVal]);
+          batch(() => {
+            observer.callSubscribers(val, oldVal, LifecycleFlags.none);
+          });
+          assert.deepStrictEqual(sub1Values, []);
+        }
+      };
+      const subscribe2 = {
+        handleChange(val: number, oldValue: number) {
+
+        }
+      }
+
+      observer.addSubscriber(subscriber1);
+  
+      batch(() => {
+        observer.callSubscribers(1, 0, LifecycleFlags.none);
+        assert.deepStrictEqual(sub1Values, []);
+      });
+      assert.deepStrictEqual(sub1Values, [['level 0', 1, 0]]);
+    });
   });
 });

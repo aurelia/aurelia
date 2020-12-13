@@ -187,7 +187,6 @@ export {
   LifecycleFlags,
   AccessorOrObserver,
   IBinding,
-  ILifecycle,
   AccessorType,
   Collection,
   CollectionKind,

@@ -1,15 +1,14 @@
-import { DI } from '@aurelia/kernel';
 import {
   ArrayObserver,
   copyIndexMap,
   disableArrayObservation,
   enableArrayObservation,
   ICollectionSubscriber,
-  ILifecycle,
   IndexMap,
   LifecycleFlags as LF,
   applyMutationsToIndices,
   synchronizeIndices,
+  batch,
 } from '@aurelia/runtime';
 import {
   assert,
@@ -69,7 +68,6 @@ describe(`ArrayObserver`, function () {
       const s = new SpySubscriber();
       const arr = [];
       sut = new ArrayObserver(arr);
-      sut.lifecycle = DI.createContainer().get(ILifecycle);
       sut.subscribeToCollection(s);
       arr.push(1);
       assert.deepStrictEqual(
@@ -82,7 +80,6 @@ describe(`ArrayObserver`, function () {
       const s = new SpySubscriber();
       const arr = [];
       sut = new ArrayObserver(arr);
-      sut.lifecycle = DI.createContainer().get(ILifecycle);
       sut.subscribeToCollection(s);
       arr.push(1, 2);
       assert.deepStrictEqual(
@@ -97,7 +94,6 @@ describe(`ArrayObserver`, function () {
       const s = new SpySubscriber();
       const arr = [];
       sut = new ArrayObserver(arr);
-      sut.lifecycle = DI.createContainer().get(ILifecycle);
       sut.subscribeToCollection(s);
       sut.unsubscribeFromCollection(s);
       arr.push(1);
@@ -109,11 +105,9 @@ describe(`ArrayObserver`, function () {
     it('push', function () {
       const s = new SpySubscriber();
       const arr = [];
-      const lifecycle = DI.createContainer().get(ILifecycle);
       sut = new ArrayObserver(arr);
-      sut.lifecycle = lifecycle;
       sut.subscribeToCollection(s);
-      lifecycle.batch.inline(
+      batch(
         function () {
           arr.push(1);
         },
@@ -127,11 +121,9 @@ describe(`ArrayObserver`, function () {
     it('push 2', function () {
       const s = new SpySubscriber();
       const arr = [];
-      const lifecycle = DI.createContainer().get(ILifecycle);
       sut = new ArrayObserver(arr);
-      sut.lifecycle = lifecycle;
       sut.subscribeToCollection(s);
-      lifecycle.batch.inline(
+      batch(
         function () {
           arr.push(1, 2);
         },
@@ -147,12 +139,10 @@ describe(`ArrayObserver`, function () {
     it('push', function () {
       const s = new SpySubscriber();
       const arr = [];
-      const lifecycle = DI.createContainer().get(ILifecycle);
       sut = new ArrayObserver(arr);
-      sut.lifecycle = lifecycle;
       sut.subscribeToCollection(s);
       sut.unsubscribeFromCollection(s);
-      lifecycle.batch.inline(
+      batch(
         function () {
           arr.push(1);
         },
@@ -165,10 +155,8 @@ describe(`ArrayObserver`, function () {
     it('push', function () {
       const s = new SpySubscriber();
       const arr = [];
-      const lifecycle = DI.createContainer().get(ILifecycle);
       sut = new ArrayObserver(arr);
-      sut.lifecycle = lifecycle;
-      lifecycle.batch.inline(
+      batch(
         function () { return; },
       );
       assert.strictEqual(s.collectionChanges.length, 0);
@@ -192,7 +180,6 @@ describe(`ArrayObserver`, function () {
           const expectedArr = init.slice();
           const newItems = items && items.slice();
           sut = new ArrayObserver(arr);
-          sut.lifecycle = DI.createContainer().get(ILifecycle);
           let expectedResult;
           let actualResult;
           let i = 0;
@@ -216,7 +203,6 @@ describe(`ArrayObserver`, function () {
           const copy = init.slice();
           const newItems = items && items.slice();
           sut = new ArrayObserver(arr);
-          sut.lifecycle = DI.createContainer().get(ILifecycle);
           sut.subscribeToCollection(new SynchronizingCollectionSubscriber(copy, arr));
 
           let i = 0;
@@ -252,7 +238,6 @@ describe(`ArrayObserver`, function () {
           const expectedArr = init.slice();
           const newItems = items && items.slice();
           sut = new ArrayObserver(arr);
-          sut.lifecycle = DI.createContainer().get(ILifecycle);
           let expectedResult;
           let actualResult;
           let i = 0;
@@ -276,7 +261,6 @@ describe(`ArrayObserver`, function () {
           const copy = init.slice();
           const newItems = items && items.slice();
           sut = new ArrayObserver(arr);
-          sut.lifecycle = DI.createContainer().get(ILifecycle);
           sut.subscribeToCollection(new SynchronizingCollectionSubscriber(copy, arr));
           let i = 0;
           while (i < repeat) {
@@ -308,7 +292,6 @@ describe(`ArrayObserver`, function () {
           const arr = init.slice();
           const expectedArr = init.slice();
           sut = new ArrayObserver(arr);
-          sut.lifecycle = DI.createContainer().get(ILifecycle);
           let expectedResult;
           let actualResult;
           let i = 0;
@@ -325,7 +308,6 @@ describe(`ArrayObserver`, function () {
           const arr = init.slice();
           const copy = init.slice();
           sut = new ArrayObserver(arr);
-          sut.lifecycle = DI.createContainer().get(ILifecycle);
           sut.subscribeToCollection(new SynchronizingCollectionSubscriber(copy, arr));
           let i = 0;
           while (i < repeat) {
@@ -352,7 +334,6 @@ describe(`ArrayObserver`, function () {
           const arr = init.slice();
           const expectedArr = init.slice();
           sut = new ArrayObserver(arr);
-          sut.lifecycle = DI.createContainer().get(ILifecycle);
           let expectedResult;
           let actualResult;
           let i = 0;
@@ -369,7 +350,6 @@ describe(`ArrayObserver`, function () {
           const arr = init.slice();
           const copy = init.slice();
           sut = new ArrayObserver(arr);
-          sut.lifecycle = DI.createContainer().get(ILifecycle);
           sut.subscribeToCollection(new SynchronizingCollectionSubscriber(copy, arr));
           let i = 0;
           while (i < repeat) {
@@ -403,7 +383,6 @@ describe(`ArrayObserver`, function () {
           const expectedArr = init.slice();
           const newItems = items && items.slice();
           sut = new ArrayObserver(arr);
-          sut.lifecycle = DI.createContainer().get(ILifecycle);
           let expectedResult;
           let actualResult;
           let i = 0;
@@ -437,7 +416,6 @@ describe(`ArrayObserver`, function () {
           const copy = init.slice();
           const newItems = items && items.slice();
           sut = new ArrayObserver(arr);
-          sut.lifecycle = DI.createContainer().get(ILifecycle);
           sut.subscribeToCollection(new SynchronizingCollectionSubscriber(copy, arr));
           let i = 0;
           while (i < repeat) {
@@ -473,7 +451,6 @@ describe(`ArrayObserver`, function () {
           const arr = init.slice();
           const expectedArr = init.slice();
           sut = new ArrayObserver(arr);
-          sut.lifecycle = DI.createContainer().get(ILifecycle);
           let expectedResult;
           let actualResult;
           let i = 0;
@@ -490,7 +467,6 @@ describe(`ArrayObserver`, function () {
           const arr = init.slice();
           const copy = init.slice();
           sut = new ArrayObserver(arr);
-          sut.lifecycle = DI.createContainer().get(ILifecycle);
           sut.subscribeToCollection(new SynchronizingCollectionSubscriber(copy, arr));
           let i = 0;
           while (i < repeat) {
@@ -534,7 +510,6 @@ describe(`ArrayObserver`, function () {
               const arr = init.slice();
               const expectedArr = init.slice();
               sut = new ArrayObserver(arr);
-              sut.lifecycle = DI.createContainer().get(ILifecycle);
               const expectedResult = expectedArr.sort(compareFn);
               const actualResult = arr.sort(compareFn);
               assert.strictEqual(expectedResult, expectedArr, `expectedResult`);
@@ -564,7 +539,6 @@ describe(`ArrayObserver`, function () {
               const arr = init.slice();
               const copy = init.slice();
               sut = new ArrayObserver(arr);
-              sut.lifecycle = DI.createContainer().get(ILifecycle);
               sut.subscribeToCollection(new SynchronizingCollectionSubscriber(copy, arr));
               arr.sort(compareFn);
               assert.deepStrictEqual(copy, arr);

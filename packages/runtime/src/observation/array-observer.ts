@@ -377,14 +377,12 @@ export class ArrayObserver {
   }
 
   public notify(): void {
-    if (this.lifecycle?.batch.depth) {
-      if (!this.inBatch) {
-        this.inBatch = true;
-        this.lifecycle.batch.add(this);
-      }
-    } else {
-      this.flushBatch(LifecycleFlags.none);
-    }
+    const indexMap = this.indexMap;
+    const length = this.collection.length;
+
+    this.inBatch = false;
+    this.indexMap = createIndexMap(length);
+    this.subs.notifyCollection(indexMap, LifecycleFlags.updateTarget);
   }
 
   public getLengthObserver(): CollectionLengthObserver {
@@ -393,15 +391,6 @@ export class ArrayObserver {
 
   public getIndexObserver(index: number): IArrayIndexObserver {
     return this.getOrCreateIndexObserver(index);
-  }
-
-  public flushBatch(flags: LifecycleFlags): void {
-    const indexMap = this.indexMap;
-    const length = this.collection.length;
-
-    this.inBatch = false;
-    this.indexMap = createIndexMap(length);
-    this.subs.notifyCollection(indexMap, LifecycleFlags.updateTarget);
   }
 
   /**

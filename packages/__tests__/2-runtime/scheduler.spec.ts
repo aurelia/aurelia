@@ -7,7 +7,7 @@ function createExposedPromise() {
   let resolve: () => void;
   let reject: (err: any) => void;
 
-  const promise = new Promise(function ($resolve, $reject) {
+  const promise = new Promise<void>(function ($resolve, $reject) {
     resolve = $resolve;
     reject = $reject;
   });

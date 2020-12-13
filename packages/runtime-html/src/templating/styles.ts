@@ -20,7 +20,7 @@ export class CSSModulesProcessorRegistry implements IRegistry {
       name: 'class',
       bindables: ['value'],
     }, class CustomAttributeClass {
-      public static inject = [INode];
+      public static inject: any[] = [INode];
 
       public value!: string;
       public constructor(

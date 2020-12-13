@@ -82,7 +82,7 @@ export class FileServer implements IRequestHandler {
         'Cache-Control': this.cacheControlDirective
       });
 
-      await new Promise(function (resolve) {
+      await new Promise<void>(function (resolve) {
         response.end(content, resolve);
       });
 

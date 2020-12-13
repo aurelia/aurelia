@@ -313,7 +313,7 @@ describe('3-runtime-html/computed-observer.spec.ts', function () {
       ['Int16Array', () => new Int16Array()],
       ['Int64Array', () => new Int32Array()],
       ['Number', () => new Number()],
-      ['Promise', () => new Promise(r => r())],
+      ['Promise', () => new Promise<void>(r => r())],
       ['RangeError', () => new RangeError()],
       ['ReferenceError', () => new ReferenceError()],
       ['RegExp', () => new RegExp('a')],

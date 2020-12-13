@@ -782,7 +782,7 @@ const defaultQueueTaskOptions: Required<QueueTaskOptions> = {
   suspend: false,
 };
 
-type PResolve<T> = (value?: T | PromiseLike<T>) => void;
+type PResolve<T> = (value: T | PromiseLike<T>) => void;
 type PReject<T = any> = (reason?: T) => void;
 let $resolve: PResolve<any>;
 let $reject: PReject;

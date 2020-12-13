@@ -16,7 +16,6 @@ import type {
   CollectionKind,
   ICollectionObserver,
   IArrayIndexObserver,
-  ILifecycle,
   IndexMap,
   ISubscriber,
 } from '../observation.js';
@@ -472,13 +471,10 @@ export class ArrayIndexObserver implements IArrayIndexObserver {
 collectionSubscriberCollection(ArrayObserver);
 subscriberCollection(ArrayIndexObserver);
 
-export function getArrayObserver(array: unknown[], lifecycle: ILifecycle | null): ArrayObserver {
+export function getArrayObserver(array: unknown[]): ArrayObserver {
   let observer = observerLookup.get(array);
   if (observer === void 0) {
     observer = new ArrayObserver(array);
-    if (lifecycle != null) {
-      observer.lifecycle = lifecycle;
-    }
   }
   return observer;
 }

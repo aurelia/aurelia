@@ -154,21 +154,6 @@ export class MapObserver {
   }
 
   public notify(): void {
-    if (this.lifecycle?.batch.depth) {
-      if (!this.inBatch) {
-        this.inBatch = true;
-        this.lifecycle.batch.add(this);
-      }
-    } else {
-      this.flushBatch(LifecycleFlags.none);
-    }
-  }
-
-  public getLengthObserver(): CollectionSizeObserver {
-    return this.lengthObserver ??= new CollectionSizeObserver(this);
-  }
-
-  public flushBatch(flags: LifecycleFlags): void {
     const indexMap = this.indexMap;
     const size = this.collection.size;
 
@@ -176,17 +161,18 @@ export class MapObserver {
     this.indexMap = createIndexMap(size);
     this.subs.notifyCollection(indexMap, LifecycleFlags.updateTarget);
   }
+
+  public getLengthObserver(): CollectionSizeObserver {
+    return this.lengthObserver ??= new CollectionSizeObserver(this);
+  }
 }
 
 collectionSubscriberCollection(MapObserver);
 
-export function getMapObserver(map: Map<unknown, unknown>, lifecycle: ILifecycle | null): MapObserver {
+export function getMapObserver(map: Map<unknown, unknown>): MapObserver {
   let observer = observerLookup.get(map);
   if (observer === void 0) {
     observer = new MapObserver(map);
-    if (lifecycle != null) {
-      observer.lifecycle = lifecycle;
-    }
   }
   return observer;
 }

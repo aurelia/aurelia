@@ -13,7 +13,7 @@ import type {
   ISubscriberCollection,
 } from '../observation.js';
 
-type IAnySubscriber = ISubscriber | ICollectionSubscriber;
+export type IAnySubscriber = ISubscriber | ICollectionSubscriber;
 
 /* eslint-disable @typescript-eslint/ban-types */
 export function subscriberCollection(): ClassDecorator;
@@ -173,6 +173,10 @@ export class SubscriberRecord<T extends IAnySubscriber> implements ISubscriberRe
   }
 
   public notify(val: unknown, oldVal: unknown, flags: LF): void {
+    if (batchingDepth) {
+      currentBatch.set(this, new BatchRecord(this as SubscriberRecord<ISubscriber>, val, oldVal, flags));
+      return;
+    }
     /**
      * Note: change handlers may have the side-effect of adding/removing subscribers to this collection during this
      * callSubscribers invocation, so we're caching them all before invoking any.
@@ -187,11 +191,6 @@ export class SubscriberRecord<T extends IAnySubscriber> implements ISubscriberRe
     let subs = this._sr as ISubscriber[];
     if (subs !== void 0) {
       subs = subs.slice();
-    }
-
-    if (batching) {
-      batches.set(this, new BatchRecord(this as SubscriberRecord<ISubscriber>, val, oldVal, flags));
-      return;
     }
 
     flags = (flags | LF.update) ^ LF.update;
@@ -219,17 +218,17 @@ export class SubscriberRecord<T extends IAnySubscriber> implements ISubscriberRe
   }
 
   public notifyCollection(indexMap: IndexMap, flags: LF): void {
+    if (batchingDepth) {
+      currentBatch.set(this, new CollectionBatchRecord(this as SubscriberRecord<ICollectionSubscriber>, indexMap, flags));
+      return;
+    }
+
     const sub0 = this._s0 as ICollectionSubscriber;
     const sub1 = this._s1 as ICollectionSubscriber;
     const sub2 = this._s2 as ICollectionSubscriber;
     let subs = this._sr as ICollectionSubscriber[];
     if (subs !== void 0) {
       subs = subs.slice();
-    }
-
-    if (batching) {
-      batches.set(this, new CollectionBatchRecord(this as SubscriberRecord<ICollectionSubscriber>, indexMap, flags));
-      return;
     }
 
     if (sub0 !== void 0) {
@@ -285,9 +284,40 @@ function callCollectionSubscribers(this: ICollectionSubscriberCollection, indexM
   this.subs.notifyCollection(indexMap, flags);
 }
 
+export function batch(fn: () => unknown): void {
+  try {
+    ++batchingDepth;
+    fn();
+  }
+  finally {
+    --batchingDepth;
+    if (batchingDepth === 0) {
+      if (releasing) {
+        return;
+      }
+      releasing = true;
+      currentBatch.forEach(invokeBatch);
+      releasing = false;
+      currentBatch.clear();
+    }
+  }
+}
+let currentBatch: Map<ISubscriberRecord<IAnySubscriber>, IAnyBatchRecord> = new Map();
+let batchingDepth = 0;
+let releasing = false;
+
+function invokeBatch(batchRecord: IAnyBatchRecord): void {
+  if (batchRecord.type === 1) {
+    batchRecord.call();
+  } else {
+    batchRecord.call2();
+  }
+}
+
+type IAnyBatchRecord = IBatchRecord | ICollectionBatchRecord;
 interface IBatchRecord {
   type: 1;
-  rec: SubscriberRecord<IAnySubscriber>;
+  rec: ISubscriberRecord<IAnySubscriber>;
   call(): void;
 }
 
@@ -297,52 +327,27 @@ interface ICollectionBatchRecord {
   call2(): void;
 }
 
-export function batch(fn: () => unknown) {
-  startBatch();
-  fn();
-  releaseBatch();
-};
-const batches: Map<SubscriberRecord<IAnySubscriber>, IBatchRecord | ICollectionBatchRecord> = new Map();
-let batching = false;
-
-function startBatch() {
-  batching = true;
-}
-function releaseBatch() {
-  const releasingBatch = new Map(batches);
-  batches.clear();
-  batching = false;
-  releasingBatch.forEach(invokeBatch);
-}
-function invokeBatch(batchRecord: IBatchRecord | ICollectionBatchRecord): void {
-  if (batchRecord.type === 1) {
-    batchRecord.call();
-  } else {
-    batchRecord.call2();
-  }
-}
-
-class BatchRecord implements IBatchRecord {
+export class BatchRecord implements IBatchRecord {
   public type: 1 = 1;
   public constructor(
-    public readonly rec: SubscriberRecord<ISubscriber>,
+    public readonly rec: ISubscriberRecord<ISubscriber>,
     public readonly val: unknown,
     public readonly old: unknown,
-    public readonly f: LF,
-  ) {}
+    public readonly f: LF
+  ) { }
 
   public call(): void {
     this.rec.notify(this.val, this.old, this.f);
   }
 }
 
-class CollectionBatchRecord implements ICollectionBatchRecord {
+export class CollectionBatchRecord implements ICollectionBatchRecord {
   public type: 2 = 2;
   public constructor(
-    public readonly rec: SubscriberRecord<ICollectionSubscriber>,
+    public readonly rec: ISubscriberRecord<ICollectionSubscriber>,
     public readonly map: IndexMap,
-    public readonly f: LF,
-  ) {}
+    public readonly f: LF
+  ) { }
 
   public call2(): void {
     this.rec.notifyCollection(this.map, this.f);

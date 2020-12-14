@@ -32,6 +32,7 @@ export function translateOptions(routerOptionsSpec: IRouterOptionsSpec): IRouter
   switch (routerOptionsSpec.deferUntil) {
     case 'load-hooks':
       syncStates.push('loaded', 'unloaded', 'routed');
+      // falls through
     case 'guard-hooks':
       syncStates.push('guardedLoad', 'guarded');
   }

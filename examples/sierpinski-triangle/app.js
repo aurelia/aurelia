@@ -1,4 +1,4 @@
-import { Aurelia, CustomElementResource, ValueConverterResource, ILifecycle, Priorit, SVGAnalyzerRegistration, StandardConfiguration } from '@aurelia/runtime-html';
+import { Aurelia, CustomElementResource, ValueConverterResource, ILifecycle, SVGAnalyzerRegistration, StandardConfiguration } from '@aurelia/runtime-html';
 import { startFPSMonitor, startMemMonitor } from 'perf-monitor';
 import { SierpinskiTriangle } from './triangle';
 

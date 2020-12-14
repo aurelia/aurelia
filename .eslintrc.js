@@ -1,5 +1,8 @@
+const path = require('path');
+const thisDir = path.resolve(__dirname);
+
 module.exports = {
-  parser:  '@typescript-eslint/parser',
+  parser: '@typescript-eslint/parser',
   root: true,
   extends:  [
     'eslint:recommended',
@@ -11,9 +14,9 @@ module.exports = {
   ],
   parserOptions: {
     ecmaVersion: 2019,
-    project: './tsconfig.eslint.json',
+    project: path.join(thisDir, 'tsconfig.eslint.json'),
     sourceType: 'module',
-    tsconfigRootDir: '.'
+    tsconfigRootDir: thisDir,
   },
   env: {
     es6: true

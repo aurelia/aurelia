@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-/* eslint-disable @typescript-eslint/require-await */
 import { TestContext, assert } from '@aurelia/testing';
 import { TaskQueuePriority, QueueTaskOptions, ITask, TaskStatus, TaskQueue } from '@aurelia/runtime';
 

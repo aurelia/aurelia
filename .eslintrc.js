@@ -91,7 +91,6 @@ module.exports = {
     '@typescript-eslint/prefer-readonly': 'error',
     '@typescript-eslint/prefer-regexp-exec': 'error',
     '@typescript-eslint/prefer-string-starts-ends-with': 'error',
-    '@typescript-eslint/require-await': 'error',
     '@typescript-eslint/return-await': 'error',
     '@typescript-eslint/semi': 'error',
     '@typescript-eslint/space-before-function-paren': ['error', {
@@ -258,7 +257,6 @@ module.exports = {
       '@typescript-eslint/no-require-imports': 'off',
       '@typescript-eslint/no-var-requires': 'off',
       'import/no-nodejs-modules': 'off',
-      '@typescript-eslint/require-await': 'off'
     }
   }],
 };

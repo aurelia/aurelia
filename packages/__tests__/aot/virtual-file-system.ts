@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/require-await */
 import { IFileSystem, Encoding, IFile, IDirent, IStats } from '@aurelia/aot';
 
 function toParts(path: string): string[] {

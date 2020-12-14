@@ -367,7 +367,6 @@ export class ValidationController implements IValidationController {
     this.bindings.delete(binding);
   }
 
-  // eslint-disable-next-line @typescript-eslint/require-await
   public async validate<TObject extends IValidateable>(instruction?: ValidateInstruction<TObject>): Promise<ControllerValidateResult> {
     const { object: obj, objectTag, flags } = instruction ?? {};
     let instructions: ValidateInstruction[];
@@ -401,7 +400,6 @@ export class ValidationController implements IValidationController {
     const task = this.platform.domReadQueue.queueTask(async () => {
       try {
         const results = await Promise.all(instructions.map(
-          // eslint-disable-next-line @typescript-eslint/require-await
           async (x) => this.validator.validate(x)
         ));
         const newResults = results.reduce(

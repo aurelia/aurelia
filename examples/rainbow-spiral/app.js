@@ -1,4 +1,4 @@
-import { Aurelia, CustomElementResource, SVGAnalyzerRegistration, StandardConfiguration } from '@aurelia/runtime-html';
+import { Aurelia, CustomElement, SVGAnalyzerRegistration, StandardConfiguration } from '@aurelia/runtime-html';
 import { startFPSMonitor, startMemMonitor } from 'perf-monitor';
 import { Cursor } from './cursor';
 
@@ -16,7 +16,7 @@ try {
     )
     .app({
       host: document.getElementById('app'),
-      component: CustomElementResource.define(
+      component: CustomElement.define(
         {
           name: 'app',
           template:
@@ -97,7 +97,6 @@ try {
               const counter = ++this.counter;
               const max = COUNT + Math.round(Math.sin(counter / 90 * 2 * Math.PI) * COUNT * 0.5);
               const oldCursors = this.cursors;
-              const cursors = [];
 
               if (oldCursors.length > max) {
                 oldCursors.splice(max);

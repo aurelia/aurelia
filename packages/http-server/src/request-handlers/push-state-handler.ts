@@ -3,7 +3,6 @@ import { IHttpContext } from '../http-context';
 import { IRequestHandler } from '../interfaces';
 
 export class PushStateHandler implements IRequestHandler {
-  // eslint-disable-next-line @typescript-eslint/require-await
   public async handleRequest(context: IHttpContext): Promise<void> {
     const request = context.request;
     const url = context.requestUrl.href;

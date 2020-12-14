@@ -41,7 +41,6 @@ export class BrowserPlatform<TGlobal extends typeof globalThis = typeof globalTh
   public constructor(g: TGlobal, overrides: Partial<Exclude<BrowserPlatform, 'globalThis'>> = {}) {
     super(g, overrides);
 
-    /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
     this.Node = 'Node' in overrides ? overrides.Node! : g.Node;
     this.Element = 'Element' in overrides ? overrides.Element! : g.Element;
     this.HTMLElement = 'HTMLElement' in overrides ? overrides.HTMLElement! : g.HTMLElement;

@@ -234,6 +234,9 @@ jobs:
         type: boolean
         default: true
     steps:
+      - run: git config --global user.email "aurelia@bluespire.com"
+      - run: git config --global user.name "AureliaEffect"
+      - run: git config --global core.mergeoptions "--no-edit"
       - checkout_install
       - run: set -o pipefail && npm run build:release
       - run: set -o pipefail && npm run change-tsconfigs:overwrite:umd

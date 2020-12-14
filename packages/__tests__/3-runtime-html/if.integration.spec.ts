@@ -27,12 +27,10 @@ import { Writable } from '@aurelia/kernel';
 
 describe(`If/Else`, function () {
   function runActivateLifecycle(sut: If, flags: LifecycleFlags, scope: Scope): void {
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    sut.$controller.activate(sut.$controller, null, flags, scope);
+    void sut.$controller.activate(sut.$controller, null, flags, scope);
   }
   function runDeactivateLifecycle(sut: If, flags: LifecycleFlags): void {
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    sut.$controller.deactivate(sut.$controller, null, flags);
+    void sut.$controller.deactivate(sut.$controller, null, flags);
   }
 
   interface Spec {

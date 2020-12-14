@@ -19,6 +19,7 @@ module.exports = {
   ],
   rules: {
     '@typescript-eslint/no-explicit-any': 'off',
+    '@typescript-eslint/strict-boolean-expressions': 'off',
     'import/no-nodejs-modules': 'off',
     'jsdoc/require-jsdoc': 'off',
     'mocha/no-exports': 'off',

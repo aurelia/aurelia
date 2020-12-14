@@ -233,7 +233,7 @@ module.exports = {
     'no-extra-boolean-cast': 'warn',
     'no-fallthrough': 'warn',
     'no-inner-declarations': 'warn',
-    'no-shadow': 'warn',
+    'no-shadow': 'off', // using @typescript-eslint/no-shadow instead
     'no-useless-computed-key': ['warn', { 'enforceForClassMembers': true }],
     'no-undef': 'warn',
     'require-atomic-updates': 'warn',

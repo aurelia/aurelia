@@ -48,7 +48,7 @@ jobs:
     timeout-minutes: 15
     runs-on: ubuntu-latest
     container:
-      image: "cypress/browsers:node12.13.0-chrome80-ff74"
+      image: "circleci/node:15.4.0-buster-browsers"
       options: --user 1001
     strategy:
       matrix:
@@ -64,7 +64,7 @@ jobs:
     timeout-minutes: 15
     runs-on: ubuntu-latest
     container:
-      image: "cypress/browsers:node12.13.0-chrome80-ff74"
+      image: "circleci/node:15.4.0-buster-browsers"
       options: --user 1001
     steps:
       - uses: actions/checkout@v2

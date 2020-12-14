@@ -1,4 +1,3 @@
-/* eslint-disable no-undef */
 /* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */

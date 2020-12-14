@@ -236,7 +236,7 @@ module.exports = {
     'no-inner-declarations': 'warn',
     'no-shadow': 'off', // using @typescript-eslint/no-shadow instead
     'no-useless-computed-key': ['warn', { 'enforceForClassMembers': true }],
-    'no-undef': 'warn',
+    'no-undef': 'off', // let typescript take care of this instead
     'require-atomic-updates': 'warn',
 
     // Off for now as they create way to much noise

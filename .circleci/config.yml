@@ -67,10 +67,6 @@ executors:
     docker:
       - image: "circleci/node:<< parameters.node >>-buster-browsers"
 
-  docker-aurelia:
-    working_directory: *working_dir
-    docker:
-      - image: "aureliaeffect/circleci-v2:latest"
 # # # # # # # # # # # # # # # #
 # - Commands -
 # # # # # # # # # # # # # # # #
@@ -220,7 +216,7 @@ jobs:
       - run: npm run lint:other -- --quiet --report-unused-disable-directives
 
   merge_and_dist:
-    executor: docker-aurelia
+    executor: docker-circleci
     parameters:
       from:
         type: string
@@ -255,7 +251,7 @@ jobs:
             - run: git push origin << parameters.to >>
 
   publish_npm:
-    executor: docker-aurelia
+    executor: docker-circleci
     parameters:
       channel:
         type: string

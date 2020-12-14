@@ -73,7 +73,6 @@ export class BindableObserver {
 
     if (this.observing) {
       const currentValue = this.currentValue;
-      // eslint-disable-next-line compat/compat
       if (Object.is(newValue, currentValue)) {
         return;
       }

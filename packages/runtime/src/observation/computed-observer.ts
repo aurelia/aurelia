@@ -1,4 +1,4 @@
-/* eslint-disable eqeqeq, compat/compat */
+/* eslint-disable eqeqeq */
 import {
   LifecycleFlags,
   AccessorType,

@@ -62,7 +62,7 @@ executors:
     parameters:
       node:
         type: string
-        default: "14.15.0"
+        default: "15.4.0"
     working_directory: *working_dir
     docker:
       - image: "circleci/node:<< parameters.node >>-buster-browsers"

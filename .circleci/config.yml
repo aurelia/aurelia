@@ -65,7 +65,7 @@ executors:
         default: "14.15.0"
     working_directory: *working_dir
     docker:
-      - image: "circleci/node:<< parameters.node >>-stretch-browsers"
+      - image: "circleci/node:<< parameters.node >>-buster-browsers"
 
   docker-aurelia:
     working_directory: *working_dir

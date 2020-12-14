@@ -1,7 +1,13 @@
+const path = require('path');
+const thisDir = path.resolve(__dirname);
+
 module.exports = {
-  extends: ['../../.eslintrc.js'],
+  extends: [
+    '../../.eslintrc.js',
+  ],
   parserOptions: {
-    tsconfigRootDir: '.',
+    project: path.join(thisDir, 'tsconfig.json'),
+    tsconfigRootDir: thisDir,
   },
   env: {
     node: true,

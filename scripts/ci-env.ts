@@ -1,5 +1,5 @@
 import * as os from 'os';
-import * as request from 'request';
+import * as https from 'https';
 import { c, createLogger } from './logger';
 
 const log = createLogger('ci-env');
@@ -256,35 +256,54 @@ export class CIEnv {
   }
 
   public static async circleGet(path: string): Promise<any> {
-    const baseUrl = 'https://circleci.com/api/v1.1';
-    return new Promise(resolve => {
-      request.get(
-        {
-          url: `${baseUrl}/${path}?circle-token=${CIEnv.CIRCLE_TOKEN}`,
-          headers: {
-            'Accept': 'application/json'
-          }
+    return new Promise((resolve, reject) => {
+      https.get({
+        headers: {
+          'Accept': 'application/json'
         },
-        (_err, _resp, body) => {
-          resolve(JSON.parse(body));
-        }
-      );
+        method: 'GET',
+        hostname: 'circleci.com',
+        path: `api/v1.1`,
+        search: `circle-token=${CIEnv.CIRCLE_TOKEN}`,
+      }, res => {
+        let data = '';
+
+        res.on('data', chunk => {
+          data += chunk;
+        });
+
+        res.on('end', () => {
+          resolve(JSON.parse(data));
+        });
+
+        res.on('error', reject);
+      });
     });
   }
 
   public static async githubPost(path: string, body: any): Promise<any> {
-    const baseUrl = 'https://api.github.com';
-    return new Promise(resolve => {
-      request.post({
-        url: `${baseUrl}/${path}`,
+    return new Promise((resolve, reject) => {
+      https.get({
         headers: {
           'Authorization': `token ${CIEnv.GITHUB_TOKEN}`,
           'Content-Type': 'application/json',
           'User-Agent': 'request'
         },
-        body: JSON.stringify(body)
-      }, (_err, resp, _body) => {
-        resolve(resp);
+        method: 'POST',
+        hostname: 'api.github.com',
+        path,
+      }, res => {
+        let data = '';
+
+        res.on('data', chunk => {
+          data += chunk;
+        });
+
+        res.on('end', () => {
+          resolve(JSON.parse(data));
+        });
+
+        res.on('error', reject);
       });
     });
   }

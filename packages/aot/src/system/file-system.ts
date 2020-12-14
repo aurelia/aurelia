@@ -331,7 +331,6 @@ export class NodeFileSystem implements IFileSystem {
           --this.pendingReads;
           this.maxConcurrentReads = this.pendingReads;
           await tick.wait();
-          // eslint-disable-next-line @typescript-eslint/return-await
           return this.readFile(path, encoding, cache, force);
         }
         throw err;

@@ -130,7 +130,6 @@ export const Bindable = {
   from(...bindableLists: readonly (BindableDefinition | Record<string, PartialBindableDefinition> | readonly string[] | undefined)[]): Record<string, BindableDefinition> {
     const bindables: Record<string, BindableDefinition> = {};
 
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     const isArray = Array.isArray as <T>(arg: unknown) => arg is readonly T[];
 
     function addName(name: string): void {

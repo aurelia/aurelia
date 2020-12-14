@@ -84,7 +84,6 @@ export class SubscriberRecord<T extends IAnySubscriber> implements ISubscriberRe
       this._sRest = [subscriber];
       this._sFlags |= SF.SubscribersRest;
     } else {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       this._sRest!.push(subscriber); // Non-null is implied by else branch of (subscriberFlags & SF.SubscribersRest) === 0
     }
     ++this.count;
@@ -106,7 +105,6 @@ export class SubscriberRecord<T extends IAnySubscriber> implements ISubscriberRe
       return true;
     }
     if ((subscriberFlags & SF.SubscribersRest) > 0) {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const subscribers = this._sRest!; // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
       for (let i = 0, ii = subscribers.length; i < ii; ++i) {
         if (subscribers[i] === subscriber) {
@@ -139,7 +137,6 @@ export class SubscriberRecord<T extends IAnySubscriber> implements ISubscriberRe
       --this.count;
       return true;
     } else if ((subscriberFlags & SF.SubscribersRest) > 0) {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const subscribers = this._sRest!; // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
       let i = 0;
       let ii = subscribers.length;

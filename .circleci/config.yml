@@ -216,8 +216,8 @@ jobs:
     steps:
       - checkout_install
       # TODO: Remove the " -- -- -- --quiet" once warning numbers are down to an acceptable level.
-      - run: npm run lint:packages -- -- -- --quiet
-      - run: npm run lint:other -- --quiet
+      - run: npm run lint:packages -- -- -- --quiet --report-unused-disable-directives
+      - run: npm run lint:other -- --quiet --report-unused-disable-directives
 
   merge_and_dist:
     executor: docker-aurelia

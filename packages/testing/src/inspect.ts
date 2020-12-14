@@ -103,7 +103,7 @@ import {
 } from './util.js';
 import { PLATFORM } from './test-context.js';
 
-/* eslint-disable max-lines-per-function, @typescript-eslint/no-explicit-any, @typescript-eslint/ban-types, @typescript-eslint/no-non-null-assertion */
+/* eslint-disable max-lines-per-function, @typescript-eslint/no-explicit-any, @typescript-eslint/ban-types */
 
 let maxStack_ErrorName: string;
 let maxStack_ErrorMessage: string;
@@ -525,12 +525,12 @@ function createErrDiff(actual: any, expected: any, operator: keyof IOperatorText
       let actualLine = actualLines[i];
       let divergingLines = (
         actualLine !== expectedLine && (!actualLine.endsWith(',')
-        || actualLine.slice(0, -1) !== expectedLine) // eslint-disable-line @typescript-eslint/prefer-string-starts-ends-with
+        || actualLine.slice(0, -1) !== expectedLine)
       );
       if (
         divergingLines
         && expectedLine.endsWith(',')
-        && expectedLine.slice(0, -1) === actualLine // eslint-disable-line @typescript-eslint/prefer-string-starts-ends-with
+        && expectedLine.slice(0, -1) === actualLine
       ) {
         divergingLines = false;
         actualLine += ',';

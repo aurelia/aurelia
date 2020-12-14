@@ -1,7 +1,5 @@
-/* eslint-disable @typescript-eslint/typedef */
 /* eslint-disable eqeqeq */
 /* eslint-disable @typescript-eslint/explicit-member-accessibility */
-/* eslint-disable @typescript-eslint/strict-boolean-expressions */
 import {
   assert,
   createContainer,
@@ -206,7 +204,6 @@ describe('3-runtime/interpolation.spec.ts -- [UNIT]interpolation', function () {
           component.value = val;
         }
       } else if (typeof x.expected === 'string' && x.expected !== 'Infinity') {
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         component.value = `${component.value || ``}1`;
 
       } else {

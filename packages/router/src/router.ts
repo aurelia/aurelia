@@ -290,7 +290,6 @@ export class Router implements IRouter {
    * @internal
    */
   // TODO: use @bound and improve name (eslint-disable is temp)
-  // eslint-disable-next-line @typescript-eslint/typedef
   public linkCallback = (info: AnchorEventInfo): void => {
     let instruction = info.instruction || '';
     if (typeof instruction === 'string' && instruction.startsWith('#')) {
@@ -308,7 +307,6 @@ export class Router implements IRouter {
    * @internal
    */
   // TODO: use @bound and improve name (eslint-disable is temp)
-  // eslint-disable-next-line @typescript-eslint/typedef
   public navigatorCallback = (instruction: Navigation): void => {
     // Instructions extracted from queue, one at a time
     this.processNavigations(instruction).catch(error => { throw error; });
@@ -318,7 +316,6 @@ export class Router implements IRouter {
    * @internal
    */
   // TODO: use @bound and improve name (eslint-disable is temp)
-  // eslint-disable-next-line @typescript-eslint/typedef
   public navigatorSerializeCallback = async (entry: IStoredNavigatorEntry, preservedEntries: IStoredNavigatorEntry[]): Promise<IStoredNavigatorEntry> => {
     let excludeComponents = [];
     for (const preservedEntry of preservedEntries) {
@@ -365,7 +362,6 @@ export class Router implements IRouter {
    * @internal
    */
   // TODO: use @bound and improve name (eslint-disable is temp)
-  // eslint-disable-next-line @typescript-eslint/typedef
   public browserNavigatorCallback = (browserNavigationEvent: INavigatorViewerEvent): void => {
     const entry = new Navigation(browserNavigationEvent.state?.currentEntry);
     entry.instruction = browserNavigationEvent.instruction;
@@ -377,7 +373,6 @@ export class Router implements IRouter {
    * @internal
    */
   // TODO: use @bound and improve name (eslint-disable is temp)
-  // eslint-disable-next-line @typescript-eslint/typedef
   public processNavigations = async (qInstruction: QueueItem<Navigation>): Promise<void> => {
     const instruction = this.processingNavigation = qInstruction as Navigation;
 

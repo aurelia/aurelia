@@ -1,10 +1,9 @@
-/* eslint-disable @typescript-eslint/strict-boolean-expressions */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { CustomElement, customElement } from '@aurelia/runtime-html';
 import { IRouterActivateOptions, IRouter } from '@aurelia/router';
 import { assert } from '@aurelia/testing';
 
-import { IHookInvocationAggregator, IHIAConfig, HookName, MaybeHookName } from './_shared/hook-invocation-tracker.js';
+import { IHookInvocationAggregator, IHIAConfig, HookName } from './_shared/hook-invocation-tracker.js';
 import { TestRouteViewModelBase, HookSpecs } from './_shared/view-models.js';
 import { hookSpecsMap } from './_shared/hook-spec.js';
 import { createFixture, DeferralJuncture, SwapStrategy, translateOptions, transformNotifications, IRouterOptionsSpec } from './_shared/create-fixture.js';

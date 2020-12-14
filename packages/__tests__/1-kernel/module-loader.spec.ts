@@ -291,8 +291,8 @@ describe('ModuleLoader', function () {
     const $res1 = await res1;
     const $res2 = await res2;
 
-    loader.load(promise, transform1);
-    loader.load(promise, transform2);
+    void loader.load(promise, transform1);
+    void loader.load(promise, transform2);
 
     assert.strictEqual($res1, retVal, `$res1 === retVal`);
     assert.strictEqual($res2, retVal, `$res2 === retVal`);

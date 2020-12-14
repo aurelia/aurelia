@@ -275,7 +275,6 @@ export class NPMPackageLoader {
     let resolvedPath = pkgResolveCache.get(refName);
     if (resolvedPath === void 0) {
       let dir = dep.issuer.dir;
-      // eslint-disable-next-line no-constant-condition
       while (true) {
         resolvedPath = joinPath(dir, 'node_modules', refName, 'package.json');
         // eslint-disable-next-line no-await-in-loop

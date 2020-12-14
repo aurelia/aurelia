@@ -229,7 +229,6 @@ export class CheckedObserver implements IObserver {
     this.observe();
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public stop(): void {
     this.handler.dispose();
     this.collectionObserver?.unsubscribeFromCollection(this);

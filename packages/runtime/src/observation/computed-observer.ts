@@ -1,4 +1,3 @@
-/* eslint-disable eqeqeq */
 import {
   LifecycleFlags,
   AccessorType,

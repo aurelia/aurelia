@@ -792,7 +792,6 @@ export class ListenerBindingRenderer implements IRenderer {
     target: HTMLElement,
     instruction: ListenerBindingInstruction,
   ): void {
-    // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsEventCommand | (instruction.strategy + BindingType.DelegationStrategyDelta));
     const binding = applyBindingBehavior(
       new Listener(context.platform, instruction.to, instruction.strategy, expr, target, instruction.preventDefault, this.eventDelegator, context),

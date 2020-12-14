@@ -83,7 +83,6 @@ export class BindableObserver {
           this.callback?.call(this.obj, newValue, currentValue, flags);
 
           if (this.hasPropertyChangedCallback) {
-            // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
             this.propertyChangedCallback!.call(this.obj, this.propertyKey, newValue, currentValue, flags);
           }
         }

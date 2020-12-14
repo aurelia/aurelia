@@ -206,6 +206,7 @@ module.exports = {
     '@typescript-eslint/prefer-nullish-coalescing': ['warn', { 'forceSuggestionFixer': true }],
     '@typescript-eslint/prefer-optional-chain': 'warn',
     '@typescript-eslint/promise-function-async': 'off',
+    '@typescript-eslint/require-await': 'off',
     // '@typescript-eslint/quotes': ['warn', 'backtick', { avoidEscape: true }],
     '@typescript-eslint/require-array-sort-compare': 'warn',
     '@typescript-eslint/restrict-plus-operands': ['warn', { 'checkCompoundAssignments': true }],
@@ -249,6 +250,7 @@ module.exports = {
       '@typescript-eslint/no-var-requires': 'off',
       '@typescript-eslint/restrict-plus-operands': 'off',
       '@typescript-eslint/typedef': 'off',
+      'import/no-nodejs-modules': 'off',
     }
   }, { // Specific overrides for TS files within examples, scripts and tests as some rules don't make sense there.
     files: ['examples/**', 'scripts/**', 'test/**'],

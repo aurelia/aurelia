@@ -14,7 +14,6 @@ module.exports = {
   },
   rules: {
     '@typescript-eslint/no-explicit-any': 'off',
-    '@typescript-eslint/require-await': 'off', // false positives
     '@typescript-eslint/promise-function-async': 'off', // perf consideration
     'no-constant-condition': 'off', // necessary construct for spec compliance
     '@typescript-eslint/strict-boolean-expressions': 'off', // false positives in null coalescing

@@ -3,6 +3,7 @@ import { getOptions } from 'loader-utils';
 import type * as webpack from 'webpack';
 
 export default function (
+  // @ts-ignore TODO: fix types
   this: webpack.loader.LoaderContext,
   contents: string,
   sourceMap?: object, // ignore existing source map for now
@@ -11,12 +12,14 @@ export default function (
 }
 
 export function loader(
+  // @ts-ignore TODO: fix types
   this: webpack.loader.LoaderContext,
   contents: string,
   _preprocess = preprocess // for testing
 ) {
   // eslint-disable-next-line @typescript-eslint/no-unused-expressions, @typescript-eslint/strict-boolean-expressions
   this.cacheable && this.cacheable();
+  // @ts-ignore TODO: fix types
   const cb = this.async() as webpack.loader.loaderCallback;
   const options = getOptions(this) as IOptionalPreprocessOptions;
 

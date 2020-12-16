@@ -24,7 +24,7 @@
     "@benchmarking-apps/shared": "file:../shared"
   },
   "devDependencies": {
-    "@aurelia/http-server": "0.8.0",
+    "@aurelia/http-server": "dev",
     "clean-webpack-plugin": "^3.0.0",
     "css-loader": "^4.3.0",
     "html-entities": "^1.3.1",

@@ -46,6 +46,7 @@ async function main({ framework, iterations }: { framework: Data<FrameworkMetada
     process.send!(measurements);
   } catch (e) {
     console.error(`run for the framework '${framework.name}' failed with`, e);
+    ++failures;
   } finally {
     if (app !== null) {
       kill(app.pid);
@@ -58,7 +59,7 @@ async function buildApp(fxName: string, needDepsInstallation: boolean, appPath: 
   const cmd = process.platform === 'win32' ? 'npm.cmd' : 'npm';
   if (needDepsInstallation) {
     await new Promise<void>((res) => {
-      const installation = spawn(cmd, ['ci'], { cwd: appPath, shell: true });
+      const installation = spawn(cmd, ['i'], { cwd: appPath, shell: true });
       installation.stdout.on('data', function (d) { console.log(d.toString()); });
       installation.stderr.on('data', function (d) { console.warn(d.toString()); });
       installation.on('exit', res);
@@ -81,7 +82,7 @@ async function startApp(fxName: string, appPath: string, port: string) {
       [
         '-r',
         'esm',
-        './node_modules/@aurelia/http-server/dist/esnext/cli.js',
+        '../../../packages/http-server/dist/esnext/cli.js',
         '--root',
         join(appPath, 'dist'),
         '--port',

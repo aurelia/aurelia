@@ -3,7 +3,7 @@ import { SetterNotifier } from './setter-observer.js';
 import { def } from '../utilities-objects.js';
 
 import type { Constructable, IIndexable } from '@aurelia/kernel';
-import type { IBindingContext, InterceptorFunc, ISubscriber, IObservable } from '../observation.js';
+import type { IBindingContext, InterceptorFunc, IObservable } from '../observation.js';
 import type { ObservableGetter } from './observer-locator.js';
 import type { SetterObserver } from './setter-observer.js';
 

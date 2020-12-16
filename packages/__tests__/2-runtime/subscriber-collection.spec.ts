@@ -137,10 +137,10 @@ describe('subscriberCollection', function () {
   describe('+ batching', function () {
     interface SubCollection extends ISubscriberCollection {}
     @subscriberCollection
-    class SubCollection {};
+    class SubCollection {}
 
     it('batch notifies', function () {
-      const observer = new SubCollection();  
+      const observer = new SubCollection();
       const sub1Values = [];
 
       observer.addSubscriber({
@@ -148,7 +148,7 @@ describe('subscriberCollection', function () {
           sub1Values.push([newValue, oldValue]);
         }
       });
-  
+
       batch(() => {
         observer.callSubscribers(1, 0, LifecycleFlags.none);
         assert.deepStrictEqual(sub1Values, []);
@@ -169,14 +169,9 @@ describe('subscriberCollection', function () {
           assert.deepStrictEqual(sub1Values, []);
         }
       };
-      const subscribe2 = {
-        handleChange(val: number, oldValue: number) {
-
-        }
-      }
 
       observer.addSubscriber(subscriber1);
-  
+
       batch(() => {
         observer.callSubscribers(1, 0, LifecycleFlags.none);
         assert.deepStrictEqual(sub1Values, []);

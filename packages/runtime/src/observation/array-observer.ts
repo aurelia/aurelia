@@ -353,10 +353,10 @@ export function disableArrayObservation(): void {
 export interface ArrayObserver extends ICollectionObserver<CollectionKind.array> {}
 
 export class ArrayObserver {
-  public inBatch: boolean;
   public type: AccessorType = AccessorType.Array;
 
   private readonly indexObservers: Record<string | number, ArrayIndexObserver | undefined>;
+  private lenObs?: CollectionLengthObserver;
 
   public constructor(array: unknown[]) {
 
@@ -365,12 +365,11 @@ export class ArrayObserver {
       enableArrayObservation();
     }
 
-    this.inBatch = false;
     this.indexObservers = {};
 
     this.collection = array;
     this.indexMap = createIndexMap(array.length);
-    this.lengthObserver = (void 0)!;
+    this.lenObs = void 0;
 
     observerLookup.set(array, this);
   }
@@ -379,13 +378,12 @@ export class ArrayObserver {
     const indexMap = this.indexMap;
     const length = this.collection.length;
 
-    this.inBatch = false;
     this.indexMap = createIndexMap(length);
     this.subs.notifyCollection(indexMap, LifecycleFlags.updateTarget);
   }
 
   public getLengthObserver(): CollectionLengthObserver {
-    return this.lengthObserver ??= new CollectionLengthObserver(this);
+    return this.lenObs ??= new CollectionLengthObserver(this);
   }
 
   public getIndexObserver(index: number): IArrayIndexObserver {

@@ -121,8 +121,8 @@ export function disableSetObservation(): void {
 export interface SetObserver extends ICollectionObserver<CollectionKind.set> {}
 
 export class SetObserver {
-  public inBatch: boolean;
   public type: AccessorType = AccessorType.Set;
+  private lenObs?: CollectionSizeObserver;
 
   public constructor(observedSet: Set<unknown>) {
 
@@ -131,11 +131,9 @@ export class SetObserver {
       enableSetObservation();
     }
 
-    this.inBatch = false;
-
     this.collection = observedSet;
     this.indexMap = createIndexMap(observedSet.size);
-    this.lengthObserver = (void 0)!;
+    this.lenObs = void 0;
 
     observerLookup.set(observedSet, this);
   }
@@ -144,13 +142,12 @@ export class SetObserver {
     const indexMap = this.indexMap;
     const size = this.collection.size;
 
-    this.inBatch = false;
     this.indexMap = createIndexMap(size);
     this.subs.notifyCollection(indexMap, LifecycleFlags.updateTarget);
   }
 
   public getLengthObserver(): CollectionSizeObserver {
-    return this.lengthObserver ??= new CollectionSizeObserver(this);
+    return this.lenObs ??= new CollectionSizeObserver(this);
   }
 }
 

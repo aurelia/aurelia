@@ -15,9 +15,6 @@ export interface IBinding {
 
 export type InterceptorFunc<TInput = unknown, TOutput = unknown> = (value: TInput) => TOutput;
 
-export interface ILifecycle {}
-export const ILifecycle = DI.createInterface<ILifecycle>('ILifecycle').noDefault();
-
 /*
 * Note: the oneTime binding now has a non-zero value for 2 reasons:
 *  - plays nicer with bitwise operations (more consistent code, more explicit settings)
@@ -298,9 +295,7 @@ export interface ICollectionObserver<T extends CollectionKind> extends
   ICollectionChangeTracker<CollectionKindToType<T>>,
   ICollectionSubscriberCollection {
   type: AccessorType;
-  inBatch: boolean;
   collection: ObservedCollectionKindToType<T>;
-  lengthObserver: T extends CollectionKind.array ? CollectionLengthObserver : CollectionSizeObserver;
   getLengthObserver(): T extends CollectionKind.array ? CollectionLengthObserver : CollectionSizeObserver;
   notify(): void;
 }

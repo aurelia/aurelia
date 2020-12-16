@@ -134,8 +134,8 @@ export function disableMapObservation(): void {
 export interface MapObserver extends ICollectionObserver<CollectionKind.map> {}
 
 export class MapObserver {
-  public inBatch: boolean;
   public type: AccessorType = AccessorType.Map;
+  private lenObs?: CollectionSizeObserver;
 
   public constructor(map: Map<unknown, unknown>) {
 
@@ -144,11 +144,9 @@ export class MapObserver {
       enableMapObservation();
     }
 
-    this.inBatch = false;
-
     this.collection = map;
     this.indexMap = createIndexMap(map.size);
-    this.lengthObserver = (void 0)!;
+    this.lenObs = void 0;
 
     observerLookup.set(map, this);
   }
@@ -157,13 +155,12 @@ export class MapObserver {
     const indexMap = this.indexMap;
     const size = this.collection.size;
 
-    this.inBatch = false;
     this.indexMap = createIndexMap(size);
     this.subs.notifyCollection(indexMap, LifecycleFlags.updateTarget);
   }
 
   public getLengthObserver(): CollectionSizeObserver {
-    return this.lengthObserver ??= new CollectionSizeObserver(this);
+    return this.lenObs ??= new CollectionSizeObserver(this);
   }
 }
 

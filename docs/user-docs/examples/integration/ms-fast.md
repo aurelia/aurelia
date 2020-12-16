@@ -35,10 +35,10 @@ Aurelia.register(AppTask.with(IContainer).beforeCreate().call(container => {
   const valuePropertyConfig = { events: ['change'] };
   nodeObserverLocator.useConfig({
     'FAST-CHECKBOX': {
-      value: valuePropertyConfig
+      checked: valuePropertyConfig
     },
     'FAST-RADIO': {
-      value: valuePropertyConfig
+      checked: valuePropertyConfig
     },
     'FAST-RADIO-GROUP': {
       value: valuePropertyConfig
@@ -47,7 +47,7 @@ Aurelia.register(AppTask.with(IContainer).beforeCreate().call(container => {
       value: valuePropertyConfig
     },
     'FAST-SWITCH': {
-      value: valuePropertyConfig
+      checked: valuePropertyConfig
     },
     'FAST-TABS': {
       value: valuePropertyConfig

@@ -89,22 +89,43 @@ export class SetterObserver {
   }
 }
 
+type ChangeHandlerCallback =
+  (this: object, value: unknown, oldValue: unknown, flags: LifecycleFlags) => void;
+
 export interface SetterNotifier extends ISubscriberCollection {}
 
 export class SetterNotifier implements IAccessor, ISubscribable {
-  // ideally, everything is an object,
-  // probably this flag is redundant, just None?
-  public type: AccessorType = AccessorType.Observer;
+  public readonly type: AccessorType = AccessorType.Observer;
 
   /**
    * @internal
    */
-  public v: unknown = void 0;
+  private v: unknown = void 0;
+  /**
+   * @internal
+   */
+  private readonly cb?: ChangeHandlerCallback;
+  /**
+   * @internal
+   */
+  private readonly obj: object;
+  /**
+   * @internal
+   */
+  private readonly s: InterceptorFunc | undefined;
 
-  // todo(bigopon): remove flag aware assignment in ast, move to the decorator itself
   public constructor(
-    private readonly s?: InterceptorFunc
-  ) {}
+    obj: object,
+    callbackKey: PropertyKey,
+    set: InterceptorFunc | undefined,
+    initialValue: unknown,
+  ) {
+    this.obj = obj;
+    this.s = set;
+    const callback = (obj as IIndexable)[callbackKey as string];
+    this.cb = typeof callback === 'function' ? callback as ChangeHandlerCallback : void 0;
+    this.v = initialValue;
+  }
 
   public getValue(): unknown {
     return this.v;
@@ -117,7 +138,13 @@ export class SetterNotifier implements IAccessor, ISubscribable {
     const oldValue = this.v;
     if (!Object.is(value, oldValue)) {
       this.v = value;
-      this.subs.notify(value, oldValue, flags);
+      this.cb?.call(this.obj, value, oldValue, flags);
+      // there's a chance that cb.call(...)
+      // changes the latest value of this observer
+      // and thus making `value` stale
+      // so for now, call with this.v
+      // todo: should oldValue be treated the same way?
+      this.subs.notify(this.v, oldValue, flags);
     }
   }
 }

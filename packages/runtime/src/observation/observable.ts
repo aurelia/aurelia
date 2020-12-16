@@ -137,40 +137,18 @@ export function observable(
   }
 }
 
-type ChangeHandlerCallback =
-  (this: SetterObserverOwningObject, value: unknown, oldValue: unknown, key: PropertyKey) => void;
-
-class CallbackSubscriber implements ISubscriber {
-  public constructor(
-    private readonly obj: SetterObserverOwningObject,
-    private readonly key: PropertyKey,
-    private readonly cb: ChangeHandlerCallback,
-  ) {}
-
-  public handleChange(value: unknown, oldValue: unknown): void {
-    this.cb.call(this.obj, value, oldValue, this.key);
-  }
-}
-
 function getNotifier(
   obj: SetterObserverOwningObject,
   key: PropertyKey,
   callbackKey: PropertyKey,
   initialValue: unknown,
-  set?: InterceptorFunc,
+  set: InterceptorFunc | undefined,
 ): SetterNotifier {
   const lookup = getObserversLookup(obj) as unknown as Record<PropertyKey, SetterObserver | SetterNotifier>;
   let notifier = lookup[key as string] as SetterNotifier;
   if (notifier == null) {
-    notifier = new SetterNotifier(set);
+    notifier = new SetterNotifier(obj, callbackKey, set, initialValue === noValue ? void 0 : initialValue);
     lookup[key as string] = notifier;
-    if (initialValue !== noValue) {
-      notifier.setValue(initialValue, LifecycleFlags.none);
-    }
-    const callback = obj[callbackKey as string];
-    if (typeof callback === 'function') {
-      notifier.subscribe(new CallbackSubscriber(obj, key, callback));
-    }
   }
   return notifier;
 }

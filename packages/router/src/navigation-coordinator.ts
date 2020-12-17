@@ -94,7 +94,7 @@ export class NavigationCoordinator extends StateCoordinator<IScopeOwner, Navigat
   public cancel() {
     // TODO: Take care of disabling viewports when cancelling and stateful!
     this.entities.forEach(entity => {
-      const abort = entity.entity.abortContentChange();
+      const abort = entity.entity.abortContentChange(null);
       if (abort instanceof Promise) {
         abort.catch(error => { throw error; });
       }

@@ -13,7 +13,7 @@ import { Viewport } from './viewport.js';
 import { ViewportInstruction } from './viewport-instruction.js';
 import { Navigation } from './navigation.js';
 import { IConnectedCustomElement } from './resources/viewport.js';
-import { Runner } from './runner.js';
+import { Runner, Step } from './runner.js';
 import { AwaitableMap } from './awaitable-map.js';
 
 /**
@@ -197,7 +197,7 @@ export class ViewportContent {
   //   return result;
   // }
 
-  public load(previousInstruction: Navigation): void | Promise<void> {
+  public load(step: Step<void>, previousInstruction: Navigation): Step<void> {
     // if (!this.reentry && (this.contentStatus !== ContentStatus.created || this.loaded)) {
     // if (!this.reentry && this.loaded) {
     // if (!this.contentStates.has('created') || (this.contentStates.has('loaded') && !this.reentry)) {
@@ -206,7 +206,7 @@ export class ViewportContent {
     // this.reentry = false;
 
     // console.log('>>> Runner.run', 'load');
-    return Runner.run(null,
+    return Runner.run(step,
       () => this.contentStates.await('checkedLoad'),
       () => {
         if (!this.contentStates.has('created') || (this.contentStates.has('loaded') && !this.reentry)) {
@@ -223,15 +223,9 @@ export class ViewportContent {
           return this.content.componentInstance.load(merged, this.viewport!, this.instruction, previousInstruction);
         }
       }
-    );
+    ) as Step<void>;
   }
   public unload(nextInstruction: Navigation | null): void | Promise<void> {
-    /*
-    console.log('>>> Runner.run', 'unload');
-    return Runner.run(null,
-      // () => this.contentStates.await('checkedUnload'),
-      () => {
-        */
     // if (!this.loaded) {
     if (!this.contentStates.has('loaded')) {
       return;
@@ -242,10 +236,6 @@ export class ViewportContent {
     if (this.content.componentInstance && this.content.componentInstance.unload) {
       return this.content.componentInstance.unload(this.viewport!, nextInstruction, this.instruction);
     }
-    /*
-  }
-);
-*/
   }
 
   // public unloadComponent(cache: ViewportContent[], stateful: boolean = false): void {
@@ -265,7 +255,7 @@ export class ViewportContent {
   //   }
   // }
 
-  public activateComponent(initiator: IHydratedController | null, parent: ICustomElementController | null, flags: LifecycleFlags, connectedCE: IConnectedCustomElement, parentActivated: boolean): void | Promise<void> {
+  public activateComponent(step: Step<void>, viewport: Viewport, initiator: IHydratedController | null, parent: ICustomElementController | null, flags: LifecycleFlags, connectedCE: IConnectedCustomElement, parentActivated: boolean): Step<void> {
     // if (this.contentStates.has('activated') || !this.contentStates.has('created')) {
     // if (this.contentStates.has('activated')) {
     //   return;
@@ -277,8 +267,9 @@ export class ViewportContent {
     // // }
 
     // const contentController = this.contentController(connectedCE);
-    return Runner.run(null,
+    return Runner.run(step,
       () => this.contentStates.await('loaded'),
+      () => this.waitForParent(parent, viewport), // TODO: Yeah, this needs to be looked into
       () => {
         if (this.contentStates.has('activated')) {
           return;
@@ -291,6 +282,10 @@ export class ViewportContent {
 
         const contentController = this.contentController(connectedCE);
         return contentController.activate(initiator ?? contentController, parent, flags);
+        // if (result instanceof Promise) {
+        //   result.then(() => { setTimeout(() => { console.log('RESOLVED activateComponent', viewport.pathname, step.root.report, step); }, 500); });
+        // }
+        // return result;
       },
       /*
       () => {
@@ -307,7 +302,7 @@ export class ViewportContent {
         }
       },
     */
-    );
+    ) as Step<void>;
   }
   // public async activateComponent(initiator: IHydratedController | null, parent: ICustomElementController<ICustomElementViewModel> | null, flags: LifecycleFlags, connectedCE: IConnectedCustomElement): Promise<void> {
   //   // if (this.contentStatus !== ContentStatus.created) {
@@ -334,10 +329,6 @@ export class ViewportContent {
   // }
 
   public deactivateComponent(initiator: IHydratedController | null, parent: ICustomElementController | null, flags: LifecycleFlags, connectedCE: IConnectedCustomElement, stateful: boolean = false): void | Promise<void> {
-    /*
-    return Runner.run(null,
-      () => {
-        */
     // console.log('deactivateComponent', this.contentStates.has('activated'), this.viewport?.toString());
     // if (this.contentStatus !== ContentStatus.activated) {
     if (!this.contentStates.has('activated')) {
@@ -357,11 +348,7 @@ export class ViewportContent {
     }
 
     const contentController = this.contentController(connectedCE);
-    return contentController.deactivate(initiator ?? contentController, parent!, flags);
-    /*
-  },
-);
-*/
+    return contentController.deactivate(initiator ?? contentController, parent, flags);
   }
 
   public disposeComponent(connectedCE: IConnectedCustomElement, cache: ViewportContent[], stateful: boolean = false): void {
@@ -382,7 +369,7 @@ export class ViewportContent {
     }
   }
 
-  public freeContent(connectedCE: IConnectedCustomElement | null, nextInstruction: Navigation | null, cache: ViewportContent[], stateful: boolean = false): void | Promise<void> {
+  public freeContent(step: Step<void>, connectedCE: IConnectedCustomElement | null, nextInstruction: Navigation | null, cache: ViewportContent[], stateful: boolean = false): Step<void> {
     // switch (this.contentStatus) {
     //   case ContentStatus.activated:
     //     await this.unload(nextInstruction);
@@ -394,13 +381,13 @@ export class ViewportContent {
     // TODO: Fix execution order on these
     // These are all safe to run
     // console.log('>>> Runner.run', 'freeContent');
-    return Runner.run(null,
+    return Runner.run(step,
       () => this.unload(nextInstruction),
       () => this.deactivateComponent(null, connectedCE!.controller, LifecycleFlags.none, connectedCE!, stateful),
       // () => this.unloadComponent(cache, stateful), // TODO: Hook up to new dispose
       // () => this.destroyComponent(),
       () => this.disposeComponent(connectedCE!, cache, stateful),
-    );
+    ) as Step<void>;
   }
 
   public toComponentName(): string | null {
@@ -417,5 +404,28 @@ export class ViewportContent {
       return null;
     }
     return this.content.toComponentInstance(container);
+  }
+
+  private waitForParent(parent: ICustomElementController | null, viewport: Viewport): void | Promise<void> {
+    if (parent === null) {
+      return;
+    }
+    if (!parent.isActive) {
+      // console.log('waitingForParent', viewport.pathname);
+      return new Promise((resolve) => {
+        viewport.activeResolve = resolve;
+      });
+      // return new Promise((resolve) => {
+      //   setTimeout(() => {
+      //     console.log('Waiting for parent');
+      //     if (parent.isActive) {
+      //       console.log('Parent is now active.');
+      //       resolve();
+      //     } else {
+      //       console.log('Parent STILL inactive!');
+      //     }
+      //   }, 100);
+      // });
+    }
   }
 }

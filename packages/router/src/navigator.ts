@@ -11,7 +11,7 @@ import { IRouter } from './router.js';
 import { ViewportInstruction } from './viewport-instruction.js';
 import { Scope } from './scope.js';
 import { Navigation, IStoredNavigation } from './navigation.js';
-import { Runner } from './runner.js';
+import { Runner, Step } from './runner.js';
 import { IRoute } from './route.js';
 
 /**
@@ -454,19 +454,17 @@ export class Navigator {
     }
     if (!excludeComponents.some(exclude => exclude === component)) {
       // console.log('>>> Runner.run', 'freeContent');
+      // New run that is awaited by caller
       return Runner.run(null,
-        () => viewport.freeContent(component),
+        (step: Step<void>) => viewport.freeContent(step, component),
         () => {
           alreadyDone.push(component);
         },
-      );
+      ) as void | Promise<void>;
     }
     if (instruction.nextScopeInstructions !== null) {
       for (const nextInstruction of instruction.nextScopeInstructions) {
-        // console.log('>>> Runner.run', 'freeInstructionComponents');
-        return Runner.run(null,
-          () => this.freeInstructionComponents(nextInstruction, excludeComponents, alreadyDone)
-        );
+        return this.freeInstructionComponents(nextInstruction, excludeComponents, alreadyDone);
       }
     }
   }

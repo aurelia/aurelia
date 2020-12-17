@@ -303,8 +303,10 @@ describe('router config', function () {
 
                     yield* interleave(
                       prepend('stop', t4c, 'detaching', 'unbinding'),
-                      prepend('stop', 'root1', 'detaching', 'unbinding', 'dispose'),
+                      prepend('stop', 'root1', 'detaching', 'unbinding'),
                     );
+                    yield* prepend('stop', 'root1', 'dispose');
+                    yield* prepend('stop', t4c, 'dispose');
                   })()];
                   verifyInvocationsEqual(hia.notifyHistory, expected);
 

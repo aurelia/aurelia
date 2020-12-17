@@ -31,7 +31,7 @@ import { NavigationCoordinator } from './navigation-coordinator.js';
 import { IRouterActivateOptions, RouterOptions } from './router-options.js';
 import { OpenPromise } from './open-promise.js';
 import { NavigatorStateChangeEvent } from './events.js';
-import { Runner } from './runner.js';
+import { Runner, Step } from './runner.js';
 import { IRoute, Route } from './route.js';
 
 /**
@@ -724,6 +724,7 @@ export class Router implements IRouter {
     await this.navigator.finalize(instruction);
     */
 
+    // TODO: Look into adding everything above as well
     return Runner.run(null,
       () => {
         coordinator.finalEntity();
@@ -756,7 +757,7 @@ export class Router implements IRouter {
         this.processingNavigation = null;
         return this.navigator.finalize(instruction);
       },
-    );
+    ) as void | Promise<void>;
   };
 
   /**
@@ -872,8 +873,8 @@ export class Router implements IRouter {
   /**
    * @internal - Called from the viewport custom element
    */
-  public disconnectViewport(viewport: Viewport, connectedCE: IConnectedCustomElement): void {
-    if (!viewport.connectedScope.parent!.removeViewport(viewport, connectedCE)) {
+  public disconnectViewport(step: Step | null, viewport: Viewport, connectedCE: IConnectedCustomElement): void {
+    if (!viewport.connectedScope.parent!.removeViewport(step, viewport, connectedCE)) {
       throw new Error("Failed to remove viewport: " + viewport.name);
     }
     this.unsetClosestScope(connectedCE.container);
@@ -1178,7 +1179,7 @@ export class Router implements IRouter {
   private async cancelNavigation(updatedScopeOwners: IScopeOwner[], qInstruction: QueueItem<Navigation>): Promise<void> {
     // TODO: Take care of disabling viewports when cancelling and stateful!
     updatedScopeOwners.forEach((viewport) => {
-      const abort = viewport.abortContentChange();
+      const abort = viewport.abortContentChange(null);
       if (abort instanceof Promise) {
         abort.catch(error => { throw error; });
       }
@@ -1347,7 +1348,7 @@ export class Router implements IRouter {
     }
     if (!excludeComponents.some(exclude => exclude === component)) {
       console.log('AWAIT freeContent');
-      await viewport.freeContent(component);
+      await viewport.freeContent(null, component);
       alreadyDone.push(component);
       return;
     }

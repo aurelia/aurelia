@@ -14,7 +14,7 @@ import { IScopeOwner, IScopeOwnerOptions, NextContentAction, Scope } from './sco
 import { Navigation } from './navigation.js';
 import { IRoutingController, IConnectedCustomElement } from './resources/viewport.js';
 import { NavigationCoordinator } from './navigation-coordinator.js';
-import { Runner } from './runner.js';
+import { Runner, Step } from './runner.js';
 import { Routes } from './decorators/routes.js';
 import { Route } from './route.js';
 
@@ -39,8 +39,9 @@ export class Viewport implements IScopeOwner {
 
   public path: string | null = null;
 
-  private clear: boolean = false;
+  public activeResolve?: ((value?: void | PromiseLike<void>) => void) | null = null;
   private connectionResolve?: ((value?: void | PromiseLike<void>) => void) | null = null;
+  private clear: boolean = false;
 
   private previousViewportState: Viewport | null = null;
 
@@ -274,13 +275,15 @@ export class Viewport implements IScopeOwner {
     }
   }
 
-  public remove(connectedCE: IConnectedCustomElement | null): boolean | Promise<boolean> {
+  public remove(step: Step | null, connectedCE: IConnectedCustomElement | null): boolean | Promise<boolean> {
+    // TODO: Review this: should it go from promise to value somewhere?
     if (this.connectedCE === connectedCE) {
       // console.log('>>> Runner.run', 'remove');
-      return Runner.run(null,
-        () => {
+      return Runner.run(step,
+        (step: Step<void>) => {
           if (this.content.componentInstance) {
             return this.content.freeContent(
+              step,
               this.connectedCE,
               (this.nextContent ? this.nextContent.instruction : null),
               this.historyCache,
@@ -288,11 +291,12 @@ export class Viewport implements IScopeOwner {
             ); // .catch(error => { throw error; });
           }
         },
-        () => {
+        (step: Step<void>) => {
           if (this.doForceRemove) {
             const removes = [];
             for (const content of this.historyCache) {
-              removes.push(() => content.freeContent(
+              removes.push((step: Step<void>) => content.freeContent(
+                step,
                 null,
                 null,
                 this.historyCache,
@@ -301,7 +305,7 @@ export class Viewport implements IScopeOwner {
             }
             removes.push(() => { this.historyCache = []; });
             // console.log('>>> Runner.run', 'removes');
-            return Runner.run(null,
+            return Runner.run(step,
               ...removes,
             );
             // return Promise.all(this.historyCache.map(content => content.freeContent(
@@ -331,10 +335,11 @@ export class Viewport implements IScopeOwner {
     // const performSwap = this.performSwap || !this.router.isRestrictedNavigation || this.clear;
 
     const guardSteps = [
-      () => performLoad ? this.canUnload() : true,
-      (canUnloadResult: boolean) => {
-        if (!canUnloadResult) {
-          Runner.cancel(void 0);
+      (step: Step<boolean>) => performLoad ? this.canUnload(step) : true,
+      (step: Step<boolean>) => {
+        // console.log('canUnload step', step.previousValue);
+        if (!step.previousValue) { // canUnloadResult: boolean
+          step.cancel();
           coordinator.cancel();
           return;
         }
@@ -347,11 +352,12 @@ export class Viewport implements IScopeOwner {
       },
       () => coordinator.waitForSyncState('guardedUnload', this),
 
-      () => performLoad ? this.canLoad(guarded) as boolean | LoadInstruction | LoadInstruction[] : true,
-      (canLoadResult: boolean | LoadInstruction | LoadInstruction[]) => {
-        if (typeof canLoadResult === 'boolean') {
-          if (!canLoadResult) {
-            Runner.cancel(void 0);
+      (step: Step<boolean>) => performLoad ? this.canLoad(step, guarded) as boolean | LoadInstruction | LoadInstruction[] : true,
+      (step: Step) => {
+        const canLoadResult = step.previousValue as boolean | LoadInstruction | LoadInstruction[];
+        if (typeof canLoadResult === 'boolean') { // canLoadResult: boolean | LoadInstruction | LoadInstruction[],
+          if (!step.previousValue) {
+            step.cancel();
             coordinator.cancel();
             return;
           }
@@ -359,9 +365,9 @@ export class Viewport implements IScopeOwner {
           coordinator.addEntityState(this, 'guarded');
         } else { // Denied and (probably) redirected
           // console.log('>>> Runner.run', 'transition.load');
-          Runner.run(null,
+          return Runner.run(step,
             () => this.router.load(canLoadResult, { append: true }),
-            () => this.abortContentChange(),
+            (step: Step<void>) => this.abortContentChange(step),
             // TODO: Abort content change in the viewports
           );
         }
@@ -374,30 +380,30 @@ export class Viewport implements IScopeOwner {
       // () => { console.log("I'm guarded", this.toString()); },
       // TODO: For consistency it should probably be this option with 'routed'
       // () => performSwap ? this.unload(coordinator.checkingSyncState('routed')) : true,
-      () => performLoad ? this.unload(true) : true,
+      (step: Step<void>) => performLoad ? this.unload(step, true) : true,
       () => coordinator.addEntityState(this, 'unloaded'),
 
       // () => { console.log("I'm waiting for unloaded", this.toString()); },
       () => coordinator.waitForSyncState('unloaded', this),
       // () => { console.log("I'm done waiting for unloaded", this.toString()); },
-      () => performLoad ? this.load(coordinator.checkingSyncState('routed')) : true,
+      (step: Step<void>) => performLoad ? this.load(step, coordinator.checkingSyncState('routed')) : true,
       () => coordinator.addEntityState(this, 'loaded'),
       () => coordinator.addEntityState(this, 'routed'),
     ];
 
-    const lifecycleSteps = [
+    const lifecycleSteps: ((step: Step<void | void[]>) => Step<void> | Promise<void> | void)[] = [
       () => coordinator.waitForSyncState('routed', this),
       // () => coordinator.addEntityState(this, 'bound'),
     ];
     if (performSwap) {
       if (this.router.options.swapStrategy.includes('parallel')) {
-        lifecycleSteps.push(() => {
+        lifecycleSteps.push((step: Step<void | void[]>): Step<void> => {
           if (this.router.options.swapStrategy.includes('add')) {
             // console.log('>>> Runner.run', 'transition.parallel-add');
-            return Runner.run(null,
-              this.addContent(),
-              this.removeContent()
-            );
+            return Runner.runParallel<void>(step as Step<void>,
+              (step: Step<void | void[]>): void | Step<void> => this.addContent(step as Step<void>),
+              (step: Step<void | void[]>): void | Step<void> => this.removeContent(step as Step<void>),
+            ) as Step<void>;
           } else {
             // console.log('AM HERE');
             // const $Controller = Controller;
@@ -418,17 +424,21 @@ export class Viewport implements IScopeOwner {
             //   this.connectedCE!,
             //   this.parentNextContentActivated)
             // console.log('>>> Runner.run', 'transition.parallel-remove-inside');
-            return Runner.run(null,
-              this.removeContent(),
-              this.addContent(),
-            );
+            return Runner.runParallel(step as Step<void>,
+              (step: Step<void>) => this.removeContent(step),
+              (step: Step<void>) => this.addContent(step),
+            ) as Step<void>;
             // ]).then(() => { console.log('DONE HERE'); }) as unknown as Promise<void>;
           }
         });
       } else {
         lifecycleSteps.push(
-          () => performSwap ? (this.router.options.swapStrategy.includes('add') ? this.addContent() : this.removeContent()) : void 0,
-          () => performSwap ? (this.router.options.swapStrategy.includes('add') ? this.removeContent() : this.addContent()) : void 0,
+          (step: Step<void | void[]>) => performSwap
+            ? (this.router.options.swapStrategy.includes('add') ? this.addContent(step as Step<void>) : this.removeContent(step as Step<void>))
+            : void 0,
+          (step: Step<void | void[]>) => performSwap
+            ? (this.router.options.swapStrategy.includes('add') ? this.removeContent(step as Step<void>) : this.addContent(step as Step<void>))
+            : void 0,
         );
       }
     }
@@ -452,19 +462,19 @@ export class Viewport implements IScopeOwner {
     );
   }
 
-  public canUnload(): boolean | Promise<boolean> {
+  public canUnload(step: Step<boolean> | null): boolean | Promise<boolean> {
     // console.log('>>> Runner.run', 'canUnload');
-    return Runner.run(null,
-      () => {
+    return Runner.run(step,
+      (step: Step<boolean>) => {
         // console.log('viewport canUnload run', this.name, 'before');
         // eslint-disable-next-line sonarjs/prefer-immediate-return
-        const result = this.connectedScope.canUnload();
+        const result = this.connectedScope.canUnload(step);
         // console.log('viewport canUnload run', this.name, 'after');
         return result;
       },
-      (canUnloadChildren: boolean) => {
-        // console.log('viewport canUnload result', this.name, canUnloadChildren);
-        if (!canUnloadChildren) {
+      (step: Step<boolean>) => {
+        // console.log('viewport canUnload result', this.connectedScope.toString(), step.previousValue);
+        if (!step.previousValue) { // canUnloadChildren
           return false;
         }
 
@@ -479,7 +489,7 @@ export class Viewport implements IScopeOwner {
     ) as boolean | Promise<boolean>;
   }
 
-  public canLoad(recurse: boolean): boolean | LoadInstruction | LoadInstruction[] | Promise<boolean | LoadInstruction | LoadInstruction[]> {
+  public canLoad(step: Step<boolean>, recurse: boolean): boolean | LoadInstruction | LoadInstruction[] | Promise<boolean | LoadInstruction | LoadInstruction[]> {
     // console.log(this.connectedScope.toString(), 'viewport content canLoad', this.nextContent?.content?.componentName);
     if (this.clear) {
       return true;
@@ -490,7 +500,7 @@ export class Viewport implements IScopeOwner {
     }
 
     // console.log('>>> Runner.run', 'canLoad');
-    return Runner.run(null,
+    return Runner.run(step,
       () => this.waitForConnected(),
       () => {
         this.nextContent!.createComponent(this.connectedCE!, this.options.fallback);
@@ -507,7 +517,7 @@ export class Viewport implements IScopeOwner {
     ) as boolean | LoadInstruction | LoadInstruction[] | Promise<boolean | LoadInstruction | LoadInstruction[]>;
   }
 
-  public load(recurse: boolean): void | Promise<void> {
+  public load(step: Step<void>, recurse: boolean): Step<void> | void {
     // console.log(this.connectedScope.toString(), 'viewport content load', this.nextContent?.content?.componentName);
     if (this.clear || (this.nextContent?.componentInstance ?? null) === null) {
       return;
@@ -520,72 +530,69 @@ export class Viewport implements IScopeOwner {
     // }
 
     // console.log('>>> Runner.run', 'load');
-    return Runner.run(null,
-      () => this.nextContent?.load(this.content.instruction),
-      // () => recurse ? this.connectedScope.load(recurse) : true,
-    );
+    // return Runner.run(null,
+    //   () => this.nextContent?.load(this.content.instruction),
+    //   // () => recurse ? this.connectedScope.load(recurse) : true,
+    // );
+    return this.nextContent?.load(step, this.content.instruction);
     // return this.nextContent?.load(this.content.instruction);
     // await this.nextContent.activateComponent(null, this.connectedCE!.$controller as ICustomElementController<ICustomElementViewModel>, LifecycleFlags.none, this.connectedCE!);
     // return true;
   }
 
-  public addContent(): void | Promise<void> {
+  public addContent(step: Step<void>): void | Step<void> {
     // console.log('addContent', this.toString());
-
-    /*
-    console.log('>>> Runner.run', 'addContent');
-    return Runner.run(null,
-      () => this.activate(null, this.connectedController, LifecycleFlags.none, this.parentNextContentActivated)
-    );
-    */
-    return this.activate(null, this.connectedController, LifecycleFlags.none, this.parentNextContentActivated);
+    return this.activate(step, null, this.connectedController, LifecycleFlags.none, this.parentNextContentActivated);
   }
 
-  public removeContent(): void | Promise<void> {
+  public removeContent(step: Step<void> | null): void | Step<void> {
     if (this.isEmpty) {
       return;
     }
     // console.log('removeContent', this.toString());
 
     // console.log('>>> Runner.run', 'removeContent');
-    return Runner.run(null,
+    return Runner.run(step,
       // () => { const promise = this.connectedScope.removeContent(); return !this.router.options.swapStrategy.includes('parallel') ? promise : void 0; },
       // () => this.connectedScope.removeContent(),
       // () => !this.router.options.swapStrategy.includes('parallel') ? this.connectedScope.removeContent() : void 0,
-      () => {
-        const result = this.deactivate(null, null /* TODO: verify this.connectedController */, LifecycleFlags.none);
-        if (result instanceof Promise) {
-          return result.then(() => this.dispose());
-        } else {
-          this.dispose() as void;
-        }
-      },
-      // () => this.dispose(),
+      () => this.deactivate(null, this.connectedController, LifecycleFlags.none),
+      // () => {
+      //   const result = this.deactivate(null, this.connectedController, LifecycleFlags.none);
+      //   if (result instanceof Promise) {
+      //     return result.then(() => this.dispose());
+      //   } else {
+      //     this.dispose() as void;
+      //   }
+      // },
+      () => this.dispose(),
       // () => this.router.options.swapStrategy.includes('parallel') ? this.connectedScope.removeContent() : void 0,
-    );
-  }
-  public removeChildrenContent(): void | Promise<void> {
-    // console.log(this.name, 'removeContent', this.content.content);
-    // console.log('>>> Runner.run', 'removeChildrenContent');
-    return Runner.run(null,
-      () => !this.isEmpty ? this.connectedScope.removeContent() : void 0,
-    );
+    ) as Step<void>;
   }
 
-  public activate(initiator: IHydratedController | null, parent: IHydratedParentController | null, flags: LifecycleFlags, fromParent: boolean): void | Promise<void> {
+  // public removeChildrenContent(): void | Promise<void> {
+  //   // console.log(this.name, 'removeContent', this.content.content);
+  //   if (!this.isEmpty) {
+  //     return this.connectedScope.removeContent();
+  //   }
+  // }
+
+  public activate(step: Step<void> | null, initiator: IHydratedController | null, parent: IHydratedParentController | null, flags: LifecycleFlags, fromParent: boolean): void | Step<void> {
     // console.log('activate' /* , { ...this } */);
     if (this.activeContent.componentInstance !== null) {
       this.connectedScope.reenableReplacedChildren();
       // console.log('>>> Runner.run', 'activate');
-      return Runner.run(null,
-        () => this.activeContent.load(this.activeContent.instruction), // Only acts if not already loaded
-        () => this.activeContent.activateComponent(
+      return Runner.run(step,
+        (step: Step<void>) => this.activeContent.load(step, this.activeContent.instruction), // Only acts if not already loaded
+        (step: Step<void>) => this.activeContent.activateComponent(
+          step,
+          this,
           initiator,
           parent as IRoutingController,
           flags,
           this.connectedCE!,
           fromParent),
-      );
+      ) as Step<void>;
     }
   }
 
@@ -594,23 +601,30 @@ export class Viewport implements IScopeOwner {
       !this.content.reentry &&
       this.content.componentInstance !== this.nextContent?.componentInstance) {
       // // console.log('>>> Runner.run', 'deactivate');
-      return Runner.run(null,
-        /*        () => this.content?.unload(this.content.instruction), // Only acts if not already unloaded */
-        () => this.content?.deactivateComponent(
-          initiator,
-          parent as IRoutingController,
-          flags,
-          this.connectedCE!,
-          this.router.statefulHistory || this.options.stateful
-        )
+      // return Runner.run(null,
+      //   /*        () => this.content?.unload(this.content.instruction), // Only acts if not already unloaded */
+      //   () => this.content?.deactivateComponent(
+      //     initiator,
+      //     parent as IRoutingController,
+      //     flags,
+      //     this.connectedCE!,
+      //     this.router.statefulHistory || this.options.stateful
+      //   )
+      // );
+      return this.content?.deactivateComponent(
+        initiator,
+        parent as IRoutingController,
+        flags,
+        this.connectedCE!,
+        this.router.statefulHistory || this.options.stateful
       );
     }
   }
 
-  public unload(recurse: boolean): void | Promise<void> {
+  public unload(step: Step<void> | null, recurse: boolean): void | Step<void> {
     // console.log('>>> Runner.run', 'unload');
-    return Runner.run(null,
-      () => recurse ? this.connectedScope.unload(recurse) : true,
+    return Runner.run(step,
+      () => recurse ? this.connectedScope.unload(step, recurse) : true,
       () => {
         // console.log(this.connectedScope.toString(), 'viewport content unload', this.content.content.componentName);
         // This shouldn't happen
@@ -623,29 +637,18 @@ export class Viewport implements IScopeOwner {
           return this.content.unload(this.nextContent?.instruction ?? null);
         }
       }
-    );
+    ) as Step<void>;
   }
 
-  public dispose(): void | Promise<void> {
+  public dispose(): void {
     if (this.content.componentInstance &&
       !this.content.reentry &&
       this.content.componentInstance !== this.nextContent?.componentInstance) {
-      return Runner.run(null,
-        // () => this.content!.unloadComponent(
-        //   this.historyCache,
-        //   this.router.statefulHistory || this.options.stateful),
-        // () => this.content!.destroyComponent(),
-        () => this.content!.disposeComponent(
-          this.connectedCE!,
-          this.historyCache,
-          this.router.statefulHistory || this.options.stateful
-        ) as void,
+      this.content!.disposeComponent(
+        this.connectedCE!,
+        this.historyCache,
+        this.router.statefulHistory || this.options.stateful
       );
-      // await this.content!.freeContent(
-      //   this.connectedCE,
-      //   this.nextContent!.instruction,
-      //   this.historyCache,
-      //   this.router.statefulHistory || this.options.stateful);
     }
   }
 
@@ -668,15 +671,20 @@ export class Viewport implements IScopeOwner {
     this.previousViewportState = null;
     this.connectedScope.clearReplacedChildren();
   }
-  public abortContentChange(): void | Promise<void> {
+  public abortContentChange(step: Step<void>): void | Step<void> {
     this.connectedScope.reenableReplacedChildren();
     // console.log('>>> Runner.run', 'abortContentChange');
-    return Runner.run(null,
-      () => this.nextContent!.freeContent(
-        this.connectedCE,
-        this.nextContent!.instruction,
-        this.historyCache,
-        this.router.statefulHistory || this.options.stateful),
+    return Runner.run(step,
+      (step: Step<void>) => {
+        if (this.nextContent != null) {
+          return this.nextContent!.freeContent(
+            step,
+            this.connectedCE,
+            this.nextContent!.instruction,
+            this.historyCache,
+            this.router.statefulHistory || this.options.stateful);
+        }
+      },
       () => {
         if (this.previousViewportState) {
           Object.assign(this, this.previousViewportState);
@@ -686,7 +694,7 @@ export class Viewport implements IScopeOwner {
 
         this.content.contentStates.delete('checkedUnload');
         this.content.contentStates.delete('checkedLoad');
-      });
+      }) as Step<void>;
   }
 
   // TODO: Deal with non-string components
@@ -718,14 +726,15 @@ export class Viewport implements IScopeOwner {
     return false;
   }
 
-  public freeContent(component: IRouteableComponent): void | Promise<void> {
+  public freeContent(step: Step<void> | null, component: IRouteableComponent): void | Step<void> {
     const content = this.historyCache.find(cached => cached.componentInstance === component);
     if (content !== void 0) {
       // console.log('>>> Runner.run', 'freeContent');
-      return Runner.run(null,
-        () => {
+      return Runner.run(step,
+        (step: Step<void>) => {
           this.forceRemove = true;
           return content.freeContent(
+            step,
             null,
             null,
             this.historyCache,
@@ -736,7 +745,7 @@ export class Viewport implements IScopeOwner {
           this.forceRemove = false;
           arrayRemove(this.historyCache, (cached => cached === content));
         },
-      );
+      ) as Step<void>;
     }
   }
 

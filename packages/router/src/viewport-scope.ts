@@ -16,6 +16,7 @@ import { NavigationCoordinator } from './navigation-coordinator.js';
 import { Runner } from './runner.js';
 import { Routes } from './decorators/routes.js';
 import { IRoute, Route } from './route.js';
+import { Step } from './runner.js';
 
 export interface IViewportScopeOptions extends IScopeOwnerOptions {
   catches?: string | string[];
@@ -178,10 +179,10 @@ export class ViewportScope implements IScopeOwner {
     return true;
   }
 
-  public unload(): void | Promise<void> {
+  public unload(): void | Step<void> {
     return;
   }
-  public load(): void | Promise<void> {
+  public load(): void | Step<void> {
     return;
   }
 
@@ -198,14 +199,13 @@ export class ViewportScope implements IScopeOwner {
       this.removeSourceItem();
     }
   }
-  public abortContentChange(): Promise<void> {
+  public abortContentChange(step: Step<void>): void | Step<void> {
     this.nextContent = null;
     if (this.add) {
       const index = this.source!.indexOf(this.sourceItem);
       this.source!.splice(index, 1);
       this.sourceItem = null;
     }
-    return Promise.resolve();
   }
 
   public acceptSegment(segment: string): boolean {

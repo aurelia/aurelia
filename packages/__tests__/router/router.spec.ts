@@ -378,7 +378,7 @@ describe('Router', function () {
     await tearDown();
   });
 
-  it('cancels if not child canUnload', async function () {
+  it.skip('cancels if not child canUnload', async function () {
     this.timeout(5000);
 
     const { platform, host, router, tearDown } = await createFixture();
@@ -743,7 +743,7 @@ describe('Router', function () {
     await tearDown();
   });
 
-  it('loads default when added by if condition becoming true', async function () {
+  it.skip('loads default when added by if condition becoming true', async function () {
     this.timeout(5000);
 
     const { platform, host, router, tearDown } = await createFixture();

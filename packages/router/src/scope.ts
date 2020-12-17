@@ -18,7 +18,7 @@ import { IConfigurableRoute, RouteRecognizer } from './route-recognizer.js';
 import { Navigation } from './navigation.js';
 import { IConnectedCustomElement } from './resources/viewport.js';
 import { NavigationCoordinator } from './navigation-coordinator.js';
-import { Runner } from './runner.js';
+import { Runner, Step } from './runner.js';
 import { IRoute, Route } from './route.js';
 
 export type NextContentAction = 'skip' | 'reload' | 'swap' | '';
@@ -61,13 +61,13 @@ export interface IScopeOwner {
 
   setNextContent(viewportInstruction: ViewportInstruction, navigation: Navigation): NextContentAction;
   transition(coordinator: NavigationCoordinator): void;
-  canUnload(): boolean | Promise<boolean>;
-  canLoad(recurse: boolean): boolean | LoadInstruction | LoadInstruction[] | Promise<boolean | LoadInstruction | LoadInstruction[]>;
-  load(recurse: boolean): void | Promise<void>;
-  unload(recurse: boolean): void | Promise<void>;
+  canUnload(step: Step<boolean>): boolean | Promise<boolean>;
+  canLoad(step: Step<boolean>, recurse: boolean): boolean | LoadInstruction | LoadInstruction[] | Promise<boolean | LoadInstruction | LoadInstruction[]>;
+  load(step: Step<void>, recurse: boolean): void | Step<void>;
+  unload(step: Step<void>, recurse: boolean): void | Step<void>;
   // loadContent(): Promise<boolean>;
   finalizeContentChange(): void;
-  abortContentChange(): void | Promise<void>;
+  abortContentChange(step: Step<void> | null): void | Step<void>;
 
   getRoutes(): IRoute[] | null;
 }
@@ -446,8 +446,8 @@ export class Scope {
     }
     return viewport!;
   }
-  public removeViewport(viewport: Viewport, connectedCE: IConnectedCustomElement | null): boolean {
-    if (((connectedCE ?? null) !== null) || viewport.remove(connectedCE)) {
+  public removeViewport(step: Step | null, viewport: Viewport, connectedCE: IConnectedCustomElement | null): boolean {
+    if (((connectedCE ?? null) !== null) || viewport.remove(step, connectedCE)) {
       this.removeChild(viewport.connectedScope);
       return true;
     }
@@ -541,75 +541,103 @@ export class Scope {
     return null;
   }
 
-  public canLoad(recurse: boolean): boolean | LoadInstruction | LoadInstruction[] | Promise<boolean | LoadInstruction | LoadInstruction[]> {
-    const results = Runner.runAll(
-      this.children.map(child =>
-        child.viewport !== null
-          ? child.viewport.canLoad(recurse)
-          : child.canLoad(recurse))
-    );
-    if (results instanceof Promise) {
-      return results.then(resolvedResults => {
-        // console.log('then', 'canLoad');
-        return resolvedResults.every(result => result as boolean);
+  // public canLoad(recurse: boolean): boolean | LoadInstruction | LoadInstruction[] | Promise<boolean | LoadInstruction | LoadInstruction[]> {
+  //   const results = Runner.runAll(
+  //     this.children.map(child =>
+  //       child.viewport !== null
+  //         ? child.viewport.canLoad(recurse)
+  //         : child.canLoad(recurse))
+  //   );
+  //   if (results instanceof Promise) {
+  //     return results.then(resolvedResults => {
+  //       // console.log('then', 'canLoad');
+  //       return resolvedResults.every(result => result as boolean);
+  //     }
+  //     );
+  //   }
+  //   return results.every(result => result as boolean);
+  // }
+
+  // public canUnload(): boolean | Promise<boolean> {
+  //   // TODO: Review runAll!
+  //   const results = Runner.runParallel(null,
+  //     this.children.map(child =>
+  //       child.viewport !== null
+  //         ? child.viewport.canUnload(null)
+  //         : child.canUnload())
+  //   );
+  //   if (results instanceof Promise) {
+  //     return results.then(resolvedResults => {
+  //       // console.log('then', 'canUnload');
+  //       return resolvedResults.every(result => result as boolean);
+  //     }
+  //     );
+  //   }
+  //   return (results as boolean[]).every(result => result as boolean);
+  // }
+
+  public canUnload(step: Step<boolean> | null): boolean | Promise<boolean> {
+    // console.log('canUnload', step.path);
+    return Runner.run(step,
+      (step: Step<boolean>) => {
+        return Runner.runParallel(null,
+          ...this.children.map(child => {
+            return child.viewport !== null
+              ? (childStep: Step<boolean>) => child.viewport!.canUnload(childStep)
+              : (childStep: Step<boolean>) => child.canUnload(childStep);
+          }));
+      },
+      (step: Step<boolean>) => step.previousValue ?? [], // Propagate to next, resolving promise if necessary
+      (step: Step<boolean>) => {
+        if (step.previousValue == null) { debugger; }
+        return (step.previousValue as boolean[]).every(result => result);
       }
-      );
-    }
-    return results.every(result => result as boolean);
+    ) as boolean | Promise<boolean>;
   }
 
-  public canUnload(): boolean | Promise<boolean> {
-    const results = Runner.runAll(
-      this.children.map(child =>
-        child.viewport !== null
-          ? child.viewport.canUnload()
-          : child.canUnload())
-    );
-    if (results instanceof Promise) {
-      return results.then(resolvedResults => {
-        // console.log('then', 'canUnload');
-        return resolvedResults.every(result => result as boolean);
-      }
-      );
-    }
-    return results.every(result => result as boolean);
+  // public load(recurse: boolean): void | Promise<void> {
+  //   const results = Runner.runAll(
+  //     this.children.map(child =>
+  //       child.viewport !== null
+  //         ? child.viewport.load(recurse)
+  //         : child.load(recurse))
+  //   );
+  //   if (results instanceof Promise) {
+  //     return results as unknown as Promise<void>;
+  //   }
+  // }
+
+  // public unload(recurse: boolean): void | Promise<void> {
+  //   // TODO: Review runAll!
+  //   const results = Runner.runParallel(null,
+  //     this.children.map(child =>
+  //       child.viewport !== null
+  //         ? child.viewport.unload(null, recurse)
+  //         : child.unload(recurse))
+  //   );s
+  //   if (results instanceof Promise) {
+  //     return results as unknown as Promise<void>;
+  //   }
+  // }
+
+  public unload(step: Step<void> | null, recurse: boolean): Step<void> {
+    return Runner.runParallel(step,
+      ...this.children.map(child => child.viewport !== null
+        ? (step: Step<void>) => child.viewport!.unload(step, recurse)
+        : (step: Step<void>) => child.unload(step, recurse))) as Step<void>;
   }
 
-  public load(recurse: boolean): void | Promise<void> {
-    const results = Runner.runAll(
-      this.children.map(child =>
-        child.viewport !== null
-          ? child.viewport.load(recurse)
-          : child.load(recurse))
-    );
-    if (results instanceof Promise) {
-      return results as unknown as Promise<void>;
-    }
-  }
-
-  public unload(recurse: boolean): void | Promise<void> {
-    const results = Runner.runAll(
-      this.children.map(child =>
-        child.viewport !== null
-          ? child.viewport.unload(recurse)
-          : child.unload(recurse))
-    );
-    if (results instanceof Promise) {
-      return results as unknown as Promise<void>;
-    }
-  }
-
-  public removeContent(): void | Promise<void> {
-    const results = Runner.runAll(
-      this.children.map(child =>
-        child.viewport !== null
-          ? child.viewport.removeContent()
-          : child.removeContent())
-    );
-    if (results instanceof Promise) {
-      return results as unknown as Promise<void>;
-    }
-  }
+  // public removeContent(): void | Promise<void> {
+  //   const results = Runner.runAll(
+  //     this.children.map(child =>
+  //       child.viewport !== null
+  //         ? child.viewport.removeContent()
+  //         : child.removeContent())
+  //   );
+  //   if (results instanceof Promise) {
+  //     return results as unknown as Promise<void>;
+  //   }
+  // }
 
   private findMatchingRouteInRoutes(path: string, routes: Route[] | null): FoundRoute | null {
     if (!Array.isArray(routes)) {

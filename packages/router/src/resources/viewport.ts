@@ -21,7 +21,7 @@ import {
 import { IRouter } from '../router.js';
 import { Viewport, IViewportOptions } from '../viewport.js';
 import { ViewportScopeCustomElement } from './viewport-scope.js';
-import { Runner } from '../runner.js';
+import { Runner, Step } from '../runner.js';
 
 export interface IRoutingController extends ICustomElementController {
   routingContainer?: IContainer;
@@ -62,7 +62,7 @@ export class ViewportCustomElement implements ICustomElementViewModel {
     @INode public readonly element: INode<HTMLElement>,
     @IContainer public container: IContainer,
     @ParentViewport public readonly parentViewport: ViewportCustomElement,
-  ) {}
+  ) { }
 
   public hydrated(controller: ICompiledCustomElementController) {
     // console.log('hydrated', this.name, this.router.isActive);
@@ -91,15 +91,22 @@ export class ViewportCustomElement implements ICustomElementViewModel {
         if (!this.router.isRestrictedNavigation) {
           this.connect();
         }
-      }
-    );
+      },
+      () => {
+        if (this.viewport?.activeResolve != null) {
+          // console.log('waitedForParent', this.viewport.pathname);
+          this.viewport.activeResolve();
+          this.viewport.activeResolve = null;
+        }
+      },
+    ) as void | Promise<void>;
   }
 
   public attaching(initiator: IHydratedController, parent: IHydratedParentController | null, flags: LifecycleFlags): void | Promise<void> {
     if (this.viewport !== null && (this.viewport.nextContent ?? null) === null) {
       // console.log('attaching', this.viewport?.toString());
       this.viewport.enabled = true;
-      return this.viewport.activate(initiator, this.$controller, flags, true);
+      return (this.viewport.activate(null, initiator, this.$controller, flags, true) as Step<void>)?.asValue as void | Promise<void>;
       // TODO: Restore scroll state
     }
   }
@@ -114,42 +121,44 @@ export class ViewportCustomElement implements ICustomElementViewModel {
       // TODO: Save scroll state before detach
 
       // console.log('>>> Runner.run', 'detaching');
-      return Runner.run(null,
-        () => {
-          // console.log('detaching', this.viewport?.toString());
-          this.isBound = false;
-          this.viewport!.enabled = false;
-          const result = (this.viewport!.deactivate(initiator, parent, flags) as Promise<void>);
-          if (result instanceof Promise) {
-            return result;/* .then(() => {
-              console.log('detaching done', this.viewport?.toString());
-            }); */
-          }
-        },
-        // () => {
-        //   console.log('detaching done', this.viewport?.toString());
-        // }
-      );
+      // return Runner.run(null,
+      //   () => {
+      //     // console.log('detaching', this.viewport?.toString());
+      //     this.isBound = false;
+      //     this.viewport!.enabled = false;
+      //     const result = (this.viewport!.deactivate(initiator, parent, flags) as Promise<void>);
+      //     if (result instanceof Promise) {
+      //       return result;/* .then(() => {
+      //         console.log('detaching done', this.viewport?.toString());
+      //       }); */
+      //     }
+      //   },
+      //   // () => {
+      //   //   console.log('detaching done', this.viewport?.toString());
+      //   // }
+      // );
+      this.isBound = false;
+      this.viewport!.enabled = false;
+      return this.viewport!.deactivate(initiator, parent, flags);
     }
   }
 
-    public unbinding(initiator: IHydratedController, parent: ISyntheticView | ICustomElementController | null, flags: LifecycleFlags): void | Promise<void> {
+  public unbinding(initiator: IHydratedController, parent: ISyntheticView | ICustomElementController | null, flags: LifecycleFlags): void | Promise<void> {
     if (this.viewport !== null) {
       // TODO: Don't unload when stateful, instead save to cache. Something like
       // this.viewport.cacheContent();
 
-      return Runner.run(null,
-          () => this.disconnect(), // Disconnect doesn't destroy anything, just disconnects it
-      );
+      // return Runner.run(null,
+      //   () => this.disconnect(), // Disconnect doesn't destroy anything, just disconnects it
+      // );
+      return this.disconnect(null);
     }
   }
 
-  public dispose(): void | Promise<void> {
+  public dispose(): void {
     if (this.viewport !== null) {
-      return Runner.run(null,
-        () => /* (this.router.processingNavigation ?? null) === null ? */ this.viewport?.dispose() /* : void 0 */,
-//        () => this.disconnect()
-      );
+      this.viewport?.dispose();
+      this.viewport = null;
     }
   }
 
@@ -202,11 +211,12 @@ export class ViewportCustomElement implements ICustomElementViewModel {
     this.controller.routingContainer = this.container;
     this.viewport = this.router.connectViewport(this.viewport, this, name, options);
   }
-  public disconnect(): void {
+  public disconnect(step: Step | null): void {
     if (this.viewport) {
-      this.router.disconnectViewport(this.viewport, this);
+      this.router.disconnectViewport(step, this.viewport, this);
     }
-    this.viewport = null;
+    // Can't do this until after disposed
+    // this.viewport = null;
   }
 
   private getAttribute(key: string, value: string | boolean, checkExists: boolean = false): string | boolean | undefined {

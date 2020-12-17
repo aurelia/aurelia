@@ -53,7 +53,7 @@ export interface IShadowDOMStyleFactory {
   createStyles(localStyles: (string | CSSStyleSheet)[], sharedStyles: IShadowDOMStyles | null): IShadowDOMStyles;
 }
 
-export const IShadowDOMStyleFactory = DI.createInterface<IShadowDOMStyleFactory>('IShadowDOMStyleFactory').withDefault(x => x.cachedCallback(handler => {
+export const IShadowDOMStyleFactory = DI.createInterface<IShadowDOMStyleFactory>('IShadowDOMStyleFactory', x => x.cachedCallback(handler => {
   if (AdoptedStyleSheetsStyles.supported(handler.get(IPlatform))) {
     return handler.get(AdoptedStyleSheetsStylesFactory);
   }
@@ -98,8 +98,8 @@ export interface IShadowDOMStyles {
   applyTo(shadowRoot: ShadowRoot): void;
 }
 
-export const IShadowDOMStyles = DI.createInterface<IShadowDOMStyles>('IShadowDOMStyles').noDefault();
-export const IShadowDOMGlobalStyles = DI.createInterface<IShadowDOMStyles>('IShadowDOMGlobalStyles').withDefault(x => x.instance({ applyTo: noop }));
+export const IShadowDOMStyles = DI.createInterface<IShadowDOMStyles>('IShadowDOMStyles');
+export const IShadowDOMGlobalStyles = DI.createInterface<IShadowDOMStyles>('IShadowDOMGlobalStyles', x => x.instance({ applyTo: noop }));
 
 export class AdoptedStyleSheetsStyles implements IShadowDOMStyles {
   private readonly styleSheets: CSSStyleSheet[];

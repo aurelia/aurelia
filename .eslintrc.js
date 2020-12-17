@@ -236,7 +236,7 @@ module.exports = {
     'sonarjs/no-extra-arguments': 'warn',
     'sonarjs/no-inverted-boolean-check': 'warn',
     'default-param-last': ['warn'],
-    'eqeqeq': 'warn',
+    'eqeqeq': ['warn', 'smart'],
     'no-await-in-loop': 'warn',
     'no-cond-assign': 'warn',
     'no-console': 'warn',

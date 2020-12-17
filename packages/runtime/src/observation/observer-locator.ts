@@ -29,7 +29,7 @@ export interface IObjectObservationAdapter {
 }
 
 export interface IObserverLocator extends ObserverLocator {}
-export const IObserverLocator = DI.createInterface<IObserverLocator>('IObserverLocator').withDefault(x => x.singleton(ObserverLocator));
+export const IObserverLocator = DI.createInterface<IObserverLocator>('IObserverLocator', x => x.singleton(ObserverLocator));
 
 export interface INodeObserverLocator {
   handles(obj: unknown, key: PropertyKey, requestor: IObserverLocator): boolean;
@@ -37,8 +37,7 @@ export interface INodeObserverLocator {
   getAccessor(obj: object, key: PropertyKey, requestor: IObserverLocator): IAccessor | IObserver;
 }
 export const INodeObserverLocator = DI
-  .createInterface<INodeObserverLocator>('INodeObserverLocator')
-  .withDefault(x => x.cachedCallback(handler => {
+  .createInterface<INodeObserverLocator>('INodeObserverLocator', x => x.cachedCallback(handler => {
     handler.getAll(ILogger).forEach(logger => {
       logger.error('Using default INodeObserverLocator implementation. Will not be able to observe nodes (HTML etc...).');
     });

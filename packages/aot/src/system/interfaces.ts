@@ -97,4 +97,4 @@ export interface $CompilerOptions extends CompilerOptions {
   readonly __dirname: string;
 }
 
-export const IFileSystem = DI.createInterface<IFileSystem>('IFileSystem').noDefault();
+export const IFileSystem = DI.createInterface<IFileSystem>('IFileSystem');

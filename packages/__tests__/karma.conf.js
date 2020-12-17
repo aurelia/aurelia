@@ -1,6 +1,6 @@
 const path = require('path');
 
-const basePath = path.resolve(__dirname);
+const basePath = path.resolve(__dirname, '..', '..');
 
 const commonChromeFlags = [
   '--no-default-browser-check',
@@ -18,6 +18,33 @@ const commonChromeFlags = [
   '--disable-translate',
 ];
 
+const testDirs = [
+  '1-kernel',
+  '2-runtime',
+  '3-runtime-html',
+  'fetch-client',
+  'router',
+  'validation',
+  'validation-html',
+];
+
+const packageNames = [
+  'fetch-client',
+  'i18n',
+  'kernel',
+  'metadata',
+  'platform',
+  'platform-browser',
+  'route-recognizer',
+  'router',
+  'runtime',
+  'runtime-html',
+  'testing',
+  'validation',
+  'validation-html',
+  'validation-i18n',
+];
+
 module.exports = function (config) {
   let browsers;
   if (process.env.BROWSERS) {
@@ -28,10 +55,54 @@ module.exports = function (config) {
     browsers = ['Chrome'];
   }
 
-  const setup = `setup-browser${config.package ? `-${config.package}` : ''}`;
-  /**
-   * @type {import('webpack').Configuration}
-   */
+  // Karma config reference: https://karma-runner.github.io/5.2/config/files.html
+  // --------------------------------------------------------------------------------
+  // Summary of why the files are configured the way they are:
+
+  // - [2.1] All spec files (files ending in .spec.js) must be included in the html document as <script type="module"> tags, therefore they all have `included: true`
+
+  // - [1.1] The setup-browser.js needs to run before any specs do, therefore it is included specifically as the first file (files are included on the page in the same order as declared here).
+
+  // - [1.2, 1.3, 1.4, 2.3, 3.1] Ordinary JS files (framework, spec and utility) are all watched so that changing either the tests or the code will re-trigger a test run
+  //   when the transpiled output changes (so the TS source files still need to be watched by tsc separately).
+
+  // - [1.2, 1.3, 1.4] We don't want to include/serve setup-test262 / setup-node in the browser tests, and we don't like hacking too much with globs, therefore all top-level .js files are declared statically on top as well (instead of e.g. *.js).
+
+  // - [2.2, 2.4, 3.2, 3.3] .ts and .js.map files are *only* served, so that source maps work properly when running in debug mode.
+  //   They're not watched because they shouldn't by themselves trigger a re-run (only the transpiled output should).
+  //   Because they're not watched, they're also not cached, so that the browser will always serve the latest version from disk.
+  //
+  const files = [
+    { type: 'module', watched: true,  included: true,  nocache: false, pattern: `packages/__tests__/dist/esnext/__tests__/setup-browser.js` }, // 1.1
+    { type: 'module', watched: true,  included: false, nocache: false, pattern: `packages/__tests__/dist/esnext/__tests__/setup-shared.js` }, // 1.2
+    { type: 'module', watched: true,  included: false, nocache: false, pattern: `packages/__tests__/dist/esnext/__tests__/util.js` }, // 1.3
+    { type: 'module', watched: true,  included: false, nocache: false, pattern: `packages/__tests__/dist/esnext/__tests__/Spy.js` }, // 1.4
+    ...testDirs.flatMap(name => [
+      { type: 'module', watched: true,  included: true,  nocache: false, pattern: `packages/__tests__/dist/esnext/__tests__/${name}/**/*.spec.js` }, // 2.1
+      { type: 'module', watched: false, included: false, nocache: true,  pattern: `packages/__tests__/dist/esnext/__tests__/${name}/**/*.js.map` }, // 2.2
+      { type: 'module', watched: true,  included: false, nocache: false, pattern: `packages/__tests__/dist/esnext/__tests__/${name}/**/*.js` }, // 2.3
+      { type: 'module', watched: false, included: false, nocache: true,  pattern: `packages/__tests__/${name}/**/*.ts` }, // 2.4
+    ]),
+    ...packageNames.flatMap(name => [
+      { type: 'module', watched: true,  included: false, snocache: false, pattern: `packages/${name}/dist/esnext/**/*.js` }, // 3.1
+      { type: 'module', watched: false, included: false, snocache: true,  pattern: `packages/${name}/dist/esnext/**/*.js.map` }, // 3.2
+      { type: 'module', watched: false, included: false, snocache: true,  pattern: `packages/${name}/src/**/*.ts` }, // 3.3
+    ])
+  ];
+
+  const preprocessors = files.reduce((p, file) => {
+    // Only process .js files (not .js.map or .ts files)
+    if (/\.js$/.test(file.pattern)) {
+      // Only instrument core framework files (not the specs themselves, nor any test utils (for now))
+      if (/__tests__|testing/.test(file.pattern)) {
+        p[file.pattern] = ['aurelia'];
+      } else {
+        p[file.pattern] = ['aurelia', 'karma-coverage-istanbul-instrumenter'];
+      }
+    }
+    return p;
+  }, {});
+
   const options = {
     basePath,
     browserDisconnectTimeout: 10000,
@@ -39,92 +110,8 @@ module.exports = function (config) {
     frameworks: [
       'mocha',
     ],
-    files: [
-      `dist/esnext/__tests__/${setup}.js`,
-    ],
-    preprocessors: {
-      [`dist/esnext/__tests__/${setup}.js`]: [
-        'webpack',
-        'sourcemap',
-      ],
-    },
-    webpackMiddleware: {
-      // webpack-dev-middleware configuration
-      // i. e.
-      stats: 'errors-only',
-      watchOptions: {
-        ignored: [
-          /\.ts$/,
-          'node_modules',
-          'coverage'
-        ],
-      },
-    },
-    webpack: {
-      mode: 'none',
-      resolve: {
-        extensions: [
-          '.js',
-        ],
-        modules: [
-          'dist',
-          'node_modules'
-        ],
-        mainFields: [
-          'module', 'main'
-        ],
-      },
-      devtool: browsers.includes('ChromeDebugging') ? 'eval-source-map' : 'inline-source-map',
-      performance: {
-        hints: false,
-      },
-      optimization: {
-        namedModules: false,
-        namedChunks: false,
-        nodeEnv: false,
-        usedExports: true,
-        flagIncludedChunks: false,
-        occurrenceOrder: false,
-        sideEffects: true,
-        concatenateModules: true,
-        splitChunks: {
-          name: false,
-        },
-        runtimeChunk: false,
-        noEmitOnErrors: false,
-        checkWasmTypes: false,
-        minimize: false,
-      },
-      module: {
-        rules: [
-          {
-            test: /\.js\.map$/,
-            use: ['ignore-loader'],
-          },
-          {
-            test: /\.js$/,
-            enforce: 'pre',
-            use: ['source-map-loader'],
-          },
-          {
-            test: /\.html$/i,
-            loader: 'html-loader'
-          },
-          {
-            test: /\.css$/i,
-            use: [
-              'style-loader',
-              {
-                loader: 'css-loader',
-                options: {
-                  modules: { localIdentName: '[name]__[local]__[hash:base64]' },
-                }
-              }
-            ]
-          }
-        ]
-      }
-    },
+    preprocessors,
+    files,
     mime: {
       'text/x-typescript': ['ts']
     },
@@ -158,22 +145,19 @@ module.exports = function (config) {
   };
 
   if (config.coverage) {
-    options.webpack.module.rules.push({
-      enforce: 'post',
-      exclude: /(__tests__|testing|node_modules|\.spec\.[tj]s$)/,
-      loader: 'istanbul-instrumenter-loader',
-      options: { esModules: true },
-      test: /\.[tj]s$/
-    });
     options.reporters = ['coverage-istanbul', ...options.reporters];
     options.coverageIstanbulReporter = {
       reports: ['html', 'text-summary', 'json', 'lcovonly', 'cobertura'],
-      dir: 'coverage'
+      dir: 'coverage',
+    };
+    options.coverageIstanbulInstrumenter = {
+      // see https://github.com/monounity/karma-coverage-istanbul-instrumenter/blob/master/test/es6-native/karma.conf.js
+      esModules: true,
     };
     options.junitReporter = {
       outputDir: 'coverage',
       outputFile: 'test-results.xml',
-      useBrowserName: false
+      useBrowserName: false,
     };
   }
 

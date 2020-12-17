@@ -16,8 +16,7 @@
 
     "types": [
       "node",
-      "mocha",
-      "webpack-env"
+      "mocha"
     ]
   },
   "include": ["."],

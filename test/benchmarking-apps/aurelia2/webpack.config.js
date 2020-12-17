@@ -1,6 +1,5 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 
 const baseUrl = '/';
 
@@ -24,13 +23,12 @@ module.exports = function () {
     },
     module: {
       rules: [
-        { test: /\.css$/i, use: ["style-loader", "css-loader"] },
+        { test: /\.css$/i, use: [{ loader: 'style-loader' }, { loader: 'css-loader' }] },
         { test: /\.ts$/i, use: 'ts-loader', exclude: /node_modules/ },
         { test: /\.html$/i, use: 'html-loader' },
       ]
     },
     plugins: [
-      new CleanWebpackPlugin(),
       new HtmlWebpackPlugin({ template: 'index.ejs' }),
     ]
   };

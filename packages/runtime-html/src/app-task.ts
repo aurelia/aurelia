@@ -16,7 +16,7 @@ export type TaskSlot = (
   'afterDeactivate'
 );
 
-export const IAppTask = DI.createInterface<IAppTask>('IAppTask').noDefault();
+export const IAppTask = DI.createInterface<IAppTask>('IAppTask');
 export interface IAppTask extends Pick<
   $AppTask,
   'slot' |

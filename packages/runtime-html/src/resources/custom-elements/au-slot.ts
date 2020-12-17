@@ -7,7 +7,7 @@ import { IInstruction, Instruction } from '../../renderer.js';
 import type { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../templating/controller.js';
 
 export type IProjections = Record<string, CustomElementDefinition>;
-export const IProjections = DI.createInterface<IProjections>("IProjections").noDefault();
+export const IProjections = DI.createInterface<IProjections>("IProjections");
 
 export enum AuSlotContentType {
   Projection,
@@ -37,7 +37,7 @@ export class RegisteredProjections {
 }
 
 export interface IProjectionProvider extends ProjectionProvider {}
-export const IProjectionProvider = DI.createInterface<IProjectionProvider>('IProjectionProvider').withDefault(x => x.singleton(ProjectionProvider));
+export const IProjectionProvider = DI.createInterface<IProjectionProvider>('IProjectionProvider', x => x.singleton(ProjectionProvider));
 
 const projectionMap: WeakMap<IInstruction, RegisteredProjections> = new WeakMap<Instruction, RegisteredProjections>();
 export class ProjectionProvider {

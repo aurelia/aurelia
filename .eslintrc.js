@@ -225,7 +225,7 @@ module.exports = {
     'jsdoc/require-returns': 'off',
     'jsdoc/require-returns-type': 'off',
     'default-param-last': ['warn'],
-    'eqeqeq': 'warn',
+    'eqeqeq': ['warn', 'smart'],
     'no-await-in-loop': 'warn',
     'no-cond-assign': 'warn',
     'no-console': 'warn',

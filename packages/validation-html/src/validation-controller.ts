@@ -293,7 +293,7 @@ export interface IValidationController {
    */
   reset(instruction?: ValidateInstruction): void;
 }
-export const IValidationController = DI.createInterface<IValidationController>('IValidationController').noDefault();
+export const IValidationController = DI.createInterface<IValidationController>('IValidationController');
 
 export class ValidationController implements IValidationController {
 

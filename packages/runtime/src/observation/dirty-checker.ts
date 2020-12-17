@@ -6,7 +6,7 @@ import type { IIndexable, ITask, QueueTaskOptions } from '@aurelia/kernel';
 import type { IObservable, ISubscriber } from '../observation';
 
 export interface IDirtyChecker extends DirtyChecker {}
-export const IDirtyChecker = DI.createInterface<IDirtyChecker>('IDirtyChecker').withDefault(x => x.singleton(DirtyChecker));
+export const IDirtyChecker = DI.createInterface<IDirtyChecker>('IDirtyChecker', x => x.singleton(DirtyChecker));
 
 export const DirtyCheckSettings = {
   /**

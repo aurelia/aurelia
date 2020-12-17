@@ -125,7 +125,7 @@ export class EventSubscriber {
 }
 
 export interface IEventDelegator extends EventDelegator {}
-export const IEventDelegator = DI.createInterface<IEventDelegator>('IEventDelegator').withDefault(x => x.singleton(EventDelegator));
+export const IEventDelegator = DI.createInterface<IEventDelegator>('IEventDelegator', x => x.singleton(EventDelegator));
 
 export class EventDelegator implements IDisposable {
   private readonly trackerMaps: Record<string, Map<EventTarget, ListenerTracker> | undefined> = Object.create(null);

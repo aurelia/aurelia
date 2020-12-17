@@ -17,7 +17,7 @@ export interface IBinding {
 export type InterceptorFunc<TInput = unknown, TOutput = unknown> = (value: TInput) => TOutput;
 
 export interface ILifecycle extends Lifecycle {}
-export const ILifecycle = DI.createInterface<ILifecycle>('ILifecycle').withDefault(x => x.singleton(Lifecycle));
+export const ILifecycle = DI.createInterface<ILifecycle>('ILifecycle', x => x.singleton(Lifecycle));
 
 export class Lifecycle  {
   public readonly batch: IAutoProcessingQueue<IBatchable> = new BatchQueue(this);

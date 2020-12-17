@@ -157,16 +157,14 @@ export class SubscriberRecord<T extends IAnySubscriber> implements ISubscriberRe
     } else if ((subscriberFlags & SF.SubscribersRest) > 0) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const subscribers = this._sr!; // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
+      const ii = subscribers.length;
       let i = 0;
-      let ii = subscribers.length;
       for (; i < ii; ++i) {
         if (subscribers[i] === subscriber) {
           subscribers.splice(i, 1);
           if (ii === 1) {
             this._sf = (this._sf | SF.SubscribersRest) ^ SF.SubscribersRest;
           }
-          // deepscan-disable-next-line
-          --i; --ii;
           --this.count;
           return true;
         }
@@ -293,17 +291,26 @@ export function batch(fn: () => unknown): void {
   try {
     fn();
   } finally {
-    currentBatch = prevBatch;
-    newBatch.forEach((batchRecord, subscriber) => {
-      if (prevBatch?.has(subscriber)) {
-        prevBatch.set(subscriber, batchRecord);
+    currentBatch = null;
+    try {
+      let pair: [ISubscriberRecord<IAnySubscriber>, IAnyBatchRecord];
+      let subRecord: ISubscriberRecord<IAnySubscriber>;
+      let batchRecord: IAnyBatchRecord;
+      for (pair of newBatch) {
+        subRecord = pair[0];
+        batchRecord = pair[1];
+        if (prevBatch?.has(subRecord)) {
+          prevBatch.set(subRecord, batchRecord);
+        }
+        if (batchRecord.type === 1) {
+          batchRecord.c1();
+        } else {
+          batchRecord.c2();
+        }
       }
-      if (batchRecord.type === 1) {
-        batchRecord.c1();
-      } else {
-        batchRecord.c2();
-      }
-    });
+    } finally {
+      currentBatch = prevBatch;
+    }
   }
 }
 

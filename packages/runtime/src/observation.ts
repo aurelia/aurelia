@@ -91,8 +91,8 @@ export interface ICollectionSubscriber {
 }
 
 export interface ISubscribable {
-  subscribe(subscriber: ISubscriber | ICollectionSubscriber): void;
-  unsubscribe(subscriber: ISubscriber | ICollectionSubscriber): void;
+  subscribe(subscriber: ISubscriber): void;
+  unsubscribe(subscriber: ISubscriber): void;
 }
 
 export interface ICollectionSubscribable {

@@ -143,40 +143,52 @@ describe('subscriberCollection', function () {
       const observer = new SubCollection();
       const sub1Values = [];
 
-      observer.addSubscriber({
+      observer.subscribe({
         handleChange(newValue, oldValue) {
           sub1Values.push([newValue, oldValue]);
         }
       });
 
       batch(() => {
-        observer.callSubscribers(1, 0, LifecycleFlags.none);
+        observer.subs.notify(1, 0, LifecycleFlags.none);
         assert.deepStrictEqual(sub1Values, []);
       });
       assert.deepStrictEqual(sub1Values, [[1, 0]]);
     });
 
     it('handles nested batch()', function () {
+      let handleChangeCallCount = 0;
       const observer = new SubCollection();
       const sub1Values = [];
-      const sub2Values = [];
       const subscriber1 = {
         handleChange(val: number, oldVal: number) {
-          sub1Values.push([`level ${sub1Values.length}`, val, oldVal]);
-          batch(() => {
-            observer.callSubscribers(val, oldVal, LifecycleFlags.none);
-          });
-          assert.deepStrictEqual(sub1Values, []);
+          sub1Values.push([`level ${handleChangeCallCount}`, val, oldVal]);
+          handleChangeCallCount++;
+          if (sub1Values.length < 5) {
+            batch(() => {
+              observer.subs.notify(1, 0, LifecycleFlags.none);
+              assert.deepStrictEqual(
+                sub1Values,
+                Array.from({ length: handleChangeCallCount }, (_, idx) => [`level ${idx}`, 1, 0])
+              );
+            });
+          }
+          assert.deepStrictEqual(
+            sub1Values,
+            Array.from({ length: 5 }, (_, idx) => [`level ${idx}`, 1, 0])
+          );
         }
       };
 
-      observer.addSubscriber(subscriber1);
+      observer.subs.add(subscriber1);
 
       batch(() => {
-        observer.callSubscribers(1, 0, LifecycleFlags.none);
+        observer.subs.notify(1, 0, LifecycleFlags.none);
+        // it does not start here
         assert.deepStrictEqual(sub1Values, []);
-      });
-      assert.deepStrictEqual(sub1Values, [['level 0', 1, 0]]);
+      }); // it starts here
+      // and then all the way here, via recursive batched notify inside previous batch
+      Array.from({ length: 4 }, (_, idx) => [`level ${idx}`, 1, 0]);
     });
   });
 });

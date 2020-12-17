@@ -22,7 +22,7 @@ import {
   IObserverLocator,
   IExpressionParser,
 } from '@aurelia/runtime';
-import { BindableObserver } from '../observation/bindable-observer';
+import { BindableObserver } from '../observation/bindable-observer.js';
 import { convertToRenderLocation, INode, INodeSequence, IRenderLocation } from '../dom.js';
 import { CustomElementDefinition, CustomElement, PartialCustomElementDefinition } from '../resources/custom-element.js';
 import { CustomAttributeDefinition, CustomAttribute } from '../resources/custom-attribute.js';

@@ -1,10 +1,10 @@
 import { AnalyzedModule, DI, IModuleLoader } from '@aurelia/kernel';
 
-import * as ce_a_b_default from './modules/ce-a-b-default';
-import * as ce_a_b_defaultb from './modules/ce-a-b-defaultb';
-import * as ce_a_b from './modules/ce-a-b';
-import * as ce_default from './modules/ce-default';
-import * as kitchen_sink from './modules/kitchen-sink';
+import * as ce_a_b_default from './modules/ce-a-b-default.js';
+import * as ce_a_b_defaultb from './modules/ce-a-b-defaultb.js';
+import * as ce_a_b from './modules/ce-a-b.js';
+import * as ce_default from './modules/ce-default.js';
+import * as kitchen_sink from './modules/kitchen-sink.js';
 import { assert } from '@aurelia/testing';
 import { BindingBehavior, CustomAttribute, CustomElement, ValueConverter } from '@aurelia/runtime-html';
 

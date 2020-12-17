@@ -26,7 +26,7 @@ import {
   createSpecFunction,
   TestExecutionContext,
   TestFunction,
-} from '../util';
+} from '../util.js';
 
 describe('runtime-html.integration', function () {
 

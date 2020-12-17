@@ -1,4 +1,4 @@
-import { Metadata, isObject, applyMetadataPolyfill, isNullOrUndefined } from '@aurelia/metadata';
+import { Metadata, isObject, applyMetadataPolyfill } from '@aurelia/metadata';
 
 applyMetadataPolyfill(Reflect);
 

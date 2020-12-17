@@ -8,7 +8,7 @@ import { IPlatform } from './platform.js';
  * so it is always safe to pass in a node without causing unnecessary DOM parsing or template creation.
  */
 export interface ITemplateElementFactory extends TemplateElementFactory {}
-export const ITemplateElementFactory = DI.createInterface<ITemplateElementFactory>('ITemplateElementFactory').withDefault(x => x.singleton(TemplateElementFactory));
+export const ITemplateElementFactory = DI.createInterface<ITemplateElementFactory>('ITemplateElementFactory', x => x.singleton(TemplateElementFactory));
 
 const markupCache: Record<string, HTMLTemplateElement | undefined> = {};
 

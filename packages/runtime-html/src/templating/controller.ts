@@ -1525,7 +1525,7 @@ export interface ICustomElementController<C extends ICustomElementViewModel = IC
   ): void | Promise<void>;
 }
 
-export const IController = DI.createInterface<IController>('IController').noDefault();
+export const IController = DI.createInterface<IController>('IController');
 
 export interface IActivationHooks<TParent> {
   binding?(

@@ -14,7 +14,7 @@ import { IPlatform } from '@aurelia/runtime-html';
 import { IValidator, ValidationMessageProvider } from '@aurelia/validation';
 import { ValidationController, ValidationControllerFactory } from '@aurelia/validation-html';
 const I18N_VALIDATION_EA_CHANNEL = 'i18n:locale:changed:validation';
-export const I18nKeyConfiguration = DI.createInterface('I18nKeyConfiguration').noDefault();
+export const I18nKeyConfiguration = DI.createInterface('I18nKeyConfiguration');
 let LocalizedValidationController = class LocalizedValidationController extends ValidationController {
     constructor(locator, ea, validator, parser, platform) {
         super(validator, parser, platform, locator);

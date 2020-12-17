@@ -21,9 +21,9 @@
         }
     }
     exports.StartOutput = StartOutput;
-    exports.IHttpServerOptions = kernel_1.DI.createInterface('IHttpServerOptions').noDefault();
-    exports.IHttpServer = kernel_1.DI.createInterface('IHttpServer').noDefault();
-    exports.IRequestHandler = kernel_1.DI.createInterface('IRequestHandler').noDefault();
-    exports.IHttp2FileServer = kernel_1.DI.createInterface('IHttp2FileServer').noDefault();
+    exports.IHttpServerOptions = kernel_1.DI.createInterface('IHttpServerOptions');
+    exports.IHttpServer = kernel_1.DI.createInterface('IHttpServer');
+    exports.IRequestHandler = kernel_1.DI.createInterface('IRequestHandler');
+    exports.IHttp2FileServer = kernel_1.DI.createInterface('IHttp2FileServer');
 });
 //# sourceMappingURL=interfaces.js.map

@@ -2,14 +2,14 @@ import { DI } from '@aurelia/kernel';
 import { IAppRoot } from './app-root.js';
 import { IPlatform } from './platform.js';
 import { CustomElement } from './resources/custom-element.js';
-export const INode = DI.createInterface('INode').noDefault();
-export const IEventTarget = DI.createInterface('IEventTarget').withDefault(x => x.cachedCallback(handler => {
+export const INode = DI.createInterface('INode');
+export const IEventTarget = DI.createInterface('IEventTarget', x => x.cachedCallback(handler => {
     if (handler.has(IAppRoot, true)) {
         return handler.get(IAppRoot).host;
     }
     return handler.get(IPlatform).document;
 }));
-export const IRenderLocation = DI.createInterface('IRenderLocation').noDefault();
+export const IRenderLocation = DI.createInterface('IRenderLocation');
 export var NodeType;
 (function (NodeType) {
     NodeType[NodeType["Element"] = 1] = "Element";
@@ -257,7 +257,7 @@ export class FragmentNodeSequence {
         }
     }
 }
-export const IWindow = DI.createInterface('IWindow').withDefault(x => x.callback(handler => handler.get(IPlatform).window));
-export const ILocation = DI.createInterface('ILocation').withDefault(x => x.callback(handler => handler.get(IWindow).location));
-export const IHistory = DI.createInterface('IHistory').withDefault(x => x.callback(handler => handler.get(IWindow).history));
+export const IWindow = DI.createInterface('IWindow', x => x.callback(handler => handler.get(IPlatform).window));
+export const ILocation = DI.createInterface('ILocation', x => x.callback(handler => handler.get(IWindow).location));
+export const IHistory = DI.createInterface('IHistory', x => x.callback(handler => handler.get(IWindow).history));
 //# sourceMappingURL=dom.js.map

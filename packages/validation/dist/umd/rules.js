@@ -17,7 +17,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.EqualsRule = exports.RangeRule = exports.SizeRule = exports.LengthRule = exports.RegexRule = exports.RequiredRule = exports.BaseValidationRule = exports.validationRule = exports.ValidationRuleAliasMessage = exports.IValidationMessageProvider = void 0;
     const kernel_1 = require("@aurelia/kernel");
-    exports.IValidationMessageProvider = kernel_1.DI.createInterface('IValidationMessageProvider').noDefault();
+    exports.IValidationMessageProvider = kernel_1.DI.createInterface('IValidationMessageProvider');
     exports.ValidationRuleAliasMessage = Object.freeze({
         aliasKey: kernel_1.Protocol.annotation.keyFor('validation-rule-alias-message'),
         define(target, definition) {

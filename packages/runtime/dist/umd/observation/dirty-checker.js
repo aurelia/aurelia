@@ -12,7 +12,7 @@
     exports.DirtyCheckProperty = exports.DirtyChecker = exports.DirtyCheckSettings = exports.IDirtyChecker = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const subscriber_collection_js_1 = require("./subscriber-collection.js");
-    exports.IDirtyChecker = kernel_1.DI.createInterface('IDirtyChecker').withDefault(x => x.singleton(DirtyChecker));
+    exports.IDirtyChecker = kernel_1.DI.createInterface('IDirtyChecker', x => x.singleton(DirtyChecker));
     exports.DirtyCheckSettings = {
         /**
          * Default: `6`

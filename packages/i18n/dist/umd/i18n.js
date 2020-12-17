@@ -48,7 +48,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
     }
     exports.I18nKeyEvaluationResult = I18nKeyEvaluationResult;
-    exports.I18N = kernel_1.DI.createInterface('I18N').noDefault();
+    exports.I18N = kernel_1.DI.createInterface('I18N');
     /**
      * Translation service class.
      */

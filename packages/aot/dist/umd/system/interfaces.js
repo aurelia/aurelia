@@ -29,6 +29,6 @@
         FileKind[FileKind["Style"] = 3] = "Style";
         FileKind[FileKind["JSON"] = 4] = "JSON";
     })(FileKind = exports.FileKind || (exports.FileKind = {}));
-    exports.IFileSystem = kernel_1.DI.createInterface('IFileSystem').noDefault();
+    exports.IFileSystem = kernel_1.DI.createInterface('IFileSystem');
 });
 //# sourceMappingURL=interfaces.js.map

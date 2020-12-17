@@ -58,11 +58,11 @@ export var ColorOptions;
      */
     ColorOptions[ColorOptions["colors"] = 1] = "colors";
 })(ColorOptions || (ColorOptions = {}));
-export const ILogConfig = DI.createInterface('ILogConfig').withDefault(x => x.instance(new LogConfig(0 /* noColors */, 3 /* warn */)));
-export const ISink = DI.createInterface('ISink').noDefault();
-export const ILogEventFactory = DI.createInterface('ILogEventFactory').withDefault(x => x.singleton(DefaultLogEventFactory));
-export const ILogger = DI.createInterface('ILogger').withDefault(x => x.singleton(DefaultLogger));
-export const ILogScopes = DI.createInterface('ILogScope').noDefault();
+export const ILogConfig = DI.createInterface('ILogConfig', x => x.instance(new LogConfig(0 /* noColors */, 3 /* warn */)));
+export const ISink = DI.createInterface('ISink');
+export const ILogEventFactory = DI.createInterface('ILogEventFactory', x => x.singleton(DefaultLogEventFactory));
+export const ILogger = DI.createInterface('ILogger', x => x.singleton(DefaultLogger));
+export const ILogScopes = DI.createInterface('ILogScope');
 export const LoggerSink = Object.freeze({
     key: Protocol.annotation.keyFor('logger-sink-handles'),
     define(target, definition) {

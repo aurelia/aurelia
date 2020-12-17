@@ -26,7 +26,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     const validation_1 = require("@aurelia/validation");
     const validation_html_1 = require("@aurelia/validation-html");
     const I18N_VALIDATION_EA_CHANNEL = 'i18n:locale:changed:validation';
-    exports.I18nKeyConfiguration = kernel_1.DI.createInterface('I18nKeyConfiguration').noDefault();
+    exports.I18nKeyConfiguration = kernel_1.DI.createInterface('I18nKeyConfiguration');
     let LocalizedValidationController = class LocalizedValidationController extends validation_html_1.ValidationController {
         constructor(locator, ea, validator, parser, platform) {
             super(validator, parser, platform, locator);

@@ -11,7 +11,7 @@
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Signaler = exports.ISignaler = void 0;
     const kernel_1 = require("@aurelia/kernel");
-    exports.ISignaler = kernel_1.DI.createInterface('ISignaler').withDefault(x => x.singleton(Signaler));
+    exports.ISignaler = kernel_1.DI.createInterface('ISignaler', x => x.singleton(Signaler));
     class Signaler {
         constructor() {
             this.signals = Object.create(null);

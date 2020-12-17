@@ -12,7 +12,7 @@
     exports.AppTask = exports.IAppTask = void 0;
     /* eslint-disable @typescript-eslint/promise-function-async */
     const kernel_1 = require("@aurelia/kernel");
-    exports.IAppTask = kernel_1.DI.createInterface('IAppTask').noDefault();
+    exports.IAppTask = kernel_1.DI.createInterface('IAppTask');
     class $AppTask {
         constructor(key) {
             this.key = key;

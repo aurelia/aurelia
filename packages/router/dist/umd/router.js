@@ -77,7 +77,7 @@
     /**
      * Public API
      */
-    exports.IRouter = kernel_1.DI.createInterface('IRouter').withDefault(x => x.singleton(Router));
+    exports.IRouter = kernel_1.DI.createInterface('IRouter', x => x.singleton(Router));
     class ClosestViewportCustomElement {
     }
     /**

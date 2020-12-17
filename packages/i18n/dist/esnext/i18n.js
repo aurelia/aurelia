@@ -35,7 +35,7 @@ export class I18nKeyEvaluationResult {
         this.key = keyExpr;
     }
 }
-export const I18N = DI.createInterface('I18N').noDefault();
+export const I18N = DI.createInterface('I18N');
 /**
  * Translation service class.
  */

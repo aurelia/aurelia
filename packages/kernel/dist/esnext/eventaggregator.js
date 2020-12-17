@@ -14,7 +14,7 @@ class Handler {
         }
     }
 }
-export const IEventAggregator = DI.createInterface('IEventAggregator').withDefault(x => x.singleton(EventAggregator));
+export const IEventAggregator = DI.createInterface('IEventAggregator', x => x.singleton(EventAggregator));
 /**
  * Enables loosely coupled publish/subscribe messaging.
  */

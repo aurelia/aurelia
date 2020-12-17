@@ -141,7 +141,7 @@ export function getPropertyInfo(binding, info, flags = 0 /* none */) {
     }
     return propertyInfo;
 }
-export const IValidationController = DI.createInterface('IValidationController').noDefault();
+export const IValidationController = DI.createInterface('IValidationController');
 let ValidationController = class ValidationController {
     constructor(validator, parser, platform, locator) {
         this.validator = validator;

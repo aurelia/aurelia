@@ -1,6 +1,6 @@
 import { DI, } from '@aurelia/kernel';
 import { AccessKeyedExpression, AccessMemberExpression, AccessScopeExpression, AccessThisExpression, ArrayBindingPattern, ArrayLiteralExpression, AssignExpression, BinaryExpression, BindingBehaviorExpression, BindingIdentifier, CallFunctionExpression, CallMemberExpression, CallScopeExpression, ConditionalExpression, CustomExpression, ForOfStatement, Interpolation, ObjectBindingPattern, ObjectLiteralExpression, PrimitiveLiteralExpression, TaggedTemplateExpression, TemplateExpression, UnaryExpression, ValueConverterExpression, } from './ast.js';
-export const IExpressionParser = DI.createInterface('IExpressionParser').withDefault(x => x.singleton(ExpressionParser));
+export const IExpressionParser = DI.createInterface('IExpressionParser', x => x.singleton(ExpressionParser));
 export class ExpressionParser {
     constructor() {
         this.expressionLookup = Object.create(null);

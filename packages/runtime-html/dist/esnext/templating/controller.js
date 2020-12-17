@@ -1000,5 +1000,5 @@ export function stringifyState(state) {
     }
     return names.length === 0 ? 'none' : names.join('|');
 }
-export const IController = DI.createInterface('IController').noDefault();
+export const IController = DI.createInterface('IController');
 //# sourceMappingURL=controller.js.map

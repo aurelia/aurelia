@@ -2,10 +2,6 @@ import { Constructable, IDisposable } from './interfaces.js';
 import { IResourceKind, ResourceDefinition, ResourceType } from './resource.js';
 export declare type ResolveCallback<T = any> = (handler: IContainer, requestor: IContainer, resolver: IResolver<T>) => T;
 export declare type InterfaceSymbol<K = any> = (target: Injectable<K>, property: string, index: number) => void;
-export interface IDefaultableInterfaceSymbol<K> extends InterfaceSymbol<K> {
-    withDefault(configure: (builder: ResolverBuilder<K>) => IResolver<K>): InterfaceSymbol<K>;
-    noDefault(): InterfaceSymbol<K>;
-}
 interface IResolverLike<C, K = any> {
     readonly $isResolver: true;
     resolve(handler: C, requestor: C): Resolved<K>;
@@ -102,7 +98,7 @@ export declare const DI: {
     /**
      * creates a decorator that also matches an interface and can be used as a {@linkcode Key}.
      * ```ts
-     * const ILogger = DI.createInterface<Logger>('Logger').noDefault();
+     * const ILogger = DI.createInterface<Logger>('Logger');
      * container.register(Registration.singleton(ILogger, getSomeLogger()));
      * const log = container.get(ILogger);
      * log.info('hello world');
@@ -114,8 +110,7 @@ export declare const DI: {
      * ```
      * you can also build default registrations into your interface.
      * ```ts
-     * export const ILogger = DI.createInterface<Logger>('Logger')
-     *        .withDefault( builder => builder.cachedCallback(LoggerDefault));
+     * export const ILogger = DI.createInterface<Logger>('Logger', builder => builder.cachedCallback(LoggerDefault));
      * const log = container.get(ILogger);
      * log.info('hello world');
      * class Foo {
@@ -126,8 +121,7 @@ export declare const DI: {
      * ```
      * but these default registrations won't work the same with other decorators that take keys, for example
      * ```ts
-     * export const MyStr = DI.createInterface<string>('MyStr')
-     *        .withDefault( builder => builder.instance('somestring'));
+     * export const MyStr = DI.createInterface<string>('MyStr', builder => builder.instance('somestring'));
      * class Foo {
      *   constructor( @optional(MyStr) public readonly str: string ) {
      *   }
@@ -142,7 +136,7 @@ export declare const DI: {
      *
      * - @param friendlyName used to improve error messaging
      */
-    createInterface<K extends Key>(friendlyName?: string | undefined): IDefaultableInterfaceSymbol<K>;
+    createInterface<K extends Key>(configureOrName?: string | ((builder: ResolverBuilder<K>) => IResolver<K>) | undefined, configuror?: ((builder: ResolverBuilder<K>) => IResolver<K>) | undefined): InterfaceSymbol<K>;
     inject(...dependencies: Key[]): (target: Injectable, key?: string | number | undefined, descriptor?: number | PropertyDescriptor | undefined) => void;
     /**
      * Registers the `target` class as a transient dependency; each time the dependency is resolved

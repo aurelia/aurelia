@@ -228,7 +228,7 @@ export class SegmentTypes {
         this.symbols = 0;
     }
 }
-export const ISyntaxInterpreter = DI.createInterface('ISyntaxInterpreter').withDefault(x => x.singleton(SyntaxInterpreter));
+export const ISyntaxInterpreter = DI.createInterface('ISyntaxInterpreter', x => x.singleton(SyntaxInterpreter));
 export class SyntaxInterpreter {
     constructor() {
         this.rootState = new State(null);
@@ -363,8 +363,8 @@ export class AttrSyntax {
         this.command = command;
     }
 }
-export const IAttributePattern = DI.createInterface('IAttributePattern').noDefault();
-export const IAttributeParser = DI.createInterface('IAttributeParser').withDefault(x => x.singleton(AttributeParser));
+export const IAttributePattern = DI.createInterface('IAttributePattern');
+export const IAttributeParser = DI.createInterface('IAttributeParser', x => x.singleton(AttributeParser));
 let AttributeParser = class AttributeParser {
     constructor(interpreter, attrPatterns) {
         this.interpreter = interpreter;

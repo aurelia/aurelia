@@ -1,7 +1,7 @@
 import { Class } from '@aurelia/kernel';
 import { InitOptions, Module, ThirdPartyModule } from 'i18next';
 export declare type I18nModule = Module | ThirdPartyModule;
-export declare const I18nInitOptions: import("@aurelia/kernel").IDefaultableInterfaceSymbol<I18nInitOptions>;
+export declare const I18nInitOptions: import("@aurelia/kernel").InterfaceSymbol<I18nInitOptions>;
 export interface I18nInitOptions extends InitOptions {
     /**
      * Collection of i18next plugins to use.

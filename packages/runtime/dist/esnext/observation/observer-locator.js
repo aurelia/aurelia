@@ -9,10 +9,9 @@ import { PropertyAccessor } from './property-accessor.js';
 import { getSetObserver } from './set-observer.js';
 import { SetterObserver } from './setter-observer.js';
 export const propertyAccessor = new PropertyAccessor();
-export const IObserverLocator = DI.createInterface('IObserverLocator').withDefault(x => x.singleton(ObserverLocator));
+export const IObserverLocator = DI.createInterface('IObserverLocator', x => x.singleton(ObserverLocator));
 export const INodeObserverLocator = DI
-    .createInterface('INodeObserverLocator')
-    .withDefault(x => x.cachedCallback(handler => {
+    .createInterface('INodeObserverLocator', x => x.cachedCallback(handler => {
     handler.getAll(ILogger).forEach(logger => {
         logger.error('Using default INodeObserverLocator implementation. Will not be able to observe nodes (HTML etc...).');
     });

@@ -14,14 +14,14 @@
     const app_root_js_1 = require("./app-root.js");
     const platform_js_1 = require("./platform.js");
     const custom_element_js_1 = require("./resources/custom-element.js");
-    exports.INode = kernel_1.DI.createInterface('INode').noDefault();
-    exports.IEventTarget = kernel_1.DI.createInterface('IEventTarget').withDefault(x => x.cachedCallback(handler => {
+    exports.INode = kernel_1.DI.createInterface('INode');
+    exports.IEventTarget = kernel_1.DI.createInterface('IEventTarget', x => x.cachedCallback(handler => {
         if (handler.has(app_root_js_1.IAppRoot, true)) {
             return handler.get(app_root_js_1.IAppRoot).host;
         }
         return handler.get(platform_js_1.IPlatform).document;
     }));
-    exports.IRenderLocation = kernel_1.DI.createInterface('IRenderLocation').noDefault();
+    exports.IRenderLocation = kernel_1.DI.createInterface('IRenderLocation');
     var NodeType;
     (function (NodeType) {
         NodeType[NodeType["Element"] = 1] = "Element";
@@ -274,8 +274,8 @@
         }
     }
     exports.FragmentNodeSequence = FragmentNodeSequence;
-    exports.IWindow = kernel_1.DI.createInterface('IWindow').withDefault(x => x.callback(handler => handler.get(platform_js_1.IPlatform).window));
-    exports.ILocation = kernel_1.DI.createInterface('ILocation').withDefault(x => x.callback(handler => handler.get(exports.IWindow).location));
-    exports.IHistory = kernel_1.DI.createInterface('IHistory').withDefault(x => x.callback(handler => handler.get(exports.IWindow).history));
+    exports.IWindow = kernel_1.DI.createInterface('IWindow', x => x.callback(handler => handler.get(platform_js_1.IPlatform).window));
+    exports.ILocation = kernel_1.DI.createInterface('ILocation', x => x.callback(handler => handler.get(exports.IWindow).location));
+    exports.IHistory = kernel_1.DI.createInterface('IHistory', x => x.callback(handler => handler.get(exports.IWindow).history));
 });
 //# sourceMappingURL=dom.js.map

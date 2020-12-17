@@ -70,11 +70,11 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
          */
         ColorOptions[ColorOptions["colors"] = 1] = "colors";
     })(ColorOptions = exports.ColorOptions || (exports.ColorOptions = {}));
-    exports.ILogConfig = di_js_1.DI.createInterface('ILogConfig').withDefault(x => x.instance(new LogConfig(0 /* noColors */, 3 /* warn */)));
-    exports.ISink = di_js_1.DI.createInterface('ISink').noDefault();
-    exports.ILogEventFactory = di_js_1.DI.createInterface('ILogEventFactory').withDefault(x => x.singleton(DefaultLogEventFactory));
-    exports.ILogger = di_js_1.DI.createInterface('ILogger').withDefault(x => x.singleton(DefaultLogger));
-    exports.ILogScopes = di_js_1.DI.createInterface('ILogScope').noDefault();
+    exports.ILogConfig = di_js_1.DI.createInterface('ILogConfig', x => x.instance(new LogConfig(0 /* noColors */, 3 /* warn */)));
+    exports.ISink = di_js_1.DI.createInterface('ISink');
+    exports.ILogEventFactory = di_js_1.DI.createInterface('ILogEventFactory', x => x.singleton(DefaultLogEventFactory));
+    exports.ILogger = di_js_1.DI.createInterface('ILogger', x => x.singleton(DefaultLogger));
+    exports.ILogScopes = di_js_1.DI.createInterface('ILogScope');
     exports.LoggerSink = Object.freeze({
         key: resource_js_1.Protocol.annotation.keyFor('logger-sink-handles'),
         define(target, definition) {

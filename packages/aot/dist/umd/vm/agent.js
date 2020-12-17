@@ -14,7 +14,7 @@
     const kernel_1 = require("@aurelia/kernel");
     const realm_js_1 = require("./realm.js");
     const empty_js_1 = require("./types/empty.js");
-    exports.ISourceFileProvider = kernel_1.DI.createInterface('ISourceFileProvider').noDefault();
+    exports.ISourceFileProvider = kernel_1.DI.createInterface('ISourceFileProvider');
     // http://www.ecma-international.org/ecma-262/#sec-agents
     class Agent {
         constructor(logger) {

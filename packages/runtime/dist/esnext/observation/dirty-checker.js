@@ -1,6 +1,6 @@
 import { DI, IPlatform } from '@aurelia/kernel';
 import { subscriberCollection } from './subscriber-collection.js';
-export const IDirtyChecker = DI.createInterface('IDirtyChecker').withDefault(x => x.singleton(DirtyChecker));
+export const IDirtyChecker = DI.createInterface('IDirtyChecker', x => x.singleton(DirtyChecker));
 export const DirtyCheckSettings = {
     /**
      * Default: `6`

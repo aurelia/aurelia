@@ -3,7 +3,7 @@ import { INode } from './dom.js';
 import { IAppTask } from './app-task.js';
 import { CustomElement } from './resources/custom-element.js';
 import { Controller } from './templating/controller.js';
-export const IAppRoot = DI.createInterface('IAppRoot').noDefault();
+export const IAppRoot = DI.createInterface('IAppRoot');
 export class AppRoot {
     constructor(config, platform, container, rootProvider, enhance = false) {
         this.config = config;

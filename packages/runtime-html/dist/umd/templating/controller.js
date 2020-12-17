@@ -1017,6 +1017,6 @@
         return names.length === 0 ? 'none' : names.join('|');
     }
     exports.stringifyState = stringifyState;
-    exports.IController = kernel_1.DI.createInterface('IController').noDefault();
+    exports.IController = kernel_1.DI.createInterface('IController');
 });
 //# sourceMappingURL=controller.js.map

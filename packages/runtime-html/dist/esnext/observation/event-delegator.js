@@ -105,7 +105,7 @@ export class EventSubscriber {
         this.target = this.handler = null;
     }
 }
-export const IEventDelegator = DI.createInterface('IEventDelegator').withDefault(x => x.singleton(EventDelegator));
+export const IEventDelegator = DI.createInterface('IEventDelegator', x => x.singleton(EventDelegator));
 export class EventDelegator {
     // eslint-disable-next-line @typescript-eslint/no-useless-constructor
     constructor() {

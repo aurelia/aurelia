@@ -44,7 +44,7 @@ export var InstructionType;
     InstructionType["setClassAttribute"] = "hf";
     InstructionType["setStyleAttribute"] = "hg";
 })(InstructionType || (InstructionType = {}));
-export const IInstruction = DI.createInterface('Instruction').noDefault();
+export const IInstruction = DI.createInterface('Instruction');
 export function isInstruction(value) {
     const type = value.type;
     return typeof type === 'string' && type.length === 2;
@@ -188,8 +188,8 @@ export class AttributeBindingInstruction {
     }
     get type() { return "hc" /* attributeBinding */; }
 }
-export const ITemplateCompiler = DI.createInterface('ITemplateCompiler').noDefault();
-export const IRenderer = DI.createInterface('IRenderer').noDefault();
+export const ITemplateCompiler = DI.createInterface('ITemplateCompiler');
+export const IRenderer = DI.createInterface('IRenderer');
 export function renderer(instructionType) {
     return function decorator(target) {
         // wrap the constructor to set the instructionType to the instance (for better performance than when set on the prototype)

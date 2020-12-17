@@ -51,7 +51,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
         ValidationTrigger["changeOrFocusout"] = "changeOrFocusout";
     })(ValidationTrigger = exports.ValidationTrigger || (exports.ValidationTrigger = {}));
     /* @internal */
-    exports.IDefaultTrigger = kernel_1.DI.createInterface('IDefaultTrigger').noDefault();
+    exports.IDefaultTrigger = kernel_1.DI.createInterface('IDefaultTrigger');
     /**
      * Binding behavior. Indicates the bound property should be validated.
      */

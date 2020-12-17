@@ -13,7 +13,7 @@ import { IExpressionParser, PrimitiveLiteralExpression, Scope, } from '@aurelia/
 import { RequiredRule, RegexRule, LengthRule, SizeRule, RangeRule, EqualsRule, IValidationMessageProvider, ValidationRuleAliasMessage, BaseValidationRule, } from './rules.js';
 import { IValidationExpressionHydrator, } from './rule-interfaces.js';
 /* @internal */
-export const ICustomMessages = DI.createInterface('ICustomMessages').noDefault();
+export const ICustomMessages = DI.createInterface('ICustomMessages');
 export class RuleProperty {
     constructor(expression, name = void 0, displayName = void 0) {
         this.expression = expression;
@@ -333,7 +333,7 @@ export class ModelBasedRule {
         this.tag = tag;
     }
 }
-export const IValidationRules = DI.createInterface('IValidationRules').noDefault();
+export const IValidationRules = DI.createInterface('IValidationRules');
 let ValidationRules = class ValidationRules {
     constructor(locator, parser, messageProvider, deserializer) {
         this.locator = locator;

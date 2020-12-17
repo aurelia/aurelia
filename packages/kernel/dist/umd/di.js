@@ -171,7 +171,7 @@
         /**
          * creates a decorator that also matches an interface and can be used as a {@linkcode Key}.
          * ```ts
-         * const ILogger = DI.createInterface<Logger>('Logger').noDefault();
+         * const ILogger = DI.createInterface<Logger>('Logger');
          * container.register(Registration.singleton(ILogger, getSomeLogger()));
          * const log = container.get(ILogger);
          * log.info('hello world');
@@ -183,8 +183,7 @@
          * ```
          * you can also build default registrations into your interface.
          * ```ts
-         * export const ILogger = DI.createInterface<Logger>('Logger')
-         *        .withDefault( builder => builder.cachedCallback(LoggerDefault));
+         * export const ILogger = DI.createInterface<Logger>('Logger', builder => builder.cachedCallback(LoggerDefault));
          * const log = container.get(ILogger);
          * log.info('hello world');
          * class Foo {
@@ -195,8 +194,7 @@
          * ```
          * but these default registrations won't work the same with other decorators that take keys, for example
          * ```ts
-         * export const MyStr = DI.createInterface<string>('MyStr')
-         *        .withDefault( builder => builder.instance('somestring'));
+         * export const MyStr = DI.createInterface<string>('MyStr', builder => builder.instance('somestring'));
          * class Foo {
          *   constructor( @optional(MyStr) public readonly str: string ) {
          *   }
@@ -211,29 +209,23 @@
          *
          * - @param friendlyName used to improve error messaging
          */
-        createInterface(friendlyName) {
+        createInterface(configureOrName, configuror) {
+            const configure = typeof configureOrName === 'function' ? configureOrName : configuror;
+            const friendlyName = typeof configureOrName === 'string' ? configureOrName : undefined;
             const Interface = function (target, property, index) {
                 if (target == null || new.target !== undefined) {
                     throw new Error(`No registration for interface: '${Interface.friendlyName}'`); // TODO: add error (trying to resolve an InterfaceSymbol that has no registrations)
                 }
                 const annotationParamtypes = exports.DI.getOrCreateAnnotationParamTypes(target);
                 annotationParamtypes[index] = Interface;
-                return target;
             };
             Interface.$isInterface = true;
             Interface.friendlyName = friendlyName == null ? '(anonymous)' : friendlyName;
-            Interface.noDefault = function () {
-                return Interface;
-            };
-            Interface.withDefault = function (configure) {
-                Interface.withDefault = function () {
-                    throw new Error(`You can only define one default implementation for an interface.`);
-                };
+            if (configure != null) {
                 Interface.register = function (container, key) {
                     return configure(new ResolverBuilder(container, key !== null && key !== void 0 ? key : Interface));
                 };
-                return Interface;
-            };
+            }
             Interface.toString = function toString() {
                 return `InterfaceSymbol<${Interface.friendlyName}>`;
             };
@@ -330,7 +322,7 @@
             return target;
         },
     };
-    exports.IContainer = exports.DI.createInterface('IContainer').noDefault();
+    exports.IContainer = exports.DI.createInterface('IContainer');
     exports.IServiceLocator = exports.IContainer;
     function createResolver(getter) {
         return function (key) {

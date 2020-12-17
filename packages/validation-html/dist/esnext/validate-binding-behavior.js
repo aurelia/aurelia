@@ -39,7 +39,7 @@ export var ValidationTrigger;
     ValidationTrigger["changeOrFocusout"] = "changeOrFocusout";
 })(ValidationTrigger || (ValidationTrigger = {}));
 /* @internal */
-export const IDefaultTrigger = DI.createInterface('IDefaultTrigger').noDefault();
+export const IDefaultTrigger = DI.createInterface('IDefaultTrigger');
 /**
  * Binding behavior. Indicates the bound property should be validated.
  */

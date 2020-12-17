@@ -2,7 +2,7 @@ import { DI, Metadata, Protocol } from '@aurelia/kernel';
 import { Scope } from '@aurelia/runtime';
 import { CustomElement, CustomElementDefinition } from '../resources/custom-element.js';
 import { Controller } from './controller.js';
-export const IViewFactory = DI.createInterface('IViewFactory').noDefault();
+export const IViewFactory = DI.createInterface('IViewFactory');
 export class ViewFactory {
     constructor(name, context, contentType, projectionScope = null) {
         this.name = name;
@@ -100,7 +100,7 @@ export function view(v) {
         Views.add(target, v);
     };
 }
-export const IViewLocator = DI.createInterface('IViewLocator').withDefault(x => x.singleton(ViewLocator));
+export const IViewLocator = DI.createInterface('IViewLocator', x => x.singleton(ViewLocator));
 export class ViewLocator {
     constructor() {
         this.modelInstanceToBoundComponent = new WeakMap();

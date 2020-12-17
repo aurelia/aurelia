@@ -15,7 +15,7 @@
     const app_task_js_1 = require("./app-task.js");
     const custom_element_js_1 = require("./resources/custom-element.js");
     const controller_js_1 = require("./templating/controller.js");
-    exports.IAppRoot = kernel_1.DI.createInterface('IAppRoot').noDefault();
+    exports.IAppRoot = kernel_1.DI.createInterface('IAppRoot');
     class AppRoot {
         constructor(config, platform, container, rootProvider, enhance = false) {
             this.config = config;

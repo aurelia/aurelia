@@ -17,5 +17,5 @@ export var FileKind;
     FileKind[FileKind["Style"] = 3] = "Style";
     FileKind[FileKind["JSON"] = 4] = "JSON";
 })(FileKind || (FileKind = {}));
-export const IFileSystem = DI.createInterface('IFileSystem').noDefault();
+export const IFileSystem = DI.createInterface('IFileSystem');
 //# sourceMappingURL=interfaces.js.map

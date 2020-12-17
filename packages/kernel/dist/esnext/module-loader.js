@@ -1,7 +1,7 @@
 import { DI } from './di';
 import { emptyArray } from './platform';
 import { Protocol } from './resource';
-export const IModuleLoader = DI.createInterface().withDefault(x => x.singleton(ModuleLoader));
+export const IModuleLoader = DI.createInterface(x => x.singleton(ModuleLoader));
 function noTransform(m) {
     return m;
 }

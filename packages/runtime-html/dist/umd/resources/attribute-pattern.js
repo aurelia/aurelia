@@ -247,7 +247,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
     }
     exports.SegmentTypes = SegmentTypes;
-    exports.ISyntaxInterpreter = kernel_1.DI.createInterface('ISyntaxInterpreter').withDefault(x => x.singleton(SyntaxInterpreter));
+    exports.ISyntaxInterpreter = kernel_1.DI.createInterface('ISyntaxInterpreter', x => x.singleton(SyntaxInterpreter));
     class SyntaxInterpreter {
         constructor() {
             this.rootState = new State(null);
@@ -384,8 +384,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
     }
     exports.AttrSyntax = AttrSyntax;
-    exports.IAttributePattern = kernel_1.DI.createInterface('IAttributePattern').noDefault();
-    exports.IAttributeParser = kernel_1.DI.createInterface('IAttributeParser').withDefault(x => x.singleton(AttributeParser));
+    exports.IAttributePattern = kernel_1.DI.createInterface('IAttributePattern');
+    exports.IAttributeParser = kernel_1.DI.createInterface('IAttributeParser', x => x.singleton(AttributeParser));
     let AttributeParser = class AttributeParser {
         constructor(interpreter, attrPatterns) {
             this.interpreter = interpreter;

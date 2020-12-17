@@ -20,7 +20,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.isIndexMap = exports.cloneIndexMap = exports.createIndexMap = exports.copyIndexMap = exports.AccessorType = exports.CollectionKind = exports.DelegationStrategy = exports.SubscriberFlags = exports.LifecycleFlags = exports.BindingMode = exports.BatchQueue = exports.Lifecycle = exports.ILifecycle = void 0;
     const kernel_1 = require("@aurelia/kernel");
-    exports.ILifecycle = kernel_1.DI.createInterface('ILifecycle').withDefault(x => x.singleton(Lifecycle));
+    exports.ILifecycle = kernel_1.DI.createInterface('ILifecycle', x => x.singleton(Lifecycle));
     class Lifecycle {
         constructor() {
             this.batch = new BatchQueue(this);

@@ -21,7 +21,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     exports.TemplateElementFactory = exports.ITemplateElementFactory = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const platform_js_1 = require("./platform.js");
-    exports.ITemplateElementFactory = kernel_1.DI.createInterface('ITemplateElementFactory').withDefault(x => x.singleton(TemplateElementFactory));
+    exports.ITemplateElementFactory = kernel_1.DI.createInterface('ITemplateElementFactory', x => x.singleton(TemplateElementFactory));
     const markupCache = {};
     let TemplateElementFactory = class TemplateElementFactory {
         constructor(p) {

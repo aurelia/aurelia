@@ -56,7 +56,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         InstructionType["setClassAttribute"] = "hf";
         InstructionType["setStyleAttribute"] = "hg";
     })(InstructionType = exports.InstructionType || (exports.InstructionType = {}));
-    exports.IInstruction = kernel_1.DI.createInterface('Instruction').noDefault();
+    exports.IInstruction = kernel_1.DI.createInterface('Instruction');
     function isInstruction(value) {
         const type = value.type;
         return typeof type === 'string' && type.length === 2;
@@ -219,8 +219,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         get type() { return "hc" /* attributeBinding */; }
     }
     exports.AttributeBindingInstruction = AttributeBindingInstruction;
-    exports.ITemplateCompiler = kernel_1.DI.createInterface('ITemplateCompiler').noDefault();
-    exports.IRenderer = kernel_1.DI.createInterface('IRenderer').noDefault();
+    exports.ITemplateCompiler = kernel_1.DI.createInterface('ITemplateCompiler');
+    exports.IRenderer = kernel_1.DI.createInterface('IRenderer');
     function renderer(instructionType) {
         return function decorator(target) {
             // wrap the constructor to set the instructionType to the instance (for better performance than when set on the prototype)

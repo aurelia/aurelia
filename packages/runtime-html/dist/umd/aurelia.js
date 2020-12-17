@@ -14,7 +14,7 @@
     const platform_browser_1 = require("@aurelia/platform-browser");
     const app_root_js_1 = require("./app-root.js");
     const platform_js_1 = require("./platform.js");
-    exports.IAurelia = kernel_1.DI.createInterface('IAurelia').noDefault();
+    exports.IAurelia = kernel_1.DI.createInterface('IAurelia');
     class Aurelia {
         constructor(container = kernel_1.DI.createContainer()) {
             this.container = container;

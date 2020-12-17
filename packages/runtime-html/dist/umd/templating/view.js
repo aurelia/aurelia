@@ -14,7 +14,7 @@
     const runtime_1 = require("@aurelia/runtime");
     const custom_element_js_1 = require("../resources/custom-element.js");
     const controller_js_1 = require("./controller.js");
-    exports.IViewFactory = kernel_1.DI.createInterface('IViewFactory').noDefault();
+    exports.IViewFactory = kernel_1.DI.createInterface('IViewFactory');
     class ViewFactory {
         constructor(name, context, contentType, projectionScope = null) {
             this.name = name;
@@ -114,7 +114,7 @@
         };
     }
     exports.view = view;
-    exports.IViewLocator = kernel_1.DI.createInterface('IViewLocator').withDefault(x => x.singleton(ViewLocator));
+    exports.IViewLocator = kernel_1.DI.createInterface('IViewLocator', x => x.singleton(ViewLocator));
     class ViewLocator {
         constructor() {
             this.modelInstanceToBoundComponent = new WeakMap();

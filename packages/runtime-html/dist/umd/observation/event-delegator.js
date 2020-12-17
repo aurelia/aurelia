@@ -119,7 +119,7 @@
         }
     }
     exports.EventSubscriber = EventSubscriber;
-    exports.IEventDelegator = kernel_1.DI.createInterface('IEventDelegator').withDefault(x => x.singleton(EventDelegator));
+    exports.IEventDelegator = kernel_1.DI.createInterface('IEventDelegator', x => x.singleton(EventDelegator));
     class EventDelegator {
         // eslint-disable-next-line @typescript-eslint/no-useless-constructor
         constructor() {

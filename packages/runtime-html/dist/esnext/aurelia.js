@@ -2,7 +2,7 @@ import { DI, Registration, InstanceProvider, onResolve } from '@aurelia/kernel';
 import { BrowserPlatform } from '@aurelia/platform-browser';
 import { AppRoot, IAppRoot } from './app-root.js';
 import { IPlatform } from './platform.js';
-export const IAurelia = DI.createInterface('IAurelia').noDefault();
+export const IAurelia = DI.createInterface('IAurelia');
 export class Aurelia {
     constructor(container = DI.createContainer()) {
         this.container = container;

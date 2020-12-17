@@ -10,7 +10,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 import { DI } from '@aurelia/kernel';
 import { valueConverter } from '@aurelia/runtime';
 const SCRIPT_REGEX = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;
-export const ISanitizer = DI.createInterface('ISanitizer').withDefault(x => x.singleton(class {
+export const ISanitizer = DI.createInterface('ISanitizer', x => x.singleton(class {
     sanitize(input) {
         return input.replace(SCRIPT_REGEX, '');
     }

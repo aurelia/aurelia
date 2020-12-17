@@ -12,7 +12,7 @@
     exports.SVGAnalyzer = exports.NoopSVGAnalyzer = exports.ISVGAnalyzer = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const platform_js_1 = require("../platform.js");
-    exports.ISVGAnalyzer = kernel_1.DI.createInterface('ISVGAnalyzer').withDefault(x => x.singleton(NoopSVGAnalyzer));
+    exports.ISVGAnalyzer = kernel_1.DI.createInterface('ISVGAnalyzer', x => x.singleton(NoopSVGAnalyzer));
     class NoopSVGAnalyzer {
         isStandardSvgAttribute(node, attributeName) {
             return false;

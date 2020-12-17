@@ -5,7 +5,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 import { Protocol, Metadata, DI, toArray } from '@aurelia/kernel';
-export const IValidationMessageProvider = DI.createInterface('IValidationMessageProvider').noDefault();
+export const IValidationMessageProvider = DI.createInterface('IValidationMessageProvider');
 export const ValidationRuleAliasMessage = Object.freeze({
     aliasKey: Protocol.annotation.keyFor('validation-rule-alias-message'),
     define(target, definition) {

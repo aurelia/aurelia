@@ -1,7 +1,6 @@
 import { DI } from '@aurelia/kernel';
 export const IAttrSyntaxTransformer = DI
-    .createInterface('IAttrSyntaxTransformer')
-    .withDefault(x => x.singleton(AttrSyntaxTransformer));
+    .createInterface('IAttrSyntaxTransformer', x => x.singleton(AttrSyntaxTransformer));
 export class AttrSyntaxTransformer {
     constructor() {
         /**

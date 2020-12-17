@@ -65,7 +65,7 @@ import { OpenPromise } from './open-promise.js';
 /**
  * Public API
  */
-export const IRouter = DI.createInterface('IRouter').withDefault(x => x.singleton(Router));
+export const IRouter = DI.createInterface('IRouter', x => x.singleton(Router));
 class ClosestViewportCustomElement {
 }
 /**

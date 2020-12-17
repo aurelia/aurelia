@@ -9,7 +9,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 import { DI } from '@aurelia/kernel';
 import { IPlatform } from './platform.js';
-export const ITemplateElementFactory = DI.createInterface('ITemplateElementFactory').withDefault(x => x.singleton(TemplateElementFactory));
+export const ITemplateElementFactory = DI.createInterface('ITemplateElementFactory', x => x.singleton(TemplateElementFactory));
 const markupCache = {};
 let TemplateElementFactory = class TemplateElementFactory {
     constructor(p) {

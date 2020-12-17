@@ -64,7 +64,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         return new ShadowDOMRegistry(css);
     }
     exports.shadowCSS = shadowCSS;
-    exports.IShadowDOMStyleFactory = kernel_1.DI.createInterface('IShadowDOMStyleFactory').withDefault(x => x.cachedCallback(handler => {
+    exports.IShadowDOMStyleFactory = kernel_1.DI.createInterface('IShadowDOMStyleFactory', x => x.cachedCallback(handler => {
         if (AdoptedStyleSheetsStyles.supported(handler.get(platform_js_1.IPlatform))) {
             return handler.get(AdoptedStyleSheetsStylesFactory);
         }
@@ -104,8 +104,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     StyleElementStylesFactory = __decorate([
         __param(0, platform_js_1.IPlatform)
     ], StyleElementStylesFactory);
-    exports.IShadowDOMStyles = kernel_1.DI.createInterface('IShadowDOMStyles').noDefault();
-    exports.IShadowDOMGlobalStyles = kernel_1.DI.createInterface('IShadowDOMGlobalStyles').withDefault(x => x.instance({ applyTo: kernel_1.noop }));
+    exports.IShadowDOMStyles = kernel_1.DI.createInterface('IShadowDOMStyles');
+    exports.IShadowDOMGlobalStyles = kernel_1.DI.createInterface('IShadowDOMGlobalStyles', x => x.instance({ applyTo: kernel_1.noop }));
     class AdoptedStyleSheetsStyles {
         constructor(p, localStyles, styleSheetCache, sharedStyles = null) {
             this.sharedStyles = sharedStyles;

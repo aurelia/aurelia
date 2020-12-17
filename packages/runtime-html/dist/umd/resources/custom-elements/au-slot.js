@@ -14,7 +14,7 @@
     const dom_js_1 = require("../../dom.js");
     const custom_element_js_1 = require("../custom-element.js");
     const view_js_1 = require("../../templating/view.js");
-    exports.IProjections = kernel_1.DI.createInterface("IProjections").noDefault();
+    exports.IProjections = kernel_1.DI.createInterface("IProjections");
     var AuSlotContentType;
     (function (AuSlotContentType) {
         AuSlotContentType[AuSlotContentType["Projection"] = 0] = "Projection";
@@ -42,7 +42,7 @@
         }
     }
     exports.RegisteredProjections = RegisteredProjections;
-    exports.IProjectionProvider = kernel_1.DI.createInterface('IProjectionProvider').withDefault(x => x.singleton(ProjectionProvider));
+    exports.IProjectionProvider = kernel_1.DI.createInterface('IProjectionProvider', x => x.singleton(ProjectionProvider));
     const projectionMap = new WeakMap();
     class ProjectionProvider {
         registerProjections(projections, scope) {

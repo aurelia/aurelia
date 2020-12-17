@@ -8,7 +8,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 import { DI } from '@aurelia/kernel';
-export const ILifecycle = DI.createInterface('ILifecycle').withDefault(x => x.singleton(Lifecycle));
+export const ILifecycle = DI.createInterface('ILifecycle', x => x.singleton(Lifecycle));
 export class Lifecycle {
     constructor() {
         this.batch = new BatchQueue(this);

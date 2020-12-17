@@ -12,7 +12,7 @@
     exports.parse = exports.parseExpression = exports.ParserState = exports.BindingType = exports.Precedence = exports.Access = exports.Char = exports.ExpressionParser = exports.IExpressionParser = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const ast_js_1 = require("./ast.js");
-    exports.IExpressionParser = kernel_1.DI.createInterface('IExpressionParser').withDefault(x => x.singleton(ExpressionParser));
+    exports.IExpressionParser = kernel_1.DI.createInterface('IExpressionParser', x => x.singleton(ExpressionParser));
     class ExpressionParser {
         constructor() {
             this.expressionLookup = Object.create(null);

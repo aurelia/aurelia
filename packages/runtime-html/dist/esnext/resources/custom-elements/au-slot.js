@@ -2,7 +2,7 @@ import { DI } from '@aurelia/kernel';
 import { IRenderLocation } from '../../dom.js';
 import { customElement } from '../custom-element.js';
 import { IViewFactory } from '../../templating/view.js';
-export const IProjections = DI.createInterface("IProjections").noDefault();
+export const IProjections = DI.createInterface("IProjections");
 export var AuSlotContentType;
 (function (AuSlotContentType) {
     AuSlotContentType[AuSlotContentType["Projection"] = 0] = "Projection";
@@ -27,7 +27,7 @@ export class RegisteredProjections {
         this.projections = projections;
     }
 }
-export const IProjectionProvider = DI.createInterface('IProjectionProvider').withDefault(x => x.singleton(ProjectionProvider));
+export const IProjectionProvider = DI.createInterface('IProjectionProvider', x => x.singleton(ProjectionProvider));
 const projectionMap = new WeakMap();
 export class ProjectionProvider {
     registerProjections(projections, scope) {

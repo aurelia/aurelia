@@ -13,7 +13,7 @@
     const di_1 = require("./di");
     const platform_1 = require("./platform");
     const resource_1 = require("./resource");
-    exports.IModuleLoader = di_1.DI.createInterface().withDefault(x => x.singleton(ModuleLoader));
+    exports.IModuleLoader = di_1.DI.createInterface(x => x.singleton(ModuleLoader));
     function noTransform(m) {
         return m;
     }

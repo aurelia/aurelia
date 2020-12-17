@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/promise-function-async */
 import { DI, Registration, } from '@aurelia/kernel';
-export const IAppTask = DI.createInterface('IAppTask').noDefault();
+export const IAppTask = DI.createInterface('IAppTask');
 class $AppTask {
     constructor(key) {
         this.key = key;

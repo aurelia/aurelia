@@ -49,7 +49,7 @@ export class CSSModulesProcessorRegistry {
 export function shadowCSS(...css) {
     return new ShadowDOMRegistry(css);
 }
-export const IShadowDOMStyleFactory = DI.createInterface('IShadowDOMStyleFactory').withDefault(x => x.cachedCallback(handler => {
+export const IShadowDOMStyleFactory = DI.createInterface('IShadowDOMStyleFactory', x => x.cachedCallback(handler => {
     if (AdoptedStyleSheetsStyles.supported(handler.get(IPlatform))) {
         return handler.get(AdoptedStyleSheetsStylesFactory);
     }
@@ -88,8 +88,8 @@ let StyleElementStylesFactory = class StyleElementStylesFactory {
 StyleElementStylesFactory = __decorate([
     __param(0, IPlatform)
 ], StyleElementStylesFactory);
-export const IShadowDOMStyles = DI.createInterface('IShadowDOMStyles').noDefault();
-export const IShadowDOMGlobalStyles = DI.createInterface('IShadowDOMGlobalStyles').withDefault(x => x.instance({ applyTo: noop }));
+export const IShadowDOMStyles = DI.createInterface('IShadowDOMStyles');
+export const IShadowDOMGlobalStyles = DI.createInterface('IShadowDOMGlobalStyles', x => x.instance({ applyTo: noop }));
 export class AdoptedStyleSheetsStyles {
     constructor(p, localStyles, styleSheetCache, sharedStyles = null) {
         this.sharedStyles = sharedStyles;

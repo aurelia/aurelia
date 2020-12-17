@@ -26,7 +26,7 @@
             }
         }
     }
-    exports.IEventAggregator = di_js_1.DI.createInterface('IEventAggregator').withDefault(x => x.singleton(EventAggregator));
+    exports.IEventAggregator = di_js_1.DI.createInterface('IEventAggregator', x => x.singleton(EventAggregator));
     /**
      * Enables loosely coupled publish/subscribe messaging.
      */

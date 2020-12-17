@@ -22,7 +22,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
     const SCRIPT_REGEX = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;
-    exports.ISanitizer = kernel_1.DI.createInterface('ISanitizer').withDefault(x => x.singleton(class {
+    exports.ISanitizer = kernel_1.DI.createInterface('ISanitizer', x => x.singleton(class {
         sanitize(input) {
             return input.replace(SCRIPT_REGEX, '');
         }

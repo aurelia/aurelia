@@ -8,8 +8,8 @@ export class StartOutput {
         this.realPort = realPort;
     }
 }
-export const IHttpServerOptions = DI.createInterface('IHttpServerOptions').noDefault();
-export const IHttpServer = DI.createInterface('IHttpServer').noDefault();
-export const IRequestHandler = DI.createInterface('IRequestHandler').noDefault();
-export const IHttp2FileServer = DI.createInterface('IHttp2FileServer').noDefault();
+export const IHttpServerOptions = DI.createInterface('IHttpServerOptions');
+export const IHttpServer = DI.createInterface('IHttpServer');
+export const IRequestHandler = DI.createInterface('IRequestHandler');
+export const IHttp2FileServer = DI.createInterface('IHttp2FileServer');
 //# sourceMappingURL=interfaces.js.map

@@ -21,10 +21,9 @@
     const set_observer_js_1 = require("./set-observer.js");
     const setter_observer_js_1 = require("./setter-observer.js");
     exports.propertyAccessor = new property_accessor_js_1.PropertyAccessor();
-    exports.IObserverLocator = kernel_1.DI.createInterface('IObserverLocator').withDefault(x => x.singleton(ObserverLocator));
+    exports.IObserverLocator = kernel_1.DI.createInterface('IObserverLocator', x => x.singleton(ObserverLocator));
     exports.INodeObserverLocator = kernel_1.DI
-        .createInterface('INodeObserverLocator')
-        .withDefault(x => x.cachedCallback(handler => {
+        .createInterface('INodeObserverLocator', x => x.cachedCallback(handler => {
         handler.getAll(kernel_1.ILogger).forEach(logger => {
             logger.error('Using default INodeObserverLocator implementation. Will not be able to observe nodes (HTML etc...).');
         });

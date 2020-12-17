@@ -158,7 +158,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         return propertyInfo;
     }
     exports.getPropertyInfo = getPropertyInfo;
-    exports.IValidationController = kernel_1.DI.createInterface('IValidationController').noDefault();
+    exports.IValidationController = kernel_1.DI.createInterface('IValidationController');
     let ValidationController = class ValidationController {
         constructor(validator, parser, platform, locator) {
             this.validator = validator;

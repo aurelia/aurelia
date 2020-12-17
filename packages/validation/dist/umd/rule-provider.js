@@ -25,7 +25,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     const rules_js_1 = require("./rules.js");
     const rule_interfaces_js_1 = require("./rule-interfaces.js");
     /* @internal */
-    exports.ICustomMessages = kernel_1.DI.createInterface('ICustomMessages').noDefault();
+    exports.ICustomMessages = kernel_1.DI.createInterface('ICustomMessages');
     class RuleProperty {
         constructor(expression, name = void 0, displayName = void 0) {
             this.expression = expression;
@@ -348,7 +348,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
     }
     exports.ModelBasedRule = ModelBasedRule;
-    exports.IValidationRules = kernel_1.DI.createInterface('IValidationRules').noDefault();
+    exports.IValidationRules = kernel_1.DI.createInterface('IValidationRules');
     let ValidationRules = class ValidationRules {
         constructor(locator, parser, messageProvider, deserializer) {
             this.locator = locator;

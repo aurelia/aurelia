@@ -2,7 +2,7 @@ import { DI } from '@aurelia/kernel';
 import { HttpClientConfiguration } from './http-client-configuration.js';
 import { RetryInterceptor } from './retry-interceptor.js';
 const absoluteUrlRegexp = /^([a-z][a-z0-9+\-.]*:)?\/\//i;
-export const IHttpClient = DI.createInterface('IHttpClient').withDefault(x => x.singleton(HttpClient));
+export const IHttpClient = DI.createInterface('IHttpClient', x => x.singleton(HttpClient));
 /**
  * An HTTP client based on the Fetch API.
  */

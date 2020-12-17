@@ -1,5 +1,5 @@
 import { DI } from './di.js';
-export const IPlatform = DI.createInterface('IPlatform').noDefault();
+export const IPlatform = DI.createInterface('IPlatform');
 export { Platform, TaskQueue, Task, TaskAbortError, TaskQueuePriority, TaskStatus, } from '@aurelia/platform';
 export { all, DI, IContainer, inject, IServiceLocator, lazy, optional, ignore, Registration, singleton, transient, InstanceProvider, newInstanceForScope, newInstanceOf, ContainerConfiguration, DefaultResolver, } from './di.js';
 export { metadata, Metadata, isNullOrUndefined, isObject, applyMetadataPolyfill, } from '@aurelia/metadata';

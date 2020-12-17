@@ -8,6 +8,7 @@ interface IStrippedHtml {
   deps: string[];
   shadowMode: 'open' | 'closed' | null;
   containerless: boolean;
+  hasSlot: boolean;
   bindables: Record<string, PartialBindableDefinition>;
   aliases: string[];
 }
@@ -16,6 +17,7 @@ export function stripMetaData(rawHtml: string): IStrippedHtml {
   const deps: string[] = [];
   let shadowMode: 'open' | 'closed' | null = null;
   let containerless: boolean = false;
+  let hasSlot: boolean = false;
   const bindables: Record<string, PartialBindableDefinition> = {};
   const aliases: string[] = [];
   const toRemove: [number, number][] = [];
@@ -46,6 +48,10 @@ export function stripMetaData(rawHtml: string): IStrippedHtml {
       aliases.push(...aliasArray);
       toRemove.push(...ranges);
     });
+
+    if (node.tagName === 'slot') {
+      hasSlot = true;
+    }
   });
 
   let html = '';
@@ -56,7 +62,7 @@ export function stripMetaData(rawHtml: string): IStrippedHtml {
   });
   html += rawHtml.slice(lastIdx);
 
-  return { html, deps, shadowMode, containerless, bindables, aliases };
+  return { html, deps, shadowMode, containerless, hasSlot, bindables, aliases };
 }
 
 function traverse(tree: any, cb: (node: DefaultTreeElement) => void) {

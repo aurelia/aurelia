@@ -1,5 +1,6 @@
 import { DI } from '@aurelia/kernel';
-import { AccessMemberExpression, AccessScopeExpression, ComputedWatcher, ExpressionWatcher } from '@aurelia/runtime';
+import { AccessMemberExpression, AccessScopeExpression } from '@aurelia/runtime';
+import { ComputedWatcher, ExpressionWatcher } from '@aurelia/runtime-html';
 import { assert, createObserverLocator, createScopeForTest } from '@aurelia/testing';
 
 describe('3-runtime-html/decorator-watch.unit.spec.ts', function () {
@@ -77,7 +78,7 @@ describe('3-runtime-html/decorator-watch.unit.spec.ts', function () {
       assert.deepStrictEqual(callbackValues, [obj]);
 
       // start again
-      watcher.observeLength(arr);
+      watcher.observeProperty(arr, 'length');
       arr.push(3);
       assert.strictEqual(getCallCount, 2);
       // returning te same value, callback won't be call
@@ -95,7 +96,7 @@ describe('3-runtime-html/decorator-watch.unit.spec.ts', function () {
         observerLocator,
         (o: any, w) => {
           getCallCount++;
-          w.observe(o, '_p');
+          w.observeProperty(o, '_p');
           return o.prop;
         },
         (newValue) => {

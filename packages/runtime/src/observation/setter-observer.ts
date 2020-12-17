@@ -10,7 +10,6 @@ export interface SetterObserver extends IObserver, ISubscriberCollection {}
  * Observer for the mutation of object property value employing getter-setter strategy.
  * This is used for observing object properties that has no decorator.
  */
-@subscriberCollection()
 export class SetterObserver {
   public currentValue: unknown = void 0;
   public oldValue: unknown = void 0;
@@ -34,7 +33,7 @@ export class SetterObserver {
     if (this.observing) {
       const currentValue = this.currentValue;
       this.currentValue = newValue;
-      this.callSubscribers(newValue, currentValue, flags);
+      this.subs.notify(newValue, currentValue, flags);
     } else {
       // If subscribe() has been called, the target property descriptor is replaced by these getter/setter methods,
       // so calling obj[propertyKey] will actually return this.currentValue.
@@ -51,7 +50,7 @@ export class SetterObserver {
     const currentValue = this.currentValue;
     const oldValue = this.oldValue;
     this.oldValue = currentValue;
-    this.callSubscribers(currentValue, oldValue, flags);
+    this.subs.notify(currentValue, oldValue, flags);
   }
 
   public subscribe(subscriber: ISubscriber): void {
@@ -59,7 +58,7 @@ export class SetterObserver {
       this.start();
     }
 
-    this.addSubscriber(subscriber);
+    this.subs.add(subscriber);
   }
 
   public start(): this {
@@ -72,10 +71,8 @@ export class SetterObserver {
         {
           enumerable: true,
           configurable: true,
-          get: () => {
-            return this.getValue();
-          },
-          set: value => {
+          get: (/* Setter Observer */) => this.getValue(),
+          set: (/* Setter Observer */value) => {
             this.setValue(value, LifecycleFlags.none);
           },
         },
@@ -100,7 +97,7 @@ export class SetterObserver {
 }
 
 export interface SetterNotifier extends ISubscriberCollection {}
-@subscriberCollection()
+
 export class SetterNotifier implements IAccessor, ISubscribable {
   // ideally, everything is an object,
   // probably this flag is redundant, just None?
@@ -127,7 +124,10 @@ export class SetterNotifier implements IAccessor, ISubscribable {
     const oldValue = this.v;
     if (!Object.is(value, oldValue)) {
       this.v = value;
-      this.callSubscribers(value, oldValue, flags);
+      this.subs.notify(value, oldValue, flags);
     }
   }
 }
+
+subscriberCollection()(SetterObserver);
+subscriberCollection()(SetterNotifier);

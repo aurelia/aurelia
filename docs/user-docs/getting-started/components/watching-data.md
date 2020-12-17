@@ -314,9 +314,8 @@ By default, a watcher will be created for a `@watch()` decorator. This watcher w
   - For environments without native proxy support: A 2nd parameter inside computed getter can be used to manually observe (or register) dependencies. This is the corresponding watcher created from a `@watch` decorator. It has the following interface:
   ```typescript
   interface IWatcher {
-    observe(obj: object, key: string | number | symbol): void;
+    observeProperty(obj: object, key: string | number | symbol): void;
     observeCollection(collection: Array | Map | Set): void;
-    observeLength(collection: Array | Map | Set): void;
   }
   ```
   An example is:
@@ -326,8 +325,8 @@ By default, a watcher will be created for a `@watch()` decorator. This watcher w
     lastName = 'Nuck';
 
     @watch((contact, watcher) => {
-      watcher.observe(contact, 'firstName');
-      watcher.observe(contact, 'lastName');
+      watcher.observeProperty(contact, 'firstName');
+      watcher.observeProperty(contact, 'lastName');
       return `${contact.firstName} ${contact.lastName}`;
     })
     validateFullName(fullName) {
@@ -383,10 +382,11 @@ By default, a watcher will be created for a `@watch()` decorator. This watcher w
   ```typescript
   class MyClass {
 
+    // don't do this
     @watch(async myClassInstance => myClassinstance.options)
     applyCustomOptions() {}
 
-    // or
+    // don't do this
     @watch(myClassInstance => {
       Promise.resolve().then(() => {
         return myClassinstance.options

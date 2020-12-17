@@ -38,7 +38,6 @@ export interface IOptionElement extends HTMLOptionElement {
 export interface SelectValueObserver extends
   ISubscriberCollection {}
 
-@subscriberCollection()
 export class SelectValueObserver implements IObserver {
   public currentValue: unknown = void 0;
   public oldValue: unknown = void 0;
@@ -106,13 +105,13 @@ export class SelectValueObserver implements IObserver {
     if (newValue === oldValue) {
       return;
     }
-    this.callSubscribers(newValue, oldValue, flags);
+    this.subs.notify(newValue, oldValue, flags);
   }
 
   public handleEvent(): void {
     const shouldNotify = this.synchronizeValue();
     if (shouldNotify) {
-      this.callSubscribers(this.currentValue, this.oldValue, LF.none);
+      this.subs.notify(this.currentValue, this.oldValue, LF.none);
     }
   }
 
@@ -264,18 +263,18 @@ export class SelectValueObserver implements IObserver {
   }
 
   public subscribe(subscriber: ISubscriber): void {
-    if (!this.hasSubscribers()) {
+    if (this.subs.add(subscriber) && this.subs.count === 1) {
       this.handler.subscribe(this.obj, this);
       this.start();
     }
-    this.addSubscriber(subscriber);
   }
 
   public unsubscribe(subscriber: ISubscriber): void {
-    this.removeSubscriber(subscriber);
-    if (!this.hasSubscribers()) {
+    if (this.subs.remove(subscriber) && this.subs.count === 0) {
       this.handler.dispose();
       this.stop();
     }
   }
 }
+
+subscriberCollection()(SelectValueObserver);

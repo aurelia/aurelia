@@ -324,7 +324,7 @@ export class RenderContext implements IComponentFactory {
     return this.container.getResolver(key, autoRegister);
   }
 
-  public getFactory<T extends Constructable>(key: T): IFactory<T> | null {
+  public getFactory<T extends Constructable>(key: T): IFactory<T> {
     return this.container.getFactory(key);
   }
 

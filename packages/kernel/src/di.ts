@@ -34,7 +34,7 @@ export type Transformer<K> = (instance: Resolved<K>) => Resolved<K>;
 
 export interface IFactory<T extends Constructable = any> {
   readonly Type: T;
-  registerTransformer(transformer: Transformer<T>): boolean;
+  registerTransformer(transformer: Transformer<T>): void;
   construct(container: IContainer, dynamicDependencies?: Key[]): Resolved<T>;
 }
 
@@ -58,7 +58,7 @@ export interface IContainer extends IServiceLocator, IDisposable {
   registerTransformer<K extends Key, T = K>(key: K, transformer: Transformer<T>): boolean;
   getResolver<K extends Key, T = K>(key: K | Key, autoRegister?: boolean): IResolver<T> | null;
   registerFactory<T extends Constructable>(key: T, factory: IFactory<T>): void;
-  getFactory<T extends Constructable>(key: T): IFactory<T> | null;
+  getFactory<T extends Constructable>(key: T): IFactory<T>;
   createChild(config?: IContainerConfiguration): IContainer;
   disposeResolvers(): void;
   find<TType extends ResourceType, TDef extends ResourceDefinition>(kind: IResourceKind<TType, TDef>, name: string): TDef | null;
@@ -179,7 +179,7 @@ export class ContainerConfiguration implements IContainerConfiguration {
 
 export const DI = {
   createContainer(config?: Partial<IContainerConfiguration>): IContainer {
-      return new Container(null, ContainerConfiguration.from(config));
+    return new Container(null, ContainerConfiguration.from(config));
   },
   getDesignParamtypes(Type: Constructable | Injectable): readonly Key[] | undefined {
     return Metadata.getOwn('design:paramtypes', Type);
@@ -627,11 +627,7 @@ export const newInstanceForScope = createResolver((key: any, handler: IContainer
 export const newInstanceOf = createResolver((key: any, handler: IContainer, _requestor: IContainer) => createNewInstance(key, handler));
 
 function createNewInstance(key: any, handler: IContainer) {
-  const factory = handler.getFactory(key);
-  if (factory === null) {
-    throw new Error(`No factory registered for ${key}`);
-  }
-  return factory.construct(handler);
+  return handler.getFactory(key).construct(handler);
 }
 
 /** @internal */
@@ -669,11 +665,7 @@ export class Resolver implements IResolver, IRegistration {
           throw new Error(`Cyclic dependency found: ${this.state.name}`);
         }
         this.resolving = true;
-        const factory = handler.getFactory(this.state as Constructable);
-        if (factory === null) {
-          throw new Error(`Resolver for ${String(this.key)} returned a null factory`);
-        }
-        this.state = factory.construct(requestor);
+        this.state = handler.getFactory(this.state as Constructable).construct(requestor);
         this.strategy = ResolverStrategy.instance;
         this.resolving = false;
         return this.state;
@@ -691,24 +683,19 @@ export class Resolver implements IResolver, IRegistration {
       case ResolverStrategy.array:
         return (this.state as IResolver[])[0].resolve(handler, requestor);
       case ResolverStrategy.alias:
-        return handler.get(this.state);
+        return requestor.get(this.state);
       default:
         throw new Error(`Invalid resolver strategy specified: ${this.strategy}.`);
     }
   }
 
   public getFactory(container: IContainer): IFactory | null {
-    let resolver: IResolver | null;
     switch (this.strategy) {
       case ResolverStrategy.singleton:
       case ResolverStrategy.transient:
         return container.getFactory(this.state as Constructable);
       case ResolverStrategy.alias:
-        resolver = container.getResolver(this.state);
-        if (resolver == null || resolver.getFactory === void 0) {
-          return null;
-        }
-        return resolver.getFactory(container);
+        return container.getResolver(this.state)?.getFactory?.(container) ?? null;
       default:
         return null;
     }
@@ -726,134 +713,41 @@ export interface IInvoker<T extends Constructable = any> {
   ): Resolved<T>;
 }
 
+function containerGetKey(this: IContainer, d: Key) {
+  return this.get(d);
+}
+
+function transformInstance<T>(inst: Resolved<T>, transform: (instance: any) => any) {
+  return transform(inst);
+}
+
 /** @internal */
 export class Factory<T extends Constructable = any> implements IFactory<T> {
   private transformers: ((instance: any) => any)[] | null = null;
   public constructor(
     public Type: T,
-    private readonly invoker: IInvoker,
     private readonly dependencies: Key[],
   ) {}
 
   public construct(container: IContainer, dynamicDependencies?: Key[]): Resolved<T> {
-    const transformers = this.transformers;
-    let instance = dynamicDependencies !== void 0
-      ? this.invoker.invokeWithDynamicDependencies(container, this.Type, this.dependencies, dynamicDependencies)
-      : this.invoker.invoke(container, this.Type, this.dependencies);
+    let instance: Resolved<T>;
+    if (dynamicDependencies === void 0) {
+      instance = new this.Type(...this.dependencies.map(containerGetKey, container)) as Resolved<T>;
+    } else {
+      instance = new this.Type(...this.dependencies.map(containerGetKey, container), ...dynamicDependencies) as Resolved<T>;
+    }
 
-    if (transformers == null) {
+    if (this.transformers == null) {
       return instance;
     }
 
-    for (let i = 0, ii = transformers.length; i < ii; ++i) {
-      instance = transformers[i](instance);
-    }
-
-    return instance;
+    return this.transformers.reduce(transformInstance, instance);
   }
 
-  public registerTransformer(transformer: (instance: any) => any): boolean {
-    if (this.transformers == null) {
-      this.transformers = [];
-    }
-
-    this.transformers.push(transformer);
-    return true;
+  public registerTransformer(transformer: (instance: any) => any): void {
+    (this.transformers ??= []).push(transformer);
   }
 }
-
-const createFactory = (function () {
-  function invokeWithDynamicDependencies<T>(
-    container: IContainer,
-    Type: Constructable<T>,
-    staticDependencies: Key[],
-    dynamicDependencies: Key[]
-  ): T {
-    let i = staticDependencies.length;
-    let args: Key[] = new Array(i);
-    let lookup: Key;
-
-    while (i-- > 0) {
-      lookup = staticDependencies[i];
-
-      if (lookup == null) {
-        throw new Error(`Constructor Parameter with index (${i}) cannot be null or undefined. Are you trying to inject/register something that doesn't exist with DI?`);
-      } else {
-        args[i] = container.get(lookup);
-      }
-    }
-
-    if (dynamicDependencies !== void 0) {
-      args = args.concat(dynamicDependencies);
-    }
-
-    return Reflect.construct(Type, args);
-  }
-
-  const classInvokers: IInvoker[] = [
-    {
-      invoke<T>(container: IContainer, Type: Constructable<T>): T {
-        return new Type();
-      },
-      invokeWithDynamicDependencies
-    },
-    {
-      invoke<T>(container: IContainer, Type: Constructable<T>, deps: Key[]): T {
-        return new Type(container.get(deps[0]));
-      },
-      invokeWithDynamicDependencies
-    },
-    {
-      invoke<T>(container: IContainer, Type: Constructable<T>, deps: Key[]): T {
-        return new Type(container.get(deps[0]), container.get(deps[1]));
-      },
-      invokeWithDynamicDependencies
-    },
-    {
-      invoke<T>(container: IContainer, Type: Constructable<T>, deps: Key[]): T {
-        return new Type(container.get(deps[0]), container.get(deps[1]), container.get(deps[2]));
-      },
-      invokeWithDynamicDependencies
-    },
-    {
-      invoke<T>(container: IContainer, Type: Constructable<T>, deps: Key[]): T {
-        return new Type(
-          container.get(deps[0]),
-          container.get(deps[1]),
-          container.get(deps[2]),
-          container.get(deps[3])
-        );
-      },
-      invokeWithDynamicDependencies
-    },
-    {
-      invoke<T>(container: IContainer, Type: Constructable<T>, deps: Key[]): T {
-        return new Type(
-          container.get(deps[0]),
-          container.get(deps[1]),
-          container.get(deps[2]),
-          container.get(deps[3]),
-          container.get(deps[4])
-        );
-      },
-      invokeWithDynamicDependencies
-    }
-  ];
-
-  const fallbackInvoker: IInvoker = {
-    invoke: invokeWithDynamicDependencies as (container: IContainer, fn: Constructable, dependencies: Key[]) => Constructable,
-    invokeWithDynamicDependencies
-  };
-
-  return function <T extends Constructable> (Type: T): Factory<T> {
-    if (isNativeFunction(Type)) {
-      throw new Error(`${Type.name} is a native function and therefore cannot be safely constructed by DI. If this is intentional, please use a callback or cachedCallback resolver.`);
-    }
-    const dependencies = DI.getDependencies(Type);
-    const invoker = classInvokers.length > dependencies.length ? classInvokers[dependencies.length] : fallbackInvoker;
-    return new Factory<T>(Type, invoker, dependencies);
-  };
-})();
 
 const containerResolver: IResolver = {
   $isResolver: true,
@@ -929,6 +823,8 @@ export class Container implements IContainer {
   private readonly root: Container;
 
   private readonly resolvers: Map<Key, IResolver | IDisposableResolver>;
+  // Factories are "global" per container tree
+  private readonly factories: Map<Constructable, Factory>;
 
   private resourceResolvers: Record<string, IResolver | IDisposableResolver | undefined>;
 
@@ -942,12 +838,14 @@ export class Container implements IContainer {
       this.root = this;
 
       this.resolvers = new Map();
+      this.factories = new Map<Constructable, Factory>();
 
       this.resourceResolvers = Object.create(null);
     } else {
       this.root = parent.root;
 
       this.resolvers = new Map();
+      this.factories = parent.factories;
 
       if (config.inheritParentResources) {
         this.resourceResolvers = Object.assign(
@@ -1096,7 +994,8 @@ export class Container implements IContainer {
       // Problem is that that interface's type arg can be of type Key, but the getFactory method only works on
       // type Constructable. So the return type of that optional method has this additional constraint, which
       // seems to confuse the type checker.
-      return factory.registerTransformer(transformer as unknown as Transformer<Constructable>);
+      factory.registerTransformer(transformer as unknown as Transformer<Constructable>);
+      return true;
     }
 
     return false;
@@ -1203,18 +1102,19 @@ export class Container implements IContainer {
     return emptyArray;
   }
 
-  public getFactory<K extends Constructable>(Type: K): IFactory<K> | null {
-    let factory = Metadata.getOwn(factoryAnnotationKey, Type);
+  public getFactory<K extends Constructable>(Type: K): IFactory<K> {
+    let factory = this.factories.get(Type);
     if (factory === void 0) {
-      Metadata.define(factoryAnnotationKey, factory = createFactory(Type), Type);
-      Protocol.annotation.appendTo(Type, factoryAnnotationKey);
+      if (isNativeFunction(Type)) {
+        throw new Error(`${Type.name} is a native function and therefore cannot be safely constructed by DI. If this is intentional, please use a callback or cachedCallback resolver.`);
+      }
+      this.factories.set(Type, factory = new Factory<K>(Type, DI.getDependencies(Type)));
     }
     return factory;
   }
 
   public registerFactory<K extends Constructable>(key: K, factory: IFactory<K>): void {
-    Protocol.annotation.set(key, factoryKey, factory);
-    Protocol.annotation.appendTo(key, factoryAnnotationKey);
+    this.factories.set(key, factory as Factory);
   }
 
   public createChild(config?: Partial<IContainerConfiguration>): IContainer {

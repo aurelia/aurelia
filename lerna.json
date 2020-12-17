@@ -52,7 +52,10 @@
     "test/router-scope",
     "test/router-siblings",
     "test/router-tutorial",
-    "test/router-wizard"
+    "test/router-wizard",
+    "test/benchmarking-apps/shared",
+    "test/benchmarking-apps/aurelia2",
+    "test/benchmarking-apps/runner"
   ],
   "version": "0.8.0"
 }

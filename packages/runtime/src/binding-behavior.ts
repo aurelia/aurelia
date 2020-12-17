@@ -8,7 +8,7 @@ import {
   DI,
   fromAnnotationOrDefinitionOrTypeOrDefault,
 } from '@aurelia/kernel';
-import { LifecycleFlags } from './observation.js';
+import { Collection, LifecycleFlags } from './observation.js';
 import { registerAliases } from './alias.js';
 
 import type {
@@ -20,10 +20,10 @@ import type {
   IServiceLocator,
   Key,
 } from '@aurelia/kernel';
-import type { BindingObserverRecord, IConnectableBinding } from './binding/connectable.js';
+import type { BindingCollectionObserverRecord, BindingObserverRecord, IConnectableBinding } from './binding/connectable.js';
 import type { BindingBehaviorExpression, IBindingBehaviorExpression } from './binding/ast.js';
 import type { IObserverLocator } from './observation/observer-locator.js';
-import type { IBinding, ISubscribable } from './observation.js';
+import type { IBinding } from './observation.js';
 import type { Scope } from './observation/binding-context.js';
 
 export type PartialBindingBehaviorDefinition = PartialResourceDefinition<{
@@ -174,9 +174,11 @@ export class BindingInterceptor implements IInterceptableBinding {
   public get isBound(): boolean {
     return this.binding.isBound;
   }
-  /** @internal */
-  public get record(): BindingObserverRecord {
-    return this.binding.record!;
+  public get obs(): BindingObserverRecord {
+    return this.binding.obs;
+  }
+  public get cObs(): BindingCollectionObserverRecord {
+    return this.binding.cObs;
   }
 
   public constructor(
@@ -203,23 +205,11 @@ export class BindingInterceptor implements IInterceptableBinding {
   public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
     this.binding.handleChange!(newValue, previousValue, flags);
   }
-  /**
-   * @internal
-   */
   public observeProperty(obj: object, key: string): void {
     this.binding.observeProperty!(obj, key as string);
   }
-  /**
-   * @internal
-   */
-  public addObserver(observer: ISubscribable): void {
-    this.binding.addObserver!(observer);
-  }
-  /**
-   * @internal
-   */
-  public unobserve(all?: boolean): void {
-    this.binding.unobserve!(all);
+  public observeCollection(observer: Collection): void {
+    this.binding.observeCollection(observer);
   }
 
   public $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void {

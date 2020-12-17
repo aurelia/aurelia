@@ -21,7 +21,6 @@ import {
   ArrayLiteralExpression,
   AssignExpression,
   BinaryExpression,
-  PropertyBinding,
   BindingBehaviorExpression,
   CallFunctionExpression,
   CallMemberExpression,
@@ -45,6 +44,9 @@ import {
   UnaryExpression,
   ValueConverterExpression,
 } from '@aurelia/runtime';
+import {
+  PropertyBinding,
+} from '@aurelia/runtime-html';
 
 const $false = PrimitiveLiteralExpression.$false;
 const $true = PrimitiveLiteralExpression.$true;
@@ -2324,13 +2326,13 @@ describe('BindingBehaviorExpression', function () {
 
   const connectVariations: (($1: $1, $2: $2, $3: $3) => /* connect */() => void)[] = [
     ([t1, flags], [t2, $kind], [t3, scope, hs, sut, mock, locator, binding, value, argValues]) => () => {
-      assert.strictEqual(binding.record.count, 0, `binding.record.count`);
+      assert.strictEqual(binding.obs.count, 0, `binding.obs.count`);
 
       // act
       sut.evaluate(flags, scope, hs, locator, binding);
 
       // assert
-      assert.strictEqual(binding.record.count, 1, `binding.record.count`);
+      assert.strictEqual(binding.obs.count, 1, `binding.obs.count`);
 
       assert.strictEqual(mock.calls.length, 1, `mock.calls.length`);
 
@@ -2666,13 +2668,13 @@ describe('ValueConverterExpression', function () {
 
   const evaluateWithConnectVariations: (($1: $1, $2: $2, $3: $3) => /* connect */() => void)[] = [
     ([t1, flags], [t2, signals, signaler], [t3, scope, hs, sut, mock, locator, binding, value, argValues, methods]) => () => {
-      assert.strictEqual(binding.record.count, 0, `binding.observerSlots`);
+      assert.strictEqual(binding.obs.count, 0, `binding.obs.count`);
 
       // act
       sut.evaluate(flags, scope, hs, locator, binding);
 
       // assert
-      assert.strictEqual(binding.record.count, 1 + argValues.length, `binding.observerSlots`);
+      assert.strictEqual(binding.obs.count, 1 + argValues.length, `binding.obs.count`);
 
       const hasToView = methods.includes('toView');
       assert.strictEqual(mock.calls.length, hasToView ? 2 : 0, `mock.calls.length`);

@@ -1,13 +1,11 @@
 import {
-  watch,
-  IDepCollectionFn,
+  bindable,
   ComputedWatcher,
-} from '@aurelia/runtime';
-import {
+  customAttribute,
   customElement,
   ICustomElementViewModel,
-  customAttribute,
-  bindable,
+  IDepCollectionFn,
+  watch,
 } from '@aurelia/runtime-html';
 import { assert, createFixture, TestContext } from '@aurelia/testing';
 

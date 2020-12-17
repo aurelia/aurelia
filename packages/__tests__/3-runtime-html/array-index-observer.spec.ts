@@ -229,9 +229,9 @@ describe('3-runtime-html/array-index-observer.spec.ts', function () {
     indexZeroObserver.subscribe(indexZeroSubscriber);
     assert.strictEqual(indexZeroObserver instanceof ArrayIndexObserver, true, 'index zero observer is ArrayIndexObserver');
     arr[0] = 5;
-    assert.strictEqual(indexZeroObserver.currentValue, 1);
+    assert.strictEqual(indexZeroObserver.value, 1);
     arr.splice(0, 1, 4);
-    assert.strictEqual(indexZeroObserver.currentValue, 4);
+    assert.strictEqual(indexZeroObserver.value, 4);
     assert.strictEqual(callcount, 1);
 
     indexZeroObserver.setValue(0, LifecycleFlags.none);

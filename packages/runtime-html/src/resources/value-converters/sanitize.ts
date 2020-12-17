@@ -21,7 +21,6 @@ export const ISanitizer = DI.createInterface<ISanitizer>('ISanitizer', x => x.si
 /**
  * Simple html sanitization converter to preserve whitelisted elements and attributes on a bound property containing html.
  */
-@valueConverter('sanitize')
 export class SanitizeValueConverter {
   public constructor(
     @ISanitizer private readonly sanitizer: ISanitizer,
@@ -40,3 +39,5 @@ export class SanitizeValueConverter {
     return this.sanitizer.sanitize(untrustedMarkup);
   }
 }
+
+valueConverter('sanitize')(SanitizeValueConverter);

@@ -69,7 +69,8 @@ export {
 
   HttpClientConfiguration,
 
-  HttpClient
+  HttpClient,
+  IHttpClient,
 } from '@aurelia/fetch-client';
 
 export {
@@ -419,6 +420,8 @@ export {
   ComputedObserver,
   ComputedWatcher,
   ExpressionWatcher,
+  Watch,
+  watch,
 
   // IObjectObservationAdapter,
   IObserverLocator,
@@ -633,7 +636,9 @@ export {
   // ViewModelKind,
   // IBinding,
   ILifecycle,
-  IViewModel,
+  // IViewModel,
+  ICustomAttributeViewModel,
+  ICustomElementViewModel,
   // IController,
   // IContainer,
   // IViewCache,
@@ -646,8 +651,6 @@ export {
   // DelegationStrategy,
   // IAccessor,
   // IBindingContext,
-  // IBindingTargetAccessor,
-  // IBindingTargetObserver,
   // ICollectionChangeTracker,
   // ICollectionObserver,
   // ICollectionSubscriber,
@@ -657,13 +660,10 @@ export {
   // IObservedMap,
   // IObservedSet,
   // IOverrideContext,
-  // IPropertyChangeTracker,
-  // IPropertyObserver,
   // Scope,
   // ISubscribable,
   // ISubscriberCollection,
   // ObservedCollection,
-  // PropertyObserver,
   // CollectionObserver,
   // ICollectionSubscriberCollection,
   // ICollectionSubscribable,

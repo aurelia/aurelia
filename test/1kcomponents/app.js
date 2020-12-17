@@ -250,7 +250,7 @@ const App = CustomElement.define(
   }
 );
 
-new Aurelia().register(StandardConfiguration, SVGAnalyzerRegistration).app(
+void new Aurelia().register(StandardConfiguration, SVGAnalyzerRegistration).app(
   {
     host: document.getElementById('app'),
     component: App,

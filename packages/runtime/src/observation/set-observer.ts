@@ -1,8 +1,8 @@
 import { CollectionKind, createIndexMap, AccessorType, LifecycleFlags } from '../observation.js';
-import { CollectionSizeObserver } from './collection-size-observer.js';
+import { CollectionSizeObserver } from './collection-length-observer.js';
 import { collectionSubscriberCollection } from './subscriber-collection.js';
 
-import type { ICollectionObserver, ICollectionIndexObserver, ILifecycle } from '../observation.js';
+import type { ICollectionObserver, ILifecycle } from '../observation.js';
 
 const observerLookup = new WeakMap<Set<unknown>, SetObserver>();
 
@@ -121,7 +121,6 @@ export function disableSetObservation(): void {
 
 export interface SetObserver extends ICollectionObserver<CollectionKind.set> {}
 
-@collectionSubscriberCollection()
 export class SetObserver {
   public inBatch: boolean;
   public type: AccessorType = AccessorType.Set;
@@ -154,11 +153,7 @@ export class SetObserver {
   }
 
   public getLengthObserver(): CollectionSizeObserver {
-    return this.lengthObserver ??= new CollectionSizeObserver(this.collection);
-  }
-
-  public getIndexObserver(index: number): ICollectionIndexObserver {
-    throw new Error('Set index observation not supported');
+    return this.lengthObserver ??= new CollectionSizeObserver(this);
   }
 
   public flushBatch(flags: LifecycleFlags): void {
@@ -167,10 +162,11 @@ export class SetObserver {
 
     this.inBatch = false;
     this.indexMap = createIndexMap(size);
-    this.callCollectionSubscribers(indexMap, LifecycleFlags.updateTarget);
-    this.lengthObserver?.notify();
+    this.subs.notifyCollection(indexMap, LifecycleFlags.updateTarget);
   }
 }
+
+collectionSubscriberCollection()(SetObserver);
 
 export function getSetObserver(observedSet: Set<unknown>, lifecycle: ILifecycle | null): SetObserver {
   let observer = observerLookup.get(observedSet);

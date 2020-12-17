@@ -2,10 +2,10 @@ import { noop } from '@aurelia/kernel';
 import { subscriberCollection, AccessorType, LifecycleFlags } from '@aurelia/runtime';
 
 import type { IIndexable } from '@aurelia/kernel';
-import type { InterceptorFunc, IPropertyObserver, ISubscriber, ILifecycle } from '@aurelia/runtime';
+import type { InterceptorFunc, IObserver, ISubscriber, ILifecycle, ISubscriberCollection, IBatchable } from '@aurelia/runtime';
 import type { IController } from '../templating/controller';
 
-export interface BindableObserver extends IPropertyObserver<IIndexable, string> {}
+export interface BindableObserver extends IObserver, ISubscriberCollection, IBatchable {}
 
 interface IMayHavePropertyChangedCallback {
   propertyChanged?(name: string, newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void;
@@ -13,7 +13,6 @@ interface IMayHavePropertyChangedCallback {
 
 type HasPropertyChangedCallback = Required<IMayHavePropertyChangedCallback>;
 
-@subscriberCollection()
 export class BindableObserver {
   public currentValue: unknown = void 0;
   public oldValue: unknown = void 0;
@@ -80,7 +79,7 @@ export class BindableObserver {
       }
       this.currentValue = newValue;
       if (this.lifecycle.batch.depth === 0) {
-        this.callSubscribers(newValue, currentValue, flags);
+        this.subs.notify(newValue, currentValue, flags);
         if ((flags & LifecycleFlags.fromBind) === 0 || (flags & LifecycleFlags.updateSource) > 0) {
           this.callback?.call(this.obj, newValue, currentValue, flags);
 
@@ -110,7 +109,7 @@ export class BindableObserver {
       this.createGetterSetter();
     }
 
-    this.addSubscriber(subscriber);
+    this.subs.add(subscriber);
   }
 
   private createGetterSetter(): void {
@@ -120,11 +119,13 @@ export class BindableObserver {
       {
         enumerable: true,
         configurable: true,
-        get: () => this.currentValue,
-        set: (value: unknown) => {
+        get: (/* Bindable Observer */) => this.currentValue,
+        set: (/* Bindable Observer */value: unknown) => {
           this.setValue(value, LifecycleFlags.none);
         }
       }
     );
   }
 }
+
+subscriberCollection()(BindableObserver);

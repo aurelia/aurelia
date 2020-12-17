@@ -50,7 +50,7 @@ Aurelia.register(AppTask.with(IContainer).beforeCreate().call(container => {
       value: valuePropertyConfig
     },
     'FAST-TABS': {
-      value: valuePropertyConfig
+      activeid: valuePropertyConfig
     },
     'FAST-TEXT-FIELD': {
       value: valuePropertyConfig

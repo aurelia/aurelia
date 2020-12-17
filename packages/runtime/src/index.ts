@@ -12,25 +12,6 @@ export {
   ITask,
 } from '@aurelia/platform';
 
-import { IRegistry } from '@aurelia/kernel';
-import {
-  FromViewBindingBehavior,
-  OneTimeBindingBehavior,
-  ToViewBindingBehavior,
-  TwoWayBindingBehavior,
-} from './binding-behaviors/binding-mode.js';
-import { DebounceBindingBehavior } from './binding-behaviors/debounce.js';
-import { SignalBindingBehavior } from './binding-behaviors/signals.js';
-import { ThrottleBindingBehavior } from './binding-behaviors/throttle.js';
-
-export const DebounceBindingBehaviorRegistration = DebounceBindingBehavior as unknown as IRegistry;
-export const OneTimeBindingBehaviorRegistration = OneTimeBindingBehavior as unknown as IRegistry;
-export const ToViewBindingBehaviorRegistration = ToViewBindingBehavior as unknown as IRegistry;
-export const FromViewBindingBehaviorRegistration = FromViewBindingBehavior as unknown as IRegistry;
-export const SignalBindingBehaviorRegistration = SignalBindingBehavior as unknown as IRegistry;
-export const ThrottleBindingBehaviorRegistration = ThrottleBindingBehavior as unknown as IRegistry;
-export const TwoWayBindingBehaviorRegistration = TwoWayBindingBehavior as unknown as IRegistry;
-
 export {
   alias,
   registerAliases,
@@ -39,6 +20,7 @@ export {
   ExpressionKind,
   CallFunctionExpression,
   CustomExpression,
+  IBindingBehaviorExpression,
   BindingBehaviorExpression,
   ValueConverterExpression,
   AssignExpression,
@@ -82,18 +64,13 @@ export {
   IExpressionHydrator,
 } from './binding/ast.js';
 export {
-  PropertyBinding
-} from './binding/property-binding.js';
-export {
-  CallBinding
-} from './binding/call-binding.js';
-export {
   IPartialConnectableBinding,
   IConnectableBinding,
   connectable,
   BindingMediator,
   MediatedBinding,
   BindingObserverRecord,
+  BindingCollectionObserverRecord,
 } from './binding/connectable.js';
 export {
   IExpressionParser,
@@ -105,16 +82,6 @@ export {
   parse,
   ParserState,
 } from './binding/expression-parser.js';
-export {
-  ContentBinding,
-  InterpolationBinding,
-} from './binding/interpolation-binding.js';
-export {
-  LetBinding,
-} from './binding/let-binding.js';
-export {
-  RefBinding,
-} from './binding/ref-binding.js';
 
 export {
   ArrayObserver,
@@ -141,14 +108,10 @@ export {
 } from './observation/binding-context.js';
 export {
   CollectionLengthObserver,
+  CollectionSizeObserver,
 } from './observation/collection-length-observer.js';
 export {
-  CollectionSizeObserver,
-} from './observation/collection-size-observer.js';
-export {
   ComputedObserver,
-  ComputedWatcher,
-  ExpressionWatcher,
 } from './observation/computed-observer.js';
 export {
   IDirtyChecker,
@@ -165,6 +128,8 @@ export {
   INodeObserverLocator,
   getCollectionObserver,
   ObserverLocator,
+  ObservableGetter,
+  ObservableSetter,
 } from './observation/observer-locator.js';
 export {
   PrimitiveObserver,
@@ -184,11 +149,11 @@ export {
 export {
   subscriberCollection,
   collectionSubscriberCollection,
+  SubscriberRecord,
 } from './observation/subscriber-collection.js';
 export {
-  IWatcher,
-  WatcherSwitcher,
-} from './observation/watcher-switcher.js';
+  ConnectableSwitcher,
+} from './observation/connectable-switcher.js';
 
 export {
   bindingBehavior,
@@ -204,22 +169,6 @@ export {
   BindingBehaviorStrategy,
   IInterceptableBinding,
 } from './binding-behavior.js';
-export {
-  BindingModeBehavior,
-  OneTimeBindingBehavior,
-  ToViewBindingBehavior,
-  FromViewBindingBehavior,
-  TwoWayBindingBehavior,
-} from './binding-behaviors/binding-mode.js';
-export {
-  DebounceBindingBehavior,
-} from './binding-behaviors/debounce.js';
-export {
-  SignalBindingBehavior,
-} from './binding-behaviors/signals.js';
-export {
-  ThrottleBindingBehavior,
-} from './binding-behaviors/throttle.js';
 
 export {
   ValueConverter,
@@ -233,14 +182,6 @@ export {
 } from './value-converter.js';
 
 export {
-  watch,
-  Watch,
-  IWatchDefinition,
-  IWatcherCallback,
-  IDepCollectionFn,
-} from './observation/watch.js';
-
-export {
   BindingMode,
   LifecycleFlags,
   AccessorOrObserver,
@@ -252,11 +193,10 @@ export {
   DelegationStrategy,
   IAccessor,
   IBindingContext,
-  IBindingTargetAccessor,
-  IBindingTargetObserver,
   ICollectionChangeTracker,
   ICollectionObserver,
-  ICollectionIndexObserver,
+  IConnectable,
+  IArrayIndexObserver,
   ICollectionSubscriber,
   IndexMap,
   IBatchable,
@@ -264,15 +204,13 @@ export {
   IObservable,
   IOverrideContext,
   InterceptorFunc,
-  IPropertyChangeTracker,
-  IPropertyObserver,
   ISubscribable,
   ISubscriberCollection,
-  PropertyObserver,
   CollectionObserver,
   ICollectionSubscriberCollection,
   ICollectionSubscribable,
   ISubscriber,
+  ISubscriberRecord,
   isIndexMap,
   copyIndexMap,
   cloneIndexMap,

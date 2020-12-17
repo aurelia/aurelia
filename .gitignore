@@ -19,3 +19,4 @@ test/cypress/integration/examples
 screenshots
 
 *.code-workspace
+test/benchmarking-apps/runner/cosmos.config.json

@@ -16,22 +16,13 @@ import {
 } from '@aurelia/kernel';
 import {
   AccessScopeExpression,
-  IBinding,
+  BindingType,
   Scope,
   LifecycleFlags,
   ILifecycle,
-  IBindingTargetAccessor,
-  PropertyBinding,
-  BindingType,
   IObserverLocator,
-  IWatchDefinition,
-  ComputedWatcher,
-  ExpressionWatcher,
-  IWatcherCallback,
-  IObservable,
   IExpressionParser,
 } from '@aurelia/runtime';
-import { BindableDefinition } from '../bindable';
 import { BindableObserver } from '../observation/bindable-observer';
 import { convertToRenderLocation, INode, INodeSequence, IRenderLocation } from '../dom.js';
 import { CustomElementDefinition, CustomElement, PartialCustomElementDefinition } from '../resources/custom-element.js';
@@ -41,9 +32,18 @@ import { ChildrenObserver } from './children.js';
 import { IAppRoot } from '../app-root.js';
 import { IPlatform } from '../platform.js';
 import { IShadowDOMGlobalStyles, IShadowDOMStyles } from './styles.js';
+import { ComputedWatcher, ExpressionWatcher } from './watchers.js';
+import type {
+  IBinding,
+  IObservable,
+  AccessorOrObserver,
+} from '@aurelia/runtime';
+import type { BindableDefinition } from '../bindable.js';
+import type { PropertyBinding } from '../binding/property-binding.js';
 import type { RegisteredProjections } from '../resources/custom-elements/au-slot.js';
 import type { IViewFactory } from './view.js';
 import type { Instruction } from '../renderer.js';
+import type { IWatchDefinition, IWatcherCallback } from '../watch.js';
 
 function callDispose(disposable: IDisposable): void {
   disposable.dispose();
@@ -993,7 +993,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
   }
 
-  public getTargetAccessor(propertyName: string): IBindingTargetAccessor | undefined {
+  public getTargetAccessor(propertyName: string): AccessorOrObserver | undefined {
     const { bindings } = this;
     if (bindings !== null) {
       const binding = bindings.find(b => (b as PropertyBinding).targetProperty === propertyName) as PropertyBinding;
@@ -1295,7 +1295,7 @@ export interface IHydratableController<C extends IViewModel = IViewModel> extend
   readonly bindings: readonly IBinding[] | null;
   readonly children: readonly IHydratedController[] | null;
 
-  getTargetAccessor(propertyName: string): IBindingTargetAccessor | null;
+  getTargetAccessor(propertyName: string): AccessorOrObserver | null;
 
   addBinding(binding: IBinding): void;
   addController(controller: IController): void;

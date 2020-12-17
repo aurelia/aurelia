@@ -1,4 +1,4 @@
-import { watch } from '@aurelia/runtime';
+import { watch } from '@aurelia/runtime-html';
 import { assert, createFixture, TestContext } from '@aurelia/testing';
 
 describe('3-runtime-html/decorator-watch.expression.spec.ts', function () {

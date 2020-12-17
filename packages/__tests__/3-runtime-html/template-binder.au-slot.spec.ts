@@ -218,7 +218,7 @@ describe('template-binder.au-slot', function () {
         assert.instanceOf(ce, CustomElementSymbol);
         assert.includes(ce.res, 'my-element1');
 
-        const mel2 = new CustomElementSymbol(platform, factory.createTemplate('<my-element2 class="au"></my-element2>').content.firstChild as HTMLElement, ElementInfo.from(container.find(CustomElement, 'my-element2')));
+        const mel2 = new CustomElementSymbol(platform, factory.createTemplate('<my-element2 class="au"></my-element2>').content.firstChild as HTMLElement, ElementInfo.from(container.find(CustomElement, 'my-element2'), void 0));
         mel2.projections.push(new ProjectionSymbol("s1", new PlainElementSymbol(factory.createTemplate('<div></div>').content.firstChild as HTMLElement)));
         const mel1 = new PlainElementSymbol(factory.createTemplate('<div><my-element2><div></div></my-element2></div>').content.firstChild as HTMLElement);
         mel1.childNodes.push(mel2);

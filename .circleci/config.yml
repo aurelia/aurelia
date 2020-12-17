@@ -470,6 +470,19 @@ jobs:
             npm run build
             npm run e2e:<< parameters.suite >>
 
+  # benchmark using playwright setup
+  benchmark_playwright:
+    executor: docker-circleci
+    steps:
+      - checkout_install_bootstrap
+      - run: npm run build
+      - run:
+          name: "Prepare cosmos db configuration and run test"
+          command: |
+            cd test/benchmarking-apps/runner
+            echo "{\"endpoint\": \"https://aurelia.documents.azure.com:443/\",\"key\": \"$AZURE_COSMOS_DB_KEY\"}" > cosmos.config.json
+            node dist/run-benchmarks --i 10 --storage cosmos
+
 # # # # # # # # # # # # # # # #
 # - Workflows -
 # # # # # # # # # # # # # # # #
@@ -507,6 +520,8 @@ workflows:
       - e2e_browserstack:
           <<: *filter_ignore_develop_release
       - js_framework_benchmark:
+          <<: *filter_ignore_develop_release
+      - benchmark_playwright:
           <<: *filter_ignore_develop_release
       - e2e_cypress:
          <<: *filter_ignore_develop_release

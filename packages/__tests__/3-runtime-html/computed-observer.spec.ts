@@ -14,7 +14,7 @@ import {
   TestContext,
 } from '@aurelia/testing';
 
-describe('simple Computed Observer test case', function () {
+describe('3-runtime-html/computed-observer.spec.ts', function () {
   interface IComputedObserverTestCase<T extends IApp = IApp> {
     title: string;
     template: string;

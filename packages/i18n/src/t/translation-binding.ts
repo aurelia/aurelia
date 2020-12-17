@@ -16,11 +16,11 @@ import type {
   Scope,
   IsBindingBehavior,
   IsExpression,
-  IBindingTargetAccessor,
   IConnectableBinding,
   IExpressionParser,
   IObserverLocator,
   IPartialConnectableBinding,
+  IAccessor,
 } from '@aurelia/runtime';
 import type { CallBindingInstruction, IHydratableController, INode } from '@aurelia/runtime-html';
 
@@ -60,7 +60,7 @@ export class TranslationBinding implements IPartialConnectableBinding {
   private scope!: Scope;
   private hostScope: Scope | null = null;
   private isInterpolation!: boolean;
-  private readonly targetObservers: Set<IBindingTargetAccessor>;
+  private readonly targetObservers: Set<IAccessor>;
 
   public target: HTMLElement;
   private readonly platform: IPlatform;
@@ -74,7 +74,7 @@ export class TranslationBinding implements IPartialConnectableBinding {
     this.target = target as HTMLElement;
     this.i18n = this.locator.get(I18N);
     this.platform = this.locator.get(IPlatform);
-    this.targetObservers = new Set<IBindingTargetAccessor>();
+    this.targetObservers = new Set<IAccessor>();
     this.i18n.subscribeLocaleChange(this);
     connectable.assignIdTo(this);
   }
@@ -137,18 +137,18 @@ export class TranslationBinding implements IPartialConnectableBinding {
     }
 
     this.parameter?.$unbind(flags);
-    this.unobserveTargets(flags);
+    this.targetObservers.clear();
 
     this.scope = (void 0)!;
-    this.unobserve(true);
+    this.obs.clear(true);
   }
 
   public handleChange(newValue: string | i18next.TOptions, _previousValue: string | i18next.TOptions, flags: LifecycleFlags): void {
-    this.record.version++;
+    this.obs.version++;
     this.keyExpression = this.isInterpolation
         ? this.expr.evaluate(flags, this.scope, this.hostScope, this.locator, this) as string
         : newValue as string;
-    this.record.clear(false);
+    this.obs.clear(false);
     this.ensureKeyExpression();
     this.updateTranslations(flags);
   }
@@ -167,7 +167,7 @@ export class TranslationBinding implements IPartialConnectableBinding {
   private updateTranslations(flags: LifecycleFlags) {
     const results = this.i18n.evaluate(this.keyExpression!, this.parameter?.value);
     const content: ContentValue = Object.create(null);
-    this.unobserveTargets(flags);
+    this.targetObservers.clear();
 
     for (const item of results) {
       const value = item.value;
@@ -266,15 +266,6 @@ export class TranslationBinding implements IPartialConnectableBinding {
     return false;
   }
 
-  private unobserveTargets(flags: LifecycleFlags) {
-    for (const observer of this.targetObservers) {
-      if (observer.unbind) {
-        observer.unbind(flags);
-      }
-    }
-    this.targetObservers.clear();
-  }
-
   private ensureKeyExpression() {
     const expr = this.keyExpression ??= '';
     const exprType = typeof expr;
@@ -313,9 +304,9 @@ class ParameterBinding {
     if ((flags & LifecycleFlags.updateTarget) === 0) {
       throw new Error('Unexpected context in a ParameterBinding.');
     }
-    this.record.version++;
+    this.obs.version++;
     this.value = this.expr.evaluate(flags, this.scope, this.hostScope, this.locator, this) as i18next.TOptions;
-    this.record.clear(false);
+    this.obs.clear(false);
     this.updater(flags);
   }
 
@@ -344,6 +335,6 @@ class ParameterBinding {
     }
 
     this.scope = (void 0)!;
-    this.unobserve(true);
+    this.obs.clear(true);
   }
 }

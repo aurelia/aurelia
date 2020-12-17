@@ -20,6 +20,10 @@ function o(keys: string[]): Record<string, true | undefined> {
 }
 
 export class SVGAnalyzer {
+  /**
+   * @internal
+   */
+  public static inject = [IPlatform];
   public static register(container: IContainer): IResolver<ISVGAnalyzer> {
     return Registration.singleton(ISVGAnalyzer, this).register(container);
   }
@@ -228,7 +232,7 @@ export class SVGAnalyzer {
   ]);
 
   private readonly SVGElement: typeof SVGElement;
-  public constructor(@IPlatform platform: IPlatform) {
+  public constructor(platform: IPlatform) {
     this.SVGElement = platform.globalThis.SVGElement;
 
     const div = platform.document.createElement('div');

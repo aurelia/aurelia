@@ -9,7 +9,7 @@ const COUNT = 200;
 const LOOPS = 6;
 
 try {
-  new Aurelia()
+  void new Aurelia()
     .register(
       StandardConfiguration,
       SVGAnalyzerRegistration,

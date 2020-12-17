@@ -1,12 +1,13 @@
-import { Writable } from '@aurelia/kernel';
-import { BindingMode, IObserverLocator, LifecycleFlags, PropertyBinding, bindingBehavior } from '@aurelia/runtime';
-import { CheckedObserver } from '../../observation/checked-observer.js';
+import { BindingMode, IObserverLocator, LifecycleFlags, bindingBehavior } from '@aurelia/runtime';
 import { EventSubscriber } from '../../observation/event-delegator.js';
-import { SelectValueObserver } from '../../observation/select-value-observer.js';
-import { ValueAttributeObserver } from '../../observation/value-attribute-observer.js';
-
-import type { Scope } from '@aurelia/runtime';
 import { NodeObserverConfig } from '../../observation/observer-locator.js';
+
+import type { Writable } from '@aurelia/kernel';
+import type { Scope } from '@aurelia/runtime';
+import type { CheckedObserver } from '../../observation/checked-observer.js';
+import type { SelectValueObserver } from '../../observation/select-value-observer.js';
+import type { ValueAttributeObserver } from '../../observation/value-attribute-observer.js';
+import type { PropertyBinding } from '../../binding/property-binding.js';
 
 export type UpdateTriggerableObserver = (
   (ValueAttributeObserver & Required<ValueAttributeObserver>) |

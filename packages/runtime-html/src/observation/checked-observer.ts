@@ -32,21 +32,18 @@ function defaultMatcher(a: unknown, b: unknown): boolean {
 }
 
 export interface CheckedObserver extends
-  ISubscriberCollection {}
+  ISubscriberCollection { }
 
-@subscriberCollection()
 export class CheckedObserver implements IObserver {
-  public currentValue: unknown = void 0;
+  public value: unknown = void 0;
   public oldValue: unknown = void 0;
 
   public readonly obj: IInputElement;
 
-  public hasChanges: boolean = false;
   public type: AccessorType = AccessorType.Node | AccessorType.Observer | AccessorType.Layout;
 
   public collectionObserver?: ICollectionObserver<CollectionKind> = void 0;
   public valueObserver?: ValueAttributeObserver | SetterObserver = void 0;
-  public subscriberCount: number = 0;
 
   public constructor(
     obj: INode,
@@ -59,45 +56,19 @@ export class CheckedObserver implements IObserver {
   }
 
   public getValue(): unknown {
-    return this.currentValue;
+    return this.value;
   }
 
   public setValue(newValue: unknown, flags: LifecycleFlags): void {
-    this.currentValue = newValue;
-    this.hasChanges = newValue !== this.oldValue;
-    if ((flags & LifecycleFlags.noFlush) === 0) {
-      this.flushChanges(flags);
+    const currentValue = this.value;
+    if (newValue === currentValue) {
+      return;
     }
-  }
-
-  public flushChanges(flags: LifecycleFlags): void {
-    if (this.hasChanges) {
-      this.hasChanges = false;
-
-      const obj = this.obj;
-      const currentValue = this.oldValue = this.currentValue;
-
-      if (this.valueObserver === void 0) {
-        if (obj.$observers !== void 0) {
-          if (obj.$observers.model !== void 0) {
-            this.valueObserver = obj.$observers.model;
-          } else if (obj.$observers.value !== void 0) {
-            this.valueObserver = obj.$observers.value;
-          }
-        }
-        this.valueObserver?.subscribe(this);
-      }
-
-      this.collectionObserver?.unsubscribeFromCollection(this);
-      this.collectionObserver = void 0;
-
-      if (obj.type === 'checkbox') {
-        (this.collectionObserver = getCollectionObserver(currentValue, this.observerLocator))
-          ?.subscribeToCollection(this);
-      }
-
-      this.synchronizeElement();
-    }
+    this.value = newValue;
+    this.oldValue = currentValue;
+    this.observe();
+    this.synchronizeElement();
+    this.subs.notify(newValue, currentValue, flags);
   }
 
   public handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void {
@@ -106,12 +77,10 @@ export class CheckedObserver implements IObserver {
 
   public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
     this.synchronizeElement();
-    this.callSubscribers(newValue, previousValue, flags);
-    this.flushChanges(flags);
   }
 
   public synchronizeElement(): void {
-    const currentValue = this.currentValue;
+    const currentValue = this.value;
     const obj = this.obj;
     const elementValue = Object.prototype.hasOwnProperty.call(obj, 'model') as boolean ? obj.model : obj.value;
     const isRadio = obj.type === 'radio';
@@ -149,7 +118,7 @@ export class CheckedObserver implements IObserver {
   }
 
   public handleEvent(): void {
-    let currentValue = this.oldValue = this.currentValue;
+    let currentValue = this.oldValue = this.value;
     const obj = this.obj;
     const elementValue = Object.prototype.hasOwnProperty.call(obj, 'model') as boolean ? obj.model : obj.value;
     const isChecked = obj.checked;
@@ -251,49 +220,49 @@ export class CheckedObserver implements IObserver {
       // a radio cannot be unchecked by user
       return;
     }
-    this.currentValue = currentValue;
-    this.callSubscribers(this.currentValue, this.oldValue, LifecycleFlags.none);
-  }
-
-  // deepscan-disable-next-line
-  public bind(_flags: LifecycleFlags): void {
-    // this is incorrect, needs to find a different way to initialize observer value,
-    // relative to binding value
-    // for now keeping this to do everything at once later
-    this.currentValue = this.obj.checked;
-  }
-
-  // deepscan-disable-next-line
-  public unbind(_flags: LifecycleFlags): void {
-    this.currentValue = void 0;
+    this.value = currentValue;
+    this.subs.notify(this.value, this.oldValue, LifecycleFlags.none);
   }
 
   public start() {
     this.handler.subscribe(this.obj, this);
+    this.observe();
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public stop(): void {
     this.handler.dispose();
-    if (this.collectionObserver !== void 0) {
-      this.collectionObserver.unsubscribeFromCollection(this);
-      this.collectionObserver = void 0;
-    }
+    this.collectionObserver?.unsubscribeFromCollection(this);
+    this.collectionObserver = void 0;
 
-    if (this.valueObserver !== void 0) {
-      this.valueObserver.unsubscribe(this);
-    }
+    this.valueObserver?.unsubscribe(this);
   }
 
   public subscribe(subscriber: ISubscriber): void {
-    if (this.addSubscriber(subscriber) && ++this.subscriberCount === 1) {
+    if (this.subs.add(subscriber) && this.subs.count === 1) {
       this.start();
     }
   }
 
   public unsubscribe(subscriber: ISubscriber): void {
-    if (this.removeSubscriber(subscriber) && --this.subscriberCount === 0) {
+    if (this.subs.remove(subscriber) && this.subs.count === 0) {
       this.stop();
     }
   }
+
+  private observe() {
+    const obj = this.obj;
+
+    (this.valueObserver ??= obj.$observers?.model ?? obj.$observers?.value)?.subscribe(this);
+
+    this.collectionObserver?.unsubscribeFromCollection(this);
+    this.collectionObserver = void 0;
+
+    if (obj.type === 'checkbox') {
+      (this.collectionObserver = getCollectionObserver(this.value, this.observerLocator))
+        ?.subscribeToCollection(this);
+    }
+  }
 }
+
+subscriberCollection()(CheckedObserver);

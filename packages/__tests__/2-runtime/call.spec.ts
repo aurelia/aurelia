@@ -1,8 +1,6 @@
-import { DI } from '@aurelia/kernel';
 import {
   AccessScopeExpression,
   BindingBehaviorExpression,
-  CallBinding,
   CallScopeExpression,
   ExpressionKind,
   IsBindingBehavior,
@@ -11,6 +9,9 @@ import {
   LifecycleFlags as LF,
   SetterObserver
 } from '@aurelia/runtime';
+import {
+  CallBinding,
+} from '@aurelia/runtime-html';
 import {
   createObserverLocator,
   createScopeForTest,

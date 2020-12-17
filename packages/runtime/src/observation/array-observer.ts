@@ -2,6 +2,7 @@ import {
   createIndexMap,
   LifecycleFlags,
   AccessorType,
+  ISubscriberCollection,
 } from '../observation.js';
 import {
   CollectionLengthObserver,
@@ -14,11 +15,12 @@ import {
 import type {
   CollectionKind,
   ICollectionObserver,
-  ICollectionIndexObserver,
+  IArrayIndexObserver,
   ILifecycle,
   IndexMap,
   ISubscriber,
 } from '../observation.js';
+import { def, defineHiddenProp } from '../utilities-objects.js';
 
 const observerLookup = new WeakMap<unknown[], ArrayObserver>();
 
@@ -327,14 +329,6 @@ const observe = {
   }
 };
 
-const descriptorProps = {
-  writable: true,
-  enumerable: false,
-  configurable: true
-};
-
-const def = Reflect.defineProperty;
-
 for (const method of methods) {
   def(observe[method], 'observing', { value: true, writable: false, configurable: false, enumerable: false });
 }
@@ -344,7 +338,7 @@ let enableArrayObservationCalled = false;
 export function enableArrayObservation(): void {
   for (const method of methods) {
     if (proto[method].observing !== true) {
-      def(proto, method, { ...descriptorProps, value: observe[method] });
+      defineHiddenProp(proto, method, observe[method]);
     }
   }
 }
@@ -352,14 +346,13 @@ export function enableArrayObservation(): void {
 export function disableArrayObservation(): void {
   for (const method of methods) {
     if (proto[method].observing === true) {
-      def(proto, method, { ...descriptorProps, value: native[method] });
+      defineHiddenProp(proto, method, native[method]);
     }
   }
 }
 
 export interface ArrayObserver extends ICollectionObserver<CollectionKind.array> {}
 
-@collectionSubscriberCollection()
 export class ArrayObserver {
   public inBatch: boolean;
   public type: AccessorType = AccessorType.Array;
@@ -395,10 +388,10 @@ export class ArrayObserver {
   }
 
   public getLengthObserver(): CollectionLengthObserver {
-    return this.lengthObserver ??= new CollectionLengthObserver(this.collection);
+    return this.lengthObserver ??= new CollectionLengthObserver(this);
   }
 
-  public getIndexObserver(index: number): ICollectionIndexObserver {
+  public getIndexObserver(index: number): IArrayIndexObserver {
     return this.getOrCreateIndexObserver(index);
   }
 
@@ -408,45 +401,31 @@ export class ArrayObserver {
 
     this.inBatch = false;
     this.indexMap = createIndexMap(length);
-    this.callCollectionSubscribers(indexMap, LifecycleFlags.updateTarget);
-    this.lengthObserver?.setValue(length, LifecycleFlags.updateTarget);
-  }
-
-  /**
-   * @internal used by friend class ArrayIndexObserver only
-   */
-  public addIndexObserver(indexObserver: ArrayIndexObserver): void {
-    this.addCollectionSubscriber(indexObserver);
-  }
-
-  /**
-   * @internal used by friend class ArrayIndexObserver only
-   */
-  public removeIndexObserver(indexObserver: ArrayIndexObserver): void {
-    this.removeCollectionSubscriber(indexObserver);
+    this.subs.notifyCollection(indexMap, LifecycleFlags.updateTarget);
   }
 
   /**
    * @internal
+   *
+   * It's unnecessary to destroy/recreate index observer all the time,
+   * so just create once, and add/remove instead
    */
-  private getOrCreateIndexObserver(index: number): ICollectionIndexObserver {
+  private getOrCreateIndexObserver(index: number): IArrayIndexObserver {
     return this.indexObservers[index] ??= new ArrayIndexObserver(this, index);
   }
 }
 
-export interface ArrayIndexObserver extends ICollectionIndexObserver {}
+export interface ArrayIndexObserver extends IArrayIndexObserver, ISubscriberCollection {}
 
-@subscriberCollection()
-export class ArrayIndexObserver implements ICollectionIndexObserver {
+export class ArrayIndexObserver implements IArrayIndexObserver {
 
-  private subscriberCount: number = 0;
-  public currentValue: unknown;
+  public value: unknown;
 
   public constructor(
     public readonly owner: ArrayObserver,
     public readonly index: number
   ) {
-    this.currentValue = this.getValue();
+    this.value = this.getValue();
   }
 
   public getValue(): unknown {
@@ -480,26 +459,29 @@ export class ArrayIndexObserver implements ICollectionIndexObserver {
     if (noChange) {
       return;
     }
-    const prevValue = this.currentValue;
-    const currValue = this.currentValue = this.getValue();
+    const prevValue = this.value;
+    const currValue = this.value = this.getValue();
     // hmm
     if (prevValue !== currValue) {
-      this.callSubscribers(currValue, prevValue, flags);
+      this.subs.notify(currValue, prevValue, flags);
     }
   }
 
   public subscribe(subscriber: ISubscriber): void {
-    if (this.addSubscriber(subscriber) && ++this.subscriberCount === 1) {
-      this.owner.addIndexObserver(this);
+    if (this.subs.add(subscriber) && this.subs.count === 1) {
+      this.owner.subs.add(this);
     }
   }
 
   public unsubscribe(subscriber: ISubscriber): void {
-    if (this.removeSubscriber(subscriber) && --this.subscriberCount === 0) {
-      this.owner.removeIndexObserver(this);
+    if (this.subs.remove(subscriber) && this.subs.count === 0) {
+      this.owner.subs.remove(this);
     }
   }
 }
+
+collectionSubscriberCollection()(ArrayObserver);
+subscriberCollection()(ArrayIndexObserver);
 
 export function getArrayObserver(array: unknown[], lifecycle: ILifecycle | null): ArrayObserver {
   let observer = observerLookup.get(array);

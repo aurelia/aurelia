@@ -11,4 +11,4 @@ const container = DI.createContainer().register(
 
 const au = window['au'] = new Aurelia(container);
 au.app({ host: document.querySelector('app'), component: App });
-au.start();
+void au.start();

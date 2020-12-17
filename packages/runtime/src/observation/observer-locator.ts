@@ -17,8 +17,6 @@ import { SetterObserver } from './setter-observer.js';
 import type {
   Collection,
   IAccessor,
-  IBindingTargetAccessor,
-  IBindingTargetObserver,
   ICollectionObserver,
   IObservable,
   IObserver,
@@ -27,7 +25,7 @@ import type {
 export const propertyAccessor = new PropertyAccessor();
 
 export interface IObjectObservationAdapter {
-  getObserver(object: unknown, propertyName: string, descriptor: PropertyDescriptor, requestor: IObserverLocator): IBindingTargetObserver | null;
+  getObserver(object: unknown, propertyName: string, descriptor: PropertyDescriptor, requestor: IObserverLocator): AccessorOrObserver | null;
 }
 
 export interface IObserverLocator extends ObserverLocator {}
@@ -70,24 +68,26 @@ export type ObservableSetter = PropertyDescriptor['set'] & {
 };
 
 export class ObserverLocator {
+  protected static readonly inject = [ILifecycle, IDirtyChecker, INodeObserverLocator];
+
   private readonly adapters: IObjectObservationAdapter[] = [];
 
   public constructor(
-    @ILifecycle private readonly lifecycle: ILifecycle,
-    @IDirtyChecker private readonly dirtyChecker: IDirtyChecker,
-    @INodeObserverLocator private readonly nodeObserverLocator: INodeObserverLocator,
+    private readonly lifecycle: ILifecycle,
+    private readonly dirtyChecker: IDirtyChecker,
+    private readonly nodeObserverLocator: INodeObserverLocator,
   ) {}
 
   public addAdapter(adapter: IObjectObservationAdapter): void {
     this.adapters.push(adapter);
   }
 
-  public getObserver(obj: object, key: string): AccessorOrObserver {
-    return (obj as IObservable).$observers?.[key] as AccessorOrObserver | undefined
-      ?? this.cache((obj as IObservable), key, this.createObserver((obj as IObservable), key));
+  public getObserver(obj: object, key: PropertyKey): IObserver {
+    return (obj as IObservable).$observers?.[key as string] as IObserver | undefined
+      ?? this.cache((obj as IObservable), key as string, this.createObserver((obj as IObservable), key as string)) as IObserver;
   }
 
-  public getAccessor(obj: object, key: string): IBindingTargetAccessor {
+  public getAccessor(obj: object, key: string): AccessorOrObserver {
     const cached = (obj as IObservable).$observers?.[key] as AccessorOrObserver | undefined;
     if (cached !== void 0) {
       return cached;
@@ -96,7 +96,7 @@ export class ObserverLocator {
       return this.nodeObserverLocator.getAccessor(obj, key, this) as AccessorOrObserver;
     }
 
-    return propertyAccessor as IBindingTargetAccessor;
+    return propertyAccessor;
   }
 
   public getArrayObserver(observedArray: unknown[]): ICollectionObserver<CollectionKind.array> {
@@ -113,7 +113,7 @@ export class ObserverLocator {
 
   private createObserver(obj: IObservable, key: string): AccessorOrObserver {
     if (!(obj instanceof Object)) {
-      return new PrimitiveObserver(obj as unknown as Primitive, key) as IBindingTargetAccessor;
+      return new PrimitiveObserver(obj as unknown as Primitive, key);
     }
 
     if (this.nodeObserverLocator.handles(obj, key, this)) {
@@ -173,7 +173,7 @@ export class ObserverLocator {
     return new SetterObserver(obj, key);
   }
 
-  private getAdapterObserver(obj: IObservable, propertyName: string, pd: PropertyDescriptor): IBindingTargetObserver | null {
+  private getAdapterObserver(obj: IObservable, propertyName: string, pd: PropertyDescriptor): AccessorOrObserver | null {
     if (this.adapters.length > 0) {
       for (const adapter of this.adapters) {
         const observer = adapter.getObserver(obj, propertyName, pd, this);

@@ -1,10 +1,12 @@
-import { IIndexable } from '@aurelia/kernel';
+import { DI, IIndexable } from '@aurelia/kernel';
 import { HttpClientConfiguration } from './http-client-configuration.js';
 import { Interceptor, ValidInterceptorMethodName } from './interfaces.js';
 import { RetryInterceptor } from './retry-interceptor.js';
 
 const absoluteUrlRegexp = /^([a-z][a-z0-9+\-.]*:)?\/\//i;
 
+export const IHttpClient = DI.createInterface<IHttpClient>('IHttpClient').withDefault(x => x.singleton(HttpClient));
+export interface IHttpClient extends HttpClient {}
 /**
  * An HTTP client based on the Fetch API.
  */

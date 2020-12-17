@@ -8,7 +8,7 @@ startFPSMonitor();
 startMemMonitor();
 
 try {
-  new Aurelia()
+  void new Aurelia()
     .register(
       StandardConfiguration,
       SVGAnalyzerRegistration,

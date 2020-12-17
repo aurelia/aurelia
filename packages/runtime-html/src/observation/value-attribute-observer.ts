@@ -9,7 +9,6 @@ export interface ValueAttributeObserver extends ISubscriberCollection {}
 /**
  * Observer for non-radio, non-checkbox input.
  */
-@subscriberCollection()
 export class ValueAttributeObserver implements IObserver {
   public readonly obj: INode & IIndexable;
   public currentValue: unknown = '';
@@ -51,7 +50,7 @@ export class ValueAttributeObserver implements IObserver {
       this.obj[this.propertyKey as string] = currentValue ?? this.handler.config.default;
 
       if ((flags & LifecycleFlags.fromBind) === 0) {
-        this.callSubscribers(currentValue, oldValue, flags);
+        this.subs.notify(currentValue, oldValue, flags);
       }
     }
   }
@@ -61,21 +60,22 @@ export class ValueAttributeObserver implements IObserver {
     const currentValue = this.currentValue = this.obj[this.propertyKey as string];
     if (oldValue !== currentValue) {
       this.oldValue = currentValue;
-      this.callSubscribers(currentValue, oldValue, LifecycleFlags.none);
+      this.subs.notify(currentValue, oldValue, LifecycleFlags.none);
     }
   }
 
   public subscribe(subscriber: ISubscriber): void {
-    if (!this.hasSubscribers()) {
+    if (this.subs.add(subscriber) && this.subs.count === 1) {
       this.handler.subscribe(this.obj, this);
       this.currentValue = this.oldValue = this.obj[this.propertyKey as string];
     }
-    this.addSubscriber(subscriber);
   }
 
   public unsubscribe(subscriber: ISubscriber): void {
-    if (this.removeSubscriber(subscriber) && !this.hasSubscribers()) {
+    if (this.subs.remove(subscriber) && this.subs.count === 0) {
       this.handler.dispose();
     }
   }
 }
+
+subscriberCollection()(ValueAttributeObserver);

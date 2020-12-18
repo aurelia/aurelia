@@ -88,7 +88,7 @@ class Target {
     const instructions = routingInstructions.slice();
     if (!instructions.length) {
       // instructions.push(new RoutingInstruction(''));
-      instructions.push(RoutingInstruction.create(''));
+      instructions.push(RoutingInstruction.create('') as RoutingInstruction);
     }
     for (const instruction of instructions) {
       if ((this.componentName !== null && this.componentName === instruction.component.name) ||

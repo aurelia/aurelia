@@ -80,12 +80,21 @@ export class RoutingInstruction {
     this.parameters = InstructionParameters.create(parameters);
   }
 
-  public static create(component?: ComponentAppellation | Promise<ComponentAppellation>, viewport?: ViewportHandle, parameters?: ComponentParameters, ownsScope: boolean = true, nextScopeInstructions: RoutingInstruction[] | null = null): RoutingInstruction {
-    // if (component instanceof Promise) {
-    //   return component.then((resolvedComponent) => {
-    //     return RoutingInstruction.create(instructionResolver, resolvedComponent, viewport, parameters, ownsScope, nextScopeInstructions);
-    //   });
-    // }
+  /**
+   * Create a new routing instruction.
+   *
+   * @param component - The component (appelation) part of the instruction. Can be a promise
+   * @param viewport - The viewport (handle) part of the instruction
+   * @param parameters - The parameters part of the instruction
+   * @param ownScope - Whether the routing instruction owns its scope
+   * @param nextScopeInstructions - The routing instructions in the next scope ("children")
+   */
+  public static create(component?: ComponentAppellation | Promise<ComponentAppellation>, viewport?: ViewportHandle, parameters?: ComponentParameters, ownsScope: boolean = true, nextScopeInstructions: RoutingInstruction[] | null = null): RoutingInstruction | Promise<RoutingInstruction> {
+    if (component instanceof Promise) {
+      return component.then((resolvedComponent) => {
+        return RoutingInstruction.create(resolvedComponent, viewport, parameters, ownsScope, nextScopeInstructions);
+      });
+    }
 
     const instruction: RoutingInstruction = new RoutingInstruction(component, viewport, parameters);
     instruction.ownsScope = ownsScope;

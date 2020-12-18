@@ -42,7 +42,7 @@ export class ViewportContent {
   public constructor(
     // Can (and wants) be a (resolved) type or a string (to be resolved later)
     // public content: RoutingInstruction = new RoutingInstruction(''),
-    public content: RoutingInstruction = RoutingInstruction.create(''),
+    public content: RoutingInstruction = RoutingInstruction.create('') as RoutingInstruction,
     public instruction = new Navigation({
       instruction: '',
       fullStateInstruction: '',

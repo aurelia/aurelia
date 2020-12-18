@@ -18,6 +18,7 @@ module.exports = {
     sourceType: 'module',
     tsconfigRootDir: thisDir,
   },
+  extraFileExtensions: ['cjs'],
   env: {
     es6: true
   },

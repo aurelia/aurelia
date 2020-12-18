@@ -16,11 +16,10 @@ import { arrayRemove } from './utils.js';
 import { Collection } from './collection.js';
 import { IConfigurableRoute, RouteRecognizer } from './route-recognizer.js';
 import { Navigation } from './navigation.js';
-import { IConnectedCustomElement } from './resources/viewport.js';
 import { NavigationCoordinator } from './navigation-coordinator.js';
 import { Runner, Step } from './runner.js';
 import { IRoute, Route } from './route.js';
-import { Endpoint } from './endpoints/endpoint.js';
+import { IConnectedCustomElement } from './endpoints/endpoint.js';
 
 export type NextContentAction = 'skip' | 'reload' | 'swap' | '';
 

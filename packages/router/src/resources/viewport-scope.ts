@@ -22,7 +22,8 @@ import {
 import { IContainer, Writable } from '@aurelia/kernel';
 import { IRouter } from '../router.js';
 import { ViewportScope, IViewportScopeOptions } from '../viewport-scope.js';
-import { IRoutingController, ViewportCustomElement } from './viewport.js';
+import { IRoutingController } from '../endpoints/endpoint.js';
+import { ViewportCustomElement } from './viewport.js';
 
 export const ParentViewportScope = CustomElement.createInjectable();
 

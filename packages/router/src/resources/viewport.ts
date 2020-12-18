@@ -22,15 +22,7 @@ import { IRouter } from '../router.js';
 import { Viewport, IViewportOptions } from '../viewport.js';
 import { ViewportScopeCustomElement } from './viewport-scope.js';
 import { Runner, Step } from '../runner.js';
-
-export interface IRoutingController extends ICustomElementController {
-  routingContainer?: IContainer;
-}
-export interface IConnectedCustomElement extends ICustomElementViewModel {
-  element: HTMLElement;
-  container: IContainer;
-  controller: IRoutingController;
-}
+import { IRoutingController } from '../endpoints/endpoint.js';
 
 export const ParentViewport = CustomElement.createInjectable();
 

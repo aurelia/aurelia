@@ -12,7 +12,7 @@ import { parseQuery } from './parser.js';
 import { Viewport } from './viewport.js';
 import { RoutingInstruction } from './instructions/routing-instruction.js';
 import { Navigation } from './navigation.js';
-import { IConnectedCustomElement } from './resources/viewport.js';
+import { IConnectedCustomElement } from './endpoints/endpoint.js';
 import { Runner, Step } from './runner.js';
 import { AwaitableMap } from './awaitable-map.js';
 

@@ -26,7 +26,7 @@ import { Scope, IScopeOwner } from './scope.js';
 import { IViewportScopeOptions, ViewportScope } from './viewport-scope.js';
 import { BrowserViewerStore } from './browser-viewer-store.js';
 import { Navigation } from './navigation.js';
-import { IConnectedCustomElement } from './resources/viewport.js';
+import { IConnectedCustomElement } from './endpoints/endpoint.js';
 import { NavigationCoordinator } from './navigation-coordinator.js';
 import { IRouterActivateOptions, RouterOptions } from './router-options-instance.js';
 import { OpenPromise } from './open-promise.js';

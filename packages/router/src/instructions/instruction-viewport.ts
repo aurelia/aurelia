@@ -4,9 +4,9 @@
  * In its current state, it is NOT a good source for learning about the inner workings and design of the router.
  *
  */
-import { IRouter } from './router.js';
-import { Viewport } from './viewport.js';
-import { Scope } from './scope.js';
+import { IRouter } from '../router.js';
+import { Viewport } from '../viewport.js';
+import { Scope } from '../scope.js';
 
 /**
  * Public API - The routing instructions are the core of the router's navigations

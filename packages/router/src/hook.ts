@@ -7,10 +7,10 @@
 import { HookFunction, HookTarget, HookIdentity, HookTypes, IHookOptions, HookResult, HookParameter, } from './hook-manager.js';
 import { IComponentAndOrViewportOrNothing, RouteableComponentType } from './interfaces.js';
 import { Viewport } from './viewport.js';
-import { RoutingInstruction } from './routing-instruction.js';
+import { RoutingInstruction } from './instructions/routing-instruction.js';
 import { Navigation } from './navigation.js';
-import { InstructionViewport } from './instruction-viewport.js';
-import { InstructionComponent } from './instruction-component.js';
+import { InstructionViewport } from './instructions/instruction-viewport.js';
+import { InstructionComponent } from './instructions/instruction-component.js';
 
 /**
  * @internal - Shouldn't be used directly

@@ -5,7 +5,7 @@
  *
  */
 import { Route } from './route.js';
-import { RoutingInstruction } from './routing-instruction.js';
+import { RoutingInstruction } from './instructions/routing-instruction.js';
 
 /**
  * @internal - Used when founding route/instructions

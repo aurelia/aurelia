@@ -7,7 +7,7 @@
 
 import { Constructable, IContainer } from '@aurelia/kernel';
 import { CustomElement, CustomElementDefinition, isCustomElementViewModel } from '@aurelia/runtime-html';
-import { IRouteableComponent, RouteableComponentType } from './interfaces';
+import { IRouteableComponent, RouteableComponentType } from '../interfaces';
 
 export interface IInstructionComponent extends InstructionComponent { }
 

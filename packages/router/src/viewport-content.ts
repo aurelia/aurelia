@@ -10,7 +10,7 @@ import { Controller, LifecycleFlags, ILifecycle, IHydratedController, ICustomEle
 import { IRouteableComponent, RouteableComponentType, ReentryBehavior, LoadInstruction } from './interfaces.js';
 import { parseQuery } from './parser.js';
 import { Viewport } from './viewport.js';
-import { RoutingInstruction } from './routing-instruction.js';
+import { RoutingInstruction } from './instructions/routing-instruction.js';
 import { Navigation } from './navigation.js';
 import { IConnectedCustomElement } from './resources/viewport.js';
 import { Runner, Step } from './runner.js';

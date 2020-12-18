@@ -7,7 +7,7 @@
 import { CustomElementType } from '@aurelia/runtime-html';
 import { LoadInstruction, RouteableComponentType } from './interfaces.js';
 import { IRouter } from './router.js';
-import { RoutingInstruction } from './routing-instruction.js';
+import { RoutingInstruction } from './instructions/routing-instruction.js';
 import { IScopeOwner, IScopeOwnerOptions, NextContentAction, Scope } from './scope.js';
 import { arrayRemove } from './utils.js';
 import { Navigation } from './navigation.js';

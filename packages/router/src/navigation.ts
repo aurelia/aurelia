@@ -6,7 +6,7 @@
  */
 import { ICustomElementViewModel } from '@aurelia/runtime-html';
 import { INavigationFlags } from './navigator.js';
-import { RoutingInstruction } from './routing-instruction.js';
+import { RoutingInstruction } from './instructions/routing-instruction.js';
 import { Scope } from './scope.js';
 import { Route } from './route.js';
 

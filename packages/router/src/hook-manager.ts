@@ -6,7 +6,7 @@
  */
 import { Hook } from './hook.js';
 import { ComponentAppellation, IComponentAndOrViewportOrNothing } from './interfaces.js';
-import { RoutingInstruction } from './routing-instruction.js';
+import { RoutingInstruction } from './instructions/routing-instruction.js';
 import { Navigation } from './navigation.js';
 
 /**

@@ -4,7 +4,7 @@
  * In its current state, it is NOT a good source for learning about the inner workings and design of the router.
  *
  */
-import { RoutingInstruction } from './routing-instruction.js';
+import { RoutingInstruction } from './instructions/routing-instruction.js';
 import { IScopeOwner } from './scope.js';
 import { arrayRemove } from './utils.js';
 

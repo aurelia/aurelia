@@ -14,7 +14,7 @@ export {
 
 export {
   Params,
-} from './instruction-parameters.js';
+} from './instructions/instruction-parameters.js';
 
 export {
   InstructionResolver,
@@ -118,7 +118,7 @@ export {
 
 export {
   RoutingInstruction,
-} from './routing-instruction.js';
+} from './instructions/routing-instruction.js';
 
 export {
   IViewportOptions,

@@ -7,9 +7,9 @@
 import { CustomElement, ICustomElementController, ICustomElementViewModel } from '@aurelia/runtime-html';
 import { ComponentAppellation, LoadInstruction } from './interfaces.js';
 import { ILoadOptions, IRouter } from './router.js';
-import { RoutingInstruction } from './routing-instruction.js';
+import { RoutingInstruction } from './instructions/routing-instruction.js';
 import { Scope } from './scope.js';
-import { InstructionComponent } from './instruction-component.js';
+import { InstructionComponent } from './instructions/instruction-component.js';
 
 export interface IRoutingInstructionsOptions {
   context?: ICustomElementViewModel | Element | Node | ICustomElementController;

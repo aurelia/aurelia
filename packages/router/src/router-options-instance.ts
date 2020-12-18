@@ -9,7 +9,7 @@ import { INavigatorOptions } from './navigator.js';
 import { IHookDefinition } from './hook-manager.js';
 import { NavigationState } from './navigation-coordinator.js';
 import { Navigation } from './navigation.js';
-import { RoutingInstruction } from './routing-instruction.js';
+import { RoutingInstruction } from './instructions/routing-instruction.js';
 import { FoundRoute } from './found-route.js';
 
 export type SwapStrategy = 'add-first-sequential' | 'add-first-parallel' | 'remove-first-sequential' | 'remove-first-parallel';

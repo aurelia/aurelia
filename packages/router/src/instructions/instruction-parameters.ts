@@ -4,9 +4,9 @@
  * In its current state, it is NOT a good source for learning about the inner workings and design of the router.
  *
  */
-import { RouteableComponentType } from './interfaces.js';
-import { IComponentParameter } from './instruction-resolver.js';
-import { RouterOptions } from './router-options.js';
+import { RouteableComponentType } from '../interfaces.js';
+import { IComponentParameter } from '../instruction-resolver.js';
+import { RouterOptions } from '../router-options.js';
 
 /**
  * @internal - Shouldn't be used directly

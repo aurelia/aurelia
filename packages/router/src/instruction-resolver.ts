@@ -5,7 +5,7 @@
  *
  */
 import { ComponentParameters, ComponentAppellation, ViewportHandle } from './interfaces.js';
-import { RoutingInstruction } from './routing-instruction.js';
+import { RoutingInstruction } from './instructions/routing-instruction.js';
 import { Scope } from './scope.js';
 import { FoundRoute } from './found-route.js';
 import { IRouteSeparators, ISeparators } from './router-options-instance.js';

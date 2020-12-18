@@ -8,7 +8,7 @@ import { ICustomElementViewModel } from '@aurelia/runtime-html';
 import { IRouteableComponent } from './interfaces.js';
 import { Queue, QueueItem } from './queue.js';
 import { IRouter } from './router.js';
-import { RoutingInstruction } from './routing-instruction.js';
+import { RoutingInstruction } from './instructions/routing-instruction.js';
 import { Scope } from './scope.js';
 import { Navigation, IStoredNavigation } from './navigation.js';
 import { Runner, Step } from './runner.js';

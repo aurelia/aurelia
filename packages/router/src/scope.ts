@@ -9,7 +9,7 @@ import { CustomElementType } from '@aurelia/runtime-html';
 import { LoadInstruction } from './interfaces.js';
 import { FoundRoute } from './found-route.js';
 import { IRouter } from './router.js';
-import { RoutingInstruction } from './routing-instruction.js';
+import { RoutingInstruction } from './instructions/routing-instruction.js';
 import { LoadInstructionResolver } from './type-resolvers.js';
 import { Viewport, IViewportOptions } from './viewport.js';
 import { arrayRemove } from './utils.js';

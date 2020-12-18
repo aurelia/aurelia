@@ -1,10 +1,10 @@
 import { InstructionParameters } from './instruction-parameters';
 import { InstructionViewport } from './instruction-viewport';
 import { InstructionComponent } from './instruction-component';
-import { ComponentAppellation, ComponentParameters, ViewportHandle } from './interfaces.js';
-import { Scope, IScopeOwner } from './scope.js';
-import { ViewportScope } from './viewport-scope.js';
-import { FoundRoute } from './found-route.js';
+import { ComponentAppellation, ComponentParameters, ViewportHandle } from '../interfaces.js';
+import { Scope, IScopeOwner } from '../scope.js';
+import { ViewportScope } from '../viewport-scope.js';
+import { FoundRoute } from '../found-route.js';
 
 /**
  * The routing instructions are the core of the router's navigations. All

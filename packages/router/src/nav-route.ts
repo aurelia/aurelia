@@ -8,8 +8,8 @@ import { Constructable } from '@aurelia/kernel';
 import { RouteableComponentType, LoadInstruction } from './interfaces.js';
 import { INavRoute, Nav } from './nav.js';
 import { LoadInstructionResolver } from './type-resolvers.js';
-import { RoutingInstruction } from './routing-instruction.js';
-import { InstructionComponent } from './instruction-component.js';
+import { RoutingInstruction } from './instructions/routing-instruction.js';
+import { InstructionComponent } from './instructions/instruction-component.js';
 
 /**
  * @internal - Used by au-nav

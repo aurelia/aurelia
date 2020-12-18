@@ -7,7 +7,7 @@
 import { Constructable } from '@aurelia/kernel';
 import { CustomElementType, INode, ICustomElementViewModel } from '@aurelia/runtime-html';
 import { Viewport } from './viewport.js';
-import { RoutingInstruction } from './routing-instruction.js';
+import { RoutingInstruction } from './instructions/routing-instruction.js';
 import { Navigation } from './navigation.js';
 import { IRoute } from './route.js';
 

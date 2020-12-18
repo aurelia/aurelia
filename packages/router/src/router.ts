@@ -19,7 +19,7 @@ import { INavClasses } from './resources/nav.js';
 import { LoadInstructionResolver, IRoutingInstructionsOptions } from './type-resolvers.js';
 import { arrayRemove, deprecationWarning } from './utils.js';
 import { IViewportOptions, Viewport } from './viewport.js';
-import { RoutingInstruction } from './routing-instruction.js';
+import { RoutingInstruction } from './instructions/routing-instruction.js';
 import { FoundRoute } from './found-route.js';
 import { HookManager, IHookDefinition, HookIdentity, HookFunction, IHookOptions, BeforeNavigationHookFunction, TransformFromUrlHookFunction, TransformToUrlHookFunction, SetTitleHookFunction } from './hook-manager.js';
 import { Scope, IScopeOwner } from './scope.js';

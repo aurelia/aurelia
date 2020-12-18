@@ -25,7 +25,7 @@ export interface IViewportScopeOptions extends IScopeOwnerOptions {
 }
 
 export class ViewportScope extends Endpoint {
-  public content: RoutingInstruction | null = null;
+  public instruction: RoutingInstruction | null = null;
   public nextContent: RoutingInstruction | null = null;
 
   public available: boolean = true;
@@ -50,7 +50,7 @@ export class ViewportScope extends Endpoint {
     super(router, name, connectedCE, owningScope, scope);
     this.connectedScope.viewportScope = this;
     if (this.catches.length > 0) {
-      this.content = router.createRoutingInstruction(this.catches[0], this.name);
+      this.instruction = router.createRoutingInstruction(this.catches[0], this.name);
     }
   }
 
@@ -59,7 +59,7 @@ export class ViewportScope extends Endpoint {
   }
 
   public get isEmpty(): boolean {
-    return this.content === null;
+    return this.instruction === null;
   }
 
   public get passThroughScope(): boolean {
@@ -99,7 +99,7 @@ export class ViewportScope extends Endpoint {
   }
 
   public toString(): string {
-    const contentName = this.content?.component.name ?? '';
+    const contentName = this.instruction?.component.name ?? '';
     const nextContentName = this.nextContent?.component.name ?? '';
     return `vs:${this.name}[${contentName}->${nextContentName}]`;
   }
@@ -137,25 +137,11 @@ export class ViewportScope extends Endpoint {
       () => coordinator.addEntityState(this, 'routed'),
       () => coordinator.addEntityState(this, 'swapped'),
       () => {
-        this.content = !this.remove ? this.nextContent : null;
+        this.instruction = !this.remove ? this.nextContent : null;
         this.nextContent = null;
         coordinator.addEntityState(this, 'completed');
       }
     );
-  }
-
-  public canUnload(): boolean | Promise<boolean> {
-    return true;
-  }
-  public canLoad(): boolean | LoadInstruction | LoadInstruction[] | Promise<boolean | LoadInstruction | LoadInstruction[]> {
-    return true;
-  }
-
-  public unload(): void | Step<void> {
-    return;
-  }
-  public load(): void | Step<void> {
-    return;
   }
 
   public finalizeContentChange(): void {

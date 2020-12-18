@@ -125,8 +125,8 @@ export class Viewport extends Endpoint {
   }
 
   public toString(): string {
-    const contentName = this.content?.content.component.name ?? '';
-    const nextContentName = this.nextContent?.content.component.name ?? '';
+    const contentName = this.content?.instruction.component.name ?? '';
+    const nextContentName = this.nextContent?.instruction.component.name ?? '';
     return `v:${this.name}[${contentName}->${nextContentName}]`;
   }
 
@@ -183,7 +183,7 @@ export class Viewport extends Endpoint {
     if (this.content.reentryBehavior() === ReentryBehavior.load) {
       this.content.reentry = true;
 
-      this.nextContent.content.component.set(this.content.componentInstance!);
+      this.nextContent.instruction.component.set(this.content.componentInstance!);
       // this.nextContent.contentStatus = this.content.contentStatus;
       this.nextContent.contentStates = this.content.contentStates.clone();
       // this.nextContent.contentStates = new Map(this.content.contentStates);
@@ -205,7 +205,7 @@ export class Viewport extends Endpoint {
       // eslint-disable-next-line no-constant-condition
       if (false) { // Re-use component, only reload with new parameters
         this.content.reentry = true;
-        this.nextContent!.content.component.set(this.content.componentInstance!);
+        this.nextContent!.instruction.component.set(this.content.componentInstance!);
         this.nextContent!.contentStates = this.content.contentStates.clone();
         this.nextContent!.reentry = this.content.reentry;
         return this.nextContentAction = 'reload';
@@ -282,7 +282,7 @@ export class Viewport extends Endpoint {
             return this.content.freeContent(
               step,
               this.connectedCE,
-              (this.nextContent ? this.nextContent.instruction : null),
+              (this.nextContent ? this.nextContent.navigation : null),
               this.historyCache,
               this.doForceRemove ? false : this.router.statefulHistory || this.options.stateful
             ); // .catch(error => { throw error; });
@@ -481,7 +481,7 @@ export class Viewport extends Endpoint {
         //   return true;
         // }
 
-        return this.content.canUnload(this.nextContent?.instruction ?? null);
+        return this.content.canUnload(this.nextContent?.navigation ?? null);
       }
     ) as boolean | Promise<boolean>;
   }
@@ -492,7 +492,7 @@ export class Viewport extends Endpoint {
       return true;
     }
 
-    if ((this.nextContent?.content ?? null) === null) {
+    if ((this.nextContent?.instruction ?? null) === null) {
       return true;
     }
 
@@ -508,7 +508,7 @@ export class Viewport extends Endpoint {
         //   return true;
         // }
 
-        return this.nextContent!.canLoad(this, this.content.instruction);
+        return this.nextContent!.canLoad(this, this.content.navigation);
       },
       // () => recurse ? this.connectedScope.canLoad(recurse) : true,
     ) as boolean | LoadInstruction | LoadInstruction[] | Promise<boolean | LoadInstruction | LoadInstruction[]>;
@@ -531,7 +531,7 @@ export class Viewport extends Endpoint {
     //   () => this.nextContent?.load(this.content.instruction),
     //   // () => recurse ? this.connectedScope.load(recurse) : true,
     // );
-    return this.nextContent?.load(step, this.content.instruction);
+    return this.nextContent?.load(step, this.content.navigation);
     // return this.nextContent?.load(this.content.instruction);
     // await this.nextContent.activateComponent(null, this.connectedCE!.$controller as ICustomElementController<ICustomElementViewModel>, LifecycleFlags.none, this.connectedCE!);
     // return true;
@@ -580,7 +580,7 @@ export class Viewport extends Endpoint {
       this.connectedScope.reenableReplacedChildren();
       // console.log('>>> Runner.run', 'activate');
       return Runner.run(step,
-        (step: Step<void>) => this.activeContent.load(step, this.activeContent.instruction), // Only acts if not already loaded
+        (step: Step<void>) => this.activeContent.load(step, this.activeContent.navigation), // Only acts if not already loaded
         (step: Step<void>) => this.activeContent.activateComponent(
           step,
           this,
@@ -631,7 +631,7 @@ export class Viewport extends Endpoint {
         // }
 
         if (this.content.componentInstance) {
-          return this.content.unload(this.nextContent?.instruction ?? null);
+          return this.content.unload(this.nextContent?.navigation ?? null);
         }
       }
     ) as Step<void>;
@@ -657,7 +657,7 @@ export class Viewport extends Endpoint {
     }
 
     if (this.clear) {
-      this.content = new ViewportContent(void 0, this.nextContent!.instruction);
+      this.content = new ViewportContent(void 0, this.nextContent!.navigation);
     }
     this.nextContent = null;
     this.nextContentAction = '';
@@ -677,7 +677,7 @@ export class Viewport extends Endpoint {
           return this.nextContent!.freeContent(
             step,
             this.connectedCE,
-            this.nextContent!.instruction,
+            this.nextContent!.navigation,
             this.historyCache,
             this.router.statefulHistory || this.options.stateful);
         }
@@ -809,7 +809,7 @@ export class Viewport extends Endpoint {
   }
 
   private getContentInstruction(): RoutingInstruction | null {
-    return this.nextContent?.content ?? this.content.content ?? null;
+    return this.nextContent?.instruction ?? this.content.instruction ?? null;
   }
 
   private clearState(): void {

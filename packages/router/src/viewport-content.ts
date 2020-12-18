@@ -17,8 +17,20 @@ import { Runner, Step } from './runner.js';
 import { AwaitableMap } from './awaitable-map.js';
 
 /**
- * @internal - Shouldn't be used directly
+ * The viewport content encapsulates the component loaded into a viewport
+ * and keeps track of the component's lifecycle and routing states.
+ *
+ * During a transition, a viewport has two viewport contents, the current
+ * and the next, which is turned back into one when the transition is either
+ * finalized or aborted.
+ *
+ * Viewport contents are used to represent the full component state
+ * and can be used for caching.
  */
+
+/**
+* @internal - Shouldn't be used directly
+*/
 export const enum ContentStatus {
   none = 0,
   created = 1,
@@ -42,53 +54,53 @@ export class ViewportContent {
   public constructor(
     // Can (and wants) be a (resolved) type or a string (to be resolved later)
     // public content: RoutingInstruction = new RoutingInstruction(''),
-    public content: RoutingInstruction = RoutingInstruction.create('') as RoutingInstruction,
-    public instruction = new Navigation({
+    public instruction: RoutingInstruction = RoutingInstruction.create('') as RoutingInstruction,
+    public navigation = new Navigation({
       instruction: '',
       fullStateInstruction: '',
     }),
     connectedCE: IConnectedCustomElement | null = null
   ) {
     // If we've got a container, we're good to resolve type
-    if (!this.content.component.isType() && (connectedCE?.container ?? null) !== null) {
-      this.content.component.type = this.toComponentType(connectedCE!.container!);
+    if (!this.instruction.component.isType() && (connectedCE?.container ?? null) !== null) {
+      this.instruction.component.type = this.toComponentType(connectedCE!.container!);
     }
   }
 
   public get componentInstance(): IRouteableComponent | null {
-    return this.content.component.instance;
+    return this.instruction.component.instance;
   }
   public get viewport(): Viewport | null {
-    return this.content.viewport.instance;
+    return this.instruction.viewport.instance;
   }
 
   public equalComponent(other: ViewportContent): boolean {
-    return this.content.sameComponent(other.content);
+    return this.instruction.sameComponent(other.instruction);
   }
 
   public equalParameters(other: ViewportContent): boolean {
-    return this.content.sameComponent(other.content, true) &&
+    return this.instruction.sameComponent(other.instruction, true) &&
       // TODO: Review whether query is relevant
-      this.instruction.query === other.instruction.query;
+      this.navigation.query === other.navigation.query;
   }
 
   public reentryBehavior(): ReentryBehavior {
-    return (this.content.component.instance !== null &&
-      'reentryBehavior' in this.content.component.instance &&
-      this.content.component.instance.reentryBehavior !== void 0)
-      ? this.content.component.instance.reentryBehavior
+    return (this.instruction.component.instance !== null &&
+      'reentryBehavior' in this.instruction.component.instance &&
+      this.instruction.component.instance.reentryBehavior !== void 0)
+      ? this.instruction.component.instance.reentryBehavior
       : ReentryBehavior.default;
   }
 
   public isCacheEqual(other: ViewportContent): boolean {
-    return this.content.sameComponent(other.content, true);
+    return this.instruction.sameComponent(other.instruction, true);
   }
 
   public contentController(connectedCE: IConnectedCustomElement): ICustomElementController {
     return Controller.forCustomElement(
       null,
       connectedCE.container,
-      this.content.component.instance as ICustomElementViewModel,
+      this.instruction.component.instance as ICustomElementViewModel,
       connectedCE.element,
       null,
       void 0,
@@ -103,18 +115,18 @@ export class ViewportContent {
     // Don't load cached content or instantiated history content
     if (!this.fromCache && !this.fromHistory) {
       try {
-        this.content.component.instance = this.toComponentInstance(connectedCE.container);
+        this.instruction.component.instance = this.toComponentInstance(connectedCE.container);
       } catch (e) {
         if (fallback !== void 0) {
-          this.content.parameters.set({ id: this.content.component.name });
-          this.content.component.set(fallback);
+          this.instruction.parameters.set({ id: this.instruction.component.name });
+          this.instruction.component.set(fallback);
           try {
-            this.content.component.instance = this.toComponentInstance(connectedCE.container);
+            this.instruction.component.instance = this.toComponentInstance(connectedCE.container);
           } catch (ee) {
-            throw new Error(`'${this.content.component.name}' did not match any configured route or registered component name - did you forget to add the component '${this.content.component.name}' to the dependencies or to register it as a global dependency?`);
+            throw new Error(`'${this.instruction.component.name}' did not match any configured route or registered component name - did you forget to add the component '${this.instruction.component.name}' to the dependencies or to register it as a global dependency?`);
           }
         } else {
-          throw new Error(`'${this.content.component.name}' did not match any configured route or registered component name - did you forget to add the component '${this.content.component.name}' to the dependencies or to register it as a global dependency?`);
+          throw new Error(`'${this.instruction.component.name}' did not match any configured route or registered component name - did you forget to add the component '${this.instruction.component.name}' to the dependencies or to register it as a global dependency?`);
         }
       }
     }
@@ -123,7 +135,7 @@ export class ViewportContent {
 
     // if (this.contentStatus !== ContentStatus.created || !this.loaded || !this.content.component.instance) {
     // if (this.contentStatus !== ContentStatus.created || this.loaded || !this.content.component.instance) {
-    if (this.contentStates.has('loaded') || !this.content.component.instance) {
+    if (this.contentStates.has('loaded') || !this.instruction.component.instance) {
       return;
     }
     // this.contentStatus = ContentStatus.loaded;
@@ -151,18 +163,18 @@ export class ViewportContent {
     }
     this.contentStates.set('checkedLoad', void 0);
 
-    if (!this.content.component.instance) {
+    if (!this.instruction.component.instance) {
       return false;
     }
 
-    if (!this.content.component.instance.canLoad) {
+    if (!this.instruction.component.instance.canLoad) {
       return true;
     }
 
-    const typeParameters = this.content.component.type ? this.content.component.type.parameters : null;
-    this.instruction.parameters = this.content.parameters.toSpecifiedParameters(typeParameters);
-    const merged = { ...parseQuery(this.instruction.query), ...this.instruction.parameters };
-    const result = this.content.component.instance.canLoad(merged, this.viewport!, this.instruction, previousInstruction);
+    const typeParameters = this.instruction.component.type ? this.instruction.component.type.parameters : null;
+    this.navigation.parameters = this.instruction.parameters.toSpecifiedParameters(typeParameters);
+    const merged = { ...parseQuery(this.navigation.query), ...this.navigation.parameters };
+    const result = this.instruction.component.instance.canLoad(merged, this.viewport!, this.navigation, previousInstruction);
     if (typeof result === 'boolean') {
       return result;
     }
@@ -173,7 +185,7 @@ export class ViewportContent {
   }
 
   public canUnload(nextInstruction: Navigation | null): boolean | Promise<boolean> {
-    if (!this.content.component.instance || !this.content.component.instance.canUnload || (this.contentStates.has('checkedUnload') && !this.reentry)) {
+    if (!this.instruction.component.instance || !this.instruction.component.instance.canUnload || (this.contentStates.has('checkedUnload') && !this.reentry)) {
       return true;
     }
     this.contentStates.set('checkedUnload', void 0);
@@ -182,7 +194,7 @@ export class ViewportContent {
       return true;
     }
 
-    return this.content.component.instance.canUnload(this.viewport!, nextInstruction, this.instruction);
+    return this.instruction.component.instance.canUnload(this.viewport!, nextInstruction, this.navigation);
   }
   // public async canUnload(nextInstruction: Navigation | null): Promise<boolean> {
   //   if (!this.content.component.instance || !this.content.component.instance.canUnload) {
@@ -216,11 +228,11 @@ export class ViewportContent {
         // this.loaded = true;
         // console.log('loaded', this.content.component.name);
         this.contentStates.set('loaded', void 0);
-        if (this.content.component.instance && this.content.component.instance.load) {
-          const typeParameters = this.content.component.type ? this.content.component.type.parameters : null;
-          this.instruction.parameters = this.content.parameters.toSpecifiedParameters(typeParameters);
-          const merged = { ...parseQuery(this.instruction.query), ...this.instruction.parameters };
-          return this.content.component.instance.load(merged, this.viewport!, this.instruction, previousInstruction);
+        if (this.instruction.component.instance && this.instruction.component.instance.load) {
+          const typeParameters = this.instruction.component.type ? this.instruction.component.type.parameters : null;
+          this.navigation.parameters = this.instruction.parameters.toSpecifiedParameters(typeParameters);
+          const merged = { ...parseQuery(this.navigation.query), ...this.navigation.parameters };
+          return this.instruction.component.instance.load(merged, this.viewport!, this.navigation, previousInstruction);
         }
       }
     ) as Step<void>;
@@ -233,8 +245,8 @@ export class ViewportContent {
     // this.loaded = false;
     // console.log('loaded', this.content.component.name, 'deleted');
     this.contentStates.delete('loaded');
-    if (this.content.component.instance && this.content.component.instance.unload) {
-      return this.content.component.instance.unload(this.viewport!, nextInstruction, this.instruction);
+    if (this.instruction.component.instance && this.instruction.component.instance.unload) {
+      return this.instruction.component.instance.unload(this.viewport!, nextInstruction, this.navigation);
     }
   }
 
@@ -353,7 +365,7 @@ export class ViewportContent {
 
   public disposeComponent(connectedCE: IConnectedCustomElement, cache: ViewportContent[], stateful: boolean = false): void {
     // console.log('disposeComponent', this.contentStates.has('created'), this.viewport?.toString());
-    if (!this.contentStates.has('created') || this.content.component.instance == null) {
+    if (!this.contentStates.has('created') || this.instruction.component.instance == null) {
       return;
     }
 
@@ -391,19 +403,19 @@ export class ViewportContent {
   }
 
   public toComponentName(): string | null {
-    return this.content.component.name;
+    return this.instruction.component.name;
   }
   public toComponentType(container: IContainer): RouteableComponentType | null {
-    if (this.content.component.none) {
+    if (this.instruction.component.none) {
       return null;
     }
-    return this.content.component.toType(container);
+    return this.instruction.component.toType(container);
   }
   public toComponentInstance(container: IContainer): IRouteableComponent | null {
-    if (this.content.component.none) {
+    if (this.instruction.component.none) {
       return null;
     }
-    return this.content.component.toInstance(container);
+    return this.instruction.component.toInstance(container);
   }
 
   private waitForParent(parent: ICustomElementController | null, viewport: Viewport): void | Promise<void> {

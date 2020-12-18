@@ -155,10 +155,10 @@ export class Scope {
 
   public get routingInstruction(): RoutingInstruction | null {
     if (this.isViewportScope) {
-      return this.viewportScope!.content;
+      return this.viewportScope!.instruction;
     }
     if (this.isViewport) {
-      return this.viewport!.content!.content;
+      return this.viewport!.content!.instruction;
     }
     return null;
   }

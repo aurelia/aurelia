@@ -20,6 +20,7 @@ import { IConnectedCustomElement } from './resources/viewport.js';
 import { NavigationCoordinator } from './navigation-coordinator.js';
 import { Runner, Step } from './runner.js';
 import { IRoute, Route } from './route.js';
+import { Endpoint } from './endpoints/endpoint.js';
 
 export type NextContentAction = 'skip' | 'reload' | 'swap' | '';
 
@@ -69,7 +70,7 @@ export interface IScopeOwner {
   finalizeContentChange(): void;
   abortContentChange(step: Step<void> | null): void | Step<void>;
 
-  getRoutes(): IRoute[] | null;
+  getRoutes(): Route[] | null;
 }
 
 /**
@@ -124,10 +125,10 @@ export class Scope {
 
   public get owner(): IScopeOwner | null {
     if (this.isViewport) {
-      return this.viewport;
+      return this.viewport as IScopeOwner;
     }
     if (this.isViewportScope) {
-      return this.viewportScope;
+      return this.viewportScope as IScopeOwner;
     }
     return null;
   }

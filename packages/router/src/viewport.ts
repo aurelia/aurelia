@@ -4,19 +4,20 @@
  * In its current state, it is NOT a good source for learning about the inner workings and design of the router.
  *
  */
-import { LifecycleFlags, ICompiledRenderContext, ICustomElementController, CustomElement, ICustomElementViewModel, IHydratedController, IHydratedParentController, Controller } from '@aurelia/runtime-html';
+import { LifecycleFlags, ICompiledRenderContext, CustomElement, IHydratedController, IHydratedParentController } from '@aurelia/runtime-html';
 import { ComponentAppellation, IRouteableComponent, ReentryBehavior, RouteableComponentType, LoadInstruction } from './interfaces.js';
 import { IRouter } from './router.js';
 import { arrayRemove } from './utils.js';
 import { ViewportContent } from './viewport-content.js';
 import { RoutingInstruction } from './instructions/routing-instruction.js';
-import { IScopeOwner, IScopeOwnerOptions, NextContentAction, Scope } from './scope.js';
+import { IScopeOwnerOptions, NextContentAction, Scope } from './scope.js';
 import { Navigation } from './navigation.js';
 import { IRoutingController, IConnectedCustomElement } from './resources/viewport.js';
 import { NavigationCoordinator } from './navigation-coordinator.js';
 import { Runner, Step } from './runner.js';
 import { Routes } from './decorators/routes.js';
 import { Route } from './route.js';
+import { Endpoint } from './endpoints/endpoint.js';
 
 export interface IViewportOptions extends IScopeOwnerOptions {
   scope?: boolean;
@@ -29,15 +30,11 @@ export interface IViewportOptions extends IScopeOwnerOptions {
   forceDescription?: boolean;
 }
 
-export class Viewport implements IScopeOwner {
-  public connectedScope: Scope;
+export class Viewport extends Endpoint {
   public content: ViewportContent;
   public nextContent: ViewportContent | null = null;
-  public nextContentAction: NextContentAction = '';
 
   public forceRemove: boolean = false;
-
-  public path: string | null = null;
 
   public activeResolve?: ((value?: void | PromiseLike<void>) => void) | null = null;
   private connectionResolve?: ((value?: void | PromiseLike<void>) => void) | null = null;
@@ -49,15 +46,16 @@ export class Viewport implements IScopeOwner {
   private historyCache: ViewportContent[] = [];
 
   public constructor(
-    public readonly router: IRouter,
-    public name: string,
-    public connectedCE: IConnectedCustomElement | null,
+    router: IRouter,
+    name: string,
+    connectedCE: IConnectedCustomElement | null,
     owningScope: Scope,
     scope: boolean,
     public options: IViewportOptions = {}
   ) {
+    super(router, name, connectedCE, owningScope, scope);
+    this.connectedScope.viewport = this;
     this.content = new ViewportContent();
-    this.connectedScope = new Scope(router, scope, owningScope, this);
   }
 
   public get scope(): Scope {

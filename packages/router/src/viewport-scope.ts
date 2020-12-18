@@ -8,15 +8,16 @@ import { CustomElementType } from '@aurelia/runtime-html';
 import { LoadInstruction, RouteableComponentType } from './interfaces.js';
 import { IRouter } from './router.js';
 import { RoutingInstruction } from './instructions/routing-instruction.js';
-import { IScopeOwner, IScopeOwnerOptions, NextContentAction, Scope } from './scope.js';
+import { IScopeOwnerOptions, NextContentAction, Scope } from './scope.js';
 import { arrayRemove } from './utils.js';
 import { Navigation } from './navigation.js';
 import { IConnectedCustomElement } from './resources/viewport.js';
 import { NavigationCoordinator } from './navigation-coordinator.js';
 import { Runner } from './runner.js';
 import { Routes } from './decorators/routes.js';
-import { IRoute, Route } from './route.js';
+import { Route } from './route.js';
 import { Step } from './runner.js';
+import { Endpoint } from './endpoints/endpoint.js';
 
 export interface IViewportScopeOptions extends IScopeOwnerOptions {
   catches?: string | string[];
@@ -24,11 +25,7 @@ export interface IViewportScopeOptions extends IScopeOwnerOptions {
   source?: unknown[] | null;
 }
 
-export class ViewportScope implements IScopeOwner {
-  public connectedScope: Scope;
-
-  public path: string | null = null;
-
+export class ViewportScope extends Endpoint {
   public content: RoutingInstruction | null = null;
   public nextContent: RoutingInstruction | null = null;
 
@@ -40,9 +37,9 @@ export class ViewportScope implements IScopeOwner {
   private add: boolean = false;
 
   public constructor(
-    public name: string,
-    public readonly router: IRouter,
-    public connectedCE: IConnectedCustomElement | null,
+    name: string,
+    router: IRouter,
+    connectedCE: IConnectedCustomElement | null,
     owningScope: Scope | null,
     scope: boolean,
     public rootComponentType: CustomElementType | null = null, // temporary. Metadata will probably eliminate it
@@ -51,29 +48,13 @@ export class ViewportScope implements IScopeOwner {
       source: null,
     },
   ) {
-    this.connectedScope = new Scope(router, scope, owningScope, null, this);
+    super(router, name, connectedCE, owningScope, scope);
+    this.connectedScope.viewportScope = this;
     if (this.catches.length > 0) {
       this.content = router.createRoutingInstruction(this.catches[0], this.name);
     }
   }
 
-  public get scope(): Scope {
-    return this.connectedScope.scope;
-  }
-  public get owningScope(): Scope {
-    return this.connectedScope.owningScope!;
-  }
-
-  public get enabled(): boolean {
-    return this.connectedScope.enabled;
-  }
-  public set enabled(enabled: boolean) {
-    this.connectedScope.enabled = enabled;
-  }
-
-  public get isViewport(): boolean {
-    return false;
-  }
   public get isViewportScope(): boolean {
     return true;
   }
@@ -116,14 +97,6 @@ export class ViewportScope implements IScopeOwner {
 
   public get nextContentActivated(): boolean {
     return this.scope.parent?.owner?.nextContentActivated ?? false;
-  }
-
-  public get parentNextContentActivated(): boolean {
-    return this.scope.parent?.owner?.nextContentActivated ?? false;
-  }
-
-  public get nextContentAction(): NextContentAction {
-    return '';
   }
 
   public toString(): string {
@@ -185,13 +158,6 @@ export class ViewportScope implements IScopeOwner {
   public load(): void | Step<void> {
     return;
   }
-
-  // public loadContent(): Promise<boolean> {
-  //   this.content = !this.remove ? this.nextContent : null;
-  //   this.nextContent = null;
-
-  //   return Promise.resolve(true);
-  // }
 
   public finalizeContentChange(): void {
     // console.log('ViewportScope finalizing', this.content);

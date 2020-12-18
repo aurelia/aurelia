@@ -12,6 +12,10 @@ import { FoundRoute } from '../found-route.js';
  * routing instructions. The routing instructions are most often resolved
  * both lazily and late to support dynamic, local resolutions.
  *
+ * Routing instructions are used to represent the full navigation state
+ * and is serialized when storing and restoring the navigation state. (But
+ * not full component state with entered data and so on. ViewportContent
+ * is used for that.)
  */
 export class RoutingInstruction {
   /**
@@ -110,6 +114,7 @@ export class RoutingInstruction {
     return this.viewport?.instance ?? this.viewportScope ?? null;
   }
 
+  // TODO: Replace this with endpoints
   public get owner(): IScopeOwner | null {
     return this.viewport?.instance ?? this.viewportScope ?? null;
   }

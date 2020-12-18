@@ -54,6 +54,7 @@ export {
 } from './navigation.js';
 
 export {
+  NavigationCoordinator,
   NavigationState,
 } from './navigation-coordinator.js';
 
@@ -119,6 +120,11 @@ export {
 export {
   RoutingInstruction,
 } from './instructions/routing-instruction.js';
+
+export {
+  NextContentAction,
+  Scope,
+} from './scope.js';
 
 export {
   IViewportOptions,

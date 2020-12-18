@@ -9,7 +9,7 @@ import { IRouteableComponent } from './interfaces.js';
 import { Queue, QueueItem } from './queue.js';
 import { IRouter } from './router.js';
 import { RoutingInstruction } from './instructions/routing-instruction.js';
-import { Scope } from './scope.js';
+import { RoutingScope } from './routing-scope.js';
 import { Navigation, IStoredNavigation } from './navigation.js';
 import { Runner, Step } from './runner.js';
 import { IRoute } from './route.js';
@@ -61,7 +61,7 @@ export class NavigatorViewerEvent extends NavigatorViewerState {
 export interface IStoredNavigatorEntry {
   instruction: string | RoutingInstruction[];
   fullStateInstruction: string | RoutingInstruction[];
-  scope?: Scope | null;
+  scope?: RoutingScope | null;
   index?: number;
   firstEntry?: boolean; // Index might change to not require first === 0, firstEntry should be reliable
   route?: IRoute;

@@ -8,7 +8,7 @@ import { CustomElement, ICustomElementController, ICustomElementViewModel } from
 import { ComponentAppellation, LoadInstruction } from './interfaces.js';
 import { ILoadOptions, IRouter } from './router.js';
 import { RoutingInstruction } from './instructions/routing-instruction.js';
-import { Scope } from './scope.js';
+import { RoutingScope } from './routing-scope.js';
 import { InstructionComponent } from './instructions/instruction-component.js';
 
 export interface IRoutingInstructionsOptions {
@@ -20,7 +20,7 @@ export interface IRoutingInstructionsOptions {
  * return it as string for further processing.
  */
 export const LoadInstructionResolver = {
-  createRoutingInstructions(router: IRouter, loadInstructions: LoadInstruction | LoadInstruction[], options?: IRoutingInstructionsOptions | ILoadOptions, keepString = true): { instructions: string | RoutingInstruction[]; scope: Scope | null } {
+  createRoutingInstructions(router: IRouter, loadInstructions: LoadInstruction | LoadInstruction[], options?: IRoutingInstructionsOptions | ILoadOptions, keepString = true): { instructions: string | RoutingInstruction[]; scope: RoutingScope | null } {
     options = options ?? {};
     if ('origin' in options && !('context' in options)) {
       (options as IRoutingInstructionsOptions).context = options.origin;

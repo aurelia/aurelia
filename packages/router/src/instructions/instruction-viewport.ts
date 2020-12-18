@@ -6,7 +6,7 @@
  */
 import { IRouter } from '../router.js';
 import { Viewport } from '../viewport.js';
-import { Scope } from '../scope.js';
+import { RoutingScope } from '../routing-scope.js';
 
 /**
  * Public API - The routing instructions are the core of the router's navigations
@@ -18,7 +18,7 @@ export class InstructionViewport {
   public name: string | null = null;
   public instance: Viewport | null = null;
 
-  public scope: Scope | null = null;
+  public scope: RoutingScope | null = null;
 
   public get none(): boolean {
     return this.name === null && this.instance === null;

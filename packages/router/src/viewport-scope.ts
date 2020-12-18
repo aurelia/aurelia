@@ -8,7 +8,7 @@ import { CustomElementType } from '@aurelia/runtime-html';
 import { LoadInstruction, RouteableComponentType } from './interfaces.js';
 import { IRouter } from './router.js';
 import { RoutingInstruction } from './instructions/routing-instruction.js';
-import { IScopeOwnerOptions, NextContentAction, Scope } from './scope.js';
+import { IScopeOwnerOptions, NextContentAction, RoutingScope } from './routing-scope.js';
 import { arrayRemove } from './utils.js';
 import { Navigation } from './navigation.js';
 import { NavigationCoordinator } from './navigation-coordinator.js';
@@ -39,7 +39,7 @@ export class ViewportScope extends Endpoint {
     name: string,
     router: IRouter,
     connectedCE: IConnectedCustomElement | null,
-    owningScope: Scope | null,
+    owningScope: RoutingScope | null,
     scope: boolean,
     public rootComponentType: CustomElementType | null = null, // temporary. Metadata will probably eliminate it
     public options: IViewportScopeOptions = {
@@ -67,7 +67,7 @@ export class ViewportScope extends Endpoint {
   }
 
   public get siblings(): ViewportScope[] {
-    const parent: Scope | null = this.connectedScope.parent;
+    const parent: RoutingScope | null = this.connectedScope.parent;
     if (parent === null) {
       return [this];
     }

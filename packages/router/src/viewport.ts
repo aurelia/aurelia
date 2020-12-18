@@ -10,7 +10,7 @@ import { IRouter } from './router.js';
 import { arrayRemove } from './utils.js';
 import { ViewportContent } from './viewport-content.js';
 import { RoutingInstruction } from './instructions/routing-instruction.js';
-import { IScopeOwnerOptions, NextContentAction, Scope } from './scope.js';
+import { IScopeOwnerOptions, NextContentAction, RoutingScope } from './routing-scope.js';
 import { Navigation } from './navigation.js';
 import { NavigationCoordinator } from './navigation-coordinator.js';
 import { Runner, Step } from './runner.js';
@@ -48,7 +48,7 @@ export class Viewport extends Endpoint {
     router: IRouter,
     name: string,
     connectedCE: IConnectedCustomElement | null,
-    owningScope: Scope,
+    owningScope: RoutingScope,
     scope: boolean,
     public options: IViewportOptions = {}
   ) {
@@ -57,10 +57,10 @@ export class Viewport extends Endpoint {
     this.content = new ViewportContent();
   }
 
-  public get scope(): Scope {
+  public get scope(): RoutingScope {
     return this.connectedScope.scope;
   }
-  public get owningScope(): Scope {
+  public get owningScope(): RoutingScope {
     return this.connectedScope.owningScope!;
   }
 
@@ -86,7 +86,7 @@ export class Viewport extends Endpoint {
   }
 
   public get doForceRemove(): boolean {
-    let scope: Scope | null = this.connectedScope;
+    let scope: RoutingScope | null = this.connectedScope;
     while (scope !== null) {
       if (scope.viewport !== null && scope.viewport.forceRemove) {
         return true;

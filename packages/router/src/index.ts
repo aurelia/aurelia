@@ -123,8 +123,8 @@ export {
 
 export {
   NextContentAction,
-  Scope,
-} from './scope.js';
+  RoutingScope,
+} from './routing-scope.js';
 
 export {
   IViewportOptions,

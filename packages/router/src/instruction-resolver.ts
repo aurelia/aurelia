@@ -6,7 +6,7 @@
  */
 import { ComponentParameters, ComponentAppellation, ViewportHandle } from './interfaces.js';
 import { RoutingInstruction } from './instructions/routing-instruction.js';
-import { Scope } from './scope.js';
+import { RoutingScope } from './routing-scope.js';
 import { FoundRoute } from './found-route.js';
 import { IRouteSeparators, ISeparators } from './router-options-instance.js';
 
@@ -319,7 +319,7 @@ export class InstructionResolver {
       .join(seps.parameterSeparator);
   }
 
-  public matchScope(instructions: RoutingInstruction[], scope: Scope): RoutingInstruction[] {
+  public matchScope(instructions: RoutingInstruction[], scope: RoutingScope): RoutingInstruction[] {
     const matching: RoutingInstruction[] = [];
 
     matching.push(...instructions.filter(instruction => instruction.scope === scope));

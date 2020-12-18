@@ -43,9 +43,9 @@ export interface IScopeOwnerOptions {
  */
 export interface IScopeOwner {
   readonly name: string;
-  readonly connectedScope: Scope;
-  readonly scope: Scope;
-  readonly owningScope: Scope | null;
+  readonly connectedScope: RoutingScope;
+  readonly scope: RoutingScope;
+  readonly owningScope: RoutingScope | null;
   enabled: boolean;
   path: string | null;
 
@@ -75,13 +75,13 @@ export interface IScopeOwner {
 /**
  * @internal - Shouldn't be used directly
  */
-export class Scope {
+export class RoutingScope {
   public id: string = '.';
-  public scope: Scope;
+  public scope: RoutingScope;
 
-  public parent: Scope | null = null;
-  public children: Scope[] = [];
-  public replacedChildren: Scope[] = [];
+  public parent: RoutingScope | null = null;
+  public children: RoutingScope[] = [];
+  public replacedChildren: RoutingScope[] = [];
   public path: string | null = null;
 
   public enabled: boolean = true;
@@ -92,7 +92,7 @@ export class Scope {
   public constructor(
     public readonly router: IRouter,
     public readonly hasScope: boolean,
-    public owningScope: Scope | null,
+    public owningScope: RoutingScope | null,
     public viewport: Viewport | null = null,
     public viewportScope: ViewportScope | null = null,
     public rootComponentType: CustomElementType | null = null, // temporary. Metadata will probably eliminate it
@@ -131,10 +131,10 @@ export class Scope {
     }
     return null;
   }
-  public get enabledChildren(): Scope[] {
+  public get enabledChildren(): RoutingScope[] {
     return this.children.filter(scope => scope.enabled);
   }
-  public get hoistedChildren(): Scope[] {
+  public get hoistedChildren(): RoutingScope[] {
     const scopes = this.enabledChildren;
     while (scopes.some(scope => scope.passThroughScope)) {
       for (const scope of scopes.slice()) {
@@ -174,7 +174,7 @@ export class Scope {
     return this.parent.parentNextContentAction;
   }
 
-  public getEnabledViewports(viewportScopes: Scope[]): Record<string, Viewport> {
+  public getEnabledViewports(viewportScopes: RoutingScope[]): Record<string, Viewport> {
     return viewportScopes
       .filter(scope => !scope.isViewportScope)
       .map(scope => scope.viewport!)
@@ -191,7 +191,7 @@ export class Scope {
     return this.allViewports(includeDisabled).filter(viewport => viewport.owningScope === this);
   }
 
-  public getOwnedScopes(includeDisabled: boolean = false): Scope[] {
+  public getOwnedScopes(includeDisabled: boolean = false): RoutingScope[] {
     const scopes = this.allScopes(includeDisabled).filter(scope => scope.owningScope === this);
     // Hoist children to pass through scopes
     for (const scope of scopes.slice()) {
@@ -464,7 +464,7 @@ export class Scope {
     return true;
   }
 
-  public addChild(scope: Scope): void {
+  public addChild(scope: RoutingScope): void {
     if (!this.children.some(vp => vp === scope)) {
       if (scope.parent !== null) {
         scope.parent.removeChild(scope);
@@ -473,7 +473,7 @@ export class Scope {
       scope.parent = this;
     }
   }
-  public removeChild(scope: Scope): void {
+  public removeChild(scope: RoutingScope): void {
     const index = this.children.indexOf(scope);
     if (index >= 0) {
       this.children.splice(index, 1);
@@ -500,8 +500,8 @@ export class Scope {
     return this.allScopes(includeDisabled, includeReplaced).filter(scope => scope.isViewport).map(scope => scope.viewport!);
   }
 
-  public allScopes(includeDisabled: boolean = false, includeReplaced: boolean = false): Scope[] {
-    const scopes: Scope[] = includeDisabled ? this.children.slice() : this.enabledChildren;
+  public allScopes(includeDisabled: boolean = false, includeReplaced: boolean = false): RoutingScope[] {
+    const scopes: RoutingScope[] = includeDisabled ? this.children.slice() : this.enabledChildren;
     for (const scope of scopes.slice()) {
       scopes.push(...scope.allScopes(includeDisabled, includeReplaced));
     }

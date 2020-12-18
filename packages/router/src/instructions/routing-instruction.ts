@@ -2,7 +2,7 @@ import { InstructionParameters } from './instruction-parameters';
 import { InstructionViewport } from './instruction-viewport';
 import { InstructionComponent } from './instruction-component';
 import { ComponentAppellation, ComponentParameters, ViewportHandle } from '../interfaces.js';
-import { Scope, IScopeOwner } from '../scope.js';
+import { RoutingScope, IScopeOwner } from '../routing-scope.js';
 import { ViewportScope } from '../viewport-scope.js';
 import { FoundRoute } from '../found-route.js';
 
@@ -43,7 +43,7 @@ export class RoutingInstruction {
   /**
    * The scope the the routing instruction belongs to.
    */
-  public scope: Scope | null = null;
+  public scope: RoutingScope | null = null;
   /**
    * The context of the routing instruction.
    */

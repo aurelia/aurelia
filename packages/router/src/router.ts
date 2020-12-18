@@ -22,7 +22,7 @@ import { IViewportOptions, Viewport } from './viewport.js';
 import { RoutingInstruction } from './instructions/routing-instruction.js';
 import { FoundRoute } from './found-route.js';
 import { HookManager, IHookDefinition, HookIdentity, HookFunction, IHookOptions, BeforeNavigationHookFunction, TransformFromUrlHookFunction, TransformToUrlHookFunction, SetTitleHookFunction } from './hook-manager.js';
-import { Scope, IScopeOwner } from './scope.js';
+import { RoutingScope, IScopeOwner } from './routing-scope.js';
 import { IViewportScopeOptions, ViewportScope } from './viewport-scope.js';
 import { BrowserViewerStore } from './browser-viewer-store.js';
 import { Navigation } from './navigation.js';
@@ -763,12 +763,12 @@ export class Router implements IRouter {
   /**
    * @internal
    */
-  public findScope(origin: Element | ICustomElementViewModel | Viewport | Scope | ICustomElementController | null): Scope {
+  public findScope(origin: Element | ICustomElementViewModel | Viewport | RoutingScope | ICustomElementController | null): RoutingScope {
     // this.ensureRootScope();
     if (origin === void 0 || origin === null) {
       return this.rootScope!.scope;
     }
-    if (origin instanceof Scope || origin instanceof Viewport) {
+    if (origin instanceof RoutingScope || origin instanceof Viewport) {
       return origin.scope;
     }
     return this.getClosestScope(origin) || this.rootScope!.scope;
@@ -776,7 +776,7 @@ export class Router implements IRouter {
   /**
    * @internal
    */
-  public findParentScope(container: IContainer | null): Scope {
+  public findParentScope(container: IContainer | null): RoutingScope {
     if (container === null) {
       return this.rootScope!.scope;
     }
@@ -788,7 +788,7 @@ export class Router implements IRouter {
       }
     }
     if (container.has(ClosestScope, true)) {
-      return container.get<Scope>(ClosestScope);
+      return container.get<RoutingScope>(ClosestScope);
     }
     return this.rootScope!.scope;
   }
@@ -821,14 +821,14 @@ export class Router implements IRouter {
   /**
    * @internal - Called from the viewport scope custom element in created()
    */
-  public setClosestScope(viewModelOrContainer: ICustomElementViewModel | IContainer, scope: Scope): void {
+  public setClosestScope(viewModelOrContainer: ICustomElementViewModel | IContainer, scope: RoutingScope): void {
     const container = this.getContainer(viewModelOrContainer);
     Registration.instance(ClosestScope, scope).register(container!);
   }
   /**
    * @internal
    */
-  public getClosestScope(viewModelOrElement: ICustomElementViewModel | Element | ICustomElementController | IContainer): Scope | null {
+  public getClosestScope(viewModelOrElement: ICustomElementViewModel | Element | ICustomElementController | IContainer): RoutingScope | null {
     const container: IContainer | null = 'resourceResolvers' in viewModelOrElement
       ? viewModelOrElement as IContainer
       : this.getClosestContainer(viewModelOrElement as ICustomElementViewModel | Element | ICustomElementController);
@@ -838,7 +838,7 @@ export class Router implements IRouter {
     if (!container.has(ClosestScope, true)) {
       return null;
     }
-    return container.get<Scope>(ClosestScope) || null;
+    return container.get<RoutingScope>(ClosestScope) || null;
   }
   /**
    * @internal
@@ -927,7 +927,7 @@ export class Router implements IRouter {
     //   toOptions.context = options.origin;
     // }
 
-    let scope: Scope | null = null;
+    let scope: RoutingScope | null = null;
     ({ instructions, scope } = LoadInstructionResolver.createRoutingInstructions(this, instructions, options));
 
     if (options.append && (!this.loadedFirst || this.processingNavigation !== null)) {
@@ -990,7 +990,7 @@ export class Router implements IRouter {
     }
     options = options ?? {};
 
-    let scope: Scope | null = null;
+    let scope: RoutingScope | null = null;
     ({ instructions, scope } = LoadInstructionResolver.createRoutingInstructions(this, instructions, options));
 
     for (const instruction of instructions as RoutingInstruction[]) {
@@ -1112,7 +1112,7 @@ export class Router implements IRouter {
     return instructions.some(instruction => this.hasSiblingInstructions(instruction.nextScopeInstructions));
   }
 
-  private appendInstructions(instructions: RoutingInstruction[], scope: Scope | null = null): void {
+  private appendInstructions(instructions: RoutingInstruction[], scope: RoutingScope | null = null): void {
     if (scope === null) {
       scope = this.rootScope!.scope;
     }
@@ -1167,7 +1167,7 @@ export class Router implements IRouter {
       if (instructions[0].scope === null) {
         instructions[0].scope = this.rootScope!.scope;
       }
-      const scope: Scope = instructions[0].scope!;
+      const scope: RoutingScope = instructions[0].scope!;
       const { foundViewports, remainingInstructions } = scope.findViewports(instructions.filter(instruction => instruction.scope === scope), alreadyFound, withoutViewports);
       found.push(...foundViewports);
       remaining.push(...remainingInstructions);

@@ -13,7 +13,7 @@ import {
   LoadInstruction,
   IRouter,
   NextContentAction,
-  Scope,
+  RoutingScope,
   Step,
   Route,
   RoutingInstruction,
@@ -39,7 +39,7 @@ export interface IEndpointOptions {
 }
 
 export class Endpoint {
-  public connectedScope: Scope;
+  public connectedScope: RoutingScope;
   public nextContentAction: NextContentAction = '';
 
   public path: string | null = null;
@@ -48,18 +48,18 @@ export class Endpoint {
     public readonly router: IRouter,
     public name: string,
     public connectedCE: IConnectedCustomElement | null,
-    owningScope: Scope | null,
+    owningScope: RoutingScope | null,
     scope: boolean,
     public options: IEndpointOptions = {}
   ) {
     // TODO: Skip last from new and add in subclass. OR fix multiple types via Endpoint...
-    this.connectedScope = new Scope(router, scope, owningScope); // , this);
+    this.connectedScope = new RoutingScope(router, scope, owningScope); // , this);
   }
 
-  public get scope(): Scope {
+  public get scope(): RoutingScope {
     return this.connectedScope.scope;
   }
-  public get owningScope(): Scope {
+  public get owningScope(): RoutingScope {
     return this.connectedScope.owningScope!;
   }
 

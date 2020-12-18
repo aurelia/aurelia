@@ -9,12 +9,12 @@ import { FoundRoute } from '../found-route.js';
 /**
  * The routing instructions are the core of the router's navigations. All
  * navigation instructions to the router are translated to a set of
- * routing instructions. The routing instructions are most often resolved
- * both lazily and late to support dynamic, local resolutions.
+ * routing instructions. The routing instructions are resolved "non-early"
+ * to support dynamic, local resolutions.
  *
  * Routing instructions are used to represent the full navigation state
  * and is serialized when storing and restoring the navigation state. (But
- * not full component state with entered data and so on. ViewportContent
+ * not full component state with component instance state. ViewportContent
  * is used for that.)
  */
 export class RoutingInstruction {
@@ -64,7 +64,7 @@ export class RoutingInstruction {
 
   /**
    * Whether the routing instruction is the result of a viewport default (meaning it has
-   * lower priority when finding viewports).
+   * lower priority when processing instructions).
    */
   public default: boolean = false;
 
@@ -114,7 +114,7 @@ export class RoutingInstruction {
     return this.viewport?.instance ?? this.viewportScope ?? null;
   }
 
-  // TODO: Replace this with endpoints
+  // TODO: Remove this once endpoint is fully adopted
   public get owner(): IScopeOwner | null {
     return this.viewport?.instance ?? this.viewportScope ?? null;
   }
@@ -144,7 +144,6 @@ export class RoutingInstruction {
     return this.viewport.same(other.viewport);
   }
 
-  // TODO: Somewhere we need to check for format such as spaces etc
   /**
    * Compare the routing instruction's parameters with the parameters of another routing
    * instruction. Compares on actual values.
@@ -153,6 +152,7 @@ export class RoutingInstruction {
    * @param compareType - Whether comparision should be made on type as well
    */
   public sameParameters(other: RoutingInstruction, compareType: boolean = false): boolean {
+    // TODO: Somewhere we need to check for format such as spaces etc
     if (!this.component.same(other.component, compareType)) {
       return false;
     }

@@ -18,7 +18,7 @@ export type RoutingHookIntegration = 'integrated' | 'separate';
 /**
  * Public API
  */
-export interface IRouterActivateOptions extends Omit<Partial<RouterOptions>, 'title'> {
+export interface IRouterStartOptions extends Omit<Partial<RouterOptions>, 'title'> {
   title?: string | IRouterTitle;
 }
 

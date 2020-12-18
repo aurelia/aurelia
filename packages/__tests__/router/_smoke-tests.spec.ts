@@ -12,7 +12,7 @@ import {
   IRouter,
   LoadInstruction,
   Navigation,
-  IRouterActivateOptions,
+  IRouterStartOptions,
 } from '@aurelia/router';
 import {
   customElement,
@@ -144,7 +144,7 @@ describe('router (smoke tests)', function () {
 
     const Z = [...A, ...B];
 
-    const getRouterOptions = (): IRouterActivateOptions => translateOptions({});
+    const getRouterOptions = (): IRouterStartOptions => translateOptions({});
 
     // Start with a broad sample of non-generated tests that are easy to debug and mess around with.
     it(`${name(Root1)} can load ${name(A01)} as a string and can determine if it's active`, async function () {

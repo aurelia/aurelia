@@ -8,7 +8,7 @@ import { ComponentParameters, ComponentAppellation, ViewportHandle } from './int
 import { RoutingInstruction } from './instructions/routing-instruction.js';
 import { RoutingScope } from './routing-scope.js';
 import { FoundRoute } from './found-route.js';
-import { IRouteSeparators, ISeparators } from './router-options-instance.js';
+import { IRouteSeparators, ISeparators } from './router-options.js';
 
 export interface IInstructionResolverOptions {
   separators?: IRouteSeparators;

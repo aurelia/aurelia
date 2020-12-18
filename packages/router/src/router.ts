@@ -28,7 +28,7 @@ import { BrowserViewerStore } from './browser-viewer-store.js';
 import { Navigation } from './navigation.js';
 import { IConnectedCustomElement } from './endpoints/endpoint.js';
 import { NavigationCoordinator } from './navigation-coordinator.js';
-import { IRouterActivateOptions, RouterOptions } from './router-options-instance.js';
+import { IRouterStartOptions, ISeparators, RouterOptions } from './router-options.js';
 import { OpenPromise } from './open-promise.js';
 import { NavigatorStateChangeEvent } from './events.js';
 import { Runner, Step } from './runner.js';
@@ -52,7 +52,7 @@ export interface ILoadOptions {
 // /**
 //  * Public API
 //  */
-// export interface IRouterActivateOptions extends Omit<Partial<IRouterOptions>, 'title'> {
+// export interface IRouterStartOptions extends Omit<Partial<IRouterOptions>, 'title'> {
 //   title?: string | IRouterTitle;
 // }
 
@@ -108,7 +108,7 @@ class ClosestViewportCustomElement { }
 class ClosestScope { }
 
 export class Router implements IRouter {
-  public static readonly inject: readonly Key[] = [IContainer, IEventAggregator, Navigator, BrowserViewerStore, LinkHandler, InstructionResolver, HookManager, RouterOptions];
+  public static readonly inject: readonly Key[] = [IContainer, IEventAggregator, Navigator, BrowserViewerStore, LinkHandler, InstructionResolver, HookManager];
 
   public rootScope: ViewportScope | null = null;
 
@@ -192,7 +192,6 @@ export class Router implements IRouter {
      * @internal - Shouldn't be used directly. Probably.
      */
     public hookManager: HookManager,
-    public options: RouterOptions,
   ) {
     // this.hookManager = new HookManager();
   }
@@ -205,7 +204,7 @@ export class Router implements IRouter {
   }
 
   public get isRestrictedNavigation(): boolean {
-    const syncStates = this.options.navigationSyncStates;
+    const syncStates = RouterOptions.navigationSyncStates;
     return syncStates.includes('guardedLoad') ||
       syncStates.includes('unloaded') ||
       syncStates.includes('loaded') ||
@@ -217,7 +216,7 @@ export class Router implements IRouter {
    * @internal
    */
   public get statefulHistory(): boolean {
-    return this.options.statefulHistoryLength !== void 0 && this.options.statefulHistoryLength > 0;
+    return RouterOptions.statefulHistoryLength !== void 0 && RouterOptions.statefulHistoryLength > 0;
   }
 
   // TODO: Switch this to use (probably) an event instead
@@ -225,7 +224,7 @@ export class Router implements IRouter {
   /**
    * Public API
    */
-  public start(options?: IRouterActivateOptions): void {
+  public start(options?: IRouterStartOptions): void {
     if (this.isActive) {
       throw new Error('Router has already been started');
     }
@@ -233,34 +232,34 @@ export class Router implements IRouter {
     this.isActive = true;
     options = options ?? {};
     const titleOptions = {
-      ...this.options.title,
+      ...RouterOptions.title,
       ...(typeof options.title === 'string' ? { appTitle: options.title } : options.title),
     };
     options.title = titleOptions;
 
-    const separatorOptions = {
-      ...this.options.separators,
-      ...options.separators ?? {},
+    const separatorOptions: ISeparators = {
+      ...RouterOptions.separators,
+      ...(options as IRouterStartOptions & { separators: ISeparators }).separators ?? {},
     };
-    options.separators = separatorOptions;
+    (options as IRouterStartOptions & { separators: ISeparators }).separators = separatorOptions;
 
-    Object.assign(this.options, options);
+    Object.assign(RouterOptions, options);
 
-    if (this.options.hooks !== void 0) {
-      this.addHooks(this.options.hooks);
+    if (RouterOptions.hooks !== void 0) {
+      this.addHooks(RouterOptions.hooks);
     }
 
-    this.instructionResolver.start({ separators: this.options.separators });
+    this.instructionResolver.start({ separators: RouterOptions.separators });
     this.navigator.start(this, {
       callback: this.navigatorCallback,
       store: this.navigation,
-      statefulHistoryLength: this.options.statefulHistoryLength,
+      statefulHistoryLength: RouterOptions.statefulHistoryLength,
       serializeCallback: this.statefulHistory ? this.navigatorSerializeCallback : void 0,
     });
-    this.linkHandler.start({ callback: this.linkCallback, useHref: this.options.useHref });
+    this.linkHandler.start({ callback: this.linkCallback, useHref: RouterOptions.useHref });
 
     this.navigatorStateChangeEventSubscription = this.ea.subscribe(NavigatorStateChangeEvent.eventName, this.handleNavigatorStateChangeEvent);
-    this.navigation.start({ useUrlFragmentHash: this.options.useUrlFragmentHash });
+    this.navigation.start({ useUrlFragmentHash: RouterOptions.useUrlFragmentHash });
 
     this.ensureRootScope();
     // TODO: Switch this to use (probably) an event instead
@@ -297,6 +296,7 @@ export class Router implements IRouter {
     this.linkHandler.stop();
     this.navigator.stop();
     this.navigation.stop();
+    RouterOptions.resetDefaults();
 
     this.navigatorStateChangeEventSubscription.dispose();
   }
@@ -409,8 +409,8 @@ export class Router implements IRouter {
     // console.log('pendingConnects', [...this.pendingConnects]);
     this.pendingConnects.clear();
 
-    if (this.options.reportCallback) {
-      this.options.reportCallback(instruction);
+    if (RouterOptions.reportCallback) {
+      RouterOptions.reportCallback(instruction);
     }
     // let {
     //   fullStateInstruction,
@@ -421,7 +421,7 @@ export class Router implements IRouter {
     //   clearScopeOwners,
     //   clearViewportScopes,
     // }
-    const coordinator = NavigationCoordinator.create(this, instruction, { syncStates: this.options.navigationSyncStates }) as NavigationCoordinator;
+    const coordinator = NavigationCoordinator.create(this, instruction, { syncStates: RouterOptions.navigationSyncStates }) as NavigationCoordinator;
     // const steps = [
     //   () => coordinator.syncState('loaded'),
     //   () => { console.log('SyncState loaded resolved!', steps); },
@@ -473,7 +473,7 @@ export class Router implements IRouter {
     }
     // TODO: Used to have an early exit if no instructions. Restore it?
 
-    if (!this.options.additiveInstructionDefault &&
+    if (!RouterOptions.additiveInstructionDefault &&
       instructions.length > 0 &&
       !this.instructionResolver.isAddAllViewportsInstruction(instructions[0]) &&
       !this.instructionResolver.isClearAllViewportsInstruction(instructions[0])) {
@@ -1147,10 +1147,10 @@ export class Router implements IRouter {
     if (typeof route !== 'string' || route.length === 0) {
       return;
     }
-    if (this.options.useConfiguredRoutes && this.options.useDirectRoutes) {
+    if (RouterOptions.useConfiguredRoutes && RouterOptions.useDirectRoutes) {
       // TODO: Add missing/unknown route handling
       throw new Error("No matching configured route or component found for '" + route + "'");
-    } else if (this.options.useConfiguredRoutes) {
+    } else if (RouterOptions.useConfiguredRoutes) {
       // TODO: Add missing/unknown route handling
       throw new Error("No matching configured route found for '" + route + "'");
     } else {
@@ -1259,11 +1259,11 @@ export class Router implements IRouter {
       // Hook didn't return a title, so run title logic
       const componentTitles = this.stringifyTitles(title, instruction);
 
-      title = this.options.title.appTitle;
+      title = RouterOptions.title.appTitle;
       title = title.replace("${componentTitles}", componentTitles);
       title = title.replace("${appTitleSeparator}",
         componentTitles !== ''
-          ? this.options.title.appTitleSeparator
+          ? RouterOptions.title.appTitleSeparator
           : '');
     }
     // Invoke again with complete string
@@ -1307,9 +1307,9 @@ export class Router implements IRouter {
           nextStringified = "[ " + nextStringified + " ]";
         }
         if (stringified.length > 0) {
-          stringified = this.options.title.componentTitleOrder === 'top-down'
-            ? stringified + this.options.title.componentTitleSeparator + nextStringified
-            : nextStringified + this.options.title.componentTitleSeparator + stringified;
+          stringified = RouterOptions.title.componentTitleOrder === 'top-down'
+            ? stringified + RouterOptions.title.componentTitleSeparator + nextStringified
+            : nextStringified + RouterOptions.title.componentTitleSeparator + stringified;
         } else {
           stringified = nextStringified;
         }
@@ -1334,8 +1334,8 @@ export class Router implements IRouter {
         }
       }
     }
-    if ((this.options.title.transformTitle ?? null) !== null) {
-      title = this.options.title.transformTitle!.call(this, title, instruction);
+    if ((RouterOptions.title.transformTitle ?? null) !== null) {
+      title = RouterOptions.title.transformTitle!.call(this, title, instruction);
     }
     return title;
   }

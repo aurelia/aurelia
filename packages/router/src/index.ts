@@ -99,18 +99,15 @@ export {
 } from './route-recognizer.js';
 
 export {
-  // IRouterActivateOptions,
-  // IRouterOptions,
-  // IRouterTitle,
   IRouter,
   Router,
 } from './router.js';
 
 export {
-  IRouterActivateOptions,
+  IRouterStartOptions,
   IRouterTitle,
   RouterOptions,
-} from './router-options-instance.js';
+} from './router-options.js';
 
 export {
   Routes,

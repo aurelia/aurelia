@@ -260,7 +260,7 @@ export {
   // RouteRecognizer,
 
   RouterOptions,
-  IRouterActivateOptions,
+  IRouterStartOptions,
   IRouter,
   Router,
 

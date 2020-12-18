@@ -17,6 +17,7 @@ import { Runner, Step } from './runner.js';
 import { Routes } from './decorators/routes.js';
 import { Route } from './route.js';
 import { Endpoint, IRoutingController, IConnectedCustomElement } from './endpoints/endpoint.js';
+import { RouterOptions } from './router-options.js';
 
 export interface IViewportOptions extends IScopeOwnerOptions {
   scope?: boolean;
@@ -393,9 +394,9 @@ export class Viewport extends Endpoint {
       // () => coordinator.addEntityState(this, 'bound'),
     ];
     if (performSwap) {
-      if (this.router.options.swapStrategy.includes('parallel')) {
+      if (RouterOptions.swapStrategy.includes('parallel')) {
         lifecycleSteps.push((step: Step<void | void[]>): Step<void> => {
-          if (this.router.options.swapStrategy.includes('add')) {
+          if (RouterOptions.swapStrategy.includes('add')) {
             // console.log('>>> Runner.run', 'transition.parallel-add');
             return Runner.runParallel<void>(step as Step<void>,
               (step: Step<void | void[]>): void | Step<void> => this.addContent(step as Step<void>),
@@ -431,10 +432,10 @@ export class Viewport extends Endpoint {
       } else {
         lifecycleSteps.push(
           (step: Step<void | void[]>) => performSwap
-            ? (this.router.options.swapStrategy.includes('add') ? this.addContent(step as Step<void>) : this.removeContent(step as Step<void>))
+            ? (RouterOptions.swapStrategy.includes('add') ? this.addContent(step as Step<void>) : this.removeContent(step as Step<void>))
             : void 0,
           (step: Step<void | void[]>) => performSwap
-            ? (this.router.options.swapStrategy.includes('add') ? this.removeContent(step as Step<void>) : this.addContent(step as Step<void>))
+            ? (RouterOptions.swapStrategy.includes('add') ? this.removeContent(step as Step<void>) : this.addContent(step as Step<void>))
             : void 0,
         );
       }
@@ -444,8 +445,8 @@ export class Viewport extends Endpoint {
     // const lifecycleSteps = [
     //   () => coordinator.syncState('routed'),
     //   // () => coordinator.addEntityState(this, 'bound'),
-    //   () => performSwap ? (this.router.options.swapStrategy.includes('add') ? this.addContent() : this.removeContent()) : true,
-    //   () => performSwap ? (this.router.options.swapStrategy.includes('add') ? this.removeContent() : this.addContent()) : true,
+    //   () => performSwap ? (RouterOptions.swapStrategy.includes('add') ? this.addContent() : this.removeContent()) : true,
+    //   () => performSwap ? (RouterOptions.swapStrategy.includes('add') ? this.removeContent() : this.addContent()) : true,
     //   () => coordinator.addEntityState(this, 'swapped'),
     // ];
 
@@ -550,9 +551,9 @@ export class Viewport extends Endpoint {
 
     // console.log('>>> Runner.run', 'removeContent');
     return Runner.run(step,
-      // () => { const promise = this.connectedScope.removeContent(); return !this.router.options.swapStrategy.includes('parallel') ? promise : void 0; },
+      // () => { const promise = this.connectedScope.removeContent(); return !RouterOptions.swapStrategy.includes('parallel') ? promise : void 0; },
       // () => this.connectedScope.removeContent(),
-      // () => !this.router.options.swapStrategy.includes('parallel') ? this.connectedScope.removeContent() : void 0,
+      // () => !RouterOptions.swapStrategy.includes('parallel') ? this.connectedScope.removeContent() : void 0,
       () => this.deactivate(null, this.connectedController, LifecycleFlags.none),
       // () => {
       //   const result = this.deactivate(null, this.connectedController, LifecycleFlags.none);
@@ -563,7 +564,7 @@ export class Viewport extends Endpoint {
       //   }
       // },
       () => this.dispose(),
-      // () => this.router.options.swapStrategy.includes('parallel') ? this.connectedScope.removeContent() : void 0,
+      // () => RouterOptions.swapStrategy.includes('parallel') ? this.connectedScope.removeContent() : void 0,
     ) as Step<void>;
   }
 
@@ -777,17 +778,17 @@ export class Viewport extends Endpoint {
         const component = this.getComponentInstance();
         title = typeTitle.call(component, component!, navigationInstruction);
       }
-    } else if (this.router.options.title.useComponentNames) {
+    } else if (RouterOptions.title.useComponentNames) {
       let name = this.getContentInstruction()!.component.name ?? '';
-      const prefix = this.router.options.title.componentPrefix ?? '';
+      const prefix = RouterOptions.title.componentPrefix ?? '';
       if (name.startsWith(prefix)) {
         name = name.slice(prefix.length);
       }
       name = name.replace('-', ' ');
       title = name.slice(0, 1).toLocaleUpperCase() + name.slice(1);
     }
-    if (this.router.options.title.transformTitle !== void 0) {
-      title = this.router.options.title.transformTitle.call(this, title, this.getContentInstruction()!);
+    if (RouterOptions.title.transformTitle !== void 0) {
+      title = RouterOptions.title.transformTitle.call(this, title, this.getContentInstruction()!);
     }
     return title;
   }

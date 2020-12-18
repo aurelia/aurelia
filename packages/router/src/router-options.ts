@@ -18,8 +18,23 @@ export type RoutingHookIntegration = 'integrated' | 'separate';
 /**
  * Public API
  */
-export interface IRouterActivateOptions extends Omit<Partial<RouterOptions>, 'title'> {
+export interface IRouterStartOptions extends Omit<Partial<RouterOptions>, 'title'> {
   title?: string | IRouterTitle;
+
+  // The below needed until interface can extend static class properties
+  separators?: ISeparators;
+
+  useUrlFragmentHash?: boolean;
+  useHref?: boolean;
+  statefulHistoryLength?: number;
+  useDirectRoutes?: boolean;
+  useConfiguredRoutes?: boolean;
+  additiveInstructionDefault?: boolean;
+  hooks?: IHookDefinition[];
+
+  navigationSyncStates?: NavigationState[];
+  swapStrategy?: SwapStrategy;
+  routingHookIntegration?: RoutingHookIntegration;
 }
 
 export interface IRouterTitle extends Partial<ITitleConfiguration> { }
@@ -95,4 +110,44 @@ export class RouterOptions implements INavigatorOptions {
   public static navigationSyncStates: NavigationState[] = ['guardedUnload', 'swapped', 'completed'];
   public static swapStrategy: SwapStrategy = 'add-first-sequential';
   public static routingHookIntegration: RoutingHookIntegration = 'integrated';
+
+  public static resetDefaults(): void {
+    RouterOptions.separators = {
+      viewport: '@', // ':',
+      sibling: '+', // '/',
+      scope: '/', // '+',
+      scopeStart: '(', // ''
+      scopeEnd: ')', // ''
+      noScope: '!',
+      parameters: '(', // '='
+      parametersEnd: ')', // ''
+      parameterSeparator: ',',
+      parameterKeySeparator: '=',
+      parameter: '&',
+      add: '+',
+      clear: '-',
+      action: '.',
+    };
+
+    RouterOptions.useUrlFragmentHash = true;
+    RouterOptions.useHref = true;
+    RouterOptions.statefulHistoryLength = 0;
+    RouterOptions.useDirectRoutes = true;
+    RouterOptions.useConfiguredRoutes = true;
+    RouterOptions.additiveInstructionDefault = true;
+    RouterOptions.title = {
+      // eslint-disable-next-line no-useless-escape
+      appTitle: "${componentTitles}\${appTitleSeparator}Aurelia",
+      appTitleSeparator: ' | ',
+      componentTitleOrder: 'top-down',
+      componentTitleSeparator: ' > ',
+      useComponentNames: true,
+      componentPrefix: 'app-',
+    };
+    RouterOptions.hooks = [];
+
+    RouterOptions.navigationSyncStates = ['guardedUnload', 'swapped', 'completed'];
+    RouterOptions.swapStrategy = 'add-first-sequential';
+    RouterOptions.routingHookIntegration = 'integrated';
+  }
 }

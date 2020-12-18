@@ -7,7 +7,7 @@ import { GotoCustomAttribute } from './resources/goto.js';
 import { LoadCustomAttribute } from './resources/load.js';
 import { HrefCustomAttribute } from './resources/href.js';
 import { IRouter } from './router.js';
-import { IRouterActivateOptions } from './router-options-instance.js';
+import { IRouterStartOptions } from './router-options.js';
 
 export const RouterRegistration = IRouter as unknown as IRegistry;
 
@@ -49,7 +49,7 @@ export const DefaultResources: IRegistry[] = [
   HrefCustomAttribute as unknown as IRegistry,
 ];
 
-let configurationOptions: IRouterActivateOptions = {};
+let configurationOptions: IRouterStartOptions = {};
 let configurationCall: ((router: IRouter) => void) = (router: IRouter) => {
   router.start(configurationOptions);
 };
@@ -83,7 +83,7 @@ export const RouterConfiguration = {
    * Parameter is either a config object that's passed to Router's start
    * or a config function that's called instead of Router's start.
    */
-  customize(config?: IRouterActivateOptions | ((router: IRouter) => void)) {
+  customize(config?: IRouterStartOptions | ((router: IRouter) => void)) {
     if (config === undefined) {
       configurationOptions = {};
       configurationCall = (router: IRouter) => {

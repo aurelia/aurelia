@@ -1,6 +1,6 @@
 import { Constructable, LogLevel, Registration, ILogConfig, LoggerConfiguration, DI, IPlatform } from '@aurelia/kernel';
 import { Aurelia } from '@aurelia/runtime-html';
-import { RouterConfiguration, IRouter, IRouterActivateOptions, NavigationState } from '@aurelia/router';
+import { RouterConfiguration, IRouter, IRouterStartOptions, NavigationState } from '@aurelia/router';
 import { TestContext } from '@aurelia/testing';
 
 import { IHIAConfig, IHookInvocationAggregator } from './hook-invocation-tracker.js';
@@ -17,7 +17,7 @@ export interface IRouterOptionsSpec {
 export type SwapStrategy = 'sequential-add-first' | 'sequential-remove-first' | 'parallel-remove-first';
 export type DeferralJuncture = 'guard-hooks' | 'load-hooks' | 'none';
 
-export function translateOptions(routerOptionsSpec: IRouterOptionsSpec): IRouterActivateOptions {
+export function translateOptions(routerOptionsSpec: IRouterOptionsSpec): IRouterStartOptions {
   let swap;
   switch (routerOptionsSpec.swapStrategy) {
     case 'sequential-add-first':
@@ -71,7 +71,7 @@ export async function createFixture<T extends Constructable>(
   Component: T,
   deps: Constructable[] = [],
   createHIAConfig: () => IHIAConfig = null,
-  createRouterOptions: () => IRouterActivateOptions = null,
+  createRouterOptions: () => IRouterStartOptions = null,
   level: LogLevel = LogLevel.warn,
 ) {
   const hiaConfig = createHIAConfig != null ? createHIAConfig() : null;

@@ -139,6 +139,6 @@ function filterHooks(hooks: string[]): string[] {
     && !hook.endsWith('.tick')
     // && !hook.endsWith('.dispose')
     // && !hook.startsWith('stop.')
-    // && (hook.endsWith('canUnload') || hook.endsWith('canLoad') || hook.endsWith('unload') || hook.endsWith('load'))
+    && (hook.includes('canUnload') || hook.includes('canLoad') || hook.includes('unload') || hook.includes('load'))
   ).map(hook => hook.replace(/:.*?\./gi, '.').replace(/\.enter$/, ''));
 }

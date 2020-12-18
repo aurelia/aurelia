@@ -20,6 +20,7 @@ import { NavigationCoordinator } from './navigation-coordinator.js';
 import { Runner, Step } from './runner.js';
 import { IRoute, Route } from './route.js';
 import { IConnectedCustomElement } from './endpoints/endpoint.js';
+import { RouterOptions } from './router-options.js';
 
 export type NextContentAction = 'skip' | 'reload' | 'swap' | '';
 
@@ -207,12 +208,12 @@ export class RoutingScope {
     let route = new FoundRoute();
     if (typeof instruction === 'string') {
       const instructions = this.router.instructionResolver.parseRoutingInstructions(instruction);
-      if (this.router.options.useConfiguredRoutes && !this.router.hasSiblingInstructions(instructions)) {
+      if (RouterOptions.useConfiguredRoutes && !this.router.hasSiblingInstructions(instructions)) {
         const foundRoute = this.findMatchingRoute(instruction);
         if (foundRoute?.foundConfiguration ?? false) {
           route = foundRoute!;
         } else {
-          if (this.router.options.useDirectRoutes) {
+          if (RouterOptions.useDirectRoutes) {
             route.instructions = instructions;
             if (route.instructions.length > 0) {
               const nextInstructions = route.instructions[0].nextScopeInstructions ?? [];
@@ -222,7 +223,7 @@ export class RoutingScope {
             }
           }
         }
-      } else if (this.router.options.useDirectRoutes) {
+      } else if (RouterOptions.useDirectRoutes) {
         route.instructions = instructions;
       }
     } else {

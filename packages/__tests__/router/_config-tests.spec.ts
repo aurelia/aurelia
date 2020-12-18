@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { customElement, ICustomElementController } from '@aurelia/runtime-html';
-import { IRouterActivateOptions, route, Routes, routes } from '@aurelia/router';
+import { IRouterStartOptions, route, Routes, routes } from '@aurelia/router';
 import { assert } from '@aurelia/testing';
 
 import { IHookInvocationAggregator, IHIAConfig, HookName } from './_shared/hook-invocation-tracker';
@@ -220,7 +220,7 @@ describe('router config', function () {
 
       describe(`componentSpec.kind:'${kind}'`, function () {
         for (const routerOptionsSpec of routerOptionsSpecs) {
-          const getRouterOptions = (): IRouterActivateOptions => translateOptions(routerOptionsSpec);
+          const getRouterOptions = (): IRouterStartOptions => translateOptions(routerOptionsSpec);
 
           describe(`${routerOptionsSpec}`, function () {
             describe('single', function () {
@@ -623,7 +623,7 @@ describe('router config', function () {
       // In these cases, whatever fails in 'configured-first' should also fail in 'configured-only',
       // so we could run these with only 'configured-first', but just to make sure we just loop through both modes for all cases.
       describe(`routingMode is '${routingMode}'`, function () {
-        const routerOptions: IRouterActivateOptions = translateOptions({ routingMode });
+        const routerOptions: IRouterStartOptions = translateOptions({ routingMode });
         const getRouterOptions = () => routerOptions;
 
         it(`load a configured child route with indirect path by name`, async function () {
@@ -688,7 +688,7 @@ describe('router config', function () {
     }
 
     describe(`routingMode is 'configured-first'`, function () {
-      const routerOptions: IRouterActivateOptions = translateOptions({ routingMode: 'configured-first' });
+      const routerOptions: IRouterStartOptions = translateOptions({ routingMode: 'configured-first' });
       const getRouterOptions = () => routerOptions;
 
       it(`navigate to deep dependencies that are indirectly circular`, async function () {
@@ -724,7 +724,7 @@ describe('router config', function () {
     });
 
     describe(`routingMode is 'configured-only'`, function () {
-      const routerOptions: IRouterActivateOptions = translateOptions({ routingMode: 'configured-only' });
+      const routerOptions: IRouterStartOptions = translateOptions({ routingMode: 'configured-only' });
       const getRouterOptions = () => routerOptions;
 
       it(`load a direct route by name which is listed as a dependency`, async function () {

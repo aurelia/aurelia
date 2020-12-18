@@ -37,7 +37,7 @@
     "test-chrome:verbose": "karma start karma.conf.js --browsers=ChromeHeadlessOpt --single-run --coverage --reporter=mocha",
     "test-chrome:debugger": "karma start karma.conf.js --browsers=ChromeDebugging --watch-extensions js,html",
     "test-chrome:debugger:verbose": "karma start karma.conf.js --browsers=ChromeDebugging --watch-extensions js,html --reporter=mocha",
-    "copy-html": "node tasks/copy-html --verbose",
+    "copy-html": "node tasks/copy-html.cjs --verbose",
     "build-ts": "tsc --build",
     "build": "run-p build-ts copy-html",
     "dev": "run-p \"build-ts -- -w --preserveWatchOutput\" \"copy-html -- --watch\""

@@ -7,7 +7,7 @@ import { GotoCustomAttribute } from './resources/goto.js';
 import { LoadCustomAttribute } from './resources/load.js';
 import { HrefCustomAttribute } from './resources/href.js';
 import { IRouter } from './router.js';
-import { IRouterActivateOptions } from './router-options.js';
+import { IRouterActivateOptions } from './router-options-instance.js';
 
 export const RouterRegistration = IRouter as unknown as IRegistry;
 

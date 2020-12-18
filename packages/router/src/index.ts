@@ -13,6 +13,10 @@ export {
 } from './link-handler.js';
 
 export {
+  Params,
+} from './instruction-parameters.js';
+
+export {
   InstructionResolver,
 } from './instruction-resolver.js';
 
@@ -20,7 +24,7 @@ export {
   // Navigation,
   IRouteableComponent,
   RouteableComponentType,
-  IViewportInstruction,
+  IRoutingInstruction,
   LoadInstruction,
   ReentryBehavior,
 } from './interfaces.js';
@@ -105,12 +109,16 @@ export {
   IRouterActivateOptions,
   IRouterTitle,
   RouterOptions,
-} from './router-options.js';
+} from './router-options-instance.js';
 
 export {
   Routes,
   routes,
 } from './decorators/routes.js';
+
+export {
+  RoutingInstruction,
+} from './routing-instruction.js';
 
 export {
   IViewportOptions,
@@ -121,11 +129,6 @@ export {
   ContentStatus,
   ViewportContent,
 } from './viewport-content.js';
-
-export {
-  Params,
-  ViewportInstruction,
-} from './viewport-instruction.js';
 
 export {
   RouterConfiguration,

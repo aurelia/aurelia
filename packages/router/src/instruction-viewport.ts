@@ -1,0 +1,84 @@
+/**
+ *
+ * NOTE: This file is still WIP and will go through at least one more iteration of refactoring, commenting and clean up!
+ * In its current state, it is NOT a good source for learning about the inner workings and design of the router.
+ *
+ */
+import { IRouter } from './router.js';
+import { Viewport } from './viewport.js';
+import { Scope } from './scope.js';
+
+/**
+ * Public API - The routing instructions are the core of the router's navigations
+ */
+
+export type ViewportHandle = string | Viewport;
+
+export class InstructionViewport {
+  public name: string | null = null;
+  public instance: Viewport | null = null;
+
+  public scope: Scope | null = null;
+
+  public get none(): boolean {
+    return this.name === null && this.instance === null;
+  }
+
+  public static create(viewportHandle?: ViewportHandle | null): InstructionViewport {
+    const viewport = new InstructionViewport();
+    viewport.set(viewportHandle);
+    return viewport;
+  }
+
+  public static isName(viewport: ViewportHandle): viewport is string {
+    return typeof viewport === 'string';
+  }
+  public static isInstance(viewport: ViewportHandle): viewport is Viewport {
+    return viewport instanceof Viewport;
+  }
+  public static getName(viewport: ViewportHandle): string | null {
+    if (InstructionViewport.isName(viewport)) {
+      return viewport;
+    } else {
+      return viewport ? (viewport).name : null;
+    }
+  }
+  public static getInstance(viewport: ViewportHandle): Viewport | null {
+    if (InstructionViewport.isName(viewport)) {
+      return null;
+    } else {
+      return viewport;
+    }
+  }
+
+  public set(viewport?: ViewportHandle | null): void {
+    if (viewport === undefined || viewport === '') {
+      viewport = null;
+    }
+    if (typeof viewport === 'string') {
+      this.name = viewport;
+      this.instance = null;
+    } else {
+      this.instance = viewport;
+      if (viewport !== null) {
+        this.name = viewport.name;
+        this.scope = viewport.owningScope;
+      }
+    }
+  }
+
+  public toInstance(router: IRouter): Viewport | null {
+    if (this.instance !== null) {
+      return this.instance;
+    }
+    return router.getViewport(this.name as string);
+  }
+
+  public same(other: InstructionViewport): boolean {
+    if (this.instance !== null && other.instance !== null) {
+      return this.instance === other.instance;
+    }
+    return this.scope === other.scope &&
+      (this.instance ? this.instance.name : this.name) === (other.instance ? other.instance.name : other.name);
+  }
+}

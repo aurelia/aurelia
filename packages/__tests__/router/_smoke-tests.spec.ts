@@ -167,7 +167,7 @@ describe('router (smoke tests)', function () {
       await tearDown();
     });
 
-    it(`${name(Root1)} can load ${name(A01)} as a ViewportInstruction and can determine if it's active`, async function () {
+    it(`${name(Root1)} can load ${name(A01)} as a RoutingInstruction and can determine if it's active`, async function () {
       const { router, host, tearDown } = await createFixture(Root1, Z, getDefaultHIAConfig, getRouterOptions);
 
       await router.load({ component: A01 });
@@ -342,7 +342,7 @@ describe('router (smoke tests)', function () {
       await tearDown();
     });
 
-    it(`${name(Root1)} can load ${name(A11)}/${name(A01)} as a ViewportInstruction`, async function () {
+    it(`${name(Root1)} can load ${name(A11)}/${name(A01)} as a RoutingInstruction`, async function () {
       const { router, host, tearDown } = await createFixture(Root1, Z, getDefaultHIAConfig, getRouterOptions);
 
       await router.load({ component: A11, children: [A01] });

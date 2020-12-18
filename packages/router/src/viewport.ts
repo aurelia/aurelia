@@ -9,7 +9,7 @@ import { ComponentAppellation, IRouteableComponent, ReentryBehavior, RouteableCo
 import { IRouter } from './router.js';
 import { arrayRemove } from './utils.js';
 import { ViewportContent } from './viewport-content.js';
-import { ViewportInstruction } from './viewport-instruction.js';
+import { RoutingInstruction } from './routing-instruction.js';
 import { IScopeOwner, IScopeOwnerOptions, NextContentAction, Scope } from './scope.js';
 import { Navigation } from './navigation.js';
 import { IRoutingController, IConnectedCustomElement } from './resources/viewport.js';
@@ -128,17 +128,17 @@ export class Viewport implements IScopeOwner {
   }
 
   public toString(): string {
-    const contentName = this.content?.content.componentName ?? '';
-    const nextContentName = this.nextContent?.content.componentName ?? '';
+    const contentName = this.content?.content.component.name ?? '';
+    const nextContentName = this.nextContent?.content.component.name ?? '';
     return `v:${this.name}[${contentName}->${nextContentName}]`;
   }
 
-  public setNextContent(viewportInstruction: ViewportInstruction, navigation: Navigation): NextContentAction {
-    viewportInstruction.setViewport(this);
-    this.clear = this.router.instructionResolver.isClearViewportInstruction(viewportInstruction);
+  public setNextContent(routingInstruction: RoutingInstruction, navigation: Navigation): NextContentAction {
+    routingInstruction.viewport.set(this);
+    this.clear = this.router.instructionResolver.isClearRoutingInstruction(routingInstruction);
 
     // Can have a (resolved) type or a string (to be resolved later)
-    this.nextContent = new ViewportContent(!this.clear ? viewportInstruction : void 0, navigation, this.connectedCE ?? null);
+    this.nextContent = new ViewportContent(!this.clear ? routingInstruction : void 0, navigation, this.connectedCE ?? null);
 
     this.nextContent.fromHistory = this.nextContent.componentInstance && navigation.navigation
       ? !!navigation.navigation.back || !!navigation.navigation.forward
@@ -186,7 +186,7 @@ export class Viewport implements IScopeOwner {
     if (this.content.reentryBehavior() === ReentryBehavior.load) {
       this.content.reentry = true;
 
-      this.nextContent.content.setComponent(this.content.componentInstance!);
+      this.nextContent.content.component.set(this.content.componentInstance!);
       // this.nextContent.contentStatus = this.content.contentStatus;
       this.nextContent.contentStates = this.content.contentStates.clone();
       // this.nextContent.contentStates = new Map(this.content.contentStates);
@@ -208,7 +208,7 @@ export class Viewport implements IScopeOwner {
       // eslint-disable-next-line no-constant-condition
       if (false) { // Re-use component, only reload with new parameters
         this.content.reentry = true;
-        this.nextContent!.content.setComponent(this.content.componentInstance!);
+        this.nextContent!.content.component.set(this.content.componentInstance!);
         this.nextContent!.contentStates = this.content.contentStates.clone();
         this.nextContent!.reentry = this.content.reentry;
         return this.nextContentAction = 'reload';
@@ -264,10 +264,10 @@ export class Viewport implements IScopeOwner {
     // }
 
     if (!this.content.componentInstance && (!this.nextContent || !this.nextContent.componentInstance) && this.options.default) {
-      const instructions = this.router.instructionResolver.parseViewportInstructions(this.options.default);
+      const instructions = this.router.instructionResolver.parseRoutingInstructions(this.options.default);
       for (const instruction of instructions) {
         // Set to name to be delayed one turn
-        instruction.setViewport(this.name);
+        instruction.viewport.set(this.name);
         instruction.scope = this.owningScope;
         instruction.default = true;
       }
@@ -490,7 +490,7 @@ export class Viewport implements IScopeOwner {
   }
 
   public canLoad(step: Step<boolean>, recurse: boolean): boolean | LoadInstruction | LoadInstruction[] | Promise<boolean | LoadInstruction | LoadInstruction[]> {
-    // console.log(this.connectedScope.toString(), 'viewport content canLoad', this.nextContent?.content?.componentName);
+    // console.log(this.connectedScope.toString(), 'viewport content canLoad', this.nextContent?.content?.component.name);
     if (this.clear) {
       return true;
     }
@@ -518,7 +518,7 @@ export class Viewport implements IScopeOwner {
   }
 
   public load(step: Step<void>, recurse: boolean): Step<void> | void {
-    // console.log(this.connectedScope.toString(), 'viewport content load', this.nextContent?.content?.componentName);
+    // console.log(this.connectedScope.toString(), 'viewport content load', this.nextContent?.content?.component.name);
     if (this.clear || (this.nextContent?.componentInstance ?? null) === null) {
       return;
     }
@@ -626,7 +626,7 @@ export class Viewport implements IScopeOwner {
     return Runner.run(step,
       () => recurse ? this.connectedScope.unload(step, recurse) : true,
       () => {
-        // console.log(this.connectedScope.toString(), 'viewport content unload', this.content.content.componentName);
+        // console.log(this.connectedScope.toString(), 'viewport content unload', this.content.content.component.name);
         // This shouldn't happen
         // // TODO: Verify this
         // if (this.nextContent === this.content) {
@@ -653,7 +653,7 @@ export class Viewport implements IScopeOwner {
   }
 
   public finalizeContentChange(): void {
-    // console.log('finalizeContent', this.nextContent!.content?.componentName);
+    // console.log('finalizeContent', this.nextContent!.content?.component.name);
     if (this.nextContent?.componentInstance != null) {
       this.content = this.nextContent!;
       this.content.reentry = false;
@@ -726,7 +726,7 @@ export class Viewport implements IScopeOwner {
     return false;
   }
 
-  public freeContent(step: Step<void> | null, component: IRouteableComponent): void | Step<void> {
+  public freeContent(step: Step<void> | null, component: IRouteableComponent): void | Promise<void> | Step<void> {
     const content = this.historyCache.find(cached => cached.componentInstance === component);
     if (content !== void 0) {
       // console.log('>>> Runner.run', 'freeContent');
@@ -745,7 +745,7 @@ export class Viewport implements IScopeOwner {
           this.forceRemove = false;
           arrayRemove(this.historyCache, (cached => cached === content));
         },
-      ) as Step<void>;
+      );
     }
   }
 
@@ -781,7 +781,7 @@ export class Viewport implements IScopeOwner {
         title = typeTitle.call(component, component!, navigationInstruction);
       }
     } else if (this.router.options.title.useComponentNames) {
-      let name = this.getContentInstruction()!.componentName ?? '';
+      let name = this.getContentInstruction()!.component.name ?? '';
       const prefix = this.router.options.title.componentPrefix ?? '';
       if (name.startsWith(prefix)) {
         name = name.slice(prefix.length);
@@ -796,7 +796,7 @@ export class Viewport implements IScopeOwner {
   }
 
   private getComponentType(): RouteableComponentType | null {
-    let componentType = this.getContentInstruction()!.componentType ?? null;
+    let componentType = this.getContentInstruction()!.component.type ?? null;
     // TODO: This is going away once Metadata is in!
     if (componentType === null) {
       const controller = CustomElement.for(this.connectedCE!.element);
@@ -808,10 +808,10 @@ export class Viewport implements IScopeOwner {
   }
 
   private getComponentInstance(): IRouteableComponent | null {
-    return this.getContentInstruction()!.componentInstance ?? null;
+    return this.getContentInstruction()!.component.instance ?? null;
   }
 
-  private getContentInstruction(): ViewportInstruction | null {
+  private getContentInstruction(): RoutingInstruction | null {
     return this.nextContent?.content ?? this.content.content ?? null;
   }
 

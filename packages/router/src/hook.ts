@@ -6,10 +6,11 @@
  */
 import { HookFunction, HookTarget, HookIdentity, HookTypes, IHookOptions, HookResult, HookParameter, } from './hook-manager.js';
 import { IComponentAndOrViewportOrNothing, RouteableComponentType } from './interfaces.js';
-import { ComponentAppellationResolver, ViewportHandleResolver } from './type-resolvers.js';
 import { Viewport } from './viewport.js';
-import { ViewportInstruction } from './viewport-instruction.js';
+import { RoutingInstruction } from './routing-instruction.js';
 import { Navigation } from './navigation.js';
+import { InstructionViewport } from './instruction-viewport.js';
+import { InstructionComponent } from './instruction-component.js';
 
 /**
  * @internal - Shouldn't be used directly
@@ -40,11 +41,11 @@ export class Hook {
     return this.includeTargets.length > 0 || this.excludeTargets.length > 0;
   }
 
-  public matches(viewportInstructions: HookParameter): boolean {
-    if (this.includeTargets.length && !this.includeTargets.some(target => target.matches(viewportInstructions as ViewportInstruction[]))) {
+  public matches(routingInstructions: HookParameter): boolean {
+    if (this.includeTargets.length && !this.includeTargets.some(target => target.matches(routingInstructions as RoutingInstruction[]))) {
       return false;
     }
-    if (this.excludeTargets.length && this.excludeTargets.some(target => target.matches(viewportInstructions as ViewportInstruction[]))) {
+    if (this.excludeTargets.length && this.excludeTargets.some(target => target.matches(routingInstructions as RoutingInstruction[]))) {
       return false;
     }
     return true;
@@ -65,35 +66,35 @@ class Target {
   public constructor(target: HookTarget) {
     if (typeof target === 'string') {
       this.componentName = target;
-    } else if (ComponentAppellationResolver.isType(target as RouteableComponentType)) {
+    } else if (InstructionComponent.isType(target as RouteableComponentType)) {
       this.componentType = target as RouteableComponentType;
-      this.componentName = ComponentAppellationResolver.getName(target as RouteableComponentType);
+      this.componentName = InstructionComponent.getName(target as RouteableComponentType);
     } else {
       const cvTarget = target as IComponentAndOrViewportOrNothing;
       if (cvTarget.component) {
-        this.componentType = ComponentAppellationResolver.isType(cvTarget.component)
-          ? ComponentAppellationResolver.getType(cvTarget.component)
+        this.componentType = InstructionComponent.isType(cvTarget.component)
+          ? InstructionComponent.getType(cvTarget.component)
           : null;
-        this.componentName = ComponentAppellationResolver.getName(cvTarget.component);
+        this.componentName = InstructionComponent.getName(cvTarget.component);
       }
       if (cvTarget.viewport) {
-        this.viewport = ViewportHandleResolver.isInstance(cvTarget.viewport) ? cvTarget.viewport : null;
-        this.viewportName = ViewportHandleResolver.getName(cvTarget.viewport);
+        this.viewport = InstructionViewport.isInstance(cvTarget.viewport) ? cvTarget.viewport : null;
+        this.viewportName = InstructionViewport.getName(cvTarget.viewport);
       }
     }
   }
 
-  public matches(viewportInstructions: ViewportInstruction[]): boolean {
-    const instructions = viewportInstructions.slice();
+  public matches(routingInstructions: RoutingInstruction[]): boolean {
+    const instructions = routingInstructions.slice();
     if (!instructions.length) {
-      // instructions.push(new ViewportInstruction(''));
-      instructions.push(ViewportInstruction.create(null, ''));
+      // instructions.push(new RoutingInstruction(''));
+      instructions.push(RoutingInstruction.create(''));
     }
     for (const instruction of instructions) {
-      if ((this.componentName !== null && this.componentName === instruction.componentName) ||
-        (this.componentType !== null && this.componentType === instruction.componentType) ||
-        (this.viewportName !== null && this.viewportName === instruction.viewportName) ||
-        (this.viewport !== null && this.viewport === instruction.viewport)) {
+      if ((this.componentName !== null && this.componentName === instruction.component.name) ||
+        (this.componentType !== null && this.componentType === instruction.component.type) ||
+        (this.viewportName !== null && this.viewportName === instruction.viewport.name) ||
+        (this.viewport !== null && this.viewport === instruction.viewport.instance)) {
         return true;
       }
     }

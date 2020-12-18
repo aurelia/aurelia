@@ -7,7 +7,7 @@
 import { Constructable } from '@aurelia/kernel';
 import { CustomElementType, INode, ICustomElementViewModel } from '@aurelia/runtime-html';
 import { Viewport } from './viewport.js';
-import { ViewportInstruction } from './viewport-instruction.js';
+import { RoutingInstruction } from './routing-instruction.js';
 import { Navigation } from './navigation.js';
 import { IRoute } from './route.js';
 
@@ -48,17 +48,17 @@ export const enum ReentryBehavior {
   refresh = 'refresh',
 }
 
-export interface IViewportInstruction {
+export interface IRoutingInstruction {
   component: ComponentAppellation;
   viewport?: ViewportHandle;
   parameters?: ComponentParameters;
   children?: LoadInstruction[];
 }
 
-// export interface IRoute extends Partial<IViewportInstruction> {
+// export interface IRoute extends Partial<IRoutingInstruction> {
 //   path: string;
 //   id?: string;
-//   instructions?: LoadInstruction[] | ViewportInstruction[];
+//   instructions?: LoadInstruction[] | RoutingInstruction[];
 //   title?: string | any;
 // }
 
@@ -67,7 +67,7 @@ export interface IComponentAndOrViewportOrNothing {
   viewport?: ViewportHandle;
 }
 
-export type LoadInstruction = ComponentAppellation | IViewportInstruction | ViewportInstruction;
+export type LoadInstruction = ComponentAppellation | IRoutingInstruction | RoutingInstruction;
 
 export type ComponentAppellation = string | RouteableComponentType | IRouteableComponent | Constructable;
 export type ViewportHandle = string | Viewport;

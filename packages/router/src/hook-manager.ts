@@ -6,7 +6,7 @@
  */
 import { Hook } from './hook.js';
 import { ComponentAppellation, IComponentAndOrViewportOrNothing } from './interfaces.js';
-import { ViewportInstruction } from './viewport-instruction.js';
+import { RoutingInstruction } from './routing-instruction.js';
 import { Navigation } from './navigation.js';
 
 /**
@@ -21,19 +21,19 @@ export const enum HookTypes {
 /**
  * Public API
  */
-export type BeforeNavigationHookFunction = (viewportInstructions: ViewportInstruction[], navigationInstruction: Navigation) => Promise<boolean | ViewportInstruction[]>;
+export type BeforeNavigationHookFunction = (routingInstructions: RoutingInstruction[], navigationInstruction: Navigation) => Promise<boolean | RoutingInstruction[]>;
 /**
  * Public API
  */
-export type TransformFromUrlHookFunction = (url: string, navigationInstruction: Navigation) => Promise<string | ViewportInstruction[]>;
+export type TransformFromUrlHookFunction = (url: string, navigationInstruction: Navigation) => Promise<string | RoutingInstruction[]>;
 /**
  * Public API
  */
-export type TransformToUrlHookFunction = (state: string | ViewportInstruction[], navigationInstruction: Navigation) => Promise<string | ViewportInstruction[]>;
+export type TransformToUrlHookFunction = (state: string | RoutingInstruction[], navigationInstruction: Navigation) => Promise<string | RoutingInstruction[]>;
 /**
  * Public API
  */
-export type SetTitleHookFunction = (title: string | ViewportInstruction[], navigationInstruction: Navigation) => Promise<string | ViewportInstruction[]>;
+export type SetTitleHookFunction = (title: string | RoutingInstruction[], navigationInstruction: Navigation) => Promise<string | RoutingInstruction[]>;
 
 /**
  * @internal
@@ -42,11 +42,11 @@ export type HookFunction = BeforeNavigationHookFunction | TransformFromUrlHookFu
 /**
  * @internal
  */
-export type HookParameter = string | ViewportInstruction[];
+export type HookParameter = string | RoutingInstruction[];
 /**
  * @internal
  */
-export type HookResult = boolean | string | ViewportInstruction[];
+export type HookResult = boolean | string | RoutingInstruction[];
 
 export type HookTarget = ComponentAppellation | IComponentAndOrViewportOrNothing;
 
@@ -118,17 +118,17 @@ export class HookManager {
     }
   }
 
-  public async invokeBeforeNavigation(viewportInstructions: ViewportInstruction[], navigationInstruction: Navigation): Promise<boolean | ViewportInstruction[]> {
-    return this.invoke(HookTypes.BeforeNavigation, navigationInstruction, viewportInstructions) as Promise<boolean | ViewportInstruction[]>;
+  public async invokeBeforeNavigation(routingInstructions: RoutingInstruction[], navigationInstruction: Navigation): Promise<boolean | RoutingInstruction[]> {
+    return this.invoke(HookTypes.BeforeNavigation, navigationInstruction, routingInstructions) as Promise<boolean | RoutingInstruction[]>;
   }
-  public async invokeTransformFromUrl(url: string, navigationInstruction: Navigation): Promise<string | ViewportInstruction[]> {
-    return this.invoke(HookTypes.TransformFromUrl, navigationInstruction, url) as Promise<string | ViewportInstruction[]>;
+  public async invokeTransformFromUrl(url: string, navigationInstruction: Navigation): Promise<string | RoutingInstruction[]> {
+    return this.invoke(HookTypes.TransformFromUrl, navigationInstruction, url) as Promise<string | RoutingInstruction[]>;
   }
-  public async invokeTransformToUrl(state: string | ViewportInstruction[], navigationInstruction: Navigation): Promise<string | ViewportInstruction[]> {
-    return this.invoke(HookTypes.TransformToUrl, navigationInstruction, state) as Promise<string | ViewportInstruction[]>;
+  public async invokeTransformToUrl(state: string | RoutingInstruction[], navigationInstruction: Navigation): Promise<string | RoutingInstruction[]> {
+    return this.invoke(HookTypes.TransformToUrl, navigationInstruction, state) as Promise<string | RoutingInstruction[]>;
   }
-  public async invokeSetTitle(title: string | ViewportInstruction[], navigationInstruction: Navigation): Promise<string | ViewportInstruction[]> {
-    return this.invoke(HookTypes.SetTitle, navigationInstruction, title) as Promise<string | ViewportInstruction[]>;
+  public async invokeSetTitle(title: string | RoutingInstruction[], navigationInstruction: Navigation): Promise<string | RoutingInstruction[]> {
+    return this.invoke(HookTypes.SetTitle, navigationInstruction, title) as Promise<string | RoutingInstruction[]>;
   }
 
   public async invoke(type: HookTypes, navigationInstruction: Navigation, arg: HookParameter): Promise<HookResult> {

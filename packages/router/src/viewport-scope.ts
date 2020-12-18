@@ -7,7 +7,7 @@
 import { CustomElementType } from '@aurelia/runtime-html';
 import { LoadInstruction, RouteableComponentType } from './interfaces.js';
 import { IRouter } from './router.js';
-import { ViewportInstruction } from './viewport-instruction.js';
+import { RoutingInstruction } from './routing-instruction.js';
 import { IScopeOwner, IScopeOwnerOptions, NextContentAction, Scope } from './scope.js';
 import { arrayRemove } from './utils.js';
 import { Navigation } from './navigation.js';
@@ -29,8 +29,8 @@ export class ViewportScope implements IScopeOwner {
 
   public path: string | null = null;
 
-  public content: ViewportInstruction | null = null;
-  public nextContent: ViewportInstruction | null = null;
+  public content: RoutingInstruction | null = null;
+  public nextContent: RoutingInstruction | null = null;
 
   public available: boolean = true;
   public sourceItem: unknown | null = null;
@@ -53,7 +53,7 @@ export class ViewportScope implements IScopeOwner {
   ) {
     this.connectedScope = new Scope(router, scope, owningScope, null, this);
     if (this.catches.length > 0) {
-      this.content = router.createViewportInstruction(this.catches[0], this.name);
+      this.content = router.createRoutingInstruction(this.catches[0], this.name);
     }
   }
 
@@ -127,28 +127,28 @@ export class ViewportScope implements IScopeOwner {
   }
 
   public toString(): string {
-    const contentName = this.content?.componentName ?? '';
-    const nextContentName = this.nextContent?.componentName ?? '';
+    const contentName = this.content?.component.name ?? '';
+    const nextContentName = this.nextContent?.component.name ?? '';
     return `vs:${this.name}[${contentName}->${nextContentName}]`;
   }
 
-  public setNextContent(viewportInstruction: ViewportInstruction, navigation: Navigation): NextContentAction {
-    viewportInstruction.viewportScope = this;
+  public setNextContent(routingInstruction: RoutingInstruction, navigation: Navigation): NextContentAction {
+    routingInstruction.viewportScope = this;
 
-    this.remove = this.router.instructionResolver.isClearViewportInstruction(viewportInstruction)
-      || this.router.instructionResolver.isClearAllViewportsInstruction(viewportInstruction);
-    this.add = this.router.instructionResolver.isAddViewportInstruction(viewportInstruction)
+    this.remove = this.router.instructionResolver.isClearRoutingInstruction(routingInstruction)
+      || this.router.instructionResolver.isClearAllViewportsInstruction(routingInstruction);
+    this.add = this.router.instructionResolver.isAddRoutingInstruction(routingInstruction)
       && Array.isArray(this.source);
 
     if (this.add) {
-      viewportInstruction.componentName = null;
+      routingInstruction.component.name = null;
     }
 
-    if (this.default !== void 0 && viewportInstruction.componentName === null) {
-      viewportInstruction.componentName = this.default;
+    if (this.default !== void 0 && routingInstruction.component.name === null) {
+      routingInstruction.component.name = this.default;
     }
 
-    this.nextContent = viewportInstruction;
+    this.nextContent = routingInstruction;
 
     return 'swap';
   }
@@ -212,8 +212,8 @@ export class ViewportScope implements IScopeOwner {
     if (segment === null && segment === void 0 || segment.length === 0) {
       return true;
     }
-    if (segment === this.router.instructionResolver.clearViewportInstruction
-      || segment === this.router.instructionResolver.addViewportInstruction
+    if (segment === this.router.instructionResolver.clearRoutingInstruction
+      || segment === this.router.instructionResolver.addRoutingInstruction
       || segment === this.name) {
       return true;
     }

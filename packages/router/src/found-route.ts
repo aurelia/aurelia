@@ -5,7 +5,7 @@
  *
  */
 import { Route } from './route.js';
-import { ViewportInstruction } from './viewport-instruction.js';
+import { RoutingInstruction } from './routing-instruction.js';
 
 /**
  * @internal - Used when founding route/instructions
@@ -14,7 +14,7 @@ export class FoundRoute {
   public constructor(
     public match: Route | null = null,
     public matching: string = '',
-    public instructions: ViewportInstruction[] = [],
+    public instructions: RoutingInstruction[] = [],
     public remaining: string = '',
     // public remaining: string | null = null,
     public params: Record<string, unknown> = {},

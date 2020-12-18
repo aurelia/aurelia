@@ -1,4 +1,4 @@
-import { IRouter, RouterConfiguration, IRoute, IRouterTitle, ViewportInstruction, routes } from '@aurelia/router';
+import { IRouter, RouterConfiguration, IRoute, IRouterTitle, RoutingInstruction, routes } from '@aurelia/router';
 import { CustomElement, customElement, IPlatform, Aurelia } from '@aurelia/runtime-html';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 
@@ -708,7 +708,7 @@ describe('Router', function () {
     assert.includes(host.textContent, 'Parameter: 123', `host.textContent`);
     assert.includes(host.textContent, 'Entry: 1', `host.textContent`);
 
-    let component = router.allViewports()[0].content.content.componentInstance;
+    let component = router.allViewports()[0].content.componentInstance;
     component.reentryBehavior = 'load';
     // This should load
     await $load('plugh(123)@left', router, platform);
@@ -720,7 +720,7 @@ describe('Router', function () {
     await $load('plugh(456)@left', router, platform);
     assert.includes(host.textContent, 'Parameter: 456', `host.textContent`);
     assert.includes(host.textContent, 'Entry: 1', `host.textContent`);
-    component = router.allViewports()[0].content.content.componentInstance;
+    component = router.allViewports()[0].content.componentInstance;
 
     component.reentryBehavior = 'default';
     // This should default
@@ -1668,8 +1668,8 @@ describe('Router', function () {
       { appTitle: `Test\${appTitleSeparator}\${componentTitles}`, appTitleSeparator: ' : ', componentTitleOrder: 'top-down', componentTitleSeparator: ' + ', useComponentNames: true },
       { componentTitleOrder: 'bottom-up', componentTitleSeparator: ' < ', useComponentNames: true, componentPrefix: 'my-' },
       { useComponentNames: false },
-      { transformTitle: (title, instruction) => title.length === 0 ? '' : instruction instanceof ViewportInstruction ? `C:${title}` : `R:${title}` },
-      { useComponentNames: false, transformTitle: (title, instruction) => title.length === 0 ? '' : instruction instanceof ViewportInstruction ? `C:${title}` : `R:${title}` },
+      { transformTitle: (title, instruction) => title.length === 0 ? '' : instruction instanceof RoutingInstruction ? `C:${title}` : `R:${title}` },
+      { useComponentNames: false, transformTitle: (title, instruction) => title.length === 0 ? '' : instruction instanceof RoutingInstruction ? `C:${title}` : `R:${title}` },
     ];
 
     const tests = [

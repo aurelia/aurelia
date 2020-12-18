@@ -4,27 +4,27 @@
  * In its current state, it is NOT a good source for learning about the inner workings and design of the router.
  *
  */
-import { ViewportInstruction } from './viewport-instruction.js';
+import { RoutingInstruction } from './routing-instruction.js';
 import { IScopeOwner } from './scope.js';
 import { arrayRemove } from './utils.js';
 
 /**
  * @internal - Shouldn't be used directly
  */
-export class ViewportInstructionCollection extends Array<ViewportInstruction> {
+export class RoutingInstructionCollection extends Array<RoutingInstruction> {
   public get empty(): boolean {
     return this.length === 0;
   }
 
-  public get first(): ViewportInstruction {
+  public get first(): RoutingInstruction {
     return this[0];
   }
 
-  public getDefaults(): ViewportInstructionCollection {
-    return new ViewportInstructionCollection(...this.filter(instruction => instruction.default));
+  public getDefaults(): RoutingInstructionCollection {
+    return new RoutingInstructionCollection(...this.filter(instruction => instruction.default));
   }
-  public getNonDefaults(): ViewportInstructionCollection {
-    return new ViewportInstructionCollection(...this.filter(instruction => !instruction.default));
+  public getNonDefaults(): RoutingInstructionCollection {
+    return new RoutingInstructionCollection(...this.filter(instruction => !instruction.default));
   }
 
   public getScopeOwners(configuredRoutePath: string | null): IScopeOwner[] {
@@ -34,7 +34,7 @@ export class ViewportInstructionCollection extends Array<ViewportInstruction> {
       .filter((value, index, arr) => arr.indexOf(value) === index) as IScopeOwner[];
   }
 
-  public remove(instruction: ViewportInstruction): void {
+  public remove(instruction: RoutingInstruction): void {
     arrayRemove(this, value => value === instruction);
   }
 }

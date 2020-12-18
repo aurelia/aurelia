@@ -72,7 +72,7 @@ describe('Nav', function () {
   it('generates nav with an active link', async function () {
     this.timeout(5000);
     const { host, router, tearDown, platform } = await createFixture('bar');
-    router.activeComponents = [router.createViewportInstruction('baz', 'main-viewport')];
+    router.activeComponents = [router.createRoutingInstruction('baz', 'main-viewport')];
 
     await platform.domWriteQueue.yield();
 
@@ -84,7 +84,7 @@ describe('Nav', function () {
   it('generates nav with child links', async function () {
     this.timeout(5000);
     const { host, router, tearDown, platform } = await createFixture('qux');
-    router.activeComponents =[router.createViewportInstruction('baz', 'main-viewport')];
+    router.activeComponents =[router.createRoutingInstruction('baz', 'main-viewport')];
 
     await platform.domWriteQueue.yield();
 

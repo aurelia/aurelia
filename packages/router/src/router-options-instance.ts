@@ -57,7 +57,7 @@ export interface ISeparators {
 }
 
 export class RouterOptions implements INavigatorOptions {
-  public static separators: ISeparators = {
+  public separators: ISeparators = {
     viewport: '@', // ':',
     sibling: '+', // '/',
     scope: '/', // '+',
@@ -74,13 +74,13 @@ export class RouterOptions implements INavigatorOptions {
     action: '.',
   };
 
-  public static useUrlFragmentHash: boolean = true;
-  public static useHref: boolean = true;
-  public static statefulHistoryLength: number = 0;
-  public static useDirectRoutes: boolean = true;
-  public static useConfiguredRoutes: boolean = true;
-  public static additiveInstructionDefault: boolean = true;
-  public static title: ITitleConfiguration = {
+  public useUrlFragmentHash: boolean = true;
+  public useHref: boolean = true;
+  public statefulHistoryLength: number = 0;
+  public useDirectRoutes: boolean = true;
+  public useConfiguredRoutes: boolean = true;
+  public additiveInstructionDefault: boolean = true;
+  public title: ITitleConfiguration = {
     // eslint-disable-next-line no-useless-escape
     appTitle: "${componentTitles}\${appTitleSeparator}Aurelia",
     appTitleSeparator: ' | ',
@@ -89,10 +89,10 @@ export class RouterOptions implements INavigatorOptions {
     useComponentNames: true,
     componentPrefix: 'app-',
   };
-  public static hooks?: IHookDefinition[];
-  public static reportCallback?(instruction: Navigation): void;
+  public hooks?: IHookDefinition[];
+  public reportCallback?(instruction: Navigation): void;
 
-  public static navigationSyncStates: NavigationState[] = ['guardedUnload', 'swapped', 'completed'];
-  public static swapStrategy: SwapStrategy = 'add-first-sequential';
-  public static routingHookIntegration: RoutingHookIntegration = 'integrated';
+  public navigationSyncStates: NavigationState[] = ['guardedUnload', 'swapped', 'completed'];
+  public swapStrategy: SwapStrategy = 'add-first-sequential';
+  public routingHookIntegration: RoutingHookIntegration = 'integrated';
 }

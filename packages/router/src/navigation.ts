@@ -6,7 +6,7 @@
  */
 import { ICustomElementViewModel } from '@aurelia/runtime-html';
 import { INavigationFlags } from './navigator.js';
-import { ViewportInstruction } from './viewport-instruction.js';
+import { RoutingInstruction } from './routing-instruction.js';
 import { Scope } from './scope.js';
 import { Route } from './route.js';
 
@@ -26,8 +26,8 @@ export interface IStoredNavigation {
   navigation?: INavigationFlags;
   repeating?: boolean;
 
-  instruction: string | ViewportInstruction[];
-  fullStateInstruction: string | ViewportInstruction[];
+  instruction: string | RoutingInstruction[];
+  fullStateInstruction: string | RoutingInstruction[];
   scope?: Scope | null;
   index?: number;
   firstEntry?: boolean; // Index might change to not require first === 0, firstEntry should be reliable
@@ -55,8 +55,8 @@ export class Navigation {
   public reject?: ((value?: boolean | PromiseLike<boolean>) => void);
 
   // IStoredNavigatorEntry
-  public instruction: string | ViewportInstruction[];
-  public fullStateInstruction: string | ViewportInstruction[];
+  public instruction: string | RoutingInstruction[];
+  public fullStateInstruction: string | RoutingInstruction[];
   public scope?: Scope | null;
   public index?: number;
   public firstEntry?: boolean; // Index might change to not require first === 0, firstEntry should be reliable

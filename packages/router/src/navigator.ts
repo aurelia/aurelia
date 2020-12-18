@@ -8,7 +8,7 @@ import { ICustomElementViewModel } from '@aurelia/runtime-html';
 import { IRouteableComponent } from './interfaces.js';
 import { Queue, QueueItem } from './queue.js';
 import { IRouter } from './router.js';
-import { ViewportInstruction } from './viewport-instruction.js';
+import { RoutingInstruction } from './routing-instruction.js';
 import { Scope } from './scope.js';
 import { Navigation, IStoredNavigation } from './navigation.js';
 import { Runner, Step } from './runner.js';
@@ -59,8 +59,8 @@ export class NavigatorViewerEvent extends NavigatorViewerState {
 }
 
 export interface IStoredNavigatorEntry {
-  instruction: string | ViewportInstruction[];
-  fullStateInstruction: string | ViewportInstruction[];
+  instruction: string | RoutingInstruction[];
+  fullStateInstruction: string | RoutingInstruction[];
   scope?: Scope | null;
   index?: number;
   firstEntry?: boolean; // Index might change to not require first === 0, firstEntry should be reliable
@@ -392,8 +392,8 @@ export class Navigator {
 
   private toStoreableEntry(entry: Navigation | IStoredNavigation): IStoredNavigation {
     const storeable = entry instanceof Navigation ? entry.toStored() : entry;
-    storeable.instruction = this.router.instructionResolver.stringifyViewportInstructions(storeable.instruction);
-    storeable.fullStateInstruction = this.router.instructionResolver.stringifyViewportInstructions(storeable.fullStateInstruction);
+    storeable.instruction = this.router.instructionResolver.stringifyRoutingInstructions(storeable.instruction);
+    storeable.fullStateInstruction = this.router.instructionResolver.stringifyRoutingInstructions(storeable.fullStateInstruction);
     if (typeof storeable.scope !== 'string') {
       storeable.scope = null;
     }
@@ -406,14 +406,14 @@ export class Navigator {
     // Components in preserved entries should not be serialized/freed
     for (const preservedEntry of preservedEntries) {
       if (typeof preservedEntry.instruction !== 'string') {
-        excludeComponents.push(...instructionResolver.flattenViewportInstructions(preservedEntry.instruction)
-          .filter(instruction => instruction.viewport !== null)
-          .map(instruction => instruction.componentInstance));
+        excludeComponents.push(...instructionResolver.flattenRoutingInstructions(preservedEntry.instruction)
+          .filter(instruction => instruction.viewport.instance !== null)
+          .map(instruction => instruction.component.instance));
       }
       if (typeof preservedEntry.fullStateInstruction !== 'string') {
-        excludeComponents.push(...instructionResolver.flattenViewportInstructions(preservedEntry.fullStateInstruction)
-          .filter(instruction => instruction.viewport !== null)
-          .map(instruction => instruction.componentInstance));
+        excludeComponents.push(...instructionResolver.flattenRoutingInstructions(preservedEntry.fullStateInstruction)
+          .filter(instruction => instruction.viewport.instance !== null)
+          .map(instruction => instruction.component.instance));
       }
     }
     // Make unique
@@ -425,17 +425,17 @@ export class Navigator {
     // The instructions, one or two, with possible components to free
     if (typeof entry.fullStateInstruction !== 'string') {
       instructions.push(...entry.fullStateInstruction);
-      entry.fullStateInstruction = instructionResolver.stringifyViewportInstructions(entry.fullStateInstruction);
+      entry.fullStateInstruction = instructionResolver.stringifyRoutingInstructions(entry.fullStateInstruction);
     }
     if (typeof entry.instruction !== 'string') {
       instructions.push(...entry.instruction);
-      entry.instruction = instructionResolver.stringifyViewportInstructions(entry.instruction);
+      entry.instruction = instructionResolver.stringifyRoutingInstructions(entry.instruction);
     }
     // Process only those with instances and make unique
     instructions = instructions.filter(
       (instruction, i, arr) =>
         instruction !== null
-        && instruction.componentInstance !== null
+        && instruction.component.instance !== null
         && arr.indexOf(instruction) === i
     );
 
@@ -446,9 +446,9 @@ export class Navigator {
     }
   }
 
-  private freeInstructionComponents(instruction: ViewportInstruction, excludeComponents: IRouteableComponent[], alreadyDone: IRouteableComponent[]): void | Promise<void> {
-    const component = instruction.componentInstance;
-    const viewport = instruction.viewport;
+  private freeInstructionComponents(instruction: RoutingInstruction, excludeComponents: IRouteableComponent[], alreadyDone: IRouteableComponent[]): void | Promise<void> {
+    const component = instruction.component.instance;
+    const viewport = instruction.viewport.instance;
     if (component === null || viewport === null || alreadyDone.some(done => done === component)) {
       return;
     }

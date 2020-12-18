@@ -2,6 +2,7 @@
   "name": "@aurelia/__tests__",
   "private": true,
   "license": "MIT",
+  "type": "module",
   "engines": {
     "node": ">=12.0.0",
     "npm": ">=6.1.0"
@@ -9,8 +10,9 @@
   "scripts": {
     "lint": "eslint --cache --ext .js,.ts .",
     "test-262": "node -r esm dist/esnext/__tests__/setup-test262.js",
-    "::mocha": "mocha --require esm --ui bdd --reporter spec --colors --recursive --timeout 5000 --watch-extensions js dist/esnext/__tests__/setup-node.js",
-    "test-node": "cross-env NODE_ICU_DATA=../../node_modules/full-icu mocha --require esm --ui bdd --reporter min --colors --recursive --timeout 5000 --exit dist/esnext/__tests__/setup-node.js dist/esnext/__tests__/**/*.spec.js --exclude dist/esnext/__tests__/integration/**/*.spec.js --exclude dist/esnext/__tests__/ts-jest/**/*.spec.js",
+    "::mocha": "mocha --ui bdd --reporter min --colors --recursive --timeout 5000 --watch-extensions js dist/esnext/__tests__/setup-node.js",
+    "test-node:esm": "mocha --ui bdd --reporter min --colors --recursive --timeout 5000 --exit dist/esnext/__tests__/setup-node.js dist/esnext/__tests__/1-kernel/**/*.spec.js dist/esnext/__tests__/2-runtime/**/*.spec.js dist/esnext/__tests__/3-runtime-html/**/*.spec.js dist/esnext/__tests__/fetch-client/**/*.spec.js dist/esnext/__tests__/i18n/**/*.spec.js dist/esnext/__tests__/integration/**/*.spec.js dist/esnext/__tests__/router/**/*.spec.js dist/esnext/__tests__/validation/**/*.spec.js dist/esnext/__tests__/validation-html/**/*.spec.js dist/esnext/__tests__/validation-i18n/**/*.spec.js",
+    "test-node:cjs": "mocha --ui bdd --reporter min --colors --recursive --timeout 5000 --exit dist/esnext/__tests__/setup-node.js dist/esnext/__tests__/1-kernel/**/*.spec.js dist/esnext/__tests__/2-runtime/**/*.spec.js dist/esnext/__tests__/3-runtime-html/**/*.spec.js dist/esnext/__tests__/fetch-client/**/*.spec.js dist/esnext/__tests__/i18n/**/*.spec.js dist/esnext/__tests__/integration/**/*.spec.js dist/esnext/__tests__/router/**/*.spec.js dist/esnext/__tests__/validation/**/*.spec.js dist/esnext/__tests__/validation-html/**/*.spec.js dist/esnext/__tests__/validation-i18n/**/*.spec.js",
     "test-node:aot": "npm run ::mocha -- dist/esnext/__tests__/aot/**/*.spec.js",
     "test-node:kernel": "npm run ::mocha -- dist/esnext/__tests__/1-kernel/**/*.spec.js",
     "test-node:runtime": "npm run ::mocha -- dist/esnext/__tests__/2-runtime/**/*.spec.js",

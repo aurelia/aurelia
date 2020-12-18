@@ -23,9 +23,12 @@ const testDirs = [
   '2-runtime',
   '3-runtime-html',
   'fetch-client',
+  'i18n',
+  'integration',
   'router',
   'validation',
   'validation-html',
+  'validation-i18n',
 ];
 
 const packageNames = [

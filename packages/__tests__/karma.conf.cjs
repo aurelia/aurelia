@@ -83,11 +83,11 @@ module.exports = function (config) {
     ...testDirs.flatMap(name => [
       { type: 'module', watched: true,  included: true,  nocache: false, pattern: `packages/__tests__/dist/esnext/__tests__/${name}/**/*.spec.js` }, // 2.1
       { type: 'module', watched: false, included: false, nocache: true,  pattern: `packages/__tests__/dist/esnext/__tests__/${name}/**/*.js.map` }, // 2.2
-      { type: 'module', watched: true,  included: false, nocache: false, pattern: `packages/__tests__/dist/esnext/__tests__/${name}/**/*.js` }, // 2.3
+      { type: 'module', watched: true,  included: false, nocache: false, pattern: `packages/__tests__/dist/esnext/__tests__/${name}/**/!(*.$au)*.js` }, // 2.3
       { type: 'module', watched: false, included: false, nocache: true,  pattern: `packages/__tests__/${name}/**/*.ts` }, // 2.4
     ]),
     ...packageNames.flatMap(name => [
-      { type: 'module', watched: true,  included: false, snocache: false, pattern: `packages/${name}/dist/esnext/**/*.js` }, // 3.1
+      { type: 'module', watched: true,  included: false, snocache: false, pattern: `packages/${name}/dist/esnext/**/!(*.$au)*.js` }, // 3.1
       { type: 'module', watched: false, included: false, snocache: true,  pattern: `packages/${name}/dist/esnext/**/*.js.map` }, // 3.2
       { type: 'module', watched: false, included: false, snocache: true,  pattern: `packages/${name}/src/**/*.ts` }, // 3.3
     ])
@@ -144,7 +144,8 @@ module.exports = function (config) {
         timeout: 5000,
       }
     },
-    logLevel: config.LOG_ERROR // to disable the WARN 404 for image requests
+    // logLevel: config.LOG_ERROR, // to disable the WARN 404 for image requests
+    logLevel: config.LOG_DEBUG,
   };
 
   if (config.coverage) {

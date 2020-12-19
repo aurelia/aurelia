@@ -6,7 +6,7 @@
  */
 import { RoutingInstruction } from './instructions/routing-instruction.js';
 import { IScopeOwner } from './routing-scope.js';
-import { arrayRemove } from './utils.js';
+import { arrayRemove } from './utilities/utils.js';
 
 /**
  * @internal - Shouldn't be used directly

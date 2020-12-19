@@ -8,13 +8,13 @@
 import { IContainer, Writable } from '@aurelia/kernel';
 import { Controller, LifecycleFlags, ILifecycle, IHydratedController, ICustomElementController, ICustomElementViewModel } from '@aurelia/runtime-html';
 import { IRouteableComponent, RouteableComponentType, ReentryBehavior, LoadInstruction } from './interfaces.js';
-import { parseQuery } from './parser.js';
+import { parseQuery } from './utilities/parser.js';
 import { Viewport } from './viewport.js';
 import { RoutingInstruction } from './instructions/routing-instruction.js';
 import { Navigation } from './navigation.js';
 import { IConnectedCustomElement } from './endpoints/endpoint.js';
-import { Runner, Step } from './runner.js';
-import { AwaitableMap } from './awaitable-map.js';
+import { Runner, Step } from './utilities/runner.js';
+import { AwaitableMap } from './utilities/awaitable-map.js';
 
 /**
  * The viewport content encapsulates the component loaded into a viewport

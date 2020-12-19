@@ -32,7 +32,7 @@ export {
 export {
   lifecycleLogger,
   LifecycleClass,
-} from './lifecycle-logger.js';
+} from './utilities/lifecycle-logger.js';
 
 export {
   HookManager,
@@ -73,13 +73,13 @@ export {
 export {
   Runner,
   Step,
-} from './runner.js';
+} from './utilities/runner.js';
 
 export {
   QueueItem,
   IQueueOptions,
   Queue,
-} from './queue.js';
+} from './utilities/queue.js';
 
 export {
   IRoute,

@@ -7,7 +7,7 @@
 import { customAttribute, INode, bindable, BindingMode, IObserverLocator, LifecycleFlags, CustomAttribute, ICustomAttributeController, ICustomAttributeViewModel } from '@aurelia/runtime-html';
 import { IRouter } from '../router.js';
 import { LoadInstructionResolver } from '../type-resolvers.js';
-import { deprecationWarning } from '../utils.js';
+import { deprecationWarning } from '../utilities/utils.js';
 
 @customAttribute('goto')
 export class GotoCustomAttribute implements ICustomAttributeViewModel {

@@ -9,13 +9,13 @@ import { LoadInstruction, RouteableComponentType } from './interfaces.js';
 import { IRouter } from './router.js';
 import { RoutingInstruction } from './instructions/routing-instruction.js';
 import { IScopeOwnerOptions, NextContentAction, RoutingScope } from './routing-scope.js';
-import { arrayRemove } from './utils.js';
+import { arrayRemove } from './utilities/utils.js';
 import { Navigation } from './navigation.js';
 import { NavigationCoordinator } from './navigation-coordinator.js';
-import { Runner } from './runner.js';
+import { Runner } from './utilities/runner.js';
 import { Routes } from './decorators/routes.js';
 import { Route } from './route.js';
-import { Step } from './runner.js';
+import { Step } from './utilities/runner.js';
 import { Endpoint, IConnectedCustomElement } from './endpoints/endpoint.js';
 
 export interface IViewportScopeOptions extends IScopeOwnerOptions {

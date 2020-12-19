@@ -14,10 +14,10 @@ import { IRouteableComponent, LoadInstruction, ComponentAppellation, ViewportHan
 import { AnchorEventInfo, LinkHandler } from './link-handler.js';
 import { INavRoute, Nav } from './nav.js';
 import { NavigatorViewerEvent, IStoredNavigatorEntry, Navigator } from './navigator.js';
-import { QueueItem } from './queue.js';
+import { QueueItem } from './utilities/queue.js';
 import { INavClasses } from './resources/nav.js';
 import { LoadInstructionResolver, IRoutingInstructionsOptions } from './type-resolvers.js';
-import { arrayRemove, deprecationWarning } from './utils.js';
+import { arrayRemove, deprecationWarning } from './utilities/utils.js';
 import { IViewportOptions, Viewport } from './viewport.js';
 import { RoutingInstruction } from './instructions/routing-instruction.js';
 import { FoundRoute } from './found-route.js';
@@ -29,9 +29,9 @@ import { Navigation } from './navigation.js';
 import { IConnectedCustomElement } from './endpoints/endpoint.js';
 import { NavigationCoordinator } from './navigation-coordinator.js';
 import { IRouterStartOptions, ISeparators, RouterOptions } from './router-options.js';
-import { OpenPromise } from './open-promise.js';
+import { OpenPromise } from './utilities/open-promise.js';
 import { NavigatorStateChangeEvent } from './events.js';
-import { Runner, Step } from './runner.js';
+import { Runner, Step } from './utilities/runner.js';
 import { IRoute, Route } from './route.js';
 
 /**

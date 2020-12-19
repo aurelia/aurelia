@@ -21,7 +21,7 @@ import {
 import { IRouter } from '../router.js';
 import { Viewport, IViewportOptions } from '../viewport.js';
 import { ViewportScopeCustomElement } from './viewport-scope.js';
-import { Runner, Step } from '../runner.js';
+import { Runner, Step } from '../utilities/runner.js';
 import { IRoutingController } from '../endpoints/endpoint.js';
 
 export const ParentViewport = CustomElement.createInjectable();

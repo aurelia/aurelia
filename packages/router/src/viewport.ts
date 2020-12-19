@@ -7,13 +7,13 @@
 import { LifecycleFlags, ICompiledRenderContext, CustomElement, IHydratedController, IHydratedParentController } from '@aurelia/runtime-html';
 import { ComponentAppellation, IRouteableComponent, ReentryBehavior, RouteableComponentType, LoadInstruction } from './interfaces.js';
 import { IRouter } from './router.js';
-import { arrayRemove } from './utils.js';
+import { arrayRemove } from './utilities/utils.js';
 import { ViewportContent } from './viewport-content.js';
 import { RoutingInstruction } from './instructions/routing-instruction.js';
 import { IScopeOwnerOptions, NextContentAction, RoutingScope } from './routing-scope.js';
 import { Navigation } from './navigation.js';
 import { NavigationCoordinator } from './navigation-coordinator.js';
-import { Runner, Step } from './runner.js';
+import { Runner, Step } from './utilities/runner.js';
 import { Routes } from './decorators/routes.js';
 import { Route } from './route.js';
 import { Endpoint, IRoutingController, IConnectedCustomElement } from './endpoints/endpoint.js';

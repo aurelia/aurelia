@@ -6,8 +6,6 @@ import { def } from '../utilities-objects.js';
 import type {
   ICollectionObserver,
   CollectionKind,
-  ISubscriberRecord,
-  ICollectionSubscriber,
 } from '../observation.js';
 
 const observerLookup = new WeakMap<Set<unknown>, SetObserver>();

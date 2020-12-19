@@ -1138,22 +1138,15 @@ describe('validate-binding-behavior', function () {
       app.clearControllerCalls();
       (target.querySelector('button#hire-in-place') as HTMLButtonElement).click();
       await platform.domReadQueue.yield();
-      assert.equal(app.org.employees.length, 1);
-      // mutating the array shouldn't trigger validation
-      assert.equal(app.controllerValidateSpy.calls.length, 0);
-      assert.equal(
-        controller.results.filter((r) => !r.valid && r.propertyName === 'employees').length,
-        // no more new errors
-        1,
-        'error3',
-      );
+      assert.equal(app.org.employees.length, 1, 'should have 1 employee');
+      assert.equal(app.controllerValidateSpy.calls.length, 1, 'should have 1 controller.validate() call');
+      assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'employees').length, 0, 'error3');
 
       app.clearControllerCalls();
       (target.querySelector('button#fire-in-place') as HTMLButtonElement).click();
       await platform.domReadQueue.yield();
-      assert.equal(app.org.employees.length, 0);
-      // mutating the array shouldn't trigger validation
-      assert.equal(app.controllerValidateSpy.calls.length, 0);
+      assert.equal(app.org.employees.length, 0, 'should have no employees');
+      assert.equal(app.controllerValidateSpy.calls.length, 1, 'should have 1 controller.validate() call');
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'employees').length, 1, 'error4');
     },
     { template: `<employee-list id="target" employees.two-way="org.employees & validate:'change'"></employee-list>`, observeCollection: true }

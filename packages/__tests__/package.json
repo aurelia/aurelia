@@ -36,8 +36,6 @@
     "test-chrome:verbose": "karma start karma.conf.cjs --browsers=ChromeHeadlessOpt --single-run --coverage --reporter=mocha",
     "test-chrome:debugger": "karma start karma.conf.cjs --browsers=ChromeDebugging --watch-extensions js,html",
     "test-chrome:debugger:verbose": "karma start karma.conf.cjs --browsers=ChromeDebugging --watch-extensions js,html --reporter=mocha",
-    "copy-html": "node tasks/copy-html.cjs --verbose",
-    "build-ts": "tsc --build",
     "build": "tsc --build",
     "dev": "tsc --build -w --preserveWatchOutput"
   },

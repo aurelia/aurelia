@@ -3,12 +3,12 @@ import {
   LifecycleFlags,
   AccessorType,
   ISubscriberCollection,
+  ICollectionSubscriberCollection,
 } from '../observation.js';
 import {
   CollectionLengthObserver,
 } from './collection-length-observer.js';
 import {
-  collectionSubscriberCollection,
   subscriberCollection,
 } from './subscriber-collection.js';
 
@@ -350,7 +350,7 @@ export function disableArrayObservation(): void {
   }
 }
 
-export interface ArrayObserver extends ICollectionObserver<CollectionKind.array> {}
+export interface ArrayObserver extends ICollectionObserver<CollectionKind.array>, ICollectionSubscriberCollection {}
 
 export class ArrayObserver {
   public type: AccessorType = AccessorType.Array;
@@ -387,16 +387,8 @@ export class ArrayObserver {
   }
 
   public getIndexObserver(index: number): IArrayIndexObserver {
-    return this.getOrCreateIndexObserver(index);
-  }
-
-  /**
-   * @internal
-   *
-   * It's unnecessary to destroy/recreate index observer all the time,
-   * so just create once, and add/remove instead
-   */
-  private getOrCreateIndexObserver(index: number): IArrayIndexObserver {
+    // It's unnecessary to destroy/recreate index observer all the time,
+    // so just create once, and add/remove instead
     return this.indexObservers[index] ??= new ArrayIndexObserver(this, index);
   }
 }
@@ -455,18 +447,18 @@ export class ArrayIndexObserver implements IArrayIndexObserver {
 
   public subscribe(subscriber: ISubscriber): void {
     if (this.subs.add(subscriber) && this.subs.count === 1) {
-      this.owner.subs.add(this);
+      this.owner.subscribe(this);
     }
   }
 
   public unsubscribe(subscriber: ISubscriber): void {
     if (this.subs.remove(subscriber) && this.subs.count === 0) {
-      this.owner.subs.remove(this);
+      this.owner.unsubscribe(this);
     }
   }
 }
 
-collectionSubscriberCollection(ArrayObserver);
+subscriberCollection(ArrayObserver);
 subscriberCollection(ArrayIndexObserver);
 
 export function getArrayObserver(array: unknown[]): ArrayObserver {

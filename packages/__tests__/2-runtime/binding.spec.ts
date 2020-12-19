@@ -988,11 +988,6 @@ describe('PropertyBinding', function () {
 class MockObserver {
   [id: number]: number;
   public subs?: ISubscriberRecord<ISubscriber | ICollectionSubscriber>;
-  public callSubscribers: any;
-  public hasSubscribers: ISubscriberCollection['hasSubscribers'];
-  public hasSubscriber: ISubscriberCollection['hasSubscriber'];
-  public removeSubscriber: ISubscriberCollection['removeSubscriber'];
-  public addSubscriber: ISubscriberCollection['addSubscriber'];
   public bind = createSpy();
   public unbind = createSpy();
   public dispose = createSpy();

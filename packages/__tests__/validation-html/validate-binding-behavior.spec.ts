@@ -103,7 +103,7 @@ describe('validate-binding-behavior', function () {
       if (observeCollection) {
         this.employeesMediator = new BindingMediator('handleEmployeesChange', this, observerLocator, serviceLocator);
         this.employeeObserver = new ArrayObserver(this.org.employees);
-        this.employeeObserver.getLengthObserver().addSubscriber(this.employeesMediator);
+        this.employeeObserver.getLengthObserver().subs.add(this.employeesMediator);
       }
 
       this.obj = { coll: [{ a: 1 }, { a: 2 }] };

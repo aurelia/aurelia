@@ -231,7 +231,7 @@ export class SelectValueObserver implements IObserver {
 
   private stop(): void {
     this.nodeObserver!.disconnect();
-    this.arrayObserver?.unsubscribeFromCollection(this);
+    this.arrayObserver?.unsubscribe(this);
     this.nodeObserver
       = this.arrayObserver
       = void 0;
@@ -240,13 +240,13 @@ export class SelectValueObserver implements IObserver {
 
   // todo: observe all kind of collection
   private observeArray(array: unknown[] | null): void {
-    this.arrayObserver?.unsubscribeFromCollection(this);
+    this.arrayObserver?.unsubscribe(this);
     this.arrayObserver = void 0;
     if (array != null) {
       if (!this.obj.multiple) {
         throw new Error('Only null or Array instances can be bound to a multi-select.');
       }
-      (this.arrayObserver = this.observerLocator.getArrayObserver(array)).subscribeToCollection(this);
+      (this.arrayObserver = this.observerLocator.getArrayObserver(array)).subscribe(this);
     }
   }
 

@@ -96,10 +96,14 @@ export interface ISubscribable {
 }
 
 export interface ICollectionSubscribable {
-  subscribeToCollection(subscriber: ICollectionSubscriber): void;
-  unsubscribeFromCollection(subscriber: ICollectionSubscriber): void;
+  subscribe(subscriber: ICollectionSubscriber): void;
+  unsubscribe(subscriber: ICollectionSubscriber): void;
 }
 
+/**
+ * An interface describing the contract of a subscriber list,
+ * with the ability to propagate values to those subscribers
+ */
 export interface ISubscriberRecord<T extends ISubscriber | ICollectionSubscriber> {
   readonly count: number;
   add(subscriber: T): boolean;
@@ -110,33 +114,36 @@ export interface ISubscriberRecord<T extends ISubscriber | ICollectionSubscriber
   notifyCollection(indexMap: IndexMap, flags: LifecycleFlags): void;
 }
 
+/**
+ * @volatile
+ *
+ * An internal interface describing the implementation of a ISubscribable of Aurelia that supports batching
+ *
+ * This is usually mixed into a class via the import `subscriberCollection` import from Aurelia.
+ * The `subscriberCollection` import can be used as either a decorator, or a function call.
+ */
 export interface ISubscriberCollection extends ISubscribable {
   [key: number]: LifecycleFlags;
   /**
    * The backing subscriber record for all subscriber methods of this collection
    */
   readonly subs: ISubscriberRecord<ISubscriber>;
-
-  callSubscribers(newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void;
-  hasSubscribers(): boolean;
-  hasSubscriber(subscriber: ISubscriber): boolean;
-  removeSubscriber(subscriber: ISubscriber): boolean;
-  addSubscriber(subscriber: ISubscriber): boolean;
 }
 
-export interface ICollectionSubscriberCollection extends ICollectionSubscribable, ISubscribable {
+/**
+ * @volatile
+ *
+ * An internal interface describing the implementation of a ICollectionSubscribable of Aurelia that supports batching
+ *
+ * This is usually mixed into a class via the import `subscriberCollection` import from Aurelia.
+ * The `subscriberCollection` import can be used as either a decorator, or a function call.
+ */
+export interface ICollectionSubscriberCollection extends ICollectionSubscribable {
   [key: number]: LifecycleFlags;
-
   /**
    * The backing subscriber record for all subscriber methods of this collection
    */
   readonly subs: ISubscriberRecord<ICollectionSubscriber>;
-
-  callCollectionSubscribers(indexMap: IndexMap, flags: LifecycleFlags): void;
-  hasCollectionSubscribers(): boolean;
-  hasCollectionSubscriber(subscriber: ICollectionSubscriber): boolean;
-  removeCollectionSubscriber(subscriber: ICollectionSubscriber): boolean;
-  addCollectionSubscriber(subscriber: ICollectionSubscriber): boolean;
 }
 
 /**
@@ -215,6 +222,9 @@ export interface IAccessor<TValue = unknown> {
   setValue(newValue: TValue, flags: LifecycleFlags, obj?: object, key?: PropertyKey): void;
 }
 
+/**
+ * An interface describing a standard contract of an observer in Aurelia binding & observation system
+ */
 export interface IObserver extends IAccessor, ISubscribable {}
 
 export type AccessorOrObserver = (IAccessor | IObserver) & {
@@ -292,7 +302,7 @@ export interface ICollectionChangeTracker<T extends Collection> {
  */
 export interface ICollectionObserver<T extends CollectionKind> extends
   ICollectionChangeTracker<CollectionKindToType<T>>,
-  ICollectionSubscriberCollection {
+  ICollectionSubscribable {
   type: AccessorType;
   collection: ObservedCollectionKindToType<T>;
   getLengthObserver(): T extends CollectionKind.array ? CollectionLengthObserver : CollectionSizeObserver;

@@ -232,7 +232,7 @@ export class CheckedObserver implements IObserver {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public stop(): void {
     this.handler.dispose();
-    this.collectionObserver?.unsubscribeFromCollection(this);
+    this.collectionObserver?.unsubscribe(this);
     this.collectionObserver = void 0;
 
     this.valueObserver?.unsubscribe(this);
@@ -255,12 +255,11 @@ export class CheckedObserver implements IObserver {
 
     (this.valueObserver ??= obj.$observers?.model ?? obj.$observers?.value)?.subscribe(this);
 
-    this.collectionObserver?.unsubscribeFromCollection(this);
+    this.collectionObserver?.unsubscribe(this);
     this.collectionObserver = void 0;
 
     if (obj.type === 'checkbox') {
-      (this.collectionObserver = getCollectionObserver(this.value, this.observerLocator))
-        ?.subscribeToCollection(this);
+      (this.collectionObserver = getCollectionObserver(this.value, this.observerLocator))?.subscribe(this);
     }
   }
 }

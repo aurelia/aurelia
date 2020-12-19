@@ -3,22 +3,24 @@ import { AccessorType, CollectionKind, LifecycleFlags } from '../observation.js'
 import { subscriberCollection } from './subscriber-collection.js';
 import { ensureProto } from '../utilities-objects.js';
 
-import type { Constructable } from '@aurelia/kernel';
 import type {
   ICollectionObserver,
   IndexMap,
   ISubscriber,
   ISubscriberCollection,
   ICollectionSubscriber,
+  ISubscriberRecord,
   IObserver,
 } from '../observation.js';
 
-export interface CollectionLengthObserver extends ISubscriberCollection {}
+export interface CollectionLengthObserver extends IObserver {}
 
-export class CollectionLengthObserver {
+export class CollectionLengthObserver implements ICollectionSubscriber {
   public value: number;
   public readonly type: AccessorType = AccessorType.Array;
   public readonly obj: unknown[];
+  // available via subscriberCollection() mixin
+  private readonly subs!: ISubscriberRecord<ISubscriber>;
 
   public constructor(
     public readonly owner: ICollectionObserver<CollectionKind.array>,
@@ -53,12 +55,14 @@ export class CollectionLengthObserver {
   }
 }
 
-export interface CollectionSizeObserver extends ISubscriberCollection {}
+export interface CollectionSizeObserver extends IObserver {}
 
-export class CollectionSizeObserver {
+export class CollectionSizeObserver implements ICollectionSubscriber {
   public value: number;
   public readonly type: AccessorType;
   public readonly obj: Set<unknown> | Map<unknown, unknown>;
+  // available via subscriberCollection() mixin
+  private readonly subs!: ISubscriberRecord<ISubscriber>;
 
   public constructor(
     public readonly owner: ICollectionObserver<CollectionKind.map | CollectionKind.set>,
@@ -89,8 +93,8 @@ interface CollectionLengthObserverImpl extends IObserver, ISubscriberCollection,
   owner: ICollectionObserver<CollectionKind>;
 }
 
-function implementLengthObserver(klass: Constructable<CollectionLengthObserverImpl>) {
-  const proto = klass.prototype as CollectionLengthObserverImpl;
+function implementLengthObserver(klass: typeof CollectionLengthObserver | typeof CollectionSizeObserver) {
+  const proto = klass.prototype;
   ensureProto(proto, 'subscribe', subscribe, true);
   ensureProto(proto, 'unsubscribe', unsubscribe, true);
   subscriberCollection(klass);
@@ -98,13 +102,13 @@ function implementLengthObserver(klass: Constructable<CollectionLengthObserverIm
 
 function subscribe(this: CollectionLengthObserverImpl, subscriber: ISubscriber): void {
   if (this.subs.add(subscriber) && this.subs.count === 1) {
-    this.owner.subs.add(this);
+    this.owner.subscribe(this);
   }
 }
 
 function unsubscribe(this: CollectionLengthObserverImpl, subscriber: ISubscriber): void {
   if (this.subs.remove(subscriber) && this.subs.count === 0) {
-    this.owner.subs.remove(this);
+    this.owner.subscribe(this);
   }
 }
 

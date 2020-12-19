@@ -14,7 +14,7 @@ interface IMayHavePropertyChangedCallback {
 type HasPropertyChangedCallback = Required<IMayHavePropertyChangedCallback>;
 
 export class BindableObserver {
-  public type: AccessorType = AccessorType.Observer;
+  public get type(): AccessorType { return AccessorType.Observer; }
   public currentValue: unknown = void 0;
   public oldValue: unknown = void 0;
 

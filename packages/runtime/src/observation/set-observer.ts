@@ -1,9 +1,14 @@
-import { CollectionKind, createIndexMap, AccessorType, LifecycleFlags } from '../observation.js';
+import { createIndexMap, AccessorType, LifecycleFlags, ICollectionSubscriberCollection } from '../observation.js';
 import { CollectionSizeObserver } from './collection-length-observer.js';
-import { collectionSubscriberCollection } from './subscriber-collection.js';
+import { subscriberCollection } from './subscriber-collection.js';
 import { def } from '../utilities-objects.js';
 
-import type { ICollectionObserver } from '../observation.js';
+import type {
+  ICollectionObserver,
+  CollectionKind,
+  ISubscriberRecord,
+  ICollectionSubscriber,
+} from '../observation.js';
 
 const observerLookup = new WeakMap<Set<unknown>, SetObserver>();
 
@@ -118,7 +123,7 @@ export function disableSetObservation(): void {
   }
 }
 
-export interface SetObserver extends ICollectionObserver<CollectionKind.set> {}
+export interface SetObserver extends ICollectionObserver<CollectionKind.set>, ICollectionSubscriberCollection {}
 
 export class SetObserver {
   public type: AccessorType = AccessorType.Set;
@@ -151,7 +156,7 @@ export class SetObserver {
   }
 }
 
-collectionSubscriberCollection(SetObserver);
+subscriberCollection(SetObserver);
 
 export function getSetObserver(observedSet: Set<unknown>): SetObserver {
   let observer = observerLookup.get(observedSet);

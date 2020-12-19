@@ -210,7 +210,7 @@ export class BindingCollectionObserverRecord {
   }
 
   public add(observer: ICollectionSubscribable): void {
-    observer.subscribeToCollection(this);
+    observer.subscribe(this);
     this.count = this.observers.set(observer, this.version).size;
   }
 
@@ -225,7 +225,7 @@ export class BindingCollectionObserverRecord {
     for (observerAndVersionPair of observers) {
       if (all || observerAndVersionPair[1] !== version) {
         o = observerAndVersionPair[0];
-        o.unsubscribeFromCollection(this);
+        o.unsubscribe(this);
         observers.delete(o);
       }
     }

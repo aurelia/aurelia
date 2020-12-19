@@ -22,41 +22,14 @@ export function subscriberCollection(target?: Function): ClassDecorator | void {
   return target == null ? subscriberCollectionDeco : subscriberCollectionDeco(target);
 }
 
-export function collectionSubscriberCollection(): ClassDecorator;
-export function collectionSubscriberCollection(target: Function): void;
-export function collectionSubscriberCollection(target?: Function): ClassDecorator | void {
-  return target == null ? collectionSubscriberCollectionDeco : collectionSubscriberCollectionDeco(target);
-}
-
 function subscriberCollectionDeco(target: Function): void { // ClassDecorator expects it to be derived from Function
   const proto = target.prototype as ISubscriberCollection;
-
-  ensureProto(proto, 'addSubscriber', addSubscriber, true);
-  ensureProto(proto, 'removeSubscriber', removeSubscriber, true);
-  ensureProto(proto, 'hasSubscriber', hasSubscriber, true);
-  ensureProto(proto, 'hasSubscribers', hasSubscribers, true);
-  ensureProto(proto, 'callSubscribers', callSubscribers, true);
   // not configurable, as in devtool, the getter could be invoked on the prototype,
   // and become permanently broken
   def(proto, 'subs', { get: getSubscriberRecord });
 
   ensureProto(proto, 'subscribe', addSubscriber);
   ensureProto(proto, 'unsubscribe', removeSubscriber);
-}
-function collectionSubscriberCollectionDeco(target: Function): void { // ClassDecorator expects it to be derived from Function
-  const proto = target.prototype as ICollectionSubscriberCollection;
-
-  ensureProto(proto, 'addCollectionSubscriber', addSubscriber, true);
-  ensureProto(proto, 'removeCollectionSubscriber', removeSubscriber, true);
-  ensureProto(proto, 'hasCollectionSubscriber', hasSubscriber, true);
-  ensureProto(proto, 'hasCollectionSubscribers', hasSubscribers, true);
-  ensureProto(proto, 'callCollectionSubscribers', callCollectionSubscribers, true);
-  // not configurable, as in devtool, the getter could be invoked on the prototype,
-  // and become permanently broken
-  def(proto, 'subs', { get: getSubscriberRecord });
-
-  ensureProto(proto, 'subscribeToCollection', addSubscriber);
-  ensureProto(proto, 'unsubscribeFromCollection', removeSubscriber);
 }
 /* eslint-enable @typescript-eslint/ban-types */
 
@@ -122,8 +95,8 @@ export class SubscriberRecord<T extends IAnySubscriber> implements ISubscriberRe
     if ((subscriberFlags & SF.SubscribersRest) > 0) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const subscribers = this._sr!; // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
+      const ii = subscribers.length;
       let i = 0;
-      let ii = subscribers!.length;
       for (; i < ii; ++i) {
         if (subscribers[i] === subscriber) {
           return true;
@@ -174,10 +147,6 @@ export class SubscriberRecord<T extends IAnySubscriber> implements ISubscriberRe
   }
 
   public notify(val: unknown, oldVal: unknown, flags: LF): void {
-    if (currentBatch !== null) {
-      currentBatch.set(this, new BatchRecord(this as SubscriberRecord<ISubscriber>, val, oldVal, flags));
-      return;
-    }
     /**
      * Note: change handlers may have the side-effect of adding/removing subscribers to this collection during this
      * callSubscribers invocation, so we're caching them all before invoking any.
@@ -206,10 +175,10 @@ export class SubscriberRecord<T extends IAnySubscriber> implements ISubscriberRe
       sub2.handleChange(val, oldVal, flags | /* sub own flags */(sub2.id === void 0 ? 0 : owner[sub2.id]));
     }
     if (subs !== void 0) {
-      const length = subs.length;
+      const ii = subs.length;
       let sub: ISubscriber | undefined;
       let i = 0;
-      for (; i < length; ++i) {
+      for (; i < ii; ++i) {
         sub = subs[i];
         if (sub !== void 0) {
           sub.handleChange(val, oldVal, flags | /* sub own flags */(sub.id === void 0 ? 0 : owner[sub.id]));
@@ -219,11 +188,6 @@ export class SubscriberRecord<T extends IAnySubscriber> implements ISubscriberRe
   }
 
   public notifyCollection(indexMap: IndexMap, flags: LF): void {
-    if (currentBatch !== null) {
-      currentBatch.set(this, new CollectionBatchRecord(this as SubscriberRecord<ICollectionSubscriber>, indexMap, flags));
-      return;
-    }
-
     const sub0 = this._s0 as ICollectionSubscriber;
     const sub1 = this._s1 as ICollectionSubscriber;
     const sub2 = this._s2 as ICollectionSubscriber;
@@ -242,10 +206,10 @@ export class SubscriberRecord<T extends IAnySubscriber> implements ISubscriberRe
       sub2.handleCollectionChange(indexMap, flags);
     }
     if (subs !== void 0) {
-      const length = subs.length;
+      const ii = subs.length;
       let sub: ICollectionSubscriber | undefined;
       let i = 0;
-      for (; i < length; ++i) {
+      for (; i < ii; ++i) {
         sub = subs[i];
         if (sub !== void 0) {
           sub.handleCollectionChange(indexMap, flags);
@@ -267,92 +231,4 @@ function addSubscriber(this: ISubscriberCollection, subscriber: IAnySubscriber):
 
 function removeSubscriber(this: ISubscriberCollection, subscriber: IAnySubscriber): boolean {
   return this.subs.remove(subscriber as ISubscriber & ICollectionSubscriber);
-}
-
-function hasSubscriber(this: ISubscriberCollection | ICollectionSubscriberCollection, subscriber: IAnySubscriber): boolean {
-  return this.subs.has(subscriber as ISubscriber & ICollectionSubscriber);
-}
-
-function hasSubscribers(this: ISubscriberCollection): boolean {
-  return this.subs.any();
-}
-
-function callSubscribers(this: ISubscriberCollection, newValue: unknown, previousValue: unknown, flags: LF): void {
-  this.subs.notify(newValue, previousValue, flags);
-}
-
-function callCollectionSubscribers(this: ICollectionSubscriberCollection, indexMap: IndexMap, flags: LF): void {
-  this.subs.notifyCollection(indexMap, flags);
-}
-
-export function batch(fn: () => unknown): void {
-  const prevBatch = currentBatch;
-  const newBatch: IBatch = currentBatch = new Map();
-  try {
-    fn();
-  } finally {
-    currentBatch = null;
-    try {
-      let pair: [ISubscriberRecord<IAnySubscriber>, IAnyBatchRecord];
-      let subRecord: ISubscriberRecord<IAnySubscriber>;
-      let batchRecord: IAnyBatchRecord;
-      for (pair of newBatch) {
-        subRecord = pair[0];
-        batchRecord = pair[1];
-        if (prevBatch?.has(subRecord)) {
-          prevBatch.set(subRecord, batchRecord);
-        }
-        if (batchRecord.type === 1) {
-          batchRecord.c1();
-        } else {
-          batchRecord.c2();
-        }
-      }
-    } finally {
-      currentBatch = prevBatch;
-    }
-  }
-}
-
-let currentBatch: Map<ISubscriberRecord<IAnySubscriber>, IAnyBatchRecord> | null = null;
-type IBatch = Map<ISubscriberRecord<IAnySubscriber>, IAnyBatchRecord>;
-
-type IAnyBatchRecord = IBatchRecord | ICollectionBatchRecord;
-interface IBatchRecord {
-  type: 1;
-  rec: ISubscriberRecord<IAnySubscriber>;
-  c1(): void;
-}
-
-interface ICollectionBatchRecord {
-  type: 2;
-  rec: ISubscriberRecord<ICollectionSubscriber>;
-  c2(): void;
-}
-
-class BatchRecord implements IBatchRecord {
-  public type: 1 = 1;
-  public constructor(
-    public readonly rec: ISubscriberRecord<ISubscriber>,
-    public readonly val: unknown,
-    public readonly old: unknown,
-    public readonly f: LF
-  ) { }
-
-  public c1(): void {
-    this.rec.notify(this.val, this.old, this.f);
-  }
-}
-
-class CollectionBatchRecord implements ICollectionBatchRecord {
-  public type: 2 = 2;
-  public constructor(
-    public readonly rec: ISubscriberRecord<ICollectionSubscriber>,
-    public readonly map: IndexMap,
-    public readonly f: LF
-  ) { }
-
-  public c2(): void {
-    this.rec.notifyCollection(this.map, this.f);
-  }
 }

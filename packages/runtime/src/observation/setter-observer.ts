@@ -3,9 +3,14 @@ import { subscriberCollection } from './subscriber-collection.js';
 import { def } from '../utilities-objects.js';
 
 import type { IIndexable } from '@aurelia/kernel';
-import type { IAccessor, IObserver, InterceptorFunc, ISubscriber, ISubscribable, ISubscriberCollection } from '../observation.js';
+import type {
+  IAccessor,
+  InterceptorFunc,
+  ISubscriber,
+  ISubscriberCollection,
+} from '../observation.js';
 
-export interface SetterObserver extends IObserver, ISubscriberCollection {}
+export interface SetterObserver extends IAccessor, ISubscriberCollection {}
 
 /**
  * Observer for the mutation of object property value employing getter-setter strategy.
@@ -89,12 +94,11 @@ export class SetterObserver {
   }
 }
 
-type ChangeHandlerCallback =
-  (this: object, value: unknown, oldValue: unknown, flags: LifecycleFlags) => void;
+type ChangeHandlerCallback = (this: object, value: unknown, oldValue: unknown, flags: LifecycleFlags) => void;
 
-export interface SetterNotifier extends ISubscriberCollection {}
+export interface SetterNotifier extends IAccessor, ISubscriberCollection {}
 
-export class SetterNotifier implements IAccessor, ISubscribable {
+export class SetterNotifier implements IAccessor {
   public readonly type: AccessorType = AccessorType.Observer;
 
   /**

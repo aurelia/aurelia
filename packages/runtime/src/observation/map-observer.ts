@@ -1,9 +1,13 @@
-import { CollectionKind, createIndexMap, AccessorType, LifecycleFlags } from '../observation.js';
+import { createIndexMap, AccessorType, LifecycleFlags } from '../observation.js';
 import { CollectionSizeObserver } from './collection-length-observer.js';
-import { collectionSubscriberCollection } from './subscriber-collection.js';
+import { subscriberCollection } from './subscriber-collection.js';
 import { def } from '../utilities-objects.js';
 
-import type { ICollectionObserver } from '../observation.js';
+import type {
+  CollectionKind,
+  ICollectionObserver,
+  ICollectionSubscriberCollection,
+} from '../observation.js';
 
 const observerLookup = new WeakMap<Map<unknown, unknown>, MapObserver>();
 
@@ -131,7 +135,7 @@ export function disableMapObservation(): void {
   }
 }
 
-export interface MapObserver extends ICollectionObserver<CollectionKind.map> {}
+export interface MapObserver extends ICollectionObserver<CollectionKind.map>, ICollectionSubscriberCollection {}
 
 export class MapObserver {
   public type: AccessorType = AccessorType.Map;
@@ -164,7 +168,7 @@ export class MapObserver {
   }
 }
 
-collectionSubscriberCollection(MapObserver);
+subscriberCollection(MapObserver);
 
 export function getMapObserver(map: Map<unknown, unknown>): MapObserver {
   let observer = observerLookup.get(map);

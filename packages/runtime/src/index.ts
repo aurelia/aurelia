@@ -147,10 +147,8 @@ export {
   ISignaler,
 } from './observation/signaler.js';
 export {
-  batch,
   SubscriberRecord,
   subscriberCollection,
-  collectionSubscriberCollection,
 } from './observation/subscriber-collection.js';
 export {
   ConnectableSwitcher,

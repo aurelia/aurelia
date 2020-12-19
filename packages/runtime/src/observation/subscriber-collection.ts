@@ -35,13 +35,15 @@ function subscriberCollectionDeco(target: Function): void { // ClassDecorator ex
 
 export class SubscriberRecord<T extends IAnySubscriber> implements ISubscriberRecord<T> {
   /**
-   * The subscriber flags: bits indicating the existence status of the subscribers of this record
+   * subscriber flags: bits indicating the existence status of the subscribers of this record
    */
   private _sf: SF = SF.None;
   private _s0?: T;
   private _s1?: T;
   private _s2?: T;
-  // subscriber rest: When there's more than 3 subscribers, use an array to store the subscriber references
+  /**
+   * subscriber rest: When there's more than 3 subscribers, use an array to store the subscriber references
+   */
   private _sr?: T[];
 
   public count: number = 0;

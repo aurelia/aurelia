@@ -115,8 +115,6 @@ export interface ISubscriberRecord<T extends ISubscriber | ICollectionSubscriber
 }
 
 /**
- * @volatile
- *
  * An internal interface describing the implementation of a ISubscribable of Aurelia that supports batching
  *
  * This is usually mixed into a class via the import `subscriberCollection` import from Aurelia.
@@ -131,8 +129,6 @@ export interface ISubscriberCollection extends ISubscribable {
 }
 
 /**
- * @volatile
- *
  * An internal interface describing the implementation of a ICollectionSubscribable of Aurelia that supports batching
  *
  * This is usually mixed into a class via the import `subscriberCollection` import from Aurelia.

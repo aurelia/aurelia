@@ -1,7 +1,6 @@
 import { IContainer } from '@aurelia/kernel';
 import {
   CustomElement,
-  ILifecycle,
   IObserverLocator,
   view,
   customElement,
@@ -22,11 +21,11 @@ const spec = 'compose';
 describe(spec, function () {
   function createFixture(): SpecContext {
     const ctx = TestContext.create();
-    const { container, platform, lifecycle, observerLocator } = ctx;
+    const { container, platform, observerLocator } = ctx;
     const au = new Aurelia(container);
     const host = platform.document.createElement('div');
 
-    return { container, platform, au, host, lifecycle, observerLocator };
+    return { container, platform, au, host, observerLocator };
   }
 
   interface SpecContext {
@@ -34,7 +33,6 @@ describe(spec, function () {
     platform: IPlatform;
     au: Aurelia;
     host: HTMLElement;
-    lifecycle: ILifecycle;
     observerLocator: IObserverLocator;
   }
   interface Spec {

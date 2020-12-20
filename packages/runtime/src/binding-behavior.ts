@@ -8,7 +8,7 @@ import {
   DI,
   fromAnnotationOrDefinitionOrTypeOrDefault,
 } from '@aurelia/kernel';
-import { Collection, LifecycleFlags } from './observation.js';
+import { Collection, IndexMap, LifecycleFlags } from './observation.js';
 import { registerAliases } from './alias.js';
 
 import type {
@@ -160,7 +160,7 @@ export class BindingInterceptor implements IInterceptableBinding {
     return this.binding.id!;
   }
   public get observerLocator(): IObserverLocator {
-    return this.binding.observerLocator!;
+    return this.binding.observerLocator;
   }
   public get locator(): IServiceLocator {
     return this.binding.locator;
@@ -204,6 +204,9 @@ export class BindingInterceptor implements IInterceptableBinding {
   }
   public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
     this.binding.handleChange!(newValue, previousValue, flags);
+  }
+  public handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void {
+    this.binding.handleCollectionChange(indexMap, flags);
   }
   public observeProperty(obj: object, key: string): void {
     this.binding.observeProperty!(obj, key as string);

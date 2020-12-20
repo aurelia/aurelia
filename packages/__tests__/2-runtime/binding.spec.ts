@@ -4,7 +4,6 @@ import {
   BinaryExpression,
   BindingMode,
   ExpressionKind,
-  ILifecycle,
   LifecycleFlags as LF,
   ObjectLiteralExpression,
   PrimitiveLiteralExpression,
@@ -31,6 +30,7 @@ import type {
   ISubscriberCollection,
   IObserver,
   ISubscriber,
+  ICollectionSubscriber,
 } from '@aurelia/runtime';
 
 /**
@@ -54,10 +54,9 @@ describe('PropertyBinding', function () {
   function createFixture(sourceExpression: any = dummySourceExpression, target: any = dummyTarget, targetProperty: string = dummyTargetProperty, mode: BindingMode = dummyMode) {
     const container = createContainer();
     const observerLocator = createObserverLocator(container);
-    const lifecycle = container.get(ILifecycle);
     const sut = new PropertyBinding(sourceExpression, target, targetProperty, mode, observerLocator, container, {} as any);
 
-    return { sut, lifecycle, container, observerLocator };
+    return { sut, container, observerLocator };
   }
 
   // eslint-disable-next-line mocha/no-hooks
@@ -163,7 +162,7 @@ describe('PropertyBinding', function () {
     eachCartesianJoinFactory(inputs, ([target, $1], [prop, $2], [expr, $3], [flags, $4], [scope, $5]) => {
       it(`$bind() [one-time]  target=${$1} prop=${$2} expr=${$3} flags=${$4} scope=${$5}`, function () {
         // - Arrange -
-        const { sut, lifecycle, container, observerLocator } = createFixture(expr, target, prop, BindingMode.oneTime);
+        const { sut, container, observerLocator } = createFixture(expr, target, prop, BindingMode.oneTime);
         const srcVal = expr.evaluate(LF.none, scope, null, container, null);
         const targetObserver = observerLocator.getAccessor(target, prop);
         // const $stub = stub(observerLocator, 'getAccessor').returns(targetObserver);
@@ -235,7 +234,7 @@ describe('PropertyBinding', function () {
     eachCartesianJoinFactory(inputs, ([target, $1], [prop, $2], [expr, $3], [flags, $4], [scope, $5]) => {
       it(`$bind() [to-view]  target=${$1} prop=${$2} expr=${$3} flags=${$4} scope=${$5}`, function () {
         // - Arrange - Part 1
-        const { sut, lifecycle, container, observerLocator } = createFixture(expr, target, prop, BindingMode.toView);
+        const { sut, container, observerLocator } = createFixture(expr, target, prop, BindingMode.toView);
         const srcVal = expr.evaluate(LF.none, scope, null, container, null);
         const targetObserver = observerLocator.getAccessor(target, prop);
 
@@ -460,7 +459,7 @@ describe('PropertyBinding', function () {
     eachCartesianJoinFactory(inputs, ([target, $1], [prop, $2], [newValue, $3], [expr, $4], [flags, $5], [scope, $6]) => {
       it(`$bind() [from-view]  target=${$1} prop=${$2} newValue=${$3} expr=${$4} flags=${$5} scope=${$6}`, function () {
         // - Arrange - Part 1
-        const { sut, lifecycle, container, observerLocator } = createFixture(expr, target, prop, BindingMode.fromView);
+        const { sut, observerLocator } = createFixture(expr, target, prop, BindingMode.fromView);
         const targetObserver = observerLocator.getObserver(target, prop);
         // massSpy(targetObserver, 'subscribe');
 
@@ -582,7 +581,7 @@ describe('PropertyBinding', function () {
       it(`$bind() [two-way]  target=${$1} prop=${$2} newValue1,newValue2=${$3} expr=${$4} flags=${$5} scope=${$6}`, function () {
         const originalScope = JSON.parse(JSON.stringify(scope));
         // - Arrange - Part 1
-        const { sut, lifecycle, container, observerLocator } = createFixture(expr, target, prop, BindingMode.twoWay);
+        const { sut, container, observerLocator } = createFixture(expr, target, prop, BindingMode.twoWay);
         const srcVal = expr.evaluate(LF.none, scope, null, container, null);
         const targetObserver = observerLocator.getObserver(target, prop) as IObserver & ISubscriberCollection;
 
@@ -988,12 +987,7 @@ describe('PropertyBinding', function () {
 
 class MockObserver {
   [id: number]: number;
-  public subs?: ISubscriberRecord;
-  public callSubscribers: any;
-  public hasSubscribers: ISubscriberCollection['hasSubscribers'];
-  public hasSubscriber: ISubscriberCollection['hasSubscriber'];
-  public removeSubscriber: ISubscriberCollection['removeSubscriber'];
-  public addSubscriber: ISubscriberCollection['addSubscriber'];
+  public subs?: ISubscriberRecord<ISubscriber | ICollectionSubscriber>;
   public bind = createSpy();
   public unbind = createSpy();
   public dispose = createSpy();

@@ -1,5 +1,3 @@
-import { ILifecycle } from '@aurelia/runtime-html';
-
 function _random(max: number) {
   return Math.round(Math.random() * 1000) % max;
 }
@@ -13,9 +11,7 @@ export class Store {
   public id: number;
   public backup: any;
   public selectedIdx: number;
-  public constructor(
-    private readonly lifecycle: ILifecycle,
-  ) {
+  public constructor() {
     this.data = [];
     this.id = 1;
     this.selectedIdx = -1;
@@ -83,10 +79,10 @@ export class Store {
     if (this.data.length > 998) {
       const temp = this.data[1];
       const temp2 = this.data[998];
-      this.lifecycle.batch.inline(() => {
-        this.data.splice(1, 1, temp2);
-        this.data.splice(998, 1, temp);
-      });
+      // batch(() => {
+      this.data.splice(1, 1, temp2);
+      this.data.splice(998, 1, temp);
+      // });
     }
   }
 

@@ -1,8 +1,12 @@
-import { CollectionKind, createIndexMap, AccessorType, LifecycleFlags } from '../observation.js';
+import { createIndexMap, AccessorType, LifecycleFlags, ICollectionSubscriberCollection } from '../observation.js';
 import { CollectionSizeObserver } from './collection-length-observer.js';
-import { collectionSubscriberCollection } from './subscriber-collection.js';
+import { subscriberCollection } from './subscriber-collection.js';
+import { def } from '../utilities-objects.js';
 
-import type { ICollectionObserver, ILifecycle } from '../observation.js';
+import type {
+  ICollectionObserver,
+  CollectionKind,
+} from '../observation.js';
 
 const observerLookup = new WeakMap<Set<unknown>, SetObserver>();
 
@@ -95,8 +99,6 @@ const descriptorProps = {
   configurable: true
 };
 
-const def = Reflect.defineProperty;
-
 for (const method of methods) {
   def(observe[method], 'observing', { value: true, writable: false, configurable: false, enumerable: false });
 }
@@ -119,11 +121,11 @@ export function disableSetObservation(): void {
   }
 }
 
-export interface SetObserver extends ICollectionObserver<CollectionKind.set> {}
+export interface SetObserver extends ICollectionObserver<CollectionKind.set>, ICollectionSubscriberCollection {}
 
 export class SetObserver {
-  public inBatch: boolean;
   public type: AccessorType = AccessorType.Set;
+  private lenObs?: CollectionSizeObserver;
 
   public constructor(observedSet: Set<unknown>) {
 
@@ -132,49 +134,32 @@ export class SetObserver {
       enableSetObservation();
     }
 
-    this.inBatch = false;
-
     this.collection = observedSet;
     this.indexMap = createIndexMap(observedSet.size);
-    this.lengthObserver = (void 0)!;
+    this.lenObs = void 0;
 
     observerLookup.set(observedSet, this);
   }
 
   public notify(): void {
-    if (this.lifecycle?.batch.depth) {
-      if (!this.inBatch) {
-        this.inBatch = true;
-        this.lifecycle.batch.add(this);
-      }
-    } else {
-      this.flushBatch(LifecycleFlags.none);
-    }
-  }
-
-  public getLengthObserver(): CollectionSizeObserver {
-    return this.lengthObserver ??= new CollectionSizeObserver(this);
-  }
-
-  public flushBatch(flags: LifecycleFlags): void {
     const indexMap = this.indexMap;
     const size = this.collection.size;
 
-    this.inBatch = false;
     this.indexMap = createIndexMap(size);
     this.subs.notifyCollection(indexMap, LifecycleFlags.updateTarget);
   }
+
+  public getLengthObserver(): CollectionSizeObserver {
+    return this.lenObs ??= new CollectionSizeObserver(this);
+  }
 }
 
-collectionSubscriberCollection()(SetObserver);
+subscriberCollection(SetObserver);
 
-export function getSetObserver(observedSet: Set<unknown>, lifecycle: ILifecycle | null): SetObserver {
+export function getSetObserver(observedSet: Set<unknown>): SetObserver {
   let observer = observerLookup.get(observedSet);
   if (observer === void 0) {
     observer = new SetObserver(observedSet);
-    if (lifecycle != null) {
-      observer.lifecycle = lifecycle;
-    }
   }
   return observer;
 }

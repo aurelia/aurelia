@@ -4,7 +4,6 @@ import {
   CallScopeExpression,
   ExpressionKind,
   IsBindingBehavior,
-  ILifecycle,
   Scope,
   LifecycleFlags as LF,
   SetterObserver
@@ -23,11 +22,10 @@ import {
 describe.skip('CallBinding', function () {
   function createFixture(sourceExpression: IsBindingBehavior, target: any, targetProperty: string) {
     const container = createContainer(); // Note: used to be RuntimeConfiguration.createContainer, needs deps
-    const lifecycle = container.get(ILifecycle);
     const observerLocator = createObserverLocator(container);
     const sut = new CallBinding(sourceExpression as any, target, targetProperty, observerLocator, container);
 
-    return { sut, lifecycle, container, observerLocator };
+    return { sut, container, observerLocator };
   }
 
   describe('$bind -> $bind', function () {
@@ -62,7 +60,7 @@ describe.skip('CallBinding', function () {
     eachCartesianJoinFactory(inputs, ([target, $1], [prop, $2], [expr, $3], [scope, $4], [renewScope, $5]) => {
       it(`$bind() target=${$1} prop=${$2} expr=${$3} scope=${$4} renewScope=${$5}`, function () {
         // - Arrange -
-        const { sut, lifecycle, observerLocator } = createFixture(expr, target, prop);
+        const { sut, observerLocator } = createFixture(expr, target, prop);
         const flags = LF.none;
         const targetObserver = observerLocator.getObserver(target, prop);
 
@@ -158,7 +156,7 @@ describe.skip('CallBinding', function () {
     eachCartesianJoinFactory(inputs, ([target, $1], [prop, $2], [expr, $3], [scope, $4]) => {
       it(`$bind() target=${$1} prop=${$2} expr=${$3} scope=${$4}`, function () {
         // - Arrange -
-        const { sut, lifecycle, observerLocator } = createFixture(expr, target, prop);
+        const { sut, observerLocator } = createFixture(expr, target, prop);
         const flags = LF.none;
         const targetObserver = observerLocator.getObserver(target, prop);
 
@@ -262,7 +260,7 @@ describe.skip('CallBinding', function () {
     eachCartesianJoinFactory(inputs, ([target, $1], [prop, $2], [args, $3], [expr, $4], [scope, $5]) => {
       it(`$bind() target=${$1} prop=${$2} args=${$3} expr=${$4} scope=${$5}`, function () {
         // - Arrange -
-        const { sut, lifecycle, observerLocator } = createFixture(expr, target, prop);
+        const { sut, observerLocator } = createFixture(expr, target, prop);
         const flags = LF.none;
         const targetObserver = observerLocator.getObserver(target, prop);
 

@@ -140,7 +140,7 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
   }
 }
 
-subscriberCollection()(AttributeObserver);
+subscriberCollection(AttributeObserver);
 
 const startObservation = ($MutationObserver: typeof MutationObserver, element: IHtmlElement, subscription: ElementMutationSubscription): void => {
   if (element.$eMObservers === undefined) {

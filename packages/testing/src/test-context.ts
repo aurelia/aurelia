@@ -1,7 +1,6 @@
 /* eslint-disable import/no-mutable-exports */
 import { DI, IContainer, IRegistration, IRegistry, Registration } from '@aurelia/kernel';
 import {
-  ILifecycle,
   IObserverLocator,
   ITemplateCompiler,
   IPlatform,
@@ -60,13 +59,6 @@ export class TestContext {
       this._observerLocator = this.container.get(IObserverLocator);
     }
     return this._observerLocator;
-  }
-  private _lifecycle: ILifecycle | undefined = void 0;
-  public get lifecycle(): ILifecycle {
-    if (this._lifecycle === void 0) {
-      this._lifecycle = this.container.get(ILifecycle);
-    }
-    return this._lifecycle;
   }
   private _domParser: HTMLDivElement | undefined = void 0;
   public get domParser(): HTMLDivElement {

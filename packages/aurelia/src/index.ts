@@ -441,7 +441,6 @@ export {
   ISignaler,
 
   subscriberCollection,
-  collectionSubscriberCollection,
 
   bindingBehavior,
   BindingBehavior,
@@ -581,7 +580,6 @@ export {
 
   // DefaultResources as RuntimeDefaultResources,
   // IObserverLocatorRegistration,
-  // ILifecycleRegistration,
   // IRendererRegistration,
   // RuntimeConfiguration,
 
@@ -635,7 +633,6 @@ export {
 
   // ViewModelKind,
   // IBinding,
-  ILifecycle,
   // IViewModel,
   ICustomAttributeViewModel,
   ICustomElementViewModel,

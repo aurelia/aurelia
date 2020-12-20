@@ -312,10 +312,10 @@ export class Case implements ICustomAttributeViewModel {
 
   public valueChanged(newValue: unknown, _oldValue: unknown, flags: LifecycleFlags): void {
     if (Array.isArray(newValue)) {
-      this.observer?.removeCollectionSubscriber(this);
+      this.observer?.unsubscribe(this);
       this.observer = this.observeCollection(flags, newValue);
     } else if (this.observer !== void 0) {
-      this.observer.removeCollectionSubscriber(this);
+      this.observer.unsubscribe(this);
     }
     this.$switch.caseChanged(this, flags);
   }
@@ -337,7 +337,7 @@ export class Case implements ICustomAttributeViewModel {
   }
 
   public dispose(): void {
-    this.observer?.removeCollectionSubscriber(this);
+    this.observer?.unsubscribe(this);
     this.view?.dispose();
     this.view = (void 0)!;
   }
@@ -348,7 +348,7 @@ export class Case implements ICustomAttributeViewModel {
 
   private observeCollection(flags: LifecycleFlags, $value: unknown[]) {
     const observer = this.locator.getArrayObserver($value);
-    observer.addCollectionSubscriber(this);
+    observer.subscribe(this);
     return observer;
   }
 

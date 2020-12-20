@@ -16,8 +16,11 @@ import {
   IndexMap,
   ICollectionSubscribable,
 } from '../observation.js';
-import { IObserverLocator } from '../observation/observer-locator.js';
-import { defineHiddenProp, ensureProto } from '../utilities-objects.js';
+import { def, defineHiddenProp, ensureProto } from '../utilities-objects.js';
+import { getArrayObserver } from '../observation/array-observer.js';
+import { getSetObserver } from '../observation/set-observer.js';
+import { getMapObserver } from '../observation/map-observer.js';
+import type { IObserverLocator } from '../observation/observer-locator.js';
 import type { Scope } from '../observation/binding-context.js';
 
 // TODO: add connect-queue (or something similar) back in when everything else is working, to improve startup time
@@ -75,27 +78,22 @@ function getObserverRecord(this: IConnectableBinding): BindingObserverRecord {
 }
 
 function observeCollection(this: IConnectableBinding, collection: Collection): void {
-  const obs = getCollectionObserver(collection, this.observerLocator);
+  let obs: CollectionObserver;
+  if (collection instanceof Array) {
+    obs = getArrayObserver(collection);
+  } else if (collection instanceof Set) {
+    obs = getSetObserver(collection);
+  } else if (collection instanceof Map) {
+    obs = getMapObserver(collection);
+  } else {
+    throw new Error('Unrecognised collection type.');
+  }
   this.cObs.add(obs);
 }
 function getCollectionObserverRecord(this: IConnectableBinding): BindingCollectionObserverRecord {
   const record = new BindingCollectionObserverRecord(this);
   defineHiddenProp(this, 'cObs', record);
   return record;
-}
-
-function getCollectionObserver(collection: Collection, observerLocator: IObserverLocator): CollectionObserver {
-  let observer: CollectionObserver;
-  if (collection instanceof Array) {
-    observer = observerLocator.getArrayObserver(collection);
-  } else if (collection instanceof Set) {
-    observer = observerLocator.getSetObserver(collection);
-  } else if (collection instanceof Map) {
-    observer = observerLocator.getMapObserver(collection);
-  } else {
-    throw new Error('Unrecognised collection type.');
-  }
-  return observer;
 }
 
 function noopHandleChange() {
@@ -212,7 +210,7 @@ export class BindingCollectionObserverRecord {
   }
 
   public add(observer: ICollectionSubscribable): void {
-    observer.subscribeToCollection(this);
+    observer.subscribe(this);
     this.count = this.observers.set(observer, this.version).size;
   }
 
@@ -227,7 +225,7 @@ export class BindingCollectionObserverRecord {
     for (observerAndVersionPair of observers) {
       if (all || observerAndVersionPair[1] !== version) {
         o = observerAndVersionPair[0];
-        o.unsubscribeFromCollection(this);
+        o.unsubscribe(this);
         observers.delete(o);
       }
     }
@@ -240,11 +238,10 @@ type DecoratedConnectable<TProto, TClass> = Class<TProto & IConnectableBinding, 
 
 function connectableDecorator<TProto, TClass>(target: DecoratableConnectable<TProto, TClass>): DecoratedConnectable<TProto, TClass> {
   const proto = target.prototype;
-  const defProp = Reflect.defineProperty;
   ensureProto(proto, 'observeProperty', observeProperty, true);
   ensureProto(proto, 'observeCollection', observeCollection, true);
-  defProp(proto, 'obs', { get: getObserverRecord });
-  defProp(proto, 'cObs', { get: getCollectionObserverRecord });
+  def(proto, 'obs', { get: getObserverRecord });
+  def(proto, 'cObs', { get: getCollectionObserverRecord });
   // optionally add these two methods to normalize a connectable impl
   ensureProto(proto, 'handleChange', noopHandleChange);
   ensureProto(proto, 'handleCollectionChange', noopHandleCollectionChange);

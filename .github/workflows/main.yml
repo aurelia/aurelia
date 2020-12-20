@@ -1,5 +1,8 @@
 name: Github Actions
 on: [push]
+env:
+  PREFERRED_WORKSPACE_MANAGER: yarn # for lage to work property
+
 jobs:
 
   # lint:

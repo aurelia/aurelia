@@ -1,6 +1,6 @@
 coverage/
 dist/
 node_modules/
-router/e2e/
+3-runtime-html/generated/
 karma.conf.js
 .eslintrc.cjs

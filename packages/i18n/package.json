@@ -30,6 +30,7 @@
   ],
   "scripts": {
     "lint": "eslint --cache --ext .js,.ts src/",
+    "lint:ci": "eslint --cache --ext --quiet --report-unused-disable-directives .js,.ts src/",
     "build": "tsc -b",
     "dev": "tsc -b -w --preserveWatchOutput",
     "publish:dev": "npm publish --tag dev",

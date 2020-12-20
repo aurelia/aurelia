@@ -202,9 +202,8 @@ jobs:
     executor: docker-circleci
     steps:
       - checkout_install
-      # TODO: Remove the " -- -- -- --quiet" once warning numbers are down to an acceptable level.
-      - run: npm run lint:packages -- -- -- --quiet --report-unused-disable-directives
-      - run: npm run lint:other -- --quiet --report-unused-disable-directives
+      - run: npm run lint:packages:ci
+      - run: npm run lint:other:ci
 
   merge_and_dist:
     executor: docker-circleci

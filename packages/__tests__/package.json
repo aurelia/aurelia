@@ -9,6 +9,7 @@
   },
   "scripts": {
     "lint": "eslint --cache --ext .js,.ts .",
+    "lint:ci": "eslint --cache --ext --quiet --report-unused-disable-directives .js,.ts .",
     "test-262": "node -r esm dist/esnext/__tests__/setup-test262.js",
     "::mocha": "mocha --ui bdd --reporter min --colors --recursive --timeout 5000 --watch-extensions js dist/esnext/__tests__/setup-node.js",
     "test-node": "mocha --ui bdd --reporter min --colors --recursive --timeout 5000 --exit dist/esnext/__tests__/setup-node.js dist/esnext/__tests__/1-kernel/**/*.spec.js dist/esnext/__tests__/2-runtime/**/*.spec.js dist/esnext/__tests__/3-runtime-html/**/*.spec.js dist/esnext/__tests__/fetch-client/**/*.spec.js dist/esnext/__tests__/i18n/**/*.spec.js dist/esnext/__tests__/router/**/*.spec.js dist/esnext/__tests__/validation/**/*.spec.js dist/esnext/__tests__/validation-html/**/*.spec.js dist/esnext/__tests__/validation-i18n/**/*.spec.js",

@@ -7,7 +7,7 @@ type Anything = any;
 describe('SelectValueObserver', function () {
   function createFixture(initialValue: Anything = '', options = [], multiple = false) {
     const ctx = TestContext.create();
-    const { platform, lifecycle, observerLocator } = ctx;
+    const { platform, observerLocator } = ctx;
 
     const optionElements = options.map(o => `<option value="${o}">${o}</option>`).join('\n');
     const markup = `<select ${multiple ? 'multiple' : ''}>\n${optionElements}\n</select>`;
@@ -15,7 +15,7 @@ describe('SelectValueObserver', function () {
     const sut = observerLocator.getObserver(el, 'value') as SelectValueObserver;
     sut.setValue(initialValue, LF.fromBind);
 
-    return { ctx, lifecycle, el, sut, platform };
+    return { ctx, el, sut, platform };
   }
 
   describe('setValue()', function () {

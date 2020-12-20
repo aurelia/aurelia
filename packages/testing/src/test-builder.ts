@@ -4,8 +4,6 @@ import {
 } from '@aurelia/kernel';
 import {
   IDirtyChecker,
-
-  ILifecycle,
   IObserverLocator,
   Scope,
   OverrideContext,
@@ -450,7 +448,7 @@ import { createContainer } from './test-context.js';
 //   }
 // }
 
-export function createObserverLocator(containerOrLifecycle?: IContainer | ILifecycle): IObserverLocator {
+export function createObserverLocator(containerOrLifecycle?: IContainer): IObserverLocator {
   let container: IContainer;
   if (containerOrLifecycle === undefined || !('get' in containerOrLifecycle)) {
     container = createContainer();

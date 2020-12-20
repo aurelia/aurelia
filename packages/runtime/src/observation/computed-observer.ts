@@ -7,6 +7,7 @@ import { subscriberCollection } from './subscriber-collection.js';
 import { enterConnectable, exitConnectable } from './connectable-switcher.js';
 import { connectable } from '../binding/connectable.js';
 import { wrap, unwrap } from './proxy-observation.js';
+import { def } from '../utilities-objects.js';
 
 import type {
   ISubscriber,
@@ -32,7 +33,7 @@ export class ComputedObserver implements IConnectableBinding, ISubscriber, IColl
     const observer = new ComputedObserver(obj, getter, setter, useProxy, observerLocator);
     const $get = ((/* Computed Observer */) => observer.getValue()) as ObservableGetter;
     $get.getObserver = () => observer;
-    Reflect.defineProperty(obj, key, {
+    def(obj, key, {
       enumerable: descriptor.enumerable,
       configurable: true,
       get: $get,
@@ -46,7 +47,7 @@ export class ComputedObserver implements IConnectableBinding, ISubscriber, IColl
 
   public id!: number;
   public interceptor = this;
-  public type: AccessorType = AccessorType.Obj;
+  public type: AccessorType = AccessorType.Observer;
   public value: unknown = void 0;
 
   // todo: maybe use a counter allow recursive call to a certain level
@@ -157,4 +158,4 @@ export class ComputedObserver implements IConnectableBinding, ISubscriber, IColl
 }
 
 connectable(ComputedObserver);
-subscriberCollection()(ComputedObserver);
+subscriberCollection(ComputedObserver);

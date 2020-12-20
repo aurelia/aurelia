@@ -334,7 +334,7 @@ describe('blur.integration.spec.ts', function () {
 
   async function createFixture<T>(template: string | Node, $class: Constructable | null, ...registrations: any[]) {
     const ctx = TestContext.create();
-    const { container, lifecycle, observerLocator } = ctx;
+    const { container, observerLocator } = ctx;
     registrations = Array.from(new Set([...registrations, Blur, Focus]));
     container.register(...registrations);
     const testHost = ctx.doc.body.appendChild(ctx.createElement('div'));
@@ -350,7 +350,6 @@ describe('blur.integration.spec.ts', function () {
       ctx: ctx,
       au,
       container,
-      lifecycle,
       testHost: testHost,
       appHost,
       component: component as T,

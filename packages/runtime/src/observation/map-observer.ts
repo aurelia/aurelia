@@ -1,9 +1,13 @@
-import { CollectionKind, createIndexMap, AccessorType, LifecycleFlags } from '../observation.js';
+import { createIndexMap, AccessorType, LifecycleFlags } from '../observation.js';
 import { CollectionSizeObserver } from './collection-length-observer.js';
-import { collectionSubscriberCollection } from './subscriber-collection.js';
+import { subscriberCollection } from './subscriber-collection.js';
 import { def } from '../utilities-objects.js';
 
-import type { ICollectionObserver, ILifecycle } from '../observation.js';
+import type {
+  CollectionKind,
+  ICollectionObserver,
+  ICollectionSubscriberCollection,
+} from '../observation.js';
 
 const observerLookup = new WeakMap<Map<unknown, unknown>, MapObserver>();
 
@@ -131,11 +135,11 @@ export function disableMapObservation(): void {
   }
 }
 
-export interface MapObserver extends ICollectionObserver<CollectionKind.map> {}
+export interface MapObserver extends ICollectionObserver<CollectionKind.map>, ICollectionSubscriberCollection {}
 
 export class MapObserver {
-  public inBatch: boolean;
   public type: AccessorType = AccessorType.Map;
+  private lenObs?: CollectionSizeObserver;
 
   public constructor(map: Map<unknown, unknown>) {
 
@@ -144,49 +148,32 @@ export class MapObserver {
       enableMapObservation();
     }
 
-    this.inBatch = false;
-
     this.collection = map;
     this.indexMap = createIndexMap(map.size);
-    this.lengthObserver = (void 0)!;
+    this.lenObs = void 0;
 
     observerLookup.set(map, this);
   }
 
   public notify(): void {
-    if (this.lifecycle?.batch.depth) {
-      if (!this.inBatch) {
-        this.inBatch = true;
-        this.lifecycle.batch.add(this);
-      }
-    } else {
-      this.flushBatch(LifecycleFlags.none);
-    }
-  }
-
-  public getLengthObserver(): CollectionSizeObserver {
-    return this.lengthObserver ??= new CollectionSizeObserver(this);
-  }
-
-  public flushBatch(flags: LifecycleFlags): void {
     const indexMap = this.indexMap;
     const size = this.collection.size;
 
-    this.inBatch = false;
     this.indexMap = createIndexMap(size);
     this.subs.notifyCollection(indexMap, LifecycleFlags.updateTarget);
   }
+
+  public getLengthObserver(): CollectionSizeObserver {
+    return this.lenObs ??= new CollectionSizeObserver(this);
+  }
 }
 
-collectionSubscriberCollection()(MapObserver);
+subscriberCollection(MapObserver);
 
-export function getMapObserver(map: Map<unknown, unknown>, lifecycle: ILifecycle | null): MapObserver {
+export function getMapObserver(map: Map<unknown, unknown>): MapObserver {
   let observer = observerLookup.get(map);
   if (observer === void 0) {
     observer = new MapObserver(map);
-    if (lifecycle != null) {
-      observer.lifecycle = lifecycle;
-    }
   }
   return observer;
 }

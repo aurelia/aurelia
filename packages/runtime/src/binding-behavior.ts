@@ -20,7 +20,7 @@ import type {
   IServiceLocator,
   Key,
 } from '@aurelia/kernel';
-import type { BindingCollectionObserverRecord, BindingObserverRecord, IConnectableBinding } from './binding/connectable.js';
+import type { BindingObserverRecord, IConnectableBinding } from './binding/connectable.js';
 import type { BindingBehaviorExpression, IBindingBehaviorExpression } from './binding/ast.js';
 import type { IObserverLocator } from './observation/observer-locator.js';
 import type { IBinding } from './observation.js';

@@ -20,7 +20,6 @@ import type {
   IObserverLocator,
   ISignaler,
   BindingObserverRecord,
-  BindingCollectionObserverRecord,
   Collection,
 } from '@aurelia/runtime';
 

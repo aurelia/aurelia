@@ -68,7 +68,6 @@ export class ComputedWatcher implements IConnectableBinding, ISubscriber, IColle
     }
     this.isBound = false;
     this.obs.clear(true);
-    this.cObs.clear(true);
   }
 
   private run(): void {
@@ -93,7 +92,6 @@ export class ComputedWatcher implements IConnectableBinding, ISubscriber, IColle
       return this.value = unwrap(this.get.call(void 0, this.useProxy ? wrap(this.obj) : this.obj, this));
     } finally {
       this.obs.clear(false);
-      this.cObs.clear(false);
       this.running = false;
       exit(this);
     }

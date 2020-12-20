@@ -5,7 +5,6 @@ import {
 } from '@aurelia/kernel';
 import {
   IConnectable,
-  IObserver,
   ISubscribable,
   ISubscriber,
   IBinding,
@@ -16,8 +15,11 @@ import {
   IndexMap,
   ICollectionSubscribable,
 } from '../observation.js';
-import { IObserverLocator } from '../observation/observer-locator.js';
-import { defineHiddenProp, ensureProto } from '../utilities-objects.js';
+import { def, defineHiddenProp, ensureProto } from '../utilities-objects.js';
+import { getArrayObserver } from '../observation/array-observer.js';
+import { getSetObserver } from '../observation/set-observer.js';
+import { getMapObserver } from '../observation/map-observer.js';
+import type { IObserverLocator } from '../observation/observer-locator.js';
 import type { Scope } from '../observation/binding-context.js';
 
 // TODO: add connect-queue (or something similar) back in when everything else is working, to improve startup time
@@ -47,14 +49,6 @@ export interface IConnectableBinding extends IPartialConnectableBinding, IConnec
    * A record storing observers that are currently subscribed to by this binding
    */
   obs: BindingObserverRecord;
-
-  // todo:
-  // merge collection subscribable, and generally collection subscription
-  // with normal subscription
-  /**
-   * A record storing collection observers that are currently subscribed to by this binding
-   */
-  cObs: BindingCollectionObserverRecord;
 }
 
 function observeProperty(this: IConnectableBinding, obj: object, key: PropertyKey): void {
@@ -75,27 +69,17 @@ function getObserverRecord(this: IConnectableBinding): BindingObserverRecord {
 }
 
 function observeCollection(this: IConnectableBinding, collection: Collection): void {
-  const obs = getCollectionObserver(collection, this.observerLocator);
-  this.cObs.add(obs);
-}
-function getCollectionObserverRecord(this: IConnectableBinding): BindingCollectionObserverRecord {
-  const record = new BindingCollectionObserverRecord(this);
-  defineHiddenProp(this, 'cObs', record);
-  return record;
-}
-
-function getCollectionObserver(collection: Collection, observerLocator: IObserverLocator): CollectionObserver {
-  let observer: CollectionObserver;
+  let obs: CollectionObserver;
   if (collection instanceof Array) {
-    observer = observerLocator.getArrayObserver(collection);
+    obs = getArrayObserver(collection);
   } else if (collection instanceof Set) {
-    observer = observerLocator.getSetObserver(collection);
+    obs = getSetObserver(collection);
   } else if (collection instanceof Map) {
-    observer = observerLocator.getMapObserver(collection);
+    obs = getMapObserver(collection);
   } else {
     throw new Error('Unrecognised collection type.');
   }
-  return observer;
+  this.obs.add(obs);
 }
 
 function noopHandleChange() {
@@ -111,10 +95,10 @@ type ObservationRecordImplType = {
   version: number;
   count: number;
   binding: IConnectableBinding;
-} & ISubscriber & Record<string, unknown>;
+} & Record<string, unknown>;
 
-export interface BindingObserverRecord extends ISubscriber, ObservationRecordImplType { }
-export class BindingObserverRecord implements ISubscriber {
+export interface BindingObserverRecord extends ObservationRecordImplType { }
+export class BindingObserverRecord implements ISubscriber, ICollectionSubscriber {
   public id!: number;
   public version: number = 0;
   public count: number = 0;
@@ -129,10 +113,14 @@ export class BindingObserverRecord implements ISubscriber {
     return this.binding.interceptor.handleChange(value, oldValue, flags);
   }
 
+  public handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void {
+    this.binding.interceptor.handleCollectionChange(indexMap, flags);
+  }
+
   /**
    * Add, and subscribe to a given observer
    */
-  public add(observer: ISubscribable & { [id: number]: number }): void {
+  public add(observer: (ISubscribable | ICollectionSubscribable) & { [id: number]: number }): void {
     // find the observer.
     const observerSlots = this.count == null ? 0 : this.count;
     let i = observerSlots;
@@ -163,11 +151,12 @@ export class BindingObserverRecord implements ISubscriber {
   public clear(all?: boolean): void {
     const slotCount = this.count;
     let slotName: string;
-    let observer: IObserver & { [key: string]: number };
+    let observer: (ISubscribable | ICollectionSubscribable) & { [key: string]: number };
+    let i = 0;
     if (all === true) {
-      for (let i = 0; i < slotCount; ++i) {
+      for (; i < slotCount; ++i) {
         slotName = slotNames[i];
-        observer = this[slotName] as IObserver & { [key: string]: number };
+        observer = this[slotName] as (ISubscribable | ICollectionSubscribable) & { [key: string]: number };
         if (observer != null) {
           this[slotName] = void 0;
           observer.unsubscribe(this);
@@ -176,10 +165,10 @@ export class BindingObserverRecord implements ISubscriber {
       }
       this.count = 0;
     } else {
-      for (let i = 0; i < slotCount; ++i) {
+      for (; i < slotCount; ++i) {
         if (this[versionSlotNames[i]] !== this.version) {
           slotName = slotNames[i];
-          observer = this[slotName] as IObserver & { [key: string]: number };
+          observer = this[slotName] as (ISubscribable | ICollectionSubscribable) & { [key: string]: number };
           if (observer != null) {
             this[slotName] = void 0;
             observer.unsubscribe(this);
@@ -192,59 +181,14 @@ export class BindingObserverRecord implements ISubscriber {
   }
 }
 
-export interface BindingCollectionObserverRecord extends ICollectionSubscriber, ObservationRecordImplType { }
-export class BindingCollectionObserverRecord {
-  public id!: number;
-  public count: number = 0;
-  public get version(): number {
-    return this.binding.obs.version;
-  }
-
-  private readonly observers = new Map<ICollectionSubscribable, number>();
-  public constructor(
-    public readonly binding: IConnectableBinding,
-  ) {
-    connectable.assignIdTo(this);
-  }
-
-  public handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void {
-    this.binding.interceptor.handleCollectionChange(indexMap, flags);
-  }
-
-  public add(observer: ICollectionSubscribable): void {
-    observer.subscribeToCollection(this);
-    this.count = this.observers.set(observer, this.version).size;
-  }
-
-  public clear(all?: boolean): void {
-    if (this.count === 0) {
-      return;
-    }
-    const observers = this.observers;
-    const version = this.version;
-    let observerAndVersionPair: [ICollectionSubscribable, number];
-    let o: ICollectionSubscribable;
-    for (observerAndVersionPair of observers) {
-      if (all || observerAndVersionPair[1] !== version) {
-        o = observerAndVersionPair[0];
-        o.unsubscribeFromCollection(this);
-        observers.delete(o);
-      }
-    }
-    this.count = observers.size;
-  }
-}
-
 type DecoratableConnectable<TProto, TClass> = Class<TProto & Partial<IConnectableBinding> & IPartialConnectableBinding, TClass>;
 type DecoratedConnectable<TProto, TClass> = Class<TProto & IConnectableBinding, TClass>;
 
 function connectableDecorator<TProto, TClass>(target: DecoratableConnectable<TProto, TClass>): DecoratedConnectable<TProto, TClass> {
   const proto = target.prototype;
-  const defProp = Reflect.defineProperty;
   ensureProto(proto, 'observeProperty', observeProperty, true);
   ensureProto(proto, 'observeCollection', observeCollection, true);
-  defProp(proto, 'obs', { get: getObserverRecord });
-  defProp(proto, 'cObs', { get: getCollectionObserverRecord });
+  def(proto, 'obs', { get: getObserverRecord });
   // optionally add these two methods to normalize a connectable impl
   ensureProto(proto, 'handleChange', noopHandleChange);
   ensureProto(proto, 'handleCollectionChange', noopHandleCollectionChange);
@@ -260,7 +204,7 @@ export function connectable<TProto, TClass>(target?: DecoratableConnectable<TPro
 
 let idValue = 0;
 
-connectable.assignIdTo = (instance: IConnectableBinding | BindingObserverRecord | BindingCollectionObserverRecord): void => {
+connectable.assignIdTo = (instance: IConnectableBinding | BindingObserverRecord): void => {
   instance.id = ++idValue;
 };
 

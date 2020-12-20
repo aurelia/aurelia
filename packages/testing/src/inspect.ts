@@ -1378,7 +1378,6 @@ export function formatRaw(
     // Skip some standard components as their difference will not matter in assertions, but they will
     // generate a lot of noise and slow down the inspection due to their size and property depth
     case 'Container':
-    case 'Lifecycle':
     case 'ObserverLocator':
     // Also skip window object as it's not a node instance and therefore not filtered by formatProperty
     case 'Window':

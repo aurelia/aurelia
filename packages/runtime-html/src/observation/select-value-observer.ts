@@ -231,26 +231,22 @@ export class SelectValueObserver implements IObserver {
 
   private stop(): void {
     this.nodeObserver!.disconnect();
-    this.nodeObserver = null!;
-
-    if (this.arrayObserver) {
-      this.arrayObserver.unsubscribeFromCollection(this);
-      this.arrayObserver = null!;
-    }
+    this.arrayObserver?.unsubscribe(this);
+    this.nodeObserver
+      = this.arrayObserver
+      = void 0;
     this.observing = false;
   }
 
   // todo: observe all kind of collection
   private observeArray(array: unknown[] | null): void {
-    if (array != null && !this.obj.multiple) {
-      throw new Error('Only null or Array instances can be bound to a multi-select.');
-    }
-    if (this.arrayObserver) {
-      this.arrayObserver.unsubscribeFromCollection(this);
-      this.arrayObserver = void 0;
-    }
+    this.arrayObserver?.unsubscribe(this);
+    this.arrayObserver = void 0;
     if (array != null) {
-      (this.arrayObserver = this.observerLocator.getArrayObserver(array)).subscribeToCollection(this);
+      if (!this.obj.multiple) {
+        throw new Error('Only null or Array instances can be bound to a multi-select.');
+      }
+      (this.arrayObserver = this.observerLocator.getArrayObserver(array)).subscribe(this);
     }
   }
 
@@ -277,4 +273,4 @@ export class SelectValueObserver implements IObserver {
   }
 }
 
-subscriberCollection()(SelectValueObserver);
+subscriberCollection(SelectValueObserver);

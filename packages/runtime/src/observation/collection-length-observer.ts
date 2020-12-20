@@ -10,12 +10,11 @@ import type {
   ISubscriber,
   ISubscriberCollection,
   ICollectionSubscriber,
-  IObserver,
 } from '../observation.js';
 
 export interface CollectionLengthObserver extends ISubscriberCollection {}
 
-export class CollectionLengthObserver {
+export class CollectionLengthObserver implements ICollectionSubscriber {
   public value: number;
   public readonly type: AccessorType = AccessorType.Array;
   public readonly obj: unknown[];
@@ -55,7 +54,7 @@ export class CollectionLengthObserver {
 
 export interface CollectionSizeObserver extends ISubscriberCollection {}
 
-export class CollectionSizeObserver {
+export class CollectionSizeObserver implements ICollectionSubscriber {
   public value: number;
   public readonly type: AccessorType;
   public readonly obj: Set<unknown> | Map<unknown, unknown>;
@@ -85,26 +84,26 @@ export class CollectionSizeObserver {
   }
 }
 
-interface CollectionLengthObserverImpl extends IObserver, ISubscriberCollection, ICollectionSubscriber {
+interface CollectionLengthObserverImpl extends ISubscriberCollection, ICollectionSubscriber {
   owner: ICollectionObserver<CollectionKind>;
 }
 
-function implementLengthObserver(klass: Constructable<CollectionLengthObserverImpl>) {
-  const proto = klass.prototype as CollectionLengthObserverImpl;
+function implementLengthObserver(klass: Constructable<ISubscriberCollection>) {
+  const proto = klass.prototype as ISubscriberCollection;
   ensureProto(proto, 'subscribe', subscribe, true);
   ensureProto(proto, 'unsubscribe', unsubscribe, true);
-  subscriberCollection()(klass);
+  subscriberCollection(klass);
 }
 
 function subscribe(this: CollectionLengthObserverImpl, subscriber: ISubscriber): void {
   if (this.subs.add(subscriber) && this.subs.count === 1) {
-    this.owner.subs.add(this);
+    this.owner.subscribe(this);
   }
 }
 
 function unsubscribe(this: CollectionLengthObserverImpl, subscriber: ISubscriber): void {
   if (this.subs.remove(subscriber) && this.subs.count === 0) {
-    this.owner.subs.remove(this);
+    this.owner.subscribe(this);
   }
 }
 

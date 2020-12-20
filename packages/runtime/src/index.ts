@@ -70,7 +70,6 @@ export {
   BindingMediator,
   MediatedBinding,
   BindingObserverRecord,
-  BindingCollectionObserverRecord,
 } from './binding/connectable.js';
 export {
   IExpressionParser,
@@ -147,9 +146,8 @@ export {
   ISignaler,
 } from './observation/signaler.js';
 export {
-  subscriberCollection,
-  collectionSubscriberCollection,
   SubscriberRecord,
+  subscriberCollection,
 } from './observation/subscriber-collection.js';
 export {
   ConnectableSwitcher,
@@ -186,7 +184,6 @@ export {
   LifecycleFlags,
   AccessorOrObserver,
   IBinding,
-  ILifecycle,
   AccessorType,
   Collection,
   CollectionKind,

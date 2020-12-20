@@ -189,15 +189,6 @@ jobs:
           condition: << parameters.coverage >>
           steps:
             - run:
-                name: "Process coverage results for Code Climate"
-                command: |
-                  curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ~/cc-test-reporter && chmod +x ~/cc-test-reporter
-                  ~/cc-test-reporter format-coverage packages/__tests__/coverage/lcov.info -t lcov -o packages/__tests__/coverage/cc-final.json
-                  ~/cc-test-reporter upload-coverage -i packages/__tests__/coverage/cc-final.json
-                environment:
-                  CC_TEST_REPORTER_ID: 29ad19bd108faacbd91b36265a5b5e891b404571ebf937f40655157877aa71a1
-                when: always
-            - run:
                 name: "Process coverage for Codecov"
                 command: |
                   node_modules/codecov/bin/codecov -f packages/__tests__/coverage/coverage-final.json

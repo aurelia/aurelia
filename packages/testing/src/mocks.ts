@@ -36,7 +36,6 @@ export class MockBinding implements IConnectableBinding {
   public isBound!: boolean;
   public value: unknown;
   public obs!: BindingObserverRecord;
-  public cObs!: BindingCollectionObserverRecord;
 
   public calls: [keyof MockBinding, ...any[]][] = [];
 

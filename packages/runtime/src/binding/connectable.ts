@@ -50,14 +50,6 @@ export interface IConnectableBinding extends IPartialConnectableBinding, IConnec
    * A record storing observers that are currently subscribed to by this binding
    */
   obs: BindingObserverRecord;
-
-  // todo:
-  // merge collection subscribable, and generally collection subscription
-  // with normal subscription
-  /**
-   * A record storing collection observers that are currently subscribed to by this binding
-   */
-  cObs: BindingCollectionObserverRecord;
 }
 
 function observeProperty(this: IConnectableBinding, obj: object, key: PropertyKey): void {
@@ -88,12 +80,7 @@ function observeCollection(this: IConnectableBinding, collection: Collection): v
   } else {
     throw new Error('Unrecognised collection type.');
   }
-  this.cObs.add(obs);
-}
-function getCollectionObserverRecord(this: IConnectableBinding): BindingCollectionObserverRecord {
-  const record = new BindingCollectionObserverRecord(this);
-  defineHiddenProp(this, 'cObs', record);
-  return record;
+  this.obs.add(obs);
 }
 
 function noopHandleChange() {
@@ -109,10 +96,10 @@ type ObservationRecordImplType = {
   version: number;
   count: number;
   binding: IConnectableBinding;
-} & ISubscriber & Record<string, unknown>;
+} & Record<string, unknown>;
 
-export interface BindingObserverRecord extends ISubscriber, ObservationRecordImplType { }
-export class BindingObserverRecord implements ISubscriber {
+export interface BindingObserverRecord extends ObservationRecordImplType { }
+export class BindingObserverRecord implements ISubscriber, ICollectionSubscriber {
   public id!: number;
   public version: number = 0;
   public count: number = 0;
@@ -127,10 +114,14 @@ export class BindingObserverRecord implements ISubscriber {
     return this.binding.interceptor.handleChange(value, oldValue, flags);
   }
 
+  public handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void {
+    this.binding.interceptor.handleCollectionChange(indexMap, flags);
+  }
+
   /**
    * Add, and subscribe to a given observer
    */
-  public add(observer: ISubscribable & { [id: number]: number }): void {
+  public add(observer: (ISubscribable | ICollectionSubscribable) & { [id: number]: number }): void {
     // find the observer.
     const observerSlots = this.count == null ? 0 : this.count;
     let i = observerSlots;
@@ -162,8 +153,9 @@ export class BindingObserverRecord implements ISubscriber {
     const slotCount = this.count;
     let slotName: string;
     let observer: IObserver & { [key: string]: number };
+    let i = 0;
     if (all === true) {
-      for (let i = 0; i < slotCount; ++i) {
+      for (; i < slotCount; ++i) {
         slotName = slotNames[i];
         observer = this[slotName] as IObserver & { [key: string]: number };
         if (observer != null) {
@@ -174,7 +166,7 @@ export class BindingObserverRecord implements ISubscriber {
       }
       this.count = 0;
     } else {
-      for (let i = 0; i < slotCount; ++i) {
+      for (; i < slotCount; ++i) {
         if (this[versionSlotNames[i]] !== this.version) {
           slotName = slotNames[i];
           observer = this[slotName] as IObserver & { [key: string]: number };
@@ -241,7 +233,6 @@ function connectableDecorator<TProto, TClass>(target: DecoratableConnectable<TPr
   ensureProto(proto, 'observeProperty', observeProperty, true);
   ensureProto(proto, 'observeCollection', observeCollection, true);
   def(proto, 'obs', { get: getObserverRecord });
-  def(proto, 'cObs', { get: getCollectionObserverRecord });
   // optionally add these two methods to normalize a connectable impl
   ensureProto(proto, 'handleChange', noopHandleChange);
   ensureProto(proto, 'handleCollectionChange', noopHandleCollectionChange);

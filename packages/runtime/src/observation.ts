@@ -299,6 +299,7 @@ export interface ICollectionChangeTracker<T extends Collection> {
 export interface ICollectionObserver<T extends CollectionKind> extends
   ICollectionChangeTracker<CollectionKindToType<T>>,
   ICollectionSubscribable {
+  [id: number]: number;
   type: AccessorType;
   collection: ObservedCollectionKindToType<T>;
   getLengthObserver(): T extends CollectionKind.array ? CollectionLengthObserver : CollectionSizeObserver;

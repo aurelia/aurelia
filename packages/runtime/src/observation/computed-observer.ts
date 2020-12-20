@@ -123,7 +123,6 @@ export class ComputedObserver implements IConnectableBinding, ISubscriber, IColl
     if (this.subs.remove(subscriber) && this.subs.count === 0) {
       this.isDirty = true;
       this.obs.clear(true);
-      this.cObs.clear(true);
     }
   }
 
@@ -150,7 +149,6 @@ export class ComputedObserver implements IConnectableBinding, ISubscriber, IColl
       return this.value = unwrap(this.get.call(this.useProxy ? wrap(this.obj) : this.obj, this));
     } finally {
       this.obs.clear(false);
-      this.cObs.clear(false);
       this.running = false;
       exitConnectable(this);
     }

@@ -177,9 +177,6 @@ export class BindingInterceptor implements IInterceptableBinding {
   public get obs(): BindingObserverRecord {
     return this.binding.obs;
   }
-  public get cObs(): BindingCollectionObserverRecord {
-    return this.binding.cObs;
-  }
 
   public constructor(
     public readonly binding: IInterceptableBinding,

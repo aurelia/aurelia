@@ -3,7 +3,7 @@ const thisDir = path.resolve(__dirname);
 
 module.exports = {
   extends: [
-    '../../.eslintrc.js',
+    '../../.eslintrc.cjs',
     'plugin:mocha/recommended'
   ],
   parserOptions: {

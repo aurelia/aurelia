@@ -3,7 +3,7 @@ const thisDir = path.resolve(__dirname);
 
 module.exports = {
   extends: [
-    '../../.eslintrc.js',
+    '../../../../.eslintrc.cjs',
   ],
   parserOptions: {
     project: path.join(thisDir, 'tsconfig.json'),
@@ -13,14 +13,6 @@ module.exports = {
     node: true,
   },
   rules: {
-    'import/no-nodejs-modules': 'off', // nodejs modules are core to the node runtime
-  },
-  overrides: [
-    {
-      files: ['bin/cli.js'],
-      rules: {
-        'import/no-unassigned-import': 'off',
-      },
-    },
-  ],
+    'import/no-nodejs-modules': 'off'
+  }
 };

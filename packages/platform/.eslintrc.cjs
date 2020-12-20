@@ -3,7 +3,7 @@ const thisDir = path.resolve(__dirname);
 
 module.exports = {
   extends: [
-    '../../.eslintrc.js',
+    '../../.eslintrc.cjs',
   ],
   parserOptions: {
     project: path.join(thisDir, 'tsconfig.json'),
@@ -12,5 +12,8 @@ module.exports = {
   env: {
     es6: true,
     browser: true,
+  },
+  globals: {
+    globalThis: 'readonly',
   },
 };

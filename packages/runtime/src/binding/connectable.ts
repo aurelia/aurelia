@@ -5,7 +5,6 @@ import {
 } from '@aurelia/kernel';
 import {
   IConnectable,
-  IObserver,
   ISubscribable,
   ISubscriber,
   IBinding,
@@ -152,12 +151,12 @@ export class BindingObserverRecord implements ISubscriber, ICollectionSubscriber
   public clear(all?: boolean): void {
     const slotCount = this.count;
     let slotName: string;
-    let observer: IObserver & { [key: string]: number };
+    let observer: (ISubscribable | ICollectionSubscribable) & { [key: string]: number };
     let i = 0;
     if (all === true) {
       for (; i < slotCount; ++i) {
         slotName = slotNames[i];
-        observer = this[slotName] as IObserver & { [key: string]: number };
+        observer = this[slotName] as (ISubscribable | ICollectionSubscribable) & { [key: string]: number };
         if (observer != null) {
           this[slotName] = void 0;
           observer.unsubscribe(this);
@@ -169,7 +168,7 @@ export class BindingObserverRecord implements ISubscriber, ICollectionSubscriber
       for (; i < slotCount; ++i) {
         if (this[versionSlotNames[i]] !== this.version) {
           slotName = slotNames[i];
-          observer = this[slotName] as IObserver & { [key: string]: number };
+          observer = this[slotName] as (ISubscribable | ICollectionSubscribable) & { [key: string]: number };
           if (observer != null) {
             this[slotName] = void 0;
             observer.unsubscribe(this);
@@ -179,49 +178,6 @@ export class BindingObserverRecord implements ISubscriber, ICollectionSubscriber
         }
       }
     }
-  }
-}
-
-export interface BindingCollectionObserverRecord extends ICollectionSubscriber, ObservationRecordImplType { }
-export class BindingCollectionObserverRecord {
-  public id!: number;
-  public count: number = 0;
-  public get version(): number {
-    return this.binding.obs.version;
-  }
-
-  private readonly observers = new Map<ICollectionSubscribable, number>();
-  public constructor(
-    public readonly binding: IConnectableBinding,
-  ) {
-    connectable.assignIdTo(this);
-  }
-
-  public handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void {
-    this.binding.interceptor.handleCollectionChange(indexMap, flags);
-  }
-
-  public add(observer: ICollectionSubscribable): void {
-    observer.subscribe(this);
-    this.count = this.observers.set(observer, this.version).size;
-  }
-
-  public clear(all?: boolean): void {
-    if (this.count === 0) {
-      return;
-    }
-    const observers = this.observers;
-    const version = this.version;
-    let observerAndVersionPair: [ICollectionSubscribable, number];
-    let o: ICollectionSubscribable;
-    for (observerAndVersionPair of observers) {
-      if (all || observerAndVersionPair[1] !== version) {
-        o = observerAndVersionPair[0];
-        o.unsubscribe(this);
-        observers.delete(o);
-      }
-    }
-    this.count = observers.size;
   }
 }
 
@@ -248,7 +204,7 @@ export function connectable<TProto, TClass>(target?: DecoratableConnectable<TPro
 
 let idValue = 0;
 
-connectable.assignIdTo = (instance: IConnectableBinding | BindingObserverRecord | BindingCollectionObserverRecord): void => {
+connectable.assignIdTo = (instance: IConnectableBinding | BindingObserverRecord): void => {
   instance.id = ++idValue;
 };
 

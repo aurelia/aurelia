@@ -1,4 +1,4 @@
-import { customElement, ILifecycle, valueConverter } from '@aurelia/runtime-html';
+import { customElement, valueConverter } from '@aurelia/runtime-html';
 import { IPersonRepository, Person } from '@benchmarking-apps/shared';
 import template from './app.html';
 import { ipr } from './registrations';
@@ -32,7 +32,6 @@ export class App {
   private employmentStatus: 'employed' | 'unemployed' | undefined = void 0;
   public constructor(
     @ipr private readonly personRepository: IPersonRepository,
-    @ILifecycle private readonly lifecycle: ILifecycle,
   ) {
     this.people = personRepository.all();
   }
@@ -108,10 +107,11 @@ export class App {
     if (data.length > 998) {
       const temp = data[1];
       const temp2 = data[998];
-      this.lifecycle.batch.inline(() => {
-        data.splice(1, 1, temp2);
-        data.splice(998, 1, temp);
-      });
+      // TODO(bigopon): add batch back in
+      // this.lifecycle.batch.inline(() => {
+      data.splice(1, 1, temp2);
+      data.splice(998, 1, temp);
+      // });
     }
   }
 }

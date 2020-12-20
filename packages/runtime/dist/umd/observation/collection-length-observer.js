@@ -70,16 +70,16 @@
         const proto = klass.prototype;
         utilities_objects_js_1.ensureProto(proto, 'subscribe', subscribe, true);
         utilities_objects_js_1.ensureProto(proto, 'unsubscribe', unsubscribe, true);
-        subscriber_collection_js_1.subscriberCollection()(klass);
+        subscriber_collection_js_1.subscriberCollection(klass);
     }
     function subscribe(subscriber) {
         if (this.subs.add(subscriber) && this.subs.count === 1) {
-            this.owner.subs.add(this);
+            this.owner.subscribe(this);
         }
     }
     function unsubscribe(subscriber) {
         if (this.subs.remove(subscriber) && this.subs.count === 0) {
-            this.owner.subs.remove(this);
+            this.owner.subscribe(this);
         }
     }
     implementLengthObserver(CollectionLengthObserver);

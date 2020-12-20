@@ -78,7 +78,7 @@
                 // todo:
                 //  (1). determine whether this should be the behavior
                 //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start()
-                const shouldQueueFlush = (flags & 32 /* fromBind */) === 0 && (targetObserver.type & 8 /* Layout */) > 0;
+                const shouldQueueFlush = (flags & 32 /* fromBind */) === 0 && (targetObserver.type & 4 /* Layout */) > 0;
                 if (sourceExpression.$kind !== 10082 /* AccessScope */ || this.obs.count > 1) {
                     const shouldConnect = (mode & oneTime) === 0;
                     if (shouldConnect) {

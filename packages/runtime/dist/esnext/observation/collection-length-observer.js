@@ -56,16 +56,16 @@ function implementLengthObserver(klass) {
     const proto = klass.prototype;
     ensureProto(proto, 'subscribe', subscribe, true);
     ensureProto(proto, 'unsubscribe', unsubscribe, true);
-    subscriberCollection()(klass);
+    subscriberCollection(klass);
 }
 function subscribe(subscriber) {
     if (this.subs.add(subscriber) && this.subs.count === 1) {
-        this.owner.subs.add(this);
+        this.owner.subscribe(this);
     }
 }
 function unsubscribe(subscriber) {
     if (this.subs.remove(subscriber) && this.subs.count === 0) {
-        this.owner.subs.remove(this);
+        this.owner.subscribe(this);
     }
 }
 implementLengthObserver(CollectionLengthObserver);

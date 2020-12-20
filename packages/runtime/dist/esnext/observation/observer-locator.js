@@ -1,5 +1,4 @@
 import { DI, isArrayIndex, ILogger } from '@aurelia/kernel';
-import { ILifecycle, } from '../observation.js';
 import { getArrayObserver } from './array-observer.js';
 import { ComputedObserver } from './computed-observer.js';
 import { IDirtyChecker } from './dirty-checker.js';
@@ -8,6 +7,7 @@ import { PrimitiveObserver } from './primitive-observer.js';
 import { PropertyAccessor } from './property-accessor.js';
 import { getSetObserver } from './set-observer.js';
 import { SetterObserver } from './setter-observer.js';
+import { def } from '../utilities-objects.js';
 export const propertyAccessor = new PropertyAccessor();
 export const IObserverLocator = DI.createInterface('IObserverLocator', x => x.singleton(ObserverLocator));
 export const INodeObserverLocator = DI
@@ -29,8 +29,7 @@ class DefaultNodeObserverLocator {
     }
 }
 export class ObserverLocator {
-    constructor(lifecycle, dirtyChecker, nodeObserverLocator) {
-        this.lifecycle = lifecycle;
+    constructor(dirtyChecker, nodeObserverLocator) {
         this.dirtyChecker = dirtyChecker;
         this.nodeObserverLocator = nodeObserverLocator;
         this.adapters = [];
@@ -54,13 +53,13 @@ export class ObserverLocator {
         return propertyAccessor;
     }
     getArrayObserver(observedArray) {
-        return getArrayObserver(observedArray, this.lifecycle);
+        return getArrayObserver(observedArray);
     }
     getMapObserver(observedMap) {
-        return getMapObserver(observedMap, this.lifecycle);
+        return getMapObserver(observedMap);
     }
     getSetObserver(observedSet) {
-        return getSetObserver(observedSet, this.lifecycle);
+        return getSetObserver(observedSet);
     }
     createObserver(obj, key) {
         var _a, _b, _c, _d;
@@ -73,20 +72,20 @@ export class ObserverLocator {
         switch (key) {
             case 'length':
                 if (obj instanceof Array) {
-                    return getArrayObserver(obj, this.lifecycle).getLengthObserver();
+                    return getArrayObserver(obj).getLengthObserver();
                 }
                 break;
             case 'size':
                 if (obj instanceof Map) {
-                    return getMapObserver(obj, this.lifecycle).getLengthObserver();
+                    return getMapObserver(obj).getLengthObserver();
                 }
                 else if (obj instanceof Set) {
-                    return getSetObserver(obj, this.lifecycle).getLengthObserver();
+                    return getSetObserver(obj).getLengthObserver();
                 }
                 break;
             default:
                 if (obj instanceof Array && isArrayIndex(key)) {
-                    return getArrayObserver(obj, this.lifecycle).getIndexObserver(Number(key));
+                    return getArrayObserver(obj).getIndexObserver(Number(key));
                 }
                 break;
         }
@@ -136,23 +135,23 @@ export class ObserverLocator {
             return observer;
         }
         if (obj.$observers === void 0) {
-            Reflect.defineProperty(obj, '$observers', { value: { [key]: observer } });
+            def(obj, '$observers', { value: { [key]: observer } });
             return observer;
         }
         return obj.$observers[key] = observer;
     }
 }
-ObserverLocator.inject = [ILifecycle, IDirtyChecker, INodeObserverLocator];
-export function getCollectionObserver(collection, lifecycle) {
+ObserverLocator.inject = [IDirtyChecker, INodeObserverLocator];
+export function getCollectionObserver(collection) {
     let obs;
     if (collection instanceof Array) {
-        obs = getArrayObserver(collection, lifecycle);
+        obs = getArrayObserver(collection);
     }
     else if (collection instanceof Map) {
-        obs = getMapObserver(collection, lifecycle);
+        obs = getMapObserver(collection);
     }
     else if (collection instanceof Set) {
-        obs = getSetObserver(collection, lifecycle);
+        obs = getSetObserver(collection);
     }
     return obs;
 }

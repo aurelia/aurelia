@@ -23,7 +23,7 @@
             this.hasChanges = false;
             // ObserverType.Layout is not always true, it depends on the element & property combo
             // but for simplicity, always treat as such
-            this.type = 2 /* Node */ | 1 /* Observer */ | 8 /* Layout */;
+            this.type = 2 /* Node */ | 1 /* Observer */ | 4 /* Layout */;
             this.obj = obj;
         }
         getValue() {
@@ -71,6 +71,6 @@
         }
     }
     exports.ValueAttributeObserver = ValueAttributeObserver;
-    runtime_1.subscriberCollection()(ValueAttributeObserver);
+    runtime_1.subscriberCollection(ValueAttributeObserver);
 });
 //# sourceMappingURL=value-attribute-observer.js.map

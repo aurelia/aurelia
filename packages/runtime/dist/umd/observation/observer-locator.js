@@ -4,14 +4,13 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "../observation.js", "./array-observer.js", "./computed-observer.js", "./dirty-checker.js", "./map-observer.js", "./primitive-observer.js", "./property-accessor.js", "./set-observer.js", "./setter-observer.js"], factory);
+        define(["require", "exports", "@aurelia/kernel", "./array-observer.js", "./computed-observer.js", "./dirty-checker.js", "./map-observer.js", "./primitive-observer.js", "./property-accessor.js", "./set-observer.js", "./setter-observer.js", "../utilities-objects.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.getCollectionObserver = exports.ObserverLocator = exports.INodeObserverLocator = exports.IObserverLocator = exports.propertyAccessor = void 0;
     const kernel_1 = require("@aurelia/kernel");
-    const observation_js_1 = require("../observation.js");
     const array_observer_js_1 = require("./array-observer.js");
     const computed_observer_js_1 = require("./computed-observer.js");
     const dirty_checker_js_1 = require("./dirty-checker.js");
@@ -20,6 +19,7 @@
     const property_accessor_js_1 = require("./property-accessor.js");
     const set_observer_js_1 = require("./set-observer.js");
     const setter_observer_js_1 = require("./setter-observer.js");
+    const utilities_objects_js_1 = require("../utilities-objects.js");
     exports.propertyAccessor = new property_accessor_js_1.PropertyAccessor();
     exports.IObserverLocator = kernel_1.DI.createInterface('IObserverLocator', x => x.singleton(ObserverLocator));
     exports.INodeObserverLocator = kernel_1.DI
@@ -41,8 +41,7 @@
         }
     }
     class ObserverLocator {
-        constructor(lifecycle, dirtyChecker, nodeObserverLocator) {
-            this.lifecycle = lifecycle;
+        constructor(dirtyChecker, nodeObserverLocator) {
             this.dirtyChecker = dirtyChecker;
             this.nodeObserverLocator = nodeObserverLocator;
             this.adapters = [];
@@ -66,13 +65,13 @@
             return exports.propertyAccessor;
         }
         getArrayObserver(observedArray) {
-            return array_observer_js_1.getArrayObserver(observedArray, this.lifecycle);
+            return array_observer_js_1.getArrayObserver(observedArray);
         }
         getMapObserver(observedMap) {
-            return map_observer_js_1.getMapObserver(observedMap, this.lifecycle);
+            return map_observer_js_1.getMapObserver(observedMap);
         }
         getSetObserver(observedSet) {
-            return set_observer_js_1.getSetObserver(observedSet, this.lifecycle);
+            return set_observer_js_1.getSetObserver(observedSet);
         }
         createObserver(obj, key) {
             var _a, _b, _c, _d;
@@ -85,20 +84,20 @@
             switch (key) {
                 case 'length':
                     if (obj instanceof Array) {
-                        return array_observer_js_1.getArrayObserver(obj, this.lifecycle).getLengthObserver();
+                        return array_observer_js_1.getArrayObserver(obj).getLengthObserver();
                     }
                     break;
                 case 'size':
                     if (obj instanceof Map) {
-                        return map_observer_js_1.getMapObserver(obj, this.lifecycle).getLengthObserver();
+                        return map_observer_js_1.getMapObserver(obj).getLengthObserver();
                     }
                     else if (obj instanceof Set) {
-                        return set_observer_js_1.getSetObserver(obj, this.lifecycle).getLengthObserver();
+                        return set_observer_js_1.getSetObserver(obj).getLengthObserver();
                     }
                     break;
                 default:
                     if (obj instanceof Array && kernel_1.isArrayIndex(key)) {
-                        return array_observer_js_1.getArrayObserver(obj, this.lifecycle).getIndexObserver(Number(key));
+                        return array_observer_js_1.getArrayObserver(obj).getIndexObserver(Number(key));
                     }
                     break;
             }
@@ -148,24 +147,24 @@
                 return observer;
             }
             if (obj.$observers === void 0) {
-                Reflect.defineProperty(obj, '$observers', { value: { [key]: observer } });
+                utilities_objects_js_1.def(obj, '$observers', { value: { [key]: observer } });
                 return observer;
             }
             return obj.$observers[key] = observer;
         }
     }
     exports.ObserverLocator = ObserverLocator;
-    ObserverLocator.inject = [observation_js_1.ILifecycle, dirty_checker_js_1.IDirtyChecker, exports.INodeObserverLocator];
-    function getCollectionObserver(collection, lifecycle) {
+    ObserverLocator.inject = [dirty_checker_js_1.IDirtyChecker, exports.INodeObserverLocator];
+    function getCollectionObserver(collection) {
         let obs;
         if (collection instanceof Array) {
-            obs = array_observer_js_1.getArrayObserver(collection, lifecycle);
+            obs = array_observer_js_1.getArrayObserver(collection);
         }
         else if (collection instanceof Map) {
-            obs = map_observer_js_1.getMapObserver(collection, lifecycle);
+            obs = map_observer_js_1.getMapObserver(collection);
         }
         else if (collection instanceof Set) {
-            obs = set_observer_js_1.getSetObserver(collection, lifecycle);
+            obs = set_observer_js_1.getSetObserver(collection);
         }
         return obs;
     }

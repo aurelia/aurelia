@@ -18,9 +18,9 @@ export { PropertyAccessor, } from './observation/property-accessor.js';
 export { ProxyObservable, } from './observation/proxy-observation.js';
 export { SetterObserver, } from './observation/setter-observer.js';
 export { ISignaler, } from './observation/signaler.js';
-export { subscriberCollection, collectionSubscriberCollection, SubscriberRecord, } from './observation/subscriber-collection.js';
+export { SubscriberRecord, subscriberCollection, } from './observation/subscriber-collection.js';
 export { ConnectableSwitcher, } from './observation/connectable-switcher.js';
 export { bindingBehavior, BindingBehavior, BindingBehaviorDefinition, BindingInterceptor, BindingBehaviorFactory, BindingBehaviorStrategy, } from './binding-behavior.js';
 export { ValueConverter, ValueConverterDefinition, valueConverter, } from './value-converter.js';
-export { BindingMode, LifecycleFlags, ILifecycle, AccessorType, CollectionKind, DelegationStrategy, isIndexMap, copyIndexMap, cloneIndexMap, createIndexMap, } from './observation.js';
+export { BindingMode, LifecycleFlags, AccessorType, CollectionKind, DelegationStrategy, isIndexMap, copyIndexMap, cloneIndexMap, createIndexMap, } from './observation.js';
 //# sourceMappingURL=index.js.map

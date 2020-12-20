@@ -1,39 +1,22 @@
 import { def, defineHiddenProp, ensureProto } from '../utilities-objects.js';
-export function subscriberCollection() {
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    return function (target) {
-        const proto = target.prototype;
-        ensureProto(proto, 'addSubscriber', addSubscriber, true);
-        ensureProto(proto, 'removeSubscriber', removeSubscriber, true);
-        ensureProto(proto, 'hasSubscriber', hasSubscriber, true);
-        ensureProto(proto, 'hasSubscribers', hasSubscribers, true);
-        ensureProto(proto, 'callSubscribers', callSubscribers, true);
-        // not configurable, as in devtool, the getter could be invoked on the prototype,
-        // and become permanently broken
-        def(proto, 'subs', { get: getSubscriberRecord });
-        ensureProto(proto, 'subscribe', addSubscriber);
-        ensureProto(proto, 'unsubscribe', removeSubscriber);
-    };
+export function subscriberCollection(target) {
+    return target == null ? subscriberCollectionDeco : subscriberCollectionDeco(target);
 }
-export function collectionSubscriberCollection() {
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    return function (target) {
-        const proto = target.prototype;
-        ensureProto(proto, 'addCollectionSubscriber', addSubscriber, true);
-        ensureProto(proto, 'removeCollectionSubscriber', removeSubscriber, true);
-        ensureProto(proto, 'hasCollectionSubscriber', hasSubscriber, true);
-        ensureProto(proto, 'hasCollectionSubscribers', hasSubscribers, true);
-        ensureProto(proto, 'callCollectionSubscribers', callCollectionSubscribers, true);
-        // not configurable, as in devtool, the getter could be invoked on the prototype,
-        // and become permanently broken
-        def(proto, 'subs', { get: getSubscriberRecord });
-        ensureProto(proto, 'subscribeToCollection', addSubscriber);
-        ensureProto(proto, 'unsubscribeFromCollection', removeSubscriber);
-    };
+function subscriberCollectionDeco(target) {
+    const proto = target.prototype;
+    // not configurable, as in devtool, the getter could be invoked on the prototype,
+    // and become permanently broken
+    def(proto, 'subs', { get: getSubscriberRecord });
+    ensureProto(proto, 'subscribe', addSubscriber);
+    ensureProto(proto, 'unsubscribe', removeSubscriber);
 }
+/* eslint-enable @typescript-eslint/ban-types */
 export class SubscriberRecord {
     constructor(owner) {
-        this._sFlags = 0 /* None */;
+        /**
+         * subscriber flags: bits indicating the existence status of the subscribers of this record
+         */
+        this._sf = 0 /* None */;
         this.count = 0;
         this.owner = owner;
     }
@@ -41,26 +24,26 @@ export class SubscriberRecord {
         if (this.has(subscriber)) {
             return false;
         }
-        const subscriberFlags = this._sFlags;
+        const subscriberFlags = this._sf;
         if ((subscriberFlags & 1 /* Subscriber0 */) === 0) {
             this._s0 = subscriber;
-            this._sFlags |= 1 /* Subscriber0 */;
+            this._sf |= 1 /* Subscriber0 */;
         }
         else if ((subscriberFlags & 2 /* Subscriber1 */) === 0) {
             this._s1 = subscriber;
-            this._sFlags |= 2 /* Subscriber1 */;
+            this._sf |= 2 /* Subscriber1 */;
         }
         else if ((subscriberFlags & 4 /* Subscriber2 */) === 0) {
             this._s2 = subscriber;
-            this._sFlags |= 4 /* Subscriber2 */;
+            this._sf |= 4 /* Subscriber2 */;
         }
         else if ((subscriberFlags & 8 /* SubscribersRest */) === 0) {
-            this._sRest = [subscriber];
-            this._sFlags |= 8 /* SubscribersRest */;
+            this._sr = [subscriber];
+            this._sf |= 8 /* SubscribersRest */;
         }
         else {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            this._sRest.push(subscriber); // Non-null is implied by else branch of (subscriberFlags & SF.SubscribersRest) === 0
+            this._sr.push(subscriber); // Non-null is implied by else branch of (subscriberFlags & SF.SubscribersRest) === 0
         }
         ++this.count;
         return true;
@@ -69,7 +52,7 @@ export class SubscriberRecord {
         // Flags here is just a perf tweak
         // Compared to not using flags, it's a moderate speed-up when this collection does not have the subscriber;
         // and minor slow-down when it does, and the former is more common than the latter.
-        const subscriberFlags = this._sFlags;
+        const subscriberFlags = this._sf;
         if ((subscriberFlags & 1 /* Subscriber0 */) > 0 && this._s0 === subscriber) {
             return true;
         }
@@ -81,8 +64,10 @@ export class SubscriberRecord {
         }
         if ((subscriberFlags & 8 /* SubscribersRest */) > 0) {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            const subscribers = this._sRest; // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
-            for (let i = 0, ii = subscribers.length; i < ii; ++i) {
+            const subscribers = this._sr; // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
+            const ii = subscribers.length;
+            let i = 0;
+            for (; i < ii; ++i) {
                 if (subscribers[i] === subscriber) {
                     return true;
                 }
@@ -91,42 +76,39 @@ export class SubscriberRecord {
         return false;
     }
     any() {
-        return this._sFlags !== 0 /* None */;
+        return this._sf !== 0 /* None */;
     }
     remove(subscriber) {
-        const subscriberFlags = this._sFlags;
+        const subscriberFlags = this._sf;
         if ((subscriberFlags & 1 /* Subscriber0 */) > 0 && this._s0 === subscriber) {
             this._s0 = void 0;
-            this._sFlags = (this._sFlags | 1 /* Subscriber0 */) ^ 1 /* Subscriber0 */;
+            this._sf = (this._sf | 1 /* Subscriber0 */) ^ 1 /* Subscriber0 */;
             --this.count;
             return true;
         }
         else if ((subscriberFlags & 2 /* Subscriber1 */) > 0 && this._s1 === subscriber) {
             this._s1 = void 0;
-            this._sFlags = (this._sFlags | 2 /* Subscriber1 */) ^ 2 /* Subscriber1 */;
+            this._sf = (this._sf | 2 /* Subscriber1 */) ^ 2 /* Subscriber1 */;
             --this.count;
             return true;
         }
         else if ((subscriberFlags & 4 /* Subscriber2 */) > 0 && this._s2 === subscriber) {
             this._s2 = void 0;
-            this._sFlags = (this._sFlags | 4 /* Subscriber2 */) ^ 4 /* Subscriber2 */;
+            this._sf = (this._sf | 4 /* Subscriber2 */) ^ 4 /* Subscriber2 */;
             --this.count;
             return true;
         }
         else if ((subscriberFlags & 8 /* SubscribersRest */) > 0) {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            const subscribers = this._sRest; // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
+            const subscribers = this._sr; // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
+            const ii = subscribers.length;
             let i = 0;
-            let ii = subscribers.length;
             for (; i < ii; ++i) {
                 if (subscribers[i] === subscriber) {
                     subscribers.splice(i, 1);
                     if (ii === 1) {
-                        this._sFlags = (this._sFlags | 8 /* SubscribersRest */) ^ 8 /* SubscribersRest */;
+                        this._sf = (this._sf | 8 /* SubscribersRest */) ^ 8 /* SubscribersRest */;
                     }
-                    // deepscan-disable-next-line
-                    --i;
-                    --ii;
                     --this.count;
                     return true;
                 }
@@ -146,11 +128,11 @@ export class SubscriberRecord {
         const sub0 = this._s0;
         const sub1 = this._s1;
         const sub2 = this._s2;
-        let subRest = this._sRest;
-        flags = (flags | 24 /* update */) ^ 24 /* update */;
-        if (subRest !== void 0) {
-            subRest = subRest.slice();
+        let subs = this._sr;
+        if (subs !== void 0) {
+            subs = subs.slice();
         }
+        flags = (flags | 24 /* update */) ^ 24 /* update */;
         if (sub0 !== void 0) {
             sub0.handleChange(val, oldVal, flags | /* sub own flags */ (sub0.id === void 0 ? 0 : owner[sub0.id]));
         }
@@ -160,12 +142,12 @@ export class SubscriberRecord {
         if (sub2 !== void 0) {
             sub2.handleChange(val, oldVal, flags | /* sub own flags */ (sub2.id === void 0 ? 0 : owner[sub2.id]));
         }
-        if (subRest !== void 0) {
-            const length = subRest.length;
+        if (subs !== void 0) {
+            const ii = subs.length;
             let sub;
             let i = 0;
-            for (; i < length; ++i) {
-                sub = subRest[i];
+            for (; i < ii; ++i) {
+                sub = subs[i];
                 if (sub !== void 0) {
                     sub.handleChange(val, oldVal, flags | /* sub own flags */ (sub.id === void 0 ? 0 : owner[sub.id]));
                 }
@@ -173,30 +155,30 @@ export class SubscriberRecord {
         }
     }
     notifyCollection(indexMap, flags) {
-        const subscriber0 = this._s0;
-        const subscriber1 = this._s1;
-        const subscriber2 = this._s2;
-        let subscribers = this._sRest;
-        if (subscribers !== void 0) {
-            subscribers = subscribers.slice();
+        const sub0 = this._s0;
+        const sub1 = this._s1;
+        const sub2 = this._s2;
+        let subs = this._sr;
+        if (subs !== void 0) {
+            subs = subs.slice();
         }
-        if (subscriber0 !== void 0) {
-            subscriber0.handleCollectionChange(indexMap, flags);
+        if (sub0 !== void 0) {
+            sub0.handleCollectionChange(indexMap, flags);
         }
-        if (subscriber1 !== void 0) {
-            subscriber1.handleCollectionChange(indexMap, flags);
+        if (sub1 !== void 0) {
+            sub1.handleCollectionChange(indexMap, flags);
         }
-        if (subscriber2 !== void 0) {
-            subscriber2.handleCollectionChange(indexMap, flags);
+        if (sub2 !== void 0) {
+            sub2.handleCollectionChange(indexMap, flags);
         }
-        if (subscribers !== void 0) {
-            const length = subscribers.length;
-            let subscriber;
+        if (subs !== void 0) {
+            const ii = subs.length;
+            let sub;
             let i = 0;
-            for (; i < length; ++i) {
-                subscriber = subscribers[i];
-                if (subscriber !== void 0) {
-                    subscriber.handleCollectionChange(indexMap, flags);
+            for (; i < ii; ++i) {
+                sub = subs[i];
+                if (sub !== void 0) {
+                    sub.handleCollectionChange(indexMap, flags);
                 }
             }
         }
@@ -212,17 +194,5 @@ function addSubscriber(subscriber) {
 }
 function removeSubscriber(subscriber) {
     return this.subs.remove(subscriber);
-}
-function hasSubscriber(subscriber) {
-    return this.subs.has(subscriber);
-}
-function hasSubscribers() {
-    return this.subs.any();
-}
-function callSubscribers(newValue, previousValue, flags) {
-    this.subs.notify(newValue, previousValue, flags);
-}
-function callCollectionSubscribers(indexMap, flags) {
-    this.subs.notifyCollection(indexMap, flags);
 }
 //# sourceMappingURL=subscriber-collection.js.map

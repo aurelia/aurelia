@@ -4,16 +4,17 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./setter-observer.js"], factory);
+        define(["require", "exports", "./setter-observer.js", "../utilities-objects.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.observable = void 0;
     const setter_observer_js_1 = require("./setter-observer.js");
+    const utilities_objects_js_1 = require("../utilities-objects.js");
     function getObserversLookup(obj) {
         if (obj.$observers === void 0) {
-            Reflect.defineProperty(obj, '$observers', { value: {} });
+            utilities_objects_js_1.def(obj, '$observers', { value: {} });
             // todo: define in a weakmap
         }
         return obj.$observers;
@@ -85,7 +86,7 @@
                 return getNotifier(obj, key, callback, initialValue, $set);
             };
             if (isClassDecorator) {
-                Reflect.defineProperty(target.prototype, key, descriptor);
+                utilities_objects_js_1.def(target.prototype, key, descriptor);
             }
             else {
                 return descriptor;
@@ -93,29 +94,12 @@
         }
     }
     exports.observable = observable;
-    class CallbackSubscriber {
-        constructor(obj, key, cb) {
-            this.obj = obj;
-            this.key = key;
-            this.cb = cb;
-        }
-        handleChange(value, oldValue) {
-            this.cb.call(this.obj, value, oldValue, this.key);
-        }
-    }
     function getNotifier(obj, key, callbackKey, initialValue, set) {
         const lookup = getObserversLookup(obj);
         let notifier = lookup[key];
         if (notifier == null) {
-            notifier = new setter_observer_js_1.SetterNotifier(set);
+            notifier = new setter_observer_js_1.SetterNotifier(obj, callbackKey, set, initialValue === noValue ? void 0 : initialValue);
             lookup[key] = notifier;
-            if (initialValue !== noValue) {
-                notifier.setValue(initialValue, 0 /* none */);
-            }
-            const callback = obj[callbackKey];
-            if (typeof callback === 'function') {
-                notifier.subscribe(new CallbackSubscriber(obj, key, callback));
-            }
         }
         return notifier;
     }

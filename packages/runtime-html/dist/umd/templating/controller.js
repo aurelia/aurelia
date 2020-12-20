@@ -98,7 +98,6 @@
                 this.root = container.get(app_root_js_1.IAppRoot);
             }
             this.platform = container.get(platform_js_1.IPlatform);
-            this.lifecycle = container.get(runtime_1.ILifecycle);
             switch (vmKind) {
                 case 1 /* customAttribute */:
                 case 0 /* customElement */:

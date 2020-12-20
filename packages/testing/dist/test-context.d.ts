@@ -1,5 +1,5 @@
 import { IContainer, IRegistration, IRegistry } from '@aurelia/kernel';
-import { ILifecycle, IObserverLocator, ITemplateCompiler, IPlatform } from '@aurelia/runtime-html';
+import { IObserverLocator, ITemplateCompiler, IPlatform } from '@aurelia/runtime-html';
 export declare class TestContext {
     static readonly ambient: TestContext;
     get wnd(): Window & typeof globalThis;
@@ -75,8 +75,6 @@ export declare class TestContext {
     get templateCompiler(): ITemplateCompiler;
     private _observerLocator;
     get observerLocator(): IObserverLocator;
-    private _lifecycle;
-    get lifecycle(): ILifecycle;
     private _domParser;
     get domParser(): HTMLDivElement;
     private constructor();

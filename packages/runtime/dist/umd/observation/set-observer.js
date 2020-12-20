@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "../observation.js", "./collection-length-observer.js", "./subscriber-collection.js"], factory);
+        define(["require", "exports", "../observation.js", "./collection-length-observer.js", "./subscriber-collection.js", "../utilities-objects.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -13,6 +13,7 @@
     const observation_js_1 = require("../observation.js");
     const collection_length_observer_js_1 = require("./collection-length-observer.js");
     const subscriber_collection_js_1 = require("./subscriber-collection.js");
+    const utilities_objects_js_1 = require("../utilities-objects.js");
     const observerLookup = new WeakMap();
     const proto = Set.prototype;
     const $add = proto.add;
@@ -97,15 +98,14 @@
         enumerable: false,
         configurable: true
     };
-    const def = Reflect.defineProperty;
     for (const method of methods) {
-        def(observe[method], 'observing', { value: true, writable: false, configurable: false, enumerable: false });
+        utilities_objects_js_1.def(observe[method], 'observing', { value: true, writable: false, configurable: false, enumerable: false });
     }
     let enableSetObservationCalled = false;
     function enableSetObservation() {
         for (const method of methods) {
             if (proto[method].observing !== true) {
-                def(proto, method, { ...descriptorProps, value: observe[method] });
+                utilities_objects_js_1.def(proto, method, { ...descriptorProps, value: observe[method] });
             }
         }
     }
@@ -113,7 +113,7 @@
     function disableSetObservation() {
         for (const method of methods) {
             if (proto[method].observing === true) {
-                def(proto, method, { ...descriptorProps, value: native[method] });
+                utilities_objects_js_1.def(proto, method, { ...descriptorProps, value: native[method] });
             }
         }
     }
@@ -125,45 +125,28 @@
                 enableSetObservationCalled = true;
                 enableSetObservation();
             }
-            this.inBatch = false;
             this.collection = observedSet;
             this.indexMap = observation_js_1.createIndexMap(observedSet.size);
-            this.lengthObserver = (void 0);
+            this.lenObs = void 0;
             observerLookup.set(observedSet, this);
         }
         notify() {
-            var _a;
-            if ((_a = this.lifecycle) === null || _a === void 0 ? void 0 : _a.batch.depth) {
-                if (!this.inBatch) {
-                    this.inBatch = true;
-                    this.lifecycle.batch.add(this);
-                }
-            }
-            else {
-                this.flushBatch(0 /* none */);
-            }
-        }
-        getLengthObserver() {
-            var _a;
-            return (_a = this.lengthObserver) !== null && _a !== void 0 ? _a : (this.lengthObserver = new collection_length_observer_js_1.CollectionSizeObserver(this));
-        }
-        flushBatch(flags) {
             const indexMap = this.indexMap;
             const size = this.collection.size;
-            this.inBatch = false;
             this.indexMap = observation_js_1.createIndexMap(size);
             this.subs.notifyCollection(indexMap, 8 /* updateTarget */);
         }
+        getLengthObserver() {
+            var _a;
+            return (_a = this.lenObs) !== null && _a !== void 0 ? _a : (this.lenObs = new collection_length_observer_js_1.CollectionSizeObserver(this));
+        }
     }
     exports.SetObserver = SetObserver;
-    subscriber_collection_js_1.collectionSubscriberCollection()(SetObserver);
-    function getSetObserver(observedSet, lifecycle) {
+    subscriber_collection_js_1.subscriberCollection(SetObserver);
+    function getSetObserver(observedSet) {
         let observer = observerLookup.get(observedSet);
         if (observer === void 0) {
             observer = new SetObserver(observedSet);
-            if (lifecycle != null) {
-                observer.lifecycle = lifecycle;
-            }
         }
         return observer;
     }

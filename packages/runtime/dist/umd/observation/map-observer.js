@@ -138,45 +138,28 @@
                 enableMapObservationCalled = true;
                 enableMapObservation();
             }
-            this.inBatch = false;
             this.collection = map;
             this.indexMap = observation_js_1.createIndexMap(map.size);
-            this.lengthObserver = (void 0);
+            this.lenObs = void 0;
             observerLookup.set(map, this);
         }
         notify() {
-            var _a;
-            if ((_a = this.lifecycle) === null || _a === void 0 ? void 0 : _a.batch.depth) {
-                if (!this.inBatch) {
-                    this.inBatch = true;
-                    this.lifecycle.batch.add(this);
-                }
-            }
-            else {
-                this.flushBatch(0 /* none */);
-            }
-        }
-        getLengthObserver() {
-            var _a;
-            return (_a = this.lengthObserver) !== null && _a !== void 0 ? _a : (this.lengthObserver = new collection_length_observer_js_1.CollectionSizeObserver(this));
-        }
-        flushBatch(flags) {
             const indexMap = this.indexMap;
             const size = this.collection.size;
-            this.inBatch = false;
             this.indexMap = observation_js_1.createIndexMap(size);
             this.subs.notifyCollection(indexMap, 8 /* updateTarget */);
         }
+        getLengthObserver() {
+            var _a;
+            return (_a = this.lenObs) !== null && _a !== void 0 ? _a : (this.lenObs = new collection_length_observer_js_1.CollectionSizeObserver(this));
+        }
     }
     exports.MapObserver = MapObserver;
-    subscriber_collection_js_1.collectionSubscriberCollection()(MapObserver);
-    function getMapObserver(map, lifecycle) {
+    subscriber_collection_js_1.subscriberCollection(MapObserver);
+    function getMapObserver(map) {
         let observer = observerLookup.get(map);
         if (observer === void 0) {
             observer = new MapObserver(map);
-            if (lifecycle != null) {
-                observer.lifecycle = lifecycle;
-            }
         }
         return observer;
     }

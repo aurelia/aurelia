@@ -372,48 +372,27 @@
                 enableArrayObservationCalled = true;
                 enableArrayObservation();
             }
-            this.inBatch = false;
             this.indexObservers = {};
             this.collection = array;
             this.indexMap = observation_js_1.createIndexMap(array.length);
-            this.lengthObserver = (void 0);
+            this.lenObs = void 0;
             observerLookup.set(array, this);
         }
         notify() {
-            var _a;
-            if ((_a = this.lifecycle) === null || _a === void 0 ? void 0 : _a.batch.depth) {
-                if (!this.inBatch) {
-                    this.inBatch = true;
-                    this.lifecycle.batch.add(this);
-                }
-            }
-            else {
-                this.flushBatch(0 /* none */);
-            }
-        }
-        getLengthObserver() {
-            var _a;
-            return (_a = this.lengthObserver) !== null && _a !== void 0 ? _a : (this.lengthObserver = new collection_length_observer_js_1.CollectionLengthObserver(this));
-        }
-        getIndexObserver(index) {
-            return this.getOrCreateIndexObserver(index);
-        }
-        flushBatch(flags) {
             const indexMap = this.indexMap;
             const length = this.collection.length;
-            this.inBatch = false;
             this.indexMap = observation_js_1.createIndexMap(length);
             this.subs.notifyCollection(indexMap, 8 /* updateTarget */);
         }
-        /**
-         * @internal
-         *
-         * It's unnecessary to destroy/recreate index observer all the time,
-         * so just create once, and add/remove instead
-         */
-        getOrCreateIndexObserver(index) {
+        getLengthObserver() {
+            var _a;
+            return (_a = this.lenObs) !== null && _a !== void 0 ? _a : (this.lenObs = new collection_length_observer_js_1.CollectionLengthObserver(this));
+        }
+        getIndexObserver(index) {
             var _a;
             var _b;
+            // It's unnecessary to destroy/recreate index observer all the time,
+            // so just create once, and add/remove instead
             return (_a = (_b = this.indexObservers)[index]) !== null && _a !== void 0 ? _a : (_b[index] = new ArrayIndexObserver(this, index));
         }
     }
@@ -461,25 +440,22 @@
         }
         subscribe(subscriber) {
             if (this.subs.add(subscriber) && this.subs.count === 1) {
-                this.owner.subs.add(this);
+                this.owner.subscribe(this);
             }
         }
         unsubscribe(subscriber) {
             if (this.subs.remove(subscriber) && this.subs.count === 0) {
-                this.owner.subs.remove(this);
+                this.owner.unsubscribe(this);
             }
         }
     }
     exports.ArrayIndexObserver = ArrayIndexObserver;
-    subscriber_collection_js_1.collectionSubscriberCollection()(ArrayObserver);
-    subscriber_collection_js_1.subscriberCollection()(ArrayIndexObserver);
-    function getArrayObserver(array, lifecycle) {
+    subscriber_collection_js_1.subscriberCollection(ArrayObserver);
+    subscriber_collection_js_1.subscriberCollection(ArrayIndexObserver);
+    function getArrayObserver(array) {
         let observer = observerLookup.get(array);
         if (observer === void 0) {
             observer = new ArrayObserver(array);
-            if (lifecycle != null) {
-                observer.lifecycle = lifecycle;
-            }
         }
         return observer;
     }

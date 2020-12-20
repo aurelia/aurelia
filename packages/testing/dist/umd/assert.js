@@ -683,13 +683,13 @@
             const delayed = taskQueue['delayed'];
             const flushReq = taskQueue['flushRequested'];
             let info = `${name} has processing=${processing.length} pending=${pending.length} delayed=${delayed.length} flushRequested=${flushReq}\n\n`;
-            if (processing > 0) {
+            if (processing.length > 0) {
                 info += `  Tasks in processing:\n${processing.map(reportTask).join('')}`;
             }
-            if (pending > 0) {
+            if (pending.length > 0) {
                 info += `  Tasks in pending:\n${pending.map(reportTask).join('')}`;
             }
-            if (delayed > 0) {
+            if (delayed.length > 0) {
                 info += `  Tasks in delayed:\n${delayed.map(reportTask).join('')}`;
             }
             return info;

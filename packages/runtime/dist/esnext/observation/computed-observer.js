@@ -2,6 +2,7 @@ import { subscriberCollection } from './subscriber-collection.js';
 import { enterConnectable, exitConnectable } from './connectable-switcher.js';
 import { connectable } from '../binding/connectable.js';
 import { wrap, unwrap } from './proxy-observation.js';
+import { def } from '../utilities-objects.js';
 export class ComputedObserver {
     constructor(obj, get, set, useProxy, observerLocator) {
         this.obj = obj;
@@ -10,7 +11,7 @@ export class ComputedObserver {
         this.useProxy = useProxy;
         this.observerLocator = observerLocator;
         this.interceptor = this;
-        this.type = 4 /* Obj */;
+        this.type = 1 /* Observer */;
         this.value = void 0;
         // todo: maybe use a counter allow recursive call to a certain level
         /**
@@ -26,7 +27,7 @@ export class ComputedObserver {
         const observer = new ComputedObserver(obj, getter, setter, useProxy, observerLocator);
         const $get = (( /* Computed Observer */) => observer.getValue());
         $get.getObserver = () => observer;
-        Reflect.defineProperty(obj, key, {
+        def(obj, key, {
             enumerable: descriptor.enumerable,
             configurable: true,
             get: $get,
@@ -117,5 +118,5 @@ export class ComputedObserver {
     }
 }
 connectable(ComputedObserver);
-subscriberCollection()(ComputedObserver);
+subscriberCollection(ComputedObserver);
 //# sourceMappingURL=computed-observer.js.map

@@ -1,7 +1,7 @@
 /* eslint-disable max-lines-per-function */
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 import { nextId, isObject, ILogger, Metadata, DI, } from '@aurelia/kernel';
-import { AccessScopeExpression, Scope, ILifecycle, IObserverLocator, IExpressionParser, } from '@aurelia/runtime';
+import { AccessScopeExpression, Scope, IObserverLocator, IExpressionParser, } from '@aurelia/runtime';
 import { BindableObserver } from '../observation/bindable-observer';
 import { convertToRenderLocation } from '../dom.js';
 import { CustomElementDefinition, CustomElement } from '../resources/custom-element.js';
@@ -86,7 +86,6 @@ export class Controller {
             this.root = container.get(IAppRoot);
         }
         this.platform = container.get(IPlatform);
-        this.lifecycle = container.get(ILifecycle);
         switch (vmKind) {
             case 1 /* customAttribute */:
             case 0 /* customElement */:

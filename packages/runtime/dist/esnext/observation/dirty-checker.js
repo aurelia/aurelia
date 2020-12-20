@@ -91,7 +91,7 @@ export class DirtyCheckProperty {
         this.dirtyChecker = dirtyChecker;
         this.obj = obj;
         this.propertyKey = propertyKey;
-        this.type = 4 /* Obj */;
+        this.type = 0 /* None */;
     }
     getValue() {
         return this.obj[this.propertyKey];
@@ -122,5 +122,5 @@ export class DirtyCheckProperty {
         }
     }
 }
-subscriberCollection()(DirtyCheckProperty);
+subscriberCollection(DirtyCheckProperty);
 //# sourceMappingURL=dirty-checker.js.map

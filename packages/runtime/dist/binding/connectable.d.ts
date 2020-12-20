@@ -1,6 +1,6 @@
 import { Class, IServiceLocator, ResourceDefinition } from '@aurelia/kernel';
 import { IConnectable, ISubscribable, ISubscriber, IBinding, LifecycleFlags, ICollectionSubscriber, IndexMap, ICollectionSubscribable } from '../observation.js';
-import { IObserverLocator } from '../observation/observer-locator.js';
+import type { IObserverLocator } from '../observation/observer-locator.js';
 import type { Scope } from '../observation/binding-context.js';
 export interface IPartialConnectableBinding extends IBinding, ISubscriber, ICollectionSubscriber {
     observerLocator: IObserverLocator;

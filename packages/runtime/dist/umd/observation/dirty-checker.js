@@ -104,7 +104,7 @@
             this.dirtyChecker = dirtyChecker;
             this.obj = obj;
             this.propertyKey = propertyKey;
-            this.type = 4 /* Obj */;
+            this.type = 0 /* None */;
         }
         getValue() {
             return this.obj[this.propertyKey];
@@ -136,6 +136,6 @@
         }
     }
     exports.DirtyCheckProperty = DirtyCheckProperty;
-    subscriber_collection_js_1.subscriberCollection()(DirtyCheckProperty);
+    subscriber_collection_js_1.subscriberCollection(DirtyCheckProperty);
 });
 //# sourceMappingURL=dirty-checker.js.map

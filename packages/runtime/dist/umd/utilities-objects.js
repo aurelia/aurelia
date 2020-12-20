@@ -12,7 +12,7 @@
     exports.ensureProto = exports.defineHiddenProp = exports.def = void 0;
     exports.def = Reflect.defineProperty;
     function defineHiddenProp(obj, key, value) {
-        Reflect.defineProperty(obj, key, {
+        exports.def(obj, key, {
             enumerable: false,
             configurable: true,
             writable: true,

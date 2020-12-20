@@ -4,13 +4,16 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "../utilities-objects.js"], factory);
+        define(["require", "exports", "../utilities-objects.js", "../observation/array-observer.js", "../observation/set-observer.js", "../observation/map-observer.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.BindingMediator = exports.connectable = exports.BindingCollectionObserverRecord = exports.BindingObserverRecord = void 0;
     const utilities_objects_js_1 = require("../utilities-objects.js");
+    const array_observer_js_1 = require("../observation/array-observer.js");
+    const set_observer_js_1 = require("../observation/set-observer.js");
+    const map_observer_js_1 = require("../observation/map-observer.js");
     // TODO: add connect-queue (or something similar) back in when everything else is working, to improve startup time
     const slotNames = [];
     const versionSlotNames = [];
@@ -43,29 +46,25 @@
         return record;
     }
     function observeCollection(collection) {
-        const obs = getCollectionObserver(collection, this.observerLocator);
+        let obs;
+        if (collection instanceof Array) {
+            obs = array_observer_js_1.getArrayObserver(collection);
+        }
+        else if (collection instanceof Set) {
+            obs = set_observer_js_1.getSetObserver(collection);
+        }
+        else if (collection instanceof Map) {
+            obs = map_observer_js_1.getMapObserver(collection);
+        }
+        else {
+            throw new Error('Unrecognised collection type.');
+        }
         this.cObs.add(obs);
     }
     function getCollectionObserverRecord() {
         const record = new BindingCollectionObserverRecord(this);
         utilities_objects_js_1.defineHiddenProp(this, 'cObs', record);
         return record;
-    }
-    function getCollectionObserver(collection, observerLocator) {
-        let observer;
-        if (collection instanceof Array) {
-            observer = observerLocator.getArrayObserver(collection);
-        }
-        else if (collection instanceof Set) {
-            observer = observerLocator.getSetObserver(collection);
-        }
-        else if (collection instanceof Map) {
-            observer = observerLocator.getMapObserver(collection);
-        }
-        else {
-            throw new Error('Unrecognised collection type.');
-        }
-        return observer;
     }
     function noopHandleChange() {
         throw new Error('method "handleChange" not implemented');
@@ -159,7 +158,7 @@
             this.binding.interceptor.handleCollectionChange(indexMap, flags);
         }
         add(observer) {
-            observer.subscribeToCollection(this);
+            observer.subscribe(this);
             this.count = this.observers.set(observer, this.version).size;
         }
         clear(all) {
@@ -173,7 +172,7 @@
             for (observerAndVersionPair of observers) {
                 if (all || observerAndVersionPair[1] !== version) {
                     o = observerAndVersionPair[0];
-                    o.unsubscribeFromCollection(this);
+                    o.unsubscribe(this);
                     observers.delete(o);
                 }
             }
@@ -183,11 +182,10 @@
     exports.BindingCollectionObserverRecord = BindingCollectionObserverRecord;
     function connectableDecorator(target) {
         const proto = target.prototype;
-        const defProp = Reflect.defineProperty;
         utilities_objects_js_1.ensureProto(proto, 'observeProperty', observeProperty, true);
         utilities_objects_js_1.ensureProto(proto, 'observeCollection', observeCollection, true);
-        defProp(proto, 'obs', { get: getObserverRecord });
-        defProp(proto, 'cObs', { get: getCollectionObserverRecord });
+        utilities_objects_js_1.def(proto, 'obs', { get: getObserverRecord });
+        utilities_objects_js_1.def(proto, 'cObs', { get: getCollectionObserverRecord });
         // optionally add these two methods to normalize a connectable impl
         utilities_objects_js_1.ensureProto(proto, 'handleChange', noopHandleChange);
         utilities_objects_js_1.ensureProto(proto, 'handleCollectionChange', noopHandleCollectionChange);

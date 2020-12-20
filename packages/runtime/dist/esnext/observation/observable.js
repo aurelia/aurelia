@@ -1,7 +1,8 @@
 import { SetterNotifier } from './setter-observer.js';
+import { def } from '../utilities-objects.js';
 function getObserversLookup(obj) {
     if (obj.$observers === void 0) {
-        Reflect.defineProperty(obj, '$observers', { value: {} });
+        def(obj, '$observers', { value: {} });
         // todo: define in a weakmap
     }
     return obj.$observers;
@@ -73,36 +74,19 @@ export function observable(targetOrConfig, key, descriptor) {
             return getNotifier(obj, key, callback, initialValue, $set);
         };
         if (isClassDecorator) {
-            Reflect.defineProperty(target.prototype, key, descriptor);
+            def(target.prototype, key, descriptor);
         }
         else {
             return descriptor;
         }
     }
 }
-class CallbackSubscriber {
-    constructor(obj, key, cb) {
-        this.obj = obj;
-        this.key = key;
-        this.cb = cb;
-    }
-    handleChange(value, oldValue) {
-        this.cb.call(this.obj, value, oldValue, this.key);
-    }
-}
 function getNotifier(obj, key, callbackKey, initialValue, set) {
     const lookup = getObserversLookup(obj);
     let notifier = lookup[key];
     if (notifier == null) {
-        notifier = new SetterNotifier(set);
+        notifier = new SetterNotifier(obj, callbackKey, set, initialValue === noValue ? void 0 : initialValue);
         lookup[key] = notifier;
-        if (initialValue !== noValue) {
-            notifier.setValue(initialValue, 0 /* none */);
-        }
-        const callback = obj[callbackKey];
-        if (typeof callback === 'function') {
-            notifier.subscribe(new CallbackSubscriber(obj, key, callback));
-        }
     }
     return notifier;
 }

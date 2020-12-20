@@ -1,65 +1,3 @@
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __param = (this && this.__param) || function (paramIndex, decorator) {
-    return function (target, key) { decorator(target, key, paramIndex); }
-};
-import { DI } from '@aurelia/kernel';
-export const ILifecycle = DI.createInterface('ILifecycle', x => x.singleton(Lifecycle));
-export class Lifecycle {
-    constructor() {
-        this.batch = new BatchQueue(this);
-    }
-}
-let BatchQueue = class BatchQueue {
-    constructor(lifecycle) {
-        this.lifecycle = lifecycle;
-        this.queue = [];
-        this.depth = 0;
-    }
-    begin() {
-        ++this.depth;
-    }
-    end(flags) {
-        if (flags === void 0) {
-            flags = 0 /* none */;
-        }
-        if (--this.depth === 0) {
-            this.process(flags);
-        }
-    }
-    inline(fn, flags) {
-        this.begin();
-        fn();
-        this.end(flags);
-    }
-    add(requestor) {
-        this.queue.push(requestor);
-    }
-    remove(requestor) {
-        const index = this.queue.indexOf(requestor);
-        if (index > -1) {
-            this.queue.splice(index, 1);
-        }
-    }
-    process(flags) {
-        while (this.queue.length > 0) {
-            const batch = this.queue.slice();
-            this.queue = [];
-            const { length } = batch;
-            for (let i = 0; i < length; ++i) {
-                batch[i].flushBatch(flags);
-            }
-        }
-    }
-};
-BatchQueue = __decorate([
-    __param(0, ILifecycle)
-], BatchQueue);
-export { BatchQueue };
 /*
 * Note: the oneTime binding now has a non-zero value for 2 reasons:
 *  - plays nicer with bitwise operations (more consistent code, more explicit settings)
@@ -130,7 +68,6 @@ export var AccessorType;
     AccessorType[AccessorType["None"] = 0] = "None";
     AccessorType[AccessorType["Observer"] = 1] = "Observer";
     AccessorType[AccessorType["Node"] = 2] = "Node";
-    AccessorType[AccessorType["Obj"] = 4] = "Obj";
     // misc characteristic of accessors/observers when update
     //
     // by default, everything is synchronous
@@ -139,7 +76,11 @@ export var AccessorType;
     // queue it instead
     // todo: https://gist.github.com/paulirish/5d52fb081b3570c81e3a
     // todo: https://csstriggers.com/
-    AccessorType[AccessorType["Layout"] = 8] = "Layout";
+    AccessorType[AccessorType["Layout"] = 4] = "Layout";
+    // by default, everything is an object
+    // eg: a property is accessed on an object
+    // unless explicitly not so
+    AccessorType[AccessorType["Primtive"] = 8] = "Primtive";
     AccessorType[AccessorType["Array"] = 18] = "Array";
     AccessorType[AccessorType["Set"] = 34] = "Set";
     AccessorType[AccessorType["Map"] = 66] = "Map";

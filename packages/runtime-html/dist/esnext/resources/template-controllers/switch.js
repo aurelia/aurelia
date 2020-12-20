@@ -234,11 +234,11 @@ let Case = class Case {
     valueChanged(newValue, _oldValue, flags) {
         var _a;
         if (Array.isArray(newValue)) {
-            (_a = this.observer) === null || _a === void 0 ? void 0 : _a.removeCollectionSubscriber(this);
+            (_a = this.observer) === null || _a === void 0 ? void 0 : _a.unsubscribe(this);
             this.observer = this.observeCollection(flags, newValue);
         }
         else if (this.observer !== void 0) {
-            this.observer.removeCollectionSubscriber(this);
+            this.observer.unsubscribe(this);
         }
         this.$switch.caseChanged(this, flags);
     }
@@ -261,7 +261,7 @@ let Case = class Case {
     }
     dispose() {
         var _a, _b;
-        (_a = this.observer) === null || _a === void 0 ? void 0 : _a.removeCollectionSubscriber(this);
+        (_a = this.observer) === null || _a === void 0 ? void 0 : _a.unsubscribe(this);
         (_b = this.view) === null || _b === void 0 ? void 0 : _b.dispose();
         this.view = (void 0);
     }
@@ -270,7 +270,7 @@ let Case = class Case {
     }
     observeCollection(flags, $value) {
         const observer = this.locator.getArrayObserver($value);
-        observer.addCollectionSubscriber(this);
+        observer.subscribe(this);
         return observer;
     }
     accept(visitor) {

@@ -19,7 +19,7 @@ export class SelectValueObserver {
         this.hasChanges = false;
         // ObserverType.Layout is not always true
         // but for simplicity, always treat as such
-        this.type = 2 /* Node */ | 1 /* Observer */ | 8 /* Layout */;
+        this.type = 2 /* Node */ | 1 /* Observer */ | 4 /* Layout */;
         this.arrayObserver = void 0;
         this.nodeObserver = void 0;
         this.observing = false;
@@ -180,25 +180,24 @@ export class SelectValueObserver {
         this.observing = true;
     }
     stop() {
+        var _a;
         this.nodeObserver.disconnect();
-        this.nodeObserver = null;
-        if (this.arrayObserver) {
-            this.arrayObserver.unsubscribeFromCollection(this);
-            this.arrayObserver = null;
-        }
+        (_a = this.arrayObserver) === null || _a === void 0 ? void 0 : _a.unsubscribe(this);
+        this.nodeObserver
+            = this.arrayObserver
+                = void 0;
         this.observing = false;
     }
     // todo: observe all kind of collection
     observeArray(array) {
-        if (array != null && !this.obj.multiple) {
-            throw new Error('Only null or Array instances can be bound to a multi-select.');
-        }
-        if (this.arrayObserver) {
-            this.arrayObserver.unsubscribeFromCollection(this);
-            this.arrayObserver = void 0;
-        }
+        var _a;
+        (_a = this.arrayObserver) === null || _a === void 0 ? void 0 : _a.unsubscribe(this);
+        this.arrayObserver = void 0;
         if (array != null) {
-            (this.arrayObserver = this.observerLocator.getArrayObserver(array)).subscribeToCollection(this);
+            if (!this.obj.multiple) {
+                throw new Error('Only null or Array instances can be bound to a multi-select.');
+            }
+            (this.arrayObserver = this.observerLocator.getArrayObserver(array)).subscribe(this);
         }
     }
     handleNodeChange() {
@@ -221,5 +220,5 @@ export class SelectValueObserver {
         }
     }
 }
-subscriberCollection()(SelectValueObserver);
+subscriberCollection(SelectValueObserver);
 //# sourceMappingURL=select-value-observer.js.map

@@ -6,7 +6,6 @@ export declare function createFixture<T>(template: string | Node, $class?: Const
     ctx: TestContext;
     host: Element | null;
     container: import("@aurelia/kernel").IContainer;
-    lifecycle: import("@aurelia/runtime-html").ILifecycle;
     platform: import("@aurelia/runtime-html").IPlatform;
     testHost: HTMLDivElement;
     appHost: HTMLElement;

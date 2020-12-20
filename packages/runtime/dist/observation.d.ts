@@ -11,34 +11,6 @@ export interface IBinding {
     $unbind(flags: LifecycleFlags): void;
 }
 export declare type InterceptorFunc<TInput = unknown, TOutput = unknown> = (value: TInput) => TOutput;
-export interface ILifecycle extends Lifecycle {
-}
-export declare const ILifecycle: import("@aurelia/kernel").InterfaceSymbol<ILifecycle>;
-export declare class Lifecycle {
-    readonly batch: IAutoProcessingQueue<IBatchable>;
-}
-export interface IProcessingQueue<T> {
-    add(requestor: T): void;
-    process(flags: LifecycleFlags): void;
-}
-export interface IAutoProcessingQueue<T> extends IProcessingQueue<T> {
-    readonly depth: number;
-    begin(): void;
-    end(flags?: LifecycleFlags): void;
-    inline(fn: () => void, flags?: LifecycleFlags): void;
-}
-export declare class BatchQueue implements IAutoProcessingQueue<IBatchable> {
-    readonly lifecycle: ILifecycle;
-    queue: IBatchable[];
-    depth: number;
-    constructor(lifecycle: ILifecycle);
-    begin(): void;
-    end(flags?: LifecycleFlags): void;
-    inline(fn: () => void, flags?: LifecycleFlags): void;
-    add(requestor: IBatchable): void;
-    remove(requestor: IBatchable): void;
-    process(flags: LifecycleFlags): void;
-}
 export declare enum BindingMode {
     oneTime = 1,
     toView = 2,
@@ -70,7 +42,7 @@ export declare const enum LifecycleFlags {
 }
 export interface IConnectable {
     id: number;
-    observeProperty(obj: object, propertyName: PropertyKey): void;
+    observeProperty(obj: object, key: PropertyKey): void;
     observeCollection(obj: Collection): void;
 }
 export declare enum DelegationStrategy {
@@ -89,14 +61,18 @@ export interface ICollectionSubscriber {
     handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void;
 }
 export interface ISubscribable {
-    subscribe(subscriber: ISubscriber | ICollectionSubscriber): void;
-    unsubscribe(subscriber: ISubscriber | ICollectionSubscriber): void;
+    subscribe(subscriber: ISubscriber): void;
+    unsubscribe(subscriber: ISubscriber): void;
 }
 export interface ICollectionSubscribable {
-    subscribeToCollection(subscriber: ICollectionSubscriber): void;
-    unsubscribeFromCollection(subscriber: ICollectionSubscriber): void;
+    subscribe(subscriber: ICollectionSubscriber): void;
+    unsubscribe(subscriber: ICollectionSubscriber): void;
 }
-export interface ISubscriberRecord<T extends ISubscriber | ICollectionSubscriber = ISubscriber | ICollectionSubscriber> {
+/**
+ * An interface describing the contract of a subscriber list,
+ * with the ability to propagate values to those subscribers
+ */
+export interface ISubscriberRecord<T extends ISubscriber | ICollectionSubscriber> {
     readonly count: number;
     add(subscriber: T): boolean;
     has(subscriber: T): boolean;
@@ -105,29 +81,31 @@ export interface ISubscriberRecord<T extends ISubscriber | ICollectionSubscriber
     notify(value: unknown, oldValue: unknown, flags: LifecycleFlags): void;
     notifyCollection(indexMap: IndexMap, flags: LifecycleFlags): void;
 }
+/**
+ * An internal interface describing the implementation of a ISubscribable of Aurelia that supports batching
+ *
+ * This is usually mixed into a class via the import `subscriberCollection` import from Aurelia.
+ * The `subscriberCollection` import can be used as either a decorator, or a function call.
+ */
 export interface ISubscriberCollection extends ISubscribable {
     [key: number]: LifecycleFlags;
     /**
      * The backing subscriber record for all subscriber methods of this collection
      */
-    readonly subs: ISubscriberRecord;
-    callSubscribers(newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void;
-    hasSubscribers(): boolean;
-    hasSubscriber(subscriber: ISubscriber): boolean;
-    removeSubscriber(subscriber: ISubscriber): boolean;
-    addSubscriber(subscriber: ISubscriber): boolean;
+    readonly subs: ISubscriberRecord<ISubscriber>;
 }
-export interface ICollectionSubscriberCollection extends ICollectionSubscribable, ISubscribable {
+/**
+ * An internal interface describing the implementation of a ICollectionSubscribable of Aurelia that supports batching
+ *
+ * This is usually mixed into a class via the import `subscriberCollection` import from Aurelia.
+ * The `subscriberCollection` import can be used as either a decorator, or a function call.
+ */
+export interface ICollectionSubscriberCollection extends ICollectionSubscribable {
     [key: number]: LifecycleFlags;
     /**
      * The backing subscriber record for all subscriber methods of this collection
      */
-    readonly subs: ISubscriberRecord;
-    callCollectionSubscribers(indexMap: IndexMap, flags: LifecycleFlags): void;
-    hasCollectionSubscribers(): boolean;
-    hasCollectionSubscriber(subscriber: ICollectionSubscriber): boolean;
-    removeCollectionSubscriber(subscriber: ICollectionSubscriber): boolean;
-    addCollectionSubscriber(subscriber: ICollectionSubscriber): boolean;
+    readonly subs: ISubscriberRecord<ICollectionSubscriber>;
 }
 /**
  * A collection (array, set or map)
@@ -148,8 +126,8 @@ export declare const enum AccessorType {
     None = 0,
     Observer = 1,
     Node = 2,
-    Obj = 4,
-    Layout = 8,
+    Layout = 4,
+    Primtive = 8,
     Array = 18,
     Set = 34,
     Map = 66
@@ -158,17 +136,18 @@ export declare const enum AccessorType {
  * Basic interface to normalize getting/setting a value of any property on any object
  */
 export interface IAccessor<TValue = unknown> {
+    [id: number]: number;
     type: AccessorType;
     getValue(obj?: object, key?: PropertyKey): TValue;
     setValue(newValue: TValue, flags: LifecycleFlags, obj?: object, key?: PropertyKey): void;
 }
+/**
+ * An interface describing a standard contract of an observer in Aurelia binding & observation system
+ */
 export interface IObserver extends IAccessor, ISubscribable {
-    [id: number]: number;
 }
 export declare type AccessorOrObserver = (IAccessor | IObserver) & {
     doNotCache?: boolean;
-} & {
-    [id: number]: number;
 };
 /**
  * An array of indices, where the index of an element represents the index to map FROM, and the numeric value of the element itself represents the index to map TO
@@ -198,12 +177,9 @@ export interface ICollectionChangeTracker<T extends Collection> {
 /**
  * An observer that tracks collection mutations and notifies subscribers (either directly or in batches)
  */
-export interface ICollectionObserver<T extends CollectionKind> extends ICollectionChangeTracker<CollectionKindToType<T>>, ICollectionSubscriberCollection, IBatchable {
+export interface ICollectionObserver<T extends CollectionKind> extends ICollectionChangeTracker<CollectionKindToType<T>>, ICollectionSubscribable {
     type: AccessorType;
-    inBatch: boolean;
-    lifecycle?: ILifecycle;
     collection: ObservedCollectionKindToType<T>;
-    lengthObserver: T extends CollectionKind.array ? CollectionLengthObserver : CollectionSizeObserver;
     getLengthObserver(): T extends CollectionKind.array ? CollectionLengthObserver : CollectionSizeObserver;
     notify(): void;
 }

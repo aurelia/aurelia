@@ -1,7 +1,7 @@
 import { AccessorType, LifecycleFlags } from '../observation.js';
 import type { IIndexable } from '@aurelia/kernel';
-import type { IAccessor, IObserver, InterceptorFunc, ISubscriber, ISubscribable, ISubscriberCollection } from '../observation.js';
-export interface SetterObserver extends IObserver, ISubscriberCollection {
+import type { IAccessor, InterceptorFunc, ISubscriber, ISubscriberCollection } from '../observation.js';
+export interface SetterObserver extends IAccessor, ISubscriberCollection {
 }
 /**
  * Observer for the mutation of object property value employing getter-setter strategy.
@@ -18,17 +18,15 @@ export declare class SetterObserver {
     constructor(obj: IIndexable, propertyKey: string);
     getValue(): unknown;
     setValue(newValue: unknown, flags: LifecycleFlags): void;
-    flushBatch(flags: LifecycleFlags): void;
     subscribe(subscriber: ISubscriber): void;
     start(): this;
     stop(): this;
 }
-export interface SetterNotifier extends ISubscriberCollection {
+export interface SetterNotifier extends IAccessor, ISubscriberCollection {
 }
-export declare class SetterNotifier implements IAccessor, ISubscribable {
-    private readonly s?;
-    type: AccessorType;
-    constructor(s?: InterceptorFunc<unknown, unknown> | undefined);
+export declare class SetterNotifier implements IAccessor {
+    readonly type: AccessorType;
+    constructor(obj: object, callbackKey: PropertyKey, set: InterceptorFunc | undefined, initialValue: unknown);
     getValue(): unknown;
     setValue(value: unknown, flags: LifecycleFlags): void;
 }

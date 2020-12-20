@@ -1,13 +1,12 @@
 /* eslint-disable import/no-mutable-exports */
 import { DI, Registration } from '@aurelia/kernel';
-import { ILifecycle, IObserverLocator, ITemplateCompiler, IPlatform, StandardConfiguration, } from '@aurelia/runtime-html';
+import { IObserverLocator, ITemplateCompiler, IPlatform, StandardConfiguration, } from '@aurelia/runtime-html';
 export class TestContext {
     constructor() {
         this._container = void 0;
         this._platform = void 0;
         this._templateCompiler = void 0;
         this._observerLocator = void 0;
-        this._lifecycle = void 0;
         this._domParser = void 0;
     }
     get wnd() { return this.platform.globalThis; }
@@ -51,12 +50,6 @@ export class TestContext {
             this._observerLocator = this.container.get(IObserverLocator);
         }
         return this._observerLocator;
-    }
-    get lifecycle() {
-        if (this._lifecycle === void 0) {
-            this._lifecycle = this.container.get(ILifecycle);
-        }
-        return this._lifecycle;
     }
     get domParser() {
         if (this._domParser === void 0) {

@@ -1,5 +1,5 @@
 import { IContainer, Writable, IDisposable } from '@aurelia/kernel';
-import { Scope, LifecycleFlags, ILifecycle } from '@aurelia/runtime';
+import { Scope, LifecycleFlags } from '@aurelia/runtime';
 import { INode, INodeSequence, IRenderLocation } from '../dom.js';
 import { CustomElementDefinition, PartialCustomElementDefinition } from '../resources/custom-element.js';
 import { CustomAttributeDefinition } from '../resources/custom-attribute.js';
@@ -63,7 +63,6 @@ export declare class Controller<C extends IViewModel = IViewModel> implements IC
     private debug;
     private fullyNamed;
     readonly platform: IPlatform;
-    readonly lifecycle: ILifecycle;
     readonly hooks: HooksDefinition;
     constructor(root: IAppRoot | null, container: IContainer, vmKind: ViewModelKind, flags: LifecycleFlags, definition: CustomElementDefinition | CustomAttributeDefinition | null, 
     /**
@@ -188,7 +187,6 @@ export interface IController<C extends IViewModel = IViewModel> extends IDisposa
     readonly platform: IPlatform;
     readonly root: IAppRoot | null;
     readonly flags: LifecycleFlags;
-    readonly lifecycle: ILifecycle;
     readonly vmKind: ViewModelKind;
     readonly definition: CustomElementDefinition | CustomAttributeDefinition | null;
     readonly host: HTMLElement | null;

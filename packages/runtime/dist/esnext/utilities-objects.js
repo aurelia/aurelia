@@ -1,6 +1,6 @@
 export const def = Reflect.defineProperty;
 export function defineHiddenProp(obj, key, value) {
-    Reflect.defineProperty(obj, key, {
+    def(obj, key, {
         enumerable: false,
         configurable: true,
         writable: true,

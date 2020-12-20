@@ -18,9 +18,9 @@ export { PropertyAccessor, } from './observation/property-accessor.js';
 export { ProxyObservable, } from './observation/proxy-observation.js';
 export { SetterObserver, } from './observation/setter-observer.js';
 export { ISignaler, } from './observation/signaler.js';
-export { subscriberCollection, collectionSubscriberCollection, SubscriberRecord, } from './observation/subscriber-collection.js';
+export { SubscriberRecord, subscriberCollection, } from './observation/subscriber-collection.js';
 export { ConnectableSwitcher, } from './observation/connectable-switcher.js';
 export { bindingBehavior, BindingBehavior, BindingBehaviorDefinition, PartialBindingBehaviorDefinition, BindingBehaviorKind, BindingBehaviorDecorator, BindingBehaviorInstance, BindingBehaviorType, BindingInterceptor, BindingBehaviorFactory, BindingBehaviorStrategy, IInterceptableBinding, } from './binding-behavior.js';
 export { ValueConverter, ValueConverterDefinition, PartialValueConverterDefinition, ValueConverterKind, ValueConverterDecorator, ValueConverterInstance, ValueConverterType, valueConverter, } from './value-converter.js';
-export { BindingMode, LifecycleFlags, AccessorOrObserver, IBinding, ILifecycle, AccessorType, Collection, CollectionKind, DelegationStrategy, IAccessor, IBindingContext, ICollectionChangeTracker, ICollectionObserver, IConnectable, IArrayIndexObserver, ICollectionSubscriber, IndexMap, IBatchable, IObserver, IObservable, IOverrideContext, InterceptorFunc, ISubscribable, ISubscriberCollection, CollectionObserver, ICollectionSubscriberCollection, ICollectionSubscribable, ISubscriber, ISubscriberRecord, isIndexMap, copyIndexMap, cloneIndexMap, createIndexMap, } from './observation.js';
+export { BindingMode, LifecycleFlags, AccessorOrObserver, IBinding, AccessorType, Collection, CollectionKind, DelegationStrategy, IAccessor, IBindingContext, ICollectionChangeTracker, ICollectionObserver, IConnectable, IArrayIndexObserver, ICollectionSubscriber, IndexMap, IBatchable, IObserver, IObservable, IOverrideContext, InterceptorFunc, ISubscribable, ISubscriberCollection, CollectionObserver, ICollectionSubscriberCollection, ICollectionSubscribable, ISubscriber, ISubscriberRecord, isIndexMap, copyIndexMap, cloneIndexMap, createIndexMap, } from './observation.js';
 //# sourceMappingURL=index.d.ts.map

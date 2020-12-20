@@ -4,13 +4,14 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./subscriber-collection.js"], factory);
+        define(["require", "exports", "./subscriber-collection.js", "../utilities-objects.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.SetterNotifier = exports.SetterObserver = void 0;
     const subscriber_collection_js_1 = require("./subscriber-collection.js");
+    const utilities_objects_js_1 = require("../utilities-objects.js");
     /**
      * Observer for the mutation of object property value employing getter-setter strategy.
      * This is used for observing object properties that has no decorator.
@@ -24,7 +25,7 @@
             this.inBatch = false;
             this.observing = false;
             // todo(bigopon): tweak the flag based on typeof obj (array/set/map/iterator/proxy etc...)
-            this.type = 4 /* Obj */;
+            this.type = 1 /* Observer */;
         }
         getValue() {
             return this.currentValue;
@@ -45,13 +46,6 @@
                 this.obj[this.propertyKey] = newValue;
             }
         }
-        flushBatch(flags) {
-            this.inBatch = false;
-            const currentValue = this.currentValue;
-            const oldValue = this.oldValue;
-            this.oldValue = currentValue;
-            this.subs.notify(currentValue, oldValue, flags);
-        }
         subscribe(subscriber) {
             if (this.observing === false) {
                 this.start();
@@ -62,7 +56,7 @@
             if (this.observing === false) {
                 this.observing = true;
                 this.currentValue = this.obj[this.propertyKey];
-                Reflect.defineProperty(this.obj, this.propertyKey, {
+                utilities_objects_js_1.def(this.obj, this.propertyKey, {
                     enumerable: true,
                     configurable: true,
                     get: ( /* Setter Observer */) => this.getValue(),
@@ -75,7 +69,7 @@
         }
         stop() {
             if (this.observing) {
-                Reflect.defineProperty(this.obj, this.propertyKey, {
+                utilities_objects_js_1.def(this.obj, this.propertyKey, {
                     enumerable: true,
                     configurable: true,
                     writable: true,
@@ -89,33 +83,41 @@
     }
     exports.SetterObserver = SetterObserver;
     class SetterNotifier {
-        // todo(bigopon): remove flag aware assignment in ast, move to the decorator itself
-        constructor(s) {
-            this.s = s;
-            // ideally, everything is an object,
-            // probably this flag is redundant, just None?
-            this.type = 4 /* Obj */;
+        constructor(obj, callbackKey, set, initialValue) {
+            this.type = 1 /* Observer */;
             /**
              * @internal
              */
             this.v = void 0;
+            this.obj = obj;
+            this.s = set;
+            const callback = obj[callbackKey];
+            this.cb = typeof callback === 'function' ? callback : void 0;
+            this.v = initialValue;
         }
         getValue() {
             return this.v;
         }
         setValue(value, flags) {
+            var _a;
             if (typeof this.s === 'function') {
                 value = this.s(value);
             }
             const oldValue = this.v;
             if (!Object.is(value, oldValue)) {
                 this.v = value;
-                this.subs.notify(value, oldValue, flags);
+                (_a = this.cb) === null || _a === void 0 ? void 0 : _a.call(this.obj, value, oldValue, flags);
+                // there's a chance that cb.call(...)
+                // changes the latest value of this observer
+                // and thus making `value` stale
+                // so for now, call with this.v
+                // todo: should oldValue be treated the same way?
+                this.subs.notify(this.v, oldValue, flags);
             }
         }
     }
     exports.SetterNotifier = SetterNotifier;
-    subscriber_collection_js_1.subscriberCollection()(SetterObserver);
-    subscriber_collection_js_1.subscriberCollection()(SetterNotifier);
+    subscriber_collection_js_1.subscriberCollection(SetterObserver);
+    subscriber_collection_js_1.subscriberCollection(SetterNotifier);
 });
 //# sourceMappingURL=setter-observer.js.map

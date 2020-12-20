@@ -1,4 +1,4 @@
-import { AccessorOrObserver, CollectionKind, CollectionObserver, ILifecycle } from '../observation.js';
+import { AccessorOrObserver, CollectionKind, CollectionObserver } from '../observation.js';
 import { IDirtyChecker } from './dirty-checker.js';
 import { PropertyAccessor } from './property-accessor.js';
 import type { Collection, IAccessor, ICollectionObserver, IObserver } from '../observation.js';
@@ -26,12 +26,11 @@ export declare type ObservableSetter = PropertyDescriptor['set'] & {
     getObserver?(obj: unknown, requestor: IObserverLocator): IObserver;
 };
 export declare class ObserverLocator {
-    private readonly lifecycle;
     private readonly dirtyChecker;
     private readonly nodeObserverLocator;
-    protected static readonly inject: (import("@aurelia/kernel").InterfaceSymbol<ILifecycle> | import("@aurelia/kernel").InterfaceSymbol<IDirtyChecker> | import("@aurelia/kernel").InterfaceSymbol<INodeObserverLocator>)[];
+    protected static readonly inject: (import("@aurelia/kernel").InterfaceSymbol<IDirtyChecker> | import("@aurelia/kernel").InterfaceSymbol<INodeObserverLocator>)[];
     private readonly adapters;
-    constructor(lifecycle: ILifecycle, dirtyChecker: IDirtyChecker, nodeObserverLocator: INodeObserverLocator);
+    constructor(dirtyChecker: IDirtyChecker, nodeObserverLocator: INodeObserverLocator);
     addAdapter(adapter: IObjectObservationAdapter): void;
     getObserver(obj: object, key: PropertyKey): IObserver;
     getAccessor(obj: object, key: string): AccessorOrObserver;
@@ -43,5 +42,5 @@ export declare class ObserverLocator {
     private cache;
 }
 export declare type RepeatableCollection = Collection | null | undefined | number;
-export declare function getCollectionObserver(collection: RepeatableCollection, lifecycle: ILifecycle | null): CollectionObserver | undefined;
+export declare function getCollectionObserver(collection: RepeatableCollection): CollectionObserver | undefined;
 //# sourceMappingURL=observer-locator.d.ts.map

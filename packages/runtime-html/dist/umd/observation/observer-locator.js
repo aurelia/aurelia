@@ -44,7 +44,7 @@
         'xmlns:xlink': ['xlink', xmlnsNS],
     });
     const elementPropertyAccessor = new runtime_1.PropertyAccessor();
-    elementPropertyAccessor.type = 2 /* Node */ | 8 /* Layout */;
+    elementPropertyAccessor.type = 2 /* Node */ | 4 /* Layout */;
     class NodeObserverConfig {
         constructor(config) {
             var _a;

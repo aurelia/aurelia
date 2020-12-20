@@ -133,6 +133,9 @@
         handleChange(newValue, previousValue, flags) {
             this.binding.handleChange(newValue, previousValue, flags);
         }
+        handleCollectionChange(indexMap, flags) {
+            this.binding.handleCollectionChange(indexMap, flags);
+        }
         observeProperty(obj, key) {
             this.binding.observeProperty(obj, key);
         }

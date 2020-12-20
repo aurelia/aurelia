@@ -20,7 +20,7 @@
             this.styles = {};
             this.version = 0;
             this.hasChanges = false;
-            this.type = 2 /* Node */ | 8 /* Layout */;
+            this.type = 2 /* Node */ | 4 /* Layout */;
         }
         getValue() {
             return this.obj.style.cssText;

@@ -16,7 +16,7 @@ export class AttributeObserver {
         this.hasChanges = false;
         // layout is not certain, depends on the attribute being flushed to owner element
         // but for simple start, always treat as such
-        this.type = 2 /* Node */ | 1 /* Observer */ | 8 /* Layout */;
+        this.type = 2 /* Node */ | 1 /* Observer */ | 4 /* Layout */;
     }
     getValue() {
         // is it safe to assume the observer has the latest value?
@@ -111,7 +111,7 @@ export class AttributeObserver {
         }
     }
 }
-subscriberCollection()(AttributeObserver);
+subscriberCollection(AttributeObserver);
 const startObservation = ($MutationObserver, element, subscription) => {
     if (element.$eMObservers === undefined) {
         element.$eMObservers = new Set();

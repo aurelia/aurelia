@@ -21,7 +21,7 @@
             this.currentValue = null;
             // ObserverType.Layout is not always true, it depends on the property
             // but for simplicity, always treat as such
-            this.type = 2 /* Node */ | 8 /* Layout */;
+            this.type = 2 /* Node */ | 4 /* Layout */;
         }
         static forNs(ns) {
             var _a;

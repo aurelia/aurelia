@@ -19,7 +19,6 @@
             this._platform = void 0;
             this._templateCompiler = void 0;
             this._observerLocator = void 0;
-            this._lifecycle = void 0;
             this._domParser = void 0;
         }
         get wnd() { return this.platform.globalThis; }
@@ -63,12 +62,6 @@
                 this._observerLocator = this.container.get(runtime_html_1.IObserverLocator);
             }
             return this._observerLocator;
-        }
-        get lifecycle() {
-            if (this._lifecycle === void 0) {
-                this._lifecycle = this.container.get(runtime_html_1.ILifecycle);
-            }
-            return this._lifecycle;
         }
         get domParser() {
             if (this._domParser === void 0) {

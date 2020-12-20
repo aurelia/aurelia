@@ -1,8 +1,8 @@
 import { AccessorType, CollectionKind, LifecycleFlags } from '../observation.js';
-import type { ICollectionObserver, IndexMap, ISubscriberCollection } from '../observation.js';
+import type { ICollectionObserver, IndexMap, ISubscriberCollection, ICollectionSubscriber } from '../observation.js';
 export interface CollectionLengthObserver extends ISubscriberCollection {
 }
-export declare class CollectionLengthObserver {
+export declare class CollectionLengthObserver implements ICollectionSubscriber {
     readonly owner: ICollectionObserver<CollectionKind.array>;
     value: number;
     readonly type: AccessorType;
@@ -14,7 +14,7 @@ export declare class CollectionLengthObserver {
 }
 export interface CollectionSizeObserver extends ISubscriberCollection {
 }
-export declare class CollectionSizeObserver {
+export declare class CollectionSizeObserver implements ICollectionSubscriber {
     readonly owner: ICollectionObserver<CollectionKind.map | CollectionKind.set>;
     value: number;
     readonly type: AccessorType;

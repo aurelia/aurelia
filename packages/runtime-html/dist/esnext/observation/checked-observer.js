@@ -11,7 +11,7 @@ export class CheckedObserver {
         this.observerLocator = observerLocator;
         this.value = void 0;
         this.oldValue = void 0;
-        this.type = 2 /* Node */ | 1 /* Observer */ | 8 /* Layout */;
+        this.type = 2 /* Node */ | 1 /* Observer */ | 4 /* Layout */;
         this.collectionObserver = void 0;
         this.valueObserver = void 0;
         this.obj = obj;
@@ -191,7 +191,7 @@ export class CheckedObserver {
     stop() {
         var _a, _b;
         this.handler.dispose();
-        (_a = this.collectionObserver) === null || _a === void 0 ? void 0 : _a.unsubscribeFromCollection(this);
+        (_a = this.collectionObserver) === null || _a === void 0 ? void 0 : _a.unsubscribe(this);
         this.collectionObserver = void 0;
         (_b = this.valueObserver) === null || _b === void 0 ? void 0 : _b.unsubscribe(this);
     }
@@ -209,12 +209,12 @@ export class CheckedObserver {
         var _a, _b, _c, _d, _e, _f, _g;
         const obj = this.obj;
         (_e = ((_a = this.valueObserver) !== null && _a !== void 0 ? _a : (this.valueObserver = (_c = (_b = obj.$observers) === null || _b === void 0 ? void 0 : _b.model) !== null && _c !== void 0 ? _c : (_d = obj.$observers) === null || _d === void 0 ? void 0 : _d.value))) === null || _e === void 0 ? void 0 : _e.subscribe(this);
-        (_f = this.collectionObserver) === null || _f === void 0 ? void 0 : _f.unsubscribeFromCollection(this);
+        (_f = this.collectionObserver) === null || _f === void 0 ? void 0 : _f.unsubscribe(this);
         this.collectionObserver = void 0;
         if (obj.type === 'checkbox') {
-            (_g = (this.collectionObserver = getCollectionObserver(this.value, this.observerLocator))) === null || _g === void 0 ? void 0 : _g.subscribeToCollection(this);
+            (_g = (this.collectionObserver = getCollectionObserver(this.value, this.observerLocator))) === null || _g === void 0 ? void 0 : _g.subscribe(this);
         }
     }
 }
-subscriberCollection()(CheckedObserver);
+subscriberCollection(CheckedObserver);
 //# sourceMappingURL=checked-observer.js.map

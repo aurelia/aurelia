@@ -13,7 +13,7 @@
     const runtime_html_1 = require("@aurelia/runtime-html");
     const test_context_js_1 = require("./test-context.js");
     function createFixture(template, $class, registrations = [], autoStart = true, ctx = test_context_js_1.TestContext.create()) {
-        const { container, lifecycle, platform, observerLocator } = ctx;
+        const { container, platform, observerLocator } = ctx;
         container.register(...registrations);
         const root = ctx.doc.body.appendChild(ctx.doc.createElement('div'));
         const host = root.appendChild(ctx.createElement('app'));
@@ -31,7 +31,6 @@
             ctx,
             host: ctx.doc.firstElementChild,
             container,
-            lifecycle,
             platform,
             testHost: root,
             appHost: host,

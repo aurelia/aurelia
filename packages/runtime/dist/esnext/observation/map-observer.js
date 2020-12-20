@@ -1,6 +1,6 @@
 import { createIndexMap } from '../observation.js';
 import { CollectionSizeObserver } from './collection-length-observer.js';
-import { collectionSubscriberCollection } from './subscriber-collection.js';
+import { subscriberCollection } from './subscriber-collection.js';
 import { def } from '../utilities-objects.js';
 const observerLookup = new WeakMap();
 const proto = Map.prototype;
@@ -124,44 +124,27 @@ export class MapObserver {
             enableMapObservationCalled = true;
             enableMapObservation();
         }
-        this.inBatch = false;
         this.collection = map;
         this.indexMap = createIndexMap(map.size);
-        this.lengthObserver = (void 0);
+        this.lenObs = void 0;
         observerLookup.set(map, this);
     }
     notify() {
-        var _a;
-        if ((_a = this.lifecycle) === null || _a === void 0 ? void 0 : _a.batch.depth) {
-            if (!this.inBatch) {
-                this.inBatch = true;
-                this.lifecycle.batch.add(this);
-            }
-        }
-        else {
-            this.flushBatch(0 /* none */);
-        }
-    }
-    getLengthObserver() {
-        var _a;
-        return (_a = this.lengthObserver) !== null && _a !== void 0 ? _a : (this.lengthObserver = new CollectionSizeObserver(this));
-    }
-    flushBatch(flags) {
         const indexMap = this.indexMap;
         const size = this.collection.size;
-        this.inBatch = false;
         this.indexMap = createIndexMap(size);
         this.subs.notifyCollection(indexMap, 8 /* updateTarget */);
     }
+    getLengthObserver() {
+        var _a;
+        return (_a = this.lenObs) !== null && _a !== void 0 ? _a : (this.lenObs = new CollectionSizeObserver(this));
+    }
 }
-collectionSubscriberCollection()(MapObserver);
-export function getMapObserver(map, lifecycle) {
+subscriberCollection(MapObserver);
+export function getMapObserver(map) {
     let observer = observerLookup.get(map);
     if (observer === void 0) {
         observer = new MapObserver(map);
-        if (lifecycle != null) {
-            observer.lifecycle = lifecycle;
-        }
     }
     return observer;
 }

@@ -21,7 +21,7 @@
             this.version = 0;
             this.hasChanges = false;
             this.isActive = false;
-            this.type = 2 /* Node */ | 8 /* Layout */;
+            this.type = 2 /* Node */ | 4 /* Layout */;
         }
         getValue() {
             // is it safe to assume the observer has the latest value?

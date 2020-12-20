@@ -9,7 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.shadowCSS = exports.cssModules = exports.StyleConfiguration = exports.createElement = exports.ShortHandBindingSyntax = exports.getTarget = exports.bindingCommand = exports.IAttrSyntaxTransformer = exports.IAttributePattern = exports.attributePattern = exports.NodeObserverLocator = exports.IAurelia = exports.renderer = exports.ILifecycle = exports.LifecycleFlags = exports.BindingMode = exports.IRenderLocation = exports.IEventTarget = exports.INode = exports.registerAliases = exports.alias = exports.IAppRoot = exports.ViewFactory = exports.Controller = exports.children = exports.Bindable = exports.bindable = exports.TaskQueuePriority = exports.AppTask = exports.valueConverter = exports.ValueConverter = exports.useShadowDOM = exports.CustomElement = exports.customElement = exports.containerless = exports.templateController = exports.CustomAttribute = exports.customAttribute = exports.BindingBehavior = exports.bindingBehavior = exports.collectionSubscriberCollection = exports.subscriberCollection = exports.ISignaler = exports.IObserverLocator = exports.watch = exports.Watch = exports.ExpressionWatcher = exports.ComputedWatcher = exports.ComputedObserver = exports.RouterRegistration = exports.RouterConfiguration = exports.ViewportInstruction = exports.Router = exports.IRouter = exports.RouterOptions = exports.NavRoute = exports.bound = exports.toArray = exports.pascalCase = exports.kebabCase = exports.camelCase = exports.isArrayIndex = exports.IEventAggregator = exports.EventAggregator = exports.LogLevel = exports.noop = exports.emptyObject = exports.emptyArray = exports.LoggerConfiguration = exports.ILogger = exports.ColorOptions = exports.Metadata = exports.InstanceProvider = exports.transient = exports.singleton = exports.Registration = exports.optional = exports.lazy = exports.IServiceLocator = exports.inject = exports.IContainer = exports.DI = exports.all = exports.IHttpClient = exports.HttpClient = exports.HttpClientConfiguration = exports.json = exports.Aurelia = exports.IPlatform = exports.PLATFORM = void 0;
+    exports.shadowCSS = exports.cssModules = exports.StyleConfiguration = exports.createElement = exports.ShortHandBindingSyntax = exports.getTarget = exports.bindingCommand = exports.IAttrSyntaxTransformer = exports.IAttributePattern = exports.attributePattern = exports.NodeObserverLocator = exports.IAurelia = exports.renderer = exports.LifecycleFlags = exports.BindingMode = exports.IRenderLocation = exports.IEventTarget = exports.INode = exports.registerAliases = exports.alias = exports.IAppRoot = exports.ViewFactory = exports.Controller = exports.children = exports.Bindable = exports.bindable = exports.TaskQueuePriority = exports.AppTask = exports.valueConverter = exports.ValueConverter = exports.useShadowDOM = exports.CustomElement = exports.customElement = exports.containerless = exports.templateController = exports.CustomAttribute = exports.customAttribute = exports.BindingBehavior = exports.bindingBehavior = exports.subscriberCollection = exports.ISignaler = exports.IObserverLocator = exports.watch = exports.Watch = exports.ExpressionWatcher = exports.ComputedWatcher = exports.ComputedObserver = exports.RouterRegistration = exports.RouterConfiguration = exports.ViewportInstruction = exports.Router = exports.IRouter = exports.RouterOptions = exports.NavRoute = exports.bound = exports.toArray = exports.pascalCase = exports.kebabCase = exports.camelCase = exports.isArrayIndex = exports.IEventAggregator = exports.EventAggregator = exports.LogLevel = exports.noop = exports.emptyObject = exports.emptyArray = exports.LoggerConfiguration = exports.ILogger = exports.ColorOptions = exports.Metadata = exports.InstanceProvider = exports.transient = exports.singleton = exports.Registration = exports.optional = exports.lazy = exports.IServiceLocator = exports.inject = exports.IContainer = exports.DI = exports.all = exports.IHttpClient = exports.HttpClient = exports.HttpClientConfiguration = exports.json = exports.Aurelia = exports.IPlatform = exports.PLATFORM = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const runtime_html_1 = require("@aurelia/runtime-html");
     Object.defineProperty(exports, "IPlatform", { enumerable: true, get: function () { return runtime_html_1.IPlatform; } });
@@ -333,7 +333,6 @@
     // SetterObserver,
     Object.defineProperty(exports, "ISignaler", { enumerable: true, get: function () { return runtime_html_2.ISignaler; } });
     Object.defineProperty(exports, "subscriberCollection", { enumerable: true, get: function () { return runtime_html_2.subscriberCollection; } });
-    Object.defineProperty(exports, "collectionSubscriberCollection", { enumerable: true, get: function () { return runtime_html_2.collectionSubscriberCollection; } });
     Object.defineProperty(exports, "bindingBehavior", { enumerable: true, get: function () { return runtime_html_2.bindingBehavior; } });
     Object.defineProperty(exports, "BindingBehavior", { enumerable: true, get: function () { return runtime_html_2.BindingBehavior; } });
     // PartialBindingBehaviorDefinition,
@@ -441,7 +440,6 @@
     // TemplateControllerRendererRegistration,
     // DefaultResources as RuntimeDefaultResources,
     // IObserverLocatorRegistration,
-    // ILifecycleRegistration,
     // IRendererRegistration,
     // RuntimeConfiguration,
     // AttributeInstruction,
@@ -477,20 +475,6 @@
     // ExpressionKind,
     // Hooks,
     Object.defineProperty(exports, "LifecycleFlags", { enumerable: true, get: function () { return runtime_html_2.LifecycleFlags; } });
-    // State,
-    // CallBindingInstruction,
-    // HydrateAttributeInstruction,
-    // HydrateElementInstruction,
-    // HydrateTemplateController,
-    // InterpolationInstruction,
-    // IteratorBindingInstruction,
-    // LetBindingInstruction,
-    // HydrateLetElementInstruction,
-    // RefBindingInstruction,
-    // SetPropertyInstruction,
-    // ViewModelKind,
-    // IBinding,
-    Object.defineProperty(exports, "ILifecycle", { enumerable: true, get: function () { return runtime_html_2.ILifecycle; } });
     // IObservable,
     // IObservedArray,
     // IObservedMap,

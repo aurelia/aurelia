@@ -162,9 +162,7 @@ let ValidateBindingBehavior = class ValidateBindingBehavior extends BindingInter
     validateBinding() {
         var _a;
         (_a = this.task) === null || _a === void 0 ? void 0 : _a.cancel();
-        this.task = this.platform.domReadQueue.queueTask(async () => {
-            await this.controller.validateBinding(this.propertyBinding);
-        });
+        this.task = this.platform.domReadQueue.queueTask(() => this.controller.validateBinding(this.propertyBinding));
     }
     processDelta(delta) {
         var _a, _b, _c, _d;

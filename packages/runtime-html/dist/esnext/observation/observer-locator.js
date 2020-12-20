@@ -32,7 +32,7 @@ const nsAttributes = Object.assign(createLookup(), {
     'xmlns:xlink': ['xlink', xmlnsNS],
 });
 const elementPropertyAccessor = new PropertyAccessor();
-elementPropertyAccessor.type = 2 /* Node */ | 8 /* Layout */;
+elementPropertyAccessor.type = 2 /* Node */ | 4 /* Layout */;
 export class NodeObserverConfig {
     constructor(config) {
         var _a;

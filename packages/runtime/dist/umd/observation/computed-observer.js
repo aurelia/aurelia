@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./subscriber-collection.js", "./connectable-switcher.js", "../binding/connectable.js", "./proxy-observation.js"], factory);
+        define(["require", "exports", "./subscriber-collection.js", "./connectable-switcher.js", "../binding/connectable.js", "./proxy-observation.js", "../utilities-objects.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -14,6 +14,7 @@
     const connectable_switcher_js_1 = require("./connectable-switcher.js");
     const connectable_js_1 = require("../binding/connectable.js");
     const proxy_observation_js_1 = require("./proxy-observation.js");
+    const utilities_objects_js_1 = require("../utilities-objects.js");
     class ComputedObserver {
         constructor(obj, get, set, useProxy, observerLocator) {
             this.obj = obj;
@@ -22,7 +23,7 @@
             this.useProxy = useProxy;
             this.observerLocator = observerLocator;
             this.interceptor = this;
-            this.type = 4 /* Obj */;
+            this.type = 1 /* Observer */;
             this.value = void 0;
             // todo: maybe use a counter allow recursive call to a certain level
             /**
@@ -38,7 +39,7 @@
             const observer = new ComputedObserver(obj, getter, setter, useProxy, observerLocator);
             const $get = (( /* Computed Observer */) => observer.getValue());
             $get.getObserver = () => observer;
-            Reflect.defineProperty(obj, key, {
+            utilities_objects_js_1.def(obj, key, {
                 enumerable: descriptor.enumerable,
                 configurable: true,
                 get: $get,
@@ -130,6 +131,6 @@
     }
     exports.ComputedObserver = ComputedObserver;
     connectable_js_1.connectable(ComputedObserver);
-    subscriber_collection_js_1.subscriberCollection()(ComputedObserver);
+    subscriber_collection_js_1.subscriberCollection(ComputedObserver);
 });
 //# sourceMappingURL=computed-observer.js.map

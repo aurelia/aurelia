@@ -5,7 +5,7 @@ There are many great services and open source projects that have enabled us to b
 ## Infrastructure
 
 * Circle CI - For providing an amazing CI/CD service which has made a world of difference in how we ship quality software end-to-end.
-* Lerna - For enabling us to modularize our platform while still maintaining a simple build, test and deploy workflow.
+* Lage - For enabling us to modularize our platform while still maintaining a simple build, test and deploy workflow.
 * TypeScript - For enabling JavaScript to scale to large codebases and global teams.
 
 ## Inspiration

@@ -127,7 +127,6 @@ commands:
         type: boolean
         default: true
     steps:
-      - run: set -o pipefail && ./node_modules/.bin/lerna clean -y
       - run: set -o pipefail && git add packages/*/dist --force && git status
       - run: set -o pipefail && git stash && git status
       - when:

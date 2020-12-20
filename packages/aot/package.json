@@ -29,7 +29,9 @@
     "lint": "eslint --cache --ext .js,.ts src/",
     "build": "tsc -b",
     "dev": "tsc -b -w --preserveWatchOutput",
-    "test": "node -r esm dist/esnext/test.js"
+    "test": "node -r esm dist/esnext/test.js",
+    "publish:dev": "npm publish --tag dev",
+    "publish:latest": "npm publish --tag latest"
   },
   "publishConfig": {
     "access": "public"

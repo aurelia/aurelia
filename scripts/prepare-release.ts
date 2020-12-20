@@ -6,7 +6,7 @@ import project from './project';
 const log = createLogger('prepare-release');
 
 (async function (): Promise<void> {
-  const newVersion = await generateChangeLog(`v${project.lerna.version}`, 'HEAD');
+  const newVersion = await generateChangeLog(`v${project.pkg.version}`, 'HEAD');
   await updateDependencyVersions(newVersion);
   log('Done.');
 })().catch(err => {

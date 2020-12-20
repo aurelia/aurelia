@@ -34,7 +34,9 @@
     "lint": "eslint --cache --ext .js,.ts src/",
     "build": "tsc -b",
     "bundle": "ts-node -P ../../tsconfig.json ../../scripts/bundle.ts umd,esm,system aurelia",
-    "dev": "tsc -b -w --preserveWatchOutput"
+    "dev": "tsc -b -w --preserveWatchOutput",
+    "publish:dev": "npm publish --tag dev",
+    "publish:latest": "npm publish --tag latest"
   },
   "publishConfig": {
     "access": "public"

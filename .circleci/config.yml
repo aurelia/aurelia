@@ -104,7 +104,8 @@ commands:
           channel: << parameters.channel >>
           suffix: << parameters.suffix >>
       - common/setup_verdaccio
-      - run: npm run publish:<< parameters.channel >> -- << parameters.suffix >> << parameters.registry >>
+      - run: npm config set registry << parameters.registry >>
+      - run: npm run publish:<< parameters.channel >>
 
   clean_merge_commit_dist:
     parameters:

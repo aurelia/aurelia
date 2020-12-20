@@ -31,7 +31,9 @@
   "scripts": {
     "lint": "eslint --cache --ext .js,.ts src/",
     "build": "tsc -b",
-    "dev": "tsc -b -w --preserveWatchOutput"
+    "dev": "tsc -b -w --preserveWatchOutput",
+    "publish:dev": "npm publish --tag dev",
+    "publish:latest": "npm publish --tag latest"
   },
   "publishConfig": {
     "access": "public"

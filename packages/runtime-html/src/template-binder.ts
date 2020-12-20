@@ -14,7 +14,7 @@ import { BindingCommand, BindingCommandInstance } from './resources/binding-comm
 import { NodeType } from './dom.js';
 import { IPlatform } from './platform.js';
 import { CustomAttribute } from './resources/custom-attribute.js';
-import { CustomElement } from './resources/custom-element.js';
+import { CustomElement, CustomElementDefinition } from './resources/custom-element.js';
 import {
   BindingSymbol,
   CustomAttributeSymbol,
@@ -214,12 +214,18 @@ export class TemplateBinder {
       name = node.nodeName.toLowerCase();
     }
 
-    const elementInfo = ElementInfo.from(this.container.find(CustomElement, name), name);
+    const definition: CustomElementDefinition | null = this.container.find(CustomElement, name);
+    const elementInfo = ElementInfo.from(definition, name);
     if (elementInfo === null) {
       // there is no registered custom element with this name
       manifest = new PlainElementSymbol(node);
     } else {
       // it's a custom element so we set the manifestRoot as well (for storing replaces)
+      const processContent = definition?.processContent ?? null;
+      if (processContent !== null && processContent(node, this.platform) === false) { // Skip compilation iff the hook returns boolean `false`.
+        manifest = new PlainElementSymbol(node);
+        return;
+      }
       parentManifestRoot = manifestRoot;
       const ceSymbol = new CustomElementSymbol(this.platform, node, elementInfo);
       if (isAuSlot) {

@@ -129,7 +129,6 @@ export class ContentBinding {
         }
         if (newValue != this.value) {
             this.value = newValue;
-            this.cObs.clear();
             if (newValue instanceof Array) {
                 this.observeCollection(newValue);
             }
@@ -168,7 +167,6 @@ export class ContentBinding {
         this.$scope = void 0;
         this.$hostScope = null;
         this.obs.clear(true);
-        this.cObs.clear(true);
     }
 }
 connectable(ContentBinding);

@@ -6,7 +6,7 @@
     "node": ">=10.16.0",
     "npm": ">=6.1.0"
   },
-  "version": "0.9.0-dev.202012201446",
+  "version": "0.9.0-dev.202012201502",
   "scripts": {
     "prestart": "rimraf dist",
     "start": "webpack-dev-server --no-inline",
@@ -18,14 +18,14 @@
     "e2e:debug": "start-server-and-test :9500 cypress:debug"
   },
   "dependencies": {
-    "@aurelia/i18n": "0.9.0-dev.202012201446",
-    "@aurelia/kernel": "0.9.0-dev.202012201446",
-    "@aurelia/metadata": "0.9.0-dev.202012201446",
-    "@aurelia/platform": "0.9.0-dev.202012201446",
-    "@aurelia/platform-browser": "0.9.0-dev.202012201446",
-    "@aurelia/runtime-html": "0.9.0-dev.202012201446",
-    "@aurelia/runtime": "0.9.0-dev.202012201446",
-    "@aurelia/validation": "0.9.0-dev.202012201446",
+    "@aurelia/i18n": "0.9.0-dev.202012201502",
+    "@aurelia/kernel": "0.9.0-dev.202012201502",
+    "@aurelia/metadata": "0.9.0-dev.202012201502",
+    "@aurelia/platform": "0.9.0-dev.202012201502",
+    "@aurelia/platform-browser": "0.9.0-dev.202012201502",
+    "@aurelia/runtime-html": "0.9.0-dev.202012201502",
+    "@aurelia/runtime": "0.9.0-dev.202012201502",
+    "@aurelia/validation": "0.9.0-dev.202012201502",
     "i18next": "^17.0.0",
     "i18next-fetch-backend": "^2.2.0",
     "i18next-intervalplural-postprocessor": "^1.0.0",

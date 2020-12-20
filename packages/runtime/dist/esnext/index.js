@@ -2,7 +2,7 @@ export { IPlatform, } from '@aurelia/kernel';
 export { Platform, TaskQueue, Task, TaskAbortError, TaskQueuePriority, TaskStatus, } from '@aurelia/platform';
 export { alias, registerAliases, } from './alias.js';
 export { ExpressionKind, CallFunctionExpression, CustomExpression, BindingBehaviorExpression, ValueConverterExpression, AssignExpression, ConditionalExpression, AccessThisExpression, AccessScopeExpression, AccessMemberExpression, AccessKeyedExpression, CallScopeExpression, CallMemberExpression, BinaryExpression, UnaryExpression, PrimitiveLiteralExpression, HtmlLiteralExpression, ArrayLiteralExpression, ObjectLiteralExpression, TemplateExpression, TaggedTemplateExpression, ArrayBindingPattern, ObjectBindingPattern, BindingIdentifier, ForOfStatement, Interpolation, } from './binding/ast.js';
-export { connectable, BindingMediator, BindingObserverRecord, BindingCollectionObserverRecord, } from './binding/connectable.js';
+export { connectable, BindingMediator, BindingObserverRecord, } from './binding/connectable.js';
 export { IExpressionParser, BindingType, parseExpression, Char, Access, Precedence, parse, ParserState, } from './binding/expression-parser.js';
 export { ArrayObserver, ArrayIndexObserver, enableArrayObservation, disableArrayObservation, applyMutationsToIndices, synchronizeIndices, } from './observation/array-observer.js';
 export { MapObserver, enableMapObservation, disableMapObservation, } from './observation/map-observer.js';

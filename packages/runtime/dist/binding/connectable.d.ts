@@ -11,30 +11,27 @@ export interface IConnectableBinding extends IPartialConnectableBinding, IConnec
      * A record storing observers that are currently subscribed to by this binding
      */
     obs: BindingObserverRecord;
-    /**
-     * A record storing collection observers that are currently subscribed to by this binding
-     */
-    cObs: BindingCollectionObserverRecord;
 }
 declare type ObservationRecordImplType = {
     id: number;
     version: number;
     count: number;
     binding: IConnectableBinding;
-} & ISubscriber & Record<string, unknown>;
-export interface BindingObserverRecord extends ISubscriber, ObservationRecordImplType {
+} & Record<string, unknown>;
+export interface BindingObserverRecord extends ObservationRecordImplType {
 }
-export declare class BindingObserverRecord implements ISubscriber {
+export declare class BindingObserverRecord implements ISubscriber, ICollectionSubscriber {
     binding: IConnectableBinding;
     id: number;
     version: number;
     count: number;
     constructor(binding: IConnectableBinding);
     handleChange(value: unknown, oldValue: unknown, flags: LifecycleFlags): unknown;
+    handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void;
     /**
      * Add, and subscribe to a given observer
      */
-    add(observer: ISubscribable & {
+    add(observer: (ISubscribable | ICollectionSubscribable) & {
         [id: number]: number;
     }): void;
     /**
@@ -42,29 +39,16 @@ export declare class BindingObserverRecord implements ISubscriber {
      */
     clear(all?: boolean): void;
 }
-export interface BindingCollectionObserverRecord extends ICollectionSubscriber, ObservationRecordImplType {
-}
-export declare class BindingCollectionObserverRecord {
-    readonly binding: IConnectableBinding;
-    id: number;
-    count: number;
-    get version(): number;
-    private readonly observers;
-    constructor(binding: IConnectableBinding);
-    handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void;
-    add(observer: ICollectionSubscribable): void;
-    clear(all?: boolean): void;
-}
 declare type DecoratableConnectable<TProto, TClass> = Class<TProto & Partial<IConnectableBinding> & IPartialConnectableBinding, TClass>;
 declare type DecoratedConnectable<TProto, TClass> = Class<TProto & IConnectableBinding, TClass>;
 declare function connectableDecorator<TProto, TClass>(target: DecoratableConnectable<TProto, TClass>): DecoratedConnectable<TProto, TClass>;
 export declare function connectable(): typeof connectableDecorator;
 export declare namespace connectable {
-    var assignIdTo: (instance: IConnectableBinding | BindingObserverRecord | BindingCollectionObserverRecord) => void;
+    var assignIdTo: (instance: IConnectableBinding | BindingObserverRecord) => void;
 }
 export declare function connectable<TProto, TClass>(target: DecoratableConnectable<TProto, TClass>): DecoratedConnectable<TProto, TClass>;
 export declare namespace connectable {
-    var assignIdTo: (instance: IConnectableBinding | BindingObserverRecord | BindingCollectionObserverRecord) => void;
+    var assignIdTo: (instance: IConnectableBinding | BindingObserverRecord) => void;
 }
 export declare type MediatedBinding<K extends string> = {
     [key in K]: (newValue: unknown, previousValue: unknown, flags: LifecycleFlags) => void;

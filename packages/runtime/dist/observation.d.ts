@@ -178,6 +178,7 @@ export interface ICollectionChangeTracker<T extends Collection> {
  * An observer that tracks collection mutations and notifies subscribers (either directly or in batches)
  */
 export interface ICollectionObserver<T extends CollectionKind> extends ICollectionChangeTracker<CollectionKindToType<T>>, ICollectionSubscribable {
+    [id: number]: number;
     type: AccessorType;
     collection: ObservedCollectionKindToType<T>;
     getLengthObserver(): T extends CollectionKind.array ? CollectionLengthObserver : CollectionSizeObserver;

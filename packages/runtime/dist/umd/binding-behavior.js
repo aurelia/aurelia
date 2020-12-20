@@ -118,9 +118,6 @@
         get obs() {
             return this.binding.obs;
         }
-        get cObs() {
-            return this.binding.cObs;
-        }
         updateTarget(value, flags) {
             this.binding.updateTarget(value, flags);
         }

@@ -47,7 +47,6 @@
             }
             this.isBound = false;
             this.obs.clear(true);
-            this.cObs.clear(true);
         }
         run() {
             if (!this.isBound || this.running) {
@@ -70,7 +69,6 @@
             }
             finally {
                 this.obs.clear(false);
-                this.cObs.clear(false);
                 this.running = false;
                 exit(this);
             }

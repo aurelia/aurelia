@@ -47,12 +47,7 @@ function observeCollection(collection) {
     else {
         throw new Error('Unrecognised collection type.');
     }
-    this.cObs.add(obs);
-}
-function getCollectionObserverRecord() {
-    const record = new BindingCollectionObserverRecord(this);
-    defineHiddenProp(this, 'cObs', record);
-    return record;
+    this.obs.add(obs);
 }
 function noopHandleChange() {
     throw new Error('method "handleChange" not implemented');
@@ -69,6 +64,9 @@ export class BindingObserverRecord {
     }
     handleChange(value, oldValue, flags) {
         return this.binding.interceptor.handleChange(value, oldValue, flags);
+    }
+    handleCollectionChange(indexMap, flags) {
+        this.binding.interceptor.handleCollectionChange(indexMap, flags);
     }
     /**
      * Add, and subscribe to a given observer
@@ -103,8 +101,9 @@ export class BindingObserverRecord {
         const slotCount = this.count;
         let slotName;
         let observer;
+        let i = 0;
         if (all === true) {
-            for (let i = 0; i < slotCount; ++i) {
+            for (; i < slotCount; ++i) {
                 slotName = slotNames[i];
                 observer = this[slotName];
                 if (observer != null) {
@@ -116,7 +115,7 @@ export class BindingObserverRecord {
             this.count = 0;
         }
         else {
-            for (let i = 0; i < slotCount; ++i) {
+            for (; i < slotCount; ++i) {
                 if (this[versionSlotNames[i]] !== this.version) {
                     slotName = slotNames[i];
                     observer = this[slotName];
@@ -131,47 +130,11 @@ export class BindingObserverRecord {
         }
     }
 }
-export class BindingCollectionObserverRecord {
-    constructor(binding) {
-        this.binding = binding;
-        this.count = 0;
-        this.observers = new Map();
-        connectable.assignIdTo(this);
-    }
-    get version() {
-        return this.binding.obs.version;
-    }
-    handleCollectionChange(indexMap, flags) {
-        this.binding.interceptor.handleCollectionChange(indexMap, flags);
-    }
-    add(observer) {
-        observer.subscribe(this);
-        this.count = this.observers.set(observer, this.version).size;
-    }
-    clear(all) {
-        if (this.count === 0) {
-            return;
-        }
-        const observers = this.observers;
-        const version = this.version;
-        let observerAndVersionPair;
-        let o;
-        for (observerAndVersionPair of observers) {
-            if (all || observerAndVersionPair[1] !== version) {
-                o = observerAndVersionPair[0];
-                o.unsubscribe(this);
-                observers.delete(o);
-            }
-        }
-        this.count = observers.size;
-    }
-}
 function connectableDecorator(target) {
     const proto = target.prototype;
     ensureProto(proto, 'observeProperty', observeProperty, true);
     ensureProto(proto, 'observeCollection', observeCollection, true);
     def(proto, 'obs', { get: getObserverRecord });
-    def(proto, 'cObs', { get: getCollectionObserverRecord });
     // optionally add these two methods to normalize a connectable impl
     ensureProto(proto, 'handleChange', noopHandleChange);
     ensureProto(proto, 'handleCollectionChange', noopHandleCollectionChange);

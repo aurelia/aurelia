@@ -9,7 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.BindingMediator = exports.connectable = exports.BindingCollectionObserverRecord = exports.BindingObserverRecord = void 0;
+    exports.BindingMediator = exports.connectable = exports.BindingObserverRecord = void 0;
     const utilities_objects_js_1 = require("../utilities-objects.js");
     const array_observer_js_1 = require("../observation/array-observer.js");
     const set_observer_js_1 = require("../observation/set-observer.js");
@@ -59,12 +59,7 @@
         else {
             throw new Error('Unrecognised collection type.');
         }
-        this.cObs.add(obs);
-    }
-    function getCollectionObserverRecord() {
-        const record = new BindingCollectionObserverRecord(this);
-        utilities_objects_js_1.defineHiddenProp(this, 'cObs', record);
-        return record;
+        this.obs.add(obs);
     }
     function noopHandleChange() {
         throw new Error('method "handleChange" not implemented');
@@ -81,6 +76,9 @@
         }
         handleChange(value, oldValue, flags) {
             return this.binding.interceptor.handleChange(value, oldValue, flags);
+        }
+        handleCollectionChange(indexMap, flags) {
+            this.binding.interceptor.handleCollectionChange(indexMap, flags);
         }
         /**
          * Add, and subscribe to a given observer
@@ -115,8 +113,9 @@
             const slotCount = this.count;
             let slotName;
             let observer;
+            let i = 0;
             if (all === true) {
-                for (let i = 0; i < slotCount; ++i) {
+                for (; i < slotCount; ++i) {
                     slotName = slotNames[i];
                     observer = this[slotName];
                     if (observer != null) {
@@ -128,7 +127,7 @@
                 this.count = 0;
             }
             else {
-                for (let i = 0; i < slotCount; ++i) {
+                for (; i < slotCount; ++i) {
                     if (this[versionSlotNames[i]] !== this.version) {
                         slotName = slotNames[i];
                         observer = this[slotName];
@@ -144,48 +143,11 @@
         }
     }
     exports.BindingObserverRecord = BindingObserverRecord;
-    class BindingCollectionObserverRecord {
-        constructor(binding) {
-            this.binding = binding;
-            this.count = 0;
-            this.observers = new Map();
-            connectable.assignIdTo(this);
-        }
-        get version() {
-            return this.binding.obs.version;
-        }
-        handleCollectionChange(indexMap, flags) {
-            this.binding.interceptor.handleCollectionChange(indexMap, flags);
-        }
-        add(observer) {
-            observer.subscribe(this);
-            this.count = this.observers.set(observer, this.version).size;
-        }
-        clear(all) {
-            if (this.count === 0) {
-                return;
-            }
-            const observers = this.observers;
-            const version = this.version;
-            let observerAndVersionPair;
-            let o;
-            for (observerAndVersionPair of observers) {
-                if (all || observerAndVersionPair[1] !== version) {
-                    o = observerAndVersionPair[0];
-                    o.unsubscribe(this);
-                    observers.delete(o);
-                }
-            }
-            this.count = observers.size;
-        }
-    }
-    exports.BindingCollectionObserverRecord = BindingCollectionObserverRecord;
     function connectableDecorator(target) {
         const proto = target.prototype;
         utilities_objects_js_1.ensureProto(proto, 'observeProperty', observeProperty, true);
         utilities_objects_js_1.ensureProto(proto, 'observeCollection', observeCollection, true);
         utilities_objects_js_1.def(proto, 'obs', { get: getObserverRecord });
-        utilities_objects_js_1.def(proto, 'cObs', { get: getCollectionObserverRecord });
         // optionally add these two methods to normalize a connectable impl
         utilities_objects_js_1.ensureProto(proto, 'handleChange', noopHandleChange);
         utilities_objects_js_1.ensureProto(proto, 'handleCollectionChange', noopHandleCollectionChange);

@@ -99,7 +99,6 @@
             if (this.subs.remove(subscriber) && this.subs.count === 0) {
                 this.isDirty = true;
                 this.obs.clear(true);
-                this.cObs.clear(true);
             }
         }
         run() {
@@ -123,7 +122,6 @@
             }
             finally {
                 this.obs.clear(false);
-                this.cObs.clear(false);
                 this.running = false;
                 connectable_switcher_js_1.exitConnectable(this);
             }

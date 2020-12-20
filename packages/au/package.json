@@ -32,7 +32,7 @@
   },
   "scripts": {
     "lint": "eslint --cache --ext .js,.ts src/",
-    "lint:ci": "eslint --cache --ext --quiet --report-unused-disable-directives .js,.ts src/",
+    "lint:ci": "eslint --cache --ext .js,.ts --quiet --report-unused-disable-directives src/",
     "build": "tsc -b",
     "bundle": "ts-node -P ../../tsconfig.json ../../scripts/bundle.ts umd,esm,system aurelia",
     "dev": "tsc -b -w --preserveWatchOutput",

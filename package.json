@@ -61,7 +61,7 @@
     "clean:tsconfig-build-cache": "rimraf packages/*/dist/tsconfig.tsbuildinfo",
     "lint": "npm run lint:packages && npm run lint:other",
     "lint:other": "eslint --cache --ext .js,.ts examples scripts test",
-    "lint:other:ci": "eslint --cache --ext --quiet --report-unused-disable-directives .js,.ts examples scripts test",
+    "lint:other:ci": "eslint --cache --ext .js,.ts --quiet --report-unused-disable-directives examples scripts test",
     "lint:packages": "lage run lint",
     "lint:packages:ci": "lage run lint:ci",
     "change-tsconfigs:overwrite:umd": "ts-node -P tsconfig.json scripts/change-tsconfigs.ts overwrite umd",

@@ -27,7 +27,7 @@
   ],
   "scripts": {
     "lint": "eslint --cache --ext .js,.ts src/",
-    "lint:ci": "eslint --cache --ext --quiet --report-unused-disable-directives .js,.ts src/",
+    "lint:ci": "eslint --cache --ext .js,.ts --quiet --report-unused-disable-directives src/",
     "build": "tsc -b",
     "dev": "tsc -b -w --preserveWatchOutput",
     "test": "node -r esm dist/esnext/test.js",

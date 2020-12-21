@@ -8,7 +8,7 @@ import { CustomElementType } from '@aurelia/runtime-html';
 import { LoadInstruction, RouteableComponentType } from './interfaces.js';
 import { IRouter } from './router.js';
 import { RoutingInstruction } from './instructions/routing-instruction.js';
-import { IScopeOwnerOptions, NextContentAction, RoutingScope } from './routing-scope.js';
+import { NextContentAction, RoutingScope } from './routing-scope.js';
 import { arrayRemove } from './utilities/utils.js';
 import { Navigation } from './navigation.js';
 import { NavigationCoordinator } from './navigation-coordinator.js';
@@ -16,9 +16,9 @@ import { Runner } from './utilities/runner.js';
 import { Routes } from './decorators/routes.js';
 import { Route } from './route.js';
 import { Step } from './utilities/runner.js';
-import { Endpoint, IConnectedCustomElement } from './endpoints/endpoint.js';
+import { Endpoint, IConnectedCustomElement, IEndpointOptions } from './endpoints/endpoint.js';
 
-export interface IViewportScopeOptions extends IScopeOwnerOptions {
+export interface IViewportScopeOptions extends IEndpointOptions {
   catches?: string | string[];
   collection?: boolean;
   source?: unknown[] | null;
@@ -36,8 +36,8 @@ export class ViewportScope extends Endpoint {
   private add: boolean = false;
 
   public constructor(
-    name: string,
     router: IRouter,
+    name: string,
     connectedCE: IConnectedCustomElement | null,
     owningScope: RoutingScope | null,
     scope: boolean,
@@ -48,7 +48,6 @@ export class ViewportScope extends Endpoint {
     },
   ) {
     super(router, name, connectedCE, owningScope, scope);
-    this.connectedScope.viewportScope = this;
     if (this.catches.length > 0) {
       this.instruction = router.createRoutingInstruction(this.catches[0], this.name);
     }
@@ -72,8 +71,8 @@ export class ViewportScope extends Endpoint {
       return [this];
     }
     return parent.enabledChildren
-      .filter(child => child.isViewportScope && child.viewportScope!.name === this.name)
-      .map(child => child.viewportScope!);
+      .filter(child => child.isViewportScope && (child.endpoint as ViewportScope).name === this.name)
+      .map(child => child.endpoint as ViewportScope);
   }
 
   public get source(): unknown[] | null {
@@ -95,7 +94,9 @@ export class ViewportScope extends Endpoint {
   }
 
   public get nextContentActivated(): boolean {
-    return this.scope.parent?.owner?.nextContentActivated ?? false;
+    // TODO(alpha): Fix this!
+    return true;
+    // return this.scope.parent?.endpoint?.nextContentActivated ?? false;
   }
 
   public toString(): string {
@@ -150,7 +151,7 @@ export class ViewportScope extends Endpoint {
       this.removeSourceItem();
     }
   }
-  public abortContentChange(step: Step<void>): void | Step<void> {
+  public abortContentChange(step: Step<void> | null): void | Step<void> {
     this.nextContent = null;
     if (this.add) {
       const index = this.source!.indexOf(this.sourceItem);

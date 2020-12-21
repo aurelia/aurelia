@@ -4,10 +4,10 @@
  * In its current state, it is NOT a good source for learning about the inner workings and design of the router.
  *
  */
-import { IScopeOwner } from './routing-scope.js';
 import { IRouter } from './router.js';
 import { Navigation } from './navigation.js';
 import { StateCoordinator, Entity } from './state-coordinator.js';
+import { IEndpoint } from './endpoints/endpoint.js';
 
 export type NavigationState =
   'guardedUnload' | // fulfilled when canUnload has been called
@@ -40,13 +40,13 @@ export class NavigationCoordinatorOptions {
   }
 }
 
-export class NavigationCoordinator extends StateCoordinator<IScopeOwner, NavigationState> {
+export class NavigationCoordinator extends StateCoordinator<IEndpoint, NavigationState> {
   private router!: IRouter;
   private navigation!: Navigation;
 
   private running: boolean = false;
 
-  public static create(router: IRouter, navigation: Navigation, options: NavigationCoordinatorOptions): StateCoordinator<IScopeOwner, NavigationState> {
+  public static create(router: IRouter, navigation: Navigation, options: NavigationCoordinatorOptions): StateCoordinator<IEndpoint, NavigationState> {
     const coordinator = new NavigationCoordinator();
     coordinator.router = router;
     coordinator.navigation = navigation;
@@ -79,7 +79,7 @@ export class NavigationCoordinator extends StateCoordinator<IScopeOwner, Navigat
     }
   }
 
-  public addEntity(entity: IScopeOwner): Entity<IScopeOwner, NavigationState> {
+  public addEntity(entity: IEndpoint): Entity<IEndpoint, NavigationState> {
     const ent = super.addEntity(entity);
     if (this.running) {
       ent.entity.transition(this);

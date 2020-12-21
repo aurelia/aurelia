@@ -4,9 +4,10 @@ import { InstructionParameters } from './instruction-parameters';
 import { InstructionViewport } from './instruction-viewport';
 import { InstructionComponent } from './instruction-component';
 import { ComponentAppellation, ComponentParameters, ViewportHandle } from '../interfaces.js';
-import { RoutingScope, IScopeOwner } from '../routing-scope.js';
+import { RoutingScope } from '../routing-scope.js';
 import { ViewportScope } from '../viewport-scope.js';
 import { FoundRoute } from '../found-route.js';
+import { IEndpoint } from '../endpoints/endpoint';
 
 /**
  * The routing instructions are the core of the router's navigations. All
@@ -117,12 +118,7 @@ export class RoutingInstruction {
   /**
    * The endpoint of the routing instruction.
    */
-  public get endpoint(): IScopeOwner | null {
-    return this.viewport?.instance ?? this.viewportScope ?? null;
-  }
-
-  // TODO: Remove this once endpoint is fully adopted
-  public get owner(): IScopeOwner | null {
+  public get endpoint(): IEndpoint | null {
     return this.viewport?.instance ?? this.viewportScope ?? null;
   }
 

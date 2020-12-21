@@ -60,7 +60,7 @@ export class EndpointMatcher {
     const ownedScopes = routingScope.getOwnedScopes();
 
     // Get a shallow copy of all available endpoints
-    const endpoints = ownedScopes.map(scope => scope.viewport !== null ? scope.viewport : scope.viewportScope);
+    const endpoints = ownedScopes.map(scope => scope.endpoint);
     const availableEndpoints = endpoints
       .filter(endpoint => endpoint !== null
         && !alreadyFound.some(found => endpoint === found.viewport.instance || endpoint === found.viewportScope)
@@ -225,7 +225,7 @@ export class EndpointMatcher {
               const item = endpoint.addSourceItem();
               available = routingScope.getOwnedScopes()
                 .filter(scope => scope.isViewportScope)
-                .map(scope => scope.viewportScope!)
+                .map(scope => scope.endpoint as ViewportScope)
                 .find(viewportScope => viewportScope.sourceItem === item)!;
             }
             // ...use the available one as endpoint.

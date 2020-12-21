@@ -22,11 +22,11 @@ import { IViewportOptions, Viewport } from './viewport.js';
 import { RoutingInstruction } from './instructions/routing-instruction.js';
 import { FoundRoute } from './found-route.js';
 import { HookManager, IHookDefinition, HookIdentity, HookFunction, IHookOptions, BeforeNavigationHookFunction, TransformFromUrlHookFunction, TransformToUrlHookFunction, SetTitleHookFunction } from './hook-manager.js';
-import { RoutingScope, IScopeOwner } from './routing-scope.js';
+import { RoutingScope } from './routing-scope.js';
 import { IViewportScopeOptions, ViewportScope } from './viewport-scope.js';
 import { BrowserViewerStore } from './browser-viewer-store.js';
 import { Navigation } from './navigation.js';
-import { IConnectedCustomElement } from './endpoints/endpoint.js';
+import { IConnectedCustomElement, IEndpoint } from './endpoints/endpoint.js';
 import { NavigationCoordinator } from './navigation-coordinator.js';
 import { IRouterStartOptions, ISeparators, RouterOptions } from './router-options.js';
 import { OpenPromise } from './utilities/open-promise.js';
@@ -135,28 +135,6 @@ export class Router implements IRouter {
    */
   public appendedInstructions: RoutingInstruction[] = [];
 
-  // /**
-  //  * @internal
-  //  */
-  // public options: IRouterOptions = {
-  //   useUrlFragmentHash: true,
-  //   useHref: true,
-  //   statefulHistoryLength: 0,
-  //   useDirectRoutes: true,
-  //   useConfiguredRoutes: true,
-  //   additiveInstructionDefault: true,
-  //   title: {
-  //     appTitle: "${componentTitles}\${appTitleSeparator}Aurelia",
-  //     appTitleSeparator: ' | ',
-  //     componentTitleOrder: 'top-down',
-  //     componentTitleSeparator: ' > ',
-  //     useComponentNames: true,
-  //     componentPrefix: 'app-',
-  //   },
-  //   swapStrategy: 'add-first-sequential',
-  //   routingHookIntegration: 'integrated',
-  //   navigationSyncStates: ['guardedUnload', 'swapped', 'completed'],
-  // };
   public processingNavigation: Navigation | null = null;
   public isActive: boolean = false;
   public pendingConnects: Map<IConnectedCustomElement, OpenPromise> = new Map();
@@ -418,7 +396,7 @@ export class Router implements IRouter {
     //   configuredRoute,
     //   configuredRoutePath,
     //   instructions,
-    //   clearScopeOwners,
+    //   clearEndpoints,
     //   clearViewportScopes,
     // }
     const coordinator = NavigationCoordinator.create(this, instruction, { syncStates: RouterOptions.navigationSyncStates }) as NavigationCoordinator;
@@ -482,22 +460,22 @@ export class Router implements IRouter {
       instructions.unshift(instr);
     }
 
-    const clearScopeOwners: IScopeOwner[] = [];
+    const clearEndpoints: IEndpoint[] = [];
     let clearViewportScopes: ViewportScope[] = [];
     for (const clearInstruction of instructions.filter(instr => this.instructionResolver.isClearAllViewportsInstruction(instr))) {
       const scope = clearInstruction.scope || this.rootScope!.scope;
-      const scopes = scope.allScopes().filter(scope => !scope.owner!.isEmpty).map(scope => scope.owner!);
+      const scopes = scope.allScopes().filter(scope => !scope.endpoint!.isEmpty).map(scope => scope.endpoint!);
       // TODO: Tell Fred about the need for reverse
       // scopes.reverse();
-      clearScopeOwners.push(...scopes);
-      if (scope.viewportScope !== null && scope.viewportScope !== this.rootScope) {
-        clearViewportScopes.push(scope.viewportScope);
+      clearEndpoints.push(...scopes);
+      if (scope.isViewportScope && scope.endpoint !== this.rootScope) {
+        clearViewportScopes.push(scope.endpoint as ViewportScope);
       }
     }
     instructions = instructions.filter(instr => !this.instructionResolver.isClearAllViewportsInstruction(instr));
 
     for (const addInstruction of instructions.filter(instr => this.instructionResolver.isAddAllViewportsInstruction(instr))) {
-      addInstruction.viewport.set((addInstruction.scope || this.rootScope!.scope).viewportScope!.name);
+      addInstruction.viewport.set(((addInstruction.scope || this.rootScope!.scope).endpoint as ViewportScope).name);
       addInstruction.scope = addInstruction.scope!.owningScope!;
     }
 
@@ -505,7 +483,7 @@ export class Router implements IRouter {
       instr.topInstruction = true;
     }
 
-    const updatedScopeOwners: IScopeOwner[] = [];
+    const updatedEndpoints: IEndpoint[] = [];
     const alreadyFoundInstructions: RoutingInstruction[] = [];
     // TODO: Take care of cancellations down in subsets/iterations
     let { found: routingInstructions, remaining: remainingInstructions } = this.findViewports(instructions, alreadyFoundInstructions);
@@ -517,7 +495,7 @@ export class Router implements IRouter {
         console.log('remainingInstructions', remainingInstructions);
         throw err;
       }
-      const changedScopeOwners: IScopeOwner[] = [];
+      const changedEndpoints: IEndpoint[] = [];
 
       // TODO: Review whether this await poses a problem (it's currently necessary for new viewports to load)
       // console.log('AWAIT invokeBeforeNavigation', instruction.instruction);
@@ -525,32 +503,32 @@ export class Router implements IRouter {
       if (hooked === false) {
         coordinator.cancel();
         return;
-        // return this.cancelNavigation([...changedScopeOwners, ...updatedScopeOwners], instruction);
+        // return this.cancelNavigation([...changedEndpoints, ...updatedEndpoints], instruction);
       } else {
         routingInstructions = hooked as RoutingInstruction[];
       }
 
       for (const routingInstruction of routingInstructions) {
-        const scopeOwner = routingInstruction.owner;
-        if (scopeOwner !== null) {
-          scopeOwner.path = configuredRoutePath;
-          const action = scopeOwner.setNextContent(routingInstruction, instruction);
+        const endpoint = routingInstruction.endpoint;
+        if (endpoint !== null) {
+          endpoint.path = configuredRoutePath;
+          const action = endpoint.setNextContent(routingInstruction, instruction);
           if (action !== 'skip') {
-            changedScopeOwners.push(scopeOwner);
-            coordinator.addEntity(scopeOwner);
+            changedEndpoints.push(endpoint);
+            coordinator.addEntity(endpoint);
           }
-          const dontClear = [scopeOwner];
+          const dontClear = [endpoint];
           if (action === 'swap') {
-            dontClear.push(...scopeOwner.scope.allScopes(true, true).map(scope => scope.owner!));
+            dontClear.push(...endpoint.scope.allScopes(true, true).map(scope => scope.endpoint!));
           }
-          arrayRemove(clearScopeOwners, value => dontClear.includes(value));
-          // arrayRemove(clearScopeOwners, value => value === scopeOwner);
+          arrayRemove(clearEndpoints, value => dontClear.includes(value));
+          // arrayRemove(clearEndpoints, value => value === endpoint);
           if (!this.instructionResolver.isClearRoutingInstruction(routingInstruction)
             && routingInstruction.scope !== null
             && routingInstruction.scope!.parent! !== null
             && routingInstruction.scope!.parent!.isViewportScope
           ) {
-            arrayRemove(clearViewportScopes, value => value === routingInstruction.scope!.parent!.viewportScope);
+            arrayRemove(clearViewportScopes, value => value === routingInstruction.scope!.parent!.endpoint);
           }
         }
       }
@@ -562,33 +540,33 @@ export class Router implements IRouter {
       // await coordinator.syncState('routed');
 
       // // eslint-disable-next-line no-await-in-loop
-      // let results = await Promise.all(changedScopeOwners.map((scopeOwner) => scopeOwner.canUnload()));
+      // let results = await Promise.all(changedEndpoints.map((endpoint) => endpoint.canUnload()));
       // if (results.some(result => result === false)) {
-      //   return this.cancelNavigation([...changedScopeOwners, ...updatedScopeOwners], instruction);
+      //   return this.cancelNavigation([...changedEndpoints, ...updatedEndpoints], instruction);
       // }
       // // eslint-disable-next-line no-await-in-loop
-      // results = await Promise.all(changedScopeOwners.map(async (scopeOwner) => {
-      //   const canLoad = await scopeOwner.canLoad();
+      // results = await Promise.all(changedEndpoints.map(async (endpoint) => {
+      //   const canLoad = await endpoint.canLoad();
       //   if (typeof canLoad === 'boolean') {
       //     if (canLoad) {
-      //       coordinator.addEntityState(scopeOwner, 'loaded');
-      //       return scopeOwner.load();
+      //       coordinator.addEntityState(endpoint, 'loaded');
+      //       return endpoint.load();
       //     } else {
       //       return false;
       //     }
       //   }
       //   await this.load(canLoad, { append: true });
-      //   await scopeOwner.abortContentChange();
+      //   await endpoint.abortContentChange();
       //   // TODO: Abort content change in the viewports
       //   return true;
       // }));
       // if (results.some(result => result === false)) {
-      //   return this.cancelNavigation([...changedScopeOwners, ...updatedScopeOwners], qInstruction);
+      //   return this.cancelNavigation([...changedEndpoints, ...updatedEndpoints], qInstruction);
       // }
 
-      for (const viewport of changedScopeOwners) {
-        if (updatedScopeOwners.every(scopeOwner => scopeOwner !== viewport)) {
-          updatedScopeOwners.push(viewport);
+      for (const viewport of changedEndpoints) {
+        if (updatedEndpoints.every(endpoint => endpoint !== viewport)) {
+          updatedEndpoints.push(viewport);
         }
       }
       // TODO: Fix multi level recursiveness!
@@ -600,9 +578,9 @@ export class Router implements IRouter {
         routingInstructions.length === 0 &&
         remainingInstructions.length === 0) {
         let configured = new FoundRoute();
-        const routeScopeOwners = alreadyFoundInstructions
-          .filter(instr => instr.owner !== null && instr.owner.path === configuredRoutePath)
-          .map(instr => instr.owner!)
+        const routeEndpoints = alreadyFoundInstructions
+          .filter(instr => instr.endpoint !== null && instr.endpoint.path === configuredRoutePath)
+          .map(instr => instr.endpoint!)
           .filter((value, index, arr) => arr.indexOf(value) === index);
 
         // Need to await new viewports being bound
@@ -624,7 +602,7 @@ export class Router implements IRouter {
           // }
         }
 
-        for (const owner of routeScopeOwners) {
+        for (const owner of routeEndpoints) {
           configured = owner.scope.findInstructions(configuredRoute.remaining);
           // configured = await this.findInstructions(owner.scope, configuredRoute.remaining, owner.scope);
           if (configured.foundConfiguration) {
@@ -677,7 +655,7 @@ export class Router implements IRouter {
         }
       }
       if (routingInstructions.length === 0 && remainingInstructions.length === 0) {
-        routingInstructions = clearScopeOwners.map(owner => {
+        routingInstructions = clearEndpoints.map(owner => {
           const instruction =
             this.createRoutingInstruction(this.instructionResolver.clearRoutingInstruction, owner.isViewport ? owner as Viewport : void 0);
           if (owner.isViewportScope) {
@@ -698,11 +676,11 @@ export class Router implements IRouter {
     /*
     coordinator.finalEntity();
 
-    // await Promise.all(updatedScopeOwners.map((value) => value.loadContent()));
+    // await Promise.all(updatedEndpoints.map((value) => value.loadContent()));
 
     await coordinator.waitForSyncState('completed');
     coordinator.finalize();
-    // updatedScopeOwners.forEach((viewport) => {
+    // updatedEndpoints.forEach((viewport) => {
     //   viewport.finalizeContentChange();
     // });
 
@@ -710,10 +688,10 @@ export class Router implements IRouter {
     // this.updateNav();
 
     // Remove history entry if no history viewports updated
-    if (instruction.navigation!.new && !instruction.navigation!.first && !instruction.repeating && updatedScopeOwners.every(viewport => viewport.options.noHistory)) {
+    if (instruction.navigation!.new && !instruction.navigation!.first && !instruction.repeating && updatedEndpoints.every(viewport => viewport.options.noHistory)) {
       instruction.untracked = true;
     }
-    // updatedScopeOwners.forEach((viewport) => {
+    // updatedEndpoints.forEach((viewport) => {
     //   viewport.finalizeContentChange();
     // });
     this.lastNavigation = this.processingNavigation;
@@ -729,12 +707,12 @@ export class Router implements IRouter {
       () => {
         coordinator.finalEntity();
 
-        // await Promise.all(updatedScopeOwners.map((value) => value.loadContent()));
+        // await Promise.all(updatedEndpoints.map((value) => value.loadContent()));
         return coordinator.waitForSyncState('completed');
       },
       () => {
         coordinator.finalize();
-        // updatedScopeOwners.forEach((viewport) => {
+        // updatedEndpoints.forEach((viewport) => {
         //   viewport.finalizeContentChange();
         // });
 
@@ -744,10 +722,10 @@ export class Router implements IRouter {
         // this.updateNav();
 
         // Remove history entry if no history viewports updated
-        if (instruction.navigation!.new && !instruction.navigation!.first && !instruction.repeating && updatedScopeOwners.every(viewport => viewport.options.noHistory)) {
+        if (instruction.navigation!.new && !instruction.navigation!.first && !instruction.repeating && updatedEndpoints.every(viewport => viewport.options.noHistory)) {
           instruction.untracked = true;
         }
-        // updatedScopeOwners.forEach((viewport) => {
+        // updatedEndpoints.forEach((viewport) => {
         //   viewport.finalizeContentChange();
         // });
         this.lastNavigation = this.processingNavigation;
@@ -852,58 +830,80 @@ export class Router implements IRouter {
   /**
    * @internal - Called from the viewport custom element
    */
-  public connectViewport(viewport: Viewport | null, connectedCE: IConnectedCustomElement, name: string, options?: IViewportOptions): Viewport {
+  public connectEndpoint(endpoint: Viewport | ViewportScope | null, type: 'Viewport' | 'ViewportScope', connectedCE: IConnectedCustomElement, name: string, options?: IViewportOptions): Viewport | ViewportScope {
     const parentScope = this.findParentScope(connectedCE.container);
     // console.log('Viewport parentScope', parentScope.toString(), (connectedCE as any).getClosestCustomElement());
-    const parentViewportScope = ((connectedCE as any).parentViewport?.viewport ?? this.rootScope).scope;
-    if (parentScope !== parentViewportScope) {
-      console.error('Viewport parentScope !== parentViewportScope', parentScope.toString(true), parentViewportScope.toString(true), (connectedCE as any).getClosestCustomElement());
-    }
-    if (viewport === null) {
-      viewport = parentScope.addViewport(name, connectedCE, options);
-      this.setClosestScope(connectedCE.container, viewport.connectedScope);
+    // const parentViewportScope = ((connectedCE as any).parentViewport?.viewport ?? this.rootScope).scope;
+    // if (parentScope !== parentViewportScope) {
+    //   console.error('Viewport parentScope !== parentViewportScope', parentScope.toString(true), parentViewportScope.toString(true), (connectedCE as any).getClosestCustomElement());
+    // }
+    if (endpoint === null) {
+      endpoint = parentScope.addEndpoint(type, name, connectedCE, options);
+      this.setClosestScope(connectedCE.container, endpoint.connectedScope);
       if (!this.isRestrictedNavigation) {
         this.pendingConnects.set(connectedCE, new OpenPromise());
       }
     } else {
       this.pendingConnects.get(connectedCE)?.resolve();
     }
-    return viewport!;
+    return endpoint;
   }
   /**
    * @internal - Called from the viewport custom element
    */
-  public disconnectViewport(step: Step | null, viewport: Viewport, connectedCE: IConnectedCustomElement): void {
-    if (!viewport.connectedScope.parent!.removeViewport(step, viewport, connectedCE)) {
-      throw new Error("Failed to remove viewport: " + viewport.name);
-    }
-    this.unsetClosestScope(connectedCE.container);
-  }
-  /**
-   * @internal - Called from the viewport scope custom element
-   */
-  public connectViewportScope(viewportScope: ViewportScope | null, connectedCE: IConnectedCustomElement, name: string, options?: IViewportScopeOptions): ViewportScope {
-    const parentScope = this.findParentScope(connectedCE.container);
-    // console.log('ViewportScope parentScope', parentScope.toString(), (connectedCE as any).getClosestCustomElement());
-    if (viewportScope === null) {
-      viewportScope = parentScope.addViewportScope(name, connectedCE, options);
-      this.setClosestScope(connectedCE.container, viewportScope.connectedScope);
-    }
-    return viewportScope;
-  }
-  /**
-   * @internal - Called from the viewport scope custom element
-   */
-  public disconnectViewportScope(viewportScope: ViewportScope, connectedCE: IConnectedCustomElement): void {
-    if (!viewportScope.connectedScope.parent!.removeViewportScope(viewportScope)) {
-      throw new Error("Failed to remove viewport scope: " + viewportScope.path);
+  public disconnectEndpoint(step: Step | null, endpoint: Viewport | ViewportScope, connectedCE: IConnectedCustomElement): void {
+    if (!endpoint.connectedScope.parent!.removeEndpoint(step, endpoint, connectedCE)) {
+      throw new Error("Failed to remove endpoint: " + endpoint.name);
     }
     this.unsetClosestScope(connectedCE.container);
   }
 
+  // public connectViewport(viewport: Viewport | null, connectedCE: IConnectedCustomElement, name: string, options?: IViewportOptions): Viewport {
+  //   const parentScope = this.findParentScope(connectedCE.container);
+  //   // console.log('Viewport parentScope', parentScope.toString(), (connectedCE as any).getClosestCustomElement());
+  //   const parentViewportScope = ((connectedCE as any).parentViewport?.viewport ?? this.rootScope).scope;
+  //   if (parentScope !== parentViewportScope) {
+  //     console.error('Viewport parentScope !== parentViewportScope', parentScope.toString(true), parentViewportScope.toString(true), (connectedCE as any).getClosestCustomElement());
+  //   }
+  //   if (viewport === null) {
+  //     viewport = parentScope.addViewport(name, connectedCE, options);
+  //     this.setClosestScope(connectedCE.container, viewport.connectedScope);
+  //     if (!this.isRestrictedNavigation) {
+  //       this.pendingConnects.set(connectedCE, new OpenPromise());
+  //     }
+  //   } else {
+  //     this.pendingConnects.get(connectedCE)?.resolve();
+  //   }
+  //   return viewport!;
+  // }
+  // public disconnectViewport(step: Step | null, viewport: Viewport, connectedCE: IConnectedCustomElement): void {
+  //   if (!viewport.connectedScope.parent!.removeViewport(step, viewport, connectedCE)) {
+  //     throw new Error("Failed to remove viewport: " + viewport.name);
+  //   }
+  //   this.unsetClosestScope(connectedCE.container);
+  // }
+  // public connectViewportScope(viewportScope: ViewportScope | null, connectedCE: IConnectedCustomElement, name: string, options?: IViewportScopeOptions): ViewportScope {
+  //   const parentScope = this.findParentScope(connectedCE.container);
+  //   // console.log('ViewportScope parentScope', parentScope.toString(), (connectedCE as any).getClosestCustomElement());
+  //   if (viewportScope === null) {
+  //     viewportScope = parentScope.addViewportScope(name, connectedCE, options);
+  //     this.setClosestScope(connectedCE.container, viewportScope.connectedScope);
+  //   }
+  //   return viewportScope;
+  // }
+  // public disconnectViewportScope(viewportScope: ViewportScope, connectedCE: IConnectedCustomElement): void {
+  //   if (!viewportScope.connectedScope.parent!.removeViewportScope(viewportScope)) {
+  //     throw new Error("Failed to remove viewport scope: " + viewportScope.path);
+  //   }
+  //   this.unsetClosestScope(connectedCE.container);
+  // }
+
   public allViewports(includeDisabled: boolean = false, includeReplaced: boolean = false): Viewport[] {
     // this.ensureRootScope();
-    return (this.rootScope as ViewportScope).scope.allViewports(includeDisabled, includeReplaced);
+    return this.rootScope!.scope
+      .allScopes(includeDisabled, includeReplaced)
+      .filter(scope => scope.isViewport)
+      .map(scope => scope.endpoint) as Viewport[];
   }
 
   /**
@@ -1168,17 +1168,17 @@ export class Router implements IRouter {
         instructions[0].scope = this.rootScope!.scope;
       }
       const scope: RoutingScope = instructions[0].scope!;
-      const { foundViewports, remainingInstructions } = scope.findViewports(instructions.filter(instruction => instruction.scope === scope), alreadyFound, withoutViewports);
-      found.push(...foundViewports);
+      const { matchedInstructions, remainingInstructions } = scope.matchEndpoints(instructions.filter(instruction => instruction.scope === scope), alreadyFound, withoutViewports);
+      found.push(...matchedInstructions);
       remaining.push(...remainingInstructions);
       instructions = instructions.filter(instruction => instruction.scope !== scope);
     }
     return { found: found.slice(), remaining };
   }
 
-  private async cancelNavigation(updatedScopeOwners: IScopeOwner[], qInstruction: QueueItem<Navigation>): Promise<void> {
+  private async cancelNavigation(updatedEndpoints: IEndpoint[], qInstruction: QueueItem<Navigation>): Promise<void> {
     // TODO: Take care of disabling viewports when cancelling and stateful!
-    updatedScopeOwners.forEach((viewport) => {
+    updatedEndpoints.forEach((viewport) => {
       const abort = viewport.abortContentChange(null);
       if (abort instanceof Promise) {
         abort.catch(error => { throw error; });
@@ -1195,7 +1195,7 @@ export class Router implements IRouter {
     if (!this.rootScope) {
       const root = this.container.get(IAppRoot);
       // root.config.component shouldn't be used in the end. Metadata will probably eliminate it
-      this.rootScope = new ViewportScope('rootScope', this, root.controller.viewModel as IConnectedCustomElement, null, true, root.config.component as CustomElementType);
+      this.rootScope = new ViewportScope(this, 'rootScope', root.controller.viewModel as IConnectedCustomElement, null, true, root.config.component as CustomElementType);
     }
     return this.rootScope!;
   }

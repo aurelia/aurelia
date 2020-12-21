@@ -133,11 +133,13 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel {
     options.source = this.source || null;
 
     this.controller.routingContainer = this.container;
-    this.viewportScope = this.router.connectViewportScope(this.viewportScope, this, name, options);
+    // this.viewportScope = this.router.connectViewportScope(this.viewportScope, this, name, options);
+    this.viewportScope = this.router.connectEndpoint(this.viewportScope, 'ViewportScope', this, name, options) as ViewportScope;
   }
   public disconnect(): void {
     if (this.viewportScope) {
-      this.router.disconnectViewportScope(this.viewportScope, this);
+      // this.router.disconnectViewportScope(this.viewportScope, this);
+      this.router.disconnectEndpoint(null, this.viewportScope, this);
     }
     this.viewportScope = null;
   }

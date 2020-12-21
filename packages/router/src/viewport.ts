@@ -10,16 +10,16 @@ import { IRouter } from './router.js';
 import { arrayRemove } from './utilities/utils.js';
 import { ViewportContent } from './viewport-content.js';
 import { RoutingInstruction } from './instructions/routing-instruction.js';
-import { IScopeOwnerOptions, NextContentAction, RoutingScope } from './routing-scope.js';
+import { NextContentAction, RoutingScope } from './routing-scope.js';
 import { Navigation } from './navigation.js';
 import { NavigationCoordinator } from './navigation-coordinator.js';
 import { Runner, Step } from './utilities/runner.js';
 import { Routes } from './decorators/routes.js';
 import { Route } from './route.js';
-import { Endpoint, IRoutingController, IConnectedCustomElement } from './endpoints/endpoint.js';
+import { Endpoint, IEndpointOptions, IRoutingController, IConnectedCustomElement } from './endpoints/endpoint.js';
 import { RouterOptions } from './router-options.js';
 
-export interface IViewportOptions extends IScopeOwnerOptions {
+export interface IViewportOptions extends IEndpointOptions {
   scope?: boolean;
   usedBy?: string | string[];
   default?: string;
@@ -54,7 +54,6 @@ export class Viewport extends Endpoint {
     public options: IViewportOptions = {}
   ) {
     super(router, name, connectedCE, owningScope, scope);
-    this.connectedScope.viewport = this;
     this.content = new ViewportContent();
   }
 
@@ -89,7 +88,7 @@ export class Viewport extends Endpoint {
   public get doForceRemove(): boolean {
     let scope: RoutingScope | null = this.connectedScope;
     while (scope !== null) {
-      if (scope.viewport !== null && scope.viewport.forceRemove) {
+      if (scope.isViewport && (scope.endpoint as Viewport).forceRemove) {
         return true;
       }
       scope = scope.parent;
@@ -106,7 +105,9 @@ export class Viewport extends Endpoint {
   }
 
   public get parentNextContentActivated(): boolean {
-    return this.scope.parent?.owner?.nextContentActivated ?? false;
+    // TODO(alpha): Fix this!
+    // return this.scope.parent?.endpoint?.nextContentActivated ?? false;
+    return true;
   }
 
   public get performLoad(): boolean {
@@ -669,7 +670,7 @@ export class Viewport extends Endpoint {
     this.previousViewportState = null;
     this.connectedScope.clearReplacedChildren();
   }
-  public abortContentChange(step: Step<void>): void | Step<void> {
+  public abortContentChange(step: Step<void> | null): void | Step<void> {
     this.connectedScope.reenableReplacedChildren();
     // console.log('>>> Runner.run', 'abortContentChange');
     return Runner.run(step,

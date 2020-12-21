@@ -1,3 +1,4 @@
+import { IViewportScopeOptions } from './../viewport-scope';
 import { IContainer } from '@aurelia/kernel';
 import { ICustomElementController, ICustomElementViewModel } from '@aurelia/runtime-html';
 // import { LoadInstruction } from '../interfaces.js';
@@ -19,6 +20,7 @@ import {
   RoutingInstruction,
   Navigation,
   NavigationCoordinator,
+  IViewportOptions,
 } from '../index.js';
 
 /**
@@ -38,6 +40,8 @@ export interface IEndpointOptions {
   noHistory?: boolean;
 }
 
+export interface IEndpoint extends Endpoint { }
+
 export class Endpoint {
   public connectedScope: RoutingScope;
   public nextContentAction: NextContentAction = '';
@@ -52,8 +56,7 @@ export class Endpoint {
     scope: boolean,
     public options: IEndpointOptions = {}
   ) {
-    // TODO: Skip last from new and add in subclass. OR fix multiple types via Endpoint...
-    this.connectedScope = new RoutingScope(router, scope, owningScope); // , this);
+    this.connectedScope = new RoutingScope(router, scope, owningScope, this);
   }
 
   public get scope(): RoutingScope {
@@ -83,9 +86,9 @@ export class Endpoint {
     return false;
   }
 
-  public get parentNextContentActivated(): boolean {
-    return this.scope.parent?.owner?.nextContentActivated ?? false;
-  }
+  // public get parentNextContentActivated(): boolean {
+  //   return this.scope.parent?.endpoint?.nextContentActivated ?? false;
+  // }
 
   public get pathname(): string {
     return this.connectedScope.pathname;
@@ -99,6 +102,10 @@ export class Endpoint {
     throw new Error(`Method 'setNextContent' needs to be implemented in all endpoints!`);
   }
 
+  public setConnectedCE(connectedCE: IConnectedCustomElement, options: IViewportOptions | IViewportScopeOptions): void {
+    throw new Error(`Method 'setConnectedCE' needs to be implemented in all endpoints!`);
+  }
+
   public transition(coordinator: NavigationCoordinator): void {
     throw new Error(`Method 'transition' needs to be implemented in all endpoints!`);
   }
@@ -107,12 +114,16 @@ export class Endpoint {
     throw new Error(`Method 'finalizeContentChange' needs to be implemented in all endpoints!`);
   }
 
-  public abortContentChange(step: Step<void>): void | Step<void> {
+  public abortContentChange(step: Step<void> | null): void | Step<void> {
     throw new Error(`Method 'abortContentChange' needs to be implemented in all endpoints!`);
   }
 
   public getRoutes(): Route[] | null {
     throw new Error(`Method 'getRoutes' needs to be implemented in all endpoints!`);
+  }
+
+  public removeEndpoint(step: Step | null, connectedCE: IConnectedCustomElement | null): boolean | Promise<boolean> {
+    return true;
   }
 
   public canUnload(step: Step<boolean> | null): boolean | Promise<boolean> {

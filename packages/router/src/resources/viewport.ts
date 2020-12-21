@@ -201,11 +201,13 @@ export class ViewportCustomElement implements ICustomElementViewModel {
       options.stateful = value as boolean;
     }
     this.controller.routingContainer = this.container;
-    this.viewport = this.router.connectViewport(this.viewport, this, name, options);
+    // this.viewport = this.router.connectViewport(this.viewport, this, name, options);
+    this.viewport = this.router.connectEndpoint(this.viewport, 'Viewport', this, name, options) as Viewport;
   }
   public disconnect(step: Step | null): void {
     if (this.viewport) {
-      this.router.disconnectViewport(step, this.viewport, this);
+      // this.router.disconnectViewport(step, this.viewport, this);
+      this.router.disconnectEndpoint(step, this.viewport, this);
     }
     // Can't do this until after disposed
     // this.viewport = null;

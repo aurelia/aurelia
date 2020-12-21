@@ -5,7 +5,7 @@
  *
  */
 import { RoutingInstruction } from './instructions/routing-instruction.js';
-import { IScopeOwner } from './routing-scope.js';
+import { IEndpoint } from './endpoints/endpoint.js';
 import { arrayRemove } from './utilities/utils.js';
 
 /**
@@ -27,11 +27,11 @@ export class RoutingInstructionCollection extends Array<RoutingInstruction> {
     return new RoutingInstructionCollection(...this.filter(instruction => !instruction.default));
   }
 
-  public getScopeOwners(configuredRoutePath: string | null): IScopeOwner[] {
+  public getEndpoints(configuredRoutePath: string | null): IEndpoint[] {
     return this
-      .filter(instr => instr.owner !== null && instr.owner.path === configuredRoutePath)
-      .map(instr => instr.owner)
-      .filter((value, index, arr) => arr.indexOf(value) === index) as IScopeOwner[];
+      .filter(instr => instr.endpoint !== null && instr.endpoint.path === configuredRoutePath)
+      .map(instr => instr.endpoint)
+      .filter((value, index, arr) => arr.indexOf(value) === index) as IEndpoint[];
   }
 
   public remove(instruction: RoutingInstruction): void {

@@ -1,4 +1,4 @@
-import { Aurelia, CustomElementResource, ValueConverterResource, ILifecycle, SVGAnalyzerRegistration, StandardConfiguration } from '@aurelia/runtime-html';
+import { Aurelia, CustomElement, ValueConverter, SVGAnalyzerRegistration, StandardConfiguration } from '@aurelia/runtime-html';
 import { startFPSMonitor, startMemMonitor } from 'perf-monitor';
 import { SierpinskiTriangle } from './triangle';
 
@@ -15,7 +15,7 @@ export const clock = {
 void new Aurelia().register(StandardConfiguration, SVGAnalyzerRegistration).app(
   {
     host: document.getElementById('app'),
-    component: CustomElementResource.define(
+    component: CustomElement.define(
       {
         name: 'app',
         template: `
@@ -34,10 +34,6 @@ void new Aurelia().register(StandardConfiguration, SVGAnalyzerRegistration).app(
             <label style='font-size: 14px;'>
               <input type='checkbox' checked.two-way='haveFun' style='width: 16px; height: 16px;' />
               Have fun
-              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-              # Target FPS
-              <input style="width: 20%" type="range" min.bind="1" max.bind="60" value.two-way="fps | num" />
-              \${fps}
             </label>
           </h1>
           <div class='app' ref='app'>
@@ -46,15 +42,12 @@ void new Aurelia().register(StandardConfiguration, SVGAnalyzerRegistration).app(
         `,
         bindables: ['haveFun', 'fps'],
         dependencies: [
-          ValueConverterResource.define('num', class { fromView(str) { return parseInt(str, 10); } }),
+          ValueConverter.define('num', class { fromView(str) { return parseInt(str, 10); } }),
           SierpinskiTriangle
         ]
       },
       class App {
-        static get inject() { return [ILifecycle]; }
-
-        constructor(lifecycle) {
-          this.lifecycle = lifecycle;
+        constructor() {
           this.message = 'Hello world';
 
           this.start = new Date().getTime();
@@ -63,18 +56,12 @@ void new Aurelia().register(StandardConfiguration, SVGAnalyzerRegistration).app(
           this.intervalID = 0;
           this.tick = this.tick.bind(this);
           this.tick0 = this.tick0.bind(this);
-          this.fps = this.lifecycle.minFPS = 1;
         }
 
         attached() {
           this.tick0();
           this.intervalID = setInterval(this.tick0, 1000);
-          this.lifecycle.enqueueRAF(this.tick, this, Priority.preempt);
-          this.fps = this.lifecycle.minFPS = 45;
-        }
-
-        fpsChanged(fps) {
-          this.lifecycle.minFPS = fps;
+          requestAnimationFrame(this.tick);
         }
 
         haveFunChanged(shouldHaveFun) {
@@ -97,6 +84,7 @@ void new Aurelia().register(StandardConfiguration, SVGAnalyzerRegistration).app(
           if (this.haveFun) {
             clock.next();
           }
+          requestAnimationFrame(this.tick);
         }
       }
     )

@@ -1,7 +1,7 @@
-import { CustomElementResource, LifecycleFlags } from '@aurelia/runtime-html';
-import { clock } from "./app";
+import { CustomElement } from '@aurelia/runtime-html';
+import { clock } from './app';
 
-export const Dot = CustomElementResource.define(
+export const Dot = CustomElement.define(
   {
     name: 'dot',
     template:
@@ -20,28 +20,17 @@ export const Dot = CustomElementResource.define(
         text-align: center;"
         mouseenter.trigger='hover = true'
         mouseleave.trigger='hover = false'
-        >\${hover ? \`*\${text}*\` : text & priority:'low'}</template>`,
+        >\${hover ? \`*\${clock.seconds}*\` : clock.seconds}</template>`,
     bindables: ['x', 'y', 'size', 'text'],
   },
   class Dot {
-    attached() {
-      this.targetObserver = this.$controller.getTargetAccessor('textContent');
-      this.$controller.lifecycle.enqueueRAF(this.tick, this, 0);
-    }
-
-    detached() {
-      this.$controller.lifecycle.dequeueRAF(this.tick, this);
-    }
-
-    tick() {
-      if (this.targetObserver != void 0) {
-        this.targetObserver.setValue(clock.seconds, LifecycleFlags.fromBind);
-      }
+    constructor() {
+      this.clock = clock;
     }
   }
 );
 
-export const SierpinskiTriangle = CustomElementResource.define(
+export const SierpinskiTriangle = CustomElement.define(
   {
     name: 'sierpinski-triangle',
     dependencies: [

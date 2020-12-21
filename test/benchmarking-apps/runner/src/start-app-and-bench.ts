@@ -69,7 +69,12 @@ async function buildApp(fxName: string, needDepsInstallation: boolean, appPath: 
     const build = spawn(cmd, ['run', 'build-app'], { cwd: appPath });
     build.stdout.on('data', function (d) { console.log(d.toString()); });
     build.stderr.on('data', function (d) {
-      rej(new Error(`The app for the framework '${fxName}' cannot be built. Error: ${d.toString()}`));
+      const err = d.toString();
+      if (err.includes('DeprecationWarning')) {
+        console.warn(err);
+      } else {
+        rej(new Error(`The app for the framework '${fxName}' cannot be built. Error: ${err}`));
+      }
     });
     build.on('exit', res);
   });
@@ -80,8 +85,6 @@ async function startApp(fxName: string, appPath: string, port: string) {
     const app = spawn(
       'node',
       [
-        '-r',
-        'esm',
         '../../../packages/http-server/dist/esnext/cli.js',
         '--root',
         join(appPath, 'dist'),

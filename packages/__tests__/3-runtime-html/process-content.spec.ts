@@ -4,7 +4,7 @@ import { Aurelia, bindable, BindingMode, CustomElement, customElement, INode, IP
 import { assert, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext as $TestExecutionContext, TestFunction } from '../util.js';
 
-describe.only('processContent', function () {
+describe('processContent', function () {
   interface TestSetupContext {
     template: string;
     registrations: any[];
@@ -454,26 +454,26 @@ describe.only('processContent', function () {
 
       public static processTabs(node: INode, p: IPlatform): boolean {
         const el = node as Element;
-        const headerTemplate = p.document.createElement("template");
-        headerTemplate.setAttribute("au-slot", "header");
+        const headerTemplate = p.document.createElement('template');
+        headerTemplate.setAttribute('au-slot', 'header');
 
-        const contentTemplate = p.document.createElement("template");
-        contentTemplate.setAttribute("au-slot", "content");
+        const contentTemplate = p.document.createElement('template');
+        contentTemplate.setAttribute('au-slot', 'content');
 
-        const tabs = toArray(el.querySelectorAll("tab"));
+        const tabs = toArray(el.querySelectorAll('tab'));
         for (let i = 0; i < tabs.length; i++) {
           const tab = tabs[i];
 
           // add header
-          const header = document.createElement("button");
-          header.setAttribute("class.bind", `activeTabId=='${i}'?'active':''`);
-          header.setAttribute("click.delegate", `showTab('${i}')`);
-          header.innerText = tab.getAttribute("header");
+          const header = p.document.createElement('button');
+          header.setAttribute('class.bind', `activeTabId=='${i}'?'active':''`);
+          header.setAttribute('click.delegate', `showTab('${i}')`);
+          header.appendChild(p.document.createTextNode(tab.getAttribute('header')));
           headerTemplate.content.appendChild(header);
 
           // add content
-          const content = document.createElement("div");
-          content.setAttribute("if.bind", `activeTabId=='${i}'`); // TODO: this actually should be show.bind
+          const content = p.document.createElement('div');
+          content.setAttribute('if.bind', `activeTabId=='${i}'`);
           content.append(...toArray(tab.childNodes));
           contentTemplate.content.appendChild(content);
 

@@ -1,5 +1,5 @@
 import { IContainer, toArray } from '@aurelia/kernel';
-import { Aurelia, CustomElement, IPlatform, INode, BindingMode, bindable } from '@aurelia/runtime-html';
+import { Aurelia, CustomElement, IPlatform, INode, BindingMode, bindable, customElement } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext as $TestExecutionContext, TestFunction } from '../util.js';
 
@@ -9,7 +9,7 @@ describe.only('processContent', function () {
     registrations: any[];
   }
   class TestExecutionContext implements $TestExecutionContext<any> {
-    private _scheduler: IPlatform;
+    private _platform: IPlatform;
     public constructor(
       public ctx: TestContext,
       public container: IContainer,
@@ -17,7 +17,7 @@ describe.only('processContent', function () {
       public app: App | null,
       public error: Error | null,
     ) { }
-    public get platform(): IPlatform { return this._scheduler ?? (this._scheduler = this.container.get(IPlatform)); }
+    public get platform(): IPlatform { return this._platform ?? (this._platform = this.container.get(IPlatform)); }
   }
 
   async function testAuSlot(
@@ -197,6 +197,18 @@ describe.only('processContent', function () {
       { 'my-element': '<div><span-ce value="foo" class="au"><span>foo</span></span-ce><strong-ce value="bar" class="au"><strong>bar</strong></strong-ce></div>' },
     );
 
+    function processContentWithNewBinding(compile: boolean) {
+      return function (node: INode, p: IPlatform): boolean {
+        const el = (node as Element);
+        const l1 = el.getAttribute('normal')?.length ?? 0;
+        const l2 = el.getAttribute('bold')?.length ?? 0;
+        el.removeAttribute('normal');
+        el.removeAttribute('bold');
+        el.setAttribute('text-length.bind', `${l1} + ${l2}`);
+        return compile;
+      }
+    }
+
     yield new TestData(
       'mutated node content can have new bindings for the host element',
       `<my-element normal="foo" bold="bar"></my-element>`,
@@ -207,15 +219,7 @@ describe.only('processContent', function () {
             isStrictBinding: true,
             template: '\${textLength}',
             bindables: { textLength: { mode: BindingMode.default } },
-            processContent(node: INode, p: IPlatform): boolean {
-              const el = (node as Element);
-              const l1 = el.getAttribute('normal')?.length ?? 0;
-              const l2 = el.getAttribute('bold')?.length ?? 0;
-              el.removeAttribute('normal');
-              el.removeAttribute('bold');
-              el.setAttribute('text-length.bind', `${l1} + ${l2}`);
-              return true;
-            }
+            processContent: processContentWithNewBinding(true),
           },
           class MyElement { }
         )
@@ -224,7 +228,25 @@ describe.only('processContent', function () {
     );
 
     yield new TestData(
-      'compilation can be instructed to be skipped',
+      'compilation can be instructed to be skipped - host',
+      `<my-element normal="foo" bold="bar"></my-element>`,
+      [
+        CustomElement.define(
+          {
+            name: 'my-element',
+            isStrictBinding: true,
+            template: '\${textLength}',
+            bindables: { textLength: { mode: BindingMode.default } },
+            processContent: processContentWithNewBinding(false),
+          },
+          class MyElement { }
+        )
+      ],
+      { 'my-element': '' },
+    );
+
+    yield new TestData(
+      'compilation can be instructed to be skipped - children',
       `<my-element normal="foo" bold="bar"></my-element>`,
       [
         SpanCe,
@@ -241,6 +263,7 @@ describe.only('processContent', function () {
       ],
       { 'my-element': '<template au-slot=""><span-ce value="foo"></span-ce><strong-ce value="bar"></strong-ce></template>' },
     );
+
   }
   for (const { spec, template, expectedInnerHtmlMap, registrations, additionalAssertion } of getTestData()) {
     $it(spec,
@@ -259,5 +282,126 @@ describe.only('processContent', function () {
         }
       },
       { template, registrations });
+  }
+
+  // A semi-real-life example
+  {
+    // function processTabs(node: INode, p: IPlatform) {
+    //   const el = node as Element;
+    //   const headerTemplate = p.document.createElement("template");
+    //   headerTemplate.setAttribute("au-slot", "header");
+
+    //   const contentTemplate = p.document.createElement("template");
+    //   contentTemplate.setAttribute("au-slot", "content");
+
+    //   const tabs = toArray(el.querySelectorAll("tab"));
+    //   for (let i = 0; i < tabs.length; i++) {
+    //     const tab = tabs[i];
+
+    //     // add header
+    //     const header = document.createElement("button");
+    //     header.setAttribute("class.bind", `activeTabId=='${i}'?'active':''`);
+    //     header.setAttribute("click.delegate", `showTab('${i}')`);
+    //     header.innerText = tab.getAttribute("header");
+    //     headerTemplate.content.appendChild(header);
+
+    //     // add content
+    //     const content = document.createElement("div");
+    //     content.setAttribute("show.bind", `activeTabId=='${i}'`);
+    //     content.append(...toArray(tab.childNodes));
+    //     contentTemplate.content.appendChild(content);
+
+    //     el.removeChild(tab);
+    //   }
+
+    //   el.setAttribute('active-tab-id', '0');
+
+    //   el.append(headerTemplate, contentTemplate);
+    //   return true;
+    // }
+    @customElement({
+      name: 'tabs',
+      isStrictBinding: true,
+      template: '<div class="header"><au-slot name="header"></au-slot></div><div class="content"><au-slot name="content"></au-slot></div>',
+      processContent: Tabs.processTabs
+    })
+    class Tabs {
+      @bindable activeTabId: string;
+      public showTab(tabId: string) {
+        this.activeTabId = tabId;
+      }
+
+      public static processTabs(node: INode, p: IPlatform) {
+        const el = node as Element;
+        const headerTemplate = p.document.createElement("template");
+        headerTemplate.setAttribute("au-slot", "header");
+
+        const contentTemplate = p.document.createElement("template");
+        contentTemplate.setAttribute("au-slot", "content");
+
+        const tabs = toArray(el.querySelectorAll("tab"));
+        for (let i = 0; i < tabs.length; i++) {
+          const tab = tabs[i];
+
+          // add header
+          const header = document.createElement("button");
+          header.setAttribute("class.bind", `activeTabId=='${i}'?'active':''`);
+          header.setAttribute("click.delegate", `showTab('${i}')`);
+          header.innerText = tab.getAttribute("header");
+          headerTemplate.content.appendChild(header);
+
+          // add content
+          const content = document.createElement("div");
+          content.setAttribute("if.bind", `activeTabId=='${i}'`); // TODO: this actually should be show.bind
+          content.append(...toArray(tab.childNodes));
+          contentTemplate.content.appendChild(content);
+
+          el.removeChild(tab);
+        }
+
+        el.setAttribute('active-tab-id', '0');
+
+        el.append(headerTemplate, contentTemplate);
+        return true;
+      }
+    }
+
+    $it('semi-real-life example with tabs',
+      async function (ctx) {
+        const platform = ctx.platform;
+        const host = ctx.host;
+        const tabs = host.querySelector('tabs');
+        const headers = tabs.querySelectorAll<HTMLButtonElement>('div.header button');
+        const numTabs = headers.length;
+        const expectedHeaders = ['Tab1', 'Tab2', 'Tab3'];
+        const expectedContents = ['<span>content 1</span>', '<span>content 2</span>', 'Nothing to see here.'];
+        for (let i = numTabs - 1; i > -1; i--) {
+          // assert content
+          const header = headers[i];
+          assert.html.textContent(header, expectedHeaders[i], `header#${i} content`);
+
+          // assert the bound delegate
+          header.click();
+          await platform.domWriteQueue.yield();
+          for (let j = numTabs - 1; j > -1; j--) {
+            assert.strictEqual(headers[j].classList.contains('active'), i === j, `header#${j} class`);
+            assert.html.innerEqual(tabs.querySelector<HTMLButtonElement>('div.content div'), expectedContents[i], `content#${i} content`);
+          }
+        }
+      },
+      {
+        registrations: [Tabs],
+        template: `
+        <tabs>
+          <tab header="Tab1">
+            <span>content 1</span>
+          </tab>
+          <tab header="Tab2">
+            <span>content 2</span>
+          </tab>
+          <tab header="Tab3"> Nothing to see here. </tab>
+        </tabs>
+        `,
+      });
   }
 });

@@ -20,6 +20,7 @@ import {
   emptyArray,
   Writable,
   IPlatform,
+  Class,
 } from '@aurelia/kernel';
 import {
   registerAliases,
@@ -558,20 +559,29 @@ export const CustomElement: CustomElementKind = {
 export type DecoratorFactoryMethod<TClass> = (target: Constructable<TClass>, propertyKey: string, descriptor: PropertyDescriptor) => void;
 export type ProcessContentHook = (node: INode, platform: IPlatform) => boolean;
 
-export function processContent(hook: string | ProcessContentHook): CustomElementDecorator; // TODO: fix the `string` type
+type ProcessContentHookNames<TClass> = { [Method in keyof TClass]: TClass[Method] extends ProcessContentHook ? Method : never }[keyof TClass];
+
+const pcHookMetadataProperty = Protocol.annotation.keyFor('processContent');
+export function processContent<TClass>(hook: string /* ProcessContentHookNames<typeof TClass> */ | ProcessContentHook): CustomElementDecorator; // TODO: fix the `string` type
 export function processContent<TClass>(): DecoratorFactoryMethod<TClass>;
-export function processContent<TClass>(hook?: string | ProcessContentHook): CustomElementDecorator | DecoratorFactoryMethod<TClass> {
+export function processContent<TClass>(hook?: string /* ProcessContentHookNames<typeof TClass> */ | ProcessContentHook): CustomElementDecorator | DecoratorFactoryMethod<TClass> {
   return hook === void 0
     ? function (target: Constructable<TClass>, propertyKey: string, _descriptor: PropertyDescriptor) {
-      defineProcessContentHook(target, propertyKey);
+      Metadata.define(pcHookMetadataProperty, ensureHook(target, propertyKey), target);
     }
     : function (target: Constructable<TClass>) {
-      defineProcessContentHook(target, hook);
+      hook = ensureHook(target, hook!);
+      const def = Metadata.getOwn(CustomElement.name, target) as CustomElementDefinition<Constructable<TClass>>;
+      if (def !== void 0) {
+        (def as Writable<CustomElementDefinition<Constructable<TClass>>>).processContent = hook;
+      } else {
+        Metadata.define(pcHookMetadataProperty, hook, target);
+      }
       return target;
     };
 }
 
-function defineProcessContentHook<TClass>(target: Constructable<TClass>, hook: string | ProcessContentHook): void {
+function ensureHook<TClass>(target: Constructable<TClass>, hook: string | ProcessContentHook): ProcessContentHook {
   if (typeof hook === 'string') {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-explicit-any
     hook = (target as any)[hook] as ProcessContentHook;
@@ -580,5 +590,6 @@ function defineProcessContentHook<TClass>(target: Constructable<TClass>, hook: s
   if (typeof hook !== 'function') {
     throw new Error('Invalid @processContent hook');
   }
-  (CustomElement.getDefinition<Constructable<TClass>>(target) as Writable<CustomElementDefinition<Constructable<TClass>>>).processContent = hook.bind(target);
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+  return hook.bind(target);
 }

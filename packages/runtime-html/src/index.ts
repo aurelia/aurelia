@@ -444,6 +444,7 @@ export {
   CustomElementDefinition,
   PartialCustomElementDefinition,
   useShadowDOM,
+  processContent,
 } from './resources/custom-element.js';
 
 export {

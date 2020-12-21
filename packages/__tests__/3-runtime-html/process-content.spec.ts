@@ -1,5 +1,5 @@
 import { IContainer, toArray } from '@aurelia/kernel';
-import { Aurelia, CustomElement, IPlatform, INode, BindingMode, bindable, customElement } from '@aurelia/runtime-html';
+import { Aurelia, bindable, BindingMode, CustomElement, customElement, INode, IPlatform, processContent } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext as $TestExecutionContext, TestFunction } from '../util.js';
 
@@ -68,6 +68,159 @@ describe.only('processContent', function () {
     ) { }
   }
   function* getTestData() {
+    {
+      class MyElement {
+        public static hookInvoked: boolean = false;
+        static processContent(_node: INode, _p: IPlatform): boolean {
+          this.hookInvoked = true;
+          return true;
+        }
+      }
+      yield new TestData(
+        'a static function can be used as the processContent hook',
+        `<my-element normal="foo" bold="bar"></my-element>`,
+        [
+          CustomElement.define(
+            {
+              name: 'my-element',
+              isStrictBinding: true,
+              template: `<div><au-slot></au-slot></div>`,
+              processContent: MyElement.processContent.bind(MyElement)
+            },
+            MyElement
+          )
+        ],
+        {},
+        () => {
+          assert.strictEqual(MyElement.hookInvoked, true);
+        }
+      );
+    }
+    {
+      @processContent(MyElement.processContent)
+      @customElement({
+        name: 'my-element',
+        isStrictBinding: true,
+        template: `<div><au-slot></au-slot></div>`,
+      })
+      class MyElement {
+        public static hookInvoked: boolean = false;
+        static processContent(_node: INode, _p: IPlatform): boolean {
+          this.hookInvoked = true;
+          return true;
+        }
+      }
+      yield new TestData(
+        'processContent hook can be configured using class-level decorator - function - order 1',
+        `<my-element normal="foo" bold="bar"></my-element>`,
+        [MyElement],
+        {},
+        () => {
+          assert.strictEqual(MyElement.hookInvoked, true);
+        }
+      );
+    }
+    {
+      @customElement({
+        name: 'my-element',
+        isStrictBinding: true,
+        template: `<div><au-slot></au-slot></div>`,
+      })
+      @processContent(MyElement.processContent)
+      class MyElement {
+        public static hookInvoked: boolean = false;
+        static processContent(_node: INode, _p: IPlatform): boolean {
+          this.hookInvoked = true;
+          return true;
+        }
+      }
+      yield new TestData(
+        'processContent hook can be configured using class-level decorator - function - order 2',
+        `<my-element normal="foo" bold="bar"></my-element>`,
+        [MyElement],
+        {},
+        () => {
+          assert.strictEqual(MyElement.hookInvoked, true);
+        }
+      );
+    }
+
+    {
+      @processContent('processContent')
+      @customElement({
+        name: 'my-element',
+        isStrictBinding: true,
+        template: `<div><au-slot></au-slot></div>`,
+      })
+      class MyElement {
+        public static hookInvoked: boolean = false;
+        static processContent(_node: INode, _p: IPlatform): boolean {
+          this.hookInvoked = true;
+          return true;
+        }
+      }
+      yield new TestData(
+        'processContent hook can be configured using class-level decorator - string - order 1',
+        `<my-element normal="foo" bold="bar"></my-element>`,
+        [MyElement],
+        {},
+        () => {
+          assert.strictEqual(MyElement.hookInvoked, true);
+        }
+      );
+    }
+
+    {
+      @customElement({
+        name: 'my-element',
+        isStrictBinding: true,
+        template: `<div><au-slot></au-slot></div>`,
+      })
+      @processContent('processContent')
+      class MyElement {
+        public static hookInvoked: boolean = false;
+        static processContent(_node: INode, _p: IPlatform): boolean {
+          this.hookInvoked = true;
+          return true;
+        }
+      }
+      yield new TestData(
+        'processContent hook can be configured using class-level decorator - string - order 2',
+        `<my-element normal="foo" bold="bar"></my-element>`,
+        [MyElement],
+        {},
+        () => {
+          assert.strictEqual(MyElement.hookInvoked, true);
+        }
+      );
+    }
+
+    {
+      @customElement({
+        name: 'my-element',
+        isStrictBinding: true,
+        template: `<div><au-slot></au-slot></div>`,
+      })
+      class MyElement {
+        public static hookInvoked: boolean = false;
+
+        @processContent()
+        static processContent(_node: INode, _p: IPlatform): boolean {
+          this.hookInvoked = true;
+          return true;
+        }
+      }
+      yield new TestData(
+        'processContent hook can be configured using method-level decorator',
+        `<my-element normal="foo" bold="bar"></my-element>`,
+        [MyElement],
+        {},
+        () => {
+          assert.strictEqual(MyElement.hookInvoked, true);
+        }
+      );
+    }
+
     yield new TestData(
       'can mutate node content',
       `<my-element normal="foo" bold="bar"></my-element>`,
@@ -286,39 +439,6 @@ describe.only('processContent', function () {
 
   // A semi-real-life example
   {
-    // function processTabs(node: INode, p: IPlatform) {
-    //   const el = node as Element;
-    //   const headerTemplate = p.document.createElement("template");
-    //   headerTemplate.setAttribute("au-slot", "header");
-
-    //   const contentTemplate = p.document.createElement("template");
-    //   contentTemplate.setAttribute("au-slot", "content");
-
-    //   const tabs = toArray(el.querySelectorAll("tab"));
-    //   for (let i = 0; i < tabs.length; i++) {
-    //     const tab = tabs[i];
-
-    //     // add header
-    //     const header = document.createElement("button");
-    //     header.setAttribute("class.bind", `activeTabId=='${i}'?'active':''`);
-    //     header.setAttribute("click.delegate", `showTab('${i}')`);
-    //     header.innerText = tab.getAttribute("header");
-    //     headerTemplate.content.appendChild(header);
-
-    //     // add content
-    //     const content = document.createElement("div");
-    //     content.setAttribute("show.bind", `activeTabId=='${i}'`);
-    //     content.append(...toArray(tab.childNodes));
-    //     contentTemplate.content.appendChild(content);
-
-    //     el.removeChild(tab);
-    //   }
-
-    //   el.setAttribute('active-tab-id', '0');
-
-    //   el.append(headerTemplate, contentTemplate);
-    //   return true;
-    // }
     @customElement({
       name: 'tabs',
       isStrictBinding: true,
@@ -331,7 +451,7 @@ describe.only('processContent', function () {
         this.activeTabId = tabId;
       }
 
-      public static processTabs(node: INode, p: IPlatform) {
+      public static processTabs(node: INode, p: IPlatform): boolean {
         const el = node as Element;
         const headerTemplate = p.document.createElement("template");
         headerTemplate.setAttribute("au-slot", "header");

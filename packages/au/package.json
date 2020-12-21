@@ -4,6 +4,7 @@
   "main": "dist/esnext/index.js",
   "module": "dist/esnext/index.js",
   "types": "dist/index.d.ts",
+  "type": "module",
   "typings": "dist/index.d.ts",
   "license": "MIT",
   "homepage": "https://aurelia.io",

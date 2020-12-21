@@ -1,7 +1,4 @@
 #!/usr/bin/env node
+/* eslint-disable import/extensions */
 
-try {
-  require('../dist/umd/index.js');
-} catch {
-  require('../dist/esnext/index.js');
-}
+import '../dist/esnext/cli.js';

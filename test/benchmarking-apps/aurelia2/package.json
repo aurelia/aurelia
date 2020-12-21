@@ -7,8 +7,7 @@
   "scripts": {
     "start": "webpack-dev-server --no-inline",
     "build-app": "webpack",
-    "preserve": "npm run build",
-    "serve": "node -r esm ./node_modules/@aurelia/http-server/dist/esnext/cli.js au.conf.js"
+    "serve": "node ../../../node_modules/@aurelia/http-server/dist/esnext/cli.js au.conf.js"
   },
   "keywords": [],
   "author": "",

@@ -1,13 +1,12 @@
 import { IObserver, LifecycleFlags } from '../observation.js';
 import { SetterNotifier } from './setter-observer.js';
 import { def } from '../utilities-objects.js';
+import { currentConnectable } from './connectable-switcher.js';
 
 import type { Constructable, IIndexable } from '@aurelia/kernel';
 import type { IBindingContext, InterceptorFunc, IObservable } from '../observation.js';
 import type { ObservableGetter } from './observer-locator.js';
 import type { SetterObserver } from './setter-observer.js';
-
-// todo(bigopon): static obs here
 
 export interface IObservableDefinition {
   name?: PropertyKey;
@@ -120,6 +119,10 @@ export function observable(
     // todo(bigopon/fred): discuss string api for converter
     const $set = config.set;
     descriptor.get = function g(/* @observable */this: SetterObserverOwningObject) {
+      // this feels pretty awkward
+      // connectable probably should have an interface to deal with observer directly
+      // or there should be a simpler API, e.g: Observable.track(this, key);
+      currentConnectable()?.observeProperty(this, key!);
       return getNotifier(this, key!, callback, initialValue, $set).getValue();
     };
     descriptor.set = function s(/* @observable */this: SetterObserverOwningObject, newValue: unknown) {

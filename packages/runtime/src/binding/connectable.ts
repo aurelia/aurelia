@@ -31,7 +31,8 @@ function ensureEnoughSlotNames(currentSlot: number): void {
   if (currentSlot === lastSlot) {
     lastSlot += 5;
     const ii = slotNames.length = versionSlotNames.length = lastSlot + 1;
-    for (let i = currentSlot + 1; i < ii; ++i) {
+    let i = currentSlot + 1;
+    for (; i < ii; ++i) {
       slotNames[i] = `_o${i}`;
       versionSlotNames[i] = `_v${i}`;
     }
@@ -181,8 +182,9 @@ export class BindingObserverRecord implements ISubscriber, ICollectionSubscriber
   }
 }
 
-type DecoratableConnectable<TProto, TClass> = Class<TProto & Partial<IConnectableBinding> & IPartialConnectableBinding, TClass>;
-type DecoratedConnectable<TProto, TClass> = Class<TProto & IConnectableBinding, TClass>;
+type Connectable = IConnectable & Partial<ISubscriber & ICollectionSubscriber>;
+type DecoratableConnectable<TProto, TClass> = Class<TProto & Connectable, TClass>;
+type DecoratedConnectable<TProto, TClass> = Class<TProto & Connectable, TClass>;
 
 function connectableDecorator<TProto, TClass>(target: DecoratableConnectable<TProto, TClass>): DecoratedConnectable<TProto, TClass> {
   const proto = target.prototype;
@@ -204,7 +206,7 @@ export function connectable<TProto, TClass>(target?: DecoratableConnectable<TPro
 
 let idValue = 0;
 
-connectable.assignIdTo = (instance: IConnectableBinding | BindingObserverRecord): void => {
+connectable.assignIdTo = (instance: IConnectable | BindingObserverRecord): void => {
   instance.id = ++idValue;
 };
 

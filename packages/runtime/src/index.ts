@@ -118,6 +118,12 @@ export {
   DirtyCheckSettings,
 } from './observation/dirty-checker.js';
 export {
+  IEffect,
+  IEffectRunner,
+  EffectRunner,
+  EffectFunc,
+} from './observation/effect';
+export {
   IObservableDefinition,
   observable,
 } from './observation/observable.js';

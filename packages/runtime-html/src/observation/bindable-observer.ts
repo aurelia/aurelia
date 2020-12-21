@@ -1,5 +1,5 @@
 import { noop } from '@aurelia/kernel';
-import { subscriberCollection, AccessorType, LifecycleFlags } from '@aurelia/runtime';
+import { subscriberCollection, AccessorType, LifecycleFlags, ConnectableSwitcher } from '@aurelia/runtime';
 
 import type { IIndexable } from '@aurelia/kernel';
 import type { InterceptorFunc, IObserver, ISubscriber, ISubscriberCollection } from '@aurelia/runtime';
@@ -38,22 +38,16 @@ export class BindableObserver {
     const hasCb = this.hasCb = typeof cb === 'function';
     const hasCbAll = this.hasCbAll = typeof cbAll === 'function';
     const hasSetter = this.hasSetter = set !== noop;
+    const val = obj[propertyKey];
 
     this.cb = hasCb ? cb : noop;
-    this.cbAll = this.hasCbAll ? cbAll : noop;
+    this.cbAll = hasCbAll ? cbAll : noop;
     // when user declare @bindable({ set })
     // it's expected to work from the start,
     // regardless where the assignment comes from: either direct view model assignment or from binding during render
-    // so if either getter/setter config is present, alter the accessor straight await
-    if (this.cb === void 0 && !hasCbAll && !hasSetter) {
-      this.observing = false;
-    } else {
-      this.observing = true;
-
-      const val = obj[propertyKey];
-      this.currentValue = hasSetter && val !== void 0 ? set(val) : val;
-      this.createGetterSetter();
-    }
+    this.observing = true;
+    this.currentValue = hasSetter && val !== void 0 ? set(val) : val;
+    this.createGetterSetter();
   }
 
   public getValue(): unknown {
@@ -108,7 +102,10 @@ export class BindableObserver {
       {
         enumerable: true,
         configurable: true,
-        get: (/* Bindable Observer */) => this.currentValue,
+        get: (/* Bindable Observer */) => {
+          ConnectableSwitcher.current?.observeProperty(this.obj, this.propertyKey);
+          return this.currentValue;
+        },
         set: (/* Bindable Observer */value: unknown) => {
           this.setValue(value, LifecycleFlags.none);
         }

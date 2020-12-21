@@ -1,3 +1,5 @@
+import { RouterOptions } from './../router-options';
+import { InstructionViewportScope } from './instruction-viewport-scope';
 import { InstructionParameters } from './instruction-parameters';
 import { InstructionViewport } from './instruction-viewport';
 import { InstructionComponent } from './instruction-component';
@@ -82,6 +84,11 @@ export class RoutingInstruction {
     this.component = InstructionComponent.create(component);
     this.viewport = InstructionViewport.create(viewport);
     this.parameters = InstructionParameters.create(parameters);
+
+    // TODO: Implement viewport scope as instruction
+    // Viewport scopes are only added to instructions internally so
+    // it's excluded from ordinary creation.
+    // this.viewportScope = InstructionViewportScope.create();
   }
 
   /**
@@ -117,6 +124,10 @@ export class RoutingInstruction {
   // TODO: Remove this once endpoint is fully adopted
   public get owner(): IScopeOwner | null {
     return this.viewport?.instance ?? this.viewportScope ?? null;
+  }
+
+  public get isAdd(): boolean {
+    return this.component.name === RouterOptions.separators.add;
   }
 
   /**

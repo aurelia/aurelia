@@ -21,3 +21,14 @@ It's also possible to provide the context/scope to the `router.load()` method so
 this.router('../my-other-component', { origin: this });
 ```
 from within the view model will have the same result as the `load` attribute on the anchor tag. It is in fact what happens with an anchor tag; `router.load` is called with the element as `origin`.
+
+
+```ts
+const rootScope = new RoutingScope(); // Root scope
+const mainViewport = rootScope.addViewport('main-viewport'); // Add a viewport 'main-viewport' to root scope
+const instruction = RoutingInstruction.create('products-component', 'main-viewport'); // Create a routing instruction with 'products-component' to be loaded in 'main-viewport'
+rootScope.matchEndpoints([instruction], []); // Match the name 'main-viewport' to actual `Viewport` instance (=== `mainViewport`)
+->
+instruction.component.name === 'products'
+instruction.viewport.instance === mainViewport;
+```

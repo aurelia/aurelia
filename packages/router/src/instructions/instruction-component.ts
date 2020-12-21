@@ -12,42 +12,60 @@ import { IRouteableComponent, RouteableComponentType } from '../interfaces';
 export interface IInstructionComponent extends InstructionComponent { }
 
 /**
- * Public API - The routing instructions are the core of the router's navigations
+ * Public API - The routing instructions are the core of the router's navigations. The component
+ * part of a routing instruction can be specified as a component name, a custom element definition,
+ * a custom element type or a custom element instance. The instruction component isn't limited to
+ * routing instructions, but can be found in for example load instructions as well. The instruction
+ * components are resolved "non-early" to support dynamic, local resolutions.
  */
 
+ // TODO: Include `CustomElementDefinition` in this
 export type ComponentAppellation = string | RouteableComponentType | IRouteableComponent | Constructable;
 
 export class InstructionComponent {
+  /**
+   * The name of the component.
+   */
   public name: string | null = null;
+  /**
+   * The (custom element) type of the component.
+   */
   public type: RouteableComponentType | null = null;
+  /**
+   * The (custom element) instance of the component.
+   */
   public instance: IRouteableComponent | null = null;
 
-  // Static methods
-  public static create(componentAppelation?: ComponentAppellation): InstructionComponent {
+  /**
+   * Create a new instruction component.
+   *
+   * @param component - The component
+   */
+  public static create(componentAppelation?: ComponentAppellation | CustomElementDefinition): InstructionComponent {
     const component = new InstructionComponent();
     component.set(componentAppelation);
     return component;
   }
 
-  public static isName(component: ComponentAppellation): component is string {
+  public static isName(component: ComponentAppellation | CustomElementDefinition): component is string {
     return typeof component === 'string';
   }
   public static isDefinition(component: ComponentAppellation | CustomElementDefinition): component is CustomElementDefinition {
     return CustomElement.isType((component as CustomElementDefinition).Type);
   }
-  public static isType(component: ComponentAppellation): component is RouteableComponentType {
+  public static isType(component: ComponentAppellation | CustomElementDefinition): component is RouteableComponentType {
     return CustomElement.isType(component);
   }
-  public static isInstance(component: ComponentAppellation): component is IRouteableComponent {
+  public static isInstance(component: ComponentAppellation | CustomElementDefinition): component is IRouteableComponent {
     return isCustomElementViewModel(component);
   }
-  public static isAppelation(component: ComponentAppellation): component is ComponentAppellation {
+  public static isAppelation(component: ComponentAppellation | CustomElementDefinition): component is ComponentAppellation {
     return InstructionComponent.isName(component)
       || InstructionComponent.isType(component)
       || InstructionComponent.isInstance(component);
   }
 
-  public static getName(component: ComponentAppellation): string {
+  public static getName(component: ComponentAppellation | CustomElementDefinition): string {
     if (InstructionComponent.isName(component)) {
       return component;
     } else if (InstructionComponent.isType(component)) {
@@ -56,7 +74,7 @@ export class InstructionComponent {
       return InstructionComponent.getName(component.constructor as Constructable);
     }
   }
-  public static getType(component: ComponentAppellation): RouteableComponentType | null {
+  public static getType(component: ComponentAppellation | CustomElementDefinition): RouteableComponentType | null {
     if (InstructionComponent.isName(component)) {
       return null;
     } else if (InstructionComponent.isType(component)) {
@@ -65,7 +83,7 @@ export class InstructionComponent {
       return ((component as IRouteableComponent).constructor as RouteableComponentType);
     }
   }
-  public static getInstance(component: ComponentAppellation): IRouteableComponent | null {
+  public static getInstance(component: ComponentAppellation | CustomElementDefinition): IRouteableComponent | null {
     if (InstructionComponent.isName(component) || InstructionComponent.isType(component)) {
       return null;
     } else {
@@ -74,7 +92,7 @@ export class InstructionComponent {
   }
 
   // Instance methods
-  public set(component?: ComponentAppellation): void {
+  public set(component?: ComponentAppellation | CustomElementDefinition): void {
     if (component == null) {
       this.name = null;
       this.type = null;

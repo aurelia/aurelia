@@ -3,10 +3,10 @@ import { IncomingMessage, ServerResponse } from 'http';
 import { ServerHttp2Stream, constants, Http2ServerRequest, Http2ServerResponse, OutgoingHttpHeaders } from 'http2';
 import { join, resolve, relative, extname } from 'path';
 import { ILogger } from '@aurelia/kernel';
-import { IRequestHandler, IHttpServerOptions, IHttp2FileServer } from '../interfaces';
-import { IHttpContext, HttpContextState } from '../http-context';
-import { getContentType, HTTPStatusCode, getContentEncoding, ContentEncoding } from '../http-utils';
-import { readFile, isReadable, exists } from "../file-utils";
+import { IRequestHandler, IHttpServerOptions, IHttp2FileServer } from '../interfaces.js';
+import { IHttpContext, HttpContextState } from '../http-context.js';
+import { getContentType, HTTPStatusCode, getContentEncoding, ContentEncoding } from '../http-utils.js';
+import { readFile, isReadable, exists } from '../file-utils.js';
 
 const {
   HTTP2_HEADER_PATH,

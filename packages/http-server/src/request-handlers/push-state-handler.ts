@@ -1,6 +1,6 @@
 import { constants } from 'http2';
-import { IHttpContext } from '../http-context';
-import { IRequestHandler } from '../interfaces';
+import { IHttpContext } from '../http-context.js';
+import { IRequestHandler } from '../interfaces.js';
 
 export class PushStateHandler implements IRequestHandler {
   public async handleRequest(context: IHttpContext): Promise<void> {

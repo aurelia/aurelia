@@ -1,36 +1,36 @@
 export {
   FileServer,
-} from './request-handlers/file-server';
+} from './request-handlers/file-server.js';
 export {
   HttpServerConfiguration as RuntimeNodeConfiguration,
-} from './configuration';
+} from './configuration.js';
 export {
   HttpContextState,
   HttpContext,
   IHttpContext,
-} from './http-context';
+} from './http-context.js';
 export {
   HttpServer,
-} from './http-server';
+} from './http-server.js';
 export {
   HTTPStatusCode,
   ContentType,
   HTTPError,
   readBuffer,
   getContentType,
-} from './http-utils';
+} from './http-utils.js';
 export {
   Encoding,
   IHttpServer,
   IHttpServerOptions,
   IRequestHandler,
   LogLevel,
-} from './interfaces';
+} from './interfaces.js';
 export {
   joinPath,
   resolvePath,
   normalizePath,
-} from './path-utils';
+} from './path-utils.js';
 export {
   HttpServerOptions,
-} from './server-options';
+} from './server-options.js';

@@ -146,7 +146,7 @@ describe.only('processContent', function () {
     }
 
     {
-      @processContent('processContent')
+      @processContent<typeof MyElement>('processContent')
       @customElement({
         name: 'my-element',
         isStrictBinding: true,
@@ -176,7 +176,7 @@ describe.only('processContent', function () {
         isStrictBinding: true,
         template: `<div><au-slot></au-slot></div>`,
       })
-      @processContent('processContent')
+      @processContent<typeof MyElement>('processContent')
       class MyElement {
         public static hookInvoked: boolean = false;
         static processContent(_node: INode, _p: IPlatform): boolean {

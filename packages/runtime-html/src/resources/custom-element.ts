@@ -562,12 +562,12 @@ export type ProcessContentHook = (node: INode, platform: IPlatform) => boolean;
 type ProcessContentHookNames<TClass> = { [Method in keyof TClass]: TClass[Method] extends ProcessContentHook ? Method : never }[keyof TClass];
 
 const pcHookMetadataProperty = Protocol.annotation.keyFor('processContent');
-export function processContent<TClass>(hook: string /* ProcessContentHookNames<typeof TClass> */ | ProcessContentHook): CustomElementDecorator; // TODO: fix the `string` type
+export function processContent<TClass>(hook: ProcessContentHookNames<TClass> | ProcessContentHook): CustomElementDecorator;
 export function processContent<TClass>(): DecoratorFactoryMethod<TClass>;
-export function processContent<TClass>(hook?: string /* ProcessContentHookNames<typeof TClass> */ | ProcessContentHook): CustomElementDecorator | DecoratorFactoryMethod<TClass> {
+export function processContent<TClass>(hook?: ProcessContentHookNames<TClass> | ProcessContentHook): CustomElementDecorator | DecoratorFactoryMethod<TClass> {
   return hook === void 0
     ? function (target: Constructable<TClass>, propertyKey: string, _descriptor: PropertyDescriptor) {
-      Metadata.define(pcHookMetadataProperty, ensureHook(target, propertyKey), target);
+      Metadata.define(pcHookMetadataProperty, ensureHook(target, propertyKey as ProcessContentHookNames<TClass>), target);
     }
     : function (target: Constructable<TClass>) {
       hook = ensureHook(target, hook!);
@@ -581,15 +581,16 @@ export function processContent<TClass>(hook?: string /* ProcessContentHookNames<
     };
 }
 
-function ensureHook<TClass>(target: Constructable<TClass>, hook: string | ProcessContentHook): ProcessContentHook {
+function ensureHook<TClass>(target: Constructable<TClass>, hook: ProcessContentHookNames<TClass> | ProcessContentHook): ProcessContentHook {
   if (typeof hook === 'string') {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-explicit-any
     hook = (target as any)[hook] as ProcessContentHook;
   }
 
-  if (typeof hook !== 'function') {
-    throw new Error('Invalid @processContent hook');
+  const hookType = typeof hook;
+  if (hookType !== 'function') {
+    throw new Error(`Invalid @processContent hook. Expected the hook to be a function (when defined in a class, it needs to be a static function) but got a ${hookType}.`);
   }
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-  return hook.bind(target);
+  return (hook as ProcessContentHook).bind(target);
 }

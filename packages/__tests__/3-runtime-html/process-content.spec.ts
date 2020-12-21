@@ -107,6 +107,7 @@ describe.only('processContent', function () {
       ],
       { 'my-element': '<div><span>foo</span><strong>bar</strong></div>' },
     );
+
     yield new TestData(
       'default au-slot use-case',
       `<my-element><span>foo</span><strong>bar</strong></my-element>`,
@@ -132,62 +133,113 @@ describe.only('processContent', function () {
       ],
       { 'my-element': '<div><span>foo</span><strong>bar</strong></div>' },
     );
+
+    const SpanCe = CustomElement.define(
+      {
+        name: 'span-ce',
+        isStrictBinding: true,
+        template: '<span>${value}</span>',
+        bindables: { value: { mode: BindingMode.default } },
+      },
+      class SpanCe { }
+    );
+    const StrongCe = CustomElement.define(
+      {
+        name: 'strong-ce',
+        isStrictBinding: true,
+        template: '<strong>${value}</strong>',
+        bindables: { value: { mode: BindingMode.default } },
+      },
+      class StrongCe { }
+    );
+    function processContentWithCe(compile: boolean) {
+      return function (node: INode, p: IPlatform): boolean {
+        const el = (node as Element);
+        const text = el.getAttribute('normal');
+        const bold = el.getAttribute('bold');
+        if (text !== null && bold !== null) {
+          const projection = p.document.createElement('template');
+          projection.setAttribute('au-slot', '');
+          const content = projection.content;
+          if (text !== null) {
+            const span = p.document.createElement('span-ce');
+            span.setAttribute('value', text);
+            el.removeAttribute('normal');
+            content.append(span);
+          }
+          if (bold !== null) {
+            const strong = p.document.createElement('strong-ce');
+            strong.setAttribute('value', bold);
+            el.removeAttribute('bold');
+            content.append(strong);
+          }
+          node.appendChild(projection);
+        }
+        return compile;
+      }
+    }
     yield new TestData(
       'mutated node content can contain custom-element',
       `<my-element normal="foo" bold="bar"></my-element>`,
       [
-        CustomElement.define(
-          {
-            name: 'span-ce',
-            isStrictBinding: true,
-            template: '<span>${value}</span>',
-            bindables: { value: { mode: BindingMode.default } },
-          },
-          class SpanCe { }
-        ),
-        CustomElement.define(
-          {
-            name: 'strong-ce',
-            isStrictBinding: true,
-            template: '<strong>${value}</strong>',
-            bindables: { value: { mode: BindingMode.default } },
-          },
-          class StrongCe { }
-        ),
+        SpanCe,
+        StrongCe,
         CustomElement.define(
           {
             name: 'my-element',
             isStrictBinding: true,
             template: `<div><au-slot></au-slot></div>`,
+            processContent: processContentWithCe(true),
+          },
+          class MyElement { }
+        )
+      ],
+      { 'my-element': '<div><span-ce value="foo" class="au"><span>foo</span></span-ce><strong-ce value="bar" class="au"><strong>bar</strong></strong-ce></div>' },
+    );
+
+    yield new TestData(
+      'mutated node content can have new bindings for the host element',
+      `<my-element normal="foo" bold="bar"></my-element>`,
+      [
+        CustomElement.define(
+          {
+            name: 'my-element',
+            isStrictBinding: true,
+            template: '\${textLength}',
+            bindables: { textLength: { mode: BindingMode.default } },
             processContent(node: INode, p: IPlatform): boolean {
               const el = (node as Element);
-              const text = el.getAttribute('normal');
-              const bold = el.getAttribute('bold');
-              if (text !== null && bold !== null) {
-                const projection = p.document.createElement('template');
-                projection.setAttribute('au-slot', '');
-                const content = projection.content;
-                if (text !== null) {
-                  const span = p.document.createElement('span-ce');
-                  span.setAttribute('value', text);
-                  el.removeAttribute('normal');
-                  content.append(span);
-                }
-                if (bold !== null) {
-                  const strong = p.document.createElement('strong-ce');
-                  strong.setAttribute('value', bold);
-                  el.removeAttribute('bold');
-                  content.append(strong);
-                }
-                node.appendChild(projection);
-              }
+              const l1 = el.getAttribute('normal')?.length ?? 0;
+              const l2 = el.getAttribute('bold')?.length ?? 0;
+              el.removeAttribute('normal');
+              el.removeAttribute('bold');
+              el.setAttribute('text-length.bind', `${l1} + ${l2}`);
               return true;
             }
           },
           class MyElement { }
         )
       ],
-      { 'my-element': '<div><span-ce value="foo" class="au"><span>foo</span></span-ce><strong-ce value="bar" class="au"><strong>bar</strong></strong-ce></div>' },
+      { 'my-element': '6' },
+    );
+
+    yield new TestData(
+      'compilation can be instructed to be skipped',
+      `<my-element normal="foo" bold="bar"></my-element>`,
+      [
+        SpanCe,
+        StrongCe,
+        CustomElement.define(
+          {
+            name: 'my-element',
+            isStrictBinding: true,
+            template: `<div><au-slot></au-slot></div>`,
+            processContent: processContentWithCe(false),
+          },
+          class MyElement { }
+        )
+      ],
+      { 'my-element': '<template au-slot=""><span-ce value="foo"></span-ce><strong-ce value="bar"></strong-ce></template>' },
     );
   }
   for (const { spec, template, expectedInnerHtmlMap, registrations, additionalAssertion } of getTestData()) {

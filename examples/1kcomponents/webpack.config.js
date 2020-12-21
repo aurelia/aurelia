@@ -2,30 +2,8 @@ const { resolve } = require('path');
 
 module.exports = function () {
   return {
+    target: 'web',
     mode: 'development',
-    devtool: false,
-    performance: {
-      hints: false
-    },
-    optimization: {
-      namedModules: false,
-      namedChunks: false,
-      nodeEnv: false,
-      usedExports: true,
-      flagIncludedChunks: false,
-      occurrenceOrder: false,
-      sideEffects: true,
-      concatenateModules: true,
-      splitChunks: {
-        hidePathInfo: false,
-        minSize: Infinity,
-        maxAsyncRequests: Infinity,
-        maxInitialRequests: Infinity,
-      },
-      noEmitOnErrors: false,
-      checkWasmTypes: false,
-      minimize: false,
-    },
     entry: {
       app: ['./app.js']
     },
@@ -35,8 +13,7 @@ module.exports = function () {
     },
     resolve: {
       extensions: ['.js'],
-      modules: ['.', 'node_modules'],
-      mainFields: ['module']
+      modules: ['.', 'node_modules']
     }
   };
 };

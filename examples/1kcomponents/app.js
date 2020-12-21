@@ -171,12 +171,6 @@ const App = CustomElement.define(
         </svg>
 
         <div class="controls">
-          # Target FPS
-          <input style="width: 20%" type="range" min.bind="1" max.bind="60" value.two-way="fps | num" />
-          \${fps}
-
-          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-
           # Points
           <input type="range" min.bind="10" max.bind="10000" value.two-way="count | num" />
           \${count}
@@ -188,7 +182,7 @@ const App = CustomElement.define(
         </div>
       </div>
     `,
-    bindables: ['count', 'fps'],
+    bindables: ['count'],
     dependencies: [
       ValueConverter.define('num', class { fromView(str) { return parseInt(str, 10); } })
     ]
@@ -203,7 +197,6 @@ const App = CustomElement.define(
       this.platform = platform;
       this.points = [];
       this.count = 0;
-      this.fps = 30;
     }
 
     attaching() {

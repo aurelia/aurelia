@@ -20,7 +20,6 @@ import {
   emptyArray,
   Writable,
   IPlatform,
-  Class,
 } from '@aurelia/kernel';
 import {
   registerAliases,

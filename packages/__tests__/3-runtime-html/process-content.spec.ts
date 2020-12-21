@@ -235,7 +235,7 @@ describe('processContent', function () {
               const el = (node as Element);
               const text = el.getAttribute('normal');
               const bold = el.getAttribute('bold');
-              if (text !== null && bold !== null) {
+              if (text !== null || bold !== null) {
                 const projection = p.document.createElement('template');
                 projection.setAttribute('au-slot', '');
                 const content = projection.content;
@@ -311,7 +311,7 @@ describe('processContent', function () {
         const el = (node as Element);
         const text = el.getAttribute('normal');
         const bold = el.getAttribute('bold');
-        if (text !== null && bold !== null) {
+        if (text !== null || bold !== null) {
           const projection = p.document.createElement('template');
           projection.setAttribute('au-slot', '');
           const content = projection.content;

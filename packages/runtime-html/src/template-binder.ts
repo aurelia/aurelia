@@ -223,7 +223,6 @@ export class TemplateBinder {
       // it's a custom element so we set the manifestRoot as well (for storing replaces)
       const processContent = definition?.processContent ?? null;
       if (processContent !== null && processContent(node, this.platform) === false) { // Skip compilation iff the hook returns boolean `false`.
-        manifest = new PlainElementSymbol(node);
         return;
       }
       parentManifestRoot = manifestRoot;

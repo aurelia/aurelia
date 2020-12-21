@@ -1,4 +1,4 @@
-import { customElement, ILifecycle } from '@aurelia/runtime-html';
+import { customElement } from '@aurelia/runtime-html';
 import template from './app.html';
 import { Store } from './source';
 
@@ -18,8 +18,8 @@ const stopMeasure = function () {
 @customElement({ name: 'app', template })
 export class App {
   public store: Store;
-  public constructor(@ILifecycle lifecycle: ILifecycle) {
-    this.store = new Store(lifecycle);
+  public constructor() {
+    this.store = new Store();
   }
 
   public run() {

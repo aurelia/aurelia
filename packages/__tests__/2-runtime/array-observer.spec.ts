@@ -1,15 +1,14 @@
-import { DI } from '@aurelia/kernel';
 import {
   ArrayObserver,
   copyIndexMap,
   disableArrayObservation,
   enableArrayObservation,
   ICollectionSubscriber,
-  ILifecycle,
   IndexMap,
   LifecycleFlags as LF,
   applyMutationsToIndices,
   synchronizeIndices,
+  // batch,
 } from '@aurelia/runtime';
 import {
   assert,
@@ -69,8 +68,7 @@ describe(`ArrayObserver`, function () {
       const s = new SpySubscriber();
       const arr = [];
       sut = new ArrayObserver(arr);
-      sut.lifecycle = DI.createContainer().get(ILifecycle);
-      sut.subscribeToCollection(s);
+      sut.subscribe(s);
       arr.push(1);
       assert.deepStrictEqual(
         s.collectionChanges.pop(),
@@ -82,8 +80,7 @@ describe(`ArrayObserver`, function () {
       const s = new SpySubscriber();
       const arr = [];
       sut = new ArrayObserver(arr);
-      sut.lifecycle = DI.createContainer().get(ILifecycle);
-      sut.subscribeToCollection(s);
+      sut.subscribe(s);
       arr.push(1, 2);
       assert.deepStrictEqual(
         s.collectionChanges.pop(),
@@ -97,83 +94,74 @@ describe(`ArrayObserver`, function () {
       const s = new SpySubscriber();
       const arr = [];
       sut = new ArrayObserver(arr);
-      sut.lifecycle = DI.createContainer().get(ILifecycle);
-      sut.subscribeToCollection(s);
-      sut.unsubscribeFromCollection(s);
+      sut.subscribe(s);
+      sut.unsubscribe(s);
       arr.push(1);
       assert.strictEqual(s.collectionChanges.length, 0);
     });
   });
 
-  describe('should allow subscribing for batched notification', function () {
-    it('push', function () {
-      const s = new SpySubscriber();
-      const arr = [];
-      const lifecycle = DI.createContainer().get(ILifecycle);
-      sut = new ArrayObserver(arr);
-      sut.lifecycle = lifecycle;
-      sut.subscribeToCollection(s);
-      lifecycle.batch.inline(
-        function () {
-          arr.push(1);
-        },
-      );
-      assert.deepStrictEqual(
-        s.collectionChanges.pop(),
-        new CollectionChangeSet(0, LF.updateTarget, copyIndexMap([-2]))
-      );
-    });
+  // describe('should allow subscribing for batched notification', function () {
+  //   it('push', function () {
+  //     const s = new SpySubscriber();
+  //     const arr = [];
+  //     sut = new ArrayObserver(arr);
+  //     sut.subscribe(s);
+  //     batch(
+  //       function () {
+  //         arr.push(1);
+  //       },
+  //     );
+  //     assert.deepStrictEqual(
+  //       s.collectionChanges.pop(),
+  //       new CollectionChangeSet(0, LF.updateTarget, copyIndexMap([-2]))
+  //     );
+  //   });
 
-    it('push 2', function () {
-      const s = new SpySubscriber();
-      const arr = [];
-      const lifecycle = DI.createContainer().get(ILifecycle);
-      sut = new ArrayObserver(arr);
-      sut.lifecycle = lifecycle;
-      sut.subscribeToCollection(s);
-      lifecycle.batch.inline(
-        function () {
-          arr.push(1, 2);
-        },
-      );
-      assert.deepStrictEqual(
-        s.collectionChanges.pop(),
-        new CollectionChangeSet(0, LF.updateTarget, copyIndexMap([-2, -2]))
-      );
-    });
-  });
+  //   it('push 2', function () {
+  //     const s = new SpySubscriber();
+  //     const arr = [];
+  //     sut = new ArrayObserver(arr);
+  //     sut.subscribe(s);
+  //     batch(
+  //       function () {
+  //         arr.push(1, 2);
+  //       },
+  //     );
+  //     assert.deepStrictEqual(
+  //       s.collectionChanges.pop(),
+  //       new CollectionChangeSet(0, LF.updateTarget, copyIndexMap([-2, -2]))
+  //     );
+  //   });
+  // });
 
-  describe('should allow unsubscribing for batched notification', function () {
-    it('push', function () {
-      const s = new SpySubscriber();
-      const arr = [];
-      const lifecycle = DI.createContainer().get(ILifecycle);
-      sut = new ArrayObserver(arr);
-      sut.lifecycle = lifecycle;
-      sut.subscribeToCollection(s);
-      sut.unsubscribeFromCollection(s);
-      lifecycle.batch.inline(
-        function () {
-          arr.push(1);
-        },
-      );
-      assert.strictEqual(s.collectionChanges.length, 0);
-    });
-  });
+  // describe('should allow unsubscribing for batched notification', function () {
+  //   it('push', function () {
+  //     const s = new SpySubscriber();
+  //     const arr = [];
+  //     sut = new ArrayObserver(arr);
+  //     sut.subscribe(s);
+  //     sut.unsubscribeFromCollection(s);
+  //     batch(
+  //       function () {
+  //         arr.push(1);
+  //       },
+  //     );
+  //     assert.strictEqual(s.collectionChanges.length, 0);
+  //   });
+  // });
 
-  describe('should not notify batched subscribers if there are no changes', function () {
-    it('push', function () {
-      const s = new SpySubscriber();
-      const arr = [];
-      const lifecycle = DI.createContainer().get(ILifecycle);
-      sut = new ArrayObserver(arr);
-      sut.lifecycle = lifecycle;
-      lifecycle.batch.inline(
-        function () { return; },
-      );
-      assert.strictEqual(s.collectionChanges.length, 0);
-    });
-  });
+  // describe('should not notify batched subscribers if there are no changes', function () {
+  //   it('push', function () {
+  //     const s = new SpySubscriber();
+  //     const arr = [];
+  //     sut = new ArrayObserver(arr);
+  //     batch(
+  //       function () { return; },
+  //     );
+  //     assert.strictEqual(s.collectionChanges.length, 0);
+  //   });
+  // });
 
   describe(`observePush`, function () {
     const initArr = [[], [1], [1, 2]];
@@ -192,7 +180,6 @@ describe(`ArrayObserver`, function () {
           const expectedArr = init.slice();
           const newItems = items && items.slice();
           sut = new ArrayObserver(arr);
-          sut.lifecycle = DI.createContainer().get(ILifecycle);
           let expectedResult;
           let actualResult;
           let i = 0;
@@ -216,8 +203,7 @@ describe(`ArrayObserver`, function () {
           const copy = init.slice();
           const newItems = items && items.slice();
           sut = new ArrayObserver(arr);
-          sut.lifecycle = DI.createContainer().get(ILifecycle);
-          sut.subscribeToCollection(new SynchronizingCollectionSubscriber(copy, arr));
+          sut.subscribe(new SynchronizingCollectionSubscriber(copy, arr));
 
           let i = 0;
           while (i < repeat) {
@@ -252,7 +238,6 @@ describe(`ArrayObserver`, function () {
           const expectedArr = init.slice();
           const newItems = items && items.slice();
           sut = new ArrayObserver(arr);
-          sut.lifecycle = DI.createContainer().get(ILifecycle);
           let expectedResult;
           let actualResult;
           let i = 0;
@@ -276,8 +261,7 @@ describe(`ArrayObserver`, function () {
           const copy = init.slice();
           const newItems = items && items.slice();
           sut = new ArrayObserver(arr);
-          sut.lifecycle = DI.createContainer().get(ILifecycle);
-          sut.subscribeToCollection(new SynchronizingCollectionSubscriber(copy, arr));
+          sut.subscribe(new SynchronizingCollectionSubscriber(copy, arr));
           let i = 0;
           while (i < repeat) {
             incrementItems(newItems, i);
@@ -308,7 +292,6 @@ describe(`ArrayObserver`, function () {
           const arr = init.slice();
           const expectedArr = init.slice();
           sut = new ArrayObserver(arr);
-          sut.lifecycle = DI.createContainer().get(ILifecycle);
           let expectedResult;
           let actualResult;
           let i = 0;
@@ -325,8 +308,7 @@ describe(`ArrayObserver`, function () {
           const arr = init.slice();
           const copy = init.slice();
           sut = new ArrayObserver(arr);
-          sut.lifecycle = DI.createContainer().get(ILifecycle);
-          sut.subscribeToCollection(new SynchronizingCollectionSubscriber(copy, arr));
+          sut.subscribe(new SynchronizingCollectionSubscriber(copy, arr));
           let i = 0;
           while (i < repeat) {
             arr.pop();
@@ -352,7 +334,6 @@ describe(`ArrayObserver`, function () {
           const arr = init.slice();
           const expectedArr = init.slice();
           sut = new ArrayObserver(arr);
-          sut.lifecycle = DI.createContainer().get(ILifecycle);
           let expectedResult;
           let actualResult;
           let i = 0;
@@ -369,8 +350,7 @@ describe(`ArrayObserver`, function () {
           const arr = init.slice();
           const copy = init.slice();
           sut = new ArrayObserver(arr);
-          sut.lifecycle = DI.createContainer().get(ILifecycle);
-          sut.subscribeToCollection(new SynchronizingCollectionSubscriber(copy, arr));
+          sut.subscribe(new SynchronizingCollectionSubscriber(copy, arr));
           let i = 0;
           while (i < repeat) {
             arr.shift();
@@ -403,7 +383,6 @@ describe(`ArrayObserver`, function () {
           const expectedArr = init.slice();
           const newItems = items && items.slice();
           sut = new ArrayObserver(arr);
-          sut.lifecycle = DI.createContainer().get(ILifecycle);
           let expectedResult;
           let actualResult;
           let i = 0;
@@ -437,8 +416,7 @@ describe(`ArrayObserver`, function () {
           const copy = init.slice();
           const newItems = items && items.slice();
           sut = new ArrayObserver(arr);
-          sut.lifecycle = DI.createContainer().get(ILifecycle);
-          sut.subscribeToCollection(new SynchronizingCollectionSubscriber(copy, arr));
+          sut.subscribe(new SynchronizingCollectionSubscriber(copy, arr));
           let i = 0;
           while (i < repeat) {
             incrementItems(newItems, i);
@@ -473,7 +451,6 @@ describe(`ArrayObserver`, function () {
           const arr = init.slice();
           const expectedArr = init.slice();
           sut = new ArrayObserver(arr);
-          sut.lifecycle = DI.createContainer().get(ILifecycle);
           let expectedResult;
           let actualResult;
           let i = 0;
@@ -490,8 +467,7 @@ describe(`ArrayObserver`, function () {
           const arr = init.slice();
           const copy = init.slice();
           sut = new ArrayObserver(arr);
-          sut.lifecycle = DI.createContainer().get(ILifecycle);
-          sut.subscribeToCollection(new SynchronizingCollectionSubscriber(copy, arr));
+          sut.subscribe(new SynchronizingCollectionSubscriber(copy, arr));
           let i = 0;
           while (i < repeat) {
             arr.reverse();
@@ -534,7 +510,6 @@ describe(`ArrayObserver`, function () {
               const arr = init.slice();
               const expectedArr = init.slice();
               sut = new ArrayObserver(arr);
-              sut.lifecycle = DI.createContainer().get(ILifecycle);
               const expectedResult = expectedArr.sort(compareFn);
               const actualResult = arr.sort(compareFn);
               assert.strictEqual(expectedResult, expectedArr, `expectedResult`);
@@ -564,8 +539,7 @@ describe(`ArrayObserver`, function () {
               const arr = init.slice();
               const copy = init.slice();
               sut = new ArrayObserver(arr);
-              sut.lifecycle = DI.createContainer().get(ILifecycle);
-              sut.subscribeToCollection(new SynchronizingCollectionSubscriber(copy, arr));
+              sut.subscribe(new SynchronizingCollectionSubscriber(copy, arr));
               arr.sort(compareFn);
               assert.deepStrictEqual(copy, arr);
             });

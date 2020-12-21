@@ -78,4 +78,4 @@ export class ValueAttributeObserver implements IObserver {
   }
 }
 
-subscriberCollection()(ValueAttributeObserver);
+subscriberCollection(ValueAttributeObserver);

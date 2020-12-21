@@ -160,7 +160,6 @@ export {
   ISignaler,
 
   subscriberCollection,
-  collectionSubscriberCollection,
 
   bindingBehavior,
   BindingBehavior,
@@ -189,7 +188,6 @@ export {
   LifecycleFlags,
 
   IBinding,
-  ILifecycle,
 
   AccessorOrObserver,
   AccessorType,

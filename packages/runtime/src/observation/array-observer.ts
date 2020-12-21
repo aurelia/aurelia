@@ -3,12 +3,12 @@ import {
   LifecycleFlags,
   AccessorType,
   ISubscriberCollection,
+  ICollectionSubscriberCollection,
 } from '../observation.js';
 import {
   CollectionLengthObserver,
 } from './collection-length-observer.js';
 import {
-  collectionSubscriberCollection,
   subscriberCollection,
 } from './subscriber-collection.js';
 
@@ -16,7 +16,6 @@ import type {
   CollectionKind,
   ICollectionObserver,
   IArrayIndexObserver,
-  ILifecycle,
   IndexMap,
   ISubscriber,
 } from '../observation.js';
@@ -351,13 +350,13 @@ export function disableArrayObservation(): void {
   }
 }
 
-export interface ArrayObserver extends ICollectionObserver<CollectionKind.array> {}
+export interface ArrayObserver extends ICollectionObserver<CollectionKind.array>, ICollectionSubscriberCollection {}
 
 export class ArrayObserver {
-  public inBatch: boolean;
   public type: AccessorType = AccessorType.Array;
 
   private readonly indexObservers: Record<string | number, ArrayIndexObserver | undefined>;
+  private lenObs?: CollectionLengthObserver;
 
   public constructor(array: unknown[]) {
 
@@ -366,51 +365,30 @@ export class ArrayObserver {
       enableArrayObservation();
     }
 
-    this.inBatch = false;
     this.indexObservers = {};
 
     this.collection = array;
     this.indexMap = createIndexMap(array.length);
-    this.lengthObserver = (void 0)!;
+    this.lenObs = void 0;
 
     observerLookup.set(array, this);
   }
 
   public notify(): void {
-    if (this.lifecycle?.batch.depth) {
-      if (!this.inBatch) {
-        this.inBatch = true;
-        this.lifecycle.batch.add(this);
-      }
-    } else {
-      this.flushBatch(LifecycleFlags.none);
-    }
-  }
-
-  public getLengthObserver(): CollectionLengthObserver {
-    return this.lengthObserver ??= new CollectionLengthObserver(this);
-  }
-
-  public getIndexObserver(index: number): IArrayIndexObserver {
-    return this.getOrCreateIndexObserver(index);
-  }
-
-  public flushBatch(flags: LifecycleFlags): void {
     const indexMap = this.indexMap;
     const length = this.collection.length;
 
-    this.inBatch = false;
     this.indexMap = createIndexMap(length);
     this.subs.notifyCollection(indexMap, LifecycleFlags.updateTarget);
   }
 
-  /**
-   * @internal
-   *
-   * It's unnecessary to destroy/recreate index observer all the time,
-   * so just create once, and add/remove instead
-   */
-  private getOrCreateIndexObserver(index: number): IArrayIndexObserver {
+  public getLengthObserver(): CollectionLengthObserver {
+    return this.lenObs ??= new CollectionLengthObserver(this);
+  }
+
+  public getIndexObserver(index: number): IArrayIndexObserver {
+    // It's unnecessary to destroy/recreate index observer all the time,
+    // so just create once, and add/remove instead
     return this.indexObservers[index] ??= new ArrayIndexObserver(this, index);
   }
 }
@@ -469,27 +447,24 @@ export class ArrayIndexObserver implements IArrayIndexObserver {
 
   public subscribe(subscriber: ISubscriber): void {
     if (this.subs.add(subscriber) && this.subs.count === 1) {
-      this.owner.subs.add(this);
+      this.owner.subscribe(this);
     }
   }
 
   public unsubscribe(subscriber: ISubscriber): void {
     if (this.subs.remove(subscriber) && this.subs.count === 0) {
-      this.owner.subs.remove(this);
+      this.owner.unsubscribe(this);
     }
   }
 }
 
-collectionSubscriberCollection()(ArrayObserver);
-subscriberCollection()(ArrayIndexObserver);
+subscriberCollection(ArrayObserver);
+subscriberCollection(ArrayIndexObserver);
 
-export function getArrayObserver(array: unknown[], lifecycle: ILifecycle | null): ArrayObserver {
+export function getArrayObserver(array: unknown[]): ArrayObserver {
   let observer = observerLookup.get(array);
   if (observer === void 0) {
     observer = new ArrayObserver(array);
-    if (lifecycle != null) {
-      observer.lifecycle = lifecycle;
-    }
   }
   return observer;
 }

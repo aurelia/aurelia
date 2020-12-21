@@ -19,7 +19,6 @@ import {
   BindingType,
   Scope,
   LifecycleFlags,
-  ILifecycle,
   IObserverLocator,
   IExpressionParser,
 } from '@aurelia/runtime';
@@ -122,7 +121,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   private fullyNamed: boolean = false;
 
   public readonly platform: IPlatform;
-  public readonly lifecycle: ILifecycle;
   public readonly hooks: HooksDefinition;
 
   public constructor(
@@ -152,7 +150,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       this.root = container.get<IAppRoot>(IAppRoot);
     }
     this.platform = container.get(IPlatform);
-    this.lifecycle = container.get(ILifecycle);
     switch (vmKind) {
       case ViewModelKind.customAttribute:
       case ViewModelKind.customElement:
@@ -1246,7 +1243,6 @@ export interface IController<C extends IViewModel = IViewModel> extends IDisposa
   readonly platform: IPlatform;
   readonly root: IAppRoot | null;
   readonly flags: LifecycleFlags;
-  readonly lifecycle: ILifecycle;
   readonly vmKind: ViewModelKind;
   readonly definition: CustomElementDefinition | CustomAttributeDefinition | null;
   readonly host: HTMLElement | null;

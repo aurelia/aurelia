@@ -14,6 +14,7 @@ import {
   ICollectionSubscriber,
   IndexMap,
   ICollectionSubscribable,
+  IObserver,
 } from '../observation.js';
 import { def, defineHiddenProp, ensureProto } from '../utilities-objects.js';
 import { getArrayObserver } from '../observation/array-observer.js';
@@ -81,6 +82,10 @@ function observeCollection(this: IConnectableBinding, collection: Collection): v
     throw new Error('Unrecognised collection type.');
   }
   this.obs.add(obs);
+}
+
+function subscribeTo(this: IConnectableBinding, subscribable: (ISubscribable | ICollectionSubscribable) & { [id: number]: number }): void {
+  this.obs.add(subscribable);
 }
 
 function noopHandleChange() {
@@ -190,6 +195,7 @@ function connectableDecorator<TProto, TClass>(target: DecoratableConnectable<TPr
   const proto = target.prototype;
   ensureProto(proto, 'observeProperty', observeProperty, true);
   ensureProto(proto, 'observeCollection', observeCollection, true);
+  ensureProto(proto, 'subscribeTo', subscribeTo, true);
   def(proto, 'obs', { get: getObserverRecord });
   // optionally add these two methods to normalize a connectable impl
   ensureProto(proto, 'handleChange', noopHandleChange);

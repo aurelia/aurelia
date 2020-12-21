@@ -59,6 +59,10 @@ export interface IConnectable {
   id: number;
   observeProperty(obj: object, key: PropertyKey): void;
   observeCollection(obj: Collection): void;
+  /**
+   * Semi internal API
+   */
+  subscribeTo(subscribable: ISubscribable | ICollectionSubscribable): void;
 }
 
 /** @internal */

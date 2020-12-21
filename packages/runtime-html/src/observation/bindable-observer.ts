@@ -103,7 +103,7 @@ export class BindableObserver {
         enumerable: true,
         configurable: true,
         get: (/* Bindable Observer */) => {
-          ConnectableSwitcher.current?.observeProperty(this.obj, this.propertyKey);
+          ConnectableSwitcher.current?.subscribeTo(this);
           return this.currentValue;
         },
         set: (/* Bindable Observer */value: unknown) => {

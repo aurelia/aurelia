@@ -1,3 +1,4 @@
+/* eslint-disable no-template-curly-in-string */
 import { IContainer, toArray } from '@aurelia/kernel';
 import { Aurelia, bindable, BindingMode, CustomElement, customElement, INode, IPlatform, processContent } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
@@ -71,7 +72,7 @@ describe.only('processContent', function () {
     {
       class MyElement {
         public static hookInvoked: boolean = false;
-        static processContent(_node: INode, _p: IPlatform): boolean {
+        public static processContent(_node: INode, _p: IPlatform): boolean {
           this.hookInvoked = true;
           return true;
         }
@@ -105,7 +106,7 @@ describe.only('processContent', function () {
       })
       class MyElement {
         public static hookInvoked: boolean = false;
-        static processContent(_node: INode, _p: IPlatform): boolean {
+        public static processContent(_node: INode, _p: IPlatform): boolean {
           this.hookInvoked = true;
           return true;
         }
@@ -129,7 +130,7 @@ describe.only('processContent', function () {
       @processContent(MyElement.processContent)
       class MyElement {
         public static hookInvoked: boolean = false;
-        static processContent(_node: INode, _p: IPlatform): boolean {
+        public static processContent(_node: INode, _p: IPlatform): boolean {
           this.hookInvoked = true;
           return true;
         }
@@ -154,7 +155,7 @@ describe.only('processContent', function () {
       })
       class MyElement {
         public static hookInvoked: boolean = false;
-        static processContent(_node: INode, _p: IPlatform): boolean {
+        public static processContent(_node: INode, _p: IPlatform): boolean {
           this.hookInvoked = true;
           return true;
         }
@@ -179,7 +180,7 @@ describe.only('processContent', function () {
       @processContent<typeof MyElement>('processContent')
       class MyElement {
         public static hookInvoked: boolean = false;
-        static processContent(_node: INode, _p: IPlatform): boolean {
+        public static processContent(_node: INode, _p: IPlatform): boolean {
           this.hookInvoked = true;
           return true;
         }
@@ -205,7 +206,7 @@ describe.only('processContent', function () {
         public static hookInvoked: boolean = false;
 
         @processContent()
-        static processContent(_node: INode, _p: IPlatform): boolean {
+        public static processContent(_node: INode, _p: IPlatform): boolean {
           this.hookInvoked = true;
           return true;
         }
@@ -329,7 +330,7 @@ describe.only('processContent', function () {
           node.appendChild(projection);
         }
         return compile;
-      }
+      };
     }
     yield new TestData(
       'mutated node content can contain custom-element',
@@ -359,7 +360,7 @@ describe.only('processContent', function () {
         el.removeAttribute('bold');
         el.setAttribute('text-length.bind', `${l1} + ${l2}`);
         return compile;
-      }
+      };
     }
 
     yield new TestData(
@@ -370,7 +371,7 @@ describe.only('processContent', function () {
           {
             name: 'my-element',
             isStrictBinding: true,
-            template: '\${textLength}',
+            template: '${textLength}',
             bindables: { textLength: { mode: BindingMode.default } },
             processContent: processContentWithNewBinding(true),
           },
@@ -388,7 +389,7 @@ describe.only('processContent', function () {
           {
             name: 'my-element',
             isStrictBinding: true,
-            template: '\${textLength}',
+            template: '${textLength}',
             bindables: { textLength: { mode: BindingMode.default } },
             processContent: processContentWithNewBinding(false),
           },
@@ -446,7 +447,7 @@ describe.only('processContent', function () {
       processContent: Tabs.processTabs
     })
     class Tabs {
-      @bindable activeTabId: string;
+      @bindable public activeTabId: string;
       public showTab(tabId: string) {
         this.activeTabId = tabId;
       }

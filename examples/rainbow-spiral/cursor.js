@@ -1,4 +1,4 @@
-import { CustomElementResource } from '@aurelia/runtime-html';
+import { CustomElement } from '@aurelia/runtime-html';
 
 const TEMPLATE =
 `<template
@@ -10,7 +10,7 @@ const TEMPLATE =
   <span class='label' if.bind='label'>\${x}, \${y}</span>
 </template>`;
 
-export const Cursor = CustomElementResource.define({
+export const Cursor = CustomElement.define({
   name: 'cursor',
   template: TEMPLATE,
   bindables: 'label, x, y, big, color'

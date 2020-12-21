@@ -9,7 +9,7 @@
   "version": "0.8.0",
   "scripts": {
     "build": "webpack --config webpack.config.js",
-    "serve": "node -r esm ./node_modules/@aurelia/http-server/dist/esnext/cli.js au.conf.js"
+    "serve": "node ../../node_modules/@aurelia/http-server/dist/esnext/cli.js au.conf.js"
   },
   "dependencies": {
     "@aurelia/kernel": "0.8.0",

@@ -5,26 +5,34 @@ import project from './project';
 const log = createLogger('change-tsconfigs');
 
 (async function (): Promise<void> {
-  const [, , operation, mod] = process.argv;
+  const [, , operation] = process.argv;
 
   const packages = project.packages;
   const tsconfigFiles = packages
-    .filter(pkg => pkg.name.kebab !== '__tests__' && pkg.name.kebab !== '__e2e__' && pkg.folder === 'packages') // ignore @aurelia/__tests__, __e2e__, and packages outside of the packages folder
+    .filter(pkg => !pkg.name.kebab.includes('_') && pkg.folder.includes('packages'))
     .map(pkg => new File(pkg.tsconfig));
 
   for (const file of tsconfigFiles) {
     const backupPath = file.path.replace('.json', '.json.bak');
 
     switch (operation) {
-      case 'overwrite': {
+      case 'invert': {
         await file.readContent();
-        await file.saveAs(backupPath);
 
         log(`backing up tsconfig: ${backupPath}`);
+        await file.saveAs(backupPath);
 
         const json = JSON.parse(file.content.toString('utf8'));
-        json.compilerOptions.outDir = `dist/${mod}`;
-        json.compilerOptions.module = mod;
+        switch (json.compilerOptions.outDir) {
+          case 'dist/esm':
+            json.compilerOptions.outDir = 'dist/cjs';
+            json.compilerOptions.module = 'commonjs';
+            break;
+          case 'dist/cjs':
+            json.compilerOptions.outDir = 'dist/esm';
+            json.compilerOptions.module = 'esnext';
+            break;
+        }
 
         log(`overwriting tsconfig: ${file.path}`);
 

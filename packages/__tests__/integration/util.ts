@@ -1,8 +1,7 @@
 import { TestExecutionContext, StartupConfiguration, startup } from './app/startup.js';
-import { fail } from 'assert';
 import { ProxyObservable } from '@aurelia/runtime';
 import { CustomElement } from '@aurelia/runtime-html';
-import { Call, assert } from '@aurelia/testing';
+import { Call, assert, fail } from '@aurelia/testing';
 
 export function createTestFunction(
   testFunction: (ctx: TestExecutionContext) => Promise<void> | void,

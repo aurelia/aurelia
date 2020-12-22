@@ -35,7 +35,7 @@ function getCurrentVersion(): {
   patch: string;
 } {
   const versionRegExp = /(\d+)\.(\d+)\.(\d+)($|-)/;
-  const match = versionRegExp.exec(project.lerna.version);
+  const match = versionRegExp.exec(project.pkg.version);
 
   return {
     major: match[1],

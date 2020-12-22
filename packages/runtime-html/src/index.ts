@@ -649,7 +649,7 @@ export {
   IWatchDefinition,
   IWatcherCallback,
   IDepCollectionFn,
-} from './watch';
+} from './watch.js';
 
 export {
   ComputedWatcher,

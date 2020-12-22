@@ -10,7 +10,7 @@ describe('ChildrenObserver', function () {
       assert.instanceOf(viewModel.children[0], ChildOne);
       assert.instanceOf(viewModel.children[1], ChildTwo);
 
-      au.stop();
+      void au.stop();
 
       au.dispose();
     });

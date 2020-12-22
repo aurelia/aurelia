@@ -1,10 +1,10 @@
 export class OpenPromise<T = void> {
   public isPending: boolean = true;
-  public promise!: Promise<T>;
+  public promise!: Promise<T | void>;
   public res!: (value?: T | PromiseLike<T>) => void;
   public rej!: (value?: T | PromiseLike<T>) => void;
   public constructor() {
-    this.promise = new Promise((res, rej) => {
+    this.promise = new Promise<T | void>((res, rej) => {
       this.res = res;
       this.rej = rej;
     });

@@ -388,7 +388,6 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
 
       const resources = [];
 
-      // eslint-disable-next-line sonarjs/no-collapsible-if
       if (tag.isCustom) {
         if (ifText.static || elseText.static) {
           continue;

@@ -67,7 +67,6 @@ export class BindableObserver {
 
     if (this.observing) {
       const currentValue = this.currentValue;
-      // eslint-disable-next-line compat/compat
       if (Object.is(newValue, currentValue)) {
         return;
       }
@@ -75,10 +74,10 @@ export class BindableObserver {
       // todo: controller (if any) state should determine the invocation instead
       if ((flags & LifecycleFlags.fromBind) === 0 || (flags & LifecycleFlags.updateSource) > 0) {
         if (this.hasCb) {
-          this.cb!.call(this.obj, newValue, currentValue, flags);
+          this.cb.call(this.obj, newValue, currentValue, flags);
         }
         if (this.hasCbAll) {
-          this.cbAll!.call(this.obj, this.propertyKey, newValue, currentValue, flags);
+          this.cbAll.call(this.obj, this.propertyKey, newValue, currentValue, flags);
         }
       }
       this.subs.notify(newValue, currentValue, flags);

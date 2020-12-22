@@ -9,7 +9,6 @@ import { $it, assertCalls, getViewModel } from './util.js';
 import { ComponentMode } from './app/startup.js';
 
 describe('app', function () {
-
   eachCartesianJoin([
     ['app', 'enhance'] as ['app' , 'enhance'],
     [ComponentMode.class, ComponentMode.instance,],

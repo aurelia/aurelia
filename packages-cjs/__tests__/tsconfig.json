@@ -1,0 +1,27 @@
+{
+  "extends": "../tsconfig-build.json",
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "declarationDir": "dist",
+    "outDir": "dist/esnext",
+    "lib": ["esnext", "dom"],
+    "resolveJsonModule": true,
+    "forceConsistentCasingInFileNames": false,
+    "emitDecoratorMetadata": true,
+    "strict": false,
+    "alwaysStrict": true,
+
+    "jsx": "react",
+    "jsxFactory": "hJsx",
+
+    "types": [
+      "node",
+      "mocha"
+    ]
+  },
+  "include": ["."],
+  "exclude": [
+    "router/e2e",
+    "dist"
+  ]
+}

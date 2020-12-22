@@ -1,8 +1,9 @@
 {
-  "name": "@aurelia/plugin-conventions",
+  "name": "@aurelia/plugin-parcel",
   "version": "0.8.0",
   "main": "dist/esnext/index.js",
   "module": "dist/esnext/index.js",
+  "type": "commonjs",
   "types": "dist/index.d.ts",
   "typings": "dist/index.d.ts",
   "license": "MIT",
@@ -16,7 +17,7 @@
   },
   "keywords": [
     "aurelia",
-    "plugin-conventions"
+    "plugin-parcel"
   ],
   "files": [
     "dist",
@@ -40,14 +41,10 @@
     "@aurelia/kernel": "0.8.0",
     "@aurelia/metadata": "0.8.0",
     "@aurelia/platform": "0.8.0",
-    "@aurelia/runtime": "0.8.0",
-    "@aurelia/runtime-html": "0.8.0",
-    "modify-code": "^1.2.0",
-    "parse5": "^5.1.1",
-    "typescript": "^4.0.3"
+    "@aurelia/runtime": "0.8.0"
   },
   "devDependencies": {
     "@types/node": "^14.11.5",
-    "@types/parse5": "^5.0.2"
+    "typescript": "^4.0.3"
   }
 }

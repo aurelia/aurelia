@@ -1,8 +1,9 @@
 {
-  "name": "@aurelia/plugin-parcel",
+  "name": "@aurelia/webpack-loader",
   "version": "0.8.0",
   "main": "dist/esnext/index.js",
   "module": "dist/esnext/index.js",
+  "type": "commonjs",
   "types": "dist/index.d.ts",
   "typings": "dist/index.d.ts",
   "license": "MIT",
@@ -16,7 +17,7 @@
   },
   "keywords": [
     "aurelia",
-    "plugin-parcel"
+    "webpack-loader"
   ],
   "files": [
     "dist",
@@ -40,10 +41,14 @@
     "@aurelia/kernel": "0.8.0",
     "@aurelia/metadata": "0.8.0",
     "@aurelia/platform": "0.8.0",
-    "@aurelia/runtime": "0.8.0"
+    "@aurelia/plugin-conventions": "0.8.0",
+    "@aurelia/runtime": "0.8.0",
+    "loader-utils": "^2.0.0"
   },
   "devDependencies": {
     "@types/node": "^14.11.5",
+    "@types/loader-utils": "^2.0.1",
+    "@types/webpack": "^4.41.25",
     "typescript": "^4.0.3"
   }
 }

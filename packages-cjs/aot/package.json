@@ -1,8 +1,9 @@
 {
-  "name": "@aurelia/babel-jest",
+  "name": "@aurelia/aot",
   "version": "0.8.0",
   "main": "dist/esnext/index.js",
   "module": "dist/esnext/index.js",
+  "type": "commonjs",
   "types": "dist/index.d.ts",
   "typings": "dist/index.d.ts",
   "license": "MIT",
@@ -16,7 +17,7 @@
   },
   "keywords": [
     "aurelia",
-    "jest"
+    "aot"
   ],
   "files": [
     "dist",
@@ -30,6 +31,7 @@
     "lint:ci": "eslint --cache --ext .js,.ts --quiet --report-unused-disable-directives src/",
     "build": "tsc -b",
     "dev": "tsc -b -w --preserveWatchOutput",
+    "test": "node -r esm dist/esnext/test.js",
     "publish:dev": "npm publish --tag dev",
     "publish:latest": "npm publish --tag latest"
   },
@@ -40,14 +42,11 @@
     "@aurelia/kernel": "0.8.0",
     "@aurelia/metadata": "0.8.0",
     "@aurelia/platform": "0.8.0",
-    "@aurelia/plugin-conventions": "0.8.0",
     "@aurelia/runtime": "0.8.0",
-    "babel-jest": "^26.3.0"
+    "jsdom": "^15.2.1",
+    "typescript": "^4.0.3"
   },
   "devDependencies": {
-    "@jest/transform": "^26.3.0",
-    "@jest/types": "^26.3.0",
-    "@types/node": "^14.11.5",
-    "typescript": "^4.0.3"
+    "@types/node": "^14.11.5"
   }
 }

@@ -1,8 +1,9 @@
 {
-  "name": "@aurelia/ts-jest",
+  "name": "@aurelia/babel-jest",
   "version": "0.8.0",
   "main": "dist/esnext/index.js",
   "module": "dist/esnext/index.js",
+  "type": "commonjs",
   "types": "dist/index.d.ts",
   "typings": "dist/index.d.ts",
   "license": "MIT",
@@ -42,7 +43,7 @@
     "@aurelia/platform": "0.8.0",
     "@aurelia/plugin-conventions": "0.8.0",
     "@aurelia/runtime": "0.8.0",
-    "ts-jest": "^26.2.0"
+    "babel-jest": "^26.3.0"
   },
   "devDependencies": {
     "@jest/transform": "^26.3.0",

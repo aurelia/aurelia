@@ -128,7 +128,7 @@ commands:
         type: boolean
         default: true
     steps:
-      - run: set -o pipefail && git add packages/*/dist --force && git status
+      - run: set -o pipefail && git add packages/*/dist packages-cjs/*/dist --force && git status
       - run: set -o pipefail && git stash && git status
       - when:
           condition: << parameters.merge_topic >>
@@ -138,10 +138,10 @@ commands:
       - run: set -o pipefail && git checkout << parameters.to >> && git status
       - run: set -o pipefail && git reset --hard origin/<< parameters.to >> && git status
       - run: set -o pipefail && git merge << parameters.from >> --no-ff --no-edit -Xtheirs && git status
-      - run: set -o pipefail && rm -rf packages/*/dist && git status
+      - run: set -o pipefail && rm -rf packages/*/dist packages-cjs/*/dist && git status
       - run: set -o pipefail && git add . && git status
       - run: set -o pipefail && git checkout stash -- . && git status
-      - run: set -o pipefail && git add packages/*/dist --force && git status
+      - run: set -o pipefail && git add packages/*/dist packages-cjs/*/dist --force && git status
       - run: set -o pipefail && npm run change-package-refs:release
       - when:
           condition: << parameters.bump_version >>

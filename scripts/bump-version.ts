@@ -8,9 +8,9 @@ import { getCurrentVersion, getNewVersion } from './get-version-info';
 const log = createLogger('bump-version');
 
 export async function updateDependencyVersions(newVersion: string): Promise<void> {
-  for (const { name } of project.packages.filter(p => p.folder === 'packages')) {
+  for (const { name, folder } of project.packages.filter(p => !p.name.kebab.includes('_') && p.folder.includes('packages'))) {
     log(`updating dependencies for ${c.magentaBright(name.npm)}`);
-    const pkg = await loadPackageJson('packages', name.kebab);
+    const pkg = await loadPackageJson(folder, name.kebab);
     pkg.version = newVersion;
     if ('dependencies' in pkg) {
       const deps = pkg.dependencies;
@@ -21,7 +21,7 @@ export async function updateDependencyVersions(newVersion: string): Promise<void
         }
       }
     }
-    await savePackageJson(pkg, 'packages', name.kebab);
+    await savePackageJson(pkg, folder, name.kebab);
   }
   const pkgJson = JSON.parse(readFileSync(project['package.json'].path, { encoding: 'utf8' })) as Package;
   pkgJson.version = newVersion;

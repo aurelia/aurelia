@@ -1,25 +1,21 @@
-import {
-  Class,
-  IServiceLocator,
-  ResourceDefinition
-} from '@aurelia/kernel';
-import {
+import { LifecycleFlags, } from '../observation.js';
+import { def, defineHiddenProp, ensureProto } from '../utilities-objects.js';
+import { getArrayObserver } from '../observation/array-observer.js';
+import { getSetObserver } from '../observation/set-observer.js';
+import { getMapObserver } from '../observation/map-observer.js';
+
+import type { Class, IServiceLocator, ResourceDefinition } from '@aurelia/kernel';
+import type {
   IConnectable,
   ISubscribable,
   ISubscriber,
   IBinding,
-  LifecycleFlags,
   Collection,
   CollectionObserver,
   ICollectionSubscriber,
   IndexMap,
   ICollectionSubscribable,
-  IObserver,
 } from '../observation.js';
-import { def, defineHiddenProp, ensureProto } from '../utilities-objects.js';
-import { getArrayObserver } from '../observation/array-observer.js';
-import { getSetObserver } from '../observation/set-observer.js';
-import { getMapObserver } from '../observation/map-observer.js';
 import type { IObserverLocator } from '../observation/observer-locator.js';
 import type { Scope } from '../observation/binding-context.js';
 

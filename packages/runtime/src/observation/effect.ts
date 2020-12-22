@@ -1,8 +1,10 @@
 import { DI } from '@aurelia/kernel';
-import { BindingObserverRecord, connectable } from '../binding/connectable.js';
-import { ICollectionSubscriber, IConnectable, ISubscriber } from '../observation.js';
+import { connectable } from '../binding/connectable.js';
 import { enterConnectable, exitConnectable } from './connectable-switcher.js';
 import { IObserverLocator } from './observer-locator.js';
+
+import type { ICollectionSubscriber, IConnectable, ISubscriber } from '../observation.js';
+import type { BindingObserverRecord } from '../binding/connectable.js';
 
 export interface IEffectRunner extends EffectRunner {}
 export const IEffectRunner = DI.createInterface<IEffectRunner>('IEffectRunner', x => x.singleton(EffectRunner));

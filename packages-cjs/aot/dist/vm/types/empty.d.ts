@@ -1,0 +1,66 @@
+import { $AnyNonError, PotentialEmptyCompletionType, CompletionTarget, $Any } from './_shared.js';
+import { Realm, ExecutionContext } from '../realm.js';
+import { $TypeError } from './error.js';
+import { $ESModule, $ESScript } from '../ast/modules.js';
+import { $ComputedPropertyName } from '../ast/bindings.js';
+import { $ContinueStatement, $BreakStatement } from '../ast/statements.js';
+import { $FunctionDeclaration } from '../ast/functions.js';
+import { I$Node } from '../ast/_shared.js';
+export interface empty {
+    '<empty>': unknown;
+}
+export declare const empty: empty;
+export declare class $Empty {
+    readonly realm: Realm;
+    readonly sourceNode: $ESModule | $ESScript | $ComputedPropertyName | $ContinueStatement | $BreakStatement | $FunctionDeclaration | null;
+    readonly '<$Empty>': unknown;
+    readonly id: number;
+    readonly IntrinsicName: 'empty';
+    '[[Type]]': PotentialEmptyCompletionType;
+    readonly '[[Value]]': empty;
+    '[[Target]]': CompletionTarget;
+    get isAbrupt(): false;
+    get Type(): $TypeError;
+    get isEmpty(): true;
+    get isUndefined(): false;
+    get isNull(): false;
+    get isNil(): false;
+    get isBoolean(): false;
+    get isNumber(): false;
+    get isString(): false;
+    get isSymbol(): false;
+    get isPrimitive(): false;
+    get isObject(): false;
+    get isArray(): false;
+    get isProxy(): false;
+    get isFunction(): false;
+    get isBoundFunction(): false;
+    get isTruthy(): false;
+    get isFalsey(): true;
+    get isSpeculative(): false;
+    get hasValue(): false;
+    get isList(): false;
+    constructor(realm: Realm, type?: PotentialEmptyCompletionType, target?: CompletionTarget, sourceNode?: $ESModule | $ESScript | $ComputedPropertyName | $ContinueStatement | $BreakStatement | $FunctionDeclaration | null);
+    is(other: $AnyNonError): other is $Empty;
+    enrichWith(ctx: ExecutionContext, node: I$Node): this;
+    [Symbol.toPrimitive](): string;
+    [Symbol.toStringTag](): string;
+    ToCompletion(type: PotentialEmptyCompletionType, target: CompletionTarget): this;
+    UpdateEmpty(value: $Any): typeof value;
+    ToObject(ctx: ExecutionContext): $TypeError;
+    ToPropertyKey(ctx: ExecutionContext): $TypeError;
+    ToLength(ctx: ExecutionContext): $TypeError;
+    ToPrimitive(ctx: ExecutionContext): $TypeError;
+    ToBoolean(ctx: ExecutionContext): $TypeError;
+    ToNumber(ctx: ExecutionContext): $TypeError;
+    ToInt32(ctx: ExecutionContext): $TypeError;
+    ToUint32(ctx: ExecutionContext): $TypeError;
+    ToInt16(ctx: ExecutionContext): $TypeError;
+    ToUint16(ctx: ExecutionContext): $TypeError;
+    ToInt8(ctx: ExecutionContext): $TypeError;
+    ToUint8(ctx: ExecutionContext): $TypeError;
+    ToUint8Clamp(ctx: ExecutionContext): $TypeError;
+    ToString(ctx: ExecutionContext): $TypeError;
+    GetValue(ctx: ExecutionContext): $TypeError;
+}
+//# sourceMappingURL=empty.d.ts.map

@@ -1,0 +1,102 @@
+import { EnumDeclaration, EnumMember, InterfaceDeclaration, ModifierFlags, SyntaxKind, TypeAliasDeclaration } from 'typescript';
+import { ILogger } from '@aurelia/kernel';
+import { Realm } from '../realm.js';
+import { $String } from '../types/string.js';
+import { I$Node, Context, $$ESDeclaration, $NodeWithStatements, $$PropertyName, $$AssignmentExpressionOrHigher, $$ESVarDeclaration } from './_shared.js';
+import { ExportEntryRecord, $$ESModuleOrScript } from './modules.js';
+import { $Identifier } from './expressions.js';
+import { $HeritageClause } from './classes.js';
+export declare class $InterfaceDeclaration implements I$Node {
+    readonly node: InterfaceDeclaration;
+    readonly parent: $NodeWithStatements;
+    readonly ctx: Context;
+    readonly idx: number;
+    readonly mos: $$ESModuleOrScript;
+    readonly realm: Realm;
+    readonly depth: number;
+    readonly logger: ILogger;
+    readonly path: string;
+    get $kind(): SyntaxKind.InterfaceDeclaration;
+    readonly modifierFlags: ModifierFlags;
+    readonly BoundNames: readonly [$String];
+    readonly VarDeclaredNames: readonly $String[];
+    readonly VarScopedDeclarations: readonly $$ESVarDeclaration[];
+    readonly LexicallyDeclaredNames: readonly $String[];
+    readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[];
+    readonly ExportedBindings: readonly $String[];
+    readonly ExportedNames: readonly $String[];
+    readonly ExportEntries: readonly ExportEntryRecord[];
+    readonly TypeDeclarations: readonly [$InterfaceDeclaration];
+    readonly IsType: true;
+    readonly $name: $Identifier;
+    readonly $heritageClauses: readonly $HeritageClause[];
+    constructor(node: InterfaceDeclaration, parent: $NodeWithStatements, ctx: Context, idx: number, mos?: $$ESModuleOrScript, realm?: Realm, depth?: number, logger?: ILogger, path?: string);
+}
+export declare class $TypeAliasDeclaration implements I$Node {
+    readonly node: TypeAliasDeclaration;
+    readonly parent: $NodeWithStatements;
+    readonly ctx: Context;
+    readonly idx: number;
+    readonly mos: $$ESModuleOrScript;
+    readonly realm: Realm;
+    readonly depth: number;
+    readonly logger: ILogger;
+    readonly path: string;
+    get $kind(): SyntaxKind.TypeAliasDeclaration;
+    readonly modifierFlags: ModifierFlags;
+    readonly BoundNames: readonly [$String];
+    readonly VarDeclaredNames: readonly $String[];
+    readonly VarScopedDeclarations: readonly $$ESVarDeclaration[];
+    readonly LexicallyDeclaredNames: readonly $String[];
+    readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[];
+    readonly ExportedBindings: readonly $String[];
+    readonly ExportedNames: readonly $String[];
+    readonly ExportEntries: readonly ExportEntryRecord[];
+    readonly TypeDeclarations: readonly [$TypeAliasDeclaration];
+    readonly IsType: true;
+    readonly $name: $Identifier;
+    constructor(node: TypeAliasDeclaration, parent: $NodeWithStatements, ctx: Context, idx: number, mos?: $$ESModuleOrScript, realm?: Realm, depth?: number, logger?: ILogger, path?: string);
+}
+export declare function $enumMemberList(nodes: readonly EnumMember[], parent: $EnumDeclaration, ctx: Context): readonly $EnumMember[];
+export declare class $EnumDeclaration implements I$Node {
+    readonly node: EnumDeclaration;
+    readonly parent: $NodeWithStatements;
+    readonly ctx: Context;
+    readonly idx: number;
+    readonly mos: $$ESModuleOrScript;
+    readonly realm: Realm;
+    readonly depth: number;
+    readonly logger: ILogger;
+    readonly path: string;
+    get $kind(): SyntaxKind.EnumDeclaration;
+    readonly modifierFlags: ModifierFlags;
+    readonly BoundNames: readonly [$String];
+    readonly VarDeclaredNames: readonly $String[];
+    readonly VarScopedDeclarations: readonly $$ESVarDeclaration[];
+    readonly LexicallyDeclaredNames: readonly $String[];
+    readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[];
+    readonly ExportedBindings: readonly $String[];
+    readonly ExportedNames: readonly $String[];
+    readonly ExportEntries: readonly ExportEntryRecord[];
+    readonly TypeDeclarations: readonly [$EnumDeclaration];
+    readonly IsType: true;
+    readonly $name: $Identifier;
+    readonly $members: readonly $EnumMember[];
+    constructor(node: EnumDeclaration, parent: $NodeWithStatements, ctx: Context, idx: number, mos?: $$ESModuleOrScript, realm?: Realm, depth?: number, logger?: ILogger, path?: string);
+}
+export declare class $EnumMember implements I$Node {
+    readonly node: EnumMember;
+    readonly parent: $EnumDeclaration;
+    readonly ctx: Context;
+    readonly idx: number;
+    readonly mos: $$ESModuleOrScript;
+    readonly realm: Realm;
+    readonly depth: number;
+    readonly logger: ILogger;
+    readonly path: string;
+    get $kind(): SyntaxKind.EnumMember;
+    readonly $name: $$PropertyName;
+    readonly $initializer: $$AssignmentExpressionOrHigher | undefined;
+    constructor(node: EnumMember, parent: $EnumDeclaration, ctx: Context, idx: number, mos?: $$ESModuleOrScript, realm?: Realm, depth?: number, logger?: ILogger, path?: string);
+}
+//# sourceMappingURL=types.d.ts.map

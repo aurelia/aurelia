@@ -556,7 +556,7 @@ export const CustomElement: CustomElementKind = {
 };
 
 export type DecoratorFactoryMethod<TClass> = (target: Constructable<TClass>, propertyKey: string, descriptor: PropertyDescriptor) => void;
-export type ProcessContentHook = (node: INode, platform: IPlatform) => boolean;
+export type ProcessContentHook = (node: INode, platform: IPlatform) => boolean | void;
 
 type ProcessContentHookNames<TClass> = { [Method in keyof TClass]: TClass[Method] extends ProcessContentHook ? Method : never }[keyof TClass];
 

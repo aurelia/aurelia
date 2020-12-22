@@ -44,6 +44,7 @@ describe('processContent', function () {
         .start();
       app = au.root.controller.viewModel as App;
     } catch (e) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       error = e;
     }
 
@@ -72,9 +73,8 @@ describe('processContent', function () {
     {
       class MyElement {
         public static hookInvoked: boolean = false;
-        public static processContent(_node: INode, _p: IPlatform): boolean {
+        public static processContent(_node: INode, _p: IPlatform) {
           this.hookInvoked = true;
-          return true;
         }
       }
       yield new TestData(
@@ -86,6 +86,7 @@ describe('processContent', function () {
               name: 'my-element',
               isStrictBinding: true,
               template: `<div><au-slot></au-slot></div>`,
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
               processContent: MyElement.processContent.bind(MyElement)
             },
             MyElement
@@ -106,9 +107,8 @@ describe('processContent', function () {
       })
       class MyElement {
         public static hookInvoked: boolean = false;
-        public static processContent(_node: INode, _p: IPlatform): boolean {
+        public static processContent(_node: INode, _p: IPlatform) {
           this.hookInvoked = true;
-          return true;
         }
       }
       yield new TestData(
@@ -130,9 +130,8 @@ describe('processContent', function () {
       @processContent(MyElement.processContent)
       class MyElement {
         public static hookInvoked: boolean = false;
-        public static processContent(_node: INode, _p: IPlatform): boolean {
+        public static processContent(_node: INode, _p: IPlatform) {
           this.hookInvoked = true;
-          return true;
         }
       }
       yield new TestData(
@@ -145,7 +144,31 @@ describe('processContent', function () {
         }
       );
     }
+    {
+      // eslint-disable-next-line no-inner-declarations
+      function processContent1(this: typeof MyElement, _node: INode, _p: IPlatform) {
+        this.hookInvoked = true;
+      }
 
+      @processContent(processContent1)
+      @customElement({
+        name: 'my-element',
+        isStrictBinding: true,
+        template: `<div><au-slot></au-slot></div>`,
+      })
+      class MyElement {
+        public static hookInvoked: boolean = false;
+      }
+      yield new TestData(
+        'processContent hook can be configured using class-level decorator - standalone function',
+        `<my-element normal="foo" bold="bar"></my-element>`,
+        [MyElement],
+        {},
+        () => {
+          assert.strictEqual(MyElement.hookInvoked, true);
+        }
+      );
+    }
     {
       @processContent<typeof MyElement>('processContent')
       @customElement({
@@ -155,9 +178,8 @@ describe('processContent', function () {
       })
       class MyElement {
         public static hookInvoked: boolean = false;
-        public static processContent(_node: INode, _p: IPlatform): boolean {
+        public static processContent(_node: INode, _p: IPlatform) {
           this.hookInvoked = true;
-          return true;
         }
       }
       yield new TestData(
@@ -180,9 +202,8 @@ describe('processContent', function () {
       @processContent<typeof MyElement>('processContent')
       class MyElement {
         public static hookInvoked: boolean = false;
-        public static processContent(_node: INode, _p: IPlatform): boolean {
+        public static processContent(_node: INode, _p: IPlatform) {
           this.hookInvoked = true;
-          return true;
         }
       }
       yield new TestData(
@@ -206,9 +227,8 @@ describe('processContent', function () {
         public static hookInvoked: boolean = false;
 
         @processContent()
-        public static processContent(_node: INode, _p: IPlatform): boolean {
+        public static processContent(_node: INode, _p: IPlatform) {
           this.hookInvoked = true;
-          return true;
         }
       }
       yield new TestData(
@@ -231,7 +251,7 @@ describe('processContent', function () {
             name: 'my-element',
             isStrictBinding: true,
             template: `<div><au-slot></au-slot></div>`,
-            processContent(node: INode, p: IPlatform): boolean {
+            processContent(node: INode, p: IPlatform) {
               const el = (node as Element);
               const text = el.getAttribute('normal');
               const bold = el.getAttribute('bold');
@@ -253,7 +273,6 @@ describe('processContent', function () {
                 }
                 node.appendChild(projection);
               }
-              return true;
             }
           },
           class MyElement { }
@@ -264,28 +283,31 @@ describe('processContent', function () {
 
     yield new TestData(
       'default au-slot use-case',
-      `<my-element><span>foo</span><strong>bar</strong></my-element>`,
+      `<my-element><span>foo</span><span au-slot="s1">s1 projection</span><strong>bar</strong></my-element>`,
       [
         CustomElement.define(
           {
             name: 'my-element',
             isStrictBinding: true,
-            template: `<div><au-slot></au-slot></div>`,
-            processContent(node: INode, p: IPlatform): boolean {
+            template: `<div><au-slot></au-slot><au-slot name="s1"></au-slot></div>`,
+            processContent(node: INode, p: IPlatform) {
               const projection = p.document.createElement('template');
               projection.setAttribute('au-slot', '');
               const content = projection.content;
               for (const child of toArray(node.childNodes)) {
-                content.append(child);
+                if (!(child as Element).hasAttribute('au-slot')) {
+                  content.append(child);
+                }
               }
-              node.appendChild(projection);
-              return true;
+              if (content.childElementCount > 0) {
+                node.appendChild(projection);
+              }
             }
           },
           class MyElement { }
         )
       ],
-      { 'my-element': '<div><span>foo</span><strong>bar</strong></div>' },
+      { 'my-element': '<div><span>foo</span><strong>bar</strong><span>s1 projection</span></div>' },
     );
 
     const SpanCe = CustomElement.define(
@@ -452,8 +474,6 @@ describe('processContent', function () {
       'compilation can be instructed to be skipped - children - example of grabbing the inner template',
       `<my-element products.bind="[[1,'a'],[2,'b']]"></my-element>`,
       [
-        SpanCe,
-        StrongCe,
         CustomElement.define(
           {
             name: 'my-element',
@@ -541,7 +561,7 @@ describe('processContent', function () {
         this.activeTabId = tabId;
       }
 
-      public static processTabs(node: INode, p: IPlatform): boolean {
+      public static processTabs(node: INode, p: IPlatform) {
         const el = node as Element;
         const headerTemplate = p.document.createElement('template');
         headerTemplate.setAttribute('au-slot', 'header');
@@ -572,7 +592,6 @@ describe('processContent', function () {
         el.setAttribute('active-tab-id', '0');
 
         el.append(headerTemplate, contentTemplate);
-        return true;
       }
     }
 
@@ -592,6 +611,7 @@ describe('processContent', function () {
 
           // assert the bound delegate
           header.click();
+          // eslint-disable-next-line no-await-in-loop
           await platform.domWriteQueue.yield();
           for (let j = numTabs - 1; j > -1; j--) {
             assert.strictEqual(headers[j].classList.contains('active'), i === j, `header#${j} class`);

@@ -20,6 +20,41 @@ import { EndpointMatcher, IMatchEndpointsResult } from './endpoint-matcher.js';
 
 export type NextContentAction = 'skip' | 'reload' | 'swap' | '';
 
+/**
+ * The router uses routing scopes to organize all endpoints (viewports and viewport
+ * scopes) into a hierarchical structure. Each routing scope belongs to a parent/owner
+ * routing scope (except the root, that has no parent) and can in turn have several
+ * routing scopes that it owns. A routing scope always has a connected endpoint. (And
+ * an endpoint always has a connected routing scope.)
+ *
+ * Every navigtion/load instruction that the router processes is first tied to a
+ * routing scope, either a specified scope or the root scope. That routing scope is
+ * then asked to
+ * 1a) find routes (and their routing instructions) in the load instruction based on
+ * the endpoint and its content (configured routes), and/or
+ * 1b) find (direct) routing instructions in the load instruction.
+ *
+ * After that, the routing scope is used to
+ * 2) match each of its routing instructions to an endpoint (viewport or viewport scope), and
+ * 3) set the scope of the instruction to the next routing scopes ("children") and pass
+ * the instructions on for matching in their new routing scopes.
+ *
+ * Once (component) transitions start in endpoints, the routing scopes assist by
+ * 4) propagating routing hooks vertically through the hierarchy and disabling and
+ * enabling endpoints and their routing data (routes) during transitions.
+ *
+ * Finally, when a navigation is complete, the routing scopes helps
+ * 5) structure all existing routing instructions into a description of the complete
+ * state of all the current endpoints and their contents.
+ *
+ * The hierarchy of the routing scopes often follows the DOM hierarchy, but it's not
+ * a necessity; it's possible to have routing scopes that doesn't create their own
+ * "owning capable scope", and thus placing all their "children" under the same "parent"
+ * as themselves or for a routing scope to hoist itself up or down in the hierarchy and,
+ * for example, place itself as a "child" to a DOM sibling endpoint. (Scope self-hoisting
+ * will not be available for early-on alpha.)
+ */
+
 export class RoutingScope {
   public id: string = '.';
   public scope: RoutingScope;
@@ -38,31 +73,11 @@ export class RoutingScope {
     public readonly router: IRouter,
     public readonly hasScope: boolean,
     public owningScope: RoutingScope | null,
-    // public viewport: Viewport | null = null,
     public endpoint: Endpoint,
-    // public viewportScope: ViewportScope | null = null,
     public rootComponentType: CustomElementType | null = null, // temporary. Metadata will probably eliminate it
   ) {
     this.owningScope = owningScope ?? this;
     this.scope = this.hasScope ? this : this.owningScope.scope;
-    console.log('Created scope', this.endpoint instanceof Endpoint, this.endpoint instanceof Viewport, this.endpoint instanceof ViewportScope, this.endpoint);
-  }
-
-  public static isViewport(endpoint: Endpoint): endpoint is Viewport {
-    return endpoint instanceof Viewport;
-  }
-  public static isViewportScope(endpoint: Endpoint): endpoint is ViewportScope {
-    return endpoint instanceof ViewportScope;
-  }
-
-  public get pathname(): string {
-    return `${this.owningScope !== this ? this.owningScope!.pathname : ''}/${this.endpoint!.name}`;
-  }
-
-  public toString(recurse = false): string {
-    return `${this.owningScope !== this ? this.owningScope!.toString() : ''}/${this.endpoint!.toString()}` +
-      // eslint-disable-next-line prefer-template
-      `${recurse ? `\n` + this.children.map(child => child.toString(true)).join('') : ''}`;
   }
 
   public get isViewport(): boolean {
@@ -78,6 +93,16 @@ export class RoutingScope {
 
   public get passThroughScope(): boolean {
     return this.isViewportScope && (this.endpoint as ViewportScope).passThroughScope;
+  }
+
+  public get pathname(): string {
+    return `${this.owningScope !== this ? this.owningScope!.pathname : ''}/${this.endpoint!.name}`;
+  }
+
+  public toString(recurse = false): string {
+    return `${this.owningScope !== this ? this.owningScope!.toString() : ''}/${this.endpoint!.toString()}` +
+      // eslint-disable-next-line prefer-template
+      `${recurse ? `\n` + this.children.map(child => child.toString(true)).join('') : ''}`;
   }
 
   public get enabledChildren(): RoutingScope[] {
@@ -116,23 +141,6 @@ export class RoutingScope {
     }
     return this.parent.parentNextContentAction;
   }
-
-  // public getEnabledViewports(viewportScopes: RoutingScope[]): Record<string, Viewport> {
-  //   return viewportScopes
-  //     .filter(scope => !scope.isViewportScope)
-  //     .map(scope => scope.endpoint!)
-  //     .reduce<Record<string, Viewport>>(
-  //       (viewports, viewport) => {
-  //         viewports[viewport.name] = viewport;
-  //         return viewports;
-  //       },
-  //       {}
-  //     );
-  // }
-
-  // public getOwnedViewports(includeDisabled: boolean = false): Viewport[] {
-  //   return this.allViewports(includeDisabled).filter(viewport => viewport.owningScope === this);
-  // }
 
   public getOwnedScopes(includeDisabled: boolean = false): RoutingScope[] {
     const scopes = this.allScopes(includeDisabled).filter(scope => scope.owningScope === this);
@@ -214,41 +222,6 @@ export class RoutingScope {
     return endpoint as Viewport | ViewportScope;
   }
 
-  // public addViewport(name: string, connectedCE: IConnectedCustomElement | null, options: IViewportOptions = {}): Viewport {
-  //   let viewport: Viewport | null = this.getOwnedScopes()
-  //     .find(scope => scope.isViewport && scope.endpoint.name === name)?.endpoint as Viewport ?? null;
-  //   // let viewport: Viewport | null = this.getEnabledViewports(this.getOwnedScopes())[name];
-  //   // Each au-viewport element has its own Viewport
-  //   if (((connectedCE ?? null) !== null) &&
-  //     ((viewport?.connectedCE ?? null) !== null) &&
-  //     viewport.connectedCE !== connectedCE) {
-  //     viewport.enabled = false;
-  //     // viewport = this.getOwnedViewports(true).find(child => child.name === name && child.connectedCE === connectedCE) ?? null;
-  //     viewport = this.getOwnedScopes(true)
-  //       .find(child => child.isViewport &&
-  //         child.endpoint.name === name &&
-  //         child.endpoint.connectedCE === connectedCE)?.endpoint as Viewport
-  //       ?? null;
-  //     if ((viewport ?? null) !== null) {
-  //       viewport.enabled = true;
-  //     }
-  //   }
-  //   if ((viewport ?? null) === null) {
-  //     viewport = new Viewport(this.router, name, connectedCE, this.scope, !!options.scope, options);
-  //     this.addChild(viewport.connectedScope);
-  //   }
-  //   if ((connectedCE ?? null) !== null) {
-  //     viewport!.setConnectedCE(connectedCE!, options);
-  //   }
-  //   return viewport!;
-  // }
-  // public removeViewport(step: Step | null, viewport: Viewport, connectedCE: IConnectedCustomElement | null): boolean {
-  //   if (((connectedCE ?? null) !== null) || viewport.remove(step, connectedCE)) {
-  //     this.removeChild(viewport.connectedScope);
-  //     return true;
-  //   }
-  //   return false;
-  // }
   public removeEndpoint(step: Step | null, endpoint: Endpoint, connectedCE: IConnectedCustomElement | null): boolean {
     if (((connectedCE ?? null) !== null) || endpoint.removeEndpoint(step, connectedCE)) {
       this.removeChild(endpoint.connectedScope);
@@ -256,16 +229,6 @@ export class RoutingScope {
     }
     return false;
   }
-  // public addViewportScope(name: string, connectedCE: IConnectedCustomElement | null, options: IViewportScopeOptions = {}): ViewportScope {
-  //   const viewportScope = new ViewportScope(name, this.router, connectedCE, this.scope, true, null, options);
-  //   this.addChild(viewportScope.connectedScope);
-  //   return viewportScope;
-  // }
-  // public removeViewportScope(viewportScope: ViewportScope): boolean {
-  //   // viewportScope.remove();
-  //   this.removeChild(viewportScope.connectedScope);
-  //   return true;
-  // }
 
   public addChild(scope: RoutingScope): void {
     if (!this.children.some(vp => vp === scope)) {
@@ -299,10 +262,6 @@ export class RoutingScope {
     }
   }
 
-  // public allViewports(includeDisabled: boolean = false, includeReplaced: boolean = false): Viewport[] {
-  //   return this.allScopes(includeDisabled, includeReplaced).filter(scope => scope.isViewport).map(scope => scope.endpoint!);
-  // }
-
   public allScopes(includeDisabled: boolean = false, includeReplaced: boolean = false): RoutingScope[] {
     const scopes: RoutingScope[] = includeDisabled ? this.children.slice() : this.enabledChildren;
     for (const scope of scopes.slice()) {
@@ -323,25 +282,6 @@ export class RoutingScope {
         childInstructions !== null && childInstructions.length > 0 ? childInstructions : null;
     }
     return scopes.map(scope => scope.routingInstruction!);
-  }
-
-  public findMatchingRoute(path: string): FoundRoute | null {
-    if (this.isViewportScope && !this.passThroughScope) {
-      return this.findMatchingRouteInRoutes(path, this.endpoint.getRoutes());
-    }
-    if (this.isViewport) {
-      return this.findMatchingRouteInRoutes(path, this.endpoint!.getRoutes());
-    }
-
-    // TODO: Match specified names here
-
-    for (const child of this.enabledChildren) {
-      const found = child.findMatchingRoute(path);
-      if (found !== null) {
-        return found;
-      }
-    }
-    return null;
   }
 
   public canUnload(step: Step<boolean> | null): boolean | Promise<boolean> {
@@ -368,6 +308,25 @@ export class RoutingScope {
       ...this.children.map(child => child.endpoint !== null
         ? (step: Step<void>) => child.endpoint!.unload(step, recurse)
         : (step: Step<void>) => child.unload(step, recurse))) as Step<void>;
+  }
+
+  public findMatchingRoute(path: string): FoundRoute | null {
+    if (this.isViewportScope && !this.passThroughScope) {
+      return this.findMatchingRouteInRoutes(path, this.endpoint.getRoutes());
+    }
+    if (this.isViewport) {
+      return this.findMatchingRouteInRoutes(path, this.endpoint.getRoutes());
+    }
+
+    // TODO: Match specified names here
+
+    for (const child of this.enabledChildren) {
+      const found = child.findMatchingRoute(path);
+      if (found !== null) {
+        return found;
+      }
+    }
+    return null;
   }
 
   private findMatchingRouteInRoutes(path: string, routes: Route[] | null): FoundRoute | null {

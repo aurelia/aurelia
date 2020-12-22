@@ -198,8 +198,9 @@ jobs:
       - checkout_install
       - run: npm run build
       - run: npm run change-tsconfigs:invert
-      - run: npm run build:release
+      - run: npm run build
       - run: npm run change-tsconfigs:restore
+      - run: npm run change-package-refs:release -- commonjs
       - when:
           condition: << parameters.submodules >>
           steps:

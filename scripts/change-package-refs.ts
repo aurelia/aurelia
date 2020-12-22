@@ -18,13 +18,17 @@ const refs = {
 const fields = ['main', 'module'];
 
 (async function (): Promise<void> {
-  const ref = process.argv.slice(2)[0];
+  const [, , ref, type] = process.argv;
 
-  for (const { name, folder } of project.packages.filter(p => p.folder.includes('packages'))) {
+  for (const { name, folder } of project.packages.filter(p => !p.name.kebab.includes('_') && p.folder.includes('packages'))) {
     log(`changing package.json fields to ${ref} for: ${c.magentaBright(name.npm)}`);
     const pkg = await loadPackageJson(folder, name.kebab);
     for (const field of fields) {
       pkg[field] = refs[ref][field];
+    }
+    if (type) {
+      log(`changing package.json "type" to ${type} for: ${c.magentaBright(name.npm)}`);
+      pkg['type'] = type;
     }
     await savePackageJson(pkg, folder, name.kebab);
   }

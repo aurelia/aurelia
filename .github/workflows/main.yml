@@ -60,8 +60,9 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: npm run change-tsconfigs:invert
-      - run: npm run build:release
+      - run: npm run build
       - run: npm run change-tsconfigs:restore
+      - run: npm run change-package-refs:release -- commonjs
       - run: npm run test-node:${{matrix.suite}}
         working-directory: packages-cjs/__tests__
 

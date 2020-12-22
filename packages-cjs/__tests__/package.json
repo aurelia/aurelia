@@ -2,7 +2,6 @@
   "name": "@aurelia/__tests__cjs",
   "private": true,
   "license": "MIT",
-  "type": "module",
   "engines": {
     "node": ">=12.0.0",
     "npm": ">=6.1.0"
@@ -11,8 +10,7 @@
     "lint": "eslint --cache --ext .js,.ts .",
     "lint:ci": "eslint --cache --ext .js,.ts --quiet --report-unused-disable-directives .",
     "test-262": "node dist/cjs/__tests__/setup-test262.js",
-    "::mocha": "mocha --ui bdd --reporter min --colors --recursive --timeout 5000 --watch-extensions js dist/cjs/__tests__/setup-node.js",
-    "test-node": "mocha --ui bdd --reporter min --colors --recursive --timeout 5000 --exit dist/cjs/__tests__/setup-node.js dist/cjs/__tests__/1-kernel/**/*.spec.js dist/cjs/__tests__/2-runtime/**/*.spec.js dist/cjs/__tests__/3-runtime-html/**/*.spec.js dist/cjs/__tests__/fetch-client/**/*.spec.js dist/cjs/__tests__/i18n/**/*.spec.js dist/cjs/__tests__/router/**/*.spec.js dist/cjs/__tests__/validation/**/*.spec.js dist/cjs/__tests__/validation-html/**/*.spec.js dist/cjs/__tests__/validation-i18n/**/*.spec.js",
+    "::mocha": "mocha --ui bdd --reporter min --colors --recursive --timeout 5000 --watch-extensions js",
     "test-node:aot": "npm run ::mocha -- dist/cjs/__tests__/aot/**/*.spec.js",
     "test-node:plugin-conventions": "npm run ::mocha -- dist/cjs/__tests__/plugin-conventions/**/*.spec.js",
     "test-node:plugin-gulp": "npm run ::mocha -- dist/cjs/__tests__/plugin-gulp/**/*.spec.js",

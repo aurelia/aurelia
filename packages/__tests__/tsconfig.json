@@ -3,7 +3,7 @@
   "compilerOptions": {
     "allowSyntheticDefaultImports": true,
     "declarationDir": "dist",
-    "outDir": "dist/esnext",
+    "outDir": "dist/esm",
     "lib": ["esnext", "dom"],
     "resolveJsonModule": true,
     "forceConsistentCasingInFileNames": false,
@@ -16,8 +16,7 @@
 
     "types": [
       "node",
-      "mocha",
-      "webpack-env"
+      "mocha"
     ]
   },
   "include": ["."],

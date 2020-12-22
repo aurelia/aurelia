@@ -28,7 +28,7 @@ export class AwaitableMap<K, V> {
     this.map.delete(key);
   }
 
-  public await(key: K): V | Promise<V> {
+  public await(key: K): V | Promise<V | void> {
     if (!this.map.has(key)) {
       const openPromise = new OpenPromise<V>();
       // openPromise.promise = new Promise((res, rej) => {

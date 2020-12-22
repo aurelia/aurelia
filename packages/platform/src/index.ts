@@ -39,7 +39,6 @@ export class Platform<TGlobal extends typeof globalThis = typeof globalThis> {
 
   public constructor(g: TGlobal, overrides: Partial<Exclude<Platform, 'globalThis'>> = {}) {
     this.globalThis = g;
-    /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
     this.decodeURI = 'decodeURI' in overrides ? overrides.decodeURI! : g.decodeURI;
     this.decodeURIComponent = 'decodeURIComponent' in overrides ? overrides.decodeURIComponent! : g.decodeURIComponent;
     this.encodeURI = 'encodeURI' in overrides ? overrides.encodeURI! : g.encodeURI;
@@ -60,7 +59,6 @@ export class Platform<TGlobal extends typeof globalThis = typeof globalThis> {
 
     this.flushMacroTask = this.flushMacroTask.bind(this);
     this.macroTaskQueue = new TaskQueue(this, this.requestMacroTask.bind(this), this.cancelMacroTask.bind(this));
-    /* eslint-enable @typescript-eslint/no-unnecessary-type-assertion */
   }
 
   public static getOrCreate<TGlobal extends typeof globalThis = typeof globalThis>(
@@ -782,7 +780,7 @@ const defaultQueueTaskOptions: Required<QueueTaskOptions> = {
   suspend: false,
 };
 
-type PResolve<T> = (value?: T | PromiseLike<T>) => void;
+type PResolve<T> = (value: T | PromiseLike<T>) => void;
 type PReject<T = any> = (reason?: T) => void;
 let $resolve: PResolve<any>;
 let $reject: PReject;

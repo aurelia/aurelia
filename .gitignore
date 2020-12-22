@@ -14,9 +14,7 @@ TESTS-*.xml
 
 **/debug.log
 **/npm-debug.log
-**/lerna-debug.log
 
-test/cypress/integration/examples
 screenshots
 
 *.code-workspace

@@ -368,7 +368,7 @@ export async function loadPackageJson(...pathSegments: string[]): Promise<Packag
  */
 export async function savePackageJson(pkg: Package, ...pathSegments: string[]): Promise<any> {
   const path = join(project.path, ...pathSegments, 'package.json');
-  return new Promise((resolve, reject) => {
+  return new Promise<void>((resolve, reject) => {
     const str = JSON.stringify(pkg, null, 2);
     writeFile(path, str, { encoding: 'utf8' }, (err) => {
       if (err) {

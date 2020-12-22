@@ -1,9 +1,6 @@
-/* eslint-disable no-await-in-loop */
 /* eslint-disable no-console */
-/* eslint-disable no-undef */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { strict as assert } from 'assert';
 import { performance } from 'perf_hooks';
 import type { ElementHandle, Page } from 'playwright';
@@ -299,7 +296,6 @@ class ToggleDetails extends BaseMultiStateActMeasureAssert<readonly ['show', 'hi
   }
 
   protected getPreRunState(): Promise<ElementHandle<SVGElement | HTMLElement>[]> {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return this.page.$$('div.grid>address-viewer');
   }
 

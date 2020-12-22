@@ -16,6 +16,32 @@ const log = createLogger('change-tsconfigs');
     const backupPath = file.path.replace('.json', '.json.bak');
 
     switch (operation) {
+      case 'cjs': {
+        await file.readContent();
+
+        const json = JSON.parse(file.content.toString('utf8'));
+        json.compilerOptions.outDir = 'dist/cjs';
+        json.compilerOptions.module = 'commonjs';
+
+        log(`overwriting tsconfig: ${file.path}`);
+
+        await file.overwrite(Buffer.from(JSON.stringify(json, null, 2)));
+
+        break;
+      }
+      case 'esm': {
+        await file.readContent();
+
+        const json = JSON.parse(file.content.toString('utf8'));
+        json.compilerOptions.outDir = 'dist/esm';
+        json.compilerOptions.module = 'esnext';
+
+        log(`overwriting tsconfig: ${file.path}`);
+
+        await file.overwrite(Buffer.from(JSON.stringify(json, null, 2)));
+
+        break;
+      }
       case 'invert': {
         await file.readContent();
 

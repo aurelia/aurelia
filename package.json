@@ -65,6 +65,8 @@
     "lint:other:ci": "eslint --cache --ext .js,.ts --quiet --report-unused-disable-directives examples scripts test",
     "lint:packages": "lage run lint",
     "lint:packages:ci": "lage run lint:ci",
+    "change-tsconfigs:esm": "ts-node -P tsconfig.json scripts/change-tsconfigs.ts esm",
+    "change-tsconfigs:cjs": "ts-node -P tsconfig.json scripts/change-tsconfigs.ts cjs",
     "change-tsconfigs:invert": "ts-node -P tsconfig.json scripts/change-tsconfigs.ts invert",
     "change-tsconfigs:restore": "ts-node -P tsconfig.json scripts/change-tsconfigs.ts restore",
     "prepare-release": "ts-node -P tsconfig.json scripts/prepare-release.ts",

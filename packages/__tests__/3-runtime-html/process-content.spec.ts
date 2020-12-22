@@ -352,7 +352,7 @@ describe('processContent', function () {
     );
 
     function processContentWithNewBinding(compile: boolean) {
-      return function (node: INode, p: IPlatform): boolean {
+      return function (node: INode, _p: IPlatform): boolean {
         const el = (node as Element);
         const l1 = el.getAttribute('normal')?.length ?? 0;
         const l2 = el.getAttribute('bold')?.length ?? 0;
@@ -382,7 +382,7 @@ describe('processContent', function () {
     );
 
     yield new TestData(
-      'compilation can be instructed to be skipped - host',
+      'host compilation cannot be skipped', // as that does not make any sense
       `<my-element normal="foo" bold="bar"></my-element>`,
       [
         CustomElement.define(
@@ -396,11 +396,11 @@ describe('processContent', function () {
           class MyElement { }
         )
       ],
-      { 'my-element': '' },
+      { 'my-element': '6' },
     );
 
     yield new TestData(
-      'compilation can be instructed to be skipped - children',
+      'compilation can be instructed to be skipped - children - w/o additional host binding',
       `<my-element normal="foo" bold="bar"></my-element>`,
       [
         SpanCe,
@@ -415,7 +415,96 @@ describe('processContent', function () {
           class MyElement { }
         )
       ],
-      { 'my-element': '<template au-slot=""><span-ce value="foo"></span-ce><strong-ce value="bar"></strong-ce></template>' },
+      { 'my-element': '<template au-slot=""><span-ce value="foo"></span-ce><strong-ce value="bar"></strong-ce></template><div></div>' },
+    );
+
+    const rand = Math.random();
+    yield new TestData(
+      'compilation can be instructed to be skipped - children - with additional host binding',
+      `<my-element normal="foo" bold="bar"></my-element>`,
+      [
+        SpanCe,
+        StrongCe,
+        CustomElement.define(
+          {
+            name: 'my-element',
+            isStrictBinding: true,
+            template: '${rand}<div><au-slot></au-slot></div>',
+            bindables: { rand: { mode: BindingMode.default } },
+            processContent(node: INode, p: IPlatform) {
+              const retVal = processContentWithCe(false)(node, p);
+              (node as Element).setAttribute('rand.bind', rand.toString());
+              return retVal;
+            }
+          },
+          class MyElement { }
+        )
+      ],
+      { 'my-element': `<template au-slot=""><span-ce value="foo"></span-ce><strong-ce value="bar"></strong-ce></template>${rand}<div></div>` },
+    );
+
+    /**
+     * MDN template example: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/template#Examples
+     * Note that this is also possible without `processContent` hook, by adding the named template directly to the CE's own defined template.
+     * This example only shows that the new nodes added via the `processContent` hook are accessible from the lifecycle hooks as well.
+     */
+    yield new TestData(
+      'compilation can be instructed to be skipped - children - example of grabbing the inner template',
+      `<my-element products.bind="[[1,'a'],[2,'b']]"></my-element>`,
+      [
+        SpanCe,
+        StrongCe,
+        CustomElement.define(
+          {
+            name: 'my-element',
+            isStrictBinding: true,
+            template: `<table><thead><tr><td>UPC_Code</td><td>Product_Name</td></tr></thead><tbody></tbody></table>`,
+            bindables: { products: { mode: BindingMode.default } },
+            processContent(node: INode, p: IPlatform) {
+              /*
+              <template id="productrow">
+                <tr>
+                  <td></td>
+                  <td></td>
+                </tr>
+              </template>
+              */
+              const template = p.document.createElement('template');
+              template.setAttribute('id', 'productrow');
+              const tr = p.document.createElement('tr');
+              tr.append(p.document.createElement('td'), p.document.createElement('td'));
+              template.content.append(tr);
+              node.appendChild(template);
+              return false;
+            }
+          },
+          class MyElement {
+            public static inject = [IPlatform];
+            public products: [number, string][];
+            public constructor(private readonly platform: IPlatform) { }
+
+            public attaching() {
+              const p = this.platform;
+              const tbody = p.document.querySelector('tbody');
+              const template = p.document.querySelector<HTMLTemplateElement>('#productrow');
+
+              for (const [code, name] of this.products) {
+                // Clone the new row and insert it into the table
+                const clone = template.content.cloneNode(true) as Element;
+                const td = clone.querySelectorAll('td');
+                td[0].textContent = code.toString();
+                td[1].textContent = name;
+
+                tbody.appendChild(clone);
+              }
+            }
+          }
+        )
+      ],
+      { 'my-element': '<template id="productrow"><tr><td></td><td></td></tr></template><table><thead><tr><td>UPC_Code</td><td>Product_Name</td></tr></thead><tbody><tr><td>1</td><td>a</td></tr><tr><td>2</td><td>b</td></tr></tbody></table>' },
+      function (ctx) {
+        assert.visibleTextEqual(ctx.host, 'UPC_CodeProduct_Name1a2b');
+      }
     );
 
   }

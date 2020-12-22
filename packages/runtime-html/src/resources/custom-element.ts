@@ -19,7 +19,6 @@ import {
   IResolver,
   emptyArray,
   Writable,
-  IPlatform,
 } from '@aurelia/kernel';
 import {
   registerAliases,
@@ -37,6 +36,7 @@ import { Controller } from '../templating/controller.js';
 import { Watch } from '../watch.js';
 import type { ICustomElementViewModel, ICustomElementController } from '../templating/controller.js';
 import type { IWatchDefinition } from '../watch.js';
+import { IPlatform } from '../platform.js';
 
 export type PartialCustomElementDefinition = PartialResourceDefinition<{
   readonly cache?: '*' | number;

@@ -3,7 +3,7 @@
   "compilerOptions": {
     "declarationDir": "dist",
     "lib": ["esnext", "dom"],
-    "outDir": "dist/esnext",
+    "outDir": "dist/cjs",
     "rootDir": "src"
   },
   "include": ["src"]

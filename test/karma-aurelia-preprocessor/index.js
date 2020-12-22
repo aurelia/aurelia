@@ -28,7 +28,7 @@ function createAureliaPreprocessor(karmaConfig, logger) {
             switch (ext) {
               case '.html':
               case '.css': {
-                const requestedFilePath = path.resolve(path.dirname(file.path), specifier).replace(/\\/g, '/').replace('/dist/esnext/__tests__', '');
+                const requestedFilePath = path.resolve(path.dirname(file.path), specifier).replace(/\\/g, '/').replace('/dist/esm/__tests__', '');
 
                 log.debug(`Inlining content from import '${specifier}' (resolved: '${requestedFilePath}')`);
 
@@ -83,7 +83,7 @@ function createAureliaPreprocessor(karmaConfig, logger) {
                 let newSpecifier = specifier;
                 if (specifier.startsWith('@aurelia/')) {
                   const packageName = specifier.slice(9 /* '@aurelia/'.length */);
-                  const packageEntryFilePath = path.join(basePath, `base/packages/${packageName}/dist/esnext/index.js`);
+                  const packageEntryFilePath = path.join(basePath, `base/packages/${packageName}/dist/esm/index.js`);
                   newSpecifier = path.relative(file.path, packageEntryFilePath).replace(/\\/g, '/');
                 } else {
                   switch (specifier) {

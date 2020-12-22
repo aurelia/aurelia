@@ -1,8 +1,8 @@
 {
   "name": "@aurelia/metadata",
   "version": "0.8.0",
-  "main": "dist/esnext/index.js",
-  "module": "dist/esnext/index.js",
+  "main": "dist/esm/index.js",
+  "module": "dist/esm/index.js",
   "types": "dist/index.d.ts",
   "typings": "dist/index.d.ts",
   "license": "MIT",

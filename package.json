@@ -57,7 +57,7 @@
     "build:release:full": "npm run build:release && npm run change-tsconfigs:overwrite:umd && npm run build:release && npm run change-tsconfigs:restore",
     "change-package-refs:dev": "ts-node -P tsconfig.json scripts/change-package-refs.ts dev",
     "change-package-refs:release": "ts-node -P tsconfig.json scripts/change-package-refs.ts release",
-    "clean": "rimraf packages/*/dist dist test/benchmarking-apps/*/dist",
+    "clean": "rimraf dist packages/*/dist packages-cjs/*/dist test/*/dist test/benchmarking-apps/*/dist examples/*/dist",
     "clean:tsconfig-build-cache": "rimraf packages/*/dist/tsconfig.tsbuildinfo",
     "lint": "npm run lint:packages && npm run lint:other",
     "lint:other": "eslint --cache --ext .js,.ts examples scripts test",

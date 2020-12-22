@@ -3,7 +3,7 @@
   "compilerOptions": {
     "allowSyntheticDefaultImports": true,
     "declarationDir": "dist",
-    "outDir": "dist/esnext",
+    "outDir": "dist/cjs",
     "lib": ["esnext", "dom"],
     "resolveJsonModule": true,
     "forceConsistentCasingInFileNames": false,

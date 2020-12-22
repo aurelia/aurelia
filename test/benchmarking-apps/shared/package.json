@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "description": "Shared classes for the benchmarking apps",
-  "main": "dist/esnext/index.js",
-  "module": "dist/esnext/index.js",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
   "typings": "dist/types/index.d.ts",
   "scripts": {
     "build": "tsc -b",

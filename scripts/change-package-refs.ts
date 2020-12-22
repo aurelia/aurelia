@@ -6,12 +6,12 @@ const log = createLogger('change-package-refs');
 
 const refs = {
   dev: {
-    'main': 'dist/esnext/index.js',
-    'module': 'dist/esnext/index.js',
+    'main': 'dist/esm/index.js',
+    'module': 'dist/esm/index.js',
   },
   release: {
-    'main': 'dist/umd/index.js',
-    'module': 'dist/esnext/index.js',
+    'main': 'dist/cjs/index.js',
+    'module': 'dist/esm/index.js',
   }
 };
 

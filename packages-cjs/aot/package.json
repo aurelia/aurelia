@@ -1,8 +1,8 @@
 {
   "name": "@aurelia/aot",
   "version": "0.8.0",
-  "main": "dist/esnext/index.js",
-  "module": "dist/esnext/index.js",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
   "type": "commonjs",
   "types": "dist/index.d.ts",
   "typings": "dist/index.d.ts",
@@ -31,7 +31,7 @@
     "lint:ci": "eslint --cache --ext .js,.ts --quiet --report-unused-disable-directives src/",
     "build": "tsc -b",
     "dev": "tsc -b -w --preserveWatchOutput",
-    "test": "node -r esm dist/esnext/test.js",
+    "test": "node dist/cjs/test.js",
     "publish:dev": "npm publish --tag dev",
     "publish:latest": "npm publish --tag latest"
   },

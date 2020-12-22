@@ -155,7 +155,7 @@ commands:
 # # # # # # # # # # # # # # # #
 jobs:
 
-  unit_test:
+  unit_test_esm:
     parameters:
       coverage:
         type: boolean
@@ -163,23 +163,10 @@ jobs:
       npm_command:
         type: string
         default: "test"
-      e:
-        type: executor
-      submodules:
-        type: boolean
-        default: false
-    executor: << parameters.e >>
+    executor: docker-circleci
     steps:
       - checkout_install
       - run: npm run build
-      - when:
-          condition: << parameters.submodules >>
-          steps:
-            - run:
-                name: "Pull Submodules"
-                command: |
-                  git submodule init
-                  git submodule update --remote
       - run:
           name: "Run unit tests"
           command: |
@@ -197,6 +184,35 @@ jobs:
                 path: packages/__tests__/coverage
             - store_artifacts:
                 path: packages/__tests__/coverage
+
+  unit_test_cjs:
+    parameters:
+      npm_command:
+        type: string
+        default: "test"
+      submodules:
+        type: boolean
+        default: false
+    executor: docker-circleci
+    steps:
+      - checkout_install
+      - run: npm run build
+      - run: npm run change-tsconfigs:invert
+      - run: npm run build:release
+      - run: npm run change-tsconfigs:restore
+      - when:
+          condition: << parameters.submodules >>
+          steps:
+            - run:
+                name: "Pull Submodules"
+                command: |
+                  git submodule init
+                  git submodule update --remote
+      - run:
+          name: "Run unit tests"
+          command: |
+            cd packages-cjs/__tests__
+            npm run << parameters.npm_command >>
 
   lint_packages:
     executor: docker-circleci
@@ -347,27 +363,26 @@ workflows:
   # Triggered by push to master or topic branches
   build_test:
     jobs:
-      - unit_test:
+      - unit_test_esm:
           <<: *filter_ignore_develop_release
-          name: unit_test_chrome
-          e: docker-circleci
+          name: unit_test_esm_chrome
           npm_command: "test-chrome"
-      - unit_test:
+      - unit_test_esm:
          <<: *filter_ignore_develop_release
-         name: unit_test_firefox
-         e: docker-circleci
+         name: unit_test_esm_firefox
          npm_command: "test-firefox"
          coverage: false
-      - unit_test:
+      - unit_test_esm:
          <<: *filter_ignore_develop_release
-         name: unit_test_node
-         e: docker-circleci
+         name: unit_test_esm_node
          npm_command: "test-node"
          coverage: false
+      - unit_test_cjs:
+         <<: *filter_ignore_develop_release
+         npm_command: "test-node"
       #- unit_test:
       #   <<: *filter_ignore_develop_release
       #   name: test_test262
-      #   e: docker-circleci
       #   npm_command: "test-262"
       #   coverage: false
       #   submodules: true
@@ -391,9 +406,10 @@ workflows:
           <<: *filter_only_master
           name: merge_and_dist_master
           requires:
-            - unit_test_chrome
-            - unit_test_firefox
-            - unit_test_node
+            - unit_test_esm_chrome
+            - unit_test_esm_firefox
+            - unit_test_esm_node
+            - unit_test_cjs
             #- test_test262
             - lint_packages
             - jit-webpack-conventions-ts
@@ -407,9 +423,10 @@ workflows:
           <<: *filter_only_topic
           name: merge_and_dist_topic
           requires:
-            - unit_test_chrome
-            - unit_test_firefox
-            - unit_test_node
+            - unit_test_esm_chrome
+            - unit_test_esm_firefox
+            - unit_test_esm_node
+            - unit_test_cjs
             - lint_packages
             - jit-webpack-conventions-ts
             - jit-webpack-vanilla-ts
@@ -428,27 +445,26 @@ workflows:
   # Triggered by push to tag
   build_test_push_release:
     jobs:
-      - unit_test:
+      - unit_test_esm:
           <<: *filter_only_tag
-          name: unit_test_chrome
-          e: docker-circleci
-          npm_command: "test-chrome:verbose"
-      - unit_test:
+          name: unit_test_esm_chrome
+          npm_command: "test-chrome"
+      - unit_test_esm:
          <<: *filter_only_tag
-         name: unit_test_firefox
-         e: docker-circleci
-         npm_command: "test-firefox:verbose"
+         name: unit_test_esm_firefox
+         npm_command: "test-firefox"
          coverage: false
-      - unit_test:
+      - unit_test_esm:
          <<: *filter_only_tag
-         name: unit_test_node
-         e: docker-circleci
-         npm_command: "test-node:verbose"
+         name: unit_test_esm_node
+         npm_command: "test-node"
          coverage: false
+      - unit_test_cjs:
+         <<: *filter_only_tag
+         npm_command: "test-node"
       #- unit_test:
       #   <<: *filter_only_tag
       #   name: test_test262
-      #   e: docker-circleci
       #   npm_command: "test-262"
       #   coverage: false
       #   submodules: true
@@ -457,9 +473,10 @@ workflows:
       - merge_and_dist:
           <<: *filter_only_tag
           requires:
-            - unit_test_chrome
-            - unit_test_firefox
-            - unit_test_node
+            - unit_test_esm_chrome
+            - unit_test_esm_firefox
+            - unit_test_esm_node
+            - unit_test_cjs
             #- test_test262
             - lint_packages
           from: $CIRCLE_TAG

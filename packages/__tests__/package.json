@@ -15,8 +15,6 @@
     "test-node:kernel": "npm run ::mocha -- dist/esm/__tests__/1-kernel/**/*.spec.js",
     "test-node:runtime": "npm run ::mocha -- dist/esm/__tests__/2-runtime/**/*.spec.js",
     "test-node:runtime-html": "npm run ::mocha -- dist/esm/__tests__/3-runtime-html/**/*.spec.js",
-    "test-node:route-recognizer": "npm run ::mocha -- dist/esm/__tests__/router/route-recognizer.spec.js",
-    "test-node:scheduler": "npm run ::mocha -- dist/esm/__tests__/2-runtime/scheduler.spec.js",
     "test-node:router": "npm run ::mocha -- dist/esm/__tests__/router/*.spec.js",
     "test-node:i18n": "cross-env NODE_ICU_DATA=../../node_modules/full-icu mocha --ui bdd --reporter spec --colors --recursive --timeout 5000 --watch-extensions js dist/esm/__tests__/setup-node.js dist/esm/__tests__/i18n/**/*.spec.js",
     "test-node:validation": "npm run ::mocha -- dist/esm/__tests__/validation*/**/*.spec.js",

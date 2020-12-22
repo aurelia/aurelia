@@ -11,6 +11,7 @@
     "lint:ci": "eslint --cache --ext .js,.ts --quiet --report-unused-disable-directives .",
     "test-262": "node dist/cjs/__tests__/setup-test262.js",
     "::mocha": "mocha --ui bdd --reporter min --colors --recursive --timeout 5000 --watch-extensions js",
+    "test-node": "npm run ::mocha -- dist/cjs/__tests__/**/*.spec.js",
     "test-node:aot": "npm run ::mocha -- dist/cjs/__tests__/aot/**/*.spec.js",
     "test-node:plugin-conventions": "npm run ::mocha -- dist/cjs/__tests__/plugin-conventions/**/*.spec.js",
     "test-node:plugin-gulp": "npm run ::mocha -- dist/cjs/__tests__/plugin-gulp/**/*.spec.js",

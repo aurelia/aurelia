@@ -21,20 +21,12 @@ jobs:
     strategy:
       matrix:
         suite: [
-          "aot",
-          "babel-jest",
-          "i18n",
           "kernel",
-          "plugin-conventions",
-          "plugin-gulp",
-          "router",
-          "route-recognizer",
           "runtime",
           "runtime-html",
-          "scheduler",
-          "ts-jest",
+          "router",
+          "i18n",
           "validation",
-          "webpack-loader",
         ]
     runs-on: ubuntu-latest
     steps:
@@ -46,6 +38,32 @@ jobs:
       - run: npm run build
       - run: npm run test-node:${{matrix.suite}}
         working-directory: packages/__tests__
+
+  node-cjs:
+    timeout-minutes: 10
+    strategy:
+      matrix:
+        suite: [
+          "aot",
+          "babel-jest",
+          "plugin-conventions",
+          "plugin-gulp",
+          "ts-jest",
+          "webpack-loader",
+        ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 15
+      - run: npm ci
+      - run: npm run build
+      - run: npm run change-tsconfigs:invert
+      - run: npm run build:release
+      - run: npm run change-tsconfigs:restore
+      - run: npm run test-node:${{matrix.suite}}
+        working-directory: packages-cjs/__tests__
 
   browsers:
     timeout-minutes: 15

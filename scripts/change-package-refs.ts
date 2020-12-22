@@ -27,8 +27,13 @@ const fields = ['main', 'module'];
       pkg[field] = refs[ref][field];
     }
     if (type) {
-      log(`changing package.json "type" to ${type} for: ${c.magentaBright(name.npm)}`);
-      pkg['type'] = type;
+      if (type === 'none') {
+        log(`removing the package.json "type" field for: ${c.magentaBright(name.npm)}`);
+        pkg['type'] = void 0;
+      } else {
+        log(`changing package.json "type" to ${type} for: ${c.magentaBright(name.npm)}`);
+        pkg['type'] = type;
+      }
     }
     await savePackageJson(pkg, folder, name.kebab);
   }

@@ -22,6 +22,7 @@
     "packages/validation",
     "packages/validation-html",
     "packages/validation-i18n",
+    "packages-cjs/__tests__",
     "packages-cjs/aot",
     "packages-cjs/plugin-gulp",
     "packages-cjs/plugin-parcel",

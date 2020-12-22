@@ -1,0 +1,58 @@
+{
+  "name": "@aurelia/__tests__cjs",
+  "private": true,
+  "license": "MIT",
+  "engines": {
+    "node": ">=12.0.0",
+    "npm": ">=6.1.0"
+  },
+  "scripts": {
+    "lint": "eslint --cache --ext .js,.ts .",
+    "lint:ci": "eslint --cache --ext .js,.ts --quiet --report-unused-disable-directives .",
+    "test-262": "node dist/cjs/__tests__/setup-test262.js",
+    "::mocha": "mocha --ui bdd --reporter min --colors --recursive --timeout 5000 --watch-extensions js",
+    "test-node": "npm run ::mocha -- dist/cjs/__tests__/**/*.spec.js",
+    "test-node:aot": "npm run ::mocha -- dist/cjs/__tests__/aot/**/*.spec.js",
+    "test-node:plugin-conventions": "npm run ::mocha -- dist/cjs/__tests__/plugin-conventions/**/*.spec.js",
+    "test-node:plugin-gulp": "npm run ::mocha -- dist/cjs/__tests__/plugin-gulp/**/*.spec.js",
+    "test-node:webpack-loader": "npm run ::mocha -- dist/cjs/__tests__/webpack-loader/**/*.spec.js",
+    "test-node:babel-jest": "npm run ::mocha -- dist/cjs/__tests__/babel-jest/**/*.spec.js",
+    "test-node:ts-jest": "npm run ::mocha -- dist/cjs/__tests__/ts-jest/**/*.spec.js",
+    "build": "tsc --build",
+    "dev": "tsc --build -w --preserveWatchOutput"
+  },
+  "dependencies": {
+    "@aurelia/aot": "0.8.0",
+    "@aurelia/babel-jest": "0.8.0",
+    "@aurelia/kernel": "0.8.0",
+    "@aurelia/metadata": "0.8.0",
+    "@aurelia/platform": "0.8.0",
+    "@aurelia/platform-browser": "0.8.0",
+    "@aurelia/plugin-conventions": "0.8.0",
+    "@aurelia/plugin-gulp": "0.8.0",
+    "@aurelia/runtime-html": "0.8.0",
+    "@aurelia/runtime": "0.8.0",
+    "@aurelia/testing": "0.8.0",
+    "@aurelia/ts-jest": "0.8.0",
+    "@aurelia/webpack-loader": "0.8.0",
+    "@jest/transform": "^26.3.0",
+    "@jest/types": "^26.3.0",
+    "i18next": "^17.0.0",
+    "jsdom": "^15.2.1",
+    "typescript": "^4.0.3",
+    "vinyl": "^2.2.0"
+  },
+  "devDependencies": {
+    "@types/jsdom": "^16.2.4",
+    "@types/karma": "^5.0.0",
+    "@types/mocha": "^8.0.3",
+    "@types/node": "^14.11.5",
+    "@types/vinyl": "^2.0.4",
+    "mocha": "^8.1.3",
+    "source-map": "^0.7.3",
+    "ts-node": "^9.0.0",
+    "tsconfig-paths": "^3.9.0",
+    "vinyl": "^2.2.0"
+  },
+  "version": "0.8.0"
+}

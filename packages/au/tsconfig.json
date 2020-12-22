@@ -5,7 +5,7 @@
     "lib": ["esnext"],
     "rootDir": "src",
     "declarationDir": "dist",
-    "outDir": "dist/esnext"
+    "outDir": "dist/esm"
   },
   "include": ["src"]
 }

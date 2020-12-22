@@ -58,16 +58,14 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer {
       this.options.useUrlFragmentHash = options.useUrlFragmentHash;
     }
     this.pendingCalls.start({ platform: this.platform, allowedExecutionCostWithinTick: this.allowedExecutionCostWithinTick });
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    this.window.addEventListener('popstate', this.handlePopstate);
+    this.window.addEventListener('popstate', this.handlePopstate as (e: PopStateEvent) => void);
   }
 
   public stop(): void {
     if (!this.isActive) {
       throw new Error('Browser navigation has not been started');
     }
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    this.window.removeEventListener('popstate', this.handlePopstate);
+    this.window.removeEventListener('popstate', this.handlePopstate as (e: PopStateEvent) => void);
     this.pendingCalls.stop();
     this.options = { useUrlFragmentHash: true, callback: () => { return; } };
     this.isActive = false;

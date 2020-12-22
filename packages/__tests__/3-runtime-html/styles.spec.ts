@@ -13,7 +13,6 @@ import {
   cssModules,
   IShadowDOMGlobalStyles,
   IShadowDOMStyles,
-  FragmentNodeSequence,
   LifecycleFlags,
 } from '@aurelia/runtime-html';
 import { assert, PLATFORM, TestContext } from '@aurelia/testing';
@@ -210,7 +209,7 @@ describe('Styles', function () {
       const component = new FooBar();
       const controller = Controller.forCustomElement(null, ctx.container, component, host, null, null);
 
-      controller.activate(controller, null, LifecycleFlags.none);
+      void controller.activate(controller, null, LifecycleFlags.none);
 
       assert.strictEqual(controller.shadowRoot.firstElementChild.innerHTML, css);
     });

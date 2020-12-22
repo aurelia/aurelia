@@ -1,4 +1,3 @@
-/* eslint-disable no-template-curly-in-string */
 import { Class, DI, Protocol, Metadata, ILogger, IServiceLocator } from '@aurelia/kernel';
 import {
   BindingType,

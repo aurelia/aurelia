@@ -63,7 +63,7 @@ import {
   TypedArray,
 } from './util.js';
 
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion, @typescript-eslint/ban-types */
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/ban-types */
 
 export const enum IterationType {
   noIterator = 0,

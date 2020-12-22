@@ -18,7 +18,6 @@ export class AuConfigurationOptions {
   /** @internal */
   public toString() {
     const indent = space.repeat(2);
-    // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
     return 'au server'
       + `${indent}Starts the dev server`
       + this.server.toString(indent.repeat(2));

@@ -1,4 +1,3 @@
-/* eslint-disable no-fallthrough */
 import { IContainer, Writable } from '@aurelia/kernel';
 import { Controller, LifecycleFlags, IHydratedController, ICustomElementController, ICustomElementViewModel } from '@aurelia/runtime-html';
 import { IRouteableComponent, RouteableComponentType, ReentryBehavior, NavigationInstruction } from './interfaces.js';

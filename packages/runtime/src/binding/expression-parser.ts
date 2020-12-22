@@ -313,7 +313,6 @@ const $this = AccessThisExpression.$this;
 const $host = AccessThisExpression.$host;
 const $parent = AccessThisExpression.$parent;
 
-/* eslint-disable @typescript-eslint/indent */
 export const enum BindingType {
                 None = 0,
     IgnoreCustomAttr = 0b100000000_0000,

@@ -5,7 +5,7 @@
     "strict": true,
     "lib": ["esnext", "DOM"],
 
-    "target": "es2018",
+    "target": "es2020",
     "module": "commonjs",
     "moduleResolution": "node",
     "skipDefaultLibCheck": true,

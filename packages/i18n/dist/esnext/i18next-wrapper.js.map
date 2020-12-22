@@ -1,1 +1,0 @@
-{"version":3,"file":"i18next-wrapper.js","sourceRoot":"","sources":["../../src/i18next-wrapper.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,EAAE,EAAE,MAAM,iBAAiB,CAAC;AACrC,OAAO,OAAO,MAAM,SAAS,CAAC;AAE9B,MAAM,CAAC,MAAM,WAAW,GAAG,EAAE,CAAC,eAAe,CAAiB,gBAAgB,CAAC,CAAC;AAEhF;;GAEG;AACH,MAAM,OAAO,cAAc;IAA3B;QACS,YAAO,GAAiB,OAAO,CAAC;IACzC,CAAC;CAAA"}

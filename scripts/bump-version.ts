@@ -1,6 +1,6 @@
 import { readFileSync, writeFileSync } from 'fs';
 import { c, createLogger } from './logger';
-import { loadPackageJson, savePackageJson } from './package.json';
+import { loadPackageJson, Package, savePackageJson } from './package.json';
 import project from './project';
 import { getGitLog } from './git';
 import { getCurrentVersion, getNewVersion } from './get-version-info';
@@ -23,13 +23,13 @@ export async function updateDependencyVersions(newVersion: string): Promise<void
     }
     await savePackageJson(pkg, 'packages', name.kebab);
   }
-  const lernaJson = JSON.parse(readFileSync(project['lerna.json'].path, { encoding: 'utf8' }));
-  lernaJson.version = newVersion;
-  writeFileSync(project['lerna.json'].path, `${JSON.stringify(lernaJson, null, 2)}\n`, { encoding: 'utf8' });
+  const pkgJson = JSON.parse(readFileSync(project['package.json'].path, { encoding: 'utf8' })) as Package;
+  pkgJson.version = newVersion;
+  writeFileSync(project['package.json'].path, `${JSON.stringify(pkgJson, null, 2)}\n`, { encoding: 'utf8' });
 }
 
 export async function getRecommendedVersionBump(): Promise<'minor' | 'patch'> {
-  const gitLog = await getGitLog(`v${project.lerna.version}`, 'HEAD', project.path);
+  const gitLog = await getGitLog(`v${project.pkg.version}`, 'HEAD', project.path);
   const lines = gitLog.split('\n');
   if (lines.some(line => /feat(\([^)]+\))?:/.test(line))) {
     return 'minor';

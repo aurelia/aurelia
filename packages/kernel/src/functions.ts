@@ -330,7 +330,6 @@ export function mergeDistinct<T>(
   let item;
   while (len2-- > 0) {
     item = arr2[len2];
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (lookup[item as unknown as string] === void 0) {
       arr3.push(item);
       lookup[item as unknown as string] = true;
@@ -349,7 +348,6 @@ export function bound<T extends Function>(target: Object, key: string | symbol, 
     configurable: true,
     enumerable: descriptor.enumerable,
     get(): T {
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
       const boundFn = descriptor.value!.bind(this);
       Reflect.defineProperty(this, key, {
         value: boundFn,
@@ -410,7 +408,6 @@ export function firstDefined<T>(...values: readonly (T | undefined)[]): T {
 
 export const getPrototypeChain = (function () {
   const functionPrototype = Function.prototype;
-  // eslint-disable-next-line @typescript-eslint/unbound-method
   const getPrototypeOf = Object.getPrototypeOf;
 
   const cache = new WeakMap<Constructable, [Constructable, ...Constructable[]]>();

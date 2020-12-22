@@ -280,7 +280,6 @@ function getScopeString(scope: readonly string[], colorOptions: ColorOptions): s
   if (colorOptions === ColorOptions.noColors) {
     return scope.join('.');
   }
-  // eslint-disable-next-line @typescript-eslint/unbound-method
   return scope.map(format.cyan).join('.');
 }
 

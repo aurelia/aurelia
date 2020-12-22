@@ -1,5 +1,5 @@
 import { DI, LogLevel as $LogLevel } from '@aurelia/kernel';
-import { IHttpContext } from './http-context';
+import { IHttpContext } from './http-context.js';
 
 export const enum Encoding {
   utf8 = 'utf8',

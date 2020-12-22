@@ -4,10 +4,10 @@ import * as https from 'https';
 import { Http2Server as $Http2Server, createSecureServer, Http2ServerRequest, Http2ServerResponse } from 'http2';
 
 import { ILogger, bound, all, IContainer } from '@aurelia/kernel';
-import { IHttpServer, IHttpServerOptions, IRequestHandler, StartOutput, IHttp2FileServer } from './interfaces';
+import { IHttpServer, IHttpServerOptions, IRequestHandler, StartOutput, IHttp2FileServer } from './interfaces.js';
 import { AddressInfo } from 'net';
-import { HTTPStatusCode, readBuffer } from './http-utils';
-import { HttpContext } from './http-context';
+import { HTTPStatusCode, readBuffer } from './http-utils.js';
+import { HttpContext } from './http-context.js';
 
 export class HttpServer implements IHttpServer {
   private server: Server | null = null;

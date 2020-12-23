@@ -306,7 +306,8 @@ export class HttpClient {
           // TODO: Fix this, as it violates `strictBindCallApply`.
           return chain.then(
             successHandler ? (value => successHandler.call(interceptor, value, ...interceptorArgs)) : identity,
-            errorHandler ? (reason => errorHandler.call(interceptor, reason, ...interceptorArgs)) : thrower);
+            errorHandler ? (reason => errorHandler.call(interceptor, reason, ...interceptorArgs)) : thrower
+          ) as Promise<Request | Response>;
         },
         Promise.resolve(input)
       );

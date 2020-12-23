@@ -1,0 +1,18 @@
+{
+  "extends": "../tsconfig-build.json",
+  "compilerOptions": {
+    "composite": false,
+    "declaration": false,
+    "declarationMap": false,
+    "preserveConstEnums": true,
+    "strict": true,
+    "rootDir": "src",
+    "lib": [
+      "dom",
+      "esnext"
+    ]
+  },
+  "include": [
+    "src"
+  ]
+}

@@ -33,7 +33,8 @@
     "build": "tsc -b",
     "dev": "tsc -b -w --preserveWatchOutput",
     "publish:dev": "npm publish --tag dev",
-    "publish:latest": "npm publish --tag latest"
+    "publish:latest": "npm publish --tag latest",
+    "rollup": "rollup -c"
   },
   "publishConfig": {
     "access": "public"
@@ -44,13 +45,15 @@
     "@aurelia/metadata": "0.8.0",
     "@aurelia/platform": "0.8.0",
     "@aurelia/platform-browser": "0.8.0",
-    "@aurelia/runtime-html": "0.8.0",
     "@aurelia/runtime": "0.8.0",
-    "@aurelia/validation-html": "0.8.0",
+    "@aurelia/runtime-html": "0.8.0",
     "@aurelia/validation": "0.8.0",
+    "@aurelia/validation-html": "0.8.0",
     "i18next": "^17.0.0"
   },
   "devDependencies": {
+    "@rollup/plugin-typescript": "^6.1.0",
+    "rollup": "^2.33.2",
     "typescript": "^4.0.3"
   }
 }

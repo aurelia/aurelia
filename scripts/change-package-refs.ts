@@ -28,8 +28,12 @@ const fields = ['main', 'module'];
     }
     if (type) {
       if (type === 'none') {
-        log(`removing the package.json "type" field for: ${c.magentaBright(name.npm)}`);
-        pkg['type'] = void 0;
+        if (pkg.bin) {
+          log(`saw a 'bin' field, so leaving the package.json "type" field as-is for: ${c.magentaBright(name.npm)}`);
+        } else {
+          log(`removing the package.json "type" field for: ${c.magentaBright(name.npm)}`);
+          pkg['type'] = void 0;
+        }
       } else {
         log(`changing package.json "type" to ${type} for: ${c.magentaBright(name.npm)}`);
         pkg['type'] = type;

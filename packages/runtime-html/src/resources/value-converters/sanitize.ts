@@ -12,7 +12,7 @@ export interface ISanitizer {
   sanitize(input: string): string;
 }
 
-export const ISanitizer = DI.createInterface<ISanitizer>('ISanitizer').withDefault(x => x.singleton(class {
+export const ISanitizer = DI.createInterface<ISanitizer>('ISanitizer', x => x.singleton(class {
   public sanitize(input: string): string {
     return input.replace(SCRIPT_REGEX, '');
   }
@@ -21,7 +21,6 @@ export const ISanitizer = DI.createInterface<ISanitizer>('ISanitizer').withDefau
 /**
  * Simple html sanitization converter to preserve whitelisted elements and attributes on a bound property containing html.
  */
-@valueConverter('sanitize')
 export class SanitizeValueConverter {
   public constructor(
     @ISanitizer private readonly sanitizer: ISanitizer,
@@ -40,3 +39,5 @@ export class SanitizeValueConverter {
     return this.sanitizer.sanitize(untrustedMarkup);
   }
 }
+
+valueConverter('sanitize')(SanitizeValueConverter);

@@ -7,7 +7,6 @@ import {
   Writable,
 } from '@aurelia/kernel';
 import {
-  bindable,
   LifecycleFlags,
   BindingMode,
   ICollectionObserver,
@@ -16,13 +15,15 @@ import {
   IndexMap,
   Scope,
 } from '@aurelia/runtime';
-import { INode, IRenderLocation } from '../../dom.js';
+import { IRenderLocation } from '../../dom.js';
 import { templateController } from '../custom-attribute.js';
-import { Controller } from '../../templating/controller.js';
-import { ICompiledRenderContext } from '../../templating/render-context.js';
 import { IViewFactory } from '../../templating/view.js';
-import type { ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, IHydratableController, ISyntheticView, ControllerVisitor } from '../../templating/controller.js';
-import { Instruction } from '../../renderer.js';
+import { bindable } from '../../bindable.js';
+
+import type { Controller, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, IHydratableController, ISyntheticView, ControllerVisitor } from '../../templating/controller.js';
+import type { ICompiledRenderContext } from '../../templating/render-context.js';
+import type { INode } from '../../dom.js';
+import type { Instruction } from '../../renderer.js';
 
 @templateController('switch')
 export class Switch implements ICustomAttributeViewModel {
@@ -311,10 +312,10 @@ export class Case implements ICustomAttributeViewModel {
 
   public valueChanged(newValue: unknown, _oldValue: unknown, flags: LifecycleFlags): void {
     if (Array.isArray(newValue)) {
-      this.observer?.removeCollectionSubscriber(this);
+      this.observer?.unsubscribe(this);
       this.observer = this.observeCollection(flags, newValue);
     } else if (this.observer !== void 0) {
-      this.observer.removeCollectionSubscriber(this);
+      this.observer.unsubscribe(this);
     }
     this.$switch.caseChanged(this, flags);
   }
@@ -336,7 +337,7 @@ export class Case implements ICustomAttributeViewModel {
   }
 
   public dispose(): void {
-    this.observer?.removeCollectionSubscriber(this);
+    this.observer?.unsubscribe(this);
     this.view?.dispose();
     this.view = (void 0)!;
   }
@@ -347,7 +348,7 @@ export class Case implements ICustomAttributeViewModel {
 
   private observeCollection(flags: LifecycleFlags, $value: unknown[]) {
     const observer = this.locator.getArrayObserver($value);
-    observer.addCollectionSubscriber(this);
+    observer.subscribe(this);
     return observer;
   }
 

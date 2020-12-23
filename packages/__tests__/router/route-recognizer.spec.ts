@@ -1,4 +1,4 @@
-import { Endpoint, RecognizedRoute, RouteRecognizer, RouteDefinition } from '@aurelia/router';
+import { ConfigurableRoute, Endpoint, RecognizedRoute, RouteRecognizer } from '@aurelia/route-recognizer';
 import { assert } from '@aurelia/testing';
 
 describe(RouteRecognizer.name, function () {
@@ -12,10 +12,31 @@ describe(RouteRecognizer.name, function () {
     // #region 1-depth static routes
     {
       routes: [
+        '',
+      ],
+      tests: [
+        ['',   '',   null],
+        ['a',  null, null],
+      ],
+    },
+    {
+      routes: [
         'a',
       ],
       tests: [
         ['',   null, null],
+        ['a',  'a',  null],
+        ['b',  null, null],
+        ['aa', null, null],
+      ],
+    },
+    {
+      routes: [
+        '',
+        'a',
+      ],
+      tests: [
+        ['',   '',   null],
         ['a',  'a',  null],
         ['b',  null, null],
         ['aa', null, null],
@@ -109,6 +130,21 @@ describe(RouteRecognizer.name, function () {
       ],
       tests: [
         ['',    null,  null],
+        ['a',   null,  null],
+        ['aa',  null,  null],
+        ['aaa', null,  null],
+        ['a/a', 'a/a', null],
+        ['a/b', null,  null],
+        ['b/a', null,  null],
+      ],
+    },
+    {
+      routes: [
+        '',
+        'a/a',
+      ],
+      tests: [
+        ['',    '',    null],
         ['a',   null,  null],
         ['aa',  null,  null],
         ['aaa', null,  null],
@@ -283,6 +319,22 @@ describe(RouteRecognizer.name, function () {
       ],
       tests: [
         ['',    null,  null],
+        ['a',   'a',   null],
+        ['aa',  'aa',  null],
+        ['aaa', 'aaa', null],
+        ['a/a', 'a/a', null],
+      ],
+    },
+    {
+      routes: [
+        '',
+        'a',
+        'aa',
+        'aaa',
+        'a/a',
+      ],
+      tests: [
+        ['',    '',    null],
         ['a',   'a',   null],
         ['aa',  'aa',  null],
         ['aaa', 'aaa', null],
@@ -479,6 +531,19 @@ describe(RouteRecognizer.name, function () {
       ],
       tests: [
         ['',    null, null],
+        ['a',   ':1', { 1: 'a' }],
+        ['b',   ':1', { 1: 'b' }],
+        ['aa',  ':1', { 1: 'aa' }],
+        ['a/a', null, null],
+      ],
+    },
+    {
+      routes: [
+        '',
+        ':1',
+      ],
+      tests: [
+        ['',    '',   null],
         ['a',   ':1', { 1: 'a' }],
         ['b',   ':1', { 1: 'b' }],
         ['aa',  ':1', { 1: 'aa' }],
@@ -1715,6 +1780,22 @@ describe(RouteRecognizer.name, function () {
     },
     {
       routes: [
+        '',
+        '*1',
+      ],
+      tests: [
+        ['',      '',   null],
+        ['a',     '*1', { 1: 'a' }],
+        ['aa',    '*1', { 1: 'aa' }],
+        ['a/a',   '*1', { 1: 'a/a' }],
+        ['aa/a',  '*1', { 1: 'aa/a' }],
+        ['a/aa',  '*1', { 1: 'a/aa' }],
+        ['aa/aa', '*1', { 1: 'aa/aa' }],
+        ['a/a/a', '*1', { 1: 'a/a/a' }],
+      ],
+    },
+    {
+      routes: [
         '*1',
         'a',
       ],
@@ -2694,9 +2775,9 @@ describe(RouteRecognizer.name, function () {
 
               it(title, function () {
                 // Arrange
-                const sut = new RouteRecognizer([]);
+                const sut = new RouteRecognizer();
                 for (const route of routes) {
-                  sut.add({ path: [route] } as unknown as RouteDefinition, false);
+                  sut.add({ path: route, handler: null });
                 }
 
                 // Act
@@ -2711,15 +2792,16 @@ describe(RouteRecognizer.name, function () {
 
               it(title, function () {
                 // Arrange
-                const sut = new RouteRecognizer([]);
+                const sut = new RouteRecognizer();
                 for (const route of routes) {
-                  sut.add({ path: [route] } as unknown as RouteDefinition, false);
+                  sut.add({ path: route, handler: null });
                 }
 
                 const params = { ...$params };
                 const paramNames = Object.keys(params);
-                const endpoint = new Endpoint(false, { path: [match] } as unknown as RouteDefinition, match, paramNames);
-                const expected = new RecognizedRoute(endpoint, params, null);
+                const configurableRoute = new ConfigurableRoute(match, false, null);
+                const endpoint = new Endpoint(configurableRoute, paramNames);
+                const expected = new RecognizedRoute(endpoint, params);
 
                 // Act
                 const actual1 = sut.recognize(path);
@@ -2734,5 +2816,27 @@ describe(RouteRecognizer.name, function () {
         }
       }
     }
+  }
+
+  for (const [route1, route2] of [
+    ['', '?:1'],
+    ['?:1', ''],
+    ['a', 'a'],
+    [':1', ':2'],
+    ['*1', '*2'],
+  ]) {
+    it(`throws on clashing patterns: [${route1},${route2}]`, function () {
+      const sut = new RouteRecognizer();
+      let err: Error | null = null;
+
+      sut.add({ path: route1, handler: null });
+      try {
+        sut.add({ path: route2, handler: null });
+      } catch(e) {
+        err = e;
+      }
+
+      assert.throws(() => sut.add({ path: route2, handler: null }), `Cannot add ambiguous route. The pattern '${route2}' clashes with '${route1}'`);
+    });
   }
 });

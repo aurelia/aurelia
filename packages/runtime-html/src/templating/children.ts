@@ -1,8 +1,10 @@
-/* eslint-disable @typescript-eslint/no-use-before-define */
-import { Constructable, Protocol, Metadata, firstDefined, getPrototypeChain, IIndexable } from '@aurelia/kernel';
-import { LifecycleFlags, subscriberCollection, ISubscriberCollection, IAccessor, ISubscribable, IPropertyObserver, ISubscriber } from '@aurelia/runtime';
-import { INode } from '../dom.js';
+import { Protocol, Metadata, firstDefined, getPrototypeChain, IIndexable } from '@aurelia/kernel';
+import { LifecycleFlags, subscriberCollection } from '@aurelia/runtime';
 import { CustomElement } from '../resources/custom-element.js';
+
+import type { Constructable } from '@aurelia/kernel';
+import type { ISubscriberCollection, IAccessor, ISubscribable, ISubscriber, IObserver } from '@aurelia/runtime';
+import type { INode } from '../dom.js';
 import type { ICustomElementViewModel, ICustomElementController } from './controller.js';
 
 export type PartialChildrenDefinition = {
@@ -84,7 +86,6 @@ export const Children = {
   from(...childrenObserverLists: readonly (ChildrenDefinition | Record<string, PartialChildrenDefinition> | readonly string[] | undefined)[]): Record<string, ChildrenDefinition> {
     const childrenObservers: Record<string, ChildrenDefinition> = {};
 
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     const isArray = Array.isArray as <T>(arg: unknown) => arg is readonly T[];
 
     function addName(name: string): void {
@@ -158,7 +159,7 @@ export interface ChildrenObserver extends
   IAccessor,
   ISubscribable,
   ISubscriberCollection,
-  IPropertyObserver<IIndexable, string>{ }
+  IObserver { }
 
 /** @internal */
 @subscriberCollection()
@@ -200,7 +201,7 @@ export class ChildrenObserver {
 
   public subscribe(subscriber: ISubscriber): void {
     this.tryStartObserving();
-    this.addSubscriber(subscriber);
+    this.subs.add(subscriber);
   }
 
   private tryStartObserving() {
@@ -219,7 +220,7 @@ export class ChildrenObserver {
       this.callback.call(this.obj);
     }
 
-    this.callSubscribers(this.children, undefined, LifecycleFlags.updateTarget);
+    this.subs.notify(this.children, undefined, LifecycleFlags.updateTarget);
   }
 }
 

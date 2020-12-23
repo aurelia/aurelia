@@ -1,4 +1,3 @@
-/* eslint-disable max-lines-per-function */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { IContainer, ILogger, isObject, DI, IDisposable, onResolve } from '@aurelia/kernel';
 import { CustomElementDefinition, ICompiledRenderContext, IPlatform, PartialCustomElementDefinition } from '@aurelia/runtime-html';

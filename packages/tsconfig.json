@@ -1,9 +1,7 @@
 {
   "files": [],
   "references": [
-    { "path": "__e2e__" },
     { "path": "__tests__" },
-    { "path": "aot" },
     { "path": "au" },
     { "path": "aurelia" },
     { "path": "fetch-client" },
@@ -11,9 +9,6 @@
     { "path": "metadata" },
     { "path": "platform" },
     { "path": "platform-browser" },
-    { "path": "plugin-conventions" },
-    { "path": "plugin-gulp" },
-    { "path": "plugin-parcel" },
     { "path": "router" },
     { "path": "route-recognizer" },
     { "path": "runtime" },
@@ -23,9 +18,6 @@
     { "path": "validation" },
     { "path": "validation-html" },
     { "path": "validation-i18n" },
-    { "path": "webpack-loader" },
-    { "path": "babel-jest" },
-    { "path": "ts-jest" },
     { "path": "http-server" }
   ]
 }

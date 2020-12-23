@@ -3,6 +3,54 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="0.8.0"></a>
+# 0.8.0 (2020-11-30)
+
+### Features:
+
+* **kernel:** add module analyzer ([3fa12d1](https://github.com/aurelia/aurelia/commit/3fa12d1))
+* **kernel:** add inheritParentResources config option ([b7a07a9](https://github.com/aurelia/aurelia/commit/b7a07a9))
+* **kernel:** add resource create/find api's to the container ([1cab5bb](https://github.com/aurelia/aurelia/commit/1cab5bb))
+* ***:** add dispose() method to Aurelia, CompositionRoot & Container ([39374de](https://github.com/aurelia/aurelia/commit/39374de))
+* **di:** report InterfaceSymbol friendly name when converted to string ([a66882b](https://github.com/aurelia/aurelia/commit/a66882b))
+* **runtime:** add cancel api and properly propagate async errors ([3c05ebe](https://github.com/aurelia/aurelia/commit/3c05ebe))
+* **kernel:** add onResolve and resolveAll functions ([b76ff2e](https://github.com/aurelia/aurelia/commit/b76ff2e))
+* **ct-get-all:** ability to traverse when get all ([5d479f4](https://github.com/aurelia/aurelia/commit/5d479f4))
+* **di:** add scoped decorator ([1c20d51](https://github.com/aurelia/aurelia/commit/1c20d51))
+* **di:** remove jitRegisterInRoot ([d8dd7d8](https://github.com/aurelia/aurelia/commit/d8dd7d8))
+
+
+### Bug Fixes:
+
+* **di-getall:** handle search ancestors in a different path, add failing tests ([edc4ba3](https://github.com/aurelia/aurelia/commit/edc4ba3))
+* **ct:** optional traverse in impl too ([f5710f3](https://github.com/aurelia/aurelia/commit/f5710f3))
+* **di:** registerFactory #822 ([4ac6543](https://github.com/aurelia/aurelia/commit/4ac6543))
+
+
+### Refactorings:
+
+* **all:** add .js extensions for native esm compat ([0308e2e](https://github.com/aurelia/aurelia/commit/0308e2e))
+* **module-loader:** cache per transform function ([3c90743](https://github.com/aurelia/aurelia/commit/3c90743))
+* **module-analyzer:** rename, cleanup, add tests ([1d3c8bf](https://github.com/aurelia/aurelia/commit/1d3c8bf))
+* **all:** move scheduler implementation to platform ([e22285a](https://github.com/aurelia/aurelia/commit/e22285a))
+* **all:** remove IDOM, HTMLDOM and DOM; replace DOM with PLATFORM ([6447468](https://github.com/aurelia/aurelia/commit/6447468))
+* **all:** remove PLATFORM global ([fdef656](https://github.com/aurelia/aurelia/commit/fdef656))
+* **platform:** remove hasOwnProperty ([90d95d5](https://github.com/aurelia/aurelia/commit/90d95d5))
+* **platform:** remove isBrowserLike and run browser-specific tests in node ([2ce90dd](https://github.com/aurelia/aurelia/commit/2ce90dd))
+* **platform:** remove isNodeLike ([ef19903](https://github.com/aurelia/aurelia/commit/ef19903))
+* **platform:** remove isWebWorkerLike ([622c34b](https://github.com/aurelia/aurelia/commit/622c34b))
+* **all:** cut back on the dispose calls ([9fec528](https://github.com/aurelia/aurelia/commit/9fec528))
+* **all:** remove reporter ([425fe96](https://github.com/aurelia/aurelia/commit/425fe96))
+* **logger:** remove type duplication and cleanup DefaultLogger ([f7de00f](https://github.com/aurelia/aurelia/commit/f7de00f))
+* **eventaggregator:** remove duplicate type ([f4fb651](https://github.com/aurelia/aurelia/commit/f4fb651))
+* **runtime:** merge controller api bind+attach into activate, detach+unbind into deactivate, and remove ILifecycleTask usage from controller ([15f3885](https://github.com/aurelia/aurelia/commit/15f3885))
+* **event-aggregator:** fix types ([6b89325](https://github.com/aurelia/aurelia/commit/6b89325))
+* **di:** rename requester -> requestor, remove .only ([686f400](https://github.com/aurelia/aurelia/commit/686f400))
+* **di:** clean up linting issues, move stuff closer each other ([3785abb](https://github.com/aurelia/aurelia/commit/3785abb))
+* ***:** putting projections to scope ([25dcc83](https://github.com/aurelia/aurelia/commit/25dcc83))
+* ***:** deregisterResolverFor ([f221eb9](https://github.com/aurelia/aurelia/commit/f221eb9))
+* **logging:** minor improvements ([71e601b](https://github.com/aurelia/aurelia/commit/71e601b))
+
 <a name="0.7.0"></a>
 # 0.7.0 (2020-05-08)
 

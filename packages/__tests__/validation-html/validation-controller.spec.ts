@@ -1,4 +1,3 @@
-/* eslint-disable mocha/no-hooks, mocha/no-sibling-hooks */
 import { IServiceLocator, newInstanceForScope } from '@aurelia/kernel';
 import { Aurelia, CustomElement, IPlatform, customElement } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';

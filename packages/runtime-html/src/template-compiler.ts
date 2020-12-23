@@ -13,7 +13,6 @@ import {
   Interpolation,
   IsBindingBehavior,
   BindingMode,
-  Bindable,
 } from '@aurelia/runtime';
 import { IAttrSyntaxTransformer } from './attribute-syntax-transformer.js';
 import { TemplateBinder } from './template-binder.js';
@@ -50,10 +49,11 @@ import {
   TextBindingInstruction,
   ITemplateCompiler,
 } from './renderer.js';
+import { IPlatform } from './platform.js';
+import { Bindable } from './bindable.js';
 import { IAttributeParser } from './resources/attribute-pattern.js';
 import { AuSlotContentType, IProjections, ProjectionContext, RegisteredProjections, SlotInfo } from './resources/custom-elements/au-slot.js';
 import { CustomElement, CustomElementDefinition, PartialCustomElementDefinition } from './resources/custom-element.js';
-import { IPlatform } from './platform.js';
 
 class CustomElementCompilationUnit {
   public readonly instructions: Instruction[][] = [];
@@ -213,14 +213,14 @@ export class TemplateCompiler implements ITemplateCompiler {
     const slotName = symbol.slotName!;
     let slotInfo: SlotInfo | null = null;
     if (isAuSlot) {
-      // eslint-disable-next-line @typescript-eslint/no-extra-non-null-assertion,@typescript-eslint/no-unnecessary-type-assertion
-      const targetedProjection = targetedProjections?.projections?.[slotName!];
+      const targetedProjection = targetedProjections?.projections?.[slotName];
       slotInfo = targetedProjection !== void 0
         ? new SlotInfo(slotName, AuSlotContentType.Projection, new ProjectionContext(targetedProjection, targetedProjections?.scope))
         : new SlotInfo(slotName, AuSlotContentType.Fallback, new ProjectionContext(this.compileProjectionFallback(symbol, projections, targetedProjections)));
     }
     const instruction = instructionRow[0] = new HydrateElementInstruction(
       symbol.res,
+      symbol.info.alias,
       this.compileBindings(symbol),
       slotInfo,
     );
@@ -282,13 +282,13 @@ export class TemplateCompiler implements ITemplateCompiler {
     this.compileParentNode(symbol.template!, controllerInstructionRows, projections, targetedProjections);
 
     const def = CustomElementDefinition.create({
-      name: symbol.res,
+      name: symbol.info.alias ?? symbol.info.name,
       template: symbol.physicalNode,
       instructions: controllerInstructionRows,
       needsCompile: false,
     });
 
-    instructionRows.push([new HydrateTemplateController(def, symbol.res, bindings)]);
+    instructionRows.push([new HydrateTemplateController(def, symbol.res, symbol.info.alias, bindings)]);
   }
 
   private compileBindings(
@@ -363,7 +363,7 @@ export class TemplateCompiler implements ITemplateCompiler {
   ): AttributeInstruction {
     // a normal custom attribute (not template controller)
     const bindings = this.compileBindings(symbol);
-    return new HydrateAttributeInstruction(symbol.res, bindings);
+    return new HydrateAttributeInstruction(symbol.res, symbol.info.alias, bindings);
   }
 
   private compilePlainAttribute(

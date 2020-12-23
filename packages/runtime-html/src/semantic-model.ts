@@ -1,10 +1,11 @@
 import { kebabCase } from '@aurelia/kernel';
-import { AnyBindingExpression, BindableDefinition, BindingMode, Interpolation } from '@aurelia/runtime';
+import { AnyBindingExpression, BindingMode, Interpolation } from '@aurelia/runtime';
 import { AttrSyntax } from './resources/attribute-pattern.js';
 import { BindingCommandInstance } from './resources/binding-command.js';
 import { IPlatform } from './platform.js';
 import { CustomElementDefinition } from './resources/custom-element.js';
 import { CustomAttributeDefinition } from './resources/custom-attribute.js';
+import { BindableDefinition } from './bindable.js';
 
 export const enum SymbolFlags {
   type                 = 0b000000_1111111111,
@@ -362,7 +363,7 @@ export class BindableInfo {
   ) {}
 }
 
-const elementInfoLookup = new WeakMap<CustomElementDefinition, ElementInfo>();
+const elementInfoLookup = new WeakMap<CustomElementDefinition, Record<string, ElementInfo>>();
 
 /**
  * Pre-processed information about a custom element resource, optimized
@@ -377,17 +378,21 @@ export class ElementInfo {
 
   public constructor(
     public name: string,
+    public alias: string | undefined,
     public containerless: boolean,
   ) {}
 
-  public static from(def: CustomElementDefinition | null): ElementInfo | null {
+  public static from(def: CustomElementDefinition | null, alias: string): ElementInfo | null {
     if (def === null) {
       return null;
     }
-
-    let info = elementInfoLookup.get(def);
+    let rec = elementInfoLookup.get(def);
+    if (rec === void 0) {
+      elementInfoLookup.set(def, rec = Object.create(null) as Record<string, ElementInfo>);
+    }
+    let info = rec[alias];
     if (info === void 0) {
-      info = new ElementInfo(def.name, def.containerless);
+      info = rec[alias] = new ElementInfo(def.name, alias === def.name ? void 0 : alias, def.containerless);
       const bindables = def.bindables;
       const defaultBindingMode = BindingMode.toView;
 
@@ -416,13 +421,12 @@ export class ElementInfo {
         }
         info.bindables[attr] = new BindableInfo(prop, mode);
       }
-      elementInfoLookup.set(def, info);
     }
     return info;
   }
 }
 
-const attrInfoLookup = new WeakMap<CustomAttributeDefinition, AttrInfo>();
+const attrInfoLookup = new WeakMap<CustomAttributeDefinition, Record<string, AttrInfo>>();
 
 /**
  * Pre-processed information about a custom attribute resource, optimized
@@ -447,17 +451,22 @@ export class AttrInfo {
 
   public constructor(
     public name: string,
+    public alias: string | undefined,
     public isTemplateController: boolean,
     public noMultiBindings: boolean,
   ) {}
 
-  public static from(def: CustomAttributeDefinition | null): AttrInfo | null {
+  public static from(def: CustomAttributeDefinition | null, alias: string): AttrInfo | null {
     if (def === null) {
       return null;
     }
-    let info = attrInfoLookup.get(def);
+    let rec = attrInfoLookup.get(def);
+    if (rec === void 0) {
+      attrInfoLookup.set(def, rec = Object.create(null) as Record<string, AttrInfo>);
+    }
+    let info = rec[alias];
     if (info === void 0) {
-      info = new AttrInfo(def.name, def.isTemplateController, def.noMultiBindings);
+      info = rec[alias] = new AttrInfo(def.name, alias === def.name ? void 0 : alias, def.isTemplateController, def.noMultiBindings);
       const bindables = def.bindables;
       const defaultBindingMode = def.defaultBindingMode !== void 0 && def.defaultBindingMode !== BindingMode.default
         ? def.defaultBindingMode
@@ -499,7 +508,6 @@ export class AttrInfo {
       if (info.bindable === null) {
         info.bindable = new BindableInfo('value', defaultBindingMode);
       }
-      attrInfoLookup.set(def, info);
     }
     return info;
   }

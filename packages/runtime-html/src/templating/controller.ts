@@ -1,4 +1,3 @@
-/* eslint-disable max-lines-per-function */
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 import {
   IContainer,
@@ -16,23 +15,13 @@ import {
 } from '@aurelia/kernel';
 import {
   AccessScopeExpression,
-  IBinding,
+  BindingType,
   Scope,
   LifecycleFlags,
-  ILifecycle,
-  IBindingTargetAccessor,
-  PropertyBinding,
-  BindableObserver,
-  BindableDefinition,
-  BindingType,
   IObserverLocator,
-  IWatchDefinition,
-  ComputedWatcher,
-  ExpressionWatcher,
-  IWatcherCallback,
-  IObservable,
   IExpressionParser,
 } from '@aurelia/runtime';
+import { BindableObserver } from '../observation/bindable-observer.js';
 import { convertToRenderLocation, INode, INodeSequence, IRenderLocation } from '../dom.js';
 import { CustomElementDefinition, CustomElement, PartialCustomElementDefinition } from '../resources/custom-element.js';
 import { CustomAttributeDefinition, CustomAttribute } from '../resources/custom-attribute.js';
@@ -41,9 +30,18 @@ import { ChildrenObserver } from './children.js';
 import { IAppRoot } from '../app-root.js';
 import { IPlatform } from '../platform.js';
 import { IShadowDOMGlobalStyles, IShadowDOMStyles } from './styles.js';
+import { ComputedWatcher, ExpressionWatcher } from './watchers.js';
+import type {
+  IBinding,
+  IObservable,
+  AccessorOrObserver,
+} from '@aurelia/runtime';
+import type { BindableDefinition } from '../bindable.js';
+import type { PropertyBinding } from '../binding/property-binding.js';
 import type { RegisteredProjections } from '../resources/custom-elements/au-slot.js';
 import type { IViewFactory } from './view.js';
 import type { Instruction } from '../renderer.js';
+import type { IWatchDefinition, IWatcherCallback } from '../watch.js';
 
 function callDispose(disposable: IDisposable): void {
   disposable.dispose();
@@ -122,7 +120,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   private fullyNamed: boolean = false;
 
   public readonly platform: IPlatform;
-  public readonly lifecycle: ILifecycle;
   public readonly hooks: HooksDefinition;
 
   public constructor(
@@ -152,7 +149,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       this.root = container.get<IAppRoot>(IAppRoot);
     }
     this.platform = container.get(IPlatform);
-    this.lifecycle = container.get(ILifecycle);
     switch (vmKind) {
       case ViewModelKind.customAttribute:
       case ViewModelKind.customElement:
@@ -285,7 +281,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     if (definition.watches.length > 0) {
       createWatchers(this, this.container, definition, instance);
     }
-    createObservers(this.lifecycle, definition, flags, instance);
+    createObservers(this, definition, flags, instance);
     createChildrenObservers(this as Controller, definition, flags, instance);
 
     if (this.hooks.hasDefine) {
@@ -385,7 +381,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     if (definition.watches.length > 0) {
       createWatchers(this, this.container, definition, instance);
     }
-    createObservers(this.lifecycle, definition, this.flags, instance);
+    createObservers(this, definition, this.flags, instance);
 
     (instance as Writable<C>).$controller = this;
   }
@@ -994,7 +990,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
   }
 
-  public getTargetAccessor(propertyName: string): IBindingTargetAccessor | undefined {
+  public getTargetAccessor(propertyName: string): AccessorOrObserver | undefined {
     const { bindings } = this;
     if (bindings !== null) {
       const binding = bindings.find(b => (b as PropertyBinding).targetProperty === propertyName) as PropertyBinding;
@@ -1022,7 +1018,7 @@ function getLookup(instance: IIndexable): Record<string, BindableObserver | Chil
 }
 
 function createObservers(
-  lifecycle: ILifecycle,
+  controller: Controller,
   definition: CustomElementDefinition | CustomAttributeDefinition,
   // deepscan-disable-next-line
   _flags: LifecycleFlags,
@@ -1043,11 +1039,11 @@ function createObservers(
         bindable = bindables[name];
 
         observers[name] = new BindableObserver(
-          lifecycle,
           instance as IIndexable,
           name,
           bindable.callback,
           bindable.set,
+          controller,
         );
       }
     }
@@ -1247,7 +1243,6 @@ export interface IController<C extends IViewModel = IViewModel> extends IDisposa
   readonly platform: IPlatform;
   readonly root: IAppRoot | null;
   readonly flags: LifecycleFlags;
-  readonly lifecycle: ILifecycle;
   readonly vmKind: ViewModelKind;
   readonly definition: CustomElementDefinition | CustomAttributeDefinition | null;
   readonly host: HTMLElement | null;
@@ -1296,7 +1291,7 @@ export interface IHydratableController<C extends IViewModel = IViewModel> extend
   readonly bindings: readonly IBinding[] | null;
   readonly children: readonly IHydratedController[] | null;
 
-  getTargetAccessor(propertyName: string): IBindingTargetAccessor | null;
+  getTargetAccessor(propertyName: string): AccessorOrObserver | null;
 
   addBinding(binding: IBinding): void;
   addController(controller: IController): void;
@@ -1530,7 +1525,7 @@ export interface ICustomElementController<C extends ICustomElementViewModel = IC
   ): void | Promise<void>;
 }
 
-export const IController = DI.createInterface<IController>('IController').noDefault();
+export const IController = DI.createInterface<IController>('IController');
 
 export interface IActivationHooks<TParent> {
   binding?(

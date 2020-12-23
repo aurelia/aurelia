@@ -1,12 +1,12 @@
 import { existsSync } from 'fs';
 import { resolve } from 'path';
-import { HttpServerOptions } from './server-options';
+import { HttpServerOptions } from './server-options.js';
 import { DI } from '@aurelia/kernel';
-import { HttpServerConfiguration } from './configuration';
-import { IHttpServer } from './interfaces';
+import { HttpServerConfiguration } from './configuration.js';
+import { IHttpServer } from './interfaces.js';
 
 const cwd = process.cwd();
-function parseArgs(args: string[]): null | HttpServerOptions {
+async function parseArgs(args: string[]): Promise<null | HttpServerOptions> {
   const cmd = args[0];
   if (cmd === 'help') { return null; }
 
@@ -17,8 +17,7 @@ function parseArgs(args: string[]): null | HttpServerOptions {
     if (!existsSync(configurationFile)) {
       throw new Error(`Configuration file is missing or uneven amount of args: ${args}. Args must come in pairs of --key value`);
     } else {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports,@typescript-eslint/no-var-requires
-      const config = require(configurationFile);
+      const config = (await import(`file://${configurationFile}`)).default;
       configuration.applyConfig(config);
       args = args.slice(1);
     }
@@ -29,7 +28,7 @@ function parseArgs(args: string[]): null | HttpServerOptions {
 }
 
 (async function () {
-  const parsed = parseArgs(process.argv.slice(2));
+  const parsed = await parseArgs(process.argv.slice(2));
   if (parsed === null) {
     console.log(new HttpServerOptions().toString());
   } else {

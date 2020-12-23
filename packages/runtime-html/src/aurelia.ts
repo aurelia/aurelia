@@ -4,7 +4,7 @@ import { AppRoot, IAppRoot, ISinglePageApp } from './app-root.js';
 import { IPlatform } from './platform.js';
 
 export interface IAurelia extends Aurelia {}
-export const IAurelia = DI.createInterface<IAurelia>('IAurelia').noDefault();
+export const IAurelia = DI.createInterface<IAurelia>('IAurelia');
 
 export class Aurelia implements IDisposable {
   private _isRunning: boolean = false;
@@ -53,6 +53,13 @@ export class Aurelia implements IDisposable {
   public enhance(config: ISinglePageApp): Omit<this, 'register' | 'app' | 'enhance'> {
     this.next = new AppRoot(config, this.initPlatform(config.host), this.container, this.rootProvider, true);
     return this;
+  }
+
+  public async waitForIdle(): Promise<void> {
+    const platform = this.root.platform;
+    await platform.domWriteQueue.yield();
+    await platform.domReadQueue.yield();
+    await platform.macroTaskQueue.yield();
   }
 
   private initPlatform(host: HTMLElement): IPlatform {

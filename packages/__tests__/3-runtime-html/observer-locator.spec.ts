@@ -10,7 +10,6 @@ import {
   CheckedObserver,
   ClassAttributeAccessor,
   DataAttributeAccessor,
-  ElementPropertyAccessor,
   SelectValueObserver,
   StyleAttributeAccessor,
   ValueAttributeObserver,
@@ -99,8 +98,8 @@ describe('ObserverLocator', function () {
       const el = ctx.createElementFromMarkup(markup);
       const attr = el.attributes[0];
       const actual = sut.getAccessor(el, attr.name);
-      assert.strictEqual(actual.constructor.name, ElementPropertyAccessor.name, `actual.constructor.name`);
-      assert.instanceOf(actual, ElementPropertyAccessor, `actual`);
+      assert.strictEqual(actual.constructor.name, PropertyAccessor.name, `actual.constructor.name`);
+      assert.instanceOf(actual, PropertyAccessor, `actual`);
     });
   }
 
@@ -123,8 +122,8 @@ describe('ObserverLocator', function () {
       const el = ctx.createElementFromMarkup(markup);
       const attr = el.attributes[0];
       const actual = sut.getAccessor(el, attr.name);
-      assert.strictEqual(actual.constructor.name, ElementPropertyAccessor.name, `actual.constructor.name`);
-      assert.instanceOf(actual, ElementPropertyAccessor, `actual`);
+      assert.strictEqual(actual.constructor.name, PropertyAccessor.name, `actual.constructor.name`);
+      assert.instanceOf(actual, PropertyAccessor, `actual`);
     });
   }
 

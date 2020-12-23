@@ -270,7 +270,7 @@ export class SegmentTypes {
 }
 
 export interface ISyntaxInterpreter extends SyntaxInterpreter {}
-export const ISyntaxInterpreter = DI.createInterface<ISyntaxInterpreter>('ISyntaxInterpreter').withDefault(x => x.singleton(SyntaxInterpreter));
+export const ISyntaxInterpreter = DI.createInterface<ISyntaxInterpreter>('ISyntaxInterpreter', x => x.singleton(SyntaxInterpreter));
 
 export class SyntaxInterpreter {
   public rootState: State = new State(null!);
@@ -415,10 +415,10 @@ export interface IAttributePattern {
   [pattern: string]: (rawName: string, rawValue: string, parts: readonly string[]) => AttrSyntax;
 }
 
-export const IAttributePattern = DI.createInterface<IAttributePattern>('IAttributePattern').noDefault();
+export const IAttributePattern = DI.createInterface<IAttributePattern>('IAttributePattern');
 
 export interface IAttributeParser extends AttributeParser {}
-export const IAttributeParser = DI.createInterface<IAttributeParser>('IAttributeParser').withDefault(x => x.singleton(AttributeParser));
+export const IAttributeParser = DI.createInterface<IAttributeParser>('IAttributeParser', x => x.singleton(AttributeParser));
 
 export class AttributeParser {
   private readonly cache: Record<string, Interpretation> = {};

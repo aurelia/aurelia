@@ -23,7 +23,7 @@ export interface ISinglePageApp {
 }
 
 export interface IAppRoot extends AppRoot {}
-export const IAppRoot = DI.createInterface<IAppRoot>('IAppRoot').noDefault();
+export const IAppRoot = DI.createInterface<IAppRoot>('IAppRoot');
 
 export interface IWorkTracker extends WorkTracker {}
 export const IWorkTracker = DI.createInterface<IWorkTracker>('IWorkTracker').withDefault(x => x.singleton(WorkTracker));

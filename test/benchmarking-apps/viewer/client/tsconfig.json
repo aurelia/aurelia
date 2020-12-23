@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "experimentalDecorators": true,
+    "lib": ["esnext", "dom"],
+    "module": "esnext",
+    "moduleResolution": "node",
+    "skipLibCheck": true,
+    "outDir": "dist",
+    "rootDir": "src",
+    "target": "es2020"
+  },
+  "include": ["src"]
+}

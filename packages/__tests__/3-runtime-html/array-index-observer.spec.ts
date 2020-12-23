@@ -185,7 +185,7 @@ describe('simple Computed Observer test case', function () {
 
   async function createFixture<T>(template: string | Node, $class: Constructable | null, ...registrations: any[]) {
     const ctx = TestContext.create();
-    const { container, lifecycle, observerLocator } = ctx;
+    const { container, observerLocator } = ctx;
     registrations = Array.from(new Set([...registrations]));
     container.register(...registrations);
     const testHost = ctx.doc.body.appendChild(ctx.createElement('div'));
@@ -201,7 +201,6 @@ describe('simple Computed Observer test case', function () {
       ctx: ctx,
       au,
       container,
-      lifecycle,
       testHost: testHost,
       appHost,
       component: component as T,
@@ -229,9 +228,9 @@ describe('3-runtime-html/array-index-observer.spec.ts', function () {
     indexZeroObserver.subscribe(indexZeroSubscriber);
     assert.strictEqual(indexZeroObserver instanceof ArrayIndexObserver, true, 'index zero observer is ArrayIndexObserver');
     arr[0] = 5;
-    assert.strictEqual(indexZeroObserver.currentValue, 1);
+    assert.strictEqual(indexZeroObserver.value, 1);
     arr.splice(0, 1, 4);
-    assert.strictEqual(indexZeroObserver.currentValue, 4);
+    assert.strictEqual(indexZeroObserver.value, 4);
     assert.strictEqual(callcount, 1);
 
     indexZeroObserver.setValue(0, LifecycleFlags.none);
@@ -245,7 +244,7 @@ describe('3-runtime-html/array-index-observer.spec.ts', function () {
 
   function createFixture() {
     const ctx = TestContext.create();
-    const { container, lifecycle, observerLocator, platform } = ctx;
+    const { container, observerLocator, platform } = ctx;
     const el = ctx.createElementFromMarkup(`<input />`) as IInputElement;
     ctx.doc.body.appendChild(el);
 
@@ -256,6 +255,6 @@ describe('3-runtime-html/array-index-observer.spec.ts', function () {
       el.remove();
     };
 
-    return { ctx, container, lifecycle, observerLocator, el, sut, platform, tearDown };
+    return { ctx, container, observerLocator, el, sut, platform, tearDown };
   }
 });

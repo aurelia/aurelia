@@ -1,7 +1,7 @@
 import { LifecycleFlags, subscriberCollection, AccessorType } from '@aurelia/runtime';
 import { IPlatform } from '../platform.js';
 
-import type { IBindingTargetObserver, IObserverLocator, ISubscriber, ISubscriberCollection } from '@aurelia/runtime';
+import type { IObserver, IObserverLocator, ISubscriber, ISubscriberCollection } from '@aurelia/runtime';
 
 export interface IHtmlElement extends HTMLElement {
   $mObserver: MutationObserver;
@@ -13,7 +13,7 @@ export interface ElementMutationSubscription {
 }
 
 export interface AttributeObserver extends
-  IBindingTargetObserver<IHtmlElement, string>,
+  IObserver,
   ISubscriber,
   ISubscriberCollection { }
 
@@ -22,7 +22,6 @@ export interface AttributeObserver extends
  * Has different strategy for class/style and normal attributes
  * TODO: handle SVG/attributes with namespace
  */
-@subscriberCollection()
 export class AttributeObserver implements AttributeObserver, ElementMutationSubscription {
   public currentValue: unknown = null;
   public oldValue: unknown = null;
@@ -122,26 +121,26 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
         const { currentValue } = this;
         this.currentValue = this.oldValue = newValue;
         this.hasChanges = false;
-        this.callSubscribers(newValue, currentValue, LifecycleFlags.none);
+        this.subs.notify(newValue, currentValue, LifecycleFlags.none);
       }
     }
   }
 
   public subscribe(subscriber: ISubscriber): void {
-    if (!this.hasSubscribers()) {
+    if (this.subs.add(subscriber) && this.subs.count === 1) {
       this.currentValue = this.oldValue = this.obj.getAttribute(this.propertyKey);
-      startObservation(this.platform.MutationObserver, this.obj, this);
+      startObservation(this.obj.ownerDocument.defaultView!.MutationObserver, this.obj, this);
     }
-    this.addSubscriber(subscriber);
   }
 
   public unsubscribe(subscriber: ISubscriber): void {
-    this.removeSubscriber(subscriber);
-    if (!this.hasSubscribers()) {
+    if (this.subs.remove(subscriber) && this.subs.count === 0) {
       stopObservation(this.obj, this);
     }
   }
 }
+
+subscriberCollection(AttributeObserver);
 
 const startObservation = ($MutationObserver: typeof MutationObserver, element: IHtmlElement, subscription: ElementMutationSubscription): void => {
   if (element.$eMObservers === undefined) {

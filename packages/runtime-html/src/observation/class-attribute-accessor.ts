@@ -4,6 +4,7 @@ import { AccessorType, LifecycleFlags } from '@aurelia/runtime';
 import type { IAccessor } from '@aurelia/runtime';
 
 export class ClassAttributeAccessor implements IAccessor {
+  [id: number]: number;
   public currentValue: unknown = '';
   public oldValue: unknown = '';
 
@@ -109,7 +110,6 @@ export function getClassesToAdd(object: Record<string, unknown> | [] | string): 
   const classes: string[] = [];
   for (const property in object) {
     // Let non typical values also evaluate true so disable bool check
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, no-extra-boolean-cast
     if (Boolean(object[property])) {
       // We must do this in case object property has a space in the name which results in two classes
       if (property.includes(' ')) {

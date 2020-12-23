@@ -350,6 +350,8 @@ export {
   ComputedObserver,
   ComputedWatcher,
   ExpressionWatcher,
+  Watch,
+  watch,
 
   // IObjectObservationAdapter,
   IObserverLocator,
@@ -369,7 +371,6 @@ export {
   ISignaler,
 
   subscriberCollection,
-  collectionSubscriberCollection,
 
   bindingBehavior,
   BindingBehavior,
@@ -451,6 +452,7 @@ export {
   // TaskAbortError,
   // TaskCallback,
   // TaskQueue,
+  AppTask,
   TaskQueuePriority,
   // TaskStatus,
   // QueueTaskTargetOptions,
@@ -509,7 +511,6 @@ export {
 
   // DefaultResources as RuntimeDefaultResources,
   // IObserverLocatorRegistration,
-  // ILifecycleRegistration,
   // IRendererRegistration,
   // RuntimeConfiguration,
 
@@ -563,8 +564,9 @@ export {
 
   // ViewModelKind,
   // IBinding,
-  ILifecycle,
-  IViewModel,
+  // IViewModel,
+  ICustomAttributeViewModel,
+  ICustomElementViewModel,
   // IController,
   // IContainer,
   // IViewCache,
@@ -577,8 +579,6 @@ export {
   // DelegationStrategy,
   // IAccessor,
   // IBindingContext,
-  // IBindingTargetAccessor,
-  // IBindingTargetObserver,
   // ICollectionChangeTracker,
   // ICollectionObserver,
   // ICollectionSubscriber,
@@ -588,13 +588,10 @@ export {
   // IObservedMap,
   // IObservedSet,
   // IOverrideContext,
-  // IPropertyChangeTracker,
-  // IPropertyObserver,
   // Scope,
   // ISubscribable,
   // ISubscriberCollection,
   // ObservedCollection,
-  // PropertyObserver,
   // CollectionObserver,
   // ICollectionSubscriberCollection,
   // ICollectionSubscribable,
@@ -670,6 +667,8 @@ export {
   // EventSubscription,
   // EventDelegator,
 
+  NodeObserverLocator,
+
   // TargetAccessorLocator,
   // TargetObserverLocator,
 
@@ -732,6 +731,7 @@ export {
   // IAttributePatternHandler,
   // Interpretation,
   // ISyntaxInterpreter,
+  IAttrSyntaxTransformer,
 
   // AtPrefixedTriggerAttributePattern,
   // ColonPrefixedBindAttributePattern,

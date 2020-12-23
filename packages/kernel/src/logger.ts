@@ -157,11 +157,11 @@ export interface ISink {
  */
 export interface ILogger extends DefaultLogger {}
 
-export const ILogConfig = DI.createInterface<ILogConfig>('ILogConfig').withDefault(x => x.instance(new LogConfig(ColorOptions.noColors, LogLevel.warn)));
-export const ISink = DI.createInterface<ISink>('ISink').noDefault();
-export const ILogEventFactory = DI.createInterface<ILogEventFactory>('ILogEventFactory').withDefault(x => x.singleton(DefaultLogEventFactory));
-export const ILogger = DI.createInterface<ILogger>('ILogger').withDefault(x => x.singleton(DefaultLogger));
-export const ILogScopes = DI.createInterface<string[]>('ILogScope').noDefault();
+export const ILogConfig = DI.createInterface<ILogConfig>('ILogConfig', x => x.instance(new LogConfig(ColorOptions.noColors, LogLevel.warn)));
+export const ISink = DI.createInterface<ISink>('ISink');
+export const ILogEventFactory = DI.createInterface<ILogEventFactory>('ILogEventFactory', x => x.singleton(DefaultLogEventFactory));
+export const ILogger = DI.createInterface<ILogger>('ILogger', x => x.singleton(DefaultLogger));
+export const ILogScopes = DI.createInterface<string[]>('ILogScope');
 
 interface SinkDefinition {
   handles: Exclude<LogLevel, LogLevel.none>[];
@@ -280,7 +280,6 @@ function getScopeString(scope: readonly string[], colorOptions: ColorOptions): s
   if (colorOptions === ColorOptions.noColors) {
     return scope.join('.');
   }
-  // eslint-disable-next-line @typescript-eslint/unbound-method
   return scope.map(format.cyan).join('.');
 }
 

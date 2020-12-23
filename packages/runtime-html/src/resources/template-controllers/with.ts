@@ -1,8 +1,9 @@
 import { nextId } from '@aurelia/kernel';
-import { bindable, LifecycleFlags, Scope } from '@aurelia/runtime';
+import { LifecycleFlags, Scope } from '@aurelia/runtime';
 import { IRenderLocation } from '../../dom.js';
 import { IViewFactory } from '../../templating/view.js';
 import { templateController } from '../custom-attribute.js';
+import { bindable } from '../../bindable.js';
 import type { ISyntheticView, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller.js';
 
 @templateController('with')

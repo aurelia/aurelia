@@ -11,7 +11,6 @@ import {
   BindingBehaviorExpression,
   IExpressionParser,
   LifecycleFlags,
-  PropertyBinding,
   ExpressionKind,
   IsBindingBehavior
 } from '@aurelia/runtime';
@@ -27,7 +26,10 @@ import {
 } from '@aurelia/validation';
 
 import type { Scope } from '@aurelia/runtime';
-import { IPlatform } from '@aurelia/runtime-html';
+import {
+  IPlatform,
+  PropertyBinding,
+} from '@aurelia/runtime-html';
 
 export type BindingWithBehavior = PropertyBinding & {
   sourceExpression: BindingBehaviorExpression;
@@ -291,7 +293,7 @@ export interface IValidationController {
    */
   reset(instruction?: ValidateInstruction): void;
 }
-export const IValidationController = DI.createInterface<IValidationController>('IValidationController').noDefault();
+export const IValidationController = DI.createInterface<IValidationController>('IValidationController');
 
 export class ValidationController implements IValidationController {
 
@@ -365,7 +367,6 @@ export class ValidationController implements IValidationController {
     this.bindings.delete(binding);
   }
 
-  // eslint-disable-next-line @typescript-eslint/require-await
   public async validate<TObject extends IValidateable>(instruction?: ValidateInstruction<TObject>): Promise<ControllerValidateResult> {
     const { object: obj, objectTag, flags } = instruction ?? {};
     let instructions: ValidateInstruction[];
@@ -399,7 +400,6 @@ export class ValidationController implements IValidationController {
     const task = this.platform.domReadQueue.queueTask(async () => {
       try {
         const results = await Promise.all(instructions.map(
-          // eslint-disable-next-line @typescript-eslint/require-await
           async (x) => this.validator.validate(x)
         ));
         const newResults = results.reduce(

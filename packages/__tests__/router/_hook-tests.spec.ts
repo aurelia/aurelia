@@ -1,7 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/require-await */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import { Constructable, DI, IContainer, ILogConfig, LoggerConfiguration, LogLevel, Registration, Writable } from '@aurelia/kernel';
+import { Constructable, DI, IContainer, ILogConfig, LogLevel, Registration, Writable } from '@aurelia/kernel';
 import {
   CustomElement,
   customElement,

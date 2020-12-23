@@ -14,7 +14,7 @@ import {
   TestContext,
 } from '@aurelia/testing';
 
-describe('simple Computed Observer test case', function () {
+describe('3-runtime-html/computed-observer.spec.ts', function () {
   interface IComputedObserverTestCase<T extends IApp = IApp> {
     title: string;
     template: string;
@@ -313,7 +313,7 @@ describe('simple Computed Observer test case', function () {
       ['Int16Array', () => new Int16Array()],
       ['Int64Array', () => new Int32Array()],
       ['Number', () => new Number()],
-      ['Promise', () => new Promise(r => r())],
+      ['Promise', () => new Promise<void>(r => r())],
       ['RangeError', () => new RangeError()],
       ['ReferenceError', () => new ReferenceError()],
       ['RegExp', () => new RegExp('a')],
@@ -405,7 +405,7 @@ describe('simple Computed Observer test case', function () {
 
   async function createFixture<T>(template: string | Node, $class: Constructable | null, ...registrations: any[]) {
     const ctx = TestContext.create();
-    const { container, lifecycle, observerLocator } = ctx;
+    const { container, observerLocator } = ctx;
     registrations = Array.from(new Set([...registrations]));
     container.register(...registrations);
     const testHost = ctx.doc.body.appendChild(ctx.createElement('div'));
@@ -421,7 +421,6 @@ describe('simple Computed Observer test case', function () {
       ctx: ctx,
       au,
       container,
-      lifecycle,
       testHost: testHost,
       appHost,
       component: component as T,

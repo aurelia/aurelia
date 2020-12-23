@@ -25,7 +25,7 @@ export class ValidateInstruction<TObject extends IValidateable = IValidateable> 
   ) { }
 }
 
-export const IValidator = DI.createInterface<IValidator>('IValidator').noDefault();
+export const IValidator = DI.createInterface<IValidator>('IValidator');
 
 /**
  * The core validator contract.

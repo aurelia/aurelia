@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "sourceMap": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "lib": [
+      "esnext",
+      "dom"
+    ],
+    "module": "esnext",
+    "moduleResolution": "node",
+    "skipLibCheck": true,
+    "rootDir": "src",
+    "target": "es2020",
+    "esModuleInterop": false,
+    "baseUrl": "src"
+  },
+  "exclude": [
+    "node_modules"
+  ],
+  "include": [
+    "./src/**/*"
+  ],
+}

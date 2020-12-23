@@ -8,7 +8,6 @@ import { BindingBehavior, BindingBehaviorInstance, BindingBehaviorFactory } from
 import { ValueConverter, ValueConverterInstance } from '../value-converter.js';
 
 import type { IIndexable, IServiceLocator, ResourceDefinition } from '@aurelia/kernel';
-import type { IConnectableBinding } from './connectable.js';
 import type {
   Collection,
   IBindingContext,
@@ -18,6 +17,7 @@ import type {
   ISubscriber,
 } from '../observation.js';
 import type { Scope } from '../observation/binding-context.js';
+import { IConnectableBinding } from './connectable.js';
 
 export const enum ExpressionKind {
   Connects             = 0b000000000001_00000, // The expression's connect() function calls observeProperty and/or calls connect() on another expression that it wraps (all expressions except for AccessThis, PrimitiveLiteral, CallMember/Function and Assign)
@@ -359,7 +359,7 @@ export class Unparser implements IVisitor<void> {
   }
 }
 
-function chooseScope(accessHostScope: boolean, s: Scope, hs: Scope | null){
+function chooseScope(accessHostScope: boolean, s: Scope, hs: Scope | null) {
   if (accessHostScope) {
     if (hs === null || hs === void 0) { throw new Error('Host scope is missing. Are you using `$host` outside the `au-slot`? Or missing the `au-slot` attribute?'); }
     return hs;
@@ -463,9 +463,10 @@ export class ValueConverterExpression {
     if (vc == null) {
       throw new Error(`ValueConverter named '${this.name}' could not be found. Did you forget to register it as a dependency?`);
     }
-    // note: everything should be ISubscriber eventually
-    // for now, it's sort of internal thing where only built-in bindings are passed as connectable
-    // so it by default satisfies ISubscriber constrain
+    // note: the cast is expected. To connect, it just needs to be a IConnectable
+    // though to work with signal, it needs to have `handleChange`
+    // so having `handleChange` as a guard in the connectable as a safe measure is needed
+    // to make sure signaler works
     if (c !== null && ('handleChange' in (c  as unknown as ISubscriber))) {
       const signals = vc.signals;
       if (signals != null) {
@@ -476,7 +477,7 @@ export class ValueConverterExpression {
       }
     }
     if ('toView' in vc) {
-      return vc.toView.call(vc, this.expression.evaluate(f, s, hs, l, c), ...this.args.map(a => a.evaluate(f, s, hs, l, c)));
+      return vc.toView(this.expression.evaluate(f, s, hs, l, c), ...this.args.map(a => a.evaluate(f, s, hs, l, c)));
     }
     return this.expression.evaluate(f, s, hs, l, c);
   }
@@ -487,7 +488,7 @@ export class ValueConverterExpression {
       throw new Error(`ValueConverter named '${this.name}' could not be found. Did you forget to register it as a dependency?`);
     }
     if ('fromView' in vc) {
-      val = (vc.fromView!.call as (...args: unknown[]) => void)(vc, val, ...this.args.map(a => a.evaluate(f, s, hs, l, null)));
+      val = vc.fromView!(val, ...this.args.map(a => a.evaluate(f, s, hs, l, null)));
     }
     return this.expression.assign(f, s, hs, l, val);
   }
@@ -499,7 +500,9 @@ export class ValueConverterExpression {
     }
     const signaler = b.locator.get(ISignaler);
     for (let i = 0; i < vc.signals.length; ++i) {
-      signaler.removeSignalListener(vc.signals[i], b);
+      // the cast is correct, as the value converter expression would only add
+      // a IConnectable that also implements `ISubscriber` interface to the signaler
+      signaler.removeSignalListener(vc.signals[i], b as unknown as ISubscriber);
     }
   }
 
@@ -869,12 +872,10 @@ export class BinaryExpression {
         // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         return this.left.evaluate(f, s, hs, l, c) || this.right.evaluate(f, s, hs, l, c);
       case '==':
-        // eslint-disable-next-line eqeqeq
         return this.left.evaluate(f, s, hs, l, c) == this.right.evaluate(f, s, hs, l, c);
       case '===':
         return this.left.evaluate(f, s, hs, l, c) === this.right.evaluate(f, s, hs, l, c);
       case '!=':
-        // eslint-disable-next-line eqeqeq
         return this.left.evaluate(f, s, hs, l, c) != this.right.evaluate(f, s, hs, l, c);
       case '!==':
         return this.left.evaluate(f, s, hs, l, c) !== this.right.evaluate(f, s, hs, l, c);
@@ -1192,7 +1193,18 @@ export class ArrayBindingPattern {
   ) {}
 
   public evaluate(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _c: IConnectable | null): unknown {
-    // TODO
+    // TODO: this should come after batch
+    // as a destructuring expression like [x, y] = value
+    //
+    // should only trigger change only once:
+    // batch(() => {
+    //   object.x = value[0]
+    //   object.y = value[1]
+    // })
+    //
+    // instead of twice:
+    // object.x = value[0]
+    // object.y = value[1]
     return void 0;
   }
 
@@ -1223,6 +1235,9 @@ export class ObjectBindingPattern {
 
   public evaluate(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _c: IConnectable | null): unknown {
     // TODO
+    // similar to array binding ast, this should only come after batch
+    // for a single notification per destructing,
+    // regardless number of property assignments on the scope binding context
     return void 0;
   }
 

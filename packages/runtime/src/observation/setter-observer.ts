@@ -1,17 +1,21 @@
 import { AccessorType, LifecycleFlags } from '../observation.js';
 import { subscriberCollection } from './subscriber-collection.js';
+import { def } from '../utilities-objects.js';
 
 import type { IIndexable } from '@aurelia/kernel';
-import type { IObserver, ISubscriber, ISubscribable, IAccessor, ISubscriberCollection } from '../observation.js';
-import type { InterceptorFunc } from '../bindable.js';
+import type {
+  IAccessor,
+  InterceptorFunc,
+  ISubscriber,
+  ISubscriberCollection,
+} from '../observation.js';
 
-export interface SetterObserver extends IObserver, ISubscriberCollection {}
+export interface SetterObserver extends IAccessor, ISubscriberCollection {}
 
 /**
  * Observer for the mutation of object property value employing getter-setter strategy.
  * This is used for observing object properties that has no decorator.
  */
-@subscriberCollection()
 export class SetterObserver {
   public currentValue: unknown = void 0;
   public oldValue: unknown = void 0;
@@ -19,7 +23,7 @@ export class SetterObserver {
   public inBatch: boolean = false;
   public observing: boolean = false;
   // todo(bigopon): tweak the flag based on typeof obj (array/set/map/iterator/proxy etc...)
-  public type: AccessorType = AccessorType.Obj;
+  public type: AccessorType = AccessorType.Observer;
 
   public constructor(
     public readonly obj: IIndexable,
@@ -35,7 +39,7 @@ export class SetterObserver {
     if (this.observing) {
       const currentValue = this.currentValue;
       this.currentValue = newValue;
-      this.callSubscribers(newValue, currentValue, flags);
+      this.subs.notify(newValue, currentValue, flags);
     } else {
       // If subscribe() has been called, the target property descriptor is replaced by these getter/setter methods,
       // so calling obj[propertyKey] will actually return this.currentValue.
@@ -47,36 +51,26 @@ export class SetterObserver {
     }
   }
 
-  public flushBatch(flags: LifecycleFlags): void {
-    this.inBatch = false;
-    const currentValue = this.currentValue;
-    const oldValue = this.oldValue;
-    this.oldValue = currentValue;
-    this.callSubscribers(currentValue, oldValue, flags);
-  }
-
   public subscribe(subscriber: ISubscriber): void {
     if (this.observing === false) {
       this.start();
     }
 
-    this.addSubscriber(subscriber);
+    this.subs.add(subscriber);
   }
 
   public start(): this {
     if (this.observing === false) {
       this.observing = true;
       this.currentValue = this.obj[this.propertyKey];
-      Reflect.defineProperty(
+      def(
         this.obj,
         this.propertyKey,
         {
           enumerable: true,
           configurable: true,
-          get: () => {
-            return this.getValue();
-          },
-          set: value => {
+          get: (/* Setter Observer */) => this.getValue(),
+          set: (/* Setter Observer */value) => {
             this.setValue(value, LifecycleFlags.none);
           },
         },
@@ -87,7 +81,7 @@ export class SetterObserver {
 
   public stop(): this {
     if (this.observing) {
-      Reflect.defineProperty(this.obj, this.propertyKey, {
+      def(this.obj, this.propertyKey, {
         enumerable: true,
         configurable: true,
         writable: true,
@@ -100,22 +94,42 @@ export class SetterObserver {
   }
 }
 
-export interface SetterNotifier extends ISubscriberCollection {}
-@subscriberCollection()
-export class SetterNotifier implements IAccessor, ISubscribable {
-  // ideally, everything is an object,
-  // probably this flag is redundant, just None?
-  public type: AccessorType = AccessorType.Obj;
+type ChangeHandlerCallback = (this: object, value: unknown, oldValue: unknown, flags: LifecycleFlags) => void;
+
+export interface SetterNotifier extends IAccessor, ISubscriberCollection {}
+
+export class SetterNotifier implements IAccessor {
+  public readonly type: AccessorType = AccessorType.Observer;
 
   /**
    * @internal
    */
-  public v: unknown = void 0;
+  private v: unknown = void 0;
+  /**
+   * @internal
+   */
+  private readonly cb?: ChangeHandlerCallback;
+  /**
+   * @internal
+   */
+  private readonly obj: object;
+  /**
+   * @internal
+   */
+  private readonly s: InterceptorFunc | undefined;
 
-  // todo(bigopon): remove flag aware assignment in ast, move to the decorator itself
   public constructor(
-    private readonly s?: InterceptorFunc
-  ) {}
+    obj: object,
+    callbackKey: PropertyKey,
+    set: InterceptorFunc | undefined,
+    initialValue: unknown,
+  ) {
+    this.obj = obj;
+    this.s = set;
+    const callback = (obj as IIndexable)[callbackKey as string];
+    this.cb = typeof callback === 'function' ? callback as ChangeHandlerCallback : void 0;
+    this.v = initialValue;
+  }
 
   public getValue(): unknown {
     return this.v;
@@ -128,7 +142,16 @@ export class SetterNotifier implements IAccessor, ISubscribable {
     const oldValue = this.v;
     if (!Object.is(value, oldValue)) {
       this.v = value;
-      this.callSubscribers(value, oldValue, flags);
+      this.cb?.call(this.obj, value, oldValue, flags);
+      // there's a chance that cb.call(...)
+      // changes the latest value of this observer
+      // and thus making `value` stale
+      // so for now, call with this.v
+      // todo: should oldValue be treated the same way?
+      this.subs.notify(this.v, oldValue, flags);
     }
   }
 }
+
+subscriberCollection(SetterObserver);
+subscriberCollection(SetterNotifier);

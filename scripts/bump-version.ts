@@ -1,6 +1,6 @@
 import { readFileSync, writeFileSync } from 'fs';
 import { c, createLogger } from './logger';
-import { loadPackageJson, savePackageJson } from './package.json';
+import { loadPackageJson, Package, savePackageJson } from './package.json';
 import project from './project';
 import { getGitLog } from './git';
 import { getCurrentVersion, getNewVersion } from './get-version-info';
@@ -8,9 +8,9 @@ import { getCurrentVersion, getNewVersion } from './get-version-info';
 const log = createLogger('bump-version');
 
 export async function updateDependencyVersions(newVersion: string): Promise<void> {
-  for (const { name } of project.packages.filter(p => p.folder === 'packages')) {
+  for (const { name, folder } of project.packages.filter(p => !p.name.kebab.includes('_') && p.folder.includes('packages'))) {
     log(`updating dependencies for ${c.magentaBright(name.npm)}`);
-    const pkg = await loadPackageJson('packages', name.kebab);
+    const pkg = await loadPackageJson(folder, name.kebab);
     pkg.version = newVersion;
     if ('dependencies' in pkg) {
       const deps = pkg.dependencies;
@@ -21,15 +21,15 @@ export async function updateDependencyVersions(newVersion: string): Promise<void
         }
       }
     }
-    await savePackageJson(pkg, 'packages', name.kebab);
+    await savePackageJson(pkg, folder, name.kebab);
   }
-  const lernaJson = JSON.parse(readFileSync(project['lerna.json'].path, { encoding: 'utf8' }));
-  lernaJson.version = newVersion;
-  writeFileSync(project['lerna.json'].path, `${JSON.stringify(lernaJson, null, 2)}\n`, { encoding: 'utf8' });
+  const pkgJson = JSON.parse(readFileSync(project['package.json'].path, { encoding: 'utf8' })) as Package;
+  pkgJson.version = newVersion;
+  writeFileSync(project['package.json'].path, `${JSON.stringify(pkgJson, null, 2)}\n`, { encoding: 'utf8' });
 }
 
 export async function getRecommendedVersionBump(): Promise<'minor' | 'patch'> {
-  const gitLog = await getGitLog(`v${project.lerna.version}`, 'HEAD', project.path);
+  const gitLog = await getGitLog(`v${project.pkg.version}`, 'HEAD', project.path);
   const lines = gitLog.split('\n');
   if (lines.some(line => /feat(\([^)]+\))?:/.test(line))) {
     return 'minor';

@@ -2,7 +2,6 @@ import { ComposableObjectComponentType, IViewLocator, ViewSelector } from '../..
 import { valueConverter } from '@aurelia/runtime';
 import type { ICustomElementViewModel } from '../../templating/controller.js';
 
-@valueConverter('view')
 export class ViewValueConverter {
   public constructor(
     @IViewLocator private readonly viewLocator: IViewLocator,
@@ -18,3 +17,5 @@ export class ViewValueConverter {
     );
   }
 }
+
+valueConverter('view')(ViewValueConverter);

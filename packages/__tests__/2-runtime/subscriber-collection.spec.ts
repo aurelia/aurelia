@@ -1,11 +1,16 @@
 import {
-  LifecycleFlags,
+  ISubscriber,
+  ISubscriberRecord,
+  LifecycleFlags as LifecycleFlags,
   subscriberCollection
 } from '@aurelia/runtime';
 import { createSpy, assert } from '@aurelia/testing';
 
 @subscriberCollection()
 class Test {}
+interface Test {
+  subs: ISubscriberRecord<ISubscriber>;
+}
 
 describe('subscriberCollection', function () {
   it('calls subscribers', function () {
@@ -14,30 +19,30 @@ describe('subscriberCollection', function () {
     const observer2 = new Test();
 
     const callable1 = { handleChange: createSpy() };
-    observer['addSubscriber'](callable1);
+    observer.subs.add(callable1);
     const callable2 = { handleChange: createSpy() };
-    observer['addSubscriber'](callable2);
+    observer.subs.add(callable2);
     const callable3 = { handleChange: createSpy() };
-    observer['addSubscriber'](callable3);
+    observer.subs.add(callable3);
     const callable4 = {
-      handleChange: createSpy(() => observer2['callSubscribers']('new value2', 'old value2', flags))
+      handleChange: createSpy(() => observer2.subs.notify('new value2', 'old value2', flags))
     };
-    observer['addSubscriber'](callable4);
+    observer.subs.add(callable4);
     const callable5 = { handleChange: createSpy() };
-    observer['addSubscriber'](callable5);
+    observer.subs.add(callable5);
 
     const callable6 = { handleChange: createSpy() };
-    observer2['addSubscriber'](callable6);
+    observer2.subs.add(callable6);
     const callable7 = { handleChange: createSpy() };
-    observer2['addSubscriber'](callable7);
+    observer2.subs.add(callable7);
     const callable8 = { handleChange: createSpy() };
-    observer2['addSubscriber'](callable8);
+    observer2.subs.add(callable8);
     const callable9 = { handleChange: createSpy() };
-    observer2['addSubscriber'](callable9);
+    observer2.subs.add(callable9);
     const callable10 = { handleChange: createSpy() };
-    observer2['addSubscriber'](callable10);
+    observer2.subs.add(callable10);
 
-    observer['callSubscribers']('new value', 'old value', flags);
+    observer.subs.notify('new value', 'old value', flags);
 
     assert.deepStrictEqual(
       callable1.handleChange.calls,
@@ -116,18 +121,18 @@ describe('subscriberCollection', function () {
 
     const subscribers = [];
     for (let i = 0, ii = 100; ii > i; ++i) {
-      observer['addSubscriber']((subscribers[i] = { i }) as any);
+      observer.subs.add((subscribers[i] = { i }) as any);
     }
 
     let removalCount = 0;
     for (let i = 4, ii = subscribers.length; ii > i; i += 5) {
-      const result = observer['removeSubscriber'](subscribers[i]);
+      const result = observer.subs.remove(subscribers[i]);
       if (result) {
         removalCount++;
       }
     }
-    assert.strictEqual(observer['_subscribersRest'].length, subscribers.length - 3 - removalCount, `observer['_subscribersRest'].length`);
+    assert.strictEqual(observer['subs']['_sr'].length, subscribers.length - 3 - removalCount, `observer['subs']['_sr'].length`);
 
-    assert.strictEqual(observer['removeSubscriber']({} as any), false, `observer['removeSubscriber']({} as any)`);
+    assert.strictEqual(observer.subs.remove({} as any), false, `observer.subs.remove({} as any)`);
   });
 });

@@ -1,8 +1,8 @@
 import { emptyArray } from '@aurelia/kernel';
-import { bindable } from '@aurelia/runtime';
 import { INode, NodeType } from '../../dom.js';
 import { IPlatform } from '../../platform.js';
 import { customAttribute } from '../custom-attribute.js';
+import { bindable } from '../../bindable.js';
 import type { ICustomAttributeController, ICustomAttributeViewModel } from '../../templating/controller.js';
 
 const unset = Symbol();

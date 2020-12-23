@@ -13,6 +13,44 @@ export {
 } from '@aurelia/platform-browser';
 
 export {
+  bindable,
+  Bindable,
+  BindableDefinition,
+  PartialBindableDefinition,
+} from './bindable.js';
+
+export {
+  BindableObserver,
+} from './observation/bindable-observer.js';
+
+export {
+  DebounceBindingBehaviorRegistration,
+  OneTimeBindingBehaviorRegistration,
+  ToViewBindingBehaviorRegistration,
+  FromViewBindingBehaviorRegistration,
+  SignalBindingBehaviorRegistration,
+  ThrottleBindingBehaviorRegistration,
+  TwoWayBindingBehaviorRegistration,
+} from './configuration.js';
+
+export {
+  BindingModeBehavior,
+  OneTimeBindingBehavior,
+  ToViewBindingBehavior,
+  FromViewBindingBehavior,
+  TwoWayBindingBehavior,
+} from './binding-behaviors/binding-mode.js';
+export {
+  DebounceBindingBehavior,
+} from './binding-behaviors/debounce.js';
+export {
+  SignalBindingBehavior,
+} from './binding-behaviors/signals.js';
+export {
+  ThrottleBindingBehavior,
+} from './binding-behaviors/throttle.js';
+
+export {
   alias,
   registerAliases,
 
@@ -60,10 +98,6 @@ export {
   UnaryOperator,
   IExpressionHydrator,
 
-  PropertyBinding,
-
-  CallBinding,
-
   IPartialConnectableBinding,
   IConnectableBinding,
   connectable,
@@ -78,13 +112,6 @@ export {
   Precedence,
   parse,
   ParserState,
-
-  ContentBinding,
-  InterpolationBinding,
-
-  LetBinding,
-
-  RefBinding,
 
   ArrayObserver,
   ArrayIndexObserver,
@@ -114,8 +141,6 @@ export {
   DirtyCheckSettings,
 
   ComputedObserver,
-  ComputedWatcher,
-  ExpressionWatcher,
 
   IObservableDefinition,
   observable,
@@ -130,14 +155,11 @@ export {
 
   PropertyAccessor,
 
-  BindableObserver,
-
   SetterObserver,
 
   ISignaler,
 
   subscriberCollection,
-  collectionSubscriberCollection,
 
   bindingBehavior,
   BindingBehavior,
@@ -152,18 +174,6 @@ export {
   BindingBehaviorStrategy,
   IInterceptableBinding,
 
-  BindingModeBehavior,
-  OneTimeBindingBehavior,
-  ToViewBindingBehavior,
-  FromViewBindingBehavior,
-  TwoWayBindingBehavior,
-
-  DebounceBindingBehavior,
-
-  SignalBindingBehavior,
-
-  ThrottleBindingBehavior,
-
   ValueConverter,
   ValueConverterDefinition,
   PartialValueConverterDefinition,
@@ -173,25 +183,11 @@ export {
   ValueConverterType,
   valueConverter,
 
-  bindable,
-  PartialBindableDefinition,
-  BindableDefinition,
-  Bindable,
-
-  DebounceBindingBehaviorRegistration,
-  OneTimeBindingBehaviorRegistration,
-  ToViewBindingBehaviorRegistration,
-  FromViewBindingBehaviorRegistration,
-  SignalBindingBehaviorRegistration,
-  ThrottleBindingBehaviorRegistration,
-  TwoWayBindingBehaviorRegistration,
-
   BindingMode,
   ExpressionKind,
   LifecycleFlags,
 
   IBinding,
-  ILifecycle,
 
   AccessorOrObserver,
   AccessorType,
@@ -200,21 +196,15 @@ export {
   DelegationStrategy,
   IAccessor,
   IBindingContext,
-  IBindingTargetAccessor,
-  IBindingTargetObserver,
   ICollectionChangeTracker,
   ICollectionObserver,
-  ICollectionIndexObserver,
   ICollectionSubscriber,
   IndexMap,
   IBatchable,
   IObservable,
   IOverrideContext,
-  IPropertyChangeTracker,
-  IPropertyObserver,
   ISubscribable,
   ISubscriberCollection,
-  PropertyObserver,
   CollectionObserver,
   ICollectionSubscriberCollection,
   ICollectionSubscribable,
@@ -277,14 +267,29 @@ export {
   StyleBindingCommand,
 } from './resources/binding-command.js';
 export {
-  IAttrSyntaxTransformer
+  IAttrSyntaxTransformer,
 } from './attribute-syntax-transformer.js';
 export {
-  Listener
+  Listener,
 } from './binding/listener.js';
 export {
-  AttributeBinding
+  AttributeBinding,
 } from './binding/attribute.js';
+export {
+  CallBinding,
+} from './binding/call-binding.js';
+export {
+  InterpolationBinding,
+} from './binding/interpolation-binding.js';
+export {
+  LetBinding,
+} from './binding/let-binding.js';
+export {
+  PropertyBinding,
+} from './binding/property-binding.js';
+export {
+  RefBinding,
+} from './binding/ref-binding.js';
 
 export {
   IRenderer,
@@ -332,9 +337,6 @@ export {
 export {
   DataAttributeAccessor,
 } from './observation/data-attribute-accessor.js';
-export {
-  ElementPropertyAccessor,
-} from './observation/element-property-accessor.js';
 export {
   IEventDelegator,
   EventSubscriber,
@@ -641,3 +643,16 @@ export {
   IShadowDOMStyles,
   IShadowDOMGlobalStyles,
 } from './templating/styles.js';
+
+export {
+  Watch,
+  watch,
+  IWatchDefinition,
+  IWatcherCallback,
+  IDepCollectionFn,
+} from './watch.js';
+
+export {
+  ComputedWatcher,
+  ExpressionWatcher,
+} from './templating/watchers.js';

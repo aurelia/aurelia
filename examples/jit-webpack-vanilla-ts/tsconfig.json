@@ -8,7 +8,7 @@
     "skipLibCheck": true,
     "outDir": "dist",
     "rootDir": "src",
-    "target": "es2018"
+    "target": "es2020"
   },
   "include": ["src"]
 }

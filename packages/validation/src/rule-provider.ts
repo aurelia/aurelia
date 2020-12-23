@@ -1,4 +1,3 @@
-/* eslint-disable no-template-curly-in-string */
 import { Class, DI, Protocol, Metadata, ILogger, IServiceLocator } from '@aurelia/kernel';
 import {
   BindingType,
@@ -43,7 +42,7 @@ export interface ICustomMessage<TRule extends IValidationRule = IValidationRule>
 }
 
 /* @internal */
-export const ICustomMessages = DI.createInterface<ICustomMessage[]>('ICustomMessages').noDefault();
+export const ICustomMessages = DI.createInterface<ICustomMessage[]>('ICustomMessages');
 
 export class RuleProperty implements IRuleProperty {
   public static $TYPE: string = 'RuleProperty';
@@ -459,7 +458,7 @@ export interface IValidationRules<TObject extends IValidateable = IValidateable>
   off<TAnotherObject extends IValidateable = IValidateable>(target?: Class<TAnotherObject> | TAnotherObject, tag?: string): void;
   applyModelBasedRules(target: IValidateable, rules: ModelBasedRule[]): void;
 }
-export const IValidationRules = DI.createInterface<IValidationRules>('IValidationRules').noDefault();
+export const IValidationRules = DI.createInterface<IValidationRules>('IValidationRules');
 
 export class ValidationRules<TObject extends IValidateable = IValidateable> implements IValidationRules<TObject> {
   public rules: PropertyRule[] = [];

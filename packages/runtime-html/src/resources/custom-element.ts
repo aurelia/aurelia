@@ -20,19 +20,21 @@ import {
   emptyArray,
 } from '@aurelia/kernel';
 import {
-  PartialBindableDefinition,
-  BindableDefinition,
-  Bindable,
   registerAliases,
-  IWatchDefinition,
-  Watch,
 } from '@aurelia/runtime';
+import {
+  Bindable,
+  BindableDefinition,
+  PartialBindableDefinition,
+} from '../bindable.js';
 import { IProjections } from './custom-elements/au-slot.js';
 import { INode, getEffectiveParentNode } from '../dom.js';
 import { IInstruction } from '../renderer.js';
 import { PartialChildrenDefinition, ChildrenDefinition, Children } from '../templating/children.js';
 import { Controller } from '../templating/controller.js';
+import { Watch } from '../watch.js';
 import type { ICustomElementViewModel, ICustomElementController } from '../templating/controller.js';
+import type { IWatchDefinition } from '../watch.js';
 
 export type PartialCustomElementDefinition = PartialResourceDefinition<{
   readonly cache?: '*' | number;
@@ -242,7 +244,6 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         throw new Error(`Cannot create a custom element definition with only a name and no type: ${nameOrDef}`);
       }
 
-      // eslint-disable-next-line @typescript-eslint/unbound-method
       const name = fromDefinitionOrDefault('name', def, CustomElement.generateName);
       if (typeof (def as CustomElementDefinition).Type === 'function') {
         // This needs to be a clone (it will usually be the compiler calling this signature)
@@ -319,7 +320,6 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
     // property needs to be copied. So we have that exception for 'hooks', but we may need to revisit that default behavior
     // if this turns out to be too opinionated.
 
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     const name = fromDefinitionOrDefault('name', nameOrDef, CustomElement.generateName);
     return new CustomElementDefinition(
       Type,

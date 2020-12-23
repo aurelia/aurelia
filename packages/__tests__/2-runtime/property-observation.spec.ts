@@ -2,9 +2,9 @@ import { noop, Primitive, IIndexable } from '@aurelia/kernel';
 import {
   LifecycleFlags as LF,
   PrimitiveObserver,
-  BindableObserver,
   SetterObserver
 } from '@aurelia/runtime';
+import { BindableObserver } from '@aurelia/runtime-html';
 import { SpySubscriber, assert, TestContext, ChangeSet } from '@aurelia/testing';
 
 const getName = (o: any) => Object.prototype.toString.call(o).slice(8, -1);
@@ -174,8 +174,7 @@ describe('SetterObserver', function () {
 describe('BindableObserver', function () {
   function createFixture(flags: LF, obj: IIndexable, key: string) {
     const ctx = TestContext.create();
-    const lifecycle = ctx.lifecycle;
-    const sut = new BindableObserver(lifecycle, obj, key, `${key ? key.toString() : `${key}`}Changed`, noop);
+    const sut = new BindableObserver(obj, key, `${key ? key.toString() : `${key}`}Changed`, noop, { } as any);
 
     return { sut };
   }

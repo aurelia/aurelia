@@ -8,7 +8,6 @@ import {
   IContainer,
 } from '@aurelia/kernel';
 import {
-  bindable,
   BindingMode,
 } from '@aurelia/runtime';
 import {
@@ -17,6 +16,7 @@ import {
   CustomElement,
   customElement,
   IPlatform,
+  bindable,
 } from '@aurelia/runtime-html';
 import {
   assert,
@@ -26,7 +26,7 @@ import {
   createSpecFunction,
   TestExecutionContext,
   TestFunction,
-} from '../util';
+} from '../util.js';
 
 describe('runtime-html.integration', function () {
 

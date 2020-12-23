@@ -1,13 +1,11 @@
 import {
-  watch,
-  IDepCollectionFn,
   bindable,
   ComputedWatcher,
-} from '@aurelia/runtime';
-import {
+  customAttribute,
   customElement,
   ICustomElementViewModel,
-  customAttribute,
+  IDepCollectionFn,
+  watch,
 } from '@aurelia/runtime-html';
 import { assert, createFixture, TestContext } from '@aurelia/testing';
 
@@ -91,7 +89,7 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
     ctx.platform.domWriteQueue.flush();
     assert.strictEqual(appHost.textContent, '0413');
 
-    tearDown();
+    void tearDown();
   });
 
   it('watches deep', function () {
@@ -138,7 +136,7 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
     ctx.platform.domWriteQueue.flush();
     assert.strictEqual(textNode.textContent, '3cp');
 
-    tearDown();
+    void tearDown();
 
     component.person.addresses[1].strName = 'Chunpeng Huo';
     assert.strictEqual(textNode.textContent, '3cp');
@@ -458,7 +456,7 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
       ])
     );
 
-    tearDown();
+    void tearDown();
     assert.strictEqual(appHost.textContent, '');
     component.newDelivery({ id: 5, name: 'gardenware', delivered: true });
     component.delivered(3);
@@ -537,7 +535,7 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
     ctx.platform.domWriteQueue.flush();
     assert.strictEqual(textNode.textContent, '1');
 
-    tearDown();
+    void tearDown();
 
     component.newDelivery({ id: 5, name: 'gardenware', delivered: true });
     component.delivered(3);
@@ -966,7 +964,6 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
           assert.strictEqual(app.counter, 0);
           assert.strictEqual(app.callCount, 0);
           app.map.set(symbol, '');
-          // eslint-disable-next-line
           app.map.set(symbol, '');
           assert.strictEqual(app.counter, decoratorCount === 2 ? 3 : 1);
           assert.strictEqual(app.callCount, decoratorCount === 2 ? 3 : 1);

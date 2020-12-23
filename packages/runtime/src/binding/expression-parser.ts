@@ -44,7 +44,7 @@ import {
 } from './ast.js';
 
 export interface IExpressionParser extends ExpressionParser {}
-export const IExpressionParser = DI.createInterface<IExpressionParser>('IExpressionParser').withDefault(x => x.singleton(ExpressionParser));
+export const IExpressionParser = DI.createInterface<IExpressionParser>('IExpressionParser', x => x.singleton(ExpressionParser));
 
 export class ExpressionParser {
   private readonly expressionLookup: Record<string, IsBindingBehavior> = Object.create(null);
@@ -313,7 +313,6 @@ const $this = AccessThisExpression.$this;
 const $host = AccessThisExpression.$host;
 const $parent = AccessThisExpression.$parent;
 
-/* eslint-disable @typescript-eslint/indent */
 export const enum BindingType {
                 None = 0,
     IgnoreCustomAttr = 0b100000000_0000,

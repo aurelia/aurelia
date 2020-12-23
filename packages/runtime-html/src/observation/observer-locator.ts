@@ -1,8 +1,10 @@
 import { emptyObject, IServiceLocator, Registration } from '@aurelia/kernel';
 import {
+  AccessorType,
   IDirtyChecker,
   INodeObserverLocator,
   IObserverLocator,
+  PropertyAccessor,
   SetterObserver,
 } from '@aurelia/runtime';
 import { IPlatform } from '../platform.js';
@@ -10,7 +12,6 @@ import { AttributeNSAccessor } from './attribute-ns-accessor.js';
 import { CheckedObserver } from './checked-observer.js';
 import { ClassAttributeAccessor } from './class-attribute-accessor.js';
 import { attrAccessor } from './data-attribute-accessor.js';
-import { elementPropertyAccessor } from './element-property-accessor.js';
 import { EventSubscriber } from './event-delegator.js';
 import { SelectValueObserver } from './select-value-observer.js';
 import { StyleAttributeAccessor } from './style-attribute-accessor.js';
@@ -18,7 +19,7 @@ import { ISVGAnalyzer } from './svg-analyzer.js';
 import { ValueAttributeObserver } from './value-attribute-observer.js';
 
 import type { IIndexable, IContainer } from '@aurelia/kernel';
-import type { IAccessor, IBindingTargetAccessor, IObserver, ICollectionObserver, CollectionKind } from '@aurelia/runtime';
+import type { IAccessor, IObserver, ICollectionObserver, CollectionKind } from '@aurelia/runtime';
 import type { INode } from '../dom.js';
 
 // https://infra.spec.whatwg.org/#namespaces
@@ -46,6 +47,9 @@ const nsAttributes = Object.assign(
     'xmlns:xlink': ['xlink', xmlnsNS],
   },
 );
+
+const elementPropertyAccessor = new PropertyAccessor();
+elementPropertyAccessor.type = AccessorType.Node | AccessorType.Layout;
 
 export type IHtmlObserverConstructor =
   new (
@@ -88,6 +92,8 @@ export class NodeObserverConfig {
 }
 
 export class NodeObserverLocator implements INodeObserverLocator {
+  protected static readonly inject = [IServiceLocator, IPlatform, IDirtyChecker, ISVGAnalyzer];
+
   public allowDirtyCheck: boolean = true;
 
   private readonly events: Record<string, Record<string, NodeObserverConfig>> = createLookup();
@@ -96,10 +102,10 @@ export class NodeObserverLocator implements INodeObserverLocator {
   private readonly globalOverrides: Record<string, true> = createLookup();
 
   public constructor(
-    @IServiceLocator private readonly locator: IServiceLocator,
-    @IPlatform private readonly platform: IPlatform,
-    @IDirtyChecker private readonly dirtyChecker: IDirtyChecker,
-    @ISVGAnalyzer private readonly svgAnalyzer: ISVGAnalyzer,
+    private readonly locator: IServiceLocator,
+    private readonly platform: IPlatform,
+    private readonly dirtyChecker: IDirtyChecker,
+    private readonly svgAnalyzer: ISVGAnalyzer,
   ) {
     // todo: atm, platform is required to be resolved too eagerly for the `.handles()` check
     // also a lot of tests assume default availability of observation
@@ -216,7 +222,7 @@ export class NodeObserverLocator implements INodeObserverLocator {
       default: {
         const nsProps = nsAttributes[key as string];
         if (nsProps !== undefined) {
-          return AttributeNSAccessor.forNs(nsProps[1]) as IBindingTargetAccessor;
+          return AttributeNSAccessor.forNs(nsProps[1]);
         }
         if (isDataAttribute(obj, key, this.svgAnalyzer)) {
           return attrAccessor;
@@ -276,7 +282,7 @@ export class NodeObserverLocator implements INodeObserverLocator {
 
     const nsProps = nsAttributes[key as string];
     if (nsProps !== undefined) {
-      return AttributeNSAccessor.forNs(nsProps[1]) as IBindingTargetAccessor;
+      return AttributeNSAccessor.forNs(nsProps[1]);
     }
     if (isDataAttribute(el, key, this.svgAnalyzer)) {
       // todo: should observe

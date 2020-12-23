@@ -51,16 +51,25 @@ abstract class FlagsTemplateController implements ICustomAttributeViewModel {
   }
 }
 
-@templateController('frequent-mutations')
 export class FrequentMutations extends FlagsTemplateController {
-  public constructor(@IViewFactory factory: IViewFactory, @IRenderLocation location: IRenderLocation) {
+  /**
+   * @internal
+   */
+  public static inject = [IViewFactory, IRenderLocation];
+  public constructor(factory: IViewFactory, location: IRenderLocation) {
     super(factory, location, LifecycleFlags.persistentTargetObserverQueue);
   }
 }
 
-@templateController('observe-shallow')
 export class ObserveShallow extends FlagsTemplateController {
-  public constructor(@IViewFactory factory: IViewFactory, @IRenderLocation location: IRenderLocation) {
+  /**
+   * @internal
+   */
+  public static inject = [IViewFactory, IRenderLocation];
+  public constructor(factory: IViewFactory, location: IRenderLocation) {
     super(factory, location, LifecycleFlags.observeLeafPropertiesOnly);
   }
 }
+
+templateController('frequent-mutations')(FrequentMutations);
+templateController('observe-shallow')(ObserveShallow);

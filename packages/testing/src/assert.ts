@@ -57,7 +57,7 @@ import {
 import { ensureTaskQueuesEmpty } from './scheduler.js';
 import { PLATFORM } from './test-context.js';
 
-/* eslint-disable @typescript-eslint/ban-types, @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/ban-types, @typescript-eslint/no-explicit-any */
 
 type ErrorMatcher = string | Error | RegExp | Function;
 
@@ -797,19 +797,19 @@ const areTaskQueuesEmpty = (function () {
   }
 
   function reportTaskQueue(name: string, taskQueue: TaskQueue) {
-    const processing = taskQueue['processing'];
-    const pending = taskQueue['pending'];
-    const delayed = taskQueue['delayed'];
+    const processing = taskQueue['processing'] as any[];
+    const pending = taskQueue['pending'] as any[];
+    const delayed = taskQueue['delayed'] as any[];
     const flushReq = taskQueue['flushRequested'];
 
     let info = `${name} has processing=${processing.length} pending=${pending.length} delayed=${delayed.length} flushRequested=${flushReq}\n\n`;
-    if (processing > 0) {
+    if (processing.length > 0) {
       info += `  Tasks in processing:\n${processing.map(reportTask).join('')}`;
     }
-    if (pending > 0) {
+    if (pending.length > 0) {
       info += `  Tasks in pending:\n${pending.map(reportTask).join('')}`;
     }
-    if (delayed > 0) {
+    if (delayed.length > 0) {
       info += `  Tasks in delayed:\n${delayed.map(reportTask).join('')}`;
     }
 

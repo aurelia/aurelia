@@ -2,27 +2,26 @@ import { Metadata, IServiceLocator, IContainer, Registration, Class, DI, IRegist
 import {
   BindingMode,
   BindingType,
-  ContentBinding,
   IExpressionParser,
   IObserverLocator,
   Interpolation,
   IsBindingBehavior,
   LifecycleFlags,
-  InterpolationBinding,
-  PropertyBinding,
   AnyBindingExpression,
   BindingBehaviorExpression,
   BindingBehaviorInstance,
-  CallBinding,
   IInterceptableBinding,
   IObservable,
-  LetBinding,
-  RefBinding,
   BindingBehaviorFactory,
   ForOfStatement,
   DelegationStrategy,
 } from '@aurelia/runtime';
+import { CallBinding } from './binding/call-binding.js';
 import { AttributeBinding } from './binding/attribute.js';
+import { InterpolationBinding, ContentBinding } from './binding/interpolation-binding.js';
+import { LetBinding } from './binding/let-binding.js';
+import { PropertyBinding } from './binding/property-binding.js';
+import { RefBinding } from './binding/ref-binding.js';
 import { Listener } from './binding/listener.js';
 import { IEventDelegator } from './observation/event-delegator.js';
 import { CustomElement, CustomElementDefinition, PartialCustomElementDefinition } from './resources/custom-element.js';
@@ -86,7 +85,7 @@ export type InstructionTypeName = string;
 export interface IInstruction {
   readonly type: InstructionTypeName;
 }
-export const IInstruction = DI.createInterface<IInstruction>('Instruction').noDefault();
+export const IInstruction = DI.createInterface<IInstruction>('Instruction');
 
 export function isInstruction(value: unknown): value is IInstruction {
   const type = (value as { type?: string }).type;
@@ -153,6 +152,7 @@ export class HydrateElementInstruction {
 
   public constructor(
     public res: string,
+    public alias: string | undefined,
     public instructions: IInstruction[],
     public slotInfo: SlotInfo | null,
   ) {}
@@ -163,6 +163,7 @@ export class HydrateAttributeInstruction {
 
   public constructor(
     public res: string,
+    public alias: string | undefined,
     public instructions: IInstruction[],
   ) {}
 }
@@ -173,6 +174,7 @@ export class HydrateTemplateController {
   public constructor(
     public def: PartialCustomElementDefinition,
     public res: string,
+    public alias: string | undefined,
     public instructions: IInstruction[],
   ) {}
 }
@@ -271,7 +273,7 @@ export interface ITemplateCompiler {
   ): CustomElementDefinition;
 }
 
-export const ITemplateCompiler = DI.createInterface<ITemplateCompiler>('ITemplateCompiler').noDefault();
+export const ITemplateCompiler = DI.createInterface<ITemplateCompiler>('ITemplateCompiler');
 
 export interface IInstructionTypeClassifier<TType extends string = string> {
   instructionType: TType;
@@ -288,7 +290,7 @@ export interface IRenderer<
   ): void;
 }
 
-export const IRenderer = DI.createInterface<IRenderer>('IRenderer').noDefault();
+export const IRenderer = DI.createInterface<IRenderer>('IRenderer');
 
 type DecoratableInstructionRenderer<TType extends string, TProto, TClass> = Class<TProto & Partial<IInstructionTypeClassifier<TType> & Pick<IRenderer, 'render'>>, TClass> & Partial<IRegistry>;
 type DecoratedInstructionRenderer<TType extends string, TProto, TClass> =  Class<TProto & IInstructionTypeClassifier<TType> & Pick<IRenderer, 'render'>, TClass> & IRegistry;
@@ -790,7 +792,6 @@ export class ListenerBindingRenderer implements IRenderer {
     target: HTMLElement,
     instruction: ListenerBindingInstruction,
   ): void {
-    // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsEventCommand | (instruction.strategy + BindingType.DelegationStrategyDelta));
     const binding = applyBindingBehavior(
       new Listener(context.platform, instruction.to, instruction.strategy, expr, target, instruction.preventDefault, this.eventDelegator, context),

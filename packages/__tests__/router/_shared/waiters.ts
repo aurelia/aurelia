@@ -1,4 +1,3 @@
-/* eslint-disable sonarjs/prefer-immediate-return */
 import { IContainer, ILogger } from '@aurelia/kernel';
 import { IPlatform } from '@aurelia/runtime-html';
 

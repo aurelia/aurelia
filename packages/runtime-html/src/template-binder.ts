@@ -136,7 +136,7 @@ export class TemplateBinder {
       }
       const bindingCommand = this.getBindingCommand(attrSyntax, true);
       if (bindingCommand === null || (bindingCommand.bindingType & BindingType.IgnoreCustomAttr) === 0) {
-        const attrInfo = AttrInfo.from(this.container.find(CustomAttribute, attrSyntax.target));
+        const attrInfo = AttrInfo.from(this.container.find(CustomAttribute, attrSyntax.target), attrSyntax.target);
 
         if (attrInfo === null) {
           // map special html attributes to their corresponding properties
@@ -214,7 +214,7 @@ export class TemplateBinder {
       name = node.nodeName.toLowerCase();
     }
 
-    const elementInfo = ElementInfo.from(this.container.find(CustomElement, name));
+    const elementInfo = ElementInfo.from(this.container.find(CustomElement, name), name);
     if (elementInfo === null) {
       // there is no registered custom element with this name
       manifest = new PlainElementSymbol(node);
@@ -314,7 +314,7 @@ export class TemplateBinder {
       const bindingCommand = this.getBindingCommand(attrSyntax, true);
 
       if (bindingCommand === null || (bindingCommand.bindingType & BindingType.IgnoreCustomAttr) === 0) {
-        const attrInfo = AttrInfo.from(this.container.find(CustomAttribute, attrSyntax.target));
+        const attrInfo = AttrInfo.from(this.container.find(CustomAttribute, attrSyntax.target), attrSyntax.target);
 
         if (attrInfo === null) {
           // map special html attributes to their corresponding properties

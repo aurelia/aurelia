@@ -1,4 +1,4 @@
-import { watch } from '@aurelia/runtime';
+import { watch } from '@aurelia/runtime-html';
 import { assert, createFixture, TestContext } from '@aurelia/testing';
 
 describe('3-runtime-html/decorator-watch.expression.spec.ts', function () {
@@ -82,7 +82,7 @@ describe('3-runtime-html/decorator-watch.expression.spec.ts', function () {
 
       const { ctx, component, tearDown } = createFixture('', Post);
       created(component, ctx, 1);
-      tearDown();
+      void tearDown();
       disposed?.(component, ctx, 1);
     });
 
@@ -106,7 +106,7 @@ describe('3-runtime-html/decorator-watch.expression.spec.ts', function () {
 
       const { ctx, component, tearDown } = createFixture('', Post);
       created(component, ctx, 1);
-      tearDown();
+      void tearDown();
       disposed?.(component, ctx, 1);
     });
 
@@ -131,7 +131,7 @@ describe('3-runtime-html/decorator-watch.expression.spec.ts', function () {
 
       const { ctx, component, tearDown } = createFixture('', Post);
       created(component, ctx, 2);
-      tearDown();
+      void tearDown();
       disposed?.(component, ctx, 2);
     });
   }

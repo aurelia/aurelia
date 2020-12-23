@@ -11,13 +11,13 @@ npm install jquery
 npm install @types/jquery -D
 ```
 
-Inside of your compononent or routeable view-model, you import jQuery and define the `afterAttach` lifecycle hook which is the best place to initialize any code that requires touching the dom.
+Inside of your compononent or routeable view-model, you import jQuery and define the `attached` lifecycle hook which is the best place to initialize any code that requires touching the dom.
 
 ```typescript
 import $ from 'jquery';
 
 export class MyComponent {
-    afterAttach(): void {
+    attached(): void {
         // Use jQuery to interact with the dom here or initialize jQuery plugins, etc
     }
 }
@@ -37,7 +37,7 @@ export class MyComponent {
     constructor(private element: HTMLElement) {
     }
     
-    afterAttach(): void {
+    attached(): void {
       $(this.element).addClass('myClass');
     }
 }

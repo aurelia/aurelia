@@ -59,8 +59,8 @@ describe('switch', function () {
     delivered = 4,
   }
 
-  const InitialStatus = DI.createInterface<Status>('InitialStatus').noDefault();
-  const InitialStatusNum = DI.createInterface<StatusNum>('InitialStatusNum').noDefault();
+  const InitialStatus = DI.createInterface<Status>('InitialStatus');
+  const InitialStatusNum = DI.createInterface<StatusNum>('InitialStatusNum');
 
   class Config {
     public constructor(
@@ -1488,8 +1488,8 @@ describe('switch', function () {
 
           const arr = [Status.received, Status.delivered];
           const observer = ctx.container.get(IObserverLocator).getArrayObserver(arr);
-          const addSpy = createSpy(observer, "addCollectionSubscriber", true);
-          const removeSpy = createSpy(observer, "removeCollectionSubscriber", true);
+          const addSpy = createSpy(observer, "subscribe", true);
+          const removeSpy = createSpy(observer, "unsubscribe", true);
 
           await ctx.assertChange(
             $switch,
@@ -1498,8 +1498,8 @@ describe('switch', function () {
             [1, ...getDeactivationSequenceFor('case-host-4'), ...getActivationSequenceFor('case-host-1')]
           );
 
-          assert.strictEqual(addSpy.calls.length, 1, 'addCollectionSubscriber count');
-          assert.strictEqual(addSpy.calls[0][0], $switch['cases'][0], 'addCollectionSubscriber arg');
+          assert.strictEqual(addSpy.calls.length, 1, 'subscribe count');
+          assert.strictEqual(addSpy.calls[0][0], $switch['cases'][0], 'subscribe arg');
 
           await ctx.assertChange(
             $switch,
@@ -1510,8 +1510,8 @@ describe('switch', function () {
 
           const arr2 = [Status.received, Status.dispatched];
           const observer2 = ctx.container.get(IObserverLocator).getArrayObserver(arr2);
-          const addSpy2 = createSpy(observer2, "addCollectionSubscriber", true);
-          const removeSpy2 = createSpy(observer2, "removeCollectionSubscriber", true);
+          const addSpy2 = createSpy(observer2, "subscribe", true);
+          const removeSpy2 = createSpy(observer2, "unsubscribe", true);
 
           await ctx.assertChange(
             $switch,
@@ -1519,10 +1519,10 @@ describe('switch', function () {
             wrap('Order received.'),
             [1, ...getDeactivationSequenceFor('case-host-2'), ...getActivationSequenceFor('case-host-1')]
           );
-          assert.strictEqual(removeSpy.calls.length, 1, 'addCollectionSubscriber count');
-          assert.strictEqual(removeSpy.calls[0][0], $switch['cases'][0], 'addCollectionSubscriber arg');
-          assert.strictEqual(addSpy2.calls.length, 1, 'addCollectionSubscriber count #2');
-          assert.strictEqual(addSpy2.calls[0][0], $switch['cases'][0], 'addCollectionSubscriber arg #2');
+          assert.strictEqual(removeSpy.calls.length, 1, 'subscibe count');
+          assert.strictEqual(removeSpy.calls[0][0], $switch['cases'][0], 'subscibe arg');
+          assert.strictEqual(addSpy2.calls.length, 1, 'subscibe count #2');
+          assert.strictEqual(addSpy2.calls[0][0], $switch['cases'][0], 'subscibe arg #2');
 
           await ctx.assertChange(
             $switch,
@@ -1537,8 +1537,8 @@ describe('switch', function () {
             wrap('Order received.'),
             [1, ...getDeactivationSequenceFor('case-host-4'), ...getActivationSequenceFor('case-host-1')]
           );
-          assert.strictEqual(removeSpy2.calls.length, 1, 'addCollectionSubscriber count #2');
-          assert.strictEqual(removeSpy2.calls[0][0], $switch['cases'][0], 'addCollectionSubscriber arg #2');
+          assert.strictEqual(removeSpy2.calls.length, 1, 'subscibe count #2');
+          assert.strictEqual(removeSpy2.calls[0][0], $switch['cases'][0], 'subscibe arg #2');
         }
       );
     }

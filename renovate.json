@@ -14,14 +14,7 @@
     "group:all"
   ],
   "ignorePaths": [
-    "**/node_modules/**",
-    "test/js-framework-benchmark",
-    "test/js-framework-benchmark/webdriver-ts",
-    "test/js-framework-benchmark/webdriver-ts-results",
-    "test/js-framework-benchmark/results-ui",
-    "test/js-framework-benchmark/frameworks-keyed/aurelia",
-    "test/js-framework-benchmark/frameworks-keyed/aurelia2-npm",
-    "test/js-framework-benchmark/frameworks-keyed/vanillajs"
+    "**/node_modules/**"
   ],
   "node": {
     "supportPolicy": ["lts"]
@@ -37,14 +30,7 @@
     "babel-jest",
     "karma-coverage-istanbul-reporter",
     "jsdom",
-    "copy-webpack-plugin",
-    "@wdio/browserstack-service",
-    "@wdio/cli",
-    "@wdio/local-runner",
-    "@wdio/mocha-framework",
-    "@wdio/selenium-standalone-service",
-    "@wdio/spec-reporter",
-    "@wdio/sync"
+    "copy-webpack-plugin"
   ],
   "packageRules": [
     {

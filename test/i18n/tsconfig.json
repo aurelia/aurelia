@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "lib": ["esnext", "dom"],
+    "module": "esnext",
+    "moduleResolution": "node",
+    "skipLibCheck": true,
+    "outDir": "dist",
+    "target": "es2020",
+    "resolveJsonModule": true
+  },
+  "include": ["src"],
+}

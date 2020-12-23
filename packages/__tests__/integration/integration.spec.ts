@@ -1,4 +1,3 @@
-/* eslint-disable mocha/no-skipped-tests, mocha/no-exclusive-tests, @typescript-eslint/strict-boolean-expressions, @typescript-eslint/strict-boolean-expressions */
 import { toArray } from '@aurelia/kernel';
 import { DirtyCheckProperty, IDirtyChecker } from '@aurelia/runtime';
 import { assert, getVisibleText, eachCartesianJoin } from '@aurelia/testing';
@@ -10,7 +9,6 @@ import { $it, assertCalls, getViewModel } from './util.js';
 import { ComponentMode } from './app/startup.js';
 
 describe('app', function () {
-
   eachCartesianJoin([
     ['app', 'enhance'] as ['app' , 'enhance'],
     [ComponentMode.class, ComponentMode.instance,],

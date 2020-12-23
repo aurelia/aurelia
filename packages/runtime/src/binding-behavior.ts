@@ -8,9 +8,7 @@ import {
   DI,
   fromAnnotationOrDefinitionOrTypeOrDefault,
 } from '@aurelia/kernel';
-import { LifecycleFlags } from './observation.js';
-import { connectable, IConnectableBinding } from './binding/connectable.js';
-import { BindingBehaviorExpression, IBindingBehaviorExpression } from './binding/ast.js';
+import { Collection, IndexMap, LifecycleFlags } from './observation.js';
 import { registerAliases } from './alias.js';
 
 import type {
@@ -22,8 +20,10 @@ import type {
   IServiceLocator,
   Key,
 } from '@aurelia/kernel';
+import type { BindingObserverRecord, IConnectableBinding } from './binding/connectable.js';
+import type { BindingBehaviorExpression, IBindingBehaviorExpression } from './binding/ast.js';
 import type { IObserverLocator } from './observation/observer-locator.js';
-import type { IBinding, ISubscribable } from './observation.js';
+import type { IBinding } from './observation.js';
 import type { Scope } from './observation/binding-context.js';
 
 export type PartialBindingBehaviorDefinition = PartialResourceDefinition<{
@@ -144,30 +144,23 @@ export class BindingBehaviorFactory<T extends Constructable = Constructable> {
   }
 }
 
-export interface IInterceptableBinding extends IBinding {
-  id?: number;
-  readonly observerLocator?: IObserverLocator;
+export type IInterceptableBinding = Exclude<IConnectableBinding, 'updateTarget' | 'updateSource' | 'callSource' | 'handleChange'> & {
   updateTarget?(value: unknown, flags: LifecycleFlags): void;
   updateSource?(value: unknown, flags: LifecycleFlags): void;
 
   callSource?(args: object): unknown;
   handleChange?(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void;
-
-  observeProperty?(obj: object, propertyName: string): void;
-  addObserver?(observer: ISubscribable): void;
-  unobserve?(all?: boolean): void;
-}
+};
 
 export interface BindingInterceptor extends IConnectableBinding {}
 
-@connectable
 export class BindingInterceptor implements IInterceptableBinding {
   public interceptor: this = this;
   public get id(): number {
     return this.binding.id!;
   }
   public get observerLocator(): IObserverLocator {
-    return this.binding.observerLocator!;
+    return this.binding.observerLocator;
   }
   public get locator(): IServiceLocator {
     return this.binding.locator;
@@ -175,8 +168,14 @@ export class BindingInterceptor implements IInterceptableBinding {
   public get $scope(): Scope | undefined {
     return this.binding.$scope;
   }
+  public get $hostScope(): Scope | null {
+    return this.binding.$hostScope;
+  }
   public get isBound(): boolean {
     return this.binding.isBound;
+  }
+  public get obs(): BindingObserverRecord {
+    return this.binding.obs;
   }
 
   public constructor(
@@ -187,7 +186,7 @@ export class BindingInterceptor implements IInterceptableBinding {
     while (binding.interceptor !== this) {
       interceptor = binding.interceptor;
       binding.interceptor = this;
-      binding = interceptor;
+      binding = interceptor as IInterceptableBinding;
     }
   }
 
@@ -202,6 +201,15 @@ export class BindingInterceptor implements IInterceptableBinding {
   }
   public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
     this.binding.handleChange!(newValue, previousValue, flags);
+  }
+  public handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void {
+    this.binding.handleCollectionChange(indexMap, flags);
+  }
+  public observeProperty(obj: object, key: string): void {
+    this.binding.observeProperty!(obj, key as string);
+  }
+  public observeCollection(observer: Collection): void {
+    this.binding.observeCollection(observer);
   }
 
   public $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void {

@@ -1,8 +1,9 @@
 {
   "name": "@aurelia/http-server",
   "version": "0.8.0",
-  "main": "dist/esnext/index.js",
-  "module": "dist/esnext/index.js",
+  "main": "dist/esm/index.js",
+  "module": "dist/esm/index.js",
+  "type": "module",
   "types": "dist/index.d.ts",
   "typings": "dist/index.d.ts",
   "license": "MIT",
@@ -30,8 +31,11 @@
   },
   "scripts": {
     "lint": "eslint --cache --ext .js,.ts src/",
+    "lint:ci": "eslint --cache --ext .js,.ts --quiet --report-unused-disable-directives src/",
     "build": "tsc -b",
-    "dev": "tsc -b -w --preserveWatchOutput"
+    "dev": "tsc -b -w --preserveWatchOutput",
+    "publish:dev": "npm publish --tag dev",
+    "publish:latest": "npm publish --tag latest"
   },
   "publishConfig": {
     "access": "public"

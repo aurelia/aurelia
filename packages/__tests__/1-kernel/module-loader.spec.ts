@@ -1,10 +1,10 @@
 import { AnalyzedModule, DI, IModuleLoader } from '@aurelia/kernel';
 
-import * as ce_a_b_default from './modules/ce-a-b-default';
-import * as ce_a_b_defaultb from './modules/ce-a-b-defaultb';
-import * as ce_a_b from './modules/ce-a-b';
-import * as ce_default from './modules/ce-default';
-import * as kitchen_sink from './modules/kitchen-sink';
+import * as ce_a_b_default from './modules/ce-a-b-default.js';
+import * as ce_a_b_defaultb from './modules/ce-a-b-defaultb.js';
+import * as ce_a_b from './modules/ce-a-b.js';
+import * as ce_default from './modules/ce-default.js';
+import * as kitchen_sink from './modules/kitchen-sink.js';
 import { assert } from '@aurelia/testing';
 import { BindingBehavior, CustomAttribute, CustomElement, ValueConverter } from '@aurelia/runtime-html';
 
@@ -291,8 +291,8 @@ describe('ModuleLoader', function () {
     const $res1 = await res1;
     const $res2 = await res2;
 
-    loader.load(promise, transform1);
-    loader.load(promise, transform2);
+    void loader.load(promise, transform1);
+    void loader.load(promise, transform2);
 
     assert.strictEqual($res1, retVal, `$res1 === retVal`);
     assert.strictEqual($res2, retVal, `$res2 === retVal`);

@@ -872,12 +872,10 @@ export class BinaryExpression {
         // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         return this.left.evaluate(f, s, hs, l, c) || this.right.evaluate(f, s, hs, l, c);
       case '==':
-        // eslint-disable-next-line eqeqeq
         return this.left.evaluate(f, s, hs, l, c) == this.right.evaluate(f, s, hs, l, c);
       case '===':
         return this.left.evaluate(f, s, hs, l, c) === this.right.evaluate(f, s, hs, l, c);
       case '!=':
-        // eslint-disable-next-line eqeqeq
         return this.left.evaluate(f, s, hs, l, c) != this.right.evaluate(f, s, hs, l, c);
       case '!==':
         return this.left.evaluate(f, s, hs, l, c) !== this.right.evaluate(f, s, hs, l, c);

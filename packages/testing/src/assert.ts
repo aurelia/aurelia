@@ -57,7 +57,7 @@ import {
 import { ensureTaskQueuesEmpty } from './scheduler.js';
 import { PLATFORM } from './test-context.js';
 
-/* eslint-disable @typescript-eslint/ban-types, @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/ban-types, @typescript-eslint/no-explicit-any */
 
 type ErrorMatcher = string | Error | RegExp | Function;
 

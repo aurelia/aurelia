@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-use-before-define */
 import { Protocol, Metadata, firstDefined, getPrototypeChain, IIndexable } from '@aurelia/kernel';
 import { LifecycleFlags, subscriberCollection } from '@aurelia/runtime';
 import { CustomElement } from '../resources/custom-element.js';
@@ -87,7 +86,6 @@ export const Children = {
   from(...childrenObserverLists: readonly (ChildrenDefinition | Record<string, PartialChildrenDefinition> | readonly string[] | undefined)[]): Record<string, ChildrenDefinition> {
     const childrenObservers: Record<string, ChildrenDefinition> = {};
 
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     const isArray = Array.isArray as <T>(arg: unknown) => arg is readonly T[];
 
     function addName(name: string): void {

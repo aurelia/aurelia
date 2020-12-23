@@ -32,7 +32,7 @@ export function translateOptions(routerOptionsSpec: IRouterOptionsSpec): IRouter
   switch (routerOptionsSpec.deferUntil) {
     case 'load-hooks':
       syncStates.push('loaded', 'unloaded', 'routed');
-    // eslint-disable-next-line no-fallthrough
+      // falls through
     case 'guard-hooks':
       syncStates.push('guardedLoad', 'guarded');
   }

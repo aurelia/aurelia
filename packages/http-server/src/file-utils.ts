@@ -97,7 +97,7 @@ export async function readdir(path: string): Promise<string[]> {
 }
 
 export async function rmdir(path: string) {
-  return new Promise(function (resolve, reject) {
+  return new Promise<void>(function (resolve, reject) {
     $rmdir(path, function (err) {
       if (err !== null) {
         reject(err);
@@ -109,7 +109,7 @@ export async function rmdir(path: string) {
 }
 
 export async function unlink(path: string) {
-  return new Promise(function (resolve, reject) {
+  return new Promise<void>(function (resolve, reject) {
     $unlink(path, function (err) {
       if (err !== null) {
         reject(err);

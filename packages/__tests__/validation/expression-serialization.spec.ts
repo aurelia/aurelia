@@ -1,4 +1,4 @@
-/* eslint-disable mocha/no-hooks,no-template-curly-in-string,mocha/no-sibling-hooks */
+/* eslint-disable mocha/no-hooks,mocha/no-sibling-hooks */
 import {
   IExpressionParser,
   BindingType,

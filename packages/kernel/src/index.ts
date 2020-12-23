@@ -86,7 +86,7 @@ export {
   IModuleLoader,
   AnalyzedModule,
   ModuleItem,
-} from './module-loader';
+} from './module-loader.js';
 export {
   noop,
   emptyArray,

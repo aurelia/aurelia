@@ -55,13 +55,10 @@ export const enum LifecycleFlags {
   dispose                       = 0b0000_100_00_00_000,
 }
 
-export interface IConnectable {
+export interface IConnectable extends ISubscriber, ICollectionSubscriber {
   id: number;
   observeProperty(obj: object, key: PropertyKey): void;
   observeCollection(obj: Collection): void;
-  /**
-   * Semi internal API
-   */
   subscribeTo(subscribable: ISubscribable | ICollectionSubscribable): void;
 }
 

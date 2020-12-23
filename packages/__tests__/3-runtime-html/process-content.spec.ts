@@ -169,53 +169,6 @@ describe('processContent', function () {
         }
       );
     }
-    {
-      @processContent<typeof MyElement>('processContent')
-      @customElement({
-        name: 'my-element',
-        isStrictBinding: true,
-        template: `<div><au-slot></au-slot></div>`,
-      })
-      class MyElement {
-        public static hookInvoked: boolean = false;
-        public static processContent(_node: INode, _p: IPlatform) {
-          this.hookInvoked = true;
-        }
-      }
-      yield new TestData(
-        'processContent hook can be configured using class-level decorator - string - order 1',
-        `<my-element normal="foo" bold="bar"></my-element>`,
-        [MyElement],
-        {},
-        () => {
-          assert.strictEqual(MyElement.hookInvoked, true);
-        }
-      );
-    }
-
-    {
-      @customElement({
-        name: 'my-element',
-        isStrictBinding: true,
-        template: `<div><au-slot></au-slot></div>`,
-      })
-      @processContent<typeof MyElement>('processContent')
-      class MyElement {
-        public static hookInvoked: boolean = false;
-        public static processContent(_node: INode, _p: IPlatform) {
-          this.hookInvoked = true;
-        }
-      }
-      yield new TestData(
-        'processContent hook can be configured using class-level decorator - string - order 2',
-        `<my-element normal="foo" bold="bar"></my-element>`,
-        [MyElement],
-        {},
-        () => {
-          assert.strictEqual(MyElement.hookInvoked, true);
-        }
-      );
-    }
 
     {
       @customElement({

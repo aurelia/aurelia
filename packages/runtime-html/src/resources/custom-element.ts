@@ -553,18 +553,16 @@ export const CustomElement: CustomElementKind = {
   })(),
 };
 
-export type DecoratorFactoryMethod<TClass> = (target: Constructable<TClass>, propertyKey: string, descriptor: PropertyDescriptor) => void;
-export type ProcessContentHook = (node: INode, platform: IPlatform) => boolean | void;
-
-type ProcessContentHookNames<TClass> = { [Method in keyof TClass]: TClass[Method] extends ProcessContentHook ? Method : never }[keyof TClass];
+type DecoratorFactoryMethod<TClass> = (target: Constructable<TClass>, propertyKey: string, descriptor: PropertyDescriptor) => void;
+type ProcessContentHook = (node: INode, platform: IPlatform) => boolean | void;
 
 const pcHookMetadataProperty = Protocol.annotation.keyFor('processContent');
-export function processContent<TClass>(hook: ProcessContentHookNames<TClass> | ProcessContentHook): CustomElementDecorator;
+export function processContent(hook: ProcessContentHook): CustomElementDecorator;
 export function processContent<TClass>(): DecoratorFactoryMethod<TClass>;
-export function processContent<TClass>(hook?: ProcessContentHookNames<TClass> | ProcessContentHook): CustomElementDecorator | DecoratorFactoryMethod<TClass> {
+export function processContent<TClass>(hook?: ProcessContentHook): CustomElementDecorator | DecoratorFactoryMethod<TClass> {
   return hook === void 0
     ? function (target: Constructable<TClass>, propertyKey: string, _descriptor: PropertyDescriptor) {
-      Metadata.define(pcHookMetadataProperty, ensureHook(target, propertyKey as ProcessContentHookNames<TClass>), target);
+      Metadata.define(pcHookMetadataProperty, ensureHook(target, propertyKey), target);
     }
     : function (target: Constructable<TClass>) {
       hook = ensureHook(target, hook!);
@@ -578,7 +576,7 @@ export function processContent<TClass>(hook?: ProcessContentHookNames<TClass> | 
     };
 }
 
-function ensureHook<TClass>(target: Constructable<TClass>, hook: ProcessContentHookNames<TClass> | ProcessContentHook): ProcessContentHook {
+function ensureHook<TClass>(target: Constructable<TClass>, hook: string | ProcessContentHook): ProcessContentHook {
   if (typeof hook === 'string') {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-explicit-any
     hook = (target as any)[hook] as ProcessContentHook;
@@ -589,5 +587,5 @@ function ensureHook<TClass>(target: Constructable<TClass>, hook: ProcessContentH
     throw new Error(`Invalid @processContent hook. Expected the hook to be a function (when defined in a class, it needs to be a static function) but got a ${hookType}.`);
   }
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-  return (hook as ProcessContentHook).bind(target);
+  return hook.bind(target);
 }

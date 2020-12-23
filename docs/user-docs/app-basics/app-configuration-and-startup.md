@@ -106,7 +106,7 @@ The startup sections showed how to start Aurelia for an empty root node.
 While that's the most frequent use-case, there might be other scenarios where we would like to work with an existing DOM tree with Aurelia.
 This includes pages those are partially rendered from a server with nodes and attributes representing Aurelia custom elements, custom attributes, or template controllers.
 Another example can be where you need to add a DOM fragment on the fly to the HTML document, and then you want Aurelia to take care of the bindings present in that DOM fragment.
-This is commonly known as enhance, as Aurelia takes a normal DOM fragment does its magic on it.
+This is commonly known as enhance, as Aurelia takes a normal DOM fragment and associate behaviours with it.
 
 The basic syntax of `enhance` matches closely that of normal startup.
 

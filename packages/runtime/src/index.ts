@@ -122,7 +122,7 @@ export {
   IEffectRunner,
   EffectRunner,
   EffectFunc,
-} from './observation/effect';
+} from './observation/effect.js';
 export {
   IObservableDefinition,
   observable,

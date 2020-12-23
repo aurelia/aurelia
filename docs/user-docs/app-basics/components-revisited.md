@@ -1176,12 +1176,6 @@ export class MyElement {
   static processContent(node: INode, platform: IPlatform) { }
 }
 
-// ...or name of a static method
-@processContent('processContent')
-export class MyElement {
-  static processContent(node: INode, platform: IPlatform) { }
-}
-
 // ...or a standalone method
 function processContent(this: typeof MyElement, node: INode, platform: IPlatform) { }
 @processContent(processContent)

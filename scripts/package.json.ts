@@ -353,6 +353,9 @@ export async function loadPackageJson(...pathSegments: string[]): Promise<Packag
       if (err) {
         reject(err);
       }
+      if (!data) {
+        throw new Error(`Empty file: ${path}`);
+      }
       const str = data.toString('utf8');
       const json = JSON.parse(str);
       resolve(json);

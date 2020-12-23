@@ -59,7 +59,7 @@
     "change-package-refs:dev": "ts-node -P tsconfig.json scripts/change-package-refs.ts dev",
     "change-package-refs:release": "ts-node -P tsconfig.json scripts/change-package-refs.ts release",
     "clean": "rimraf dist packages/*/dist packages-cjs/*/dist test/*/dist test/benchmarking-apps/*/dist examples/*/dist",
-    "clean:tsconfig-build-cache": "rimraf packages/*/dist/tsconfig.tsbuildinfo",
+    "clean:tsconfig-build-cache": "rimraf packages/*/dist/tsconfig.tsbuildinfo packages-cjs/*/dist/tsconfig.tsbuildinfo",
     "lint": "npm run lint:packages && npm run lint:other",
     "lint:other": "eslint --cache --ext .js,.ts examples scripts test",
     "lint:other:ci": "eslint --cache --ext .js,.ts --quiet --report-unused-disable-directives examples scripts test",

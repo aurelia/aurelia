@@ -81,8 +81,11 @@ class Effect implements IEffect, ISubscriber, ICollectionSubscriber {
     }
     // when doing this.fn(this), there's a chance that it has recursive effect
     // continue to run for a certain number before bailing
+    // whenever there's a dependency change while running, this.queued will be true
+    // so we use it as an indicator to continue to run the effect
     if (this.queued) {
       if (this.runCount > this.maxRunCount) {
+        this.runCount = 0;
         throw new Error('Maximum number of recursive effect run reached. Consider handle effect dependencies differently.');
       }
       this.run();

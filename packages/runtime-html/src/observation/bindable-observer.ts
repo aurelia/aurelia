@@ -1,5 +1,5 @@
 import { noop } from '@aurelia/kernel';
-import { subscriberCollection, AccessorType, LifecycleFlags, ConnectableSwitcher } from '@aurelia/runtime';
+import { subscriberCollection, AccessorType, LifecycleFlags } from '@aurelia/runtime';
 
 import type { IIndexable } from '@aurelia/kernel';
 import type { InterceptorFunc, IObserver, ISubscriber, ISubscriberCollection } from '@aurelia/runtime';
@@ -107,10 +107,7 @@ export class BindableObserver {
       {
         enumerable: true,
         configurable: true,
-        get: (/* Bindable Observer */) => {
-          ConnectableSwitcher.current?.subscribeTo(this);
-          return this.currentValue;
-        },
+        get: (/* Bindable Observer */) => this.currentValue,
         set: (/* Bindable Observer */value: unknown) => {
           this.setValue(value, LifecycleFlags.none);
         }

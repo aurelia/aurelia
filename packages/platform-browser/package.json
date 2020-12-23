@@ -1,12 +1,11 @@
 {
   "name": "@aurelia/platform-browser",
-  "version": "0.9.0-dev.202012222115",
+  "version": "0.9.0-dev.202012231706",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/index.d.ts",
   "typings": "dist/index.d.ts",
   "license": "MIT",
-  "type": "module",
   "homepage": "https://aurelia.io",
   "repository": {
     "type": "git",
@@ -38,7 +37,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/platform": "0.9.0-dev.202012222115"
+    "@aurelia/platform": "0.9.0-dev.202012231706"
   },
   "devDependencies": {
     "typescript": "^4.0.3"

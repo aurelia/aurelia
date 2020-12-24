@@ -1,4 +1,4 @@
-import { DI, Writable } from '@aurelia/kernel';
+import { DI, Metadata, Protocol, Writable } from '@aurelia/kernel';
 import { Scope, LifecycleFlags } from '@aurelia/runtime';
 import { IRenderLocation } from '../../dom.js';
 import { customElement, CustomElementDefinition } from '../custom-element.js';
@@ -61,6 +61,7 @@ export class AuSlot implements ICustomElementViewModel {
   public readonly view: ISyntheticView;
   public readonly $controller!: ICustomElementController<this>; // This is set by the controller after this instance is constructed
 
+  private readonly name: string;
   private readonly isProjection: boolean;
   private hostScope: Scope | null = null;
   private readonly outerScope: Scope | null;
@@ -70,6 +71,7 @@ export class AuSlot implements ICustomElementViewModel {
     location: IRenderLocation,
   ) {
     this.view = factory.create().setLocation(location);
+    this.name = factory.name;
     this.isProjection = factory.contentType === AuSlotContentType.Projection;
     this.outerScope = factory.projectionScope;
   }
@@ -79,7 +81,21 @@ export class AuSlot implements ICustomElementViewModel {
     parent: IHydratedParentController,
     flags: LifecycleFlags,
   ): void | Promise<void> {
-    this.hostScope = this.$controller.scope.parentScope!;
+    let boundary = this.hostScope = this.$controller.scope.parentScope!;
+    while (!(boundary?.isComponentBoundary ?? true)) {
+      boundary = boundary.parentScope!;
+    }
+    if (boundary !== null) {
+      const infoProperty = AuSlotsInfoProperty.for(boundary);
+      if (infoProperty === void 0) {
+        return;
+      }
+      let info: AuSlotsInfo = boundary[infoProperty];
+      if (info == null) {
+        info = boundary[infoProperty] = Object.create(null) as AuSlotsInfo;
+      }
+      info[this.name] = { isProjection: this.isProjection, template: null! }; // TODO: get template
+    }
   }
 
   public attaching(
@@ -112,3 +128,19 @@ export class AuSlot implements ICustomElementViewModel {
 }
 
 customElement({ name: 'au-slot', template: null, containerless: true })(AuSlot);
+
+export type AuSlotsInfo = Record<string, { template: Element; isProjection: boolean }>;
+type AuSlotsInfoPropertyNames<TClass> = { [key in keyof TClass]: TClass[key] extends AuSlotsInfo ? key : never }[keyof TClass];
+export function auSlots<TTarget>(prototype: TTarget, property: AuSlotsInfoPropertyNames<TTarget>): void {
+  AuSlotsInfoProperty.define(prototype, property);
+}
+
+const AuSlotsInfoProperty = {
+  key: Protocol.annotation.keyFor('au-slots-info-property'),
+  define<TTarget>(prototype: TTarget, property: AuSlotsInfoPropertyNames<TTarget>) {
+    Metadata.define(this.key, property, prototype);
+  },
+  for<TTarget extends object>(instance: TTarget): AuSlotsInfoPropertyNames<TTarget> | undefined {
+    return Metadata.get(this.key, instance.constructor.prototype) as AuSlotsInfoPropertyNames<TTarget>;
+  }
+};

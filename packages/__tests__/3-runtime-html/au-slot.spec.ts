@@ -1,5 +1,6 @@
 import { IContainer } from '@aurelia/kernel';
 import { Aurelia, CustomElement, IPlatform, bindable, customElement, BindingMode } from '@aurelia/runtime-html';
+import { auSlots, AuSlotsInfo } from '@aurelia/runtime-html/dist/resources/custom-elements/au-slot';
 import { assert, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util.js';
 
@@ -82,7 +83,13 @@ describe('au-slot', function () {
     ) { }
   }
   function* getTestData() {
-    const createMyElement = (template: string) => CustomElement.define({ name: 'my-element', isStrictBinding: true, template, bindables: { people: { mode: BindingMode.default } }, }, class MyElement { });
+    const createMyElement = (template: string) => {
+      class MyElement {
+        @auSlots
+        public slots: AuSlotsInfo;
+      }
+      return CustomElement.define({ name: 'my-element', isStrictBinding: true, template, bindables: { people: { mode: BindingMode.default } }, }, MyElement);
+    };
 
     // #region simple templating
     yield new TestData(
@@ -92,6 +99,15 @@ describe('au-slot', function () {
         createMyElement(`static <au-slot>default</au-slot> <au-slot name="s1">s1</au-slot> <au-slot name="s2">s2</au-slot>`),
       ],
       { 'my-element': 'static default s1 s2' },
+      function ({ host }) {
+        const slots = CustomElement.for<{ slots: AuSlotsInfo }>(host.querySelector('my-element')).viewModel.slots;
+        const expected: AuSlotsInfo = {
+          default: { isProjection: false, template: null },
+          s1: { isProjection: false, template: null },
+          s2: { isProjection: false, template: null },
+        };
+        assert.deepStrictEqual(slots, expected);
+      }
     );
 
     yield new TestData(

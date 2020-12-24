@@ -401,7 +401,7 @@ export class CustomElementRenderer implements IRenderer {
     const slotInfo = instruction.slotInfo;
     if (slotInfo!==null) {
       const projectionCtx = slotInfo.projectionContext;
-      viewFactory = getRenderContext(projectionCtx.content, context).getViewFactory(void 0, slotInfo.type, projectionCtx.scope);
+      viewFactory = getRenderContext(projectionCtx.content, context).getViewFactory(slotInfo.name, slotInfo.type, projectionCtx.scope);
     }
 
     const factory = context.getComponentFactory(

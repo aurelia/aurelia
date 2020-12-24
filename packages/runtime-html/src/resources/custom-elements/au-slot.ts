@@ -36,7 +36,7 @@ export class RegisteredProjections {
   ) { }
 }
 
-export interface IProjectionProvider extends ProjectionProvider {}
+export interface IProjectionProvider extends ProjectionProvider { }
 export const IProjectionProvider = DI.createInterface<IProjectionProvider>('IProjectionProvider', x => x.singleton(ProjectionProvider));
 
 const projectionMap: WeakMap<IInstruction, RegisteredProjections> = new WeakMap<Instruction, RegisteredProjections>();
@@ -67,7 +67,7 @@ export class AuSlot implements ICustomElementViewModel {
   private readonly outerScope: Scope | null;
 
   public constructor(
-    private readonly factory: IViewFactory,
+    factory: IViewFactory,
     location: IRenderLocation,
   ) {
     this.view = factory.create().setLocation(location);
@@ -77,25 +77,23 @@ export class AuSlot implements ICustomElementViewModel {
   }
 
   public binding(
-    initiator: IHydratedController,
-    parent: IHydratedParentController,
-    flags: LifecycleFlags,
+    _initiator: IHydratedController,
+    _parent: IHydratedParentController,
+    _flags: LifecycleFlags,
   ): void | Promise<void> {
     let boundary = this.hostScope = this.$controller.scope.parentScope!;
     while (!(boundary?.isComponentBoundary ?? true)) {
       boundary = boundary.parentScope!;
     }
-    if (boundary !== null) {
-      const infoProperty = AuSlotsInfoProperty.for(boundary);
-      if (infoProperty === void 0) {
-        return;
-      }
-      let info: AuSlotsInfo = boundary[infoProperty];
-      if (info == null) {
-        info = boundary[infoProperty] = Object.create(null) as AuSlotsInfo;
-      }
-      info[this.name] = { isProjection: this.isProjection, template: null! }; // TODO: get template
+    if (boundary === null) { return; }
+    const bc = boundary.bindingContext;
+    const infoProperty = AuSlotsInfoProperty.for(bc);
+    if (infoProperty === void 0) { return; }
+    let info: AuSlotsInfo = bc[infoProperty] as AuSlotsInfo;
+    if (info == null) {
+      info = bc[infoProperty] = Object.create(null) as AuSlotsInfo;
     }
+    info[this.name] = this.isProjection;
   }
 
   public attaching(
@@ -129,7 +127,7 @@ export class AuSlot implements ICustomElementViewModel {
 
 customElement({ name: 'au-slot', template: null, containerless: true })(AuSlot);
 
-export type AuSlotsInfo = Record<string, { template: Element; isProjection: boolean }>;
+export type AuSlotsInfo = Record<string, boolean>;
 type AuSlotsInfoPropertyNames<TClass> = { [key in keyof TClass]: TClass[key] extends AuSlotsInfo ? key : never }[keyof TClass];
 export function auSlots<TTarget>(prototype: TTarget, property: AuSlotsInfoPropertyNames<TTarget>): void {
   AuSlotsInfoProperty.define(prototype, property);

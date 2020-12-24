@@ -1,10 +1,11 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { IContainer } from '@aurelia/kernel';
-import { Aurelia, CustomElement, IPlatform, bindable, customElement, BindingMode } from '@aurelia/runtime-html';
-import { auSlots, AuSlotsInfo } from '@aurelia/runtime-html/dist/resources/custom-elements/au-slot';
+import { Aurelia, auSlots, AuSlotsInfo, bindable, BindingMode, customElement, CustomElement, IPlatform } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util.js';
 
-describe('au-slot', function () {
+describe.only('au-slot', function () {
   interface TestSetupContext {
     template: string;
     registrations: any[];
@@ -100,12 +101,8 @@ describe('au-slot', function () {
       ],
       { 'my-element': 'static default s1 s2' },
       function ({ host }) {
-        const slots = CustomElement.for<{ slots: AuSlotsInfo }>(host.querySelector('my-element')).viewModel.slots;
-        const expected: AuSlotsInfo = {
-          default: { isProjection: false, template: null },
-          s1: { isProjection: false, template: null },
-          s2: { isProjection: false, template: null },
-        };
+        const slots = CustomElement.for<any>(host.querySelector('my-element')).viewModel.slots;
+        const expected: AuSlotsInfo = Object.create(null, { default: { enumerable: true, value: false }, s1: { enumerable: true, value: false }, s2: { enumerable: true, value: false } });
         assert.deepStrictEqual(slots, expected);
       }
     );

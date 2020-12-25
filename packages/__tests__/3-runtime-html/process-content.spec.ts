@@ -1,13 +1,14 @@
 /* eslint-disable no-template-curly-in-string */
-import { IContainer, toArray } from '@aurelia/kernel';
+import { IContainer, noop, toArray } from '@aurelia/kernel';
 import { Aurelia, bindable, BindingMode, CustomElement, customElement, INode, IPlatform, processContent } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext as $TestExecutionContext, TestFunction } from '../util.js';
 
-describe('processContent', function () {
+describe.only('processContent', function () {
   interface TestSetupContext {
     template: string;
     registrations: any[];
+    enhance: boolean;
   }
   class TestExecutionContext implements $TestExecutionContext<any> {
     private _platform: IPlatform;
@@ -23,11 +24,11 @@ describe('processContent', function () {
 
   async function testAuSlot(
     testFunction: TestFunction<TestExecutionContext>,
-    { template, registrations }: Partial<TestSetupContext> = {}
+    { template, registrations, enhance = false }: Partial<TestSetupContext> = {}
   ) {
     const ctx = TestContext.create();
 
-    const host = ctx.doc.createElement('div');
+    const host: HTMLElement = ctx.doc.createElement('div');
     ctx.doc.body.appendChild(host);
 
     const container = ctx.container;
@@ -35,13 +36,14 @@ describe('processContent', function () {
     let error: Error | null = null;
     let app: App | null = null;
     try {
-      await au
-        .register(...registrations)
-        .app({
-          host,
-          component: CustomElement.define({ name: 'app', isStrictBinding: true, template }, App)
-        })
-        .start();
+      au.register(...registrations);
+      if (enhance) {
+        host.innerHTML = template;
+        au.enhance({ host, component: CustomElement.define({ name: 'app', isStrictBinding: true }, App) });
+      } else {
+        au.app({ host, component: CustomElement.define({ name: 'app', isStrictBinding: true, template }, App) });
+      }
+      await au.start();
       app = au.root.controller.viewModel as App;
     } catch (e) {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -67,6 +69,7 @@ describe('processContent', function () {
       public readonly registrations: any[],
       public readonly expectedInnerHtmlMap: Record<string, string>,
       public readonly additionalAssertion?: (ctx: TestExecutionContext) => void | Promise<void>,
+      public readonly enhance: boolean = false,
     ) { }
   }
   function* getTestData() {
@@ -418,6 +421,27 @@ describe('processContent', function () {
       { 'my-element': `<template au-slot=""><span-ce value="foo"></span-ce><strong-ce value="bar"></strong-ce></template>${rand}<div></div>` },
     );
 
+    yield new TestData(
+      'works with enhance',
+      `<my-element normal="foo" bold="bar"></my-element>`,
+      [
+        SpanCe,
+        StrongCe,
+        CustomElement.define(
+          {
+            name: 'my-element',
+            isStrictBinding: true,
+            template: '<div><au-slot></au-slot></div>',
+            processContent: processContentWithCe(true),
+          },
+          class MyElement { }
+        )
+      ],
+      { 'my-element': `<div><span-ce value="foo" class="au"><span>foo</span></span-ce><strong-ce value="bar" class="au"><strong>bar</strong></strong-ce></div>` },
+      noop,
+      true,
+    );
+
     /**
      * MDN template example: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/template#Examples
      * Note that this is also possible without `processContent` hook, by adding the named template directly to the CE's own defined template.
@@ -481,7 +505,7 @@ describe('processContent', function () {
     );
 
   }
-  for (const { spec, template, expectedInnerHtmlMap, registrations, additionalAssertion } of getTestData()) {
+  for (const { spec, template, expectedInnerHtmlMap, registrations, additionalAssertion, enhance } of getTestData()) {
     $it(spec,
       async function (ctx) {
         const { host, error } = ctx;
@@ -497,7 +521,7 @@ describe('processContent', function () {
           await additionalAssertion(ctx);
         }
       },
-      { template, registrations });
+      { template, registrations, enhance });
   }
 
   // A semi-real-life example

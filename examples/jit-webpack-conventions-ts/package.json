@@ -8,7 +8,7 @@
   },
   "version": "0.8.0",
   "scripts": {
-    "watch": "webpack-dev-server --no-inline",
+    "watch": "webpack-dev-server",
     "build": "rimraf dist && webpack",
     "serve": "au-http-server au.conf.js"
   },
@@ -27,7 +27,7 @@
     "rimraf": "^3.0.0",
     "webpack": "^5.10.3",
     "webpack-cli": "^4.2.0",
-    "webpack-dev-server": "^3.11.0",
+    "webpack-dev-server": "^4.0.0-beta.0",
     "html-webpack-plugin": "^5.0.0-beta.1",
     "@aurelia/webpack-loader": "dev",
     "ts-loader": "^8.0.12",

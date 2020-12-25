@@ -5,18 +5,24 @@ const baseUrl = '/';
 
 module.exports = function () {
   return {
-    mode: 'production',
+    mode: 'development', // 'production',
     devtool: false,
     entry: './src/main.ts',
     resolve: {
       extensions: ['.ts', '.js'],
       modules: ['src', 'node_modules'],
-      mainFields: ['module']
+      mainFields: ['module'],
+      // sadly these fallbacks are required to run the app via webpack-dev-server
+      fallback: {
+        'html-entities': require.resolve('html-entities/'),
+        'url': require.resolve('url/'),
+        'events': require.resolve('events/'),
+      },
     },
     devServer: {
-      contentBase: path.join(__dirname, "dist"),
+      // contentBase: path.join(__dirname, "dist"),
       historyApiFallback: true,
-      lazy: false
+      // lazy: false,
     },
     output: {
       publicPath: baseUrl,

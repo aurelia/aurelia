@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.8.0",
   "scripts": {
-    "watch": "webpack-dev-server --no-inline",
+    "watch": "webpack-dev-server",
     "build": "rimraf dist && webpack --config webpack.config.js",
     "serve": "node ./node_modules/@aurelia/http-server/dist/esm/cli.js au.conf.js",
     "build-serve": "rimraf dist && webpack --config webpack.config.js && node ./node_modules/@aurelia/http-server/dist/esm/cli.js au.conf.js",
@@ -36,6 +36,6 @@
     "url-loader": "^4.1.1",
     "webpack": "^5.10.3",
     "webpack-cli": "^4.2.0",
-    "webpack-dev-server": "^3.11.0"
+    "webpack-dev-server": "^4.0.0-beta.0"
   }
 }

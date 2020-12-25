@@ -11,7 +11,13 @@ module.exports = function () {
     resolve: {
       extensions: ['.ts', '.js'],
       modules: ['src', 'node_modules'],
-      mainFields: ['module']
+      mainFields: ['module'],
+      // sadly these fallbacks are required to run the app via webpack-dev-server
+      fallback: {
+        'html-entities': require.resolve('html-entities/'),
+        'url': require.resolve('url/'),
+        'events': require.resolve('events/'),
+      },
     },
     devServer: {
       contentBase: path.join(__dirname, "dist"),

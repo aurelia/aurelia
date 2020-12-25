@@ -4,7 +4,7 @@ import { Aurelia, bindable, BindingMode, CustomElement, customElement, INode, IP
 import { assert, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext as $TestExecutionContext, TestFunction } from '../util.js';
 
-describe.only('processContent', function () {
+describe('processContent', function () {
   interface TestSetupContext {
     template: string;
     registrations: any[];

@@ -18,6 +18,7 @@ export interface IRouteNode {
   fragment?: string | null;
   data?: Params;
   viewport?: string | null;
+  title?: string | ((node: RouteNode) => string | null) | null;
   component: CustomElementDefinition;
   append: boolean;
   children?: RouteNode[];
@@ -55,6 +56,7 @@ export class RouteNode implements IRouteNode {
      * if we decide not to implement that.
      */
     public viewport: string | null,
+    public title: string | ((node: RouteNode) => string | null) | null,
     public component: CustomElementDefinition,
     public append: boolean,
     public readonly children: RouteNode[],
@@ -78,6 +80,7 @@ export class RouteNode implements IRouteNode {
       /*    fragment */input.fragment ?? null,
       /*        data */input.data ?? {},
       /*    viewport */input.viewport ?? null,
+      /*       title */input.title ?? null,
       /*   component */input.component,
       /*      append */input.append,
       /*    children */input.children ?? [],
@@ -118,6 +121,24 @@ export class RouteNode implements IRouteNode {
     }
   }
 
+  public getTitle(separator: string): string | null {
+    const titleParts = [
+      ...this.children.map(x => x.getTitle(separator)),
+      this.getTitlePart(),
+    ].filter(x => x !== null);
+    if (titleParts.length === 0) {
+      return null;
+    }
+    return titleParts.join(separator);
+  }
+
+  public getTitlePart(): string | null {
+    if (typeof this.title === 'function') {
+      return this.title.call(void 0, this);
+    }
+    return this.title;
+  }
+
   /** @internal */
   public setTree(tree: RouteTree): void {
     this.tree = tree;
@@ -135,6 +156,7 @@ export class RouteNode implements IRouteNode {
       this.fragment,
       { ...this.data },
       this.viewport,
+      this.title,
       this.component,
       this.append,
       this.children.map(function (childNode) {

@@ -52,6 +52,12 @@ export class RouteConfig {
      */
     public readonly path: string | string[] | null,
     /**
+     * The title to use for this route when matched.
+     *
+     * If left blank, this route will not contribute to the generated title.
+     */
+    public readonly title: string | ((node: RouteNode) => string | null) | null,
+    /**
      * The path to which to redirect when the url matches the path in this config.
      *
      * If the path begins with a slash (`/`), the redirect path is considered absolute, otherwise it is considered relative to the parent path.
@@ -98,6 +104,7 @@ export class RouteConfig {
       const redirectTo = Type?.redirectTo ?? null;
       const caseSensitive = Type?.caseSensitive ?? false;
       const id = Type?.id ?? (path instanceof Array ? path[0] : path);
+      const title = Type?.title ?? null;
       const reentryBehavior = Type?.transitionPlan ?? defaultReentryBehavior;
       const viewport = Type?.viewport ?? null;
       const data = Type?.data ?? {};
@@ -110,6 +117,7 @@ export class RouteConfig {
       return new RouteConfig(
         id,
         path,
+        title,
         redirectTo,
         caseSensitive,
         reentryBehavior,
@@ -126,6 +134,7 @@ export class RouteConfig {
       validateRouteConfig(config, '');
 
       const path = config.path ?? Type?.path ?? null;
+      const title = config.title ?? Type?.title ?? null;
       const redirectTo = config.redirectTo ?? Type?.redirectTo ?? null;
       const caseSensitive = config.caseSensitive ?? Type?.caseSensitive ?? false;
       const id = config.id ?? Type?.id ?? (path instanceof Array ? path[0] : path);
@@ -158,6 +167,7 @@ export class RouteConfig {
       return new RouteConfig(
         id,
         path,
+        title,
         redirectTo,
         caseSensitive,
         reentryBehavior,
@@ -200,6 +210,7 @@ export class ChildRouteConfig extends RouteConfig {
   private constructor(
     id: string | null,
     path: string | string[] | null,
+    title: string | null,
     redirectTo: string | null,
     caseSensitive: boolean,
     reentryBehavior: TransitionPlanOrFunc,
@@ -218,6 +229,7 @@ export class ChildRouteConfig extends RouteConfig {
     super(
       id,
       path,
+      title,
       redirectTo,
       caseSensitive,
       reentryBehavior,

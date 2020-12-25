@@ -168,7 +168,8 @@ export class NavigationOptions extends RouterOptions {
 
   private constructor(
     routerOptions: RouterOptions,
-    public readonly title: string | null,
+    public readonly title: string | ((node: RouteNode) => string | null) | null,
+    public readonly titleSeparator: string,
     public readonly append: boolean,
     /**
      * Specify a context to use for relative navigation.
@@ -211,6 +212,7 @@ export class NavigationOptions extends RouterOptions {
     return new NavigationOptions(
       RouterOptions.create(input),
       input.title ?? null,
+      input.titleSeparator ?? ' | ',
       input.append ?? false,
       input.context ?? null,
       input.queryParams ?? null,
@@ -320,7 +322,7 @@ type RouteDefinitionLookup = WeakMap<RouteDefinition, IRouteContext>;
 type ViewportAgentLookup = Map<ViewportAgent | null, RouteDefinitionLookup>;
 
 export interface IRouter extends Router { }
-export const IRouter = DI.createInterface<IRouter>('IRouter').withDefault(x => x.singleton(Router));
+export const IRouter = DI.createInterface<IRouter>('IRouter', x => x.singleton(Router));
 export class Router {
   private _ctx: RouteContext | null = null;
   private get ctx(): RouteContext {
@@ -839,11 +841,22 @@ export class Router {
         // do nothing
         break;
       case 'push':
-        this.locationMgr.pushState(toManagedState(tr.options.state, tr.id), tr.options.title ?? '', tr.finalInstructions.toUrl());
+        this.locationMgr.pushState(toManagedState(tr.options.state, tr.id), this.getTitle(tr), tr.finalInstructions.toUrl());
         break;
       case 'replace':
-        this.locationMgr.replaceState(toManagedState(tr.options.state, tr.id), tr.options.title ?? '', tr.finalInstructions.toUrl());
+        this.locationMgr.replaceState(toManagedState(tr.options.state, tr.id), this.getTitle(tr), tr.finalInstructions.toUrl());
         break;
+    }
+  }
+
+  private getTitle(tr: Transition): string {
+    switch (typeof tr.options.title) {
+      case 'function':
+        return tr.options.title.call(void 0, tr.routeTree.root) ?? '';
+      case 'string':
+        return tr.options.title;
+      default:
+        return tr.routeTree.root.getTitle(tr.options.titleSeparator) ?? '';
     }
   }
 

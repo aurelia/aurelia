@@ -1,7 +1,7 @@
 import { Constructable } from '@aurelia/kernel';
 
-import { IRouteViewModel } from './component-agent';
-import { IRouteContext } from './route-context';
+import { IRouteViewModel } from './component-agent.js';
+import { IRouteContext } from './route-context.js';
 
 type RouterHookKey = 'canUnload' | 'canLoad' | 'unload' | 'load';
 export type RouterHookObject<TKey extends RouterHookKey> = Pick<Required<IRouteViewModel>, TKey>;

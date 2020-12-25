@@ -1,10 +1,10 @@
 import { IContainer, IModule, Metadata, onResolve } from '@aurelia/kernel';
 import { CustomElementDefinition, CustomElement } from '@aurelia/runtime-html';
 
-import { TypedNavigationInstruction, NavigationInstructionType, Params } from './instructions';
-import { RouteConfig, IChildRouteConfig, Routeable, RouteType, Route, IRedirectRouteConfig } from './route';
-import { IRouteContext } from './route-context';
-import { isPartialChildRouteConfig, isPartialRedirectRouteConfig } from './validation';
+import { TypedNavigationInstruction, NavigationInstructionType, Params } from './instructions.js';
+import { RouteConfig, IChildRouteConfig, Routeable, RouteType, Route, IRedirectRouteConfig } from './route.js';
+import { IRouteContext } from './route-context.js';
+import { isPartialChildRouteConfig, isPartialRedirectRouteConfig } from './validation.js';
 
 function ensureArrayOfStrings(value: string | string[]): string[] {
   return typeof value === 'string' ? [value] : value;

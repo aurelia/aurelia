@@ -49,7 +49,7 @@ class HostElementState {
   }
 }
 
-export const IStateManager = DI.createInterface<IStateManager>('IStateManager').withDefault(x => x.singleton(ScrollStateManager));
+export const IStateManager = DI.createInterface<IStateManager>('IStateManager', x => x.singleton(ScrollStateManager));
 export interface IStateManager {
   saveState(controller: ICustomElementController): void;
   restoreState(controller: ICustomElementController): void;

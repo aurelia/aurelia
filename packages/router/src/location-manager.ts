@@ -1,12 +1,12 @@
 import { ILogger, DI, bound } from '@aurelia/kernel';
 import { IHistory, ILocation, IWindow } from '@aurelia/runtime-html';
 
-import { IRouterEvents, LocationChangeEvent } from './router-events';
+import { IRouterEvents, LocationChangeEvent } from './router-events.js';
 
 export interface IPopStateEvent extends PopStateEvent {}
 export interface IHashChangeEvent extends HashChangeEvent {}
 
-export const IBaseHrefProvider = DI.createInterface<IBaseHrefProvider>('IBaseHrefProvider').withDefault(x => x.singleton(BrowserBaseHrefProvider));
+export const IBaseHrefProvider = DI.createInterface<IBaseHrefProvider>('IBaseHrefProvider', x => x.singleton(BrowserBaseHrefProvider));
 export interface IBaseHrefProvider extends BrowserBaseHrefProvider {}
 
 /**
@@ -31,7 +31,7 @@ export class BrowserBaseHrefProvider {
   }
 }
 
-export const ILocationManager = DI.createInterface<ILocationManager>('ILocationManager').withDefault(x => x.singleton(BrowserLocationManager));
+export const ILocationManager = DI.createInterface<ILocationManager>('ILocationManager', x => x.singleton(BrowserLocationManager));
 export interface ILocationManager extends BrowserLocationManager {}
 
 /**

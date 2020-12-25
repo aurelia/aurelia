@@ -1,5 +1,5 @@
 import { DI, InterfaceSymbol, Writable } from '@aurelia/kernel';
-import { IAppRoot } from './app-root';
+import { IAppRoot } from './app-root.js';
 import { IPlatform } from './platform.js';
 import { CustomElement } from './resources/custom-element.js';
 import { MountTarget } from './templating/controller.js';

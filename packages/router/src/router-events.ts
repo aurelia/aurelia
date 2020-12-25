@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { DI, IEventAggregator, IDisposable, ILogger } from '@aurelia/kernel';
 
-import { ManagedState } from './router';
-import { ViewportInstructionTree } from './instructions';
+import { ManagedState } from './router.js';
+import { ViewportInstructionTree } from './instructions.js';
 
 class Subscription implements IDisposable {
   private disposed: boolean = false;
@@ -29,7 +29,7 @@ class Subscription implements IDisposable {
   }
 }
 
-export const IRouterEvents = DI.createInterface<IRouterEvents>('IRouterEvents').withDefault(x => x.singleton(RouterEvents));
+export const IRouterEvents = DI.createInterface<IRouterEvents>('IRouterEvents', x => x.singleton(RouterEvents));
 export interface IRouterEvents extends RouterEvents {}
 export class RouterEvents implements IRouterEvents {
   private subscriptionSerial: number = 0;

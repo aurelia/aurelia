@@ -2,13 +2,13 @@
 import { DI, isObject, Constructable, IModule } from '@aurelia/kernel';
 import { ICustomElementViewModel, ICustomElementController, PartialCustomElementDefinition, isCustomElementViewModel, CustomElement, CustomElementDefinition } from '@aurelia/runtime-html';
 
-import { IRouteViewModel } from './component-agent';
-import { RouteType } from './route';
-import { IRouteContext } from './route-context';
-import { expectType, isPartialCustomElementDefinition, isPartialViewportInstruction, shallowEquals } from './validation';
-import { INavigationOptions, NavigationOptions } from './router';
-import { RouteExpression } from './route-expression';
-import { tryStringify } from './util';
+import { IRouteViewModel } from './component-agent.js';
+import { RouteType } from './route.js';
+import { IRouteContext } from './route-context.js';
+import { expectType, isPartialCustomElementDefinition, isPartialViewportInstruction, shallowEquals } from './validation.js';
+import { INavigationOptions, NavigationOptions } from './router.js';
+import { RouteExpression } from './route-expression.js';
+import { tryStringify } from './util.js';
 
 export type RouteContextLike = IRouteContext | ICustomElementViewModel | ICustomElementController | HTMLElement;
 
@@ -34,7 +34,7 @@ export type RouteableComponent = RouteType | Promise<IModule> | PartialCustomEle
 
 export type Params = { [key: string]: unknown };
 
-export const IViewportInstruction = DI.createInterface<IViewportInstruction>('IViewportInstruction').noDefault();
+export const IViewportInstruction = DI.createInterface<IViewportInstruction>('IViewportInstruction');
 export interface IViewportInstruction {
   readonly context?: RouteContextLike | null;
   readonly append?: boolean;

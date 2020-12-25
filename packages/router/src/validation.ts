@@ -1,9 +1,9 @@
 import { IIndexable } from '@aurelia/kernel';
 import { isCustomElementViewModel, PartialCustomElementDefinition } from '@aurelia/runtime-html';
 
-import { IChildRouteConfig, IRedirectRouteConfig, Routeable } from './route';
-import { IViewportInstruction, RouteableComponent } from './instructions';
-import { tryStringify } from './util';
+import { IChildRouteConfig, IRedirectRouteConfig, Routeable } from './route.js';
+import { IViewportInstruction, RouteableComponent } from './instructions.js';
+import { tryStringify } from './util.js';
 
 export function isNotNullishOrTypeOrViewModel(value: RouteableComponent | IChildRouteConfig | null | undefined): value is PartialCustomElementDefinition | IChildRouteConfig {
   return (

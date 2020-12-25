@@ -4,13 +4,13 @@
 import { ILogger, onResolve } from '@aurelia/kernel';
 import { IHydratedController, LifecycleFlags, ICustomElementController, Controller } from '@aurelia/runtime-html';
 
-import { IViewport } from './resources/viewport';
-import { ComponentAgent } from './component-agent';
-import { RouteNode, RouteTreeCompiler } from './route-tree';
-import { IRouteContext } from './route-context';
-import { Transition, ResolutionMode, SwapStrategy } from './router';
-import { TransitionPlan } from './route';
-import { Batch, mergeDistinct } from './util';
+import { IViewport } from './resources/viewport.js';
+import { ComponentAgent } from './component-agent.js';
+import { RouteNode, RouteTreeCompiler } from './route-tree.js';
+import { IRouteContext } from './route-context.js';
+import { Transition, ResolutionMode, SwapStrategy } from './router.js';
+import { TransitionPlan } from './route.js';
+import { Batch, mergeDistinct } from './util.js';
 
 export class ViewportRequest {
   public constructor(

@@ -29,7 +29,7 @@ export interface AnchorEventInfo {
 }
 
 export interface ILinkHandler extends LinkHandler {}
-export const ILinkHandler = DI.createInterface<ILinkHandler>('ILinkHandler').withDefault(x => x.singleton(LinkHandler));
+export const ILinkHandler = DI.createInterface<ILinkHandler>('ILinkHandler', x => x.singleton(LinkHandler));
 
 /**
  * Class responsible for handling interactions that should trigger navigation.

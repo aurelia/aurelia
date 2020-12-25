@@ -1,4 +1,4 @@
-import { RouteNode } from './route-tree';
+import { RouteNode } from './route-tree.js';
 
 export type UnwrapPromise<T> = T extends Promise<infer R> ? R : T;
 
@@ -96,7 +96,7 @@ export type ExposedPromise<T> = Promise<T> & {
 export function createExposedPromise<T>(): ExposedPromise<T> {
   let $resolve: (value?: T) => void = (void 0)!;
   let $reject: (reason?: unknown) => void = (void 0)!;
-  const promise = new Promise(function (resolve, reject) {
+  const promise = new Promise<void | T>(function (resolve, reject) {
     $resolve = resolve;
     $reject = reject;
   }) as ExposedPromise<T>;

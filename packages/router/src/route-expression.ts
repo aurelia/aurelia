@@ -5,8 +5,8 @@
 // const componentTerminal = [...actionTerminal, '.'];
 // const paramTerminal = ['=', ',', ')'];
 
-import { ViewportInstructionTree, ViewportInstruction, Params } from './instructions';
-import { NavigationOptions } from './router';
+import { ViewportInstructionTree, ViewportInstruction, Params } from './instructions.js';
+import { NavigationOptions } from './router.js';
 
 // These are the currently used terminal symbols.
 // We're deliberately having every "special" (including the not-in-use '&', ''', '~', ';') as a terminal symbol,

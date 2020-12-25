@@ -48,7 +48,7 @@ export {
 } from './route-context.js';
 export {
   RouteDefinition,
-} from './route-definition';
+} from './route-definition.js';
 export {
   AST,
   RouteExpression,

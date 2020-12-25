@@ -2,13 +2,13 @@
 import { ILogger, resolveAll, onResolve, emptyArray } from '@aurelia/kernel';
 import { CustomElementDefinition, CustomElement } from '@aurelia/runtime-html';
 
-import { IRouteContext } from './route-context';
-import { RoutingMode, ResolutionMode, SwapStrategy, IRouter } from './router';
-import { ViewportInstructionTree, ViewportInstruction, NavigationInstructionType, Params, ITypedNavigationInstruction_ResolvedComponent } from './instructions';
-import { RecognizedRoute } from './route-recognizer';
-import { RouteDefinition } from './route-definition';
-import { ViewportRequest } from './viewport-agent';
-import { ExpressionKind, RouteExpression, ScopedSegmentExpression, SegmentExpression } from './route-expression';
+import { IRouteContext } from './route-context.js';
+import { RoutingMode, ResolutionMode, SwapStrategy, IRouter } from './router.js';
+import { ViewportInstructionTree, ViewportInstruction, NavigationInstructionType, Params, ITypedNavigationInstruction_ResolvedComponent } from './instructions.js';
+import { RecognizedRoute } from './route-recognizer.js';
+import { RouteDefinition } from './route-definition.js';
+import { ViewportRequest } from './viewport-agent.js';
+import { ExpressionKind, RouteExpression, ScopedSegmentExpression, SegmentExpression } from './route-expression.js';
 
 export interface IRouteNode {
   context: IRouteContext;

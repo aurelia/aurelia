@@ -1,22 +1,22 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { Constructable, ResourceType, IContainer, IResourceKind, ResourceDefinition, Key, IResolver, Resolved, IFactory, Transformer, DI, InstanceProvider, Registration, ILogger, IModuleLoader, IModule } from '@aurelia/kernel';
-import { ICompiledRenderContext, CustomElementDefinition, CustomElement, ICustomElementController, IController, isCustomElementViewModel, isCustomElementController, IAppRoot, IPlatform } from '@aurelia/runtime-html';
+import { CustomElementDefinition, CustomElement, ICustomElementController, IController, isCustomElementViewModel, isCustomElementController, IAppRoot, IPlatform } from '@aurelia/runtime-html';
 
-import { RouteDefinition } from './route-definition';
-import { ViewportAgent, ViewportRequest } from './viewport-agent';
-import { ComponentAgent, IRouteViewModel } from './component-agent';
-import { RouteNode } from './route-tree';
-import { RouteRecognizer, RecognizedRoute } from './route-recognizer';
-import { IRouter } from './router';
-import { IViewport } from './resources/viewport';
-import { Routeable } from './route';
+import { RouteDefinition } from './route-definition.js';
+import { ViewportAgent, ViewportRequest } from './viewport-agent.js';
+import { ComponentAgent, IRouteViewModel } from './component-agent.js';
+import { RouteNode } from './route-tree.js';
+import { RouteRecognizer, RecognizedRoute } from './route-recognizer.js';
+import { IRouter } from './router.js';
+import { IViewport } from './resources/viewport.js';
+import { Routeable } from './route.js';
 
 function isNotPromise<T>(value: T): value is Exclude<T, Promise<unknown>> {
   return !(value instanceof Promise);
 }
 
 export interface IRouteContext extends RouteContext {}
-export const IRouteContext = DI.createInterface<IRouteContext>('IRouteContext').noDefault();
+export const IRouteContext = DI.createInterface<IRouteContext>('IRouteContext');
 
 /**
  * Holds the information of a component in the context of a specific container. May or may not have statically configured routes.
@@ -262,7 +262,7 @@ export class RouteContext implements IContainer {
     return this.container.getResolver(key, autoRegister);
   }
 
-  public getFactory<T extends Constructable>(key: T): IFactory<T> | null {
+  public getFactory<T extends Constructable>(key: T): IFactory<T> {
     // this.logger.trace(`getFactory(key:${String(key)})`);
     return this.container.getFactory(key);
   }

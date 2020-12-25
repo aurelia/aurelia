@@ -1,9 +1,9 @@
 import { Constructable, emptyArray, Metadata, Protocol, ResourceType } from '@aurelia/kernel';
 
-import { validateRouteConfig, expectType, shallowEquals } from './validation';
-import { RouteableComponent, Params } from './instructions';
-import { RouteNode } from './route-tree';
-import { CanLoad, CanUnload, Load, Unload } from './hooks';
+import { validateRouteConfig, expectType, shallowEquals } from './validation.js';
+import { RouteableComponent, Params } from './instructions.js';
+import { RouteNode } from './route-tree.js';
+import { CanLoad, CanUnload, Load, Unload } from './hooks.js';
 
 const noChildren = emptyArray as RouteConfig['children'];
 const noCanLoadHooks = emptyArray as RouteConfig['canLoad'];

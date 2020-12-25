@@ -142,7 +142,7 @@ commands:
       - run: set -o pipefail && git add . && git status
       - run: set -o pipefail && git checkout stash -- . && git status
       - run: set -o pipefail && git add packages/*/dist packages-cjs/*/dist --force && git status
-      - run: set -o pipefail && npm run change-package-refs:release
+      - run: set -o pipefail && npm run change-package-refs:release -- none
       - when:
           condition: << parameters.bump_version >>
           steps:
@@ -200,7 +200,7 @@ jobs:
       - run: npm run change-tsconfigs:invert
       - run: npm run build
       - run: npm run change-tsconfigs:restore
-      - run: npm run change-package-refs:release -- commonjs
+      - run: npm run change-package-refs:release -- none
       - when:
           condition: << parameters.submodules >>
           steps:
@@ -277,7 +277,7 @@ jobs:
           steps:
             - run: git checkout << parameters.branch >>
             - run: git pull
-      - run: npm ci --ignore-scripts
+      - run: sudo npm i -g lage
       - run:
           name: "Authenticate with registry"
           command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc

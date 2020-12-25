@@ -586,6 +586,5 @@ function ensureHook<TClass>(target: Constructable<TClass>, hook: string | Proces
   if (hookType !== 'function') {
     throw new Error(`Invalid @processContent hook. Expected the hook to be a function (when defined in a class, it needs to be a static function) but got a ${hookType}.`);
   }
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return hook.bind(target);
 }

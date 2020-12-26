@@ -73,8 +73,19 @@ export function validateRouteConfig(config: Partial<IChildRouteConfig> | null | 
     switch (key) {
       case 'id':
       case 'viewport':
+      case 'redirectTo':
         if (typeof value !== 'string') {
           expectType('string', path, value);
+        }
+        break;
+      case 'caseSensitive':
+        if (typeof value !== 'boolean') {
+          expectType('boolean', path, value);
+        }
+        break;
+      case 'data':
+        if (typeof value !== 'object' || value === null) {
+          expectType('object', path, value);
         }
         break;
       case 'title':

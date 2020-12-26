@@ -486,6 +486,29 @@ describe('au-slot', function () {
           'my-element+my-element': [`S<div>1<div>Second</div></div><div>2<div>Second</div></div>E`, new AuSlotsInfo(['bar'])],
         },
       );
+
+      {
+        class MyElement {
+          @auSlots
+          public readonly slots: AuSlotsInfo;
+        }
+        yield new TestData(
+          'works with table',
+          `<my-element items.bind="[{p1: 1, p2: 2}, {p1: 11, p2: 22}]"><template au-slot="header"><th>p1</th><th>p2</th></template><template au-slot="content"><td>\${$host.item.p1}</td><td>\${$host.item.p2}</td></template></my-element>`,
+          [
+            CustomElement.define(
+              {
+                name: 'my-element',
+                template: `<table><thead><tr><template as-element="au-slot" name="header"></template></tr></thead><tbody><tr repeat.for="item of items"><template as-element="au-slot" name="content"></template></tr></tbody></table>`,
+                bindables: ['items'],
+              },
+              MyElement),
+          ],
+          {
+            'my-element': [`<table><thead><tr><th>p1</th><th>p2</th></tr></thead><tbody><tr><td>1</td><td>2</td></tr><tr><td>11</td><td>22</td></tr></tbody></table>`, new AuSlotsInfo(['header', 'content'])],
+          },
+        );
+      }
     }
     // #endregion
 

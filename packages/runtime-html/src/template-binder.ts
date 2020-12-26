@@ -192,7 +192,6 @@ export class TemplateBinder {
     manifestRoot: CustomElementSymbol | null,
     parentManifestRoot: CustomElementSymbol | null,
   ): void {
-    let isAuSlot = false;
     switch (node.nodeName) {
       case 'LET':
         // let cannot have children and has some different processing rules, so return early
@@ -204,15 +203,13 @@ export class TemplateBinder {
       case 'SLOT':
         surrogate.hasSlots = true;
         break;
-      case 'AU-SLOT':
-        isAuSlot = true;
-        break;
     }
 
     let name = node.getAttribute('as-element');
     if (name === null) {
       name = node.nodeName.toLowerCase();
     }
+    const isAuSlot = name === 'au-slot';
 
     const definition: CustomElementDefinition | null = this.container.find(CustomElement, name);
     const elementInfo = ElementInfo.from(definition, name);

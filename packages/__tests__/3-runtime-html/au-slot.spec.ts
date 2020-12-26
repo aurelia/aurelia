@@ -79,7 +79,7 @@ describe.only('au-slot', function () {
       public readonly spec: string,
       public readonly template: string,
       public readonly registrations: any[],
-      public readonly expected: Record<string, [string, Record<string, boolean>]>,
+      public readonly expected: Record<string, readonly [string, AuSlotsInfo]>,
       public readonly additionalAssertion?: (ctx: AuSlotTestExecutionContext) => void | Promise<void>,
     ) { }
   }
@@ -87,13 +87,9 @@ describe.only('au-slot', function () {
     const createMyElement = (template: string) => {
       class MyElement {
         @auSlots
-        public slots: AuSlotsInfo;
+        public readonly slots!: AuSlotsInfo;
 
-        public binding() {
-          assert.strictEqual(this.slots, void 0);
-        }
-
-        public bound(){
+        public created() {
           assert.notEqual(this.slots, void 0);
         }
       }
@@ -107,7 +103,7 @@ describe.only('au-slot', function () {
       [
         createMyElement(`static <au-slot>default</au-slot> <au-slot name="s1">s1</au-slot> <au-slot name="s2">s2</au-slot>`),
       ],
-      { 'my-element': ['static default s1 s2', { default: false, s1: false, s2: false }] },
+      { 'my-element': ['static default s1 s2', new AuSlotsInfo([])] },
     );
 
     yield new TestData(
@@ -116,7 +112,7 @@ describe.only('au-slot', function () {
       [
         createMyElement(`static <au-slot>default</au-slot> <au-slot name="s1">s1</au-slot> <au-slot name="s2">s2</au-slot>`),
       ],
-      { 'my-element': ['static <div>d</div> <div>p1</div> s2', { default: true, s1: true, s2: false }] },
+      { 'my-element': ['static <div>d</div> <div>p1</div> s2', new AuSlotsInfo(['default', 's1'])] },
     );
 
     yield new TestData(
@@ -125,7 +121,7 @@ describe.only('au-slot', function () {
       [
         createMyElement(`static <au-slot>default</au-slot> <au-slot name="s1">s1</au-slot> <au-slot name="s2">s2</au-slot>`),
       ],
-      { 'my-element': ['static d p1 s2', { default: true, s1: true, s2: false }] },
+      { 'my-element': ['static d p1 s2', new AuSlotsInfo(['default', 's1'])] },
     );
 
     yield new TestData(
@@ -134,854 +130,900 @@ describe.only('au-slot', function () {
       [
         createMyElement(`static <au-slot>default</au-slot> <au-slot name="s1">s1</au-slot> <au-slot name="s2">s2</au-slot>`),
       ],
-      { 'my-element': [`static default <div>p11</div><div>p12</div> <div>p20</div><div>p21</div>`, { default: false, s1: true, s2: true }] },
+      { 'my-element': [`static default <div>p11</div><div>p12</div> <div>p20</div><div>p21</div>`, new AuSlotsInfo(['s2', 's1'])] },
     );
 
-    // for (const sep of [' ', '~', '`', '!', '@', '#', '$', '%', '^', '&', '*', '[', '{', '(', ')', '}', ']', '<', '>', '-', '_', '+', '=', '.', ',', '/', '\\\\', '|', '?', ':', ';', '&quot;']) {
-    //   const slotName = `slot${sep}one`;
-    //   yield new TestData(
-    //     `au-slot name with special character works - ${slotName}`,
-    //     `<my-element><div au-slot="${slotName}">p</div></my-element>`,
-    //     [
-    //       createMyElement(`<au-slot name="${slotName}"></au-slot>`),
-    //     ],
-    //     { 'my-element': '<div>p</div>' },
-    //   );
-    // }
+    for (const sep of [' ', '~', '`', '!', '@', '#', '$', '%', '^', '&', '*', '[', '{', '(', ')', '}', ']', '<', '>', '-', '_', '+', '=', '.', ',', '/', '\\\\', '|', '?', ':', ';', '&quot;']) {
+      const slotName = `slot${sep}one`;
+      yield new TestData(
+        `au-slot name with special character works - ${slotName}`,
+        `<my-element><div au-slot="${slotName}">p</div></my-element>`,
+        [
+          createMyElement(`<au-slot name="${slotName}"></au-slot>`),
+        ],
+        { 'my-element': ['<div>p</div>', new AuSlotsInfo([slotName.replace('&quot;', '"')])] },
+      );
+    }
 
-    // yield new TestData(
-    //   'projection w/o slot name goes to the default slot',
-    //   `<my-element><div au-slot>p</div></my-element>`,
-    //   [
-    //     createMyElement(`<au-slot></au-slot><au-slot name="s1">s1fb</au-slot>`),
-    //   ],
-    //   { 'my-element': '<div>p</div>s1fb' },
-    // );
+    yield new TestData(
+      'projection w/o slot name goes to the default slot',
+      `<my-element><div au-slot>p</div></my-element>`,
+      [
+        createMyElement(`<au-slot></au-slot><au-slot name="s1">s1fb</au-slot>`),
+      ],
+      { 'my-element': ['<div>p</div>s1fb', new AuSlotsInfo(['default'])] },
+    );
 
-    // // tag: mis-projection
-    // yield new TestData(
-    //   'projection w/o [au-slot] causes mis-projection',
-    //   `<my-element><div>p</div></my-element>`,
-    //   [
-    //     createMyElement(`<au-slot name="s1">s1fb</au-slot>|<au-slot>d</au-slot>`),
-    //   ],
-    //   { 'my-element': '<div>p</div>s1fb|d' },
-    // );
+    // tag: mis-projection
+    yield new TestData(
+      'projection w/o [au-slot] causes mis-projection',
+      `<my-element><div>p</div></my-element>`,
+      [
+        createMyElement(`<au-slot name="s1">s1fb</au-slot>|<au-slot>d</au-slot>`),
+      ],
+      { 'my-element': ['<div>p</div>s1fb|d', new AuSlotsInfo([])] },
+    );
 
-    // yield new TestData(
-    //   'projections for multiple instances works correctly',
-    //   `<my-element><div>p1</div></my-element>
-    //    <my-element><div>p2</div></my-element>`,
-    //   [
-    //     createMyElement(`<au-slot></au-slot>`),
-    //   ],
-    //   { 'my-element': '<div>p1</div>', 'my-element+my-element': '<div>p2</div>' },
-    // );
-    // // #endregion
+    yield new TestData(
+      'projections for multiple instances works correctly',
+      `<my-element><div au-slot>p1</div></my-element>
+       <my-element><div au-slot>p2</div></my-element>`,
+      [
+        createMyElement(`<au-slot></au-slot>`),
+      ],
+      { 'my-element': ['<div>p1</div>', new AuSlotsInfo(['default'])], 'my-element+my-element': ['<div>p2</div>', new AuSlotsInfo(['default'])] },
+    );
+    // #endregion
 
-    // // #region interpolation
-    // yield new TestData(
-    //   'supports interpolations',
-    //   `<my-element> <div au-slot="s2">\${message}</div> <div au-slot="s1">p11</div> <div au-slot="s2">p21</div> <div au-slot="s1">\${message}</div> </my-element>`,
-    //   [
-    //     createMyElement(`static <au-slot>default</au-slot> <au-slot name="s1">s1</au-slot> <au-slot name="s2">s2</au-slot>`),
-    //   ],
-    //   { 'my-element': `static default <div>p11</div><div>root</div> <div>root</div><div>p21</div>` },
-    // );
+    // #region interpolation
+    yield new TestData(
+      'supports interpolations',
+      `<my-element> <div au-slot="s2">\${message}</div> <div au-slot="s1">p11</div> <div au-slot="s2">p21</div> <div au-slot="s1">\${message}</div> </my-element>`,
+      [
+        createMyElement(`static <au-slot>default</au-slot> <au-slot name="s1">s1</au-slot> <au-slot name="s2">s2</au-slot>`),
+      ],
+      { 'my-element': [`static default <div>p11</div><div>root</div> <div>root</div><div>p21</div>`, new AuSlotsInfo(['s2', 's1'])] },
+    );
 
-    // yield new TestData(
-    //   'supports accessing inner scope with $host',
-    //   `<my-element> <div au-slot="s2">\${message}</div> <div au-slot="s1">\${$host.message}</div> </my-element>`,
-    //   [
-    //     CustomElement.define(
-    //       { name: 'my-element', isStrictBinding: true, template: `<au-slot name="s1">s1</au-slot> <au-slot name="s2">s2</au-slot>` },
-    //       class MyElement {
-    //         public readonly message: string = 'inner';
-    //       }
-    //     ),
-    //   ],
-    //   { 'my-element': `<div>inner</div> <div>root</div>` },
-    // );
+    {
+      class MyElement {
+        @auSlots
+        public readonly slots!: AuSlotsInfo;
+        public readonly message: string = 'inner';
 
-    // yield new TestData(
-    //   'uses inner scope by default if no projection is provided',
-    //   `<my-element> <div au-slot="s2">\${message}</div> </my-element>`,
-    //   [
-    //     CustomElement.define(
-    //       { name: 'my-element', isStrictBinding: true, template: `<au-slot name="s1">\${message}</au-slot> <au-slot name="s2">s2</au-slot>` },
-    //       class MyElement {
-    //         public readonly message: string = 'inner';
-    //       }
-    //     ),
-    //   ],
-    //   { 'my-element': `inner <div>root</div>` },
-    // );
-    // // #endregion
+        public created() {
+          assert.notEqual(this.slots, void 0);
+        }
+      }
+      yield new TestData(
+        'supports accessing inner scope with $host',
+        `<my-element> <div au-slot="s2">\${message}</div> <div au-slot="s1">\${$host.message}</div> </my-element>`,
+        [
+          CustomElement.define(
+            { name: 'my-element', isStrictBinding: true, template: `<au-slot name="s1">s1</au-slot> <au-slot name="s2">s2</au-slot>` },
+            MyElement
+          ),
+        ],
+        { 'my-element': [`<div>inner</div> <div>root</div>`, new AuSlotsInfo(['s2', 's1'])] },
+      );
+    }
 
-    // // #region template controllers
-    // {
-    //   @customElement({ name: 'my-element', isStrictBinding: true, template: `static <au-slot>default</au-slot> <au-slot name="s1" if.bind="showS1">s1</au-slot> <au-slot name="s2">s2</au-slot>` })
-    //   class MyElement {
-    //     @bindable public showS1: boolean = true;
-    //   }
-    //   yield new TestData(
-    //     'works with template controller - if',
-    //     `<my-element show-s1.bind="false"> <div au-slot="s2">p20</div> <div au-slot="s1">p11</div> <div au-slot="s2">p21</div> <div au-slot="s1">p12</div> </my-element>`,
-    //     [
-    //       MyElement,
-    //     ],
-    //     { 'my-element': `static default <div>p20</div><div>p21</div>` },
-    //     async function ({ host, platform }) {
-    //       const el = host.querySelector('my-element');
-    //       const vm: MyElement = CustomElement.for<MyElement>(el).viewModel;
+    {
+      class MyElement {
+        @auSlots
+        public readonly slots!: AuSlotsInfo;
+        public readonly message: string = 'inner';
 
-    //       vm.showS1 = true;
-    //       await platform.domWriteQueue.yield();
+        public created() {
+          assert.notEqual(this.slots, void 0);
+        }
+      }
+      yield new TestData(
+        'uses inner scope by default if no projection is provided',
+        `<my-element> <div au-slot="s2">\${message}</div> </my-element>`,
+        [
+          CustomElement.define(
+            { name: 'my-element', isStrictBinding: true, template: `<au-slot name="s1">\${message}</au-slot> <au-slot name="s2">s2</au-slot>` },
+            MyElement
+          ),
+        ],
+        { 'my-element': [`inner <div>root</div>`, new AuSlotsInfo(['s2'])] },
+      );
+    }
+    // #endregion
 
-    //       assert.html.innerEqual(el, `static default <div>p11</div><div>p12</div> <div>p20</div><div>p21</div>`, 'my-element.innerHTML');
-    //     },
-    //   );
-    // }
+    // #region template controllers
+    {
+      @customElement({ name: 'my-element', isStrictBinding: true, template: `static <au-slot>default</au-slot> <au-slot name="s1" if.bind="showS1">s1</au-slot> <au-slot name="s2">s2</au-slot>` })
+      class MyElement {
+        @auSlots
+        public readonly slots!: AuSlotsInfo;
+        @bindable public showS1: boolean = true;
+      }
+      yield new TestData(
+        'works with template controller - if',
+        `<my-element show-s1.bind="false"> <div au-slot="s2">p20</div> <div au-slot="s1">p11</div> <div au-slot="s2">p21</div> <div au-slot="s1">p12</div> </my-element>`,
+        [
+          MyElement,
+        ],
+        { 'my-element': [`static default <div>p20</div><div>p21</div>`, new AuSlotsInfo(['s2', 's1'])] },
+        async function ({ host, platform }) {
+          const el = host.querySelector('my-element');
+          const vm: MyElement = CustomElement.for<MyElement>(el).viewModel;
 
-    // {
-    //   @customElement({ name: 'my-element', isStrictBinding: true, template: `static <au-slot>default</au-slot> <au-slot name="s1" if.bind="showS1">s1</au-slot> <au-slot else name="s2">s2</au-slot>` })
-    //   class MyElement {
-    //     @bindable public showS1: boolean = true;
-    //   }
-    //   yield new TestData(
-    //     'works with template controller - if-else',
-    //     `
-    //     <my-element show-s1.bind="false"> <div au-slot="s2">p21</div> <div au-slot="s1">p11</div> </my-element>
-    //     <my-element show-s1.bind="true" > <div au-slot="s2">p22</div> <div au-slot="s1">p12</div> </my-element>
-    //     `,
-    //     [
-    //       MyElement,
-    //     ],
-    //     { 'my-element': `static default <div>p21</div>`, 'my-element+my-element': `static default <div>p12</div>` },
-    //     async function ({ host, platform }) {
-    //       const el1 = host.querySelector('my-element');
-    //       const el2 = host.querySelector('my-element+my-element');
-    //       const vm1: MyElement = CustomElement.for<MyElement>(el1).viewModel;
-    //       const vm2: MyElement = CustomElement.for<MyElement>(el2).viewModel;
+          vm.showS1 = true;
+          await platform.domWriteQueue.yield();
 
-    //       vm1.showS1 = !vm1.showS1;
-    //       vm2.showS1 = !vm2.showS1;
-    //       await platform.domWriteQueue.yield();
+          assert.html.innerEqual(el, `static default <div>p11</div><div>p12</div> <div>p20</div><div>p21</div>`, 'my-element.innerHTML');
+        },
+      );
+    }
 
-    //       assert.html.innerEqual(el1, `static default <div>p11</div>`, 'my-element.innerHTML');
-    //       assert.html.innerEqual(el2, `static default <div>p22</div>`, 'my-element+my-element.innerHTML');
-    //     },
-    //   );
-    // }
+    {
+      @customElement({ name: 'my-element', isStrictBinding: true, template: `static <au-slot>default</au-slot> <au-slot name="s1" if.bind="showS1">s1</au-slot> <au-slot else name="s2">s2</au-slot>` })
+      class MyElement {
+        @auSlots
+        public readonly slots!: AuSlotsInfo;
+        @bindable public showS1: boolean = true;
+      }
+      yield new TestData(
+        'works with template controller - if-else',
+        `
+        <my-element show-s1.bind="false"> <div au-slot="s2">p21</div> <div au-slot="s1">p11</div> </my-element>
+        <my-element show-s1.bind="true" > <div au-slot="s2">p22</div> <div au-slot="s1">p12</div> </my-element>
+        `,
+        [
+          MyElement,
+        ],
+        { 'my-element': [`static default <div>p21</div>`, new AuSlotsInfo(['s2', 's1'])], 'my-element+my-element': [`static default <div>p12</div>`, new AuSlotsInfo(['s2', 's1'])] },
+        async function ({ host, platform }) {
+          const el1 = host.querySelector('my-element');
+          const el2 = host.querySelector('my-element+my-element');
+          const vm1: MyElement = CustomElement.for<MyElement>(el1).viewModel;
+          const vm2: MyElement = CustomElement.for<MyElement>(el2).viewModel;
 
-    // {
-    //   @customElement({ name: 'my-element', isStrictBinding: true, template: `<ul if.bind="someCondition"><au-slot></au-slot></ul> <div else><au-slot></au-slot></div>` })
-    //   class MyElement {
-    //     @bindable public someCondition: boolean = true;
-    //   }
-    //   yield new TestData(
-    //     'works with template controller - if-else - same slot name',
-    //     `
-    //     <my-element some-condition.bind="true"> <template au-slot><li>1</li><li>2</li></template> </my-element>
-    //     <my-element some-condition.bind="false"> <template au-slot><span>1</span><span>2</span></template> </my-element>
-    //     `,
-    //     [
-    //       MyElement,
-    //     ],
-    //     { 'my-element': `<ul><li>1</li><li>2</li></ul>`, 'my-element+my-element': `<div><span>1</span><span>2</span></div>` },
-    //   );
-    // }
+          vm1.showS1 = !vm1.showS1;
+          vm2.showS1 = !vm2.showS1;
+          await platform.domWriteQueue.yield();
 
-    // // #region `repeat.for`
-    // {
-    //   @customElement({
-    //     name: 'my-element', isStrictBinding: true, template: `
-    //   <au-slot name="grid">
-    //     <au-slot name="header">
-    //       <h4>First Name</h4>
-    //       <h4>Last Name</h4>
-    //     </au-slot>
-    //     <template repeat.for="person of people">
-    //       <au-slot name="content">
-    //         <div>\${person.firstName}</div>
-    //         <div>\${person.lastName}</div>
-    //       </au-slot>
-    //     </template>
-    //   </au-slot>` })
-    //   class MyElement {
-    //     @bindable public people: Person[];
-    //   }
+          assert.html.innerEqual(el1, `static default <div>p11</div>`, 'my-element.innerHTML');
+          assert.html.innerEqual(el2, `static default <div>p22</div>`, 'my-element+my-element.innerHTML');
+        },
+      );
+    }
 
-    //   yield new TestData(
-    //     'works with template controller - repeater',
-    //     `<my-element people.bind="people"></my-element>`,
-    //     [
-    //       MyElement,
-    //     ],
-    //     { 'my-element': `<h4>First Name</h4> <h4>Last Name</h4> <div>John</div> <div>Doe</div> <div>Max</div> <div>Mustermann</div>` },
-    //     async function ({ app, host, platform }) {
-    //       app.people.push(new Person('Jane', 'Doe', []));
-    //       await platform.domWriteQueue.yield();
-    //       assert.html.innerEqual(
-    //         'my-element',
-    //         `<h4>First Name</h4> <h4>Last Name</h4> <div>John</div> <div>Doe</div> <div>Max</div> <div>Mustermann</div> <div>Jane</div> <div>Doe</div>`,
-    //         'my-element.innerHTML',
-    //         host);
-    //     }
-    //   );
+    {
+      @customElement({ name: 'my-element', isStrictBinding: true, template: `<ul if.bind="someCondition"><au-slot></au-slot></ul> <div else><au-slot></au-slot></div>` })
+      class MyElement {
+        @auSlots
+        public readonly slots!: AuSlotsInfo;
+        @bindable public someCondition: boolean = true;
+      }
+      yield new TestData(
+        'works with template controller - if-else - same slot name',
+        `
+        <my-element some-condition.bind="true"> <template au-slot><li>1</li><li>2</li></template> </my-element>
+        <my-element some-condition.bind="false"> <template au-slot><span>1</span><span>2</span></template> </my-element>
+        `,
+        [
+          MyElement,
+        ],
+        { 'my-element': [`<ul><li>1</li><li>2</li></ul>`, new AuSlotsInfo(['default'])], 'my-element+my-element': [`<div><span>1</span><span>2</span></div>`, new AuSlotsInfo(['default'])] },
+      );
+    }
 
-    //   yield new TestData(
-    //     'supports replacing the parts of repeater template',
-    //     `<my-element people.bind="people">
-    //       <template au-slot="header">
-    //         <h4>Meta</h4>
-    //         <h4>Surname</h4>
-    //         <h4>Given name</h4>
-    //       </template>
-    //       <template au-slot="content">
-    //         <div>\${$host.$index}-\${$host.$even}-\${$host.$odd}</div>
-    //         <div>\${$host.person.lastName}</div>
-    //         <div>\${$host.person.firstName}</div>
-    //       </template>
-    //     </my-element>`,
-    //     [
-    //       MyElement,
-    //     ],
-    //     { 'my-element': `<h4>Meta</h4> <h4>Surname</h4> <h4>Given name</h4> <div>0-true-false</div> <div>Doe</div> <div>John</div> <div>1-false-true</div> <div>Mustermann</div> <div>Max</div>` },
-    //   );
+    // #region `repeat.for`
+    {
+      @customElement({
+        name: 'my-element', isStrictBinding: true, template: `
+      <au-slot name="grid">
+        <au-slot name="header">
+          <h4>First Name</h4>
+          <h4>Last Name</h4>
+        </au-slot>
+        <template repeat.for="person of people">
+          <au-slot name="content">
+            <div>\${person.firstName}</div>
+            <div>\${person.lastName}</div>
+          </au-slot>
+        </template>
+      </au-slot>` })
+      class MyElement {
+        @auSlots
+        public readonly slots!: AuSlotsInfo;
+        @bindable public people: Person[];
+      }
 
-    //   yield new TestData(
-    //     'supports replacing the repeater template',
-    //     `<my-element people.bind="people">
-    //       <template au-slot="grid">
-    //         <ul><li repeat.for="person of people">\${person.lastName}, \${person.firstName}</li></ul>
-    //       </template>
-    //     </my-element>
-    //     <my-element people.bind="people">
-    //       <template au-slot="grid">
-    //         <ul><li repeat.for="person of $host.people">\${person.firstName} \${person.lastName}</li></ul>
-    //       </template>
-    //     </my-element>`,
-    //     [
-    //       MyElement,
-    //     ],
-    //     {
-    //       'my-element': `<ul><li>Doe, John</li><li>Mustermann, Max</li></ul>`,
-    //       'my-element:nth-of-type(2)': `<ul><li>John Doe</li><li>Max Mustermann</li></ul>`,
-    //     },
-    //   );
+      yield new TestData(
+        'works with template controller - repeater',
+        `<my-element people.bind="people"></my-element>`,
+        [
+          MyElement,
+        ],
+        { 'my-element': [`<h4>First Name</h4> <h4>Last Name</h4> <div>John</div> <div>Doe</div> <div>Max</div> <div>Mustermann</div>`, new AuSlotsInfo([])] },
+        async function ({ app, host, platform }) {
+          app.people.push(new Person('Jane', 'Doe', []));
+          await platform.domWriteQueue.yield();
+          assert.html.innerEqual(
+            'my-element',
+            `<h4>First Name</h4> <h4>Last Name</h4> <div>John</div> <div>Doe</div> <div>Max</div> <div>Mustermann</div> <div>Jane</div> <div>Doe</div>`,
+            'my-element.innerHTML',
+            host);
+        }
+      );
 
-    //   yield new TestData(
-    //     'works with a directly applied repeater',
-    //     `<my-element></my-element>`,
-    //     [
-    //       createMyElement(`<au-slot repeat.for="i of 5">\${i}</au-slot>`),
-    //     ],
-    //     { 'my-element': `01234`, },
-    //   );
+      yield new TestData(
+        'supports replacing the parts of repeater template',
+        `<my-element people.bind="people">
+          <template au-slot="header">
+            <h4>Meta</h4>
+            <h4>Surname</h4>
+            <h4>Given name</h4>
+          </template>
+          <template au-slot="content">
+            <div>\${$host.$index}-\${$host.$even}-\${$host.$odd}</div>
+            <div>\${$host.person.lastName}</div>
+            <div>\${$host.person.firstName}</div>
+          </template>
+        </my-element>`,
+        [
+          MyElement,
+        ],
+        { 'my-element': [`<h4>Meta</h4> <h4>Surname</h4> <h4>Given name</h4> <div>0-true-false</div> <div>Doe</div> <div>John</div> <div>1-false-true</div> <div>Mustermann</div> <div>Max</div>`, new AuSlotsInfo(['header', 'content'])] },
+      );
 
-    //   yield new TestData(
-    //     'works with a directly applied repeater - with projection',
-    //     `<my-element><template au-slot>\${$host.i*2}</template></my-element>`,
-    //     [
-    //       createMyElement(`<au-slot repeat.for="i of 5">\${i}</au-slot>`),
-    //     ],
-    //     { 'my-element': `02468`, },
-    //   );
+      yield new TestData(
+        'supports replacing the repeater template',
+        `<my-element people.bind="people">
+          <template au-slot="grid">
+            <ul><li repeat.for="person of people">\${person.lastName}, \${person.firstName}</li></ul>
+          </template>
+        </my-element>
+        <my-element people.bind="people">
+          <template au-slot="grid">
+            <ul><li repeat.for="person of $host.people">\${person.firstName} \${person.lastName}</li></ul>
+          </template>
+        </my-element>`,
+        [
+          MyElement,
+        ],
+        {
+          'my-element': [`<ul><li>Doe, John</li><li>Mustermann, Max</li></ul>`, new AuSlotsInfo(['grid'])],
+          'my-element:nth-of-type(2)': [`<ul><li>John Doe</li><li>Max Mustermann</li></ul>`, new AuSlotsInfo(['grid'])],
+        },
+      );
 
-    //   yield new TestData(
-    //     'projection works for [repeat]>au-slot,[repeat]>au-slot',
-    //     `<my-element><template au-slot>\${$host.i*2}</template></my-element>`,
-    //     [
-    //       createMyElement(`
-    //         <template repeat.for="i of 5">
-    //           <au-slot>\${i}</au-slot>
-    //         </template>|
-    //         <template repeat.for="i of 5">
-    //           <au-slot>\${i + 2}</au-slot>
-    //         </template>
-    //         `),
-    //     ],
-    //     { 'my-element': `0 2 4 6 8 | 0 2 4 6 8`, },
-    //   );
+      yield new TestData(
+        'works with a directly applied repeater',
+        `<my-element></my-element>`,
+        [
+          createMyElement(`<au-slot repeat.for="i of 5">\${i}</au-slot>`),
+        ],
+        { 'my-element': [`01234`, new AuSlotsInfo([])], },
+      );
 
-    //   yield new TestData(
-    //     'projection works for au-slot[repeat],au-slot[repeat]',
-    //     `<my-element><template au-slot>\${$host.i*2}</template></my-element>`,
-    //     [
-    //       createMyElement(`<au-slot repeat.for="i of 5">\${i}</au-slot>|<au-slot repeat.for="i of 5">\${i + 2}</au-slot>`),
-    //     ],
-    //     { 'my-element': `02468|02468`, },
-    //   );
+      yield new TestData(
+        'works with a directly applied repeater - with projection',
+        `<my-element><template au-slot>\${$host.i*2}</template></my-element>`,
+        [
+          createMyElement(`<au-slot repeat.for="i of 5">\${i}</au-slot>`),
+        ],
+        { 'my-element': [`02468`, new AuSlotsInfo(['default'])], },
+      );
 
-    //   yield new TestData(
-    //     'projection works for [repeat]>au-slot[name="s1"]>au-slot[name="s2"],[repeat]>au-slot[name="s1"]>au-slot[name="s2"]',
-    //     `<my-element><template au-slot="s2">\${$host.i*2}</template></my-element>`,
-    //     [
-    //       createMyElement(`
-    //         <template>
-    //           <template repeat.for="i of 5">
-    //             <au-slot name="s1">\${i}<au-slot name="s2">\${i+2}</au-slot></au-slot>
-    //             <au-slot name="s1">\${i+3}<au-slot name="s2">\${i+4}</au-slot></au-slot>
-    //           </template>
-    //         </template>`),
-    //     ],
-    //     { 'my-element': `00 30 12 42 24 54 36 66 48 78`, },
-    //   );
+      yield new TestData(
+        'projection works for [repeat]>au-slot,[repeat]>au-slot',
+        `<my-element><template au-slot>\${$host.i*2}</template></my-element>`,
+        [
+          createMyElement(`
+            <template repeat.for="i of 5">
+              <au-slot>\${i}</au-slot>
+            </template>|
+            <template repeat.for="i of 5">
+              <au-slot>\${i + 2}</au-slot>
+            </template>
+            `),
+        ],
+        { 'my-element': [`0 2 4 6 8 | 0 2 4 6 8`, new AuSlotsInfo(['default'])], },
+      );
 
-    //   yield new TestData(
-    //     'projection works for [repeat]>au-slot with another repeat',
-    //     `<my-element><template au-slot="s1"><template repeat.for="i of 3">\${i*2}</template></template></my-element>`,
-    //     [
-    //       createMyElement(`
-    //         <template>
-    //           <template repeat.for="i of 2">
-    //             <au-slot name="s1">\${i}</au-slot>
-    //           </template>
-    //         </template>`),
-    //     ],
-    //     { 'my-element': `024 024`, },
-    //   );
+      yield new TestData(
+        'projection works for au-slot[repeat],au-slot[repeat]',
+        `<my-element><template au-slot>\${$host.i*2}</template></my-element>`,
+        [
+          createMyElement(`<au-slot repeat.for="i of 5">\${i}</au-slot>|<au-slot repeat.for="i of 5">\${i + 2}</au-slot>`),
+        ],
+        { 'my-element': [`02468|02468`, new AuSlotsInfo(['default'])], },
+      );
 
-    //   yield new TestData(
-    //     'projection works for au-slot[repeat] with another repeat',
-    //     `<my-element><template au-slot="s1"><template repeat.for="i of 3">\${i*2}</template></template></my-element>`,
-    //     [
-    //       createMyElement(`<au-slot name="s1" repeat.for="i of 2">\${i}</au-slot>`),
-    //     ],
-    //     { 'my-element': `024024`, },
-    //   );
+      yield new TestData(
+        'projection works for [repeat]>au-slot[name="s1"]>au-slot[name="s2"],[repeat]>au-slot[name="s1"]>au-slot[name="s2"]',
+        `<my-element><template au-slot="s2">\${$host.i*2}</template></my-element>`,
+        [
+          createMyElement(`
+            <template>
+              <template repeat.for="i of 5">
+                <au-slot name="s1">\${i}<au-slot name="s2">\${i+2}</au-slot></au-slot>
+                <au-slot name="s1">\${i+3}<au-slot name="s2">\${i+4}</au-slot></au-slot>
+              </template>
+            </template>`),
+        ],
+        { 'my-element': [`00 30 12 42 24 54 36 66 48 78`, new AuSlotsInfo(['s2'])], },
+      );
 
-    //   yield new TestData(
-    //     'projection works for au-slot[repeat] with another repeat',
-    //     `<my-element><div au-slot="bar">First</div></my-element>
-    //      <my-element><div au-slot="bar">Second</div></my-element>`,
-    //     [
-    //       createMyElement(`<let items.bind="[1,2]"></let>S<div repeat.for="item of items">\${item}<au-slot name="bar"></au-slot></div>E`),
-    //     ],
-    //     {
-    //       'my-element': `S<div>1<div>First</div></div><div>2<div>First</div></div>E`,
-    //       'my-element+my-element': `S<div>1<div>Second</div></div><div>2<div>Second</div></div>E`,
-    //     },
-    //   );
-    // }
-    // // #endregion
+      yield new TestData(
+        'projection works for [repeat]>au-slot with another repeat',
+        `<my-element><template au-slot="s1"><template repeat.for="i of 3">\${i*2}</template></template></my-element>`,
+        [
+          createMyElement(`
+            <template>
+              <template repeat.for="i of 2">
+                <au-slot name="s1">\${i}</au-slot>
+              </template>
+            </template>`),
+        ],
+        { 'my-element': [`024 024`, new AuSlotsInfo(['s1'])], },
+      );
 
-    // // #region `with`
-    // {
-    //   yield new TestData(
-    //     'works with "with" on parent',
-    //     `<my-element people.bind="people"> <div au-slot>\${$host.item.lastName}</div> </my-element>`,
-    //     [
-    //       createMyElement(`<div with.bind="{item: people[0]}"><au-slot>\${item.firstName}</au-slot></div>`),
-    //     ],
-    //     { 'my-element': `<div><div>Doe</div></div>` }
-    //   );
-    //   yield new TestData(
-    //     'works with "with" on parent - outer scope',
-    //     `<let item.bind="people[1]"></let><my-element people.bind="people"> <div au-slot>\${item.lastName}</div> </my-element>`,
-    //     [
-    //       createMyElement(`<div with.bind="{item: people[0]}"><au-slot>\${item.firstName}</au-slot></div>`),
-    //     ],
-    //     { 'my-element': `<div><div>Mustermann</div></div>` }
-    //   );
-    //   yield new TestData(
-    //     'works with "with" on self',
-    //     `<my-element people.bind="people"> <div au-slot>\${$host.item.lastName}</div> </my-element>`,
-    //     [
-    //       createMyElement(`<au-slot with.bind="{item: people[0]}">\${item.firstName}</au-slot>`),
-    //     ],
-    //     { 'my-element': `<div>Doe</div>` }
-    //   );
-    //   yield new TestData(
-    //     'works with "with" on self - outer scope',
-    //     `<let item.bind="people[1]"></let><my-element people.bind="people"> <div au-slot>\${item.lastName}</div> </my-element>`,
-    //     [
-    //       createMyElement(`<au-slot with.bind="{item: people[0]}">\${item.firstName}</au-slot>`),
-    //     ],
-    //     { 'my-element': `<div>Mustermann</div>` }
-    //   );
-    //   yield new TestData(
-    //     'works replacing div[with]>au-slot[name=s1]>au-slot[name=s2]',
-    //     `<my-element people.bind="people"> <div au-slot="s2">\${$host.item.firstName}</div> </my-element>`,
-    //     [
-    //       createMyElement(`<div with.bind="{item: people[0]}"><au-slot name="s1">\${item.firstName}<au-slot name="s2">\${item.lastName}</au-slot></au-slot></div>`),
-    //     ],
-    //     { 'my-element': `<div>John<div>John</div></div>` }
-    //   );
-    //   yield new TestData(
-    //     'works replacing div[with]>au-slot[name=s1]>au-slot[name=s2] - outer scope',
-    //     `<let item.bind="people[1]"></let><my-element people.bind="people"> <div au-slot="s2">\${item.firstName}</div> </my-element>`,
-    //     [
-    //       createMyElement(`<div with.bind="{item: people[0]}"><au-slot name="s1">\${item.firstName}<au-slot name="s2">\${item.lastName}</au-slot></au-slot></div>`),
-    //     ],
-    //     { 'my-element': `<div>John<div>Max</div></div>` }
-    //   );
-    //   yield new TestData(
-    //     'works replacing au-slot[name=s1]>div[with]>au-slot[name=s2]',
-    //     `<my-element people.bind="people"> <div au-slot="s2">\${$host.item.firstName}</div> </my-element>`,
-    //     [
-    //       createMyElement(`<au-slot name="s1">\${people[0].firstName}<div with.bind="{item: people[0]}"><au-slot name="s2">\${item.lastName}</au-slot></div></au-slot>`),
-    //     ],
-    //     { 'my-element': `John<div><div>John</div></div>` }
-    //   );
-    //   yield new TestData(
-    //     'works replacing au-slot[name=s1]>div[with]>au-slot[name=s2] - outer scope',
-    //     `<let item.bind="people[1]"></let><my-element people.bind="people"> <div au-slot="s2">\${item.firstName}</div> </my-element>`,
-    //     [
-    //       createMyElement(`<au-slot name="s1">\${people[0].firstName}<div with.bind="{item: people[0]}"><au-slot name="s2">\${item.lastName}</au-slot></div></au-slot>`),
-    //     ],
-    //     { 'my-element': `John<div><div>Max</div></div>` }
-    //   );
-    //   yield new TestData(
-    //     'works replacing au-slot[name=s1]>au-slot[name=s2][with]',
-    //     `<my-element people.bind="people"> <div au-slot="s2">\${$host.item.firstName}</div> </my-element>`,
-    //     [
-    //       createMyElement(`<au-slot name="s1">\${people[0].firstName}<au-slot name="s2" with.bind="{item: people[0]}">\${item.lastName}</au-slot></au-slot>`),
-    //     ],
-    //     { 'my-element': `John<div>John</div>` }
-    //   );
-    //   yield new TestData(
-    //     'works replacing au-slot[name=s1]>au-slot[name=s2][with] - outer scope',
-    //     `<let item.bind="people[1]"></let><my-element people.bind="people"> <div au-slot="s2">\${item.firstName}</div> </my-element>`,
-    //     [
-    //       createMyElement(`<au-slot name="s1">\${people[0].firstName}<au-slot name="s2" with.bind="{item: people[0]}">\${item.lastName}</au-slot></au-slot>`),
-    //     ],
-    //     { 'my-element': `John<div>Max</div>` }
-    //   );
-    //   yield new TestData(
-    //     'works replacing div[with]>au-slot,div[with]au-slot',
-    //     `<my-element people.bind="people"> <template au-slot>\${$host.item.lastName}</template> </my-element>`,
-    //     [
-    //       createMyElement(`<div with.bind="{item: people[0]}"><au-slot>\${item.firstName}</au-slot></div><div with.bind="{item: people[1]}"><au-slot>\${item.firstName}</au-slot></div>`),
-    //     ],
-    //     { 'my-element': `<div>Doe</div><div>Mustermann</div>` }
-    //   );
-    //   yield new TestData(
-    //     'works replacing au-slot[with],au-slot[with]',
-    //     `<my-element people.bind="people"> <div au-slot>\${$host.item.lastName}</div> </my-element>`,
-    //     [
-    //       createMyElement(`<au-slot with.bind="{item: people[0]}">\${item.firstName}</au-slot><au-slot with.bind="{item: people[1]}">\${item.firstName}</au-slot>`),
-    //     ],
-    //     { 'my-element': `<div>Doe</div><div>Mustermann</div>` }
-    //   );
-    // }
-    // // #endregion
-    // // #endregion
+      yield new TestData(
+        'projection works for au-slot[repeat] with another repeat',
+        `<my-element><template au-slot="s1"><template repeat.for="i of 3">\${i*2}</template></template></my-element>`,
+        [
+          createMyElement(`<au-slot name="s1" repeat.for="i of 2">\${i}</au-slot>`),
+        ],
+        { 'my-element': [`024024`, new AuSlotsInfo(['s1'])], },
+      );
 
-    // // #region complex templating
-    // {
-    //   @customElement({ name: 'coll-vwr', isStrictBinding: true, template: `<au-slot name="colleslawt"><div repeat.for="item of collection">\${item}</div></au-slot>` })
-    //   class CollVwr {
-    //     @bindable public collection: string[];
-    //   }
-    //   @customElement({
-    //     name: 'my-element', isStrictBinding: true, template: `
-    //   <au-slot name="grid">
-    //     <au-slot name="header">
-    //       <h4>First Name</h4>
-    //       <h4>Last Name</h4>
-    //       <h4>Pets</h4>
-    //     </au-slot>
-    //     <template repeat.for="person of people">
-    //       <au-slot name="content">
-    //         <div>\${person.firstName}</div>
-    //         <div>\${person.lastName}</div>
-    //         <coll-vwr collection.bind="person.pets"></coll-vwr>
-    //       </au-slot>
-    //     </template>
-    //   </au-slot>` })
-    //   class MyElement {
-    //     @bindable public people: Person[];
-    //   }
-    //   yield new TestData(
-    //     'simple nesting',
-    //     `<my-element people.bind="people"></my-element>`,
-    //     [
-    //       CollVwr,
-    //       MyElement,
-    //     ],
-    //     { 'my-element': '<h4>First Name</h4> <h4>Last Name</h4> <h4>Pets</h4> <div>John</div> <div>Doe</div> <coll-vwr collection.bind="person.pets" class="au"><div>Browny</div><div>Smokey</div></coll-vwr> <div>Max</div> <div>Mustermann</div> <coll-vwr collection.bind="person.pets" class="au"><div>Sea biscuit</div><div>Swift Thunder</div></coll-vwr>' },
-    //   );
+      yield new TestData(
+        'projection works for au-slot[repeat] with another repeat',
+        `<my-element><div au-slot="bar">First</div></my-element>
+         <my-element><div au-slot="bar">Second</div></my-element>`,
+        [
+          createMyElement(`<let items.bind="[1,2]"></let>S<div repeat.for="item of items">\${item}<au-slot name="bar"></au-slot></div>E`),
+        ],
+        {
+          'my-element': [`S<div>1<div>First</div></div><div>2<div>First</div></div>E`, new AuSlotsInfo(['bar'])],
+          'my-element+my-element': [`S<div>1<div>Second</div></div><div>2<div>Second</div></div>E`, new AuSlotsInfo(['bar'])],
+        },
+      );
+    }
+    // #endregion
 
-    //   yield new TestData(
-    //     'transitive projections works',
-    //     `<my-element people.bind="people">
-    //       <template au-slot="content">
-    //         <div>\${$host.person.firstName}</div>
-    //         <div>\${$host.person.lastName}</div>
-    //         <coll-vwr collection.bind="$host.person.pets">
-    //           <ul au-slot="colleslawt"><li repeat.for="item of $host.collection">\${item}</li></ul>
-    //         </coll-vwr>
-    //       </template>
-    //     </my-element>`,
-    //     [
-    //       CollVwr,
-    //       MyElement,
-    //     ],
-    //     { 'my-element': '<h4>First Name</h4> <h4>Last Name</h4> <h4>Pets</h4> <div>John</div> <div>Doe</div> <coll-vwr collection.bind="$host.person.pets" class="au"> <ul><li>Browny</li><li>Smokey</li></ul></coll-vwr> <div>Max</div> <div>Mustermann</div> <coll-vwr collection.bind="$host.person.pets" class="au"> <ul><li>Sea biscuit</li><li>Swift Thunder</li></ul></coll-vwr>' },
-    //   );
+    // #region `with`
+    {
+      yield new TestData(
+        'works with "with" on parent',
+        `<my-element people.bind="people"> <div au-slot>\${$host.item.lastName}</div> </my-element>`,
+        [
+          createMyElement(`<div with.bind="{item: people[0]}"><au-slot>\${item.firstName}</au-slot></div>`),
+        ],
+        { 'my-element': [`<div><div>Doe</div></div>`, new AuSlotsInfo(['default'])] }
+      );
+      yield new TestData(
+        'works with "with" on parent - outer scope',
+        `<let item.bind="people[1]"></let><my-element people.bind="people"> <div au-slot>\${item.lastName}</div> </my-element>`,
+        [
+          createMyElement(`<div with.bind="{item: people[0]}"><au-slot>\${item.firstName}</au-slot></div>`),
+        ],
+        { 'my-element': [`<div><div>Mustermann</div></div>`, new AuSlotsInfo(['default'])] }
+      );
+      yield new TestData(
+        'works with "with" on self',
+        `<my-element people.bind="people"> <div au-slot>\${$host.item.lastName}</div> </my-element>`,
+        [
+          createMyElement(`<au-slot with.bind="{item: people[0]}">\${item.firstName}</au-slot>`),
+        ],
+        { 'my-element': [`<div>Doe</div>`, new AuSlotsInfo(['default'])] }
+      );
+      yield new TestData(
+        'works with "with" on self - outer scope',
+        `<let item.bind="people[1]"></let><my-element people.bind="people"> <div au-slot>\${item.lastName}</div> </my-element>`,
+        [
+          createMyElement(`<au-slot with.bind="{item: people[0]}">\${item.firstName}</au-slot>`),
+        ],
+        { 'my-element': [`<div>Mustermann</div>`, new AuSlotsInfo(['default'])] }
+      );
+      yield new TestData(
+        'works replacing div[with]>au-slot[name=s1]>au-slot[name=s2]',
+        `<my-element people.bind="people"> <div au-slot="s2">\${$host.item.firstName}</div> </my-element>`,
+        [
+          createMyElement(`<div with.bind="{item: people[0]}"><au-slot name="s1">\${item.firstName}<au-slot name="s2">\${item.lastName}</au-slot></au-slot></div>`),
+        ],
+        { 'my-element': [`<div>John<div>John</div></div>`, new AuSlotsInfo(['s2'])] }
+      );
+      yield new TestData(
+        'works replacing div[with]>au-slot[name=s1]>au-slot[name=s2] - outer scope',
+        `<let item.bind="people[1]"></let><my-element people.bind="people"> <div au-slot="s2">\${item.firstName}</div> </my-element>`,
+        [
+          createMyElement(`<div with.bind="{item: people[0]}"><au-slot name="s1">\${item.firstName}<au-slot name="s2">\${item.lastName}</au-slot></au-slot></div>`),
+        ],
+        { 'my-element': [`<div>John<div>Max</div></div>`, new AuSlotsInfo(['s2'])] }
+      );
+      yield new TestData(
+        'works replacing au-slot[name=s1]>div[with]>au-slot[name=s2]',
+        `<my-element people.bind="people"> <div au-slot="s2">\${$host.item.firstName}</div> </my-element>`,
+        [
+          createMyElement(`<au-slot name="s1">\${people[0].firstName}<div with.bind="{item: people[0]}"><au-slot name="s2">\${item.lastName}</au-slot></div></au-slot>`),
+        ],
+        { 'my-element': [`John<div><div>John</div></div>`, new AuSlotsInfo(['s2'])] }
+      );
+      yield new TestData(
+        'works replacing au-slot[name=s1]>div[with]>au-slot[name=s2] - outer scope',
+        `<let item.bind="people[1]"></let><my-element people.bind="people"> <div au-slot="s2">\${item.firstName}</div> </my-element>`,
+        [
+          createMyElement(`<au-slot name="s1">\${people[0].firstName}<div with.bind="{item: people[0]}"><au-slot name="s2">\${item.lastName}</au-slot></div></au-slot>`),
+        ],
+        { 'my-element': [`John<div><div>Max</div></div>`, new AuSlotsInfo(['s2'])] }
+      );
+      yield new TestData(
+        'works replacing au-slot[name=s1]>au-slot[name=s2][with]',
+        `<my-element people.bind="people"> <div au-slot="s2">\${$host.item.firstName}</div> </my-element>`,
+        [
+          createMyElement(`<au-slot name="s1">\${people[0].firstName}<au-slot name="s2" with.bind="{item: people[0]}">\${item.lastName}</au-slot></au-slot>`),
+        ],
+        { 'my-element': [`John<div>John</div>`, new AuSlotsInfo(['s2'])] }
+      );
+      yield new TestData(
+        'works replacing au-slot[name=s1]>au-slot[name=s2][with] - outer scope',
+        `<let item.bind="people[1]"></let><my-element people.bind="people"> <div au-slot="s2">\${item.firstName}</div> </my-element>`,
+        [
+          createMyElement(`<au-slot name="s1">\${people[0].firstName}<au-slot name="s2" with.bind="{item: people[0]}">\${item.lastName}</au-slot></au-slot>`),
+        ],
+        { 'my-element': [`John<div>Max</div>`, new AuSlotsInfo(['s2'])] }
+      );
+      yield new TestData(
+        'works replacing div[with]>au-slot,div[with]au-slot',
+        `<my-element people.bind="people"> <template au-slot>\${$host.item.lastName}</template> </my-element>`,
+        [
+          createMyElement(`<div with.bind="{item: people[0]}"><au-slot>\${item.firstName}</au-slot></div><div with.bind="{item: people[1]}"><au-slot>\${item.firstName}</au-slot></div>`),
+        ],
+        { 'my-element': [`<div>Doe</div><div>Mustermann</div>`, new AuSlotsInfo(['default'])] }
+      );
+      yield new TestData(
+        'works replacing au-slot[with],au-slot[with]',
+        `<my-element people.bind="people"> <div au-slot>\${$host.item.lastName}</div> </my-element>`,
+        [
+          createMyElement(`<au-slot with.bind="{item: people[0]}">\${item.firstName}</au-slot><au-slot with.bind="{item: people[1]}">\${item.firstName}</au-slot>`),
+        ],
+        { 'my-element': [`<div>Doe</div><div>Mustermann</div>`, new AuSlotsInfo(['default'])] }
+      );
+    }
+    // #endregion
+    // #endregion
 
-    //   yield new TestData(
-    //     'transitive projections with let-binding works - 1',
-    //     `<my-element people.bind="people">
-    //       <template au-slot="content">
-    //         <let person.bind="$host.person"></let>
-    //         <div>\${person.firstName}</div>
-    //         <div>\${person.lastName}</div>
-    //         <coll-vwr collection.bind="person.pets">
-    //           <ul au-slot="colleslawt"><li repeat.for="item of $host.collection">\${item}</li></ul>
-    //         </coll-vwr>
-    //       </template>
-    //     </my-element>`,
-    //     [
-    //       CollVwr,
-    //       MyElement,
-    //     ],
-    //     { 'my-element': '<h4>First Name</h4> <h4>Last Name</h4> <h4>Pets</h4> <div>John</div> <div>Doe</div> <coll-vwr collection.bind="person.pets" class="au"> <ul><li>Browny</li><li>Smokey</li></ul></coll-vwr> <div>Max</div> <div>Mustermann</div> <coll-vwr collection.bind="person.pets" class="au"> <ul><li>Sea biscuit</li><li>Swift Thunder</li></ul></coll-vwr>' },
-    //   );
+    // #region complex templating
+    {
+      @customElement({ name: 'coll-vwr', isStrictBinding: true, template: `<au-slot name="colleslawt"><div repeat.for="item of collection">\${item}</div></au-slot>` })
+      class CollVwr {
+        @bindable public collection: string[];
+      }
+      @customElement({
+        name: 'my-element', isStrictBinding: true, template: `
+      <au-slot name="grid">
+        <au-slot name="header">
+          <h4>First Name</h4>
+          <h4>Last Name</h4>
+          <h4>Pets</h4>
+        </au-slot>
+        <template repeat.for="person of people">
+          <au-slot name="content">
+            <div>\${person.firstName}</div>
+            <div>\${person.lastName}</div>
+            <coll-vwr collection.bind="person.pets"></coll-vwr>
+          </au-slot>
+        </template>
+      </au-slot>` })
+      class MyElement {
+        @auSlots
+        public readonly slots!: AuSlotsInfo;
+        @bindable public people: Person[];
+      }
+      yield new TestData(
+        'simple nesting',
+        `<my-element people.bind="people"></my-element>`,
+        [
+          CollVwr,
+          MyElement,
+        ],
+        { 'my-element': ['<h4>First Name</h4> <h4>Last Name</h4> <h4>Pets</h4> <div>John</div> <div>Doe</div> <coll-vwr collection.bind="person.pets" class="au"><div>Browny</div><div>Smokey</div></coll-vwr> <div>Max</div> <div>Mustermann</div> <coll-vwr collection.bind="person.pets" class="au"><div>Sea biscuit</div><div>Swift Thunder</div></coll-vwr>', new AuSlotsInfo([])] },
+      );
 
-    //   yield new TestData(
-    //     'transitive projections with let-binding works - 2',
-    //     `<my-element people.bind="people">
-    //       <template au-slot="content">
-    //         <let h.bind="$host"></let>
-    //         <div>\${h.person.firstName}</div>
-    //         <div>\${h.person.lastName}</div>
-    //         <coll-vwr collection.bind="h.person.pets">
-    //           <ul au-slot="colleslawt"><li repeat.for="item of $host.collection">\${item}</li></ul>
-    //         </coll-vwr>
-    //       </template>
-    //     </my-element>`,
-    //     [
-    //       CollVwr,
-    //       MyElement,
-    //     ],
-    //     { 'my-element': '<h4>First Name</h4> <h4>Last Name</h4> <h4>Pets</h4> <div>John</div> <div>Doe</div> <coll-vwr collection.bind="h.person.pets" class="au"> <ul><li>Browny</li><li>Smokey</li></ul></coll-vwr> <div>Max</div> <div>Mustermann</div> <coll-vwr collection.bind="h.person.pets" class="au"> <ul><li>Sea biscuit</li><li>Swift Thunder</li></ul></coll-vwr>' },
-    //   );
+      yield new TestData(
+        'transitive projections works',
+        `<my-element people.bind="people">
+          <template au-slot="content">
+            <div>\${$host.person.firstName}</div>
+            <div>\${$host.person.lastName}</div>
+            <coll-vwr collection.bind="$host.person.pets">
+              <ul au-slot="colleslawt"><li repeat.for="item of $host.collection">\${item}</li></ul>
+            </coll-vwr>
+          </template>
+        </my-element>`,
+        [
+          CollVwr,
+          MyElement,
+        ],
+        { 'my-element': ['<h4>First Name</h4> <h4>Last Name</h4> <h4>Pets</h4> <div>John</div> <div>Doe</div> <coll-vwr collection.bind="$host.person.pets" class="au"> <ul><li>Browny</li><li>Smokey</li></ul></coll-vwr> <div>Max</div> <div>Mustermann</div> <coll-vwr collection.bind="$host.person.pets" class="au"> <ul><li>Sea biscuit</li><li>Swift Thunder</li></ul></coll-vwr>', new AuSlotsInfo(['content'])] },
+      );
 
-    //   // tag: nonsense-example
-    //   yield new TestData(
-    //     'direct projection attempt for a transitive slot does not work',
-    //     `<my-element people.bind="people">
-    //       <ul au-slot="colleslawt"><li repeat.for="item of $host.collection">\${item}</li></ul>
-    //     </my-element>`,
-    //     [
-    //       CollVwr,
-    //       MyElement,
-    //     ],
-    //     { 'my-element': '<h4>First Name</h4> <h4>Last Name</h4> <h4>Pets</h4> <div>John</div> <div>Doe</div> <coll-vwr collection.bind="person.pets" class="au"><div>Browny</div><div>Smokey</div></coll-vwr> <div>Max</div> <div>Mustermann</div> <coll-vwr collection.bind="person.pets" class="au"><div>Sea biscuit</div><div>Swift Thunder</div></coll-vwr>' },
-    //   );
+      yield new TestData(
+        'transitive projections with let-binding works - 1',
+        `<my-element people.bind="people">
+          <template au-slot="content">
+            <let person.bind="$host.person"></let>
+            <div>\${person.firstName}</div>
+            <div>\${person.lastName}</div>
+            <coll-vwr collection.bind="person.pets">
+              <ul au-slot="colleslawt"><li repeat.for="item of $host.collection">\${item}</li></ul>
+            </coll-vwr>
+          </template>
+        </my-element>`,
+        [
+          CollVwr,
+          MyElement,
+        ],
+        { 'my-element': ['<h4>First Name</h4> <h4>Last Name</h4> <h4>Pets</h4> <div>John</div> <div>Doe</div> <coll-vwr collection.bind="person.pets" class="au"> <ul><li>Browny</li><li>Smokey</li></ul></coll-vwr> <div>Max</div> <div>Mustermann</div> <coll-vwr collection.bind="person.pets" class="au"> <ul><li>Sea biscuit</li><li>Swift Thunder</li></ul></coll-vwr>', new AuSlotsInfo(['content'])] },
+      );
 
-    //   yield new TestData(
-    //     'duplicate slot works',
-    //     `<my-element></my-element>`,
-    //     [
-    //       createMyElement(`<au-slot>d1</au-slot>|<au-slot name="s1">s11</au-slot>|<au-slot>d2</au-slot>|<au-slot name="s1">s12</au-slot>`),
-    //     ],
-    //     { 'my-element': 'd1|s11|d2|s12' },
-    //   );
+      yield new TestData(
+        'transitive projections with let-binding works - 2',
+        `<my-element people.bind="people">
+          <template au-slot="content">
+            <let h.bind="$host"></let>
+            <div>\${h.person.firstName}</div>
+            <div>\${h.person.lastName}</div>
+            <coll-vwr collection.bind="h.person.pets">
+              <ul au-slot="colleslawt"><li repeat.for="item of $host.collection">\${item}</li></ul>
+            </coll-vwr>
+          </template>
+        </my-element>`,
+        [
+          CollVwr,
+          MyElement,
+        ],
+        { 'my-element': ['<h4>First Name</h4> <h4>Last Name</h4> <h4>Pets</h4> <div>John</div> <div>Doe</div> <coll-vwr collection.bind="h.person.pets" class="au"> <ul><li>Browny</li><li>Smokey</li></ul></coll-vwr> <div>Max</div> <div>Mustermann</div> <coll-vwr collection.bind="h.person.pets" class="au"> <ul><li>Sea biscuit</li><li>Swift Thunder</li></ul></coll-vwr>', new AuSlotsInfo(['content'])] },
+      );
 
-    //   yield new TestData(
-    //     'projection to duplicate slots results in repetitions',
-    //     `<my-element><template au-slot="default">dp</template><template au-slot="s1">s1p</template></my-element>`,
-    //     [
-    //       createMyElement(`<au-slot>d1</au-slot>|<au-slot name="s1">s11</au-slot>|<au-slot>d2</au-slot>|<au-slot name="s1">s12</au-slot>`),
-    //     ],
-    //     { 'my-element': 'dp|s1p|dp|s1p' },
-    //   );
+      // tag: nonsense-example
+      yield new TestData(
+        'direct projection attempt for a transitive slot does not work',
+        `<my-element people.bind="people">
+          <ul au-slot="colleslawt"><li repeat.for="item of $host.collection">\${item}</li></ul>
+        </my-element>`,
+        [
+          CollVwr,
+          MyElement,
+        ],
+        { 'my-element': ['<h4>First Name</h4> <h4>Last Name</h4> <h4>Pets</h4> <div>John</div> <div>Doe</div> <coll-vwr collection.bind="person.pets" class="au"><div>Browny</div><div>Smokey</div></coll-vwr> <div>Max</div> <div>Mustermann</div> <coll-vwr collection.bind="person.pets" class="au"><div>Sea biscuit</div><div>Swift Thunder</div></coll-vwr>', new AuSlotsInfo(['colleslawt'])] },
+      );
 
-    //   yield new TestData(
-    //     'projection works correctly with nested elements with same slot name',
-    //     `<my-element-s11>
-    //       <template au-slot="s1">
-    //       p1
-    //       <my-element-s12>
-    //         <template au-slot="s1">
-    //           p2
-    //         </template>
-    //       </my-element-s12>
-    //       </template>
-    //     </my-element-s11>`,
-    //     [
-    //       CustomElement.define({ name: 'my-element-s11', isStrictBinding: true, template: `<au-slot name="s1">s11</au-slot>` }, class MyElement { }),
-    //       CustomElement.define({ name: 'my-element-s12', isStrictBinding: true, template: `<au-slot name="s1">s12</au-slot>` }, class MyElement { }),
-    //     ],
-    //     { 'my-element-s11': 'p1 <my-element-s12 class="au"> p2 </my-element-s12>' },
-    //   );
+      yield new TestData(
+        'duplicate slot works',
+        `<my-element></my-element>`,
+        [
+          createMyElement(`<au-slot>d1</au-slot>|<au-slot name="s1">s11</au-slot>|<au-slot>d2</au-slot>|<au-slot name="s1">s12</au-slot>`),
+        ],
+        { 'my-element': ['d1|s11|d2|s12', new AuSlotsInfo([])] },
+      );
 
-    //   yield new TestData(
-    //     'au-slot>CE works - fallback',
-    //     `<my-element></my-element>`,
-    //     [
-    //       CustomElement.define({ name: 'my-element', isStrictBinding: true, template: `<au-slot name="s1"><foo-bar foo.bind="message"></foo-bar></au-slot>` }, class MyElement { public readonly message = 'inner'; }),
-    //       CustomElement.define({ name: 'foo-bar', isStrictBinding: true, template: `\${foo}`, bindables: ['foo'] }, class MyElement { }),
-    //     ],
-    //     { 'my-element': '<foo-bar foo.bind="message" class="au">inner</foo-bar>' },
-    //   );
+      yield new TestData(
+        'projection to duplicate slots results in repetitions',
+        `<my-element><template au-slot="default">dp</template><template au-slot="s1">s1p</template></my-element>`,
+        [
+          createMyElement(`<au-slot>d1</au-slot>|<au-slot name="s1">s11</au-slot>|<au-slot>d2</au-slot>|<au-slot name="s1">s12</au-slot>`),
+        ],
+        { 'my-element': ['dp|s1p|dp|s1p', new AuSlotsInfo(['default', 's1'])] },
+      );
 
-    //   yield new TestData(
-    //     'CE[au-slot] works - non $host',
-    //     `<my-element>
-    //       <foo-bar au-slot="s1" foo.bind="message"></foo-bar>
-    //     </my-element>`,
-    //     [
-    //       createMyElement(`<au-slot name="s1">s1fb</au-slot>`),
-    //       CustomElement.define({ name: 'foo-bar', isStrictBinding: true, template: `\${foo}`, bindables: ['foo'] }, class MyElement { }),
-    //     ],
-    //     { 'my-element': '<foo-bar foo.bind="message" class="au">root</foo-bar>' },
-    //   );
+      yield new TestData(
+        'projection works correctly with nested elements with same slot name',
+        `<my-element-s11>
+          <template au-slot="s1">
+          p1
+          <my-element-s12>
+            <template au-slot="s1">
+              p2
+            </template>
+          </my-element-s12>
+          </template>
+        </my-element-s11>`,
+        [
+          CustomElement.define({ name: 'my-element-s11', isStrictBinding: true, template: `<au-slot name="s1">s11</au-slot>` }, class MyElement { }),
+          CustomElement.define({ name: 'my-element-s12', isStrictBinding: true, template: `<au-slot name="s1">s12</au-slot>` }, class MyElement { }),
+        ],
+        { 'my-element-s11': ['p1 <my-element-s12 class="au"> p2 </my-element-s12>', null] },
+      );
 
-    //   yield new TestData(
-    //     'CE[au-slot] works - $host',
-    //     `<my-element>
-    //       <foo-bar au-slot="s1" foo.bind="$host.message"></foo-bar>
-    //     </my-element>`,
-    //     [
-    //       CustomElement.define(
-    //         { name: 'my-element', isStrictBinding: true, template: `<au-slot name="s1">s1fb</au-slot>` },
-    //         class MyElement {
-    //           public readonly message: string = 'inner';
-    //         }
-    //       ),
-    //       CustomElement.define({ name: 'foo-bar', isStrictBinding: true, template: `\${foo}`, bindables: ['foo'] }, class MyElement { }),
-    //     ],
-    //     { 'my-element': '<foo-bar foo.bind="$host.message" class="au">inner</foo-bar>' },
-    //   );
+      yield new TestData(
+        'au-slot>CE works - fallback',
+        `<my-element></my-element>`,
+        [
+          CustomElement.define({ name: 'my-element', isStrictBinding: true, template: `<au-slot name="s1"><foo-bar foo.bind="message"></foo-bar></au-slot>` }, class MyElement { public readonly message = 'inner'; }),
+          CustomElement.define({ name: 'foo-bar', isStrictBinding: true, template: `\${foo}`, bindables: ['foo'] }, class MyElement { }),
+        ],
+        { 'my-element': ['<foo-bar foo.bind="message" class="au">inner</foo-bar>', null] },
+      );
 
-    //   // tag: nonsense-example
-    //   yield new TestData(
-    //     'projection to a non-existing slot has no effect',
-    //     `<my-element-s11>
-    //       <template au-slot="s2">
-    //       p1
-    //       </template>
-    //     </my-element-s11>`,
-    //     [
-    //       CustomElement.define({ name: 'my-element-s11', isStrictBinding: true, template: `<au-slot name="s1">s11</au-slot>` }, class MyElement { }),
-    //       CustomElement.define({ name: 'my-element-s12', isStrictBinding: true, template: `<au-slot name="s1">s12</au-slot>` }, class MyElement { }),
-    //     ],
-    //     { 'my-element-s11': 's11' },
-    //   );
+      yield new TestData(
+        'CE[au-slot] works - non $host',
+        `<my-element>
+          <foo-bar au-slot="s1" foo.bind="message"></foo-bar>
+        </my-element>`,
+        [
+          createMyElement(`<au-slot name="s1">s1fb</au-slot>`),
+          CustomElement.define({ name: 'foo-bar', isStrictBinding: true, template: `\${foo}`, bindables: ['foo'] }, class MyElement { }),
+        ],
+        { 'my-element': ['<foo-bar foo.bind="message" class="au">root</foo-bar>', new AuSlotsInfo(['s1'])] },
+      );
 
-    //   // tag: nonsense-example, mis-projection
-    //   yield new TestData(
-    //     'projection attempted using <au-slot> instead of [au-slot] results in mis-projection',
-    //     `<my-element>
-    //       <au-slot name="s1">
-    //         mis-projected
-    //       </au-slot>
-    //       <au-slot name="foo">
-    //         bar
-    //       </au-slot>
-    //     </my-element>`,
-    //     [
-    //       createMyElement(`<au-slot>dfb</au-slot>|<au-slot name="s1">s1fb</au-slot>`),
-    //     ],
-    //     { 'my-element': 'mis-projected bar dfb|s1fb' },
-    //   );
+      {
 
-    //   // tag: nonsense-example
-    //   yield new TestData(
-    //     '[au-slot] in <au-slot> is no-op',
-    //     `<my-element></my-element>`,
-    //     [
-    //       createMyElement(`<au-slot name="s1"><div au-slot="s1">no-op</div></au-slot>`),
-    //     ],
-    //     { 'my-element': '' },
-    //   );
+        class MyElement {
+          @auSlots
+          public readonly slots: AuSlotsInfo;
+          public readonly message: string = 'inner';
+        }
+        yield new TestData(
+          'CE[au-slot] works - $host',
+          `<my-element>
+          <foo-bar au-slot="s1" foo.bind="$host.message"></foo-bar>
+        </my-element>`,
+          [
+            CustomElement.define(
+              { name: 'my-element', isStrictBinding: true, template: `<au-slot name="s1">s1fb</au-slot>` },
+              MyElement
+            ),
+            CustomElement.define({ name: 'foo-bar', isStrictBinding: true, template: `\${foo}`, bindables: ['foo'] }, class MyElement { }),
+          ],
+          { 'my-element': ['<foo-bar foo.bind="$host.message" class="au">inner</foo-bar>', new AuSlotsInfo(['s1'])] },
+        );
+      }
 
-    //   yield new TestData(
-    //     '<au-slot> in [au-slot] works',
-    //     `<my-element>
-    //       <div au-slot="s1">
-    //         <au-slot name="does-not-matter">
-    //           projection
-    //         </au-slot>
-    //       </div>
-    //     </my-element>`,
-    //     [
-    //       createMyElement(`<au-slot name="s1"></au-slot>`),
-    //     ],
-    //     { 'my-element': '<div> projection </div>' },
-    //   );
+      // tag: nonsense-example
+      yield new TestData(
+        'projection to a non-existing slot has no effect',
+        `<my-element-s11>
+          <template au-slot="s2">
+          p1
+          </template>
+        </my-element-s11>`,
+        [
+          CustomElement.define({ name: 'my-element-s11', isStrictBinding: true, template: `<au-slot name="s1">s11</au-slot>` }, class MyElement { }),
+          CustomElement.define({ name: 'my-element-s12', isStrictBinding: true, template: `<au-slot name="s1">s12</au-slot>` }, class MyElement { }),
+        ],
+        { 'my-element-s11': ['s11', null] },
+      );
 
-    //   // tag: nonsense-example
-    //   yield new TestData(
-    //     '[au-slot] -> <au-slot> -> [au-slot](ignored)',
-    //     `<my-element>
-    //       <div au-slot="s1">
-    //         <au-slot name="does-not-matter">
-    //           projection
-    //           <span au-slot="s1">ignored</span>
-    //         </au-slot>
-    //       </div>
-    //     </my-element>`,
-    //     [
-    //       createMyElement(`<au-slot name="s1"></au-slot>`),
-    //     ],
-    //     { 'my-element': '<div> projection </div>' },
-    //   );
+      // // tag: nonsense-example, mis-projection
+      // yield new TestData(
+      //   'projection attempted using <au-slot> instead of [au-slot] results in mis-projection',
+      //   `<my-element>
+      //     <au-slot name="s1">
+      //       mis-projected
+      //     </au-slot>
+      //     <au-slot name="foo">
+      //       bar
+      //     </au-slot>
+      //   </my-element>`,
+      //   [
+      //     createMyElement(`<au-slot>dfb</au-slot>|<au-slot name="s1">s1fb</au-slot>`),
+      //   ],
+      //   { 'my-element': ['mis-projected bar dfb|s1fb', new AuSlotsInfo(['s1', 'foo'])] },
+      // );
 
-    //   // tag: nonsense-example
-    //   yield new TestData(
-    //     '[au-slot] -> <au-slot> -> [au-slot](ignored) -> <au-slot>(ignored)',
-    //     `<my-element>
-    //       <div au-slot="s1">
-    //         <au-slot name="does-not-matter">
-    //           projection
-    //           <span au-slot="s1">
-    //             ignored
-    //             <au-slot name="dnc">fb</au-slot>
-    //           </span>
-    //         </au-slot>
-    //       </div>
-    //     </my-element>`,
-    //     [
-    //       createMyElement(`<au-slot name="s1"></au-slot>`),
-    //     ],
-    //     { 'my-element': '<div> projection </div>' },
-    //   );
+      // // tag: nonsense-example
+      // yield new TestData(
+      //   '[au-slot] in <au-slot> is no-op',
+      //   `<my-element></my-element>`,
+      //   [
+      //     createMyElement(`<au-slot name="s1"><div au-slot="s1">no-op</div></au-slot>`),
+      //   ],
+      //   { 'my-element': ['', new AuSlotsInfo([])] },
+      // );
 
-    //   // tag: chained-projection
-    //   yield new TestData(
-    //     'chain of [au-slot] and <au-slot> can be used to project content to a nested inner CE',
-    //     `<lvl-one><div au-slot="s1">p</div></lvl-one>`,
-    //     [
-    //       CustomElement.define({ name: 'lvl-zero', isStrictBinding: true, template: `<au-slot name="s0"></au-slot>` }, class LvlZero { }),
-    //       CustomElement.define({ name: 'lvl-one', isStrictBinding: true, template: `<lvl-zero><template au-slot="s0"><au-slot name="s1"></au-slot></template></lvl-zero>` }, class LvlOne { }),
-    //     ],
-    //     { '': '<lvl-one class="au"><lvl-zero class="au"><div>p</div></lvl-zero></lvl-one>' },
-    //   );
-    //   yield new TestData(
-    //     'chain of [au-slot] and <au-slot> can be used to project content to a nested inner CE - with same slot name',
-    //     `<lvl-one><div au-slot="x">p</div></lvl-one>`,
-    //     [
-    //       CustomElement.define({ name: 'lvl-zero', isStrictBinding: true, template: `<au-slot name="x"></au-slot>` }, class LvlZero { }),
-    //       CustomElement.define({ name: 'lvl-one', isStrictBinding: true, template: `<lvl-zero><template au-slot="x"><au-slot name="x"></au-slot></template></lvl-zero>` }, class LvlOne { }),
-    //     ],
-    //     { '': '<lvl-one class="au"><lvl-zero class="au"><div>p</div></lvl-zero></lvl-one>' },
-    //   );
+      // yield new TestData(
+      //   '<au-slot> in [au-slot] works',
+      //   `<my-element>
+      //     <div au-slot="s1">
+      //       <au-slot name="does-not-matter">
+      //         projection
+      //       </au-slot>
+      //     </div>
+      //   </my-element>`,
+      //   [
+      //     createMyElement(`<au-slot name="s1"></au-slot>`),
+      //   ],
+      //   { 'my-element': ['<div> projection </div>', new AuSlotsInfo(['s1'])] },
+      // );
 
-    //   // tag: nonsense-example, utterly-complex
-    //   yield new TestData(
-    //     'projection does not work using <au-slot> or to non-existing slot',
-    //     `<parent-element>
-    //       <div id="1" au-slot="x">
-    //         <au-slot name="x"> p </au-slot>
-    //       </div>
-    //       <au-slot id="2" name="x">
-    //         <div au-slot="x"></div>
-    //       </au-slot>
-    //     </parent-element>`,
-    //     [
-    //       CustomElement.define({ name: 'child-element', isStrictBinding: true, template: `<au-slot name="x"></au-slot>` }, class ChildElement { }),
-    //       CustomElement.define({
-    //         name: 'parent-element', isStrictBinding: true,
-    //         template: `<child-element>
-    //           <div id="3" au-slot="x"><au-slot name="x">p1</au-slot></div>
-    //           <au-slot name="x"><div id="4" au-slot="x">p2</div></au-slot>
-    //         </child-element>`
-    //       }, class ParentElement { }),
-    //     ],
-    //     /**
-    //      * Explanation:
-    //      * - The first `<div id="1"> p </div>` is caused by `mis-projection`.
-    //      * - The `<div id="3"><div id="1"> p </div></div>` is caused by the `chained-projection`.
-    //      * See the respective tagged test cases to understand the simpler examples first.
-    //      * The `ROOT>parent-element>au-slot` in this case is a no-op, as `<au-slot>` cannot be used provide projection.
-    //      * However if the root instead is used a normal CE in another CE, the same au-slot then advertise projection slot.
-    //      */
-    //     { '': '<parent-element class="au"> <child-element class="au"> <div id="1"> p </div> <div id="3"><div id="1"> p </div></div></child-element></parent-element>' },
-    //   );
+      // // tag: nonsense-example
+      // yield new TestData(
+      //   '[au-slot] -> <au-slot> -> [au-slot](ignored)',
+      //   `<my-element>
+      //     <div au-slot="s1">
+      //       <au-slot name="does-not-matter">
+      //         projection
+      //         <span au-slot="s1">ignored</span>
+      //       </au-slot>
+      //     </div>
+      //   </my-element>`,
+      //   [
+      //     createMyElement(`<au-slot name="s1"></au-slot>`),
+      //   ],
+      //   { 'my-element': ['<div> projection </div>', new AuSlotsInfo(['s1'])] },
+      // );
 
-    //   {
-    //     const createAuSlot = (level: number) => {
-    //       let currentLevel = 0;
-    //       let template = '';
-    //       while (level > currentLevel) {
-    //         template += `<au-slot name="s${currentLevel + 1}">s${currentLevel + 1}fb`;
-    //         ++currentLevel;
-    //       }
-    //       while (currentLevel > 0) {
-    //         template += '</au-slot>';
-    //         --currentLevel;
-    //       }
-    //       return template;
-    //     };
-    //     const buildExpectedTextContent = (level: number) => {
-    //       if (level === 1) {
-    //         return 'p';
-    //       }
-    //       let content = '';
-    //       let i = 1;
-    //       while (level >= i) {
-    //         content += i === level ? 'p' : `s${i}fb`;
-    //         ++i;
-    //       }
-    //       return content;
-    //     };
+      // // tag: nonsense-example
+      // yield new TestData(
+      //   '[au-slot] -> <au-slot> -> [au-slot](ignored) -> <au-slot>(ignored)',
+      //   `<my-element>
+      //     <div au-slot="s1">
+      //       <au-slot name="does-not-matter">
+      //         projection
+      //         <span au-slot="s1">
+      //           ignored
+      //           <au-slot name="dnc">fb</au-slot>
+      //         </span>
+      //       </au-slot>
+      //     </div>
+      //   </my-element>`,
+      //   [
+      //     createMyElement(`<au-slot name="s1"></au-slot>`),
+      //   ],
+      //   { 'my-element': ['<div> projection </div>', new AuSlotsInfo(['s1'])] },
+      // );
 
-    //     for (let i = 1; i < 11; i++) {
-    //       yield new TestData(
-    //         `projection works for deeply nested <au-slot>; nesting level: ${i}`,
-    //         `<my-element><template au-slot="s${i}">p</template></my-element>`,
-    //         [
-    //           CustomElement.define({ name: 'my-element', isStrictBinding: true, template: createAuSlot(i) }, class MyElement { }),
-    //         ],
-    //         { 'my-element': buildExpectedTextContent(i) },
-    //       );
-    //     }
-    //   }
+      // // tag: chained-projection
+      // yield new TestData(
+      //   'chain of [au-slot] and <au-slot> can be used to project content to a nested inner CE',
+      //   `<lvl-one><div au-slot="s1">p</div></lvl-one>`,
+      //   [
+      //     CustomElement.define({ name: 'lvl-zero', isStrictBinding: true, template: `<au-slot name="s0"></au-slot>` }, class LvlZero { }),
+      //     CustomElement.define({ name: 'lvl-one', isStrictBinding: true, template: `<lvl-zero><template au-slot="s0"><au-slot name="s1"></au-slot></template></lvl-zero>` }, class LvlOne { }),
+      //   ],
+      //   { '': ['<lvl-one class="au"><lvl-zero class="au"><div>p</div></lvl-zero></lvl-one>', null] },
+      // );
+      // yield new TestData(
+      //   'chain of [au-slot] and <au-slot> can be used to project content to a nested inner CE - with same slot name',
+      //   `<lvl-one><div au-slot="x">p</div></lvl-one>`,
+      //   [
+      //     CustomElement.define({ name: 'lvl-zero', isStrictBinding: true, template: `<au-slot name="x"></au-slot>` }, class LvlZero { }),
+      //     CustomElement.define({ name: 'lvl-one', isStrictBinding: true, template: `<lvl-zero><template au-slot="x"><au-slot name="x"></au-slot></template></lvl-zero>` }, class LvlOne { }),
+      //   ],
+      //   { '': ['<lvl-one class="au"><lvl-zero class="au"><div>p</div></lvl-zero></lvl-one>', null] },
+      // );
 
-    //   {
-    //     const createAuSlot = (level: number) => {
-    //       let currentLevel = 0;
-    //       let template = '';
-    //       while (level > currentLevel) {
-    //         template += `<au-slot name="s${currentLevel + 1}">s${currentLevel + 1}fb</au-slot>`;
-    //         ++currentLevel;
-    //       }
-    //       return template;
-    //     };
-    //     const buildProjection = (level: number) => {
-    //       if (level === 1) {
-    //         return '<template au-slot="s1">p1</template>';
-    //       }
-    //       let content = '';
-    //       let i = 1;
-    //       while (level >= i) {
-    //         content += `<template au-slot="s${i}">p${i}</template>`;
-    //         ++i;
-    //       }
-    //       return content;
-    //     };
-    //     const buildExpectedTextContent = (level: number) => {
-    //       if (level === 1) {
-    //         return 'p1';
-    //       }
-    //       let content = '';
-    //       let i = 1;
-    //       while (level >= i) {
-    //         content += `p${i}`;
-    //         ++i;
-    //       }
-    //       return content;
-    //     };
+      // // tag: nonsense-example, utterly-complex
+      // yield new TestData(
+      //   'projection does not work using <au-slot> or to non-existing slot',
+      //   `<parent-element>
+      //     <div id="1" au-slot="x">
+      //       <au-slot name="x"> p </au-slot>
+      //     </div>
+      //     <au-slot id="2" name="x">
+      //       <div au-slot="x"></div>
+      //     </au-slot>
+      //   </parent-element>`,
+      //   [
+      //     CustomElement.define({ name: 'child-element', isStrictBinding: true, template: `<au-slot name="x"></au-slot>` }, class ChildElement { }),
+      //     CustomElement.define({
+      //       name: 'parent-element', isStrictBinding: true,
+      //       template: `<child-element>
+      //         <div id="3" au-slot="x"><au-slot name="x">p1</au-slot></div>
+      //         <au-slot name="x"><div id="4" au-slot="x">p2</div></au-slot>
+      //       </child-element>`
+      //     }, class ParentElement { }),
+      //   ],
+      //   /**
+      //    * Explanation:
+      //    * - The first `<div id="1"> p </div>` is caused by `mis-projection`.
+      //    * - The `<div id="3"><div id="1"> p </div></div>` is caused by the `chained-projection`.
+      //    * See the respective tagged test cases to understand the simpler examples first.
+      //    * The `ROOT>parent-element>au-slot` in this case is a no-op, as `<au-slot>` cannot be used provide projection.
+      //    * However if the root instead is used a normal CE in another CE, the same au-slot then advertise projection slot.
+      //    */
+      //   { '': ['<parent-element class="au"> <child-element class="au"> <div id="1"> p </div> <div id="3"><div id="1"> p </div></div></child-element></parent-element>', null] },
+      // );
 
-    //     for (let i = 1; i < 11; i++) {
-    //       yield new TestData(
-    //         `projection works for all non-nested <au-slot>; count: ${i}`,
-    //         `<my-element>${buildProjection(i)}</my-element>`,
-    //         [
-    //           CustomElement.define({ name: 'my-element', isStrictBinding: true, template: createAuSlot(i) }, class MyElement { }),
-    //         ],
-    //         { 'my-element': buildExpectedTextContent(i) },
-    //       );
-    //     }
-    //   }
-    // }
-    // // #endregion
+      // {
+      //   const createAuSlot = (level: number) => {
+      //     let currentLevel = 0;
+      //     let template = '';
+      //     while (level > currentLevel) {
+      //       template += `<au-slot name="s${currentLevel + 1}">s${currentLevel + 1}fb`;
+      //       ++currentLevel;
+      //     }
+      //     while (currentLevel > 0) {
+      //       template += '</au-slot>';
+      //       --currentLevel;
+      //     }
+      //     return template;
+      //   };
+      //   const buildExpectedTextContent = (level: number) => {
+      //     if (level === 1) {
+      //       return 'p';
+      //     }
+      //     let content = '';
+      //     let i = 1;
+      //     while (level >= i) {
+      //       content += i === level ? 'p' : `s${i}fb`;
+      //       ++i;
+      //     }
+      //     return content;
+      //   };
+
+      //   class MyElement {
+      //     @auSlots
+      //     public readonly slots: AuSlotsInfo;
+      //   }
+
+      //   for (let i = 1; i < 11; i++) {
+      //     yield new TestData(
+      //       `projection works for deeply nested <au-slot>; nesting level: ${i}`,
+      //       `<my-element><template au-slot="s${i}">p</template></my-element>`,
+      //       [
+      //         CustomElement.define({ name: 'my-element', isStrictBinding: true, template: createAuSlot(i) }, MyElement),
+      //       ],
+      //       { 'my-element': [buildExpectedTextContent(i), new AuSlotsInfo([`s${i}`])] },
+      //     );
+      //   }
+      // }
+
+      // {
+      //   const createAuSlot = (level: number) => {
+      //     let currentLevel = 0;
+      //     let template = '';
+      //     while (level > currentLevel) {
+      //       template += `<au-slot name="s${currentLevel + 1}">s${currentLevel + 1}fb</au-slot>`;
+      //       ++currentLevel;
+      //     }
+      //     return template;
+      //   };
+      //   const buildProjection = (level: number) => {
+      //     if (level === 1) {
+      //       return '<template au-slot="s1">p1</template>';
+      //     }
+      //     let content = '';
+      //     let i = 1;
+      //     while (level >= i) {
+      //       content += `<template au-slot="s${i}">p${i}</template>`;
+      //       ++i;
+      //     }
+      //     return content;
+      //   };
+      //   const buildExpectation = (level: number) => {
+      //     if (level === 1) {
+      //       return ['p1', new AuSlotsInfo(['s1'])] as const;
+      //     }
+      //     const slots = [];
+      //     let content = '';
+      //     let i = 1;
+      //     while (level >= i) {
+      //       content += `p${i}`;
+      //       slots.push(`s${i}`);
+      //       ++i;
+      //     }
+      //     return [content, new AuSlotsInfo(slots)] as const;
+      //   };
+
+      //   class MyElement {
+      //     @auSlots
+      //     public readonly slots: AuSlotsInfo;
+      //   }
+
+      //   for (let i = 1; i < 11; i++) {
+      //     yield new TestData(
+      //       `projection works for all non-nested <au-slot>; count: ${i}`,
+      //       `<my-element>${buildProjection(i)}</my-element>`,
+      //       [
+      //         CustomElement.define({ name: 'my-element', isStrictBinding: true, template: createAuSlot(i) }, MyElement),
+      //       ],
+      //       { 'my-element': buildExpectation(i) },
+      //     );
+      //   }
+      // }
+    }
+    // #endregion
 
     // // #region value binding
     // yield new TestData(
@@ -1047,8 +1089,10 @@ describe.only('au-slot', function () {
             assert.html.innerEqual(host, expectedInnerHtml, `root.innerHTML`);
           }
 
-          const slots = CustomElement.for<{ slots: AuSlotsInfo }>(host.querySelector('my-element')).viewModel.slots;
-          assert.deepStrictEqual(slots, Object.setPrototypeOf(expectedAuSlotsInfo, null));
+          if (expectedAuSlotsInfo != null) {
+            const slots = CustomElement.for<{ slots: AuSlotsInfo }>(host.querySelector('my-element')).viewModel.slots;
+            assert.deepStrictEqual(slots, expectedAuSlotsInfo);
+          }
         }
         if (additionalAssertion != null) {
           await additionalAssertion(ctx);

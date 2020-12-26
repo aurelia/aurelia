@@ -81,8 +81,8 @@ export class AuSlot implements ICustomElementViewModel {
     _parent: IHydratedParentController,
     _flags: LifecycleFlags,
   ): void | Promise<void> {
-    let boundary = this.hostScope = this.$controller.scope.parentScope!;
-    while (!(boundary?.isComponentBoundary ?? true)) {
+    /* let boundary =  */this.hostScope = this.$controller.scope.parentScope!;
+    /* while (!(boundary?.isComponentBoundary ?? true)) {
       boundary = boundary.parentScope!;
     }
     if (boundary === null) { return; }
@@ -93,7 +93,7 @@ export class AuSlot implements ICustomElementViewModel {
     if (info == null) {
       info = bc[infoProperty] = Object.create(null) as AuSlotsInfo;
     }
-    info[this.name] = this.isProjection;
+    info[this.name] = this.isProjection; */
   }
 
   public attaching(
@@ -127,15 +127,23 @@ export class AuSlot implements ICustomElementViewModel {
 
 customElement({ name: 'au-slot', template: null, containerless: true })(AuSlot);
 
-export type AuSlotsInfo = Record<string, boolean>;
+export class AuSlotsInfo {
+  /**
+   * @param {string[]} projectedSlots - Name of the slots to which content are projected.
+   */
+  public constructor(
+    public readonly projectedSlots: string[],
+  ) { }
+}
 type AuSlotsInfoPropertyNames<TClass> = { [key in keyof TClass]: TClass[key] extends AuSlotsInfo ? key : never }[keyof TClass];
 export function auSlots<TTarget>(prototype: TTarget, property: AuSlotsInfoPropertyNames<TTarget>): void {
   AuSlotsInfoProperty.define(prototype, property);
 }
 
-const AuSlotsInfoProperty = {
+/** @internal */
+export const AuSlotsInfoProperty = {
   key: Protocol.annotation.keyFor('au-slots-info-property'),
-  define<TTarget>(prototype: TTarget, property: AuSlotsInfoPropertyNames<TTarget>) {
+  define<TTarget>(prototype: TTarget, property: AuSlotsInfoPropertyNames<TTarget>): void {
     Metadata.define(this.key, property, prototype);
   },
   for<TTarget extends object>(instance: TTarget): AuSlotsInfoPropertyNames<TTarget> | undefined {

@@ -119,10 +119,10 @@ export {
 } from './observation/dirty-checker.js';
 export {
   IEffect,
-  IEffectRunner,
-  EffectRunner,
+  IObservation,
+  Observation,
   EffectFunc,
-} from './observation/effect.js';
+} from './observation/observation.js';
 export {
   IObservableDefinition,
   observable,

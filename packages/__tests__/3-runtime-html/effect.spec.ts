@@ -1,4 +1,4 @@
-import { IEffectRunner, observable } from '@aurelia/runtime';
+import { IObservation, observable } from '@aurelia/runtime';
 import { assert, createFixture } from '@aurelia/testing';
 
 describe('3-runtime-html/effect.spec.ts', function () {
@@ -22,9 +22,9 @@ describe('3-runtime-html/effect.spec.ts', function () {
 
     let runCount = 0;
     const div = component.div;
-    const runner = ctx.container.get(IEffectRunner);
+    const observation = ctx.container.get(IObservation);
     const mouseTracker = new MouseTracker();
-    const effect = runner.run(() => {
+    const effect = observation.run(() => {
       runCount++;
       div.textContent = mouseTracker.coord.join(', ');
     });
@@ -67,10 +67,10 @@ describe('3-runtime-html/effect.spec.ts', function () {
 
     let runCount = 0;
     const div = component.div;
-    const runner = ctx.container.get(IEffectRunner);
+    const observation = ctx.container.get(IObservation);
     const mouseTracker = new MouseTracker();
     const { coord } = mouseTracker;
-    const effect = runner.run(() => {
+    const effect = observation.run(() => {
       runCount++;
       div.textContent = coord.join(', ');
     });
@@ -113,9 +113,9 @@ describe('3-runtime-html/effect.spec.ts', function () {
 
     let runCount = 0;
     const div = component.div;
-    const runner = ctx.container.get(IEffectRunner);
+    const observation = ctx.container.get(IObservation);
     const mouseTracker = new MouseTracker();
-    const effect = runner.run(() => {
+    const effect = observation.run(() => {
       runCount++;
       Promise.resolve().then(() => {
         div.textContent = mouseTracker.coord.join(', ');
@@ -168,9 +168,9 @@ describe('3-runtime-html/effect.spec.ts', function () {
 
     let runCount = 0;
     const div = component.div;
-    const runner = ctx.container.get(IEffectRunner);
+    const observation = ctx.container.get(IObservation);
     const mouseTracker = new MouseTracker();
-    const effect = runner.run(() => {
+    const effect = observation.run(() => {
       runCount++;
       div.textContent = mouseTracker.coord.join(', ');
       if (runCount < 10) {
@@ -220,10 +220,10 @@ describe('3-runtime-html/effect.spec.ts', function () {
     let runCount = 0;
     let errorCaught = null;
     const div = component.div;
-    const runner = ctx.container.get(IEffectRunner);
+    const observation = ctx.container.get(IObservation);
     const mouseTracker = new MouseTracker();
     try {
-      runner.run(() => {
+      observation.run(() => {
         runCount++;
         div.textContent = mouseTracker.coord.join(', ');
         if (runCount < 20) {

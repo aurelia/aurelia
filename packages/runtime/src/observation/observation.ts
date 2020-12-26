@@ -6,10 +6,10 @@ import { IObserverLocator } from './observer-locator.js';
 import type { ICollectionSubscriber, IConnectable, ISubscriber } from '../observation.js';
 import type { BindingObserverRecord } from '../binding/connectable.js';
 
-export interface IEffectRunner extends EffectRunner {}
-export const IEffectRunner = DI.createInterface<IEffectRunner>('IEffectRunner', x => x.singleton(EffectRunner));
+export interface IObservation extends Observation {}
+export const IObservation = DI.createInterface<IObservation>('IObservation', x => x.singleton(Observation));
 
-export class EffectRunner implements IEffectRunner {
+export class Observation implements IObservation {
 
   public static get inject() { return [IObserverLocator]; }
 
@@ -17,6 +17,10 @@ export class EffectRunner implements IEffectRunner {
     public readonly observerLocator: IObserverLocator,
   ) {}
 
+  /**
+   * Run an effect function an track the dependencies inside it,
+   * to re-run whenever a dependency has changed
+   */
   public run(fn: EffectFunc): IEffect {
     const effect = new Effect(this.observerLocator, fn);
     // todo: batch effect run after it's in

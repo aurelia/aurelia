@@ -61,7 +61,6 @@ export class AuSlot implements ICustomElementViewModel {
   public readonly view: ISyntheticView;
   public readonly $controller!: ICustomElementController<this>; // This is set by the controller after this instance is constructed
 
-  private readonly name: string;
   private readonly isProjection: boolean;
   private hostScope: Scope | null = null;
   private readonly outerScope: Scope | null;
@@ -71,7 +70,6 @@ export class AuSlot implements ICustomElementViewModel {
     location: IRenderLocation,
   ) {
     this.view = factory.create().setLocation(location);
-    this.name = factory.name;
     this.isProjection = factory.contentType === AuSlotContentType.Projection;
     this.outerScope = factory.projectionScope;
   }
@@ -81,19 +79,7 @@ export class AuSlot implements ICustomElementViewModel {
     _parent: IHydratedParentController,
     _flags: LifecycleFlags,
   ): void | Promise<void> {
-    /* let boundary =  */this.hostScope = this.$controller.scope.parentScope!;
-    /* while (!(boundary?.isComponentBoundary ?? true)) {
-      boundary = boundary.parentScope!;
-    }
-    if (boundary === null) { return; }
-    const bc = boundary.bindingContext;
-    const infoProperty = AuSlotsInfoProperty.for(bc);
-    if (infoProperty === void 0) { return; }
-    let info: AuSlotsInfo = bc[infoProperty] as AuSlotsInfo;
-    if (info == null) {
-      info = bc[infoProperty] = Object.create(null) as AuSlotsInfo;
-    }
-    info[this.name] = this.isProjection; */
+    this.hostScope = this.$controller.scope.parentScope!;
   }
 
   public attaching(

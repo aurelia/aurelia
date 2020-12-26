@@ -119,6 +119,8 @@ describe('3-runtime-html/effect.spec.ts', function () {
       runCount++;
       Promise.resolve().then(() => {
         div.textContent = mouseTracker.coord.join(', ');
+      }).catch(ex => {
+        div.textContent = String(ex);
       });
     });
     assert.strictEqual(runCount, 1);

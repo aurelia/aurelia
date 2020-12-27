@@ -29,6 +29,8 @@ export interface INavRoute {
  */
 export class Nav {
 
+  public static navs: Map<string, Nav> = new Map();
+
   public constructor(
     public router: IRouter,
     public name: string,
@@ -36,6 +38,48 @@ export class Nav {
     public classes: INavClasses = {}
   ) {
     this.update();
+  }
+
+  /**
+   * Public API
+   */
+  public static setNav(router: IRouter, name: string, routes: INavRoute[], classes?: INavClasses): void {
+    const nav = this.findNav(name);
+    if (nav !== void 0 && nav !== null) {
+      nav.routes = [];
+    }
+    this.addNav(router, name, routes, classes);
+  }
+  /**
+   * Public API
+   */
+  public static addNav(router: IRouter, name: string, routes: INavRoute[], classes?: INavClasses): void {
+    let nav = Nav.navs.get(name);
+    if (nav == null) {
+      Nav.navs.set(name, new Nav(router, name, [], classes));
+      nav = Nav.navs.get(name);
+    }
+    nav!.addRoutes(routes);
+    nav!.update();
+  }
+  /**
+   * Public API
+   */
+  public static updateNav(name?: string): void {
+    const navs = name
+      ? [name]
+      : Object.keys(this.navs);
+    for (const nav of navs) {
+      if (Nav.navs.has(nav)) {
+        Nav.navs.get(nav)!.update();
+      }
+    }
+  }
+  /**
+   * Public API
+   */
+  public static findNav(name: string): Nav | void{
+    return Nav.navs.get(name);
   }
 
   public addRoutes(routes: INavRoute[]): void {

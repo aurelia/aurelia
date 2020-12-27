@@ -199,6 +199,10 @@ export class ViewportInstructionTree {
   public static create(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], options?: INavigationOptions): ViewportInstructionTree {
     const $options = NavigationOptions.create({ ...options });
 
+    if (instructionOrInstructions instanceof ViewportInstructionTree) {
+      return new ViewportInstructionTree($options, instructionOrInstructions.children.map(x => ViewportInstruction.create(x, $options.context)), instructionOrInstructions.queryParams, instructionOrInstructions.fragment);
+    }
+
     if (instructionOrInstructions instanceof Array) {
       return new ViewportInstructionTree($options, instructionOrInstructions.map(x => ViewportInstruction.create(x, $options.context)), {}, null);
     }

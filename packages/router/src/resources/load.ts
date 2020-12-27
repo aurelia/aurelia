@@ -4,6 +4,7 @@ import { customAttribute, bindable, BindingMode, ICustomAttributeViewModel, IEve
 import { IRouter } from '../router.js';
 import { IRouteContext } from '../route-context.js';
 import { NavigationInstruction, Params, ViewportInstructionTree } from '../instructions.js';
+import { IRouterEvents } from '../router-events.js';
 
 @customAttribute('load')
 export class LoadCustomAttribute implements ICustomAttributeViewModel {
@@ -16,14 +17,19 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
   @bindable({ mode: BindingMode.toView })
   public attribute: string = 'href';
 
+  @bindable({ mode: BindingMode.fromView })
+  public active: boolean = false;
+
   private instructions: ViewportInstructionTree | null = null;
   private eventListener: IDisposable | null = null;
+  private navigationEndListener: IDisposable | null = null;
   private readonly isEnabled: boolean;
 
   public constructor(
     @IEventTarget private readonly target: IEventTarget,
     @INode private readonly el: INode<HTMLElement>,
     @IRouter private readonly router: IRouter,
+    @IRouterEvents private readonly events: IRouterEvents,
     @IEventDelegator private readonly delegator: IEventDelegator,
     @IRouteContext private readonly ctx: IRouteContext,
   ) {
@@ -35,12 +41,17 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
     if (this.isEnabled) {
       this.eventListener = this.delegator.addEventListener(this.target, this.el, 'click', this.onClick as EventListener);
     }
+    this.valueChanged();
+    this.navigationEndListener = this.events.subscribe('au:router:navigation-end', _e => {
+      this.active = this.instructions !== null && this.router.isActive(this.instructions, this.ctx);
+    });
   }
 
   public unbinding(): void {
     if (this.isEnabled) {
       this.eventListener!.dispose();
     }
+    this.navigationEndListener!.dispose();
   }
 
   public valueChanged(): void {

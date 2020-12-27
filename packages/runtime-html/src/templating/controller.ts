@@ -384,6 +384,11 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     createObservers(this, definition, this.flags, instance);
 
     (instance as Writable<C>).$controller = this;
+
+    if (this.hooks.hasCreated) {
+      if (this.debug) { this.logger!.trace(`invoking created() hook`); }
+      (this.viewModel as BindingContext<C>).created(this as ICustomAttributeController);
+    }
   }
 
   private hydrateSynthetic(context: IRenderContext): void {
@@ -1582,7 +1587,7 @@ export interface ICompileHooks {
     controller: ICompiledCustomElementController<this>,
   ): void;
   created?(
-    controller: ICustomElementController<this>,
+    controller: ICustomElementController<this> | ICustomAttributeController<this>,
   ): void;
 }
 
@@ -1597,6 +1602,9 @@ export interface IViewModel {
 
 export interface ICustomElementViewModel extends IViewModel, IActivationHooks<IHydratedController | null>, ICompileHooks {
   readonly $controller?: ICustomElementController<this>;
+  created?(
+    controller: ICustomElementController<this>,
+  ): void;
 }
 
 export interface ICustomAttributeViewModel extends IViewModel, IActivationHooks<IHydratedController> {
@@ -1608,6 +1616,9 @@ export interface ICustomAttributeViewModel extends IViewModel, IActivationHooks<
     childController: ICustomAttributeController,
     target: INode,
     instruction: Instruction,
+  ): void;
+  created?(
+    controller: ICustomAttributeController<this>,
   ): void;
 }
 

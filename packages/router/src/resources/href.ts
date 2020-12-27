@@ -1,5 +1,5 @@
 import { IDisposable } from '@aurelia/kernel';
-import { customAttribute, bindable, BindingMode, ICustomAttributeViewModel, ICustomAttributeController, IEventDelegator, IEventTarget, INode, IHydratedController, IWindow } from '@aurelia/runtime-html';
+import { customAttribute, bindable, BindingMode, ICustomAttributeViewModel, ICustomAttributeController, IEventDelegator, IEventTarget, INode, IWindow, getRef, CustomAttribute } from '@aurelia/runtime-html';
 
 import { IRouter } from '../router.js';
 import { LoadCustomAttribute } from '../configuration.js';
@@ -48,10 +48,10 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
     }
   }
 
-  public binding(_: IHydratedController, parent: IHydratedController): void {
+  public binding(): void {
     if (!this.isInitialized) {
       this.isInitialized = true;
-      this.isEnabled = this.isEnabled && !(parent.children?.some(isLoad) ?? false);
+      this.isEnabled = this.isEnabled && getRef(this.el, CustomAttribute.getDefinition(LoadCustomAttribute).key) === null;
     }
     if (this.isEnabled) {
       this.el.setAttribute('href', this.value as string);
@@ -82,8 +82,4 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
       void this.router.load(href, { context: this.ctx });
     }
   };
-}
-
-function isLoad(c: IHydratedController): boolean {
-  return c.viewModel instanceof LoadCustomAttribute;
 }

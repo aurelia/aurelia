@@ -46,8 +46,8 @@ describe('InstructionResolver', function () {
     const { host, router, tearDown, instructionResolver } = await createFixture();
 
     let instructions: RoutingInstruction[] = [
-      router.createRoutingInstruction('foo', 'left', '123'),
-      router.createRoutingInstruction('bar', 'right', '456'),
+      RoutingInstruction.create('foo', 'left', '123') as RoutingInstruction,
+      RoutingInstruction.create('bar', 'right', '456') as RoutingInstruction,
     ];
     let instructionsString = instructionResolver.stringifyRoutingInstructions(instructions);
     assert.strictEqual(instructionsString, 'foo(123)@left+bar(456)@right', `instructionsString`);
@@ -55,9 +55,9 @@ describe('InstructionResolver', function () {
     assert.deepStrictEqual(newInstructions, instructions, `newInstructions`);
 
     instructions = [
-      router.createRoutingInstruction('foo', undefined, '123'),
-      router.createRoutingInstruction('bar', 'right'),
-      router.createRoutingInstruction('baz'),
+      RoutingInstruction.create('foo', undefined, '123') as RoutingInstruction,
+      RoutingInstruction.create('bar', 'right') as RoutingInstruction,
+      RoutingInstruction.create('baz') as RoutingInstruction,
     ];
     instructionsString = instructionResolver.stringifyRoutingInstructions(instructions);
     assert.strictEqual(instructionsString, 'foo(123)+bar@right+baz', `instructionsString`);
@@ -78,13 +78,13 @@ describe('InstructionResolver', function () {
     const router = container.get(IRouter);
 
     const instructions: InstructionTest[] = [
-      { instruction: 'foo', routingInstruction: router.createRoutingInstruction('foo') },
-      { instruction: 'foo@left', routingInstruction: router.createRoutingInstruction('foo', 'left') },
-      { instruction: 'foo(123)@left', routingInstruction: router.createRoutingInstruction('foo', 'left', '123') },
-      { instruction: 'foo(123)', routingInstruction: router.createRoutingInstruction('foo', undefined, '123') },
-      { instruction: 'foo/bar', routingInstruction: router.createRoutingInstruction('foo', undefined, undefined, true, [router.createRoutingInstruction('bar')]) },
-      { instruction: 'foo(123)/bar@left/baz', routingInstruction: router.createRoutingInstruction('foo', undefined, '123', true, [router.createRoutingInstruction('bar', 'left', undefined, true, [router.createRoutingInstruction('baz')])]) },
-      { instruction: 'foo(123)/(bar@left+baz(456))', routingInstruction: router.createRoutingInstruction('foo', undefined, '123', true, [router.createRoutingInstruction('bar', 'left'), router.createRoutingInstruction('baz', undefined, '456')]) },
+      { instruction: 'foo', routingInstruction: RoutingInstruction.create('foo') as RoutingInstruction },
+      { instruction: 'foo@left', routingInstruction: RoutingInstruction.create('foo', 'left') as RoutingInstruction },
+      { instruction: 'foo(123)@left', routingInstruction: RoutingInstruction.create('foo', 'left', '123') as RoutingInstruction },
+      { instruction: 'foo(123)', routingInstruction: RoutingInstruction.create('foo', undefined, '123') as RoutingInstruction },
+      { instruction: 'foo/bar', routingInstruction: RoutingInstruction.create('foo', undefined, undefined, true, [RoutingInstruction.create('bar') as RoutingInstruction]) as RoutingInstruction },
+      { instruction: 'foo(123)/bar@left/baz', routingInstruction: RoutingInstruction.create('foo', undefined, '123', true, [RoutingInstruction.create('bar', 'left', undefined, true, [RoutingInstruction.create('baz') as RoutingInstruction]) as RoutingInstruction]) as RoutingInstruction },
+      { instruction: 'foo(123)/(bar@left+baz(456))', routingInstruction: RoutingInstruction.create('foo', undefined, '123', true, [RoutingInstruction.create('bar', 'left') as RoutingInstruction, RoutingInstruction.create('baz', undefined, '456') as RoutingInstruction]) as RoutingInstruction },
     ];
 
     for (const instructionTest of instructions) {
@@ -157,14 +157,14 @@ describe('InstructionResolver', function () {
     // /(a/(b/(c+d)+e/(f/(g)))+h)
 
     const [a, b, c, d, e, f, g, h] = [
-      router.createRoutingInstruction('a'),
-      router.createRoutingInstruction('b'),
-      router.createRoutingInstruction('c'),
-      router.createRoutingInstruction('d'),
-      router.createRoutingInstruction('e'),
-      router.createRoutingInstruction('f'),
-      router.createRoutingInstruction('g'),
-      router.createRoutingInstruction('h'),
+      RoutingInstruction.create('a') as RoutingInstruction,
+      RoutingInstruction.create('b') as RoutingInstruction,
+      RoutingInstruction.create('c') as RoutingInstruction,
+      RoutingInstruction.create('d') as RoutingInstruction,
+      RoutingInstruction.create('e') as RoutingInstruction,
+      RoutingInstruction.create('f') as RoutingInstruction,
+      RoutingInstruction.create('g') as RoutingInstruction,
+      RoutingInstruction.create('h') as RoutingInstruction,
     ];
     a.nextScopeInstructions = [b, e];
     b.nextScopeInstructions = [c, d];
@@ -228,7 +228,7 @@ describe('InstructionResolver', function () {
     it(`parses and specifies component parameters: ${parameters.params} => ${JSON.stringify(parameters.result)}`, async function () {
       const { router, tearDown, instructionResolver } = await createFixture();
 
-      const instruction = router.createRoutingInstruction('', '', parameters.params);
+      const instruction = RoutingInstruction.create('', '', parameters.params) as RoutingInstruction;
       const specified = instruction.parameters.toSpecifiedParameters(parameters.spec);
       assert.deepStrictEqual(specified, parameters.result, `specified`);
       await tearDown();
@@ -243,8 +243,8 @@ describe('InstructionResolver', function () {
           public static parameters = outer.spec;
         });
 
-        const outerInstruction = router.createRoutingInstruction(Test, '', outer.params);
-        const innerInstruction = router.createRoutingInstruction(Test, '', inner.params);
+        const outerInstruction = RoutingInstruction.create(Test, '', outer.params) as RoutingInstruction;
+        const innerInstruction = RoutingInstruction.create(Test, '', inner.params) as RoutingInstruction;
         const outerResult = outerInstruction.parameters.toSpecifiedParameters(outer.spec);
         const innerResult = innerInstruction.parameters.toSpecifiedParameters(outer.spec);
         // console.log(outer.params, inner.params, outerResult, innerResult, isEqual(outerResult, innerResult));

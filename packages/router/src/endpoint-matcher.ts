@@ -48,11 +48,11 @@ export class EndpointMatcher {
    *
    * @param instructions - The routing instructions to find matches for
    * @param routingScope - The routing scope where to find the matching endpoints
-   * @param alreadyFound - Already found routing instructions whose endpoints are no longer available
+   * @param alreadyMatched - Already matched routing instructions whose endpoints are no longer available
    * @param disregardViewports - Ignore already existing matchin endpoints on the routing instructions
    */
   // Note: This can't change state other than the instructions!
-  public static matchEndpoints(routingScope: RoutingScope, instructions: RoutingInstruction[], alreadyFound: RoutingInstruction[], disregardViewports: boolean = false): IMatchEndpointsResult {
+  public static matchEndpoints(routingScope: RoutingScope, instructions: RoutingInstruction[], alreadyMatched: RoutingInstruction[], disregardViewports: boolean = false): IMatchEndpointsResult {
     const matchedInstructions: RoutingInstruction[] = [];
     let remainingInstructions: RoutingInstruction[] = [];
 
@@ -63,7 +63,7 @@ export class EndpointMatcher {
     const endpoints = ownedScopes.map(scope => scope.endpoint);
     const availableEndpoints = endpoints
       .filter(endpoint => endpoint !== null
-        && !alreadyFound.some(found => endpoint === found.viewport.instance || endpoint === found.viewportScope)
+        && !alreadyMatched.some(found => endpoint === found.viewport.instance || endpoint === found.viewportScope)
       ) as (Viewport | ViewportScope)[];
 
     const routingInstructions = new Collection<RoutingInstruction>(...instructions.slice());

@@ -71,7 +71,7 @@ export class InstructionViewport {
     if (this.instance !== null) {
       return this.instance;
     }
-    return router.getViewport(this.name as string);
+    return router.getEndpoint('Viewport', this.name as string) as Viewport | null;
   }
 
   public same(other: InstructionViewport): boolean {

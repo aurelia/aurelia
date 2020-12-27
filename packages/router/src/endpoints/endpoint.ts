@@ -40,6 +40,8 @@ export interface IEndpointOptions {
   noHistory?: boolean;
 }
 
+export type EndpointType = 'Viewport' | 'ViewportScope';
+
 export interface IEndpoint extends Endpoint { }
 
 export class Endpoint {

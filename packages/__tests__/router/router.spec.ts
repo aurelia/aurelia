@@ -708,7 +708,7 @@ describe('Router', function () {
     assert.includes(host.textContent, 'Parameter: 123', `host.textContent`);
     assert.includes(host.textContent, 'Entry: 1', `host.textContent`);
 
-    let component = router.allViewports()[0].content.componentInstance;
+    let component = router.allEndpoints('Viewport')[0].content.componentInstance;
     component.reentryBehavior = 'load';
     // This should load
     await $load('plugh(123)@left', router, platform);
@@ -720,7 +720,7 @@ describe('Router', function () {
     await $load('plugh(456)@left', router, platform);
     assert.includes(host.textContent, 'Parameter: 456', `host.textContent`);
     assert.includes(host.textContent, 'Entry: 1', `host.textContent`);
-    component = router.allViewports()[0].content.componentInstance;
+    component = router.allEndpoints('Viewport')[0].content.componentInstance;
 
     component.reentryBehavior = 'default';
     // This should default

@@ -45,7 +45,7 @@ describe('Viewport', function () {
 
     const { router, tearDown } = await createFixture(App);
 
-    const viewport: any = router.allViewports().filter(vp => vp.name === 'default')[0];
+    const viewport: any = router.allEndpoints('Viewport').filter(vp => vp.name === 'default')[0];
     assert.strictEqual(viewport.name, 'default', `name === 'default'`);
 
     await tearDown();
@@ -56,7 +56,7 @@ describe('Viewport', function () {
 
     const { router, tearDown } = await createFixture(App);
 
-    const viewport: any = router.allViewports().filter(vp => vp.name === 'default')[0];
+    const viewport: any = router.allEndpoints('Viewport').filter(vp => vp.name === 'default')[0];
     assert.strictEqual(viewport.options.noLink, true, `noLink === true`);
 
     await tearDown();

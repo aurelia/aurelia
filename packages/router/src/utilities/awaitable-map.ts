@@ -4,13 +4,6 @@
  * In its current state, it is NOT a good source for learning about the inner workings and design of the router.
  *
  */
-// export class OpenPromise<T> {
-//   public isPending: boolean = true;
-//   public promise!: Promise<T>;
-//   public resolve!: (value: T | PromiseLike<T>) => void;
-//   public reject!: () => void;
-// }
-
 import { OpenPromise } from './open-promise.js';
 
 export class AwaitableMap<K, V> {
@@ -37,10 +30,6 @@ export class AwaitableMap<K, V> {
   public await(key: K): V | Promise<V> {
     if (!this.map.has(key)) {
       const openPromise = new OpenPromise<V>();
-      // openPromise.promise = new Promise((res, rej) => {
-      //   openPromise.resolve = res;
-      //   openPromise.reject = rej;
-      // });
       this.map.set(key, openPromise);
       return openPromise.promise;
     }

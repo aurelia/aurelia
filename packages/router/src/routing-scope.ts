@@ -158,7 +158,7 @@ export class RoutingScope {
     let route = new FoundRoute();
     if (typeof instruction === 'string') {
       const instructions = this.router.instructionResolver.parseRoutingInstructions(instruction);
-      if (RouterOptions.useConfiguredRoutes && !this.router.hasSiblingInstructions(instructions)) {
+      if (RouterOptions.useConfiguredRoutes && !RoutingInstruction.containsSiblings(instructions)) {
         const foundRoute = this.findMatchingRoute(instruction);
         if (foundRoute?.foundConfiguration ?? false) {
           route = foundRoute!;

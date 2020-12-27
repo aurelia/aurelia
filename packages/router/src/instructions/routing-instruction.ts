@@ -116,6 +116,21 @@ export class RoutingInstruction {
   }
 
   /**
+   * Whether the instructions, on any level, contains siblings
+   *
+   * @param instructions - The instructions to check
+   */
+  public static containsSiblings(instructions: RoutingInstruction[] | null): boolean {
+    if (instructions === null) {
+      return false;
+    }
+    if (instructions.length > 1) {
+      return true;
+    }
+    return instructions.some(instruction => RoutingInstruction.containsSiblings(instruction.nextScopeInstructions));
+  }
+
+  /**
    * The endpoint of the routing instruction.
    */
   public get endpoint(): IEndpoint | null {
@@ -124,6 +139,15 @@ export class RoutingInstruction {
 
   public get isAdd(): boolean {
     return this.component.name === RouterOptions.separators.add;
+  }
+  public get isClear(): boolean {
+    return this.component.name === RouterOptions.separators.clear;
+  }
+  public get isAddAll(): boolean {
+    return this.isAdd && ((this.viewport.name?.length ?? 0) === 0);
+  }
+  public get isClearAll(): boolean {
+    return this.isClear && ((this.viewport.name?.length ?? 0) === 0);
   }
 
   /**

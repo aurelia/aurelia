@@ -1104,6 +1104,38 @@ describe('au-slot', function () {
       [],
       { '': ['<ce-with-au-slot class="au"> <div>p</div> </ce-with-au-slot>', null] },
     );
+
+    {
+      class Base {
+        @auSlots
+        public readonly slots!: AuSlotsInfo;
+      }
+
+      @customElement({
+        name: 'my-element',
+        template: '<au-slot>dfb</au-slot><au-slot name="s1">s1fb</au-slot>'
+      })
+      class MyElement1 extends Base { }
+      yield new TestData(
+        '@auSlots works with inheritance - #1',
+        '<my-element><div au-slot="s1">s1p</div></my-element>',
+        [MyElement1],
+        { 'my-element': ['dfb<div>s1p</div>', new AuSlotsInfo(['s1'])] }
+      );
+
+      class Base2 extends Base { }
+      @customElement({
+        name: 'my-element',
+        template: '<au-slot>dfb</au-slot><au-slot name="s1">s1fb</au-slot>'
+      })
+      class MyElement2 extends Base2 { }
+      yield new TestData(
+        '@auSlots works with inheritance - #2',
+        '<my-element><div au-slot="s1">s1p</div></my-element>',
+        [MyElement2],
+        { 'my-element': ['dfb<div>s1p</div>', new AuSlotsInfo(['s1'])] }
+      );
+    }
   }
   for (const { spec, template, expected, registrations, additionalAssertion } of getTestData()) {
     $it(spec,

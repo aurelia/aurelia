@@ -1143,9 +1143,9 @@ class MyElement { }
 
 {% hint style="warning" %}
 Note that the `au-slot` is a container-less custom element.
-Therefore, applying `au-slot` on a `tr`, `thead`, or `tbody` will finally result in removing those tags from the DOM tree.
+This implies that applying `au-slot` on a `tr`, `thead`, or `tbody` will finally result in removing those tags from the DOM tree.
 Thus, in the above examples the `tr>template[as-element=au-slot]` construct is a deliberate choice.
-Contextually, `template[as-element=au-slot]` can also be wrapped inside `thead`, or `tbody`, depending on use-cases.
+Contextually, `template[as-element=au-slot]` can also be wrapped inside `thead`, or `tbody`, depending on the use-cases.
 {% endhint %}
 
 Following are some invalid examples that are not supported, and may result in unexpected result.

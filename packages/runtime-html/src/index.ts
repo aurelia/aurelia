@@ -601,6 +601,8 @@ export {
   setEffectiveParentNode,
   convertToRenderLocation,
   isRenderLocation,
+  getRef,
+  setRef,
 } from './dom.js';
 export {
   IPlatform,

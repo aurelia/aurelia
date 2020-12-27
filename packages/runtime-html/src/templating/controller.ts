@@ -22,7 +22,7 @@ import {
   IExpressionParser,
 } from '@aurelia/runtime';
 import { BindableObserver } from '../observation/bindable-observer.js';
-import { convertToRenderLocation, INode, INodeSequence, IRenderLocation } from '../dom.js';
+import { convertToRenderLocation, INode, INodeSequence, IRenderLocation, setRef } from '../dom.js';
 import { CustomElementDefinition, CustomElement, PartialCustomElementDefinition } from '../resources/custom-element.js';
 import { CustomAttributeDefinition, CustomAttribute } from '../resources/custom-attribute.js';
 import { IRenderContext, getRenderContext, RenderContext, ICompiledRenderContext } from './render-context.js';
@@ -336,13 +336,16 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       this.host = this.platform.document.createElement(this.context!.definition.name);
     }
 
-    Metadata.define(CustomElement.name, this, this.host);
+    setRef(this.host!, CustomElement.name, this as IHydratedController);
+    setRef(this.host!, this.definition!.key, this as IHydratedController);
     if (shadowOptions !== null || hasSlots) {
       if (containerless) { throw new Error('You cannot combine the containerless custom element option with Shadow DOM.'); }
-      Metadata.define(CustomElement.name, this, this.shadowRoot = this.host!.attachShadow(shadowOptions ?? defaultShadowOptions));
+      setRef(this.shadowRoot = this.host!.attachShadow(shadowOptions ?? defaultShadowOptions), CustomElement.name, this as IHydratedController);
+      setRef(this.shadowRoot!, this.definition!.key, this as IHydratedController);
       this.mountTarget = MountTarget.shadowRoot;
     } else if (containerless) {
-      Metadata.define(CustomElement.name, this, this.location = convertToRenderLocation(this.host!));
+      setRef(this.location = convertToRenderLocation(this.host!), CustomElement.name, this as IHydratedController);
+      setRef(this.location!, this.definition!.key, this as IHydratedController);
       this.mountTarget = MountTarget.location;
     } else {
       this.mountTarget = MountTarget.host;
@@ -917,21 +920,30 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   }
 
   public setHost(host: HTMLElement): this {
-    if (this.vmKind === ViewModelKind.customElement) { Metadata.define(CustomElement.name, this, host); }
+    if (this.vmKind === ViewModelKind.customElement) {
+      setRef(host, CustomElement.name, this as IHydratedController);
+      setRef(host, this.definition!.key, this as IHydratedController);
+    }
     this.host = host;
     this.mountTarget = MountTarget.host;
     return this;
   }
 
   public setShadowRoot(shadowRoot: ShadowRoot): this {
-    if (this.vmKind === ViewModelKind.customElement) { Metadata.define(CustomElement.name, this, shadowRoot); }
+    if (this.vmKind === ViewModelKind.customElement) {
+      setRef(shadowRoot, CustomElement.name, this as IHydratedController);
+      setRef(shadowRoot, this.definition!.key, this as IHydratedController);
+    }
     this.shadowRoot = shadowRoot;
     this.mountTarget = MountTarget.shadowRoot;
     return this;
   }
 
   public setLocation(location: IRenderLocation): this {
-    if (this.vmKind === ViewModelKind.customElement) { Metadata.define(CustomElement.name, this, location); }
+    if (this.vmKind === ViewModelKind.customElement) {
+      setRef(location, CustomElement.name, this as IHydratedController);
+      setRef(location, this.definition!.key, this as IHydratedController);
+    }
     this.location = location;
     this.mountTarget = MountTarget.location;
     return this;

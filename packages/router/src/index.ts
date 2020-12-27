@@ -20,9 +20,6 @@ export {
   ComponentAgent,
 } from './component-agent.js';
 export {
-  ILinkHandler,
-} from './link-handler.js';
-export {
   RouteableComponent,
   NavigationInstruction,
   IViewportInstruction,

@@ -625,7 +625,7 @@ export class Router {
     return routeContext;
   }
 
-  private createViewportInstructions(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options?: INavigationOptions): ViewportInstructionTree {
+  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options?: INavigationOptions): ViewportInstructionTree {
     return ViewportInstructionTree.create(instructionOrInstructions, this.getNavigationOptions(options));
   }
 

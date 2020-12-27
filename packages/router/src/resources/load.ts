@@ -1,64 +1,83 @@
-import { IDisposable } from '@aurelia/kernel';
-import { customAttribute, bindable, BindingMode, ICustomAttributeViewModel, IEventDelegator, IEventTarget, INode } from '@aurelia/runtime-html';
+import { IDisposable, IIndexable } from '@aurelia/kernel';
+import { customAttribute, bindable, BindingMode, ICustomAttributeViewModel, IEventDelegator, IEventTarget, INode, CustomElement } from '@aurelia/runtime-html';
 
 import { IRouter } from '../router.js';
-import { ILinkHandler } from '../link-handler.js';
-import { IRouterEvents } from '../router-events.js';
 import { IRouteContext } from '../route-context.js';
-import { NavigationInstruction } from '../instructions.js';
+import { NavigationInstruction, Params, ViewportInstructionTree } from '../instructions.js';
 
 @customAttribute('load')
 export class LoadCustomAttribute implements ICustomAttributeViewModel {
+  @bindable({ mode: BindingMode.toView, primary: true, callback: 'valueChanged' })
+  public route: unknown;
+
+  @bindable({ mode: BindingMode.toView, callback: 'valueChanged' })
+  public params: unknown;
+
   @bindable({ mode: BindingMode.toView })
-  public value: unknown;
+  public attribute: string = 'href';
 
+  private instructions: ViewportInstructionTree | null = null;
   private eventListener: IDisposable | null = null;
-  private navigationEndListener: IDisposable | null = null;
-  private hasHref: boolean | null = null;
+  private readonly isEnabled: boolean;
 
-  private readonly activeClass: string = 'load-active';
   public constructor(
     @IEventTarget private readonly target: IEventTarget,
     @INode private readonly el: INode<HTMLElement>,
     @IRouter private readonly router: IRouter,
-    @ILinkHandler private readonly linkHandler: ILinkHandler,
-    @IRouterEvents private readonly events: IRouterEvents,
     @IEventDelegator private readonly delegator: IEventDelegator,
-    @IRouteContext private readonly context: IRouteContext,
-  ) {}
+    @IRouteContext private readonly ctx: IRouteContext,
+  ) {
+    // Ensure the element is not explicitly marked as external.
+    this.isEnabled = !el.hasAttribute('external') && !el.hasAttribute('data-external');
+  }
 
   public binding(): void {
-    this.eventListener = this.delegator.addEventListener(this.target, this.el, 'click', this.linkHandler.onClick as EventListener);
-
-    this.updateValue();
-
-    this.navigationEndListener = this.events.subscribe('au:router:navigation-end', _e => {
-      // TODO: Use router configuration for class name and update target
-      if (this.router.isActive(this.value as NavigationInstruction, this.context)) {
-        this.el.classList.add(this.activeClass);
-      } else {
-        this.el.classList.remove(this.activeClass);
-      }
-    });
+    if (this.isEnabled) {
+      this.eventListener = this.delegator.addEventListener(this.target, this.el, 'click', this.onClick as EventListener);
+    }
   }
 
   public unbinding(): void {
-    this.eventListener?.dispose();
-    this.navigationEndListener?.dispose();
+    if (this.isEnabled) {
+      this.eventListener!.dispose();
+    }
   }
 
   public valueChanged(): void {
-    this.updateValue();
+    if (this.route !== null && this.route !== void 0) {
+      if (typeof this.params === 'object' && this.params !== null) {
+        this.instructions = this.router.createViewportInstructions({ component: this.route as NavigationInstruction, params: this.params as Params });
+      } else {
+        this.instructions = this.router.createViewportInstructions(this.route as NavigationInstruction);
+      }
+    } else {
+      this.instructions = null;
+    }
+
+    const controller = CustomElement.for(this.el, { optional: true });
+    if (controller !== null) {
+      (controller.viewModel as IIndexable)[this.attribute] = this.instructions;
+    } else {
+      if (this.instructions === null) {
+        this.el.removeAttribute(this.attribute);
+      } else {
+        this.el.setAttribute(this.attribute, this.instructions.toUrl());
+      }
+    }
   }
 
-  private updateValue(): void {
-    if (this.hasHref === null) {
-      this.hasHref = this.el.hasAttribute('href');
+  private readonly onClick = (e: MouseEvent): void => {
+    if (this.instructions === null) {
+      return;
     }
-    if (!this.hasHref) {
-      // TODO: Figure out a better value here for non-strings (using InstructionResolver?)
-      const value = typeof this.value === 'string' ? this.value : JSON.stringify(this.value);
-      this.el.setAttribute('href', value);
+
+    // Ensure this is an ordinary left-button click.
+    if (e.altKey || e.ctrlKey || e.shiftKey || e.metaKey || e.button !== 0) {
+      return;
     }
-  }
+
+    e.preventDefault();
+    // Floating promises from `Router#load` are ok because the router keeps track of state and handles the errors, etc.
+    void this.router.load(this.instructions, { context: this.ctx });
+  };
 }

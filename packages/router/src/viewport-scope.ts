@@ -49,7 +49,7 @@ export class ViewportScope extends Endpoint {
   ) {
     super(router, name, connectedCE, owningScope, scope);
     if (this.catches.length > 0) {
-      this.instruction = router.createRoutingInstruction(this.catches[0], this.name);
+      this.instruction = RoutingInstruction.create(this.catches[0], this.name) as RoutingInstruction;
     }
   }
 

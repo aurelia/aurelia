@@ -100,19 +100,6 @@ export class InstructionResolver {
       : instruction === this.addRoutingInstruction;
   }
 
-  public createRoutingInstruction(component: ComponentAppellation | Promise<ComponentAppellation>, viewport?: ViewportHandle, parameters?: ComponentParameters, ownsScope: boolean = true, nextScopeInstructions: RoutingInstruction[] | null = null): RoutingInstruction | Promise<RoutingInstruction> {
-    if (component instanceof Promise) {
-      return component.then((resolvedComponent) => {
-        // console.log('then', 'createRoutingInstruction');
-        return this.createRoutingInstruction(resolvedComponent, viewport, parameters, ownsScope, nextScopeInstructions);
-      });
-    }
-    // const instruction: RoutingInstruction = new RoutingInstruction(component, viewport, parameters, ownsScope, nextScopeInstructions);
-    // instruction.setInstructionResolver(this);
-    // return instruction;
-    return RoutingInstruction.create(component, viewport, parameters, ownsScope, nextScopeInstructions);
-  }
-
   public parseRoutingInstructions(instructions: string): RoutingInstruction[] {
     const match = /^[./]+/.exec(instructions);
     let context = '';
@@ -132,7 +119,7 @@ export class InstructionResolver {
     if (instructions.length) {
       return instructions[0];
     }
-    return this.createRoutingInstruction('') as RoutingInstruction;
+    return RoutingInstruction.create('') as RoutingInstruction;
   }
 
   public stringifyRoutingInstructions(instructions: RoutingInstruction[] | string, excludeViewport: boolean = false, viewportContext: boolean = false): string {
@@ -250,7 +237,7 @@ export class InstructionResolver {
   public cloneRoutingInstructions(instructions: RoutingInstruction[], keepInstances: boolean = false, context: boolean = false): RoutingInstruction[] {
     const clones: RoutingInstruction[] = [];
     for (const instruction of instructions) {
-      const clone = this.createRoutingInstruction(
+      const clone = RoutingInstruction.create(
         instruction.component.type ?? instruction.component.name!,
         instruction.viewport.name!,
         instruction.parameters.typedParameters !== null ? instruction.parameters.typedParameters : void 0,
@@ -482,7 +469,7 @@ export class InstructionResolver {
       instruction = `${token}${instruction}`;
     }
 
-    const routingInstruction: RoutingInstruction = this.createRoutingInstruction(component, viewport, parametersString, scope) as RoutingInstruction;
+    const routingInstruction: RoutingInstruction = RoutingInstruction.create(component, viewport, parametersString, scope) as RoutingInstruction;
 
     return { instruction: routingInstruction, remaining: instruction };
   }

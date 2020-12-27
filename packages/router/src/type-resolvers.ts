@@ -83,21 +83,21 @@ export const LoadInstructionResolver = {
       } else if (instruction instanceof RoutingInstruction) {
         instructions.push(instruction);
       } else if (InstructionComponent.isAppelation(instruction)) {
-        instructions.push(router.createRoutingInstruction(instruction));
+        instructions.push(RoutingInstruction.create(instruction) as RoutingInstruction);
       } else if (InstructionComponent.isDefinition(instruction)) {
-        instructions.push(router.createRoutingInstruction(instruction.Type));
+        instructions.push(RoutingInstruction.create(instruction.Type) as RoutingInstruction);
       } else if ('component' in instruction) {
         const viewportComponent = instruction;
-        const newInstruction = router.createRoutingInstruction(viewportComponent.component, viewportComponent.viewport, viewportComponent.parameters);
+        const newInstruction = RoutingInstruction.create(viewportComponent.component, viewportComponent.viewport, viewportComponent.parameters) as RoutingInstruction;
         if (viewportComponent.children !== void 0 && viewportComponent.children !== null) {
           newInstruction.nextScopeInstructions = LoadInstructionResolver.toRoutingInstructions(router, viewportComponent.children);
         }
         instructions.push(newInstruction);
       } else if (typeof instruction === 'object' && instruction !== null) {
         const type = CustomElement.define(instruction);
-        instructions.push(router.createRoutingInstruction(type));
+        instructions.push(RoutingInstruction.create(type) as RoutingInstruction);
       } else {
-        instructions.push(router.createRoutingInstruction(instruction as ComponentAppellation));
+        instructions.push(RoutingInstruction.create(instruction as ComponentAppellation) as RoutingInstruction);
       }
     }
     return instructions;

@@ -92,6 +92,8 @@ export class RoutingInstruction {
     // this.viewportScope = InstructionViewportScope.create();
   }
 
+  public static clear = RouterOptions.separators.clear;
+
   /**
    * Create a new routing instruction.
    *
@@ -141,7 +143,7 @@ export class RoutingInstruction {
     return this.component.name === RouterOptions.separators.add;
   }
   public get isClear(): boolean {
-    return this.component.name === RouterOptions.separators.clear;
+    return this.component.name === RoutingInstruction.clear;
   }
   public get isAddAll(): boolean {
     return this.isAdd && ((this.viewport.name?.length ?? 0) === 0);

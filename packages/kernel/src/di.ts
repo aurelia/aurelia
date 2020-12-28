@@ -1256,15 +1256,20 @@ export class ParameterizedRegistry implements IRegistry {
   }
 }
 
-const cache = new WeakMap<IResolver>();
+type ResolverLookup = WeakMap<IResolver, unknown>;
+const containerLookup = new WeakMap<IContainer, ResolverLookup>();
 
 function cacheCallbackResult<T>(fun: ResolveCallback<T>): ResolveCallback<T> {
   return function (handler: IContainer, requestor: IContainer, resolver: IResolver): T {
-    if (cache.has(resolver)) {
-      return cache.get(resolver);
+    let resolverLookup = containerLookup.get(handler);
+    if (resolverLookup === void 0) {
+      containerLookup.set(handler, resolverLookup = new WeakMap());
+    }
+    if (resolverLookup.has(resolver)) {
+      return resolverLookup.get(resolver) as T;
     }
     const t = fun(handler, requestor, resolver);
-    cache.set(resolver, t);
+    resolverLookup.set(resolver, t);
     return t;
   };
 }

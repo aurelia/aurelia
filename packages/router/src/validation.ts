@@ -69,7 +69,7 @@ export function validateRouteConfig(config: Partial<IChildRouteConfig> | null | 
   const keys = Object.keys(config) as (keyof IChildRouteConfig)[];
   for (const key of keys) {
     const value = config[key];
-    const path = `${parentPath}${key}`;
+    const path = [parentPath, key].join('.');
     switch (key) {
       case 'id':
       case 'viewport':
@@ -121,6 +121,11 @@ export function validateRouteConfig(config: Partial<IChildRouteConfig> | null | 
         }
         break;
       }
+      case 'canLoad':
+      case 'load':
+      case 'canUnload':
+      case 'unload':
+        break;
       default:
         // We don't *have* to throw here, but let's be as strict as possible until someone gives a valid reason for not doing so.
         throw new Error(`Unknown route config property: "${parentPath}.${key as string}". Please specify known properties only.`);
@@ -136,7 +141,7 @@ export function validateRedirectRouteConfig(config: Partial<IRedirectRouteConfig
   const keys = Object.keys(config) as (keyof IRedirectRouteConfig)[];
   for (const key of keys) {
     const value = config[key];
-    const path = `${parentPath}${key}`;
+    const path = [parentPath, key].join('.');
     switch (key) {
       case 'path':
       case 'redirectTo':
@@ -156,6 +161,9 @@ export function validateComponent(component: Routeable | null | undefined, paren
     case 'function':
       break;
     case 'object':
+      if (component instanceof Promise) {
+        break;
+      }
       if (isPartialRedirectRouteConfig(component)) {
         validateRedirectRouteConfig(component, parentPath);
         break;

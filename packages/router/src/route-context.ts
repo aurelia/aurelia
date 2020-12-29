@@ -1,22 +1,22 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import { Constructable, ResourceType, IContainer, IResourceKind, ResourceDefinition, Key, IResolver, Resolved, IFactory, Transformer, DI, InstanceProvider, Registration, ILogger, IModuleLoader, IModule } from '@aurelia/kernel';
+import { Constructable, ResourceType, IContainer, IResourceKind, ResourceDefinition, Key, IResolver, Resolved, IFactory, Transformer, DI, InstanceProvider, Registration, ILogger, IModuleLoader, IModule, onResolve } from '@aurelia/kernel';
 import { CustomElementDefinition, CustomElement, ICustomElementController, IController, isCustomElementViewModel, isCustomElementController, IAppRoot, IPlatform } from '@aurelia/runtime-html';
+import { RouteRecognizer, RecognizedRoute } from '@aurelia/route-recognizer';
 
 import { RouteDefinition } from './route-definition.js';
 import { ViewportAgent, ViewportRequest } from './viewport-agent.js';
 import { ComponentAgent, IRouteViewModel } from './component-agent.js';
 import { RouteNode } from './route-tree.js';
-import { RouteRecognizer, RecognizedRoute } from './route-recognizer.js';
 import { IRouter } from './router.js';
 import { IViewport } from './resources/viewport.js';
 import { Routeable } from './route.js';
-
-function isNotPromise<T>(value: T): value is Exclude<T, Promise<unknown>> {
-  return !(value instanceof Promise);
-}
+import { isPartialChildRouteConfig } from './validation.js';
+import { ensureArrayOfStrings } from './util.js';
 
 export interface IRouteContext extends RouteContext {}
 export const IRouteContext = DI.createInterface<IRouteContext>('IRouteContext');
+
+const RESIDUE = 'au$residue' as const;
 
 /**
  * Holds the information of a component in the context of a specific container. May or may not have statically configured routes.
@@ -51,7 +51,12 @@ export class RouteContext implements IContainer {
   /**
    * The (fully resolved) configured child routes of this context's `RouteDefinition`
    */
-  public readonly childRoutes: readonly (RouteDefinition | Promise<RouteDefinition>)[];
+  public readonly childRoutes: (RouteDefinition | Promise<RouteDefinition>)[] = [];
+
+  private _resolved: Promise<void> | null = null;
+  public get resolved(): Promise<void> | null {
+    return this._resolved;
+  }
 
   private prevNode: RouteNode | null = null;
   private _node: RouteNode | null = null;
@@ -97,7 +102,7 @@ export class RouteContext implements IContainer {
   private readonly logger: ILogger;
   private readonly container: IContainer;
   private readonly hostControllerProvider: InstanceProvider<ICustomElementController>;
-  private readonly recognizer: RouteRecognizer;
+  private readonly recognizer: RouteRecognizer<RouteDefinition | Promise<RouteDefinition>>;
 
   public constructor(
     viewportAgent: ViewportAgent | null,
@@ -141,14 +146,37 @@ export class RouteContext implements IContainer {
     container.register(definition);
     container.register(...component.dependencies);
 
-    // The act of mutating the config will invalidate the RouteContext cache and automatically results in a fresh context
-    // (and thus, a new recognizer based on its new state).
-    // Lazy loaded modules which are added directly as children will be added to the recognizer once they're resolved.
-    const childRoutes = this.childRoutes = definition.config.children.filter(isNotPromise).map(child => {
-      return RouteDefinition.resolve(child, this);
-    });
+    this.recognizer = new RouteRecognizer();
 
-    this.recognizer = new RouteRecognizer(childRoutes);
+    const promises: Promise<void>[] = [];
+    for (const child of definition.config.children) {
+      if (child instanceof Promise) {
+        promises.push(this.addRoute(child));
+      } else {
+        const routeDef = RouteDefinition.resolve(child, this);
+        if (routeDef instanceof Promise) {
+          if (isPartialChildRouteConfig(child) && child.path != null) {
+            for (const path of ensureArrayOfStrings(child.path)) {
+              this.$addRoute(path, child.caseSensitive ?? false, routeDef);
+            }
+            this.childRoutes.push(routeDef);
+          } else {
+            throw new Error(`Invalid route config. When the component property is a lazy import, the path must be specified. To use lazy loading without specifying the path (e.g. in direct routing), pass the import promise as a direct value to the routes array instead of providing it as the component property on an object literal.`);
+          }
+        } else {
+          for (const path of routeDef.path) {
+            this.$addRoute(path, routeDef.caseSensitive, routeDef);
+          }
+          this.childRoutes.push(routeDef);
+        }
+      }
+    }
+
+    if (promises.length > 0) {
+      this._resolved = Promise.all(promises).then(() => {
+        this._resolved = null;
+      });
+    }
   }
 
   /**
@@ -350,15 +378,47 @@ export class RouteContext implements IContainer {
     }
   }
 
-  public recognize(path: string): RecognizedRoute | null {
+  public recognize(path: string): $RecognizedRoute | null {
     this.logger.trace(`recognize(path:'${path}')`);
-    return this.recognizer.recognize(path);
+    const result = this.recognizer.recognize(path);
+    if (result === null) {
+      return null;
+    }
+
+    let residue: string | null;
+    if (Reflect.has(result.params, RESIDUE)) {
+      residue = result.params[RESIDUE] ?? null;
+      Reflect.deleteProperty(result.params, RESIDUE);
+    } else {
+      residue = null;
+    }
+
+    return new $RecognizedRoute(result, residue);
   }
 
-  public addRoute(routeable: Exclude<Routeable, Promise<IModule>>): void {
+  public addRoute(routeable: Promise<IModule>): Promise<void>
+  public addRoute(routeable: Exclude<Routeable, Promise<IModule>>): void | Promise<void>
+  public addRoute(routeable: Routeable): void | Promise<void> {
     this.logger.trace(`addRoute(routeable:'${routeable}')`);
-    const routeDef = RouteDefinition.resolve(routeable, this);
-    this.recognizer.add(routeDef, true);
+    return onResolve(RouteDefinition.resolve(routeable, this), routeDef => {
+      for (const path of routeDef.path) {
+        this.$addRoute(path, routeDef.caseSensitive, routeDef);
+      }
+      this.childRoutes.push(routeDef);
+    });
+  }
+
+  private $addRoute(path: string, caseSensitive: boolean, handler: RouteDefinition | Promise<RouteDefinition>): void {
+    this.recognizer.add({
+      path,
+      caseSensitive,
+      handler,
+    });
+    this.recognizer.add({
+      path: `${path}/*${RESIDUE}`,
+      caseSensitive,
+      handler,
+    });
   }
 
   public resolveLazy(promise: Promise<IModule>): Promise<CustomElementDefinition> | CustomElementDefinition {
@@ -415,4 +475,11 @@ function logAndThrow(err: Error, logger: ILogger): never {
 
 function isCustomElementDefinition(value: ResourceDefinition): value is CustomElementDefinition {
   return CustomElement.isType(value.Type);
+}
+
+export class $RecognizedRoute {
+  public constructor(
+    public readonly route: RecognizedRoute<RouteDefinition | Promise<RouteDefinition>>,
+    public readonly residue: string | null,
+  ) {}
 }

@@ -61,11 +61,6 @@ export {
   ExpressionKind,
 } from './route-expression.js';
 export {
-  Endpoint,
-  RecognizedRoute,
-  RouteRecognizer,
-} from './route-recognizer.js';
-export {
   RouteNode,
   RouteTree,
 } from './route-tree.js';

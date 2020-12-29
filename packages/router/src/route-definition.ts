@@ -5,14 +5,7 @@ import { TypedNavigationInstruction, NavigationInstructionType, Params } from '.
 import { RouteConfig, IChildRouteConfig, Routeable, RouteType, Route, IRedirectRouteConfig } from './route.js';
 import { IRouteContext } from './route-context.js';
 import { isPartialChildRouteConfig, isPartialRedirectRouteConfig } from './validation.js';
-
-function ensureArrayOfStrings(value: string | string[]): string[] {
-  return typeof value === 'string' ? [value] : value;
-}
-
-function ensureString(value: string | string[]): string {
-  return typeof value === 'string' ? value : value[0];
-}
+import { ensureArrayOfStrings, ensureString } from './util.js';
 
 export class RouteDefinition {
   public readonly hasExplicitPath: boolean;
@@ -40,7 +33,6 @@ export class RouteDefinition {
   public static resolve(routeable: string | IChildRouteConfig, context: IRouteContext): RouteDefinition;
   public static resolve(routeable: string | IChildRouteConfig | Promise<IModule>): never;
   public static resolve(routeable: Exclude<Routeable, Promise<IModule> | string | IChildRouteConfig>): RouteDefinition;
-  public static resolve(routeable: Exclude<Routeable, Promise<IModule>>, context: IRouteContext): RouteDefinition;
   public static resolve(routeable: Routeable, context: IRouteContext): RouteDefinition | Promise<RouteDefinition>;
   public static resolve(routeable: Routeable, context?: IRouteContext): RouteDefinition | Promise<RouteDefinition> {
     if (isPartialRedirectRouteConfig(routeable)) {

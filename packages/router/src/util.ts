@@ -131,3 +131,11 @@ export function tryStringify(value: unknown): string {
     return Object.prototype.toString.call(value);
   }
 }
+
+export function ensureArrayOfStrings(value: string | string[]): string[] {
+  return typeof value === 'string' ? [value] : value;
+}
+
+export function ensureString(value: string | string[]): string {
+  return typeof value === 'string' ? value : value[0];
+}

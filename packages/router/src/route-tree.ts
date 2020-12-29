@@ -2,13 +2,13 @@
 import { ILogger, resolveAll, onResolve, emptyArray } from '@aurelia/kernel';
 import { CustomElementDefinition, CustomElement } from '@aurelia/runtime-html';
 
-import { IRouteContext } from './route-context.js';
+import { IRouteContext, $RecognizedRoute } from './route-context.js';
 import { RoutingMode, ResolutionMode, SwapStrategy, IRouter } from './router.js';
 import { ViewportInstructionTree, ViewportInstruction, NavigationInstructionType, Params, ITypedNavigationInstruction_ResolvedComponent } from './instructions.js';
-import { RecognizedRoute } from './route-recognizer.js';
 import { RouteDefinition } from './route-definition.js';
 import { ViewportRequest } from './viewport-agent.js';
 import { ExpressionKind, RouteExpression, ScopedSegmentExpression, SegmentExpression } from './route-expression.js';
+import { ConfigurableRoute } from '@aurelia/route-recognizer';
 
 export interface IRouteNode {
   context: IRouteContext;
@@ -254,12 +254,16 @@ export class RouteTreeCompiler {
    */
   public static compileRoot(routeTree: RouteTree, instructions: ViewportInstructionTree, ctx: IRouteContext): Promise<void> | void {
     const compiler = new RouteTreeCompiler(routeTree, instructions, ctx);
-    return compiler.compileRoot();
+    return onResolve(ctx.resolved, () => {
+      return compiler.compileRoot();
+    });
   }
 
   public static compileResidue(routeTree: RouteTree, instructions: ViewportInstructionTree, ctx: IRouteContext): Promise<readonly RouteNode[]> | readonly RouteNode[] {
     const compiler = new RouteTreeCompiler(routeTree, instructions, ctx);
-    return compiler.compileResidue(ctx.node, ctx.depth);
+    return onResolve(ctx.resolved, () => {
+      return compiler.compileResidue(ctx.node, ctx.depth);
+    });
   }
 
   private compileRoot(): Promise<void> | void {
@@ -414,15 +418,60 @@ export class RouteTreeCompiler {
     instruction: ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>,
     depth: number,
     append: boolean,
-    recognizedRoute: RecognizedRoute,
-  ): RouteNode {
+    recognizedRoute: $RecognizedRoute,
+  ): RouteNode | Promise<RouteNode> {
     const ctx = this.ctx.path[depth];
 
-    let endpoint = recognizedRoute.endpoint;
-    while (endpoint.route.redirectTo !== null) {
+    function processPotentialLazyRoute(route: ConfigurableRoute<RouteDefinition | Promise<RouteDefinition>>): RouteNode | Promise<RouteNode> {
+      if (route.handler instanceof Promise) {
+        return route.handler.then(resolvedHandler => {
+          route.handler = resolvedHandler;
+          return processRoute(route as ConfigurableRoute<RouteDefinition>);
+        });
+      } else {
+        return processRoute(route as ConfigurableRoute<RouteDefinition>);
+      }
+    }
+
+    const processRoute = (route: ConfigurableRoute<RouteDefinition>): RouteNode | Promise<RouteNode> => {
+      if (route.handler.redirectTo === null) {
+        const viewportName = route.handler.viewport;
+        const component = route.handler.component!;
+
+        const viewportAgent = ctx.resolveViewportAgent(ViewportRequest.create({
+          viewportName,
+          componentName: component.name,
+          append,
+          resolution: this.resolution,
+        }));
+
+        const childCtx = this.router.getRouteContext(
+          viewportAgent,
+          component,
+          viewportAgent.hostController.context,
+        );
+
+        childCtx.node = RouteNode.create({
+          context: childCtx,
+          instruction,
+          params: recognizedRoute.route.params, // TODO: params inheritance
+          queryParams: this.instructions.queryParams, // TODO: queryParamsStrategy
+          fragment: this.instructions.fragment, // TODO: fragmentStrategy
+          data: route.handler.data,
+          viewport: viewportName,
+          component,
+          append,
+          residue: recognizedRoute.residue === null ? [] : [ViewportInstruction.create(recognizedRoute.residue)],
+        });
+
+        this.logger.trace(`routeNodeFromRecognizedRoute(instruction:%s,depth:${depth},append:${append}) -> %s`, instruction, childCtx.node);
+
+        return childCtx.node;
+      }
+
       // Migrate parameters to the redirect
-      const originalPath = RouteExpression.parse(endpoint.path, false);
-      const redirectPath = RouteExpression.parse(endpoint.route.redirectTo, false);
+      const originalPath = RouteExpression.parse(route.path, false);
+      const redirectPath = RouteExpression.parse(route.handler.redirectTo, false);
       let originalCur: ScopedSegmentExpression | SegmentExpression;
       let redirectCur: ScopedSegmentExpression | SegmentExpression;
       const newSegments: string[] = [];
@@ -487,7 +536,7 @@ export class RouteTreeCompiler {
 
         if (redirectSeg !== null) {
           if (redirectSeg.component.isDynamic && originalSeg?.component.isDynamic) {
-            newSegments.push(recognizedRoute.params[originalSeg.component.name] as string);
+            newSegments.push(recognizedRoute.route.params[originalSeg.component.name] as string);
           } else {
             newSegments.push(redirectSeg.raw);
           }
@@ -514,41 +563,10 @@ export class RouteTreeCompiler {
         }
       }
 
-      endpoint = recognizedRedirectRoute.endpoint;
-    }
+      return processPotentialLazyRoute(recognizedRedirectRoute.route.endpoint.route);
+    };
 
-    const viewportName = endpoint.route.viewport;
-    const component = endpoint.route.component!;
-
-    const viewportAgent = ctx.resolveViewportAgent(ViewportRequest.create({
-      viewportName,
-      componentName: component.name,
-      append,
-      resolution: this.resolution,
-    }));
-
-    const childCtx = this.router.getRouteContext(
-      viewportAgent,
-      component,
-      viewportAgent.hostController.context,
-    );
-
-    childCtx.node = RouteNode.create({
-      context: childCtx,
-      instruction,
-      params: recognizedRoute.params, // TODO: params inheritance
-      queryParams: this.instructions.queryParams, // TODO: queryParamsStrategy
-      fragment: this.instructions.fragment, // TODO: fragmentStrategy
-      data: endpoint.route.data,
-      viewport: viewportName,
-      component,
-      append,
-      residue: recognizedRoute.residue === null ? [] : [ViewportInstruction.create(recognizedRoute.residue)],
-    });
-
-    this.logger.trace(`routeNodeFromRecognizedRoute(instruction:%s,depth:${depth},append:${append}) -> %s`, instruction, childCtx.node);
-
-    return childCtx.node;
+    return processPotentialLazyRoute(recognizedRoute.route.endpoint.route);
   }
 
   private routeNodeFromComponent(

@@ -28,15 +28,6 @@ import { AwaitableMap } from './utilities/awaitable-map.js';
  * and can be used for caching.
  */
 
-/**
-* @internal - Shouldn't be used directly
-*/
-export const enum ContentStatus {
-  none = 0,
-  created = 1,
-  activated = 3,
-}
-
 export type ContentState = 'created' | 'checkedUnload' | 'checkedLoad' | 'loaded' | 'activated';
 
 /**
@@ -51,7 +42,6 @@ export class ViewportContent {
 
   public constructor(
     // Can (and wants) be a (resolved) type or a string (to be resolved later)
-    // public content: RoutingInstruction = new RoutingInstruction(''),
     public instruction: RoutingInstruction = RoutingInstruction.create('') as RoutingInstruction,
     public navigation = new Navigation({
       instruction: '',
@@ -276,7 +266,6 @@ export class ViewportContent {
   }
 
   public freeContent(step: Step<void>, connectedCE: IConnectedCustomElement | null, nextInstruction: Navigation | null, cache: ViewportContent[], stateful: boolean = false): Step<void> {
-    // These are all safe to run
     return Runner.run(step,
       () => this.unload(nextInstruction),
       () => this.deactivateComponent(null, connectedCE!.controller, LifecycleFlags.none, connectedCE!, stateful),

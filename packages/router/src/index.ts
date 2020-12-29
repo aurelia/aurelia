@@ -129,7 +129,6 @@ export {
 } from './viewport.js';
 
 export {
-  ContentStatus,
   ViewportContent,
 } from './viewport-content.js';
 

@@ -121,6 +121,24 @@ export function validateRouteConfig(config: Partial<IChildRouteConfig> | null | 
         }
         break;
       }
+      case 'transitionPlan':
+        switch (typeof value) {
+          case 'string':
+            switch (value) {
+              case 'none':
+              case 'replace':
+              case 'invoke-lifecycles':
+                break;
+              default:
+                expectType('string(\'none\'|\'replace\'|\'invoke-lifecycles\') or function', path, value);
+            }
+            break;
+          case 'function':
+            break;
+          default:
+            expectType('string(\'none\'|\'replace\'|\'invoke-lifecycles\') or function', path, value);
+        }
+        break;
       case 'canLoad':
       case 'load':
       case 'canUnload':

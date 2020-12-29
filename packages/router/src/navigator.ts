@@ -15,6 +15,26 @@ import { Runner, Step } from './utilities/runner.js';
 import { IRoute } from './route.js';
 
 /**
+ * The navigator is responsible for managing (queueing) navigations and
+ * feeding them to the router, keeping track of historical navigations/states
+ * and providing an api to historical and current state.
+ *
+ * The navigator uses a first-in-first-out queue with a callback that gets
+ * called with a queued item only when the previously processed item has been
+ * resolved or rejected. All navigations are enqueued in this queue and once
+ * dequeued into the callback the navigator enrich them with historical
+ * navigation data and pass it on to the router for processing.
+ *
+ * Whenever the router has finalized or canceled a navigation it informs the
+ * navigator which then updates current and historical states accordingly and
+ * instructs the viewer and store (BrowserViewerStore) to do appropriate updates.
+ *
+ * TODO: Make the queue not wait until currently processing item is done, so
+ * that it won't be necessary to wait for long running navigations to finish
+ * before doing a new navigation.
+ */
+
+/**
  * @internal - Shouldn't be used directly
  */
 export interface INavigatorStore {

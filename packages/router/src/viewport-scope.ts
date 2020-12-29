@@ -18,6 +18,20 @@ import { Route } from './route.js';
 import { Step } from './utilities/runner.js';
 import { Endpoint, IConnectedCustomElement, IEndpointOptions } from './endpoints/endpoint.js';
 
+/**
+ * The viewport scope is an endpoint that encapsulates an au-viewport-scope custom
+ * element instance. Its content isn't managed by, or even relevant for, the viewport
+ * scope since it's only a container custom element. Instead of managing content,
+ * the viewport scope provides a way to
+ * a) add a routing scope without having to add an actual viewport,
+ * b) have segments in routes/paths/instructions without requiring a viewport, and
+ * c) make viewports repeatable (something they can't be by themselves) by
+ * enclosing them.
+ *
+ * Since it is an endpoint, the viewport scope is participating in navigations and
+ * instructed by the router and navigation coordinator (but with a very simple
+ * transition and other navigation actions).
+ */
 export interface IViewportScopeOptions extends IEndpointOptions {
   catches?: string | string[];
   collection?: boolean;

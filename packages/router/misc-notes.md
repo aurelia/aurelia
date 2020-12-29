@@ -32,3 +32,76 @@ rootScope.matchEndpoints([instruction], []); // Match the name 'main-viewport' t
 instruction.component.name === 'products'
 instruction.viewport.instance === mainViewport;
 ```
+
+```html
+<!-- app.html -->
+<a load="welcome">Ends up in first viewport below</a>
+<a load="admin/welcome-admin">Ends up in viewport within au-viewport-scope catching 'admin'</a>
+<au-viewport name="main"></au-viewport>
+<au-viewport-scope catches="admin">
+  <a load="welcome-admin">Ends up in viewport below</a>
+  <au-viewport name="main"></au-viewport>
+</au-viewport-scope>
+```
+
+Change
+```html
+<a load="a@one">A in first</a>
+<a load="b@two">B in second</a>
+<au-viewport name="one"></au-viewport>
+<au-viewport name="two"></au-viewport>
+```
+to
+```html
+<a load="one/a">A in first</a>
+<a load="two/b">B in second</a>
+<au-viewport-scope catches="one">
+  <au-viewport></au-viewport>
+</au-viewport-scope>
+<au-viewport-scope catches="two">
+  <au-viewport></au-viewport>
+</au-viewport-scope>
+```
+
+A plugin
+```html
+<!-- cool-plugin.html -->
+<import from="./welcome.html"></import>
+<import from="./cool-stuff.html"></import>
+<p>Some cool plugin</a>
+<a load="welcome">Welcome</a>
+<a load="cool-stuff">Cool stuff</a>
+<au-viewport></au-viewport>
+```
+that's used
+```html
+<!-- my-app.html -->
+<import from="./welcome.html"></import>
+<import from="./cool-plugin.html"></import>
+<a load="welcome"></a>
+<au-viewport></au-viewport>
+<cool-plugin></cool-plugin>
+```
+would require viewports specified to work. But change the plugin to
+```html
+<!-- cool-plugin.html -->
+<import from="./welcome.html"></import>
+<import from="./cool-stuff.html"></import>
+<au-viewport-scope catches="cool-stuff">
+  <p>Some cool plugin</a>
+  <a load="welcome">Welcome</a>
+  <a load="cool-stuff">Cool stuff</a>
+  <au-viewport></au-viewport>
+</au-viewport-scope>
+```
+or where it's used to
+```html
+<!-- my-app.html -->
+<import from="./cool-plugin.html"></import>
+<a load="welcome"></a>
+<au-viewport></au-viewport>
+<au-viewport-scope catches="my-cool-stuff">
+  <cool-plugin></cool-plugin>
+</au-viewport-scope>
+```
+and it works.

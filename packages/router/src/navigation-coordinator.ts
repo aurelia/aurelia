@@ -66,7 +66,7 @@ export class NavigationCoordinator extends StateCoordinator<IEndpoint, Navigatio
   //     this.syncStates.has('routed');
   // }
 
-  public run() {
+  public run(): void {
     if (!this.running) {
       // console.log('NavigationCoordinator RUN' /*, { ...this } */);
       this.running = true;
@@ -87,11 +87,11 @@ export class NavigationCoordinator extends StateCoordinator<IEndpoint, Navigatio
     return ent;
   }
 
-  public finalize() {
+  public finalize(): void {
     this.entities.forEach(entity => entity.entity.finalizeContentChange());
   }
 
-  public cancel() {
+  public cancel(): void {
     // TODO: Take care of disabling viewports when cancelling and stateful!
     this.entities.forEach(entity => {
       const abort = entity.entity.abortContentChange(null);
@@ -110,5 +110,5 @@ export class NavigationCoordinator extends StateCoordinator<IEndpoint, Navigatio
 
   // A new navigation should cancel replaced instructions
   // eslint-disable-next-line @typescript-eslint/no-empty-function
-  public cancelReplaced(navigation: Navigation) { }
+  public cancelReplaced(navigation: Navigation): void { }
 }

@@ -35,12 +35,6 @@ export {
 } from './utilities/lifecycle-logger.js';
 
 export {
-  HookManager,
-  HookTypes,
-  IHookDefinition,
-} from './hook-manager.js';
-
-export {
   INavRoute,
   Nav,
 } from './nav.js';

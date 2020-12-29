@@ -1,3 +1,4 @@
+import { IRoutingHookDefinition, IRoutingHookOptions, RoutingHookIdentity } from './routing-hook';
 /**
  *
  * NOTE: This file is still WIP and will go through at least one more iteration of refactoring, commenting and clean up!
@@ -19,7 +20,6 @@ import { arrayRemove, deprecationWarning } from './utilities/utils.js';
 import { IViewportOptions, Viewport } from './viewport.js';
 import { RoutingInstruction } from './instructions/routing-instruction.js';
 import { FoundRoute } from './found-route.js';
-import { HookManager, IHookDefinition, HookIdentity, HookFunction, IHookOptions, BeforeNavigationHookFunction, TransformFromUrlHookFunction, TransformToUrlHookFunction, SetTitleHookFunction } from './hook-manager.js';
 import { RoutingScope } from './routing-scope.js';
 import { ViewportScope } from './viewport-scope.js';
 import { BrowserViewerStore } from './browser-viewer-store.js';
@@ -32,6 +32,7 @@ import { NavigatorStateChangeEvent } from './events.js';
 import { Runner, Step } from './utilities/runner.js';
 import { IRoute, Route } from './route.js';
 import { Title } from './title.js';
+import { RoutingHook } from './routing-hook.js';
 
 /**
  * The router is the "main entry point" into routing. Its primary responsibilities are
@@ -91,11 +92,9 @@ export interface IRouter extends Router { }
 class ClosestScope { }
 
 export class Router implements IRouter {
-  public static readonly inject: readonly Key[] = [IContainer, IEventAggregator, Navigator, BrowserViewerStore, LinkHandler, InstructionResolver, HookManager];
+  public static readonly inject: readonly Key[] = [IContainer, IEventAggregator, Navigator, BrowserViewerStore, LinkHandler, InstructionResolver];
 
   public rootScope: ViewportScope | null = null;
-
-  // public hookManager: HookManager;
 
   /**
    * Public API
@@ -142,13 +141,7 @@ export class Router implements IRouter {
      * @internal - Shouldn't be used directly. Probably.
      */
     public instructionResolver: InstructionResolver,
-    /**
-     * @internal - Shouldn't be used directly. Probably.
-     */
-    public hookManager: HookManager,
-  ) {
-    // this.hookManager = new HookManager();
-  }
+  ) { }
 
   /**
    * Public API
@@ -200,7 +193,7 @@ export class Router implements IRouter {
     Object.assign(RouterOptions, options);
 
     if (RouterOptions.hooks !== void 0) {
-      this.addHooks(RouterOptions.hooks);
+      RouterOptions.hooks.forEach(hook => RoutingHook.add(hook.hook, hook.options));
     }
 
     this.instructionResolver.start({ separators: RouterOptions.separators });
@@ -374,7 +367,7 @@ export class Router implements IRouter {
 
     // Invoke the transformFromUrl hook if it exists
     let transformedInstruction = typeof instruction.instruction === 'string' && !instruction.useFullStateInstruction
-      ? await this.hookManager.invokeTransformFromUrl(instruction.instruction, this.processingNavigation as Navigation)
+      ? await RoutingHook.invokeTransformFromUrl(instruction.instruction, this.processingNavigation as Navigation)
       : instruction.instruction;
     // TODO: Review this
     if (transformedInstruction === '/') {
@@ -451,7 +444,7 @@ export class Router implements IRouter {
       const changedEndpoints: IEndpoint[] = [];
 
       // TODO: Review whether this await poses a problem (it's currently necessary for new viewports to load)
-      const hooked = await this.hookManager.invokeBeforeNavigation(matchedInstructions, instruction);
+      const hooked = await RoutingHook.invokeBeforeNavigation(matchedInstructions, instruction);
       if (hooked === false) {
         coordinator.cancel();
         return;
@@ -834,30 +827,6 @@ export class Router implements IRouter {
     // return viewport.removeRoutes(routes);
   }
 
-  /**
-   * Public API
-   */
-  public addHooks(hooks: IHookDefinition[]): HookIdentity[] {
-    return hooks.map(hook => this.addHook(hook.hook, hook.options));
-  }
-  /**
-   * Public API
-   */
-  public addHook(beforeNavigationHookFunction: BeforeNavigationHookFunction, options?: IHookOptions): HookIdentity;
-  public addHook(transformFromUrlHookFunction: TransformFromUrlHookFunction, options?: IHookOptions): HookIdentity;
-  public addHook(transformToUrlHookFunction: TransformToUrlHookFunction, options?: IHookOptions): HookIdentity;
-  public addHook(setTitleHookFunction: SetTitleHookFunction, options?: IHookOptions): HookIdentity;
-  public addHook(hookFunction: HookFunction, options?: IHookOptions): HookIdentity;
-  public addHook(hook: HookFunction, options: IHookOptions): HookIdentity {
-    return this.hookManager.addHook(hook, options);
-  }
-  /**
-   * Public API
-   */
-  public removeHooks(hooks: HookIdentity[]): void {
-    return;
-  }
-
   private appendInstructions(instructions: RoutingInstruction[], scope: RoutingScope | null = null): void {
     if (scope === null) {
       scope = this.rootScope!.scope;
@@ -867,7 +836,7 @@ export class Router implements IRouter {
         instruction.scope = scope;
       }
     }
-    this.appendedInstructions.push(...(instructions as RoutingInstruction[]));
+    this.appendedInstructions.push(...instructions);
   }
 
   private unknownRoute(route: string) {
@@ -1011,7 +980,7 @@ export class Router implements IRouter {
       // root.config.component shouldn't be used in the end. Metadata will probably eliminate it
       this.rootScope = new ViewportScope(this, 'rootScope', root.controller.viewModel as IConnectedCustomElement, null, true, root.config.component as CustomElementType);
     }
-    return this.rootScope!;
+    return this.rootScope;
   }
 
   private async updateNavigation(navigation: Navigation): Promise<void> {
@@ -1039,13 +1008,13 @@ export class Router implements IRouter {
     this.activeRoute = navigation.route;
 
     // First invoke with viewport instructions (should it perhaps get full state?)
-    let state = await this.hookManager.invokeTransformToUrl(instructions, navigation);
+    let state = await RoutingHook.invokeTransformToUrl(instructions, navigation);
     if (typeof state !== 'string') {
       // Convert to string if necessary
       state = this.instructionResolver.stringifyRoutingInstructions(state, false, true);
     }
     // Invoke again with string
-    state = await this.hookManager.invokeTransformToUrl(state, navigation);
+    state = await RoutingHook.invokeTransformToUrl(state, navigation);
 
     const query = (navigation.query && navigation.query.length ? "?" + navigation.query : '');
     // if (instruction.path === void 0 || instruction.path.length === 0 || instruction.path === '/') {

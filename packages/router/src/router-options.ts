@@ -6,11 +6,11 @@
  */
 /* eslint-disable no-template-curly-in-string */
 import { INavigatorOptions } from './navigator.js';
-import { IHookDefinition } from './hook-manager.js';
 import { NavigationState } from './navigation-coordinator.js';
 import { Navigation } from './navigation.js';
 import { RoutingInstruction } from './instructions/routing-instruction.js';
 import { FoundRoute } from './found-route.js';
+import { IRoutingHookDefinition } from './routing-hook.js';
 
 export type SwapStrategy = 'add-first-sequential' | 'add-first-parallel' | 'remove-first-sequential' | 'remove-first-parallel';
 export type RoutingHookIntegration = 'integrated' | 'separate';
@@ -30,7 +30,7 @@ export interface IRouterStartOptions extends Omit<Partial<RouterOptions>, 'title
   useDirectRoutes?: boolean;
   useConfiguredRoutes?: boolean;
   additiveInstructionDefault?: boolean;
-  hooks?: IHookDefinition[];
+  hooks?: IRoutingHookDefinition[];
 
   navigationSyncStates?: NavigationState[];
   swapStrategy?: SwapStrategy;
@@ -104,7 +104,7 @@ export class RouterOptions implements INavigatorOptions {
     useComponentNames: true,
     componentPrefix: 'app-',
   };
-  public static hooks?: IHookDefinition[];
+  public static hooks?: IRoutingHookDefinition[];
   public static reportCallback?(instruction: Navigation): void;
 
   public static navigationSyncStates: NavigationState[] = ['guardedUnload', 'swapped', 'completed'];

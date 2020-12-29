@@ -3,6 +3,7 @@ import { RoutingInstruction } from './instructions/routing-instruction';
 import { Navigation } from './navigation';
 import { IRouter } from './router';
 import { RouterOptions } from './router-options';
+import { RoutingHook } from './routing-hook';
 
 /**
  *
@@ -14,7 +15,7 @@ import { RouterOptions } from './router-options';
  export class Title {
   public static async getTitle(router: IRouter, instructions: RoutingInstruction[], instruction: Navigation): Promise<string | null> {
     // First invoke with viewport instructions
-    let title: string | RoutingInstruction[] = await router.hookManager.invokeSetTitle(instructions, instruction);
+    let title: string | RoutingInstruction[] = await RoutingHook.invokeTransformTitle(instructions, instruction);
     if (typeof title !== 'string') {
       // Hook didn't return a title, so run title logic
       const componentTitles = Title.stringifyTitles(router, title, instruction);
@@ -27,7 +28,7 @@ import { RouterOptions } from './router-options';
           : '');
     }
     // Invoke again with complete string
-    title = await router.hookManager.invokeSetTitle(title, instruction);
+    title = await RoutingHook.invokeTransformTitle(title, instruction);
 
     return title as string;
   }

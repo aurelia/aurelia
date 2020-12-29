@@ -115,6 +115,12 @@ export {
 } from './decorators/routes.js';
 
 export {
+  RoutingHook,
+  RoutingHookType,
+  IRoutingHookDefinition,
+} from './routing-hook.js';
+
+export {
   RoutingInstruction,
 } from './instructions/routing-instruction.js';
 

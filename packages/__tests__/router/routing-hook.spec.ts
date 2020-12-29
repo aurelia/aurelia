@@ -1,8 +1,8 @@
-import { HookManager, HookTypes, RoutingInstruction, RouterConfiguration, IRouter, Navigation, InstructionResolver } from '@aurelia/router';
+import { RoutingHook, RoutingInstruction, RouterConfiguration, IRouter, Navigation, InstructionResolver } from '@aurelia/router';
 import { assert, TestContext } from '@aurelia/testing';
 import { CustomElement, IPlatform, Aurelia } from '@aurelia/runtime-html';
 
-describe('HookManager', function () {
+describe('RoutingHook', function () {
   this.timeout(5000);
 
   async function createFixture(config?, App?, dependencies: any[] = [], stateSpy?) {
@@ -22,7 +22,6 @@ describe('HookManager', function () {
         App)
       .app({ host: host, component: App });
 
-    const hookManager = container.get(HookManager);
     const instructionResolver = container.get(InstructionResolver);
     const router = container.get(IRouter);
     const { _pushState, _replaceState } = spyNavigationStates(router, stateSpy);
@@ -32,12 +31,13 @@ describe('HookManager', function () {
     async function tearDown() {
       unspyNavigationStates(router, _pushState, _replaceState);
       RouterConfiguration.customize();
+      RoutingHook.removeAll();
       await au.stop(true);
     }
 
     const navigationInstruction = new Navigation({ instruction: 'test', fullStateInstruction: 'full-test' });
     const routingInstructions: RoutingInstruction[] = instructionResolver.parseRoutingInstructions('parent/child');
-    return { au, container, platform, host, router, tearDown, navigationInstruction, routingInstructions, hookManager, instructionResolver };
+    return { au, container, platform, host, router, tearDown, navigationInstruction, routingInstructions, instructionResolver };
   }
 
   function spyNavigationStates(router, spy) {
@@ -68,17 +68,12 @@ describe('HookManager', function () {
     platform.domWriteQueue.flush();
   };
 
-  it('can be created', function () {
-    const sut = new HookManager();
-  });
-
   it('uses a hook', async function () {
     const { router, tearDown, navigationInstruction } = await createFixture();
 
-    const sut = new HookManager();
-    sut.addHook((url: string, navigationInstruction: Navigation): Promise<string | RoutingInstruction[]> => Promise.resolve(`hooked:${url}`),
-      { type: HookTypes.TransformFromUrl });
-    const hooked = await sut.invokeTransformFromUrl('testing', navigationInstruction);
+    RoutingHook.add((url: string, navigationInstruction: Navigation): Promise<string | RoutingInstruction[]> => Promise.resolve(`hooked:${url}`),
+      { type: 'transformFromUrl' });
+    const hooked = await RoutingHook.invokeTransformFromUrl('testing', navigationInstruction);
     assert.strictEqual(hooked, 'hooked:testing', `hooked`);
 
     await tearDown();
@@ -87,13 +82,12 @@ describe('HookManager', function () {
   it('uses consequtive hooks', async function () {
     const { router, tearDown, navigationInstruction } = await createFixture();
 
-    const sut = new HookManager();
-    sut.addHook((url: string, navigationInstruction: Navigation) => Promise.resolve(`hooked:${url}`),
-      { type: HookTypes.TransformFromUrl });
-    sut.addHook((url: string, navigationInstruction: Navigation) => Promise.resolve(`hooked2:${url}`),
-      { type: HookTypes.TransformFromUrl });
+    RoutingHook.add((url: string, navigationInstruction: Navigation) => Promise.resolve(`hooked:${url}`),
+      { type: 'transformFromUrl' });
+    RoutingHook.add((url: string, navigationInstruction: Navigation) => Promise.resolve(`hooked2:${url}`),
+      { type: 'transformFromUrl' });
 
-    const hooked = await sut.invokeTransformFromUrl('testing', navigationInstruction);
+    const hooked = await RoutingHook.invokeTransformFromUrl('testing', navigationInstruction);
     assert.strictEqual(hooked, 'hooked2:hooked:testing', `hooked`);
 
     await tearDown();
@@ -102,8 +96,7 @@ describe('HookManager', function () {
   it('works with no hooks', async function () {
     const { router, tearDown, navigationInstruction } = await createFixture();
 
-    const sut = new HookManager();
-    const hooked = await sut.invokeTransformFromUrl('testing', navigationInstruction);
+    const hooked = await RoutingHook.invokeTransformFromUrl('testing', navigationInstruction);
     assert.strictEqual(hooked, 'testing', `hooked`);
 
     await tearDown();
@@ -112,10 +105,9 @@ describe('HookManager', function () {
   it('uses a TransformFromUrl hook returning string', async function () {
     const { router, tearDown, navigationInstruction } = await createFixture();
 
-    const sut = new HookManager();
-    sut.addHook((url: string, navigationInstruction: Navigation) => Promise.resolve(`hooked:${url}`),
-      { type: HookTypes.TransformFromUrl });
-    const hooked = await sut.invokeTransformFromUrl('testing', navigationInstruction);
+    RoutingHook.add((url: string, navigationInstruction: Navigation) => Promise.resolve(`hooked:${url}`),
+      { type: 'transformFromUrl' });
+    const hooked = await RoutingHook.invokeTransformFromUrl('testing', navigationInstruction);
     assert.strictEqual(hooked, 'hooked:testing', `hooked`);
 
     await tearDown();
@@ -124,12 +116,11 @@ describe('HookManager', function () {
   it('uses a TransformFromUrl hook returning viewport instructions', async function () {
     const { router, tearDown, navigationInstruction } = await createFixture();
 
-    const sut = new HookManager();
-    sut.addHook(
+    RoutingHook.add(
       (url: string, navigationInstruction: Navigation) =>
         Promise.resolve([RoutingInstruction.create(`hooked-${url}`) as RoutingInstruction]),
-      { type: HookTypes.TransformFromUrl });
-    const hooked = await sut.invokeTransformFromUrl('testing', navigationInstruction) as RoutingInstruction[];
+      { type: 'transformFromUrl' });
+    const hooked = await RoutingHook.invokeTransformFromUrl('testing', navigationInstruction) as RoutingInstruction[];
     assert.strictEqual(hooked[0].component.name, 'hooked-testing', `hooked[0].component.name`);
 
     await tearDown();
@@ -138,13 +129,12 @@ describe('HookManager', function () {
   it('uses a TransformToUrl hook getting viewport instructions returning viewport instructions', async function () {
     const { router, tearDown, navigationInstruction } = await createFixture();
 
-    const sut = new HookManager();
-    sut.addHook(
+    RoutingHook.add(
       (routingInstructions: RoutingInstruction[], navigationInstruction: Navigation) =>
         Promise.resolve([RoutingInstruction.create(`hooked-${routingInstructions[0].component.name}`) as RoutingInstruction]),
-      { type: HookTypes.TransformToUrl });
+      { type: 'transformToUrl' });
 
-    const hooked = await sut.invokeTransformToUrl(
+    const hooked = await RoutingHook.invokeTransformToUrl(
       [RoutingInstruction.create('testing') as RoutingInstruction], navigationInstruction) as RoutingInstruction[];
     assert.strictEqual(hooked[0].component.name, 'hooked-testing', `hooked`);
 
@@ -154,13 +144,12 @@ describe('HookManager', function () {
   it('uses a TransformToUrl hook getting viewport instructions returning string', async function () {
     const { router, tearDown, navigationInstruction } = await createFixture();
 
-    const sut = new HookManager();
-    sut.addHook(
+    RoutingHook.add(
       (routingInstructions: RoutingInstruction[], navigationInstruction: Navigation) =>
         Promise.resolve(`hooked-${routingInstructions[0].component.name}`),
-      { type: HookTypes.TransformToUrl });
+      { type: 'transformToUrl' });
 
-    const hooked = await sut.invokeTransformToUrl(
+    const hooked = await RoutingHook.invokeTransformToUrl(
       [RoutingInstruction.create('testing')], navigationInstruction) as string;
     assert.strictEqual(hooked, 'hooked-testing', `hooked`);
 
@@ -170,13 +159,12 @@ describe('HookManager', function () {
   it('uses a TransformToUrl hook getting string returning viewport instructions', async function () {
     const { router, tearDown, navigationInstruction } = await createFixture();
 
-    const sut = new HookManager();
-    sut.addHook(
+    RoutingHook.add(
       (url: string, navigationInstruction: Navigation) =>
         Promise.resolve([RoutingInstruction.create(`hooked-${url}`)]),
-      { type: HookTypes.TransformToUrl });
+      { type: 'transformToUrl' });
 
-    const hooked = await sut.invokeTransformToUrl('testing', navigationInstruction) as RoutingInstruction[];
+    const hooked = await RoutingHook.invokeTransformToUrl('testing', navigationInstruction) as RoutingInstruction[];
     assert.strictEqual(hooked[0].component.name, 'hooked-testing', `hooked`);
 
     await tearDown();
@@ -185,11 +173,10 @@ describe('HookManager', function () {
   it('uses a TransformToUrl hook getting string returning string', async function () {
     const { router, tearDown, navigationInstruction } = await createFixture();
 
-    const sut = new HookManager();
-    sut.addHook((url: string, navigationInstruction: Navigation) => Promise.resolve(`hooked-${url}`),
-      { type: HookTypes.TransformToUrl });
+    RoutingHook.add((url: string, navigationInstruction: Navigation) => Promise.resolve(`hooked-${url}`),
+      { type: 'transformToUrl' });
 
-    const hooked = await sut.invokeTransformToUrl('testing', navigationInstruction) as string;
+    const hooked = await RoutingHook.invokeTransformToUrl('testing', navigationInstruction) as string;
     assert.strictEqual(hooked, 'hooked-testing', `hooked`);
 
     await tearDown();
@@ -198,29 +185,28 @@ describe('HookManager', function () {
   it('uses a TransformToUrl hook with alternating types', async function () {
     const { router, tearDown, navigationInstruction } = await createFixture();
 
-    const sut = new HookManager();
     const hook = (input: string | RoutingInstruction[], navigationInstruction: Navigation): Promise<string | RoutingInstruction[]> =>
       Promise.resolve(typeof input === 'string' ? [RoutingInstruction.create(`hooked-${input}`) as RoutingInstruction] : `hooked-${input[0].component.name}`);
     const str = 'testing';
 
-    sut.addHook(hook, { type: HookTypes.TransformToUrl });
+    RoutingHook.add(hook, { type: 'transformToUrl' });
 
-    let hooked: string | RoutingInstruction[] = await sut.invokeTransformToUrl(str, navigationInstruction) as RoutingInstruction[];
+    let hooked: string | RoutingInstruction[] = await RoutingHook.invokeTransformToUrl(str, navigationInstruction) as RoutingInstruction[];
     assert.strictEqual(hooked[0].component.name, `hooked-${str}`, `hooked`);
 
-    sut.addHook(hook, { type: HookTypes.TransformToUrl });
+    RoutingHook.add(hook, { type: 'transformToUrl' });
 
-    hooked = await sut.invokeTransformToUrl(str, navigationInstruction) as string;
+    hooked = await RoutingHook.invokeTransformToUrl(str, navigationInstruction) as string;
     assert.strictEqual(hooked, `hooked-hooked-${str}`, `hooked-hooked`);
 
-    sut.addHook(hook, { type: HookTypes.TransformToUrl });
+    RoutingHook.add(hook, { type: 'transformToUrl' });
 
-    hooked = await sut.invokeTransformToUrl(str, navigationInstruction) as RoutingInstruction[];
+    hooked = await RoutingHook.invokeTransformToUrl(str, navigationInstruction) as RoutingInstruction[];
     assert.strictEqual(hooked[0].component.name, `hooked-hooked-hooked-${str}`, `hooked-hooked-hooked`);
 
-    sut.addHook(hook, { type: HookTypes.TransformToUrl });
+    RoutingHook.add(hook, { type: 'transformToUrl' });
 
-    hooked = await sut.invokeTransformToUrl(str, navigationInstruction) as string;
+    hooked = await RoutingHook.invokeTransformToUrl(str, navigationInstruction) as string;
     assert.strictEqual(hooked, `hooked-hooked-hooked-hooked-${str}`, `hooked-hooked-hooked-hooked`);
 
     await tearDown();
@@ -229,13 +215,12 @@ describe('HookManager', function () {
   it('uses a BeforeNavigation hook returning viewport instructions', async function () {
     const { router, tearDown, navigationInstruction } = await createFixture();
 
-    const sut = new HookManager();
-    sut.addHook(
+    RoutingHook.add(
       (routingInstructions: RoutingInstruction[], navigationInstruction: Navigation) =>
         Promise.resolve([RoutingInstruction.create(`hooked-${routingInstructions[0].component.name}`)]),
-      { type: HookTypes.BeforeNavigation });
+      { type: 'beforeNavigation' });
 
-    const hooked = await sut.invokeBeforeNavigation(
+    const hooked = await RoutingHook.invokeBeforeNavigation(
       [RoutingInstruction.create('testing')], navigationInstruction) as RoutingInstruction[];
     assert.strictEqual(hooked[0].component.name, 'hooked-testing', `hooked`);
 
@@ -245,11 +230,10 @@ describe('HookManager', function () {
   it('uses a BeforeNavigation hook returning true', async function () {
     const { router, tearDown, navigationInstruction } = await createFixture();
 
-    const sut = new HookManager();
-    sut.addHook((routingInstructions: RoutingInstruction[], navigationInstruction: Navigation) => Promise.resolve(true),
-      { type: HookTypes.BeforeNavigation });
+    RoutingHook.add((routingInstructions: RoutingInstruction[], navigationInstruction: Navigation) => Promise.resolve(true),
+      { type: 'beforeNavigation' });
 
-    const hooked = await sut.invokeBeforeNavigation(
+    const hooked = await RoutingHook.invokeBeforeNavigation(
       [RoutingInstruction.create('testing') as RoutingInstruction], navigationInstruction) as RoutingInstruction[];
     assert.strictEqual(hooked[0].component.name, 'testing', `hooked`);
 
@@ -259,11 +243,10 @@ describe('HookManager', function () {
   it('uses a BeforeNavigation hook returning false', async function () {
     const { router, tearDown, navigationInstruction } = await createFixture();
 
-    const sut = new HookManager();
-    sut.addHook((routingInstructions: RoutingInstruction[], navigationInstruction: Navigation) => Promise.resolve(false),
-      { type: HookTypes.BeforeNavigation });
+    RoutingHook.add((routingInstructions: RoutingInstruction[], navigationInstruction: Navigation) => Promise.resolve(false),
+      { type: 'beforeNavigation' });
 
-      const hooked = await sut.invokeBeforeNavigation([RoutingInstruction.create('testing')], navigationInstruction) as boolean;
+      const hooked = await RoutingHook.invokeBeforeNavigation([RoutingInstruction.create('testing')], navigationInstruction) as boolean;
     assert.strictEqual(hooked, false, `hooked`);
 
     await tearDown();
@@ -274,25 +257,25 @@ describe('HookManager', function () {
       input.length > 0
         ? typeof input === 'string' ? [RoutingInstruction.create(`hooked-${input}`) as RoutingInstruction] : `hooked-${input[0].component.name}`
         : input;
-    const hook = { hook: hookFunction, options: { type: HookTypes.TransformToUrl } };
-    const { router, tearDown, navigationInstruction, hookManager } = await createFixture({
+    const hook = { hook: hookFunction, options: { type: 'transformToUrl' } };
+    const { router, tearDown, navigationInstruction } = await createFixture({
       hooks: [hook, hook, hook],
     });
 
     const str = 'testing';
 
-    const hooked: string | RoutingInstruction[] = await hookManager.invokeTransformToUrl(str, navigationInstruction) as RoutingInstruction[];
+    const hooked: string | RoutingInstruction[] = await RoutingHook.invokeTransformToUrl(str, navigationInstruction) as RoutingInstruction[];
     assert.strictEqual(hooked[0].component.name, `hooked-hooked-hooked-${str}`, `hooked-hooked-hooked`);
 
     await tearDown();
   });
 
   it('sets a TransformToUrl hook with alternating types through api', async function () {
-    const { router, tearDown, navigationInstruction, hookManager } = await createFixture();
+    const { router, tearDown, navigationInstruction } = await createFixture();
 
     const str = 'testing';
 
-    let hooked: string | RoutingInstruction[] = await hookManager.invokeTransformToUrl(str, navigationInstruction) as string;
+    let hooked: string | RoutingInstruction[] = await RoutingHook.invokeTransformToUrl(str, navigationInstruction) as string;
     assert.strictEqual(hooked, `${str}`, `not hooked`);
 
     const hookFunction = (input: string | RoutingInstruction[], navigationInstruction: Navigation): Promise<string | RoutingInstruction[]> =>
@@ -300,11 +283,11 @@ describe('HookManager', function () {
         ? typeof input === 'string' ? [RoutingInstruction.create(`hooked-${input}`) as RoutingInstruction] : `hooked-${input[0].component.name}`
         : input);
 
-    router.addHook(hookFunction, { type: HookTypes.TransformToUrl });
-    router.addHook(hookFunction, { type: HookTypes.TransformToUrl });
-    router.addHook(hookFunction, { type: HookTypes.TransformToUrl });
+    RoutingHook.add(hookFunction, { type: 'transformToUrl' });
+    RoutingHook.add(hookFunction, { type: 'transformToUrl' });
+    RoutingHook.add(hookFunction, { type: 'transformToUrl' });
 
-    hooked = await hookManager.invokeTransformToUrl(str, navigationInstruction) as RoutingInstruction[];
+    hooked = await RoutingHook.invokeTransformToUrl(str, navigationInstruction) as RoutingInstruction[];
     assert.strictEqual(hooked[0].component.name, `hooked-hooked-hooked-${str}`, `hooked-hooked-hooked`);
 
     await tearDown();
@@ -319,8 +302,8 @@ describe('HookManager', function () {
     await $load('two', router, platform);
     assert.strictEqual(host.textContent, `!two!`, `two`);
 
-    router.addHook((instructions: RoutingInstruction[], navigation: Navigation) => Promise.resolve(false),
-      { type: HookTypes.BeforeNavigation, include: ['two'] });
+    RoutingHook.add((instructions: RoutingInstruction[], navigation: Navigation) => Promise.resolve(false),
+      { type: 'beforeNavigation', include: ['two'] });
 
     await $load('one', router, platform);
     assert.strictEqual(host.textContent, `!one!`, `one`);
@@ -340,10 +323,10 @@ describe('HookManager', function () {
     await $load('two', router, platform);
     assert.strictEqual(host.textContent, `!two!`, `two`);
 
-    router.addHook(
+    RoutingHook.add(
       (instructions: RoutingInstruction[], navigation: Navigation) =>
         Promise.resolve([RoutingInstruction.create('three', instructions[0].viewport.instance)]),
-      { type: HookTypes.BeforeNavigation, include: ['two'] });
+      { type: 'beforeNavigation', include: ['two'] });
 
     await $load('one', router, platform);
     assert.strictEqual(host.textContent, `!one!`, `one`);
@@ -363,9 +346,9 @@ describe('HookManager', function () {
     await $load('two', router, platform);
     assert.strictEqual(host.textContent, `!two!`, `two`);
 
-    router.addHook(
+    RoutingHook.add(
       (url: string, navigation: Navigation) => Promise.resolve(url === 'two' ? 'three' : url),
-      { type: HookTypes.TransformFromUrl });
+      { type: 'transformFromUrl' });
 
     await $load('one', router, platform);
     assert.strictEqual(host.textContent, `!one!`, `one`);
@@ -385,10 +368,10 @@ describe('HookManager', function () {
     await $load('two', router, platform);
     assert.strictEqual(host.textContent, `!two!`, `two`);
 
-    router.addHook(
+    RoutingHook.add(
       (url: string, navigation: Navigation) =>
         Promise.resolve(url === 'two' ? [RoutingInstruction.create('three')] : url),
-      { type: HookTypes.TransformFromUrl });
+      { type: 'transformFromUrl' });
 
     await $load('one', router, platform);
     assert.strictEqual(host.textContent, `!one!`, `one`);
@@ -415,13 +398,13 @@ describe('HookManager', function () {
     assert.strictEqual(host.textContent, `!two!`, `two`);
     assert.strictEqual(locationPath, `#/two`, `locationPath two`);
 
-    router.addHook(
+    RoutingHook.add(
       (state: string | RoutingInstruction[], navigation: Navigation) =>
         Promise.resolve(
           typeof state === 'string'
             ? state === 'two' ? 'hooked-two' : state
             : state[0].component.name === 'two' ? 'hooked-two' : state),
-      { type: HookTypes.TransformToUrl });
+      { type: 'transformToUrl' });
 
     await $load('one', router, platform);
     assert.strictEqual(host.textContent, `!one!`, `one`);
@@ -450,12 +433,12 @@ describe('HookManager', function () {
     assert.strictEqual(host.textContent, `!two!`, `two`);
     assert.strictEqual(locationPath, `#/two`, `locationPath two`);
 
-    router.addHook(
+    RoutingHook.add(
       (state: string | RoutingInstruction[], navigation: Navigation) =>
         Promise.resolve(typeof state === 'string'
           ? state === 'two' ? 'hooked-two' : state
           : state[0].component.name === 'two' ? 'hooked-two' : state),
-      { type: HookTypes.TransformToUrl });
+      { type: 'transformToUrl' });
 
     await $load('one', router, platform);
     assert.strictEqual(host.textContent, `!one!`, `one`);
@@ -484,12 +467,12 @@ describe('HookManager', function () {
     assert.strictEqual(host.textContent, `!two!`, `two`);
     assert.strictEqual(locationPath, `#/two`, `locationPath two`);
 
-    router.addHook(
+    RoutingHook.add(
       (state: string | RoutingInstruction[], navigation: Navigation) =>
         Promise.resolve(typeof state === 'string'
           ? state === 'hooked-two' ? 'hooked-hooked-two' : state
           : state[0].component.name === 'two' ? 'hooked-two' : state),
-      { type: HookTypes.TransformToUrl });
+      { type: 'transformToUrl' });
 
     await $load('one', router, platform);
     assert.strictEqual(host.textContent, `!one!`, `one`);

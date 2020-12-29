@@ -191,6 +191,7 @@ const getObjectId = (function () {
 export class ViewportInstructionTree {
   public constructor(
     public readonly options: NavigationOptions,
+    public readonly isAbsolute: boolean,
     public readonly children: ViewportInstruction[],
     public readonly queryParams: Params,
     public readonly fragment: string | null,
@@ -200,11 +201,23 @@ export class ViewportInstructionTree {
     const $options = NavigationOptions.create({ ...options });
 
     if (instructionOrInstructions instanceof ViewportInstructionTree) {
-      return new ViewportInstructionTree($options, instructionOrInstructions.children.map(x => ViewportInstruction.create(x, $options.context)), instructionOrInstructions.queryParams, instructionOrInstructions.fragment);
+      return new ViewportInstructionTree(
+        $options,
+        instructionOrInstructions.isAbsolute,
+        instructionOrInstructions.children.map(x => ViewportInstruction.create(x, $options.context)),
+        instructionOrInstructions.queryParams,
+        instructionOrInstructions.fragment,
+      );
     }
 
     if (instructionOrInstructions instanceof Array) {
-      return new ViewportInstructionTree($options, instructionOrInstructions.map(x => ViewportInstruction.create(x, $options.context)), {}, null);
+      return new ViewportInstructionTree(
+        $options,
+        false,
+        instructionOrInstructions.map(x => ViewportInstruction.create(x, $options.context)),
+        {},
+        null,
+      );
     }
 
     if (typeof instructionOrInstructions === 'string') {
@@ -212,7 +225,13 @@ export class ViewportInstructionTree {
       return expr.toInstructionTree($options);
     }
 
-    return new ViewportInstructionTree($options, [ViewportInstruction.create(instructionOrInstructions, $options.context)], {}, null);
+    return new ViewportInstructionTree(
+      $options,
+      false,
+      [ViewportInstruction.create(instructionOrInstructions, $options.context)],
+      {},
+      null,
+    );
   }
 
   public equals(other: ViewportInstructionTree): boolean {

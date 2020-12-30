@@ -121,6 +121,13 @@ export class RouteNode implements IRouteNode {
     }
   }
 
+  public clearChildren(): void {
+    for (const c of this.children) {
+      c.context.vpa.cancelUpdate();
+    }
+    this.children.length = 0;
+  }
+
   public getTitle(separator: string): string | null {
     const titleParts = [
       ...this.children.map(x => x.getTitle(separator)),
@@ -232,13 +239,16 @@ export class RouteTreeCompiler {
   public constructor(
     private readonly routeTree: RouteTree,
     private readonly instructions: ViewportInstructionTree,
-    private readonly ctx: IRouteContext,
+    private ctx: IRouteContext,
   ) {
     this.mode = instructions.options.getRoutingMode(instructions);
     this.resolution = instructions.options.resolutionMode;
     this.swapStrategy = instructions.options.swapStrategy;
     this.logger = ctx.get(ILogger).scopeTo('RouteTreeBuilder');
     this.router = ctx.get(IRouter);
+    if (routeTree.instructions.isAbsolute) {
+      this.ctx = ctx.root;
+    }
   }
 
   /**
@@ -318,13 +328,19 @@ export class RouteTreeCompiler {
         switch (instruction.component.value) {
           case '..':
             // Allow going "too far up" just like directory command `cd..`, simply clamp it to the root
-            return this.compileChildren(instruction, Math.max(depth - 1, 0), false);
+            depth = Math.max(depth - 1, 0);
+            this.ctx = this.ctx.path[depth];
+            this.ctx.node.clearChildren();
+            return this.compileChildren(instruction, depth, false);
           case '.':
             // Ignore '.'
             return this.compileChildren(instruction, depth, false);
           case '~':
             // Go to root
-            return this.compileChildren(instruction, 0, false);
+            depth = 0;
+            this.ctx = this.ctx.path[depth];
+            this.ctx.node.clearChildren();
+            return this.compileChildren(instruction, depth, false);
           default: {
             let node: RouteNode | Promise<RouteNode>;
 
@@ -405,7 +421,7 @@ export class RouteTreeCompiler {
     node.fragment = instructions.fragment;
 
     if (node.context === this.ctx) {
-      node.children.length = 0;
+      node.clearChildren();
       return this.compileChildren(instructions, node.context.depth, instructions.options.append);
     } else {
       return resolveAll(...node.children.map(child => {

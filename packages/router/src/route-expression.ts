@@ -116,6 +116,7 @@ export class RouteExpression {
 
   public constructor(
     public readonly raw: string,
+    public readonly isAbsolute: boolean,
     public readonly root: CompositeSegmentExpressionOrHigher,
     public readonly queryParams: Params,
     public readonly fragment: string | null,
@@ -166,6 +167,7 @@ export class RouteExpression {
     if (path === '') {
       return new RouteExpression(
         '',
+        true,
         SegmentExpression.EMPTY,
         queryParams,
         fragment,
@@ -188,18 +190,19 @@ export class RouteExpression {
      */
     const state = new ParserState(path);
     state.record();
-    state.consumeOptional('/');
+    const isAbsolute = state.consumeOptional('/');
 
     const root = CompositeSegmentExpression.parse(state);
     state.ensureDone();
 
     const raw = state.playback();
-    return new RouteExpression(raw, root, queryParams, fragment, fragmentIsRoute);
+    return new RouteExpression(raw, isAbsolute, root, queryParams, fragment, fragmentIsRoute);
   }
 
   public toInstructionTree(options: NavigationOptions): ViewportInstructionTree {
     return new ViewportInstructionTree(
       options,
+      this.isAbsolute,
       this.root.toInstructions(options.append),
       this.queryParams,
       this.fragment,
@@ -485,8 +488,17 @@ export class ComponentExpression {
   public static parse(state: ParserState): ComponentExpression {
     state.record();
     state.record();
-    while (!state.done && !state.startsWith(...terminal)) {
-      state.advance();
+    if (!state.done) {
+      if (state.startsWith('./')) {
+        state.advance();
+      } else if (state.startsWith('../')) {
+        state.advance();
+        state.advance();
+      } else {
+        while (!state.done && !state.startsWith(...terminal)) {
+          state.advance();
+        }
+      }
     }
 
     const name = decodeURIComponent(state.playback());

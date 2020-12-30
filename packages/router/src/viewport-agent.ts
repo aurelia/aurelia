@@ -708,34 +708,32 @@ export class ViewportAgent {
 
     this.logger.trace(`cancelUpdate(nextNode:%s)`, this.nextNode);
 
-    if (this.currTransition !== null) {
-      switch (this.currState) {
-        case State.currIsEmpty:
-        case State.currIsActive:
-          break;
-        case State.currCanUnload:
-        case State.currCanUnloadDone:
-          this.currState = State.currIsActive;
-          break;
-        case State.currUnload:
-        case State.currDeactivate:
-          // TODO: should schedule an 'undo' action
-          break;
-      }
+    switch (this.currState) {
+      case State.currIsEmpty:
+      case State.currIsActive:
+        break;
+      case State.currCanUnload:
+      case State.currCanUnloadDone:
+        this.currState = State.currIsActive;
+        break;
+      case State.currUnload:
+      case State.currDeactivate:
+        // TODO: should schedule an 'undo' action
+        break;
+    }
 
-      switch (this.nextState) {
-        case State.nextIsEmpty:
-        case State.nextIsScheduled:
-        case State.nextCanLoad:
-        case State.nextCanLoadDone:
-          this.nextNode = null;
-          this.nextState = State.nextIsEmpty;
-          break;
-        case State.nextLoad:
-        case State.nextActivate:
-          // TODO: should schedule an 'undo' action
-          break;
-      }
+    switch (this.nextState) {
+      case State.nextIsEmpty:
+      case State.nextIsScheduled:
+      case State.nextCanLoad:
+      case State.nextCanLoadDone:
+        this.nextNode = null;
+        this.nextState = State.nextIsEmpty;
+        break;
+      case State.nextLoad:
+      case State.nextActivate:
+        // TODO: should schedule an 'undo' action
+        break;
     }
   }
 

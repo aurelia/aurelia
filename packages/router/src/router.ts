@@ -346,6 +346,8 @@ export class Router {
       routeTree = this._routeTree = new RouteTree(
         ViewportInstructionTree.create(''),
         RouteNode.create({
+          path: '',
+          finalPath: '',
           context: ctx,
           instruction: null,
           component: ctx.definition.component!,

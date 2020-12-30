@@ -11,6 +11,8 @@ import { ExpressionKind, RouteExpression, ScopedSegmentExpression, SegmentExpres
 import { ConfigurableRoute } from '@aurelia/route-recognizer';
 
 export interface IRouteNode {
+  path: string;
+  finalPath: string;
   context: IRouteContext;
   instruction: ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent> | null;
   params?: Params;
@@ -35,6 +37,14 @@ export class RouteNode implements IRouteNode {
   }
 
   private constructor(
+    /**
+     * The original configured path pattern that was matched, or the component name if it was resolved via direct routing.
+     */
+    public path: string,
+    /**
+     * If one or more redirects have occurred, then this is the final path match, in all other cases this is identical to `path`
+     */
+    public finalPath: string,
     /**
      * The `RouteContext` associated with this route.
      *
@@ -73,6 +83,8 @@ export class RouteNode implements IRouteNode {
 
   public static create(input: IRouteNode): RouteNode {
     return new RouteNode(
+      /*        path */input.path,
+      /*   finalPath */input.finalPath,
       /*     context */input.context,
       /* instruction */input.instruction,
       /*      params */input.params ?? {},
@@ -156,6 +168,8 @@ export class RouteNode implements IRouteNode {
 
   public clone(): RouteNode {
     const clone = new RouteNode(
+      this.path,
+      this.finalPath,
       this.context,
       this.instruction,
       { ...this.params },
@@ -468,6 +482,8 @@ export class RouteTreeCompiler {
         );
 
         childCtx.node = RouteNode.create({
+          path: recognizedRoute.route.endpoint.route.path,
+          finalPath: route.path,
           context: childCtx,
           instruction,
           params: recognizedRoute.route.params, // TODO: params inheritance
@@ -609,6 +625,8 @@ export class RouteTreeCompiler {
 
     // TODO: add ActionExpression state representation to RouteNode
     childCtx.node = RouteNode.create({
+      path: component.name,
+      finalPath: component.name,
       context: childCtx,
       instruction,
       params: {}, // TODO: get params & do params inheritance

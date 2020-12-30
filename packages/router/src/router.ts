@@ -432,7 +432,7 @@ export class Router {
       // At the time of writing, chromium throttles popstate events at a maximum of ~100 per second.
       // While macroTasks run up to 250 times per second, it is extremely unlikely that more than ~100 per second of these will run due to the double queueing.
       // However, this throttle limit could theoretically be hit by e.g. integration tests that don't mock Location/History.
-      this.p.macroTaskQueue.queueTask(() => {
+      this.p.taskQueue.queueTask(() => {
         // Don't try to restore state that might not have anything to do with the Aurelia app
         const state = isManagedState(e.state) ? e.state : null;
         const options = NavigationOptions.create({
@@ -891,7 +891,7 @@ export class Router {
   private runNextTransition(tr: Transition): void {
     if (this.nextTr !== null) {
       this.logger.trace(`runNextTransition(tr:%s) -> scheduling nextTransition: %s`, tr, this.nextTr);
-      this.p.macroTaskQueue.queueTask(
+      this.p.taskQueue.queueTask(
         () => {
           // nextTransition is allowed to change up until the point when it's actually time to process it,
           // so we need to check it for null again when the scheduled task runs.

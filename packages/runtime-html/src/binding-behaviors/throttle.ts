@@ -18,7 +18,7 @@ export class ThrottleBindingBehavior extends BindingInterceptor {
   ) {
     super(binding, expr);
     this.platform = binding.locator.get(IPlatform);
-    this.taskQueue = this.platform.macroTaskQueue;
+    this.taskQueue = this.platform.taskQueue;
     if (expr.args.length > 0) {
       this.firstArg = expr.args[0];
     }

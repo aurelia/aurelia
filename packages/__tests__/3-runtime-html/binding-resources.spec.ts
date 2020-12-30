@@ -165,7 +165,7 @@ describe('binding-resources', function () {
       assert.strictEqual(component.value, '3', `component keeps change 3`);
       assert.strictEqual(receiver.value, '2', `change 3 not yet propagated to receiver`);
 
-      await ctx.platform.macroTaskQueue.yield();
+      await ctx.platform.taskQueue.yield();
 
       assert.strictEqual(receiver.value, '3', `change 3 propagated`);
 
@@ -220,7 +220,7 @@ describe('binding-resources', function () {
 
         assert.strictEqual(component.events.length, 0, `event 3 not yet propagated`);
 
-        await ctx.platform.macroTaskQueue.yield();
+        await ctx.platform.taskQueue.yield();
 
         assert.strictEqual(component.events.length, 1, `event 3 propagated`);
         assert.strictEqual(component.events[0], event3, `event 3 is the specific event that propagated`);

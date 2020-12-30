@@ -35,7 +35,7 @@ export class Platform<TGlobal extends typeof globalThis = typeof globalThis> {
 
   public readonly performanceNow: () => number;
 
-  public readonly macroTaskQueue: TaskQueue;
+  public readonly taskQueue: TaskQueue;
 
   public constructor(g: TGlobal, overrides: Partial<Exclude<Platform, 'globalThis'>> = {}) {
     this.globalThis = g;
@@ -58,7 +58,7 @@ export class Platform<TGlobal extends typeof globalThis = typeof globalThis> {
     this.performanceNow = 'performanceNow' in overrides ? overrides.performanceNow! : g.performance?.now?.bind(g.performance) ?? notImplemented('performance.now');
 
     this.flushMacroTask = this.flushMacroTask.bind(this);
-    this.macroTaskQueue = new TaskQueue(this, this.requestMacroTask.bind(this), this.cancelMacroTask.bind(this));
+    this.taskQueue = new TaskQueue(this, this.requestMacroTask.bind(this), this.cancelMacroTask.bind(this));
   }
 
   public static getOrCreate<TGlobal extends typeof globalThis = typeof globalThis>(
@@ -95,7 +95,7 @@ export class Platform<TGlobal extends typeof globalThis = typeof globalThis> {
     this.macroTaskHandle = -1;
     if (this.macroTaskRequested === true) {
       this.macroTaskRequested = false;
-      this.macroTaskQueue.flush();
+      this.taskQueue.flush();
     }
   }
 }

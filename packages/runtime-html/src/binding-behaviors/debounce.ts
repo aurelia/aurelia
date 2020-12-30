@@ -15,7 +15,7 @@ export class DebounceBindingBehavior extends BindingInterceptor {
     expr: BindingBehaviorExpression,
   ) {
     super(binding, expr);
-    this.taskQueue = binding.locator.get(IPlatform).macroTaskQueue;
+    this.taskQueue = binding.locator.get(IPlatform).taskQueue;
     if (expr.args.length > 0) {
       this.firstArg = expr.args[0];
     }

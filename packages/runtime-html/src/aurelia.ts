@@ -59,7 +59,7 @@ export class Aurelia implements IDisposable {
     const platform = this.root.platform;
     await platform.domWriteQueue.yield();
     await platform.domReadQueue.yield();
-    await platform.macroTaskQueue.yield();
+    await platform.taskQueue.yield();
   }
 
   private initPlatform(host: HTMLElement): IPlatform {

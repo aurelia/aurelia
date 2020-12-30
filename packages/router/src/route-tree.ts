@@ -626,6 +626,9 @@ export class RouteTreeCompiler {
       viewportAgent.hostController.context,
     );
 
+    // TODO(fkleuver): process redirects in direct routing (?)
+    const routeDef = RouteDefinition.resolve(component);
+
     // TODO: add ActionExpression state representation to RouteNode
     childCtx.node = RouteNode.create({
       path: component.name,
@@ -638,7 +641,7 @@ export class RouteTreeCompiler {
       },
       queryParams: this.instructions.queryParams, // TODO: queryParamsStrategy
       fragment: this.instructions.fragment, // TODO: fragmentStrategy
-      data: {}, // TODO: pass in data from instruction
+      data: routeDef.data,
       viewport: viewportName,
       component,
       append,

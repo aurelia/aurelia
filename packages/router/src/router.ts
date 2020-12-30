@@ -7,7 +7,7 @@ import { IRouterEvents, NavigationStartEvent, NavigationEndEvent, NavigationCanc
 import { ILocationManager } from './location-manager.js';
 import { RouteType } from './route.js';
 import { IRouteViewModel } from './component-agent.js';
-import { RouteTree, RouteNode, RouteTreeCompiler } from './route-tree.js';
+import { RouteTree, RouteNode, updateRouteTree } from './route-tree.js';
 import { IViewportInstruction, NavigationInstruction, RouteContextLike, ViewportInstructionTree, Params } from './instructions.js';
 import { Batch, mergeDistinct, UnwrapPromise } from './util.js';
 import { RouteDefinition } from './route-definition.js';
@@ -56,11 +56,10 @@ export class RouterOptions {
      *
      * - `configured-only`: only match the url against configured routes.
      * - `configured-first`: first tries to resolve by configured routes, then by component name from available dependencies. (default)
-     * - A function that returns one of the 2 above values based on the navigation.
      *
      * Default: `configured-first`
      */
-    public readonly routingMode: ValueOrFunc<RoutingMode>,
+    public readonly routingMode: RoutingMode,
     public readonly swapStrategy: SwapStrategy,
     public readonly resolutionMode: ResolutionMode,
     /**
@@ -120,10 +119,6 @@ export class RouterOptions {
       input.historyStrategy ?? 'push',
       input.sameUrlStrategy ?? 'ignore',
     );
-  }
-  /** @internal */
-  public getRoutingMode(instructions: ViewportInstructionTree): RoutingMode {
-    return valueOrFuncToValue(instructions, this.routingMode);
   }
   /** @internal */
   public getQueryParamsStrategy(instructions: ViewportInstructionTree): QueryParamsStrategy {
@@ -774,7 +769,7 @@ export class Router {
 
     tr.run(() => {
       this.logger.trace(`run() - compiling route tree: %s`, tr.finalInstructions);
-      return RouteTreeCompiler.compileRoot(this.routeTree, tr.finalInstructions, navigationContext);
+      return updateRouteTree(tr.routeTree, tr.finalInstructions, navigationContext);
     }, () => {
       this.instructions = tr.finalInstructions;
 

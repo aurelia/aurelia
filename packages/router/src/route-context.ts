@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import { Constructable, ResourceType, IContainer, IResourceKind, ResourceDefinition, Key, IResolver, Resolved, IFactory, Transformer, DI, InstanceProvider, Registration, ILogger, IModuleLoader, IModule, onResolve } from '@aurelia/kernel';
+import { Constructable, ResourceType, IContainer, IResourceKind, ResourceDefinition, Key, IResolver, Resolved, IFactory, Transformer, DI, InstanceProvider, Registration, ILogger, IModuleLoader, IModule, onResolve, noop } from '@aurelia/kernel';
 import { CustomElementDefinition, CustomElement, ICustomElementController, IController, isCustomElementViewModel, isCustomElementController, IAppRoot, IPlatform } from '@aurelia/runtime-html';
 import { RouteRecognizer, RecognizedRoute } from '@aurelia/route-recognizer';
 
@@ -54,8 +54,15 @@ export class RouteContext implements IContainer {
   public readonly childRoutes: (RouteDefinition | Promise<RouteDefinition>)[] = [];
 
   private _resolved: Promise<void> | null = null;
+  /** @internal */
   public get resolved(): Promise<void> | null {
     return this._resolved;
+  }
+
+  private _allResolved: Promise<void> | null = null;
+  /** @internal */
+  public get allResolved(): Promise<void> | null {
+    return this._allResolved;
   }
 
   private prevNode: RouteNode | null = null;
@@ -149,9 +156,12 @@ export class RouteContext implements IContainer {
     this.recognizer = new RouteRecognizer();
 
     const promises: Promise<void>[] = [];
+    const allPromises: Promise<void>[] = [];
     for (const child of definition.config.children) {
       if (child instanceof Promise) {
-        promises.push(this.addRoute(child));
+        const p = this.addRoute(child);
+        promises.push(p);
+        allPromises.push(p);
       } else {
         const routeDef = RouteDefinition.resolve(child, this);
         if (routeDef instanceof Promise) {
@@ -159,7 +169,12 @@ export class RouteContext implements IContainer {
             for (const path of ensureArrayOfStrings(child.path)) {
               this.$addRoute(path, child.caseSensitive ?? false, routeDef);
             }
-            this.childRoutes.push(routeDef);
+            const idx = this.childRoutes.length;
+            const p = routeDef.then(resolvedRouteDef => {
+              return this.childRoutes[idx] = resolvedRouteDef;
+            });
+            this.childRoutes.push(p);
+            allPromises.push(p.then(noop));
           } else {
             throw new Error(`Invalid route config. When the component property is a lazy import, the path must be specified. To use lazy loading without specifying the path (e.g. in direct routing), pass the import promise as a direct value to the routes array instead of providing it as the component property on an object literal.`);
           }
@@ -175,6 +190,11 @@ export class RouteContext implements IContainer {
     if (promises.length > 0) {
       this._resolved = Promise.all(promises).then(() => {
         this._resolved = null;
+      });
+    }
+    if (allPromises.length > 0) {
+      this._allResolved = Promise.all(allPromises).then(() => {
+        this._allResolved = null;
       });
     }
   }

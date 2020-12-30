@@ -6,9 +6,9 @@ import { IHydratedController, LifecycleFlags, ICustomElementController, Controll
 
 import { IViewport } from './resources/viewport.js';
 import { ComponentAgent } from './component-agent.js';
-import { RouteNode, RouteTreeCompiler } from './route-tree.js';
+import { processResidue, getDynamicChildren, RouteNode } from './route-tree.js';
 import { IRouteContext } from './route-context.js';
-import { Transition, ResolutionMode, SwapStrategy } from './router.js';
+import { Transition, ResolutionMode, NavigationOptions } from './router.js';
 import { TransitionPlan } from './route.js';
 import { Batch, mergeDistinct } from './util.js';
 
@@ -265,7 +265,7 @@ export class ViewportAgent {
           // By calling `compileResidue` here on the current context, we're ensuring that such nodes are created and
           // their target viewports have the appropriate updates scheduled.
           b1.push();
-          void onResolve(RouteTreeCompiler.compileResidue(next.tree, next.tree.instructions, next.context), () => {
+          void onResolve(processResidue(next), () => {
             b1.pop();
           });
           return;
@@ -279,7 +279,7 @@ export class ViewportAgent {
             case 'static':
               this.logger.trace(`canLoad(next:%s) - (resolution: '${this.$resolution}'), creating nextCA and compiling residue`, next, this.$plan);
               b1.push();
-              void onResolve(RouteTreeCompiler.compileResidue(next.tree, next.tree.instructions, next.context), () => {
+              void onResolve(processResidue(next), () => {
                 b1.pop();
               });
               return;
@@ -485,7 +485,7 @@ export class ViewportAgent {
             }
           }
         }).continueWith(b1 => {
-          this.processResidue(tr, b1);
+          this.processDynamicChildren(tr, b1);
         }).continueWith(() => {
           b.pop();
         }).start();
@@ -552,7 +552,7 @@ export class ViewportAgent {
                 b1.pop();
               });
             }).continueWith(b1 => {
-              this.processResidue(tr, b1);
+              this.processDynamicChildren(tr, b1);
             }).continueWith(() => {
               tr.run(() => {
                 return curCA.deactivate(null, controller, deactivateFlags);
@@ -577,7 +577,7 @@ export class ViewportAgent {
                 b1.pop();
               });
             }).continueWith(b1 => {
-              this.processResidue(tr, b1);
+              this.processDynamicChildren(tr, b1);
             }).continueWith(() => {
               b.pop();
             }).start();
@@ -597,7 +597,7 @@ export class ViewportAgent {
                 b1.pop();
               });
             }).continueWith(b1 => {
-              this.processResidue(tr, b1);
+              this.processDynamicChildren(tr, b1);
             }).continueWith(() => {
               b.pop();
             }).start();
@@ -607,13 +607,13 @@ export class ViewportAgent {
     }
   }
 
-  private processResidue(tr: Transition, b: Batch): void {
-    this.logger.trace(`processResidue() - %s`, this);
+  private processDynamicChildren(tr: Transition, b: Batch): void {
+    this.logger.trace(`processDynamicChildren() - %s`, this);
     const next = this.nextNode!;
 
     tr.run(() => {
       b.push();
-      return RouteTreeCompiler.compileResidue(next.tree, next.tree.instructions, next.context);
+      return getDynamicChildren(next);
     }, newChildren => {
       Batch.start(b1 => {
         for (const node of newChildren) {
@@ -657,12 +657,12 @@ export class ViewportAgent {
     }
   }
 
-  public scheduleUpdate(resolution: ResolutionMode, swapStrategy: SwapStrategy, next: RouteNode): void {
+  public scheduleUpdate(options: NavigationOptions, next: RouteNode): void {
     switch (this.nextState) {
       case State.nextIsEmpty:
         this.nextNode = next;
         this.nextState = State.nextIsScheduled;
-        this.$resolution = resolution;
+        this.$resolution = options.resolutionMode;
         break;
       default:
         this.unexpectedState('scheduleUpdate 1');

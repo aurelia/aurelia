@@ -3,7 +3,7 @@ import { ILogger, resolveAll, onResolve, emptyArray } from '@aurelia/kernel';
 import { CustomElementDefinition, CustomElement } from '@aurelia/runtime-html';
 
 import { IRouteContext, $RecognizedRoute } from './route-context.js';
-import { RoutingMode, ResolutionMode, SwapStrategy, IRouter } from './router.js';
+import { RoutingMode, ResolutionMode, SwapStrategy, IRouter, QueryParamsStrategy } from './router.js';
 import { ViewportInstructionTree, ViewportInstruction, NavigationInstructionType, Params, ITypedNavigationInstruction_ResolvedComponent } from './instructions.js';
 import { RouteDefinition } from './route-definition.js';
 import { ViewportRequest } from './viewport-agent.js';
@@ -486,7 +486,10 @@ export class RouteTreeCompiler {
           finalPath: route.path,
           context: childCtx,
           instruction,
-          params: recognizedRoute.route.params, // TODO: params inheritance
+          params: {
+            ...ctx.node.params,
+            ...recognizedRoute.route.params
+          },
           queryParams: this.instructions.queryParams, // TODO: queryParamsStrategy
           fragment: this.instructions.fragment, // TODO: fragmentStrategy
           data: route.handler.data,
@@ -629,7 +632,10 @@ export class RouteTreeCompiler {
       finalPath: component.name,
       context: childCtx,
       instruction,
-      params: {}, // TODO: get params & do params inheritance
+      params: {
+        ...ctx.node.params,
+        ...instruction.params,
+      },
       queryParams: this.instructions.queryParams, // TODO: queryParamsStrategy
       fragment: this.instructions.fragment, // TODO: fragmentStrategy
       data: {}, // TODO: pass in data from instruction

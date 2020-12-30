@@ -35,7 +35,7 @@ import { IRoute } from './route.js';
  */
 
 /**
- * @internal - Shouldn't be used directly
+ * @internal
  */
 export interface INavigatorStore {
   readonly length: number;
@@ -84,7 +84,7 @@ export interface IStoredNavigatorEntry {
   scope?: RoutingScope | null;
   index?: number;
   firstEntry?: boolean; // Index might change to not require first === 0, firstEntry should be reliable
-  route?: IRoute;
+  // route?: IRoute;
   path?: string;
   title?: string;
   query?: string;
@@ -159,7 +159,7 @@ export class Navigator {
   private readonly uninitializedEntry: Navigation;
 
   public constructor() {
-    this.uninitializedEntry = new Navigation({
+    this.uninitializedEntry = Navigation.create({
       instruction: 'NAVIGATOR UNINITIALIZED',
       fullStateInstruction: '',
     });
@@ -213,7 +213,7 @@ export class Navigator {
         navigationFlags.first = true;
         navigationFlags.new = true;
         // TODO: Should this really be created here? Shouldn't it be in the viewer?
-        this.currentEntry = new Navigation({
+        this.currentEntry =Navigation.create({
           index: 0,
           instruction: '',
           fullStateInstruction: '',
@@ -288,9 +288,9 @@ export class Navigator {
   // Load a stored state into Navigation entries
   public loadState(): void {
     const state = this.getState();
-    this.entries = state.entries.map(entry => new Navigation(entry));
+    this.entries = state.entries.map(entry => Navigation.create(entry));
     this.currentEntry = state.currentEntry !== null
-      ? new Navigation(state.currentEntry)
+      ? Navigation.create(state.currentEntry)
       : this.uninitializedEntry;
   }
 
@@ -299,8 +299,8 @@ export class Navigator {
     if (this.currentEntry === this.uninitializedEntry) {
       return Promise.resolve();
     }
-    const storedEntry = this.currentEntry.toStored();
-    this.entries[storedEntry.index !== void 0 ? storedEntry.index : 0] = new Navigation(storedEntry);
+    const storedEntry = this.currentEntry.toStoredNavigation();
+    this.entries[storedEntry.index !== void 0 ? storedEntry.index : 0] = Navigation.create(storedEntry);
 
     // If preserving history, serialize entries that aren't preserved
     if (this.options.statefulHistoryLength! > 0) {
@@ -402,7 +402,7 @@ export class Navigator {
   }
 
   private invokeCallback(entry: Navigation, navigationFlags: INavigationFlags, previousEntry: Navigation): void {
-    const instruction: Navigation = new Navigation({ ...entry });
+    const instruction: Navigation = Navigation.create({ ...entry });
     instruction.navigation = navigationFlags;
     instruction.previous = previousEntry;
     if (this.options.callback) {
@@ -411,7 +411,7 @@ export class Navigator {
   }
 
   private toStoreableEntry(entry: Navigation | IStoredNavigation): IStoredNavigation {
-    const storeable = entry instanceof Navigation ? entry.toStored() : entry;
+    const storeable = entry instanceof Navigation ? entry.toStoredNavigation() : entry;
     storeable.instruction = this.router.instructionResolver.stringifyRoutingInstructions(storeable.instruction);
     storeable.fullStateInstruction = this.router.instructionResolver.stringifyRoutingInstructions(storeable.fullStateInstruction);
     if (typeof storeable.scope !== 'string') {

@@ -103,7 +103,7 @@ export class Router implements IRouter {
   /**
    * Public API
    */
-  public activeRoute?: Route;
+  // public activeRoute?: Route;
 
   /**
    * @internal
@@ -192,7 +192,7 @@ export class Router implements IRouter {
 
     Object.assign(RouterOptions, options);
 
-    if (RouterOptions.hooks !== void 0) {
+    if (Array.isArray(RouterOptions.hooks)) {
       RouterOptions.hooks.forEach(hook => RoutingHook.add(hook.hook, hook.options));
     }
 
@@ -218,23 +218,6 @@ export class Router implements IRouter {
   /**
    * Public API
    */
-  public async loadUrl(): Promise<boolean | void> {
-    const entry = new Navigation({
-      ...this.navigation.viewerState,
-      ...{
-        fullStateInstruction: '',
-        replacing: true,
-        fromBrowser: false,
-      }
-    });
-    const result = this.navigator.navigate(entry);
-    this.loadedFirst = true;
-    return result;
-  }
-
-  /**
-   * Public API
-   */
   public stop(): void {
     if (!this.isActive) {
       throw new Error('Router has not been started');
@@ -245,6 +228,23 @@ export class Router implements IRouter {
     RouterOptions.resetDefaults();
 
     this.navigatorStateChangeEventSubscription.dispose();
+  }
+
+  /**
+   * @internal
+   */
+  public async loadUrl(): Promise<boolean | void> {
+    const entry = Navigation.create({
+      ...this.navigation.viewerState,
+      ...{
+        fullStateInstruction: '',
+        replacing: true,
+        fromBrowser: false,
+      }
+    });
+    const result = this.navigator.navigate(entry);
+    this.loadedFirst = true;
+    return result;
   }
 
   /**
@@ -330,15 +330,18 @@ export class Router implements IRouter {
   // eslint-disable-next-line @typescript-eslint/typedef
   public browserNavigatorCallback = (browserNavigationEvent: NavigatorViewerEvent): void => {
     console.log('browserNavigatorCallback', browserNavigationEvent);
-    const entry = new Navigation(browserNavigationEvent.state?.currentEntry);
+    const entry = Navigation.create(browserNavigationEvent.state?.currentEntry);
     entry.instruction = browserNavigationEvent.instruction;
     entry.fromBrowser = true;
     this.navigator.navigate(entry).catch(error => { throw error; });
   };
 
+  /**
+   * @internal
+   */
   public handleNavigatorStateChangeEvent = (event: NavigatorStateChangeEvent): void => {
     console.log('handleNavigatorStateChangeEvent', event);
-    const entry = new Navigation(event.state?.currentEntry);
+    const entry = Navigation.create(event.state?.currentEntry);
     entry.instruction = event.instruction;
     entry.fromBrowser = true;
     this.navigator.navigate(entry).catch(error => { throw error; });
@@ -714,28 +717,18 @@ export class Router implements IRouter {
   public async load(instructions: LoadInstruction | LoadInstruction[], options?: ILoadOptions): Promise<boolean | void> {
     options = options ?? {};
     instructions = this.extractQuery(instructions, options);
-    // // TODO: Review query extraction; different pos for path and fragment!
-    // if (typeof instructions === 'string' && !options.query) {
-    //   const [path, search] = instructions.split('?');
-    //   instructions = path;
-    //   options.query = search;
-    // }
-    // const toOptions: IRoutingInstructionsOptions = {};
-    // if (options.origin) {
-    //   toOptions.context = options.origin;
-    // }
 
     let scope: RoutingScope | null = null;
     ({ instructions, scope } = LoadInstructionResolver.createRoutingInstructions(this, instructions, options));
 
-    if (options.append && (!this.loadedFirst || this.processingNavigation !== null)) {
+    if ((options.append ?? false) && (!this.loadedFirst || this.processingNavigation !== null)) {
       instructions = LoadInstructionResolver.toRoutingInstructions(this, instructions);
       this.appendInstructions(instructions as RoutingInstruction[], scope);
       // Can't return current navigation promise since it can lead to deadlock in load
       return Promise.resolve();
     }
 
-    const entry = new Navigation({
+    const entry = Navigation.create({
       instruction: instructions as RoutingInstruction[],
       fullStateInstruction: '',
       scope: scope,
@@ -1005,7 +998,7 @@ export class Router implements IRouter {
     }
 
     this.activeComponents = instructions;
-    this.activeRoute = navigation.route;
+    // this.activeRoute = navigation.route;
 
     // First invoke with viewport instructions (should it perhaps get full state?)
     let state = await RoutingHook.invokeTransformToUrl(instructions, navigation);

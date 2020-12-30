@@ -3,10 +3,10 @@ import { customElement, ICustomElementController } from '@aurelia/runtime-html';
 import { IRouterOptions, ResolutionMode, SwapStrategy, route, Route } from '@aurelia/router';
 import { assert } from '@aurelia/testing';
 
-import { IHookInvocationAggregator, IHIAConfig, HookName } from './_shared/hook-invocation-tracker';
-import { HookSpecs, TestRouteViewModelBase } from './_shared/view-models';
-import { hookSpecsMap, verifyInvocationsEqual } from './_shared/hook-spec';
-import { createFixture, IActivityTracker } from './_shared/create-fixture';
+import { IHookInvocationAggregator, IHIAConfig, HookName } from './_shared/hook-invocation-tracker.js';
+import { HookSpecs, TestRouteViewModelBase } from './_shared/view-models.js';
+import { hookSpecsMap, verifyInvocationsEqual } from './_shared/hook-spec.js';
+import { createFixture, IActivityTracker } from './_shared/create-fixture.js';
 
 function vp(count: number): string {
   if (count === 1) {

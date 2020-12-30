@@ -3,7 +3,7 @@ import { assert, TestContext } from '@aurelia/testing';
 import { RouterConfiguration, IRouter, NavigationInstruction, IRouteContext, RouteNode } from '@aurelia/router';
 import { Aurelia, customElement, CustomElement } from '@aurelia/runtime-html';
 
-import { TestRouterConfiguration } from './_shared/configuration';
+import { TestRouterConfiguration } from './_shared/configuration.js';
 
 function vp(count: number): string {
   return '<au-viewport></au-viewport>'.repeat(count);

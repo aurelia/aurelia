@@ -218,7 +218,7 @@ class Notifier {
   }
 }
 
-const INotifierConfig = DI.createInterface<INotifierConfig>('INotifierConfig').noDefault();
+const INotifierConfig = DI.createInterface<INotifierConfig>('INotifierConfig');
 interface INotifierConfig extends NotifierConfig {}
 class NotifierConfig {
   public constructor(
@@ -227,7 +227,7 @@ class NotifierConfig {
   ) {}
 }
 
-const INotifierManager = DI.createInterface<INotifierManager>('INotifierManager').withDefault(x => x.singleton(NotifierManager));
+const INotifierManager = DI.createInterface<INotifierManager>('INotifierManager', x => x.singleton(NotifierManager));
 interface INotifierManager extends NotifierManager {}
 class NotifierManager {
   public readonly entryNotifyHistory: string[] = [];

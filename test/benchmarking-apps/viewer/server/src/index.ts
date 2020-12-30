@@ -5,7 +5,7 @@ import { FileServer, HttpContextState, HttpServer, HttpServerOptions, HTTPStatus
 
 const required = Symbol('required') as unknown as string;
 const optional = void 0 as unknown as string;
-export const IProcessEnv = DI.createInterface<IProcessEnv>('IProcessEnv').withDefault(x => x.instance(new ProcessEnv(process.env)));
+export const IProcessEnv = DI.createInterface<IProcessEnv>('IProcessEnv', x => x.instance(new ProcessEnv(process.env)));
 export interface IProcessEnv extends ProcessEnv {}
 export class ProcessEnv {
   public static readonly names = [
@@ -51,7 +51,7 @@ export class ProcessEnv {
 }
 
 export interface ICosmosClient extends CosmosClient {}
-export const ICosmosClient = DI.createInterface<ICosmosClient>('ICosmosClient').withDefault(x => x.cachedCallback(handler => {
+export const ICosmosClient = DI.createInterface<ICosmosClient>('ICosmosClient', x => x.cachedCallback(handler => {
   const processEnv = handler.get(IProcessEnv);
 
   return new CosmosClient({
@@ -61,7 +61,7 @@ export const ICosmosClient = DI.createInterface<ICosmosClient>('ICosmosClient').
 }));
 
 export interface IFileServer extends FileServer {}
-export const IFileServer = DI.createInterface<IFileServer>('IFileServer').withDefault(x => x.cachedCallback(handler => {
+export const IFileServer = DI.createInterface<IFileServer>('IFileServer', x => x.cachedCallback(handler => {
   const opts = handler.get(IHttpServerOptions);
   const logger = handler.get(ILogger);
 

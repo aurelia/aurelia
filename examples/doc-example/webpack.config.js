@@ -20,7 +20,6 @@ module.exports = function (env, { mode }) {
       historyApiFallback: true,
       open: !process.env.CI,
       port: 9000,
-      lazy: false
     },
     module: {
       rules: [

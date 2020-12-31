@@ -24,7 +24,6 @@ module.exports = function (env, { mode }) {
       port: 9000,
       historyApiFallback: true,
       open: true,
-      lazy: false,
     },
     module: {
       rules: [

@@ -1,4 +1,3 @@
-const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 const baseUrl = '/';
@@ -20,9 +19,7 @@ module.exports = function () {
       },
     },
     devServer: {
-      // contentBase: path.join(__dirname, "dist"),
       historyApiFallback: true,
-      // lazy: false,
     },
     output: {
       publicPath: baseUrl,

@@ -152,6 +152,21 @@ export class RouterOptions {
     }).join(',');
   }
 
+  public clone(): RouterOptions {
+    return new RouterOptions(
+      this.useUrlFragmentHash,
+      this.useHref,
+      this.statefulHistoryLength,
+      this.routingMode,
+      this.swapStrategy,
+      this.resolutionMode,
+      this.queryParamsStrategy,
+      this.fragmentStrategy,
+      this.historyStrategy,
+      this.sameUrlStrategy,
+    );
+  }
+
   public toString(): string {
     return `RO(${this.stringifyProperties()})`;
   }
@@ -213,6 +228,19 @@ export class NavigationOptions extends RouterOptions {
       input.queryParams ?? null,
       input.fragment ?? '',
       input.state ?? null,
+    );
+  }
+
+  public clone(): NavigationOptions {
+    return new NavigationOptions(
+      super.clone(),
+      this.title,
+      this.titleSeparator,
+      this.append,
+      this.context,
+      { ...this.queryParams },
+      this.fragment,
+      this.state === null ? null : { ...this.state },
     );
   }
 
@@ -339,7 +367,9 @@ export class Router {
       // Doing it here instead of in the constructor to delay it until we have the context.
       const ctx = this.ctx;
       routeTree = this._routeTree = new RouteTree(
-        ViewportInstructionTree.create(''),
+        NavigationOptions.create({ ...this.options }),
+        {},
+        null,
         RouteNode.create({
           path: '',
           finalPath: '',
@@ -643,7 +673,6 @@ export class Router {
     failedTr: Transition | null,
   ): boolean | Promise<boolean> {
     const lastTr = this.currentTr;
-    lastTr.finalInstructions = this.instructions;
 
     if (trigger !== 'api' && lastTr.trigger === 'api' && lastTr.instructions.equals(instructions)) {
       // User-triggered navigation that results in `replaceState` with the same URL. The API call already triggered the navigation; event is ignored.
@@ -681,8 +710,8 @@ export class Router {
       promise,
       resolve,
       reject,
-      previousRouteTree: this.routeTree.clone(),
-      routeTree: this.routeTree,
+      previousRouteTree: this.routeTree,
+      routeTree: this._routeTree = this.routeTree.clone(),
       guardsResult: true,
       error: void 0,
     });
@@ -771,8 +800,6 @@ export class Router {
       this.logger.trace(`run() - compiling route tree: %s`, tr.finalInstructions);
       return updateRouteTree(tr.routeTree, tr.finalInstructions, navigationContext);
     }, () => {
-      this.instructions = tr.finalInstructions;
-
       const prev = tr.previousRouteTree.root.children;
       const next = tr.routeTree.root.children;
       const all = mergeDistinct(prev, next);
@@ -820,6 +847,7 @@ export class Router {
         });
         this.navigated = true;
 
+        this.instructions = tr.finalInstructions = tr.routeTree.finalizeInstructions();
         this.events.publish(new NavigationEndEvent(tr.id, tr.instructions, this.instructions));
 
         this.lastSuccessfulNavigation = this.activeNavigation;

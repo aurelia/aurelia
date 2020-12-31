@@ -94,6 +94,31 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
     return new ViewportInstruction(context ?? null, false, typedInstruction, null, null, []);
   }
 
+  public contains(other: ViewportInstruction): boolean {
+    const thisChildren = this.children;
+    const otherChildren = other.children;
+    if (thisChildren.length < otherChildren.length) {
+      return false;
+    }
+
+    if (
+      // TODO(fkleuver): decide if we really need to include `context` in this comparison
+      !this.component.equals(other.component) ||
+      this.viewport !== other.viewport ||
+      !shallowEquals(this.params, other.params)
+    ) {
+      return false;
+    }
+
+    for (let i = 0, ii = otherChildren.length; i < ii; ++i) {
+      if (!thisChildren[i].contains(otherChildren[i])) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
   public equals(other: ViewportInstruction): boolean {
     const thisChildren = this.children;
     const otherChildren = other.children;
@@ -117,6 +142,17 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
     }
 
     return true;
+  }
+
+  public clone(): this {
+    return new ViewportInstruction(
+      this.context,
+      this.append,
+      this.component.clone(),
+      this.viewport,
+      this.params === null ? null : { ...this.params },
+      [...this.children],
+    ) as this;
   }
 
   public toUrlComponent(): string {
@@ -259,7 +295,6 @@ export class ViewportInstructionTree {
   }
 }
 
-/* eslint-disable no-shadow */
 export const enum NavigationInstructionType {
   string,
   ViewportInstruction,
@@ -267,7 +302,6 @@ export const enum NavigationInstructionType {
   Promise,
   IRouteViewModel,
 }
-/* eslint-enable no-shadow */
 export interface ITypedNavigationInstruction<
   TInstruction extends NavigationInstruction,
   TType extends NavigationInstructionType
@@ -276,6 +310,7 @@ export interface ITypedNavigationInstruction<
   readonly value: TInstruction;
   equals(other: ITypedNavigationInstruction_T): boolean;
   toUrlComponent(): string;
+  clone(): this;
 }
 export interface ITypedNavigationInstruction_string extends ITypedNavigationInstruction<string, NavigationInstructionType.string> {}
 export interface ITypedNavigationInstruction_ViewportInstruction extends ITypedNavigationInstruction<ViewportInstruction, NavigationInstructionType.ViewportInstruction> {}
@@ -357,6 +392,13 @@ export class TypedNavigationInstruction<TInstruction extends NavigationInstructi
       case NavigationInstructionType.ViewportInstruction:
         return this.type === other.type && this.value.equals(other.value);
     }
+  }
+
+  public clone(): this {
+    return new TypedNavigationInstruction(
+      this.type,
+      this.value
+    ) as this;
   }
 
   public toUrlComponent(this: ITypedNavigationInstruction_T): string {

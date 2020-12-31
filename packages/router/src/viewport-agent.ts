@@ -782,7 +782,7 @@ export class ViewportAgent {
                   this.curCA = this.nextCA;
                   break;
               }
-              this.currNode = this.nextNode!.clone();
+              this.currNode = this.nextNode!;
               break;
             default:
               this.unexpectedState('endTransition 2');

@@ -75,6 +75,7 @@ describe('route-expression', function () {
 
           specs[`/${raw}`] = new RouteExpression(
             `/${raw}`,
+            true,
             new SegmentExpression(raw, component, action, viewport, scoped),
             emptyObject,
             null,
@@ -82,6 +83,7 @@ describe('route-expression', function () {
           );
           specs[`/(${raw})`] = new RouteExpression(
             `/(${raw})`,
+            true,
             new SegmentGroupExpression(
               `(${raw})`,
               new SegmentExpression(raw, component, action, viewport, scoped),
@@ -93,6 +95,7 @@ describe('route-expression', function () {
 
           specs[`/${raw}/${raw}`] = new RouteExpression(
             `/${raw}/${raw}`,
+            true,
             new ScopedSegmentExpression(
               `${raw}/${raw}`,
               new SegmentExpression(raw, component, action, viewport, scoped),
@@ -105,6 +108,7 @@ describe('route-expression', function () {
 
           specs[`/${raw}+${raw}`] = new RouteExpression(
             `/${raw}+${raw}`,
+            true,
             new CompositeSegmentExpression(
               `${raw}+${raw}`,
               [
@@ -372,7 +376,7 @@ describe('route-expression', function () {
 
   for (const path in x) {
     const route = x[path];
-    specs[`/${route.raw}`] = new RouteExpression(`/${route.raw}`, route, emptyObject, null, false);
+    specs[`/${route.raw}`] = new RouteExpression(`/${route.raw}`, true, route, emptyObject, null, false);
   }
 
   for (const path in specs) {

@@ -197,10 +197,8 @@ export class Router implements IRouter {
 
     this.instructionResolver.start({ separators: RouterOptions.separators });
     this.navigator.start({
-      // callback: this.navigatorCallback,
       store: this.navigation,
       statefulHistoryLength: RouterOptions.statefulHistoryLength,
-      // serializeCallback: this.statefulHistory ? this.navigatorSerializeCallback : void 0,
     });
     this.linkHandler.start({ callback: this.linkCallback, useHref: RouterOptions.useHref });
 
@@ -269,81 +267,18 @@ export class Router implements IRouter {
   /**
    * @internal
    */
-  // TODO: use @bound and improve name (eslint-disable is temp)
+  // TODO: use @bound (eslint-disable is temp)
   // eslint-disable-next-line @typescript-eslint/typedef
-  public navigatorCallback = (instruction: Navigation): void => {
-    // Instructions extracted from queue, one at a time
-    this.processNavigation(instruction).catch(error => { throw error; });
-  };
   public handleNavigatorNavigateEvent = (event: NavigatorNavigateEvent): void => {
     // Instructions extracted from queue, one at a time
     this.processNavigation(event).catch(error => { throw error; });
   };
 
-  // /**
-  //  * @internal
-  //  */
-  // // TODO: use @bound and improve name (eslint-disable is temp)
-  // // eslint-disable-next-line @typescript-eslint/typedef
-  // public navigatorSerializeCallback = async (entry: IStoredNavigation, preservedEntries: IStoredNavigation[]): Promise<IStoredNavigation> => {
-  //   let excludeComponents = [];
-  //   for (const preservedEntry of preservedEntries) {
-  //     if (typeof preservedEntry.instruction !== 'string') {
-  //       excludeComponents.push(...this.instructionResolver.flattenRoutingInstructions(preservedEntry.instruction)
-  //         .filter(instruction => instruction.viewport.instance !== null)
-  //         .map(instruction => instruction.component.instance));
-  //     }
-  //     if (typeof preservedEntry.fullStateInstruction !== 'string') {
-  //       excludeComponents.push(...this.instructionResolver.flattenRoutingInstructions(preservedEntry.fullStateInstruction)
-  //         .filter(instruction => instruction.viewport.instance !== null)
-  //         .map(instruction => instruction.component.instance));
-  //     }
-  //   }
-  //   excludeComponents = excludeComponents.filter(
-  //     (component, i, arr) => component !== null && arr.indexOf(component) === i
-  //   ) as IRouteableComponent[];
-
-  //   const serialized: IStoredNavigation = { ...entry };
-  //   let instructions = [];
-  //   if (serialized.fullStateInstruction && typeof serialized.fullStateInstruction !== 'string') {
-  //     instructions.push(...serialized.fullStateInstruction);
-  //     serialized.fullStateInstruction = this.instructionResolver.stringifyRoutingInstructions(serialized.fullStateInstruction);
-  //   }
-  //   if (serialized.instruction && typeof serialized.instruction !== 'string') {
-  //     instructions.push(...serialized.instruction);
-  //     serialized.instruction = this.instructionResolver.stringifyRoutingInstructions(serialized.instruction);
-  //   }
-  //   instructions = instructions.filter(
-  //     (instruction, i, arr) =>
-  //       instruction !== null
-  //       && instruction.component.instance !== null
-  //       && arr.indexOf(instruction) === i
-  //   );
-
-  //   const alreadyDone: IRouteableComponent[] = [];
-  //   for (const instruction of instructions) {
-  //     console.log('AWAIT freeComponents');
-  //     await this.freeComponents(instruction, excludeComponents, alreadyDone);
-  //   }
-  //   return serialized;
-  // };
-
   /**
    * @internal
    */
-  // TODO: use @bound and improve name (eslint-disable is temp)
+  // TODO: use @bound (eslint-disable is temp)
   // eslint-disable-next-line @typescript-eslint/typedef
-  public browserNavigatorCallback = (browserNavigationEvent: NavigatorViewerEvent): void => {
-    console.log('browserNavigatorCallback', browserNavigationEvent);
-    const entry = Navigation.create(browserNavigationEvent.state?.lastNavigation);
-    entry.instruction = browserNavigationEvent.instruction;
-    entry.fromBrowser = true;
-    this.navigator.navigate(entry).catch(error => { throw error; });
-  };
-
-  /**
-   * @internal
-   */
   public handleNavigatorStateChangeEvent = (event: NavigatorStateChangeEvent): void => {
     console.log('handleNavigatorStateChangeEvent', event);
     const entry = Navigation.create(event.state?.lastNavigation);
@@ -360,10 +295,10 @@ export class Router implements IRouter {
   /**
    * Processes the route/instructions in a (queued) navigation.
    *
-   * @param qNavigation - The navigation to process
+   * @param evNavigation - The navigation to process
    */
-  public processNavigation = async (qNavigation: QueueItem<Navigation>): Promise<void> => {
-    const instruction = this.processingNavigation = qNavigation as Navigation;
+  public processNavigation = async (evNavigation: NavigatorNavigateEvent): Promise<void> => {
+    const instruction = this.processingNavigation = evNavigation as Navigation;
 
     // TODO: This can now probably be removed. Investigate!
     this.pendingConnects.clear();
@@ -1032,26 +967,6 @@ export class Router implements IRouter {
 
     return Promise.resolve();
   }
-
-  // private async freeComponents(instruction: RoutingInstruction, excludeComponents: IRouteableComponent[], alreadyDone: IRouteableComponent[]): Promise<void> {
-  //   const component = instruction.component.instance;
-  //   const viewport = instruction.viewport.instance;
-  //   if (component === null || viewport === null || alreadyDone.some(done => done === component)) {
-  //     return;
-  //   }
-  //   if (!excludeComponents.some(exclude => exclude === component)) {
-  //     console.log('AWAIT freeContent');
-  //     await viewport.freeContent(null, component);
-  //     alreadyDone.push(component);
-  //     return;
-  //   }
-  //   if (instruction.nextScopeInstructions !== null) {
-  //     for (const nextInstruction of instruction.nextScopeInstructions) {
-  //       console.log('AWAIT freeComponents');
-  //       await this.freeComponents(nextInstruction, excludeComponents, alreadyDone);
-  //     }
-  //   }
-  // }
 
   // TODO: Review query extraction; different pos for path and fragment!
   private extractQuery(instructions: LoadInstruction | LoadInstruction[], options: ILoadOptions): LoadInstruction | LoadInstruction[] {

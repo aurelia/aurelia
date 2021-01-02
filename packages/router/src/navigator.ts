@@ -110,8 +110,6 @@ export interface INavigatorOptions {
   viewer?: INavigatorViewer;
   store?: INavigatorStore;
   statefulHistoryLength?: number;
-  // callback?(instruction: Navigation): void;
-  // serializeCallback?(navigation: Navigation, navigations: Navigation[]): Promise<IStoredNavigation>;
 }
 
 /**
@@ -299,7 +297,6 @@ export class Navigator {
       navigation.index = this.lastNavigation.index !== void 0 ? this.lastNavigation.index + 1 : this.navigations.length;
     }
     this.notifySubscribers(navigation, navigationFlags, this.lastNavigation);
-    // this.invokeCallback(navigation, navigationFlags, this.lastNavigation);
   };
 
   /**
@@ -514,13 +511,6 @@ export class Navigator {
         navigation,
       ));
   }
-
-  // private invokeCallback(navigation: INavigation, navigationFlags: INavigationFlags, previousNavigation: Navigation): void {
-  //   navigation = Navigation.create({ ...navigation });
-  //   (navigation as Navigation).navigation = navigationFlags;
-  //   (navigation as Navigation).previous = previousNavigation;
-  //   this.options.callback?.((navigation as Navigation));
-  // }
 
   /**
    * Make a Navigation storeable/json safe.

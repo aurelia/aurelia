@@ -53,8 +53,8 @@ export {
 } from './navigation-coordinator.js';
 
 export {
-  IStoredNavigatorEntry,
-  INavigatorEntry,
+  // IStoredNavigatorEntry,
+  // INavigatorEntry,
   INavigatorOptions,
   INavigationFlags,
   INavigatorState,

@@ -1,4 +1,3 @@
-import { IRoutingHookDefinition, IRoutingHookOptions, RoutingHookIdentity } from './routing-hook';
 /**
  *
  * NOTE: This file is still WIP and will go through at least one more iteration of refactoring, commenting and clean up!
@@ -11,12 +10,12 @@ import { IRoutingHookDefinition, IRoutingHookOptions, RoutingHookIdentity } from
 import { DI, IContainer, Registration, IIndexable, Key, Metadata, EventAggregator, IEventAggregator, IDisposable } from '@aurelia/kernel';
 import { CustomElementType, CustomElement, INode, ICustomElementController, ICustomElementViewModel, IAppRoot, isRenderContext, getEffectiveParentNode } from '@aurelia/runtime-html';
 import { InstructionResolver } from './instruction-resolver.js';
-import { IRouteableComponent, LoadInstruction, ComponentAppellation, ViewportHandle, ComponentParameters } from './interfaces.js';
+import { LoadInstruction } from './interfaces.js';
 import { AnchorEventInfo, LinkHandler } from './link-handler.js';
-import { NavigatorViewerEvent, IStoredNavigatorEntry, Navigator } from './navigator.js';
+import { NavigatorViewerEvent, Navigator, NavigatorNavigateEvent } from './navigator.js';
 import { QueueItem } from './utilities/queue.js';
 import { LoadInstructionResolver } from './type-resolvers.js';
-import { arrayRemove, deprecationWarning } from './utilities/utils.js';
+import { arrayRemove } from './utilities/utils.js';
 import { IViewportOptions, Viewport } from './viewport.js';
 import { RoutingInstruction } from './instructions/routing-instruction.js';
 import { FoundRoute } from './found-route.js';
@@ -30,7 +29,7 @@ import { IRouterStartOptions, ISeparators, RouterOptions } from './router-option
 import { OpenPromise } from './utilities/open-promise.js';
 import { NavigatorStateChangeEvent } from './events.js';
 import { Runner, Step } from './utilities/runner.js';
-import { IRoute, Route } from './route.js';
+import { IRoute } from './route.js';
 import { Title } from './title.js';
 import { RoutingHook } from './routing-hook.js';
 
@@ -117,9 +116,9 @@ export class Router implements IRouter {
   private loadedFirst: boolean = false;
 
   private lastNavigation: Navigation | null = null;
-  private readonly staleChecks: Record<string, RoutingInstruction[]> = {};
 
   private navigatorStateChangeEventSubscription!: IDisposable;
+  private navigatorNavigateEventSubscription!: IDisposable;
 
   public constructor(
     /**
@@ -197,15 +196,16 @@ export class Router implements IRouter {
     }
 
     this.instructionResolver.start({ separators: RouterOptions.separators });
-    this.navigator.start(this, {
-      callback: this.navigatorCallback,
+    this.navigator.start({
+      // callback: this.navigatorCallback,
       store: this.navigation,
       statefulHistoryLength: RouterOptions.statefulHistoryLength,
-      serializeCallback: this.statefulHistory ? this.navigatorSerializeCallback : void 0,
+      // serializeCallback: this.statefulHistory ? this.navigatorSerializeCallback : void 0,
     });
     this.linkHandler.start({ callback: this.linkCallback, useHref: RouterOptions.useHref });
 
     this.navigatorStateChangeEventSubscription = this.ea.subscribe(NavigatorStateChangeEvent.eventName, this.handleNavigatorStateChangeEvent);
+    this.navigatorNavigateEventSubscription = this.ea.subscribe(NavigatorNavigateEvent.eventName, this.handleNavigatorNavigateEvent);
     this.navigation.start({ useUrlFragmentHash: RouterOptions.useUrlFragmentHash });
 
     this.ensureRootScope();
@@ -228,6 +228,7 @@ export class Router implements IRouter {
     RouterOptions.resetDefaults();
 
     this.navigatorStateChangeEventSubscription.dispose();
+    this.navigatorNavigateEventSubscription.dispose();
   }
 
   /**
@@ -274,54 +275,58 @@ export class Router implements IRouter {
     // Instructions extracted from queue, one at a time
     this.processNavigation(instruction).catch(error => { throw error; });
   };
-
-  /**
-   * @internal
-   */
-  // TODO: use @bound and improve name (eslint-disable is temp)
-  // eslint-disable-next-line @typescript-eslint/typedef
-  public navigatorSerializeCallback = async (entry: IStoredNavigatorEntry, preservedEntries: IStoredNavigatorEntry[]): Promise<IStoredNavigatorEntry> => {
-    let excludeComponents = [];
-    for (const preservedEntry of preservedEntries) {
-      if (typeof preservedEntry.instruction !== 'string') {
-        excludeComponents.push(...this.instructionResolver.flattenRoutingInstructions(preservedEntry.instruction)
-          .filter(instruction => instruction.viewport.instance !== null)
-          .map(instruction => instruction.component.instance));
-      }
-      if (typeof preservedEntry.fullStateInstruction !== 'string') {
-        excludeComponents.push(...this.instructionResolver.flattenRoutingInstructions(preservedEntry.fullStateInstruction)
-          .filter(instruction => instruction.viewport.instance !== null)
-          .map(instruction => instruction.component.instance));
-      }
-    }
-    excludeComponents = excludeComponents.filter(
-      (component, i, arr) => component !== null && arr.indexOf(component) === i
-    ) as IRouteableComponent[];
-
-    const serialized: IStoredNavigatorEntry = { ...entry };
-    let instructions = [];
-    if (serialized.fullStateInstruction && typeof serialized.fullStateInstruction !== 'string') {
-      instructions.push(...serialized.fullStateInstruction);
-      serialized.fullStateInstruction = this.instructionResolver.stringifyRoutingInstructions(serialized.fullStateInstruction);
-    }
-    if (serialized.instruction && typeof serialized.instruction !== 'string') {
-      instructions.push(...serialized.instruction);
-      serialized.instruction = this.instructionResolver.stringifyRoutingInstructions(serialized.instruction);
-    }
-    instructions = instructions.filter(
-      (instruction, i, arr) =>
-        instruction !== null
-        && instruction.component.instance !== null
-        && arr.indexOf(instruction) === i
-    );
-
-    const alreadyDone: IRouteableComponent[] = [];
-    for (const instruction of instructions) {
-      console.log('AWAIT freeComponents');
-      await this.freeComponents(instruction, excludeComponents, alreadyDone);
-    }
-    return serialized;
+  public handleNavigatorNavigateEvent = (event: NavigatorNavigateEvent): void => {
+    // Instructions extracted from queue, one at a time
+    this.processNavigation(event).catch(error => { throw error; });
   };
+
+  // /**
+  //  * @internal
+  //  */
+  // // TODO: use @bound and improve name (eslint-disable is temp)
+  // // eslint-disable-next-line @typescript-eslint/typedef
+  // public navigatorSerializeCallback = async (entry: IStoredNavigation, preservedEntries: IStoredNavigation[]): Promise<IStoredNavigation> => {
+  //   let excludeComponents = [];
+  //   for (const preservedEntry of preservedEntries) {
+  //     if (typeof preservedEntry.instruction !== 'string') {
+  //       excludeComponents.push(...this.instructionResolver.flattenRoutingInstructions(preservedEntry.instruction)
+  //         .filter(instruction => instruction.viewport.instance !== null)
+  //         .map(instruction => instruction.component.instance));
+  //     }
+  //     if (typeof preservedEntry.fullStateInstruction !== 'string') {
+  //       excludeComponents.push(...this.instructionResolver.flattenRoutingInstructions(preservedEntry.fullStateInstruction)
+  //         .filter(instruction => instruction.viewport.instance !== null)
+  //         .map(instruction => instruction.component.instance));
+  //     }
+  //   }
+  //   excludeComponents = excludeComponents.filter(
+  //     (component, i, arr) => component !== null && arr.indexOf(component) === i
+  //   ) as IRouteableComponent[];
+
+  //   const serialized: IStoredNavigation = { ...entry };
+  //   let instructions = [];
+  //   if (serialized.fullStateInstruction && typeof serialized.fullStateInstruction !== 'string') {
+  //     instructions.push(...serialized.fullStateInstruction);
+  //     serialized.fullStateInstruction = this.instructionResolver.stringifyRoutingInstructions(serialized.fullStateInstruction);
+  //   }
+  //   if (serialized.instruction && typeof serialized.instruction !== 'string') {
+  //     instructions.push(...serialized.instruction);
+  //     serialized.instruction = this.instructionResolver.stringifyRoutingInstructions(serialized.instruction);
+  //   }
+  //   instructions = instructions.filter(
+  //     (instruction, i, arr) =>
+  //       instruction !== null
+  //       && instruction.component.instance !== null
+  //       && arr.indexOf(instruction) === i
+  //   );
+
+  //   const alreadyDone: IRouteableComponent[] = [];
+  //   for (const instruction of instructions) {
+  //     console.log('AWAIT freeComponents');
+  //     await this.freeComponents(instruction, excludeComponents, alreadyDone);
+  //   }
+  //   return serialized;
+  // };
 
   /**
    * @internal
@@ -330,7 +335,7 @@ export class Router implements IRouter {
   // eslint-disable-next-line @typescript-eslint/typedef
   public browserNavigatorCallback = (browserNavigationEvent: NavigatorViewerEvent): void => {
     console.log('browserNavigatorCallback', browserNavigationEvent);
-    const entry = Navigation.create(browserNavigationEvent.state?.currentEntry);
+    const entry = Navigation.create(browserNavigationEvent.state?.lastNavigation);
     entry.instruction = browserNavigationEvent.instruction;
     entry.fromBrowser = true;
     this.navigator.navigate(entry).catch(error => { throw error; });
@@ -341,7 +346,7 @@ export class Router implements IRouter {
    */
   public handleNavigatorStateChangeEvent = (event: NavigatorStateChangeEvent): void => {
     console.log('handleNavigatorStateChangeEvent', event);
-    const entry = Navigation.create(event.state?.currentEntry);
+    const entry = Navigation.create(event.state?.lastNavigation);
     entry.instruction = event.instruction;
     entry.fromBrowser = true;
     this.navigator.navigate(entry).catch(error => { throw error; });
@@ -560,7 +565,7 @@ export class Router implements IRouter {
       if (matchedInstructions.length === 0 && remainingInstructions.length === 0) {
         // ...create the implicit clear instructions (if any)
         matchedInstructions = clearEndpoints.map(endpoint => {
-          const instr = RoutingInstruction.create(RoutingInstruction.clear, endpoint.isViewport ? endpoint as Viewport : void 0) as RoutingInstruction;
+          const instr = RoutingInstruction.create(RoutingInstruction.separators.clear, endpoint.isViewport ? endpoint as Viewport : void 0) as RoutingInstruction;
           if (endpoint.isViewportScope) {
             instr.viewportScope = endpoint as ViewportScope;
           }
@@ -1028,25 +1033,25 @@ export class Router implements IRouter {
     return Promise.resolve();
   }
 
-  private async freeComponents(instruction: RoutingInstruction, excludeComponents: IRouteableComponent[], alreadyDone: IRouteableComponent[]): Promise<void> {
-    const component = instruction.component.instance;
-    const viewport = instruction.viewport.instance;
-    if (component === null || viewport === null || alreadyDone.some(done => done === component)) {
-      return;
-    }
-    if (!excludeComponents.some(exclude => exclude === component)) {
-      console.log('AWAIT freeContent');
-      await viewport.freeContent(null, component);
-      alreadyDone.push(component);
-      return;
-    }
-    if (instruction.nextScopeInstructions !== null) {
-      for (const nextInstruction of instruction.nextScopeInstructions) {
-        console.log('AWAIT freeComponents');
-        await this.freeComponents(nextInstruction, excludeComponents, alreadyDone);
-      }
-    }
-  }
+  // private async freeComponents(instruction: RoutingInstruction, excludeComponents: IRouteableComponent[], alreadyDone: IRouteableComponent[]): Promise<void> {
+  //   const component = instruction.component.instance;
+  //   const viewport = instruction.viewport.instance;
+  //   if (component === null || viewport === null || alreadyDone.some(done => done === component)) {
+  //     return;
+  //   }
+  //   if (!excludeComponents.some(exclude => exclude === component)) {
+  //     console.log('AWAIT freeContent');
+  //     await viewport.freeContent(null, component);
+  //     alreadyDone.push(component);
+  //     return;
+  //   }
+  //   if (instruction.nextScopeInstructions !== null) {
+  //     for (const nextInstruction of instruction.nextScopeInstructions) {
+  //       console.log('AWAIT freeComponents');
+  //       await this.freeComponents(nextInstruction, excludeComponents, alreadyDone);
+  //     }
+  //   }
+  // }
 
   // TODO: Review query extraction; different pos for path and fragment!
   private extractQuery(instructions: LoadInstruction | LoadInstruction[], options: ILoadOptions): LoadInstruction | LoadInstruction[] {

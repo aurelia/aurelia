@@ -14,6 +14,7 @@ describe('au-slot', function () {
     private _scheduler: IPlatform;
     public constructor(
       public ctx: TestContext,
+      public au: Aurelia,
       public container: IContainer,
       public host: HTMLElement,
       public app: App | null,
@@ -48,7 +49,7 @@ describe('au-slot', function () {
       error = e;
     }
 
-    await testFunction(new AuSlotTestExecutionContext(ctx, container, host, app, error));
+    await testFunction(new AuSlotTestExecutionContext(ctx, au, container, host, app, error));
 
     if (error === null) {
       await au.stop();
@@ -1047,7 +1048,7 @@ describe('au-slot', function () {
     }
     // #endregion
 
-    // #region value binding
+    // #region data binding
     {
       class MyElement {
         @auSlots
@@ -1090,6 +1091,68 @@ describe('au-slot', function () {
         assert.strictEqual(input.value, "Jane");
       }
     );
+
+    {
+      const fooValue: string = '42';
+      @customElement({ name: 'my-element-user', template: `<my-element><div au-slot>\${foo}</div></my-element>` })
+      class MyElementUser {
+        public foo: string;
+        public attached() {
+          this.foo = fooValue;
+        }
+      }
+
+      yield new TestData(
+        'works with non-strictly-initialized property - non $host',
+        '<my-element-user></my-element-user>',
+        [MyElementUser, createMyElement('<au-slot></au-slot>')],
+        {},
+        async function ({ au, host }) {
+          await au.waitForIdle();
+          const meu = host.querySelector('my-element-user');
+          const me = host.querySelector('my-element');
+          assert.html.innerEqual(meu, `<my-element class="au"><div>${fooValue}</div></my-element>`, 'my-element-user.innerHtml');
+          const meuScope = CustomElement.for(meu).scope;
+          const meScope = CustomElement.for(me).scope;
+          assert.strictEqual(meuScope.bindingContext.foo, fooValue, 'meuScope.bc.foo');
+          assert.strictEqual(meuScope.overrideContext.foo, undefined, 'meuScope.oc.foo');
+          assert.strictEqual(meScope.bindingContext.foo, undefined, 'meScope.bc.foo');
+          assert.strictEqual(meScope.overrideContext.foo, undefined, 'meScope.oc.foo');
+        }
+      );
+    }
+
+    {
+      const fooValue: string = '42';
+      @customElement({ name: 'my-element', template: `<au-slot></au-slot>` })
+      class MyElement {
+        public foo: string;
+        public attached() {
+          this.foo = fooValue;
+        }
+      }
+      @customElement({ name: 'my-element-user', template: `<my-element><div au-slot>\${$host.foo}</div></my-element>` })
+      class MyElementUser { }
+
+      yield new TestData(
+        'works with non-strictly-initialized property - $host',
+        '<my-element-user></my-element-user>',
+        [MyElementUser, MyElement],
+        {},
+        async function ({ au, host }) {
+          await au.waitForIdle();
+          const meu = host.querySelector('my-element-user');
+          const me = host.querySelector('my-element');
+          assert.html.innerEqual(meu, `<my-element class="au"><div>${fooValue}</div></my-element>`, 'my-element-user.innerHtml');
+          const meuScope = CustomElement.for(meu).scope;
+          const meScope = CustomElement.for(me).scope;
+          assert.strictEqual(meuScope.bindingContext.foo, undefined, 'meuScope.bc.foo');
+          assert.strictEqual(meuScope.overrideContext.foo, undefined, 'meuScope.oc.foo');
+          assert.strictEqual(meScope.bindingContext.foo, fooValue, 'meScope.bc.foo');
+          assert.strictEqual(meScope.overrideContext.foo, undefined, 'meScope.oc.foo');
+        }
+      );
+    }
     // #endregion
 
     yield new TestData(

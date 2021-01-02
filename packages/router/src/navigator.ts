@@ -1,9 +1,3 @@
-/**
- *
- * NOTE: This file is still WIP and will go through at least one more iteration of refactoring, commenting and clean up!
- * In its current state, it is NOT a good source for learning about the inner workings and design of the router.
- *
- */
 import { EventAggregator, IEventAggregator } from '@aurelia/kernel';
 import { IRouteableComponent } from './interfaces.js';
 import { Queue, QueueItem } from './utilities/queue.js';
@@ -21,6 +15,8 @@ import { Runner, Step } from './utilities/runner.js';
  * resolved or rejected. All navigations are enqueued in this queue and once
  * dequeued into the callback the navigator enrich them with historical
  * navigation data and pass it on to the router for processing.
+ *
+ * An event is fired when a navigation is ready for processing by the router.
  *
  * Whenever the router has finalized or canceled a navigation it informs the
  * navigator which then updates current/last and historical states accordingly

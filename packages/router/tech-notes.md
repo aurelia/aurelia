@@ -56,7 +56,7 @@ Finally, when a navigation is complete, the routing scopes helps
 The hierarchy of the routing scopes often follows the DOM hierarchy, but it's not a necessity; it's possible to have routing scopes that doesn't create their own "owning capable scope", and thus placing all their "children" under the same "parent"
 as themselves or for a routing scope to hoist itself up or down in the hierarchy and, for example, place itself as a "child" to a DOM sibling endpoint. (Scope self-hoisting will not be available for early-on alpha.)
 
-### `Navigator`
+### `Navigator` (`.navigator`)
 
 The navigator is responsible for managing (queueing) navigations and feeding them to the router, keeping track of historical navigations/states and providing an api to historical and current/last state.
 

@@ -92,7 +92,7 @@ export class RoutingInstruction {
     // this.viewportScope = InstructionViewportScope.create();
   }
 
-  public static clear = RouterOptions.separators.clear;
+  public static separators = RouterOptions.separators;
 
   /**
    * Create a new routing instruction.
@@ -118,6 +118,22 @@ export class RoutingInstruction {
   }
 
   /**
+   * Stringify a list of routing instructions, recursively down next scope/child instructions.
+   *
+   * @param instructions - The instructions to stringify
+   * @param excludeViewport - Whether to exclude viewport names in the string
+   * @param viewportContext - Whether to include viewport context in the string
+   */
+  public static stringify(instructions: RoutingInstruction[] | string, excludeViewport: boolean = false, viewportContext: boolean = false): string {
+    return typeof (instructions) === 'string'
+      ? instructions
+      : instructions
+        .map(instruction => instruction.stringify(excludeViewport, viewportContext))
+        .filter(instruction => instruction.length > 0)
+        .join(this.separators.sibling);
+  }
+
+  /**
    * Whether the instructions, on any level, contains siblings
    *
    * @param instructions - The instructions to check
@@ -133,6 +149,23 @@ export class RoutingInstruction {
   }
 
   /**
+   * Get all routing instructions, recursively down next scope/child instructions, as
+   * a "flat" list.
+   *
+   * @param instructions - The instructions to flatten
+   */
+  public static flat(instructions: RoutingInstruction[]): RoutingInstruction[] {
+    const flat: RoutingInstruction[] = [];
+    for (const instruction of instructions) {
+      flat.push(instruction);
+      if (Array.isArray(instruction.nextScopeInstructions)) {
+        flat.push(...RoutingInstruction.flat(instruction.nextScopeInstructions));
+      }
+    }
+    return flat;
+  }
+
+  /**
    * The endpoint of the routing instruction.
    */
   public get endpoint(): IEndpoint | null {
@@ -143,7 +176,7 @@ export class RoutingInstruction {
     return this.component.name === RouterOptions.separators.add;
   }
   public get isClear(): boolean {
-    return this.component.name === RoutingInstruction.clear;
+    return this.component.name === RoutingInstruction.separators.clear;
   }
   public get isAddAll(): boolean {
     return this.isAdd && ((this.viewport.name?.length ?? 0) === 0);
@@ -190,5 +223,104 @@ export class RoutingInstruction {
       return false;
     }
     return this.parameters.same(other.parameters, this.component.type);
+  }
+
+  /**
+   * Stringify the routing instruction, recursively down next scope/child instructions.
+   *
+   * @param excludeViewport - Whether to exclude viewport names in the string
+   * @param viewportContext - Whether to include viewport context in the string
+   */
+  public stringify(excludeViewport: boolean = false, viewportContext: boolean = false): string {
+    let excludeCurrentViewport = excludeViewport;
+    let excludeCurrentComponent = false;
+
+    // If viewport context is specified...
+    if (viewportContext) {
+      // ()...it's still skipped if no link option is set on viewport)
+      if (this.viewport.instance?.options.noLink ?? false) {
+        return '';
+      }
+      // ...viewport can still be excluded if it's not necessary...
+      if (!this.needsViewportDescribed &&
+        (!(this.viewport.instance?.options.forceDescription ?? false) // ...and not forced...
+          || (this.viewportScope !== null)) // ...or it has a viewport scope
+      ) {
+        excludeCurrentViewport = true;
+      }
+      // ...or if it's the fallback component...
+      if (this.viewport.instance?.options.fallback === this.component.name) {
+        excludeCurrentComponent = true;
+      }
+    }
+    let route = this.route ?? null;
+    const nextInstructions: RoutingInstruction[] | null = this.nextScopeInstructions;
+    // Start with the context (if any)
+    let stringified: string = this.context;
+    // It's a configured route...
+    if (route !== null) {
+      // ...that's already added as part of a configuration, so skip to next scope!
+      if (route === '') {
+        return Array.isArray(nextInstructions)
+          ? RoutingInstruction.stringify(nextInstructions, excludeViewport, viewportContext)
+          : '';
+      }
+      // ...that's the first instruction of a route...
+      route = (route as FoundRoute).matching;
+      // ...so add the route.
+      stringified += route.endsWith(RoutingInstruction.separators.scope)
+        ? route.slice(0, -RoutingInstruction.separators.scope.length)
+        : route;
+    } else { // Not (part of) a route so add it
+      stringified += this.stringifyShallow(excludeCurrentViewport, excludeCurrentComponent);
+    }
+    // If any next scope/child instructions...
+    if (Array.isArray(nextInstructions) && nextInstructions.length > 0) {
+      // ...get them as string...
+      const nextStringified = RoutingInstruction.stringify(nextInstructions, excludeViewport, viewportContext);
+      if (nextStringified.length > 0) {
+        // ...and add with scope separator and...
+        stringified += RoutingInstruction.separators.scope;
+        // ...check if scope grouping separators are needed:
+        stringified += nextInstructions.length === 1 // TODO: This should really also check that the instructions have value
+          // only one child, add as-is
+          ? nextStringified
+          // more than one child, add within scope (between () )
+          : `${RoutingInstruction.separators.scopeStart}${nextStringified}${RoutingInstruction.separators.scopeEnd}`;
+      }
+    }
+    return stringified;
+  }
+
+  /**
+   * Stringify the routing instruction shallowly, NOT recursively down next scope/child instructions.
+   *
+   * @param excludeViewport - Whether to exclude viewport names in the string
+   * @param viewportContext - Whether to include viewport context in the string
+   */
+  private stringifyShallow(excludeViewport: boolean = false, excludeComponent: boolean = false): string {
+    // Start with component (unless excluded)
+    let instructionString = !excludeComponent ? this.component.name ?? '' : '';
+
+    // Get parameters specification (names, sort order) from component type
+    // TODO(alpha): Use Metadata!
+    const specification = this.component.type ? this.component.type.parameters : null;
+    // Get parameters according to specification
+    const parameters = InstructionParameters.stringify(this.parameters.toSortedParameters(specification));
+    if (parameters.length > 0) {
+      // Add to component or use standalone
+      instructionString += !excludeComponent
+        ? `${RoutingInstruction.separators.parameters}${parameters}${RoutingInstruction.separators.parametersEnd}`
+        : parameters;
+    }
+    // Add viewport name (unless excluded)
+    if (this.viewport.name !== null && !excludeViewport) {
+      instructionString += `${RoutingInstruction.separators.viewport}${this.viewport.name}`;
+    }
+    // And add no (owned) scope indicator
+    if (!this.ownsScope) {
+      instructionString += RoutingInstruction.separators.noScope;
+    }
+    return instructionString || '';
   }
 }

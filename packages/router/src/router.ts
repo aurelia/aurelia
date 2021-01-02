@@ -131,7 +131,7 @@ export class Router implements IRouter {
      */
     public navigator: Navigator,
 
-    public navigation: BrowserViewerStore,
+    public navigation: BrowserViewerStore, // TODO: Really should separate these
     /**
      * @internal - Shouldn't be used directly.
      */

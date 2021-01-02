@@ -62,8 +62,8 @@ import { RoutingHook } from './routing-hook.js';
  * and the new, complete state.
  * 10) The Navigator saves the new state in the right place (if any) in history and informs
  * the BrowserViewerStore about the new current state.
- * The BrowserViewerStore sends the new state to the browser's Viewer (browser Location url)
- * and Store (browser History).
+ * 11) The BrowserViewerStore sends the new state to the browser's Viewer (browser Location url
+ * and title) and Store (browser History).
  */
 
 /**

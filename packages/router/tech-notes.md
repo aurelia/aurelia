@@ -10,7 +10,7 @@ All navigations roughly follows the same flow:
 8) If the `Navigation` is approved, the `Endpoint`s are instructed to perform their transitions.
 9) Once all transitions are completed, the `Router` informs the `Navigator` about the success and the new, complete state.
 10) The `Navigator` saves the new state in the right place (if any) in history and informs the `BrowserViewerStore` about the new current state.
-11) The `BrowserViewerStore` sends the new state to the browser's _viewer_ (browser Location url) and _store_ (browser History).
+11) The `BrowserViewerStore` sends the new state to the browser's _viewer_ (browser Location url and title) and _store_ (browser History).
 
 ## Entities
 

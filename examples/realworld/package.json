@@ -9,7 +9,8 @@
   },
   "license": "MIT",
   "dependencies": {
-    "aurelia": "0.8.0"
+    "aurelia": "0.8.0",
+    "marked": "^1.2.7"
   },
   "devDependencies": {
     "@aurelia/webpack-loader": "0.8.0",

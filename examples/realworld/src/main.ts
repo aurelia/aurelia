@@ -1,32 +1,33 @@
-import { RouterConfiguration } from '@aurelia/router';
-import { Aurelia, StandardConfiguration } from '@aurelia/runtime-html';
+import Aurelia, { LoggerConfiguration, LogLevel, RouterConfiguration, StyleConfiguration } from 'aurelia';
 
-import 'promise-polyfill/lib/polyfill'; // eslint-disable-line import/no-unassigned-import
+import { AppRootCustomElement } from './app-root';
+import * as GlobalResources from './_shared/index';
+import './_assets/style.css';
+import main from './main.css';
 
-import { App } from './app';
-import { Auth } from './components/auth/auth';
-import { DateValueConverter } from './resources/value-converters/date';
-import { FormatHtmlValueConverter } from './resources/value-converters/format-html';
-import { KeysValueConverter } from './resources/value-converters/keys';
-import { MarkdownHtmlValueConverter } from './resources/value-converters/markdown-html';
+const au = new Aurelia();
 
-const globalResources = [
-  Auth,
+au.register(
+  LoggerConfiguration.create({
+    $console: console,
+    level: LogLevel.trace,
+  }),
+  RouterConfiguration.customize({
+    useUrlFragmentHash: false,
+    swapStrategy: 'sequential-remove-first',
+    resolutionMode: 'static',
+  }),
+  StyleConfiguration.shadowDOM({
+    sharedStyles: [
+      main,
+    ],
+  }),
+  GlobalResources,
+);
 
-  DateValueConverter,
-  FormatHtmlValueConverter,
-  KeysValueConverter,
-  MarkdownHtmlValueConverter,
-];
+au.app({
+  component: AppRootCustomElement,
+  host: document.querySelector('app-root'),
+});
 
-void new Aurelia()
-  .register(
-    StandardConfiguration,
-    RouterConfiguration.customize({ useUrlFragmentHash: false, statefulHistoryLength: 3 }),
-    ...globalResources,
-  )
-  .app({
-    component: App,
-    host: document.querySelector('app')!,
-  })
-  .start();
+await au.start();

@@ -1,6 +1,9 @@
-const HtmlWebpackPlugin = require('html-webpack-plugin');
-
 module.exports = function (env, { mode }) {
+  const path = require('path');
+  const HtmlWebpackPlugin = require('html-webpack-plugin');
+  const srcDir = path.resolve(__dirname, 'src');
+  const assetsDir = path.join(srcDir, '_assets');
+
   const production = mode === 'production';
   return {
     mode: production ? 'production' : 'development',
@@ -8,21 +11,27 @@ module.exports = function (env, { mode }) {
     entry: './src/main.ts',
     resolve: {
       extensions: ['.ts', '.js'],
-      modules: ['src', 'node_modules']
+      modules: [srcDir, 'node_modules'],
+      mainFields: ['module', 'main'],
     },
     devServer: {
       historyApiFallback: true,
-      open: !process.env.CI,
+      open: true,
       port: 9000,
-      lazy: false
     },
     module: {
       rules: [
-        { test: /\.css$/i, use: ["style-loader", "css-loader"] },
-        { test: /\.ts$/i, use: ['ts-loader', '@aurelia/webpack-loader'], exclude: /node_modules/ },
-        { test: /\.html$/i, use: '@aurelia/webpack-loader', exclude: /node_modules/ }
-      ]
+        { test: /\.ts$/, loader: 'ts-loader' },
+        { test: /\.html$/, loader: 'html-loader' },
+        { test: /\.css$/, include: assetsDir, use: [{ loader: 'style-loader' }, { loader: 'css-loader' }] },
+        { test: /\.css$/, exclude: assetsDir, loader: 'css-loader' },
+      ],
     },
-    plugins: [new HtmlWebpackPlugin({ template: 'index.ejs' })]
+    plugins: [
+      new HtmlWebpackPlugin({ template: 'index.html' }),
+    ],
+    experiments: {
+      topLevelAwait: true,
+    },
   };
 };

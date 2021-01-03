@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "sourceMap": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "lib": [
@@ -10,45 +9,12 @@
     "module": "esnext",
     "moduleResolution": "node",
     "skipLibCheck": true,
+    "strict": true,
+    "outDir": "dist",
     "rootDir": "src",
     "target": "es2020",
-    "esModuleInterop": false,
-    "baseUrl": "src",
-    "paths": {
-      "components/*": [
-        "components/*"
-      ],
-      "resources/*": [
-        "resources/*"
-      ],
-      "shared/*": [
-        "shared/*"
-      ],
-      "models/*": [
-        "shared/models/*"
-      ],
-      "state/*": [
-        "state/*"
-      ]
-    },
-    "strictBindCallApply": true,
-    "strictNullChecks": true,
-    "strictPropertyInitialization": true,
-    "alwaysStrict": true,
-    "incremental": true,
-    "noImplicitAny": true,
-    "noFallthroughCasesInSwitch": true,
-    "noImplicitThis": true,
-    "noImplicitReturns": true,
-    "strict": true,
-    "noUnusedLocals": false, //aurelia might use these in the view
-    "removeComments": true,
-    "preserveConstEnums": true
   },
-  "exclude": [
-    "node_modules"
-  ],
   "include": [
-    "./src/**/*"
-  ],
+    "src"
+  ]
 }

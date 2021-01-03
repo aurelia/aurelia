@@ -1,0 +1,43 @@
+<div class="article-preview" if.bind="!busy && $articleList.items.length === 0">
+  No articles are here... yet.
+</div>
+
+<div class="article-preview" if.bind="busy && $articleList.items.length === 0">
+  <spinner-border></spinner-border>
+</div>
+
+<div repeat.for="article of $articleList.items" class="article-preview" fade.class="busy">
+  <spinner-border if.bind="busy" absolute></spinner-border>
+
+  <let author.bind="article.author"></let>
+  <div class="article-meta">
+    <a href="/profile/${author.username}"><img src.bind="author.image" /></a>
+    <div class="info">
+      <a href="/profile/${author.username}" class="author">${author.username}</a>
+      <span class="date">${article.createdAt | date}</span>
+    </div>
+    <button class="btn btn-sm pull-xs-right ${article.favorited ? 'btn-primary' : 'btn-outline-primary'}"
+      disabled.bind="$articleList.toggleFavoritePending[article.slug]" click.delegate="toggleFavorite(article.slug)">
+      <i class="ion-heart"></i>
+      ${article.favoritesCount}
+    </button>
+  </div>
+
+  <a href="/article/${article.slug}" class="preview-link">
+    <h1>${article.title}</h1>
+    <p>${article.description}</p>
+    <span>Read more...</span>
+    <ul class="tag-list">
+      <li repeat.for="tag of article.tagList" class="tag-default tag-pill tag-outline">${tag}</li>
+    </ul>
+  </a>
+</div>
+
+<nav if.bind="$articleList.pages.length > 1">
+  <ul class="pagination">
+    <li repeat.for="page of $articleList.pages" class="page-item" active.class="page === $articleList.currentPage"
+      click.delegate="setPage(page)">
+      <a class="page-link">${page}</a>
+    </li>
+  </ul>
+</nav>

@@ -756,7 +756,12 @@ export class Router {
       finalInstructions: tr.finalInstructions,
     });
 
-    const routeChanged = !tr.instructions.equals(this.instructions) || !this.navigated;
+    const navigationContext = this.resolveContext(tr.options.context);
+    const routeChanged = (
+      !this.navigated ||
+      tr.instructions.children.length !== navigationContext.node.children.length ||
+      tr.instructions.children.some((x, i) => !(navigationContext.node.children[i]?.originalInstruction!.equals(x) ?? false))
+    );
     const shouldProcessRoute = routeChanged || tr.options.getSameUrlStrategy(this.instructions) === 'reload';
 
     if (!shouldProcessRoute) {
@@ -781,8 +786,6 @@ export class Router {
       this.logger.debug(`run(tr:%s) - aborting because a new transition was queued in response to the NavigationStartEvent`, tr);
       return this.run(this.nextTr);
     }
-
-    const navigationContext = this.resolveContext(tr.options.context);
 
     this.activeNavigation = Navigation.create({
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion

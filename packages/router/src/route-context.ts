@@ -7,7 +7,7 @@ import { RouteDefinition } from './route-definition.js';
 import { ViewportAgent, ViewportRequest } from './viewport-agent.js';
 import { ComponentAgent, IRouteViewModel } from './component-agent.js';
 import { RouteNode } from './route-tree.js';
-import { IRouter } from './router.js';
+import { IRouter, ResolutionMode } from './router.js';
 import { IViewport } from './resources/viewport.js';
 import { Routeable } from './route.js';
 import { isPartialChildRouteConfig } from './validation.js';
@@ -355,6 +355,10 @@ export class RouteContext implements IContainer {
     }
 
     return agent;
+  }
+
+  public getAvailableViewportAgents(resolution: ResolutionMode): readonly ViewportAgent[] {
+    return this.childViewportAgents.filter(x => x.isAvailable(resolution));
   }
 
   /**

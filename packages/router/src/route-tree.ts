@@ -59,6 +59,8 @@ export class RouteNode implements IRouteNode {
      * Viewports that live underneath the component associated with this route, will be registered to this context.
      */
     public readonly context: IRouteContext,
+    /** @internal */
+    public readonly originalInstruction: ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent> | null,
     /** Can only be `null` for the composition root */
     public readonly instruction: ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent> | null,
     public params: Params,
@@ -86,7 +88,9 @@ export class RouteNode implements IRouteNode {
      * "fully resolved" when it has `residue.length === 0` and `children.length >= 0`
      */
     public readonly residue: ViewportInstruction[],
-  ) {}
+  ) {
+    this.originalInstruction = instruction;
+  }
 
   public static create(input: IRouteNode): RouteNode {
     return new RouteNode(
@@ -94,6 +98,7 @@ export class RouteNode implements IRouteNode {
       /*        path */input.path,
       /*   finalPath */input.finalPath,
       /*     context */input.context,
+      /* originalIns */input.instruction,
       /* instruction */input.instruction,
       /*      params */input.params ?? {},
       /* queryParams */input.queryParams ?? {},
@@ -167,6 +172,21 @@ export class RouteNode implements IRouteNode {
     return this.title;
   }
 
+  public computeAbsolutePath(): string {
+    if (this.context.isRoot) {
+      return '';
+    }
+    const parentPath = this.context.parent!.node.computeAbsolutePath();
+    const thisPath = this.instruction!.toUrlComponent(false);
+    if (parentPath.length > 0) {
+      if (thisPath.length > 0) {
+        return [parentPath, thisPath].join('/');
+      }
+      return parentPath;
+    }
+    return thisPath;
+  }
+
   /** @internal */
   public setTree(tree: RouteTree): void {
     this.tree = tree;
@@ -190,6 +210,7 @@ export class RouteNode implements IRouteNode {
       this.path,
       this.finalPath,
       this.context,
+      this.originalInstruction,
       this.instruction,
       { ...this.params },
       { ...this.queryParams },
@@ -331,23 +352,28 @@ function updateNode(
   node.queryParams = vit.queryParams;
   node.fragment = vit.fragment;
 
+  let maybePromise: void | Promise<void>;
   if (!node.context.isRoot) {
     // TODO(fkleuver): store `options` on every individual instruction instead of just on the tree, or split it up etc? this needs a bit of cleaning up
-    node.context.vpa.scheduleUpdate(node.tree.options, node);
+    maybePromise = node.context.vpa.scheduleUpdate(node.tree.options, node);
+  } else {
+    maybePromise = void 0;
   }
 
-  if (node.context === ctx) {
-    // Do an in-place update (remove children and re-add them by compiling the instructions into nodes)
-    node.clearChildren();
-    return resolveAll(...vit.children.map(vi => {
-      return createAndAppendNodes(log, node, vi, node.tree.options.append || vi.append);
+  return onResolve(maybePromise, () => {
+    if (node.context === ctx) {
+      // Do an in-place update (remove children and re-add them by compiling the instructions into nodes)
+      node.clearChildren();
+      return resolveAll(...vit.children.map(vi => {
+        return createAndAppendNodes(log, node, vi, node.tree.options.append || vi.append);
+      }));
+    }
+
+    // Drill down until we're at the node whose context matches the provided navigation context
+    return resolveAll(...node.children.map(child => {
+      return updateNode(log, vit, ctx, child);
     }));
-  }
-
-  // Drill down until we're at the node whose context matches the provided navigation context
-  return resolveAll(...node.children.map(child => {
-    return updateNode(log, vit, ctx, child);
-  }));
+  });
 }
 
 export function processResidue(node: RouteNode): Promise<void> | void {
@@ -357,9 +383,15 @@ export function processResidue(node: RouteNode): Promise<void> | void {
   const suffix = ctx.resolved instanceof Promise ? ' - awaiting promise' : '';
   log.trace(`processResidue(node:%s)${suffix}`, node);
   return onResolve(ctx.resolved, () => {
-    return resolveAll(...node.residue.splice(0).map(vi => {
-      return createAndAppendNodes(log, node, vi, node.append);
-    }));
+    return resolveAll(
+      ...node.residue.splice(0).map(vi => {
+        return createAndAppendNodes(log, node, vi, node.append);
+      }),
+      ...ctx.getAvailableViewportAgents('static').map(vpa => {
+        const defaultInstruction = ViewportInstruction.create(vpa.viewport.default);
+        return createAndAppendNodes(log, node, defaultInstruction, node.append);
+      }),
+    );
   });
 }
 
@@ -371,15 +403,24 @@ export function getDynamicChildren(node: RouteNode): Promise<readonly RouteNode[
   log.trace(`getDynamicChildren(node:%s)${suffix}`, node);
   return onResolve(ctx.resolved, () => {
     const existingChildren = node.children.slice();
-    return onResolve(resolveAll(...node.residue.splice(0).map(vi => {
-      return createAndAppendNodes(log, node, vi, node.append);
-    })), () => {
-      return node.children.filter(x => !existingChildren.includes(x));
-    });
+    return onResolve(
+      resolveAll(
+        ...node.residue.splice(0).map(vi => {
+          return createAndAppendNodes(log, node, vi, node.append);
+        }),
+        ...ctx.getAvailableViewportAgents('dynamic').map(vpa => {
+          const defaultInstruction = ViewportInstruction.create(vpa.viewport.default);
+          return createAndAppendNodes(log, node, defaultInstruction, node.append);
+        }),
+      ),
+      () => {
+        return node.children.filter(x => !existingChildren.includes(x));
+      },
+    );
   });
 }
 
-function createAndAppendNodes(
+export function createAndAppendNodes(
   log: ILogger,
   node: RouteNode,
   vi: ViewportInstruction,
@@ -465,7 +506,7 @@ function createNode(
   // If it's a multi-segment match, collapse the viewport instructions to correct the tree structure.
   const finalPath = rr.residue === null ? path : path.slice(0, -(rr.residue.length + 1));
   (vi.component as Writable<ITypedNavigationInstruction_string>).value = finalPath;
-  for (let i = 1; i < collapse; ++i) {
+  for (let i = 0; i < collapse; ++i) {
     (vi as Writable<ViewportInstruction>).children = vi.children[0].children;
   }
   return createConfiguredNode(log, node, vi, append, rr);
@@ -596,7 +637,7 @@ function createConfiguredNode(
       }
     }
 
-    const newPath = newSegs.join('/');
+    const newPath = newSegs.filter(Boolean).join('/');
 
     const redirRR = ctx.recognize(newPath);
     if (redirRR === null) {
@@ -677,6 +718,6 @@ function appendNode(
   return onResolve(childNode, $childNode => {
     log.trace(`appendNode($childNode:%s)`, $childNode);
     node.appendChild($childNode);
-    $childNode.context.vpa.scheduleUpdate(node.tree.options, $childNode);
+    return $childNode.context.vpa.scheduleUpdate(node.tree.options, $childNode);
   });
 }

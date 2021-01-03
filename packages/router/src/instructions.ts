@@ -32,7 +32,7 @@ export type NavigationInstruction = string | IViewportInstruction | RouteableCom
  */
 export type RouteableComponent = RouteType | Promise<IModule> | PartialCustomElementDefinition | IRouteViewModel;
 
-export type Params = { [key: string]: unknown };
+export type Params = { [key: string]: string | undefined };
 
 export const IViewportInstruction = DI.createInterface<IViewportInstruction>('IViewportInstruction');
 export interface IViewportInstruction {
@@ -101,12 +101,9 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
       return false;
     }
 
-    if (
-      // TODO(fkleuver): decide if we really need to include `context` in this comparison
-      !this.component.equals(other.component) ||
-      this.viewport !== other.viewport ||
-      !shallowEquals(this.params, other.params)
-    ) {
+    // TODO(fkleuver): incorporate viewports when null / '' descrepancies are fixed,
+    // as well as params when inheritance is fully fixed
+    if (!this.component.equals(other.component)) {
       return false;
     }
 
@@ -155,18 +152,25 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
     ) as this;
   }
 
-  public toUrlComponent(): string {
+  public toUrlComponent(recursive: boolean = true): string {
     // TODO(fkleuver): use the context to determine create full tree
     const component = this.component.toUrlComponent();
     const params = this.params === null || Object.keys(this.params).length === 0 ? '' : `(au$obj${getObjectId(this.params)})`; // TODO(fkleuver): serialize them instead
     const viewport = this.viewport === null || this.viewport.length === 0 ? '' : `@${this.viewport}`;
-    const children = this.children.length === 0 ? '' : `/${this.children.map(x => x.toUrlComponent()).join('+')}`;
-    return `${component}${params}${viewport}${children}`;
+    const thisPart = `${component}${params}${viewport}`;
+    const childPart = recursive ? this.children.map(x => x.toUrlComponent()).join('+') : '';
+    if (thisPart.length > 0) {
+      if (childPart.length > 0) {
+        return [thisPart, childPart].join('/');
+      }
+      return thisPart;
+    }
+    return childPart;
   }
 
   public toString(): string {
     const component = `c:${this.component}`;
-    const viewport = this.viewport === null ? '' : `viewport:${this.viewport}`;
+    const viewport = this.viewport === null || this.viewport.length === 0 ? '' : `viewport:${this.viewport}`;
     const children = this.children.length === 0 ? '' : `children:[${this.children.map(String).join(',')}]`;
     const props = [component, viewport, children].filter(Boolean).join(',');
     return `VPI(${props})`;

@@ -167,7 +167,7 @@ export class RouteExpression {
     if (path === '') {
       return new RouteExpression(
         '',
-        true,
+        false,
         SegmentExpression.EMPTY,
         queryParams,
         fragment,

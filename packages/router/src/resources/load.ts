@@ -45,6 +45,7 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
     }
     this.valueChanged();
     this.navigationEndListener = this.events.subscribe('au:router:navigation-end', _e => {
+      this.valueChanged();
       this.active = this.instructions !== null && this.router.isActive(this.instructions, this.ctx);
     });
   }
@@ -66,10 +67,10 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
 
   public valueChanged(): void {
     if (this.route !== null && this.route !== void 0 && this.ctx.allResolved === null) {
-      // TODO(fkleuver): massive temporary hack. Will not work for siblings etc. Need to fix.
-      const parentPath = this.ctx.node.instruction?.toUrlComponent() ?? null;
       const def = (this.ctx.childRoutes as RouteDefinition[]).find(x => x.id === this.route);
       if (def !== void 0) {
+        // TODO(fkleuver): massive temporary hack. Will not work for siblings etc. Need to fix.
+        const parentPath = this.ctx.node.computeAbsolutePath();
         // Note: This is very much preliminary just to fill the feature gap of v1's `generate`. It probably misses a few edge cases.
         // TODO(fkleuver): move this logic to RouteExpression and expose via public api, add tests etc
         let path = def.path[0];
@@ -78,14 +79,18 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
           for (const key of keys) {
             const value = (this.params as Params)[key];
             if (value != null && String(value).length > 0) {
-              path = path.replace(new RegExp(`[*:]${key}[?]?`), value as string);
+              path = path.replace(new RegExp(`[*:]${key}[?]?`), value);
             }
           }
         }
         // Remove leading and trailing optional param parts
         path = path.replace(/\/[*:][^/]+[?]/g, '').replace(/[*:][^/]+[?]\//g, '');
-        if (parentPath && path) {
-          this.href = [parentPath, path].join('/');
+        if (parentPath) {
+          if (path) {
+            this.href = [parentPath, path].join('/');
+          } else {
+            this.href = parentPath;
+          }
         } else {
           this.href = path;
         }

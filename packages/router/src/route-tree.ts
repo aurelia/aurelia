@@ -554,6 +554,7 @@ function createConfiguredNode(
         viewport: vpName,
         component: ced,
         append,
+        title: $handler.config.title,
         residue: rr.residue === null ? [] : [ViewportInstruction.create(rr.residue)],
       });
       childCtx.node.setTree(node.tree);
@@ -701,6 +702,7 @@ function createDirectNode(
     viewport: vpName,
     component: ced,
     append,
+    title: rd.config.title,
     residue: [...vi.children], // Children must be cloned, because residue will be mutated by the compiler
   });
   childCtx.node.setTree(ctx.node.tree);

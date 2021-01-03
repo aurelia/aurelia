@@ -147,13 +147,7 @@ export class ViewportAgent {
   }
 
   public handles(req: ViewportRequest): boolean {
-    if (req.resolution === 'dynamic' && !this.isActive) {
-      this.logger.trace(`handles(req:%s) -> false (viewport is not active and we're in dynamic resolution mode)`, req);
-      return false;
-    }
-
-    if (this.nextState === State.nextIsScheduled) {
-      this.logger.trace(`handles(req:%s) -> false (update already scheduled for %s)`, req, this.nextNode);
+    if (!this.isAvailable(req.resolution)) {
       return false;
     }
 
@@ -173,6 +167,20 @@ export class ViewportAgent {
     }
 
     this.logger.trace(`handles(req:%s) -> true`, req);
+    return true;
+  }
+
+  public isAvailable(resolution: ResolutionMode): boolean {
+    if (resolution === 'dynamic' && !this.isActive) {
+      this.logger.trace(`isAvailable(resolution:%s) -> false (viewport is not active and we're in dynamic resolution resolution)`, resolution);
+      return false;
+    }
+
+    if (this.nextState !== State.nextIsEmpty) {
+      this.logger.trace(`isAvailable(resolution:%s) -> false (update already scheduled for %s)`, resolution, this.nextNode);
+      return false;
+    }
+
     return true;
   }
 
@@ -648,16 +656,7 @@ export class ViewportAgent {
     });
   }
 
-  public dispose(): void {
-    if (this.viewport.stateful /* TODO: incorporate statefulHistoryLength / router opts as well */) {
-      this.logger.trace(`dispose() - not disposing stateful viewport at %s`, this);
-    } else {
-      this.logger.trace(`dispose() - disposing %s`, this);
-      this.curCA?.dispose();
-    }
-  }
-
-  public scheduleUpdate(options: NavigationOptions, next: RouteNode): void {
+  public scheduleUpdate(options: NavigationOptions, next: RouteNode): void | Promise<void> {
     switch (this.nextState) {
       case State.nextIsEmpty:
         this.nextNode = next;
@@ -803,6 +802,15 @@ export class ViewportAgent {
 
   public toString(): string {
     return `VPA(state:${this.$state},plan:'${this.$plan}',resolution:'${this.$resolution}',n:${this.nextNode},c:${this.currNode},viewport:${this.viewport})`;
+  }
+
+  public dispose(): void {
+    if (this.viewport.stateful /* TODO: incorporate statefulHistoryLength / router opts as well */) {
+      this.logger.trace(`dispose() - not disposing stateful viewport at %s`, this);
+    } else {
+      this.logger.trace(`dispose() - disposing %s`, this);
+      this.curCA?.dispose();
+    }
   }
 
   private unexpectedState(label: string): never {

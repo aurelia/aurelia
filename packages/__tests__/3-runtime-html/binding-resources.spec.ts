@@ -8,14 +8,14 @@ async function wait(ms: number): Promise<void> {
 // TemplateCompiler - Binding Resources integration
 describe('binding-resources', function () {
   function createFixture() {
-      const ctx = TestContext.create();
-      const au = new Aurelia(ctx.container);
-      const host = ctx.createElement('div');
-      return {
-        au,
-        host,
-        ctx,
-      };
+    const ctx = TestContext.create();
+    const au = new Aurelia(ctx.container);
+    const host = ctx.createElement('div');
+    return {
+      au,
+      host,
+      ctx,
+    };
   }
 
   describe('debounce', function () {
@@ -38,25 +38,27 @@ describe('binding-resources', function () {
       const receiver = component.receiver;
       component.value = '1';
 
-      await wait(20);
-
-      assert.strictEqual(receiver.value, '0', `change 1 not yet propagated`);
+      assert.strictEqual(receiver.value, '0', 'target value pre #1');
+      ctx.platform.domWriteQueue.flush();
+      assert.strictEqual(receiver.value, '1', 'target value #1');
 
       component.value = '2';
 
-      await wait(20);
-
-      assert.strictEqual(receiver.value, '0', `change 2 not yet propagated`);
+      assert.strictEqual(receiver.value, '1', 'target value pre #2');
+      ctx.platform.domWriteQueue.flush();
+      assert.strictEqual(receiver.value, '2', 'target value #2');
 
       component.value = '3';
 
-      await wait(20);
-
-      assert.strictEqual(receiver.value, '0', `change 3 not yet propagated`);
+      assert.strictEqual(receiver.value, '2', 'target value pre #3');
+      ctx.platform.domWriteQueue.flush();
+      assert.strictEqual(receiver.value, '3', 'target value #3');
 
       await wait(50);
 
-      assert.strictEqual(receiver.value, '3', `change 3 propagated`);
+      assert.strictEqual(receiver.value, '3', 'target value pre #4');
+      ctx.platform.domWriteQueue.flush();
+      assert.strictEqual(receiver.value, '3', 'target value #4');
 
       await au.stop();
 
@@ -92,29 +94,26 @@ describe('binding-resources', function () {
       const receiver = component.receiver;
       component.value = '1';
 
-      await wait(20);
+      assert.strictEqual(receiver.value, '1');
 
-      assert.strictEqual(receiver.value, '0', `change 1 not yet propagated`);
+      receiver.value = '1.5';
 
-      component.value = '2';
-
-      await wait(20);
-
-      assert.strictEqual(receiver.value, '0', `change 2 not yet propagated`);
+      assert.strictEqual(receiver.value, '1.5');
 
       component.value = '3';
 
-      await wait(20);
-
-      assert.strictEqual(receiver.value, '0', `change 3 not yet propagated`);
+      assert.strictEqual(receiver.value, '3');
 
       await wait(50);
 
-      assert.strictEqual(receiver.value, '3', `change 3 propagated`);
+      assert.strictEqual(receiver.value, '3');
 
       await au.stop();
+      assert.strictEqual(receiver.value, '3');
 
       au.dispose();
+
+      assert.strictEqual(receiver.value, '3');
     });
 
     it('works with twoWay bindings to other components', async function () {
@@ -146,10 +145,8 @@ describe('binding-resources', function () {
       const receiver = component.receiver;
       component.value = '1';
 
-      await wait(20);
-
-      assert.strictEqual(component.value, '1', `component keeps change 1`);
-      assert.strictEqual(receiver.value, '0', `change 1 not yet propagated to receiver`);
+      assert.strictEqual(component.value, '1');
+      assert.strictEqual(receiver.value, '1');
 
       receiver.value = '2';
 
@@ -160,13 +157,13 @@ describe('binding-resources', function () {
 
       component.value = '3';
 
-      await wait(20);
+      assert.strictEqual(component.value, '3');
+      assert.strictEqual(receiver.value, '3');
 
-      assert.strictEqual(component.value, '3', `component keeps change 3`);
-      assert.strictEqual(receiver.value, '2', `change 3 not yet propagated to receiver`);
+      await wait(50);
 
-      await ctx.platform.macroTaskQueue.yield();
-
+      // assert that in 2 way binding, after a target update has been debounced
+      // any changes from source should override and discard that queue
       assert.strictEqual(receiver.value, '3', `change 3 propagated`);
 
       await au.stop();

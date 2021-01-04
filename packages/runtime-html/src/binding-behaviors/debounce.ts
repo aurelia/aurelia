@@ -26,6 +26,16 @@ export class DebounceBindingBehavior extends BindingInterceptor {
     return void 0;
   }
 
+  public updateTarget(newValue: unknown, flags: LifecycleFlags): void {
+    // when source has changed before the latest debounced value from target
+    // then discard that value, and take latest value from source only
+    if (this.task !== null) {
+      this.task.cancel();
+      this.task = null;
+    }
+    this.binding.updateTarget!(newValue, flags);
+  }
+
   public updateSource(newValue: unknown, flags: LifecycleFlags): void {
     this.queueTask(() => this.binding.updateSource!(newValue, flags));
   }

@@ -48,8 +48,6 @@ describe('2-runtime/watcher-switcher.spec.ts', function () {
       },
       observeCollection(collection) {/* empty */},
       subscribeTo(subscribable) {/* empty */},
-      handleChange() {/* empty */},
-      handleCollectionChange() {/* empty */}
     };
 
     ConnectableSwitcher.enter(loggingWatcher);
@@ -81,8 +79,6 @@ describe('2-runtime/watcher-switcher.spec.ts', function () {
       },
       observeCollection(collection) {/* empty */},
       subscribeTo(subscribable) {/* empty */},
-      handleChange() {/* empty */},
-      handleCollectionChange() {/* empty */}
     };
 
     ConnectableSwitcher.enter(loggingWatcher);

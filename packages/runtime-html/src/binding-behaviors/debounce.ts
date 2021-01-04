@@ -26,8 +26,8 @@ export class DebounceBindingBehavior extends BindingInterceptor {
     return void 0;
   }
 
-  public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
-    this.queueTask(() => this.binding.handleChange!(newValue, previousValue, flags));
+  public updateSource(newValue: unknown, flags: LifecycleFlags): void {
+    this.queueTask(() => this.binding.updateSource!(newValue, flags));
   }
 
   private queueTask(callback: () => void): void {

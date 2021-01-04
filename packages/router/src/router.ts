@@ -189,7 +189,6 @@ export class Router implements IRouter {
       RouterOptions.hooks.forEach(hook => RoutingHook.add(hook.hook, hook.options));
     }
 
-    // this.instructionResolver.start({ separators: RouterOptions.separators });
     this.navigator.start({
       store: this.navigation,
       statefulHistoryLength: RouterOptions.statefulHistoryLength,
@@ -736,39 +735,6 @@ export class Router implements IRouter {
     }
     return true;
   }
-  // public checkActive(instructions: LoadInstruction | LoadInstruction[], options?: ILoadOptions): boolean {
-  //   // TODO: Look into allowing strings/routes as well
-  //   if (typeof instructions === 'string') {
-  //     throw new Error(`Parameter instructions to checkActivate can not be a string ('${instructions}')!`);
-  //   }
-  //   options = options ?? {};
-
-  //   ({ instructions } = LoadInstructionResolver.createRoutingInstructions(this, instructions, options));
-
-  //   for (const instruction of instructions as RoutingInstruction[]) {
-  //     // const scopeInstructions = this.instructionResolver.matchScope(this.activeComponents, instruction.scope!);
-
-  //     // Find all active instructions that match current instruction scope
-  //     const scopeInstructions = instruction.scope!.matchScope(this.activeComponents);
-  //     // Get all with matching components
-  //     const matching = scopeInstructions.filter(instr => instr.sameComponent(instruction, true));
-  //     // Exit with false if none
-  //     if (matching.length === 0) {
-  //       return false;
-  //     }
-  //     // If current instruction has next scope instructions
-  //     if (Array.isArray(instruction.nextScopeInstructions)
-  //       && instruction.nextScopeInstructions.length > 0
-  //       // All of those too need to match
-  //       && !this.instructionResolver.matchChildren(
-  //         instruction.nextScopeInstructions,
-  //         matching.map(instr => Array.isArray(instr.nextScopeInstructions) ? instr.nextScopeInstructions : []).flat()
-  //       )) {
-  //       return false;
-  //     }
-  //   }
-  //   return true;
-  // }
 
   /**
    * Public API

@@ -1,8 +1,8 @@
-import { IRouter, RouterConfiguration, RoutingInstruction, InstructionResolver } from '@aurelia/router';
+import { IRouter, RouterConfiguration, RoutingInstruction, InstructionParameters } from '@aurelia/router';
 import { CustomElement, Aurelia } from '@aurelia/runtime-html';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 
-describe('InstructionResolver', function () {
+describe('RoutingInstruction', function () {
   async function createFixture() {
     const ctx = TestContext.create();
     const container = ctx.container;
@@ -16,7 +16,6 @@ describe('InstructionResolver', function () {
       .register(RouterConfiguration)
       .app({ host: host, component: App });
 
-    const instructionResolver = container.get(InstructionResolver);
     const router = container.get(IRouter);
     const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();
     mockBrowserHistoryLocation.changeCallback = router.navigation.handlePopstate;
@@ -32,7 +31,7 @@ describe('InstructionResolver', function () {
       au.dispose();
     }
 
-    return { au, container, host, router, tearDown, ctx, instructionResolver };
+    return { au, container, host, router, tearDown, ctx };
   }
 
   this.timeout(5000);
@@ -43,15 +42,15 @@ describe('InstructionResolver', function () {
   });
 
   it('handles state strings', async function () {
-    const { host, router, tearDown, instructionResolver } = await createFixture();
+    const { host, router, tearDown } = await createFixture();
 
     let instructions: RoutingInstruction[] = [
       RoutingInstruction.create('foo', 'left', '123') as RoutingInstruction,
       RoutingInstruction.create('bar', 'right', '456') as RoutingInstruction,
     ];
-    let instructionsString = instructionResolver.stringifyRoutingInstructions(instructions);
+    let instructionsString = RoutingInstruction.stringify(instructions);
     assert.strictEqual(instructionsString, 'foo(123)@left+bar(456)@right', `instructionsString`);
-    let newInstructions = instructionResolver.parseRoutingInstructions(instructionsString);
+    let newInstructions = RoutingInstruction.parse(instructionsString);
     assert.deepStrictEqual(newInstructions, instructions, `newInstructions`);
 
     instructions = [
@@ -59,9 +58,9 @@ describe('InstructionResolver', function () {
       RoutingInstruction.create('bar', 'right') as RoutingInstruction,
       RoutingInstruction.create('baz') as RoutingInstruction,
     ];
-    instructionsString = instructionResolver.stringifyRoutingInstructions(instructions);
+    instructionsString = RoutingInstruction.stringify(instructions);
     assert.strictEqual(instructionsString, 'foo(123)+bar@right+baz', `instructionsString`);
-    newInstructions = instructionResolver.parseRoutingInstructions(instructionsString);
+    newInstructions = RoutingInstruction.parse(instructionsString);
     assert.deepStrictEqual(newInstructions, instructions, `newInstructions`);
 
     await tearDown();
@@ -91,12 +90,12 @@ describe('InstructionResolver', function () {
       const { instruction, routingInstruction } = instructionTest;
 
       it(`parses viewport instruction: ${instruction}`, async function () {
-        const { host, router, tearDown, instructionResolver } = await createFixture();
+        const { host, router, tearDown } = await createFixture();
 
         routingInstruction.context = '';
-        const parsed = instructionResolver.parseRoutingInstruction(instruction);
+        const parsed = RoutingInstruction.parse(instruction)[0];
         assert.deepStrictEqual(parsed, routingInstruction, `parsed`);
-        const newInstruction = instructionResolver.stringifyRoutingInstruction(parsed);
+        const newInstruction = parsed.stringify();
         assert.strictEqual(newInstruction, instruction, `newInstruction`);
 
         await tearDown();
@@ -108,12 +107,12 @@ describe('InstructionResolver', function () {
       const prefixedInstruction = `/${instruction}`;
 
       it(`parses viewport instruction: ${prefixedInstruction}`, async function () {
-        const { host, router, tearDown, instructionResolver } = await createFixture();
+        const { host, router, tearDown } = await createFixture();
 
         routingInstruction.context = '/';
-        const parsed = instructionResolver.parseRoutingInstruction(prefixedInstruction);
+        const parsed = RoutingInstruction.parse(prefixedInstruction)[0];
         assert.deepStrictEqual(parsed, routingInstruction, `parsed`);
-        const newInstruction = instructionResolver.stringifyRoutingInstruction(parsed);
+        const newInstruction = parsed.stringify();
         assert.strictEqual(`${newInstruction}`, prefixedInstruction, `newInstruction`);
 
         await tearDown();
@@ -125,12 +124,12 @@ describe('InstructionResolver', function () {
       const prefixedInstruction = `../../${instruction}`;
 
       it(`parses viewport instruction: ${prefixedInstruction}`, async function () {
-        const { host, router, tearDown, instructionResolver } = await createFixture();
+        const { host, router, tearDown } = await createFixture();
 
         routingInstruction.context = '../../';
-        const parsed = instructionResolver.parseRoutingInstruction(prefixedInstruction);
+        const parsed = RoutingInstruction.parse(prefixedInstruction)[0];
         assert.deepStrictEqual(parsed, routingInstruction, `parsed`);
-        const newInstruction = instructionResolver.stringifyRoutingInstruction(parsed);
+        const newInstruction = parsed.stringify();
         assert.strictEqual(`${newInstruction}`, prefixedInstruction, `newInstruction`);
 
         await tearDown();
@@ -139,7 +138,7 @@ describe('InstructionResolver', function () {
   });
 
   it('handles siblings within scope', async function () {
-    const { host, router, tearDown, instructionResolver } = await createFixture();
+    const { host, router, tearDown } = await createFixture();
 
     // <a>
     //   <b>
@@ -173,9 +172,9 @@ describe('InstructionResolver', function () {
 
     const instructions: RoutingInstruction[] = [a, h];
 
-    const instructionsString = instructionResolver.stringifyRoutingInstructions(instructions);
-    const parsedInstructions = instructionResolver.parseRoutingInstructions(instructionsString);
-    const stringified = instructionResolver.stringifyRoutingInstructions(parsedInstructions);
+    const instructionsString = RoutingInstruction.stringify(instructions);
+    const parsedInstructions = RoutingInstruction.parse(instructionsString);
+    const stringified = RoutingInstruction.stringify(parsedInstructions);
     assert.strictEqual(stringified, instructionsString, `stringified`);
 
     await tearDown();
@@ -187,10 +186,10 @@ describe('InstructionResolver', function () {
 
   for (const instruction of instructionStrings) {
     it(`parses and stringifies viewport instructions: ${instruction}`, async function () {
-      const { host, router, tearDown, instructionResolver } = await createFixture();
+      const { host, router, tearDown } = await createFixture();
 
-      const parsed = instructionResolver.parseRoutingInstructions(instruction);
-      const stringifiedInstructions = instructionResolver.stringifyRoutingInstructions(parsed);
+      const parsed = RoutingInstruction.parse(instruction);
+      const stringifiedInstructions = RoutingInstruction.stringify(parsed);
       assert.strictEqual(stringifiedInstructions, instruction, `stringifiedInstructions`);
 
       await tearDown();
@@ -215,18 +214,18 @@ describe('InstructionResolver', function () {
 
   for (const parameters of parametersStrings) {
     it(`parses and stringifies component parameters: ${parameters.params} => ${parameters.result}`, async function () {
-      const { router, tearDown, instructionResolver } = await createFixture();
+      const { router, tearDown } = await createFixture();
 
-      const parsed = instructionResolver.parseComponentParameters(parameters.params);
+      const parsed = InstructionParameters.parse(parameters.params);
       // console.log('parsed', parsed);
-      const stringified = instructionResolver.stringifyComponentParameters(parsed);
+      const stringified = InstructionParameters.stringify(parsed);
       assert.deepStrictEqual(stringified, parameters.params, `stringified`);
       await tearDown();
     });
   }
   for (const parameters of parametersStrings) {
     it(`parses and specifies component parameters: ${parameters.params} => ${JSON.stringify(parameters.result)}`, async function () {
-      const { router, tearDown, instructionResolver } = await createFixture();
+      const { router, tearDown } = await createFixture();
 
       const instruction = RoutingInstruction.create('', '', parameters.params) as RoutingInstruction;
       const specified = instruction.parameters.toSpecifiedParameters(parameters.spec);
@@ -237,7 +236,7 @@ describe('InstructionResolver', function () {
   for (const outer of parametersStrings) {
     for (const inner of parametersStrings) {
       it(`compares component parameters: ${outer.params} == ${inner.params} [${outer.spec.join(',')}]`, async function () {
-        const { router, tearDown, instructionResolver } = await createFixture();
+        const { router, tearDown } = await createFixture();
 
         const Test = CustomElement.define({ name: 'test', template: '' }, class {
           public static parameters = outer.spec;

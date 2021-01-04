@@ -1,4 +1,4 @@
-import { IRouter, RouterConfiguration } from '@aurelia/router';
+import { IRouter, RouterConfiguration, RouterOptions } from '@aurelia/router';
 import { CustomElement, Aurelia } from '@aurelia/runtime-html';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 
@@ -45,7 +45,7 @@ describe('Configuration', function () {
 
     const { router, tearDown } = await createFixture();
     assert.strictEqual(router['isActive'], true, `router.isActive`);
-    assert.strictEqual(router.instructionResolver.separators.viewport, '@', `router.instructionResolver.separators.viewport`);
+    assert.strictEqual(RouterOptions.separators.viewport, '@', `RouterOptions.separators.viewport`);
 
     await tearDown();
   });
@@ -55,7 +55,7 @@ describe('Configuration', function () {
 
     const { router, tearDown } = await createFixture({ separators: { viewport: '#' } });
     assert.strictEqual(router['isActive'], true, `router.isActive`);
-    assert.strictEqual(router.instructionResolver.separators.viewport, '#', `router.instructionResolver.separators.viewport`);
+    assert.strictEqual(RouterOptions.separators.viewport, '#', `RouterOptions.separators.viewport`);
 
     RouterConfiguration.customize();
     await tearDown();
@@ -68,7 +68,7 @@ describe('Configuration', function () {
       router.start({ separators: { viewport: '%' } });
     });
     assert.strictEqual(router['isActive'], true, `router.isActive`);
-    assert.strictEqual(router.instructionResolver.separators.viewport, '%', `router.instructionResolver.separators.viewport`);
+    assert.strictEqual(RouterOptions.separators.viewport, '%', `RouterOptions.separators.viewport`);
 
     RouterConfiguration.customize();
     await tearDown();

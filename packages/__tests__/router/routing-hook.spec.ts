@@ -1,4 +1,4 @@
-import { RoutingHook, RoutingInstruction, RouterConfiguration, IRouter, Navigation, InstructionResolver } from '@aurelia/router';
+import { RoutingHook, RoutingInstruction, RouterConfiguration, IRouter, Navigation } from '@aurelia/router';
 import { assert, TestContext } from '@aurelia/testing';
 import { CustomElement, IPlatform, Aurelia } from '@aurelia/runtime-html';
 
@@ -22,7 +22,6 @@ describe('RoutingHook', function () {
         App)
       .app({ host: host, component: App });
 
-    const instructionResolver = container.get(InstructionResolver);
     const router = container.get(IRouter);
     const { _pushState, _replaceState } = spyNavigationStates(router, stateSpy);
 
@@ -35,9 +34,9 @@ describe('RoutingHook', function () {
       await au.stop(true);
     }
 
-    const navigationInstruction = new Navigation({ instruction: 'test', fullStateInstruction: 'full-test' });
-    const routingInstructions: RoutingInstruction[] = instructionResolver.parseRoutingInstructions('parent/child');
-    return { au, container, platform, host, router, tearDown, navigationInstruction, routingInstructions, instructionResolver };
+    const navigationInstruction = Navigation.create({ instruction: 'test', fullStateInstruction: 'full-test' });
+    const routingInstructions: RoutingInstruction[] = RoutingInstruction.parse('parent/child');
+    return { au, container, platform, host, router, tearDown, navigationInstruction, routingInstructions };
   }
 
   function spyNavigationStates(router, spy) {
@@ -246,7 +245,7 @@ describe('RoutingHook', function () {
     RoutingHook.add((routingInstructions: RoutingInstruction[], navigationInstruction: Navigation) => Promise.resolve(false),
       { type: 'beforeNavigation' });
 
-      const hooked = await RoutingHook.invokeBeforeNavigation([RoutingInstruction.create('testing')], navigationInstruction) as boolean;
+    const hooked = await RoutingHook.invokeBeforeNavigation([RoutingInstruction.create('testing')], navigationInstruction) as boolean;
     assert.strictEqual(hooked, false, `hooked`);
 
     await tearDown();

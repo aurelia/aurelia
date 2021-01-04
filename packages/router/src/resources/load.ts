@@ -48,7 +48,7 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
       this.hasHref = this.element.hasAttribute('href');
     }
     if (!this.hasHref) {
-      // TODO: Figure out a better value here for non-strings (using InstructionResolver?)
+      // TODO: Figure out a better value here for non-strings (using RoutingInstruction?)
       const value = typeof this.value === 'string' ? this.value : JSON.stringify(this.value);
       this.element.setAttribute('href', value);
     }

@@ -1,4 +1,5 @@
 import { AccessorType, BindingMode, connectable, ExpressionKind, LifecycleFlags } from '@aurelia/runtime';
+import { BindingTargetSubscriber } from './binding-utils.js';
 
 import type { IServiceLocator, ITask, QueueTaskOptions, TaskQueue } from '@aurelia/kernel';
 import type {
@@ -9,7 +10,6 @@ import type {
   IObserverLocator,
   IPartialConnectableBinding,
   IsBindingBehavior,
-  ISubscriber,
   Scope,
 } from '@aurelia/runtime';
 
@@ -193,20 +193,3 @@ export class PropertyBinding implements IPartialConnectableBinding {
 }
 
 connectable(PropertyBinding);
-
-/**
- * A subscriber that is used for subcribing to target observer & invoking `updateSource` on a PropertyBinding
- */
-class BindingTargetSubscriber implements ISubscriber {
-  public constructor(
-    private readonly b: PropertyBinding,
-  ) {}
-
-  // deepscan-disable-next-line
-  public handleChange(value: unknown, _: unknown, flags: LifecycleFlags) {
-    const b = this.b;
-    if (value !== b.sourceExpression.evaluate(flags, b.$scope!, b.$hostScope, b.locator, null)) {
-      b.updateSource(value, flags);
-    }
-  }
-}

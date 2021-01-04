@@ -1,9 +1,14 @@
 import { IPlatform } from '@aurelia/kernel';
-import { bindingBehavior, BindingInterceptor, LifecycleFlags } from '@aurelia/runtime';
+import { bindingBehavior, BindingInterceptor, BindingMode, LifecycleFlags } from '@aurelia/runtime';
 
 import type { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/kernel';
 import type { BindingBehaviorExpression, IInterceptableBinding, IsAssign, Scope } from '@aurelia/runtime';
 
+const defaultDelay = 200;
+
+// A binding behavior that limits
+// - (v1) the rate at which the view-model is updated in two-way bindings, OR
+// - (v1 + v2) the rate at which the view is updated in to-view binding scenarios.
 export class ThrottleBindingBehavior extends BindingInterceptor {
   private readonly taskQueue: TaskQueue;
   private readonly platform: IPlatform;
@@ -11,6 +16,7 @@ export class ThrottleBindingBehavior extends BindingInterceptor {
   private readonly firstArg: IsAssign | null = null;
   private task: ITask | null = null;
   private lastCall: number = 0;
+  private delay: number = 0;
 
   public constructor(
     binding: IInterceptableBinding,
@@ -29,15 +35,15 @@ export class ThrottleBindingBehavior extends BindingInterceptor {
     return void 0;
   }
 
-  public updateTarget(newValue: unknown, flags: LifecycleFlags): void {
+  public handleChange(newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void {
     // when source has changed before the latest throttled value from target
     // then discard that value, and take latest value from source only
     if (this.task !== null) {
       this.task.cancel();
       this.task = null;
+      this.lastCall = this.platform.performanceNow();
     }
-    this.lastCall = 0;
-    this.binding.updateTarget!(newValue, flags);
+    this.binding.handleChange(newValue, oldValue, flags);
   }
 
   public updateSource(newValue: unknown, flags: LifecycleFlags): void {
@@ -58,6 +64,7 @@ export class ThrottleBindingBehavior extends BindingInterceptor {
       this.task = this.taskQueue.queueTask(() => {
         this.lastCall = platform.performanceNow();
         this.task = null;
+        opts.delay = this.delay;
         callback();
       }, opts);
     } else {
@@ -69,9 +76,7 @@ export class ThrottleBindingBehavior extends BindingInterceptor {
   public $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void {
     if (this.firstArg !== null) {
       const delay = Number(this.firstArg.evaluate(flags,  scope,  hostScope,  this.locator, null));
-      if (!isNaN(delay)) {
-        this.opts.delay = delay;
-      }
+      this.opts.delay = this.delay = isNaN(delay) ? defaultDelay : delay;
     }
     this.binding.$bind(flags, scope, hostScope);
   }

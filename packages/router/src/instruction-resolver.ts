@@ -82,11 +82,11 @@ export class InstructionResolver {
         || instruction.startsWith(`${this.separators.add}${this.separators.viewport}`));
   }
 
-  public isClearViewportScopeInstruction(instruction: string | RoutingInstruction): boolean {
-    return instruction instanceof RoutingInstruction
-      ? instruction.component.name === this.clearRoutingInstruction && !!instruction.viewportScope
-      : instruction.startsWith(this.clearRoutingInstruction) && instruction !== this.clearRoutingInstruction;
-  }
+  // public isClearViewportScopeInstruction(instruction: string | RoutingInstruction): boolean {
+  //   return instruction instanceof RoutingInstruction
+  //     ? instruction.component.name === this.clearRoutingInstruction && !!instruction.viewportScope
+  //     : instruction.startsWith(this.clearRoutingInstruction) && instruction !== this.clearRoutingInstruction;
+  // }
 
   public isClearAllViewportsInstruction(instruction: string | RoutingInstruction): boolean {
     return instruction instanceof RoutingInstruction
@@ -94,11 +94,11 @@ export class InstructionResolver {
       : instruction === this.clearRoutingInstruction;
   }
 
-  public isAddAllViewportsInstruction(instruction: string | RoutingInstruction): boolean {
-    return instruction instanceof RoutingInstruction
-      ? instruction.component.name === this.addRoutingInstruction && !instruction.viewport.name
-      : instruction === this.addRoutingInstruction;
-  }
+  // public isAddAllViewportsInstruction(instruction: string | RoutingInstruction): boolean {
+  //   return instruction instanceof RoutingInstruction
+  //     ? instruction.component.name === this.addRoutingInstruction && !instruction.viewport.name
+  //     : instruction === this.addRoutingInstruction;
+  // }
 
   public parseRoutingInstructions(instructions: string): RoutingInstruction[] {
     const match = /^[./]+/.exec(instructions);
@@ -122,219 +122,219 @@ export class InstructionResolver {
     return RoutingInstruction.create('') as RoutingInstruction;
   }
 
-  public stringifyRoutingInstructions(instructions: RoutingInstruction[] | string, excludeViewport: boolean = false, viewportContext: boolean = false): string {
-    return typeof (instructions) === 'string'
-      ? instructions
-      : instructions
-        .map(instruction => this.stringifyRoutingInstruction(instruction, excludeViewport, viewportContext))
-        .filter(instruction => instruction && instruction.length)
-        .join(this.separators.sibling);
-  }
+  // public stringifyRoutingInstructions(instructions: RoutingInstruction[] | string, excludeViewport: boolean = false, viewportContext: boolean = false): string {
+  //   return typeof (instructions) === 'string'
+  //     ? instructions
+  //     : instructions
+  //       .map(instruction => this.stringifyRoutingInstruction(instruction, excludeViewport, viewportContext))
+  //       .filter(instruction => instruction && instruction.length)
+  //       .join(this.separators.sibling);
+  // }
 
-  public stringifyRoutingInstruction(instruction: RoutingInstruction | string, excludeViewport: boolean = false, viewportContext: boolean = false): string {
-    if (typeof instruction === 'string') {
-      return this.stringifyARoutingInstruction(instruction, excludeViewport);
-    } else {
-      let excludeCurrentViewport = excludeViewport;
-      let excludeCurrentComponent = false;
-      if (viewportContext) {
-        if (instruction.viewport.instance?.options?.noLink) {
-          return '';
-        }
-        if (!instruction.needsViewportDescribed && instruction.viewport.instance && !instruction.viewport.instance.options.forceDescription) {
-          excludeCurrentViewport = true;
-        }
-        if (instruction.viewport && instruction.viewport.instance?.options.fallback === instruction.component.name) {
-          excludeCurrentComponent = true;
-        }
-        if (!instruction.needsViewportDescribed && instruction.viewportScope) {
-          excludeCurrentViewport = true;
-        }
-      }
-      let route = instruction.route ?? null;
-      const nextInstructions: RoutingInstruction[] | null = instruction.nextScopeInstructions;
-      let stringified: string = instruction.context;
-      // It's a configured route
-      if (route !== null) {
-        // Already added as part of a configuration, skip to next scope
-        if (route === '') {
-          return Array.isArray(nextInstructions)
-            ? this.stringifyRoutingInstructions(nextInstructions, excludeViewport, viewportContext)
-            : '';
-        }
-        route = (route as FoundRoute).matching;
-        stringified += route.endsWith(this.separators.scope) ? route.slice(0, -this.separators.scope.length) : route;
-      } else {
-        stringified += this.stringifyARoutingInstruction(instruction, excludeCurrentViewport, excludeCurrentComponent);
-      }
-      if (Array.isArray(nextInstructions) && nextInstructions.length) {
-        const nextStringified: string = this.stringifyRoutingInstructions(nextInstructions, excludeViewport, viewportContext);
-        if (nextStringified.length > 0) {
-          stringified += nextInstructions.length === 1 // TODO: This should really also check that the instructions have value
-            ? `${this.separators.scope}${nextStringified}`
-            : `${this.separators.scope}${this.separators.scopeStart}${nextStringified}${this.separators.scopeEnd}`;
-        }
-      }
-      return stringified;
-    }
-  }
+  // public stringifyRoutingInstruction(instruction: RoutingInstruction | string, excludeViewport: boolean = false, viewportContext: boolean = false): string {
+  //   if (typeof instruction === 'string') {
+  //     return this.stringifyARoutingInstruction(instruction, excludeViewport);
+  //   } else {
+  //     let excludeCurrentViewport = excludeViewport;
+  //     let excludeCurrentComponent = false;
+  //     if (viewportContext) {
+  //       if (instruction.viewport.instance?.options?.noLink) {
+  //         return '';
+  //       }
+  //       if (!instruction.needsViewportDescribed && instruction.viewport.instance && !instruction.viewport.instance.options.forceDescription) {
+  //         excludeCurrentViewport = true;
+  //       }
+  //       if (instruction.viewport && instruction.viewport.instance?.options.fallback === instruction.component.name) {
+  //         excludeCurrentComponent = true;
+  //       }
+  //       if (!instruction.needsViewportDescribed && instruction.viewportScope) {
+  //         excludeCurrentViewport = true;
+  //       }
+  //     }
+  //     let route = instruction.route ?? null;
+  //     const nextInstructions: RoutingInstruction[] | null = instruction.nextScopeInstructions;
+  //     let stringified: string = instruction.context;
+  //     // It's a configured route
+  //     if (route !== null) {
+  //       // Already added as part of a configuration, skip to next scope
+  //       if (route === '') {
+  //         return Array.isArray(nextInstructions)
+  //           ? RoutingInstruction.stringify(nextInstructions, excludeViewport, viewportContext)
+  //           : '';
+  //       }
+  //       route = (route as FoundRoute).matching;
+  //       stringified += route.endsWith(this.separators.scope) ? route.slice(0, -this.separators.scope.length) : route;
+  //     } else {
+  //       stringified += this.stringifyARoutingInstruction(instruction, excludeCurrentViewport, excludeCurrentComponent);
+  //     }
+  //     if (Array.isArray(nextInstructions) && nextInstructions.length) {
+  //       const nextStringified: string = RoutingInstruction.stringify(nextInstructions, excludeViewport, viewportContext);
+  //       if (nextStringified.length > 0) {
+  //         stringified += nextInstructions.length === 1 // TODO: This should really also check that the instructions have value
+  //           ? `${this.separators.scope}${nextStringified}`
+  //           : `${this.separators.scope}${this.separators.scopeStart}${nextStringified}${this.separators.scopeEnd}`;
+  //       }
+  //     }
+  //     return stringified;
+  //   }
+  // }
 
-  public stringifyScopedRoutingInstructions(instructions: RoutingInstruction | string | (RoutingInstruction | string)[]): string {
-    if (!Array.isArray(instructions)) {
-      return this.stringifyScopedRoutingInstructions([instructions]);
-    }
-    return instructions.map((instruction) => this.stringifyRoutingInstruction(instruction)).join(this.separators.scope);
-  }
+  // public stringifyScopedRoutingInstructions(instructions: RoutingInstruction | string | (RoutingInstruction | string)[]): string {
+  //   if (!Array.isArray(instructions)) {
+  //     return this.stringifyScopedRoutingInstructions([instructions]);
+  //   }
+  //   return instructions.map((instruction) => this.stringifyRoutingInstruction(instruction)).join(this.separators.scope);
+  // }
 
-  public encodeRoutingInstructions(instructions: RoutingInstruction[]): string {
-    return encodeURIComponent(this.stringifyRoutingInstructions(instructions)).replace(/\(/g, '%28').replace(/\)/g, '%29');
-  }
-  public decodeRoutingInstructions(instructions: string): RoutingInstruction[] {
-    return this.parseRoutingInstructions(decodeURIComponent(instructions));
-  }
+  // public encodeRoutingInstructions(instructions: RoutingInstruction[]): string {
+  //   return encodeURIComponent(RoutingInstruction.stringify(instructions)).replace(/\(/g, '%28').replace(/\)/g, '%29');
+  // }
+  // public decodeRoutingInstructions(instructions: string): RoutingInstruction[] {
+  //   return this.parseRoutingInstructions(decodeURIComponent(instructions));
+  // }
 
-  public buildScopedLink(scopeContext: string, href: string): string {
-    if (scopeContext) {
-      href = `/${scopeContext}${this.separators.scope}${href}`;
-    }
-    return href;
-  }
+  // public buildScopedLink(scopeContext: string, href: string): string {
+  //   if (scopeContext) {
+  //     href = `/${scopeContext}${this.separators.scope}${href}`;
+  //   }
+  //   return href;
+  // }
 
-  public shouldClearViewports(path: string): { clearViewports: boolean; newPath: string } {
-    const clearViewports = (path === this.separators.clear || path.startsWith(this.separators.clear + this.separators.add));
-    const newPath = path.startsWith(this.separators.clear) ? path.slice(2) : path;
-    return { clearViewports, newPath };
-  }
+  // public shouldClearViewports(path: string): { clearViewports: boolean; newPath: string } {
+  //   const clearViewports = (path === this.separators.clear || path.startsWith(this.separators.clear + this.separators.add));
+  //   const newPath = path.startsWith(this.separators.clear) ? path.slice(2) : path;
+  //   return { clearViewports, newPath };
+  // }
 
-  public mergeRoutingInstructions(instructions: (string | RoutingInstruction)[]): RoutingInstruction[] {
-    const merged: RoutingInstruction[] = [];
+  // public mergeRoutingInstructions(instructions: (string | RoutingInstruction)[]): RoutingInstruction[] {
+  //   const merged: RoutingInstruction[] = [];
 
-    for (let instruction of instructions) {
-      if (typeof instruction === 'string') {
-        instruction = this.parseRoutingInstruction(instruction);
-      }
-      const index = merged.findIndex(merge => merge.sameViewport(instruction as RoutingInstruction));
-      if (index >= 0) {
-        merged.splice(index, 1, instruction);
-      } else {
-        merged.push(instruction);
-      }
-    }
-    return merged;
-  }
+  //   for (let instruction of instructions) {
+  //     if (typeof instruction === 'string') {
+  //       instruction = this.parseRoutingInstruction(instruction);
+  //     }
+  //     const index = merged.findIndex(merge => merge.sameViewport(instruction as RoutingInstruction));
+  //     if (index >= 0) {
+  //       merged.splice(index, 1, instruction);
+  //     } else {
+  //       merged.push(instruction);
+  //     }
+  //   }
+  //   return merged;
+  // }
 
-  public flattenRoutingInstructions(instructions: RoutingInstruction[]): RoutingInstruction[] {
-    const flat: RoutingInstruction[] = [];
-    for (const instruction of instructions) {
-      flat.push(instruction);
-      if (instruction.nextScopeInstructions) {
-        flat.push(...this.flattenRoutingInstructions(instruction.nextScopeInstructions));
-      }
-    }
-    return flat;
-  }
+  // public flattenRoutingInstructions(instructions: RoutingInstruction[]): RoutingInstruction[] {
+  //   const flat: RoutingInstruction[] = [];
+  //   for (const instruction of instructions) {
+  //     flat.push(instruction);
+  //     if (instruction.nextScopeInstructions) {
+  //       flat.push(...this.flattenRoutingInstructions(instruction.nextScopeInstructions));
+  //     }
+  //   }
+  //   return flat;
+  // }
 
-  public cloneRoutingInstructions(instructions: RoutingInstruction[], keepInstances: boolean = false, context: boolean = false): RoutingInstruction[] {
-    const clones: RoutingInstruction[] = [];
-    for (const instruction of instructions) {
-      const clone = RoutingInstruction.create(
-        instruction.component.type ?? instruction.component.name!,
-        instruction.viewport.name!,
-        instruction.parameters.typedParameters !== null ? instruction.parameters.typedParameters : void 0,
-      ) as RoutingInstruction;
-      if (keepInstances) {
-        clone.component.set(instruction.component.instance ?? instruction.component.type ?? instruction.component.name!);
-        clone.viewport.set(instruction.viewport.instance ?? instruction.viewport.name!);
-      }
-      clone.needsViewportDescribed = instruction.needsViewportDescribed;
-      clone.route = instruction.route;
-      if (context) {
-        clone.context = instruction.context;
-      }
-      clone.viewportScope = keepInstances ? instruction.viewportScope : null;
-      clone.scope = keepInstances ? instruction.scope : null;
-      if (instruction.nextScopeInstructions) {
-        clone.nextScopeInstructions = this.cloneRoutingInstructions(instruction.nextScopeInstructions, keepInstances, context);
-      }
-      clones.push(clone);
-    }
-    return clones;
-  }
+  // public cloneRoutingInstructions(instructions: RoutingInstruction[], keepInstances: boolean = false, context: boolean = false): RoutingInstruction[] {
+  //   const clones: RoutingInstruction[] = [];
+  //   for (const instruction of instructions) {
+  //     const clone = RoutingInstruction.create(
+  //       instruction.component.type ?? instruction.component.name!,
+  //       instruction.viewport.name!,
+  //       instruction.parameters.typedParameters !== null ? instruction.parameters.typedParameters : void 0,
+  //     ) as RoutingInstruction;
+  //     if (keepInstances) {
+  //       clone.component.set(instruction.component.instance ?? instruction.component.type ?? instruction.component.name!);
+  //       clone.viewport.set(instruction.viewport.instance ?? instruction.viewport.name!);
+  //     }
+  //     clone.needsViewportDescribed = instruction.needsViewportDescribed;
+  //     clone.route = instruction.route;
+  //     if (context) {
+  //       clone.context = instruction.context;
+  //     }
+  //     clone.viewportScope = keepInstances ? instruction.viewportScope : null;
+  //     clone.scope = keepInstances ? instruction.scope : null;
+  //     if (instruction.nextScopeInstructions) {
+  //       clone.nextScopeInstructions = this.cloneRoutingInstructions(instruction.nextScopeInstructions, keepInstances, context);
+  //     }
+  //     clones.push(clone);
+  //   }
+  //   return clones;
+  // }
 
+  // // TODO: Deal with separators in data and complex types
+  // public parseComponentParameters(parameters: ComponentParameters | null, uriComponent: boolean = false): IComponentParameter[] {
+  //   if (parameters === undefined || parameters === null || parameters.length === 0) {
+  //     return [];
+  //   }
+  //   if (typeof parameters === 'string') {
+  //     const list: IComponentParameter[] = [];
+  //     const params = parameters.split(this.separators.parameterSeparator);
+  //     for (const param of params) {
+  //       let key: string | undefined;
+  //       let value: string;
+  //       [key, value] = param.split(this.separators.parameterKeySeparator);
+  //       if (value === void 0) {
+  //         value = uriComponent ? decodeURIComponent(key) : key;
+  //         key = void 0;
+  //       } else if (uriComponent) {
+  //         key = decodeURIComponent(key);
+  //         value = decodeURIComponent(value);
+  //       }
+  //       list.push({ key, value });
+  //     }
+  //     return list;
+  //   }
+  //   if (Array.isArray(parameters)) {
+  //     return parameters.map(param => ({ key: void 0, value: param }));
+  //   }
+  //   const keys = Object.keys(parameters);
+  //   keys.sort();
+  //   return keys.map(key => ({ key, value: parameters[key] }));
+  // }
   // TODO: Deal with separators in data and complex types
-  public parseComponentParameters(parameters: ComponentParameters | null, uriComponent: boolean = false): IComponentParameter[] {
-    if (parameters === undefined || parameters === null || parameters.length === 0) {
-      return [];
-    }
-    if (typeof parameters === 'string') {
-      const list: IComponentParameter[] = [];
-      const params = parameters.split(this.separators.parameterSeparator);
-      for (const param of params) {
-        let key: string | undefined;
-        let value: string;
-        [key, value] = param.split(this.separators.parameterKeySeparator);
-        if (value === void 0) {
-          value = uriComponent ? decodeURIComponent(key) : key;
-          key = void 0;
-        } else if (uriComponent) {
-          key = decodeURIComponent(key);
-          value = decodeURIComponent(value);
-        }
-        list.push({ key, value });
-      }
-      return list;
-    }
-    if (Array.isArray(parameters)) {
-      return parameters.map(param => ({ key: void 0, value: param }));
-    }
-    const keys = Object.keys(parameters);
-    keys.sort();
-    return keys.map(key => ({ key, value: parameters[key] }));
-  }
-  // TODO: Deal with separators in data and complex types
-  public stringifyComponentParameters(parameters: IComponentParameter[], uriComponent: boolean = false): string {
-    if (!Array.isArray(parameters) || parameters.length === 0) {
-      return '';
-    }
-    const seps = this.separators;
-    return parameters
-      .map(param => {
-        const key = param.key !== void 0 && uriComponent ? encodeURIComponent(param.key) : param.key;
-        const value = uriComponent ? encodeURIComponent(param.value as string) : param.value as string;
-        return key !== void 0 && key !== value ? key + seps.parameterKeySeparator + value : value;
-      })
-      .join(seps.parameterSeparator);
-  }
+  // public stringifyComponentParameters(parameters: IComponentParameter[], uriComponent: boolean = false): string {
+  //   if (!Array.isArray(parameters) || parameters.length === 0) {
+  //     return '';
+  //   }
+  //   const seps = this.separators;
+  //   return parameters
+  //     .map(param => {
+  //       const key = param.key !== void 0 && uriComponent ? encodeURIComponent(param.key) : param.key;
+  //       const value = uriComponent ? encodeURIComponent(param.value as string) : param.value as string;
+  //       return key !== void 0 && key !== value ? key + seps.parameterKeySeparator + value : value;
+  //     })
+  //     .join(seps.parameterSeparator);
+  // }
 
-  public matchScope(instructions: RoutingInstruction[], scope: RoutingScope): RoutingInstruction[] {
-    const matching: RoutingInstruction[] = [];
+  // public matchScope(instructions: RoutingInstruction[], scope: RoutingScope): RoutingInstruction[] {
+  //   const matching: RoutingInstruction[] = [];
 
-    matching.push(...instructions.filter(instruction => instruction.scope === scope));
-    matching.push(...instructions
-      .filter(instr => instr.scope !== scope)
-      .map(instr => Array.isArray(instr.nextScopeInstructions) ? this.matchScope(instr.nextScopeInstructions!, scope) : [])
-      .flat()
-    );
-    return matching;
-  }
+  //   matching.push(...instructions.filter(instruction => instruction.scope === scope));
+  //   matching.push(...instructions
+  //     .filter(instr => instr.scope !== scope)
+  //     .map(instr => Array.isArray(instr.nextScopeInstructions) ? this.matchScope(instr.nextScopeInstructions!, scope) : [])
+  //     .flat()
+  //   );
+  //   return matching;
+  // }
 
-  public matchChildren(instructions: RoutingInstruction[], active: RoutingInstruction[]): boolean {
-    for (const instruction of instructions) {
-      const matching = active.filter(instr => instr.sameComponent(instruction));
-      if (matching.length === 0) {
-        return false;
-      }
-      if (Array.isArray(instruction.nextScopeInstructions)
-        && instruction.nextScopeInstructions.length > 0
-        && this.matchChildren(
-          instruction.nextScopeInstructions,
-          matching.map(instr => Array.isArray(instr.nextScopeInstructions) ? instr.nextScopeInstructions : []).flat()
-        ) === false) {
-        return false;
-      }
-    }
-    return true;
-  }
+  // public matchChildren(instructions: RoutingInstruction[], active: RoutingInstruction[]): boolean {
+  //   for (const instruction of instructions) {
+  //     const matching = active.filter(instr => instr.sameComponent(instruction));
+  //     if (matching.length === 0) {
+  //       return false;
+  //     }
+  //     if (Array.isArray(instruction.nextScopeInstructions)
+  //       && instruction.nextScopeInstructions.length > 0
+  //       && this.matchChildren(
+  //         instruction.nextScopeInstructions,
+  //         matching.map(instr => Array.isArray(instr.nextScopeInstructions) ? instr.nextScopeInstructions : []).flat()
+  //       ) === false) {
+  //       return false;
+  //     }
+  //   }
+  //   return true;
+  // }
 
   private parseRoutingInstructionsWorker(instructions: string, grouped: boolean = false): { instructions: RoutingInstruction[]; remaining: string } {
     if (!instructions) {
@@ -474,25 +474,25 @@ export class InstructionResolver {
     return { instruction: routingInstruction, remaining: instruction };
   }
 
-  private stringifyARoutingInstruction(instruction: RoutingInstruction | string, excludeViewport: boolean = false, excludeComponent: boolean = false): string {
-    if (typeof instruction === 'string') {
-      return this.stringifyRoutingInstruction(this.parseRoutingInstruction(instruction), excludeViewport, excludeComponent);
-    } else {
-      let instructionString = !excludeComponent ? instruction.component.name : '';
-      const specification = instruction.component.type ? instruction.component.type.parameters : null;
-      const parameters = this.stringifyComponentParameters(instruction.parameters.toSortedParameters(specification));
-      if (parameters.length > 0) {
-        instructionString += !excludeComponent
-          ? `${this.separators.parameters}${parameters}${this.separators.parametersEnd}`
-          : parameters;
-      }
-      if (instruction.viewport.name !== null && !excludeViewport) {
-        instructionString += this.separators.viewport + instruction.viewport.name;
-      }
-      if (!instruction.ownsScope) {
-        instructionString += this.separators.noScope;
-      }
-      return instructionString || '';
-    }
-  }
+  // private stringifyARoutingInstruction(instruction: RoutingInstruction | string, excludeViewport: boolean = false, excludeComponent: boolean = false): string {
+  //   if (typeof instruction === 'string') {
+  //     return this.stringifyRoutingInstruction(this.parseRoutingInstruction(instruction), excludeViewport, excludeComponent);
+  //   } else {
+  //     let instructionString = !excludeComponent ? instruction.component.name : '';
+  //     const specification = instruction.component.type ? instruction.component.type.parameters : null;
+  //     const parameters = this.stringifyComponentParameters(instruction.parameters.toSortedParameters(specification));
+  //     if (parameters.length > 0) {
+  //       instructionString += !excludeComponent
+  //         ? `${this.separators.parameters}${parameters}${this.separators.parametersEnd}`
+  //         : parameters;
+  //     }
+  //     if (instruction.viewport.name !== null && !excludeViewport) {
+  //       instructionString += this.separators.viewport + instruction.viewport.name;
+  //     }
+  //     if (!instruction.ownsScope) {
+  //       instructionString += this.separators.noScope;
+  //     }
+  //     return instructionString || '';
+  //   }
+  // }
 }

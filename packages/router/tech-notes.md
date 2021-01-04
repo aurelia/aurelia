@@ -1,5 +1,5 @@
 ## Navigation flow
-All navigations roughly follows the same flow:
+All navigations roughly follow the same flow:
 1) A user action (link click, browser navigation, api call) results in a set of `LoadInstruction`s to the `Router`, prepared by the corresponding handler (`LinkHandler`, `BrowserViewerStore` and `Router` respectively).
 2) The `Router` enriches the `LoadInstruction`(s) into a `Navigation` that's sent to the `Navigator`.
 3) The `Navigator` enriches the `Navigation` further, queues it and sends it to the `Router` for processing.
@@ -108,7 +108,7 @@ Viewport contents are used to represent the full component state and can be used
 
 ### `ViewportScope` (`.viewportScope`)
 
-The viewport scope is an endpoint that encapsulates an au-viewport-scope custom element instance. Its content isn't managed by, or even relevant for, the viewport scope since it's only a container custom element. Instead of managing content, the viewport scope provides a way to
+The viewport scope is an endpoint that encapsulates an `au-viewport-scope` custom element instance. Its content isn't managed by, or even relevant for, the viewport scope since it's only a container custom element. Instead of managing content, the viewport scope provides a way to
 
 - add a routing scope without having to add an actual viewport,
 - have segments in routes/paths/instructions without requiring a viewport, and

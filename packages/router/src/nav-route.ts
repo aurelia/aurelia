@@ -89,7 +89,7 @@ export class NavRoute {
       return (this.linkActive as ((route: NavRoute) => boolean))(this) ? 'nav-active' : '';
     }
     const components = this.linkActive as RoutingInstruction[];
-    const activeComponents = this.nav.router.instructionResolver.flattenRoutingInstructions(this.nav.router.activeComponents);
+    const activeComponents = RoutingInstruction.flat(this.nav.router.activeComponents);
     for (const component of components) {
       if (activeComponents.every((active) => !active.sameComponent(component, this.compareParameters && component.parameters.typedParameters !== null))) {
         return '';
@@ -99,7 +99,7 @@ export class NavRoute {
   }
 
   private computeLink(instructions: RoutingInstruction[]): string {
-    return this.nav.router.instructionResolver.stringifyRoutingInstructions(instructions);
+    return RoutingInstruction.stringify(instructions);
   }
 
   private activeChild(): boolean {

@@ -1,3 +1,4 @@
+import { InstructionParameters } from './instructions/instruction-parameters';
 /**
  *
  * NOTE: This file is still WIP and will go through at least one more iteration of refactoring, commenting and clean up!
@@ -13,6 +14,7 @@ export {
 } from './link-handler.js';
 
 export {
+  InstructionParameters,
   Params,
 } from './instructions/instruction-parameters.js';
 

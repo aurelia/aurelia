@@ -167,7 +167,7 @@ export class RoutingScope {
             route.instructions = instructions;
             if (route.instructions.length > 0) {
               const nextInstructions = route.instructions[0].nextScopeInstructions ?? [];
-              route.remaining = this.router.instructionResolver.stringifyRoutingInstructions(nextInstructions);
+              route.remaining = RoutingInstruction.stringify(nextInstructions);
               // TODO: Verify that it's okay to leave this in
               route.instructions[0].nextScopeInstructions = null;
             }
@@ -310,6 +310,42 @@ export class RoutingScope {
         : (step: Step<void>) => child.unload(step, recurse))) as Step<void>;
   }
 
+  public matchScope(instructions: RoutingInstruction[], deep = false): RoutingInstruction[] {
+    const matching: RoutingInstruction[] = [];
+
+    // matching.push(...instructions.filter(instruction => instruction.scope === this));
+    // matching.push(...instructions
+    //   .filter(instr => instr.scope !== this)
+    //   .map(instr => Array.isArray(instr.nextScopeInstructions) ? this.matchScope(instr.nextScopeInstructions) : [])
+    //   .flat());
+    for (const instruction of instructions) {
+      if (instruction.scope === this) {
+        matching.push(instruction);
+      } else if (deep && instruction.hasNextScopeInstructions) {
+        matching.push(...this.matchScope(instruction.nextScopeInstructions!, deep));
+      }
+    }
+    return matching;
+  }
+
+  // public matchChildren(instructions: RoutingInstruction[], active: RoutingInstruction[]): boolean {
+  //   for (const instruction of instructions) {
+  //     const matching = active.filter(instr => instr.sameComponent(instruction));
+  //     if (matching.length === 0) {
+  //       return false;
+  //     }
+  //     if (Array.isArray(instruction.nextScopeInstructions)
+  //       && instruction.nextScopeInstructions.length > 0
+  //       && this.matchChildren(
+  //         instruction.nextScopeInstructions,
+  //         matching.map(instr => Array.isArray(instr.nextScopeInstructions) ? instr.nextScopeInstructions : []).flat()
+  //       ) === false) {
+  //       return false;
+  //     }
+  //   }
+  //   return true;
+  // }
+
   public findMatchingRoute(path: string): FoundRoute | null {
     if (this.isViewportScope && !this.passThroughScope) {
       return this.findMatchingRouteInRoutes(path, this.endpoint.getRoutes());
@@ -375,14 +411,14 @@ export class RoutingScope {
     }
     if (found.foundConfiguration) {
       // clone it so config doesn't get modified
-      found.instructions = this.router.instructionResolver.cloneRoutingInstructions(found.match!.instructions as RoutingInstruction[], false, true);
+      found.instructions = RoutingInstruction.clone(found.match!.instructions as RoutingInstruction[], false, true);
       const instructions = found.instructions.slice();
       while (instructions.length > 0) {
         const instruction = instructions.shift()!;
         instruction.parameters.addParameters(found.params);
         instruction.route = '';
-        if (instruction.nextScopeInstructions !== null) {
-          instructions.unshift(...instruction.nextScopeInstructions);
+        if (instruction.hasNextScopeInstructions) {
+          instructions.unshift(...instruction.nextScopeInstructions!);
         }
       }
       if (found.instructions.length > 0) {

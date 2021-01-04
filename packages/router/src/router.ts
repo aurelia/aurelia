@@ -15,7 +15,7 @@ import { AnchorEventInfo, LinkHandler } from './link-handler.js';
 import { NavigatorViewerEvent, Navigator, NavigatorNavigateEvent } from './navigator.js';
 import { QueueItem } from './utilities/queue.js';
 import { LoadInstructionResolver } from './type-resolvers.js';
-import { arrayRemove } from './utilities/utils.js';
+import { arrayRemove, arrayUnique } from './utilities/utils.js';
 import { IViewportOptions, Viewport } from './viewport.js';
 import { RoutingInstruction } from './instructions/routing-instruction.js';
 import { FoundRoute } from './found-route.js';
@@ -721,25 +721,60 @@ export class Router implements IRouter {
     }
     options = options ?? {};
 
+    // Make sure we have proper routing instructions
     ({ instructions } = LoadInstructionResolver.createRoutingInstructions(this, instructions, options));
 
-    for (const instruction of instructions as RoutingInstruction[]) {
-      const scopeInstructions = this.instructionResolver.matchScope(this.activeComponents, instruction.scope!);
-      const matching = scopeInstructions.filter(instr => instr.sameComponent(instruction, true));
-      if (matching.length === 0) {
-        return false;
-      }
-      if (Array.isArray(instruction.nextScopeInstructions)
-        && instruction.nextScopeInstructions.length > 0
-        && this.instructionResolver.matchChildren(
-          instruction.nextScopeInstructions,
-          matching.map(instr => Array.isArray(instr.nextScopeInstructions) ? instr.nextScopeInstructions : []).flat()
-        ) === false) {
+    // Get all unique involved scopes.
+    const scopes = arrayUnique((instructions as RoutingInstruction[]).map(instruction => instruction.scope));
+
+    // Go through all the scopes and for each scope...
+    for (const scope of scopes as RoutingScope[]) {
+      // ...get the matching (top/entry level) instructions...
+      const scopeInstructions = scope.matchScope(instructions as RoutingInstruction[], false);
+      // ...and active instructions (on any level) and...
+      const scopeActives = scope.matchScope(this.activeComponents, true);
+
+      // ...if any instruction, including next scope instructions, isn't found...
+      if (!RoutingInstruction.contains(scopeActives, scopeInstructions, true)) {
+        // ...the instructions are not considered active.
         return false;
       }
     }
     return true;
   }
+  // public checkActive(instructions: LoadInstruction | LoadInstruction[], options?: ILoadOptions): boolean {
+  //   // TODO: Look into allowing strings/routes as well
+  //   if (typeof instructions === 'string') {
+  //     throw new Error(`Parameter instructions to checkActivate can not be a string ('${instructions}')!`);
+  //   }
+  //   options = options ?? {};
+
+  //   ({ instructions } = LoadInstructionResolver.createRoutingInstructions(this, instructions, options));
+
+  //   for (const instruction of instructions as RoutingInstruction[]) {
+  //     // const scopeInstructions = this.instructionResolver.matchScope(this.activeComponents, instruction.scope!);
+
+  //     // Find all active instructions that match current instruction scope
+  //     const scopeInstructions = instruction.scope!.matchScope(this.activeComponents);
+  //     // Get all with matching components
+  //     const matching = scopeInstructions.filter(instr => instr.sameComponent(instruction, true));
+  //     // Exit with false if none
+  //     if (matching.length === 0) {
+  //       return false;
+  //     }
+  //     // If current instruction has next scope instructions
+  //     if (Array.isArray(instruction.nextScopeInstructions)
+  //       && instruction.nextScopeInstructions.length > 0
+  //       // All of those too need to match
+  //       && !this.instructionResolver.matchChildren(
+  //         instruction.nextScopeInstructions,
+  //         matching.map(instr => Array.isArray(instr.nextScopeInstructions) ? instr.nextScopeInstructions : []).flat()
+  //       )) {
+  //       return false;
+  //     }
+  //   }
+  //   return true;
+  // }
 
   /**
    * Public API
@@ -921,7 +956,7 @@ export class Router implements IRouter {
     let instructions: RoutingInstruction[] = (this.rootScope as ViewportScope).scope.hoistedChildren
       .filter(scope => scope.routingInstruction !== null && !scope.routingInstruction.component.none)
       .map(scope => scope.routingInstruction) as RoutingInstruction[];
-    instructions = this.instructionResolver.cloneRoutingInstructions(instructions, true);
+    instructions = RoutingInstruction.clone(instructions, true);
 
     // The following makes sure right viewport/viewport scopes are set and update
     // whether viewport name is necessary or not
@@ -944,7 +979,7 @@ export class Router implements IRouter {
     let state = await RoutingHook.invokeTransformToUrl(instructions, navigation);
     if (typeof state !== 'string') {
       // Convert to string if necessary
-      state = this.instructionResolver.stringifyRoutingInstructions(state, false, true);
+      state = RoutingInstruction.stringify(state, false, true);
     }
     // Invoke again with string
     state = await RoutingHook.invokeTransformToUrl(state, navigation);
@@ -955,7 +990,7 @@ export class Router implements IRouter {
     // }
 
     const fullViewportStates = [RoutingInstruction.create(this.instructionResolver.clearRoutingInstruction) as RoutingInstruction];
-    fullViewportStates.push(...this.instructionResolver.cloneRoutingInstructions(instructions, this.statefulHistory));
+    fullViewportStates.push(...RoutingInstruction.clone(instructions, this.statefulHistory));
     navigation.fullStateInstruction = fullViewportStates;
 
     if ((navigation.title ?? null) === null) {

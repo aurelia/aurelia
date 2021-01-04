@@ -4,6 +4,7 @@ import { Queue, QueueItem } from './utilities/queue.js';
 import { RoutingInstruction } from './instructions/routing-instruction.js';
 import { Navigation, IStoredNavigation, INavigation } from './navigation.js';
 import { Runner, Step } from './utilities/runner.js';
+import { arrayUnique } from './utilities/utils.js';
 
 /**
  * The navigator is responsible for managing (queueing) navigations and
@@ -554,9 +555,7 @@ export class Navigator {
       }
     }
     // Make excluded components unique
-    excludeComponents = excludeComponents.filter(
-      (component, i, arr) => component !== null && arr.indexOf(component) === i
-    ) as IRouteableComponent[];
+    excludeComponents = arrayUnique(excludeComponents) as IRouteableComponent[];
 
     let instructions: RoutingInstruction[] = [];
     // The instructions, one or two, with possible components to free
@@ -611,8 +610,8 @@ export class Navigator {
       ) as void | Promise<void>;
     }
     // If there are any next scope/child instructions...
-    if (instruction.nextScopeInstructions !== null) {
-      for (const nextInstruction of instruction.nextScopeInstructions) {
+    if (instruction.hasNextScopeInstructions) {
+      for (const nextInstruction of instruction.nextScopeInstructions!) {
         // ...try freeing/disposing them as well.
         return this.freeInstructionComponents(nextInstruction, excludeComponents, alreadyDone);
       }

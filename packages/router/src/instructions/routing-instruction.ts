@@ -158,11 +158,49 @@ export class RoutingInstruction {
     const flat: RoutingInstruction[] = [];
     for (const instruction of instructions) {
       flat.push(instruction);
-      if (Array.isArray(instruction.nextScopeInstructions)) {
-        flat.push(...RoutingInstruction.flat(instruction.nextScopeInstructions));
+      if (instruction.hasNextScopeInstructions) {
+        flat.push(...RoutingInstruction.flat(instruction.nextScopeInstructions!));
       }
     }
     return flat;
+  }
+
+  /**
+   * Clone a list of routing instructions.
+   *
+   * @param instructions - The instructions to clone
+   * @param keepInstances - Whether actual instances should be transfered
+   * @param context - Whether the context should be transfered
+   */
+  public static clone(instructions: RoutingInstruction[], keepInstances: boolean = false, context: boolean = false): RoutingInstruction[] {
+    return instructions.map(instruction => instruction.clone(keepInstances, context));
+  }
+
+  /**
+   * Whether a list of routing instructions contains another list of routing
+   * instructions. If deep, all next scope instructions needs to be contained
+   * in containing next scope instructions as well.
+   *
+   * @param instructionsToSearch - Instructions that should contain (superset)
+   * @param instructionsToFind - Instructions that should be contained (subset)
+   * @param deep - Whether next scope instructions also need to be contained (recurively)
+   */
+  public static contains(instructionsToSearch: RoutingInstruction[], instructionsToFind: RoutingInstruction[], deep: boolean): boolean {
+    // All instructions to find need to exist in instructions to search
+    return instructionsToFind.every(find => find.isIn(instructionsToSearch, deep));
+    // // // If there's nothing to find, it's a success
+    // if (instructionsToFind.length === 0) {
+    //   return true;
+    // }
+    // for (const find of instructionsToFind) {
+    //   // If at least one of the instructions to search in matches _recursively_
+    //   // it's a succesfull match.
+    //   if (find.isIn(instructionsToSearch, deep)) {
+    //     return true;
+    //   }
+    // }
+    // // Otherwise it's a failure to match.
+    // return false;
   }
 
   /**
@@ -183,6 +221,10 @@ export class RoutingInstruction {
   }
   public get isClearAll(): boolean {
     return this.isClear && ((this.viewport.name?.length ?? 0) === 0);
+  }
+
+  public get hasNextScopeInstructions(): boolean {
+    return (this.nextScopeInstructions?.length ?? 0) > 0;
   }
 
   /**
@@ -322,5 +364,66 @@ export class RoutingInstruction {
       instructionString += RoutingInstruction.separators.noScope;
     }
     return instructionString || '';
+  }
+
+  /**
+   * Clone the routing instruction.
+   *
+   * @param keepInstances - Whether actual instances should be transfered
+   * @param context - Whether the context should be transfered
+   */
+  public clone(keepInstances: boolean = false, context: boolean = false): RoutingInstruction {
+    // Create a clone without instances...
+    const clone = RoutingInstruction.create(
+      this.component.type ?? this.component.name!,
+      this.viewport.name!,
+      this.parameters.typedParameters !== null ? this.parameters.typedParameters : void 0,
+    ) as RoutingInstruction;
+    // ...and then set them if they should be transfered.
+    if (keepInstances) {
+      clone.component.set(this.component.instance ?? this.component.type ?? this.component.name!);
+      clone.viewport.set(this.viewport.instance ?? this.viewport.name!);
+    }
+    clone.needsViewportDescribed = this.needsViewportDescribed;
+    clone.route = this.route;
+    // Only transfer context if specified
+    if (context) {
+      clone.context = this.context;
+    }
+    clone.viewportScope = keepInstances ? this.viewportScope : null;
+    clone.scope = keepInstances ? this.scope : null;
+    // Clone all next scope/child instructions
+    if (this.hasNextScopeInstructions) {
+      clone.nextScopeInstructions = RoutingInstruction.clone(this.nextScopeInstructions!, keepInstances, context);
+    }
+    return clone;
+  }
+
+  public isIn(searchIn: RoutingInstruction[], deep: boolean): boolean {
+    // Get all instructions with matching component.
+    const matching = searchIn.filter(instruction => instruction.sameComponent(this));
+    // If no one matches, it's a failure.
+    if (matching.length === 0) {
+      return false;
+    }
+
+    // If no deep match or no next scope instructions...
+    if (!deep || !this.hasNextScopeInstructions) {
+      // ...it's a successful match.
+      return true;
+    }
+
+    // Match the next scope instructions to the next scope instructions of each
+    // of the matching instructions and if at least one match (recursively)...
+    if (matching.some(matched => RoutingInstruction.contains(
+      matched.nextScopeInstructions ?? [],
+      this.nextScopeInstructions!,
+      deep))
+    ) {
+      // ...it's a success...
+      return true;
+    }
+    // ...otherwise it's a failure to match.
+    return false;
   }
 }

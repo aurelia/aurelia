@@ -17,6 +17,13 @@ export function arrayRemove<T>(arr: T[], func: (value: T, index?: number, obj?: 
   return removed;
 }
 
+/**
+ * @internal
+ */
+export function arrayUnique<T>(arr: T[], includeNullish = false): T[] {
+  return arr.filter((item, i, arrAgain) => (includeNullish || item != null) && arrAgain.indexOf(item) === i);
+}
+
 export function resolvePossiblePromise<T = unknown>(value: T | Promise<T>, callback?: (value: T) => T): T | Promise<T> {
   // If we've got a Promise, wait for it's resolve
   if (value instanceof Promise) {

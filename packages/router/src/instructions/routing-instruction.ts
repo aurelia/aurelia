@@ -1,8 +1,9 @@
-import { RouterOptions } from './../router-options';
+import { InstructionParser } from './instruction-parser';
+import { RouterOptions } from './../router-options.js';
 import { InstructionViewportScope } from './instruction-viewport-scope';
-import { InstructionParameters } from './instruction-parameters';
-import { InstructionViewport } from './instruction-viewport';
-import { InstructionComponent } from './instruction-component';
+import { InstructionParameters } from './instruction-parameters.js';
+import { InstructionViewport } from './instruction-viewport.js';
+import { InstructionComponent } from './instruction-component.js';
 import { ComponentAppellation, ComponentParameters, ViewportHandle } from '../interfaces.js';
 import { RoutingScope } from '../routing-scope.js';
 import { ViewportScope } from '../viewport-scope.js';
@@ -115,6 +116,33 @@ export class RoutingInstruction {
     instruction.nextScopeInstructions = nextScopeInstructions;
 
     return instruction;
+  }
+
+  public static clear(): string {
+    return RoutingInstruction.separators.clear;
+  }
+  public static add(): string {
+    return RoutingInstruction.separators.add;
+  }
+
+  public static parse(instructions: string): RoutingInstruction[] {
+    let context = '';
+    // Context is a start with .. or / and any combination thereof
+    const match = /^[./]+/.exec(instructions);
+    // If it starts with a context...
+    if (Array.isArray(match) && match.length > 0) {
+      // ...save and...
+      context = match[0];
+      // ...extract it.
+      instructions = instructions.slice(context.length);
+    }
+    // Parse the instructions...
+    const parsedInstructions: RoutingInstruction[] = InstructionParser.parse(instructions, true).instructions;
+    for (const instruction of parsedInstructions) {
+      // ...and set the context on each of them.
+      instruction.context = context;
+    }
+    return parsedInstructions;
   }
 
   /**

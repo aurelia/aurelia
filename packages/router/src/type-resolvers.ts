@@ -79,7 +79,7 @@ export const LoadInstructionResolver = {
     const instructions: RoutingInstruction[] = [];
     for (const instruction of navigationInstructions) {
       if (typeof instruction === 'string') {
-        instructions.push(...router.instructionResolver.parseRoutingInstructions(instruction));
+        instructions.push(...RoutingInstruction.parse(instruction));
       } else if (instruction instanceof RoutingInstruction) {
         instructions.push(instruction);
       } else if (InstructionComponent.isAppelation(instruction)) {

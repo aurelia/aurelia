@@ -152,7 +152,7 @@ export class Viewport extends Endpoint {
 
   public setNextContent(routingInstruction: RoutingInstruction, navigation: Navigation): NextContentAction {
     routingInstruction.viewport.set(this);
-    this.clear = this.router.instructionResolver.isClearRoutingInstruction(routingInstruction);
+    this.clear = routingInstruction.isClear;
 
     // Can have a (resolved) type or a string (to be resolved later)
     this.nextContent = new ViewportContent(!this.clear ? routingInstruction : void 0, navigation, this.connectedCE ?? null);
@@ -275,7 +275,7 @@ export class Viewport extends Endpoint {
     }
 
     if (!this.content.componentInstance && (!this.nextContent || !this.nextContent.componentInstance) && this.options.default) {
-      const instructions = this.router.instructionResolver.parseRoutingInstructions(this.options.default);
+      const instructions = RoutingInstruction.parse(this.options.default);
       for (const instruction of instructions) {
         // Set to name to be delayed one turn
         instruction.viewport.set(this.name);

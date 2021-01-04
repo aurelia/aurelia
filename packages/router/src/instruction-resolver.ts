@@ -10,9 +10,9 @@ import { RoutingScope } from './routing-scope.js';
 import { FoundRoute } from './found-route.js';
 import { IRouteSeparators, ISeparators } from './router-options.js';
 
-export interface IInstructionResolverOptions {
-  separators?: IRouteSeparators;
-}
+// export interface IInstructionResolverOptions {
+//   separators?: IRouteSeparators;
+// }
 
 // export interface IRouteSeparators extends Partial<ISeparators> { }
 
@@ -33,54 +33,54 @@ export interface IInstructionResolverOptions {
 //   action: string;
 // }
 
-export interface IComponentParameter {
-  key?: string | undefined;
-  value: unknown;
-}
+// export interface IComponentParameter {
+//   key?: string | undefined;
+//   value: unknown;
+// }
 
-export class InstructionResolver {
-  public separators: ISeparators = {
-    viewport: '@', // ':',
-    sibling: '+', // '/',
-    scope: '/', // '+',
-    scopeStart: '(', // ''
-    scopeEnd: ')', // ''
-    noScope: '!',
-    parameters: '(', // '='
-    parametersEnd: ')', // ''
-    parameterSeparator: ',',
-    parameterKeySeparator: '=',
-    parameter: '&',
-    add: '+',
-    clear: '-',
-    action: '.',
-  };
+// export class InstructionResolver {
+  // public separators: ISeparators = {
+  //   viewport: '@', // ':',
+  //   sibling: '+', // '/',
+  //   scope: '/', // '+',
+  //   scopeStart: '(', // ''
+  //   scopeEnd: ')', // ''
+  //   noScope: '!',
+  //   parameters: '(', // '='
+  //   parametersEnd: ')', // ''
+  //   parameterSeparator: ',',
+  //   parameterKeySeparator: '=',
+  //   parameter: '&',
+  //   add: '+',
+  //   clear: '-',
+  //   action: '.',
+  // };
 
-  public start(options?: IInstructionResolverOptions): void {
-    options = options || {};
-    this.separators = { ...this.separators, ...options.separators };
-  }
+  // public start(options?: IInstructionResolverOptions): void {
+  //   options = options || {};
+  //   this.separators = { ...this.separators, ...options.separators };
+  // }
 
-  public get clearRoutingInstruction(): string {
-    return this.separators.clear;
-  }
+  // public get clearRoutingInstruction(): string {
+  //   return this.separators.clear;
+  // }
 
-  public get addRoutingInstruction(): string {
-    return this.separators.add;
-  }
+  // public get addRoutingInstruction(): string {
+  //   return this.separators.add;
+  // }
 
-  public isClearRoutingInstruction(instruction: string | RoutingInstruction): boolean {
-    return instruction instanceof RoutingInstruction
-      ? instruction.component.name === this.clearRoutingInstruction && !!instruction.viewport.name
-      : instruction.startsWith(this.clearRoutingInstruction) && instruction !== this.clearRoutingInstruction;
-  }
+  // public isClearRoutingInstruction(instruction: string | RoutingInstruction): boolean {
+  //   return instruction instanceof RoutingInstruction
+  //     ? instruction.component.name === this.clearRoutingInstruction && !!instruction.viewport.name
+  //     : instruction.startsWith(this.clearRoutingInstruction) && instruction !== this.clearRoutingInstruction;
+  // }
 
-  public isAddRoutingInstruction(instruction: string | RoutingInstruction): boolean {
-    return instruction instanceof RoutingInstruction
-      ? instruction.component.name === this.addRoutingInstruction
-      : (instruction === this.addRoutingInstruction
-        || instruction.startsWith(`${this.separators.add}${this.separators.viewport}`));
-  }
+  // public isAddRoutingInstruction(instruction: string | RoutingInstruction): boolean {
+  //   return instruction instanceof RoutingInstruction
+  //     ? instruction.component.name === this.addRoutingInstruction
+  //     : (instruction === this.addRoutingInstruction
+  //       || instruction.startsWith(`${this.separators.add}${this.separators.viewport}`));
+  // }
 
   // public isClearViewportScopeInstruction(instruction: string | RoutingInstruction): boolean {
   //   return instruction instanceof RoutingInstruction
@@ -88,11 +88,11 @@ export class InstructionResolver {
   //     : instruction.startsWith(this.clearRoutingInstruction) && instruction !== this.clearRoutingInstruction;
   // }
 
-  public isClearAllViewportsInstruction(instruction: string | RoutingInstruction): boolean {
-    return instruction instanceof RoutingInstruction
-      ? instruction.component.name === this.clearRoutingInstruction && !instruction.viewport.name
-      : instruction === this.clearRoutingInstruction;
-  }
+  // public isClearAllViewportsInstruction(instruction: string | RoutingInstruction): boolean {
+  //   return instruction instanceof RoutingInstruction
+  //     ? instruction.component.name === this.clearRoutingInstruction && !instruction.viewport.name
+  //     : instruction === this.clearRoutingInstruction;
+  // }
 
   // public isAddAllViewportsInstruction(instruction: string | RoutingInstruction): boolean {
   //   return instruction instanceof RoutingInstruction
@@ -100,27 +100,27 @@ export class InstructionResolver {
   //     : instruction === this.addRoutingInstruction;
   // }
 
-  public parseRoutingInstructions(instructions: string): RoutingInstruction[] {
-    const match = /^[./]+/.exec(instructions);
-    let context = '';
-    if (Array.isArray(match) && match.length > 0) {
-      context = match[0];
-      instructions = instructions.slice(context.length);
-    }
-    const parsedInstructions: RoutingInstruction[] = this.parseRoutingInstructionsWorker(instructions, true).instructions;
-    for (const instruction of parsedInstructions) {
-      instruction.context = context;
-    }
-    return parsedInstructions;
-  }
+  // public parseRoutingInstructions(instructions: string): RoutingInstruction[] {
+  //   const match = /^[./]+/.exec(instructions);
+  //   let context = '';
+  //   if (Array.isArray(match) && match.length > 0) {
+  //     context = match[0];
+  //     instructions = instructions.slice(context.length);
+  //   }
+  //   const parsedInstructions: RoutingInstruction[] = this.parseRoutingInstructionsWorker(instructions, true).instructions;
+  //   for (const instruction of parsedInstructions) {
+  //     instruction.context = context;
+  //   }
+  //   return parsedInstructions;
+  // }
 
-  public parseRoutingInstruction(instruction: string): RoutingInstruction {
-    const instructions = this.parseRoutingInstructions(instruction);
-    if (instructions.length) {
-      return instructions[0];
-    }
-    return RoutingInstruction.create('') as RoutingInstruction;
-  }
+  // public parseRoutingInstruction(instruction: string): RoutingInstruction {
+  //   const instructions = this.parseRoutingInstructions(instruction);
+  //   if (instructions.length) {
+  //     return instructions[0];
+  //   }
+  //   return RoutingInstruction.create('') as RoutingInstruction;
+  // }
 
   // public stringifyRoutingInstructions(instructions: RoutingInstruction[] | string, excludeViewport: boolean = false, viewportContext: boolean = false): string {
   //   return typeof (instructions) === 'string'
@@ -336,143 +336,143 @@ export class InstructionResolver {
   //   return true;
   // }
 
-  private parseRoutingInstructionsWorker(instructions: string, grouped: boolean = false): { instructions: RoutingInstruction[]; remaining: string } {
-    if (!instructions) {
-      return { instructions: [], remaining: '' };
-    }
-    if (instructions.startsWith(this.separators.scopeStart)) {
-      instructions = `${this.separators.scope}${instructions}`;
-    }
-    const routingInstructions: RoutingInstruction[] = [];
-    let guard = 1000;
-    while (instructions.length && guard) {
-      guard--;
-      if (instructions.startsWith(this.separators.scope)) {
-        instructions = instructions.slice(this.separators.scope.length);
-        const scopeStart = instructions.startsWith(this.separators.scopeStart);
-        if (scopeStart) {
-          instructions = instructions.slice(this.separators.scopeStart.length);
-        }
-        const { instructions: found, remaining } = this.parseRoutingInstructionsWorker(instructions, scopeStart);
-        if (routingInstructions.length) {
-          routingInstructions[routingInstructions.length - 1].nextScopeInstructions = found;
-        } else {
-          routingInstructions.push(...found);
-        }
-        instructions = remaining;
+  // private parseRoutingInstructionsWorker(instructions: string, grouped: boolean = false): { instructions: RoutingInstruction[]; remaining: string } {
+  //   if (!instructions) {
+  //     return { instructions: [], remaining: '' };
+  //   }
+  //   if (instructions.startsWith(this.separators.scopeStart)) {
+  //     instructions = `${this.separators.scope}${instructions}`;
+  //   }
+  //   const routingInstructions: RoutingInstruction[] = [];
+  //   let guard = 1000;
+  //   while (instructions.length && guard) {
+  //     guard--;
+  //     if (instructions.startsWith(this.separators.scope)) {
+  //       instructions = instructions.slice(this.separators.scope.length);
+  //       const scopeStart = instructions.startsWith(this.separators.scopeStart);
+  //       if (scopeStart) {
+  //         instructions = instructions.slice(this.separators.scopeStart.length);
+  //       }
+  //       const { instructions: found, remaining } = this.parseRoutingInstructionsWorker(instructions, scopeStart);
+  //       if (routingInstructions.length) {
+  //         routingInstructions[routingInstructions.length - 1].nextScopeInstructions = found;
+  //       } else {
+  //         routingInstructions.push(...found);
+  //       }
+  //       instructions = remaining;
 
-      } else if (instructions.startsWith(this.separators.scopeEnd)) {
-        if (grouped) {
-          instructions = instructions.slice(this.separators.scopeEnd.length);
-        }
-        return { instructions: routingInstructions, remaining: instructions };
+  //     } else if (instructions.startsWith(this.separators.scopeEnd)) {
+  //       if (grouped) {
+  //         instructions = instructions.slice(this.separators.scopeEnd.length);
+  //       }
+  //       return { instructions: routingInstructions, remaining: instructions };
 
-      } else if (instructions.startsWith(this.separators.sibling) && !this.isAddRoutingInstruction(instructions)) {
-        if (!grouped) {
-          return { instructions: routingInstructions, remaining: instructions };
-        }
-        instructions = instructions.slice(this.separators.sibling.length);
+  //     } else if (instructions.startsWith(this.separators.sibling) && !this.isAddRoutingInstruction(instructions)) {
+  //       if (!grouped) {
+  //         return { instructions: routingInstructions, remaining: instructions };
+  //       }
+  //       instructions = instructions.slice(this.separators.sibling.length);
 
-      } else {
-        const { instruction: routingInstruction, remaining } = this.parseARoutingInstruction(instructions);
-        routingInstructions.push(routingInstruction);
-        instructions = remaining;
-      }
-    }
+  //     } else {
+  //       const { instruction: routingInstruction, remaining } = this.parseARoutingInstruction(instructions);
+  //       routingInstructions.push(routingInstruction);
+  //       instructions = remaining;
+  //     }
+  //   }
 
-    return { instructions: routingInstructions, remaining: instructions };
-  }
+  //   return { instructions: routingInstructions, remaining: instructions };
+  // }
 
-  private findNextToken(instruction: string, tokens: string[]): { token: string; pos: number } {
-    const matches: Record<string, number> = {};
-    // Tokens can have length > 1
-    for (const token of tokens) {
-      const tokenPos = instruction.indexOf(token);
-      if (tokenPos > -1) {
-        matches[token] = instruction.indexOf(token);
-      }
-    }
-    const pos = Math.min(...Object.values(matches));
-    for (const token in matches) {
-      if (matches[token] === pos) {
-        return { token, pos };
-      }
-    }
-    return { token: '', pos: -1 };
-  }
+  // private findNextToken(instruction: string, tokens: string[]): { token: string; pos: number } {
+  //   const matches: Record<string, number> = {};
+  //   // Tokens can have length > 1
+  //   for (const token of tokens) {
+  //     const tokenPos = instruction.indexOf(token);
+  //     if (tokenPos > -1) {
+  //       matches[token] = instruction.indexOf(token);
+  //     }
+  //   }
+  //   const pos = Math.min(...Object.values(matches));
+  //   for (const token in matches) {
+  //     if (matches[token] === pos) {
+  //       return { token, pos };
+  //     }
+  //   }
+  //   return { token: '', pos: -1 };
+  // }
 
-  private parseARoutingInstruction(instruction: string): { instruction: RoutingInstruction; remaining: string } {
-    const seps = this.separators;
-    const tokens = [seps.parameters, seps.viewport, seps.noScope, seps.scopeEnd, seps.scope, seps.sibling];
-    let component: string | undefined = void 0;
-    let parametersString: string | undefined = void 0;
-    let viewport: string | undefined = void 0;
-    let scope = true;
-    let token!: string;
-    let pos: number;
+  // private parseARoutingInstruction(instruction: string): { instruction: RoutingInstruction; remaining: string } {
+  //   const seps = this.separators;
+  //   const tokens = [seps.parameters, seps.viewport, seps.noScope, seps.scopeEnd, seps.scope, seps.sibling];
+  //   let component: string | undefined = void 0;
+  //   let parametersString: string | undefined = void 0;
+  //   let viewport: string | undefined = void 0;
+  //   let scope = true;
+  //   let token!: string;
+  //   let pos: number;
 
-    const specials = [seps.add, seps.clear];
-    for (const special of specials) {
-      if (instruction === special) {
-        component = instruction;
-        instruction = '';
-        tokens.shift(); // parameters
-        tokens.shift(); // viewport
-        token = seps.viewport;
-        break;
-      }
-    }
-    if (component === void 0) {
-      for (const special of specials) {
-        if (instruction.startsWith(`${special}${seps.viewport}`)) {
-          component = special;
-          instruction = instruction.slice(`${special}${seps.viewport}`.length);
-          tokens.shift(); // parameters
-          tokens.shift(); // viewport
-          token = seps.viewport;
-          break;
-        }
-      }
-    }
+  //   const specials = [seps.add, seps.clear];
+  //   for (const special of specials) {
+  //     if (instruction === special) {
+  //       component = instruction;
+  //       instruction = '';
+  //       tokens.shift(); // parameters
+  //       tokens.shift(); // viewport
+  //       token = seps.viewport;
+  //       break;
+  //     }
+  //   }
+  //   if (component === void 0) {
+  //     for (const special of specials) {
+  //       if (instruction.startsWith(`${special}${seps.viewport}`)) {
+  //         component = special;
+  //         instruction = instruction.slice(`${special}${seps.viewport}`.length);
+  //         tokens.shift(); // parameters
+  //         tokens.shift(); // viewport
+  //         token = seps.viewport;
+  //         break;
+  //       }
+  //     }
+  //   }
 
-    if (component === void 0) {
-      ({ token, pos } = this.findNextToken(instruction, tokens));
+  //   if (component === void 0) {
+  //     ({ token, pos } = this.findNextToken(instruction, tokens));
 
-      component = pos !== -1 ? instruction.slice(0, pos) : instruction;
-      instruction = pos !== -1 ? instruction.slice(pos + token.length) : '';
+  //     component = pos !== -1 ? instruction.slice(0, pos) : instruction;
+  //     instruction = pos !== -1 ? instruction.slice(pos + token.length) : '';
 
-      tokens.shift(); // parameters
-      if (token === seps.parameters) {
-        ({ token, pos } = this.findNextToken(instruction, [seps.parametersEnd]));
-        parametersString = instruction.slice(0, pos);
-        instruction = instruction.slice(pos + token.length);
+  //     tokens.shift(); // parameters
+  //     if (token === seps.parameters) {
+  //       ({ token, pos } = this.findNextToken(instruction, [seps.parametersEnd]));
+  //       parametersString = instruction.slice(0, pos);
+  //       instruction = instruction.slice(pos + token.length);
 
-        ({ token } = this.findNextToken(instruction, tokens));
-        instruction = instruction.slice(token.length);
-      }
+  //       ({ token } = this.findNextToken(instruction, tokens));
+  //       instruction = instruction.slice(token.length);
+  //     }
 
-      tokens.shift(); // viewport
-    }
-    if (token === seps.viewport) {
-      ({ token, pos } = this.findNextToken(instruction, tokens));
-      viewport = pos !== -1 ? instruction.slice(0, pos) : instruction;
-      instruction = pos !== -1 ? instruction.slice(pos + token.length) : '';
-    }
+  //     tokens.shift(); // viewport
+  //   }
+  //   if (token === seps.viewport) {
+  //     ({ token, pos } = this.findNextToken(instruction, tokens));
+  //     viewport = pos !== -1 ? instruction.slice(0, pos) : instruction;
+  //     instruction = pos !== -1 ? instruction.slice(pos + token.length) : '';
+  //   }
 
-    tokens.shift(); // noScope
-    if (token === seps.noScope) {
-      scope = false;
-    }
+  //   tokens.shift(); // noScope
+  //   if (token === seps.noScope) {
+  //     scope = false;
+  //   }
 
-    // Restore token that belongs to next instruction
-    if (token === seps.scopeEnd || token === seps.scope || token === seps.sibling) {
-      instruction = `${token}${instruction}`;
-    }
+  //   // Restore token that belongs to next instruction
+  //   if (token === seps.scopeEnd || token === seps.scope || token === seps.sibling) {
+  //     instruction = `${token}${instruction}`;
+  //   }
 
-    const routingInstruction: RoutingInstruction = RoutingInstruction.create(component, viewport, parametersString, scope) as RoutingInstruction;
+  //   const routingInstruction: RoutingInstruction = RoutingInstruction.create(component, viewport, parametersString, scope) as RoutingInstruction;
 
-    return { instruction: routingInstruction, remaining: instruction };
-  }
+  //   return { instruction: routingInstruction, remaining: instruction };
+  // }
 
   // private stringifyARoutingInstruction(instruction: RoutingInstruction | string, excludeViewport: boolean = false, excludeComponent: boolean = false): string {
   //   if (typeof instruction === 'string') {
@@ -495,4 +495,4 @@ export class InstructionResolver {
   //     return instructionString || '';
   //   }
   // }
-}
+// }

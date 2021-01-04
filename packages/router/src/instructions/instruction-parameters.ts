@@ -5,7 +5,6 @@
  *
  */
 import { RouteableComponentType } from '../interfaces.js';
-import { IComponentParameter } from '../instruction-resolver.js';
 import { RouterOptions } from '../router-options.js';
 
 /**
@@ -21,6 +20,11 @@ export const enum ParametersType {
 export type Params = {
   [key: string]: unknown;
 };
+
+export interface IComponentParameter {
+  key?: string | undefined;
+  value: unknown;
+}
 
 /**
  * Public API - The routing instructions are the core of the router's navigations

@@ -18,9 +18,9 @@ export {
   Params,
 } from './instructions/instruction-parameters.js';
 
-export {
-  InstructionResolver,
-} from './instruction-resolver.js';
+// export {
+//   InstructionResolver,
+// } from './instruction-resolver.js';
 
 export {
   // Navigation,

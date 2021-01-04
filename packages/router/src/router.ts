@@ -9,11 +9,9 @@
 /* eslint-disable max-lines-per-function */
 import { DI, IContainer, Registration, IIndexable, Key, Metadata, EventAggregator, IEventAggregator, IDisposable } from '@aurelia/kernel';
 import { CustomElementType, CustomElement, INode, ICustomElementController, ICustomElementViewModel, IAppRoot, isRenderContext, getEffectiveParentNode } from '@aurelia/runtime-html';
-import { InstructionResolver } from './instruction-resolver.js';
 import { LoadInstruction } from './interfaces.js';
 import { AnchorEventInfo, LinkHandler } from './link-handler.js';
 import { NavigatorViewerEvent, Navigator, NavigatorNavigateEvent } from './navigator.js';
-import { QueueItem } from './utilities/queue.js';
 import { LoadInstructionResolver } from './type-resolvers.js';
 import { arrayRemove, arrayUnique } from './utilities/utils.js';
 import { IViewportOptions, Viewport } from './viewport.js';
@@ -91,7 +89,7 @@ export interface IRouter extends Router { }
 class ClosestScope { }
 
 export class Router implements IRouter {
-  public static readonly inject: readonly Key[] = [IContainer, IEventAggregator, Navigator, BrowserViewerStore, LinkHandler, InstructionResolver];
+  public static readonly inject: readonly Key[] = [IContainer, IEventAggregator, Navigator, BrowserViewerStore, LinkHandler];
 
   public rootScope: ViewportScope | null = null;
 
@@ -136,10 +134,6 @@ export class Router implements IRouter {
      * @internal - Shouldn't be used directly.
      */
     public linkHandler: LinkHandler,
-    /**
-     * @internal - Shouldn't be used directly. Probably.
-     */
-    public instructionResolver: InstructionResolver,
   ) { }
 
   /**
@@ -195,7 +189,7 @@ export class Router implements IRouter {
       RouterOptions.hooks.forEach(hook => RoutingHook.add(hook.hook, hook.options));
     }
 
-    this.instructionResolver.start({ separators: RouterOptions.separators });
+    // this.instructionResolver.start({ separators: RouterOptions.separators });
     this.navigator.start({
       store: this.navigation,
       statefulHistoryLength: RouterOptions.statefulHistoryLength,
@@ -989,7 +983,7 @@ export class Router implements IRouter {
     navigation.path = state + query;
     // }
 
-    const fullViewportStates = [RoutingInstruction.create(this.instructionResolver.clearRoutingInstruction) as RoutingInstruction];
+    const fullViewportStates = [RoutingInstruction.create(RoutingInstruction.clear()) as RoutingInstruction];
     fullViewportStates.push(...RoutingInstruction.clone(instructions, this.statefulHistory));
     navigation.fullStateInstruction = fullViewportStates;
 

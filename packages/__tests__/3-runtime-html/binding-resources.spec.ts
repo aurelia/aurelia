@@ -19,6 +19,67 @@ describe('3-runtime-html/binding-resources.spec.ts', function () {
   }
 
   describe('debounce', function () {
+    // if we are to turn the v1 behavior of thottle back on
+    // the following test should be enabled
+    // ===================================================
+    // it('works with toView bindings to elements', async function () {
+    //   @customElement({
+    //     name: 'app',
+    //     template: `<input ref="receiver" value.to-view="value & debounce:25">`,
+    //   })
+    //   class App {
+    //     public value: string = '0';
+    //     public receiver: HTMLInputElement;
+    //   }
+
+    //   const { au, host, ctx } = createFixture();
+
+    //   const component = new App();
+    //   au.app({ component, host });
+    //   await au.start();
+
+    //   const receiver = component.receiver;
+    //   component.value = '1';
+
+    //   assert.strictEqual(receiver.value, '0', 'target value pre #1');
+    //   ctx.platform.domWriteQueue.flush();
+    //   assert.strictEqual(receiver.value, '0', 'target value #1');
+
+    //   component.value = '2';
+
+    //   assert.strictEqual(receiver.value, '0', 'target value pre #2');
+    //   ctx.platform.domWriteQueue.flush();
+    //   assert.strictEqual(receiver.value, '0', 'target value #2');
+
+    //   await wait(20);
+
+    //   assert.strictEqual(receiver.value, '0', 'target value pre #2 + wait(20)');
+    //   ctx.platform.domWriteQueue.flush();
+    //   assert.strictEqual(receiver.value, '0', 'target value #2 + wait(20)');
+
+    //   await wait(10);
+
+    //   assert.strictEqual(receiver.value, '0', 'target value pre #2 + wait(30)');
+    //   ctx.platform.domWriteQueue.flush();
+    //   assert.strictEqual(receiver.value, '2', 'target value #2 + wait(30) + flush()');
+
+    //   component.value = '3';
+
+    //   assert.strictEqual(receiver.value, '2', 'target value pre #3');
+    //   ctx.platform.domWriteQueue.flush();
+    //   assert.strictEqual(receiver.value, '2', 'target value #3');
+
+    //   await wait(50);
+
+    //   assert.strictEqual(receiver.value, '3', 'target value pre #4');
+    //   ctx.platform.domWriteQueue.flush();
+    //   assert.strictEqual(receiver.value, '3', 'target value #4');
+
+    //   await au.stop();
+
+    //   au.dispose();
+    // });
+
     it('works with toView bindings to elements', async function () {
       @customElement({
         name: 'app',

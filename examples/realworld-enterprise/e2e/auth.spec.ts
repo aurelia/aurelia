@@ -56,9 +56,9 @@ describe('register', function () {
   it('can create a new account', async function () {
     await page.goto(`${path}/register`);
 
-    await page.type(`[data-e2e="usernameInput"]`, registration.username);
-    await page.type(`[data-e2e="emailInput"]`, registration.email);
-    await page.type(`[data-e2e="passwordInput"]`, registration.password);
+    await page.type(`[name="username"]`, registration.username);
+    await page.type(`[name="email"]`, registration.email);
+    await page.type(`[name="password"]`, registration.password);
 
     await waitForFramework();
 

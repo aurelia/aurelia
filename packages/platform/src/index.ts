@@ -248,7 +248,7 @@ export class TaskQueue {
   public async yield(): Promise<void> {
     if (this.tracer.enabled) { this.tracer.enter(this, 'yield'); }
 
-    if (this.isEmpty) {
+    if (this.hasNoMoreFiniteWork) {
       if (this.tracer.enabled) { this.tracer.leave(this, 'yield empty'); }
     } else {
       if (this.yieldPromise === void 0) {

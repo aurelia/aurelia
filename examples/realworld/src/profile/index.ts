@@ -1,6 +1,6 @@
 import template from './index.html';
 
-import { customElement, IRouteViewModel, Params, IPlatform,  route } from 'aurelia';
+import { customElement, IRouteViewModel, Params, IPlatform,  route, IRouter } from 'aurelia';
 import { IArticleListState, IProfileState, IUserState } from '../state';
 import { ArticleListQueryParams, Profile } from '../api';
 
@@ -8,17 +8,17 @@ import { ArticleListQueryParams, Profile } from '../api';
 class AuthorArticlesCustomElement implements IRouteViewModel {
   constructor(
     @IPlatform readonly p: IPlatform,
-    @IArticleListState readonly articles: IArticleListState,
+    @IArticleListState readonly $articles: IArticleListState,
   ) {}
 
   load({ name }: Params): void {
     this.p.taskQueue.queueTask(async () => {
       const params = ArticleListQueryParams.create({
-        ...this.articles.params,
+        ...this.$articles.params,
         favorited: undefined,
         author: name as string,
       });
-      await this.articles.load(params);
+      await this.$articles.load(params);
     });
   }
 }
@@ -27,17 +27,17 @@ class AuthorArticlesCustomElement implements IRouteViewModel {
 class FavoritedArticlesCustomElement implements IRouteViewModel {
   constructor(
     @IPlatform readonly p: IPlatform,
-    @IArticleListState readonly articles: IArticleListState,
+    @IArticleListState readonly $articles: IArticleListState,
   ) {}
 
   load({ name }: Params): void {
     this.p.taskQueue.queueTask(async () => {
       const params = ArticleListQueryParams.create({
-        ...this.articles.params,
+        ...this.$articles.params,
         author: undefined,
         favorited: name as string,
       });
-      await this.articles.load(params);
+      await this.$articles.load(params);
     });
   }
 }
@@ -62,6 +62,12 @@ export class ProfileViewCustomElement implements IRouteViewModel {
   load({ name }: Params): void {
     this.p.taskQueue.queueTask(async () => {
       await this.$profile.load(name as string);
+    });
+  }
+
+  toggleFollow(): void {
+    this.p.taskQueue.queueTask(async () => {
+      await this.$profile.toggleFollow();
     });
   }
 }

@@ -20,21 +20,13 @@ export class ArticleMetaCustomElement implements IRouteViewModel {
 
   toggleFollow(): void {
     this.p.taskQueue.queueTask(async () => {
-      if (!this.$user.isAuth) {
-        await this.router.load('login');
-      } else {
-        await this.$article.toggleFollow();
-      }
+      await this.$article.toggleFollow();
     });
   }
 
   toggleFavorite(): void {
     this.p.taskQueue.queueTask(async () => {
-      if (!this.$user.isAuth) {
-        await this.router.load('login');
-      } else {
-        await this.$article.toggleFavorite();
-      }
+      await this.$article.toggleFavorite();
     });
   }
 

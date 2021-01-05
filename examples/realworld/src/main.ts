@@ -10,7 +10,7 @@ const au = new Aurelia();
 au.register(
   LoggerConfiguration.create({
     $console: console,
-    level: LogLevel.trace,
+    level: LogLevel.debug,
   }),
   RouterConfiguration.customize({
     useUrlFragmentHash: false,

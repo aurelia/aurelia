@@ -29,8 +29,9 @@ export class ArticleListCustomElement {
 
   setPage(page: number): void {
     this.p.taskQueue.queueTask(async () => {
-      await this.$articleList.load(this.$articleList.params.clone({
-        offset: this.$articleList.params.limit * (page - 1),
+      const params = this.$articleList.params;
+      await this.$articleList.load(params.clone({
+        offset: params.limit * (page - 1),
       }));
     });
   }

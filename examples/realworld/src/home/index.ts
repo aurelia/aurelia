@@ -23,23 +23,20 @@ export class HomeViewCustomElement implements IRouteViewModel {
   }
 
   setView(mode: 'all' | 'feed'): void {
-    this.mode = mode;
-    this.tag = undefined;
     this.p.taskQueue.queueTask(async () => {
-      let params = this.$articleList.params;
-      if (mode === 'all') {
-        params = ArticleListQueryParams.create({ ...params, tag: undefined });
-      } else {
-        params = FeedArticleListQueryParams.create({ ...params });
-      }
+      this.mode = mode;
+      this.tag = undefined;
+      const { limit, offset } = this.$articleList.params;
+      const params = (mode === 'all' ? ArticleListQueryParams : FeedArticleListQueryParams).create({ limit, offset });
       await this.$articleList.load(params);
     });
   }
 
   setTag(tag: string): void {
-    this.tag = tag;
     this.p.taskQueue.queueTask(async () => {
-      const params = ArticleListQueryParams.create({ ...this.$articleList.params, tag });
+      this.tag = tag;
+      const { limit, offset } = this.$articleList.params;
+      const params = ArticleListQueryParams.create({ limit, offset, tag });
       await this.$articleList.load(params);
     });
   }

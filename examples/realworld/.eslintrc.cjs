@@ -12,7 +12,7 @@ module.exports = {
   ],
   parserOptions: {
     ecmaVersion: 2020,
-    project: path.join(thisDir, 'tsconfig.json'),
+    project: path.join(thisDir, 'tsconfig.eslint.json'),
     sourceType: 'module',
     tsconfigRootDir: thisDir,
   },

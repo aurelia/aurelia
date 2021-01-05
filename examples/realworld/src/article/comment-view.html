@@ -10,7 +10,7 @@
     <a href="/profile/${comment.author.username}" class="comment-author">${comment.author.username}</a>
     <span class="date-posted">${comment.createdAt | date}</span>
     <span class="mod-options" if.bind="canModify">
-      <i class="ion-trash-a" click.delegate="delete()"></i>
+      <i class="ion-trash-a" click.delegate="delete()" data-e2e="deleteBtn"></i>
     </span>
   </div>
 </div>

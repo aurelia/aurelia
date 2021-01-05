@@ -24,11 +24,11 @@
         <form if.bind="$user.isAuth" submit.trigger="$event.preventDefault()" class="card comment-form">
           <div class="card-block">
             <textarea class="form-control" placeholder="Write a comment..." rows="3" value.bind="myComment"
-              disabled.bind="commentsBusy"></textarea>
+              disabled.bind="commentsBusy" name="myComment"></textarea>
           </div>
           <div class="card-footer">
             <img src.bind="user.image" class="comment-author-img" />
-            <button class="btn btn-sm btn-primary" click.delegate="postComment()" disabled.bind="commentsBusy">
+            <button class="btn btn-sm btn-primary" click.delegate="postComment()" disabled.bind="commentsBusy" data-e2e="postCommentBtn">
               Post Comment
             </button>
           </div>

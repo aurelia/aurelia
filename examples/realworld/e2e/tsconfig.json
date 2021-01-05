@@ -9,14 +9,17 @@
     "moduleResolution": "node",
     "skipLibCheck": true,
     "strict": true,
+    "rootDir": "../",
     "outDir": "dist",
-    "rootDir": "src",
     "target": "es2020",
     "types": [
-      "aurelia"
+      "aurelia",
+      "playwright",
+      "node",
+      "mocha"
     ]
   },
   "include": [
-    "src"
+    "**/*.ts"
   ]
 }

@@ -35,6 +35,7 @@
     "examples/fractals-tree",
     "examples/navigation-skeleton",
     "examples/rainbow-spiral",
+    "examples/realworld",
     "examples/realworld-advanced",
     "examples/sierpinski-triangle",
     "test/karma-aurelia-preprocessor",

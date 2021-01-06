@@ -73,7 +73,6 @@
 * [Advanced UI Modeling and Composition](advanced-scenarios/advanced-ui-modeling-with-composite-mvvm.md)
 * [Consuming and Producing Web Components](advanced-scenarios/consuming-and-producing-web-components.md)
 * [Shipping Your Own Aurelia Plugin](advanced-scenarios/shipping-your-own-aurelia-plugin.md)
-* [Server-Side Rendering](advanced-scenarios/server-side-rendering.md)
 * [Building Desktop Apps and PWAs](advanced-scenarios/building-desktop-apps-and-pwa.md)
 * [Building Phone Apps](advanced-scenarios/building-phone-apps.md)
 * [Extending the Template Compiler](advanced-scenarios/extending-the-template-compiler.md)

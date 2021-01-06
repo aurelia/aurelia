@@ -1,6 +1,6 @@
 import template from './app-root.html';
 
-import { customElement, route, ICustomElementViewModel, IPlatform } from 'aurelia';
+import { customElement, route, ICustomElementViewModel } from 'aurelia';
 
 import { ITagsState, IUserState } from './state';
 
@@ -18,20 +18,15 @@ import { ITagsState, IUserState } from './state';
 @customElement({ name: 'app-root', template })
 export class AppRootCustomElement implements ICustomElementViewModel {
   constructor(
-    @IPlatform readonly p: IPlatform,
     @IUserState readonly $user: IUserState,
     @ITagsState readonly $tags: ITagsState,
-  ) {
-    p.taskQueue.queueTask(async () => {
-      // tags can be loaded anonymously and no other state depends on it, so just initiate it asynchronously as early as we can.
-      await $tags.load();
-    });
-  }
+  ) {}
 
-  async attaching(): Promise<void> {
-    // various things depend on user/auth state, so by returning the promise from `attaching` (`binding` and `bound` would also work)
-    // we make sure this is awaited before the router starts its invocations
-    await this.$user.load();
+  async binding() {
+    await Promise.all([
+      this.$tags.load(),
+      this.$user.load(),
+    ]);
   }
 }
 

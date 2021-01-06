@@ -1,8 +1,9 @@
 import template from './index.html';
 
-import { customElement, IRouteViewModel, Params, IPlatform,  route, IRouter } from 'aurelia';
+import { customElement, IRouteViewModel, Params, IPlatform, route } from 'aurelia';
 import { IArticleListState, IProfileState, IUserState } from '../state';
 import { ArticleListQueryParams, Profile } from '../api';
+import { queue } from '../util';
 
 @customElement({ name: 'author-articles', template: '<article-list></article-list>' })
 class AuthorArticlesCustomElement implements IRouteViewModel {
@@ -11,15 +12,13 @@ class AuthorArticlesCustomElement implements IRouteViewModel {
     @IArticleListState readonly $articles: IArticleListState,
   ) {}
 
-  load({ name }: Params): void {
-    this.p.taskQueue.queueTask(async () => {
-      const params = ArticleListQueryParams.create({
-        ...this.$articles.params,
-        favorited: undefined,
-        author: name as string,
-      });
-      await this.$articles.load(params);
+  async load({ name }: Params) {
+    const params = ArticleListQueryParams.create({
+      ...this.$articles.params,
+      favorited: undefined,
+      author: name as string,
     });
+    await this.$articles.load(params);
   }
 }
 
@@ -30,15 +29,13 @@ class FavoritedArticlesCustomElement implements IRouteViewModel {
     @IArticleListState readonly $articles: IArticleListState,
   ) {}
 
-  load({ name }: Params): void {
-    this.p.taskQueue.queueTask(async () => {
-      const params = ArticleListQueryParams.create({
-        ...this.$articles.params,
-        author: undefined,
-        favorited: name as string,
-      });
-      await this.$articles.load(params);
+  async load({ name }: Params) {
+    const params = ArticleListQueryParams.create({
+      ...this.$articles.params,
+      author: undefined,
+      favorited: name as string,
     });
+    await this.$articles.load(params);
   }
 }
 
@@ -54,21 +51,16 @@ export class ProfileViewCustomElement implements IRouteViewModel {
   get profile(): Profile { return this.$profile.current; }
 
   constructor(
-    @IPlatform readonly p: IPlatform,
     @IProfileState readonly $profile: IProfileState,
     @IUserState readonly $user: IUserState,
   ) {}
 
-  load({ name }: Params): void {
-    this.p.taskQueue.queueTask(async () => {
-      await this.$profile.load(name as string);
-    });
+  async load({ name }: Params) {
+    await this.$profile.load(name as string);
   }
 
-  toggleFollow(): void {
-    this.p.taskQueue.queueTask(async () => {
-      await this.$profile.toggleFollow();
-    });
+  @queue async toggleFollow() {
+    await this.$profile.toggleFollow();
   }
 }
 

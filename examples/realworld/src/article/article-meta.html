@@ -1,4 +1,4 @@
-<div class="article-meta" if.bind="!$article.loadPending">
+<div class="article-meta">
   <a href="/profile/${author.username}">
     <img src.bind="author.image" /></a>
   <div class="info">
@@ -10,18 +10,17 @@
       <i class="ion-edit"></i>&nbsp;Edit Article
     </a>
     &nbsp;&nbsp;
-    <button class="btn btn-outline-danger btn-sm" click.delegate="delete()" disabled.bind="busy" data-e2e="deleteBtn">
+    <button class="btn btn-outline-danger btn-sm" click.delegate="delete()" data-e2e="deleteBtn">
       <i class="ion-trash-a"></i>&nbsp;Delete Article
     </button>
   </span>
   <span else>
-    <button class="btn btn-sm btn-outline-secondary" disabled.bind="$article.toggleFollowPending"
-      click.delegate="toggleFollow()" data-e2e="toggleFollowBtn">
+    <button class="btn btn-sm btn-outline-secondary" click.delegate="toggleFollow()" data-e2e="toggleFollowBtn">
       <i class="ion-plus-round"></i>
       &nbsp;${author.following ? 'Unfollow' : 'Follow'} ${author.username}
     </button>
     &nbsp;&nbsp;
-    <button class="btn btn-sm ${article.favorited ? 'btn-primary' : 'btn-outline-primary'}" disabled.bind="busy"
+    <button class="btn btn-sm ${article.favorited ? 'btn-primary' : 'btn-outline-primary'}"
       click.delegate="toggleFavorite()" data-e2e="toggleFavoriteBtn">
       <i class="ion-heart"></i>
       &nbsp;${article.favorited ? 'Unfavorite' : 'Favorite'} Post
@@ -29,5 +28,3 @@
     </button>
   </span>
 </div>
-
-<spinner-border else></spinner-border>

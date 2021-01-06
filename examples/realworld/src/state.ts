@@ -1,5 +1,5 @@
 import { DI, ILogger, IRouteViewModel, NavigationInstruction, Params, RouteNode } from 'aurelia';
-import { Article, ArticleListResponse, ArticleResponse, Comment, ErrorRecordResponse, IApiService, IJwtService, ArticleQueryParams, User, UserLogin, UserRegistration, UserResponse, UserUpdate, ArticleListQueryParams, Profile, ProfileResponse, ErrorList, CommentResponse } from './api';
+import { Article, ArticleListResponse, ArticleResponse, Comment, ErrorRecordResponse, IApiService, IJwtService, ArticleQueryParams, User, UserLogin, UserRegistration, UserResponse, UserUpdate, ArticleListQueryParams, Profile, ProfileResponse, ErrorList } from './api';
 
 /**
  * Singleton `User` state that represents the currently logged-in user.
@@ -16,12 +16,9 @@ export class UserState {
     @IApiService private readonly api: IApiService,
   ) {}
 
-  loadPending = false;
-  async load(): Promise<void> {
+  async load() {
     if (this.jwt.isTokenValid()) {
-      this.loadPending = true;
       const resp = await this.api.getCurrentUser();
-      this.loadPending = false;
 
       this.setAuth(resp.user);
     } else {
@@ -29,14 +26,9 @@ export class UserState {
     }
   }
 
-  loginPending = false;
-  async login(login: UserLogin): Promise<boolean> {
+  async login(login: UserLogin) {
     this.errors = [];
-
-    this.loginPending = true;
     const resp = await this.api.loginUser(login);
-    this.loginPending = false;
-
     if (resp instanceof ErrorRecordResponse) {
       this.clearAuth();
       this.errors = resp.toErrorList();
@@ -50,14 +42,9 @@ export class UserState {
     this.clearAuth();
   }
 
-  registerPending = false;
-  async register(registration: UserRegistration): Promise<boolean> {
+  async register(registration: UserRegistration) {
     this.errors = [];
-
-    this.registerPending = true;
     const resp = await this.api.registerUser(registration);
-    this.registerPending = false;
-
     if (resp instanceof ErrorRecordResponse) {
       this.clearAuth();
       this.errors = resp.toErrorList();
@@ -67,11 +54,8 @@ export class UserState {
     return true;
   }
 
-  updatePending = false;
-  async update(user: UserUpdate): Promise<void> {
-    this.updatePending = true;
+  async update(user: UserUpdate) {
     const resp = await this.api.updateUser(user);
-    this.updatePending = false;
 
     if (resp instanceof UserResponse) {
       this.current = resp.user;
@@ -103,43 +87,21 @@ export class ProfileState {
     @IApiService private readonly api: IApiService,
   ) {}
 
-  toggleFollowPending = false;
-  async toggleFollow(): Promise<void> {
+  async toggleFollow() {
     const profile = this.current;
     const username = profile.username;
     let resp: ProfileResponse;
-
-    this.toggleFollowPending = true;
     if (profile.following) {
       resp = await this.api.unfollowUser(username);
     } else {
       resp = await this.api.followUser(username);
     }
-    this.toggleFollowPending = false;
-
     this.current = resp.profile;
   }
 
-  // Stuff for request deduplication.
-  // Not super necessary in this app, but still good form when arbitrary components may request data from the state object.
-  // This guarantees only the first request results in an api call, and subsequent requests will wait for the same initial promise.
-  private nextUsername = '';
-  private loadPromise: Promise<void> | null = null;
-  loadPending = false;
-  async load(username: string): Promise<void> {
-    if (username === this.nextUsername) {
-      return this.loadPromise ?? undefined;
-    }
-
-    this.nextUsername = username;
-    return this.loadPromise = (async () => {
-      this.loadPending = true;
-      const resp = await this.api.getProfile(username);
-      this.loadPending = false;
-      this.loadPromise = null;
-
-      this.current = resp.profile;
-    })();
+  async load(username: string) {
+    const resp = await this.api.getProfile(username);
+    this.current = resp.profile;
   }
 }
 
@@ -157,100 +119,52 @@ export class ArticleState {
     @IApiService private readonly api: IApiService,
   ) {}
 
-  toggleFollowPending = false;
-  async toggleFollow(): Promise<void> {
+  async toggleFollow() {
     const author = this.current.author;
     const username = author.username;
     let resp: ProfileResponse;
-
-    this.toggleFollowPending = true;
     if (author.following) {
       resp = await this.api.unfollowUser(username);
     } else {
       resp = await this.api.followUser(username);
     }
-    this.toggleFollowPending = false;
-
     this.current.author = resp.profile;
   }
 
-  toggleFavoritePending = false;
-  async toggleFavorite(): Promise<void> {
+  async toggleFavorite() {
     const article = this.current;
     let resp: ArticleResponse;
-
-    this.toggleFavoritePending = true;
     if (article.favorited) {
       resp = await this.api.unfavoriteArticle(article.slug);
     } else {
       resp = await this.api.favoriteArticle(article.slug);
     }
-    this.toggleFavoritePending = false;
-
     this.current = resp.article;
   }
 
-  private nextSlug = '';
-  private loadPromise: Promise<void> | null = null;
-  loadPending = false;
-  async load(slug = ''): Promise<void> {
-    if (slug === this.nextSlug) {
-      return this.loadPromise ?? undefined;
-    }
-
-    this.nextSlug = slug;
+  async load(slug = '') {
     this.current = Article.NONE;
     this.comments = [];
 
     if (slug) {
-      return this.loadPromise = (async () => {
-        this.loadPending = true;
-        // TODO: handle 404 and other errors gracefully
-        const resp = await this.api.getArticle(slug);
-        if (slug === this.nextSlug) {
-          this.loadPending = false;
-          this.loadPromise = null;
-          this.current = resp.article;
-        }
-      })();
+      const resp = await this.api.getArticle(slug);
+      this.current = resp.article;
     }
   }
 
-  private nextCommentsSlug = '';
-  private loadCommentsPromise: Promise<void> | null = null;
-  loadCommentsPending = false;
-  async loadComments(slug: string): Promise<void> {
-    if (slug === this.nextCommentsSlug) {
-      return this.loadCommentsPromise ?? undefined;
-    }
-
-    this.nextCommentsSlug = slug;
-
-    return this.loadCommentsPromise = (async () => {
-      this.loadCommentsPending = true;
-      // TODO: handle 404 and other errors gracefully
-      const resp = await this.api.getCommentsFromArticle(slug);
-      if (slug === this.nextCommentsSlug) {
-        this.loadCommentsPending = false;
-        this.loadCommentsPromise = null;
-        this.comments = resp.comments;
-      }
-    })();
+  async loadComments(slug: string) {
+    const resp = await this.api.getCommentsFromArticle(slug);
+    this.comments = resp.comments;
   }
 
-  savePending = false;
-  async save(article: Article): Promise<boolean> {
+  async save(article: Article) {
     this.errors = [];
     let resp: ErrorRecordResponse | ArticleResponse;
-
-    this.savePending = true;
     if (article.slug) {
       resp = await this.api.updateArticle(article.slug, article);
     } else {
       resp = await this.api.createArticle(article);
     }
-    this.savePending = false;
-
     if (resp instanceof ErrorRecordResponse) {
       this.errors = resp.toErrorList();
       return false;
@@ -259,26 +173,16 @@ export class ArticleState {
     return true;
   }
 
-  deletePending = false;
-  async delete(): Promise<void> {
+  async delete() {
     this.errors = [];
-
-    this.deletePending = true;
     await this.api.deleteArticle(this.current.slug);
-    this.deletePending = false;
-
     this.current = Article.NONE;
   }
 
-  addCommentPending = false;
-  async addComment(body: string): Promise<boolean> {
+  async addComment(body: string) {
     this.errors = [];
     const article = this.current;
-
-    this.addCommentPending = true;
     const resp = await this.api.addCommentToArticle(article.slug, { body });
-    this.addCommentPending = false;
-
     if (resp instanceof ErrorRecordResponse) {
       this.errors = resp.toErrorList();
       return false;
@@ -287,19 +191,10 @@ export class ArticleState {
     return true;
   }
 
-  deleteCommentPending = false;
-  async deleteComment(commentId: number): Promise<void> {
-    if (this.deleteCommentPending) {
-      return;
-    }
-
+  async deleteComment(commentId: number) {
     this.errors = [];
     const article = this.current;
-
-    this.deleteCommentPending = true;
     await this.api.deleteCommentFromArticle(article.slug, commentId);
-    this.deleteCommentPending = false;
-
     const idx = this.comments.findIndex(x => x.id === commentId);
     this.comments.splice(idx, 1);
   }
@@ -321,36 +216,26 @@ export class ArticleListState {
     @IApiService private readonly api: IApiService,
   ) {}
 
-  toggleFavoritePending = {} as Record<string, boolean>;
-  async toggleFavorite(slug: string): Promise<void> {
+  async toggleFavorite(slug: string) {
     const idx = this.items.findIndex(x => x.slug === slug);
     const article = this.items[idx];
     let resp: ArticleResponse;
-
-    this.toggleFavoritePending[slug] = true;
     if (article.favorited) {
       resp = await this.api.unfavoriteArticle(slug);
     } else {
       resp = await this.api.favoriteArticle(slug);
     }
-    this.toggleFavoritePending[slug] = false;
-
     this.items.splice(idx, 1, resp.article);
   }
 
-  loadPending = false;
-  async load(params: ArticleQueryParams = this.params): Promise<void> {
+  async load(params: ArticleQueryParams = this.params) {
     this.params = params;
     let resp: ArticleListResponse;
-
-    this.loadPending = true;
     if (params.type === 'all') {
       resp = await this.api.getArticles(params);
     } else {
       resp = await this.api.getFeedArticles(params);
     }
-    this.loadPending = false;
-
     this.items = resp.articles;
     this.itemsCount = resp.articlesCount;
     this.currentPage = (params.offset + this.items.length) / params.limit;
@@ -370,12 +255,8 @@ export class TagsState {
     @IApiService private readonly api: IApiService,
   ) {}
 
-  loadPending = false;
-  async load(): Promise<void> {
-    this.loadPending = true;
+  async load() {
     const resp = await this.api.getTags();
-    this.loadPending = false;
-
     this.items = resp.tags;
   }
 }

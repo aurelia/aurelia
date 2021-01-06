@@ -44,16 +44,6 @@ export class User {
   clone(): User {
     return User.create(this);
   }
-
-  equals(other: User): boolean {
-    return (
-      this.email === other.email &&
-      this.token === other.token &&
-      this.username === other.username &&
-      this.bio === other.bio &&
-      this.image === other.image
-    );
-  }
 }
 
 export class UserResponse {
@@ -94,15 +84,6 @@ export class Profile {
 
   clone(): Profile {
     return Profile.create(this);
-  }
-
-  equals(other: Profile): boolean {
-    return (
-      this.username === other.username &&
-      this.bio === other.bio &&
-      this.image === other.image &&
-      this.following === other.following
-    );
   }
 }
 
@@ -156,16 +137,6 @@ export class Article {
       obj.favorited,
       obj.favoritesCount,
       Profile.create(obj.author),
-    );
-  }
-
-  equals(other: Article): boolean {
-    return (
-      this.title === other.title &&
-      this.description === other.description &&
-      this.body === other.body &&
-      this.tagList.length === other.tagList.length &&
-      this.tagList.every((tag, i) => tag === other.tagList[i])
     );
   }
 
@@ -370,17 +341,6 @@ export class ArticleListQueryParams {
     );
   }
 
-  equals(other: ArticleQueryParams): boolean {
-    return (
-      this.type === other.type &&
-      this.limit === other.limit &&
-      this.offset === other.offset &&
-      this.tag === other.tag &&
-      this.author === other.author &&
-      this.favorited === other.favorited
-    );
-  }
-
   clone(overwrites: Partial<PurifyQueryParams<ArticleListQueryParams>> = {}): ArticleListQueryParams {
     return ArticleListQueryParams.create({ ...this, ...overwrites });
   }
@@ -400,14 +360,6 @@ export class FeedArticleListQueryParams {
 
   static create(input: PurifyQueryParams<FeedArticleListQueryParams>): FeedArticleListQueryParams {
     return new FeedArticleListQueryParams(input.limit, input.offset);
-  }
-
-  equals(other: ArticleQueryParams): boolean {
-    return (
-      this.type === other.type &&
-      this.limit === other.limit &&
-      this.offset === other.offset
-    );
   }
 
   clone(overwrites: Partial<PurifyQueryParams<FeedArticleListQueryParams>> = {}): FeedArticleListQueryParams {

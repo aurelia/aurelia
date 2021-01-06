@@ -2,7 +2,6 @@ module.exports = function (env, { mode }) {
   const path = require('path');
   const HtmlWebpackPlugin = require('html-webpack-plugin');
   const srcDir = path.resolve(__dirname, 'src');
-  const assetsDir = path.join(srcDir, '_assets');
 
   const production = mode === 'production';
   return {
@@ -23,8 +22,7 @@ module.exports = function (env, { mode }) {
       rules: [
         { test: /\.ts$/, loader: 'ts-loader' },
         { test: /\.html$/, loader: 'html-loader' },
-        { test: /\.css$/, include: assetsDir, use: [{ loader: 'style-loader' }, { loader: 'css-loader' }] },
-        { test: /\.css$/, exclude: assetsDir, loader: 'css-loader' },
+        { test: /\.css$/, use: [{ loader: 'style-loader' }, { loader: 'css-loader' }] },
       ],
     },
     plugins: [

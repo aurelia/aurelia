@@ -40,8 +40,7 @@
           <div class="tag-list">
             <a repeat.for="tag of $tags.items" class="tag-pill tag-default" click.delegate="setTag(tag)"
               data-e2e="${tag}TagLink">${tag}</a>
-            <div if.bind="!$tags.loadPending && $tags.items.length === 0">No tags are here... yet.</div>
-            <div if.bind="$tags.loadPending">Loading...</div>
+            <div if.bind="$tags.items.length === 0">No tags are here... yet.</div>
           </div>
         </div>
       </div>

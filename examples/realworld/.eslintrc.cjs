@@ -26,5 +26,6 @@ module.exports = {
   reportUnusedDisableDirectives: true,
   rules: {
     '@typescript-eslint/no-empty-interface': 'off',
+    '@typescript-eslint/explicit-module-boundary-types': 'off',
   },
 };

@@ -44,7 +44,6 @@
 * [Managing App State](app-basics/managing-app-state.md)
 * [Securing an App](app-basics/securing-an-app.md)
 * [Customizing Binding Behavior](app-basics/customizing-binding-behavior.md)
-* [Validating Data](app-basics/validating-data.md)
 * [Internationalization](app-basics/internationalization.md)
 * [Adding Animation](app-basics/adding-animation.md)
 * [Overlays, Modals, and Toast](app-basics/overlays-modals-toast.md)
@@ -62,6 +61,20 @@
 * [Lifecycle Hooks](routing/lifecycle-hooks.md)
 * [Router Hooks](routing/router-hooks.md)
 * [Differences From V1](routing/differences-from-v1.md)
+
+## Validation
+
+* [Getting Started](validation/getting-started.md)
+* [Architecture](validation/architecture.md)
+* [Registering the Plugin](validation/registering-the-plugin.md)
+* [Defining & Customizing Rules](validation/defining-rules.md)
+* [Tagging Rules](validation/tagging-rules.md)
+* [Model Based Validation](validation/model-based-validation.md)
+* [Validation Controller](validation/validation-controller.md)
+* [Validate Binding Behavior](validation/validate-binding-behavior.md)
+* [Displaying Errors](validation/displaying-errors.md)
+* [I18n Internationalization](validation/i18n-internationalization.md)
+* [Migration Guide & Breaking Changes](validation/migration-guide.md)
 
 ## Advanced Scenarios
 

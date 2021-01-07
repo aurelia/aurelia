@@ -13,5 +13,9 @@
     "build": "tsc -p tsconfig.json",
     "::e2e": "mocha --ui bdd --colors --reporter spec --timeout 30000",
     "e2e:examples": "npm run ::e2e -- dist/examples.spec.js"
+  },
+  "engines": {
+    "node": ">=14.15.0",
+    "npm": ">=6.14.8"
   }
 }

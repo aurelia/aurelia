@@ -644,6 +644,9 @@ export class TemplateBinder {
     ) {
       if ((bindingType & BindingType.BindCommand | BindingType.OneTimeCommand | BindingType.ToViewCommand | BindingType.TwoWayCommand) > 0) {
         // Default to the name of the attr for empty binding commands
+        // it may looks like this
+        // - <input value.bind />
+        // - <my-el my-value.bind />
         expr = this.exprParser.parse(camelCase(attrTarget), bindingType);
       } else {
         return;

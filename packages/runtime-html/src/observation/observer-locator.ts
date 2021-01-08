@@ -17,6 +17,7 @@ import { SelectValueObserver } from './select-value-observer.js';
 import { StyleAttributeAccessor } from './style-attribute-accessor.js';
 import { ISVGAnalyzer } from './svg-analyzer.js';
 import { ValueAttributeObserver } from './value-attribute-observer.js';
+import { createLookup, isDataAttribute } from '../html-utils.js';
 
 import type { IIndexable, IContainer } from '@aurelia/kernel';
 import type { IAccessor, IObserver, ICollectionObserver, CollectionKind } from '@aurelia/runtime';
@@ -317,26 +318,4 @@ export function getCollectionObserver(collection: unknown, observerLocator: IObs
 
 function throwMappingExisted(nodeName: string, key: PropertyKey): never {
   throw new Error(`Mapping for property ${String(key)} of <${nodeName} /> already exists`);
-}
-
-const IsDataAttribute: Record<string, boolean> = createLookup();
-
-function isDataAttribute(obj: Node, key: PropertyKey, svgAnalyzer: ISVGAnalyzer): boolean {
-  if (IsDataAttribute[key as string] === true) {
-    return true;
-  }
-  if (typeof key !== 'string') {
-    return false;
-  }
-  const prefix = key.slice(0, 5);
-  // https://html.spec.whatwg.org/multipage/dom.html#wai-aria
-  // https://html.spec.whatwg.org/multipage/dom.html#custom-data-attribute
-  return IsDataAttribute[key] =
-    prefix === 'aria-' ||
-    prefix === 'data-' ||
-    svgAnalyzer.isStandardSvgAttribute(obj, key);
-}
-
-function createLookup<T = unknown>(){
-  return Object.create(null) as Record<string, T>;
 }

@@ -1,17 +1,62 @@
-import { DI } from '@aurelia/kernel';
+import { camelCase, DI } from '@aurelia/kernel';
+import { createLookup, isDataAttribute } from './html-utils.js';
+import { ISVGAnalyzer } from './observation/svg-analyzer.js';
+
 import type { AttrSyntax } from './resources/attribute-pattern.js';
 
 export interface IAttrSyntaxTransformer extends AttrSyntaxTransformer {}
 export const IAttrSyntaxTransformer = DI
   .createInterface<IAttrSyntaxTransformer>('IAttrSyntaxTransformer', x => x.singleton(AttrSyntaxTransformer));
 
-type IsTwoWayPredicate = (element: HTMLElement, attribute: string) => boolean;
+type IsTwoWayPredicate = (element: Element, attribute: string) => boolean;
 
 export class AttrSyntaxTransformer {
+  static get inject() { return [ISVGAnalyzer]; }
+
   /**
    * @internal
    */
   private readonly fns: IsTwoWayPredicate[] = [];
+  /**
+   * @internal
+   */
+  private readonly tagAttrMapper: Record<string, Record<string, PropertyKey>> = createLookup();
+  /**
+   * @internal
+   */
+  private readonly globalAttrMapper: Record<string, PropertyKey> = createLookup();
+
+  public constructor(
+    private readonly svg: ISVGAnalyzer,
+  ) {
+    this.useMapping({
+      LABEL: { for: 'htmlFor' },
+      IMG: { usemap: 'useMap' },
+      INPUT: {
+        maxlength: 'maxLength',
+        minlength: 'minLength',
+        formaction: 'formAction',
+        formenctype: 'formEncType',
+        formmethod: 'formMethod',
+        formnovalidate: 'formNoValidate',
+        formtarget: 'formTarget',
+        inputmode: 'inputMode',
+      },
+      TEXTAREA: { maxlength: 'maxLength' },
+      TD: { rowspan: 'rowSpan', colspan: 'colSpan' },
+      TH: { rowspan: 'rowSpan', colspan: 'colSpan' },
+    });
+    this.useGlobalMapping({
+      accesskey: 'accessKey',
+      contenteditable: 'contentEditable',
+      tabindex: 'tabIndex',
+      textcontent: 'textContent',
+      innerhtml: 'innerHTML',
+      scrolltop: 'scrollTop',
+      scrollleft: 'scrollLeft',
+      readonly: 'readOnly',
+    });
+  }
 
   /**
    * Add a given function to a list of fns that will be used
@@ -29,9 +74,44 @@ export class AttrSyntaxTransformer {
   }
 
   /**
+   * Allow application to teach Aurelia how to define how to map attributes to properties
+   * based on element tagName
+   */
+  public useMapping(config: Record<string, Record<string, PropertyKey>>): void {
+    let newAttrMapping: Record<string, PropertyKey>;
+    let targetAttrMapping: Record<string, PropertyKey>;
+    let tagName: string;
+    let attr: string;
+    for (tagName in config) {
+      newAttrMapping = config[tagName];
+      targetAttrMapping = (this.tagAttrMapper[tagName] ??= createLookup());
+      for (attr in newAttrMapping) {
+        if (targetAttrMapping[attr] !== void 0) {
+          throw createMappedError(attr, tagName);
+        }
+        targetAttrMapping[attr] = newAttrMapping[attr];
+      }
+    }
+  }
+
+  /**
+   * Allow applications to teach Aurelia how to define how to map attributes to properties
+   * for all elements
+   */
+  public useGlobalMapping(config: Record<string, PropertyKey>): void {
+    const mapper = this.globalAttrMapper;
+    for (const attr in config) {
+      if (mapper[attr] !== void 0) {
+        throw createMappedError(attr, '*');
+      }
+      mapper[attr] = config[attr];
+    }
+  }
+
+  /**
    * @internal
    */
-  public transform(node: HTMLElement, attrSyntax: AttrSyntax): void {
+  public transform(node: Element, attrSyntax: AttrSyntax): void {
     if (
       attrSyntax.command === 'bind' &&
       (
@@ -44,94 +124,16 @@ export class AttrSyntaxTransformer {
     ) {
       attrSyntax.command = 'two-way';
     }
-    attrSyntax.target = this.map(node.tagName, attrSyntax.target);
-  }
-
-  /**
-   * todo: this should be in the form of a lookup. the following is not extensible
-   *
-   * @internal
-   */
-  public map(tagName: string, attr: string): string {
-    switch (tagName) {
-      case 'LABEL':
-        switch (attr) {
-          case 'for':
-            return 'htmlFor';
-          default:
-            return attr;
-        }
-      case 'IMG':
-        switch (attr) {
-          case 'usemap':
-            return 'useMap';
-          default:
-            return attr;
-        }
-      case 'INPUT':
-        switch (attr) {
-          case 'maxlength':
-            return 'maxLength';
-          case 'minlength':
-            return 'minLength';
-          case 'formaction':
-            return 'formAction';
-          case 'formenctype':
-            return 'formEncType';
-          case 'formmethod':
-            return 'formMethod';
-          case 'formnovalidate':
-            return 'formNoValidate';
-          case 'formtarget':
-            return 'formTarget';
-          case 'inputmode':
-            return 'inputMode';
-          default:
-            return attr;
-        }
-      case 'TEXTAREA':
-        switch (attr) {
-          case 'maxlength':
-            return 'maxLength';
-          default:
-            return attr;
-        }
-      case 'TD':
-      case 'TH':
-        switch (attr) {
-          case 'rowspan':
-            return 'rowSpan';
-          case 'colspan':
-            return 'colSpan';
-          default:
-            return attr;
-        }
-      default:
-        switch (attr) {
-          case 'accesskey':
-            return 'accessKey';
-          case 'contenteditable':
-            return 'contentEditable';
-          case 'tabindex':
-            return 'tabIndex';
-          case 'textcontent':
-            return 'textContent';
-          case 'innerhtml':
-            return 'innerHTML';
-          case 'scrolltop':
-            return 'scrollTop';
-          case 'scrollleft':
-            return 'scrollLeft';
-          case 'readonly':
-            return 'readOnly';
-          default:
-            return attr;
-        }
-    }
+    const attr = attrSyntax.target;
+    attrSyntax.target = this.tagAttrMapper[node.tagName]?.[attr]
+      ?? this.globalAttrMapper[attr]
+      ?? isDataAttribute(node, attr, this.svg)
+        ? attr
+        : camelCase(attr);
   }
 }
 
-function shouldDefaultToTwoWay(element: HTMLElement, attr: string): boolean {
+function shouldDefaultToTwoWay(element: Element, attr: string): boolean {
   switch (element.tagName) {
     case 'INPUT':
       switch ((element as HTMLInputElement).type) {
@@ -156,4 +158,8 @@ function shouldDefaultToTwoWay(element: HTMLElement, attr: string): boolean {
           return false;
       }
   }
+}
+
+function createMappedError(attr: string, tagName: string) {
+  return new Error(`Attribute ${attr} has been already registered for ${tagName === '*' ? 'all elements' : `<${tagName}/>`}`);
 }

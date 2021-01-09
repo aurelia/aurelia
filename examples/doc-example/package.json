@@ -38,5 +38,9 @@
     "serve": "node ./node_modules/@aurelia/http-server/dist/esm/cli.js au.conf.js",
     "build-serve": "rimraf dist && webpack --mode=production && node ./node_modules/@aurelia/http-server/dist/esm/cli.js au.conf.js",
     "now": "rimraf dist && webpack --config webpack.config.js && cd dist && now && cd .."
+  },
+  "engines": {
+    "node": ">=14.15.0",
+    "npm": ">=6.14.8"
   }
 }

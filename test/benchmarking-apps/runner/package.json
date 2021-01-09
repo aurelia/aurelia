@@ -18,5 +18,9 @@
     "build": "tsc -p tsconfig.json",
     "dev": "tsc -b -w --preserveWatchOutput",
     "bench-all": "node dist/run-benchmarks --i 1 --storage cosmos"
+  },
+  "engines": {
+    "node": ">=14.15.0",
+    "npm": ">=6.14.8"
   }
 }

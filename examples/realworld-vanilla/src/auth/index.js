@@ -105,4 +105,4 @@ export const AuthView = CustomElement.define({
   }
 });
 
-Route.define({ transitionPlan: 'replace' }, AuthView);
+Route.configure({ transitionPlan: 'replace' }, AuthView);

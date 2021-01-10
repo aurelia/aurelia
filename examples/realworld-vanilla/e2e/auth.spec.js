@@ -1,4 +1,4 @@
-import { CustomElement, INode, IPlatform, PLATFORM } from 'aurelia';
+/* eslint-disable no-undef */
 import { assert } from '@aurelia/testing';
 import * as playwright from 'playwright';
 
@@ -8,10 +8,10 @@ const reNonNumeric = /[^\d]/g;
 function getTimestamp() {
   return new Date().toISOString().replace(reNonNumeric, '').slice(4); // MMDDHHMMSSZZZ
 }
-function generateUsername(): string {
+function generateUsername() {
   return `au-${getTimestamp()}`;
 }
-function generateEmail(): string {
+function generateEmail() {
   return `au-${getTimestamp()}@aurelia.io`;
 }
 const registration = UserRegistration.create({
@@ -23,9 +23,9 @@ const registration = UserRegistration.create({
 const path = 'http://localhost:9000';
 
 describe('register', function () {
-  let browser: playwright.ChromiumBrowser;
-  let ctx: playwright.ChromiumBrowserContext;
-  let page: playwright.Page;
+  let browser;
+  let ctx;
+  let page;
 
   before(async function () {
     browser = await playwright.chromium.launch({
@@ -44,10 +44,9 @@ describe('register', function () {
     await page.close();
   });
 
-  async function waitForFramework(): Promise<void> {
+  async function waitForFramework() {
     await page.evaluate(async function () {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const p = (document.querySelector('app-root') as INode).$au!['au:resource:custom-element']!.platform;
+      const p = document.querySelector('app-root').$au['au:resource:custom-element'].platform;
       await p.taskQueue.yield();
       await p.domWriteQueue.yield();
     });

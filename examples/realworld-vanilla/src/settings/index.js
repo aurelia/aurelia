@@ -68,7 +68,7 @@ export const SettingsView = CustomElement.define({
   }
 });
 
-Route.define({
+Route.configure({
   canLoad: [AuthHandler],
 }, SettingsView);
 

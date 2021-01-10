@@ -80,7 +80,7 @@ export const EditorView = CustomElement.define({
   }
 });
 
-Route.define({ canLoad: [AuthHandler] }, EditorView);
+Route.configure({ canLoad: [AuthHandler] }, EditorView);
 
 Watch.add(EditorView, {
   expression: x => x.$article.current,

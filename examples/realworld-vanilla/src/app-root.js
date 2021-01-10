@@ -59,14 +59,14 @@ export const AppRoot = CustomElement.define({
   }
 });
 
-Route.define({
+Route.configure({
   children: [
-    { id: 'home', path: '', component: import('./home'), title: 'Home' },
-    { path: 'login', component: import('./auth'), title: 'Sign in' },
-    { path: 'register', component: import('./auth'), title: 'Sign up' },
-    { path: 'settings', component: import('./settings'), title: 'Settings' },
-    { id: 'profile', path: 'profile/:name', component: import('./profile'), title: 'Profile' },
-    { id: 'editor', path: 'editor/:slug?', component: import('./editor'), title: 'Editor' },
-    { id: 'article', path: 'article/:slug', component: import('./article'), title: 'Article' },
+    { id: 'home', path: '', component: import('./home/index.js'), title: 'Home' },
+    { path: 'login', component: import('./auth/index.js'), title: 'Sign in' },
+    { path: 'register', component: import('./auth/index.js'), title: 'Sign up' },
+    { path: 'settings', component: import('./settings/index.js'), title: 'Settings' },
+    { id: 'profile', path: 'profile/:name', component: import('./profile/index.js'), title: 'Profile' },
+    { id: 'editor', path: 'editor/:slug?', component: import('./editor/index.js'), title: 'Editor' },
+    { id: 'article', path: 'article/:slug', component: import('./article/index.js'), title: 'Article' },
   ]
 }, AppRoot);

@@ -118,7 +118,7 @@ export const AuthView = CustomElement.define({
   }
 });
 
-Route.define({
+Route.configure({
   children: [
     { id: 'author', path: '', component: AuthorArticles, title: 'Profile' },
     { path: 'favorites', component: FavoritedArticles, title: 'Profile' },

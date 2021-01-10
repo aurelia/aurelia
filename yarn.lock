@@ -677,6 +677,22 @@
   "resolved" "file:test/benchmarking-apps/shared"
   "version" "1.0.0"
 
+"@benchmarking-apps/viewer-client@file:C:\\aurelia\\test\\benchmarking-apps\\viewer\\client":
+  "resolved" "file:test/benchmarking-apps/viewer/client"
+  "version" "1.0.0"
+  dependencies:
+    "aurelia" "0.8.0"
+
+"@benchmarking-apps/viewer-server@file:C:\\aurelia\\test\\benchmarking-apps\\viewer\\server":
+  "resolved" "file:test/benchmarking-apps/viewer/server"
+  "version" "1.0.0"
+  dependencies:
+    "@aurelia/http-server" "0.8.0"
+    "@aurelia/kernel" "0.8.0"
+    "@aurelia/metadata" "0.8.0"
+    "@aurelia/platform" "0.8.0"
+    "@azure/cosmos" "^3.9.3"
+
 "@cnakazawa/watch@^1.0.3":
   "integrity" "sha512-v9kIhKwjeZThiWrLmj0y17CWoyddASLj9O2yvbZkbvw/N3rWOYy9zkV66ursAoVr0mV15bL8g0c4QZUE6cdDoQ=="
   "resolved" "https://registry.npmjs.org/@cnakazawa/watch/-/watch-1.0.4.tgz"
@@ -2259,7 +2275,7 @@
     "@aurelia/metadata" "0.8.0"
     "@aurelia/platform" "0.8.0"
 
-"aurelia@file:C:\\aurelia\\packages\\aurelia":
+"aurelia@0.8.0", "aurelia@file:C:\\aurelia\\packages\\aurelia":
   "resolved" "file:packages/aurelia"
   "version" "0.8.0"
   dependencies:
@@ -10375,9 +10391,9 @@
   "version" "0.7.22"
 
 "uglify-js@^3.1.4":
-  "integrity" "sha512-feZzR+kIcSVuLi3s/0x0b2Tx4Iokwqt+8PJM7yRHKuldg4MLdam4TCFeICv+lgDtuYiCtdmrtIP+uN9LWvDasw=="
-  "resolved" "https://registry.npmjs.org/uglify-js/-/uglify-js-3.12.3.tgz"
-  "version" "3.12.3"
+  "integrity" "sha512-L5i5jg/SHkEqzN18gQMTWsZk3KelRsfD1wUVNqtq0kzqWQqcJjyL8yc1o8hJgRrWqrAl2mUFbhfznEIoi7zi2A=="
+  "resolved" "https://registry.npmjs.org/uglify-js/-/uglify-js-3.12.4.tgz"
+  "version" "3.12.4"
 
 "union-value@^1.0.0":
   "integrity" "sha512-tJfXmxMeWYnczCVs7XAEvIV7ieppALdyepWMkHkwciRpZraG/xwT+s2JN8+pr1+8jCRf80FFzvr+MpQeeoF4Xg=="

@@ -2,7 +2,7 @@
   "compilerOptions": {
     "experimentalDecorators": true,
     "lib": ["esnext"],
-    "module": "commonjs",
+    "module": "ESNext",
     "moduleResolution": "node",
     "skipLibCheck": true,
     "outDir": "dist",

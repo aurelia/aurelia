@@ -5,8 +5,8 @@ import { FileServer, HttpContextState, HttpServer, HttpServerOptions, HTTPStatus
 
 const required = Symbol('required') as unknown as string;
 const optional = void 0 as unknown as string;
-export const IProcessEnv = DI.createInterface<IProcessEnv>('IProcessEnv').withDefault(x => x.instance(new ProcessEnv(process.env)));
-export interface IProcessEnv extends ProcessEnv {}
+export const IProcessEnv = DI.createInterface<IProcessEnv>('IProcessEnv', x => x.instance(new ProcessEnv(process.env)));
+export interface IProcessEnv extends ProcessEnv { }
 export class ProcessEnv {
   public static readonly names = [
     'AZURE_COSMOS_DB_KEY',
@@ -22,7 +22,14 @@ export class ProcessEnv {
     'HTTP_SERVER_RESPONSE_CACHE_CONTROL',
   ] as const;
 
-  public readonly AZURE_COSMOS_DB_KEY: string = required;
+  private static readonly schemas: Record<string, Record<string, typeof required | typeof optional>> = {
+    prod: {
+      AZURE_COSMOS_DB_KEY: required,
+    }
+  };
+
+  public readonly MODE: 'prod' | 'dev';
+  public readonly AZURE_COSMOS_DB_KEY: string = optional;
   public readonly AZURE_COSMOS_DB_ENDPOINT: string = 'https://aurelia.documents.azure.com:443/';
   public readonly HTTP_SERVER_ROOT: string = './dist/';
   public readonly HTTP_SERVER_HOSTNAME: string = '0.0.0.0';
@@ -35,13 +42,19 @@ export class ProcessEnv {
   public readonly HTTP_SERVER_RESPONSE_CACHE_CONTROL: string = 'no-store';
 
   public constructor(processEnv: Partial<ProcessEnv>) {
+
+    const mode = this.MODE = processEnv.MODE ?? 'prod';
+    if (mode !== 'dev' && mode !== 'prod') {
+      throw new Error(`Cannot start server with unknown mode ${mode}.`);
+    }
+    console.log(`Starting the server in ${mode} mode.`);
+
+    const schema = ProcessEnv.schemas[mode] ?? {};
+
     for (const name of ProcessEnv.names) {
       if (!(name in processEnv)) {
-        switch (this[name]) {
-          case required:
-            throw new Error(`Environment variable ${name} is required.`);
-          case optional:
-            continue;
+        if (schema[name] === required) {
+          throw new Error(`Environment variable ${name} is required.`);
         }
       } else {
         this[name] = processEnv[name]!;
@@ -50,8 +63,8 @@ export class ProcessEnv {
   }
 }
 
-export interface ICosmosClient extends CosmosClient {}
-export const ICosmosClient = DI.createInterface<ICosmosClient>('ICosmosClient').withDefault(x => x.cachedCallback(handler => {
+export interface ICosmosClient extends CosmosClient { }
+export const ICosmosClient = DI.createInterface<ICosmosClient>('ICosmosClient', x => x.cachedCallback(handler => {
   const processEnv = handler.get(IProcessEnv);
 
   return new CosmosClient({
@@ -60,8 +73,8 @@ export const ICosmosClient = DI.createInterface<ICosmosClient>('ICosmosClient').
   });
 }));
 
-export interface IFileServer extends FileServer {}
-export const IFileServer = DI.createInterface<IFileServer>('IFileServer').withDefault(x => x.cachedCallback(handler => {
+export interface IFileServer extends FileServer { }
+export const IFileServer = DI.createInterface<IFileServer>('IFileServer', x => x.cachedCallback(handler => {
   const opts = handler.get(IHttpServerOptions);
   const logger = handler.get(ILogger);
 

@@ -1,32 +1,28 @@
-import { DI, ILogger, IRouteViewModel, NavigationInstruction, Params, RouteNode } from 'aurelia';
-import { Article, ArticleListResponse, ArticleResponse, Comment, ErrorRecordResponse, IApiService, IJwtService, ArticleQueryParams, User, UserLogin, UserRegistration, UserResponse, UserUpdate, ArticleListQueryParams, Profile, ProfileResponse, ErrorList } from './api';
+import { DI, ILogger } from './aurelia.js';
+import { Article, ErrorRecordResponse, IApiService, IJwtService, User, UserResponse, ArticleListQueryParams, Profile } from './api.js';
 
-/**
- * Singleton `User` state that represents the currently logged-in user.
- */
-export const IUserState = DI.createInterface<IUserState>('IUserState', x => x.singleton(UserState));
-export interface IUserState extends UserState {}
+export const IUserState = DI.createInterface('IUserState', x => x.singleton(UserState));
 export class UserState {
-  errors: ErrorList = [];
-  current = User.NONE;
-  isAuth = false;
+  static get inject() { return [IJwtService, IApiService]; }
 
-  constructor(
-    @IJwtService private readonly jwt: IJwtService,
-    @IApiService private readonly api: IApiService,
-  ) {}
+  constructor(jwt, api) {
+    this.jwt = jwt;
+    this.api = api;
+    this.errors = [];
+    this.current = User.NONE;
+    this.isAuth = false;
+  }
 
   async load() {
     if (this.jwt.isTokenValid()) {
       const resp = await this.api.getCurrentUser();
-
       this.setAuth(resp.user);
     } else {
       this.clearAuth();
     }
   }
 
-  async login(login: UserLogin) {
+  async login(login) {
     this.errors = [];
     const resp = await this.api.loginUser(login);
     if (resp instanceof ErrorRecordResponse) {
@@ -38,11 +34,11 @@ export class UserState {
     return true;
   }
 
-  logout(): void {
+  logout() {
     this.clearAuth();
   }
 
-  async register(registration: UserRegistration) {
+  async register(registration) {
     this.errors = [];
     const resp = await this.api.registerUser(registration);
     if (resp instanceof ErrorRecordResponse) {
@@ -54,43 +50,39 @@ export class UserState {
     return true;
   }
 
-  async update(user: UserUpdate) {
+  async update(user) {
     const resp = await this.api.updateUser(user);
-
     if (resp instanceof UserResponse) {
       this.current = resp.user;
     }
   }
 
-  private setAuth(user: User): void {
+  setAuth(user) {
     this.jwt.saveToken(user.token);
     this.current = user;
     this.isAuth = true;
   }
 
-  private clearAuth(): void {
+  clearAuth() {
     this.jwt.destroyToken();
     this.current = User.NONE;
     this.isAuth = false;
   }
 }
 
-/**
- * Singleton `Profile` state that represents the profile currently routed to.
- */
-export const IProfileState = DI.createInterface<IProfileState>('IProfileState', x => x.singleton(ProfileState));
-export interface IProfileState extends ProfileState {}
+export const IProfileState = DI.createInterface('IProfileState', x => x.singleton(ProfileState));
 export class ProfileState {
-  current = Profile.NONE;
+  static get inject() { return [IApiService]; }
 
-  constructor(
-    @IApiService private readonly api: IApiService,
-  ) {}
+  constructor(api) {
+    this.api = api;
+    this.current = Profile.NONE;
+  }
 
   async toggleFollow() {
     const profile = this.current;
     const username = profile.username;
-    let resp: ProfileResponse;
+    let resp;
     if (profile.following) {
       resp = await this.api.unfollowUser(username);
     } else {
@@ -99,30 +91,27 @@ export class ProfileState {
     this.current = resp.profile;
   }
 
-  async load(username: string) {
+  async load(username) {
     const resp = await this.api.getProfile(username);
     this.current = resp.profile;
   }
 }
 
-/**
- * Singleton `Article` state that represents the article currently routed to.
- */
-export const IArticleState = DI.createInterface<IArticleState>('IArticleState', x => x.singleton(ArticleState));
-export interface IArticleState extends ArticleState {}
+export const IArticleState = DI.createInterface('IArticleState', x => x.singleton(ArticleState));
 export class ArticleState {
-  errors: ErrorList = [];
-  current: Article = Article.NONE;
-  comments: Comment[] = [];
+  static get inject() { return [IApiService]; }
 
-  constructor(
-    @IApiService private readonly api: IApiService,
-  ) {}
+  constructor(api) {
+    this.api = api;
+    this.errors = [];
+    this.current = Article.NONE;
+    this.comments = [];
+  }
 
   async toggleFollow() {
     const author = this.current.author;
     const username = author.username;
-    let resp: ProfileResponse;
+    let resp;
     if (author.following) {
       resp = await this.api.unfollowUser(username);
     } else {
@@ -133,7 +122,7 @@ export class ArticleState {
 
   async toggleFavorite() {
     const article = this.current;
-    let resp: ArticleResponse;
+    let resp;
     if (article.favorited) {
       resp = await this.api.unfavoriteArticle(article.slug);
     } else {
@@ -145,21 +134,20 @@ export class ArticleState {
   async load(slug = '') {
     this.current = Article.NONE;
     this.comments = [];
-
     if (slug) {
       const resp = await this.api.getArticle(slug);
       this.current = resp.article;
     }
   }
 
-  async loadComments(slug: string) {
+  async loadComments(slug) {
     const resp = await this.api.getCommentsFromArticle(slug);
     this.comments = resp.comments;
   }
 
-  async save(article: Article) {
+  async save(article) {
     this.errors = [];
-    let resp: ErrorRecordResponse | ArticleResponse;
+    let resp;
     if (article.slug) {
       resp = await this.api.updateArticle(article.slug, article);
     } else {
@@ -169,7 +157,7 @@ export class ArticleState {
       this.errors = resp.toErrorList();
       return false;
     }
-    this.current = resp.article
+    this.current = resp.article;
     return true;
   }
 
@@ -179,7 +167,7 @@ export class ArticleState {
     this.current = Article.NONE;
   }
 
-  async addComment(body: string) {
+  async addComment(body) {
     this.errors = [];
     const article = this.current;
     const resp = await this.api.addCommentToArticle(article.slug, { body });
@@ -191,7 +179,7 @@ export class ArticleState {
     return true;
   }
 
-  async deleteComment(commentId: number) {
+  async deleteComment(commentId) {
     this.errors = [];
     const article = this.current;
     await this.api.deleteCommentFromArticle(article.slug, commentId);
@@ -200,26 +188,23 @@ export class ArticleState {
   }
 }
 
-/**
- * Singleton `Article` list state that represents the list of articles (and the query params that narrow them down) currently being viewed.
- */
-export const IArticleListState = DI.createInterface<IArticleListState>('IArticleListState', x => x.singleton(ArticleListState));
-export interface IArticleListState extends ArticleListState {}
+export const IArticleListState = DI.createInterface('IArticleListState', x => x.singleton(ArticleListState));
 export class ArticleListState {
-  items: Article[] = [];
-  itemsCount = 0;
-  currentPage = 0;
-  pages: number[] = [];
-  params: ArticleQueryParams = ArticleListQueryParams.create({ limit: 20, offset: 0 });
+  static get inject() { return [IApiService]; }
 
-  constructor(
-    @IApiService private readonly api: IApiService,
-  ) {}
+  constructor(api) {
+    this.api = api;
+    this.items = [];
+    this.itemsCount = 0;
+    this.currentPage = 0;
+    this.pages = [];
+    this.params = ArticleListQueryParams.create({ limit: 20, offset: 0 });
+  }
 
-  async toggleFavorite(slug: string) {
+  async toggleFavorite(slug) {
     const idx = this.items.findIndex(x => x.slug === slug);
     const article = this.items[idx];
-    let resp: ArticleResponse;
+    let resp;
     if (article.favorited) {
       resp = await this.api.unfavoriteArticle(slug);
     } else {
@@ -228,9 +213,9 @@ export class ArticleListState {
     this.items.splice(idx, 1, resp.article);
   }
 
-  async load(params: ArticleQueryParams = this.params) {
+  async load(params = this.params) {
     this.params = params;
-    let resp: ArticleListResponse;
+    let resp;
     if (params.type === 'all') {
       resp = await this.api.getArticles(params);
     } else {
@@ -243,17 +228,14 @@ export class ArticleListState {
   }
 }
 
-/**
- * Singleton tags state that represents all global tags.
- */
-export const ITagsState = DI.createInterface<ITagsState>('ITagsState', x => x.singleton(TagsState));
-export interface ITagsState extends TagsState {}
+export const ITagsState = DI.createInterface('ITagsState', x => x.singleton(TagsState));
 export class TagsState {
-  items: string[] = [];
+  static get inject() { return [IApiService]; }
 
-  constructor(
-    @IApiService private readonly api: IApiService,
-  ) {}
+  constructor(api) {
+    this.api = api;
+    this.items = [];
+  }
 
   async load() {
     const resp = await this.api.getTags();
@@ -261,15 +243,16 @@ export class TagsState {
   }
 }
 
-export class AuthHandler implements IRouteViewModel {
-  constructor(
-    @IUserState readonly auth: IUserState,
-    @ILogger readonly logger: ILogger,
-  ) {
-    this.logger = logger.scopeTo('AuthHandler')
+export class AuthHandler {
+  static get inject() { return [IUserState, ILogger]; }
+
+  constructor(auth, logger) {
+    this.auth = auth;
+    this.logger = logger;
+    this.logger = logger.scopeTo('AuthHandler');
   }
 
-  canLoad(params: Params, next: RouteNode): boolean | NavigationInstruction {
+  canLoad(params, next) {
     if (!this.auth.isAuth) {
       this.logger.trace(`canLoad() - redirecting to login page`, next, this.auth);
       return 'login';

@@ -17,8 +17,8 @@
     "@aurelia/metadata": "dev",
     "@aurelia/platform": "dev",
     "@aurelia/platform-browser": "dev",
-    "@aurelia/runtime-html": "dev",
     "@aurelia/runtime": "dev",
+    "@aurelia/runtime-html": "dev",
     "@aurelia/webpack-loader": "dev",
     "@benchmarking-apps/shared": "file:../shared"
   },

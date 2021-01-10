@@ -1,12 +1,12 @@
 /* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
+import { BrowserType, browserTypes, Measurement, Measurements, WritableMeasurementKeys } from "@benchmarking-apps/test-result";
 import { strict as assert } from 'assert';
 import { performance } from 'perf_hooks';
 import type { ElementHandle, Page } from 'playwright';
 import * as playwright from 'playwright';
 import { URL } from 'url';
-import { Measurement, Measurements, browserTypes, WritableMeasurementKeys, BrowserType } from './shared';
 
 // This is fixed and needs to be kept in sync with the apps.
 const gridColCount = 6;

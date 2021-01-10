@@ -1,6 +1,7 @@
-import { ChildProcess, fork, exec } from 'child_process';
+import { Measurement } from "@benchmarking-apps/test-result";
+import { ChildProcess, exec, fork } from 'child_process';
 import { join } from 'path';
-import { BenchOptions, Data, Measurement } from './shared';
+import { BenchOptions, Data } from './shared';
 
 async function execSafe(command: string, fallback: string): Promise<string> {
   return new Promise<string>(resolve => {
@@ -9,7 +10,7 @@ async function execSafe(command: string, fallback: string): Promise<string> {
         console.warn(`Error executing '${command}', falling back to result '${fallback}' (err: ${err.message})`);
         resolve(fallback);
       } else {
-        resolve(stdout);
+        resolve(stdout.replace(/\n|\r/g, ''));
       }
     });
   });

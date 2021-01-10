@@ -144,8 +144,8 @@ module.exports = function (config) {
         timeout: 5000,
       }
     },
-    // logLevel: config.LOG_ERROR, // to disable the WARN 404 for image requests
-    logLevel: config.LOG_DEBUG,
+    logLevel: config.LOG_ERROR, // to disable the WARN 404 for image requests
+    // logLevel: config.LOG_DEBUG,
   };
 
   if (config.coverage) {

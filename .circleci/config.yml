@@ -353,7 +353,7 @@ jobs:
           name: "Prepare cosmos db configuration and run test"
           command: |
             cd test/benchmarking-apps/runner
-            echo "{\"endpoint\": \"https://aurelia.documents.azure.com:443/\",\"key\": \"$AZURE_COSMOS_DB_KEY\"}" > cosmos.config.json
+            echo "{\"cosmosEndpoint\": \"https://aurelia.documents.azure.com:443/\",\"cosmosKey\": \"$AZURE_COSMOS_DB_KEY\"}" > cosmos.config.json
             set -o pipefail && node dist/run-benchmarks --i 10 --storage cosmos
 
 # # # # # # # # # # # # # # # #

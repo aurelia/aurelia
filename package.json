@@ -72,6 +72,7 @@
     "change-tsconfigs:invert": "ts-node -P tsconfig.json scripts/change-tsconfigs.ts invert",
     "change-tsconfigs:restore": "ts-node -P tsconfig.json scripts/change-tsconfigs.ts restore",
     "prepare-release": "ts-node -P tsconfig.json scripts/prepare-release.ts",
+    "generate-native-modules": "ts-node -P tsconfig.json scripts/generate-native-modules.ts",
     "publish:dev": "lage publish:dev",
     "publish:latest": "lage publish:latest",
     "bump-version:dev": "ts-node -P tsconfig.json scripts/bump-version.ts dev",

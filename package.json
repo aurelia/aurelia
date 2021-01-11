@@ -37,7 +37,6 @@
     "examples/rainbow-spiral",
     "examples/realworld",
     "examples/realworld-advanced",
-    "examples/realworld-vanilla",
     "examples/sierpinski-triangle",
     "test/karma-aurelia-preprocessor",
     "test/i18n",

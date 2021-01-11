@@ -3,8 +3,20 @@ import { join } from 'path';
 import { writeFileSync } from 'fs';
 
 function roundDurationMs(val: number) { return Math.round(val * 1e3) / 1e3; }
-export const browserTypes = ['chromium',  'firefox', 'webkit'] as const; // TODO: Enable the rest as soon as the container image (in CI) is fixed.
+export const browserTypes = ['chromium', 'firefox', 'webkit'] as const; // TODO: Enable the rest as soon as the container image (in CI) is fixed.
 export type BrowserType = typeof browserTypes[number];
+
+export interface BenchmarkMetadata {
+  ts_start: number;
+  ts_end: number;
+  branch: string;
+  commit: string;
+}
+
+export interface BenchmarkMeasurements extends BenchmarkMetadata {
+  id: string;
+  measurements: Measurement[];
+}
 
 export class Measurement {
   public durationInitialLoad: number = Number.POSITIVE_INFINITY;
@@ -176,7 +188,8 @@ export interface IStorage {
   measurements: Measurement[];
   batchId: string;
   addMeasurements(...measurements: Measurement[]): void;
-  persist(metadata?: Record<string, unknown>): void | Promise<void>;
+  persist(metadata?: BenchmarkMetadata): void | Promise<void>;
+  getAllBenchmarkResults(): Promise<BenchmarkMeasurements[]>; // TODO: enable query support
 }
 class JsonFileStorage implements IStorage {
   public readonly type: 'json' = 'json';
@@ -198,13 +211,17 @@ class JsonFileStorage implements IStorage {
     this.measurements.push(...measurements);
   }
 
-  public persist(metadata: Record<string, unknown> = {}): void {
+  public persist(metadata: BenchmarkMetadata): void {
     const fileName = join(this.resultRoot, `${this.batchId}.json`);
     writeFileSync(fileName, JSON.stringify({
       ...metadata,
       measurements: this.measurements,
     }, undefined, 2), 'utf8');
     console.log(`The results are written to ${fileName}.`);
+  }
+
+  public getAllBenchmarkResults(): Promise<BenchmarkMeasurements[]> {
+    throw new Error('Method not implemented.');
   }
 }
 class CosmosStorage implements IStorage {
@@ -230,7 +247,7 @@ class CosmosStorage implements IStorage {
     this.measurements.push(...measurements);
   }
 
-  public async persist(metadata: Record<string, unknown> = {}): Promise<void> {
+  public async persist(metadata: BenchmarkMetadata): Promise<void> {
     const database = (await this.client.databases.createIfNotExists({ id: 'benchmarks' })).database;
     const container = (await database.containers.createIfNotExists({ id: 'measurements' })).container;
     const batchId = this.batchId;
@@ -240,6 +257,16 @@ class CosmosStorage implements IStorage {
       measurements: this.measurements,
     });
     console.log(`Persisted the result for batch ${batchId} in cosmos DB.`);
+  }
+
+  public async getAllBenchmarkResults(): Promise<BenchmarkMeasurements[]> {
+    return (await this.client
+      .database('benchmarks')
+      .container('measurements')
+      .items
+      .readAll()
+      .fetchAll()
+    ).resources as BenchmarkMeasurements[];
   }
 }
 

@@ -1,4 +1,4 @@
-import Aurelia, { LoggerConfiguration, LogLevel, RouterConfiguration, StyleConfiguration } from 'aurelia';
+import Aurelia, { LoggerConfiguration, ConsoleSink, LogLevel, RouterConfiguration, StyleConfiguration } from 'aurelia';
 
 import { AppRootCustomElement } from './app-root';
 import * as GlobalResources from './_shared/index';
@@ -9,8 +9,8 @@ const au = new Aurelia();
 
 au.register(
   LoggerConfiguration.create({
-    $console: console,
     level: LogLevel.debug,
+    sinks: [ConsoleSink],
   }),
   RouterConfiguration.customize({
     useUrlFragmentHash: false,

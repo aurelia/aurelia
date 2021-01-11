@@ -3,6 +3,7 @@ import { bound, toLookup } from './functions.js';
 import { Class, Constructable } from './interfaces.js';
 import { Protocol } from './resource.js';
 import { Metadata } from '@aurelia/metadata';
+import { IPlatform } from './platform.js';
 
 export const enum LogLevel {
   /**
@@ -321,9 +322,21 @@ export class DefaultLogEventFactory implements ILogEventFactory {
 }
 
 export class ConsoleSink implements ISink {
+  public static register(container: IContainer) {
+    Registration.singleton(ISink, ConsoleSink).register(container);
+  }
+
   public readonly handleEvent: (event: ILogEvent) => void;
 
-  public constructor($console: IConsoleLike) {
+  public constructor(
+    @IPlatform p: IPlatform,
+  ) {
+    const $console = p.console as {
+      debug(...args: unknown[]): void;
+      info(...args: unknown[]): void;
+      warn(...args: unknown[]): void;
+      error(...args: unknown[]): void;
+    };
     this.handleEvent = function emit(event: ILogEvent): void {
       const optionalParams = event.optionalParams;
       if (optionalParams === void 0 || optionalParams.length === 0) {
@@ -670,21 +683,9 @@ export class DefaultLogger {
  * ```ts
  * container.register(LoggerConfiguration.create());
  *
- * container.register(LoggerConfiguration.create({$console: console}))
+ * container.register(LoggerConfiguration.create({sinks: [ConsoleSink]}))
  *
- * container.register(LoggerConfiguration.create({$console: console, level: LogLevel.debug}))
- *
- * container.register(LoggerConfiguration.create({
- *  $console: {
- *     debug: noop,
- *     info: noop,
- *     warn: noop,
- *     error: msg => {
- *       throw new Error(msg);
- *     }
- *  },
- *  level: LogLevel.debug
- * }))
+ * container.register(LoggerConfiguration.create({sinks: [ConsoleSink], level: LogLevel.debug}))
  *
  * ```
  */
@@ -696,7 +697,6 @@ export const LoggerConfiguration = toLookup({
    */
   create(
     {
-      $console,
       level = LogLevel.warn,
       colorOptions = ColorOptions.noColors,
       sinks = [],
@@ -707,11 +707,6 @@ export const LoggerConfiguration = toLookup({
         container.register(
           Registration.instance(ILogConfig, new LogConfig(colorOptions, level)),
         );
-        if ($console !== void 0 && $console !== null) {
-          container.register(
-            Registration.instance(ISink, new ConsoleSink($console))
-          );
-        }
         for (const $sink of sinks) {
           container.register(
             Registration.singleton(ISink, $sink)

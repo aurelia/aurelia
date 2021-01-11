@@ -300,7 +300,7 @@ class TestRunner {
     container.register(
       Registration.instance(ILogConfig, new LogConfig(ColorOptions.noColors, LogLevel.info)),
       Registration.instance(ISink, new BufferedFileSink()),
-      Registration.instance(ISink, new ConsoleSink(console)),
+      ConsoleSink,
       Registration.singleton(IFileSystem, NodeFileSystem),
     );
     this.fs = container.get(IFileSystem);

@@ -1,4 +1,4 @@
-import { DI, LoggerConfiguration, LogLevel, ColorOptions, Registration } from '@aurelia/kernel';
+import { DI, LoggerConfiguration, LogLevel, ColorOptions, Registration, ConsoleSink } from '@aurelia/kernel';
 import { IFileSystem, FileKind, ServiceHost, $Undefined, $ESModule } from '@aurelia/aot';
 import { VirtualFileSystem } from './virtual-file-system.js';
 import { assert } from '@aurelia/testing';
@@ -10,7 +10,7 @@ describe.skip('AOT (smoke tests)', function () {
   async function execute(content: string) {
     const container = DI.createContainer();
     container.register(
-      LoggerConfiguration.create({ $console: console, level: LogLevel.debug, colorOptions: ColorOptions.colors }),
+      LoggerConfiguration.create({ sinks: [ConsoleSink], level: LogLevel.debug, colorOptions: ColorOptions.colors }),
       Registration.singleton(IFileSystem, VirtualFileSystem),
     );
 

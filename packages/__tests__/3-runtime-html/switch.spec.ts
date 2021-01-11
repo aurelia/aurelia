@@ -258,7 +258,7 @@ describe('switch', function () {
     try {
       await au
         .register(
-          LoggerConfiguration.create({ $console: null, level: LogLevel.trace, sinks: [DebugLog] }),
+          LoggerConfiguration.create({ level: LogLevel.trace, sinks: [DebugLog] }),
           ...registrations,
           Registration.instance(InitialStatus, initialStatus),
           Registration.instance(InitialStatusNum, initialStatusNum),

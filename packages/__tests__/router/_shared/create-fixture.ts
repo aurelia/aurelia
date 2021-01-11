@@ -1,4 +1,4 @@
-import { Constructable, LogLevel, Registration, ILogConfig, DI, LoggerConfiguration } from '@aurelia/kernel';
+import { Constructable, LogLevel, Registration, ILogConfig, DI, LoggerConfiguration, ConsoleSink } from '@aurelia/kernel';
 import { Aurelia } from '@aurelia/runtime-html';
 import { IRouterOptions, RouterConfiguration, IRouter } from '@aurelia/router';
 import { TestContext } from '@aurelia/testing';
@@ -34,7 +34,7 @@ export async function createFixture<T extends Constructable>(
   container.register(Registration.instance(IHIAConfig, hiaConfig));
   container.register(TestRouterConfiguration.for(ctx, level));
   container.register(RouterConfiguration.customize(routerOptions));
-  container.register(LoggerConfiguration.create({ $console: console, level: LogLevel.warn }));
+  container.register(LoggerConfiguration.create({ sinks: [ConsoleSink], level: LogLevel.warn }));
   container.register(...deps);
 
   const activityTracker = container.get(IActivityTracker);
@@ -51,7 +51,7 @@ export async function createFixture<T extends Constructable>(
 
   hia.setPhase('start');
 
-  await au.start()
+  await au.start();
 
   return {
     ctx,

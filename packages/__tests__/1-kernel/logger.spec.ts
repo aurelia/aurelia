@@ -9,6 +9,9 @@ import {
   ILogEvent,
   sink,
   DefaultLogger,
+  ConsoleSink,
+  Registration,
+  IPlatform,
 } from '@aurelia/kernel';
 import { assert, eachCartesianJoin } from '@aurelia/testing';
 
@@ -93,7 +96,12 @@ describe('Logger', function () {
   function createFixture(level: LogLevel, colorOpts: ColorOptions, scopeTo: string[], deactivateConsoleLog = false) {
     const container = DI.createContainer();
     const mock = new ConsoleMock();
-    container.register(LoggerConfiguration.create({ $console: deactivateConsoleLog ? void 0 : mock, level, colorOptions: colorOpts, sinks: [EventLog] }));
+    const consoleSink = new ConsoleSink({ console: mock } as unknown as IPlatform);
+    container.register(LoggerConfiguration.create({
+      level,
+      colorOptions: colorOpts,
+      sinks: deactivateConsoleLog ? [EventLog] : [EventLog, Registration.instance(ISink, consoleSink) as any /* TODO: loosen sinks type */],
+    }));
 
     let sut = container.get(ILogger);
     for (let i = 0; i < scopeTo.length; ++i) {

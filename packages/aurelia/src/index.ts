@@ -147,7 +147,7 @@ export {
   // DefaultLogEvent,
   // DefaultLogEventFactory,
   // DefaultLogger,
-  // ConsoleSink,
+  ConsoleSink,
   LoggerConfiguration,
 
   // relativeToFile,

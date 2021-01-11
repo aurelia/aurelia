@@ -1,4 +1,4 @@
-import { DI, ILogger, LoggerConfiguration, LogLevel, Registration } from '@aurelia/kernel';
+import { ConsoleSink, DI, ILogger, LoggerConfiguration, LogLevel, Registration } from '@aurelia/kernel';
 
 import { CosmosClient } from '@azure/cosmos';
 import { FileServer, HttpContextState, HttpServer, HttpServerOptions, HTTPStatusCode, IHttpContext, IHttpServer, IHttpServerOptions, IRequestHandler } from '@aurelia/http-server';
@@ -150,7 +150,7 @@ export class AppRequestHandler implements IRequestHandler {
 }
 
 const container = DI.createContainer().register(
-  LoggerConfiguration.create({ $console: console, level: LogLevel.debug }),
+  LoggerConfiguration.create({ sinks: [ConsoleSink], level: LogLevel.debug }),
   Registration.cachedCallback(IHttpServerOptions, handler => {
     const processEnv = handler.get(IProcessEnv);
     return new HttpServerOptions(

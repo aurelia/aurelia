@@ -18,14 +18,1195 @@
     .tag-pill {
       cursor: pointer;
     }
+
   </style>
 </head>
 
 <body>
   <app-root></app-root>
 
+  <template id="article-list">
+    <div class="article-preview" if.bind="$articleList.items.length === 0">
+      No articles are here... yet.
+    </div>
+
+    <div repeat.for="article of $articleList.items" class="article-preview" data-e2e="article-${article.slug}">
+      <let author.bind="article.author"></let>
+      <div class="article-meta">
+        <a href="/profile/${author.username}"><img src.bind="author.image" /></a>
+        <div class="info">
+          <a href="/profile/${author.username}" class="author">${author.username}</a>
+          <span class="date">${article.createdAt | date}</span>
+        </div>
+        <button class="btn btn-sm pull-xs-right ${article.favorited ? 'btn-primary' : 'btn-outline-primary'}"
+          click.delegate="toggleFavorite(article.slug)" data-e2e="toggleFavoriteBtn">
+          <i class="ion-heart"></i>
+          ${article.favoritesCount}
+        </button>
+      </div>
+
+      <a href="/article/${article.slug}" class="preview-link">
+        <h1>${article.title}</h1>
+        <p>${article.description}</p>
+        <span>Read more...</span>
+        <ul class="tag-list">
+          <li repeat.for="tag of article.tagList" class="tag-default tag-pill tag-outline">${tag}</li>
+        </ul>
+      </a>
+    </div>
+
+    <nav if.bind="$articleList.pages.length > 1">
+      <ul class="pagination">
+        <li repeat.for="page of $articleList.pages" class="page-item" active.class="page === $articleList.currentPage"
+          click.delegate="setPage(page)" data-e2e="page-${page}Link">
+          <a class="page-link">${page}</a>
+        </li>
+      </ul>
+    </nav>
+  </template>
+
+  <template id="error-list">
+    <ul show.bind="errors.length" class="error-messages">
+      <li repeat.for="error of errors">
+        <span>${error[0]}</span>
+        <span repeat.for="msg of error[1]">${msg}</span>
+      </li>
+    </ul>
+  </template>
+
+  <template id="article-meta">
+    <div class="article-meta">
+      <a href="/profile/${author.username}">
+        <img src.bind="author.image" /></a>
+      <div class="info">
+        <a href="/profile/${author.username}" class="author">${author.username}</a>
+        <span class="date">${article.createdAt | date}</span>
+      </div>
+      <span if.bind="canModify">
+        <a class="btn btn-outline-secondary btn-sm" href="/editor/${article.slug}">
+          <i class="ion-edit"></i>&nbsp;Edit Article
+        </a>
+        &nbsp;&nbsp;
+        <button class="btn btn-outline-danger btn-sm" click.delegate="delete()" data-e2e="deleteBtn">
+          <i class="ion-trash-a"></i>&nbsp;Delete Article
+        </button>
+      </span>
+      <span else>
+        <button class="btn btn-sm btn-outline-secondary" click.delegate="toggleFollow()" data-e2e="toggleFollowBtn">
+          <i class="ion-plus-round"></i>
+          &nbsp;${author.following ? 'Unfollow' : 'Follow'} ${author.username}
+        </button>
+        &nbsp;&nbsp;
+        <button class="btn btn-sm ${article.favorited ? 'btn-primary' : 'btn-outline-primary'}"
+          click.delegate="toggleFavorite()" data-e2e="toggleFavoriteBtn">
+          <i class="ion-heart"></i>
+          &nbsp;${article.favorited ? 'Unfavorite' : 'Favorite'} Post
+          <span class="counter">(${article.favoritesCount})</span>
+        </button>
+      </span>
+    </div>
+  </template>
+
+  <template id="comment-view">
+    <div class="card">
+      <div class="card-block">
+        <p class="card-text">${comment.body}</p>
+      </div>
+      <div class="card-footer">
+        <a href="/profile/${comment.author.username}" class="comment-author">
+          <img src.bind="comment.author.image" class="comment-author-img" />
+        </a>
+        &nbsp;
+        <a href="/profile/${comment.author.username}" class="comment-author">${comment.author.username}</a>
+        <span class="date-posted">${comment.createdAt | date}</span>
+        <span class="mod-options" if.bind="canModify">
+          <i class="ion-trash-a" click.delegate="delete()" data-e2e="deleteBtn"></i>
+        </span>
+      </div>
+    </div>
+  </template>
+
+  <template id="article-view">
+    <div class="article-page">
+      <div class="banner">
+        <div class="container">
+          <h1>${$article.current.title}</h1>
+          <article-meta></article-meta>
+        </div>
+      </div>
+      <div class="container page">
+        <div class="row article-content">
+          <div class="col-md-12">
+            <div innerhtml.bind="marked($article.current.body)">
+            </div>
+          </div>
+        </div>
+        <hr />
+        <div class="article-actions">
+          <article-meta></article-meta>
+        </div>
+        <div class="row">
+          <div class="col-xs-12 col-md-8 offset-md-2">
+
+            <error-list errors.bind="$article.errors"></error-list>
+
+            <form if.bind="$user.isAuth" submit.trigger="$event.preventDefault()" class="card comment-form">
+              <div class="card-block">
+                <textarea class="form-control" placeholder="Write a comment..." rows="3" value.bind="myComment"
+                  name="myComment"></textarea>
+              </div>
+              <div class="card-footer">
+                <img src.bind="$user.current.image" class="comment-author-img" />
+                <button class="btn btn-sm btn-primary" click.delegate="postComment()" data-e2e="postCommentBtn">
+                  Post Comment
+                </button>
+              </div>
+            </form>
+
+            <comment-view repeat.for="comment of $article.comments" comment.bind="comment">
+            </comment-view>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <template id="auth-view">
+    <div class="auth-page">
+      <div class="container page">
+        <div class="row">
+
+          <div class="col-md-6 offset-md-3 col-xs-12">
+            <h1 class="text-xs-center">${C[mode].msg}</h1>
+            <p class="text-xs-center">
+              <a href.bind="C[mode].other.href">${C[mode].other.msg}</a>
+            </p>
+
+            <error-list errors.bind="$user.errors"></error-list>
+
+            <form submit.trigger="$event.preventDefault()">
+              <fieldset class="form-group" if.bind="mode === 'register'">
+                <input class="form-control form-control-lg" type="text" placeholder="Your Name" value.bind="username"
+                  autocomplete="name" required name="username">
+              </fieldset>
+              <fieldset class="form-group">
+                <input class="form-control form-control-lg" type="text" placeholder="Email" value.bind="email"
+                  autocomplete="email" required name="email">
+              </fieldset>
+              <fieldset class="form-group">
+                <input class="form-control form-control-lg" type="password" placeholder="Password" value.bind="password"
+                  autocomplete="current-password" name="password">
+              </fieldset>
+              <button class="btn btn-lg btn-primary pull-xs-right" click.trigger="submit()" data-e2e="submitBtn">
+                ${C[mode].msg}
+              </button>
+            </form>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <template id="editor-view">
+    <div class="editor-page">
+      <div class="container page">
+        <div class="row">
+
+          <div class="col-md-10 offset-md-1 col-xs-12">
+            <error-list errors.bind="$article.errors"></error-list>
+
+            <form submit.trigger="$event.preventDefault()">
+              <fieldset>
+                <fieldset class="form-group">
+                  <input type="text" class="form-control form-control-lg" placeholder="Article Title"
+                    value.bind="local.title" name="title">
+                </fieldset>
+                <fieldset class="form-group">
+                  <input type="text" class="form-control" placeholder="What's this article about?"
+                    value.bind="local.description" name="description">
+                </fieldset>
+                <fieldset class="form-group">
+                  <textarea class="form-control" rows="8" placeholder="Write your article (in markdown)"
+                    value.bind="local.body" name="body"></textarea>
+                </fieldset>
+                <fieldset class="form-group">
+                  <input type="text" class="form-control" placeholder="Enter tags" value.bind="tag"
+                    keyup.delegate="onTagKeyUp($event, tag)" name="tag">
+                  <div class="tag-list">
+                    <span repeat.for="tag of local.tagList" class="tag-default tag-pill" data-e2e="tag-${tag}">
+                      <i class="ion-close-round" click.delegate="removeTag($index)" data-e2e="removeTagBtn"></i>
+                      ${tag}
+                    </span>
+                  </div>
+                </fieldset>
+                <button class="btn btn-lg pull-xs-right btn-primary" type="button" click.delegate="save()"
+                  data-e2e="saveBtn">
+                  Publish Article
+                </button>
+              </fieldset>
+            </form>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <template id="home-view">
+    <div class="home-page">
+
+      <div class="banner">
+        <div class="container">
+          <h1 class="logo-font">conduit</h1>
+          <p>A place to share your knowledge.</p>
+        </div>
+      </div>
+
+      <div class="container page">
+        <div class="row">
+
+          <div class="col-md-9">
+            <div class="feed-toggle">
+              <ul class="nav nav-pills outline-active">
+                <li if.bind="isAuth" class="nav-item">
+                  <a class="nav-link" active.class="mode === 'feed' && !tag" click.delegate="setView('feed')"
+                    data-e2e="yourFeedLink">Your Feed</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" active.class="mode === 'all' && !tag" click.delegate="setView('all')"
+                    data-e2e="globalFeedLink">Global Feed</a>
+                </li>
+                <li if.bind="tag" class="nav-item">
+                  <a class="nav-link active">
+                    <i class="ion-pound"></i>
+                    ${tag}
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+            <article-list></article-list>
+          </div>
+
+          <div class="col-md-3">
+            <div class="sidebar">
+              <p>Popular Tags</p>
+
+              <div class="tag-list">
+                <a repeat.for="tag of tags" class="tag-pill tag-default" click.delegate="setTag(tag)"
+                  data-e2e="${tag}TagLink">${tag}</a>
+                <div if.bind="tags.length === 0">No tags are here... yet.</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <template id="profile-view">
+    <div class="profile-page">
+
+      <div class="user-info">
+        <div class="container">
+          <div class="row">
+
+            <div class="col-xs-12 col-md-10 offset-md-1">
+              <img src.bind="profile.image" class="user-img" />
+              <h4>${profile.username}</h4>
+              <p>${profile.bio}</p>
+              <button class="btn btn-sm btn-outline-secondary action-btn" if.bind="!isSelf"
+                click.delegate="toggleFollow()" data-e2e="toggleFollowBtn">
+                <i class="ion-plus-round"></i>
+                &nbsp;
+                ${profile.following ? 'Unfollow' : 'Follow'} ${profile.username}
+              </button>
+              <a href="/settings" class="btn btn-sm btn-outline-secondary action-btn" if.bind="isSelf">
+                <i class="ion-gear-a"></i> Edit Profile Settings
+              </a>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <div class="container">
+        <div class="row">
+
+          <div class="col-xs-12 col-md-10 offset-md-1">
+            <div class="articles-toggle">
+              <ul class="nav nav-pills outline-active">
+                <li class="nav-item">
+                  <a class="nav-link" active.class="_author" load="route:author; active.bind:_author">
+                    My Posts
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" active.class="_favorites" load="route:favorites; active.bind:_favorites">
+                    Favorited Posts
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+            <au-viewport></au-viewport>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <template id="settings-view">
+    <div class="container page">
+      <div class="row">
+
+        <div class="col-md-6 offset-md-3 col-xs-12">
+          <h1 class="text-xs-center">Your Settings</h1>
+
+          <form submit.trigger="$event.preventDefault()">
+            <fieldset>
+              <fieldset class="form-group">
+                <input class="form-control" type="text" placeholder="URL of profile picture" value.bind="local.image"
+                  name="image">
+              </fieldset>
+              <fieldset class="form-group">
+                <input class="form-control form-control-lg" type="text" placeholder="Your Name"
+                  value.bind="local.username" autocomplete="name" name="username">
+              </fieldset>
+              <fieldset class="form-group">
+                <textarea class="form-control form-control-lg" rows="8" placeholder="Short bio about you"
+                  value.bind="local.bio" name="bio"></textarea>
+              </fieldset>
+              <fieldset class="form-group">
+                <input class="form-control form-control-lg" type="text" placeholder="Email" value.bind="local.email"
+                  autocomplete="email" name="email">
+              </fieldset>
+              <fieldset class="form-group">
+                <input class="form-control form-control-lg" type="password" placeholder="Password"
+                  value.bind="local.password" autocomplete="current-password" name="password">
+              </fieldset>
+              <button class="btn btn-lg btn-primary pull-xs-right" click.delegate="update()" data-e2e="updateBtn">
+                Update Settings
+              </button>
+            </fieldset>
+          </form>
+
+          <hr>
+          <button class="btn btn-outline-danger" click.delegate="logout()">
+            Or click here to logout.
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+  </template>
+
+  <template id="app-root">
+    <nav class="navbar navbar-light">
+      <div class="container">
+        <a class="navbar-brand" load="route:home; active.bind:_home">conduit</a>
+        <ul class="nav navbar-nav pull-xs-right">
+          <li class="nav-item" active.class="_home">
+            <a class="nav-link" load="route:home; active.bind:_home">Home</a>
+          </li>
+          <li class="nav-item" active.class="_editor" show.bind="isAuth">
+            <a class="nav-link" load="route:editor; active.bind:_editor"><i class="ion-compose"></i>&nbsp;New Post</a>
+          </li>
+          <li class="nav-item" active.class="_settings" show.bind="isAuth">
+            <a class="nav-link" load="route:settings; active.bind:_settings"><i
+                class="ion-gear-a"></i>&nbsp;Settings</a>
+          </li>
+          <li class="nav-item" active.class="_login" show.bind="!isAuth">
+            <a class="nav-link" load="route:login; active.bind:_login">Sign in</a>
+          </li>
+          <li class="nav-item" active.class="_register" show.bind="!isAuth">
+            <a class="nav-link" load="route:register; active.bind:_register">Sign up</a>
+          </li>
+          <li class="nav-item" active.class="_profile" show.bind="isAuth">
+            <a class="nav-link"
+              load="route:profile; params.bind:{name:username}; active.bind:_profile">${username}</a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <au-viewport></au-viewport>
+
+    <footer>
+      <div class="container">
+        <a href="/" class="logo-font">conduit</a>
+        <span class="attribution">
+          An interactive learning project from <a href="https://thinkster.io">Thinkster</a>. Code & design licensed
+          under
+          MIT.
+        </span>
+      </div>
+    </footer>
+  </template>
+
   <script type="module">
-    import './src/main.js';
+    // Tested with manual symlink to './node_modules/aurelia/dist/native-modules/index.js' (can remove this comment once alpha is published)
+    import { Aurelia, IHttpClient, IRouter, RouterConfiguration, Route, Watch, CustomElement, ValueConverter } from 'https://unpkg.com/aurelia@2.0.0-alpha/dist/native-modules/index.js';
+
+    const au = new Aurelia();
+
+    au.register(
+      RouterConfiguration.customize({
+        useUrlFragmentHash: false,
+        swapStrategy: 'sequential-remove-first',
+      }),
+    );
+
+    const router = au.container.get(IRouter);
+    const http = au.container.get(IHttpClient);
+
+    http.configure(x => x
+      .withBaseUrl('https://conduit.productionready.io/api')
+      .withDefaults({
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+      }).withInterceptor({
+        request(request) {
+          if (!request.headers.has('Authorization') && jwt.isTokenValid()) {
+            request.headers.append('Authorization', jwt.getAuthorizationHeader());
+          }
+          return request;
+        },
+      })
+    );
+
+    // #region Response objects
+    class User {
+      static get NONE() { return User.create({ email: '', token: '', username: '', bio: '', image: '' }); }
+      constructor(email, token, username, bio, image) {
+        this.email = email;
+        this.token = token;
+        this.username = username;
+        this.bio = bio;
+        this.image = image;
+      }
+      static create(obj) { return new User(obj.email, obj.token, obj.username, obj.bio, obj.image); }
+      clone() { return User.create(this); }
+    }
+    class UserResponse {
+      constructor(user) { this.user = user; }
+      static create(obj) { return new UserResponse(User.create(obj.user)); }
+    }
+    class Profile {
+      static get NONE() { return Profile.create({ username: '', bio: '', image: '', following: false }); }
+      constructor(username, bio, image, following) {
+        this.username = username;
+        this.bio = bio;
+        this.image = image;
+        this.following = following;
+      }
+      static create(obj) { return new Profile(obj.username, obj.bio, obj.image, obj.following); }
+    }
+    class ProfileResponse {
+      constructor(profile) { this.profile = profile; }
+      static create(obj) { return new ProfileResponse(Profile.create(obj.profile)); }
+    }
+    class Article {
+      static get NONE() { return Article.create({ slug: '', title: '', description: '', body: '', tagList: [], createdAt: '', updatedAt: '', favorited: false, favoritesCount: 0, author: Profile.NONE }); }
+      constructor(slug, title, description, body, tagList, createdAt, updatedAt, favorited, favoritesCount, author) {
+        this.slug = slug;
+        this.title = title;
+        this.description = description;
+        this.body = body;
+        this.tagList = tagList;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+        this.favorited = favorited;
+        this.favoritesCount = favoritesCount;
+        this.author = author;
+      }
+      static create(obj) { return new Article(obj.slug, obj.title, obj.description, obj.body, obj.tagList.slice(), obj.createdAt, obj.updatedAt, obj.favorited, obj.favoritesCount, Profile.create(obj.author)); }
+      clone() { return Article.create(this); }
+    }
+    class ArticleResponse {
+      constructor(article) { this.article = article; }
+      static create(obj) { return new ArticleResponse(Article.create(obj.article)); }
+    }
+    class ArticleListResponse {
+      constructor(articles, articlesCount) {
+        this.articles = articles;
+        this.articlesCount = articlesCount;
+      }
+      static create(obj) { return new ArticleListResponse(obj.articles.map(Article.create), obj.articlesCount); }
+    }
+    class Comment {
+      constructor(id, body, createdAt, updatedAt, author) {
+        this.id = id;
+        this.body = body;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+        this.author = author;
+      }
+      static create(obj) { return new Comment(obj.id, obj.body, obj.createdAt, obj.updatedAt, Profile.create(obj.author)); }
+      clone() { return Comment.create(this); }
+    }
+    class CommentResponse {
+      constructor(comment) { this.comment = comment; }
+      static create(obj) { return new CommentResponse(Comment.create(obj.comment)); }
+    }
+    class CommentListResponse {
+      constructor(comments) { this.comments = comments; }
+      static create(obj) { return new CommentListResponse(obj.comments.map(Comment.create)); }
+    }
+    class TagListResponse {
+      constructor(tags) { this.tags = tags; }
+      static create(obj) { return new TagListResponse(obj.tags); }
+    }
+    class ErrorRecordResponse {
+      constructor(errors) { this.errors = errors; }
+      static create(obj) {
+        return new ErrorRecordResponse(Object.keys(obj.errors).reduce((errors, key) => {
+          errors[key] = obj.errors[key].slice();
+          return errors;
+        }, {}));
+      }
+      toErrorList() { return Object.keys(this.errors).map(key => [key, this.errors[key]]); }
+    }
+    // #endregion
+
+    // #region Request objects
+    class ArticleListQueryParams {
+      get type() { return 'all'; }
+      constructor(limit, offset, tag, author, favorited) {
+        this.limit = limit;
+        this.offset = offset;
+        this.tag = tag;
+        this.author = author;
+        this.favorited = favorited;
+      }
+      static create(input) { return new ArticleListQueryParams(input.limit, input.offset, input.tag, input.author, input.favorited); }
+      clone(overwrites = {}) { return ArticleListQueryParams.create({ ...this, ...overwrites }); }
+      toQueryString() { return toQueryString(this); }
+    }
+    class FeedArticleListQueryParams {
+      get type() { return 'feed'; }
+      constructor(limit, offset) {
+        this.limit = limit;
+        this.offset = offset;
+      }
+      static create(input) { return new FeedArticleListQueryParams(input.limit, input.offset); }
+      clone(overwrites = {}) { return FeedArticleListQueryParams.create({ ...this, ...overwrites }); }
+      toQueryString() { return toQueryString(this); }
+    }
+    function toQueryString(obj) {
+      const keys = Object.keys(obj);
+      const pairs = [];
+      for (const key of keys) {
+        const value = obj[key];
+        if (value !== undefined) {
+          pairs.push(`${key}=${encodeURIComponent(value)}`);
+        }
+      }
+      return pairs.length > 0 ? `?${pairs.join('&')}` : '';
+    }
+    // #endregion
+
+    // #region Api service
+    const jwt = {
+      getToken() { return window.localStorage.getItem('jwtToken'); },
+      saveToken(token) { window.localStorage.setItem('jwtToken', token); },
+      destroyToken() { window.localStorage.removeItem('jwtToken'); },
+      isTokenValid() { return !!this.getToken(); },
+      getAuthorizationHeader() { return this.isTokenValid() ? `Token ${this.getToken()}` : null },
+    };
+
+    const api = {
+      loginUser(login) { return this.handle(http.post(`/users/login`, JSON.stringify({ user: login })), UserResponse, true); },
+      registerUser(registration) { return this.handle(http.post(`/users`, JSON.stringify({ user: registration })), UserResponse, true); },
+      getCurrentUser() { return this.handle(http.get(`/user`), UserResponse); },
+      updateUser(user) { return this.handle(http.put(`/user`, JSON.stringify({ user })), UserResponse); },
+      getProfile(username) { return this.handle(http.get(`/profiles/${username}`), ProfileResponse); },
+      followUser(username) { return this.handle(http.post(`/profiles/${username}/follow`), ProfileResponse); },
+      unfollowUser(username) { return this.handle(http.delete(`/profiles/${username}/follow`), ProfileResponse); },
+      getArticles(params) { return this.handle(http.get(`/articles${ArticleListQueryParams.create(params).toQueryString()}`), ArticleListResponse); },
+      getFeedArticles(params) { return this.handle(http.get(`/articles/feed${FeedArticleListQueryParams.create(params).toQueryString()}`), ArticleListResponse); },
+      getArticle(slug) { return this.handle(http.get(`/articles/${slug}`), ArticleResponse); },
+      createArticle(article) { return this.handle(http.post(`/articles`, JSON.stringify({ article })), ArticleResponse, true); },
+      updateArticle(slug, article) { return this.handle(http.put(`/articles/${slug}`, JSON.stringify({ article })), ArticleResponse, true); },
+      deleteArticle(slug) { return this.handle(http.delete(`/articles/${slug}`)); },
+      addCommentToArticle(slug, comment) { return this.handle(http.post(`/articles/${slug}/comments`, JSON.stringify({ comment })), CommentResponse, true); },
+      getCommentsFromArticle(slug) { return this.handle(http.get(`/articles/${slug}/comments`), CommentListResponse); },
+      deleteCommentFromArticle(slug, id) { return this.handle(http.delete(`/articles/${slug}/comments/${id}`)); },
+      favoriteArticle(slug) { return this.handle(http.post(`/articles/${slug}/favorite`), ArticleResponse); },
+      unfavoriteArticle(slug) { return this.handle(http.delete(`/articles/${slug}/favorite`), ArticleResponse); },
+      getTags() { return this.handle(http.get(`/tags`), TagListResponse); },
+      async handle(p, Type, handleValidationErrors) {
+        const response = await p;
+        if (response.status >= 200 && response.status < 400) {
+          if (Type === undefined) {
+            return;
+          } else {
+            const json = await response.json();
+            return Type.create(json);
+          }
+        }
+        // https://github.com/gothinkster/realworld/tree/master/api#errors-and-status-codes
+        if (response.status === 422 && handleValidationErrors) {
+          const json = await response.json();
+          return ErrorRecordResponse.create(json);
+        }
+        throw new HttpError(response);
+      },
+    };
+    // #endregion
+
+    // #region state
+    class HttpError extends Error {
+      constructor(response) {
+        super(`HTTP error code ${response.status} (${response.statusText})`);
+        this.response = response;
+      }
+    }
+
+    const $user = {
+      errors: [],
+      current: User.NONE,
+      isAuth: false,
+
+      async load() {
+        if (jwt.isTokenValid()) {
+          const resp = await api.getCurrentUser();
+          this.setAuth(resp.user);
+        } else {
+          this.clearAuth();
+        }
+      },
+      async login(login) {
+        this.errors = [];
+        const resp = await api.loginUser(login);
+        if (resp instanceof ErrorRecordResponse) {
+          this.clearAuth();
+          this.errors = resp.toErrorList();
+          return false;
+        }
+        this.setAuth(resp.user);
+        return true;
+      },
+      logout() {
+        this.clearAuth();
+      },
+      async register(registration) {
+        this.errors = [];
+        const resp = await api.registerUser(registration);
+        if (resp instanceof ErrorRecordResponse) {
+          this.clearAuth();
+          this.errors = resp.toErrorList();
+          return false;
+        }
+        this.setAuth(resp.user);
+        return true;
+      },
+      async update(user) {
+        const resp = await api.updateUser(user);
+        if (resp instanceof UserResponse) {
+          this.current = resp.user;
+        }
+      },
+      setAuth(user) {
+        jwt.saveToken(user.token);
+        this.current = user;
+        this.isAuth = true;
+      },
+      clearAuth() {
+        jwt.destroyToken();
+        this.current = User.NONE;
+        this.isAuth = false;
+      },
+    };
+
+    const $article = {
+      errors: [],
+      current: Article.NONE,
+      comments: [],
+
+      async toggleFollow() {
+        const author = this.current.author;
+        const username = author.username;
+        let resp;
+        if (author.following) {
+          resp = await api.unfollowUser(username);
+        } else {
+          resp = await api.followUser(username);
+        }
+        this.current.author = resp.profile;
+      },
+      async toggleFavorite() {
+        const article = this.current;
+        let resp;
+        if (article.favorited) {
+          resp = await api.unfavoriteArticle(article.slug);
+        } else {
+          resp = await api.favoriteArticle(article.slug);
+        }
+        this.current = resp.article;
+      },
+      async load(slug = '') {
+        this.current = Article.NONE;
+        this.comments = [];
+        if (slug) {
+          const resp = await api.getArticle(slug);
+          this.current = resp.article;
+        }
+      },
+      async loadComments(slug) {
+        const resp = await api.getCommentsFromArticle(slug);
+        this.comments = resp.comments;
+      },
+      async save(article) {
+        this.errors = [];
+        let resp;
+        if (article.slug) {
+          resp = await api.updateArticle(article.slug, article);
+        } else {
+          resp = await api.createArticle(article);
+        }
+        if (resp instanceof ErrorRecordResponse) {
+          this.errors = resp.toErrorList();
+          return false;
+        }
+        this.current = resp.article;
+        return true;
+      },
+      async delete() {
+        this.errors = [];
+        await api.deleteArticle(this.current.slug);
+        this.current = Article.NONE;
+      },
+      async addComment(body) {
+        this.errors = [];
+        const article = this.current;
+        const resp = await api.addCommentToArticle(article.slug, { body });
+        if (resp instanceof ErrorRecordResponse) {
+          this.errors = resp.toErrorList();
+          return false;
+        }
+        this.comments.push(resp.comment);
+        return true;
+      },
+      async deleteComment(commentId) {
+        this.errors = [];
+        const article = this.current;
+        await api.deleteCommentFromArticle(article.slug, commentId);
+        const idx = this.comments.findIndex(x => x.id === commentId);
+        this.comments.splice(idx, 1);
+      },
+    };
+
+    const $articleList = {
+      items: [],
+      itemsCount: 0,
+      currentPage: 0,
+      pages: [],
+      params: ArticleListQueryParams.create({ limit: 20, offset: 0 }),
+
+      async toggleFavorite(slug) {
+        const idx = this.items.findIndex(x => x.slug === slug);
+        const article = this.items[idx];
+        let resp;
+        if (article.favorited) {
+          resp = await api.unfavoriteArticle(slug);
+        } else {
+          resp = await api.favoriteArticle(slug);
+        }
+        this.items.splice(idx, 1, resp.article);
+      },
+      async load(params = this.params) {
+        this.params = params;
+        let resp;
+        if (params.type === 'all') {
+          resp = await api.getArticles(params);
+        } else {
+          resp = await api.getFeedArticles(params);
+        }
+        this.items = resp.articles;
+        this.itemsCount = resp.articlesCount;
+        this.currentPage = (params.offset + this.items.length) / params.limit;
+        this.pages = Array.from(Array(Math.ceil(resp.articlesCount / params.limit)), (_, i) => i + 1);
+      },
+    };
+
+    const $tags = {
+      items: [],
+
+      async load() {
+        const resp = await api.getTags();
+        this.items = resp.tags;
+      },
+    };
+
+    class AuthHandler {
+      canLoad(params, next) {
+        if (!$user.isAuth) {
+          return 'login';
+        }
+        return true;
+      }
+    }
+    // #endregion
+
+    // #region components
+    function getTemplate(id) {
+      const template = document.getElementById(id);
+      if (template === null) {
+        throw new Error(`template with id '${id}' does not exist.`)
+      }
+      template.removeAttribute('id');
+      template.remove();
+      return template;
+    }
+
+    au.register(
+      CustomElement.define({
+        name: 'article-list',
+        template: getTemplate('article-list'),
+      }, class {
+        $articleList = $articleList;
+
+        async toggleFavorite(slug) {
+          await $articleList.toggleFavorite(slug);
+        }
+        async setPage(page) {
+          const params = $articleList.params;
+          await $articleList.load(params.clone({
+            offset: params.limit * (page - 1),
+          }));
+        }
+      }),
+    );
+
+    au.register(
+      CustomElement.define({
+        name: 'error-list',
+        template: getTemplate('error-list'),
+        bindables: ['errors'],
+      }, class {
+        errors = [];
+      })
+    );
+
+    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat
+    const format = Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+    au.register(
+      ValueConverter.define({
+        name: 'date',
+      }, class {
+        toView(value) {
+          const date = new Date(value);
+          if (Number.isNaN(date.valueOf())) {
+            return 'Invalid Date';
+          }
+          return format.format(date);
+        }
+      }),
+    );
+
+    const ArticleMeta = CustomElement.define({
+      name: 'article-meta',
+      template: getTemplate('article-meta'),
+    }, class {
+      $article = $article;
+      $user = $user;
+      get article() { return this.$article.current; }
+      get author() { return this.article.author; }
+      get canModify() { return this.author.username === this.$user.current.username; }
+
+      async toggleFollow() {
+        await $article.toggleFollow();
+      }
+      async toggleFavorite() {
+        await $article.toggleFavorite();
+      }
+      async delete() {
+        await $article.delete();
+        await router.load('');
+      }
+    });
+
+    const CommentView = CustomElement.define({
+      name: 'comment-view',
+      template: getTemplate('comment-view'),
+      bindables: ['comment'],
+    }, class {
+      $user = $user;
+      comment;
+      get canModify() { return this.comment.author.username === this.$user.current.username; }
+
+      async delete() {
+        await $article.deleteComment(this.comment.id);
+      }
+    });
+
+    import marked from 'https://unpkg.com/marked@1.2.7/lib/marked.esm.js';
+    const ArticleView = CustomElement.define({
+      name: 'article-view',
+      template: getTemplate('article-view'),
+      dependencies: [ArticleMeta, CommentView],
+    }, class {
+      $user = $user;
+      $article = $article;
+
+      marked = marked;
+      myComment = '';
+
+      async load({ slug }) {
+        await Promise.all([
+          $article.load(slug),
+          $article.loadComments(slug),
+        ]);
+      }
+      async postComment() {
+        const body = this.myComment;
+        await $article.addComment(body);
+        this.myComment = '';
+      }
+    });
+
+    const CONSTANTS = {
+      login: {
+        msg: 'Sign in',
+        other: {
+          msg: 'Need an account?',
+          href: '../register',
+        },
+      },
+      register: {
+        msg: 'Sign up',
+        other: {
+          msg: 'Have an account?',
+          href: '../login',
+        },
+      },
+    };
+
+    const AuthView = CustomElement.define({
+      name: 'auth-view',
+      template: getTemplate('auth-view'),
+    }, class {
+      $user = $user;
+
+      C = CONSTANTS;
+      mode = 'login';
+
+      username = '';
+      email = '';
+      password = '';
+
+      get isValid() {
+        if (this.mode === 'login') {
+          return this.email !== '' && this.password !== '';
+        }
+        return this.username !== '' && this.email !== '' && this.password !== '';
+      }
+
+      load(params, next) {
+        this.mode = next.instruction.component.value;
+      }
+      async submit() {
+        switch (this.mode) {
+          case 'login':
+            if (await $user.login({
+              email: this.email,
+              password: this.password,
+            })) {
+              await router.load('');
+            }
+            break;
+          case 'register':
+            if (await $user.register({
+              username: this.username,
+              email: this.email,
+              password: this.password,
+            })) {
+              await router.load('');
+            }
+            break;
+        }
+      }
+    });
+    Route.configure({ transitionPlan: 'replace' }, AuthView);
+
+    const EditorView = CustomElement.define({
+      name: 'editor-view',
+      template: getTemplate('editor-view'),
+    }, class {
+      $article = $article;
+
+      local = $article.current.clone();
+      tag = '';
+
+      async load({ slug }) {
+        await $article.load(slug);
+      }
+      onTagKeyUp(e, tag) {
+        if (e.key === 'Enter' && tag.length > 0) {
+          this.local.tagList.push(tag);
+          this.tag = '';
+        }
+      }
+      removeTag(index) {
+        this.local.tagList.splice(index, 1);
+      }
+      async save() {
+        if (await $article.save(this.local)) {
+          await router.load(`article/${$article.current.slug}`);
+        }
+      }
+    });
+    Route.configure({ canLoad: [AuthHandler] }, EditorView);
+    Watch.add(EditorView, { expression: x => x.$article.current, callback() { this.local = $article.current.clone(); } });
+
+    const HomeView = CustomElement.define({
+      name: 'home-view',
+      template: getTemplate('home-view'),
+    }, class {
+      $tags = $tags;
+      $user = $user;
+      get tags() { return this.$tags.items; }
+      get isAuth() { return this.$user.isAuth; }
+
+      tag = undefined;
+      mode = 'all';
+
+      async binding() {
+        await this.setView(this.mode);
+      }
+      async setView(mode) {
+        this.mode = mode;
+        this.tag = undefined;
+        const { limit, offset } = $articleList.params;
+        const params = (mode === 'all' ? ArticleListQueryParams : FeedArticleListQueryParams).create({ limit, offset });
+        await $articleList.load(params);
+      }
+      async setTag(tag) {
+        this.tag = tag;
+        const { limit, offset } = $articleList.params;
+        const params = ArticleListQueryParams.create({ limit, offset, tag });
+        await $articleList.load(params);
+      }
+    });
+
+    const AuthorArticles = CustomElement.define({
+      name: 'author-articles',
+      template: '<article-list></article-list>',
+    }, class {
+      async load({ name }) {
+        const params = ArticleListQueryParams.create({
+          ...$articleList.params,
+          favorited: undefined,
+          author: name,
+        });
+        await $articleList.load(params);
+      }
+    });
+
+    const FavoritedArticles = CustomElement.define({
+      name: 'favorited-articles',
+      template: '<article-list></article-list>',
+    }, class {
+      async load({ name }) {
+        const params = ArticleListQueryParams.create({
+          ...$articleList.params,
+          author: undefined,
+          favorited: name,
+        });
+        await $articleList.load(params);
+      }
+    });
+
+    const ProfileView = CustomElement.define({
+      name: 'profile-view',
+      template: getTemplate('profile-view'),
+      dependencies: [AuthorArticles, FavoritedArticles]
+    }, class {
+      $user = $user;
+      get isSelf() { return this.profile.username === this.$user.current.username; }
+
+      async toggleFollow() {
+        const profile = this.profile;
+        const username = profile.username;
+        let resp;
+        if (profile.following) {
+          resp = await api.unfollowUser(username);
+        } else {
+          resp = await api.followUser(username);
+        }
+        this.profile = resp.profile;
+      }
+      async load({ name }) {
+        const resp = await api.getProfile(name);
+        this.profile = resp.profile;
+      }
+    });
+    Route.configure({ children: [
+      { id: 'author', path: '', component: AuthorArticles, title: 'Profile' },
+      { path: 'favorites', component: FavoritedArticles, title: 'Profile' }
+    ]}, ProfileView);
+
+    const SettingsView = CustomElement.define({
+      name: 'settings-view',
+      template: getTemplate('settings-view'),
+    }, class {
+      $user = $user;
+      local = $user.current.clone();
+
+      async update() {
+        await $user.update(this.local);
+      }
+      async logout() {
+        $user.logout();
+        await router.load('');
+      }
+    });
+    Route.configure({ canLoad: [AuthHandler] }, SettingsView);
+    Watch.add(SettingsView, { expression: x => x.$user.current, callback() { this.local = $user.current.clone(); } });
+
+    const AppRoot = CustomElement.define({
+      name: 'app-root',
+      template: getTemplate('app-root'),
+    }, class {
+      $user = $user;
+      get isAuth() { return this.$user.isAuth; }
+      get username() { return this.$user.current.username; }
+
+      async binding() {
+        await Promise.all([
+          $tags.load(),
+          $user.load(),
+        ]);
+      }
+    });
+    Route.configure({
+      children: [
+        { id: 'home', path: '', component: HomeView, title: 'Home' },
+        { path: 'login', component: AuthView, title: 'Sign in' },
+        { path: 'register', component: AuthView, title: 'Sign up' },
+        { path: 'settings', component: SettingsView, title: 'Settings' },
+        { id: 'profile', path: 'profile/:name', component: ProfileView, title: 'Profile' },
+        { id: 'editor', path: 'editor/:slug?', component: EditorView, title: 'Editor' },
+        { id: 'article', path: 'article/:slug', component: ArticleView, title: 'Article' },
+      ]
+    }, AppRoot);
+
+    // #endregion
+
+    au.app({
+      component: AppRoot,
+      host: document.querySelector('app-root'),
+    });
+
+    au.start();
   </script>
 </body>
 

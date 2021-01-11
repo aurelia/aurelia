@@ -222,7 +222,7 @@ export class TemplateBinder {
       manifest = new PlainElementSymbol(node);
     } else {
       // it's a custom element so we set the manifestRoot as well (for storing replaces)
-      compileChildren = (definition?.processContent?.(node, this.platform) ?? true) as boolean;
+      compileChildren = (definition?.processContent?.bind(definition.Type)?.(node, this.platform) ?? true) as boolean;
       parentManifestRoot = manifestRoot;
       const ceSymbol = new CustomElementSymbol(this.platform, node, elementInfo);
       if (isAuSlot) {

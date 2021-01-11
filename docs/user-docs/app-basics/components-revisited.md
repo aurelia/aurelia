@@ -1153,13 +1153,19 @@ The most straight forward way to define the hook is to use the `processContent` 
 ```typescript
 import { customElement, INode, IPlatform } from '@aurelia/runtime-html';
 
-// Use a standalone function...
+// Use a standalone function
 function processContent(node: INode, platform: IPlatform) { }
 @customElement({ name: 'my-element', processContent })
 export class MyElement { }
 
-// ... or use a static method.
+// ... or use a static method explicitly
 @customElement({ name: 'my-element', processContent: MyElement.processContent })
+export class MyElement {
+  static processContent(node: INode, platform: IPlatform) { }
+}
+
+// ... or use a static method named 'processContent' (convention)
+@customElement({ name: 'my-element' })
 export class MyElement {
   static processContent(node: INode, platform: IPlatform) { }
 }

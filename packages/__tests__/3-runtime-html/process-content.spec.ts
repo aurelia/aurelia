@@ -81,6 +81,32 @@ describe('processContent', function () {
         }
       }
       yield new TestData(
+        'a static processContent method is auto-discovered',
+        `<my-element normal="foo" bold="bar"></my-element>`,
+        [
+          CustomElement.define(
+            {
+              name: 'my-element',
+              isStrictBinding: true,
+              template: `<div><au-slot></au-slot></div>`,
+            },
+            MyElement
+          )
+        ],
+        {},
+        () => {
+          assert.strictEqual(MyElement.hookInvoked, true);
+        }
+      );
+    }
+    {
+      class MyElement {
+        public static hookInvoked: boolean = false;
+        public static processContent(_node: INode, _p: IPlatform) {
+          this.hookInvoked = true;
+        }
+      }
+      yield new TestData(
         'a static function can be used as the processContent hook',
         `<my-element normal="foo" bold="bar"></my-element>`,
         [
@@ -89,8 +115,7 @@ describe('processContent', function () {
               name: 'my-element',
               isStrictBinding: true,
               template: `<div><au-slot></au-slot></div>`,
-              // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-              processContent: MyElement.processContent.bind(MyElement)
+              processContent: MyElement.processContent
             },
             MyElement
           )

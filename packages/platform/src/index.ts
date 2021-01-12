@@ -123,7 +123,12 @@ export class TaskQueue {
   private lastFlush: number = 0;
 
   public get isEmpty(): boolean {
-    return this.processing.length === 0 && this.pending.length === 0 && this.delayed.length === 0;
+    return (
+      this.pendingAsyncCount === 0 &&
+      this.processing.length === 0 &&
+      this.pending.length === 0 &&
+      this.delayed.length === 0
+    );
   }
 
   /**
@@ -248,7 +253,7 @@ export class TaskQueue {
   public async yield(): Promise<void> {
     if (this.tracer.enabled) { this.tracer.enter(this, 'yield'); }
 
-    if (this.hasNoMoreFiniteWork) {
+    if (this.isEmpty) {
       if (this.tracer.enabled) { this.tracer.leave(this, 'yield empty'); }
     } else {
       if (this.yieldPromise === void 0) {

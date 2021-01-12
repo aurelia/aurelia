@@ -14,7 +14,7 @@ import { BindingCommand, BindingCommandInstance } from './resources/binding-comm
 import { NodeType } from './dom.js';
 import { IPlatform } from './platform.js';
 import { CustomAttribute } from './resources/custom-attribute.js';
-import { CustomElement } from './resources/custom-element.js';
+import { CustomElement, CustomElementDefinition } from './resources/custom-element.js';
 import {
   BindingSymbol,
   CustomAttributeSymbol,
@@ -214,12 +214,15 @@ export class TemplateBinder {
       name = node.nodeName.toLowerCase();
     }
 
-    const elementInfo = ElementInfo.from(this.container.find(CustomElement, name), name);
+    const definition: CustomElementDefinition | null = this.container.find(CustomElement, name);
+    const elementInfo = ElementInfo.from(definition, name);
+    let compileChildren = true;
     if (elementInfo === null) {
       // there is no registered custom element with this name
       manifest = new PlainElementSymbol(node);
     } else {
       // it's a custom element so we set the manifestRoot as well (for storing replaces)
+      compileChildren = (definition?.processContent?.bind(definition.Type)?.(node, this.platform) ?? true) as boolean;
       parentManifestRoot = manifestRoot;
       const ceSymbol = new CustomElementSymbol(this.platform, node, elementInfo);
       if (isAuSlot) {
@@ -229,14 +232,16 @@ export class TemplateBinder {
       manifestRoot = manifest = ceSymbol;
     }
 
-    // lifting operations done by template controllers and replaces effectively unlink the nodes, so start at the bottom
-    this.bindChildNodes(
-      /* node               */ node,
-      /* surrogate          */ surrogate,
-      /* manifest           */ manifest,
-      /* manifestRoot       */ manifestRoot,
-      /* parentManifestRoot */ parentManifestRoot,
-    );
+    if(compileChildren) {
+      // lifting operations done by template controllers and replaces effectively unlink the nodes, so start at the bottom
+      this.bindChildNodes(
+        /* node               */ node,
+        /* surrogate          */ surrogate,
+        /* manifest           */ manifest,
+        /* manifestRoot       */ manifestRoot,
+        /* parentManifestRoot */ parentManifestRoot,
+      );
+    }
 
     // the parentManifest will receive either the direct child nodes, or the template controllers / replaces
     // wrapping them

@@ -90,7 +90,7 @@ describe('au-slot', function () {
         public constructor(
           @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
         ) {
-          assert.equal(slots !== void 0 || slots !== null, true);
+           assert.instanceOf(slots, AuSlotsInfo);
         }
       }
       return CustomElement.define({ name: 'my-element', isStrictBinding: true, template, bindables: { people: { mode: BindingMode.default } }, }, MyElement);
@@ -191,7 +191,7 @@ describe('au-slot', function () {
         public constructor(
           @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
         ) {
-          assert.equal(slots !== void 0 || slots !== null, true);
+           assert.instanceOf(slots, AuSlotsInfo);
         }
       }
       yield new TestData(
@@ -213,7 +213,7 @@ describe('au-slot', function () {
         public constructor(
           @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
         ) {
-          assert.equal(slots !== void 0 || slots !== null, true);
+           assert.instanceOf(slots, AuSlotsInfo);
         }
       }
       yield new TestData(
@@ -1217,7 +1217,7 @@ describe('au-slot', function () {
         public constructor(
           @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
         ) {
-          assert.equal(slots !== void 0 || slots !== null, true);
+           assert.instanceOf(slots, AuSlotsInfo);
         }
       }
       @customElement({
@@ -1228,7 +1228,7 @@ describe('au-slot', function () {
         public constructor(
           @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
         ) {
-          assert.equal(slots !== void 0 || slots !== null, true);
+           assert.instanceOf(slots, AuSlotsInfo);
         }
       }
       @customElement({
@@ -1239,7 +1239,7 @@ describe('au-slot', function () {
         public constructor(
           @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
         ) {
-          assert.equal(slots !== void 0 || slots !== null, true);
+           assert.instanceOf(slots, AuSlotsInfo);
         }
       }
 

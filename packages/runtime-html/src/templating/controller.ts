@@ -38,7 +38,7 @@ import type {
 } from '@aurelia/runtime';
 import type { BindableDefinition } from '../bindable.js';
 import type { PropertyBinding } from '../binding/property-binding.js';
-import { AuSlotsInfo, AuSlotsInfoProperty, RegisteredProjections } from '../resources/custom-elements/au-slot.js';
+import { RegisteredProjections } from '../resources/custom-elements/au-slot.js';
 import type { IViewFactory } from './view.js';
 import type { Instruction } from '../renderer.js';
 import type { IWatchDefinition, IWatcherCallback } from '../watch.js';
@@ -200,12 +200,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       /* viewModel      */viewModel as BindingContext<C>,
       /* host           */host,
     );
-
-    const infoProperty = AuSlotsInfoProperty.for(viewModel);
-    if (infoProperty !== void 0) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      (viewModel as any)[infoProperty] = new AuSlotsInfo(Object.keys(targetedProjections?.projections ?? {}));
-    }
 
     controllerLookup.set(viewModel, controller as Controller);
 

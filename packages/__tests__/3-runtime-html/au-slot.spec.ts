@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { IContainer } from '@aurelia/kernel';
-import { Aurelia, auSlots, AuSlotsInfo, bindable, BindingMode, customElement, CustomElement, IPlatform } from '@aurelia/runtime-html';
+import { Aurelia, AuSlotsInfo, bindable, BindingMode, customElement, CustomElement, IAuSlotsInfo, IPlatform } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util.js';
 
@@ -87,11 +87,10 @@ describe('au-slot', function () {
   function* getTestData() {
     const createMyElement = (template: string) => {
       class MyElement {
-        @auSlots
-        public readonly slots!: AuSlotsInfo;
-
-        public define() {
-          assert.notEqual(this.slots, void 0);
+        public constructor(
+          @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
+        ) {
+          assert.equal(slots !== void 0 || slots !== null, true);
         }
       }
       return CustomElement.define({ name: 'my-element', isStrictBinding: true, template, bindables: { people: { mode: BindingMode.default } }, }, MyElement);
@@ -188,12 +187,11 @@ describe('au-slot', function () {
 
     {
       class MyElement {
-        @auSlots
-        public readonly slots!: AuSlotsInfo;
         public readonly message: string = 'inner';
-
-        public define() {
-          assert.notEqual(this.slots, void 0);
+        public constructor(
+          @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
+        ) {
+          assert.equal(slots !== void 0 || slots !== null, true);
         }
       }
       yield new TestData(
@@ -211,12 +209,11 @@ describe('au-slot', function () {
 
     {
       class MyElement {
-        @auSlots
-        public readonly slots!: AuSlotsInfo;
         public readonly message: string = 'inner';
-
-        public define() {
-          assert.notEqual(this.slots, void 0);
+        public constructor(
+          @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
+        ) {
+          assert.equal(slots !== void 0 || slots !== null, true);
         }
       }
       yield new TestData(
@@ -237,9 +234,10 @@ describe('au-slot', function () {
     {
       @customElement({ name: 'my-element', isStrictBinding: true, template: `static <au-slot>default</au-slot> <au-slot name="s1" if.bind="showS1">s1</au-slot> <au-slot name="s2">s2</au-slot>` })
       class MyElement {
-        @auSlots
-        public readonly slots!: AuSlotsInfo;
         @bindable public showS1: boolean = true;
+        public constructor(
+          @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
+        ) { }
       }
       yield new TestData(
         'works with template controller - if',
@@ -263,9 +261,10 @@ describe('au-slot', function () {
     {
       @customElement({ name: 'my-element', isStrictBinding: true, template: `static <au-slot>default</au-slot> <au-slot name="s1" if.bind="showS1">s1</au-slot> <au-slot else name="s2">s2</au-slot>` })
       class MyElement {
-        @auSlots
-        public readonly slots!: AuSlotsInfo;
         @bindable public showS1: boolean = true;
+        public constructor(
+          @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
+        ) { }
       }
       yield new TestData(
         'works with template controller - if-else',
@@ -296,9 +295,10 @@ describe('au-slot', function () {
     {
       @customElement({ name: 'my-element', isStrictBinding: true, template: `<ul if.bind="someCondition"><au-slot></au-slot></ul> <div else><au-slot></au-slot></div>` })
       class MyElement {
-        @auSlots
-        public readonly slots!: AuSlotsInfo;
         @bindable public someCondition: boolean = true;
+        public constructor(
+          @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
+        ) { }
       }
       yield new TestData(
         'works with template controller - if-else - same slot name',
@@ -330,9 +330,10 @@ describe('au-slot', function () {
         </template>
       </au-slot>` })
       class MyElement {
-        @auSlots
-        public readonly slots!: AuSlotsInfo;
         @bindable public people: Person[];
+        public constructor(
+          @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
+        ) { }
       }
 
       yield new TestData(
@@ -490,8 +491,9 @@ describe('au-slot', function () {
 
       {
         class MyElement {
-          @auSlots
-          public readonly slots: AuSlotsInfo;
+          public constructor(
+            @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
+          ) { }
         }
         yield new TestData(
           'works with table',
@@ -638,9 +640,10 @@ describe('au-slot', function () {
         </template>
       </au-slot>` })
       class MyElement {
-        @auSlots
-        public readonly slots!: AuSlotsInfo;
         @bindable public people: Person[];
+        public constructor(
+          @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
+        ) { }
       }
       yield new TestData(
         'simple nesting',
@@ -783,9 +786,10 @@ describe('au-slot', function () {
       {
 
         class MyElement {
-          @auSlots
-          public readonly slots: AuSlotsInfo;
           public readonly message: string = 'inner';
+          public constructor(
+            @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
+          ) { }
         }
         yield new TestData(
           'CE[au-slot] works - $host',
@@ -977,8 +981,9 @@ describe('au-slot', function () {
         };
 
         class MyElement {
-          @auSlots
-          public readonly slots: AuSlotsInfo;
+          public constructor(
+            @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
+          ) { }
         }
 
         for (let i = 1; i < 11; i++) {
@@ -1032,8 +1037,9 @@ describe('au-slot', function () {
 
         for (let i = 1; i < 11; i++) {
           class MyElement {
-            @auSlots
-            public readonly slots: AuSlotsInfo;
+            public constructor(
+              @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
+            ) { }
           }
           yield new TestData(
             `projection works for all non-nested <au-slot>; count: ${i}`,
@@ -1051,9 +1057,10 @@ describe('au-slot', function () {
     // #region data binding
     {
       class MyElement {
-        @auSlots
-        public readonly slots: AuSlotsInfo;
         public foo: string = "foo";
+        public constructor(
+          @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
+        ) { }
       }
       yield new TestData(
         'works with input value binding - $host',
@@ -1170,8 +1177,9 @@ describe('au-slot', function () {
 
     {
       class Base {
-        @auSlots
-        public readonly slots!: AuSlotsInfo;
+        public constructor(
+          @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
+        ) { }
       }
 
       @customElement({
@@ -1180,7 +1188,7 @@ describe('au-slot', function () {
       })
       class MyElement1 extends Base { }
       yield new TestData(
-        '@auSlots works with inheritance - #1',
+        '@IAuSlotsInfo works with inheritance - #1',
         '<my-element><div au-slot="s1">s1p</div></my-element>',
         [MyElement1],
         { 'my-element': ['dfb<div>s1p</div>', new AuSlotsInfo(['s1'])] }
@@ -1193,10 +1201,59 @@ describe('au-slot', function () {
       })
       class MyElement2 extends Base2 { }
       yield new TestData(
-        '@auSlots works with inheritance - #2',
+        '@IAuSlotsInfo works with inheritance - #2',
         '<my-element><div au-slot="s1">s1p</div></my-element>',
         [MyElement2],
         { 'my-element': ['dfb<div>s1p</div>', new AuSlotsInfo(['s1'])] }
+      );
+    }
+
+    {
+      @customElement({
+        name: 'ce-one',
+        template: '<au-slot>dfb</au-slot><au-slot name="s1">s1fb</au-slot>',
+      })
+      class CeOne {
+        public constructor(
+          @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
+        ) {
+          assert.equal(slots !== void 0 || slots !== null, true);
+        }
+      }
+      @customElement({
+        name: 'ce-two',
+        template: 'ce two',
+      })
+      class CeTwo {
+        public constructor(
+          @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
+        ) {
+          assert.equal(slots !== void 0 || slots !== null, true);
+        }
+      }
+      @customElement({
+        name: 'ce-three',
+        template: '<au-slot name="s1">s1fb</au-slot><ce-one><span au-slot>dp</span></ce-one><ce-two></ce-two>',
+      })
+      class CeThree {
+        public constructor(
+          @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
+        ) {
+          assert.equal(slots !== void 0 || slots !== null, true);
+        }
+      }
+
+      yield new TestData(
+        '@IAuSlotsInfo works correctly with element nesting',
+        '<ce-one><span au-slot="s1">s1p</span></ce-one><ce-two></ce-two><ce-three><div au-slot="s1">s1p</div></ce-three>',
+        [CeOne, CeTwo, CeThree],
+        {
+          'ce-one': ['dfb<span>s1p</span>', new AuSlotsInfo(['s1'])],
+          'ce-two': ['ce two', new AuSlotsInfo([])],
+          'ce-three': ['<div>s1p</div><ce-one class="au"><span>dp</span>s1fb</ce-one><ce-two class="au">ce two</ce-two>', new AuSlotsInfo(['s1'])],
+          'ce-three>ce-one': ['<span>dp</span>s1fb', new AuSlotsInfo(['default'])],
+          'ce-three>ce-two': ['ce two', new AuSlotsInfo([])],
+        }
       );
     }
   }
@@ -1213,7 +1270,7 @@ describe('au-slot', function () {
           }
 
           if (expectedAuSlotsInfo != null) {
-            const slots = CustomElement.for<{ slots: AuSlotsInfo }>(host.querySelector('my-element')).viewModel.slots;
+            const slots = CustomElement.for<{ slots: AuSlotsInfo }>(host.querySelector(selector)).viewModel.slots;
             assert.deepStrictEqual(slots, expectedAuSlotsInfo);
           }
         }

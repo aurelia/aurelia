@@ -430,8 +430,8 @@ export {
   RegisteredProjections,
   IProjectionProvider,
   ProjectionContext,
-  auSlots,
   AuSlotsInfo,
+  IAuSlotsInfo,
 } from './resources/custom-elements/au-slot.js';
 
 export {

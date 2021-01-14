@@ -120,10 +120,11 @@ This means that the following examples do not work.
 ```
 {% endcode %}
 
-**The `@auSlots` decorator**
+**Inject the projected slot information**
 
-This decorator provides information related to the slots inside a custom element.
-As of now this provides only the slot names for which content has been projected.
+It is possible to inject an instance of `IAuSlotsInfo` in a custom element view model.
+This provides information related to the slots inside a custom element.
+As of now the information includes only the slot names for which content has been projected.
 Let's consider the following example.
 
 {% tabs %}
@@ -136,14 +137,13 @@ Let's consider the following example.
 {% endtab %}
 {% tab title="my-element.ts" %}
 ```typescript
-import { AuSlotsInfo, auSlots } from '@aurelia/runtime-html';
+import { IAuSlotsInfo } from '@aurelia/runtime-html';
 
 class MyElement {
-  @auSlots
-  public readonly slotInfo: AuSlotsInfo;
-
-  public define() {
-    console.log(this.slotInfo.projectedSlots);
+  public constructor(
+    @IAuSlotsInfo public readonly slotInfo: IAuSlotsInfo,
+  ) {
+    console.log(slotInfo.projectedSlots);
   }
 }
 ```

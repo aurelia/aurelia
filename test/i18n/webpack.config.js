@@ -10,7 +10,7 @@ module.exports = function (env, { mode }) {
     devtool: "inline-cheap-module-source-map",
     resolve: {
       extensions: ['.ts', '.js'],
-      modules: [path.resolve(__dirname, 'src'), 'node_modules'],,
+      modules: [path.resolve(__dirname, 'src'), 'node_modules'],
       mainFields: ['module'],
       // sadly these fallbacks are required to run the app via webpack-dev-server
       fallback: {

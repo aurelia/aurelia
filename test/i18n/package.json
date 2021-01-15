@@ -9,7 +9,7 @@
   "version": "0.8.0",
   "scripts": {
     "prestart": "rimraf dist",
-    "start": "webpack-dev-server --no-inline",
+    "start": "webpack-dev-server",
     "preserve": "rimraf dist && webpack --config webpack.config.js",
     "serve": "au-http-server au.conf.js",
     "e2e": "mocha --ui bdd --colors --reporter spec --timeout 30000 dist/tests/i18n.spec.js"
@@ -41,7 +41,7 @@
     "typescript": "^4.0.3",
     "webpack": "^5.10.3",
     "webpack-cli": "^4.2.0",
-    "webpack-dev-server": "^3.11.0",
+    "webpack-dev-server": "^4.0.0-beta.0",
     "copy-webpack-plugin": "^5.1.1"
   }
 }

@@ -120,6 +120,56 @@ This means that the following examples do not work.
 ```
 {% endcode %}
 
+**Inject the projected slot information**
+
+It is possible to inject an instance of `IAuSlotsInfo` in a custom element view model.
+This provides information related to the slots inside a custom element.
+As of now the information includes only the slot names for which content has been projected.
+Let's consider the following example.
+
+{% tabs %}
+{% tab title="my-element.html" %}
+```markup
+<au-slot>dfb</au-slot>
+<au-slot name="s1">s1fb</au-slot>
+<au-slot name="s2">s2fb</au-slot>
+```
+{% endtab %}
+{% tab title="my-element.ts" %}
+```typescript
+import { IAuSlotsInfo } from '@aurelia/runtime-html';
+
+class MyElement {
+  public constructor(
+    @IAuSlotsInfo public readonly slotInfo: IAuSlotsInfo,
+  ) {
+    console.log(slotInfo.projectedSlots);
+  }
+}
+```
+{% endtab %}
+{% tab title="my-app.html" %}
+```markup
+<!-- my_element_instance_1 -->
+<my-element>
+  <div au-slot="default">dp</div>
+  <div au-slot="s1">s1p</div>
+</my-element>
+<!-- my_element_instance_2 -->
+<my-element></my-element>
+```
+{% endtab %}
+{% endtabs %}
+
+Following would be logged to the console for the instances of `my-element`.
+
+```log
+// my_element_instance_1
+['default', 's1']
+
+// my_element_instance_2
+[]
+```
 
 ### Binding scope
 
@@ -995,6 +1045,108 @@ You can 'chain' projections, as explained in the following example.
 ```
 {% endtab %}
 {% endtabs %}
+
+While using `au-slot` in a table, we need to keep in mind that anything not complying with the HTML table schema is thrown out of the table.
+For example the following examples do not work.
+
+```html
+<!-- example#1 -->
+<table>
+  <thead>
+    <tr>
+      <th>Test</th>
+    </tr>
+  </thead>
+  <tbody>
+      <au-slot></au-slot> <!-- thrown out as it is not a tr -->
+  </tbody>
+</table>
+
+<!-- example#2-->
+<table>
+  <thead>
+    <tr>
+      <th>Test</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr repeat.for="item of items">
+      <au-slot></au-slot> <!-- thrown out as it is not a td -->
+    </tr>
+  </tbody>
+</table>
+```
+
+However, in such cases, we can use the [`as-element` attribute](#the-as-element-attribute) effectively to compose the views.
+This is shown in the example below.
+
+{% tabs %}
+{% tab title="my-element.html" %}
+```markup
+<table>
+  <thead>
+    <tr>
+      <template as-element="au-slot" name="header"></template> <!-- The 'name' attribute here specifies the au-slot name. -->
+    </tr>
+  </thead>
+  <tbody>
+    <tr repeat.for="item of items">
+      <template as-element="au-slot" name="content"></template> <!-- The 'name' attribute here specifies the au-slot name. -->
+    </tr>
+  </tbody>
+</table>
+```
+{% endtab %}
+{% tab title="my-element.ts" %}
+```typescript
+class MyElement { }
+```
+{% endtab %}
+{% tab title="my-app.html" %}
+```markup
+<my-element items.bind="[{p1: 1, p2: 2}, {p1: 11, p2: 22}]">
+  <template au-slot="header">
+    <th>p1</th>
+    <th>p2</th>
+  </template>
+  <template au-slot="content">
+    <td>\${$host.item.p1}</td>
+    <td>\${$host.item.p2}</td>
+  </template>
+</my-element>
+<!-- Rendered (simplified): -->
+<!--
+  <my-element>
+    <table>
+      <thead>
+        <tr>
+          <th>p1</th>
+          <th>p2</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td>2</td>
+        </tr>
+        <tr>
+          <td>11</td>
+          <td>22</td>
+        </tr>
+      </tbody>
+    </table>
+  </my-element>
+-->
+```
+{% endtab %}
+{% endtabs %}
+
+{% hint style="warning" %}
+Note that the `au-slot` is a container-less custom element.
+This implies that applying `au-slot` on a `tr`, `thead`, or `tbody` will finally result in removing those tags from the DOM tree.
+Thus, in the above examples the `tr>template[as-element=au-slot]` construct is a deliberate choice.
+Contextually, `template[as-element=au-slot]` can also be wrapped inside `thead`, or `tbody`, depending on the use-cases.
+{% endhint %}
 
 Following are some invalid examples that are not supported, and may result in unexpected result.
 

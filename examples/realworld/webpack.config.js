@@ -1,3 +1,4 @@
+const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = function (env, { mode }) {
@@ -8,13 +9,12 @@ module.exports = function (env, { mode }) {
     entry: './src/main.ts',
     resolve: {
       extensions: ['.ts', '.js'],
-      modules: ['src', 'node_modules']
+      modules: [path.resolve(__dirname, 'src'), 'node_modules'],
     },
     devServer: {
       historyApiFallback: true,
       open: !process.env.CI,
       port: 9000,
-      lazy: false
     },
     module: {
       rules: [

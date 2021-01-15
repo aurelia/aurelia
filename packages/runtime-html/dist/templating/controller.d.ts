@@ -7,7 +7,7 @@ import { IRenderContext, RenderContext, ICompiledRenderContext } from './render-
 import { IAppRoot } from '../app-root.js';
 import { IPlatform } from '../platform.js';
 import type { IBinding, AccessorOrObserver } from '@aurelia/runtime';
-import type { RegisteredProjections } from '../resources/custom-elements/au-slot.js';
+import { RegisteredProjections } from '../resources/custom-elements/au-slot.js';
 import type { IViewFactory } from './view.js';
 import type { Instruction } from '../renderer.js';
 declare type BindingContext<C extends IViewModel> = Required<ICompileHooks> & Required<IActivationHooks<IHydratedController | null>> & C;

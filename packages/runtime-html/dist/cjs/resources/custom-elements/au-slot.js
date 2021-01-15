@@ -1,10 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AuSlot = exports.ProjectionProvider = exports.IProjectionProvider = exports.RegisteredProjections = exports.ProjectionContext = exports.SlotInfo = exports.AuSlotContentType = exports.IProjections = void 0;
+exports.AuSlotsInfo = exports.IAuSlotsInfo = exports.AuSlot = exports.ProjectionProvider = exports.IProjectionProvider = exports.RegisteredProjections = exports.ProjectionContext = exports.SlotInfo = exports.AuSlotContentType = exports.IProjections = void 0;
 const kernel_1 = require("@aurelia/kernel");
 const dom_js_1 = require("../../dom.js");
-const custom_element_js_1 = require("../custom-element.js");
 const view_js_1 = require("../../templating/view.js");
+const custom_element_js_1 = require("../custom-element.js");
 exports.IProjections = kernel_1.DI.createInterface("IProjections");
 var AuSlotContentType;
 (function (AuSlotContentType) {
@@ -48,7 +48,6 @@ class ProjectionProvider {
 exports.ProjectionProvider = ProjectionProvider;
 class AuSlot {
     constructor(factory, location) {
-        this.factory = factory;
         this.hostScope = null;
         this.view = factory.create().setLocation(location);
         this.isProjection = factory.contentType === AuSlotContentType.Projection;
@@ -58,7 +57,7 @@ class AuSlot {
      * @internal
      */
     static get inject() { return [view_js_1.IViewFactory, dom_js_1.IRenderLocation]; }
-    binding(initiator, parent, flags) {
+    binding(_initiator, _parent, _flags) {
         this.hostScope = this.$controller.scope.parentScope;
     }
     attaching(initiator, parent, flags) {
@@ -80,4 +79,14 @@ class AuSlot {
 }
 exports.AuSlot = AuSlot;
 custom_element_js_1.customElement({ name: 'au-slot', template: null, containerless: true })(AuSlot);
+exports.IAuSlotsInfo = kernel_1.DI.createInterface('AuSlotsInfo');
+class AuSlotsInfo {
+    /**
+     * @param {string[]} projectedSlots - Name of the slots to which content are projected.
+     */
+    constructor(projectedSlots) {
+        this.projectedSlots = projectedSlots;
+    }
+}
+exports.AuSlotsInfo = AuSlotsInfo;
 //# sourceMappingURL=au-slot.js.map

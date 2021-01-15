@@ -72,6 +72,7 @@ class RenderContext {
         container.registerResolver(controller_js_1.IController, this.parentControllerProvider = new kernel_1.InstanceProvider('IController'), true);
         container.registerResolver(renderer_js_1.IInstruction, this.instructionProvider = new kernel_1.InstanceProvider('IInstruction'), true);
         container.registerResolver(dom_js_1.IRenderLocation, this.renderLocationProvider = new kernel_1.InstanceProvider('IRenderLocation'), true);
+        container.registerResolver(au_slot_js_1.IAuSlotsInfo, this.auSlotsInfoProvider = new kernel_1.InstanceProvider('IAuSlotsInfo'), true);
         const ep = this.elementProvider = new kernel_1.InstanceProvider('ElementResolver');
         container.registerResolver(dom_js_1.INode, ep);
         container.registerResolver(p.Node, ep);
@@ -208,7 +209,7 @@ class RenderContext {
         return new dom_js_1.FragmentNodeSequence(this.platform, this.fragment.cloneNode(true));
     }
     // TODO: split up into 2 methods? getComponentFactory + getSyntheticFactory or something
-    getComponentFactory(parentController, host, instruction, viewFactory, location) {
+    getComponentFactory(parentController, host, instruction, viewFactory, location, auSlotsInfo) {
         if (parentController !== void 0) {
             this.parentControllerProvider.prepare(parentController);
         }
@@ -224,6 +225,9 @@ class RenderContext {
         }
         if (viewFactory !== void 0) {
             this.factoryProvider.prepare(viewFactory);
+        }
+        if (auSlotsInfo !== void 0) {
+            this.auSlotsInfoProvider.prepare(auSlotsInfo);
         }
         return this;
     }

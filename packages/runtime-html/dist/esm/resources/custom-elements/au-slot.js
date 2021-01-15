@@ -1,7 +1,7 @@
 import { DI } from '@aurelia/kernel';
 import { IRenderLocation } from '../../dom.js';
-import { customElement } from '../custom-element.js';
 import { IViewFactory } from '../../templating/view.js';
+import { customElement } from '../custom-element.js';
 export const IProjections = DI.createInterface("IProjections");
 export var AuSlotContentType;
 (function (AuSlotContentType) {
@@ -41,7 +41,6 @@ export class ProjectionProvider {
 }
 export class AuSlot {
     constructor(factory, location) {
-        this.factory = factory;
         this.hostScope = null;
         this.view = factory.create().setLocation(location);
         this.isProjection = factory.contentType === AuSlotContentType.Projection;
@@ -51,7 +50,7 @@ export class AuSlot {
      * @internal
      */
     static get inject() { return [IViewFactory, IRenderLocation]; }
-    binding(initiator, parent, flags) {
+    binding(_initiator, _parent, _flags) {
         this.hostScope = this.$controller.scope.parentScope;
     }
     attaching(initiator, parent, flags) {
@@ -72,4 +71,13 @@ export class AuSlot {
     }
 }
 customElement({ name: 'au-slot', template: null, containerless: true })(AuSlot);
+export const IAuSlotsInfo = DI.createInterface('AuSlotsInfo');
+export class AuSlotsInfo {
+    /**
+     * @param {string[]} projectedSlots - Name of the slots to which content are projected.
+     */
+    constructor(projectedSlots) {
+        this.projectedSlots = projectedSlots;
+    }
+}
 //# sourceMappingURL=au-slot.js.map

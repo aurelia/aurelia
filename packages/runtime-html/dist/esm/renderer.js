@@ -19,6 +19,7 @@ import { Listener } from './binding/listener.js';
 import { IEventDelegator } from './observation/event-delegator.js';
 import { CustomElement } from './resources/custom-element.js';
 import { getRenderContext } from './templating/render-context.js';
+import { AuSlotsInfo } from './resources/custom-elements/au-slot.js';
 import { CustomAttribute } from './resources/custom-attribute.js';
 import { convertToRenderLocation } from './dom.js';
 import { Controller } from './templating/controller.js';
@@ -283,12 +284,14 @@ class CustomElementRenderer {
             const projectionCtx = slotInfo.projectionContext;
             viewFactory = getRenderContext(projectionCtx.content, context).getViewFactory(void 0, slotInfo.type, projectionCtx.scope);
         }
+        const targetedProjections = context.getProjectionFor(instruction);
         const factory = context.getComponentFactory(
         /* parentController */ controller, 
         /* host             */ target, 
         /* instruction      */ instruction, 
         /* viewFactory      */ viewFactory, 
-        /* location         */ target);
+        /* location         */ target, 
+        /* auSlotsInfo      */ new AuSlotsInfo(Object.keys(targetedProjections?.projections ?? {})));
         const key = CustomElement.keyFrom(instruction.res);
         const component = factory.createComponent(key);
         const childController = Controller.forCustomElement(
@@ -296,7 +299,7 @@ class CustomElementRenderer {
         /* container           */ context, 
         /* viewModel           */ component, 
         /* host                */ target, 
-        /* targetedProjections */ context.getProjectionFor(instruction), 
+        /* targetedProjections */ targetedProjections, 
         /* flags               */ flags);
         flags = childController.flags;
         Metadata.define(key, childController, target);

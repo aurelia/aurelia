@@ -144,7 +144,6 @@ export class TemplateBinder {
         return surrogate;
     }
     bindManifest(parentManifest, node, surrogate, manifest, manifestRoot, parentManifestRoot) {
-        let isAuSlot = false;
         switch (node.nodeName) {
             case 'LET':
                 // let cannot have children and has some different processing rules, so return early
@@ -155,21 +154,22 @@ export class TemplateBinder {
             case 'SLOT':
                 surrogate.hasSlots = true;
                 break;
-            case 'AU-SLOT':
-                isAuSlot = true;
-                break;
         }
         let name = node.getAttribute('as-element');
         if (name === null) {
             name = node.nodeName.toLowerCase();
         }
-        const elementInfo = ElementInfo.from(this.container.find(CustomElement, name), name);
+        const isAuSlot = name === 'au-slot';
+        const definition = this.container.find(CustomElement, name);
+        const elementInfo = ElementInfo.from(definition, name);
+        let compileChildren = true;
         if (elementInfo === null) {
             // there is no registered custom element with this name
             manifest = new PlainElementSymbol(node);
         }
         else {
             // it's a custom element so we set the manifestRoot as well (for storing replaces)
+            compileChildren = (definition?.processContent?.bind(definition.Type)?.(node, this.platform) ?? true);
             parentManifestRoot = manifestRoot;
             const ceSymbol = new CustomElementSymbol(this.platform, node, elementInfo);
             if (isAuSlot) {
@@ -178,13 +178,15 @@ export class TemplateBinder {
             }
             manifestRoot = manifest = ceSymbol;
         }
-        // lifting operations done by template controllers and replaces effectively unlink the nodes, so start at the bottom
-        this.bindChildNodes(
-        /* node               */ node, 
-        /* surrogate          */ surrogate, 
-        /* manifest           */ manifest, 
-        /* manifestRoot       */ manifestRoot, 
-        /* parentManifestRoot */ parentManifestRoot);
+        if (compileChildren) {
+            // lifting operations done by template controllers and replaces effectively unlink the nodes, so start at the bottom
+            this.bindChildNodes(
+            /* node               */ node, 
+            /* surrogate          */ surrogate, 
+            /* manifest           */ manifest, 
+            /* manifestRoot       */ manifestRoot, 
+            /* parentManifestRoot */ parentManifestRoot);
+        }
         // the parentManifest will receive either the direct child nodes, or the template controllers / replaces
         // wrapping them
         this.bindAttributes(

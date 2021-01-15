@@ -3,7 +3,7 @@ import { FragmentNodeSequence, INode, IRenderLocation } from '../dom.js';
 import { IRenderer, ITemplateCompiler, IInstruction } from '../renderer.js';
 import { CustomElementDefinition } from '../resources/custom-element.js';
 import { IViewFactory, ViewFactory } from './view.js';
-import { IProjectionProvider } from '../resources/custom-elements/au-slot.js';
+import { IAuSlotsInfo, IProjectionProvider } from '../resources/custom-elements/au-slot.js';
 import { IPlatform } from '../platform.js';
 import { IController } from './controller.js';
 const definitionContainerLookup = new WeakMap();
@@ -67,6 +67,7 @@ export class RenderContext {
         container.registerResolver(IController, this.parentControllerProvider = new InstanceProvider('IController'), true);
         container.registerResolver(IInstruction, this.instructionProvider = new InstanceProvider('IInstruction'), true);
         container.registerResolver(IRenderLocation, this.renderLocationProvider = new InstanceProvider('IRenderLocation'), true);
+        container.registerResolver(IAuSlotsInfo, this.auSlotsInfoProvider = new InstanceProvider('IAuSlotsInfo'), true);
         const ep = this.elementProvider = new InstanceProvider('ElementResolver');
         container.registerResolver(INode, ep);
         container.registerResolver(p.Node, ep);
@@ -203,7 +204,7 @@ export class RenderContext {
         return new FragmentNodeSequence(this.platform, this.fragment.cloneNode(true));
     }
     // TODO: split up into 2 methods? getComponentFactory + getSyntheticFactory or something
-    getComponentFactory(parentController, host, instruction, viewFactory, location) {
+    getComponentFactory(parentController, host, instruction, viewFactory, location, auSlotsInfo) {
         if (parentController !== void 0) {
             this.parentControllerProvider.prepare(parentController);
         }
@@ -219,6 +220,9 @@ export class RenderContext {
         }
         if (viewFactory !== void 0) {
             this.factoryProvider.prepare(viewFactory);
+        }
+        if (auSlotsInfo !== void 0) {
+            this.auSlotsInfoProvider.prepare(auSlotsInfo);
         }
         return this;
     }

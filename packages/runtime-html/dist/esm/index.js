@@ -44,8 +44,8 @@ export { Switch, Case, DefaultCase, } from './resources/template-controllers/swi
 export { Blur, BlurManager, } from './resources/custom-attributes/blur.js';
 export { Focus, } from './resources/custom-attributes/focus.js';
 export { Portal, } from './resources/template-controllers/portal.js';
-export { AuSlot, IProjections, SlotInfo, AuSlotContentType, RegisteredProjections, IProjectionProvider, ProjectionContext, } from './resources/custom-elements/au-slot.js';
-export { containerless, customElement, CustomElement, CustomElementDefinition, useShadowDOM, } from './resources/custom-element.js';
+export { AuSlot, IProjections, SlotInfo, AuSlotContentType, RegisteredProjections, IProjectionProvider, ProjectionContext, AuSlotsInfo, IAuSlotsInfo, } from './resources/custom-elements/au-slot.js';
+export { containerless, customElement, CustomElement, CustomElementDefinition, useShadowDOM, processContent, } from './resources/custom-element.js';
 export { Compose, } from './resources/custom-elements/compose.js';
 export { ISanitizer, SanitizeValueConverter, } from './resources/value-converters/sanitize.js';
 export { ViewValueConverter, } from './resources/value-converters/view.js';

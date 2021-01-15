@@ -1,10 +1,12 @@
 import { Constructable, IContainer, IResourceKind, ResourceType, PartialResourceDefinition, Key, ResourceDefinition, Injectable } from '@aurelia/kernel';
 import { BindableDefinition, PartialBindableDefinition } from '../bindable.js';
 import { IProjections } from './custom-elements/au-slot.js';
+import { INode } from '../dom.js';
 import { IInstruction } from '../renderer.js';
 import { PartialChildrenDefinition, ChildrenDefinition } from '../templating/children.js';
 import type { ICustomElementViewModel, ICustomElementController } from '../templating/controller.js';
 import type { IWatchDefinition } from '../watch.js';
+import { IPlatform } from '../platform.js';
 export declare type PartialCustomElementDefinition = PartialResourceDefinition<{
     readonly cache?: '*' | number;
     readonly template?: null | string | Node;
@@ -24,6 +26,7 @@ export declare type PartialCustomElementDefinition = PartialResourceDefinition<{
     readonly enhance?: boolean;
     readonly projectionsMap?: Map<IInstruction, IProjections>;
     readonly watches?: IWatchDefinition[];
+    readonly processContent?: ProcessContentHook | null;
 }>;
 export declare type CustomElementType<C extends Constructable = Constructable> = ResourceType<C, ICustomElementViewModel & (C extends Constructable<infer P> ? P : {}), PartialCustomElementDefinition>;
 export declare type CustomElementKind = IResourceKind<CustomElementType, CustomElementDefinition> & {
@@ -150,6 +153,7 @@ export declare class CustomElementDefinition<C extends Constructable = Construct
     readonly enhance: boolean;
     readonly projectionsMap: Map<IInstruction, IProjections>;
     readonly watches: IWatchDefinition[];
+    readonly processContent: ProcessContentHook | null;
     private constructor();
     static create<T extends Constructable = Constructable>(def: PartialCustomElementDefinition, Type?: null): CustomElementDefinition;
     static create<T extends Constructable = Constructable>(name: string, Type: CustomElementType): CustomElementDefinition;
@@ -159,5 +163,9 @@ export declare class CustomElementDefinition<C extends Constructable = Construct
 }
 export declare type InjectableToken<K = any> = (target: Injectable<K>, property: string, index: number) => void;
 export declare const CustomElement: CustomElementKind;
+declare type DecoratorFactoryMethod<TClass> = (target: Constructable<TClass>, propertyKey: string, descriptor: PropertyDescriptor) => void;
+declare type ProcessContentHook = (node: INode, platform: IPlatform) => boolean | void;
+export declare function processContent(hook: ProcessContentHook): CustomElementDecorator;
+export declare function processContent<TClass>(): DecoratorFactoryMethod<TClass>;
 export {};
 //# sourceMappingURL=custom-element.d.ts.map

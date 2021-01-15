@@ -2,7 +2,7 @@
 # yarn lockfile v1
 
 
-"@aurelia/__tests__@file:C:\\aurelia\\packages\\__tests__":
+"@aurelia/__tests__@file:/home/circleci/repo/packages/__tests__":
   "resolved" "file:packages/__tests__"
   "version" "0.8.0"
   dependencies:
@@ -25,7 +25,7 @@
     "jsdom" "^15.2.1"
     "typescript" "^4.0.3"
 
-"@aurelia/__tests__cjs@file:C:\\aurelia\\packages-cjs\\__tests__":
+"@aurelia/__tests__cjs@file:/home/circleci/repo/packages-cjs/__tests__":
   "resolved" "file:packages-cjs/__tests__"
   "version" "0.8.0"
   dependencies:
@@ -49,7 +49,7 @@
     "typescript" "^4.0.3"
     "vinyl" "^2.2.0"
 
-"@aurelia/aot@0.8.0", "@aurelia/aot@file:C:\\aurelia\\packages-cjs\\aot":
+"@aurelia/aot@0.8.0", "@aurelia/aot@file:/home/circleci/repo/packages-cjs/aot":
   "resolved" "file:packages-cjs/aot"
   "version" "0.8.0"
   dependencies:
@@ -60,7 +60,7 @@
     "jsdom" "^15.2.1"
     "typescript" "^4.0.3"
 
-"@aurelia/babel-jest@0.8.0", "@aurelia/babel-jest@file:C:\\aurelia\\packages-cjs\\babel-jest":
+"@aurelia/babel-jest@0.8.0", "@aurelia/babel-jest@file:/home/circleci/repo/packages-cjs/babel-jest":
   "resolved" "file:packages-cjs/babel-jest"
   "version" "0.8.0"
   dependencies:
@@ -71,14 +71,14 @@
     "@aurelia/runtime" "0.8.0"
     "babel-jest" "^26.3.0"
 
-"@aurelia/fetch-client@0.8.0", "@aurelia/fetch-client@file:C:\\aurelia\\packages\\fetch-client":
+"@aurelia/fetch-client@0.8.0", "@aurelia/fetch-client@file:/home/circleci/repo/packages/fetch-client":
   "resolved" "file:packages/fetch-client"
   "version" "0.8.0"
   dependencies:
     "@aurelia/kernel" "0.8.0"
     "@aurelia/metadata" "0.8.0"
 
-"@aurelia/http-server@0.8.0", "@aurelia/http-server@file:C:\\aurelia\\packages\\http-server":
+"@aurelia/http-server@0.8.0", "@aurelia/http-server@file:/home/circleci/repo/packages/http-server":
   "resolved" "file:packages/http-server"
   "version" "0.8.0"
   dependencies:
@@ -87,7 +87,7 @@
     "@aurelia/platform" "0.8.0"
     "@aurelia/runtime" "0.8.0"
 
-"@aurelia/i18n@0.8.0", "@aurelia/i18n@file:C:\\aurelia\\packages\\i18n":
+"@aurelia/i18n@0.8.0", "@aurelia/i18n@file:/home/circleci/repo/packages/i18n":
   "resolved" "file:packages/i18n"
   "version" "0.8.0"
   dependencies:
@@ -98,28 +98,28 @@
     "@aurelia/runtime-html" "0.8.0"
     "i18next" "^17.0.0"
 
-"@aurelia/kernel@0.8.0", "@aurelia/kernel@file:C:\\aurelia\\packages\\kernel":
+"@aurelia/kernel@0.8.0", "@aurelia/kernel@file:/home/circleci/repo/packages/kernel":
   "resolved" "file:packages/kernel"
   "version" "0.8.0"
   dependencies:
     "@aurelia/metadata" "0.8.0"
     "@aurelia/platform" "0.8.0"
 
-"@aurelia/metadata@0.8.0", "@aurelia/metadata@file:C:\\aurelia\\packages\\metadata":
+"@aurelia/metadata@0.8.0", "@aurelia/metadata@file:/home/circleci/repo/packages/metadata":
   "resolved" "file:packages/metadata"
   "version" "0.8.0"
 
-"@aurelia/platform-browser@0.8.0", "@aurelia/platform-browser@file:C:\\aurelia\\packages\\platform-browser":
+"@aurelia/platform-browser@0.8.0", "@aurelia/platform-browser@file:/home/circleci/repo/packages/platform-browser":
   "resolved" "file:packages/platform-browser"
   "version" "0.8.0"
   dependencies:
     "@aurelia/platform" "0.8.0"
 
-"@aurelia/platform@0.8.0", "@aurelia/platform@file:C:\\aurelia\\packages\\platform":
+"@aurelia/platform@0.8.0", "@aurelia/platform@file:/home/circleci/repo/packages/platform":
   "resolved" "file:packages/platform"
   "version" "0.8.0"
 
-"@aurelia/plugin-conventions@0.8.0", "@aurelia/plugin-conventions@file:C:\\aurelia\\packages-cjs\\plugin-conventions":
+"@aurelia/plugin-conventions@0.8.0", "@aurelia/plugin-conventions@file:/home/circleci/repo/packages-cjs/plugin-conventions":
   "resolved" "file:packages-cjs/plugin-conventions"
   "version" "0.8.0"
   dependencies:
@@ -132,7 +132,7 @@
     "parse5" "^5.1.1"
     "typescript" "^4.0.3"
 
-"@aurelia/plugin-gulp@0.8.0", "@aurelia/plugin-gulp@file:C:\\aurelia\\packages-cjs\\plugin-gulp":
+"@aurelia/plugin-gulp@0.8.0", "@aurelia/plugin-gulp@file:/home/circleci/repo/packages-cjs/plugin-gulp":
   "resolved" "file:packages-cjs/plugin-gulp"
   "version" "0.8.0"
   dependencies:
@@ -143,7 +143,7 @@
     "@aurelia/runtime" "0.8.0"
     "vinyl" "^2.2.0"
 
-"@aurelia/plugin-parcel@file:C:\\aurelia\\packages-cjs\\plugin-parcel":
+"@aurelia/plugin-parcel@file:/home/circleci/repo/packages-cjs/plugin-parcel":
   "resolved" "file:packages-cjs/plugin-parcel"
   "version" "0.8.0"
   dependencies:
@@ -152,11 +152,11 @@
     "@aurelia/platform" "0.8.0"
     "@aurelia/runtime" "0.8.0"
 
-"@aurelia/route-recognizer@0.8.0", "@aurelia/route-recognizer@file:C:\\aurelia\\packages\\route-recognizer":
+"@aurelia/route-recognizer@0.8.0", "@aurelia/route-recognizer@file:/home/circleci/repo/packages/route-recognizer":
   "resolved" "file:packages/route-recognizer"
   "version" "0.8.0"
 
-"@aurelia/router@0.8.0", "@aurelia/router@file:C:\\aurelia\\packages\\router":
+"@aurelia/router@0.8.0", "@aurelia/router@file:/home/circleci/repo/packages/router":
   "resolved" "file:packages/router"
   "version" "0.8.0"
   dependencies:
@@ -168,7 +168,7 @@
     "@aurelia/runtime" "0.8.0"
     "@aurelia/runtime-html" "0.8.0"
 
-"@aurelia/runtime-html@0.8.0", "@aurelia/runtime-html@file:C:\\aurelia\\packages\\runtime-html":
+"@aurelia/runtime-html@0.8.0", "@aurelia/runtime-html@file:/home/circleci/repo/packages/runtime-html":
   "resolved" "file:packages/runtime-html"
   "version" "0.8.0"
   dependencies:
@@ -178,7 +178,7 @@
     "@aurelia/platform-browser" "0.8.0"
     "@aurelia/runtime" "0.8.0"
 
-"@aurelia/runtime@0.8.0", "@aurelia/runtime@file:C:\\aurelia\\packages\\runtime":
+"@aurelia/runtime@0.8.0", "@aurelia/runtime@file:/home/circleci/repo/packages/runtime":
   "resolved" "file:packages/runtime"
   "version" "0.8.0"
   dependencies:
@@ -186,7 +186,7 @@
     "@aurelia/metadata" "0.8.0"
     "@aurelia/platform" "0.8.0"
 
-"@aurelia/store@0.8.0", "@aurelia/store@file:C:\\aurelia\\packages\\store":
+"@aurelia/store@0.8.0", "@aurelia/store@file:/home/circleci/repo/packages/store":
   "resolved" "file:packages/store"
   "version" "0.8.0"
   dependencies:
@@ -195,7 +195,7 @@
     "@aurelia/platform" "0.8.0"
     "rxjs" "^6.5.3"
 
-"@aurelia/testing@0.8.0", "@aurelia/testing@file:C:\\aurelia\\packages\\testing":
+"@aurelia/testing@0.8.0", "@aurelia/testing@file:/home/circleci/repo/packages/testing":
   "resolved" "file:packages/testing"
   "version" "0.8.0"
   dependencies:
@@ -206,7 +206,7 @@
     "@aurelia/runtime" "0.8.0"
     "@aurelia/runtime-html" "0.8.0"
 
-"@aurelia/ts-jest@0.8.0", "@aurelia/ts-jest@file:C:\\aurelia\\packages-cjs\\ts-jest":
+"@aurelia/ts-jest@0.8.0", "@aurelia/ts-jest@file:/home/circleci/repo/packages-cjs/ts-jest":
   "resolved" "file:packages-cjs/ts-jest"
   "version" "0.8.0"
   dependencies:
@@ -217,7 +217,7 @@
     "@aurelia/runtime" "0.8.0"
     "ts-jest" "^26.2.0"
 
-"@aurelia/validation-html@0.8.0", "@aurelia/validation-html@file:C:\\aurelia\\packages\\validation-html":
+"@aurelia/validation-html@0.8.0", "@aurelia/validation-html@file:/home/circleci/repo/packages/validation-html":
   "resolved" "file:packages/validation-html"
   "version" "0.8.0"
   dependencies:
@@ -229,7 +229,7 @@
     "@aurelia/runtime-html" "0.8.0"
     "@aurelia/validation" "0.8.0"
 
-"@aurelia/validation-i18n@0.8.0", "@aurelia/validation-i18n@file:C:\\aurelia\\packages\\validation-i18n":
+"@aurelia/validation-i18n@0.8.0", "@aurelia/validation-i18n@file:/home/circleci/repo/packages/validation-i18n":
   "resolved" "file:packages/validation-i18n"
   "version" "0.8.0"
   dependencies:
@@ -244,7 +244,7 @@
     "@aurelia/validation-html" "0.8.0"
     "i18next" "^17.0.0"
 
-"@aurelia/validation@0.8.0", "@aurelia/validation@file:C:\\aurelia\\packages\\validation":
+"@aurelia/validation@0.8.0", "@aurelia/validation@file:/home/circleci/repo/packages/validation":
   "resolved" "file:packages/validation"
   "version" "0.8.0"
   dependencies:
@@ -253,7 +253,7 @@
     "@aurelia/platform" "0.8.0"
     "@aurelia/runtime" "0.8.0"
 
-"@aurelia/webpack-loader@0.8.0", "@aurelia/webpack-loader@file:C:\\aurelia\\packages-cjs\\webpack-loader":
+"@aurelia/webpack-loader@0.8.0", "@aurelia/webpack-loader@file:/home/circleci/repo/packages-cjs/webpack-loader":
   "resolved" "file:packages-cjs/webpack-loader"
   "version" "0.8.0"
   dependencies:
@@ -656,7 +656,7 @@
   "resolved" "https://registry.npmjs.org/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz"
   "version" "0.2.3"
 
-"@benchmarking-apps/aurelia2@file:C:\\aurelia\\test\\benchmarking-apps\\aurelia2":
+"@benchmarking-apps/aurelia2@file:/home/circleci/repo/test/benchmarking-apps/aurelia2":
   "resolved" "file:test/benchmarking-apps/aurelia2"
   "version" "1.0.0"
   dependencies:
@@ -669,11 +669,11 @@
     "@aurelia/webpack-loader" "0.8.0"
     "@benchmarking-apps/shared" "1.0.0"
 
-"@benchmarking-apps/runner@file:C:\\aurelia\\test\\benchmarking-apps\\runner":
+"@benchmarking-apps/runner@file:/home/circleci/repo/test/benchmarking-apps/runner":
   "resolved" "file:test/benchmarking-apps/runner"
   "version" "1.0.0"
 
-"@benchmarking-apps/shared@1.0.0", "@benchmarking-apps/shared@file:C:\\aurelia\\test\\benchmarking-apps\\shared":
+"@benchmarking-apps/shared@1.0.0", "@benchmarking-apps/shared@file:/home/circleci/repo/test/benchmarking-apps/shared":
   "resolved" "file:test/benchmarking-apps/shared"
   "version" "1.0.0"
 
@@ -824,7 +824,7 @@
     "minimatch" "^3.0.4"
     "strip-json-comments" "^3.1.1"
 
-"@examples/1kcomponents@file:C:\\aurelia\\examples\\1kcomponents":
+"@examples/1kcomponents@file:/home/circleci/repo/examples/1kcomponents":
   "resolved" "file:examples/1kcomponents"
   "version" "0.8.0"
   dependencies:
@@ -837,7 +837,7 @@
     "d3-scale-chromatic" "latest"
     "perf-monitor" "latest"
 
-"@examples/doc-example@file:C:\\aurelia\\examples\\doc-example":
+"@examples/doc-example@file:/home/circleci/repo/examples/doc-example":
   "resolved" "file:examples/doc-example"
   "version" "0.8.0"
   dependencies:
@@ -852,7 +852,7 @@
     "@aurelia/runtime-html" "0.8.0"
     "promise-polyfill" "^8.1.3"
 
-"@examples/fractals-tree@file:C:\\aurelia\\examples\\fractals-tree":
+"@examples/fractals-tree@file:/home/circleci/repo/examples/fractals-tree":
   "resolved" "file:examples/fractals-tree"
   "version" "0.8.0"
   dependencies:
@@ -864,7 +864,7 @@
     "@aurelia/runtime-html" "0.8.0"
     "perf-monitor" "latest"
 
-"@examples/navigation-skeleton@file:C:\\aurelia\\examples\\navigation-skeleton":
+"@examples/navigation-skeleton@file:/home/circleci/repo/examples/navigation-skeleton":
   "resolved" "file:examples/navigation-skeleton"
   "version" "0.8.0"
   dependencies:
@@ -880,7 +880,7 @@
     "bootstrap" "^4.3.1"
     "font-awesome" "^4.6.3"
 
-"@examples/rainbow-spiral@file:C:\\aurelia\\examples\\rainbow-spiral":
+"@examples/rainbow-spiral@file:/home/circleci/repo/examples/rainbow-spiral":
   "resolved" "file:examples/rainbow-spiral"
   "version" "0.8.0"
   dependencies:
@@ -892,7 +892,7 @@
     "@aurelia/runtime-html" "0.8.0"
     "perf-monitor" "latest"
 
-"@examples/realworld@file:C:\\aurelia\\examples\\realworld":
+"@examples/realworld@file:/home/circleci/repo/examples/realworld":
   "resolved" "file:examples/realworld"
   "version" "0.8.0"
   dependencies:
@@ -910,7 +910,7 @@
     "promise-polyfill" "^8.1.3"
     "querystringify" "^2.1.1"
 
-"@examples/sierpinski-triangle@file:C:\\aurelia\\examples\\sierpinski-triangle":
+"@examples/sierpinski-triangle@file:/home/circleci/repo/examples/sierpinski-triangle":
   "resolved" "file:examples/sierpinski-triangle"
   "version" "0.8.0"
   dependencies:
@@ -2243,7 +2243,7 @@
   "resolved" "https://registry.npmjs.org/atob/-/atob-2.1.2.tgz"
   "version" "2.1.2"
 
-"au@file:C:\\aurelia\\packages\\au":
+"au@file:/home/circleci/repo/packages/au":
   "resolved" "file:packages/au"
   "version" "0.8.0"
   dependencies:
@@ -2252,7 +2252,7 @@
     "@aurelia/metadata" "0.8.0"
     "@aurelia/platform" "0.8.0"
 
-"aurelia@file:C:\\aurelia\\packages\\aurelia":
+"aurelia@file:/home/circleci/repo/packages/aurelia":
   "resolved" "file:packages/aurelia"
   "version" "0.8.0"
   dependencies:
@@ -6680,7 +6680,7 @@
     "json-schema" "0.2.3"
     "verror" "1.10.0"
 
-"karma-aurelia-preprocessor@file:C:\\aurelia\\test\\karma-aurelia-preprocessor":
+"karma-aurelia-preprocessor@file:/home/circleci/repo/test/karma-aurelia-preprocessor":
   "resolved" "file:test/karma-aurelia-preprocessor"
 
 "karma-chrome-launcher@^3.1.0":
@@ -9951,7 +9951,7 @@
     "glob" "^7.1.4"
     "minimatch" "^3.0.4"
 
-"test-i18n@file:C:\\aurelia\\test\\i18n":
+"test-i18n@file:/home/circleci/repo/test/i18n":
   "resolved" "file:test/i18n"
   "version" "0.8.0"
   dependencies:

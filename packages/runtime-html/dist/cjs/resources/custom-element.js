@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CustomElement = exports.CustomElementDefinition = exports.strict = exports.containerless = exports.useShadowDOM = exports.customElement = void 0;
+exports.processContent = exports.CustomElement = exports.CustomElementDefinition = exports.strict = exports.containerless = exports.useShadowDOM = exports.customElement = void 0;
 const kernel_1 = require("@aurelia/kernel");
 const runtime_1 = require("@aurelia/runtime");
 const bindable_js_1 = require("../bindable.js");
@@ -47,7 +47,7 @@ function strict(target) {
 exports.strict = strict;
 const definitionLookup = new WeakMap();
 class CustomElementDefinition {
-    constructor(Type, name, aliases, key, cache, template, instructions, dependencies, injectable, needsCompile, surrogates, bindables, childrenObservers, containerless, isStrictBinding, shadowOptions, hasSlots, enhance, projectionsMap, watches) {
+    constructor(Type, name, aliases, key, cache, template, instructions, dependencies, injectable, needsCompile, surrogates, bindables, childrenObservers, containerless, isStrictBinding, shadowOptions, hasSlots, enhance, projectionsMap, watches, processContent) {
         this.Type = Type;
         this.name = name;
         this.aliases = aliases;
@@ -68,6 +68,7 @@ class CustomElementDefinition {
         this.enhance = enhance;
         this.projectionsMap = projectionsMap;
         this.watches = watches;
+        this.processContent = processContent;
     }
     static create(nameOrDef, Type = null) {
         if (Type === null) {
@@ -85,19 +86,19 @@ class CustomElementDefinition {
             else {
                 Type = exports.CustomElement.generateType(kernel_1.pascalCase(name));
             }
-            return new CustomElementDefinition(Type, name, kernel_1.mergeArrays(def.aliases), kernel_1.fromDefinitionOrDefault('key', def, () => exports.CustomElement.keyFrom(name)), kernel_1.fromDefinitionOrDefault('cache', def, () => 0), kernel_1.fromDefinitionOrDefault('template', def, () => null), kernel_1.mergeArrays(def.instructions), kernel_1.mergeArrays(def.dependencies), kernel_1.fromDefinitionOrDefault('injectable', def, () => null), kernel_1.fromDefinitionOrDefault('needsCompile', def, () => true), kernel_1.mergeArrays(def.surrogates), bindable_js_1.Bindable.from(def.bindables), children_js_1.Children.from(def.childrenObservers), kernel_1.fromDefinitionOrDefault('containerless', def, () => false), kernel_1.fromDefinitionOrDefault('isStrictBinding', def, () => false), kernel_1.fromDefinitionOrDefault('shadowOptions', def, () => null), kernel_1.fromDefinitionOrDefault('hasSlots', def, () => false), kernel_1.fromDefinitionOrDefault('enhance', def, () => false), kernel_1.fromDefinitionOrDefault('projectionsMap', def, () => new Map()), kernel_1.fromDefinitionOrDefault('watches', def, () => kernel_1.emptyArray));
+            return new CustomElementDefinition(Type, name, kernel_1.mergeArrays(def.aliases), kernel_1.fromDefinitionOrDefault('key', def, () => exports.CustomElement.keyFrom(name)), kernel_1.fromDefinitionOrDefault('cache', def, () => 0), kernel_1.fromDefinitionOrDefault('template', def, () => null), kernel_1.mergeArrays(def.instructions), kernel_1.mergeArrays(def.dependencies), kernel_1.fromDefinitionOrDefault('injectable', def, () => null), kernel_1.fromDefinitionOrDefault('needsCompile', def, () => true), kernel_1.mergeArrays(def.surrogates), bindable_js_1.Bindable.from(def.bindables), children_js_1.Children.from(def.childrenObservers), kernel_1.fromDefinitionOrDefault('containerless', def, () => false), kernel_1.fromDefinitionOrDefault('isStrictBinding', def, () => false), kernel_1.fromDefinitionOrDefault('shadowOptions', def, () => null), kernel_1.fromDefinitionOrDefault('hasSlots', def, () => false), kernel_1.fromDefinitionOrDefault('enhance', def, () => false), kernel_1.fromDefinitionOrDefault('projectionsMap', def, () => new Map()), kernel_1.fromDefinitionOrDefault('watches', def, () => kernel_1.emptyArray), kernel_1.fromAnnotationOrTypeOrDefault('processContent', Type, () => null));
         }
         // If a type is passed in, we ignore the Type property on the definition if it exists.
         // TODO: document this behavior
         if (typeof nameOrDef === 'string') {
-            return new CustomElementDefinition(Type, nameOrDef, kernel_1.mergeArrays(exports.CustomElement.getAnnotation(Type, 'aliases'), Type.aliases), exports.CustomElement.keyFrom(nameOrDef), kernel_1.fromAnnotationOrTypeOrDefault('cache', Type, () => 0), kernel_1.fromAnnotationOrTypeOrDefault('template', Type, () => null), kernel_1.mergeArrays(exports.CustomElement.getAnnotation(Type, 'instructions'), Type.instructions), kernel_1.mergeArrays(exports.CustomElement.getAnnotation(Type, 'dependencies'), Type.dependencies), kernel_1.fromAnnotationOrTypeOrDefault('injectable', Type, () => null), kernel_1.fromAnnotationOrTypeOrDefault('needsCompile', Type, () => true), kernel_1.mergeArrays(exports.CustomElement.getAnnotation(Type, 'surrogates'), Type.surrogates), bindable_js_1.Bindable.from(...bindable_js_1.Bindable.getAll(Type), exports.CustomElement.getAnnotation(Type, 'bindables'), Type.bindables), children_js_1.Children.from(...children_js_1.Children.getAll(Type), exports.CustomElement.getAnnotation(Type, 'childrenObservers'), Type.childrenObservers), kernel_1.fromAnnotationOrTypeOrDefault('containerless', Type, () => false), kernel_1.fromAnnotationOrTypeOrDefault('isStrictBinding', Type, () => false), kernel_1.fromAnnotationOrTypeOrDefault('shadowOptions', Type, () => null), kernel_1.fromAnnotationOrTypeOrDefault('hasSlots', Type, () => false), kernel_1.fromAnnotationOrTypeOrDefault('enhance', Type, () => false), kernel_1.fromAnnotationOrTypeOrDefault('projectionsMap', Type, () => new Map()), kernel_1.mergeArrays(watch_js_1.Watch.getAnnotation(Type), Type.watches));
+            return new CustomElementDefinition(Type, nameOrDef, kernel_1.mergeArrays(exports.CustomElement.getAnnotation(Type, 'aliases'), Type.aliases), exports.CustomElement.keyFrom(nameOrDef), kernel_1.fromAnnotationOrTypeOrDefault('cache', Type, () => 0), kernel_1.fromAnnotationOrTypeOrDefault('template', Type, () => null), kernel_1.mergeArrays(exports.CustomElement.getAnnotation(Type, 'instructions'), Type.instructions), kernel_1.mergeArrays(exports.CustomElement.getAnnotation(Type, 'dependencies'), Type.dependencies), kernel_1.fromAnnotationOrTypeOrDefault('injectable', Type, () => null), kernel_1.fromAnnotationOrTypeOrDefault('needsCompile', Type, () => true), kernel_1.mergeArrays(exports.CustomElement.getAnnotation(Type, 'surrogates'), Type.surrogates), bindable_js_1.Bindable.from(...bindable_js_1.Bindable.getAll(Type), exports.CustomElement.getAnnotation(Type, 'bindables'), Type.bindables), children_js_1.Children.from(...children_js_1.Children.getAll(Type), exports.CustomElement.getAnnotation(Type, 'childrenObservers'), Type.childrenObservers), kernel_1.fromAnnotationOrTypeOrDefault('containerless', Type, () => false), kernel_1.fromAnnotationOrTypeOrDefault('isStrictBinding', Type, () => false), kernel_1.fromAnnotationOrTypeOrDefault('shadowOptions', Type, () => null), kernel_1.fromAnnotationOrTypeOrDefault('hasSlots', Type, () => false), kernel_1.fromAnnotationOrTypeOrDefault('enhance', Type, () => false), kernel_1.fromAnnotationOrTypeOrDefault('projectionsMap', Type, () => new Map()), kernel_1.mergeArrays(watch_js_1.Watch.getAnnotation(Type), Type.watches), kernel_1.fromAnnotationOrTypeOrDefault('processContent', Type, () => null));
         }
         // This is the typical default behavior, e.g. from regular CustomElement.define invocations or from @customElement deco
         // The ViewValueConverter also uses this signature and passes in a definition where everything except for the 'hooks'
         // property needs to be copied. So we have that exception for 'hooks', but we may need to revisit that default behavior
         // if this turns out to be too opinionated.
         const name = kernel_1.fromDefinitionOrDefault('name', nameOrDef, exports.CustomElement.generateName);
-        return new CustomElementDefinition(Type, name, kernel_1.mergeArrays(exports.CustomElement.getAnnotation(Type, 'aliases'), nameOrDef.aliases, Type.aliases), exports.CustomElement.keyFrom(name), kernel_1.fromAnnotationOrDefinitionOrTypeOrDefault('cache', nameOrDef, Type, () => 0), kernel_1.fromAnnotationOrDefinitionOrTypeOrDefault('template', nameOrDef, Type, () => null), kernel_1.mergeArrays(exports.CustomElement.getAnnotation(Type, 'instructions'), nameOrDef.instructions, Type.instructions), kernel_1.mergeArrays(exports.CustomElement.getAnnotation(Type, 'dependencies'), nameOrDef.dependencies, Type.dependencies), kernel_1.fromAnnotationOrDefinitionOrTypeOrDefault('injectable', nameOrDef, Type, () => null), kernel_1.fromAnnotationOrDefinitionOrTypeOrDefault('needsCompile', nameOrDef, Type, () => true), kernel_1.mergeArrays(exports.CustomElement.getAnnotation(Type, 'surrogates'), nameOrDef.surrogates, Type.surrogates), bindable_js_1.Bindable.from(...bindable_js_1.Bindable.getAll(Type), exports.CustomElement.getAnnotation(Type, 'bindables'), Type.bindables, nameOrDef.bindables), children_js_1.Children.from(...children_js_1.Children.getAll(Type), exports.CustomElement.getAnnotation(Type, 'childrenObservers'), Type.childrenObservers, nameOrDef.childrenObservers), kernel_1.fromAnnotationOrDefinitionOrTypeOrDefault('containerless', nameOrDef, Type, () => false), kernel_1.fromAnnotationOrDefinitionOrTypeOrDefault('isStrictBinding', nameOrDef, Type, () => false), kernel_1.fromAnnotationOrDefinitionOrTypeOrDefault('shadowOptions', nameOrDef, Type, () => null), kernel_1.fromAnnotationOrDefinitionOrTypeOrDefault('hasSlots', nameOrDef, Type, () => false), kernel_1.fromAnnotationOrDefinitionOrTypeOrDefault('enhance', nameOrDef, Type, () => false), kernel_1.fromAnnotationOrDefinitionOrTypeOrDefault('projectionsMap', nameOrDef, Type, () => new Map()), kernel_1.mergeArrays(nameOrDef.watches, watch_js_1.Watch.getAnnotation(Type), Type.watches));
+        return new CustomElementDefinition(Type, name, kernel_1.mergeArrays(exports.CustomElement.getAnnotation(Type, 'aliases'), nameOrDef.aliases, Type.aliases), exports.CustomElement.keyFrom(name), kernel_1.fromAnnotationOrDefinitionOrTypeOrDefault('cache', nameOrDef, Type, () => 0), kernel_1.fromAnnotationOrDefinitionOrTypeOrDefault('template', nameOrDef, Type, () => null), kernel_1.mergeArrays(exports.CustomElement.getAnnotation(Type, 'instructions'), nameOrDef.instructions, Type.instructions), kernel_1.mergeArrays(exports.CustomElement.getAnnotation(Type, 'dependencies'), nameOrDef.dependencies, Type.dependencies), kernel_1.fromAnnotationOrDefinitionOrTypeOrDefault('injectable', nameOrDef, Type, () => null), kernel_1.fromAnnotationOrDefinitionOrTypeOrDefault('needsCompile', nameOrDef, Type, () => true), kernel_1.mergeArrays(exports.CustomElement.getAnnotation(Type, 'surrogates'), nameOrDef.surrogates, Type.surrogates), bindable_js_1.Bindable.from(...bindable_js_1.Bindable.getAll(Type), exports.CustomElement.getAnnotation(Type, 'bindables'), Type.bindables, nameOrDef.bindables), children_js_1.Children.from(...children_js_1.Children.getAll(Type), exports.CustomElement.getAnnotation(Type, 'childrenObservers'), Type.childrenObservers, nameOrDef.childrenObservers), kernel_1.fromAnnotationOrDefinitionOrTypeOrDefault('containerless', nameOrDef, Type, () => false), kernel_1.fromAnnotationOrDefinitionOrTypeOrDefault('isStrictBinding', nameOrDef, Type, () => false), kernel_1.fromAnnotationOrDefinitionOrTypeOrDefault('shadowOptions', nameOrDef, Type, () => null), kernel_1.fromAnnotationOrDefinitionOrTypeOrDefault('hasSlots', nameOrDef, Type, () => false), kernel_1.fromAnnotationOrDefinitionOrTypeOrDefault('enhance', nameOrDef, Type, () => false), kernel_1.fromAnnotationOrDefinitionOrTypeOrDefault('projectionsMap', nameOrDef, Type, () => new Map()), kernel_1.mergeArrays(nameOrDef.watches, watch_js_1.Watch.getAnnotation(Type), Type.watches), kernel_1.fromAnnotationOrDefinitionOrTypeOrDefault('processContent', nameOrDef, Type, () => null));
     }
     static getOrCreate(partialDefinition) {
         if (partialDefinition instanceof CustomElementDefinition) {
@@ -255,4 +256,34 @@ exports.CustomElement = {
         };
     })(),
 };
+const pcHookMetadataProperty = kernel_1.Protocol.annotation.keyFor('processContent');
+function processContent(hook) {
+    return hook === void 0
+        ? function (target, propertyKey, _descriptor) {
+            kernel_1.Metadata.define(pcHookMetadataProperty, ensureHook(target, propertyKey), target);
+        }
+        : function (target) {
+            hook = ensureHook(target, hook);
+            const def = kernel_1.Metadata.getOwn(exports.CustomElement.name, target);
+            if (def !== void 0) {
+                def.processContent = hook;
+            }
+            else {
+                kernel_1.Metadata.define(pcHookMetadataProperty, hook, target);
+            }
+            return target;
+        };
+}
+exports.processContent = processContent;
+function ensureHook(target, hook) {
+    if (typeof hook === 'string') {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-explicit-any
+        hook = target[hook];
+    }
+    const hookType = typeof hook;
+    if (hookType !== 'function') {
+        throw new Error(`Invalid @processContent hook. Expected the hook to be a function (when defined in a class, it needs to be a static function) but got a ${hookType}.`);
+    }
+    return hook;
+}
 //# sourceMappingURL=custom-element.js.map

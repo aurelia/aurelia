@@ -22,6 +22,7 @@ const listener_js_1 = require("./binding/listener.js");
 const event_delegator_js_1 = require("./observation/event-delegator.js");
 const custom_element_js_1 = require("./resources/custom-element.js");
 const render_context_js_1 = require("./templating/render-context.js");
+const au_slot_js_1 = require("./resources/custom-elements/au-slot.js");
 const custom_attribute_js_1 = require("./resources/custom-attribute.js");
 const dom_js_1 = require("./dom.js");
 const controller_js_1 = require("./templating/controller.js");
@@ -306,12 +307,14 @@ class CustomElementRenderer {
             const projectionCtx = slotInfo.projectionContext;
             viewFactory = render_context_js_1.getRenderContext(projectionCtx.content, context).getViewFactory(void 0, slotInfo.type, projectionCtx.scope);
         }
+        const targetedProjections = context.getProjectionFor(instruction);
         const factory = context.getComponentFactory(
         /* parentController */ controller, 
         /* host             */ target, 
         /* instruction      */ instruction, 
         /* viewFactory      */ viewFactory, 
-        /* location         */ target);
+        /* location         */ target, 
+        /* auSlotsInfo      */ new au_slot_js_1.AuSlotsInfo(Object.keys(targetedProjections?.projections ?? {})));
         const key = custom_element_js_1.CustomElement.keyFrom(instruction.res);
         const component = factory.createComponent(key);
         const childController = controller_js_1.Controller.forCustomElement(
@@ -319,7 +322,7 @@ class CustomElementRenderer {
         /* container           */ context, 
         /* viewModel           */ component, 
         /* host                */ target, 
-        /* targetedProjections */ context.getProjectionFor(instruction), 
+        /* targetedProjections */ targetedProjections, 
         /* flags               */ flags);
         flags = childController.flags;
         kernel_1.Metadata.define(key, childController, target);

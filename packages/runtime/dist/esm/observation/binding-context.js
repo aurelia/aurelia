@@ -32,7 +32,7 @@ export class BindingContext {
          *  ${outerHost.prop}
          * </div>
          * To enable the `let` binding for 'hostScope', the property is added to `hostScope.overrideContext`. That enables us to use such let binding also inside a repeater.
-         * However, as the expression `${outerHost.prop}` does not start with `$host`, it is considered that to evaluate this expression, we don't need the access to hostScope.
+         * However, as the expression `${outerHost.prop}` does not start with `$host`, it is considered that to evaluate this expression we don't need the access to hostScope.
          * This artifact raises the need for this fallback.
          */
         /* eslint-enable jsdoc/check-indentation */
@@ -44,7 +44,7 @@ export class BindingContext {
         }
         if (hasOtherScope) {
             context = chooseContext(hostScope, name, ancestor);
-            if (context !== null) {
+            if (context !== null && (context !== undefined && name in context)) {
                 return context;
             }
         }

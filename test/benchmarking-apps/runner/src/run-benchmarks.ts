@@ -57,7 +57,7 @@ async function main() {
 
   let persistenceFailed = false;
   try {
-    await storage.persist(metadata);
+    await storage.persist(options.batchId, metadata);
   } catch {
     persistenceFailed = true;
   }
@@ -70,7 +70,7 @@ async function main() {
   }
 
   function addMeasurements(measurements: Data<Measurement>[]) {
-    storage.addMeasurements(...measurements);
+    storage.addMeasurements(...measurements as Measurement[]);
   }
 }
 

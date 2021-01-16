@@ -8,7 +8,8 @@
     "@aurelia/kernel": "0.8.0",
     "@aurelia/metadata": "0.8.0",
     "@aurelia/platform": "0.8.0",
-    "@azure/cosmos": "^3.9.3"
+    "@azure/cosmos": "^3.9.3",
+    "@benchmarking-apps/test-result": "1.0.0"
   },
   "devDependencies": {
     "@types/node": "^14.11.5",

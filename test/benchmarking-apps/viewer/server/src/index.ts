@@ -1,7 +1,7 @@
-import { DI, ILogger, LoggerConfiguration, LogLevel, Registration } from '@aurelia/kernel';
-
-import { CosmosClient } from '@azure/cosmos';
 import { FileServer, HttpContextState, HttpServer, HttpServerOptions, HTTPStatusCode, IHttpContext, IHttpServer, IHttpServerOptions, IRequestHandler } from '@aurelia/http-server';
+import { DI, ILogger, LoggerConfiguration, LogLevel, Registration } from '@aurelia/kernel';
+import { getNewStorageFor, IStorage, Storages } from '@benchmarking-apps/test-result';
+import { join } from 'path';
 
 const required = Symbol('required') as unknown as string;
 const optional = void 0 as unknown as string;
@@ -63,16 +63,6 @@ export class ProcessEnv {
   }
 }
 
-export interface ICosmosClient extends CosmosClient { }
-export const ICosmosClient = DI.createInterface<ICosmosClient>('ICosmosClient', x => x.cachedCallback(handler => {
-  const processEnv = handler.get(IProcessEnv);
-
-  return new CosmosClient({
-    endpoint: processEnv.AZURE_COSMOS_DB_ENDPOINT,
-    key: processEnv.AZURE_COSMOS_DB_KEY,
-  });
-}));
-
 export interface IFileServer extends FileServer { }
 export const IFileServer = DI.createInterface<IFileServer>('IFileServer', x => x.cachedCallback(handler => {
   const opts = handler.get(IHttpServerOptions);
@@ -81,11 +71,14 @@ export const IFileServer = DI.createInterface<IFileServer>('IFileServer', x => x
   return new FileServer(opts, logger);
 }));
 
+const $IStorage = DI.createInterface<IStorage>('IStorage');
+type Handler = (ctx: IHttpContext) => Promise<void>;
+
 export class AppRequestHandler implements IRequestHandler {
   public constructor(
     @ILogger private readonly logger: ILogger,
-    @ICosmosClient private readonly cosmosClient: ICosmosClient,
     @IFileServer private readonly fs: IFileServer,
+    @$IStorage private readonly storage: IStorage,
   ) {
     this.logger = logger.scopeTo('AppRequestHandler');
   }
@@ -94,8 +87,12 @@ export class AppRequestHandler implements IRequestHandler {
     this.logger.debug(`handleRequest(pathname:${ctx.requestUrl.pathname},method:${ctx.request.method})`);
 
     switch (ctx.requestUrl.path) {
+      // We eventually need route-recognizer here.
       case '/api/measurements':
         await this['/api/measurements'](ctx);
+        break;
+      case '/api/measurements/latest':
+        await this['/api/measurements/latest'](ctx);
         break;
       default: {
         switch (ctx.request.method) {
@@ -121,44 +118,59 @@ export class AppRequestHandler implements IRequestHandler {
     }
   }
 
-  private async '/api/measurements'(ctx: IHttpContext): Promise<void> {
-    switch (ctx.request.method) {
-      case 'OPTIONS':
-        this.logger.debug(`'/api/measurements' - handling preflight request`);
-
-        ctx.response.writeHead(HTTPStatusCode.NoContent, {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET',
-          'Access-Control-Allow-Headers': '*',
-        });
-        ctx.response.end();
-        ctx.state = HttpContextState.end;
-        break;
-      case 'GET': {
-        this.logger.debug(`'/api/measurements' - returning data`);
-
-        const { resources } = await this.cosmosClient.database('benchmarks').container('measurements').items.readAll().fetchAll();
-        const content = Buffer.from(JSON.stringify(resources), 'utf8');
-        ctx.response.writeHead(HTTPStatusCode.OK, {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET',
-          'Access-Control-Allow-Headers': '*',
-          'Content-Type': 'application/json; charset=utf-8',
-        });
-        ctx.response.end(content);
-        ctx.state = HttpContextState.end;
-        break;
+  private createHandler(endpoint: string, getData: () => Promise<unknown>): Handler {
+    return async (ctx: IHttpContext) => {
+      switch (ctx.request.method) {
+        case 'OPTIONS':
+          this.respondOptions(ctx, endpoint);
+          break;
+        case 'GET': {
+          this.logger.debug(`'${endpoint}' - returning data`);
+          this.ok(ctx, await getData());
+          break;
+        }
+        default:
+          this.notAllowed(ctx, endpoint);
+          break;
       }
-      default:
-        this.logger.debug(`'/api/measurements' - rejecting method ${ctx.request.method}`);
+    };
+  }
 
-        ctx.response.writeHead(HTTPStatusCode.MethodNotAllowed, {
-          Allow: 'GET',
-        });
-        ctx.response.end();
-        ctx.state = HttpContextState.end;
-        break;
-    }
+  private readonly '/api/measurements': Handler =  this.createHandler('/api/measurements', () => this.storage.getAllBenchmarkResults());
+  private readonly '/api/measurements/latest': Handler =  this.createHandler('/api/measurements/latest', () => this.storage.getLatestBenchmarkResult());
+
+  private respondOptions(ctx: IHttpContext, endpoint: string) {
+    this.logger.debug(`'${endpoint}' - handling preflight request`);
+
+    ctx.response.writeHead(HTTPStatusCode.NoContent, {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET',
+      'Access-Control-Allow-Headers': '*',
+    });
+    ctx.response.end();
+    ctx.state = HttpContextState.end;
+  }
+
+  private notAllowed(ctx: IHttpContext, endpoint: string) {
+    this.logger.debug(`'${endpoint}' - rejecting method ${ctx.request.method}`);
+
+    ctx.response.writeHead(HTTPStatusCode.MethodNotAllowed, {
+      Allow: 'GET',
+    });
+    ctx.response.end();
+    ctx.state = HttpContextState.end;
+  }
+
+  private ok(ctx: IHttpContext, data: unknown) {
+    const content = Buffer.from(JSON.stringify(data), 'utf8');
+    ctx.response.writeHead(HTTPStatusCode.OK, {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET',
+      'Access-Control-Allow-Headers': '*',
+      'Content-Type': 'application/json; charset=utf-8',
+    });
+    ctx.response.end(content);
+    ctx.state = HttpContextState.end;
   }
 }
 
@@ -176,6 +188,18 @@ const container = DI.createContainer().register(
       processEnv.HTTP_SERVER_CERT,
       processEnv.HTTP_SERVER_LOGLEVEL as typeof HttpServerOptions.prototype.logLevel,
       processEnv.HTTP_SERVER_RESPONSE_CACHE_CONTROL,
+    );
+  }),
+  Registration.cachedCallback($IStorage, (handler) => {
+    const env = handler.get(IProcessEnv);
+    const isProd = env.MODE === 'prod';
+    return getNewStorageFor(
+      /* storage */ isProd ? Storages.cosmos : Storages.json,
+      /* options */ {
+        resultRoot: isProd ? void 0 : join(process.cwd(), '..', '..', '.results'),
+        cosmosEndpoint: env.AZURE_COSMOS_DB_ENDPOINT,
+        cosmosKey: env.AZURE_COSMOS_DB_KEY
+      },
     );
   }),
   Registration.singleton(IRequestHandler, AppRequestHandler),

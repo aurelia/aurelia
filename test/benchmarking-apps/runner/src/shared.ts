@@ -41,6 +41,7 @@ export const frameworksMetadata: Record<string, FrameworkMetadata> = {
 
 export class BenchOptions {
   private constructor(
+    public readonly batchId: string,
     public readonly iterations: number,
     public readonly frameworks: FrameworkMetadata[],
     public readonly storage: IStorage,
@@ -52,6 +53,7 @@ export class BenchOptions {
   public static readonly instance: BenchOptions;
 
   public static create(
+    batchId: string,
     iterations: number,
     frameworks: FrameworkMetadata[],
     storage: IStorage,
@@ -59,7 +61,7 @@ export class BenchOptions {
     if (this.instance !== void 0) {
       throw new Error('BenchOption is already created');
     }
-    return (this as Writable<typeof BenchOptions>).instance = new BenchOptions(iterations, frameworks, storage);
+    return (this as Writable<typeof BenchOptions>).instance = new BenchOptions(batchId, iterations, frameworks, storage);
   }
 
   public static async createFromCliArgs(): Promise<BenchOptions> {
@@ -113,12 +115,11 @@ export class BenchOptions {
 
     const cosmosConfigPath = join(process.cwd(), 'cosmos.config.json');
     const options: StorageConfig = {
-      batchId: uuid(),
       resultRoot: join(process.cwd(), '..', '.results'),
       ...(existsSync(cosmosConfigPath)
         ? JSON.parse(readFileSync(cosmosConfigPath, 'utf8'))
         : {})
     };
-    return BenchOptions.create(iterations, frameworks, getNewStorageFor(storage, options));
+    return BenchOptions.create(uuid(), iterations, frameworks, getNewStorageFor(storage, options));
   }
 }

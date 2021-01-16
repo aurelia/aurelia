@@ -8,7 +8,6 @@ export class Api {
     @ILogger private readonly logger: ILogger,
   ) {
     this.logger = logger.scopeTo('Api');
-    // http.configure(c => c.withDefaults({ mode: 'cors' }).withBaseUrl(`http://localhost:8080/api/`));
     http.configure(c => c.withDefaults({ mode: 'no-cors' }).withBaseUrl(`${PLATFORM.location.protocol}//${PLATFORM.location.host}/api/`));
   }
 

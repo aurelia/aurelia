@@ -24,6 +24,9 @@ module.exports = function (env, { mode }) {
       port: 9000,
       historyApiFallback: true,
       open: true,
+      proxy: {
+        '/api': 'http://localhost:80'
+      }
     },
     module: {
       rules: [

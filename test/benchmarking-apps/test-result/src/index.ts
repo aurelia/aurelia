@@ -258,10 +258,6 @@ export class Measurements extends Array<Measurement> {
 
 export interface StorageConfig {
   /**
-   * Unique identifier for a benchmarking batch.
-   */
-  batchId: string;
-  /**
    * Absolute root path for the local json file storage to persist the results.
    * Required when using the local json file storage.
    */
@@ -285,22 +281,18 @@ export enum Storages {
 export interface IStorage {
   type: 'json' | 'cosmos';
   measurements: Measurement[];
-  batchId: string;
   addMeasurements(...measurements: Measurement[]): void;
-  persist(metadata?: BenchmarkMetadata): void | Promise<void>;
-  getLatestBenchmarkResult(branch: string): Promise<BenchmarkMeasurements>;
+  persist(batchId: string, metadata?: BenchmarkMetadata): void | Promise<void>;
+  getLatestBenchmarkResult(branch?: string): Promise<Partial<BenchmarkMeasurements>>;
+  getAllBenchmarkResults(): Promise<Partial<BenchmarkMeasurements>[]>;
 }
 class JsonFileStorage implements IStorage {
   public readonly type: 'json' = 'json';
   public readonly measurements: Measurement[] = [];
 
   public constructor(
-    public readonly batchId: string,
     public readonly resultRoot: string,
   ) {
-    if (!batchId) {
-      throw new Error('Missing batchId.');
-    }
     if (!resultRoot) {
       throw new Error('Missing result root path.');
     }
@@ -310,8 +302,8 @@ class JsonFileStorage implements IStorage {
     this.measurements.push(...measurements);
   }
 
-  public persist(metadata: BenchmarkMetadata): void {
-    const fileName = join(this.resultRoot, `${this.batchId}.json`);
+  public persist(batchId: string, metadata: BenchmarkMetadata): void {
+    const fileName = join(this.resultRoot, `${batchId}.json`);
     writeFileSync(fileName, JSON.stringify({
       ...metadata,
       measurements: this.measurements,
@@ -319,7 +311,7 @@ class JsonFileStorage implements IStorage {
     console.log(`The results are written to ${fileName}.`);
   }
 
-  public getLatestBenchmarkResult(): Promise<BenchmarkMeasurements> {
+  public getLatestBenchmarkResult(): Promise<Partial<BenchmarkMeasurements>> {
     let latestResult, timestamp = -1;
     const root = this.resultRoot;
     for (const file of readdirSync(root, 'utf8')) {
@@ -335,7 +327,17 @@ class JsonFileStorage implements IStorage {
     if (latestResult === void 0) {
       throw new Error('No benchmark result found');
     }
-    return Promise.resolve(BenchmarkMeasurements.create(readFileSync(latestResult, 'utf8')));
+    return Promise.resolve(JSON.parse(readFileSync(latestResult, 'utf8')) as Partial<BenchmarkMeasurements>);
+  }
+
+  public async getAllBenchmarkResults(): Promise<Partial<BenchmarkMeasurements>[]> {
+    const results: Partial<BenchmarkMeasurements>[] = [];
+    const root = this.resultRoot;
+    for (const file of readdirSync(root, 'utf8')) {
+      if (extname(file) !== '.json') { continue; }
+      results.push(JSON.parse(readFileSync(join(root, file), 'utf8')));
+    }
+    return Promise.resolve(results);
   }
 }
 class CosmosStorage implements IStorage {
@@ -344,13 +346,9 @@ class CosmosStorage implements IStorage {
   private readonly client: CosmosClient;
 
   public constructor(
-    public readonly batchId: string,
     endpoint: string,
     key: string,
   ) {
-    if (!batchId) {
-      throw new Error('Missing batchId.');
-    }
     if (!endpoint || !key) {
       throw new Error('Missing cosmos endpoint or key.');
     }
@@ -361,10 +359,9 @@ class CosmosStorage implements IStorage {
     this.measurements.push(...measurements);
   }
 
-  public async persist(metadata: BenchmarkMetadata): Promise<void> {
+  public async persist(batchId: string, metadata: BenchmarkMetadata): Promise<void> {
     const database = (await this.client.databases.createIfNotExists({ id: 'benchmarks' })).database;
     const container = (await database.containers.createIfNotExists({ id: 'measurements' })).container;
-    const batchId = this.batchId;
     await container.items.create({
       ...metadata,
       id: batchId,
@@ -374,7 +371,7 @@ class CosmosStorage implements IStorage {
   }
 
   // Maybe we need a list of branches for comparison. But then we need to think about the viz to use to compare branches.
-  public async getLatestBenchmarkResult(branch: string = 'master'): Promise<BenchmarkMeasurements> {
+  public async getLatestBenchmarkResult(branch: string = 'master'): Promise<Partial<BenchmarkMeasurements>> {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const measurements = (await this.client
       .database('benchmarks')
@@ -386,7 +383,17 @@ class CosmosStorage implements IStorage {
     if (measurements === void 0) {
       throw new Error('No benchmark result found');
     }
-    return BenchmarkMeasurements.create(measurements);
+    return measurements as Partial<BenchmarkMeasurements>;
+  }
+
+  public async getAllBenchmarkResults(): Promise<Partial<BenchmarkMeasurements>[]> {
+    return (await this.client
+      .database('benchmarks')
+      .container('measurements')
+      .items
+      .readAll()
+      .fetchAll()
+    ).resources;
   }
 }
 
@@ -396,8 +403,8 @@ export function getNewStorageFor(
 ): IStorage {
   switch (storage) {
     case Storages.json:
-      return new JsonFileStorage(options.batchId, options.resultRoot!);
+      return new JsonFileStorage(options.resultRoot!);
     case Storages.cosmos:
-      return new CosmosStorage(options.batchId, options.cosmosEndpoint!, options.cosmosKey!);
+      return new CosmosStorage(options.cosmosEndpoint!, options.cosmosKey!);
   }
 }

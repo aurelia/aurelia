@@ -1,6 +1,6 @@
 import { CosmosClient } from '@azure/cosmos';
-import { join } from 'path';
-import { writeFileSync } from 'fs';
+import { join, extname } from 'path';
+import { readFileSync, writeFileSync, readdirSync, lstatSync } from 'fs';
 
 function roundDurationMs(val: number) { return Math.round(val * 1e3) / 1e3; }
 export const browserTypes = ['chromium', 'firefox', 'webkit'] as const; // TODO: Enable the rest as soon as the container image (in CI) is fixed.
@@ -13,9 +13,45 @@ export interface BenchmarkMetadata {
   commit: string;
 }
 
-export interface BenchmarkMeasurements extends BenchmarkMetadata {
-  id: string;
-  measurements: Measurement[];
+export class BenchmarkMeasurements implements BenchmarkMetadata {
+
+  public static create(value: string | Partial<BenchmarkMeasurements>): BenchmarkMeasurements {
+    if (typeof value === 'string') {
+      value = JSON.parse(value) as Partial<BenchmarkMeasurements>;
+    }
+    return new BenchmarkMeasurements(
+      /* id           */ value.id!,
+      /* ts_start     */ value.ts_start!,
+      /* ts_end       */ value.ts_end!,
+      /* branch       */ value.branch!,
+      /* commit       */ value.commit!,
+      /* measurements */ value.measurements?.map(Measurement.create),
+    );
+  }
+
+  public constructor(
+    public readonly id: string,
+    public readonly ts_start: number,
+    public readonly ts_end: number,
+    public readonly branch: string,
+    public readonly commit: string,
+    public readonly measurements: Measurement[] = [],
+  ) { }
+
+  public isValid(): boolean {
+    return (
+      typeof this.id === 'string' &&
+      Number.isFinite(this.ts_start) &&
+      Number.isFinite(this.ts_end) &&
+      typeof this.branch === 'string' &&
+      typeof this.commit === 'string' &&
+      this.measurements.every(isValid)
+    );
+  }
+}
+
+function isValid(m: Measurement): boolean {
+  return m.isValid();
 }
 
 export class Measurement {
@@ -71,6 +107,69 @@ export class Measurement {
       this.durationDeleteFirst = 0;
       this.durationDeleteAll = 0;
     }
+  }
+
+  public static create(value: Partial<Measurement>): Measurement {
+    const measurement = new Measurement(
+      /* framework         */ value.framework!,
+      /* frameworkVersion  */ value.frameworkVersion!,
+      /* browser           */ value.browser!,
+      /* browserVersion    */ value.browserVersion!,
+      /* initialPopulation */ value.initialPopulation!,
+      /* totalPopulation   */ value.totalPopulation!,
+    );
+    measurement.durationInitialLoad = value.durationInitialLoad!;
+    measurement.durationPopulation = value.durationPopulation!;
+    measurement.durationUpdate = value.durationUpdate!;
+    measurement.durationShowDetails = value.durationShowDetails!;
+    measurement.durationHideDetails = value.durationHideDetails!;
+    measurement.durationLocaleDe = value.durationLocaleDe!;
+    measurement.durationLocaleEn = value.durationLocaleEn!;
+    measurement.durationSortFirstName = value.durationSortFirstName!;
+    measurement.durationSortFirstNameDesc = value.durationSortFirstNameDesc!;
+    measurement.durationSortLastName = value.durationSortLastName!;
+    measurement.durationSortLastNameDesc = value.durationSortLastNameDesc!;
+    measurement.durationSortDob = value.durationSortDob!;
+    measurement.durationSortDobDesc = value.durationSortDobDesc!;
+    measurement.durationFilterEmployed = value.durationFilterEmployed!;
+    measurement.durationFilterUnemployed = value.durationFilterUnemployed!;
+    measurement.durationFilterNone = value.durationFilterNone!;
+    measurement.durationSelectFirst = value.durationSelectFirst!;
+    measurement.durationDeleteFirst = value.durationDeleteFirst!;
+    measurement.durationDeleteAll = value.durationDeleteAll!;
+    return measurement;
+  }
+
+  public isValid(): boolean {
+    return (
+      typeof this.framework === 'string' &&
+      typeof this.frameworkVersion === 'string' &&
+      typeof this.browser === 'string' &&
+      typeof this.browserVersion === 'string' &&
+
+      Number.isFinite(this.initialPopulation) &&
+      Number.isFinite(this.totalPopulation) &&
+
+      Number.isFinite(this.durationInitialLoad) &&
+      Number.isFinite(this.durationPopulation) &&
+      Number.isFinite(this.durationUpdate) &&
+      Number.isFinite(this.durationShowDetails) &&
+      Number.isFinite(this.durationHideDetails) &&
+      Number.isFinite(this.durationLocaleDe) &&
+      Number.isFinite(this.durationLocaleEn) &&
+      Number.isFinite(this.durationSortFirstName) &&
+      Number.isFinite(this.durationSortFirstNameDesc) &&
+      Number.isFinite(this.durationSortLastName) &&
+      Number.isFinite(this.durationSortLastNameDesc) &&
+      Number.isFinite(this.durationSortDob) &&
+      Number.isFinite(this.durationSortDobDesc) &&
+      Number.isFinite(this.durationFilterEmployed) &&
+      Number.isFinite(this.durationFilterUnemployed) &&
+      Number.isFinite(this.durationFilterNone) &&
+      Number.isFinite(this.durationSelectFirst) &&
+      Number.isFinite(this.durationDeleteFirst) &&
+      Number.isFinite(this.durationDeleteAll)
+    );
   }
 }
 
@@ -189,7 +288,7 @@ export interface IStorage {
   batchId: string;
   addMeasurements(...measurements: Measurement[]): void;
   persist(metadata?: BenchmarkMetadata): void | Promise<void>;
-  getAllBenchmarkResults(): Promise<BenchmarkMeasurements[]>; // TODO: enable query support
+  getLatestBenchmarkResult(branch: string): Promise<BenchmarkMeasurements>;
 }
 class JsonFileStorage implements IStorage {
   public readonly type: 'json' = 'json';
@@ -220,8 +319,23 @@ class JsonFileStorage implements IStorage {
     console.log(`The results are written to ${fileName}.`);
   }
 
-  public getAllBenchmarkResults(): Promise<BenchmarkMeasurements[]> {
-    throw new Error('Method not implemented.');
+  public getLatestBenchmarkResult(): Promise<BenchmarkMeasurements> {
+    let latestResult, timestamp = -1;
+    const root = this.resultRoot;
+    for (const file of readdirSync(root, 'utf8')) {
+      if (extname(file) !== '.json') { continue; }
+      const filePath = join(root, file);
+      const stat = lstatSync(filePath);
+      const newTimestamp = Math.max(timestamp, stat.ctime.getTime());
+      if (newTimestamp !== timestamp) {
+        timestamp = newTimestamp;
+        latestResult = filePath;
+      }
+    }
+    if (latestResult === void 0) {
+      throw new Error('No benchmark result found');
+    }
+    return Promise.resolve(BenchmarkMeasurements.create(readFileSync(latestResult, 'utf8')));
   }
 }
 class CosmosStorage implements IStorage {
@@ -259,14 +373,20 @@ class CosmosStorage implements IStorage {
     console.log(`Persisted the result for batch ${batchId} in cosmos DB.`);
   }
 
-  public async getAllBenchmarkResults(): Promise<BenchmarkMeasurements[]> {
-    return (await this.client
+  // Maybe we need a list of branches for comparison. But then we need to think about the viz to use to compare branches.
+  public async getLatestBenchmarkResult(branch: string = 'master'): Promise<BenchmarkMeasurements> {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const measurements = (await this.client
       .database('benchmarks')
       .container('measurements')
       .items
-      .readAll()
+      .query(`SELECT * FROM measurements m WHERE m.branch = "${branch}" ORDER BY m.ts_start DESC LIMIT 1`)
       .fetchAll()
-    ).resources as BenchmarkMeasurements[];
+    ).resources[0];
+    if (measurements === void 0) {
+      throw new Error('No benchmark result found');
+    }
+    return BenchmarkMeasurements.create(measurements);
   }
 }
 

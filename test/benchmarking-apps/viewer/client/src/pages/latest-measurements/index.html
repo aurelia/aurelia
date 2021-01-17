@@ -1,0 +1,23 @@
+<style>
+  legend {
+    display: grid;
+    grid-template-columns: repeat(6, auto);
+  }
+
+  legend .color {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    margin-right: 0.5em;
+    border: 1px solid gray;
+  }
+
+</style>
+<legend>
+  <template repeat.for="action of actions">
+    <div>
+      <span class="color" style="background-color:${action.color};"></span>${action.description}
+    </div>
+  </template>
+</legend>
+<target ref="target"></target>

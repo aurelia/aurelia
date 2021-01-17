@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { v4 as uuid } from 'uuid';
-import { getNewStorageFor, IStorage, StorageConfig, Storages } from '@benchmarking-apps/test-result';
+import { getNewStorageFor, IStorage, StorageConfig, Storages } from '@benchmarking-apps/storage';
 import { join } from 'path';
 import { existsSync, readFileSync } from 'fs';
 

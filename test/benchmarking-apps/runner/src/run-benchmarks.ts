@@ -1,4 +1,4 @@
-import { Measurement } from "@benchmarking-apps/test-result";
+import { Measurement } from '@benchmarking-apps/storage';
 import { ChildProcess, exec, fork } from 'child_process';
 import { join } from 'path';
 import { BenchOptions, Data } from './shared';

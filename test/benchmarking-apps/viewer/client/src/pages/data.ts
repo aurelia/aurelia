@@ -1,4 +1,5 @@
 import { DI, IHttpClient, ILogger, PLATFORM } from 'aurelia';
+import { BenchmarkMeasurements } from '@benchmarking-apps/test-result';
 
 export const IApi = DI.createInterface<IApi>('IApi', x => x.singleton(Api));
 export interface IApi extends Api {}
@@ -11,10 +12,18 @@ export class Api {
     http.configure(c => c.withDefaults({ mode: 'no-cors' }).withBaseUrl(`${PLATFORM.location.protocol}//${PLATFORM.location.host}/api/`));
   }
 
-  public async getData(): Promise<DataSet> {
+  public async getAll(): Promise<DataSet> {
     const items = await (await this.http.get('measurements')).json() as DataItem[];
     const data = DataSet.create(items);
-    this.logger.debug(`getData()`, data);
+    this.logger.debug(`getAll()`, data);
+    return data;
+  }
+
+  // TODO: add branch filter
+  public async getLatest(): Promise<BenchmarkMeasurements> {
+    const items = await (await this.http.get('measurements/latest')).json() as Partial<BenchmarkMeasurements>;
+    const data = BenchmarkMeasurements.create(items);
+    this.logger.debug(`getLatest()`, data);
     return data;
   }
 }

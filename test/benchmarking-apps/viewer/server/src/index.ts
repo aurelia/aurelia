@@ -1,6 +1,6 @@
 import { FileServer, HttpContextState, HttpServer, HttpServerOptions, HTTPStatusCode, IHttpContext, IHttpServer, IHttpServerOptions, IRequestHandler } from '@aurelia/http-server';
 import { DI, ILogger, LoggerConfiguration, LogLevel, Registration } from '@aurelia/kernel';
-import { getNewStorageFor, IStorage, Storages } from '@benchmarking-apps/test-result';
+import { getNewStorageFor, IStorage, Storages } from '@benchmarking-apps/storage';
 import { join } from 'path';
 
 const required = Symbol('required') as unknown as string;
@@ -137,6 +137,7 @@ export class AppRequestHandler implements IRequestHandler {
   }
 
   private readonly '/api/measurements': Handler =  this.createHandler('/api/measurements', () => this.storage.getAllBenchmarkResults());
+  // TODO: add branch filter
   private readonly '/api/measurements/latest': Handler =  this.createHandler('/api/measurements/latest', () => this.storage.getLatestBenchmarkResult());
 
   private respondOptions(ctx: IHttpContext, endpoint: string) {

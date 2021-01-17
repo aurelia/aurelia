@@ -2,7 +2,7 @@ import { customElement, ILogger, shadowCSS, ValueConverter } from 'aurelia';
 import template from './index.html';
 import css from './index.css';
 
-import { DataSet, IApi } from './data';
+import { DataSet, IApi } from '../data';
 
 @customElement({
   name: 'measurements-page',
@@ -56,6 +56,6 @@ export class MeasurementsPage {
   public async binding(): Promise<void> {
     this.logger.debug('binding()');
 
-    this.data = await this.api.getData();
+    this.data = await this.api.getAll();
   }
 }

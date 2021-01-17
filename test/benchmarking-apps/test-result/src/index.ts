@@ -1,9 +1,6 @@
-import { CosmosClient } from '@azure/cosmos';
-import { join, extname } from 'path';
-import { readFileSync, writeFileSync, readdirSync, lstatSync } from 'fs';
-
 function roundDurationMs(val: number) { return Math.round(val * 1e3) / 1e3; }
 export const browserTypes = ['chromium', 'firefox', 'webkit'] as const; // TODO: Enable the rest as soon as the container image (in CI) is fixed.
+
 export type BrowserType = typeof browserTypes[number];
 
 export interface BenchmarkMetadata {
@@ -20,12 +17,12 @@ export class BenchmarkMeasurements implements BenchmarkMetadata {
       value = JSON.parse(value) as Partial<BenchmarkMeasurements>;
     }
     return new BenchmarkMeasurements(
-      /* id           */ value.id!,
-      /* ts_start     */ value.ts_start!,
-      /* ts_end       */ value.ts_end!,
-      /* branch       */ value.branch!,
-      /* commit       */ value.commit!,
-      /* measurements */ value.measurements?.map(Measurement.create),
+        /* id           */ value.id!,
+        /* ts_start     */ value.ts_start!,
+        /* ts_end       */ value.ts_end!,
+        /* branch       */ value.branch!,
+        /* commit       */ value.commit!,
+        /* measurements */ value.measurements?.map(Measurement.create)
     );
   }
 
@@ -35,7 +32,7 @@ export class BenchmarkMeasurements implements BenchmarkMetadata {
     public readonly ts_end: number,
     public readonly branch: string,
     public readonly commit: string,
-    public readonly measurements: Measurement[] = [],
+    public readonly measurements: Measurement[] = []
   ) { }
 
   public isValid(): boolean {
@@ -49,7 +46,6 @@ export class BenchmarkMeasurements implements BenchmarkMetadata {
     );
   }
 }
-
 function isValid(m: Measurement): boolean {
   return m.isValid();
 }
@@ -111,12 +107,12 @@ export class Measurement {
 
   public static create(value: Partial<Measurement>): Measurement {
     const measurement = new Measurement(
-      /* framework         */ value.framework!,
-      /* frameworkVersion  */ value.frameworkVersion!,
-      /* browser           */ value.browser!,
-      /* browserVersion    */ value.browserVersion!,
-      /* initialPopulation */ value.initialPopulation!,
-      /* totalPopulation   */ value.totalPopulation!,
+        /* framework         */ value.framework!,
+        /* frameworkVersion  */ value.frameworkVersion!,
+        /* browser           */ value.browser!,
+        /* browserVersion    */ value.browserVersion!,
+        /* initialPopulation */ value.initialPopulation!,
+        /* totalPopulation   */ value.totalPopulation!
     );
     measurement.durationInitialLoad = value.durationInitialLoad!;
     measurement.durationPopulation = value.durationPopulation!;
@@ -176,7 +172,7 @@ export class Measurement {
 export type WritableMeasurement = Omit<Measurement, 'framework' | 'frameworkVersion' | 'browser' | 'browserVersion' | 'initialPopulation' | 'totalPopulation' | 'name'>;
 export type WritableMeasurementKeys = {
   // eslint-disable-next-line @typescript-eslint/ban-types
-  [key in keyof WritableMeasurement]: Measurement[key] extends Function ? never : key
+  [key in keyof WritableMeasurement]: Measurement[key] extends Function ? never : key;
 }[keyof WritableMeasurement];
 
 export class Measurements extends Array<Measurement> {
@@ -273,10 +269,6 @@ export interface StorageConfig {
    */
   cosmosKey?: string;
 }
-export enum Storages {
-  json,
-  cosmos
-}
 
 export interface IStorage {
   type: 'json' | 'cosmos';
@@ -285,126 +277,4 @@ export interface IStorage {
   persist(batchId: string, metadata?: BenchmarkMetadata): void | Promise<void>;
   getLatestBenchmarkResult(branch?: string): Promise<Partial<BenchmarkMeasurements>>;
   getAllBenchmarkResults(): Promise<Partial<BenchmarkMeasurements>[]>;
-}
-class JsonFileStorage implements IStorage {
-  public readonly type: 'json' = 'json';
-  public readonly measurements: Measurement[] = [];
-
-  public constructor(
-    public readonly resultRoot: string,
-  ) {
-    if (!resultRoot) {
-      throw new Error('Missing result root path.');
-    }
-  }
-
-  public addMeasurements(...measurements: Measurement[]): void {
-    this.measurements.push(...measurements);
-  }
-
-  public persist(batchId: string, metadata: BenchmarkMetadata): void {
-    const fileName = join(this.resultRoot, `${batchId}.json`);
-    writeFileSync(fileName, JSON.stringify({
-      ...metadata,
-      measurements: this.measurements,
-    }, undefined, 2), 'utf8');
-    console.log(`The results are written to ${fileName}.`);
-  }
-
-  public getLatestBenchmarkResult(): Promise<Partial<BenchmarkMeasurements>> {
-    let latestResult, timestamp = -1;
-    const root = this.resultRoot;
-    for (const file of readdirSync(root, 'utf8')) {
-      if (extname(file) !== '.json') { continue; }
-      const filePath = join(root, file);
-      const stat = lstatSync(filePath);
-      const newTimestamp = Math.max(timestamp, stat.ctime.getTime());
-      if (newTimestamp !== timestamp) {
-        timestamp = newTimestamp;
-        latestResult = filePath;
-      }
-    }
-    if (latestResult === void 0) {
-      throw new Error('No benchmark result found');
-    }
-    return Promise.resolve(JSON.parse(readFileSync(latestResult, 'utf8')) as Partial<BenchmarkMeasurements>);
-  }
-
-  public async getAllBenchmarkResults(): Promise<Partial<BenchmarkMeasurements>[]> {
-    const results: Partial<BenchmarkMeasurements>[] = [];
-    const root = this.resultRoot;
-    for (const file of readdirSync(root, 'utf8')) {
-      if (extname(file) !== '.json') { continue; }
-      results.push(JSON.parse(readFileSync(join(root, file), 'utf8')));
-    }
-    return Promise.resolve(results);
-  }
-}
-class CosmosStorage implements IStorage {
-  public readonly type: 'cosmos' = 'cosmos';
-  public readonly measurements: Measurement[] = [];
-  private readonly client: CosmosClient;
-
-  public constructor(
-    endpoint: string,
-    key: string,
-  ) {
-    if (!endpoint || !key) {
-      throw new Error('Missing cosmos endpoint or key.');
-    }
-    this.client = new CosmosClient({ endpoint, key });
-  }
-
-  public addMeasurements(...measurements: Measurement[]): void {
-    this.measurements.push(...measurements);
-  }
-
-  public async persist(batchId: string, metadata: BenchmarkMetadata): Promise<void> {
-    const database = (await this.client.databases.createIfNotExists({ id: 'benchmarks' })).database;
-    const container = (await database.containers.createIfNotExists({ id: 'measurements' })).container;
-    await container.items.create({
-      ...metadata,
-      id: batchId,
-      measurements: this.measurements,
-    });
-    console.log(`Persisted the result for batch ${batchId} in cosmos DB.`);
-  }
-
-  // Maybe we need a list of branches for comparison. But then we need to think about the viz to use to compare branches.
-  public async getLatestBenchmarkResult(branch: string = 'master'): Promise<Partial<BenchmarkMeasurements>> {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const measurements = (await this.client
-      .database('benchmarks')
-      .container('measurements')
-      .items
-      .query(`SELECT * FROM measurements m WHERE m.branch = "${branch}" ORDER BY m.ts_start DESC LIMIT 1`)
-      .fetchAll()
-    ).resources[0];
-    if (measurements === void 0) {
-      throw new Error('No benchmark result found');
-    }
-    return measurements as Partial<BenchmarkMeasurements>;
-  }
-
-  public async getAllBenchmarkResults(): Promise<Partial<BenchmarkMeasurements>[]> {
-    return (await this.client
-      .database('benchmarks')
-      .container('measurements')
-      .items
-      .readAll()
-      .fetchAll()
-    ).resources;
-  }
-}
-
-export function getNewStorageFor(
-  storage: Storages,
-  options: StorageConfig,
-): IStorage {
-  switch (storage) {
-    case Storages.json:
-      return new JsonFileStorage(options.resultRoot!);
-    case Storages.cosmos:
-      return new CosmosStorage(options.cosmosEndpoint!, options.cosmosKey!);
-  }
 }

@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { BrowserType, browserTypes, Measurement, Measurements, WritableMeasurementKeys } from "@benchmarking-apps/test-result";
+import { BrowserType, browserTypes, Measurement, Measurements, WritableMeasurementKeys } from "@benchmarking-apps/storage";
 import { strict as assert } from 'assert';
 import { performance } from 'perf_hooks';
 import type { ElementHandle, Page } from 'playwright';

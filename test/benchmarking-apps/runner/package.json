@@ -4,7 +4,7 @@
   "private": true,
   "devDependencies": {
     "@aurelia/http-server": "0.8.0",
-    "@benchmarking-apps/test-result": "1.0.0",
+    "@benchmarking-apps/storage": "1.0.0",
     "@types/mocha": "^8.0.3",
     "@types/node": "^14.11.5",
     "@types/uuid": "^8.3.0",

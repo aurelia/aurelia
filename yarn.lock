@@ -677,6 +677,13 @@
   "resolved" "file:test/benchmarking-apps/shared"
   "version" "1.0.0"
 
+"@benchmarking-apps/storage@1.0.0", "@benchmarking-apps/storage@file:C:\\aurelia\\test\\benchmarking-apps\\storage":
+  "resolved" "file:test/benchmarking-apps/storage"
+  "version" "1.0.0"
+  dependencies:
+    "@azure/cosmos" "^3.9.3"
+    "@benchmarking-apps/test-result" "1.0.0"
+
 "@benchmarking-apps/test-result@1.0.0", "@benchmarking-apps/test-result@file:C:\\aurelia\\test\\benchmarking-apps\\test-result":
   "resolved" "file:test/benchmarking-apps/test-result"
   "version" "1.0.0"
@@ -687,6 +694,7 @@
   "resolved" "file:test/benchmarking-apps/viewer/client"
   "version" "1.0.0"
   dependencies:
+    "@benchmarking-apps/test-result" "1.0.0"
     "aurelia" "0.8.0"
 
 "@benchmarking-apps/viewer-server@file:C:\\aurelia\\test\\benchmarking-apps\\viewer\\server":
@@ -698,7 +706,7 @@
     "@aurelia/metadata" "0.8.0"
     "@aurelia/platform" "0.8.0"
     "@azure/cosmos" "^3.9.3"
-    "@benchmarking-apps/test-result" "1.0.0"
+    "@benchmarking-apps/storage" "1.0.0"
 
 "@cnakazawa/watch@^1.0.3":
   "integrity" "sha512-v9kIhKwjeZThiWrLmj0y17CWoyddASLj9O2yvbZkbvw/N3rWOYy9zkV66ursAoVr0mV15bL8g0c4QZUE6cdDoQ=="

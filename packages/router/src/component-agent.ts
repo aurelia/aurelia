@@ -1,11 +1,10 @@
-import { ICustomElementController, Controller, IHydratedController, LifecycleFlags, ICustomElementViewModel, IAppRoot } from '@aurelia/runtime-html';
+import { ICustomElementController, Controller, IHydratedController, LifecycleFlags, ICustomElementViewModel, IAppRoot, ILifecycleHooks, LifecycleHooksLookup } from '@aurelia/runtime-html';
 import { Constructable, ILogger } from '@aurelia/kernel';
 
 import { RouteDefinition } from './route-definition.js';
 import { RouteNode } from './route-tree.js';
 import { IRouteContext } from './route-context.js';
 import { Params, NavigationInstruction, ViewportInstructionTree } from './instructions.js';
-import { instantiateHook, RouterHookObject } from './hooks.js';
 import { Transition } from './router.js';
 import { Batch } from './util.js';
 
@@ -21,10 +20,14 @@ const componentAgentLookup: WeakMap<object, ComponentAgent> = new WeakMap();
 export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
   private readonly logger: ILogger;
 
-  public readonly canLoadHooks: readonly RouterHookObject<'canLoad'>[];
-  public readonly loadHooks: readonly RouterHookObject<'load'>[];
-  public readonly canUnloadHooks: readonly RouterHookObject<'canUnload'>[];
-  public readonly unloadHooks: readonly RouterHookObject<'unload'>[];
+  public readonly canLoadHooks: readonly ILifecycleHooks<IRouteViewModel, 'canLoad'>[];
+  public readonly loadHooks: readonly ILifecycleHooks<IRouteViewModel, 'load'>[];
+  public readonly canUnloadHooks: readonly ILifecycleHooks<IRouteViewModel, 'canUnload'>[];
+  public readonly unloadHooks: readonly ILifecycleHooks<IRouteViewModel, 'unload'>[];
+  private readonly hasCanLoad: boolean;
+  private readonly hasLoad: boolean;
+  private readonly hasCanUnload: boolean;
+  private readonly hasUnload: boolean;
 
   public constructor(
     public readonly instance: T,
@@ -37,18 +40,15 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
 
     this.logger.trace(`constructor()`);
 
-    this.canLoadHooks = (
-      'canLoad' in instance ? [instance as RouterHookObject<'canLoad'>] : []
-    ).concat(definition.config.canLoad.map(x => instantiateHook(ctx, 'canLoad', x)));
-    this.loadHooks = (
-      'load' in instance ? [instance as RouterHookObject<'load'>] : []
-    ).concat(definition.config.load.map(x => instantiateHook(ctx, 'load', x)));
-    this.canUnloadHooks = (
-      'canUnload' in instance ? [instance as RouterHookObject<'canUnload'>] : []
-    ).concat(definition.config.canUnload.map(x => instantiateHook(ctx, 'canUnload', x)));
-    this.unloadHooks = (
-      'unload' in instance ? [instance as RouterHookObject<'unload'>] : []
-    ).concat(definition.config.unload.map(x => instantiateHook(ctx, 'unload', x)));
+    const lifecycleHooks = controller.lifecycleHooks as LifecycleHooksLookup<IRouteViewModel>;
+    this.canLoadHooks = (lifecycleHooks.canLoad ?? []).map(x => x.instance);
+    this.loadHooks = (lifecycleHooks.load ?? []).map(x => x.instance);
+    this.canUnloadHooks = (lifecycleHooks.canUnload ?? []).map(x => x.instance);
+    this.unloadHooks = (lifecycleHooks.unload ?? []).map(x => x.instance);
+    this.hasCanLoad = 'canLoad' in instance;
+    this.hasLoad = 'load' in instance;
+    this.hasCanUnload = 'canUnload' in instance;
+    this.hasUnload = 'unload' in instance;
   }
 
   public static for<T extends IRouteViewModel>(
@@ -105,7 +105,18 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     for (const hook of this.canUnloadHooks) {
       tr.run(() => {
         b.push();
-        return hook.canUnload(next, this.routeNode);
+        return hook.canUnload(this.instance, next, this.routeNode);
+      }, ret => {
+        if (tr.guardsResult === true && ret !== true) {
+          tr.guardsResult = false;
+        }
+        b.pop();
+      });
+    }
+    if (this.hasCanUnload) {
+      tr.run(() => {
+        b.push();
+        return this.instance.canUnload!(next, this.routeNode);
       }, ret => {
         if (tr.guardsResult === true && ret !== true) {
           tr.guardsResult = false;
@@ -122,7 +133,18 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     for (const hook of this.canLoadHooks) {
       tr.run(() => {
         b.push();
-        return hook.canLoad(next.params, next, this.routeNode);
+        return hook.canLoad(this.instance, next.params, next, this.routeNode);
+      }, ret => {
+        if (tr.guardsResult === true && ret !== true) {
+          tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret);
+        }
+        b.pop();
+      });
+    }
+    if (this.hasLoad) {
+      tr.run(() => {
+        b.push();
+        return this.instance.canLoad!(next.params, next, this.routeNode);
       }, ret => {
         if (tr.guardsResult === true && ret !== true) {
           tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret);
@@ -139,7 +161,15 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     for (const hook of this.unloadHooks) {
       tr.run(() => {
         b.push();
-        return hook.unload(next, this.routeNode);
+        return hook.unload(this.instance, next, this.routeNode);
+      }, () => {
+        b.pop();
+      });
+    }
+    if (this.hasUnload) {
+      tr.run(() => {
+        b.push();
+        return this.instance.unload!(next, this.routeNode);
       }, () => {
         b.pop();
       });
@@ -153,7 +183,15 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     for (const hook of this.loadHooks) {
       tr.run(() => {
         b.push();
-        return hook.load(next.params, next, this.routeNode);
+        return hook.load(this.instance, next.params, next, this.routeNode);
+      }, () => {
+        b.pop();
+      });
+    }
+    if (this.hasLoad) {
+      tr.run(() => {
+        b.push();
+        return this.instance.load!(next.params, next, this.routeNode);
       }, () => {
         b.pop();
       });

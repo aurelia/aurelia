@@ -139,11 +139,6 @@ export function validateRouteConfig(config: Partial<IChildRouteConfig> | null | 
             expectType('string(\'none\'|\'replace\'|\'invoke-lifecycles\') or function', path, value);
         }
         break;
-      case 'canLoad':
-      case 'load':
-      case 'canUnload':
-      case 'unload':
-        break;
       default:
         // We don't *have* to throw here, but let's be as strict as possible until someone gives a valid reason for not doing so.
         throw new Error(`Unknown route config property: "${parentPath}.${key as string}". Please specify known properties only.`);

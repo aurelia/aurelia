@@ -37,7 +37,7 @@ import type {
 } from '@aurelia/runtime';
 import type { BindableDefinition } from '../bindable.js';
 import type { PropertyBinding } from '../binding/property-binding.js';
-import type { RegisteredProjections } from '../resources/custom-elements/au-slot.js';
+import { RegisteredProjections } from '../resources/custom-elements/au-slot.js';
 import type { IViewFactory } from './view.js';
 import type { Instruction } from '../renderer.js';
 import type { IWatchDefinition, IWatcherCallback } from '../watch.js';

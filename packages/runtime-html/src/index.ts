@@ -431,6 +431,8 @@ export {
   RegisteredProjections,
   IProjectionProvider,
   ProjectionContext,
+  AuSlotsInfo,
+  IAuSlotsInfo,
 } from './resources/custom-elements/au-slot.js';
 
 export {
@@ -443,6 +445,7 @@ export {
   CustomElementDefinition,
   PartialCustomElementDefinition,
   useShadowDOM,
+  processContent,
 } from './resources/custom-element.js';
 
 export {

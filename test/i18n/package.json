@@ -3,13 +3,13 @@
   "private": true,
   "license": "MIT",
   "engines": {
-    "node": ">=10.16.0",
-    "npm": ">=6.1.0"
+    "node": ">=14.15.0",
+    "npm": ">=6.14.8"
   },
   "version": "0.8.0",
   "scripts": {
     "prestart": "rimraf dist",
-    "start": "webpack-dev-server --no-inline",
+    "start": "webpack-dev-server",
     "preserve": "rimraf dist && webpack --config webpack.config.js",
     "serve": "au-http-server au.conf.js",
     "e2e": "mocha --ui bdd --colors --reporter spec --timeout 30000 dist/tests/i18n.spec.js"

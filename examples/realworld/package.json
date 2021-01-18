@@ -31,8 +31,12 @@
   },
   "scripts": {
     "start": "webpack-dev-server",
-    "build": "rimraf dist && webpack",
     "build:e2e": "tsc -p e2e/tsconfig.json",
-    "start:e2e": "mocha --ui bdd --colors --reporter spec --timeout 30000 e2e/dist/**/*.spec.js"
+    "start:e2e": "mocha --ui bdd --colors --reporter spec --timeout 30000 e2e/dist/**/*.spec.js",
+    "build": "rimraf dist && webpack"
+  },
+  "engines": {
+    "node": ">=14.15.0",
+    "npm": ">=6.14.8"
   }
 }

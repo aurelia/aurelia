@@ -18,6 +18,7 @@ import {
   Injectable,
   IResolver,
   emptyArray,
+  Writable,
 } from '@aurelia/kernel';
 import {
   registerAliases,
@@ -35,6 +36,7 @@ import { Controller } from '../templating/controller.js';
 import { Watch } from '../watch.js';
 import type { ICustomElementViewModel, ICustomElementController } from '../templating/controller.js';
 import type { IWatchDefinition } from '../watch.js';
+import { IPlatform } from '../platform.js';
 
 export type PartialCustomElementDefinition = PartialResourceDefinition<{
   readonly cache?: '*' | number;
@@ -53,6 +55,7 @@ export type PartialCustomElementDefinition = PartialResourceDefinition<{
   readonly enhance?: boolean;
   readonly projectionsMap?: Map<IInstruction, IProjections>;
   readonly watches?: IWatchDefinition[];
+  readonly processContent?: ProcessContentHook | null;
 }>;
 
 export type CustomElementType<C extends Constructable = Constructable> = ResourceType<C, ICustomElementViewModel & (C extends Constructable<infer P> ? P : {}), PartialCustomElementDefinition>;
@@ -220,6 +223,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
     public readonly enhance: boolean,
     public readonly projectionsMap: Map<IInstruction, IProjections>,
     public readonly watches: IWatchDefinition[],
+    public readonly processContent: ProcessContentHook | null,
   ) {}
 
   public static create<T extends Constructable = Constructable>(
@@ -276,6 +280,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         fromDefinitionOrDefault('enhance', def, () => false),
         fromDefinitionOrDefault('projectionsMap', def as CustomElementDefinition, () => new Map<IInstruction, IProjections>()),
         fromDefinitionOrDefault('watches', def as CustomElementDefinition, () => emptyArray),
+        fromAnnotationOrTypeOrDefault('processContent', Type, () => null),
       );
     }
 
@@ -312,6 +317,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         fromAnnotationOrTypeOrDefault('enhance', Type, () => false),
         fromAnnotationOrTypeOrDefault('projectionsMap', Type, () => new Map<IInstruction, IProjections>()),
         mergeArrays(Watch.getAnnotation(Type), Type.watches),
+        fromAnnotationOrTypeOrDefault('processContent', Type, () => null),
       );
     }
 
@@ -352,6 +358,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
       fromAnnotationOrDefinitionOrTypeOrDefault('enhance', nameOrDef, Type, () => false),
       fromAnnotationOrDefinitionOrTypeOrDefault('projectionsMap', nameOrDef, Type, () => new Map<IInstruction, IProjections>()),
       mergeArrays(nameOrDef.watches, Watch.getAnnotation(Type), Type.watches),
+      fromAnnotationOrDefinitionOrTypeOrDefault('processContent', nameOrDef, Type, () => null),
     );
   }
 
@@ -545,3 +552,39 @@ export const CustomElement: CustomElementKind = {
     };
   })(),
 };
+
+type DecoratorFactoryMethod<TClass> = (target: Constructable<TClass>, propertyKey: string, descriptor: PropertyDescriptor) => void;
+type ProcessContentHook = (node: INode, platform: IPlatform) => boolean | void;
+
+const pcHookMetadataProperty = Protocol.annotation.keyFor('processContent');
+export function processContent(hook: ProcessContentHook): CustomElementDecorator;
+export function processContent<TClass>(): DecoratorFactoryMethod<TClass>;
+export function processContent<TClass>(hook?: ProcessContentHook): CustomElementDecorator | DecoratorFactoryMethod<TClass> {
+  return hook === void 0
+    ? function (target: Constructable<TClass>, propertyKey: string, _descriptor: PropertyDescriptor) {
+      Metadata.define(pcHookMetadataProperty, ensureHook(target, propertyKey), target);
+    }
+    : function (target: Constructable<TClass>) {
+      hook = ensureHook(target, hook!);
+      const def = Metadata.getOwn(CustomElement.name, target) as CustomElementDefinition<Constructable<TClass>>;
+      if (def !== void 0) {
+        (def as Writable<CustomElementDefinition<Constructable<TClass>>>).processContent = hook;
+      } else {
+        Metadata.define(pcHookMetadataProperty, hook, target);
+      }
+      return target;
+    };
+}
+
+function ensureHook<TClass>(target: Constructable<TClass>, hook: string | ProcessContentHook): ProcessContentHook {
+  if (typeof hook === 'string') {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-explicit-any
+    hook = (target as any)[hook] as ProcessContentHook;
+  }
+
+  const hookType = typeof hook;
+  if (hookType !== 'function') {
+    throw new Error(`Invalid @processContent hook. Expected the hook to be a function (when defined in a class, it needs to be a static function) but got a ${hookType}.`);
+  }
+  return hook;
+}

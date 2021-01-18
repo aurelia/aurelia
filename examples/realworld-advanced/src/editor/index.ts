@@ -1,11 +1,10 @@
 import template from './index.html';
 
-import { customElement, IRouteViewModel, Params, IPlatform,  route, watch, IRouter } from 'aurelia';
+import { customElement, IRouteViewModel, Params, IPlatform, watch, IRouter } from 'aurelia';
 import { AuthHandler, IArticleState } from '../state';
 import { Article } from '../api';
 
-@route({ canLoad: [AuthHandler] })
-@customElement({ name: 'editor-view', template })
+@customElement({ name: 'editor-view', template, dependencies: [AuthHandler] })
 export class EditorViewCustomElement implements IRouteViewModel {
   local: Article;
   dirty = false;

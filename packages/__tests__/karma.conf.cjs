@@ -20,16 +20,16 @@ const commonChromeFlags = [
 ];
 
 const testDirs = [
-  '1-kernel',
+  // '1-kernel',
   '2-runtime',
-  '3-runtime-html',
-  'fetch-client',
-  'i18n',
-  'integration',
-  'router',
-  'validation',
-  'validation-html',
-  'validation-i18n',
+  // '3-runtime-html',
+  // 'fetch-client',
+  // 'i18n',
+  // 'integration',
+  // 'router',
+  // 'validation',
+  // 'validation-html',
+  // 'validation-i18n',
 ];
 
 const packageNames = [
@@ -83,7 +83,7 @@ module.exports = function (config) {
     { type: 'module', watched: true,  included: false, nocache: false, pattern: `packages/__tests__/dist/esm/__tests__/util.js` }, // 1.3
     { type: 'module', watched: true,  included: false, nocache: false, pattern: `packages/__tests__/dist/esm/__tests__/Spy.js` }, // 1.4
     ...testDirs.flatMap(name => [
-      { type: 'module', watched: true,  included: true,  nocache: false, pattern: `packages/__tests__/dist/esm/__tests__/${name}/**/*.spec.js` }, // 2.1
+      { type: 'module', watched: true,  included: true,  nocache: false, pattern: `packages/__tests__/dist/esm/__tests__/${name}/scheduler.spec.js` }, // 2.1
       { type: 'module', watched: false, included: false, nocache: true,  pattern: `packages/__tests__/dist/esm/__tests__/${name}/**/*.js.map` }, // 2.2
       { type: 'module', watched: true,  included: false, nocache: false, pattern: `packages/__tests__/dist/esm/__tests__/${name}/**/!(*.$au)*.js` }, // 2.3
       { type: 'module', watched: false, included: false, nocache: true,  pattern: `packages/__tests__/${name}/**/*.ts` }, // 2.4

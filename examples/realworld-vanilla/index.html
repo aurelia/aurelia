@@ -451,7 +451,7 @@
 
   <script type="module">
     // Tested with manual symlink to './node_modules/aurelia/dist/native-modules/index.js' (can remove this comment once alpha is published)
-    import { Aurelia, IHttpClient, IRouter, RouterConfiguration, Route, Watch, CustomElement, ValueConverter } from 'https://unpkg.com/aurelia@2.0.0-alpha/dist/native-modules/index.js';
+    import { Aurelia, IHttpClient, IRouter, RouterConfiguration, Route, Watch, CustomElement, ValueConverter, LifecycleHooks } from 'https://unpkg.com/aurelia@2.0.0-alpha/dist/native-modules/index.js';
 
     const au = new Aurelia();
 
@@ -846,14 +846,14 @@
       },
     };
 
-    class AuthHandler {
-      canLoad(params, next) {
+    const AuthHandler = LifecycleHooks.define({}, class {
+      canLoad(vm, params, next) {
         if (!$user.isAuth) {
           return 'login';
         }
         return true;
       }
-    }
+    });
     // #endregion
 
     // #region components
@@ -1040,6 +1040,7 @@
     const EditorView = CustomElement.define({
       name: 'editor-view',
       template: getTemplate('editor-view'),
+      dependencies: [AuthHandler],
     }, class {
       $article = $article;
 
@@ -1064,7 +1065,6 @@
         }
       }
     });
-    Route.configure({ canLoad: [AuthHandler] }, EditorView);
     Watch.add(EditorView, { expression: x => x.$article.current, callback() { this.local = $article.current.clone(); } });
 
     const HomeView = CustomElement.define({
@@ -1157,6 +1157,7 @@
     const SettingsView = CustomElement.define({
       name: 'settings-view',
       template: getTemplate('settings-view'),
+      dependencies: [AuthHandler],
     }, class {
       $user = $user;
       local = $user.current.clone();
@@ -1169,7 +1170,6 @@
         await router.load('');
       }
     });
-    Route.configure({ canLoad: [AuthHandler] }, SettingsView);
     Watch.add(SettingsView, { expression: x => x.$user.current, callback() { this.local = $user.current.clone(); } });
 
     const AppRoot = CustomElement.define({

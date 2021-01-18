@@ -1,5 +1,5 @@
-import { DI, ILogger, IRouteViewModel, NavigationInstruction, Params, RouteNode } from 'aurelia';
-import { Article, ArticleListResponse, ArticleResponse, Comment, ErrorRecordResponse, IApiService, IJwtService, ArticleQueryParams, User, UserLogin, UserRegistration, UserResponse, UserUpdate, ArticleListQueryParams, Profile, ProfileResponse, ErrorList, CommentResponse } from './api';
+import { DI, ILifecycleHooks, ILogger, IRouteViewModel, lifecycleHooks, NavigationInstruction, Params, RouteNode } from 'aurelia';
+import { Article, ArticleListResponse, ArticleResponse, Comment, ErrorRecordResponse, IApiService, IJwtService, ArticleQueryParams, User, UserLogin, UserRegistration, UserResponse, UserUpdate, ArticleListQueryParams, Profile, ProfileResponse, ErrorList } from './api';
 
 /**
  * Singleton `User` state that represents the currently logged-in user.
@@ -380,7 +380,8 @@ export class TagsState {
   }
 }
 
-export class AuthHandler implements IRouteViewModel {
+@lifecycleHooks()
+export class AuthHandler implements ILifecycleHooks<IRouteViewModel, 'canLoad'> {
   constructor(
     @IUserState readonly auth: IUserState,
     @ILogger readonly logger: ILogger,
@@ -388,7 +389,7 @@ export class AuthHandler implements IRouteViewModel {
     this.logger = logger.scopeTo('AuthHandler')
   }
 
-  canLoad(params: Params, next: RouteNode): boolean | NavigationInstruction {
+  canLoad(vm: IRouteViewModel, params: Params, next: RouteNode): boolean | NavigationInstruction {
     if (!this.auth.isAuth) {
       this.logger.trace(`canLoad() - redirecting to login page`, next, this.auth);
       return 'login';

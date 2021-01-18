@@ -1,12 +1,11 @@
 import template from './index.html';
 
-import { customElement, IRouter, IRouteViewModel, IPlatform,  route, watch } from 'aurelia';
+import { customElement, IRouter, IRouteViewModel, IPlatform, watch } from 'aurelia';
 import { AuthHandler, IUserState } from '../state';
 import { User } from '../api';
 import { queue } from '../util';
 
-@route({ canLoad: [AuthHandler] })
-@customElement({ name: 'settings-view', template })
+@customElement({ name: 'settings-view', template, dependencies: [AuthHandler] })
 export class SettingsViewCustomElement implements IRouteViewModel {
   local: User;
 

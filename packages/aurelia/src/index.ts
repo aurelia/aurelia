@@ -873,6 +873,10 @@ export {
 
   // TemplateBinder,
 
-  // ITemplateElementFactory
+  // ITemplateElementFactory,
+  ILifecycleHooks,
+  LifecycleHook,
+  LifecycleHooks,
+  lifecycleHooks,
 } from '@aurelia/runtime-html';
 

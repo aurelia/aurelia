@@ -569,6 +569,15 @@ export {
   ISyntheticView,
 } from './templating/controller.js';
 export {
+  ILifecycleHooks,
+  LifecycleHooksEntry,
+  LifecycleHooksDefinition,
+  LifecycleHooksLookup,
+  LifecycleHook,
+  LifecycleHooks,
+  lifecycleHooks,
+} from './templating/lifecycle-hooks.js';
+export {
   getRenderContext,
   isRenderContext,
   IRenderContext,

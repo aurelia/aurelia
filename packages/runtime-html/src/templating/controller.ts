@@ -10,7 +10,6 @@ import {
   ILogger,
   LogLevel,
   IServiceLocator,
-  Metadata,
   DI,
 } from '@aurelia/kernel';
 import {
@@ -42,6 +41,7 @@ import type { RegisteredProjections } from '../resources/custom-elements/au-slot
 import type { IViewFactory } from './view.js';
 import type { Instruction } from '../renderer.js';
 import type { IWatchDefinition, IWatcherCallback } from '../watch.js';
+import { LifecycleHooks, LifecycleHooksLookup } from './lifecycle-hooks.js';
 
 function callDispose(disposable: IDisposable): void {
   disposable.dispose();
@@ -86,6 +86,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   public nodes: INodeSequence | null = null;
   public context: RenderContext | null = null;
   public location: IRenderLocation | null = null;
+  public lifecycleHooks: LifecycleHooksLookup | null = null;
 
   public state: State = State.none;
   public get isActive(): boolean {
@@ -297,6 +298,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
 
     const context = this.context = getRenderContext(definition, parentContainer, targetedProjections?.projections) as RenderContext;
+    this.lifecycleHooks = LifecycleHooks.resolve(context);
     // Support Recursive Components by adding self to own context
     definition.register(context);
     if (definition.injectable !== null) {
@@ -387,6 +389,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     createObservers(this, definition, this.flags, instance);
 
     (instance as Writable<C>).$controller = this;
+    this.lifecycleHooks = LifecycleHooks.resolve(this.container);
 
     if (this.hooks.hasCreated) {
       if (this.debug) { this.logger!.trace(`invoking created() hook`); }
@@ -1430,6 +1433,7 @@ export interface ICustomAttributeController<C extends ICustomAttributeViewModel 
    * @inheritdoc
    */
   readonly viewModel: C;
+  readonly lifecycleHooks: LifecycleHooksLookup;
   /**
    * The scope that belongs to this custom attribute. This property will always be defined when the `state` property of this view indicates that the view is currently bound.
    *
@@ -1527,6 +1531,7 @@ export interface ICustomElementController<C extends ICustomElementViewModel = IC
    * @inheritdoc
    */
   readonly viewModel: C;
+  readonly lifecycleHooks: LifecycleHooksLookup;
 
   activate(
     initiator: IHydratedController,

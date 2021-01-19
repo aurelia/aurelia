@@ -150,13 +150,13 @@ export class EndpointMatcher {
     if (disregardViewports) {
       // Removes entries from routingInstructions collection and availableEndpoints, adds entries to matchedInstructions
       // and remainingInstructions and sets viewport scope and scope in actual RoutingInstruction.
-      // Pass in `disregardViewports` so we know whether viewport is necessary or not
+      // Pass in `false` to `doesntNeedViewportDescribed` since we do need the viewport if we got here
       EndpointMatcher.matchSpecifiedViewport(
         routingInstructions,
         availableEndpoints,
         matchedInstructions,
         remainingInstructions,
-        true,
+        false,
       );
     }
 

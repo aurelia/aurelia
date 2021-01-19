@@ -31,22 +31,76 @@ export const ParentViewport = CustomElement.createInjectable();
   injectable: ParentViewport
 })
 export class ViewportCustomElement implements ICustomElementViewModel {
+  /**
+   * The name of the viewport. Should be unique within the routing scope.
+   */
   @bindable public name: string = 'default';
+
+  /**
+   * A list of components that is using the viewport. These components
+   * can only be loaded into this viewport and this viewport can't
+   * load any other components.
+   */
   @bindable public usedBy: string = '';
+
+  /**
+   * The default component that's loaded if the viewport is created
+   * without having a component specified (in that navigation).
+   */
   @bindable public default: string = '';
+
+  /**
+   * The component loaded if the viewport can't load the specified
+   * component. The component is passed as a parameter to the fallback.
+   */
   @bindable public fallback: string = '';
+
+  /**
+   * Indicates that the viewport has no scope.
+   */
   @bindable public noScope: boolean = false;
+
+  /**
+   * Indicates that the viewport doesn't add a content link to
+   * the Location URL.
+   */
   @bindable public noLink: boolean = false;
+
+  /**
+   * Indicates that the viewport doesn't add a title to the browser
+   * window title.
+   */
   @bindable public noTitle: boolean = false;
+
+  /**
+   * Indicates that the viewport doesn't add history content to
+   * the History API.
+   */
   @bindable public noHistory: boolean = false;
+
+  /**
+   * Whether the components of the viewport are stateful or not.
+   */
   @bindable public stateful: boolean = false;
 
+  /**
+   * The connected Viewport.
+   */
   public viewport: Viewport | null = null;
 
+  /**
+   * The custom element controller.
+   */
   public readonly $controller!: ICustomElementController<this>;
 
+  /**
+   * The routing controller.
+   */
   public controller!: IRoutingController;
 
+  /**
+   * Whether the viewport is bound or not.
+   */
   private isBound: boolean = false;
 
   public constructor(
@@ -91,15 +145,23 @@ export class ViewportCustomElement implements ICustomElementViewModel {
           this.viewport.activeResolve = null;
         }
       },
+      () => {
+        if (this.viewport !== null && (this.viewport.nextContent ?? null) === null) {
+          console.log('binding', this.viewport?.toString());
+          this.viewport.enabled = true;
+          return (this.viewport.activate(null, initiator, this.$controller, flags, true, void 0) as Step<void>)?.asValue as void | Promise<void>;
+          // TODO: Restore scroll state
+        }
+      },
     ) as void | Promise<void>;
   }
 
   public attaching(initiator: IHydratedController, parent: IHydratedParentController | null, flags: LifecycleFlags): void | Promise<void> {
     if (this.viewport !== null && (this.viewport.nextContent ?? null) === null) {
-      // console.log('attaching', this.viewport?.toString());
-      this.viewport.enabled = true;
-      return (this.viewport.activate(null, initiator, this.$controller, flags, true) as Step<void>)?.asValue as void | Promise<void>;
-      // TODO: Restore scroll state
+      console.log('(attaching)', this.viewport?.toString());
+    //   this.viewport.enabled = true;
+    //   return (this.viewport.activate(null, initiator, this.$controller, flags, true, void 0) as Step<void>)?.asValue as void | Promise<void>;
+    //   // TODO: Restore scroll state
     }
   }
 
@@ -211,6 +273,14 @@ export class ViewportCustomElement implements ICustomElementViewModel {
     }
     // Can't do this until after disposed
     // this.viewport = null;
+  }
+
+  public setActive(active: boolean): void {
+    if (active) {
+      this.element.classList.add('viewport-active');
+    } else {
+      this.element.classList.remove('viewport-active');
+    }
   }
 
   private getAttribute(key: string, value: string | boolean, checkExists: boolean = false): string | boolean | undefined {

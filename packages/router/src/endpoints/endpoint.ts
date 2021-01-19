@@ -34,6 +34,8 @@ export interface IConnectedCustomElement extends ICustomElementViewModel {
   element: HTMLElement;
   container: IContainer;
   controller: IRoutingController;
+
+  setActive?: (active: boolean) => void;
 }
 
 export interface IEndpointOptions {
@@ -135,7 +137,7 @@ export class Endpoint {
     return true;
   }
 
-  public unload(step: Step<void> | null, recurse: boolean): void | Step<void> {
+  public unload(step: Step<void> | null, recurse: boolean, transitionId: number): void | Step<void> {
     return;
   }
   public load(step: Step<void>, recurse: boolean): Step<void> | void {

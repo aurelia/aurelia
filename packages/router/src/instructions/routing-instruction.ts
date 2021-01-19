@@ -8,7 +8,8 @@ import { ComponentAppellation, ComponentParameters, ViewportHandle } from '../in
 import { RoutingScope } from '../routing-scope.js';
 import { ViewportScope } from '../viewport-scope.js';
 import { FoundRoute } from '../found-route.js';
-import { IEndpoint } from '../endpoints/endpoint';
+import { Endpoint, IEndpoint } from '../endpoints/endpoint';
+import { Viewport } from '../viewport';
 
 /**
  * The routing instructions are the core of the router's navigations. All
@@ -118,6 +119,19 @@ export class RoutingInstruction {
     return instruction;
   }
 
+  /**
+   * Create a clear endpoint routing instruction.
+   *
+   * @param endpoint - The endpoint to create the clear instruction for
+   */
+  public static createClear(endpoint: Endpoint): RoutingInstruction {
+    const instruction = RoutingInstruction.create(RoutingInstruction.clear(), endpoint.isViewport ? endpoint as Viewport : void 0) as RoutingInstruction;
+    if (endpoint.isViewportScope) {
+      instruction.viewportScope = endpoint as ViewportScope;
+    }
+    return instruction;
+  }
+
   public static clear(): string {
     return RoutingInstruction.separators.clear;
   }
@@ -125,6 +139,11 @@ export class RoutingInstruction {
     return RoutingInstruction.separators.add;
   }
 
+  /**
+   * Parse an instruction string into a list of routing instructions.
+   *
+   * @param instructions - The instruction string to parse
+   */
   public static parse(instructions: string): RoutingInstruction[] {
     let context = '';
     // Context is a start with .. or / and any combination thereof
@@ -211,24 +230,11 @@ export class RoutingInstruction {
    *
    * @param instructionsToSearch - Instructions that should contain (superset)
    * @param instructionsToFind - Instructions that should be contained (subset)
-   * @param deep - Whether next scope instructions also need to be contained (recurively)
+   * @param deep - Whether next scope instructions also need to be contained (recursively)
    */
   public static contains(instructionsToSearch: RoutingInstruction[], instructionsToFind: RoutingInstruction[], deep: boolean): boolean {
     // All instructions to find need to exist in instructions to search
     return instructionsToFind.every(find => find.isIn(instructionsToSearch, deep));
-    // // // If there's nothing to find, it's a success
-    // if (instructionsToFind.length === 0) {
-    //   return true;
-    // }
-    // for (const find of instructionsToFind) {
-    //   // If at least one of the instructions to search in matches _recursively_
-    //   // it's a succesfull match.
-    //   if (find.isIn(instructionsToSearch, deep)) {
-    //     return true;
-    //   }
-    // }
-    // // Otherwise it's a failure to match.
-    // return false;
   }
 
   /**
@@ -275,9 +281,11 @@ export class RoutingInstruction {
    * instruction. Compares on viewport instance if possible, otherwise name.
    *
    * @param other - The routing instruction to compare to
+   * @param compareScope - Whether comparision should be made on scope as well (and not
+   * only instance/name)
    */
-  public sameViewport(other: RoutingInstruction): boolean {
-    return this.viewport.same(other.viewport);
+  public sameViewport(other: RoutingInstruction, compareScope: boolean): boolean {
+    return this.viewport.same(other.viewport, compareScope);
   }
 
   /**
@@ -427,9 +435,18 @@ export class RoutingInstruction {
     return clone;
   }
 
+  /**
+   * Whether the routing instruction is in a list of routing instructions. If
+   * deep, all next scope instructions needs to be contained in containing
+   * next scope instructions as well.
+   *
+   * @param searchIn - Instructions that should contain (superset)
+   * @param deep - Whether next scope instructions also need to be contained (recursively)
+   */
   public isIn(searchIn: RoutingInstruction[], deep: boolean): boolean {
     // Get all instructions with matching component.
-    const matching = searchIn.filter(instruction => instruction.sameComponent(this));
+    const matching = searchIn.filter(instruction => instruction.sameComponent(this) &&
+      (this.viewport.none || instruction.sameViewport(this, false)));
     // If no one matches, it's a failure.
     if (matching.length === 0) {
       return false;

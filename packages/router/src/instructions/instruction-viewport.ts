@@ -74,11 +74,12 @@ export class InstructionViewport {
     return router.getEndpoint('Viewport', this.name as string) as Viewport | null;
   }
 
-  public same(other: InstructionViewport): boolean {
+  public same(other: InstructionViewport, compareScope: boolean): boolean {
     if (this.instance !== null && other.instance !== null) {
       return this.instance === other.instance;
     }
-    return this.scope === other.scope &&
-      (this.instance ? this.instance.name : this.name) === (other.instance ? other.instance.name : other.name);
+    return (!compareScope || this.scope === other.scope) &&
+      (this.instance !== null ? this.instance.name : this.name) ===
+      (other.instance !== null ? other.instance.name : other.name);
   }
 }

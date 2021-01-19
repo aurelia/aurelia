@@ -45,3 +45,10 @@ left-sidebar {
   display: flex;
   max-height: calc(100% - var(--topbar-height));
 }
+
+au-viewport {
+  display: block;
+  height: 100%;
+  width: 100%;
+  overflow: auto;
+}

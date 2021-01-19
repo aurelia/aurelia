@@ -1,0 +1,13 @@
+.legend {
+  display: grid;
+  grid-template-columns: repeat(5, auto 1fr);
+  column-gap: 0.5rem;
+}
+
+.legend .color {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.5em;
+  border: 1px solid gray;
+}

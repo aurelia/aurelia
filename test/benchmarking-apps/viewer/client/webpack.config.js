@@ -23,7 +23,7 @@ module.exports = function (env, { mode }) {
     devServer: {
       port: 9000,
       historyApiFallback: true,
-      open: true,
+      // open: true,
       proxy: {
         '/api': 'http://localhost:80'
       }

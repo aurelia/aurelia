@@ -338,24 +338,49 @@ export class Step<T = unknown> {
       return this.promise;
     }
 
-    // A parallel parent returns the results of its children
-    if (this.isParallelParent) {
-      const results: T[] = [];
-      let child: Step<T> | null = this.child;
-      while (child !== null) {
-        results.push(child.result as T);
-        child = child.next;
+    // Parents (including root) return the results of their children
+    if (this.child !== null) {
+      // If it's a parallel parent, return all child results...
+      if (this.isParallelParent) {
+        const results: T[] = [];
+        let child: Step<T> | null = this.child;
+        while (child !== null) {
+          results.push(child.result as T);
+          child = child.next;
+        }
+        return results;
+      } else { // ...otherwise return the last one.
+        return this.child?.tail?.result;
       }
-      return results;
     }
 
-    // Root returns result of last child
-    if (this === this.root) {
-      return this.child?.tail?.result;
-    }
+    // A parallel parent returns the results of its children
+    // if (this.isParallelParent) {
+    //   const results: T[] = [];
+    //   let child: Step<T> | null = this.child;
+    //   while (child !== null) {
+    //     results.push(child.result as T);
+    //     child = child.next;
+    //   }
+    //   return results;
+    // }
+
+    // // Root returns result of last child
+    // if (this === this.root) {
+    //   return this.child?.tail?.result;
+    // }
+
+    // // Parents returns result of last child
+    // if (this.child != null) {
+    //   return this.child?.tail?.result;
+    // }
 
     // If none of the above, return the value
-    return this.value as T;
+    let value = this.value as T;
+    while (value instanceof Step) {
+      value = value.result as T;
+    }
+    return value;
   }
 
   public get asValue(): T | T[] | Promise<T | T[]> | void {
@@ -366,7 +391,7 @@ export class Step<T = unknown> {
   public get previousValue(): unknown {
     return this.runParallel
       ? this.head.parent?.parent?.previous?.result
-      : this.previous?.value;
+      : this.previous?.result;
   }
 
   public get name(): string {

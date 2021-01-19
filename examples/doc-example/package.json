@@ -20,7 +20,7 @@
     "rimraf": "^3.0.0",
     "webpack": "^5.10.3",
     "webpack-cli": "^4.2.0",
-    "webpack-dev-server": "^3.11.0",
+    "webpack-dev-server": "^4.0.0-beta.0",
     "html-webpack-plugin": "^5.0.0-beta.1",
     "style-loader": "^2.0.0",
     "css-loader": "^5.0.1",
@@ -34,9 +34,13 @@
   "scripts": {
     "start": "webpack-dev-server",
     "build": "rimraf dist && webpack --mode=production",
-    "watch": "webpack-dev-server --no-inline",
+    "watch": "webpack-dev-server",
     "serve": "node ./node_modules/@aurelia/http-server/dist/esm/cli.js au.conf.js",
     "build-serve": "rimraf dist && webpack --mode=production && node ./node_modules/@aurelia/http-server/dist/esm/cli.js au.conf.js",
     "now": "rimraf dist && webpack --config webpack.config.js && cd dist && now && cd .."
+  },
+  "engines": {
+    "node": ">=14.15.0",
+    "npm": ">=6.14.8"
   }
 }

@@ -175,6 +175,27 @@ export type WritableMeasurementKeys = {
   [key in keyof WritableMeasurement]: Measurement[key] extends Function ? never : key;
 }[keyof WritableMeasurement];
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function totalDuration(target: Partial<Measurement>, property: string): any {
+  const _internal = Symbol(`_${property}`);
+  return {
+    get(this: Partial<Measurement>): number {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
+      let totalDuration: number = (this as any)[_internal];
+      if (totalDuration !== void 0) { return totalDuration; }
+
+      totalDuration = 0;
+      for (const [key, value] of Object.entries(this)) {
+        if (!key.startsWith('duration') || value === void 0) { continue; }
+        totalDuration += value as number;
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
+      return (this as any)[_internal] = totalDuration;
+    },
+  };
+}
+
 export class Measurements extends Array<Measurement> {
 
   public get means(): Measurement[] {

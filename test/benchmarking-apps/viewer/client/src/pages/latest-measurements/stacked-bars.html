@@ -1,8 +1,12 @@
-<h4>Legend</h4>
-<div class="legend">
-  <template repeat.for="action of actions">
-    <span class="color" style="background-color:${action.color};"></span>
-    <span>${action.description}</span>
-  </template>
-</div>
 <div ref="target"></div>
+<div>
+  <div class="legend-container">
+    <h4>Legend</h4>
+    <div class="legend">
+      <template repeat.for="action of actions">
+        <span class="color" style="background-color:${action.color};"></span>
+        <span>${action.description}</span>
+      </template>
+    </div>
+  </div>
+</div>

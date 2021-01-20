@@ -1,6 +1,17 @@
+:host {
+  display: flex;
+  flex-direction: row;
+  padding: 1vw;
+}
+
+.legend-container {
+  position: sticky;
+  top: 0;
+}
+
 .legend {
   display: grid;
-  grid-template-columns: repeat(5, auto 1fr);
+  grid-template-columns: auto 1fr;
   column-gap: 0.5rem;
 }
 

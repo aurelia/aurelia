@@ -8,6 +8,7 @@ import { TestRouterConfiguration } from './configuration.js';
 import { startTickLogging } from './tick-logger.js';
 
 export interface IRouterOptionsSpec {
+  resolutionMode?: ResolutionMode;
   deferUntil?: DeferralJuncture;
   swapStrategy?: SwapStrategy;
   routingMode?: 'configured-first' | 'configured-only' | 'direct-only';
@@ -16,6 +17,8 @@ export interface IRouterOptionsSpec {
 
 export type SwapStrategy = 'sequential-add-first' | 'sequential-remove-first' | 'parallel-remove-first';
 export type DeferralJuncture = 'guard-hooks' | 'load-hooks' | 'none';
+
+export type ResolutionMode = 'dynamic' | 'static';
 
 export function translateOptions(routerOptionsSpec: IRouterOptionsSpec): IRouterStartOptions {
   let swap;
@@ -34,12 +37,22 @@ export function translateOptions(routerOptionsSpec: IRouterOptionsSpec): IRouter
       break;
   }
   const syncStates = ['guardedUnload', 'swapped', 'completed'] as NavigationState[];
-  switch (routerOptionsSpec.deferUntil) {
-    case 'load-hooks':
-      syncStates.push('loaded', 'unloaded', 'routed');
-    // eslint-disable-next-line no-fallthrough
-    case 'guard-hooks':
-      syncStates.push('guardedLoad', 'guarded');
+  if (routerOptionsSpec.resolutionMode != null) {
+    switch (routerOptionsSpec.resolutionMode) {
+      case 'static':
+        syncStates.push('guardedLoad', 'guarded', 'loaded', 'unloaded', 'routed');
+        break;
+      case 'dynamic':
+        break;
+    }
+  } else {
+    switch (routerOptionsSpec.deferUntil) {
+      case 'load-hooks':
+        syncStates.push('loaded', 'unloaded', 'routed');
+      // eslint-disable-next-line no-fallthrough
+      case 'guard-hooks':
+        syncStates.push('guardedLoad', 'guarded');
+    }
   }
 
   // const integration = routerOptionsSpec.resolutionStrategy === 'static' ||

@@ -83,9 +83,6 @@ export const IRouter = DI.createInterface<IRouter>('IRouter').withDefault(x => x
 
 export interface IRouter extends Router { }
 
-// /**
-//  * @internal
-//  */
 // class ClosestScope { }
 
 export class Router implements IRouter {
@@ -613,9 +610,6 @@ export class Router implements IRouter {
     ) as void | Promise<void>;
   };
 
-  // /**
-  //  * @internal
-  //  */
   // public findScope(origin: Element | ICustomElementViewModel | Viewport | ViewportScope | RoutingScope | ICustomElementController | IContainer | null): RoutingScope {
   //   if (origin == null) {
   //     return this.rootScope!.scope;
@@ -647,9 +641,6 @@ export class Router implements IRouter {
   //   return closestEndpoint.scope;
   // }
 
-  // /**
-  //  * @internal
-  //  */
   // public findParentScope(container: IContainer | null): RoutingScope {
   //   if (container === null) {
   //     return this.rootScope!.scope;
@@ -695,16 +686,11 @@ export class Router implements IRouter {
 
   // /**
   //  * Called from the viewport scope custom element in created()
-  //  *
-  //  * @internal
   //  */
   // public setClosestScope(viewModelOrContainer: ICustomElementViewModel | IContainer, scope: RoutingScope): void {
   //   const container = this.getContainer(viewModelOrContainer);
   //   Registration.instance(ClosestScope, scope).register(container!);
   // }
-  // /**
-  //  * @internal
-  //  */
   // public getClosestScope(viewModelOrElement: ICustomElementViewModel | Element | ICustomElementController | IContainer): RoutingScope | null {
   //   const container: IContainer | null = 'resourceResolvers' in viewModelOrElement
   //     ? viewModelOrElement as IContainer
@@ -717,9 +703,6 @@ export class Router implements IRouter {
   //   }
   //   return container.get<RoutingScope>(ClosestScope) || null;
   // }
-  // /**
-  //  * @internal
-  //  */
   // public unsetClosestScope(viewModelOrContainer: ICustomElementViewModel | IContainer): void {
   //   const container = this.getContainer(viewModelOrContainer);
   //   // TODO: Get an 'unregister' on container

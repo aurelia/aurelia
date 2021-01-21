@@ -2,8 +2,6 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { Runner, Step } from '@aurelia/router';
 import { assert } from '@aurelia/testing';
-import { StringifyOptions } from 'querystring';
-import { createJsxJsxClosingFragment } from 'typescript';
 
 const createTimedPromise = (value, time, previousValue?, reject = false): Promise<unknown> => {
   return new Promise((res, rej) => {
@@ -131,6 +129,24 @@ describe('Runner', function () {
       }).catch(err => { throw err; });
     });
   }
+
+  for (const connected of [false, true]) {
+    for (let i = 0; i < tests.length; i++) {
+      const test = tests[i];
+      it(`runs all one step down${connected ? ' connected' : ''} ${test.steps} => ${test.results}`, function () {
+        const stepsPromise = Runner.run(null,
+          (step) => `before: ${step.previousValue}`,
+          (step) => Runner.runParallel(connected ? step : null, ...test.steps),
+          (step) => `after: ${step.previousValue.join(',')}`,
+        ) as Promise<unknown>;
+        stepsPromise.then((result: unknown) => {
+          const expected = test.results.map(r => connected ? r.replace('(', '(before: ') : r).join(',');
+          assert.strictEqual(result, `after: ${expected}`, `#${i}`);
+        }).catch(err => { throw err; });
+      });
+    }
+  }
+
   it(`doesn't add ticks`, async function () {
     class Controller {
       public constructor(

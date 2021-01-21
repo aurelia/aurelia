@@ -1,4 +1,4 @@
-import { IRouter, RouterConfiguration, IRoute, IRouterTitle, RoutingInstruction, routes } from '@aurelia/router';
+import { IRouter, RouterConfiguration, IRoute, IRouterTitle, RoutingInstruction, routes, Viewport } from '@aurelia/router';
 import { CustomElement, customElement, IPlatform, Aurelia } from '@aurelia/runtime-html';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 
@@ -378,7 +378,7 @@ describe('Router', function () {
     await tearDown();
   });
 
-  it.skip('cancels if not child canUnload', async function () {
+  it('cancels if not child canUnload', async function () {
     this.timeout(5000);
 
     const { platform, host, router, tearDown } = await createFixture();
@@ -708,7 +708,7 @@ describe('Router', function () {
     assert.includes(host.textContent, 'Parameter: 123', `host.textContent`);
     assert.includes(host.textContent, 'Entry: 1', `host.textContent`);
 
-    let component = router.allEndpoints('Viewport')[0].content.componentInstance;
+    let component = (router.getEndpoint('Viewport', 'left') as Viewport).content.componentInstance;
     component.reentryBehavior = 'load';
     // This should load
     await $load('plugh(123)@left', router, platform);
@@ -720,7 +720,7 @@ describe('Router', function () {
     await $load('plugh(456)@left', router, platform);
     assert.includes(host.textContent, 'Parameter: 456', `host.textContent`);
     assert.includes(host.textContent, 'Entry: 1', `host.textContent`);
-    component = router.allEndpoints('Viewport')[0].content.componentInstance;
+    component = (router.getEndpoint('Viewport', 'left') as Viewport).content.componentInstance;
 
     component.reentryBehavior = 'default';
     // This should default

@@ -10,20 +10,29 @@ import { OpenPromise } from './utilities/open-promise.js';
 
 export class Entity<T, S> {
   public running: boolean = false;
-  public states: S[] = [];
+  public states: Map<S, OpenPromise | null> = new Map<S, OpenPromise | null>();
   public checkedStates: S[] = [];
 
   public syncState: S | null = null;
   public syncPromise: OpenPromise | null = null;
 
   public constructor(public entity: T) { }
+
+  public hasReachedState(state: S): boolean {
+    return this.states.has(state) && this.states.get(state) === null;
+  }
+
+  public hasStatePending(state: S): boolean {
+    return this.states.has(state) && this.states.get(state) !== null;
+  }
 }
 
 export class StateCoordinator<T, S> {
-  protected readonly entities: Entity<T, S>[] = [];
-  protected hasAllEntities: boolean = false;
+  public hasAllEntities = false;
 
-  protected readonly syncStates: Map<S, OpenPromise> = new Map();
+  protected readonly entities: Entity<T, S>[] = [];
+
+  protected readonly syncStates: Map<S, OpenPromise> = new Map<S, OpenPromise>();
 
   protected readonly checkedSyncStates: Set<S> = new Set();
 
@@ -50,11 +59,20 @@ export class StateCoordinator<T, S> {
     if (ent === void 0) {
       ent = this.addEntity(entity);
     }
-    ent.states.push(state);
+    // Something is waiting for entity to reach the state...
+    const openPromise = ent.states.get(state);
+    if (openPromise instanceof OpenPromise) {
+      // ...so resolve it
+      openPromise.resolve();
+    }
+    ent.states.set(state, null);
     this.checkSyncState(state);
   }
 
   public waitForSyncState(state: S, entity: T | null = null): void | Promise<void> {
+    if (this.entities.length === 0) {
+      return;
+    }
     const openPromise = this.syncStates.get(state);
     if (openPromise === void 0) {
       return;
@@ -77,6 +95,35 @@ export class StateCoordinator<T, S> {
 
     // this.checkSyncState(state);
     return openPromise.isPending ? openPromise.promise : void 0;
+  }
+
+  public waitForEntityState(entity: T, state: S): void | Promise<void> {
+    if (!this.syncStates.has(state)) {
+      return;
+    }
+
+    // Find the entity...
+    let ent = this.entities.find(e => e.entity === entity);
+    // ...adding it if it doesn't exist.
+    if (ent == null) {
+      ent = this.addEntity(entity);
+    }
+
+    // If we've already reached, return (no wait)
+    if (ent.hasReachedState(state)) {
+      return;
+    }
+
+    // Get open promise...
+    let openPromise = ent.states.get(state);
+    // ...creating a new one if necessary.
+    if (openPromise == null) {
+      openPromise = new OpenPromise();
+      ent.states.set(state, openPromise);
+    }
+
+    // Return the promise to await
+    return openPromise.promise;
   }
 
   public checkingSyncState(state: S): boolean {
@@ -104,7 +151,7 @@ export class StateCoordinator<T, S> {
     if (this.hasAllEntities &&
       openPromise.isPending &&
       // Check that this state has been done by all state entities and if so resolve the promise
-      this.entities.every(ent => ent.states.includes(state)) &&
+      this.entities.every(ent => ent.hasReachedState(state)) &&
       // Check that this state has been checked (reached) by all state entities and if so resolve the promise
       (!this.checkedSyncStates.has(state) || this.entities.every(ent => ent.checkedStates.includes(state)))
     ) {
@@ -123,9 +170,7 @@ export class StateCoordinator<T, S> {
 
   protected resetSyncStates(): void {
     this.syncStates.forEach((promise: OpenPromise, state: S) => {
-      if (!promise.isPending &&
-        !this.entities.every(entity => entity.states.includes(state))
-      ) {
+      if (!promise.isPending && !this.entities.every(ent => ent.hasReachedState(state))) {
         this.addSyncState(state);
       }
     });

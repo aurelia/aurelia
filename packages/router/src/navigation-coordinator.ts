@@ -15,7 +15,7 @@ export type NavigationState =
   'guarded' | // fulfilled when check hooks canUnload and canLoad (if any) have been called
   'routed' | // fulfilled when initial routing hooks (if any) have been called
   'loaded' | // fulfilled when load has been called
-  // 'bound' | // fulfilled when bind has been called (I think I want this back)
+  'bound' | // fulfilled when bind has been called (I think I want this back)
   'swapped' |
   'unloaded' | // fulfilled when unload has been called
   'completed' // fulfilled when everything is done
@@ -41,10 +41,21 @@ export class NavigationCoordinatorOptions {
 }
 
 export class NavigationCoordinator extends StateCoordinator<IEndpoint, NavigationState> {
+  public static lastId = 0;
+
+  public id: number;
+
+  public  running = false;
+  public cancelled = false;
+
   private router!: IRouter;
   private navigation!: Navigation;
 
-  private running: boolean = false;
+
+  public constructor() {
+    super();
+    this.id = ++NavigationCoordinator.lastId;
+  }
 
   public static create(router: IRouter, navigation: Navigation, options: NavigationCoordinatorOptions): StateCoordinator<IEndpoint, NavigationState> {
     const coordinator = new NavigationCoordinator();
@@ -92,6 +103,7 @@ export class NavigationCoordinator extends StateCoordinator<IEndpoint, Navigatio
   }
 
   public cancel(): void {
+    this.cancelled = true;
     // TODO: Take care of disabling viewports when cancelling and stateful!
     this.entities.forEach(entity => {
       const abort = entity.entity.abortContentChange(null);

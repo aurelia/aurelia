@@ -20,7 +20,7 @@ import {
   isCustomElementViewModel,
 } from '@aurelia/runtime-html';
 import { IContainer, Writable } from '@aurelia/kernel';
-import { IRouter } from '../router.js';
+import { IRouter } from '../index.js';
 import { ViewportScope, IViewportScopeOptions } from '../viewport-scope.js';
 import { IRoutingController } from '../endpoints/endpoint.js';
 import { ViewportCustomElement } from './viewport.js';

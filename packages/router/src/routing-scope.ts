@@ -5,7 +5,7 @@
  *
  */
 import { IViewportScopeOptions, ViewportScope } from './viewport-scope.js';
-import { CustomElementType } from '@aurelia/runtime-html';
+import { CustomElement, CustomElementType, getEffectiveParentNode, ICustomElementController, ICustomElementViewModel, INode } from '@aurelia/runtime-html';
 import { FoundRoute } from './found-route.js';
 import { IRouter } from './router.js';
 import { RoutingInstruction } from './instructions/routing-instruction.js';
@@ -17,6 +17,8 @@ import { IRoute, Route } from './route.js';
 import { Endpoint, IConnectedCustomElement } from './endpoints/endpoint.js';
 import { RouterOptions } from './router-options.js';
 import { EndpointMatcher, IMatchEndpointsResult } from './endpoint-matcher.js';
+import { EndpointContent, Router } from './index.js';
+import { IContainer, Metadata } from '@aurelia/kernel';
 
 export type NextContentAction = 'skip' | 'reload' | 'swap' | '';
 
@@ -56,7 +58,9 @@ export type NextContentAction = 'skip' | 'reload' | 'swap' | '';
  */
 
 export class RoutingScope {
-  public id: string = '.';
+  public static lastId = 0;
+
+  public id = -1;
   public scope: RoutingScope;
 
   public parent: RoutingScope | null = null;
@@ -64,7 +68,7 @@ export class RoutingScope {
   public replacedChildren: RoutingScope[] = [];
   public path: string | null = null;
 
-  public enabled: boolean = true;
+  // public enabled: boolean = true;
 
   // Support collection feature in viewport scopes
   public childCollections: Record<string, unknown[]> = {};
@@ -73,13 +77,49 @@ export class RoutingScope {
     public readonly router: IRouter,
     public readonly hasScope: boolean,
     public owningScope: RoutingScope | null,
-    public endpoint: Endpoint,
+    public endpointContent: EndpointContent,
     public rootComponentType: CustomElementType | null = null, // temporary. Metadata will probably eliminate it
   ) {
+    this.id = ++RoutingScope.lastId;
     this.owningScope = owningScope ?? this;
     this.scope = this.hasScope ? this : this.owningScope.scope;
+    // setInterval(() => { console.log(this.toString(this.parent === null)); }, 10000);
   }
 
+  public static for(origin: Element | ICustomElementViewModel | Viewport | ViewportScope | RoutingScope | ICustomElementController | IContainer | null): RoutingScope | null {
+    if (origin == null) {
+      return null;
+    }
+    if (origin instanceof RoutingScope || origin instanceof Viewport || origin instanceof ViewportScope) {
+      return origin.scope;
+    }
+    // return this.getClosestScope(origin) || this.rootScope!.scope;
+    let container: IContainer | null | undefined;
+
+    if ('resourceResolvers' in origin) {
+      container = origin;
+    } else {
+      if ('context' in origin) {
+        container = origin.context;
+      } else if ('$controller' in origin) {
+        container = origin.$controller!.context;
+      } else {
+        const controller = RoutingScope.CustomElementFor(origin as Node);
+        container = controller?.context;
+      }
+    }
+    if (container == null) {
+      return null;
+    }
+    const closestEndpoint = (container.has(Router.closestEndpointKey, true)
+      ? container.get(Router.closestEndpointKey)
+      : null) as Endpoint | null;
+    return closestEndpoint?.scope ?? null;
+  }
+
+  public get endpoint(): Endpoint {
+    return this.endpointContent.endpoint;
+  }
   public get isViewport(): boolean {
     return this.endpoint instanceof Viewport;
   }
@@ -91,6 +131,10 @@ export class RoutingScope {
     return this.isViewport ? 'Viewport' : 'ViewportScope';
   }
 
+  public get enabled(): boolean {
+    return this.endpointContent.isActive;
+  }
+
   public get passThroughScope(): boolean {
     return this.isViewportScope && (this.endpoint as ViewportScope).passThroughScope;
   }
@@ -100,7 +144,7 @@ export class RoutingScope {
   }
 
   public toString(recurse = false): string {
-    return `${this.owningScope !== this ? this.owningScope!.toString() : ''}/${this.endpoint!.toString()}` +
+    return `${this.owningScope !== this ? this.owningScope!.toString() : ''}/${!this.enabled ? '(' : ''}${this.endpoint!.toString()}#${this.id}${!this.enabled ? ')' : ''}` +
       // eslint-disable-next-line prefer-template
       `${recurse ? `\n` + this.children.map(child => child.toString(true)).join('') : ''}`;
   }
@@ -200,14 +244,14 @@ export class RoutingScope {
         scope.endpoint.name === name)?.endpoint ?? null;
     // Each endpoint element has its own Endpoint
     if (connectedCE != null && endpoint?.connectedCE != null && endpoint.connectedCE !== connectedCE) {
-      endpoint.enabled = false;
+      // e: endpoint.enabled = false;
       endpoint = this.getOwnedScopes(true)
         .find(scope => scope.type === type &&
           scope.endpoint.name === name &&
           scope.endpoint.connectedCE === connectedCE)?.endpoint
         ?? null;
       if (endpoint != null) {
-        endpoint.enabled = true;
+        // e: endpoint.enabled = true;
       }
     }
     if (endpoint == null) {
@@ -253,12 +297,12 @@ export class RoutingScope {
   public disableReplacedChildren(): void {
     this.replacedChildren = this.enabledChildren;
     for (const scope of this.replacedChildren) {
-      scope.enabled = false;
+      // e: scope.enabled = false;
     }
   }
   public reenableReplacedChildren(): void {
     for (const scope of this.replacedChildren) {
-      scope.enabled = true;
+      // e: scope.enabled = true;
     }
   }
 
@@ -285,29 +329,25 @@ export class RoutingScope {
   }
 
   public canUnload(step: Step<boolean> | null): boolean | Promise<boolean> {
-    // console.log('canUnload', step.path);
+    // console.log('canUnload', this.toString(), step!.path, step!.root.report);
     return Runner.run(step,
-      () => {
-        return Runner.runParallel(null,
-          ...this.children.map(child => {
-            return child.endpoint !== null
-              ? (childStep: Step<boolean>) => child.endpoint!.canUnload(childStep)
-              : (childStep: Step<boolean>) => child.canUnload(childStep);
-          }));
+      (stepParallel: Step<boolean>) => {
+        return Runner.runParallel(stepParallel,
+          ...this.children.map(child => child.endpoint !== null
+            ? (childStep: Step<boolean>) => child.endpoint!.canUnload(childStep)
+            : (childStep: Step<boolean>) => child.canUnload(childStep)
+          ));
       },
-      (step: Step<boolean>) => step.previousValue ?? [], // Propagate to next, resolving promise if necessary
-      (step: Step<boolean>) => {
-        if (step.previousValue == null) { debugger; }
-        return (step.previousValue as boolean[]).every(result => result);
-      }
-    ) as boolean | Promise<boolean>;
+      (step: Step<boolean>) => (step.previousValue as boolean[]).every(result => result)) as boolean | Promise<boolean>;
   }
 
-  public unload(step: Step<void> | null, recurse: boolean): Step<void> {
+  public unload(step: Step<void> | null, recurse: boolean, transitionId: number): Step<void> {
+    // console.log('unload routing scope', this.toString(), step!.path, step!.root.report);
     return Runner.runParallel(step,
       ...this.children.map(child => child.endpoint !== null
-        ? (step: Step<void>) => child.endpoint!.unload(step, recurse)
-        : (step: Step<void>) => child.unload(step, recurse))) as Step<void>;
+        ? (childStep: Step<void>) => child.endpoint.unload(childStep, recurse, transitionId)
+        : (childStep: Step<void>) => child.unload(childStep, recurse, transitionId)
+      )) as Step<void>;
   }
 
   public matchScope(instructions: RoutingInstruction[], deep = false): RoutingInstruction[] {
@@ -444,5 +484,22 @@ export class RoutingScope {
       route.instructions = LoadInstructionResolver.toRoutingInstructions(this.router, route.instructions!);
     }
     return route as Route;
+  }
+
+    // TODO: This is probably wrong since it caused test fails when in CustomElement.for
+  // Fred probably knows and will need to look at it
+  // This can most likely also be changed so that the node traversal isn't necessary
+  private static CustomElementFor(node: INode): ICustomElementController | undefined {
+    let cur: INode | null = node;
+    while (cur !== null) {
+      const nodeResourceName: string = (cur as Element).nodeName.toLowerCase();
+      const controller: ICustomElementController = Metadata.getOwn(CustomElement.name + ":" + nodeResourceName, cur)
+        || Metadata.getOwn(CustomElement.name, cur);
+      if (controller !== void 0) {
+        return controller;
+      }
+      cur = getEffectiveParentNode(cur);
+    }
+    return (void 0);
   }
 }

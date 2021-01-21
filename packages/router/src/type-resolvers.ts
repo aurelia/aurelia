@@ -25,7 +25,8 @@ export const LoadInstructionResolver = {
     if ('origin' in options && !('context' in options)) {
       (options as IRoutingInstructionsOptions).context = options.origin;
     }
-    let scope = router.findScope((options as IRoutingInstructionsOptions).context ?? null);
+    // let scope = router.findScope((options as IRoutingInstructionsOptions).context ?? null);
+    let scope = RoutingScope.for((options as IRoutingInstructionsOptions).context ?? null) ?? router.rootScope?.scope ?? null;
     if (typeof loadInstructions === 'string') {
       // If it's not from scope root, figure out which scope
       if (!(loadInstructions).startsWith('/')) {

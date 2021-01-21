@@ -7,11 +7,11 @@
 /* eslint-disable no-template-curly-in-string */
 /* eslint-disable prefer-template */
 /* eslint-disable max-lines-per-function */
-import { DI, IContainer, Registration, IIndexable, Key, Metadata, EventAggregator, IEventAggregator, IDisposable } from '@aurelia/kernel';
-import { CustomElementType, CustomElement, INode, ICustomElementController, ICustomElementViewModel, IAppRoot, isRenderContext, getEffectiveParentNode } from '@aurelia/runtime-html';
+import { DI, IContainer, Registration, IIndexable, Key, EventAggregator, IEventAggregator, IDisposable, Protocol } from '@aurelia/kernel';
+import { CustomElementType, ICustomElementViewModel, IAppRoot } from '@aurelia/runtime-html';
 import { LoadInstruction } from './interfaces.js';
 import { AnchorEventInfo, LinkHandler } from './link-handler.js';
-import { NavigatorViewerEvent, Navigator, NavigatorNavigateEvent } from './navigator.js';
+import { Navigator, NavigatorNavigateEvent } from './navigator.js';
 import { LoadInstructionResolver } from './type-resolvers.js';
 import { arrayRemove, arrayUnique } from './utilities/utils.js';
 import { IViewportOptions, Viewport } from './viewport.js';
@@ -83,13 +83,14 @@ export const IRouter = DI.createInterface<IRouter>('IRouter').withDefault(x => x
 
 export interface IRouter extends Router { }
 
-/**
- * @internal
- */
-class ClosestScope { }
+// /**
+//  * @internal
+//  */
+// class ClosestScope { }
 
 export class Router implements IRouter {
   public static readonly inject: readonly Key[] = [IContainer, IEventAggregator, Navigator, BrowserViewerStore, LinkHandler];
+  public static readonly closestEndpointKey = Protocol.annotation.keyFor('closest-endpoint');
 
   public rootScope: ViewportScope | null = null;
 
@@ -191,6 +192,7 @@ export class Router implements IRouter {
 
     this.navigator.start({
       store: this.navigation,
+      viewer: this.navigation,
       statefulHistoryLength: RouterOptions.statefulHistoryLength,
     });
     this.linkHandler.start({ callback: this.linkCallback, useHref: RouterOptions.useHref });
@@ -310,28 +312,30 @@ export class Router implements IRouter {
       transformedInstruction = '';
     }
 
+    console.log('NAVIGATION', instruction.instruction);
+
     // The instruction should have a scope so use rootScope if it doesn't
     instruction.scope = instruction.scope ?? this.rootScope!.scope;
     // Ask the scope for routing instructions. The result will be either that there's a configured
     // route (which in turn contain routing instructions) or a list of routing instructions
-    let configuredRoute = instruction.scope!.findInstructions(transformedInstruction);
+    let foundRoute = instruction.scope!.findInstructions(transformedInstruction);
     let configuredRoutePath: string | null = null;
 
     // Make sure we got routing instructions...
-    if (instruction.instruction.length > 0 && !configuredRoute.foundConfiguration && !configuredRoute.foundInstructions) {
+    if (instruction.instruction.length > 0 && !foundRoute.foundConfiguration && !foundRoute.foundInstructions) {
       // ...call unknownRoute hook if we didn't...
       // TODO: Add unknownRoute hook here and put possible result in instructions
-      this.unknownRoute(configuredRoute.remaining);
+      this.unknownRoute(foundRoute.remaining);
     }
     // ...and use the found routing instructions.
-    let instructions = configuredRoute.instructions;
+    let instructions = foundRoute.instructions;
 
     // If it's a configured route...
-    if (configuredRoute.foundConfiguration) {
+    if (foundRoute.foundConfiguration) {
       // ...trim leading slash and ...
       instruction.path = (instruction.instruction as string).replace(/^\//, '');
       // ...store the matching route.
-      configuredRoutePath = (configuredRoutePath ?? '') + configuredRoute.matching;
+      configuredRoutePath = (configuredRoutePath ?? '') + foundRoute.matching;
       this.rootScope!.path = configuredRoutePath;
     }
     // TODO: Used to have an early exit if no instructions. Restore it?
@@ -379,6 +383,16 @@ export class Router implements IRouter {
       }
       const changedEndpoints: IEndpoint[] = [];
 
+      // Get all the scopes of matched instructions...
+      const matchedScopes = matchedInstructions.map(instr => instr.scope);
+      // ...and all the endpoints...
+      const matchedEndpoints = matchedInstructions.map(instr => instr.endpoint);
+      // ...and create and add clear instructions for all endpoints in
+      // any of those scopes that aren't already in an instruction.
+      matchedInstructions.push(...clearEndpoints
+        .filter(endpoint => matchedScopes.includes(endpoint.owningScope) && !matchedEndpoints.includes(endpoint))
+        .map(endpoint => RoutingInstruction.createClear(endpoint)));
+
       // TODO: Review whether this await poses a problem (it's currently necessary for new viewports to load)
       const hooked = await RoutingHook.invokeBeforeNavigation(matchedInstructions, instruction);
       if (hooked === false) {
@@ -389,6 +403,7 @@ export class Router implements IRouter {
         matchedInstructions = hooked;
       }
 
+      const hoistedInstructions: RoutingInstruction[] = [];
       for (const matchedInstruction of matchedInstructions) {
         const endpoint = matchedInstruction.endpoint;
         if (endpoint !== null) {
@@ -405,25 +420,76 @@ export class Router implements IRouter {
           // We're doing something, so don't clear this endpoint...
           const dontClear = [endpoint];
           if (action === 'swap') {
-            // ...and none of it's children if we're swapping them out.
-            dontClear.push(...endpoint.scope.allScopes(true, true).map(scope => scope.endpoint));
+            // ...and none of it's _current_ children if we're swapping them out.
+            dontClear.push(...endpoint.content.connectedScope.allScopes(true, true).map(scope => scope.endpoint));
           }
-          // Exclude the endpoints to not clear from the ones to be cleared
-          arrayRemove(clearEndpoints, value => dontClear.includes(value));
-          // And also exclude the routing instruction's parent viewport scope
+          // Exclude the endpoints to not clear from the ones to be cleared...
+          arrayRemove(clearEndpoints, clear => dontClear.includes(clear));
+          // ...as well as already matched clear instructions (but not itself).
+          arrayRemove(matchedInstructions, matched => matched !== matchedInstruction
+            && matched.isClear && dontClear.includes(matched.endpoint!));
+          // And also exclude the routing instruction's parent viewport scope...
           if (!matchedInstruction.isClear && matchedInstruction.scope?.parent?.isViewportScope) {
-            arrayRemove(clearEndpoints, value => value === matchedInstruction.scope!.parent!.endpoint);
+            // ...from clears...
+            arrayRemove(clearEndpoints, clear => clear === matchedInstruction.scope!.parent!.endpoint);
+            // ...and already matched clears.
+            arrayRemove(matchedInstructions, matched => matched !== matchedInstruction
+              && matched.isClear && matched.endpoint === matchedInstruction.scope!.parent!.endpoint);
+          }
+          // If an instruction with no instruction or only skip actions above it results in
+          // skip (and that's the only type that can result in skip), we hoist its next scope
+          // instructions instead to this iteration. This way, the first iteration performs
+          // actions in all instruction endpoints meaning that all relevant canUnload are
+          // triggered in first iteration.
+          if (action === 'skip' && matchedInstruction.hasNextScopeInstructions) {
+            // TODO: Add any child to temp var and do additions to matched before actually starting to process this level
+            // debugger;
+            hoistedInstructions.push(...(matchedInstruction.nextScopeInstructions as RoutingInstruction[]));
+          }
+          // If the endpoint has been changed/swapped the next scope instructions
+          // need to be moved into the new endpoint content scope
+          if (action !== 'skip' && matchedInstruction.hasNextScopeInstructions) {
+            for (const nextScopeInstruction of matchedInstruction.nextScopeInstructions!) {
+              nextScopeInstruction.scope = endpoint.scope;
+            }
           }
         }
       }
 
-      // If navigation is unrestricted (no other syncing done than on canUnload) we can tell
-      // the navigation coordinator to instruct endpoints to transition
-      if (!this.isRestrictedNavigation) {
-        coordinator.finalEntity();
+      // If all first iteration instructions now do something the transitions can start
+      // if (hoistedInstructions.length === 0) {
+      const skipping = matchedInstructions.filter(instr => instr.endpoint?.nextContentAction === 'skip');
+      const skippingWithMore = skipping.filter(instr => instr.hasNextScopeInstructions);
+      if (skipping.length > 0 && (skippingWithMore.length > 0 || foundRoute.hasRemaining)) {
+        // if (skipping.length === 0 || (skippingWithMore.length === 0 && !foundRoute.hasRemaining)) {
+        console.log('Skipped endpoint actions, NO run', matchedInstructions.map(i => `${i.endpoint?.toString()}:${i.endpoint?.nextContentAction}`));
+      } else {
+        if (skipping.length > 0) {
+          console.log('Skipped endpoints actions, but nothing remaining, run anyway.', instruction.instruction, matchedInstructions.map(i => `${i.endpoint?.toString()}:${i.endpoint?.nextContentAction}`));
+        }
+        // If navigation is unrestricted (no other syncing done than on canUnload) we can tell
+        // the navigation coordinator to instruct endpoints to transition
+        if (!this.isRestrictedNavigation) {
+          coordinator.finalEntity();
+        }
+        coordinator.run();
+        // await coordinator.syncState('routed');
+
+        // Wait for (blocking) canUnload to finish
+        if (coordinator.hasAllEntities) {
+          const guardedUnload = coordinator.waitForSyncState('guardedUnload');
+          if (guardedUnload instanceof Promise) {
+            console.log('>>> Waiting for guardedUnload', (coordinator as any).entities.map((ent: any) => ent.entity.toString()).join(','));
+            await guardedUnload;
+            console.log('<<< Waited for guardedUnload');
+          }
+        }
       }
-      coordinator.run();
-      // await coordinator.syncState('routed');
+
+      // If, for whatever reason, this navigation got cancelled, stop processing
+      if (coordinator.cancelled) {
+        return;
+      }
 
       // Add this iteration's changed endpoints (inside the loop) to the total of all
       // updated endpoints (outside the loop)
@@ -440,39 +506,65 @@ export class Router implements IRouter {
       // Endpoints have now (possibly) been added or removed, so try and match
       // any remaining instructions
       if (remainingInstructions.length > 0) {
-        ({ matchedInstructions: matchedInstructions, remainingInstructions } = this.matchEndpoints(remainingInstructions, earlierMatchedInstructions));
+        ({ matchedInstructions, remainingInstructions } = this.matchEndpoints(remainingInstructions, earlierMatchedInstructions));
       }
 
-      // Look for configured child routes (once we've loaded everything so far?)
-      if (configuredRoute.hasRemaining &&
+      // If this isn't a restricted ("static") navigation everything will run as soon as possible
+      // and then we need to wait for new viewports to be loaded before continuing here (but of
+      // course only if we're running)
+      // TODO: Use a better solution here (by checking and waiting for relevant viewports)
+      if (!this.isRestrictedNavigation &&
+        (matchedInstructions.length > 0 || remainingInstructions.length > 0) &&
+        coordinator.running) {
+        // const waitForSwapped = coordinator.waitForSyncState('bound');
+        // if (waitForSwapped instanceof Promise) {
+        //   console.log('>>> AWAIT waitForBound');
+        //   await waitForSwapped;
+        //   console.log('<<< AWAIT waitForBound');
+        // }
+        const waitForSwapped = coordinator.waitForSyncState('swapped');
+        if (waitForSwapped instanceof Promise) {
+          console.log('>>> AWAIT waitForSwapped');
+          await waitForSwapped;
+          console.log('<<< AWAIT waitForSwapped');
+        }
+      }
+
+      // Look for child routes (configured) and instructions (once we've loaded everything so far?)
+      if (foundRoute.hasRemaining &&
         matchedInstructions.length === 0 &&
         remainingInstructions.length === 0) {
 
-        // If this isn't a restricted ("static") navigation everything will run as soon as possible
-        // and then we need to wait for new viewports to be loaded before continuing here
-        // TODO: Use a better solution here (by checking and waiting for relevant viewports)
-        if (!this.isRestrictedNavigation) {
-          const waitForSwapped = coordinator.waitForSyncState('swapped');
-          if (waitForSwapped instanceof Promise) {
-            console.log('AWAIT waitForSwapped');
-            await waitForSwapped;
-          }
-        }
+        // // If this isn't a restricted ("static") navigation everything will run as soon as possible
+        // // and then we need to wait for new viewports to be loaded before continuing here
+        // // TODO: Use a better solution here (by checking and waiting for relevant viewports)
+        // if (!this.isRestrictedNavigation) {
+        //   // const waitForSwapped = coordinator.waitForSyncState('bound');
+        //   // if (waitForSwapped instanceof Promise) {
+        //   //   console.log('AWAIT waitForBound');
+        //   //   await waitForSwapped;
+        //   // }
+        //   const waitForSwapped = coordinator.waitForSyncState('swapped');
+        //   if (waitForSwapped instanceof Promise) {
+        //     console.log('AWAIT waitForSwapped');
+        //     await waitForSwapped;
+        //   }
+        // }
 
-        // Get configured child route (if any)
-        const { configuredChildRoute, configuredChildRoutePath } = this.findConfiguredChildRoute(earlierMatchedInstructions, configuredRoute, configuredRoutePath);
+        // Get child route (configured) and instructions (if any)
+        const { foundChildRoute, configuredChildRoutePath } = this.findChildRoute(earlierMatchedInstructions, foundRoute, configuredRoutePath);
 
         // Proceed with found child route...
-        if (configuredChildRoute.foundInstructions) {
-          // ...by making it the current configured route...
-          configuredRoute = configuredChildRoute;
+        if (foundChildRoute.foundInstructions) {
+          // ...by making it the current route...
+          foundRoute = foundChildRoute;
           // ...and the current configured route path...
           configuredRoutePath = configuredChildRoutePath;
           // ...and add the instructions to processing...
-          this.appendInstructions(configuredChildRoute.instructions);
+          this.appendInstructions(foundChildRoute.instructions);
         } else { // ...or deal with unknown route
           // TODO: Add unknownRoute hook here and put possible result in instructions
-          this.unknownRoute(configuredChildRoute.remaining);
+          this.unknownRoute(foundChildRoute.remaining);
         }
       }
 
@@ -491,14 +583,8 @@ export class Router implements IRouter {
 
       // Once done with all explicit instructions...
       if (matchedInstructions.length === 0 && remainingInstructions.length === 0) {
-        // ...create the implicit clear instructions (if any)
-        matchedInstructions = clearEndpoints.map(endpoint => {
-          const instr = RoutingInstruction.create(RoutingInstruction.separators.clear, endpoint.isViewport ? endpoint as Viewport : void 0) as RoutingInstruction;
-          if (endpoint.isViewportScope) {
-            instr.viewportScope = endpoint as ViewportScope;
-          }
-          return instr;
-        });
+        // ...create the (remaining) implicit clear instructions (if any)
+        matchedInstructions = clearEndpoints.map(endpoint => RoutingInstruction.createClear(endpoint));
       }
     } while (matchedInstructions.length > 0 || remainingInstructions.length > 0);
 
@@ -527,37 +613,63 @@ export class Router implements IRouter {
     ) as void | Promise<void>;
   };
 
-  /**
-   * @internal
-   */
-  public findScope(origin: Element | ICustomElementViewModel | Viewport | RoutingScope | ICustomElementController | null): RoutingScope {
-    if (origin === void 0 || origin === null) {
-      return this.rootScope!.scope;
-    }
-    if (origin instanceof RoutingScope || origin instanceof Viewport) {
-      return origin.scope;
-    }
-    return this.getClosestScope(origin) || this.rootScope!.scope;
-  }
-  /**
-   * @internal
-   */
-  public findParentScope(container: IContainer | null): RoutingScope {
-    if (container === null) {
-      return this.rootScope!.scope;
-    }
-    // Already (prematurely) set on this view model so get it from container's parent instead
-    if (container.has(ClosestScope, false)) {
-      container = (container as IContainer & { parent: IContainer }).parent;
-      if (container === null) {
-        return this.rootScope!.scope;
-      }
-    }
-    if (container.has(ClosestScope, true)) {
-      return container.get<RoutingScope>(ClosestScope);
-    }
-    return this.rootScope!.scope;
-  }
+  // /**
+  //  * @internal
+  //  */
+  // public findScope(origin: Element | ICustomElementViewModel | Viewport | ViewportScope | RoutingScope | ICustomElementController | IContainer | null): RoutingScope {
+  //   if (origin == null) {
+  //     return this.rootScope!.scope;
+  //   }
+  //   if (origin instanceof RoutingScope || origin instanceof Viewport || origin instanceof ViewportScope) {
+  //     return origin.scope;
+  //   }
+  //   // return this.getClosestScope(origin) || this.rootScope!.scope;
+  //   let container: IContainer | null | undefined;
+
+  //   if ('resourceResolvers' in origin) {
+  //     container = origin;
+  //   } else {
+  //     if ('context' in origin) {
+  //       container = origin.context;
+  //     } else if ('$controller' in origin) {
+  //       container = origin.$controller!.context;
+  //     } else {
+  //       const controller = this.CustomElementFor(origin as Node);
+  //       container = controller?.context;
+  //     }
+  //   }
+  //   if (container == null) {
+  //     return this.rootScope!.scope;
+  //   }
+  //   const closestEndpoint = (container.has(Router.closestEndpointKey, true)
+  //     ? container.get(Router.closestEndpointKey)
+  //     : this.rootScope) as Endpoint;
+  //   return closestEndpoint.scope;
+  // }
+
+  // /**
+  //  * @internal
+  //  */
+  // public findParentScope(container: IContainer | null): RoutingScope {
+  //   if (container === null) {
+  //     return this.rootScope!.scope;
+  //   }
+  //   // const $ViewportCustomElement = ViewportCustomElement;
+  //   // const $ViewportScopeCustomElement = ViewportScopeCustomElement;
+  //   // const viewport = container.get<ViewportCustomElement>(ViewportCustomElement);
+  //   // const viewportScope = container.get<ViewportScopeCustomElement>(ViewportScopeCustomElement);
+  //   // Already (prematurely) set on this view model so get it from container's parent instead
+  //   if (container.has(ClosestScope, false)) {
+  //     container = (container as IContainer & { parent: IContainer }).parent;
+  //     if (container === null) {
+  //       return this.rootScope!.scope;
+  //     }
+  //   }
+  //   if (container.has(ClosestScope, true)) {
+  //     return container.get<RoutingScope>(ClosestScope);
+  //   }
+  //   return this.rootScope!.scope;
+  // }
 
   /**
    * Public API - Get endpoint by name
@@ -581,38 +693,38 @@ export class Router implements IRouter {
     throw new Error('Not implemented');
   }
 
-  /**
-   * Called from the viewport scope custom element in created()
-   *
-   * @internal
-   */
-  public setClosestScope(viewModelOrContainer: ICustomElementViewModel | IContainer, scope: RoutingScope): void {
-    const container = this.getContainer(viewModelOrContainer);
-    Registration.instance(ClosestScope, scope).register(container!);
-  }
-  /**
-   * @internal
-   */
-  public getClosestScope(viewModelOrElement: ICustomElementViewModel | Element | ICustomElementController | IContainer): RoutingScope | null {
-    const container: IContainer | null = 'resourceResolvers' in viewModelOrElement
-      ? viewModelOrElement as IContainer
-      : this.getClosestContainer(viewModelOrElement as ICustomElementViewModel | Element | ICustomElementController);
-    if (container === null) {
-      return null;
-    }
-    if (!container.has(ClosestScope, true)) {
-      return null;
-    }
-    return container.get<RoutingScope>(ClosestScope) || null;
-  }
-  /**
-   * @internal
-   */
-  public unsetClosestScope(viewModelOrContainer: ICustomElementViewModel | IContainer): void {
-    const container = this.getContainer(viewModelOrContainer);
-    // TODO: Get an 'unregister' on container
-    (container as any).resolvers.delete(ClosestScope);
-  }
+  // /**
+  //  * Called from the viewport scope custom element in created()
+  //  *
+  //  * @internal
+  //  */
+  // public setClosestScope(viewModelOrContainer: ICustomElementViewModel | IContainer, scope: RoutingScope): void {
+  //   const container = this.getContainer(viewModelOrContainer);
+  //   Registration.instance(ClosestScope, scope).register(container!);
+  // }
+  // /**
+  //  * @internal
+  //  */
+  // public getClosestScope(viewModelOrElement: ICustomElementViewModel | Element | ICustomElementController | IContainer): RoutingScope | null {
+  //   const container: IContainer | null = 'resourceResolvers' in viewModelOrElement
+  //     ? viewModelOrElement as IContainer
+  //     : this.getClosestContainer(viewModelOrElement as ICustomElementViewModel | Element | ICustomElementController);
+  //   if (container === null) {
+  //     return null;
+  //   }
+  //   if (!container.has(ClosestScope, true)) {
+  //     return null;
+  //   }
+  //   return container.get<RoutingScope>(ClosestScope) || null;
+  // }
+  // /**
+  //  * @internal
+  //  */
+  // public unsetClosestScope(viewModelOrContainer: ICustomElementViewModel | IContainer): void {
+  //   const container = this.getContainer(viewModelOrContainer);
+  //   // TODO: Get an 'unregister' on container
+  //   (container as any).resolvers.delete(ClosestScope);
+  // }
 
   /**
    * Called from the custom elements of endpoints
@@ -620,16 +732,33 @@ export class Router implements IRouter {
    * @internal
    */
   public connectEndpoint(endpoint: Viewport | ViewportScope | null, type: EndpointType, connectedCE: IConnectedCustomElement, name: string, options?: IViewportOptions): Viewport | ViewportScope {
-    const parentScope = this.findParentScope(connectedCE.container);
+    const container = (connectedCE.container as IContainer & { parent: IContainer });
+    const closestEndpoint = (container.has(Router.closestEndpointKey, true) ? container.get<Endpoint>(Router.closestEndpointKey) : this.rootScope) as Endpoint;
+    console.log('closestEndpoint', closestEndpoint?.toString());
+    const parentScope = closestEndpoint.connectedScope;
+    console.log('parentScope', parentScope.toString());
     if (endpoint === null) {
       endpoint = parentScope.addEndpoint(type, name, connectedCE, options);
-      this.setClosestScope(connectedCE.container, endpoint.connectedScope);
+      Registration.instance(Router.closestEndpointKey, endpoint).register(container);
+      console.log('rootScope', this.rootScope?.scope.toString(true));
       if (!this.isRestrictedNavigation) {
         this.pendingConnects.set(connectedCE, new OpenPromise());
       }
     } else {
       this.pendingConnects.get(connectedCE)?.resolve();
     }
+    // let parentScope = this.findParentScope(connectedCE.container);
+    // // Make sure we get the correct _active_ scope
+    // parentScope = parentScope.endpoint.connectedScope ?? parentScope;
+    // if (endpoint === null) {
+    //   endpoint = parentScope.addEndpoint(type, name, connectedCE, options);
+    //   this.setClosestScope(connectedCE.container, endpoint.connectedScope);
+    //   if (!this.isRestrictedNavigation) {
+    //     this.pendingConnects.set(connectedCE, new OpenPromise());
+    //   }
+    // } else {
+    //   this.pendingConnects.get(connectedCE)?.resolve();
+    // }
     return endpoint;
   }
   /**
@@ -641,7 +770,7 @@ export class Router implements IRouter {
     if (!endpoint.connectedScope.parent!.removeEndpoint(step, endpoint, connectedCE)) {
       throw new Error("Failed to remove endpoint: " + endpoint.name);
     }
-    this.unsetClosestScope(connectedCE.container);
+    // this.unsetClosestScope(connectedCE.container);
   }
 
   /**
@@ -787,7 +916,7 @@ export class Router implements IRouter {
     if (instructions.length > 0) {
       const instruction = instructions[0];
       if (!instruction.isAddAll && !instruction.isClearAll) {
-        const clearAll = RoutingInstruction.create(RouterOptions.separators.clear) as RoutingInstruction;
+        const clearAll = RoutingInstruction.create(RoutingInstruction.clear()) as RoutingInstruction;
         clearAll.scope = instruction.scope;
         return [clearAll, ...instructions];
       }
@@ -828,8 +957,8 @@ export class Router implements IRouter {
     return { matchedInstructions: allMatchedInstructions.slice(), remainingInstructions: allRemainingInstructions };
   }
 
-  private findConfiguredChildRoute(alreadyMatchedInstructions: RoutingInstruction[], configuredRoute: FoundRoute, configuredRoutePath: string | null) {
-    let configuredChildRoute = new FoundRoute();
+  private findChildRoute(alreadyMatchedInstructions: RoutingInstruction[], configuredRoute: FoundRoute, configuredRoutePath: string | null) {
+    let foundChildRoute = new FoundRoute();
     let configuredChildRoutePath = configuredRoutePath ?? '';
 
     // Get the first occurrence of all endpoints that are a part of the
@@ -842,17 +971,17 @@ export class Router implements IRouter {
     // Go through all endpoints...
     for (const endpoint of routeEndpoints) {
       // ...looking for instructions...
-      configuredChildRoute = endpoint.scope.findInstructions(configuredRoute.remaining);
+      foundChildRoute = endpoint.scope.findInstructions(configuredRoute.remaining);
       // ...and use first configured route if we find one
-      if (configuredChildRoute.foundConfiguration) {
+      if (foundChildRoute.foundConfiguration) {
         break;
       }
     }
-    if (configuredChildRoute.foundInstructions) {
+    if (foundChildRoute.foundInstructions) {
       configuredChildRoutePath += `/${configuredRoute.matching}`;
     }
 
-    return { configuredChildRoute, configuredChildRoutePath };
+    return { foundChildRoute, configuredChildRoutePath };
   }
 
   private addAppendedInstructions(matchedInstructions: RoutingInstruction[], earlierMatchedInstructions: RoutingInstruction[], remainingInstructions: RoutingInstruction[], appendedInstructions: RoutingInstruction[]) {
@@ -871,11 +1000,11 @@ export class Router implements IRouter {
       const appendedInstruction = appendedInstructions.shift() as RoutingInstruction;
 
       // Already matched (and processed) an instruction for this endpoint
-      const foundEarlierExisting = earlierMatchedInstructions.some(instr => instr.sameViewport(appendedInstruction));
+      const foundEarlierExisting = earlierMatchedInstructions.some(instr => instr.sameViewport(appendedInstruction, true));
       // An already matched (but not processed) instruction for this endpoint
-      const existingMatched = matchedInstructions.find(instr => instr.sameViewport(appendedInstruction));
+      const existingMatched = matchedInstructions.find(instr => instr.sameViewport(appendedInstruction, true));
       // An already found (but not matched or processed) instruction for this endpoint
-      const existingRemaining = remainingInstructions.find(instr => instr.sameViewport(appendedInstruction));
+      const existingRemaining = remainingInstructions.find(instr => instr.sameViewport(appendedInstruction, true));
 
       // If it's a default instruction that's already got a non-default in some way, just drop it
       if (appendedInstruction.default &&
@@ -973,53 +1102,53 @@ export class Router implements IRouter {
     return instructions;
   }
 
-  private getClosestContainer(viewModelOrElement: ICustomElementViewModel | Element | ICustomElementController): IContainer | null {
-    if ('context' in viewModelOrElement) {
-      return viewModelOrElement.context;
-    }
+  // private getClosestContainer(viewModelOrElement: ICustomElementViewModel | Element | ICustomElementController): IContainer | null {
+  //   if ('context' in viewModelOrElement) {
+  //     return viewModelOrElement.context;
+  //   }
 
-    if ('$controller' in viewModelOrElement) {
-      return viewModelOrElement.$controller!.context;
-    }
-    const controller = this.CustomElementFor(viewModelOrElement as Node);
+  //   if ('$controller' in viewModelOrElement) {
+  //     return viewModelOrElement.$controller!.context;
+  //   }
+  //   const controller = this.CustomElementFor(viewModelOrElement as Node);
 
-    if (controller === void 0) {
-      return null;
-    }
+  //   if (controller === void 0) {
+  //     return null;
+  //   }
 
-    return controller.context;
-  }
+  //   return controller.context;
+  // }
 
-  private getContainer(viewModelOrContainer: ICustomElementViewModel | IContainer): IContainer | null {
-    if ('resourceResolvers' in viewModelOrContainer) {
-      return viewModelOrContainer;
-    }
+  // private getContainer(viewModelOrContainer: ICustomElementViewModel | IContainer): IContainer | null {
+  //   if ('resourceResolvers' in viewModelOrContainer) {
+  //     return viewModelOrContainer;
+  //   }
 
-    if (isRenderContext(viewModelOrContainer)) {
-      return viewModelOrContainer.get(IContainer);
-    }
+  //   if (isRenderContext(viewModelOrContainer)) {
+  //     return viewModelOrContainer.get(IContainer);
+  //   }
 
-    if ('$controller' in viewModelOrContainer) {
-      return viewModelOrContainer.$controller!.context.get(IContainer);
-    }
+  //   if ('$controller' in viewModelOrContainer) {
+  //     return viewModelOrContainer.$controller!.context.get(IContainer);
+  //   }
 
-    return null;
-  }
+  //   return null;
+  // }
 
-  // TODO: This is probably wrong since it caused test fails when in CustomElement.for
-  // Fred probably knows and will need to look at it
-  // This can most likely also be changed so that the node traversal isn't necessary
-  private CustomElementFor(node: INode): ICustomElementController | undefined {
-    let cur: INode | null = node;
-    while (cur !== null) {
-      const nodeResourceName: string = (cur as Element).nodeName.toLowerCase();
-      const controller: ICustomElementController = Metadata.getOwn(CustomElement.name + ":" + nodeResourceName, cur)
-        || Metadata.getOwn(CustomElement.name, cur);
-      if (controller !== void 0) {
-        return controller;
-      }
-      cur = getEffectiveParentNode(cur);
-    }
-    return (void 0);
-  }
+  // // TODO: This is probably wrong since it caused test fails when in CustomElement.for
+  // // Fred probably knows and will need to look at it
+  // // This can most likely also be changed so that the node traversal isn't necessary
+  // private CustomElementFor(node: INode): ICustomElementController | undefined {
+  //   let cur: INode | null = node;
+  //   while (cur !== null) {
+  //     const nodeResourceName: string = (cur as Element).nodeName.toLowerCase();
+  //     const controller: ICustomElementController = Metadata.getOwn(CustomElement.name + ":" + nodeResourceName, cur)
+  //       || Metadata.getOwn(CustomElement.name, cur);
+  //     if (controller !== void 0) {
+  //       return controller;
+  //     }
+  //     cur = getEffectiveParentNode(cur);
+  //   }
+  //   return (void 0);
+  // }
 }

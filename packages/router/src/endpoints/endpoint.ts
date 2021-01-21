@@ -10,6 +10,7 @@ import { ICustomElementController, ICustomElementViewModel } from '@aurelia/runt
 // import { RoutingInstruction } from '../instructions/routing-instruction.js';
 // import { Navigation } from '../navigation.js';
 // import { NavigationCoordinator } from '../navigation-coordinator.js';
+// import { EndpointContent } from './endpoint-content';
 import {
   LoadInstruction,
   IRouter,
@@ -21,6 +22,7 @@ import {
   Navigation,
   NavigationCoordinator,
   IViewportOptions,
+  EndpointContent,
 } from '../index.js';
 
 /**
@@ -47,7 +49,9 @@ export type EndpointType = 'Viewport' | 'ViewportScope';
 export interface IEndpoint extends Endpoint { }
 
 export class Endpoint {
-  public connectedScope: RoutingScope;
+  public content!: EndpointContent;
+  public nextContent: EndpointContent | null = null;
+
   public nextContentAction: NextContentAction = '';
 
   public path: string | null = null;
@@ -59,8 +63,14 @@ export class Endpoint {
     owningScope: RoutingScope | null,
     scope: boolean,
     public options: IEndpointOptions = {}
-  ) {
-    this.connectedScope = new RoutingScope(router, scope, owningScope, this);
+  ) { }
+
+  public get activeContent(): EndpointContent {
+    return this.nextContent ?? this.content;
+  }
+
+  public get connectedScope(): RoutingScope {
+    return this.activeContent?.connectedScope;
   }
 
   public get scope(): RoutingScope {
@@ -76,9 +86,9 @@ export class Endpoint {
   public get enabled(): boolean {
     return this.connectedScope.enabled;
   }
-  public set enabled(enabled: boolean) {
-    this.connectedScope.enabled = enabled;
-  }
+  // public set enabled(enabled: boolean) {
+  //   this.connectedScope.enabled = enabled;
+  // }
 
   public get isViewport(): boolean {
     return false;
@@ -127,6 +137,8 @@ export class Endpoint {
   }
 
   public removeEndpoint(step: Step | null, connectedCE: IConnectedCustomElement | null): boolean | Promise<boolean> {
+    this.content.delete();
+    this.nextContent?.delete();
     return true;
   }
 

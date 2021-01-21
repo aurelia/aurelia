@@ -7,6 +7,10 @@ import { InstructionParameters } from './instructions/instruction-parameters';
  */
 
 export {
+  EndpointContent,
+} from './endpoints/endpoint-content.js';
+
+export {
   ILinkHandlerOptions,
   AnchorEventInfo,
 
@@ -137,6 +141,8 @@ export {
   DefaultResources,
   ViewportCustomElement,
   ViewportCustomElementRegistration,
+  ViewportScopeCustomElement,
+  ViewportScopeCustomElementRegistration,
   NavCustomElement,
   NavCustomElementRegistration,
   GotoCustomAttribute,

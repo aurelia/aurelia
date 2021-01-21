@@ -49,6 +49,8 @@ export interface IViewportOptions extends IEndpointOptions {
 }
 
 export class Viewport extends Endpoint {
+  public static lastTransitionId = 0;
+
   public content: ViewportContent;
   public nextContent: ViewportContent | null = null;
 
@@ -63,16 +65,18 @@ export class Viewport extends Endpoint {
   private cache: ViewportContent[] = [];
   private historyCache: ViewportContent[] = [];
 
+  private coordinator?: NavigationCoordinator;
+
   public constructor(
     router: IRouter,
     name: string,
     connectedCE: IConnectedCustomElement | null,
-    owningScope: RoutingScope,
-    scope: boolean,
+    private _owningScope: RoutingScope,
+    private _scope: boolean,
     public options: IViewportOptions = {}
   ) {
-    super(router, name, connectedCE, owningScope, scope);
-    this.content = new ViewportContent();
+    super(router, name, connectedCE, _owningScope, _scope);
+    this.content = new ViewportContent(router, this, _owningScope, _scope);
   }
 
   public get scope(): RoutingScope {
@@ -88,8 +92,20 @@ export class Viewport extends Endpoint {
   public get enabled(): boolean {
     return this.connectedScope.enabled;
   }
-  public set enabled(enabled: boolean) {
-    this.connectedScope.enabled = enabled;
+  // e:
+  // public set enabled(enabled: boolean) {
+  //   this.connectedScope.enabled = enabled;
+  // }
+
+  public get parentViewport(): Viewport | null {
+    let scope = this.connectedScope;
+    while (scope.parent !== null) {
+      scope = scope.parent;
+      if (scope.endpoint.isViewport) {
+        return scope.endpoint as Viewport;
+      }
+    }
+    return null;
   }
 
   public get isViewport(): boolean {
@@ -112,10 +128,6 @@ export class Viewport extends Endpoint {
       scope = scope.parent;
     }
     return false;
-  }
-
-  public get activeContent(): ViewportContent {
-    return this.nextContent ?? this.content;
   }
 
   public get nextContentActivated(): boolean {
@@ -155,7 +167,7 @@ export class Viewport extends Endpoint {
     this.clear = routingInstruction.isClear;
 
     // Can have a (resolved) type or a string (to be resolved later)
-    this.nextContent = new ViewportContent(!this.clear ? routingInstruction : void 0, navigation, this.connectedCE ?? null);
+    this.nextContent = new ViewportContent(this.router, this, this._owningScope, this._scope, !this.clear ? routingInstruction : void 0, navigation, this.connectedCE ?? null);
 
     this.nextContent.fromHistory = this.nextContent.componentInstance && navigation.navigation
       ? !!navigation.navigation.back || !!navigation.navigation.forward
@@ -174,10 +186,11 @@ export class Viewport extends Endpoint {
 
     // Children that will be replaced (unless added again) by next content. Will
     // be re-enabled on cancel
-    this.connectedScope.clearReplacedChildren();
+    this.content.connectedScope.clearReplacedChildren();
 
     // If we get the same _instance_, don't do anything (happens with cached and history)
     if (this.nextContent.componentInstance !== null && this.content.componentInstance === this.nextContent.componentInstance) {
+      this.nextContent.delete();
       this.nextContent = null;
       return this.nextContentAction = 'skip'; // false;
     }
@@ -187,7 +200,7 @@ export class Viewport extends Endpoint {
       navigation.navigation.refresh || // Navigation 'refresh' performed
       this.content.reentryBehavior() === ReentryBehavior.refresh // ReentryBehavior 'refresh' takes precedence
     ) {
-      this.connectedScope.disableReplacedChildren();
+      this.content.connectedScope.disableReplacedChildren();
       return this.nextContentAction = 'swap'; // true;
     }
 
@@ -195,11 +208,13 @@ export class Viewport extends Endpoint {
 
     // Explicitly don't allow navigation back to the same component again
     if (this.content.reentryBehavior() === ReentryBehavior.disallow) {
+      this.nextContent.delete();
       this.nextContent = null;
       return this.nextContentAction = 'skip'; // false;
     }
 
     // Explicitly re-load same component again
+    // TODO(alpha): NEED TO CHECK THIS TOWARDS activeContent REGARDING scope
     if (this.content.reentryBehavior() === ReentryBehavior.load) {
       this.content.reentry = true;
 
@@ -214,6 +229,7 @@ export class Viewport extends Endpoint {
     // Requires updated parameters if viewport stateful
     if (this.options.stateful &&
       this.content.equalParameters(this.nextContent)) {
+      this.nextContent.delete();
       this.nextContent = null;
       return this.nextContentAction = 'skip'; // false;
     }
@@ -228,16 +244,18 @@ export class Viewport extends Endpoint {
         this.nextContent!.reentry = this.content.reentry;
         return this.nextContentAction = 'reload';
       } else { // Perform a full swap
-        this.connectedScope.disableReplacedChildren();
+        this.content.connectedScope.disableReplacedChildren();
         return this.nextContentAction = 'swap';
       }
     }
 
     // Default is to do nothing
-    return 'skip';
+    this.nextContent.delete();
+    this.nextContent = null;
+    return this.nextContentAction = 'skip';
 
     // // Default is to trigger a refresh (without a check of parameters)
-    // this.connectedScope.disableReplacedChildren();
+    // this.content.connectedScope.disableReplacedChildren();
     // return this.nextContentAction = 'reload'; // true;
   }
 
@@ -326,7 +344,19 @@ export class Viewport extends Endpoint {
   }
 
   public transition(coordinator: NavigationCoordinator): void {
-    // console.log('Viewport transition', this.toString());
+    this.coordinator = coordinator;
+    const transitionId = ++Viewport.lastTransitionId;
+    console.log('Viewport transition', transitionId, this.toString());
+
+    // Get the parent viewport...
+    let actingParentViewport = this.parentViewport;
+    // ...but if it's not acting (reloading or swapping)
+    if (actingParentViewport !== null
+      && actingParentViewport.nextContentAction !== 'reload'
+      && actingParentViewport.nextContentAction !== 'swap'
+    ) {
+      actingParentViewport = null;
+    }
 
     const guarded = coordinator.checkingSyncState('guarded');
 
@@ -337,18 +367,19 @@ export class Viewport extends Endpoint {
       (step: Step<boolean>) => performLoad ? this.canUnload(step) : true,
       (step: Step<boolean>) => {
         if (!step.previousValue) { // canUnloadResult: boolean
+          console.log('coordinator cancel', this.toString());
           step.cancel();
           coordinator.cancel();
-          return;
+        } else {
+          console.log('guardedUnload', this.toString());
+          if (this.router.isRestrictedNavigation) {
+            this.nextContent!.createComponent(this.connectedCE!, this.options.fallback);
+          }
         }
-
-        if (this.router.isRestrictedNavigation) {
-          this.nextContent!.createComponent(this.connectedCE!, this.options.fallback);
-        }
-
         coordinator.addEntityState(this, 'guardedUnload');
       },
       () => coordinator.waitForSyncState('guardedUnload', this),
+      () => actingParentViewport !== null ? coordinator.waitForEntityState(actingParentViewport, 'guardedLoad') : void 0,
 
       (step: Step<boolean>) => performLoad ? this.canLoad(step, guarded) as boolean | LoadInstruction | LoadInstruction[] : true,
       (step: Step) => {
@@ -372,10 +403,14 @@ export class Viewport extends Endpoint {
 
     const routingSteps = [
       () => coordinator.waitForSyncState('guarded', this),
-      (step: Step<void>) => performLoad ? this.unload(step, true) : true,
-      () => coordinator.addEntityState(this, 'unloaded'),
+      (step: Step<void>) => performLoad ? this.unload(step, true, transitionId) : true,
+      (step: Step<void>) => {
+        // console.log('unload', transitionId, step.previousValue);
+        return coordinator.addEntityState(this, 'unloaded');
+      },
 
       () => coordinator.waitForSyncState('unloaded', this),
+      () => actingParentViewport !== null ? coordinator.waitForEntityState(actingParentViewport, 'loaded') : void 0,
       (step: Step<void>) => performLoad ? this.load(step, coordinator.checkingSyncState('routed')) : true,
       () => coordinator.addEntityState(this, 'loaded'),
       () => coordinator.addEntityState(this, 'routed'),
@@ -383,55 +418,64 @@ export class Viewport extends Endpoint {
 
     const lifecycleSteps: ((step: Step<void | void[]>) => Step<void> | Promise<void> | void)[] = [
       () => coordinator.waitForSyncState('routed', this),
+      () => coordinator.waitForEntityState(this, 'routed'), // TODO: remove this
     ];
     if (performSwap) {
       if (RouterOptions.swapStrategy.includes('parallel')) {
         lifecycleSteps.push((step: Step<void | void[]>): Step<void> => {
           if (RouterOptions.swapStrategy.includes('add')) {
             return Runner.runParallel<void>(step as Step<void>,
-              (step: Step<void | void[]>): void | Step<void> => this.addContent(step as Step<void>),
-              (step: Step<void | void[]>): void | Step<void> => this.removeContent(step as Step<void>),
+              (step: Step<void | void[]>): void | Step<void> => this.addContent(step as Step<void>, coordinator),
+              (step: Step<void | void[]>): void | Step<void> => this.removeContent(step as Step<void>, coordinator),
             ) as Step<void>;
           } else {
             return Runner.runParallel(step as Step<void>,
-              (step: Step<void>) => this.removeContent(step),
-              (step: Step<void>) => this.addContent(step),
+              (step: Step<void>) => this.removeContent(step, coordinator),
+              (step: Step<void>) => this.addContent(step, coordinator),
             ) as Step<void>;
           }
         });
       } else {
         lifecycleSteps.push(
-          (step: Step<void | void[]>) => performSwap
-            ? (RouterOptions.swapStrategy.includes('add') ? this.addContent(step as Step<void>) : this.removeContent(step as Step<void>))
-            : void 0,
-          (step: Step<void | void[]>) => performSwap
-            ? (RouterOptions.swapStrategy.includes('add') ? this.removeContent(step as Step<void>) : this.addContent(step as Step<void>))
-            : void 0,
+          (step: Step<void | void[]>) => RouterOptions.swapStrategy.includes('add')
+            ? this.addContent(step as Step<void>, coordinator)
+            : this.removeContent(step as Step<void>, coordinator),
+          (step: Step<void | void[]>) => RouterOptions.swapStrategy.includes('add')
+            ? this.removeContent(step as Step<void>, coordinator)
+            : this.addContent(step as Step<void>, coordinator),
         );
       }
     }
     lifecycleSteps.push(() => coordinator.addEntityState(this, 'swapped'));
 
+    this.connectedCE?.setActive?.(true);
     Runner.run(null,
       ...guardSteps,
       ...routingSteps,
       ...lifecycleSteps,
-      () => coordinator.addEntityState(this, 'completed')
+      () => coordinator.addEntityState(this, 'completed'),
+      () => coordinator.waitForSyncState('bound'),
+      () => this.connectedCE?.setActive?.(false),
     );
   }
 
   public canUnload(step: Step<boolean> | null): boolean | Promise<boolean> {
+    console.log('canUnload', this.toString());
     return Runner.run(step,
       (step: Step<boolean>) => {
-        return this.connectedScope.canUnload(step);
+        return this.content.connectedScope.canUnload(step);
       },
       (step: Step<boolean>) => {
         if (!step.previousValue) { // canUnloadChildren
+          console.log('canUnload', false, this.toString());
           return false;
         }
-
         return this.content.canUnload(this.nextContent?.navigation ?? null);
-      }
+      },
+      (step: Step<boolean>) => {
+        console.log('canUnload resolved', step.previousValue, this.toString());
+        return step.previousValue;
+      },
     ) as boolean | Promise<boolean>;
   }
 
@@ -462,34 +506,44 @@ export class Viewport extends Endpoint {
     return this.nextContent?.load(step, this.content.navigation);
   }
 
-  public addContent(step: Step<void>): void | Step<void> {
-    return this.activate(step, null, this.connectedController, LifecycleFlags.none, this.parentNextContentActivated);
+  public addContent(step: Step<void>, coordinator: NavigationCoordinator): void | Step<void> {
+    return this.activate(step, null, this.connectedController, LifecycleFlags.none, this.parentNextContentActivated, coordinator);
   }
 
-  public removeContent(step: Step<void> | null): void | Step<void> {
+  public removeContent(step: Step<void> | null, coordinator: NavigationCoordinator): void | Step<void> {
     if (this.isEmpty) {
       return;
     }
 
+    const manualDispose = this.router.statefulHistory || (this.options.stateful ?? false);
     return Runner.run(step,
-      () => this.deactivate(null, this.connectedController, LifecycleFlags.none),
-      () => this.dispose(),
+      () => coordinator.addEntityState(this, 'bound'),
+      () => coordinator.waitForSyncState('bound'),
+      () => this.deactivate(
+        null,
+        this.connectedController,
+        manualDispose ? LifecycleFlags.none : LifecycleFlags.dispose
+      ),
+      () => manualDispose ? this.dispose() : void 0,
     ) as Step<void>;
   }
 
-  public activate(step: Step<void> | null, initiator: IHydratedController | null, parent: IHydratedParentController | null, flags: LifecycleFlags, fromParent: boolean): void | Step<void> {
-    if (this.activeContent.componentInstance !== null) {
-      this.connectedScope.reenableReplacedChildren();
+  public activate(step: Step<void> | null, initiator: IHydratedController | null, parent: IHydratedParentController | null, flags: LifecycleFlags, fromParent: boolean, coordinator: NavigationCoordinator | undefined): void | Step<void> {
+    if ((this.activeContent as ViewportContent).componentInstance !== null) {
+      this.content.connectedScope.reenableReplacedChildren();
       return Runner.run(step,
-        (step: Step<void>) => this.activeContent.load(step, this.activeContent.navigation), // Only acts if not already loaded
-        (step: Step<void>) => this.activeContent.activateComponent(
+        (step: Step<void>) => (this.activeContent as ViewportContent).load(step, (this.activeContent as ViewportContent).navigation), // Only acts if not already loaded
+        (step: Step<void>) => (this.activeContent as ViewportContent).activateComponent(
           step,
           this,
           initiator,
           parent as IRoutingController,
           flags,
           this.connectedCE!,
-          fromParent),
+          fromParent,
+          () => { console.log('Bound', this.toString()); coordinator?.addEntityState(this, 'bound'); },
+          coordinator?.waitForSyncState('bound'),
+        ),
       ) as Step<void>;
     }
   }
@@ -499,7 +553,7 @@ export class Viewport extends Endpoint {
       !this.content.reentry &&
       this.content.componentInstance !== this.nextContent?.componentInstance) {
 
-        return this.content?.deactivateComponent(
+      return this.content?.deactivateComponent(
         initiator,
         parent as IRoutingController,
         flags,
@@ -509,15 +563,11 @@ export class Viewport extends Endpoint {
     }
   }
 
-  public unload(step: Step<void> | null, recurse: boolean): void | Step<void> {
+  public unload(step: Step<void> | null, recurse: boolean, transitionId: number): void | Step<void> {
+    // console.log('unload viewport', transitionId, this.toString());
     return Runner.run(step,
-      () => recurse ? this.connectedScope.unload(step, recurse) : true,
-      () => {
-
-        if (this.content.componentInstance) {
-          return this.content.unload(this.nextContent?.navigation ?? null);
-        }
-      }
+      (unloadStep: Step<void>) => recurse ? this.content.connectedScope.unload(unloadStep, recurse, transitionId) : void 0,
+      () => this.content.componentInstance != null ? this.content.unload(this.nextContent?.navigation ?? null) : void 0,
     ) as Step<void>;
   }
 
@@ -534,14 +584,18 @@ export class Viewport extends Endpoint {
   }
 
   public finalizeContentChange(): void {
+    const previousContent = this.content;
     if (this.nextContent?.componentInstance != null) {
       this.content = this.nextContent;
       this.content.reentry = false;
     }
 
     if (this.clear) {
-      this.content = new ViewportContent(void 0, this.nextContent!.navigation);
+      this.content = new ViewportContent(this.router, this, this._owningScope, this._scope, void 0, this.nextContent!.navigation);
+      this.nextContent?.delete();
     }
+    previousContent.delete();
+
     this.nextContent = null;
     this.nextContentAction = '';
 
@@ -549,10 +603,12 @@ export class Viewport extends Endpoint {
     this.content.contentStates.delete('checkedLoad');
 
     this.previousViewportState = null;
-    this.connectedScope.clearReplacedChildren();
+    this.content.connectedScope.clearReplacedChildren();
+
+    this.connectedCE?.setActive?.(false);
   }
   public abortContentChange(step: Step<void> | null): void | Step<void> {
-    this.connectedScope.reenableReplacedChildren();
+    this.content.connectedScope.reenableReplacedChildren();
     return Runner.run(step,
       (step: Step<void>) => {
         if (this.nextContent != null) {
@@ -568,11 +624,14 @@ export class Viewport extends Endpoint {
         if (this.previousViewportState) {
           Object.assign(this, this.previousViewportState);
         }
+        this.nextContent?.delete();
         this.nextContent = null;
         this.nextContentAction = '';
 
         this.content.contentStates.delete('checkedUnload');
         this.content.contentStates.delete('checkedLoad');
+
+        this.connectedCE?.setActive?.(false);
       }) as Step<void>;
   }
 
@@ -694,7 +753,8 @@ export class Viewport extends Endpoint {
   private clearState(): void {
     this.options = {};
 
-    this.content = new ViewportContent();
+    this.content.delete();
+    this.content = new ViewportContent(this.router, this, this._owningScope, this._scope);
     this.cache = [];
   }
 

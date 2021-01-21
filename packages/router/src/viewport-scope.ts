@@ -5,7 +5,7 @@
  *
  */
 import { CustomElementType } from '@aurelia/runtime-html';
-import { LoadInstruction, RouteableComponentType } from './interfaces.js';
+import { RouteableComponentType } from './interfaces.js';
 import { IRouter } from './router.js';
 import { RoutingInstruction } from './instructions/routing-instruction.js';
 import { NextContentAction, RoutingScope } from './routing-scope.js';
@@ -17,6 +17,7 @@ import { Routes } from './decorators/routes.js';
 import { Route } from './route.js';
 import { Step } from './utilities/runner.js';
 import { Endpoint, IConnectedCustomElement, IEndpointOptions } from './endpoints/endpoint.js';
+import { ViewportScopeContent } from './endpoints/viewport-scope-content.js';
 
 /**
  * The viewport scope is an endpoint that encapsulates an au-viewport-scope custom
@@ -40,7 +41,6 @@ export interface IViewportScopeOptions extends IEndpointOptions {
 
 export class ViewportScope extends Endpoint {
   public instruction: RoutingInstruction | null = null;
-  public nextContent: RoutingInstruction | null = null;
 
   public available: boolean = true;
   public sourceItem: unknown | null = null;
@@ -53,15 +53,16 @@ export class ViewportScope extends Endpoint {
     router: IRouter,
     name: string,
     connectedCE: IConnectedCustomElement | null,
-    owningScope: RoutingScope | null,
-    scope: boolean,
+    private _owningScope: RoutingScope | null,
+    private _scope: boolean,
     public rootComponentType: CustomElementType | null = null, // temporary. Metadata will probably eliminate it
     public options: IViewportScopeOptions = {
       catches: [],
       source: null,
     },
   ) {
-    super(router, name, connectedCE, owningScope, scope);
+    super(router, name, connectedCE, _owningScope, _scope);
+    this.content = new ViewportScopeContent(router, this, _owningScope, _scope);
     if (this.catches.length > 0) {
       this.instruction = RoutingInstruction.create(this.catches[0], this.name) as RoutingInstruction;
     }
@@ -90,11 +91,11 @@ export class ViewportScope extends Endpoint {
   }
 
   public get source(): unknown[] | null {
-    return this.options.source || null;
+    return this.options.source ?? null;
   }
 
   public get catches(): string[] {
-    let catches: string | string[] = this.options.catches || [];
+    let catches: string | string[] = this.options.catches ?? [];
     if (typeof catches === 'string') {
       catches = catches.split(',');
     }
@@ -115,7 +116,7 @@ export class ViewportScope extends Endpoint {
 
   public toString(): string {
     const contentName = this.instruction?.component.name ?? '';
-    const nextContentName = this.nextContent?.component.name ?? '';
+    const nextContentName = this.nextContent?.instruction.component.name ?? '';
     return `vs:${this.name}[${contentName}->${nextContentName}]`;
   }
 
@@ -133,7 +134,7 @@ export class ViewportScope extends Endpoint {
       routingInstruction.component.name = this.default;
     }
 
-    this.nextContent = routingInstruction;
+    this.nextContent = new ViewportScopeContent(this.router, this, this._owningScope, this._scope, routingInstruction);
 
     return 'swap';
   }
@@ -150,7 +151,7 @@ export class ViewportScope extends Endpoint {
       () => coordinator.addEntityState(this, 'routed'),
       () => coordinator.addEntityState(this, 'swapped'),
       () => {
-        this.instruction = !this.remove ? this.nextContent : null;
+        this.content = !this.remove ? this.nextContent! : new ViewportScopeContent(this.router, this, this._owningScope, this._scope,);
         this.nextContent = null;
         coordinator.addEntityState(this, 'completed');
       }
@@ -186,7 +187,7 @@ export class ViewportScope extends Endpoint {
       return true;
     }
 
-    if (this.catches.includes(segment as string)) {
+    if (this.catches.includes(segment)) {
       return true;
     }
     if (this.catches.filter((value) => value.includes('*')).length) {
@@ -203,7 +204,7 @@ export class ViewportScope extends Endpoint {
   }
   public unbinding(): void {
     if (this.sourceItem !== null && this.source !== null) {
-      arrayRemove(this.source!, (item: unknown) => item === this.sourceItem);
+      arrayRemove(this.source, (item: unknown) => item === this.sourceItem);
     }
     this.sourceItem = null;
   }

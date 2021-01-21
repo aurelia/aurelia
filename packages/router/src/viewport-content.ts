@@ -6,7 +6,7 @@
  */
 /* eslint-disable no-fallthrough */
 import { IContainer, Writable } from '@aurelia/kernel';
-import { Controller, LifecycleFlags, ILifecycle, IHydratedController, ICustomElementController, ICustomElementViewModel } from '@aurelia/runtime-html';
+import { Controller, LifecycleFlags, IHydratedController, ICustomElementController, ICustomElementViewModel } from '@aurelia/runtime-html';
 import { IRouteableComponent, RouteableComponentType, ReentryBehavior, LoadInstruction } from './interfaces.js';
 import { parseQuery } from './utilities/parser.js';
 import { Viewport } from './viewport.js';
@@ -15,6 +15,8 @@ import { Navigation } from './navigation.js';
 import { IConnectedCustomElement } from './endpoints/endpoint.js';
 import { Runner, Step } from './utilities/runner.js';
 import { AwaitableMap } from './utilities/awaitable-map.js';
+import { EndpointContent, RoutingScope } from './index.js';
+import { IRouter } from './router.js';
 
 /**
  * The viewport content encapsulates the component loaded into a viewport
@@ -33,14 +35,17 @@ export type ContentState = 'created' | 'checkedUnload' | 'checkedLoad' | 'loaded
 /**
  * @internal - Shouldn't be used directly
  */
-export class ViewportContent {
+export class ViewportContent extends EndpointContent {
   public contentStates: AwaitableMap<ContentState, void> = new AwaitableMap();
-
   public fromCache: boolean = false;
   public fromHistory: boolean = false;
   public reentry: boolean = false;
 
   public constructor(
+    public readonly router: IRouter,
+    public viewport: Viewport,
+    owningScope: RoutingScope | null,
+    scope: boolean,
     // Can (and wants) be a (resolved) type or a string (to be resolved later)
     public instruction: RoutingInstruction = RoutingInstruction.create('') as RoutingInstruction,
     public navigation = Navigation.create({
@@ -49,6 +54,7 @@ export class ViewportContent {
     }),
     connectedCE: IConnectedCustomElement | null = null
   ) {
+    super(router, viewport, owningScope, scope, instruction);
     // If we've got a container, we're good to resolve type
     if (!this.instruction.component.isType() && (connectedCE?.container ?? null) !== null) {
       this.instruction.component.type = this.toComponentType(connectedCE!.container!);
@@ -58,7 +64,7 @@ export class ViewportContent {
   public get componentInstance(): IRouteableComponent | null {
     return this.instruction.component.instance;
   }
-  public get viewport(): Viewport | null {
+  public get viewportInstance(): Viewport | null {
     return this.instruction.viewport.instance;
   }
 
@@ -167,7 +173,12 @@ export class ViewportContent {
       return true;
     }
 
-    return this.instruction.component.instance.canUnload(this.viewport!, nextInstruction, this.navigation);
+    const result = this.instruction.component.instance.canUnload(this.viewport!, nextInstruction, this.navigation);
+    if (typeof result !== 'boolean') {
+      // TODO(alpha): Fix error message
+      // throw new Error('canUnload needs to return true or false!');
+    }
+    return result;
   }
 
   public load(step: Step<void>, previousInstruction: Navigation): Step<void> {
@@ -194,12 +205,12 @@ export class ViewportContent {
       return;
     }
     this.contentStates.delete('loaded');
-    if (this.instruction.component.instance && this.instruction.component.instance.unload) {
+    if (this.instruction.component.instance?.unload != null) {
       return this.instruction.component.instance.unload(this.viewport!, nextInstruction, this.navigation);
     }
   }
 
-  public activateComponent(step: Step<void>, viewport: Viewport, initiator: IHydratedController | null, parent: ICustomElementController | null, flags: LifecycleFlags, connectedCE: IConnectedCustomElement, parentActivated: boolean): Step<void> {
+  public activateComponent(step: Step<void>, viewport: Viewport, initiator: IHydratedController | null, parent: ICustomElementController | null, flags: LifecycleFlags, connectedCE: IConnectedCustomElement, parentActivated: boolean, boundCallback: any | undefined, attachPromise: void | Promise<void> | undefined): Step<void> {
     return Runner.run(step,
       () => this.contentStates.await('loaded'),
       () => this.waitForParent(parent, viewport), // TODO: It might be possible to refactor this away
@@ -210,7 +221,7 @@ export class ViewportContent {
         this.contentStates.set('activated', void 0);
 
         const contentController = this.contentController(connectedCE);
-        return contentController.activate(initiator ?? contentController, parent, flags);
+        return contentController.activate(initiator ?? contentController, parent, flags, void 0, void 0, boundCallback, this.instruction.topInstruction ? attachPromise : void 0);
       },
       /*
       () => {
@@ -259,7 +270,9 @@ export class ViewportContent {
     if (!stateful) {
       this.contentStates.delete('created');
       const contentController = this.contentController(connectedCE);
+      // if (contentController.state > 0) {
       return contentController.dispose();
+      // }
     } else {
       cache.push(this);
     }

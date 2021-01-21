@@ -18,7 +18,7 @@ import {
   IHydratedParentController,
   ISyntheticView,
 } from '@aurelia/runtime-html';
-import { IRouter } from '../router.js';
+import { IRouter } from '../index.js';
 import { Viewport, IViewportOptions } from '../viewport.js';
 import { ViewportScopeCustomElement } from './viewport-scope.js';
 import { Runner, Step } from '../utilities/runner.js';
@@ -148,7 +148,7 @@ export class ViewportCustomElement implements ICustomElementViewModel {
       () => {
         if (this.viewport !== null && (this.viewport.nextContent ?? null) === null) {
           console.log('binding', this.viewport?.toString());
-          this.viewport.enabled = true;
+          // e: this.viewport.enabled = true;
           return (this.viewport.activate(null, initiator, this.$controller, flags, true, void 0) as Step<void>)?.asValue as void | Promise<void>;
           // TODO: Restore scroll state
         }
@@ -159,9 +159,9 @@ export class ViewportCustomElement implements ICustomElementViewModel {
   public attaching(initiator: IHydratedController, parent: IHydratedParentController | null, flags: LifecycleFlags): void | Promise<void> {
     if (this.viewport !== null && (this.viewport.nextContent ?? null) === null) {
       console.log('(attaching)', this.viewport?.toString());
-    //   this.viewport.enabled = true;
-    //   return (this.viewport.activate(null, initiator, this.$controller, flags, true, void 0) as Step<void>)?.asValue as void | Promise<void>;
-    //   // TODO: Restore scroll state
+      //   this.viewport.enabled = true;
+      //   return (this.viewport.activate(null, initiator, this.$controller, flags, true, void 0) as Step<void>)?.asValue as void | Promise<void>;
+      //   // TODO: Restore scroll state
     }
   }
 
@@ -192,7 +192,7 @@ export class ViewportCustomElement implements ICustomElementViewModel {
       //   // }
       // );
       this.isBound = false;
-      this.viewport!.enabled = false;
+      // e: this.viewport!.enabled = false;
       return this.viewport!.deactivate(initiator, parent, flags);
     }
   }

@@ -26,7 +26,7 @@ export const LoadInstructionResolver = {
       (options as IRoutingInstructionsOptions).context = options.origin;
     }
     // let scope = router.findScope((options as IRoutingInstructionsOptions).context ?? null);
-    let scope = RoutingScope.for((options as IRoutingInstructionsOptions).context ?? null) ?? router.rootScope?.scope ?? null;
+    let scope = RoutingScope.for((options as IRoutingInstructionsOptions).context ?? null) ?? null;
     if (typeof loadInstructions === 'string') {
       // If it's not from scope root, figure out which scope
       if (!(loadInstructions).startsWith('/')) {
@@ -44,10 +44,10 @@ export const LoadInstructionResolver = {
         }
         if (scope?.path != null) {
           loadInstructions = `${scope.path}/${loadInstructions as string}`;
-          scope = router.rootScope!.scope;
+          scope = null; // router.rootScope!.scope;
         }
       } else { // Specified root scope with /
-        scope = router.rootScope!.scope;
+        scope = null; // router.rootScope!.scope;
       }
       if (!keepString) {
         loadInstructions = LoadInstructionResolver.toRoutingInstructions(loadInstructions);

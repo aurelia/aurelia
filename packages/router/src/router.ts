@@ -723,6 +723,8 @@ export class Router implements IRouter {
 
     // Make sure we have proper routing instructions
     ({ instructions } = LoadInstructionResolver.createRoutingInstructions(this, instructions, options));
+    // If no scope is set, use the root scope
+    (instructions as RoutingInstruction[]).forEach((instruction: RoutingInstruction) => instruction.scope ??= this.rootScope!.scope);
 
     // Get all unique involved scopes.
     const scopes = arrayUnique((instructions as RoutingInstruction[]).map(instruction => instruction.scope));

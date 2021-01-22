@@ -20,13 +20,13 @@ export interface IRoutingInstructionsOptions {
  * return it as string for further processing.
  */
 export const LoadInstructionResolver = {
-  createRoutingInstructions(router: IRouter, loadInstructions: LoadInstruction | LoadInstruction[], options?: IRoutingInstructionsOptions | ILoadOptions, keepString = true): { instructions: string | RoutingInstruction[]; scope: RoutingScope | null } {
+  createRoutingInstructions(loadInstructions: LoadInstruction | LoadInstruction[], options?: IRoutingInstructionsOptions | ILoadOptions, keepString = true): { instructions: string | RoutingInstruction[]; scope: RoutingScope | null } {
     options = options ?? {};
     if ('origin' in options && !('context' in options)) {
       (options as IRoutingInstructionsOptions).context = options.origin;
     }
     // let scope = router.findScope((options as IRoutingInstructionsOptions).context ?? null);
-    let scope = RoutingScope.for((options as IRoutingInstructionsOptions).context ?? null) ?? null;
+    let scope = RoutingScope.for((options as IRoutingInstructionsOptions).context ?? null) ?? /* router.rootScope!.scope ?? */ null;
     if (typeof loadInstructions === 'string') {
       // If it's not from scope root, figure out which scope
       if (!(loadInstructions).startsWith('/')) {

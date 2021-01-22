@@ -56,7 +56,7 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
 
   public handleChange(): void {
     const controller = CustomAttribute.for(this.element, 'load')!.parent!;
-    const created = LoadInstructionResolver.createRoutingInstructions(this.router, this.value as any, { context: controller });
+    const created = LoadInstructionResolver.createRoutingInstructions(this.value as any, { context: controller });
     const instructions = LoadInstructionResolver.toRoutingInstructions(created.instructions);
     for (const instruction of instructions) {
       if (instruction.scope === null) {

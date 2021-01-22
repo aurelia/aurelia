@@ -310,7 +310,7 @@ export class Router implements IRouter {
     // console.log('NAVIGATION', instruction.instruction);
 
     // The instruction should have a scope so use rootScope if it doesn't
-    instruction.scope = instruction.scope ?? this.rootScope!.scope;
+    instruction.scope ??= this.rootScope!.scope;
     // Ask the scope for routing instructions. The result will be either that there's a configured
     // route (which in turn contain routing instructions) or a list of routing instructions
     let foundRoute = instruction.scope!.findInstructions(transformedInstruction);
@@ -659,7 +659,7 @@ export class Router implements IRouter {
     instructions = this.extractQuery(instructions, options);
 
     let scope: RoutingScope | null = null;
-    ({ instructions, scope } = LoadInstructionResolver.createRoutingInstructions(this, instructions, options));
+    ({ instructions, scope } = LoadInstructionResolver.createRoutingInstructions(instructions, options));
 
     if ((options.append ?? false) && (!this.loadedFirst || this.processingNavigation !== null)) {
       instructions = LoadInstructionResolver.toRoutingInstructions(instructions);
@@ -722,7 +722,7 @@ export class Router implements IRouter {
     options = options ?? {};
 
     // Make sure we have proper routing instructions
-    ({ instructions } = LoadInstructionResolver.createRoutingInstructions(this, instructions, options));
+    ({ instructions } = LoadInstructionResolver.createRoutingInstructions(instructions, options));
     // If no scope is set, use the root scope
     (instructions as RoutingInstruction[]).forEach((instruction: RoutingInstruction) => instruction.scope ??= this.rootScope!.scope);
 

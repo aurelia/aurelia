@@ -662,7 +662,7 @@ export class Router implements IRouter {
     ({ instructions, scope } = LoadInstructionResolver.createRoutingInstructions(this, instructions, options));
 
     if ((options.append ?? false) && (!this.loadedFirst || this.processingNavigation !== null)) {
-      instructions = LoadInstructionResolver.toRoutingInstructions(this, instructions);
+      instructions = LoadInstructionResolver.toRoutingInstructions(instructions);
       this.appendInstructions(instructions as RoutingInstruction[], scope);
       // Can't return current navigation promise since it can lead to deadlock in load
       return Promise.resolve();

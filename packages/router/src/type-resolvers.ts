@@ -50,7 +50,7 @@ export const LoadInstructionResolver = {
         scope = router.rootScope!.scope;
       }
       if (!keepString) {
-        loadInstructions = LoadInstructionResolver.toRoutingInstructions(router, loadInstructions);
+        loadInstructions = LoadInstructionResolver.toRoutingInstructions(loadInstructions);
         for (const instruction of loadInstructions as RoutingInstruction[]) {
           if (instruction.scope === null) {
             instruction.scope = scope;
@@ -58,7 +58,7 @@ export const LoadInstructionResolver = {
         }
       }
     } else {
-      loadInstructions = LoadInstructionResolver.toRoutingInstructions(router, loadInstructions);
+      loadInstructions = LoadInstructionResolver.toRoutingInstructions(loadInstructions);
       for (const instruction of loadInstructions as RoutingInstruction[]) {
         if (instruction.scope === null) {
           instruction.scope = scope;
@@ -73,12 +73,12 @@ export const LoadInstructionResolver = {
   },
 
   // TODO: Fix definition part here!
-  toRoutingInstructions(router: IRouter, navigationInstructions: LoadInstruction | LoadInstruction[]): RoutingInstruction[] {
+  toRoutingInstructions(navigationInstructions: LoadInstruction | LoadInstruction[]): RoutingInstruction[] {
     if (!Array.isArray(navigationInstructions)) {
-      return LoadInstructionResolver.toRoutingInstructions(router, [navigationInstructions]);
+      navigationInstructions = [navigationInstructions];
     }
     const instructions: RoutingInstruction[] = [];
-    for (const instruction of navigationInstructions) {
+    for (const instruction of navigationInstructions as LoadInstruction[]) {
       if (typeof instruction === 'string') {
         instructions.push(...RoutingInstruction.parse(instruction));
       } else if (instruction instanceof RoutingInstruction) {
@@ -91,7 +91,7 @@ export const LoadInstructionResolver = {
         const viewportComponent = instruction;
         const newInstruction = RoutingInstruction.create(viewportComponent.component, viewportComponent.viewport, viewportComponent.parameters) as RoutingInstruction;
         if (viewportComponent.children !== void 0 && viewportComponent.children !== null) {
-          newInstruction.nextScopeInstructions = LoadInstructionResolver.toRoutingInstructions(router, viewportComponent.children);
+          newInstruction.nextScopeInstructions = LoadInstructionResolver.toRoutingInstructions(viewportComponent.children);
         }
         instructions.push(newInstruction);
       } else if (typeof instruction === 'object' && instruction !== null) {

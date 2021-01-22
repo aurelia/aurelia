@@ -481,7 +481,7 @@ export class RoutingScope {
       }];
     }
     if (route.redirectTo === null) {
-      route.instructions = LoadInstructionResolver.toRoutingInstructions(this.router, route.instructions!);
+      route.instructions = LoadInstructionResolver.toRoutingInstructions(route.instructions!);
     }
     return route as Route;
   }

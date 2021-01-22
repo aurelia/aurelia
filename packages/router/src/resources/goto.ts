@@ -60,7 +60,7 @@ export class GotoCustomAttribute implements ICustomAttributeViewModel {
   public handleChange(): void {
     const controller = CustomAttribute.for(this.element, 'goto')!.parent!;
     const created = LoadInstructionResolver.createRoutingInstructions(this.router, this.value as any, { context: controller });
-    const instructions = LoadInstructionResolver.toRoutingInstructions(this.router, created.instructions);
+    const instructions = LoadInstructionResolver.toRoutingInstructions(created.instructions);
     for (const instruction of instructions) {
       if (instruction.scope === null) {
         instruction.scope = created.scope;

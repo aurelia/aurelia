@@ -270,7 +270,7 @@ export class Router implements IRouter {
   // TODO: use @bound (eslint-disable is temp)
   // eslint-disable-next-line @typescript-eslint/typedef
   public handleNavigatorStateChangeEvent = (event: NavigatorStateChangeEvent): void => {
-    console.log('handleNavigatorStateChangeEvent', event);
+    // console.log('handleNavigatorStateChangeEvent', event);
     const entry = Navigation.create(event.state?.lastNavigation);
     entry.instruction = event.instruction;
     entry.fromBrowser = true;
@@ -307,7 +307,7 @@ export class Router implements IRouter {
       transformedInstruction = '';
     }
 
-    console.log('NAVIGATION', instruction.instruction);
+    // console.log('NAVIGATION', instruction.instruction);
 
     // The instruction should have a scope so use rootScope if it doesn't
     instruction.scope = instruction.scope ?? this.rootScope!.scope;
@@ -464,9 +464,9 @@ export class Router implements IRouter {
         if (coordinator.hasAllEntities) {
           const guardedUnload = coordinator.waitForSyncState('guardedUnload');
           if (guardedUnload instanceof Promise) {
-            console.log('>>> Waiting for guardedUnload', (coordinator as any).entities.map((ent: any) => ent.entity.toString()).join(','));
+            // console.log('>>> Waiting for guardedUnload', (coordinator as any).entities.map((ent: any) => ent.entity.toString()).join(','));
             await guardedUnload;
-            console.log('<<< Waited for guardedUnload');
+            // console.log('<<< Waited for guardedUnload');
           }
         }
       }
@@ -503,15 +503,15 @@ export class Router implements IRouter {
         coordinator.running) {
         // const waitForSwapped = coordinator.waitForSyncState('bound');
         // if (waitForSwapped instanceof Promise) {
-        //   console.log('>>> AWAIT waitForBound');
+        // //   console.log('>>> AWAIT waitForBound');
         //   await waitForSwapped;
-        //   console.log('<<< AWAIT waitForBound');
+        // //   console.log('<<< AWAIT waitForBound');
         // }
         const waitForSwapped = coordinator.waitForSyncState('swapped');
         if (waitForSwapped instanceof Promise) {
-          console.log('>>> AWAIT waitForSwapped');
+          // console.log('>>> AWAIT waitForSwapped');
           await waitForSwapped;
-          console.log('<<< AWAIT waitForSwapped');
+          // console.log('<<< AWAIT waitForSwapped');
         }
       }
 

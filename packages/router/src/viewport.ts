@@ -346,7 +346,7 @@ export class Viewport extends Endpoint {
   public transition(coordinator: NavigationCoordinator): void {
     this.coordinator = coordinator;
     const transitionId = ++Viewport.lastTransitionId;
-    console.log('Viewport transition', transitionId, this.toString());
+    // console.log('Viewport transition', transitionId, this.toString());
 
     // Get the parent viewport...
     let actingParentViewport = this.parentViewport;
@@ -367,11 +367,11 @@ export class Viewport extends Endpoint {
       (step: Step<boolean>) => performLoad ? this.canUnload(step) : true,
       (step: Step<boolean>) => {
         if (!step.previousValue) { // canUnloadResult: boolean
-          console.log('coordinator cancel', this.toString());
+          // console.log('coordinator cancel', this.toString());
           step.cancel();
           coordinator.cancel();
         } else {
-          console.log('guardedUnload', this.toString());
+          // console.log('guardedUnload', this.toString());
           if (this.router.isRestrictedNavigation) {
             this.nextContent!.createComponent(this.connectedCE!, this.options.fallback);
           }
@@ -460,22 +460,22 @@ export class Viewport extends Endpoint {
   }
 
   public canUnload(step: Step<boolean> | null): boolean | Promise<boolean> {
-    console.log('canUnload', this.toString());
+    // console.log('canUnload', this.toString());
     return Runner.run(step,
       (step: Step<boolean>) => {
         return this.content.connectedScope.canUnload(step);
       },
       (step: Step<boolean>) => {
         if (!step.previousValue) { // canUnloadChildren
-          console.log('canUnload', false, this.toString());
+          // console.log('canUnload', false, this.toString());
           return false;
         }
         return this.content.canUnload(this.nextContent?.navigation ?? null);
       },
-      (step: Step<boolean>) => {
-        console.log('canUnload resolved', step.previousValue, this.toString());
-        return step.previousValue;
-      },
+      // (step: Step<boolean>) => {
+      //   console.log('canUnload resolved', step.previousValue, this.toString());
+      //   return step.previousValue;
+      // },
     ) as boolean | Promise<boolean>;
   }
 
@@ -541,7 +541,10 @@ export class Viewport extends Endpoint {
           flags,
           this.connectedCE!,
           fromParent,
-          () => { console.log('Bound', this.toString()); coordinator?.addEntityState(this, 'bound'); },
+          () => {
+            // console.log('Bound', this.toString());
+            coordinator?.addEntityState(this, 'bound');
+          },
           coordinator?.waitForSyncState('bound'),
         ),
       ) as Step<void>;

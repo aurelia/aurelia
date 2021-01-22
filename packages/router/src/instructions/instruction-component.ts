@@ -92,7 +92,7 @@ export class InstructionComponent {
   }
 
   // Instance methods
-  public set(component?: ComponentAppellation | CustomElementDefinition): void {
+  public set(component: ComponentAppellation | CustomElementDefinition | undefined | null): void {
     if (component == null) {
       this.name = null;
       this.type = null;

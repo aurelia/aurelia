@@ -108,13 +108,13 @@ export class ViewportContent extends EndpointContent {
     // Don't load cached content or instantiated history content
     if (!this.fromCache && !this.fromHistory) {
       try {
-        this.instruction.component.instance = this.toComponentInstance(connectedCE.container);
+        this.instruction.component.set(this.toComponentInstance(connectedCE.container));
       } catch (e) {
         if (fallback !== void 0) {
           this.instruction.parameters.set({ id: this.instruction.component.name });
           this.instruction.component.set(fallback);
           try {
-            this.instruction.component.instance = this.toComponentInstance(connectedCE.container);
+            this.instruction.component.set(this.toComponentInstance(connectedCE.container));
           } catch (ee) {
             throw new Error(`'${this.instruction.component.name}' did not match any configured route or registered component name - did you forget to add the component '${this.instruction.component.name}' to the dependencies or to register it as a global dependency?`);
           }

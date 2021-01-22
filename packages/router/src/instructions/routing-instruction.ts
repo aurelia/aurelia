@@ -4,12 +4,13 @@ import { InstructionViewportScope } from './instruction-viewport-scope';
 import { InstructionParameters } from './instruction-parameters.js';
 import { InstructionViewport } from './instruction-viewport.js';
 import { InstructionComponent } from './instruction-component.js';
-import { ComponentAppellation, ComponentParameters, ViewportHandle } from '../interfaces.js';
+import { ComponentAppellation, ComponentParameters, LoadInstruction, ViewportHandle } from '../interfaces.js';
 import { RoutingScope } from '../routing-scope.js';
 import { ViewportScope } from '../viewport-scope.js';
 import { FoundRoute } from '../found-route.js';
 import { Endpoint, IEndpoint } from '../endpoints/endpoint';
 import { Viewport } from '../viewport';
+import { CustomElement } from '@aurelia/runtime-html';
 
 /**
  * The routing instructions are the core of the router's navigations. All
@@ -50,9 +51,9 @@ export class RoutingInstruction {
    */
   public scope: RoutingScope | null = null;
   /**
-   * The context of the routing instruction.
+   * The scope modifier of the routing instruction.
    */
-  public context: string = '';
+  public scopeModifier: string = '';
   /**
    * The viewport scope part of the routing instruction.
    */
@@ -132,6 +133,37 @@ export class RoutingInstruction {
     return instruction;
   }
 
+  public static from(loadInstructions: LoadInstruction | LoadInstruction[]): RoutingInstruction[] {
+    if (!Array.isArray(loadInstructions)) {
+      loadInstructions = [loadInstructions];
+    }
+    const instructions: RoutingInstruction[] = [];
+    for (const instruction of loadInstructions as LoadInstruction[]) {
+      if (typeof instruction === 'string') {
+        instructions.push(...RoutingInstruction.parse(instruction));
+      } else if (instruction instanceof RoutingInstruction) {
+        instructions.push(instruction);
+      } else if (InstructionComponent.isAppelation(instruction)) {
+        instructions.push(RoutingInstruction.create(instruction) as RoutingInstruction);
+      } else if (InstructionComponent.isDefinition(instruction)) {
+        instructions.push(RoutingInstruction.create(instruction.Type) as RoutingInstruction);
+      } else if ('component' in instruction) {
+        const viewportComponent = instruction;
+        const newInstruction = RoutingInstruction.create(viewportComponent.component, viewportComponent.viewport, viewportComponent.parameters) as RoutingInstruction;
+        if (viewportComponent.children !== void 0 && viewportComponent.children !== null) {
+          newInstruction.nextScopeInstructions = RoutingInstruction.from(viewportComponent.children);
+        }
+        instructions.push(newInstruction);
+      } else if (typeof instruction === 'object' && instruction !== null) {
+        const type = CustomElement.define(instruction);
+        instructions.push(RoutingInstruction.create(type) as RoutingInstruction);
+      } else {
+        instructions.push(RoutingInstruction.create(instruction as ComponentAppellation) as RoutingInstruction);
+      }
+    }
+    return instructions;
+  }
+
   public static clear(): string {
     return RoutingInstruction.separators.clear;
   }
@@ -145,21 +177,21 @@ export class RoutingInstruction {
    * @param instructions - The instruction string to parse
    */
   public static parse(instructions: string): RoutingInstruction[] {
-    let context = '';
-    // Context is a start with .. or / and any combination thereof
+    let scopeModifier = '';
+    // Scope modifier is a start with .. or / and any combination thereof
     const match = /^[./]+/.exec(instructions);
-    // If it starts with a context...
+    // If it starts with a scope modifier...
     if (Array.isArray(match) && match.length > 0) {
       // ...save and...
-      context = match[0];
+      scopeModifier = match[0];
       // ...extract it.
-      instructions = instructions.slice(context.length);
+      instructions = instructions.slice(scopeModifier.length);
     }
     // Parse the instructions...
     const parsedInstructions: RoutingInstruction[] = InstructionParser.parse(instructions, true).instructions;
     for (const instruction of parsedInstructions) {
-      // ...and set the context on each of them.
-      instruction.context = context;
+      // ...and set the scope modifier on each of them.
+      instruction.scopeModifier = scopeModifier;
     }
     return parsedInstructions;
   }
@@ -217,10 +249,10 @@ export class RoutingInstruction {
    *
    * @param instructions - The instructions to clone
    * @param keepInstances - Whether actual instances should be transfered
-   * @param context - Whether the context should be transfered
+   * @param scopeModifier - Whether the scope modifier should be transfered
    */
-  public static clone(instructions: RoutingInstruction[], keepInstances: boolean = false, context: boolean = false): RoutingInstruction[] {
-    return instructions.map(instruction => instruction.clone(keepInstances, context));
+  public static clone(instructions: RoutingInstruction[], keepInstances: boolean = false, scopeModifier: boolean = false): RoutingInstruction[] {
+    return instructions.map(instruction => instruction.clone(keepInstances, scopeModifier));
   }
 
   /**
@@ -315,7 +347,7 @@ export class RoutingInstruction {
 
     // If viewport context is specified...
     if (viewportContext) {
-      // ()...it's still skipped if no link option is set on viewport)
+      // (...it's still skipped if no link option is set on viewport)
       if (this.viewport.instance?.options.noLink ?? false) {
         return '';
       }
@@ -333,8 +365,8 @@ export class RoutingInstruction {
     }
     let route = this.route ?? null;
     const nextInstructions: RoutingInstruction[] | null = this.nextScopeInstructions;
-    // Start with the context (if any)
-    let stringified: string = this.context;
+    // Start with the scope modifier (if any)
+    let stringified: string = this.scopeModifier;
     // It's a configured route...
     if (route !== null) {
       // ...that's already added as part of a configuration, so skip to next scope!
@@ -406,9 +438,9 @@ export class RoutingInstruction {
    * Clone the routing instruction.
    *
    * @param keepInstances - Whether actual instances should be transfered
-   * @param context - Whether the context should be transfered
+   * @param scopeModifier - Whether the scope modifier should be transfered
    */
-  public clone(keepInstances: boolean = false, context: boolean = false): RoutingInstruction {
+  public clone(keepInstances: boolean = false, scopeModifier: boolean = false): RoutingInstruction {
     // Create a clone without instances...
     const clone = RoutingInstruction.create(
       this.component.type ?? this.component.name!,
@@ -422,15 +454,15 @@ export class RoutingInstruction {
     }
     clone.needsViewportDescribed = this.needsViewportDescribed;
     clone.route = this.route;
-    // Only transfer context if specified
-    if (context) {
-      clone.context = this.context;
+    // Only transfer scope modifier if specified
+    if (scopeModifier) {
+      clone.scopeModifier = this.scopeModifier;
     }
     clone.viewportScope = keepInstances ? this.viewportScope : null;
     clone.scope = keepInstances ? this.scope : null;
     // Clone all next scope/child instructions
     if (this.hasNextScopeInstructions) {
-      clone.nextScopeInstructions = RoutingInstruction.clone(this.nextScopeInstructions!, keepInstances, context);
+      clone.nextScopeInstructions = RoutingInstruction.clone(this.nextScopeInstructions!, keepInstances, scopeModifier);
     }
     return clone;
   }

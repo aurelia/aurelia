@@ -5,8 +5,8 @@
  *
  */
 import { customAttribute, INode, bindable, BindingMode, IObserverLocator, LifecycleFlags, CustomAttribute, ICustomAttributeController, ICustomAttributeViewModel } from '@aurelia/runtime-html';
+import { RoutingInstruction } from '../instructions/routing-instruction.js';
 import { IRouter } from '../router.js';
-import { LoadInstructionResolver } from '../type-resolvers.js';
 import { deprecationWarning } from '../utilities/utils.js';
 
 @customAttribute('goto')
@@ -59,8 +59,8 @@ export class GotoCustomAttribute implements ICustomAttributeViewModel {
 
   public handleChange(): void {
     const controller = CustomAttribute.for(this.element, 'goto')!.parent!;
-    const created = LoadInstructionResolver.createRoutingInstructions(this.value as any, { context: controller });
-    const instructions = LoadInstructionResolver.toRoutingInstructions(created.instructions);
+    const created = this.router.applyLoadOptions(this.value as any, { context: controller });
+    const instructions = RoutingInstruction.from(created.instructions);
     for (const instruction of instructions) {
       if (instruction.scope === null) {
         instruction.scope = created.scope;

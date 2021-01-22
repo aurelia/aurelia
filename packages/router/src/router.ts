@@ -8,11 +8,10 @@
 /* eslint-disable prefer-template */
 /* eslint-disable max-lines-per-function */
 import { DI, IContainer, Registration, IIndexable, Key, EventAggregator, IEventAggregator, IDisposable, Protocol } from '@aurelia/kernel';
-import { CustomElementType, ICustomElementViewModel, IAppRoot } from '@aurelia/runtime-html';
+import { CustomElementType, ICustomElementViewModel, IAppRoot, ICustomElementController } from '@aurelia/runtime-html';
 import { LoadInstruction } from './interfaces.js';
 import { AnchorEventInfo, LinkHandler } from './link-handler.js';
 import { Navigator, NavigatorNavigateEvent } from './navigator.js';
-import { LoadInstructionResolver } from './type-resolvers.js';
 import { arrayRemove, arrayUnique } from './utilities/utils.js';
 import { IViewportOptions, Viewport } from './viewport.js';
 import { RoutingInstruction } from './instructions/routing-instruction.js';
@@ -74,6 +73,8 @@ export interface ILoadOptions {
   replace?: boolean;
   append?: boolean;
   origin?: ICustomElementViewModel | Element;
+  context?: ICustomElementViewModel | Element | Node | ICustomElementController;
+  scopeModifier?: string;
 }
 
 /**
@@ -659,10 +660,10 @@ export class Router implements IRouter {
     instructions = this.extractQuery(instructions, options);
 
     let scope: RoutingScope | null = null;
-    ({ instructions, scope } = LoadInstructionResolver.createRoutingInstructions(instructions, options));
+    ({ instructions, scope } = this.applyLoadOptions(instructions, options));
 
     if ((options.append ?? false) && (!this.loadedFirst || this.processingNavigation !== null)) {
-      instructions = LoadInstructionResolver.toRoutingInstructions(instructions);
+      instructions = RoutingInstruction.from(instructions);
       this.appendInstructions(instructions as RoutingInstruction[], scope);
       // Can't return current navigation promise since it can lead to deadlock in load
       return Promise.resolve();
@@ -681,6 +682,58 @@ export class Router implements IRouter {
       origin: options.origin,
     });
     return this.navigator.navigate(entry);
+  }
+
+  public applyLoadOptions(loadInstructions: LoadInstruction | LoadInstruction[], options?: ILoadOptions, keepString = true): { instructions: string | RoutingInstruction[]; scope: RoutingScope | null } {
+    options = options ?? {};
+    if ('origin' in options && !('context' in options)) {
+      options.context = options.origin;
+    }
+    // let scope = router.findScope((options as IRoutingInstructionsOptions).context ?? null);
+    let scope = RoutingScope.for(options.context ?? null) ?? /* router.rootScope!.scope ?? */ null;
+    if (typeof loadInstructions === 'string') {
+      // If it's not from scope root, figure out which scope
+      if (!(loadInstructions).startsWith('/')) {
+        // Scope modifications
+        if ((loadInstructions).startsWith('.')) {
+          // The same as no scope modification
+          if ((loadInstructions).startsWith('./')) {
+            loadInstructions = (loadInstructions).slice(2);
+          }
+          // Find out how many scopes upwards we should move
+          while ((loadInstructions as string).startsWith('../')) {
+            scope = scope?.parent ?? scope;
+            loadInstructions = (loadInstructions as string).slice(3);
+          }
+        }
+        if (scope?.path != null) {
+          loadInstructions = `${scope.path}/${loadInstructions as string}`;
+          scope = null; // router.rootScope!.scope;
+        }
+      } else { // Specified root scope with /
+        scope = null; // router.rootScope!.scope;
+      }
+      if (!keepString) {
+        loadInstructions = RoutingInstruction.from(loadInstructions);
+        for (const instruction of loadInstructions as RoutingInstruction[]) {
+          if (instruction.scope === null) {
+            instruction.scope = scope;
+          }
+        }
+      }
+    } else {
+      loadInstructions = RoutingInstruction.from(loadInstructions);
+      for (const instruction of loadInstructions as RoutingInstruction[]) {
+        if (instruction.scope === null) {
+          instruction.scope = scope;
+        }
+      }
+    }
+
+    return {
+      instructions: loadInstructions as string | RoutingInstruction[],
+      scope,
+    };
   }
 
   /**
@@ -722,7 +775,7 @@ export class Router implements IRouter {
     options = options ?? {};
 
     // Make sure we have proper routing instructions
-    ({ instructions } = LoadInstructionResolver.createRoutingInstructions(instructions, options));
+    ({ instructions } = this.applyLoadOptions(instructions, options));
     // If no scope is set, use the root scope
     (instructions as RoutingInstruction[]).forEach((instruction: RoutingInstruction) => instruction.scope ??= this.rootScope!.scope);
 

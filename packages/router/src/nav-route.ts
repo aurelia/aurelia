@@ -7,7 +7,6 @@
 import { Constructable } from '@aurelia/kernel';
 import { RouteableComponentType, LoadInstruction } from './interfaces.js';
 import { INavRoute, Nav } from './nav.js';
-import { LoadInstructionResolver } from './type-resolvers.js';
 import { RoutingInstruction } from './instructions/routing-instruction.js';
 import { InstructionComponent } from './instructions/instruction-component.js';
 
@@ -41,7 +40,7 @@ export class NavRoute {
     }
     this.linkActive = route.consideredActive !== null && route.consideredActive !== void 0 ? route.consideredActive : this.link;
     if (this.linkActive !== null && (!(this.linkActive instanceof Function) || InstructionComponent.isType(this.linkActive as RouteableComponentType))) {
-      this.linkActive = LoadInstructionResolver.toRoutingInstructions(this.linkActive as LoadInstruction | LoadInstruction[]);
+      this.linkActive = RoutingInstruction.from(this.linkActive as LoadInstruction | LoadInstruction[]);
     }
     this.execute = route.execute;
     this.compareParameters = !!route.compareParameters;
@@ -74,7 +73,7 @@ export class NavRoute {
   }
 
   private parseRoute<C extends Constructable>(routes: LoadInstruction | LoadInstruction[]): RoutingInstruction[] {
-    return LoadInstructionResolver.toRoutingInstructions(routes);
+    return RoutingInstruction.from(routes);
   }
 
   private computeVisible(): boolean {

@@ -5,8 +5,8 @@
  *
  */
 import { customAttribute, INode, bindable, BindingMode, IObserverLocator, LifecycleFlags, CustomAttribute, ICustomAttributeController, ICustomAttributeViewModel } from '@aurelia/runtime-html';
+import { RoutingInstruction } from '../instructions/routing-instruction.js';
 import { IRouter } from '../router.js';
-import { LoadInstructionResolver } from '../type-resolvers.js';
 
 @customAttribute('load')
 export class LoadCustomAttribute implements ICustomAttributeViewModel {
@@ -23,7 +23,7 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
   public constructor(
     @INode private readonly element: INode<Element>,
     @IRouter private readonly router: IRouter,
-  ) {}
+  ) { }
 
   public binding(): void {
     this.element.addEventListener('click', this.router.linkHandler.handler);
@@ -56,8 +56,8 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
 
   public handleChange(): void {
     const controller = CustomAttribute.for(this.element, 'load')!.parent!;
-    const created = LoadInstructionResolver.createRoutingInstructions(this.value as any, { context: controller });
-    const instructions = LoadInstructionResolver.toRoutingInstructions(created.instructions);
+    const created = this.router.applyLoadOptions(this.value as any, { context: controller });
+    const instructions = RoutingInstruction.from(created.instructions);
     for (const instruction of instructions) {
       if (instruction.scope === null) {
         instruction.scope = created.scope;

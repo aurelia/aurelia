@@ -9,7 +9,6 @@ import { CustomElement, CustomElementType, getEffectiveParentNode, ICustomElemen
 import { FoundRoute } from './found-route.js';
 import { IRouter } from './router.js';
 import { RoutingInstruction } from './instructions/routing-instruction.js';
-import { LoadInstructionResolver } from './type-resolvers.js';
 import { Viewport, IViewportOptions } from './viewport.js';
 import { IConfigurableRoute, RouteRecognizer } from './route-recognizer.js';
 import { Runner, Step } from './utilities/runner.js';
@@ -481,7 +480,7 @@ export class RoutingScope {
       }];
     }
     if (route.redirectTo === null) {
-      route.instructions = LoadInstructionResolver.toRoutingInstructions(route.instructions!);
+      route.instructions = RoutingInstruction.from(route.instructions!);
     }
     return route as Route;
   }

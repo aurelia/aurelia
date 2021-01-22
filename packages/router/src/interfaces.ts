@@ -10,6 +10,7 @@ import { Viewport } from './viewport.js';
 import { RoutingInstruction } from './instructions/routing-instruction.js';
 import { Navigation } from './navigation.js';
 import { IRoute } from './route.js';
+import { ILoadOptions } from './router';
 
 // These interfaces exclusively exist to prevent TS decorator metadata emission from having the runtime
 // side-effect of causing a ReferenceError in node, because these are not defined as globals there.
@@ -53,6 +54,7 @@ export interface IRoutingInstruction {
   viewport?: ViewportHandle;
   parameters?: ComponentParameters;
   children?: LoadInstruction[];
+  options?: ILoadOptions;
 }
 
 // export interface IRoute extends Partial<IRoutingInstruction> {

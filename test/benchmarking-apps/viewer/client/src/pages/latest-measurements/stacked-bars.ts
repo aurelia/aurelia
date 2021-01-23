@@ -1,3 +1,4 @@
+import { ICustomAttributeController } from '@aurelia/runtime-html';
 import { Measurement, WritableMeasurementKeys } from '@benchmarking-apps/test-result';
 import { bindable, customElement, ILogger, shadowCSS } from 'aurelia';
 import * as d3 from 'd3';
@@ -64,12 +65,13 @@ for (let i = 0; i < seqLen; i++) {
   dependencies: [shadowCSS(css)],
 })
 export class StackedBars {
-  @bindable public readonly dataset: Partial<Measurement>[];
+  @bindable({ callback: 'draw' }) public readonly dataset: Partial<Measurement>[];
   @bindable public readonly measurementIdentifier: (m: Partial<Measurement>, i?: number, arr?: Partial<Measurement>[]) => string;
   @bindable public readonly totalDurationFn: (m: Partial<Measurement>) => number;
+  public readonly $controller!: ICustomAttributeController<this>;
   private readonly target!: HTMLElement;
   private readonly actions = Object.values(actions);
-  private svg: d3.Selection<SVGSVGElement, unknown, null, undefined>;
+  private readonly svgs: d3.Selection<SVGSVGElement, unknown, null, undefined>[] = [];
 
   public constructor(
     @ILogger private readonly logger: ILogger,
@@ -78,19 +80,29 @@ export class StackedBars {
   }
 
   public attached(): void {
+    this.draw();
+  }
+
+  private draw() {
+    if (!this.$controller.isActive) { return; }
+    this.clean();
     const logger = this.logger;
     const gDs = d3.group(this.dataset, (d) => `${d.initialPopulation!}|${d.totalPopulation!}`);
-    const stack = d3.stack<Partial<Measurement>>().keys(Object.keys(actions));
+    const stack = d3.stack<Partial<Measurement>>()
+      .keys(Object.keys(actions))
+      .value(function (d, key) { return (d[key] ?? 0) as number; });
     const target = this.target;
+    const svgs = this.svgs;
 
     for (const [key, ds] of gDs) {
       const series = stack(ds);
       logger.debug('series', series);
-      const svg = this.svg = d3.select(target)
+      const svg = d3.select(target)
         .append('svg')
         .attr('viewBox', `0 0 ${width} ${height}`)
         .attr('height', height)
         .attr('width', width);
+      svgs.push(svg);
 
       const [p0, pn] = key.split('|');
       svg.append('text')
@@ -137,6 +149,13 @@ export class StackedBars {
   }
 
   public detaching(): void {
-    this.svg.remove();
+    this.clean();
+  }
+
+  private clean() {
+    const svgs = this.svgs;
+    while (svgs.length) {
+      svgs.pop().remove();
+    }
   }
 }

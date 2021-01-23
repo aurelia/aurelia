@@ -71,6 +71,9 @@ export class Measurement {
   public durationDeleteFirst: number = Number.POSITIVE_INFINITY;
   public durationDeleteAll: number = Number.POSITIVE_INFINITY;
 
+  @totalDuration
+  public readonly totalDuration!: number;
+
   public get name(): string {
     return `${this.framework} - ${this.browser} - ${this.initialPopulation} - ${this.totalPopulation}`;
   }
@@ -169,7 +172,7 @@ export class Measurement {
   }
 }
 
-export type WritableMeasurement = Omit<Measurement, 'framework' | 'frameworkVersion' | 'browser' | 'browserVersion' | 'initialPopulation' | 'totalPopulation' | 'name'>;
+export type WritableMeasurement = Omit<Measurement, 'framework' | 'frameworkVersion' | 'browser' | 'browserVersion' | 'initialPopulation' | 'totalPopulation' | 'name' | 'totalDuration'>;
 export type WritableMeasurementKeys = {
   // eslint-disable-next-line @typescript-eslint/ban-types
   [key in keyof WritableMeasurement]: Measurement[key] extends Function ? never : key;

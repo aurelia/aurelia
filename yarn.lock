@@ -692,6 +692,7 @@
   "resolved" "file:test/benchmarking-apps/viewer/client"
   "version" "1.0.0"
   dependencies:
+    "@aurelia/runtime-html" "0.8.0"
     "@benchmarking-apps/test-result" "1.0.0"
     "aurelia" "0.8.0"
     "d3" "^6.3.1"

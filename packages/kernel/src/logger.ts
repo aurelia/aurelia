@@ -70,7 +70,7 @@ export interface ILogConfig {
 
 interface ILoggingConfigurationOptions extends ILogConfig {
   $console: IConsoleLike;
-  sinks: Class<ISink>[];
+  sinks: (Class<ISink> | IRegistry)[];
 }
 
 /**
@@ -708,9 +708,11 @@ export const LoggerConfiguration = toLookup({
           Registration.instance(ILogConfig, new LogConfig(colorOptions, level)),
         );
         for (const $sink of sinks) {
-          container.register(
-            Registration.singleton(ISink, $sink)
-          );
+          if (typeof $sink === 'function') {
+            container.register(Registration.singleton(ISink, $sink));
+          } else {
+            container.register($sink);
+          }
         }
         return container;
       },

@@ -100,7 +100,7 @@ describe('Logger', function () {
     container.register(LoggerConfiguration.create({
       level,
       colorOptions: colorOpts,
-      sinks: deactivateConsoleLog ? [EventLog] : [EventLog, Registration.instance(ISink, consoleSink) as any /* TODO: loosen sinks type */],
+      sinks: deactivateConsoleLog ? [EventLog] : [EventLog, Registration.instance(ISink, consoleSink)],
     }));
 
     let sut = container.get(ILogger);
@@ -209,7 +209,7 @@ describe('Logger', function () {
 
     const sinks = (sut as DefaultLogger)['errorSinks'] as ISink[];
     const eventLog = sinks.find((s) => s instanceof EventLog) as EventLog;
-    assert.strictEqual(eventLog !== void 0, true);
+    assert.notStrictEqual(eventLog, void 0);
 
     sut.error('foo');
 

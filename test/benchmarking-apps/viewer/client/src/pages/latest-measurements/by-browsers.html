@@ -5,4 +5,18 @@
     ${browser.name} v${browser.version}
   </option>
 </select>
-<stacked-bars dataset.bind="activeBrowser ? getActiveBrowserDataset() : avgDataset" measurement-identifier.bind total-duration-fn.bind></stacked-bars>
+
+<let mode.bind="'small-multiples'" dataset.bind="activeBrowser ? getActiveBrowserDataset() : avgDataset"></let>
+
+<label for="stack-mode">
+  <input id="stack-mode" type="radio" name="mode" model.bind="'stack'" checked.bind="mode"> Stacked bars
+</label>
+<label for="sm-mode">
+  <input id="sm-mode" type="radio" name="mode" model.bind="'small-multiples'" checked.bind="mode"> Small multiples
+</label>
+
+
+<template switch.bind="mode">
+  <stacked-bars case="stack" dataset.bind measurement-identifier.bind total-duration-fn.bind></stacked-bars>
+  <small-multiples case="small-multiples" dataset.bind measurement-identifier.bind></small-multiples>
+</template>

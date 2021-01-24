@@ -2,13 +2,17 @@ import { BenchmarkMeasurements, Measurement, totalDuration } from '@benchmarking
 import { bindable, customElement, ILogger } from 'aurelia';
 import template from './by-browsers.html';
 import { VersionedItem } from './shared';
+import { SmallMultiples } from './small-multiples';
 import { StackedBars } from './stacked-bars';
 
 @customElement({
   name: 'by-browsers',
   template,
   shadowOptions: { mode: 'open' },
-  dependencies: [StackedBars],
+  dependencies: [
+    StackedBars,
+    SmallMultiples,
+  ],
 })
 export class ByBrowsers {
   @bindable public readonly data: BenchmarkMeasurements;

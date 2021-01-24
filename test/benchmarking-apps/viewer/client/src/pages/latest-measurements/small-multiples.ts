@@ -41,7 +41,9 @@ export class SmallMultiples {
       groupContainer.append('h2').text(`From ${p0} to ${pn}`);
       const grid = groupContainer.append('div');
 
+      const constantPopulation = p0 === pn;
       for (const action of Object.keys(actions)) {
+        if (constantPopulation && action === 'durationPopulation') { continue; }
         const svg = grid.append('svg')
           .attr('viewBox', `0 0 ${width} ${height}`)
           .attr('height', height)

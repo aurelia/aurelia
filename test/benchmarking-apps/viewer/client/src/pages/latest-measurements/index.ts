@@ -3,7 +3,6 @@ import { customElement, ILogger } from 'aurelia';
 import { IApi } from '../data';
 import { ByBrowsers } from './by-browsers';
 import template from './index.html';
-import { SmallMultiples } from './small-multiples';
 
 @customElement({
   name: 'latest-measurements',

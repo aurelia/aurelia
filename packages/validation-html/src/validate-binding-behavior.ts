@@ -197,10 +197,12 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
 
   private task: ITask | null = null;
   private validateBinding() {
-    this.task?.cancel();
+    // Queue the new one before canceling the old one, to prevent early yield
+    const task = this.task;
     this.task = this.platform.domReadQueue.queueTask(() =>
       this.controller.validateBinding(this.propertyBinding)
     );
+    task?.cancel();
   }
 
   private processDelta(delta: ValidateArgumentsDelta) {

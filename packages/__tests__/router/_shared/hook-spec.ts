@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
-import { setTimeoutWaiter } from './waiters.js';
 import { HookName } from './hook-invocation-tracker.js';
 import { ITestRouteViewModel } from './view-models.js';
 
@@ -41,20 +40,6 @@ function getHookSpecs<T extends HookName>(name: T) {
         },
       } as IHookSpec<T>;
     },
-    setTimeout_0: {
-      name,
-      ticks: -1,
-      type: 'setTimeout_0',
-      async invoke(vm, getValue) {
-        const value = getValue();
-        const ctx = vm.$controller.context;
-        const label = `${vm.name}.${name}`;
-
-        return setTimeoutWaiter(ctx, 0, label)
-          .then(() => value as any
-        );
-      },
-    } as IHookSpec<T>,
   };
 }
 

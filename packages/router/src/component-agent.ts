@@ -141,7 +141,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
         b.pop();
       });
     }
-    if (this.hasLoad) {
+    if (this.hasCanLoad) {
       tr.run(() => {
         b.push();
         return this.instance.canLoad!(next.params, next, this.routeNode);

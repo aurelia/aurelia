@@ -39,16 +39,16 @@ export class ThrottleBindingBehavior extends BindingInterceptor {
     const nextDelay = this.lastCall + opts.delay! - platform.performanceNow();
 
     if (nextDelay > 0) {
-      if (this.task !== null) {
-        this.task.cancel();
-      }
-
+      // Queue the new one before canceling the old one, to prevent early yield
+      const task = this.task;
       opts.delay = nextDelay;
       this.task = this.taskQueue.queueTask(() => {
         this.lastCall = platform.performanceNow();
         this.task = null;
         callback();
       }, opts);
+
+      task?.cancel();
     } else {
       this.lastCall = platform.performanceNow();
       callback();

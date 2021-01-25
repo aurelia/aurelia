@@ -31,13 +31,13 @@ export class DebounceBindingBehavior extends BindingInterceptor {
   }
 
   private queueTask(callback: () => void): void {
-    if (this.task !== null) {
-      this.task.cancel();
-    }
+    // Queue the new one before canceling the old one, to prevent early yield
+    const task = this.task;
     this.task = this.taskQueue.queueTask(() => {
       this.task = null;
       return callback();
     }, this.opts);
+    task?.cancel();
   }
 
   public $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void {

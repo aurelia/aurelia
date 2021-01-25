@@ -54,7 +54,8 @@ describe('binding-resources', function () {
 
       assert.strictEqual(receiver.value, '0', `change 3 not yet propagated`);
 
-      await wait(50);
+      await ctx.platform.taskQueue.yield();
+      await ctx.platform.domWriteQueue.yield();
 
       assert.strictEqual(receiver.value, '3', `change 3 propagated`);
 
@@ -108,7 +109,7 @@ describe('binding-resources', function () {
 
       assert.strictEqual(receiver.value, '0', `change 3 not yet propagated`);
 
-      await wait(50);
+      await ctx.platform.taskQueue.yield();
 
       assert.strictEqual(receiver.value, '3', `change 3 propagated`);
 

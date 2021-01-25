@@ -108,7 +108,7 @@ describe('validation-result-presenter-service', function () {
     handleValidationEventSpy.calls.splice(0);
     controllerValidateSpy.calls.splice(0);
     target.dispatchEvent(new ctx.Event(event));
-    await platform.domReadQueue.yield();
+    platform.domReadQueue.flush();
     assert.equal(controllerValidateSpy.calls.length, 1, 'incorrect #calls for validate');
     assert.equal(handleValidationEventSpy.calls.length, 1, 'incorrect #calls for handleValidationEvent');
   }
@@ -203,7 +203,7 @@ describe('validation-result-presenter-service', function () {
 
       input2.value = '22';
       input2.dispatchEvent(new ctx.Event('change'));
-      await platform.domReadQueue.yield();
+      platform.domReadQueue.flush();
       await assertEventHandler(input2, platform, controllerSpy, spy, ctx);
 
       addArgs = addSpy.calls;
@@ -229,7 +229,7 @@ describe('validation-result-presenter-service', function () {
 
       input2.value = '15';
       input2.dispatchEvent(new ctx.Event('change'));
-      await platform.domReadQueue.yield();
+      platform.domReadQueue.flush();
       await assertEventHandler(input2, platform, controllerSpy, spy, ctx);
 
       addArgs = addSpy.calls;
@@ -310,7 +310,7 @@ describe('validation-result-presenter-service', function () {
 
       input2.value = '22';
       input2.dispatchEvent(new ctx.Event('change'));
-      await platform.domReadQueue.yield();
+      platform.domReadQueue.flush();
       await assertEventHandler(input2, platform, controllerSpy, spy, ctx);
 
       addArgs = addSpy.calls;
@@ -336,7 +336,7 @@ describe('validation-result-presenter-service', function () {
 
       input2.value = '15';
       input2.dispatchEvent(new ctx.Event('change'));
-      await platform.domReadQueue.yield();
+      platform.domReadQueue.flush();
       await assertEventHandler(input2, platform, controllerSpy, spy, ctx);
 
       addArgs = addSpy.calls;
@@ -406,7 +406,7 @@ describe('validation-result-presenter-service', function () {
 
       input2.value = '22';
       input2.dispatchEvent(new ctx.Event('change'));
-      await platform.domReadQueue.yield();
+      platform.domReadQueue.flush();
       await assertEventHandler(input2, platform, controllerSpy, spy, ctx);
 
       addArgs = addSpy.calls;

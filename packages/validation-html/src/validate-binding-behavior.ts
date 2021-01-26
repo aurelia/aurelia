@@ -202,7 +202,9 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
     this.task = this.platform.domReadQueue.queueTask(() =>
       this.controller.validateBinding(this.propertyBinding)
     );
-    task?.cancel();
+    if (task !== this.task) {
+      task?.cancel();
+    }
   }
 
   private processDelta(delta: ValidateArgumentsDelta) {

@@ -11,7 +11,7 @@ import {
 import i18next from 'i18next';
 import { I18N } from '../i18n.js';
 
-import type { IContainer, IServiceLocator } from '@aurelia/kernel';
+import type { ITask, QueueTaskOptions, IContainer, IServiceLocator } from '@aurelia/kernel';
 import type {
   Scope,
   IsBindingBehavior,
@@ -31,6 +31,7 @@ interface TranslationBindingCreationContext {
   controller: IHydratableController;
   target: HTMLElement;
   instruction: CallBindingInstruction;
+  platform: IPlatform;
   isParameterContext?: boolean;
 }
 const contentAttributes = ['textContent', 'innerHTML', 'prepend', 'append'] as const;
@@ -47,6 +48,10 @@ const attributeAliases = new Map([['text', 'textContent'], ['html', 'innerHTML']
 export interface TranslationBinding extends IConnectableBinding { }
 
 const forOpts = { optional: true } as const;
+const taskQueueOpts: QueueTaskOptions = {
+  reusable: false,
+  preempt: true,
+};
 
 @connectable()
 export class TranslationBinding implements IPartialConnectableBinding {
@@ -59,6 +64,7 @@ export class TranslationBinding implements IPartialConnectableBinding {
   private keyExpression: string | undefined | null;
   private scope!: Scope;
   private hostScope: Scope | null = null;
+  private task: ITask | null = null;
   private isInterpolation!: boolean;
   private readonly targetObservers: Set<IAccessor>;
 
@@ -70,10 +76,11 @@ export class TranslationBinding implements IPartialConnectableBinding {
     target: INode,
     public observerLocator: IObserverLocator,
     public locator: IServiceLocator,
+    platform: IPlatform,
   ) {
     this.target = target as HTMLElement;
     this.i18n = this.locator.get(I18N);
-    this.platform = this.locator.get(IPlatform);
+    this.platform = platform;
     this.targetObservers = new Set<IAccessor>();
     this.i18n.subscribeLocaleChange(this);
     connectable.assignIdTo(this);
@@ -86,9 +93,10 @@ export class TranslationBinding implements IPartialConnectableBinding {
     controller,
     target,
     instruction,
+    platform,
     isParameterContext,
   }: TranslationBindingCreationContext) {
-    const binding = this.getBinding({ observerLocator, context, controller, target });
+    const binding = this.getBinding({ observerLocator, context, controller, target, platform });
     const expr = typeof instruction.from === 'string'
       ? parser.parse(instruction.from, BindingType.BindCommand)
       : instruction.from as IsBindingBehavior;
@@ -104,10 +112,11 @@ export class TranslationBinding implements IPartialConnectableBinding {
     context,
     controller,
     target,
+    platform,
   }: Omit<TranslationBindingCreationContext, 'parser' | 'instruction' | 'isParameterContext'>): TranslationBinding {
     let binding: TranslationBinding | null = controller.bindings && controller.bindings.find((b) => b instanceof TranslationBinding && b.target === target) as TranslationBinding;
     if (!binding) {
-      binding = new TranslationBinding(target, observerLocator, context);
+      binding = new TranslationBinding(target, observerLocator, context, platform);
       controller.addBinding(binding);
     }
     return binding;
@@ -138,6 +147,10 @@ export class TranslationBinding implements IPartialConnectableBinding {
 
     this.parameter?.$unbind(flags);
     this.targetObservers.clear();
+    if (this.task !== null) {
+      this.task.cancel();
+      this.task = null;
+    }
 
     this.scope = (void 0)!;
     this.obs.clear(true);
@@ -150,18 +163,26 @@ export class TranslationBinding implements IPartialConnectableBinding {
         : newValue as string;
     this.obs.clear(false);
     this.ensureKeyExpression();
-    this.updateTranslations(flags);
+    this.queueUpdate(flags);
   }
 
   public handleLocaleChange() {
-    this.updateTranslations(LifecycleFlags.none);
+    this.queueUpdate(LifecycleFlags.none);
   }
 
   public useParameter(expr: IsExpression) {
     if (this.parameter != null) {
       throw new Error('This translation parameter has already been specified.');
     }
-    this.parameter = new ParameterBinding(this, expr, (flags: LifecycleFlags) => this.updateTranslations(flags));
+    this.parameter = new ParameterBinding(this, expr, (flags: LifecycleFlags) => this.queueUpdate(flags));
+  }
+
+  private queueUpdate(flags: LifecycleFlags) {
+    this.task?.cancel();
+    this.task = this.platform.domWriteQueue.queueTask(() => {
+      this.task = null;
+      this.updateTranslations(flags);
+    }, taskQueueOpts);
   }
 
   private updateTranslations(flags: LifecycleFlags) {

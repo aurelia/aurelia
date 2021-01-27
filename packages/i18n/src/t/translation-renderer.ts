@@ -12,6 +12,7 @@ import {
   IHydratableController,
   AttrSyntax,
   getTarget,
+  IPlatform,
 } from '@aurelia/runtime-html';
 
 import type {
@@ -56,6 +57,7 @@ export class TranslationBindingRenderer implements IRenderer {
   public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IObserverLocator private readonly observerLocator: IObserverLocator,
+    @IPlatform private readonly platform: IPlatform,
   ) { }
 
   public render(
@@ -65,7 +67,15 @@ export class TranslationBindingRenderer implements IRenderer {
     target: HTMLElement,
     instruction: CallBindingInstruction,
   ): void {
-    TranslationBinding.create({ parser: this.parser, observerLocator: this.observerLocator, context, controller, target, instruction });
+    TranslationBinding.create({
+      parser: this.parser,
+      observerLocator: this.observerLocator,
+      context,
+      controller,
+      target,
+      instruction,
+      platform: this.platform,
+    });
   }
 }
 
@@ -105,6 +115,7 @@ export class TranslationBindBindingRenderer implements IRenderer {
   public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IObserverLocator private readonly observerLocator: IObserverLocator,
+    @IPlatform private readonly platform: IPlatform,
   ) { }
 
   public render(
@@ -114,6 +125,14 @@ export class TranslationBindBindingRenderer implements IRenderer {
     target: HTMLElement,
     instruction: CallBindingInstruction,
   ): void {
-    TranslationBinding.create({ parser: this.parser, observerLocator: this.observerLocator, context, controller, target, instruction });
+    TranslationBinding.create({
+      parser: this.parser,
+      observerLocator: this.observerLocator,
+      context,
+      controller,
+      target,
+      instruction,
+      platform: this.platform
+    });
   }
 }

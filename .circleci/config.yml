@@ -219,6 +219,7 @@ jobs:
     executor: docker-circleci
     steps:
       - checkout_install
+      - run: npm run build
       - run: npm run lint:packages:ci
       - run: npm run lint:other:ci
 

@@ -1,4 +1,4 @@
-import { LoggerConfiguration, LogLevel } from '@aurelia/kernel';
+import { ConsoleSink, LoggerConfiguration, LogLevel } from '@aurelia/kernel';
 import { customElement, ISignaler, valueConverter, Aurelia } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 
@@ -7,7 +7,7 @@ describe('signaler.integration', function () {
     const ctx = TestContext.create();
     const tq = ctx.platform.domWriteQueue;
 
-    ctx.container.register(LoggerConfiguration.create({ $console: console, level: LogLevel.warn }));
+    ctx.container.register(LoggerConfiguration.create({ sinks: [ConsoleSink], level: LogLevel.warn }));
     const au = new Aurelia(ctx.container);
     const host = ctx.createElement('div');
 

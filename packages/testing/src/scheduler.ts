@@ -7,8 +7,8 @@ export function ensureTaskQueuesEmpty(platform?: IPlatform): void {
 
   // canceling pending heading to remove the sticky tasks
 
-  platform.macroTaskQueue.flush();
-  platform.macroTaskQueue['pending'].forEach((x: ITask) => x.cancel());
+  platform.taskQueue.flush();
+  platform.taskQueue['pending'].forEach((x: ITask) => x.cancel());
 
   platform.domWriteQueue.flush();
   platform.domWriteQueue['pending'].forEach((x: ITask) => x.cancel());

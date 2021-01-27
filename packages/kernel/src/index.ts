@@ -1,8 +1,6 @@
-import { Platform } from '@aurelia/platform';
-import { DI } from './di.js';
-
-export interface IPlatform extends Platform {}
-export const IPlatform = DI.createInterface<IPlatform>('IPlatform');
+export {
+  IPlatform,
+} from './platform.js';
 
 export {
   Platform,

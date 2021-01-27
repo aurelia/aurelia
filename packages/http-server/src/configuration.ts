@@ -1,4 +1,4 @@
-import { ColorOptions, ConsoleSink, IContainer, LoggerConfiguration, Registration } from '@aurelia/kernel';
+import { ColorOptions, ConsoleSink, IContainer, IPlatform, LoggerConfiguration, Platform, Registration } from '@aurelia/kernel';
 import { Http2Server, HttpServer } from './http-server.js';
 import { IHttp2FileServer, IHttpServer, IHttpServerOptions, IRequestHandler } from './interfaces.js';
 import { FileServer, Http2FileServer } from './request-handlers/file-server.js';
@@ -18,7 +18,8 @@ export const HttpServerConfiguration = {
           Registration.singleton(IRequestHandler, PushStateHandler),
           Registration.singleton(IRequestHandler, FileServer),
           Registration.singleton(IHttp2FileServer, Http2FileServer),
-          LoggerConfiguration.create({ sinks: [ConsoleSink], level: opts.level, colorOptions: ColorOptions.colors })
+          LoggerConfiguration.create({ sinks: [ConsoleSink], level: opts.level, colorOptions: ColorOptions.colors }),
+          Registration.instance(IPlatform, new Platform(globalThis)),
         );
 
         if (opts.useHttp2) {

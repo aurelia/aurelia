@@ -1,6 +1,7 @@
 const path = require('path');
 
 const basePath = path.resolve(__dirname, '..', '..');
+const smsPath = path.dirname(require.resolve('source-map-support'));
 
 const commonChromeFlags = [
   '--no-default-browser-check',
@@ -76,6 +77,7 @@ module.exports = function (config) {
   //   Because they're not watched, they're also not cached, so that the browser will always serve the latest version from disk.
   //
   const files = [
+    { type: 'script', watched: false, included: true,  nocache: false, pattern: path.join(smsPath, 'browser-source-map-support.js') },
     { type: 'module', watched: true,  included: true,  nocache: false, pattern: `packages/__tests__/dist/esm/__tests__/setup-browser.js` }, // 1.1
     { type: 'module', watched: true,  included: false, nocache: false, pattern: `packages/__tests__/dist/esm/__tests__/setup-shared.js` }, // 1.2
     { type: 'module', watched: true,  included: false, nocache: false, pattern: `packages/__tests__/dist/esm/__tests__/util.js` }, // 1.3
@@ -87,9 +89,9 @@ module.exports = function (config) {
       { type: 'module', watched: false, included: false, nocache: true,  pattern: `packages/__tests__/${name}/**/*.ts` }, // 2.4
     ]),
     ...packageNames.flatMap(name => [
-      { type: 'module', watched: true,  included: false, snocache: false, pattern: `packages/${name}/dist/esm/**/!(*.$au)*.js` }, // 3.1
-      { type: 'module', watched: false, included: false, snocache: true,  pattern: `packages/${name}/dist/esm/**/*.js.map` }, // 3.2
-      { type: 'module', watched: false, included: false, snocache: true,  pattern: `packages/${name}/src/**/*.ts` }, // 3.3
+      { type: 'module', watched: true,  included: false, nocache: false, pattern: `packages/${name}/dist/esm/**/!(*.$au)*.js` }, // 3.1
+      { type: 'module', watched: false, included: false, nocache: true,  pattern: `packages/${name}/dist/esm/**/*.js.map` }, // 3.2
+      { type: 'module', watched: false, included: false, nocache: true,  pattern: `packages/${name}/src/**/*.ts` }, // 3.3
     ])
   ];
 
@@ -97,7 +99,7 @@ module.exports = function (config) {
     // Only process .js files (not .js.map or .ts files)
     if (/\.js$/.test(file.pattern)) {
       // Only instrument core framework files (not the specs themselves, nor any test utils (for now))
-      if (/__tests__|testing/.test(file.pattern)) {
+      if (/__tests__|testing/.test(file.pattern) || !config.coverage) {
         p[file.pattern] = ['aurelia'];
       } else {
         p[file.pattern] = ['aurelia', 'karma-coverage-istanbul-instrumenter'];

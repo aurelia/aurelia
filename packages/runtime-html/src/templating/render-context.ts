@@ -228,6 +228,7 @@ export function getRenderContext(
 const emptyNodeCache = new WeakMap<IPlatform, FragmentNodeSequence>();
 
 export class RenderContext implements IComponentFactory {
+  public readonly root: IContainer;
   private readonly container: IContainer;
 
   private readonly parentControllerProvider: InstanceProvider<IController>;
@@ -252,6 +253,7 @@ export class RenderContext implements IComponentFactory {
     public readonly definition: CustomElementDefinition,
     public readonly parentContainer: IContainer,
   ) {
+    this.root = parentContainer.root;
     const container = this.container = parentContainer.createChild();
     // TODO(fkleuver): get contextual + root renderers
     const renderers = container.getAll(IRenderer);

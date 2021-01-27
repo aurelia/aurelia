@@ -147,7 +147,7 @@ export {
   // DefaultLogEvent,
   // DefaultLogEventFactory,
   // DefaultLogger,
-  // ConsoleSink,
+  ConsoleSink,
   LoggerConfiguration,
 
   // relativeToFile,
@@ -196,92 +196,22 @@ export {
 } from '@aurelia/kernel';
 
 export {
-  // BrowserNavigator,
-
-  // ILinkHandlerOptions,
-  // AnchorEventInfo,
-
-  // LinkHandler,
-
-  // Guard,
-
-  // GuardTypes,
-  // GuardIdentity,
-  // IGuardOptions,
-  // Guardian,
-
-  // InstructionResolver,
-
-  // GuardFunction,
-  // GuardTarget,
-  // INavigatorInstruction,
-  // IRouteableComponent,
-  // IRouteableComponentType,
-  // IViewportInstruction,
-  // NavigationInstruction,
-  // ReentryBehavior,
-
-  // lifecycleLogger,
-  // LifecycleClass,
-
-  INavRoute,
-  // Nav,
-
-  NavRoute,
-
-  // IStoredNavigatorEntry,
-  // INavigatorEntry,
-  // INavigatorOptions,
-  // INavigatorFlags,
-  // INavigatorState,
-  // INavigatorStore,
-  // INavigatorViewer,
-  // INavigatorViewerEvent,
-  // Navigator,
-
-  // QueueItem,
-  // IQueueOptions,
-  // Queue,
-
-  // RouteHandler,
-  // ConfigurableRoute,
-  // HandlerEntry,
-  // RouteGenerator,
-  // TypesRecord,
-  // RecognizeResult,
-  // RecognizeResults,
-  // CharSpec,
-  // // State as RouterState, // duplicated in @aurelia/runtime
-  // StaticSegment,
-  // DynamicSegment,
-  // StarSegment,
-  // EpsilonSegment,
-  // Segment,
-  // RouteRecognizer,
-
   RouterOptions,
-  IRouterActivateOptions,
   IRouter,
+  IRouterEvents,
   Router,
-
-  // IViewportOptions,
-  // Viewport,
-
-  // ContentStatus,
-  // ViewportContent,
-
-  ViewportInstruction,
+  RouteNode,
+  route,
+  Route,
+  RouteConfig,
+  IRouteContext,
+  IRouteViewModel,
+  NavigationInstruction,
+  Routeable,
+  Params,
 
   RouterConfiguration,
   RouterRegistration,
-  // DefaultComponents as RouterDefaultComponents,
-  // DefaultResources as RouterDefaultResources,
-  // ViewportCustomElement,
-  // ViewportCustomElementRegistration,
-  // NavCustomElement,
-  // NavCustomElementRegistration,
-  // GotoCustomAttribute,
-  // GotoCustomAttributeRegistration
 } from '@aurelia/router';
 
 export {
@@ -550,6 +480,7 @@ export {
   // IDOMInitializer,
   // ISinglePageApp,
   IAppRoot,
+  IWorkTracker,
 
   // IfRegistration,
   // ElseRegistration,
@@ -944,6 +875,10 @@ export {
 
   // TemplateBinder,
 
-  // ITemplateElementFactory
+  // ITemplateElementFactory,
+  ILifecycleHooks,
+  LifecycleHook,
+  LifecycleHooks,
+  lifecycleHooks,
 } from '@aurelia/runtime-html';
 

@@ -1,6 +1,6 @@
 import { DI, IHttpClient, ILogger, PLATFORM } from 'aurelia';
 
-export const IApi = DI.createInterface<IApi>('IApi').withDefault(x => x.singleton(Api));
+export const IApi = DI.createInterface<IApi>('IApi', x => x.singleton(Api));
 export interface IApi extends Api {}
 export class Api {
   public constructor(

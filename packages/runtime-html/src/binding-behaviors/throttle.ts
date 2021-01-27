@@ -18,7 +18,7 @@ export class ThrottleBindingBehavior extends BindingInterceptor {
   ) {
     super(binding, expr);
     this.platform = binding.locator.get(IPlatform);
-    this.taskQueue = this.platform.macroTaskQueue;
+    this.taskQueue = this.platform.taskQueue;
     if (expr.args.length > 0) {
       this.firstArg = expr.args[0];
     }
@@ -39,16 +39,16 @@ export class ThrottleBindingBehavior extends BindingInterceptor {
     const nextDelay = this.lastCall + opts.delay! - platform.performanceNow();
 
     if (nextDelay > 0) {
-      if (this.task !== null) {
-        this.task.cancel();
-      }
-
+      // Queue the new one before canceling the old one, to prevent early yield
+      const task = this.task;
       opts.delay = nextDelay;
       this.task = this.taskQueue.queueTask(() => {
         this.lastCall = platform.performanceNow();
         this.task = null;
         callback();
       }, opts);
+
+      task?.cancel();
     } else {
       this.lastCall = platform.performanceNow();
       callback();

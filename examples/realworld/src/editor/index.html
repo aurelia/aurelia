@@ -1,0 +1,42 @@
+<div class="editor-page">
+  <div class="container page">
+    <div class="row">
+
+      <div class="col-md-10 offset-md-1 col-xs-12">
+        <error-list errors.bind="$article.errors"></error-list>
+
+        <form submit.trigger="$event.preventDefault()">
+          <fieldset>
+            <fieldset class="form-group">
+              <input type="text" class="form-control form-control-lg" placeholder="Article Title"
+                value.bind="local.title" name="title">
+            </fieldset>
+            <fieldset class="form-group">
+              <input type="text" class="form-control" placeholder="What's this article about?"
+                value.bind="local.description" name="description">
+            </fieldset>
+            <fieldset class="form-group">
+              <textarea class="form-control" rows="8" placeholder="Write your article (in markdown)"
+                value.bind="local.body" name="body"></textarea>
+            </fieldset>
+            <fieldset class="form-group">
+              <input type="text" class="form-control" placeholder="Enter tags" value.bind="tag"
+                keyup.delegate="onTagKeyUp($event, tag)" name="tag">
+              <div class="tag-list">
+                <span repeat.for="tag of local.tagList" class="tag-default tag-pill" data-e2e="tag-${tag}">
+                  <i class="ion-close-round" click.delegate="removeTag($index)" data-e2e="removeTagBtn"></i>
+                  ${tag}
+                </span>
+              </div>
+            </fieldset>
+            <button class="btn btn-lg pull-xs-right btn-primary" type="button" click.delegate="save()"
+              data-e2e="saveBtn">
+              Publish Article
+            </button>
+          </fieldset>
+        </form>
+      </div>
+
+    </div>
+  </div>
+</div>

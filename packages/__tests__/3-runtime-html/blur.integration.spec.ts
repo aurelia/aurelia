@@ -40,26 +40,26 @@ describe('blur.integration.spec.ts', function () {
             assert.equal(component.hasFocus, true, 'initial component.hasFocus');
 
             dispatchEventWith(ctx, ctx.doc, EVENTS.MouseDown);
-            await ctx.platform.domWriteQueue.yield();
+            ctx.platform.domWriteQueue.flush();
 
             assert.equal(component.hasFocus, false, 'component.hasFocus');
 
             component.hasFocus = true;
             dispatchEventWith(ctx, ctx.wnd, EVENTS.MouseDown);
-            await ctx.platform.domWriteQueue.yield();
+            ctx.platform.domWriteQueue.flush();
 
             assert.equal(component.hasFocus, true, 'window@mousedown -> Shoulda leave "hasFocus" alone as window is not listened to.');
 
             component.hasFocus = true;
             dispatchEventWith(ctx, ctx.doc.body, EVENTS.MouseDown);
-            await ctx.platform.domWriteQueue.yield();
+            ctx.platform.domWriteQueue.flush();
 
             assert.equal(component.hasFocus, false, 'document.body@mousedown -> Shoulda set "hasFocus" to false when mousedown on doc body.');
 
             const button = testHost.querySelector('button');
             component.hasFocus = true;
             dispatchEventWith(ctx, button, EVENTS.MouseDown);
-            await ctx.platform.domWriteQueue.yield();
+            ctx.platform.domWriteQueue.flush();
 
             assert.equal(component.hasFocus, false, '+ button@mousedown -> Shoulda set "hasFocus" to false when clicking element outside.');
           }
@@ -78,26 +78,26 @@ describe('blur.integration.spec.ts', function () {
             assert.equal(component.hasFocus, true, 'initial component.hasFocus');
 
             dispatchEventWith(ctx, ctx.doc, EVENTS.MouseDown);
-            await ctx.platform.domWriteQueue.yield();
+            ctx.platform.domWriteQueue.flush();
 
             assert.equal(component.hasFocus, false, 'document@mousedown -> Shoulda set "hasFocus" to false when mousedown on document.');
 
             component.hasFocus = true;
             dispatchEventWith(ctx, ctx.wnd, EVENTS.MouseDown);
-            await ctx.platform.domWriteQueue.yield();
+            ctx.platform.domWriteQueue.flush();
 
             assert.equal(component.hasFocus, true, 'window@mousedown -> It should have been true. Ignore interaction out of document.');
 
             component.hasFocus = true;
             dispatchEventWith(ctx, ctx.doc.body, EVENTS.MouseDown);
-            await ctx.platform.domWriteQueue.yield();
+            ctx.platform.domWriteQueue.flush();
 
             assert.equal(component.hasFocus, false, 'document.body@mousedown -> Shoulda been false. Interacted inside doc, outside element.');
 
             const button = testHost.querySelector('button');
             component.hasFocus = true;
             dispatchEventWith(ctx, button, EVENTS.MouseDown);
-            await ctx.platform.domWriteQueue.yield();
+            ctx.platform.domWriteQueue.flush();
 
             assert.equal(component.hasFocus, false, '+ button@mousedown -> Shoulda been false. Interacted outside element.');
           }
@@ -150,33 +150,33 @@ describe('blur.integration.spec.ts', function () {
 
             input.blur();
             dispatchEventWith(ctx, input, EVENTS.Blur, false);
-            await ctx.platform.domWriteQueue.yield();
+            ctx.platform.domWriteQueue.flush();
 
             assert.notEqual(input, ctx.doc.activeElement, 'child > input !== doc.activeElement');
             assert.equal(component.hasFocus, false, 'child > input@blur');
 
             dispatchEventWith(ctx, ctx.doc, EVENTS.MouseDown);
-            await ctx.platform.domWriteQueue.yield();
+            ctx.platform.domWriteQueue.flush();
 
             assert.equal(component.hasFocus, false, 'document@mousedown');
 
             component.hasFocus = true;
             dispatchEventWith(ctx, ctx.wnd, EVENTS.MouseDown);
-            await ctx.platform.domWriteQueue.yield();
+            ctx.platform.domWriteQueue.flush();
 
             assert.equal(component.hasFocus, false, 'window@mousedown');
-            await ctx.platform.domWriteQueue.yield();
+            ctx.platform.domWriteQueue.flush();
 
             component.hasFocus = true;
             dispatchEventWith(ctx, ctx.doc.body, EVENTS.MouseDown);
-            await ctx.platform.domWriteQueue.yield();
+            ctx.platform.domWriteQueue.flush();
 
             assert.equal(component.hasFocus, false, 'document.body@mousedown');
 
             const button = testHost.querySelector('button');
             component.hasFocus = true;
             dispatchEventWith(ctx, button, EVENTS.MouseDown);
-            await ctx.platform.domWriteQueue.yield();
+            ctx.platform.domWriteQueue.flush();
 
             assert.equal(component.hasFocus, false, '+ button@mousedown');
 
@@ -185,7 +185,7 @@ describe('blur.integration.spec.ts', function () {
             component.hasFocus = true;
             input.focus();
             dispatchEventWith(ctx, input, EVENTS.Focus, false);
-            await ctx.platform.domWriteQueue.yield();
+            ctx.platform.domWriteQueue.flush();
             // assert.equal(input, ctx.doc.activeElement, 'child > input === doc.activeElement (2)');
             // child input got focus
             // 1. blur got triggered -> hasFocus to false
@@ -279,7 +279,7 @@ describe('blur.integration.spec.ts', function () {
 
           ceA.hasFocus = true;
           dispatchEventWith(ctx, $ceA.shadowRoot.querySelector('button'), EVENTS.MouseDown);
-          await ctx.platform.domWriteQueue.yield();
+          ctx.platform.domWriteQueue.flush();
 
           assert.equal(ceA.hasFocus, true, '<ce-a/>.hasFocus should have been true?');
 
@@ -289,7 +289,7 @@ describe('blur.integration.spec.ts', function () {
             target: $ceA,
             composedPath: [$ceA.shadowRoot.querySelector('p')]
           }));
-          await ctx.platform.domWriteQueue.yield();
+          ctx.platform.domWriteQueue.flush();
 
           assert.equal(ceA.hasFocus, false, '<ce-a/>.hasFocus should have been false?');
           assert.equal(ceB.hasFocus, false, '<ce-b/>.hasFocus should have been false?');

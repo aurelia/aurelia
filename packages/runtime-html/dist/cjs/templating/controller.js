@@ -14,6 +14,7 @@ const app_root_js_1 = require("../app-root.js");
 const platform_js_1 = require("../platform.js");
 const styles_js_1 = require("./styles.js");
 const watchers_js_1 = require("./watchers.js");
+const lifecycle_hooks_js_1 = require("./lifecycle-hooks.js");
 function callDispose(disposable) {
     disposable.dispose();
 }
@@ -72,6 +73,7 @@ class Controller {
         this.nodes = null;
         this.context = null;
         this.location = null;
+        this.lifecycleHooks = null;
         this.state = 0 /* none */;
         this.logger = null;
         this.debug = false;
@@ -215,6 +217,7 @@ class Controller {
             }
         }
         const context = this.context = render_context_js_1.getRenderContext(definition, parentContainer, targetedProjections?.projections);
+        this.lifecycleHooks = lifecycle_hooks_js_1.LifecycleHooks.resolve(context);
         // Support Recursive Components by adding self to own context
         definition.register(context);
         if (definition.injectable !== null) {
@@ -250,16 +253,19 @@ class Controller {
         if ((this.hostController = custom_element_js_1.CustomElement.for(this.host, optional)) !== null) {
             this.host = this.platform.document.createElement(this.context.definition.name);
         }
-        kernel_1.Metadata.define(custom_element_js_1.CustomElement.name, this, this.host);
+        dom_js_1.setRef(this.host, custom_element_js_1.CustomElement.name, this);
+        dom_js_1.setRef(this.host, this.definition.key, this);
         if (shadowOptions !== null || hasSlots) {
             if (containerless) {
                 throw new Error('You cannot combine the containerless custom element option with Shadow DOM.');
             }
-            kernel_1.Metadata.define(custom_element_js_1.CustomElement.name, this, this.shadowRoot = this.host.attachShadow(shadowOptions ?? defaultShadowOptions));
+            dom_js_1.setRef(this.shadowRoot = this.host.attachShadow(shadowOptions ?? defaultShadowOptions), custom_element_js_1.CustomElement.name, this);
+            dom_js_1.setRef(this.shadowRoot, this.definition.key, this);
             this.mountTarget = 2 /* shadowRoot */;
         }
         else if (containerless) {
-            kernel_1.Metadata.define(custom_element_js_1.CustomElement.name, this, this.location = dom_js_1.convertToRenderLocation(this.host));
+            dom_js_1.setRef(this.location = dom_js_1.convertToRenderLocation(this.host), custom_element_js_1.CustomElement.name, this);
+            dom_js_1.setRef(this.location, this.definition.key, this);
             this.mountTarget = 3 /* location */;
         }
         else {
@@ -298,6 +304,13 @@ class Controller {
         }
         createObservers(this, definition, this.flags, instance);
         instance.$controller = this;
+        this.lifecycleHooks = lifecycle_hooks_js_1.LifecycleHooks.resolve(this.container);
+        if (this.hooks.hasCreated) {
+            if (this.debug) {
+                this.logger.trace(`invoking created() hook`);
+            }
+            this.viewModel.created(this);
+        }
     }
     hydrateSynthetic(context) {
         this.context = context;
@@ -590,7 +603,8 @@ class Controller {
                     this.scope = null;
                 }
                 if ((this.state & 16 /* released */) === 16 /* released */ &&
-                    !this.viewFactory.tryReturnToCache(this)) {
+                    !this.viewFactory.tryReturnToCache(this) &&
+                    this.$initiator === this) {
                     this.dispose();
                 }
                 break;
@@ -598,7 +612,7 @@ class Controller {
                 this.scope.parentScope = null;
                 break;
         }
-        if ((flags & 512 /* dispose */) === 512 /* dispose */) {
+        if ((flags & 512 /* dispose */) === 512 /* dispose */ && this.$initiator === this) {
             this.dispose();
         }
         this.state = (this.state & 32 /* disposed */) | 8 /* deactivated */;
@@ -766,7 +780,8 @@ class Controller {
     }
     setHost(host) {
         if (this.vmKind === 0 /* customElement */) {
-            kernel_1.Metadata.define(custom_element_js_1.CustomElement.name, this, host);
+            dom_js_1.setRef(host, custom_element_js_1.CustomElement.name, this);
+            dom_js_1.setRef(host, this.definition.key, this);
         }
         this.host = host;
         this.mountTarget = 1 /* host */;
@@ -774,7 +789,8 @@ class Controller {
     }
     setShadowRoot(shadowRoot) {
         if (this.vmKind === 0 /* customElement */) {
-            kernel_1.Metadata.define(custom_element_js_1.CustomElement.name, this, shadowRoot);
+            dom_js_1.setRef(shadowRoot, custom_element_js_1.CustomElement.name, this);
+            dom_js_1.setRef(shadowRoot, this.definition.key, this);
         }
         this.shadowRoot = shadowRoot;
         this.mountTarget = 2 /* shadowRoot */;
@@ -782,7 +798,8 @@ class Controller {
     }
     setLocation(location) {
         if (this.vmKind === 0 /* customElement */) {
-            kernel_1.Metadata.define(custom_element_js_1.CustomElement.name, this, location);
+            dom_js_1.setRef(location, custom_element_js_1.CustomElement.name, this);
+            dom_js_1.setRef(location, this.definition.key, this);
         }
         this.location = location;
         this.mountTarget = 3 /* location */;

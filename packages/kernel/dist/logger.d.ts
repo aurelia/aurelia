@@ -1,5 +1,6 @@
-import { IRegistry } from './di.js';
+import { IContainer, IRegistry } from './di.js';
 import { Class, Constructable } from './interfaces.js';
+import { IPlatform } from './platform.js';
 export declare const enum LogLevel {
     /**
      * The most detailed information about internal app state.
@@ -62,7 +63,7 @@ export interface ILogConfig {
 }
 interface ILoggingConfigurationOptions extends ILogConfig {
     $console: IConsoleLike;
-    sinks: Class<ISink>[];
+    sinks: (Class<ISink> | IRegistry)[];
 }
 /**
  * Component that creates log event objects based on raw inputs sent to `ILogger`.
@@ -203,8 +204,9 @@ export declare class DefaultLogEventFactory implements ILogEventFactory {
     createLogEvent(logger: ILogger, level: LogLevel, message: string, optionalParams: unknown[]): ILogEvent;
 }
 export declare class ConsoleSink implements ISink {
+    static register(container: IContainer): void;
     readonly handleEvent: (event: ILogEvent) => void;
-    constructor($console: IConsoleLike);
+    constructor(p: IPlatform);
 }
 export declare class DefaultLogger {
     /**
@@ -396,21 +398,9 @@ export declare class DefaultLogger {
  * ```ts
  * container.register(LoggerConfiguration.create());
  *
- * container.register(LoggerConfiguration.create({$console: console}))
+ * container.register(LoggerConfiguration.create({sinks: [ConsoleSink]}))
  *
- * container.register(LoggerConfiguration.create({$console: console, level: LogLevel.debug}))
- *
- * container.register(LoggerConfiguration.create({
- *  $console: {
- *     debug: noop,
- *     info: noop,
- *     warn: noop,
- *     error: msg => {
- *       throw new Error(msg);
- *     }
- *  },
- *  level: LogLevel.debug
- * }))
+ * container.register(LoggerConfiguration.create({sinks: [ConsoleSink], level: LogLevel.debug}))
  *
  * ```
  */
@@ -420,7 +410,7 @@ export declare const LoggerConfiguration: {
      * @param level - The global `LogLevel` to configure. Defaults to `warn` or higher.
      * @param colorOptions - Whether to use colors or not. Defaults to `noColors`. Colors are especially nice in nodejs environments but don't necessarily work (well) in all environments, such as browsers.
      */
-    create({ $console, level, colorOptions, sinks, }?: Partial<ILoggingConfigurationOptions>): IRegistry;
+    create({ level, colorOptions, sinks, }?: Partial<ILoggingConfigurationOptions>): IRegistry;
 };
 export {};
 //# sourceMappingURL=logger.d.ts.map

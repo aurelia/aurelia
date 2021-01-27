@@ -82,11 +82,13 @@ class AttributeBinding {
             if (newValue !== this.value) {
                 this.value = newValue;
                 if (shouldQueueFlush) {
-                    this.task?.cancel();
+                    // Queue the new one before canceling the old one, to prevent early yield
+                    const task = this.task;
                     this.task = this.$platform.domWriteQueue.queueTask(() => {
                         this.task = null;
                         interceptor.updateTarget(newValue, flags);
                     }, taskOptions);
+                    task?.cancel();
                 }
                 else {
                     interceptor.updateTarget(newValue, flags);

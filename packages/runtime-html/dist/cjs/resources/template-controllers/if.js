@@ -15,51 +15,73 @@ const dom_js_1 = require("../../dom.js");
 const view_js_1 = require("../../templating/view.js");
 const custom_attribute_js_1 = require("../custom-attribute.js");
 const bindable_js_1 = require("../../bindable.js");
+const app_root_js_1 = require("../../app-root.js");
 let If = class If {
-    constructor(ifFactory, location) {
+    constructor(ifFactory, location, work) {
         this.ifFactory = ifFactory;
         this.location = location;
+        this.work = work;
         this.id = kernel_1.nextId('au$component');
         this.elseFactory = void 0;
         this.elseView = void 0;
         this.ifView = void 0;
         this.view = void 0;
         this.value = false;
+        this.pending = void 0;
+        this.wantsDeactivate = false;
     }
     attaching(initiator, parent, flags) {
-        const view = this.view = this.updateView(this.value, flags);
-        if (view !== void 0) {
-            const { $controller } = this;
-            return view.activate(initiator, $controller, flags, $controller.scope, $controller.hostScope);
-        }
+        return kernel_1.onResolve(this.pending, () => {
+            this.pending = void 0;
+            // Promise return values from user VM hooks are awaited by the initiator
+            void (this.view = this.updateView(this.value, flags))?.activate(initiator, this.$controller, flags, this.$controller.scope, this.$controller.hostScope);
+        });
     }
     detaching(initiator, parent, flags) {
-        if (this.view !== void 0) {
-            return this.view.deactivate(initiator, this.$controller, flags);
-        }
+        this.wantsDeactivate = true;
+        return kernel_1.onResolve(this.pending, () => {
+            this.wantsDeactivate = false;
+            this.pending = void 0;
+            // Promise return values from user VM hooks are awaited by the initiator
+            void this.view?.deactivate(initiator, this.$controller, flags);
+        });
     }
     valueChanged(newValue, oldValue, flags) {
-        const { $controller } = this;
-        if (!$controller.isActive) {
+        if (!this.$controller.isActive) {
             return;
         }
-        const ret = kernel_1.onResolve(this.view?.deactivate(this.view, $controller, flags), () => {
-            const view = this.view = this.updateView(this.value, flags);
-            if (view !== void 0) {
-                // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add a variety of `if` integration tests
-                return view.activate(view, $controller, flags, $controller.scope, $controller.hostScope);
-            }
+        this.pending = kernel_1.onResolve(this.pending, () => {
+            return this.swap(flags);
         });
-        if (ret instanceof Promise) {
-            ret.catch(err => { throw err; });
+    }
+    swap(flags) {
+        if (this.view === this.updateView(this.value, flags)) {
+            return;
         }
+        this.work.start();
+        const ctrl = this.$controller;
+        return kernel_1.onResolve(this.view?.deactivate(this.view, ctrl, flags), () => {
+            // return early if detaching was called during the swap
+            if (this.wantsDeactivate) {
+                return;
+            }
+            // value may have changed during deactivate
+            const nextView = this.view = this.updateView(this.value, flags);
+            return kernel_1.onResolve(nextView?.activate(nextView, ctrl, flags, ctrl.scope, ctrl.hostScope), () => {
+                this.work.finish();
+                // only null the pending promise if nothing changed since the activation start
+                if (this.view === this.updateView(this.value, flags)) {
+                    this.pending = void 0;
+                }
+            });
+        });
     }
     /** @internal */
     updateView(value, flags) {
         if (value) {
             return this.ifView = this.ensureView(this.ifView, this.ifFactory, flags);
         }
-        if (this.elseFactory != void 0) {
+        if (this.elseFactory !== void 0) {
             return this.elseView = this.ensureView(this.elseView, this.elseFactory, flags);
         }
         return void 0;
@@ -68,19 +90,15 @@ let If = class If {
     ensureView(view, factory, flags) {
         if (view === void 0) {
             view = factory.create(flags);
+            view.setLocation(this.location);
         }
-        view.setLocation(this.location);
         return view;
     }
     dispose() {
-        if (this.ifView !== void 0) {
-            this.ifView.dispose();
-            this.ifView = void 0;
-        }
-        if (this.elseView !== void 0) {
-            this.elseView.dispose();
-            this.elseView = void 0;
-        }
+        this.ifView?.dispose();
+        this.ifView = void 0;
+        this.elseView?.dispose();
+        this.elseView = void 0;
         this.view = void 0;
     }
     accept(visitor) {
@@ -95,7 +113,8 @@ __decorate([
 If = __decorate([
     custom_attribute_js_1.templateController('if'),
     __param(0, view_js_1.IViewFactory),
-    __param(1, dom_js_1.IRenderLocation)
+    __param(1, dom_js_1.IRenderLocation),
+    __param(2, app_root_js_1.IWorkTracker)
 ], If);
 exports.If = If;
 let Else = class Else {

@@ -36,7 +36,6 @@ function getRaw(obj) {
 }
 exports.getRaw = getRaw;
 function unwrap(v) {
-    // eslint-disable-next-line
     return canWrap(v) && v[exports.rawKey] || v;
 }
 exports.unwrap = unwrap;

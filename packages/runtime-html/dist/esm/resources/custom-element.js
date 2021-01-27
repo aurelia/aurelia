@@ -1,7 +1,7 @@
 import { DI, Registration, Protocol, Metadata, mergeArrays, fromDefinitionOrDefault, pascalCase, fromAnnotationOrTypeOrDefault, fromAnnotationOrDefinitionOrTypeOrDefault, emptyArray, } from '@aurelia/kernel';
 import { registerAliases, } from '@aurelia/runtime';
 import { Bindable, } from '../bindable.js';
-import { getEffectiveParentNode } from '../dom.js';
+import { getEffectiveParentNode, getRef } from '../dom.js';
 import { Children } from '../templating/children.js';
 import { Watch } from '../watch.js';
 export function customElement(nameOrDef) {
@@ -128,8 +128,8 @@ export const CustomElement = {
     },
     for(node, opts = defaultForOpts) {
         if (opts.name === void 0 && opts.searchParents !== true) {
-            const controller = Metadata.getOwn(CustomElement.name, node);
-            if (controller === void 0) {
+            const controller = getRef(node, CustomElement.name);
+            if (controller === null) {
                 if (opts.optional === true) {
                     return null;
                 }
@@ -139,8 +139,8 @@ export const CustomElement = {
         }
         if (opts.name !== void 0) {
             if (opts.searchParents !== true) {
-                const controller = Metadata.getOwn(CustomElement.name, node);
-                if (controller === void 0) {
+                const controller = getRef(node, CustomElement.name);
+                if (controller === null) {
                     throw new Error(`The provided node is not a custom element or containerless host.`);
                 }
                 if (controller.is(opts.name)) {
@@ -151,8 +151,8 @@ export const CustomElement = {
             let cur = node;
             let foundAController = false;
             while (cur !== null) {
-                const controller = Metadata.getOwn(CustomElement.name, cur);
-                if (controller !== void 0) {
+                const controller = getRef(cur, CustomElement.name);
+                if (controller !== null) {
                     foundAController = true;
                     if (controller.is(opts.name)) {
                         return controller;
@@ -167,8 +167,8 @@ export const CustomElement = {
         }
         let cur = node;
         while (cur !== null) {
-            const controller = Metadata.getOwn(CustomElement.name, cur);
-            if (controller !== void 0) {
+            const controller = getRef(cur, CustomElement.name);
+            if (controller !== null) {
                 return controller;
             }
             cur = getEffectiveParentNode(cur);

@@ -1,9 +1,58 @@
-import { DI, Registration, onResolve, resolveAll } from '@aurelia/kernel';
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+import { DI, Registration, onResolve, resolveAll, ILogger } from '@aurelia/kernel';
 import { INode } from './dom.js';
 import { IAppTask } from './app-task.js';
 import { CustomElement } from './resources/custom-element.js';
 import { Controller } from './templating/controller.js';
 export const IAppRoot = DI.createInterface('IAppRoot');
+export const IWorkTracker = DI.createInterface('IWorkTracker', x => x.singleton(WorkTracker));
+let WorkTracker = class WorkTracker {
+    constructor(logger) {
+        this.logger = logger;
+        this.stack = 0;
+        this.promise = null;
+        this.resolve = null;
+        this.logger = logger.scopeTo('WorkTracker');
+    }
+    start() {
+        this.logger.trace(`start(stack:${this.stack})`);
+        ++this.stack;
+    }
+    finish() {
+        this.logger.trace(`finish(stack:${this.stack})`);
+        if (--this.stack === 0) {
+            const resolve = this.resolve;
+            if (resolve !== null) {
+                this.resolve = this.promise = null;
+                resolve();
+            }
+        }
+    }
+    wait() {
+        this.logger.trace(`wait(stack:${this.stack})`);
+        if (this.promise === null) {
+            if (this.stack === 0) {
+                return Promise.resolve();
+            }
+            this.promise = new Promise(resolve => {
+                this.resolve = resolve;
+            });
+        }
+        return this.promise;
+    }
+};
+WorkTracker = __decorate([
+    __param(0, ILogger)
+], WorkTracker);
+export { WorkTracker };
 export class AppRoot {
     constructor(config, platform, container, rootProvider, enhance = false) {
         this.config = config;
@@ -12,6 +61,7 @@ export class AppRoot {
         this.controller = (void 0);
         this.hydratePromise = void 0;
         this.host = config.host;
+        this.work = container.get(IWorkTracker);
         rootProvider.prepare(this);
         if (container.has(INode, false) && container.get(INode) !== config.host) {
             this.container = container.createChild();

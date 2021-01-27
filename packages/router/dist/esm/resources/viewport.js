@@ -7,190 +7,68 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var ViewportCustomElement_1;
-import { IContainer } from '@aurelia/kernel';
-import { bindable, INode, customElement, CustomElement, } from '@aurelia/runtime-html';
-import { IRouter } from '../router.js';
-import { ViewportScopeCustomElement } from './viewport-scope.js';
-import { Runner } from '../runner.js';
-export const ParentViewport = CustomElement.createInjectable();
-let ViewportCustomElement = ViewportCustomElement_1 = class ViewportCustomElement {
-    constructor(router, element, container, parentViewport) {
-        this.router = router;
-        this.element = element;
-        this.container = container;
-        this.parentViewport = parentViewport;
+import { ILogger } from '@aurelia/kernel';
+import { bindable, customElement } from '@aurelia/runtime-html';
+import { IRouteContext } from '../route-context.js';
+let ViewportCustomElement = class ViewportCustomElement {
+    constructor(logger, ctx) {
+        this.logger = logger;
+        this.ctx = ctx;
         this.name = 'default';
         this.usedBy = '';
         this.default = '';
         this.fallback = '';
         this.noScope = false;
         this.noLink = false;
-        this.noTitle = false;
         this.noHistory = false;
         this.stateful = false;
-        this.viewport = null;
-        this.isBound = false;
+        this.agent = (void 0);
+        this.controller = (void 0);
+        this.logger = logger.scopeTo(`au-viewport<${ctx.friendlyPath}>`);
+        this.logger.trace('constructor()');
     }
     hydrated(controller) {
-        // console.log('hydrated', this.name, this.router.isActive);
+        this.logger.trace('hydrated()');
         this.controller = controller;
-        this.container = controller.context.get(IContainer);
-        // The first viewport(s) might be compiled before the router is active
-        return Runner.run(() => this.waitForRouterStart(), () => {
-            if (this.router.isRestrictedNavigation) {
-                this.connect();
-            }
-        });
-    }
-    binding(initiator, parent, flags) {
-        this.isBound = true;
-        return Runner.run(() => this.waitForRouterStart(), () => {
-            if (!this.router.isRestrictedNavigation) {
-                this.connect();
-            }
-        });
+        this.agent = this.ctx.registerViewport(this);
     }
     attaching(initiator, parent, flags) {
-        if (this.viewport !== null && (this.viewport.nextContent ?? null) === null) {
-            // console.log('attaching', this.viewport?.toString());
-            this.viewport.enabled = true;
-            return this.viewport.activate(initiator, this.$controller, flags, true);
-            // TODO: Restore scroll state
-        }
+        this.logger.trace('attaching()');
+        return this.agent.activateFromViewport(initiator, this.controller, flags);
     }
-    unbinding(initiator, parent, flags) {
-        if (this.viewport !== null && (this.viewport.nextContent ?? null) === null) {
-            // console.log('unbinding', this.viewport?.toString());
-            // TODO: Save to cache, something like
-            // this.viewport.cacheContent();
-            // From viewport-content:
-            // public unloadComponent(cache: ViewportContent[], stateful: boolean = false): void {
-            //   // TODO: We might want to do something here eventually, who knows?
-            //   if (this.contentStatus !== ContentStatus.loaded) {
-            //     return;
-            //   }
-            //   // Don't unload components when stateful
-            //   if (!stateful) {
-            //     this.contentStatus = ContentStatus.created;
-            //   } else {
-            //     cache.push(this);
-            //   }
-            // }
-            // TODO: Save scroll state before detach
-            return Runner.run(() => this.viewport.deactivate(initiator, parent, flags), () => {
-                this.isBound = false;
-                this.viewport.enabled = false;
-            });
-            // this.isBound = false;
-            // this.viewport.enabled = false;
-            // return this.viewport.deactivate(initiator, parent, flags);
-            // // this.viewport.enabled = false;
-        }
+    detaching(initiator, parent, flags) {
+        this.logger.trace('detaching()');
+        return this.agent.deactivateFromViewport(initiator, this.controller, flags);
     }
-    // public detaching(initiator: IHydratedController, parent: ISyntheticView | ICustomElementController<ICustomElementViewModel> | null, flags: LifecycleFlags): void | Promise<void> {
-    //   if (this.viewport !== null && (this.viewport.nextContent ?? null) === null) {
-    //     console.log('detaching', this.viewport?.toString());
-    //   }
-    // }
     dispose() {
-        if (this.viewport !== null) {
-            return Runner.run(() => (this.viewport?.nextContent ?? null) === null ? this.viewport?.dispose() : void 0, () => this.disconnect());
-        }
+        this.logger.trace('dispose()');
+        this.ctx.unregisterViewport(this);
+        this.agent.dispose();
+        this.agent = (void 0);
     }
-    connect() {
-        if (this.router.rootScope === null || (this.viewport !== null && this.router.isRestrictedNavigation)) {
-            return;
-        }
-        // let controllerContainer = (this.controller.context as any).container;
-        // let output = '';
-        // do {
-        //   console.log(output, ':', controllerContainer === this.container, this.controller, controllerContainer, this.container);
-        //   if (controllerContainer === this.container) {
-        //     break;
-        //   }
-        //   controllerContainer = controllerContainer.parent;
-        //   output += '.parent';
-        // } while (controllerContainer);
-        const name = this.getAttribute('name', this.name);
-        let value = this.getAttribute('no-scope', this.noScope);
-        const options = { scope: value === void 0 || !value ? true : false };
-        value = this.getAttribute('used-by', this.usedBy);
-        if (value !== void 0) {
-            options.usedBy = value;
-        }
-        value = this.getAttribute('default', this.default);
-        if (value !== void 0) {
-            options.default = value;
-        }
-        value = this.getAttribute('fallback', this.fallback);
-        if (value !== void 0) {
-            options.fallback = value;
-        }
-        value = this.getAttribute('no-link', this.noLink, true);
-        if (value !== void 0) {
-            options.noLink = value;
-        }
-        value = this.getAttribute('no-title', this.noTitle, true);
-        if (value !== void 0) {
-            options.noTitle = value;
-        }
-        value = this.getAttribute('no-history', this.noHistory, true);
-        if (value !== void 0) {
-            options.noHistory = value;
-        }
-        value = this.getAttribute('stateful', this.stateful, true);
-        if (value !== void 0) {
-            options.stateful = value;
-        }
-        this.controller.routingContainer = this.container;
-        this.viewport = this.router.connectViewport(this.viewport, this, name, options);
-    }
-    disconnect() {
-        if (this.viewport) {
-            this.router.disconnectViewport(this.viewport, this);
-        }
-        this.viewport = null;
-    }
-    getAttribute(key, value, checkExists = false) {
-        const result = {};
-        if (this.isBound && !checkExists) {
-            return value;
-        }
-        else {
-            if (this.element.hasAttribute(key)) {
-                if (checkExists) {
-                    return true;
-                }
-                else {
-                    value = this.element.getAttribute(key);
-                    if (value.length > 0) {
-                        return value;
+    toString() {
+        const propStrings = [];
+        for (const prop of props) {
+            const value = this[prop];
+            // Only report props that don't have default values (but always report name)
+            // This is a bit naive and dirty right now, but it's mostly for debugging purposes anyway. Can clean up later. Maybe put it in a serializer
+            switch (typeof value) {
+                case 'string':
+                    if (value !== '') {
+                        propStrings.push(`${prop}:'${value}'`);
                     }
+                    break;
+                case 'boolean':
+                    if (value) {
+                        propStrings.push(`${prop}:${value}`);
+                    }
+                    break;
+                default: {
+                    propStrings.push(`${prop}:${String(value)}`);
                 }
             }
         }
-        return value;
-    }
-    getClosestCustomElement() {
-        let parent = this.controller.parent;
-        let customElement = null;
-        while (parent !== null && customElement === null) {
-            if (parent.viewModel instanceof ViewportCustomElement_1 || parent.viewModel instanceof ViewportScopeCustomElement) {
-                customElement = parent.viewModel;
-            }
-            parent = parent.parent;
-        }
-        return customElement;
-    }
-    // TODO: Switch this to use (probably) an event instead
-    waitForRouterStart() {
-        if (this.router.isActive) {
-            return;
-        }
-        return new Promise((resolve) => {
-            this.router.starters.push(resolve);
-        });
+        return `VP(ctx:'${this.ctx.friendlyPath}',${propStrings.join(',')})`;
     }
 };
 __decorate([
@@ -213,22 +91,24 @@ __decorate([
 ], ViewportCustomElement.prototype, "noLink", void 0);
 __decorate([
     bindable
-], ViewportCustomElement.prototype, "noTitle", void 0);
-__decorate([
-    bindable
 ], ViewportCustomElement.prototype, "noHistory", void 0);
 __decorate([
     bindable
 ], ViewportCustomElement.prototype, "stateful", void 0);
-ViewportCustomElement = ViewportCustomElement_1 = __decorate([
-    customElement({
-        name: 'au-viewport',
-        injectable: ParentViewport
-    }),
-    __param(0, IRouter),
-    __param(1, INode),
-    __param(2, IContainer),
-    __param(3, ParentViewport)
+ViewportCustomElement = __decorate([
+    customElement({ name: 'au-viewport' }),
+    __param(0, ILogger),
+    __param(1, IRouteContext)
 ], ViewportCustomElement);
 export { ViewportCustomElement };
+const props = [
+    'name',
+    'usedBy',
+    'default',
+    'fallback',
+    'noScope',
+    'noLink',
+    'noHistory',
+    'stateful',
+];
 //# sourceMappingURL=viewport.js.map

@@ -55,11 +55,13 @@ class InterpolationBinding {
         //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start().wait()
         const shouldQueueFlush = (flags & 32 /* fromBind */) === 0 && (targetObserver.type & 4 /* Layout */) > 0;
         if (shouldQueueFlush) {
-            this.task?.cancel();
+            // Queue the new one before canceling the old one, to prevent early yield
+            const task = this.task;
             this.task = this.taskQueue.queueTask(() => {
                 this.task = null;
                 targetObserver.setValue(result, flags, this.target, this.targetProperty);
             }, queueTaskOptions);
+            task?.cancel();
         }
         else {
             targetObserver.setValue(result, flags, this.target, this.targetProperty);

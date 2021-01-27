@@ -21,7 +21,7 @@ import { CustomElement } from './resources/custom-element.js';
 import { getRenderContext } from './templating/render-context.js';
 import { AuSlotsInfo } from './resources/custom-elements/au-slot.js';
 import { CustomAttribute } from './resources/custom-attribute.js';
-import { convertToRenderLocation } from './dom.js';
+import { convertToRenderLocation, setRef } from './dom.js';
 import { Controller } from './templating/controller.js';
 import { IPlatform } from './platform.js';
 export var InstructionType;
@@ -302,7 +302,7 @@ class CustomElementRenderer {
         /* targetedProjections */ targetedProjections, 
         /* flags               */ flags);
         flags = childController.flags;
-        Metadata.define(key, childController, target);
+        setRef(target, key, childController);
         context.renderChildren(
         /* flags        */ flags, 
         /* instructions */ instruction.instructions, 
@@ -335,7 +335,7 @@ class CustomAttributeRenderer {
         /* viewModel */ component, 
         /* host      */ target, 
         /* flags     */ flags);
-        Metadata.define(key, childController, target);
+        setRef(target, key, childController);
         context.renderChildren(
         /* flags        */ flags, 
         /* instructions */ instruction.instructions, 
@@ -370,7 +370,7 @@ class TemplateControllerRenderer {
         /* viewModel */ component, 
         /* host      */ target, 
         /* flags     */ flags);
-        Metadata.define(key, childController, renderLocation);
+        setRef(renderLocation, key, childController);
         component.link?.(flags, context, controller, childController, target, instruction);
         context.renderChildren(
         /* flags        */ flags, 

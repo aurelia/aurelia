@@ -325,7 +325,7 @@ class CustomElementRenderer {
         /* targetedProjections */ targetedProjections, 
         /* flags               */ flags);
         flags = childController.flags;
-        kernel_1.Metadata.define(key, childController, target);
+        dom_js_1.setRef(target, key, childController);
         context.renderChildren(
         /* flags        */ flags, 
         /* instructions */ instruction.instructions, 
@@ -358,7 +358,7 @@ class CustomAttributeRenderer {
         /* viewModel */ component, 
         /* host      */ target, 
         /* flags     */ flags);
-        kernel_1.Metadata.define(key, childController, target);
+        dom_js_1.setRef(target, key, childController);
         context.renderChildren(
         /* flags        */ flags, 
         /* instructions */ instruction.instructions, 
@@ -393,7 +393,7 @@ class TemplateControllerRenderer {
         /* viewModel */ component, 
         /* host      */ target, 
         /* flags     */ flags);
-        kernel_1.Metadata.define(key, childController, renderLocation);
+        dom_js_1.setRef(renderLocation, key, childController);
         component.link?.(flags, context, controller, childController, target, instruction);
         context.renderChildren(
         /* flags        */ flags, 

@@ -66,11 +66,13 @@ class PropertyBinding {
                 }
             }
             if (shouldQueueFlush) {
-                this.task?.cancel();
+                // Queue the new one before canceling the old one, to prevent early yield
+                const task = this.task;
                 this.task = this.taskQueue.queueTask(() => {
                     interceptor.updateTarget(newValue, flags);
                     this.task = null;
                 }, updateTaskOpts);
+                task?.cancel();
             }
             else {
                 interceptor.updateTarget(newValue, flags);

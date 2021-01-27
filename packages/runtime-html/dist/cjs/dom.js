@@ -1,10 +1,22 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.IHistory = exports.ILocation = exports.IWindow = exports.FragmentNodeSequence = exports.isRenderLocation = exports.convertToRenderLocation = exports.setEffectiveParentNode = exports.getEffectiveParentNode = exports.NodeType = exports.IRenderLocation = exports.IEventTarget = exports.INode = void 0;
+exports.IHistory = exports.ILocation = exports.IWindow = exports.FragmentNodeSequence = exports.isRenderLocation = exports.convertToRenderLocation = exports.setEffectiveParentNode = exports.getEffectiveParentNode = exports.NodeType = exports.IRenderLocation = exports.IEventTarget = exports.INode = exports.setRef = exports.getRef = exports.Refs = void 0;
 const kernel_1 = require("@aurelia/kernel");
 const app_root_js_1 = require("./app-root.js");
 const platform_js_1 = require("./platform.js");
 const custom_element_js_1 = require("./resources/custom-element.js");
+class Refs {
+}
+exports.Refs = Refs;
+function getRef(node, name) {
+    return node.$au?.[name] ?? null;
+}
+exports.getRef = getRef;
+function setRef(node, name, controller) {
+    var _a;
+    ((_a = node).$au ?? (_a.$au = new Refs()))[name] = controller;
+}
+exports.setRef = setRef;
 exports.INode = kernel_1.DI.createInterface('INode');
 exports.IEventTarget = kernel_1.DI.createInterface('IEventTarget', x => x.cachedCallback(handler => {
     if (handler.has(app_root_js_1.IAppRoot, true)) {

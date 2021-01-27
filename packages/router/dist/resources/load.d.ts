@@ -1,18 +1,28 @@
-import { INode, ICustomAttributeController, ICustomAttributeViewModel } from '@aurelia/runtime-html';
+import { ICustomAttributeViewModel, IEventDelegator, IEventTarget, INode } from '@aurelia/runtime-html';
 import { IRouter } from '../router.js';
+import { IRouteContext } from '../route-context.js';
+import { IRouterEvents } from '../router-events.js';
 export declare class LoadCustomAttribute implements ICustomAttributeViewModel {
-    private readonly element;
+    private readonly target;
+    private readonly el;
     private readonly router;
-    value: unknown;
-    private hasHref;
-    private observer;
-    readonly $controller: ICustomAttributeController<this>;
-    private readonly activeClass;
-    constructor(element: INode<Element>, router: IRouter);
+    private readonly events;
+    private readonly delegator;
+    private readonly ctx;
+    route: unknown;
+    params: unknown;
+    attribute: string;
+    active: boolean;
+    private href;
+    private instructions;
+    private eventListener;
+    private navigationEndListener;
+    private readonly isEnabled;
+    constructor(target: IEventTarget, el: INode<HTMLElement>, router: IRouter, events: IRouterEvents, delegator: IEventDelegator, ctx: IRouteContext);
     binding(): void;
+    attaching(): void | Promise<void>;
     unbinding(): void;
-    valueChanged(newValue: unknown): void;
-    private updateValue;
-    handleChange(): void;
+    valueChanged(): void;
+    private readonly onClick;
 }
 //# sourceMappingURL=load.d.ts.map

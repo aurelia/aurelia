@@ -2,6 +2,7 @@ import { Registration, Protocol, Metadata, mergeArrays, firstDefined, } from '@a
 import { BindingMode, registerAliases, } from '@aurelia/runtime';
 import { Bindable, } from '../bindable.js';
 import { Watch } from '../watch.js';
+import { getRef } from '../dom.js';
 export function customAttribute(nameOrDef) {
     return function (target) {
         return CustomAttribute.define(nameOrDef, target);
@@ -55,7 +56,7 @@ export const CustomAttribute = {
         return typeof value === 'function' && Metadata.hasOwn(CustomAttribute.name, value);
     },
     for(node, name) {
-        return Metadata.getOwn(CustomAttribute.keyFrom(name), node);
+        return (getRef(node, CustomAttribute.keyFrom(name)) ?? void 0);
     },
     define(nameOrDef, Type) {
         const definition = CustomAttributeDefinition.create(nameOrDef, Type);

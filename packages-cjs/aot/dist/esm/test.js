@@ -1,5 +1,5 @@
 import { resolve, } from 'path';
-import { DI, LoggerConfiguration, Registration, } from '@aurelia/kernel';
+import { DI, LoggerConfiguration, Registration, ConsoleSink, } from '@aurelia/kernel';
 import { IFileSystem, } from './system/interfaces.js';
 import { NodeFileSystem, } from './system/file-system.js';
 import { ServiceHost, } from './service-host.js';
@@ -7,7 +7,7 @@ import { ServiceHost, } from './service-host.js';
     // Just for testing
     const root = resolve(__dirname, '..', '..', '..', '..', 'test', 'realworld');
     const container = DI.createContainer();
-    container.register(LoggerConfiguration.create({ $console: console, level: 1 /* debug */, colorOptions: 1 /* colors */ }), Registration.singleton(IFileSystem, NodeFileSystem));
+    container.register(LoggerConfiguration.create({ sinks: [ConsoleSink], level: 1 /* debug */, colorOptions: 1 /* colors */ }), Registration.singleton(IFileSystem, NodeFileSystem));
     const host = new ServiceHost(container);
     await host.executeEntryFile(root);
 })().catch(err => {

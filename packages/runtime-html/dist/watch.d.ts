@@ -8,7 +8,7 @@ export interface IWatchDefinition<T extends object = object> {
 }
 declare type AnyMethod<R = unknown> = (...args: unknown[]) => R;
 declare type WatchClassDecorator<T extends object> = <K extends Constructable<T>>(target: K) => void;
-declare type WatchMethodDecorator<T> = <R, K extends AnyMethod<R> = AnyMethod<R>>(target: T, key: string | symbol, descriptor: TypedPropertyDescriptor<K>) => TypedPropertyDescriptor<K>;
+declare type WatchMethodDecorator<T> = <R, K extends AnyMethod<R> = AnyMethod<R>>(target: T, key: string | symbol, descriptor: PropertyDescriptor) => PropertyDescriptor;
 declare type MethodsOf<Type> = {
     [Key in keyof Type]: Type[Key] extends AnyMethod ? Key : never;
 }[keyof Type];

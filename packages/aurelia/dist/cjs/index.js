@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.bindingBehavior = exports.subscriberCollection = exports.ISignaler = exports.IObserverLocator = exports.watch = exports.Watch = exports.ExpressionWatcher = exports.ComputedWatcher = exports.ComputedObserver = exports.RouterRegistration = exports.RouterConfiguration = exports.ViewportInstruction = exports.Router = exports.IRouter = exports.RouterOptions = exports.NavRoute = exports.bound = exports.toArray = exports.pascalCase = exports.kebabCase = exports.camelCase = exports.isArrayIndex = exports.IEventAggregator = exports.EventAggregator = exports.LogLevel = exports.noop = exports.emptyObject = exports.emptyArray = exports.LoggerConfiguration = exports.ILogger = exports.ColorOptions = exports.Metadata = exports.InstanceProvider = exports.transient = exports.singleton = exports.Registration = exports.optional = exports.lazy = exports.IServiceLocator = exports.inject = exports.IContainer = exports.DI = exports.all = exports.IHttpClient = exports.HttpClient = exports.HttpClientConfiguration = exports.json = exports.Aurelia = exports.IPlatform = exports.PLATFORM = void 0;
-exports.shadowCSS = exports.cssModules = exports.StyleConfiguration = exports.createElement = exports.ShortHandBindingSyntax = exports.getTarget = exports.bindingCommand = exports.IAttrSyntaxTransformer = exports.IAttributePattern = exports.attributePattern = exports.AuSlotsInfo = exports.IAuSlotsInfo = exports.NodeObserverLocator = exports.IAurelia = exports.renderer = exports.LifecycleFlags = exports.BindingMode = exports.IRenderLocation = exports.IEventTarget = exports.INode = exports.registerAliases = exports.alias = exports.IAppRoot = exports.ViewFactory = exports.Controller = exports.children = exports.Bindable = exports.bindable = exports.TaskQueuePriority = exports.AppTask = exports.valueConverter = exports.ValueConverter = exports.useShadowDOM = exports.CustomElement = exports.customElement = exports.containerless = exports.templateController = exports.CustomAttribute = exports.customAttribute = exports.BindingBehavior = void 0;
+exports.Watch = exports.ExpressionWatcher = exports.ComputedWatcher = exports.ComputedObserver = exports.RouterRegistration = exports.RouterConfiguration = exports.IRouteContext = exports.RouteConfig = exports.Route = exports.route = exports.RouteNode = exports.Router = exports.IRouterEvents = exports.IRouter = exports.RouterOptions = exports.bound = exports.toArray = exports.pascalCase = exports.kebabCase = exports.camelCase = exports.isArrayIndex = exports.IEventAggregator = exports.EventAggregator = exports.LogLevel = exports.noop = exports.emptyObject = exports.emptyArray = exports.LoggerConfiguration = exports.ConsoleSink = exports.ILogger = exports.ColorOptions = exports.Metadata = exports.InstanceProvider = exports.transient = exports.singleton = exports.Registration = exports.optional = exports.lazy = exports.IServiceLocator = exports.inject = exports.IContainer = exports.DI = exports.all = exports.IHttpClient = exports.HttpClient = exports.HttpClientConfiguration = exports.json = exports.Aurelia = exports.IPlatform = exports.PLATFORM = void 0;
+exports.lifecycleHooks = exports.LifecycleHooks = exports.ILifecycleHooks = exports.shadowCSS = exports.cssModules = exports.StyleConfiguration = exports.createElement = exports.ShortHandBindingSyntax = exports.getTarget = exports.bindingCommand = exports.IAttrSyntaxTransformer = exports.IAttributePattern = exports.attributePattern = exports.AuSlotsInfo = exports.IAuSlotsInfo = exports.NodeObserverLocator = exports.IAurelia = exports.renderer = exports.LifecycleFlags = exports.BindingMode = exports.IRenderLocation = exports.IEventTarget = exports.INode = exports.registerAliases = exports.alias = exports.IWorkTracker = exports.IAppRoot = exports.ViewFactory = exports.Controller = exports.children = exports.Bindable = exports.bindable = exports.TaskQueuePriority = exports.AppTask = exports.valueConverter = exports.ValueConverter = exports.useShadowDOM = exports.CustomElement = exports.customElement = exports.containerless = exports.templateController = exports.CustomAttribute = exports.customAttribute = exports.BindingBehavior = exports.bindingBehavior = exports.subscriberCollection = exports.ISignaler = exports.IObserverLocator = exports.watch = void 0;
 const kernel_1 = require("@aurelia/kernel");
 const runtime_html_1 = require("@aurelia/runtime-html");
 Object.defineProperty(exports, "IPlatform", { enumerable: true, get: function () { return runtime_html_1.IPlatform; } });
@@ -115,7 +115,7 @@ Object.defineProperty(exports, "ILogger", { enumerable: true, get: function () {
 // DefaultLogEvent,
 // DefaultLogEventFactory,
 // DefaultLogger,
-// ConsoleSink,
+Object.defineProperty(exports, "ConsoleSink", { enumerable: true, get: function () { return kernel_2.ConsoleSink; } });
 Object.defineProperty(exports, "LoggerConfiguration", { enumerable: true, get: function () { return kernel_2.LoggerConfiguration; } });
 // relativeToFile,
 // join,
@@ -152,43 +152,15 @@ Object.defineProperty(exports, "toArray", { enumerable: true, get: function () {
 // isStringOrDate,
 Object.defineProperty(exports, "bound", { enumerable: true, get: function () { return kernel_2.bound; } });
 var router_1 = require("@aurelia/router");
-// Nav,
-Object.defineProperty(exports, "NavRoute", { enumerable: true, get: function () { return router_1.NavRoute; } });
-// IStoredNavigatorEntry,
-// INavigatorEntry,
-// INavigatorOptions,
-// INavigatorFlags,
-// INavigatorState,
-// INavigatorStore,
-// INavigatorViewer,
-// INavigatorViewerEvent,
-// Navigator,
-// QueueItem,
-// IQueueOptions,
-// Queue,
-// RouteHandler,
-// ConfigurableRoute,
-// HandlerEntry,
-// RouteGenerator,
-// TypesRecord,
-// RecognizeResult,
-// RecognizeResults,
-// CharSpec,
-// // State as RouterState, // duplicated in @aurelia/runtime
-// StaticSegment,
-// DynamicSegment,
-// StarSegment,
-// EpsilonSegment,
-// Segment,
-// RouteRecognizer,
 Object.defineProperty(exports, "RouterOptions", { enumerable: true, get: function () { return router_1.RouterOptions; } });
 Object.defineProperty(exports, "IRouter", { enumerable: true, get: function () { return router_1.IRouter; } });
+Object.defineProperty(exports, "IRouterEvents", { enumerable: true, get: function () { return router_1.IRouterEvents; } });
 Object.defineProperty(exports, "Router", { enumerable: true, get: function () { return router_1.Router; } });
-// IViewportOptions,
-// Viewport,
-// ContentStatus,
-// ViewportContent,
-Object.defineProperty(exports, "ViewportInstruction", { enumerable: true, get: function () { return router_1.ViewportInstruction; } });
+Object.defineProperty(exports, "RouteNode", { enumerable: true, get: function () { return router_1.RouteNode; } });
+Object.defineProperty(exports, "route", { enumerable: true, get: function () { return router_1.route; } });
+Object.defineProperty(exports, "Route", { enumerable: true, get: function () { return router_1.Route; } });
+Object.defineProperty(exports, "RouteConfig", { enumerable: true, get: function () { return router_1.RouteConfig; } });
+Object.defineProperty(exports, "IRouteContext", { enumerable: true, get: function () { return router_1.IRouteContext; } });
 Object.defineProperty(exports, "RouterConfiguration", { enumerable: true, get: function () { return router_1.RouterConfiguration; } });
 Object.defineProperty(exports, "RouterRegistration", { enumerable: true, get: function () { return router_1.RouterRegistration; } });
 var runtime_html_2 = require("@aurelia/runtime-html");
@@ -407,6 +379,7 @@ Object.defineProperty(exports, "ViewFactory", { enumerable: true, get: function 
 // IDOMInitializer,
 // ISinglePageApp,
 Object.defineProperty(exports, "IAppRoot", { enumerable: true, get: function () { return runtime_html_2.IAppRoot; } });
+Object.defineProperty(exports, "IWorkTracker", { enumerable: true, get: function () { return runtime_html_2.IWorkTracker; } });
 // IfRegistration,
 // ElseRegistration,
 // RepeatRegistration,
@@ -659,4 +632,35 @@ Object.defineProperty(exports, "cssModules", { enumerable: true, get: function (
 // ShadowDOMRegistry,
 // IShadowDOMStyleFactory,
 Object.defineProperty(exports, "shadowCSS", { enumerable: true, get: function () { return runtime_html_2.shadowCSS; } });
+// AdoptedStyleSheetsStyles,
+// StyleElementStyles,
+// IShadowDOMStyles,
+// IShadowDOMGlobalStyles
+// IAttrSyntaxTransformer,
+// TriggerBindingCommand,
+// DelegateBindingCommand,
+// CaptureBindingCommand,
+// AttrBindingCommand,
+// ClassBindingCommand,
+// StyleBindingCommand,
+// ITemplateCompilerRegistration,
+// ITemplateElementFactoryRegistration,
+// IAttrSyntaxTransformerRegistation,
+// DefaultComponents as JitHtmlDefaultComponents,
+// TriggerBindingCommandRegistration,
+// DelegateBindingCommandRegistration,
+// CaptureBindingCommandRegistration,
+// AttrBindingCommandRegistration,
+// ClassBindingCommandRegistration,
+// StyleBindingCommandRegistration,
+// DefaultBindingLanguage as JitHtmlDefaultBindingLanguage,
+// StandardConfiguration,
+// stringifyDOM,
+// stringifyInstructions,
+// stringifyTemplateDefinition,
+// TemplateBinder,
+// ITemplateElementFactory,
+Object.defineProperty(exports, "ILifecycleHooks", { enumerable: true, get: function () { return runtime_html_2.ILifecycleHooks; } });
+Object.defineProperty(exports, "LifecycleHooks", { enumerable: true, get: function () { return runtime_html_2.LifecycleHooks; } });
+Object.defineProperty(exports, "lifecycleHooks", { enumerable: true, get: function () { return runtime_html_2.lifecycleHooks; } });
 //# sourceMappingURL=index.js.map

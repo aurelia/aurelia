@@ -47,7 +47,7 @@ export class Aurelia {
         const platform = this.root.platform;
         await platform.domWriteQueue.yield();
         await platform.domReadQueue.yield();
-        await platform.macroTaskQueue.yield();
+        await platform.taskQueue.yield();
     }
     initPlatform(host) {
         let p;

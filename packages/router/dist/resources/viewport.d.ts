@@ -1,44 +1,34 @@
-import { IContainer } from '@aurelia/kernel';
-import { INode, LifecycleFlags, ICompiledCustomElementController, ICustomElementViewModel, ICustomElementController, IHydratedController, IHydratedParentController, ISyntheticView } from '@aurelia/runtime-html';
-import { IRouter } from '../router.js';
-import { Viewport } from '../viewport.js';
-export interface IRoutingController extends ICustomElementController {
-    routingContainer?: IContainer;
+import { ILogger } from '@aurelia/kernel';
+import { ICustomElementViewModel, IHydratedController, LifecycleFlags, ICompiledCustomElementController } from '@aurelia/runtime-html';
+import { IRouteContext } from '../route-context.js';
+export interface IViewport {
+    readonly name: string;
+    readonly usedBy: string;
+    readonly default: string;
+    readonly fallback: string;
+    readonly noScope: boolean;
+    readonly noLink: boolean;
+    readonly noHistory: boolean;
+    readonly stateful: boolean;
 }
-export interface IConnectedCustomElement extends ICustomElementViewModel {
-    element: HTMLElement;
-    container: IContainer;
-    controller: IRoutingController;
-}
-export declare const ParentViewport: import("@aurelia/runtime-html/dist/resources/custom-element").InjectableToken<any>;
-export declare class ViewportCustomElement implements ICustomElementViewModel {
-    private readonly router;
-    readonly element: INode<HTMLElement>;
-    container: IContainer;
-    readonly parentViewport: ViewportCustomElement;
+export declare class ViewportCustomElement implements ICustomElementViewModel, IViewport {
+    private readonly logger;
+    private readonly ctx;
     name: string;
     usedBy: string;
     default: string;
     fallback: string;
     noScope: boolean;
     noLink: boolean;
-    noTitle: boolean;
     noHistory: boolean;
     stateful: boolean;
-    viewport: Viewport | null;
-    readonly $controller: ICustomElementController<this>;
-    controller: IRoutingController;
-    private isBound;
-    constructor(router: IRouter, element: INode<HTMLElement>, container: IContainer, parentViewport: ViewportCustomElement);
-    hydrated(controller: ICompiledCustomElementController): unknown;
-    binding(initiator: IHydratedController, parent: IHydratedParentController | null, flags: LifecycleFlags): void | Promise<void>;
-    attaching(initiator: IHydratedController, parent: IHydratedParentController | null, flags: LifecycleFlags): void | Promise<void>;
-    unbinding(initiator: IHydratedController, parent: ISyntheticView | ICustomElementController | null, flags: LifecycleFlags): void | Promise<void>;
-    dispose(): void | Promise<void>;
-    connect(): void;
-    disconnect(): void;
-    private getAttribute;
-    private getClosestCustomElement;
-    private waitForRouterStart;
+    private agent;
+    private controller;
+    constructor(logger: ILogger, ctx: IRouteContext);
+    hydrated(controller: ICompiledCustomElementController): void;
+    attaching(initiator: IHydratedController, parent: IHydratedController, flags: LifecycleFlags): void | Promise<void>;
+    detaching(initiator: IHydratedController, parent: IHydratedController, flags: LifecycleFlags): void | Promise<void>;
+    dispose(): void;
+    toString(): string;
 }
 //# sourceMappingURL=viewport.d.ts.map

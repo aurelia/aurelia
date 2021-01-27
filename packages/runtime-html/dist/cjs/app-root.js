@@ -1,12 +1,61 @@
 "use strict";
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AppRoot = exports.IAppRoot = void 0;
+exports.AppRoot = exports.WorkTracker = exports.IWorkTracker = exports.IAppRoot = void 0;
 const kernel_1 = require("@aurelia/kernel");
 const dom_js_1 = require("./dom.js");
 const app_task_js_1 = require("./app-task.js");
 const custom_element_js_1 = require("./resources/custom-element.js");
 const controller_js_1 = require("./templating/controller.js");
 exports.IAppRoot = kernel_1.DI.createInterface('IAppRoot');
+exports.IWorkTracker = kernel_1.DI.createInterface('IWorkTracker', x => x.singleton(WorkTracker));
+let WorkTracker = class WorkTracker {
+    constructor(logger) {
+        this.logger = logger;
+        this.stack = 0;
+        this.promise = null;
+        this.resolve = null;
+        this.logger = logger.scopeTo('WorkTracker');
+    }
+    start() {
+        this.logger.trace(`start(stack:${this.stack})`);
+        ++this.stack;
+    }
+    finish() {
+        this.logger.trace(`finish(stack:${this.stack})`);
+        if (--this.stack === 0) {
+            const resolve = this.resolve;
+            if (resolve !== null) {
+                this.resolve = this.promise = null;
+                resolve();
+            }
+        }
+    }
+    wait() {
+        this.logger.trace(`wait(stack:${this.stack})`);
+        if (this.promise === null) {
+            if (this.stack === 0) {
+                return Promise.resolve();
+            }
+            this.promise = new Promise(resolve => {
+                this.resolve = resolve;
+            });
+        }
+        return this.promise;
+    }
+};
+WorkTracker = __decorate([
+    __param(0, kernel_1.ILogger)
+], WorkTracker);
+exports.WorkTracker = WorkTracker;
 class AppRoot {
     constructor(config, platform, container, rootProvider, enhance = false) {
         this.config = config;
@@ -15,6 +64,7 @@ class AppRoot {
         this.controller = (void 0);
         this.hydratePromise = void 0;
         this.host = config.host;
+        this.work = container.get(exports.IWorkTracker);
         rootProvider.prepare(this);
         if (container.has(dom_js_1.INode, false) && container.get(dom_js_1.INode) !== config.host) {
             this.container = container.createChild();

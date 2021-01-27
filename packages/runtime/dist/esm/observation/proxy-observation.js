@@ -30,7 +30,6 @@ export function getRaw(obj) {
     return obj[rawKey] ?? obj;
 }
 export function unwrap(v) {
-    // eslint-disable-next-line
     return canWrap(v) && v[rawKey] || v;
 }
 function doNotCollect(key) {

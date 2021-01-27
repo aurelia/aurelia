@@ -7,46 +7,84 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-import { customAttribute, INode, bindable, BindingMode } from '@aurelia/runtime-html';
+import { customAttribute, bindable, BindingMode, IEventDelegator, IEventTarget, INode, IWindow, getRef, CustomAttribute } from '@aurelia/runtime-html';
 import { IRouter } from '../router.js';
-import { GotoCustomAttribute } from '../configuration.js';
+import { LoadCustomAttribute } from '../configuration.js';
+import { IRouteContext } from '../route-context.js';
 let HrefCustomAttribute = class HrefCustomAttribute {
-    constructor(element, router) {
-        this.element = element;
+    constructor(target, el, router, delegator, ctx, w) {
+        this.target = target;
+        this.el = el;
         this.router = router;
+        this.delegator = delegator;
+        this.ctx = ctx;
+        this.eventListener = null;
+        this.isInitialized = false;
+        this.onClick = (e) => {
+            // Ensure this is an ordinary left-button click.
+            if (e.altKey || e.ctrlKey || e.shiftKey || e.metaKey || e.button !== 0) {
+                return;
+            }
+            // Use the normalized attribute instead of this.value to ensure consistency.
+            const href = this.el.getAttribute('href');
+            if (href !== null) {
+                e.preventDefault();
+                // Floating promises from `Router#load` are ok because the router keeps track of state and handles the errors, etc.
+                void this.router.load(href, { context: this.ctx });
+            }
+        };
+        if (router.options.useHref &&
+            // Ensure the element is an anchor
+            el.nodeName === 'A' &&
+            // Ensure the anchor is not explicitly marked as external.
+            !el.hasAttribute('external') &&
+            !el.hasAttribute('data-external')) {
+            // Ensure the anchor targets the current window.
+            switch (el.getAttribute('target')) {
+                case null:
+                case w.name:
+                case '_self':
+                    this.isEnabled = true;
+                    break;
+                default:
+                    this.isEnabled = false;
+                    break;
+            }
+        }
+        else {
+            this.isEnabled = false;
+        }
     }
     binding() {
-        if (this.router.options.useHref && !this.hasGoto()) {
-            this.element.addEventListener('click', this.router.linkHandler.handler);
+        if (!this.isInitialized) {
+            this.isInitialized = true;
+            this.isEnabled = this.isEnabled && getRef(this.el, CustomAttribute.getDefinition(LoadCustomAttribute).key) === null;
         }
-        this.updateValue();
+        if (this.isEnabled) {
+            this.el.setAttribute('href', this.value);
+            this.eventListener = this.delegator.addEventListener(this.target, this.el, 'click', this.onClick);
+        }
     }
     unbinding() {
-        this.element.removeEventListener('click', this.router.linkHandler.handler);
+        if (this.isEnabled) {
+            this.eventListener.dispose();
+        }
     }
-    valueChanged() {
-        this.updateValue();
-    }
-    updateValue() {
-        this.element.setAttribute('href', this.value);
-    }
-    hasGoto() {
-        const parent = this.$controller.parent;
-        const siblings = parent.children;
-        return siblings !== null
-            && siblings.some(c => c.vmKind === 1 /* customAttribute */ && c.viewModel instanceof GotoCustomAttribute);
+    valueChanged(newValue) {
+        this.el.setAttribute('href', newValue);
     }
 };
 __decorate([
     bindable({ mode: BindingMode.toView })
 ], HrefCustomAttribute.prototype, "value", void 0);
 HrefCustomAttribute = __decorate([
-    customAttribute({
-        name: 'href',
-        noMultiBindings: true
-    }),
-    __param(0, INode),
-    __param(1, IRouter)
+    customAttribute({ name: 'href', noMultiBindings: true }),
+    __param(0, IEventTarget),
+    __param(1, INode),
+    __param(2, IRouter),
+    __param(3, IEventDelegator),
+    __param(4, IRouteContext),
+    __param(5, IWindow)
 ], HrefCustomAttribute);
 export { HrefCustomAttribute };
 //# sourceMappingURL=href.js.map

@@ -11,6 +11,7 @@ import { all, DI, ignore, optional, Registration } from './di.js';
 import { bound, toLookup } from './functions.js';
 import { Protocol } from './resource.js';
 import { Metadata } from '@aurelia/metadata';
+import { IPlatform } from './platform.js';
 export var LogLevel;
 (function (LogLevel) {
     /**
@@ -195,41 +196,56 @@ DefaultLogEventFactory = __decorate([
     __param(0, ILogConfig)
 ], DefaultLogEventFactory);
 export { DefaultLogEventFactory };
-export class ConsoleSink {
-    constructor($console) {
+let ConsoleSink = class ConsoleSink {
+    constructor(p) {
+        const $console = p.console;
         this.handleEvent = function emit(event) {
             const optionalParams = event.optionalParams;
             if (optionalParams === void 0 || optionalParams.length === 0) {
+                const msg = event.toString();
                 switch (event.severity) {
                     case 0 /* trace */:
                     case 1 /* debug */:
-                        return $console.debug(event.toString());
+                        return $console.debug(msg);
                     case 2 /* info */:
-                        return $console.info(event.toString());
+                        return $console.info(msg);
                     case 3 /* warn */:
-                        return $console.warn(event.toString());
+                        return $console.warn(msg);
                     case 4 /* error */:
                     case 5 /* fatal */:
-                        return $console.error(event.toString());
+                        return $console.error(msg);
                 }
             }
             else {
+                let msg = event.toString();
+                let offset = 0;
+                // console.log in chrome doesn't call .toString() on object inputs (https://bugs.chromium.org/p/chromium/issues/detail?id=1146817)
+                while (msg.includes('%s')) {
+                    msg = msg.replace('%s', String(optionalParams[offset++]));
+                }
                 switch (event.severity) {
                     case 0 /* trace */:
                     case 1 /* debug */:
-                        return $console.debug(event.toString(), ...optionalParams);
+                        return $console.debug(msg, ...optionalParams.slice(offset));
                     case 2 /* info */:
-                        return $console.info(event.toString(), ...optionalParams);
+                        return $console.info(msg, ...optionalParams.slice(offset));
                     case 3 /* warn */:
-                        return $console.warn(event.toString(), ...optionalParams);
+                        return $console.warn(msg, ...optionalParams.slice(offset));
                     case 4 /* error */:
                     case 5 /* fatal */:
-                        return $console.error(event.toString(), ...optionalParams);
+                        return $console.error(msg, ...optionalParams.slice(offset));
                 }
             }
         };
     }
-}
+    static register(container) {
+        Registration.singleton(ISink, ConsoleSink).register(container);
+    }
+};
+ConsoleSink = __decorate([
+    __param(0, IPlatform)
+], ConsoleSink);
+export { ConsoleSink };
 let DefaultLogger = class DefaultLogger {
     constructor(
     /**
@@ -399,21 +415,9 @@ export { DefaultLogger };
  * ```ts
  * container.register(LoggerConfiguration.create());
  *
- * container.register(LoggerConfiguration.create({$console: console}))
+ * container.register(LoggerConfiguration.create({sinks: [ConsoleSink]}))
  *
- * container.register(LoggerConfiguration.create({$console: console, level: LogLevel.debug}))
- *
- * container.register(LoggerConfiguration.create({
- *  $console: {
- *     debug: noop,
- *     info: noop,
- *     warn: noop,
- *     error: msg => {
- *       throw new Error(msg);
- *     }
- *  },
- *  level: LogLevel.debug
- * }))
+ * container.register(LoggerConfiguration.create({sinks: [ConsoleSink], level: LogLevel.debug}))
  *
  * ```
  */
@@ -423,15 +427,17 @@ export const LoggerConfiguration = toLookup({
      * @param level - The global `LogLevel` to configure. Defaults to `warn` or higher.
      * @param colorOptions - Whether to use colors or not. Defaults to `noColors`. Colors are especially nice in nodejs environments but don't necessarily work (well) in all environments, such as browsers.
      */
-    create({ $console, level = 3 /* warn */, colorOptions = 0 /* noColors */, sinks = [], } = {}) {
+    create({ level = 3 /* warn */, colorOptions = 0 /* noColors */, sinks = [], } = {}) {
         return toLookup({
             register(container) {
                 container.register(Registration.instance(ILogConfig, new LogConfig(colorOptions, level)));
-                if ($console !== void 0 && $console !== null) {
-                    container.register(Registration.instance(ISink, new ConsoleSink($console)));
-                }
                 for (const $sink of sinks) {
-                    container.register(Registration.singleton(ISink, $sink));
+                    if (typeof $sink === 'function') {
+                        container.register(Registration.singleton(ISink, $sink));
+                    }
+                    else {
+                        container.register($sink);
+                    }
                 }
                 return container;
             },

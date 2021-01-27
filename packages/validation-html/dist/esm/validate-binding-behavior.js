@@ -158,8 +158,12 @@ let ValidateBindingBehavior = class ValidateBindingBehavior extends BindingInter
         return new ValidateArgumentsDelta(this.ensureController(controller), this.ensureTrigger(trigger), rules);
     }
     validateBinding() {
-        this.task?.cancel();
+        // Queue the new one before canceling the old one, to prevent early yield
+        const task = this.task;
         this.task = this.platform.domReadQueue.queueTask(() => this.controller.validateBinding(this.propertyBinding));
+        if (task !== this.task) {
+            task?.cancel();
+        }
     }
     processDelta(delta) {
         const trigger = delta.trigger ?? this.trigger;

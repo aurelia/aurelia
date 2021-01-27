@@ -13,7 +13,7 @@ export declare class Platform<TGlobal extends typeof globalThis = typeof globalT
     readonly setTimeout: TGlobal['setTimeout'];
     readonly console: TGlobal['console'];
     readonly performanceNow: () => number;
-    readonly macroTaskQueue: TaskQueue;
+    readonly taskQueue: TaskQueue;
     constructor(g: TGlobal, overrides?: Partial<Exclude<Platform, 'globalThis'>>);
     static getOrCreate<TGlobal extends typeof globalThis = typeof globalThis>(g: TGlobal, overrides?: Partial<Exclude<Platform, 'globalThis'>>): Platform<TGlobal>;
     static set(g: typeof globalThis, platform: Platform): void;

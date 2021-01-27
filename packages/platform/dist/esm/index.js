@@ -23,7 +23,7 @@ export class Platform {
         this.console = 'console' in overrides ? overrides.console : g.console;
         this.performanceNow = 'performanceNow' in overrides ? overrides.performanceNow : g.performance?.now?.bind(g.performance) ?? notImplemented('performance.now');
         this.flushMacroTask = this.flushMacroTask.bind(this);
-        this.macroTaskQueue = new TaskQueue(this, this.requestMacroTask.bind(this), this.cancelMacroTask.bind(this));
+        this.taskQueue = new TaskQueue(this, this.requestMacroTask.bind(this), this.cancelMacroTask.bind(this));
     }
     static getOrCreate(g, overrides = {}) {
         let platform = lookup.get(g);
@@ -52,7 +52,7 @@ export class Platform {
         this.macroTaskHandle = -1;
         if (this.macroTaskRequested === true) {
             this.macroTaskRequested = false;
-            this.macroTaskQueue.flush();
+            this.taskQueue.flush();
         }
     }
 }
@@ -91,7 +91,10 @@ export class TaskQueue {
         this.tracer = new Tracer(platform.console);
     }
     get isEmpty() {
-        return this.processing.length === 0 && this.pending.length === 0 && this.delayed.length === 0;
+        return (this.pendingAsyncCount === 0 &&
+            this.processing.length === 0 &&
+            this.pending.length === 0 &&
+            this.delayed.length === 0);
     }
     /**
      * Persistent tasks will re-queue themselves indefinitely until they are explicitly canceled,

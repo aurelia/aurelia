@@ -117,6 +117,7 @@ export declare function getRenderContext(partialDefinition: PartialCustomElement
 export declare class RenderContext implements IComponentFactory {
     readonly definition: CustomElementDefinition;
     readonly parentContainer: IContainer;
+    readonly root: IContainer;
     private readonly container;
     private readonly parentControllerProvider;
     private readonly elementProvider;

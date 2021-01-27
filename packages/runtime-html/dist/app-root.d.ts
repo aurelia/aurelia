@@ -1,4 +1,4 @@
-import { IContainer, InstanceProvider, IDisposable } from '@aurelia/kernel';
+import { IContainer, InstanceProvider, IDisposable, ILogger } from '@aurelia/kernel';
 import { IPlatform } from './platform.js';
 import type { ICustomElementController } from './templating/controller.js';
 export interface ISinglePageApp {
@@ -8,12 +8,26 @@ export interface ISinglePageApp {
 export interface IAppRoot extends AppRoot {
 }
 export declare const IAppRoot: import("@aurelia/kernel").InterfaceSymbol<IAppRoot>;
+export interface IWorkTracker extends WorkTracker {
+}
+export declare const IWorkTracker: import("@aurelia/kernel").InterfaceSymbol<IWorkTracker>;
+export declare class WorkTracker {
+    private readonly logger;
+    private stack;
+    private promise;
+    private resolve;
+    constructor(logger: ILogger);
+    start(): void;
+    finish(): void;
+    wait(): Promise<void>;
+}
 export declare class AppRoot implements IDisposable {
     readonly config: ISinglePageApp;
     readonly platform: IPlatform;
     readonly container: IContainer;
     readonly host: HTMLElement;
     controller: ICustomElementController;
+    work: IWorkTracker;
     private hydratePromise;
     private readonly enhanceDefinition;
     constructor(config: ISinglePageApp, platform: IPlatform, container: IContainer, rootProvider: InstanceProvider<IAppRoot>, enhance?: boolean);

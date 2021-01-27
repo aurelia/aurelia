@@ -9,7 +9,7 @@ const service_host_js_1 = require("./service-host.js");
     // Just for testing
     const root = path_1.resolve(__dirname, '..', '..', '..', '..', 'test', 'realworld');
     const container = kernel_1.DI.createContainer();
-    container.register(kernel_1.LoggerConfiguration.create({ $console: console, level: 1 /* debug */, colorOptions: 1 /* colors */ }), kernel_1.Registration.singleton(interfaces_js_1.IFileSystem, file_system_js_1.NodeFileSystem));
+    container.register(kernel_1.LoggerConfiguration.create({ sinks: [kernel_1.ConsoleSink], level: 1 /* debug */, colorOptions: 1 /* colors */ }), kernel_1.Registration.singleton(interfaces_js_1.IFileSystem, file_system_js_1.NodeFileSystem));
     const host = new service_host_js_1.ServiceHost(container);
     await host.executeEntryFile(root);
 })().catch(err => {

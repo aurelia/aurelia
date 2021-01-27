@@ -6,7 +6,7 @@ export class DebounceBindingBehavior extends BindingInterceptor {
         this.opts = { delay: 0 };
         this.firstArg = null;
         this.task = null;
-        this.taskQueue = binding.locator.get(IPlatform).macroTaskQueue;
+        this.taskQueue = binding.locator.get(IPlatform).taskQueue;
         if (expr.args.length > 0) {
             this.firstArg = expr.args[0];
         }
@@ -19,13 +19,13 @@ export class DebounceBindingBehavior extends BindingInterceptor {
         this.queueTask(() => this.binding.handleChange(newValue, previousValue, flags));
     }
     queueTask(callback) {
-        if (this.task !== null) {
-            this.task.cancel();
-        }
+        // Queue the new one before canceling the old one, to prevent early yield
+        const task = this.task;
         this.task = this.taskQueue.queueTask(() => {
             this.task = null;
             return callback();
         }, this.opts);
+        task?.cancel();
     }
     $bind(flags, scope, hostScope) {
         if (this.firstArg !== null) {

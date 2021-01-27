@@ -59,6 +59,7 @@ class RenderContext {
         this.isCompiled = false;
         this.renderers = Object.create(null);
         this.compiledDefinition = (void 0);
+        this.root = parentContainer.root;
         const container = this.container = parentContainer.createChild();
         // TODO(fkleuver): get contextual + root renderers
         const renderers = container.getAll(renderer_js_1.IRenderer);

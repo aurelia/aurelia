@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
-import { nextId, isObject, ILogger, Metadata, DI, } from '@aurelia/kernel';
+import { nextId, isObject, ILogger, DI, } from '@aurelia/kernel';
 import { AccessScopeExpression, Scope, IObserverLocator, IExpressionParser, } from '@aurelia/runtime';
 import { BindableObserver } from '../observation/bindable-observer.js';
-import { convertToRenderLocation } from '../dom.js';
+import { convertToRenderLocation, setRef } from '../dom.js';
 import { CustomElementDefinition, CustomElement } from '../resources/custom-element.js';
 import { CustomAttribute } from '../resources/custom-attribute.js';
 import { getRenderContext } from './render-context.js';
@@ -11,6 +11,7 @@ import { IAppRoot } from '../app-root.js';
 import { IPlatform } from '../platform.js';
 import { IShadowDOMGlobalStyles, IShadowDOMStyles } from './styles.js';
 import { ComputedWatcher, ExpressionWatcher } from './watchers.js';
+import { LifecycleHooks } from './lifecycle-hooks.js';
 function callDispose(disposable) {
     disposable.dispose();
 }
@@ -69,6 +70,7 @@ export class Controller {
         this.nodes = null;
         this.context = null;
         this.location = null;
+        this.lifecycleHooks = null;
         this.state = 0 /* none */;
         this.logger = null;
         this.debug = false;
@@ -212,6 +214,7 @@ export class Controller {
             }
         }
         const context = this.context = getRenderContext(definition, parentContainer, targetedProjections?.projections);
+        this.lifecycleHooks = LifecycleHooks.resolve(context);
         // Support Recursive Components by adding self to own context
         definition.register(context);
         if (definition.injectable !== null) {
@@ -247,16 +250,19 @@ export class Controller {
         if ((this.hostController = CustomElement.for(this.host, optional)) !== null) {
             this.host = this.platform.document.createElement(this.context.definition.name);
         }
-        Metadata.define(CustomElement.name, this, this.host);
+        setRef(this.host, CustomElement.name, this);
+        setRef(this.host, this.definition.key, this);
         if (shadowOptions !== null || hasSlots) {
             if (containerless) {
                 throw new Error('You cannot combine the containerless custom element option with Shadow DOM.');
             }
-            Metadata.define(CustomElement.name, this, this.shadowRoot = this.host.attachShadow(shadowOptions ?? defaultShadowOptions));
+            setRef(this.shadowRoot = this.host.attachShadow(shadowOptions ?? defaultShadowOptions), CustomElement.name, this);
+            setRef(this.shadowRoot, this.definition.key, this);
             this.mountTarget = 2 /* shadowRoot */;
         }
         else if (containerless) {
-            Metadata.define(CustomElement.name, this, this.location = convertToRenderLocation(this.host));
+            setRef(this.location = convertToRenderLocation(this.host), CustomElement.name, this);
+            setRef(this.location, this.definition.key, this);
             this.mountTarget = 3 /* location */;
         }
         else {
@@ -295,6 +301,13 @@ export class Controller {
         }
         createObservers(this, definition, this.flags, instance);
         instance.$controller = this;
+        this.lifecycleHooks = LifecycleHooks.resolve(this.container);
+        if (this.hooks.hasCreated) {
+            if (this.debug) {
+                this.logger.trace(`invoking created() hook`);
+            }
+            this.viewModel.created(this);
+        }
     }
     hydrateSynthetic(context) {
         this.context = context;
@@ -587,7 +600,8 @@ export class Controller {
                     this.scope = null;
                 }
                 if ((this.state & 16 /* released */) === 16 /* released */ &&
-                    !this.viewFactory.tryReturnToCache(this)) {
+                    !this.viewFactory.tryReturnToCache(this) &&
+                    this.$initiator === this) {
                     this.dispose();
                 }
                 break;
@@ -595,7 +609,7 @@ export class Controller {
                 this.scope.parentScope = null;
                 break;
         }
-        if ((flags & 512 /* dispose */) === 512 /* dispose */) {
+        if ((flags & 512 /* dispose */) === 512 /* dispose */ && this.$initiator === this) {
             this.dispose();
         }
         this.state = (this.state & 32 /* disposed */) | 8 /* deactivated */;
@@ -763,7 +777,8 @@ export class Controller {
     }
     setHost(host) {
         if (this.vmKind === 0 /* customElement */) {
-            Metadata.define(CustomElement.name, this, host);
+            setRef(host, CustomElement.name, this);
+            setRef(host, this.definition.key, this);
         }
         this.host = host;
         this.mountTarget = 1 /* host */;
@@ -771,7 +786,8 @@ export class Controller {
     }
     setShadowRoot(shadowRoot) {
         if (this.vmKind === 0 /* customElement */) {
-            Metadata.define(CustomElement.name, this, shadowRoot);
+            setRef(shadowRoot, CustomElement.name, this);
+            setRef(shadowRoot, this.definition.key, this);
         }
         this.shadowRoot = shadowRoot;
         this.mountTarget = 2 /* shadowRoot */;
@@ -779,7 +795,8 @@ export class Controller {
     }
     setLocation(location) {
         if (this.vmKind === 0 /* customElement */) {
-            Metadata.define(CustomElement.name, this, location);
+            setRef(location, CustomElement.name, this);
+            setRef(location, this.definition.key, this);
         }
         this.location = location;
         this.mountTarget = 3 /* location */;

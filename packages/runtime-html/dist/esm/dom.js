@@ -2,6 +2,15 @@ import { DI } from '@aurelia/kernel';
 import { IAppRoot } from './app-root.js';
 import { IPlatform } from './platform.js';
 import { CustomElement } from './resources/custom-element.js';
+export class Refs {
+}
+export function getRef(node, name) {
+    return node.$au?.[name] ?? null;
+}
+export function setRef(node, name, controller) {
+    var _a;
+    ((_a = node).$au ?? (_a.$au = new Refs()))[name] = controller;
+}
 export const INode = DI.createInterface('INode');
 export const IEventTarget = DI.createInterface('IEventTarget', x => x.cachedCallback(handler => {
     if (handler.has(IAppRoot, true)) {

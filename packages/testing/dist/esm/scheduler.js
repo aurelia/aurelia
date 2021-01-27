@@ -4,8 +4,8 @@ export function ensureTaskQueuesEmpty(platform) {
         platform = BrowserPlatform.getOrCreate(globalThis);
     }
     // canceling pending heading to remove the sticky tasks
-    platform.macroTaskQueue.flush();
-    platform.macroTaskQueue['pending'].forEach((x) => x.cancel());
+    platform.taskQueue.flush();
+    platform.taskQueue['pending'].forEach((x) => x.cancel());
     platform.domWriteQueue.flush();
     platform.domWriteQueue['pending'].forEach((x) => x.cancel());
     platform.domReadQueue.flush();

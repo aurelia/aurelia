@@ -5,6 +5,7 @@ const kernel_1 = require("@aurelia/kernel");
 const runtime_1 = require("@aurelia/runtime");
 const bindable_js_1 = require("../bindable.js");
 const watch_js_1 = require("../watch.js");
+const dom_js_1 = require("../dom.js");
 function customAttribute(nameOrDef) {
     return function (target) {
         return exports.CustomAttribute.define(nameOrDef, target);
@@ -61,7 +62,7 @@ exports.CustomAttribute = {
         return typeof value === 'function' && kernel_1.Metadata.hasOwn(exports.CustomAttribute.name, value);
     },
     for(node, name) {
-        return kernel_1.Metadata.getOwn(exports.CustomAttribute.keyFrom(name), node);
+        return (dom_js_1.getRef(node, exports.CustomAttribute.keyFrom(name)) ?? void 0);
     },
     define(nameOrDef, Type) {
         const definition = CustomAttributeDefinition.create(nameOrDef, Type);

@@ -14,7 +14,7 @@ exports.HttpServerConfiguration = {
         opts.validate();
         return {
             register(container) {
-                container.register(kernel_1.Registration.instance(interfaces_js_1.IHttpServerOptions, opts), kernel_1.Registration.singleton(interfaces_js_1.IRequestHandler, push_state_handler_js_1.PushStateHandler), kernel_1.Registration.singleton(interfaces_js_1.IRequestHandler, file_server_js_1.FileServer), kernel_1.Registration.singleton(interfaces_js_1.IHttp2FileServer, file_server_js_1.Http2FileServer), kernel_1.LoggerConfiguration.create({ $console: console, level: opts.level, colorOptions: 1 /* colors */ }));
+                container.register(kernel_1.Registration.instance(interfaces_js_1.IHttpServerOptions, opts), kernel_1.Registration.singleton(interfaces_js_1.IRequestHandler, push_state_handler_js_1.PushStateHandler), kernel_1.Registration.singleton(interfaces_js_1.IRequestHandler, file_server_js_1.FileServer), kernel_1.Registration.singleton(interfaces_js_1.IHttp2FileServer, file_server_js_1.Http2FileServer), kernel_1.LoggerConfiguration.create({ sinks: [kernel_1.ConsoleSink], level: opts.level, colorOptions: 1 /* colors */ }), kernel_1.Registration.instance(kernel_1.IPlatform, new kernel_1.Platform(globalThis)));
                 if (opts.useHttp2) {
                     container.register(kernel_1.Registration.singleton(interfaces_js_1.IHttpServer, http_server_js_1.Http2Server));
                 }

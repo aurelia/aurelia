@@ -13,43 +13,81 @@ exports.HrefCustomAttribute = void 0;
 const runtime_html_1 = require("@aurelia/runtime-html");
 const router_js_1 = require("../router.js");
 const configuration_js_1 = require("../configuration.js");
+const route_context_js_1 = require("../route-context.js");
 let HrefCustomAttribute = class HrefCustomAttribute {
-    constructor(element, router) {
-        this.element = element;
+    constructor(target, el, router, delegator, ctx, w) {
+        this.target = target;
+        this.el = el;
         this.router = router;
+        this.delegator = delegator;
+        this.ctx = ctx;
+        this.eventListener = null;
+        this.isInitialized = false;
+        this.onClick = (e) => {
+            // Ensure this is an ordinary left-button click.
+            if (e.altKey || e.ctrlKey || e.shiftKey || e.metaKey || e.button !== 0) {
+                return;
+            }
+            // Use the normalized attribute instead of this.value to ensure consistency.
+            const href = this.el.getAttribute('href');
+            if (href !== null) {
+                e.preventDefault();
+                // Floating promises from `Router#load` are ok because the router keeps track of state and handles the errors, etc.
+                void this.router.load(href, { context: this.ctx });
+            }
+        };
+        if (router.options.useHref &&
+            // Ensure the element is an anchor
+            el.nodeName === 'A' &&
+            // Ensure the anchor is not explicitly marked as external.
+            !el.hasAttribute('external') &&
+            !el.hasAttribute('data-external')) {
+            // Ensure the anchor targets the current window.
+            switch (el.getAttribute('target')) {
+                case null:
+                case w.name:
+                case '_self':
+                    this.isEnabled = true;
+                    break;
+                default:
+                    this.isEnabled = false;
+                    break;
+            }
+        }
+        else {
+            this.isEnabled = false;
+        }
     }
     binding() {
-        if (this.router.options.useHref && !this.hasGoto()) {
-            this.element.addEventListener('click', this.router.linkHandler.handler);
+        if (!this.isInitialized) {
+            this.isInitialized = true;
+            this.isEnabled = this.isEnabled && runtime_html_1.getRef(this.el, runtime_html_1.CustomAttribute.getDefinition(configuration_js_1.LoadCustomAttribute).key) === null;
         }
-        this.updateValue();
+        if (this.isEnabled) {
+            this.el.setAttribute('href', this.value);
+            this.eventListener = this.delegator.addEventListener(this.target, this.el, 'click', this.onClick);
+        }
     }
     unbinding() {
-        this.element.removeEventListener('click', this.router.linkHandler.handler);
+        if (this.isEnabled) {
+            this.eventListener.dispose();
+        }
     }
-    valueChanged() {
-        this.updateValue();
-    }
-    updateValue() {
-        this.element.setAttribute('href', this.value);
-    }
-    hasGoto() {
-        const parent = this.$controller.parent;
-        const siblings = parent.children;
-        return siblings !== null
-            && siblings.some(c => c.vmKind === 1 /* customAttribute */ && c.viewModel instanceof configuration_js_1.GotoCustomAttribute);
+    valueChanged(newValue) {
+        this.el.setAttribute('href', newValue);
     }
 };
 __decorate([
     runtime_html_1.bindable({ mode: runtime_html_1.BindingMode.toView })
 ], HrefCustomAttribute.prototype, "value", void 0);
 HrefCustomAttribute = __decorate([
-    runtime_html_1.customAttribute({
-        name: 'href',
-        noMultiBindings: true
-    }),
-    __param(0, runtime_html_1.INode),
-    __param(1, router_js_1.IRouter)
+    runtime_html_1.customAttribute({ name: 'href', noMultiBindings: true }),
+    __param(0, runtime_html_1.IEventTarget),
+    __param(1, runtime_html_1.INode),
+    __param(2, router_js_1.IRouter),
+    __param(3, runtime_html_1.IEventDelegator),
+    __param(4, route_context_js_1.IRouteContext),
+    __param(5, runtime_html_1.IWindow)
 ], HrefCustomAttribute);
 exports.HrefCustomAttribute = HrefCustomAttribute;
 //# sourceMappingURL=href.js.map

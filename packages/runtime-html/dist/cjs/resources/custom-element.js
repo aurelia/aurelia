@@ -136,8 +136,8 @@ exports.CustomElement = {
     },
     for(node, opts = defaultForOpts) {
         if (opts.name === void 0 && opts.searchParents !== true) {
-            const controller = kernel_1.Metadata.getOwn(exports.CustomElement.name, node);
-            if (controller === void 0) {
+            const controller = dom_js_1.getRef(node, exports.CustomElement.name);
+            if (controller === null) {
                 if (opts.optional === true) {
                     return null;
                 }
@@ -147,8 +147,8 @@ exports.CustomElement = {
         }
         if (opts.name !== void 0) {
             if (opts.searchParents !== true) {
-                const controller = kernel_1.Metadata.getOwn(exports.CustomElement.name, node);
-                if (controller === void 0) {
+                const controller = dom_js_1.getRef(node, exports.CustomElement.name);
+                if (controller === null) {
                     throw new Error(`The provided node is not a custom element or containerless host.`);
                 }
                 if (controller.is(opts.name)) {
@@ -159,8 +159,8 @@ exports.CustomElement = {
             let cur = node;
             let foundAController = false;
             while (cur !== null) {
-                const controller = kernel_1.Metadata.getOwn(exports.CustomElement.name, cur);
-                if (controller !== void 0) {
+                const controller = dom_js_1.getRef(cur, exports.CustomElement.name);
+                if (controller !== null) {
                     foundAController = true;
                     if (controller.is(opts.name)) {
                         return controller;
@@ -175,8 +175,8 @@ exports.CustomElement = {
         }
         let cur = node;
         while (cur !== null) {
-            const controller = kernel_1.Metadata.getOwn(exports.CustomElement.name, cur);
-            if (controller !== void 0) {
+            const controller = dom_js_1.getRef(cur, exports.CustomElement.name);
+            if (controller !== null) {
                 return controller;
             }
             cur = dom_js_1.getEffectiveParentNode(cur);

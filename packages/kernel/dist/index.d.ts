@@ -1,7 +1,4 @@
-import { Platform } from '@aurelia/platform';
-export interface IPlatform extends Platform {
-}
-export declare const IPlatform: import("./di.js").InterfaceSymbol<IPlatform>;
+export { IPlatform, } from './platform.js';
 export { Platform, TaskQueue, Task, TaskAbortError, TaskQueuePriority, TaskStatus, QueueTaskOptions, ITask, } from '@aurelia/platform';
 export { all, DI, IContainer, IFactory, inject, IRegistration, IRegistry, IResolver, IServiceLocator, Key, lazy, optional, ignore, RegisterSelf, Registration, ResolveCallback, singleton, transient, Injectable, InterfaceSymbol, InstanceProvider, Resolved, Transformer, newInstanceForScope, newInstanceOf, ContainerConfiguration, DefaultResolver, IContainerConfiguration, } from './di.js';
 export { Class, Constructable, ConstructableClass, IDisposable, IIndexable, Overwrite, Primitive, Writable, } from './interfaces.js';

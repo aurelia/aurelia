@@ -6,7 +6,7 @@ export interface IConfigurableRoute<T> {
 export declare class ConfigurableRoute<T> implements IConfigurableRoute<T> {
     readonly path: string;
     readonly caseSensitive: boolean;
-    readonly handler: T;
+    handler: T;
     constructor(path: string, caseSensitive: boolean, handler: T);
 }
 export declare class Endpoint<T> {

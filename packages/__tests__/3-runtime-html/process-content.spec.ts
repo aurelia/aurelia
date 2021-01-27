@@ -613,7 +613,6 @@ describe('processContent', function () {
 
           // assert the bound delegate
           header.click();
-          // eslint-disable-next-line no-await-in-loop
           platform.domWriteQueue.flush();
           for (let j = numTabs - 1; j > -1; j--) {
             assert.strictEqual(headers[j].classList.contains('active'), i === j, `header#${j} class`);

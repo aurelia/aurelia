@@ -186,7 +186,7 @@ describe('validation-i18n', function () {
   async function assertEventHandler(target: HTMLElement, event: 'change' | 'focusout', callCount: number, platform: IPlatform, controllerSpy: Spy, ctx: TestContext) {
     controllerSpy.clearCallRecords();
     target.dispatchEvent(new ctx.Event(event));
-    platform.domReadQueue.flush();
+    await platform.domReadQueue.yield();
     controllerSpy.methodCalledTimes('validateBinding', callCount);
     controllerSpy.methodCalledTimes('validate', callCount);
   }
@@ -194,7 +194,7 @@ describe('validation-i18n', function () {
   async function changeLocale(container: IContainer, platform: IPlatform, controllerSpy: Spy) {
     const i18n = container.get(I18N);
     await i18n.setLocale('de');
-    platform.domReadQueue.flush();
+    await platform.domReadQueue.yield();
     controllerSpy.methodCalledTimes('validate', 1);
   }
 

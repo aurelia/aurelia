@@ -5,7 +5,7 @@ import { customElement, route, ICustomElementViewModel, IPlatform } from 'aureli
 import { ITagsState, IUserState } from './state';
 
 @route({
-  children: [
+  routes: [
     { id: 'home', path: '', component: import('./home'), title: 'Home' },
     { path: 'login', component: import('./auth'), title: 'Sign in' },
     { path: 'register', component: import('./auth'), title: 'Sign up' },

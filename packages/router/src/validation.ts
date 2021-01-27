@@ -111,13 +111,13 @@ export function validateRouteConfig(config: Partial<IChildRouteConfig> | null | 
       case 'component':
         validateComponent(value, path);
         break;
-      case 'children': {
+      case 'routes': {
         if (!(value instanceof Array)) {
           expectType('Array', path, value);
         }
-        for (const child of value) {
-          const childPath = `${path}[${value.indexOf(child as any)}]`; // TODO(fkleuver): remove 'any' (this type got very messy for some reason)
-          validateComponent(child, childPath);
+        for (const route of value) {
+          const childPath = `${path}[${value.indexOf(route as any)}]`; // TODO(fkleuver): remove 'any' (this type got very messy for some reason)
+          validateComponent(route, childPath);
         }
         break;
       }

@@ -157,7 +157,7 @@ export class RouteContext implements IContainer {
 
     const promises: Promise<void>[] = [];
     const allPromises: Promise<void>[] = [];
-    for (const child of definition.config.children) {
+    for (const child of definition.config.routes) {
       if (child instanceof Promise) {
         const p = this.addRoute(child);
         promises.push(p);

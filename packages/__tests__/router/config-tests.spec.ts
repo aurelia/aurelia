@@ -319,7 +319,7 @@ describe('router config', function () {
                   t4: ['2', 'a02'],
                   configure() {
                     Route.configure({
-                      children: [
+                      routes: [
                         {
                           path: '1',
                           component: A01,
@@ -352,7 +352,7 @@ describe('router config', function () {
             @customElement({ name: 'a01', template: null })
             class A01 extends SimpleActivityTrackingVMBase {}
 
-            @route({ children: [{ path: 'a', component: A01 }] })
+            @route({ routes: [{ path: 'a', component: A01 }] })
             @customElement({ name: 'root', template: vp(1), dependencies: inDependencies ? [A01] : [] })
             class Root extends SimpleActivityTrackingVMBase {}
 
@@ -368,7 +368,7 @@ describe('router config', function () {
             @customElement({ name: 'a01', template: null })
             class A01 extends SimpleActivityTrackingVMBase {}
 
-            @route({ children: [A01] })
+            @route({ routes: [A01] })
             @customElement({ name: 'root', template: vp(1), dependencies: inDependencies ? [A01] : [] })
             class Root extends SimpleActivityTrackingVMBase {}
 
@@ -401,7 +401,7 @@ describe('router config', function () {
     @customElement({ name: 'a01', template: null })
     class A01 extends SimpleActivityTrackingVMBase {}
 
-    @route({ children: [A01] })
+    @route({ routes: [A01] })
     @customElement({ name: 'root', template: vp(1) })
     class Root extends SimpleActivityTrackingVMBase {}
 
@@ -416,7 +416,7 @@ describe('router config', function () {
     @customElement({ name: 'a01', template: null })
     class A01 extends SimpleActivityTrackingVMBase {}
 
-    @route({ children: [A01] })
+    @route({ routes: [A01] })
     @customElement({ name: 'root', template: vp(1) })
     class Root extends SimpleActivityTrackingVMBase {}
 
@@ -451,7 +451,7 @@ describe('router config', function () {
     @customElement({ name: 'a01', template: null })
     class A01 extends SimpleActivityTrackingVMBase {}
 
-    @route({ children: [{ path: 'a/x', component: A01 }] })
+    @route({ routes: [{ path: 'a/x', component: A01 }] })
     @customElement({ name: 'root', template: vp(1) })
     class Root extends SimpleActivityTrackingVMBase {}
 
@@ -466,7 +466,7 @@ describe('router config', function () {
     @customElement({ name: 'a01', template: null })
     class A01 extends SimpleActivityTrackingVMBase {}
 
-    @route({ children: [{ path: 'a/:x', component: A01 }] })
+    @route({ routes: [{ path: 'a/:x', component: A01 }] })
     @customElement({ name: 'root', template: vp(1) })
     class Root extends SimpleActivityTrackingVMBase {}
 
@@ -481,11 +481,11 @@ describe('router config', function () {
     @customElement({ name: 'b01', template: null })
     class B01 extends SimpleActivityTrackingVMBase {}
 
-    @route({ children: [{ path: 'b', component: B01 }] })
+    @route({ routes: [{ path: 'b', component: B01 }] })
     @customElement({ name: 'a11', template: vp(1) })
     class A11 extends SimpleActivityTrackingVMBase {}
 
-    @route({ children: [{ path: 'a/x', component: A11 }] })
+    @route({ routes: [{ path: 'a/x', component: A11 }] })
     @customElement({ name: 'root', template: vp(1) })
     class Root extends SimpleActivityTrackingVMBase {}
 
@@ -500,11 +500,11 @@ describe('router config', function () {
     @customElement({ name: 'b01', template: null })
     class B01 extends SimpleActivityTrackingVMBase {}
 
-    @route({ children: [{ path: 'b/x', component: B01 }] })
+    @route({ routes: [{ path: 'b/x', component: B01 }] })
     @customElement({ name: 'a11', template: vp(1) })
     class A11 extends SimpleActivityTrackingVMBase {}
 
-    @route({ children: [{ path: 'a/x', component: A11 }] })
+    @route({ routes: [{ path: 'a/x', component: A11 }] })
     @customElement({ name: 'root', template: vp(1) })
     class Root extends SimpleActivityTrackingVMBase {}
 
@@ -519,11 +519,11 @@ describe('router config', function () {
     @customElement({ name: 'b01', template: null })
     class B01 extends SimpleActivityTrackingVMBase {}
 
-    @route({ children: [{ path: 'b/x', component: B01 }] })
+    @route({ routes: [{ path: 'b/x', component: B01 }] })
     @customElement({ name: 'a11', template: vp(1) })
     class A11 extends SimpleActivityTrackingVMBase {}
 
-    @route({ children: [{ path: 'a', component: A11 }] })
+    @route({ routes: [{ path: 'a', component: A11 }] })
     @customElement({ name: 'root', template: vp(1) })
     class Root extends SimpleActivityTrackingVMBase {}
 
@@ -538,7 +538,7 @@ describe('router config', function () {
     @customElement({ name: 'a01', template: null })
     class A01 extends SimpleActivityTrackingVMBase {}
 
-    @route({ children: [{ path: '', redirectTo: 'a' }, { path: 'a', component: A01 }] })
+    @route({ routes: [{ path: '', redirectTo: 'a' }, { path: 'a', component: A01 }] })
     @customElement({ name: 'root', template: vp(1) })
     class Root extends SimpleActivityTrackingVMBase {}
 
@@ -553,7 +553,7 @@ describe('router config', function () {
     @customElement({ name: 'a01', template: null })
     class A01 extends SimpleActivityTrackingVMBase {}
 
-    @route({ children: [{ path: 'x', redirectTo: 'a' }, { path: 'a', component: A01 }] })
+    @route({ routes: [{ path: 'x', redirectTo: 'a' }, { path: 'a', component: A01 }] })
     @customElement({ name: 'root', template: vp(1) })
     class Root extends SimpleActivityTrackingVMBase {}
 
@@ -585,7 +585,7 @@ describe('router config', function () {
           if (isRegistered) {
             return `'${instruction}' did not match any configured route, but it does match a registered component name at '${parentPath}' - did you forget to add a @route({ path: '${instruction}' }) decorator to '${instruction}' or unintentionally set routingMode to 'configured-only'?`;
           } else {
-            return `'${instruction}' did not match any configured route or registered component name at '${parentPath}' - did you forget to add '${instruction}' to the children list of the route decorator of '${parent}'?`;
+            return `'${instruction}' did not match any configured route or registered component name at '${parentPath}' - did you forget to add '${instruction}' to the routes list of the route decorator of '${parent}'?`;
           }
       }
     }
@@ -602,7 +602,7 @@ describe('router config', function () {
           @customElement({ name: 'a01', template: null })
           class A01 extends SimpleActivityTrackingVMBase {}
 
-          @route({ children: [A01] })
+          @route({ routes: [A01] })
           @customElement({ name: 'root', template: vp(1) })
           class Root extends SimpleActivityTrackingVMBase {}
 

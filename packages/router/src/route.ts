@@ -4,7 +4,7 @@ import { validateRouteConfig, expectType, shallowEquals } from './validation.js'
 import { RouteableComponent, Params } from './instructions.js';
 import { RouteNode } from './route-tree.js';
 
-const noChildren = emptyArray as RouteConfig['children'];
+const noRoutes = emptyArray as RouteConfig['routes'];
 
 /**
  * Either a `RouteableComponent` or a name/config that can be resolved to a one:
@@ -85,7 +85,7 @@ export class RouteConfig {
     /**
      * The child routes that can be navigated to from this route. See `Routeable` for more information.
      */
-    public readonly children: readonly Routeable[],
+    public readonly routes: readonly Routeable[],
   ) { }
 
   public static create(configOrPath: IRouteConfig | string | string[], Type: RouteType | null): RouteConfig {
@@ -99,7 +99,7 @@ export class RouteConfig {
       const reentryBehavior = Type?.transitionPlan ?? defaultReentryBehavior;
       const viewport = Type?.viewport ?? null;
       const data = Type?.data ?? {};
-      const children = Type?.children ?? noChildren;
+      const children = Type?.routes ?? noRoutes;
 
       return new RouteConfig(
         id,
@@ -128,8 +128,8 @@ export class RouteConfig {
         ...config.data,
       };
       const children = [
-        ...(config.children ?? noChildren),
-        ...(Type?.children ?? noChildren),
+        ...(config.routes ?? noRoutes),
+        ...(Type?.routes ?? noRoutes),
       ];
       return new RouteConfig(
         id,
@@ -179,7 +179,7 @@ export class ChildRouteConfig extends RouteConfig {
     reentryBehavior: TransitionPlanOrFunc,
     viewport: string | null,
     data: Params,
-    children: readonly Routeable[],
+    routes: readonly Routeable[],
     /**
      * The component to load when this route is matched.
      */
@@ -194,7 +194,7 @@ export class ChildRouteConfig extends RouteConfig {
       reentryBehavior,
       viewport,
       data,
-      children,
+      routes,
     );
   }
 }

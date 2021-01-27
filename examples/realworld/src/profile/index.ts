@@ -40,7 +40,7 @@ class FavoritedArticlesCustomElement implements IRouteViewModel {
 }
 
 @route({
-  children: [
+  routes: [
     { id: 'author', path: '', component: AuthorArticlesCustomElement, title: 'Profile' },
     { path: 'favorites', component: FavoritedArticlesCustomElement, title: 'Profile' },
   ],

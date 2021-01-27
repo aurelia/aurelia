@@ -1,15 +1,15 @@
 import { ICustomAttributeController } from '@aurelia/runtime-html';
-import { Measurement, WritableMeasurementKeys } from '@benchmarking-apps/test-result';
 import { bindable, customElement, ILogger, shadowCSS } from 'aurelia';
 import * as d3 from 'd3';
-import { actions, Margin, round } from './shared';
+import { GroupedAvgMeasurement } from '../data';
+import { actions, AvgMeasurement, DurationKeys, Margin, round } from './shared';
 import css from './stacked-bars.css';
 import template from './stacked-bars.html';
 
 const margin = new Margin(40, 30, 30, 40);
 const width = 800;
 const height = 600;
-
+type Measurement = GroupedAvgMeasurement | AvgMeasurement;
 @customElement({
   name: 'stacked-bars',
   template,
@@ -67,7 +67,7 @@ export class StackedBars {
         .data(series)
         .enter()
         .append('g')
-        .style('fill', function (d) { return actions[d.key as WritableMeasurementKeys].color; });
+        .style('fill', function (d) { return actions[d.key as DurationKeys].color; });
 
       const identifier = this.measurementIdentifier;
       const xScale = d3.scaleBand()

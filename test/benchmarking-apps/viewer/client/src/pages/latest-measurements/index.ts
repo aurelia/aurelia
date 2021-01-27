@@ -1,6 +1,5 @@
-import { BenchmarkMeasurements } from '@benchmarking-apps/test-result';
 import { customElement, ILogger } from 'aurelia';
-import { IApi } from '../data';
+import { GroupedAvgBenchmarkMeasurements, IApi } from '../data';
 import { ByBrowsers } from './by-browsers';
 import template from './index.html';
 
@@ -13,7 +12,7 @@ import template from './index.html';
   ],
 })
 export class LatestMeasurements {
-  private data: BenchmarkMeasurements;
+  private data: GroupedAvgBenchmarkMeasurements;
   public constructor(
     @IApi private readonly api: IApi,
     @ILogger private readonly logger: ILogger,

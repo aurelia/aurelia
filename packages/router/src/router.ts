@@ -112,7 +112,7 @@ export class RouterOptions {
       input.useHref ?? true,
       input.statefulHistoryLength ?? 0,
       input.routingMode ?? 'configured-first',
-      input.swapStrategy ?? 'sequential-add-first',
+      input.swapStrategy ?? 'sequential-remove-first',
       input.resolutionMode ?? 'dynamic',
       input.queryParamsStrategy ?? 'overwrite',
       input.fragmentStrategy ?? 'overwrite',

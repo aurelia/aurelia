@@ -13,7 +13,6 @@ au.register(
   }),
   RouterConfiguration.customize({
     useUrlFragmentHash: false,
-    swapStrategy: 'sequential-remove-first',
   }),
   GlobalResources,
 );

@@ -49,6 +49,7 @@
 
 ## Routing
 
+* [Fundamentals](routing/fundamentals.md)
 * [Configuration & Setup](routing/configuration-and-setup.md)
 * [Direct Routing](routing/direct-routing.md)
 * [Component Configured Routing](routing/component-configured-routing.md)

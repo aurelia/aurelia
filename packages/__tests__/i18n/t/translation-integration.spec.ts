@@ -213,8 +213,11 @@ describe('translation-integration', function () {
       }
     }
 
-    $it('works if the keyExpression is changed to null/undefined', function ({ host, app }: I18nIntegrationTestContext<App>) {
+    $it('works if the keyExpression is changed to null/undefined', function ({ host, app, ctx }: I18nIntegrationTestContext<App>) {
       app.changeKey();
+      assertTextContent(host, '#undefined', 'simple.text');
+      assertTextContent(host, '#null', 'simple.text');
+      ctx.platform.domWriteQueue.flush();
       assertTextContent(host, '#undefined', '');
       assertTextContent(host, '#null', '');
     }, { component: App });

@@ -11,7 +11,7 @@
     "strict": true,
     "rootDir": "../",
     "outDir": "dist",
-    "target": "es2020",
+    "target": "es2018",
     "types": [
       "aurelia",
       "playwright",

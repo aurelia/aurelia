@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "incremental": true,
-    "target": "es2020",
+    "target": "es2018",
     "module": "ESNext",
     "moduleResolution": "Node",
     "declaration": true,

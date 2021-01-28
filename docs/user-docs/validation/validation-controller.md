@@ -1,4 +1,3 @@
-
 # Validation Controller
 
 So far the functionalities of the `@aurelia/validation` have been discussed. The part regarding the integration with view has been kept out of the discussion so far. This section starts addressing that.
@@ -148,3 +147,4 @@ class ValidationResult<TRule extends BaseValidationRule = BaseValidationRule> {
 What the subscribers do with the event data, depends on the subscribers. A obvious use-case is to present the errors to the end-users. In fact the [out-of-the-box subscribers](displaying-errors.md) are used for the purpose only. Below is one example of how you can create a custom subscriber.
 
 {% embed url="https://stackblitz.com/edit/au2-validation-validationcontroller-add-remove-subscriber" caption="" %}
+

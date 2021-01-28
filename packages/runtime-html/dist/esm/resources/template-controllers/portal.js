@@ -59,7 +59,7 @@ let Portal = class Portal {
     $activating(initiator, target, flags) {
         const { activating, callbackContext, view } = this;
         view.setHost(target);
-        return onResolve(activating?.call(callbackContext, target, view), () => {
+        return onResolve(activating === null || activating === void 0 ? void 0 : activating.call(callbackContext, target, view), () => {
             return this.activate(initiator, target, flags);
         });
     }
@@ -70,7 +70,7 @@ let Portal = class Portal {
         }
         else {
             // TODO(fkleuver): fix and test possible race condition
-            return onResolve(view.activate(initiator ?? view, $controller, flags, $controller.scope), () => {
+            return onResolve(view.activate(initiator !== null && initiator !== void 0 ? initiator : view, $controller, flags, $controller.scope), () => {
                 return this.$activated(target);
             });
         }
@@ -78,11 +78,11 @@ let Portal = class Portal {
     }
     $activated(target) {
         const { activated, callbackContext, view } = this;
-        return activated?.call(callbackContext, target, view);
+        return activated === null || activated === void 0 ? void 0 : activated.call(callbackContext, target, view);
     }
     $deactivating(initiator, target, flags) {
         const { deactivating, callbackContext, view } = this;
-        return onResolve(deactivating?.call(callbackContext, target, view), () => {
+        return onResolve(deactivating === null || deactivating === void 0 ? void 0 : deactivating.call(callbackContext, target, view), () => {
             return this.deactivate(initiator, target, flags);
         });
     }
@@ -100,7 +100,7 @@ let Portal = class Portal {
     }
     $deactivated(target) {
         const { deactivated, callbackContext, view } = this;
-        return deactivated?.call(callbackContext, target, view);
+        return deactivated === null || deactivated === void 0 ? void 0 : deactivated.call(callbackContext, target, view);
     }
     resolveTarget() {
         const p = this.p;
@@ -141,7 +141,8 @@ let Portal = class Portal {
         this.callbackContext = null;
     }
     accept(visitor) {
-        if (this.view?.accept(visitor) === true) {
+        var _a;
+        if (((_a = this.view) === null || _a === void 0 ? void 0 : _a.accept(visitor)) === true) {
             return true;
         }
     }

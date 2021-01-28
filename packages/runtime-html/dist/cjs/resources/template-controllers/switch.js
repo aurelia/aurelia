@@ -48,7 +48,8 @@ let Switch = class Switch {
         return this.promise;
     }
     dispose() {
-        this.view?.dispose();
+        var _a;
+        (_a = this.view) === null || _a === void 0 ? void 0 : _a.dispose();
         this.view = (void 0);
     }
     valueChanged(_newValue, _oldValue, flags) {
@@ -208,7 +209,7 @@ let Case = class Case {
     }
     link(flags, parentContext, controller, _childController, _target, _instruction) {
         const switchController = controller.parent;
-        const $switch = switchController?.viewModel;
+        const $switch = switchController === null || switchController === void 0 ? void 0 : switchController.viewModel;
         if ($switch instanceof Switch) {
             this.$switch = $switch;
             this.linkToSwitch($switch);
@@ -234,8 +235,9 @@ let Case = class Case {
         return $value === value;
     }
     valueChanged(newValue, _oldValue, flags) {
+        var _a;
         if (Array.isArray(newValue)) {
-            this.observer?.unsubscribe(this);
+            (_a = this.observer) === null || _a === void 0 ? void 0 : _a.unsubscribe(this);
             this.observer = this.observeCollection(flags, newValue);
         }
         else if (this.observer !== void 0) {
@@ -251,18 +253,19 @@ let Case = class Case {
         if (view.isActive) {
             return;
         }
-        return view.activate(initiator ?? view, this.$controller, flags, scope, hostScope);
+        return view.activate(initiator !== null && initiator !== void 0 ? initiator : view, this.$controller, flags, scope, hostScope);
     }
     deactivate(initiator, flags) {
         const view = this.view;
         if (!view.isActive) {
             return;
         }
-        return view.deactivate(initiator ?? view, this.$controller, flags);
+        return view.deactivate(initiator !== null && initiator !== void 0 ? initiator : view, this.$controller, flags);
     }
     dispose() {
-        this.observer?.unsubscribe(this);
-        this.view?.dispose();
+        var _a, _b;
+        (_a = this.observer) === null || _a === void 0 ? void 0 : _a.unsubscribe(this);
+        (_b = this.view) === null || _b === void 0 ? void 0 : _b.dispose();
         this.view = (void 0);
     }
     linkToSwitch(auSwitch) {
@@ -274,10 +277,11 @@ let Case = class Case {
         return observer;
     }
     accept(visitor) {
+        var _a;
         if (this.$controller.accept(visitor) === true) {
             return true;
         }
-        return this.view?.accept(visitor);
+        return (_a = this.view) === null || _a === void 0 ? void 0 : _a.accept(visitor);
     }
 };
 __decorate([

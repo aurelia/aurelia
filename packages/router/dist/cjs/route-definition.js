@@ -9,15 +9,16 @@ const validation_js_1 = require("./validation.js");
 const util_js_1 = require("./util.js");
 class RouteDefinition {
     constructor(config, component) {
+        var _a, _b, _c, _d, _e;
         this.config = config;
         this.component = component;
         this.hasExplicitPath = config.path !== null;
         this.caseSensitive = config.caseSensitive;
-        this.path = util_js_1.ensureArrayOfStrings(config.path ?? component.name);
-        this.redirectTo = config.redirectTo ?? null;
-        this.viewport = config.viewport ?? 'default';
-        this.id = util_js_1.ensureString(config.id ?? this.path);
-        this.data = config.data ?? {};
+        this.path = util_js_1.ensureArrayOfStrings((_a = config.path) !== null && _a !== void 0 ? _a : component.name);
+        this.redirectTo = (_b = config.redirectTo) !== null && _b !== void 0 ? _b : null;
+        this.viewport = (_c = config.viewport) !== null && _c !== void 0 ? _c : 'default';
+        this.id = util_js_1.ensureString((_d = config.id) !== null && _d !== void 0 ? _d : this.path);
+        this.data = (_e = config.data) !== null && _e !== void 0 ? _e : {};
     }
     static resolve(routeable, context) {
         if (validation_js_1.isPartialRedirectRouteConfig(routeable)) {
@@ -77,7 +78,8 @@ class RouteDefinition {
         }
     }
     register(container) {
-        this.component?.register(container);
+        var _a;
+        (_a = this.component) === null || _a === void 0 ? void 0 : _a.register(container);
     }
     toUrlComponent() {
         return 'not-implemented'; // TODO

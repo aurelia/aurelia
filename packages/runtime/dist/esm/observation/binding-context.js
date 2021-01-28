@@ -58,6 +58,7 @@ export class BindingContext {
     }
 }
 function chooseContext(scope, name, ancestor) {
+    var _a, _b;
     let overrideContext = scope.overrideContext;
     let currentScope = scope;
     if (ancestor > 0) {
@@ -65,7 +66,7 @@ function chooseContext(scope, name, ancestor) {
         while (ancestor > 0) {
             ancestor--;
             currentScope = currentScope.parentScope;
-            if (currentScope?.overrideContext == null) {
+            if ((currentScope === null || currentScope === void 0 ? void 0 : currentScope.overrideContext) == null) {
                 return void 0;
             }
         }
@@ -73,13 +74,13 @@ function chooseContext(scope, name, ancestor) {
         return name in overrideContext ? overrideContext : overrideContext.bindingContext;
     }
     // traverse the context and it's ancestors, searching for a context that has the name.
-    while (!currentScope?.isComponentBoundary
+    while (!(currentScope === null || currentScope === void 0 ? void 0 : currentScope.isComponentBoundary)
         && overrideContext
         && !(name in overrideContext)
         && !(overrideContext.bindingContext
             && name in overrideContext.bindingContext)) {
-        currentScope = currentScope.parentScope ?? null;
-        overrideContext = currentScope?.overrideContext ?? null;
+        currentScope = (_a = currentScope.parentScope) !== null && _a !== void 0 ? _a : null;
+        overrideContext = (_b = currentScope === null || currentScope === void 0 ? void 0 : currentScope.overrideContext) !== null && _b !== void 0 ? _b : null;
     }
     if (overrideContext) {
         return name in overrideContext ? overrideContext : overrideContext.bindingContext;
@@ -94,7 +95,7 @@ export class Scope {
         this.isComponentBoundary = isComponentBoundary;
     }
     static create(bc, oc, isComponentBoundary) {
-        return new Scope(null, bc, oc == null ? OverrideContext.create(bc) : oc, isComponentBoundary ?? false);
+        return new Scope(null, bc, oc == null ? OverrideContext.create(bc) : oc, isComponentBoundary !== null && isComponentBoundary !== void 0 ? isComponentBoundary : false);
     }
     static fromOverride(oc) {
         if (oc == null) {

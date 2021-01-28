@@ -69,7 +69,7 @@ export class PropertyBinding {
                     interceptor.updateTarget(newValue, flags);
                     this.task = null;
                 }, updateTaskOpts);
-                task?.cancel();
+                task === null || task === void 0 ? void 0 : task.cancel();
             }
             else {
                 interceptor.updateTarget(newValue, flags);

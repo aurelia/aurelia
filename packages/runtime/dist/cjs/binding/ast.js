@@ -467,6 +467,7 @@ class AccessThisExpression {
     get hasBind() { return false; }
     get hasUnbind() { return false; }
     evaluate(_f, s, hs, _l, _c) {
+        var _a;
         if (this === AccessThisExpression.$host) {
             s = chooseScope(true, s, hs);
         }
@@ -475,7 +476,7 @@ class AccessThisExpression {
         let i = this.ancestor;
         while (i-- && oc) {
             currentScope = currentScope.parentScope;
-            oc = currentScope?.overrideContext ?? null;
+            oc = (_a = currentScope === null || currentScope === void 0 ? void 0 : currentScope.overrideContext) !== null && _a !== void 0 ? _a : null;
         }
         return i < 1 && oc ? oc.bindingContext : void 0;
     }
@@ -515,9 +516,10 @@ class AccessScopeExpression {
         return evaluatedValue == null ? '' : evaluatedValue;
     }
     assign(f, s, hs, _l, val) {
+        var _a;
         const obj = binding_context_js_1.BindingContext.get(chooseScope(this.accessHostScope, s, hs), this.name, this.ancestor, f, hs);
         if (obj instanceof Object) {
-            if (obj.$observers?.[this.name] !== void 0) {
+            if (((_a = obj.$observers) === null || _a === void 0 ? void 0 : _a[this.name]) !== void 0) {
                 obj.$observers[this.name].setValue(val, f);
                 return val;
             }

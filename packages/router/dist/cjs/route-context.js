@@ -24,6 +24,7 @@ const RESIDUE = 'au$residue';
  */
 class RouteContext {
     constructor(viewportAgent, parent, component, definition, parentContainer) {
+        var _a;
         this.parent = parent;
         this.component = component;
         this.definition = definition;
@@ -74,7 +75,7 @@ class RouteContext {
                 if (routeDef instanceof Promise) {
                     if (validation_js_1.isPartialChildRouteConfig(child) && child.path != null) {
                         for (const path of util_js_1.ensureArrayOfStrings(child.path)) {
-                            this.$addRoute(path, child.caseSensitive ?? false, routeDef);
+                            this.$addRoute(path, (_a = child.caseSensitive) !== null && _a !== void 0 ? _a : false, routeDef);
                         }
                         const idx = this.childRoutes.length;
                         const p = routeDef.then(resolvedRouteDef => {
@@ -324,6 +325,7 @@ class RouteContext {
         }
     }
     recognize(path) {
+        var _a;
         this.logger.trace(`recognize(path:'${path}')`);
         const result = this.recognizer.recognize(path);
         if (result === null) {
@@ -331,7 +333,7 @@ class RouteContext {
         }
         let residue;
         if (Reflect.has(result.params, RESIDUE)) {
-            residue = result.params[RESIDUE] ?? null;
+            residue = (_a = result.params[RESIDUE]) !== null && _a !== void 0 ? _a : null;
             Reflect.deleteProperty(result.params, RESIDUE);
         }
         else {

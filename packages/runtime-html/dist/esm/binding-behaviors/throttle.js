@@ -33,7 +33,7 @@ export class ThrottleBindingBehavior extends BindingInterceptor {
                 this.task = null;
                 callback();
             }, opts);
-            task?.cancel();
+            task === null || task === void 0 ? void 0 : task.cancel();
         }
         else {
             this.lastCall = platform.performanceNow();
@@ -50,7 +50,8 @@ export class ThrottleBindingBehavior extends BindingInterceptor {
         this.binding.$bind(flags, scope, hostScope);
     }
     $unbind(flags) {
-        this.task?.cancel();
+        var _a;
+        (_a = this.task) === null || _a === void 0 ? void 0 : _a.cancel();
         this.task = null;
         super.$unbind(flags);
     }

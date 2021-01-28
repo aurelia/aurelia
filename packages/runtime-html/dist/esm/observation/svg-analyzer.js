@@ -239,11 +239,12 @@ export class SVGAnalyzer {
         return Registration.singleton(ISVGAnalyzer, this).register(container);
     }
     isStandardSvgAttribute(node, attributeName) {
+        var _a;
         if (!(node instanceof this.SVGElement)) {
             return false;
         }
         return (this.svgPresentationElements[node.nodeName] === true && this.svgPresentationAttributes[attributeName] === true ||
-            this.svgElements[node.nodeName]?.[attributeName] === true);
+            ((_a = this.svgElements[node.nodeName]) === null || _a === void 0 ? void 0 : _a[attributeName]) === true);
     }
 }
 /**

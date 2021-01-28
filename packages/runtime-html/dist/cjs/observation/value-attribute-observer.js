@@ -35,7 +35,7 @@ class ValueAttributeObserver {
             const currentValue = this.currentValue;
             const oldValue = this.oldValue;
             this.oldValue = currentValue;
-            this.obj[this.propertyKey] = currentValue ?? this.handler.config.default;
+            this.obj[this.propertyKey] = currentValue !== null && currentValue !== void 0 ? currentValue : this.handler.config.default;
             if ((flags & 32 /* fromBind */) === 0) {
                 this.subs.notify(currentValue, oldValue, flags);
             }

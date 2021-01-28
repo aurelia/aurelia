@@ -101,6 +101,7 @@ export class Controller {
         return (this.state & (1 /* activating */ | 2 /* activated */)) > 0 && (this.state & 4 /* deactivating */) === 0;
     }
     get name() {
+        var _a;
         if (this.parent === null) {
             switch (this.vmKind) {
                 case 1 /* customAttribute */:
@@ -117,7 +118,7 @@ export class Controller {
             case 0 /* customElement */:
                 return `${this.parent.name}>${this.definition.name}`;
             case 2 /* synthetic */:
-                return this.viewFactory.name === this.parent.definition?.name
+                return this.viewFactory.name === ((_a = this.parent.definition) === null || _a === void 0 ? void 0 : _a.name)
                     ? `${this.parent.name}[view]`
                     : `${this.parent.name}[view:${this.viewFactory.name}]`;
         }
@@ -140,7 +141,7 @@ export class Controller {
         if (controllerLookup.has(viewModel)) {
             return controllerLookup.get(viewModel);
         }
-        definition = definition ?? CustomElement.getDefinition(viewModel.constructor);
+        definition = definition !== null && definition !== void 0 ? definition : CustomElement.getDefinition(viewModel.constructor);
         const controller = new Controller(
         /* root           */ root, 
         /* container      */ container, 0 /* customElement */, 
@@ -181,12 +182,13 @@ export class Controller {
         /* viewFactory    */ viewFactory, 
         /* viewModel      */ null, 
         /* host           */ null);
-        controller.parent = parentController ?? null;
+        controller.parent = parentController !== null && parentController !== void 0 ? parentController : null;
         controller.hydrateSynthetic(context);
         return controller;
     }
     /** @internal */
     hydrateCustomElement(parentContainer, targetedProjections) {
+        var _a;
         this.logger = parentContainer.get(ILogger).root;
         this.debug = this.logger.config.level <= 1 /* debug */;
         if (this.debug) {
@@ -213,7 +215,7 @@ export class Controller {
                 definition = CustomElementDefinition.getOrCreate(result);
             }
         }
-        const context = this.context = getRenderContext(definition, parentContainer, targetedProjections?.projections);
+        const context = this.context = getRenderContext(definition, parentContainer, targetedProjections === null || targetedProjections === void 0 ? void 0 : targetedProjections.projections);
         this.lifecycleHooks = LifecycleHooks.resolve(context);
         // Support Recursive Components by adding self to own context
         definition.register(context);
@@ -228,7 +230,7 @@ export class Controller {
         // - runAppTasks('hydrated') // may return a promise
         // - Controller.compileChildren
         // This keeps hydration synchronous while still allowing the composition root compile hooks to do async work.
-        if (this.root?.controller !== this) {
+        if (((_a = this.root) === null || _a === void 0 ? void 0 : _a.controller) !== this) {
             this.hydrate(targetedProjections);
             this.hydrateChildren();
         }
@@ -256,7 +258,7 @@ export class Controller {
             if (containerless) {
                 throw new Error('You cannot combine the containerless custom element option with Shadow DOM.');
             }
-            setRef(this.shadowRoot = this.host.attachShadow(shadowOptions ?? defaultShadowOptions), CustomElement.name, this);
+            setRef(this.shadowRoot = this.host.attachShadow(shadowOptions !== null && shadowOptions !== void 0 ? shadowOptions : defaultShadowOptions), CustomElement.name, this);
             setRef(this.shadowRoot, this.definition.key, this);
             this.mountTarget = 2 /* shadowRoot */;
         }
@@ -352,15 +354,15 @@ export class Controller {
             this.logger = this.context.get(ILogger).root.scopeTo(this.name);
             this.logger.trace(`activate()`);
         }
-        this.hostScope = hostScope ?? null;
+        this.hostScope = hostScope !== null && hostScope !== void 0 ? hostScope : null;
         flags |= 32 /* fromBind */;
         switch (this.vmKind) {
             case 0 /* customElement */:
                 // Custom element scope is created and assigned during hydration
-                this.scope.parentScope = scope ?? null;
+                this.scope.parentScope = scope !== null && scope !== void 0 ? scope : null;
                 break;
             case 1 /* customAttribute */:
-                this.scope = scope ?? null;
+                this.scope = scope !== null && scope !== void 0 ? scope : null;
                 break;
             case 2 /* synthetic */:
                 if (scope === void 0 || scope === null) {
@@ -438,6 +440,7 @@ export class Controller {
         }
     }
     attach() {
+        var _a;
         if (this.debug) {
             this.logger.trace(`attach()`);
         }
@@ -454,7 +457,7 @@ export class Controller {
         }
         switch (this.mountTarget) {
             case 1 /* host */:
-                this.nodes.appendTo(this.host, this.definition?.enhance);
+                this.nodes.appendTo(this.host, (_a = this.definition) === null || _a === void 0 ? void 0 : _a.enhance);
                 break;
             case 2 /* shadowRoot */: {
                 const styles = this.context.has(IShadowDOMStyles, false)

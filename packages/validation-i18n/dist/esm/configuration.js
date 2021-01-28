@@ -27,7 +27,7 @@ function createConfiguration(optionsProvider) {
             }), Registration.callback(I18nKeyConfiguration, () => keyConfiguration));
         },
         customize(cb) {
-            return createConfiguration(cb ?? optionsProvider);
+            return createConfiguration(cb !== null && cb !== void 0 ? cb : optionsProvider);
         },
     };
 }

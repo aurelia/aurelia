@@ -13,7 +13,7 @@ export function watch(expressionOrPropertyAccessFn, changeHandlerOrCallback) {
                 throw new Error(`Invalid change handler config. Method "${String(changeHandlerOrCallback)}" not found in class ${Type.name}`);
             }
         }
-        else if (typeof descriptor?.value !== 'function') {
+        else if (typeof (descriptor === null || descriptor === void 0 ? void 0 : descriptor.value) !== 'function') {
             throw new Error(`decorated target ${String(key)} is not a class method.`);
         }
         Watch.add(Type, new WatchDefinition(expressionOrPropertyAccessFn, isClassDecorator ? changeHandlerOrCallback : descriptor.value));
@@ -36,7 +36,8 @@ export const Watch = {
         watchDefinitions.push(definition);
     },
     getAnnotation(Type) {
-        return Metadata.getOwn(Watch.name, Type) ?? noDefinitions;
+        var _a;
+        return (_a = Metadata.getOwn(Watch.name, Type)) !== null && _a !== void 0 ? _a : noDefinitions;
     },
 };
 //# sourceMappingURL=watch.js.map

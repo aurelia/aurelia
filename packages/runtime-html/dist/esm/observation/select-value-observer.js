@@ -180,8 +180,9 @@ export class SelectValueObserver {
         this.observing = true;
     }
     stop() {
+        var _a;
         this.nodeObserver.disconnect();
-        this.arrayObserver?.unsubscribe(this);
+        (_a = this.arrayObserver) === null || _a === void 0 ? void 0 : _a.unsubscribe(this);
         this.nodeObserver
             = this.arrayObserver
                 = void 0;
@@ -189,7 +190,8 @@ export class SelectValueObserver {
     }
     // todo: observe all kind of collection
     observeArray(array) {
-        this.arrayObserver?.unsubscribe(this);
+        var _a;
+        (_a = this.arrayObserver) === null || _a === void 0 ? void 0 : _a.unsubscribe(this);
         this.arrayObserver = void 0;
         if (array != null) {
             if (!this.obj.multiple) {

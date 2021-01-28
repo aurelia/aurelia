@@ -164,20 +164,21 @@ class $VariableDeclaration {
     }
     get $kind() { return typescript_1.SyntaxKind.VariableDeclaration; }
     InitializeBinding(ctx, value) {
+        var _a, _b;
         ctx.checkTimeout();
         const realm = ctx.Realm;
         const bindingName = this.$name;
         const kind = bindingName.$kind;
         const boundNames = bindingName.BoundNames;
         const envRec = ctx.LexicalEnvironment;
-        if ((boundNames?.length ?? 0) > 0) {
+        if (((_a = boundNames === null || boundNames === void 0 ? void 0 : boundNames.length) !== null && _a !== void 0 ? _a : 0) > 0) {
             switch (kind) {
                 // http://www.ecma-international.org/ecma-262/#sec-identifiers-runtime-semantics-bindinginitialization
                 // 12.1.5 Runtime Semantics: BindingInitialization
                 // http://www.ecma-international.org/ecma-262/#sec-initializeboundname
                 // 12.1.5.1 Runtime Semantics: InitializeBoundName ( name , value , environment )
                 case typescript_1.SyntaxKind.Identifier: {
-                    const name = boundNames[0]?.GetValue(ctx);
+                    const name = (_b = boundNames[0]) === null || _b === void 0 ? void 0 : _b.GetValue(ctx);
                     // 1. Assert: Type(name) is String.
                     // 2. If environment is not undefined, then
                     if (envRec !== void 0) {
@@ -1484,7 +1485,7 @@ class $TryStatement {
         ctx.checkTimeout();
         const realm = ctx.Realm;
         const catchClause = this.$catchClause;
-        const varDeclarations = catchClause?.$variableDeclaration;
+        const varDeclarations = catchClause === null || catchClause === void 0 ? void 0 : catchClause.$variableDeclaration;
         const hasCatchParamteres = varDeclarations !== void 0;
         // Catch : catch Block
         // 1. Return the result of evaluating Block.
@@ -1497,13 +1498,13 @@ class $TryStatement {
             ctx.LexicalEnvironment = new environment_record_js_1.$DeclarativeEnvRec(this.logger, realm, oldEnv);
             // 4. For each element argName of the BoundNames of CatchParameter, do
             // 4. a. Perform ! catchEnvRec.CreateMutableBinding(argName, false).
-            catchClause?.CreateBinding(ctx, realm);
+            catchClause === null || catchClause === void 0 ? void 0 : catchClause.CreateBinding(ctx, realm);
             // 5. Set the running execution context's LexicalEnvironment to catchEnv.
             realm.stack.push(ctx);
             // 6. Let status be the result of performing BindingInitialization for CatchParameter passing thrownValue and catchEnv as arguments.
-            const status = varDeclarations?.InitializeBinding(ctx, thrownValue);
+            const status = varDeclarations === null || varDeclarations === void 0 ? void 0 : varDeclarations.InitializeBinding(ctx, thrownValue);
             // 7. If status is an abrupt completion, then
-            if (status?.isAbrupt) {
+            if (status === null || status === void 0 ? void 0 : status.isAbrupt) {
                 // 7. a. Set the running execution context's LexicalEnvironment to oldEnv.
                 realm.stack.pop();
                 ctx.LexicalEnvironment = oldEnv;
@@ -1512,7 +1513,7 @@ class $TryStatement {
             }
         }
         // 8. Let B be the result of evaluating Block.
-        const B = catchClause?.$block.Evaluate(ctx);
+        const B = catchClause === null || catchClause === void 0 ? void 0 : catchClause.$block.Evaluate(ctx);
         // 9. Set the running execution context's LexicalEnvironment to oldEnv.
         if (hasCatchParamteres) {
             realm.stack.pop();
@@ -1663,8 +1664,9 @@ class $CatchClause {
     }
     get $kind() { return typescript_1.SyntaxKind.CatchClause; }
     CreateBinding(ctx, realm) {
+        var _a, _b;
         ctx.checkTimeout();
-        for (const argName of this.$variableDeclaration?.BoundNames ?? []) {
+        for (const argName of (_b = (_a = this.$variableDeclaration) === null || _a === void 0 ? void 0 : _a.BoundNames) !== null && _b !== void 0 ? _b : []) {
             ctx.LexicalEnvironment.CreateMutableBinding(ctx, argName, realm['[[Intrinsics]]'].false);
         }
     }

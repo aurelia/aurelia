@@ -118,7 +118,8 @@ class EventDelegator {
     }
     addEventListener(publisher, target, eventName, listener, options) {
         var _a;
-        const trackerMap = (_a = this.trackerMaps)[eventName] ?? (_a[eventName] = new Map());
+        var _b;
+        const trackerMap = (_a = (_b = this.trackerMaps)[eventName]) !== null && _a !== void 0 ? _a : (_b[eventName] = new Map());
         let tracker = trackerMap.get(publisher);
         if (tracker === void 0) {
             trackerMap.set(publisher, tracker = new ListenerTracker(publisher, eventName, options));

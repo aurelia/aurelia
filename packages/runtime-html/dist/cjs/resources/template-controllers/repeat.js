@@ -159,9 +159,9 @@ let Repeat = class Repeat {
             view.nodes.unlink();
             viewScope = runtime_1.Scope.fromParent(parentScope, runtime_1.BindingContext.create(local, item));
             setContextualProperties(viewScope.overrideContext, i, newLen);
-            ret = view.activate(initiator ?? view, $controller, flags, viewScope, hostScope);
+            ret = view.activate(initiator !== null && initiator !== void 0 ? initiator : view, $controller, flags, viewScope, hostScope);
             if (ret instanceof Promise) {
-                (promises ?? (promises = [])).push(ret);
+                (promises !== null && promises !== void 0 ? promises : (promises = [])).push(ret);
             }
         });
         if (promises !== void 0) {
@@ -178,9 +178,9 @@ let Repeat = class Repeat {
         for (let i = 0, ii = views.length; i < ii; ++i) {
             view = views[i];
             view.release();
-            ret = view.deactivate(initiator ?? view, $controller, flags);
+            ret = view.deactivate(initiator !== null && initiator !== void 0 ? initiator : view, $controller, flags);
             if (ret instanceof Promise) {
-                (promises ?? (promises = [])).push(ret);
+                (promises !== null && promises !== void 0 ? promises : (promises = [])).push(ret);
             }
         }
         if (promises !== void 0) {
@@ -202,7 +202,7 @@ let Repeat = class Repeat {
             view.release();
             ret = view.deactivate(view, $controller, flags);
             if (ret instanceof Promise) {
-                (promises ?? (promises = [])).push(ret);
+                (promises !== null && promises !== void 0 ? promises : (promises = [])).push(ret);
             }
         }
         i = 0;
@@ -218,6 +218,7 @@ let Repeat = class Repeat {
         }
     }
     createAndActivateAndSortViewsByKey(oldLength, indexMap, flags) {
+        var _a;
         let promises = void 0;
         let ret;
         let view;
@@ -248,14 +249,14 @@ let Repeat = class Repeat {
         for (; i >= 0; --i) {
             view = views[i];
             next = views[i + 1];
-            view.nodes.link(next?.nodes ?? location);
+            view.nodes.link((_a = next === null || next === void 0 ? void 0 : next.nodes) !== null && _a !== void 0 ? _a : location);
             if (indexMap[i] === -2) {
                 viewScope = runtime_1.Scope.fromParent(parentScope, runtime_1.BindingContext.create(local, normalizedItems[i]));
                 setContextualProperties(viewScope.overrideContext, i, newLen);
                 view.setLocation(location);
                 ret = view.activate(view, $controller, flags, viewScope, hostScope);
                 if (ret instanceof Promise) {
-                    (promises ?? (promises = [])).push(ret);
+                    (promises !== null && promises !== void 0 ? promises : (promises = [])).push(ret);
                 }
             }
             else if (j < 0 || seqLen === 1 || i !== seq[j]) {

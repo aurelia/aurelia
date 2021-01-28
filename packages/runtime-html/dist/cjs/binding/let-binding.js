@@ -44,7 +44,7 @@ class LetBinding {
         }
         this.$scope = scope;
         this.$hostScope = hostScope;
-        this.target = (this.toBindingContext ? (hostScope ?? scope).bindingContext : (hostScope ?? scope).overrideContext);
+        this.target = (this.toBindingContext ? (hostScope !== null && hostScope !== void 0 ? hostScope : scope).bindingContext : (hostScope !== null && hostScope !== void 0 ? hostScope : scope).overrideContext);
         const sourceExpression = this.sourceExpression;
         if (sourceExpression.hasBind) {
             sourceExpression.bind(flags, scope, hostScope, this.interceptor);

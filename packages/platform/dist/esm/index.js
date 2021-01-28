@@ -6,6 +6,7 @@ function notImplemented(name) {
 }
 export class Platform {
     constructor(g, overrides = {}) {
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
         this.macroTaskRequested = false;
         this.macroTaskHandle = -1;
         this.globalThis = g;
@@ -15,13 +16,13 @@ export class Platform {
         this.encodeURIComponent = 'encodeURIComponent' in overrides ? overrides.encodeURIComponent : g.encodeURIComponent;
         this.Date = 'Date' in overrides ? overrides.Date : g.Date;
         this.Reflect = 'Reflect' in overrides ? overrides.Reflect : g.Reflect;
-        this.clearInterval = 'clearInterval' in overrides ? overrides.clearInterval : g.clearInterval?.bind(g) ?? notImplemented('clearInterval');
-        this.clearTimeout = 'clearTimeout' in overrides ? overrides.clearTimeout : g.clearTimeout?.bind(g) ?? notImplemented('clearTimeout');
-        this.queueMicrotask = 'queueMicrotask' in overrides ? overrides.queueMicrotask : g.queueMicrotask?.bind(g) ?? notImplemented('queueMicrotask');
-        this.setInterval = 'setInterval' in overrides ? overrides.setInterval : g.setInterval?.bind(g) ?? notImplemented('setInterval');
-        this.setTimeout = 'setTimeout' in overrides ? overrides.setTimeout : g.setTimeout?.bind(g) ?? notImplemented('setTimeout');
+        this.clearInterval = 'clearInterval' in overrides ? overrides.clearInterval : (_b = (_a = g.clearInterval) === null || _a === void 0 ? void 0 : _a.bind(g)) !== null && _b !== void 0 ? _b : notImplemented('clearInterval');
+        this.clearTimeout = 'clearTimeout' in overrides ? overrides.clearTimeout : (_d = (_c = g.clearTimeout) === null || _c === void 0 ? void 0 : _c.bind(g)) !== null && _d !== void 0 ? _d : notImplemented('clearTimeout');
+        this.queueMicrotask = 'queueMicrotask' in overrides ? overrides.queueMicrotask : (_f = (_e = g.queueMicrotask) === null || _e === void 0 ? void 0 : _e.bind(g)) !== null && _f !== void 0 ? _f : notImplemented('queueMicrotask');
+        this.setInterval = 'setInterval' in overrides ? overrides.setInterval : (_h = (_g = g.setInterval) === null || _g === void 0 ? void 0 : _g.bind(g)) !== null && _h !== void 0 ? _h : notImplemented('setInterval');
+        this.setTimeout = 'setTimeout' in overrides ? overrides.setTimeout : (_k = (_j = g.setTimeout) === null || _j === void 0 ? void 0 : _j.bind(g)) !== null && _k !== void 0 ? _k : notImplemented('setTimeout');
         this.console = 'console' in overrides ? overrides.console : g.console;
-        this.performanceNow = 'performanceNow' in overrides ? overrides.performanceNow : g.performance?.now?.bind(g.performance) ?? notImplemented('performance.now');
+        this.performanceNow = 'performanceNow' in overrides ? overrides.performanceNow : (_o = (_m = (_l = g.performance) === null || _l === void 0 ? void 0 : _l.now) === null || _m === void 0 ? void 0 : _m.bind(g.performance)) !== null && _o !== void 0 ? _o : notImplemented('performance.now');
         this.flushMacroTask = this.flushMacroTask.bind(this);
         this.taskQueue = new TaskQueue(this, this.requestMacroTask.bind(this), this.cancelMacroTask.bind(this));
     }
@@ -338,6 +339,7 @@ export class TaskQueue {
      * Notify the queue that this async task has had its promise resolved, so that the queue can proceed with consecutive tasks on the next flush.
      */
     completeAsyncTask(task) {
+        var _a;
         if (this.tracer.enabled) {
             this.tracer.enter(this, 'completeAsyncTask');
         }
@@ -346,7 +348,7 @@ export class TaskQueue {
                 if (this.tracer.enabled) {
                     this.tracer.leave(this, 'completeAsyncTask error');
                 }
-                throw new Error(`Async task completion mismatch: suspenderTask=${this.suspenderTask?.id}, task=${task.id}`);
+                throw new Error(`Async task completion mismatch: suspenderTask=${(_a = this.suspenderTask) === null || _a === void 0 ? void 0 : _a.id}, task=${task.id}`);
             }
             this.suspenderTask = void 0;
         }

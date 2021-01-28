@@ -103,14 +103,15 @@ let ValidateBindingBehavior = class ValidateBindingBehavior extends runtime_html
         this.processDelta(delta);
     }
     $unbind(flags) {
-        this.task?.cancel();
+        var _a, _b, _c, _d;
+        (_a = this.task) === null || _a === void 0 ? void 0 : _a.cancel();
         this.task = null;
         const event = this.triggerEvent;
         if (event !== null) {
-            this.target?.removeEventListener(event, this);
+            (_b = this.target) === null || _b === void 0 ? void 0 : _b.removeEventListener(event, this);
         }
-        this.controller?.removeSubscriber(this);
-        this.controller?.unregisterBinding(this.propertyBinding);
+        (_c = this.controller) === null || _c === void 0 ? void 0 : _c.removeSubscriber(this);
+        (_d = this.controller) === null || _d === void 0 ? void 0 : _d.unregisterBinding(this.propertyBinding);
         this.binding.$unbind(flags);
     }
     handleTriggerChange(newValue, _previousValue, _flags) {
@@ -123,8 +124,9 @@ let ValidateBindingBehavior = class ValidateBindingBehavior extends runtime_html
         this.processDelta(new ValidateArgumentsDelta(void 0, void 0, this.ensureRules(newValue)));
     }
     handleValidationEvent(event) {
+        var _a;
         const triggerEvent = this.triggerEvent;
-        const propertyName = this.bindingInfo.propertyInfo?.propertyName;
+        const propertyName = (_a = this.bindingInfo.propertyInfo) === null || _a === void 0 ? void 0 : _a.propertyName;
         if (propertyName !== void 0 && triggerEvent !== null && this.isChangeTrigger) {
             this.validatedOnce = event.addedResults.find((r) => r.result.propertyName === propertyName) !== void 0;
         }
@@ -165,12 +167,13 @@ let ValidateBindingBehavior = class ValidateBindingBehavior extends runtime_html
         const task = this.task;
         this.task = this.platform.domReadQueue.queueTask(() => this.controller.validateBinding(this.propertyBinding));
         if (task !== this.task) {
-            task?.cancel();
+            task === null || task === void 0 ? void 0 : task.cancel();
         }
     }
     processDelta(delta) {
-        const trigger = delta.trigger ?? this.trigger;
-        const controller = delta.controller ?? this.controller;
+        var _a, _b, _c, _d;
+        const trigger = (_a = delta.trigger) !== null && _a !== void 0 ? _a : this.trigger;
+        const controller = (_b = delta.controller) !== null && _b !== void 0 ? _b : this.controller;
         const rules = delta.rules;
         if (this.trigger !== trigger) {
             let event = this.triggerEvent;
@@ -189,8 +192,8 @@ let ValidateBindingBehavior = class ValidateBindingBehavior extends runtime_html
             }
         }
         if (this.controller !== controller || rules !== void 0) {
-            this.controller?.removeSubscriber(this);
-            this.controller?.unregisterBinding(this.propertyBinding);
+            (_c = this.controller) === null || _c === void 0 ? void 0 : _c.removeSubscriber(this);
+            (_d = this.controller) === null || _d === void 0 ? void 0 : _d.unregisterBinding(this.propertyBinding);
             this.controller = controller;
             controller.registerBinding(this.propertyBinding, this.setBindingInfo(rules));
             controller.addSubscriber(this);
@@ -230,12 +233,13 @@ let ValidateBindingBehavior = class ValidateBindingBehavior extends runtime_html
         this.propertyBinding = binding;
     }
     setTarget() {
+        var _a;
         const target = this.propertyBinding.target;
         if (target instanceof this.platform.Node) {
             this.target = target;
         }
         else {
-            const controller = target?.$controller;
+            const controller = (_a = target) === null || _a === void 0 ? void 0 : _a.$controller;
             if (controller === void 0) {
                 throw new Error('Invalid binding target'); // TODO: use reporter
             }

@@ -278,6 +278,7 @@ let CustomElementRenderer =
 /** @internal */
 class CustomElementRenderer {
     render(flags, context, controller, target, instruction) {
+        var _a;
         let viewFactory;
         const slotInfo = instruction.slotInfo;
         if (slotInfo !== null) {
@@ -291,7 +292,7 @@ class CustomElementRenderer {
         /* instruction      */ instruction, 
         /* viewFactory      */ viewFactory, 
         /* location         */ target, 
-        /* auSlotsInfo      */ new AuSlotsInfo(Object.keys(targetedProjections?.projections ?? {})));
+        /* auSlotsInfo      */ new AuSlotsInfo(Object.keys((_a = targetedProjections === null || targetedProjections === void 0 ? void 0 : targetedProjections.projections) !== null && _a !== void 0 ? _a : {})));
         const key = CustomElement.keyFrom(instruction.res);
         const component = factory.createComponent(key);
         const childController = Controller.forCustomElement(
@@ -354,6 +355,7 @@ let TemplateControllerRenderer =
 /** @internal */
 class TemplateControllerRenderer {
     render(flags, context, controller, target, instruction) {
+        var _a;
         const viewFactory = getRenderContext(instruction.def, context).getViewFactory();
         const renderLocation = convertToRenderLocation(target);
         const componentFactory = context.getComponentFactory(
@@ -371,7 +373,7 @@ class TemplateControllerRenderer {
         /* host      */ target, 
         /* flags     */ flags);
         setRef(renderLocation, key, childController);
-        component.link?.(flags, context, controller, childController, target, instruction);
+        (_a = component.link) === null || _a === void 0 ? void 0 : _a.call(component, flags, context, controller, childController, target, instruction);
         context.renderChildren(
         /* flags        */ flags, 
         /* instructions */ instruction.instructions, 

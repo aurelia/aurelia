@@ -371,13 +371,15 @@ export class ArrayObserver {
         this.subs.notifyCollection(indexMap, 8 /* updateTarget */);
     }
     getLengthObserver() {
-        return this.lenObs ?? (this.lenObs = new CollectionLengthObserver(this));
+        var _a;
+        return (_a = this.lenObs) !== null && _a !== void 0 ? _a : (this.lenObs = new CollectionLengthObserver(this));
     }
     getIndexObserver(index) {
         var _a;
+        var _b;
         // It's unnecessary to destroy/recreate index observer all the time,
         // so just create once, and add/remove instead
-        return (_a = this.indexObservers)[index] ?? (_a[index] = new ArrayIndexObserver(this, index));
+        return (_a = (_b = this.indexObservers)[index]) !== null && _a !== void 0 ? _a : (_b[index] = new ArrayIndexObserver(this, index));
     }
 }
 export class ArrayIndexObserver {

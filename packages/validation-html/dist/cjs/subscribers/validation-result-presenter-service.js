@@ -64,9 +64,10 @@ let ValidationResultPresenterService = class ValidationResultPresenterService {
         }, []));
     }
     removeResults(messageContainer, results) {
+        var _a;
         for (const result of results) {
             if (!result.valid) {
-                messageContainer.querySelector(`[${resultIdAttribute}="${result.id}"]`)?.remove();
+                (_a = messageContainer.querySelector(`[${resultIdAttribute}="${result.id}"]`)) === null || _a === void 0 ? void 0 : _a.remove();
             }
         }
     }

@@ -22,12 +22,14 @@ export function wrap(v) {
     return canWrap(v) ? getProxy(v) : v;
 }
 export function getProxy(obj) {
+    var _a;
     // deepscan-disable-next-line
-    return proxyMap.get(obj) ?? createProxy(obj);
+    return (_a = proxyMap.get(obj)) !== null && _a !== void 0 ? _a : createProxy(obj);
 }
 export function getRaw(obj) {
+    var _a;
     // todo: get in a weakmap if null/undef
-    return obj[rawKey] ?? obj;
+    return (_a = obj[rawKey]) !== null && _a !== void 0 ? _a : obj;
 }
 export function unwrap(v) {
     return canWrap(v) && v[rawKey] || v;
@@ -135,69 +137,80 @@ const arrayHandler = {
     },
     // for (let i in array) ...
     ownKeys(target) {
-        currentConnectable()?.observeProperty(target, 'length');
+        var _a;
+        (_a = currentConnectable()) === null || _a === void 0 ? void 0 : _a.observeProperty(target, 'length');
         return Reflect.ownKeys(target);
     },
 };
 function wrappedArrayMap(cb, thisArg) {
+    var _a;
     const raw = getRaw(this);
     const res = raw.map((v, i) => 
     // do we wrap `thisArg`?
     unwrap(cb.call(thisArg, wrap(v), i, this)));
-    currentConnectable()?.observeCollection(raw);
+    (_a = currentConnectable()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
     return wrap(res);
 }
 function wrappedArrayEvery(cb, thisArg) {
+    var _a;
     const raw = getRaw(this);
     const res = raw.every((v, i) => cb.call(thisArg, wrap(v), i, this));
-    currentConnectable()?.observeCollection(raw);
+    (_a = currentConnectable()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
     return res;
 }
 function wrappedArrayFilter(cb, thisArg) {
+    var _a;
     const raw = getRaw(this);
     const res = raw.filter((v, i) => 
     // do we wrap `thisArg`?
     unwrap(cb.call(thisArg, wrap(v), i, this)));
-    currentConnectable()?.observeCollection(raw);
+    (_a = currentConnectable()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
     return wrap(res);
 }
 function wrappedArrayIncludes(v) {
+    var _a;
     const raw = getRaw(this);
     const res = raw.includes(unwrap(v));
-    currentConnectable()?.observeCollection(raw);
+    (_a = currentConnectable()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
     return res;
 }
 function wrappedArrayIndexOf(v) {
+    var _a;
     const raw = getRaw(this);
     const res = raw.indexOf(unwrap(v));
-    currentConnectable()?.observeCollection(raw);
+    (_a = currentConnectable()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
     return res;
 }
 function wrappedArrayLastIndexOf(v) {
+    var _a;
     const raw = getRaw(this);
     const res = raw.lastIndexOf(unwrap(v));
-    currentConnectable()?.observeCollection(raw);
+    (_a = currentConnectable()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
     return res;
 }
 function wrappedArrayFindIndex(cb, thisArg) {
+    var _a;
     const raw = getRaw(this);
     const res = raw.findIndex((v, i) => unwrap(cb.call(thisArg, wrap(v), i, this)));
-    currentConnectable()?.observeCollection(raw);
+    (_a = currentConnectable()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
     return res;
 }
 function wrappedArrayFlat() {
+    var _a;
     const raw = getRaw(this);
-    currentConnectable()?.observeCollection(raw);
+    (_a = currentConnectable()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
     return wrap(raw.flat());
 }
 function wrappedArrayFlatMap(cb, thisArg) {
+    var _a;
     const raw = getRaw(this);
-    currentConnectable()?.observeCollection(raw);
+    (_a = currentConnectable()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
     return getProxy(raw.flatMap((v, i) => wrap(cb.call(thisArg, wrap(v), i, this))));
 }
 function wrappedArrayJoin(separator) {
+    var _a;
     const raw = getRaw(this);
-    currentConnectable()?.observeCollection(raw);
+    (_a = currentConnectable()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
     return raw.join(separator);
 }
 function wrappedArrayPop() {
@@ -216,38 +229,44 @@ function wrappedArraySplice(...args) {
     return wrap(getRaw(this).splice(...args));
 }
 function wrappedArrayReverse(...args) {
+    var _a;
     const raw = getRaw(this);
     const res = raw.reverse();
-    currentConnectable()?.observeCollection(raw);
+    (_a = currentConnectable()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
     return wrap(res);
 }
 function wrappedArraySome(cb, thisArg) {
+    var _a;
     const raw = getRaw(this);
     const res = raw.some((v, i) => unwrap(cb.call(thisArg, wrap(v), i, this)));
-    currentConnectable()?.observeCollection(raw);
+    (_a = currentConnectable()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
     return res;
 }
 function wrappedArraySort(cb) {
+    var _a;
     const raw = getRaw(this);
     const res = raw.sort(cb);
-    currentConnectable()?.observeCollection(raw);
+    (_a = currentConnectable()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
     return wrap(res);
 }
 function wrappedArraySlice(start, end) {
+    var _a;
     const raw = getRaw(this);
-    currentConnectable()?.observeCollection(raw);
+    (_a = currentConnectable()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
     return getProxy(raw.slice(start, end));
 }
 function wrappedReduce(cb, initValue) {
+    var _a;
     const raw = getRaw(this);
     const res = raw.reduce((curr, v, i) => cb(curr, wrap(v), i, this), initValue);
-    currentConnectable()?.observeCollection(raw);
+    (_a = currentConnectable()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
     return wrap(res);
 }
 function wrappedReduceRight(cb, initValue) {
+    var _a;
     const raw = getRaw(this);
     const res = raw.reduceRight((curr, v, i) => cb(curr, wrap(v), i, this), initValue);
-    currentConnectable()?.observeCollection(raw);
+    (_a = currentConnectable()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
     return wrap(res);
 }
 // the below logic takes inspiration from Vue, Mobx
@@ -302,20 +321,23 @@ const collectionHandler = {
     },
 };
 function wrappedForEach(cb, thisArg) {
+    var _a;
     const raw = getRaw(this);
-    currentConnectable()?.observeCollection(raw);
+    (_a = currentConnectable()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
     return raw.forEach((v, key) => {
         cb.call(/* should wrap or not?? */ thisArg, wrap(v), wrap(key), this);
     });
 }
 function wrappedHas(v) {
+    var _a;
     const raw = getRaw(this);
-    currentConnectable()?.observeCollection(raw);
+    (_a = currentConnectable()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
     return raw.has(unwrap(v));
 }
 function wrappedGet(k) {
+    var _a;
     const raw = getRaw(this);
-    currentConnectable()?.observeCollection(raw);
+    (_a = currentConnectable()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
     return wrap(raw.get(unwrap(k)));
 }
 function wrappedSet(k, v) {
@@ -331,8 +353,9 @@ function wrappedDelete(k) {
     return wrap(getRaw(this).delete(unwrap(k)));
 }
 function wrappedKeys() {
+    var _a;
     const raw = getRaw(this);
-    currentConnectable()?.observeCollection(raw);
+    (_a = currentConnectable()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
     const iterator = raw.keys();
     return {
         next() {
@@ -349,8 +372,9 @@ function wrappedKeys() {
     };
 }
 function wrappedValues() {
+    var _a;
     const raw = getRaw(this);
-    currentConnectable()?.observeCollection(raw);
+    (_a = currentConnectable()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
     const iterator = raw.values();
     return {
         next() {
@@ -367,8 +391,9 @@ function wrappedValues() {
     };
 }
 function wrappedEntries() {
+    var _a;
     const raw = getRaw(this);
-    currentConnectable()?.observeCollection(raw);
+    (_a = currentConnectable()) === null || _a === void 0 ? void 0 : _a.observeCollection(raw);
     const iterator = raw.entries();
     // return a wrapped iterator which returns observed versions of the
     // values emitted from the real iterator

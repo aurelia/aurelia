@@ -76,11 +76,11 @@ let Compose = class Compose {
         });
     }
     deactivate(view, initiator, flags) {
-        return view?.deactivate(initiator ?? view, this.$controller, flags);
+        return view === null || view === void 0 ? void 0 : view.deactivate(initiator !== null && initiator !== void 0 ? initiator : view, this.$controller, flags);
     }
     activate(view, initiator, flags) {
         const { $controller } = this;
-        return kernel_1.onResolve(view?.activate(initiator ?? view, $controller, flags, $controller.scope, $controller.hostScope), () => {
+        return kernel_1.onResolve(view === null || view === void 0 ? void 0 : view.activate(initiator !== null && initiator !== void 0 ? initiator : view, $controller, flags, $controller.scope, $controller.hostScope), () => {
             this.composing = false;
         });
     }
@@ -114,11 +114,13 @@ let Compose = class Compose {
         return create_element_js_1.createElement(this.p, subject, this.properties, this.$controller.host.childNodes).createView(this.$controller.context);
     }
     dispose() {
-        this.view?.dispose();
+        var _a;
+        (_a = this.view) === null || _a === void 0 ? void 0 : _a.dispose();
         this.view = (void 0);
     }
     accept(visitor) {
-        if (this.view?.accept(visitor) === true) {
+        var _a;
+        if (((_a = this.view) === null || _a === void 0 ? void 0 : _a.accept(visitor)) === true) {
             return true;
         }
     }

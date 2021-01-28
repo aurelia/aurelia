@@ -103,7 +103,7 @@ function getPropertyInfo(binding, info, flags = 0 /* none */) {
     const locator = binding.locator;
     let toCachePropertyName = true;
     let propertyName = '';
-    while (expression !== void 0 && expression?.$kind !== 10082 /* AccessScope */) {
+    while (expression !== void 0 && (expression === null || expression === void 0 ? void 0 : expression.$kind) !== 10082 /* AccessScope */) {
         let memberName;
         switch (expression.$kind) {
             case 38962 /* BindingBehavior */:
@@ -134,7 +134,7 @@ function getPropertyInfo(binding, info, flags = 0 /* none */) {
     let object;
     if (propertyName.length === 0) {
         propertyName = expression.name;
-        object = expression.accessHostScope ? hostScope?.bindingContext : scope.bindingContext;
+        object = expression.accessHostScope ? hostScope === null || hostScope === void 0 ? void 0 : hostScope.bindingContext : scope.bindingContext;
     }
     else {
         object = expression.evaluate(flags, scope, hostScope, locator, null);
@@ -204,10 +204,11 @@ let ValidationController = class ValidationController {
         this.bindings.delete(binding);
     }
     async validate(instruction) {
-        const { object: obj, objectTag, flags } = instruction ?? {};
+        var _a;
+        const { object: obj, objectTag, flags } = instruction !== null && instruction !== void 0 ? instruction : {};
         let instructions;
         if (obj !== void 0) {
-            instructions = [new validation_1.ValidateInstruction(obj, instruction.propertyName, instruction.rules ?? this.objects.get(obj), objectTag, instruction.propertyTag)];
+            instructions = [new validation_1.ValidateInstruction(obj, instruction.propertyName, (_a = instruction.rules) !== null && _a !== void 0 ? _a : this.objects.get(obj), objectTag, instruction.propertyTag)];
         }
         else {
             // validate all objects and bindings.

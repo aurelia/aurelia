@@ -90,13 +90,14 @@ class SetterNotifier {
         return this.v;
     }
     setValue(value, flags) {
+        var _a;
         if (typeof this.s === 'function') {
             value = this.s(value);
         }
         const oldValue = this.v;
         if (!Object.is(value, oldValue)) {
             this.v = value;
-            this.cb?.call(this.obj, value, oldValue, flags);
+            (_a = this.cb) === null || _a === void 0 ? void 0 : _a.call(this.obj, value, oldValue, flags);
             // there's a chance that cb.call(...)
             // changes the latest value of this observer
             // and thus making `value` stale

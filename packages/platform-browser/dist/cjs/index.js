@@ -10,6 +10,7 @@ function notImplemented(name) {
 }
 class BrowserPlatform extends platform_1.Platform {
     constructor(g, overrides = {}) {
+        var _a, _b, _c, _d, _e, _f;
         super(g, overrides);
         this.domReadRequested = false;
         this.domReadHandle = -1;
@@ -27,9 +28,9 @@ class BrowserPlatform extends platform_1.Platform {
         this.location = 'location' in overrides ? overrides.location : g.location;
         this.history = 'history' in overrides ? overrides.history : g.history;
         this.navigator = 'navigator' in overrides ? overrides.navigator : g.navigator;
-        this.fetch = 'fetch' in overrides ? overrides.fetch : g.fetch?.bind(g) ?? notImplemented('fetch');
-        this.requestAnimationFrame = 'requestAnimationFrame' in overrides ? overrides.requestAnimationFrame : g.requestAnimationFrame?.bind(g) ?? notImplemented('requestAnimationFrame');
-        this.cancelAnimationFrame = 'cancelAnimationFrame' in overrides ? overrides.cancelAnimationFrame : g.cancelAnimationFrame?.bind(g) ?? notImplemented('cancelAnimationFrame');
+        this.fetch = 'fetch' in overrides ? overrides.fetch : (_b = (_a = g.fetch) === null || _a === void 0 ? void 0 : _a.bind(g)) !== null && _b !== void 0 ? _b : notImplemented('fetch');
+        this.requestAnimationFrame = 'requestAnimationFrame' in overrides ? overrides.requestAnimationFrame : (_d = (_c = g.requestAnimationFrame) === null || _c === void 0 ? void 0 : _c.bind(g)) !== null && _d !== void 0 ? _d : notImplemented('requestAnimationFrame');
+        this.cancelAnimationFrame = 'cancelAnimationFrame' in overrides ? overrides.cancelAnimationFrame : (_f = (_e = g.cancelAnimationFrame) === null || _e === void 0 ? void 0 : _e.bind(g)) !== null && _f !== void 0 ? _f : notImplemented('cancelAnimationFrame');
         this.customElements = 'customElements' in overrides ? overrides.customElements : g.customElements;
         this.flushDomRead = this.flushDomRead.bind(this);
         this.flushDomWrite = this.flushDomWrite.bind(this);

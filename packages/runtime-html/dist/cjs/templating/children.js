@@ -109,7 +109,8 @@ class ChildrenDefinition {
         this.map = map;
     }
     static create(prop, def = {}) {
-        return new ChildrenDefinition(kernel_1.firstDefined(def.callback, `${prop}Changed`), kernel_1.firstDefined(def.property, prop), def.options ?? childObserverOptions, def.query, def.filter, def.map);
+        var _a;
+        return new ChildrenDefinition(kernel_1.firstDefined(def.callback, `${prop}Changed`), kernel_1.firstDefined(def.property, prop), (_a = def.options) !== null && _a !== void 0 ? _a : childObserverOptions, def.query, def.filter, def.map);
     }
 }
 exports.ChildrenDefinition = ChildrenDefinition;
@@ -174,12 +175,13 @@ function defaultChildMap(node, controller, viewModel) {
 const forOpts = { optional: true };
 /** @internal */
 function filterChildren(controller, query, filter, map) {
+    var _a;
     const nodes = query(controller);
     const children = [];
     for (let i = 0, ii = nodes.length; i < ii; ++i) {
         const node = nodes[i];
         const $controller = custom_element_js_1.CustomElement.for(node, forOpts);
-        const viewModel = $controller?.viewModel ?? null;
+        const viewModel = (_a = $controller === null || $controller === void 0 ? void 0 : $controller.viewModel) !== null && _a !== void 0 ? _a : null;
         if (filter(node, $controller, viewModel)) {
             children.push(map(node, $controller, viewModel));
         }

@@ -101,7 +101,8 @@ class RouterOptions {
     }
     static get DEFAULT() { return RouterOptions.create({}); }
     static create(input) {
-        return new RouterOptions(input.useUrlFragmentHash ?? false, input.useHref ?? true, input.statefulHistoryLength ?? 0, input.routingMode ?? 'configured-first', input.swapStrategy ?? 'sequential-remove-first', input.resolutionMode ?? 'dynamic', input.queryParamsStrategy ?? 'overwrite', input.fragmentStrategy ?? 'overwrite', input.historyStrategy ?? 'push', input.sameUrlStrategy ?? 'ignore');
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
+        return new RouterOptions((_a = input.useUrlFragmentHash) !== null && _a !== void 0 ? _a : false, (_b = input.useHref) !== null && _b !== void 0 ? _b : true, (_c = input.statefulHistoryLength) !== null && _c !== void 0 ? _c : 0, (_d = input.routingMode) !== null && _d !== void 0 ? _d : 'configured-first', (_e = input.swapStrategy) !== null && _e !== void 0 ? _e : 'sequential-remove-first', (_f = input.resolutionMode) !== null && _f !== void 0 ? _f : 'dynamic', (_g = input.queryParamsStrategy) !== null && _g !== void 0 ? _g : 'overwrite', (_h = input.fragmentStrategy) !== null && _h !== void 0 ? _h : 'overwrite', (_j = input.historyStrategy) !== null && _j !== void 0 ? _j : 'push', (_k = input.sameUrlStrategy) !== null && _k !== void 0 ? _k : 'ignore');
     }
     /** @internal */
     getQueryParamsStrategy(instructions) {
@@ -176,7 +177,8 @@ class NavigationOptions extends RouterOptions {
     }
     static get DEFAULT() { return NavigationOptions.create({}); }
     static create(input) {
-        return new NavigationOptions(RouterOptions.create(input), input.title ?? null, input.titleSeparator ?? ' | ', input.append ?? false, input.context ?? null, input.queryParams ?? null, input.fragment ?? '', input.state ?? null);
+        var _a, _b, _c, _d, _e, _f, _g;
+        return new NavigationOptions(RouterOptions.create(input), (_a = input.title) !== null && _a !== void 0 ? _a : null, (_b = input.titleSeparator) !== null && _b !== void 0 ? _b : ' | ', (_c = input.append) !== null && _c !== void 0 ? _c : false, (_d = input.context) !== null && _d !== void 0 ? _d : null, (_e = input.queryParams) !== null && _e !== void 0 ? _e : null, (_f = input.fragment) !== null && _f !== void 0 ? _f : '', (_g = input.state) !== null && _g !== void 0 ? _g : null);
     }
     clone() {
         return new NavigationOptions(super.clone(), this.title, this.titleSeparator, this.append, this.context, { ...this.queryParams }, this.fragment, this.state === null ? null : { ...this.state });
@@ -372,8 +374,9 @@ let Router = class Router {
         }
     }
     stop() {
+        var _a;
         this.locationMgr.stopListening();
-        this.locationChangeSubscription?.dispose();
+        (_a = this.locationChangeSubscription) === null || _a === void 0 ? void 0 : _a.dispose();
     }
     load(instructionOrInstructions, options) {
         const instructions = this.createViewportInstructions(instructionOrInstructions, options);
@@ -512,7 +515,7 @@ let Router = class Router {
         const navigationContext = this.resolveContext(tr.options.context);
         const routeChanged = (!this.navigated ||
             tr.instructions.children.length !== navigationContext.node.children.length ||
-            tr.instructions.children.some((x, i) => !(navigationContext.node.children[i]?.originalInstruction.equals(x) ?? false)));
+            tr.instructions.children.some((x, i) => { var _a, _b; return !((_b = (_a = navigationContext.node.children[i]) === null || _a === void 0 ? void 0 : _a.originalInstruction.equals(x)) !== null && _b !== void 0 ? _b : false); }));
         const shouldProcessRoute = routeChanged || tr.options.getSameUrlStrategy(this.instructions) === 'reload';
         if (!shouldProcessRoute) {
             this.logger.trace(`run(tr:%s) - NOT processing route`, tr);
@@ -613,13 +616,14 @@ let Router = class Router {
         }
     }
     getTitle(tr) {
+        var _a, _b;
         switch (typeof tr.options.title) {
             case 'function':
-                return tr.options.title.call(void 0, tr.routeTree.root) ?? '';
+                return (_a = tr.options.title.call(void 0, tr.routeTree.root)) !== null && _a !== void 0 ? _a : '';
             case 'string':
                 return tr.options.title;
             default:
-                return tr.routeTree.root.getTitle(tr.options.titleSeparator) ?? '';
+                return (_b = tr.routeTree.root.getTitle(tr.options.titleSeparator)) !== null && _b !== void 0 ? _b : '';
         }
     }
     cancelNavigation(tr) {

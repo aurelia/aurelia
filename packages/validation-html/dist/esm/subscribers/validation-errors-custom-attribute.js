@@ -61,7 +61,8 @@ let ValidationErrorsCustomAttribute = class ValidationErrorsCustomAttribute {
         this.errors = this.errorsInternal;
     }
     binding() {
-        this.controller = this.controller ?? this.scopedController;
+        var _a;
+        this.controller = (_a = this.controller) !== null && _a !== void 0 ? _a : this.scopedController;
         this.controller.addSubscriber(this);
     }
     unbinding() {

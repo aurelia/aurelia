@@ -62,7 +62,8 @@ exports.CustomAttribute = {
         return typeof value === 'function' && kernel_1.Metadata.hasOwn(exports.CustomAttribute.name, value);
     },
     for(node, name) {
-        return (dom_js_1.getRef(node, exports.CustomAttribute.keyFrom(name)) ?? void 0);
+        var _a;
+        return ((_a = dom_js_1.getRef(node, exports.CustomAttribute.keyFrom(name))) !== null && _a !== void 0 ? _a : void 0);
     },
     define(nameOrDef, Type) {
         const definition = CustomAttributeDefinition.create(nameOrDef, Type);

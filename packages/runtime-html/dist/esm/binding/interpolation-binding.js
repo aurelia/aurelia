@@ -58,7 +58,7 @@ export class InterpolationBinding {
                 this.task = null;
                 targetObserver.setValue(result, flags, this.target, this.targetProperty);
             }, queueTaskOptions);
-            task?.cancel();
+            task === null || task === void 0 ? void 0 : task.cancel();
         }
         else {
             targetObserver.setValue(result, flags, this.target, this.targetProperty);
@@ -80,6 +80,7 @@ export class InterpolationBinding {
         this.updateTarget(void 0, flags);
     }
     $unbind(flags) {
+        var _a;
         if (!this.isBound) {
             return;
         }
@@ -89,7 +90,7 @@ export class InterpolationBinding {
         for (let i = 0, ii = partBindings.length; i < ii; ++i) {
             partBindings[i].interceptor.$unbind(flags);
         }
-        this.task?.cancel();
+        (_a = this.task) === null || _a === void 0 ? void 0 : _a.cancel();
         this.task = null;
     }
 }

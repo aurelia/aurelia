@@ -44,7 +44,8 @@ let With = class With {
         this.view = (void 0);
     }
     accept(visitor) {
-        if (this.view?.accept(visitor) === true) {
+        var _a;
+        if (((_a = this.view) === null || _a === void 0 ? void 0 : _a.accept(visitor)) === true) {
             return true;
         }
     }

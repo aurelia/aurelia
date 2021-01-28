@@ -599,6 +599,7 @@ class ViewportAgent {
         });
     }
     scheduleUpdate(options, next) {
+        var _a, _b;
         switch (this.nextState) {
             case 64 /* nextIsEmpty */:
                 this.nextNode = next;
@@ -616,7 +617,7 @@ class ViewportAgent {
             default:
                 this.unexpectedState('scheduleUpdate 2');
         }
-        const cur = this.curCA?.routeNode ?? null;
+        const cur = (_b = (_a = this.curCA) === null || _a === void 0 ? void 0 : _a.routeNode) !== null && _b !== void 0 ? _b : null;
         if (cur === null || cur.component !== next.component) {
             // Component changed (or is cleared), so set to 'replace'
             this.$plan = 'replace';
@@ -734,12 +735,13 @@ class ViewportAgent {
         return `VPA(state:${this.$state},plan:'${this.$plan}',resolution:'${this.$resolution}',n:${this.nextNode},c:${this.currNode},viewport:${this.viewport})`;
     }
     dispose() {
+        var _a;
         if (this.viewport.stateful /* TODO: incorporate statefulHistoryLength / router opts as well */) {
             this.logger.trace(`dispose() - not disposing stateful viewport at %s`, this);
         }
         else {
             this.logger.trace(`dispose() - disposing %s`, this);
-            this.curCA?.dispose();
+            (_a = this.curCA) === null || _a === void 0 ? void 0 : _a.dispose();
         }
     }
     unexpectedState(label) {

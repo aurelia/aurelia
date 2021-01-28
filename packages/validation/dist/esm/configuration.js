@@ -22,7 +22,7 @@ function createConfiguration(optionsProvider) {
             return container;
         },
         customize(cb) {
-            return createConfiguration(cb ?? optionsProvider);
+            return createConfiguration(cb !== null && cb !== void 0 ? cb : optionsProvider);
         },
     };
 }

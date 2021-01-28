@@ -5,11 +5,13 @@ import { CustomElement } from './resources/custom-element.js';
 export class Refs {
 }
 export function getRef(node, name) {
-    return node.$au?.[name] ?? null;
+    var _a, _b;
+    return (_b = (_a = node.$au) === null || _a === void 0 ? void 0 : _a[name]) !== null && _b !== void 0 ? _b : null;
 }
 export function setRef(node, name, controller) {
     var _a;
-    ((_a = node).$au ?? (_a.$au = new Refs()))[name] = controller;
+    var _b;
+    ((_a = (_b = node).$au) !== null && _a !== void 0 ? _a : (_b.$au = new Refs()))[name] = controller;
 }
 export const INode = DI.createInterface('INode');
 export const IEventTarget = DI.createInterface('IEventTarget', x => x.cachedCallback(handler => {

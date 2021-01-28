@@ -52,8 +52,9 @@ let Show = class Show {
         this.update();
     }
     detaching() {
+        var _a;
         this.isActive = false;
-        this.task?.cancel();
+        (_a = this.task) === null || _a === void 0 ? void 0 : _a.cancel();
         this.task = null;
     }
     valueChanged() {

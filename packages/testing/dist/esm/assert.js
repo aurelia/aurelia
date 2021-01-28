@@ -623,6 +623,7 @@ const areTaskQueuesEmpty = (function () {
         return ((num * 10 + .5) | 0) / 10;
     }
     function reportTask(task) {
+        var _a;
         const id = task.id;
         const created = round(task.createdTime);
         const queue = round(task.queueTime);
@@ -631,7 +632,7 @@ const areTaskQueuesEmpty = (function () {
         const persistent = task.persistent;
         const status = task['_status'];
         return `    task id=${id} createdTime=${created} queueTime=${queue} preempt=${preempt} reusable=${reusable} persistent=${persistent} status=${status}\n`
-            + `    task callback="${task.callback?.toString()}"`;
+            + `    task callback="${(_a = task.callback) === null || _a === void 0 ? void 0 : _a.toString()}"`;
     }
     function reportTaskQueue(name, taskQueue) {
         const processing = taskQueue['processing'];

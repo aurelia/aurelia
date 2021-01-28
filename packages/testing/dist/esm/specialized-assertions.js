@@ -56,18 +56,21 @@ export function verifyEqual(actual, expected, depth, property, index) {
     }
 }
 function nextAncestor(host, node) {
-    const parent = node.parentNode ?? node.host ?? null;
+    var _a, _b, _c;
+    const parent = (_b = (_a = node.parentNode) !== null && _a !== void 0 ? _a : node.host) !== null && _b !== void 0 ? _b : null;
     if (parent === null || parent === host) {
         return null;
     }
-    return parent.nextSibling ?? nextAncestor(host, parent);
+    return (_c = parent.nextSibling) !== null && _c !== void 0 ? _c : nextAncestor(host, parent);
 }
 function nextNode(host, node) {
-    return CustomElement.for(node, { optional: true })?.shadowRoot?.firstChild ?? node.firstChild ?? node.nextSibling ?? nextAncestor(host, node);
+    var _a, _b, _c, _d, _e;
+    return (_e = (_d = (_c = (_b = (_a = CustomElement.for(node, { optional: true })) === null || _a === void 0 ? void 0 : _a.shadowRoot) === null || _b === void 0 ? void 0 : _b.firstChild) !== null && _c !== void 0 ? _c : node.firstChild) !== null && _d !== void 0 ? _d : node.nextSibling) !== null && _e !== void 0 ? _e : nextAncestor(host, node);
 }
 export function getVisibleText(host, removeWhiteSpace) {
+    var _a, _b, _c;
     let text = '';
-    let cur = CustomElement.for(host, { optional: true })?.shadowRoot?.firstChild ?? host.firstChild;
+    let cur = (_c = (_b = (_a = CustomElement.for(host, { optional: true })) === null || _a === void 0 ? void 0 : _a.shadowRoot) === null || _b === void 0 ? void 0 : _b.firstChild) !== null && _c !== void 0 ? _c : host.firstChild;
     while (cur !== null) {
         if (cur.nodeType === 3 /* Text */) {
             text += cur.data;

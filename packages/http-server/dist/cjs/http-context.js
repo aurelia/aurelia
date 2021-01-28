@@ -21,14 +21,15 @@ class HttpContext {
         this._requestUrl = $url.parse(request.url);
     }
     getQualifiedRequestHeaderFor(headerName) {
-        return this.parsedHeaders[headerName]
-            ?? (this.parsedHeaders[headerName] = new http_utils_js_1.QualifiedHeaderValues(headerName, this.request.headers));
+        var _a;
+        return (_a = this.parsedHeaders[headerName]) !== null && _a !== void 0 ? _a : (this.parsedHeaders[headerName] = new http_utils_js_1.QualifiedHeaderValues(headerName, this.request.headers));
     }
     rewriteRequestUrl(url) {
         this.rewrittenUrl = $url.parse(url);
     }
     get requestUrl() {
-        return this.rewrittenUrl ?? this._requestUrl;
+        var _a;
+        return (_a = this.rewrittenUrl) !== null && _a !== void 0 ? _a : this._requestUrl;
     }
 }
 exports.HttpContext = HttpContext;

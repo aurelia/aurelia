@@ -38,7 +38,8 @@ const elementPropertyAccessor = new runtime_1.PropertyAccessor();
 elementPropertyAccessor.type = 2 /* Node */ | 4 /* Layout */;
 class NodeObserverConfig {
     constructor(config) {
-        this.type = config.type ?? value_attribute_observer_js_1.ValueAttributeObserver;
+        var _a;
+        this.type = (_a = config.type) !== null && _a !== void 0 ? _a : value_attribute_observer_js_1.ValueAttributeObserver;
         this.events = config.events;
         this.readonly = config.readonly;
         this.default = config.default;
@@ -101,10 +102,11 @@ class NodeObserverLocator {
         return obj instanceof this.platform.Node;
     }
     useConfig(nodeNameOrConfig, key, eventsConfig) {
+        var _a, _b;
         const lookup = this.events;
         let existingMapping;
         if (typeof nodeNameOrConfig === 'string') {
-            existingMapping = lookup[nodeNameOrConfig] ?? (lookup[nodeNameOrConfig] = createLookup());
+            existingMapping = (_a = lookup[nodeNameOrConfig]) !== null && _a !== void 0 ? _a : (lookup[nodeNameOrConfig] = createLookup());
             if (existingMapping[key] == null) {
                 existingMapping[key] = new NodeObserverConfig(eventsConfig);
             }
@@ -114,7 +116,7 @@ class NodeObserverLocator {
         }
         else {
             for (const nodeName in nodeNameOrConfig) {
-                existingMapping = lookup[nodeName] ?? (lookup[nodeName] = createLookup());
+                existingMapping = (_b = lookup[nodeName]) !== null && _b !== void 0 ? _b : (lookup[nodeName] = createLookup());
                 const newMapping = nodeNameOrConfig[nodeName];
                 for (key in newMapping) {
                     if (existingMapping[key] == null) {
@@ -150,7 +152,8 @@ class NodeObserverLocator {
     }
     // deepscan-disable-nextline
     getAccessor(obj, key, requestor) {
-        if (key in this.globalOverrides || (key in (this.overrides[obj.tagName] ?? kernel_1.emptyObject))) {
+        var _a;
+        if (key in this.globalOverrides || (key in ((_a = this.overrides[obj.tagName]) !== null && _a !== void 0 ? _a : kernel_1.emptyObject))) {
             return this.getObserver(obj, key, requestor);
         }
         switch (key) {
@@ -177,15 +180,16 @@ class NodeObserverLocator {
     }
     overrideAccessor(tagNameOrOverrides, key) {
         var _a, _b;
+        var _c, _d;
         let existingTagOverride;
         if (typeof tagNameOrOverrides === 'string') {
-            existingTagOverride = (_a = this.overrides)[tagNameOrOverrides] ?? (_a[tagNameOrOverrides] = createLookup());
+            existingTagOverride = (_a = (_c = this.overrides)[tagNameOrOverrides]) !== null && _a !== void 0 ? _a : (_c[tagNameOrOverrides] = createLookup());
             existingTagOverride[key] = true;
         }
         else {
             for (const tagName in tagNameOrOverrides) {
                 for (const key of tagNameOrOverrides[tagName]) {
-                    existingTagOverride = (_b = this.overrides)[tagName] ?? (_b[tagName] = createLookup());
+                    existingTagOverride = (_b = (_d = this.overrides)[tagName]) !== null && _b !== void 0 ? _b : (_d[tagName] = createLookup());
                     existingTagOverride[key] = true;
                 }
             }
@@ -202,6 +206,7 @@ class NodeObserverLocator {
         }
     }
     getObserver(el, key, requestor) {
+        var _a, _b;
         switch (key) {
             case 'role':
                 return data_attribute_accessor_js_1.attrAccessor;
@@ -211,7 +216,7 @@ class NodeObserverLocator {
             case 'style':
                 return new style_attribute_accessor_js_1.StyleAttributeAccessor(el);
         }
-        const eventsConfig = this.events[el.tagName]?.[key] ?? this.globalEvents[key];
+        const eventsConfig = (_b = (_a = this.events[el.tagName]) === null || _a === void 0 ? void 0 : _a[key]) !== null && _b !== void 0 ? _b : this.globalEvents[key];
         if (eventsConfig != null) {
             return new eventsConfig.type(el, key, new event_delegator_js_1.EventSubscriber(eventsConfig), requestor, this.locator);
         }

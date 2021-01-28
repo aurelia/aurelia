@@ -52,6 +52,7 @@ let TranslationBinding = TranslationBinding_1 = class TranslationBinding {
         return binding;
     }
     $bind(flags, scope, hostScope) {
+        var _a;
         if (!this.expr) {
             throw new Error('key expression is missing');
         }
@@ -60,18 +61,19 @@ let TranslationBinding = TranslationBinding_1 = class TranslationBinding {
         this.isInterpolation = this.expr instanceof runtime_html_1.Interpolation;
         this.keyExpression = this.expr.evaluate(flags, scope, hostScope, this.locator, this);
         this.ensureKeyExpression();
-        this.parameter?.$bind(flags, scope, hostScope);
+        (_a = this.parameter) === null || _a === void 0 ? void 0 : _a.$bind(flags, scope, hostScope);
         this.updateTranslations(flags);
         this.isBound = true;
     }
     $unbind(flags) {
+        var _a;
         if (!this.isBound) {
             return;
         }
         if (this.expr.hasUnbind) {
             this.expr.unbind(flags, this.scope, this.hostScope, this);
         }
-        this.parameter?.$unbind(flags);
+        (_a = this.parameter) === null || _a === void 0 ? void 0 : _a.$unbind(flags);
         this.targetObservers.clear();
         this.scope = (void 0);
         this.obs.clear(true);
@@ -95,7 +97,8 @@ let TranslationBinding = TranslationBinding_1 = class TranslationBinding {
         this.parameter = new ParameterBinding(this, expr, (flags) => this.updateTranslations(flags));
     }
     updateTranslations(flags) {
-        const results = this.i18n.evaluate(this.keyExpression, this.parameter?.value);
+        var _a;
+        const results = this.i18n.evaluate(this.keyExpression, (_a = this.parameter) === null || _a === void 0 ? void 0 : _a.value);
         const content = Object.create(null);
         this.targetObservers.clear();
         for (const item of results) {
@@ -157,10 +160,11 @@ let TranslationBinding = TranslationBinding_1 = class TranslationBinding {
         }
     }
     prepareTemplate(content, marker, fallBackContents) {
+        var _a;
         const template = this.platform.document.createElement('template');
         this.addContentToTemplate(template, content.prepend, marker);
         // build content: prioritize [html], then textContent, and falls back to original content
-        if (!this.addContentToTemplate(template, content.innerHTML ?? content.textContent, marker)) {
+        if (!this.addContentToTemplate(template, (_a = content.innerHTML) !== null && _a !== void 0 ? _a : content.textContent, marker)) {
             for (const fallbackContent of fallBackContents) {
                 template.content.append(fallbackContent);
             }
@@ -181,7 +185,8 @@ let TranslationBinding = TranslationBinding_1 = class TranslationBinding {
         return false;
     }
     ensureKeyExpression() {
-        const expr = this.keyExpression ?? (this.keyExpression = '');
+        var _a;
+        const expr = (_a = this.keyExpression) !== null && _a !== void 0 ? _a : (this.keyExpression = '');
         const exprType = typeof expr;
         if (exprType !== 'string') {
             throw new Error(`Expected the i18n key to be a string, but got ${expr} of type ${exprType}`); // TODO use reporter/logger

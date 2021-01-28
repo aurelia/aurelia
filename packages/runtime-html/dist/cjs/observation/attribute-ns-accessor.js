@@ -15,7 +15,8 @@ class AttributeNSAccessor {
         this.type = 2 /* Node */ | 4 /* Layout */;
     }
     static forNs(ns) {
-        return nsMap[ns] ?? (nsMap[ns] = new AttributeNSAccessor(ns));
+        var _a;
+        return (_a = nsMap[ns]) !== null && _a !== void 0 ? _a : (nsMap[ns] = new AttributeNSAccessor(ns));
     }
     getValue(obj, propertyKey) {
         return obj.getAttributeNS(this.namespace, propertyKey);

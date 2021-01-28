@@ -47,6 +47,7 @@ exports.ILocationManager = kernel_1.DI.createInterface('ILocationManager', x => 
  */
 let BrowserLocationManager = class BrowserLocationManager {
     constructor(logger, events, history, location, window, baseHrefProvider) {
+        var _a;
         this.logger = logger;
         this.events = events;
         this.history = history;
@@ -57,7 +58,7 @@ let BrowserLocationManager = class BrowserLocationManager {
         this.logger = logger.root.scopeTo('LocationManager');
         const baseHref = baseHrefProvider.getBaseHref();
         if (baseHref === null) {
-            const origin = location.origin ?? '';
+            const origin = (_a = location.origin) !== null && _a !== void 0 ? _a : '';
             const normalized = this.baseHref = normalizePath(origin);
             this.logger.debug(`no baseHref provided, defaulting to origin '${normalized}' (normalized from '${origin}')`);
         }

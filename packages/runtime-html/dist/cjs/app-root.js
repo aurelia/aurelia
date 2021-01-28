@@ -117,7 +117,8 @@ class AppRoot {
         }, []));
     }
     dispose() {
-        this.controller?.dispose();
+        var _a;
+        (_a = this.controller) === null || _a === void 0 ? void 0 : _a.dispose();
     }
 }
 exports.AppRoot = AppRoot;

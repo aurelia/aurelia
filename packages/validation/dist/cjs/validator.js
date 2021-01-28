@@ -32,14 +32,15 @@ exports.IValidator = kernel_1.DI.createInterface('IValidator');
  */
 class StandardValidator {
     async validate(instruction) {
+        var _a, _b, _c, _d;
         const object = instruction.object;
         const propertyName = instruction.propertyName;
         const propertyTag = instruction.propertyTag;
         const flags = instruction.flags;
-        const rules = instruction.rules ?? rule_provider_js_1.validationRulesRegistrar.get(object, instruction.objectTag) ?? [];
+        const rules = (_b = (_a = instruction.rules) !== null && _a !== void 0 ? _a : rule_provider_js_1.validationRulesRegistrar.get(object, instruction.objectTag)) !== null && _b !== void 0 ? _b : [];
         const scope = runtime_1.Scope.create({ [rule_provider_js_1.rootObjectSymbol]: object });
         if (propertyName !== void 0) {
-            return (await rules.find((r) => r.property.name === propertyName)?.validate(object, propertyTag, flags, scope)) ?? [];
+            return (_d = (await ((_c = rules.find((r) => r.property.name === propertyName)) === null || _c === void 0 ? void 0 : _c.validate(object, propertyTag, flags, scope)))) !== null && _d !== void 0 ? _d : [];
         }
         return (await Promise.all(rules.map(async (rule) => rule.validate(object, propertyTag, flags, scope)))).flat();
     }

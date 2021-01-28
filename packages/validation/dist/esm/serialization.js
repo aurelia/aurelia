@@ -83,6 +83,7 @@ let ValidationDeserializer = class ValidationDeserializer {
         return deserializer.hydrate(raw, validationRules);
     }
     hydrate(raw, validationRules) {
+        var _a, _b;
         switch (raw.$TYPE) {
             case RequiredRule.$TYPE: {
                 const $raw = raw;
@@ -115,7 +116,7 @@ let ValidationDeserializer = class ValidationDeserializer {
             }
             case RangeRule.$TYPE: {
                 const $raw = raw;
-                const rule = new RangeRule($raw.isInclusive, { min: $raw.min ?? Number.NEGATIVE_INFINITY, max: $raw.max ?? Number.POSITIVE_INFINITY });
+                const rule = new RangeRule($raw.isInclusive, { min: (_a = $raw.min) !== null && _a !== void 0 ? _a : Number.NEGATIVE_INFINITY, max: (_b = $raw.max) !== null && _b !== void 0 ? _b : Number.POSITIVE_INFINITY });
                 rule.messageKey = $raw.messageKey;
                 rule.tag = this.astDeserializer.hydrate($raw.tag);
                 return rule;

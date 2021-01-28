@@ -32,6 +32,7 @@ export function observable(targetOrConfig, key, descriptor) {
     //    }
     return deco(targetOrConfig, key, descriptor);
     function deco(target, key, descriptor, config) {
+        var _a;
         // class decorator?
         const isClassDecorator = key === void 0;
         config = typeof config !== 'object'
@@ -51,7 +52,7 @@ export function observable(targetOrConfig, key, descriptor) {
             // cannot have a "value" or "writable" attribute
             delete descriptor.value;
             delete descriptor.writable;
-            initialValue = descriptor.initializer?.();
+            initialValue = (_a = descriptor.initializer) === null || _a === void 0 ? void 0 : _a.call(descriptor);
             delete descriptor.initializer;
         }
         else {

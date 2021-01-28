@@ -92,8 +92,9 @@ const wildcardHeaderValue = {
 };
 class QualifiedHeaderValues {
     constructor(headerName, headers) {
+        var _a;
         this.headerName = headerName.toLowerCase();
-        const rawValue = (headers[headerName] ?? headers[this.headerName]);
+        const rawValue = ((_a = headers[headerName]) !== null && _a !== void 0 ? _a : headers[this.headerName]);
         headerName = this.headerName;
         const parsedMap = this.parsedMap = new Map();
         if (rawValue === void 0) {
@@ -137,7 +138,7 @@ class QualifiedHeaderValues {
     }
     getQValueFor(value) {
         const qValue = this.parsedMap.get(value);
-        return qValue ?? 0;
+        return qValue !== null && qValue !== void 0 ? qValue : 0;
     }
 }
 exports.QualifiedHeaderValues = QualifiedHeaderValues;

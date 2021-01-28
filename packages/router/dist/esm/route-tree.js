@@ -72,31 +72,33 @@ export class RouteNode {
         return this.tree.root;
     }
     static create(input) {
+        var _a, _b, _c, _d, _e, _f, _g, _h;
         return new RouteNode(
         /*          id */ ++nodeId, 
         /*        path */ input.path, 
         /*   finalPath */ input.finalPath, 
         /*     context */ input.context, 
         /* originalIns */ input.instruction, 
-        /* instruction */ input.instruction, 
-        /*      params */ input.params ?? {}, 
-        /* queryParams */ input.queryParams ?? {}, 
-        /*    fragment */ input.fragment ?? null, 
-        /*        data */ input.data ?? {}, 
-        /*    viewport */ input.viewport ?? null, 
-        /*       title */ input.title ?? null, 
+        /* instruction */ input.instruction, (_a = 
+        /*      params */ input.params) !== null && _a !== void 0 ? _a : {}, (_b = 
+        /* queryParams */ input.queryParams) !== null && _b !== void 0 ? _b : {}, (_c = 
+        /*    fragment */ input.fragment) !== null && _c !== void 0 ? _c : null, (_d = 
+        /*        data */ input.data) !== null && _d !== void 0 ? _d : {}, (_e = 
+        /*    viewport */ input.viewport) !== null && _e !== void 0 ? _e : null, (_f = 
+        /*       title */ input.title) !== null && _f !== void 0 ? _f : null, 
         /*   component */ input.component, 
-        /*      append */ input.append, 
-        /*    children */ input.children ?? [], 
-        /*     residue */ input.residue ?? []);
+        /*      append */ input.append, (_g = 
+        /*    children */ input.children) !== null && _g !== void 0 ? _g : [], (_h = 
+        /*     residue */ input.residue) !== null && _h !== void 0 ? _h : []);
     }
     contains(instructions) {
+        var _a, _b;
         if (this.context === instructions.options.context) {
             const nodeChildren = this.children;
             const instructionChildren = instructions.children;
             for (let i = 0, ii = nodeChildren.length; i < ii; ++i) {
                 for (let j = 0, jj = instructionChildren.length; j < jj; ++j) {
-                    if (i + j < ii && (nodeChildren[i + j].instruction?.contains(instructionChildren[j]) ?? false)) {
+                    if (i + j < ii && ((_b = (_a = nodeChildren[i + j].instruction) === null || _a === void 0 ? void 0 : _a.contains(instructionChildren[j])) !== null && _b !== void 0 ? _b : false)) {
                         if (j + 1 === jj) {
                             return true;
                         }
@@ -181,12 +183,13 @@ export class RouteNode {
         return clone;
     }
     toString() {
+        var _a, _b, _c, _d, _e;
         const props = [];
-        const component = this.context?.definition.component?.name ?? '';
+        const component = (_c = (_b = (_a = this.context) === null || _a === void 0 ? void 0 : _a.definition.component) === null || _b === void 0 ? void 0 : _b.name) !== null && _c !== void 0 ? _c : '';
         if (component.length > 0) {
             props.push(`c:'${component}'`);
         }
-        const path = this.context?.definition.config.path ?? '';
+        const path = (_e = (_d = this.context) === null || _d === void 0 ? void 0 : _d.definition.config.path) !== null && _e !== void 0 ? _e : '';
         if (path.length > 0) {
             props.push(`path:'${path}'`);
         }
@@ -318,6 +321,7 @@ export function getDynamicChildren(node) {
     });
 }
 export function createAndAppendNodes(log, node, vi, append) {
+    var _a, _b;
     log.trace(`createAndAppendNodes(node:%s,vi:%s,append:${append})`, node, vi);
     switch (vi.component.type) {
         case 0 /* string */: {
@@ -325,7 +329,7 @@ export function createAndAppendNodes(log, node, vi, append) {
                 case '..':
                     // Allow going "too far up" just like directory command `cd..`, simply clamp it to the root
                     node.clearChildren();
-                    node = node.context.parent?.node ?? node;
+                    node = (_b = (_a = node.context.parent) === null || _a === void 0 ? void 0 : _a.node) !== null && _b !== void 0 ? _b : node;
                 // falls through
                 case '.':
                     return resolveAll(...vi.children.map(childVI => {
@@ -503,7 +507,7 @@ function createConfiguredNode(log, node, vi, append, rr, route = rr.route.endpoi
                 throw new Error(`Unexpected expression kind ${redirCur.left.kind}`);
             }
             if (redirSeg !== null) {
-                if (redirSeg.component.isDynamic && origSeg?.component.isDynamic) {
+                if (redirSeg.component.isDynamic && (origSeg === null || origSeg === void 0 ? void 0 : origSeg.component.isDynamic)) {
                     newSegs.push(rr.route.params[origSeg.component.name]);
                 }
                 else {
@@ -533,9 +537,10 @@ function createConfiguredNode(log, node, vi, append, rr, route = rr.route.endpoi
     });
 }
 function createDirectNode(log, node, vi, append, ced) {
+    var _a;
     const ctx = node.context;
     const rt = node.tree;
-    const vpName = vi.viewport ?? 'default';
+    const vpName = (_a = vi.viewport) !== null && _a !== void 0 ? _a : 'default';
     const vpa = ctx.resolveViewportAgent(ViewportRequest.create({
         viewportName: vpName,
         componentName: ced.name,

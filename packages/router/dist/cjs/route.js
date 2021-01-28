@@ -76,35 +76,36 @@ class RouteConfig {
         this.routes = routes;
     }
     static create(configOrPath, Type) {
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z;
         if (typeof configOrPath === 'string' || configOrPath instanceof Array) {
             const path = configOrPath;
-            const redirectTo = Type?.redirectTo ?? null;
-            const caseSensitive = Type?.caseSensitive ?? false;
-            const id = Type?.id ?? (path instanceof Array ? path[0] : path);
-            const title = Type?.title ?? null;
-            const reentryBehavior = Type?.transitionPlan ?? defaultReentryBehavior;
-            const viewport = Type?.viewport ?? null;
-            const data = Type?.data ?? {};
-            const children = Type?.routes ?? noRoutes;
+            const redirectTo = (_a = Type === null || Type === void 0 ? void 0 : Type.redirectTo) !== null && _a !== void 0 ? _a : null;
+            const caseSensitive = (_b = Type === null || Type === void 0 ? void 0 : Type.caseSensitive) !== null && _b !== void 0 ? _b : false;
+            const id = (_c = Type === null || Type === void 0 ? void 0 : Type.id) !== null && _c !== void 0 ? _c : (path instanceof Array ? path[0] : path);
+            const title = (_d = Type === null || Type === void 0 ? void 0 : Type.title) !== null && _d !== void 0 ? _d : null;
+            const reentryBehavior = (_e = Type === null || Type === void 0 ? void 0 : Type.transitionPlan) !== null && _e !== void 0 ? _e : defaultReentryBehavior;
+            const viewport = (_f = Type === null || Type === void 0 ? void 0 : Type.viewport) !== null && _f !== void 0 ? _f : null;
+            const data = (_g = Type === null || Type === void 0 ? void 0 : Type.data) !== null && _g !== void 0 ? _g : {};
+            const children = (_h = Type === null || Type === void 0 ? void 0 : Type.routes) !== null && _h !== void 0 ? _h : noRoutes;
             return new RouteConfig(id, path, title, redirectTo, caseSensitive, reentryBehavior, viewport, data, children);
         }
         else if (typeof configOrPath === 'object') {
             const config = configOrPath;
             validation_js_1.validateRouteConfig(config, '');
-            const path = config.path ?? Type?.path ?? null;
-            const title = config.title ?? Type?.title ?? null;
-            const redirectTo = config.redirectTo ?? Type?.redirectTo ?? null;
-            const caseSensitive = config.caseSensitive ?? Type?.caseSensitive ?? false;
-            const id = config.id ?? Type?.id ?? (path instanceof Array ? path[0] : path);
-            const reentryBehavior = config.transitionPlan ?? Type?.transitionPlan ?? defaultReentryBehavior;
-            const viewport = config.viewport ?? Type?.viewport ?? null;
+            const path = (_k = (_j = config.path) !== null && _j !== void 0 ? _j : Type === null || Type === void 0 ? void 0 : Type.path) !== null && _k !== void 0 ? _k : null;
+            const title = (_m = (_l = config.title) !== null && _l !== void 0 ? _l : Type === null || Type === void 0 ? void 0 : Type.title) !== null && _m !== void 0 ? _m : null;
+            const redirectTo = (_p = (_o = config.redirectTo) !== null && _o !== void 0 ? _o : Type === null || Type === void 0 ? void 0 : Type.redirectTo) !== null && _p !== void 0 ? _p : null;
+            const caseSensitive = (_r = (_q = config.caseSensitive) !== null && _q !== void 0 ? _q : Type === null || Type === void 0 ? void 0 : Type.caseSensitive) !== null && _r !== void 0 ? _r : false;
+            const id = (_t = (_s = config.id) !== null && _s !== void 0 ? _s : Type === null || Type === void 0 ? void 0 : Type.id) !== null && _t !== void 0 ? _t : (path instanceof Array ? path[0] : path);
+            const reentryBehavior = (_v = (_u = config.transitionPlan) !== null && _u !== void 0 ? _u : Type === null || Type === void 0 ? void 0 : Type.transitionPlan) !== null && _v !== void 0 ? _v : defaultReentryBehavior;
+            const viewport = (_x = (_w = config.viewport) !== null && _w !== void 0 ? _w : Type === null || Type === void 0 ? void 0 : Type.viewport) !== null && _x !== void 0 ? _x : null;
             const data = {
-                ...Type?.data,
+                ...Type === null || Type === void 0 ? void 0 : Type.data,
                 ...config.data,
             };
             const children = [
-                ...(config.routes ?? noRoutes),
-                ...(Type?.routes ?? noRoutes),
+                ...((_y = config.routes) !== null && _y !== void 0 ? _y : noRoutes),
+                ...((_z = Type === null || Type === void 0 ? void 0 : Type.routes) !== null && _z !== void 0 ? _z : noRoutes),
             ];
             return new RouteConfig(id, path, title, redirectTo, caseSensitive, reentryBehavior, viewport, data, children);
         }

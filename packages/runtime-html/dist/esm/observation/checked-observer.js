@@ -188,10 +188,11 @@ export class CheckedObserver {
         this.observe();
     }
     stop() {
+        var _a, _b;
         this.handler.dispose();
-        this.collectionObserver?.unsubscribe(this);
+        (_a = this.collectionObserver) === null || _a === void 0 ? void 0 : _a.unsubscribe(this);
         this.collectionObserver = void 0;
-        this.valueObserver?.unsubscribe(this);
+        (_b = this.valueObserver) === null || _b === void 0 ? void 0 : _b.unsubscribe(this);
     }
     subscribe(subscriber) {
         if (this.subs.add(subscriber) && this.subs.count === 1) {
@@ -204,12 +205,13 @@ export class CheckedObserver {
         }
     }
     observe() {
+        var _a, _b, _c, _d, _e, _f, _g;
         const obj = this.obj;
-        (this.valueObserver ?? (this.valueObserver = obj.$observers?.model ?? obj.$observers?.value))?.subscribe(this);
-        this.collectionObserver?.unsubscribe(this);
+        (_e = ((_a = this.valueObserver) !== null && _a !== void 0 ? _a : (this.valueObserver = (_c = (_b = obj.$observers) === null || _b === void 0 ? void 0 : _b.model) !== null && _c !== void 0 ? _c : (_d = obj.$observers) === null || _d === void 0 ? void 0 : _d.value))) === null || _e === void 0 ? void 0 : _e.subscribe(this);
+        (_f = this.collectionObserver) === null || _f === void 0 ? void 0 : _f.unsubscribe(this);
         this.collectionObserver = void 0;
         if (obj.type === 'checkbox') {
-            (this.collectionObserver = getCollectionObserver(this.value, this.observerLocator))?.subscribe(this);
+            (_g = (this.collectionObserver = getCollectionObserver(this.value, this.observerLocator))) === null || _g === void 0 ? void 0 : _g.subscribe(this);
         }
     }
 }

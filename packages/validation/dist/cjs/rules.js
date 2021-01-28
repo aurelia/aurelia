@@ -195,8 +195,8 @@ let RangeRule = class RangeRule extends BaseValidationRule {
         this.isInclusive = isInclusive;
         this.min = Number.NEGATIVE_INFINITY;
         this.max = Number.POSITIVE_INFINITY;
-        this.min = min ?? this.min;
-        this.max = max ?? this.max;
+        this.min = min !== null && min !== void 0 ? min : this.min;
+        this.max = max !== null && max !== void 0 ? max : this.max;
     }
     execute(value, _object) {
         return value === null

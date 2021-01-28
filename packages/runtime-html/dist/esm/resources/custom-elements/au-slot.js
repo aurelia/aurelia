@@ -36,7 +36,8 @@ export class ProjectionProvider {
         }
     }
     getProjectionFor(instruction) {
-        return projectionMap.get(instruction) ?? null;
+        var _a;
+        return (_a = projectionMap.get(instruction)) !== null && _a !== void 0 ? _a : null;
     }
 }
 export class AuSlot {
@@ -54,8 +55,9 @@ export class AuSlot {
         this.hostScope = this.$controller.scope.parentScope;
     }
     attaching(initiator, parent, flags) {
+        var _a;
         const { $controller } = this;
-        return this.view.activate(initiator, $controller, flags, this.outerScope ?? this.hostScope, this.hostScope);
+        return this.view.activate(initiator, $controller, flags, (_a = this.outerScope) !== null && _a !== void 0 ? _a : this.hostScope, this.hostScope);
     }
     detaching(initiator, parent, flags) {
         return this.view.deactivate(initiator, this.$controller, flags);
@@ -65,7 +67,8 @@ export class AuSlot {
         this.view = (void 0);
     }
     accept(visitor) {
-        if (this.view?.accept(visitor) === true) {
+        var _a;
+        if (((_a = this.view) === null || _a === void 0 ? void 0 : _a.accept(visitor)) === true) {
             return true;
         }
     }

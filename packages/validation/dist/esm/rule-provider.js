@@ -28,7 +28,7 @@ export const validationRulesRegistrar = Object.freeze({
     name: 'validation-rules',
     defaultRuleSetName: '__default',
     set(target, rules, tag) {
-        const key = `${validationRulesRegistrar.name}:${tag ?? validationRulesRegistrar.defaultRuleSetName}`;
+        const key = `${validationRulesRegistrar.name}:${tag !== null && tag !== void 0 ? tag : validationRulesRegistrar.defaultRuleSetName}`;
         Metadata.define(Protocol.annotation.keyFor(key), rules, target);
         const keys = Metadata.getOwn(Protocol.annotation.name, target);
         if (keys === void 0) {
@@ -39,8 +39,9 @@ export const validationRulesRegistrar = Object.freeze({
         }
     },
     get(target, tag) {
-        const key = Protocol.annotation.keyFor(validationRulesRegistrar.name, tag ?? validationRulesRegistrar.defaultRuleSetName);
-        return Metadata.get(key, target) ?? Metadata.getOwn(key, target.constructor);
+        var _a;
+        const key = Protocol.annotation.keyFor(validationRulesRegistrar.name, tag !== null && tag !== void 0 ? tag : validationRulesRegistrar.defaultRuleSetName);
+        return (_a = Metadata.get(key, target)) !== null && _a !== void 0 ? _a : Metadata.getOwn(key, target.constructor);
     },
     unset(target, tag) {
         const keys = Metadata.getOwn(Protocol.annotation.name, target);
@@ -361,7 +362,7 @@ let ValidationRules = class ValidationRules {
         if (Object.is(rules, this.rules)) {
             return this;
         }
-        this.rules = rules ?? [];
+        this.rules = rules !== null && rules !== void 0 ? rules : [];
         validationRulesRegistrar.set(target, this.rules, tag);
         this.targets.add(target);
         return this;
@@ -400,12 +401,13 @@ const classicAccessorPattern = /^function\s*\([$_\w\d]+\)\s*\{(?:\s*["']{1}use s
 const arrowAccessorPattern = /^\(?[$_\w\d]+\)?\s*=>\s*[$_\w\d]+((\.[$_\w\d]+|\[['"$_\w\d]+\])+)$/;
 export const rootObjectSymbol = '$root';
 export function parsePropertyName(property, parser) {
+    var _a;
     switch (typeof property) {
         case 'string':
             break;
         case 'function': {
             const fn = property.toString();
-            const match = arrowAccessorPattern.exec(fn) ?? classicAccessorPattern.exec(fn);
+            const match = (_a = arrowAccessorPattern.exec(fn)) !== null && _a !== void 0 ? _a : classicAccessorPattern.exec(fn);
             if (match === null) {
                 throw new Error(`Unable to parse accessor function:\n${fn}`); // TODO: use reporter
             }
@@ -463,6 +465,7 @@ let ValidationMessageProvider = class ValidationMessageProvider {
         }
     }
     getMessage(rule) {
+        var _a;
         const parsedMessage = this.registeredMessages.get(rule);
         if (parsedMessage !== void 0) {
             return parsedMessage;
@@ -475,7 +478,7 @@ let ValidationMessageProvider = class ValidationMessageProvider {
             message = validationMessages[0].defaultMessage;
         }
         else {
-            message = validationMessages.find(m => m.name === messageKey)?.defaultMessage;
+            message = (_a = validationMessages.find(m => m.name === messageKey)) === null || _a === void 0 ? void 0 : _a.defaultMessage;
         }
         if (!message) {
             message = ValidationRuleAliasMessage.getDefaultMessages(BaseValidationRule)[0].defaultMessage;
@@ -489,7 +492,7 @@ let ValidationMessageProvider = class ValidationMessageProvider {
     }
     parseMessage(message) {
         const parsed = this.parser.parse(message, 2048 /* Interpolation */);
-        if (parsed?.$kind === 24 /* Interpolation */) {
+        if ((parsed === null || parsed === void 0 ? void 0 : parsed.$kind) === 24 /* Interpolation */) {
             for (const expr of parsed.expressions) {
                 const name = expr.name;
                 if (contextualProperties.has(name)) {

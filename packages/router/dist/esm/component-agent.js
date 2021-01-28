@@ -5,6 +5,7 @@ import { ViewportInstructionTree } from './instructions.js';
 const componentAgentLookup = new WeakMap();
 export class ComponentAgent {
     constructor(instance, controller, definition, routeNode, ctx) {
+        var _a, _b, _c, _d;
         this.instance = instance;
         this.controller = controller;
         this.definition = definition;
@@ -13,10 +14,10 @@ export class ComponentAgent {
         this.logger = ctx.get(ILogger).scopeTo(`ComponentAgent<${ctx.friendlyPath}>`);
         this.logger.trace(`constructor()`);
         const lifecycleHooks = controller.lifecycleHooks;
-        this.canLoadHooks = (lifecycleHooks.canLoad ?? []).map(x => x.instance);
-        this.loadHooks = (lifecycleHooks.load ?? []).map(x => x.instance);
-        this.canUnloadHooks = (lifecycleHooks.canUnload ?? []).map(x => x.instance);
-        this.unloadHooks = (lifecycleHooks.unload ?? []).map(x => x.instance);
+        this.canLoadHooks = ((_a = lifecycleHooks.canLoad) !== null && _a !== void 0 ? _a : []).map(x => x.instance);
+        this.loadHooks = ((_b = lifecycleHooks.load) !== null && _b !== void 0 ? _b : []).map(x => x.instance);
+        this.canUnloadHooks = ((_c = lifecycleHooks.canUnload) !== null && _c !== void 0 ? _c : []).map(x => x.instance);
+        this.unloadHooks = ((_d = lifecycleHooks.unload) !== null && _d !== void 0 ? _d : []).map(x => x.instance);
         this.hasCanLoad = 'canLoad' in instance;
         this.hasLoad = 'load' in instance;
         this.hasCanUnload = 'canUnload' in instance;

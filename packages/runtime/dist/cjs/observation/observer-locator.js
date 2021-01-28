@@ -41,11 +41,12 @@ class ObserverLocator {
         this.adapters.push(adapter);
     }
     getObserver(obj, key) {
-        return obj.$observers?.[key]
-            ?? this.cache(obj, key, this.createObserver(obj, key));
+        var _a, _b;
+        return (_b = (_a = obj.$observers) === null || _a === void 0 ? void 0 : _a[key]) !== null && _b !== void 0 ? _b : this.cache(obj, key, this.createObserver(obj, key));
     }
     getAccessor(obj, key) {
-        const cached = obj.$observers?.[key];
+        var _a;
+        const cached = (_a = obj.$observers) === null || _a === void 0 ? void 0 : _a[key];
         if (cached !== void 0) {
             return cached;
         }
@@ -64,6 +65,7 @@ class ObserverLocator {
         return set_observer_js_1.getSetObserver(observedSet);
     }
     createObserver(obj, key) {
+        var _a, _b, _c, _d;
         if (!(obj instanceof Object)) {
             return new primitive_observer_js_1.PrimitiveObserver(obj, key);
         }
@@ -108,7 +110,7 @@ class ObserverLocator {
         if (pd !== void 0 && !Object.prototype.hasOwnProperty.call(pd, 'value')) {
             let obs = this.getAdapterObserver(obj, key, pd);
             if (obs == null) {
-                obs = (pd.get?.getObserver ?? pd.set?.getObserver)?.(obj, this);
+                obs = (_d = ((_b = (_a = pd.get) === null || _a === void 0 ? void 0 : _a.getObserver) !== null && _b !== void 0 ? _b : (_c = pd.set) === null || _c === void 0 ? void 0 : _c.getObserver)) === null || _d === void 0 ? void 0 : _d(obj, this);
             }
             return obs == null
                 ? pd.configurable

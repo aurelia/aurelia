@@ -60,11 +60,12 @@ class ContainerConfiguration {
         this.defaultResolver = defaultResolver;
     }
     static from(config) {
+        var _a, _b;
         if (config === void 0 ||
             config === ContainerConfiguration.DEFAULT) {
             return ContainerConfiguration.DEFAULT;
         }
-        return new ContainerConfiguration(config.inheritParentResources ?? false, config.defaultResolver ?? exports.DefaultResolver.singleton);
+        return new ContainerConfiguration((_a = config.inheritParentResources) !== null && _a !== void 0 ? _a : false, (_b = config.defaultResolver) !== null && _b !== void 0 ? _b : exports.DefaultResolver.singleton);
     }
 }
 exports.ContainerConfiguration = ContainerConfiguration;
@@ -213,7 +214,7 @@ exports.DI = {
         Interface.friendlyName = friendlyName == null ? '(anonymous)' : friendlyName;
         if (configure != null) {
             Interface.register = function (container, key) {
-                return configure(new ResolverBuilder(container, key ?? Interface));
+                return configure(new ResolverBuilder(container, key !== null && key !== void 0 ? key : Interface));
             };
         }
         Interface.toString = function toString() {
@@ -496,12 +497,13 @@ class Resolver {
         }
     }
     getFactory(container) {
+        var _a, _b, _c;
         switch (this.strategy) {
             case 1 /* singleton */:
             case 2 /* transient */:
                 return container.getFactory(this.state);
             case 5 /* alias */:
-                return container.getResolver(this.state)?.getFactory?.(container) ?? null;
+                return (_c = (_b = (_a = container.getResolver(this.state)) === null || _a === void 0 ? void 0 : _a.getFactory) === null || _b === void 0 ? void 0 : _b.call(_a, container)) !== null && _c !== void 0 ? _c : null;
             default:
                 return null;
         }
@@ -535,7 +537,8 @@ class Factory {
         return this.transformers.reduce(transformInstance, instance);
     }
     registerTransformer(transformer) {
-        (this.transformers ?? (this.transformers = [])).push(transformer);
+        var _a;
+        ((_a = this.transformers) !== null && _a !== void 0 ? _a : (this.transformers = [])).push(transformer);
     }
 }
 exports.Factory = Factory;
@@ -859,12 +862,13 @@ class Container {
                 inheritParentResources: false,
             }));
         }
-        return new Container(this, ContainerConfiguration.from(config ?? this.config));
+        return new Container(this, ContainerConfiguration.from(config !== null && config !== void 0 ? config : this.config));
     }
     disposeResolvers() {
+        var _a;
         const disposables = Array.from(this.disposableResolvers);
         while (disposables.length > 0) {
-            disposables.pop()?.dispose();
+            (_a = disposables.pop()) === null || _a === void 0 ? void 0 : _a.dispose();
         }
     }
     find(kind, name) {
@@ -895,6 +899,7 @@ class Container {
         return null;
     }
     create(kind, name) {
+        var _a, _b;
         const key = kind.keyFrom(name);
         let resolver = this.resourceResolvers[key];
         if (resolver === void 0) {
@@ -902,9 +907,9 @@ class Container {
             if (resolver === void 0) {
                 return null;
             }
-            return resolver.resolve(this.root, this) ?? null;
+            return (_a = resolver.resolve(this.root, this)) !== null && _a !== void 0 ? _a : null;
         }
-        return resolver.resolve(this, this) ?? null;
+        return (_b = resolver.resolve(this, this)) !== null && _b !== void 0 ? _b : null;
     }
     dispose() {
         this.disposeResolvers();

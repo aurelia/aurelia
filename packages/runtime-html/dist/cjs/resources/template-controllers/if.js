@@ -32,18 +32,20 @@ let If = class If {
     }
     attaching(initiator, parent, flags) {
         return kernel_1.onResolve(this.pending, () => {
+            var _a;
             this.pending = void 0;
             // Promise return values from user VM hooks are awaited by the initiator
-            void (this.view = this.updateView(this.value, flags))?.activate(initiator, this.$controller, flags, this.$controller.scope, this.$controller.hostScope);
+            void ((_a = (this.view = this.updateView(this.value, flags))) === null || _a === void 0 ? void 0 : _a.activate(initiator, this.$controller, flags, this.$controller.scope, this.$controller.hostScope));
         });
     }
     detaching(initiator, parent, flags) {
         this.wantsDeactivate = true;
         return kernel_1.onResolve(this.pending, () => {
+            var _a;
             this.wantsDeactivate = false;
             this.pending = void 0;
             // Promise return values from user VM hooks are awaited by the initiator
-            void this.view?.deactivate(initiator, this.$controller, flags);
+            void ((_a = this.view) === null || _a === void 0 ? void 0 : _a.deactivate(initiator, this.$controller, flags));
         });
     }
     valueChanged(newValue, oldValue, flags) {
@@ -55,19 +57,20 @@ let If = class If {
         });
     }
     swap(flags) {
+        var _a;
         if (this.view === this.updateView(this.value, flags)) {
             return;
         }
         this.work.start();
         const ctrl = this.$controller;
-        return kernel_1.onResolve(this.view?.deactivate(this.view, ctrl, flags), () => {
+        return kernel_1.onResolve((_a = this.view) === null || _a === void 0 ? void 0 : _a.deactivate(this.view, ctrl, flags), () => {
             // return early if detaching was called during the swap
             if (this.wantsDeactivate) {
                 return;
             }
             // value may have changed during deactivate
             const nextView = this.view = this.updateView(this.value, flags);
-            return kernel_1.onResolve(nextView?.activate(nextView, ctrl, flags, ctrl.scope, ctrl.hostScope), () => {
+            return kernel_1.onResolve(nextView === null || nextView === void 0 ? void 0 : nextView.activate(nextView, ctrl, flags, ctrl.scope, ctrl.hostScope), () => {
                 this.work.finish();
                 // only null the pending promise if nothing changed since the activation start
                 if (this.view === this.updateView(this.value, flags)) {
@@ -95,14 +98,16 @@ let If = class If {
         return view;
     }
     dispose() {
-        this.ifView?.dispose();
+        var _a, _b;
+        (_a = this.ifView) === null || _a === void 0 ? void 0 : _a.dispose();
         this.ifView = void 0;
-        this.elseView?.dispose();
+        (_b = this.elseView) === null || _b === void 0 ? void 0 : _b.dispose();
         this.elseView = void 0;
         this.view = void 0;
     }
     accept(visitor) {
-        if (this.view?.accept(visitor) === true) {
+        var _a;
+        if (((_a = this.view) === null || _a === void 0 ? void 0 : _a.accept(visitor)) === true) {
             return true;
         }
     }

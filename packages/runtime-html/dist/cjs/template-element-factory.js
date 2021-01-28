@@ -20,6 +20,7 @@ let TemplateElementFactory = class TemplateElementFactory {
         this.template = p.document.createElement('template');
     }
     createTemplate(input) {
+        var _a;
         if (typeof input === 'string') {
             let result = markupCache[input];
             if (result === void 0) {
@@ -50,7 +51,7 @@ let TemplateElementFactory = class TemplateElementFactory {
         }
         // we got a template element, remove it from the DOM if it's present there and don't
         // do any other processing
-        input.parentNode?.removeChild(input);
+        (_a = input.parentNode) === null || _a === void 0 ? void 0 : _a.removeChild(input);
         return input.cloneNode(true);
     }
 };

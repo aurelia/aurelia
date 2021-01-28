@@ -7,7 +7,7 @@ class Batch {
         this.cb = cb;
         this.done = false;
         this.next = null;
-        this.head = head ?? this;
+        this.head = head !== null && head !== void 0 ? head : this;
     }
     static start(cb) {
         return new Batch(0, cb, null);
@@ -113,7 +113,7 @@ function tryStringify(value) {
     try {
         return JSON.stringify(value);
     }
-    catch {
+    catch (_a) {
         return Object.prototype.toString.call(value);
     }
 }

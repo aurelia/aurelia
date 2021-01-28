@@ -28,7 +28,7 @@ class DebounceBindingBehavior extends runtime_1.BindingInterceptor {
             this.task = null;
             return callback();
         }, this.opts);
-        task?.cancel();
+        task === null || task === void 0 ? void 0 : task.cancel();
     }
     $bind(flags, scope, hostScope) {
         if (this.firstArg !== null) {
@@ -40,7 +40,8 @@ class DebounceBindingBehavior extends runtime_1.BindingInterceptor {
         this.binding.$bind(flags, scope, hostScope);
     }
     $unbind(flags) {
-        this.task?.cancel();
+        var _a;
+        (_a = this.task) === null || _a === void 0 ? void 0 : _a.cancel();
         this.task = null;
         this.binding.$unbind(flags);
     }

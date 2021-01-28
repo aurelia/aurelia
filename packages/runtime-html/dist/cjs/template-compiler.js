@@ -137,15 +137,16 @@ let TemplateCompiler = class TemplateCompiler {
         }
     }
     compileCustomElement(symbol, instructionRows, projections, targetedProjections) {
+        var _a;
         const isAuSlot = (symbol.flags & 512 /* isAuSlot */) > 0;
         // offset 1 to leave a spot for the hydrate instruction so we don't need to create 2 arrays with a spread etc
         const instructionRow = this.compileAttributes(symbol, 1);
         const slotName = symbol.slotName;
         let slotInfo = null;
         if (isAuSlot) {
-            const targetedProjection = targetedProjections?.projections?.[slotName];
+            const targetedProjection = (_a = targetedProjections === null || targetedProjections === void 0 ? void 0 : targetedProjections.projections) === null || _a === void 0 ? void 0 : _a[slotName];
             slotInfo = targetedProjection !== void 0
-                ? new au_slot_js_1.SlotInfo(slotName, au_slot_js_1.AuSlotContentType.Projection, new au_slot_js_1.ProjectionContext(targetedProjection, targetedProjections?.scope))
+                ? new au_slot_js_1.SlotInfo(slotName, au_slot_js_1.AuSlotContentType.Projection, new au_slot_js_1.ProjectionContext(targetedProjection, targetedProjections === null || targetedProjections === void 0 ? void 0 : targetedProjections.scope))
                 : new au_slot_js_1.SlotInfo(slotName, au_slot_js_1.AuSlotContentType.Fallback, new au_slot_js_1.ProjectionContext(this.compileProjectionFallback(symbol, projections, targetedProjections)));
         }
         const instruction = instructionRow[0] = new renderer_js_1.HydrateElementInstruction(symbol.res, symbol.info.alias, this.compileBindings(symbol), slotInfo);
@@ -179,11 +180,12 @@ let TemplateCompiler = class TemplateCompiler {
         }
     }
     compileTemplateController(symbol, instructionRows, projections, targetedProjections) {
+        var _a;
         const bindings = this.compileBindings(symbol);
         const controllerInstructionRows = [];
         this.compileParentNode(symbol.template, controllerInstructionRows, projections, targetedProjections);
         const def = custom_element_js_1.CustomElementDefinition.create({
-            name: symbol.info.alias ?? symbol.info.name,
+            name: (_a = symbol.info.alias) !== null && _a !== void 0 ? _a : symbol.info.name,
             template: symbol.physicalNode,
             instructions: controllerInstructionRows,
             needsCompile: false,
@@ -424,7 +426,7 @@ function processLocalTemplates(template, definition, context, p, logger) {
             }
             bindableInstructions.add({
                 property,
-                attribute: attribute ?? void 0,
+                attribute: attribute !== null && attribute !== void 0 ? attribute : void 0,
                 mode: getBindingMode(bindableEl),
             });
             const ignoredAttributes = bindableEl.getAttributeNames().filter((attrName) => !allowedLocalTemplateBindableAttributes.includes(attrName));

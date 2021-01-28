@@ -128,7 +128,8 @@ class SetObserver {
         this.subs.notifyCollection(indexMap, 8 /* updateTarget */);
     }
     getLengthObserver() {
-        return this.lenObs ?? (this.lenObs = new collection_length_observer_js_1.CollectionSizeObserver(this));
+        var _a;
+        return (_a = this.lenObs) !== null && _a !== void 0 ? _a : (this.lenObs = new collection_length_observer_js_1.CollectionSizeObserver(this));
     }
 }
 exports.SetObserver = SetObserver;

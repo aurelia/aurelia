@@ -88,7 +88,7 @@ class AttributeBinding {
                         this.task = null;
                         interceptor.updateTarget(newValue, flags);
                     }, taskOptions);
-                    task?.cancel();
+                    task === null || task === void 0 ? void 0 : task.cancel();
                 }
                 else {
                     interceptor.updateTarget(newValue, flags);
@@ -140,6 +140,7 @@ class AttributeBinding {
         this.isBound = true;
     }
     $unbind(flags) {
+        var _a;
         if (!this.isBound) {
             return;
         }
@@ -157,7 +158,7 @@ class AttributeBinding {
             targetObserver.unsubscribe(this.interceptor);
             targetObserver[this.id] &= ~16 /* updateSource */;
         }
-        this.task?.cancel();
+        (_a = this.task) === null || _a === void 0 ? void 0 : _a.cancel();
         this.task = null;
         this.obs.clear(true);
         // remove isBound and isUnbinding flags

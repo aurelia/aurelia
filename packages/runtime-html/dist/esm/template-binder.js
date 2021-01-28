@@ -144,6 +144,7 @@ export class TemplateBinder {
         return surrogate;
     }
     bindManifest(parentManifest, node, surrogate, manifest, manifestRoot, parentManifestRoot) {
+        var _a, _b, _c, _d;
         switch (node.nodeName) {
             case 'LET':
                 // let cannot have children and has some different processing rules, so return early
@@ -169,12 +170,12 @@ export class TemplateBinder {
         }
         else {
             // it's a custom element so we set the manifestRoot as well (for storing replaces)
-            compileChildren = (definition?.processContent?.bind(definition.Type)?.(node, this.platform) ?? true);
+            compileChildren = ((_c = (_b = (_a = definition === null || definition === void 0 ? void 0 : definition.processContent) === null || _a === void 0 ? void 0 : _a.bind(definition.Type)) === null || _b === void 0 ? void 0 : _b(node, this.platform)) !== null && _c !== void 0 ? _c : true);
             parentManifestRoot = manifestRoot;
             const ceSymbol = new CustomElementSymbol(this.platform, node, elementInfo);
             if (isAuSlot) {
                 ceSymbol.flags = 512 /* isAuSlot */;
-                ceSymbol.slotName = node.getAttribute("name") ?? "default";
+                ceSymbol.slotName = (_d = node.getAttribute("name")) !== null && _d !== void 0 ? _d : "default";
             }
             manifestRoot = manifest = ceSymbol;
         }
@@ -227,6 +228,7 @@ export class TemplateBinder {
         node.parentNode.replaceChild(symbol.marker, node);
     }
     bindAttributes(node, parentManifest, surrogate, manifest, manifestRoot, parentManifestRoot) {
+        var _a;
         // This is the top-level symbol for the current depth.
         // If there are no template controllers or replaces, it is always the manifest itself.
         // If there are template controllers, then this will be the outer-most TemplateControllerSymbol.
@@ -314,7 +316,7 @@ export class TemplateBinder {
              * This means by the time the template controller in the ancestor is processed, the projection is already registered.
              */
         }
-        const parentName = node.parentNode?.nodeName.toLowerCase();
+        const parentName = (_a = node.parentNode) === null || _a === void 0 ? void 0 : _a.nodeName.toLowerCase();
         if (hasProjection
             && (manifestRoot === null
                 || parentName === void 0

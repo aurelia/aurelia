@@ -256,6 +256,7 @@ let DefaultLogger = class DefaultLogger {
      * The scopes that this logger was created for, if any.
      */
     scope = [], parent = null) {
+        var _a, _b, _c, _d, _e, _f;
         this.config = config;
         this.factory = factory;
         this.scope = scope;
@@ -277,22 +278,22 @@ let DefaultLogger = class DefaultLogger {
             fatalSinks = this.fatalSinks = [];
             for (const $sink of sinks) {
                 const handles = LoggerSink.getHandles($sink);
-                if (handles?.includes(0 /* trace */) ?? true) {
+                if ((_a = handles === null || handles === void 0 ? void 0 : handles.includes(0 /* trace */)) !== null && _a !== void 0 ? _a : true) {
                     traceSinks.push($sink);
                 }
-                if (handles?.includes(1 /* debug */) ?? true) {
+                if ((_b = handles === null || handles === void 0 ? void 0 : handles.includes(1 /* debug */)) !== null && _b !== void 0 ? _b : true) {
                     debugSinks.push($sink);
                 }
-                if (handles?.includes(2 /* info */) ?? true) {
+                if ((_c = handles === null || handles === void 0 ? void 0 : handles.includes(2 /* info */)) !== null && _c !== void 0 ? _c : true) {
                     infoSinks.push($sink);
                 }
-                if (handles?.includes(3 /* warn */) ?? true) {
+                if ((_d = handles === null || handles === void 0 ? void 0 : handles.includes(3 /* warn */)) !== null && _d !== void 0 ? _d : true) {
                     warnSinks.push($sink);
                 }
-                if (handles?.includes(4 /* error */) ?? true) {
+                if ((_e = handles === null || handles === void 0 ? void 0 : handles.includes(4 /* error */)) !== null && _e !== void 0 ? _e : true) {
                     errorSinks.push($sink);
                 }
-                if (handles?.includes(5 /* fatal */) ?? true) {
+                if ((_f = handles === null || handles === void 0 ? void 0 : handles.includes(5 /* fatal */)) !== null && _f !== void 0 ? _f : true) {
                     fatalSinks.push($sink);
                 }
             }

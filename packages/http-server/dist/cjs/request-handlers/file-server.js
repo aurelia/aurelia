@@ -27,9 +27,10 @@ const contentEncodingExtensionMap = {
 const compressedFileExtensions = new Set(Object.values(contentEncodingExtensionMap));
 let FileServer = class FileServer {
     constructor(opts, logger) {
+        var _a;
         this.opts = opts;
         this.logger = logger;
-        this.cacheControlDirective = this.opts.responseCacheControl ?? 'max-age=3600';
+        this.cacheControlDirective = (_a = this.opts.responseCacheControl) !== null && _a !== void 0 ? _a : 'max-age=3600';
         this.logger = logger.root.scopeTo('FileServer');
         this.root = path_1.resolve(opts.root);
         this.logger.debug(`Now serving files from: "${this.root}"`);
@@ -91,10 +92,11 @@ exports.FileServer = FileServer;
  */
 let Http2FileServer = class Http2FileServer {
     constructor(opts, logger) {
+        var _a;
         this.opts = opts;
         this.logger = logger;
         this.filePushMap = new Map();
-        this.cacheControlDirective = this.opts.responseCacheControl ?? 'max-age=3600';
+        this.cacheControlDirective = (_a = this.opts.responseCacheControl) !== null && _a !== void 0 ? _a : 'max-age=3600';
         this.logger = logger.root.scopeTo('Http2FileServer');
         this.root = path_1.resolve(opts.root);
         this.prepare();
@@ -190,12 +192,13 @@ class PushInfo {
     }
 }
 function determineContentEncoding(context) {
+    var _a, _b;
     const clientEncoding = context.getQualifiedRequestHeaderFor(HTTP2_HEADER_ACCEPT_ENCODING);
     // if brotli compression is supported return `br`
     if (clientEncoding.isAccepted('br')) {
         return 'br';
     }
     // else return the highest prioritized content
-    return clientEncoding.mostPrioritized?.name ?? 'identity';
+    return (_b = (_a = clientEncoding.mostPrioritized) === null || _a === void 0 ? void 0 : _a.name) !== null && _b !== void 0 ? _b : 'identity';
 }
 //# sourceMappingURL=file-server.js.map

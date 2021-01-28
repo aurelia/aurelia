@@ -19,16 +19,17 @@ class ViewportInstruction {
         this.children = children;
     }
     static create(instruction, context) {
+        var _a, _b, _c, _d, _e, _f, _g;
         if (instruction instanceof ViewportInstruction) {
             return instruction;
         }
         if (validation_js_1.isPartialViewportInstruction(instruction)) {
             const component = TypedNavigationInstruction.create(instruction.component);
-            const children = instruction.children?.map(ViewportInstruction.create) ?? [];
-            return new ViewportInstruction(instruction.context ?? context ?? null, instruction.append ?? false, component, instruction.viewport ?? null, instruction.params ?? null, children);
+            const children = (_b = (_a = instruction.children) === null || _a === void 0 ? void 0 : _a.map(ViewportInstruction.create)) !== null && _b !== void 0 ? _b : [];
+            return new ViewportInstruction((_d = (_c = instruction.context) !== null && _c !== void 0 ? _c : context) !== null && _d !== void 0 ? _d : null, (_e = instruction.append) !== null && _e !== void 0 ? _e : false, component, (_f = instruction.viewport) !== null && _f !== void 0 ? _f : null, (_g = instruction.params) !== null && _g !== void 0 ? _g : null, children);
         }
         const typedInstruction = TypedNavigationInstruction.create(instruction);
-        return new ViewportInstruction(context ?? null, false, typedInstruction, null, null, []);
+        return new ViewportInstruction(context !== null && context !== void 0 ? context : null, false, typedInstruction, null, null, []);
     }
     contains(other) {
         const thisChildren = this.children;

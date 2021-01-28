@@ -30,23 +30,36 @@ class JsonFileStorage implements IStorage {
     console.log(`The results are written to ${fileName}.`);
   }
 
-  public getLatestBenchmarkResult(): Promise<Partial<BenchmarkMeasurements>> {
-    let latestResult, timestamp = -1;
+  public getLatestBenchmarkResult(branch?: string, commit?: string): Promise<Partial<BenchmarkMeasurements>> {
+    const hasBranch = branch !== void 0;
+    const hasCommit = commit !== void 0;
+    let latestResult: string | Partial<BenchmarkMeasurements> = (void 0)!;
+    let timestamp = -1;
     const root = this.resultRoot;
     for (const file of readdirSync(root, 'utf8')) {
       if (extname(file) !== '.json') { continue; }
       const filePath = join(root, file);
+      let temp: Partial<BenchmarkMeasurements> = null!;
+      if (hasBranch || hasCommit) {
+        temp = JSON.parse(readFileSync(filePath, 'utf8')) as Partial<BenchmarkMeasurements>;
+        if ((hasBranch && temp.branch !== branch) || (hasCommit && !temp.commit?.startsWith(commit!))) {
+          continue;
+        }
+      }
       const stat = lstatSync(filePath);
       const newTimestamp = Math.max(timestamp, stat.ctime.getTime());
       if (newTimestamp !== timestamp) {
         timestamp = newTimestamp;
-        latestResult = filePath;
+        latestResult = temp ?? filePath;
       }
     }
     if (latestResult === void 0) {
-      throw new Error('No benchmark result found');
+      throw new NotFoundError(`No benchmark result found${hasBranch ? ` for branch ${branch!}` : ''}${hasCommit ? ` at ${commit!}` : ''}`);
     }
-    return Promise.resolve(JSON.parse(readFileSync(latestResult, 'utf8')) as Partial<BenchmarkMeasurements>);
+    return Promise.resolve(typeof latestResult === 'object'
+      ? latestResult
+      : JSON.parse(readFileSync(latestResult, 'utf8')) as Partial<BenchmarkMeasurements>
+    );
   }
 
   public async getAllBenchmarkResults(): Promise<Partial<BenchmarkMeasurements>[]> {
@@ -89,18 +102,18 @@ class CosmosStorage implements IStorage {
     console.log(`Persisted the result for batch ${batchId} in cosmos DB.`);
   }
 
-  // Maybe we need a list of branches for comparison. But then we need to think about the viz to use to compare branches.
-  public async getLatestBenchmarkResult(branch: string = 'master'): Promise<Partial<BenchmarkMeasurements>> {
+  public async getLatestBenchmarkResult(branch: string = 'master', commit: string | undefined = void 0): Promise<Partial<BenchmarkMeasurements>> {
+    const hasCommit = commit !== void 0;
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const measurements = (await this.client
       .database('benchmarks')
       .container('measurements')
       .items
-      .query(`SELECT * FROM measurements m WHERE m.branch = "${branch}" ORDER BY m.ts_start DESC LIMIT 1`)
+      .query(`SELECT * FROM measurements m WHERE m.branch = "${branch}"${hasCommit ? ` AND m.commit LIKE "${commit!}%" ` : ' '}ORDER BY m.ts_start DESC LIMIT 1`)
       .fetchAll()
     ).resources[0];
     if (measurements === void 0) {
-      throw new Error('No benchmark result found');
+      throw new NotFoundError(`No benchmark result found for branch ${branch}${hasCommit ? ` at ${commit!}` : ''}`);
     }
     return measurements as Partial<BenchmarkMeasurements>;
   }
@@ -131,3 +144,5 @@ export function getNewStorageFor(
       return new CosmosStorage(options.cosmosEndpoint!, options.cosmosKey!);
   }
 }
+
+export class NotFoundError extends Error { }

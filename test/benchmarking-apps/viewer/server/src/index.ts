@@ -1,7 +1,8 @@
 import { FileServer, HttpContextState, HttpServer, HttpServerOptions, HTTPStatusCode, IHttpContext, IHttpServer, IHttpServerOptions, IRequestHandler } from '@aurelia/http-server';
 import { DI, ILogger, LoggerConfiguration, LogLevel, Registration } from '@aurelia/kernel';
-import { getNewStorageFor, IStorage, Storages } from '@benchmarking-apps/storage';
+import { getNewStorageFor, IStorage, Storages, NotFoundError } from '@benchmarking-apps/storage';
 import { join } from 'path';
+import { parse } from 'querystring';
 
 const required = Symbol('required') as unknown as string;
 const optional = void 0 as unknown as string;
@@ -74,6 +75,15 @@ export const IFileServer = DI.createInterface<IFileServer>('IFileServer', x => x
 const $IStorage = DI.createInterface<IStorage>('IStorage');
 type Handler = (ctx: IHttpContext) => Promise<void>;
 
+function validateCommit(commit: string | string[]): asserts commit is string {
+  if (Array.isArray(commit)) {
+    throw new NotSupportedError('Querying multiple commits not yet supported');
+  }
+  if (!/^[0-9a-f]{7,}$/i.test(commit)) {
+    throw new NotSupportedError('Invalid commit hash');
+  }
+}
+
 export class AppRequestHandler implements IRequestHandler {
   public constructor(
     @ILogger private readonly logger: ILogger,
@@ -86,7 +96,7 @@ export class AppRequestHandler implements IRequestHandler {
   public async handleRequest(ctx: IHttpContext): Promise<void> {
     this.logger.debug(`handleRequest(pathname:${ctx.requestUrl.pathname},method:${ctx.request.method})`);
 
-    switch (ctx.requestUrl.path) {
+    switch (ctx.requestUrl.pathname) {
       // We eventually need route-recognizer here.
       case '/api/measurements':
         await this['/api/measurements'](ctx);
@@ -118,27 +128,54 @@ export class AppRequestHandler implements IRequestHandler {
     }
   }
 
-  private createHandler(endpoint: string, getData: () => Promise<unknown>): Handler {
+  private createHandler(endpoint: string, getData: (ctx: IHttpContext) => Promise<unknown>): Handler {
     return async (ctx: IHttpContext) => {
-      switch (ctx.request.method) {
-        case 'OPTIONS':
-          this.respondOptions(ctx, endpoint);
-          break;
-        case 'GET': {
-          this.logger.debug(`'${endpoint}' - returning data`);
-          this.ok(ctx, await getData());
-          break;
+      try {
+        switch (ctx.request.method) {
+          case 'OPTIONS':
+            this.respondOptions(ctx, endpoint);
+            break;
+          case 'GET': {
+            this.logger.debug(`'${endpoint}' - returning data`);
+            this.respond(HTTPStatusCode.OK, ctx, await getData(ctx));
+            break;
+          }
+          default:
+            this.notAllowed(ctx, endpoint);
+            break;
         }
-        default:
-          this.notAllowed(ctx, endpoint);
-          break;
+      } catch (e) {
+        switch ((e as KnownError).code) {
+          case 'NotSupported':
+            this.respond(HTTPStatusCode.BadRequest, ctx, (e as KnownError).toResponseBody());
+            break;
+          default:
+            if (e instanceof NotFoundError) {
+              this.respond(HTTPStatusCode.BadRequest, ctx, { code: 'NotFound', message: e.message });
+            } else {
+              this.respond(HTTPStatusCode.BadRequest, ctx, e.message);
+            }
+            break;
+        }
       }
     };
   }
 
-  private readonly '/api/measurements': Handler =  this.createHandler('/api/measurements', () => this.storage.getAllBenchmarkResults());
-  // TODO: add branch filter
-  private readonly '/api/measurements/latest': Handler =  this.createHandler('/api/measurements/latest', () => this.storage.getLatestBenchmarkResult());
+  private readonly '/api/measurements': Handler = this.createHandler('/api/measurements', () => this.storage.getAllBenchmarkResults());
+  private readonly '/api/measurements/latest': Handler = this.createHandler(
+    '/api/measurements/latest',
+    (ctx) => {
+      // example: /api/measurements/latest?branch=foo&commit=f7b3d1
+      const query = parse(ctx.requestUrl.query);
+      const branch = query.branch ?? void 0;
+      const commit = query.commit ?? void 0;
+      if (Array.isArray(branch)) {
+        throw new NotSupportedError('Querying multiple branches not yet supported');
+      }
+      validateCommit(commit);
+      return this.storage.getLatestBenchmarkResult(branch, commit);
+    }
+  );
 
   private respondOptions(ctx: IHttpContext, endpoint: string) {
     this.logger.debug(`'${endpoint}' - handling preflight request`);
@@ -162,9 +199,9 @@ export class AppRequestHandler implements IRequestHandler {
     ctx.state = HttpContextState.end;
   }
 
-  private ok(ctx: IHttpContext, data: unknown) {
+  private respond(code: HTTPStatusCode, ctx: IHttpContext, data: unknown) {
     const content = Buffer.from(JSON.stringify(data), 'utf8');
-    ctx.response.writeHead(HTTPStatusCode.OK, {
+    ctx.response.writeHead(code, {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET',
       'Access-Control-Allow-Headers': '*',
@@ -172,6 +209,17 @@ export class AppRequestHandler implements IRequestHandler {
     });
     ctx.response.end(content);
     ctx.state = HttpContextState.end;
+  }
+}
+
+interface KnownError {
+  code: 'NotSupported';
+  toResponseBody(): unknown;
+}
+class NotSupportedError extends Error implements KnownError {
+  public code: 'NotSupported' = 'NotSupported';
+  public toResponseBody(): unknown {
+    return { code: this.code, message: this.message };
   }
 }
 

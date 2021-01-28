@@ -38,7 +38,7 @@ export const actions: Record<DurationKeys, Action> = {
   'durationUpdate': new Action('Update every 10th row', d3.schemeCategory10[2]),
   'durationConditional': new Action('Conditional content', d3.schemeCategory10[3]),
   'durationTextUpdate': new Action('Bulk text update, localized content', d3.schemeCategory10[4]),
-  'durationSorting': new Action('Sorting of data', d3.schemeCategory10[5]),
+  'durationSorting': new Action('Sort data', d3.schemeCategory10[5]),
   'durationFilter': new Action('Filter data', d3.schemeCategory10[6]),
   'durationSelectFirst': new Action('Select first row', d3.schemeCategory10[7]),
   'durationDeleteFirst': new Action('Delete first row', d3.schemeCategory10[8]),

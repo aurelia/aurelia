@@ -299,6 +299,6 @@ export interface IStorage {
   measurements: Measurement[];
   addMeasurements(...measurements: Measurement[]): void;
   persist(batchId: string, metadata?: BenchmarkMetadata): void | Promise<void>;
-  getLatestBenchmarkResult(branch?: string): Promise<Partial<BenchmarkMeasurements>>;
+  getLatestBenchmarkResult(branch?: string, commit?: string): Promise<Partial<BenchmarkMeasurements>>;
   getAllBenchmarkResults(): Promise<Partial<BenchmarkMeasurements>[]>;
 }

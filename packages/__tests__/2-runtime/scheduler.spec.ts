@@ -80,8 +80,8 @@ describe('Scheduler', function () {
       name: 'domWriteQueue',
     },
     {
-      sut: platform.macroTaskQueue,
-      name: 'macroTaskQueue',
+      sut: platform.taskQueue,
+      name: 'taskQueue',
     },
     {
       sut: platform.domReadQueue,
@@ -92,8 +92,8 @@ describe('Scheduler', function () {
       name: 'domWriteQueue',
     },
     {
-      sut: platform.macroTaskQueue,
-      name: 'macroTaskQueue',
+      sut: platform.taskQueue,
+      name: 'taskQueue',
     },
   ];
 
@@ -1502,9 +1502,9 @@ describe('Scheduler', function () {
         suspend: true,
       };
 
-      const task0 = platform.macroTaskQueue.queueTask(callback0, opts);
-      const task1 = platform.macroTaskQueue.queueTask(callback1, opts);
-      const task2 = platform.macroTaskQueue.queueTask(callback2, opts);
+      const task0 = platform.taskQueue.queueTask(callback0, opts);
+      const task1 = platform.taskQueue.queueTask(callback1, opts);
+      const task2 = platform.taskQueue.queueTask(callback2, opts);
 
       assert.deepStrictEqual(states, [TaskState.NotStarted, TaskState.NotStarted, TaskState.NotStarted], `state after queueing 3 tasks`);
 

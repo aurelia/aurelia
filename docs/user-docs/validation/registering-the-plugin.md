@@ -2,9 +2,9 @@
 description: How to register and use the Aurelia Validation plugin
 ---
 
-# Registering The Aurelia Validation Plugin
+# Registering the Plugin
 
-The plugin can be registered as follows. If you have not installed the Aurelia Validation plugin and any relevant adapters (such as validation-html), please go to the first step and do so before proceeding.
+The plugin can be registered as follows. If you have not installed the Aurelia Validation plugin and any relevant adapters \(such as validation-html\), please go to the first step and do so before proceeding.
 
 ```typescript
 import { ValidationHtmlConfiguration } from '@aurelia/validation-html';
@@ -47,3 +47,4 @@ Following options are available for customizations.
 These options are explained in details in the respective sections. Note that the categorization of the options are done with the intent of clarifying the origin package of each option. However, as the `@aurelia/validation-html` wraps `@aurelia/validation` all the customization options are available when the `@aurelia/validation-html` package is registered.
 
 The `@aurelia/validation-i18n` package is skipped intentionally for now, as it is discussed in details [later](i18n-internationalization.md).
+

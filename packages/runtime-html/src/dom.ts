@@ -3,8 +3,23 @@ import { IAppRoot } from './app-root.js';
 import { IPlatform } from './platform.js';
 import { CustomElement } from './resources/custom-element.js';
 import { MountTarget } from './templating/controller.js';
+import type { IHydratedController } from './templating/controller.js';
 
-export type INode<T extends Node = Node> = T;
+export class Refs {
+  [key: string]: IHydratedController | undefined;
+}
+
+export function getRef(node: INode, name: string): IHydratedController | null {
+  return node.$au?.[name] ?? null;
+}
+
+export function setRef(node: INode, name: string, controller: IHydratedController): void {
+  ((node as Writable<INode>).$au ??= new Refs())[name] = controller;
+}
+
+export type INode<T extends Node = Node> = T & {
+  readonly $au?: Refs;
+};
 export const INode = DI.createInterface<INode>('INode');
 
 export type IEventTarget<T extends EventTarget = EventTarget> = T;

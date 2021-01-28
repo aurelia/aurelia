@@ -82,3 +82,4 @@ Here is one similar playable demo, if you want to explore on you own!
 {% embed url="https://stackblitz.com/edit/au2-validation-required" caption="" %}
 
 That's all you need to do to get started with the plugin. However, read on to understand how the plugin functions, and offers flexible API to support your app.
+

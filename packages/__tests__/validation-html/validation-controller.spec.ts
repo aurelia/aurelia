@@ -374,7 +374,7 @@ describe('validation-controller', function () {
         const msg = 'foobar';
         sut.addSubscriber(subscriber);
         sut.addError(msg, person1, property);
-        await platform.domReadQueue.yield();
+        platform.domReadQueue.flush();
 
         const result = sut.results.find((r) => r.object === person1 && r.propertyName === property);
         assert.notEqual(result, void 0);
@@ -406,14 +406,14 @@ describe('validation-controller', function () {
         const msg = 'foobar';
         sut.addSubscriber(subscriber);
         const result = sut.addError(msg, person1, property);
-        await platform.domReadQueue.yield();
+        platform.domReadQueue.flush();
         assert.html.textContent('span.error', msg, 'incorrect msg', host);
 
         const events = subscriber.notifications;
         events.splice(0);
 
         sut.removeError(result);
-        await platform.domReadQueue.yield();
+        platform.domReadQueue.flush();
 
         assert.equal(events.length, 1);
         assert.equal(events[0].kind, ValidateEventKind.reset);
@@ -437,7 +437,7 @@ describe('validation-controller', function () {
       const msg = 'Name is required.';
       sut.addSubscriber(subscriber);
       await sut.validate();
-      await platform.domReadQueue.yield();
+      platform.domReadQueue.flush();
       assert.html.textContent('span.error', msg, 'incorrect msg', host);
 
       const result = sut.results.find((r) => r.object === person1 && r.propertyName === 'name' && !r.valid);
@@ -445,7 +445,7 @@ describe('validation-controller', function () {
       events.splice(0);
 
       sut.removeError(result);
-      await platform.domReadQueue.yield();
+      platform.domReadQueue.flush();
 
       assert.equal(events.length, 1);
       assert.equal(events[0].kind, ValidateEventKind.reset);
@@ -495,7 +495,7 @@ describe('validation-controller', function () {
     async function ({ app: { controller: sut, person1 }, platform, host }) {
       const msg = 'foobar';
       const result = sut.addError(msg, person1);
-      await platform.domReadQueue.yield();
+      platform.domReadQueue.flush();
       assert.html.textContent('span.error', msg, 'incorrect msg', host);
 
       await sut.revalidateErrors();

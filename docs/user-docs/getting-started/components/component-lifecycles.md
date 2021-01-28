@@ -1,5 +1,4 @@
-
-## The Component Lifecycle
+# Components Lifecycles
 
 Every component instance has a lifecycle that you can tap into. This makes it easy for you to perform various actions at particular times. For example, you may want to execute some code as soon as your component properties are bound, but before the component is first rendered. Or, you may want to run some code to manipulate the DOM as soon as possible after your element is attached to the document.
 
@@ -16,7 +15,7 @@ Every lifecycle callback is optional. Implement whatever makes sense for your co
 | `bound` | If your component has a method named "bound", then the framework will invoke it when the bindings between your component and its view have been set. This is the best place to do anything that requires the values from `let`, `from-view` or `ref` bindings to be set. |
 | `attaching` | If your component has a method named "attaching", then the framework will invoke it when it has attached the component's HTML element. You can queue animations and/or initialize certain 3rd party libraries. If you return a `Promise` from this method, it will not suspend binding/attaching of child components but it will be awaited before the `attached` hook is invoked. |
 | `attached` | If your component has a method named "attached", then the framework will invoke it when it has attached the current component as well as all of its children. In terms of the component hierarchy, the attached hooks execute bottom-up. This is the best time to invoke code that requires measuring of elements or integrating a 3rd party JavaScript library that requires the whole component subtree to be mounted to the DOM. |
-| `detaching` | If your component has a method named "detaching", then the framework will invoke it when it is about to remove your HTML element from the document. In terms of the component hierarchy, the detaching hooks execute bottom-up. If you return a `Promise` (for example, from an outgoing animation), it will be awaited before the element is detached. It will run in parallel with promises returned from the `detaching` hooks of siblings / parents. |
+| `detaching` | If your component has a method named "detaching", then the framework will invoke it when it is about to remove your HTML element from the document. In terms of the component hierarchy, the detaching hooks execute bottom-up. If you return a `Promise` \(for example, from an outgoing animation\), it will be awaited before the element is detached. It will run in parallel with promises returned from the `detaching` hooks of siblings / parents. |
 | `unbinding` | If your component has a method named "unbinding", then the framework will invoke it when it has fully removed your HTML element from the document. In terms of the component hierarchy, the `unbinding` hooks execute bottom-up. |
 | `dispose` | If your component has a method named "dispose", then the framework will invoke it when the component is to be cleared from memory completely. It may be called for example when a component is in a repeater, and some items are removed that are not returned to cache. This is an advanced hook mostly useful for clean up of resources and references that might cause memory leaks if never dereferenced explicitly. |
 
@@ -40,3 +39,4 @@ export class SayHello {
 }
 ```
 {% endcode %}
+

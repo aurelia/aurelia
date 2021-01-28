@@ -1,5 +1,7 @@
 ---
-description: Creating groups of tagged rules to allow for re-use of Aurelia Validation rules.
+description: >-
+  Creating groups of tagged rules to allow for re-use of Aurelia Validation
+  rules.
 ---
 
 # Tagging Rules
@@ -47,3 +49,4 @@ validator.validate(new ValidateInstruction(person, 'name', undefined, 'ruleset1'
 ```
 
 {% embed url="https://stackblitz.com/edit/au2-validation-tagging-rules?ctl=1" caption="" %}
+

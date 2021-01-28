@@ -251,7 +251,7 @@ describe('au-slot', function () {
           const vm: MyElement = CustomElement.for<MyElement>(el).viewModel;
 
           vm.showS1 = true;
-          await platform.domWriteQueue.yield();
+          platform.domWriteQueue.flush();
 
           assert.html.innerEqual(el, `static default <div>p11</div><div>p12</div> <div>p20</div><div>p21</div>`, 'my-element.innerHTML');
         },
@@ -284,7 +284,7 @@ describe('au-slot', function () {
 
           vm1.showS1 = !vm1.showS1;
           vm2.showS1 = !vm2.showS1;
-          await platform.domWriteQueue.yield();
+          platform.domWriteQueue.flush();
 
           assert.html.innerEqual(el1, `static default <div>p11</div>`, 'my-element.innerHTML');
           assert.html.innerEqual(el2, `static default <div>p22</div>`, 'my-element+my-element.innerHTML');
@@ -345,7 +345,7 @@ describe('au-slot', function () {
         { 'my-element': [`<h4>First Name</h4> <h4>Last Name</h4> <div>John</div> <div>Doe</div> <div>Max</div> <div>Mustermann</div>`, new AuSlotsInfo([])] },
         async function ({ app, host, platform }) {
           app.people.push(new Person('Jane', 'Doe', []));
-          await platform.domWriteQueue.yield();
+          platform.domWriteQueue.flush();
           assert.html.innerEqual(
             'my-element',
             `<h4>First Name</h4> <h4>Last Name</h4> <div>John</div> <div>Doe</div> <div>Max</div> <div>Mustermann</div> <div>Jane</div> <div>Doe</div>`,
@@ -1076,7 +1076,7 @@ describe('au-slot', function () {
           assert.strictEqual(input.value, "foo");
 
           vm.foo = "bar";
-          await platform.domWriteQueue.yield();
+          platform.domWriteQueue.flush();
           assert.strictEqual(input.value, "bar");
         }
       );
@@ -1094,7 +1094,7 @@ describe('au-slot', function () {
         assert.strictEqual(input.value, app.people[0].firstName);
 
         app.people[0].firstName = "Jane";
-        await platform.domWriteQueue.yield();
+        platform.domWriteQueue.flush();
         assert.strictEqual(input.value, "Jane");
       }
     );
@@ -1114,8 +1114,8 @@ describe('au-slot', function () {
         '<my-element-user></my-element-user>',
         [MyElementUser, createMyElement('<au-slot></au-slot>')],
         {},
-        async function ({ au, host }) {
-          await au.waitForIdle();
+        async function ({ au, host, platform }) {
+          platform.domWriteQueue.flush();
           const meu = host.querySelector('my-element-user');
           const me = host.querySelector('my-element');
           assert.html.innerEqual(meu, `<my-element class="au"><div>${fooValue}</div></my-element>`, 'my-element-user.innerHtml');
@@ -1146,8 +1146,8 @@ describe('au-slot', function () {
         '<my-element-user></my-element-user>',
         [MyElementUser, MyElement],
         {},
-        async function ({ au, host }) {
-          await au.waitForIdle();
+        async function ({ au, host, platform }) {
+          platform.domWriteQueue.flush();
           const meu = host.querySelector('my-element-user');
           const me = host.querySelector('my-element');
           assert.html.innerEqual(meu, `<my-element class="au"><div>${fooValue}</div></my-element>`, 'my-element-user.innerHtml');
@@ -1294,7 +1294,7 @@ describe('au-slot', function () {
           const ce = host.querySelector('my-element');
           const button = ce.querySelector('button');
           button.click();
-          await platform.domWriteQueue.yield();
+          platform.domWriteQueue.flush();
           assert.equal(CustomElement.for<MyElement>(ce).viewModel.callCount, 1);
           assert.equal(app.callCount, 0);
         },
@@ -1305,7 +1305,7 @@ describe('au-slot', function () {
           const ce = host.querySelector('my-element');
           const button = ce.querySelector('button');
           button.click();
-          await platform.domWriteQueue.yield();
+          platform.domWriteQueue.flush();
           assert.equal(CustomElement.for<MyElement>(ce).viewModel.callCount, 1);
           assert.equal(app.callCount, 0);
         },
@@ -1316,7 +1316,7 @@ describe('au-slot', function () {
           const ce = host.querySelector('my-element');
           const button = ce.querySelector('button');
           button.click();
-          await platform.domWriteQueue.yield();
+          platform.domWriteQueue.flush();
           assert.equal(CustomElement.for<MyElement>(ce).viewModel.callCount, 0);
           assert.equal(app.callCount, 1);
         },

@@ -11,13 +11,14 @@
   * [Your First Component - Part 2: The View](getting-started/quick-start-guide/your-first-component-part-2-the-view.md)
   * [Beyond the Basics](getting-started/quick-start-guide/bonus.md)
   * [Next Steps](getting-started/quick-start-guide/next-steps.md)
+* [Template Syntax](getting-started/template-syntax.md)
 * [Building Components](getting-started/components/README.md)
   * [Creating a Custom Element](getting-started/components/creating-a-custom-element.md)
   * [Creating a Custom Attribute](getting-started/components/creating-a-custom-attribute.md)
   * [Components Lifecycles](getting-started/components/component-lifecycles.md)
   * [Watching Data](getting-started/components/watching-data.md)
   * [Templating - Local Template](getting-started/components/local-templates.md)
-* [Displaying Basic Data](getting-started/displaying-basic-data.md)
+* [Displaying Data](getting-started/displaying-basic-data.md)
 * [Rendering Collections](getting-started/rendering-collections.md)
 * [Conditional Rendering](getting-started/conditional-rendering.md)
 * [Handling Events](getting-started/handling-events.md)
@@ -32,7 +33,6 @@
 * [Extending Templating Syntax](app-basics/extending-templating-syntax.md)
 * [Routing](app-basics/routing.md)
 * [Tooling](app-basics/tooling.md)
-* [Building a Dashboard App](app-basics/building-a-dashboard-app.md)
 * [Calling Web Services](app-basics/calling-web-services.md)
 * [Transforming Data with Value Converters](app-basics/transforming-data-with-value-converters.md)
 * [Leveraging Dynamic Composition](app-basics/leveraging-dynamic-composition.md)
@@ -45,8 +45,6 @@
 * [Securing an App](app-basics/securing-an-app.md)
 * [Customizing Binding Behavior](app-basics/customizing-binding-behavior.md)
 * [Internationalization](app-basics/internationalization.md)
-* [Adding Animation](app-basics/adding-animation.md)
-* [Overlays, Modals, and Toast](app-basics/overlays-modals-toast.md)
 * [Testing Apps and Components](app-basics/testing-apps-and-components.md)
 
 ## Routing
@@ -75,21 +73,6 @@
 * [Displaying Errors](validation/displaying-errors.md)
 * [I18n Internationalization](validation/i18n-internationalization.md)
 * [Migration Guide & Breaking Changes](validation/migration-guide.md)
-
-## Advanced Scenarios
-
-* [One Thousand Components](advanced-scenarios/one-thousand-components.md)
-* [Binding and Templating Internals](advanced-scenarios/binding-and-templating-internals.md)
-* [Performance Optimization Techniques](advanced-scenarios/performance-optimization-techniques.md)
-* [Virtualizing Large Collections](advanced-scenarios/virtualizing-large-collections.md)
-* [Organizing Large-Scale Projects](advanced-scenarios/organizing-large-scale-projects.md)
-* [Advanced UI Modeling and Composition](advanced-scenarios/advanced-ui-modeling-with-composite-mvvm.md)
-* [Consuming and Producing Web Components](advanced-scenarios/consuming-and-producing-web-components.md)
-* [Shipping Your Own Aurelia Plugin](advanced-scenarios/shipping-your-own-aurelia-plugin.md)
-* [Building Desktop Apps and PWAs](advanced-scenarios/building-desktop-apps-and-pwa.md)
-* [Building Phone Apps](advanced-scenarios/building-phone-apps.md)
-* [Extending the Template Compiler](advanced-scenarios/extending-the-template-compiler.md)
-* [Extending the Binding Engine](advanced-scenarios/extending-the-binding-engine.md)
 
 ## API
 

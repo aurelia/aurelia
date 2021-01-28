@@ -18,7 +18,7 @@ The three different types of routing and how to leverage them can be found in th
 
 ## Getting Started
 
-We will not get into the technical specifics of routing here. We simply import the `RouterConfiguration` instance from the Aurelia package and then register it via the `register` method. 
+We will not get into the technical specifics of routing here. We simply import the `RouterConfiguration` instance from the Aurelia package and then register it via the `register` method.
 
 An assumption is being made here that you generated a new Aurelia application and you are working with TypeScript. Changing the following example to work with Javascript based Aurelia applications should not be too much work.
 

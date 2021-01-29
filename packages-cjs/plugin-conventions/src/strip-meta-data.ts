@@ -67,7 +67,12 @@ export function stripMetaData(rawHtml: string): IStrippedHtml {
 
 function traverse(tree: any, cb: (node: DefaultTreeElement) => void) {
   tree.childNodes.forEach((n: any) => {
-    cb(n as DefaultTreeElement);
+    const ne = n as DefaultTreeElement;
+    // skip <template as-custom-element="..">
+    if (ne.tagName === 'template' && ne.attrs.some(attr => attr.name === 'as-custom-element')) {
+      return;
+    }
+    cb(ne);
     if (n.childNodes) traverse(n, cb);
     // For <template> tag
     if (n.content && n.content.childNodes) traverse(n.content, cb);

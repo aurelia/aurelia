@@ -92,7 +92,7 @@ describe('RoutingInstruction', function () {
       it(`parses viewport instruction: ${instruction}`, async function () {
         const { host, router, tearDown } = await createFixture();
 
-        routingInstruction.context = '';
+        routingInstruction.scopeModifier = '';
         const parsed = RoutingInstruction.parse(instruction)[0];
         assert.deepStrictEqual(parsed, routingInstruction, `parsed`);
         const newInstruction = parsed.stringify();
@@ -109,7 +109,7 @@ describe('RoutingInstruction', function () {
       it(`parses viewport instruction: ${prefixedInstruction}`, async function () {
         const { host, router, tearDown } = await createFixture();
 
-        routingInstruction.context = '/';
+        routingInstruction.scopeModifier = '/';
         const parsed = RoutingInstruction.parse(prefixedInstruction)[0];
         assert.deepStrictEqual(parsed, routingInstruction, `parsed`);
         const newInstruction = parsed.stringify();
@@ -126,7 +126,7 @@ describe('RoutingInstruction', function () {
       it(`parses viewport instruction: ${prefixedInstruction}`, async function () {
         const { host, router, tearDown } = await createFixture();
 
-        routingInstruction.context = '../../';
+        routingInstruction.scopeModifier = '../../';
         const parsed = RoutingInstruction.parse(prefixedInstruction)[0];
         assert.deepStrictEqual(parsed, routingInstruction, `parsed`);
         const newInstruction = parsed.stringify();

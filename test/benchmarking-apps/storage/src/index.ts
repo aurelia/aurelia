@@ -39,15 +39,16 @@ class JsonFileStorage implements IStorage {
     for (const file of readdirSync(root, 'utf8')) {
       if (extname(file) !== '.json') { continue; }
       const filePath = join(root, file);
-      let temp: Partial<BenchmarkMeasurements> = null!;
+      let temp: Partial<BenchmarkMeasurements> | null = null;
       if (hasBranch || hasCommit) {
         temp = JSON.parse(readFileSync(filePath, 'utf8')) as Partial<BenchmarkMeasurements>;
         if ((hasBranch && temp.branch !== branch) || (hasCommit && !temp.commit?.startsWith(commit!))) {
+          temp = null;
           continue;
         }
       }
       const stat = lstatSync(filePath);
-      const newTimestamp = Math.max(timestamp, stat.ctime.getTime());
+      const newTimestamp = Math.max(timestamp, stat.birthtimeMs);
       if (newTimestamp !== timestamp) {
         timestamp = newTimestamp;
         latestResult = temp ?? filePath;

@@ -75,7 +75,8 @@ export const IFileServer = DI.createInterface<IFileServer>('IFileServer', x => x
 const $IStorage = DI.createInterface<IStorage>('IStorage');
 type Handler = (ctx: IHttpContext) => Promise<void>;
 
-function validateCommit(commit: string | string[]): asserts commit is string {
+function validateCommit(commit: undefined | string | string[]): asserts commit is string {
+  if (commit === void 0) { return; }
   if (Array.isArray(commit)) {
     throw new NotSupportedError('Querying multiple commits not yet supported');
   }

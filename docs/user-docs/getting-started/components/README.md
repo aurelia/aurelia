@@ -262,7 +262,7 @@ We highly recommend that you leverage conventions where possible. A few benefits
 
 ## The Component Lifecycle
 
-Learn more about the [component lifecycle here](./component-lifecycles.md)
+Learn more about the [component lifecycle here](component-lifecycles.md)
 
 ### Component Constructors
 
@@ -291,6 +291,8 @@ If you need access to a DOM element from within your view, rather than the host,
 ## So Much More...
 
 So far, we've only scratched the surface of what Aurelia's component system can do. If you'd like to continue on to additional component scenarios, including component composition, Shadow DOM and slots, HTML-only components, and more, you can pick up from here in our Component Basics articles:
-- [Local Templates](./local-templates.md).
-- [Watching data](./watching-data.md).
-- [Components Revisited](../app-basics/components-revisited.md).
+
+* [Local Templates](local-templates.md).
+* [Watching data](watching-data.md).
+* [Components Revisited](https://github.com/aurelia/aurelia/tree/5dcb1613039f0fa4f97d0114cc47cc7a66f04425/docs/user-docs/getting-started/app-basics/components-revisited.md).
+

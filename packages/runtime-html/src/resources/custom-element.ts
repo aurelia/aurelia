@@ -29,7 +29,7 @@ import {
   PartialBindableDefinition,
 } from '../bindable.js';
 import { IProjections } from './custom-elements/au-slot.js';
-import { INode, getEffectiveParentNode } from '../dom.js';
+import { INode, getEffectiveParentNode, getRef } from '../dom.js';
 import { IInstruction } from '../renderer.js';
 import { PartialChildrenDefinition, ChildrenDefinition, Children } from '../templating/children.js';
 import { Controller } from '../templating/controller.js';
@@ -412,8 +412,8 @@ export const CustomElement: CustomElementKind = {
   },
   for<C extends ICustomElementViewModel = ICustomElementViewModel>(node: Node, opts: ForOpts = defaultForOpts): ICustomElementController<C> {
     if (opts.name === void 0 && opts.searchParents !== true) {
-      const controller = Metadata.getOwn(CustomElement.name, node) as Controller<C> | undefined;
-      if (controller === void 0) {
+      const controller = getRef(node, CustomElement.name) as Controller<C> | null;
+      if (controller === null) {
         if (opts.optional === true) {
           return null!;
         }
@@ -423,8 +423,8 @@ export const CustomElement: CustomElementKind = {
     }
     if (opts.name !== void 0) {
       if (opts.searchParents !== true) {
-        const controller = Metadata.getOwn(CustomElement.name, node) as Controller<C> | undefined;
-        if (controller === void 0) {
+        const controller = getRef(node, CustomElement.name) as Controller<C> | null;
+        if (controller === null) {
           throw new Error(`The provided node is not a custom element or containerless host.`);
         }
 
@@ -438,8 +438,8 @@ export const CustomElement: CustomElementKind = {
       let cur = node as INode | null;
       let foundAController = false;
       while (cur !== null) {
-        const controller = Metadata.getOwn(CustomElement.name, cur) as Controller<C> | undefined;
-        if (controller !== void 0) {
+        const controller = getRef(cur, CustomElement.name) as Controller<C> | null;
+        if (controller !== null) {
           foundAController = true;
           if (controller.is(opts.name)) {
             return controller as unknown as ICustomElementController<C>;
@@ -458,9 +458,9 @@ export const CustomElement: CustomElementKind = {
 
     let cur = node as INode | null;
     while (cur !== null) {
-      const controller = Metadata.getOwn(CustomElement.name, cur);
-      if (controller !== void 0) {
-        return controller;
+      const controller = getRef(cur, CustomElement.name) as Controller<C> | null;
+      if (controller !== null) {
+        return controller as unknown as ICustomElementController<C>;
       }
 
       cur = getEffectiveParentNode(cur);

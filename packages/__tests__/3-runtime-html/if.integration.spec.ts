@@ -15,6 +15,7 @@ import {
   TextBindingRendererRegistration,
   TextBindingInstruction,
   Interpolation,
+  IWorkTracker,
   INodeObserverLocatorRegistration,
 } from '@aurelia/runtime-html';
 import {
@@ -149,9 +150,10 @@ describe(`If/Else`, function () {
           container,
         );
 
+        const work = container.get(IWorkTracker);
         const ifFactory = new ViewFactory('if-view', ifContext, void 0, null);
         const elseFactory = new ViewFactory('else-view', elseContext, void 0, null);
-        const sut = new If(ifFactory, ifLoc);
+        const sut = new If(ifFactory, ifLoc, work);
         const elseSut = new Else(elseFactory);
         const ifController = (sut as Writable<If>).$controller = Controller.forCustomAttribute(null, container, sut, (void 0)!);
         elseSut.link(LifecycleFlags.none, void 0!, { children: [ifController] } as unknown as IHydratableController, void 0!, void 0!, void 0!);

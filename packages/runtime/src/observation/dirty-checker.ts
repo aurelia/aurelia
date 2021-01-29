@@ -70,7 +70,7 @@ export class DirtyChecker {
     this.tracked.push(property);
 
     if (this.tracked.length === 1) {
-      this.task = this.platform.macroTaskQueue.queueTask(this.check, queueTaskOpts);
+      this.task = this.platform.taskQueue.queueTask(this.check, queueTaskOpts);
     }
   }
 

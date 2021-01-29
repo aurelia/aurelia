@@ -1,10 +1,10 @@
-import { DI, Metadata, Protocol, Writable } from '@aurelia/kernel';
-import { Scope, LifecycleFlags } from '@aurelia/runtime';
+import { DI, Writable } from '@aurelia/kernel';
+import { LifecycleFlags, Scope } from '@aurelia/runtime';
 import { IRenderLocation } from '../../dom.js';
-import { customElement, CustomElementDefinition } from '../custom-element.js';
-import { IViewFactory } from '../../templating/view.js';
 import { IInstruction, Instruction } from '../../renderer.js';
 import type { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../templating/controller.js';
+import { IViewFactory } from '../../templating/view.js';
+import { customElement, CustomElementDefinition } from '../custom-element.js';
 
 export type IProjections = Record<string, CustomElementDefinition>;
 export const IProjections = DI.createInterface<IProjections>("IProjections");
@@ -113,6 +113,8 @@ export class AuSlot implements ICustomElementViewModel {
 
 customElement({ name: 'au-slot', template: null, containerless: true })(AuSlot);
 
+export interface IAuSlotsInfo extends AuSlotsInfo { }
+export const IAuSlotsInfo = DI.createInterface<IAuSlotsInfo>('AuSlotsInfo');
 export class AuSlotsInfo {
   /**
    * @param {string[]} projectedSlots - Name of the slots to which content are projected.
@@ -121,18 +123,3 @@ export class AuSlotsInfo {
     public readonly projectedSlots: string[],
   ) { }
 }
-type AuSlotsInfoPropertyNames<TClass> = { [key in keyof TClass]: TClass[key] extends AuSlotsInfo ? key : never }[keyof TClass];
-export function auSlots<TTarget>(prototype: TTarget, property: AuSlotsInfoPropertyNames<TTarget>): void {
-  AuSlotsInfoProperty.define(prototype, property);
-}
-
-/** @internal */
-export const AuSlotsInfoProperty = {
-  key: Protocol.annotation.keyFor('au-slots-info-property'),
-  define<TTarget>(prototype: TTarget, property: AuSlotsInfoPropertyNames<TTarget>): void {
-    Metadata.define(this.key, property, prototype);
-  },
-  for<TTarget extends object>(instance: TTarget): AuSlotsInfoPropertyNames<TTarget> | undefined {
-    return Metadata.get(this.key, instance.constructor.prototype) as AuSlotsInfoPropertyNames<TTarget>;
-  }
-};

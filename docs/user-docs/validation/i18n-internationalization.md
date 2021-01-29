@@ -2,9 +2,9 @@
 description: Display validation errors in other languages.
 ---
 
-# I18N (Internationalization) Support
+# I18n Internationalization
 
-If you are already using the `aurelia/i18n` plugin, then you would naturally want the localization support for validation as well. The out-of-the-box localization support is provided by the `@aurelia/validation-i18n` package. The plugin has dependency on [`@aurelia/i18n` package](internationalization.md). It assumes that the `@aurelia/i18n` package is correctly registered/configured and simply uses the I18N services to provide the translations.
+If you are already using the `aurelia/i18n` plugin, then you would naturally want the localization support for validation as well. The out-of-the-box localization support is provided by the `@aurelia/validation-i18n` package. The plugin has dependency on [`@aurelia/i18n` package](https://github.com/aurelia/aurelia/tree/96e6b82da8095ba591c0fb93c0b1600519d9c022/docs/user-docs/validation/internationalization.md). It assumes that the `@aurelia/i18n` package is correctly registered/configured and simply uses the I18N services to provide the translations.
 
 To add the localization support you must first register the plugin.
 
@@ -62,3 +62,4 @@ Naturally, the `DefaultNamespace` and the `DefaultKeyPrefix` can be used togethe
 It should not come as any surprise that localization also works for [model-based rules](model-based-validation.md), when appropriate `messageKey` is specified in the rule definition.
 
 {% embed url="https://stackblitz.com/edit/au2-validation-localization-model-based-rules?ctl=1" caption="" %}
+

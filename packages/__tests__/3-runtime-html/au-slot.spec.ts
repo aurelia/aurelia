@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { IContainer } from '@aurelia/kernel';
-import { Aurelia, auSlots, AuSlotsInfo, bindable, BindingMode, customElement, CustomElement, IPlatform } from '@aurelia/runtime-html';
+import { Aurelia, AuSlotsInfo, bindable, BindingMode, customElement, CustomElement, IAuSlotsInfo, IPlatform } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util.js';
 
@@ -87,11 +87,10 @@ describe('au-slot', function () {
   function* getTestData() {
     const createMyElement = (template: string) => {
       class MyElement {
-        @auSlots
-        public readonly slots!: AuSlotsInfo;
-
-        public define() {
-          assert.notEqual(this.slots, void 0);
+        public constructor(
+          @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
+        ) {
+           assert.instanceOf(slots, AuSlotsInfo);
         }
       }
       return CustomElement.define({ name: 'my-element', isStrictBinding: true, template, bindables: { people: { mode: BindingMode.default } }, }, MyElement);
@@ -188,12 +187,11 @@ describe('au-slot', function () {
 
     {
       class MyElement {
-        @auSlots
-        public readonly slots!: AuSlotsInfo;
         public readonly message: string = 'inner';
-
-        public define() {
-          assert.notEqual(this.slots, void 0);
+        public constructor(
+          @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
+        ) {
+           assert.instanceOf(slots, AuSlotsInfo);
         }
       }
       yield new TestData(
@@ -211,12 +209,11 @@ describe('au-slot', function () {
 
     {
       class MyElement {
-        @auSlots
-        public readonly slots!: AuSlotsInfo;
         public readonly message: string = 'inner';
-
-        public define() {
-          assert.notEqual(this.slots, void 0);
+        public constructor(
+          @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
+        ) {
+           assert.instanceOf(slots, AuSlotsInfo);
         }
       }
       yield new TestData(
@@ -237,9 +234,10 @@ describe('au-slot', function () {
     {
       @customElement({ name: 'my-element', isStrictBinding: true, template: `static <au-slot>default</au-slot> <au-slot name="s1" if.bind="showS1">s1</au-slot> <au-slot name="s2">s2</au-slot>` })
       class MyElement {
-        @auSlots
-        public readonly slots!: AuSlotsInfo;
         @bindable public showS1: boolean = true;
+        public constructor(
+          @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
+        ) { }
       }
       yield new TestData(
         'works with template controller - if',
@@ -253,7 +251,7 @@ describe('au-slot', function () {
           const vm: MyElement = CustomElement.for<MyElement>(el).viewModel;
 
           vm.showS1 = true;
-          await platform.domWriteQueue.yield();
+          platform.domWriteQueue.flush();
 
           assert.html.innerEqual(el, `static default <div>p11</div><div>p12</div> <div>p20</div><div>p21</div>`, 'my-element.innerHTML');
         },
@@ -263,9 +261,10 @@ describe('au-slot', function () {
     {
       @customElement({ name: 'my-element', isStrictBinding: true, template: `static <au-slot>default</au-slot> <au-slot name="s1" if.bind="showS1">s1</au-slot> <au-slot else name="s2">s2</au-slot>` })
       class MyElement {
-        @auSlots
-        public readonly slots!: AuSlotsInfo;
         @bindable public showS1: boolean = true;
+        public constructor(
+          @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
+        ) { }
       }
       yield new TestData(
         'works with template controller - if-else',
@@ -285,7 +284,7 @@ describe('au-slot', function () {
 
           vm1.showS1 = !vm1.showS1;
           vm2.showS1 = !vm2.showS1;
-          await platform.domWriteQueue.yield();
+          platform.domWriteQueue.flush();
 
           assert.html.innerEqual(el1, `static default <div>p11</div>`, 'my-element.innerHTML');
           assert.html.innerEqual(el2, `static default <div>p22</div>`, 'my-element+my-element.innerHTML');
@@ -296,9 +295,10 @@ describe('au-slot', function () {
     {
       @customElement({ name: 'my-element', isStrictBinding: true, template: `<ul if.bind="someCondition"><au-slot></au-slot></ul> <div else><au-slot></au-slot></div>` })
       class MyElement {
-        @auSlots
-        public readonly slots!: AuSlotsInfo;
         @bindable public someCondition: boolean = true;
+        public constructor(
+          @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
+        ) { }
       }
       yield new TestData(
         'works with template controller - if-else - same slot name',
@@ -330,9 +330,10 @@ describe('au-slot', function () {
         </template>
       </au-slot>` })
       class MyElement {
-        @auSlots
-        public readonly slots!: AuSlotsInfo;
         @bindable public people: Person[];
+        public constructor(
+          @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
+        ) { }
       }
 
       yield new TestData(
@@ -344,7 +345,7 @@ describe('au-slot', function () {
         { 'my-element': [`<h4>First Name</h4> <h4>Last Name</h4> <div>John</div> <div>Doe</div> <div>Max</div> <div>Mustermann</div>`, new AuSlotsInfo([])] },
         async function ({ app, host, platform }) {
           app.people.push(new Person('Jane', 'Doe', []));
-          await platform.domWriteQueue.yield();
+          platform.domWriteQueue.flush();
           assert.html.innerEqual(
             'my-element',
             `<h4>First Name</h4> <h4>Last Name</h4> <div>John</div> <div>Doe</div> <div>Max</div> <div>Mustermann</div> <div>Jane</div> <div>Doe</div>`,
@@ -490,8 +491,9 @@ describe('au-slot', function () {
 
       {
         class MyElement {
-          @auSlots
-          public readonly slots: AuSlotsInfo;
+          public constructor(
+            @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
+          ) { }
         }
         yield new TestData(
           'works with table',
@@ -638,9 +640,10 @@ describe('au-slot', function () {
         </template>
       </au-slot>` })
       class MyElement {
-        @auSlots
-        public readonly slots!: AuSlotsInfo;
         @bindable public people: Person[];
+        public constructor(
+          @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
+        ) { }
       }
       yield new TestData(
         'simple nesting',
@@ -783,9 +786,10 @@ describe('au-slot', function () {
       {
 
         class MyElement {
-          @auSlots
-          public readonly slots: AuSlotsInfo;
           public readonly message: string = 'inner';
+          public constructor(
+            @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
+          ) { }
         }
         yield new TestData(
           'CE[au-slot] works - $host',
@@ -977,8 +981,9 @@ describe('au-slot', function () {
         };
 
         class MyElement {
-          @auSlots
-          public readonly slots: AuSlotsInfo;
+          public constructor(
+            @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
+          ) { }
         }
 
         for (let i = 1; i < 11; i++) {
@@ -1032,8 +1037,9 @@ describe('au-slot', function () {
 
         for (let i = 1; i < 11; i++) {
           class MyElement {
-            @auSlots
-            public readonly slots: AuSlotsInfo;
+            public constructor(
+              @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
+            ) { }
           }
           yield new TestData(
             `projection works for all non-nested <au-slot>; count: ${i}`,
@@ -1051,9 +1057,10 @@ describe('au-slot', function () {
     // #region data binding
     {
       class MyElement {
-        @auSlots
-        public readonly slots: AuSlotsInfo;
         public foo: string = "foo";
+        public constructor(
+          @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
+        ) { }
       }
       yield new TestData(
         'works with input value binding - $host',
@@ -1069,7 +1076,7 @@ describe('au-slot', function () {
           assert.strictEqual(input.value, "foo");
 
           vm.foo = "bar";
-          await platform.domWriteQueue.yield();
+          platform.domWriteQueue.flush();
           assert.strictEqual(input.value, "bar");
         }
       );
@@ -1087,7 +1094,7 @@ describe('au-slot', function () {
         assert.strictEqual(input.value, app.people[0].firstName);
 
         app.people[0].firstName = "Jane";
-        await platform.domWriteQueue.yield();
+        platform.domWriteQueue.flush();
         assert.strictEqual(input.value, "Jane");
       }
     );
@@ -1107,8 +1114,8 @@ describe('au-slot', function () {
         '<my-element-user></my-element-user>',
         [MyElementUser, createMyElement('<au-slot></au-slot>')],
         {},
-        async function ({ au, host }) {
-          await au.waitForIdle();
+        async function ({ au, host, platform }) {
+          platform.domWriteQueue.flush();
           const meu = host.querySelector('my-element-user');
           const me = host.querySelector('my-element');
           assert.html.innerEqual(meu, `<my-element class="au"><div>${fooValue}</div></my-element>`, 'my-element-user.innerHtml');
@@ -1139,8 +1146,8 @@ describe('au-slot', function () {
         '<my-element-user></my-element-user>',
         [MyElementUser, MyElement],
         {},
-        async function ({ au, host }) {
-          await au.waitForIdle();
+        async function ({ au, host, platform }) {
+          platform.domWriteQueue.flush();
           const meu = host.querySelector('my-element-user');
           const me = host.querySelector('my-element');
           assert.html.innerEqual(meu, `<my-element class="au"><div>${fooValue}</div></my-element>`, 'my-element-user.innerHtml');
@@ -1170,8 +1177,9 @@ describe('au-slot', function () {
 
     {
       class Base {
-        @auSlots
-        public readonly slots!: AuSlotsInfo;
+        public constructor(
+          @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
+        ) { }
       }
 
       @customElement({
@@ -1180,7 +1188,7 @@ describe('au-slot', function () {
       })
       class MyElement1 extends Base { }
       yield new TestData(
-        '@auSlots works with inheritance - #1',
+        '@IAuSlotsInfo works with inheritance - #1',
         '<my-element><div au-slot="s1">s1p</div></my-element>',
         [MyElement1],
         { 'my-element': ['dfb<div>s1p</div>', new AuSlotsInfo(['s1'])] }
@@ -1193,10 +1201,59 @@ describe('au-slot', function () {
       })
       class MyElement2 extends Base2 { }
       yield new TestData(
-        '@auSlots works with inheritance - #2',
+        '@IAuSlotsInfo works with inheritance - #2',
         '<my-element><div au-slot="s1">s1p</div></my-element>',
         [MyElement2],
         { 'my-element': ['dfb<div>s1p</div>', new AuSlotsInfo(['s1'])] }
+      );
+    }
+
+    {
+      @customElement({
+        name: 'ce-one',
+        template: '<au-slot>dfb</au-slot><au-slot name="s1">s1fb</au-slot>',
+      })
+      class CeOne {
+        public constructor(
+          @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
+        ) {
+           assert.instanceOf(slots, AuSlotsInfo);
+        }
+      }
+      @customElement({
+        name: 'ce-two',
+        template: 'ce two',
+      })
+      class CeTwo {
+        public constructor(
+          @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
+        ) {
+           assert.instanceOf(slots, AuSlotsInfo);
+        }
+      }
+      @customElement({
+        name: 'ce-three',
+        template: '<au-slot name="s1">s1fb</au-slot><ce-one><span au-slot>dp</span></ce-one><ce-two></ce-two>',
+      })
+      class CeThree {
+        public constructor(
+          @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
+        ) {
+           assert.instanceOf(slots, AuSlotsInfo);
+        }
+      }
+
+      yield new TestData(
+        '@IAuSlotsInfo works correctly with element nesting',
+        '<ce-one><span au-slot="s1">s1p</span></ce-one><ce-two></ce-two><ce-three><div au-slot="s1">s1p</div></ce-three>',
+        [CeOne, CeTwo, CeThree],
+        {
+          'ce-one': ['dfb<span>s1p</span>', new AuSlotsInfo(['s1'])],
+          'ce-two': ['ce two', new AuSlotsInfo([])],
+          'ce-three': ['<div>s1p</div><ce-one class="au"><span>dp</span>s1fb</ce-one><ce-two class="au">ce two</ce-two>', new AuSlotsInfo(['s1'])],
+          'ce-three>ce-one': ['<span>dp</span>s1fb', new AuSlotsInfo(['default'])],
+          'ce-three>ce-two': ['ce two', new AuSlotsInfo([])],
+        }
       );
     }
   }
@@ -1213,7 +1270,7 @@ describe('au-slot', function () {
           }
 
           if (expectedAuSlotsInfo != null) {
-            const slots = CustomElement.for<{ slots: AuSlotsInfo }>(host.querySelector('my-element')).viewModel.slots;
+            const slots = CustomElement.for<{ slots: AuSlotsInfo }>(host.querySelector(selector)).viewModel.slots;
             assert.deepStrictEqual(slots, expectedAuSlotsInfo);
           }
         }
@@ -1237,7 +1294,7 @@ describe('au-slot', function () {
           const ce = host.querySelector('my-element');
           const button = ce.querySelector('button');
           button.click();
-          await platform.domWriteQueue.yield();
+          platform.domWriteQueue.flush();
           assert.equal(CustomElement.for<MyElement>(ce).viewModel.callCount, 1);
           assert.equal(app.callCount, 0);
         },
@@ -1248,7 +1305,7 @@ describe('au-slot', function () {
           const ce = host.querySelector('my-element');
           const button = ce.querySelector('button');
           button.click();
-          await platform.domWriteQueue.yield();
+          platform.domWriteQueue.flush();
           assert.equal(CustomElement.for<MyElement>(ce).viewModel.callCount, 1);
           assert.equal(app.callCount, 0);
         },
@@ -1259,7 +1316,7 @@ describe('au-slot', function () {
           const ce = host.querySelector('my-element');
           const button = ce.querySelector('button');
           button.click();
-          await platform.domWriteQueue.yield();
+          platform.domWriteQueue.flush();
           assert.equal(CustomElement.for<MyElement>(ce).viewModel.callCount, 0);
           assert.equal(app.callCount, 1);
         },

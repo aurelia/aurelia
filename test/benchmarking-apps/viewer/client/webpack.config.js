@@ -11,7 +11,7 @@ module.exports = function (env, { mode }) {
     },
     resolve: {
       extensions: ['.ts', '.js'],
-      modules: ['src', 'node_modules'],
+      modules: [path.resolve(__dirname, 'src'), 'node_modules'],
       mainFields: ['module', 'main'],
       // sadly these fallbacks are required to run the app via webpack-dev-server
       fallback: {

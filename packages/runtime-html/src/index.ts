@@ -223,6 +223,7 @@ export {
   ISinglePageApp,
   AppRoot,
   IAppRoot,
+  IWorkTracker,
 } from './app-root.js';
 export {
   TaskSlot,
@@ -430,8 +431,8 @@ export {
   RegisteredProjections,
   IProjectionProvider,
   ProjectionContext,
-  auSlots,
   AuSlotsInfo,
+  IAuSlotsInfo,
 } from './resources/custom-elements/au-slot.js';
 
 export {
@@ -571,6 +572,15 @@ export {
   ISyntheticView,
 } from './templating/controller.js';
 export {
+  ILifecycleHooks,
+  LifecycleHooksEntry,
+  LifecycleHooksDefinition,
+  LifecycleHooksLookup,
+  LifecycleHook,
+  LifecycleHooks,
+  lifecycleHooks,
+} from './templating/lifecycle-hooks.js';
+export {
   getRenderContext,
   isRenderContext,
   IRenderContext,
@@ -603,6 +613,8 @@ export {
   setEffectiveParentNode,
   convertToRenderLocation,
   isRenderLocation,
+  getRef,
+  setRef,
 } from './dom.js';
 export {
   IPlatform,

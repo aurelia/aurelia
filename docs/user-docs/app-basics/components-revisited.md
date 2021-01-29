@@ -6,24 +6,17 @@
 
 ## au-slot
 
-Aurelia provides another way of content projection with `au-slot`.
-This is similar to the native `slot` in terms of content projection, however, it does not use shadow DOM.
-`au-slot` is useful where you want externally defined styles to penetrate the component boundary, to facilitate easy styling of components.
-If you are creating your own set of custom elements that are solely used in your application, then you might want to avoid the native slots in the custom elements as it might be difficult to style those elements from your application.
-However, if you still want to have slot-like behavior, then you can use `au-slot`, as that makes the styling those custom elements/components easier.
-Instead of using shadow DOM, the resulting view is composed purely by Aurelia compilation pipeline.
-There are other aspects of `au-slot` as well which will be explored in this section with examples.
+Aurelia provides another way of content projection with `au-slot`. This is similar to the native `slot` in terms of content projection, however, it does not use shadow DOM. `au-slot` is useful where you want externally defined styles to penetrate the component boundary, to facilitate easy styling of components. If you are creating your own set of custom elements that are solely used in your application, then you might want to avoid the native slots in the custom elements as it might be difficult to style those elements from your application. However, if you still want to have slot-like behavior, then you can use `au-slot`, as that makes the styling those custom elements/components easier. Instead of using shadow DOM, the resulting view is composed purely by Aurelia compilation pipeline. There are other aspects of `au-slot` as well which will be explored in this section with examples.
 
 {% hint style="info" %}
-- An obvious question might be "Why not simply 'turn off' shadow DOM, and use the `slot` itself"? We feel that goes to the opposite direction of Aurelia's promise of keeping things as close to native behavior as possible. Moreover, using a different name like `au-slot` makes it clear that the native slot is not used in this case, however still bringing slotting behavior to use.
-- If you have used the `replaceable` and `replace part` before or with Aurelia1, it is replaced with `au-slot`.
-- The following examples use [local templates](#getting-started/components/local-templates) for succinctness only; the examples should also work for full-fledged custom elements.
+* An obvious question might be "Why not simply 'turn off' shadow DOM, and use the `slot` itself"? We feel that goes to the opposite direction of Aurelia's promise of keeping things as close to native behavior as possible. Moreover, using a different name like `au-slot` makes it clear that the native slot is not used in this case, however still bringing slotting behavior to use.
+* If you have used the `replaceable` and `replace part` before or with Aurelia1, it is replaced with `au-slot`.
+* The following examples use [local templates](components-revisited.md#getting-started/components/local-templates) for succinctness only; the examples should also work for full-fledged custom elements.
 {% endhint %}
 
 ### Basic templating usage
 
-Like `slot`, a "projection target"/"slot" can be defined using a `<au-slot>` element, and a projection to that slot can be provided using a `[au-slot]` attribute.
-Consider the following example.
+Like `slot`, a "projection target"/"slot" can be defined using a `<au-slot>` element, and a projection to that slot can be provided using a `[au-slot]` attribute. Consider the following example.
 
 {% code title="my-app.html" %}
 ```markup
@@ -73,13 +66,9 @@ Consider the following example.
 ```
 {% endcode %}
 
-In the example above, the `my-element` custom element defines two slots: one default, and one named.
-The slots can optionally have fallback content; i.e. when no projection is provided for the slot, the fallback content will be displayed.
-Projecting to a slot is therefore also optional.
-However, when a projection is provided for a slot, that overrides the fallback content of that slot.
+In the example above, the `my-element` custom element defines two slots: one default, and one named. The slots can optionally have fallback content; i.e. when no projection is provided for the slot, the fallback content will be displayed. Projecting to a slot is therefore also optional. However, when a projection is provided for a slot, that overrides the fallback content of that slot.
 
-An important point to note here is that using the `[au-slot]` attribute to provide projection is mandatory (a workaround can be made for the default `au-slot` using 'processContent' hook; refer the [documentation](#the-processContent-hook) for an example transformation function.).
-Projection without `[au-slot]` attribute is not supported and may result in unexpected behavior.
+An important point to note here is that using the `[au-slot]` attribute to provide projection is mandatory \(a workaround can be made for the default `au-slot` using 'processContent' hook; refer the [documentation](components-revisited.md#the-processContent-hook) for an example transformation function.\). Projection without `[au-slot]` attribute is not supported and may result in unexpected behavior.
 
 {% code title="my-app.html" %}
 ```markup
@@ -101,8 +90,7 @@ Projection without `[au-slot]` attribute is not supported and may result in unex
 ```
 {% endcode %}
 
-Another important point to note is that the usage of `[au-slot]` attribute is supported only on the direct children elements of a custom element.
-This means that the following examples do not work.
+Another important point to note is that the usage of `[au-slot]` attribute is supported only on the direct children elements of a custom element. This means that the following examples do not work.
 
 {% code title="my-app.html" %}
 ```markup
@@ -120,11 +108,9 @@ This means that the following examples do not work.
 ```
 {% endcode %}
 
-**The `@auSlots` decorator**
+**Inject the projected slot information**
 
-This decorator provides information related to the slots inside a custom element.
-As of now this provides only the slot names for which content has been projected.
-Let's consider the following example.
+It is possible to inject an instance of `IAuSlotsInfo` in a custom element view model. This provides information related to the slots inside a custom element. As of now the information includes only the slot names for which content has been projected. Let's consider the following example.
 
 {% tabs %}
 {% tab title="my-element.html" %}
@@ -134,20 +120,21 @@ Let's consider the following example.
 <au-slot name="s2">s2fb</au-slot>
 ```
 {% endtab %}
+
 {% tab title="my-element.ts" %}
 ```typescript
-import { AuSlotsInfo, auSlots } from '@aurelia/runtime-html';
+import { IAuSlotsInfo } from '@aurelia/runtime-html';
 
 class MyElement {
-  @auSlots
-  public readonly slotInfo: AuSlotsInfo;
-
-  public define() {
-    console.log(this.slotInfo.projectedSlots);
+  public constructor(
+    @IAuSlotsInfo public readonly slotInfo: IAuSlotsInfo,
+  ) {
+    console.log(slotInfo.projectedSlots);
   }
 }
 ```
 {% endtab %}
+
 {% tab title="my-app.html" %}
 ```markup
 <!-- my_element_instance_1 -->
@@ -163,7 +150,7 @@ class MyElement {
 
 Following would be logged to the console for the instances of `my-element`.
 
-```log
+```text
 // my_element_instance_1
 ['default', 's1']
 
@@ -173,8 +160,7 @@ Following would be logged to the console for the instances of `my-element`.
 
 ### Binding scope
 
-It is also possible to use data-binding, interpolation etc. while projecting.
-While doing so, the scope accessing rule can be described by the following thumb rule:
+It is also possible to use data-binding, interpolation etc. while projecting. While doing so, the scope accessing rule can be described by the following thumb rule:
 
 1. When projection is provided, the scope of the custom element, providing the projection is used.
 2. When projection is not provided, the scope of the inner custom element is used.
@@ -200,6 +186,7 @@ Let's consider the following example with interpolation.
 -->
 ```
 {% endtab %}
+
 {% tab title="my-app.ts" %}
 ```typescript
 export class MyApp {
@@ -207,11 +194,13 @@ export class MyApp {
 }
 ```
 {% endtab %}
+
 {% tab title="my-element.html" %}
 ```markup
 <au-slot name="s1">${message}</au-slot>
 ```
 {% endtab %}
+
 {% tab title="my-element.ts" %}
 ```typescript
 export class MyElement {
@@ -221,8 +210,7 @@ export class MyElement {
 {% endtab %}
 {% endtabs %}
 
-Although the `my-element` has a `message` property, but as `my-app` projects to `s1` slot, scope of `my-app` is used to evaluate the interpolation expression.
-Similar behavior can also be observed when binding properties of custom elements, as shown in the following example.
+Although the `my-element` has a `message` property, but as `my-app` projects to `s1` slot, scope of `my-app` is used to evaluate the interpolation expression. Similar behavior can also be observed when binding properties of custom elements, as shown in the following example.
 
 {% tabs %}
 {% tab title="my-app.html" %}
@@ -238,6 +226,7 @@ Similar behavior can also be observed when binding properties of custom elements
 -->
 ```
 {% endtab %}
+
 {% tab title="my-app.ts" %}
 ```typescript
 export class MyApp {
@@ -245,11 +234,13 @@ export class MyApp {
 }
 ```
 {% endtab %}
+
 {% tab title="my-element.html" %}
 ```markup
 <au-slot name="s1">${message}</au-slot>
 ```
 {% endtab %}
+
 {% tab title="my-element.ts" %}
 ```typescript
 export class MyElement {
@@ -257,11 +248,13 @@ export class MyElement {
 }
 ```
 {% endtab %}
+
 {% tab title="foo-bar.html" %}
 ```markup
 ${foo}
 ```
 {% endtab %}
+
 {% tab title="foo-bar.ts" %}
 ```typescript
 export class FooBar {
@@ -273,8 +266,7 @@ export class FooBar {
 
 **Example: Fallback uses the inner scope by default**
 
-Let's consider the following example with interpolation.
-This is the same example as before, but this time without projection.
+Let's consider the following example with interpolation. This is the same example as before, but this time without projection.
 
 {% tabs %}
 {% tab title="my-app.html" %}
@@ -288,6 +280,7 @@ This is the same example as before, but this time without projection.
 -->
 ```
 {% endtab %}
+
 {% tab title="my-app.ts" %}
 ```typescript
 export class MyApp {
@@ -295,11 +288,13 @@ export class MyApp {
 }
 ```
 {% endtab %}
+
 {% tab title="my-element.html" %}
 ```markup
 <au-slot name="s1">${message}</au-slot>
 ```
 {% endtab %}
+
 {% tab title="my-element.ts" %}
 ```typescript
 export class MyElement {
@@ -309,8 +304,7 @@ export class MyElement {
 {% endtab %}
 {% endtabs %}
 
-Note that in the absence of projection, the fallback content uses the scope of `my-element`.
-For completeness the following example shows that it also holds while binding values to the `@bindable`s in custom elements.
+Note that in the absence of projection, the fallback content uses the scope of `my-element`. For completeness the following example shows that it also holds while binding values to the `@bindable`s in custom elements.
 
 {% tabs %}
 {% tab title="my-app.html" %}
@@ -324,6 +318,7 @@ For completeness the following example shows that it also holds while binding va
 -->
 ```
 {% endtab %}
+
 {% tab title="my-app.ts" %}
 ```typescript
 export class MyApp {
@@ -331,6 +326,7 @@ export class MyApp {
 }
 ```
 {% endtab %}
+
 {% tab title="my-element.html" %}
 ```markup
 <au-slot name="s1">
@@ -338,6 +334,7 @@ export class MyApp {
 </au-slot>
 ```
 {% endtab %}
+
 {% tab title="my-element.ts" %}
 ```typescript
 export class MyElement {
@@ -345,11 +342,13 @@ export class MyElement {
 }
 ```
 {% endtab %}
+
 {% tab title="foo-bar.html" %}
 ```markup
 ${foo}
 ```
 {% endtab %}
+
 {% tab title="foo-bar.ts" %}
 ```typescript
 export class FooBar {
@@ -379,6 +378,7 @@ The outer custom element can access the inner custom element's scope using the `
 -->
 ```
 {% endtab %}
+
 {% tab title="my-app.ts" %}
 ```typescript
 export class MyApp {
@@ -386,12 +386,14 @@ export class MyApp {
 }
 ```
 {% endtab %}
+
 {% tab title="my-element.html" %}
 ```markup
 <au-slot name="s1"></au-slot>
 <au-slot name="s2"></au-slot>
 ```
 {% endtab %}
+
 {% tab title="my-element.ts" %}
 ```typescript
 export class MyElement {
@@ -401,8 +403,7 @@ export class MyElement {
 {% endtab %}
 {% endtabs %}
 
-Note that using the `$host.message` expression, `MyApp` can access the `MyElement#message`.
-The following example demonstrate the same behavior for binding values to custom elements.
+Note that using the `$host.message` expression, `MyApp` can access the `MyElement#message`. The following example demonstrate the same behavior for binding values to custom elements.
 
 {% tabs %}
 {% tab title="my-app.html" %}
@@ -418,6 +419,7 @@ The following example demonstrate the same behavior for binding values to custom
 -->
 ```
 {% endtab %}
+
 {% tab title="my-app.ts" %}
 ```typescript
 export class MyApp {
@@ -425,11 +427,13 @@ export class MyApp {
 }
 ```
 {% endtab %}
+
 {% tab title="my-element.html" %}
 ```markup
 <au-slot name="s1"></au-slot>
 ```
 {% endtab %}
+
 {% tab title="my-element.ts" %}
 ```typescript
 export class MyElement {
@@ -437,11 +441,13 @@ export class MyElement {
 }
 ```
 {% endtab %}
+
 {% tab title="foo-bar.html" %}
 ```markup
 ${foo}
 ```
 {% endtab %}
+
 {% tab title="foo-bar.ts" %}
 ```typescript
 export class FooBar {
@@ -495,6 +501,7 @@ Let's consider another example of `$host` which highlights the necessity of it.
 -->
 ```
 {% endtab %}
+
 {% tab title="my-app.ts" %}
 ```typescript
 export class MyApp {
@@ -514,20 +521,14 @@ class Person {
 {% endtab %}
 {% endtabs %}
 
-In the example above, we replace the 'content' template of the grid, defined in `my-element`, from `my-app`.
-While doing so, we can grab the scope of the repeater and use the properties made available by the binding context, and use those in the projection template.
-Note that `$host` let us access even the contextual properties like `$index`, `$even`, or `$odd`.
-Without the `$host` it might have been difficult to provide a template for the repeater from outside.
+In the example above, we replace the 'content' template of the grid, defined in `my-element`, from `my-app`. While doing so, we can grab the scope of the repeater and use the properties made available by the binding context, and use those in the projection template. Note that `$host` let us access even the contextual properties like `$index`, `$even`, or `$odd`. Without the `$host` it might have been difficult to provide a template for the repeater from outside.
 
 {% hint style="info" %}
-The last example is also interesting from another aspect.
-It shows that while working with a grid, many parts of the grid can be replaced with projection.
-This includes, the header of the grid (`au-slot="header"`), the template column of the grid (`au-slot="content"`), or even the whole grid itself (`au-slot="grid"`).
+The last example is also interesting from another aspect. It shows that while working with a grid, many parts of the grid can be replaced with projection. This includes, the header of the grid \(`au-slot="header"`\), the template column of the grid \(`au-slot="content"`\), or even the whole grid itself \(`au-slot="grid"`\).
 {% endhint %}
 
 {% hint style="warning" %}
-The `$host` keyword can only be used in context of projection.
-Using it in any other context is not supported, and will throw error with high probability.
+The `$host` keyword can only be used in context of projection. Using it in any other context is not supported, and will throw error with high probability.
 {% endhint %}
 
 ### Multiple projections for single slot
@@ -560,8 +561,7 @@ It is possible to provide multiple projections to single slot.
 ```
 {% endcode %}
 
-This is useful for many cases.
-One evident example would a 'tabs' custom element.
+This is useful for many cases. One evident example would a 'tabs' custom element.
 
 {% code title="my-app.html" %}
 ```markup
@@ -582,14 +582,11 @@ One evident example would a 'tabs' custom element.
 ```
 {% endcode %}
 
-This helps keeping things closer that belong together.
-For example, keeping the tab-header and tab-content next to each other, provides better readability and understanding of the code to the developer.
-On other hand, it still places the projected contents at the right slot.
+This helps keeping things closer that belong together. For example, keeping the tab-header and tab-content next to each other, provides better readability and understanding of the code to the developer. On other hand, it still places the projected contents at the right slot.
 
 ### Duplicate slots
 
-Having more than one `<au-slot>` with same name is also supported.
-This lets us projecting same content to multiple slots declaratively, as can be seen from the following example.
+Having more than one `<au-slot>` with same name is also supported. This lets us projecting same content to multiple slots declaratively, as can be seen from the following example.
 
 {% code title="my-app.html" %}
 ```markup
@@ -612,16 +609,14 @@ This lets us projecting same content to multiple slots declaratively, as can be 
 ```
 {% endcode %}
 
-Note that projection for the name is provided once, but it gets duplicated in 2 slots.
-You can also see this example in action [here](https://stackblitz.com/edit/au-slot-duplicate-slots?file=my-app.html).
+Note that projection for the name is provided once, but it gets duplicated in 2 slots. You can also see this example in action [here](https://stackblitz.com/edit/au-slot-duplicate-slots?file=my-app.html).
 
 ### Template controller integration and dynamic content
 
 Template controllers like `if/else`, `switch`, and `repeat.for` be used in combination of `au-slot` element to dynamically generate content.
 
 {% hint style="warning" %}
-One limitation at this point is that template controllers cannot be used directly with `[au-slot]` attribute.
-However, it can be easily circumvented by wrapping the template controller with the element with `[au-slot]` attribute.
+One limitation at this point is that template controllers cannot be used directly with `[au-slot]` attribute. However, it can be easily circumvented by wrapping the template controller with the element with `[au-slot]` attribute.
 {% endhint %}
 
 **Examples using `if`/`else`**
@@ -660,8 +655,7 @@ Following is a basic example of `if`/`else`, combined with `au-slot`.
 ```
 {% endcode %}
 
-Another interesting use-case is to use the same slot name, but conditionally render different elements.
-This is shown below.
+Another interesting use-case is to use the same slot name, but conditionally render different elements. This is shown below.
 
 {% code title="my-app.html" %}
 ```markup
@@ -832,12 +826,11 @@ It is also possible to project to a nested slot, used inside a `repeat.for`.
 ```
 {% endcode %}
 
-Another interesting example of `repeat.for` is already shown in the [Binding scope](#binding-scope) section in context of `$host` keyword that you must check, if you haven't already.
+Another interesting example of `repeat.for` is already shown in the [Binding scope](components-revisited.md#binding-scope) section in context of `$host` keyword that you must check, if you haven't already.
 
 **Examples using `with`**
 
-The `with` template controller can also be used naturally with `au-slot`.
-A basic example is shown below.
+The `with` template controller can also be used naturally with `au-slot`. A basic example is shown below.
 
 {% code title="my-app.html" %}
 ```markup
@@ -877,6 +870,7 @@ class Person {
 }
 ```
 {% endtab %}
+
 {% tab title="collection-viewer.html" %}
 ```markup
 <au-slot name="collection">
@@ -884,6 +878,7 @@ class Person {
 </au-slot>
 ```
 {% endtab %}
+
 {% tab title="collection-viewer.ts" %}
 ```typescript
 class CollectionViewer {
@@ -891,6 +886,7 @@ class CollectionViewer {
 }
 ```
 {% endtab %}
+
 {% tab title="my-element.html" %}
 ```markup
 <au-slot name="grid">
@@ -909,6 +905,7 @@ class CollectionViewer {
 </au-slot>
 ```
 {% endtab %}
+
 {% tab title="my-element.ts" %}
 ```typescript
 class MyElement {
@@ -916,6 +913,7 @@ class MyElement {
 }
 ```
 {% endtab %}
+
 {% tab title="my-app.html" %}
 ```markup
 <my-element people.bind="people">
@@ -950,6 +948,7 @@ class MyElement {
 -->
 ```
 {% endtab %}
+
 {% tab title="my-app.ts" %}
 ```typescript
 class MyApp {
@@ -972,21 +971,25 @@ Projections are supported to different nested custom elements with same slot nam
 <au-slot name="s1"></au-slot>
 ```
 {% endtab %}
+
 {% tab title="my-element1.ts" %}
 ```typescript
 class MyElement1 { }
 ```
 {% endtab %}
+
 {% tab title="my-element2.html" %}
 ```markup
 <au-slot name="s1"></au-slot>
 ```
 {% endtab %}
+
 {% tab title="my-element2.ts" %}
 ```typescript
 class MyElement2 { }
 ```
 {% endtab %}
+
 {% tab title="my-app.html" %}
 ```markup
 <my-element1>
@@ -1020,6 +1023,7 @@ You can 'chain' projections, as explained in the following example.
 <au-slot name="s0"></au-slot>
 ```
 {% endtab %}
+
 {% tab title="lvl-one.html" %}
 ```markup
 <lvl-zero>
@@ -1029,6 +1033,7 @@ You can 'chain' projections, as explained in the following example.
 </lvl-zero>
 ```
 {% endtab %}
+
 {% tab title="my-app.html" %}
 ```markup
 <lvl-one>
@@ -1046,10 +1051,9 @@ You can 'chain' projections, as explained in the following example.
 {% endtab %}
 {% endtabs %}
 
-While using `au-slot` in a table, we need to keep in mind that anything not complying with the HTML table schema is thrown out of the table.
-For example the following examples do not work.
+While using `au-slot` in a table, we need to keep in mind that anything not complying with the HTML table schema is thrown out of the table. For example the following examples do not work.
 
-```html
+```markup
 <!-- example#1 -->
 <table>
   <thead>
@@ -1077,8 +1081,7 @@ For example the following examples do not work.
 </table>
 ```
 
-However, in such cases, we can use the [`as-element` attribute](#the-as-element-attribute) effectively to compose the views.
-This is shown in the example below.
+However, in such cases, we can use the [`as-element` attribute](components-revisited.md#the-as-element-attribute) effectively to compose the views. This is shown in the example below.
 
 {% tabs %}
 {% tab title="my-element.html" %}
@@ -1097,11 +1100,13 @@ This is shown in the example below.
 </table>
 ```
 {% endtab %}
+
 {% tab title="my-element.ts" %}
 ```typescript
 class MyElement { }
 ```
 {% endtab %}
+
 {% tab title="my-app.html" %}
 ```markup
 <my-element items.bind="[{p1: 1, p2: 2}, {p1: 11, p2: 22}]">
@@ -1142,15 +1147,12 @@ class MyElement { }
 {% endtabs %}
 
 {% hint style="warning" %}
-Note that the `au-slot` is a container-less custom element.
-This implies that applying `au-slot` on a `tr`, `thead`, or `tbody` will finally result in removing those tags from the DOM tree.
-Thus, in the above examples the `tr>template[as-element=au-slot]` construct is a deliberate choice.
-Contextually, `template[as-element=au-slot]` can also be wrapped inside `thead`, or `tbody`, depending on the use-cases.
+Note that the `au-slot` is a container-less custom element. This implies that applying `au-slot` on a `tr`, `thead`, or `tbody` will finally result in removing those tags from the DOM tree. Thus, in the above examples the `tr>template[as-element=au-slot]` construct is a deliberate choice. Contextually, `template[as-element=au-slot]` can also be wrapped inside `thead`, or `tbody`, depending on the use-cases.
 {% endhint %}
 
 Following are some invalid examples that are not supported, and may result in unexpected result.
 
-```html
+```markup
 <!-- Example#1: projection attempt to non-existing slot is no-op. -->
 <template as-custom-element="my-element">
   <au-slot name="s1">s1fb</au-slot>
@@ -1266,8 +1268,7 @@ Aurelia's component system is rich with features, designed to enable you to tack
 
 ### The 'processContent' hook
 
-There are scenarios where we would like to transform the template provided by the usage-side.
-The 'processContent' hook lets us define a pre-compilation hook to make that transformation.
+There are scenarios where we would like to transform the template provided by the usage-side. The 'processContent' hook lets us define a pre-compilation hook to make that transformation.
 
 The signature of the hook function is as follows.
 
@@ -1278,9 +1279,7 @@ The signature of the hook function is as follows.
 
 There are two important things to note here.
 
-First is the `node` argument.
-It is the DOM tree on the usage-side for the custom element.
-For example, if there is a custom element named `my-element`, on which a 'processContent' hook is defined, and it is used somewhere as shown in the following markup, then when the hook is invoked, the `node` argument will provide the DOM tree that represents the following markup.
+First is the `node` argument. It is the DOM tree on the usage-side for the custom element. For example, if there is a custom element named `my-element`, on which a 'processContent' hook is defined, and it is used somewhere as shown in the following markup, then when the hook is invoked, the `node` argument will provide the DOM tree that represents the following markup.
 
 ```markup
 <my-element>
@@ -1288,17 +1287,12 @@ For example, if there is a custom element named `my-element`, on which a 'proces
  <bar></bar>
 </my-element>
 ```
-Then inside the hook this DOM tree can be transformed/mutated into a different DOM tree.
-The mutation can be addition/removal of attributes or element nodes.
 
-Second is the return type `boolean | void`.
-Returning from this function is optional.
-Only an explicit `false` return value results in skipping the compilation (and thereby enhancing) of the child nodes in the DOM tree.
-The implication of skipping the compilation of the child nodes is that Aurelia will not touch those DOM fragments and will be kept as it is.
-In other words, if the mutated node contains custom elements, custom attributes, or template controllers, those will not be hydrated.
+Then inside the hook this DOM tree can be transformed/mutated into a different DOM tree. The mutation can be addition/removal of attributes or element nodes.
 
-The `platform` argument is just the helper to have platform-agnostic operations as it abstracts the platform.
-Lastly the `this` argument signifies that the hook function always gets bound to the custom element class function for which the hook is defined.
+Second is the return type `boolean | void`. Returning from this function is optional. Only an explicit `false` return value results in skipping the compilation \(and thereby enhancing\) of the child nodes in the DOM tree. The implication of skipping the compilation of the child nodes is that Aurelia will not touch those DOM fragments and will be kept as it is. In other words, if the mutated node contains custom elements, custom attributes, or template controllers, those will not be hydrated.
+
+The `platform` argument is just the helper to have platform-agnostic operations as it abstracts the platform. Lastly the `this` argument signifies that the hook function always gets bound to the custom element class function for which the hook is defined.
 
 The most straight forward way to define the hook is to use the `processContent` property while defining the custom-element.
 
@@ -1347,11 +1341,7 @@ export class MyElement {
 }
 ```
 
-That's the API.
-Now let us say consider an example.
-Let us say that we want to create a custom elements that behaves as a tabs control.
-That is this custom element shows different sets of information grouped under a set of headers, and when the header is clicked the associated content is shown.
-To this end, we can conceptualize the markup for this custom element as follows.
+That's the API. Now let us say consider an example. Let us say that we want to create a custom elements that behaves as a tabs control. That is this custom element shows different sets of information grouped under a set of headers, and when the header is clicked the associated content is shown. To this end, we can conceptualize the markup for this custom element as follows.
 
 ```markup
 <!--tabs.html-->
@@ -1363,12 +1353,10 @@ To this end, we can conceptualize the markup for this custom element as follows.
 </div>
 ```
 
-The markup has 2 slots for the header and content projection.
-While using the `tabs` custom element we want to have the following markup.
+The markup has 2 slots for the header and content projection. While using the `tabs` custom element we want to have the following markup.
 
 {% hint style="info" %}
-If you are unfamiliar with the `au-slot` then visit the [documentation](#au-slot).
-'processContent' can be very potent with `au-slot`.
+If you are unfamiliar with the `au-slot` then visit the [documentation](components-revisited.md#au-slot). 'processContent' can be very potent with `au-slot`.
 {% endhint %}
 
 ```markup
@@ -1386,11 +1374,7 @@ If you are unfamiliar with the `au-slot` then visit the [documentation](#au-slot
 </tabs>
 ```
 
-Now note that there is no custom element named `tab`.
-The idea is to keep the usage-markup as much dev-friendly as possible, so that it is easy to maintain, and the semantics are quite clear.
-Also it is easy to refactor as now we know which parts belong together.
-To support this usage-syntax we will use the 'processContent' hook to rearrange the DOM tree, so that the nodes are correctly projected at the end.
-A prototype implementation is shown below.
+Now note that there is no custom element named `tab`. The idea is to keep the usage-markup as much dev-friendly as possible, so that it is easy to maintain, and the semantics are quite clear. Also it is easy to refactor as now we know which parts belong together. To support this usage-syntax we will use the 'processContent' hook to rearrange the DOM tree, so that the nodes are correctly projected at the end. A prototype implementation is shown below.
 
 ```typescript
 // tabs.ts
@@ -1444,13 +1428,9 @@ class Tabs {
 }
 ```
 
-<!-- TODO add a live example later after a new dev version is released post merge of #1068. -->
-
 **Example transformation function for default `[au-slot]`**
 
-If you have used [`au-slot`](#au-slot), you might have noticed that in order to provide a projection the usage of `[au-slot]` attribute is mandatory, even if the projections are targeted to the default `au-slot`.
-With the help of the 'processContent' hook we can workaround this minor inconvenience.
-The following is a sample transformation function that loops over the direct children under `node` and demotes the nodes without any `[au-slot]` attribute to a synthetic `template[au-slot]` node.
+If you have used [`au-slot`](components-revisited.md#au-slot), you might have noticed that in order to provide a projection the usage of `[au-slot]` attribute is mandatory, even if the projections are targeted to the default `au-slot`. With the help of the 'processContent' hook we can workaround this minor inconvenience. The following is a sample transformation function that loops over the direct children under `node` and demotes the nodes without any `[au-slot]` attribute to a synthetic `template[au-slot]` node.
 
 ```typescript
 processContent(node: INode, p: IPlatform) {

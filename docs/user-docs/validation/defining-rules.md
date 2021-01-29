@@ -2,7 +2,7 @@
 description: Creating and customing Aurelia Validation rules to ensure data is validated.
 ---
 
-# Defining Rules
+# Defining & Customizing Rules
 
 Let us also consider the following `Person` class, and we want to define validation rules for this class or instance of this class.
 
@@ -718,3 +718,4 @@ Some of the useful combinations are as follows.
 | ✔ | ✔ |  | ✔ | ✔ | Only the tagged rules for the property in the tagged ruleset for the object are validated. |
 
 Note that in the presence of `rules` the `objectTag` is ignored. However, we strongly encourage the usage of tags for executing specific set of rules. You can find more details on tagging in [Tagging rules](tagging-rules.md) section. Note that the validate instruction is also respected by [validation controller](validation-controller.md).
+

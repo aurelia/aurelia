@@ -14,7 +14,7 @@ describe('DirtyChecker', function () {
   function createFixture() {
     const ctx = TestContext.create();
     const dirtyChecker = ctx.container.get(IDirtyChecker);
-    const taskQueue = ctx.platform.macroTaskQueue;
+    const taskQueue = ctx.platform.taskQueue;
 
     return { dirtyChecker, taskQueue };
   }

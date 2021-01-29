@@ -225,7 +225,7 @@ class NotSupportedError extends Error implements KnownError {
 }
 
 const container = DI.createContainer().register(
-  LoggerConfiguration.create({ $console: console, level: LogLevel.debug }),
+  LoggerConfiguration.create({ sinks: [ConsoleSink], level: LogLevel.debug }),
   Registration.cachedCallback(IHttpServerOptions, handler => {
     const processEnv = handler.get(IProcessEnv);
     return new HttpServerOptions(

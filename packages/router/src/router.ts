@@ -180,7 +180,7 @@ export class Router implements IRouter {
     };
     (options as IRouterStartOptions & { separators: ISeparators }).separators = separatorOptions;
 
-    Object.assign(RouterOptions, options);
+    RouterOptions.apply(options, true);
 
     if (Array.isArray(RouterOptions.hooks)) {
       RouterOptions.hooks.forEach(hook => RoutingHook.add(hook.hook, hook.options));
@@ -214,7 +214,6 @@ export class Router implements IRouter {
     this.linkHandler.stop();
     this.navigator.stop();
     this.navigation.stop();
-    RouterOptions.resetDefaults();
 
     this.navigatorStateChangeEventSubscription.dispose();
     this.navigatorNavigateEventSubscription.dispose();

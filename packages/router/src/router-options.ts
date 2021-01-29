@@ -111,7 +111,15 @@ export class RouterOptions implements INavigatorOptions {
   public static swapStrategy: SwapStrategy = 'add-first-sequential';
   public static routingHookIntegration: RoutingHookIntegration = 'integrated';
 
-  public static resetDefaults(): void {
+  public static apply(options: IRouterStartOptions, firstResetDefaults: boolean): void {
+    if (firstResetDefaults) {
+      RouterOptions.resetDefaults();
+    }
+
+    Object.assign(RouterOptions, options);
+  }
+
+  private static resetDefaults(): void {
     RouterOptions.separators = {
       viewport: '@', // ':',
       sibling: '+', // '/',

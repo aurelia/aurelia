@@ -118,7 +118,7 @@ export class RouteExpression {
     public readonly raw: string,
     public readonly isAbsolute: boolean,
     public readonly root: CompositeSegmentExpressionOrHigher,
-    public readonly queryParams: Params,
+    public readonly queryParams: Readonly<URLSearchParams>,
     public readonly fragment: string | null,
     public readonly fragmentIsRoute: boolean,
   ) {}
@@ -152,24 +152,19 @@ export class RouteExpression {
     }
 
     // Strip off and parse the query string using built-in URLSearchParams.
-    const queryParams: Params = {};
+    let queryParams: URLSearchParams | null = null;
     const queryStart = path.indexOf('?');
     if (queryStart >= 0) {
       const queryString = path.slice(queryStart + 1);
       path = path.slice(0, queryStart);
-      const searchParams = new URLSearchParams(queryString);
-      searchParams.forEach(function (value, key) {
-        queryParams[key] = value;
-      });
+      queryParams = new URLSearchParams(queryString);
     }
-    Object.freeze(queryParams);
-
     if (path === '') {
       return new RouteExpression(
         '',
         false,
         SegmentExpression.EMPTY,
-        queryParams,
+        Object.freeze(queryParams ?? new URLSearchParams()),
         fragment,
         fragmentIsRoute,
       );
@@ -196,7 +191,7 @@ export class RouteExpression {
     state.ensureDone();
 
     const raw = state.playback();
-    return new RouteExpression(raw, isAbsolute, root, queryParams, fragment, fragmentIsRoute);
+    return new RouteExpression(raw, isAbsolute, root, Object.freeze(queryParams ?? new URLSearchParams()), fragment, fragmentIsRoute);
   }
 
   public toInstructionTree(options: NavigationOptions): ViewportInstructionTree {

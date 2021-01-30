@@ -22,7 +22,7 @@ describe('Configuration', function () {
 
     const au = new Aurelia(container)
       .register(
-        !config ? RouterConfiguration : RouterConfiguration.customize(config),
+        RouterConfiguration.customize(config ?? {}),
         App)
       .app({ host: host, component: App });
 
@@ -31,7 +31,7 @@ describe('Configuration', function () {
     await au.start();
 
     async function tearDown() {
-      await au.stop();
+      await au.stop(true);
       ctx.doc.body.removeChild(host);
 
       au.dispose();
@@ -105,7 +105,7 @@ describe('Configuration', function () {
 
     assert.includes(host.textContent, 'Hello, World!', `host.textContent`);
 
-    await au.stop();
+    await au.stop(true);
     ctx.doc.body.removeChild(host);
 
     au.dispose();

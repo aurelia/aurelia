@@ -135,7 +135,7 @@ describe('Router', function () {
 
     const au = ctx.wnd['au'] = new Aurelia(container)
       .register(
-        !config ? RouterConfiguration : RouterConfiguration.customize(config),
+        RouterConfiguration.customize(config ?? {}),
         App)
       .app({ host: host, component: App });
 
@@ -148,7 +148,7 @@ describe('Router', function () {
 
     async function tearDown() {
       unspyNavigationStates(router, _pushState, _replaceState);
-      await au.stop();
+      await au.stop(true);
       ctx.doc.body.removeChild(host);
     }
 
@@ -966,7 +966,7 @@ describe('Router', function () {
       await au.start();
 
       async function $teardown() {
-        await au.stop();
+        await au.stop(true);
         ctx.doc.body.removeChild(host);
 
         au.dispose();
@@ -1204,7 +1204,7 @@ describe('Router', function () {
 
       const au = new Aurelia(container)
         .register(
-          !config ? RouterConfiguration : RouterConfiguration.customize(config),
+          RouterConfiguration.customize(config ?? {}),
           App)
         .app({ host: host, component: App });
 
@@ -1215,7 +1215,7 @@ describe('Router', function () {
 
       async function $teardown() {
         unspyNavigationStates(router, _pushState, _replaceState);
-        await au.stop();
+        await au.stop(true);
         ctx.doc.body.removeChild(host);
 
         au.dispose();
@@ -1333,7 +1333,7 @@ describe('Router', function () {
 
       const au = new Aurelia(container)
         .register(
-          !config ? RouterConfiguration : RouterConfiguration.customize(config),
+          RouterConfiguration.customize(config ?? {}),
           App)
         .app({ host: host, component: App });
 
@@ -1344,7 +1344,7 @@ describe('Router', function () {
 
       async function $teardown() {
         unspyNavigationStates(router, _pushState, _replaceState);
-        await au.stop();
+        await au.stop(true);
         ctx.doc.body.removeChild(host);
 
         au.dispose();
@@ -1602,7 +1602,7 @@ describe('Router', function () {
 
       const au = new Aurelia(container)
         .register(
-          !config ? RouterConfiguration : RouterConfiguration.customize(config),
+          RouterConfiguration.customize(config ?? {}),
           App)
         .app({ host: host, component: App });
 
@@ -1613,7 +1613,8 @@ describe('Router', function () {
 
       async function $teardown() {
         unspyNavigationStates(router, _pushState, _replaceState);
-        await au.stop();
+        RouterConfiguration.customize();
+        await au.stop(true);
         ctx.doc.body.removeChild(host);
 
         au.dispose();
@@ -1787,7 +1788,7 @@ describe('Router', function () {
       const config = titleConfigs[i];
       for (let j = 0; j < tests.length; j++) {
         const test = tests[j];
-        it(`to load route ${test.path} => ${test.url}`, async function () {
+        it(`to load route ${test.path} (${JSON.stringify(config)}) => ${test.url}, "${titles[i][j]}"`, async function () {
           const { platform, host, router, $teardown } = await $setup({ title: config }, appDependencies, appRoutes, locationCallback);
 
           await $load(test.path, router, platform);
@@ -1822,7 +1823,7 @@ describe('Router', function () {
 
       const au = new Aurelia(container)
         .register(
-          !config ? RouterConfiguration : RouterConfiguration.customize(config),
+          RouterConfiguration.customize(config ?? {}),
           App)
         .app({ host: host, component: App });
 
@@ -1833,7 +1834,7 @@ describe('Router', function () {
 
       async function $teardown() {
         unspyNavigationStates(router, _pushState, _replaceState);
-        await au.stop();
+        await au.stop(true);
         ctx.doc.body.removeChild(host);
 
         au.dispose();

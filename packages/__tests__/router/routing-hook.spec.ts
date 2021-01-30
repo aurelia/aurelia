@@ -18,7 +18,7 @@ describe('RoutingHook', function () {
     }
     const au = new Aurelia(container)
       .register(
-        !config ? RouterConfiguration : RouterConfiguration.customize(config),
+        RouterConfiguration.customize(config ?? {}),
         App)
       .app({ host: host, component: App });
 

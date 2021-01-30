@@ -33,7 +33,7 @@ describe('LinkHandler', function () {
     const sut = container.get(LinkHandler);
 
     async function tearDown() {
-      await au.stop();
+      await au.stop(true);
       doc.body.removeChild(host);
 
       au.dispose();

@@ -25,7 +25,7 @@ describe('RoutingInstruction', function () {
     await au.start();
 
     async function tearDown() {
-      await au.stop();
+      await au.stop(true);
       ctx.doc.body.removeChild(host);
 
       au.dispose();

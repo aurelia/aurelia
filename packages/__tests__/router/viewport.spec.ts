@@ -32,7 +32,7 @@ describe('Viewport', function () {
 
 //     async function tearDown() {
 //       RouterConfiguration.customize();
-//       await au.stop();
+//       await au.stop(true);
 
 //       au.dispose();
 //     }

@@ -9,7 +9,6 @@ import { IRoutingHookDefinition } from './routing-hook.js';
  * How contents are swapped in a viewport when transitioning. Default: `add-first-sequential`
  */
 export type SwapStrategy = 'add-first-sequential' | 'add-first-parallel' | 'remove-first-sequential' | 'remove-first-parallel';
-// export type RoutingHookIntegration = 'integrated' | 'separate';
 
 /**
  * The options that can be provided to the router's `start` method
@@ -21,6 +20,7 @@ export interface IRouterStartOptions extends Omit<Partial<RouterOptions>, 'title
   title?: string | IRouterTitle;
 
   // The below needed until interface can extend static class properties
+
   /**
    * The separators used in the direct routing syntax
    */
@@ -78,7 +78,6 @@ export interface IRouterStartOptions extends Omit<Partial<RouterOptions>, 'title
    * How contents are swapped in a viewport when transitioning. Default: `add-first-sequential`
    */
   swapStrategy?: SwapStrategy;
-  // routingHookIntegration?: RoutingHookIntegration;
 }
 
 /**
@@ -163,7 +162,7 @@ export interface ISeparators {
   /**
    * The character(s) to indicate the end of a grouped scope
    */
-   scopeEnd: string;
+  scopeEnd: string;
 
   /**
    * The character(s) to indicate that the viewport doesn't have
@@ -190,7 +189,6 @@ export interface ISeparators {
    * The character(s) that separates a component parameter's key and value
    */
   parameterKeySeparator: string;
-  // parameter?: string;
 
   /**
    * The character(s) that denotes that the instructions are additive/not
@@ -226,9 +224,8 @@ export class RouterOptions implements INavigatorOptions {
     noScope: '!',
     parameters: '(', // '='
     parametersEnd: ')', // ''
-    parameterSeparator: ',',
+    parameterSeparator: ',', // '&'
     parameterKeySeparator: '=',
-    // parameter: '&',
     add: '+',
     clear: '-',
     action: '.',
@@ -278,8 +275,6 @@ export class RouterOptions implements INavigatorOptions {
     useComponentNames: true,
     componentPrefix: 'app-',
   };
-  // public static hooks: IRoutingHookDefinition[] = [];
-  // public static reportCallback?(instruction: Navigation): void;
 
   /**
    * The navigation states that are synced meaning that sibling viewports
@@ -297,55 +292,10 @@ export class RouterOptions implements INavigatorOptions {
    * How contents are swapped in a viewport when transitioning. Default: `add-first-sequential`
    */
   public static swapStrategy: SwapStrategy = 'add-first-sequential';
-  // public static routingHookIntegration: RoutingHookIntegration = 'integrated';
 
   private static readonly DEFAULT_OPTIONS: IRouterOptions = JSON.parse(JSON.stringify({ ...RouterOptions })) as IRouterOptions;
 
   public static apply(options: IRouterStartOptions, firstResetDefaults: boolean): void {
-    // if (firstResetDefaults) {
-    //   RouterOptions.resetDefaults();
-    // }
-
     Object.assign(RouterOptions, firstResetDefaults ? RouterOptions.DEFAULT_OPTIONS : {}, options);
   }
-
-  // private static resetDefaults(): void {
-  //   RouterOptions.separators = {
-  //     viewport: '@', // ':',
-  //     sibling: '+', // '/',
-  //     scope: '/', // '+',
-  //     scopeStart: '(', // ''
-  //     scopeEnd: ')', // ''
-  //     noScope: '!',
-  //     parameters: '(', // '='
-  //     parametersEnd: ')', // ''
-  //     parameterSeparator: ',',
-  //     parameterKeySeparator: '=',
-  //     parameter: '&',
-  //     add: '+',
-  //     clear: '-',
-  //     action: '.',
-  //   };
-
-  //   RouterOptions.useUrlFragmentHash = true;
-  //   RouterOptions.useHref = true;
-  //   RouterOptions.statefulHistoryLength = 0;
-  //   RouterOptions.useDirectRouting = true;
-  //   RouterOptions.useConfiguredRoutes = true;
-  //   RouterOptions.additiveInstructionDefault = true;
-  //   RouterOptions.title = {
-  //     // eslint-disable-next-line no-useless-escape
-  //     appTitle: "${componentTitles}\${appTitleSeparator}Aurelia",
-  //     appTitleSeparator: ' | ',
-  //     componentTitleOrder: 'top-down',
-  //     componentTitleSeparator: ' > ',
-  //     useComponentNames: true,
-  //     componentPrefix: 'app-',
-  //   };
-  //   RouterOptions.hooks = [];
-
-  //   RouterOptions.navigationSyncStates = ['guardedUnload', 'swapped', 'completed'];
-  //   RouterOptions.swapStrategy = 'add-first-sequential';
-  //   RouterOptions.routingHookIntegration = 'integrated';
-  // }
 }

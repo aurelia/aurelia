@@ -293,8 +293,18 @@ export class RouterOptions implements INavigatorOptions {
    */
   public static swapStrategy: SwapStrategy = 'add-first-sequential';
 
+  /**
+   * The default router options
+   */
   private static readonly DEFAULT_OPTIONS: IRouterOptions = JSON.parse(JSON.stringify({ ...RouterOptions })) as IRouterOptions;
 
+  /**
+   * Apply router options.
+   *
+   * @param options - The options to apply
+   * @param firstResetDefaults - Whether the default router options should
+   * be set before applying the specified options
+   */
   public static apply(options: IRouterStartOptions, firstResetDefaults: boolean): void {
     Object.assign(RouterOptions, firstResetDefaults ? RouterOptions.DEFAULT_OPTIONS : {}, options);
   }

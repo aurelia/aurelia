@@ -214,6 +214,7 @@ export class Router implements IRouter {
     this.linkHandler.stop();
     this.navigator.stop();
     this.navigation.stop();
+    RouterOptions.apply({}, true); // TODO: Look into removing this
 
     this.navigatorStateChangeEventSubscription.dispose();
     this.navigatorNavigateEventSubscription.dispose();

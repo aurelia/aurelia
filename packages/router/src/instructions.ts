@@ -233,7 +233,7 @@ export class ViewportInstructionTree {
     public readonly options: NavigationOptions,
     public readonly isAbsolute: boolean,
     public readonly children: ViewportInstruction[],
-    public readonly queryParams: Params,
+    public readonly queryParams: Readonly<URLSearchParams>,
     public readonly fragment: string | null,
   ) {}
 
@@ -255,7 +255,7 @@ export class ViewportInstructionTree {
         $options,
         false,
         instructionOrInstructions.map(x => ViewportInstruction.create(x, $options.context)),
-        {},
+        Object.freeze(new URLSearchParams()),
         null,
       );
     }
@@ -269,7 +269,7 @@ export class ViewportInstructionTree {
       $options,
       false,
       [ViewportInstruction.create(instructionOrInstructions, $options.context)],
-      {},
+      Object.freeze(new URLSearchParams()),
       null,
     );
   }
@@ -291,7 +291,9 @@ export class ViewportInstructionTree {
   }
 
   public toUrl(): string {
-    return this.children.map(x => x.toUrlComponent()).join('+');
+    const path = this.children.map(x => x.toUrlComponent()).join('+');
+    const query = this.queryParams.toString();
+    return query !== '' ? `${path}?${query}` : path;
   }
 
   public toString(): string {

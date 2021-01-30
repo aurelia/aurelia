@@ -1,5 +1,5 @@
+import { BenchmarkMeasurements, Measurement } from '@benchmarking-apps/test-result';
 import { bindable, customElement, ILogger } from 'aurelia';
-import { GroupedAvgBenchmarkMeasurements, GroupedAvgMeasurement } from '../data';
 import template from './by-browsers.html';
 import { AvgMeasurement, VersionedItem } from './shared';
 import { SmallMultiples } from './small-multiples';
@@ -15,10 +15,10 @@ import { StackedBars } from './stacked-bars';
   ],
 })
 export class ByBrowsers {
-  @bindable public readonly data: GroupedAvgBenchmarkMeasurements;
-  private avgDataset: GroupedAvgMeasurement[];
-  private readonly measurementIdentifier: (m: AvgMeasurement | GroupedAvgMeasurement) => string = function (m) { return (m as AvgMeasurement).id ?? `${m.framework}@${m.frameworkVersion}`; };
-  private readonly totalDurationFn: (m: AvgMeasurement | GroupedAvgMeasurement) => number = function (m) { return m.totalDuration; };
+  @bindable public readonly data: BenchmarkMeasurements;
+  private avgDataset: Measurement[];
+  private readonly measurementIdentifier: (m: AvgMeasurement | Measurement) => string = function (m) { return (m as AvgMeasurement).id ?? `${m.framework}@${m.frameworkVersion}`; };
+  private readonly totalDurationFn: (m: AvgMeasurement | Measurement) => number = function (m) { return m.totalDuration; };
   private browsers: VersionedItem[];
   private activeBrowser: VersionedItem | undefined;
 

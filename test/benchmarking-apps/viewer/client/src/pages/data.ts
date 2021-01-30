@@ -1,5 +1,5 @@
+import { BenchmarkMeasurements } from '@benchmarking-apps/test-result';
 import { DI, IHttpClient, ILogger, PLATFORM } from 'aurelia';
-import { BenchmarkMeasurements, BrowserType, Measurement, totalDuration } from '@benchmarking-apps/test-result';
 
 export const IApi = DI.createInterface<IApi>('IApi', x => x.singleton(Api));
 export interface IApi extends Api { }
@@ -20,9 +20,9 @@ export class Api {
   }
 
   // TODO: add branch filter
-  public async getLatest(): Promise<GroupedAvgBenchmarkMeasurements> {
+  public async getLatest(): Promise<BenchmarkMeasurements> {
     const items = await (await this.http.get('measurements/latest')).json() as BenchmarkMeasurements;
-    const data = new GroupedAvgBenchmarkMeasurements(items);
+    const data = BenchmarkMeasurements.create(items);
     this.logger.debug(`getLatest()`, data);
     return data;
   }
@@ -210,80 +210,4 @@ export class $Measurement {
 
 function isFiniteNumber(this: Record<string, unknown>, key: string): boolean {
   return Number.isFinite(this[key]);
-}
-
-export class GroupedAvgBenchmarkMeasurements {
-  public readonly id: string;
-  public readonly ts_start: number;
-  public readonly ts_end: number;
-  public readonly branch: string;
-  public readonly commit: string;
-  public readonly measurements: GroupedAvgMeasurement[];
-
-  public constructor(
-    measurements: BenchmarkMeasurements
-  ) {
-    this.id = measurements.id;
-    this.ts_start = measurements.ts_start;
-    this.ts_end = measurements.ts_end;
-    this.branch = measurements.branch;
-    this.commit = measurements.commit;
-    this.measurements = measurements.measurements.map((m) => new GroupedAvgMeasurement(m));
-  }
-}
-
-export class GroupedAvgMeasurement {
-  public readonly framework: string;
-  public readonly frameworkVersion: string;
-
-  public readonly browser: BrowserType;
-  public readonly browserVersion: string;
-
-  public readonly initialPopulation: number;
-  public readonly totalPopulation: number;
-
-  public readonly durationInitialLoad: number;
-  public readonly durationPopulation: number;
-  public readonly durationUpdate: number;
-  public readonly durationConditional: number;
-  public readonly durationTextUpdate: number;
-  public readonly durationSorting: number;
-  public readonly durationFilter: number;
-  public readonly durationSelectFirst: number;
-  public readonly durationDeleteFirst: number;
-  public readonly durationDeleteAll: number;
-
-  @totalDuration
-  public readonly totalDuration!: number;
-
-  public constructor(
-    measurement: Measurement
-  ) {
-    this.framework = measurement.framework;
-    this.frameworkVersion = measurement.frameworkVersion;
-    this.browser = measurement.browser;
-    this.browserVersion = measurement.browserVersion;
-    this.initialPopulation = measurement.initialPopulation;
-    this.totalPopulation = measurement.totalPopulation;
-
-    this.durationInitialLoad = measurement.durationInitialLoad;
-    this.durationPopulation = measurement.durationPopulation;
-    this.durationUpdate = measurement.durationUpdate;
-    this.durationConditional = (measurement.durationShowDetails + measurement.durationHideDetails) / 2;
-    this.durationTextUpdate = (measurement.durationLocaleDe + measurement.durationLocaleEn) / 2;
-    this.durationSorting = (
-      measurement.durationSortFirstName +
-      measurement.durationSortFirstNameDesc +
-      measurement.durationSortLastName +
-      measurement.durationSortLastNameDesc +
-      measurement.durationSortDob +
-      measurement.durationSortDobDesc) / 6;
-    this.durationFilter = (
-      measurement.durationFilterEmployed +
-      measurement.durationFilterUnemployed +
-      measurement.durationFilterNone) / 3;
-    this.durationSelectFirst = measurement.durationSelectFirst;
-    this.durationDeleteFirst = measurement.durationDeleteFirst;
-    this.durationDeleteAll = measurement.durationDeleteAll;
-  }
 }

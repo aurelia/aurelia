@@ -1,6 +1,5 @@
-import { totalDuration } from '@benchmarking-apps/test-result';
+import { totalDuration, Measurement, WritableMeasurementKeys } from '@benchmarking-apps/test-result';
 import * as d3 from 'd3';
-import { GroupedAvgMeasurement } from '../data';
 
 export function round(value: number, factor = 100): number {
   return Math.round(value * factor) / factor;
@@ -27,12 +26,8 @@ class Action {
     public color?: string,
   ) { }
 }
-type GroupedAvgMeasurementDurations = Omit<GroupedAvgMeasurement, 'framework' | 'frameworkVersion' | 'browser' | 'browserVersion' | 'initialPopulation' | 'totalPopulation' | 'name' | 'totalDuration'>;
-export type DurationKeys = {
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  [key in keyof GroupedAvgMeasurementDurations]: GroupedAvgMeasurement[key] extends Function ? never : key;
-}[keyof GroupedAvgMeasurementDurations];
-export const actions: Record<DurationKeys, Action> = {
+
+export const actions: Record<WritableMeasurementKeys, Action> = {
   'durationInitialLoad': new Action('Initial load', d3.schemeCategory10[0]),
   'durationPopulation': new Action('Populate grid', d3.schemeCategory10[1]),
   'durationUpdate': new Action('Update every 10th row', d3.schemeCategory10[2]),
@@ -70,7 +65,7 @@ export const actions: Record<DurationKeys, Action> = {
 //   actions[sequence[i]].color = d3.interpolateSpectral(colorScales[i % colorBuckets](i));
 // }
 
-export class AvgMeasurement implements Omit<GroupedAvgMeasurement, 'browser' | 'browserVersion'> {
+export class AvgMeasurement {
 
   public readonly id: string;
   public readonly framework: string;
@@ -94,7 +89,7 @@ export class AvgMeasurement implements Omit<GroupedAvgMeasurement, 'browser' | '
   public readonly totalDuration!: number;
 
   public constructor(
-    measurement: GroupedAvgMeasurement
+    measurement: Measurement
   ) {
     const fx = measurement.framework;
     const fxVer = measurement.frameworkVersion;
@@ -108,7 +103,7 @@ export class AvgMeasurement implements Omit<GroupedAvgMeasurement, 'browser' | '
     this.add(measurement);
   }
 
-  public add(measurement: GroupedAvgMeasurement): void {
+  public add(measurement: Measurement): void {
     const n = this.count;
     const n1 = ++this.count;
     for (const [key, value] of Object.entries(measurement)) {

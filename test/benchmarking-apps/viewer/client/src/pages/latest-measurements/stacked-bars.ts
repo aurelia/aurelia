@@ -1,15 +1,15 @@
 import { ICustomAttributeController } from '@aurelia/runtime-html';
+import { Measurement, WritableMeasurementKeys } from '@benchmarking-apps/test-result';
 import { bindable, customElement, ILogger, shadowCSS } from 'aurelia';
 import * as d3 from 'd3';
-import { GroupedAvgMeasurement } from '../data';
-import { actions, AvgMeasurement, DurationKeys, Margin, round } from './shared';
+import { actions, AvgMeasurement, Margin, round } from './shared';
 import css from './stacked-bars.css';
 import template from './stacked-bars.html';
 
 const margin = new Margin(40, 30, 30, 40);
 const width = 800;
 const height = 600;
-type Measurement = GroupedAvgMeasurement | AvgMeasurement;
+type $Measurement = Measurement | AvgMeasurement;
 @customElement({
   name: 'stacked-bars',
   template,
@@ -17,9 +17,9 @@ type Measurement = GroupedAvgMeasurement | AvgMeasurement;
   dependencies: [shadowCSS(css)],
 })
 export class StackedBars {
-  @bindable({ callback: 'draw' }) public readonly dataset: Partial<Measurement>[];
-  @bindable public readonly measurementIdentifier: (m: Partial<Measurement>, i?: number, arr?: Partial<Measurement>[]) => string;
-  @bindable public readonly totalDurationFn: (m: Partial<Measurement>) => number;
+  @bindable({ callback: 'draw' }) public readonly dataset: Partial<$Measurement>[];
+  @bindable public readonly measurementIdentifier: (m: Partial<$Measurement>, i?: number, arr?: Partial<$Measurement>[]) => string;
+  @bindable public readonly totalDurationFn: (m: Partial<$Measurement>) => number;
   public readonly $controller!: ICustomAttributeController<this>;
   private readonly target!: HTMLElement;
   private readonly actions = Object.values(actions);
@@ -40,7 +40,7 @@ export class StackedBars {
     this.clean();
     const logger = this.logger;
     const gDs = d3.group(this.dataset, (d) => `${d.initialPopulation!}|${d.totalPopulation!}`);
-    const stack = d3.stack<Partial<Measurement>>()
+    const stack = d3.stack<Partial<$Measurement>>()
       .keys(Object.keys(actions))
       .value(function (d, key) { return (d[key] ?? 0) as number; });
     const target = this.target;
@@ -67,7 +67,7 @@ export class StackedBars {
         .data(series)
         .enter()
         .append('g')
-        .style('fill', function (d) { return actions[d.key as DurationKeys].color; });
+        .style('fill', function (d) { return actions[d.key as WritableMeasurementKeys].color; });
 
       const identifier = this.measurementIdentifier;
       const xScale = d3.scaleBand()

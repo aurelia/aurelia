@@ -54,19 +54,11 @@ export class Measurement {
   public durationInitialLoad: number = Number.POSITIVE_INFINITY;
   public durationPopulation: number | undefined = void 0;
   public durationUpdate: number = Number.POSITIVE_INFINITY;
-  public durationShowDetails: number = Number.POSITIVE_INFINITY;
-  public durationHideDetails: number = Number.POSITIVE_INFINITY;
-  public durationLocaleDe: number = Number.POSITIVE_INFINITY;
-  public durationLocaleEn: number = Number.POSITIVE_INFINITY;
-  public durationSortFirstName: number = Number.POSITIVE_INFINITY;
-  public durationSortFirstNameDesc: number = Number.POSITIVE_INFINITY;
-  public durationSortLastName: number = Number.POSITIVE_INFINITY;
-  public durationSortLastNameDesc: number = Number.POSITIVE_INFINITY;
-  public durationSortDob: number = Number.POSITIVE_INFINITY;
-  public durationSortDobDesc: number = Number.POSITIVE_INFINITY;
-  public durationFilterEmployed: number = Number.POSITIVE_INFINITY;
-  public durationFilterUnemployed: number = Number.POSITIVE_INFINITY;
-  public durationFilterNone: number = Number.POSITIVE_INFINITY;
+  public durationConditional: number = Number.POSITIVE_INFINITY;
+  public durationTextUpdate: number = Number.POSITIVE_INFINITY;
+  public durationSorting: number = Number.POSITIVE_INFINITY;
+  public durationFilter: number = Number.POSITIVE_INFINITY;
+
   public durationSelectFirst: number = Number.POSITIVE_INFINITY;
   public durationDeleteFirst: number = Number.POSITIVE_INFINITY;
   public durationDeleteAll: number = Number.POSITIVE_INFINITY;
@@ -89,19 +81,11 @@ export class Measurement {
     if (initializeWithZero) {
       this.durationInitialLoad = 0;
       this.durationUpdate = 0;
-      this.durationShowDetails = 0;
-      this.durationHideDetails = 0;
-      this.durationLocaleDe = 0;
-      this.durationLocaleEn = 0;
-      this.durationSortFirstName = 0;
-      this.durationSortFirstNameDesc = 0;
-      this.durationSortLastName = 0;
-      this.durationSortLastNameDesc = 0;
-      this.durationSortDob = 0;
-      this.durationSortDobDesc = 0;
-      this.durationFilterEmployed = 0;
-      this.durationFilterUnemployed = 0;
-      this.durationFilterNone = 0;
+      this.durationConditional = 0;
+      this.durationTextUpdate = 0;
+      this.durationSorting = 0;
+      this.durationFilter = 0;
+
       this.durationSelectFirst = 0;
       this.durationDeleteFirst = 0;
       this.durationDeleteAll = 0;
@@ -120,19 +104,11 @@ export class Measurement {
     measurement.durationInitialLoad = value.durationInitialLoad!;
     measurement.durationPopulation = value.durationPopulation!;
     measurement.durationUpdate = value.durationUpdate!;
-    measurement.durationShowDetails = value.durationShowDetails!;
-    measurement.durationHideDetails = value.durationHideDetails!;
-    measurement.durationLocaleDe = value.durationLocaleDe!;
-    measurement.durationLocaleEn = value.durationLocaleEn!;
-    measurement.durationSortFirstName = value.durationSortFirstName!;
-    measurement.durationSortFirstNameDesc = value.durationSortFirstNameDesc!;
-    measurement.durationSortLastName = value.durationSortLastName!;
-    measurement.durationSortLastNameDesc = value.durationSortLastNameDesc!;
-    measurement.durationSortDob = value.durationSortDob!;
-    measurement.durationSortDobDesc = value.durationSortDobDesc!;
-    measurement.durationFilterEmployed = value.durationFilterEmployed!;
-    measurement.durationFilterUnemployed = value.durationFilterUnemployed!;
-    measurement.durationFilterNone = value.durationFilterNone!;
+    measurement.durationConditional = value.durationConditional!;
+    measurement.durationTextUpdate = value.durationTextUpdate!;
+    measurement.durationSorting = value.durationSorting!;
+    measurement.durationFilter = value.durationFilter!;
+
     measurement.durationSelectFirst = value.durationSelectFirst!;
     measurement.durationDeleteFirst = value.durationDeleteFirst!;
     measurement.durationDeleteAll = value.durationDeleteAll!;
@@ -152,19 +128,10 @@ export class Measurement {
       Number.isFinite(this.durationInitialLoad) &&
       Number.isFinite(this.durationPopulation) &&
       Number.isFinite(this.durationUpdate) &&
-      Number.isFinite(this.durationShowDetails) &&
-      Number.isFinite(this.durationHideDetails) &&
-      Number.isFinite(this.durationLocaleDe) &&
-      Number.isFinite(this.durationLocaleEn) &&
-      Number.isFinite(this.durationSortFirstName) &&
-      Number.isFinite(this.durationSortFirstNameDesc) &&
-      Number.isFinite(this.durationSortLastName) &&
-      Number.isFinite(this.durationSortLastNameDesc) &&
-      Number.isFinite(this.durationSortDob) &&
-      Number.isFinite(this.durationSortDobDesc) &&
-      Number.isFinite(this.durationFilterEmployed) &&
-      Number.isFinite(this.durationFilterUnemployed) &&
-      Number.isFinite(this.durationFilterNone) &&
+      Number.isFinite(this.durationConditional) &&
+      Number.isFinite(this.durationTextUpdate) &&
+      Number.isFinite(this.durationSorting) &&
+      Number.isFinite(this.durationFilter) &&
       Number.isFinite(this.durationSelectFirst) &&
       Number.isFinite(this.durationDeleteFirst) &&
       Number.isFinite(this.durationDeleteAll)
@@ -232,19 +199,10 @@ export class Measurements extends Array<Measurement> {
         mean.durationPopulation! += item.durationPopulation!;
       }
       mean.durationUpdate += item.durationUpdate;
-      mean.durationShowDetails += item.durationShowDetails;
-      mean.durationHideDetails += item.durationHideDetails;
-      mean.durationLocaleDe += item.durationLocaleDe;
-      mean.durationLocaleEn += item.durationLocaleEn;
-      mean.durationSortFirstName += item.durationSortFirstName;
-      mean.durationSortFirstNameDesc += item.durationSortFirstNameDesc;
-      mean.durationSortLastName += item.durationSortLastName;
-      mean.durationSortLastNameDesc += item.durationSortLastNameDesc;
-      mean.durationSortDob += item.durationSortDob;
-      mean.durationSortDobDesc += item.durationSortDobDesc;
-      mean.durationFilterEmployed += item.durationFilterEmployed;
-      mean.durationFilterUnemployed += item.durationFilterUnemployed;
-      mean.durationFilterNone += item.durationFilterNone;
+      mean.durationConditional += item.durationConditional;
+      mean.durationTextUpdate += item.durationTextUpdate;
+      mean.durationSorting += item.durationSorting;
+      mean.durationFilter += item.durationFilter;
       mean.durationSelectFirst += item.durationSelectFirst;
       mean.durationDeleteFirst += item.durationDeleteFirst;
       mean.durationDeleteAll += item.durationDeleteAll;
@@ -255,19 +213,10 @@ export class Measurements extends Array<Measurement> {
       mean.durationPopulation! = roundDurationMs(mean.durationPopulation! / length);
     }
     mean.durationUpdate = roundDurationMs(mean.durationUpdate / length);
-    mean.durationShowDetails = roundDurationMs(mean.durationShowDetails / length);
-    mean.durationHideDetails = roundDurationMs(mean.durationHideDetails / length);
-    mean.durationLocaleDe = roundDurationMs(mean.durationLocaleDe / length);
-    mean.durationLocaleEn = roundDurationMs(mean.durationLocaleEn / length);
-    mean.durationSortFirstName = roundDurationMs(mean.durationSortFirstName / length);
-    mean.durationSortFirstNameDesc = roundDurationMs(mean.durationSortFirstNameDesc / length);
-    mean.durationSortLastName = roundDurationMs(mean.durationSortLastName / length);
-    mean.durationSortLastNameDesc = roundDurationMs(mean.durationSortLastNameDesc / length);
-    mean.durationSortDob = roundDurationMs(mean.durationSortDob / length);
-    mean.durationSortDobDesc = roundDurationMs(mean.durationSortDobDesc / length);
-    mean.durationFilterEmployed = roundDurationMs(mean.durationFilterEmployed / length);
-    mean.durationFilterUnemployed = roundDurationMs(mean.durationFilterUnemployed / length);
-    mean.durationFilterNone = roundDurationMs(mean.durationFilterNone / length);
+    mean.durationConditional = roundDurationMs(mean.durationConditional / length);
+    mean.durationTextUpdate = roundDurationMs(mean.durationTextUpdate / length);
+    mean.durationSorting = roundDurationMs(mean.durationSorting / length);
+    mean.durationFilter = roundDurationMs(mean.durationFilter / length);
     mean.durationSelectFirst = roundDurationMs(mean.durationSelectFirst / length);
     mean.durationDeleteFirst = roundDurationMs(mean.durationDeleteFirst / length);
     mean.durationDeleteAll = roundDurationMs(mean.durationDeleteAll / length);

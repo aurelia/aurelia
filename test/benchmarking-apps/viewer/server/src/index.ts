@@ -1,5 +1,6 @@
 import { FileServer, HttpContextState, HttpServer, HttpServerOptions, HTTPStatusCode, IHttpContext, IHttpServer, IHttpServerOptions, IRequestHandler } from '@aurelia/http-server';
-import { DI, ILogger, LoggerConfiguration, LogLevel, Registration } from '@aurelia/kernel';
+import { ConsoleSink, DI, ILogger, IPlatform, LoggerConfiguration, LogLevel, Registration } from '@aurelia/kernel';
+import { Platform } from '@aurelia/platform';
 import { getNewStorageFor, IStorage, Storages, NotFoundError } from '@benchmarking-apps/storage';
 import { join } from 'path';
 import { parse } from 'querystring';
@@ -225,6 +226,7 @@ class NotSupportedError extends Error implements KnownError {
 }
 
 const container = DI.createContainer().register(
+  Registration.instance(IPlatform, Platform.getOrCreate(globalThis)),
   LoggerConfiguration.create({ sinks: [ConsoleSink], level: LogLevel.debug }),
   Registration.cachedCallback(IHttpServerOptions, handler => {
     const processEnv = handler.get(IProcessEnv);

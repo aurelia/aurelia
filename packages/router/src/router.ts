@@ -180,11 +180,16 @@ export class Router implements IRouter {
     };
     (options as IRouterStartOptions & { separators: ISeparators }).separators = separatorOptions;
 
+    if (Array.isArray(options.hooks)) {
+      options.hooks.forEach(hook => RoutingHook.add(hook.hook, hook.options));
+      delete options['hooks'];
+    }
+
     RouterOptions.apply(options, true);
 
-    if (Array.isArray(RouterOptions.hooks)) {
-      RouterOptions.hooks.forEach(hook => RoutingHook.add(hook.hook, hook.options));
-    }
+    // if (Array.isArray(RouterOptions.hooks)) {
+    //   RouterOptions.hooks.forEach(hook => RoutingHook.add(hook.hook, hook.options));
+    // }
 
     this.navigator.start({
       store: this.navigation,
@@ -833,7 +838,7 @@ export class Router implements IRouter {
     if (typeof route !== 'string' || route.length === 0) {
       return;
     }
-    if (RouterOptions.useConfiguredRoutes && RouterOptions.useDirectRoutes) {
+    if (RouterOptions.useConfiguredRoutes && RouterOptions.useDirectRouting) {
       // TODO: Add missing/unknown route handling
       throw new Error("No matching configured route or component found for '" + route + "'");
     } else if (RouterOptions.useConfiguredRoutes) {

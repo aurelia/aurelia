@@ -206,7 +206,7 @@ export class RoutingScope {
         if (foundRoute?.foundConfiguration ?? false) {
           route = foundRoute!;
         } else {
-          if (RouterOptions.useDirectRoutes) {
+          if (RouterOptions.useDirectRouting) {
             route.instructions = instructions;
             if (route.instructions.length > 0) {
               const nextInstructions = route.instructions[0].nextScopeInstructions ?? [];
@@ -216,7 +216,7 @@ export class RoutingScope {
             }
           }
         }
-      } else if (RouterOptions.useDirectRoutes) {
+      } else if (RouterOptions.useDirectRouting) {
         route.instructions = instructions;
       }
     } else {

@@ -721,7 +721,8 @@ export class Viewport extends Endpoint {
       }
     } else if (RouterOptions.title.useComponentNames) {
       let name = this.getContentInstruction()!.component.name ?? '';
-      const prefix = RouterOptions.title.componentPrefix ?? '';
+      // TODO(alpha): Allow list of component prefixes
+      const prefix = (RouterOptions.title.componentPrefix ?? '') as string;
       if (name.startsWith(prefix)) {
         name = name.slice(prefix.length);
       }

@@ -374,6 +374,7 @@ export declare class Router {
     private run;
     private applyHistoryState;
     private getTitle;
+    private updateTitle;
     private cancelNavigation;
     private runNextTransition;
     private getNavigationOptions;

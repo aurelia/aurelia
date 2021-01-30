@@ -599,10 +599,10 @@ let Router = class Router {
                 // do nothing
                 break;
             case 'push':
-                this.locationMgr.pushState(toManagedState(tr.options.state, tr.id), this.getTitle(tr), tr.finalInstructions.toUrl());
+                this.locationMgr.pushState(toManagedState(tr.options.state, tr.id), this.updateTitle(tr), tr.finalInstructions.toUrl());
                 break;
             case 'replace':
-                this.locationMgr.replaceState(toManagedState(tr.options.state, tr.id), this.getTitle(tr), tr.finalInstructions.toUrl());
+                this.locationMgr.replaceState(toManagedState(tr.options.state, tr.id), this.updateTitle(tr), tr.finalInstructions.toUrl());
                 break;
         }
     }
@@ -616,6 +616,13 @@ let Router = class Router {
             default:
                 return (_b = tr.routeTree.root.getTitle(tr.options.titleSeparator)) !== null && _b !== void 0 ? _b : '';
         }
+    }
+    updateTitle(tr) {
+        const title = this.getTitle(tr);
+        if (title.length > 0) {
+            this.p.document.title = title;
+        }
+        return this.p.document.title;
     }
     cancelNavigation(tr) {
         this.logger.trace(`cancelNavigation(tr:%s)`, tr);

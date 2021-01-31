@@ -1,6 +1,6 @@
 import { onResolve, Writable } from '@aurelia/kernel';
 import { ICustomElementController, IHydratedController, IHydratedParentController, LifecycleFlags } from '@aurelia/runtime-html';
-import { Params, IRouteableComponent, LoadInstruction, Navigation, Viewport } from '@aurelia/router';
+import { Parameters, IRouteableComponent, LoadInstruction, Navigation, Viewport } from '@aurelia/router';
 import { IHookInvocationAggregator } from './hook-invocation-tracker.js';
 import { IHookSpec, hookSpecsMap } from './hook-spec.js';
 
@@ -41,13 +41,13 @@ export interface ITestRouteViewModel extends IRouteableComponent {
   ): void | Promise<void>;
 
   canLoad(
-    params: Params,
+    params: Parameters,
     viewport: Viewport,
     next: Navigation,
     current: Navigation | null,
   ): boolean | LoadInstruction | LoadInstruction[] | Promise<boolean | LoadInstruction | LoadInstruction[]>;
   load(
-    params: Params,
+    params: Parameters,
     viewport: Viewport,
     next: Navigation,
     current: Navigation | null,
@@ -278,7 +278,7 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
   }
 
   public canLoad(
-    params: Params,
+    params: Parameters,
     viewport: Viewport,
     next: Navigation,
     current: Navigation | null,
@@ -309,7 +309,7 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
   }
 
   public load(
-    params: Params,
+    params: Parameters,
     viewport: Viewport,
     next: Navigation,
     current: Navigation | null,
@@ -414,7 +414,7 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
   }
 
   protected $canLoad(
-    _params: Params,
+    _params: Parameters,
     _next: Navigation,
     _current: Navigation | null,
   ): boolean | LoadInstruction | LoadInstruction[] | Promise<boolean | LoadInstruction | LoadInstruction[]> {
@@ -422,7 +422,7 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
   }
 
   protected $load(
-    _params: Params,
+    _params: Parameters,
     _next: Navigation,
     _current: Navigation | null,
   ): void | Promise<void> {

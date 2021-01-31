@@ -13,7 +13,7 @@ import {
 } from '@aurelia/runtime-html';
 import {
   IRouter,
-  Params as P,
+  Parameters as P,
   Navigation,
   RoutingInstruction,
   RouterConfiguration,

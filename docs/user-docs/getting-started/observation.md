@@ -156,10 +156,10 @@ HTML elements are special objects that often require different observation strat
 
 As an example, the `value` property of an `<input />` element should be observed by listening to the `<input />` change events such as `input` or `change` on the element. Another example is the `value` property of a `<select />` element should be observed by listening to the `change` event on it.
 
-By default, the observation of HTML elements are done using a node observer locator. This default locator has a basic set of API that allows users to teach Aurelia how to observe html element observation effectively. Following is the trimmed interface of the node observer locator, highlighting its capability to learn how to observe HTML elements:
+By default, the observation of HTML elements are done using a default node observer locator implementation. This default locator has a basic set of API that allows users to teach Aurelia how to observe html element observation effectively. Following is the trimmed interface of the node observer locator, highlighting its capability to learn how to observe HTML elements:
 
 ```ts
-export interface INodeObserverLocator {
+export class NodeObserverLocator {
   allowDirtyCheck: boolean;
   handles(obj, key, requestor): boolean;
 

@@ -15,10 +15,18 @@ import {
   BindingMode,
   LifecycleFlags,
   SVGAnalyzerRegistration,
+  IPlatform,
+  ValueConverter,
 } from '@aurelia/runtime-html';
 
 type CaseType = {
-  expected: number | string; expectedStrictMode?: number | string; expectedValueAfterChange?: number | string; changeFnc?: (val) => any; app: any; interpolation: string; it: string;
+  expected: number | string;
+  expectedStrictMode?: number | string;
+  expectedValueAfterChange?: number | string;
+  changeFnc?: (val: any, platform: IPlatform) => any;
+  app: any;
+  interpolation: string;
+  it: string;
 };
 
 const testDateString = new Date('Sat Feb 02 2002 00:00:00 GMT+0000 (Coordinated Universal Time)').toString();
@@ -187,9 +195,36 @@ describe('3-runtime/interpolation.spec.ts -- [UNIT]interpolation', function () {
       interpolation: `test $\{value} out $\{value}`,
       it: 'Multiple SAME statements work in interpolation with undefined'
     },
+    {
+      expected: 'test  out ',
+      // special edcase, same node is appended in multiple positions
+      // resulting in the last place that uses it wins
+      expectedValueAfterChange: 'test foo-node out ',
+      changeFnc: (_, platform) => {
+        const span = platform.document.createElement('span');
+        span.appendChild(platform.document.createTextNode('foo-node'));
+        return span;
+      }, app: class { public value: any; },
+      interpolation: `test $\{value} out `,
+      it: 'Multiple SAME statements work in interpolation with HTML Elements'
+    },
+    {
+      expected: 'test  out ',
+      // special edcase, same node is appended in multiple positions
+      // resulting in the last place that uses it wins
+      expectedValueAfterChange: 'test  out foo-node',
+      changeFnc: (_, platform) => {
+        return platform.document.createTextNode('foo-node');
+      }, app: class { public value: any; },
+      interpolation: `test $\{value} out $\{value}`,
+      it: 'Multiple SAME statements work in interpolation with HTML Text'
+    },
   ];
 
   cases.forEach((x) => {
+    // if (x.it !== 'Renders expected text') {
+    //   return;
+    // }
     it(x.it, async function () {
       const { tearDown, appHost } = createFixture(`<template>${x.interpolation}</template>`, x.app);
       assert.strictEqual(appHost.textContent, x.expected.toString(), `host.textContent`);
@@ -198,7 +233,7 @@ describe('3-runtime/interpolation.spec.ts -- [UNIT]interpolation', function () {
     it(`${x.it} change tests work`, async function () {
       const { tearDown, appHost, platform, component } = createFixture(`<template>${x.interpolation}</template>`, x.app);
       if (x.changeFnc !== undefined) {
-        const val = x.changeFnc(component.value);
+        const val = x.changeFnc(component.value, platform);
         if (val != null) {
           component.value = val;
         }
@@ -404,6 +439,52 @@ describe('3-runtime/interpolation.spec.ts -- [UNIT]interpolation', function () {
         [1, 1, 3],
       );
     });
+  });
+});
+
+describe('3-runtime/interpolation.spec.ts', function () {
+  it('interpolates expression with value converter that returns HTML nodes', async function() {
+    const { tearDown, appHost, startPromise } = createFixture(
+      `<template><div repeat.for="item of items">\${item.value | $}</div></template>`,
+      class App {
+        public items = Array.from({ length: 10 }, (_, idx) => {
+          return { value: idx + 1 };
+        });
+      },
+      [
+        ValueConverter.define('$', class MoneyValueConverter {
+          public static get inject() {
+            return [IPlatform];
+          }
+
+          public constructor(private platform: IPlatform) {}
+
+          public toView(val: string) {
+            let num = Number(val);
+            num = isNaN(num) ? 0 : num;
+            return this.createElFromHtml(`<span>$<b>${num}</b></span>`);
+          }
+
+          private createElFromHtml(html: string) {
+            const parser = this.platform.document.createElement('div');
+            parser.innerHTML = html;
+            return parser.firstChild;
+          }
+        })
+      ]
+    );
+    await startPromise;
+    
+    const divs = Array.from(appHost.querySelectorAll('div'));
+    assert.strictEqual(divs.length, 10);
+    
+    divs.forEach((div, idx) => {
+      assert.strictEqual(div.textContent, `$${idx + 1}`);
+      const b = div.querySelector('b');
+      assert.strictEqual(b.textContent, String(idx + 1));
+    });
+
+    await tearDown();
   });
 });
 

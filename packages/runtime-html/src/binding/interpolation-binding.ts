@@ -361,6 +361,8 @@ export class ContentBinding2 implements ContentBinding2, ICollectionSubscriber {
     this.$scope = void 0;
     this.$hostScope = null;
     this.obs.clear(true);
+    this.task?.cancel();
+    this.task = null;
   }
 }
 

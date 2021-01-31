@@ -48,7 +48,7 @@ export interface IRoute extends Writable<Partial<Route>> {
   /**
    * Any custom data that should be accessible to matched components or hooks.
    */
-  // public readonly data: Params,
+  // public readonly data: Parameters,
 
   /**
    * Child instructions that should also be loaded when this route is matched. Transfered into the `instructions` property.

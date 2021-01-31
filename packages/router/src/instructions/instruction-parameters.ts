@@ -17,7 +17,7 @@ export const enum ParametersType {
   object = 'object',
 }
 
-export type Params = {
+export type Parameters = {
   [key: string]: unknown;
 };
 
@@ -34,7 +34,7 @@ export type ComponentParameters = string | Record<string, unknown> | unknown[];
 
 export class InstructionParameters {
   public parametersString: string | null = null;
-  public parametersRecord: Params | null = null;
+  public parametersRecord: Parameters | null = null;
   public parametersList: unknown[] | null = null;
   public parametersType: ParametersType = ParametersType.none;
 
@@ -140,7 +140,7 @@ export class InstructionParameters {
   }
 
   // This only works with objects added to objects!
-  public addParameters(parameters: Params): void {
+  public addParameters(parameters: Parameters): void {
     if (this.parametersType === ParametersType.none) {
       return this.set(parameters);
     }

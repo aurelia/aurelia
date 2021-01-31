@@ -19,7 +19,7 @@ export {
 
 export {
   InstructionParameters,
-  Params,
+  Parameters,
 } from './instructions/instruction-parameters.js';
 
 export {

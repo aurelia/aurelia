@@ -2,7 +2,7 @@ import { customElement, ILogger, shadowCSS, ValueConverter } from 'aurelia';
 import template from './index.html';
 import css from './index.css';
 
-import { DataSet, IApi } from '../data';
+import { DataSet, IApi } from '../../shared/data';
 
 @customElement({
   name: 'measurements-page',

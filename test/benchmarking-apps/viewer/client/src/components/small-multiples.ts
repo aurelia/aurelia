@@ -2,7 +2,7 @@ import { ICustomAttributeController } from '@aurelia/runtime-html';
 import { Measurement, WritableMeasurementKeys } from '@benchmarking-apps/test-result';
 import { bindable, customElement, shadowCSS } from 'aurelia';
 import * as d3 from 'd3';
-import { actions, Margin, round } from './shared';
+import { actions, Margin, round } from '../shared/utils';
 import css from './small-multiples.css';
 import template from './small-multiples.html';
 

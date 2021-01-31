@@ -1,4 +1,4 @@
-import { BenchmarkMeasurements } from '@benchmarking-apps/test-result';
+import { BenchmarkMeasurements, BrowserType, Measurement, totalDuration } from '@benchmarking-apps/test-result';
 import { DI, IHttpClient, ILogger, PLATFORM } from 'aurelia';
 
 export const IApi = DI.createInterface<IApi>('IApi', x => x.singleton(Api));
@@ -19,10 +19,18 @@ export class Api {
     return data;
   }
 
-  // TODO: add branch filter
-  public async getLatest(): Promise<BenchmarkMeasurements> {
-    const items = await (await this.http.get('measurements/latest')).json() as BenchmarkMeasurements;
-    const data = BenchmarkMeasurements.create(items);
+  public async getLatest(branch?: string, commit?: string, localOnly: boolean = false): Promise<BenchmarkMeasurements> {
+    const query = new URLSearchParams();
+    if (branch !== void 0) {
+      query.set('branch', branch);
+    }
+    if (commit !== void 0) {
+      query.set('commit', commit);
+    }
+    const qs = query.toString();
+
+    const items = await (await this.http.get(`measurements/latest${qs ? `?${qs}` : ''}`)).json() as BenchmarkMeasurements;
+    const data = BenchmarkMeasurements.create(items, localOnly);
     this.logger.debug(`getLatest()`, data);
     return data;
   }
@@ -210,4 +218,90 @@ export class $Measurement {
 
 function isFiniteNumber(this: Record<string, unknown>, key: string): boolean {
   return Number.isFinite(this[key]);
+}
+
+export class AvgMeasurement {
+
+  public readonly id: string;
+  public readonly framework: string;
+  public readonly frameworkVersion: string;
+  public readonly initialPopulation: number;
+  public readonly totalPopulation: number;
+
+  public durationInitialLoad: number = 0;
+  public durationPopulation: number = 0;
+  public durationUpdate: number = 0;
+  public durationConditional: number = 0;
+  public durationTextUpdate: number = 0;
+  public durationSorting: number = 0;
+  public durationFilter: number = 0;
+  public durationSelectFirst: number = 0;
+  public durationDeleteFirst: number = 0;
+  public durationDeleteAll: number = 0;
+
+  private count = 0;
+  @totalDuration
+  public readonly totalDuration!: number;
+
+  public constructor(
+    measurement: Measurement | DenormalizedMeasurement
+  ) {
+    const fx = this.framework = measurement.framework;
+    const fxVer = this.frameworkVersion = measurement.frameworkVersion;
+    this.initialPopulation = measurement.initialPopulation;
+    this.totalPopulation = measurement.totalPopulation;
+    this.id = `${fx}@${fxVer}`;
+    this.add(measurement);
+  }
+
+  public add(measurement: Measurement | DenormalizedMeasurement): void {
+    const n = this.count;
+    const n1 = ++this.count;
+    for (const [key, value] of Object.entries(measurement)) {
+      if (!key.startsWith('duration') || value === void 0) { continue; }
+      this[key] = ((this[key] as number * n) + value) / n1;
+    }
+  }
+}
+
+export class  DenormalizedMeasurement {
+  public readonly id: string;
+  public readonly branch: string;
+  public readonly commit: string;
+  public readonly framework: string;
+  public readonly frameworkVersion: string;
+  public readonly browser: BrowserType;
+  public readonly browserVersion: string;
+  public readonly initialPopulation: number;
+  public readonly totalPopulation: number;
+  public readonly durationInitialLoad: number;
+  public readonly durationPopulation: number;
+  public readonly durationUpdate: number;
+  public readonly durationConditional: number;
+  public readonly durationTextUpdate: number;
+  public readonly durationSorting: number;
+  public readonly durationFilter: number;
+  public readonly durationSelectFirst: number;
+  public readonly durationDeleteFirst: number;
+  public readonly durationDeleteAll: number;
+
+  @totalDuration
+  public readonly totalDuration!: number;
+
+  public constructor(measurement: Measurement, bench: BenchmarkMeasurements) {
+    const fx = this.framework = measurement.framework;
+    const fxVer = this.frameworkVersion = measurement.frameworkVersion;
+    this.browser = measurement.browser;
+    this.browserVersion = measurement.browserVersion;
+    this.initialPopulation = measurement.initialPopulation;
+    this.totalPopulation = measurement.totalPopulation;
+    const branch = this.branch = bench.branch;
+    const commit = this.commit = bench.commit;
+    this.id = `${fx}@${fxVer}-${branch}(${commit.substring(0, 8)})`;
+
+    for (const [key, value] of Object.entries(measurement)) {
+      if (!key.startsWith('duration') || value === void 0) { continue; }
+      this[key] = value;
+    }
+  }
 }

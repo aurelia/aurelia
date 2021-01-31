@@ -1,6 +1,6 @@
 <label for="browser-selection">Browser</label>
 <select value.bind="activeBrowser" id="browser-selection">
-  <option model.bind="undefined">Average</option>
+  <option if.bind="showAverage" model.bind="undefined">Average</option>
   <option repeat.for="browser of browsers" model.bind="browser">
     ${browser.name} v${browser.version}
   </option>

@@ -1,7 +1,7 @@
-import { customElement, ILogger } from 'aurelia';
 import { BenchmarkMeasurements } from '@benchmarking-apps/test-result';
-import { IApi } from '../data';
-import { ByBrowsers } from './by-browsers';
+import { customElement, ILogger } from 'aurelia';
+import { ByBrowsers } from '../../components/by-browsers';
+import { IApi } from '../../shared/data';
 import template from './index.html';
 
 @customElement({

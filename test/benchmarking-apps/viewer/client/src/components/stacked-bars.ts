@@ -2,7 +2,8 @@ import { ICustomAttributeController } from '@aurelia/runtime-html';
 import { Measurement, WritableMeasurementKeys } from '@benchmarking-apps/test-result';
 import { bindable, customElement, ILogger, shadowCSS } from 'aurelia';
 import * as d3 from 'd3';
-import { actions, AvgMeasurement, Margin, round } from './shared';
+import { AvgMeasurement } from '../shared/data';
+import { actions, Margin, round } from '../shared/utils';
 import css from './stacked-bars.css';
 import template from './stacked-bars.html';
 

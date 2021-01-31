@@ -1,4 +1,4 @@
-import { totalDuration, Measurement, WritableMeasurementKeys } from '@benchmarking-apps/test-result';
+import { WritableMeasurementKeys } from '@benchmarking-apps/test-result';
 import * as d3 from 'd3';
 
 export function round(value: number, factor = 100): number {
@@ -20,7 +20,7 @@ export class Margin {
   ) { }
 }
 
-class Action {
+export class Action {
   public constructor(
     public readonly description: string,
     public color?: string,
@@ -64,51 +64,3 @@ export const actions: Record<WritableMeasurementKeys, Action> = {
 // for (let i = 0; i < seqLen; i++) {
 //   actions[sequence[i]].color = d3.interpolateSpectral(colorScales[i % colorBuckets](i));
 // }
-
-export class AvgMeasurement {
-
-  public readonly id: string;
-  public readonly framework: string;
-  public readonly frameworkVersion: string;
-  public readonly initialPopulation: number;
-  public readonly totalPopulation: number;
-
-  public durationInitialLoad: number = 0;
-  public durationPopulation: number = 0;
-  public durationUpdate: number = 0;
-  public durationConditional: number = 0;
-  public durationTextUpdate: number = 0;
-  public durationSorting: number = 0;
-  public durationFilter: number = 0;
-  public durationSelectFirst: number = 0;
-  public durationDeleteFirst: number = 0;
-  public durationDeleteAll: number = 0;
-
-  private count = 0;
-  @totalDuration
-  public readonly totalDuration!: number;
-
-  public constructor(
-    measurement: Measurement
-  ) {
-    const fx = measurement.framework;
-    const fxVer = measurement.frameworkVersion;
-    const p0 = measurement.initialPopulation;
-    const pn = measurement.totalPopulation;
-    this.framework = fx;
-    this.frameworkVersion = fxVer;
-    this.initialPopulation = p0;
-    this.totalPopulation = pn;
-    this.id = `${fx}@${fxVer}`;
-    this.add(measurement);
-  }
-
-  public add(measurement: Measurement): void {
-    const n = this.count;
-    const n1 = ++this.count;
-    for (const [key, value] of Object.entries(measurement)) {
-      if (!key.startsWith('duration') || value === void 0) { continue; }
-      this[key] = ((this[key] as number * n) + value) / n1;
-    }
-  }
-}

@@ -12,7 +12,7 @@ export interface BenchmarkMetadata {
 
 export class BenchmarkMeasurements implements BenchmarkMetadata {
 
-  public static create(value: string | Partial<BenchmarkMeasurements>): BenchmarkMeasurements {
+  public static create(value: string | Partial<BenchmarkMeasurements>, localOnly: boolean = false): BenchmarkMeasurements {
     if (typeof value === 'string') {
       value = JSON.parse(value) as Partial<BenchmarkMeasurements>;
     }
@@ -22,7 +22,14 @@ export class BenchmarkMeasurements implements BenchmarkMetadata {
         /* ts_end       */ value.ts_end!,
         /* branch       */ value.branch!,
         /* commit       */ value.commit!,
-        /* measurements */ value.measurements?.map(Measurement.create)
+        /* measurements */ localOnly
+        ? value.measurements?.reduce((acc: Measurement[], m) => {
+          if (m.framework === 'aurelia2' && m.frameworkVersion === 'local') {
+            acc.push(Measurement.create(m));
+          }
+          return acc;
+        }, [])
+        : value.measurements?.map(Measurement.create)
     );
   }
 

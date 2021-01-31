@@ -1,9 +1,3 @@
 <!-- TODO: add description explaining the benchmark -->
 
-<let mode.bind="'browsers'"></let>
-
-<!-- TODO: facilitate changing the mode -->
-
-<template switch.bind="mode">
-  <by-browsers case="browsers" data.bind></by-browsers>
-</template>
+<by-browsers dataset.bind="data.measurements"></by-browsers>

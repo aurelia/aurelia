@@ -1,10 +1,12 @@
-import { BenchmarkMeasurements, Measurement } from '@benchmarking-apps/test-result';
+import { Measurement } from '@benchmarking-apps/test-result';
 import { bindable, customElement, ILogger } from 'aurelia';
+import { AvgMeasurement, DenormalizedMeasurement } from '../shared/data';
+import { VersionedItem } from '../shared/utils';
 import template from './by-browsers.html';
-import { AvgMeasurement, VersionedItem } from './shared';
 import { SmallMultiples } from './small-multiples';
 import { StackedBars } from './stacked-bars';
 
+type IMeasurement = Measurement | AvgMeasurement | DenormalizedMeasurement;
 @customElement({
   name: 'by-browsers',
   template,
@@ -15,10 +17,11 @@ import { StackedBars } from './stacked-bars';
   ],
 })
 export class ByBrowsers {
-  @bindable public readonly data: BenchmarkMeasurements;
-  private avgDataset: Measurement[];
-  private readonly measurementIdentifier: (m: AvgMeasurement | Measurement) => string = function (m) { return (m as AvgMeasurement).id ?? `${m.framework}@${m.frameworkVersion}`; };
-  private readonly totalDurationFn: (m: AvgMeasurement | Measurement) => number = function (m) { return m.totalDuration; };
+  @bindable public readonly dataset: Measurement[] | DenormalizedMeasurement[];
+  @bindable public readonly showAverage: boolean = true;
+  private avgDataset: AvgMeasurement[];
+  private readonly measurementIdentifier: (m: IMeasurement) => string = function (m) { return (m as AvgMeasurement | DenormalizedMeasurement).id ?? `${m.framework}@${m.frameworkVersion}`; };
+  private readonly totalDurationFn: (m: IMeasurement) => number = function (m) { return m.totalDuration; };
   private browsers: VersionedItem[];
   private activeBrowser: VersionedItem | undefined;
 
@@ -30,8 +33,7 @@ export class ByBrowsers {
 
   public binding(): void {
     const browsers: VersionedItem[] = this.browsers = [];
-    const measurements = this.data.measurements;
-    for (const m of measurements) {
+    for (const m of this.dataset) {
       const br = m.browser;
       const brVer = m.browserVersion;
       if (browsers.find((b) => b.name === br && b.version === brVer) === void 0) {
@@ -39,7 +41,7 @@ export class ByBrowsers {
       }
     }
     const numBrowsers = browsers.length;
-    if (numBrowsers === 1) {
+    if (numBrowsers === 1 || !this.showAverage) {
       this.activeBrowser = browsers[0];
     } else if (numBrowsers > 1) {
       this.computeAverageDataset();
@@ -48,7 +50,7 @@ export class ByBrowsers {
 
   private computeAverageDataset() {
     const avgDataset: AvgMeasurement[] = this.avgDataset = [];
-    for (const item of this.data.measurements) {
+    for (const item of this.dataset) {
       let avg = avgDataset.find((i) => i.framework === item.framework
         && i.frameworkVersion === item.frameworkVersion
         && i.initialPopulation === item.initialPopulation
@@ -66,7 +68,6 @@ export class ByBrowsers {
 
   private getActiveBrowserDataset() {
     const browser = this.activeBrowser;
-    return this.data.measurements
-      .filter((m) => m.browser === browser.name && m.browserVersion === browser.version);
+    return (this.dataset as { browser: string; browserVersion: string }[]).filter((m) => m.browser === browser.name && m.browserVersion === browser.version);
   }
 }

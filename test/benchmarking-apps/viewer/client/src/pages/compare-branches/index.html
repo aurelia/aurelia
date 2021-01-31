@@ -1,0 +1,19 @@
+<!-- TODO: show the branch data from the route -->
+<div class="compare-container">
+  <div class="input-group">
+    <label for="branch1">Branch*</label>
+    <input id="branch1" value.bind="candidate1.branch">
+    <label for="commit1">Commit</label>
+    <input id="commit1" value.bind="candidate1.commit">
+  </div>
+  <span>vs.</span>
+  <div class="input-group">
+    <label for="branch2">Branch*</label>
+    <input id="branch2" value.bind="candidate2.branch">
+    <label for="commit2">Commit</label>
+    <input id="commit2" value.bind="candidate2.commit">
+  </div>
+  <button click.delegate="compare()">Compare</button>
+</div>
+
+<by-browsers if.bind="dataset" dataset.bind  show-average.bind="false"></by-browsers>

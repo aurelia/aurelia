@@ -3,6 +3,33 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="0.9.0"></a>
+# 0.9.0 (2021-01-31)
+
+### Features:
+
+* **runtime-html:** add @lifecycleHooks wiring ([4076293](https://github.com/aurelia/aurelia/commit/4076293))
+* **fetch-client:** add IHttpClient interface ([b1a7a6d](https://github.com/aurelia/aurelia/commit/b1a7a6d))
+* **fetch-client:** add IHttpClient interface ([867887d](https://github.com/aurelia/aurelia/commit/867887d))
+* **work-tracker:** initial implementation for an app-wide 'wait-for-idle' api ([c677a4d](https://github.com/aurelia/aurelia/commit/c677a4d))
+
+
+### Bug Fixes:
+
+* **aurelia:** export IRouterEvents ([09e5785](https://github.com/aurelia/aurelia/commit/09e5785))
+* **export:** export new interfaces ([5febd83](https://github.com/aurelia/aurelia/commit/5febd83))
+
+
+### Refactorings:
+
+* **logging:** replace $console config option with ConsoleSink ([4ea5d22](https://github.com/aurelia/aurelia/commit/4ea5d22))
+* **all:** remove ILifecycle ([d141d8e](https://github.com/aurelia/aurelia/commit/d141d8e))
+* **obs:** remove IPropertyObserver ([d29bc28](https://github.com/aurelia/aurelia/commit/d29bc28))
+* **all:** remove IBindingTargetAccessor & IBindingTargetObserver interfaces ([d9c27c6](https://github.com/aurelia/aurelia/commit/d9c27c6))
+* **runtime:** reexport watch on aurelia package ([e7a46e4](https://github.com/aurelia/aurelia/commit/e7a46e4))
+* **runtime:** reexport watch on aurelia package ([af29a73](https://github.com/aurelia/aurelia/commit/af29a73))
+* **router:** port of PR #845 ([a67d0a2](https://github.com/aurelia/aurelia/commit/a67d0a2))
+
 <a name="0.8.0"></a>
 # 0.8.0 (2020-11-30)
 

@@ -161,7 +161,8 @@ describe('3-runtime-html/binding-resources.spec.ts', function () {
       ctx.platform.domWriteQueue.flush();
       assert.strictEqual(receiver.className, 'au selected', 'target value #3');
 
-      await wait(50);
+      await ctx.platform.taskQueue.yield();
+      await ctx.platform.domWriteQueue.yield();
 
       assert.strictEqual(receiver.className, 'au selected', 'target value pre #4');
       ctx.platform.domWriteQueue.flush();
@@ -211,7 +212,7 @@ describe('3-runtime-html/binding-resources.spec.ts', function () {
 
       assert.strictEqual(receiver.value, '3');
 
-      await wait(50);
+      await ctx.platform.taskQueue.yield();
 
       assert.strictEqual(receiver.value, '3');
 
@@ -324,7 +325,7 @@ describe('3-runtime-html/binding-resources.spec.ts', function () {
 
         assert.strictEqual(component.events.length, 0, `event 3 not yet propagated`);
 
-        await ctx.platform.macroTaskQueue.yield();
+        await ctx.platform.taskQueue.yield();
 
         assert.strictEqual(component.events.length, 1, `event 3 propagated`);
         assert.strictEqual(component.events[0], event3, `event 3 is the specific event that propagated`);

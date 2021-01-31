@@ -3,6 +3,55 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="0.9.0"></a>
+# 0.9.0 (2021-01-31)
+
+### Features:
+
+* **batch:** update implementation ([ecd4c8f](https://github.com/aurelia/aurelia/commit/ecd4c8f))
+* **batch:** clone batches before flushing ([c3659ea](https://github.com/aurelia/aurelia/commit/c3659ea))
+* **batch:** basic impl ([0ef7178](https://github.com/aurelia/aurelia/commit/0ef7178))
+* **di:** remove DI.createInterface builder ([8146dcc](https://github.com/aurelia/aurelia/commit/8146dcc))
+
+
+### Bug Fixes:
+
+* **au-slot:** non-strictly-initialized property ([699e7b8](https://github.com/aurelia/aurelia/commit/699e7b8))
+* **batch:** ensure nested batch not batched in outer ([ae61005](https://github.com/aurelia/aurelia/commit/ae61005))
+* ***:** ensure bindable & observable behavior match v1 ([200ac40](https://github.com/aurelia/aurelia/commit/200ac40))
+* ***:** use sub count from record only ([e9f578e](https://github.com/aurelia/aurelia/commit/e9f578e))
+* **computed-observer:** ensure getter invoked efficiently ([8b2bcf9](https://github.com/aurelia/aurelia/commit/8b2bcf9))
+* **tests:** correct validation controller tests ([2849c99](https://github.com/aurelia/aurelia/commit/2849c99))
+
+
+### Refactorings:
+
+* **all:** rename macroTaskQueue to taskQueue ([87c073d](https://github.com/aurelia/aurelia/commit/87c073d))
+* **connectable:** merge observer record & collection observer record ([f2c1501](https://github.com/aurelia/aurelia/commit/f2c1501))
+* **all:** rename interfaces, simplify subscriber collection ([1c37183](https://github.com/aurelia/aurelia/commit/1c37183))
+* ***:** remove ILifecycle export ([7ed7c6b](https://github.com/aurelia/aurelia/commit/7ed7c6b))
+* **all:** remove ILifecycle ([d141d8e](https://github.com/aurelia/aurelia/commit/d141d8e))
+* **collection:** remove lifecycle from collection ([a0fc5fb](https://github.com/aurelia/aurelia/commit/a0fc5fb))
+* **array-obs:** remove ILifecycle from array-obs ([da92d9f](https://github.com/aurelia/aurelia/commit/da92d9f))
+* ***:** simplify subscriber collection deco invocation ([a3547d5](https://github.com/aurelia/aurelia/commit/a3547d5))
+* ***:** use the same utility in runtime ([7340905](https://github.com/aurelia/aurelia/commit/7340905))
+* **observation:** minor cleanup, tweak accessor type ([2756ece](https://github.com/aurelia/aurelia/commit/2756ece))
+* **connectable:** more cryptic, less generic name ([0f303cb](https://github.com/aurelia/aurelia/commit/0f303cb))
+* **subscribers:** use a separate record for managing subscribers ([9f9152d](https://github.com/aurelia/aurelia/commit/9f9152d))
+* ***:** use private static, tweak comments, simplify vs ast code ([98d33b4](https://github.com/aurelia/aurelia/commit/98d33b4))
+* **connectable:** make record/cRecord first class, remove other methods ([d0cb810](https://github.com/aurelia/aurelia/commit/d0cb810))
+* **runtime:** simplify generated code ([7a8f876](https://github.com/aurelia/aurelia/commit/7a8f876))
+* **watch:** move to runtime-html ([1250402](https://github.com/aurelia/aurelia/commit/1250402))
+* **runtime:** move binding implementations to runtime-html ([8d9a177](https://github.com/aurelia/aurelia/commit/8d9a177))
+* **connectable:** make observe coll part of IConnectable, updat watchers ([3df866c](https://github.com/aurelia/aurelia/commit/3df866c))
+* ***:** remove IPropertyChangeTracker interface ([d9ba9a4](https://github.com/aurelia/aurelia/commit/d9ba9a4))
+* **obs:** remove IPropertyObserver ([d29bc28](https://github.com/aurelia/aurelia/commit/d29bc28))
+* **all:** remove IBindingTargetAccessor & IBindingTargetObserver interfaces ([d9c27c6](https://github.com/aurelia/aurelia/commit/d9c27c6))
+* **subscribers:** shorter internal prop names, add some more comments ([1c6cb2d](https://github.com/aurelia/aurelia/commit/1c6cb2d))
+* **el-accessor:** merge size & length observersremove task reuse ([3af2d9f](https://github.com/aurelia/aurelia/commit/3af2d9f))
+* **observer:** ensure length subscription adds array subscription, add tests ([64182ae](https://github.com/aurelia/aurelia/commit/64182ae))
+* **obs:** clean up bind from observer, ([3006d3b](https://github.com/aurelia/aurelia/commit/3006d3b))
+
 <a name="0.8.0"></a>
 # 0.8.0 (2020-11-30)
 

@@ -130,20 +130,21 @@ export class AttributeBinding implements IPartialConnectableBinding {
       }
     }
 
+    let task: ITask | null;
     if (newValue !== this.value) {
       this.value = newValue;
       if (shouldQueueFlush) {
-        this.task?.cancel();
+        // Queue the new one before canceling the old one, to prevent early yield
+        task = this.task;
         this.task = this.$platform.domWriteQueue.queueTask(() => {
           this.task = null;
           interceptor.updateTarget(newValue, flags);
         }, taskOptions);
+        task?.cancel();
       } else {
         interceptor.updateTarget(newValue, flags);
       }
     }
-
-    return;
   }
 
   public $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null, projection?: CustomElementDefinition): void {

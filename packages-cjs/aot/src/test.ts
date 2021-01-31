@@ -7,6 +7,7 @@ import {
   LogLevel,
   ColorOptions,
   Registration,
+  ConsoleSink,
 } from '@aurelia/kernel';
 import {
   IFileSystem,
@@ -24,7 +25,7 @@ import {
 
   const container = DI.createContainer();
   container.register(
-    LoggerConfiguration.create({ $console: console, level: LogLevel.debug, colorOptions: ColorOptions.colors }),
+    LoggerConfiguration.create({ sinks: [ConsoleSink], level: LogLevel.debug, colorOptions: ColorOptions.colors }),
     Registration.singleton(IFileSystem, NodeFileSystem),
   );
 

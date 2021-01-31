@@ -26,9 +26,9 @@ import { Listener } from './binding/listener.js';
 import { IEventDelegator } from './observation/event-delegator.js';
 import { CustomElement, CustomElementDefinition, PartialCustomElementDefinition } from './resources/custom-element.js';
 import { getRenderContext, ICompiledRenderContext } from './templating/render-context.js';
-import { RegisteredProjections, SlotInfo } from './resources/custom-elements/au-slot.js';
+import { AuSlotsInfo, RegisteredProjections, SlotInfo } from './resources/custom-elements/au-slot.js';
 import { CustomAttribute } from './resources/custom-attribute.js';
-import { convertToRenderLocation, INode } from './dom.js';
+import { convertToRenderLocation, INode, setRef } from './dom.js';
 import { Controller } from './templating/controller.js';
 import { IViewFactory } from './templating/view.js';
 import { IPlatform } from './platform.js';
@@ -404,12 +404,14 @@ export class CustomElementRenderer implements IRenderer {
       viewFactory = getRenderContext(projectionCtx.content, context).getViewFactory(void 0, slotInfo.type, projectionCtx.scope);
     }
 
+    const targetedProjections = context.getProjectionFor(instruction);
     const factory = context.getComponentFactory(
       /* parentController */controller,
       /* host             */target,
       /* instruction      */instruction,
       /* viewFactory      */viewFactory,
       /* location         */target,
+      /* auSlotsInfo      */new AuSlotsInfo(Object.keys(targetedProjections?.projections ?? {})),
     );
 
     const key = CustomElement.keyFrom(instruction.res);
@@ -420,12 +422,12 @@ export class CustomElementRenderer implements IRenderer {
       /* container           */context,
       /* viewModel           */component,
       /* host                */target,
-      /* targetedProjections */context.getProjectionFor(instruction),
+      /* targetedProjections */targetedProjections,
       /* flags               */flags,
     );
 
     flags = childController.flags;
-    Metadata.define(key, childController, target);
+    setRef(target, key, childController);
 
     context.renderChildren(
       /* flags        */flags,
@@ -469,7 +471,7 @@ export class CustomAttributeRenderer implements IRenderer {
       /* flags     */flags,
     );
 
-    Metadata.define(key, childController, target);
+    setRef(target, key, childController);
 
     context.renderChildren(
       /* flags        */flags,
@@ -517,7 +519,7 @@ export class TemplateControllerRenderer implements IRenderer {
       /* flags     */flags,
     );
 
-    Metadata.define(key, childController, renderLocation);
+    setRef(renderLocation, key, childController);
 
     component.link?.(flags, context, controller, childController, target, instruction);
 

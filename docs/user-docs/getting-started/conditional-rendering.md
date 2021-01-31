@@ -116,12 +116,9 @@ What about the scenario above with `one-time`? Should we use `show.one-time` in 
 
 ## switch
 
-To deal with conditional rendering Aurelia also provides the `switch` template controller.
-It behaves like `if/else` in terms of that it does detach the elements from DOM, when the condition does not satisfy.
-The difference being is that it brings the intrinsic flexibility and semantics of using a `switch` statement with it.
+To deal with conditional rendering Aurelia also provides the `switch` template controller. It behaves like `if/else` in terms of that it does detach the elements from DOM, when the condition does not satisfy. The difference being is that it brings the intrinsic flexibility and semantics of using a `switch` statement with it.
 
-A typical use-case of `switch` involves dealing with enums.
-For example, let's consider the following `Status` enum.
+A typical use-case of `switch` involves dealing with enums. For example, let's consider the following `Status` enum.
 
 {% code title="Status.ts" %}
 ```typescript
@@ -135,7 +132,7 @@ const enum Status {
 ```
 {% endcode %}
 
-When tasked with displaying a specific text for a specific member (status) of the `Status` enum, with only `if` bind at our disposal, we may end up with the following markup.
+When tasked with displaying a specific text for a specific member \(status\) of the `Status` enum, with only `if` bind at our disposal, we may end up with the following markup.
 
 {% code title="my-app.html" %}
 ```markup
@@ -146,9 +143,7 @@ When tasked with displaying a specific text for a specific member (status) of th
 ```
 {% endcode %}
 
-Also if there are new statuses added to the `Status` enum in future, this markup will end up more verbose, and possibly difficult to understand.
-Moreover, the semantics of the code might as well be somewhat lost.
-With the usage of the `switch/case` template controller, the above markup can be written as following.
+Also if there are new statuses added to the `Status` enum in future, this markup will end up more verbose, and possibly difficult to understand. Moreover, the semantics of the code might as well be somewhat lost. With the usage of the `switch/case` template controller, the above markup can be written as following.
 
 {% code title="my-app.html" %}
 ```markup
@@ -161,12 +156,7 @@ With the usage of the `switch/case` template controller, the above markup can be
 ```
 {% endcode %}
 
-This behaves in similar fashion a `switch` in JavaScript behaves.
-That is it renders the first match, and ignores the rest.
-For example if the `status` has a value `Status.processing`, it will render `<span>Processing your order.</span>`.
-Note that it intrinsically avoids matching the following `case`s after the first match and consequently binding and rendering those elements.
-That is the basic and typical use-case of the `switch/case` template controllers.
-Now let's see some other features of this as well.
+This behaves in similar fashion a `switch` in JavaScript behaves. That is it renders the first match, and ignores the rest. For example if the `status` has a value `Status.processing`, it will render `<span>Processing your order.</span>`. Note that it intrinsically avoids matching the following `case`s after the first match and consequently binding and rendering those elements. That is the basic and typical use-case of the `switch/case` template controllers. Now let's see some other features of this as well.
 
 ### default-case
 
@@ -199,8 +189,7 @@ It is possible to map a single element to multiple cases, by binding an array to
 ```
 {% endcode %}
 
-For either of `Status.received` or `Status.processing`, it will render `<span>Order received.</span>`.
-A JavaScript equivalent of this would be the following.
+For either of `Status.received` or `Status.processing`, it will render `<span>Order received.</span>`. A JavaScript equivalent of this would be the following.
 
 {% code title="my-app.ts" %}
 ```typescript
@@ -222,9 +211,7 @@ When an array is bound to the `case`, the value of the `switch` is matched again
 
 ### fall-through
 
-It is also possible to have the switch-case fallthrough in the markup, where you don't want to break after a case has been executed.
-This means something like this.
-
+It is also possible to have the switch-case fallthrough in the markup, where you don't want to break after a case has been executed. This means something like this.
 
 {% code title="my-app.ts" %}
 ```typescript
@@ -248,7 +235,6 @@ return ret;
 
 Aurelia equivalent of this will be the following.
 
-
 {% code title="my-app.html" %}
 ```markup
 <template switch.bind="status">
@@ -263,15 +249,15 @@ Aurelia equivalent of this will be the following.
 Assuming that `status` is set to `Status.received`, it will end up the rendering the first two `<span>`s.
 
 {% hint style="info" %}
-- By default for every `case` `fallThrough` is set to `false`. If needed, you need to set it to `true` explicitly. This the reason why we don't need to write the following: `<span case="value.bind:'processing'; fall-through.bind: false">Processing your order.</span>`.
-- `fall-through: true` is a less verbose syntax for binding the value of `fallThrough`. In this case, the string `'true'` and `'false'` are converted to boolean `true`, and `false` respectively.
+* By default for every `case` `fallThrough` is set to `false`. If needed, you need to set it to `true` explicitly. This the reason why we don't need to write the following: `<span case="value.bind:'processing'; fall-through.bind: false">Processing your order.</span>`.
+* `fall-through: true` is a less verbose syntax for binding the value of `fallThrough`. In this case, the string `'true'` and `'false'` are converted to boolean `true`, and `false` respectively.
 {% endhint %}
 
 ### Miscellaneous examples
 
 This section includes few more interesting examples that you might encounter in real life, and the statutory warnings.
 
-- Another usage of switch that we often see in the wild, is to use a static expression for `switch` and more dynamic expression for `case`. Therefore, the following is a valid usage of `switch`.
+* Another usage of switch that we often see in the wild, is to use a static expression for `switch` and more dynamic expression for `case`. Therefore, the following is a valid usage of `switch`.
 
   {% code title="my-app.html" %}
   ```markup
@@ -287,7 +273,7 @@ This section includes few more interesting examples that you might encounter in 
   ```
   {% endcode %}
 
-- The `switch` can be used to provide conditional projection to `au-slot`. The following markup is rendered as `'<foo-bar> <span>Order received.</span> </foo-bar>'` with `status` set to `Status.received`.
+* The `switch` can be used to provide conditional projection to `au-slot`. The following markup is rendered as `'<foo-bar> <span>Order received.</span> </foo-bar>'` with `status` set to `Status.received`.
 
   {% code title="my-app.html" %}
   ```markup
@@ -308,7 +294,7 @@ This section includes few more interesting examples that you might encounter in 
   ```
   {% endcode %}
 
-- The `case` can be used with `<au-slot>` element as well. The following markup is rendered as `'<foo-bar> <div> <span>Projection</span> </div> </foo-bar>'` with `status` set to `Status.received`.
+* The `case` can be used with `<au-slot>` element as well. The following markup is rendered as `'<foo-bar> <div> <span>Projection</span> </div> </foo-bar>'` with `status` set to `Status.received`.
 
   {% code title="my-app.html" %}
   ```markup
@@ -328,7 +314,7 @@ This section includes few more interesting examples that you might encounter in 
   ```
   {% endcode %}
 
-- `switch`s can be nested. For example, the following markup is rendered as `<span> Expected to be delivered in 2 days. </span>` with `status` set to `Status.delivered`.
+* `switch`s can be nested. For example, the following markup is rendered as `<span> Expected to be delivered in 2 days. </span>` with `status` set to `Status.delivered`.
 
   {% code title="my-app.html" %}
   ```markup
@@ -349,7 +335,7 @@ This section includes few more interesting examples that you might encounter in 
   ```
   {% endcode %}
 
-- `switch` can work without any `case` attribute in it. However, the `case` cannot be used with the `switch` applied to its parent. This applies to the `default-case` as well.
+* `switch` can work without any `case` attribute in it. However, the `case` cannot be used with the `switch` applied to its parent. This applies to the `default-case` as well.
 
   {% code title="my-app.html" %}
   ```markup
@@ -363,7 +349,7 @@ This section includes few more interesting examples that you might encounter in 
   ```
   {% endcode %}
 
-- In fact, it is worth noting that `case` should be the direct child of `switch`. In most of the cases Aurelia will throw error otherwise in most of the cases; for other cases, it might lead to unexpected results. If you think, any of the following should be supported, then let us know your use-case.
+* In fact, it is worth noting that `case` should be the direct child of `switch`. In most of the cases Aurelia will throw error otherwise in most of the cases; for other cases, it might lead to unexpected results. If you think, any of the following should be supported, then let us know your use-case.
 
   {% code title="my-app.html" %}
   ```markup
@@ -418,3 +404,4 @@ This section includes few more interesting examples that you might encounter in 
   -->
   ```
   {% endcode %}
+

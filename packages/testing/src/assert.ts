@@ -820,7 +820,7 @@ const areTaskQueuesEmpty = (function () {
     const platform = BrowserPlatform.getOrCreate(globalThis)!;
 
     const domWriteQueue = platform.domWriteQueue;
-    const macroTaskQueue = platform.macroTaskQueue;
+    const taskQueue = platform.taskQueue;
     const domReadQueue = platform.domReadQueue;
 
     let isEmpty = true;
@@ -829,8 +829,8 @@ const areTaskQueuesEmpty = (function () {
       message += `\n${reportTaskQueue('domWriteQueue', domWriteQueue)}\n\n`;
       isEmpty = false;
     }
-    if (!macroTaskQueue.isEmpty) {
-      message += `\n${reportTaskQueue('macroTaskQueue', macroTaskQueue)}\n\n`;
+    if (!taskQueue.isEmpty) {
+      message += `\n${reportTaskQueue('taskQueue', taskQueue)}\n\n`;
       isEmpty = false;
     }
     if (!domReadQueue.isEmpty) {

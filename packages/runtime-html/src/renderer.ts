@@ -18,7 +18,7 @@ import {
 } from '@aurelia/runtime';
 import { CallBinding } from './binding/call-binding.js';
 import { AttributeBinding } from './binding/attribute.js';
-import { InterpolationBinding, ContentBinding } from './binding/interpolation-binding.js';
+import { InterpolationBinding, ContentBinding, ContentBinding2 } from './binding/interpolation-binding.js';
 import { LetBinding } from './binding/let-binding.js';
 import { PropertyBinding } from './binding/property-binding.js';
 import { RefBinding } from './binding/ref-binding.js';
@@ -28,7 +28,7 @@ import { CustomElement, CustomElementDefinition, PartialCustomElementDefinition 
 import { getRenderContext, ICompiledRenderContext } from './templating/render-context.js';
 import { AuSlotsInfo, RegisteredProjections, SlotInfo } from './resources/custom-elements/au-slot.js';
 import { CustomAttribute } from './resources/custom-attribute.js';
-import { convertToRenderLocation, INode, setRef } from './dom.js';
+import { convertToRenderLocation, INode, NodeType, setRef } from './dom.js';
 import { Controller } from './templating/controller.js';
 import { IViewFactory } from './templating/view.js';
 import { IPlatform } from './platform.js';
@@ -751,31 +751,64 @@ export class TextBindingRenderer implements IRenderer {
     target: ChildNode,
     instruction: TextBindingInstruction,
   ): void {
-    const next = target.nextSibling;
+    const next = target.nextSibling!;
+    const parent = target.parentNode!;
+    const doc = this.platform.document;
+    const expr = ensureExpression(this.parser, instruction.from, BindingType.Interpolation) as Interpolation;
+    const staticParts = expr.parts;
+    const dynamicParts = expr.expressions;
+    if (next.nodeType !== NodeType.Text) {
+      throw new Error('Invalid setup for text content rendering');
+    }
+
+    parent.insertBefore(doc.createTextNode(staticParts[0]), next);
+    let i = 0;
+    let ii = dynamicParts.length;
+    for (; ii > i; ++i) {
+      // each of the dynamic expression of an interpolation
+      // will be mapped to a ContentBinding
+      controller.addBinding(applyBindingBehavior(
+        new ContentBinding2(
+          dynamicParts[i],
+          // using a text node instead of comment, as a mean to:
+          // support seamless transition between a html node, or a text
+          // reduce the noise in the template, caused by html comment
+          parent.insertBefore(doc.createTextNode(''), next),
+          context,
+          this.observerLocator,
+          this.platform,
+        ),
+        dynamicParts[i] as unknown as IsBindingBehavior,
+        context
+      ) as ContentBinding2);
+      // while each of the static part of an interpolation
+      // will just be a text node
+      parent.insertBefore(doc.createTextNode(staticParts[i + 1]), next);
+    }
     if (target.nodeName === 'AU-M') {
       target.remove();
     }
-    const expr = ensureExpression(this.parser, instruction.from, BindingType.Interpolation) as Interpolation;
-    const binding = new InterpolationBinding(
-      this.observerLocator,
-      expr,
-      next!,
-      'textContent',
-      BindingMode.toView,
-      context,
-      this.platform.domWriteQueue,
-    );
-    const partBindings = binding.partBindings;
-    let partBinding: ContentBinding;
-    for (let i = 0, ii = partBindings.length; ii > i; ++i) {
-      partBinding = partBindings[i];
-      partBindings[i] = applyBindingBehavior(
-        partBinding,
-        partBinding.sourceExpression as unknown as IsBindingBehavior,
-        context
-      ) as ContentBinding;
-    }
-    controller.addBinding(binding);
+    parent.removeChild(next);
+    // const binding = new InterpolationBinding(
+    //   this.observerLocator,
+    //   expr,
+    //   next!,
+    //   'textContent',
+    //   BindingMode.toView,
+    //   context,
+    //   this.platform.domWriteQueue,
+    // );
+    // const partBindings = binding.partBindings;
+    // let partBinding: ContentBinding;
+    // for (let i = 0, ii = partBindings.length; ii > i; ++i) {
+    //   partBinding = partBindings[i];
+    //   partBindings[i] = applyBindingBehavior(
+    //     partBinding,
+    //     partBinding.sourceExpression as unknown as IsBindingBehavior,
+    //     context
+    //   ) as ContentBinding;
+    // }
+    // controller.addBinding(binding);
   }
 }
 

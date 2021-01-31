@@ -18,6 +18,9 @@ import type {
   IBinding,
   Scope,
 } from '@aurelia/runtime';
+import type {
+  IPlatform,
+} from '../platform';
 
 const { toView } = BindingMode;
 const queueTaskOptions: QueueTaskOptions = {
@@ -235,3 +238,130 @@ export class ContentBinding implements ContentBinding, ICollectionSubscriber {
 }
 
 connectable(ContentBinding);
+
+export interface ContentBinding2 extends IConnectableBinding {}
+
+export class ContentBinding2 implements ContentBinding2, ICollectionSubscriber {
+  public interceptor: this = this;
+
+  // at runtime, mode may be overriden by binding behavior
+  // but it wouldn't matter here, just start with something for later check
+  public readonly mode: BindingMode = BindingMode.toView;
+  public value: unknown = '';
+  public $scope?: Scope;
+  public $hostScope: Scope | null = null;
+  public task: ITask | null = null;
+  public isBound: boolean = false;
+
+  public constructor(
+    public readonly sourceExpression: IsExpression,
+    public readonly target: Text,
+    public readonly locator: IServiceLocator,
+    public readonly observerLocator: IObserverLocator,
+    public readonly platform: IPlatform,
+  ) {
+
+  }
+
+  public updateTarget(value: unknown, flags: LifecycleFlags): void {
+    const target = this.target;
+    const nodeCtor = this.platform.Node;
+    const oldValue = this.value;
+    this.task = null;
+    if (oldValue instanceof nodeCtor) {
+      oldValue.parentNode?.removeChild(oldValue);
+    }
+    if (value instanceof nodeCtor) {
+      target.textContent = '';
+      target.parentNode?.insertBefore(value, target);
+    } else {
+      target.textContent = String(value);
+    }
+    this.value = value;
+  }
+
+  public handleChange(newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void {
+    if (!this.isBound) {
+      return;
+    }
+    const sourceExpression = this.sourceExpression;
+    const obsRecord = this.obs;
+    const canOptimize = sourceExpression.$kind === ExpressionKind.AccessScope && obsRecord.count === 1;
+    if (!canOptimize) {
+      const shouldConnect = (this.mode & toView) > 0;
+      if (shouldConnect) {
+        obsRecord.version++;
+      }
+      newValue = sourceExpression.evaluate(flags, this.$scope!, this.$hostScope, this.locator, shouldConnect ? this.interceptor : null);
+      if (shouldConnect) {
+        obsRecord.clear(false);
+      }
+    }
+    if (newValue === this.value) {
+      return;
+    }
+    // Alpha: during bind a simple strategy for bind is always flush immediately
+    // todo:
+    //  (1). determine whether this should be the behavior
+    //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start().wait()
+    const shouldQueueFlush = (flags & LifecycleFlags.fromBind) === 0;
+    this.task?.cancel();
+    if (shouldQueueFlush) {
+      this.task = this.platform.domWriteQueue.queueTask(() => {
+        this.updateTarget(newValue, flags);
+      }, queueTaskOptions);
+    } else {
+      this.updateTarget(newValue, flags);
+    }
+  }
+
+  public handleCollectionChange(): void {
+    this.updateTarget(String(this.value), LifecycleFlags.none);
+  }
+
+  public $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void {
+    if (this.isBound) {
+      if (this.$scope === scope) {
+        return;
+      }
+      this.interceptor.$unbind(flags);
+    }
+
+    this.isBound = true;
+    this.$scope = scope;
+    this.$hostScope = hostScope;
+
+    if (this.sourceExpression.hasBind) {
+      this.sourceExpression.bind(flags, scope, hostScope, this.interceptor as IIndexable & this);
+    }
+
+    const v = this.value = this.sourceExpression.evaluate(
+      flags,
+      scope,
+      hostScope,
+      this.locator,
+      (this.mode & toView) > 0 ?  this.interceptor : null,
+    );
+    if (v instanceof Array) {
+      this.observeCollection(v);
+    }
+    this.updateTarget(v, flags);
+  }
+
+  public $unbind(flags: LifecycleFlags): void {
+    if (!this.isBound) {
+      return;
+    }
+    this.isBound = false;
+
+    if (this.sourceExpression.hasUnbind) {
+      this.sourceExpression.unbind(flags, this.$scope!, this.$hostScope, this.interceptor);
+    }
+
+    this.$scope = void 0;
+    this.$hostScope = null;
+    this.obs.clear(true);
+  }
+}
+
+connectable(ContentBinding2);

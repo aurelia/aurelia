@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="0.9.0"></a>
+# 0.9.0 (2021-01-31)
+
+### Features:
+
+* **di:** remove DI.createInterface builder ([8146dcc](https://github.com/aurelia/aurelia/commit/8146dcc))
+
+
+### Bug Fixes:
+
+* ***:** broken validation tests ([a051257](https://github.com/aurelia/aurelia/commit/a051257))
+* **runtime:** prevent early taskQueue yield ([a72c8b2](https://github.com/aurelia/aurelia/commit/a72c8b2))
+
 <a name="0.8.0"></a>
 # 0.8.0 (2020-11-30)
 

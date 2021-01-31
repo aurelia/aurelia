@@ -3,6 +3,74 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="0.9.0"></a>
+# 0.9.0 (2021-01-31)
+
+### Features:
+
+* **runtime-html:** add @lifecycleHooks wiring ([4076293](https://github.com/aurelia/aurelia/commit/4076293))
+* **runtime:** add getRef/setRef API's and expose $au object on nodes ([c47cc85](https://github.com/aurelia/aurelia/commit/c47cc85))
+* **runtime-html:** invoke created() hook on custom attributes ([3e90d68](https://github.com/aurelia/aurelia/commit/3e90d68))
+* ***:** decorator auSlots wip ([6ddb362](https://github.com/aurelia/aurelia/commit/6ddb362))
+* ***:** processContent wip ([cb8a103](https://github.com/aurelia/aurelia/commit/cb8a103))
+* **show/hide:** port show & hide attributes from v1 ([8dd9562](https://github.com/aurelia/aurelia/commit/8dd9562))
+* **compiler:** preserve 'alias' in the compiled instruction for usage by component instance ([e80a837](https://github.com/aurelia/aurelia/commit/e80a837))
+* **di:** remove DI.createInterface builder ([8146dcc](https://github.com/aurelia/aurelia/commit/8146dcc))
+* **work-tracker:** initial implementation for an app-wide 'wait-for-idle' api ([c677a4d](https://github.com/aurelia/aurelia/commit/c677a4d))
+
+
+### Bug Fixes:
+
+* **runtime:** prevent early taskQueue yield ([a72c8b2](https://github.com/aurelia/aurelia/commit/a72c8b2))
+* **custom-attribute:** fix CustomAttribute.for ([4c97444](https://github.com/aurelia/aurelia/commit/4c97444))
+* ***:** as-element support for au-slot ([ae233e3](https://github.com/aurelia/aurelia/commit/ae233e3))
+* ***:** linting issue ([0613391](https://github.com/aurelia/aurelia/commit/0613391))
+* ***:** compilation skipping ([c9f5bda](https://github.com/aurelia/aurelia/commit/c9f5bda))
+* ***:** order-agnostic processContent decorator ([c3a4bb6](https://github.com/aurelia/aurelia/commit/c3a4bb6))
+* **batch:** ensure nested batch not batched in outer ([ae61005](https://github.com/aurelia/aurelia/commit/ae61005))
+* ***:** ensure bindable & observable behavior match v1 ([200ac40](https://github.com/aurelia/aurelia/commit/200ac40))
+* **accessors:** add index signature ([617c416](https://github.com/aurelia/aurelia/commit/617c416))
+* ***:** use sub count from record only ([e9f578e](https://github.com/aurelia/aurelia/commit/e9f578e))
+* **semantic-model:** include alias in cache key ([ad09693](https://github.com/aurelia/aurelia/commit/ad09693))
+* **tests:** correct validation controller tests ([2849c99](https://github.com/aurelia/aurelia/commit/2849c99))
+* **attribute:** queue new task ([5f7fa27](https://github.com/aurelia/aurelia/commit/5f7fa27))
+* **controller:** fix async unbind with dispose race condition ([987d69d](https://github.com/aurelia/aurelia/commit/987d69d))
+
+
+### Performance Improvements:
+
+* **controller:** use stack to minimize promise tick overhead ([d861da8](https://github.com/aurelia/aurelia/commit/d861da8))
+
+
+### Refactorings:
+
+* ***:** au-slot info via DI ([1719669](https://github.com/aurelia/aurelia/commit/1719669))
+* **all:** rename macroTaskQueue to taskQueue ([87c073d](https://github.com/aurelia/aurelia/commit/87c073d))
+* ***:** decorator auSlots ([26e980c](https://github.com/aurelia/aurelia/commit/26e980c))
+* ***:** decorator auSlots ([9fbb312](https://github.com/aurelia/aurelia/commit/9fbb312))
+* ***:** and more tests for processContent ([893831e](https://github.com/aurelia/aurelia/commit/893831e))
+* **connectable:** merge observer record & collection observer record ([f2c1501](https://github.com/aurelia/aurelia/commit/f2c1501))
+* **all:** rename interfaces, simplify subscriber collection ([1c37183](https://github.com/aurelia/aurelia/commit/1c37183))
+* **all:** remove ILifecycle ([d141d8e](https://github.com/aurelia/aurelia/commit/d141d8e))
+* **observation:** minor cleanup, tweak accessor type ([2756ece](https://github.com/aurelia/aurelia/commit/2756ece))
+* **connectable:** more cryptic, less generic name ([0f303cb](https://github.com/aurelia/aurelia/commit/0f303cb))
+* **subscribers:** use a separate record for managing subscribers ([9f9152d](https://github.com/aurelia/aurelia/commit/9f9152d))
+* **di:** store factory per container root instead of via metadata ([dbbd8b9](https://github.com/aurelia/aurelia/commit/dbbd8b9))
+* ***:** use private static, tweak comments, simplify vs ast code ([d8f1c69](https://github.com/aurelia/aurelia/commit/d8f1c69))
+* ***:** use private static, tweak comments, simplify vs ast code ([98d33b4](https://github.com/aurelia/aurelia/commit/98d33b4))
+* **runtime-html:** more cleanup ([5bde778](https://github.com/aurelia/aurelia/commit/5bde778))
+* **watch:** move to runtime-html ([1250402](https://github.com/aurelia/aurelia/commit/1250402))
+* **runtime:** move binding implementations to runtime-html ([8d9a177](https://github.com/aurelia/aurelia/commit/8d9a177))
+* **connectable:** make observe coll part of IConnectable, updat watchers ([3df866c](https://github.com/aurelia/aurelia/commit/3df866c))
+* ***:** remove IPropertyChangeTracker interface ([d9ba9a4](https://github.com/aurelia/aurelia/commit/d9ba9a4))
+* **obs:** remove IPropertyObserver ([d29bc28](https://github.com/aurelia/aurelia/commit/d29bc28))
+* **all:** remove IBindingTargetAccessor & IBindingTargetObserver interfaces ([d9c27c6](https://github.com/aurelia/aurelia/commit/d9c27c6))
+* **runtime:** reexport watch on aurelia package ([af29a73](https://github.com/aurelia/aurelia/commit/af29a73))
+* **el-accessor:** merge size & length observersremove task reuse ([3af2d9f](https://github.com/aurelia/aurelia/commit/3af2d9f))
+* **obs:** clean up bind from observer, ([3006d3b](https://github.com/aurelia/aurelia/commit/3006d3b))
+* **if:** cleanup & utilize WorkTracker ([df3a5d5](https://github.com/aurelia/aurelia/commit/df3a5d5))
+* **bench-apps:** measurement ([ae4ecaf](https://github.com/aurelia/aurelia/commit/ae4ecaf))
+
 <a name="0.8.0"></a>
 # 0.8.0 (2020-11-30)
 

@@ -257,6 +257,7 @@ module.exports = {
       '@typescript-eslint/no-require-imports': 'off',
       '@typescript-eslint/no-var-requires': 'off',
       'import/no-nodejs-modules': 'off',
+      'import/no-extraneous-dependencies': 'off',
     }
   }],
 };

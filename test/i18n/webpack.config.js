@@ -10,14 +10,18 @@ module.exports = function (env, { mode }) {
     devtool: "inline-cheap-module-source-map",
     resolve: {
       extensions: ['.ts', '.js'],
-      modules: ['src', 'node_modules'],
-      mainFields: ['module']
+      modules: [path.resolve(__dirname, 'src'), 'node_modules'],
+      mainFields: ['module'],
+      // sadly these fallbacks are required to run the app via webpack-dev-server
+      fallback: {
+        'html-entities': require.resolve('html-entities/'),
+        'url': require.resolve('url/'),
+        'events': require.resolve('events/'),
+      },
     },
     devServer: {
-      contentBase: path.join(__dirname, "dist"),
       port: 9500,
       historyApiFallback: true,
-      lazy: false
     },
     module: {
       rules: [

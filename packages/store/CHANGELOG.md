@@ -3,6 +3,11 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="0.9.0"></a>
+# 0.9.0 (2021-01-31)
+
+**Note:** Version bump only for package @aurelia/store
+
 <a name="0.8.0"></a>
 # 0.8.0 (2020-11-30)
 

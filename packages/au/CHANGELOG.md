@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="0.9.0"></a>
+# 0.9.0 (2021-01-31)
+
+### Refactorings:
+
+* **au:** make esm compatible ([0fcbbe2](https://github.com/aurelia/aurelia/commit/0fcbbe2))
+
 <a name="0.8.0"></a>
 # 0.8.0 (2020-11-30)
 

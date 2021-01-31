@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="0.9.0"></a>
+# 0.9.0 (2021-01-31)
+
+### Bug Fixes:
+
+* **route-recognizer:** cleanup & fix empty path routes ([5edb119](https://github.com/aurelia/aurelia/commit/5edb119))
+
+
+### Refactorings:
+
+* **route-recognizer:** make handler mutable ([d8a3ad2](https://github.com/aurelia/aurelia/commit/d8a3ad2))
+
 <a name="0.8.0"></a>
 # 0.8.0 (2020-11-30)
 

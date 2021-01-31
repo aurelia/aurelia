@@ -4,6 +4,7 @@ import { IRenderLocation } from '../../dom.js';
 import { IViewFactory } from '../../templating/view.js';
 import { templateController } from '../custom-attribute.js';
 import { bindable } from '../../bindable.js';
+import { IWorkTracker } from '../../app-root.js';
 
 import type { ISyntheticView, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor, IHydratableController } from '../../templating/controller.js';
 import type { ICompiledRenderContext } from '../../templating/render-context.js';
@@ -21,99 +22,97 @@ export class If implements ICustomAttributeViewModel {
 
   public readonly $controller!: ICustomAttributeController<this>; // This is set by the controller after this instance is constructed
 
-  @bindable public value: boolean = false;
+  @bindable public value: unknown = false;
+  private pending: void | Promise<void> = void 0;
+  private wantsDeactivate: boolean = false;
 
   public constructor(
     @IViewFactory private readonly ifFactory: IViewFactory,
     @IRenderLocation private readonly location: IRenderLocation,
+    @IWorkTracker private readonly work: IWorkTracker,
   ) {}
 
-  public attaching(
-    initiator: IHydratedController,
-    parent: IHydratedParentController,
-    flags: LifecycleFlags,
-  ): void | Promise<void> {
-    const view = this.view = this.updateView(this.value, flags);
-    if (view !== void 0) {
-      const { $controller } = this;
-      return view.activate(initiator, $controller, flags, $controller.scope, $controller.hostScope);
-    }
+  public attaching(initiator: IHydratedController, parent: IHydratedController, flags: LifecycleFlags): void | Promise<void> {
+    return onResolve(this.pending, () => {
+      this.pending = void 0;
+      // Promise return values from user VM hooks are awaited by the initiator
+      void (this.view = this.updateView(this.value, flags))?.activate(initiator, this.$controller, flags, this.$controller.scope, this.$controller.hostScope);
+    });
   }
 
-  public detaching(
-    initiator: IHydratedController,
-    parent: IHydratedParentController,
-    flags: LifecycleFlags,
-  ): void | Promise<void> {
-    if (this.view !== void 0) {
-      return this.view.deactivate(initiator, this.$controller, flags);
-    }
+  public detaching(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void> {
+    this.wantsDeactivate = true;
+    return onResolve(this.pending, () => {
+      this.wantsDeactivate = false;
+      this.pending = void 0;
+      // Promise return values from user VM hooks are awaited by the initiator
+      void this.view?.deactivate(initiator, this.$controller, flags);
+    });
   }
 
-  public valueChanged(
-    newValue: boolean,
-    oldValue: boolean,
-    flags: LifecycleFlags,
-  ): void {
-    const { $controller } = this;
-    if (!$controller.isActive) {
+  public valueChanged(newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void {
+    if (!this.$controller.isActive) {
       return;
     }
-    const ret = onResolve(
-      this.view?.deactivate(this.view, $controller, flags),
+    this.pending = onResolve(this.pending, () => {
+      return this.swap(flags);
+    });
+  }
+
+  private swap(flags: LifecycleFlags): void | Promise<void> {
+    if (this.view === this.updateView(this.value, flags)) {
+      return;
+    }
+    this.work.start();
+    const ctrl = this.$controller;
+    return onResolve(
+      this.view?.deactivate(this.view, ctrl, flags),
       () => {
-        const view = this.view = this.updateView(this.value, flags);
-        if (view !== void 0) {
-          // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add a variety of `if` integration tests
-          return view.activate(view, $controller, flags, $controller.scope, $controller.hostScope);
+        // return early if detaching was called during the swap
+        if (this.wantsDeactivate) {
+          return;
         }
+        // value may have changed during deactivate
+        const nextView = this.view = this.updateView(this.value, flags);
+        return onResolve(
+          nextView?.activate(nextView, ctrl, flags, ctrl.scope, ctrl.hostScope),
+          () => {
+            this.work.finish();
+            // only null the pending promise if nothing changed since the activation start
+            if (this.view === this.updateView(this.value, flags)) {
+              this.pending = void 0;
+            }
+          },
+        );
       },
     );
-    if (ret instanceof Promise) { ret.catch(err => { throw err; }); }
   }
 
   /** @internal */
-  public updateView(
-    value: boolean,
-    flags: LifecycleFlags,
-  ): ISyntheticView | undefined {
+  public updateView(value: unknown, flags: LifecycleFlags): ISyntheticView | undefined {
     if (value) {
       return this.ifView = this.ensureView(this.ifView, this.ifFactory, flags);
     }
-
-    if (this.elseFactory != void 0) {
-      return this.elseView  = this.ensureView(this.elseView, this.elseFactory, flags);
+    if (this.elseFactory !== void 0) {
+      return this.elseView = this.ensureView(this.elseView, this.elseFactory, flags);
     }
-
     return void 0;
   }
 
   /** @internal */
-  public ensureView(
-    view: ISyntheticView | undefined,
-    factory: IViewFactory,
-    flags: LifecycleFlags,
-  ): ISyntheticView {
+  public ensureView(view: ISyntheticView | undefined, factory: IViewFactory, flags: LifecycleFlags): ISyntheticView {
     if (view === void 0) {
       view = factory.create(flags);
+      view.setLocation(this.location);
     }
-
-    view.setLocation(this.location);
-
     return view;
   }
 
   public dispose(): void {
-    if (this.ifView !== void 0) {
-      this.ifView.dispose();
-      this.ifView = void 0;
-    }
-
-    if (this.elseView !== void 0) {
-      this.elseView.dispose();
-      this.elseView = void 0;
-    }
-
+    this.ifView?.dispose();
+    this.ifView = void 0;
+    this.elseView?.dispose();
+    this.elseView = void 0;
     this.view = void 0;
   }
 

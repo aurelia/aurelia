@@ -11,14 +11,19 @@ module.exports = function (env, { mode }) {
     },
     resolve: {
       extensions: ['.ts', '.js'],
-      modules: ['src', 'node_modules'],
+      modules: [path.resolve(__dirname, 'src'), 'node_modules'],
       mainFields: ['module', 'main'],
+      // sadly these fallbacks are required to run the app via webpack-dev-server
+      fallback: {
+        'html-entities': require.resolve('html-entities/'),
+        'url': require.resolve('url/'),
+        'events': require.resolve('events/'),
+      },
     },
     devServer: {
       port: 9000,
       historyApiFallback: true,
       open: true,
-      lazy: false,
     },
     module: {
       rules: [

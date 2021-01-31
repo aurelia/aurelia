@@ -31,7 +31,7 @@ export class MyComponent implements IRouteableComponent {
     constructor(@IRouter private router: IRouter) {
 
     }
-    
+
     viewProducts() {
         this.router.load('products');
     }
@@ -49,7 +49,7 @@ export class MyComponent implements IRouteableComponent {
     constructor(@IRouter private router: IRouter) {
 
     }
-    
+
     viewProduct() {
         this.router.load('product(12)');
     }
@@ -67,7 +67,7 @@ export class MyComponent implements IRouteableComponent {
     constructor(@IRouter private router: IRouter) {
 
     }
-    
+
     viewProduct() {
         this.router.load({ component: Product, parameters: { id: '12' } });
     }
@@ -85,7 +85,7 @@ export class MyComponent implements IRouteableComponent {
     constructor(@IRouter private router: IRouter) {
 
     }
-    
+
     viewProduct() {
         this.router.load({ component: 'product', parameters: { id: '12' }, viewport: 'main' });
     }

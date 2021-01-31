@@ -1247,7 +1247,7 @@ describe('translation-integration', function () {
 
       await runTest(
         async function ({ platform, host, container }) {
-          await platform.macroTaskQueue.queueTask(delta => {
+          await platform.taskQueue.queueTask(delta => {
             container.get<ISignaler>(ISignaler).dispatchSignal(Signals.RT_SIGNAL);
             platform.domWriteQueue.flush();
             assertTextContent(host, 'span', `${Math.round((delta + offset) / 1000)} seconds ago`);
@@ -1361,7 +1361,7 @@ describe('translation-integration', function () {
 
       await runTest(
         async function ({ host, platform, container }: I18nIntegrationTestContext<App>) {
-          await platform.macroTaskQueue.queueTask(delta => {
+          await platform.taskQueue.queueTask(delta => {
             container.get<ISignaler>(ISignaler).dispatchSignal(Signals.RT_SIGNAL);
             platform.domWriteQueue.flush();
             assertTextContent(host, 'span', `${Math.round((delta + offset) / 1000)} seconds ago`);

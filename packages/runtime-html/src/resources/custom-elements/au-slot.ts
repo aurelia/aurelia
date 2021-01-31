@@ -1,10 +1,10 @@
 import { DI, Writable } from '@aurelia/kernel';
-import { Scope, LifecycleFlags } from '@aurelia/runtime';
+import { LifecycleFlags, Scope } from '@aurelia/runtime';
 import { IRenderLocation } from '../../dom.js';
-import { customElement, CustomElementDefinition } from '../custom-element.js';
-import { IViewFactory } from '../../templating/view.js';
 import { IInstruction, Instruction } from '../../renderer.js';
 import type { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../templating/controller.js';
+import { IViewFactory } from '../../templating/view.js';
+import { customElement, CustomElementDefinition } from '../custom-element.js';
 
 export type IProjections = Record<string, CustomElementDefinition>;
 export const IProjections = DI.createInterface<IProjections>("IProjections");
@@ -36,7 +36,7 @@ export class RegisteredProjections {
   ) { }
 }
 
-export interface IProjectionProvider extends ProjectionProvider {}
+export interface IProjectionProvider extends ProjectionProvider { }
 export const IProjectionProvider = DI.createInterface<IProjectionProvider>('IProjectionProvider', x => x.singleton(ProjectionProvider));
 
 const projectionMap: WeakMap<IInstruction, RegisteredProjections> = new WeakMap<Instruction, RegisteredProjections>();
@@ -66,7 +66,7 @@ export class AuSlot implements ICustomElementViewModel {
   private readonly outerScope: Scope | null;
 
   public constructor(
-    private readonly factory: IViewFactory,
+    factory: IViewFactory,
     location: IRenderLocation,
   ) {
     this.view = factory.create().setLocation(location);
@@ -75,9 +75,9 @@ export class AuSlot implements ICustomElementViewModel {
   }
 
   public binding(
-    initiator: IHydratedController,
-    parent: IHydratedParentController,
-    flags: LifecycleFlags,
+    _initiator: IHydratedController,
+    _parent: IHydratedParentController,
+    _flags: LifecycleFlags,
   ): void | Promise<void> {
     this.hostScope = this.$controller.scope.parentScope!;
   }
@@ -112,3 +112,14 @@ export class AuSlot implements ICustomElementViewModel {
 }
 
 customElement({ name: 'au-slot', template: null, containerless: true })(AuSlot);
+
+export interface IAuSlotsInfo extends AuSlotsInfo { }
+export const IAuSlotsInfo = DI.createInterface<IAuSlotsInfo>('AuSlotsInfo');
+export class AuSlotsInfo {
+  /**
+   * @param {string[]} projectedSlots - Name of the slots to which content are projected.
+   */
+  public constructor(
+    public readonly projectedSlots: string[],
+  ) { }
+}

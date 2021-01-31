@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/ts-jest",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "type": "commonjs",
@@ -38,11 +38,11 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "0.8.0",
-    "@aurelia/metadata": "0.8.0",
-    "@aurelia/platform": "0.8.0",
-    "@aurelia/plugin-conventions": "0.8.0",
-    "@aurelia/runtime": "0.8.0",
+    "@aurelia/kernel": "0.9.0",
+    "@aurelia/metadata": "0.9.0",
+    "@aurelia/platform": "0.9.0",
+    "@aurelia/plugin-conventions": "0.9.0",
+    "@aurelia/runtime": "0.9.0",
     "ts-jest": "^26.2.0"
   },
   "devDependencies": {
@@ -50,5 +50,8 @@
     "@jest/types": "^26.3.0",
     "@types/node": "^14.11.5",
     "typescript": "^4.0.3"
+  },
+  "engines": {
+    "node": ">=14.15.0"
   }
 }

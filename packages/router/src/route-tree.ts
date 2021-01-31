@@ -17,7 +17,7 @@ export interface IRouteNode {
   /** Can only be `null` for the composition root */
   instruction: ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent> | null;
   params?: Params;
-  queryParams?: Params;
+  queryParams?: Readonly<URLSearchParams>;
   fragment?: string | null;
   data?: Params;
   viewport?: string | null;
@@ -64,7 +64,7 @@ export class RouteNode implements IRouteNode {
     /** Can only be `null` for the composition root */
     public readonly instruction: ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent> | null,
     public params: Params,
-    public queryParams: Params,
+    public queryParams: Readonly<URLSearchParams>,
     public fragment: string | null,
     public data: Params,
     /**
@@ -101,7 +101,7 @@ export class RouteNode implements IRouteNode {
       /* originalIns */input.instruction,
       /* instruction */input.instruction,
       /*      params */input.params ?? {},
-      /* queryParams */input.queryParams ?? {},
+      /* queryParams */input.queryParams ?? Object.freeze(new URLSearchParams()),
       /*    fragment */input.fragment ?? null,
       /*        data */input.data ?? {},
       /*    viewport */input.viewport ?? null,
@@ -263,7 +263,7 @@ export class RouteNode implements IRouteNode {
 export class RouteTree {
   public constructor(
     public readonly options: NavigationOptions,
-    public readonly queryParams: Params,
+    public readonly queryParams: Readonly<URLSearchParams>,
     public readonly fragment: string | null,
     public root: RouteNode,
   ) { }

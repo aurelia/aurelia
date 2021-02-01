@@ -10,7 +10,7 @@ description: >-
 
 There are three different interrelated packages for validation. The relation between the packages are depicted in the following diagram.
 
-![Architecture](../.gitbook/assets/architecture%20%281%29.svg)
+![Architecture](../.gitbook/assets/architecture%20%281%29%20%281%29.svg)
 
 * `@aurelia/validation`: Provides the core validation functionality. Hosts the validator, out-of-the-box rule implementations, and the validation message provider.
 * `@aurelia/validation-html`: Provides the view-specific functionalities such as validation controller, `validate` binding behavior, and subscribers. It wraps the `@aurelia/validation` package so that you do not need to register both packages.

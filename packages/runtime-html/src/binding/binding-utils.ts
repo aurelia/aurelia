@@ -1,9 +1,11 @@
+import {
+  LifecycleFlags,
+} from '@aurelia/runtime';
 import type {
   ForOfStatement,
   IConnectableBinding,
   IsBindingBehavior,
   ISubscriber,
-  LifecycleFlags,
 } from '@aurelia/runtime';
 
 interface ITwoWayBindingImpl extends IConnectableBinding {
@@ -23,7 +25,9 @@ export class BindingTargetSubscriber implements ISubscriber {
   public handleChange(value: unknown, _: unknown, flags: LifecycleFlags): void {
     const b = this.b;
     if (value !== b.sourceExpression.evaluate(flags, b.$scope!, b.$hostScope, b.locator, null)) {
-      b.updateSource(value, flags);
+      // TODO: adding the update source flag, to ensure existing `bindable` works in stable manner
+      // should be removed
+      b.updateSource(value, flags | LifecycleFlags.updateSource);
     }
   }
 }

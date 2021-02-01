@@ -106,7 +106,6 @@ export class PropertyBinding implements IPartialConnectableBinding {
     } else {
       interceptor.updateTarget(newValue, flags);
     }
-    return;
   }
 
   public $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void {

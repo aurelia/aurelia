@@ -1,4 +1,4 @@
-import type { IConnectable } from '../observation';
+import type { IConnectable } from '../observation.js';
 
 /**
  * Current subscription collector

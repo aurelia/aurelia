@@ -36,11 +36,11 @@ export declare class RouteExpression {
     readonly raw: string;
     readonly isAbsolute: boolean;
     readonly root: CompositeSegmentExpressionOrHigher;
-    readonly queryParams: Params;
+    readonly queryParams: Readonly<URLSearchParams>;
     readonly fragment: string | null;
     readonly fragmentIsRoute: boolean;
     get kind(): ExpressionKind.Route;
-    constructor(raw: string, isAbsolute: boolean, root: CompositeSegmentExpressionOrHigher, queryParams: Params, fragment: string | null, fragmentIsRoute: boolean);
+    constructor(raw: string, isAbsolute: boolean, root: CompositeSegmentExpressionOrHigher, queryParams: Readonly<URLSearchParams>, fragment: string | null, fragmentIsRoute: boolean);
     static parse(path: string, fragmentIsRoute: boolean): RouteExpression;
     private static $parse;
     toInstructionTree(options: NavigationOptions): ViewportInstructionTree;
@@ -76,7 +76,7 @@ export declare class CompositeSegmentExpression {
     get kind(): ExpressionKind.CompositeSegment;
     constructor(raw: string, siblings: readonly ScopedSegmentExpressionOrHigher[], append: boolean);
     static parse(state: ParserState): CompositeSegmentExpressionOrHigher;
-    toInstructions(append: boolean): ViewportInstruction[];
+    toInstructions(append: boolean, open: number, close: number): ViewportInstruction[];
     toString(): string;
 }
 export declare type ScopedSegmentExpressionOrHigher = SegmentGroupExpressionOrHigher | ScopedSegmentExpression;
@@ -101,7 +101,7 @@ export declare class ScopedSegmentExpression {
     get kind(): ExpressionKind.ScopedSegment;
     constructor(raw: string, left: SegmentGroupExpressionOrHigher, right: ScopedSegmentExpressionOrHigher);
     static parse(state: ParserState): ScopedSegmentExpressionOrHigher;
-    toInstructions(append: boolean): ViewportInstruction[];
+    toInstructions(append: boolean, open: number, close: number): ViewportInstruction[];
     toString(): string;
 }
 export declare type SegmentGroupExpressionOrHigher = SegmentExpression | SegmentGroupExpression;
@@ -141,7 +141,7 @@ export declare class SegmentGroupExpression {
     get kind(): ExpressionKind.SegmentGroup;
     constructor(raw: string, expression: CompositeSegmentExpressionOrHigher);
     static parse(state: ParserState): SegmentGroupExpressionOrHigher;
-    toInstructions(append: boolean): ViewportInstruction[];
+    toInstructions(append: boolean, open: number, close: number): ViewportInstruction[];
     toString(): string;
 }
 /**
@@ -157,7 +157,7 @@ export declare class SegmentExpression {
     static get EMPTY(): SegmentExpression;
     constructor(raw: string, component: ComponentExpression, action: ActionExpression, viewport: ViewportExpression, scoped: boolean);
     static parse(state: ParserState): SegmentExpression;
-    toInstructions(append: boolean): ViewportInstruction[];
+    toInstructions(append: boolean, open: number, close: number): ViewportInstruction[];
     toString(): string;
 }
 export declare class ComponentExpression {

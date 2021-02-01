@@ -30,6 +30,8 @@ export declare const IViewportInstruction: import("@aurelia/kernel").InterfaceSy
 export interface IViewportInstruction {
     readonly context?: RouteContextLike | null;
     readonly append?: boolean;
+    readonly open?: number;
+    readonly close?: number;
     /**
      * The component to load.
      *
@@ -55,6 +57,8 @@ export interface IViewportInstruction {
 export declare class ViewportInstruction<TComponent extends ITypedNavigationInstruction_T = ITypedNavigationInstruction_Component> implements IViewportInstruction {
     readonly context: RouteContextLike | null;
     append: boolean;
+    open: number;
+    close: number;
     readonly component: TComponent;
     readonly viewport: string | null;
     readonly params: Params | null;
@@ -84,9 +88,9 @@ export declare class ViewportInstructionTree {
     readonly options: NavigationOptions;
     readonly isAbsolute: boolean;
     readonly children: ViewportInstruction[];
-    readonly queryParams: Params;
+    readonly queryParams: Readonly<URLSearchParams>;
     readonly fragment: string | null;
-    constructor(options: NavigationOptions, isAbsolute: boolean, children: ViewportInstruction[], queryParams: Params, fragment: string | null);
+    constructor(options: NavigationOptions, isAbsolute: boolean, children: ViewportInstruction[], queryParams: Readonly<URLSearchParams>, fragment: string | null);
     static create(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], options?: INavigationOptions): ViewportInstructionTree;
     equals(other: ViewportInstructionTree): boolean;
     toUrl(): string;

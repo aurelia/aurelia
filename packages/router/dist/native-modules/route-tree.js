@@ -81,7 +81,7 @@ export class RouteNode {
         /* originalIns */ input.instruction, 
         /* instruction */ input.instruction, (_a = 
         /*      params */ input.params) !== null && _a !== void 0 ? _a : {}, (_b = 
-        /* queryParams */ input.queryParams) !== null && _b !== void 0 ? _b : {}, (_c = 
+        /* queryParams */ input.queryParams) !== null && _b !== void 0 ? _b : Object.freeze(new URLSearchParams()), (_c = 
         /*    fragment */ input.fragment) !== null && _c !== void 0 ? _c : null, (_d = 
         /*        data */ input.data) !== null && _d !== void 0 ? _d : {}, (_e = 
         /*    viewport */ input.viewport) !== null && _e !== void 0 ? _e : null, (_f = 

@@ -48,7 +48,12 @@ export function stripMetaData(rawHtml) {
 }
 function traverse(tree, cb) {
     tree.childNodes.forEach((n) => {
-        cb(n);
+        const ne = n;
+        // skip <template as-custom-element="..">
+        if (ne.tagName === 'template' && ne.attrs.some(attr => attr.name === 'as-custom-element')) {
+            return;
+        }
+        cb(ne);
         if (n.childNodes)
             traverse(n, cb);
         // For <template> tag

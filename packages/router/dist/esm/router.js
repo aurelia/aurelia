@@ -284,7 +284,7 @@ let Router = class Router {
             // Lazy instantiation for only the very first (synthetic) tree.
             // Doing it here instead of in the constructor to delay it until we have the context.
             const ctx = this.ctx;
-            routeTree = this._routeTree = new RouteTree(NavigationOptions.create({ ...this.options }), {}, null, RouteNode.create({
+            routeTree = this._routeTree = new RouteTree(NavigationOptions.create({ ...this.options }), Object.freeze(new URLSearchParams()), null, RouteNode.create({
                 path: '',
                 finalPath: '',
                 context: ctx,

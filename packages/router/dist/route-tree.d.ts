@@ -10,7 +10,7 @@ export interface IRouteNode {
     /** Can only be `null` for the composition root */
     instruction: ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent> | null;
     params?: Params;
-    queryParams?: Params;
+    queryParams?: Readonly<URLSearchParams>;
     fragment?: string | null;
     data?: Params;
     viewport?: string | null;
@@ -40,7 +40,7 @@ export declare class RouteNode implements IRouteNode {
     /** Can only be `null` for the composition root */
     readonly instruction: ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent> | null;
     params: Params;
-    queryParams: Params;
+    queryParams: Readonly<URLSearchParams>;
     fragment: string | null;
     data: Params;
     /**
@@ -78,10 +78,10 @@ export declare class RouteNode implements IRouteNode {
 }
 export declare class RouteTree {
     readonly options: NavigationOptions;
-    readonly queryParams: Params;
+    readonly queryParams: Readonly<URLSearchParams>;
     readonly fragment: string | null;
     root: RouteNode;
-    constructor(options: NavigationOptions, queryParams: Params, fragment: string | null, root: RouteNode);
+    constructor(options: NavigationOptions, queryParams: Readonly<URLSearchParams>, fragment: string | null, root: RouteNode);
     contains(instructions: ViewportInstructionTree): boolean;
     clone(): RouteTree;
     finalizeInstructions(): ViewportInstructionTree;

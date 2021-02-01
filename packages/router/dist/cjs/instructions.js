@@ -10,26 +10,28 @@ const route_expression_js_1 = require("./route-expression.js");
 const util_js_1 = require("./util.js");
 exports.IViewportInstruction = kernel_1.DI.createInterface('IViewportInstruction');
 class ViewportInstruction {
-    constructor(context, append, component, viewport, params, children) {
+    constructor(context, append, open, close, component, viewport, params, children) {
         this.context = context;
         this.append = append;
+        this.open = open;
+        this.close = close;
         this.component = component;
         this.viewport = viewport;
         this.params = params;
         this.children = children;
     }
     static create(instruction, context) {
-        var _a, _b, _c, _d, _e, _f, _g;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j;
         if (instruction instanceof ViewportInstruction) {
             return instruction;
         }
         if (validation_js_1.isPartialViewportInstruction(instruction)) {
             const component = TypedNavigationInstruction.create(instruction.component);
             const children = (_b = (_a = instruction.children) === null || _a === void 0 ? void 0 : _a.map(ViewportInstruction.create)) !== null && _b !== void 0 ? _b : [];
-            return new ViewportInstruction((_d = (_c = instruction.context) !== null && _c !== void 0 ? _c : context) !== null && _d !== void 0 ? _d : null, (_e = instruction.append) !== null && _e !== void 0 ? _e : false, component, (_f = instruction.viewport) !== null && _f !== void 0 ? _f : null, (_g = instruction.params) !== null && _g !== void 0 ? _g : null, children);
+            return new ViewportInstruction((_d = (_c = instruction.context) !== null && _c !== void 0 ? _c : context) !== null && _d !== void 0 ? _d : null, (_e = instruction.append) !== null && _e !== void 0 ? _e : false, (_f = instruction.open) !== null && _f !== void 0 ? _f : 0, (_g = instruction.close) !== null && _g !== void 0 ? _g : 0, component, (_h = instruction.viewport) !== null && _h !== void 0 ? _h : null, (_j = instruction.params) !== null && _j !== void 0 ? _j : null, children);
         }
         const typedInstruction = TypedNavigationInstruction.create(instruction);
-        return new ViewportInstruction(context !== null && context !== void 0 ? context : null, false, typedInstruction, null, null, []);
+        return new ViewportInstruction(context !== null && context !== void 0 ? context : null, false, 0, 0, typedInstruction, null, null, []);
     }
     contains(other) {
         const thisChildren = this.children;
@@ -70,14 +72,14 @@ class ViewportInstruction {
         return true;
     }
     clone() {
-        return new ViewportInstruction(this.context, this.append, this.component.clone(), this.viewport, this.params === null ? null : { ...this.params }, [...this.children]);
+        return new ViewportInstruction(this.context, this.append, this.open, this.close, this.component.clone(), this.viewport, this.params === null ? null : { ...this.params }, [...this.children]);
     }
     toUrlComponent(recursive = true) {
         // TODO(fkleuver): use the context to determine create full tree
         const component = this.component.toUrlComponent();
         const params = this.params === null || Object.keys(this.params).length === 0 ? '' : `(au$obj${getObjectId(this.params)})`; // TODO(fkleuver): serialize them instead
         const viewport = this.viewport === null || this.viewport.length === 0 ? '' : `@${this.viewport}`;
-        const thisPart = `${component}${params}${viewport}`;
+        const thisPart = `${'('.repeat(this.open)}${component}${params}${viewport}${')'.repeat(this.close)}`;
         const childPart = recursive ? this.children.map(x => x.toUrlComponent()).join('+') : '';
         if (thisPart.length > 0) {
             if (childPart.length > 0) {
@@ -149,13 +151,13 @@ class ViewportInstructionTree {
             return new ViewportInstructionTree($options, instructionOrInstructions.isAbsolute, instructionOrInstructions.children.map(x => ViewportInstruction.create(x, $options.context)), instructionOrInstructions.queryParams, instructionOrInstructions.fragment);
         }
         if (instructionOrInstructions instanceof Array) {
-            return new ViewportInstructionTree($options, false, instructionOrInstructions.map(x => ViewportInstruction.create(x, $options.context)), {}, null);
+            return new ViewportInstructionTree($options, false, instructionOrInstructions.map(x => ViewportInstruction.create(x, $options.context)), Object.freeze(new URLSearchParams()), null);
         }
         if (typeof instructionOrInstructions === 'string') {
             const expr = route_expression_js_1.RouteExpression.parse(instructionOrInstructions, $options.useUrlFragmentHash);
             return expr.toInstructionTree($options);
         }
-        return new ViewportInstructionTree($options, false, [ViewportInstruction.create(instructionOrInstructions, $options.context)], {}, null);
+        return new ViewportInstructionTree($options, false, [ViewportInstruction.create(instructionOrInstructions, $options.context)], Object.freeze(new URLSearchParams()), null);
     }
     equals(other) {
         const thisChildren = this.children;
@@ -171,7 +173,9 @@ class ViewportInstructionTree {
         return true;
     }
     toUrl() {
-        return this.children.map(x => x.toUrlComponent()).join('+');
+        const path = this.children.map(x => x.toUrlComponent()).join('+');
+        const query = this.queryParams.toString();
+        return query !== '' ? `${path}?${query}` : path;
     }
     toString() {
         return `[${this.children.map(String).join(',')}]`;

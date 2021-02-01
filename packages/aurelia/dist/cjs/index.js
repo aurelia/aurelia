@@ -361,7 +361,6 @@ Object.defineProperty(exports, "TaskQueuePriority", { enumerable: true, get: fun
 // TaskStatus,
 // QueueTaskTargetOptions,
 Object.defineProperty(exports, "bindable", { enumerable: true, get: function () { return runtime_html_2.bindable; } });
-// PartialBindableDefinition,
 // BindableDefinition,
 Object.defineProperty(exports, "Bindable", { enumerable: true, get: function () { return runtime_html_2.Bindable; } });
 // PartialChildrenDefinition,

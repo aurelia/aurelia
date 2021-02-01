@@ -1,4 +1,4 @@
-import type { IConnectable } from '../observation';
+import type { IConnectable } from '../observation.js';
 export declare let connecting: boolean;
 export declare function pauseConnecting(): void;
 export declare function resumeConnecting(): void;

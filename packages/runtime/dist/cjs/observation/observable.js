@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.observable = void 0;
 const setter_observer_js_1 = require("./setter-observer.js");
 const utilities_objects_js_1 = require("../utilities-objects.js");
+const connectable_switcher_js_1 = require("./connectable-switcher.js");
 function getObserversLookup(obj) {
     if (obj.$observers === void 0) {
         utilities_objects_js_1.def(obj, '$observers', { value: {} });
@@ -68,7 +69,10 @@ function observable(targetOrConfig, key, descriptor) {
         // todo(bigopon/fred): discuss string api for converter
         const $set = config.set;
         descriptor.get = function g( /* @observable */) {
-            return getNotifier(this, key, callback, initialValue, $set).getValue();
+            var _a;
+            const notifier = getNotifier(this, key, callback, initialValue, $set);
+            (_a = connectable_switcher_js_1.currentConnectable()) === null || _a === void 0 ? void 0 : _a.subscribeTo(notifier);
+            return notifier.getValue();
         };
         descriptor.set = function s(newValue) {
             getNotifier(this, key, callback, initialValue, $set).setValue(newValue, 0 /* none */);

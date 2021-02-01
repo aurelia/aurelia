@@ -10,7 +10,8 @@ function ensureEnoughSlotNames(currentSlot) {
     if (currentSlot === lastSlot) {
         lastSlot += 5;
         const ii = slotNames.length = versionSlotNames.length = lastSlot + 1;
-        for (let i = currentSlot + 1; i < ii; ++i) {
+        let i = currentSlot + 1;
+        for (; i < ii; ++i) {
             slotNames[i] = `_o${i}`;
             versionSlotNames[i] = `_v${i}`;
         }
@@ -48,6 +49,9 @@ function observeCollection(collection) {
         throw new Error('Unrecognised collection type.');
     }
     this.obs.add(obs);
+}
+function subscribeTo(subscribable) {
+    this.obs.add(subscribable);
 }
 function noopHandleChange() {
     throw new Error('method "handleChange" not implemented');
@@ -134,6 +138,7 @@ function connectableDecorator(target) {
     const proto = target.prototype;
     ensureProto(proto, 'observeProperty', observeProperty, true);
     ensureProto(proto, 'observeCollection', observeCollection, true);
+    ensureProto(proto, 'subscribeTo', subscribeTo, true);
     def(proto, 'obs', { get: getObserverRecord });
     // optionally add these two methods to normalize a connectable impl
     ensureProto(proto, 'handleChange', noopHandleChange);

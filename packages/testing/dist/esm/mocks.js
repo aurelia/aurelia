@@ -22,6 +22,9 @@ export class MockBinding {
     observeCollection(col) {
         this.trace('observeCollection', col);
     }
+    subscribeTo(subscribable) {
+        this.trace('subscribeTo', subscribable);
+    }
     $bind(flags, scope) {
         this.trace('$bind', flags, scope);
     }

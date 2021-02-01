@@ -1,5 +1,6 @@
 import { SetterNotifier } from './setter-observer.js';
 import { def } from '../utilities-objects.js';
+import { currentConnectable } from './connectable-switcher.js';
 function getObserversLookup(obj) {
     if (obj.$observers === void 0) {
         def(obj, '$observers', { value: {} });
@@ -65,7 +66,10 @@ export function observable(targetOrConfig, key, descriptor) {
         // todo(bigopon/fred): discuss string api for converter
         const $set = config.set;
         descriptor.get = function g( /* @observable */) {
-            return getNotifier(this, key, callback, initialValue, $set).getValue();
+            var _a;
+            const notifier = getNotifier(this, key, callback, initialValue, $set);
+            (_a = currentConnectable()) === null || _a === void 0 ? void 0 : _a.subscribeTo(notifier);
+            return notifier.getValue();
         };
         descriptor.set = function s(newValue) {
             getNotifier(this, key, callback, initialValue, $set).setValue(newValue, 0 /* none */);

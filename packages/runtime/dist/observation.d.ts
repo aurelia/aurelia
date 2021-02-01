@@ -44,6 +44,7 @@ export interface IConnectable {
     id: number;
     observeProperty(obj: object, key: PropertyKey): void;
     observeCollection(obj: Collection): void;
+    subscribeTo(subscribable: ISubscribable | ICollectionSubscribable): void;
 }
 export declare enum DelegationStrategy {
     none = 0,

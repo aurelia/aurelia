@@ -11,6 +11,7 @@ export { BindingContext, Scope, OverrideContext, } from './observation/binding-c
 export { CollectionLengthObserver, CollectionSizeObserver, } from './observation/collection-length-observer.js';
 export { ComputedObserver, } from './observation/computed-observer.js';
 export { IDirtyChecker, DirtyCheckProperty, DirtyCheckSettings, } from './observation/dirty-checker.js';
+export { IObservation, Observation, } from './observation/observation.js';
 export { observable, } from './observation/observable.js';
 export { IObserverLocator, INodeObserverLocator, getCollectionObserver, ObserverLocator, } from './observation/observer-locator.js';
 export { PrimitiveObserver, } from './observation/primitive-observer.js';

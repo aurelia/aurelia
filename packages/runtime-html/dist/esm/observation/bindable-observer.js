@@ -14,7 +14,7 @@ export class BindableObserver {
         const hasCbAll = this.hasCbAll = typeof cbAll === 'function';
         const hasSetter = this.hasSetter = set !== noop;
         this.cb = hasCb ? cb : noop;
-        this.cbAll = this.hasCbAll ? cbAll : noop;
+        this.cbAll = hasCbAll ? cbAll : noop;
         // when user declare @bindable({ set })
         // it's expected to work from the start,
         // regardless where the assignment comes from: either direct view model assignment or from binding during render

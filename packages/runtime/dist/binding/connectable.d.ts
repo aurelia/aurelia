@@ -1,5 +1,6 @@
-import { Class, IServiceLocator, ResourceDefinition } from '@aurelia/kernel';
-import { IConnectable, ISubscribable, ISubscriber, IBinding, LifecycleFlags, ICollectionSubscriber, IndexMap, ICollectionSubscribable } from '../observation.js';
+import { LifecycleFlags } from '../observation.js';
+import type { Class, IServiceLocator, ResourceDefinition } from '@aurelia/kernel';
+import type { IConnectable, ISubscribable, ISubscriber, IBinding, ICollectionSubscriber, IndexMap, ICollectionSubscribable } from '../observation.js';
 import type { IObserverLocator } from '../observation/observer-locator.js';
 import type { Scope } from '../observation/binding-context.js';
 export interface IPartialConnectableBinding extends IBinding, ISubscriber, ICollectionSubscriber {
@@ -39,16 +40,17 @@ export declare class BindingObserverRecord implements ISubscriber, ICollectionSu
      */
     clear(all?: boolean): void;
 }
-declare type DecoratableConnectable<TProto, TClass> = Class<TProto & Partial<IConnectableBinding> & IPartialConnectableBinding, TClass>;
-declare type DecoratedConnectable<TProto, TClass> = Class<TProto & IConnectableBinding, TClass>;
+declare type Connectable = IConnectable & Partial<ISubscriber & ICollectionSubscriber>;
+declare type DecoratableConnectable<TProto, TClass> = Class<TProto & Connectable, TClass>;
+declare type DecoratedConnectable<TProto, TClass> = Class<TProto & Connectable, TClass>;
 declare function connectableDecorator<TProto, TClass>(target: DecoratableConnectable<TProto, TClass>): DecoratedConnectable<TProto, TClass>;
 export declare function connectable(): typeof connectableDecorator;
 export declare namespace connectable {
-    var assignIdTo: (instance: IConnectableBinding | BindingObserverRecord) => void;
+    var assignIdTo: (instance: IConnectable | BindingObserverRecord) => void;
 }
 export declare function connectable<TProto, TClass>(target: DecoratableConnectable<TProto, TClass>): DecoratedConnectable<TProto, TClass>;
 export declare namespace connectable {
-    var assignIdTo: (instance: IConnectableBinding | BindingObserverRecord) => void;
+    var assignIdTo: (instance: IConnectable | BindingObserverRecord) => void;
 }
 export declare type MediatedBinding<K extends string> = {
     [key in K]: (newValue: unknown, previousValue: unknown, flags: LifecycleFlags) => void;

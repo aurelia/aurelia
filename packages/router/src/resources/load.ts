@@ -6,6 +6,7 @@
  */
 import { customAttribute, INode, bindable, BindingMode, IObserverLocator, LifecycleFlags, CustomAttribute, ICustomAttributeController, ICustomAttributeViewModel } from '@aurelia/runtime-html';
 import { RoutingInstruction } from '../instructions/routing-instruction.js';
+import { ILinkHandler } from '../link-handler.js';
 import { IRouter } from '../router.js';
 
 @customAttribute('load')
@@ -23,10 +24,11 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
   public constructor(
     @INode private readonly element: INode<Element>,
     @IRouter private readonly router: IRouter,
+    @ILinkHandler private readonly linkHandler: ILinkHandler,
   ) { }
 
   public binding(): void {
-    this.element.addEventListener('click', this.router.linkHandler.handler);
+    this.element.addEventListener('click', this.linkHandler.handler);
     this.updateValue();
 
     const observerLocator = this.router.container.get(IObserverLocator);
@@ -35,11 +37,11 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
   }
 
   public unbinding(): void {
-    this.element.removeEventListener('click', this.router.linkHandler.handler);
+    this.element.removeEventListener('click', this.linkHandler.handler);
     this.observer.unsubscribe(this);
   }
 
-  public valueChanged(newValue: unknown): void {
+  public valueChanged(_newValue: unknown): void {
     this.updateValue();
   }
 

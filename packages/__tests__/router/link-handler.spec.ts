@@ -1,112 +1,35 @@
-import { AnchorEventInfo, LinkHandler, LoadCustomAttribute, GotoCustomAttribute, HrefCustomAttribute } from '@aurelia/router';
-import { assert, createSpy, TestContext } from '@aurelia/testing';
-import { Writable, IRegistry } from '@aurelia/kernel';
+import { RouterConfiguration, IRouter, IRouterStartOptions } from '@aurelia/router';
+import { assert, TestContext } from '@aurelia/testing';
 import { CustomElement, Aurelia } from '@aurelia/runtime-html';
 
 describe('LinkHandler', function () {
-  function createFixture() {
-    const ctx = TestContext.create();
-    const { container } = ctx;
-
-    const sut = container.get(LinkHandler);
-
-    return { sut, ctx };
-  }
-
-  async function setupApp(App) {
+  async function createFixture(routerOptions: IRouterStartOptions, App) {
     const ctx = TestContext.create();
     const { container, doc } = ctx;
 
-    const host = doc.createElement('div');
+    container.register(RouterConfiguration.customize(routerOptions));
+    const router = container.get(IRouter);
+
+    const host = ctx.createElement('div');
     doc.body.appendChild(host as any);
 
-    const au = new Aurelia(container)
-      .register(
-        LoadCustomAttribute as unknown as IRegistry,
-        GotoCustomAttribute as unknown as IRegistry,
-        HrefCustomAttribute as unknown as IRegistry,
-      )
-      .app({ host, component: App });
+    const au = new Aurelia(container);
+    au.app({ component: App, host });
 
     await au.start();
 
-    const sut = container.get(LinkHandler);
-
-    async function tearDown() {
-      await au.stop(true);
-      doc.body.removeChild(host);
-
-      au.dispose();
-    }
-
-    return { sut, au, container, host, ctx, tearDown };
+    return {
+      ctx,
+      container,
+      au,
+      host,
+      router,
+      async tearDown() {
+        await au.stop(true);
+        doc.body.removeChild(host);
+      },
+    };
   }
-
-  it('can be created', function () {
-    const { sut } = createFixture();
-
-    assert.notStrictEqual(sut, null, `sut`);
-  });
-
-  it('can be started', function () {
-    const { sut, ctx } = createFixture();
-
-    const addEventListener = createSpy(ctx.doc, 'addEventListener');
-
-    sut.start({ callback: info => console.log('can be started', info) });
-
-    assert.strictEqual(sut['isActive'], true, `linkHandler.isActive`);
-
-    addEventListener.restore();
-
-    sut.stop();
-  });
-
-  it('can be stopped', function () {
-    const { sut } = createFixture();
-
-    sut.start({ callback: info => console.log('can be stopped', info) });
-
-    assert.strictEqual(sut['isActive'], true, `linkHandler.isActive`);
-
-    sut.stop();
-
-    assert.strictEqual(sut['isActive'], false, `linkHandler.isActive`);
-  });
-
-  it('throws when started while started', function () {
-    const { sut, ctx } = createFixture();
-
-    const addEventListener = createSpy(ctx.doc, 'addEventListener');
-
-    sut.start({ callback: info => console.log('throws when started while started', info) });
-
-    assert.strictEqual(sut['isActive'], true, `linkHandler.isActive`);
-
-    let err;
-    try {
-      sut.start({ callback: info => console.log('throws when started AGAIN while started', info) });
-    } catch (e) {
-      err = e;
-    }
-    assert.includes(err.message, 'Link handler has already been started', `err.message`);
-
-    addEventListener.restore();
-
-    sut.stop();
-  });
-
-  it('throws when stopped while not active', function () {
-    const { sut } = createFixture();
-
-    let err;
-    try {
-      sut.stop();
-    } catch (e) {
-      err = e;
-    }
-    assert.includes(err.message, 'Link handler has not been started', `err.message`);
-  });
 
   const tests = [
     { useHref: true, href: true, load: true, result: 'load' },
@@ -127,35 +50,64 @@ describe('LinkHandler', function () {
         template: `<a ${test.href ? 'href="href"' : ''} ${test.load ? 'load="load"' : ''}>Link</a>`
       });
 
-      const { sut, tearDown, ctx } = await setupApp(App);
+      const { tearDown, ctx, router } = await createFixture({ useHref: test.useHref }, App);
       const { doc } = ctx;
+
+      let result = { instructions: null, origin: null };
+      router.load = function (instructions, options?): Promise<boolean | void> {
+        result = { instructions, origin: options.origin };
+        return Promise.resolve();
+      }
 
       const anchor = doc.getElementsByTagName('A')[0];
 
       const evt = new ctx.wnd.MouseEvent('click', { cancelable: true });
-      let info: AnchorEventInfo | null = { shouldHandleEvent: false, instruction: null, anchor: null };
 
-      const origHandler = sut['handler'];
-      (sut as Writable<typeof sut>)['handler'] = ev => {
-        origHandler(ev);
-        ev.preventDefault();
-      };
-
+      // Add this to prevent test to navigate away from test page
       const prevent = (ev => ev.preventDefault());
       doc.addEventListener('click', prevent, true);
 
-      sut.start({
-        callback: (clickInfo) => info = clickInfo,
-        useHref: test.useHref
-      });
       anchor.dispatchEvent(evt);
 
-      assert.strictEqual(info.shouldHandleEvent, test.result !== null, `LinkHandler.AnchorEventInfo.shouldHandleEvent`);
-      assert.strictEqual(info.instruction, test.result, `LinkHandler.AnchorEventInfo.instruction`);
+      assert.strictEqual(result.instructions, test.result, `LinkHandler.instruction`);
+      assert.strictEqual(result.origin, test.result !== null ? anchor : null, `LinkHandler.anchor`);
 
-      sut.stop();
       doc.removeEventListener('click', prevent, true);
-      (sut as Writable<typeof sut>)['handler'] = origHandler;
+
+      await tearDown();
+    });
+  }
+
+  for (const test of tests) {
+    it(`respects 'external' attribute${test.useHref ? ' using href' : ''}:${test.href ? ' href' : ''}${test.load ? ' load' : ''}`, async function () {
+      const App = CustomElement.define({
+        name: 'app',
+        template: `<a ${test.href ? 'href="href"' : ''} ${test.load ? 'load="load"' : ''} external>Link</a>`
+      });
+
+      const { tearDown, ctx, router } = await createFixture({ useHref: test.useHref }, App);
+      const { doc } = ctx;
+
+      let result = { instructions: null, origin: null };
+      router.load = function (instructions, options?): Promise<boolean | void> {
+        result = { instructions, origin: options.origin };
+        return Promise.resolve();
+      }
+
+      const anchor = doc.getElementsByTagName('A')[0];
+
+      const evt = new ctx.wnd.MouseEvent('click', { cancelable: true });
+
+      // Add this to prevent test to navigate away from test page
+      const prevent = (ev => ev.preventDefault());
+      doc.addEventListener('click', prevent, true);
+
+      anchor.dispatchEvent(evt);
+
+      assert.strictEqual(result.instructions, null, `LinkHandler.instruction`);
+      assert.strictEqual(result.origin, null, `LinkHandler.anchor`);
+
+      doc.removeEventListener('click', prevent, true);
 
       await tearDown();
     });

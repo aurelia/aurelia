@@ -10,7 +10,7 @@
 import { DI, IContainer, Registration, IIndexable, Key, EventAggregator, IEventAggregator, IDisposable, Protocol } from '@aurelia/kernel';
 import { CustomElementType, ICustomElementViewModel, IAppRoot, ICustomElementController } from '@aurelia/runtime-html';
 import { LoadInstruction } from './interfaces.js';
-import { AnchorEventInfo, LinkHandler } from './link-handler.js';
+// import { AnchorEventInfo, LinkHandler } from './link-handler.js';
 import { Navigator, NavigatorNavigateEvent } from './navigator.js';
 import { arrayRemove, arrayUnique } from './utilities/utils.js';
 import { IViewportOptions, Viewport } from './viewport.js';
@@ -85,7 +85,7 @@ export const IRouter = DI.createInterface<IRouter>('IRouter').withDefault(x => x
 export interface IRouter extends Router { }
 
 export class Router implements IRouter {
-  public static readonly inject: readonly Key[] = [IContainer, IEventAggregator, Navigator, BrowserViewerStore, LinkHandler];
+  public static readonly inject: readonly Key[] = [IContainer, IEventAggregator, Navigator, BrowserViewerStore];
   public static readonly closestEndpointKey = Protocol.annotation.keyFor('closest-endpoint');
 
   public rootScope: ViewportScope | null = null;
@@ -127,10 +127,7 @@ export class Router implements IRouter {
     public navigator: Navigator,
 
     public navigation: BrowserViewerStore, // TODO: Really should separate these
-    /**
-     * @internal
-     */
-    public linkHandler: LinkHandler,
+    // public linkHandler: LinkHandler,
   ) { }
 
   /**
@@ -196,7 +193,7 @@ export class Router implements IRouter {
       viewer: this.navigation,
       statefulHistoryLength: RouterOptions.statefulHistoryLength,
     });
-    this.linkHandler.start({ callback: this.linkCallback, useHref: RouterOptions.useHref });
+    // this.linkHandler.start({ callback: this.linkCallback, useHref: RouterOptions.useHref });
 
     this.navigatorStateChangeEventSubscription = this.ea.subscribe(NavigatorStateChangeEvent.eventName, this.handleNavigatorStateChangeEvent);
     this.navigatorNavigateEventSubscription = this.ea.subscribe(NavigatorNavigateEvent.eventName, this.handleNavigatorNavigateEvent);
@@ -216,7 +213,7 @@ export class Router implements IRouter {
     if (!this.isActive) {
       throw new Error('Router has not been started');
     }
-    this.linkHandler.stop();
+    // this.linkHandler.stop();
     this.navigator.stop();
     this.navigation.stop();
     RouterOptions.apply({}, true); // TODO: Look into removing this
@@ -242,23 +239,20 @@ export class Router implements IRouter {
     return result;
   }
 
-  /**
-   * @internal
-   */
-  // TODO: use @bound and improve name (eslint-disable is temp)
-  // eslint-disable-next-line @typescript-eslint/typedef
-  public linkCallback = (info: AnchorEventInfo): void => {
-    let instruction = info.instruction || '';
-    if (typeof instruction === 'string' && instruction.startsWith('#')) {
-      instruction = instruction.slice(1);
-      // '#' === '/' === '#/'
-      if (!instruction.startsWith('/')) {
-        instruction = "/" + instruction;
-      }
-    }
-    // Adds to Navigator's Queue, which makes sure it's serial
-    this.load(instruction, { origin: info.anchor! }).catch(error => { throw error; });
-  };
+  // // TODO: use @bound and improve name (eslint-disable is temp)
+  // // eslint-disable-next-line @typescript-eslint/typedef
+  // public linkCallback = (info: AnchorEventInfo): void => {
+  //   let instruction = info.instruction || '';
+  //   if (typeof instruction === 'string' && instruction.startsWith('#')) {
+  //     instruction = instruction.slice(1);
+  //     // '#' === '/' === '#/'
+  //     if (!instruction.startsWith('/')) {
+  //       instruction = "/" + instruction;
+  //     }
+  //   }
+  //   // Adds to Navigator's Queue, which makes sure it's serial
+  //   this.load(instruction, { origin: info.anchor! }).catch(error => { throw error; });
+  // };
 
   /**
    * @internal

@@ -11,9 +11,10 @@ export {
 } from './endpoints/endpoint-content.js';
 
 export {
-  ILinkHandlerOptions,
-  AnchorEventInfo,
+  // ILinkHandlerOptions,
+  // AnchorEventInfo,
 
+  ILinkHandler,
   LinkHandler,
 } from './link-handler.js';
 

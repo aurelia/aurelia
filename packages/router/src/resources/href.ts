@@ -8,6 +8,7 @@ import { customAttribute, INode, bindable, BindingMode, ViewModelKind, ICustomAt
 import { IRouter } from '../router.js';
 import { GotoCustomAttribute } from '../configuration.js';
 import { RouterOptions } from '../router-options.js';
+import { ILinkHandler } from '../link-handler.js';
 
 @customAttribute({
   name: 'href',
@@ -22,16 +23,17 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
   public constructor(
     @INode private readonly element: INode<Element>,
     @IRouter private readonly router: IRouter,
+    @ILinkHandler private readonly linkHandler: ILinkHandler,
   ) { }
 
   public binding(): void {
     if (RouterOptions.useHref && !this.hasGoto()) {
-      this.element.addEventListener('click', this.router.linkHandler.handler);
+      this.element.addEventListener('click', this.linkHandler.handler);
     }
     this.updateValue();
   }
   public unbinding(): void {
-    this.element.removeEventListener('click', this.router.linkHandler.handler);
+    this.element.removeEventListener('click', this.linkHandler.handler);
   }
 
   public valueChanged(): void {

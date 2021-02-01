@@ -1,6 +1,6 @@
 # Working with Form Elements
 
-// Intro...
+It is not uncommon that at some point, your application will contain some form elements that provide the ability to allow user input. Whether they be select dropdowns, text inputs or buttons, Aurelia makes working with forms intuitive.
 
 {% hint style="success" %}
 **Here's what you'll learn...**
@@ -13,7 +13,35 @@
 
 ## Text Input and Textarea
 
-// TODO
+Binding to text inputs uses similar syntax to that of binding to other elements in Aurelia. By default, input elements will use `two-way` binding which means the value will update in the view when changed inside of the view-model and updated in the view-model when changed in the view.
+
+#### Text Input
+
+```markup
+<form>
+  <label>User value</label><br>
+  <input type="text" value.bind="userValue" />
+</form>
+```
+
+You can even bind to other attributes on form elements such as the `placeholder` attribute.
+
+```markup
+<form>
+  <label>User value</label><br>
+  <input type="text" value.bind="userValue" placeholder.bind="myPlaceholder" />
+</form>
+```
+
+#### Textarea
+
+A textarea element is just like any other form element. It allows you to bind to its value and by default `value.bind` will be two-way binding \(meaning changes flow from out of the view into the view-model and changes in the view-model flow back to the view\).
+
+```markup
+<form role="form">
+  <textarea value.bind="textAreaValue"></textarea>
+</form>
+```
 
 ## Checkboxes
 

@@ -458,7 +458,7 @@ export {
   // QueueTaskTargetOptions,
 
   bindable,
-  // PartialBindableDefinition,
+  PartialBindableDefinition,
   // BindableDefinition,
   Bindable,
 

@@ -450,8 +450,7 @@
   </template>
 
   <script type="module">
-    // Tested with manual symlink to './node_modules/aurelia/dist/native-modules/index.js' (can remove this comment once alpha is published)
-    import { Aurelia, IHttpClient, IRouter, RouterConfiguration, Route, Watch, CustomElement, ValueConverter, LifecycleHooks } from 'https://unpkg.com/aurelia@2.0.0-alpha/dist/native-modules/index.js';
+    import { Aurelia, IHttpClient, IRouter, RouterConfiguration, Route, Watch, CustomElement, ValueConverter, LifecycleHooks } from 'https://unpkg.com/aurelia/dist/native-modules/index.js';
 
     const au = new Aurelia();
 
@@ -1148,7 +1147,7 @@
         this.profile = resp.profile;
       }
     });
-    Route.configure({ children: [
+    Route.configure({ routes: [
       { id: 'author', path: '', component: AuthorArticles, title: 'Profile' },
       { path: 'favorites', component: FavoritedArticles, title: 'Profile' }
     ]}, ProfileView);
@@ -1187,7 +1186,7 @@
       }
     });
     Route.configure({
-      children: [
+      routes: [
         { id: 'home', path: '', component: HomeView, title: 'Home' },
         { path: 'login', component: AuthView, title: 'Sign in' },
         { path: 'register', component: AuthView, title: 'Sign up' },

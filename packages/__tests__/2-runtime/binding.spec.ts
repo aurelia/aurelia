@@ -611,7 +611,7 @@ describe('PropertyBinding', function () {
           assert.strictEqual(observer00, undefined, `observer00 #06`);
         }
 
-        assert.strictEqual(subscriber00, sut, `subscriber00 #07`);
+        assert.strictEqual(subscriber00, sut['targetSubscriber'], `subscriber00 #07`);
         assert.strictEqual(subscriber01, undefined, `subscriber01 #08`);
 
         assert.strictEqual(sut.targetObserver, targetObserver, `sut.targetObserver #09`);
@@ -713,7 +713,7 @@ describe('PropertyBinding', function () {
           assert.strictEqual(observer10, undefined, `observer10 #47`);
         }
 
-        assert.strictEqual(subscriber10, sut, `subscriber10 #48`);
+        assert.strictEqual(subscriber10, sut['targetSubscriber'], `subscriber10 #48`);
         assert.strictEqual(subscriber11, undefined, `subscriber11 #49`);
 
         if (observer00) {

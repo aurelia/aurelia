@@ -511,4 +511,30 @@ ${'  ' /* leading space is untouched */}
       bindables: {}
     });
   });
+
+  it('skip <template as-custom-element>', function () {
+    const html = `<bindable name="firstName"></bindable>
+<template as-custom-element="foo-bar">
+  <bindable property="foo"></bindable>
+  <p>\${foo}</p>
+</template>
+<foo-bar foo="Hello"></foo-bar>
+`;
+    const expected = `
+<template as-custom-element="foo-bar">
+  <bindable property="foo"></bindable>
+  <p>\${foo}</p>
+</template>
+<foo-bar foo="Hello"></foo-bar>
+`;
+    assert.deepEqual(stripMetaData(html), {
+      aliases: [],
+      html: expected,
+      shadowMode: null,
+      deps: [],
+      containerless: false,
+      hasSlot: false,
+      bindables: { firstName: {} }
+    });
+  });
 });

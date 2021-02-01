@@ -3,6 +3,31 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="0.9.0"></a>
+# 0.9.0 (2021-01-31)
+
+### Features:
+
+* **runtime-html:** add @lifecycleHooks wiring ([4076293](https://github.com/aurelia/aurelia/commit/4076293))
+* **di:** remove DI.createInterface builder ([8146dcc](https://github.com/aurelia/aurelia/commit/8146dcc))
+* **logger:** process string placeholders ([8b5c026](https://github.com/aurelia/aurelia/commit/8b5c026))
+* **kernel:** add module analyzer ([4edd891](https://github.com/aurelia/aurelia/commit/4edd891))
+* **kernel:** add inheritParentResources config option ([ce5e17d](https://github.com/aurelia/aurelia/commit/ce5e17d))
+
+
+### Bug Fixes:
+
+* **logger:** fix sink registration ([6f93797](https://github.com/aurelia/aurelia/commit/6f93797))
+* **di:** use requestor to resolve alias ([9face4b](https://github.com/aurelia/aurelia/commit/9face4b))
+
+
+### Refactorings:
+
+* **logging:** replace $console config option with ConsoleSink ([4ea5d22](https://github.com/aurelia/aurelia/commit/4ea5d22))
+* **di:** dont create lambda ([4265bfd](https://github.com/aurelia/aurelia/commit/4265bfd))
+* **di:** store factory per container root instead of via metadata ([dbbd8b9](https://github.com/aurelia/aurelia/commit/dbbd8b9))
+* **di:** simplify factory ([795bdea](https://github.com/aurelia/aurelia/commit/795bdea))
+
 <a name="0.8.0"></a>
 # 0.8.0 (2020-11-30)
 

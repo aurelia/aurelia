@@ -3,6 +3,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ThrottleBindingBehavior = void 0;
 const kernel_1 = require("@aurelia/kernel");
 const runtime_1 = require("@aurelia/runtime");
+const defaultDelay = 200;
+// A binding behavior that limits
+// - (v1) the rate at which the view-model is updated in two-way bindings, OR
+// - (v1 + v2) the rate at which the view is updated in to-view binding scenarios.
 class ThrottleBindingBehavior extends runtime_1.BindingInterceptor {
     constructor(binding, expr) {
         super(binding, expr);
@@ -10,6 +14,7 @@ class ThrottleBindingBehavior extends runtime_1.BindingInterceptor {
         this.firstArg = null;
         this.task = null;
         this.lastCall = 0;
+        this.delay = 0;
         this.platform = binding.locator.get(kernel_1.IPlatform);
         this.taskQueue = this.platform.taskQueue;
         if (expr.args.length > 0) {
@@ -20,8 +25,18 @@ class ThrottleBindingBehavior extends runtime_1.BindingInterceptor {
         this.queueTask(() => this.binding.callSource(args));
         return void 0;
     }
-    handleChange(newValue, previousValue, flags) {
-        this.queueTask(() => this.binding.handleChange(newValue, previousValue, flags));
+    handleChange(newValue, oldValue, flags) {
+        // when source has changed before the latest throttled value from target
+        // then discard that value, and take latest value from source only
+        if (this.task !== null) {
+            this.task.cancel();
+            this.task = null;
+            this.lastCall = this.platform.performanceNow();
+        }
+        this.binding.handleChange(newValue, oldValue, flags);
+    }
+    updateSource(newValue, flags) {
+        this.queueTask(() => this.binding.updateSource(newValue, flags));
     }
     queueTask(callback) {
         const opts = this.opts;
@@ -34,6 +49,7 @@ class ThrottleBindingBehavior extends runtime_1.BindingInterceptor {
             this.task = this.taskQueue.queueTask(() => {
                 this.lastCall = platform.performanceNow();
                 this.task = null;
+                opts.delay = this.delay;
                 callback();
             }, opts);
             task === null || task === void 0 ? void 0 : task.cancel();
@@ -46,9 +62,7 @@ class ThrottleBindingBehavior extends runtime_1.BindingInterceptor {
     $bind(flags, scope, hostScope) {
         if (this.firstArg !== null) {
             const delay = Number(this.firstArg.evaluate(flags, scope, hostScope, this.locator, null));
-            if (!isNaN(delay)) {
-                this.opts.delay = delay;
-            }
+            this.opts.delay = this.delay = isNaN(delay) ? defaultDelay : delay;
         }
         this.binding.$bind(flags, scope, hostScope);
     }

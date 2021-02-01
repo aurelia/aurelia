@@ -103,6 +103,9 @@ export class BindingInterceptor {
     get obs() {
         return this.binding.obs;
     }
+    get sourceExpression() {
+        return this.binding.sourceExpression;
+    }
     updateTarget(value, flags) {
         this.binding.updateTarget(value, flags);
     }

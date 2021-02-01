@@ -1,6 +1,7 @@
 import { BindingMode, connectable, } from '../../../../runtime/dist/native-modules/index.js';
 import { AttributeObserver } from '../observation/element-attribute-observer.js';
 import { IPlatform } from '../platform.js';
+import { BindingTargetSubscriber } from './binding-utils.js';
 // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
 const { oneTime, toView, fromView } = BindingMode;
 // pre-combining flags for bitwise checks is a minor perf tweak
@@ -31,6 +32,7 @@ export class AttributeBinding {
         this.$scope = null;
         this.$hostScope = null;
         this.task = null;
+        this.targetSubscriber = null;
         this.persistentFlags = 0 /* none */;
         this.value = void 0;
         this.target = target;
@@ -59,49 +61,41 @@ export class AttributeBinding {
             flags &= ~8 /* updateTarget */;
             flags |= 16 /* updateSource */;
         }
-        if (flags & 8 /* updateTarget */) {
-            const targetObserver = this.targetObserver;
-            // Alpha: during bind a simple strategy for bind is always flush immediately
-            // todo:
-            //  (1). determine whether this should be the behavior
-            //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start()
-            const shouldQueueFlush = (flags & 32 /* fromBind */) === 0 && (targetObserver.type & 4 /* Layout */) > 0;
-            if (sourceExpression.$kind !== 10082 /* AccessScope */ || this.obs.count > 1) {
-                const shouldConnect = (mode & oneTime) === 0;
-                if (shouldConnect) {
-                    this.obs.version++;
-                }
-                newValue = sourceExpression.evaluate(flags, $scope, this.$hostScope, locator, interceptor);
-                if (shouldConnect) {
-                    this.obs.clear(false);
-                }
+        const targetObserver = this.targetObserver;
+        // Alpha: during bind a simple strategy for bind is always flush immediately
+        // todo:
+        //  (1). determine whether this should be the behavior
+        //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start()
+        const shouldQueueFlush = (flags & 32 /* fromBind */) === 0 && (targetObserver.type & 4 /* Layout */) > 0;
+        if (sourceExpression.$kind !== 10082 /* AccessScope */ || this.obs.count > 1) {
+            const shouldConnect = (mode & oneTime) === 0;
+            if (shouldConnect) {
+                this.obs.version++;
             }
-            if (newValue !== this.value) {
-                this.value = newValue;
-                if (shouldQueueFlush) {
-                    // Queue the new one before canceling the old one, to prevent early yield
-                    const task = this.task;
-                    this.task = this.$platform.domWriteQueue.queueTask(() => {
-                        this.task = null;
-                        interceptor.updateTarget(newValue, flags);
-                    }, taskOptions);
-                    task === null || task === void 0 ? void 0 : task.cancel();
-                }
-                else {
+            newValue = sourceExpression.evaluate(flags, $scope, this.$hostScope, locator, interceptor);
+            if (shouldConnect) {
+                this.obs.clear(false);
+            }
+        }
+        let task;
+        if (newValue !== this.value) {
+            this.value = newValue;
+            if (shouldQueueFlush) {
+                // Queue the new one before canceling the old one, to prevent early yield
+                task = this.task;
+                this.task = this.$platform.domWriteQueue.queueTask(() => {
+                    this.task = null;
                     interceptor.updateTarget(newValue, flags);
-                }
+                }, taskOptions);
+                task === null || task === void 0 ? void 0 : task.cancel();
             }
-            return;
-        }
-        if (flags & 16 /* updateSource */) {
-            if (newValue !== sourceExpression.evaluate(flags, $scope, this.$hostScope, locator, null)) {
-                interceptor.updateSource(newValue, flags);
+            else {
+                interceptor.updateTarget(newValue, flags);
             }
-            return;
         }
-        throw new Error('Unexpected handleChange context in AttributeBinding');
     }
     $bind(flags, scope, hostScope, projection) {
+        var _a;
         if (this.isBound) {
             if (this.$scope === scope) {
                 return;
@@ -131,8 +125,7 @@ export class AttributeBinding {
             interceptor.updateTarget(this.value = sourceExpression.evaluate(flags, scope, this.$hostScope, this.locator, shouldConnect ? interceptor : null), flags);
         }
         if ($mode & fromView) {
-            targetObserver[this.id] |= 16 /* updateSource */;
-            targetObserver.subscribe(interceptor);
+            targetObserver.subscribe((_a = this.targetSubscriber) !== null && _a !== void 0 ? _a : (this.targetSubscriber = new BindingTargetSubscriber(interceptor)));
         }
         this.isBound = true;
     }
@@ -150,10 +143,8 @@ export class AttributeBinding {
             = this.$hostScope
                 = null;
         this.value = void 0;
-        const targetObserver = this.targetObserver;
-        if (targetObserver.unsubscribe) {
-            targetObserver.unsubscribe(this.interceptor);
-            targetObserver[this.id] &= ~16 /* updateSource */;
+        if (this.targetSubscriber) {
+            this.targetObserver.unsubscribe(this.targetSubscriber);
         }
         (_a = this.task) === null || _a === void 0 ? void 0 : _a.cancel();
         this.task = null;

@@ -2,7 +2,7 @@ import { ResourceType } from '@aurelia/kernel';
 import { Collection, IndexMap, LifecycleFlags } from './observation.js';
 import type { Constructable, IContainer, ResourceDefinition, IResourceKind, PartialResourceDefinition, IServiceLocator } from '@aurelia/kernel';
 import type { BindingObserverRecord, IConnectableBinding } from './binding/connectable.js';
-import type { BindingBehaviorExpression, IBindingBehaviorExpression } from './binding/ast.js';
+import type { BindingBehaviorExpression, ForOfStatement, IBindingBehaviorExpression, IsBindingBehavior } from './binding/ast.js';
 import type { IObserverLocator } from './observation/observer-locator.js';
 import type { IBinding } from './observation.js';
 import type { Scope } from './observation/binding-context.js';
@@ -67,6 +67,7 @@ export declare class BindingInterceptor implements IInterceptableBinding {
     get $hostScope(): Scope | null;
     get isBound(): boolean;
     get obs(): BindingObserverRecord;
+    get sourceExpression(): IsBindingBehavior | ForOfStatement;
     constructor(binding: IInterceptableBinding, expr: IBindingBehaviorExpression);
     updateTarget(value: unknown, flags: LifecycleFlags): void;
     updateSource(value: unknown, flags: LifecycleFlags): void;

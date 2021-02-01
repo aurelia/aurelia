@@ -24,6 +24,7 @@ export declare class AttributeBinding implements IPartialConnectableBinding {
     $hostScope: Scope | null;
     projection?: CustomElementDefinition;
     task: ITask | null;
+    private targetSubscriber;
     /**
      * Target key. In case Attr has inner structure, such as class -> classList, style -> CSSStyleDeclaration
      */

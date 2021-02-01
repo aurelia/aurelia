@@ -1,4 +1,5 @@
 import { BindingMode, connectable } from '../../../../runtime/dist/native-modules/index.js';
+import { BindingTargetSubscriber } from './binding-utils.js';
 // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
 const { oneTime, toView, fromView } = BindingMode;
 // pre-combining flags for bitwise checks is a minor perf tweak
@@ -23,6 +24,7 @@ export class PropertyBinding {
         this.targetObserver = void 0;
         this.persistentFlags = 0 /* none */;
         this.task = null;
+        this.targetSubscriber = null;
         connectable.assignIdTo(this);
     }
     updateTarget(value, flags) {
@@ -43,48 +45,39 @@ export class PropertyBinding {
         const sourceExpression = this.sourceExpression;
         const $scope = this.$scope;
         const locator = this.locator;
-        if ((flags & 8 /* updateTarget */) > 0) {
-            // Alpha: during bind a simple strategy for bind is always flush immediately
-            // todo:
-            //  (1). determine whether this should be the behavior
-            //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start()
-            const shouldQueueFlush = (flags & 32 /* fromBind */) === 0 && (targetObserver.type & 4 /* Layout */) > 0;
-            const obsRecord = this.obs;
-            // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
-            if (sourceExpression.$kind !== 10082 /* AccessScope */ || obsRecord.count > 1) {
-                // todo: in VC expressions, from view also requires connect
-                const shouldConnect = this.mode > oneTime;
-                if (shouldConnect) {
-                    obsRecord.version++;
-                }
-                newValue = sourceExpression.evaluate(flags, $scope, this.$hostScope, locator, interceptor);
-                if (shouldConnect) {
-                    obsRecord.clear(false);
-                }
+        // Alpha: during bind a simple strategy for bind is always flush immediately
+        // todo:
+        //  (1). determine whether this should be the behavior
+        //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start()
+        const shouldQueueFlush = (flags & 32 /* fromBind */) === 0 && (targetObserver.type & 4 /* Layout */) > 0;
+        const obsRecord = this.obs;
+        // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
+        if (sourceExpression.$kind !== 10082 /* AccessScope */ || obsRecord.count > 1) {
+            // todo: in VC expressions, from view also requires connect
+            const shouldConnect = this.mode > oneTime;
+            if (shouldConnect) {
+                obsRecord.version++;
             }
-            if (shouldQueueFlush) {
-                // Queue the new one before canceling the old one, to prevent early yield
-                const task = this.task;
-                this.task = this.taskQueue.queueTask(() => {
-                    interceptor.updateTarget(newValue, flags);
-                    this.task = null;
-                }, updateTaskOpts);
-                task === null || task === void 0 ? void 0 : task.cancel();
+            newValue = sourceExpression.evaluate(flags, $scope, this.$hostScope, locator, interceptor);
+            if (shouldConnect) {
+                obsRecord.clear(false);
             }
-            else {
+        }
+        if (shouldQueueFlush) {
+            // Queue the new one before canceling the old one, to prevent early yield
+            const task = this.task;
+            this.task = this.taskQueue.queueTask(() => {
                 interceptor.updateTarget(newValue, flags);
-            }
-            return;
+                this.task = null;
+            }, updateTaskOpts);
+            task === null || task === void 0 ? void 0 : task.cancel();
         }
-        if ((flags & 16 /* updateSource */) > 0) {
-            if (newValue !== sourceExpression.evaluate(flags, $scope, this.$hostScope, locator, null)) {
-                interceptor.updateSource(newValue, flags);
-            }
-            return;
+        else {
+            interceptor.updateTarget(newValue, flags);
         }
-        throw new Error('Unexpected handleChange context in PropertyBinding');
     }
     $bind(flags, scope, hostScope) {
+        var _a;
         if (this.isBound) {
             if (this.$scope === scope) {
                 return;
@@ -123,11 +116,10 @@ export class PropertyBinding {
             interceptor.updateTarget(sourceExpression.evaluate(flags, scope, this.$hostScope, this.locator, shouldConnect ? interceptor : null), flags);
         }
         if ($mode & fromView) {
-            targetObserver.subscribe(interceptor);
+            targetObserver.subscribe((_a = this.targetSubscriber) !== null && _a !== void 0 ? _a : (this.targetSubscriber = new BindingTargetSubscriber(interceptor)));
             if (!shouldConnect) {
                 interceptor.updateSource(targetObserver.getValue(this.target, this.targetProperty), flags);
             }
-            targetObserver[this.id] |= 16 /* updateSource */;
         }
         this.isBound = true;
     }
@@ -141,11 +133,9 @@ export class PropertyBinding {
         }
         this.$scope = void 0;
         this.$hostScope = null;
-        const targetObserver = this.targetObserver;
         const task = this.task;
-        if (targetObserver.unsubscribe) {
-            targetObserver.unsubscribe(this.interceptor);
-            targetObserver[this.id] &= ~16 /* updateSource */;
+        if (this.targetSubscriber) {
+            this.targetObserver.unsubscribe(this.targetSubscriber);
         }
         if (task != null) {
             task.cancel();

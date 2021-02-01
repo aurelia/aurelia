@@ -493,7 +493,7 @@ export class Viewport extends Endpoint {
       () => {
         this.nextContent!.createComponent(this.connectedCE!, this.options.fallback);
 
-        return this.nextContent!.canLoad(this, this.content.navigation);
+        return this.nextContent!.canLoad();
       },
     ) as boolean | LoadInstruction | LoadInstruction[] | Promise<boolean | LoadInstruction | LoadInstruction[]>;
   }
@@ -503,7 +503,7 @@ export class Viewport extends Endpoint {
       return;
     }
 
-    return this.nextContent?.load(step, this.content.navigation);
+    return this.nextContent?.load(step);
   }
 
   public addContent(step: Step<void>, coordinator: NavigationCoordinator): void | Step<void> {
@@ -532,7 +532,7 @@ export class Viewport extends Endpoint {
     if ((this.activeContent as ViewportContent).componentInstance !== null) {
       this.content.connectedScope.reenableReplacedChildren();
       return Runner.run(step,
-        (step: Step<void>) => (this.activeContent as ViewportContent).load(step, (this.activeContent as ViewportContent).navigation), // Only acts if not already loaded
+        (step: Step<void>) => (this.activeContent as ViewportContent).load(step), // Only acts if not already loaded
         (step: Step<void>) => (this.activeContent as ViewportContent).activateComponent(
           step,
           this,

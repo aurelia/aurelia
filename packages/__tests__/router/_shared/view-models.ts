@@ -1,6 +1,6 @@
 import { onResolve, Writable } from '@aurelia/kernel';
 import { ICustomElementController, IHydratedController, IHydratedParentController, LifecycleFlags } from '@aurelia/runtime-html';
-import { Parameters, IRouteableComponent, LoadInstruction, Navigation, Viewport } from '@aurelia/router';
+import { Parameters, IRouteableComponent, LoadInstruction, Navigation, Viewport, RoutingInstruction } from '@aurelia/router';
 import { IHookInvocationAggregator } from './hook-invocation-tracker.js';
 import { IHookSpec, hookSpecsMap } from './hook-spec.js';
 
@@ -42,25 +42,21 @@ export interface ITestRouteViewModel extends IRouteableComponent {
 
   canLoad(
     params: Parameters,
-    viewport: Viewport,
-    next: Navigation,
-    current: Navigation | null,
+    instruction: RoutingInstruction,
+    navigation: Navigation,
   ): boolean | LoadInstruction | LoadInstruction[] | Promise<boolean | LoadInstruction | LoadInstruction[]>;
   load(
     params: Parameters,
-    viewport: Viewport,
-    next: Navigation,
-    current: Navigation | null,
+    instruction: RoutingInstruction,
+    navigation: Navigation,
   ): void | Promise<void>;
   canUnload(
-    viewport: Viewport,
-    next: Navigation | null,
-    current: Navigation,
+    instruction: RoutingInstruction,
+    navigation: Navigation,
   ): boolean | Promise<boolean>;
   unload(
-    viewport: Viewport,
-    next: Navigation | null,
-    current: Navigation,
+    instruction: RoutingInstruction,
+    navigation: Navigation,
   ): void | Promise<void>;
 }
 
@@ -84,7 +80,7 @@ export class HookSpecs {
     public readonly load: IHookSpec<'load'>,
     public readonly canUnload: IHookSpec<'canUnload'>,
     public readonly unload: IHookSpec<'unload'>,
-  ) {}
+  ) { }
 
   public static create(
     input: Partial<HookSpecs>,
@@ -165,7 +161,7 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     public readonly hia: IHookInvocationAggregator,
 
     public readonly specs: HookSpecs = HookSpecs.DEFAULT,
-  ) {}
+  ) { }
 
   public binding(
     initiator: IHydratedController,
@@ -279,11 +275,10 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
 
   public canLoad(
     params: Parameters,
-    viewport: Viewport,
-    next: Navigation,
-    current: Navigation | null,
+    instruction: RoutingInstruction,
+    navigation: Navigation,
   ): boolean | LoadInstruction | LoadInstruction[] | Promise<boolean | LoadInstruction | LoadInstruction[]> {
-    this.viewport = viewport;
+    this.viewport = instruction.viewport.instance;
     // console.log('TestViewModel canLoad', this.name);
     // this.hia.canLoad.notify(`${this.viewport?.name}.${this.name}`);
     return this.specs.canLoad.invoke(
@@ -291,9 +286,9 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
       () => {
         // this.hia.canLoad.notify(`${this.viewport?.name}.${this.name}`, 'enter');
         // return onResolve(this.$canLoad(params, next, current), () => {
-          // this.hia.canLoad.notify(`${this.viewport?.name}.${this.name}`, 'leave');
+        // this.hia.canLoad.notify(`${this.viewport?.name}.${this.name}`, 'leave');
         // }) as any;
-        return this.$canLoad(params, next, current);
+        return this.$canLoad(params, instruction, navigation);
         // this.hia.canLoad.notify(`${this.viewport?.name}.${this.name}`);
         // const result = this.$canLoad(params, next, current);
         // if (result instanceof Promise) {
@@ -310,37 +305,35 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
 
   public load(
     params: Parameters,
-    viewport: Viewport,
-    next: Navigation,
-    current: Navigation | null,
+    instruction: RoutingInstruction,
+    navigation: Navigation,
   ): void | Promise<void> {
-    this.viewport = viewport;
+    this.viewport = instruction.viewport.instance;
     // console.log('TestViewModel load', this.name);
     // this.hia.load.notify(`${this.viewport?.name}.${this.name}`);
     return this.specs.load.invoke(
       this,
       () => {
         // this.hia.load.notify(`${this.viewport?.name}.${this.name}`);
-        return this.$load(params, next, current);
+        return this.$load(params, instruction, navigation);
       },
       this.hia.load,
     );
   }
 
   public canUnload(
-    viewport: Viewport,
-    next: Navigation | null,
-    current: Navigation,
+    instruction: RoutingInstruction,
+    navigation: Navigation,
   ): boolean | Promise<boolean> {
-    this.viewport = viewport;
+    this.viewport = instruction.viewport.instance;
     // console.log('TestViewModel canUnload', this);
     // this.hia.canUnload.notify(`${this.viewport?.name}.${this.name}`);
     return this.specs.canUnload.invoke(
       this,
       () => {
-        return this.$canUnload(next, current);
+        return this.$canUnload(instruction, navigation);
         // this.hia.canUnload.notify(`${this.viewport?.name}.${this.name}`, 'enter');
-        // return onResolve(this.$canUnload(next, current), () => {
+        // return onResolve(this.$canUnload(instruction, navigation), () => {
         //   this.hia.canUnload.notify(`${this.viewport?.name}.${this.name}`, 'leave');
         // }) as any;
       },
@@ -349,18 +342,17 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
   }
 
   public unload(
-    viewport: Viewport,
-    next: Navigation | null,
-    current: Navigation,
+    instruction: RoutingInstruction,
+    navigation: Navigation,
   ): void | Promise<void> {
-    this.viewport = viewport;
+    this.viewport = instruction.viewport.instance;
     // console.log('TestViewModel unload', this.name);
     // this.hia.unload.notify(`${this.viewport?.name}.${this.name}`);
     return this.specs.unload.invoke(
       this,
       () => {
         // this.hia.unload.notify(`${this.viewport?.name}.${this.name}`);
-        return this.$unload(next, current);
+        return this.$unload(instruction, navigation);
       },
       this.hia.unload,
     );
@@ -415,30 +407,30 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
 
   protected $canLoad(
     _params: Parameters,
-    _next: Navigation,
-    _current: Navigation | null,
+    _instruction: RoutingInstruction,
+    _navigation: Navigation,
   ): boolean | LoadInstruction | LoadInstruction[] | Promise<boolean | LoadInstruction | LoadInstruction[]> {
     return true;
   }
 
   protected $load(
     _params: Parameters,
-    _next: Navigation,
-    _current: Navigation | null,
+    _instruction: RoutingInstruction,
+    _navigation: Navigation,
   ): void | Promise<void> {
     // do nothing
   }
 
   protected $canUnload(
-    _next: Navigation | null,
-    _current: Navigation,
+    _instruction: RoutingInstruction,
+    _navigation: Navigation,
   ): boolean | Promise<boolean> {
     return true;
   }
 
   protected $unload(
-    _next: Navigation | null,
-    _current: Navigation,
+    _instruction: RoutingInstruction,
+    _navigation: Navigation,
   ): void | Promise<void> {
     // do nothing
   }

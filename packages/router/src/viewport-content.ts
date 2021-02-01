@@ -136,7 +136,7 @@ export class ViewportContent extends EndpointContent {
     }
   }
 
-  public canLoad(viewport: Viewport, previousInstruction: Navigation): boolean | LoadInstruction | LoadInstruction[] | Promise<boolean | LoadInstruction | LoadInstruction[]> {
+  public canLoad(): boolean | LoadInstruction | LoadInstruction[] | Promise<boolean | LoadInstruction | LoadInstruction[]> {
     if (!this.contentStates.has('created') || (this.contentStates.has('checkedLoad') && !this.reentry)) {
       return true;
     }
@@ -153,17 +153,17 @@ export class ViewportContent extends EndpointContent {
     const typeParameters = this.instruction.component.type ? this.instruction.component.type.parameters : null;
     this.navigation.parameters = this.instruction.parameters.toSpecifiedParameters(typeParameters);
     const merged = { ...parseQuery(this.navigation.query), ...this.navigation.parameters };
-    const result = this.instruction.component.instance.canLoad(merged, this.viewport!, this.navigation, previousInstruction);
+    const result = this.instruction.component.instance.canLoad(merged, this.instruction, this.navigation);
     if (typeof result === 'boolean') {
       return result;
     }
     if (typeof result === 'string') {
-      return [RoutingInstruction.create(result, viewport)];
+      return [RoutingInstruction.create(result, this.viewport)];
     }
     return result as Promise<RoutingInstruction[]>;
   }
 
-  public canUnload(nextInstruction: Navigation | null): boolean | Promise<boolean> {
+  public canUnload(nextNavigation: Navigation | null): boolean | Promise<boolean> {
     if (!this.instruction.component.instance || !this.instruction.component.instance.canUnload || (this.contentStates.has('checkedUnload') && !this.reentry)) {
       return true;
     }
@@ -173,7 +173,14 @@ export class ViewportContent extends EndpointContent {
       return true;
     }
 
-    const result = this.instruction.component.instance.canUnload(this.viewport!, nextInstruction, this.navigation);
+    if (nextNavigation === null) {
+      nextNavigation = Navigation.create({
+        instruction: '',
+        fullStateInstruction: '',
+        previous: this.navigation,
+      });
+    }
+    const result = this.instruction.component.instance.canUnload(this.instruction, nextNavigation);
     if (typeof result !== 'boolean') {
       // TODO(alpha): Fix error message
       // throw new Error('canUnload needs to return true or false!');
@@ -181,7 +188,7 @@ export class ViewportContent extends EndpointContent {
     return result;
   }
 
-  public load(step: Step<void>, previousInstruction: Navigation): Step<void> {
+  public load(step: Step<void>): Step<void> {
     return Runner.run(step,
       () => this.contentStates.await('checkedLoad'),
       () => {
@@ -195,18 +202,25 @@ export class ViewportContent extends EndpointContent {
           const typeParameters = this.instruction.component.type ? this.instruction.component.type.parameters : null;
           this.navigation.parameters = this.instruction.parameters.toSpecifiedParameters(typeParameters);
           const merged = { ...parseQuery(this.navigation.query), ...this.navigation.parameters };
-          return this.instruction.component.instance.load(merged, this.viewport!, this.navigation, previousInstruction);
+          return this.instruction.component.instance.load(merged, this.instruction, this.navigation);
         }
       }
     ) as Step<void>;
   }
-  public unload(nextInstruction: Navigation | null): void | Promise<void> {
+  public unload(nextNavigation: Navigation | null): void | Promise<void> {
     if (!this.contentStates.has('loaded')) {
       return;
     }
     this.contentStates.delete('loaded');
     if (this.instruction.component.instance?.unload != null) {
-      return this.instruction.component.instance.unload(this.viewport!, nextInstruction, this.navigation);
+      if (nextNavigation === null) {
+        nextNavigation = Navigation.create({
+          instruction: '',
+          fullStateInstruction: '',
+          previous: this.navigation,
+        });
+      }
+      return this.instruction.component.instance.unload(this.instruction, nextNavigation);
     }
   }
 

@@ -11,6 +11,7 @@ import { RoutingInstruction } from './instructions/routing-instruction.js';
 import { Navigation } from './navigation.js';
 import { IRoute } from './route.js';
 import { ILoadOptions } from './router';
+import { Parameters } from './instructions/instruction-parameters.js';
 
 // These interfaces exclusively exist to prevent TS decorator metadata emission from having the runtime
 // side-effect of causing a ReferenceError in node, because these are not defined as globals there.
@@ -36,10 +37,10 @@ export type TitleFunction = (viewModel: IRouteableComponent, instruction: Naviga
 
 export interface IRouteableComponent extends ICustomElementViewModel {
   reentryBehavior?: ReentryBehavior;
-  canLoad?(parameters: Record<string, unknown>, viewport: Viewport, nextInstruction: Navigation, instruction: Navigation): boolean | LoadInstruction | LoadInstruction[] | Promise<boolean | LoadInstruction | LoadInstruction[]>;
-  load?(parameters: Record<string, unknown>, viewport: Viewport, nextInstruction: Navigation, instruction: Navigation): void | Promise<void>;
-  canUnload?(viewport: Viewport, nextInstruction: Navigation | null, instruction: Navigation): boolean | Promise<boolean>;
-  unload?(viewport: Viewport, nextInstruction: Navigation | null, instruction: Navigation): void | Promise<void>;
+  canLoad?(parameters: Parameters, instruction: RoutingInstruction, navigation: Navigation): boolean | LoadInstruction | LoadInstruction[] | Promise<boolean | LoadInstruction | LoadInstruction[]>;
+  load?(parameters: Parameters, instruction: RoutingInstruction, navigation: Navigation): void | Promise<void>;
+  canUnload?(instruction: RoutingInstruction, navigation: Navigation | null): boolean | Promise<boolean>;
+  unload?(instruction: RoutingInstruction, navigation: Navigation | null): void | Promise<void>;
 }
 
 export const enum ReentryBehavior {

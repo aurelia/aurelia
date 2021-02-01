@@ -36,7 +36,6 @@ export function getRaw<T extends object>(obj: T): T {
   return (obj as IIndexable)[rawKey] as T ?? obj;
 }
 export function unwrap<T extends unknown>(v: T): T {
-  // eslint-disable-next-line
   return canWrap(v) && (v as IIndexable)[rawKey] as T || v;
 }
 

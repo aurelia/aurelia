@@ -100,7 +100,7 @@ We will need a component that is displayed when the app is first loaded and no c
 
 As you can see, we already have this from the previous sections of this tutorial.
 
-**Create a new folder called `components` inside of the `src` directory and create a file called `no-select.html`**
+**Create a new folder called `components` inside of the `src` directory and create a file called `no-selection.html`**
 
 ```markup
 <div class="text-center">

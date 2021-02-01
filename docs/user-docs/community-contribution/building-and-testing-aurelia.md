@@ -29,11 +29,13 @@ npm run build
 ### packages
 
 Go to the tests folder:
+
 ```bash
 cd packages/__tests__
 ```
 
 To simply run all packages tests once, run one of the following commands:
+
 ```bash
 npm run test-chrome # run all tests in chrome (headless), also reports code coverage
 npm run test-firefox # run all tests in firefox (headless)
@@ -43,7 +45,6 @@ npm run test-node # run all tests in node
 Please inspect the package.json to see the other commands.
 
 This documentation will be expanded upon in the future.
-
 
 ### packages-cjs
 
@@ -57,16 +58,20 @@ npm run change-package-refs:release -- commonjs
 ```
 
 Build once more to ensure all outputs are available in cjs:
+
 ```bash
 npm run build
 ```
 
 Go to the tests folder:
+
 ```bash
 cd packages-cjs/__tests__
 ```
 
-Run any of the test suites (please inspect the package.json to see the other commands):
+Run any of the test suites \(please inspect the package.json to see the other commands\):
+
 ```bash
 npm run test-node # runs all cjs tests
 ```
+

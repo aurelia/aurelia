@@ -1,4 +1,3 @@
-
 # Validate Binding Behavior
 
 The `validate` binding behavior, as the name suggests adds the validation behavior to a property binding. In other words, it "mark"s the associated property binding as a target for validation, by registering the binding to the validation controller. This is how the validation controller comes to know of the bindings that needs to be validated when `validationController.validate()` method is called.
@@ -63,3 +62,4 @@ The binding behavior by default registers the binding to the closest \(in terms 
 However, an instance of validation can be explicitly bound to the binding behavior, using the positional argument. This is useful when you need to use multiple instances of validation controller to perform different set of validation. In the example below, there are two injected controllers and the property `person.age` the `validationController2` is used. Playing with the example you can see that the `person.age` does not get validated by the scoped validation controller instance.
 
 {% embed url="https://stackblitz.com/edit/au2-validation-validate-controller?ctl=1" caption="" %}
+

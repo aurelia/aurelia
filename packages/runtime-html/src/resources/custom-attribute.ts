@@ -23,6 +23,7 @@ import {
 import { Watch } from '../watch.js';
 import type { ICustomAttributeViewModel, ICustomAttributeController } from '../templating/controller.js';
 import type { IWatchDefinition } from '../watch.js';
+import { getRef } from '../dom.js';
 
 export type PartialCustomAttributeDefinition = PartialResourceDefinition<{
   readonly defaultBindingMode?: BindingMode;
@@ -148,7 +149,7 @@ export const CustomAttribute: CustomAttributeKind = {
     return typeof value === 'function' && Metadata.hasOwn(CustomAttribute.name, value);
   },
   for<C extends ICustomAttributeViewModel = ICustomAttributeViewModel>(node: Node, name: string): ICustomAttributeController<C> | undefined {
-    return Metadata.getOwn(CustomAttribute.keyFrom(name), node);
+    return (getRef(node, CustomAttribute.keyFrom(name)) ?? void 0) as ICustomAttributeController<C> | undefined;
   },
   define<T extends Constructable>(nameOrDef: string | PartialCustomAttributeDefinition, Type: T): CustomAttributeType<T> {
     const definition = CustomAttributeDefinition.create(nameOrDef, Type as Constructable);

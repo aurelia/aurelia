@@ -53,6 +53,7 @@ export interface IRegistry {
 }
 
 export interface IContainer extends IServiceLocator, IDisposable {
+  readonly root: IContainer;
   register(...params: any[]): IContainer;
   registerResolver<K extends Key, T = K>(key: K, resolver: IResolver<T>, isDisposable?: boolean): IResolver<T>;
   registerTransformer<K extends Key, T = K>(key: K, transformer: Transformer<T>): boolean;
@@ -820,7 +821,7 @@ export class Container implements IContainer {
   public get depth(): number {
     return this.parent === null ? 0 : this.parent.depth + 1;
   }
-  private readonly root: Container;
+  public readonly root: Container;
 
   private readonly resolvers: Map<Key, IResolver | IDisposableResolver>;
   // Factories are "global" per container tree

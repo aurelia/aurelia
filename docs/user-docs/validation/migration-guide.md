@@ -2,7 +2,7 @@
 description: Creating and customing Aurelia Validation rules to ensure data is validated.
 ---
 
-# Migration Guide (from Aurelia 1) and Breaking Changes
+# Migration Guide & Breaking Changes
 
 This section outlines the breaking changes introduced by `@aurelia/validation*` as compared to the predecessor `aurelia-validation`. However, it is recommended that you read the documentation as there are many new features that has been added.
 
@@ -60,3 +60,4 @@ This section outlines the breaking changes introduced by `@aurelia/validation*` 
 * Validator interface has been changed to have only one method named `validate` equipped with validate instruction. Refer the [Validator and validate instruction](defining-rules.md#validator-and-validate-instruction) section for the details.
 * Usage of validation controller factory is changed. Instead of using `controllerFactory.createForCurrentScope();` you need to use the argument decorator `@newInstanceForScope(IValidationController)` syntax. Refer the [Injecting a controller instance](validation-controller.md#injecting-a-controller-instance) section for the details.
 * No validation renderer in favor of `ValidationResultsSubscriber`. Refer the [`addSubscriber` and `removeSubscriber`](validation-controller.md#addSubscriber-and-removeSubscriber) section for the details.
+

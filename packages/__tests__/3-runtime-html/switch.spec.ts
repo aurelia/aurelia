@@ -258,7 +258,7 @@ describe('switch', function () {
     try {
       await au
         .register(
-          LoggerConfiguration.create({ $console: null, level: LogLevel.trace, sinks: [DebugLog] }),
+          LoggerConfiguration.create({ level: LogLevel.trace, sinks: [DebugLog] }),
           ...registrations,
           Registration.instance(InitialStatus, initialStatus),
           Registration.instance(InitialStatusNum, initialStatusNum),
@@ -879,7 +879,7 @@ describe('switch', function () {
         [],
         async (ctx) => {
           ctx.app.status = Status.delivered;
-          await ctx.platform.domWriteQueue.yield();
+          ctx.platform.domWriteQueue.flush();
           assert.html.innerEqual(ctx.host, '<div> the curious case of delivered </div>', 'change innerHTML1');
         }
       );

@@ -20,6 +20,7 @@
 * [Displaying Data](getting-started/displaying-basic-data.md)
 * [Rendering Collections](getting-started/rendering-collections.md)
 * [Conditional Rendering](getting-started/conditional-rendering.md)
+* [Observation](getting-started/observation.md)
 * [Handling Events](getting-started/handling-events.md)
 
 ## App Basics

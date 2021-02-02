@@ -66,8 +66,8 @@ function processInterpolationText(symbol: TextSymbol): void {
   while (node.nextSibling !== null && node.nextSibling.nodeType === NodeType.Text) {
     parentNode.removeChild(node.nextSibling);
   }
+  node.textContent = '';
   parentNode.insertBefore(symbol.marker, node);
-  parentNode.removeChild(node);
 }
 
 function isTemplateControllerOf(proxy: ParentNodeSymbol, manifest: ElementSymbol): proxy is TemplateControllerSymbol {

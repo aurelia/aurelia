@@ -98,6 +98,7 @@ commands:
       - run: npm run change-tsconfigs:invert
       - run: npm run build:release
       - run: npm run change-tsconfigs:restore
+      - run: npm run generate-native-modules
       - clean_merge_commit_dist:
           from: << parameters.from >>
           to: << parameters.to >>
@@ -250,6 +251,7 @@ jobs:
       - run: set -o pipefail && npm run change-tsconfigs:invert
       - run: set -o pipefail && npm run build:release
       - run: set -o pipefail && npm run change-tsconfigs:restore
+      - run: set -o pipefail && npm run generate-native-modules
       - clean_merge_commit_dist:
           from: << parameters.from >>
           to: << parameters.to >>

@@ -49,10 +49,12 @@ export default {
     'path': join(rootPath, 'node_modules')
   },
   'packages': packageJson.workspaces.map(p => {
-    const [folder, kebabName] = p.split('/');
+    const parts = p.split('/');
+    const kebabName = parts[parts.length - 1];
     const camelName = camelCase(kebabName);
+    const folder = parts.slice(0, -1).join('/');
 
-    const path = join(rootPath, folder, kebabName);
+    const path = join(rootPath, p);
     const nodeModules = join(path, 'node_modules');
     const coverage = join(rootPath, 'coverage', kebabName);
     const tsconfig = join(path, 'tsconfig.json');

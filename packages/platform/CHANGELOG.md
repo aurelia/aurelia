@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="0.9.0"></a>
+# 0.9.0 (2021-01-31)
+
+### Bug Fixes:
+
+* **task-queue:** fix a yield bug ([7262479](https://github.com/aurelia/aurelia/commit/7262479))
+* **platform:** let yield await async tasks ([576edba](https://github.com/aurelia/aurelia/commit/576edba))
+
+
+### Refactorings:
+
+* **all:** rename macroTaskQueue to taskQueue ([87c073d](https://github.com/aurelia/aurelia/commit/87c073d))
+
 <a name="0.8.0"></a>
 # 0.8.0 (2020-11-30)
 

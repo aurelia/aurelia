@@ -8,12 +8,23 @@ import { getCurrentVersion, getNewVersion } from './get-version-info';
 const log = createLogger('bump-version');
 
 export async function updateDependencyVersions(newVersion: string): Promise<void> {
-  for (const { name, folder } of project.packages.filter(p => !p.name.kebab.includes('_') && p.folder.includes('packages'))) {
+  for (const { name, folder } of project.packages) {
     log(`updating dependencies for ${c.magentaBright(name.npm)}`);
     const pkg = await loadPackageJson(folder, name.kebab);
-    pkg.version = newVersion;
+    if (pkg.private !== true) {
+      pkg.version = newVersion;
+    }
     if ('dependencies' in pkg) {
       const deps = pkg.dependencies;
+      for (const depName in deps) {
+        if (depName.startsWith('@aurelia') || depName === 'aurelia') {
+          log(`  dep ${name.npm} ${c.yellow(deps[depName])} -> ${c.greenBright(newVersion)}`);
+          deps[depName] = newVersion;
+        }
+      }
+    }
+    if ('devDependencies' in pkg) {
+      const deps = pkg.devDependencies;
       for (const depName in deps) {
         if (depName.startsWith('@aurelia') || depName === 'aurelia') {
           log(`  dep ${name.npm} ${c.yellow(deps[depName])} -> ${c.greenBright(newVersion)}`);

@@ -41,7 +41,7 @@ export class InterpolationBinding implements IBinding {
   public $scope?: Scope = void 0;
   public $hostScope: Scope | null = null;
 
-  public partBindings: ContentBinding[];
+  public partBindings: InterpolationPartBinding[];
 
   private readonly targetObserver: AccessorOrObserver;
   private task: ITask | null = null;
@@ -59,7 +59,7 @@ export class InterpolationBinding implements IBinding {
     const expressions = interpolation.expressions;
     const partBindings = this.partBindings = Array(expressions.length);
     for (let i = 0, ii = expressions.length; i < ii; ++i) {
-      partBindings[i] = new ContentBinding(expressions[i], target, targetProperty, locator, observerLocator, this);
+      partBindings[i] = new InterpolationPartBinding(expressions[i], target, targetProperty, locator, observerLocator, this);
     }
   }
 
@@ -129,18 +129,9 @@ export class InterpolationBinding implements IBinding {
 
 // a pseudo binding, part of a larger interpolation binding
 // employed to support full expression per expression part of an interpolation
-// note: ContentBinding name is used so signal that in a future version, we may add support
-// for more than just string part in interpolation.
-// consider the following example:
-// <div>${start} to ${end}</div>
-// `start` and `end` could be more than strings
-// if `start` returns <span>Start</span>, `end` returns <span>End</span> (html elements)
-// then the final result:
-// <div><span>Start</span> to <span>End</span></div>
-// this composability is similar to how FAST is doing, and quite familiar with VDOM libs component props
-export interface ContentBinding extends IConnectableBinding {}
+export interface InterpolationPartBinding extends IConnectableBinding {}
 
-export class ContentBinding implements ContentBinding, ICollectionSubscriber {
+export class InterpolationPartBinding implements InterpolationPartBinding, ICollectionSubscriber {
   public interceptor: this = this;
 
   // at runtime, mode may be overriden by binding behavior
@@ -237,11 +228,14 @@ export class ContentBinding implements ContentBinding, ICollectionSubscriber {
   }
 }
 
-connectable(ContentBinding);
+connectable(InterpolationPartBinding);
 
-export interface ContentBinding2 extends IConnectableBinding {}
+export interface ContentBinding extends IConnectableBinding {}
 
-export class ContentBinding2 implements ContentBinding2, ICollectionSubscriber {
+/**
+ * A binding for handling the element content interpolation
+ */
+export class ContentBinding implements ContentBinding, ICollectionSubscriber {
   public interceptor: this = this;
 
   // at runtime, mode may be overriden by binding behavior
@@ -258,20 +252,20 @@ export class ContentBinding2 implements ContentBinding2, ICollectionSubscriber {
     public readonly target: Text,
     public readonly locator: IServiceLocator,
     public readonly observerLocator: IObserverLocator,
-    public readonly platform: IPlatform,
+    private readonly p: IPlatform,
   ) {
 
   }
 
   public updateTarget(value: unknown, flags: LifecycleFlags): void {
     const target = this.target;
-    const nodeCtor = this.platform.Node;
+    const NodeCtor = this.p.Node;
     const oldValue = this.value;
     this.task = null;
-    if (oldValue instanceof nodeCtor) {
+    if (oldValue instanceof NodeCtor) {
       oldValue.parentNode?.removeChild(oldValue);
     }
-    if (value instanceof nodeCtor) {
+    if (value instanceof NodeCtor) {
       target.textContent = '';
       target.parentNode?.insertBefore(value, target);
     } else {
@@ -307,7 +301,7 @@ export class ContentBinding2 implements ContentBinding2, ICollectionSubscriber {
     const shouldQueueFlush = (flags & LifecycleFlags.fromBind) === 0;
     this.task?.cancel();
     if (shouldQueueFlush) {
-      this.task = this.platform.domWriteQueue.queueTask(() => {
+      this.task = this.p.domWriteQueue.queueTask(() => {
         this.updateTarget(newValue, flags);
       }, queueTaskOptions);
     } else {
@@ -366,4 +360,4 @@ export class ContentBinding2 implements ContentBinding2, ICollectionSubscriber {
   }
 }
 
-connectable(ContentBinding2);
+connectable(ContentBinding);

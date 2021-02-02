@@ -38,6 +38,8 @@ export const IViewportInstruction = DI.createInterface<IViewportInstruction>('IV
 export interface IViewportInstruction {
   readonly context?: RouteContextLike | null;
   readonly append?: boolean;
+  readonly open?: number;
+  readonly close?: number;
   /**
    * The component to load.
    *
@@ -65,6 +67,8 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
   private constructor(
     public readonly context: RouteContextLike | null,
     public append: boolean,
+    public open: number,
+    public close: number,
     public readonly component: TComponent,
     public readonly viewport: string | null,
     public readonly params: Params | null,
@@ -83,6 +87,8 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
       return new ViewportInstruction(
         instruction.context ?? context ?? null,
         instruction.append ?? false,
+        instruction.open ?? 0,
+        instruction.close ?? 0,
         component,
         instruction.viewport ?? null,
         instruction.params ?? null,
@@ -91,7 +97,7 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
     }
 
     const typedInstruction = TypedNavigationInstruction.create(instruction);
-    return new ViewportInstruction(context ?? null, false, typedInstruction, null, null, []);
+    return new ViewportInstruction(context ?? null, false, 0, 0, typedInstruction, null, null, []);
   }
 
   public contains(other: ViewportInstruction): boolean {
@@ -145,6 +151,8 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
     return new ViewportInstruction(
       this.context,
       this.append,
+      this.open,
+      this.close,
       this.component.clone(),
       this.viewport,
       this.params === null ? null : { ...this.params },
@@ -157,7 +165,7 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
     const component = this.component.toUrlComponent();
     const params = this.params === null || Object.keys(this.params).length === 0 ? '' : `(au$obj${getObjectId(this.params)})`; // TODO(fkleuver): serialize them instead
     const viewport = this.viewport === null || this.viewport.length === 0 ? '' : `@${this.viewport}`;
-    const thisPart = `${component}${params}${viewport}`;
+    const thisPart = `${'('.repeat(this.open)}${component}${params}${viewport}${')'.repeat(this.close)}`;
     const childPart = recursive ? this.children.map(x => x.toUrlComponent()).join('+') : '';
     if (thisPart.length > 0) {
       if (childPart.length > 0) {
@@ -233,7 +241,7 @@ export class ViewportInstructionTree {
     public readonly options: NavigationOptions,
     public readonly isAbsolute: boolean,
     public readonly children: ViewportInstruction[],
-    public readonly queryParams: Params,
+    public readonly queryParams: Readonly<URLSearchParams>,
     public readonly fragment: string | null,
   ) {}
 
@@ -255,7 +263,7 @@ export class ViewportInstructionTree {
         $options,
         false,
         instructionOrInstructions.map(x => ViewportInstruction.create(x, $options.context)),
-        {},
+        Object.freeze(new URLSearchParams()),
         null,
       );
     }
@@ -269,7 +277,7 @@ export class ViewportInstructionTree {
       $options,
       false,
       [ViewportInstruction.create(instructionOrInstructions, $options.context)],
-      {},
+      Object.freeze(new URLSearchParams()),
       null,
     );
   }
@@ -291,7 +299,9 @@ export class ViewportInstructionTree {
   }
 
   public toUrl(): string {
-    return this.children.map(x => x.toUrlComponent()).join('+');
+    const path = this.children.map(x => x.toUrlComponent()).join('+');
+    const query = this.queryParams.toString();
+    return query !== '' ? `${path}?${query}` : path;
   }
 
   public toString(): string {

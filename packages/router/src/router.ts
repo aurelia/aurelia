@@ -368,7 +368,7 @@ export class Router {
       const ctx = this.ctx;
       routeTree = this._routeTree = new RouteTree(
         NavigationOptions.create({ ...this.options }),
-        {},
+        Object.freeze(new URLSearchParams()),
         null,
         RouteNode.create({
           path: '',

@@ -28,7 +28,7 @@ import { CustomElement, CustomElementDefinition, PartialCustomElementDefinition 
 import { getRenderContext, ICompiledRenderContext } from './templating/render-context.js';
 import { AuSlotsInfo, RegisteredProjections, SlotInfo } from './resources/custom-elements/au-slot.js';
 import { CustomAttribute } from './resources/custom-attribute.js';
-import { convertToRenderLocation, INode, NodeType, setRef } from './dom.js';
+import { convertToRenderLocation, INode, setRef } from './dom.js';
 import { Controller } from './templating/controller.js';
 import { IViewFactory } from './templating/view.js';
 import { IPlatform } from './platform.js';
@@ -647,9 +647,9 @@ export class InterpolationBindingRenderer implements IRenderer {
       this.platform.domWriteQueue,
     );
     const partBindings = binding.partBindings;
-    let partBinding: InterpolationPartBinding;
+    const ii = partBindings.length;
     let i = 0;
-    let ii = partBindings.length;
+    let partBinding: InterpolationPartBinding;
     for (; ii > i; ++i) {
       partBinding = partBindings[i];
       partBindings[i] = applyBindingBehavior(
@@ -758,10 +758,9 @@ export class TextBindingRenderer implements IRenderer {
     const expr = ensureExpression(this.parser, instruction.from, BindingType.Interpolation) as Interpolation;
     const staticParts = expr.parts;
     const dynamicParts = expr.expressions;
-
+    
+    const ii = dynamicParts.length;
     let i = 0;
-    let ii = dynamicParts.length;
-
     let text = staticParts[0];
     if (text !== '') {
       parent.insertBefore(doc.createTextNode(text), target);

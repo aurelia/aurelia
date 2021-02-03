@@ -299,18 +299,15 @@ export class ContentBinding implements ContentBinding, ICollectionSubscriber {
     //  (1). determine whether this should be the behavior
     //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start().wait()
     const shouldQueueFlush = (flags & LifecycleFlags.fromBind) === 0;
-    this.task?.cancel();
     if (shouldQueueFlush) {
-      this.task = this.p.domWriteQueue.queueTask(() => {
-        this.updateTarget(newValue, flags);
-      }, queueTaskOptions);
+      this.queueUpdate(newValue, flags);
     } else {
       this.updateTarget(newValue, flags);
     }
   }
 
   public handleCollectionChange(): void {
-    this.updateTarget(String(this.value), LifecycleFlags.none);
+    this.queueUpdate(String(this.value), LifecycleFlags.none);
   }
 
   public $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void {
@@ -358,6 +355,15 @@ export class ContentBinding implements ContentBinding, ICollectionSubscriber {
     this.obs.clear(true);
     this.task?.cancel();
     this.task = null;
+  }
+
+  private queueUpdate(newValue: unknown, flags: LifecycleFlags): void {
+    const task = this.task;
+    this.task = this.p.domWriteQueue.queueTask(() => {
+      this.task = null;
+      this.updateTarget(newValue, flags);
+    }, queueTaskOptions);
+    task?.cancel();
   }
 }
 

@@ -349,7 +349,9 @@ export class ContentBinding implements ContentBinding, ICollectionSubscriber {
       this.sourceExpression.unbind(flags, this.$scope!, this.$hostScope, this.interceptor);
     }
 
-    this.updateTarget('', flags);
+    // TODO: should existing value (either connected node, or a string)
+    // be removed when this binding is unbound?
+    // this.updateTarget('', flags);
     this.$scope = void 0;
     this.$hostScope = null;
     this.obs.clear(true);

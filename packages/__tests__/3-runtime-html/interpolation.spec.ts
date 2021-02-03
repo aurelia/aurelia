@@ -502,12 +502,15 @@ describe('3-runtime/interpolation.spec.ts', function () {
       const b = div.querySelector('b');
       assert.strictEqual(b.textContent, String(idx + 11));
     });
+    assert.strictEqual(appHost.textContent, component.items.map(item => `${item}`).join(''));
 
     component.items = [];
     divs = Array.from(appHost.querySelectorAll('div'));
     assert.strictEqual(divs.length, 0);
+    assert.strictEqual(appHost.textContent, '');
 
     await tearDown();
+    assert.strictEqual(appHost.textContent, '');
   });
 
   it('[IF/Else] interpolates expression with value converter that returns HTML nodes', async function () {
@@ -550,6 +553,7 @@ describe('3-runtime/interpolation.spec.ts', function () {
     // assert.strictEqual(appHost.firstElementChild.tagName, 'ELSE');
 
     await tearDown();
+    assert.strictEqual(appHost.textContent, 'else foo');
   });
 });
 

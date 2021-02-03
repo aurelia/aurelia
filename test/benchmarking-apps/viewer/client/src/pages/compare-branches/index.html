@@ -1,19 +1,41 @@
-<!-- TODO: show the branch data from the route -->
 <div class="compare-container">
   <div class="input-group">
     <label for="branch1">Branch*</label>
-    <input id="branch1" value.bind="candidate1.branch">
+    <div validation-errors.from-view="b1Errors">
+      <input id="branch1" value.bind="candidate1.branch & validate">
+      <div>
+        <span repeat.for="r of b1Errors">${r.result.message}</span>
+      </div>
+    </div>
     <label for="commit1">Commit</label>
-    <input id="commit1" value.bind="candidate1.commit">
+    <div validation-errors.from-view="c1Errors">
+      <input id="commit1" value.bind="candidate1.commit & validate">
+      <div>
+        <span repeat.for="r of c1Errors">${r.result.message}</span>
+      </div>
+    </div>
   </div>
   <span>vs.</span>
   <div class="input-group">
     <label for="branch2">Branch*</label>
-    <input id="branch2" value.bind="candidate2.branch">
+    <div validation-errors.from-view="b2Errors">
+      <input id="branch2" value.bind="candidate2.branch & validate">
+      <div>
+        <span repeat.for="r of b2Errors">${r.result.message}</span>
+      </div>
+    </div>
     <label for="commit2">Commit</label>
-    <input id="commit2" value.bind="candidate2.commit">
+    <div validation-errors.from-view="c2Errors">
+      <input id="commit2" value.bind="candidate2.commit & validate">
+      <div>
+        <span repeat.for="r of c2Errors">${r.result.message}</span>
+      </div>
+    </div>
   </div>
   <button click.delegate="compare()">Compare</button>
 </div>
+<div if.bind="areSameCandidates">
+  The compare candidates cannot be differentiated. Enter different branch and/or commit.
+</div>
 
-<by-browsers if.bind="dataset" dataset.bind  show-average.bind="false"></by-browsers>
+<by-browsers if.bind="dataset" dataset.bind show-average.bind="false"></by-browsers>

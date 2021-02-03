@@ -1,6 +1,9 @@
+import { newInstanceForScope } from '@aurelia/kernel';
 import { observable } from '@aurelia/runtime-html';
+import { IValidationRules, ValidateInstruction } from '@aurelia/validation';
 import { BenchmarkMeasurements } from '@benchmarking-apps/test-result';
 import { customElement, ILogger, Params, RouteNode, shadowCSS } from 'aurelia';
+import { IValidationController } from '@aurelia/validation-html';
 import { ByBrowsers } from '../../components/by-browsers';
 import { DenormalizedMeasurement, IApi } from '../../shared/data';
 import css from './index.css';
@@ -16,12 +19,16 @@ export class CompareBranches {
   private readonly candidate1: Candidate = new Candidate(this.api);
   private readonly candidate2: Candidate = new Candidate(this.api);
   private dataset: DenormalizedMeasurement[];
+  private areSameCandidates: boolean = false;
 
   public constructor(
     @IApi private readonly api: IApi,
     @ILogger private readonly logger: ILogger,
+    @newInstanceForScope(IValidationController) private readonly controller: IValidationController,
+    @IValidationRules private readonly validationRules: IValidationRules,
   ) {
     this.logger = logger.scopeTo('CompareBranches');
+    this.applyValidationRules();
   }
 
   public async load(_: Params, node: RouteNode): Promise<void> {
@@ -37,7 +44,14 @@ export class CompareBranches {
   }
 
   private async compare() {
-    // TODO validate input
+    this.areSameCandidates = false;
+    const controller = this.controller;
+    if (
+      !(await controller.validate()).valid
+      || (this.areSameCandidates = this.candidate1.isEqual(this.candidate2))
+    ) {
+      return;
+    }
     await this.fetchData();
   }
 
@@ -50,6 +64,18 @@ export class CompareBranches {
       ...data2.measurements.map(m => new DenormalizedMeasurement(m, data2))
     ];
     this.logger.debug('fetchData()', this.dataset);
+  }
+
+  private applyValidationRules() {
+    const rules = this.validationRules;
+    rules
+      .on(Candidate)
+      .ensure('branch')
+      .required()
+      .withMessage('Enter a branch name.')
+      .ensure('commit')
+      .matches(/^[0-9a-f]{7,}$/i)
+      .withMessage('Enter a valid commit hash, at least 7 characters long.');
   }
 }
 
@@ -67,6 +93,20 @@ class Candidate {
   public constructor(
     @IApi private readonly api: IApi,
   ) { }
+
+  public isEqual(that: Candidate): boolean {
+    if (this.branch === that.branch) {
+      const c1 = this.commit;
+      const c2 = that.commit;
+      if (c1 === c2) {
+        return true;
+      } else if ((c1?.substring(0, 8) ?? '') === (c2?.substring(0, 8) ?? '')) {
+        return true;
+      }
+    }
+    // At this point either we have different branches or 2 commits those are sufficiently different for same branch.
+    return false;
+  }
 
   public async fetchData() {
     await this.$fetchData(this.branch, this.commit);
@@ -94,5 +134,3 @@ class Candidate {
     this.data = null;
   }
 }
-
-

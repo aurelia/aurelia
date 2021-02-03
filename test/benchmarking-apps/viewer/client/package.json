@@ -8,6 +8,8 @@
   },
   "dependencies": {
     "@aurelia/runtime-html": "0.9.0",
+    "@aurelia/validation": "0.9.0",
+    "@aurelia/validation-html": "0.9.0",
     "@benchmarking-apps/test-result": "1.0.0",
     "aurelia": "0.9.0",
     "d3": "^6.3.1"

@@ -443,7 +443,7 @@ describe('3-runtime/interpolation.spec.ts -- [UNIT]interpolation', function () {
 });
 
 describe('3-runtime/interpolation.spec.ts', function () {
-  it('[Repeat] interpolates expression with value converter that returns HTML nodes', async function() {
+  it('[Repeat] interpolates expression with value converter that returns HTML nodes', async function () {
     const { tearDown, appHost, ctx, component, startPromise } = createFixture(
       `<template><div repeat.for="item of items">\${item.value | $}</div></template>`,
       class App {
@@ -457,7 +457,7 @@ describe('3-runtime/interpolation.spec.ts', function () {
             return [IPlatform];
           }
 
-          public constructor(private platform: IPlatform) {}
+          public constructor(private readonly p: IPlatform) {}
 
           public toView(val: string) {
             let num = Number(val);
@@ -466,7 +466,7 @@ describe('3-runtime/interpolation.spec.ts', function () {
           }
 
           private toNode(html: string) {
-            const parser = this.platform.document.createElement('div');
+            const parser = this.p.document.createElement('div');
             parser.innerHTML = html;
             return parser.firstChild;
           }
@@ -510,10 +510,9 @@ describe('3-runtime/interpolation.spec.ts', function () {
     await tearDown();
   });
 
-  it.only('[IF/Else] interpolates expression with value converter that returns HTML nodes', async function() {
+  it('[IF/Else] interpolates expression with value converter that returns HTML nodes', async function () {
     const { tearDown, appHost, ctx, component, startPromise } = createFixture(
       `<template if.bind="show">\${message | $:'if'}</template><template else>\${message | $:'else'}</template>`,
-      // `<div if.bind="show">\${message | $:'if'}</div><div else>\${message | $:'else'}</div>`,
       class App {
         public show = true;
         public message = 'foo';
@@ -524,7 +523,7 @@ describe('3-runtime/interpolation.spec.ts', function () {
             return [IPlatform];
           }
 
-          public constructor(private p: IPlatform) {}
+          public constructor(private readonly p: IPlatform) {}
 
           public toView(val: string, prefix: string) {
             return this.toNode(`<${prefix}>${prefix} ${val}</${prefix}>`);

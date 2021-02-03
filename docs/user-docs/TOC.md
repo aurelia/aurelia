@@ -5,6 +5,7 @@
 ## Getting Started
 
 * [Aurelia at a glance](getting-started/aurelia-at-a-glance.md)
+* [Quick install guide](getting-started/quick-install-guide.md)
 * [Hello World](getting-started/quick-start-guide/README.md)
   * [Creating Your First App](getting-started/quick-start-guide/creating-your-first-app.md)
   * [Exploring the code](getting-started/quick-start-guide/exploring-the-code.md)

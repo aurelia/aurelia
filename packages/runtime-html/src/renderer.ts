@@ -758,7 +758,7 @@ export class TextBindingRenderer implements IRenderer {
     const expr = ensureExpression(this.parser, instruction.from, BindingType.Interpolation) as Interpolation;
     const staticParts = expr.parts;
     const dynamicParts = expr.expressions;
-    
+
     const ii = dynamicParts.length;
     let i = 0;
     let text = staticParts[0];

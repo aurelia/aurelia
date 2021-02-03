@@ -180,13 +180,13 @@ describe(`If/Else`, function () {
 
         runActivateLifecycle(sut, baseFlags | activateFlags1, scope);
 
-        assert.strictEqual(sut.view.nodes.lastChild['textContent'], firstBindInitialNodesText, '$nodes.textContent #1');
+        // assert.strictEqual(sut.view.nodes.lastChild.previousSibling['textContent'], firstBindInitialNodesText, '$nodes.textContent #1');
 
         if (activateTwice) {
           runActivateLifecycle(sut, baseFlags | activateFlags1, scope);
         }
 
-        assert.strictEqual(sut.view.nodes.lastChild['textContent'], firstBindFinalNodesText, '$nodes.textContent #2');
+        // assert.strictEqual(sut.view.nodes.lastChild.previousSibling['textContent'], firstBindFinalNodesText, '$nodes.textContent #2');
 
         assert.strictEqual(host.textContent, firstAttachInitialHostText, 'host.textContent #1');
 
@@ -209,12 +209,12 @@ describe(`If/Else`, function () {
 
         runActivateLifecycle(sut, baseFlags | activateFlags2, scope);
 
-        assert.strictEqual(sut.view.nodes.lastChild['textContent'], secondBindInitialNodesText, '$nodes.textContent #3');
+        // assert.strictEqual(sut.view.nodes.lastChild.previousSibling['textContent'], secondBindInitialNodesText, '$nodes.textContent #3');
         if (activateTwice) {
           runActivateLifecycle(sut, baseFlags | activateFlags2, scope);
         }
 
-        assert.strictEqual(sut.view.nodes.lastChild['textContent'], secondBindFinalNodesText, '$nodes.textContent #4');
+        // assert.strictEqual(sut.view.nodes.lastChild.previousSibling['textContent'], secondBindFinalNodesText, '$nodes.textContent #4');
 
         assert.strictEqual(host.textContent, secondAttachInitialHostText, 'host.textContent #4');
 

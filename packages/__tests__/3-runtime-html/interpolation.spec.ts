@@ -443,8 +443,8 @@ describe('3-runtime/interpolation.spec.ts -- [UNIT]interpolation', function () {
 });
 
 describe('3-runtime/interpolation.spec.ts', function () {
-  it('interpolates expression with value converter that returns HTML nodes', async function() {
-    const { tearDown, appHost, startPromise } = createFixture(
+  it('[Repeat] interpolates expression with value converter that returns HTML nodes', async function() {
+    const { tearDown, appHost, ctx, component, startPromise } = createFixture(
       `<template><div repeat.for="item of items">\${item.value | $}</div></template>`,
       class App {
         public items = Array.from({ length: 10 }, (_, idx) => {
@@ -462,10 +462,10 @@ describe('3-runtime/interpolation.spec.ts', function () {
           public toView(val: string) {
             let num = Number(val);
             num = isNaN(num) ? 0 : num;
-            return this.createElFromHtml(`<span>$<b>${num}</b></span>`);
+            return this.toNode(`<span>$<b>${num}</b></span>`);
           }
 
-          private createElFromHtml(html: string) {
+          private toNode(html: string) {
             const parser = this.platform.document.createElement('div');
             parser.innerHTML = html;
             return parser.firstChild;
@@ -474,15 +474,81 @@ describe('3-runtime/interpolation.spec.ts', function () {
       ]
     );
     await startPromise;
-    
-    const divs = Array.from(appHost.querySelectorAll('div'));
+
+    let divs = Array.from(appHost.querySelectorAll('div'));
     assert.strictEqual(divs.length, 10);
-    
+
     divs.forEach((div, idx) => {
       assert.strictEqual(div.textContent, `$${idx + 1}`);
       const b = div.querySelector('b');
       assert.strictEqual(b.textContent, String(idx + 1));
     });
+
+    component.items = Array.from({ length: 10 }, (_, idx) => {
+      return { value: idx + 11 };
+    });
+
+    divs = Array.from(appHost.querySelectorAll('div'));
+    assert.strictEqual(divs.length, 10);
+    divs.forEach((div, idx) => {
+      assert.strictEqual(div.textContent, `$${idx + 11}`);
+      const b = div.querySelector('b');
+      assert.strictEqual(b.textContent, String(idx + 11));
+    });
+    ctx.platform.domWriteQueue.flush();
+
+    divs.forEach((div, idx) => {
+      assert.strictEqual(div.textContent, `$${idx + 11}`);
+      const b = div.querySelector('b');
+      assert.strictEqual(b.textContent, String(idx + 11));
+    });
+
+    component.items = [];
+    divs = Array.from(appHost.querySelectorAll('div'));
+    assert.strictEqual(divs.length, 0);
+
+    await tearDown();
+  });
+
+  it.only('[IF/Else] interpolates expression with value converter that returns HTML nodes', async function() {
+    const { tearDown, appHost, ctx, component, startPromise } = createFixture(
+      `<template if.bind="show">\${message | $:'if'}</template><template else>\${message | $:'else'}</template>`,
+      // `<div if.bind="show">\${message | $:'if'}</div><div else>\${message | $:'else'}</div>`,
+      class App {
+        public show = true;
+        public message = 'foo';
+      },
+      [
+        ValueConverter.define('$', class MoneyValueConverter {
+          public static get inject() {
+            return [IPlatform];
+          }
+
+          public constructor(private p: IPlatform) {}
+
+          public toView(val: string, prefix: string) {
+            return this.toNode(`<${prefix}>${prefix} ${val}</${prefix}>`);
+          }
+
+          private toNode(html: string) {
+            const parser = this.p.document.createElement('div');
+            parser.innerHTML = html;
+            return parser.firstChild;
+          }
+        })
+      ]
+    );
+    await startPromise;
+    assert.strictEqual(appHost.textContent, 'if foo');
+    // assert.strictEqual(appHost.firstElementChild.tagName, 'IF');
+
+    component.show = false;
+    // assert.strictEqual(appHost.textContent, '');
+    // assert.strictEqual(appHost.firstElementChild, null);
+
+    ctx.platform.domWriteQueue.flush();
+    assert.strictEqual(appHost.textContent, 'else foo');
+    // assert.strictEqual(appHost.firstElementChild.tagName, 'ELSE');
 
     await tearDown();
   });

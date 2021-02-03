@@ -352,6 +352,7 @@ export class ContentBinding implements ContentBinding, ICollectionSubscriber {
       this.sourceExpression.unbind(flags, this.$scope!, this.$hostScope, this.interceptor);
     }
 
+    this.updateTarget('', flags);
     this.$scope = void 0;
     this.$hostScope = null;
     this.obs.clear(true);

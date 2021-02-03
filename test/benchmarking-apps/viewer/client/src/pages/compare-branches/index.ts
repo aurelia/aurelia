@@ -1,6 +1,6 @@
 import { newInstanceForScope } from '@aurelia/kernel';
 import { observable } from '@aurelia/runtime-html';
-import { IValidationRules, ValidateInstruction } from '@aurelia/validation';
+import { IValidationRules } from '@aurelia/validation';
 import { BenchmarkMeasurements } from '@benchmarking-apps/test-result';
 import { customElement, ILogger, Params, RouteNode, shadowCSS } from 'aurelia';
 import { IValidationController } from '@aurelia/validation-html';

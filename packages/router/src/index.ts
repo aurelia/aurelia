@@ -107,7 +107,7 @@ export {
 } from './router.js';
 
 export {
-  IRouterStartOptions,
+  IRouterOptions,
   IRouterTitle,
   RouterOptions,
 } from './router-options.js';

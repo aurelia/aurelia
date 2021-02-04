@@ -11,75 +11,75 @@ import { RouterConfiguration } from './index.js';
  */
 export type SwapStrategy = 'add-first-sequential' | 'add-first-parallel' | 'remove-first-sequential' | 'remove-first-parallel';
 
-/**
- * The options that can be provided to the router's `start` method
- */
-export interface IRouterStartOptions extends Omit<Partial<RouterOptions>, 'separators' | 'title'> {
-  /**
-   * The router's title configuration
-   */
-  title?: string | IRouterTitle;
+// /**
+//  * The options that can be provided to the router's `start` method
+//  */
+// export interface IRouterStartOptions extends Omit<Partial<RouterOptions>, 'separators' | 'title'> {
+//   /**
+//    * The router's title configuration
+//    */
+//   title?: string | IRouterTitle;
 
-  // The below needed until interface can extend static class properties
+//   // The below needed until interface can extend static class properties
 
-  /**
-   * The separators used in the direct routing syntax
-   */
-  separators?: Partial<ISeparators>;
+//   /**
+//    * The separators used in the direct routing syntax
+//    */
+//   separators?: Partial<ISeparators>;
 
-  // /**
-  //  * Whether the fragment should be used for the url/path
-  //  */
-  // useUrlFragmentHash?: boolean;
+//   // /**
+//   //  * Whether the fragment should be used for the url/path
+//   //  */
+//   // useUrlFragmentHash?: boolean;
 
-  // /**
-  //  * Whether the `href` html attribute can be used like the `load` custom attribute
-  //  */
-  // useHref?: boolean;
+//   // /**
+//   //  * Whether the `href` html attribute can be used like the `load` custom attribute
+//   //  */
+//   // useHref?: boolean;
 
-  // /**
-  //  * The amount of navigation history entries that are stateful. Default: 0
-  //  */
-  // statefulHistoryLength?: number;
+//   // /**
+//   //  * The amount of navigation history entries that are stateful. Default: 0
+//   //  */
+//   // statefulHistoryLength?: number;
 
-  // /**
-  //  * Whether direct routing should be used. Default: true
-  //  */
-  // useDirectRouting?: boolean;
+//   // /**
+//   //  * Whether direct routing should be used. Default: true
+//   //  */
+//   // useDirectRouting?: boolean;
 
-  // /**
-  //  * Whether configured routes should be used. Default: true
-  //  */
-  // useConfiguredRoutes?: boolean;
-  // /**
-  //  * Whether a load instruction by default is additive, that is specifying
-  //  * the change of the state of viewports rather than the complete state
-  //  * of viewports. Default: true
-  //  */
-  // additiveInstructionDefault?: boolean;
+//   // /**
+//   //  * Whether configured routes should be used. Default: true
+//   //  */
+//   // useConfiguredRoutes?: boolean;
+//   // /**
+//   //  * Whether a load instruction by default is additive, that is specifying
+//   //  * the change of the state of viewports rather than the complete state
+//   //  * of viewports. Default: true
+//   //  */
+//   // additiveInstructionDefault?: boolean;
 
-  /**
-   * Global routing hooks that should be added from the start
-   */
-  hooks?: IRoutingHookDefinition[];
+//   /**
+//    * Global routing hooks that should be added from the start
+//    */
+//   hooks?: IRoutingHookDefinition[];
 
-  // /**
-  //  * The navigation states that are synced meaning that sibling viewports
-  //  * will wait for all other siblings to reach the navigation state before
-  //  * continuing with the next steps in the transition. For example, the
-  //  * `guardedUnload` sync state means that no sibling will continue with
-  //  * the `canLoad` hook before all siblings have completed the `canUnload`
-  //  * hooks. To get v1 routing hook behavior, where all routing hooks are
-  //  * synced,`guardedLoad`, `unload` and `load` should be added to default.
-  //  * Default: `guardedUnload`, `swapped`, `completed`
-  //  */
-  // navigationSyncStates?: NavigationState[];
+//   // /**
+//   //  * The navigation states that are synced meaning that sibling viewports
+//   //  * will wait for all other siblings to reach the navigation state before
+//   //  * continuing with the next steps in the transition. For example, the
+//   //  * `guardedUnload` sync state means that no sibling will continue with
+//   //  * the `canLoad` hook before all siblings have completed the `canUnload`
+//   //  * hooks. To get v1 routing hook behavior, where all routing hooks are
+//   //  * synced,`guardedLoad`, `unload` and `load` should be added to default.
+//   //  * Default: `guardedUnload`, `swapped`, `completed`
+//   //  */
+//   // navigationSyncStates?: NavigationState[];
 
-  // /**
-  //  * How contents are swapped in a viewport when transitioning. Default: `add-first-sequential`
-  //  */
-  // swapStrategy?: SwapStrategy;
-}
+//   // /**
+//   //  * How contents are swapped in a viewport when transitioning. Default: `add-first-sequential`
+//   //  */
+//   // swapStrategy?: SwapStrategy;
+// }
 
 /**
  * The router's title configuration
@@ -326,9 +326,9 @@ export class RouterOptions implements INavigatorOptions {
 
     const separatorOptions: ISeparators = {
       ...RouterConfiguration.options.separators,
-      ...(options as IRouterStartOptions & { separators: ISeparators }).separators ?? {},
+      ...(options as IRouterOptions & { separators: ISeparators }).separators ?? {},
     };
-    (options as IRouterStartOptions & { separators: ISeparators }).separators = separatorOptions;
+    (options as IRouterOptions & { separators: ISeparators }).separators = separatorOptions;
 
     if (Array.isArray(options.hooks)) {
       options.hooks.forEach(hook => RoutingHook.add(hook.hook, hook.options));

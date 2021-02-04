@@ -21,7 +21,7 @@ import { BrowserViewerStore } from './browser-viewer-store.js';
 import { Navigation } from './navigation.js';
 import { Endpoint, EndpointType, IConnectedCustomElement, IEndpoint } from './endpoints/endpoint.js';
 import { NavigationCoordinator } from './navigation-coordinator.js';
-import { IRouterStartOptions, ISeparators } from './router-options.js';
+import { IRouterOptions, ISeparators } from './router-options.js';
 import { OpenPromise } from './utilities/open-promise.js';
 import { NavigatorStateChangeEvent } from './events.js';
 import { Runner, Step } from './utilities/runner.js';
@@ -157,7 +157,7 @@ export class Router implements IRouter {
   /**
    * Public API
    */
-  public start(/* options?: IRouterStartOptions */): void {
+  public start(/* options?: IRouterOptions */): void {
     if (this.isActive) {
       throw new Error('Router has already been started');
     }
@@ -172,9 +172,9 @@ export class Router implements IRouter {
 
     // const separatorOptions: ISeparators = {
     //   ...RouterConfiguration.options.separators,
-    //   ...(options as IRouterStartOptions & { separators: ISeparators }).separators ?? {},
+    //   ...(options as IRouterOptions & { separators: ISeparators }).separators ?? {},
     // };
-    // (options as IRouterStartOptions & { separators: ISeparators }).separators = separatorOptions;
+    // (options as IRouterOptions & { separators: ISeparators }).separators = separatorOptions;
 
     // if (Array.isArray(options.hooks)) {
     //   options.hooks.forEach(hook => RoutingHook.add(hook.hook, hook.options));

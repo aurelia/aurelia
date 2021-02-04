@@ -3,7 +3,7 @@ import { INavigatorOptions } from './navigator.js';
 import { NavigationState } from './navigation-coordinator.js';
 import { RoutingInstruction } from './instructions/routing-instruction.js';
 import { FoundRoute } from './found-route.js';
-import { IRoutingHookDefinition, RoutingHook } from './routing-hook.js';
+import { IRoutingHookDefinition } from './routing-hook.js';
 import { RouterConfiguration } from './index.js';
 
 /**
@@ -259,7 +259,7 @@ export class RouterOptions implements INavigatorOptions {
     (options as IRouterOptions & { separators: ISeparators }).separators = separatorOptions;
 
     if (Array.isArray(options.hooks)) {
-      options.hooks.forEach(hook => RoutingHook.add(hook.hook, hook.options));
+      options.hooks.forEach(hook => RouterConfiguration.addHook(hook.hook, hook.options));
       delete options['hooks'];
     }
 

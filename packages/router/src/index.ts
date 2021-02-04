@@ -121,6 +121,14 @@ export {
   RoutingHook,
   RoutingHookType,
   IRoutingHookDefinition,
+  RoutingHookFunction,
+  RoutingHookParameter,
+  RoutingHookResult,
+  RoutingHookTarget,
+  BeforeNavigationHookFunction,
+  TransformFromUrlHookFunction,
+  TransformToUrlHookFunction,
+  TransformTitleHookFunction,
 } from './routing-hook.js';
 
 export {

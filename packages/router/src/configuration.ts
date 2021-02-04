@@ -8,6 +8,7 @@ import { LoadCustomAttribute } from './resources/load.js';
 import { HrefCustomAttribute } from './resources/href.js';
 import { IRouter } from './router.js';
 import { IRouterOptions, RouterOptions } from './router-options.js';
+import { BeforeNavigationHookFunction, IRoutingHookOptions, RoutingHook, RoutingHookFunction, RoutingHookIdentity, TransformFromUrlHookFunction, TransformTitleHookFunction, TransformToUrlHookFunction } from './routing-hook';
 
 export const RouterRegistration = IRouter as unknown as IRegistry;
 
@@ -117,4 +118,32 @@ export class RouterConfiguration {
     return this.register(DI.createContainer());
   }
 
+  /**
+   * Add a routing hook.
+   *
+   * @param hookFunction - The hook callback function
+   * @param options - Options specifyinig hook type and filters
+   */
+  public static addHook(beforeNavigationHookFunction: BeforeNavigationHookFunction, options?: IRoutingHookOptions): RoutingHookIdentity;
+  public static addHook(transformFromUrlHookFunction: TransformFromUrlHookFunction, options?: IRoutingHookOptions): RoutingHookIdentity;
+  public static addHook(transformToUrlHookFunction: TransformToUrlHookFunction, options?: IRoutingHookOptions): RoutingHookIdentity;
+  public static addHook(transformTitleHookFunction: TransformTitleHookFunction, options?: IRoutingHookOptions): RoutingHookIdentity;
+  public static addHook(hookFunction: RoutingHookFunction, options?: IRoutingHookOptions): RoutingHookIdentity;
+  public static addHook(hookFunction: RoutingHookFunction, options?: IRoutingHookOptions): RoutingHookIdentity {
+    return RoutingHook.add(hookFunction, options);
+  }
+  /**
+   * Remove a routing hook.
+   *
+   * @param id - The id of the hook to remove (returned from the addHook call)
+   */
+  public static removeHook(id: RoutingHookIdentity): void {
+    return RoutingHook.remove(id);
+  }
+  /**
+   * Remove all routing hooks.
+   */
+  public static removeAllHooks(): void {
+    return RoutingHook.removeAll();
+  }
 }

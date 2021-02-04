@@ -753,6 +753,7 @@ export class TextBindingRenderer implements IRenderer {
     target: ChildNode,
     instruction: TextBindingInstruction,
   ): void {
+    const next = target.nextSibling!;
     const parent = target.parentNode!;
     const doc = this.platform.document;
     const expr = ensureExpression(this.parser, instruction.from, BindingType.Interpolation) as Interpolation;
@@ -763,7 +764,7 @@ export class TextBindingRenderer implements IRenderer {
     let i = 0;
     let text = staticParts[0];
     if (text !== '') {
-      parent.insertBefore(doc.createTextNode(text), target);
+      parent.insertBefore(doc.createTextNode(text), next);
     }
     for (; ii > i; ++i) {
       // each of the dynamic expression of an interpolation
@@ -774,7 +775,7 @@ export class TextBindingRenderer implements IRenderer {
           // using a text node instead of comment, as a mean to:
           // support seamless transition between a html node, or a text
           // reduce the noise in the template, caused by html comment
-          parent.insertBefore(doc.createTextNode(''), target),
+          parent.insertBefore(doc.createTextNode(''), next),
           context,
           this.observerLocator,
           this.platform,
@@ -786,7 +787,7 @@ export class TextBindingRenderer implements IRenderer {
       // will just be a text node
       text = staticParts[i + 1];
       if (text !== '') {
-        parent.insertBefore(doc.createTextNode(text), target);
+        parent.insertBefore(doc.createTextNode(text), next);
       }
     }
     if (target.nodeName === 'AU-M') {

@@ -5,7 +5,13 @@ import { CustomElement, Aurelia } from '@aurelia/runtime-html';
 describe('LinkHandler', function () {
   async function createFixture(routerOptions: IRouterStartOptions, App) {
     const ctx = TestContext.create();
-    const { container, doc } = ctx;
+    const { container, platform, doc } = ctx;
+
+    const { href } = platform.location;
+    const index = href.indexOf('#');
+    if (index >= 0) {
+      platform.history.replaceState({}, '', href.slice(0, index));
+    }
 
     container.register(RouterConfiguration.customize(routerOptions));
     const router = container.get(IRouter);

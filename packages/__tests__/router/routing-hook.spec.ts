@@ -32,6 +32,11 @@ describe('RoutingHook', function () {
       RouterConfiguration.customize();
       RoutingHook.removeAll();
       await au.stop(true);
+      const { href } = platform.location;
+      const index = href.indexOf('#');
+      if (index >= 0) {
+        platform.history.replaceState({}, '', href.slice(0, index));
+      }
     }
 
     const navigationInstruction = Navigation.create({ instruction: 'test', fullStateInstruction: 'full-test' });

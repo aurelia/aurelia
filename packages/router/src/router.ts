@@ -10,7 +10,6 @@
 import { DI, IContainer, Registration, IIndexable, Key, EventAggregator, IEventAggregator, IDisposable, Protocol } from '@aurelia/kernel';
 import { CustomElementType, ICustomElementViewModel, IAppRoot, ICustomElementController } from '@aurelia/runtime-html';
 import { LoadInstruction } from './interfaces.js';
-// import { AnchorEventInfo, LinkHandler } from './link-handler.js';
 import { Navigator, NavigatorNavigateEvent } from './navigator.js';
 import { arrayRemove, arrayUnique } from './utilities/utils.js';
 import { IViewportOptions, Viewport } from './viewport.js';
@@ -127,7 +126,6 @@ export class Router implements IRouter {
     public navigator: Navigator,
 
     public navigation: BrowserViewerStore, // TODO: Really should separate these
-    // public linkHandler: LinkHandler,
   ) { }
 
   /**
@@ -193,7 +191,6 @@ export class Router implements IRouter {
       viewer: this.navigation,
       statefulHistoryLength: RouterOptions.statefulHistoryLength,
     });
-    // this.linkHandler.start({ callback: this.linkCallback, useHref: RouterOptions.useHref });
 
     this.navigatorStateChangeEventSubscription = this.ea.subscribe(NavigatorStateChangeEvent.eventName, this.handleNavigatorStateChangeEvent);
     this.navigatorNavigateEventSubscription = this.ea.subscribe(NavigatorNavigateEvent.eventName, this.handleNavigatorNavigateEvent);
@@ -213,7 +210,6 @@ export class Router implements IRouter {
     if (!this.isActive) {
       throw new Error('Router has not been started');
     }
-    // this.linkHandler.stop();
     this.navigator.stop();
     this.navigation.stop();
     RouterOptions.apply({}, true); // TODO: Look into removing this
@@ -238,21 +234,6 @@ export class Router implements IRouter {
     this.loadedFirst = true;
     return result;
   }
-
-  // // TODO: use @bound and improve name (eslint-disable is temp)
-  // // eslint-disable-next-line @typescript-eslint/typedef
-  // public linkCallback = (info: AnchorEventInfo): void => {
-  //   let instruction = info.instruction || '';
-  //   if (typeof instruction === 'string' && instruction.startsWith('#')) {
-  //     instruction = instruction.slice(1);
-  //     // '#' === '/' === '#/'
-  //     if (!instruction.startsWith('/')) {
-  //       instruction = "/" + instruction;
-  //     }
-  //   }
-  //   // Adds to Navigator's Queue, which makes sure it's serial
-  //   this.load(instruction, { origin: info.anchor! }).catch(error => { throw error; });
-  // };
 
   /**
    * @internal
@@ -289,6 +270,8 @@ export class Router implements IRouter {
    */
   public processNavigation = async (evNavigation: NavigatorNavigateEvent): Promise<void> => {
     const instruction = this.processingNavigation = evNavigation as Navigation;
+
+    this.ea.publish(RouterNavigationStartEvent.eventName, RouterNavigationStartEvent.createEvent(instruction));
 
     // TODO: This can now probably be removed. Investigate!
     this.pendingConnects.clear();
@@ -335,6 +318,13 @@ export class Router implements IRouter {
     }
     // TODO: Used to have an early exit if no instructions. Restore it?
 
+    // If there are any unresolved components (promises), resolve into components
+    const unresolved = instructions.filter(instr => instr.component.isPromise());
+    if (unresolved.length > 0) {
+      // TODO(alpha): Fix type here
+      await Promise.all(unresolved.map(instr => instr.component.resolve() as Promise<any>));
+    }
+
     // If router options defaults to navigations being full state navigation (containing the
     // complete set of routing instructions rather than just the ones that change), ensure
     // that there's an instruction to clear all non-specified viewports in the same scope as
@@ -374,6 +364,9 @@ export class Router implements IRouter {
         const err = new Error(remainingInstructions.length + ' remaining instructions after 100 iterations; there is likely an infinite loop.');
         (err as Error & IIndexable)['remainingInstructions'] = remainingInstructions;
         console.log('remainingInstructions', remainingInstructions);
+
+        this.ea.publish(RouterNavigationErrorEvent.eventName, RouterNavigationErrorEvent.createEvent(instruction));
+        this.ea.publish(RouterNavigationEndEvent.eventName, RouterNavigationEndEvent.createEvent(instruction));
         throw err;
       }
       const changedEndpoints: IEndpoint[] = [];
@@ -392,6 +385,8 @@ export class Router implements IRouter {
       const hooked = await RoutingHook.invokeBeforeNavigation(matchedInstructions, instruction);
       if (hooked === false) {
         coordinator.cancel();
+        this.ea.publish(RouterNavigationCancelEvent.eventName, RouterNavigationCancelEvent.createEvent(instruction));
+        this.ea.publish(RouterNavigationEndEvent.eventName, RouterNavigationEndEvent.createEvent(instruction));
         return;
       } else if (hooked !== true) {
         // TODO: Possibly update this hook to be able to return other values as well
@@ -473,6 +468,8 @@ export class Router implements IRouter {
 
       // If, for whatever reason, this navigation got cancelled, stop processing
       if (coordinator.cancelled) {
+        this.ea.publish(RouterNavigationCancelEvent.eventName, RouterNavigationCancelEvent.createEvent(instruction));
+        this.ea.publish(RouterNavigationEndEvent.eventName, RouterNavigationEndEvent.createEvent(instruction));
         return;
       }
 
@@ -558,6 +555,13 @@ export class Router implements IRouter {
         this.appendedInstructions = this.appendedInstructions.filter(instr => !instr.default);
       }
 
+      // If there are any unresolved components (promises) to be appended, resolve them
+      const unresolved = this.appendedInstructions.filter(instr => instr.component.isPromise());
+      if (unresolved.length > 0) {
+        // TODO(alpha): Fix type here
+        await Promise.all(unresolved.map(instr => instr.component.resolve() as Promise<any>));
+      }
+
       // Add appended instructions to either matched or remaining except default instructions
       // where there's a non-default already in the lists.
       if (this.appendInstructions.length > 0) {
@@ -595,6 +599,11 @@ export class Router implements IRouter {
         this.processingNavigation = null;
         return this.navigator.finalize(instruction);
       },
+      () => {
+        this.ea.publish(RouterNavigationCompleteEvent.eventName, RouterNavigationCompleteEvent.createEvent(instruction));
+        this.ea.publish(RouterNavigationEndEvent.eventName, RouterNavigationEndEvent.createEvent(instruction));
+      },
+
     ) as void | Promise<void>;
   };
 
@@ -1032,5 +1041,56 @@ export class Router implements IRouter {
       options.query = search;
     }
     return instructions;
+  }
+}
+
+export class RouterNavigationStartEvent extends Navigation {
+  public static eventName = 'au:router:navigation-start';
+  public eventName!: string;
+  public static createEvent(navigation: Navigation): RouterNavigationStartEvent {
+    return Object.assign(
+      new RouterNavigationStartEvent(),
+      navigation,
+      { eventName: RouterNavigationStartEvent.eventName });
+  }
+}
+export class RouterNavigationEndEvent extends Navigation {
+  public static eventName = 'au:router:navigation-end';
+  public eventName!: string;
+  public static createEvent(navigation: Navigation): RouterNavigationEndEvent {
+    return Object.assign(
+      new RouterNavigationEndEvent(),
+      navigation,
+      { eventName: RouterNavigationEndEvent.eventName });
+  }
+}
+export class RouterNavigationCancelEvent extends Navigation {
+  public static eventName = 'au:router:navigation-cancel';
+  public eventName!: string;
+  public static createEvent(navigation: Navigation): RouterNavigationCancelEvent {
+    return Object.assign(
+      new RouterNavigationCancelEvent(),
+      navigation,
+      { eventName: RouterNavigationCancelEvent.eventName });
+  }
+}
+export class RouterNavigationCompleteEvent extends Navigation {
+  public static eventName = 'au:router:navigation-complete';
+  public eventName!: string;
+  public static createEvent(navigation: Navigation): RouterNavigationCompleteEvent {
+    return Object.assign(
+      new RouterNavigationCompleteEvent(),
+      navigation,
+      { eventName: RouterNavigationCompleteEvent.eventName });
+  }
+}
+export class RouterNavigationErrorEvent extends Navigation {
+  public static eventName = 'au:router:navigation-error';
+  public eventName!: string;
+  public static createEvent(navigation: Navigation): RouterNavigationErrorEvent {
+    return Object.assign(
+      new RouterNavigationErrorEvent(),
+      navigation,
+      { eventName: RouterNavigationErrorEvent.eventName });
   }
 }

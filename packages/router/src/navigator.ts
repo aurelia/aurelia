@@ -101,6 +101,13 @@ export class NavigatorViewerEvent extends NavigatorViewerState {
 
 export class NavigatorNavigateEvent extends Navigation {
   public static eventName = 'au:router:navigation-navigate';
+
+  public static createEvent(navigation: INavigation): NavigatorNavigateEvent {
+    return Object.assign(
+      new NavigatorNavigateEvent(),
+      navigation,
+    );
+  }
 }
 
 export interface INavigatorOptions {
@@ -502,11 +509,11 @@ export class Navigator {
     (navigation as Navigation).navigation = navigationFlags;
     (navigation as Navigation).previous = previousNavigation;
 
-    this.ea.publish(NavigatorNavigateEvent.eventName,
-      Object.assign(
-        new NavigatorNavigateEvent(),
-        navigation,
-      ));
+    this.ea.publish(NavigatorNavigateEvent.eventName, NavigatorNavigateEvent.createEvent(navigation));
+      // Object.assign(
+      //   new NavigatorNavigateEvent(),
+      //   navigation,
+      // ));
   }
 
   /**

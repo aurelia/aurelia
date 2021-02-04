@@ -5,5 +5,19 @@ export class NavigatorStateChangeEvent extends NavigatorViewerState {
 
   public event!: PopStateEvent;
   public state?: INavigatorState;
-}
 
+  public static createEvent(
+    viewerState: NavigatorViewerState,
+    ev: PopStateEvent,
+    navigatorState: INavigatorState,
+  ): NavigatorStateChangeEvent {
+    return Object.assign(new NavigatorStateChangeEvent(),
+      {
+        ...viewerState,
+        ...{
+          event: ev,
+          state: navigatorState,
+        },
+      });
+  }
+}

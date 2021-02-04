@@ -98,6 +98,12 @@ export {
 export {
   IRouter,
   Router,
+
+  RouterNavigationStartEvent,
+  RouterNavigationEndEvent,
+  RouterNavigationCancelEvent,
+  RouterNavigationCompleteEvent,
+  RouterNavigationErrorEvent,
 } from './router.js';
 
 export {

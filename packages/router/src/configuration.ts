@@ -49,24 +49,22 @@ export const DefaultResources: IRegistry[] = [
   HrefCustomAttribute as unknown as IRegistry,
 ];
 
-// let configurationOptions: IRouterStartOptions = {};
-// let configurationCall: ((router: IRouter) => void) = (router: IRouter) => {
-//   router.start(configurationOptions);
-// };
-
 /**
- * A DI configuration object containing router resource registrations.
+ * A DI configuration object containing router resource registrations
+ * and the router options API.
  */
 export class RouterConfiguration {
   public static options = new RouterOptions();
 
   private static configurationCall: ((router: IRouter) => void) = (router: IRouter) => {
-    // router.start(RouterConfiguration.options);
     router.start();
   };
 
   /**
-   * Apply this configuration to the provided container.
+   * Register this configuration in a provided container and
+   * register app tasks for starting and stopping the router.
+   *
+   * @param container - The container to register in
    */
   public static register(container: IContainer): IContainer {
     return container.register(
@@ -80,15 +78,15 @@ export class RouterConfiguration {
 
   /**
    * Make it possible to specify options to Router activation.
-   * Parameter is either a config object that's passed to Router's start
-   * or a config function that's called instead of Router's start.
+   *
+   * @param config - Either a config object that's passed to router's
+   * start or a config function that's called instead of router's start.
    */
   public static customize(config?: IRouterOptions | ((router: IRouter) => void)): RouterConfiguration {
     if (config === undefined) {
       RouterConfiguration.options = new RouterOptions();
       RouterConfiguration.configurationCall = (router: IRouter) => {
         router.start();
-        // router.start(RouterConfiguration.options);
       };
     } else if (config instanceof Function) {
       RouterConfiguration.configurationCall = config;

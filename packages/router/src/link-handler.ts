@@ -6,9 +6,9 @@
  */
 import { DI } from '@aurelia/kernel';
 import { IWindow, CustomAttribute } from '@aurelia/runtime-html';
+import { RouterConfiguration } from './index.js';
 import { GotoCustomAttribute } from './resources/goto.js';
 import { LoadCustomAttribute } from './resources/load.js';
-import { RouterOptions } from './router-options.js';
 import { IRouter } from './router.js';
 
 export const ILinkHandler = DI.createInterface<ILinkHandler>('ILinkHandler').withDefault(x => x.singleton(LinkHandler));
@@ -53,7 +53,7 @@ export class LinkHandler {
     const goto = gotoAttr !== void 0 ? (gotoAttr.viewModel as GotoCustomAttribute).value as string : null;
     const loadAttr = CustomAttribute.for(target, 'load');
     const load = loadAttr !== void 0 ? (loadAttr.viewModel as LoadCustomAttribute).value as string : null;
-    const href = RouterOptions.useHref && target.hasAttribute('href') ? target.getAttribute('href') : null;
+    const href = RouterConfiguration.options.useHref && target.hasAttribute('href') ? target.getAttribute('href') : null;
 
     // Ignore empty links
     if ((goto === null || goto.length === 0) && (load === null || load.length === 0) && (href === null || href.length === 0)) {

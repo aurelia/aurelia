@@ -1,8 +1,8 @@
+import { RouterConfiguration } from './index.js';
 import { FoundRoute } from './found-route';
 import { RoutingInstruction } from './instructions/routing-instruction';
 import { Navigation } from './navigation';
 import { IRouter } from './router';
-import { RouterOptions } from './router-options';
 import { RoutingHook } from './routing-hook';
 
 /**
@@ -20,11 +20,11 @@ import { RoutingHook } from './routing-hook';
       // Hook didn't return a title, so run title logic
       const componentTitles = Title.stringifyTitles(router, title, instruction);
 
-      title = RouterOptions.title.appTitle;
+      title = RouterConfiguration.options.title.appTitle;
       title = title.replace("${componentTitles}", componentTitles);
       title = title.replace("${appTitleSeparator}",
         componentTitles !== ''
-          ? RouterOptions.title.appTitleSeparator
+          ? RouterConfiguration.options.title.appTitleSeparator
           : '');
     }
     // Invoke again with complete string
@@ -68,9 +68,9 @@ import { RoutingHook } from './routing-hook';
           nextStringified = "[ " + nextStringified + " ]";
         }
         if (stringified.length > 0) {
-          stringified = RouterOptions.title.componentTitleOrder === 'top-down'
-            ? stringified + RouterOptions.title.componentTitleSeparator + nextStringified
-            : nextStringified + RouterOptions.title.componentTitleSeparator + stringified;
+          stringified = RouterConfiguration.options.title.componentTitleOrder === 'top-down'
+            ? stringified + RouterConfiguration.options.title.componentTitleSeparator + nextStringified
+            : nextStringified + RouterConfiguration.options.title.componentTitleSeparator + stringified;
         } else {
           stringified = nextStringified;
         }
@@ -95,8 +95,8 @@ import { RoutingHook } from './routing-hook';
         }
       }
     }
-    if ((RouterOptions.title.transformTitle ?? null) !== null) {
-      title = RouterOptions.title.transformTitle!.call(router, title, instruction);
+    if ((RouterConfiguration.options.title.transformTitle ?? null) !== null) {
+      title = RouterConfiguration.options.title.transformTitle!.call(router, title, instruction);
     }
     return title;
   }

@@ -3,7 +3,8 @@ import { INavigatorOptions } from './navigator.js';
 import { NavigationState } from './navigation-coordinator.js';
 import { RoutingInstruction } from './instructions/routing-instruction.js';
 import { FoundRoute } from './found-route.js';
-import { IRoutingHookDefinition } from './routing-hook.js';
+import { IRoutingHookDefinition, RoutingHook } from './routing-hook.js';
+import { RouterConfiguration } from './index.js';
 
 /**
  * How contents are swapped in a viewport when transitioning. Default: `add-first-sequential`
@@ -13,7 +14,7 @@ export type SwapStrategy = 'add-first-sequential' | 'add-first-parallel' | 'remo
 /**
  * The options that can be provided to the router's `start` method
  */
-export interface IRouterStartOptions extends Omit<Partial<RouterOptions>, 'title'> {
+export interface IRouterStartOptions extends Omit<Partial<RouterOptions>, 'separators' | 'title'> {
   /**
    * The router's title configuration
    */
@@ -24,60 +25,60 @@ export interface IRouterStartOptions extends Omit<Partial<RouterOptions>, 'title
   /**
    * The separators used in the direct routing syntax
    */
-  separators?: ISeparators;
+  separators?: Partial<ISeparators>;
 
-  /**
-   * Whether the fragment should be used for the url/path
-   */
-  useUrlFragmentHash?: boolean;
+  // /**
+  //  * Whether the fragment should be used for the url/path
+  //  */
+  // useUrlFragmentHash?: boolean;
 
-  /**
-   * Whether the `href` html attribute can be used like the `load` custom attribute
-   */
-  useHref?: boolean;
+  // /**
+  //  * Whether the `href` html attribute can be used like the `load` custom attribute
+  //  */
+  // useHref?: boolean;
 
-  /**
-   * The amount of navigation history entries that are stateful. Default: 0
-   */
-  statefulHistoryLength?: number;
+  // /**
+  //  * The amount of navigation history entries that are stateful. Default: 0
+  //  */
+  // statefulHistoryLength?: number;
 
-  /**
-   * Whether direct routing should be used. Default: true
-   */
-  useDirectRouting?: boolean;
+  // /**
+  //  * Whether direct routing should be used. Default: true
+  //  */
+  // useDirectRouting?: boolean;
 
-  /**
-   * Whether configured routes should be used. Default: true
-   */
-  useConfiguredRoutes?: boolean;
-  /**
-   * Whether a load instruction by default is additive, that is specifying
-   * the change of the state of viewports rather than the complete state
-   * of viewports. Default: true
-   */
-  additiveInstructionDefault?: boolean;
+  // /**
+  //  * Whether configured routes should be used. Default: true
+  //  */
+  // useConfiguredRoutes?: boolean;
+  // /**
+  //  * Whether a load instruction by default is additive, that is specifying
+  //  * the change of the state of viewports rather than the complete state
+  //  * of viewports. Default: true
+  //  */
+  // additiveInstructionDefault?: boolean;
 
   /**
    * Global routing hooks that should be added from the start
    */
   hooks?: IRoutingHookDefinition[];
 
-  /**
-   * The navigation states that are synced meaning that sibling viewports
-   * will wait for all other siblings to reach the navigation state before
-   * continuing with the next steps in the transition. For example, the
-   * `guardedUnload` sync state means that no sibling will continue with
-   * the `canLoad` hook before all siblings have completed the `canUnload`
-   * hooks. To get v1 routing hook behavior, where all routing hooks are
-   * synced,`guardedLoad`, `unload` and `load` should be added to default.
-   * Default: `guardedUnload`, `swapped`, `completed`
-   */
-  navigationSyncStates?: NavigationState[];
+  // /**
+  //  * The navigation states that are synced meaning that sibling viewports
+  //  * will wait for all other siblings to reach the navigation state before
+  //  * continuing with the next steps in the transition. For example, the
+  //  * `guardedUnload` sync state means that no sibling will continue with
+  //  * the `canLoad` hook before all siblings have completed the `canUnload`
+  //  * hooks. To get v1 routing hook behavior, where all routing hooks are
+  //  * synced,`guardedLoad`, `unload` and `load` should be added to default.
+  //  * Default: `guardedUnload`, `swapped`, `completed`
+  //  */
+  // navigationSyncStates?: NavigationState[];
 
-  /**
-   * How contents are swapped in a viewport when transitioning. Default: `add-first-sequential`
-   */
-  swapStrategy?: SwapStrategy;
+  // /**
+  //  * How contents are swapped in a viewport when transitioning. Default: `add-first-sequential`
+  //  */
+  // swapStrategy?: SwapStrategy;
 }
 
 /**
@@ -209,13 +210,28 @@ export interface ISeparators {
   action: string;
 }
 
-interface IRouterOptions extends RouterOptions { }
+export interface IRouterOptions extends Omit<Partial<RouterOptions>, 'separators' | 'title'> {
+  /**
+   * The router's title configuration
+   */
+  title?: string | IRouterTitle;
+
+  /**
+   * The separators used in the direct routing syntax
+   */
+  separators?: Partial<ISeparators>;
+
+  /**
+   * Global routing hooks that should be added from the start
+   */
+  hooks?: IRoutingHookDefinition[];
+}
 
 export class RouterOptions implements INavigatorOptions {
   /**
    * The separators used in the direct routing syntax
    */
-  public static separators: ISeparators = {
+  public separators: ISeparators = {
     viewport: '@', // ':',
     sibling: '+', // '/',
     scope: '/', // '+',
@@ -234,39 +250,39 @@ export class RouterOptions implements INavigatorOptions {
   /**
    * Whether the fragment should be used for the url/path
    */
-  public static useUrlFragmentHash: boolean = true;
+  public useUrlFragmentHash: boolean = true;
 
   /**
    * Whether the `href` html attribute can be used like the `load` custom attribute
    */
-  public static useHref: boolean = true;
+  public useHref: boolean = true;
 
   /**
    * The amount of navigation history entries that are stateful. Default: 0
    */
-  public static statefulHistoryLength: number = 0;
+  public statefulHistoryLength: number = 0;
 
   /**
    * Whether direct routing should be used. Default: true
    */
-  public static useDirectRouting: boolean = true;
+  public useDirectRouting: boolean = true;
 
   /**
    * Whether configured routes should be used. Default: true
    */
-  public static useConfiguredRoutes: boolean = true;
+  public useConfiguredRoutes: boolean = true;
 
   /**
    * Whether a load instruction by default is additive, that is specifying
    * the change of the state of viewports rather than the complete state
    * of viewports. Default: true
    */
-  public static additiveInstructionDefault: boolean = true;
+  public additiveInstructionDefault: boolean = true;
 
   /**
    * The router's title configuration
    */
-  public static title: ITitleConfiguration = {
+  public title: ITitleConfiguration = {
     // eslint-disable-next-line no-useless-escape
     appTitle: "${componentTitles}\${appTitleSeparator}Aurelia",
     appTitleSeparator: ' | ',
@@ -286,17 +302,12 @@ export class RouterOptions implements INavigatorOptions {
    * synced,`guardedLoad`, `unload` and `load` should be added to default.
    * Default: `guardedUnload`, `swapped`, `completed`
    */
-  public static navigationSyncStates: NavigationState[] = ['guardedUnload', 'swapped', 'completed'];
+  public navigationSyncStates: NavigationState[] = ['guardedUnload', 'swapped', 'completed'];
 
   /**
    * How contents are swapped in a viewport when transitioning. Default: `add-first-sequential`
    */
-  public static swapStrategy: SwapStrategy = 'add-first-sequential';
-
-  /**
-   * The default router options
-   */
-  private static readonly DEFAULT_OPTIONS: IRouterOptions = JSON.parse(JSON.stringify({ ...RouterOptions })) as IRouterOptions;
+  public swapStrategy: SwapStrategy = 'add-first-sequential';
 
   /**
    * Apply router options.
@@ -305,7 +316,25 @@ export class RouterOptions implements INavigatorOptions {
    * @param firstResetDefaults - Whether the default router options should
    * be set before applying the specified options
    */
-  public static apply(options: IRouterStartOptions, firstResetDefaults: boolean): void {
-    Object.assign(RouterOptions, firstResetDefaults ? RouterOptions.DEFAULT_OPTIONS : {}, options);
+  public apply(options: IRouterOptions): void {
+    options = options ?? {};
+    const titleOptions = {
+      ...RouterConfiguration.options.title,
+      ...(typeof options.title === 'string' ? { appTitle: options.title } : options.title),
+    };
+    options.title = titleOptions;
+
+    const separatorOptions: ISeparators = {
+      ...RouterConfiguration.options.separators,
+      ...(options as IRouterStartOptions & { separators: ISeparators }).separators ?? {},
+    };
+    (options as IRouterStartOptions & { separators: ISeparators }).separators = separatorOptions;
+
+    if (Array.isArray(options.hooks)) {
+      options.hooks.forEach(hook => RoutingHook.add(hook.hook, hook.options));
+      delete options['hooks'];
+    }
+
+    Object.assign(this, options);
   }
 }

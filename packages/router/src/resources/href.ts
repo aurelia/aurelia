@@ -7,8 +7,7 @@
 import { IDisposable, IEventAggregator } from '@aurelia/kernel';
 import { customAttribute, INode, bindable, BindingMode, ViewModelKind, ICustomAttributeViewModel, ICustomAttributeController, CustomAttribute } from '@aurelia/runtime-html';
 import { IRouter, RouterNavigationEndEvent } from '../router.js';
-import { LoadCustomAttribute } from '../configuration.js';
-import { RouterOptions } from '../router-options.js';
+import { LoadCustomAttribute, RouterConfiguration } from '../index.js';
 import { ILinkHandler } from '../link-handler.js';
 import { RoutingInstruction } from '../instructions/routing-instruction.js';
 
@@ -33,7 +32,7 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
   ) { }
 
   public binding(): void {
-    if (RouterOptions.useHref && !this.hasLoad()) {
+    if (RouterConfiguration.options.useHref && !this.hasLoad()) {
       this.element.addEventListener('click', this.linkHandler.handler);
       this.routerNavigationSubscription = this.ea.subscribe(RouterNavigationEndEvent.eventName, this.navigationEndHandler);
     }

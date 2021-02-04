@@ -12,10 +12,9 @@ import { NextContentAction, RoutingScope } from './routing-scope.js';
 import { arrayRemove } from './utilities/utils.js';
 import { Navigation } from './navigation.js';
 import { NavigationCoordinator } from './navigation-coordinator.js';
-import { Runner } from './utilities/runner.js';
+import { Runner, Step } from './utilities/runner.js';
 import { Routes } from './decorators/routes.js';
 import { Route } from './route.js';
-import { Step } from './utilities/runner.js';
 import { Endpoint, IConnectedCustomElement, IEndpointOptions } from './endpoints/endpoint.js';
 import { ViewportScopeContent } from './endpoints/viewport-scope-content.js';
 
@@ -53,8 +52,8 @@ export class ViewportScope extends Endpoint {
     router: IRouter,
     name: string,
     connectedCE: IConnectedCustomElement | null,
-    private _owningScope: RoutingScope | null,
-    private _scope: boolean,
+    private readonly _owningScope: RoutingScope | null,
+    private readonly _scope: boolean,
     public rootComponentType: CustomElementType | null = null, // temporary. Metadata will probably eliminate it
     public options: IViewportScopeOptions = {
       catches: [],

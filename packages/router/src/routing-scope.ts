@@ -14,9 +14,8 @@ import { IConfigurableRoute, RouteRecognizer } from './route-recognizer.js';
 import { Runner, Step } from './utilities/runner.js';
 import { IRoute, Route } from './route.js';
 import { Endpoint, IConnectedCustomElement } from './endpoints/endpoint.js';
-import { RouterOptions } from './router-options.js';
 import { EndpointMatcher, IMatchEndpointsResult } from './endpoint-matcher.js';
-import { EndpointContent, Router } from './index.js';
+import { EndpointContent, Router, RouterConfiguration } from './index.js';
 import { IContainer, Metadata } from '@aurelia/kernel';
 
 export type NextContentAction = 'skip' | 'reload' | 'swap' | '';
@@ -201,12 +200,12 @@ export class RoutingScope {
     let route = new FoundRoute();
     if (typeof instruction === 'string') {
       const instructions = RoutingInstruction.parse(instruction);
-      if (RouterOptions.useConfiguredRoutes && !RoutingInstruction.containsSiblings(instructions)) {
+      if (RouterConfiguration.options.useConfiguredRoutes && !RoutingInstruction.containsSiblings(instructions)) {
         const foundRoute = this.findMatchingRoute(instruction);
         if (foundRoute?.foundConfiguration ?? false) {
           route = foundRoute!;
         } else {
-          if (RouterOptions.useDirectRouting) {
+          if (RouterConfiguration.options.useDirectRouting) {
             route.instructions = instructions;
             if (route.instructions.length > 0) {
               const nextInstructions = route.instructions[0].nextScopeInstructions ?? [];
@@ -216,7 +215,7 @@ export class RoutingScope {
             }
           }
         }
-      } else if (RouterOptions.useDirectRouting) {
+      } else if (RouterConfiguration.options.useDirectRouting) {
         route.instructions = instructions;
       }
     } else {

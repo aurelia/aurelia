@@ -21,13 +21,14 @@ import { BrowserViewerStore } from './browser-viewer-store.js';
 import { Navigation } from './navigation.js';
 import { Endpoint, EndpointType, IConnectedCustomElement, IEndpoint } from './endpoints/endpoint.js';
 import { NavigationCoordinator } from './navigation-coordinator.js';
-import { IRouterStartOptions, ISeparators, RouterOptions } from './router-options.js';
+import { IRouterStartOptions, ISeparators } from './router-options.js';
 import { OpenPromise } from './utilities/open-promise.js';
 import { NavigatorStateChangeEvent } from './events.js';
 import { Runner, Step } from './utilities/runner.js';
 import { IRoute } from './route.js';
 import { Title } from './title.js';
 import { RoutingHook } from './routing-hook.js';
+import { RouterConfiguration } from './index.js';
 
 /**
  * The router is the "main entry point" into routing. Its primary responsibilities are
@@ -136,7 +137,7 @@ export class Router implements IRouter {
   }
 
   public get isRestrictedNavigation(): boolean {
-    const syncStates = RouterOptions.navigationSyncStates;
+    const syncStates = RouterConfiguration.options.navigationSyncStates;
     return syncStates.includes('guardedLoad') ||
       syncStates.includes('unloaded') ||
       syncStates.includes('loaded') ||
@@ -148,7 +149,7 @@ export class Router implements IRouter {
    * @internal
    */
   public get statefulHistory(): boolean {
-    return RouterOptions.statefulHistoryLength !== void 0 && RouterOptions.statefulHistoryLength > 0;
+    return RouterConfiguration.options.statefulHistoryLength !== void 0 && RouterConfiguration.options.statefulHistoryLength > 0;
   }
 
   // TODO: Switch this to use (probably) an event instead
@@ -156,45 +157,45 @@ export class Router implements IRouter {
   /**
    * Public API
    */
-  public start(options?: IRouterStartOptions): void {
+  public start(/* options?: IRouterStartOptions */): void {
     if (this.isActive) {
       throw new Error('Router has already been started');
     }
 
     this.isActive = true;
-    options = options ?? {};
-    const titleOptions = {
-      ...RouterOptions.title,
-      ...(typeof options.title === 'string' ? { appTitle: options.title } : options.title),
-    };
-    options.title = titleOptions;
+    // options = options ?? {};
+    // const titleOptions = {
+    //   ...RouterConfiguration.options.title,
+    //   ...(typeof options.title === 'string' ? { appTitle: options.title } : options.title),
+    // };
+    // options.title = titleOptions;
 
-    const separatorOptions: ISeparators = {
-      ...RouterOptions.separators,
-      ...(options as IRouterStartOptions & { separators: ISeparators }).separators ?? {},
-    };
-    (options as IRouterStartOptions & { separators: ISeparators }).separators = separatorOptions;
+    // const separatorOptions: ISeparators = {
+    //   ...RouterConfiguration.options.separators,
+    //   ...(options as IRouterStartOptions & { separators: ISeparators }).separators ?? {},
+    // };
+    // (options as IRouterStartOptions & { separators: ISeparators }).separators = separatorOptions;
 
-    if (Array.isArray(options.hooks)) {
-      options.hooks.forEach(hook => RoutingHook.add(hook.hook, hook.options));
-      delete options['hooks'];
-    }
+    // if (Array.isArray(options.hooks)) {
+    //   options.hooks.forEach(hook => RoutingHook.add(hook.hook, hook.options));
+    //   delete options['hooks'];
+    // }
 
-    RouterOptions.apply(options, true);
+    // RouterConfiguration.apply(options, true);
 
-    // if (Array.isArray(RouterOptions.hooks)) {
-    //   RouterOptions.hooks.forEach(hook => RoutingHook.add(hook.hook, hook.options));
+    // if (Array.isArray(RouterConfiguration.options.hooks)) {
+    //   RouterConfiguration.options.hooks.forEach(hook => RoutingHook.add(hook.hook, hook.options));
     // }
 
     this.navigator.start({
       store: this.navigation,
       viewer: this.navigation,
-      statefulHistoryLength: RouterOptions.statefulHistoryLength,
+      statefulHistoryLength: RouterConfiguration.options.statefulHistoryLength,
     });
 
     this.navigatorStateChangeEventSubscription = this.ea.subscribe(NavigatorStateChangeEvent.eventName, this.handleNavigatorStateChangeEvent);
     this.navigatorNavigateEventSubscription = this.ea.subscribe(NavigatorNavigateEvent.eventName, this.handleNavigatorNavigateEvent);
-    this.navigation.start({ useUrlFragmentHash: RouterOptions.useUrlFragmentHash });
+    this.navigation.start({ useUrlFragmentHash: RouterConfiguration.options.useUrlFragmentHash });
 
     this.ensureRootScope();
     // TODO: Switch this to use (probably) an event instead
@@ -212,7 +213,7 @@ export class Router implements IRouter {
     }
     this.navigator.stop();
     this.navigation.stop();
-    RouterOptions.apply({}, true); // TODO: Look into removing this
+    // RouterConfiguration.apply({}, true); // TODO: Look into removing this
 
     this.navigatorStateChangeEventSubscription.dispose();
     this.navigatorNavigateEventSubscription.dispose();
@@ -279,7 +280,7 @@ export class Router implements IRouter {
     // Get and initialize a navigation coordinator that will keep track of all endpoint's progresses
     // and make sure they're in sync when they are supposed to be (no `canLoad` before all `canUnload`
     // and so on).
-    const coordinator = NavigationCoordinator.create(this, instruction, { syncStates: RouterOptions.navigationSyncStates }) as NavigationCoordinator;
+    const coordinator = NavigationCoordinator.create(this, instruction, { syncStates: RouterConfiguration.options.navigationSyncStates }) as NavigationCoordinator;
 
     // Invoke the transformFromUrl hook if it exists
     let transformedInstruction = typeof instruction.instruction === 'string' && !instruction.useFullStateInstruction
@@ -330,7 +331,7 @@ export class Router implements IRouter {
     // that there's an instruction to clear all non-specified viewports in the same scope as
     // the first routing instruction.
     // TODO: There should be a clear all instruction in all the scopes of the top instructions
-    if (!RouterOptions.additiveInstructionDefault) {
+    if (!RouterConfiguration.options.additiveInstructionDefault) {
       instructions = this.ensureClearStateInstruction(instructions);
     }
 
@@ -841,10 +842,10 @@ export class Router implements IRouter {
     if (typeof route !== 'string' || route.length === 0) {
       return;
     }
-    if (RouterOptions.useConfiguredRoutes && RouterOptions.useDirectRouting) {
+    if (RouterConfiguration.options.useConfiguredRoutes && RouterConfiguration.options.useDirectRouting) {
       // TODO: Add missing/unknown route handling
       throw new Error("No matching configured route or component found for '" + route + "'");
-    } else if (RouterOptions.useConfiguredRoutes) {
+    } else if (RouterConfiguration.options.useConfiguredRoutes) {
       // TODO: Add missing/unknown route handling
       throw new Error("No matching configured route found for '" + route + "'");
     } else {

@@ -17,7 +17,7 @@ import { Runner, Step } from './utilities/runner.js';
 import { Routes } from './decorators/routes.js';
 import { Route } from './route.js';
 import { Endpoint, IEndpointOptions, IRoutingController, IConnectedCustomElement } from './endpoints/endpoint.js';
-import { RouterOptions } from './router-options.js';
+import { RouterConfiguration } from './index.js';
 
 /**
  * The viewport is an endpoint that encapsulates an au-viewport custom element
@@ -421,9 +421,9 @@ export class Viewport extends Endpoint {
       () => coordinator.waitForEntityState(this, 'routed'), // TODO: remove this
     ];
     if (performSwap) {
-      if (RouterOptions.swapStrategy.includes('parallel')) {
+      if (RouterConfiguration.options.swapStrategy.includes('parallel')) {
         lifecycleSteps.push((step: Step<void | void[]>): Step<void> => {
-          if (RouterOptions.swapStrategy.includes('add')) {
+          if (RouterConfiguration.options.swapStrategy.includes('add')) {
             return Runner.runParallel<void>(step as Step<void>,
               (step: Step<void | void[]>): void | Step<void> => this.addContent(step as Step<void>, coordinator),
               (step: Step<void | void[]>): void | Step<void> => this.removeContent(step as Step<void>, coordinator),
@@ -437,10 +437,10 @@ export class Viewport extends Endpoint {
         });
       } else {
         lifecycleSteps.push(
-          (step: Step<void | void[]>) => RouterOptions.swapStrategy.includes('add')
+          (step: Step<void | void[]>) => RouterConfiguration.options.swapStrategy.includes('add')
             ? this.addContent(step as Step<void>, coordinator)
             : this.removeContent(step as Step<void>, coordinator),
-          (step: Step<void | void[]>) => RouterOptions.swapStrategy.includes('add')
+          (step: Step<void | void[]>) => RouterConfiguration.options.swapStrategy.includes('add')
             ? this.removeContent(step as Step<void>, coordinator)
             : this.addContent(step as Step<void>, coordinator),
         );
@@ -719,18 +719,18 @@ export class Viewport extends Endpoint {
         const component = this.getComponentInstance();
         title = typeTitle.call(component, component!, navigationInstruction);
       }
-    } else if (RouterOptions.title.useComponentNames) {
+    } else if (RouterConfiguration.options.title.useComponentNames) {
       let name = this.getContentInstruction()!.component.name ?? '';
       // TODO(alpha): Allow list of component prefixes
-      const prefix = (RouterOptions.title.componentPrefix ?? '') as string;
+      const prefix = (RouterConfiguration.options.title.componentPrefix ?? '') as string;
       if (name.startsWith(prefix)) {
         name = name.slice(prefix.length);
       }
       name = name.replace('-', ' ');
       title = name.slice(0, 1).toLocaleUpperCase() + name.slice(1);
     }
-    if (RouterOptions.title.transformTitle !== void 0) {
-      title = RouterOptions.title.transformTitle.call(this, title, this.getContentInstruction()!);
+    if (RouterConfiguration.options.title.transformTitle !== void 0) {
+      title = RouterConfiguration.options.title.transformTitle.call(this, title, this.getContentInstruction()!);
     }
     return title;
   }

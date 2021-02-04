@@ -4,8 +4,8 @@
  * In its current state, it is NOT a good source for learning about the inner workings and design of the router.
  *
  */
+import { RouterConfiguration } from '../index.js';
 import { RouteableComponentType } from '../interfaces.js';
-import { RouterOptions } from '../router-options.js';
 
 /**
  * @internal - Shouldn't be used directly
@@ -55,8 +55,8 @@ export class InstructionParameters {
       return [];
     }
 
-    const parameterSeparator = RouterOptions.separators.parameterSeparator;
-    const parameterKeySeparator = RouterOptions.separators.parameterKeySeparator;
+    const parameterSeparator = RouterConfiguration.options.separators.parameterSeparator;
+    const parameterKeySeparator = RouterConfiguration.options.separators.parameterKeySeparator;
 
     if (typeof parameters === 'string') {
       const list: IComponentParameter[] = [];
@@ -101,7 +101,7 @@ export class InstructionParameters {
     if (!Array.isArray(parameters) || parameters.length === 0) {
       return '';
     }
-    const seps = RouterOptions.separators;
+    const seps = RouterConfiguration.options.separators;
     return parameters
       .map(param => {
         const key = param.key !== void 0 && uriComponent ? encodeURIComponent(param.key) : param.key;

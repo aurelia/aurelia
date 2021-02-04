@@ -7,7 +7,7 @@ import { GotoCustomAttribute } from './resources/goto.js';
 import { LoadCustomAttribute } from './resources/load.js';
 import { HrefCustomAttribute } from './resources/href.js';
 import { IRouter } from './router.js';
-import { IRouterStartOptions } from './router-options.js';
+import { IRouterStartOptions, IRouterOptions, RouterOptions } from './router-options.js';
 
 export const RouterRegistration = IRouter as unknown as IRegistry;
 
@@ -49,52 +49,74 @@ export const DefaultResources: IRegistry[] = [
   HrefCustomAttribute as unknown as IRegistry,
 ];
 
-let configurationOptions: IRouterStartOptions = {};
-let configurationCall: ((router: IRouter) => void) = (router: IRouter) => {
-  router.start(configurationOptions);
-};
+// let configurationOptions: IRouterStartOptions = {};
+// let configurationCall: ((router: IRouter) => void) = (router: IRouter) => {
+//   router.start(configurationOptions);
+// };
 
 /**
  * A DI configuration object containing router resource registrations.
  */
-const routerConfiguration = {
+export class RouterConfiguration {
+  public static options = new RouterOptions();
+
+  private static configurationCall: ((router: IRouter) => void) = (router: IRouter) => {
+    // router.start(RouterConfiguration.options);
+    router.start();
+  };
+
   /**
    * Apply this configuration to the provided container.
    */
-  register(container: IContainer): IContainer {
+  public static register(container: IContainer): IContainer {
     return container.register(
       ...DefaultComponents,
       ...DefaultResources,
-      AppTask.with(IRouter).beforeActivate().call(configurationCall),
+      AppTask.with(IRouter).beforeActivate().call(RouterConfiguration.configurationCall),
       AppTask.with(IRouter).afterActivate().call((router: IRouter) => router.loadUrl() as Promise<void>),
       AppTask.with(IRouter).afterDeactivate().call((router: IRouter) => router.stop()),
     );
-  },
-  /**
-   * Create a new container with this configuration applied to it.
-   */
-  createContainer(): IContainer {
-    return this.register(DI.createContainer());
   }
-};
-export const RouterConfiguration = {
+
   /**
    * Make it possible to specify options to Router activation.
    * Parameter is either a config object that's passed to Router's start
    * or a config function that's called instead of Router's start.
    */
-  customize(config?: IRouterStartOptions | ((router: IRouter) => void)) {
+  public static customize(config?: IRouterOptions | ((router: IRouter) => void)): RouterConfiguration {
     if (config === undefined) {
-      configurationOptions = {};
-      configurationCall = (router: IRouter) => {
-        router.start(configurationOptions);
+      RouterConfiguration.options = new RouterOptions();
+      RouterConfiguration.configurationCall = (router: IRouter) => {
+        router.start();
+        // router.start(RouterConfiguration.options);
       };
     } else if (config instanceof Function) {
-      configurationCall = config;
+      RouterConfiguration.configurationCall = config;
     } else {
-      configurationOptions = config;
+      RouterConfiguration.apply(config, true);
     }
-    return { ...routerConfiguration };
-  },
-  ...routerConfiguration,
-};
+    return RouterConfiguration;
+  }
+
+  /**
+   * Apply router options.
+   *
+   * @param options - The options to apply
+   * @param firstResetDefaults - Whether the default router options should
+   * be set before applying the specified options
+   */
+  public static apply(options: IRouterOptions, firstResetDefaults: boolean = false): void {
+    if (firstResetDefaults) {
+      RouterConfiguration.options = new RouterOptions();
+    }
+    RouterConfiguration.options.apply(options);
+  }
+
+  /**
+   * Create a new container with this configuration applied to it.
+   */
+  public static createContainer(): IContainer {
+    return this.register(DI.createContainer());
+  }
+
+}

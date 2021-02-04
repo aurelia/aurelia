@@ -1,11 +1,11 @@
-import { RouterOptions } from '../router-options';
+import { RouterConfiguration } from '../index.js';
 import { RoutingInstruction } from './routing-instruction';
 
 export class InstructionParser {
-  public static separators = RouterOptions.separators;
+  // public static separators = RouterConfiguration.options.separators;
 
   public static parse(instructions: string, grouped: boolean = false): { instructions: RoutingInstruction[]; remaining: string } {
-    const seps = InstructionParser.separators;
+    const seps = RouterConfiguration.options.separators;
     if (!instructions) {
       return { instructions: [], remaining: '' };
     }
@@ -53,12 +53,12 @@ export class InstructionParser {
   }
 
   private static isAdd(instruction: string): boolean {
-    return (instruction === InstructionParser.separators.add ||
-      instruction.startsWith(`${InstructionParser.separators.add}${InstructionParser.separators.viewport}`));
+    return (instruction === RouterConfiguration.options.separators.add ||
+      instruction.startsWith(`${RouterConfiguration.options.separators.add}${RouterConfiguration.options.separators.viewport}`));
   }
 
   private static parseOne(instruction: string): { instruction: RoutingInstruction; remaining: string } {
-    const seps = InstructionParser.separators;
+    const seps = RouterConfiguration.options.separators;
     const tokens = [seps.parameters, seps.viewport, seps.noScope, seps.scopeEnd, seps.scope, seps.sibling];
     let component: string | undefined = void 0;
     let parametersString: string | undefined = void 0;

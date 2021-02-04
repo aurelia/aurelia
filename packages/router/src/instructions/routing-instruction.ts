@@ -1,5 +1,4 @@
 import { InstructionParser } from './instruction-parser';
-import { RouterOptions } from './../router-options.js';
 import { InstructionViewportScope } from './instruction-viewport-scope';
 import { InstructionParameters } from './instruction-parameters.js';
 import { InstructionViewport } from './instruction-viewport.js';
@@ -11,6 +10,7 @@ import { FoundRoute } from '../found-route.js';
 import { Endpoint, IEndpoint } from '../endpoints/endpoint';
 import { Viewport } from '../viewport';
 import { CustomElement } from '@aurelia/runtime-html';
+import { RouterConfiguration } from '../index.js';
 
 /**
  * The routing instructions are the core of the router's navigations. All
@@ -95,7 +95,7 @@ export class RoutingInstruction {
     // this.viewportScope = InstructionViewportScope.create();
   }
 
-  public static separators = RouterOptions.separators;
+  // public static separators = RouterConfiguration.options.separators;
 
   /**
    * Create a new routing instruction.
@@ -167,10 +167,10 @@ export class RoutingInstruction {
   }
 
   public static clear(): string {
-    return RoutingInstruction.separators.clear;
+    return RouterConfiguration.options.separators.clear;
   }
   public static add(): string {
-    return RoutingInstruction.separators.add;
+    return RouterConfiguration.options.separators.add;
   }
 
   /**
@@ -211,7 +211,7 @@ export class RoutingInstruction {
       : instructions
         .map(instruction => instruction.stringify(excludeViewport, viewportContext))
         .filter(instruction => instruction.length > 0)
-        .join(this.separators.sibling);
+        .join(RouterConfiguration.options.separators.sibling);
   }
 
   /**
@@ -279,10 +279,10 @@ export class RoutingInstruction {
   }
 
   public get isAdd(): boolean {
-    return this.component.name === RouterOptions.separators.add;
+    return this.component.name === RouterConfiguration.options.separators.add;
   }
   public get isClear(): boolean {
-    return this.component.name === RoutingInstruction.separators.clear;
+    return this.component.name === RouterConfiguration.options.separators.clear;
   }
   public get isAddAll(): boolean {
     return this.isAdd && ((this.viewport.name?.length ?? 0) === 0);
@@ -344,6 +344,7 @@ export class RoutingInstruction {
    * @param viewportContext - Whether to include viewport context in the string
    */
   public stringify(excludeViewport: boolean = false, viewportContext: boolean = false): string {
+    const seps = RouterConfiguration.options.separators;
     let excludeCurrentViewport = excludeViewport;
     let excludeCurrentComponent = false;
 
@@ -380,8 +381,8 @@ export class RoutingInstruction {
       // ...that's the first instruction of a route...
       route = (route as FoundRoute).matching;
       // ...so add the route.
-      stringified += route.endsWith(RoutingInstruction.separators.scope)
-        ? route.slice(0, -RoutingInstruction.separators.scope.length)
+      stringified += route.endsWith(seps.scope)
+        ? route.slice(0, -seps.scope.length)
         : route;
     } else { // Not (part of) a route so add it
       stringified += this.stringifyShallow(excludeCurrentViewport, excludeCurrentComponent);
@@ -392,13 +393,13 @@ export class RoutingInstruction {
       const nextStringified = RoutingInstruction.stringify(nextInstructions, excludeViewport, viewportContext);
       if (nextStringified.length > 0) {
         // ...and add with scope separator and...
-        stringified += RoutingInstruction.separators.scope;
+        stringified += seps.scope;
         // ...check if scope grouping separators are needed:
         stringified += nextInstructions.length === 1 // TODO: This should really also check that the instructions have value
           // only one child, add as-is
           ? nextStringified
           // more than one child, add within scope (between () )
-          : `${RoutingInstruction.separators.scopeStart}${nextStringified}${RoutingInstruction.separators.scopeEnd}`;
+          : `${seps.scopeStart}${nextStringified}${seps.scopeEnd}`;
       }
     }
     return stringified;
@@ -411,6 +412,7 @@ export class RoutingInstruction {
    * @param viewportContext - Whether to include viewport context in the string
    */
   private stringifyShallow(excludeViewport: boolean = false, excludeComponent: boolean = false): string {
+    const seps = RouterConfiguration.options.separators;
     // Start with component (unless excluded)
     let instructionString = !excludeComponent ? this.component.name ?? '' : '';
 
@@ -422,16 +424,16 @@ export class RoutingInstruction {
     if (parameters.length > 0) {
       // Add to component or use standalone
       instructionString += !excludeComponent
-        ? `${RoutingInstruction.separators.parameters}${parameters}${RoutingInstruction.separators.parametersEnd}`
+        ? `${seps.parameters}${parameters}${seps.parametersEnd}`
         : parameters;
     }
     // Add viewport name (unless excluded)
     if (this.viewport.name !== null && !excludeViewport) {
-      instructionString += `${RoutingInstruction.separators.viewport}${this.viewport.name}`;
+      instructionString += `${seps.viewport}${this.viewport.name}`;
     }
     // And add no (owned) scope indicator
     if (!this.ownsScope) {
-      instructionString += RoutingInstruction.separators.noScope;
+      instructionString += seps.noScope;
     }
     return instructionString || '';
   }

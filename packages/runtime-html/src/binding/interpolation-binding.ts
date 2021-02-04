@@ -261,7 +261,6 @@ export class ContentBinding implements ContentBinding, ICollectionSubscriber {
     const target = this.target;
     const NodeCtor = this.p.Node;
     const oldValue = this.value;
-    this.task = null;
     if (oldValue instanceof NodeCtor) {
       oldValue.parentNode?.removeChild(oldValue);
     }

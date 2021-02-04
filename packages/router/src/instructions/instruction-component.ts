@@ -19,7 +19,7 @@ export interface IInstructionComponent extends InstructionComponent { }
  * components are resolved "non-early" to support dynamic, local resolutions.
  */
 
- // TODO: Include `CustomElementDefinition` in this
+// TODO: Include `CustomElementDefinition` in this
 export type ComponentAppellation = string | RouteableComponentType | IRouteableComponent | Constructable;
 
 export class InstructionComponent {
@@ -27,21 +27,29 @@ export class InstructionComponent {
    * The name of the component.
    */
   public name: string | null = null;
+
   /**
    * The (custom element) type of the component.
    */
   public type: RouteableComponentType | null = null;
+
   /**
    * The (custom element) instance of the component.
    */
   public instance: IRouteableComponent | null = null;
 
   /**
+   * A promise that will resolve into a component name, type,
+   * instance or definition.
+   */
+  public promise: Promise<ComponentAppellation | CustomElementDefinition> | null = null;
+
+  /**
    * Create a new instruction component.
    *
    * @param component - The component
    */
-  public static create(componentAppelation?: ComponentAppellation | CustomElementDefinition): InstructionComponent {
+  public static create(componentAppelation?: ComponentAppellation | CustomElementDefinition | Promise<ComponentAppellation | CustomElementDefinition>): InstructionComponent {
     const component = new InstructionComponent();
     component.set(componentAppelation);
     return component;
@@ -92,24 +100,60 @@ export class InstructionComponent {
   }
 
   // Instance methods
-  public set(component: ComponentAppellation | CustomElementDefinition | undefined | null): void {
+  public set(component: ComponentAppellation | CustomElementDefinition | Promise<ComponentAppellation | CustomElementDefinition> | undefined | null): void {
     if (component == null) {
       this.name = null;
       this.type = null;
       this.instance = null;
+      this.promise = null;
+    } else if (component instanceof Promise) {
+      this.name = null;
+      this.type = null;
+      this.instance = null;
+      this.promise = component;
     } else if (InstructionComponent.isName(component)) {
       this.name = InstructionComponent.getName(component);
       this.type = null;
       this.instance = null;
+      this.promise = null;
     } else if (InstructionComponent.isType(component)) {
       this.name = this.getNewName(component);
       this.type = InstructionComponent.getType(component);
       this.instance = null;
+      this.promise = null;
     } else if (InstructionComponent.isInstance(component)) {
       this.name = this.getNewName(InstructionComponent.getType(component)!);
       this.type = InstructionComponent.getType(component);
       this.instance = InstructionComponent.getInstance(component);
+      this.promise = null;
     }
+  }
+
+  public resolve(): void | Promise<ComponentAppellation | CustomElementDefinition> {
+    if (!(this.promise instanceof Promise)) {
+      return;
+    }
+    // TODO(alpha): Fix the type here
+    return (this.promise as any).then((component: ComponentAppellation | CustomElementDefinition): void => {
+      // TODO(alpha): Fix the issues with import/module here
+      if (InstructionComponent.isAppelation(component)) {
+        this.set(component);
+        return;
+      }
+      if ((component as unknown as { default: ComponentAppellation | CustomElementDefinition }).default != null) {
+        this.set((component as unknown as { default: ComponentAppellation | CustomElementDefinition }).default);
+        return;
+      }
+      if (Object.keys(component).length === 0) {
+        throw new Error(`Failed to load component Type from resolved Promise since no export was specified.`);
+      }
+      if (Object.keys(component).length > 1) {
+        throw new Error(`Failed to load component Type from resolved Promise since no 'default' export was specified when having multiple exports.`);
+      }
+      const key = Object.keys(component)[0];
+      // TODO(alpha): Fix type here
+      this.set((component as any)[key] as ComponentAppellation | CustomElementDefinition);
+    }) as Promise<ComponentAppellation | CustomElementDefinition>;
   }
 
   public get none(): boolean {
@@ -123,6 +167,9 @@ export class InstructionComponent {
   }
   public isInstance(): boolean {
     return this.instance !== null;
+  }
+  public isPromise(): boolean {
+    return this.promise !== null;
   }
 
   public toType(container: IContainer): RouteableComponentType | null {

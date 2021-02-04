@@ -81,7 +81,7 @@ export class RoutingInstruction {
   public topInstruction: boolean = false;
 
   public constructor(
-    component?: ComponentAppellation,
+    component?: ComponentAppellation | Promise<ComponentAppellation>,
     viewport?: ViewportHandle,
     parameters?: ComponentParameters,
   ) {
@@ -107,11 +107,11 @@ export class RoutingInstruction {
    * @param nextScopeInstructions - The routing instructions in the next scope ("children")
    */
   public static create(component?: ComponentAppellation | Promise<ComponentAppellation>, viewport?: ViewportHandle, parameters?: ComponentParameters, ownsScope: boolean = true, nextScopeInstructions: RoutingInstruction[] | null = null): RoutingInstruction | Promise<RoutingInstruction> {
-    if (component instanceof Promise) {
-      return component.then((resolvedComponent) => {
-        return RoutingInstruction.create(resolvedComponent, viewport, parameters, ownsScope, nextScopeInstructions);
-      });
-    }
+    // if (component instanceof Promise) {
+    //   return component.then((resolvedComponent) => {
+    //     return RoutingInstruction.create(resolvedComponent, viewport, parameters, ownsScope, nextScopeInstructions);
+    //   });
+    // }
 
     const instruction: RoutingInstruction = new RoutingInstruction(component, viewport, parameters);
     instruction.ownsScope = ownsScope;
@@ -143,6 +143,8 @@ export class RoutingInstruction {
         instructions.push(...RoutingInstruction.parse(instruction));
       } else if (instruction instanceof RoutingInstruction) {
         instructions.push(instruction);
+      } else if (instruction instanceof Promise) {
+        instructions.push(RoutingInstruction.create(instruction) as RoutingInstruction);
       } else if (InstructionComponent.isAppelation(instruction)) {
         instructions.push(RoutingInstruction.create(instruction) as RoutingInstruction);
       } else if (InstructionComponent.isDefinition(instruction)) {
@@ -443,7 +445,7 @@ export class RoutingInstruction {
   public clone(keepInstances: boolean = false, scopeModifier: boolean = false): RoutingInstruction {
     // Create a clone without instances...
     const clone = RoutingInstruction.create(
-      this.component.type ?? this.component.name!,
+      this.component.promise ?? this.component.type ?? this.component.name!,
       this.viewport.name!,
       this.parameters.typedParameters !== null ? this.parameters.typedParameters : void 0,
     ) as RoutingInstruction;

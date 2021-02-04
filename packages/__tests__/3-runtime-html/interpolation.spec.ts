@@ -502,7 +502,7 @@ describe('3-runtime/interpolation.spec.ts', function () {
       const b = div.querySelector('b');
       assert.strictEqual(b.textContent, String(idx + 11));
     });
-    assert.strictEqual(appHost.textContent, component.items.map(item => `${item}`).join(''));
+    assert.strictEqual(appHost.textContent, component.items.map(item => `$${item.value}`).join(''));
 
     component.items = [];
     divs = Array.from(appHost.querySelectorAll('div'));
@@ -513,8 +513,8 @@ describe('3-runtime/interpolation.spec.ts', function () {
     assert.strictEqual(appHost.textContent, '');
   });
 
-  it('[IF/Else] interpolates expression with value converter that returns HTML nodes', async function () {
-    const { tearDown, appHost, ctx, component, startPromise } = createFixture(
+  it('[IF/Else] interpolates expression with value converter that returns HTML nodes in <template/>', async function () {
+    const { tearDown, appHost, component, startPromise } = createFixture(
       `<template if.bind="show">\${message | $:'if'}</template><template else>\${message | $:'else'}</template>`,
       class App {
         public show = true;
@@ -542,18 +542,15 @@ describe('3-runtime/interpolation.spec.ts', function () {
     );
     await startPromise;
     assert.strictEqual(appHost.textContent, 'if foo');
-    // assert.strictEqual(appHost.firstElementChild.tagName, 'IF');
 
     component.show = false;
-    // assert.strictEqual(appHost.textContent, '');
-    // assert.strictEqual(appHost.firstElementChild, null);
 
-    ctx.platform.domWriteQueue.flush();
     assert.strictEqual(appHost.textContent, 'else foo');
-    // assert.strictEqual(appHost.firstElementChild.tagName, 'ELSE');
 
     await tearDown();
-    assert.strictEqual(appHost.textContent, 'else foo');
+    // when a <template else/> is removed, it doesn't leave any nodes in the appended target
+    // so the app host text content is turned back to empty
+    assert.strictEqual(appHost.textContent, '');
   });
 });
 

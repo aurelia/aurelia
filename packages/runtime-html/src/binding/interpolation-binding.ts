@@ -261,6 +261,7 @@ export class ContentBinding implements ContentBinding, ICollectionSubscriber {
     const target = this.target;
     const NodeCtor = this.p.Node;
     const oldValue = this.value;
+    this.value = value;
     if (oldValue instanceof NodeCtor) {
       oldValue.parentNode?.removeChild(oldValue);
     }
@@ -270,7 +271,6 @@ export class ContentBinding implements ContentBinding, ICollectionSubscriber {
     } else {
       target.textContent = String(value);
     }
-    this.value = value;
   }
 
   public handleChange(newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void {
@@ -291,6 +291,11 @@ export class ContentBinding implements ContentBinding, ICollectionSubscriber {
       }
     }
     if (newValue === this.value) {
+      // in a frequent update, e.g collection mutation in a loop
+      // value could be changing frequently and previous update task may be stale at this point
+      // cancel if any task going on because the latest value is already the same
+      this.task?.cancel();
+      this.task = null;
       return;
     }
     // Alpha: during bind a simple strategy for bind is always flush immediately

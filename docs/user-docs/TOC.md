@@ -8,7 +8,6 @@
 * [Quick install guide](getting-started/quick-install-guide.md)
 * [Hello World](getting-started/quick-start-guide/README.md)
   * [Creating Your First App](getting-started/quick-start-guide/creating-your-first-app.md)
-  * [Exploring the code](getting-started/quick-start-guide/exploring-the-code.md)
   * [Your First Component - Part 1: The View-Model](getting-started/quick-start-guide/your-first-component-part-1-the-view-model.md)
   * [Your First Component - Part 2: The View](getting-started/quick-start-guide/your-first-component-part-2-the-view.md)
   * [Next Steps](getting-started/quick-start-guide/next-steps.md)

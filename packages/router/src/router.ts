@@ -21,7 +21,6 @@ import { BrowserViewerStore } from './browser-viewer-store.js';
 import { Navigation } from './navigation.js';
 import { Endpoint, EndpointType, IConnectedCustomElement, IEndpoint } from './endpoints/endpoint.js';
 import { NavigationCoordinator } from './navigation-coordinator.js';
-import { IRouterOptions, ISeparators } from './router-options.js';
 import { OpenPromise } from './utilities/open-promise.js';
 import { NavigatorStateChangeEvent } from './events.js';
 import { Runner, Step } from './utilities/runner.js';
@@ -202,6 +201,7 @@ export class Router implements IRouter {
     for (const starter of this.starters) {
       starter();
     }
+    this.ea.publish(RouterStartEvent.eventName, RouterStartEvent.createEvent());
   }
 
   /**
@@ -211,6 +211,7 @@ export class Router implements IRouter {
     if (!this.isActive) {
       throw new Error('Router has not been started');
     }
+    this.ea.publish(RouterStopEvent.eventName, RouterStopEvent.createEvent());
     this.navigator.stop();
     this.navigation.stop();
     // RouterConfiguration.apply({}, true); // TODO: Look into removing this
@@ -1042,6 +1043,23 @@ export class Router implements IRouter {
       options.query = search;
     }
     return instructions;
+  }
+}
+
+export class RouterStartEvent {
+  public static eventName = 'au:router:router-start';
+  public eventName!: string;
+  public router!: IRouter;
+  public static createEvent(): RouterStartEvent {
+    return Object.assign(new RouterStartEvent(), { eventName: RouterStartEvent.eventName, router: this });
+  }
+}
+export class RouterStopEvent {
+  public static eventName = 'au:router:router-stop';
+  public eventName!: string;
+  public router!: IRouter;
+  public static createEvent(): RouterStopEvent {
+    return Object.assign(new RouterStopEvent(), { eventName: RouterStopEvent.eventName, router: this });
   }
 }
 

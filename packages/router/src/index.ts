@@ -99,6 +99,8 @@ export {
   IRouter,
   Router,
 
+  RouterStartEvent,
+  RouterStopEvent,
   RouterNavigationStartEvent,
   RouterNavigationEndEvent,
   RouterNavigationCancelEvent,

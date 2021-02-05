@@ -198,8 +198,6 @@ describe('3-runtime/interpolation.spec.ts -- [UNIT]interpolation', function () {
     },
     {
       expected: 'test  out ',
-      // special edcase, same node is appended in multiple positions
-      // resulting in the last place that uses it wins
       expectedValueAfterChange: 'test foo-node out ',
       changeFnc: (_, platform) => {
         const span = platform.document.createElement('span');
@@ -207,7 +205,7 @@ describe('3-runtime/interpolation.spec.ts -- [UNIT]interpolation', function () {
         return span;
       }, app: class { public value: any; },
       interpolation: `test $\{value} out `,
-      it: 'Multiple SAME statements work in interpolation with HTML Elements'
+      it: 'works with HTML Element'
     },
     {
       expected: 'test  out ',
@@ -222,8 +220,6 @@ describe('3-runtime/interpolation.spec.ts -- [UNIT]interpolation', function () {
     },
     {
       expected: 'test 1,2,3 out',
-      // special edcase, same node is appended in multiple positions
-      // resulting in the last place that uses it wins
       expectedValueAfterChange: 'test foo-node out',
       changeFnc: (_, platform) => {
         return platform.document.createTextNode('foo-node');
@@ -234,8 +230,6 @@ describe('3-runtime/interpolation.spec.ts -- [UNIT]interpolation', function () {
     },
     {
       expected: 'test foo-node out',
-      // special edcase, same node is appended in multiple positions
-      // resulting in the last place that uses it wins
       expectedValueAfterChange: 'test 1,2,3 out',
       changeFnc: (_, platform) => {
         return [1, 2, 3];

@@ -152,7 +152,7 @@ export class Router implements IRouter {
   }
 
   // TODO: Switch this to use (probably) an event instead
-  public starters: any[] = [];
+  // public starters: any[] = [];
   /**
    * Public API
    */
@@ -198,9 +198,9 @@ export class Router implements IRouter {
 
     this.ensureRootScope();
     // TODO: Switch this to use (probably) an event instead
-    for (const starter of this.starters) {
-      starter();
-    }
+    // for (const starter of this.starters) {
+    //   starter();
+    // }
     this.ea.publish(RouterStartEvent.eventName, RouterStartEvent.createEvent());
   }
 

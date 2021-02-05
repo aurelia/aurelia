@@ -1,10 +1,11 @@
+/* eslint-disable compat/compat */
 /**
  *
  * NOTE: This file is still WIP and will go through at least one more iteration of refactoring, commenting and clean up!
  * In its current state, it is NOT a good source for learning about the inner workings and design of the router.
  *
  */
-import { IContainer } from '@aurelia/kernel';
+import { IContainer, IEventAggregator } from '@aurelia/kernel';
 import {
   bindable,
   INode,
@@ -23,6 +24,7 @@ import { Viewport, IViewportOptions } from '../viewport.js';
 import { ViewportScopeCustomElement } from './viewport-scope.js';
 import { Runner, Step } from '../utilities/runner.js';
 import { IRoutingController } from '../endpoints/endpoint.js';
+import { RouterStartEvent } from '../router.js';
 
 export const ParentViewport = CustomElement.createInjectable();
 
@@ -107,6 +109,7 @@ export class ViewportCustomElement implements ICustomElementViewModel {
     @IRouter private readonly router: IRouter,
     @INode public readonly element: INode<HTMLElement>,
     @IContainer public container: IContainer,
+    @IEventAggregator private readonly ea: IEventAggregator,
     @ParentViewport public readonly parentViewport: ViewportCustomElement,
   ) { }
 
@@ -320,7 +323,11 @@ export class ViewportCustomElement implements ICustomElementViewModel {
       return;
     }
     return new Promise((resolve) => {
-      this.router.starters.push(resolve);
+      // this.router.starters.push(resolve);
+      const subscription = this.ea.subscribe(RouterStartEvent.eventName, () => {
+        resolve();
+        subscription.dispose();
+      });
     });
   }
 }

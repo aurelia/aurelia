@@ -21,7 +21,6 @@ import {
 } from '@aurelia/runtime-html';
 import { IRouter } from '../index.js';
 import { Viewport, IViewportOptions } from '../viewport.js';
-import { ViewportScopeCustomElement } from './viewport-scope.js';
 import { Runner, Step } from '../utilities/runner.js';
 import { IRoutingController } from '../endpoints/endpoint.js';
 import { RouterStartEvent } from '../router.js';
@@ -93,7 +92,7 @@ export class ViewportCustomElement implements ICustomElementViewModel {
   /**
    * The custom element controller.
    */
-  public readonly $controller!: ICustomElementController<this>;
+  // public readonly $controller!: ICustomElementController<this>;
 
   /**
    * The routing controller.
@@ -113,14 +112,14 @@ export class ViewportCustomElement implements ICustomElementViewModel {
     @ParentViewport public readonly parentViewport: ViewportCustomElement,
   ) { }
 
-  public hydrated(controller: ICompiledCustomElementController) {
+  public hydrated(controller: ICompiledCustomElementController): void | Promise<void> {
     // console.log('hydrated', this.name, this.router.isActive);
     this.controller = controller as IRoutingController;
     this.container = controller.context.get(IContainer);
 
-    // The first viewport(s) might be compiled before the router is active
     // console.log('>>> Runner.run', 'hydrated');
-    return Runner.run(null,
+    return Runner.run<void>(null,
+      // The first viewport(s) might be hydrated before the router is started
       () => this.waitForRouterStart(),
       () => {
         // Only call connect this early if we need to
@@ -128,12 +127,13 @@ export class ViewportCustomElement implements ICustomElementViewModel {
           this.connect();
         }
       }
-    );
+    ) as void | Promise<void>;
   }
 
-  public binding(initiator: IHydratedController, parent: IHydratedParentController | null, flags: LifecycleFlags): void | Promise<void> {
+  public binding(initiator: IHydratedController, _parent: IHydratedParentController | null, flags: LifecycleFlags): void | Promise<void> {
     this.isBound = true;
     return Runner.run(null,
+      // The first viewport(s) might be bound before the router is started
       () => this.waitForRouterStart(),
       () => {
         // Prefer to connect here since we've got bound data in component
@@ -142,31 +142,35 @@ export class ViewportCustomElement implements ICustomElementViewModel {
         }
       },
       () => {
+        // TODO: Consider using an event instead (not a priority)
+        // If a content is waiting for us to be connected...
         if (this.viewport?.activeResolve != null) {
           // console.log('waitedForParent', this.viewport.pathname);
+          // ...resolve the promise
           this.viewport.activeResolve();
           this.viewport.activeResolve = null;
         }
       },
       () => {
-        if (this.viewport !== null && (this.viewport.nextContent ?? null) === null) {
+        if (this.viewport !== null && this.viewport.nextContent === null) {
           // console.log('binding', this.viewport?.toString());
           // e: this.viewport.enabled = true;
-          return (this.viewport.activate(null, initiator, this.$controller, flags, true, void 0) as Step<void>)?.asValue as void | Promise<void>;
-          // TODO: Restore scroll state
+          // console.log(this.controller !== this.$controller ? '=============================' : '----', 'controllers');
+          return (this.viewport.activate(null, initiator, this.controller, flags, true, void 0) as Step<void>)?.asValue as void | Promise<void>;
+          // TODO: Restore scroll state (in attaching/attached)
         }
       },
     ) as void | Promise<void>;
   }
 
-  public attaching(initiator: IHydratedController, parent: IHydratedParentController | null, flags: LifecycleFlags): void | Promise<void> {
-    if (this.viewport !== null && (this.viewport.nextContent ?? null) === null) {
-      // console.log('(attaching)', this.viewport?.toString());
-      //   this.viewport.enabled = true;
-      //   return (this.viewport.activate(null, initiator, this.$controller, flags, true, void 0) as Step<void>)?.asValue as void | Promise<void>;
-      //   // TODO: Restore scroll state
-    }
-  }
+  // public attaching(initiator: IHydratedController, parent: IHydratedParentController | null, flags: LifecycleFlags): void | Promise<void> {
+  //   if (this.viewport !== null && (this.viewport.nextContent ?? null) === null) {
+  //     // console.log('(attaching)', this.viewport?.toString());
+  //     //   this.viewport.enabled = true;
+  //     //   return (this.viewport.activate(null, initiator, this.$controller, flags, true, void 0) as Step<void>)?.asValue as void | Promise<void>;
+  //     //   // TODO: Restore scroll state
+  //   }
+  // }
 
   public detaching(initiator: IHydratedController, parent: ISyntheticView | ICustomElementController | null, flags: LifecycleFlags): void | Promise<void> {
     // if (this.viewport !== null && (this.viewport.nextContent ?? null) === null) {
@@ -196,11 +200,11 @@ export class ViewportCustomElement implements ICustomElementViewModel {
       // );
       this.isBound = false;
       // e: this.viewport!.enabled = false;
-      return this.viewport!.deactivate(initiator, parent, flags);
+      return this.viewport.deactivate(initiator, parent, flags);
     }
   }
 
-  public unbinding(initiator: IHydratedController, parent: ISyntheticView | ICustomElementController | null, flags: LifecycleFlags): void | Promise<void> {
+  public unbinding(_initiator: IHydratedController, _parent: ISyntheticView | ICustomElementController | null, _flags: LifecycleFlags): void | Promise<void> {
     if (this.viewport !== null) {
       // TODO: Don't unload when stateful, instead save to cache. Something like
       // this.viewport.cacheContent();
@@ -213,16 +217,20 @@ export class ViewportCustomElement implements ICustomElementViewModel {
   }
 
   public dispose(): void {
-    if (this.viewport !== null) {
-      this.viewport?.dispose();
-      this.viewport = null;
-    }
+    // if (this.viewport !== null) {
+    this.viewport?.dispose();
+    this.viewport = null;
+    // }
   }
 
+  /**
+   * Connect this custom element to a router endpoint (Viewport).
+   */
   public connect(): void {
-    if (this.router.rootScope === null || (this.viewport !== null && this.router.isRestrictedNavigation)) {
-      return;
-    }
+    // if (this.router.rootScope === null || (this.viewport !== null && this.router.isRestrictedNavigation)) {
+    //   console.log('============ bad connect', this.router.rootScope, this.viewport, this.router.isRestrictedNavigation);
+    //   return;
+    // }
     // let controllerContainer = (this.controller.context as any).container;
     // let output = '';
     // do {
@@ -234,9 +242,12 @@ export class ViewportCustomElement implements ICustomElementViewModel {
     //   output += '.parent';
     // } while (controllerContainer);
 
+    // Collect custom element options from either properties (if the custom
+    // element has been bound) or from html attributes
     const name: string = this.getAttribute('name', this.name) as string;
     let value: string | boolean | undefined = this.getAttribute('no-scope', this.noScope);
-    const options: IViewportOptions = { scope: value === void 0 || !value ? true : false };
+    // Endpoint property is `scope` but html attribute is `no-scope` so negate it
+    const options: IViewportOptions = { scope: value === void 0 || !(value as boolean) ? true : false };
     value = this.getAttribute('used-by', this.usedBy);
     if (value !== void 0) {
       options.usedBy = value as string;
@@ -269,8 +280,11 @@ export class ViewportCustomElement implements ICustomElementViewModel {
     // this.viewport = this.router.connectViewport(this.viewport, this, name, options);
     this.viewport = this.router.connectEndpoint(this.viewport, 'Viewport', this, name, options) as Viewport;
   }
+  /**
+   * Disconnect this custom element from its router endpoint (Viewport).
+   */
   public disconnect(step: Step | null): void {
-    if (this.viewport) {
+    if (this.viewport !== null) {
       // this.router.disconnectViewport(step, this.viewport, this);
       this.router.disconnectEndpoint(step, this.viewport, this);
     }
@@ -278,6 +292,12 @@ export class ViewportCustomElement implements ICustomElementViewModel {
     // this.viewport = null;
   }
 
+  /**
+   * Set whether the viewport is currently active or not. Adds or removes
+   * activity classes to the custom element
+   *
+   * @param active - Whether the viewport is active or not
+   */
   public setActive(active: boolean): void {
     if (active) {
       this.element.classList.add('viewport-active');
@@ -287,7 +307,6 @@ export class ViewportCustomElement implements ICustomElementViewModel {
   }
 
   private getAttribute(key: string, value: string | boolean, checkExists: boolean = false): string | boolean | undefined {
-    const result: Record<string, string | boolean> = {};
     if (this.isBound && !checkExists) {
       return value;
     } else {
@@ -305,19 +324,23 @@ export class ViewportCustomElement implements ICustomElementViewModel {
     return value;
   }
 
-  private getClosestCustomElement() {
-    let parent: any = this.controller.parent;
-    let customElement = null;
-    while (parent !== null && customElement === null) {
-      if (parent.viewModel instanceof ViewportCustomElement || parent.viewModel instanceof ViewportScopeCustomElement) {
-        customElement = parent.viewModel;
-      }
-      parent = parent.parent;
-    }
-    return customElement;
-  }
+  // private getClosestCustomElement() {
+  //   let parent: any = this.controller.parent;
+  //   let customElement = null;
+  //   while (parent !== null && customElement === null) {
+  //     if (parent.viewModel instanceof ViewportCustomElement || parent.viewModel instanceof ViewportScopeCustomElement) {
+  //       customElement = parent.viewModel;
+  //     }
+  //     parent = parent.parent;
+  //   }
+  //   return customElement;
+  // }
 
-  // TODO: Switch this to use (probably) an event instead
+  /**
+   * Make it possible to wait for router start by subscribing to the
+   * router start event and return a promise that's resolved when
+   * the router start event fires.
+   */
   private waitForRouterStart(): void | Promise<void> {
     if (this.router.isActive) {
       return;

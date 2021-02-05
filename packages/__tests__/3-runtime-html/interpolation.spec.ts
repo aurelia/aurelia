@@ -222,9 +222,6 @@ describe('3-runtime/interpolation.spec.ts -- [UNIT]interpolation', function () {
   ];
 
   cases.forEach((x) => {
-    // if (x.it !== 'Renders expected text') {
-    //   return;
-    // }
     it(x.it, async function () {
       const { tearDown, appHost } = createFixture(`<template>${x.interpolation}</template>`, x.app);
       assert.strictEqual(appHost.textContent, x.expected.toString(), `host.textContent`);

@@ -5,7 +5,7 @@ import { IRouter, RouterStartEvent } from '../router.js';
 /**
  * Get either a provided value or the value of an html attribute,
  * depending on `useValue`. If `checkExists` is `true` the
- * existance of the html attribute is returned, regardless of
+ * existence of the html attribute is returned, regardless of
  * `useValue` (or `value`).
  *
  * @param name - Attribute name
@@ -13,7 +13,7 @@ import { IRouter, RouterStartEvent } from '../router.js';
  * the attribute doesn't exist on the element (so it's also default)
  * @param useValue - Whether the value should be used (unless check exists)
  * @param element - The element with the attributes
- * @param checkExists - Whether only the existance of the html attribute
+ * @param checkExists - Whether only the existence of the html attribute
  * should be checked and returned as a boolean
  */
 export function getValueOrAttribute(name: string, valueOrDefault: string | boolean, useValue: boolean, element: HTMLElement, checkExists: boolean = false): string | boolean | undefined {

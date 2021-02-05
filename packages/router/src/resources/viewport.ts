@@ -173,7 +173,8 @@ export class ViewportCustomElement implements ICustomElementViewModel {
    */
   public connect(): void {
     // Collect custom element options from either properties (if the custom
-    // element has been bound) or from html attributes
+    // element has been bound) or from html attributes (booleans are always
+    // set based on whether html attribute exists)
     const name: string = getValueOrAttribute('name', this.name, this.isBound, this.element) as string;
     const options: IViewportOptions = {};
     // Endpoint property is `scope` but html attribute is `no-scope` so negate it
@@ -185,38 +186,6 @@ export class ViewportCustomElement implements ICustomElementViewModel {
     options.noTitle = getValueOrAttribute('no-title', this.noTitle, this.isBound, this.element, true) as boolean;
     options.noHistory = getValueOrAttribute('no-history', this.noHistory, this.isBound, this.element, true) as boolean;
     options.stateful = getValueOrAttribute('stateful', this.stateful, this.isBound, this.element, true) as boolean;
-
-    // let value: string | boolean | undefined = this.getAttribute('no-scope', this.noScope);
-    // // Endpoint property is `scope` but html attribute is `no-scope` so negate it
-    // const options: IViewportOptions = { scope: value === void 0 || !(value as boolean) ? true : false };
-    // value = this.getAttribute('used-by', this.usedBy);
-    // if (value !== void 0) {
-    //   options.usedBy = value as string;
-    // }
-    // value = this.getAttribute('default', this.default);
-    // if (value !== void 0) {
-    //   options.default = value as string;
-    // }
-    // value = this.getAttribute('fallback', this.fallback);
-    // if (value !== void 0) {
-    //   options.fallback = value as string;
-    // }
-    // value = this.getAttribute('no-link', this.noLink, true);
-    // if (value !== void 0) {
-    //   options.noLink = value as boolean;
-    // }
-    // value = this.getAttribute('no-title', this.noTitle, true);
-    // if (value !== void 0) {
-    //   options.noTitle = value as boolean;
-    // }
-    // value = this.getAttribute('no-history', this.noHistory, true);
-    // if (value !== void 0) {
-    //   options.noHistory = value as boolean;
-    // }
-    // value = this.getAttribute('stateful', this.stateful, true);
-    // if (value !== void 0) {
-    //   options.stateful = value as boolean;
-    // }
 
     // Delete all keys with undefined value
     // eslint-disable-next-line @typescript-eslint/no-dynamic-delete

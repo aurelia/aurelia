@@ -27,6 +27,7 @@ type CaseType = {
   app: any;
   interpolation: string;
   it: string;
+  only?: boolean;
 };
 
 const testDateString = new Date('Sat Feb 02 2002 00:00:00 GMT+0000 (Coordinated Universal Time)').toString();
@@ -219,15 +220,48 @@ describe('3-runtime/interpolation.spec.ts -- [UNIT]interpolation', function () {
       interpolation: `test $\{value} out $\{value}`,
       it: 'Multiple SAME statements work in interpolation with HTML Text'
     },
+    {
+      expected: 'test 1,2,3 out',
+      // special edcase, same node is appended in multiple positions
+      // resulting in the last place that uses it wins
+      expectedValueAfterChange: 'test foo-node out',
+      changeFnc: (_, platform) => {
+        return platform.document.createTextNode('foo-node');
+      },
+      app: class { public value: any = [1, 2, 3]; },
+      interpolation: `test $\{value} out`,
+      it: 'changes from array to node',
+    },
+    {
+      expected: 'test foo-node out',
+      // special edcase, same node is appended in multiple positions
+      // resulting in the last place that uses it wins
+      expectedValueAfterChange: 'test 1,2,3 out',
+      changeFnc: (_, platform) => {
+        return [1, 2, 3];
+      },
+      app: class {
+        public static get inject() { return [IPlatform]; }
+        public value: any;
+        public constructor(
+          p: IPlatform,
+        ) {
+          this.value = p.document.createTextNode('foo-node');
+        }
+      },
+      interpolation: `test $\{value} out`,
+      it: 'changes from node array',
+    }
   ];
 
   cases.forEach((x) => {
-    it(x.it, async function () {
+    const $it = x.only ? it.only : it;
+    $it(x.it, async function () {
       const { tearDown, appHost } = createFixture(`<template>${x.interpolation}</template>`, x.app);
       assert.strictEqual(appHost.textContent, x.expected.toString(), `host.textContent`);
       await tearDown();
     });
-    it(`${x.it} change tests work`, async function () {
+    $it(`${x.it} change tests work`, async function () {
       const { tearDown, appHost, platform, component } = createFixture(`<template>${x.interpolation}</template>`, x.app);
       if (x.changeFnc !== undefined) {
         const val = x.changeFnc(component.value, platform);
@@ -245,7 +279,7 @@ describe('3-runtime/interpolation.spec.ts -- [UNIT]interpolation', function () {
       await tearDown();
     });
     if (x.expectedStrictMode) {
-      it(`${x.it} STRICT MODE `, async function () {
+      $it(`${x.it} STRICT MODE `, async function () {
         const strict = CustomElement.define({ name: 'strict', template: `${x.interpolation}`, isStrictBinding: true }, x.app);
         const { tearDown, appHost } = createFixture(`<template><strict></strict></template>`, class { }, [strict]);
         assert.strictEqual(appHost.textContent, x.expectedStrictMode.toString(), `host.textContent`);

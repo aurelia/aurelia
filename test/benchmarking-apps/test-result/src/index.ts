@@ -167,7 +167,7 @@ export function totalDuration(target: Partial<Measurement>, property: string): a
         totalDuration += value as number;
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
       return (this as any)[_internal] = totalDuration;
     },
   };

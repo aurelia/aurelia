@@ -567,15 +567,18 @@ describe('3-runtime/interpolation.spec.ts', function () {
     );
     await startPromise;
     assert.strictEqual(appHost.textContent, 'if foo');
+    assert.html.innerEqual(appHost, '<if>if foo</if>');
 
     component.show = false;
 
     assert.strictEqual(appHost.textContent, 'else foo');
+    assert.html.innerEqual(appHost, '<else>else foo</else>');
 
     await tearDown();
     // when a <template else/> is removed, it doesn't leave any nodes in the appended target
     // so the app host text content is turned back to empty
     assert.strictEqual(appHost.textContent, '');
+    assert.html.innerEqual(appHost, '');
   });
 });
 

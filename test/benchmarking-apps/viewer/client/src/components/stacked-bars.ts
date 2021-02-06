@@ -7,7 +7,7 @@ import { actions, Margin, round } from '../shared/utils';
 import css from './stacked-bars.css';
 import template from './stacked-bars.html';
 
-const margin = new Margin(40, 30, 30, 40);
+const margin = new Margin(40, 30, 30, 45);
 const width = 800;
 const height = 600;
 type $Measurement = Measurement | AvgMeasurement;
@@ -97,7 +97,7 @@ export class StackedBars {
       svg.append("g")
         .classed('y-axis', true)
         .attr('transform', `translate(${margin.left}, 0)`)
-        .call(d3.axisLeft(yScale));
+        .call(d3.axisLeft(yScale).tickFormat((d) => `${d} ms`));
     }
   }
 

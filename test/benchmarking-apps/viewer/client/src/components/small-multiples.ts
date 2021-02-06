@@ -6,7 +6,7 @@ import { actions, Margin, round } from '../shared/utils';
 import css from './small-multiples.css';
 import template from './small-multiples.html';
 
-const margin = new Margin(40, 30, 50, 40);
+const margin = new Margin(40, 30, 50, 45);
 const width = 500;
 const height = 150;
 
@@ -65,9 +65,9 @@ export class SmallMultiples {
           .enter()
           .append('rect')
           .attr('x', function (d) { return xScale(identifier(d)); })
-          .attr('y', function (d) { return height - yScale(getDuration(d)) - margin.bottom; })
+          .attr('y', function (d) { return yScale(getDuration(d)); })
           .attr('width', xScale.bandwidth())
-          .attr('height', function (d) { return yScale(getDuration(d)); })
+          .attr('height', function (d) { return height - yScale(getDuration(d))  - margin.bottom; })
           .attr('fill', actionObj.color)
           .append('title')
           .text(function (d) { return `${round(getDuration(d))} ms`; });
@@ -79,7 +79,7 @@ export class SmallMultiples {
         svg.append('g')
           .classed('y-axis', true)
           .attr('transform', `translate(${margin.left}, 0)`)
-          .call(d3.axisLeft(yScale).ticks(5));
+          .call(d3.axisLeft(yScale).ticks(5).tickFormat((d) => `${d.toString()} ms`));
         svg.append('text')
           .attr('x', margin.left)
           .attr('y', height - margin.bottom / 3)

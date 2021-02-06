@@ -8,7 +8,7 @@ description: >-
 
 Aurelia as a default convention works on the premise of a view and view-model, both of which are tied together. The view-model is where your business logic lives and, if you have ever worked with .NET before \(or other frameworks\), you might refer to this as the controller.
 
-In the previous section, we briefly spoke about `my-app(.ts/.js)` -- which is where your business logic lives. If you open it up in a code editor, you will see there is not much going on there.
+Navigate to the `src` directory where your application code lives and open up the `my-app(.ts/.js` file. This is  the main entry point for the application and this file is where business logic would live. As you can see, there is not a lot going on at the moment.
 
 ```text
 export class MyApp {

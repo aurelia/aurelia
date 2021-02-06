@@ -1,10 +1,12 @@
 import { Measurement } from '@benchmarking-apps/test-result';
-import { bindable, customElement, ILogger } from 'aurelia';
+import { bindable, customElement, ILogger, shadowCSS } from 'aurelia';
 import { AvgMeasurement, DenormalizedMeasurement } from '../shared/data';
 import { VersionedItem } from '../shared/utils';
+import css from './by-browsers.css';
 import template from './by-browsers.html';
 import { SmallMultiples } from './small-multiples';
 import { StackedBars } from './stacked-bars';
+import svg from './caret-down-solid.svg';
 
 type IMeasurement = Measurement | AvgMeasurement | DenormalizedMeasurement;
 @customElement({
@@ -12,6 +14,7 @@ type IMeasurement = Measurement | AvgMeasurement | DenormalizedMeasurement;
   template,
   shadowOptions: { mode: 'open' },
   dependencies: [
+    shadowCSS(css),
     StackedBars,
     SmallMultiples,
   ],
@@ -24,6 +27,7 @@ export class ByBrowsers {
   private readonly totalDurationFn: (m: IMeasurement) => number = function (m) { return m.totalDuration; };
   private browsers: VersionedItem[];
   private activeBrowser: VersionedItem | undefined;
+  private readonly caretDownData: string = svg;
 
   public constructor(
     @ILogger private readonly logger: ILogger,

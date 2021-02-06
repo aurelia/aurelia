@@ -11,12 +11,12 @@
   align-items: flex-start;
   border: 1px solid gray;
   border-radius: 0.25rem;
-  padding: 1.2rem;
-  margin: 1rem;
+  padding: 0.75rem;
+  margin: 0.75rem;
 }
 
 button {
-  font-size: medium;
+  font-size: small;
   padding: 0.3rem 0.4rem;
   border-radius: 0.25rem;
   border-color: rgba(0, 0, 0, 0.5);
@@ -44,7 +44,7 @@ button:hover {
   flex: 1;
 }
 
-.input-group h4 {
+.input-group h5 {
   margin-block-start: 0;
   margin-block-end: 0.5rem;
 }

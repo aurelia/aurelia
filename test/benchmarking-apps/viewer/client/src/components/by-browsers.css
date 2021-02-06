@@ -1,0 +1,68 @@
+/* source: https://stackoverflow.com/a/56560979/2270340 */
+select::-ms-expand {
+  display: none;
+}
+
+select {
+  --side: 1rem;
+  width: fit-content;
+  display: inline-block;
+  box-sizing: border-box;
+  padding: 0.2rem 2rem 0.2rem 0.2rem;
+  border: 1px solid gray;
+  border-radius: 0.25rem;
+  font: inherit;
+  line-height: inherit;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  background-repeat: no-repeat;
+  background-image: var(--image-url);
+  background-position: right calc(var(--side) /2) center;
+  background-size: var(--side) var(--side);
+}
+
+/* source: https://dev.to/kallmanation/styling-a-radio-button-with-only-css-4llc */
+label>input[type="radio"] {
+  display: none;
+}
+
+label>input[type="radio"]+* {
+  vertical-align: middle;
+}
+
+label>input[type="radio"]+*::before {
+  --size: 1rem;
+  content: "";
+  display: inline-block;
+  vertical-align: middle;
+  width: var(--size);
+  height: var(--size);
+  margin-right: 0.3rem;
+  border-radius: 50%;
+  border: 1px solid gray;
+}
+
+label>input[type="radio"]:checked+*::before {
+  --color: rgb(51, 51, 51);
+  background: radial-gradient(circle at center, var(--color) 0%, var(--color) 40%, transparent 42%, transparent);
+  border-color: var(--color);
+}
+
+.container {
+  display: flex;
+  column-gap: 2rem;
+  font-size: small;
+  padding-left: 1rem;
+}
+
+.container>.input {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.container>.input>label:first-of-type {
+  font-size: larger;
+}

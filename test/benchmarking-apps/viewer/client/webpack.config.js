@@ -33,6 +33,7 @@ module.exports = function (env, { mode }) {
         { test: /\.css$/i, loader: 'css-loader' },
         { test: /\.ts$/i, loader: 'ts-loader' },
         { test: /\.html$/i, loader: 'html-loader' },
+        { test: /\.(png|jpg|gif|svg)$/i, use: [{ loader: 'url-loader', options: { limit: 4096 } }] },
       ],
     },
     plugins: [

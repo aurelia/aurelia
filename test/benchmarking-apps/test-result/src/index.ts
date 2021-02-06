@@ -1,5 +1,5 @@
 function roundDurationMs(val: number) { return Math.round(val * 1e3) / 1e3; }
-export const browserTypes = ['chromium', 'firefox'/* , 'webkit' */] as const; // TODO: Enable the rest as soon as the container image (in CI) is fixed.
+export const browserTypes = ['chromium'/* , 'firefox', 'webkit' */] as const; // TODO: Enable the rest as soon as the container image (in CI) is fixed.
 
 export type BrowserType = typeof browserTypes[number];
 

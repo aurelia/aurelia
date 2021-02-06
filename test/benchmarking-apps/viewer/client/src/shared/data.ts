@@ -29,7 +29,11 @@ export class Api {
     }
     const qs = query.toString();
 
-    const items = await (await this.http.get(`measurements/latest${qs ? `?${qs}` : ''}`)).json() as BenchmarkMeasurements;
+    const response = await this.http.get(`measurements/latest${qs ? `?${qs}` : ''}`);
+    if (!response.ok) {
+      throw new Error('Error fetching data');
+    }
+    const items = await response.json() as BenchmarkMeasurements;
     const data = BenchmarkMeasurements.create(items, localOnly);
     this.logger.debug(`getLatest()`, data);
     return data;
@@ -264,7 +268,7 @@ export class AvgMeasurement {
   }
 }
 
-export class  DenormalizedMeasurement {
+export class DenormalizedMeasurement {
   public readonly id: string;
   public readonly branch: string;
   public readonly commit: string;

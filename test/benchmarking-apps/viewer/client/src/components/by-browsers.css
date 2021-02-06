@@ -21,18 +21,23 @@ select {
   background-image: var(--image-url);
   background-position: right calc(var(--side) /2) center;
   background-size: var(--side) var(--side);
+  cursor: pointer;
+}
+
+.radio-label {
+  cursor: pointer;
 }
 
 /* source: https://dev.to/kallmanation/styling-a-radio-button-with-only-css-4llc */
-label>input[type="radio"] {
+.radio-label>input[type="radio"] {
   display: none;
 }
 
-label>input[type="radio"]+* {
+.radio-label>input[type="radio"]+* {
   vertical-align: middle;
 }
 
-label>input[type="radio"]+*::before {
+.radio-label>input[type="radio"]+*::before {
   --size: 1rem;
   content: "";
   display: inline-block;
@@ -44,7 +49,7 @@ label>input[type="radio"]+*::before {
   border: 1px solid gray;
 }
 
-label>input[type="radio"]:checked+*::before {
+.radio-label>input[type="radio"]:checked+*::before {
   --color: rgb(51, 51, 51);
   background: radial-gradient(circle at center, var(--color) 0%, var(--color) 40%, transparent 42%, transparent);
   border-color: var(--color);

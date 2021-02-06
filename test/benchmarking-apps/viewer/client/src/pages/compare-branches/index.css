@@ -3,6 +3,7 @@
   height: 100%;
   width: 100%;
   overflow: auto;
+  padding: 0.75rem;
 }
 
 .container {
@@ -12,7 +13,6 @@
   border: 1px solid gray;
   border-radius: 0.25rem;
   padding: 0.75rem;
-  margin: 0.75rem;
 }
 
 button {
@@ -21,6 +21,7 @@ button {
   border-radius: 0.25rem;
   border-color: rgba(0, 0, 0, 0.5);
   box-shadow: none;
+  cursor: pointer;
 }
 
 button:hover {
@@ -68,13 +69,13 @@ button:hover {
 
 .validation-message {
   display: block;
-  color: #990000;
+  color: rgba(153, 0, 0, 1);
   min-height: 1.2rem;
   font-size: small;
   margin-bottom: 0.25rem;
 }
 
-.validation-message:last-of-type{
+.validation-message:last-of-type {
   margin-bottom: 0;
 }
 
@@ -84,4 +85,29 @@ button:hover {
 
 .validation-message[data-visible=true] {
   visibility: visible;
+}
+
+error-info>div:first-of-type {
+  border: 1px solid rgba(153, 0, 0, 0.9);
+  background-color: rgba(153, 0, 0, 0.2);
+  margin: 0.5rem 0;
+  padding: 0.25rem;
+  color: rgba(153, 0, 0, 1);
+  border-radius: 0.25rem;
+  display: flex;
+  flex-wrap: nowrap;
+}
+
+error-info .commit {
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  cursor: pointer;
+}
+
+error-info .gutter {
+  flex: 1;
+}
+
+error-info .close {
+  cursor: pointer;
 }

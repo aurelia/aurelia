@@ -20,6 +20,7 @@ export class CompareBranches {
   private readonly candidate2: Candidate = new Candidate(this.api);
   private dataset: DenormalizedMeasurement[];
   private areSameCandidates: boolean = false;
+  private readonly CandidateError: typeof CandidateError = CandidateError;
 
   public constructor(
     @IApi private readonly api: IApi,
@@ -59,6 +60,12 @@ export class CompareBranches {
     const candidate1 = this.candidate1;
     const candidate2 = this.candidate2;
     const [data1, data2] = await Promise.all([candidate1.fetchData(), candidate2.fetchData()]);
+
+    if (data1 === null || data2 === null) {
+      this.logger.warn(`Cannot compare branches. Data for one of the candidate is not available.`);
+      return;
+    }
+
     this.dataset = [
       ...data1.measurements.map(m => new DenormalizedMeasurement(m, data1)),
       ...data2.measurements.map(m => new DenormalizedMeasurement(m, data2))
@@ -100,7 +107,7 @@ class Candidate {
       const c2 = that.commit;
       if (c1 === c2) {
         return true;
-      } else if ((c1?.substring(0, 8) ?? '') === (c2?.substring(0, 8) ?? '')) {
+      } else if ((c1?.substring(0, 7) ?? '') === (c2?.substring(0, 7) ?? '')) {
         return true;
       }
     }
@@ -119,7 +126,6 @@ class Candidate {
     }
     try {
       this.data = await this.api.getLatest(branch, commit, true);
-      this.error = null;
     } catch {
       if (commit !== void 0) {
         this.error = CandidateError.commitNotFound;
@@ -131,6 +137,7 @@ class Candidate {
   }
 
   private reset() {
+    this.error = null;
     this.data = null;
   }
 }

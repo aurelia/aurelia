@@ -37,7 +37,7 @@ export const actions: Record<WritableMeasurementKeys, Action> = {
   'durationFilter': new Action('Filter data', d3.schemeCategory10[6]),
   'durationSelectFirst': new Action('Select first row', d3.schemeCategory10[7]),
   'durationDeleteFirst': new Action('Delete first row', d3.schemeCategory10[8]),
-  'durationDeleteAll': new Action('Delete all row', d3.schemeCategory10[9]),
+  'durationDeleteAll': new Action('Delete all rows', d3.schemeCategory10[9]),
 };
 
 // // If we are interpolating on the spectral scale (refer: https://github.com/d3/d3-scale-chromatic/blob/master/README.md#interpolateSpectral).

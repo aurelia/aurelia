@@ -71,3 +71,29 @@ select {
 .container>.input>label:first-of-type {
   font-size: larger;
 }
+
+details {
+  /* border: 1px solid #aaa; */
+  /* border-radius: 4px; */
+  padding: .5rem .5rem 0;
+}
+
+summary {
+  font-weight: bold;
+  margin: -.5rem -.5rem 0;
+  padding: .5rem;
+}
+
+details[open] {
+  padding: .5rem;
+  border-bottom: 1px solid gray;
+}
+
+details[open] summary {
+  border-bottom: 1px solid gray;
+  margin-bottom: .5rem;
+}
+
+summary:focus {
+  outline: none;
+}

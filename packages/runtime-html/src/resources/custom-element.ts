@@ -243,11 +243,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
     public readonly projectionsMap: Map<IInstruction, IProjections>,
     public readonly watches: IWatchDefinition[],
     public readonly processContent: ProcessContentHook | null,
-  ) {
-
-    console.log(template);
-
-  }
+  ) {}
 
   public static create<T extends Constructable = Constructable>(
     def: PartialCustomElementDefinition,

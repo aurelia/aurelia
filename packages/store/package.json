@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/store",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "main": "dist/esm/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/index.d.ts",
@@ -38,9 +38,9 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "0.8.0",
-    "@aurelia/metadata": "0.8.0",
-    "@aurelia/platform": "0.8.0",
+    "@aurelia/kernel": "0.9.0",
+    "@aurelia/metadata": "0.9.0",
+    "@aurelia/platform": "0.9.0",
     "rxjs": "^6.5.3"
   },
   "devDependencies": {

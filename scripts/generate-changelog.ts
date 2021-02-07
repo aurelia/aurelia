@@ -180,7 +180,7 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
   const newContent = standardHeader + newChangeLog + currentAnchor + (currentParts[1] || '');
   writeFileSync(project.changelog.path, newContent, { encoding: 'utf8' });
 
-  for (const pkg of project.packages.filter(p => p.folder === 'packages')) {
+  for (const pkg of project.packages.filter(p => p.folder.includes('packages'))) {
     let existingChangeLog = '';
     if (existsSync(pkg.changelog)) {
       const currentPkgChangelog = readFileSync(pkg.changelog, { encoding: 'utf8' });

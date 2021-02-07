@@ -4,7 +4,7 @@ description: The basics of templating in Aurelia.
 
 # Template Syntax
 
-Aurelia uses an intuitive HTML-based template syntax which is spec compliant. By leveraging a reactive binding approach without the overhead of a Virtual DOM, Aurelia allows you to write expressive and fast reactive user interfaces.
+Aurelia uses an intuitive HTML-based template syntax which is spec-compliant. By leveraging a reactive binding approach without the overhead of a Virtual DOM, Aurelia allows you to write expressive and fast reactive user interfaces.
 
 ### Interpolation
 

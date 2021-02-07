@@ -1,4 +1,4 @@
-import { newInstanceForScope } from '@aurelia/kernel';
+import { IPlatform, newInstanceForScope } from '@aurelia/kernel';
 import { IValidationRules } from '@aurelia/validation';
 import { IValidationController } from '@aurelia/validation-html';
 import { customElement, ILogger, Params, RouteNode, shadowCSS } from 'aurelia';
@@ -25,6 +25,7 @@ export class CompareBranches {
     @ILogger private readonly logger: ILogger,
     @newInstanceForScope(IValidationController) private readonly controller: IValidationController,
     @IValidationRules private readonly validationRules: IValidationRules,
+    @IPlatform private readonly platform: IPlatform,
   ) {
     this.logger = logger.scopeTo('CompareBranches');
     this.applyValidationRules();
@@ -45,13 +46,20 @@ export class CompareBranches {
   private async compare() {
     this.areSameCandidates = false;
     const controller = this.controller;
+    const c1 = this.candidate1;
+    const c2 = this.candidate2;
     if (
       !(await controller.validate()).valid
-      || (this.areSameCandidates = this.candidate1.isEqual(this.candidate2))
+      || (this.areSameCandidates = c1.isEqual(c2))
     ) {
       return;
     }
     await this.fetchData();
+    const p = this.platform.globalThis;
+    const newLocation = new URL(p.location.href);
+    newLocation.search = new URLSearchParams([['branch', c1.branch], ['commit', c1.data.commit], ['branch', c2.branch], ['commit', c2.data.commit]]).toString();
+    p.globalThis.history.pushState(null, "", newLocation.toString());
+
   }
 
   private async fetchData() {

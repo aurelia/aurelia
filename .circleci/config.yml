@@ -358,9 +358,10 @@ jobs:
       - run: master_commit=$(git rev-parse HEAD)
       - run:
           name: "Prepare cosmos db configuration and run test for the master branch"
+          # TODO(Sayan): remove the duplication of config, which was done for backward compatibility, and can be removed once PR #1094 is merged with master.
           command: |
             cd test/benchmarking-apps/runner
-            echo "{\"cosmosEndpoint\": \"https://aurelia.documents.azure.com:443/\",\"cosmosKey\": \"$AZURE_COSMOS_DB_KEY\"}" > cosmos.config.json
+            echo "{\"cosmosEndpoint\": \"https://aurelia.documents.azure.com:443/\",\"cosmosKey\": \"$AZURE_COSMOS_DB_KEY\", \"endpoint\": \"https://aurelia.documents.azure.com:443/\",\"key\": \"$AZURE_COSMOS_DB_KEY\"}" > cosmos.config.json
             set -o pipefail && node dist/run-benchmarks --i 10 --storage cosmos
       - run: cd ../../../
       - checkout_install

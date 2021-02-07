@@ -59,10 +59,10 @@ describe('template-decorator', function () {
 
   describe('Simple inline using inlineView with dependencies', function () {
 
-    @template('<div>Inner Test</div>')
+    @inlineView('<div>Inner Test</div>')
     class InnerSimple { }
 
-    @template('<div><inner></inner></div>', [CustomElement.define('inner', InnerSimple)])
+    @inlineView('<div><inner></inner></div>', [CustomElement.define('inner', InnerSimple)])
     class Simple {
     }
 

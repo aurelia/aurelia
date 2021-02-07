@@ -1,3 +1,4 @@
+import { observable } from '@aurelia/runtime';
 import { BenchmarkMeasurements, BrowserType, Measurement, totalDuration } from '@benchmarking-apps/test-result';
 import { DI, IHttpClient, ILogger, PLATFORM } from 'aurelia';
 
@@ -307,5 +308,59 @@ export class DenormalizedMeasurement {
       if (!key.startsWith('duration') || value === void 0) { continue; }
       this[key] = value;
     }
+  }
+}
+
+export enum BenchmarkContextErrors {
+  commitNotFound,
+  branchNotFound,
+}
+
+export class BenchmarkContext {
+  @observable({ callback: 'reset' }) public branch: string | undefined;
+  @observable({ callback: 'reset' }) public commit: string | undefined;
+  public error: BenchmarkContextErrors | null = null;
+  public data: BenchmarkMeasurements | null = null;
+
+  public constructor(
+    private readonly api: IApi,
+    private readonly localOnly: boolean,
+  ) { }
+
+  public isEqual(that: BenchmarkContext): boolean {
+    if (this.branch === that.branch) {
+      const c1 = this.commit;
+      const c2 = that.commit;
+      if (c1 === c2) {
+        return true;
+      } else if ((c1?.substring(0, 7) ?? '') === (c2?.substring(0, 7) ?? '')) {
+        return true;
+      }
+    }
+    // At this point either we have different branches or 2 commits those are sufficiently different for same branch.
+    return false;
+  }
+
+  public async fetchData(): Promise<BenchmarkMeasurements | null> {
+    await this.$fetchData(this.branch, this.commit);
+    return this.data;
+  }
+
+  private async $fetchData(branch: string, commit?: string) {
+    try {
+      this.data = await this.api.getLatest(branch, commit, this.localOnly);
+    } catch {
+      if (commit !== void 0) {
+        this.error = BenchmarkContextErrors.commitNotFound;
+        await this.$fetchData(branch);
+      } else if (branch !== void 0) {
+        this.error = BenchmarkContextErrors.branchNotFound;
+      }
+    }
+  }
+
+  private reset() {
+    this.error = null;
+    this.data = null;
   }
 }

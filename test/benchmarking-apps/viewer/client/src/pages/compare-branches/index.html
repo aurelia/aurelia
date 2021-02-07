@@ -43,27 +43,6 @@
   </div>
 </form>
 
-<error-info candidate.bind="candidate1" show-error.to-view="candidate1.error !== null" candidate-error.bind="CandidateError"></error-info>
-<error-info candidate.bind="candidate2" show-error.to-view="candidate2.error !== null" candidate-error.bind="CandidateError"></error-info>
+<error-info context.bind="candidate1" show-error.to-view="candidate1.error !== null"></error-info>
+<error-info context.bind="candidate2" show-error.to-view="candidate2.error !== null"></error-info>
 <by-browsers if.bind="dataset" dataset.bind show-average.bind="false"></by-browsers>
-
-<template as-custom-element="error-info">
-  <bindable property="candidate"></bindable>
-  <bindable property="CandidateError" attribute="candidate-error"></bindable>
-  <bindable property="showError"></bindable>
-
-  <div if.bind="showError">
-    <div switch.bind="candidate.error">
-      <template case.bind="CandidateError.commitNotFound">
-        The commit <i title.bind="candidate.commit" class="commit">${candidate.commit.substring(0, 7)}</i> for the branch '${candidate.branch}' was not found.
-        The latest benchmarking record for the branch has been fetched.
-      </template>
-      <template case.bind="CandidateError.branchNotFound">
-        Any benchmarking data for the branch '${candidate.branch}' was not found.
-        Try a different branch
-      </template>
-    </div>
-    <span class="gutter"></span>
-    <span class="close" click.delegate="showError = false">&#215;</span>
-  </div>
-</template>

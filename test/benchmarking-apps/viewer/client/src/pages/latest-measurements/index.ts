@@ -1,18 +1,41 @@
 import { BenchmarkMeasurements } from '@benchmarking-apps/test-result';
-import { customElement, ILogger } from 'aurelia';
+import { customElement, ILogger, Params, RouteNode, shadowCSS, valueConverter } from 'aurelia';
 import { ByBrowsers } from '../../components/by-browsers';
-import { IApi } from '../../shared/data';
+import { BenchmarkContext, IApi } from '../../shared/data';
 import template from './index.html';
+import css from './index.css';
+import { ErrorInfo } from '../../components/error-info';
+
+// Because ts-loader surprisingly yells about `'dateStyle' does not exist in type 'DateTimeFormatOptions'.`, even though vscode is at peace with it.
+// Adding the "ESNext.Intl", "ES2018.Intl" libs to tsconfig didn't help.
+interface DateTimeFormatOptions extends Intl.DateTimeFormatOptions {
+  dateStyle?: 'full' | 'long' | 'medium' | 'short';
+}
+
+@valueConverter('time')
+class TimeValueConverter {
+  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+  private static readonly formatter = new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'medium' } as DateTimeFormatOptions);
+  public toView(data: BenchmarkMeasurements): string {
+    const tsStart = new Date(data.ts_start);
+    const tsEnd = new Date(data.ts_end);
+    return `${TimeValueConverter.formatter.format(tsEnd)} (duration: ${tsEnd.getTime() - tsStart.getTime()} ms)`;
+  }
+}
 
 @customElement({
   name: 'latest-measurements',
   template,
   shadowOptions: { mode: 'open' },
   dependencies: [
+    shadowCSS(css),
+    TimeValueConverter,
     ByBrowsers,
+    ErrorInfo,
   ],
 })
 export class LatestMeasurements {
+  private readonly context: BenchmarkContext = new BenchmarkContext(this.api, false);
   private data: BenchmarkMeasurements;
   public constructor(
     @IApi private readonly api: IApi,
@@ -21,8 +44,11 @@ export class LatestMeasurements {
     this.logger = logger.scopeTo('LatestMeasurements');
   }
 
-  public async binding(): Promise<void> {
-    this.logger.debug('binding()');
-    this.data = await this.api.getLatest();
+  public async load(_: Params, node: RouteNode): Promise<void> {
+    const query = node.queryParams;
+    const context = this.context;
+    context.branch = query.get('branch') ?? undefined;
+    context.commit = query.get('commit') ?? undefined;
+    this.data = await context.fetchData();
   }
 }

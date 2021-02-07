@@ -20,7 +20,7 @@ async function main() {
   const metadata = {
     ts_start: Date.now(),
     ts_end: 0,
-    branch: await execSafe('git branch --show-current', process.env.CIRCLE_BRANCH || ''),
+    branch: await execSafe('git rev-parse --abbrev-ref HEAD', process.env.CIRCLE_BRANCH || ''),
     commit: await execSafe('git rev-parse HEAD', ''),
   };
 

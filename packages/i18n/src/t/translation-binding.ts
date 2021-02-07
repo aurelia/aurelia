@@ -163,7 +163,11 @@ export class TranslationBinding implements IPartialConnectableBinding {
         : newValue as string;
     this.obs.clear(false);
     this.ensureKeyExpression();
-    this.queueUpdate(flags);
+    if (/* should queue update if not during fromBind */(flags & LifecycleFlags.fromBind) === 0) {
+      this.queueUpdate(flags);
+    } else {
+      this.updateTranslations(flags);
+    }
   }
 
   public handleLocaleChange() {
@@ -178,11 +182,12 @@ export class TranslationBinding implements IPartialConnectableBinding {
   }
 
   private queueUpdate(flags: LifecycleFlags) {
-    this.task?.cancel();
+    const task = this.task;
     this.task = this.platform.domWriteQueue.queueTask(() => {
       this.task = null;
       this.updateTranslations(flags);
     }, taskQueueOpts);
+    task?.cancel();
   }
 
   private updateTranslations(flags: LifecycleFlags) {

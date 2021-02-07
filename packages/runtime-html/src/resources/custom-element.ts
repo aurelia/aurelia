@@ -108,10 +108,10 @@ export type CustomElementKind = IResourceKind<CustomElementType, CustomElementDe
    */
   for<C extends ICustomElementViewModel = ICustomElementViewModel>(node: Node, opts: { optional: true }): ICustomElementController<C> | null;
   isType<C>(value: C): value is (C extends Constructable ? CustomElementType<C> : never);
-  define<C extends Constructable>(name: string, Type: C): CustomElementType<C>;
-  define<C extends Constructable>(def: PartialCustomElementDefinition, Type: C): CustomElementType<C>;
-  define<C extends Constructable>(def: PartialCustomElementDefinition, Type?: null): CustomElementType<C>;
-  define<C extends Constructable>(nameOrDef: string | PartialCustomElementDefinition, Type: C): CustomElementType<C>;
+  define<C extends Constructable >(name: string, Type: C): CustomElementType<C>;
+  define<C extends Constructable >(def: PartialCustomElementDefinition, Type: C): CustomElementType<C>;
+  define<C extends Constructable >(def: PartialCustomElementDefinition, Type?: null): CustomElementType<C>;
+  define<C extends Constructable >(nameOrDef: string | PartialCustomElementDefinition, Type: C): CustomElementType<C>;
   getDefinition<C extends Constructable>(Type: C): CustomElementDefinition<C>;
   annotate<K extends keyof PartialCustomElementDefinition>(Type: Constructable, prop: K, value: PartialCustomElementDefinition[K]): void;
   getAnnotation<K extends keyof PartialCustomElementDefinition>(Type: Constructable, prop: K): PartialCustomElementDefinition[K];
@@ -549,13 +549,13 @@ export const CustomElement: CustomElementKind = {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const defaultProto = {} as any;
 
-    return function <P extends {} = {}>(
+    return function <P extends {} = {}> (
       name: string,
       proto: P = defaultProto,
     ): CustomElementType<Constructable<P>> {
       // Anonymous class ensures that minification cannot cause unintended side-effects, and keeps the class
       // looking similarly from the outside (when inspected via debugger, etc).
-      const Type = class { } as CustomElementType<Constructable<P>>;
+      const Type = class {} as CustomElementType<Constructable<P>>;
 
       // Define the name property so that Type.name can be used by end users / plugin authors if they really need to,
       // even when minified.

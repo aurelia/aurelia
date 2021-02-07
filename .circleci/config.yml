@@ -352,10 +352,10 @@ jobs:
     steps:
       - checkout
       - run: git checkout master
-      - run: echo $CIRCLE_BRANCH
+      - run: master_commit=$(git rev-parse HEAD)
+      - run: CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
       - run: npm ci
       - run: npm run build
-      - run: master_commit=$(git rev-parse HEAD)
       - run:
           name: "Prepare cosmos db configuration and run test for the master branch"
           # TODO(Sayan): remove the duplication of config, which was done for backward compatibility, and can be removed once PR #1094 is merged with master.
@@ -365,7 +365,6 @@ jobs:
             set -o pipefail && node dist/run-benchmarks --i 10 --storage cosmos
       - run: cd ../../../
       - checkout_install
-      - run: echo $CIRCLE_BRANCH
       - run: npm run build
       - run:
           name: "Run test for the current branch"
@@ -385,7 +384,7 @@ jobs:
             else
               pr_comment_url=$(echo $pr_response | jq -r ".[]._links.comments.href")
 
-              comparison_url="https://au2-bench-viewer.azurewebsites.net/compare?branch=master&commit=$master_commit&branch=$CIRCLE_BRANCH&commit=$CIRCLE_SHA1
+              comparison_url="https://au2-bench-viewer.azurewebsites.net/compare?branch=master&commit=$master_commit&branch=$CIRCLE_BRANCH&commit=$CIRCLE_SHA1"
               curl --location --request POST "$pr_comment_url" \
               -u $GH_USER:$GH_API \
               --header 'Content-Type: application/json' \

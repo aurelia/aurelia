@@ -354,7 +354,7 @@ jobs:
       - run: git checkout master
       - run: npm ci
       - run: npm run build
-      - run: master_commit=git rev-parse HEAD
+      - run: master_commit=$(git rev-parse HEAD)
       - run:
           name: "Prepare cosmos db configuration and run test for the master branch"
           command: |

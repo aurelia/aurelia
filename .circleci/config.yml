@@ -390,9 +390,9 @@ jobs:
               curl --location --request POST "$pr_comment_url" \
               -H 'Content-Type: application/json' \
               -H "Authorization: token $GITHUB_TOKEN" \
-              --data-raw '{
-              "body": "The benchmarking comparison can be found here: $comparison_url"
-              }'
+              --data-raw "{
+              \"body\": \"The benchmarking comparison can be found here: $comparison_url\"
+              }"
             fi
 
 # # # # # # # # # # # # # # # #

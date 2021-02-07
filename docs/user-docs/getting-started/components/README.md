@@ -20,7 +20,7 @@ Components in Aurelia follow the Model-View-ViewModel design pattern \(a descend
 
 ### The Basics
 
-To define a component, you only need to create your JavaScript or TypeScript file with the same name as your HTML file. By convention, Aurelia will recognize these as the view-model and view of a component, and will assemble them for you. Here's an example of a simple "hello world" component:
+To define a component, you only need to create your JavaScript or TypeScript file with the same name as your HTML file. By convention, Aurelia will recognize these as the view-model and view of a component and will assemble them for you. Here's an example of a simple "hello world" component:
 
 {% tabs %}
 {% tab title="say-hello.ts" %}
@@ -39,6 +39,8 @@ export class SayHello {
 
 {% tab title="my-app.html" %}
 ```markup
+<import from="./say-hello"></import>
+
 <say-hello></say-hello>
 ```
 {% endtab %}
@@ -71,6 +73,8 @@ export class SayHello {
 
 {% tab title="my-app.html" %}
 ```markup
+<import from="./say-hello"></import>
+
 <say-hello to="John"></say-hello>
 ```
 {% endtab %}
@@ -111,6 +115,8 @@ export class SayHello {
 
 {% tab title="my-app.html" %}
 ```markup
+<import from="./say-hello"></import>
+
 <say-hello to="John"></say-hello>
 ```
 {% endtab %}
@@ -126,7 +132,7 @@ Interested to learn more about how you can display data with Aurelia's templatin
 
 ### Component Registration
 
-By default, components you create aren't global. What that means is that you can't use a component within another component, unless that component has been imported. Let's imagine that our "say-hello" component wants to use a "name-tag" component internally. To do that, we need to add an import in our view. Here's how that works:
+By default, the components you create aren't global. What that means is that you can't use a component within another component, unless that component has been imported. Let's imagine that our "say-hello" component wants to use a "name-tag" component internally. To do that, we need to add an import in our view. Here's how that works:
 
 {% tabs %}
 {% tab title="say-hello.html" %}
@@ -155,6 +161,8 @@ export class SayHello {
 
 {% tab title="app.html" %}
 ```markup
+<import from="./say-hello"></import>
+
 <say-hello to="John"></say-hello>
 ```
 {% endtab %}
@@ -162,7 +170,7 @@ export class SayHello {
 
 In practice, most people want to side-step this feature and make most of their general-purpose components global, so they can remove the majority of their imports. To make a component global, simply register it with the application's root dependency injection container at startup:
 
-{% code title="mail.ts" %}
+{% code title="main.ts" %}
 ```typescript
 import Aurelia from 'aurelia';
 import { App } from './app';
@@ -262,7 +270,7 @@ We highly recommend that you leverage conventions where possible. A few benefits
 
 ## The Component Lifecycle
 
-Learn more about the [component lifecycle here](./component-lifecycles.md)
+Learn more about the [component lifecycle here](component-lifecycles.md)
 
 ### Component Constructors
 
@@ -291,6 +299,8 @@ If you need access to a DOM element from within your view, rather than the host,
 ## So Much More...
 
 So far, we've only scratched the surface of what Aurelia's component system can do. If you'd like to continue on to additional component scenarios, including component composition, Shadow DOM and slots, HTML-only components, and more, you can pick up from here in our Component Basics articles:
-- [Local Templates](./local-templates.md).
-- [Watching data](./watching-data.md).
-- [Components Revisited](../app-basics/components-revisited.md).
+
+* [Local Templates](local-templates.md).
+* [Watching data](watching-data.md).
+* [Components Revisited](https://github.com/aurelia/aurelia/tree/5dcb1613039f0fa4f97d0114cc47cc7a66f04425/docs/user-docs/getting-started/app-basics/components-revisited.md).
+

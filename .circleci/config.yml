@@ -98,6 +98,7 @@ commands:
       - run: npm run change-tsconfigs:invert
       - run: npm run build:release
       - run: npm run change-tsconfigs:restore
+      - run: npm run generate-native-modules
       - clean_merge_commit_dist:
           from: << parameters.from >>
           to: << parameters.to >>
@@ -219,6 +220,7 @@ jobs:
     executor: docker-circleci
     steps:
       - checkout_install
+      - run: npm run build
       - run: npm run lint:packages:ci
       - run: npm run lint:other:ci
 
@@ -249,6 +251,7 @@ jobs:
       - run: set -o pipefail && npm run change-tsconfigs:invert
       - run: set -o pipefail && npm run build:release
       - run: set -o pipefail && npm run change-tsconfigs:restore
+      - run: set -o pipefail && npm run generate-native-modules
       - clean_merge_commit_dist:
           from: << parameters.from >>
           to: << parameters.to >>

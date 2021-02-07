@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "experimentalDecorators": true,
+    "lib": [
+      "esnext",
+      "dom"
+    ],
+    "module": "esnext",
+    "moduleResolution": "node",
+    "skipLibCheck": true,
+    "strict": true,
+    "rootDir": "../",
+    "outDir": "dist",
+    "target": "es2018",
+    "types": [
+      "aurelia",
+      "playwright",
+      "node",
+      "mocha"
+    ]
+  },
+  "include": [
+    "**/*.ts"
+  ]
+}

@@ -815,7 +815,7 @@ describe('app', function () {
           assert.html.computedStyle(cards2[0].querySelector('span'), { color: selectedDetailsColor }, 'incorrect selected color1 - container2');
 
           cards1[1].click();
-          await ctx.platform.domWriteQueue.yield();
+          ctx.platform.domWriteQueue.flush();
 
           assert.html.computedStyle(cards1[0], { backgroundColor: 'rgba(0, 0, 0, 0)' }, 'incorrect background1 - container1');
           assert.html.computedStyle(cards1[0].querySelector('span'), { color: 'rgb(0, 0, 0)' }, 'incorrect color1 - container1');
@@ -844,7 +844,7 @@ describe('app', function () {
       cardsVm.styleStr = 'background-color: rgb(0, 0, 255); border: 1px solid rgb(0, 255, 0)';
       cardsVm.styleObj = { 'background-color': 'rgb(0, 0, 255)', 'border': '1px solid rgb(0, 255, 0)' };
       cardsVm.styleArray = [{ 'background-color': 'rgb(0, 0, 255)' }, { 'border': '1px solid rgb(0, 255, 0)' }];
-      await ctx.platform.domWriteQueue.yield();
+      ctx.platform.domWriteQueue.flush();
 
       for (const id of ['bound-style-obj', 'bound-style-array', 'bound-style-str']) {
         const para = cardsEl.querySelector(`p#${id}`);
@@ -882,12 +882,12 @@ describe('app', function () {
       }
 
       heroes[0].imgSrc = undefined;
-      await ctx.platform.domWriteQueue.yield();
+      ctx.platform.domWriteQueue.flush();
       assert.equal(images[0].src, '', `expected null img src`);
 
       const imgSrc = "foobar.jpg";
       heroes[0].imgSrc = imgSrc;
-      await ctx.platform.domWriteQueue.yield();
+      ctx.platform.domWriteQueue.flush();
       assert.equal(images[0].src.endsWith(imgSrc), true, `incorrect img src`);
     }, { method, componentMode });
 
@@ -908,17 +908,17 @@ describe('app', function () {
 
       // self BB
       container.click();
-      await ctx.platform.domWriteQueue.yield();
+      ctx.platform.domWriteQueue.flush();
       assert.notEqual(vm.random, prev, 'new random expected1');
       assertAttr();
 
       prev = vm.random;
       button.click();
-      await ctx.platform.domWriteQueue.yield();
+      ctx.platform.domWriteQueue.flush();
       assert.equal(vm.random, prev, 'new random not expected');
 
       container.click();
-      await ctx.platform.domWriteQueue.yield();
+      ctx.platform.domWriteQueue.flush();
       assert.notEqual(vm.random, prev, 'new random expected2');
       assertAttr();
     }, { method, componentMode });

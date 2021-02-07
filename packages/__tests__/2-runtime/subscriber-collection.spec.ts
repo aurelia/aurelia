@@ -12,7 +12,7 @@ interface Test {
   subs: ISubscriberRecord<ISubscriber>;
 }
 
-describe('subscriberCollection', function () {
+describe('2-runtime/subscriber-collection.spec.ts', function () {
   it('calls subscribers', function () {
     const flags = LifecycleFlags.updateSource;
     const observer = new Test();

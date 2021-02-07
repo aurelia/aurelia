@@ -1,0 +1,35 @@
+<div class="auth-page">
+  <div class="container page">
+    <div class="row">
+
+      <div class="col-md-6 offset-md-3 col-xs-12">
+        <h1 class="text-xs-center">${C[mode].msg}</h1>
+        <p class="text-xs-center">
+          <a href.bind="C[mode].other.href">${C[mode].other.msg}</a>
+        </p>
+
+        <error-list errors.bind="$user.errors"></error-list>
+
+        <form submit.trigger="$event.preventDefault()">
+          <fieldset class="form-group" if.bind="mode === 'register'">
+            <input class="form-control form-control-lg" type="text" placeholder="Your Name" value.bind="username"
+              autocomplete="name" required name="username">
+          </fieldset>
+          <fieldset class="form-group">
+            <input class="form-control form-control-lg" type="text" placeholder="Email" value.bind="email"
+              autocomplete="email" required name="email">
+          </fieldset>
+          <fieldset class="form-group">
+            <input class="form-control form-control-lg" type="password" placeholder="Password" value.bind="password"
+              autocomplete="current-password" name="password">
+          </fieldset>
+          <button class="btn btn-lg btn-primary pull-xs-right" click.trigger="submit()" disabled.bind="!isValid"
+            data-e2e="submitBtn">
+            ${C[mode].msg}
+          </button>
+        </form>
+      </div>
+
+    </div>
+  </div>
+</div>

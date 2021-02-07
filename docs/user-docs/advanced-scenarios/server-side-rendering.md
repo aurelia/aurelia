@@ -1,4 +1,0 @@
-# Server-Side Rendering
-
-Placeholder...
-

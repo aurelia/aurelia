@@ -1,3 +1,8 @@
+declare const sourceMapSupport: { install(): void };
+if (typeof sourceMapSupport !== 'undefined') {
+  sourceMapSupport.install();
+}
+
 import { BrowserPlatform } from '@aurelia/platform-browser';
 import { $setup } from './setup-shared.js';
 

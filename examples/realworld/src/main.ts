@@ -1,37 +1,25 @@
-import { HttpClient } from '@aurelia/fetch-client';
-import { RouterConfiguration } from '@aurelia/router';
-import { Aurelia, StandardConfiguration } from '@aurelia/runtime-html';
+import Aurelia, { LoggerConfiguration, ConsoleSink, LogLevel, RouterConfiguration } from 'aurelia';
 
-import 'promise-polyfill/lib/polyfill'; // eslint-disable-line import/no-unassigned-import
+import { AppRootCustomElement } from './app-root';
+import * as GlobalResources from './_shared/index';
+import './style.css';
 
-import { App } from './app';
-import { Auth } from './components/auth/auth';
-import { DateValueConverter } from './resources/value-converters/date';
-import { FormatHtmlValueConverter } from './resources/value-converters/format-html';
-import { KeysValueConverter } from './resources/value-converters/keys';
-import { MarkdownHtmlValueConverter } from './resources/value-converters/markdown-html';
-import { SharedState } from './shared/state/shared-state';
+const au = new Aurelia();
 
-const globalResources = [
-  Auth,
+au.register(
+  LoggerConfiguration.create({
+    level: LogLevel.debug,
+    sinks: [ConsoleSink],
+  }),
+  RouterConfiguration.customize({
+    useUrlFragmentHash: false,
+  }),
+  GlobalResources,
+);
 
-  DateValueConverter,
-  FormatHtmlValueConverter,
-  KeysValueConverter,
-  MarkdownHtmlValueConverter,
+au.app({
+  component: AppRootCustomElement,
+  host: document.querySelector('app-root'),
+});
 
-  SharedState,
-  HttpClient,
-];
-
-void new Aurelia()
-  .register(
-    StandardConfiguration,
-    RouterConfiguration.customize({ useUrlFragmentHash: false, statefulHistoryLength: 3 }),
-    ...globalResources,
-  )
-  .app({
-    component: App,
-    host: document.querySelector('app')!,
-  })
-  .start();
+await au.start();

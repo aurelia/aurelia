@@ -312,3 +312,4 @@ class TaskQueue implements ITaskQueue {
 ```
 
 The callback that creates the default registration. This API looks nearly identical to the `Registration` DSL described above.
+

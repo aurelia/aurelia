@@ -511,6 +511,7 @@ function createTemplateController(ctx: TestContext, attr: string, target: string
         needsCompile: false,
         enhance: false,
         projectionsMap: new Map<IInstruction, IProjections>(),
+        processContent: null,
       },
       instructions: createTplCtrlAttributeInstruction(attr, value),
     };
@@ -525,6 +526,7 @@ function createTemplateController(ctx: TestContext, attr: string, target: string
       needsCompile: false,
       enhance: false,
       projectionsMap: new Map<IInstruction, IProjections>(),
+      processContent: null,
     } as unknown as PartialCustomElementDefinition;
     return [input, output];
   } else {
@@ -549,6 +551,7 @@ function createTemplateController(ctx: TestContext, attr: string, target: string
         needsCompile: false,
         enhance: false,
         projectionsMap: new Map<IInstruction, IProjections>(),
+        processContent: null,
       },
       instructions: createTplCtrlAttributeInstruction(attr, value),
     };
@@ -564,6 +567,7 @@ function createTemplateController(ctx: TestContext, attr: string, target: string
       needsCompile: false,
       enhance: false,
       projectionsMap: new Map<IInstruction, IProjections>(),
+      processContent: null,
     } as unknown as PartialCustomElementDefinition;
     return [input, output];
   }
@@ -605,6 +609,7 @@ function createCustomElement(
     enhance: false,
     projectionsMap: new Map<IInstruction, IProjections>(),
     watches: [],
+    processContent: null,
   };
   return [input, output];
 }
@@ -644,6 +649,7 @@ function createCustomAttribute(
     enhance: false,
     projectionsMap: new Map<IInstruction, IProjections>(),
     watches: [],
+    processContent: null,
   };
   return [input, output];
 }
@@ -761,6 +767,7 @@ describe(`TemplateCompiler - combinations`, function () {
           needsCompile: false,
           enhance: false,
           projectionsMap: new Map<IInstruction, IProjections>(),
+          processContent: null,
         };
 
         const { sut, container } = createFixture(ctx);
@@ -832,6 +839,7 @@ describe(`TemplateCompiler - combinations`, function () {
           enhance: false,
           projectionsMap: new Map<IInstruction, IProjections>(),
           watches: [],
+          processContent: null,
         };
 
         const $def = CustomAttribute.define(def, ctor);
@@ -1100,6 +1108,7 @@ describe(`TemplateCompiler - combinations`, function () {
           enhance: false,
           projectionsMap: new Map<IInstruction, IProjections>(),
           watches: [],
+          processContent: null,
         };
         // enableTracing();
         // Tracer.enableLiveLogging(SymbolTraceWriter);

@@ -1,24 +1,21 @@
-import {
-  Class,
-  IServiceLocator,
-  ResourceDefinition
-} from '@aurelia/kernel';
-import {
+import { LifecycleFlags, } from '../observation.js';
+import { def, defineHiddenProp, ensureProto } from '../utilities-objects.js';
+import { getArrayObserver } from '../observation/array-observer.js';
+import { getSetObserver } from '../observation/set-observer.js';
+import { getMapObserver } from '../observation/map-observer.js';
+
+import type { Class, IServiceLocator, ResourceDefinition } from '@aurelia/kernel';
+import type {
   IConnectable,
   ISubscribable,
   ISubscriber,
   IBinding,
-  LifecycleFlags,
   Collection,
   CollectionObserver,
   ICollectionSubscriber,
   IndexMap,
   ICollectionSubscribable,
 } from '../observation.js';
-import { def, defineHiddenProp, ensureProto } from '../utilities-objects.js';
-import { getArrayObserver } from '../observation/array-observer.js';
-import { getSetObserver } from '../observation/set-observer.js';
-import { getMapObserver } from '../observation/map-observer.js';
 import type { IObserverLocator } from '../observation/observer-locator.js';
 import type { Scope } from '../observation/binding-context.js';
 
@@ -31,7 +28,8 @@ function ensureEnoughSlotNames(currentSlot: number): void {
   if (currentSlot === lastSlot) {
     lastSlot += 5;
     const ii = slotNames.length = versionSlotNames.length = lastSlot + 1;
-    for (let i = currentSlot + 1; i < ii; ++i) {
+    let i = currentSlot + 1;
+    for (; i < ii; ++i) {
       slotNames[i] = `_o${i}`;
       versionSlotNames[i] = `_v${i}`;
     }
@@ -80,6 +78,10 @@ function observeCollection(this: IConnectableBinding, collection: Collection): v
     throw new Error('Unrecognised collection type.');
   }
   this.obs.add(obs);
+}
+
+function subscribeTo(this: IConnectableBinding, subscribable: (ISubscribable | ICollectionSubscribable) & { [id: number]: number }): void {
+  this.obs.add(subscribable);
 }
 
 function noopHandleChange() {
@@ -181,13 +183,15 @@ export class BindingObserverRecord implements ISubscriber, ICollectionSubscriber
   }
 }
 
-type DecoratableConnectable<TProto, TClass> = Class<TProto & Partial<IConnectableBinding> & IPartialConnectableBinding, TClass>;
-type DecoratedConnectable<TProto, TClass> = Class<TProto & IConnectableBinding, TClass>;
+type Connectable = IConnectable & Partial<ISubscriber & ICollectionSubscriber>;
+type DecoratableConnectable<TProto, TClass> = Class<TProto & Connectable, TClass>;
+type DecoratedConnectable<TProto, TClass> = Class<TProto & Connectable, TClass>;
 
 function connectableDecorator<TProto, TClass>(target: DecoratableConnectable<TProto, TClass>): DecoratedConnectable<TProto, TClass> {
   const proto = target.prototype;
   ensureProto(proto, 'observeProperty', observeProperty, true);
   ensureProto(proto, 'observeCollection', observeCollection, true);
+  ensureProto(proto, 'subscribeTo', subscribeTo, true);
   def(proto, 'obs', { get: getObserverRecord });
   // optionally add these two methods to normalize a connectable impl
   ensureProto(proto, 'handleChange', noopHandleChange);
@@ -204,7 +208,7 @@ export function connectable<TProto, TClass>(target?: DecoratableConnectable<TPro
 
 let idValue = 0;
 
-connectable.assignIdTo = (instance: IConnectableBinding | BindingObserverRecord): void => {
+connectable.assignIdTo = (instance: IConnectable | BindingObserverRecord): void => {
   instance.id = ++idValue;
 };
 

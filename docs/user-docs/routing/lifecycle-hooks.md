@@ -53,3 +53,4 @@ export class MyComponent implements IRouteableComponent {
     public unload() {}
 }
 ```
+

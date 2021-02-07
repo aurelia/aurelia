@@ -377,7 +377,7 @@ jobs:
           command: |
             sudo apt-get install jq
 
-            pr_response=$(curl --location --request GET "https://api.github.com/repos/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/pulls?head=$CIRCLE_PROJECT_USERNAME:$CIRCLE_BRANCH" -u $GH_USER:$GH_API)
+            pr_response=$(curl --location --request GET "https://api.github.com/repos/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/pulls?head=$CIRCLE_PROJECT_USERNAME:$CIRCLE_BRANCH" -H "Authorization: token $GITHUB_TOKEN")
 
             if [ $(echo $pr_response | jq length) -eq 0 ]; then
               echo "No PR found to update"
@@ -386,8 +386,8 @@ jobs:
 
               comparison_url="https://au2-bench-viewer.azurewebsites.net/compare?branch=master&commit=$master_commit&branch=$CIRCLE_BRANCH&commit=$CIRCLE_SHA1"
               curl --location --request POST "$pr_comment_url" \
-              -u $GH_USER:$GH_API \
-              --header 'Content-Type: application/json' \
+              -H 'Content-Type: application/json' \
+              -H "Authorization: token $GITHUB_TOKEN" \
               --data-raw '{
               "body": "The benchmarking comparison can be found here: $comparison_url"
               }'

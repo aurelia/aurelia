@@ -245,8 +245,11 @@ describe('translation-integration', function () {
         this.undef = undefined;
       }
     }
-    $it('works if the keyExpression is changed to null/undefined - default value', function ({ host, app }: I18nIntegrationTestContext<App>) {
+    $it.only('works if the keyExpression is changed to null/undefined - default value', function ({ host, app, ctx }: I18nIntegrationTestContext<App>) {
       app.changeKey();
+      assertTextContent(host, '#undefined', 'simple text', 'changeKey(), before flush');
+      assertTextContent(host, '#null', 'simple text', 'changeKey, before flush');
+      ctx.platform.domWriteQueue.flush();
       assertTextContent(host, '#undefined', 'foo');
       assertTextContent(host, '#null', 'bar');
     }, { component: App });

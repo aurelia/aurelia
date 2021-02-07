@@ -350,6 +350,7 @@ jobs:
   benchmark_playwright:
     executor: docker-circleci
     steps:
+      - checkout
       - run: git checkout master
       - run: npm ci
       - run: npm run build

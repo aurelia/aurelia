@@ -108,10 +108,10 @@ export type CustomElementKind = IResourceKind<CustomElementType, CustomElementDe
    */
   for<C extends ICustomElementViewModel = ICustomElementViewModel>(node: Node, opts: { optional: true }): ICustomElementController<C> | null;
   isType<C>(value: C): value is (C extends Constructable ? CustomElementType<C> : never);
-  define<C extends Constructable >(name: string, Type: C): CustomElementType<C>;
-  define<C extends Constructable >(def: PartialCustomElementDefinition, Type: C): CustomElementType<C>;
-  define<C extends Constructable >(def: PartialCustomElementDefinition, Type?: null): CustomElementType<C>;
-  define<C extends Constructable >(nameOrDef: string | PartialCustomElementDefinition, Type: C): CustomElementType<C>;
+  define<C extends Constructable>(name: string, Type: C): CustomElementType<C>;
+  define<C extends Constructable>(def: PartialCustomElementDefinition, Type: C): CustomElementType<C>;
+  define<C extends Constructable>(def: PartialCustomElementDefinition, Type?: null): CustomElementType<C>;
+  define<C extends Constructable>(nameOrDef: string | PartialCustomElementDefinition, Type: C): CustomElementType<C>;
   getDefinition<C extends Constructable>(Type: C): CustomElementDefinition<C>;
   annotate<K extends keyof PartialCustomElementDefinition>(Type: Constructable, prop: K, value: PartialCustomElementDefinition[K]): void;
   getAnnotation<K extends keyof PartialCustomElementDefinition>(Type: Constructable, prop: K): PartialCustomElementDefinition[K];
@@ -182,6 +182,25 @@ export function containerless(target?: Constructable): void | ((target: Construc
 }
 
 /**
+ * Decorator: Indicates that the custom element should be rendered with the template provided.
+ */
+export function template(html: string | Node, dependencies?: PartialCustomElementDefinition['dependencies']) {
+  return function ($target: Constructable) {
+    CustomElement.annotate($target, 'template', html);
+    if (dependencies !== undefined && dependencies.length > 0) {
+      CustomElement.annotate($target, 'dependencies', dependencies);
+    }
+  };
+}
+
+/**
+ * Decorator: Indicates that the custom element should be rendered with the template provided.
+ */
+export function inlineView(html: string | Node, dependencies?: PartialCustomElementDefinition['dependencies']) {
+  return template(html, dependencies);
+}
+
+/**
  * Decorator: Indicates that the custom element should be rendered with the strict binding option. undefined/null -> 0 or '' based on type
  */
 export function strict(target: Constructable): void;
@@ -224,7 +243,11 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
     public readonly projectionsMap: Map<IInstruction, IProjections>,
     public readonly watches: IWatchDefinition[],
     public readonly processContent: ProcessContentHook | null,
-  ) {}
+  ) {
+
+    console.log(template);
+
+  }
 
   public static create<T extends Constructable = Constructable>(
     def: PartialCustomElementDefinition,
@@ -530,13 +553,13 @@ export const CustomElement: CustomElementKind = {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const defaultProto = {} as any;
 
-    return function <P extends {} = {}> (
+    return function <P extends {} = {}>(
       name: string,
       proto: P = defaultProto,
     ): CustomElementType<Constructable<P>> {
       // Anonymous class ensures that minification cannot cause unintended side-effects, and keeps the class
       // looking similarly from the outside (when inspected via debugger, etc).
-      const Type = class {} as CustomElementType<Constructable<P>>;
+      const Type = class { } as CustomElementType<Constructable<P>>;
 
       // Define the name property so that Type.name can be used by end users / plugin authors if they really need to,
       // even when minified.

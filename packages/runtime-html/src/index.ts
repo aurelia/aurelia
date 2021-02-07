@@ -437,6 +437,8 @@ export {
 
 export {
   containerless,
+  template,
+  inlineView,
   customElement,
   CustomElement,
   CustomElementDecorator,

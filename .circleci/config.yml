@@ -352,7 +352,6 @@ jobs:
     steps:
       - checkout
       - run: git checkout master
-      - run: master_commit=$(git rev-parse HEAD)
       - run: CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
       - run: npm ci
       - run: npm run build
@@ -362,7 +361,7 @@ jobs:
           command: |
             cd test/benchmarking-apps/runner
             echo "{\"cosmosEndpoint\": \"https://aurelia.documents.azure.com:443/\",\"cosmosKey\": \"$AZURE_COSMOS_DB_KEY\", \"endpoint\": \"https://aurelia.documents.azure.com:443/\",\"key\": \"$AZURE_COSMOS_DB_KEY\"}" > cosmos.config.json
-            set -o pipefail && node dist/run-benchmarks --i 10 --storage cosmos
+            set -o pipefail && node dist/run-benchmarks --i 1 --storage cosmos
       - run: cd ../../../
       - checkout_install
       - run: npm run build
@@ -370,7 +369,7 @@ jobs:
           name: "Run test for the current branch"
           command: |
             cd test/benchmarking-apps/runner
-            set -o pipefail && node dist/run-benchmarks --i 10 --storage cosmos
+            set -o pipefail && node dist/run-benchmarks --i 1 --storage cosmos
       # source: https://support.circleci.com/hc/en-us/articles/360048170573-Auto-comment-on-GitHub-Pull-Requests
       - run:
           name: Post benchmarking comparison link to GitHub PR
@@ -383,6 +382,9 @@ jobs:
               echo "No PR found to update"
             else
               pr_comment_url=$(echo $pr_response | jq -r ".[]._links.comments.href")
+
+              git checkout master
+              master_commit=$(git rev-parse HEAD)
 
               comparison_url="https://au2-bench-viewer.azurewebsites.net/compare?branch=master&commit=$master_commit&branch=$CIRCLE_BRANCH&commit=$CIRCLE_SHA1"
               curl --location --request POST "$pr_comment_url" \

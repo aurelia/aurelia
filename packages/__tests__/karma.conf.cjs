@@ -77,21 +77,21 @@ module.exports = function (config) {
   //   Because they're not watched, they're also not cached, so that the browser will always serve the latest version from disk.
   //
   const files = [
-    { type: 'script', watched: false, included: true, nocache: false, pattern: path.join(smsPath, 'browser-source-map-support.js') },
-    { type: 'module', watched: true, included: true, nocache: false, pattern: `packages/__tests__/dist/esm/__tests__/setup-browser.js` }, // 1.1
-    { type: 'module', watched: true, included: false, nocache: false, pattern: `packages/__tests__/dist/esm/__tests__/setup-shared.js` }, // 1.2
-    { type: 'module', watched: true, included: false, nocache: false, pattern: `packages/__tests__/dist/esm/__tests__/util.js` }, // 1.3
-    { type: 'module', watched: true, included: false, nocache: false, pattern: `packages/__tests__/dist/esm/__tests__/Spy.js` }, // 1.4
+    { type: 'script', watched: false, included: true,  nocache: false, pattern: path.join(smsPath, 'browser-source-map-support.js') },
+    { type: 'module', watched: true,  included: true,  nocache: false, pattern: `packages/__tests__/dist/esm/__tests__/setup-browser.js` }, // 1.1
+    { type: 'module', watched: true,  included: false, nocache: false, pattern: `packages/__tests__/dist/esm/__tests__/setup-shared.js` }, // 1.2
+    { type: 'module', watched: true,  included: false, nocache: false, pattern: `packages/__tests__/dist/esm/__tests__/util.js` }, // 1.3
+    { type: 'module', watched: true,  included: false, nocache: false, pattern: `packages/__tests__/dist/esm/__tests__/Spy.js` }, // 1.4
     ...testDirs.flatMap(name => [
-      { type: 'module', watched: true, included: true, nocache: false, pattern: `packages/__tests__/dist/esm/__tests__/${name}/**/*.spec.js` }, // 2.1
-      { type: 'module', watched: false, included: false, nocache: true, pattern: `packages/__tests__/dist/esm/__tests__/${name}/**/*.js.map` }, // 2.2
-      { type: 'module', watched: true, included: false, nocache: false, pattern: `packages/__tests__/dist/esm/__tests__/${name}/**/!(*.$au)*.js` }, // 2.3
-      { type: 'module', watched: false, included: false, nocache: true, pattern: `packages/__tests__/${name}/**/*.ts` }, // 2.4
+      { type: 'module', watched: true,  included: true,  nocache: false, pattern: `packages/__tests__/dist/esm/__tests__/${name}/**/*.spec.js` }, // 2.1
+      { type: 'module', watched: false, included: false, nocache: true,  pattern: `packages/__tests__/dist/esm/__tests__/${name}/**/*.js.map` }, // 2.2
+      { type: 'module', watched: true,  included: false, nocache: false, pattern: `packages/__tests__/dist/esm/__tests__/${name}/**/!(*.$au)*.js` }, // 2.3
+      { type: 'module', watched: false, included: false, nocache: true,  pattern: `packages/__tests__/${name}/**/*.ts` }, // 2.4
     ]),
     ...packageNames.flatMap(name => [
-      { type: 'module', watched: true, included: false, nocache: false, pattern: `packages/${name}/dist/esm/**/!(*.$au)*.js` }, // 3.1
-      { type: 'module', watched: false, included: false, nocache: true, pattern: `packages/${name}/dist/esm/**/*.js.map` }, // 3.2
-      { type: 'module', watched: false, included: false, nocache: true, pattern: `packages/${name}/src/**/*.ts` }, // 3.3
+      { type: 'module', watched: true,  included: false, nocache: false, pattern: `packages/${name}/dist/esm/**/!(*.$au)*.js` }, // 3.1
+      { type: 'module', watched: false, included: false, nocache: true,  pattern: `packages/${name}/dist/esm/**/*.js.map` }, // 3.2
+      { type: 'module', watched: false, included: false, nocache: true,  pattern: `packages/${name}/src/**/*.ts` }, // 3.3
     ])
   ];
 
@@ -140,7 +140,6 @@ module.exports = function (config) {
     },
     client: {
       captureConsole: true,
-      terminal: true,
       mocha: {
         bail: config['bail'],
         ui: 'bdd',

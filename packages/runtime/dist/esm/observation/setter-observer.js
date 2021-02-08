@@ -21,6 +21,9 @@ export class SetterObserver {
     setValue(newValue, flags) {
         if (this.observing) {
             const currentValue = this.currentValue;
+            if (Object.is(newValue, currentValue)) {
+                return;
+            }
             this.currentValue = newValue;
             this.subs.notify(newValue, currentValue, flags);
         }

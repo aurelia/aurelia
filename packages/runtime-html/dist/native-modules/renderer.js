@@ -11,7 +11,7 @@ import { Metadata, Registration, DI } from '../../../kernel/dist/native-modules/
 import { BindingMode, IExpressionParser, IObserverLocator, BindingBehaviorExpression, BindingBehaviorFactory, } from '../../../runtime/dist/native-modules/index.js';
 import { CallBinding } from './binding/call-binding.js';
 import { AttributeBinding } from './binding/attribute.js';
-import { InterpolationBinding } from './binding/interpolation-binding.js';
+import { InterpolationBinding, ContentBinding } from './binding/interpolation-binding.js';
 import { LetBinding } from './binding/let-binding.js';
 import { PropertyBinding } from './binding/property-binding.js';
 import { RefBinding } from './binding/ref-binding.js';
@@ -470,8 +470,10 @@ class InterpolationBindingRenderer {
         const expr = ensureExpression(this.parser, instruction.from, 2048 /* Interpolation */);
         const binding = new InterpolationBinding(this.observerLocator, expr, getTarget(target), instruction.to, BindingMode.toView, context, this.platform.domWriteQueue);
         const partBindings = binding.partBindings;
+        const ii = partBindings.length;
+        let i = 0;
         let partBinding;
-        for (let i = 0, ii = partBindings.length; ii > i; ++i) {
+        for (; ii > i; ++i) {
             partBinding = partBindings[i];
             partBindings[i] = applyBindingBehavior(partBinding, partBinding.sourceExpression, context);
         }
@@ -560,18 +562,35 @@ class TextBindingRenderer {
     }
     render(flags, context, controller, target, instruction) {
         const next = target.nextSibling;
+        const parent = target.parentNode;
+        const doc = this.platform.document;
+        const expr = ensureExpression(this.parser, instruction.from, 2048 /* Interpolation */);
+        const staticParts = expr.parts;
+        const dynamicParts = expr.expressions;
+        const ii = dynamicParts.length;
+        let i = 0;
+        let text = staticParts[0];
+        if (text !== '') {
+            parent.insertBefore(doc.createTextNode(text), next);
+        }
+        for (; ii > i; ++i) {
+            // each of the dynamic expression of an interpolation
+            // will be mapped to a ContentBinding
+            controller.addBinding(applyBindingBehavior(new ContentBinding(dynamicParts[i], 
+            // using a text node instead of comment, as a mean to:
+            // support seamless transition between a html node, or a text
+            // reduce the noise in the template, caused by html comment
+            parent.insertBefore(doc.createTextNode(''), next), context, this.observerLocator, this.platform), dynamicParts[i], context));
+            // while each of the static part of an interpolation
+            // will just be a text node
+            text = staticParts[i + 1];
+            if (text !== '') {
+                parent.insertBefore(doc.createTextNode(text), next);
+            }
+        }
         if (target.nodeName === 'AU-M') {
             target.remove();
         }
-        const expr = ensureExpression(this.parser, instruction.from, 2048 /* Interpolation */);
-        const binding = new InterpolationBinding(this.observerLocator, expr, next, 'textContent', BindingMode.toView, context, this.platform.domWriteQueue);
-        const partBindings = binding.partBindings;
-        let partBinding;
-        for (let i = 0, ii = partBindings.length; ii > i; ++i) {
-            partBinding = partBindings[i];
-            partBindings[i] = applyBindingBehavior(partBinding, partBinding.sourceExpression, context);
-        }
-        controller.addBinding(binding);
     }
 };
 TextBindingRenderer = __decorate([

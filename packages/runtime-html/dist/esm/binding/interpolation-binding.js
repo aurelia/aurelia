@@ -28,7 +28,7 @@ export class InterpolationBinding {
         const expressions = interpolation.expressions;
         const partBindings = this.partBindings = Array(expressions.length);
         for (let i = 0, ii = expressions.length; i < ii; ++i) {
-            partBindings[i] = new ContentBinding(expressions[i], target, targetProperty, locator, observerLocator, this);
+            partBindings[i] = new InterpolationPartBinding(expressions[i], target, targetProperty, locator, observerLocator, this);
         }
     }
     updateTarget(value, flags) {
@@ -94,7 +94,7 @@ export class InterpolationBinding {
         this.task = null;
     }
 }
-export class ContentBinding {
+export class InterpolationPartBinding {
     constructor(sourceExpression, target, targetProperty, locator, observerLocator, owner) {
         this.sourceExpression = sourceExpression;
         this.target = target;
@@ -168,6 +168,130 @@ export class ContentBinding {
         this.$scope = void 0;
         this.$hostScope = null;
         this.obs.clear(true);
+    }
+}
+connectable(InterpolationPartBinding);
+/**
+ * A binding for handling the element content interpolation
+ */
+export class ContentBinding {
+    constructor(sourceExpression, target, locator, observerLocator, p) {
+        this.sourceExpression = sourceExpression;
+        this.target = target;
+        this.locator = locator;
+        this.observerLocator = observerLocator;
+        this.p = p;
+        this.interceptor = this;
+        // at runtime, mode may be overriden by binding behavior
+        // but it wouldn't matter here, just start with something for later check
+        this.mode = BindingMode.toView;
+        this.value = '';
+        this.$hostScope = null;
+        this.task = null;
+        this.isBound = false;
+    }
+    updateTarget(value, flags) {
+        var _a, _b;
+        const target = this.target;
+        const NodeCtor = this.p.Node;
+        const oldValue = this.value;
+        this.value = value;
+        if (oldValue instanceof NodeCtor) {
+            (_a = oldValue.parentNode) === null || _a === void 0 ? void 0 : _a.removeChild(oldValue);
+        }
+        if (value instanceof NodeCtor) {
+            target.textContent = '';
+            (_b = target.parentNode) === null || _b === void 0 ? void 0 : _b.insertBefore(value, target);
+        }
+        else {
+            target.textContent = String(value);
+        }
+    }
+    handleChange(newValue, oldValue, flags) {
+        var _a;
+        if (!this.isBound) {
+            return;
+        }
+        const sourceExpression = this.sourceExpression;
+        const obsRecord = this.obs;
+        const canOptimize = sourceExpression.$kind === 10082 /* AccessScope */ && obsRecord.count === 1;
+        if (!canOptimize) {
+            const shouldConnect = (this.mode & toView) > 0;
+            if (shouldConnect) {
+                obsRecord.version++;
+            }
+            newValue = sourceExpression.evaluate(flags, this.$scope, this.$hostScope, this.locator, shouldConnect ? this.interceptor : null);
+            if (shouldConnect) {
+                obsRecord.clear(false);
+            }
+        }
+        if (newValue === this.value) {
+            // in a frequent update, e.g collection mutation in a loop
+            // value could be changing frequently and previous update task may be stale at this point
+            // cancel if any task going on because the latest value is already the same
+            (_a = this.task) === null || _a === void 0 ? void 0 : _a.cancel();
+            this.task = null;
+            return;
+        }
+        // Alpha: during bind a simple strategy for bind is always flush immediately
+        // todo:
+        //  (1). determine whether this should be the behavior
+        //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start().wait()
+        const shouldQueueFlush = (flags & 32 /* fromBind */) === 0;
+        if (shouldQueueFlush) {
+            this.queueUpdate(newValue, flags);
+        }
+        else {
+            this.updateTarget(newValue, flags);
+        }
+    }
+    handleCollectionChange() {
+        this.queueUpdate(String(this.value), 0 /* none */);
+    }
+    $bind(flags, scope, hostScope) {
+        if (this.isBound) {
+            if (this.$scope === scope) {
+                return;
+            }
+            this.interceptor.$unbind(flags);
+        }
+        this.isBound = true;
+        this.$scope = scope;
+        this.$hostScope = hostScope;
+        if (this.sourceExpression.hasBind) {
+            this.sourceExpression.bind(flags, scope, hostScope, this.interceptor);
+        }
+        const v = this.value = this.sourceExpression.evaluate(flags, scope, hostScope, this.locator, (this.mode & toView) > 0 ? this.interceptor : null);
+        if (v instanceof Array) {
+            this.observeCollection(v);
+        }
+        this.updateTarget(v, flags);
+    }
+    $unbind(flags) {
+        var _a;
+        if (!this.isBound) {
+            return;
+        }
+        this.isBound = false;
+        if (this.sourceExpression.hasUnbind) {
+            this.sourceExpression.unbind(flags, this.$scope, this.$hostScope, this.interceptor);
+        }
+        // TODO: should existing value (either connected node, or a string)
+        // be removed when this binding is unbound?
+        // this.updateTarget('', flags);
+        this.$scope = void 0;
+        this.$hostScope = null;
+        this.obs.clear(true);
+        (_a = this.task) === null || _a === void 0 ? void 0 : _a.cancel();
+        this.task = null;
+    }
+    queueUpdate(newValue, flags) {
+        const task = this.task;
+        this.task = this.p.domWriteQueue.queueTask(() => {
+            this.task = null;
+            this.updateTarget(newValue, flags);
+        }, queueTaskOptions);
+        task === null || task === void 0 ? void 0 : task.cancel();
     }
 }
 connectable(ContentBinding);

@@ -1,6 +1,7 @@
 import { BindingMode, LifecycleFlags } from '@aurelia/runtime';
 import type { IServiceLocator, ITask, TaskQueue } from '@aurelia/kernel';
 import type { ICollectionSubscriber, IndexMap, Interpolation, IConnectableBinding, IObserverLocator, IsExpression, IBinding, Scope } from '@aurelia/runtime';
+import type { IPlatform } from '../platform';
 export declare class InterpolationBinding implements IBinding {
     observerLocator: IObserverLocator;
     interpolation: Interpolation;
@@ -13,7 +14,7 @@ export declare class InterpolationBinding implements IBinding {
     isBound: boolean;
     $scope?: Scope;
     $hostScope: Scope | null;
-    partBindings: ContentBinding[];
+    partBindings: InterpolationPartBinding[];
     private readonly targetObserver;
     private task;
     constructor(observerLocator: IObserverLocator, interpolation: Interpolation, target: object, targetProperty: string, mode: BindingMode, locator: IServiceLocator, taskQueue: TaskQueue);
@@ -21,9 +22,9 @@ export declare class InterpolationBinding implements IBinding {
     $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void;
     $unbind(flags: LifecycleFlags): void;
 }
-export interface ContentBinding extends IConnectableBinding {
+export interface InterpolationPartBinding extends IConnectableBinding {
 }
-export declare class ContentBinding implements ContentBinding, ICollectionSubscriber {
+export declare class InterpolationPartBinding implements InterpolationPartBinding, ICollectionSubscriber {
     readonly sourceExpression: IsExpression;
     readonly target: object;
     readonly targetProperty: string;
@@ -42,5 +43,31 @@ export declare class ContentBinding implements ContentBinding, ICollectionSubscr
     handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void;
     $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void;
     $unbind(flags: LifecycleFlags): void;
+}
+export interface ContentBinding extends IConnectableBinding {
+}
+/**
+ * A binding for handling the element content interpolation
+ */
+export declare class ContentBinding implements ContentBinding, ICollectionSubscriber {
+    readonly sourceExpression: IsExpression;
+    readonly target: Text;
+    readonly locator: IServiceLocator;
+    readonly observerLocator: IObserverLocator;
+    private readonly p;
+    interceptor: this;
+    readonly mode: BindingMode;
+    value: unknown;
+    $scope?: Scope;
+    $hostScope: Scope | null;
+    task: ITask | null;
+    isBound: boolean;
+    constructor(sourceExpression: IsExpression, target: Text, locator: IServiceLocator, observerLocator: IObserverLocator, p: IPlatform);
+    updateTarget(value: unknown, flags: LifecycleFlags): void;
+    handleChange(newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void;
+    handleCollectionChange(): void;
+    $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void;
+    $unbind(flags: LifecycleFlags): void;
+    private queueUpdate;
 }
 //# sourceMappingURL=interpolation-binding.d.ts.map

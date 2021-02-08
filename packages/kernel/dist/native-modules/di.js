@@ -971,14 +971,18 @@ export class ParameterizedRegistry {
         }
     }
 }
-const cache = new WeakMap();
+const containerLookup = new WeakMap();
 function cacheCallbackResult(fun) {
     return function (handler, requestor, resolver) {
-        if (cache.has(resolver)) {
-            return cache.get(resolver);
+        let resolverLookup = containerLookup.get(handler);
+        if (resolverLookup === void 0) {
+            containerLookup.set(handler, resolverLookup = new WeakMap());
+        }
+        if (resolverLookup.has(resolver)) {
+            return resolverLookup.get(resolver);
         }
         const t = fun(handler, requestor, resolver);
-        cache.set(resolver, t);
+        resolverLookup.set(resolver, t);
         return t;
     };
 }

@@ -11,7 +11,11 @@ function createFixture(template, $class, registrations = [], autoStart = true, c
     const au = new runtime_html_1.Aurelia(container);
     const App = runtime_html_1.CustomElement.define({ name: 'app', template }, $class || class {
     });
-    const component = new App();
+    if (container.has(App, true)) {
+        throw new Error('Container of the context cotains instance of the application root component. ' +
+            'Consider using a different class, or context as it will likely cause surprises in tests.');
+    }
+    const component = container.get(App);
     let startPromise = void 0;
     if (autoStart) {
         au.app({ host: host, component });

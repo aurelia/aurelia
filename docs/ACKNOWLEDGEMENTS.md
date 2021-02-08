@@ -15,6 +15,7 @@ There are many great services and open source projects that have enabled us to b
 * MobX - For inspiration on synchronous batching and scheduling.
 * Inferno - For setting the bar and providing great ideas for efficiently patching the DOM.
 * Parcel - For providing great inspiration for GitHub issue and PR template integration.
+* MS FAST - For inspiration on content composition.
 * Angular, Durandal, Ember, React, Vue, and many others - For continuing to innovate and help developers around the world ship amazing customer experiences.
 
 ---

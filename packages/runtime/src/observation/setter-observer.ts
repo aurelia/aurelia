@@ -38,6 +38,9 @@ export class SetterObserver {
   public setValue(newValue: unknown, flags: LifecycleFlags): void {
     if (this.observing) {
       const currentValue = this.currentValue;
+      if (Object.is(newValue, currentValue)) {
+        return;
+      }
       this.currentValue = newValue;
       this.subs.notify(newValue, currentValue, flags);
     } else {

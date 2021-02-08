@@ -14,6 +14,7 @@ import {
   AttrSyntax,
   bindingCommand,
   getTarget,
+  IPlatform,
 } from '@aurelia/runtime-html';
 
 import type {
@@ -58,6 +59,7 @@ export class TranslationParametersBindingRenderer implements IRenderer {
   public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IObserverLocator private readonly observerLocator: IObserverLocator,
+    @IPlatform private readonly platform: IPlatform,
   ) { }
 
   public render(
@@ -67,6 +69,6 @@ export class TranslationParametersBindingRenderer implements IRenderer {
     target: HTMLElement,
     instruction: CallBindingInstruction,
   ): void {
-    TranslationBinding.create({ parser: this.parser, observerLocator: this.observerLocator, context, controller: controller, target, instruction, isParameterContext: true });
+    TranslationBinding.create({ parser: this.parser, observerLocator: this.observerLocator, context, controller: controller, target, instruction, isParameterContext: true, platform: this.platform });
   }
 }

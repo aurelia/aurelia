@@ -137,8 +137,8 @@ describe('translation-integration', function () {
 
   const $it = createSpecFunction(runTest);
 
-  function assertTextContent(host: INode, selector: string, translation: string) {
-    assert.equal((host as Element).querySelector(selector).textContent, translation);
+  function assertTextContent(host: INode, selector: string, translation: string, message?: string) {
+    assert.equal((host as Element).querySelector(selector).textContent, translation, message);
   }
   {
     @customElement({ name: 'app', template: `<span t='simple.text'></span>`, isStrictBinding: true })
@@ -213,10 +213,16 @@ describe('translation-integration', function () {
       }
     }
 
-    $it('works if the keyExpression is changed to null/undefined', function ({ host, app }: I18nIntegrationTestContext<App>) {
+    $it('works if the keyExpression is changed to null/undefined', function ({ host, app, ctx }: I18nIntegrationTestContext<App>) {
       app.changeKey();
-      assertTextContent(host, '#undefined', '');
-      assertTextContent(host, '#null', '');
+      assertTextContent(host, '#undefined', 'simple text', 'changeKey(), before flush');
+      assertTextContent(host, '#null', 'simple text', 'changeKey, before flush');
+      ctx.platform.domWriteQueue.flush();
+      assertTextContent(host, '#undefined', '', 'changeKey() & flush');
+      assertTextContent(host, '#null', '', 'changeKey() & flush');
+      ctx.platform.domWriteQueue.flush();
+      assertTextContent(host, '#undefined', '',  'changeKey() & 2nd flush');
+      assertTextContent(host, '#null', '', 'changeKey() & 2nd flush');
     }, { component: App });
   }
   {
@@ -239,8 +245,11 @@ describe('translation-integration', function () {
         this.undef = undefined;
       }
     }
-    $it('works if the keyExpression is changed to null/undefined - default value', function ({ host, app }: I18nIntegrationTestContext<App>) {
+    $it('works if the keyExpression is changed to null/undefined - default value', function ({ host, app, ctx }: I18nIntegrationTestContext<App>) {
       app.changeKey();
+      assertTextContent(host, '#undefined', 'simple text', 'changeKey(), before flush');
+      assertTextContent(host, '#null', 'simple text', 'changeKey, before flush');
+      ctx.platform.domWriteQueue.flush();
       assertTextContent(host, '#undefined', 'foo');
       assertTextContent(host, '#null', 'bar');
     }, { component: App });

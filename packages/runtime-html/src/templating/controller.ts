@@ -76,6 +76,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
   public scope: Scope | null = null;
   public hostScope: Scope | null = null;
+  public isBound: boolean = false;
 
   // If a host from another custom element was passed in, then this will be the controller for that custom element (could be `au-viewport` for example).
   // In that case, this controller will create a new host node (with the definition's name) and use that as the target host for the nodes instead.
@@ -520,6 +521,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       if (ret instanceof Promise) {
         this.ensurePromise();
         ret.then(() => {
+          this.isBound = true;
           this.attach();
         }).catch(err => {
           this.reject(err);
@@ -528,6 +530,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       }
     }
 
+    this.isBound = true;
     this.attach();
   }
 
@@ -874,6 +877,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       let next: Controller | null = null;
       while (cur !== null) {
         if (cur !== this) {
+          cur.isBound = false;
           cur.unbind();
         }
         next = cur.next as Controller;
@@ -882,6 +886,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       }
 
       this.head = this.tail = null;
+      this.isBound = false;
       this.unbind();
     }
   }
@@ -1269,6 +1274,7 @@ export interface IController<C extends IViewModel = IViewModel> extends IDisposa
   readonly state: State;
   readonly isActive: boolean;
   readonly parent: IHydratedController | null;
+  readonly isBound: boolean;
 
   /** @internal */head: IHydratedController | null;
   /** @internal */tail: IHydratedController | null;

@@ -221,7 +221,7 @@ describe('DI.createInterface() -> container.get()', function () {
       assert.strictEqual(actual21, actual22);
     });
 
-    it(`cacheCallback shared registration`, function () {
+    it(`cacheCallback different containers should not create the same singleton GH #1064`, function () {
       const reg = Registration.cachedCallback(cachedCallback, callbackToCache);
       const container0 = DI.createContainer();
       const container1 = DI.createContainer();
@@ -231,15 +231,16 @@ describe('DI.createInterface() -> container.get()', function () {
       const actual11 = container0.get(cachedCallback);
       const actual12 = container0.get(cachedCallback);
 
-      assert.strictEqual(callbackCount, 1);
-      assert.strictEqual(actual11, actual12);
+      assert.strictEqual(actual11, actual12, "11 equals 12");
+      assert.strictEqual(callbackCount, 1, "callback count 1");
 
       const actual21 = container1.get(cachedCallback);
       const actual22 = container1.get(cachedCallback);
 
-      assert.strictEqual(callbackCount, 1);
-      assert.strictEqual(actual21, actual22);
-      assert.strictEqual(actual11, actual21);
+      assert.strictEqual(actual21, actual22, "21 equals 22");
+      assert.strictEqual(callbackCount, 2, "callback count 2");
+
+      assert.notStrictEqual(actual11, actual21, "11 does not equal 21");
     });
 
     it(`cachedCallback registration on interface is invoked once`, function () {

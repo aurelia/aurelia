@@ -75,6 +75,7 @@ commands:
   checkout_install:
     steps:
       - checkout
+      - run: echo 'export PREFERRED_WORKSPACE_MANAGER=yarn' >> $BASH_ENV
       - run: npm ci
 
   checkout_install_build_bundle_publish_verdaccio:

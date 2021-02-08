@@ -1,7 +1,7 @@
 import { LifecycleFlags, IPlatform } from '@aurelia/runtime-html';
 import i18next from 'i18next';
 import type { IContainer, IServiceLocator } from '@aurelia/kernel';
-import type { Scope, IsExpression, IConnectableBinding, IExpressionParser, IObserverLocator, IPartialConnectableBinding } from '@aurelia/runtime';
+import { Scope, IsExpression, IConnectableBinding, IExpressionParser, IObserverLocator, IPartialConnectableBinding } from '@aurelia/runtime';
 import type { CallBindingInstruction, IHydratableController, INode } from '@aurelia/runtime-html';
 interface TranslationBindingCreationContext {
     parser: IExpressionParser;
@@ -29,7 +29,7 @@ export declare class TranslationBinding implements IPartialConnectableBinding {
     private hostScope;
     private task;
     private isInterpolation;
-    private readonly targetObservers;
+    private readonly targetAccessors;
     target: HTMLElement;
     private readonly platform;
     private parameter;
@@ -41,9 +41,7 @@ export declare class TranslationBinding implements IPartialConnectableBinding {
     handleChange(newValue: string | i18next.TOptions, _previousValue: string | i18next.TOptions, flags: LifecycleFlags): void;
     handleLocaleChange(): void;
     useParameter(expr: IsExpression): void;
-    private queueUpdate;
     private updateTranslations;
-    private updateAttribute;
     private preprocessAttributes;
     private isContentAttribute;
     private updateContent;

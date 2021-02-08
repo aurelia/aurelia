@@ -31,7 +31,7 @@ let TranslationBinding = TranslationBinding_1 = class TranslationBinding {
         this.target = target;
         this.i18n = this.locator.get(i18n_js_1.I18N);
         this.platform = platform;
-        this.targetObservers = new Set();
+        this.targetAccessors = new Set();
         this.i18n.subscribeLocaleChange(this);
         runtime_html_1.connectable.assignIdTo(this);
     }
@@ -79,7 +79,7 @@ let TranslationBinding = TranslationBinding_1 = class TranslationBinding {
             this.expr.unbind(flags, this.scope, this.hostScope, this);
         }
         (_a = this.parameter) === null || _a === void 0 ? void 0 : _a.$unbind(flags);
-        this.targetObservers.clear();
+        this.targetAccessors.clear();
         if (this.task !== null) {
             this.task.cancel();
             this.task = null;
@@ -94,35 +94,27 @@ let TranslationBinding = TranslationBinding_1 = class TranslationBinding {
             : newValue;
         this.obs.clear(false);
         this.ensureKeyExpression();
-        if ( /* should queue update if not during fromBind */(flags & 32 /* fromBind */) === 0) {
-            this.queueUpdate(flags);
-        }
-        else {
-            this.updateTranslations(flags);
-        }
+        this.updateTranslations(flags);
     }
     handleLocaleChange() {
-        this.queueUpdate(0 /* none */);
+        // todo:
+        // no flag passed, so if a locale is updated during binding of a component
+        // and the author wants to signal that locale change fromBind, then it's a bug
+        this.updateTranslations(0 /* none */);
     }
     useParameter(expr) {
         if (this.parameter != null) {
             throw new Error('This translation parameter has already been specified.');
         }
-        this.parameter = new ParameterBinding(this, expr, (flags) => this.queueUpdate(flags));
-    }
-    queueUpdate(flags) {
-        const task = this.task;
-        this.task = this.platform.domWriteQueue.queueTask(() => {
-            this.task = null;
-            this.updateTranslations(flags);
-        }, taskQueueOpts);
-        task === null || task === void 0 ? void 0 : task.cancel();
+        this.parameter = new ParameterBinding(this, expr, (flags) => this.updateTranslations(flags));
     }
     updateTranslations(flags) {
         var _a;
         const results = this.i18n.evaluate(this.keyExpression, (_a = this.parameter) === null || _a === void 0 ? void 0 : _a.value);
         const content = Object.create(null);
-        this.targetObservers.clear();
+        const accessorUpdateTasks = [];
+        const task = this.task;
+        this.targetAccessors.clear();
         for (const item of results) {
             const value = item.value;
             const attributes = this.preprocessAttributes(item.attributes);
@@ -131,21 +123,40 @@ let TranslationBinding = TranslationBinding_1 = class TranslationBinding {
                     content[attribute] = value;
                 }
                 else {
-                    this.updateAttribute(attribute, value, flags);
+                    const controller = runtime_html_1.CustomElement.for(this.target, forOpts);
+                    const accessor = controller && controller.viewModel
+                        ? this.observerLocator.getAccessor(controller.viewModel, attribute)
+                        : this.observerLocator.getAccessor(this.target, attribute);
+                    const shouldQueueUpdate = (flags & 32 /* fromBind */) === 0 && (accessor.type & 4 /* Layout */) > 0;
+                    if (shouldQueueUpdate) {
+                        accessorUpdateTasks.push(new AccessorUpdateTask(accessor, value, flags, this.target, attribute));
+                    }
+                    else {
+                        accessor.setValue(value, flags, this.target, attribute);
+                    }
+                    this.targetAccessors.add(accessor);
                 }
             }
         }
-        if (Object.keys(content).length) {
-            this.updateContent(content, flags);
+        let shouldQueueContent = false;
+        if (Object.keys(content).length > 0) {
+            shouldQueueContent = (flags & 32 /* fromBind */) === 0;
+            if (!shouldQueueContent) {
+                this.updateContent(content, flags);
+            }
         }
-    }
-    updateAttribute(attribute, value, flags) {
-        const controller = runtime_html_1.CustomElement.for(this.target, forOpts);
-        const observer = controller && controller.viewModel
-            ? this.observerLocator.getAccessor(controller.viewModel, attribute)
-            : this.observerLocator.getAccessor(this.target, attribute);
-        observer.setValue(value, flags, this.target, attribute);
-        this.targetObservers.add(observer);
+        if (accessorUpdateTasks.length > 0 || shouldQueueContent) {
+            this.task = this.platform.domWriteQueue.queueTask(() => {
+                this.task = null;
+                for (const updateTask of accessorUpdateTasks) {
+                    updateTask.run();
+                }
+                if (shouldQueueContent) {
+                    this.updateContent(content, flags);
+                }
+            }, taskQueueOpts);
+        }
+        task === null || task === void 0 ? void 0 : task.cancel();
     }
     preprocessAttributes(attributes) {
         if (attributes.length === 0) {
@@ -219,6 +230,18 @@ TranslationBinding = TranslationBinding_1 = __decorate([
     runtime_html_1.connectable()
 ], TranslationBinding);
 exports.TranslationBinding = TranslationBinding;
+class AccessorUpdateTask {
+    constructor(accessor, v, f, el, attr) {
+        this.accessor = accessor;
+        this.v = v;
+        this.f = f;
+        this.el = el;
+        this.attr = attr;
+    }
+    run() {
+        this.accessor.setValue(this.v, this.f, this.el, this.attr);
+    }
+}
 let ParameterBinding = class ParameterBinding {
     constructor(owner, expr, updater) {
         this.owner = owner;

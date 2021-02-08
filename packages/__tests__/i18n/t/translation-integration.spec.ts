@@ -815,11 +815,20 @@ describe('translation-integration', function () {
     }
     {
       @customElement({
-        name: 'app', template: `<custom-message t="[message]itemWithCount" t-params.bind="{count: 0}">`
+        name: 'app', template: `<custom-message view-model.ref="cm" t="[message]itemWithCount" t-params.bind="{count}">`
       })
-      class App { }
-      $it('should support params', function ({ host, en }: I18nIntegrationTestContext<App>) {
+      class App { public count: number = 0; public cm: CustomMessage; }
+      $it('should support params', function ({ app, host, en, ctx }: I18nIntegrationTestContext<App>) {
         assertTextContent(host, 'custom-message div', en.itemWithCount_plural.replace('{{count}}', '0'));
+        app.count = 10;
+        assert.strictEqual(
+          app.cm.message,
+          en.itemWithCount_plural.replace('{{count}}', '10'),
+          '<CustomMessage/> message prop should have been updated immediately'
+        );
+        assertTextContent(host, 'custom-message div', en.itemWithCount_plural.replace('{{count}}', '0'));
+        ctx.platform.domWriteQueue.flush();
+        assertTextContent(host, 'custom-message div', en.itemWithCount_plural.replace('{{count}}', '10'));
       }, { component: App });
     }
     {

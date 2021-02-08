@@ -8,7 +8,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 import { TranslationBinding } from './translation-binding.js';
-import { BindingMode, IExpressionParser, renderer, IObserverLocator, AttrSyntax, getTarget, } from '@aurelia/runtime-html';
+import { BindingMode, IExpressionParser, renderer, IObserverLocator, AttrSyntax, getTarget, IPlatform, } from '@aurelia/runtime-html';
 export const TranslationInstructionType = 'tt';
 export class TranslationAttributePattern {
     static registerAlias(alias) {
@@ -34,18 +34,28 @@ export class TranslationBindingCommand {
     }
 }
 let TranslationBindingRenderer = class TranslationBindingRenderer {
-    constructor(parser, observerLocator) {
+    constructor(parser, observerLocator, platform) {
         this.parser = parser;
         this.observerLocator = observerLocator;
+        this.platform = platform;
     }
     render(flags, context, controller, target, instruction) {
-        TranslationBinding.create({ parser: this.parser, observerLocator: this.observerLocator, context, controller, target, instruction });
+        TranslationBinding.create({
+            parser: this.parser,
+            observerLocator: this.observerLocator,
+            context,
+            controller,
+            target,
+            instruction,
+            platform: this.platform,
+        });
     }
 };
 TranslationBindingRenderer = __decorate([
     renderer(TranslationInstructionType),
     __param(0, IExpressionParser),
-    __param(1, IObserverLocator)
+    __param(1, IObserverLocator),
+    __param(2, IPlatform)
 ], TranslationBindingRenderer);
 export { TranslationBindingRenderer };
 export const TranslationBindInstructionType = 'tbt';
@@ -74,18 +84,28 @@ export class TranslationBindBindingCommand {
     }
 }
 let TranslationBindBindingRenderer = class TranslationBindBindingRenderer {
-    constructor(parser, observerLocator) {
+    constructor(parser, observerLocator, platform) {
         this.parser = parser;
         this.observerLocator = observerLocator;
+        this.platform = platform;
     }
     render(flags, context, controller, target, instruction) {
-        TranslationBinding.create({ parser: this.parser, observerLocator: this.observerLocator, context, controller, target, instruction });
+        TranslationBinding.create({
+            parser: this.parser,
+            observerLocator: this.observerLocator,
+            context,
+            controller,
+            target,
+            instruction,
+            platform: this.platform
+        });
     }
 };
 TranslationBindBindingRenderer = __decorate([
     renderer(TranslationBindInstructionType),
     __param(0, IExpressionParser),
-    __param(1, IObserverLocator)
+    __param(1, IObserverLocator),
+    __param(2, IPlatform)
 ], TranslationBindBindingRenderer);
 export { TranslationBindBindingRenderer };
 //# sourceMappingURL=translation-renderer.js.map

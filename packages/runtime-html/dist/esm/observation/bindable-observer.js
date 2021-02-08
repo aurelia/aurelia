@@ -1,7 +1,11 @@
 import { noop } from '@aurelia/kernel';
 import { subscriberCollection } from '@aurelia/runtime';
 export class BindableObserver {
-    constructor(obj, propertyKey, cbName, set, $controller) {
+    constructor(obj, propertyKey, cbName, set, 
+    // todo: a future feature where the observer is not instantiated via a controller
+    // this observer can become more static, as in immediately available when used
+    // in the form of a decorator
+    $controller) {
         this.obj = obj;
         this.propertyKey = propertyKey;
         this.set = set;
@@ -44,7 +48,8 @@ export class BindableObserver {
             }
             this.currentValue = newValue;
             // todo: controller (if any) state should determine the invocation instead
-            if ((flags & 32 /* fromBind */) === 0 || (flags & 16 /* updateSource */) > 0) {
+            if ( /* either not instantiated via a controller */this.$controller == null
+                /* or the controller instantiating this is bound */ || this.$controller.isBound) {
                 if (this.hasCb) {
                     this.cb.call(this.obj, newValue, currentValue, flags);
                 }

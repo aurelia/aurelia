@@ -1,5 +1,5 @@
 import { IContainer } from '@aurelia/kernel';
-import { BindingMode, BindingType, IExpressionParser, IRenderer, IObserverLocator, IsBindingBehavior, LifecycleFlags, IHydratableController, AttrSyntax } from '@aurelia/runtime-html';
+import { BindingMode, BindingType, IExpressionParser, IRenderer, IObserverLocator, IsBindingBehavior, LifecycleFlags, IHydratableController, AttrSyntax, IPlatform } from '@aurelia/runtime-html';
 import type { CallBindingInstruction, BindingSymbol, BindingCommandInstance, PlainAttributeSymbol } from '@aurelia/runtime-html';
 export declare const TranslationInstructionType = "tt";
 export declare class TranslationAttributePattern {
@@ -20,7 +20,8 @@ export declare class TranslationBindingCommand implements BindingCommandInstance
 export declare class TranslationBindingRenderer implements IRenderer {
     private readonly parser;
     private readonly observerLocator;
-    constructor(parser: IExpressionParser, observerLocator: IObserverLocator);
+    private readonly platform;
+    constructor(parser: IExpressionParser, observerLocator: IObserverLocator, platform: IPlatform);
     render(flags: LifecycleFlags, context: IContainer, controller: IHydratableController, target: HTMLElement, instruction: CallBindingInstruction): void;
 }
 export declare const TranslationBindInstructionType = "tbt";
@@ -42,7 +43,8 @@ export declare class TranslationBindBindingCommand implements BindingCommandInst
 export declare class TranslationBindBindingRenderer implements IRenderer {
     private readonly parser;
     private readonly observerLocator;
-    constructor(parser: IExpressionParser, observerLocator: IObserverLocator);
+    private readonly platform;
+    constructor(parser: IExpressionParser, observerLocator: IObserverLocator, platform: IPlatform);
     render(flags: LifecycleFlags, context: IContainer, controller: IHydratableController, target: HTMLElement, instruction: CallBindingInstruction): void;
 }
 //# sourceMappingURL=translation-renderer.d.ts.map

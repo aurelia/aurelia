@@ -51,6 +51,7 @@ export declare class Controller<C extends IViewModel = IViewModel> implements IC
     isStrictBinding: boolean;
     scope: Scope | null;
     hostScope: Scope | null;
+    isBound: boolean;
     hostController: Controller | null;
     mountTarget: MountTarget;
     shadowRoot: ShadowRoot | null;
@@ -195,6 +196,7 @@ export interface IController<C extends IViewModel = IViewModel> extends IDisposa
     readonly state: State;
     readonly isActive: boolean;
     readonly parent: IHydratedController | null;
+    readonly isBound: boolean;
     /**
      * Return `true` to stop traversal.
      */

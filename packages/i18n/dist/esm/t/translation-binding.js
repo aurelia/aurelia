@@ -6,29 +6,34 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 };
 var TranslationBinding_1;
 import { toArray } from '@aurelia/kernel';
-import { connectable, CustomElement, CustomExpression, Interpolation, IPlatform, } from '@aurelia/runtime-html';
+import { connectable, CustomElement, CustomExpression, Interpolation, } from '@aurelia/runtime-html';
 import { I18N } from '../i18n.js';
 const contentAttributes = ['textContent', 'innerHTML', 'prepend', 'append'];
 const attributeAliases = new Map([['text', 'textContent'], ['html', 'innerHTML']]);
 const forOpts = { optional: true };
+const taskQueueOpts = {
+    reusable: false,
+    preempt: true,
+};
 let TranslationBinding = TranslationBinding_1 = class TranslationBinding {
-    constructor(target, observerLocator, locator) {
+    constructor(target, observerLocator, locator, platform) {
         this.observerLocator = observerLocator;
         this.locator = locator;
         this.interceptor = this;
         this.isBound = false;
         this.contentAttributes = contentAttributes;
         this.hostScope = null;
+        this.task = null;
         this.parameter = null;
         this.target = target;
         this.i18n = this.locator.get(I18N);
-        this.platform = this.locator.get(IPlatform);
+        this.platform = platform;
         this.targetObservers = new Set();
         this.i18n.subscribeLocaleChange(this);
         connectable.assignIdTo(this);
     }
-    static create({ parser, observerLocator, context, controller, target, instruction, isParameterContext, }) {
-        const binding = this.getBinding({ observerLocator, context, controller, target });
+    static create({ parser, observerLocator, context, controller, target, instruction, platform, isParameterContext, }) {
+        const binding = this.getBinding({ observerLocator, context, controller, target, platform });
         const expr = typeof instruction.from === 'string'
             ? parser.parse(instruction.from, 53 /* BindCommand */)
             : instruction.from;
@@ -40,10 +45,10 @@ let TranslationBinding = TranslationBinding_1 = class TranslationBinding {
             binding.expr = interpolation || expr;
         }
     }
-    static getBinding({ observerLocator, context, controller, target, }) {
+    static getBinding({ observerLocator, context, controller, target, platform, }) {
         let binding = controller.bindings && controller.bindings.find((b) => b instanceof TranslationBinding_1 && b.target === target);
         if (!binding) {
-            binding = new TranslationBinding_1(target, observerLocator, context);
+            binding = new TranslationBinding_1(target, observerLocator, context, platform);
             controller.addBinding(binding);
         }
         return binding;
@@ -72,6 +77,10 @@ let TranslationBinding = TranslationBinding_1 = class TranslationBinding {
         }
         (_a = this.parameter) === null || _a === void 0 ? void 0 : _a.$unbind(flags);
         this.targetObservers.clear();
+        if (this.task !== null) {
+            this.task.cancel();
+            this.task = null;
+        }
         this.scope = (void 0);
         this.obs.clear(true);
     }
@@ -82,16 +91,29 @@ let TranslationBinding = TranslationBinding_1 = class TranslationBinding {
             : newValue;
         this.obs.clear(false);
         this.ensureKeyExpression();
-        this.updateTranslations(flags);
+        if ( /* should queue update if not during fromBind */(flags & 32 /* fromBind */) === 0) {
+            this.queueUpdate(flags);
+        }
+        else {
+            this.updateTranslations(flags);
+        }
     }
     handleLocaleChange() {
-        this.updateTranslations(0 /* none */);
+        this.queueUpdate(0 /* none */);
     }
     useParameter(expr) {
         if (this.parameter != null) {
             throw new Error('This translation parameter has already been specified.');
         }
-        this.parameter = new ParameterBinding(this, expr, (flags) => this.updateTranslations(flags));
+        this.parameter = new ParameterBinding(this, expr, (flags) => this.queueUpdate(flags));
+    }
+    queueUpdate(flags) {
+        const task = this.task;
+        this.task = this.platform.domWriteQueue.queueTask(() => {
+            this.task = null;
+            this.updateTranslations(flags);
+        }, taskQueueOpts);
+        task === null || task === void 0 ? void 0 : task.cancel();
     }
     updateTranslations(flags) {
         var _a;

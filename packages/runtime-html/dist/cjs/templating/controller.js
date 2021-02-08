@@ -64,6 +64,7 @@ class Controller {
         this.isStrictBinding = false;
         this.scope = null;
         this.hostScope = null;
+        this.isBound = false;
         // If a host from another custom element was passed in, then this will be the controller for that custom element (could be `au-viewport` for example).
         // In that case, this controller will create a new host node (with the definition's name) and use that as the target host for the nodes instead.
         // That host node is separately mounted to the host controller's original host node.
@@ -418,6 +419,7 @@ class Controller {
             if (ret instanceof Promise) {
                 this.ensurePromise();
                 ret.then(() => {
+                    this.isBound = true;
                     this.attach();
                 }).catch(err => {
                     this.reject(err);
@@ -425,6 +427,7 @@ class Controller {
                 return;
             }
         }
+        this.isBound = true;
         this.attach();
     }
     append(...nodes) {
@@ -737,6 +740,7 @@ class Controller {
             let next = null;
             while (cur !== null) {
                 if (cur !== this) {
+                    cur.isBound = false;
                     cur.unbind();
                 }
                 next = cur.next;
@@ -744,6 +748,7 @@ class Controller {
                 cur = next;
             }
             this.head = this.tail = null;
+            this.isBound = false;
             this.unbind();
         }
     }

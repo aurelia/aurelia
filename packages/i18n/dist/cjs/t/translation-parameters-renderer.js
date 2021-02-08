@@ -46,18 +46,20 @@ TranslationParametersBindingCommand = __decorate([
 ], TranslationParametersBindingCommand);
 exports.TranslationParametersBindingCommand = TranslationParametersBindingCommand;
 let TranslationParametersBindingRenderer = class TranslationParametersBindingRenderer {
-    constructor(parser, observerLocator) {
+    constructor(parser, observerLocator, platform) {
         this.parser = parser;
         this.observerLocator = observerLocator;
+        this.platform = platform;
     }
     render(flags, context, controller, target, instruction) {
-        translation_binding_js_1.TranslationBinding.create({ parser: this.parser, observerLocator: this.observerLocator, context, controller: controller, target, instruction, isParameterContext: true });
+        translation_binding_js_1.TranslationBinding.create({ parser: this.parser, observerLocator: this.observerLocator, context, controller: controller, target, instruction, isParameterContext: true, platform: this.platform });
     }
 };
 TranslationParametersBindingRenderer = __decorate([
     runtime_html_1.renderer(exports.TranslationParametersInstructionType),
     __param(0, runtime_html_1.IExpressionParser),
-    __param(1, runtime_html_1.IObserverLocator)
+    __param(1, runtime_html_1.IObserverLocator),
+    __param(2, runtime_html_1.IPlatform)
 ], TranslationParametersBindingRenderer);
 exports.TranslationParametersBindingRenderer = TranslationParametersBindingRenderer;
 //# sourceMappingURL=translation-parameters-renderer.js.map

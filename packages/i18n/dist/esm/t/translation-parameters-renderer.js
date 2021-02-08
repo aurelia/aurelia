@@ -8,7 +8,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 import { TranslationBinding } from './translation-binding.js';
-import { BindingMode, IExpressionParser, renderer, IObserverLocator, attributePattern, AttrSyntax, bindingCommand, getTarget, } from '@aurelia/runtime-html';
+import { BindingMode, IExpressionParser, renderer, IObserverLocator, attributePattern, AttrSyntax, bindingCommand, getTarget, IPlatform, } from '@aurelia/runtime-html';
 export const TranslationParametersInstructionType = 'tpt';
 // `.bind` part is needed here only for vCurrent compliance
 const attribute = 't-params.bind';
@@ -42,18 +42,20 @@ TranslationParametersBindingCommand = __decorate([
 ], TranslationParametersBindingCommand);
 export { TranslationParametersBindingCommand };
 let TranslationParametersBindingRenderer = class TranslationParametersBindingRenderer {
-    constructor(parser, observerLocator) {
+    constructor(parser, observerLocator, platform) {
         this.parser = parser;
         this.observerLocator = observerLocator;
+        this.platform = platform;
     }
     render(flags, context, controller, target, instruction) {
-        TranslationBinding.create({ parser: this.parser, observerLocator: this.observerLocator, context, controller: controller, target, instruction, isParameterContext: true });
+        TranslationBinding.create({ parser: this.parser, observerLocator: this.observerLocator, context, controller: controller, target, instruction, isParameterContext: true, platform: this.platform });
     }
 };
 TranslationParametersBindingRenderer = __decorate([
     renderer(TranslationParametersInstructionType),
     __param(0, IExpressionParser),
-    __param(1, IObserverLocator)
+    __param(1, IObserverLocator),
+    __param(2, IPlatform)
 ], TranslationParametersBindingRenderer);
 export { TranslationParametersBindingRenderer };
 //# sourceMappingURL=translation-parameters-renderer.js.map

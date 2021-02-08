@@ -121,7 +121,7 @@ function modifyResource(unit: IFileUnit, options: IModifyResourceOptions) {
   if (implicitElement && (unit.filePair || unit.inline)) {
     // @view() for foo.js and foo-view.html
     // @customElement() for foo.js and foo.html
-    const dec = unit.filePair !== undefined && kebabCase(unit.filePair).startsWith(`${expectedResourceName}-view`) ? 'view' : 'customElement';
+    const dec = (unit.filePair !== undefined && kebabCase(unit.filePair).startsWith(`${expectedResourceName}-view`)) ? 'view' : 'customElement';
 
     const viewDef = unit.inline ? `{ name: ${customElementName}}` : '__au2ViewDef';
     if (!unit.inline) {

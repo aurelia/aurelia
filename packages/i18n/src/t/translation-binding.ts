@@ -12,7 +12,7 @@ import i18next from 'i18next';
 import { I18N } from '../i18n.js';
 
 import type { ITask, QueueTaskOptions, IContainer, IServiceLocator } from '@aurelia/kernel';
-import type {
+import {
   Scope,
   IsBindingBehavior,
   IsExpression,
@@ -21,6 +21,7 @@ import type {
   IObserverLocator,
   IPartialConnectableBinding,
   IAccessor,
+  AccessorType,
 } from '@aurelia/runtime';
 import type { CallBindingInstruction, IHydratableController, INode } from '@aurelia/runtime-html';
 
@@ -66,7 +67,7 @@ export class TranslationBinding implements IPartialConnectableBinding {
   private hostScope: Scope | null = null;
   private task: ITask | null = null;
   private isInterpolation!: boolean;
-  private readonly targetObservers: Set<IAccessor>;
+  private readonly targetAccessors: Set<IAccessor>;
 
   public target: HTMLElement;
   private readonly platform: IPlatform;
@@ -81,7 +82,7 @@ export class TranslationBinding implements IPartialConnectableBinding {
     this.target = target as HTMLElement;
     this.i18n = this.locator.get(I18N);
     this.platform = platform;
-    this.targetObservers = new Set<IAccessor>();
+    this.targetAccessors = new Set<IAccessor>();
     this.i18n.subscribeLocaleChange(this);
     connectable.assignIdTo(this);
   }
@@ -146,7 +147,7 @@ export class TranslationBinding implements IPartialConnectableBinding {
     }
 
     this.parameter?.$unbind(flags);
-    this.targetObservers.clear();
+    this.targetAccessors.clear();
     if (this.task !== null) {
       this.task.cancel();
       this.task = null;
@@ -163,37 +164,29 @@ export class TranslationBinding implements IPartialConnectableBinding {
         : newValue as string;
     this.obs.clear(false);
     this.ensureKeyExpression();
-    if (/* should queue update if not during fromBind */(flags & LifecycleFlags.fromBind) === 0) {
-      this.queueUpdate(flags);
-    } else {
-      this.updateTranslations(flags);
-    }
+    this.updateTranslations(flags);
   }
 
   public handleLocaleChange() {
-    this.queueUpdate(LifecycleFlags.none);
+    // todo:
+    // no flag passed, so if a locale is updated during binding of a component
+    // and the author wants to signal that locale change fromBind, then it's a bug
+    this.updateTranslations(LifecycleFlags.none);
   }
 
   public useParameter(expr: IsExpression) {
     if (this.parameter != null) {
       throw new Error('This translation parameter has already been specified.');
     }
-    this.parameter = new ParameterBinding(this, expr, (flags: LifecycleFlags) => this.queueUpdate(flags));
-  }
-
-  private queueUpdate(flags: LifecycleFlags) {
-    const task = this.task;
-    this.task = this.platform.domWriteQueue.queueTask(() => {
-      this.task = null;
-      this.updateTranslations(flags);
-    }, taskQueueOpts);
-    task?.cancel();
+    this.parameter = new ParameterBinding(this, expr, (flags: LifecycleFlags) => this.updateTranslations(flags));
   }
 
   private updateTranslations(flags: LifecycleFlags) {
     const results = this.i18n.evaluate(this.keyExpression!, this.parameter?.value);
     const content: ContentValue = Object.create(null);
-    this.targetObservers.clear();
+    const accessorUpdateTasks: AccessorUpdateTask[] = [];
+    const task = this.task;
+    this.targetAccessors.clear();
 
     for (const item of results) {
       const value = item.value;
@@ -202,22 +195,41 @@ export class TranslationBinding implements IPartialConnectableBinding {
         if (this.isContentAttribute(attribute)) {
           content[attribute] = value;
         } else {
-          this.updateAttribute(attribute, value, flags);
+          const controller = CustomElement.for(this.target, forOpts);
+          const accessor = controller && controller.viewModel
+            ? this.observerLocator.getAccessor(controller.viewModel, attribute)
+            : this.observerLocator.getAccessor(this.target, attribute);
+          const shouldQueueUpdate = (flags & LifecycleFlags.fromBind) === 0 && (accessor.type & AccessorType.Layout) > 0;
+          if (shouldQueueUpdate) {
+            accessorUpdateTasks.push(new AccessorUpdateTask(accessor, value, flags, this.target, attribute));
+          } else {
+            accessor.setValue(value, flags, this.target, attribute);
+          }
+          this.targetAccessors.add(accessor);
         }
       }
     }
-    if (Object.keys(content).length) {
-      this.updateContent(content, flags);
-    }
-  }
 
-  private updateAttribute(attribute: string, value: string, flags: LifecycleFlags) {
-    const controller = CustomElement.for(this.target, forOpts);
-    const observer = controller && controller.viewModel
-      ? this.observerLocator.getAccessor(controller.viewModel, attribute)
-      : this.observerLocator.getAccessor(this.target, attribute);
-    observer.setValue(value, flags, this.target, attribute);
-    this.targetObservers.add(observer);
+    let shouldQueueContent = false;
+    if (Object.keys(content).length > 0) {
+      shouldQueueContent = (flags & LifecycleFlags.fromBind) === 0;
+      if (!shouldQueueContent) {
+        this.updateContent(content, flags);
+      }
+    }
+
+    if (accessorUpdateTasks.length > 0 || shouldQueueContent) {
+      this.task = this.platform.domWriteQueue.queueTask(() => {
+        this.task = null;
+        for (const updateTask of accessorUpdateTasks) {
+          updateTask.run();
+        }
+        if (shouldQueueContent) {
+          this.updateContent(content, flags);
+        }
+      }, taskQueueOpts);
+    }
+    task?.cancel();
   }
 
   private preprocessAttributes(attributes: string[]) {
@@ -298,6 +310,20 @@ export class TranslationBinding implements IPartialConnectableBinding {
     if (exprType !== 'string') {
       throw new Error(`Expected the i18n key to be a string, but got ${expr} of type ${exprType}`); // TODO use reporter/logger
     }
+  }
+}
+
+class AccessorUpdateTask {
+  public constructor(
+    private readonly accessor: IAccessor,
+    private readonly v: unknown,
+    private readonly f: LifecycleFlags,
+    private readonly el: HTMLElement,
+    private readonly attr: string
+  ) {}
+
+  public run(): void {
+    this.accessor.setValue(this.v, this.f, this.el, this.attr);
   }
 }
 

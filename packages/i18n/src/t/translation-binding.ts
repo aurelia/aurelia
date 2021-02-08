@@ -178,7 +178,13 @@ export class TranslationBinding implements IPartialConnectableBinding {
     if (this.parameter != null) {
       throw new Error('This translation parameter has already been specified.');
     }
-    this.parameter = new ParameterBinding(this, expr, (flags: LifecycleFlags) => this.queueUpdate(flags));
+    this.parameter = new ParameterBinding(this, expr, (flags: LifecycleFlags) => {
+      if (/* should queue update if not during fromBind */(flags & LifecycleFlags.fromBind) === 0) {
+        this.queueUpdate(flags);
+      } else {
+        this.updateTranslations(flags);
+      }
+    });
   }
 
   private queueUpdate(flags: LifecycleFlags) {

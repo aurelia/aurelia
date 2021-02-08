@@ -4,12 +4,12 @@
 
 ## Getting Started
 
-* [Quick Start Guide](getting-started/quick-start-guide/README.md)
+* [Aurelia at a glance](getting-started/aurelia-at-a-glance.md)
+* [Quick install guide](getting-started/quick-install-guide.md)
+* [Hello World](getting-started/quick-start-guide/README.md)
   * [Creating Your First App](getting-started/quick-start-guide/creating-your-first-app.md)
-  * [Exploring the Source Code](getting-started/quick-start-guide/exploring-the-source-code.md)
   * [Your First Component - Part 1: The View-Model](getting-started/quick-start-guide/your-first-component-part-1-the-view-model.md)
   * [Your First Component - Part 2: The View](getting-started/quick-start-guide/your-first-component-part-2-the-view.md)
-  * [Beyond the Basics](getting-started/quick-start-guide/bonus.md)
   * [Next Steps](getting-started/quick-start-guide/next-steps.md)
 * [Template Syntax](getting-started/template-syntax.md)
 * [Building Components](getting-started/components/README.md)
@@ -21,11 +21,11 @@
 * [Displaying Data](getting-started/displaying-basic-data.md)
 * [Rendering Collections](getting-started/rendering-collections.md)
 * [Conditional Rendering](getting-started/conditional-rendering.md)
+* [Observation](getting-started/observation.md)
 * [Handling Events](getting-started/handling-events.md)
 
 ## App Basics
 
-* [Building a Contact Manager App](app-basics/building-a-contact-manager-app.md)
 * [Working with Form Elements](app-basics/working-with-form-elements.md)
 * [Dependency Injection](app-basics/dependency-injection.md)
 * [Components Revisited](app-basics/components-revisited.md)
@@ -40,12 +40,10 @@
 * [Integrating 3rd Party Libraries](app-basics/integrating-3rd-party-libraries.md)
 * [App Configuration and Startup](app-basics/app-configuration-and-startup.md)
 * [Custom Attributes](app-basics/custom-attributes.md)
-* [Cross-Component Communication](app-basics/cross-component-communication.md)
 * [Managing App State](app-basics/managing-app-state.md)
 * [Securing an App](app-basics/securing-an-app.md)
 * [Customizing Binding Behavior](app-basics/customizing-binding-behavior.md)
 * [Internationalization](app-basics/internationalization.md)
-* [Testing Apps and Components](app-basics/testing-apps-and-components.md)
 
 ## Routing
 
@@ -75,18 +73,12 @@
 * [I18n Internationalization](validation/i18n-internationalization.md)
 * [Migration Guide & Breaking Changes](validation/migration-guide.md)
 
-## API
-
-* [Introduction](api/api.md)
-
 ## Examples
 
 * [Binding & Templating](examples/binding-and-templating/README.md)
   * [Expression Syntax](examples/binding-and-templating/expression-syntax.md)
 * [Custom Attributes](examples/custom-attributes/README.md)
   * [Binding to Element Size](examples/custom-attributes/binding-to-element-size.md)
-* [Routing](examples/routing/README.md)
-  * [Configuring Auth-Protected Routes](examples/routing/configuring-auth-protected-routes.md)
 * [Integration](examples/integration/README.md)
   * [Microsoft FAST](examples/integration/ms-fast.md)
   * [Ionic](examples/integration/ionic.md)

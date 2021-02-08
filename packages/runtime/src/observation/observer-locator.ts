@@ -1,9 +1,4 @@
 import { DI, Primitive, isArrayIndex, ILogger } from '@aurelia/kernel';
-import {
-  AccessorOrObserver,
-  CollectionKind,
-  CollectionObserver,
-} from '../observation.js';
 import { getArrayObserver } from './array-observer.js';
 import { ComputedObserver } from './computed-observer.js';
 import { IDirtyChecker } from './dirty-checker.js';
@@ -20,6 +15,9 @@ import type {
   ICollectionObserver,
   IObservable,
   IObserver,
+  AccessorOrObserver,
+  CollectionKind,
+  CollectionObserver,
 } from '../observation.js';
 
 export const propertyAccessor = new PropertyAccessor();

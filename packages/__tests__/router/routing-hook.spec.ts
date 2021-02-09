@@ -239,7 +239,8 @@ describe('RoutingHook', function () {
 
     const hooked = await RoutingHook.invokeBeforeNavigation(
       [RoutingInstruction.create('testing') as RoutingInstruction], navigationInstruction) as RoutingInstruction[];
-    assert.strictEqual(hooked[0].component.name, 'testing', `hooked`);
+    // assert.strictEqual(hooked[0].component.name, 'testing', `hooked`);
+    assert.strictEqual(hooked, true, `hooked`);
 
     await tearDown();
   });

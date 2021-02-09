@@ -156,9 +156,10 @@ export class RoutingHook {
   }
 
   public static async invoke(type: RoutingHookType, navigationInstruction: Navigation, arg: RoutingHookParameter): Promise<RoutingHookResult> {
+    let outcome: RoutingHookResult = arg;
     for (const hook of this.hooks[type]) {
       if (!hook.wantsMatch || hook.matches(arg)) {
-        const outcome = await hook.invoke(navigationInstruction, arg);
+        outcome = await hook.invoke(navigationInstruction, arg);
         if (typeof outcome === 'boolean') {
           if (!outcome) {
             return false;
@@ -168,7 +169,7 @@ export class RoutingHook {
         }
       }
     }
-    return arg;
+    return outcome;
   }
 
   public get wantsMatch(): boolean {

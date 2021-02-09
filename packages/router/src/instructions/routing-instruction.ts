@@ -481,7 +481,7 @@ export class RoutingInstruction {
    */
   public isIn(searchIn: RoutingInstruction[], deep: boolean): boolean {
     // Get all instructions with matching component.
-    const matching = searchIn.filter(instruction => instruction.sameComponent(this) &&
+    const matching = searchIn.filter(instruction => instruction.sameComponent(this, true) &&
       (this.viewport.none || instruction.sameViewport(this, false)));
     // If no one matches, it's a failure.
     if (matching.length === 0) {

@@ -356,7 +356,7 @@ export class Controller {
             this.logger.trace(`activate()`);
         }
         this.hostScope = hostScope !== null && hostScope !== void 0 ? hostScope : null;
-        flags |= 32 /* fromBind */;
+        flags |= 8 /* fromBind */;
         switch (this.vmKind) {
             case 0 /* customElement */:
                 // Custom element scope is created and assigned during hydration
@@ -590,7 +590,7 @@ export class Controller {
         if (this.debug) {
             this.logger.trace(`unbind()`);
         }
-        const flags = this.$flags | 64 /* fromUnbind */;
+        const flags = this.$flags | 16 /* fromUnbind */;
         if (this.bindings !== null) {
             for (let i = 0; i < this.bindings.length; ++i) {
                 this.bindings[i].$unbind(flags);
@@ -615,7 +615,7 @@ export class Controller {
                 this.scope.parentScope = null;
                 break;
         }
-        if ((flags & 512 /* dispose */) === 512 /* dispose */ && this.$initiator === this) {
+        if ((flags & 128 /* dispose */) === 128 /* dispose */ && this.$initiator === this) {
             this.dispose();
         }
         this.state = (this.state & 32 /* disposed */) | 8 /* deactivated */;

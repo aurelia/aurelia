@@ -91,7 +91,7 @@ export class AppRoot {
     activate() {
         return onResolve(this.hydratePromise, () => {
             return onResolve(this.runAppTasks('beforeActivate'), () => {
-                return onResolve(this.controller.activate(this.controller, null, 32 /* fromBind */, void 0), () => {
+                return onResolve(this.controller.activate(this.controller, null, 8 /* fromBind */, void 0), () => {
                     return this.runAppTasks('afterActivate');
                 });
             });

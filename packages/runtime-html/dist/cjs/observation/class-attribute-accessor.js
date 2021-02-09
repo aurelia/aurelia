@@ -22,7 +22,7 @@ class ClassAttributeAccessor {
     setValue(newValue, flags) {
         this.currentValue = newValue;
         this.hasChanges = newValue !== this.oldValue;
-        if ((flags & 4096 /* noFlush */) === 0) {
+        if ((flags & 1024 /* noFlush */) === 0) {
             this.flushChanges(flags);
         }
     }

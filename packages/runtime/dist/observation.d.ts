@@ -20,25 +20,22 @@ export declare enum BindingMode {
 }
 export declare const enum LifecycleFlags {
     none = 0,
-    persistentBindingFlags = 15367,
-    allowParentScopeTraversal = 1024,
-    observeLeafPropertiesOnly = 2048,
-    targetObserverFlags = 12295,
-    noFlush = 4096,
-    persistentTargetObserverQueue = 8192,
+    persistentBindingFlags = 3847,
+    allowParentScopeTraversal = 256,
+    observeLeafPropertiesOnly = 512,
+    targetObserverFlags = 3079,
+    noFlush = 1024,
+    persistentTargetObserverQueue = 2048,
     bindingStrategy = 7,
     getterSetterStrategy = 1,
     proxyStrategy = 2,
     isStrictBindingStrategy = 4,
-    update = 24,
-    updateTarget = 8,
-    updateSource = 16,
-    from = 96,
-    fromBind = 32,
-    fromUnbind = 64,
-    mustEvaluate = 128,
-    isTraversingParentScope = 256,
-    dispose = 512
+    from = 24,
+    fromBind = 8,
+    fromUnbind = 16,
+    mustEvaluate = 32,
+    isTraversingParentScope = 64,
+    dispose = 128
 }
 export interface IConnectable {
     id: number;

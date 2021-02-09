@@ -89,7 +89,6 @@ export class BindingObserverRecord {
             }
             this[slotNames[i]] = observer;
             observer.subscribe(this);
-            observer[this.id] |= 8 /* updateTarget */;
             // increment the slot count.
             if (i === observerSlots) {
                 this.count = i + 1;
@@ -113,7 +112,6 @@ export class BindingObserverRecord {
                 if (observer != null) {
                     this[slotName] = void 0;
                     observer.unsubscribe(this);
-                    observer[this.id] &= ~8 /* updateTarget */;
                 }
             }
             this.count = 0;
@@ -126,7 +124,6 @@ export class BindingObserverRecord {
                     if (observer != null) {
                         this[slotName] = void 0;
                         observer.unsubscribe(this);
-                        observer[this.id] &= ~8 /* updateTarget */;
                         this.count--;
                     }
                 }

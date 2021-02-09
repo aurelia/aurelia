@@ -41,7 +41,7 @@ class SelectValueObserver {
         this.currentValue = newValue;
         this.hasChanges = newValue !== this.oldValue;
         this.observeArray(newValue instanceof Array ? newValue : null);
-        if ((flags & 4096 /* noFlush */) === 0) {
+        if ((flags & 1024 /* noFlush */) === 0) {
             this.flushChanges(flags);
         }
     }
@@ -57,7 +57,7 @@ class SelectValueObserver {
         this.synchronizeOptions();
     }
     notify(flags) {
-        if ((flags & 32 /* fromBind */) > 0) {
+        if ((flags & 8 /* fromBind */) > 0) {
             return;
         }
         const oldValue = this.oldValue;

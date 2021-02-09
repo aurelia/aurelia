@@ -41,11 +41,11 @@ export class AttributeBinding {
     }
     updateTarget(value, flags) {
         flags |= this.persistentFlags;
-        this.targetObserver.setValue(value, flags | 8 /* updateTarget */, this.target, this.targetProperty);
+        this.targetObserver.setValue(value, flags, this.target, this.targetProperty);
     }
     updateSource(value, flags) {
         flags |= this.persistentFlags;
-        this.sourceExpression.assign(flags | 16 /* updateSource */, this.$scope, this.$hostScope, this.locator, value);
+        this.sourceExpression.assign(flags, this.$scope, this.$hostScope, this.locator, value);
     }
     handleChange(newValue, _previousValue, flags) {
         if (!this.isBound) {
@@ -57,16 +57,12 @@ export class AttributeBinding {
         const sourceExpression = this.sourceExpression;
         const $scope = this.$scope;
         const locator = this.locator;
-        if (mode === BindingMode.fromView) {
-            flags &= ~8 /* updateTarget */;
-            flags |= 16 /* updateSource */;
-        }
         const targetObserver = this.targetObserver;
         // Alpha: during bind a simple strategy for bind is always flush immediately
         // todo:
         //  (1). determine whether this should be the behavior
         //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start()
-        const shouldQueueFlush = (flags & 32 /* fromBind */) === 0 && (targetObserver.type & 4 /* Layout */) > 0;
+        const shouldQueueFlush = (flags & 8 /* fromBind */) === 0 && (targetObserver.type & 4 /* Layout */) > 0;
         if (sourceExpression.$kind !== 10082 /* AccessScope */ || this.obs.count > 1) {
             const shouldConnect = (mode & oneTime) === 0;
             if (shouldConnect) {
@@ -100,11 +96,11 @@ export class AttributeBinding {
             if (this.$scope === scope) {
                 return;
             }
-            this.interceptor.$unbind(flags | 32 /* fromBind */);
+            this.interceptor.$unbind(flags | 8 /* fromBind */);
         }
         // Store flags which we can only receive during $bind and need to pass on
         // to the AST during evaluate/connect/assign
-        this.persistentFlags = flags & 15367 /* persistentBindingFlags */;
+        this.persistentFlags = flags & 3847 /* persistentBindingFlags */;
         this.$scope = scope;
         this.$hostScope = hostScope;
         this.projection = projection;

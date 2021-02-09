@@ -16,13 +16,12 @@ function subscriberCollectionDeco(target) {
 }
 /* eslint-enable @typescript-eslint/ban-types */
 class SubscriberRecord {
-    constructor(owner) {
+    constructor() {
         /**
          * subscriber flags: bits indicating the existence status of the subscribers of this record
          */
         this._sf = 0 /* None */;
         this.count = 0;
-        this.owner = owner;
     }
     add(subscriber) {
         if (this.has(subscriber)) {
@@ -125,7 +124,6 @@ class SubscriberRecord {
          * Subscribers removed during this invocation will still be invoked (and they also shouldn't be,
          * however this is accounted for via $isBound and similar flags on the subscriber objects)
          */
-        const owner = this.owner;
         const sub0 = this._s0;
         const sub1 = this._s1;
         const sub2 = this._s2;
@@ -133,15 +131,14 @@ class SubscriberRecord {
         if (subs !== void 0) {
             subs = subs.slice();
         }
-        flags = (flags | 24 /* update */) ^ 24 /* update */;
         if (sub0 !== void 0) {
-            sub0.handleChange(val, oldVal, flags | /* sub own flags */ (sub0.id === void 0 ? 0 : owner[sub0.id]));
+            sub0.handleChange(val, oldVal, flags);
         }
         if (sub1 !== void 0) {
-            sub1.handleChange(val, oldVal, flags | /* sub own flags */ (sub1.id === void 0 ? 0 : owner[sub1.id]));
+            sub1.handleChange(val, oldVal, flags);
         }
         if (sub2 !== void 0) {
-            sub2.handleChange(val, oldVal, flags | /* sub own flags */ (sub2.id === void 0 ? 0 : owner[sub2.id]));
+            sub2.handleChange(val, oldVal, flags);
         }
         if (subs !== void 0) {
             const ii = subs.length;
@@ -150,7 +147,7 @@ class SubscriberRecord {
             for (; i < ii; ++i) {
                 sub = subs[i];
                 if (sub !== void 0) {
-                    sub.handleChange(val, oldVal, flags | /* sub own flags */ (sub.id === void 0 ? 0 : owner[sub.id]));
+                    sub.handleChange(val, oldVal, flags);
                 }
             }
         }
@@ -187,7 +184,7 @@ class SubscriberRecord {
 }
 exports.SubscriberRecord = SubscriberRecord;
 function getSubscriberRecord() {
-    const record = new SubscriberRecord(this);
+    const record = new SubscriberRecord();
     utilities_objects_js_1.defineHiddenProp(this, 'subs', record);
     return record;
 }

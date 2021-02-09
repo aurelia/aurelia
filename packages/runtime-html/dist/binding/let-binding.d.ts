@@ -18,7 +18,7 @@ export declare class LetBinding implements IPartialConnectableBinding {
     task: ITask | null;
     target: (IObservable & IIndexable) | null;
     constructor(sourceExpression: IsExpression, targetProperty: string, observerLocator: IObserverLocator, locator: IServiceLocator, toBindingContext?: boolean);
-    handleChange(_newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void;
+    handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void;
     $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void;
     $unbind(flags: LifecycleFlags): void;
 }

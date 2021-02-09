@@ -20,7 +20,7 @@ class CallBinding {
         // OR, at the very least, use getter/setter for each property in args to get/set original source
         // ---
         Object.assign(overrideContext, args);
-        const result = this.sourceExpression.evaluate(128 /* mustEvaluate */, this.$scope, this.$hostScope, this.locator, null);
+        const result = this.sourceExpression.evaluate(32 /* mustEvaluate */, this.$scope, this.$hostScope, this.locator, null);
         for (const prop in args) {
             Reflect.deleteProperty(overrideContext, prop);
         }
@@ -31,7 +31,7 @@ class CallBinding {
             if (this.$scope === scope) {
                 return;
             }
-            this.interceptor.$unbind(flags | 32 /* fromBind */);
+            this.interceptor.$unbind(flags | 8 /* fromBind */);
         }
         this.$scope = scope;
         this.$hostScope = hostScope;

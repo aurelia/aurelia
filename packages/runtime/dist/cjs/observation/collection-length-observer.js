@@ -19,11 +19,11 @@ class CollectionLengthObserver {
         // then there's a chance that the new value is invalid
         // add a guard so that we don't accidentally broadcast invalid values
         if (newValue !== currentValue && kernel_1.isArrayIndex(newValue)) {
-            if ((flags & 4096 /* noFlush */) === 0) {
+            if ((flags & 1024 /* noFlush */) === 0) {
                 this.obj.length = newValue;
             }
             this.value = newValue;
-            this.subs.notify(newValue, currentValue, flags | 8 /* updateTarget */);
+            this.subs.notify(newValue, currentValue, flags);
         }
     }
     handleCollectionChange(_, flags) {

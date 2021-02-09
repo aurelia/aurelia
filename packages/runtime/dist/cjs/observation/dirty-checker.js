@@ -111,7 +111,7 @@ class DirtyCheckProperty {
     flush(flags) {
         const oldValue = this.oldValue;
         const newValue = this.getValue();
-        this.subs.notify(newValue, oldValue, flags | 8 /* updateTarget */);
+        this.subs.notify(newValue, oldValue, flags);
         this.oldValue = newValue;
     }
     subscribe(subscriber) {

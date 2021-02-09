@@ -127,7 +127,7 @@ let TranslationBinding = TranslationBinding_1 = class TranslationBinding {
                     const accessor = controller && controller.viewModel
                         ? this.observerLocator.getAccessor(controller.viewModel, attribute)
                         : this.observerLocator.getAccessor(this.target, attribute);
-                    const shouldQueueUpdate = (flags & 32 /* fromBind */) === 0 && (accessor.type & 4 /* Layout */) > 0;
+                    const shouldQueueUpdate = (flags & 8 /* fromBind */) === 0 && (accessor.type & 4 /* Layout */) > 0;
                     if (shouldQueueUpdate) {
                         accessorUpdateTasks.push(new AccessorUpdateTask(accessor, value, flags, this.target, attribute));
                     }
@@ -140,7 +140,7 @@ let TranslationBinding = TranslationBinding_1 = class TranslationBinding {
         }
         let shouldQueueContent = false;
         if (Object.keys(content).length > 0) {
-            shouldQueueContent = (flags & 32 /* fromBind */) === 0;
+            shouldQueueContent = (flags & 8 /* fromBind */) === 0;
             if (!shouldQueueContent) {
                 this.updateContent(content, flags);
             }
@@ -255,9 +255,6 @@ let ParameterBinding = class ParameterBinding {
         runtime_html_1.connectable.assignIdTo(this);
     }
     handleChange(newValue, _previousValue, flags) {
-        if ((flags & 8 /* updateTarget */) === 0) {
-            throw new Error('Unexpected context in a ParameterBinding.');
-        }
         this.obs.version++;
         this.value = this.expr.evaluate(flags, this.scope, this.hostScope, this.locator, this);
         this.obs.clear(false);

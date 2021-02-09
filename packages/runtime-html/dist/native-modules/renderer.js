@@ -262,7 +262,7 @@ class SetPropertyRenderer {
     render(flags, context, controller, target, instruction) {
         const obj = getTarget(target);
         if (obj.$observers !== void 0 && obj.$observers[instruction.to] !== void 0) {
-            obj.$observers[instruction.to].setValue(instruction.value, 32 /* fromBind */);
+            obj.$observers[instruction.to].setValue(instruction.value, 8 /* fromBind */);
         }
         else {
             obj[instruction.to] = instruction.value;

@@ -61,7 +61,6 @@ let Repeat = class Repeat {
         }
         flags |= $controller.flags;
         this.checkCollectionObserver(flags);
-        flags |= 8 /* updateTarget */;
         this.normalizeToArray(flags);
         const ret = kernel_1.onResolve(this.deactivateAllViews(null, flags), () => {
             // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add a variety of `if` integration tests
@@ -78,7 +77,6 @@ let Repeat = class Repeat {
             return;
         }
         flags |= $controller.flags;
-        flags |= 8 /* updateTarget */;
         this.normalizeToArray(flags);
         if (indexMap === void 0) {
             const ret = kernel_1.onResolve(this.deactivateAllViews(null, flags), () => {
@@ -113,7 +111,7 @@ let Repeat = class Repeat {
     // todo: subscribe to collection from inner expression
     checkCollectionObserver(flags) {
         const oldObserver = this.observer;
-        if ((flags & 64 /* fromUnbind */)) {
+        if ((flags & 16 /* fromUnbind */)) {
             if (oldObserver !== void 0) {
                 oldObserver.unsubscribe(this);
             }

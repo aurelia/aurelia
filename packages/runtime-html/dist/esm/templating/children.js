@@ -151,7 +151,7 @@ let ChildrenObserver = ChildrenObserver_1 = class ChildrenObserver {
         if (this.callback !== void 0) {
             this.callback.call(this.obj);
         }
-        this.subs.notify(this.children, undefined, 8 /* updateTarget */);
+        this.subs.notify(this.children, undefined, 0 /* none */);
     }
 };
 ChildrenObserver = ChildrenObserver_1 = __decorate([

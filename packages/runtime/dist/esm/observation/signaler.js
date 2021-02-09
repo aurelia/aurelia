@@ -10,7 +10,7 @@ export class Signaler {
             return;
         }
         for (const listener of listeners.keys()) {
-            listener.handleChange(undefined, undefined, flags | 8 /* updateTarget */);
+            listener.handleChange(undefined, undefined, flags);
         }
     }
     addSignalListener(name, listener) {

@@ -138,7 +138,7 @@ class MapObserver {
         const indexMap = this.indexMap;
         const size = this.collection.size;
         this.indexMap = observation_js_1.createIndexMap(size);
-        this.subs.notifyCollection(indexMap, 8 /* updateTarget */);
+        this.subs.notifyCollection(indexMap, 0 /* none */);
     }
     getLengthObserver() {
         var _a;

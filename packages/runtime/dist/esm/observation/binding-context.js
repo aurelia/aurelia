@@ -51,7 +51,7 @@ export class BindingContext {
         // still nothing found. return the root binding context (or null
         // if this is a parent scope traversal, to ensure we fall back to the
         // correct level)
-        if (flags & 256 /* isTraversingParentScope */) {
+        if (flags & 64 /* isTraversingParentScope */) {
             return marker;
         }
         return scope.bindingContext || scope.overrideContext;

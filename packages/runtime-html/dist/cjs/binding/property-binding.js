@@ -52,7 +52,7 @@ class PropertyBinding {
         // todo:
         //  (1). determine whether this should be the behavior
         //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start()
-        const shouldQueueFlush = (flags & 32 /* fromBind */) === 0 && (targetObserver.type & 4 /* Layout */) > 0;
+        const shouldQueueFlush = (flags & 8 /* fromBind */) === 0 && (targetObserver.type & 4 /* Layout */) > 0;
         const obsRecord = this.obs;
         // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
         if (sourceExpression.$kind !== 10082 /* AccessScope */ || obsRecord.count > 1) {
@@ -85,13 +85,13 @@ class PropertyBinding {
             if (this.$scope === scope) {
                 return;
             }
-            this.interceptor.$unbind(flags | 32 /* fromBind */);
+            this.interceptor.$unbind(flags | 8 /* fromBind */);
         }
         // Force property binding to always be strict
         flags |= 4 /* isStrictBindingStrategy */;
         // Store flags which we can only receive during $bind and need to pass on
         // to the AST during evaluate/connect/assign
-        this.persistentFlags = flags & 15367 /* persistentBindingFlags */;
+        this.persistentFlags = flags & 3847 /* persistentBindingFlags */;
         this.$scope = scope;
         this.$hostScope = hostScope;
         let sourceExpression = this.sourceExpression;

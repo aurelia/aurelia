@@ -1,5 +1,4 @@
-import { LifecycleFlags } from '@aurelia/runtime';
-import type { ForOfStatement, IConnectableBinding, IsBindingBehavior, ISubscriber } from '@aurelia/runtime';
+import type { ForOfStatement, IConnectableBinding, IsBindingBehavior, ISubscriber, LifecycleFlags } from '@aurelia/runtime';
 interface ITwoWayBindingImpl extends IConnectableBinding {
     sourceExpression: IsBindingBehavior | ForOfStatement;
     updateSource(value: unknown, flags: LifecycleFlags): void;

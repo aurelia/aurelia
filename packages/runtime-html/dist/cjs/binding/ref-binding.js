@@ -16,14 +16,14 @@ class RefBinding {
             if (this.$scope === scope) {
                 return;
             }
-            this.interceptor.$unbind(flags | 32 /* fromBind */);
+            this.interceptor.$unbind(flags | 8 /* fromBind */);
         }
         this.$scope = scope;
         this.$hostScope = hostScope;
         if (this.sourceExpression.hasBind) {
             this.sourceExpression.bind(flags, scope, hostScope, this);
         }
-        this.sourceExpression.assign(flags | 16 /* updateSource */, this.$scope, hostScope, this.locator, this.target);
+        this.sourceExpression.assign(flags, this.$scope, hostScope, this.locator, this.target);
         // add isBound flag and remove isBinding flag
         this.isBound = true;
     }

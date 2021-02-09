@@ -9,9 +9,7 @@ export class BindingTargetSubscriber {
     handleChange(value, _, flags) {
         const b = this.b;
         if (value !== b.sourceExpression.evaluate(flags, b.$scope, b.$hostScope, b.locator, null)) {
-            // TODO: adding the update source flag, to ensure existing `bindable` works in stable manner
-            // should be removed
-            b.updateSource(value, flags | 16 /* updateSource */);
+            b.updateSource(value, flags);
         }
     }
 }

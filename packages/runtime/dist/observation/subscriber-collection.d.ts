@@ -1,5 +1,4 @@
-import { ISubscriberRecord, LifecycleFlags as LF } from '../observation.js';
-import type { ICollectionSubscriber, ICollectionSubscriberCollection, IndexMap, ISubscriber, ISubscriberCollection } from '../observation.js';
+import type { ICollectionSubscriber, IndexMap, ISubscriber, ISubscriberRecord, LifecycleFlags as LF } from '../observation.js';
 export declare type IAnySubscriber = ISubscriber | ICollectionSubscriber;
 export declare function subscriberCollection(): ClassDecorator;
 export declare function subscriberCollection(target: Function): void;
@@ -16,8 +15,6 @@ export declare class SubscriberRecord<T extends IAnySubscriber> implements ISubs
      */
     private _sr?;
     count: number;
-    readonly owner: ISubscriberCollection | ICollectionSubscriberCollection;
-    constructor(owner: ISubscriberCollection | ICollectionSubscriberCollection);
     add(subscriber: T): boolean;
     has(subscriber: T): boolean;
     any(): boolean;

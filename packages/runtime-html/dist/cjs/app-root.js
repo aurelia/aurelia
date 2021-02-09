@@ -94,7 +94,7 @@ class AppRoot {
     activate() {
         return kernel_1.onResolve(this.hydratePromise, () => {
             return kernel_1.onResolve(this.runAppTasks('beforeActivate'), () => {
-                return kernel_1.onResolve(this.controller.activate(this.controller, null, 32 /* fromBind */, void 0), () => {
+                return kernel_1.onResolve(this.controller.activate(this.controller, null, 8 /* fromBind */, void 0), () => {
                     return this.runAppTasks('afterActivate');
                 });
             });

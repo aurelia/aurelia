@@ -22,25 +22,22 @@ var LifecycleFlags;
     LifecycleFlags[LifecycleFlags["none"] = 0] = "none";
     // Bitmask for flags that need to be stored on a binding during $bind for mutation
     // callbacks outside of $bind
-    LifecycleFlags[LifecycleFlags["persistentBindingFlags"] = 15367] = "persistentBindingFlags";
-    LifecycleFlags[LifecycleFlags["allowParentScopeTraversal"] = 1024] = "allowParentScopeTraversal";
-    LifecycleFlags[LifecycleFlags["observeLeafPropertiesOnly"] = 2048] = "observeLeafPropertiesOnly";
-    LifecycleFlags[LifecycleFlags["targetObserverFlags"] = 12295] = "targetObserverFlags";
-    LifecycleFlags[LifecycleFlags["noFlush"] = 4096] = "noFlush";
-    LifecycleFlags[LifecycleFlags["persistentTargetObserverQueue"] = 8192] = "persistentTargetObserverQueue";
+    LifecycleFlags[LifecycleFlags["persistentBindingFlags"] = 3847] = "persistentBindingFlags";
+    LifecycleFlags[LifecycleFlags["allowParentScopeTraversal"] = 256] = "allowParentScopeTraversal";
+    LifecycleFlags[LifecycleFlags["observeLeafPropertiesOnly"] = 512] = "observeLeafPropertiesOnly";
+    LifecycleFlags[LifecycleFlags["targetObserverFlags"] = 3079] = "targetObserverFlags";
+    LifecycleFlags[LifecycleFlags["noFlush"] = 1024] = "noFlush";
+    LifecycleFlags[LifecycleFlags["persistentTargetObserverQueue"] = 2048] = "persistentTargetObserverQueue";
     LifecycleFlags[LifecycleFlags["bindingStrategy"] = 7] = "bindingStrategy";
     LifecycleFlags[LifecycleFlags["getterSetterStrategy"] = 1] = "getterSetterStrategy";
     LifecycleFlags[LifecycleFlags["proxyStrategy"] = 2] = "proxyStrategy";
     LifecycleFlags[LifecycleFlags["isStrictBindingStrategy"] = 4] = "isStrictBindingStrategy";
-    LifecycleFlags[LifecycleFlags["update"] = 24] = "update";
-    LifecycleFlags[LifecycleFlags["updateTarget"] = 8] = "updateTarget";
-    LifecycleFlags[LifecycleFlags["updateSource"] = 16] = "updateSource";
-    LifecycleFlags[LifecycleFlags["from"] = 96] = "from";
-    LifecycleFlags[LifecycleFlags["fromBind"] = 32] = "fromBind";
-    LifecycleFlags[LifecycleFlags["fromUnbind"] = 64] = "fromUnbind";
-    LifecycleFlags[LifecycleFlags["mustEvaluate"] = 128] = "mustEvaluate";
-    LifecycleFlags[LifecycleFlags["isTraversingParentScope"] = 256] = "isTraversingParentScope";
-    LifecycleFlags[LifecycleFlags["dispose"] = 512] = "dispose";
+    LifecycleFlags[LifecycleFlags["from"] = 24] = "from";
+    LifecycleFlags[LifecycleFlags["fromBind"] = 8] = "fromBind";
+    LifecycleFlags[LifecycleFlags["fromUnbind"] = 16] = "fromUnbind";
+    LifecycleFlags[LifecycleFlags["mustEvaluate"] = 32] = "mustEvaluate";
+    LifecycleFlags[LifecycleFlags["isTraversingParentScope"] = 64] = "isTraversingParentScope";
+    LifecycleFlags[LifecycleFlags["dispose"] = 128] = "dispose";
 })(LifecycleFlags = exports.LifecycleFlags || (exports.LifecycleFlags = {}));
 /** @internal */
 var SubscriberFlags;

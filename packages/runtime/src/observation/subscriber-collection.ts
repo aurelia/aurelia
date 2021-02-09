@@ -1,16 +1,15 @@
 import {
-  ISubscriberRecord,
-  LifecycleFlags as LF,
   SubscriberFlags as SF,
 } from '../observation.js';
 import { def, defineHiddenProp, ensureProto } from '../utilities-objects.js';
 
 import type {
   ICollectionSubscriber,
-  ICollectionSubscriberCollection,
   IndexMap,
   ISubscriber,
   ISubscriberCollection,
+  ISubscriberRecord,
+  LifecycleFlags as LF,
 } from '../observation.js';
 
 export type IAnySubscriber = ISubscriber | ICollectionSubscriber;
@@ -47,13 +46,6 @@ export class SubscriberRecord<T extends IAnySubscriber> implements ISubscriberRe
   private _sr?: T[];
 
   public count: number = 0;
-  public readonly owner: ISubscriberCollection | ICollectionSubscriberCollection;
-
-  public constructor(
-    owner: ISubscriberCollection | ICollectionSubscriberCollection,
-  ) {
-    this.owner = owner;
-  }
 
   public add(subscriber: T): boolean {
     if (this.has(subscriber)) {
@@ -153,7 +145,6 @@ export class SubscriberRecord<T extends IAnySubscriber> implements ISubscriberRe
      * Subscribers removed during this invocation will still be invoked (and they also shouldn't be,
      * however this is accounted for via $isBound and similar flags on the subscriber objects)
      */
-    const owner = this.owner;
     const sub0 = this._s0 as ISubscriber;
     const sub1 = this._s1 as ISubscriber;
     const sub2 = this._s2 as ISubscriber;
@@ -162,16 +153,14 @@ export class SubscriberRecord<T extends IAnySubscriber> implements ISubscriberRe
       subs = subs.slice();
     }
 
-    flags = (flags | LF.update) ^ LF.update;
-
     if (sub0 !== void 0) {
-      sub0.handleChange(val, oldVal, flags | /* sub own flags */(sub0.id === void 0 ? 0 : owner[sub0.id]));
+      sub0.handleChange(val, oldVal, flags);
     }
     if (sub1 !== void 0) {
-      sub1.handleChange(val, oldVal, flags | /* sub own flags */(sub1.id === void 0 ? 0 : owner[sub1.id]));
+      sub1.handleChange(val, oldVal, flags);
     }
     if (sub2 !== void 0) {
-      sub2.handleChange(val, oldVal, flags | /* sub own flags */(sub2.id === void 0 ? 0 : owner[sub2.id]));
+      sub2.handleChange(val, oldVal, flags);
     }
     if (subs !== void 0) {
       const ii = subs.length;
@@ -180,7 +169,7 @@ export class SubscriberRecord<T extends IAnySubscriber> implements ISubscriberRe
       for (; i < ii; ++i) {
         sub = subs[i];
         if (sub !== void 0) {
-          sub.handleChange(val, oldVal, flags | /* sub own flags */(sub.id === void 0 ? 0 : owner[sub.id]));
+          sub.handleChange(val, oldVal, flags);
         }
       }
     }
@@ -219,7 +208,7 @@ export class SubscriberRecord<T extends IAnySubscriber> implements ISubscriberRe
 }
 
 function getSubscriberRecord(this: ISubscriberCollection) {
-  const record = new SubscriberRecord(this);
+  const record = new SubscriberRecord();
   defineHiddenProp(this, 'subs', record);
   return record;
 }

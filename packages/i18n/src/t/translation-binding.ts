@@ -353,9 +353,6 @@ class ParameterBinding {
   }
 
   public handleChange(newValue: string | i18next.TOptions, _previousValue: string | i18next.TOptions, flags: LifecycleFlags): void {
-    if ((flags & LifecycleFlags.updateTarget) === 0) {
-      throw new Error('Unexpected context in a ParameterBinding.');
-    }
     this.obs.version++;
     this.value = this.expr.evaluate(flags, this.scope, this.hostScope, this.locator, this) as i18next.TOptions;
     this.obs.clear(false);

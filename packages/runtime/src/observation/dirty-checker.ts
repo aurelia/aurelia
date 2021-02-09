@@ -133,7 +133,7 @@ export class DirtyCheckProperty implements DirtyCheckProperty {
     const oldValue = this.oldValue;
     const newValue = this.getValue();
 
-    this.subs.notify(newValue, oldValue, flags | LifecycleFlags.updateTarget);
+    this.subs.notify(newValue, oldValue, flags);
 
     this.oldValue = newValue;
   }

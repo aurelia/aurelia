@@ -1,4 +1,3 @@
-import { LifecycleFlags, } from '../observation.js';
 import { def, defineHiddenProp, ensureProto } from '../utilities-objects.js';
 import { getArrayObserver } from '../observation/array-observer.js';
 import { getSetObserver } from '../observation/set-observer.js';
@@ -15,6 +14,7 @@ import type {
   ICollectionSubscriber,
   IndexMap,
   ICollectionSubscribable,
+  LifecycleFlags,
 } from '../observation.js';
 import type { IObserverLocator } from '../observation/observer-locator.js';
 import type { Scope } from '../observation/binding-context.js';
@@ -137,7 +137,6 @@ export class BindingObserverRecord implements ISubscriber, ICollectionSubscriber
       }
       this[slotNames[i]] = observer;
       observer.subscribe(this);
-      observer[this.id] |= LifecycleFlags.updateTarget;
       // increment the slot count.
       if (i === observerSlots) {
         this.count = i + 1;
@@ -162,7 +161,6 @@ export class BindingObserverRecord implements ISubscriber, ICollectionSubscriber
         if (observer != null) {
           this[slotName] = void 0;
           observer.unsubscribe(this);
-          observer[this.id] &= ~LifecycleFlags.updateTarget;
         }
       }
       this.count = 0;
@@ -174,7 +172,6 @@ export class BindingObserverRecord implements ISubscriber, ICollectionSubscriber
           if (observer != null) {
             this[slotName] = void 0;
             observer.unsubscribe(this);
-            observer[this.id] &= ~LifecycleFlags.updateTarget;
             this.count--;
           }
         }

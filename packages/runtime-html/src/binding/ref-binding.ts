@@ -33,7 +33,7 @@ export class RefBinding implements IBinding {
       this.sourceExpression.bind(flags, scope, hostScope, this);
     }
 
-    this.sourceExpression.assign!(flags | LifecycleFlags.updateSource, this.$scope, hostScope, this.locator, this.target);
+    this.sourceExpression.assign!(flags, this.$scope, hostScope, this.locator, this.target);
 
     // add isBound flag and remove isBinding flag
     this.isBound = true;

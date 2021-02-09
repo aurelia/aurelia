@@ -93,7 +93,6 @@ describe('[UNIT] 2-runtime/computed-observer.spec.ts', function () {
       Reflect.defineProperty(Subject.prototype, 'dep', depDescriptor);
 
       const instance = new Subject();
-      const expectedFlags = LF.updateTarget;
 
       let callCount1 = 0;
       let evaluated1: unknown;

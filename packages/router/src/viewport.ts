@@ -516,11 +516,11 @@ export class Viewport extends Endpoint {
 
     const guarded = coordinator.checkingSyncState('guarded');
 
-    const performLoad = true; // this.performLoad || !guarded;
-    const performSwap = true; // this.performSwap || !guarded;
+    // const performLoad = true; // this.performLoad || !guarded;
+    // const performSwap = true; // this.performSwap || !guarded;
 
     const guardSteps = [
-      (step: Step<boolean>) => performLoad ? this.canUnload(step) : true,
+      (step: Step<boolean>) => this.canUnload(step),
       (step: Step<boolean>) => {
         if (!step.previousValue) { // canUnloadResult: boolean
           // console.log('coordinator cancel', this.toString());
@@ -537,7 +537,7 @@ export class Viewport extends Endpoint {
       () => coordinator.waitForSyncState('guardedUnload', this),
       () => actingParentViewport !== null ? coordinator.waitForEntityState(actingParentViewport, 'guardedLoad') : void 0,
 
-      (step: Step<boolean>) => performLoad ? this.canLoad(step, guarded) as boolean | LoadInstruction | LoadInstruction[] : true,
+      (step: Step<boolean>) => this.canLoad(step, guarded) as boolean | LoadInstruction | LoadInstruction[],
       (step: Step) => {
         const canLoadResult = step.previousValue as boolean | LoadInstruction | LoadInstruction[];
         if (typeof canLoadResult === 'boolean') { // canLoadResult: boolean | LoadInstruction | LoadInstruction[],
@@ -559,15 +559,11 @@ export class Viewport extends Endpoint {
 
     const routingSteps = [
       () => coordinator.waitForSyncState('guarded', this),
-      (step: Step<void>) => performLoad ? this.unload(step, true, transitionId) : true,
-      (step: Step<void>) => {
-        // console.log('unload', transitionId, step.previousValue);
-        return coordinator.addEntityState(this, 'unloaded');
-      },
-
+      (step: Step<void>) => this.unload(step, true, transitionId),
+      () => coordinator.addEntityState(this, 'unloaded'),
       () => coordinator.waitForSyncState('unloaded', this),
       () => actingParentViewport !== null ? coordinator.waitForEntityState(actingParentViewport, 'loaded') : void 0,
-      (step: Step<void>) => performLoad ? this.load(step /*, coordinator.checkingSyncState('routed') */) : true,
+      (step: Step<void>) => this.load(step),
       () => coordinator.addEntityState(this, 'loaded'),
       () => coordinator.addEntityState(this, 'routed'),
     ];
@@ -576,32 +572,31 @@ export class Viewport extends Endpoint {
       () => coordinator.waitForSyncState('routed', this),
       () => coordinator.waitForEntityState(this, 'routed'), // TODO: remove this
     ];
-    if (performSwap) {
-      if (RouterConfiguration.options.swapStrategy.includes('parallel')) {
-        lifecycleSteps.push((step: Step<void | void[]>): Step<void> => {
-          if (RouterConfiguration.options.swapStrategy.includes('add')) {
-            return Runner.runParallel<void>(step as Step<void>,
-              (step: Step<void | void[]>): void | Step<void> => this.addContent(step as Step<void>, coordinator),
-              (step: Step<void | void[]>): void | Step<void> => this.removeContent(step as Step<void>, coordinator),
-            ) as Step<void>;
-          } else {
-            return Runner.runParallel(step as Step<void>,
-              (step: Step<void>) => this.removeContent(step, coordinator),
-              (step: Step<void>) => this.addContent(step, coordinator),
-            ) as Step<void>;
-          }
-        });
-      } else {
-        lifecycleSteps.push(
-          (step: Step<void | void[]>) => RouterConfiguration.options.swapStrategy.includes('add')
-            ? this.addContent(step as Step<void>, coordinator)
-            : this.removeContent(step as Step<void>, coordinator),
-          (step: Step<void | void[]>) => RouterConfiguration.options.swapStrategy.includes('add')
-            ? this.removeContent(step as Step<void>, coordinator)
-            : this.addContent(step as Step<void>, coordinator),
-        );
-      }
+    if (RouterConfiguration.options.swapStrategy.includes('parallel')) {
+      lifecycleSteps.push((step: Step<void | void[]>): Step<void> => {
+        if (RouterConfiguration.options.swapStrategy.includes('add')) {
+          return Runner.runParallel<void>(step as Step<void>,
+            (step: Step<void | void[]>): void | Step<void> => this.addContent(step as Step<void>, coordinator),
+            (step: Step<void | void[]>): void | Step<void> => this.removeContent(step as Step<void>, coordinator),
+          ) as Step<void>;
+        } else {
+          return Runner.runParallel(step as Step<void>,
+            (step: Step<void>) => this.removeContent(step, coordinator),
+            (step: Step<void>) => this.addContent(step, coordinator),
+          ) as Step<void>;
+        }
+      });
+    } else {
+      lifecycleSteps.push(
+        (step: Step<void | void[]>) => RouterConfiguration.options.swapStrategy.includes('add')
+          ? this.addContent(step as Step<void>, coordinator)
+          : this.removeContent(step as Step<void>, coordinator),
+        (step: Step<void | void[]>) => RouterConfiguration.options.swapStrategy.includes('add')
+          ? this.removeContent(step as Step<void>, coordinator)
+          : this.addContent(step as Step<void>, coordinator),
+      );
     }
+
     lifecycleSteps.push(() => coordinator.addEntityState(this, 'swapped'));
 
     this.connectedCE?.setActive?.(true);

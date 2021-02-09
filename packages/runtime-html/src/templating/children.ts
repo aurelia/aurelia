@@ -220,7 +220,7 @@ export class ChildrenObserver {
       this.callback.call(this.obj);
     }
 
-    this.subs.notify(this.children, undefined, LifecycleFlags.updateTarget);
+    this.subs.notify(this.children, undefined, LifecycleFlags.none);
   }
 }
 

@@ -39,7 +39,7 @@ export class CollectionLengthObserver implements ICollectionSubscriber {
         this.obj.length = newValue;
       }
       this.value = newValue;
-      this.subs.notify(newValue, currentValue, flags | LifecycleFlags.updateTarget);
+      this.subs.notify(newValue, currentValue, flags);
     }
   }
 

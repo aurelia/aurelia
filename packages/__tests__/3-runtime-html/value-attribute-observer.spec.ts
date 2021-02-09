@@ -65,7 +65,7 @@ describe.skip('ValueAttributeObserver', function () {
                 assert.deepStrictEqual(
                   subscriber.handleChange.calls,
                   [
-                    [expectedValueBefore, '', LF.updateTarget],
+                    [expectedValueBefore, '', LF.none],
                   ],
                   'subscriber.handleChange.calls',
                 );
@@ -81,8 +81,8 @@ describe.skip('ValueAttributeObserver', function () {
                 assert.deepStrictEqual(
                   subscriber.handleChange.calls,
                   [
-                    [expectedValueBefore, '', LF.updateTarget],
-                    [expectedValueAfter, expectedValueBefore, LF.updateTarget],
+                    [expectedValueBefore, '', LF.none],
+                    [expectedValueAfter, expectedValueBefore, LF.none],
                   ],
                   'subscriber.handleChange.calls',
                 );

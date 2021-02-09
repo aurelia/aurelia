@@ -379,7 +379,7 @@ export class ArrayObserver {
     const length = this.collection.length;
 
     this.indexMap = createIndexMap(length);
-    this.subs.notifyCollection(indexMap, LifecycleFlags.updateTarget);
+    this.subs.notifyCollection(indexMap, LifecycleFlags.none);
   }
 
   public getLengthObserver(): CollectionLengthObserver {

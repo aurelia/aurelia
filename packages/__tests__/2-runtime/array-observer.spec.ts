@@ -72,7 +72,7 @@ describe(`ArrayObserver`, function () {
       arr.push(1);
       assert.deepStrictEqual(
         s.collectionChanges.pop(),
-        new CollectionChangeSet(0, LF.updateTarget, copyIndexMap([-2]))
+        new CollectionChangeSet(0, LF.none, copyIndexMap([-2]))
       );
     });
 
@@ -84,7 +84,7 @@ describe(`ArrayObserver`, function () {
       arr.push(1, 2);
       assert.deepStrictEqual(
         s.collectionChanges.pop(),
-        new CollectionChangeSet(0, LF.updateTarget, copyIndexMap([-2, -2]))
+        new CollectionChangeSet(0, LF.none, copyIndexMap([-2, -2]))
       );
     });
   });
@@ -114,7 +114,7 @@ describe(`ArrayObserver`, function () {
   //     );
   //     assert.deepStrictEqual(
   //       s.collectionChanges.pop(),
-  //       new CollectionChangeSet(0, LF.updateTarget, copyIndexMap([-2]))
+  //       new CollectionChangeSet(0, LF.none, copyIndexMap([-2]))
   //     );
   //   });
 
@@ -130,7 +130,7 @@ describe(`ArrayObserver`, function () {
   //     );
   //     assert.deepStrictEqual(
   //       s.collectionChanges.pop(),
-  //       new CollectionChangeSet(0, LF.updateTarget, copyIndexMap([-2, -2]))
+  //       new CollectionChangeSet(0, LF.none, copyIndexMap([-2, -2]))
   //     );
   //   });
   // });

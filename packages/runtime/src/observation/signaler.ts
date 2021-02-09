@@ -16,7 +16,7 @@ export class Signaler {
       return;
     }
     for (const listener of listeners.keys()) {
-      listener.handleChange(undefined, undefined, flags! | LifecycleFlags.updateTarget);
+      listener.handleChange(undefined, undefined, flags!);
     }
   }
 

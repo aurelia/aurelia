@@ -173,9 +173,11 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer {
 
         try {
           history.pushState(data, titleOrEmpty, url);
+          this.setTitle(titleOrEmpty);
         } catch (err) {
           const clean = this.tryCleanState(data, 'push', err);
           history.pushState(clean, titleOrEmpty, url);
+          this.setTitle(titleOrEmpty);
         }
         task.resolve();
       }, 1).wait();
@@ -202,9 +204,11 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer {
 
         try {
           history.replaceState(data, titleOrEmpty, url);
+          this.setTitle(titleOrEmpty);
         } catch (err) {
           const clean = this.tryCleanState(data, 'replace', err);
           history.replaceState(clean, titleOrEmpty, url);
+          this.setTitle(titleOrEmpty);
         }
         task.resolve();
       }, 1).wait();

@@ -397,11 +397,11 @@ export class Navigator {
       }
     }
 
-    // If last navigation has a title...
-    if (storedNavigation.title !== void 0) {
-      // ...instruct the viewer to show it.
-      this.options?.viewer?.setTitle(storedNavigation.title);
-    }
+    // // If last navigation has a title...
+    // if (storedNavigation.title !== void 0) {
+    //   // ...instruct the viewer to show it.
+    //   this.options?.viewer?.setTitle(storedNavigation.title);
+    // }
 
     // If there's a store...
     if (this.options.store == null) {

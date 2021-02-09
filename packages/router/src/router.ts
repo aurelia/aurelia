@@ -390,9 +390,13 @@ export class Router implements IRouter {
         this.ea.publish(RouterNavigationCancelEvent.eventName, RouterNavigationCancelEvent.createEvent(instruction));
         this.ea.publish(RouterNavigationEndEvent.eventName, RouterNavigationEndEvent.createEvent(instruction));
         return;
-      } else if (hooked !== true) {
-        // TODO: Possibly update this hook to be able to return other values as well
+      } else if (hooked !== true && hooked !== matchedInstructions) {
+        // TODO: Do a full findInstructions again with a new FoundRoute so that this
+        // hook can return other values as well
+        const skipped = RoutingInstruction.flat(matchedInstructions);
+        remainingInstructions = remainingInstructions.filter(instr => !skipped.includes(instr));
         matchedInstructions = hooked;
+        foundRoute.remaining = '';
       }
 
       for (const matchedInstruction of matchedInstructions) {

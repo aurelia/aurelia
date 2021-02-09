@@ -224,7 +224,7 @@ export class ViewportContent extends EndpointContent {
     }
   }
 
-  public activateComponent(step: Step<void>, viewport: Viewport, initiator: IHydratedController | null, parent: ICustomElementController | null, flags: LifecycleFlags, connectedCE: IConnectedCustomElement, parentActivated: boolean, boundCallback: any | undefined, attachPromise: void | Promise<void> | undefined): Step<void> {
+  public activateComponent(step: Step<void>, viewport: Viewport, initiator: IHydratedController | null, parent: ICustomElementController | null, flags: LifecycleFlags, connectedCE: IConnectedCustomElement, /* parentActivated: boolean, */ boundCallback: any | undefined, attachPromise: void | Promise<void> | undefined): Step<void> {
     return Runner.run(step,
       () => this.contentStates.await('loaded'),
       () => this.waitForParent(parent, viewport), // TODO: It might be possible to refactor this away

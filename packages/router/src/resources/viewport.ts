@@ -138,7 +138,7 @@ export class ViewportCustomElement implements ICustomElementViewModel {
       },
       () => {
         if (this.viewport !== null && this.viewport.nextContent === null) {
-          return (this.viewport.activate(null, initiator, this.controller, flags, true, void 0) as Step<void>)?.asValue as void | Promise<void>;
+          return (this.viewport.activate(null, initiator, this.controller, flags, /* true, */ void 0) as Step<void>)?.asValue as void | Promise<void>;
           // TODO: Restore scroll state (in attaching/attached)
         }
       },

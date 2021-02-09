@@ -38,65 +38,181 @@ import { RouterConfiguration } from './index.js';
  * configured routes.
  */
 export interface IViewportOptions extends IEndpointOptions {
+  /**
+   * Whether the viewport has its own scope (owns other endpoints)
+   */
   scope?: boolean;
+
+  /**
+   * A list of components that is using the viewport. These components
+   * can only be loaded into this viewport and this viewport can't
+   * load any other components.
+   */
   usedBy?: string | string[];
+
+  /**
+   * The default component that's loaded if the viewport is created
+   * without having a component specified (in that navigation).
+   */
   default?: string;
+
+  /**
+   * The component loaded if the viewport can't load the specified
+   * component. The component is passed as a parameter to the fallback.
+   */
   fallback?: string;
+
+  /**
+   * The viewport doesn't add its content to the Location URL.
+   */
   noLink?: boolean;
+
+  /**
+   * The viewport doesn't add a title to the browser window title.
+   */
   noTitle?: boolean;
+
+  /**
+   * The viewport's content is stateful.
+   */
   stateful?: boolean;
+
+  /**
+   * The viewport is always added to the routing instruction.
+   */
   forceDescription?: boolean;
 }
 
 export class Viewport extends Endpoint {
   public static lastTransitionId = 0;
 
+  /**
+   * The current content of the viewport.
+   */
   public content: ViewportContent;
+  /**
+   * The next, to be transitioned in, content of the viewport.
+   */
   public nextContent: ViewportContent | null = null;
 
+  /**
+   * Whether the viewport content should be cleared and removed,
+   * regardless of statefulness (and hooks).
+   */
   public forceRemove: boolean = false;
 
+  /**
+   * If set by viewport content, it's resolved when viewport has
+   * been actived/started binding.
+   */
   public activeResolve?: ((value?: void | PromiseLike<void>) => void) | null = null;
+
+  /**
+   * If set, it's resolved when viewport custom element has been
+   * connected to the viewport endpoint/router.
+   */
   private connectionResolve?: ((value?: void | PromiseLike<void>) => void) | null = null;
+
+  /**
+   * Whether the viewport is being cleared in the transaction.
+   * TODO: Replace `clear` with state of next content routing instruction
+   */
   private clear: boolean = false;
 
+  /**
+   * Stores the current state before navigation starts so that it can be restored
+   * if navigation is cancelled/interrupted.
+   * TODO: Look into using viewport content fully for this
+   */
   private previousViewportState: Viewport | null = null;
 
+  /**
+   * The viewport content cache used for statefulness.
+   */
   private cache: ViewportContent[] = [];
+
+  /**
+   * The viewport content cache used for history statefulness.
+   */
   private historyCache: ViewportContent[] = [];
 
+  /**
+   * Store the navigation/transition coordinator for debug purposes.
+   * TODO: Remove
+   */
   private coordinator?: NavigationCoordinator;
 
   public constructor(
     router: IRouter,
+
+    /**
+     * The name of the viewport
+     */
     name: string,
+
+    /**
+     * The connected ViewportCustomElement (if any)
+     */
     connectedCE: IConnectedCustomElement | null,
-    private _owningScope: RoutingScope,
-    private _scope: boolean,
+
+    /**
+     * The routing scope the viewport belongs to/is owned by.
+     */
+    private readonly _owningScope: RoutingScope,
+
+    /**
+     * The viewport's routing scope, containing endpoints it owns.
+     *
+     * TODO(alpha): Investigate merging/removing this
+     */
+    private readonly _scope: boolean,
+
+    /**
+     * The viewport options.
+     */
     public options: IViewportOptions = {}
   ) {
     super(router, name, connectedCE, _owningScope, _scope);
     this.content = new ViewportContent(router, this, _owningScope, _scope);
   }
 
+  /**
+   * The routing scope that's currently, based on content, connected
+   * to the viewport. The scope used when finding next scope endpoints
+   * and configured routes.
+   *
+   * TODO(alpha): Investigate merging/removing this
+   */
   public get scope(): RoutingScope {
     return this.connectedScope.scope;
   }
+
+  /**
+   * The routing scope that currently, based on content, owns the viewport.
+   *
+   * TODO(alpha): Investigate merging/removing this
+   */
   public get owningScope(): RoutingScope {
     return this.connectedScope.owningScope!;
   }
 
+  /**
+   * The connected custom element's controller.
+   */
   public get connectedController(): IRoutingController | null {
-    return this.connectedCE?.$controller ?? null;
+    return this.connectedCE?.controller ?? null;
   }
+
+  /**
+   * Whether the viewport is enabled/active.
+   */
   public get enabled(): boolean {
     return this.connectedScope.enabled;
   }
-  // e:
-  // public set enabled(enabled: boolean) {
-  //   this.connectedScope.enabled = enabled;
-  // }
 
+  /**
+   * The parent viewport.
+   */
   public get parentViewport(): Viewport | null {
     let scope = this.connectedScope;
     while (scope.parent !== null) {
@@ -108,17 +224,25 @@ export class Viewport extends Endpoint {
     return null;
   }
 
+  /**
+   * This is a viewport.
+   */
   public get isViewport(): boolean {
     return true;
   }
-  public get isViewportScope(): boolean {
-    return false;
-  }
 
+  /**
+   * Whether the viewport (content) is empty.
+   */
   public get isEmpty(): boolean {
     return this.content.componentInstance === null;
   }
 
+  /**
+   * Whether the viewport content should be cleared and removed,
+   * regardless of statefulness (and hooks). If a parent should
+   * be removed, the viewport should as well.
+   */
   public get doForceRemove(): boolean {
     let scope: RoutingScope | null = this.connectedScope;
     while (scope !== null) {
@@ -130,38 +254,49 @@ export class Viewport extends Endpoint {
     return false;
   }
 
-  public get nextContentActivated(): boolean {
-    return this.nextContent?.contentStates.has('activated') ?? false;
-  }
+  // public get nextContentActivated(): boolean {
+  //   return this.nextContent?.contentStates.has('activated') ?? false;
+  // }
 
-  public get parentNextContentActivated(): boolean {
-    // TODO(alpha): Fix this!
-    // return this.scope.parent?.endpoint?.nextContentActivated ?? false;
-    return true;
-  }
+  // // TODO(alpha): Remove!
+  // public get parentNextContentActivated(): boolean {
+  //   // TODO(alpha): Fix this!
+  //   // return this.scope.parent?.endpoint?.nextContentActivated ?? false;
+  //   return true;
+  // }
 
-  public get performLoad(): boolean {
-    return true;
-    // return this.nextContentAction !== 'skip' && this.connectedScope.parentNextContentAction !== 'swap';
-    // // return this.nextContentAction !== 'skip' && ((this.nextContent?.content.topInstruction ?? false) || this.clear);
-  }
+  // // TODO(alpha): Remove!
+  // public get performLoad(): boolean {
+  //   return true;
+  //   // return this.nextContentAction !== 'skip' && this.connectedScope.parentNextContentAction !== 'swap';
+  //   // // return this.nextContentAction !== 'skip' && ((this.nextContent?.content.topInstruction ?? false) || this.clear);
+  // }
 
-  public get performSwap(): boolean {
-    return true;
-    // return this.nextContentAction !== 'skip' && this.connectedScope.parentNextContentAction !== 'swap';
-    // // return this.nextContentAction !== 'skip' && ((this.nextContent?.content.topInstruction ?? false) || this.clear);
-  }
+  // // TODO(alpha): Remove!
+  // public get performSwap(): boolean {
+  //   return true;
+  //   // return this.nextContentAction !== 'skip' && this.connectedScope.parentNextContentAction !== 'swap';
+  //   // // return this.nextContentAction !== 'skip' && ((this.nextContent?.content.topInstruction ?? false) || this.clear);
+  // }
 
-  public get pathname(): string {
-    return this.connectedScope.pathname;
-  }
-
+  /**
+   * For debug purposes.
+   */
   public toString(): string {
     const contentName = this.content?.instruction.component.name ?? '';
     const nextContentName = this.nextContent?.instruction.component.name ?? '';
     return `v:${this.name}[${contentName}->${nextContentName}]`;
   }
 
+  /**
+   * Set the next content for the viewport. Returns the action that the viewport
+   * will take when the navigation coordinator starts the transition. Note that a
+   * swap isn't guaranteed, current component configuration can result in a skipped
+   * transition.
+   *
+   * @param routingInstruction - The routing instruction describing the next content
+   * @param navigation - The navigation that requests the content change
+   */
   public setNextContent(routingInstruction: RoutingInstruction, navigation: Navigation): NextContentAction {
     routingInstruction.viewport.set(this);
     this.clear = routingInstruction.isClear;
@@ -186,7 +321,7 @@ export class Viewport extends Endpoint {
 
     // Children that will be replaced (unless added again) by next content. Will
     // be re-enabled on cancel
-    this.content.connectedScope.clearReplacedChildren();
+    //r: this.content.connectedScope.clearReplacedChildren();
 
     // If we get the same _instance_, don't do anything (happens with cached and history)
     if (this.nextContent.componentInstance !== null && this.content.componentInstance === this.nextContent.componentInstance) {
@@ -196,11 +331,19 @@ export class Viewport extends Endpoint {
     }
 
     if (!this.content.equalComponent(this.nextContent) ||
-      this.connectedScope.parentNextContentAction === 'swap' || // Some parent has been swapped, need to be new component
+      // // // this.connectedScope.parentNextContentAction === 'swap' || // Some parent has been swapped, need to be new component
       navigation.navigation.refresh || // Navigation 'refresh' performed
       this.content.reentryBehavior() === ReentryBehavior.refresh // ReentryBehavior 'refresh' takes precedence
     ) {
-      this.content.connectedScope.disableReplacedChildren();
+      // // // console.log('#### viewport check');
+      // // // if (!(!this.content.equalComponent(this.nextContent) ||
+      // // //   // this.connectedScope.parentNextContentAction === 'swap' || // Some parent has been swapped, need to be new component
+      // // //   navigation.navigation.refresh || // Navigation 'refresh' performed
+      // // //   this.content.reentryBehavior() === ReentryBehavior.refresh // ReentryBehavior 'refresh' takes precedence
+      // // // )) {
+      // // //   console.log('######### viewport need swap!');
+      // // // }
+      //r: this.content.connectedScope.disableReplacedChildren();
       return this.nextContentAction = 'swap'; // true;
     }
 
@@ -244,7 +387,7 @@ export class Viewport extends Endpoint {
         this.nextContent!.reentry = this.content.reentry;
         return this.nextContentAction = 'reload';
       } else { // Perform a full swap
-        this.content.connectedScope.disableReplacedChildren();
+        //r: this.content.connectedScope.disableReplacedChildren();
         return this.nextContentAction = 'swap';
       }
     }
@@ -255,10 +398,17 @@ export class Viewport extends Endpoint {
     return this.nextContentAction = 'skip';
 
     // // Default is to trigger a refresh (without a check of parameters)
-    // this.content.connectedScope.disableReplacedChildren();
+    //r: this.content.connectedScope.disableReplacedChildren();
     // return this.nextContentAction = 'reload'; // true;
   }
 
+  /**
+   * Connect a ViewportCustomElement to this viewport endpoint, applying options
+   * while doing so.
+   *
+   * @param connectedCE - The custom element to connect
+   * @param options - The options to apply
+   */
   public setConnectedCE(connectedCE: IConnectedCustomElement, options: IViewportOptions): void {
     options = options || {};
     if (this.connectedCE !== connectedCE) {
@@ -295,8 +445,8 @@ export class Viewport extends Endpoint {
     if (!this.content.componentInstance && (!this.nextContent || !this.nextContent.componentInstance) && this.options.default) {
       const instructions = RoutingInstruction.parse(this.options.default);
       for (const instruction of instructions) {
-        // Set to name to be delayed one turn
-        instruction.viewport.set(this.name);
+        // Set to name to be delayed one turn (refactor: not sure why, so changed it)
+        instruction.viewport.set(this);
         instruction.scope = this.owningScope;
         instruction.default = true;
       }
@@ -304,6 +454,7 @@ export class Viewport extends Endpoint {
     }
   }
 
+  // TODO(alpha): Look into this!
   public remove(step: Step | null, connectedCE: IConnectedCustomElement | null): boolean | Promise<boolean> {
     // TODO: Review this: should it go from promise to value somewhere?
     if (this.connectedCE === connectedCE) {
@@ -343,6 +494,11 @@ export class Viewport extends Endpoint {
     return false;
   }
 
+  /**
+   * Transition from current content to the next.
+   *
+   * @param coordinator - The coordinator of the navigation
+   */
   public transition(coordinator: NavigationCoordinator): void {
     this.coordinator = coordinator;
     const transitionId = ++Viewport.lastTransitionId;
@@ -350,7 +506,7 @@ export class Viewport extends Endpoint {
 
     // Get the parent viewport...
     let actingParentViewport = this.parentViewport;
-    // ...but if it's not acting (reloading or swapping)
+    // ...but not if it's not acting (reloading or swapping)
     if (actingParentViewport !== null
       && actingParentViewport.nextContentAction !== 'reload'
       && actingParentViewport.nextContentAction !== 'swap'
@@ -360,8 +516,8 @@ export class Viewport extends Endpoint {
 
     const guarded = coordinator.checkingSyncState('guarded');
 
-    const performLoad = this.performLoad || !guarded;
-    const performSwap = this.performSwap || !guarded;
+    const performLoad = true; // this.performLoad || !guarded;
+    const performSwap = true; // this.performSwap || !guarded;
 
     const guardSteps = [
       (step: Step<boolean>) => performLoad ? this.canUnload(step) : true,
@@ -411,7 +567,7 @@ export class Viewport extends Endpoint {
 
       () => coordinator.waitForSyncState('unloaded', this),
       () => actingParentViewport !== null ? coordinator.waitForEntityState(actingParentViewport, 'loaded') : void 0,
-      (step: Step<void>) => performLoad ? this.load(step, coordinator.checkingSyncState('routed')) : true,
+      (step: Step<void>) => performLoad ? this.load(step /*, coordinator.checkingSyncState('routed') */) : true,
       () => coordinator.addEntityState(this, 'loaded'),
       () => coordinator.addEntityState(this, 'routed'),
     ];
@@ -459,6 +615,11 @@ export class Viewport extends Endpoint {
     );
   }
 
+  /**
+   * Check if the current content can be unloaded.
+   *
+   * @param step - The previous step in this transition Run
+   */
   public canUnload(step: Step<boolean> | null): boolean | Promise<boolean> {
     // console.log('canUnload', this.toString());
     return Runner.run(step,
@@ -479,12 +640,20 @@ export class Viewport extends Endpoint {
     ) as boolean | Promise<boolean>;
   }
 
+  /**
+   * Check if the next content can be loaded.
+   *
+   * @param step - The previous step in this transition Run
+   *
+   * TODO(alpha): Remove recurse!
+   */
   public canLoad(step: Step<boolean>, recurse: boolean): boolean | LoadInstruction | LoadInstruction[] | Promise<boolean | LoadInstruction | LoadInstruction[]> {
     if (this.clear) {
       return true;
     }
 
     if ((this.nextContent?.instruction ?? null) === null) {
+      console.log('===== ERROR: no next content instruction!', this.nextContent, this.clear);
       return true;
     }
 
@@ -498,7 +667,14 @@ export class Viewport extends Endpoint {
     ) as boolean | LoadInstruction | LoadInstruction[] | Promise<boolean | LoadInstruction | LoadInstruction[]>;
   }
 
-  public load(step: Step<void>, recurse: boolean): Step<void> | void {
+  /**
+   * Load the next content.
+   *
+   * @param step - The previous step in this transition Run
+   *
+   * TODO(alpha): Remove recurse!
+   */
+  public load(step: Step<void> /* , recurse: boolean */): Step<void> | void {
     if (this.clear || (this.nextContent?.componentInstance ?? null) === null) {
       return;
     }
@@ -506,10 +682,26 @@ export class Viewport extends Endpoint {
     return this.nextContent?.load(step);
   }
 
+  /**
+   * Add (activate) the next content.
+   *
+   * @param step - The previous step in this transition Run
+   * @param coordinator - The navigation coordinator
+   *
+   * TODO(alpha): Remove recurse!
+   */
   public addContent(step: Step<void>, coordinator: NavigationCoordinator): void | Step<void> {
-    return this.activate(step, null, this.connectedController, LifecycleFlags.none, this.parentNextContentActivated, coordinator);
+    return this.activate(step, null, this.connectedController, LifecycleFlags.none, /* this.parentNextContentActivated, */ coordinator);
   }
 
+  /**
+   * Remove (deactivate) the current content.
+   *
+   * @param step - The previous step in this transition Run
+   * @param coordinator - The navigation coordinator
+   *
+   * TODO(alpha): Remove recurse!
+   */
   public removeContent(step: Step<void> | null, coordinator: NavigationCoordinator): void | Step<void> {
     if (this.isEmpty) {
       return;
@@ -528,9 +720,22 @@ export class Viewport extends Endpoint {
     ) as Step<void>;
   }
 
-  public activate(step: Step<void> | null, initiator: IHydratedController | null, parent: IHydratedParentController | null, flags: LifecycleFlags, fromParent: boolean, coordinator: NavigationCoordinator | undefined): void | Step<void> {
+  /**
+   * Activate the next content component, running `load` first. (But it only
+   * runs if it's not already run.) Called both when transitioning and when
+   * the custom element triggers it.
+   *
+   * @param step - The previous step in this transition Run
+   * @param initiator - The controller that initiates the activate
+   * @param parent - The parent controller
+   * @param flags - The lifecycle flags for `activate`
+   * @param fromParent - If the activation is triggered by a parent rather
+   * than ourselves
+   * @param coordinator - The navigation coordinator
+   */
+  public activate(step: Step<void> | null, initiator: IHydratedController | null, parent: IHydratedParentController | null, flags: LifecycleFlags, /* fromParent: boolean, */ coordinator: NavigationCoordinator | undefined): void | Step<void> {
     if ((this.activeContent as ViewportContent).componentInstance !== null) {
-      this.content.connectedScope.reenableReplacedChildren();
+      //r: this.content.connectedScope.reenableReplacedChildren();
       return Runner.run(step,
         (step: Step<void>) => (this.activeContent as ViewportContent).load(step), // Only acts if not already loaded
         (step: Step<void>) => (this.activeContent as ViewportContent).activateComponent(
@@ -540,7 +745,7 @@ export class Viewport extends Endpoint {
           parent as IRoutingController,
           flags,
           this.connectedCE!,
-          fromParent,
+          // fromParent,
           () => {
             // console.log('Bound', this.toString());
             coordinator?.addEntityState(this, 'bound');
@@ -551,6 +756,14 @@ export class Viewport extends Endpoint {
     }
   }
 
+  /**
+   * Deactivate the current content component. Called both when
+   * transitioning and when the custom element triggers it.
+   *
+   * @param initiator - The controller that initiates the deactivate
+   * @param parent - The parent controller
+   * @param flags - The lifecycle flags for `deactivate`
+   */
   public deactivate(initiator: IHydratedController | null, parent: IHydratedParentController | null, flags: LifecycleFlags): void | Promise<void> {
     if (this.content.componentInstance &&
       !this.content.reentry &&
@@ -566,6 +779,13 @@ export class Viewport extends Endpoint {
     }
   }
 
+  /**
+   * Unload the current content.
+   *
+   * @param step - The previous step in this transition Run
+   *
+   * TODO(alpha): Remove recurse and transitionId!
+   */
   public unload(step: Step<void> | null, recurse: boolean, transitionId: number): void | Step<void> {
     // console.log('unload viewport', transitionId, this.toString());
     return Runner.run(step,
@@ -574,6 +794,9 @@ export class Viewport extends Endpoint {
     ) as Step<void>;
   }
 
+  /**
+   * Dispose the current content.
+   */
   public dispose(): void {
     if (this.content.componentInstance &&
       !this.content.reentry &&
@@ -586,6 +809,10 @@ export class Viewport extends Endpoint {
     }
   }
 
+  /**
+   * Finalize the change of content by making the next content the current
+   * content. The previously current content is deleted.
+   */
   public finalizeContentChange(): void {
     const previousContent = this.content;
     if (this.nextContent?.componentInstance != null) {
@@ -606,12 +833,18 @@ export class Viewport extends Endpoint {
     this.content.contentStates.delete('checkedLoad');
 
     this.previousViewportState = null;
-    this.content.connectedScope.clearReplacedChildren();
+    //r: this.content.connectedScope.clearReplacedChildren();
 
     this.connectedCE?.setActive?.(false);
   }
+
+  /**
+   * Abort the change of content. The next content is freed/discarded.
+   *
+   * @param step - The previous step in this transition Run
+   */
   public abortContentChange(step: Step<void> | null): void | Step<void> {
-    this.content.connectedScope.reenableReplacedChildren();
+    //r: this.content.connectedScope.reenableReplacedChildren();
     return Runner.run(step,
       (step: Step<void>) => {
         if (this.nextContent != null) {
@@ -638,7 +871,14 @@ export class Viewport extends Endpoint {
       }) as Step<void>;
   }
 
-  // TODO: Deal with non-string components
+  /**
+   * Whether the viewport wants a specific component. Used when
+   * matching routing instructions to viewports.
+   *
+   * @param component - The component to check
+   *
+   * TODO: Deal with non-string components
+   */
   public wantComponent(component: ComponentAppellation): boolean {
     let usedBy = this.options.usedBy || [];
     if (typeof usedBy === 'string') {
@@ -646,7 +886,15 @@ export class Viewport extends Endpoint {
     }
     return usedBy.includes(component as string);
   }
-  // TODO: Deal with non-string components
+
+  /**
+   * Whether the viewport accepts a specific component. Used when
+   * matching routing instructions to viewports.
+   *
+   * @param component - The component to check
+   *
+   * TODO: Deal with non-string components
+   */
   public acceptComponent(component: ComponentAppellation): boolean {
     if (component === '-' || component === null) {
       return true;
@@ -667,6 +915,14 @@ export class Viewport extends Endpoint {
     return false;
   }
 
+  /**
+   * Free/discard a history cached content containing a specific component.
+   *
+   * @param step - The previous step in this transition Run
+   * @param component - The component to look for
+   *
+   * TODO: Deal with multiple contents containing the component
+   */
   public freeContent(step: Step<void> | null, component: IRouteableComponent): void | Promise<void> | Step<void> {
     const content = this.historyCache.find(cached => cached.componentInstance === component);
     if (content !== void 0) {
@@ -689,6 +945,9 @@ export class Viewport extends Endpoint {
     }
   }
 
+  /**
+   * Get any configured routes in the relevant content's component type.
+   */
   public getRoutes(): Route[] | null {
     let componentType = this.getComponentType();
     if (componentType === null) {
@@ -702,7 +961,12 @@ export class Viewport extends Endpoint {
     return Array.isArray(routes) ? routes : null;
   }
 
-  public getTitle(navigationInstruction: Navigation): string {
+  /**
+   * Get the title for the content.
+   *
+   * @param navigation - The navigation that requests the content change
+   */
+  public getTitle(navigation: Navigation): string {
     if (this.options.noTitle) {
       return '';
     }
@@ -717,7 +981,7 @@ export class Viewport extends Endpoint {
         title = typeTitle;
       } else {
         const component = this.getComponentInstance();
-        title = typeTitle.call(component, component!, navigationInstruction);
+        title = typeTitle.call(component, component!, navigation);
       }
     } else if (RouterConfiguration.options.title.useComponentNames) {
       let name = this.getContentInstruction()!.component.name ?? '';
@@ -735,6 +999,9 @@ export class Viewport extends Endpoint {
     return title;
   }
 
+  /**
+   * Get component type of the relevant, current or next, content.
+   */
   private getComponentType(): RouteableComponentType | null {
     let componentType = this.getContentInstruction()!.component.type ?? null;
     if (componentType === null) {
@@ -746,14 +1013,25 @@ export class Viewport extends Endpoint {
     return componentType ?? null;
   }
 
+  /**
+   * Get component instance of the relevant, current or next, content.
+   */
   private getComponentInstance(): IRouteableComponent | null {
     return this.getContentInstruction()!.component.instance ?? null;
   }
 
+  /**
+   * Get routing instruction of the relevant, current or next, content.
+   */
   private getContentInstruction(): RoutingInstruction | null {
     return this.nextContent?.instruction ?? this.content.instruction ?? null;
   }
 
+  /**
+   * Clear the viewport state.
+   *
+   * TODO: Investigate the need.
+   */
   private clearState(): void {
     this.options = {};
 
@@ -762,6 +1040,9 @@ export class Viewport extends Endpoint {
     this.cache = [];
   }
 
+  /**
+   * Wait, if necessary, for a custom element to connect.
+   */
   private waitForConnected(): void | Promise<void> {
     if (this.connectedCE === null) {
       return new Promise((resolve) => {

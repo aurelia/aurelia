@@ -22,10 +22,12 @@ export type NextContentAction = 'skip' | 'reload' | 'swap' | '';
 
 /**
  * The router uses routing scopes to organize all endpoints (viewports and viewport
- * scopes) into a hierarchical structure. Each routing scope belongs to a parent/owner
- * routing scope (except the root, that has no parent) and can in turn have several
- * routing scopes that it owns. A routing scope always has a connected endpoint. (And
- * an endpoint always has a connected routing scope.)
+ * scopes) into two hierarchical structures. Each routing scope belongs to a parent/child
+ * hierarchy, that follows the DOM and is used when routing scopes are added and removed,
+ * and an owner/owning hierarchy that's used when finding endpoints. Every routing scope
+ * has a routing scope that owns it (except the root) and can in turn have several
+ * routing scopes that it owns. A routing scope always has a connected endpoint content
+ * and an endpoint content always has a connected routing scope.
  *
  * Every navigtion/load instruction that the router processes is first tied to a
  * routing scope, either a specified scope or the root scope. That routing scope is
@@ -41,18 +43,18 @@ export type NextContentAction = 'skip' | 'reload' | 'swap' | '';
  *
  * Once (component) transitions start in endpoints, the routing scopes assist by
  * 4) propagating routing hooks vertically through the hierarchy and disabling and
- * enabling endpoints and their routing data (routes) during transitions.
+ * enabling endpoint contents and their routing data (routes) during transitions.
  *
  * Finally, when a navigation is complete, the routing scopes helps
  * 5) structure all existing routing instructions into a description of the complete
  * state of all the current endpoints and their contents.
  *
- * The hierarchy of the routing scopes often follows the DOM hierarchy, but it's not
- * a necessity; it's possible to have routing scopes that doesn't create their own
- * "owning capable scope", and thus placing all their "children" under the same "parent"
- * as themselves or for a routing scope to hoist itself up or down in the hierarchy and,
- * for example, place itself as a "child" to a DOM sibling endpoint. (Scope self-hoisting
- * will not be available for early-on alpha.)
+ * The hierarchy of the owner/owning routing scopes often follows the parent/child DOM
+ * hierarchy, but it's not a necessity; it's possible to have routing scopes that doesn't
+ * create their own "owning capable scope", and thus placing all their "children" under the
+ * same "parent" as themselves or for a routing scope to hoist itself up or down in the
+ * hierarchy and, for example, place itself as a "child" to a DOM sibling endpoint.
+ * (Scope self-hoisting will not be available for early-on alpha.)
  */
 
 export class RoutingScope {
@@ -63,13 +65,13 @@ export class RoutingScope {
 
   public parent: RoutingScope | null = null;
   public children: RoutingScope[] = [];
-  public replacedChildren: RoutingScope[] = [];
+  // public replacedChildren: RoutingScope[] = [];
   public path: string | null = null;
 
   // public enabled: boolean = true;
 
   // Support collection feature in viewport scopes
-  public childCollections: Record<string, unknown[]> = {};
+  // public childCollections: Record<string, unknown[]> = {};
 
   public constructor(
     public readonly router: IRouter,
@@ -173,16 +175,17 @@ export class RoutingScope {
     return null;
   }
 
-  public get parentNextContentAction(): NextContentAction {
-    if (this.parent === null) {
-      return '';
-    }
-    const parentAction = this.parent.endpoint!.nextContentAction;
-    if (parentAction === 'swap' || parentAction === 'skip') {
-      return parentAction;
-    }
-    return this.parent.parentNextContentAction;
-  }
+  // public get parentNextContentAction(): NextContentAction {
+  //   // console.log('######### RoutingScope.parentNextContentAction');
+  //   if (this.parent === null) {
+  //     return '';
+  //   }
+  //   const parentAction = this.parent.endpoint!.nextContentAction;
+  //   if (parentAction === 'swap' || parentAction === 'skip') {
+  //     return parentAction;
+  //   }
+  //   return this.parent.parentNextContentAction;
+  // }
 
   public getOwnedScopes(includeDisabled: boolean = false): RoutingScope[] {
     const scopes = this.allScopes(includeDisabled).filter(scope => scope.owningScope === this);
@@ -289,20 +292,20 @@ export class RoutingScope {
     }
   }
 
-  public clearReplacedChildren(): void {
-    this.replacedChildren = [];
-  }
-  public disableReplacedChildren(): void {
-    this.replacedChildren = this.enabledChildren;
-    for (const scope of this.replacedChildren) {
-      // e: scope.enabled = false;
-    }
-  }
-  public reenableReplacedChildren(): void {
-    for (const scope of this.replacedChildren) {
-      // e: scope.enabled = true;
-    }
-  }
+  //r:   public clearReplacedChildren(): void {
+  //   this.replacedChildren = [];
+  // }
+  // public disableReplacedChildren(): void {
+  //   this.replacedChildren = this.enabledChildren;
+  //   for (const scope of this.replacedChildren) {
+  //     // e: scope.enabled = false;
+  //   }
+  // }
+  // public reenableReplacedChildren(): void {
+  //   for (const scope of this.replacedChildren) {
+  //     // e: scope.enabled = true;
+  //   }
+  // }
 
   public allScopes(includeDisabled: boolean = false, includeReplaced: boolean = false): RoutingScope[] {
     const scopes: RoutingScope[] = includeDisabled ? this.children.slice() : this.enabledChildren;
@@ -484,7 +487,7 @@ export class RoutingScope {
     return route as Route;
   }
 
-    // TODO: This is probably wrong since it caused test fails when in CustomElement.for
+  // TODO: This is probably wrong since it caused test fails when in CustomElement.for
   // Fred probably knows and will need to look at it
   // This can most likely also be changed so that the node traversal isn't necessary
   private static CustomElementFor(node: INode): ICustomElementController | undefined {

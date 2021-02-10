@@ -109,7 +109,6 @@ export class Viewport extends Endpoint {
 
   /**
    * Whether the viewport is being cleared in the transaction.
-   * TODO: Replace `clear` with state of next content routing instruction
    */
   private clear: boolean = false;
 
@@ -129,12 +128,6 @@ export class Viewport extends Endpoint {
    * The viewport content cache used for history statefulness.
    */
   private historyCache: ViewportContent[] = [];
-
-  /**
-   * Store the navigation/transition coordinator for debug purposes.
-   * TODO: Remove
-   */
-  private coordinator?: NavigationCoordinator;
 
   public constructor(
     router: IRouter,
@@ -266,14 +259,14 @@ export class Viewport extends Endpoint {
     // Can have a (resolved) type or a string (to be resolved later)
     this.nextContent = new ViewportContent(this.router, this, this._owningScope, this._scope, !this.clear ? instruction : void 0, navigation, this.connectedCE ?? null);
 
-    this.nextContent.fromHistory = this.nextContent.componentInstance && navigation.navigation
+    this.nextContent.fromHistory = this.nextContent.componentInstance !== null && navigation.navigation
       ? !!navigation.navigation.back || !!navigation.navigation.forward
       : false;
 
     if (this.options.stateful) {
       // TODO: Add a parameter here to decide required equality
       const cached = this.cache.find((item) => this.nextContent!.isCacheEqual(item));
-      if (cached) {
+      if (cached !== void 0) {
         this.nextContent = cached;
         this.nextContent.fromCache = true;
       } else {
@@ -309,7 +302,7 @@ export class Viewport extends Endpoint {
     if (this.content.reentryBehavior() === ReentryBehavior.load) {
       this.content.reentry = true;
 
-      this.nextContent.instruction.component.set(this.content.componentInstance!);
+      this.nextContent.instruction.component.set(this.content.componentInstance);
       this.nextContent.contentStates = this.content.contentStates.clone();
       this.nextContent.reentry = this.content.reentry;
       return this.nextContentAction = 'reload'; // true;
@@ -330,7 +323,7 @@ export class Viewport extends Endpoint {
       // eslint-disable-next-line no-constant-condition
       if (false) { // Re-use component, only reload with new parameters
         this.content.reentry = true;
-        this.nextContent!.instruction.component.set(this.content.componentInstance!);
+        this.nextContent!.instruction.component.set(this.content.componentInstance);
         this.nextContent!.contentStates = this.content.contentStates.clone();
         this.nextContent!.reentry = this.content.reentry;
         return this.nextContentAction = 'reload';
@@ -343,9 +336,6 @@ export class Viewport extends Endpoint {
     this.nextContent.delete();
     this.nextContent = null;
     return this.nextContentAction = 'skip';
-
-    // Default is to trigger a refresh (without a check of parameters)
-    // return this.nextContentAction = 'reload';
   }
 
   /**
@@ -356,13 +346,13 @@ export class Viewport extends Endpoint {
    * @param options - The options to apply
    */
   public setConnectedCE(connectedCE: IConnectedCustomElement, options: IViewportOptions): void {
-    options = options || {};
+    options = options ?? {};
     if (this.connectedCE !== connectedCE) {
       // TODO: Restore this state on navigation cancel
       this.previousViewportState = { ...this };
       this.clearState();
       this.connectedCE = connectedCE;
-      if (options.usedBy) {
+      if (options.usedBy !== void 0) {
         this.options.usedBy = options.usedBy;
       }
       if (options.default) {
@@ -383,12 +373,12 @@ export class Viewport extends Endpoint {
       if (options.stateful) {
         this.options.stateful = options.stateful;
       }
-      if (this.connectionResolve) {
+      if (this.connectionResolve != null) {
         this.connectionResolve();
       }
     }
 
-    if (!this.content.componentInstance && (!this.nextContent || !this.nextContent.componentInstance) && this.options.default) {
+    if (this.content.componentInstance === null && (!this.nextContent || !this.nextContent.componentInstance) && this.options.default) {
       const instructions = RoutingInstruction.parse(this.options.default);
       for (const instruction of instructions) {
         // Set to name to be delayed one turn (refactor: not sure why, so changed it)
@@ -405,23 +395,23 @@ export class Viewport extends Endpoint {
     // TODO: Review this: should it go from promise to value somewhere?
     if (this.connectedCE === connectedCE) {
       return Runner.run(step,
-        (step: Step<void>) => {
-          if (this.content.componentInstance) {
+        (innerStep: Step<void>) => {
+          if (this.content.componentInstance !== null) {
             return this.content.freeContent(
-              step,
+              innerStep,
               this.connectedCE,
-              (this.nextContent ? this.nextContent.navigation : null),
+              (this.nextContent?.navigation ?? null),
               this.historyCache,
               this.doForceRemove ? false : this.router.statefulHistory || this.options.stateful
             ); // .catch(error => { throw error; });
           }
         },
-        (step: Step<void>) => {
+        (innerStep: Step<void>) => {
           if (this.doForceRemove) {
             const removes = [];
             for (const content of this.historyCache) {
-              removes.push((step: Step<void>) => content.freeContent(
-                step,
+              removes.push((innerInnerStep: Step<void>) => content.freeContent(
+                innerInnerStep,
                 null,
                 null,
                 this.historyCache,
@@ -429,7 +419,7 @@ export class Viewport extends Endpoint {
               ));
             }
             removes.push(() => { this.historyCache = []; });
-            return Runner.run(step,
+            return Runner.run(innerStep,
               ...removes,
             );
           }
@@ -446,7 +436,6 @@ export class Viewport extends Endpoint {
    * @param coordinator - The coordinator of the navigation
    */
   public transition(coordinator: NavigationCoordinator): void {
-    this.coordinator = coordinator;
     // console.log('Viewport transition', transitionId, this.toString());
 
     // Get the parent viewport...
@@ -700,7 +689,7 @@ export class Viewport extends Endpoint {
    * @param flags - The lifecycle flags for `deactivate`
    */
   public deactivate(initiator: IHydratedController | null, parent: IHydratedParentController | null, flags: LifecycleFlags): void | Promise<void> {
-    if (this.content.componentInstance &&
+    if (this.content.componentInstance !== null &&
       !this.content.reentry &&
       this.content.componentInstance !== this.nextContent?.componentInstance) {
 
@@ -730,7 +719,7 @@ export class Viewport extends Endpoint {
    * Dispose the current content.
    */
   public dispose(): void {
-    if (this.content.componentInstance &&
+    if (this.content.componentInstance !== null &&
       !this.content.reentry &&
       this.content.componentInstance !== this.nextContent?.componentInstance) {
       this.content.disposeComponent(
@@ -747,8 +736,8 @@ export class Viewport extends Endpoint {
    */
   public finalizeContentChange(): void {
     const previousContent = this.content;
-    if (this.nextContent?.componentInstance != null) {
-      this.content = this.nextContent;
+    if (this.nextContent!.componentInstance !== null) {
+      this.content = this.nextContent!;
       this.content.reentry = false;
     }
 
@@ -776,10 +765,10 @@ export class Viewport extends Endpoint {
    */
   public abortContentChange(step: Step<void> | null): void | Step<void> {
     return Runner.run(step,
-      (step: Step<void>) => {
+      (innerStep: Step<void>) => {
         if (this.nextContent != null) {
           return this.nextContent.freeContent(
-            step,
+            innerStep,
             this.connectedCE,
             this.nextContent.navigation,
             this.historyCache,

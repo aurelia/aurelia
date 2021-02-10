@@ -264,7 +264,7 @@ export class Viewport extends Endpoint {
     this.clear = instruction.isClear;
 
     // Can have a (resolved) type or a string (to be resolved later)
-    this.nextContent = new ViewportContent(this.router, this, this._owningScope, this._scope, !instruction.isClear ? instruction : void 0, navigation, this.connectedCE ?? null);
+    this.nextContent = new ViewportContent(this.router, this, this._owningScope, this._scope, !this.clear ? instruction : void 0, navigation, this.connectedCE ?? null);
 
     this.nextContent.fromHistory = this.nextContent.componentInstance && navigation.navigation
       ? !!navigation.navigation.back || !!navigation.navigation.forward
@@ -605,10 +605,10 @@ export class Viewport extends Endpoint {
       return true;
     }
 
-    if ((this.nextContent?.instruction ?? null) === null) {
-      console.log('===== ERROR: no next content instruction!', this.nextContent, this.clear);
-      return true;
-    }
+    // if ((this.nextContent?.instruction ?? null) === null) {
+    //   console.log('===== ERROR: no next content instruction!', this.nextContent, this.clear);
+    //   return true;
+    // }
 
     return Runner.run(step,
       () => this.waitForConnected(),
@@ -626,11 +626,16 @@ export class Viewport extends Endpoint {
    * @param step - The previous step in this transition Run
    */
   public load(step: Step<void>): Step<void> | void {
-    if (this.clear || (this.nextContent?.componentInstance ?? null) === null) {
+    if (this.clear) {
       return;
     }
 
-    return this.nextContent?.load(step);
+    // if ((this.nextContent?.componentInstance ?? null) === null) {
+    //   console.log('===== ERROR: no next content component instance!', this.nextContent);
+    //   return;
+    // }
+
+    return this.nextContent!.load(step);
   }
 
   /**

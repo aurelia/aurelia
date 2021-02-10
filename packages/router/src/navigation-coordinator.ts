@@ -10,26 +10,26 @@ import { StateCoordinator, Entity } from './state-coordinator.js';
 import { IEndpoint } from './endpoints/endpoint.js';
 
 export type NavigationState =
-  'guardedUnload' | // fulfilled when canUnload has been called
-  'guardedLoad' | // fulfilled when canLoad has been called
+  'guardedUnload' | // fulfilled when canUnload (if any) has been called
+  'guardedLoad' | // fulfilled when canLoad (if any) has been called
   'guarded' | // fulfilled when check hooks canUnload and canLoad (if any) have been called
+  'unloaded' | // fulfilled when unload (if any) has been called
+  'loaded' | // fulfilled when load (if any) has been called
   'routed' | // fulfilled when initial routing hooks (if any) have been called
-  'loaded' | // fulfilled when load has been called
   'bound' | // fulfilled when bind has been called (I think I want this back)
   'swapped' |
-  'unloaded' | // fulfilled when unload has been called
   'completed' // fulfilled when everything is done
   ;
-export type NavigationStep =
-  'checkUnload' | // can't be controlled
-  'checkLoad' |
-  'route' | // run routing hooks (if any)
-  'load' |
-  // 'bind' | // (I think I want this back)
-  'swap' |
-  'unload' |
-  'complete'
-  ;
+// export type NavigationStep =
+//   'checkUnload' | // can't be controlled
+//   'checkLoad' |
+//   'route' | // run routing hooks (if any)
+//   'load' |
+//   // 'bind' | // (I think I want this back)
+//   'swap' |
+//   'unload' |
+//   'complete'
+//   ;
 
 export class NavigationCoordinatorOptions {
   public syncStates: NavigationState[];

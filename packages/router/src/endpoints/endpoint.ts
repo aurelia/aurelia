@@ -83,9 +83,9 @@ export class Endpoint {
   public get connectedController(): IRoutingController | null {
     return this.connectedCE?.$controller ?? null;
   }
-  public get enabled(): boolean {
-    return this.connectedScope.enabled;
-  }
+  // public get enabled(): boolean {
+  //   return this.connectedScope.enabled;
+  // }
   // public set enabled(enabled: boolean) {
   //   this.connectedScope.enabled = enabled;
   // }
@@ -112,15 +112,15 @@ export class Endpoint {
     throw new Error(`Method 'toString' needs to be implemented in all endpoints!`);
   }
 
-  public setNextContent(routingInstruction: RoutingInstruction, navigation: Navigation): NextContentAction {
+  public setNextContent(_instruction: RoutingInstruction, _navigation: Navigation): NextContentAction {
     throw new Error(`Method 'setNextContent' needs to be implemented in all endpoints!`);
   }
 
-  public setConnectedCE(connectedCE: IConnectedCustomElement, options: IViewportOptions | IViewportScopeOptions): void {
+  public setConnectedCE(_connectedCE: IConnectedCustomElement, _options: IViewportOptions | IViewportScopeOptions): void {
     throw new Error(`Method 'setConnectedCE' needs to be implemented in all endpoints!`);
   }
 
-  public transition(coordinator: NavigationCoordinator): void {
+  public transition(_coordinator: NavigationCoordinator): void {
     throw new Error(`Method 'transition' needs to be implemented in all endpoints!`);
   }
 
@@ -128,7 +128,7 @@ export class Endpoint {
     throw new Error(`Method 'finalizeContentChange' needs to be implemented in all endpoints!`);
   }
 
-  public abortContentChange(step: Step<void> | null): void | Step<void> {
+  public abortContentChange(_step: Step<void> | null): void | Step<void> {
     throw new Error(`Method 'abortContentChange' needs to be implemented in all endpoints!`);
   }
 
@@ -136,23 +136,23 @@ export class Endpoint {
     throw new Error(`Method 'getRoutes' needs to be implemented in all endpoints!`);
   }
 
-  public removeEndpoint(step: Step | null, connectedCE: IConnectedCustomElement | null): boolean | Promise<boolean> {
+  public removeEndpoint(_step: Step | null, _connectedCE: IConnectedCustomElement | null): boolean | Promise<boolean> {
     this.content.delete();
     this.nextContent?.delete();
     return true;
   }
 
-  public canUnload(step: Step<boolean> | null): boolean | Promise<boolean> {
+  public canUnload(_step: Step<boolean> | null): boolean | Promise<boolean> {
     return true;
   }
-  public canLoad(step: Step<boolean>, recurse: boolean): boolean | LoadInstruction | LoadInstruction[] | Promise<boolean | LoadInstruction | LoadInstruction[]> {
+  public canLoad(_step: Step<boolean>): boolean | LoadInstruction | LoadInstruction[] | Promise<boolean | LoadInstruction | LoadInstruction[]> {
     return true;
   }
 
-  public unload(step: Step<void> | null, recurse: boolean, transitionId: number): void | Step<void> {
+  public unload(_step: Step<void> | null/*, recurse: boolean, transitionId: number*/): void | Step<void> {
     return;
   }
-  public load(step: Step<void>, recurse: boolean): Step<void> | void {
+  public load(_step: Step<void>): Step<void> | void {
     return;
   }
 }

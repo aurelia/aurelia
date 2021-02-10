@@ -342,12 +342,12 @@ export class RoutingScope {
       (step: Step<boolean>) => (step.previousValue as boolean[]).every(result => result)) as boolean | Promise<boolean>;
   }
 
-  public unload(step: Step<void> | null, recurse: boolean, transitionId: number): Step<void> {
+  public unload(step: Step<void> | null/*, recurse: boolean, transitionId: number*/): Step<void> {
     // console.log('unload routing scope', this.toString(), step!.path, step!.root.report);
     return Runner.runParallel(step,
       ...this.children.map(child => child.endpoint !== null
-        ? (childStep: Step<void>) => child.endpoint.unload(childStep, recurse, transitionId)
-        : (childStep: Step<void>) => child.unload(childStep, recurse, transitionId)
+        ? (childStep: Step<void>) => child.endpoint.unload(childStep/*, recurse, transitionId*/)
+        : (childStep: Step<void>) => child.unload(childStep/*, recurse, transitionId*/)
       )) as Step<void>;
   }
 

@@ -203,12 +203,12 @@ export class Viewport extends Endpoint {
     return this.connectedCE?.controller ?? null;
   }
 
-  /**
-   * Whether the viewport is enabled/active.
-   */
-  public get enabled(): boolean {
-    return this.connectedScope.enabled;
-  }
+  // /**
+  //  * Whether the viewport is enabled/active.
+  //  */
+  // public get enabled(): boolean {
+  //   return this.connectedScope.enabled;
+  // }
 
   /**
    * The parent viewport.
@@ -254,31 +254,6 @@ export class Viewport extends Endpoint {
     return false;
   }
 
-  // public get nextContentActivated(): boolean {
-  //   return this.nextContent?.contentStates.has('activated') ?? false;
-  // }
-
-  // // TODO(alpha): Remove!
-  // public get parentNextContentActivated(): boolean {
-  //   // TODO(alpha): Fix this!
-  //   // return this.scope.parent?.endpoint?.nextContentActivated ?? false;
-  //   return true;
-  // }
-
-  // // TODO(alpha): Remove!
-  // public get performLoad(): boolean {
-  //   return true;
-  //   // return this.nextContentAction !== 'skip' && this.connectedScope.parentNextContentAction !== 'swap';
-  //   // // return this.nextContentAction !== 'skip' && ((this.nextContent?.content.topInstruction ?? false) || this.clear);
-  // }
-
-  // // TODO(alpha): Remove!
-  // public get performSwap(): boolean {
-  //   return true;
-  //   // return this.nextContentAction !== 'skip' && this.connectedScope.parentNextContentAction !== 'swap';
-  //   // // return this.nextContentAction !== 'skip' && ((this.nextContent?.content.topInstruction ?? false) || this.clear);
-  // }
-
   /**
    * For debug purposes.
    */
@@ -319,10 +294,6 @@ export class Viewport extends Endpoint {
       }
     }
 
-    // Children that will be replaced (unless added again) by next content. Will
-    // be re-enabled on cancel
-    //r: this.content.connectedScope.clearReplacedChildren();
-
     // If we get the same _instance_, don't do anything (happens with cached and history)
     if (this.nextContent.componentInstance !== null && this.content.componentInstance === this.nextContent.componentInstance) {
       this.nextContent.delete();
@@ -331,20 +302,10 @@ export class Viewport extends Endpoint {
     }
 
     if (!this.content.equalComponent(this.nextContent) ||
-      // // // this.connectedScope.parentNextContentAction === 'swap' || // Some parent has been swapped, need to be new component
       navigation.navigation.refresh || // Navigation 'refresh' performed
       this.content.reentryBehavior() === ReentryBehavior.refresh // ReentryBehavior 'refresh' takes precedence
     ) {
-      // // // console.log('#### viewport check');
-      // // // if (!(!this.content.equalComponent(this.nextContent) ||
-      // // //   // this.connectedScope.parentNextContentAction === 'swap' || // Some parent has been swapped, need to be new component
-      // // //   navigation.navigation.refresh || // Navigation 'refresh' performed
-      // // //   this.content.reentryBehavior() === ReentryBehavior.refresh // ReentryBehavior 'refresh' takes precedence
-      // // // )) {
-      // // //   console.log('######### viewport need swap!');
-      // // // }
-      //r: this.content.connectedScope.disableReplacedChildren();
-      return this.nextContentAction = 'swap'; // true;
+      return this.nextContentAction = 'swap';
     }
 
     // Component is the same name/type
@@ -353,7 +314,7 @@ export class Viewport extends Endpoint {
     if (this.content.reentryBehavior() === ReentryBehavior.disallow) {
       this.nextContent.delete();
       this.nextContent = null;
-      return this.nextContentAction = 'skip'; // false;
+      return this.nextContentAction = 'skip';
     }
 
     // Explicitly re-load same component again
@@ -374,7 +335,7 @@ export class Viewport extends Endpoint {
       this.content.equalParameters(this.nextContent)) {
       this.nextContent.delete();
       this.nextContent = null;
-      return this.nextContentAction = 'skip'; // false;
+      return this.nextContentAction = 'skip';
     }
 
     if (!this.content.equalParameters(this.nextContent)) {
@@ -387,7 +348,6 @@ export class Viewport extends Endpoint {
         this.nextContent!.reentry = this.content.reentry;
         return this.nextContentAction = 'reload';
       } else { // Perform a full swap
-        //r: this.content.connectedScope.disableReplacedChildren();
         return this.nextContentAction = 'swap';
       }
     }
@@ -397,9 +357,8 @@ export class Viewport extends Endpoint {
     this.nextContent = null;
     return this.nextContentAction = 'skip';
 
-    // // Default is to trigger a refresh (without a check of parameters)
-    //r: this.content.connectedScope.disableReplacedChildren();
-    // return this.nextContentAction = 'reload'; // true;
+    // Default is to trigger a refresh (without a check of parameters)
+    // return this.nextContentAction = 'reload';
   }
 
   /**
@@ -513,35 +472,39 @@ export class Viewport extends Endpoint {
     ) {
       actingParentViewport = null;
     }
+    // If actingParentViewport has a value, that viewport's routing
+    // hooks needs to be awaited before starting this viewport's
+    // corresponding routing hook.
 
-    const guarded = coordinator.checkingSyncState('guarded');
+    // First create a list with the steps that should run in the order
+    // they should run and then, at the end, run them. Each hook step
+    // registers its completeness with the navigation coordinator, which
+    // keeps track of entity/endpoint transition states and restrictions
+    // as well as pausing continuation if needed.
 
-    // const performLoad = true; // this.performLoad || !guarded;
-    // const performSwap = true; // this.performSwap || !guarded;
-
+    // The transition guard hooks, canUnload and canLoad, both of which
+    // can cancel the entire navigation
     const guardSteps = [
       (step: Step<boolean>) => this.canUnload(step),
       (step: Step<boolean>) => {
-        if (!step.previousValue) { // canUnloadResult: boolean
-          // console.log('coordinator cancel', this.toString());
+        if (!(step.previousValue as boolean)) { // canUnloadResult: boolean
           step.cancel();
           coordinator.cancel();
         } else {
-          // console.log('guardedUnload', this.toString());
-          if (this.router.isRestrictedNavigation) {
+          if (this.router.isRestrictedNavigation) { // Create the component early if restricted navigation
             this.nextContent!.createComponent(this.connectedCE!, this.options.fallback);
           }
         }
         coordinator.addEntityState(this, 'guardedUnload');
       },
-      () => coordinator.waitForSyncState('guardedUnload', this),
-      () => actingParentViewport !== null ? coordinator.waitForEntityState(actingParentViewport, 'guardedLoad') : void 0,
+      () => coordinator.waitForSyncState('guardedUnload', this), // Awaits all `canUnload` hooks
+      () => actingParentViewport !== null ? coordinator.waitForEntityState(actingParentViewport, 'guardedLoad') : void 0, // Awaits parent `canLoad`
 
-      (step: Step<boolean>) => this.canLoad(step, guarded) as boolean | LoadInstruction | LoadInstruction[],
+      (step: Step<boolean>) => this.canLoad(step) as boolean | LoadInstruction | LoadInstruction[],
       (step: Step) => {
         const canLoadResult = step.previousValue as boolean | LoadInstruction | LoadInstruction[];
         if (typeof canLoadResult === 'boolean') { // canLoadResult: boolean | LoadInstruction | LoadInstruction[],
-          if (!step.previousValue) {
+          if (!canLoadResult) {
             step.cancel();
             coordinator.cancel();
             return;
@@ -551,16 +514,18 @@ export class Viewport extends Endpoint {
         } else { // Denied and (probably) redirected
           return Runner.run(step,
             () => this.router.load(canLoadResult, { append: true }),
-            (step: Step<void>) => this.abortContentChange(step),
+            (innerStep: Step<void>) => this.abortContentChange(innerStep),
           );
         }
       },
     ];
 
+    // The transition routing hooks, unload and load
     const routingSteps = [
       () => coordinator.waitForSyncState('guarded', this),
-      (step: Step<void>) => this.unload(step, true, transitionId),
+      (step: Step<void>) => this.unload(step/*, true, transitionId*/),
       () => coordinator.addEntityState(this, 'unloaded'),
+
       () => coordinator.waitForSyncState('unloaded', this),
       () => actingParentViewport !== null ? coordinator.waitForEntityState(actingParentViewport, 'loaded') : void 0,
       (step: Step<void>) => this.load(step),
@@ -568,38 +533,76 @@ export class Viewport extends Endpoint {
       () => coordinator.addEntityState(this, 'routed'),
     ];
 
+    // The lifecycle hooks, with order and parallelism based on configuration
     const lifecycleSteps: ((step: Step<void | void[]>) => Step<void> | Promise<void> | void)[] = [
       () => coordinator.waitForSyncState('routed', this),
-      () => coordinator.waitForEntityState(this, 'routed'), // TODO: remove this
+      () => coordinator.waitForEntityState(this, 'routed'),
     ];
-    if (RouterConfiguration.options.swapStrategy.includes('parallel')) {
-      lifecycleSteps.push((step: Step<void | void[]>): Step<void> => {
-        if (RouterConfiguration.options.swapStrategy.includes('add')) {
-          return Runner.runParallel<void>(step as Step<void>,
-            (step: Step<void | void[]>): void | Step<void> => this.addContent(step as Step<void>, coordinator),
-            (step: Step<void | void[]>): void | Step<void> => this.removeContent(step as Step<void>, coordinator),
-          ) as Step<void>;
-        } else {
-          return Runner.runParallel(step as Step<void>,
-            (step: Step<void>) => this.removeContent(step, coordinator),
-            (step: Step<void>) => this.addContent(step, coordinator),
-          ) as Step<void>;
-        }
-      });
-    } else {
-      lifecycleSteps.push(
-        (step: Step<void | void[]>) => RouterConfiguration.options.swapStrategy.includes('add')
-          ? this.addContent(step as Step<void>, coordinator)
-          : this.removeContent(step as Step<void>, coordinator),
-        (step: Step<void | void[]>) => RouterConfiguration.options.swapStrategy.includes('add')
-          ? this.removeContent(step as Step<void>, coordinator)
-          : this.addContent(step as Step<void>, coordinator),
-      );
+
+    const swapOrder = RouterConfiguration.options.swapStrategy;
+    switch (swapOrder) {
+      case 'remove-first-sequential':
+        lifecycleSteps.push(
+          (step: Step<void | void[]>) => this.removeContent(step as Step<void>, coordinator),
+          (step: Step<void | void[]>) => this.addContent(step as Step<void>, coordinator),
+        );
+        break;
+      case 'add-first-sequential':
+        lifecycleSteps.push(
+          (step: Step<void | void[]>) => this.addContent(step as Step<void>, coordinator),
+          (step: Step<void | void[]>) => this.removeContent(step as Step<void>, coordinator),
+        );
+        break;
+      case 'remove-first-parallel':
+        lifecycleSteps.push((step: Step<void | void[]>): Step<void> =>
+          Runner.runParallel(step as Step<void>,
+            (innerStep: Step<void>) => this.removeContent(innerStep, coordinator),
+            (innerStep: Step<void>) => this.addContent(innerStep, coordinator),
+          ) as Step<void>,
+        );
+        break;
+      case 'add-first-parallel':
+        lifecycleSteps.push((step: Step<void | void[]>): Step<void> =>
+          Runner.runParallel(step as Step<void>,
+            (innerStep: Step<void>) => this.addContent(innerStep, coordinator),
+            (innerStep: Step<void>) => this.removeContent(innerStep, coordinator),
+          ) as Step<void>,
+        );
+        break;
     }
+
+    // const swapOrder = RouterConfiguration.options.swapStrategy;
+    // if (swapOrder.includes('parallel')) {
+    //   lifecycleSteps.push((step: Step<void | void[]>): Step<void> => {
+    //     if (swapOrder.includes('add')) {
+    //       return Runner.runParallel<void>(step as Step<void>,
+    //         (innerStep: Step<void | void[]>): void | Step<void> => this.addContent(innerStep as Step<void>, coordinator),
+    //         (innerStep: Step<void | void[]>): void | Step<void> => this.removeContent(innerStep as Step<void>, coordinator),
+    //       ) as Step<void>;
+    //     } else {
+    //       return Runner.runParallel(step as Step<void>,
+    //         (innerStep: Step<void>) => this.removeContent(innerStep, coordinator),
+    //         (innerStep: Step<void>) => this.addContent(innerStep, coordinator),
+    //       ) as Step<void>;
+    //     }
+    //   });
+    // } else {
+    //   lifecycleSteps.push(
+    //     (step: Step<void | void[]>) => swapOrder.includes('add')
+    //       ? this.addContent(step as Step<void>, coordinator)
+    //       : this.removeContent(step as Step<void>, coordinator),
+    //     (step: Step<void | void[]>) => swapOrder.includes('add')
+    //       ? this.removeContent(step as Step<void>, coordinator)
+    //       : this.addContent(step as Step<void>, coordinator),
+    //   );
+    // }
 
     lifecycleSteps.push(() => coordinator.addEntityState(this, 'swapped'));
 
+    // Set activity indicator (class) on the connected custom element
     this.connectedCE?.setActive?.(true);
+
+    // Run the steps and do the transition
     Runner.run(null,
       ...guardSteps,
       ...routingSteps,
@@ -616,22 +619,16 @@ export class Viewport extends Endpoint {
    * @param step - The previous step in this transition Run
    */
   public canUnload(step: Step<boolean> | null): boolean | Promise<boolean> {
-    // console.log('canUnload', this.toString());
     return Runner.run(step,
-      (step: Step<boolean>) => {
-        return this.content.connectedScope.canUnload(step);
+      (innerStep: Step<boolean>) => {
+        return this.content.connectedScope.canUnload(innerStep);
       },
-      (step: Step<boolean>) => {
-        if (!step.previousValue) { // canUnloadChildren
-          // console.log('canUnload', false, this.toString());
+      (innerStep: Step<boolean>) => {
+        if (!(innerStep.previousValue as boolean)) { // canUnloadChildren
           return false;
         }
         return this.content.canUnload(this.nextContent?.navigation ?? null);
       },
-      // (step: Step<boolean>) => {
-      //   console.log('canUnload resolved', step.previousValue, this.toString());
-      //   return step.previousValue;
-      // },
     ) as boolean | Promise<boolean>;
   }
 
@@ -642,7 +639,7 @@ export class Viewport extends Endpoint {
    *
    * TODO(alpha): Remove recurse!
    */
-  public canLoad(step: Step<boolean>, recurse: boolean): boolean | LoadInstruction | LoadInstruction[] | Promise<boolean | LoadInstruction | LoadInstruction[]> {
+  public canLoad(step: Step<boolean>): boolean | LoadInstruction | LoadInstruction[] | Promise<boolean | LoadInstruction | LoadInstruction[]> {
     if (this.clear) {
       return true;
     }
@@ -669,7 +666,7 @@ export class Viewport extends Endpoint {
    *
    * TODO(alpha): Remove recurse!
    */
-  public load(step: Step<void> /* , recurse: boolean */): Step<void> | void {
+  public load(step: Step<void>): Step<void> | void {
     if (this.clear || (this.nextContent?.componentInstance ?? null) === null) {
       return;
     }
@@ -686,7 +683,7 @@ export class Viewport extends Endpoint {
    * TODO(alpha): Remove recurse!
    */
   public addContent(step: Step<void>, coordinator: NavigationCoordinator): void | Step<void> {
-    return this.activate(step, null, this.connectedController, LifecycleFlags.none, /* this.parentNextContentActivated, */ coordinator);
+    return this.activate(step, null, this.connectedController, LifecycleFlags.none, coordinator);
   }
 
   /**
@@ -730,7 +727,6 @@ export class Viewport extends Endpoint {
    */
   public activate(step: Step<void> | null, initiator: IHydratedController | null, parent: IHydratedParentController | null, flags: LifecycleFlags, /* fromParent: boolean, */ coordinator: NavigationCoordinator | undefined): void | Step<void> {
     if ((this.activeContent as ViewportContent).componentInstance !== null) {
-      //r: this.content.connectedScope.reenableReplacedChildren();
       return Runner.run(step,
         (step: Step<void>) => (this.activeContent as ViewportContent).load(step), // Only acts if not already loaded
         (step: Step<void>) => (this.activeContent as ViewportContent).activateComponent(
@@ -781,10 +777,9 @@ export class Viewport extends Endpoint {
    *
    * TODO(alpha): Remove recurse and transitionId!
    */
-  public unload(step: Step<void> | null, recurse: boolean, transitionId: number): void | Step<void> {
-    // console.log('unload viewport', transitionId, this.toString());
+  public unload(step: Step<void> | null/*, recurse: boolean, transitionId: number*/): void | Step<void> {
     return Runner.run(step,
-      (unloadStep: Step<void>) => recurse ? this.content.connectedScope.unload(unloadStep, recurse, transitionId) : void 0,
+      (unloadStep: Step<void>) => /*recurse ? */ this.content.connectedScope.unload(unloadStep/*, recurse, transitionId*/)/* : void 0*/,
       () => this.content.componentInstance != null ? this.content.unload(this.nextContent?.navigation ?? null) : void 0,
     ) as Step<void>;
   }
@@ -828,7 +823,6 @@ export class Viewport extends Endpoint {
     this.content.contentStates.delete('checkedLoad');
 
     this.previousViewportState = null;
-    //r: this.content.connectedScope.clearReplacedChildren();
 
     this.connectedCE?.setActive?.(false);
   }
@@ -839,7 +833,6 @@ export class Viewport extends Endpoint {
    * @param step - The previous step in this transition Run
    */
   public abortContentChange(step: Step<void> | null): void | Step<void> {
-    //r: this.content.connectedScope.reenableReplacedChildren();
     return Runner.run(step,
       (step: Step<void>) => {
         if (this.nextContent != null) {
@@ -875,7 +868,7 @@ export class Viewport extends Endpoint {
    * TODO: Deal with non-string components
    */
   public wantComponent(component: ComponentAppellation): boolean {
-    let usedBy = this.options.usedBy || [];
+    let usedBy = this.options.usedBy ?? [];
     if (typeof usedBy === 'string') {
       usedBy = usedBy.split(',');
     }
@@ -894,8 +887,8 @@ export class Viewport extends Endpoint {
     if (component === '-' || component === null) {
       return true;
     }
-    let usedBy = this.options.usedBy;
-    if (!usedBy || !usedBy.length) {
+    let usedBy = this.options.usedBy ?? [];
+    if (usedBy.length === 0) {
       return true;
     }
     if (typeof usedBy === 'string') {

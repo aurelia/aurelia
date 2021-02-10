@@ -605,11 +605,6 @@ export class Viewport extends Endpoint {
       return true;
     }
 
-    // if ((this.nextContent?.instruction ?? null) === null) {
-    //   console.log('===== ERROR: no next content instruction!', this.nextContent, this.clear);
-    //   return true;
-    // }
-
     return Runner.run(step,
       () => this.waitForConnected(),
       () => {
@@ -629,11 +624,6 @@ export class Viewport extends Endpoint {
     if (this.clear) {
       return;
     }
-
-    // if ((this.nextContent?.componentInstance ?? null) === null) {
-    //   console.log('===== ERROR: no next content component instance!', this.nextContent);
-    //   return;
-    // }
 
     return this.nextContent!.load(step);
   }

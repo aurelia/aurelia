@@ -5,7 +5,7 @@
  *
  */
 import { IRouter } from '../router.js';
-import { Viewport } from '../viewport.js';
+import { Viewport } from '../endpoints/viewport.js';
 import { RoutingScope } from '../routing-scope.js';
 
 /**

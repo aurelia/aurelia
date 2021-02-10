@@ -12,11 +12,11 @@ import { CustomElementType, ICustomElementViewModel, IAppRoot, ICustomElementCon
 import { LoadInstruction } from './interfaces.js';
 import { Navigator, NavigatorNavigateEvent } from './navigator.js';
 import { arrayRemove, arrayUnique } from './utilities/utils.js';
-import { IViewportOptions, Viewport } from './viewport.js';
+import { IViewportOptions, Viewport } from './endpoints/viewport.js';
 import { RoutingInstruction } from './instructions/routing-instruction.js';
 import { FoundRoute } from './found-route.js';
 import { RoutingScope } from './routing-scope.js';
-import { ViewportScope } from './viewport-scope.js';
+import { ViewportScope } from './endpoints/viewport-scope.js';
 import { BrowserViewerStore } from './browser-viewer-store.js';
 import { Navigation } from './navigation.js';
 import { Endpoint, EndpointType, IConnectedCustomElement, IEndpoint } from './endpoints/endpoint.js';

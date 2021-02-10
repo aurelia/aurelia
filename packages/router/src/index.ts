@@ -145,11 +145,11 @@ export {
 export {
   IViewportOptions,
   Viewport,
-} from './viewport.js';
+} from './endpoints/viewport.js';
 
 export {
   ViewportContent,
-} from './viewport-content.js';
+} from './endpoints/viewport-content.js';
 
 export {
   RouterConfiguration,

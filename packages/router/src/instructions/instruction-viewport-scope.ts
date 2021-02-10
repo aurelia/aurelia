@@ -6,7 +6,7 @@
  */
 import { IRouter } from '../router.js';
 import { RoutingScope } from '../routing-scope.js';
-import { ViewportScope } from '../viewport-scope.js';
+import { ViewportScope } from '../endpoints/viewport-scope.js';
 
 /**
  * Public API - The routing instructions are the core of the router's navigations

@@ -1,4 +1,4 @@
-import { IViewportScopeOptions } from './../viewport-scope';
+import { IViewportScopeOptions } from './viewport-scope';
 import { IContainer } from '@aurelia/kernel';
 import { ICustomElementController, ICustomElementViewModel } from '@aurelia/runtime-html';
 import {

@@ -7,7 +7,7 @@
 import { ComponentAppellation, IComponentAndOrViewportOrNothing, RouteableComponentType } from './interfaces.js';
 import { RoutingInstruction } from './instructions/routing-instruction.js';
 import { Navigation } from './navigation.js';
-import { Viewport } from './viewport.js';
+import { Viewport } from './endpoints/viewport.js';
 import { InstructionComponent } from './instructions/instruction-component.js';
 import { InstructionViewport } from './instructions/instruction-viewport.js';
 

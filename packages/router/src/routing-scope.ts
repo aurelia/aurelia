@@ -4,12 +4,12 @@
  * In its current state, it is NOT a good source for learning about the inner workings and design of the router.
  *
  */
-import { IViewportScopeOptions, ViewportScope } from './viewport-scope.js';
+import { IViewportScopeOptions, ViewportScope } from './endpoints/viewport-scope.js';
 import { CustomElement, CustomElementType, getEffectiveParentNode, ICustomElementController, ICustomElementViewModel, INode } from '@aurelia/runtime-html';
 import { FoundRoute } from './found-route.js';
 import { IRouter } from './router.js';
 import { RoutingInstruction } from './instructions/routing-instruction.js';
-import { Viewport, IViewportOptions } from './viewport.js';
+import { Viewport, IViewportOptions } from './endpoints/viewport.js';
 import { IConfigurableRoute, RouteRecognizer } from './route-recognizer.js';
 import { Runner, Step } from './utilities/runner.js';
 import { IRoute, Route } from './route.js';

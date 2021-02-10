@@ -4,9 +4,9 @@
  * In its current state, it is NOT a good source for learning about the inner workings and design of the router.
  *
  */
-import { ViewportScope } from './viewport-scope.js';
+import { ViewportScope } from './endpoints/viewport-scope.js';
 import { RoutingInstruction } from './instructions/routing-instruction.js';
-import { Viewport } from './viewport.js';
+import { Viewport } from './endpoints/viewport.js';
 import { arrayRemove } from './utilities/utils.js';
 import { Collection } from './utilities/collection.js';
 import { RoutingScope } from './routing-scope.js';

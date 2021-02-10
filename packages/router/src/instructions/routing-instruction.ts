@@ -5,10 +5,10 @@ import { InstructionViewport } from './instruction-viewport.js';
 import { InstructionComponent } from './instruction-component.js';
 import { ComponentAppellation, ComponentParameters, LoadInstruction, ViewportHandle } from '../interfaces.js';
 import { RoutingScope } from '../routing-scope.js';
-import { ViewportScope } from '../viewport-scope.js';
+import { ViewportScope } from '../endpoints/viewport-scope.js';
 import { FoundRoute } from '../found-route.js';
 import { Endpoint, IEndpoint } from '../endpoints/endpoint';
-import { Viewport } from '../viewport';
+import { Viewport } from '../endpoints/viewport';
 import { CustomElement } from '@aurelia/runtime-html';
 import { RouterConfiguration } from '../index.js';
 

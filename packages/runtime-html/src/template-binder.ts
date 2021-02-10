@@ -107,6 +107,11 @@ function processTemplateControllers(p: IPlatform, manifestProxy: ParentNodeSymbo
   }
 }
 
+const enum AttrBindingSignal {
+  none    = 0,
+  remove  = 1,
+}
+
 /**
  * TemplateBinder. Todo: describe goal of this class
  */
@@ -142,7 +147,10 @@ export class TemplateBinder {
           // map special html attributes to their corresponding properties
           attrSyntaxTransformer.transform(node, attrSyntax);
           // it's not a custom attribute but might be a regular bound attribute or interpolation (it might also be nothing)
+          // NOTE: on surrogate, we don't care about removing the attribute with interpolation
+          // as the element is not used (cloned)
           this.bindPlainAttribute(
+            /* node       */ node,
             /* attrSyntax */ attrSyntax,
             /* attr       */ attr,
             /* surrogate  */ surrogate,
@@ -163,7 +171,10 @@ export class TemplateBinder {
         // map special html attributes to their corresponding properties
         attrSyntaxTransformer.transform(node, attrSyntax);
         // it's not a custom attribute but might be a regular bound attribute or interpolation (it might also be nothing)
+        // NOTE: on surrogate, we don't care about removing the attribute with interpolation
+        // as the element is not used (cloned)
         this.bindPlainAttribute(
+          /* node       */ node,
           /* attrSyntax */ attrSyntax,
           /* attr       */ attr,
           /* surrogate  */ surrogate,
@@ -305,6 +316,7 @@ export class TemplateBinder {
 
     const attributes = node.attributes;
     let i = 0;
+    let attrBindingSignal: AttrBindingSignal = AttrBindingSignal.none;
     while (i < attributes.length) {
       const attr = attributes[i];
       ++i;
@@ -322,12 +334,17 @@ export class TemplateBinder {
           // map special html attributes to their corresponding properties
           this.attrSyntaxTransformer.transform(node, attrSyntax);
           // it's not a custom attribute but might be a regular bound attribute or interpolation (it might also be nothing)
-          this.bindPlainAttribute(
+          attrBindingSignal = this.bindPlainAttribute(
+            /* node       */ node,
             /* attrSyntax */ attrSyntax,
             /* attr       */ attr,
             /* surrogate  */ surrogate,
             /* manifest   */ manifest,
           );
+          if (attrBindingSignal === AttrBindingSignal.remove) {
+            node.removeAttributeNode(attr);
+            --i;
+          }
         } else if (attrInfo.isTemplateController) {
           // the manifest is wrapped by the inner-most template controller (if there are multiple on the same element)
           // so keep setting manifest.templateController to the latest template controller we find
@@ -360,12 +377,17 @@ export class TemplateBinder {
         // map special html attributes to their corresponding properties
         this.attrSyntaxTransformer.transform(node, attrSyntax);
         // it's not a custom attribute but might be a regular bound attribute or interpolation (it might also be nothing)
-        this.bindPlainAttribute(
+        attrBindingSignal = this.bindPlainAttribute(
+          /* node       */ node,
           /* attrSyntax */ attrSyntax,
           /* attr       */ attr,
           /* surrogate  */ surrogate,
           /* manifest   */ manifest,
         );
+        if (attrBindingSignal === AttrBindingSignal.remove) {
+          node.removeAttributeNode(attr);
+          --i;
+        }
       }
     }
     if (node.tagName === 'INPUT') {
@@ -629,44 +651,62 @@ export class TemplateBinder {
     }
   }
 
+  // on binding plain attribute, if there's interpolation
+  // the attribute itself should be removed completely
+  // otherwise, produce invalid output sometimes.
+  // e.g
+  // <input value=${value}>
+  //    without removing: `<input value="">
+  //    with removing: `<input>
+  // <circle cx=${x}>
+  //    without removing `<circle cx="">
+  //    with removing: `<circle>
   private bindPlainAttribute(
+    node: Element,
     attrSyntax: AttrSyntax,
     attr: Attr,
     surrogate: PlainElementSymbol,
     manifest: ElementSymbol,
-  ): void {
-    const command = this.getBindingCommand(attrSyntax, false);
-    const bindingType = command === null ? BindingType.Interpolation : command.bindingType;
+  ): AttrBindingSignal {
     const attrTarget = attrSyntax.target;
     const attrRawValue = attrSyntax.rawValue;
+    const command = this.getBindingCommand(attrSyntax, false);
+    const bindingType = command === null ? BindingType.Interpolation : command.bindingType;
+    const isInterpolation = bindingType === BindingType.Interpolation;
     let expr: AnyBindingExpression;
-    if (
-      attrRawValue.length === 0
-      && (bindingType & BindingType.BindCommand | BindingType.OneTimeCommand | BindingType.ToViewCommand | BindingType.TwoWayCommand) > 0
-    ) {
-      if ((bindingType & BindingType.BindCommand | BindingType.OneTimeCommand | BindingType.ToViewCommand | BindingType.TwoWayCommand) > 0) {
-        // Default to the name of the attr for empty binding commands
-        expr = this.exprParser.parse(camelCase(attrTarget), bindingType);
-      } else {
-        return;
-      }
-    } else {
-      expr = this.exprParser.parse(attrRawValue, bindingType);
-    }
-
     if ((manifest.flags & SymbolFlags.isCustomElement) > 0) {
       const bindable = (manifest as CustomElementSymbol).bindables[attrTarget];
       if (bindable != null) {
+        // if it looks like this
+        // <my-el value.bind>
+        // it means
+        // <my-el value.bind="value">
+        // this is a shortcut
+        const realAttrValue = attrRawValue.length === 0
+          && (bindingType
+              & BindingType.BindCommand
+              | BindingType.OneTimeCommand
+              | BindingType.ToViewCommand
+              | BindingType.TwoWayCommand
+            ) > 0
+            ? camelCase(attrTarget)
+            : attrRawValue;
+        expr = this.exprParser.parse(realAttrValue, bindingType);
         // if the attribute name matches a bindable property name, add it regardless of whether it's a command, interpolation, or just a plain string;
         // the template compiler will translate it to the correct instruction
         (manifest as CustomElementSymbol).bindings.push(new BindingSymbol(command, bindable, expr, attrRawValue, attrTarget));
         manifest.isTarget = true;
-      } else if (expr != null) {
-        // if it does not map to a bindable, only add it if we were able to parse an expression (either a command or interpolation)
-        manifest.plainAttributes.push(new PlainAttributeSymbol(attrSyntax, command, expr));
-        manifest.isTarget = true;
+        return isInterpolation
+          ? AttrBindingSignal.remove
+          : AttrBindingSignal.none;
       }
-    } else if (expr != null) {
+    }
+
+    // plain attribute, on a normal, or a custom element here
+    // regardless, can process the same way
+    expr = this.exprParser.parse(attrRawValue, bindingType);
+    this.attrSyntaxTransformer.transform(node, attrSyntax);
+    if (expr != null) {
       // either a binding command, an interpolation, or a ref
       manifest.plainAttributes.push(new PlainAttributeSymbol(attrSyntax, command, expr));
       manifest.isTarget = true;
@@ -676,10 +716,61 @@ export class TemplateBinder {
       manifest.plainAttributes.push(new PlainAttributeSymbol(attrSyntax, command, expr));
     }
 
-    if (command == null && expr != null) {
-      // if it's an interpolation, clear the attribute value
-      attr.value = '';
-    }
+    return isInterpolation
+      ? AttrBindingSignal.remove
+      : AttrBindingSignal.none;
+    // if (command == null && expr != null) {
+    //   // if it's an interpolation, clear the attribute value
+    //   attr.value = '';
+    // }
+
+    // Old compilation process
+    // =========================================================
+    // const command = this.getBindingCommand(attrSyntax, false);
+    // const bindingType = command === null ? BindingType.Interpolation : command.bindingType;
+    // const attrTarget = attrSyntax.target;
+    // const attrRawValue = attrSyntax.rawValue;
+    // let expr: AnyBindingExpression;
+    // if (
+    //   attrRawValue.length === 0
+    //   && (bindingType & BindingType.BindCommand | BindingType.OneTimeCommand | BindingType.ToViewCommand | BindingType.TwoWayCommand) > 0
+    // ) {
+    //   if ((bindingType & BindingType.BindCommand | BindingType.OneTimeCommand | BindingType.ToViewCommand | BindingType.TwoWayCommand) > 0) {
+    //     // Default to the name of the attr for empty binding commands
+    //     expr = this.exprParser.parse(camelCase(attrTarget), bindingType);
+    //   } else {
+    //     return;
+    //   }
+    // } else {
+    //   expr = this.exprParser.parse(attrRawValue, bindingType);
+    // }
+
+    // if ((manifest.flags & SymbolFlags.isCustomElement) > 0) {
+    //   const bindable = (manifest as CustomElementSymbol).bindables[attrTarget];
+    //   if (bindable != null) {
+    //     // if the attribute name matches a bindable property name, add it regardless of whether it's a command, interpolation, or just a plain string;
+    //     // the template compiler will translate it to the correct instruction
+    //     (manifest as CustomElementSymbol).bindings.push(new BindingSymbol(command, bindable, expr, attrRawValue, attrTarget));
+    //     manifest.isTarget = true;
+    //   } else if (expr != null) {
+    //     // if it does not map to a bindable, only add it if we were able to parse an expression (either a command or interpolation)
+    //     manifest.plainAttributes.push(new PlainAttributeSymbol(attrSyntax, command, expr));
+    //     manifest.isTarget = true;
+    //   }
+    // } else if (expr != null) {
+    //   // either a binding command, an interpolation, or a ref
+    //   manifest.plainAttributes.push(new PlainAttributeSymbol(attrSyntax, command, expr));
+    //   manifest.isTarget = true;
+    // } else if (manifest === surrogate) {
+    //   // any attributes, even if they are plain (no command/interpolation etc), should be added if they
+    //   // are on the surrogate element
+    //   manifest.plainAttributes.push(new PlainAttributeSymbol(attrSyntax, command, expr));
+    // }
+
+    // if (command == null && expr != null) {
+    //   // if it's an interpolation, clear the attribute value
+    //   attr.value = '';
+    // }
   }
 
   private readonly commandLookup: Record<string, BindingCommandInstance | null | undefined> = Object.create(null);

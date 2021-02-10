@@ -1,11 +1,12 @@
 import { DI } from '@aurelia/kernel';
 import type { AttrSyntax } from './resources/attribute-pattern.js';
+import { ElementInfo } from './semantic-model.js';
 
 export interface IAttrSyntaxTransformer extends AttrSyntaxTransformer {}
 export const IAttrSyntaxTransformer = DI
   .createInterface<IAttrSyntaxTransformer>('IAttrSyntaxTransformer', x => x.singleton(AttrSyntaxTransformer));
 
-type IsTwoWayPredicate = (element: HTMLElement, attribute: string) => boolean;
+type IsTwoWayPredicate = (element: Element, attribute: string) => boolean;
 
 export class AttrSyntaxTransformer {
   /**
@@ -31,7 +32,7 @@ export class AttrSyntaxTransformer {
   /**
    * @internal
    */
-  public transform(node: HTMLElement, attrSyntax: AttrSyntax): void {
+  public transform(node: Element, attrSyntax: AttrSyntax): void {
     if (
       attrSyntax.command === 'bind' &&
       (
@@ -131,7 +132,7 @@ export class AttrSyntaxTransformer {
   }
 }
 
-function shouldDefaultToTwoWay(element: HTMLElement, attr: string): boolean {
+function shouldDefaultToTwoWay(element: Element, attr: string): boolean {
   switch (element.tagName) {
     case 'INPUT':
       switch ((element as HTMLInputElement).type) {

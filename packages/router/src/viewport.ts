@@ -1,9 +1,3 @@
-/**
- *
- * NOTE: This file is still WIP and will go through at least one more iteration of refactoring, commenting and clean up!
- * In its current state, it is NOT a good source for learning about the inner workings and design of the router.
- *
- */
 import { LifecycleFlags, ICompiledRenderContext, CustomElement, IHydratedController, IHydratedParentController } from '@aurelia/runtime-html';
 import { ComponentAppellation, IRouteableComponent, ReentryBehavior, RouteableComponentType, LoadInstruction } from './interfaces.js';
 import { IRouter } from './router.js';
@@ -202,13 +196,6 @@ export class Viewport extends Endpoint {
   public get connectedController(): IRoutingController | null {
     return this.connectedCE?.controller ?? null;
   }
-
-  // /**
-  //  * Whether the viewport is enabled/active.
-  //  */
-  // public get enabled(): boolean {
-  //   return this.connectedScope.enabled;
-  // }
 
   /**
    * The parent viewport.
@@ -460,7 +447,6 @@ export class Viewport extends Endpoint {
    */
   public transition(coordinator: NavigationCoordinator): void {
     this.coordinator = coordinator;
-    const transitionId = ++Viewport.lastTransitionId;
     // console.log('Viewport transition', transitionId, this.toString());
 
     // Get the parent viewport...
@@ -523,7 +509,7 @@ export class Viewport extends Endpoint {
     // The transition routing hooks, unload and load
     const routingSteps = [
       () => coordinator.waitForSyncState('guarded', this),
-      (step: Step<void>) => this.unload(step/*, true, transitionId*/),
+      (step: Step<void>) => this.unload(step),
       () => coordinator.addEntityState(this, 'unloaded'),
 
       () => coordinator.waitForSyncState('unloaded', this),
@@ -571,32 +557,6 @@ export class Viewport extends Endpoint {
         break;
     }
 
-    // const swapOrder = RouterConfiguration.options.swapStrategy;
-    // if (swapOrder.includes('parallel')) {
-    //   lifecycleSteps.push((step: Step<void | void[]>): Step<void> => {
-    //     if (swapOrder.includes('add')) {
-    //       return Runner.runParallel<void>(step as Step<void>,
-    //         (innerStep: Step<void | void[]>): void | Step<void> => this.addContent(innerStep as Step<void>, coordinator),
-    //         (innerStep: Step<void | void[]>): void | Step<void> => this.removeContent(innerStep as Step<void>, coordinator),
-    //       ) as Step<void>;
-    //     } else {
-    //       return Runner.runParallel(step as Step<void>,
-    //         (innerStep: Step<void>) => this.removeContent(innerStep, coordinator),
-    //         (innerStep: Step<void>) => this.addContent(innerStep, coordinator),
-    //       ) as Step<void>;
-    //     }
-    //   });
-    // } else {
-    //   lifecycleSteps.push(
-    //     (step: Step<void | void[]>) => swapOrder.includes('add')
-    //       ? this.addContent(step as Step<void>, coordinator)
-    //       : this.removeContent(step as Step<void>, coordinator),
-    //     (step: Step<void | void[]>) => swapOrder.includes('add')
-    //       ? this.removeContent(step as Step<void>, coordinator)
-    //       : this.addContent(step as Step<void>, coordinator),
-    //   );
-    // }
-
     lifecycleSteps.push(() => coordinator.addEntityState(this, 'swapped'));
 
     // Set activity indicator (class) on the connected custom element
@@ -636,8 +596,6 @@ export class Viewport extends Endpoint {
    * Check if the next content can be loaded.
    *
    * @param step - The previous step in this transition Run
-   *
-   * TODO(alpha): Remove recurse!
    */
   public canLoad(step: Step<boolean>): boolean | LoadInstruction | LoadInstruction[] | Promise<boolean | LoadInstruction | LoadInstruction[]> {
     if (this.clear) {
@@ -663,8 +621,6 @@ export class Viewport extends Endpoint {
    * Load the next content.
    *
    * @param step - The previous step in this transition Run
-   *
-   * TODO(alpha): Remove recurse!
    */
   public load(step: Step<void>): Step<void> | void {
     if (this.clear || (this.nextContent?.componentInstance ?? null) === null) {
@@ -679,8 +635,6 @@ export class Viewport extends Endpoint {
    *
    * @param step - The previous step in this transition Run
    * @param coordinator - The navigation coordinator
-   *
-   * TODO(alpha): Remove recurse!
    */
   public addContent(step: Step<void>, coordinator: NavigationCoordinator): void | Step<void> {
     return this.activate(step, null, this.connectedController, LifecycleFlags.none, coordinator);
@@ -691,8 +645,6 @@ export class Viewport extends Endpoint {
    *
    * @param step - The previous step in this transition Run
    * @param coordinator - The navigation coordinator
-   *
-   * TODO(alpha): Remove recurse!
    */
   public removeContent(step: Step<void> | null, coordinator: NavigationCoordinator): void | Step<void> {
     if (this.isEmpty) {
@@ -721,26 +673,20 @@ export class Viewport extends Endpoint {
    * @param initiator - The controller that initiates the activate
    * @param parent - The parent controller
    * @param flags - The lifecycle flags for `activate`
-   * @param fromParent - If the activation is triggered by a parent rather
-   * than ourselves
    * @param coordinator - The navigation coordinator
    */
-  public activate(step: Step<void> | null, initiator: IHydratedController | null, parent: IHydratedParentController | null, flags: LifecycleFlags, /* fromParent: boolean, */ coordinator: NavigationCoordinator | undefined): void | Step<void> {
+  public activate(step: Step<void> | null, initiator: IHydratedController | null, parent: IHydratedParentController | null, flags: LifecycleFlags, coordinator: NavigationCoordinator | undefined): void | Step<void> {
     if ((this.activeContent as ViewportContent).componentInstance !== null) {
       return Runner.run(step,
-        (step: Step<void>) => (this.activeContent as ViewportContent).load(step), // Only acts if not already loaded
-        (step: Step<void>) => (this.activeContent as ViewportContent).activateComponent(
-          step,
+        (innerStep: Step<void>) => (this.activeContent as ViewportContent).load(innerStep), // Only acts if not already loaded
+        (innerStep: Step<void>) => (this.activeContent as ViewportContent).activateComponent(
+          innerStep,
           this,
           initiator,
           parent as IRoutingController,
           flags,
           this.connectedCE!,
-          // fromParent,
-          () => {
-            // console.log('Bound', this.toString());
-            coordinator?.addEntityState(this, 'bound');
-          },
+          () => coordinator?.addEntityState(this, 'bound'),
           coordinator?.waitForSyncState('bound'),
         ),
       ) as Step<void>;
@@ -774,12 +720,10 @@ export class Viewport extends Endpoint {
    * Unload the current content.
    *
    * @param step - The previous step in this transition Run
-   *
-   * TODO(alpha): Remove recurse and transitionId!
    */
-  public unload(step: Step<void> | null/*, recurse: boolean, transitionId: number*/): void | Step<void> {
+  public unload(step: Step<void> | null): void | Step<void> {
     return Runner.run(step,
-      (unloadStep: Step<void>) => /*recurse ? */ this.content.connectedScope.unload(unloadStep/*, recurse, transitionId*/)/* : void 0*/,
+      (unloadStep: Step<void>) => this.content.connectedScope.unload(unloadStep),
       () => this.content.componentInstance != null ? this.content.unload(this.nextContent?.navigation ?? null) : void 0,
     ) as Step<void>;
   }
@@ -915,10 +859,10 @@ export class Viewport extends Endpoint {
     const content = this.historyCache.find(cached => cached.componentInstance === component);
     if (content !== void 0) {
       return Runner.run(step,
-        (step: Step<void>) => {
+        (innerStep: Step<void>) => {
           this.forceRemove = true;
           return content.freeContent(
-            step,
+            innerStep,
             null,
             null,
             this.historyCache,

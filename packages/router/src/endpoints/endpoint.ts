@@ -1,16 +1,6 @@
 import { IViewportScopeOptions } from './../viewport-scope';
 import { IContainer } from '@aurelia/kernel';
 import { ICustomElementController, ICustomElementViewModel } from '@aurelia/runtime-html';
-// import { LoadInstruction } from '../interfaces.js';
-// import { IRouter } from '../router.js';
-// import { NextContentAction, Scope } from '../scope.js';
-// import { IRoutingController, IConnectedCustomElement } from '../resources/viewport.js';
-// import { Step } from '../runner.js';
-// import { Route } from '../route.js';
-// import { RoutingInstruction } from '../instructions/routing-instruction.js';
-// import { Navigation } from '../navigation.js';
-// import { NavigationCoordinator } from '../navigation-coordinator.js';
-// import { EndpointContent } from './endpoint-content';
 import {
   LoadInstruction,
   IRouter,
@@ -83,12 +73,6 @@ export class Endpoint {
   public get connectedController(): IRoutingController | null {
     return this.connectedCE?.$controller ?? null;
   }
-  // public get enabled(): boolean {
-  //   return this.connectedScope.enabled;
-  // }
-  // public set enabled(enabled: boolean) {
-  //   this.connectedScope.enabled = enabled;
-  // }
 
   public get isViewport(): boolean {
     return false;
@@ -99,10 +83,6 @@ export class Endpoint {
   public get isEmpty(): boolean {
     return false;
   }
-
-  // public get parentNextContentActivated(): boolean {
-  //   return this.scope.parent?.endpoint?.nextContentActivated ?? false;
-  // }
 
   public get pathname(): string {
     return this.connectedScope.pathname;
@@ -149,7 +129,7 @@ export class Endpoint {
     return true;
   }
 
-  public unload(_step: Step<void> | null/*, recurse: boolean, transitionId: number*/): void | Step<void> {
+  public unload(_step: Step<void> | null): void | Step<void> {
     return;
   }
   public load(_step: Step<void>): Step<void> | void {

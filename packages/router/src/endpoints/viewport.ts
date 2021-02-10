@@ -256,15 +256,15 @@ export class Viewport extends Endpoint {
    * swap isn't guaranteed, current component configuration can result in a skipped
    * transition.
    *
-   * @param routingInstruction - The routing instruction describing the next content
+   * @param instruction - The routing instruction describing the next content
    * @param navigation - The navigation that requests the content change
    */
-  public setNextContent(routingInstruction: RoutingInstruction, navigation: Navigation): NextContentAction {
-    routingInstruction.viewport.set(this);
-    this.clear = routingInstruction.isClear;
+  public setNextContent(instruction: RoutingInstruction, navigation: Navigation): NextContentAction {
+    instruction.viewport.set(this);
+    this.clear = instruction.isClear;
 
     // Can have a (resolved) type or a string (to be resolved later)
-    this.nextContent = new ViewportContent(this.router, this, this._owningScope, this._scope, !this.clear ? routingInstruction : void 0, navigation, this.connectedCE ?? null);
+    this.nextContent = new ViewportContent(this.router, this, this._owningScope, this._scope, !instruction.isClear ? instruction : void 0, navigation, this.connectedCE ?? null);
 
     this.nextContent.fromHistory = this.nextContent.componentInstance && navigation.navigation
       ? !!navigation.navigation.back || !!navigation.navigation.forward
@@ -563,7 +563,7 @@ export class Viewport extends Endpoint {
     this.connectedCE?.setActive?.(true);
 
     // Run the steps and do the transition
-    Runner.run(null,
+    const result = Runner.run(null,
       ...guardSteps,
       ...routingSteps,
       ...lifecycleSteps,
@@ -571,6 +571,9 @@ export class Viewport extends Endpoint {
       () => coordinator.waitForSyncState('bound'),
       () => this.connectedCE?.setActive?.(false),
     );
+    if (result instanceof Promise) {
+      result.catch(_err => { /* Happens when unload or load is prevented. TODO: React? */ });
+    }
   }
 
   /**

@@ -71,7 +71,7 @@ describe('Runner', function () {
         (step) => createTimedPromise(`four (${step.previousValue})`, 1000),
       ],
       result: 'four (three (two (one (undefined))))',
-      cancelled: 'two (one (undefined))',
+      cancelled: 'two (one (undefined))', // Now rejecting, not supporting partials
       results: ['one (undefined)', 'two (undefined)', 'three (undefined)', 'four (undefined)'],
     },
     {
@@ -82,7 +82,7 @@ describe('Runner', function () {
         (step) => `one (${step.previousValue})`,
       ],
       result: 'one (two (three (four (undefined))))',
-      cancelled: 'four (undefined)',
+      cancelled: 'four (undefined)', // Now rejecting, not supporting partials
       results: ['four (undefined)', 'three (undefined)', 'two (undefined)', 'one (undefined)'],
     },
   ];
@@ -103,9 +103,15 @@ describe('Runner', function () {
       setTimeout(() => {
         Runner.cancel(stepsPromise);
       }, 1500);
-      stepsPromise.then(result => {
-        assert.strictEqual(result, test.cancelled, `#${i}`);
-      }).catch(err => { throw err; });
+      stepsPromise.then(_result => {
+        // assert.strictEqual(result, test.cancelled, `#${i}`);
+        assert.strictEqual('fulfilled', 'cancelled', `#${i}`);
+      }).catch(err => {
+        if (err instanceof Error) {
+          throw err;
+        }
+        assert.strictEqual('cancelled', 'cancelled', `#${i}`);
+      });
     });
   }
 

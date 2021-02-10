@@ -85,6 +85,9 @@ export class NavigationCoordinator extends StateCoordinator<IEndpoint, Navigatio
         if (!entity.running) {
           entity.running = true;
           entity.entity.transition(this);
+          if (this.cancelled) {
+            break;
+          }
         }
       }
     }

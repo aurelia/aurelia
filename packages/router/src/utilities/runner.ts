@@ -248,7 +248,7 @@ export class Runner {
                 // console.log('Resolving', $step.path);
                 $step.value = result;
                 // Only if there's a "public" promise to resolve
-                Runner.resolvePromise($step);
+                Runner.settlePromise($step);
 
                 $step.isDone = true;
                 $step.isDoing = false;
@@ -259,7 +259,7 @@ export class Runner {
                   Runner.process(next);
                 } else {
                   if ($step.root.doneAll) {
-                    Runner.resolvePromise($step.root);
+                    Runner.settlePromise($step.root);
                   }
                 }
               }).catch(err => { throw err; });
@@ -279,8 +279,10 @@ export class Runner {
     // console.log(root.doneAll, root.report, Runner.roots);
     // console.log(root.doneAll, root.report);
 
-    if (root.doneAll) {
-      Runner.resolvePromise(root);
+    if (root.isCancelled) {
+      Runner.settlePromise(root, 'reject');
+    } else if (root.doneAll) {
+      Runner.settlePromise(root);
     }
   }
 
@@ -293,11 +295,18 @@ export class Runner {
     return false;
   }
 
-  private static resolvePromise<T = unknown>(step: Step<T>): void {
+  private static settlePromise<T = unknown>(step: Step<T>, outcome: 'resolve' | 'reject' = 'resolve'): void {
     if (step.finally?.isPending ?? false) {
       step.promise = null;
       // TODO: Should it also iteratively resolve functions and promises?
-      step.finally?.resolve(step.result as T | T[] | Promise<T | T[]>);
+      switch (outcome) {
+        case 'resolve':
+          step.finally?.resolve(step.result as T | T[] | Promise<T | T[]>);
+          break;
+        case 'reject':
+          step.finally?.reject(step.result as T | T[] | Promise<T | T[]>);
+          break;
+      }
     }
   }
 }

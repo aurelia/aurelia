@@ -7,9 +7,9 @@ import { IRoutingHookDefinition } from './routing-hook.js';
 import { RouterConfiguration } from './index.js';
 
 /**
- * How contents are swapped in a viewport when transitioning. Default: `add-first-sequential`
+ * How contents are swapped in a viewport when transitioning. Default: `attach-next-detach-current`
  */
-export type SwapStrategy = 'add-first-sequential' | 'add-first-parallel' | 'remove-first-sequential' | 'remove-first-parallel';
+export type SwapOrder = 'attach-next-detach-current' | 'attach-detach-simultaneously' | 'detach-current-attach-next' | 'detach-attach-simultaneously';
 
 /**
  * The router's title configuration
@@ -235,9 +235,9 @@ export class RouterOptions implements INavigatorOptions {
   public navigationSyncStates: NavigationState[] = ['guardedUnload', 'swapped', 'completed'];
 
   /**
-   * How contents are swapped in a viewport when transitioning. Default: `add-first-sequential`
+   * How contents are swapped in a viewport when transitioning. Default: `attach-next-detach-current`
    */
-  public swapStrategy: SwapStrategy = 'add-first-sequential';
+  public swapOrder: SwapOrder = 'attach-next-detach-current';
 
   /**
    * Apply router options.

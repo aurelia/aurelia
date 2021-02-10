@@ -525,21 +525,21 @@ export class Viewport extends Endpoint {
       () => coordinator.waitForEntityState(this, 'routed'),
     ];
 
-    const swapOrder = RouterConfiguration.options.swapStrategy;
+    const swapOrder = RouterConfiguration.options.swapOrder;
     switch (swapOrder) {
-      case 'remove-first-sequential':
+      case 'detach-current-attach-next':
         lifecycleSteps.push(
           (step: Step<void | void[]>) => this.removeContent(step as Step<void>, coordinator),
           (step: Step<void | void[]>) => this.addContent(step as Step<void>, coordinator),
         );
         break;
-      case 'add-first-sequential':
+      case 'attach-next-detach-current':
         lifecycleSteps.push(
           (step: Step<void | void[]>) => this.addContent(step as Step<void>, coordinator),
           (step: Step<void | void[]>) => this.removeContent(step as Step<void>, coordinator),
         );
         break;
-      case 'remove-first-parallel':
+      case 'detach-attach-simultaneously':
         lifecycleSteps.push((step: Step<void | void[]>): Step<void> =>
           Runner.runParallel(step as Step<void>,
             (innerStep: Step<void>) => this.removeContent(innerStep, coordinator),
@@ -547,7 +547,7 @@ export class Viewport extends Endpoint {
           ) as Step<void>,
         );
         break;
-      case 'add-first-parallel':
+      case 'attach-detach-simultaneously':
         lifecycleSteps.push((step: Step<void | void[]>): Step<void> =>
           Runner.runParallel(step as Step<void>,
             (innerStep: Step<void>) => this.addContent(innerStep, coordinator),

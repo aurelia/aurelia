@@ -24,16 +24,16 @@ export function translateOptions(routerOptionsSpec: IRouterOptionsSpec): IRouter
   let swap;
   switch (routerOptionsSpec.swapStrategy) {
     case 'sequential-add-first':
-      swap = 'add-first-sequential';
+      swap = 'attach-next-detach-current';
       break;
     case 'sequential-remove-first':
-      swap = 'remove-first-sequential';
+      swap = 'detach-current-attach-next';
       break;
     case 'parallel-remove-first':
-      swap = 'remove-first-parallel';
+      swap = 'detach-attach-simultaneously';
       break;
     default:
-      swap = 'add-first-sequential';
+      swap = 'attach-next-detach-current';
       break;
   }
   const syncStates = ['guardedUnload', 'swapped', 'completed'] as NavigationState[];
@@ -62,7 +62,7 @@ export function translateOptions(routerOptionsSpec: IRouterOptionsSpec): IRouter
   // console.log('SyncStates', syncStates.toString());
   return {
     additiveInstructionDefault: false,
-    swapStrategy: swap,
+    swapOrder: swap,
     navigationSyncStates: syncStates,
     // routingHookIntegration: integration,
   };

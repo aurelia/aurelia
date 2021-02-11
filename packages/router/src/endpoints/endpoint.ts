@@ -19,6 +19,9 @@ import {
  * An endpoint is anything that can receive and process a routing instruction.
  */
 
+ /**
+  * Additional properties for endpoint custom elements.
+  */
 export interface IConnectedCustomElement extends ICustomElementViewModel {
   element: HTMLElement;
   container: IContainer;
@@ -79,18 +82,16 @@ export class Endpoint {
   }
 
   /**
-   * The routing scope connected to the active content.
+   * The routing scope that's currently, based on content, connected
+   * to the endpoint. This is always the actually connected scope.
    */
   public get connectedScope(): RoutingScope {
     return this.activeContent?.connectedScope;
   }
 
   /**
-   * The routing scope that's currently, based on content, connected
-   * to the viewport. The scope used when finding next scope endpoints
-   * and configured routes.
-   *
-   * TODO(alpha): Investigate merging/removing this
+   * The current, based on content, routing scope for the endpoint.
+   * The scope used when finding next scope endpoints and configured routes.
    */
   public get scope(): RoutingScope {
     return this.connectedScope.scope;
@@ -98,8 +99,6 @@ export class Endpoint {
 
   /**
    * The routing scope that currently, based on content, owns the viewport.
-   *
-   * TODO(alpha): Investigate merging/removing this
    */
   public get owningScope(): RoutingScope {
     return this.connectedScope.owningScope!;

@@ -28,6 +28,9 @@ export interface IConnectedCustomElement extends ICustomElementViewModel {
 }
 
 export interface IEndpointOptions {
+  /**
+   * The transitions in the endpoint shouldn't be added to the navigation history
+   */
   noHistory?: boolean;
 }
 

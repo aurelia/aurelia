@@ -78,8 +78,6 @@ export interface IViewportOptions extends IEndpointOptions {
 }
 
 export class Viewport extends Endpoint {
-  public static lastTransitionId = 0;
-
   /**
    * The current content of the viewport.
    */
@@ -162,33 +160,6 @@ export class Viewport extends Endpoint {
     super(router, name, connectedCE, _owningScope, _scope);
     this.content = new ViewportContent(router, this, _owningScope, _scope);
   }
-
-  // /**
-  //  * The routing scope that's currently, based on content, connected
-  //  * to the viewport. The scope used when finding next scope endpoints
-  //  * and configured routes.
-  //  *
-  //  * TODO(alpha): Investigate merging/removing this
-  //  */
-  // public get scope(): RoutingScope {
-  //   return this.connectedScope.scope;
-  // }
-
-  /**
-  //  * The routing scope that currently, based on content, owns the viewport.
-  //  *
-  //  * TODO(alpha): Investigate merging/removing this
-  //  */
-  // public get owningScope(): RoutingScope {
-  //   return this.connectedScope.owningScope!;
-  // }
-
-  // /**
-  //  * The connected custom element's controller.
-  //  */
-  // public get connectedController(): ICustomElementController | null {
-  //   return this.connectedCE?.controller ?? null;
-  // }
 
   /**
    * The parent viewport.

@@ -52,15 +52,15 @@ export class ViewportScope extends Endpoint {
     router: IRouter,
     name: string,
     connectedCE: IConnectedCustomElement | null,
-    private readonly _owningScope: RoutingScope | null,
-    private readonly _scope: boolean,
+    /*private readonly*/ _owningScope: RoutingScope | null,
+    /* private readonly*/ _scope: boolean,
     public rootComponentType: CustomElementType | null = null, // temporary. Metadata will probably eliminate it
     public options: IViewportScopeOptions = {
       catches: [],
       source: null,
     },
   ) {
-    super(router, name, connectedCE, _owningScope, _scope);
+    super(router, name, connectedCE /*, _owningScope, _scope */);
     this.content = new ViewportScopeContent(router, this, _owningScope, _scope);
     if (this.catches.length > 0) {
       this.instruction = RoutingInstruction.create(this.catches[0], this.name) as RoutingInstruction;
@@ -133,7 +133,8 @@ export class ViewportScope extends Endpoint {
       instruction.component.name = this.default;
     }
 
-    this.nextContent = new ViewportScopeContent(this.router, this, this._owningScope, this._scope, instruction);
+    // this.nextContent = new ViewportScopeContent(this.router, this, this./*_*/owningScope, this._scope, instruction);
+    this.nextContent = new ViewportScopeContent(this.router, this, this.owningScope, this.scope.hasScope, instruction);
 
     return 'swap';
   }
@@ -150,7 +151,8 @@ export class ViewportScope extends Endpoint {
       () => coordinator.addEntityState(this, 'routed'),
       () => coordinator.addEntityState(this, 'swapped'),
       () => {
-        this.content = !this.remove ? this.nextContent! : new ViewportScopeContent(this.router, this, this._owningScope, this._scope,);
+        // this.content = !this.remove ? this.nextContent! : new ViewportScopeContent(this.router, this, this./*_*/owningScope, this._scope,);
+        this.content = !this.remove ? this.nextContent! : new ViewportScopeContent(this.router, this, this.owningScope, this.scope.hasScope);
         this.nextContent = null;
         coordinator.addEntityState(this, 'completed');
       }

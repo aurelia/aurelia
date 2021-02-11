@@ -143,7 +143,7 @@ export class Viewport extends Endpoint {
     /**
      * The routing scope the viewport belongs to/is owned by.
      */
-    private readonly _owningScope: RoutingScope,
+    /*private readonly*/ _owningScope: RoutingScope,
 
     /**
      * The viewport's routing scope, containing endpoints it owns.
@@ -157,7 +157,7 @@ export class Viewport extends Endpoint {
      */
     public options: IViewportOptions = {}
   ) {
-    super(router, name, connectedCE, _owningScope, _scope);
+    super(router, name, connectedCE /*, _owningScope, _scope */);
     this.content = new ViewportContent(router, this, _owningScope, _scope);
   }
 
@@ -228,7 +228,8 @@ export class Viewport extends Endpoint {
     this.clear = instruction.isClear;
 
     // Can have a (resolved) type or a string (to be resolved later)
-    this.nextContent = new ViewportContent(this.router, this, this._owningScope, this._scope, !this.clear ? instruction : void 0, navigation, this.connectedCE ?? null);
+    // this.nextContent = new ViewportContent(this.router, this, this./*_*/owningScope, this._scope, !this.clear ? instruction : void 0, navigation, this.connectedCE ?? null);
+    this.nextContent = new ViewportContent(this.router, this, this.owningScope, this.scope.hasScope, !this.clear ? instruction : void 0, navigation, this.connectedCE ?? null);
 
     this.nextContent.fromHistory = this.nextContent.componentInstance !== null && navigation.navigation
       ? !!navigation.navigation.back || !!navigation.navigation.forward
@@ -713,7 +714,8 @@ export class Viewport extends Endpoint {
     }
 
     if (this.clear) {
-      this.content = new ViewportContent(this.router, this, this._owningScope, this._scope, void 0, this.nextContent!.navigation);
+      // this.content = new ViewportContent(this.router, this, this./*_*/owningScope, this._scope, void 0, this.nextContent!.navigation);
+      this.content = new ViewportContent(this.router, this, this.owningScope, this.scope.hasScope, void 0, this.nextContent!.navigation);
       this.nextContent?.delete();
     }
     previousContent.delete();
@@ -925,8 +927,11 @@ export class Viewport extends Endpoint {
   private clearState(): void {
     this.options = {};
 
+    const owningScope = this.owningScope;
+    const hasScope = this.scope.hasScope;
     this.content.delete();
-    this.content = new ViewportContent(this.router, this, this._owningScope, this._scope);
+    // this.content = new ViewportContent(this.router, this, /*this._*/owningScope, this._scope);
+    this.content = new ViewportContent(this.router, this, owningScope, hasScope);
     this.cache = [];
   }
 

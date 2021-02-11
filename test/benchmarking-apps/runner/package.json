@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "devDependencies": {
-    "@aurelia/http-server": "0.10.0-dev.202102090854",
+    "@aurelia/http-server": "0.10.0-dev.202102110248",
     "@azure/cosmos": "^3.9.3",
     "@types/mocha": "^8.0.3",
     "@types/node": "^14.11.5",

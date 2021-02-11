@@ -1,9 +1,4 @@
-/**
- *
- * NOTE: This file is still WIP and will go through at least one more iteration of refactoring, commenting and clean up!
- * In its current state, it is NOT a good source for learning about the inner workings and design of the router.
- *
- */
+
 import { Endpoint } from './endpoint';
 import { IRouter } from '../router';
 import { RoutingInstruction, RoutingScope } from '../index.js';
@@ -16,26 +11,48 @@ import { RoutingInstruction, RoutingScope } from '../index.js';
  */
 
 export class EndpointContent {
+  /**
+   * The routing scope that's connected to the endpoint content
+   */
   public connectedScope: RoutingScope;
 
   public constructor(
     public readonly router: IRouter,
+    /**
+     * The endpoint the endpoint content belongs to
+     */
     public endpoint: Endpoint,
+    /**
+     * The routing scope the endpoint content belongs to/is owned by
+     */
     owningScope: RoutingScope | null,
-    scope: boolean,
+    /**
+     * Whether the viewport has its own routing scope, containing
+     * endpoints it owns
+     */
+    hasScope: boolean,
+    /**
+     * The routing instruction that has created the content
+     */
     public instruction: RoutingInstruction = RoutingInstruction.create('') as RoutingInstruction,
   ) {
-    this.connectedScope = new RoutingScope(router, scope, owningScope, this);
+    this.connectedScope = new RoutingScope(router, hasScope, owningScope, this);
     // Skip if no root scope (meaning we ARE the root scope!)
     if (this.router.rootScope !== null) {
       (this.endpoint.connectedScope?.parent ?? this.router.rootScope?.scope).addChild(this.connectedScope);
     }
   }
 
+  /**
+   * Whether the endpoint content is the active one within its endpoint
+   */
   public get isActive(): boolean {
     return this.endpoint.activeContent === this;
   }
 
+  /**
+   * Delete the endpoint content and its routing scope
+   */
   public delete(): void {
     this.connectedScope.parent?.removeChild(this.connectedScope);
   }

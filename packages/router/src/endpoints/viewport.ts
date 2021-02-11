@@ -141,12 +141,13 @@ export class Viewport extends Endpoint {
     connectedCE: IConnectedCustomElement | null,
 
     /**
-     * The routing scope the viewport belongs to/is owned by.
+     * The routing scope the viewport belongs to/is owned by
      */
     owningScope: RoutingScope,
 
     /**
-     * The viewport's routing scope, containing endpoints it owns.
+     * Whether the viewport has its own routing scope, containing
+     * endpoints it owns
      */
     hasScope: boolean,
 

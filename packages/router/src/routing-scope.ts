@@ -18,7 +18,7 @@ import { EndpointMatcher, IMatchEndpointsResult } from './endpoint-matcher.js';
 import { EndpointContent, Router, RouterConfiguration } from './index.js';
 import { IContainer, Metadata } from '@aurelia/kernel';
 
-export type NextContentAction = 'skip' | 'reload' | 'swap' | '';
+export type TransitionAction = 'skip' | 'reload' | 'swap' | '';
 
 /**
  * The router uses routing scopes to organize all endpoints (viewports and viewport
@@ -175,16 +175,16 @@ export class RoutingScope {
     return null;
   }
 
-  // public get parentNextContentAction(): NextContentAction {
-  //   // console.log('######### RoutingScope.parentNextContentAction');
+  // public get parentTransitionAction(): TransitionAction {
+  //   // console.log('######### RoutingScope.parentTransitionAction');
   //   if (this.parent === null) {
   //     return '';
   //   }
-  //   const parentAction = this.parent.endpoint!.nextContentAction;
+  //   const parentAction = this.parent.endpoint!.transitionAction;
   //   if (parentAction === 'swap' || parentAction === 'skip') {
   //     return parentAction;
   //   }
-  //   return this.parent.parentNextContentAction;
+  //   return this.parent.parentTransitionAction;
   // }
 
   public getOwnedScopes(includeDisabled: boolean = false): RoutingScope[] {

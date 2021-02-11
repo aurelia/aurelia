@@ -445,14 +445,14 @@ export class Router implements IRouter {
       // we only run once all (top) instructions are doing something/there are no skip
       // action instructions.
       // If all first iteration instructions now do something the transitions can start
-      const skipping = matchedInstructions.filter(instr => instr.endpoint?.nextContentAction === 'skip');
+      const skipping = matchedInstructions.filter(instr => instr.endpoint?.transitionAction === 'skip');
       const skippingWithMore = skipping.filter(instr => instr.hasNextScopeInstructions);
       if (skipping.length === 0 || (skippingWithMore.length === 0 && !foundRoute.hasRemaining)) {
         // if (skipping.length > 0 && (skippingWithMore.length > 0 || foundRoute.hasRemaining)) {
-        //   console.log('Skipped endpoint actions, NO run', matchedInstructions.map(i => `${i.endpoint?.toString()}:${i.endpoint?.nextContentAction}`));
+        //   console.log('Skipped endpoint actions, NO run', matchedInstructions.map(i => `${i.endpoint?.toString()}:${i.endpoint?.transitionAction}`));
         // } else {
         //   if (skipping.length > 0) {
-        //     console.log('Skipped endpoints actions, but nothing remaining, run anyway.', instruction.instruction, matchedInstructions.map(i => `${i.endpoint?.toString()}:${i.endpoint?.nextContentAction}`));
+        //     console.log('Skipped endpoints actions, but nothing remaining, run anyway.', instruction.instruction, matchedInstructions.map(i => `${i.endpoint?.toString()}:${i.endpoint?.transitionAction}`));
         //   }
         // If navigation is unrestricted (no other syncing done than on canUnload) we can tell
         // the navigation coordinator to instruct endpoints to transition

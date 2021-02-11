@@ -138,7 +138,7 @@ export {
 } from './instructions/routing-instruction.js';
 
 export {
-  NextContentAction,
+  TransitionAction,
   RoutingScope,
 } from './routing-scope.js';
 

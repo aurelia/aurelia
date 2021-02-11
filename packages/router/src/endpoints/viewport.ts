@@ -4,7 +4,7 @@ import { IRouter } from '../router.js';
 import { arrayRemove } from '../utilities/utils.js';
 import { ViewportContent } from './viewport-content.js';
 import { RoutingInstruction } from '../instructions/routing-instruction.js';
-import { NextContentAction, RoutingScope } from '../routing-scope.js';
+import { TransitionAction, RoutingScope } from '../routing-scope.js';
 import { Navigation } from '../navigation.js';
 import { NavigationCoordinator } from '../navigation-coordinator.js';
 import { Runner, Step } from '../utilities/runner.js';
@@ -221,7 +221,7 @@ export class Viewport extends Endpoint {
    * @param instruction - The routing instruction describing the next content
    * @param navigation - The navigation that requests the content change
    */
-  public setNextContent(instruction: RoutingInstruction, navigation: Navigation): NextContentAction {
+  public setNextContent(instruction: RoutingInstruction, navigation: Navigation): TransitionAction {
     instruction.viewport.set(this);
     this.clear = instruction.isClear;
 
@@ -247,14 +247,14 @@ export class Viewport extends Endpoint {
     if (this.nextContent.componentInstance !== null && this.content.componentInstance === this.nextContent.componentInstance) {
       this.nextContent.delete();
       this.nextContent = null;
-      return this.nextContentAction = 'skip'; // false;
+      return this.transitionAction = 'skip'; // false;
     }
 
     if (!this.content.equalComponent(this.nextContent) ||
       navigation.navigation.refresh || // Navigation 'refresh' performed
       this.content.reentryBehavior() === ReentryBehavior.refresh // ReentryBehavior 'refresh' takes precedence
     ) {
-      return this.nextContentAction = 'swap';
+      return this.transitionAction = 'swap';
     }
 
     // Component is the same name/type
@@ -263,7 +263,7 @@ export class Viewport extends Endpoint {
     if (this.content.reentryBehavior() === ReentryBehavior.disallow) {
       this.nextContent.delete();
       this.nextContent = null;
-      return this.nextContentAction = 'skip';
+      return this.transitionAction = 'skip';
     }
 
     // Explicitly re-load same component again
@@ -274,7 +274,7 @@ export class Viewport extends Endpoint {
       this.nextContent.instruction.component.set(this.content.componentInstance);
       this.nextContent.contentStates = this.content.contentStates.clone();
       this.nextContent.reentry = this.content.reentry;
-      return this.nextContentAction = 'reload'; // true;
+      return this.transitionAction = 'reload'; // true;
     }
 
     // ReentryBehavior is now 'default'
@@ -284,7 +284,7 @@ export class Viewport extends Endpoint {
       this.content.equalParameters(this.nextContent)) {
       this.nextContent.delete();
       this.nextContent = null;
-      return this.nextContentAction = 'skip';
+      return this.transitionAction = 'skip';
     }
 
     if (!this.content.equalParameters(this.nextContent)) {
@@ -295,16 +295,16 @@ export class Viewport extends Endpoint {
         this.nextContent!.instruction.component.set(this.content.componentInstance);
         this.nextContent!.contentStates = this.content.contentStates.clone();
         this.nextContent!.reentry = this.content.reentry;
-        return this.nextContentAction = 'reload';
+        return this.transitionAction = 'reload';
       } else { // Perform a full swap
-        return this.nextContentAction = 'swap';
+        return this.transitionAction = 'swap';
       }
     }
 
     // Default is to do nothing
     this.nextContent.delete();
     this.nextContent = null;
-    return this.nextContentAction = 'skip';
+    return this.transitionAction = 'skip';
   }
 
   /**
@@ -411,8 +411,8 @@ export class Viewport extends Endpoint {
     let actingParentViewport = this.parentViewport;
     // ...but not if it's not acting (reloading or swapping)
     if (actingParentViewport !== null
-      && actingParentViewport.nextContentAction !== 'reload'
-      && actingParentViewport.nextContentAction !== 'swap'
+      && actingParentViewport.transitionAction !== 'reload'
+      && actingParentViewport.transitionAction !== 'swap'
     ) {
       actingParentViewport = null;
     }
@@ -717,7 +717,7 @@ export class Viewport extends Endpoint {
     previousContent.delete();
 
     this.nextContent = null;
-    this.nextContentAction = '';
+    this.transitionAction = '';
 
     this.content.contentStates.delete('checkedUnload');
     this.content.contentStates.delete('checkedLoad');
@@ -750,7 +750,7 @@ export class Viewport extends Endpoint {
         }
         this.nextContent?.delete();
         this.nextContent = null;
-        this.nextContentAction = '';
+        this.transitionAction = '';
 
         this.content.contentStates.delete('checkedUnload');
         this.content.contentStates.delete('checkedLoad');

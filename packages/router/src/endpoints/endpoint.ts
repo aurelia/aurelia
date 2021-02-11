@@ -4,7 +4,7 @@ import { ICustomElementController, ICustomElementViewModel } from '@aurelia/runt
 import {
   LoadInstruction,
   IRouter,
-  NextContentAction,
+  TransitionAction,
   RoutingScope,
   Step,
   Route,
@@ -54,7 +54,7 @@ export class Endpoint {
   /**
    * The action (to be) performed by the transition
    */
-  public nextContentAction: NextContentAction = ''; // TODO: Change this name?
+  public transitionAction: TransitionAction = '';
 
   /**
    * The configured route path to this endpoint
@@ -155,7 +155,7 @@ export class Endpoint {
    * @param _instruction - The routing instruction describing the next content
    * @param _navigation - The navigation that requests the content change
    */
-  public setNextContent(_instruction: RoutingInstruction, _navigation: Navigation): NextContentAction {
+  public setNextContent(_instruction: RoutingInstruction, _navigation: Navigation): TransitionAction {
     throw new Error(`Method 'setNextContent' needs to be implemented in all endpoints!`);
   }
 

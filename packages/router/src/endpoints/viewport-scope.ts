@@ -8,7 +8,7 @@ import { CustomElementType } from '@aurelia/runtime-html';
 import { RouteableComponentType } from '../interfaces.js';
 import { IRouter } from '../router.js';
 import { RoutingInstruction } from '../instructions/routing-instruction.js';
-import { NextContentAction, RoutingScope } from '../routing-scope.js';
+import { TransitionAction, RoutingScope } from '../routing-scope.js';
 import { arrayRemove } from '../utilities/utils.js';
 import { Navigation } from '../navigation.js';
 import { NavigationCoordinator } from '../navigation-coordinator.js';
@@ -113,7 +113,7 @@ export class ViewportScope extends Endpoint {
     return `vs:${this.name}[${contentName}->${nextContentName}]`;
   }
 
-  public setNextContent(instruction: RoutingInstruction, _navigation: Navigation): NextContentAction {
+  public setNextContent(instruction: RoutingInstruction, _navigation: Navigation): TransitionAction {
     instruction.viewportScope = this;
 
     this.remove = instruction.isClear || instruction.isClearAll;

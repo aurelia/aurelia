@@ -174,7 +174,7 @@ describe.only('promise template-controller', function () {
         }, []);
     }
     public clear() {
-      this._log.clear();
+      this._log?.clear();
     }
     public async wait($switch: Switch): Promise<void> {
       const promise = $switch.promise;
@@ -212,7 +212,7 @@ describe.only('promise template-controller', function () {
   }
 
   const seedPromise = DI.createInterface<Promise<unknown>>();
-  async function testSwitch(
+  async function testPromise(
     testFunction: TestFunction<PromiseTestExecutionContext>,
     {
       template,
@@ -268,7 +268,7 @@ describe.only('promise template-controller', function () {
     }
     ctx.doc.body.removeChild(host);
   }
-  const $it = createSpecFunction(testSwitch);
+  const $it = createSpecFunction(testPromise);
 
   @bindingBehavior('noop')
   class NoopBindingBehavior implements BindingBehaviorInstance {
@@ -374,7 +374,7 @@ describe.only('promise template-controller', function () {
       const template1 = `
     <template>
       <template promise.bind="promise">
-        <span pending>pending</span>
+        <template pending>pending</template>
         <template then.from-view="data">resolved with \${data}</template>
         <template catch.from-view="err">erred with \${err.message}</template>
       </template>
@@ -389,13 +389,13 @@ describe.only('promise template-controller', function () {
             template: template1,
           },
           config(),
-          '<span>pending</span>',
+          'pending',
           [],
           [],
           async ({ platform, host }) => {
             resolve(42);
-            // assert.html.innerEqual(host, 'pending');
             await platform.domWriteQueue.yield();
+            assert.html.innerEqual(host, 'pending');
             platform.domWriteQueue.flush();
             assert.html.innerEqual(host, 'resolved with 42');
           }
@@ -408,6 +408,7 @@ describe.only('promise template-controller', function () {
     $it(data.name,
       async function (ctx) {
 
+        await ctx.platform.domWriteQueue.yield();
         assert.strictEqual(ctx.error, null);
         assert.html.innerEqual(ctx.host, data.expectedInnerHtml, 'innerHTML');
 

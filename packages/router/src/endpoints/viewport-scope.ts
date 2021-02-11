@@ -52,16 +52,16 @@ export class ViewportScope extends Endpoint {
     router: IRouter,
     name: string,
     connectedCE: IConnectedCustomElement | null,
-    /*private readonly*/ _owningScope: RoutingScope | null,
-    /* private readonly*/ _scope: boolean,
+    owningScope: RoutingScope | null,
+    scope: boolean,
     public rootComponentType: CustomElementType | null = null, // temporary. Metadata will probably eliminate it
     public options: IViewportScopeOptions = {
       catches: [],
       source: null,
     },
   ) {
-    super(router, name, connectedCE /*, _owningScope, _scope */);
-    this.content = new ViewportScopeContent(router, this, _owningScope, _scope);
+    super(router, name, connectedCE);
+    this.content = new ViewportScopeContent(router, this, owningScope, scope);
     if (this.catches.length > 0) {
       this.instruction = RoutingInstruction.create(this.catches[0], this.name) as RoutingInstruction;
     }
@@ -107,12 +107,6 @@ export class ViewportScope extends Endpoint {
     }
   }
 
-  public get nextContentActivated(): boolean {
-    // TODO(alpha): Fix this!
-    return true;
-    // return this.scope.parent?.endpoint?.nextContentActivated ?? false;
-  }
-
   public toString(): string {
     const contentName = this.instruction?.component.name ?? '';
     const nextContentName = this.nextContent?.instruction.component.name ?? '';
@@ -133,15 +127,12 @@ export class ViewportScope extends Endpoint {
       instruction.component.name = this.default;
     }
 
-    // this.nextContent = new ViewportScopeContent(this.router, this, this./*_*/owningScope, this._scope, instruction);
     this.nextContent = new ViewportScopeContent(this.router, this, this.owningScope, this.scope.hasScope, instruction);
 
     return 'swap';
   }
 
   public transition(coordinator: NavigationCoordinator): void {
-    // console.log('ViewportScope swap'/*, this, coordinator*/);
-
     Runner.run(null,
       () => coordinator.addEntityState(this, 'guardedUnload'),
       () => coordinator.addEntityState(this, 'guardedLoad'),
@@ -151,7 +142,6 @@ export class ViewportScope extends Endpoint {
       () => coordinator.addEntityState(this, 'routed'),
       () => coordinator.addEntityState(this, 'swapped'),
       () => {
-        // this.content = !this.remove ? this.nextContent! : new ViewportScopeContent(this.router, this, this./*_*/owningScope, this._scope,);
         this.content = !this.remove ? this.nextContent! : new ViewportScopeContent(this.router, this, this.owningScope, this.scope.hasScope);
         this.nextContent = null;
         coordinator.addEntityState(this, 'completed');
@@ -160,12 +150,11 @@ export class ViewportScope extends Endpoint {
   }
 
   public finalizeContentChange(): void {
-    // console.log('ViewportScope finalizing', this.content);
     if (this.remove && Array.isArray(this.source)) {
       this.removeSourceItem();
     }
   }
-  public abortContentChange(step: Step<void> | null): void | Step<void> {
+  public abortContentChange(_step: Step<void> | null): void | Step<void> {
     this.nextContent = null;
     if (this.add) {
       const index = this.source!.indexOf(this.sourceItem);

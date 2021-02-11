@@ -68,14 +68,6 @@ export class Endpoint {
      * The custom element connected to this endpoint
      */
     public connectedCE: IConnectedCustomElement | null,
-    // /**
-    //  * The routing scope owning this endpoint
-    //  */
-    // owningScope: RoutingScope | null,
-    // /**
-    //  * Whether this endpoint should have it's own routing scope
-    //  */
-    // scope: boolean,
     public options: IEndpointOptions = {}
   ) { }
 

@@ -41,7 +41,7 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel {
 
   public readonly $controller!: ICustomElementController<this>;
 
-  public controller!: ICustomElementController; // IRoutingController;
+  public controller!: ICustomElementController;
 
   private isBound: boolean = false;
 
@@ -81,7 +81,7 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel {
   // }
 
   public hydrated(controller: ICompiledCustomElementController) {
-    this.controller = controller as ICustomElementController; // IRoutingController;
+    this.controller = controller as ICustomElementController;
     // Don't update the container here (probably because it wants to be a part of the structure)
     // this.container = controller.context.get(IContainer);
 
@@ -131,7 +131,6 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel {
     // TODO: Needs to be bound? How to solve?
     options.source = this.source || null;
 
-    // this.controller.routingContainer = this.container;
     // this.viewportScope = this.router.connectViewportScope(this.viewportScope, this, name, options);
     this.viewportScope = this.router.connectEndpoint(this.viewportScope, 'ViewportScope', this, name, options) as ViewportScope;
   }

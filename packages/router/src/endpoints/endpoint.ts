@@ -19,13 +19,10 @@ import {
  * An endpoint is anything that can receive and process a routing instruction.
  */
 
-// export interface IRoutingController extends ICustomElementController {
-// routingContainer?: IContainer;
-// }
 export interface IConnectedCustomElement extends ICustomElementViewModel {
   element: HTMLElement;
   container: IContainer;
-  controller: ICustomElementController; // IRoutingController;
+  controller: ICustomElementController;
 
   setActive?: (active: boolean) => void;
 }
@@ -116,7 +113,7 @@ export class Endpoint {
   /**
    * The connected custom element's controller.
    */
-  public get connectedController(): ICustomElementController | null { // IRoutingController | null {
+  public get connectedController(): ICustomElementController | null {
     return this.connectedCE?.$controller ?? null;
   }
 

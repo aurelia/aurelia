@@ -84,7 +84,7 @@ export class ViewportCustomElement implements ICustomElementViewModel {
   /**
    * The custom element controller.
    */
-  public controller!: ICustomElementController; // IRoutingController;
+  public controller!: ICustomElementController;
 
   /**
    * Whether the viewport is bound or not.
@@ -100,7 +100,7 @@ export class ViewportCustomElement implements ICustomElementViewModel {
   ) { }
 
   public hydrated(controller: ICompiledCustomElementController): void | Promise<void> {
-    this.controller = controller as ICustomElementController; // IRoutingController;
+    this.controller = controller as ICustomElementController;
     this.container = controller.context.get(IContainer);
 
     return Runner.run<void>(null,
@@ -190,7 +190,6 @@ export class ViewportCustomElement implements ICustomElementViewModel {
     // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
     Object.keys(options).forEach(key => options[key as keyof typeof options] === undefined && delete options[key as keyof typeof options]);
 
-    // this.controller.routingContainer = this.container;
     this.viewport = this.router.connectEndpoint(this.viewport, 'Viewport', this, name, options) as Viewport;
   }
   /**

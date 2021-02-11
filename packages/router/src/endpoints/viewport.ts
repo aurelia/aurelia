@@ -186,7 +186,7 @@ export class Viewport extends Endpoint {
   // /**
   //  * The connected custom element's controller.
   //  */
-  // public get connectedController(): IRoutingController | null {
+  // public get connectedController(): ICustomElementController | null {
   //   return this.connectedCE?.controller ?? null;
   // }
 
@@ -670,7 +670,7 @@ export class Viewport extends Endpoint {
           innerStep,
           this,
           initiator,
-          parent as ICustomElementController, // IRoutingController,
+          parent as ICustomElementController,
           flags,
           this.connectedCE!,
           () => coordinator?.addEntityState(this, 'bound'),
@@ -695,7 +695,7 @@ export class Viewport extends Endpoint {
 
       return this.content?.deactivateComponent(
         initiator,
-        parent as ICustomElementController, // IRoutingController,
+        parent as ICustomElementController,
         flags,
         this.connectedCE!,
         this.router.statefulHistory || this.options.stateful

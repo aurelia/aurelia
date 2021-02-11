@@ -119,21 +119,21 @@ export class ViewportScope extends Endpoint {
     return `vs:${this.name}[${contentName}->${nextContentName}]`;
   }
 
-  public setNextContent(routingInstruction: RoutingInstruction, navigation: Navigation): NextContentAction {
-    routingInstruction.viewportScope = this;
+  public setNextContent(instruction: RoutingInstruction, _navigation: Navigation): NextContentAction {
+    instruction.viewportScope = this;
 
-    this.remove = routingInstruction.isClear || routingInstruction.isClearAll;
-    this.add = routingInstruction.isAdd && Array.isArray(this.source);
+    this.remove = instruction.isClear || instruction.isClearAll;
+    this.add = instruction.isAdd && Array.isArray(this.source);
 
     if (this.add) {
-      routingInstruction.component.name = null;
+      instruction.component.name = null;
     }
 
-    if (this.default !== void 0 && routingInstruction.component.name === null) {
-      routingInstruction.component.name = this.default;
+    if (this.default !== void 0 && instruction.component.name === null) {
+      instruction.component.name = this.default;
     }
 
-    this.nextContent = new ViewportScopeContent(this.router, this, this._owningScope, this._scope, routingInstruction);
+    this.nextContent = new ViewportScopeContent(this.router, this, this._owningScope, this._scope, instruction);
 
     return 'swap';
   }

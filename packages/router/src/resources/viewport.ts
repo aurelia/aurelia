@@ -15,7 +15,6 @@ import {
 import { IRouter } from '../index.js';
 import { Viewport, IViewportOptions } from '../endpoints/viewport.js';
 import { Runner, Step } from '../utilities/runner.js';
-import { IRoutingController } from '../endpoints/endpoint.js';
 import { waitForRouterStart, getValueOrAttribute } from './utils.js';
 
 export const ParentViewport = CustomElement.createInjectable();
@@ -85,7 +84,7 @@ export class ViewportCustomElement implements ICustomElementViewModel {
   /**
    * The custom element controller.
    */
-  public controller!: IRoutingController;
+  public controller!: ICustomElementController; // IRoutingController;
 
   /**
    * Whether the viewport is bound or not.
@@ -101,7 +100,7 @@ export class ViewportCustomElement implements ICustomElementViewModel {
   ) { }
 
   public hydrated(controller: ICompiledCustomElementController): void | Promise<void> {
-    this.controller = controller as IRoutingController;
+    this.controller = controller as ICustomElementController; // IRoutingController;
     this.container = controller.context.get(IContainer);
 
     return Runner.run<void>(null,
@@ -191,7 +190,7 @@ export class ViewportCustomElement implements ICustomElementViewModel {
     // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
     Object.keys(options).forEach(key => options[key as keyof typeof options] === undefined && delete options[key as keyof typeof options]);
 
-    this.controller.routingContainer = this.container;
+    // this.controller.routingContainer = this.container;
     this.viewport = this.router.connectEndpoint(this.viewport, 'Viewport', this, name, options) as Viewport;
   }
   /**

@@ -33,7 +33,7 @@ import { IRouter } from '../router.js';
 export type ContentState = 'created' | 'checkedUnload' | 'checkedLoad' | 'loaded' | 'activated';
 
 /**
- * @internal - Shouldn't be used directly
+ * @internal
  */
 export class ViewportContent extends EndpointContent {
   public contentStates: AwaitableMap<ContentState, void> = new AwaitableMap();

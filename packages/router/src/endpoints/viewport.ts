@@ -1,4 +1,4 @@
-import { LifecycleFlags, ICompiledRenderContext, CustomElement, IHydratedController, IHydratedParentController } from '@aurelia/runtime-html';
+import { LifecycleFlags, ICompiledRenderContext, CustomElement, IHydratedController, IHydratedParentController, ICustomElementController } from '@aurelia/runtime-html';
 import { ComponentAppellation, IRouteableComponent, ReentryBehavior, RouteableComponentType, LoadInstruction } from '../interfaces.js';
 import { IRouter } from '../router.js';
 import { arrayRemove } from '../utilities/utils.js';
@@ -10,7 +10,7 @@ import { NavigationCoordinator } from '../navigation-coordinator.js';
 import { Runner, Step } from '../utilities/runner.js';
 import { Routes } from '../decorators/routes.js';
 import { Route } from '../route.js';
-import { Endpoint, IEndpointOptions, IRoutingController, IConnectedCustomElement } from './endpoint.js';
+import { Endpoint, IEndpointOptions, IConnectedCustomElement } from './endpoint.js';
 import { RouterConfiguration } from '../index.js';
 
 /**
@@ -163,32 +163,32 @@ export class Viewport extends Endpoint {
     this.content = new ViewportContent(router, this, _owningScope, _scope);
   }
 
-  /**
-   * The routing scope that's currently, based on content, connected
-   * to the viewport. The scope used when finding next scope endpoints
-   * and configured routes.
-   *
-   * TODO(alpha): Investigate merging/removing this
-   */
-  public get scope(): RoutingScope {
-    return this.connectedScope.scope;
-  }
+  // /**
+  //  * The routing scope that's currently, based on content, connected
+  //  * to the viewport. The scope used when finding next scope endpoints
+  //  * and configured routes.
+  //  *
+  //  * TODO(alpha): Investigate merging/removing this
+  //  */
+  // public get scope(): RoutingScope {
+  //   return this.connectedScope.scope;
+  // }
 
   /**
-   * The routing scope that currently, based on content, owns the viewport.
-   *
-   * TODO(alpha): Investigate merging/removing this
-   */
-  public get owningScope(): RoutingScope {
-    return this.connectedScope.owningScope!;
-  }
+  //  * The routing scope that currently, based on content, owns the viewport.
+  //  *
+  //  * TODO(alpha): Investigate merging/removing this
+  //  */
+  // public get owningScope(): RoutingScope {
+  //   return this.connectedScope.owningScope!;
+  // }
 
-  /**
-   * The connected custom element's controller.
-   */
-  public get connectedController(): IRoutingController | null {
-    return this.connectedCE?.controller ?? null;
-  }
+  // /**
+  //  * The connected custom element's controller.
+  //  */
+  // public get connectedController(): IRoutingController | null {
+  //   return this.connectedCE?.controller ?? null;
+  // }
 
   /**
    * The parent viewport.
@@ -670,7 +670,7 @@ export class Viewport extends Endpoint {
           innerStep,
           this,
           initiator,
-          parent as IRoutingController,
+          parent as ICustomElementController, // IRoutingController,
           flags,
           this.connectedCE!,
           () => coordinator?.addEntityState(this, 'bound'),
@@ -695,7 +695,7 @@ export class Viewport extends Endpoint {
 
       return this.content?.deactivateComponent(
         initiator,
-        parent as IRoutingController,
+        parent as ICustomElementController, // IRoutingController,
         flags,
         this.connectedCE!,
         this.router.statefulHistory || this.options.stateful

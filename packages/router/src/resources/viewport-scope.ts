@@ -22,7 +22,6 @@ import {
 import { IContainer, Writable } from '@aurelia/kernel';
 import { IRouter } from '../index.js';
 import { ViewportScope, IViewportScopeOptions } from '../endpoints/viewport-scope.js';
-import { IRoutingController } from '../endpoints/endpoint.js';
 import { ViewportCustomElement } from './viewport.js';
 
 export const ParentViewportScope = CustomElement.createInjectable();
@@ -42,7 +41,7 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel {
 
   public readonly $controller!: ICustomElementController<this>;
 
-  public controller!: IRoutingController;
+  public controller!: ICustomElementController; // IRoutingController;
 
   private isBound: boolean = false;
 
@@ -52,7 +51,7 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel {
     @IContainer public container: IContainer,
     @ParentViewportScope private readonly parent: ViewportScopeCustomElement,
     @IController private readonly parentController: IHydratedController,
-  ) {}
+  ) { }
 
   // Maybe this really should be here. Check with Fred
   // public create(
@@ -82,7 +81,7 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel {
   // }
 
   public hydrated(controller: ICompiledCustomElementController) {
-    this.controller = controller as IRoutingController;
+    this.controller = controller as ICustomElementController; // IRoutingController;
     // Don't update the container here (probably because it wants to be a part of the structure)
     // this.container = controller.context.get(IContainer);
 
@@ -132,7 +131,7 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel {
     // TODO: Needs to be bound? How to solve?
     options.source = this.source || null;
 
-    this.controller.routingContainer = this.container;
+    // this.controller.routingContainer = this.container;
     // this.viewportScope = this.router.connectViewportScope(this.viewportScope, this, name, options);
     this.viewportScope = this.router.connectEndpoint(this.viewportScope, 'ViewportScope', this, name, options) as ViewportScope;
   }

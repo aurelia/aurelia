@@ -121,12 +121,12 @@ describe('Router', function () {
       class {
         public param: number;
         public entry: number = 0;
-        public reentryBehavior: string = plughReentryBehavior;
+        public reloadBehavior: string = plughReloadBehavior;
         public load(params) {
-          console.log('plugh.load', this.entry, this.reentryBehavior, plughReentryBehavior);
+          console.log('plugh.load', this.entry, this.reloadBehavior, plughReloadBehavior);
           this.param = +params[0];
           this.entry++;
-          this.reentryBehavior = plughReentryBehavior;
+          this.reloadBehavior = plughReloadBehavior;
         }
       });
 
@@ -673,7 +673,7 @@ describe('Router', function () {
     await tearDown();
   });
 
-  it('uses default reentry behavior', async function () {
+  it('uses default reload behavior', async function () {
     this.timeout(5000);
 
     const { platform, host, router, tearDown } = await createFixture();
@@ -697,44 +697,44 @@ describe('Router', function () {
     await tearDown();
   });
 
-  it('uses overriding reentry behavior', async function () {
+  it('uses overriding reload behavior', async function () {
     this.timeout(5000);
 
     const { platform, host, router, tearDown } = await createFixture();
 
-    plughReentryBehavior = 'default';
+    plughReloadBehavior = 'default';
     // This should default
     await $load('plugh(123)@left', router, platform);
     assert.includes(host.textContent, 'Parameter: 123', `host.textContent`);
     assert.includes(host.textContent, 'Entry: 1', `host.textContent`);
 
     let component = (router.getEndpoint('Viewport', 'left') as Viewport).content.componentInstance;
-    component.reentryBehavior = 'load';
-    // This should load
+    component.reloadBehavior = 'reload';
+    // This should reload
     await $load('plugh(123)@left', router, platform);
     assert.includes(host.textContent, 'Parameter: 123', `host.textContent`);
     assert.includes(host.textContent, 'Entry: 2', `host.textContent`);
 
-    component.reentryBehavior = 'refresh';
+    component.reloadBehavior = 'refresh';
     // This should refresh
     await $load('plugh(456)@left', router, platform);
     assert.includes(host.textContent, 'Parameter: 456', `host.textContent`);
     assert.includes(host.textContent, 'Entry: 1', `host.textContent`);
     component = (router.getEndpoint('Viewport', 'left') as Viewport).content.componentInstance;
 
-    component.reentryBehavior = 'default';
+    component.reloadBehavior = 'default';
     // This should default
     await $load('plugh(456)@left', router, platform);
     assert.includes(host.textContent, 'Parameter: 456', `host.textContent`);
     assert.includes(host.textContent, 'Entry: 1', `host.textContent`);
 
-    component.reentryBehavior = 'load';
-    // This should load
+    component.reloadBehavior = 'reload';
+    // This should reload
     await $load('plugh(123)@left', router, platform);
     assert.includes(host.textContent, 'Parameter: 123', `host.textContent`);
     assert.includes(host.textContent, 'Entry: 2', `host.textContent`);
 
-    component.reentryBehavior = 'disallow';
+    component.reloadBehavior = 'disallow';
     // This should disallow
     await $load('plugh(456)@left', router, platform);
     assert.includes(host.textContent, 'Parameter: 123', `host.textContent`);
@@ -1898,7 +1898,7 @@ describe('Router', function () {
 });
 
 let quxCantUnload = 0;
-let plughReentryBehavior = 'default';
+let plughReloadBehavior = 'default';
 
 const $load = async (path: string, router: IRouter, platform: IPlatform) => {
   await router.load(path);

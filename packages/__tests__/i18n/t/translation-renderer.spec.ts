@@ -32,6 +32,7 @@ import {
   PlainAttributeSymbol,
   CallBindingInstruction,
   AttrBindingCommand,
+  IPlatform,
 } from '@aurelia/runtime-html';
 import { assert, PLATFORM, createContainer } from '@aurelia/testing';
 
@@ -127,13 +128,13 @@ describe('TranslationBindingRenderer', function () {
 
   it('instantiated with instruction type', function () {
     const container = createFixture();
-    const sut: IRenderer = new TranslationBindingRenderer(container.get(IExpressionParser), {} as unknown as IObserverLocator);
+    const sut: IRenderer = new TranslationBindingRenderer(container.get(IExpressionParser), {} as unknown as IObserverLocator, container.get(IPlatform));
     assert.equal(sut.instructionType, TranslationInstructionType);
   });
 
   it('#render instantiates TranslationBinding - simple string literal', function () {
     const container = createFixture();
-    const sut: IRenderer = new TranslationBindingRenderer(container.get(IExpressionParser), {} as unknown as IObserverLocator);
+    const sut: IRenderer = new TranslationBindingRenderer(container.get(IExpressionParser), {} as unknown as IObserverLocator, container.get(IPlatform));
     const expressionParser = container.get(IExpressionParser);
     const controller = ({ bindings: [], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); } } as unknown as IHydratableController);
 
@@ -152,10 +153,10 @@ describe('TranslationBindingRenderer', function () {
 
   it('#render adds expr to the existing TranslationBinding for the target element', function () {
     const container = createFixture();
-    const sut: IRenderer = new TranslationBindingRenderer(container.get(IExpressionParser), {} as unknown as IObserverLocator);
+    const sut: IRenderer = new TranslationBindingRenderer(container.get(IExpressionParser), {} as unknown as IObserverLocator, container.get(IPlatform));
     const expressionParser = container.get(IExpressionParser);
     const targetElement = PLATFORM.document.createElement('span');
-    const binding = new TranslationBinding(targetElement, {} as unknown as IObserverLocator, container);
+    const binding = new TranslationBinding(targetElement, {} as unknown as IObserverLocator, container, container.get(IPlatform));
     const controller = ({ bindings: [binding], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); } } as unknown as IHydratableController);
 
     const from = expressionParser.parse('simple.key', BindingType.CustomCommand);
@@ -272,13 +273,13 @@ describe('TranslationBindBindingRenderer', function () {
 
   it('instantiated with instruction type', function () {
     const container = createFixture();
-    const sut: IRenderer = new TranslationBindBindingRenderer(container.get(IExpressionParser), {} as unknown as IObserverLocator);
+    const sut: IRenderer = new TranslationBindBindingRenderer(container.get(IExpressionParser), {} as unknown as IObserverLocator, container.get(IPlatform));
     assert.equal(sut.instructionType, TranslationBindInstructionType);
   });
 
   it('#render instantiates TranslationBinding - simple string literal', function () {
     const container = createFixture();
-    const sut: IRenderer = new TranslationBindBindingRenderer(container.get(IExpressionParser), {} as unknown as IObserverLocator);
+    const sut: IRenderer = new TranslationBindBindingRenderer(container.get(IExpressionParser), {} as unknown as IObserverLocator, container.get(IPlatform));
     const expressionParser = container.get(IExpressionParser);
     const controller = ({ bindings: [], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); } } as unknown as IHydratableController);
 
@@ -297,7 +298,7 @@ describe('TranslationBindBindingRenderer', function () {
 
   it('#render instantiates TranslationBinding - .bind expr', function () {
     const container = createFixture();
-    const sut: IRenderer = new TranslationBindBindingRenderer(container.get(IExpressionParser), {} as unknown as IObserverLocator);
+    const sut: IRenderer = new TranslationBindBindingRenderer(container.get(IExpressionParser), {} as unknown as IObserverLocator, container.get(IPlatform));
     const expressionParser = container.get(IExpressionParser);
     const controller = ({ bindings: [], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); } } as unknown as IHydratableController);
 
@@ -316,10 +317,10 @@ describe('TranslationBindBindingRenderer', function () {
 
   it('#render adds expr to the existing TranslationBinding for the target element', function () {
     const container = createFixture();
-    const sut: IRenderer = new TranslationBindBindingRenderer(container.get(IExpressionParser), {} as unknown as IObserverLocator);
+    const sut: IRenderer = new TranslationBindBindingRenderer(container.get(IExpressionParser), {} as unknown as IObserverLocator, container.get(IPlatform));
     const expressionParser = container.get(IExpressionParser);
     const targetElement = PLATFORM.document.createElement('span');
-    const binding = new TranslationBinding(targetElement, {} as unknown as IObserverLocator, container);
+    const binding = new TranslationBinding(targetElement, {} as unknown as IObserverLocator, container, container.get(IPlatform));
     const controller = ({ bindings: [binding], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); } } as unknown as IHydratableController);
 
     const from = expressionParser.parse('simple.key', BindingType.BindCommand);

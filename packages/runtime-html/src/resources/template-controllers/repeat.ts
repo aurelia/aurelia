@@ -98,7 +98,6 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     }
     flags |= $controller.flags;
     this.checkCollectionObserver(flags);
-    flags |= LF.updateTarget;
     this.normalizeToArray(flags);
 
     const ret = onResolve(
@@ -121,7 +120,6 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       return;
     }
     flags |= $controller.flags;
-    flags |= LF.updateTarget;
     this.normalizeToArray(flags);
 
     if (indexMap === void 0) {

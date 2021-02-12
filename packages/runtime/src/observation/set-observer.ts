@@ -146,7 +146,7 @@ export class SetObserver {
     const size = this.collection.size;
 
     this.indexMap = createIndexMap(size);
-    this.subs.notifyCollection(indexMap, LifecycleFlags.updateTarget);
+    this.subs.notifyCollection(indexMap, LifecycleFlags.none);
   }
 
   public getLengthObserver(): CollectionSizeObserver {

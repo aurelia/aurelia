@@ -11,8 +11,8 @@ import {
 import i18next from 'i18next';
 import { I18N } from '../i18n.js';
 
-import type { IContainer, IServiceLocator } from '@aurelia/kernel';
-import type {
+import type { ITask, QueueTaskOptions, IContainer, IServiceLocator } from '@aurelia/kernel';
+import {
   Scope,
   IsBindingBehavior,
   IsExpression,
@@ -21,6 +21,7 @@ import type {
   IObserverLocator,
   IPartialConnectableBinding,
   IAccessor,
+  AccessorType,
 } from '@aurelia/runtime';
 import type { CallBindingInstruction, IHydratableController, INode } from '@aurelia/runtime-html';
 
@@ -31,6 +32,7 @@ interface TranslationBindingCreationContext {
   controller: IHydratableController;
   target: HTMLElement;
   instruction: CallBindingInstruction;
+  platform: IPlatform;
   isParameterContext?: boolean;
 }
 const contentAttributes = ['textContent', 'innerHTML', 'prepend', 'append'] as const;
@@ -47,6 +49,10 @@ const attributeAliases = new Map([['text', 'textContent'], ['html', 'innerHTML']
 export interface TranslationBinding extends IConnectableBinding { }
 
 const forOpts = { optional: true } as const;
+const taskQueueOpts: QueueTaskOptions = {
+  reusable: false,
+  preempt: true,
+};
 
 @connectable()
 export class TranslationBinding implements IPartialConnectableBinding {
@@ -59,8 +65,9 @@ export class TranslationBinding implements IPartialConnectableBinding {
   private keyExpression: string | undefined | null;
   private scope!: Scope;
   private hostScope: Scope | null = null;
+  private task: ITask | null = null;
   private isInterpolation!: boolean;
-  private readonly targetObservers: Set<IAccessor>;
+  private readonly targetAccessors: Set<IAccessor>;
 
   public target: HTMLElement;
   private readonly platform: IPlatform;
@@ -70,11 +77,12 @@ export class TranslationBinding implements IPartialConnectableBinding {
     target: INode,
     public observerLocator: IObserverLocator,
     public locator: IServiceLocator,
+    platform: IPlatform,
   ) {
     this.target = target as HTMLElement;
     this.i18n = this.locator.get(I18N);
-    this.platform = this.locator.get(IPlatform);
-    this.targetObservers = new Set<IAccessor>();
+    this.platform = platform;
+    this.targetAccessors = new Set<IAccessor>();
     this.i18n.subscribeLocaleChange(this);
     connectable.assignIdTo(this);
   }
@@ -86,9 +94,10 @@ export class TranslationBinding implements IPartialConnectableBinding {
     controller,
     target,
     instruction,
+    platform,
     isParameterContext,
   }: TranslationBindingCreationContext) {
-    const binding = this.getBinding({ observerLocator, context, controller, target });
+    const binding = this.getBinding({ observerLocator, context, controller, target, platform });
     const expr = typeof instruction.from === 'string'
       ? parser.parse(instruction.from, BindingType.BindCommand)
       : instruction.from as IsBindingBehavior;
@@ -104,10 +113,11 @@ export class TranslationBinding implements IPartialConnectableBinding {
     context,
     controller,
     target,
+    platform,
   }: Omit<TranslationBindingCreationContext, 'parser' | 'instruction' | 'isParameterContext'>): TranslationBinding {
     let binding: TranslationBinding | null = controller.bindings && controller.bindings.find((b) => b instanceof TranslationBinding && b.target === target) as TranslationBinding;
     if (!binding) {
-      binding = new TranslationBinding(target, observerLocator, context);
+      binding = new TranslationBinding(target, observerLocator, context, platform);
       controller.addBinding(binding);
     }
     return binding;
@@ -137,7 +147,11 @@ export class TranslationBinding implements IPartialConnectableBinding {
     }
 
     this.parameter?.$unbind(flags);
-    this.targetObservers.clear();
+    this.targetAccessors.clear();
+    if (this.task !== null) {
+      this.task.cancel();
+      this.task = null;
+    }
 
     this.scope = (void 0)!;
     this.obs.clear(true);
@@ -154,6 +168,9 @@ export class TranslationBinding implements IPartialConnectableBinding {
   }
 
   public handleLocaleChange() {
+    // todo:
+    // no flag passed, so if a locale is updated during binding of a component
+    // and the author wants to signal that locale change fromBind, then it's a bug
     this.updateTranslations(LifecycleFlags.none);
   }
 
@@ -167,7 +184,9 @@ export class TranslationBinding implements IPartialConnectableBinding {
   private updateTranslations(flags: LifecycleFlags) {
     const results = this.i18n.evaluate(this.keyExpression!, this.parameter?.value);
     const content: ContentValue = Object.create(null);
-    this.targetObservers.clear();
+    const accessorUpdateTasks: AccessorUpdateTask[] = [];
+    const task = this.task;
+    this.targetAccessors.clear();
 
     for (const item of results) {
       const value = item.value;
@@ -176,22 +195,41 @@ export class TranslationBinding implements IPartialConnectableBinding {
         if (this.isContentAttribute(attribute)) {
           content[attribute] = value;
         } else {
-          this.updateAttribute(attribute, value, flags);
+          const controller = CustomElement.for(this.target, forOpts);
+          const accessor = controller && controller.viewModel
+            ? this.observerLocator.getAccessor(controller.viewModel, attribute)
+            : this.observerLocator.getAccessor(this.target, attribute);
+          const shouldQueueUpdate = (flags & LifecycleFlags.fromBind) === 0 && (accessor.type & AccessorType.Layout) > 0;
+          if (shouldQueueUpdate) {
+            accessorUpdateTasks.push(new AccessorUpdateTask(accessor, value, flags, this.target, attribute));
+          } else {
+            accessor.setValue(value, flags, this.target, attribute);
+          }
+          this.targetAccessors.add(accessor);
         }
       }
     }
-    if (Object.keys(content).length) {
-      this.updateContent(content, flags);
-    }
-  }
 
-  private updateAttribute(attribute: string, value: string, flags: LifecycleFlags) {
-    const controller = CustomElement.for(this.target, forOpts);
-    const observer = controller && controller.viewModel
-      ? this.observerLocator.getAccessor(controller.viewModel, attribute)
-      : this.observerLocator.getAccessor(this.target, attribute);
-    observer.setValue(value, flags, this.target, attribute);
-    this.targetObservers.add(observer);
+    let shouldQueueContent = false;
+    if (Object.keys(content).length > 0) {
+      shouldQueueContent = (flags & LifecycleFlags.fromBind) === 0;
+      if (!shouldQueueContent) {
+        this.updateContent(content, flags);
+      }
+    }
+
+    if (accessorUpdateTasks.length > 0 || shouldQueueContent) {
+      this.task = this.platform.domWriteQueue.queueTask(() => {
+        this.task = null;
+        for (const updateTask of accessorUpdateTasks) {
+          updateTask.run();
+        }
+        if (shouldQueueContent) {
+          this.updateContent(content, flags);
+        }
+      }, taskQueueOpts);
+    }
+    task?.cancel();
   }
 
   private preprocessAttributes(attributes: string[]) {
@@ -275,6 +313,20 @@ export class TranslationBinding implements IPartialConnectableBinding {
   }
 }
 
+class AccessorUpdateTask {
+  public constructor(
+    private readonly accessor: IAccessor,
+    private readonly v: unknown,
+    private readonly f: LifecycleFlags,
+    private readonly el: HTMLElement,
+    private readonly attr: string
+  ) {}
+
+  public run(): void {
+    this.accessor.setValue(this.v, this.f, this.el, this.attr);
+  }
+}
+
 interface ParameterBinding extends IConnectableBinding {}
 
 @connectable()
@@ -301,9 +353,6 @@ class ParameterBinding {
   }
 
   public handleChange(newValue: string | i18next.TOptions, _previousValue: string | i18next.TOptions, flags: LifecycleFlags): void {
-    if ((flags & LifecycleFlags.updateTarget) === 0) {
-      throw new Error('Unexpected context in a ParameterBinding.');
-    }
     this.obs.version++;
     this.value = this.expr.evaluate(flags, this.scope, this.hostScope, this.locator, this) as i18next.TOptions;
     this.obs.clear(false);

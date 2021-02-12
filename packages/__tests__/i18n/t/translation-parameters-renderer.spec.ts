@@ -18,6 +18,7 @@ import {
   IAttributePattern,
   PlainAttributeSymbol,
   AttrBindingCommand,
+  IPlatform,
 } from '@aurelia/runtime-html';
 import { assert, PLATFORM, TestContext } from '@aurelia/testing';
 
@@ -79,13 +80,13 @@ describe('TranslationParametersBindingRenderer', function () {
 
   it('instantiated with instruction type', function () {
     const container = createFixture();
-    const sut: IRenderer = new TranslationParametersBindingRenderer(container.get(IExpressionParser), container.get(IObserverLocator));
+    const sut: IRenderer = new TranslationParametersBindingRenderer(container.get(IExpressionParser), container.get(IObserverLocator), container.get(IPlatform));
     assert.equal(sut.instructionType, TranslationParametersInstructionType);
   });
 
   it('#render instantiates TranslationBinding if there are none existing', function () {
     const container = createFixture();
-    const sut: IRenderer = new TranslationParametersBindingRenderer(container.get(IExpressionParser), container.get(IObserverLocator));
+    const sut: IRenderer = new TranslationParametersBindingRenderer(container.get(IExpressionParser), container.get(IObserverLocator), container.get(IPlatform));
     const expressionParser = container.get(IExpressionParser);
     const controller = ({ bindings: [], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); }} as unknown as IHydratableController);
     const callBindingInstruction: CallBindingInstruction = { from: expressionParser.parse('{foo: "bar"}', BindingType.BindCommand) } as unknown as CallBindingInstruction;
@@ -103,10 +104,10 @@ describe('TranslationParametersBindingRenderer', function () {
 
   it('#render add the paramExpr to the existing TranslationBinding for the target element', function () {
     const container = createFixture();
-    const sut: IRenderer = new TranslationParametersBindingRenderer(container.get(IExpressionParser), container.get(IObserverLocator));
+    const sut: IRenderer = new TranslationParametersBindingRenderer(container.get(IExpressionParser), container.get(IObserverLocator), container.get(IPlatform));
     const expressionParser = container.get(IExpressionParser);
     const targetElement = PLATFORM.document.createElement('span');
-    const binding = new TranslationBinding(targetElement, container.get(IObserverLocator), container);
+    const binding = new TranslationBinding(targetElement, container.get(IObserverLocator), container, container.get(IPlatform));
     const hydratable = ({ bindings: [binding] } as unknown as IHydratableController);
     const paramExpr = expressionParser.parse('{foo: "bar"}', BindingType.BindCommand);
     const callBindingInstruction: CallBindingInstruction = { from: paramExpr } as unknown as CallBindingInstruction;

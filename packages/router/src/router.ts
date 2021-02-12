@@ -24,7 +24,6 @@ import { NavigationCoordinator } from './navigation-coordinator.js';
 import { OpenPromise } from './utilities/open-promise.js';
 import { NavigatorStateChangeEvent } from './events.js';
 import { Runner, Step } from './utilities/runner.js';
-import { IRoute } from './route.js';
 import { Title } from './title.js';
 import { RoutingHook } from './routing-hook.js';
 import { RouterConfiguration } from './index.js';
@@ -151,40 +150,15 @@ export class Router implements IRouter {
     return RouterConfiguration.options.statefulHistoryLength !== void 0 && RouterConfiguration.options.statefulHistoryLength > 0;
   }
 
-  // TODO: Switch this to use (probably) an event instead
-  // public starters: any[] = [];
   /**
    * Public API
    */
-  public start(/* options?: IRouterOptions */): void {
+  public start(): void {
     if (this.isActive) {
       throw new Error('Router has already been started');
     }
 
     this.isActive = true;
-    // options = options ?? {};
-    // const titleOptions = {
-    //   ...RouterConfiguration.options.title,
-    //   ...(typeof options.title === 'string' ? { appTitle: options.title } : options.title),
-    // };
-    // options.title = titleOptions;
-
-    // const separatorOptions: ISeparators = {
-    //   ...RouterConfiguration.options.separators,
-    //   ...(options as IRouterOptions & { separators: ISeparators }).separators ?? {},
-    // };
-    // (options as IRouterOptions & { separators: ISeparators }).separators = separatorOptions;
-
-    // if (Array.isArray(options.hooks)) {
-    //   options.hooks.forEach(hook => RoutingHook.add(hook.hook, hook.options));
-    //   delete options['hooks'];
-    // }
-
-    // RouterConfiguration.apply(options, true);
-
-    // if (Array.isArray(RouterConfiguration.options.hooks)) {
-    //   RouterConfiguration.options.hooks.forEach(hook => RoutingHook.add(hook.hook, hook.options));
-    // }
 
     this.navigator.start({
       store: this.navigation,
@@ -197,10 +171,7 @@ export class Router implements IRouter {
     this.navigation.start({ useUrlFragmentHash: RouterConfiguration.options.useUrlFragmentHash });
 
     this.ensureRootScope();
-    // TODO: Switch this to use (probably) an event instead
-    // for (const starter of this.starters) {
-    //   starter();
-    // }
+
     this.ea.publish(RouterStartEvent.eventName, RouterStartEvent.createEvent());
   }
 
@@ -810,25 +781,6 @@ export class Router implements IRouter {
       }
     }
     return true;
-  }
-
-  /**
-   * Public API
-   */
-  public addRoutes(routes: IRoute[], context?: ICustomElementViewModel | Element): IRoute[] {
-    // TODO: This should add to the context instead
-    // TODO: Add routes without context to rootScope content (which needs to be created)?
-    return [];
-    // const viewport = (context !== void 0 ? this.closestViewport(context) : this.rootScope) || this.rootScope as Viewport;
-    // return viewport.addRoutes(routes);
-  }
-  /**
-   * Public API
-   */
-  public removeRoutes(routes: IRoute[] | string[], context?: ICustomElementViewModel | Element): void {
-    // TODO: This should remove from the context instead
-    // const viewport = (context !== void 0 ? this.closestViewport(context) : this.rootScope) || this.rootScope as Viewport;
-    // return viewport.removeRoutes(routes);
   }
 
   private appendInstructions(instructions: RoutingInstruction[], scope: RoutingScope | null = null): void {

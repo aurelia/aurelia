@@ -146,4 +146,18 @@ export class RouterConfiguration {
   public static removeAllHooks(): void {
     return RoutingHook.removeAll();
   }
+
+  // public addRoutes(routes: IRoute[], context?: ICustomElementViewModel | Element): IRoute[] {
+  //   // TODO: This should add to the context instead
+  //   // TODO: Add routes without context to rootScope content (which needs to be created)?
+  //   return [];
+  //   // const viewport = (context !== void 0 ? this.closestViewport(context) : this.rootScope) || this.rootScope as Viewport;
+  //   // return viewport.addRoutes(routes);
+  // }
+
+  // public removeRoutes(routes: IRoute[] | string[], context?: ICustomElementViewModel | Element): void {
+  //   // TODO: This should remove from the context instead
+  //   // const viewport = (context !== void 0 ? this.closestViewport(context) : this.rootScope) || this.rootScope as Viewport;
+  //   // return viewport.removeRoutes(routes);
+  // }
 }

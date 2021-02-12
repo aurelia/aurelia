@@ -15,7 +15,7 @@ import { IRouter } from '../router.js';
 /**
  * The viewport content encapsulates the component loaded into a viewport
  * and keeps track of the component's lifecycle and routing states, meaning
- * that the callers don't have to query (internal) component state to know if
+ * that the callers don't have to query (internal) content state to know if
  * a "state method" can be called.
  *
  * During a transition, a viewport has two viewport contents, the current

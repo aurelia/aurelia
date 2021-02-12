@@ -36,17 +36,17 @@ export type RouteableComponentType<C extends Constructable = Constructable> = Cu
 export type TitleFunction = (viewModel: IRouteableComponent, instruction: Navigation) => string;
 
 export interface IRouteableComponent extends ICustomElementViewModel {
-  reentryBehavior?: ReentryBehavior;
+  reloadBehavior?: ReloadBehavior;
   canLoad?(parameters: Parameters, instruction: RoutingInstruction, navigation: Navigation): boolean | LoadInstruction | LoadInstruction[] | Promise<boolean | LoadInstruction | LoadInstruction[]>;
   load?(parameters: Parameters, instruction: RoutingInstruction, navigation: Navigation): void | Promise<void>;
   canUnload?(instruction: RoutingInstruction, navigation: Navigation | null): boolean | Promise<boolean>;
   unload?(instruction: RoutingInstruction, navigation: Navigation | null): void | Promise<void>;
 }
 
-export const enum ReentryBehavior {
+export const enum ReloadBehavior {
   default = 'default',
   disallow = 'disallow',
-  load = 'load',
+  reload = 'reload',
   refresh = 'refresh',
 }
 

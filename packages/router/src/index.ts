@@ -33,7 +33,7 @@ export {
   RouteableComponentType,
   IRoutingInstruction,
   LoadInstruction,
-  ReentryBehavior,
+  ReloadBehavior,
 } from './interfaces.js';
 
 export {

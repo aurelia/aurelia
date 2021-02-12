@@ -1,7 +1,7 @@
 /* eslint-disable no-fallthrough */
 import { IContainer, Writable } from '@aurelia/kernel';
 import { Controller, LifecycleFlags, IHydratedController, ICustomElementController, ICustomElementViewModel } from '@aurelia/runtime-html';
-import { IRouteableComponent, RouteableComponentType, ReentryBehavior, LoadInstruction } from '../interfaces.js';
+import { IRouteableComponent, RouteableComponentType, ReloadBehavior, LoadInstruction } from '../interfaces.js';
 import { parseQuery } from '../utilities/parser.js';
 import { Viewport } from './viewport.js';
 import { RoutingInstruction } from '../instructions/routing-instruction.js';
@@ -51,9 +51,9 @@ export class ViewportContent extends EndpointContent {
   public fromHistory: boolean = false;
 
   /**
-   * Whether content is currently being re-entered/reloaded
+   * Whether content is currently being reloaded
    */
-  public reentry: boolean = false;
+  public reload: boolean = false;
 
   public constructor(
     public readonly router: IRouter,
@@ -93,15 +93,15 @@ export class ViewportContent extends EndpointContent {
   }
 
   /**
-   * The viewport content's reentry behavior, as in how it behaves
-   * when the content is navigated to again
+   * The viewport content's reload behavior, as in how it behaves
+   * when the content is loaded again.
    */
-  public get reentryBehavior(): ReentryBehavior {
+  public get reloadBehavior(): ReloadBehavior {
     return (this.instruction.component.instance !== null &&
-      'reentryBehavior' in this.instruction.component.instance &&
-      this.instruction.component.instance.reentryBehavior !== void 0)
-      ? this.instruction.component.instance.reentryBehavior
-      : ReentryBehavior.default;
+      'reloadBehavior' in this.instruction.component.instance &&
+      this.instruction.component.instance.reloadBehavior !== void 0)
+      ? this.instruction.component.instance.reloadBehavior
+      : ReloadBehavior.default;
   }
 
   /**
@@ -207,7 +207,7 @@ export class ViewportContent extends EndpointContent {
    */
   public canLoad(): boolean | LoadInstruction | LoadInstruction[] | Promise<boolean | LoadInstruction | LoadInstruction[]> {
     // Since canLoad is called from more than one place multiple calls can happen (and is fine)
-    if (!this.contentStates.has('created') || (this.contentStates.has('checkedLoad') && !this.reentry)) {
+    if (!this.contentStates.has('created') || (this.contentStates.has('checkedLoad') && !this.reload)) {
       // If we got here, an earlier check has already stated it can be loaded
       return true;
     }
@@ -239,7 +239,7 @@ export class ViewportContent extends EndpointContent {
    */
   public canUnload(navigation: Navigation | null): boolean | Promise<boolean> {
     // Since canUnload is called recursively multiple calls can happen (and is fine)
-    if (this.contentStates.has('checkedUnload') && !this.reentry) {
+    if (this.contentStates.has('checkedUnload') && !this.reload) {
       // If we got here, an earlier check has already stated it can be unloaded
       return true;
     }
@@ -281,11 +281,11 @@ export class ViewportContent extends EndpointContent {
       () => this.contentStates.await('checkedLoad'),
       () => {
         // Since load is called from more than one place multiple calls can happen (and is fine)
-        if (!this.contentStates.has('created') || (this.contentStates.has('loaded') && !this.reentry)) {
+        if (!this.contentStates.has('created') || (this.contentStates.has('loaded') && !this.reload)) {
           // If we got here, it's already loaded
           return;
         }
-        this.reentry = false;
+        this.reload = false;
 
         this.contentStates.set('loaded', void 0);
 

@@ -1,5 +1,5 @@
 import { LifecycleFlags, ICompiledRenderContext, CustomElement, IHydratedController, IHydratedParentController, ICustomElementController } from '@aurelia/runtime-html';
-import { ComponentAppellation, IRouteableComponent, ReentryBehavior, RouteableComponentType, LoadInstruction } from '../interfaces.js';
+import { ComponentAppellation, IRouteableComponent, ReloadBehavior, RouteableComponentType, LoadInstruction } from '../interfaces.js';
 import { IRouter } from '../router.js';
 import { arrayRemove } from '../utilities/utils.js';
 import { ViewportContent } from './viewport-content.js';
@@ -253,7 +253,7 @@ export class Viewport extends Endpoint {
 
     if (!this.content.equalComponent(this.nextContent) ||
       navigation.navigation.refresh || // Navigation 'refresh' performed
-      this.content.reentryBehavior === ReentryBehavior.refresh // ReentryBehavior 'refresh' takes precedence
+      this.content.reloadBehavior === ReloadBehavior.refresh // ReloadBehavior 'refresh' takes precedence
     ) {
       return this.transitionAction = 'swap';
     }
@@ -261,7 +261,7 @@ export class Viewport extends Endpoint {
     // Component is the same name/type
 
     // Explicitly don't allow navigation back to the same component again
-    if (this.content.reentryBehavior === ReentryBehavior.disallow) {
+    if (this.content.reloadBehavior === ReloadBehavior.disallow) {
       this.nextContent.delete();
       this.nextContent = null;
       return this.transitionAction = 'skip';
@@ -269,16 +269,16 @@ export class Viewport extends Endpoint {
 
     // Explicitly re-load same component again
     // TODO(alpha): NEED TO CHECK THIS TOWARDS activeContent REGARDING scope
-    if (this.content.reentryBehavior === ReentryBehavior.load) {
-      this.content.reentry = true;
+    if (this.content.reloadBehavior === ReloadBehavior.reload) {
+      this.content.reload = true;
 
       this.nextContent.instruction.component.set(this.content.componentInstance);
       this.nextContent.contentStates = this.content.contentStates.clone();
-      this.nextContent.reentry = this.content.reentry;
+      this.nextContent.reload = this.content.reload;
       return this.transitionAction = 'reload'; // true;
     }
 
-    // ReentryBehavior is now 'default'
+    // ReloadBehavior is now 'default'
 
     // Requires updated parameters if viewport stateful
     if (this.options.stateful &&
@@ -292,10 +292,10 @@ export class Viewport extends Endpoint {
       // TODO: Fix a config option for this
       // eslint-disable-next-line no-constant-condition
       if (false) { // Re-use component, only reload with new parameters
-        this.content.reentry = true;
+        this.content.reload = true;
         this.nextContent!.instruction.component.set(this.content.componentInstance);
         this.nextContent!.contentStates = this.content.contentStates.clone();
-        this.nextContent!.reentry = this.content.reentry;
+        this.nextContent!.reload = this.content.reload;
         return this.transitionAction = 'reload';
       } else { // Perform a full swap
         return this.transitionAction = 'swap';
@@ -660,7 +660,7 @@ export class Viewport extends Endpoint {
    */
   public deactivate(initiator: IHydratedController | null, parent: IHydratedParentController | null, flags: LifecycleFlags): void | Promise<void> {
     if (this.content.componentInstance !== null &&
-      !this.content.reentry &&
+      !this.content.reload &&
       this.content.componentInstance !== this.nextContent?.componentInstance) {
 
       return this.content?.deactivateComponent(
@@ -690,7 +690,7 @@ export class Viewport extends Endpoint {
    */
   public dispose(): void {
     if (this.content.componentInstance !== null &&
-      !this.content.reentry &&
+      !this.content.reload &&
       this.content.componentInstance !== this.nextContent?.componentInstance) {
       this.content.disposeComponent(
         this.connectedCE!,
@@ -708,7 +708,7 @@ export class Viewport extends Endpoint {
     const previousContent = this.content;
     if (this.nextContent!.componentInstance !== null) {
       this.content = this.nextContent!;
-      this.content.reentry = false;
+      this.content.reload = false;
     }
 
     if (this.clear) {

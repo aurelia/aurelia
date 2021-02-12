@@ -58,7 +58,7 @@ export interface IRoute extends Writable<Partial<Route>> {
 
 // export type TransitionPlan = 'none' | 'replace' | 'invoke-lifecycles';
 // export type TransitionPlanOrFunc = TransitionPlan | ((current: Navigation, next: Navigation) => TransitionPlan);
-// export function defaultReentryBehavior(current: Navigation, next: Navigation): TransitionPlan {
+// export function defaultReloadBehavior(current: Navigation, next: Navigation): TransitionPlan {
 //   if (!shallowEquals(current.params, next.params)) {
 //     return 'invoke-lifecycles';
 //   }
@@ -196,7 +196,7 @@ export class Route {
       config.instructions ?? null,
       config.caseSensitive ?? false,
       config.title ?? null,
-      // reentryBehavior,
+      // realoadBehavior,
 
       // canLoad,
       // canUnload,

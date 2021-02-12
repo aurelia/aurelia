@@ -27,7 +27,7 @@ export class EndpointContent {
      */
     owningScope: RoutingScope | null,
     /**
-     * Whether the viewport has its own routing scope, containing
+     * Whether the endpoint has its own routing scope, containing
      * endpoints it owns
      */
     hasScope: boolean,

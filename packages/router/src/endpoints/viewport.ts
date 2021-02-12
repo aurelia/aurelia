@@ -253,7 +253,7 @@ export class Viewport extends Endpoint {
 
     if (!this.content.equalComponent(this.nextContent) ||
       navigation.navigation.refresh || // Navigation 'refresh' performed
-      this.content.reentryBehavior() === ReentryBehavior.refresh // ReentryBehavior 'refresh' takes precedence
+      this.content.reentryBehavior === ReentryBehavior.refresh // ReentryBehavior 'refresh' takes precedence
     ) {
       return this.transitionAction = 'swap';
     }
@@ -261,7 +261,7 @@ export class Viewport extends Endpoint {
     // Component is the same name/type
 
     // Explicitly don't allow navigation back to the same component again
-    if (this.content.reentryBehavior() === ReentryBehavior.disallow) {
+    if (this.content.reentryBehavior === ReentryBehavior.disallow) {
       this.nextContent.delete();
       this.nextContent = null;
       return this.transitionAction = 'skip';
@@ -269,7 +269,7 @@ export class Viewport extends Endpoint {
 
     // Explicitly re-load same component again
     // TODO(alpha): NEED TO CHECK THIS TOWARDS activeContent REGARDING scope
-    if (this.content.reentryBehavior() === ReentryBehavior.load) {
+    if (this.content.reentryBehavior === ReentryBehavior.load) {
       this.content.reentry = true;
 
       this.nextContent.instruction.component.set(this.content.componentInstance);
@@ -406,7 +406,7 @@ export class Viewport extends Endpoint {
    * @param coordinator - The coordinator of the navigation
    */
   public transition(coordinator: NavigationCoordinator): void {
-    // console.log('Viewport transition', transitionId, this.toString());
+    // console.log('Viewport transition', this.toString());
 
     // Get the parent viewport...
     let actingParentViewport = this.parentViewport;
@@ -635,10 +635,10 @@ export class Viewport extends Endpoint {
   public activate(step: Step<void> | null, initiator: IHydratedController | null, parent: IHydratedParentController | null, flags: LifecycleFlags, coordinator: NavigationCoordinator | undefined): void | Step<void> {
     if ((this.activeContent as ViewportContent).componentInstance !== null) {
       return Runner.run(step,
+        () => (this.activeContent as ViewportContent).canLoad(), // Only acts if not already checked
         (innerStep: Step<void>) => (this.activeContent as ViewportContent).load(innerStep), // Only acts if not already loaded
         (innerStep: Step<void>) => (this.activeContent as ViewportContent).activateComponent(
           innerStep,
-          this,
           initiator,
           parent as ICustomElementController,
           flags,

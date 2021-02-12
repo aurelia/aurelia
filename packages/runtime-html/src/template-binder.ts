@@ -107,6 +107,18 @@ function processTemplateControllers(p: IPlatform, manifestProxy: ParentNodeSymbo
   }
 }
 
+// - on binding plain attribute, if there's interpolation
+// the attribute itself should be removed completely
+// otherwise, produce invalid output sometimes.
+// e.g
+// <input value=${value}>
+//    without removing: `<input value="">
+//    with removing: `<input>
+// <circle cx=${x}>
+//    without removing `<circle cx="">
+//    with removing: `<circle>
+//
+// - custom attribute probably should be removed too
 const enum AttrBindingSignal {
   none    = 0,
   remove  = 1,
@@ -145,7 +157,7 @@ export class TemplateBinder {
 
         if (attrInfo === null) {
           // map special html attributes to their corresponding properties
-          attrSyntaxTransformer.transform(node, attrSyntax);
+          // attrSyntaxTransformer.transform(node, attrSyntax);
           // it's not a custom attribute but might be a regular bound attribute or interpolation (it might also be nothing)
           // NOTE: on surrogate, we don't care about removing the attribute with interpolation
           // as the element is not used (cloned)
@@ -169,7 +181,7 @@ export class TemplateBinder {
         }
       } else {
         // map special html attributes to their corresponding properties
-        attrSyntaxTransformer.transform(node, attrSyntax);
+        // attrSyntaxTransformer.transform(node, attrSyntax);
         // it's not a custom attribute but might be a regular bound attribute or interpolation (it might also be nothing)
         // NOTE: on surrogate, we don't care about removing the attribute with interpolation
         // as the element is not used (cloned)
@@ -316,23 +328,27 @@ export class TemplateBinder {
 
     const attributes = node.attributes;
     let i = 0;
+    let attr: Attr;
     let attrBindingSignal: AttrBindingSignal = AttrBindingSignal.none;
+    let attrSyntax: AttrSyntax;
+    let bindingCommand: BindingCommandInstance | null = null;
+    let attrInfo: AttrInfo | null = null;
     while (i < attributes.length) {
-      const attr = attributes[i];
+      attr = attributes[i];
       ++i;
       if (attributesToIgnore[attr.name] === true) {
         continue;
       }
 
-      const attrSyntax = this.attrParser.parse(attr.name, attr.value);
-      const bindingCommand = this.getBindingCommand(attrSyntax, true);
+      attrSyntax = this.attrParser.parse(attr.name, attr.value);
+      bindingCommand = this.getBindingCommand(attrSyntax, true);
 
       if (bindingCommand === null || (bindingCommand.bindingType & BindingType.IgnoreCustomAttr) === 0) {
-        const attrInfo = AttrInfo.from(this.container.find(CustomAttribute, attrSyntax.target), attrSyntax.target);
+        attrInfo = AttrInfo.from(this.container.find(CustomAttribute, attrSyntax.target), attrSyntax.target);
 
         if (attrInfo === null) {
           // map special html attributes to their corresponding properties
-          this.attrSyntaxTransformer.transform(node, attrSyntax);
+          // this.attrSyntaxTransformer.transform(node, attrSyntax);
           // it's not a custom attribute but might be a regular bound attribute or interpolation (it might also be nothing)
           attrBindingSignal = this.bindPlainAttribute(
             /* node       */ node,
@@ -375,7 +391,7 @@ export class TemplateBinder {
         }
       } else {
         // map special html attributes to their corresponding properties
-        this.attrSyntaxTransformer.transform(node, attrSyntax);
+        // this.attrSyntaxTransformer.transform(node, attrSyntax);
         // it's not a custom attribute but might be a regular bound attribute or interpolation (it might also be nothing)
         attrBindingSignal = this.bindPlainAttribute(
           /* node       */ node,
@@ -651,16 +667,6 @@ export class TemplateBinder {
     }
   }
 
-  // on binding plain attribute, if there's interpolation
-  // the attribute itself should be removed completely
-  // otherwise, produce invalid output sometimes.
-  // e.g
-  // <input value=${value}>
-  //    without removing: `<input value="">
-  //    with removing: `<input>
-  // <circle cx=${x}>
-  //    without removing `<circle cx="">
-  //    with removing: `<circle>
   private bindPlainAttribute(
     node: Element,
     attrSyntax: AttrSyntax,
@@ -672,7 +678,7 @@ export class TemplateBinder {
     const attrRawValue = attrSyntax.rawValue;
     const command = this.getBindingCommand(attrSyntax, false);
     const bindingType = command === null ? BindingType.Interpolation : command.bindingType;
-    const isInterpolation = bindingType === BindingType.Interpolation;
+    let isInterpolation = false;
     let expr: AnyBindingExpression;
     if ((manifest.flags & SymbolFlags.isCustomElement) > 0) {
       const bindable = (manifest as CustomElementSymbol).bindables[attrTarget];
@@ -695,6 +701,7 @@ export class TemplateBinder {
         // if the attribute name matches a bindable property name, add it regardless of whether it's a command, interpolation, or just a plain string;
         // the template compiler will translate it to the correct instruction
         (manifest as CustomElementSymbol).bindings.push(new BindingSymbol(command, bindable, expr, attrRawValue, attrTarget));
+        isInterpolation = bindingType === BindingType.Interpolation && expr != null;
         manifest.isTarget = true;
         return isInterpolation
           ? AttrBindingSignal.remove
@@ -705,6 +712,7 @@ export class TemplateBinder {
     // plain attribute, on a normal, or a custom element here
     // regardless, can process the same way
     expr = this.exprParser.parse(attrRawValue, bindingType);
+    isInterpolation = bindingType === BindingType.Interpolation && expr != null;
     this.attrSyntaxTransformer.transform(node, attrSyntax);
     if (expr != null) {
       // either a binding command, an interpolation, or a ref

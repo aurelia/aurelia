@@ -42,6 +42,9 @@ import {
 
 describe.only('promise template-controller', function () {
 
+  const phost = 'pending-host';
+  const fhost = 'fulfilled-host';
+  const rhost = 'rejected-host';
   class Config {
     public constructor(
       public hasPromise: boolean,
@@ -55,7 +58,7 @@ describe.only('promise template-controller', function () {
   }
 
   let nameIdMap: Map<string, number>;
-  function createComponentType(name: string, template: string, bindables: string[] = []) {
+  function createComponentType(name: string, template: string = '', bindables: string[] = []) {
     @customElement({ name, template, bindables })
     class Component {
       private readonly logger: ILogger;
@@ -191,8 +194,8 @@ describe.only('promise template-controller', function () {
     public assertCallSet(expected: (string | number)[], message: string = '') {
       expected = this.transformCalls(expected);
       const actual = this.log;
-      assert.strictEqual(actual.length, expected.length, `${message} - calls.length`);
-      assert.strictEqual(actual.filter((c) => !expected.includes(c)).length, 0, `${message} - calls set equality`);
+      assert.strictEqual(actual.length, expected.length, `${message} - calls.length - ${actual}`);
+      assert.strictEqual(actual.filter((c) => !expected.includes(c)).length, 0, `${message} - calls set equality - ${actual}`);
     }
 
     public async assertChange($switch: Switch, act: () => void, expectedHtml: string, expectedLog: (string | number)[]) {
@@ -237,7 +240,7 @@ describe.only('promise template-controller', function () {
     try {
       await au
         .register(
-          LoggerConfiguration.create({ level: LogLevel.trace, sinks: [/* DebugLog, */ ConsoleSink] }),
+          LoggerConfiguration.create({ level: LogLevel.trace, sinks: [DebugLog/* , ConsoleSink */] }),
           ...registrations,
           NoopBindingBehavior,
           Registration.instance(seedPromise, promise),
@@ -301,8 +304,9 @@ describe.only('promise template-controller', function () {
     public readonly template: string;
     public readonly registrations: any[];
     public readonly verifyStopCallsAsSet: boolean;
+    public readonly name: string;
     public constructor(
-      public readonly name: string,
+      name: string,
       public promise: Promise<unknown>,
       {
         registrations = [],
@@ -315,10 +319,12 @@ describe.only('promise template-controller', function () {
       public readonly expectedStopLog: string[],
       public readonly additionalAssertions: ((ctx: PromiseTestExecutionContext) => Promise<void> | void) | null = null,
     ) {
+      this.name = `${name} - ${config.toString()}`;
       this.registrations = [
         Registration.instance(Config, config),
-        createComponentType('case-host', ''),
-        createComponentType('default-case-host', ''),
+        createComponentType(phost, 'pending'),
+        createComponentType(fhost, `resolved with \${data}`, ['data']),
+        createComponentType(rhost, `rejected with \${err.message}`, ['err']),
         ...registrations,
       ];
       this.template = template;
@@ -353,30 +359,37 @@ describe.only('promise template-controller', function () {
     function () {
       return new Config(false, false, noop);
     },
-    // function () {
-    //   return new Config(true, false, noop);
-    // },
-    // function () {
-    //   return new Config(true, true, createWaiter(0));
-    // },
-    // function () {
-    //   return new Config(true, true, createWaiter(5));
-    // },
+    function () {
+      return new Config(true, false, noop);
+    },
+    function () {
+      return new Config(true, true, createWaiter(0));
+    },
+    function () {
+      return new Config(true, true, createWaiter(5));
+    },
   ];
 
   function* getTestData() {
-    function wrap(content: string, isDefault: boolean = false) {
-      const host = isDefault ? 'default-case-host' : 'case-host';
-      return `<${host} class="au">${content}</${host}>`;
+    function wrap(content: string, type: 'p' | 'f' | 'r') {
+      switch (type) {
+        case 'p':
+          return `<${phost} class="au">${content}</${phost}>`;
+        case 'f':
+          return `<${fhost} data.bind="data" class="au">${content}</${fhost}>`;
+        case 'r':
+          return `<${rhost} err.bind="err" class="au">${content}</${rhost}>`;
+      }
     }
+
     for (const config of configFactories) {
 
       const template1 = `
     <template>
       <template promise.bind="promise">
-        <template pending>pending</template>
-        <template then.from-view="data">resolved with \${data}</template>
-        <template catch.from-view="err">erred with \${err.message}</template>
+        <pending-host pending></pending-host>
+        <fulfilled-host then.from-view="data" data.bind="data"></fulfilled-host>
+        <rejected-host catch.from-view="err" err.bind="err"></rejected-host>
       </template>
     </template>`;
       {
@@ -389,15 +402,45 @@ describe.only('promise template-controller', function () {
             template: template1,
           },
           config(),
-          'pending',
-          [],
-          [],
-          async ({ platform, host }) => {
+          wrap('pending', 'p'),
+          getActivationSequenceFor(`${phost}-1`),
+          getDeactivationSequenceFor(`${fhost}-1`),
+          async (ctx) => {
+            ctx.clear();
             resolve(42);
-            await platform.domWriteQueue.yield();
-            assert.html.innerEqual(host, 'pending');
-            platform.domWriteQueue.flush();
-            assert.html.innerEqual(host, 'resolved with 42');
+            const p = ctx.platform;
+            // one tick to call back the fulfill delegate, and queue task
+            await p.domWriteQueue.yield();
+            // on the next tick wait the queued task
+            await p.domWriteQueue.yield();
+            assert.html.innerEqual(ctx.host, wrap('resolved with 42', 'f'));
+            ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor(`${fhost}-1`)]);
+          }
+        );
+      }
+      {
+        let reject: (value: unknown) => void;
+        const promise = new Promise((_, r) => reject = r);
+        yield new TestData(
+          'shows content as per promise status - rejected',
+          promise,
+          {
+            template: template1,
+          },
+          config(),
+          wrap('pending', 'p'),
+          getActivationSequenceFor(`${phost}-1`),
+          getDeactivationSequenceFor(`${rhost}-1`),
+          async (ctx) => {
+            ctx.clear();
+            reject(new Error('foo-bar'));
+            const p = ctx.platform;
+            // one tick to call back the fulfill delegate, and queue task
+            await p.domWriteQueue.yield();
+            // on the next tick wait the queued task
+            await p.domWriteQueue.yield();
+            assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'));
+            ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor(`${rhost}-1`)]);
           }
         );
       }

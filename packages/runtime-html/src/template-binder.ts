@@ -138,22 +138,23 @@ export class TemplateBinder {
 
   public bind(node: HTMLElement): PlainElementSymbol {
     const surrogate = new PlainElementSymbol(node);
-
-    const attrSyntaxTransformer = this.attrSyntaxTransformer;
-
     const attributes = node.attributes;
     let i = 0;
+    let attr: Attr;
+    let attrSyntax: AttrSyntax;
+    let bindingCommand: BindingCommandInstance | null = null;
+    let attrInfo: AttrInfo | null = null;
     while (i < attributes.length) {
-      const attr = attributes[i];
-      const attrSyntax = this.attrParser.parse(attr.name, attr.value);
+      attr = attributes[i];
+      attrSyntax = this.attrParser.parse(attr.name, attr.value);
 
       if (invalidSurrogateAttribute[attrSyntax.target] === true) {
         throw new Error(`Invalid surrogate attribute: ${attrSyntax.target}`);
         // TODO: use reporter
       }
-      const bindingCommand = this.getBindingCommand(attrSyntax, true);
+      bindingCommand = this.getBindingCommand(attrSyntax, true);
       if (bindingCommand === null || (bindingCommand.bindingType & BindingType.IgnoreCustomAttr) === 0) {
-        const attrInfo = AttrInfo.from(this.container.find(CustomAttribute, attrSyntax.target), attrSyntax.target);
+        attrInfo = AttrInfo.from(this.container.find(CustomAttribute, attrSyntax.target), attrSyntax.target);
 
         if (attrInfo === null) {
           // map special html attributes to their corresponding properties
@@ -329,7 +330,7 @@ export class TemplateBinder {
     const attributes = node.attributes;
     let i = 0;
     let attr: Attr;
-    let attrBindingSignal: AttrBindingSignal = AttrBindingSignal.none;
+    let bindSignal: AttrBindingSignal;
     let attrSyntax: AttrSyntax;
     let bindingCommand: BindingCommandInstance | null = null;
     let attrInfo: AttrInfo | null = null;
@@ -350,14 +351,14 @@ export class TemplateBinder {
           // map special html attributes to their corresponding properties
           // this.attrSyntaxTransformer.transform(node, attrSyntax);
           // it's not a custom attribute but might be a regular bound attribute or interpolation (it might also be nothing)
-          attrBindingSignal = this.bindPlainAttribute(
+          bindSignal = this.bindPlainAttribute(
             /* node       */ node,
             /* attrSyntax */ attrSyntax,
             /* attr       */ attr,
             /* surrogate  */ surrogate,
             /* manifest   */ manifest,
           );
-          if (attrBindingSignal === AttrBindingSignal.remove) {
+          if (bindSignal === AttrBindingSignal.remove) {
             node.removeAttributeNode(attr);
             --i;
           }
@@ -393,14 +394,14 @@ export class TemplateBinder {
         // map special html attributes to their corresponding properties
         // this.attrSyntaxTransformer.transform(node, attrSyntax);
         // it's not a custom attribute but might be a regular bound attribute or interpolation (it might also be nothing)
-        attrBindingSignal = this.bindPlainAttribute(
+        bindSignal = this.bindPlainAttribute(
           /* node       */ node,
           /* attrSyntax */ attrSyntax,
           /* attr       */ attr,
           /* surrogate  */ surrogate,
           /* manifest   */ manifest,
         );
-        if (attrBindingSignal === AttrBindingSignal.remove) {
+        if (bindSignal === AttrBindingSignal.remove) {
           node.removeAttributeNode(attr);
           --i;
         }

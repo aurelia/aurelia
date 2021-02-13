@@ -1,4 +1,4 @@
-import { ILogger, nextId, onResolve, resolveAll } from '@aurelia/kernel';
+import { ILogger, nextId, onResolve, resolveAll, Task } from '@aurelia/kernel';
 import { BindingMode, LifecycleFlags, Scope } from '@aurelia/runtime';
 import { bindable } from '../../bindable.js';
 import { INode, IRenderLocation } from '../../dom.js';
@@ -29,6 +29,8 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
   public fulfilled?: FulfilledTemplateController;
   public rejected?: RejectedTemplateController;
 
+  private preSettledTask: Task<void | Promise<void>> | null = null;
+  private postSettledTask: Task<void | Promise<void>> | null = null;
   private swapPromise!: void | Promise<void>;
   // TODO(Sayan): remove logger post-test
   private readonly logger: ILogger;
@@ -64,12 +66,16 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
   }
 
   public valueChanged(_newValue: boolean, _oldValue: boolean, flags: LifecycleFlags): void {
+    // this.logger.debug('value changed 1');
     if (!this.$controller.isActive) { return; }
+    // this.logger.debug('value changed 2');
     this.swap(null, flags);
   }
 
   private swap(initiator: IHydratedController | null, flags: LifecycleFlags): void {
+    // this.logger.debug('swapping 1');
     if (!(this.value instanceof Promise)) { return; }
+    // this.logger.debug('swapping 2');
     const q = this.platform.domWriteQueue;
     const fulfilled = this.fulfilled;
     const rejected = this.rejected;
@@ -78,33 +84,39 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
     const s = $controller.scope;
     const hs = $controller.hostScope;
 
+    this.postSettledTask?.cancel();
+    this.postSettledTask = null;
     // Note that the whole thing is not wrapped in a q.queueTask intentionally.
     // Because that would block the app till the actual promise is resolved, which is not the goal anyway.
     this.swapPromise = resolveAll(
       // At first deactivate the fulfilled and rejected views, as well as activate the pending view.
       // The order of these 3 should not necessarily be sequential (i.e. order-irrelevant).
-      q.queueTask(() => {
+      (this.preSettledTask = q.queueTask(() => {
         // this.logger.debug('settling');
         return resolveAll(
           fulfilled?.deactivate(initiator, flags),
           rejected?.deactivate(initiator, flags),
           pending?.activate(initiator, flags, s, hs)
         );
-      }).result,
+      })).result,
       this.value
         .then(
           (data) => {
-            // this.logger.debug('fulfilling');
+            // this.logger.debug('fulfilling', data);
+            this.preSettledTask!.cancel();
+            this.preSettledTask = null;
             // Deactivation of pending view and the activation of the fulfilled view should also not necessarily be sequential.
-            q.queueTask(() => resolveAll(
+            this.postSettledTask = q.queueTask(() => resolveAll(
               pending?.deactivate(initiator, flags),
               fulfilled?.activate(initiator, flags, s, hs, data),
             ));
           },
           (err) => {
             // this.logger.debug('rejecting');
+            this.preSettledTask!.cancel();
+            this.preSettledTask = null;
             // Deactivation of pending view and the activation of the rejected view should also not necessarily be sequential.
-            q.queueTask(() => resolveAll(
+            this.postSettledTask = q.queueTask(() => resolveAll(
               pending?.deactivate(initiator, flags),
               rejected?.activate(initiator, flags, s, hs, err),
             ));
@@ -113,10 +125,16 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
   }
 
   public detaching(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void> {
+    // this.logger.debug('detaching');
+    this.preSettledTask?.cancel();
+    this.preSettledTask = null;
+    this.postSettledTask?.cancel();
+    this.postSettledTask = null;
     return this.view.deactivate(initiator, this.$controller, flags);
   }
 
   public dispose(): void {
+    this.swapPromise = (void 0)!;
     this.view?.dispose();
     this.view = (void 0)!;
   }
@@ -130,11 +148,15 @@ export class PendingTemplateController implements ICustomAttributeViewModel {
   @bindable({ mode: BindingMode.toView }) public value!: Promise<unknown>;
 
   public view: ISyntheticView;
+  // TODO(Sayan): remove logger post-test
+  private readonly logger: ILogger;
 
   public constructor(
     @IViewFactory private readonly factory: IViewFactory,
     @IRenderLocation location: IRenderLocation,
+    @ILogger logger: ILogger,
   ) {
+    this.logger = logger.scopeTo(`${this.constructor.name}-${this.id}`);
     this.view = this.factory.create().setLocation(location);
   }
 
@@ -162,6 +184,7 @@ export class PendingTemplateController implements ICustomAttributeViewModel {
   }
 
   public detaching(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void> {
+    // this.logger.debug('detaching');
     return this.deactivate(initiator, flags);
   }
 
@@ -179,11 +202,15 @@ export class FulfilledTemplateController implements ICustomAttributeViewModel {
   @bindable({ mode: BindingMode.toView }) public value!: unknown;
 
   public view: ISyntheticView;
+  // TODO(Sayan): remove logger post-test
+  private readonly logger: ILogger;
 
   public constructor(
     @IViewFactory private readonly factory: IViewFactory,
     @IRenderLocation location: IRenderLocation,
+    @ILogger logger: ILogger,
   ) {
+    this.logger = logger.scopeTo(`${this.constructor.name}-${this.id}`);
     this.view = this.factory.create().setLocation(location);
   }
 
@@ -199,9 +226,9 @@ export class FulfilledTemplateController implements ICustomAttributeViewModel {
   }
 
   public activate(initiator: IHydratedController | null, flags: LifecycleFlags, scope: Scope, hostScope: Scope | null, resolvedValue: unknown): void | Promise<void> {
+    this.value = resolvedValue;
     const view = this.view;
     if (view.isActive) { return; }
-    this.value = resolvedValue;
     return view.activate(view, this.$controller, flags, scope, hostScope);
   }
 
@@ -212,6 +239,7 @@ export class FulfilledTemplateController implements ICustomAttributeViewModel {
   }
 
   public detaching(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void> {
+    // this.logger.debug('detaching');
     return this.deactivate(initiator, flags);
   }
 
@@ -249,9 +277,9 @@ export class RejectedTemplateController implements ICustomAttributeViewModel {
   }
 
   public activate(initiator: IHydratedController | null, flags: LifecycleFlags, scope: Scope, hostScope: Scope | null, error: unknown): void | Promise<void> {
+    this.value = error;
     const view = this.view;
     if (view.isActive) { return; }
-    this.value = error;
     return view.activate(view, this.$controller, flags, scope, hostScope);
   }
 

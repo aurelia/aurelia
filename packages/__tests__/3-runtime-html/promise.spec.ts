@@ -318,6 +318,7 @@ describe.only('promise template-controller', function () {
       public readonly expectedStartLog: (string | number)[],
       public readonly expectedStopLog: string[],
       public readonly additionalAssertions: ((ctx: PromiseTestExecutionContext) => Promise<void> | void) | null = null,
+      public readonly only: boolean = false,
     ) {
       this.name = `${name} - ${config.toString()}`;
       this.registrations = [
@@ -435,12 +436,60 @@ describe.only('promise template-controller', function () {
             ctx.clear();
             reject(new Error('foo-bar'));
             const p = ctx.platform;
-            // one tick to call back the fulfill delegate, and queue task
             await p.domWriteQueue.yield();
-            // on the next tick wait the queued task
             await p.domWriteQueue.yield();
             assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'));
             ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor(`${rhost}-1`)]);
+          }
+        );
+      }
+      {
+        const promise = Promise.resolve(42);
+        yield new TestData(
+          'shows content for resolved promise',
+          promise,
+          {
+            template: template1,
+          },
+          config(),
+          wrap('resolved with 42', 'f'),
+          getActivationSequenceFor(`${fhost}-1`),
+          getDeactivationSequenceFor(`${fhost}-1`),
+        );
+      }
+      {
+        const promise = Promise.reject(new Error('foo-bar'));
+        yield new TestData(
+          'shows content for rejected promise',
+          promise,
+          {
+            template: template1,
+          },
+          config(),
+          wrap('rejected with foo-bar', 'r'),
+          getActivationSequenceFor(`${rhost}-1`),
+          getDeactivationSequenceFor(`${rhost}-1`),
+        );
+      }
+      {
+        const promise = Promise.resolve(42);
+        yield new TestData(
+          'reacts to change in promise value',
+          promise,
+          {
+            template: template1,
+          },
+          config(),
+          wrap('resolved with 42', 'f'),
+          getActivationSequenceFor(`${fhost}-1`),
+          getDeactivationSequenceFor(`${fhost}-1`),
+          async (ctx) => {
+            ctx.clear();
+            const p = ctx.platform;
+            ctx.app.promise = Promise.resolve(24);
+            await p.domWriteQueue.yield();
+            assert.html.innerEqual(ctx.host, wrap('resolved with 24', 'f'));
+            ctx.assertCallSet([]);
           }
         );
       }
@@ -448,7 +497,7 @@ describe.only('promise template-controller', function () {
   }
 
   for (const data of getTestData()) {
-    $it(data.name,
+    (data.only ? $it.only : $it)(data.name,
       async function (ctx) {
 
         await ctx.platform.domWriteQueue.yield();
@@ -456,7 +505,7 @@ describe.only('promise template-controller', function () {
         assert.html.innerEqual(ctx.host, data.expectedInnerHtml, 'innerHTML');
 
         if (data.expectedStartLog !== null) {
-          ctx.assertCalls(data.expectedStartLog, 'start lifecycle calls');
+          ctx.assertCallSet(data.expectedStartLog, 'start lifecycle calls');
         }
 
         const additionalAssertions = data.additionalAssertions;

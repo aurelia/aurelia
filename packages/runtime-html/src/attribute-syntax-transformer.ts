@@ -1,5 +1,5 @@
 import { camelCase, DI } from '@aurelia/kernel';
-import { createLookup, isDataAttribute } from './html-utils.js';
+import { createLookup, isDataAttribute } from './utilities-html.js';
 import { ISVGAnalyzer } from './observation/svg-analyzer.js';
 import type { AttrSyntax } from './resources/attribute-pattern.js';
 

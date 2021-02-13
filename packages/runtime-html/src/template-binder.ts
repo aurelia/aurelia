@@ -706,7 +706,7 @@ export class TemplateBinder {
     // regardless, can process the same way
     expr = this.exprParser.parse(attrRawValue, bindingType);
     isInterpolation = bindingType === BindingType.Interpolation && expr != null;
-    if ((bindingType & BindingType.IgnoreAttr) > 0) {
+    if ((bindingType & BindingType.IgnoreAttr) === 0) {
       this.attrSyntaxTransformer.transform(node, attrSyntax);
     }
     if (expr != null) {

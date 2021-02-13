@@ -1,4 +1,4 @@
-import { TestContext, assert } from '@aurelia/testing';
+import { TestContext, assert, createFixture } from '@aurelia/testing';
 import { customElement, bindable, BindingMode, Aurelia } from '@aurelia/runtime-html';
 
 async function wait(ms: number): Promise<void> {
@@ -7,7 +7,7 @@ async function wait(ms: number): Promise<void> {
 
 // TemplateCompiler - Binding Resources integration
 describe('3-runtime-html/binding-resources.spec.ts', function () {
-  function createFixture() {
+  function $createFixture() {
     const ctx = TestContext.create();
     const au = new Aurelia(ctx.container);
     const host = ctx.createElement('div');
@@ -90,7 +90,7 @@ describe('3-runtime-html/binding-resources.spec.ts', function () {
         public receiver: HTMLInputElement;
       }
 
-      const { au, host, ctx } = createFixture();
+      const { au, host, ctx } = $createFixture();
 
       const component = new App();
       au.app({ component, host });
@@ -136,7 +136,7 @@ describe('3-runtime-html/binding-resources.spec.ts', function () {
         public receiver: HTMLDivElement;
       }
 
-      const { au, host, ctx } = createFixture();
+      const { au, host, ctx } = $createFixture();
 
       const component = new App();
       au.app({ component, host });
@@ -193,7 +193,7 @@ describe('3-runtime-html/binding-resources.spec.ts', function () {
         public receiver: Receiver;
       }
 
-      const { au, host, ctx } = createFixture();
+      const { au, host, ctx } = $createFixture();
 
       const component = new App();
       au.app({ component, host });
@@ -244,7 +244,7 @@ describe('3-runtime-html/binding-resources.spec.ts', function () {
         public receiver: Receiver;
       }
 
-      const { au, host, ctx } = createFixture();
+      const { au, host, ctx } = $createFixture();
 
       const component = new App();
       au.app({ component, host });
@@ -294,7 +294,7 @@ describe('3-runtime-html/binding-resources.spec.ts', function () {
           }
         }
 
-        const { au, host, ctx } = createFixture();
+        const { au, host, ctx } = $createFixture();
 
         const component = new App();
 
@@ -419,7 +419,7 @@ describe('3-runtime-html/binding-resources.spec.ts', function () {
         public receiver: Receiver;
       }
 
-      const { au, host, ctx } = createFixture();
+      const { au, host, ctx } = $createFixture();
 
       const component = new App();
       au.app({ component, host });
@@ -507,4 +507,28 @@ describe('3-runtime-html/binding-resources.spec.ts', function () {
   //     done();
   //   }, 75);
   // });
+
+  it('works with updateTrigger', async function () {
+    const { ctx, component, startPromise, tearDown } = createFixture(
+      `<input ref="inputEl" value.bind="value & updateTrigger:'blur'" />`,
+      class App {
+        public value: string = '0';
+        public inputEl: HTMLInputElement;
+      }
+    );
+
+    await startPromise;
+    
+    assert.strictEqual(component.inputEl.value, '0');
+
+    // only blur will trigger
+    component.inputEl.value = 'a';
+    component.inputEl.dispatchEvent(new ctx.CustomEvent('input'));
+    assert.strictEqual(component.value, '0');
+
+    component.inputEl.dispatchEvent(new ctx.CustomEvent('blur'));
+    assert.strictEqual(component.value, 'a');
+
+    await tearDown();
+  });
 });

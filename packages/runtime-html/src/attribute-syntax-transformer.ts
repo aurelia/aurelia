@@ -123,11 +123,11 @@ export class AttrSyntaxTransformer {
       attrSyntax.command = 'two-way';
     }
     const attr = attrSyntax.target;
-    attrSyntax.target = this.tagAttrMap[node.tagName]?.[attr]
+    attrSyntax.target = this.tagAttrMap[node.tagName]?.[attr] as string
       ?? this.globalAttrMap[attr]
-      ?? isDataAttribute(node, attr, this.svg)
+      ?? (isDataAttribute(node, attr, this.svg)
         ? attr
-        : camelCase(attr);
+        : camelCase(attr));
     // attrSyntax.target = this.map(node.tagName, attrSyntax.target);
   }
 }

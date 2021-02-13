@@ -7,6 +7,7 @@ import {
   LoggerConfiguration,
   DefaultLogger,
   LogLevel,
+  camelCase,
 } from '@aurelia/kernel';
 import {
   AccessScopeExpression,
@@ -694,7 +695,7 @@ function createAttributeInstruction(bindableDescription: BindableDefinition | nu
     }
   } else {
     const type = TT.propertyBinding;
-    const to = attr;
+    const to = camelCase(attr);
     if (!!cmd && validCommands.includes(cmd)) {
       const from = parseExpression(attributeValue);
       return { type, to, mode, from };

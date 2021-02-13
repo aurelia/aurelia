@@ -4,7 +4,7 @@ import { TestContext, eachCartesianJoin, eachCartesianJoinAsync, assert } from '
 import { ClassAttributePattern } from './attribute-pattern.js';
 
 // TemplateCompiler - Binding Commands integration
-describe('template-compiler.binding-commands.class', function () {
+describe('3-runtime-html/template-compiler.binding-commands.class.spec.ts', function () {
   const falsyValues = [0, false, null, undefined, ''];
   const truthyValues = [1, '1', true, {}, [], Symbol(), function () {/**/}, Number, new Proxy({}, {})];
 

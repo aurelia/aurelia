@@ -518,7 +518,7 @@ describe('3-runtime-html/binding-resources.spec.ts', function () {
     );
 
     await startPromise;
-    
+
     assert.strictEqual(component.inputEl.value, '0');
 
     // only blur will trigger

@@ -268,7 +268,7 @@ export class AttrBindingCommand implements BindingCommandInstance {
  */
 @bindingCommand('style')
 export class StyleBindingCommand implements BindingCommandInstance {
-  public readonly bindingType: BindingType.IsProperty = BindingType.IsProperty;
+  public readonly bindingType: BindingType.IsProperty = BindingType.IsProperty | BindingType.IgnoreAttr;
 
   public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
     return new AttributeBindingInstruction('style', binding.expression as IsBindingBehavior, getTarget(binding, false));
@@ -280,7 +280,7 @@ export class StyleBindingCommand implements BindingCommandInstance {
  */
 @bindingCommand('class')
 export class ClassBindingCommand implements BindingCommandInstance {
-  public readonly bindingType: BindingType.IsProperty = BindingType.IsProperty;
+  public readonly bindingType: BindingType.IsProperty = BindingType.IsProperty | BindingType.IgnoreAttr;
 
   public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
     return new AttributeBindingInstruction('class', binding.expression as IsBindingBehavior, getTarget(binding, false));

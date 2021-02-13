@@ -1,11 +1,14 @@
 # Cheat Sheet
 
-# Bootstrapping
+## Cheat Sheet
 
-## Simple
+## Bootstrapping
+
+### Simple
 
 **src/main.ts**
-```ts
+
+```typescript
 import au from 'aurelia';
 import { AppRoot } from './app-root';
 
@@ -15,12 +18,13 @@ await au.app({
 }).start();
 ```
 
-## Script tag (Vanilla JS)
+### Script tag \(Vanilla JS\)
 
 Note: you can copy-paste the markup below into an html file and open it directly in the browser. There is no need for any tooling for this example.
 
 **index.html**
-```html
+
+```markup
 <!DOCTYPE html>
 <html>
 <head></head>
@@ -43,12 +47,13 @@ Note: you can copy-paste the markup below into an html file and open it directly
 </html>
 ```
 
-## Script tag (Vanilla JS - enhance)
+### Script tag \(Vanilla JS - enhance\)
 
 Note: you can copy-paste the markup below into an html file and open it directly in the browser. There is no need for any tooling for this example.
 
 **index.html**
-```html
+
+```markup
 <!DOCTYPE html>
 <html>
 <head><title>${title}</title></head>
@@ -64,12 +69,13 @@ Note: you can copy-paste the markup below into an html file and open it directly
 </html>
 ```
 
-## Multi-root
+### Multi-root
 
 Note: the sample below mainly demonstrates stopping an existing instance of Aurelia and starting a new one with a different root and host. Do not consider this a complete example of a proper way to separate a private app root from public view, which is a topic of its own.
 
 **src/main.ts**
-```ts
+
+```typescript
 import au from 'aurelia';
 import { LoginWall } from './login-wall';
 
@@ -78,8 +84,10 @@ await au.app({
   host: document.querySelector('login-wall'),
 }).start();
 ```
+
 **src/login-wall.ts**
-```ts
+
+```typescript
 import au from 'aurelia';
 import { AppRoot } from './app-root';
 
@@ -97,10 +105,11 @@ export class LoginWall {
 }
 ```
 
-## Advanced (low-level)
+### Advanced \(low-level\)
 
 When you need more control over the wireup and/or want to override some of the defaults wrapped by the 'aurelia' package and/or maximize tree-shaking of unused parts of the framework:
-```ts
+
+```typescript
 import { DI, Registration } from '@aurelia/kernel';
 import {
   Aurelia,
@@ -180,11 +189,11 @@ await new Aurelia(container).app({
 }).start();
 ```
 
-# Custom elements
+## Custom elements
 
-## With conventions
+### With conventions
 
-```ts
+```typescript
 import { bindable, IHttpClient } from 'aurelia';
 export class ProductDetailCustomElement {
   static dependencies = [ImageViewerCustomElement, CurrencyValueConverter];
@@ -194,9 +203,9 @@ export class ProductDetailCustomElement {
 }
 ```
 
-## Without conventions
+### Without conventions
 
-```ts
+```typescript
 import { customElement, bindable, IHttpClient } from 'aurelia';
 import template from './product-detail.html';
 @customElement({
@@ -211,8 +220,9 @@ export class ProductDetail {
 }
 ```
 
-## Vanilla JS
-```ts
+### Vanilla JS
+
+```typescript
 import { CustomElement, IHttpClient } from 'aurelia';
 export const ProductDetail = CustomElement.define({
   name: 'product-detail',
@@ -226,20 +236,20 @@ export const ProductDetail = CustomElement.define({
 });
 ```
 
-# Custom attributes
+## Custom attributes
 
-## With conventions
+### With conventions
 
-```ts
+```typescript
 import { bindable } from 'aurelia';
 export class RippleCustomAttribute {
   @bindable color: string;
 }
 ```
 
-## Without conventions
+### Without conventions
 
-```ts
+```typescript
 import { bindable, customAttribute } from 'aurelia';
 @customAttribute('ripple')
 export class Ripple {
@@ -247,8 +257,9 @@ export class Ripple {
 }
 ```
 
-## Vanilla JS
-```ts
+### Vanilla JS
+
+```typescript
 import { CustomAttribute } from 'aurelia';
 export const Ripple = CustomAttribute.define({
   name: 'ripple',
@@ -258,11 +269,11 @@ export const Ripple = CustomAttribute.define({
 });
 ```
 
-# Template controllers
+## Template controllers
 
-## With conventions
+### With conventions
 
-```ts
+```typescript
 import { IViewFactory, IRenderLocation, ISyntheticView } from 'aurelia';
 export class NoopTemplateController {
   view: ISyntheticView;
@@ -275,9 +286,9 @@ export class NoopTemplateController {
 }
 ```
 
-## Without conventions
+### Without conventions
 
-```ts
+```typescript
 import { templateController, IViewFactory, IRenderLocation, ISyntheticView } from 'aurelia';
 @templateController('noop')
 export class Noop {
@@ -291,8 +302,9 @@ export class Noop {
 }
 ```
 
-## Vanilla JS
-```ts
+### Vanilla JS
+
+```typescript
 import { CustomAttribute, IViewFactory, IRenderLocation } from 'aurelia';
 export const Noop = CustomAttribute.define({
   name: 'noop',
@@ -305,11 +317,11 @@ export const Noop = CustomAttribute.define({
 });
 ```
 
-# Binding behaviors
+## Binding behaviors
 
-## With conventions
+### With conventions
 
-```ts
+```typescript
 import { ILogger } from 'aurelia';
 export class LogBindingBehavior {
   constructor(
@@ -324,9 +336,9 @@ export class LogBindingBehavior {
 }
 ```
 
-## Without conventions
+### Without conventions
 
-```ts
+```typescript
 import { ILogger, bindingBehavior } from 'aurelia';
 @bindingBehavior('log')
 export class Log {
@@ -342,8 +354,9 @@ export class Log {
 }
 ```
 
-## Vanilla JS
-```ts
+### Vanilla JS
+
+```typescript
 import { ILogger, BindingBehavior } from 'aurelia';
 export const Log = BindingBehavior.define({
   name: 'log',
@@ -359,11 +372,11 @@ export const Log = BindingBehavior.define({
 });
 ```
 
-# Value converters
+## Value converters
 
-## With conventions
+### With conventions
 
-```ts
+```typescript
 export class JsonValueConverter {
   toView(value) {
     return JSON.stringify(value);
@@ -371,9 +384,9 @@ export class JsonValueConverter {
 }
 ```
 
-## Without conventions
+### Without conventions
 
-```ts
+```typescript
 import { valueConverter } from 'aurelia';
 @valueConverter('json')
 export class Json {
@@ -383,8 +396,9 @@ export class Json {
 }
 ```
 
-## Vanilla JS
-```ts
+### Vanilla JS
+
+```typescript
 import { ValueConverter } from 'aurelia';
 export const Json = ValueConverter.define({
   name: 'json',
@@ -395,9 +409,9 @@ export const Json = ValueConverter.define({
 });
 ```
 
-# Attribute patterns
+## Attribute patterns
 
-```ts
+```typescript
 @attributePattern({ pattern: '[(PART)]', symbols: '[()]' })
 export class BananaInBox {
  '[(PART)]'(rawName: string, rawValue: string, parts: string[]): AttrSyntax {
@@ -406,13 +420,13 @@ export class BananaInBox {
 }
 ```
 
-# Binding commands / instruction renderer
+## Binding commands / instruction renderer
 
-TODO (api not yet mature enough)
+TODO \(api not yet mature enough\)
 
-# Templating syntax
+## Templating syntax
 
-```html
+```markup
 <!-- Render the 'firstName' and 'lastName' properties interpolated with some static text (reactive) -->
 <div>Hello, ${firstName} ${lastName}</div>
 <!-- Render the 'bgColor' property as a class name, interpolated with some static text (reactive) -->
@@ -433,18 +447,29 @@ TODO (api not yet mature enough)
 <!-- Bind to the 'style' attribute (the cleaner way) -->
 <li background.style="bg">
 <!-- Listen to the 'blur' event using a direct event listener on the element -->
-<input blur.trigger="onBlur">
+<input blur.trigger="onBlur()">
 <!-- Listen to the 'click' event using a delegated event listener (only works with bubbling events) -->
-<button click.delegate="onClick">
+<button click.delegate="onClick()">
 <!-- Directly work with the event using the `$event` magic property -->
 <form submit.trigger="$event.preventDefault()">
 <!-- Set this html element to the 'nameInput' property on the declaring component -->
 <input ref="nameInput">
+<!-- Set the view model of this <my-component> custom element
+     to the 'myComponentViewModel' property on the declaring component -->
+<my-component view-model.ref="myComponentViewModel">
 <!-- Automatic two-way binding to an input (convention, equivalent to value.two-way) -->
 <input value.bind="name">
 <!-- Manual two-way binding to an input -->
-<input value.to-view="name" change.trigger="handleNameChange">
+<input value.to-view="name" change.trigger="handleNameChange($event.target.value)">
 
+<!-- Debounce the notification when input value change for 200ms -->
+<input value.bind="name & debounce">
+<!-- Debounce the notification when input value change for 500ms -->
+<input value.bind="name & debounce:500">
+<!-- Throttle the notification when input value change for 200ms -->
+<input value.bind="name & throttle">
+<!-- Throttle the notification when input value change for 500ms -->
+<input value.bind="name & throttle:500">
 
 <!-- Render the 'message' property (non-reactive) -->
 <div>${message & oneTime}</div>
@@ -454,12 +479,15 @@ TODO (api not yet mature enough)
 <div>${timestamp | formatDate}</div>
 ```
 
-# Built-in custom attributes & template controllers (AKA directives)
-```html
+## Built-in custom attributes & template controllers \(AKA directives\)
+
+```markup
 <!-- Conditionally render this nav-link (element is not created and will not exist in DOM if false) -->
 <nav-link if.bind="isLoggedIn">
 <!-- Conditionally display this nav-link (element is only hidden via CSS if false, and will always be created and exist in DOM) -->
 <nav-link show.bind="isLoggedIn">
+<!-- Conditionally hide this nav-link (element is only hidden via CSS if true, and will always be created and exist in DOM) -->
+<nav-link hide.bind="isAnonymous">
 <!-- Conditionally render one thing or the other -->
 <p if.bind="product.stockQty > 0">${product.stockQty}</p>
 <p else>Out of stock!</p>
@@ -478,25 +506,25 @@ TODO (api not yet mature enough)
 <!-- TODO: with -->
 ```
 
-# Lifecycle hooks
+## Lifecycle hooks
 
-## Migrating from v1
+### Migrating from v1
 
-- Rename `bind` to `binding`
-  - If you had timing issues in `bind` and used the `queueMicroTask` to add some delay (or used `attached` for things that really *should* be in `bind`), you could try using `bound` instead (and remove the `queueMicroTask`). This hook was added to address some edge cases where you need information that's not yet available in `bind`, such as `from-view` bindings and `ref`s.
-  - If you used `CompositionTransaction` in the `bind` hook to await async work, you can remove that and simply return a promise (or use `async`/`await`) in `binding` instead. The promise will be awaited by the framework before rendering the component or binding and of its children.
-- Rename `attached` to `attaching`
-  - If you had timing issues in `attached` and used `queueMicroTask` or even `queueTask` to add some delay, you can probably remove the `queueMicroTask` / `queueTask` and keep your logic in the `attached` hook. Where `attaching` is the new "called as soon as *this* thing is added to the DOM", `attached` now runs much later than it did in v1 and guarantees that all child components have been attached as well.
-- Rename `unbind` to `unbinding` (there is no `unbound`)
-- Rename `detached` to `detaching` (there is no more `detached`)
-  - If you *really* need to run logic *after* the component is removed from the DOM, use `unbinding` instead.
-- If you need the `owningView`, consider the interface shown below: what was "view" in v1 is now called "controller", and what was called "owningView" in v1 is now called "parentController" (or simply parent in this case). You can inject it via DI with the `@IController` decorator / `IController` interface, therefore it's no longer passed-in as an argument to `created`.
+* Rename `bind` to `binding`
+  * If you had timing issues in `bind` and used the `queueMicroTask` to add some delay \(or used `attached` for things that really _should_ be in `bind`\), you could try using `bound` instead \(and remove the `queueMicroTask`\). This hook was added to address some edge cases where you need information that's not yet available in `bind`, such as `from-view` bindings and `ref`s.
+  * If you used `CompositionTransaction` in the `bind` hook to await async work, you can remove that and simply return a promise \(or use `async`/`await`\) in `binding` instead. The promise will be awaited by the framework before rendering the component or binding and of its children.
+* Rename `attached` to `attaching`
+  * If you had timing issues in `attached` and used `queueMicroTask` or even `queueTask` to add some delay, you can probably remove the `queueMicroTask` / `queueTask` and keep your logic in the `attached` hook. Where `attaching` is the new "called as soon as _this_ thing is added to the DOM", `attached` now runs much later than it did in v1 and guarantees that all child components have been attached as well.
+* Rename `unbind` to `unbinding` \(there is no `unbound`\)
+* Rename `detached` to `detaching` \(there is no more `detached`\)
+  * If you _really_ need to run logic _after_ the component is removed from the DOM, use `unbinding` instead.
+* If you need the `owningView`, consider the interface shown below: what was "view" in v1 is now called "controller", and what was called "owningView" in v1 is now called "parentController" \(or simply parent in this case\). You can inject it via DI with the `@IController` decorator / `IController` interface, therefore it's no longer passed-in as an argument to `created`.
 
-## The view model interfaces
+### The view model interfaces
 
 You can import and implement these in your components as a type-checking aid, but this is optional.
 
-```ts
+```typescript
 interface ICustomElementViewModel {
   define(
     controller: IDryCustomElementController,
@@ -560,25 +588,27 @@ interface IRouteViewModel extends ICustomElementViewModel {
 }
 ```
 
-# Dependency Injection
+## Dependency Injection
 
-## Migrating from v1
+### Migrating from v1
 
 Most stuff from v1 will still work as-is, but we do recommend that you consider using `DI.createInterface` liberally to create injection tokens, both within your own app as well as when authoring plugins.
 
 Consumers can use these as either parameter decorators or as direct values to `.get(...)` / `static inject = [...]`.
 
-Benefit of parameter decorators is that they also work in Vanilla JS with babel, and will work natively in browsers (without any tooling) in the future once the browsers implement them.
+Benefit of parameter decorators is that they also work in Vanilla JS with babel, and will work natively in browsers \(without any tooling\) in the future once the browsers implement them.
 
 They are therefore generally the more forward-compatible and consumer-friendly option.
 
-## Creating an interface
+### Creating an interface
 
-Note: this is a multi-purpose "injection token" that can be used as a plain value (also in VanillaJS) or as a parameter decorator (in TypeScript only)
+Note: this is a multi-purpose "injection token" that can be used as a plain value \(also in VanillaJS\) or as a parameter decorator \(in TypeScript only\)
 
-### Strongly-typed with default
-Useful when you *just* want the parameter decorator and don't really need the interface itself.
-```ts
+#### Strongly-typed with default
+
+Useful when you _just_ want the parameter decorator and don't really need the interface itself.
+
+```typescript
 export class ApiClient {
   async getProducts(filter) { /* ... */ }
 }
@@ -586,8 +616,9 @@ export interface IApiClient extends ApiClient {}
 export const IApiClient = DI.createInterface<IApiClient>('IApiClient', x => x.singleton(ApiClient));
 ```
 
-### No default (more loosely coupled)
-```ts
+#### No default \(more loosely coupled\)
+
+```typescript
 export interface IApiClient {
   getProducts(filter): Promise<Product[]>;
 }
@@ -597,8 +628,9 @@ export const IApiClient = DI.createInterface<IApiClient>('IApiClient');
 container.register(Registration.singleton(IApiClient, ApiClient));
 ```
 
-## Injecting an interface
-```ts
+### Injecting an interface
+
+```typescript
 // Note: in the future there will be a convention where the decorator is no longer necessary with interfaces
 export class MyComponent {
   constructor(@IApiClient private api: IApiClient) {}
@@ -609,15 +641,15 @@ export class MyComponent {
 }
 ```
 
-## Registration types
+### Registration types
 
-### Creating resolvers explicitly
+#### Creating resolvers explicitly
 
-This is more loosely coupled (keys can be declared independently of their implementations) but also results in more boilerplate. More typical for plugins that want to allow effective tree-shaking, less typical in apps.
+This is more loosely coupled \(keys can be declared independently of their implementations\) but also results in more boilerplate. More typical for plugins that want to allow effective tree-shaking, less typical in apps.
 
-These can be provided directly to e.g. `au.register(dep1, dep2)` as global dependencies (available in all components) or to the `static dependencies = [dep1, dep1]` of components as local dependencies.
+These can be provided directly to e.g. `au.register(dep1, dep2)` as global dependencies \(available in all components\) or to the `static dependencies = [dep1, dep1]` of components as local dependencies.
 
-```ts
+```typescript
 Registration.singleton(key, SomeClass); // Single container-wide instance
 Registration.transient(key, SomeClass); // New instance per injection
 Registration.callback(key, (container) => /* some factory fn */); // Callback invoked each time
@@ -626,9 +658,9 @@ Registration.aliasTo(originalKey, aliasKey);
 Registration.instance(key, someInstance);
 ```
 
-### Decorating classes
+#### Decorating classes
 
-```ts
+```typescript
 // Registers in the root container
 @singleton
 export class SomeClass {}
@@ -641,8 +673,9 @@ export class SomeClass {}
 export class SomeClass {}
 ```
 
-## Customizing injection
-```ts
+### Customizing injection
+
+```typescript
 export class MyLogger {
   // Resolve all dependencies associated with a key (zero to many)
   constructor(@all(ISink) private sinks: ISink[]) {}
@@ -673,14 +706,15 @@ export class MyComponent {
 }
 ```
 
-# Making your code more robust with the TaskQueue
+## Making your code more robust with the TaskQueue
 
 Not to be confused with v1's `TaskQueue`, the new TaskQueue is a sophisticated scheduler designed to prevent a variety of timing issues, memory leaks, race conditions and more bad things that tend to result from `setTimeout`, `setInterval`, floating promises, etc.
 
-## `setTimeout` (synchronous)
+### `setTimeout` \(synchronous\)
 
-### From
-```ts
+#### From
+
+```typescript
 // Queue
 const handle = setTimeout(() => {
   doStuff();
@@ -690,8 +724,9 @@ const handle = setTimeout(() => {
 clearTimeout(handle);
 ```
 
-### To
-```ts
+#### To
+
+```typescript
 // Queue
 const task = PLATFORM.taskQueue.queueTask(() => {
   doStuff();
@@ -701,13 +736,13 @@ const task = PLATFORM.taskQueue.queueTask(() => {
 task.cancel();
 ```
 
+Now, in your unit/integration/e2e tests or in other components, you can `await PLATFORM.taskQueue.yield()` to deterministically wait for the task to be done \(and not a millisecond longer than needed\), or even `PLATFORM.taskQueue.flush()` to immediately run all queued tasks. End result: no more flaky tests or flaky code in general. No more intermittent and hard-to-debug failures.
 
-Now, in your unit/integration/e2e tests or in other components, you can `await PLATFORM.taskQueue.yield()` to deterministically wait for the task to be done (and not a millisecond longer than needed), or even `PLATFORM.taskQueue.flush()` to immediately run all queued tasks. End result: no more flaky tests or flaky code in general. No more intermittent and hard-to-debug failures.
+### `setTimeout` \(async/await\)
 
-## `setTimeout` (async/await)
+#### From
 
-### From
-```ts
+```typescript
 // Queue
 let handle;
 const timeoutPromise = new Promise(resolve => {
@@ -724,8 +759,9 @@ await timeoutPromise;
 clearTimeout(handle);
 ```
 
-### To
-```ts
+#### To
+
+```typescript
 // Queue
 const task = PLATFORM.taskQueue.queueTask(async () => {
   await doAsyncStuff();
@@ -738,10 +774,11 @@ await task.result;
 task.cancel();
 ```
 
-## `setInterval`
+### `setInterval`
 
-### From
-```ts
+#### From
+
+```typescript
 // Start
 const handle = setInterval(() => {
   poll();
@@ -751,8 +788,9 @@ const handle = setInterval(() => {
 clearInterval(handle);
 ```
 
-### To
-```ts
+#### To
+
+```typescript
 // Queue
 const task = PLATFORM.taskQueue.queueTask(() => {
   poll();
@@ -762,26 +800,29 @@ const task = PLATFORM.taskQueue.queueTask(() => {
 task.cancel();
 ```
 
-## `requestAnimationFrame`
+### `requestAnimationFrame`
 
-### From
-```ts
+#### From
+
+```typescript
 requestAnimationFrame(() => {
   applyStyles();
 });
 ```
 
-### To
-```ts
+#### To
+
+```typescript
 PLATFORM.domWriteQueue.queueTask(() => {
   applyStyles();
 });
 ```
 
-## `requestAnimationFrame` loop
+### `requestAnimationFrame` loop
 
-### From
-```ts
+#### From
+
+```typescript
 let isRunning = true;
 // Start
 export function start() {
@@ -799,8 +840,9 @@ function loop() {
 }
 ```
 
-### To
-```ts
+#### To
+
+```typescript
 // Start
 const task = PLATFORM.domWriteQueue.queueTask(() => {
   updateAnimationProps();
@@ -809,11 +851,11 @@ const task = PLATFORM.domWriteQueue.queueTask(() => {
 task.cancel();
 ```
 
+### `requestPostAnimationFrame` polyfill
 
-## `requestPostAnimationFrame` polyfill
+#### From
 
-### From
-```ts
+```typescript
 requestAnimationFrame(() => {
   setTimeout(() => {
     performReadsThatRequireLayout();
@@ -821,32 +863,38 @@ requestAnimationFrame(() => {
 });
 ```
 
-### To
-```ts
+#### To
+
+```typescript
 PLATFORM.domReadQueue.queueTask(() => {
   performReadsThatRequireLayout();
 });
 ```
 
-## Using lifecycle hooks in a non-blocking fashion but keeping things awaitable
+### Using lifecycle hooks in a non-blocking fashion but keeping things awaitable
 
-### Example that blocks rendering (but is simplest to develop)
-```html
+#### Example that blocks rendering \(but is simplest to develop\)
+
+```markup
 <div>${data}</div>
 ```
-```ts
+
+```typescript
 export class MyComponent {
   async load(params) {
     this.data = await loadData(params.id);
   }
 }
 ```
-### Example that does not block rendering and avoids race conditions (without task queue)
-```html
+
+#### Example that does not block rendering and avoids race conditions \(without task queue\)
+
+```markup
 <div if.bind="loadDataPromise">Loading...</div>
 <div else>...</div>
 ```
-```ts
+
+```typescript
 export class MyComponent {
   load(params) {
     this.loadDataPromise = loadData(params.id).then(data => {
@@ -859,12 +907,15 @@ export class MyComponent {
   }
 }
 ```
-### Example that does not block rendering and avoids race conditions (*with* task queue)
-```html
+
+#### Example that does not block rendering and avoids race conditions \(_with_ task queue\)
+
+```markup
 <div if.bind="loadDataTask">Loading...</div>
 <div else>...</div>
 ```
-```ts
+
+```typescript
 export class MyComponent {
   load(params) {
     this.loadDataTask = PLATFORM.taskQueue.queueTask(async () => {
@@ -876,7 +927,8 @@ export class MyComponent {
 ```
 
 **Apply the practices above consistently, and you'll reap the benefits**:
-```ts
+
+```typescript
 // Await all pending tasks, sync or async (useful in unit, integration and e2e tests or generally figuring out when the app is "idle")
 await Promise.all([
   PLATFORM.taskQueue.yield(),
@@ -887,16 +939,17 @@ await Promise.all([
 
 In the future, time-slicing will be enabled via these TaskQueue APIs as well, which will allow you to easily chunk work that's been dispatched via the task queues.
 
-# Integration (plugins, shared components, etc)
+## Integration \(plugins, shared components, etc\)
 
-## Migrating from v1
+### Migrating from v1
 
 One of the biggest differences compared to Aurelia v1 is the way integrations work.
 
 In v1, you would have a `configure` function like so:
 
-**index.ts** (producer)
-```ts
+**index.ts** \(producer\)
+
+```typescript
 export function configure(config: FrameworkConfiguration) {
   config.globalResources(['./my-component', './my-component-2']);
 }
@@ -904,9 +957,11 @@ export function configure(config: FrameworkConfiguration) {
 
 Which would then be consumed as either a `plugin` or a `feature` like so:
 
-**main.ts** (consumer)
-### consumer
-```ts
+**main.ts** \(consumer\)
+
+#### consumer
+
+```typescript
 aurelia.use.plugin('producer');
 // or
 aurelia.use.feature('./producer');
@@ -916,8 +971,9 @@ In v2 the string-based conventions are no longer a thing. We use native ES modul
 
 The most literal translation from v1 to v2 of the above, would be as follows:
 
-**index.ts** (producer)
-```ts
+**index.ts** \(producer\)
+
+```typescript
 import { MyComponent } from './my-component';
 import { MyComponent2 } from './my-component-2';
 export const Producer = {
@@ -927,28 +983,29 @@ export const Producer = {
 };
 ```
 
-**main.ts** (consumer)
-### consumer
-```ts
+**main.ts** \(consumer\)
+
+#### consumer
+
+```typescript
 au.register(Producer);
 ```
 
-## The `register` method
+### The `register` method
 
-In Aurelia v2, everything (including the framework itself) is glued together via DI. The concept is largely the same whether you're building a plugin, a shared component or a service class.
+In Aurelia v2, everything \(including the framework itself\) is glued together via DI. The concept is largely the same whether you're building a plugin, a shared component or a service class.
 
-The producer (or the `export`ing side) exposes an object with a `register` method, and the consumer (the `import`ing side) passes that object into its `au.register` call (for global registration) or into the `dependencies` array of a custom element (for local registration).
+The producer \(or the `export`ing side\) exposes an object with a `register` method, and the consumer \(the `import`ing side\) passes that object into its `au.register` call \(for global registration\) or into the `dependencies` array of a custom element \(for local registration\).
 
 The DI container calls that `register` method and passes itself in as the only argument. The producer can then register resources / components / tasks to that container. Internally, things like resources and tasks have special metadata associated with them which allows the framework to discover and consume them at the appropriate times.
 
-
-
 Below are some examples of how integrations can be produced and consumed:
 
-### 1.1 Simple object literal with a register method
+#### 1.1 Simple object literal with a register method
 
-**index.ts** (producer)
-```ts
+**index.ts** \(producer\)
+
+```typescript
 export const MyPluginConfiguration = {
   register(container: IContainer) {
     container.register(
@@ -959,15 +1016,17 @@ export const MyPluginConfiguration = {
 };
 ```
 
-**main.ts** (consumer)
-```ts
+**main.ts** \(consumer\)
+
+```typescript
 au.register(MyPluginConfiguration).app(...);
 ```
 
-### 1.2 A function that returns an object literal with a register method (to pass in e.g. plugin options)
+#### 1.2 A function that returns an object literal with a register method \(to pass in e.g. plugin options\)
 
-**index.ts** (producer)
-```ts
+**index.ts** \(producer\)
+
+```typescript
 function configure(container: IContainer, config: MyPluginConfig) {
   switch (config.storageType) {
     case 'localStorage':
@@ -993,43 +1052,48 @@ export const MyPluginConfiguration = {
 };
 ```
 
-**main.ts** (consumer)
-```ts
+**main.ts** \(consumer\)
+
+```typescript
 au.register(MyPluginConfiguration).app(...);
 // OR
 au.register(MyPluginConfiguration.customize({ storageType: 'localStorage' }))
 ```
 
-### 1.3 An interface
+#### 1.3 An interface
 
-**index.ts** (producer)
-```ts
+**index.ts** \(producer\)
+
+```typescript
 export const IStorageClient = DI.createInterface<IStorageClient>('IStorageClient', x => x.singleton(LocalStorageClient));
 ```
 
 Interfaces and classes do not need to be registered explicitly. They can immediately be injected. The container will "jit register" them the first time they are requested.
 
-### 1.4 A class (typically a resource)
+#### 1.4 A class \(typically a resource\)
 
-**index.ts** (producer)
-```ts
+**index.ts** \(producer\)
+
+```typescript
 @customElement({ name: 'name-tag', template: `<span>\${name}</span>` })
 export class NameTag {}
 ```
 
-**main.ts** (consumer)
+**main.ts** \(consumer\)
 
-To register it as a global resource (available in all components)
-```ts
+To register it as a global resource \(available in all components\)
+
+```typescript
 au.register(NameTag).app(...);
 ```
 
 OR:
 
-**name-list.ts** (consumer)
+**name-list.ts** \(consumer\)
 
-To register it as a local resource (available only in that specific custom element)
-```ts
+To register it as a local resource \(available only in that specific custom element\)
+
+```typescript
 export class NameListCustomElement {
   static dependencies = [NameTag];
 }
@@ -1038,54 +1102,55 @@ export class NameListCustomElement {
 export class NameListCustomElement {}
 ```
 
-### 1.5 A (module-like) object with any of the above as its properties
+#### 1.5 A \(module-like\) object with any of the above as its properties
 
-**resources/index.ts** (producer)
-```ts
+**resources/index.ts** \(producer\)
+
+```typescript
 export * from './my-button';
 export * from './my-input';
 export * from './my-nav';
 ```
 
-**main.ts** (consumer)
+**main.ts** \(consumer\)
 
-```ts
+```typescript
 import * as GlobalResources from './resources';
 
 au.register(GlobalResources).app(...);
 ```
 
-# Routing
+## Routing
 
-## Migrating from v1
+### Migrating from v1
 
-- Move the routes from the `config.map(...)` call in your `configureRouter` method to either `static routes = [...]` or to the `@route({ routes: [...] })` decorator (in the near future there will also be a separate `@routes` decorator as a shorthand). For each route config object:
-  - Rename `route` to `path`
-  - Rename `name` to `id`
-  - Change `moduleId: 'folder/my-component'` to `component: MyComponent` (where `MyComponent` is the actual `import`ed component)
-  - Rename `settings` to `data`
-- Rename `canActivate` to `canLoad`
-- Rename `activate` to `load`
-- Rename `canDeactivate` to `canUnload`
-- Rename `deactivate` to `unload`
-- For pipeline steps, use the `@lifecycleHooks` api (TODO: link to examples / docs)
-- Rename `router-view` to `au-viewport`
-- Rename `'router:navigation:processing'` to `'au:router:navigation-start'`
-- Rename `'router:navigation:cancel'` to `'au:router:navigation-cancel'`
-- Rename `'router:navigation:error'` to `'au:router:navigation-error'`
-- Rename `'router:navigation:success'`and `'router:navigation:complete'` to `'au:router:navigation-end'`
+* Move the routes from the `config.map(...)` call in your `configureRouter` method to either `static routes = [...]` or to the `@route({ routes: [...] })` decorator \(in the near future there will also be a separate `@routes` decorator as a shorthand\). For each route config object:
+  * Rename `route` to `path`
+  * Rename `name` to `id`
+  * Change `moduleId: 'folder/my-component'` to `component: MyComponent` \(where `MyComponent` is the actual `import`ed component\)
+  * Rename `settings` to `data`
+* Rename `canActivate` to `canLoad`
+* Rename `activate` to `load`
+* Rename `canDeactivate` to `canUnload`
+* Rename `deactivate` to `unload`
+* For pipeline steps, use the `@lifecycleHooks` api \(TODO: link to examples / docs\)
+* Rename `router-view` to `au-viewport`
+* Rename `'router:navigation:processing'` to `'au:router:navigation-start'`
+* Rename `'router:navigation:cancel'` to `'au:router:navigation-cancel'`
+* Rename `'router:navigation:error'` to `'au:router:navigation-error'`
+* Rename `'router:navigation:success'`and `'router:navigation:complete'` to `'au:router:navigation-end'`
 
+\(more migration notes will be added based on incoming questions\)
 
-(more migration notes will be added based on incoming questions)
-
-## New in v2: routing without configuration (direct routing)
+### New in v2: routing without configuration \(direct routing\)
 
 By default, components can be navigated to by using their name as the path, as long as they are registered as either global or local resources.
 
 Example:
 
 **app.ts**
-```ts
+
+```typescript
 import { HomeCustomElement } from './home';
 
 export class App {
@@ -1094,7 +1159,8 @@ export class App {
 ```
 
 **app.html**
-```html
+
+```markup
 <a href="/home">Home</a>
 <au-viewport></au-viewport>
 ```
@@ -1102,7 +1168,8 @@ export class App {
 Which is functionally equivalent to:
 
 **app.ts**
-```ts
+
+```typescript
 import { HomeCustomElement } from './home';
 
 export class App {
@@ -1111,7 +1178,9 @@ export class App {
 ```
 
 **app.html**
-```html
+
+```markup
 <a href="/home">Home</a>
 <au-viewport></au-viewport>
 ```
+

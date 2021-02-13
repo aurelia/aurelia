@@ -292,7 +292,7 @@ export class ClassBindingCommand implements BindingCommandInstance {
  */
 @bindingCommand('ref')
 export class RefBindingCommand implements BindingCommandInstance {
-  public readonly bindingType: BindingType.IsProperty | BindingType.IgnoreCustomAttr = BindingType.IsProperty | BindingType.IgnoreCustomAttr;
+  public readonly bindingType: BindingType.IsProperty | BindingType.IgnoreAttr = BindingType.IsProperty | BindingType.IgnoreAttr;
 
   public compile(binding: PlainAttributeSymbol | BindingSymbol): RefBindingInstruction {
     return new RefBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, false));

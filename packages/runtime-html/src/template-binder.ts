@@ -153,7 +153,7 @@ export class TemplateBinder {
         // TODO: use reporter
       }
       bindingCommand = this.getBindingCommand(attrSyntax, true);
-      if (bindingCommand === null || (bindingCommand.bindingType & BindingType.IgnoreCustomAttr) === 0) {
+      if (bindingCommand === null || (bindingCommand.bindingType & BindingType.IgnoreAttr) === 0) {
         attrInfo = AttrInfo.from(this.container.find(CustomAttribute, attrSyntax.target), attrSyntax.target);
 
         if (attrInfo === null) {
@@ -340,7 +340,7 @@ export class TemplateBinder {
       attrSyntax = this.attrParser.parse(attr.name, attr.value);
       bindingCommand = this.getBindingCommand(attrSyntax, true);
 
-      if (bindingCommand === null || (bindingCommand.bindingType & BindingType.IgnoreCustomAttr) === 0) {
+      if (bindingCommand === null || (bindingCommand.bindingType & BindingType.IgnoreAttr) === 0) {
         attrInfo = AttrInfo.from(this.container.find(CustomAttribute, attrSyntax.target), attrSyntax.target);
 
         if (attrInfo === null) {
@@ -683,10 +683,10 @@ export class TemplateBinder {
         // this is a shortcut
         const realAttrValue = attrRawValue.length === 0
           && (bindingType
-              & BindingType.BindCommand
+              & (BindingType.BindCommand
               | BindingType.OneTimeCommand
               | BindingType.ToViewCommand
-              | BindingType.TwoWayCommand
+              | BindingType.TwoWayCommand)
             ) > 0
             ? camelCase(attrTarget)
             : attrRawValue;
@@ -706,7 +706,7 @@ export class TemplateBinder {
     // regardless, can process the same way
     expr = this.exprParser.parse(attrRawValue, bindingType);
     isInterpolation = bindingType === BindingType.Interpolation && expr != null;
-    if ((bindingType & BindingType.IsEvent) === 0) {
+    if ((bindingType & BindingType.IgnoreAttr) > 0) {
       this.attrSyntaxTransformer.transform(node, attrSyntax);
     }
     if (expr != null) {

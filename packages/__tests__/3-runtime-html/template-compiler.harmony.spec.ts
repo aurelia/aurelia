@@ -302,7 +302,27 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
         assert.equal(div1.getAttribute('__click__'), '1');
         assert.equal(div1.getAttribute('__click__'), '1');
       }
-    }
+    },
+    {
+      title: 'event name are not camelized',
+      template: '<div a-b-c.trigger="count = (count || 0) + 1">',
+      assertFn: (ctx, host, comp: { count: number }) => {
+        const div = host.querySelector('div');
+        assert.equal(comp.count, undefined);
+        div.dispatchEvent(new ctx.CustomEvent('a-b-c'));
+        assert.equal(comp.count, 1);
+        div.dispatchEvent(new ctx.CustomEvent('aBC'));
+        assert.equal(comp.count, 1);
+      },
+    },
+    {
+      title: 'props are always camelized',
+      template: '<input type="number" value-as-number.to-view="1">',
+      assertFn: (ctx, host, comp: { count: number }) => {
+        const input = host.querySelector('input');
+        assert.equal(input.valueAsNumber, 1);
+      },
+    },
   ];
 
   testCases.forEach((testCase, idx) => {

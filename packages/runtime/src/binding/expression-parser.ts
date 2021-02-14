@@ -315,7 +315,11 @@ const $parent = AccessThisExpression.$parent;
 
 export const enum BindingType {
                 None = 0,
-    IgnoreCustomAttr = 0b100000000_0000,
+          // if a binding command is taking over the processing of an attribute
+          // then it should add this flag to its binding type
+          // which then tell the binder to proceed the attribute compilation as is,
+          // instead of normal process: transformation -> compilation
+          IgnoreAttr = 0b100000000_0000,
        Interpolation = 0b010000000_0000,
           IsRef      = 0b101010000_0000,
           IsIterator = 0b000100000_0000,

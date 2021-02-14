@@ -108,6 +108,7 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
             // Deactivation of pending view and the activation of the fulfilled view should also not necessarily be sequential.
             this.postSettledTask = q.queueTask(() => resolveAll(
               pending?.deactivate(initiator, flags),
+              rejected?.deactivate(initiator, flags),
               fulfilled?.activate(initiator, flags, s, hs, data),
             ));
           },
@@ -118,6 +119,7 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
             // Deactivation of pending view and the activation of the rejected view should also not necessarily be sequential.
             this.postSettledTask = q.queueTask(() => resolveAll(
               pending?.deactivate(initiator, flags),
+              fulfilled?.deactivate(initiator, flags),
               rejected?.activate(initiator, flags, s, hs, err),
             ));
           },

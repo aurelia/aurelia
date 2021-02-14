@@ -138,7 +138,7 @@ export declare const enum Precedence {
 }
 export declare const enum BindingType {
     None = 0,
-    IgnoreCustomAttr = 4096,
+    IgnoreAttr = 4096,
     Interpolation = 2048,
     IsRef = 5376,
     IsIterator = 512,

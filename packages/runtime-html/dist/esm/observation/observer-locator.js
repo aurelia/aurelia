@@ -10,6 +10,7 @@ import { SelectValueObserver } from './select-value-observer.js';
 import { StyleAttributeAccessor } from './style-attribute-accessor.js';
 import { ISVGAnalyzer } from './svg-analyzer.js';
 import { ValueAttributeObserver } from './value-attribute-observer.js';
+import { createLookup, isDataAttribute } from '../utilities-html.js';
 // https://infra.spec.whatwg.org/#namespaces
 const htmlNS = 'http://www.w3.org/1999/xhtml';
 const mathmlNS = 'http://www.w3.org/1998/Math/MathML';
@@ -253,24 +254,5 @@ export function getCollectionObserver(collection, observerLocator) {
 }
 function throwMappingExisted(nodeName, key) {
     throw new Error(`Mapping for property ${String(key)} of <${nodeName} /> already exists`);
-}
-const IsDataAttribute = createLookup();
-function isDataAttribute(obj, key, svgAnalyzer) {
-    if (IsDataAttribute[key] === true) {
-        return true;
-    }
-    if (typeof key !== 'string') {
-        return false;
-    }
-    const prefix = key.slice(0, 5);
-    // https://html.spec.whatwg.org/multipage/dom.html#wai-aria
-    // https://html.spec.whatwg.org/multipage/dom.html#custom-data-attribute
-    return IsDataAttribute[key] =
-        prefix === 'aria-' ||
-            prefix === 'data-' ||
-            svgAnalyzer.isStandardSvgAttribute(obj, key);
-}
-function createLookup() {
-    return Object.create(null);
 }
 //# sourceMappingURL=observer-locator.js.map

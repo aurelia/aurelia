@@ -250,7 +250,7 @@ exports.AttrBindingCommand = AttrBindingCommand;
  */
 let StyleBindingCommand = class StyleBindingCommand {
     constructor() {
-        this.bindingType = 32 /* IsProperty */;
+        this.bindingType = 32 /* IsProperty */ | 4096 /* IgnoreAttr */;
     }
     compile(binding) {
         return new renderer_js_1.AttributeBindingInstruction('style', binding.expression, getTarget(binding, false));
@@ -265,7 +265,7 @@ exports.StyleBindingCommand = StyleBindingCommand;
  */
 let ClassBindingCommand = class ClassBindingCommand {
     constructor() {
-        this.bindingType = 32 /* IsProperty */;
+        this.bindingType = 32 /* IsProperty */ | 4096 /* IgnoreAttr */;
     }
     compile(binding) {
         return new renderer_js_1.AttributeBindingInstruction('class', binding.expression, getTarget(binding, false));
@@ -280,7 +280,7 @@ exports.ClassBindingCommand = ClassBindingCommand;
  */
 let RefBindingCommand = class RefBindingCommand {
     constructor() {
-        this.bindingType = 32 /* IsProperty */ | 4096 /* IgnoreCustomAttr */;
+        this.bindingType = 32 /* IsProperty */ | 4096 /* IgnoreAttr */;
     }
     compile(binding) {
         return new renderer_js_1.RefBindingInstruction(binding.expression, getTarget(binding, false));

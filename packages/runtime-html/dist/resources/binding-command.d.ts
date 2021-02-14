@@ -99,7 +99,7 @@ export declare class ClassBindingCommand implements BindingCommandInstance {
  * Binding command to refer different targets (element, custom element/attribute view models, controller) attached to an element
  */
 export declare class RefBindingCommand implements BindingCommandInstance {
-    readonly bindingType: BindingType.IsProperty | BindingType.IgnoreCustomAttr;
+    readonly bindingType: BindingType.IsProperty | BindingType.IgnoreAttr;
     compile(binding: PlainAttributeSymbol | BindingSymbol): RefBindingInstruction;
 }
 //# sourceMappingURL=binding-command.d.ts.map

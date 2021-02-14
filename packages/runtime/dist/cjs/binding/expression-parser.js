@@ -263,7 +263,11 @@ const $parent = ast_js_1.AccessThisExpression.$parent;
 var BindingType;
 (function (BindingType) {
     BindingType[BindingType["None"] = 0] = "None";
-    BindingType[BindingType["IgnoreCustomAttr"] = 4096] = "IgnoreCustomAttr";
+    // if a binding command is taking over the processing of an attribute
+    // then it should add this flag to its binding type
+    // which then tell the binder to proceed the attribute compilation as is,
+    // instead of normal process: transformation -> compilation
+    BindingType[BindingType["IgnoreAttr"] = 4096] = "IgnoreAttr";
     BindingType[BindingType["Interpolation"] = 2048] = "Interpolation";
     BindingType[BindingType["IsRef"] = 5376] = "IsRef";
     BindingType[BindingType["IsIterator"] = 512] = "IsIterator";

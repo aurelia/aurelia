@@ -1,12 +1,86 @@
-import { DI } from '@aurelia/kernel';
+import { camelCase, DI } from '@aurelia/kernel';
+import { createLookup, isDataAttribute } from './utilities-html.js';
+import { ISVGAnalyzer } from './observation/svg-analyzer.js';
 export const IAttrSyntaxTransformer = DI
     .createInterface('IAttrSyntaxTransformer', x => x.singleton(AttrSyntaxTransformer));
 export class AttrSyntaxTransformer {
-    constructor() {
+    constructor(svg) {
+        this.svg = svg;
         /**
          * @internal
          */
         this.fns = [];
+        /**
+         * @internal
+         */
+        this.tagAttrMap = createLookup();
+        /**
+         * @internal
+         */
+        this.globalAttrMap = createLookup();
+        this.useMapping({
+            LABEL: { for: 'htmlFor' },
+            IMG: { usemap: 'useMap' },
+            INPUT: {
+                maxlength: 'maxLength',
+                minlength: 'minLength',
+                formaction: 'formAction',
+                formenctype: 'formEncType',
+                formmethod: 'formMethod',
+                formnovalidate: 'formNoValidate',
+                formtarget: 'formTarget',
+                inputmode: 'inputMode',
+            },
+            TEXTAREA: { maxlength: 'maxLength' },
+            TD: { rowspan: 'rowSpan', colspan: 'colSpan' },
+            TH: { rowspan: 'rowSpan', colspan: 'colSpan' },
+        });
+        this.useGlobalMapping({
+            accesskey: 'accessKey',
+            contenteditable: 'contentEditable',
+            tabindex: 'tabIndex',
+            textcontent: 'textContent',
+            innerhtml: 'innerHTML',
+            scrolltop: 'scrollTop',
+            scrollleft: 'scrollLeft',
+            readonly: 'readOnly',
+        });
+    }
+    static get inject() { return [ISVGAnalyzer]; }
+    /**
+     * Allow application to teach Aurelia how to define how to map attributes to properties
+     * based on element tagName
+     */
+    useMapping(config) {
+        var _a;
+        var _b;
+        let newAttrMapping;
+        let targetAttrMapping;
+        let tagName;
+        let attr;
+        for (tagName in config) {
+            newAttrMapping = config[tagName];
+            targetAttrMapping = (_a = (_b = this.tagAttrMap)[tagName]) !== null && _a !== void 0 ? _a : (_b[tagName] = createLookup());
+            for (attr in newAttrMapping) {
+                if (targetAttrMapping[attr] !== void 0) {
+                    throw createMappedError(attr, tagName);
+                }
+                targetAttrMapping[attr] = newAttrMapping[attr];
+            }
+        }
+    }
+    /**
+     * Allow applications to teach Aurelia how to define how to map attributes to properties
+     * for all elements
+     */
+    useGlobalMapping(config) {
+        const mapper = this.globalAttrMap;
+        for (const attr in config) {
+            if (mapper[attr] !== void 0) {
+                throw createMappedError(attr, '*');
+            }
+            mapper[attr] = config[attr];
+        }
     }
     /**
      * Add a given function to a list of fns that will be used
@@ -26,6 +100,7 @@ export class AttrSyntaxTransformer {
      * @internal
      */
     transform(node, attrSyntax) {
+        var _a, _b, _c;
         if (attrSyntax.command === 'bind' &&
             (
             // note: even though target could possibly be mapped to a different name
@@ -35,89 +110,11 @@ export class AttrSyntaxTransformer {
                 this.fns.length > 0 && this.fns.some(fn => fn(node, attrSyntax.target)))) {
             attrSyntax.command = 'two-way';
         }
-        attrSyntax.target = this.map(node.tagName, attrSyntax.target);
-    }
-    /**
-     * todo: this should be in the form of a lookup. the following is not extensible
-     *
-     * @internal
-     */
-    map(tagName, attr) {
-        switch (tagName) {
-            case 'LABEL':
-                switch (attr) {
-                    case 'for':
-                        return 'htmlFor';
-                    default:
-                        return attr;
-                }
-            case 'IMG':
-                switch (attr) {
-                    case 'usemap':
-                        return 'useMap';
-                    default:
-                        return attr;
-                }
-            case 'INPUT':
-                switch (attr) {
-                    case 'maxlength':
-                        return 'maxLength';
-                    case 'minlength':
-                        return 'minLength';
-                    case 'formaction':
-                        return 'formAction';
-                    case 'formenctype':
-                        return 'formEncType';
-                    case 'formmethod':
-                        return 'formMethod';
-                    case 'formnovalidate':
-                        return 'formNoValidate';
-                    case 'formtarget':
-                        return 'formTarget';
-                    case 'inputmode':
-                        return 'inputMode';
-                    default:
-                        return attr;
-                }
-            case 'TEXTAREA':
-                switch (attr) {
-                    case 'maxlength':
-                        return 'maxLength';
-                    default:
-                        return attr;
-                }
-            case 'TD':
-            case 'TH':
-                switch (attr) {
-                    case 'rowspan':
-                        return 'rowSpan';
-                    case 'colspan':
-                        return 'colSpan';
-                    default:
-                        return attr;
-                }
-            default:
-                switch (attr) {
-                    case 'accesskey':
-                        return 'accessKey';
-                    case 'contenteditable':
-                        return 'contentEditable';
-                    case 'tabindex':
-                        return 'tabIndex';
-                    case 'textcontent':
-                        return 'textContent';
-                    case 'innerhtml':
-                        return 'innerHTML';
-                    case 'scrolltop':
-                        return 'scrollTop';
-                    case 'scrollleft':
-                        return 'scrollLeft';
-                    case 'readonly':
-                        return 'readOnly';
-                    default:
-                        return attr;
-                }
-        }
+        const attr = attrSyntax.target;
+        attrSyntax.target = (_c = (_b = (_a = this.tagAttrMap[node.tagName]) === null || _a === void 0 ? void 0 : _a[attr]) !== null && _b !== void 0 ? _b : this.globalAttrMap[attr]) !== null && _c !== void 0 ? _c : (isDataAttribute(node, attr, this.svg)
+            ? attr
+            : camelCase(attr));
+        // attrSyntax.target = this.map(node.tagName, attrSyntax.target);
     }
 }
 function shouldDefaultToTwoWay(element, attr) {
@@ -145,5 +142,8 @@ function shouldDefaultToTwoWay(element, attr) {
                     return false;
             }
     }
+}
+function createMappedError(attr, tagName) {
+    return new Error(`Attribute ${attr} has been already registered for ${tagName === '*' ? 'all elements' : `<${tagName}/>`}`);
 }
 //# sourceMappingURL=attribute-syntax-transformer.js.map

@@ -244,7 +244,7 @@ export { AttrBindingCommand };
  */
 let StyleBindingCommand = class StyleBindingCommand {
     constructor() {
-        this.bindingType = 32 /* IsProperty */;
+        this.bindingType = 32 /* IsProperty */ | 4096 /* IgnoreAttr */;
     }
     compile(binding) {
         return new AttributeBindingInstruction('style', binding.expression, getTarget(binding, false));
@@ -259,7 +259,7 @@ export { StyleBindingCommand };
  */
 let ClassBindingCommand = class ClassBindingCommand {
     constructor() {
-        this.bindingType = 32 /* IsProperty */;
+        this.bindingType = 32 /* IsProperty */ | 4096 /* IgnoreAttr */;
     }
     compile(binding) {
         return new AttributeBindingInstruction('class', binding.expression, getTarget(binding, false));
@@ -274,7 +274,7 @@ export { ClassBindingCommand };
  */
 let RefBindingCommand = class RefBindingCommand {
     constructor() {
-        this.bindingType = 32 /* IsProperty */ | 4096 /* IgnoreCustomAttr */;
+        this.bindingType = 32 /* IsProperty */ | 4096 /* IgnoreAttr */;
     }
     compile(binding) {
         return new RefBindingInstruction(binding.expression, getTarget(binding, false));

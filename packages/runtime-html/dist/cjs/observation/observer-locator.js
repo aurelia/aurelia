@@ -13,6 +13,7 @@ const select_value_observer_js_1 = require("./select-value-observer.js");
 const style_attribute_accessor_js_1 = require("./style-attribute-accessor.js");
 const svg_analyzer_js_1 = require("./svg-analyzer.js");
 const value_attribute_observer_js_1 = require("./value-attribute-observer.js");
+const utilities_html_js_1 = require("../utilities-html.js");
 // https://infra.spec.whatwg.org/#namespaces
 const htmlNS = 'http://www.w3.org/1999/xhtml';
 const mathmlNS = 'http://www.w3.org/1998/Math/MathML';
@@ -21,7 +22,7 @@ const xlinkNS = 'http://www.w3.org/1999/xlink';
 const xmlNS = 'http://www.w3.org/XML/1998/namespace';
 const xmlnsNS = 'http://www.w3.org/2000/xmlns/';
 // https://html.spec.whatwg.org/multipage/syntax.html#attributes-2
-const nsAttributes = Object.assign(createLookup(), {
+const nsAttributes = Object.assign(utilities_html_js_1.createLookup(), {
     'xlink:actuate': ['actuate', xlinkNS],
     'xlink:arcrole': ['arcrole', xlinkNS],
     'xlink:href': ['href', xlinkNS],
@@ -53,10 +54,10 @@ class NodeObserverLocator {
         this.dirtyChecker = dirtyChecker;
         this.svgAnalyzer = svgAnalyzer;
         this.allowDirtyCheck = true;
-        this.events = createLookup();
-        this.globalEvents = createLookup();
-        this.overrides = createLookup();
-        this.globalOverrides = createLookup();
+        this.events = utilities_html_js_1.createLookup();
+        this.globalEvents = utilities_html_js_1.createLookup();
+        this.overrides = utilities_html_js_1.createLookup();
+        this.globalOverrides = utilities_html_js_1.createLookup();
         // todo: atm, platform is required to be resolved too eagerly for the `.handles()` check
         // also a lot of tests assume default availability of observation
         // those 2 assumptions make it not the right time to extract the following line into a
@@ -106,7 +107,7 @@ class NodeObserverLocator {
         const lookup = this.events;
         let existingMapping;
         if (typeof nodeNameOrConfig === 'string') {
-            existingMapping = (_a = lookup[nodeNameOrConfig]) !== null && _a !== void 0 ? _a : (lookup[nodeNameOrConfig] = createLookup());
+            existingMapping = (_a = lookup[nodeNameOrConfig]) !== null && _a !== void 0 ? _a : (lookup[nodeNameOrConfig] = utilities_html_js_1.createLookup());
             if (existingMapping[key] == null) {
                 existingMapping[key] = new NodeObserverConfig(eventsConfig);
             }
@@ -116,7 +117,7 @@ class NodeObserverLocator {
         }
         else {
             for (const nodeName in nodeNameOrConfig) {
-                existingMapping = (_b = lookup[nodeName]) !== null && _b !== void 0 ? _b : (lookup[nodeName] = createLookup());
+                existingMapping = (_b = lookup[nodeName]) !== null && _b !== void 0 ? _b : (lookup[nodeName] = utilities_html_js_1.createLookup());
                 const newMapping = nodeNameOrConfig[nodeName];
                 for (key in newMapping) {
                     if (existingMapping[key] == null) {
@@ -171,7 +172,7 @@ class NodeObserverLocator {
                 if (nsProps !== undefined) {
                     return attribute_ns_accessor_js_1.AttributeNSAccessor.forNs(nsProps[1]);
                 }
-                if (isDataAttribute(obj, key, this.svgAnalyzer)) {
+                if (utilities_html_js_1.isDataAttribute(obj, key, this.svgAnalyzer)) {
                     return data_attribute_accessor_js_1.attrAccessor;
                 }
                 return elementPropertyAccessor;
@@ -183,13 +184,13 @@ class NodeObserverLocator {
         var _c, _d;
         let existingTagOverride;
         if (typeof tagNameOrOverrides === 'string') {
-            existingTagOverride = (_a = (_c = this.overrides)[tagNameOrOverrides]) !== null && _a !== void 0 ? _a : (_c[tagNameOrOverrides] = createLookup());
+            existingTagOverride = (_a = (_c = this.overrides)[tagNameOrOverrides]) !== null && _a !== void 0 ? _a : (_c[tagNameOrOverrides] = utilities_html_js_1.createLookup());
             existingTagOverride[key] = true;
         }
         else {
             for (const tagName in tagNameOrOverrides) {
                 for (const key of tagNameOrOverrides[tagName]) {
-                    existingTagOverride = (_b = (_d = this.overrides)[tagName]) !== null && _b !== void 0 ? _b : (_d[tagName] = createLookup());
+                    existingTagOverride = (_b = (_d = this.overrides)[tagName]) !== null && _b !== void 0 ? _b : (_d[tagName] = utilities_html_js_1.createLookup());
                     existingTagOverride[key] = true;
                 }
             }
@@ -224,7 +225,7 @@ class NodeObserverLocator {
         if (nsProps !== undefined) {
             return attribute_ns_accessor_js_1.AttributeNSAccessor.forNs(nsProps[1]);
         }
-        if (isDataAttribute(el, key, this.svgAnalyzer)) {
+        if (utilities_html_js_1.isDataAttribute(el, key, this.svgAnalyzer)) {
             // todo: should observe
             return data_attribute_accessor_js_1.attrAccessor;
         }
@@ -259,24 +260,5 @@ function getCollectionObserver(collection, observerLocator) {
 exports.getCollectionObserver = getCollectionObserver;
 function throwMappingExisted(nodeName, key) {
     throw new Error(`Mapping for property ${String(key)} of <${nodeName} /> already exists`);
-}
-const IsDataAttribute = createLookup();
-function isDataAttribute(obj, key, svgAnalyzer) {
-    if (IsDataAttribute[key] === true) {
-        return true;
-    }
-    if (typeof key !== 'string') {
-        return false;
-    }
-    const prefix = key.slice(0, 5);
-    // https://html.spec.whatwg.org/multipage/dom.html#wai-aria
-    // https://html.spec.whatwg.org/multipage/dom.html#custom-data-attribute
-    return IsDataAttribute[key] =
-        prefix === 'aria-' ||
-            prefix === 'data-' ||
-            svgAnalyzer.isStandardSvgAttribute(obj, key);
-}
-function createLookup() {
-    return Object.create(null);
 }
 //# sourceMappingURL=observer-locator.js.map

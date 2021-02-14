@@ -11,12 +11,19 @@ import {
 
 describe('3-runtime-html/template-compiler.convention.spec.ts \n\thtml convention', function () {
 
-  type IAttrMappingConventionCombo = [string, string, string?, Record<string, string>?];
+  type IAttrMappingConventionCombo = [
+    /* tag */string,
+    /* binding attr */string,
+    /* binding prop */string?,
+    /* extra attrs */Record<string, string>?
+  ];
 
   const bindToTwoWayCombos: IAttrMappingConventionCombo[] = [
     ['input', 'value'],
-    ['input', 'files'],
-    ['input', 'files', 'files', { types: 'file' }],
+    ['input', 'value-as-number', 'valueAsNumber', { type: 'number' }],
+    ['input', 'files', 'files', { type: 'file' }],
+    ['input', 'value-as-number', 'valueAsNumber', { type: 'date' }],
+    ['input', 'value-as-date', 'valueAsDate', { type: 'date' }],
     ...(['date', 'datetime', 'password', 'email', 'color'].map(type => ['input', 'value', 'value', { type }] as IAttrMappingConventionCombo)),
     ['select', 'value'],
     ['input', 'checked', 'checked', { type: 'checkbox' }],

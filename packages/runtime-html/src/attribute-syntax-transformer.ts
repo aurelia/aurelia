@@ -132,6 +132,9 @@ export class AttrSyntaxTransformer {
   }
 }
 
+const v = 'value';
+const vAsNumber = 'value-as-number';
+const vAsDate = 'value-as-date';
 function shouldDefaultToTwoWay(element: Element, attr: string): boolean {
   switch (element.tagName) {
     case 'INPUT':
@@ -139,12 +142,18 @@ function shouldDefaultToTwoWay(element: Element, attr: string): boolean {
         case 'checkbox':
         case 'radio':
           return attr === 'checked';
+        case 'file':
+          return attr === 'files';
+        case 'date':
+          return attr === v || attr === vAsNumber || attr === vAsDate;
+        case 'number':
+          return attr === v || attr === vAsNumber;
         default:
-          return attr === 'value' || attr === 'files';
+          return attr === v;
       }
     case 'TEXTAREA':
     case 'SELECT':
-      return attr === 'value';
+      return attr === v;
     default:
       switch (attr) {
         case 'textcontent':

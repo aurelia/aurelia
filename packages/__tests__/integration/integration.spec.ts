@@ -899,10 +899,14 @@ describe('app', function () {
 
       let prev = vm.random;
       const assertAttr = () => {
-        assert.equal(container['foobar'], vm.random);
-        assert.equal(container.getAttribute('foobar'), undefined);
-        assert.equal(container['foo-bar'], undefined);
-        assert.equal(container.getAttribute('foo-bar'), vm.random);
+        assert.strictEqual(container['foobar'], vm.random, 'container.foobar === vm.random');
+        // 1) foo-bar.bind="random & attr" !== 2) foobar.bind="random",
+        // (1) targets fooBar(which will be turned to foobar) attribute, while 2 targets foobar property,
+        // and foobar attribute is not linked to foobar property
+        // so they have different values
+        assert.strictEqual(container.getAttribute('foobar'), String(vm.random), 'container.getAttribute(foobar) === String(vm.random)');
+        assert.strictEqual(container['foo-bar'], undefined, 'container.foo-bar === undefined');
+        assert.strictEqual(container.getAttribute('foo-bar'), null, 'container.getAttribute(foo-bar) === null');
       };
       assertAttr();
 

@@ -1256,6 +1256,25 @@ describe('au-slot', function () {
         }
       );
     }
+
+    {
+      class MyElement { }
+      yield new TestData(
+        'works with as-element',
+        `<div as-element="my-element"><template au-slot>content</template></div>`,
+        [
+          CustomElement.define(
+            {
+              name: 'my-element',
+              template: `<au-slot>default content</au-slot>`
+            },
+            MyElement),
+        ],
+        {
+          'div': [`content`, undefined],
+        },
+      );
+    }
   }
   for (const { spec, template, expected, registrations, additionalAssertion } of getTestData()) {
     $it(spec,

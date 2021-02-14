@@ -389,7 +389,7 @@ export class TemplateBinder {
        * This means by the time the template controller in the ancestor is processed, the projection is already registered.
        */
     }
-    const parentName = node.parentNode?.nodeName.toLowerCase();
+    const parentName = node.parentElement?.getAttribute('as-element') ?? node.parentNode?.nodeName.toLowerCase();
     if (hasProjection
       && (manifestRoot === null
         || parentName === void 0

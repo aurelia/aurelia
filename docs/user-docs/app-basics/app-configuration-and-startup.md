@@ -102,9 +102,9 @@ new Aurelia()
 
 ## Enhance
 
-The startup sections showed how to start Aurelia for an empty root node. While that's the most frequent use-case, there might be other scenarios where we would like to work with an existing DOM tree with Aurelia. This includes pages those are partially rendered from a server with nodes and attributes representing Aurelia custom elements, custom attributes, or template controllers. Another example can be where you need to add a DOM fragment on the fly to the HTML document, and then you want Aurelia to take care of the bindings present in that DOM fragment. This is commonly known as enhance, as Aurelia takes a normal DOM fragment and associate behaviours with it.
+The startup sections showed how to start Aurelia for an empty root node. While that's the most frequent use-case, there might be other scenarios where we would like to work with an existing DOM tree with Aurelia. This includes pages that are partially rendered from a server with nodes and attributes representing Aurelia custom elements, custom attributes, or template controllers. Another example can be where you need to add a DOM fragment on the fly to the HTML document, and then you want Aurelia to take care of the bindings present in that DOM fragment. This is commonly known as enhance, were Aurelia takes a normal DOM fragment and associates behaviours with it.
 
-The basic syntax of `enhance` matches closely that of normal startup.
+The basic syntax of `enhance` matches closely that of the normal startup.
 
 ```typescript
 const au = new Aurelia();
@@ -112,11 +112,11 @@ au.enhance({ host, component: MyComponent });
 await au.start();
 ```
 
-Couple important points to note here.
+There are a few important points to note here.
 
 1. For every enhance root, a new instance of `Aurelia` is needed. To this end, you can also use the static syntax `Aurelia.enhance({...})`. This is to enforce a new root DI container for every enhance root. Importantly, this also means that you can have multiple root nodes in your app \(this is true for `Aurelia.app(...)` as well\), where each one of those roots can be started/stopped independently of each other.
-2. The `host` is usually an existing non-enhanced \(either by `.app` or by `.enhance`\) DOM node. Note that `.enhance` does not detach or attach the `host` node to the DOM by itself. If the `host` is truly detached, then it needs to be explicitly attached to the DOM. An important consequence to note is that if there are existing event handlers attached to the `host` node or one of its successor node, then those stays as it is.
-3. Lastly, the `MyComponent` can be a custom element class, an instance of a class, or an object literal.
+2. The `host` is usually an existing non-enhanced \(neither by `.app` or by `.enhance`\) DOM node. Note that `Aurelia.enhance` does not detach or attach the `host` node to the DOM by itself. If the `host` is truly detached, then it needs to be explicitly attached to the DOM. An important consequence to note is that if there are existing event handlers attached to the `host` node or one of its successor node, then those stays as it is.
+3. Lastly, the component passed in to `Aurelia.enhance` \(`MyComponent` in our example, above) can be a custom element class, an instance of a class, or an object literal.
 
-That's it. Those are the main differences between enhance and normal empty root startup. In every other aspect those two are same, because once a node is enhanced, all the data bindings, or change handling will work like a normal Aurelia hydrated empty root node.
+That's it. Those are the main differences between enhance and the normal empty-root startup. In every other aspect, those two are same, because once a node is enhanced, all the data bindings, or change handling will work like a normal Aurelia hydrated empty-root node.
 

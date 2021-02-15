@@ -250,7 +250,7 @@ export class TemplateBinder {
         node.parentNode.replaceChild(symbol.marker, node);
     }
     bindAttributes(node, parentManifest, surrogate, manifest, manifestRoot, parentManifestRoot) {
-        var _a;
+        var _a, _b, _c;
         // This is the top-level symbol for the current depth.
         // If there are no template controllers or replaces, it is always the manifest itself.
         // If there are template controllers, then this will be the outer-most TemplateControllerSymbol.
@@ -349,7 +349,7 @@ export class TemplateBinder {
              * This means by the time the template controller in the ancestor is processed, the projection is already registered.
              */
         }
-        const parentName = (_a = node.parentNode) === null || _a === void 0 ? void 0 : _a.nodeName.toLowerCase();
+        const parentName = (_b = (_a = node.parentElement) === null || _a === void 0 ? void 0 : _a.getAttribute('as-element')) !== null && _b !== void 0 ? _b : (_c = node.parentNode) === null || _c === void 0 ? void 0 : _c.nodeName.toLowerCase();
         if (hasProjection
             && (manifestRoot === null
                 || parentName === void 0

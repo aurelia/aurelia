@@ -278,16 +278,6 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer {
 
       this.ea.publish(NavigatorStateChangeEvent.eventName,
         NavigatorStateChangeEvent.createEvent(this.viewerState, ev, this.history.state as INavigatorState));
-      //   Object.assign(
-      //     new NavigatorStateChangeEvent(),
-      //     {
-      //       ...this.viewerState,
-      //       ...{
-      //         event: ev,
-      //         state: this.history.state as INavigatorState,
-      //       },
-      //     })
-      // );
     }
     if (eventTask !== null) {
       await eventTask.execute();

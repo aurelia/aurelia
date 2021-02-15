@@ -2,7 +2,6 @@
 import { IContainer, Writable } from '@aurelia/kernel';
 import { Controller, LifecycleFlags, IHydratedController, ICustomElementController, ICustomElementViewModel } from '@aurelia/runtime-html';
 import { IRouteableComponent, RouteableComponentType, ReloadBehavior, LoadInstruction } from '../interfaces.js';
-import { parseQuery } from '../utilities/parser.js';
 import { Viewport } from './viewport.js';
 import { RoutingInstruction } from '../instructions/routing-instruction.js';
 import { Navigation } from '../navigation.js';
@@ -122,9 +121,10 @@ export class ViewportContent extends EndpointContent {
    */
   public equalParameters(other: ViewportContent): boolean {
     return this.instruction.sameComponent(other.instruction, true) &&
-      // TODO: Review whether query is relevant (probably not
-      // since it should already be a part of the parameters)
-      this.navigation.query === other.navigation.query;
+      // TODO: Review whether query is enough or if parameters need
+      // to be checked as well depending on when query is updated.
+      // Should probably be able to compare parameters vs query as well.
+      (this.navigation.query ?? '') === (other.navigation.query ?? '');
   }
 
   /**
@@ -220,8 +220,10 @@ export class ViewportContent extends EndpointContent {
 
     // TODO(alpha): Review this according to params -> instruction -> navigation!
     const typeParameters = this.instruction.component.type?.parameters ?? null;
-    this.navigation.parameters = this.instruction.parameters.toSpecifiedParameters(typeParameters);
-    const merged = { ...parseQuery(this.navigation.query), ...this.navigation.parameters };
+    // this.navigation.parameters = this.instruction.parameters.toSpecifiedParameters(typeParameters);
+    // const merged = { ...InstructionParameters.parseQuery(this.navigation.query), ...this.navigation.parameters };
+    const parameters = this.instruction.parameters.toSpecifiedParameters(typeParameters);
+    const merged = { ...this.navigation.parameters, ...parameters };
     const result = this.instruction.component.instance!.canLoad(merged, this.instruction, this.navigation);
     if (typeof result === 'boolean') {
       return result;
@@ -293,8 +295,10 @@ export class ViewportContent extends EndpointContent {
         if (this.instruction.component.instance?.load != null) {
           // TODO(alpha): Review this according to params -> instruction -> navigation!
           const typeParameters = this.instruction.component.type ? this.instruction.component.type.parameters : null;
-          this.navigation.parameters = this.instruction.parameters.toSpecifiedParameters(typeParameters);
-          const merged = { ...parseQuery(this.navigation.query), ...this.navigation.parameters };
+          // this.navigation.parameters = this.instruction.parameters.toSpecifiedParameters(typeParameters);
+          // const merged = { ...InstructionParameters.parseQuery(this.navigation.query), ...this.navigation.parameters };
+          const parameters = this.instruction.parameters.toSpecifiedParameters(typeParameters);
+          const merged = { ...this.navigation.parameters, ...parameters };
           return this.instruction.component.instance.load(merged, this.instruction, this.navigation);
         }
       }

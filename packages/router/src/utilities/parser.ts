@@ -5,7 +5,7 @@
  *
  */
 /**
- * @internal - Shouldn't be used directly
+ * @internal
  */
 export interface IParsedQuery {
   parameters: Record<Exclude<string, '-unnamed'>, string> | (Record<Exclude<string, '-unnamed'>, string> & Record<'-unnamed', string[]>);
@@ -13,7 +13,7 @@ export interface IParsedQuery {
 }
 
 /**
- * @internal - Shouldn't be used directly
+ * @internal
  */
 export interface IMergedParameters {
   namedParameters: Record<string, string>;
@@ -22,7 +22,7 @@ export interface IMergedParameters {
 }
 
 /**
- * @internal - Shouldn't be used directly
+ * @internal
  */
 export function parseQuery(query: string | null | undefined): Record<string, string> {
   if (!query || !query.length) {

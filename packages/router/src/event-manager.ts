@@ -1,7 +1,7 @@
 import { Constructable, DI, IDisposable, IEventAggregator } from '@aurelia/kernel';
 
 export const IEventManager = DI.createInterface<IEventManager>('IEventManager').withDefault(x => x.singleton(EventManager));
-export interface IEventManager extends EventManager {}
+export interface IEventManager extends EventManager { }
 
 /**
  * Enables loosely coupled publish/subscribe messaging and subscription management.
@@ -113,6 +113,7 @@ export class EventManager {
       for (const key of subscriptions.keys()) {
         this.unsubscribe(subscriber, key as string); // Not only string, but this works
       }
+      return;
     }
     const disposable = subscriptions.get(channelOrType as string); // Not only string, but this works
     disposable!.dispose();

@@ -325,11 +325,11 @@ export class Navigator {
    * @param movement - Amount of steps to move, positive or negative
    */
   public async go(movement: number): Promise<boolean | void> {
-    const newIndex = (this.lastNavigation.index ?? 0) + movement;
-    // Reject going past last navigation
-    if (newIndex >= this.navigations.length) {
-      return Promise.reject();
-    }
+    let newIndex = (this.lastNavigation.index ?? 0) + movement;
+
+    // Stop going past last navigation
+    newIndex = Math.min(newIndex, this.navigations.length - 1);
+
     // Get the appropriate navigation...
     const navigation = this.navigations[newIndex];
     // ...and enqueue it again.
@@ -468,7 +468,8 @@ export class Navigator {
           }
         }
       }
-      await this.saveState(true);
+      // If it's a navigation from the browser (back, forward, url) we replace the state
+      await this.saveState(!(navigation.fromBrowser ?? false));
     }
     // Resolve the navigation. Very important!
     navigation.resolve?.(true);
@@ -510,10 +511,6 @@ export class Navigator {
     (navigation as Navigation).previous = previousNavigation;
 
     this.ea.publish(NavigatorNavigateEvent.eventName, NavigatorNavigateEvent.createEvent(navigation));
-      // Object.assign(
-      //   new NavigatorNavigateEvent(),
-      //   navigation,
-      // ));
   }
 
   /**

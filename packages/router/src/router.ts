@@ -67,12 +67,21 @@ import { RouterConfiguration } from './index.js';
 export interface ILoadOptions {
   title?: string;
   query?: string;
+  parameters?: string | Record<string, unknown>;
   data?: Record<string, unknown>;
   replace?: boolean;
   append?: boolean;
   origin?: ICustomElementViewModel | Element;
   context?: ICustomElementViewModel | Element | Node | ICustomElementController;
   scopeModifier?: string;
+  /**
+   * @internal
+   */
+  fromBrowser?: boolean;
+  /**
+   * @internal
+   */
+  replacing?: boolean;
 }
 
 /**
@@ -195,15 +204,18 @@ export class Router implements IRouter {
    * @internal
    */
   public async loadUrl(): Promise<boolean | void> {
-    const entry = Navigation.create({
-      ...this.navigation.viewerState,
-      ...{
-        fullStateInstruction: '',
-        replacing: true,
-        fromBrowser: false,
-      }
-    });
-    const result = this.navigator.navigate(entry);
+    // const entry = Navigation.create({
+    //   ...this.navigation.viewerState,
+    //   ...{
+    //     fullStateInstruction: '',
+    //     replacing: true,
+    //     fromBrowser: false,
+    //   }
+    // });
+    // const result = this.navigator.navigate(entry);
+    const result = this.load(
+      this.navigation.viewerState.instruction,
+      { replacing: true, fromBrowser: false });
     this.loadedFirst = true;
     return result;
   }
@@ -224,11 +236,22 @@ export class Router implements IRouter {
   // TODO: use @bound (eslint-disable is temp)
   // eslint-disable-next-line @typescript-eslint/typedef
   public handleNavigatorStateChangeEvent = (event: NavigatorStateChangeEvent): void => {
-    // console.log('handleNavigatorStateChangeEvent', event);
-    const entry = Navigation.create(event.state?.lastNavigation);
-    entry.instruction = event.instruction;
-    entry.fromBrowser = true;
-    this.navigator.navigate(entry).catch(error => { throw error; });
+    console.log('handleNavigatorStateChangeEvent', event, event.state?.lastNavigation instanceof Navigation);
+    // It's already a proper navigation (browser history or cache), go
+    // directly to navigate
+    if (event.state != null) {
+      const entry = Navigation.create(event.state?.lastNavigation);
+      entry.instruction = event.viewerState.instruction;
+      // entry.instruction = event.instruction;
+      entry.fromBrowser = true;
+      this.navigator.navigate(entry).catch(error => { throw error; });
+    } else {
+      this.load(
+        event.viewerState.instruction,
+        // event.instruction,
+        { fromBrowser: true }
+      ).catch(error => { throw error; });
+    }
   };
 
   /**
@@ -661,9 +684,10 @@ export class Router implements IRouter {
       title: options.title,
       data: options.data,
       query: options.query,
-      replacing: options.replace,
+      parameters: options.parameters as Record<string, unknown>,
+      replacing: (options.replacing ?? false) || options.replace,
       repeating: options.append,
-      fromBrowser: false,
+      fromBrowser: options.fromBrowser ?? false,
       origin: options.origin,
     });
     return this.navigator.navigate(entry);
@@ -972,6 +996,20 @@ export class Router implements IRouter {
     // Invoke again with string
     state = await RoutingHook.invokeTransformToUrl(state, navigation);
 
+    // Specified query has precedence over parameters
+    if (navigation.query == null && navigation.parameters != null) {
+      const search = new URLSearchParams();
+      for (let [key, values] of Object.entries(navigation.parameters)) {
+        key = encodeURIComponent(key);
+        if (!Array.isArray(values)) {
+          values = [values];
+        }
+        for (const value of values as string[]) {
+          search.append(key, encodeURIComponent(value));
+        }
+      }
+      navigation.query = search.toString();
+    }
     const query = (navigation.query && navigation.query.length ? "?" + navigation.query : '');
     // if (instruction.path === void 0 || instruction.path.length === 0 || instruction.path === '/') {
     navigation.path = state + query;
@@ -993,11 +1031,37 @@ export class Router implements IRouter {
 
   // TODO: Review query extraction; different pos for path and fragment!
   private extractQuery(instructions: LoadInstruction | LoadInstruction[], options: ILoadOptions): LoadInstruction | LoadInstruction[] {
-    if (typeof instructions === 'string' && !options.query) {
+    // If instructions is a string and contains a query string, extract it
+    if (typeof instructions === 'string' && options.query == null) {
       const [path, search] = instructions.split('?');
       instructions = path;
       options.query = search;
     }
+    // If parameters is a string, it's really a query string so move it
+    if (typeof options.parameters === 'string' && options.query == null) {
+      options.query = options.parameters;
+      options.parameters = void 0;
+    }
+
+    if (typeof (options.query) === 'string' && options.query.length > 0) {
+      options.parameters ??= {};
+      // eslint-disable-next-line compat/compat
+      const searchParams = new URLSearchParams(options.query);
+      searchParams.forEach((value: string, key: string) => {
+        key = decodeURIComponent(key);
+        value = decodeURIComponent(value);
+
+        if (key in (options.parameters as Record<string, unknown>)) {
+          if (!Array.isArray((options.parameters as Record<string, unknown>)[key])) {
+            (options.parameters as Record<string, unknown>)[key] = [(options.parameters as Record<string, unknown>)[key] as string];
+          }
+          ((options.parameters as Record<string, unknown>)[key] as string[]).push(value);
+        } else {
+          (options.parameters as Record<string, unknown>)[key] = value;
+        }
+      });
+    }
+
     return instructions;
   }
 }

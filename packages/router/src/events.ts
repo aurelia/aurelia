@@ -1,8 +1,9 @@
 import { INavigatorState, NavigatorViewerState } from './navigator.js';
 
-export class NavigatorStateChangeEvent extends NavigatorViewerState {
+export class NavigatorStateChangeEvent /* extends NavigatorViewerState */ {
   public static eventName = 'au:router:navigation-state-change';
 
+  public viewerState!: NavigatorViewerState;
   public event!: PopStateEvent;
   public state?: INavigatorState;
 
@@ -13,8 +14,9 @@ export class NavigatorStateChangeEvent extends NavigatorViewerState {
   ): NavigatorStateChangeEvent {
     return Object.assign(new NavigatorStateChangeEvent(),
       {
-        ...viewerState,
+        // ...viewerState,
         ...{
+          viewerState,
           event: ev,
           state: navigatorState,
         },

@@ -2,8 +2,10 @@ import { customElement, ILogger, shadowCSS, ValueConverter } from 'aurelia';
 import template from './index.html';
 import css from './index.css';
 
-import { DataSet, IApi } from './data';
-
+// import { DataSet, IApi } from '../../shared/data';
+/**
+ * @deprecated
+ */
 @customElement({
   name: 'measurements-page',
   template,
@@ -44,10 +46,10 @@ import { DataSet, IApi } from './data';
   ],
 })
 export class MeasurementsPage {
-  public data: DataSet | null = null;
+  // public data: DataSet | null = null;
 
   public constructor(
-    @IApi private readonly api: IApi,
+    // @IApi private readonly api: IApi,
     @ILogger private readonly logger: ILogger,
   ) {
     (this.logger = logger.scopeTo('MeasurementsPage')).debug('constructor()');
@@ -56,6 +58,6 @@ export class MeasurementsPage {
   public async binding(): Promise<void> {
     this.logger.debug('binding()');
 
-    this.data = await this.api.getData();
+    // this.data = await this.api.getAll();
   }
 }

@@ -42,7 +42,11 @@
     "test/i18n",
     "test/benchmarking-apps/shared",
     "test/benchmarking-apps/aurelia2",
-    "test/benchmarking-apps/runner"
+    "test/benchmarking-apps/runner",
+    "test/benchmarking-apps/storage",
+    "test/benchmarking-apps/test-result",
+    "test/benchmarking-apps/viewer/server",
+    "test/benchmarking-apps/viewer/client"
   ],
   "license": "MIT",
   "engines": {

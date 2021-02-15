@@ -351,14 +351,50 @@ jobs:
   benchmark_playwright:
     executor: docker-circleci
     steps:
+      - checkout
+      - run: git checkout master
+      - run: CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+      - run: npm ci
+      - run: npm run build
+      - run:
+          name: "Prepare cosmos db configuration and run test for the master branch"
+          # TODO(Sayan): remove the duplication of config, which was done for backward compatibility, and can be removed once PR #1094 is merged with master.
+          command: |
+            cd test/benchmarking-apps/runner
+            echo "{\"cosmosEndpoint\": \"https://aurelia.documents.azure.com:443/\",\"cosmosKey\": \"$AZURE_COSMOS_DB_KEY\", \"endpoint\": \"https://aurelia.documents.azure.com:443/\",\"key\": \"$AZURE_COSMOS_DB_KEY\"}" > cosmos.config.json
+            set -o pipefail && node dist/run-benchmarks --i 10 --storage cosmos
+      - run: cd ../../../
       - checkout_install
       - run: npm run build
       - run:
-          name: "Prepare cosmos db configuration and run test"
+          name: "Run test for the current branch"
           command: |
             cd test/benchmarking-apps/runner
-            echo "{\"endpoint\": \"https://aurelia.documents.azure.com:443/\",\"key\": \"$AZURE_COSMOS_DB_KEY\"}" > cosmos.config.json
             set -o pipefail && node dist/run-benchmarks --i 10 --storage cosmos
+      # source: https://support.circleci.com/hc/en-us/articles/360048170573-Auto-comment-on-GitHub-Pull-Requests
+      - run:
+          name: Post benchmarking comparison link to GitHub PR
+          command: |
+            sudo apt-get install jq
+
+            pr_response=$(curl --location --request GET "https://api.github.com/repos/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/pulls?head=$CIRCLE_PROJECT_USERNAME:$CIRCLE_BRANCH" -H "Authorization: token $GITHUB_TOKEN")
+
+            if [ $(echo $pr_response | jq length) -eq 0 ]; then
+              echo "No PR found to update"
+            else
+              pr_comment_url=$(echo $pr_response | jq -r ".[]._links.comments.href")
+
+              git checkout master
+              master_commit=$(git rev-parse HEAD)
+
+              comparison_url="https://au2-bench-viewer.azurewebsites.net/compare?branch=master&commit=$master_commit&branch=$CIRCLE_BRANCH&commit=$CIRCLE_SHA1"
+              curl --location --request POST "$pr_comment_url" \
+              -H 'Content-Type: application/json' \
+              -H "Authorization: token $GITHUB_TOKEN" \
+              --data-raw "{
+              \"body\": \"The benchmarking comparison can be found here: $comparison_url\"
+              }"
+            fi
 
 # # # # # # # # # # # # # # # #
 # - Workflows -

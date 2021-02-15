@@ -1,12 +1,7 @@
 
 :host {
   --border-color: #dee2e6;
-
-  display: block;
-  height: 100%;
   width: 100%;
-
-  overflow: auto;
 }
 
 *, ::after, ::before {

@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "devDependencies": {
-    "@aurelia/http-server": "0.10.0-dev.202102151924",
-    "@azure/cosmos": "^3.9.3",
+    "@aurelia/http-server": "0.9.0",
+    "@benchmarking-apps/storage": "1.0.0",
     "@types/mocha": "^8.0.3",
     "@types/node": "^14.11.5",
     "@types/uuid": "^8.3.0",
@@ -17,7 +17,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "dev": "tsc -b -w --preserveWatchOutput",
-    "bench-all": "node dist/run-benchmarks --i 1 --storage cosmos"
+    "bench-all": "node dist/run-benchmarks --i 1 --storage json"
   },
   "engines": {
     "node": ">=14.15.0",

@@ -10,7 +10,9 @@ Aurelia provides a number of custom attributes out-of-the-box. Let's take a look
 
 ### Blur
 
-We can also use one-way data binding, from view to view model, to communicate whether an element is no longer "focused". This is different with normal focus model of the web, which only supports "focusable" element \(element with `tabindex` attribute, form fields such as `<input>` & `<select>` etc..., `<button>`, `<anchor>` with `href` attribute\). Blur attribute consider any interaction inside an element as focus-maintaining action, which will not trigger blur event. It also gives ability to link elements together to determine focus-state of a group of element \(think of a form submission and its confirmation dialog\).
+We can use one-way data binding, from view to view model, to communicate whether an element is no longer "focused". This is different from the normal focus model of the web, which only supports "focusable" elements \(element with `tabindex` attribute, form fields such as `<input>`, `<select>` etc..., `<button>`, `<anchor>` with `href` attribute\). The Blur attribute considers any interaction inside an element as a focus-maintaining action, which will not trigger blur event. It also makes it possible to link elements together to determine the focus-state of a group of elements \(think of a form submission and its confirmation dialog\).
+
+If a view model property is bound to `blur`, the property will be set to `false` when the element loses focus.
 
 Example of reflecting the focus of a form via a property `detailFormFocused`:
 
@@ -21,7 +23,7 @@ Example of reflecting the focus of a form via a property `detailFormFocused`:
 </form>
 ```
 
-Then we can use `detailFormFocused` value to determine further actions.
+Here, we use the `detailFormFocused` value to determine further actions.
 
 ### Focus
 

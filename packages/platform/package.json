@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/platform",
-  "version": "0.10.0-dev.202102151921",
+  "version": "0.10.0-dev.202102151924",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/index.d.ts",

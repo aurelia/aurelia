@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/plugin-conventions",
-  "version": "0.10.0-dev.202102151924",
+  "version": "0.10.0-dev.202102151925",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/index.d.ts",
@@ -37,11 +37,11 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "0.10.0-dev.202102151924",
-    "@aurelia/metadata": "0.10.0-dev.202102151924",
-    "@aurelia/platform": "0.10.0-dev.202102151924",
-    "@aurelia/runtime": "0.10.0-dev.202102151924",
-    "@aurelia/runtime-html": "0.10.0-dev.202102151924",
+    "@aurelia/kernel": "0.10.0-dev.202102151925",
+    "@aurelia/metadata": "0.10.0-dev.202102151925",
+    "@aurelia/platform": "0.10.0-dev.202102151925",
+    "@aurelia/runtime": "0.10.0-dev.202102151925",
+    "@aurelia/runtime-html": "0.10.0-dev.202102151925",
     "modify-code": "^1.2.0",
     "parse5": "^5.1.1",
     "typescript": "^4.0.3"

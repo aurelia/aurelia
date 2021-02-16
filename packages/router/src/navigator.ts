@@ -63,50 +63,22 @@ export interface INavigatorViewer {
 export interface INavigatorViewerOptions {
 }
 
-/**
- * The state used when communicating with the navigator viewer.
- */
-/**
- * @internal
- */
-export class NavigatorViewerState {
-  /**
-   * The URL (Location) path
-   */
-  public path!: string;
+// export class NavigatorViewerEvent extends NavigatorViewerState {
+//   public event!: PopStateEvent;
+//   public state?: INavigatorState;
+// }
 
-  /**
-   * The URL (Location) query
-   */
-  public query!: string;
-
-  /**
-   * The URL (Location) hash
-   */
-  public hash!: string;
-
-  /**
-   * The navigation instruction
-   */
-  public instruction!: string;
-}
-
-/**
- * @internal
- */
-export class NavigatorViewerEvent extends NavigatorViewerState {
-  public event!: PopStateEvent;
-  public state?: INavigatorState;
-}
-
-export class NavigatorNavigateEvent extends Navigation {
+export class NavigatorNavigateEvent /* extends Navigation */ {
   public static eventName = 'au:router:navigation-navigate';
 
-  public static createEvent(navigation: INavigation): NavigatorNavigateEvent {
-    return Object.assign(
-      new NavigatorNavigateEvent(),
-      navigation,
-    );
+  public constructor(
+    public readonly eventName: string,
+    public readonly navigation: Navigation
+  ) { }
+  public static create(navigation: INavigation): NavigatorNavigateEvent {
+    return new NavigatorNavigateEvent(
+      NavigatorNavigateEvent.eventName,
+      navigation as Navigation);
   }
 }
 
@@ -510,7 +482,7 @@ export class Navigator {
     (navigation as Navigation).navigation = navigationFlags;
     (navigation as Navigation).previous = previousNavigation;
 
-    this.ea.publish(NavigatorNavigateEvent.eventName, NavigatorNavigateEvent.createEvent(navigation));
+    this.ea.publish(NavigatorNavigateEvent.eventName, NavigatorNavigateEvent.create(navigation));
   }
 
   /**

@@ -1,7 +1,7 @@
 import { EventAggregator, IEventAggregator } from '@aurelia/kernel';
 import { IWindow, IHistory, ILocation, IPlatform } from '@aurelia/runtime-html';
-import { NavigatorStateChangeEvent } from './events.js';
-import { INavigatorState, INavigatorStore, INavigatorViewer, INavigatorViewerOptions, NavigatorViewerState } from './navigator.js';
+// import { NavigatorStateChangeEvent } from './events.js';
+import { INavigatorState, INavigatorStore, INavigatorViewer, INavigatorViewerOptions } from './navigator.js';
 import { QueueTask, TaskQueue } from './utilities/task-queue.js';
 
 /**
@@ -277,7 +277,7 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer {
       // });
 
       this.ea.publish(NavigatorStateChangeEvent.eventName,
-        NavigatorStateChangeEvent.createEvent(this.viewerState, ev, this.history.state as INavigatorState));
+        NavigatorStateChangeEvent.create(this.viewerState, ev, this.history.state as INavigatorState));
     }
     if (eventTask !== null) {
       await eventTask.execute();
@@ -328,6 +328,34 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer {
 }
 
 /**
+ * The state used when communicating with the navigator viewer.
+ */
+/**
+ * @internal
+ */
+export class NavigatorViewerState {
+  /**
+   * The URL (Location) path
+   */
+  public path!: string;
+
+  /**
+   * The URL (Location) query
+   */
+  public query!: string;
+
+  /**
+   * The URL (Location) hash
+   */
+  public hash!: string;
+
+  /**
+   * The navigation instruction
+   */
+  public instruction!: string;
+}
+
+/**
  * @internal
  */
 interface IForwardedState {
@@ -340,4 +368,26 @@ interface IForwardedState {
  */
 interface IAction {
   execute(task: QueueTask<IAction>, resolve?: ((value?: void | boolean | PromiseLike<void> | PromiseLike<boolean>) => void) | null | undefined, suppressEvent?: boolean): void;
+}
+
+export class NavigatorStateChangeEvent /* extends NavigatorViewerState */ {
+  public static eventName = 'au:router:navigation-state-change';
+
+  public constructor(
+    public readonly eventName: string,
+    public readonly viewerState: NavigatorViewerState,
+    public readonly event: PopStateEvent,
+    public readonly state: INavigatorState,
+  ) { }
+  public static create(
+    viewerState: NavigatorViewerState,
+    ev: PopStateEvent,
+    navigatorState: INavigatorState,
+  ): NavigatorStateChangeEvent {
+    return new NavigatorStateChangeEvent(
+      NavigatorStateChangeEvent.eventName,
+      viewerState,
+      ev,
+      navigatorState);
+  }
 }

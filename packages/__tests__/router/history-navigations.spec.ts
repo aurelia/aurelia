@@ -76,8 +76,8 @@ describe('History navigations', function () {
     const { tearDown, router, eventManager } = await createFixture({}, App, [Foo]);
 
     eventManager.subscribe(this, RouterNavigationEndEvent.eventName, (event: RouterNavigationEndEvent) => {
-      result.url = event.path;
-      result.navigation = Object.assign({}, result.navigation, event.navigation);
+      result.url = event.navigation.path;
+      result.navigation = Object.assign({}, result.navigation, event.navigation.navigation);
     });
 
     for (const test of tests) {

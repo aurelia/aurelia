@@ -56,25 +56,39 @@ export class ViewportContent extends EndpointContent {
 
   public constructor(
     public readonly router: IRouter,
+
     /**
      * The viewport the viewport content belongs to
      */
     viewport: Viewport,
+
     /**
      * The routing scope the viewport content belongs to/is owned by
      */
     owningScope: RoutingScope | null,
+
     /**
      * Whether the viewport has its own routing scope, containing
      * endpoints it owns
      */
     hasScope: boolean,
-    // Can (and wants) be a (resolved) type or a string (to be resolved later)
+
+    /**
+     * The routing instruction that created the viewport content
+     */
     public instruction: RoutingInstruction = RoutingInstruction.create('') as RoutingInstruction,
+
+    /**
+     * The navigation that created the viewport content
+     */
     public navigation = Navigation.create({
       instruction: '',
       fullStateInstruction: '',
     }),
+
+    /**
+     * The connected viewport custom element
+     */
     connectedCE: IConnectedCustomElement | null = null
   ) {
     super(router, viewport, owningScope, hasScope, instruction);
@@ -218,10 +232,7 @@ export class ViewportContent extends EndpointContent {
       return true;
     }
 
-    // TODO(alpha): Review this according to params -> instruction -> navigation!
     const typeParameters = this.instruction.component.type?.parameters ?? null;
-    // this.navigation.parameters = this.instruction.parameters.toSpecifiedParameters(typeParameters);
-    // const merged = { ...InstructionParameters.parseQuery(this.navigation.query), ...this.navigation.parameters };
     const parameters = this.instruction.parameters.toSpecifiedParameters(typeParameters);
     const merged = { ...this.navigation.parameters, ...parameters };
     const result = this.instruction.component.instance!.canLoad(merged, this.instruction, this.navigation);
@@ -293,10 +304,7 @@ export class ViewportContent extends EndpointContent {
 
         // Skip if there's no hook in component
         if (this.instruction.component.instance?.load != null) {
-          // TODO(alpha): Review this according to params -> instruction -> navigation!
           const typeParameters = this.instruction.component.type ? this.instruction.component.type.parameters : null;
-          // this.navigation.parameters = this.instruction.parameters.toSpecifiedParameters(typeParameters);
-          // const merged = { ...InstructionParameters.parseQuery(this.navigation.query), ...this.navigation.parameters };
           const parameters = this.instruction.parameters.toSpecifiedParameters(typeParameters);
           const merged = { ...this.navigation.parameters, ...parameters };
           return this.instruction.component.instance.load(merged, this.instruction, this.navigation);

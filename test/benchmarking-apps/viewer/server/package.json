@@ -4,10 +4,10 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@aurelia/http-server": "0.10.0-dev.202102151925",
-    "@aurelia/kernel": "0.10.0-dev.202102151925",
-    "@aurelia/metadata": "0.10.0-dev.202102151925",
-    "@aurelia/platform": "0.10.0-dev.202102151925",
+    "@aurelia/http-server": "0.10.0-dev.202102161145",
+    "@aurelia/kernel": "0.10.0-dev.202102161145",
+    "@aurelia/metadata": "0.10.0-dev.202102161145",
+    "@aurelia/platform": "0.10.0-dev.202102161145",
     "@azure/cosmos": "^3.9.3",
     "@benchmarking-apps/storage": "1.0.0"
   },

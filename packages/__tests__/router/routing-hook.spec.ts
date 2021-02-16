@@ -48,23 +48,23 @@ describe('RoutingHook', function () {
     let _pushState;
     let _replaceState;
     if (spy) {
-      _pushState = router.navigation.history.pushState;
-      router.navigation.history.pushState = function (data, title, path) {
+      _pushState = router.viewer.history.pushState;
+      router.viewer.history.pushState = function (data, title, path) {
         spy('push', data, title, path);
-        _pushState.call(router.navigation.history, data, title, path);
+        _pushState.call(router.viewer.history, data, title, path);
       };
-      _replaceState = router.navigation.history.replaceState;
-      router.navigation.history.replaceState = function (data, title, path) {
+      _replaceState = router.viewer.history.replaceState;
+      router.viewer.history.replaceState = function (data, title, path) {
         spy('replace', data, title, path);
-        _replaceState.call(router.navigation.history, data, title, path);
+        _replaceState.call(router.viewer.history, data, title, path);
       };
     }
     return { _pushState, _replaceState };
   }
   function unspyNavigationStates(router, _push, _replace) {
     if (_push) {
-      router.navigation.history.pushState = _push;
-      router.navigation.history.replaceState = _replace;
+      router.viewer.history.pushState = _push;
+      router.viewer.history.replaceState = _replace;
     }
   }
   const $load = async (path: string, router: IRouter, platform: IPlatform) => {

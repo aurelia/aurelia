@@ -18,9 +18,9 @@ describe('RoutingInstruction', function () {
 
     const router = container.get(IRouter);
     const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();
-    mockBrowserHistoryLocation.changeCallback = router.navigation.handlePopstate;
-    router.navigation.history = mockBrowserHistoryLocation as any;
-    router.navigation.location = mockBrowserHistoryLocation as any;
+    mockBrowserHistoryLocation.changeCallback = router.viewer.handlePopstate;
+    router.viewer.history = mockBrowserHistoryLocation as any;
+    router.viewer.location = mockBrowserHistoryLocation as any;
 
     await au.start();
 

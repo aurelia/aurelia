@@ -151,11 +151,11 @@ export async function clearBrowserState(platform: any, router: IRouter | null = 
   // const { state } = platform.history;
   const index = href.indexOf('#');
   if (index >= 0) {
-    if (router?.navigation?.replaceNavigatorState == null) {
+    if (router?.viewer?.replaceNavigatorState == null) {
       platform.history.replaceState({}, '', href.slice(0, index));
       await Promise.resolve();
     } else {
-      await router.navigation.replaceNavigatorState({}, '', href.slice(0, index));
+      await router.viewer.replaceNavigatorState({}, '', href.slice(0, index));
     }
   }
 }

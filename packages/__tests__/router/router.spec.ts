@@ -6,9 +6,9 @@ describe('Router', function () {
   function getModifiedRouter(container) {
     const router = container.get(IRouter) as IRouter;
     const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();
-    mockBrowserHistoryLocation.changeCallback = router.navigation.handlePopstate;
-    router.navigation.history = mockBrowserHistoryLocation as any;
-    router.navigation.location = mockBrowserHistoryLocation as any;
+    mockBrowserHistoryLocation.changeCallback = router.viewer.handlePopstate;
+    router.viewer.history = mockBrowserHistoryLocation as any;
+    router.viewer.location = mockBrowserHistoryLocation as any;
     return router;
   }
 
@@ -16,23 +16,23 @@ describe('Router', function () {
     let _pushState;
     let _replaceState;
     if (spy) {
-      _pushState = router.navigation.location.pushState;
-      router.navigation.location.pushState = function (data, title, path) {
+      _pushState = router.viewer.location.pushState;
+      router.viewer.location.pushState = function (data, title, path) {
         spy('push', data, title, path);
-        _pushState.call(router.navigation.location, data, title, path);
+        _pushState.call(router.viewer.location, data, title, path);
       };
-      _replaceState = router.navigation.location.replaceState;
-      router.navigation.location.replaceState = function (data, title, path) {
+      _replaceState = router.viewer.location.replaceState;
+      router.viewer.location.replaceState = function (data, title, path) {
         spy('replace', data, title, path);
-        _replaceState.call(router.navigation.location, data, title, path);
+        _replaceState.call(router.viewer.location, data, title, path);
       };
     }
     return { _pushState, _replaceState };
   }
   function unspyNavigationStates(router, _push, _replace) {
     if (_push) {
-      router.navigation.location.pushState = _push;
-      router.navigation.location.replaceState = _replace;
+      router.viewer.location.pushState = _push;
+      router.viewer.location.replaceState = _replace;
     }
   }
 
@@ -234,15 +234,15 @@ describe('Router', function () {
 
     const { platform, host, router, tearDown } = await createFixture();
 
-    const historyLength = router.navigation.history.length;
+    const historyLength = router.viewer.history.length;
     await $load('foo@left', router, platform);
     assert.includes(host.textContent, 'foo', `host.textContent`);
-    assert.strictEqual(router.navigation.history.length, historyLength + 1, `router.navigation.history.length`);
+    assert.strictEqual(router.viewer.history.length, historyLength + 1, `router.viewer.history.length`);
 
     await router.load('bar@left', { replace: true });
 
     assert.includes(host.textContent, 'bar', `host.textContent`);
-    assert.strictEqual(router.navigation.history.length, historyLength + 1, `router.navigation.history.length`);
+    assert.strictEqual(router.viewer.history.length, historyLength + 1, `router.viewer.history.length`);
 
     await tearDown();
   });
@@ -959,9 +959,9 @@ describe('Router', function () {
 
       const router = container.get(IRouter);
       const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();
-      mockBrowserHistoryLocation.changeCallback = router.navigation.handlePopstate;
-      router.navigation.history = mockBrowserHistoryLocation as any;
-      router.navigation.location = mockBrowserHistoryLocation as any;
+      mockBrowserHistoryLocation.changeCallback = router.viewer.handlePopstate;
+      router.viewer.history = mockBrowserHistoryLocation as any;
+      router.viewer.location = mockBrowserHistoryLocation as any;
 
       await au.start();
 

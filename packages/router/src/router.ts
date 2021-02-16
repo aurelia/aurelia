@@ -62,62 +62,120 @@ import { RouterConfiguration } from './index.js';
  */
 
 /**
- * Public API
+ * The load options.
  */
 export interface ILoadOptions {
-  title?: string;
-  query?: string;
-  parameters?: string | Record<string, unknown>;
-  data?: Record<string, unknown>;
-  replace?: boolean;
-  append?: boolean;
-  origin?: ICustomElementViewModel | Element;
-  context?: ICustomElementViewModel | Element | Node | ICustomElementController;
-  scopeModifier?: string;
   /**
+   * The title to use for this load
+   */
+  title?: string;
+
+  /**
+   * The query string to use/set with this load
+   */
+  query?: string;
+
+  /**
+   * The parameters to use for this load. If specified and no `query` is
+   * specified, `query` will be created and set based on this.
+   */
+  parameters?: string | Record<string, unknown>;
+
+  /**
+   * Data that's passed along (untouched) with the navigation
+   */
+  data?: Record<string, unknown>;
+
+  /**
+   * Whether the navigation should replace the current one in navigation
+   * (and browser) history. Default: false
+   */
+  replace?: boolean;
+
+  /**
+   * Whether the instructions should be appended to a current navigation
+   * in progress (if any). If no current navigation is in progress, the
+   * instructions will be treated as a new navigation. Default: false
+   */
+  append?: boolean;
+
+  /**
+   * The origin of the navigation. Will also be used as context if no
+   * context is specified.
+   */
+  origin?: ICustomElementViewModel | Element;
+
+  /**
+   * The (starting) context of the navigation. If no context is specified,
+   * origin, if specified, will be used instead.
+   */
+  context?: ICustomElementViewModel | Element | Node | ICustomElementController;
+
+  /**
+   * Modifies that (starting) scope, based on `context`, by either going up
+   * `../` or to root `/`.
+   */
+  scopeModifier?: string;
+
+  /**
+   * Whether the browser (url, history navigation) is the cause of the
+   * navigation.
+   *
    * @internal
    */
   fromBrowser?: boolean;
   /**
+   * Whether the navigation should replace the current one in navigation
+   * (and browser) history. If true, overrides `replace`. Default: false
+   *
    * @internal
    */
   replacing?: boolean;
 }
 
-/**
- * Public API
- */
 export const IRouter = DI.createInterface<IRouter>('IRouter').withDefault(x => x.singleton(Router));
-
 export interface IRouter extends Router { }
 
 export class Router implements IRouter {
-  public static readonly inject: readonly Key[] = [IContainer, IEventAggregator, Navigator, BrowserViewerStore];
+  public static readonly inject: readonly Key[] = [IContainer, IEventAggregator, Navigator, BrowserViewerStore, BrowserViewerStore];
   public static readonly closestEndpointKey = Protocol.annotation.keyFor('closest-endpoint');
 
+  /**
+   * The root viewport scope.
+   */
   public rootScope: ViewportScope | null = null;
 
   /**
-   * Public API
+   * The active routing instructions.
    */
   public activeComponents: RoutingInstruction[] = [];
-  /**
-   * Public API
-   */
-  // public activeRoute?: Route;
 
   /**
+   * Instructions that should be appended to current navigation
    * @internal
    */
   public appendedInstructions: RoutingInstruction[] = [];
 
+  /**
+   * The currently processed navigation.
+   */
   public processingNavigation: Navigation | null = null;
-  public isActive: boolean = false;
-  public pendingConnects: Map<IConnectedCustomElement, OpenPromise> = new Map<IConnectedCustomElement, OpenPromise>();
 
+  /**
+   * Whether the router is active/started
+   */
+  public isActive: boolean = false;
+  // public pendingConnects: Map<IConnectedCustomElement, OpenPromise> = new Map<IConnectedCustomElement, OpenPromise>();
+
+  /**
+   * Whether the first load has happened
+   */
   private loadedFirst: boolean = false;
 
-  private lastNavigation: Navigation | null = null;
+  /**
+   * The previous navigation.
+   */
+  // private lastNavigation: Navigation | null = null;
 
   private navigatorStateChangeEventSubscription!: IDisposable;
   private navigatorNavigateEventSubscription!: IDisposable;
@@ -128,12 +186,27 @@ export class Router implements IRouter {
      */
     public readonly container: IContainer,
     @IEventAggregator private readonly ea: EventAggregator,
+
     /**
+     * The navigator that manages navigation queue and history
+     *
      * @internal
      */
     public navigator: Navigator,
 
-    public navigation: BrowserViewerStore, // TODO: Really should separate these
+    /**
+     * The viewer (browser) that displays url, navigation buttons
+     *
+     * @internal
+     */
+    public viewer: BrowserViewerStore,
+
+    /**
+     * The store (browser) that stores navigations
+     *
+     * @internal
+     */
+    public store: BrowserViewerStore,
   ) { }
 
   /**
@@ -170,14 +243,14 @@ export class Router implements IRouter {
     this.isActive = true;
 
     this.navigator.start({
-      store: this.navigation,
-      viewer: this.navigation,
+      store: this.store,
+      viewer: this.viewer,
       statefulHistoryLength: RouterConfiguration.options.statefulHistoryLength,
     });
 
     this.navigatorStateChangeEventSubscription = this.ea.subscribe(NavigatorStateChangeEvent.eventName, this.handleNavigatorStateChangeEvent);
     this.navigatorNavigateEventSubscription = this.ea.subscribe(NavigatorNavigateEvent.eventName, this.handleNavigatorNavigateEvent);
-    this.navigation.start({ useUrlFragmentHash: RouterConfiguration.options.useUrlFragmentHash });
+    this.viewer.start({ useUrlFragmentHash: RouterConfiguration.options.useUrlFragmentHash });
 
     this.ensureRootScope();
 
@@ -193,7 +266,7 @@ export class Router implements IRouter {
     }
     this.ea.publish(RouterStopEvent.eventName, RouterStopEvent.create());
     this.navigator.stop();
-    this.navigation.stop();
+    this.viewer.stop();
     // RouterConfiguration.apply({}, true); // TODO: Look into removing this
 
     this.navigatorStateChangeEventSubscription.dispose();
@@ -214,7 +287,7 @@ export class Router implements IRouter {
     // });
     // const result = this.navigator.navigate(entry);
     const result = this.load(
-      this.navigation.viewerState.instruction,
+      this.viewer.viewerState.instruction,
       { replacing: true, fromBrowser: false });
     this.loadedFirst = true;
     return result;
@@ -273,8 +346,8 @@ export class Router implements IRouter {
 
     this.ea.publish(RouterNavigationStartEvent.eventName, RouterNavigationStartEvent.create(navigation));
 
-    // TODO: This can now probably be removed. Investigate!
-    this.pendingConnects.clear();
+    // // TODO: This can now probably be removed. Investigate!
+    // this.pendingConnects.clear();
 
     // Get and initialize a navigation coordinator that will keep track of all endpoint's progresses
     // and make sure they're in sync when they are supposed to be (no `canLoad` before all `canUnload`
@@ -594,10 +667,10 @@ export class Router implements IRouter {
         if (navigation.navigation.new && !navigation.navigation.first && !navigation.repeating && allChangedEndpoints.every(endpoint => endpoint.options.noHistory)) {
           navigation.untracked = true;
         }
-        this.lastNavigation = this.processingNavigation;
-        if (this.lastNavigation?.repeating ?? false) {
-          this.lastNavigation!.repeating = false;
-        }
+        // this.lastNavigation = this.processingNavigation;
+        // if (this.lastNavigation?.repeating ?? false) {
+        //   this.lastNavigation!.repeating = false;
+        // }
         this.processingNavigation = null;
         return this.navigator.finalize(navigation);
       },
@@ -643,11 +716,11 @@ export class Router implements IRouter {
     if (endpoint === null) {
       endpoint = parentScope.addEndpoint(type, name, connectedCE, options);
       Registration.instance(Router.closestEndpointKey, endpoint).register(container);
-      if (!this.isRestrictedNavigation) {
-        this.pendingConnects.set(connectedCE, new OpenPromise());
-      }
-    } else {
-      this.pendingConnects.get(connectedCE)?.resolve();
+      //   if (!this.isRestrictedNavigation) {
+      //     this.pendingConnects.set(connectedCE, new OpenPromise());
+      //   }
+      // } else {
+      //   this.pendingConnects.get(connectedCE)?.resolve();
     }
     return endpoint;
   }

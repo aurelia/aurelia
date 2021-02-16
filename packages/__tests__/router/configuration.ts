@@ -15,7 +15,7 @@ export const TestRouterConfiguration = {
           Registration.instance(ILocation, mockBrowserHistoryLocation),
           AppTask.with(IRouter).hydrating().call(router => {
             // mockBrowserHistoryLocation.changeCallback = router['handlePopstate'];
-            mockBrowserHistoryLocation.changeCallback = router.navigation.handlePopstate;
+            mockBrowserHistoryLocation.changeCallback = router.viewer.handlePopstate;
           }),
         );
       },
@@ -26,8 +26,8 @@ export const TestRouterConfiguration = {
 function getModifiedRouter(container) {
   const router = container.get(IRouter) as IRouter;
   const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();
-  mockBrowserHistoryLocation.changeCallback = router.navigation.handlePopstate;
-  router.navigation.history = mockBrowserHistoryLocation as any;
-  router.navigation.location = mockBrowserHistoryLocation as any;
+  mockBrowserHistoryLocation.changeCallback = router.viewer.handlePopstate;
+  router.viewer.history = mockBrowserHistoryLocation as any;
+  router.viewer.location = mockBrowserHistoryLocation as any;
   return router;
 }

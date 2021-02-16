@@ -338,7 +338,6 @@ export class NavigationCoordinator {
       }
     });
     this.router.navigator.cancel(this.navigation).then(() => {
-      // console.log('then', 'cancel');
       this.router.processingNavigation = null;
       if (this.navigation.resolve != null) {
         this.navigation.resolve(false);
@@ -357,7 +356,6 @@ export class NavigationCoordinator {
    * @param state - The state to check
    */
   private checkSyncState(state: NavigationState): void {
-    // console.log('NavigationCoordinator check state', state, this);
     // Get the promise, if any, indicating that we're synchronizing this state...
     const openPromise = this.syncStates.get(state);
     if (openPromise === void 0) {
@@ -376,14 +374,12 @@ export class NavigationCoordinator {
     ) {
       for (const entity of this.entities) {
         if (entity.syncState === state) {
-          // console.log('Resolving entity promise for ', state, (entity.entity as any).toString());
           entity.syncPromise?.resolve();
           entity.syncPromise = null;
           entity.syncState = null;
         }
       }
       openPromise.resolve();
-      // console.log('#### NavigationCoordinator state resolved', state /*, this */);
     }
   }
 

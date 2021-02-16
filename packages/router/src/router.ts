@@ -210,12 +210,15 @@ export class Router implements IRouter {
   ) { }
 
   /**
-   * Public API
+   * Whether the router is currently navigating.
    */
   public get isNavigating(): boolean {
     return this.processingNavigation !== null;
   }
 
+  /**
+   * Whether navigations are restricted/synchronized beyond the minimum.
+   */
   public get isRestrictedNavigation(): boolean {
     const syncStates = RouterConfiguration.options.navigationSyncStates;
     return syncStates.includes('guardedLoad') ||
@@ -226,6 +229,8 @@ export class Router implements IRouter {
   }
 
   /**
+   * Whether navigation history is stateful
+   *
    * @internal
    */
   public get statefulHistory(): boolean {
@@ -233,7 +238,7 @@ export class Router implements IRouter {
   }
 
   /**
-   * Public API
+   * Start the router, activing the event listeners.
    */
   public start(): void {
     if (this.isActive) {
@@ -258,7 +263,7 @@ export class Router implements IRouter {
   }
 
   /**
-   * Public API
+   * Stop the router.
    */
   public stop(): void {
     if (!this.isActive) {
@@ -274,9 +279,11 @@ export class Router implements IRouter {
   }
 
   /**
+   * Perform the initial load, using the current url.
+   *
    * @internal
    */
-  public async loadUrl(): Promise<boolean | void> {
+  public async initialLoad(): Promise<boolean | void> {
     // const entry = Navigation.create({
     //   ...this.navigation.viewerState,
     //   ...{
@@ -294,6 +301,10 @@ export class Router implements IRouter {
   }
 
   /**
+   * Handle the navigator's navigate event.
+   *
+   * @param event - The event to handle
+   *
    * @internal
    */
   // TODO: use @bound (eslint-disable is temp)
@@ -307,6 +318,10 @@ export class Router implements IRouter {
   };
 
   /**
+   * Handle the navigator's state change event.
+   *
+   * @param event - The event to handle
+   *
    * @internal
    */
   // TODO: use @bound (eslint-disable is temp)
@@ -331,15 +346,14 @@ export class Router implements IRouter {
   };
 
   /**
+   * Processes the route/instructions in a (queued) navigation.
+   *
+   * @param evNavigation - The navigation to process
+   *
    * @internal
    */
   // TODO: use @bound and improve name (eslint-disable is temp)
   // eslint-disable-next-line @typescript-eslint/typedef
-  /**
-   * Processes the route/instructions in a (queued) navigation.
-   *
-   * @param evNavigation - The navigation to process
-   */
   public processNavigation = async (navigation: Navigation): Promise<void> => {
     // const navigation = this.processingNavigation = evNavigation as Navigation;
     this.processingNavigation = navigation;
@@ -485,7 +499,7 @@ export class Router implements IRouter {
           const dontClear = [endpoint];
           if (action === 'swap') {
             // ...and none of it's _current_ children if we're swapping them out.
-            dontClear.push(...endpoint.content.connectedScope.allScopes(true, true).map(scope => scope.endpoint));
+            dontClear.push(...endpoint.content.connectedScope.allScopes(true).map(scope => scope.endpoint));
           }
           // Exclude the endpoints to not clear from the ones to be cleared...
           arrayRemove(clearEndpoints, clear => dontClear.includes(clear));
@@ -683,29 +697,44 @@ export class Router implements IRouter {
   };
 
   /**
-   * Public API - Get endpoint by name
+   * Get a named endpoint of a specific type.
+   *
+   * @param type - The type of endpoint to get
+   * @param name - The name of the endpoint to get
    */
   public getEndpoint(type: EndpointType, name: string): Endpoint | null {
     return this.allEndpoints(type).find(endpoint => endpoint.name === name) ?? null;
   }
+
   /**
-   * Public API - Get all endpoints
+   * Get all endpoints of a specific type.
+   *
+   * @param type - The type of the endpoints to get
+   * @param includeDisabled - Whether disabled/non-active endpoints should be included
+   * @param includeReplaced - Whether replaced endpoints should be included
    */
-  public allEndpoints(type: EndpointType | null, includeDisabled: boolean = false, includeReplaced: boolean = false): Viewport[] {
+  public allEndpoints(type: EndpointType | null, includeDisabled: boolean = false): Viewport[] {
     return this.rootScope!.scope
-      .allScopes(includeDisabled, includeReplaced)
+      .allScopes(includeDisabled)
       .filter(scope => type === null || scope.type === type)
       .map(scope => scope.endpoint) as Viewport[];
   }
   /**
    * Public API (not yet implemented)
    */
-  public addEndpoint(type: EndpointType, ...args: unknown[]): unknown {
+  public addEndpoint(_type: EndpointType, ..._args: unknown[]): unknown {
     throw new Error('Not implemented');
   }
 
   /**
-   * Called from the custom elements of endpoints
+   * Connect an endpoint custom element to an endpoint. Called from the custom
+   * elements of endopints.
+   *
+   * @param endpoint - An already connected endpoint
+   * @param type - The type of the endpoint
+   * @param connectedCE - The endpoint custom element
+   * @param name - The name of the endpoint
+   * @param options - The custom element options
    *
    * @internal
    */
@@ -724,10 +753,14 @@ export class Router implements IRouter {
     }
     return endpoint;
   }
+
   /**
-   * Called from the custom elements of endpoints
+   * Disconnect an custom element endpoint from an endpoint. Called from the
+   * custom elements of endpoints.
    *
-   * @internal
+   * @param step - The previous step in this transition Run
+   * @param endpoint - The endpoint to disconnect from
+   * @param connectedCE - The custom element to disconnect
    */
   public disconnectEndpoint(step: Step | null, endpoint: Viewport | ViewportScope, connectedCE: IConnectedCustomElement): void {
     if (!endpoint.connectedScope.parent!.removeEndpoint(step, endpoint, connectedCE)) {
@@ -736,7 +769,10 @@ export class Router implements IRouter {
   }
 
   /**
-   * Public API - THE navigation API
+   * Load navigation instructions.
+   *
+   * @param instructions - The instructions to load
+   * @param options - The options to use when loading the instructions
    */
   public async load(instructions: LoadInstruction | LoadInstruction[], options?: ILoadOptions): Promise<boolean | void> {
     options = options ?? {};
@@ -768,6 +804,14 @@ export class Router implements IRouter {
     return this.navigator.navigate(entry);
   }
 
+  /**
+   * Apply the load options on the instructions.
+   *
+   * @param loadInstructions - The instructions to load
+   * @param options - The load options to apply when loading the instructions
+   * @param keepString - Whether the load instructions should remain as a
+   * string (if it's a string)
+   */
   public applyLoadOptions(loadInstructions: LoadInstruction | LoadInstruction[], options?: ILoadOptions, keepString = true): { instructions: string | RoutingInstruction[]; scope: RoutingScope | null } {
     options = options ?? {};
     if ('origin' in options && !('context' in options)) {
@@ -821,35 +865,42 @@ export class Router implements IRouter {
   }
 
   /**
-   * Public API
+   * Refresh/reload the current navigation
    */
   public refresh(): Promise<boolean | void> {
     return this.navigator.refresh();
   }
 
   /**
-   * Public API
+   * Go one step back in navigation history.
    */
   public back(): Promise<boolean | void> {
     return this.navigator.go(-1);
   }
 
   /**
-   * Public API
+   * Go one step forward in navigation history.
    */
   public forward(): Promise<boolean | void> {
     return this.navigator.go(1);
   }
 
   /**
-   * Public API
+   * Go a specified amount of steps back or forward in navigation history.
+   *
+   * @param delta - The amount of steps to go. A positive number goes
+   * forward, a negative goes backwards.
    */
   public go(delta: number): Promise<boolean | void> {
     return this.navigator.go(delta);
   }
 
   /**
-   * Public API
+   * Check whether a set of instructions are active. All instructions need
+   * to be active for the condition to be true.
+   *
+   * @param instructions - The instructions to check
+   * @param options - The load options to apply to the instructions to check
    */
   public checkActive(instructions: LoadInstruction | LoadInstruction[], options?: ILoadOptions): boolean {
     // TODO: Look into allowing strings/routes as well
@@ -882,6 +933,12 @@ export class Router implements IRouter {
     return true;
   }
 
+  /**
+   * Append instructions to the current navigation.
+   *
+   * @param instructions - The instructions to append
+   * @param scope - The scope of the instructions
+   */
   private appendInstructions(instructions: RoutingInstruction[], scope: RoutingScope | null = null): void {
     if (scope === null) {
       scope = this.rootScope!.scope;
@@ -894,6 +951,11 @@ export class Router implements IRouter {
     this.appendedInstructions.push(...instructions);
   }
 
+  /**
+   * Deal with/throw an unknown route error.
+   *
+   * @param route - The failing route
+   */
   private unknownRoute(route: string) {
     if (typeof route !== 'string' || route.length === 0) {
       return;
@@ -910,6 +972,9 @@ export class Router implements IRouter {
     }
   }
 
+  /**
+   * Ensure that there's a clear all instruction present in instructions.
+   */
   private ensureClearStateInstruction(instructions: RoutingInstruction[]): RoutingInstruction[] {
     if (instructions.length > 0) {
       const instruction = instructions[0];
@@ -922,6 +987,12 @@ export class Router implements IRouter {
     return instructions;
   }
 
+  /**
+   * Get all endpoints affected by any clear all routing instructions and then remove those
+   * routing instructions.
+   *
+   * @param instructions - The instructions to process
+   */
   private getClearAllEndpoints(instructions: RoutingInstruction[]): { clearEndpoints: Endpoint[]; instructions: RoutingInstruction[] } {
     let clearEndpoints: Endpoint[] = [];
     // For each clear all routing instruction...
@@ -938,6 +1009,13 @@ export class Router implements IRouter {
     return { clearEndpoints, instructions: instructions.filter(instruction => !instruction.isClearAll) };
   }
 
+  /**
+   * Match the instructions to available endpoints within, and with the help of, their scope.
+   *
+   * @param instructions - The instructions to matched
+   * @param alreadyFound - The already found matches
+   * @param withoutViewports - Whether viewports should be ignored when matching
+   */
   private matchEndpoints(instructions: RoutingInstruction[], alreadyFound: RoutingInstruction[], withoutViewports: boolean = false): { matchedInstructions: RoutingInstruction[]; remainingInstructions: RoutingInstruction[] } {
     const allMatchedInstructions: RoutingInstruction[] = [];
     const allRemainingInstructions: RoutingInstruction[] = [];
@@ -955,6 +1033,13 @@ export class Router implements IRouter {
     return { matchedInstructions: allMatchedInstructions.slice(), remainingInstructions: allRemainingInstructions };
   }
 
+  /**
+   * Find child route (configured) and instructions (if any).
+   *
+   * @param alreadyMatchedInstructions - The already matched instructions
+   * @param configuredRoute - The previous found configured route
+   * @param configuredRoutePath - The previous configured route path
+   */
   private findChildRoute(alreadyMatchedInstructions: RoutingInstruction[], configuredRoute: FoundRoute, configuredRoutePath: string | null) {
     let foundChildRoute = new FoundRoute();
     let configuredChildRoutePath = configuredRoutePath ?? '';
@@ -982,6 +1067,15 @@ export class Router implements IRouter {
     return { foundChildRoute, configuredChildRoutePath };
   }
 
+  /**
+   * Add appended instructions to either matched or remaining except default instructions
+   * where there's a non-default already in the lists.
+   *
+   * @param matchedInstructions - The matched instructions
+   * @param earlierMatchedInstructions - The earlier matched instructions
+   * @param remainingInstructions - The remaining instructions
+   * @param appendedInstructions - The instructions to append
+   */
   private addAppendedInstructions(matchedInstructions: RoutingInstruction[], earlierMatchedInstructions: RoutingInstruction[], remainingInstructions: RoutingInstruction[], appendedInstructions: RoutingInstruction[]) {
     // Don't modify incoming originals
     matchedInstructions = [...matchedInstructions];
@@ -1029,6 +1123,9 @@ export class Router implements IRouter {
     return { matchedInstructions, earlierMatchedInstructions, remainingInstructions };
   }
 
+  /**
+   * Ensure that the root scope exists.
+   */
   private ensureRootScope(): ViewportScope {
     if (!this.rootScope) {
       const root = this.container.get(IAppRoot);
@@ -1038,6 +1135,12 @@ export class Router implements IRouter {
     return this.rootScope;
   }
 
+  /**
+   * Update the navigation with full state, url, query string and title. The
+   * appropriate hooks are called. The `activeComponents` are also set.
+   *
+   * @param navigation - The navigation to update
+   */
   private async updateNavigation(navigation: Navigation): Promise<void> {
     (this.rootScope as ViewportScope).scope.reparentRoutingInstructions();
     let instructions: RoutingInstruction[] = (this.rootScope as ViewportScope).scope.hoistedChildren
@@ -1104,7 +1207,14 @@ export class Router implements IRouter {
     return Promise.resolve();
   }
 
-  // TODO: Review query extraction; different pos for path and fragment!
+  /**
+   * Extract and setup the query and parameters from instructions or options.
+   *
+   * @param instructions - The instructions to extract the query from
+   * @param options - The options containing query and/or parameters
+   *
+   * TODO: Review query extraction; different pos for path and fragment
+   */
   private extractQuery(instructions: LoadInstruction | LoadInstruction[], options: ILoadOptions): LoadInstruction | LoadInstruction[] {
     // If instructions is a string and contains a query string, extract it
     if (typeof instructions === 'string' && options.query == null) {

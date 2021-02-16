@@ -307,10 +307,10 @@ export class RoutingScope {
   //   }
   // }
 
-  public allScopes(includeDisabled: boolean = false, includeReplaced: boolean = false): RoutingScope[] {
+  public allScopes(includeDisabled: boolean = false): RoutingScope[] {
     const scopes: RoutingScope[] = includeDisabled ? this.children.slice() : this.enabledChildren;
     for (const scope of scopes.slice()) {
-      scopes.push(...scope.allScopes(includeDisabled, includeReplaced));
+      scopes.push(...scope.allScopes(includeDisabled));
     }
     return scopes;
   }

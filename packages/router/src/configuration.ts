@@ -72,7 +72,7 @@ export class RouterConfiguration {
       ...DefaultComponents,
       ...DefaultResources,
       AppTask.with(IRouter).beforeActivate().call(RouterConfiguration.configurationCall),
-      AppTask.with(IRouter).afterActivate().call((router: IRouter) => router.loadUrl() as Promise<void>),
+      AppTask.with(IRouter).afterActivate().call((router: IRouter) => router.initialLoad() as Promise<void>),
       AppTask.with(IRouter).afterDeactivate().call((router: IRouter) => router.stop()),
     );
   }

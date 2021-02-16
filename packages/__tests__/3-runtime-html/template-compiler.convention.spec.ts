@@ -21,9 +21,9 @@ describe('3-runtime-html/template-compiler.convention.spec.ts \n\thtml conventio
   const bindToTwoWayCombos: IAttrMappingConventionCombo[] = [
     ['input', 'value'],
     ['input', 'value-as-number', 'valueAsNumber', { type: 'number' }],
-    ['input', 'files', 'files', { type: 'file' }],
-    ['input', 'value-as-number', 'valueAsNumber', { type: 'date' }],
-    ['input', 'value-as-date', 'valueAsDate', { type: 'date' }],
+    ['input', 'files'],
+    ['input', 'value-as-number'],
+    ['input', 'value-as-date'],
     ...(['date', 'datetime', 'password', 'email', 'color'].map(type => ['input', 'value', 'value', { type }] as IAttrMappingConventionCombo)),
     ['select', 'value'],
     ['input', 'checked', 'checked', { type: 'checkbox' }],

@@ -132,9 +132,6 @@ export class AttrSyntaxTransformer {
   }
 }
 
-const v = 'value';
-const vAsNumber = 'value-as-number';
-const vAsDate = 'value-as-date';
 function shouldDefaultToTwoWay(element: Element, attr: string): boolean {
   switch (element.tagName) {
     case 'INPUT':
@@ -142,18 +139,18 @@ function shouldDefaultToTwoWay(element: Element, attr: string): boolean {
         case 'checkbox':
         case 'radio':
           return attr === 'checked';
-        case 'file':
-          return attr === 'files';
-        case 'date':
-          return attr === v || attr === vAsNumber || attr === vAsDate;
-        case 'number':
-          return attr === v || attr === vAsNumber;
+        // note:
+        // ideally, it should check for corresponding input type first
+        // as 'files' shouldn't be two way on a number input, for example
+        // but doing it this way is acceptable-ish, as the common user expectations,
+        // and the behavior of the control for these properties are the same,
+        // regardless the type of the <input>
         default:
-          return attr === v;
+          return attr === 'value' || attr === 'files' || attr === 'value-as-number' || attr === 'value-as-date';
       }
     case 'TEXTAREA':
     case 'SELECT':
-      return attr === v;
+      return attr === 'value';
     default:
       switch (attr) {
         case 'textcontent':

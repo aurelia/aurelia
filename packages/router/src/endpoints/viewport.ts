@@ -440,10 +440,10 @@ export class Viewport extends Endpoint {
             this.nextContent!.createComponent(this.connectedCE!, this.options.fallback);
           }
         }
-        coordinator.addEntityState(this, 'guardedUnload');
+        coordinator.addEndpointState(this, 'guardedUnload');
       },
       () => coordinator.waitForSyncState('guardedUnload', this), // Awaits all `canUnload` hooks
-      () => actingParentViewport !== null ? coordinator.waitForEntityState(actingParentViewport, 'guardedLoad') : void 0, // Awaits parent `canLoad`
+      () => actingParentViewport !== null ? coordinator.waitForEndpointState(actingParentViewport, 'guardedLoad') : void 0, // Awaits parent `canLoad`
 
       (step: Step<boolean>) => this.canLoad(step) as boolean | LoadInstruction | LoadInstruction[],
       (step: Step) => {
@@ -454,8 +454,8 @@ export class Viewport extends Endpoint {
             coordinator.cancel();
             return;
           }
-          coordinator.addEntityState(this, 'guardedLoad');
-          coordinator.addEntityState(this, 'guarded');
+          coordinator.addEndpointState(this, 'guardedLoad');
+          coordinator.addEndpointState(this, 'guarded');
         } else { // Denied and (probably) redirected
           return Runner.run(step,
             () => this.router.load(canLoadResult, { append: true }),
@@ -469,19 +469,19 @@ export class Viewport extends Endpoint {
     const routingSteps = [
       () => coordinator.waitForSyncState('guarded', this),
       (step: Step<void>) => this.unload(step),
-      () => coordinator.addEntityState(this, 'unloaded'),
+      () => coordinator.addEndpointState(this, 'unloaded'),
 
       () => coordinator.waitForSyncState('unloaded', this),
-      () => actingParentViewport !== null ? coordinator.waitForEntityState(actingParentViewport, 'loaded') : void 0,
+      () => actingParentViewport !== null ? coordinator.waitForEndpointState(actingParentViewport, 'loaded') : void 0,
       (step: Step<void>) => this.load(step),
-      () => coordinator.addEntityState(this, 'loaded'),
-      () => coordinator.addEntityState(this, 'routed'),
+      () => coordinator.addEndpointState(this, 'loaded'),
+      () => coordinator.addEndpointState(this, 'routed'),
     ];
 
     // The lifecycle hooks, with order and parallelism based on configuration
     const lifecycleSteps: ((step: Step<void | void[]>) => Step<void> | Promise<void> | void)[] = [
       () => coordinator.waitForSyncState('routed', this),
-      () => coordinator.waitForEntityState(this, 'routed'),
+      () => coordinator.waitForEndpointState(this, 'routed'),
     ];
 
     const swapOrder = RouterConfiguration.options.swapOrder;
@@ -516,7 +516,7 @@ export class Viewport extends Endpoint {
         break;
     }
 
-    lifecycleSteps.push(() => coordinator.addEntityState(this, 'swapped'));
+    lifecycleSteps.push(() => coordinator.addEndpointState(this, 'swapped'));
 
     // Set activity indicator (class) on the connected custom element
     this.connectedCE?.setActive?.(true);
@@ -526,7 +526,7 @@ export class Viewport extends Endpoint {
       ...guardSteps,
       ...routingSteps,
       ...lifecycleSteps,
-      () => coordinator.addEntityState(this, 'completed'),
+      () => coordinator.addEndpointState(this, 'completed'),
       () => coordinator.waitForSyncState('bound'),
       () => this.connectedCE?.setActive?.(false),
     );
@@ -610,7 +610,7 @@ export class Viewport extends Endpoint {
 
     const manualDispose = this.router.statefulHistory || (this.options.stateful ?? false);
     return Runner.run(step,
-      () => coordinator.addEntityState(this, 'bound'),
+      () => coordinator.addEndpointState(this, 'bound'),
       () => coordinator.waitForSyncState('bound'),
       () => this.deactivate(
         null,
@@ -643,7 +643,7 @@ export class Viewport extends Endpoint {
           parent as ICustomElementController,
           flags,
           this.connectedCE!,
-          () => coordinator?.addEntityState(this, 'bound'),
+          () => coordinator?.addEndpointState(this, 'bound'),
           coordinator?.waitForSyncState('bound'),
         ),
       ) as Step<void>;

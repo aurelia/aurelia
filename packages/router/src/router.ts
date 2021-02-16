@@ -406,7 +406,7 @@ export class Router implements IRouter {
           if (action !== 'skip') {
             // Add endpoint to changed endpoints this iteration and to the coordinator's purview
             changedEndpoints.push(endpoint);
-            coordinator.addEntity(endpoint);
+            coordinator.addEndpoint(endpoint);
           }
           // We're doing something, so don't clear this endpoint...
           const dontClear = [endpoint];
@@ -453,12 +453,12 @@ export class Router implements IRouter {
         // If navigation is unrestricted (no other syncing done than on canUnload) we can tell
         // the navigation coordinator to instruct endpoints to transition
         if (!this.isRestrictedNavigation) {
-          coordinator.finalEntity();
+          coordinator.finalEndpoint();
         }
         coordinator.run();
 
         // Wait for ("blocking") canUnload to finish
-        if (coordinator.hasAllEntities) {
+        if (coordinator.hasAllEndpoints) {
           const guardedUnload = coordinator.waitForSyncState('guardedUnload');
           if (guardedUnload instanceof Promise) {
             // console.log('>>> Waiting for guardedUnload', (coordinator as any).entities.map((ent: any) => ent.entity.toString()).join(','));
@@ -582,7 +582,7 @@ export class Router implements IRouter {
     // TODO: Look into adding everything above as well
     return Runner.run(null,
       () => {
-        coordinator.finalEntity();
+        coordinator.finalEndpoint();
         return coordinator.waitForSyncState('completed');
       },
       () => {

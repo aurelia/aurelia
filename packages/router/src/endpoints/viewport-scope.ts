@@ -134,17 +134,17 @@ export class ViewportScope extends Endpoint {
 
   public transition(coordinator: NavigationCoordinator): void {
     Runner.run(null,
-      () => coordinator.addEntityState(this, 'guardedUnload'),
-      () => coordinator.addEntityState(this, 'guardedLoad'),
-      () => coordinator.addEntityState(this, 'guarded'),
-      () => coordinator.addEntityState(this, 'loaded'),
-      () => coordinator.addEntityState(this, 'unloaded'),
-      () => coordinator.addEntityState(this, 'routed'),
-      () => coordinator.addEntityState(this, 'swapped'),
+      () => coordinator.addEndpointState(this, 'guardedUnload'),
+      () => coordinator.addEndpointState(this, 'guardedLoad'),
+      () => coordinator.addEndpointState(this, 'guarded'),
+      () => coordinator.addEndpointState(this, 'loaded'),
+      () => coordinator.addEndpointState(this, 'unloaded'),
+      () => coordinator.addEndpointState(this, 'routed'),
+      () => coordinator.addEndpointState(this, 'swapped'),
       () => {
         this.content = !this.remove ? this.nextContent! : new ViewportScopeContent(this.router, this, this.owningScope, this.scope.hasScope);
         this.nextContent = null;
-        coordinator.addEntityState(this, 'completed');
+        coordinator.addEndpointState(this, 'completed');
       }
     );
   }

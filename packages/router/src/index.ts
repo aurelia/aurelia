@@ -67,7 +67,6 @@ export {
   INavigatorState,
   INavigatorStore,
   INavigatorViewer,
-  // NavigatorViewerEvent,
   Navigator,
 } from './navigator.js';
 

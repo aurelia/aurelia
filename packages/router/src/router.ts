@@ -290,8 +290,6 @@ export class Router implements IRouter {
       transformedInstruction = '';
     }
 
-    // console.log('NAVIGATION', instruction.instruction);
-
     // The instruction should have a scope so use rootScope if it doesn't
     navigation.scope ??= this.rootScope!.scope;
     // Ask the scope for routing instructions. The result will be either that there's a configured
@@ -1089,7 +1087,7 @@ export class RouterStopEvent {
   }
 }
 
-export class RouterNavigationStartEvent /* extends Navigation */ {
+export class RouterNavigationStartEvent {
   public static eventName = 'au:router:navigation-start';
   public constructor(
     public readonly eventName: string,
@@ -1101,7 +1099,7 @@ export class RouterNavigationStartEvent /* extends Navigation */ {
       navigation);
   }
 }
-export class RouterNavigationEndEvent /* extends Navigation */ {
+export class RouterNavigationEndEvent {
   public static eventName = 'au:router:navigation-end';
   public constructor(
     public readonly eventName: string,
@@ -1113,7 +1111,7 @@ export class RouterNavigationEndEvent /* extends Navigation */ {
       navigation);
   }
 }
-export class RouterNavigationCancelEvent /* extends Navigation */ {
+export class RouterNavigationCancelEvent {
   public static eventName = 'au:router:navigation-cancel';
   public constructor(
     public readonly eventName: string,
@@ -1125,7 +1123,7 @@ export class RouterNavigationCancelEvent /* extends Navigation */ {
       navigation);
   }
 }
-export class RouterNavigationCompleteEvent /* extends Navigation */ {
+export class RouterNavigationCompleteEvent {
   public static eventName = 'au:router:navigation-complete';
   public constructor(
     public readonly eventName: string,
@@ -1137,7 +1135,7 @@ export class RouterNavigationCompleteEvent /* extends Navigation */ {
       navigation);
   }
 }
-export class RouterNavigationErrorEvent /* extends Navigation */ {
+export class RouterNavigationErrorEvent {
   public static eventName = 'au:router:navigation-error';
   public constructor(
     public readonly eventName: string,

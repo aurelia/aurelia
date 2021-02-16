@@ -1,6 +1,5 @@
 import { EventAggregator, IEventAggregator } from '@aurelia/kernel';
 import { IWindow, IHistory, ILocation, IPlatform } from '@aurelia/runtime-html';
-// import { NavigatorStateChangeEvent } from './events.js';
 import { INavigatorState, INavigatorStore, INavigatorViewer, INavigatorViewerOptions } from './navigator.js';
 import { QueueTask, TaskQueue } from './utilities/task-queue.js';
 
@@ -370,7 +369,7 @@ interface IAction {
   execute(task: QueueTask<IAction>, resolve?: ((value?: void | boolean | PromiseLike<void> | PromiseLike<boolean>) => void) | null | undefined, suppressEvent?: boolean): void;
 }
 
-export class NavigatorStateChangeEvent /* extends NavigatorViewerState */ {
+export class NavigatorStateChangeEvent {
   public static eventName = 'au:router:navigation-state-change';
 
   public constructor(

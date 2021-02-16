@@ -63,12 +63,7 @@ export interface INavigatorViewer {
 export interface INavigatorViewerOptions {
 }
 
-// export class NavigatorViewerEvent extends NavigatorViewerState {
-//   public event!: PopStateEvent;
-//   public state?: INavigatorState;
-// }
-
-export class NavigatorNavigateEvent /* extends Navigation */ {
+export class NavigatorNavigateEvent {
   public static eventName = 'au:router:navigation-navigate';
 
   public constructor(

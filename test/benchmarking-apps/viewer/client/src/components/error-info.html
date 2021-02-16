@@ -1,0 +1,16 @@
+<div if.bind="showError" class="container">
+  <div switch.bind="context.error">
+    <template case.bind="Errors.commitNotFound">
+      The commit <span title.bind="context.commit" class="commit">${context.commit.substring(0, 7)}</span> for the
+      branch '${context.branch}' was not found.
+      The <span title.bind="context.data.commit" class="commit">latest</span> benchmarking record for the branch has
+      been fetched.
+    </template>
+    <template case.bind="Errors.branchNotFound">
+      Any benchmarking data for the branch '${context.branch}' was not found.
+      Try a different branch.
+    </template>
+  </div>
+  <span class="gutter"></span>
+  <span class="close" click.delegate="showError = false">&#215;</span>
+</div>

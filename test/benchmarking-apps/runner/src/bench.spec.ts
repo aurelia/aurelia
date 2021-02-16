@@ -1,12 +1,12 @@
 /* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
+import { BrowserType, browserTypes, Measurement, Measurements, WritableMeasurementKeys } from "@benchmarking-apps/storage";
 import { strict as assert } from 'assert';
 import { performance } from 'perf_hooks';
 import type { ElementHandle, Page } from 'playwright';
 import * as playwright from 'playwright';
 import { URL } from 'url';
-import { Measurement, Measurements, browserTypes, WritableMeasurementKeys, BrowserType } from './shared';
 
 // This is fixed and needs to be kept in sync with the apps.
 const gridColCount = 6;
@@ -42,9 +42,7 @@ describe('benchmark', function () {
     await new UpdateEvery10thRow(page, measurement).run();
     await new ToggleDetails(page, measurement).run();
     await new ToggleLocale(page, measurement).run();
-    await new FirstNameSort(page, measurement).run();
-    await new LastNameSort(page, measurement).run();
-    await new DobSort(page, measurement).run();
+    await new Sort(page, measurement).run();
     await new Filter(page, measurement).run();
     await new SelectFirst(page, measurement).run();
     await new DeleteFirst(page, measurement).run();
@@ -129,7 +127,7 @@ abstract class BaseActMeasureAssert<TPreState = unknown> {
 
     const preState = await this.getPreRunState();
 
-    await this.actAndMeasure(this.measurementKey);
+    this.measurement[this.measurementKey] = await this.actAndMeasure();
 
     await this.assert(preState);
     console.log(`finished ${label}`);
@@ -138,8 +136,8 @@ abstract class BaseActMeasureAssert<TPreState = unknown> {
   protected abstract getPreRunState(): Promise<TPreState>;
   protected abstract assert(preState: TPreState): Promise<void>;
 
-  protected async actAndMeasure(key: WritableMeasurementKeys, $selector = this.selector) {
-    this.measurement[key] = await this.page.evaluate(async (selector: string) => {
+  protected async actAndMeasure($selector = this.selector): Promise<number> {
+    return this.page.evaluate(async (selector: string) => {
       const start = globalThis.performance.now();
       document.querySelector<HTMLElement>(selector)!.click();
       await (globalThis as any).waitForIdle();
@@ -173,8 +171,10 @@ abstract class BaseMultiStateActMeasureAssert<
   public get currentState() { return this._currentState; }
 
   public async run() {
+    let duration = 0;
+    const states = this.stateNames;
     /* eslint-disable no-await-in-loop */
-    for (const state of this.stateNames) {
+    for (const state of states) {
       this._currentState = state;
       const label = `${this.label} - ${state}`;
 
@@ -182,15 +182,14 @@ abstract class BaseMultiStateActMeasureAssert<
 
       const preState = await this.getPreRunState();
 
-      await this.actAndMeasure(this.getMeasurementKey());
+      duration += await this.actAndMeasure();
 
       await this.assert(preState);
       console.log(`finished ${label}`);
     }
     /* eslint-enable no-await-in-loop */
+    this.measurement[this.measurementKey] = duration / states.length;
   }
-
-  protected abstract getMeasurementKey(): WritableMeasurementKeys;
 }
 
 class Populate extends BaseActMeasureAssert {
@@ -287,6 +286,7 @@ class DeleteAll extends BaseActMeasureAssert {
 }
 
 class ToggleDetails extends BaseMultiStateActMeasureAssert<readonly ['show', 'hide']> {
+  public measurementKey: WritableMeasurementKeys = 'durationConditional';
   public stateNames = ['show', 'hide'] as const;
   public constructor(
     page: Page,
@@ -314,18 +314,10 @@ class ToggleDetails extends BaseMultiStateActMeasureAssert<readonly ['show', 'hi
       }
     }
   }
-
-  protected getMeasurementKey(): WritableMeasurementKeys {
-    switch (this.currentState) {
-      case 'show':
-        return 'durationShowDetails';
-      case 'hide':
-        return 'durationHideDetails';
-    }
-  }
 }
 
 class ToggleLocale extends BaseMultiStateActMeasureAssert<readonly ['de', 'en']> {
+  public measurementKey: WritableMeasurementKeys = 'durationTextUpdate';
   public stateNames = ['de', 'en'] as const;
   public constructor(
     page: Page,
@@ -351,19 +343,10 @@ class ToggleLocale extends BaseMultiStateActMeasureAssert<readonly ['de', 'en']>
         break;
     }
   }
-
-  protected getMeasurementKey(): WritableMeasurementKeys {
-    switch (this.currentState) {
-      case 'de':
-        return 'durationLocaleDe';
-      case 'en':
-        return 'durationLocaleEn';
-    }
-  }
 }
 
 class Filter extends BaseActMeasureAssert {
-  public measurementKey!: WritableMeasurementKeys;
+  public measurementKey: WritableMeasurementKeys = 'durationFilter';
   public constructor(
     page: Page,
     measurement: Measurement,
@@ -382,7 +365,7 @@ class Filter extends BaseActMeasureAssert {
     let previous = await page.$$(selector);
     const all = previous;
 
-    await this.actAndMeasure('durationFilterEmployed', 'button#employed');
+    let measurement: number = await this.actAndMeasure('button#employed');
 
     let current = await page.$$(selector);
 
@@ -395,7 +378,7 @@ class Filter extends BaseActMeasureAssert {
     label = 'filter - unemployed';
     console.log(`starting ${label}`);
 
-    await this.actAndMeasure('durationFilterUnemployed', 'button#unemployed');
+    measurement += await this.actAndMeasure('button#unemployed');
 
     current = await page.$$(selector);
 
@@ -410,7 +393,7 @@ class Filter extends BaseActMeasureAssert {
 
     previous = current;
 
-    await this.actAndMeasure('durationFilterNone', 'button#all');
+    measurement += await this.actAndMeasure('button#all');
 
     current = await page.$$(selector);
 
@@ -422,6 +405,7 @@ class Filter extends BaseActMeasureAssert {
     );
     console.log(`finished ${label}`);
     // #endregion
+    this.measurement[this.measurementKey] = measurement / 3;
   }
 
   protected getPreRunState(): Promise<undefined> {
@@ -433,113 +417,69 @@ class Filter extends BaseActMeasureAssert {
   }
 }
 
-abstract class Sort extends BaseMultiStateActMeasureAssert<readonly ['asc', 'desc']> {
-  public stateNames = ['asc', 'desc'] as const;
+class Sort extends BaseActMeasureAssert {
+  public measurementKey: WritableMeasurementKeys = 'durationSorting';
   public constructor(
-    label: string,
-    selector: string,
     page: Page,
     measurement: Measurement,
-    public readonly colSelector: string,
   ) {
-    super(label, selector, page, measurement);
+    super((void 0)!, (void 0)!, page, measurement);
   }
 
-  protected getPreRunState(): Promise<(string | null)[]> {
-    return this.getColContent();
-  }
+  public async run() {
+    let duration = 0;
+    const states = ['asc', 'desc'] as const;
+    const selectorMap: Record<string, [string, string]> = Object.freeze({
+      firstName: ['div.grid>strong:nth-of-type(1)', 'div.grid>span:nth-child(6n+1)'],
+      lastName: ['div.grid>strong:nth-of-type(2)', 'div.grid>span:nth-child(6n+2)'],
+      dob: ['div.grid>strong:nth-of-type(3)', 'div.grid>span:nth-child(6n+3)'],
+    });
+    /* eslint-disable no-await-in-loop */
+    for (const [key, [selector, colContentSelector]] of Object.entries(selectorMap)) {
+      for (const state of states) {
+        const label = `${key} - ${state}`;
 
-  protected async assert(_preState: ElementHandle<SVGElement | HTMLElement>[]): Promise<void> {
-    const content = await this.getColContent();
-    let direction: number;
-    switch (this.currentState) {
-      case 'asc':
-        direction = 1;
-        break;
-      case 'desc':
-        direction = -1;
-        break;
+        console.log(`starting ${label}`);
+
+        duration += await this.actAndMeasure(selector);
+
+        if (key === 'dob') {
+          await this.assertDate(state === 'asc' ? 1 : -1, colContentSelector, label);
+        } else {
+          await this.assertString(state === 'asc' ? 1 : -1, colContentSelector, label);
+        }
+        console.log(`finished ${label}`);
+      }
     }
+    /* eslint-enable no-await-in-loop */
+    this.measurement[this.measurementKey] = duration / (Object.keys(selectorMap).length * states.length);
+  }
 
+  private async assertString(direction: 1 | -1, colSelector: string, label: string): Promise<void> {
+    const content = await this.getColContent(colSelector);
     const sorted = content.slice(0).sort((a, b) => direction * a!.localeCompare(b!));
-    assert.deepStrictEqual(content, sorted, `${this.label} ${this.currentState} - content`);
+    assert.deepStrictEqual(content, sorted, `${label} - content`);
   }
 
-  protected async getColContent() {
-    return Promise.all((await this.page.$$(this.colSelector)).map((i) => i.textContent()));
-  }
-}
-
-class FirstNameSort extends Sort {
-  public constructor(
-    page: Page,
-    measurement: Measurement,
-  ) {
-    super('sort by firstName', 'div.grid>strong:nth-of-type(1)', page, measurement, 'div.grid>span:nth-child(6n+1)');
-  }
-
-  protected getMeasurementKey(): WritableMeasurementKeys {
-    switch (this.currentState) {
-      case 'asc':
-        return 'durationSortFirstName';
-      case 'desc':
-        return 'durationSortFirstNameDesc';
-    }
-  }
-}
-
-class LastNameSort extends Sort {
-  public constructor(
-    page: Page,
-    measurement: Measurement,
-  ) {
-    super('sort by lastName', 'div.grid>strong:nth-of-type(2)', page, measurement, 'div.grid>span:nth-child(6n+2)');
-  }
-
-  protected getMeasurementKey(): WritableMeasurementKeys {
-    switch (this.currentState) {
-      case 'asc':
-        return 'durationSortLastName';
-      case 'desc':
-        return 'durationSortLastNameDesc';
-    }
-  }
-}
-
-class DobSort extends Sort {
-  public constructor(
-    page: Page,
-    measurement: Measurement,
-  ) {
-    super('sort by dob', 'div.grid>strong:nth-of-type(3)', page, measurement, 'div.grid>span:nth-child(6n+3)');
-  }
-
-  protected async assert(_preState: ElementHandle<SVGElement | HTMLElement>[]): Promise<void> {
-    const content = (await this.getColContent()).map((dateStr) => {
+  private async assertDate(direction: 1 | -1, colSelector: string, label: string): Promise<void> {
+    const content = (await this.getColContent(colSelector)).map((dateStr) => {
       const [mm, dd, yyyy] = dateStr!.split('/');
       return new Date(Number(yyyy), Number(mm) - 1, Number(dd));
     });
-    let direction: number;
-    switch (this.currentState) {
-      case 'asc':
-        direction = 1;
-        break;
-      case 'desc':
-        direction = -1;
-        break;
-    }
-
     const sorted = content.slice(0).sort((a, b) => direction * (a.getTime() - b.getTime()));
-    assert.deepStrictEqual(content, sorted, `${this.label} ${this.currentState} - content`);
+    assert.deepStrictEqual(content, sorted, `${label} - content`);
   }
 
-  protected getMeasurementKey(): WritableMeasurementKeys {
-    switch (this.currentState) {
-      case 'asc':
-        return 'durationSortDob';
-      case 'desc':
-        return 'durationSortDobDesc';
-    }
+  private async getColContent(colSelector: string) {
+    return Promise.all((await this.page.$$(colSelector)).map((i) => i.textContent()));
+  }
+
+  protected getPreRunState(): Promise<unknown> {
+    throw new Error('Method not implemented.');
+  }
+
+  protected assert(_preState: unknown): Promise<void> {
+    throw new Error('Method not implemented.');
   }
 }
 

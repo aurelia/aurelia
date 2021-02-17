@@ -147,6 +147,7 @@ export class RouterConfiguration {
     return RoutingHook.removeAll();
   }
 
+  // TODO: This goes in here
   // public addRoutes(routes: IRoute[], context?: ICustomElementViewModel | Element): IRoute[] {
   //   // TODO: This should add to the context instead
   //   // TODO: Add routes without context to rootScope content (which needs to be created)?

@@ -267,14 +267,6 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer {
    */
   private async notifySubscribers(ev: PopStateEvent, eventTask: QueueTask<IAction> | null, suppressEvent: boolean = false): Promise<void> {
     if (!suppressEvent) {
-      // this.options.callback({
-      //   ...this.viewerState,
-      //   ...{
-      //     event: ev,
-      //     state: this.history.state as INavigatorState,
-      //   },
-      // });
-
       this.ea.publish(NavigatorStateChangeEvent.eventName,
         NavigatorStateChangeEvent.create(this.viewerState, ev, this.history.state as INavigatorState));
     }

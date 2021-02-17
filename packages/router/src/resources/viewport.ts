@@ -127,7 +127,7 @@ export class ViewportCustomElement implements ICustomElementViewModel {
         }
       },
       () => {
-        // TODO: Consider using an event instead (not a priority)
+        // TODO(post-alpha): Consider using an event instead (not a priority)
         // If a content is waiting for us to be connected...
         if (this.viewport?.activeResolve != null) {
           // ...resolve the promise

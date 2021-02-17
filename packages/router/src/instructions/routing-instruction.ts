@@ -95,8 +95,6 @@ export class RoutingInstruction {
     // this.viewportScope = InstructionViewportScope.create();
   }
 
-  // public static separators = RouterConfiguration.options.separators;
-
   /**
    * Create a new routing instruction.
    *
@@ -107,12 +105,6 @@ export class RoutingInstruction {
    * @param nextScopeInstructions - The routing instructions in the next scope ("children")
    */
   public static create(component?: ComponentAppellation | Promise<ComponentAppellation>, viewport?: ViewportHandle, parameters?: ComponentParameters, ownsScope: boolean = true, nextScopeInstructions: RoutingInstruction[] | null = null): RoutingInstruction | Promise<RoutingInstruction> {
-    // if (component instanceof Promise) {
-    //   return component.then((resolvedComponent) => {
-    //     return RoutingInstruction.create(resolvedComponent, viewport, parameters, ownsScope, nextScopeInstructions);
-    //   });
-    // }
-
     const instruction: RoutingInstruction = new RoutingInstruction(component, viewport, parameters);
     instruction.ownsScope = ownsScope;
     instruction.nextScopeInstructions = nextScopeInstructions;
@@ -133,6 +125,12 @@ export class RoutingInstruction {
     return instruction;
   }
 
+  /**
+   * Get routing instructions based on load instructions.
+   *
+   * @param loadInstructions - The load instructions to get the routing
+   * instructions from.
+   */
   public static from(loadInstructions: LoadInstruction | LoadInstruction[]): RoutingInstruction[] {
     if (!Array.isArray(loadInstructions)) {
       loadInstructions = [loadInstructions];
@@ -166,9 +164,16 @@ export class RoutingInstruction {
     return instructions;
   }
 
+  /**
+   * The routing instruction component that represents "clear".
+   */
   public static clear(): string {
     return RouterConfiguration.options.separators.clear;
   }
+
+  /**
+   * The routing instruction component that represents "add".
+   */
   public static add(): string {
     return RouterConfiguration.options.separators.add;
   }
@@ -278,19 +283,34 @@ export class RoutingInstruction {
     return this.viewport?.instance ?? this.viewportScope ?? null;
   }
 
+  /**
+   * Whether the routing instruction is an "add" instruction.
+   */
   public get isAdd(): boolean {
     return this.component.name === RouterConfiguration.options.separators.add;
   }
+  /**
+   * Whether the routing instruction is a "clear" instruction.
+   */
   public get isClear(): boolean {
     return this.component.name === RouterConfiguration.options.separators.clear;
   }
+  /**
+   * Whether the routing instruction is an "add all" instruction.
+   */
   public get isAddAll(): boolean {
     return this.isAdd && ((this.viewport.name?.length ?? 0) === 0);
   }
+  /**
+   * Whether the routing instruction is an "clear all" instruction.
+   */
   public get isClearAll(): boolean {
     return this.isClear && ((this.viewport.name?.length ?? 0) === 0);
   }
 
+  /**
+   * Whether the routing instruction next scope/"children" instructions.
+   */
   public get hasNextScopeInstructions(): boolean {
     return (this.nextScopeInstructions?.length ?? 0) > 0;
   }

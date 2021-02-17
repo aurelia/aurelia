@@ -1,4 +1,3 @@
-
 import { Endpoint } from './endpoint';
 import { IRouter } from '../router';
 import { RoutingInstruction, RoutingScope } from '../index.js';

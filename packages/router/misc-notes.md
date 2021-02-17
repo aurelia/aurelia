@@ -105,3 +105,6 @@ or where it's used to
 </au-viewport-scope>
 ```
 and it works.
+
+
+`syncStates`: Whenever a navigation involves two or more viewports that's not in a parent-child relationship, in other words viewport siblings, each viewport will run through its transition, and routing and lifecycle hooks, as quickly as possible and separate from the other viewports. While this results in the shortest possible time for a navigation to finish, it might sometimes be desirable to synchronize viewports to the different phases/hooks

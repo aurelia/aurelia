@@ -299,15 +299,6 @@ export class NavigationCoordinator {
   }
 
   /**
-   * Whether a specific navigation state is checked/synchronized.
-   *
-   * @param state - The state to check
-   */
-  public checkingSyncState(state: NavigationState): boolean {
-    return this.syncStates.has(state);
-  }
-
-  /**
    * Notify that all endpoints has been added to the coordinator.
    */
   public finalEndpoint(): void {

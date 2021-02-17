@@ -113,7 +113,7 @@ export class Viewport extends Endpoint {
   /**
    * Stores the current state before navigation starts so that it can be restored
    * if navigation is cancelled/interrupted.
-   * TODO: Look into using viewport content fully for this
+   * TODO(post-alpha): Look into using viewport content fully for this
    */
   private previousViewportState: Viewport | null = null;
 
@@ -932,7 +932,7 @@ export class Viewport extends Endpoint {
   }
 
   /**
-   * Wait, if necessary, for a custom element to connect.
+   * If necessary, get a promise to await until a custom element connects.
    */
   private waitForConnected(): void | Promise<void> {
     if (this.connectedCE === null) {

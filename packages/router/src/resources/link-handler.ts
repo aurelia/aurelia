@@ -1,9 +1,3 @@
-/**
- *
- * NOTE: This file is still WIP and will go through at least one more iteration of refactoring, commenting and clean up!
- * In its current state, it is NOT a good source for learning about the inner workings and design of the router.
- *
- */
 import { DI } from '@aurelia/kernel';
 import { IWindow, CustomAttribute } from '@aurelia/runtime-html';
 import { RouterConfiguration } from '../index.js';

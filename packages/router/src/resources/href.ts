@@ -1,9 +1,3 @@
-/**
- *
- * NOTE: This file is still WIP and will go through at least one more iteration of refactoring, commenting and clean up!
- * In its current state, it is NOT a good source for learning about the inner workings and design of the router.
- *
- */
 import { IDisposable, IEventAggregator } from '@aurelia/kernel';
 import { customAttribute, INode, bindable, BindingMode, ViewModelKind, ICustomAttributeViewModel, ICustomAttributeController, CustomAttribute } from '@aurelia/runtime-html';
 import { IRouter, RouterNavigationEndEvent } from '../router.js';

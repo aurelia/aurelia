@@ -10,23 +10,10 @@ import { IRouteableComponent, LoadInstruction, ComponentAppellation, ViewportHan
 
 // import { CanLoad, CanUnload, Load, Unload } from './hooks.js';
 
-export type RouteableComponent = IRouteableComponent;
-
 // const noCanLoadHooks = emptyArray as RouteConfig['canLoad'];
 // const noCanUnloadHooks = emptyArray as RouteConfig['canUnload'];
 // const noLoadHooks = emptyArray as RouteConfig['load'];
 // const noUnloadHooks = emptyArray as RouteConfig['unload'];
-
-/**
- * Either a `RouteableComponent` or a name/config that can be resolved to a one:
- * - `string`: a string representing the component name. Must be resolveable via DI from the context of the component relative to which the navigation occurs (specified in the `dependencies` array, `<import>`ed in the view, declared as an inline template, or registered globally)
- * - `Routeable`: see `Routeable`.
- *
- * NOTE: differs from `NavigationInstruction` only in having `IChildRouteConfig` instead of `IViewportIntruction`
- * (which in turn are quite similar, but do have a few minor but important differences that make them non-interchangeable)
- * as well as `IRedirectRouteConfig`
- */
-export type Routeable = string | RouteableComponent;
 
 export interface IRoute extends Writable<Partial<Route>> {
   /**
@@ -45,10 +32,6 @@ export interface IRoute extends Writable<Partial<Route>> {
    * Parameters that should be accessible to components. Transfered into the `instructions` property.
    */
   parameters?: ComponentParameters;
-  /**
-   * Any custom data that should be accessible to matched components or hooks.
-   */
-  // public readonly data: Parameters,
 
   /**
    * Child instructions that should also be loaded when this route is matched. Transfered into the `instructions` property.
@@ -132,7 +115,7 @@ export class Route {
     public readonly redirectTo: string | null,
 
     /**
-     * Then instructions that should be loaded when this route is matched.
+     * The instructions that should be loaded when this route is matched.
      */
     public instructions: LoadInstruction[] | null,
 
@@ -157,6 +140,11 @@ export class Route {
      */
     // TODO: Specify type!
     public readonly title: any | null,
+
+    /**
+     * Any custom data that should be accessible to matched components or hooks.
+     */
+    public readonly data: unknown,
 
     // public readonly canLoad: readonly CanLoad[],
     // public readonly canUnload: readonly CanUnload[],
@@ -196,7 +184,8 @@ export class Route {
       config.instructions ?? null,
       config.caseSensitive ?? false,
       config.title ?? null,
-      // realoadBehavior,
+      config.data ?? null,
+      // reloadBehavior,
 
       // canLoad,
       // canUnload,
@@ -267,9 +256,9 @@ export class Route {
   }
 
   /**
-   * Validate an `IRouteConfiguration`.
+   * Validate a `Route`.
    */
-  private static validateRouteConfiguration(config: Partial<IRoute>): void {
+  private static validateRouteConfiguration(config: Partial<Route>): void {
     if (config.redirectTo === null && config.instructions === null) {
       throw new Error(`Invalid route configuration: either 'redirectTo' or 'instructions' ` +
         `need to be specified.`);

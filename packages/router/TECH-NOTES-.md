@@ -32,11 +32,32 @@ The router is the main entry point into routing. Its primary responsibilities ar
 
 ### `NavigationCoordinator`
 
-Helps the router coordinate navigations. More to come.
+The navigation coordinator coordinates navigation between endpoints and their
+navigation states. The coordinator keeps the endpoints synchronized
+for the configured synchronization states, meaning that no endpoint can proceed
+past a sync state until all endpoints have reached it. The coordinator also
+provides synchronization on endpoint level which is used to make sure parent
+hooks are done before child hooks start.
+
+Each endpoint that's involved in a navigation is added to the coordinator's
+endpoints and report each completed navigation state to the coordinator
+during the transition. Before an endpoint starts a new navigation step
+it asks the coordinator whether it can proceed or should wait. The
+coordinator instructs continuation if the endpoint's current step isn't
+being synchronized or if all other endpoints have reached that state. If
+one or more endpoints have been instructed to wait, they are instructed
+to continue once all endpoints have reached the state they're waiting on.
 
 ### `RoutingScope` (`.scope`)
 
-The router uses routing scopes to organize all endpoints (viewports and viewport scopes) into two hierarchical structures. Each routing scope belongs to a parent/children hierarchy, that follows the DOM and is used when routing scopes are added and removed, and an owner/owning hierarchy that's used when finding endpoints. Every routing scope has a routing scope that owns it (except the root) and can in turn have several routing scopes that it owns. A routing scope always has a connected endpoint content. (And an endpoint content always has a connected routing scope.)
+The router uses routing scopes to organize all endpoints (viewports and viewport
+scopes) into two hierarchical structures. Each routing scope belongs to a
+parent/children hierarchy, that follows the DOM and is used when routing scopes
+are added and removed, and an owner/owning hierarchy that's used when finding
+endpoints. Every routing scope has a routing scope that owns it (except the root)
+and can in turn have several routing scopes that it owns. A routing scope always
+has a connected endpoint content. (And an endpoint content always has a connected
+routing scope.)
 
 Every navigtion/load instruction that the router processes is first tied to a routing scope, either a specified scope or the root scope. That routing scope is then asked to
 1. find

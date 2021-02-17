@@ -28,19 +28,23 @@ export class RoutingInstruction {
    * The component part of the routing instruction.
    */
   public component: InstructionComponent;
+
   /**
    * The viewport part of the routing instruction.
    */
   public viewport: InstructionViewport;
+
   /**
    * The parameters part of the routing instruction.
    */
   public parameters: InstructionParameters;
 
+
   /**
    * Whether the routing instruction owns its scope.
    */
   public ownsScope: boolean = true;
+
   /**
    * The routing instructions in the next scope ("children").
    */
@@ -50,23 +54,32 @@ export class RoutingInstruction {
    * The scope the the routing instruction belongs to.
    */
   public scope: RoutingScope | null = null;
+
   /**
    * The scope modifier of the routing instruction.
    */
   public scopeModifier: string = '';
+
   /**
    * The viewport scope part of the routing instruction.
    */
   public viewportScope: ViewportScope | null = null; // TODO: Add InstructionViewportScope
+
   /**
    * Whether the routing instruction can be resolved within the scope without having
    * viewport specified. Used when creating string instructions/links/url.
    */
   public needsViewportDescribed: boolean = false;
+
   /**
    * The configured route, if any, that the routing instruction is part of.
    */
-  public route: FoundRoute | string | null = null;
+  public route: FoundRoute | null = null;
+
+  /**
+   * The instruction is the start/first instruction of a configured route.
+   */
+  public routeStart: boolean = false;
 
   /**
    * Whether the routing instruction is the result of a viewport default (meaning it has
@@ -386,24 +399,23 @@ export class RoutingInstruction {
         excludeCurrentComponent = true;
       }
     }
-    let route = this.route ?? null;
     const nextInstructions: RoutingInstruction[] | null = this.nextScopeInstructions;
     // Start with the scope modifier (if any)
     let stringified: string = this.scopeModifier;
     // It's a configured route...
-    if (route !== null) {
+    if (this.route !== null) {
       // ...that's already added as part of a configuration, so skip to next scope!
-      if (route === '') {
+      if (!this.routeStart) {
         return Array.isArray(nextInstructions)
           ? RoutingInstruction.stringify(nextInstructions, excludeViewport, viewportContext)
           : '';
       }
       // ...that's the first instruction of a route...
-      route = (route as FoundRoute).matching;
+      const path = this.route.matching;
       // ...so add the route.
-      stringified += route.endsWith(seps.scope)
-        ? route.slice(0, -seps.scope.length)
-        : route;
+      stringified += path.endsWith(seps.scope)
+        ? path.slice(0, -seps.scope.length)
+        : path;
     } else { // Not (part of) a route so add it
       stringified += this.stringifyShallow(excludeCurrentViewport, excludeCurrentComponent);
     }
@@ -478,6 +490,8 @@ export class RoutingInstruction {
     }
     clone.needsViewportDescribed = this.needsViewportDescribed;
     clone.route = this.route;
+    clone.routeStart = this.routeStart;
+
     // Only transfer scope modifier if specified
     if (scopeModifier) {
       clone.scopeModifier = this.scopeModifier;

@@ -45,18 +45,17 @@ import { RoutingHook } from './routing-hook';
     if (typeof instruction === 'string') {
       return Title.resolveTitle(router, instruction, navigationInstruction);
     }
-    const route = instruction.route ?? null;
     const nextInstructions: RoutingInstruction[] | null = instruction.nextScopeInstructions;
     let stringified: string = '';
     // It's a configured route
-    if (route !== null) {
+    if (instruction.route !== null) {
       // Already added as part of a configuration, skip to next scope
-      if (route === '') {
+      if (!instruction.routeStart) {
         return Array.isArray(nextInstructions)
           ? Title.stringifyTitles(router, nextInstructions, navigationInstruction)
           : '';
       } else {
-        stringified += Title.resolveTitle(router, route, navigationInstruction);
+        stringified += Title.resolveTitle(router, instruction.route, navigationInstruction);
       }
     } else {
       stringified += Title.resolveTitle(router, instruction, navigationInstruction);

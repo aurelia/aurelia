@@ -415,13 +415,13 @@ export class RoutingScope {
       while (instructions.length > 0) {
         const instruction = instructions.shift()!;
         instruction.parameters.addParameters(found.params);
-        instruction.route = '';
+        instruction.route = found;
         if (instruction.hasNextScopeInstructions) {
           instructions.unshift(...instruction.nextScopeInstructions!);
         }
       }
       if (found.instructions.length > 0) {
-        found.instructions[0].route = found;
+        found.instructions[0].routeStart = true;
       }
     }
     return found;

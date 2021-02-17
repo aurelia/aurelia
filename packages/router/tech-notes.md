@@ -14,10 +14,15 @@ All navigations roughly follow the same flow:
 
 ## Entities
 
+### `RouterConfiguration` (`RouterConfiguration`)
+
+The router configuration is the "first contact" with the router. Its responsibilities are
+- include and activate routing
+- provide configuration api
+
 ### `Router` (`.router`)
 
-The router is the "main entry point" into routing. Its primary responsibilities are
-- provide configuration api
+The router is the main entry point into routing. Its primary responsibilities are
 - provide api for adding and finding endpoints (viewport and viewport scope)
 - provide api for connecting endpoint custom elements to endpoints
 - provide navigation/load api and inform the navigator about navigation/load instructions
@@ -25,14 +30,13 @@ The router is the "main entry point" into routing. Its primary responsibilities 
 - receive a navigation (instruction) from the navigator and process it
 - invoke routing hooks when appropriate
 
-### `NavigationCoordinator/StateCoordinator`
+### `NavigationCoordinator`
 
 Helps the router coordinate navigations. More to come.
 
 ### `RoutingScope` (`.scope`)
 
-The router uses routing scopes to organize all endpoints (viewports and viewport scopes) into a hierarchical structure. Each routing scope belongs to a parent/owner routing scope (except the root, that has no parent) and can in turn have several
-routing scopes that it owns. A routing scope always has a connected endpoint. (And an endpoint always has a connected routing scope.)
+The router uses routing scopes to organize all endpoints (viewports and viewport scopes) into two hierarchical structures. Each routing scope belongs to a parent/children hierarchy, that follows the DOM and is used when routing scopes are added and removed, and an owner/owning hierarchy that's used when finding endpoints. Every routing scope has a routing scope that owns it (except the root) and can in turn have several routing scopes that it owns. A routing scope always has a connected endpoint content. (And an endpoint content always has a connected routing scope.)
 
 Every navigtion/load instruction that the router processes is first tied to a routing scope, either a specified scope or the root scope. That routing scope is then asked to
 1. find
@@ -53,8 +57,7 @@ Finally, when a navigation is complete, the routing scopes helps
 
 5) structure all existing routing instructions into a description of the complete state of all the current endpoints and their contents.
 
-The hierarchy of the routing scopes often follows the DOM hierarchy, but it's not a necessity; it's possible to have routing scopes that doesn't create their own "owning capable scope", and thus placing all their "children" under the same "parent"
-as themselves or for a routing scope to hoist itself up or down in the hierarchy and, for example, place itself as a "child" to a DOM sibling endpoint. (Scope self-hoisting will not be available for early-on alpha.)
+The hierarchy of the owner/owning routing scopes often follows the parent/child DOM hierarchy, but it's not a necessity; it's possible to have routing scopes that doesn't create their own "owning capable scope", and thus placing all their "children" under the same "parent" as themselves or for a routing scope to hoist itself up or down in the hierarchy and, for example, place itself as a "child" to a DOM sibling endpoint. (Scope self-hoisting will not be available for early-on alpha.)
 
 ### `Navigator` (`.navigator`)
 

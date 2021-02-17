@@ -1,9 +1,3 @@
-/**
- *
- * NOTE: This file is still WIP and will go through at least one more iteration of refactoring, commenting and clean up!
- * In its current state, it is NOT a good source for learning about the inner workings and design of the router.
- *
- */
 import { IViewportScopeOptions, ViewportScope } from './endpoints/viewport-scope.js';
 import { CustomElement, CustomElementType, getEffectiveParentNode, ICustomElementController, ICustomElementViewModel, INode } from '@aurelia/runtime-html';
 import { FoundRoute } from './found-route.js';
@@ -61,29 +55,37 @@ export class RoutingScope {
   public static lastId = 0;
 
   public id = -1;
-  public scope: RoutingScope;
 
+  /**
+   * The parent of the routing scope (parent/child hierarchy)
+   */
   public parent: RoutingScope | null = null;
+  /**
+   * The children of the routing scope (parent/child hierarchy)
+   */
   public children: RoutingScope[] = [];
-  // public replacedChildren: RoutingScope[] = [];
+
   public path: string | null = null;
-
-  // public enabled: boolean = true;
-
-  // Support collection feature in viewport scopes
-  // public childCollections: Record<string, unknown[]> = {};
 
   public constructor(
     public readonly router: IRouter,
+    /**
+     * Whether the routing scope has a scope and can own other scopes
+     */
     public readonly hasScope: boolean,
+
+    /**
+     * The routing scope that owns this routing scope (owner/owning hierarchy)
+     */
     public owningScope: RoutingScope | null,
+
+    /**
+     * The endpoint content the routing scope is connected to
+     */
     public endpointContent: EndpointContent,
-    public rootComponentType: CustomElementType | null = null, // temporary. Metadata will probably eliminate it
   ) {
     this.id = ++RoutingScope.lastId;
     this.owningScope = owningScope ?? this;
-    this.scope = this.hasScope ? this : this.owningScope.scope;
-    // setInterval(() => { console.log(this.toString(this.parent === null)); }, 10000);
   }
 
   public static for(origin: Element | ICustomElementViewModel | Viewport | ViewportScope | RoutingScope | ICustomElementController | IContainer | null): RoutingScope | null {
@@ -117,6 +119,16 @@ export class RoutingScope {
     return closestEndpoint?.scope ?? null;
   }
 
+  /**
+   * The routing scope children to this scope are added to. If this routing
+   * scope has scope, this scope property equals this scope itself. If it
+   * doesn't have scope this property equals the owning scope. Using this
+   * ensures that routing scopes that don't have a their own scope aren't
+   * part of the owner/owning hierarchy.
+   */
+  public get scope(): RoutingScope {
+    return this.hasScope ? this : this.owningScope!.scope;
+  }
   public get endpoint(): Endpoint {
     return this.endpointContent.endpoint;
   }
@@ -174,18 +186,6 @@ export class RoutingScope {
     }
     return null;
   }
-
-  // public get parentTransitionAction(): TransitionAction {
-  //   // console.log('######### RoutingScope.parentTransitionAction');
-  //   if (this.parent === null) {
-  //     return '';
-  //   }
-  //   const parentAction = this.parent.endpoint!.transitionAction;
-  //   if (parentAction === 'swap' || parentAction === 'skip') {
-  //     return parentAction;
-  //   }
-  //   return this.parent.parentTransitionAction;
-  // }
 
   public getOwnedScopes(includeDisabled: boolean = false): RoutingScope[] {
     const scopes = this.allScopes(includeDisabled).filter(scope => scope.owningScope === this);
@@ -245,14 +245,12 @@ export class RoutingScope {
         scope.endpoint.name === name)?.endpoint ?? null;
     // Each endpoint element has its own Endpoint
     if (connectedCE != null && endpoint?.connectedCE != null && endpoint.connectedCE !== connectedCE) {
-      // e: endpoint.enabled = false;
       endpoint = this.getOwnedScopes(true)
         .find(scope => scope.type === type &&
           scope.endpoint.name === name &&
           scope.endpoint.connectedCE === connectedCE)?.endpoint
         ?? null;
       if (endpoint != null) {
-        // e: endpoint.enabled = true;
       }
     }
     if (endpoint == null) {
@@ -292,21 +290,6 @@ export class RoutingScope {
     }
   }
 
-  //r:   public clearReplacedChildren(): void {
-  //   this.replacedChildren = [];
-  // }
-  // public disableReplacedChildren(): void {
-  //   this.replacedChildren = this.enabledChildren;
-  //   for (const scope of this.replacedChildren) {
-  //     // e: scope.enabled = false;
-  //   }
-  // }
-  // public reenableReplacedChildren(): void {
-  //   for (const scope of this.replacedChildren) {
-  //     // e: scope.enabled = true;
-  //   }
-  // }
-
   public allScopes(includeDisabled: boolean = false): RoutingScope[] {
     const scopes: RoutingScope[] = includeDisabled ? this.children.slice() : this.enabledChildren;
     for (const scope of scopes.slice()) {
@@ -330,7 +313,6 @@ export class RoutingScope {
   }
 
   public canUnload(step: Step<boolean> | null): boolean | Promise<boolean> {
-    // console.log('canUnload', this.toString(), step!.path, step!.root.report);
     return Runner.run(step,
       (stepParallel: Step<boolean>) => {
         return Runner.runParallel(stepParallel,
@@ -343,22 +325,16 @@ export class RoutingScope {
   }
 
   public unload(step: Step<void> | null/*, recurse: boolean, transitionId: number*/): Step<void> {
-    // console.log('unload routing scope', this.toString(), step!.path, step!.root.report);
     return Runner.runParallel(step,
       ...this.children.map(child => child.endpoint !== null
-        ? (childStep: Step<void>) => child.endpoint.unload(childStep/*, recurse, transitionId*/)
-        : (childStep: Step<void>) => child.unload(childStep/*, recurse, transitionId*/)
+        ? (childStep: Step<void>) => child.endpoint.unload(childStep)
+        : (childStep: Step<void>) => child.unload(childStep)
       )) as Step<void>;
   }
 
   public matchScope(instructions: RoutingInstruction[], deep = false): RoutingInstruction[] {
     const matching: RoutingInstruction[] = [];
 
-    // matching.push(...instructions.filter(instruction => instruction.scope === this));
-    // matching.push(...instructions
-    //   .filter(instr => instr.scope !== this)
-    //   .map(instr => Array.isArray(instr.nextScopeInstructions) ? this.matchScope(instr.nextScopeInstructions) : [])
-    //   .flat());
     for (const instruction of instructions) {
       if (instruction.scope === this) {
         matching.push(instruction);
@@ -368,24 +344,6 @@ export class RoutingScope {
     }
     return matching;
   }
-
-  // public matchChildren(instructions: RoutingInstruction[], active: RoutingInstruction[]): boolean {
-  //   for (const instruction of instructions) {
-  //     const matching = active.filter(instr => instr.sameComponent(instruction));
-  //     if (matching.length === 0) {
-  //       return false;
-  //     }
-  //     if (Array.isArray(instruction.nextScopeInstructions)
-  //       && instruction.nextScopeInstructions.length > 0
-  //       && this.matchChildren(
-  //         instruction.nextScopeInstructions,
-  //         matching.map(instr => Array.isArray(instr.nextScopeInstructions) ? instr.nextScopeInstructions : []).flat()
-  //       ) === false) {
-  //       return false;
-  //     }
-  //   }
-  //   return true;
-  // }
 
   public findMatchingRoute(path: string): FoundRoute | null {
     if (this.isViewportScope && !this.passThroughScope) {

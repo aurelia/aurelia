@@ -1,19 +1,6 @@
-/**
- *
- * NOTE: This file is still WIP and will go through at least one more iteration of refactoring, commenting and clean up!
- * In its current state, it is NOT a good source for learning about the inner workings and design of the router.
- *
- */
 import { Constructable, Metadata, Protocol, ResourceType, Writable } from '@aurelia/kernel';
 import { CustomElement } from '@aurelia/runtime-html';
-import { IRouteableComponent, LoadInstruction, ComponentAppellation, ViewportHandle, ComponentParameters, RouteableComponentType } from './interfaces.js';
-
-// import { CanLoad, CanUnload, Load, Unload } from './hooks.js';
-
-// const noCanLoadHooks = emptyArray as RouteConfig['canLoad'];
-// const noCanUnloadHooks = emptyArray as RouteConfig['canUnload'];
-// const noLoadHooks = emptyArray as RouteConfig['load'];
-// const noUnloadHooks = emptyArray as RouteConfig['unload'];
+import { LoadInstruction, ComponentAppellation, ViewportHandle, ComponentParameters, RouteableComponentType, ReloadBehavior } from './interfaces.js';
 
 export interface IRoute extends Writable<Partial<Route>> {
   /**
@@ -24,7 +11,7 @@ export interface IRoute extends Writable<Partial<Route>> {
   /**
    * The name of the viewport this component should be loaded into. Transfered into the `instructions` property.
    *
-   * (TODO: decide on, and provide more details about, whether this can be specified without specifying path, and what happens in different combinations of situations)
+   * (TODO: Decide on, and provide more details about, whether this can be specified without specifying path, and what happens in different combinations of situations)
    */
   viewport?: ViewportHandle;
 
@@ -39,21 +26,67 @@ export interface IRoute extends Writable<Partial<Route>> {
   children?: LoadInstruction[];
 }
 
-// export type TransitionPlan = 'none' | 'replace' | 'invoke-lifecycles';
-// export type TransitionPlanOrFunc = TransitionPlan | ((current: Navigation, next: Navigation) => TransitionPlan);
-// export function defaultReloadBehavior(current: Navigation, next: Navigation): TransitionPlan {
-//   if (!shallowEquals(current.params, next.params)) {
-//     return 'invoke-lifecycles';
-//   }
-
-//   return 'none';
-// }
-
 export class Route {
   /**
    * The metadata resource key for a configured route.
    */
   private static readonly resourceKey = Protocol.resource.keyFor('route');
+
+  protected constructor(
+    /**
+     * The path to match against the url.
+     */
+    public readonly path: string,
+
+    /**
+     * The id for this route, which can be used in the view for generating hrefs.
+     *
+     * (TODO: decide on, and provide more details about, whether this can be specified without specifying path, and what happens in different combinations of situations)
+     */
+    public readonly id: string | null,
+
+    /**
+     * The path to which to redirect when the url matches the path in this config.
+     *
+     * If the path begins with a slash (`/`), the redirect path is considered absolute, otherwise it is considered relative to the parent path.
+     */
+    public readonly redirectTo: string | null,
+
+    /**
+     * The instructions that should be loaded when this route is matched.
+     */
+    public instructions: LoadInstruction[] | null,
+
+    /**
+     * Whether the `path` should be case sensitive.
+     */
+    public readonly caseSensitive: boolean,
+
+    /**
+     * Title string or function to be used when setting title for the route.
+     */
+    // TODO(alpha): Specify type!
+    public readonly title: any | null,
+
+    /**
+     * The reload behavior of the components in the route, as in how they behave
+     * when the route is loaded again.
+     *
+     * TODO(alpha): Add support for function in value
+     */
+    public reloadBehavior: ReloadBehavior | null,
+
+    /**
+     * Any custom data that should be accessible to matched components or hooks.
+     */
+    public readonly data: unknown,
+
+    // TODO: Look into adding these:
+    // public readonly canLoad: readonly CanLoad[],
+    // public readonly canUnload: readonly CanUnload[],
+    // public readonly load: readonly Load[],
+    // public readonly unload: readonly Unload[],
+  ) { }
 
   /**
    * Returns `true` if the specified type has any static route configuration (either via static properties or a &#64;route decorator)
@@ -94,69 +127,11 @@ export class Route {
     return config instanceof Route ? config : Route.create(config, Type);
   }
 
-  protected constructor(
-    /**
-     * The path to match against the url.
-     */
-    public readonly path: string,
-
-    /**
-     * The id for this route, which can be used in the view for generating hrefs.
-     *
-     * (TODO: decide on, and provide more details about, whether this can be specified without specifying path, and what happens in different combinations of situations)
-     */
-    public readonly id: string | null,
-
-    /**
-     * The path to which to redirect when the url matches the path in this config.
-     *
-     * If the path begins with a slash (`/`), the redirect path is considered absolute, otherwise it is considered relative to the parent path.
-     */
-    public readonly redirectTo: string | null,
-
-    /**
-     * The instructions that should be loaded when this route is matched.
-     */
-    public instructions: LoadInstruction[] | null,
-
-    /**
-     * How to behave when this component scheduled to be loaded again in the same viewport:
-     *
-     * - `replace`: completely removes the current component and creates a new one, behaving as if the component changed.
-     * - `invoke-lifecycles`: calls `canUnload`, `canLoad`, `unload` and `load` (default if only the parameters have changed)
-     * - `none`: does nothing (default if nothing has changed for the viewport)
-     *
-     * By default, calls the router lifecycle hooks only if the parameters have changed, otherwise does nothing.
-     */
-    // public readonly transitionPlan: TransitionPlanOrFunc,
-
-    /**
-     * Whether the `path` should be case sensitive.
-     */
-    public readonly caseSensitive: boolean,
-
-    /**
-     * Title string or function to be used when setting title for the route.
-     */
-    // TODO: Specify type!
-    public readonly title: any | null,
-
-    /**
-     * Any custom data that should be accessible to matched components or hooks.
-     */
-    public readonly data: unknown,
-
-    // public readonly canLoad: readonly CanLoad[],
-    // public readonly canUnload: readonly CanUnload[],
-    // public readonly load: readonly Load[],
-    // public readonly unload: readonly Unload[],
-  ) { }
-
   /**
    * Create a valid Route or throw if it can't.
    *
    * @param configOrType - Configuration or type the route is created from.
-   * @param Type - Ir specified, the Route is routing to Type, regardless of what config says, as with `@route` decorator.
+   * @param Type - If specified, the Route is routing to Type, regardless of what config says, as with `@route` decorator.
    */
   public static create(configOrType: IRoute | RouteableComponentType | undefined, Type: RouteableComponentType | null = null): Route {
     // If a fixed type is specified, component is fixed to that type and
@@ -184,13 +159,8 @@ export class Route {
       config.instructions ?? null,
       config.caseSensitive ?? false,
       config.title ?? null,
+      config.reloadBehavior ?? null,
       config.data ?? null,
-      // reloadBehavior,
-
-      // canLoad,
-      // canUnload,
-      // load,
-      // unload,
     );
   }
 

@@ -10,6 +10,7 @@ import { Runner, Step } from '../utilities/runner.js';
 import { AwaitableMap } from '../utilities/awaitable-map.js';
 import { EndpointContent, RoutingScope } from '../index.js';
 import { IRouter } from '../router.js';
+import { FoundRoute } from './../found-route.js';
 
 /**
  * The viewport content encapsulates the component loaded into a viewport
@@ -110,6 +111,13 @@ export class ViewportContent extends EndpointContent {
    * when the content is loaded again.
    */
   public get reloadBehavior(): ReloadBehavior {
+    // TODO(alpha): Add support for more than one component in route
+    if (this.instruction.route instanceof FoundRoute
+      && this.instruction.route.match?.reloadBehavior !== null
+    ) {
+      // TODO(alpha): Add support for function in value
+      return this.instruction.route.match?.reloadBehavior as ReloadBehavior;
+    }
     return (this.instruction.component.instance !== null &&
       'reloadBehavior' in this.instruction.component.instance &&
       this.instruction.component.instance.reloadBehavior !== void 0)

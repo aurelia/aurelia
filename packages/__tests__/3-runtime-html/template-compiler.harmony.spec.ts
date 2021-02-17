@@ -327,6 +327,7 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
     {
       title: 'special property valueAsNumber on <input type=number>',
       template: '<input type="number" value-as-number.bind="count">',
+      browserOnly: true,
       assertFn: (ctx, host, comp: { count: number }) => {
         const input = host.querySelector('input');
         assert.strictEqual(input.valueAsNumber, 0);
@@ -364,6 +365,7 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
     {
       title: 'special property valueAsNumber on <input type=date>',
       template: '<input type="date" value-as-number.bind="count">',
+      browserOnly: true,
       assertFn: (ctx, host, comp: { count: number }) => {
         const input = host.querySelector('input');
         assert.strictEqual(input.valueAsNumber, 0);

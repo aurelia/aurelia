@@ -1,10 +1,3 @@
-/**
- *
- * NOTE: This file is still WIP and will go through at least one more iteration of refactoring, commenting and clean up!
- * In its current state, it is NOT a good source for learning about the inner workings and design of the router.
- *
- */
-
 import { Constructable, IContainer } from '@aurelia/kernel';
 import { CustomElement, CustomElementDefinition, isCustomElementViewModel } from '@aurelia/runtime-html';
 import { IRouteableComponent, RouteableComponentType } from '../interfaces';
@@ -19,8 +12,7 @@ export interface IInstructionComponent extends InstructionComponent { }
  * components are resolved "non-early" to support dynamic, local resolutions.
  */
 
-// TODO: Include `CustomElementDefinition` in this
-export type ComponentAppellation = string | RouteableComponentType | IRouteableComponent | Constructable;
+export type ComponentAppellation = string | RouteableComponentType | IRouteableComponent | CustomElementDefinition | Constructable;
 
 export class InstructionComponent {
   /**
@@ -42,38 +34,38 @@ export class InstructionComponent {
    * A promise that will resolve into a component name, type,
    * instance or definition.
    */
-  public promise: Promise<ComponentAppellation | CustomElementDefinition> | null = null;
+  public promise: Promise<ComponentAppellation> | null = null;
 
   /**
    * Create a new instruction component.
    *
    * @param component - The component
    */
-  public static create(componentAppelation?: ComponentAppellation | CustomElementDefinition | Promise<ComponentAppellation | CustomElementDefinition>): InstructionComponent {
+  public static create(componentAppelation?: ComponentAppellation | Promise<ComponentAppellation>): InstructionComponent {
     const component = new InstructionComponent();
     component.set(componentAppelation);
     return component;
   }
 
-  public static isName(component: ComponentAppellation | CustomElementDefinition): component is string {
+  public static isName(component: ComponentAppellation): component is string {
     return typeof component === 'string';
   }
-  public static isDefinition(component: ComponentAppellation | CustomElementDefinition): component is CustomElementDefinition {
+  public static isDefinition(component: ComponentAppellation): component is CustomElementDefinition {
     return CustomElement.isType((component as CustomElementDefinition).Type);
   }
-  public static isType(component: ComponentAppellation | CustomElementDefinition): component is RouteableComponentType {
+  public static isType(component: ComponentAppellation): component is RouteableComponentType {
     return CustomElement.isType(component);
   }
-  public static isInstance(component: ComponentAppellation | CustomElementDefinition): component is IRouteableComponent {
+  public static isInstance(component: ComponentAppellation): component is IRouteableComponent {
     return isCustomElementViewModel(component);
   }
-  public static isAppelation(component: ComponentAppellation | CustomElementDefinition): component is ComponentAppellation {
+  public static isAppelation(component: ComponentAppellation): component is ComponentAppellation {
     return InstructionComponent.isName(component)
       || InstructionComponent.isType(component)
       || InstructionComponent.isInstance(component);
   }
 
-  public static getName(component: ComponentAppellation | CustomElementDefinition): string {
+  public static getName(component: ComponentAppellation): string {
     if (InstructionComponent.isName(component)) {
       return component;
     } else if (InstructionComponent.isType(component)) {
@@ -82,7 +74,7 @@ export class InstructionComponent {
       return InstructionComponent.getName(component.constructor as Constructable);
     }
   }
-  public static getType(component: ComponentAppellation | CustomElementDefinition): RouteableComponentType | null {
+  public static getType(component: ComponentAppellation): RouteableComponentType | null {
     if (InstructionComponent.isName(component)) {
       return null;
     } else if (InstructionComponent.isType(component)) {
@@ -91,7 +83,7 @@ export class InstructionComponent {
       return ((component as IRouteableComponent).constructor as RouteableComponentType);
     }
   }
-  public static getInstance(component: ComponentAppellation | CustomElementDefinition): IRouteableComponent | null {
+  public static getInstance(component: ComponentAppellation): IRouteableComponent | null {
     if (InstructionComponent.isName(component) || InstructionComponent.isType(component)) {
       return null;
     } else {
@@ -100,7 +92,7 @@ export class InstructionComponent {
   }
 
   // Instance methods
-  public set(component: ComponentAppellation | CustomElementDefinition | Promise<ComponentAppellation | CustomElementDefinition> | undefined | null): void {
+  public set(component: ComponentAppellation | Promise<ComponentAppellation> | undefined | null): void {
     if (component == null) {
       this.name = null;
       this.type = null;
@@ -129,19 +121,19 @@ export class InstructionComponent {
     }
   }
 
-  public resolve(): void | Promise<ComponentAppellation | CustomElementDefinition> {
+  public resolve(): void | Promise<ComponentAppellation> {
     if (!(this.promise instanceof Promise)) {
       return;
     }
     // TODO(alpha): Fix the type here
-    return (this.promise as any).then((component: ComponentAppellation | CustomElementDefinition): void => {
+    return (this.promise as any).then((component: ComponentAppellation): void => {
       // TODO(alpha): Fix the issues with import/module here
       if (InstructionComponent.isAppelation(component)) {
         this.set(component);
         return;
       }
-      if ((component as unknown as { default: ComponentAppellation | CustomElementDefinition }).default != null) {
-        this.set((component as unknown as { default: ComponentAppellation | CustomElementDefinition }).default);
+      if ((component as unknown as { default: ComponentAppellation }).default != null) {
+        this.set((component as unknown as { default: ComponentAppellation }).default);
         return;
       }
       if (Object.keys(component).length === 0) {
@@ -152,8 +144,8 @@ export class InstructionComponent {
       }
       const key = Object.keys(component)[0];
       // TODO(alpha): Fix type here
-      this.set((component as any)[key] as ComponentAppellation | CustomElementDefinition);
-    }) as Promise<ComponentAppellation | CustomElementDefinition>;
+      this.set((component as any)[key] as ComponentAppellation);
+    }) as Promise<ComponentAppellation>;
   }
 
   public get none(): boolean {

@@ -15,6 +15,7 @@ import {
   Registration,
   sink,
   ConsoleSink,
+  optional,
 } from '@aurelia/kernel';
 import {
   bindingBehavior,
@@ -49,7 +50,7 @@ describe.only('promise template-controller', function () {
   class Config {
     public constructor(
       public hasPromise: boolean,
-      public wait: (name: string) => Promise<void>,
+      public wait: (name: string) => Promise<void> | void,
     ) { }
 
     public toString(): string {
@@ -57,18 +58,24 @@ describe.only('promise template-controller', function () {
     }
   }
 
+  const configLookup = DI.createInterface<Map<string, Config>>();
   let nameIdMap: Map<string, number>;
   function createComponentType(name: string, template: string = '', bindables: string[] = []) {
     @customElement({ name, template, bindables, isStrictBinding: true })
     class Component {
       private readonly logger: ILogger;
       public constructor(
-        private readonly config: Config,
+        @optional(Config) private readonly config: Config,
         @ILogger logger: ILogger,
+        @IContainer container: IContainer,
       ) {
         let id = nameIdMap.get(name) ?? 1;
         this.logger = logger.scopeTo(`${name}-${id}`);
         nameIdMap.set(name, ++id);
+        if (config == null) {
+          const lookup = container.get(configLookup);
+          this.config = lookup.get(name);
+        }
       }
 
       public async binding(): Promise<void> {
@@ -146,7 +153,7 @@ describe.only('promise template-controller', function () {
     registrations: any[];
     expectedStopLog: string[];
     verifyStopCallsAsSet: boolean;
-    promise: Promise<unknown>;
+    promise: Promise<unknown> | (() => Promise<unknown>);
   }
   class PromiseTestExecutionContext implements TestExecutionContext<any> {
     private _scheduler: IPlatform;
@@ -243,7 +250,9 @@ describe.only('promise template-controller', function () {
           LoggerConfiguration.create({ level: LogLevel.trace, sinks: [DebugLog/* , ConsoleSink */] }),
           ...registrations,
           NoopBindingBehavior,
-          Registration.instance(seedPromise, promise),
+          typeof promise === 'function'
+            ? Registration.callback(seedPromise, promise)
+            : Registration.instance(seedPromise, promise),
         )
         .app({
           host,
@@ -307,7 +316,7 @@ describe.only('promise template-controller', function () {
     public readonly name: string;
     public constructor(
       name: string,
-      public promise: Promise<unknown>,
+      public promise: Promise<unknown> | (() => Promise<unknown>),
       {
         registrations = [],
         template,
@@ -320,9 +329,9 @@ describe.only('promise template-controller', function () {
       public readonly additionalAssertions: ((ctx: PromiseTestExecutionContext) => Promise<void> | void) | null = null,
       public readonly only: boolean = false,
     ) {
-      this.name = `${name} - ${config.toString()}`;
+      this.name = config !== null ? `${name} - ${config.toString()}` : name;
       this.registrations = [
-        Registration.instance(Config, config),
+        ...(config !== null ? [Registration.instance(Config, config)] : []),
         createComponentType(phost, `pending\${p.id}`, ['p']),
         createComponentType(fhost, `resolved with \${data}`, ['data']),
         createComponentType(rhost, `rejected with \${err.message}`, ['err']),
@@ -333,14 +342,9 @@ describe.only('promise template-controller', function () {
     }
   }
 
-  function createWaiter(ms: number | Record<string, number>): (name: string) => Promise<void> {
-    function wait(name: string): Promise<void> {
-      const waitMs = typeof ms === 'number' ? ms : ms[name];
-      return new Promise(function (resolve) {
-        setTimeout(function () {
-          resolve();
-        }, waitMs);
-      });
+  function createWaiter(ms: number): (name: string) => Promise<void> {
+    function wait(_name: string): Promise<void> {
+      return new Promise(function (resolve) { setTimeout(resolve, ms); });
     }
 
     wait.toString = function () {
@@ -357,17 +361,39 @@ describe.only('promise template-controller', function () {
     return 'Promise.resolve()';
   };
 
-  const configFactories = [
-    function () {
-      return new Config(false, noop);
-    },
-    function () {
-      return new Config(true, createWaiter(0));
-    },
-    function () {
-      return new Config(true, createWaiter(5));
-    },
-  ];
+  function createMultiTickPromise(ticks: number, cb: () => Promise<unknown>) {
+    const wait = () => {
+      if (ticks === 0) {
+        return cb();
+      }
+      ticks--;
+      return new Promise((r) => setTimeout(function () { r(wait()); }, 0));
+    };
+    return wait;
+  }
+
+  function createWaiterWithTicks(ticks: Record<string, number>): (name?: string) => Promise<void> | void {
+    const lookup: Record<string, () => Promise<void> | void> = Object.create(null);
+    for (const [key, numTicks] of Object.entries(ticks)) {
+      const fn: (() => Promise<void> | void) & { ticks: number } = () => {
+        if (fn.ticks === 0) {
+          return;
+        }
+        fn.ticks--;
+        return new Promise((r) => setTimeout(function () { void r(fn()); }, 0));
+      };
+      fn.ticks = numTicks;
+      lookup[key] = fn;
+    }
+    const wait = (name: string) => {
+      return lookup[name]?.() ?? Promise.resolve();
+    };
+    wait.toString = function () {
+      return `waitWithTicks(cb,${JSON.stringify(ticks)})`;
+    };
+
+    return wait;
+  }
 
   function* getTestData() {
     function wrap(content: string, type: 'p' | 'f' | 'r') {
@@ -381,9 +407,18 @@ describe.only('promise template-controller', function () {
       }
     }
 
-    for (const config of configFactories) {
-
-      const template1 = `
+    const configFactories = [
+      function () {
+        return new Config(false, noop);
+      },
+      function () {
+        return new Config(true, createWaiter(0));
+      },
+      function () {
+        return new Config(true, createWaiter(5));
+      },
+    ];
+    const template1 = `
     <template>
       <template promise.bind="promise">
         <pending-host pending p.bind="promise"></pending-host>
@@ -391,16 +426,13 @@ describe.only('promise template-controller', function () {
         <rejected-host catch.from-view="err" err.bind="err"></rejected-host>
       </template>
     </template>`;
+    for (const config of configFactories) {
       {
         let resolve: (value: unknown) => void;
-        const promise: PromiseWithId = new Promise((r) => resolve = r);
-        promise.id = 0;
         yield new TestData(
-          'shows content as per promise status - fulfilled',
-          promise,
-          {
-            template: template1,
-          },
+          'shows content as per promise status #1 - fulfilled',
+          Object.assign(new Promise((r) => resolve = r), { id: 0 }),
+          { template: template1 },
           config(),
           wrap('pending0', 'p'),
           getActivationSequenceFor(`${phost}-1`),
@@ -420,14 +452,10 @@ describe.only('promise template-controller', function () {
       }
       {
         let reject: (value: unknown) => void;
-        const promise: PromiseWithId = new Promise((_, r) => reject = r);
-        promise.id = 0;
         yield new TestData(
-          'shows content as per promise status - rejected',
-          promise,
-          {
-            template: template1,
-          },
+          'shows content as per promise status #1 - rejected',
+          Object.assign(new Promise((_, r) => reject = r), { id: 0 }),
+          { template: template1 },
           config(),
           wrap('pending0', 'p'),
           getActivationSequenceFor(`${phost}-1`),
@@ -641,136 +669,110 @@ describe.only('promise template-controller', function () {
           ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor(`${rhost}-1`)]);
         }
       );
-      {
-        let promise: PromiseWithId = new Promise(() => {/* noop */ });
-        promise.id = 0;
-        yield new TestData(
-          'reacts to change in promise value - pending -> pending',
-          promise,
-          { template: template1 },
-          config(),
-          wrap('pending0', 'p'),
-          getActivationSequenceFor(`${phost}-1`),
-          getDeactivationSequenceFor(`${phost}-1`),
-          async (ctx) => {
-            ctx.clear();
-            const p = ctx.platform;
-            promise = new Promise(() => {/* noop */ });
-            promise.id = 1;
-            ctx.app.promise = promise;
-            await p.domWriteQueue.yield();
+      yield new TestData(
+        'reacts to change in promise value - pending -> pending',
+        Object.assign(new Promise(() => {/* noop */ }), { id: 0 }),
+        { template: template1 },
+        config(),
+        wrap('pending0', 'p'),
+        getActivationSequenceFor(`${phost}-1`),
+        getDeactivationSequenceFor(`${phost}-1`),
+        async (ctx) => {
+          ctx.clear();
+          const p = ctx.platform;
+          ctx.app.promise = Object.assign(new Promise(() => {/* noop */ }), { id: 1 });
+          await p.domWriteQueue.yield();
 
-            assert.html.innerEqual(ctx.host, wrap('pending1', 'p'));
-            ctx.assertCallSet([]);
-          }
-        );
-      }
-      {
-        const promise: PromiseWithId = new Promise(() => {/* noop */ });
-        promise.id = 0;
-        yield new TestData(
-          'reacts to change in promise value - pending -> fulfilled',
-          promise,
-          { template: template1 },
-          config(),
-          wrap('pending0', 'p'),
-          getActivationSequenceFor(`${phost}-1`),
-          getDeactivationSequenceFor(`${fhost}-1`),
-          async (ctx) => {
-            ctx.clear();
-            const p = ctx.platform;
-            ctx.app.promise = Promise.resolve(42);
-            await p.domWriteQueue.yield();
+          assert.html.innerEqual(ctx.host, wrap('pending1', 'p'));
+          ctx.assertCallSet([]);
+        }
+      );
+      yield new TestData(
+        'reacts to change in promise value - pending -> fulfilled',
+        Object.assign(new Promise(() => {/* noop */ }), { id: 0 }),
+        { template: template1 },
+        config(),
+        wrap('pending0', 'p'),
+        getActivationSequenceFor(`${phost}-1`),
+        getDeactivationSequenceFor(`${fhost}-1`),
+        async (ctx) => {
+          ctx.clear();
+          const p = ctx.platform;
+          ctx.app.promise = Promise.resolve(42);
+          await p.domWriteQueue.yield();
 
-            assert.html.innerEqual(ctx.host, wrap('resolved with 42', 'f'));
-            ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor(`${fhost}-1`)]);
-          }
-        );
-      }
-      {
-        const promise: PromiseWithId = new Promise(() => {/* noop */ });
-        promise.id = 0;
-        yield new TestData(
-          'reacts to change in promise value - pending -> rejected',
-          promise,
-          { template: template1 },
-          config(),
-          wrap('pending0', 'p'),
-          getActivationSequenceFor(`${phost}-1`),
-          getDeactivationSequenceFor(`${rhost}-1`),
-          async (ctx) => {
-            ctx.clear();
-            const p = ctx.platform;
-            ctx.app.promise = Promise.reject(new Error('foo-bar'));
-            await p.domWriteQueue.yield();
+          assert.html.innerEqual(ctx.host, wrap('resolved with 42', 'f'));
+          ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor(`${fhost}-1`)]);
+        }
+      );
+      yield new TestData(
+        'reacts to change in promise value - pending -> rejected',
+        Object.assign(new Promise(() => {/* noop */ }), { id: 0 }),
+        { template: template1 },
+        config(),
+        wrap('pending0', 'p'),
+        getActivationSequenceFor(`${phost}-1`),
+        getDeactivationSequenceFor(`${rhost}-1`),
+        async (ctx) => {
+          ctx.clear();
+          const p = ctx.platform;
+          ctx.app.promise = Promise.reject(new Error('foo-bar'));
+          await p.domWriteQueue.yield();
 
-            assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'));
-            ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor(`${rhost}-1`)]);
-          }
-        );
-      }
-      {
-        let promise: PromiseWithId = new Promise(() => {/* noop */ });
-        promise.id = 0;
-        yield new TestData(
-          'reacts to change in promise value - pending -> (pending -> fulfilled)',
-          promise,
-          { template: template1 },
-          config(),
-          wrap('pending0', 'p'),
-          getActivationSequenceFor(`${phost}-1`),
-          getDeactivationSequenceFor(`${fhost}-1`),
-          async (ctx) => {
-            ctx.clear();
-            const p = ctx.platform;
-            let resolve: (value: unknown) => void;
-            promise = new Promise((r) => resolve = r);
-            promise.id = 1;
-            ctx.app.promise = promise;
-            await p.domWriteQueue.yield();
+          assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'));
+          ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor(`${rhost}-1`)]);
+        }
+      );
+      yield new TestData(
+        'reacts to change in promise value - pending -> (pending -> fulfilled)',
+        Object.assign(new Promise(() => {/* noop */ }), { id: 0 }),
+        { template: template1 },
+        config(),
+        wrap('pending0', 'p'),
+        getActivationSequenceFor(`${phost}-1`),
+        getDeactivationSequenceFor(`${fhost}-1`),
+        async (ctx) => {
+          ctx.clear();
+          const p = ctx.platform;
+          let resolve: (value: unknown) => void;
+          ctx.app.promise = Object.assign(new Promise((r) => resolve = r), { id: 1 });
+          await p.domWriteQueue.yield();
 
-            assert.html.innerEqual(ctx.host, wrap('pending1', 'p'));
-            ctx.assertCallSet([]);
+          assert.html.innerEqual(ctx.host, wrap('pending1', 'p'));
+          ctx.assertCallSet([]);
 
-            resolve(42);
-            await p.domWriteQueue.yield();
-            await p.domWriteQueue.yield();
-            assert.html.innerEqual(ctx.host, wrap('resolved with 42', 'f'));
-            ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor(`${fhost}-1`)]);
-          }
-        );
-      }
-      {
-        let promise: PromiseWithId = new Promise(() => {/* noop */ });
-        promise.id = 0;
-        yield new TestData(
-          'reacts to change in promise value - pending -> (pending -> rejected)',
-          promise,
-          { template: template1 },
-          config(),
-          wrap('pending0', 'p'),
-          getActivationSequenceFor(`${phost}-1`),
-          getDeactivationSequenceFor(`${rhost}-1`),
-          async (ctx) => {
-            ctx.clear();
-            const p = ctx.platform;
-            let reject: (value: unknown) => void;
-            promise = new Promise((_, r) => reject = r);
-            promise.id = 1;
-            ctx.app.promise = promise;
-            await p.domWriteQueue.yield();
+          resolve(42);
+          await p.domWriteQueue.yield();
+          await p.domWriteQueue.yield();
+          assert.html.innerEqual(ctx.host, wrap('resolved with 42', 'f'));
+          ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor(`${fhost}-1`)]);
+        }
+      );
+      yield new TestData(
+        'reacts to change in promise value - pending -> (pending -> rejected)',
+        Object.assign(new Promise(() => {/* noop */ }), { id: 0 }),
+        { template: template1 },
+        config(),
+        wrap('pending0', 'p'),
+        getActivationSequenceFor(`${phost}-1`),
+        getDeactivationSequenceFor(`${rhost}-1`),
+        async (ctx) => {
+          ctx.clear();
+          const p = ctx.platform;
+          let reject: (value: unknown) => void;
+          ctx.app.promise = Object.assign(new Promise((_, r) => reject = r), { id: 1 });
+          await p.domWriteQueue.yield();
 
-            assert.html.innerEqual(ctx.host, wrap('pending1', 'p'));
-            ctx.assertCallSet([]);
+          assert.html.innerEqual(ctx.host, wrap('pending1', 'p'));
+          ctx.assertCallSet([]);
 
-            reject(new Error('foo-bar'));
-            await p.domWriteQueue.yield();
-            await p.domWriteQueue.yield();
-            assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'));
-            ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor(`${rhost}-1`)]);
-          }
-        );
-      }
+          reject(new Error('foo-bar'));
+          await p.domWriteQueue.yield();
+          await p.domWriteQueue.yield();
+          assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'));
+          ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor(`${rhost}-1`)]);
+        }
+      );
       yield new TestData(
         'can be used in isolation without any of the child template controllers',
         new Promise(() => {/* noop */ }),
@@ -788,11 +790,9 @@ describe.only('promise template-controller', function () {
       </template>`;
       {
         let resolve: (value: unknown) => void;
-        const promise: PromiseWithId = new Promise((r) => resolve = r);
-        promise.id = 0;
         yield new TestData(
           'supports combination: promise>pending - resolved',
-          promise,
+          Object.assign(new Promise((r) => resolve = r), { id: 0 }),
           { template: pTemplt },
           config(),
           wrap('pending0', 'p'),
@@ -811,11 +811,9 @@ describe.only('promise template-controller', function () {
       }
       {
         let reject: (value: unknown) => void;
-        const promise: PromiseWithId = new Promise((_, r) => reject = r);
-        promise.id = 0;
         yield new TestData(
           'supports combination: promise>pending - rejected',
-          promise,
+          Object.assign(new Promise((_, r) => reject = r), { id: 0 }),
           { template: pTemplt },
           config(),
           wrap('pending0', 'p'),
@@ -841,11 +839,9 @@ describe.only('promise template-controller', function () {
       </template>`;
       {
         let resolve: (value: unknown) => void;
-        const promise: PromiseWithId = new Promise((r) => resolve = r);
-        promise.id = 0;
         yield new TestData(
           'supports combination: promise>(pending+then) - resolved',
-          promise,
+          Object.assign(new Promise((r) => resolve = r), { id: 0 }),
           { template: pfCombTemplt },
           config(),
           wrap('pending0', 'p'),
@@ -864,11 +860,9 @@ describe.only('promise template-controller', function () {
       }
       {
         let reject: (value: unknown) => void;
-        const promise: PromiseWithId = new Promise((_, r) => reject = r);
-        promise.id = 0;
         yield new TestData(
           'supports combination: promise>(pending+then) - rejected',
-          promise,
+          Object.assign(new Promise((_, r) => reject = r), { id: 0 }),
           { template: pfCombTemplt },
           config(),
           wrap('pending0', 'p'),
@@ -894,11 +888,9 @@ describe.only('promise template-controller', function () {
       </template>`;
       {
         let resolve: (value: unknown) => void;
-        const promise: PromiseWithId = new Promise((r) => resolve = r);
-        promise.id = 0;
         yield new TestData(
           'supports combination: promise>(pending+catch) - resolved',
-          promise,
+          Object.assign(new Promise((r) => resolve = r), { id: 0 }),
           { template: prCombTemplt },
           config(),
           wrap('pending0', 'p'),
@@ -917,11 +909,9 @@ describe.only('promise template-controller', function () {
       }
       {
         let reject: (value: unknown) => void;
-        const promise: PromiseWithId = new Promise((_, r) => reject = r);
-        promise.id = 0;
         yield new TestData(
           'supports combination: promise>(pending+catch) - rejected',
-          promise,
+          Object.assign(new Promise((_, r) => reject = r), { id: 0 }),
           { template: prCombTemplt },
           config(),
           wrap('pending0', 'p'),
@@ -946,11 +936,9 @@ describe.only('promise template-controller', function () {
     </template>`;
       {
         let resolve: (value: unknown) => void;
-        const promise: PromiseWithId = new Promise((r) => resolve = r);
-        promise.id = 0;
         yield new TestData(
           'supports combination: promise>then - resolved',
-          promise,
+          Object.assign(new Promise((r) => resolve = r), { id: 0 }),
           { template: fTemplt },
           config(),
           '',
@@ -969,11 +957,9 @@ describe.only('promise template-controller', function () {
       }
       {
         let reject: (value: unknown) => void;
-        const promise: PromiseWithId = new Promise((_, r) => reject = r);
-        promise.id = 0;
         yield new TestData(
           'supports combination: promise>then - rejected',
-          promise,
+          Object.assign(new Promise((_, r) => reject = r), { id: 0 }),
           { template: fTemplt },
           config(),
           '',
@@ -998,10 +984,9 @@ describe.only('promise template-controller', function () {
     </template>`;
       {
         let resolve: (value: unknown) => void;
-        const promise: PromiseWithId = new Promise((r) => resolve = r);
         yield new TestData(
           'supports combination: promise>catch - resolved',
-          promise,
+          new Promise((r) => resolve = r),
           { template: rTemplt },
           config(),
           '',
@@ -1020,10 +1005,9 @@ describe.only('promise template-controller', function () {
       }
       {
         let reject: (value: unknown) => void;
-        const promise: PromiseWithId = new Promise((_, r) => reject = r);
         yield new TestData(
           'supports combination: promise>catch - rejected',
-          promise,
+          new Promise((_, r) => reject = r),
           { template: rTemplt },
           config(),
           '',
@@ -1049,10 +1033,9 @@ describe.only('promise template-controller', function () {
     </template>`;
       {
         let resolve: (value: unknown) => void;
-        const promise: PromiseWithId = new Promise((r) => resolve = r);
         yield new TestData(
           'supports combination: promise>then+catch - resolved',
-          promise,
+          new Promise((r) => resolve = r),
           { template: frTemplt },
           config(),
           '',
@@ -1071,10 +1054,9 @@ describe.only('promise template-controller', function () {
       }
       {
         let reject: (value: unknown) => void;
-        const promise: PromiseWithId = new Promise((_, r) => reject = r);
         yield new TestData(
           'supports combination: promise>then+catch - rejected',
-          promise,
+          new Promise((_, r) => reject = r),
           { template: frTemplt },
           config(),
           '',
@@ -1091,9 +1073,124 @@ describe.only('promise template-controller', function () {
           }
         );
       }
-    }
-  }
 
+      const template2 = `
+    <template>
+      <template promise.bind="promise">
+        <pending-host pending p.bind="promise"></pending-host>
+        <fulfilled-host1 then></fulfilled-host1>
+        <rejected-host1 catch></rejected-host1>
+      </template>
+    </template>`;
+      {
+        let resolve: (value: unknown) => void;
+        yield new TestData(
+          'shows content as per promise status #2 - fulfilled',
+          Object.assign(new Promise((r) => resolve = r), { id: 0 }),
+          {
+            template: template2,
+            registrations: [
+              createComponentType('fulfilled-host1', 'resolved'),
+              createComponentType('rejected-host1', 'rejected'),
+            ]
+          },
+          config(),
+          wrap('pending0', 'p'),
+          getActivationSequenceFor(`${phost}-1`),
+          getDeactivationSequenceFor('fulfilled-host1-1'),
+          async (ctx) => {
+            ctx.clear();
+            resolve(42);
+            const p = ctx.platform;
+            // one tick to call back the fulfill delegate, and queue task
+            await p.domWriteQueue.yield();
+            // on the next tick wait the queued task
+            await p.domWriteQueue.yield();
+            assert.html.innerEqual(ctx.host, '<fulfilled-host1 class="au">resolved</fulfilled-host1>');
+            ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor('fulfilled-host1-1')]);
+          }
+        );
+      }
+      {
+        let reject: (value: unknown) => void;
+        yield new TestData(
+          'shows content as per promise status #2 - rejected',
+          Object.assign(new Promise((_, r) => reject = r), { id: 0 }),
+          {
+            template: template2,
+            registrations: [
+              createComponentType('fulfilled-host1', 'resolved'),
+              createComponentType('rejected-host1', 'rejected'),
+            ]
+          },
+          config(),
+          wrap('pending0', 'p'),
+          getActivationSequenceFor(`${phost}-1`),
+          getDeactivationSequenceFor('rejected-host1-1'),
+          async (ctx) => {
+            ctx.clear();
+            reject(new Error());
+            const p = ctx.platform;
+            // one tick to call back the fulfill delegate, and queue task
+            await p.domWriteQueue.yield();
+            // on the next tick wait the queued task
+            await p.domWriteQueue.yield();
+            assert.html.innerEqual(ctx.host, '<rejected-host1 class="au">rejected</rejected-host1>');
+            ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor('rejected-host1-1')]);
+          }
+        );
+      }
+    }
+    // #region timings
+    for (const $resolve of [true, false]) {
+      {
+        const getPromise = (ticks: number) => () => Object.assign(
+          createMultiTickPromise(ticks, () => $resolve ? Promise.resolve(42) : Promise.reject(new Error('foo-bar')))(),
+          { id: 0 }
+        );
+        yield new TestData(
+          `pending activation duration < promise settlement duration - ${$resolve ? 'fulfilled' : 'rejected'}`,
+          getPromise(6),
+          {
+            template: template1,
+            registrations: [
+              Registration.instance(configLookup, new Map<string, Config>([
+                [phost, new Config(true, createWaiterWithTicks({ binding: 1, bound: 1, attaching: 1, attached: 1 }))],
+                [fhost, new Config(true, createWaiterWithTicks(Object.create(null)))],
+                [rhost, new Config(true, createWaiterWithTicks(Object.create(null)))],
+              ])),
+            ],
+          },
+          null,
+          wrap('pending0', 'p'),
+          getActivationSequenceFor(`${phost}-1`),
+          getDeactivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`),
+          async (ctx) => {
+            ctx.clear();
+            const q = ctx.platform.domWriteQueue;
+
+            try {
+              await ctx.app.promise;
+            } catch (e) {
+              // ignore rejection
+            }
+            await q.yield();
+
+            if ($resolve) {
+              assert.html.innerEqual(ctx.host, wrap('resolved with 42', 'f'), 'fulfilled');
+            } else {
+              assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'), 'rejected');
+            }
+            ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`)]);
+          }
+        );
+
+        // the case of 'pending activation duration' === 'promise settlement duration' is intentionally avoided as that would create a flaky test, due to the inherent race condition.
+
+      }
+    }
+    // #endregion
+  }
   for (const data of getTestData()) {
     (data.only ? $it.only : $it)(data.name,
       async function (ctx) {
@@ -1114,5 +1211,6 @@ describe.only('promise template-controller', function () {
       data);
   }
 
+  // TODO tests based on varied timings
   // TODO negative test data
 });

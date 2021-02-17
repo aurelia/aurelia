@@ -8,7 +8,7 @@ import { IDisposable, IEventAggregator } from '@aurelia/kernel';
 import { customAttribute, INode, bindable, BindingMode, ViewModelKind, ICustomAttributeViewModel, ICustomAttributeController, CustomAttribute } from '@aurelia/runtime-html';
 import { IRouter, RouterNavigationEndEvent } from '../router.js';
 import { LoadCustomAttribute, RouterConfiguration } from '../index.js';
-import { ILinkHandler } from '../link-handler.js';
+import { ILinkHandler } from './link-handler.js';
 import { RoutingInstruction } from '../instructions/routing-instruction.js';
 
 @customAttribute({

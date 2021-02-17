@@ -6,10 +6,10 @@
  */
 import { DI } from '@aurelia/kernel';
 import { IWindow, CustomAttribute } from '@aurelia/runtime-html';
-import { RouterConfiguration } from './index.js';
-import { GotoCustomAttribute } from './resources/goto.js';
-import { LoadCustomAttribute } from './resources/load.js';
-import { IRouter } from './router.js';
+import { RouterConfiguration } from '../index.js';
+import { GotoCustomAttribute } from './goto.js';
+import { LoadCustomAttribute } from './load.js';
+import { IRouter } from '../router.js';
 
 export const ILinkHandler = DI.createInterface<ILinkHandler>('ILinkHandler').withDefault(x => x.singleton(LinkHandler));
 

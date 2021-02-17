@@ -20,7 +20,7 @@ export {
 
   ILinkHandler,
   LinkHandler,
-} from './link-handler.js';
+} from './resources/link-handler.js';
 
 export {
   InstructionParameters,

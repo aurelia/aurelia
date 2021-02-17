@@ -7,7 +7,7 @@
 import { IDisposable, IEventAggregator } from '@aurelia/kernel';
 import { customAttribute, INode, bindable, BindingMode, IObserverLocator, LifecycleFlags, CustomAttribute, ICustomAttributeController, ICustomAttributeViewModel } from '@aurelia/runtime-html';
 import { RoutingInstruction } from '../instructions/routing-instruction.js';
-import { ILinkHandler } from '../link-handler.js';
+import { ILinkHandler } from './link-handler.js';
 import { IRouter, RouterNavigationEndEvent } from '../router.js';
 import { deprecationWarning } from '../utilities/utils.js';
 

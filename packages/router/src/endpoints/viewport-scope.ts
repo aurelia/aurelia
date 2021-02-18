@@ -114,7 +114,6 @@ export class ViewportScope extends Endpoint {
   }
 
   public setNextContent(instruction: RoutingInstruction, _navigation: Navigation): TransitionAction {
-    // instruction.viewportScope = this;
     instruction.endpoint.set(this);
 
     this.remove = instruction.isClear || instruction.isClearAll;

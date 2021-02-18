@@ -1092,11 +1092,11 @@ export class Router implements IRouter {
       const appendedInstruction = appendedInstructions.shift() as RoutingInstruction;
 
       // Already matched (and processed) an instruction for this endpoint
-      const foundEarlierExisting = earlierMatchedInstructions.some(instr => instr.sameViewport(appendedInstruction, true));
+      const foundEarlierExisting = earlierMatchedInstructions.some(instr => instr.sameEndpoint(appendedInstruction, true));
       // An already matched (but not processed) instruction for this endpoint
-      const existingMatched = matchedInstructions.find(instr => instr.sameViewport(appendedInstruction, true));
+      const existingMatched = matchedInstructions.find(instr => instr.sameEndpoint(appendedInstruction, true));
       // An already found (but not matched or processed) instruction for this endpoint
-      const existingRemaining = remainingInstructions.find(instr => instr.sameViewport(appendedInstruction, true));
+      const existingRemaining = remainingInstructions.find(instr => instr.sameEndpoint(appendedInstruction, true));
 
       // If it's a default instruction that's already got a non-default in some way, just drop it
       if (appendedInstruction.default &&

@@ -103,7 +103,7 @@ export class EndpointMatcher {
     // All instructions not yet matched need viewport described in some way unless
     // specifically specified as not needing it (parameter to `foundEndpoint`)
     while ((instruction = routingInstructions.next()) !== null) {
-      instruction.needsViewportDescribed = true;
+      instruction.needsEndpointDescribed = true;
     }
 
     // Match viewports with configuration (for example `used-by` attribute) that matches instruction components.
@@ -171,11 +171,6 @@ export class EndpointMatcher {
     let instruction: RoutingInstruction | null;
     while ((instruction = routingInstructions.next()) !== null) {
       if (
-        // // The viewport scope is already known and it's not an add instruction, OR...
-        // (type === 'ViewportScope' && instruction.viewportScope !== null && !instruction.isAdd) ||
-        // // ...viewport is already known...
-        // (type === 'Viewport' && instruction.viewport.instance !== null)
-
         // The endpoint is already known and it's not an add instruction...
         instruction.endpoint.instance !== null && !instruction.isAdd &&
         // ...(and of the type we're currently checking)...
@@ -192,7 +187,6 @@ export class EndpointMatcher {
         // ...add the matched instruction as a matched instruction...
         matchedInstructions.push(instruction);
         // ...remove the endpoint as available...
-        // arrayRemove(availableEndpoints, available => available === instruction!.viewport.instance || available === instruction!.viewportScope);
         arrayRemove(availableEndpoints, available => available === instruction!.endpoint.instance);
         // ...and finally delete the routing instructions to prevent further processing of it.
         routingInstructions.removeCurrent();
@@ -218,7 +212,6 @@ export class EndpointMatcher {
         if (endpoint.acceptSegment(instruction.component.name!)) {
           // If the viewport scope is a list of viewport scopes...
           if (Array.isArray(endpoint.source)) { // TODO(alpha): Remove this functionality temporarily for alpha
-            // console.log('available', viewportScope.available, source);
             // ...see if there's any already existing list entry that's available...
             let available = availableEndpoints.find(available => available instanceof ViewportScope && available.name === endpoint.name);
             // ...otherwise create one (adding it to the list) and...
@@ -271,7 +264,6 @@ export class EndpointMatcher {
           // Add the matched instruction to the result
           matchedInstructions.push(instruction);
           // Remove the endpoint from available endpoints
-          // arrayRemove(availableEndpoints, available => available === instruction!.viewport.instance);
           arrayRemove(availableEndpoints, available => available === instruction!.endpoint.instance);
           // Remove the matched instruction from the currently processed instruction
           routingInstructions.removeCurrent();
@@ -371,17 +363,9 @@ export class EndpointMatcher {
   }
 
   private static matchEndpoint(instruction: RoutingInstruction, endpoint: Viewport | ViewportScope, doesntNeedViewportDescribed: boolean): RoutingInstruction[] {
-    // Update the (right) property on the instruction
-    // if (endpoint instanceof Viewport) {
-    //   instruction.viewport.set(endpoint);
-    // } else {
-    //   // TODO(alpha): Fix this
-    //   // instruction.viewportScope.set(endpoint);
-    //   instruction.viewportScope = endpoint;
-    // }
     instruction.endpoint.set(endpoint);
     if (doesntNeedViewportDescribed) {
-      instruction.needsViewportDescribed = false;
+      instruction.needsEndpointDescribed = false;
     }
     // Get all the next scope instructions, tag them as remaining...
     const remaining = instruction.nextScopeInstructions?.slice() ?? [];

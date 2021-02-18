@@ -7,10 +7,10 @@ import { OpenPromise } from './open-promise.js';
  * Usage:
  *
  * ```ts
- * const promise = Runner.run(
+ * const promise = Runner.run(null,
  *   'one',
- *   prev => `${previous}, two`,
- *   prev => createPromise(prev), // creates a promise that resolves to `${prev}, three`
+ *   step => `${step.previousValue}, two`,
+ *   step => createPromise(step.previousValue), // creates a promise that resolves to `${value}, three`
  * );
  *
  * // Run can be cancelled with Runner.cancel(promise);
@@ -42,10 +42,10 @@ export class Runner {
    * - promise - which is awaited
    *
    * ```ts
-   * result = await Runner.run(
+   * result = await Runner.run(null,
    *   'one',
-   *   prev => `${previous}, two`,
-   *   prev => createPromise(prev), // creates a promise that resolves to `${prev}, three`
+   *   step => `${step.previousValue}, two`,
+   *   step => createPromise(step.previousValue), // creates a promise that resolves to `${value}, three`
    * ); // result === 'one, two, three'
    * ```
    *
@@ -98,14 +98,14 @@ export class Runner {
    * - promise - which is awaited
    *
    * ```ts
-   * result = await Runner.run(
+   * result = await Runner.runParallel(null,
    *   'one',
-   *   prev => `${previous}, two`,
-   *   prev => createPromise(prev), // creates a promise that resolves to `${prev}, three`
-   * ); // result === 'one, two, three'
+   *   step => `${step.previousValue}, two`,
+   *   step => createPromise(step.previousValue), // creates a promise that resolves to `${value}, three`
+   * ); // result === ['one', 'one, two', 'one, two, three']
    * ```
    *
-   * Returns the result as a promise or a value.
+   * Returns the result as a promise or a list of values.
    *
    * If first parameter is an existing Step, the additional steps will be added to run after it. In this
    * case, the return value will be the first new step and not the result (since it doesn't exist yet).

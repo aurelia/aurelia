@@ -85,68 +85,74 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
     const hs = $controller.hostScope;
 
     let preSettlePromise: Promise<void>;
-    this.postSettledTask?.cancel();
-    this.postSettledTask = null;
-    // Note that the whole thing is not wrapped in a q.queueTask intentionally.
-    // Because that would block the app till the actual promise is resolved, which is not the goal anyway.
-    this.swapPromise = resolveAll(
-      // At first deactivate the fulfilled and rejected views, as well as activate the pending view.
-      // The order of these 3 should not necessarily be sequential (i.e. order-irrelevant).
-      preSettlePromise = (this.preSettledTask = q.queueTask(() => {
-        // this.logger.debug('settling');
-        return resolveAll(
-          fulfilled?.deactivate(initiator, flags),
-          rejected?.deactivate(initiator, flags),
-          pending?.activate(initiator, flags, s, hs)
-        );
-      })).result,
-      this.value
-        .then(
-          (data) => {
-            const fulfill = () => {
-              this.preSettledTask = null;
-              // Deactivation of pending view and the activation of the fulfilled view should not necessarily be sequential.
-              this.postSettledTask = q.queueTask(() => resolveAll(
-                pending?.deactivate(initiator, flags),
-                rejected?.deactivate(initiator, flags),
-                fulfilled?.activate(initiator, flags, s, hs, data),
-              ));
-            };
-            // this.logger.debug('fulfilling', data);
-            if (this.preSettledTask?.status === TaskStatus.running) {
-              void preSettlePromise.then(fulfill);
-            } else {
-              this.preSettledTask?.cancel();
-              fulfill();
-            }
-          },
-          (err) => {
-            const reject = () => {
-              this.preSettledTask = null;
-              // Deactivation of pending view and the activation of the rejected view should also not necessarily be sequential.
-              this.postSettledTask = q.queueTask(() => resolveAll(
-                pending?.deactivate(initiator, flags),
-                fulfilled?.deactivate(initiator, flags),
-                rejected?.activate(initiator, flags, s, hs, err),
-              ));
-            };
-            // this.logger.debug('rejecting');
-            if (this.preSettledTask?.status === TaskStatus.running) {
-              void preSettlePromise.then(reject);
-            } else {
-              this.preSettledTask?.cancel();
-              reject();
-            }
-          },
-        ));
+    const defaultQueuingOptions = { reusable: false };
+    const $swap = () => {
+      // Note that the whole thing is not wrapped in a q.queueTask intentionally.
+      // Because that would block the app till the actual promise is resolved, which is not the goal anyway.
+      this.swapPromise = resolveAll(
+        // At first deactivate the fulfilled and rejected views, as well as activate the pending view.
+        // The order of these 3 should not necessarily be sequential (i.e. order-irrelevant).
+        preSettlePromise = (this.preSettledTask = q.queueTask(() => {
+          // this.logger.debug('settling');
+          return resolveAll(
+            fulfilled?.deactivate(initiator, flags),
+            rejected?.deactivate(initiator, flags),
+            pending?.activate(initiator, flags, s, hs)
+          );
+        }, defaultQueuingOptions)).result,
+        this.value
+          .then(
+            (data) => {
+              const fulfill = () => {
+                // this.logger.debug('fulfilling 2; pre-settled task status:', this.task?.status);
+                // Deactivation of pending view and the activation of the fulfilled view should not necessarily be sequential.
+                this.postSettledTask = q.queueTask(() => resolveAll(
+                  pending?.deactivate(initiator, flags),
+                  rejected?.deactivate(initiator, flags),
+                  fulfilled?.activate(initiator, flags, s, hs, data),
+                ), defaultQueuingOptions);
+                // this.logger.debug('fulfilling 3; pre-settled task status:', this.task?.status, 'pre-task === post-task', this.task === this.postSettledTask);
+              };
+              // this.logger.debug('fulfilling', data, 'pre-settled task status:', this.task?.status);
+              if (this.preSettledTask?.status === TaskStatus.running) {
+                void preSettlePromise.then(fulfill);
+              } else {
+                this.preSettledTask?.cancel();
+                fulfill();
+              }
+            },
+            (err) => {
+              const reject = () => {
+                // Deactivation of pending view and the activation of the rejected view should also not necessarily be sequential.
+                this.postSettledTask = q.queueTask(() => resolveAll(
+                  pending?.deactivate(initiator, flags),
+                  fulfilled?.deactivate(initiator, flags),
+                  rejected?.activate(initiator, flags, s, hs, err),
+                ), defaultQueuingOptions);
+              };
+              // this.logger.debug('rejecting');
+              if (this.preSettledTask?.status === TaskStatus.running) {
+                void preSettlePromise.then(reject);
+              } else {
+                this.preSettledTask?.cancel();
+                reject();
+              }
+            },
+          ));
+    };
+
+    if (this.postSettledTask?.status === TaskStatus.running) {
+      void this.postSettledTask.result.then($swap);
+    } else {
+      this.postSettledTask?.cancel();
+      $swap();
+    }
   }
 
   public detaching(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void> {
     // this.logger.debug('detaching');
     this.preSettledTask?.cancel();
     this.preSettledTask = null;
-    this.postSettledTask?.cancel();
-    this.postSettledTask = null;
     return this.view.deactivate(initiator, this.$controller, flags);
   }
 

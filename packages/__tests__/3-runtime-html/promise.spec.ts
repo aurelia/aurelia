@@ -16,6 +16,8 @@ import {
   sink,
   ConsoleSink,
   optional,
+  Task,
+  TaskStatus,
 } from '@aurelia/kernel';
 import {
   bindingBehavior,
@@ -30,6 +32,8 @@ import {
   Switch,
   Aurelia,
   IPlatform,
+  ICustomElementViewModel,
+  PromiseTemplateController,
 } from '@aurelia/runtime-html';
 import {
   assert,
@@ -249,7 +253,7 @@ describe.only('promise template-controller', function () {
         .register(
           LoggerConfiguration.create({ level: LogLevel.trace, sinks: [DebugLog/* , ConsoleSink */] }),
           ...registrations,
-          NoopBindingBehavior,
+          // NoopBindingBehavior,
           typeof promise === 'function'
             ? Registration.callback(seedPromise, promise)
             : Registration.instance(seedPromise, promise),
@@ -282,15 +286,15 @@ describe.only('promise template-controller', function () {
   }
   const $it = createSpecFunction(testPromise);
 
-  @bindingBehavior('noop')
-  class NoopBindingBehavior implements BindingBehaviorInstance {
-    public bind(_flags: LifecycleFlags, _scope: Scope, _hostScope: Scope | null, _binding: IBinding): void {
-      return;
-    }
-    public unbind(_flags: LifecycleFlags, _scope: Scope, _hostScope: Scope | null, _binding: IBinding): void {
-      return;
-    }
-  }
+  // @bindingBehavior('noop')
+  // class NoopBindingBehavior implements BindingBehaviorInstance {
+  //   public bind(_flags: LifecycleFlags, _scope: Scope, _hostScope: Scope | null, _binding: IBinding): void {
+  //     return;
+  //   }
+  //   public unbind(_flags: LifecycleFlags, _scope: Scope, _hostScope: Scope | null, _binding: IBinding): void {
+  //     return;
+  //   }
+  // }
 
   class App {
     public constructor(
@@ -1140,6 +1144,7 @@ describe.only('promise template-controller', function () {
           }
         );
       }
+      // TODO nested
     }
     // #region timings
     for (const $resolve of [true, false]) {
@@ -1185,8 +1190,58 @@ describe.only('promise template-controller', function () {
           }
         );
 
-        // the case of 'pending activation duration' === 'promise settlement duration' is intentionally avoided as that would create a flaky test, due to the inherent race condition.
+        for (const [name, promiseTick, config] of [
+          ['pending activation duration == promise settlement duration', 4, { binding: 1, bound: 1, attaching: 1, attached: 1 }],
+          ['pending "binding" duration == promise settlement duration', 2, { binding: 2 }],
+          ['pending "binding" duration > promise settlement duration', 1, { binding: 2 }],
+          ['pending "binding+bound" duration > promise settlement duration',  2, { binding: 1, bound: 2 }],
+          ['pending "binding+bound+attaching" duration > promise settlement duration',  2, { binding: 1, bound: 1, attaching: 1 }],
+          ['pending "binding+bound+attaching+attached" duration > promise settlement duration',  3, { binding: 1, bound: 1, attaching: 1, attached: 1 }],
+        ] as const) {
+          yield new TestData(
+            `${name} - ${$resolve ? 'fulfilled' : 'rejected'}`,
+            getPromise(promiseTick),
+            {
+              template: template1,
+              registrations: [
+                Registration.instance(configLookup, new Map<string, Config>([
+                  [phost, new Config(true, createWaiterWithTicks(config))],
+                  [fhost, new Config(true, createWaiterWithTicks(Object.create(null)))],
+                  [rhost, new Config(true, createWaiterWithTicks(Object.create(null)))],
+                ])),
+              ],
+            },
+            null,
+            null,
+            null,
+            getDeactivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`),
+            async (ctx) => {
+              const app = ctx.app;
+              // Note: If the ticks are close to each other, we cannot avoid a race condition for the purpose of deterministic tests.
+              // Therefore, the expected logs are constructed dynamically to ensure certain level of confidence.
+              const tc = (app as ICustomElementViewModel).$controller.children.find((c) => c.viewModel instanceof PromiseTemplateController).viewModel as PromiseTemplateController;
+              const task = tc['preSettledTask'] as (Task<void | Promise<void>> | null);
+              const logs = task.status === TaskStatus.running || task.status === TaskStatus.completed
+                ? [...getActivationSequenceFor(`${phost}-1`), ...getDeactivationSequenceFor(`${phost}-1`)]
+                : [];
 
+              try {
+                await app.promise;
+              } catch (e) {
+                // ignore rejection
+              }
+
+              const q = ctx.platform.domWriteQueue;
+              await q.yield();
+              if ($resolve) {
+                assert.html.innerEqual(ctx.host, wrap('resolved with 42', 'f'), 'fulfilled');
+              } else {
+                assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'), 'rejected');
+              }
+              ctx.assertCallSet([...logs, ...getActivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`)], `calls mismatch; presettled task status: ${task.status}`);
+            }
+          );
+        }
       }
     }
     // #endregion
@@ -1197,7 +1252,9 @@ describe.only('promise template-controller', function () {
 
         await ctx.platform.domWriteQueue.yield();
         assert.strictEqual(ctx.error, null);
-        assert.html.innerEqual(ctx.host, data.expectedInnerHtml, 'innerHTML');
+        if (data.expectedInnerHtml !== null) {
+          assert.html.innerEqual(ctx.host, data.expectedInnerHtml, 'innerHTML');
+        }
 
         if (data.expectedStartLog !== null) {
           ctx.assertCallSet(data.expectedStartLog, 'start lifecycle calls');
@@ -1211,6 +1268,5 @@ describe.only('promise template-controller', function () {
       data);
   }
 
-  // TODO tests based on varied timings
   // TODO negative test data
 });

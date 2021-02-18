@@ -9,7 +9,7 @@ import { RoutingInstruction } from './instructions/routing-instruction.js';
 import { Navigation } from './navigation.js';
 import { Viewport } from './endpoints/viewport.js';
 import { InstructionComponent } from './instructions/instruction-component.js';
-import { InstructionViewport } from './instructions/instruction-viewport.js';
+import { InstructionEndpoint } from './instructions/instruction-endpoint.js';
 
 /**
  * Public API
@@ -213,8 +213,8 @@ class Target {
         this.componentName = InstructionComponent.getName(cvTarget.component);
       }
       if (cvTarget.viewport != null) {
-        this.viewport = InstructionViewport.isInstance(cvTarget.viewport) ? cvTarget.viewport : null;
-        this.viewportName = InstructionViewport.getName(cvTarget.viewport);
+        this.viewport = InstructionEndpoint.isInstance(cvTarget.viewport) ? cvTarget.viewport : null;
+        this.viewportName = InstructionEndpoint.getName(cvTarget.viewport);
       }
     }
   }

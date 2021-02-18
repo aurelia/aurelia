@@ -1,13 +1,11 @@
 import { InstructionParser } from './instruction-parser';
-import { InstructionViewportScope } from './instruction-viewport-scope';
 import { InstructionParameters } from './instruction-parameters.js';
-import { InstructionViewport } from './instruction-viewport.js';
 import { InstructionComponent } from './instruction-component.js';
-import { ComponentAppellation, ComponentParameters, LoadInstruction, ViewportHandle } from '../interfaces.js';
+import { ComponentAppellation, ComponentParameters, LoadInstruction } from '../interfaces.js';
 import { RoutingScope } from '../routing-scope.js';
 import { ViewportScope } from '../endpoints/viewport-scope.js';
 import { FoundRoute } from '../found-route.js';
-import { Endpoint, EndpointType, EndpointTypeName, IEndpoint } from '../endpoints/endpoint';
+import { Endpoint, EndpointType } from '../endpoints/endpoint';
 import { Viewport } from '../endpoints/viewport';
 import { CustomElement } from '@aurelia/runtime-html';
 import { RouterConfiguration } from '../index.js';

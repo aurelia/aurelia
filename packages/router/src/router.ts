@@ -19,7 +19,7 @@ import { RoutingScope } from './routing-scope.js';
 import { ViewportScope } from './endpoints/viewport-scope.js';
 import { BrowserViewerStore } from './browser-viewer-store.js';
 import { Navigation } from './navigation.js';
-import { Endpoint, EndpointType, IConnectedCustomElement, IEndpoint } from './endpoints/endpoint.js';
+import { Endpoint, EndpointTypeName, IConnectedCustomElement, IEndpoint } from './endpoints/endpoint.js';
 import { NavigationCoordinator } from './navigation-coordinator.js';
 import { OpenPromise } from './utilities/open-promise.js';
 import { NavigatorStateChangeEvent } from './browser-viewer-store.js';
@@ -426,7 +426,7 @@ export class Router implements IRouter {
 
     // Make sure "add all" instructions have the correct name and scope
     for (const addInstruction of instructions.filter(instr => instr.isAddAll)) {
-      addInstruction.viewport.set(addInstruction.scope!.endpoint.name);
+      addInstruction.endpoint.set(addInstruction.scope!.endpoint.name);
       addInstruction.scope = addInstruction.scope!.owningScope!;
     }
 
@@ -459,7 +459,7 @@ export class Router implements IRouter {
       // Get all the scopes of matched instructions...
       const matchedScopes = matchedInstructions.map(instr => instr.scope);
       // ...and all the endpoints...
-      const matchedEndpoints = matchedInstructions.map(instr => instr.endpoint);
+      const matchedEndpoints = matchedInstructions.map(instr => instr.endpoint.instance);
       // ...and create and add clear instructions for all endpoints in
       // any of those scopes that aren't already in an instruction.
       matchedInstructions.push(...clearEndpoints
@@ -483,7 +483,7 @@ export class Router implements IRouter {
       }
 
       for (const matchedInstruction of matchedInstructions) {
-        const endpoint = matchedInstruction.endpoint;
+        const endpoint = matchedInstruction.endpoint.instance;
         if (endpoint !== null) {
           // Set endpoint path to the configured route path so that it knows it's part
           // of a configured route.
@@ -505,14 +505,14 @@ export class Router implements IRouter {
           arrayRemove(clearEndpoints, clear => dontClear.includes(clear));
           // ...as well as already matched clear instructions (but not itself).
           arrayRemove(matchedInstructions, matched => matched !== matchedInstruction
-            && matched.isClear && dontClear.includes(matched.endpoint!));
+            && matched.isClear && dontClear.includes(matched.endpoint.instance!));
           // And also exclude the routing instruction's parent viewport scope...
           if (!matchedInstruction.isClear && matchedInstruction.scope?.parent?.isViewportScope) {
             // ...from clears...
             arrayRemove(clearEndpoints, clear => clear === matchedInstruction.scope!.parent!.endpoint);
             // ...and already matched clears.
             arrayRemove(matchedInstructions, matched => matched !== matchedInstruction
-              && matched.isClear && matched.endpoint === matchedInstruction.scope!.parent!.endpoint);
+              && matched.isClear && matched.endpoint.instance === matchedInstruction.scope!.parent!.endpoint);
           }
           // If the endpoint has been changed/swapped the next scope instructions
           // need to be moved into the new endpoint content scope
@@ -528,7 +528,7 @@ export class Router implements IRouter {
       // we only run once all (top) instructions are doing something/there are no skip
       // action instructions.
       // If all first iteration instructions now do something the transitions can start
-      const skipping = matchedInstructions.filter(instr => instr.endpoint?.transitionAction === 'skip');
+      const skipping = matchedInstructions.filter(instr => instr.endpoint.instance?.transitionAction === 'skip');
       const skippingWithMore = skipping.filter(instr => instr.hasNextScopeInstructions);
       if (skipping.length === 0 || (skippingWithMore.length === 0 && !foundRoute.hasRemaining)) {
         // if (skipping.length > 0 && (skippingWithMore.length > 0 || foundRoute.hasRemaining)) {
@@ -702,7 +702,7 @@ export class Router implements IRouter {
    * @param type - The type of endpoint to get
    * @param name - The name of the endpoint to get
    */
-  public getEndpoint(type: EndpointType, name: string): Endpoint | null {
+  public getEndpoint(type: EndpointTypeName, name: string): Endpoint | null {
     return this.allEndpoints(type).find(endpoint => endpoint.name === name) ?? null;
   }
 
@@ -713,7 +713,7 @@ export class Router implements IRouter {
    * @param includeDisabled - Whether disabled/non-active endpoints should be included
    * @param includeReplaced - Whether replaced endpoints should be included
    */
-  public allEndpoints(type: EndpointType | null, includeDisabled: boolean = false): Viewport[] {
+  public allEndpoints(type: EndpointTypeName | null, includeDisabled: boolean = false): Viewport[] {
     return this.rootScope!.scope
       .allScopes(includeDisabled)
       .filter(scope => type === null || scope.type === type)
@@ -722,7 +722,7 @@ export class Router implements IRouter {
   /**
    * Public API (not yet implemented)
    */
-  public addEndpoint(_type: EndpointType, ..._args: unknown[]): unknown {
+  public addEndpoint(_type: EndpointTypeName, ..._args: unknown[]): unknown {
     throw new Error('Not implemented');
   }
 
@@ -738,7 +738,7 @@ export class Router implements IRouter {
    *
    * @internal
    */
-  public connectEndpoint(endpoint: Viewport | ViewportScope | null, type: EndpointType, connectedCE: IConnectedCustomElement, name: string, options?: IViewportOptions): Viewport | ViewportScope {
+  public connectEndpoint(endpoint: Viewport | ViewportScope | null, type: EndpointTypeName, connectedCE: IConnectedCustomElement, name: string, options?: IViewportOptions): Viewport | ViewportScope {
     const container = (connectedCE.container as IContainer & { parent: IContainer });
     const closestEndpoint = (container.has(Router.closestEndpointKey, true) ? container.get<Endpoint>(Router.closestEndpointKey) : this.rootScope) as Endpoint;
     const parentScope = closestEndpoint.connectedScope;
@@ -1047,8 +1047,8 @@ export class Router implements IRouter {
     // Get the first occurrence of all endpoints that are a part of the
     // currently processed configured route path
     const routeEndpoints = alreadyMatchedInstructions
-      .filter(instr => instr.endpoint?.path === configuredRoutePath) // currently processed route path
-      .map(instr => instr.endpoint!) // endpoints
+      .filter(instr => instr.endpoint.instance?.path === configuredRoutePath) // currently processed route path
+      .map(instr => instr.endpoint.instance!) // endpoints
       .filter((value, index, arr) => arr.indexOf(value) === index); // first occurrence
 
     // Go through all endpoints...
@@ -1114,7 +1114,7 @@ export class Router implements IRouter {
         arrayRemove(remainingInstructions, value => value === existingRemaining);
       }
       // An appended instruction that already has a viewport instance is already matched
-      if (appendedInstruction.viewport.instance !== null) {
+      if (appendedInstruction.endpoint.instance !== null) {
         matchedInstructions.push(appendedInstruction);
       } else {
         remainingInstructions.push(appendedInstruction);

@@ -151,6 +151,11 @@ export {
 } from './endpoints/viewport.js';
 
 export {
+  IViewportScopeOptions,
+  ViewportScope,
+} from './endpoints/viewport-scope.js';
+
+export {
   ViewportContent,
 } from './endpoints/viewport-content.js';
 

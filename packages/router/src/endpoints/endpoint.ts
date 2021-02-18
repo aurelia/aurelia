@@ -1,4 +1,3 @@
-import { IViewportScopeOptions } from './viewport-scope';
 import { IContainer } from '@aurelia/kernel';
 import { ICustomElementController, ICustomElementViewModel } from '@aurelia/runtime-html';
 import {
@@ -12,16 +11,19 @@ import {
   Navigation,
   NavigationCoordinator,
   IViewportOptions,
+  IViewportScopeOptions,
   EndpointContent,
+  Viewport,
+  ViewportScope,
 } from '../index.js';
 
 /**
  * An endpoint is anything that can receive and process a routing instruction.
  */
 
- /**
-  * Additional properties for endpoint custom elements.
-  */
+/**
+ * Additional properties for endpoint custom elements.
+ */
 export interface IConnectedCustomElement extends ICustomElementViewModel {
   element: HTMLElement;
   container: IContainer;
@@ -37,7 +39,8 @@ export interface IEndpointOptions {
   noHistory?: boolean;
 }
 
-export type EndpointType = 'Viewport' | 'ViewportScope';
+export type EndpointType = Viewport | ViewportScope;
+export type EndpointTypeName = 'Viewport' | 'ViewportScope';
 
 export interface IEndpoint extends Endpoint { }
 
@@ -201,6 +204,15 @@ export class Endpoint {
    */
   public getRoutes(): Route[] | null {
     throw new Error(`Method 'getRoutes' needs to be implemented in all endpoints!`);
+  }
+
+  /**
+   * Get the title for the content.
+   *
+   * @param navigation - The navigation that requests the content change
+   */
+  public getTitle(_navigation: Navigation): string {
+    throw new Error(`Method 'getTitle' needs to be implemented in all endpoints!`);
   }
 
   /**

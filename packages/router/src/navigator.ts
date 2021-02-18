@@ -5,6 +5,7 @@ import { RoutingInstruction } from './instructions/routing-instruction.js';
 import { Navigation, IStoredNavigation, INavigation } from './navigation.js';
 import { Runner, Step } from './utilities/runner.js';
 import { arrayUnique } from './utilities/utils.js';
+import { Viewport } from './endpoints/viewport.js';
 
 /**
  * The navigator is responsible for managing (queueing) navigations and
@@ -509,13 +510,13 @@ export class Navigator {
       // Get components from instruction...
       if (typeof preservedNavigation.instruction !== 'string') {
         excludeComponents.push(...RoutingInstruction.flat(preservedNavigation.instruction)
-          .filter(instruction => instruction.viewport.instance !== null) // Both viewport instance and...
+          .filter(instruction => instruction.endpoint.instance !== null) // Both endpoint instance and...
           .map(instruction => instruction.component.instance)); // ...component instance should be set
       }
       // ...and full state instruction
       if (typeof preservedNavigation.fullStateInstruction !== 'string') {
         excludeComponents.push(...RoutingInstruction.flat(preservedNavigation.fullStateInstruction)
-          .filter(instruction => instruction.viewport.instance !== null) // Both viewport instance and...
+          .filter(instruction => instruction.endpoint.instance !== null) // Both endpoint instance and...
           .map(instruction => instruction.component.instance)); // ...component instance should be set
       }
     }
@@ -561,7 +562,7 @@ export class Navigator {
    */
   private freeInstructionComponents(instruction: RoutingInstruction, excludeComponents: IRouteableComponent[], alreadyDone: IRouteableComponent[]): void | Promise<void> {
     const component = instruction.component.instance;
-    const viewport = instruction.viewport.instance;
+    const viewport = instruction.viewport?.instance as Viewport ?? null;
     // Both viewport and component instance should be set in order to free/dispose
     if (component === null || viewport === null || alreadyDone.some(done => done === component)) {
       return;

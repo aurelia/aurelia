@@ -228,8 +228,8 @@ class Target {
     for (const instruction of instructions) {
       if ((this.componentName !== null && this.componentName === instruction.component.name) ||
         (this.componentType !== null && this.componentType === instruction.component.type) ||
-        (this.viewportName !== null && this.viewportName === instruction.viewport.name) ||
-        (this.viewport !== null && this.viewport === instruction.viewport.instance)) {
+        (this.viewportName !== null && this.viewportName === instruction.endpoint.name) ||
+        (this.viewport !== null && this.viewport === instruction.endpoint.instance)) {
         return true;
       }
     }

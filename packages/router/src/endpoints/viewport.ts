@@ -223,7 +223,7 @@ export class Viewport extends Endpoint {
    * @param navigation - The navigation that requests the content change
    */
   public setNextContent(instruction: RoutingInstruction, navigation: Navigation): TransitionAction {
-    instruction.viewport.set(this);
+    instruction.endpoint.set(this);
     this.clear = instruction.isClear;
 
     // Can have a (resolved) type or a string (to be resolved later)
@@ -352,7 +352,7 @@ export class Viewport extends Endpoint {
       const instructions = RoutingInstruction.parse(this.options.default);
       for (const instruction of instructions) {
         // Set to name to be delayed one turn (refactor: not sure why, so changed it)
-        instruction.viewport.set(this);
+        instruction.endpoint.set(this);
         instruction.scope = this.owningScope;
         instruction.default = true;
       }

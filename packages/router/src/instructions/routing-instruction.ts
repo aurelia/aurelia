@@ -7,10 +7,11 @@ import { ComponentAppellation, ComponentParameters, LoadInstruction, ViewportHan
 import { RoutingScope } from '../routing-scope.js';
 import { ViewportScope } from '../endpoints/viewport-scope.js';
 import { FoundRoute } from '../found-route.js';
-import { Endpoint, IEndpoint } from '../endpoints/endpoint';
+import { Endpoint, EndpointType, EndpointTypeName, IEndpoint } from '../endpoints/endpoint';
 import { Viewport } from '../endpoints/viewport';
 import { CustomElement } from '@aurelia/runtime-html';
 import { RouterConfiguration } from '../index.js';
+import { EndpointHandle, InstructionEndpoint } from './instruction-endpoint';
 
 /**
  * The routing instructions are the core of the router's navigations. All
@@ -29,10 +30,15 @@ export class RoutingInstruction {
    */
   public component: InstructionComponent;
 
+  // /**
+  //  * The viewport part of the routing instruction.
+  //  */
+  // public viewport: InstructionViewport;
+
   /**
-   * The viewport part of the routing instruction.
+   * The endpoint part of the routing instruction.
    */
-  public viewport: InstructionViewport;
+  public endpoint: InstructionEndpoint;
 
   /**
    * The parameters part of the routing instruction.
@@ -60,10 +66,10 @@ export class RoutingInstruction {
    */
   public scopeModifier: string = '';
 
-  /**
-   * The viewport scope part of the routing instruction.
-   */
-  public viewportScope: ViewportScope | null = null; // TODO: Add InstructionViewportScope
+  // /**
+  //  * The viewport scope part of the routing instruction.
+  //  */
+  // public viewportScope: ViewportScope | null = null; // TODO: Add InstructionViewportScope
 
   /**
    * Whether the routing instruction can be resolved within the scope without having
@@ -95,11 +101,13 @@ export class RoutingInstruction {
 
   public constructor(
     component?: ComponentAppellation | Promise<ComponentAppellation>,
-    viewport?: ViewportHandle,
+    // viewport?: ViewportHandle,
+    endpoint?: EndpointHandle,
     parameters?: ComponentParameters,
   ) {
     this.component = InstructionComponent.create(component);
-    this.viewport = InstructionViewport.create(viewport);
+    // this.viewport = InstructionViewport.create(viewport);
+    this.endpoint = InstructionEndpoint.create(endpoint);
     this.parameters = InstructionParameters.create(parameters);
 
     // TODO: Implement viewport scope as instruction
@@ -112,13 +120,13 @@ export class RoutingInstruction {
    * Create a new routing instruction.
    *
    * @param component - The component (appelation) part of the instruction. Can be a promise
-   * @param viewport - The viewport (handle) part of the instruction
+   * @param endpoint - The viewport (handle) part of the instruction
    * @param parameters - The parameters part of the instruction
    * @param ownScope - Whether the routing instruction owns its scope
    * @param nextScopeInstructions - The routing instructions in the next scope ("children")
    */
-  public static create(component?: ComponentAppellation | Promise<ComponentAppellation>, viewport?: ViewportHandle, parameters?: ComponentParameters, ownsScope: boolean = true, nextScopeInstructions: RoutingInstruction[] | null = null): RoutingInstruction | Promise<RoutingInstruction> {
-    const instruction: RoutingInstruction = new RoutingInstruction(component, viewport, parameters);
+  public static create(component?: ComponentAppellation | Promise<ComponentAppellation>, endpoint?: EndpointHandle, parameters?: ComponentParameters, ownsScope: boolean = true, nextScopeInstructions: RoutingInstruction[] | null = null): RoutingInstruction | Promise<RoutingInstruction> {
+    const instruction: RoutingInstruction = new RoutingInstruction(component, endpoint, parameters);
     instruction.ownsScope = ownsScope;
     instruction.nextScopeInstructions = nextScopeInstructions;
 
@@ -130,12 +138,13 @@ export class RoutingInstruction {
    *
    * @param endpoint - The endpoint to create the clear instruction for
    */
-  public static createClear(endpoint: Endpoint): RoutingInstruction {
-    const instruction = RoutingInstruction.create(RoutingInstruction.clear(), endpoint.isViewport ? endpoint as Viewport : void 0) as RoutingInstruction;
-    if (endpoint.isViewportScope) {
-      instruction.viewportScope = endpoint as ViewportScope;
-    }
-    return instruction;
+  public static createClear(endpoint: EndpointType | Endpoint): RoutingInstruction {
+    // const instruction = RoutingInstruction.create(RoutingInstruction.clear(), endpoint.isViewport ? endpoint as Viewport : void 0) as RoutingInstruction;
+    // if (endpoint.isViewportScope) {
+    //   instruction.viewportScope = endpoint as ViewportScope;
+    // }
+    // return instruction;
+    return RoutingInstruction.create(RoutingInstruction.clear(), endpoint) as RoutingInstruction;
   }
 
   /**
@@ -289,11 +298,31 @@ export class RoutingInstruction {
     return instructionsToFind.every(find => find.isIn(instructionsToSearch, deep));
   }
 
+  // /**
+  //  * The endpoint of the routing instruction.
+  //  */
+  // public get endpoint(): IEndpoint | null {
+  //   return this.viewport?.instance ?? this.viewportScope ?? null;
+  // }
+
   /**
-   * The endpoint of the routing instruction.
+   * The endpoint of the routing instruction if it's a viewport.
+   *
+   * NOTE: This is ONLY RELIABLE when it comes to instances since it
+   * will ALWAYS return null if there's no instance.
    */
-  public get endpoint(): IEndpoint | null {
-    return this.viewport?.instance ?? this.viewportScope ?? null;
+  public get viewport(): InstructionEndpoint | null {
+    return this.endpoint.instance instanceof Viewport ? this.endpoint : null;
+  }
+
+  /**
+   * The endpoint of the routing instruction if it's a viewport scope.
+   *
+   * NOTE: This is ONLY RELIABLE when it comes to instances since it
+   * will ALWAYS return null if there's no instance.
+   */
+  public get viewportScope(): InstructionEndpoint | null {
+    return this.endpoint.instance instanceof ViewportScope ? this.endpoint : null;
   }
 
   /**
@@ -312,13 +341,13 @@ export class RoutingInstruction {
    * Whether the routing instruction is an "add all" instruction.
    */
   public get isAddAll(): boolean {
-    return this.isAdd && ((this.viewport.name?.length ?? 0) === 0);
+    return this.isAdd && ((this.endpoint.name?.length ?? 0) === 0);
   }
   /**
    * Whether the routing instruction is an "clear all" instruction.
    */
   public get isClearAll(): boolean {
-    return this.isClear && ((this.viewport.name?.length ?? 0) === 0);
+    return this.isClear && ((this.endpoint.name?.length ?? 0) === 0);
   }
 
   /**
@@ -352,7 +381,7 @@ export class RoutingInstruction {
    * only instance/name)
    */
   public sameViewport(other: RoutingInstruction, compareScope: boolean): boolean {
-    return this.viewport.same(other.viewport, compareScope);
+    return this.endpoint.same(other.endpoint, compareScope);
   }
 
   /**
@@ -383,19 +412,20 @@ export class RoutingInstruction {
 
     // If viewport context is specified...
     if (viewportContext) {
+      const viewport = this.viewport?.instance as Viewport ?? null;
       // (...it's still skipped if no link option is set on viewport)
-      if (this.viewport.instance?.options.noLink ?? false) {
+      if (viewport?.options.noLink ?? false) {
         return '';
       }
       // ...viewport can still be excluded if it's not necessary...
       if (!this.needsViewportDescribed &&
-        (!(this.viewport.instance?.options.forceDescription ?? false) // ...and not forced...
-          || (this.viewportScope !== null)) // ...or it has a viewport scope
+        (!(viewport?.options.forceDescription ?? false) // ...and not forced...
+          || (this.viewportScope?.instance != null)) // ...or it has a viewport scope
       ) {
         excludeCurrentViewport = true;
       }
       // ...or if it's the fallback component...
-      if (this.viewport.instance?.options.fallback === this.component.name) {
+      if (viewport?.options.fallback === this.component.name) {
         excludeCurrentComponent = true;
       }
     }
@@ -459,9 +489,9 @@ export class RoutingInstruction {
         ? `${seps.parameters}${parameters}${seps.parametersEnd}`
         : parameters;
     }
-    // Add viewport name (unless excluded)
-    if (this.viewport.name !== null && !excludeViewport) {
-      instructionString += `${seps.viewport}${this.viewport.name}`;
+    // Add endpoint name (unless excluded)
+    if (this.endpoint.name != null && !excludeViewport) {
+      instructionString += `${seps.viewport}${this.endpoint.name}`;
     }
     // And add no (owned) scope indicator
     if (!this.ownsScope) {
@@ -480,13 +510,13 @@ export class RoutingInstruction {
     // Create a clone without instances...
     const clone = RoutingInstruction.create(
       this.component.promise ?? this.component.type ?? this.component.name!,
-      this.viewport.name!,
+      this.endpoint.name!,
       this.parameters.typedParameters !== null ? this.parameters.typedParameters : void 0,
     ) as RoutingInstruction;
     // ...and then set them if they should be transfered.
     if (keepInstances) {
       clone.component.set(this.component.instance ?? this.component.type ?? this.component.name!);
-      clone.viewport.set(this.viewport.instance ?? this.viewport.name!);
+      clone.endpoint.set(this.endpoint.instance ?? this.endpoint.name!);
     }
     clone.needsViewportDescribed = this.needsViewportDescribed;
     clone.route = this.route;
@@ -496,7 +526,7 @@ export class RoutingInstruction {
     if (scopeModifier) {
       clone.scopeModifier = this.scopeModifier;
     }
-    clone.viewportScope = keepInstances ? this.viewportScope : null;
+    // clone.viewportScope = keepInstances ? this.viewportScope : null;
     clone.scope = keepInstances ? this.scope : null;
     // Clone all next scope/child instructions
     if (this.hasNextScopeInstructions) {
@@ -516,7 +546,7 @@ export class RoutingInstruction {
   public isIn(searchIn: RoutingInstruction[], deep: boolean): boolean {
     // Get all instructions with matching component.
     const matching = searchIn.filter(instruction => instruction.sameComponent(this, true) &&
-      (this.viewport.none || instruction.sameViewport(this, false)));
+      (this.endpoint.none || instruction.sameViewport(this, false)));
     // If no one matches, it's a failure.
     if (matching.length === 0) {
       return false;

@@ -13,12 +13,12 @@ import { RoutingHook } from './routing-hook';
  */
 
  export class Title {
-  public static async getTitle(router: IRouter, instructions: RoutingInstruction[], instruction: Navigation): Promise<string | null> {
+  public static async getTitle(router: IRouter, instructions: RoutingInstruction[], navigation: Navigation): Promise<string | null> {
     // First invoke with viewport instructions
-    let title: string | RoutingInstruction[] = await RoutingHook.invokeTransformTitle(instructions, instruction);
+    let title: string | RoutingInstruction[] = await RoutingHook.invokeTransformTitle(instructions, navigation);
     if (typeof title !== 'string') {
       // Hook didn't return a title, so run title logic
-      const componentTitles = Title.stringifyTitles(router, title, instruction);
+      const componentTitles = Title.stringifyTitles(router, title, navigation);
 
       title = RouterConfiguration.options.title.appTitle;
       title = title.replace("${componentTitles}", componentTitles);
@@ -28,22 +28,22 @@ import { RoutingHook } from './routing-hook';
           : '');
     }
     // Invoke again with complete string
-    title = await RoutingHook.invokeTransformTitle(title, instruction);
+    title = await RoutingHook.invokeTransformTitle(title, navigation);
 
     return title as string;
   }
 
-  private static stringifyTitles(router: IRouter, instructions: RoutingInstruction[], navigationInstruction: Navigation): string {
+  private static stringifyTitles(router: IRouter, instructions: RoutingInstruction[], navigation: Navigation): string {
     const titles = instructions
-      .map(instruction => Title.stringifyTitle(router, instruction, navigationInstruction))
+      .map(instruction => Title.stringifyTitle(router, instruction, navigation))
       .filter(instruction => (instruction?.length ?? 0) > 0);
 
     return titles.join(' + ');
   }
 
-  private static stringifyTitle(router: IRouter, instruction: RoutingInstruction | string, navigationInstruction: Navigation): string {
+  private static stringifyTitle(router: IRouter, instruction: RoutingInstruction | string, navigation: Navigation): string {
     if (typeof instruction === 'string') {
-      return Title.resolveTitle(router, instruction, navigationInstruction);
+      return Title.resolveTitle(router, instruction, navigation);
     }
     const nextInstructions: RoutingInstruction[] | null = instruction.nextScopeInstructions;
     let stringified: string = '';
@@ -52,16 +52,16 @@ import { RoutingHook } from './routing-hook';
       // Already added as part of a configuration, skip to next scope
       if (!instruction.routeStart) {
         return Array.isArray(nextInstructions)
-          ? Title.stringifyTitles(router, nextInstructions, navigationInstruction)
+          ? Title.stringifyTitles(router, nextInstructions, navigation)
           : '';
       } else {
-        stringified += Title.resolveTitle(router, instruction.route, navigationInstruction);
+        stringified += Title.resolveTitle(router, instruction.route, navigation);
       }
     } else {
-      stringified += Title.resolveTitle(router, instruction, navigationInstruction);
+      stringified += Title.resolveTitle(router, instruction, navigation);
     }
     if (Array.isArray(nextInstructions) && nextInstructions.length > 0) {
-      let nextStringified: string = Title.stringifyTitles(router, nextInstructions, navigationInstruction);
+      let nextStringified: string = Title.stringifyTitles(router, nextInstructions, navigation);
       if (nextStringified.length > 0) {
         if (nextInstructions.length !== 1) { // TODO: This should really also check that the instructions have value
           nextStringified = "[ " + nextStringified + " ]";
@@ -78,19 +78,19 @@ import { RoutingHook } from './routing-hook';
     return stringified;
   }
 
-  private static resolveTitle(router: IRouter, instruction: string | RoutingInstruction | FoundRoute, navigationInstruction: Navigation): string {
+  private static resolveTitle(router: IRouter, instruction: string | RoutingInstruction | FoundRoute, navigation: Navigation): string {
     let title = '';
     if (typeof instruction === 'string') {
       title = instruction;
     } else if (instruction instanceof RoutingInstruction) {
-      return instruction.viewport.instance!.getTitle(navigationInstruction);
+      return instruction.endpoint.instance!.getTitle(navigation);
     } else if (instruction instanceof FoundRoute) {
       const routeTitle = instruction.match?.title;
       if ((routeTitle ?? null) !== null) {
         if (typeof routeTitle === 'string') {
           title = routeTitle;
         } else {
-          title = routeTitle.call(instruction, instruction, navigationInstruction);
+          title = routeTitle.call(instruction, instruction, navigation);
         }
       }
     }

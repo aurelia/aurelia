@@ -29,8 +29,8 @@ export class RoutingInstructionCollection extends Array<RoutingInstruction> {
 
   public getEndpoints(configuredRoutePath: string | null): IEndpoint[] {
     return this
-      .filter(instr => instr.endpoint !== null && instr.endpoint.path === configuredRoutePath)
-      .map(instr => instr.endpoint)
+      .filter(instr => instr.endpoint.instance !== null && instr.endpoint.instance.path === configuredRoutePath)
+      .map(instr => instr.endpoint.instance)
       .filter((value, index, arr) => arr.indexOf(value) === index) as IEndpoint[];
   }
 

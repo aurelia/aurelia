@@ -57,7 +57,7 @@ export class EndpointMatcher {
     const endpoints = ownedScopes.map(scope => scope.endpoint);
     const availableEndpoints = endpoints
       .filter(endpoint => endpoint !== null
-        && !alreadyMatched.some(found => endpoint === found.viewport.instance || endpoint === found.viewportScope)
+        && !alreadyMatched.some(found => endpoint === found.endpoint.instance)
       ) as (Viewport | ViewportScope)[];
 
     const routingInstructions = new Collection<RoutingInstruction>(...instructions.slice());
@@ -171,22 +171,29 @@ export class EndpointMatcher {
     let instruction: RoutingInstruction | null;
     while ((instruction = routingInstructions.next()) !== null) {
       if (
-        // The viewport scope is already known and it's not an add instruction, OR...
-        (type === 'ViewportScope' && instruction.viewportScope !== null && !instruction.isAdd) ||
-        // ...viewport is already known...
-        (type === 'Viewport' && instruction.viewport.instance !== null)
+        // // The viewport scope is already known and it's not an add instruction, OR...
+        // (type === 'ViewportScope' && instruction.viewportScope !== null && !instruction.isAdd) ||
+        // // ...viewport is already known...
+        // (type === 'Viewport' && instruction.viewport.instance !== null)
+
+        // The endpoint is already known and it's not an add instruction...
+        instruction.endpoint.instance !== null && !instruction.isAdd &&
+        // ...(and of the type we're currently checking)...
+        instruction.endpoint.endpointType === type
       ) {
         // ...match the endpoint, updating the instruction!, and add the next
         // scope instructions ("children") as remaining unmatched instructions...
         remainingInstructions.push(...EndpointMatcher.matchEndpoint(
           instruction,
-          (instruction.viewport.instance ?? instruction.viewportScope)!,
+          // (instruction.viewport.instance ?? instruction.viewportScope)!,
+          instruction.endpoint.instance as Viewport | ViewportScope,
           doesntNeedViewportDescribed,
         ));
         // ...add the matched instruction as a matched instruction...
         matchedInstructions.push(instruction);
         // ...remove the endpoint as available...
-        arrayRemove(availableEndpoints, available => available === instruction!.viewport.instance || available === instruction!.viewportScope);
+        // arrayRemove(availableEndpoints, available => available === instruction!.viewport.instance || available === instruction!.viewportScope);
+        arrayRemove(availableEndpoints, available => available === instruction!.endpoint.instance);
         // ...and finally delete the routing instructions to prevent further processing of it.
         routingInstructions.removeCurrent();
       }
@@ -233,7 +240,7 @@ export class EndpointMatcher {
           // Add the matched instruction to the result
           matchedInstructions.push(instruction);
           // Remove the endpoint from available endpoints
-          arrayRemove(availableEndpoints, available => available === instruction!.viewportScope);
+          arrayRemove(availableEndpoints, available => available === instruction!.endpoint.instance);
           // Remove the matched instruction from the currently processed instruction
           routingInstructions.removeCurrent();
           break;
@@ -264,7 +271,8 @@ export class EndpointMatcher {
           // Add the matched instruction to the result
           matchedInstructions.push(instruction);
           // Remove the endpoint from available endpoints
-          arrayRemove(availableEndpoints, available => available === instruction!.viewport.instance);
+          // arrayRemove(availableEndpoints, available => available === instruction!.viewport.instance);
+          arrayRemove(availableEndpoints, available => available === instruction!.endpoint.instance);
           // Remove the matched instruction from the currently processed instruction
           routingInstructions.removeCurrent();
           break;
@@ -283,10 +291,10 @@ export class EndpointMatcher {
     let instruction: RoutingInstruction | null;
 
     while ((instruction = routingInstructions.next()) !== null) {
-      let viewport = instruction.viewport.instance;
+      let viewport = instruction.endpoint.instance as Viewport;
       // If instruction don't have a viewport instance...
       if (viewport == null) {
-        const name = instruction.viewport.name;
+        const name = instruction.endpoint.name;
         // ...but a viewport name...
         if ((name?.length ?? 0) === 0) {
           continue;
@@ -318,7 +326,7 @@ export class EndpointMatcher {
         // Add the matched instruction to the result
         matchedInstructions.push(instruction);
         // Remove the endpoint from available endpoints
-        arrayRemove(availableEndpoints, available => available === instruction!.viewport.instance);
+        arrayRemove(availableEndpoints, available => available === instruction!.endpoint.instance);
         // Remove the matched instruction from the currently processed instruction
         routingInstructions.removeCurrent();
       }
@@ -355,7 +363,7 @@ export class EndpointMatcher {
         // Add the matched instruction to the result
         matchedInstructions.push(instruction);
         // Remove the endpoint from available endpoints
-        arrayRemove(availableEndpoints, available => available === instruction!.viewport.instance);
+        arrayRemove(availableEndpoints, available => available === instruction!.endpoint.instance);
         // Remove the matched instruction from the currently processed instruction
         routingInstructions.removeCurrent();
       }
@@ -364,13 +372,14 @@ export class EndpointMatcher {
 
   private static matchEndpoint(instruction: RoutingInstruction, endpoint: Viewport | ViewportScope, doesntNeedViewportDescribed: boolean): RoutingInstruction[] {
     // Update the (right) property on the instruction
-    if (endpoint instanceof Viewport) {
-      instruction.viewport.set(endpoint);
-    } else {
-      // TODO(alpha): Fix this
-      // instruction.viewportScope.set(endpoint);
-      instruction.viewportScope = endpoint;
-    }
+    // if (endpoint instanceof Viewport) {
+    //   instruction.viewport.set(endpoint);
+    // } else {
+    //   // TODO(alpha): Fix this
+    //   // instruction.viewportScope.set(endpoint);
+    //   instruction.viewportScope = endpoint;
+    // }
+    instruction.endpoint.set(endpoint);
     if (doesntNeedViewportDescribed) {
       instruction.needsViewportDescribed = false;
     }

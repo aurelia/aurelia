@@ -146,9 +146,12 @@ export {
 } from './routing-scope.js';
 
 export {
-  IViewportOptions,
   Viewport,
 } from './endpoints/viewport.js';
+
+export {
+  IViewportOptions,
+} from './endpoints/viewport-options.js';
 
 export {
   IViewportScopeOptions,

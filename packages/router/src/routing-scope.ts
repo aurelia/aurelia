@@ -3,7 +3,8 @@ import { CustomElement, CustomElementType, getEffectiveParentNode, ICustomElemen
 import { FoundRoute } from './found-route.js';
 import { IRouter } from './router.js';
 import { RoutingInstruction } from './instructions/routing-instruction.js';
-import { Viewport, IViewportOptions } from './endpoints/viewport.js';
+import { Viewport } from './endpoints/viewport.js';
+import { IViewportOptions } from './endpoints/viewport-options.js';
 import { IConfigurableRoute, RouteRecognizer } from './route-recognizer.js';
 import { Runner, Step } from './utilities/runner.js';
 import { IRoute, Route } from './route.js';

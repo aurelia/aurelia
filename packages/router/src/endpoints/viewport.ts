@@ -10,8 +10,9 @@ import { NavigationCoordinator } from '../navigation-coordinator.js';
 import { Runner, Step } from '../utilities/runner.js';
 import { Routes } from '../decorators/routes.js';
 import { Route } from '../route.js';
-import { Endpoint, IEndpointOptions, IConnectedCustomElement } from './endpoint.js';
+import { Endpoint, IConnectedCustomElement } from './endpoint.js';
 import { RouterConfiguration } from '../index.js';
+import { IViewportOptions, ViewportOptions } from './viewport-options';
 
 /**
  * The viewport is an endpoint that encapsulates an au-viewport custom element
@@ -31,51 +32,52 @@ import { RouterConfiguration } from '../index.js';
  * to the loaded content/component and its configuration such as title and
  * configured routes.
  */
-export interface IViewportOptions extends IEndpointOptions {
-  /**
-   * Whether the viewport has its own scope (owns other endpoints)
-   */
-  scope?: boolean;
 
-  /**
-   * A list of components that is using the viewport. These components
-   * can only be loaded into this viewport and this viewport can't
-   * load any other components.
-   */
-  usedBy?: string | string[];
+// export interface IViewportOptions extends IEndpointOptions {
+//   /**
+//    * Whether the viewport has its own scope (owns other endpoints)
+//    */
+//   scope?: boolean;
 
-  /**
-   * The default component that's loaded if the viewport is created
-   * without having a component specified (in that navigation).
-   */
-  default?: string;
+//   /**
+//    * A list of components that is using the viewport. These components
+//    * can only be loaded into this viewport and this viewport can't
+//    * load any other components.
+//    */
+//   usedBy?: string | string[];
 
-  /**
-   * The component loaded if the viewport can't load the specified
-   * component. The component is passed as a parameter to the fallback.
-   */
-  fallback?: string;
+//   /**
+//    * The default component that's loaded if the viewport is created
+//    * without having a component specified (in that navigation).
+//    */
+//   default?: string;
 
-  /**
-   * The viewport doesn't add its content to the Location URL.
-   */
-  noLink?: boolean;
+//   /**
+//    * The component loaded if the viewport can't load the specified
+//    * component. The component is passed as a parameter to the fallback.
+//    */
+//   fallback?: string;
 
-  /**
-   * The viewport doesn't add a title to the browser window title.
-   */
-  noTitle?: boolean;
+//   /**
+//    * The viewport doesn't add its content to the Location URL.
+//    */
+//   noLink?: boolean;
 
-  /**
-   * The viewport's content is stateful.
-   */
-  stateful?: boolean;
+//   /**
+//    * The viewport doesn't add a title to the browser window title.
+//    */
+//   noTitle?: boolean;
 
-  /**
-   * The viewport is always added to the routing instruction.
-   */
-  forceDescription?: boolean;
-}
+//   /**
+//    * The viewport's content is stateful.
+//    */
+//   stateful?: boolean;
+
+//   /**
+//    * The viewport is always added to the routing instruction.
+//    */
+//   forceDescription?: boolean;
+// }
 
 export class Viewport extends Endpoint {
   /**
@@ -92,6 +94,11 @@ export class Viewport extends Endpoint {
    * regardless of statefulness (and hooks).
    */
   public forceRemove: boolean = false;
+
+  /**
+   * The viewport options.
+   */
+  public options: ViewportOptions = new ViewportOptions();
 
   /**
    * If set by viewport content, it's resolved when viewport has
@@ -154,10 +161,13 @@ export class Viewport extends Endpoint {
     /**
      * The viewport options.
      */
-    public options: IViewportOptions = {}
+    options?: IViewportOptions,
   ) {
     super(router, name, connectedCE);
     this.content = new ViewportContent(router, this, owningScope, hasScope);
+    if (options !== void 0) {
+      this.options.apply(options);
+    }
   }
 
   /**
@@ -204,6 +214,14 @@ export class Viewport extends Endpoint {
     const contentName = this.content?.instruction.component.name ?? '';
     const nextContentName = this.nextContent?.instruction.component.name ?? '';
     return `v:${this.name}[${contentName}->${nextContentName}]`;
+  }
+
+  public applyOptions(options: ViewportOptions | IViewportOptions): void {
+    if (options instanceof ViewportOptions) {
+      this.options = options;
+    } else {
+      this.options.apply(options);
+    }
   }
 
   /**
@@ -315,27 +333,28 @@ export class Viewport extends Endpoint {
       this.previousViewportState = { ...this };
       this.clearState();
       this.connectedCE = connectedCE;
-      if (options.usedBy !== void 0) {
-        this.options.usedBy = options.usedBy;
-      }
-      if (options.default) {
-        this.options.default = options.default;
-      }
-      if (options.fallback) {
-        this.options.fallback = options.fallback;
-      }
-      if (options.noLink) {
-        this.options.noLink = options.noLink;
-      }
-      if (options.noTitle) {
-        this.options.noTitle = options.noTitle;
-      }
-      if (options.noHistory) {
-        this.options.noHistory = options.noHistory;
-      }
-      if (options.stateful) {
-        this.options.stateful = options.stateful;
-      }
+      this.options.apply(options);
+      // if (options.usedBy !== void 0) {
+      //   this.options.usedBy = options.usedBy;
+      // }
+      // if (options.default) {
+      //   this.options.default = options.default;
+      // }
+      // if (options.fallback) {
+      //   this.options.fallback = options.fallback;
+      // }
+      // if (options.noLink) {
+      //   this.options.noLink = options.noLink;
+      // }
+      // if (options.noTitle) {
+      //   this.options.noTitle = options.noTitle;
+      // }
+      // if (options.noHistory) {
+      //   this.options.noHistory = options.noHistory;
+      // }
+      // if (options.stateful) {
+      //   this.options.stateful = options.stateful;
+      // }
       if (this.connectionResolve != null) {
         this.connectionResolve();
       }
@@ -762,11 +781,12 @@ export class Viewport extends Endpoint {
    * TODO: Deal with non-string components
    */
   public wantComponent(component: ComponentAppellation): boolean {
-    let usedBy = this.options.usedBy ?? [];
-    if (typeof usedBy === 'string') {
-      usedBy = usedBy.split(',');
-    }
-    return usedBy.includes(component as string);
+    // let usedBy = this.options.usedBy ?? [];
+    // if (typeof usedBy === 'string') {
+    //   usedBy = usedBy.split(',');
+    // }
+    // return usedBy.includes(component as string);
+    return this.options.usedBy.includes(component as string);
   }
 
   /**
@@ -781,13 +801,13 @@ export class Viewport extends Endpoint {
     if (component === '-' || component === null) {
       return true;
     }
-    let usedBy = this.options.usedBy ?? [];
+    let usedBy = this.options.usedBy; // ?? [];
     if (usedBy.length === 0) {
       return true;
     }
-    if (typeof usedBy === 'string') {
-      usedBy = usedBy.split(',');
-    }
+    // if (typeof usedBy === 'string') {
+    //   usedBy = usedBy.split(',');
+    // }
     if (usedBy.includes(component as string)) {
       return true;
     }
@@ -915,7 +935,7 @@ export class Viewport extends Endpoint {
    * TODO: Investigate the need.
    */
   private clearState(): void {
-    this.options = {};
+    this.options = ViewportOptions.create();
 
     const owningScope = this.owningScope;
     const hasScope = this.scope.hasScope;

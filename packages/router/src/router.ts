@@ -12,7 +12,8 @@ import { CustomElementType, ICustomElementViewModel, IAppRoot, ICustomElementCon
 import { LoadInstruction } from './interfaces.js';
 import { Navigator, NavigatorNavigateEvent } from './navigator.js';
 import { arrayRemove, arrayUnique } from './utilities/utils.js';
-import { IViewportOptions, Viewport } from './endpoints/viewport.js';
+import { Viewport } from './endpoints/viewport.js';
+import { IViewportOptions } from './endpoints/viewport-options.js';
 import { RoutingInstruction } from './instructions/routing-instruction.js';
 import { FoundRoute } from './found-route.js';
 import { RoutingScope } from './routing-scope.js';

@@ -8,7 +8,7 @@ import { FoundRoute } from '../found-route.js';
 import { Endpoint, EndpointType } from '../endpoints/endpoint';
 import { Viewport } from '../endpoints/viewport';
 import { CustomElement } from '@aurelia/runtime-html';
-import { RouterConfiguration } from '../index.js';
+import { Navigation, RouterConfiguration } from '../index.js';
 import { EndpointHandle, InstructionEndpoint } from './instruction-endpoint';
 
 /**
@@ -439,39 +439,6 @@ export class RoutingInstruction {
   }
 
   /**
-   * Stringify the routing instruction shallowly, NOT recursively down next scope/child instructions.
-   *
-   * @param excludeEndpoint - Whether to exclude endpoint names in the string
-   * @param excludeComponent - Whether to exclude component names in the string
-   */
-  private stringifyShallow(excludeEndpoint: boolean = false, excludeComponent: boolean = false): string {
-    const seps = RouterConfiguration.options.separators;
-    // Start with component (unless excluded)
-    let instructionString = !excludeComponent ? this.component.name ?? '' : '';
-
-    // Get parameters specification (names, sort order) from component type
-    // TODO(alpha): Use Metadata!
-    const specification = this.component.type ? this.component.type.parameters : null;
-    // Get parameters according to specification
-    const parameters = InstructionParameters.stringify(this.parameters.toSortedParameters(specification));
-    if (parameters.length > 0) {
-      // Add to component or use standalone
-      instructionString += !excludeComponent
-        ? `${seps.parameters}${parameters}${seps.parametersEnd}`
-        : parameters;
-    }
-    // Add endpoint name (unless excluded)
-    if (this.endpoint.name != null && !excludeEndpoint) {
-      instructionString += `${seps.viewport}${this.endpoint.name}`;
-    }
-    // And add no (owned) scope indicator
-    if (!this.ownsScope) {
-      instructionString += seps.noScope;
-    }
-    return instructionString || '';
-  }
-
-  /**
    * Clone the routing instruction.
    *
    * @param keepInstances - Whether actual instances should be transfered
@@ -540,5 +507,62 @@ export class RoutingInstruction {
     }
     // ...otherwise it's a failure to match.
     return false;
+  }
+
+  /**
+   * Get the title for the routing instruction.
+   *
+   * @param navigation - The navigation that requests the content change
+   */
+  public getTitle(navigation: Navigation): string {
+    // If it's a configured route...
+    if (this.route !== null) {
+      // ...get the configured route title.
+      const routeTitle = this.route.match?.title;
+      // If there's a configured title, use it. Otherwise fallback to
+      // titles based on endpoint's component.
+      if (routeTitle != null) {
+        // Only add the title (once) if it's the first instruction
+        if (this.routeStart) {
+          return typeof routeTitle === 'string' ? routeTitle : routeTitle(this, navigation);
+        } else {
+          return '';
+        }
+      }
+    }
+    return this.endpoint.instance!.getTitle(navigation);
+  }
+
+  /**
+   * Stringify the routing instruction shallowly, NOT recursively down next scope/child instructions.
+   *
+   * @param excludeEndpoint - Whether to exclude endpoint names in the string
+   * @param excludeComponent - Whether to exclude component names in the string
+   */
+  private stringifyShallow(excludeEndpoint: boolean = false, excludeComponent: boolean = false): string {
+    const seps = RouterConfiguration.options.separators;
+    // Start with component (unless excluded)
+    let instructionString = !excludeComponent ? this.component.name ?? '' : '';
+
+    // Get parameters specification (names, sort order) from component type
+    // TODO(alpha): Use Metadata!
+    const specification = this.component.type ? this.component.type.parameters : null;
+    // Get parameters according to specification
+    const parameters = InstructionParameters.stringify(this.parameters.toSortedParameters(specification));
+    if (parameters.length > 0) {
+      // Add to component or use standalone
+      instructionString += !excludeComponent
+        ? `${seps.parameters}${parameters}${seps.parametersEnd}`
+        : parameters;
+    }
+    // Add endpoint name (unless excluded)
+    if (this.endpoint.name != null && !excludeEndpoint) {
+      instructionString += `${seps.viewport}${this.endpoint.name}`;
+    }
+    // And add no (owned) scope indicator
+    if (!this.ownsScope) {
+      instructionString += seps.noScope;
+    }
+    return instructionString || '';
   }
 }

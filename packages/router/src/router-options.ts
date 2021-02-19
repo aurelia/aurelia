@@ -61,7 +61,7 @@ export interface ITitleConfiguration {
    * Function that is called for each component/route title. The
    * returned value is used instead as title. Default: undefined
    */
-  transformTitle?: (title: string, instruction: string | RoutingInstruction | FoundRoute) => string;
+  transformTitle?: (title: string, instruction: RoutingInstruction /* | string | FoundRoute */) => string;
 }
 
 export interface IRouteSeparators extends Partial<ISeparators> { }

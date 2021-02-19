@@ -197,15 +197,11 @@ export class Router implements IRouter {
 
     /**
      * The viewer (browser) that displays url, navigation buttons
-     *
-     * @internal
      */
     public viewer: BrowserViewerStore,
 
     /**
      * The store (browser) that stores navigations
-     *
-     * @internal
      */
     public store: BrowserViewerStore,
   ) { }

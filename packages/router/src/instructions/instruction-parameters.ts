@@ -162,6 +162,18 @@ export class InstructionParameters {
     }
   }
 
+  public get(name?: string): IComponentParameter[] | unknown | unknown[] {
+    if (name === void 0) {
+      // TODO: Turn this into a parameters object instead
+      return this.parameters;
+    }
+    const params = this.parameters.filter(p => p.key === name).map(p => p.value);
+    if (params.length === 0) {
+      return;
+    }
+    return params.length === 1 ? params[0] : params;
+  }
+
   // This only works with objects added to objects!
   public addParameters(parameters: Parameters): void {
     if (this.parametersType === ParametersType.none) {

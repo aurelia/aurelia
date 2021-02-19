@@ -175,13 +175,6 @@ export class Viewport extends Endpoint {
   }
 
   /**
-   * This is a viewport.
-   */
-  public get isViewport(): boolean {
-    return true;
-  }
-
-  /**
    * Whether the viewport (content) is empty.
    */
   public get isEmpty(): boolean {

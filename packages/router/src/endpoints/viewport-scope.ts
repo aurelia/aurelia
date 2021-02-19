@@ -67,10 +67,6 @@ export class ViewportScope extends Endpoint {
     }
   }
 
-  public get isViewportScope(): boolean {
-    return true;
-  }
-
   public get isEmpty(): boolean {
     return this.instruction === null;
   }

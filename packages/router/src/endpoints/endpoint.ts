@@ -115,18 +115,16 @@ export class Endpoint {
   }
 
   /**
-   * Whether the endpoint is a Viewport. Overloaded to true
-   * by Viewport.
+   * Whether the endpoint is a Viewport.
    */
   public get isViewport(): boolean {
-    return false;
+    return this instanceof Viewport;
   }
   /**
-   * Whether the endpoint is a ViewportScope. Overloaded to true
-   * by ViewportScope.
+   * Whether the endpoint is a ViewportScope.
    */
   public get isViewportScope(): boolean {
-    return false;
+    return this instanceof ViewportScope;
   }
 
   /**

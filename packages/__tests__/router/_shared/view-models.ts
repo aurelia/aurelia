@@ -278,7 +278,7 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     instruction: RoutingInstruction,
     navigation: Navigation,
   ): boolean | LoadInstruction | LoadInstruction[] | Promise<boolean | LoadInstruction | LoadInstruction[]> {
-    this.viewport = instruction.viewport.instance;
+    this.viewport = instruction.viewport.instance as Viewport;
     // console.log('TestViewModel canLoad', this.name);
     // this.hia.canLoad.notify(`${this.viewport?.name}.${this.name}`);
     return this.specs.canLoad.invoke(
@@ -308,7 +308,7 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     instruction: RoutingInstruction,
     navigation: Navigation,
   ): void | Promise<void> {
-    this.viewport = instruction.viewport.instance;
+    this.viewport = instruction.viewport.instance as Viewport;
     // console.log('TestViewModel load', this.name);
     // this.hia.load.notify(`${this.viewport?.name}.${this.name}`);
     return this.specs.load.invoke(
@@ -325,7 +325,7 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     instruction: RoutingInstruction,
     navigation: Navigation,
   ): boolean | Promise<boolean> {
-    this.viewport = instruction.viewport.instance;
+    this.viewport = instruction.viewport.instance as Viewport;
     // console.log('TestViewModel canUnload', this);
     // this.hia.canUnload.notify(`${this.viewport?.name}.${this.name}`);
     return this.specs.canUnload.invoke(
@@ -345,7 +345,7 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     instruction: RoutingInstruction,
     navigation: Navigation,
   ): void | Promise<void> {
-    this.viewport = instruction.viewport.instance;
+    this.viewport = instruction.viewport.instance as Viewport;
     // console.log('TestViewModel unload', this.name);
     // this.hia.unload.notify(`${this.viewport?.name}.${this.name}`);
     return this.specs.unload.invoke(

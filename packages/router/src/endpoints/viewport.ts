@@ -895,9 +895,6 @@ export class Viewport extends Endpoint {
       name = name.replace('-', ' ');
       title = name.slice(0, 1).toLocaleUpperCase() + name.slice(1);
     }
-    // if (RouterConfiguration.options.title.transformTitle !== void 0) {
-    //   title = RouterConfiguration.options.title.transformTitle.call(this, title, this.getContentInstruction()!);
-    // }
     return title;
   }
 

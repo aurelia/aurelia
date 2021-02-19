@@ -2,9 +2,9 @@
 import { INavigatorOptions } from './navigator.js';
 import { NavigationState } from './navigation-coordinator.js';
 import { RoutingInstruction } from './instructions/routing-instruction.js';
-import { FoundRoute } from './found-route.js';
 import { IRoutingHookDefinition } from './routing-hook.js';
 import { RouterConfiguration } from './index.js';
+import { Navigation } from './navigation.js';
 
 /**
  * How contents are swapped in a viewport when transitioning. Default: `attach-next-detach-current`
@@ -61,7 +61,7 @@ export interface ITitleConfiguration {
    * Function that is called for each component/route title. The
    * returned value is used instead as title. Default: undefined
    */
-  transformTitle?: (title: string, instruction: RoutingInstruction /* | string | FoundRoute */) => string;
+  transformTitle?: (title: string, instruction: RoutingInstruction, navigation: Navigation) => string;
 }
 
 export interface IRouteSeparators extends Partial<ISeparators> { }

@@ -51,7 +51,6 @@ class Effect implements IEffect, ISubscriber, ICollectionSubscriber {
     public readonly observerLocator: IObserverLocator,
     public readonly fn: EffectFunc,
   ) {
-    connectable.assignIdTo(this);
   }
 
   public handleChange(): void {

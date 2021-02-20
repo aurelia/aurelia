@@ -379,7 +379,7 @@ export class ViewportAgent {
                         return;
                     case 'replace': {
                         const controller = this.hostController;
-                        const deactivateFlags = this.viewport.stateful ? 0 /* none */ : 128 /* dispose */;
+                        const deactivateFlags = this.viewport.stateful ? 0 /* none */ : 32 /* dispose */;
                         tr.run(() => {
                             return this.curCA.deactivate(initiator, controller, deactivateFlags);
                         }, () => {
@@ -488,7 +488,7 @@ export class ViewportAgent {
                 const controller = this.hostController;
                 const curCA = this.curCA;
                 const nextCA = this.nextCA;
-                const deactivateFlags = this.viewport.stateful ? 0 /* none */ : 128 /* dispose */;
+                const deactivateFlags = this.viewport.stateful ? 0 /* none */ : 32 /* dispose */;
                 const activateFlags = 0 /* none */;
                 b.push();
                 switch (tr.options.swapStrategy) {

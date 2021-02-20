@@ -11,7 +11,6 @@ export declare class LetBinding implements IPartialConnectableBinding {
     locator: IServiceLocator;
     private readonly toBindingContext;
     interceptor: this;
-    id: number;
     isBound: boolean;
     $scope?: Scope;
     $hostScope: Scope | null;

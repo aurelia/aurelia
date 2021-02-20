@@ -88,9 +88,6 @@ class BindingInterceptor {
             binding = interceptor;
         }
     }
-    get id() {
-        return this.binding.id;
-    }
     get observerLocator() {
         return this.binding.observerLocator;
     }

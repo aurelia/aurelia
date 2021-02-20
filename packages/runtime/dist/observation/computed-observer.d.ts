@@ -11,7 +11,6 @@ export declare class ComputedObserver implements IConnectableBinding, ISubscribe
     readonly useProxy: boolean;
     readonly observerLocator: IObserverLocator;
     static create(obj: object, key: PropertyKey, descriptor: PropertyDescriptor, observerLocator: IObserverLocator, useProxy: boolean): ComputedObserver;
-    id: number;
     interceptor: this;
     type: AccessorType;
     value: unknown;

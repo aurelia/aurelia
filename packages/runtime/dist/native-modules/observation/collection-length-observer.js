@@ -16,7 +16,7 @@ export class CollectionLengthObserver {
         // then there's a chance that the new value is invalid
         // add a guard so that we don't accidentally broadcast invalid values
         if (newValue !== currentValue && isArrayIndex(newValue)) {
-            if ((flags & 1024 /* noFlush */) === 0) {
+            if ((flags & 256 /* noFlush */) === 0) {
                 this.obj.length = newValue;
             }
             this.value = newValue;

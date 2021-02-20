@@ -8,7 +8,6 @@ import type { IAccessor, LifecycleFlags } from '@aurelia/runtime';
  * @see ElementPropertyAccessor
  */
 export declare class DataAttributeAccessor implements IAccessor<string | null> {
-    [id: number]: number;
     readonly obj: HTMLElement;
     readonly propertyKey: string;
     currentValue: string | null;

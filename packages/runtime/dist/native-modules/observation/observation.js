@@ -30,7 +30,6 @@ class Effect {
         this.running = false;
         this.runCount = 0;
         this.stopped = false;
-        connectable.assignIdTo(this);
     }
     handleChange() {
         this.queued = true;

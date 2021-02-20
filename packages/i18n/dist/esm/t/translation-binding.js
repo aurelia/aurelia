@@ -30,7 +30,6 @@ let TranslationBinding = TranslationBinding_1 = class TranslationBinding {
         this.platform = platform;
         this.targetAccessors = new Set();
         this.i18n.subscribeLocaleChange(this);
-        connectable.assignIdTo(this);
     }
     static create({ parser, observerLocator, context, controller, target, instruction, platform, isParameterContext, }) {
         const binding = this.getBinding({ observerLocator, context, controller, target, platform });
@@ -124,7 +123,7 @@ let TranslationBinding = TranslationBinding_1 = class TranslationBinding {
                     const accessor = controller && controller.viewModel
                         ? this.observerLocator.getAccessor(controller.viewModel, attribute)
                         : this.observerLocator.getAccessor(this.target, attribute);
-                    const shouldQueueUpdate = (flags & 8 /* fromBind */) === 0 && (accessor.type & 4 /* Layout */) > 0;
+                    const shouldQueueUpdate = (flags & 2 /* fromBind */) === 0 && (accessor.type & 4 /* Layout */) > 0;
                     if (shouldQueueUpdate) {
                         accessorUpdateTasks.push(new AccessorUpdateTask(accessor, value, flags, this.target, attribute));
                     }
@@ -137,7 +136,7 @@ let TranslationBinding = TranslationBinding_1 = class TranslationBinding {
         }
         let shouldQueueContent = false;
         if (Object.keys(content).length > 0) {
-            shouldQueueContent = (flags & 8 /* fromBind */) === 0;
+            shouldQueueContent = (flags & 2 /* fromBind */) === 0;
             if (!shouldQueueContent) {
                 this.updateContent(content, flags);
             }
@@ -249,7 +248,6 @@ let ParameterBinding = class ParameterBinding {
         this.hostScope = null;
         this.observerLocator = owner.observerLocator;
         this.locator = owner.locator;
-        connectable.assignIdTo(this);
     }
     handleChange(newValue, _previousValue, flags) {
         this.obs.version++;

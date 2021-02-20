@@ -16,7 +16,7 @@ class RefBinding {
             if (this.$scope === scope) {
                 return;
             }
-            this.interceptor.$unbind(flags | 8 /* fromBind */);
+            this.interceptor.$unbind(flags | 2 /* fromBind */);
         }
         this.$scope = scope;
         this.$hostScope = hostScope;

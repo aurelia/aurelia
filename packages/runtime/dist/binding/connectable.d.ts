@@ -6,14 +6,12 @@ export interface IPartialConnectableBinding extends IBinding, ISubscriber, IColl
     observerLocator: IObserverLocator;
 }
 export interface IConnectableBinding extends IPartialConnectableBinding, IConnectable {
-    id: number;
     /**
      * A record storing observers that are currently subscribed to by this binding
      */
     obs: BindingObserverRecord;
 }
 declare type ObservationRecordImplType = {
-    id: number;
     version: number;
     count: number;
     binding: IConnectableBinding;
@@ -22,7 +20,6 @@ export interface BindingObserverRecord extends ObservationRecordImplType {
 }
 export declare class BindingObserverRecord implements ISubscriber, ICollectionSubscriber {
     binding: IConnectableBinding;
-    id: number;
     version: number;
     count: number;
     constructor(binding: IConnectableBinding);
@@ -31,9 +28,7 @@ export declare class BindingObserverRecord implements ISubscriber, ICollectionSu
     /**
      * Add, and subscribe to a given observer
      */
-    add(observer: (ISubscribable | ICollectionSubscribable) & {
-        [id: number]: number;
-    }): void;
+    add(observer: ISubscribable | ICollectionSubscribable): void;
     /**
      * Unsubscribe the observers that are not up to date with the record version
      */
@@ -44,13 +39,7 @@ declare type DecoratableConnectable<TProto, TClass> = Class<TProto & Connectable
 declare type DecoratedConnectable<TProto, TClass> = Class<TProto & Connectable, TClass>;
 declare function connectableDecorator<TProto, TClass>(target: DecoratableConnectable<TProto, TClass>): DecoratedConnectable<TProto, TClass>;
 export declare function connectable(): typeof connectableDecorator;
-export declare namespace connectable {
-    var assignIdTo: (instance: IConnectable | BindingObserverRecord) => void;
-}
 export declare function connectable<TProto, TClass>(target: DecoratableConnectable<TProto, TClass>): DecoratedConnectable<TProto, TClass>;
-export declare namespace connectable {
-    var assignIdTo: (instance: IConnectable | BindingObserverRecord) => void;
-}
 export declare type MediatedBinding<K extends string> = {
     [key in K]: (newValue: unknown, previousValue: unknown, flags: LifecycleFlags) => void;
 };

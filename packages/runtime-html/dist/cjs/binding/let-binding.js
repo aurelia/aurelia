@@ -15,7 +15,6 @@ class LetBinding {
         this.$hostScope = null;
         this.task = null;
         this.target = null;
-        runtime_1.connectable.assignIdTo(this);
     }
     handleChange(newValue, _previousValue, flags) {
         if (!this.isBound) {
@@ -36,7 +35,7 @@ class LetBinding {
             if (this.$scope === scope) {
                 return;
             }
-            this.interceptor.$unbind(flags | 8 /* fromBind */);
+            this.interceptor.$unbind(flags | 2 /* fromBind */);
         }
         this.$scope = scope;
         this.$hostScope = hostScope;
@@ -47,7 +46,7 @@ class LetBinding {
         }
         // sourceExpression might have been changed during bind
         this.target[this.targetProperty]
-            = this.sourceExpression.evaluate(flags | 8 /* fromBind */, scope, hostScope, this.locator, this.interceptor);
+            = this.sourceExpression.evaluate(flags | 2 /* fromBind */, scope, hostScope, this.locator, this.interceptor);
         // add isBound flag and remove isBinding flag
         this.isBound = true;
     }

@@ -29,7 +29,7 @@ class FlagsTemplateController {
 }
 export class FrequentMutations extends FlagsTemplateController {
     constructor(factory, location) {
-        super(factory, location, 2048 /* persistentTargetObserverQueue */);
+        super(factory, location, 512 /* persistentTargetObserverQueue */);
     }
 }
 /**
@@ -38,7 +38,7 @@ export class FrequentMutations extends FlagsTemplateController {
 FrequentMutations.inject = [IViewFactory, IRenderLocation];
 export class ObserveShallow extends FlagsTemplateController {
     constructor(factory, location) {
-        super(factory, location, 512 /* observeLeafPropertiesOnly */);
+        super(factory, location, 128 /* observeLeafPropertiesOnly */);
     }
 }
 /**

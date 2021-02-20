@@ -139,7 +139,7 @@ let ValidateBindingBehavior = class ValidateBindingBehavior extends BindingInter
         while (expression.name !== 'validate' && expression !== void 0) {
             expression = expression.expression;
         }
-        const evaluationFlags = flags | 4 /* isStrictBindingStrategy */;
+        const evaluationFlags = flags | 1 /* isStrictBindingStrategy */;
         const args = expression.args;
         for (let i = 0, ii = args.length; i < ii; i++) {
             const arg = args[i];

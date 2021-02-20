@@ -20,25 +20,21 @@ export declare enum BindingMode {
 }
 export declare const enum LifecycleFlags {
     none = 0,
-    persistentBindingFlags = 3847,
-    allowParentScopeTraversal = 256,
-    observeLeafPropertiesOnly = 512,
-    targetObserverFlags = 3079,
-    noFlush = 1024,
-    persistentTargetObserverQueue = 2048,
-    bindingStrategy = 7,
-    getterSetterStrategy = 1,
-    proxyStrategy = 2,
-    isStrictBindingStrategy = 4,
-    from = 24,
-    fromBind = 8,
-    fromUnbind = 16,
-    mustEvaluate = 32,
-    isTraversingParentScope = 64,
-    dispose = 128
+    persistentBindingFlags = 961,
+    allowParentScopeTraversal = 64,
+    observeLeafPropertiesOnly = 128,
+    targetObserverFlags = 769,
+    noFlush = 256,
+    persistentTargetObserverQueue = 512,
+    bindingStrategy = 1,
+    isStrictBindingStrategy = 1,
+    fromBind = 2,
+    fromUnbind = 4,
+    mustEvaluate = 8,
+    isTraversingParentScope = 16,
+    dispose = 32
 }
 export interface IConnectable {
-    id: number;
     observeProperty(obj: object, key: PropertyKey): void;
     observeCollection(obj: Collection): void;
     subscribeTo(subscribable: ISubscribable | ICollectionSubscribable): void;
@@ -134,7 +130,6 @@ export declare const enum AccessorType {
  * Basic interface to normalize getting/setting a value of any property on any object
  */
 export interface IAccessor<TValue = unknown> {
-    [id: number]: number;
     type: AccessorType;
     getValue(obj?: object, key?: PropertyKey): TValue;
     setValue(newValue: TValue, flags: LifecycleFlags, obj?: object, key?: PropertyKey): void;
@@ -176,7 +171,6 @@ export interface ICollectionChangeTracker<T extends Collection> {
  * An observer that tracks collection mutations and notifies subscribers (either directly or in batches)
  */
 export interface ICollectionObserver<T extends CollectionKind> extends ICollectionChangeTracker<CollectionKindToType<T>>, ICollectionSubscribable {
-    [id: number]: number;
     type: AccessorType;
     collection: ObservedCollectionKindToType<T>;
     getLengthObserver(): T extends CollectionKind.array ? CollectionLengthObserver : CollectionSizeObserver;

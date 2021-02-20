@@ -19,7 +19,6 @@ export class ComputedObserver {
          */
         this.running = false;
         this.isDirty = false;
-        connectable.assignIdTo(this);
     }
     static create(obj, key, descriptor, observerLocator, useProxy) {
         const getter = descriptor.get;

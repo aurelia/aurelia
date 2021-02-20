@@ -50,7 +50,7 @@ export class InterpolationBinding {
         // todo:
         //  (1). determine whether this should be the behavior
         //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start().wait()
-        const shouldQueueFlush = (flags & 8 /* fromBind */) === 0 && (targetObserver.type & 4 /* Layout */) > 0;
+        const shouldQueueFlush = (flags & 2 /* fromBind */) === 0 && (targetObserver.type & 4 /* Layout */) > 0;
         if (shouldQueueFlush) {
             // Queue the new one before canceling the old one, to prevent early yield
             const task = this.task;
@@ -237,7 +237,7 @@ export class ContentBinding {
         // todo:
         //  (1). determine whether this should be the behavior
         //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start().wait()
-        const shouldQueueFlush = (flags & 8 /* fromBind */) === 0;
+        const shouldQueueFlush = (flags & 2 /* fromBind */) === 0;
         if (shouldQueueFlush) {
             this.queueUpdate(newValue, flags);
         }

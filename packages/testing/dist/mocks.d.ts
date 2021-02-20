@@ -4,7 +4,6 @@ import type { Scope } from '@aurelia/runtime-html';
 import type { IBinding, IConnectableBinding, IndexMap, IObserverLocator, ISignaler, BindingObserverRecord, Collection, ISubscribable, ICollectionSubscribable } from '@aurelia/runtime';
 export declare class MockBinding implements IConnectableBinding {
     interceptor: this;
-    id: number;
     observerSlots: number;
     version: number;
     observerLocator: IObserverLocator;

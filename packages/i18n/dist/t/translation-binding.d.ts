@@ -19,7 +19,6 @@ export declare class TranslationBinding implements IPartialConnectableBinding {
     observerLocator: IObserverLocator;
     locator: IServiceLocator;
     interceptor: this;
-    id: number;
     isBound: boolean;
     expr: IsExpression;
     private readonly i18n;

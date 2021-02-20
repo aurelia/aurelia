@@ -25,7 +25,7 @@ export class Listener {
     callSource(event) {
         const overrideContext = this.$scope.overrideContext;
         overrideContext.$event = event;
-        const result = this.sourceExpression.evaluate(32 /* mustEvaluate */, this.$scope, this.$hostScope, this.locator, null);
+        const result = this.sourceExpression.evaluate(8 /* mustEvaluate */, this.$scope, this.$hostScope, this.locator, null);
         Reflect.deleteProperty(overrideContext, '$event');
         if (result !== true && this.preventDefault) {
             event.preventDefault();
@@ -40,7 +40,7 @@ export class Listener {
             if (this.$scope === scope) {
                 return;
             }
-            this.interceptor.$unbind(flags | 8 /* fromBind */);
+            this.interceptor.$unbind(flags | 2 /* fromBind */);
         }
         this.$scope = scope;
         this.$hostScope = hostScope;

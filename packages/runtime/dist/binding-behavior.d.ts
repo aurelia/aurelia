@@ -60,7 +60,6 @@ export declare class BindingInterceptor implements IInterceptableBinding {
     readonly binding: IInterceptableBinding;
     readonly expr: IBindingBehaviorExpression;
     interceptor: this;
-    get id(): number;
     get observerLocator(): IObserverLocator;
     get locator(): IServiceLocator;
     get $scope(): Scope | undefined;

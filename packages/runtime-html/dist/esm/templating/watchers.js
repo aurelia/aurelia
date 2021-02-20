@@ -13,7 +13,6 @@ export class ComputedWatcher {
         this.isBound = false;
         // todo: maybe use a counter allow recursive call to a certain level
         this.running = false;
-        connectable.assignIdTo(this);
     }
     handleChange() {
         this.run();
@@ -71,7 +70,6 @@ export class ExpressionWatcher {
         this.interceptor = this;
         this.isBound = false;
         this.obj = scope.bindingContext;
-        connectable.assignIdTo(this);
     }
     handleChange(value) {
         const expr = this.expression;

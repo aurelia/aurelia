@@ -25,7 +25,7 @@ let With = class With {
         if (this.$controller.isActive) {
             // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add integration tests
             // eslint-disable-next-line @typescript-eslint/no-floating-promises
-            this.activateView(this.view, 8 /* fromBind */);
+            this.activateView(this.view, 2 /* fromBind */);
         }
     }
     attaching(initiator, parent, flags) {

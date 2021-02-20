@@ -359,7 +359,7 @@ class Controller {
             this.logger.trace(`activate()`);
         }
         this.hostScope = hostScope !== null && hostScope !== void 0 ? hostScope : null;
-        flags |= 8 /* fromBind */;
+        flags |= 2 /* fromBind */;
         switch (this.vmKind) {
             case 0 /* customElement */:
                 // Custom element scope is created and assigned during hydration
@@ -378,7 +378,7 @@ class Controller {
                 break;
         }
         if (this.isStrictBinding) {
-            flags |= 4 /* isStrictBindingStrategy */;
+            flags |= 1 /* isStrictBindingStrategy */;
         }
         this.$initiator = initiator;
         this.$flags = flags;
@@ -593,7 +593,7 @@ class Controller {
         if (this.debug) {
             this.logger.trace(`unbind()`);
         }
-        const flags = this.$flags | 16 /* fromUnbind */;
+        const flags = this.$flags | 4 /* fromUnbind */;
         if (this.bindings !== null) {
             for (let i = 0; i < this.bindings.length; ++i) {
                 this.bindings[i].$unbind(flags);
@@ -618,7 +618,7 @@ class Controller {
                 this.scope.parentScope = null;
                 break;
         }
-        if ((flags & 128 /* dispose */) === 128 /* dispose */ && this.$initiator === this) {
+        if ((flags & 32 /* dispose */) === 32 /* dispose */ && this.$initiator === this) {
             this.dispose();
         }
         this.state = (this.state & 32 /* disposed */) | 8 /* deactivated */;

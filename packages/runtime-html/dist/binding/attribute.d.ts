@@ -17,7 +17,6 @@ export declare class AttributeBinding implements IPartialConnectableBinding {
     observerLocator: IObserverLocator;
     locator: IServiceLocator;
     interceptor: this;
-    id: number;
     isBound: boolean;
     $platform: IPlatform;
     $scope: Scope;

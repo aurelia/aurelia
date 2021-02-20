@@ -10,7 +10,6 @@ export declare class ComputedWatcher implements IConnectableBinding, ISubscriber
     private readonly cb;
     readonly useProxy: boolean;
     interceptor: this;
-    id: number;
     value: unknown;
     isBound: boolean;
     private running;

@@ -500,7 +500,7 @@ export class AccessScopeExpression {
             c.observeProperty(obj, this.name);
         }
         const evaluatedValue = obj[this.name];
-        if (f & 4 /* isStrictBindingStrategy */) {
+        if (f & 1 /* isStrictBindingStrategy */) {
             return evaluatedValue;
         }
         return evaluatedValue == null ? '' : evaluatedValue;
@@ -535,8 +535,8 @@ export class AccessMemberExpression {
     get hasBind() { return false; }
     get hasUnbind() { return false; }
     evaluate(f, s, hs, l, c) {
-        const instance = this.object.evaluate(f, s, hs, l, (f & 512 /* observeLeafPropertiesOnly */) > 0 ? null : c);
-        if (f & 4 /* isStrictBindingStrategy */) {
+        const instance = this.object.evaluate(f, s, hs, l, (f & 128 /* observeLeafPropertiesOnly */) > 0 ? null : c);
+        if (f & 1 /* isStrictBindingStrategy */) {
             if (instance == null) {
                 return instance;
             }
@@ -581,9 +581,9 @@ export class AccessKeyedExpression {
     get hasBind() { return false; }
     get hasUnbind() { return false; }
     evaluate(f, s, hs, l, c) {
-        const instance = this.object.evaluate(f, s, hs, l, (f & 512 /* observeLeafPropertiesOnly */) > 0 ? null : c);
+        const instance = this.object.evaluate(f, s, hs, l, (f & 128 /* observeLeafPropertiesOnly */) > 0 ? null : c);
         if (instance instanceof Object) {
-            const key = this.key.evaluate(f, s, hs, l, (f & 512 /* observeLeafPropertiesOnly */) > 0 ? null : c);
+            const key = this.key.evaluate(f, s, hs, l, (f & 128 /* observeLeafPropertiesOnly */) > 0 ? null : c);
             if (c !== null) {
                 c.observeProperty(instance, key);
             }
@@ -646,7 +646,7 @@ export class CallMemberExpression {
     get hasBind() { return false; }
     get hasUnbind() { return false; }
     evaluate(f, s, hs, l, c) {
-        const instance = this.object.evaluate(f, s, hs, l, (f & 512 /* observeLeafPropertiesOnly */) > 0 ? null : c);
+        const instance = this.object.evaluate(f, s, hs, l, (f & 128 /* observeLeafPropertiesOnly */) > 0 ? null : c);
         const args = this.args.map(a => a.evaluate(f, s, hs, l, c));
         const func = getFunction(f, instance, this.name);
         if (func) {
@@ -677,7 +677,7 @@ export class CallFunctionExpression {
         if (typeof func === 'function') {
             return func(...this.args.map(a => a.evaluate(f, s, hs, l, c)));
         }
-        if (!(f & 32 /* mustEvaluate */) && (func == null)) {
+        if (!(f & 8 /* mustEvaluate */) && (func == null)) {
             return void 0;
         }
         throw new Error(`Expression is not a function.`);
@@ -738,7 +738,7 @@ export class BinaryExpression {
             case '+': {
                 const left = this.left.evaluate(f, s, hs, l, c);
                 const right = this.right.evaluate(f, s, hs, l, c);
-                if ((f & 4 /* isStrictBindingStrategy */) > 0) {
+                if ((f & 1 /* isStrictBindingStrategy */) > 0) {
                     return left + right;
                 }
                 // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
@@ -795,7 +795,7 @@ export class UnaryExpression {
             case 'void':
                 return void this.expression.evaluate(f, s, hs, l, c);
             case 'typeof':
-                return typeof this.expression.evaluate(f | 4 /* isStrictBindingStrategy */, s, hs, l, c);
+                return typeof this.expression.evaluate(f | 1 /* isStrictBindingStrategy */, s, hs, l, c);
             case '!':
                 return !this.expression.evaluate(f, s, hs, l, c);
             case '-':
@@ -1149,7 +1149,7 @@ function getFunction(f, obj, name) {
     if (typeof func === 'function') {
         return func;
     }
-    if (!(f & 32 /* mustEvaluate */) && func == null) {
+    if (!(f & 8 /* mustEvaluate */) && func == null) {
         return null;
     }
     throw new Error(`Expected '${name}' to be a function`);

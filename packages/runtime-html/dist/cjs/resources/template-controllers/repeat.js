@@ -111,7 +111,7 @@ let Repeat = class Repeat {
     // todo: subscribe to collection from inner expression
     checkCollectionObserver(flags) {
         const oldObserver = this.observer;
-        if ((flags & 16 /* fromUnbind */)) {
+        if ((flags & 4 /* fromUnbind */)) {
             if (oldObserver !== void 0) {
                 oldObserver.unsubscribe(this);
             }

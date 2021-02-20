@@ -23,7 +23,7 @@ function currentConnectable() {
 exports.currentConnectable = currentConnectable;
 function enterConnectable(connectable) {
     if (connectable == null) {
-        throw new Error('connectable cannot be null/undefined');
+        throw new Error('Connectable cannot be null/undefined');
     }
     if (_connectable == null) {
         _connectable = connectable;
@@ -32,7 +32,7 @@ function enterConnectable(connectable) {
         return;
     }
     if (_connectable === connectable) {
-        throw new Error(`Already in this connectable ${connectable.id}`);
+        throw new Error(`Trying to enter an active connectable`);
     }
     connectables.push(_connectable);
     _connectable = connectable;
@@ -44,7 +44,7 @@ function exitConnectable(connectable) {
         throw new Error('Connectable cannot be null/undefined');
     }
     if (_connectable !== connectable) {
-        throw new Error(`${connectable.id} is not currently collecting`);
+        throw new Error(`Trying to exit an unactive connectable`);
     }
     connectables.pop();
     _connectable = connectables.length > 0 ? connectables[connectables.length - 1] : null;

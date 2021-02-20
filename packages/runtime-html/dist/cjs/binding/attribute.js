@@ -39,7 +39,6 @@ class AttributeBinding {
         this.persistentFlags = 0 /* none */;
         this.value = void 0;
         this.target = target;
-        runtime_1.connectable.assignIdTo(this);
         this.$platform = locator.get(platform_js_1.IPlatform);
     }
     updateTarget(value, flags) {
@@ -65,7 +64,7 @@ class AttributeBinding {
         // todo:
         //  (1). determine whether this should be the behavior
         //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start()
-        const shouldQueueFlush = (flags & 8 /* fromBind */) === 0 && (targetObserver.type & 4 /* Layout */) > 0;
+        const shouldQueueFlush = (flags & 2 /* fromBind */) === 0 && (targetObserver.type & 4 /* Layout */) > 0;
         if (sourceExpression.$kind !== 10082 /* AccessScope */ || this.obs.count > 1) {
             const shouldConnect = (mode & oneTime) === 0;
             if (shouldConnect) {
@@ -99,11 +98,11 @@ class AttributeBinding {
             if (this.$scope === scope) {
                 return;
             }
-            this.interceptor.$unbind(flags | 8 /* fromBind */);
+            this.interceptor.$unbind(flags | 2 /* fromBind */);
         }
         // Store flags which we can only receive during $bind and need to pass on
         // to the AST during evaluate/connect/assign
-        this.persistentFlags = flags & 3847 /* persistentBindingFlags */;
+        this.persistentFlags = flags & 961 /* persistentBindingFlags */;
         this.$scope = scope;
         this.$hostScope = hostScope;
         this.projection = projection;

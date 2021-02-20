@@ -64,7 +64,6 @@ export class BindingObserverRecord {
         this.binding = binding;
         this.version = 0;
         this.count = 0;
-        connectable.assignIdTo(this);
     }
     handleChange(value, oldValue, flags) {
         return this.binding.interceptor.handleChange(value, oldValue, flags);
@@ -145,10 +144,6 @@ function connectableDecorator(target) {
 export function connectable(target) {
     return target == null ? connectableDecorator : connectableDecorator(target);
 }
-let idValue = 0;
-connectable.assignIdTo = (instance) => {
-    instance.id = ++idValue;
-};
 // @connectable
 export class BindingMediator {
     constructor(key, binding, observerLocator, locator) {
@@ -157,7 +152,6 @@ export class BindingMediator {
         this.observerLocator = observerLocator;
         this.locator = locator;
         this.interceptor = this;
-        connectable.assignIdTo(this);
     }
     $bind(flags, scope, hostScope, projection) {
         throw new Error('Method not implemented.');

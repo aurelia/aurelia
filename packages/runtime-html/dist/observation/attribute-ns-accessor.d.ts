@@ -7,7 +7,6 @@ import type { IAccessor, LifecycleFlags } from '@aurelia/runtime';
 export declare class AttributeNSAccessor implements IAccessor<string | null> {
     readonly namespace: string;
     static forNs(ns: string): AttributeNSAccessor;
-    [id: number]: number;
     currentValue: string | null;
     type: AccessorType;
     obj?: HTMLElement;

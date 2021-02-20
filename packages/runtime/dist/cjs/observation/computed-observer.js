@@ -22,7 +22,6 @@ class ComputedObserver {
          */
         this.running = false;
         this.isDirty = false;
-        connectable_js_1.connectable.assignIdTo(this);
     }
     static create(obj, key, descriptor, observerLocator, useProxy) {
         const getter = descriptor.get;

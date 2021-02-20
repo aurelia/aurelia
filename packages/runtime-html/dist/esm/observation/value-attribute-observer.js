@@ -22,7 +22,7 @@ export class ValueAttributeObserver {
     setValue(newValue, flags) {
         this.currentValue = newValue;
         this.hasChanges = newValue !== this.oldValue;
-        if (!this.handler.config.readonly && (flags & 1024 /* noFlush */) === 0) {
+        if (!this.handler.config.readonly && (flags & 256 /* noFlush */) === 0) {
             this.flushChanges(flags);
         }
     }
@@ -33,7 +33,7 @@ export class ValueAttributeObserver {
             const oldValue = this.oldValue;
             this.oldValue = currentValue;
             this.obj[this.propertyKey] = currentValue !== null && currentValue !== void 0 ? currentValue : this.handler.config.default;
-            if ((flags & 8 /* fromBind */) === 0) {
+            if ((flags & 2 /* fromBind */) === 0) {
                 this.subs.notify(currentValue, oldValue, flags);
             }
         }

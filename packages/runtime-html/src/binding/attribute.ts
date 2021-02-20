@@ -45,7 +45,6 @@ export interface AttributeBinding extends IConnectableBinding {}
 export class AttributeBinding implements IPartialConnectableBinding {
   public interceptor: this = this;
 
-  public id!: number;
   public isBound: boolean = false;
   public $platform: IPlatform;
   public $scope: Scope = null!;
@@ -80,7 +79,6 @@ export class AttributeBinding implements IPartialConnectableBinding {
     public locator: IServiceLocator,
   ) {
     this.target = target as Element;
-    connectable.assignIdTo(this);
     this.$platform = locator.get(IPlatform);
   }
 

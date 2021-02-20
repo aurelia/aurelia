@@ -44,7 +44,6 @@ export class ComputedObserver implements IConnectableBinding, ISubscriber, IColl
     return observer;
   }
 
-  public id!: number;
   public interceptor = this;
   public type: AccessorType = AccessorType.Observer;
   public value: unknown = void 0;
@@ -64,7 +63,6 @@ export class ComputedObserver implements IConnectableBinding, ISubscriber, IColl
     public readonly useProxy: boolean,
     public readonly observerLocator: IObserverLocator,
   ) {
-    connectable.assignIdTo(this);
   }
 
   public getValue() {

@@ -399,7 +399,7 @@ export class CustomElementRenderer implements IRenderer {
     let viewFactory: IViewFactory | undefined;
 
     const slotInfo = instruction.slotInfo;
-    if (slotInfo!==null) {
+    if (slotInfo !== null) {
       const projectionCtx = slotInfo.projectionContext;
       viewFactory = getRenderContext(projectionCtx.content, context).getViewFactory(void 0, slotInfo.type, projectionCtx.scope);
     }

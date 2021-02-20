@@ -18,6 +18,7 @@ import {
   optional,
   Task,
   TaskStatus,
+  resolveAll,
 } from '@aurelia/kernel';
 import {
   bindingBehavior,
@@ -251,7 +252,7 @@ describe.only('promise template-controller', function () {
     try {
       await au
         .register(
-          LoggerConfiguration.create({ level: LogLevel.trace, sinks: [DebugLog/* , ConsoleSink */] }),
+          LoggerConfiguration.create({ level: LogLevel.trace, sinks: [DebugLog, ConsoleSink] }),
           ...registrations,
           // NoopBindingBehavior,
           typeof promise === 'function'
@@ -1147,102 +1148,290 @@ describe.only('promise template-controller', function () {
       // TODO nested
     }
     // #region timings
-    for (const $resolve of [true, false]) {
-      {
-        const getPromise = (ticks: number) => () => Object.assign(
-          createMultiTickPromise(ticks, () => $resolve ? Promise.resolve(42) : Promise.reject(new Error('foo-bar')))(),
-          { id: 0 }
-        );
+    for (const $resolve of [true/* , false */]) {
+      const getPromise = (ticks: number) => () => Object.assign(
+        createMultiTickPromise(ticks, () => $resolve ? Promise.resolve(42) : Promise.reject(new Error('foo-bar')))(),
+        { id: 0 }
+      );
+      yield new TestData(
+        `pending activation duration < promise settlement duration - ${$resolve ? 'fulfilled' : 'rejected'}`,
+        getPromise(6),
+        {
+          template: template1,
+          registrations: [
+            Registration.instance(configLookup, new Map<string, Config>([
+              [phost, new Config(true, createWaiterWithTicks({ binding: 1, bound: 1, attaching: 1, attached: 1 }))],
+              [fhost, new Config(true, createWaiterWithTicks(Object.create(null)))],
+              [rhost, new Config(true, createWaiterWithTicks(Object.create(null)))],
+            ])),
+          ],
+        },
+        null,
+        wrap('pending0', 'p'),
+        getActivationSequenceFor(`${phost}-1`),
+        getDeactivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`),
+        async (ctx) => {
+          ctx.clear();
+          const q = ctx.platform.domWriteQueue;
+
+          try {
+            await ctx.app.promise;
+          } catch (e) {
+            // ignore rejection
+          }
+          await q.yield();
+
+          if ($resolve) {
+            assert.html.innerEqual(ctx.host, wrap('resolved with 42', 'f'), 'fulfilled');
+          } else {
+            assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'), 'rejected');
+          }
+          ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`)]);
+        },
+      );
+
+      // These tests are more like sanity checks rather than asserting the lifecycle hooks invocation timings and sequence of those.
+      // These rather assert that under varied configurations of promise and hook timings, the template controllers still work.
+      for (const [name, promiseTick, config] of [
+        ['pending activation duration == promise settlement duration', 4, { binding: 1, bound: 1, attaching: 1, attached: 1 }],
+        ['pending "binding" duration == promise settlement duration', 2, { binding: 2 }],
+        ['pending "binding" duration > promise settlement duration', 1, { binding: 2 }],
+        ['pending "binding" duration > promise settlement duration (longer running promise and hook)', 4, { binding: 6 }],
+        ['pending "binding+bound" duration > promise settlement duration', 2, { binding: 1, bound: 2 }],
+        ['pending "binding+bound" duration > promise settlement duration (longer running promise and hook)', 4, { binding: 3, bound: 3 }],
+        ['pending "binding+bound+attaching" duration > promise settlement duration', 2, { binding: 1, bound: 1, attaching: 1 }],
+        ['pending "binding+bound+attaching" duration > promise settlement duration (longer running promise and hook)', 5, { binding: 2, bound: 2, attaching: 2 }],
+        ['pending "binding+bound+attaching+attached" duration > promise settlement duration', 3, { binding: 1, bound: 1, attaching: 1, attached: 1 }],
+        ['pending "binding+bound+attaching+attached" duration > promise settlement duration (longer running promise and hook)', 6, { binding: 2, bound: 2, attaching: 2, attached: 2 }],
+      ] as const) {
         yield new TestData(
-          `pending activation duration < promise settlement duration - ${$resolve ? 'fulfilled' : 'rejected'}`,
-          getPromise(6),
+          `${name} - ${$resolve ? 'fulfilled' : 'rejected'}`,
+          getPromise(promiseTick),
           {
             template: template1,
             registrations: [
               Registration.instance(configLookup, new Map<string, Config>([
-                [phost, new Config(true, createWaiterWithTicks({ binding: 1, bound: 1, attaching: 1, attached: 1 }))],
+                [phost, new Config(true, createWaiterWithTicks(config))],
                 [fhost, new Config(true, createWaiterWithTicks(Object.create(null)))],
                 [rhost, new Config(true, createWaiterWithTicks(Object.create(null)))],
               ])),
             ],
           },
           null,
-          wrap('pending0', 'p'),
-          getActivationSequenceFor(`${phost}-1`),
+          null,
+          null,
           getDeactivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`),
           async (ctx) => {
-            ctx.clear();
-            const q = ctx.platform.domWriteQueue;
+            const app = ctx.app;
+            // Note: If the ticks are close to each other, we cannot avoid a race condition for the purpose of deterministic tests.
+            // Therefore, the expected logs are constructed dynamically to ensure certain level of confidence.
+            const tc = (app as ICustomElementViewModel).$controller.children.find((c) => c.viewModel instanceof PromiseTemplateController).viewModel as PromiseTemplateController;
+            const task = tc['preSettledTask'] as (Task<void | Promise<void>> | null);
+            const logs = task.status === TaskStatus.running || task.status === TaskStatus.completed
+              ? [...getActivationSequenceFor(`${phost}-1`), ...getDeactivationSequenceFor(`${phost}-1`)]
+              : [];
 
             try {
-              await ctx.app.promise;
-            } catch (e) {
+              await app.promise;
+            } catch {
               // ignore rejection
             }
-            await q.yield();
 
+            const q = ctx.platform.domWriteQueue;
+            await q.yield();
             if ($resolve) {
               assert.html.innerEqual(ctx.host, wrap('resolved with 42', 'f'), 'fulfilled');
             } else {
               assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'), 'rejected');
             }
-            ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`)]);
+            ctx.assertCallSet([...logs, ...getActivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`)], `calls mismatch; presettled task status: ${task.status}`);
           }
         );
-
-        for (const [name, promiseTick, config] of [
-          ['pending activation duration == promise settlement duration', 4, { binding: 1, bound: 1, attaching: 1, attached: 1 }],
-          ['pending "binding" duration == promise settlement duration', 2, { binding: 2 }],
-          ['pending "binding" duration > promise settlement duration', 1, { binding: 2 }],
-          ['pending "binding+bound" duration > promise settlement duration',  2, { binding: 1, bound: 2 }],
-          ['pending "binding+bound+attaching" duration > promise settlement duration',  2, { binding: 1, bound: 1, attaching: 1 }],
-          ['pending "binding+bound+attaching+attached" duration > promise settlement duration',  3, { binding: 1, bound: 1, attaching: 1, attached: 1 }],
-        ] as const) {
-          yield new TestData(
-            `${name} - ${$resolve ? 'fulfilled' : 'rejected'}`,
-            getPromise(promiseTick),
-            {
-              template: template1,
-              registrations: [
-                Registration.instance(configLookup, new Map<string, Config>([
-                  [phost, new Config(true, createWaiterWithTicks(config))],
-                  [fhost, new Config(true, createWaiterWithTicks(Object.create(null)))],
-                  [rhost, new Config(true, createWaiterWithTicks(Object.create(null)))],
-                ])),
-              ],
-            },
-            null,
-            null,
-            null,
-            getDeactivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`),
-            async (ctx) => {
-              const app = ctx.app;
-              // Note: If the ticks are close to each other, we cannot avoid a race condition for the purpose of deterministic tests.
-              // Therefore, the expected logs are constructed dynamically to ensure certain level of confidence.
-              const tc = (app as ICustomElementViewModel).$controller.children.find((c) => c.viewModel instanceof PromiseTemplateController).viewModel as PromiseTemplateController;
-              const task = tc['preSettledTask'] as (Task<void | Promise<void>> | null);
-              const logs = task.status === TaskStatus.running || task.status === TaskStatus.completed
-                ? [...getActivationSequenceFor(`${phost}-1`), ...getDeactivationSequenceFor(`${phost}-1`)]
-                : [];
-
-              try {
-                await app.promise;
-              } catch (e) {
-                // ignore rejection
-              }
-
-              const q = ctx.platform.domWriteQueue;
-              await q.yield();
-              if ($resolve) {
-                assert.html.innerEqual(ctx.host, wrap('resolved with 42', 'f'), 'fulfilled');
-              } else {
-                assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'), 'rejected');
-              }
-              ctx.assertCallSet([...logs, ...getActivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`)], `calls mismatch; presettled task status: ${task.status}`);
-            }
-          );
-        }
       }
+
+      yield new TestData(
+        `change of promise in quick succession - final promise is settled - ${$resolve ? 'fulfilled' : 'rejected'}`,
+        Promise.resolve(42),
+        {
+          template: template1,
+          registrations: [
+            Registration.instance(configLookup, new Map<string, Config>([
+              [phost, new Config(true, createWaiterWithTicks(Object.create(null)))],
+              [fhost, new Config(true, createWaiterWithTicks(Object.create(null)))],
+              [rhost, new Config(true, createWaiterWithTicks(Object.create(null)))],
+            ])),
+          ],
+        },
+        null,
+        wrap(`resolved with 42`, 'f'),
+        getActivationSequenceFor(`${fhost}-1`),
+        getDeactivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`),
+        async (ctx) => {
+          ctx.clear();
+          const app = ctx.app;
+          app.promise = Object.assign(
+            createMultiTickPromise(10, () => $resolve ? Promise.resolve(84) : Promise.reject(new Error('foo-bar')))(),
+            { id: 0 }
+          );
+
+          const q = ctx.platform.domWriteQueue;
+          await q.yield();
+          assert.html.innerEqual(ctx.host, wrap('pending0', 'p'), 'pending');
+          ctx.assertCallSet([...getDeactivationSequenceFor(`${fhost}-1`), ...getActivationSequenceFor(`${phost}-1`)], `calls mismatch1`);
+          ctx.clear();
+
+          try {
+            // interrupt
+            await (app.promise = $resolve ? Promise.resolve(4242) : Promise.reject(new Error('foo-bar foo-bar')));
+          } catch {
+            // ignore rejection
+          }
+          // wait for the next tick
+          await q.yield();
+          if ($resolve) {
+            assert.html.innerEqual(ctx.host, wrap('resolved with 4242', 'f'), 'fulfilled');
+          } else {
+            assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar foo-bar', 'r'), 'rejected');
+          }
+          ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`)], `calls mismatch2`);
+        },
+      );
+
+      yield new TestData(
+        `change of promise in quick succession - final promise is of shorter duration - ${$resolve ? 'fulfilled' : 'rejected'}`,
+        Promise.resolve(42),
+        {
+          template: template1,
+          registrations: [
+            Registration.instance(configLookup, new Map<string, Config>([
+              [phost, new Config(true, createWaiterWithTicks(Object.create(null)))],
+              [fhost, new Config(true, createWaiterWithTicks(Object.create(null)))],
+              [rhost, new Config(true, createWaiterWithTicks(Object.create(null)))],
+            ])),
+          ],
+        },
+        null,
+        wrap(`resolved with 42`, 'f'),
+        getActivationSequenceFor(`${fhost}-1`),
+        getDeactivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`),
+        async (ctx) => {
+          ctx.clear();
+          const app = ctx.app;
+          app.promise = Object.assign(
+            createMultiTickPromise(10, () => $resolve ? Promise.resolve(84) : Promise.reject(new Error('foo-bar')))(),
+            { id: 0 }
+          );
+
+          const q = ctx.platform.domWriteQueue;
+          await q.yield();
+          assert.html.innerEqual(ctx.host, wrap('pending0', 'p'), 'pending0');
+          ctx.assertCallSet([...getDeactivationSequenceFor(`${fhost}-1`), ...getActivationSequenceFor(`${phost}-1`)], `calls mismatch1`);
+          ctx.clear();
+
+          // interrupt
+          const promise = app.promise = Object.assign(
+            createMultiTickPromise(5, () => $resolve ? Promise.resolve(4242) : Promise.reject(new Error('foo-bar foo-bar')))(),
+            { id: 1 }
+          );
+
+          await q.queueTask(() => {
+            assert.html.innerEqual(ctx.host, wrap('pending1', 'p'), 'pending1');
+          }).result;
+          ctx.assertCallSet([], `calls mismatch2`);
+          ctx.clear();
+
+          try {
+            await promise;
+          } catch {
+            // ignore rejection
+          }
+          // wait for the next tick
+          await q.yield();
+
+          if ($resolve) {
+            assert.html.innerEqual(ctx.host, wrap('resolved with 4242', 'f'), 'fulfilled');
+          } else {
+            assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar foo-bar', 'r'), 'rejected');
+          }
+          ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`)], `calls mismatch2`);
+        },
+      );
+
+      yield new TestData(
+        `change of promise in quick succession - changed after previous promise is settled but the post-settlement activation is pending - ${$resolve ? 'fulfilled' : 'rejected'}`,
+        Promise.resolve(42),
+        {
+          template: template1,
+          registrations: [
+            Registration.instance(configLookup, new Map<string, Config>([
+              [phost, new Config(true, createWaiterWithTicks(Object.create(null)))],
+              [fhost, new Config(true, createWaiterWithTicks($resolve ? { binding: 1, bound: 2, attaching: 2, attached: 2 } : Object.create(null)))],
+              [rhost, new Config(true, createWaiterWithTicks($resolve ? Object.create(null) : { binding: 1, bound: 2, attaching: 2, attached: 2 }))],
+            ])),
+          ],
+        },
+        null,
+        wrap(`resolved with 42`, 'f'),
+        getActivationSequenceFor(`${fhost}-1`),
+        getDeactivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`),
+        async (ctx) => {
+          ctx.clear();
+          const app = ctx.app;
+          let promise = app.promise = Object.assign(
+            createMultiTickPromise(10, () => $resolve ? Promise.resolve(84) : Promise.reject(new Error('foo-bar')))(),
+            { id: 0 }
+          );
+
+          const q = ctx.platform.domWriteQueue;
+          await q.yield();
+          assert.html.innerEqual(ctx.host, wrap('pending0', 'p'), 'pending0');
+          ctx.assertCallSet([...getDeactivationSequenceFor(`${fhost}-1`), ...getActivationSequenceFor(`${phost}-1`)], `calls mismatch1`);
+          ctx.clear();
+
+          // await q.yield();
+          try {
+            await promise;
+          } catch {
+            // ignore rejection
+          }
+
+          // attempt interrupt
+          promise = app.promise = Object.assign(
+            createMultiTickPromise(20, () => $resolve ? Promise.resolve(4242) : Promise.reject(new Error('foo-bar foo-bar')))(),
+            { id: 1 }
+          );
+
+          // await q.yield();
+          // if ($resolve) {
+          //   assert.html.innerEqual(ctx.host, wrap('resolved with 84', 'f'), 'fulfilled 1');
+          // } else {
+          //   assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'), 'rejected 1');
+          // }
+          // ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`)], `calls mismatch2`);
+          // ctx.clear();
+
+          await q.yield();
+          assert.html.innerEqual(ctx.host, wrap('pending1', 'p'), 'pending1');
+          ctx.assertCallSet([/* ...getDeactivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`), ...getActivationSequenceFor(`${phost}-1`) */], `calls mismatch3`);
+          ctx.clear();
+
+          try {
+            await promise;
+          } catch {
+            // ignore rejection
+          }
+          await q.yield();
+
+          if ($resolve) {
+            assert.html.innerEqual(ctx.host, wrap('resolved with 4242', 'f'), 'fulfilled 2');
+          } else {
+            assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar foo-bar', 'r'), 'rejected 2');
+          }
+          ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`)], `calls mismatch4`);
+        },
+        // true,
+      );
+
     }
     // #endregion
   }

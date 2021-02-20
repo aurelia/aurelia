@@ -29,7 +29,6 @@ export interface ComputedWatcher extends IConnectableBinding { }
 export class ComputedWatcher implements IConnectableBinding, ISubscriber, ICollectionSubscriber {
   public interceptor = this;
 
-  public id!: number;
   public value: unknown = void 0;
   public isBound: boolean = false;
 
@@ -43,7 +42,6 @@ export class ComputedWatcher implements IConnectableBinding, ISubscriber, IColle
     private readonly cb: IWatcherCallback<object>,
     public readonly useProxy: boolean,
   ) {
-    connectable.assignIdTo(this);
   }
 
   public handleChange(): void {
@@ -121,7 +119,6 @@ export class ExpressionWatcher implements IConnectableBinding {
     private readonly callback: IWatcherCallback<object>,
   ) {
     this.obj = scope.bindingContext;
-    connectable.assignIdTo(this);
   }
 
   public handleChange(value: unknown): void {

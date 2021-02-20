@@ -156,9 +156,6 @@ export interface BindingInterceptor extends IConnectableBinding {}
 
 export class BindingInterceptor implements IInterceptableBinding {
   public interceptor: this = this;
-  public get id(): number {
-    return this.binding.id!;
-  }
   public get observerLocator(): IObserverLocator {
     return this.binding.observerLocator;
   }

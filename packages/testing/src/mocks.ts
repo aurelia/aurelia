@@ -27,7 +27,6 @@ import type {
 
 export class MockBinding implements IConnectableBinding {
   public interceptor: this = this;
-  public id!: number;
   public observerSlots!: number;
   public version!: number;
   public observerLocator!: IObserverLocator;

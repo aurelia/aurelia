@@ -18,12 +18,10 @@ import { RoutingInstruction } from './instructions/routing-instruction.js';
 import { FoundRoute } from './found-route.js';
 import { RoutingScope } from './routing-scope.js';
 import { ViewportScope } from './endpoints/viewport-scope.js';
-import { BrowserViewerStore } from './browser-viewer-store.js';
+import { BrowserViewerStore, NavigatorStateChangeEvent } from './browser-viewer-store.js';
 import { Navigation } from './navigation.js';
 import { Endpoint, EndpointTypeName, IConnectedCustomElement, IEndpoint } from './endpoints/endpoint.js';
 import { NavigationCoordinator } from './navigation-coordinator.js';
-import { OpenPromise } from './utilities/open-promise.js';
-import { NavigatorStateChangeEvent } from './browser-viewer-store.js';
 import { Runner, Step } from './utilities/runner.js';
 import { Title } from './title.js';
 import { RoutingHook } from './routing-hook.js';
@@ -1266,25 +1264,6 @@ export class RouterStopEvent extends RouterEvent {
   }
 }
 
-// export class RouterStartEvent {
-//   public static eventName = 'au:router:router-start';
-//   public constructor(
-//     public readonly eventName: string,
-//   ) { }
-//   public static create(): RouterStartEvent {
-//     return new RouterStartEvent(RouterStartEvent.eventName);
-//   }
-// }
-// export class RouterStopEvent {
-//   public static eventName = 'au:router:router-stop';
-//   public constructor(
-//     public readonly eventName: string,
-//   ) { }
-//   public static create(): RouterStopEvent {
-//     return new RouterStopEvent(RouterStopEvent.eventName);
-//   }
-// }
-
 export class RouterNavigationEvent {
   public constructor(
     public readonly eventName: string,
@@ -1321,64 +1300,3 @@ export class RouterNavigationErrorEvent extends RouterNavigationEvent {
     return new RouterNavigationErrorEvent(this.eventName, navigation);
   }
 }
-
-// export class RouterNavigationStartEvent {
-//   public static eventName = 'au:router:navigation-start';
-//   public constructor(
-//     public readonly eventName: string,
-//     public readonly navigation: Navigation,
-//   ) { }
-//   public static create(navigation: Navigation): RouterNavigationStartEvent {
-//     return new RouterNavigationStartEvent(
-//       RouterNavigationStartEvent.eventName,
-//       navigation);
-//   }
-// }
-// export class RouterNavigationEndEvent {
-//   public static eventName = 'au:router:navigation-end';
-//   public constructor(
-//     public readonly eventName: string,
-//     public readonly navigation: Navigation,
-//   ) { }
-//   public static create(navigation: Navigation): RouterNavigationEndEvent {
-//     return new RouterNavigationEndEvent(
-//       RouterNavigationEndEvent.eventName,
-//       navigation);
-//   }
-// }
-// export class RouterNavigationCancelEvent {
-//   public static eventName = 'au:router:navigation-cancel';
-//   public constructor(
-//     public readonly eventName: string,
-//     public readonly navigation: Navigation,
-//   ) { }
-//   public static create(navigation: Navigation): RouterNavigationCancelEvent {
-//     return new RouterNavigationCancelEvent(
-//       RouterNavigationCancelEvent.eventName,
-//       navigation);
-//   }
-// }
-// export class RouterNavigationCompleteEvent {
-//   public static eventName = 'au:router:navigation-complete';
-//   public constructor(
-//     public readonly eventName: string,
-//     public readonly navigation: Navigation,
-//   ) { }
-//   public static create(navigation: Navigation): RouterNavigationCompleteEvent {
-//     return new RouterNavigationCompleteEvent(
-//       RouterNavigationCompleteEvent.eventName,
-//       navigation);
-//   }
-// }
-// export class RouterNavigationErrorEvent {
-//   public static eventName = 'au:router:navigation-error';
-//   public constructor(
-//     public readonly eventName: string,
-//     public readonly navigation: Navigation,
-//   ) { }
-//   public static create(navigation: Navigation): RouterNavigationErrorEvent {
-//     return new RouterNavigationErrorEvent(
-//       RouterNavigationErrorEvent.eventName,
-//       navigation);
-//   }
-// }

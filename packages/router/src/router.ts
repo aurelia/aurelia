@@ -467,7 +467,7 @@ export class Router implements IRouter {
       const hooked = await RoutingHook.invokeBeforeNavigation(matchedInstructions, navigation);
       if (hooked === false) {
         coordinator.cancel();
-        this.ea.publish(RouterNavigationCancelEvent.eventName, RouterNavigationCancelEvent.createEvent(navigation));
+        this.ea.publish(RouterNavigationCancelEvent.eventName, RouterNavigationCancelEvent.create(navigation));
         this.ea.publish(RouterNavigationEndEvent.eventName, RouterNavigationEndEvent.create(navigation));
         return;
       } else if (hooked !== true && hooked !== matchedInstructions) {
@@ -554,7 +554,7 @@ export class Router implements IRouter {
 
       // If, for whatever reason, this navigation got cancelled, stop processing
       if (coordinator.cancelled) {
-        this.ea.publish(RouterNavigationCancelEvent.eventName, RouterNavigationCancelEvent.createEvent(navigation));
+        this.ea.publish(RouterNavigationCancelEvent.eventName, RouterNavigationCancelEvent.create(navigation));
         this.ea.publish(RouterNavigationEndEvent.eventName, RouterNavigationEndEvent.create(navigation));
         return;
       }
@@ -1248,82 +1248,137 @@ export class Router implements IRouter {
   }
 }
 
-export class RouterStartEvent {
-  public static eventName = 'au:router:router-start';
+export class RouterEvent {
   public constructor(
     public readonly eventName: string,
   ) { }
+}
+export class RouterStartEvent extends RouterEvent {
+  public static eventName: 'au:router:router-start' = 'au:router:router-start';
   public static create(): RouterStartEvent {
-    return new RouterStartEvent(RouterStartEvent.eventName);
+    return new RouterStartEvent(this.eventName);
   }
 }
-export class RouterStopEvent {
-  public static eventName = 'au:router:router-stop';
-  public constructor(
-    public readonly eventName: string,
-  ) { }
+export class RouterStopEvent extends RouterEvent {
+  public static eventName: 'au:router:router-stop' = 'au:router:router-stop';
   public static create(): RouterStopEvent {
-    return new RouterStopEvent(RouterStopEvent.eventName);
+    return new RouterStopEvent(this.eventName);
   }
 }
 
-export class RouterNavigationStartEvent {
-  public static eventName = 'au:router:navigation-start';
+// export class RouterStartEvent {
+//   public static eventName = 'au:router:router-start';
+//   public constructor(
+//     public readonly eventName: string,
+//   ) { }
+//   public static create(): RouterStartEvent {
+//     return new RouterStartEvent(RouterStartEvent.eventName);
+//   }
+// }
+// export class RouterStopEvent {
+//   public static eventName = 'au:router:router-stop';
+//   public constructor(
+//     public readonly eventName: string,
+//   ) { }
+//   public static create(): RouterStopEvent {
+//     return new RouterStopEvent(RouterStopEvent.eventName);
+//   }
+// }
+
+export class RouterNavigationEvent {
   public constructor(
     public readonly eventName: string,
     public readonly navigation: Navigation,
   ) { }
+}
+export class RouterNavigationStartEvent extends RouterNavigationEvent {
+  public static readonly eventName: 'au:router:navigation-start' = 'au:router:navigation-start';
   public static create(navigation: Navigation): RouterNavigationStartEvent {
-    return new RouterNavigationStartEvent(
-      RouterNavigationStartEvent.eventName,
-      navigation);
+    return new RouterNavigationStartEvent(this.eventName, navigation);
   }
 }
-export class RouterNavigationEndEvent {
-  public static eventName = 'au:router:navigation-end';
-  public constructor(
-    public readonly eventName: string,
-    public readonly navigation: Navigation,
-  ) { }
+export class RouterNavigationEndEvent extends RouterNavigationEvent {
+  public static readonly eventName: 'au:router:navigation-end' = 'au:router:navigation-end';
   public static create(navigation: Navigation): RouterNavigationEndEvent {
-    return new RouterNavigationEndEvent(
-      RouterNavigationEndEvent.eventName,
-      navigation);
+    return new RouterNavigationEndEvent(this.eventName, navigation);
   }
 }
-export class RouterNavigationCancelEvent {
-  public static eventName = 'au:router:navigation-cancel';
-  public constructor(
-    public readonly eventName: string,
-    public readonly navigation: Navigation,
-  ) { }
-  public static createEvent(navigation: Navigation): RouterNavigationCancelEvent {
-    return new RouterNavigationCancelEvent(
-      RouterNavigationCancelEvent.eventName,
-      navigation);
+export class RouterNavigationCancelEvent extends RouterNavigationEvent {
+  public static readonly eventName: 'au:router:navigation-cancel' = 'au:router:navigation-cancel';
+  public static create(navigation: Navigation): RouterNavigationCancelEvent {
+    return new RouterNavigationCancelEvent(this.eventName, navigation);
   }
 }
-export class RouterNavigationCompleteEvent {
-  public static eventName = 'au:router:navigation-complete';
-  public constructor(
-    public readonly eventName: string,
-    public readonly navigation: Navigation,
-  ) { }
+export class RouterNavigationCompleteEvent extends RouterNavigationEvent {
+  public static readonly eventName: 'au:router:navigation-complete' = 'au:router:navigation-complete';
   public static create(navigation: Navigation): RouterNavigationCompleteEvent {
-    return new RouterNavigationCompleteEvent(
-      RouterNavigationCompleteEvent.eventName,
-      navigation);
+    return new RouterNavigationCompleteEvent(this.eventName, navigation);
   }
 }
-export class RouterNavigationErrorEvent {
-  public static eventName = 'au:router:navigation-error';
-  public constructor(
-    public readonly eventName: string,
-    public readonly navigation: Navigation,
-  ) { }
+export class RouterNavigationErrorEvent extends RouterNavigationEvent {
+  public static readonly eventName: 'au:router:navigation-error' = 'au:router:navigation-error';
   public static create(navigation: Navigation): RouterNavigationErrorEvent {
-    return new RouterNavigationErrorEvent(
-      RouterNavigationErrorEvent.eventName,
-      navigation);
+    return new RouterNavigationErrorEvent(this.eventName, navigation);
   }
 }
+
+// export class RouterNavigationStartEvent {
+//   public static eventName = 'au:router:navigation-start';
+//   public constructor(
+//     public readonly eventName: string,
+//     public readonly navigation: Navigation,
+//   ) { }
+//   public static create(navigation: Navigation): RouterNavigationStartEvent {
+//     return new RouterNavigationStartEvent(
+//       RouterNavigationStartEvent.eventName,
+//       navigation);
+//   }
+// }
+// export class RouterNavigationEndEvent {
+//   public static eventName = 'au:router:navigation-end';
+//   public constructor(
+//     public readonly eventName: string,
+//     public readonly navigation: Navigation,
+//   ) { }
+//   public static create(navigation: Navigation): RouterNavigationEndEvent {
+//     return new RouterNavigationEndEvent(
+//       RouterNavigationEndEvent.eventName,
+//       navigation);
+//   }
+// }
+// export class RouterNavigationCancelEvent {
+//   public static eventName = 'au:router:navigation-cancel';
+//   public constructor(
+//     public readonly eventName: string,
+//     public readonly navigation: Navigation,
+//   ) { }
+//   public static create(navigation: Navigation): RouterNavigationCancelEvent {
+//     return new RouterNavigationCancelEvent(
+//       RouterNavigationCancelEvent.eventName,
+//       navigation);
+//   }
+// }
+// export class RouterNavigationCompleteEvent {
+//   public static eventName = 'au:router:navigation-complete';
+//   public constructor(
+//     public readonly eventName: string,
+//     public readonly navigation: Navigation,
+//   ) { }
+//   public static create(navigation: Navigation): RouterNavigationCompleteEvent {
+//     return new RouterNavigationCompleteEvent(
+//       RouterNavigationCompleteEvent.eventName,
+//       navigation);
+//   }
+// }
+// export class RouterNavigationErrorEvent {
+//   public static eventName = 'au:router:navigation-error';
+//   public constructor(
+//     public readonly eventName: string,
+//     public readonly navigation: Navigation,
+//   ) { }
+//   public static create(navigation: Navigation): RouterNavigationErrorEvent {
+//     return new RouterNavigationErrorEvent(
+//       RouterNavigationErrorEvent.eventName,
+//       navigation);
+//   }
+// }

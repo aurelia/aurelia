@@ -113,7 +113,7 @@ You can learn more about how to create custom elements and attributes in the [Bu
 
 ## Convention based routing
 
-One of the most exciting features of Aurelia is its router which offers direct routing functionality out-of-the-box. This means you can add routing into your Aurelia applications without having to write any routes like you might be used too in other router packages.
+One of the most exciting features of Aurelia is its router which offers direct routing functionality out-of-the-box. This means you can add routing into your Aurelia applications without having to write any routes like you might be used to in other router packages.
 
 Add a `au-viewport` element into your view and then use the `load` attribute to tell the router to load your component. Just make sure you have enabled the router \(this is done for you if you selected direct routing during the CLI process\).
 

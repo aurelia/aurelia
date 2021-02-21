@@ -57,7 +57,6 @@ const taskQueueOpts: QueueTaskOptions = {
 @connectable()
 export class TranslationBinding implements IPartialConnectableBinding {
   public interceptor: this = this;
-  public id!: number;
   public isBound: boolean = false;
   public expr!: IsExpression;
   private readonly i18n: I18N;
@@ -84,7 +83,6 @@ export class TranslationBinding implements IPartialConnectableBinding {
     this.platform = platform;
     this.targetAccessors = new Set<IAccessor>();
     this.i18n.subscribeLocaleChange(this);
-    connectable.assignIdTo(this);
   }
 
   public static create({
@@ -349,7 +347,6 @@ class ParameterBinding {
   ) {
     this.observerLocator = owner.observerLocator;
     this.locator = owner.locator;
-    connectable.assignIdTo(this);
   }
 
   public handleChange(newValue: string | i18next.TOptions, _previousValue: string | i18next.TOptions, flags: LifecycleFlags): void {

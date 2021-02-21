@@ -16,7 +16,6 @@ export interface LetBinding extends IConnectableBinding {}
 export class LetBinding implements IPartialConnectableBinding {
   public interceptor: this = this;
 
-  public id!: number;
   public isBound: boolean = false;
   public $scope?: Scope = void 0;
   public $hostScope: Scope | null = null;
@@ -32,7 +31,6 @@ export class LetBinding implements IPartialConnectableBinding {
     public locator: IServiceLocator,
     private readonly toBindingContext: boolean = false,
   ) {
-    connectable.assignIdTo(this);
   }
 
   public handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {

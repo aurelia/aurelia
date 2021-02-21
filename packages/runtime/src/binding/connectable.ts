@@ -42,7 +42,6 @@ export interface IPartialConnectableBinding extends IBinding, ISubscriber, IColl
 }
 
 export interface IConnectableBinding extends IPartialConnectableBinding, IConnectable {
-  id: number;
   /**
    * A record storing observers that are currently subscribed to by this binding
    */
@@ -80,7 +79,7 @@ function observeCollection(this: IConnectableBinding, collection: Collection): v
   this.obs.add(obs);
 }
 
-function subscribeTo(this: IConnectableBinding, subscribable: (ISubscribable | ICollectionSubscribable) & { [id: number]: number }): void {
+function subscribeTo(this: IConnectableBinding, subscribable: ISubscribable | ICollectionSubscribable): void {
   this.obs.add(subscribable);
 }
 
@@ -93,7 +92,6 @@ function noopHandleCollectionChange() {
 }
 
 type ObservationRecordImplType = {
-  id: number;
   version: number;
   count: number;
   binding: IConnectableBinding;
@@ -101,14 +99,12 @@ type ObservationRecordImplType = {
 
 export interface BindingObserverRecord extends ObservationRecordImplType { }
 export class BindingObserverRecord implements ISubscriber, ICollectionSubscriber {
-  public id!: number;
   public version: number = 0;
   public count: number = 0;
 
   public constructor(
     public binding: IConnectableBinding
   ) {
-    connectable.assignIdTo(this);
   }
 
   public handleChange(value: unknown, oldValue: unknown, flags: LifecycleFlags): unknown {
@@ -122,7 +118,7 @@ export class BindingObserverRecord implements ISubscriber, ICollectionSubscriber
   /**
    * Add, and subscribe to a given observer
    */
-  public add(observer: (ISubscribable | ICollectionSubscribable) & { [id: number]: number }): void {
+  public add(observer: ISubscribable | ICollectionSubscribable): void {
     // find the observer.
     const observerSlots = this.count == null ? 0 : this.count;
     let i = observerSlots;
@@ -203,12 +199,6 @@ export function connectable<TProto, TClass>(target?: DecoratableConnectable<TPro
   return target == null ? connectableDecorator : connectableDecorator(target);
 }
 
-let idValue = 0;
-
-connectable.assignIdTo = (instance: IConnectable | BindingObserverRecord): void => {
-  instance.id = ++idValue;
-};
-
 export type MediatedBinding<K extends string> = {
   [key in K]: (newValue: unknown, previousValue: unknown, flags: LifecycleFlags) => void;
 };
@@ -224,7 +214,6 @@ export class BindingMediator<K extends string> implements IConnectableBinding {
     public observerLocator: IObserverLocator,
     public locator: IServiceLocator,
   ) {
-    connectable.assignIdTo(this);
   }
 
   public $bind(flags: LifecycleFlags, scope: Scope, hostScope?: Scope | null, projection?: ResourceDefinition): void {

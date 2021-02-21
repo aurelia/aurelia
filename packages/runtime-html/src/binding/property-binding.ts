@@ -49,7 +49,6 @@ export class PropertyBinding implements IPartialConnectableBinding {
     public locator: IServiceLocator,
     private readonly taskQueue: TaskQueue,
   ) {
-    connectable.assignIdTo(this);
   }
 
   public updateTarget(value: unknown, flags: LifecycleFlags): void {

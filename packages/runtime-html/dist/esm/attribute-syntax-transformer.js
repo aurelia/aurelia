@@ -124,8 +124,14 @@ function shouldDefaultToTwoWay(element, attr) {
                 case 'checkbox':
                 case 'radio':
                     return attr === 'checked';
+                // note:
+                // ideally, it should check for corresponding input type first
+                // as 'files' shouldn't be two way on a number input, for example
+                // but doing it this way is acceptable-ish, as the common user expectations,
+                // and the behavior of the control for these properties are the same,
+                // regardless the type of the <input>
                 default:
-                    return attr === 'value' || attr === 'files';
+                    return attr === 'value' || attr === 'files' || attr === 'value-as-number' || attr === 'value-as-date';
             }
         case 'TEXTAREA':
         case 'SELECT':

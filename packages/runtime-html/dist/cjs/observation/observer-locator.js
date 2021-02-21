@@ -69,6 +69,7 @@ class NodeObserverLocator {
         this.useConfig({
             INPUT: {
                 value: inputEventsConfig,
+                valueAsNumber: { events: inputEvents, default: 0 },
                 checked: { type: checked_observer_js_1.CheckedObserver, events: inputEvents },
                 files: { events: inputEvents, readonly: true },
             },

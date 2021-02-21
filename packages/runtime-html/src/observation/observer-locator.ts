@@ -119,6 +119,7 @@ export class NodeObserverLocator implements INodeObserverLocator {
     this.useConfig({
       INPUT: {
         value: inputEventsConfig,
+        valueAsNumber: { events: inputEvents, default: 0 },
         checked: { type: CheckedObserver, events: inputEvents } ,
         files: { events: inputEvents, readonly: true },
       },

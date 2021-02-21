@@ -308,7 +308,7 @@ Aurelia's binding engine makes several special properties available to you in yo
 
 ### General
 
-* `$this` - The the view-model that your binding expressions are being evaluated against.
+* `$this` - The view-model that your binding expressions are being evaluated against.
 
 ### Event
 

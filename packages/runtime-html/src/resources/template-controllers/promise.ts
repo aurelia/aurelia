@@ -32,7 +32,6 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
   private preSettledTask: Task<void | Promise<void>> | null = null;
   private postSettledTask: Task<void | Promise<void>> | null = null;
   private postSettlePromise!: Promise<void>;
-  private swapPromise!: void | Promise<void>;
   // TODO(Sayan): remove logger post-test
   private readonly logger: ILogger;
 
@@ -92,7 +91,7 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
       console.log('$swapping');
       // Note that the whole thing is not wrapped in a q.queueTask intentionally.
       // Because that would block the app till the actual promise is resolved, which is not the goal anyway.
-      this.swapPromise = resolveAll(
+      void resolveAll(
         // At first deactivate the fulfilled and rejected views, as well as activate the pending view.
         // The order of these 3 should not necessarily be sequential (i.e. order-irrelevant).
         preSettlePromise = (this.preSettledTask = q.queueTask(() => {
@@ -106,7 +105,9 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
         value
           .then(
             (data) => {
-              if (this.value !== value) { console.log('promise changed; returning.'); return; }
+              if (this.value !== value) {
+                return;
+              }
               const fulfill = () => {
                 console.log(`fulfill is called`);
                 // Deactivation of pending view and the activation of the fulfilled view should not necessarily be sequential.
@@ -116,18 +117,17 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
                   fulfilled?.activate(initiator, flags, s, hs, data),
                 ), defaultQueuingOptions)).result;
               };
-              console.log('fulfilling', data);
-              if (this.preSettledTask?.status === TaskStatus.running) {
-                console.log('fulfilling after presettled task is done');
+              if (this.preSettledTask!.status === TaskStatus.running) {
                 void preSettlePromise.then(fulfill);
               } else {
-                console.log('fulfilling after cancelling presettled task');
-                this.preSettledTask?.cancel();
+                this.preSettledTask!.cancel();
                 fulfill();
               }
             },
             (err) => {
-              if (this.value !== value) { console.log('promise changed; returning.'); return; }
+              if (this.value !== value) {
+                return;
+              }
               const reject = () => {
                 // Deactivation of pending view and the activation of the rejected view should also not necessarily be sequential.
                 this.postSettlePromise = (this.postSettledTask = q.queueTask(() => resolveAll(
@@ -136,11 +136,10 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
                   rejected?.activate(initiator, flags, s, hs, err),
                 ), defaultQueuingOptions)).result;
               };
-              console.log('rejecting');
-              if (this.preSettledTask?.status === TaskStatus.running) {
+              if (this.preSettledTask!.status === TaskStatus.running) {
                 void preSettlePromise.then(reject);
               } else {
-                this.preSettledTask?.cancel();
+                this.preSettledTask!.cancel();
                 reject();
               }
             },
@@ -160,11 +159,12 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
     // this.logger.debug('detaching');
     this.preSettledTask?.cancel();
     this.preSettledTask = null;
+    this.postSettledTask?.cancel();
+    this.postSettledTask = null;
     return this.view.deactivate(initiator, this.$controller, flags);
   }
 
   public dispose(): void {
-    this.swapPromise = (void 0)!;
     this.view?.dispose();
     this.view = (void 0)!;
   }

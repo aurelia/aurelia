@@ -301,6 +301,10 @@ describe.only('promise template-controller', function () {
     public constructor(
       @seedPromise public promise: PromiseWithId,
     ) { }
+    private updateError(err: Error) {
+      err.message += '1';
+      return err;
+    }
   }
 
   function getActivationSequenceFor(name: string | string[]) {
@@ -1145,10 +1149,93 @@ describe.only('promise template-controller', function () {
           }
         );
       }
-      // TODO nested
+      yield new TestData(
+        'works in nested template - fulfilled>fulfilled',
+        Promise.resolve({ json() { return Promise.resolve(42); } }),
+        {
+          template: `
+            <template>
+              <template promise.bind="promise">
+                <pending-host pending p.bind="promise"></pending-host>
+                <template then.from-view="response" promise.bind="response.json()">
+                  <fulfilled-host then.from-view="data" data.bind="data"></fulfilled-host>
+                </template>
+                <rejected-host catch.from-view="err" err.bind="err"></rejected-host>
+              </template>
+            </template>`
+        },
+        config(),
+        wrap('resolved with 42', 'f'),
+        getActivationSequenceFor(`${fhost}-1`),
+        getDeactivationSequenceFor(`${fhost}-1`),
+      );
+      yield new TestData(
+        'works in nested template - fulfilled>rejected',
+        Promise.resolve({ json() { return Promise.reject(new Error('foo-bar')); } }),
+        {
+          template: `
+            <template>
+              <template promise.bind="promise">
+                <pending-host pending p.bind="promise"></pending-host>
+                <template then.from-view="response" promise.bind="response.json()">
+                  <fulfilled-host then.from-view="data" data.bind="data"></fulfilled-host>
+                  <rejected-host catch.from-view="err" err.bind="updateError(err)"></rejected-host>
+                </template>
+                <rejected-host catch.from-view="err1" err.bind="err1"></rejected-host>
+              </template>
+            </template>`
+        },
+        config(),
+        '<rejected-host err.bind="updateError(err)" class="au">rejected with foo-bar1</rejected-host>',
+        getActivationSequenceFor(`${rhost}-1`),
+        getDeactivationSequenceFor(`${rhost}-1`),
+      );
+      yield new TestData(
+        'works in nested template - rejected>fulfilled',
+        Promise.reject({ json() { return Promise.resolve(42); } }),
+        {
+          template: `
+            <template>
+              <template promise.bind="promise">
+                <pending-host pending p.bind="promise"></pending-host>
+                <fulfilled-host then.from-view="data1" data.bind="data1"></fulfilled-host>
+                <template catch.from-view="response" promise.bind="response.json()">
+                  <fulfilled-host then.from-view="data" data.bind="data"></fulfilled-host>
+                  <rejected-host catch.from-view="err" err.bind="err"></rejected-host>
+                </template>
+              </template>
+            </template>`
+        },
+        config(),
+        wrap('resolved with 42', 'f'),
+        getActivationSequenceFor(`${fhost}-2`),
+        getDeactivationSequenceFor(`${fhost}-2`),
+      );
+      yield new TestData(
+        'works in nested template - rejected>rejected',
+        Promise.reject({ json() { return Promise.reject(new Error('foo-bar')); } }),
+        {
+          template: `
+            <template>
+              <template promise.bind="promise">
+                <pending-host pending p.bind="promise"></pending-host>
+                <fulfilled-host then.from-view="data1" data.bind="data1"></fulfilled-host>
+                <template catch.from-view="response" promise.bind="response.json()">
+                  <fulfilled-host then.from-view="data" data.bind="data"></fulfilled-host>
+                  <rejected-host catch.from-view="err" err.bind="err"></rejected-host>
+                </template>
+              </template>
+            </template>`
+        },
+        config(),
+        wrap('rejected with foo-bar', 'r'),
+        getActivationSequenceFor(`${rhost}-1`),
+        getDeactivationSequenceFor(`${rhost}-1`),
+      );
+      // TODO repeater
     }
     // #region timings
-    for (const $resolve of [true/* , false */]) {
+    for (const $resolve of [true, false]) {
       const getPromise = (ticks: number) => () => Object.assign(
         createMultiTickPromise(ticks, () => $resolve ? Promise.resolve(42) : Promise.reject(new Error('foo-bar')))(),
         { id: 0 }
@@ -1193,15 +1280,15 @@ describe.only('promise template-controller', function () {
       // These tests are more like sanity checks rather than asserting the lifecycle hooks invocation timings and sequence of those.
       // These rather assert that under varied configurations of promise and hook timings, the template controllers still work.
       for (const [name, promiseTick, config] of [
-        ['pending activation duration == promise settlement duration', 4, { binding: 1, bound: 1, attaching: 1, attached: 1 }],
-        ['pending "binding" duration == promise settlement duration', 2, { binding: 2 }],
-        ['pending "binding" duration > promise settlement duration', 1, { binding: 2 }],
-        ['pending "binding" duration > promise settlement duration (longer running promise and hook)', 4, { binding: 6 }],
-        ['pending "binding+bound" duration > promise settlement duration', 2, { binding: 1, bound: 2 }],
-        ['pending "binding+bound" duration > promise settlement duration (longer running promise and hook)', 4, { binding: 3, bound: 3 }],
-        ['pending "binding+bound+attaching" duration > promise settlement duration', 2, { binding: 1, bound: 1, attaching: 1 }],
-        ['pending "binding+bound+attaching" duration > promise settlement duration (longer running promise and hook)', 5, { binding: 2, bound: 2, attaching: 2 }],
-        ['pending "binding+bound+attaching+attached" duration > promise settlement duration', 3, { binding: 1, bound: 1, attaching: 1, attached: 1 }],
+        ['pending activation duration == promise settlement duration',                                                          4, { binding: 1, bound: 1, attaching: 1, attached: 1 }],
+        ['pending "binding" duration == promise settlement duration',                                                           2, { binding: 2 }],
+        ['pending "binding" duration > promise settlement duration',                                                            1, { binding: 2 }],
+        ['pending "binding" duration > promise settlement duration (longer running promise and hook)',                          4, { binding: 6 }],
+        ['pending "binding+bound" duration > promise settlement duration',                                                      2, { binding: 1, bound: 2 }],
+        ['pending "binding+bound" duration > promise settlement duration (longer running promise and hook)',                    4, { binding: 3, bound: 3 }],
+        ['pending "binding+bound+attaching" duration > promise settlement duration',                                            2, { binding: 1, bound: 1, attaching: 1 }],
+        ['pending "binding+bound+attaching" duration > promise settlement duration (longer running promise and hook)',          5, { binding: 2, bound: 2, attaching: 2 }],
+        ['pending "binding+bound+attaching+attached" duration > promise settlement duration',                                   3, { binding: 1, bound: 1, attaching: 1, attached: 1 }],
         ['pending "binding+bound+attaching+attached" duration > promise settlement duration (longer running promise and hook)', 6, { binding: 2, bound: 2, attaching: 2, attached: 2 }],
       ] as const) {
         yield new TestData(
@@ -1388,7 +1475,6 @@ describe.only('promise template-controller', function () {
           ctx.assertCallSet([...getDeactivationSequenceFor(`${fhost}-1`), ...getActivationSequenceFor(`${phost}-1`)], `calls mismatch1`);
           ctx.clear();
 
-          // await q.yield();
           try {
             await promise;
           } catch {
@@ -1401,18 +1487,9 @@ describe.only('promise template-controller', function () {
             { id: 1 }
           );
 
-          // await q.yield();
-          // if ($resolve) {
-          //   assert.html.innerEqual(ctx.host, wrap('resolved with 84', 'f'), 'fulfilled 1');
-          // } else {
-          //   assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'), 'rejected 1');
-          // }
-          // ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`)], `calls mismatch2`);
-          // ctx.clear();
-
           await q.yield();
           assert.html.innerEqual(ctx.host, wrap('pending1', 'p'), 'pending1');
-          ctx.assertCallSet([/* ...getDeactivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`), ...getActivationSequenceFor(`${phost}-1`) */], `calls mismatch3`);
+          ctx.assertCallSet([], `calls mismatch3`);
           ctx.clear();
 
           try {
@@ -1429,9 +1506,81 @@ describe.only('promise template-controller', function () {
           }
           ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`)], `calls mismatch4`);
         },
-        // true,
       );
 
+      yield new TestData(
+        `change of promise in quick succession - changed after the post-settlement activation is running - ${$resolve ? 'fulfilled' : 'rejected'}`,
+        Promise.resolve(42),
+        {
+          template: template1,
+          registrations: [
+            Registration.instance(configLookup, new Map<string, Config>([
+              [phost, new Config(true, createWaiterWithTicks(Object.create(null)))],
+              [fhost, new Config(true, createWaiterWithTicks($resolve ? { binding: 1, bound: 2, attaching: 2, attached: 2 } : Object.create(null)))],
+              [rhost, new Config(true, createWaiterWithTicks($resolve ? Object.create(null) : { binding: 1, bound: 2, attaching: 2, attached: 2 }))],
+            ])),
+          ],
+        },
+        null,
+        wrap(`resolved with 42`, 'f'),
+        getActivationSequenceFor(`${fhost}-1`),
+        getDeactivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`),
+        async (ctx) => {
+          ctx.clear();
+          const app = ctx.app;
+          let promise = app.promise = Object.assign(
+            createMultiTickPromise(10, () => $resolve ? Promise.resolve(84) : Promise.reject(new Error('foo-bar')))(),
+            { id: 0 }
+          );
+
+          const q = ctx.platform.domWriteQueue;
+          await q.yield();
+          assert.html.innerEqual(ctx.host, wrap('pending0', 'p'), 'pending0');
+          ctx.assertCallSet([...getDeactivationSequenceFor(`${fhost}-1`), ...getActivationSequenceFor(`${phost}-1`)], `calls mismatch1`);
+          ctx.clear();
+
+          try {
+            await promise;
+          } catch {
+            // ignore rejection
+          }
+
+          // run the post-settled task
+          q.flush();
+          promise = app.promise = Object.assign(
+            createMultiTickPromise(20, () => $resolve ? Promise.resolve(4242) : Promise.reject(new Error('foo-bar foo-bar')))(),
+            { id: 1 }
+          );
+
+          await q.yield();
+          if ($resolve) {
+            assert.html.innerEqual(ctx.host, wrap('resolved with 84', 'f'), 'fulfilled 1');
+          } else {
+            assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'), 'rejected 1');
+          }
+          ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`)], `calls mismatch2`);
+          ctx.clear();
+
+          await q.yield();
+          assert.html.innerEqual(ctx.host, wrap('pending1', 'p'), 'pending1');
+          ctx.assertCallSet([...getDeactivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`), ...getActivationSequenceFor(`${phost}-1`)], `calls mismatch3`);
+          ctx.clear();
+
+          try {
+            await promise;
+          } catch {
+            // ignore rejection
+          }
+          await q.yield();
+
+          if ($resolve) {
+            assert.html.innerEqual(ctx.host, wrap('resolved with 4242', 'f'), 'fulfilled 2');
+          } else {
+            assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar foo-bar', 'r'), 'rejected 2');
+          }
+          ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`)], `calls mismatch4`);
+        },
+      );
     }
     // #endregion
   }

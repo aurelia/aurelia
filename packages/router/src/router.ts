@@ -186,7 +186,7 @@ export class Router implements IRouter {
      * @internal
      */
     public readonly container: IContainer,
-    @IEventAggregator private readonly ea: EventAggregator,
+    private readonly ea: EventAggregator,
 
     /**
      * The navigator that manages navigation queue and history

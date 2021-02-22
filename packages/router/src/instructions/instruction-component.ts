@@ -93,32 +93,26 @@ export class InstructionComponent {
 
   // Instance methods
   public set(component: ComponentAppellation | Promise<ComponentAppellation> | undefined | null): void {
-    if (component == null) {
-      this.name = null;
-      this.type = null;
-      this.instance = null;
-      this.promise = null;
-    } else if (component instanceof Promise) {
-      this.name = null;
-      this.type = null;
-      this.instance = null;
-      this.promise = component;
+    let name: string | null = null;
+    let type: RouteableComponentType | null = null;
+    let instance: IRouteableComponent | null = null;
+    let promise: Promise<ComponentAppellation> | null = null;
+    if (component instanceof Promise) {
+      promise = component;
     } else if (InstructionComponent.isName(component)) {
-      this.name = InstructionComponent.getName(component);
-      this.type = null;
-      this.instance = null;
-      this.promise = null;
+      name = InstructionComponent.getName(component);
     } else if (InstructionComponent.isType(component)) {
-      this.name = this.getNewName(component);
-      this.type = InstructionComponent.getType(component);
-      this.instance = null;
-      this.promise = null;
+      name = this.getNewName(component);
+      type = InstructionComponent.getType(component);
     } else if (InstructionComponent.isInstance(component)) {
-      this.name = this.getNewName(InstructionComponent.getType(component)!);
-      this.type = InstructionComponent.getType(component);
-      this.instance = InstructionComponent.getInstance(component);
-      this.promise = null;
+      name = this.getNewName(InstructionComponent.getType(component)!);
+      type = InstructionComponent.getType(component);
+      instance = InstructionComponent.getInstance(component);
     }
+    this.name = name;
+    this.type = type;
+    this.instance = instance;
+    this.promise = promise;
   }
 
   public resolve(): void | Promise<ComponentAppellation> {

@@ -22,14 +22,14 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
   ) { }
 
   public binding(): void {
-    this.element.addEventListener('click', this.linkHandler.handler);
+    this.element.addEventListener('click', this.linkHandler);
     this.updateValue();
 
     this.routerNavigationSubscription = this.ea.subscribe(RouterNavigationEndEvent.eventName, this.navigationEndHandler);
   }
 
   public unbinding(): void {
-    this.element.removeEventListener('click', this.linkHandler.handler);
+    this.element.removeEventListener('click', this.linkHandler);
     this.routerNavigationSubscription.dispose();
   }
 

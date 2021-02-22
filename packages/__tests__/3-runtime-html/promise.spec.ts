@@ -257,7 +257,7 @@ describe.only('promise template-controller', function () {
           ...registrations,
           Promisify,
           Double,
-          // NoopBindingBehavior,
+          NoopBindingBehavior,
           typeof promise === 'function'
             ? Registration.callback(seedPromise, promise)
             : Registration.instance(seedPromise, promise),
@@ -313,15 +313,15 @@ describe.only('promise template-controller', function () {
     }
   }
 
-  // @bindingBehavior('noop')
-  // class NoopBindingBehavior implements BindingBehaviorInstance {
-  //   public bind(_flags: LifecycleFlags, _scope: Scope, _hostScope: Scope | null, _binding: IBinding): void {
-  //     return;
-  //   }
-  //   public unbind(_flags: LifecycleFlags, _scope: Scope, _hostScope: Scope | null, _binding: IBinding): void {
-  //     return;
-  //   }
-  // }
+  @bindingBehavior('noop')
+  class NoopBindingBehavior implements BindingBehaviorInstance {
+    public bind(_flags: LifecycleFlags, _scope: Scope, _hostScope: Scope | null, _binding: IBinding): void {
+      return;
+    }
+    public unbind(_flags: LifecycleFlags, _scope: Scope, _hostScope: Scope | null, _binding: IBinding): void {
+      return;
+    }
+  }
 
   class App {
     public constructor(
@@ -1261,7 +1261,7 @@ describe.only('promise template-controller', function () {
 
       for (const $resolve of [true, false]) {
         yield new TestData(
-          `works with value converter on - settled promise - ${$resolve}`,
+          `works with value converter on - settled promise - ${$resolve ? 'fulfilled' : 'rejected'}`,
           null,
           {
             template: `
@@ -1280,7 +1280,7 @@ describe.only('promise template-controller', function () {
         );
 
         yield new TestData(
-          `works with value converter - longer running promise - ${$resolve}`,
+          `works with value converter - longer running promise - ${$resolve ? 'fulfilled' : 'rejected'}`,
           null,
           {
             template: `
@@ -1311,6 +1311,65 @@ describe.only('promise template-controller', function () {
               assert.html.innerEqual(ctx.host, wrap('resolved with 42 42', 'f'), 'fulfilled');
             } else {
               assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar foo-bar', 'r'), 'rejected');
+            }
+            ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`)]);
+          },
+        );
+
+        yield new TestData(
+          `works with binding behavior - settled promise - ${$resolve ? 'fulfilled' : 'rejected'}`,
+          () => $resolve ? Promise.resolve(42) : Promise.reject(new Error('foo-bar')),
+          {
+            template: `
+            <template>
+              <template promise.bind="promise & noop">
+                <pending-host pending></pending-host>
+                <fulfilled-host then.from-view="data & noop" data.bind="data"></fulfilled-host>
+                <rejected-host catch.from-view="err & noop" err.bind="err"></rejected-host>
+              </template>
+            </template>`
+          },
+          config(),
+          $resolve ? wrap('resolved with 42', 'f') : wrap('rejected with foo-bar', 'r'),
+          getActivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`),
+          getDeactivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`),
+        );
+
+        yield new TestData(
+          `works with binding behavior - longer running promise - ${$resolve ? 'fulfilled' : 'rejected'}`,
+          () => Object.assign(
+            createMultiTickPromise(20, () => $resolve ? Promise.resolve(42) : Promise.reject(new Error('foo-bar')))(),
+            { id: 0 }
+          ),
+          {
+            template: `
+            <template>
+              <template promise.bind="promise & noop">
+                <pending-host pending p.bind="promise"></pending-host>
+                <fulfilled-host then.from-view="data & noop" data.bind="data"></fulfilled-host>
+                <rejected-host catch.from-view="err & noop" err.bind="err"></rejected-host>
+              </template>
+            </template>`
+          },
+          config(),
+          wrap('pending0', 'p'),
+          getActivationSequenceFor(`${phost}-1`),
+          getDeactivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`),
+          async (ctx) => {
+            ctx.clear();
+            const q = ctx.platform.domWriteQueue;
+            const tc = (ctx.app as ICustomElementViewModel).$controller.children.find((c) => c.viewModel instanceof PromiseTemplateController).viewModel as PromiseTemplateController;
+            try {
+              await tc.value;
+            } catch {
+              // ignore rejection
+            }
+            await q.yield();
+
+            if ($resolve) {
+              assert.html.innerEqual(ctx.host, wrap('resolved with 42', 'f'), 'fulfilled');
+            } else {
+              assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'), 'rejected');
             }
             ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`)]);
           },

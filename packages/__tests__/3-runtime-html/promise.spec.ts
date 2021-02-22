@@ -35,6 +35,7 @@ import {
   IPlatform,
   ICustomElementViewModel,
   PromiseTemplateController,
+  valueConverter,
 } from '@aurelia/runtime-html';
 import {
   assert,
@@ -158,7 +159,7 @@ describe.only('promise template-controller', function () {
     registrations: any[];
     expectedStopLog: string[];
     verifyStopCallsAsSet: boolean;
-    promise: Promise<unknown> | (() => Promise<unknown>);
+    promise: Promise<unknown> | (() => Promise<unknown>) | null;
   }
   class PromiseTestExecutionContext implements TestExecutionContext<any> {
     private _scheduler: IPlatform;
@@ -252,8 +253,10 @@ describe.only('promise template-controller', function () {
     try {
       await au
         .register(
-          LoggerConfiguration.create({ level: LogLevel.trace, sinks: [DebugLog, ConsoleSink] }),
+          LoggerConfiguration.create({ level: LogLevel.trace, sinks: [DebugLog/* , ConsoleSink */] }),
           ...registrations,
+          Promisify,
+          Double,
           // NoopBindingBehavior,
           typeof promise === 'function'
             ? Registration.callback(seedPromise, promise)
@@ -286,6 +289,29 @@ describe.only('promise template-controller', function () {
     ctx.doc.body.removeChild(host);
   }
   const $it = createSpecFunction(testPromise);
+
+  @valueConverter('promisify')
+  class Promisify {
+    public toView(value: unknown, resolve: boolean = true, ticks: number = 0): Promise<unknown> {
+      if (ticks === 0) {
+        return Object.assign(resolve ? Promise.resolve(value) : Promise.reject(new Error('foo-bar')), { id: 0 });
+      }
+
+      return Object.assign(
+        createMultiTickPromise(ticks, () => resolve ? Promise.resolve(value) : Promise.reject(new Error('foo-bar')))(),
+        { id: 0 }
+      );
+    }
+  }
+
+  @valueConverter('double')
+  class Double {
+    public fromView(value: unknown): unknown {
+      return value instanceof Error
+        ? (value.message = `${value.message} ${value.message}`, value)
+        : `${value} ${value}`;
+    }
+  }
 
   // @bindingBehavior('noop')
   // class NoopBindingBehavior implements BindingBehaviorInstance {
@@ -325,7 +351,7 @@ describe.only('promise template-controller', function () {
     public readonly name: string;
     public constructor(
       name: string,
-      public promise: Promise<unknown> | (() => Promise<unknown>),
+      public promise: Promise<unknown> | (() => Promise<unknown>) | null,
       {
         registrations = [],
         template,
@@ -1232,6 +1258,64 @@ describe.only('promise template-controller', function () {
         getActivationSequenceFor(`${rhost}-1`),
         getDeactivationSequenceFor(`${rhost}-1`),
       );
+
+      for (const $resolve of [true, false]) {
+        yield new TestData(
+          `works with value converter on - settled promise - ${$resolve}`,
+          null,
+          {
+            template: `
+            <template>
+              <template promise.bind="42|promisify:${$resolve}">
+                <pending-host pending></pending-host>
+                <fulfilled-host then.from-view="data | double" data.bind="data"></fulfilled-host>
+                <rejected-host catch.from-view="err | double" err.bind="err"></rejected-host>
+              </template>
+            </template>`
+          },
+          config(),
+          $resolve ? wrap('resolved with 42 42', 'f') : wrap('rejected with foo-bar foo-bar', 'r'),
+          getActivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`),
+          getDeactivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`),
+        );
+
+        yield new TestData(
+          `works with value converter - longer running promise - ${$resolve}`,
+          null,
+          {
+            template: `
+            <template>
+              <template promise.bind="42|promisify:${$resolve}:10">
+                <pending-host pending></pending-host>
+                <fulfilled-host then.from-view="data | double" data.bind="data"></fulfilled-host>
+                <rejected-host catch.from-view="err | double" err.bind="err"></rejected-host>
+              </template>
+            </template>`
+          },
+          config(),
+          '<pending-host class="au">pendingundefined</pending-host>',
+          getActivationSequenceFor(`${phost}-1`),
+          getDeactivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`),
+          async (ctx) => {
+            ctx.clear();
+            const q = ctx.platform.domWriteQueue;
+            const tc = (ctx.app as ICustomElementViewModel).$controller.children.find((c) => c.viewModel instanceof PromiseTemplateController).viewModel as PromiseTemplateController;
+            try {
+              await tc.value;
+            } catch {
+              // ignore rejection
+            }
+            await q.yield();
+
+            if ($resolve) {
+              assert.html.innerEqual(ctx.host, wrap('resolved with 42 42', 'f'), 'fulfilled');
+            } else {
+              assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar foo-bar', 'r'), 'rejected');
+            }
+            ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`)]);
+          },
+        );
+      }
       // TODO repeater
     }
     // #region timings

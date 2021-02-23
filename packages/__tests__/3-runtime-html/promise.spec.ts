@@ -36,6 +36,7 @@ import {
   ICustomElementViewModel,
   PromiseTemplateController,
   valueConverter,
+  ValueConverter,
 } from '@aurelia/runtime-html';
 import {
   assert,
@@ -294,11 +295,11 @@ describe.only('promise template-controller', function () {
   class Promisify {
     public toView(value: unknown, resolve: boolean = true, ticks: number = 0): Promise<unknown> {
       if (ticks === 0) {
-        return Object.assign(resolve ? Promise.resolve(value) : Promise.reject(new Error('foo-bar')), { id: 0 });
+        return Object.assign(resolve ? Promise.resolve(value) : Promise.reject(new Error(String(value))), { id: 0 });
       }
 
       return Object.assign(
-        createMultiTickPromise(ticks, () => resolve ? Promise.resolve(value) : Promise.reject(new Error('foo-bar')))(),
+        createMultiTickPromise(ticks, () => resolve ? Promise.resolve(value) : Promise.reject(new Error(String(value))))(),
         { id: 0 }
       );
     }
@@ -1274,7 +1275,7 @@ describe.only('promise template-controller', function () {
             </template>`
           },
           config(),
-          $resolve ? wrap('resolved with 42 42', 'f') : wrap('rejected with foo-bar foo-bar', 'r'),
+          $resolve ? wrap('resolved with 42 42', 'f') : wrap('rejected with 42 42', 'r'),
           getActivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`),
           getDeactivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`),
         );
@@ -1310,7 +1311,7 @@ describe.only('promise template-controller', function () {
             if ($resolve) {
               assert.html.innerEqual(ctx.host, wrap('resolved with 42 42', 'f'), 'fulfilled');
             } else {
-              assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar foo-bar', 'r'), 'rejected');
+              assert.html.innerEqual(ctx.host, wrap('rejected with 42 42', 'r'), 'rejected');
             }
             ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`)]);
           },
@@ -1415,8 +1416,139 @@ describe.only('promise template-controller', function () {
               ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`)]);
             }
           );
+        }
       }
-      // TODO repeater
+
+      yield new TestData(
+        `[repeat.for] > [promise.bind] works`,
+        null,
+        {
+          // , ['forty-two', true], ['fizz-bazz', false]
+          template: `
+          <template>
+            <let items.bind="[[42, true], ['foo-bar', false]]"></let>
+            <template repeat.for="item of items">
+              <template promise.bind="item[0] | promisify:item[1]">
+                <fulfilled-host then.from-view="data" data.bind="data"></fulfilled-host>
+                <rejected-host catch.from-view="err" err.bind="err"></rejected-host>
+              </template>
+            </template>
+          </template>`,
+        },
+        config(),
+        `${wrap('resolved with 42', 'f')} ${wrap('rejected with foo-bar', 'r')}`, //  ${wrap('resolved with forty-two', 'f')} ${wrap('rejected with fizz-bazz', 'r')}
+        getActivationSequenceFor([`${fhost}-1`, `${rhost}-2`/* , `${fhost}-3`, `${rhost}-4` */]),
+        getDeactivationSequenceFor([`${fhost}-1`, `${rhost}-2`/* , `${fhost}-3`, `${rhost}-4` */]),
+      );
+
+      yield new TestData(
+        `[repeat.for,promise.bind] works`,
+        null,
+        {
+          // , ['forty-two', true], ['fizz-bazz', false]
+          template: `
+          <template>
+            <let items.bind="[[42, true], ['foo-bar', false]]"></let>
+              <template repeat.for="item of items" promise.bind="item[0] | promisify:item[1]">
+                <fulfilled-host then.from-view="data" data.bind="data"></fulfilled-host>
+                <rejected-host catch.from-view="err" err.bind="err"></rejected-host>
+              </template>
+          </template>`,
+        },
+        config(),
+        `${wrap('resolved with 42', 'f')} ${wrap('rejected with foo-bar', 'r')}`, //  ${wrap('resolved with forty-two', 'f')} ${wrap('rejected with fizz-bazz', 'r')}
+        getActivationSequenceFor([`${fhost}-1`, `${rhost}-2`/* , `${fhost}-3`), `${rhost}-4` */]),
+        getDeactivationSequenceFor([`${fhost}-1`, `${rhost}-2`/* , `${fhost}-3`), `${rhost}-4` */]),
+      );
+
+      yield new TestData(
+        `[then,repeat.for] works`,
+        null,
+        {
+          template: `
+          <template>
+            <template promise.bind="[42, 'forty-two'] | promisify:true">
+              <fulfilled-host then.from-view="items" repeat.for="data of items" data.bind="data"></fulfilled-host>
+              <rejected-host catch.from-view="err" err.bind="err"></rejected-host>
+            </template>
+          </template>`,
+        },
+        config(),
+        `${wrap('resolved with 42', 'f')}${wrap('resolved with forty-two', 'f')}`,
+        getActivationSequenceFor([`${fhost}-1`, `${fhost}-2`]),
+        getDeactivationSequenceFor([`${fhost}-1`, `${fhost}-2`]),
+      );
+
+      yield new TestData(
+        `[then] > [repeat.for] works`,
+        null,
+        {
+          template: `
+          <template>
+            <template promise.bind="[42, 'forty-two'] | promisify:true">
+              <template then.from-view="items">
+                <fulfilled-host repeat.for="data of items" data.bind="data"></fulfilled-host>
+              </template>
+              <rejected-host catch.from-view="err" err.bind="err"></rejected-host>
+            </template>
+          </template>`,
+        },
+        config(),
+        `${wrap('resolved with 42', 'f')}${wrap('resolved with forty-two', 'f')}`,
+        getActivationSequenceFor([`${fhost}-1`, `${fhost}-2`]),
+        getDeactivationSequenceFor([`${fhost}-1`, `${fhost}-2`]),
+      );
+      {
+        const registrations = [
+          createComponentType('rej-host', `rejected with \${err}`, ['err']),
+          ValueConverter.define(
+            'parseError',
+            class ParseError {
+              public toView(value: Error): string[] {
+                return value.message.split(',');
+              }
+            }
+          )
+        ];
+        yield new TestData(
+          `[catch,repeat.for] works`,
+          null,
+          {
+            template: `
+          <template>
+            <template promise.bind="[42, 'forty-two'] | promisify:false">
+              <fulfilled-host then.from-view="data" data.bind="data"></fulfilled-host>
+              <rej-host catch.from-view="error" repeat.for="err of error | parseError" err.bind="err"></rej-host>
+            </template>
+          </template>`,
+            registrations,
+          },
+          config(),
+          '<rej-host err.bind="err" class="au">rejected with 42</rej-host><rej-host err.bind="err" class="au">rejected with forty-two</rej-host>',
+          getActivationSequenceFor(['rej-host-1', 'rej-host-2']),
+          getDeactivationSequenceFor(['rej-host-1', 'rej-host-2']),
+        );
+        yield new TestData(
+          `[catch] > [repeat.for] works`,
+          null,
+          {
+            template: `
+          <template>
+            <template promise.bind="[42, 'forty-two'] | promisify:false">
+              <fulfilled-host then.from-view="data" data.bind="data"></fulfilled-host>
+              <template catch.from-view="error">
+                <rej-host repeat.for="err of error | parseError" err.bind="err"></rej-host>
+              </template>
+            </template>
+          </template>`,
+            registrations,
+          },
+          config(),
+          '<rej-host err.bind="err" class="au">rejected with 42</rej-host><rej-host err.bind="err" class="au">rejected with forty-two</rej-host>',
+          getActivationSequenceFor(['rej-host-1', 'rej-host-2']),
+          getDeactivationSequenceFor(['rej-host-1', 'rej-host-2']),
+        );
+      }
     }
     // #region timings
     for (const $resolve of [true, false]) {

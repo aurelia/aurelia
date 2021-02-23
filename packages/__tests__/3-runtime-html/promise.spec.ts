@@ -1374,6 +1374,47 @@ describe.only('promise template-controller', function () {
             ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`)]);
           },
         );
+
+        {
+          const staticPart = '<my-el prop.bind="fooBar" class="au">Fizz Bazz</my-el>';
+          let resolve: (value: unknown) => void;
+          let reject: (value: unknown) => void;
+          yield new TestData(
+            `enables showing rest of the content although the promise is no settled - ${$resolve ? 'fulfilled' : 'rejected'}`,
+            Object.assign(new Promise((rs, rj) => { resolve = rs; reject = rj; }), { id: 0 }),
+            {
+              template: `
+              <let foo-bar.bind="'Fizz Bazz'"></let>
+              <my-el prop.bind="fooBar"></my-el>
+              <template promise.bind="promise">
+                <pending-host pending p.bind="promise"></pending-host>
+                <fulfilled-host then.from-view="data" data.bind="data"></fulfilled-host>
+                <rejected-host catch.from-view="err" err.bind="err"></rejected-host>
+              </template>`,
+              registrations: [
+                CustomElement.define({ name: 'my-el', template: `\${prop}`, bindables: ['prop'] }, class MyEl { }),
+              ]
+            },
+            config(),
+            `${staticPart} ${wrap('pending0', 'p')}`,
+            getActivationSequenceFor(`${phost}-1`),
+            getDeactivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`),
+            async (ctx) => {
+              ctx.clear();
+              if ($resolve) {
+                resolve(42);
+              } else {
+                reject(new Error('foo-bar'));
+              }
+              const p = ctx.platform;
+              // one tick to call back the fulfill delegate, and queue task
+              await p.domWriteQueue.yield();
+              // on the next tick wait the queued task
+              await p.domWriteQueue.yield();
+              assert.html.innerEqual(ctx.host, `${staticPart} ${$resolve ? wrap('resolved with 42', 'f') : wrap('rejected with foo-bar', 'r')}`);
+              ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`)]);
+            }
+          );
       }
       // TODO repeater
     }

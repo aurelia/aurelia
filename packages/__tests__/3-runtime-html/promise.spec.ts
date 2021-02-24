@@ -37,6 +37,8 @@ import {
   PromiseTemplateController,
   valueConverter,
   ValueConverter,
+  If,
+  ISyntheticView,
 } from '@aurelia/runtime-html';
 import {
   assert,
@@ -1549,7 +1551,228 @@ describe.only('promise template-controller', function () {
           getDeactivationSequenceFor(['rej-host-1', 'rej-host-2']),
         );
       }
-    }
+
+      yield new TestData(
+        `[if,promise.bind], [else,promise.bind] works`,
+        Promise.resolve(42),
+        {
+          template: `
+          <let flag.bind="false"></let>
+          <template if.bind="flag" promise.bind="42 | promisify:true">
+            <pending-host pending></pending-host>
+            <fulfilled-host then.from-view="data1" data.bind="data1"></fulfilled-host>
+            <rejected-host catch.from-view="err1" err.bind="err1"></rejected-host>
+          </template>
+          <template else promise.bind="'forty-two' | promisify:false:10">
+            <pending-host pending></pending-host>
+            <fulfilled-host then.from-view="data2" data.bind="data2"></fulfilled-host>
+            <rejected-host catch.from-view="err2" err.bind="err2"></rejected-host>
+          </template>`,
+        },
+        config(),
+        '<pending-host class="au">pendingundefined</pending-host>',
+        getActivationSequenceFor(`${phost}-1`),
+        getDeactivationSequenceFor(`${fhost}-2`),
+        async (ctx) => {
+          ctx.clear();
+          const q = ctx.platform.domWriteQueue;
+          const app = ctx.app;
+          const controller = (app as ICustomElementViewModel).$controller;
+          const $if = controller.children.find((c) => c.viewModel instanceof If).viewModel as If;
+
+          const ptc2 = $if.elseView.children.find((c) => c.viewModel instanceof PromiseTemplateController).viewModel as PromiseTemplateController;
+          try {
+            await ptc2.value;
+          } catch {
+            // ignore rejection
+          }
+          await q.yield();
+
+          assert.html.innerEqual(ctx.host, '<rejected-host err.bind="err2" class="au">rejected with forty-two</rejected-host>');
+          ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor(`${rhost}-1`)]);
+          ctx.clear();
+
+          controller.scope.overrideContext.flag = true;
+          await $if['pending'];
+          const ptc1 = $if.ifView.children.find((c) => c.viewModel instanceof PromiseTemplateController).viewModel as PromiseTemplateController;
+          try {
+            await ptc1.value;
+          } catch {
+            // ignore rejection
+          }
+          await q.yield();
+
+          assert.html.innerEqual(ctx.host, '<fulfilled-host data.bind="data1" class="au">resolved with 42</fulfilled-host>');
+          ctx.assertCallSet([...getDeactivationSequenceFor(`${rhost}-1`), ...getActivationSequenceFor(`${fhost}-2`)]);
+        },
+      );
+
+      yield new TestData(
+        `[pending,if] works`,
+        Object.assign(new Promise(() => {/* noop */ }), { id: 0 }),
+        {
+          template: `
+          <let flag.bind="false"></let>
+          <template promise.bind="promise">
+            <pending-host pending p.bind="promise" if.bind="flag"></pending-host>
+            <fulfilled-host then.from-view="data" data.bind="data"></fulfilled-host>
+            <rejected-host catch.from-view="err" err.bind="err"></rejected-host>
+          </template>`,
+        },
+        config(),
+        '',
+        [],
+        getDeactivationSequenceFor(`${phost}-1`),
+        async (ctx) => {
+          ctx.clear();
+          const q = ctx.platform.domWriteQueue;
+          const app = ctx.app;
+          const controller = (app as ICustomElementViewModel).$controller;
+          const tc = controller.children.find((c) => c.viewModel instanceof PromiseTemplateController).viewModel as PromiseTemplateController;
+
+          controller.scope.overrideContext.flag = true;
+          await ((tc['pending']['view'] as ISyntheticView).children.find((c) => c.viewModel instanceof If).viewModel as If)['pending'];
+          await q.yield();
+
+          assert.html.innerEqual(ctx.host, wrap('pending0', 'p'));
+          ctx.assertCallSet(getActivationSequenceFor(`${phost}-1`));
+        },
+      );
+
+      yield new TestData(
+        `[then,if] works- #1`,
+        Object.assign(Promise.resolve(42), { id: 0 }),
+        {
+          template: `
+          <let flag.bind="false"></let>
+          <template promise.bind="promise">
+            <pending-host pending p.bind="promise"></pending-host>
+            <fulfilled-host then.from-view="data" if.bind="flag" data.bind="data"></fulfilled-host>
+            <rejected-host catch.from-view="err" err.bind="err"></rejected-host>
+          </template>`,
+        },
+        config(),
+        '',
+        [],
+        getDeactivationSequenceFor(`${fhost}-1`),
+        async (ctx) => {
+          ctx.clear();
+          const app = ctx.app;
+          const controller = (app as ICustomElementViewModel).$controller;
+          const tc = controller.children.find((c) => c.viewModel instanceof PromiseTemplateController).viewModel as PromiseTemplateController;
+
+          controller.scope.overrideContext.flag = true;
+          await ((tc['fulfilled']['view'] as ISyntheticView).children.find((c) => c.viewModel instanceof If).viewModel as If)['pending'];
+
+          assert.html.innerEqual(ctx.host, wrap('resolved with 42', 'f'));
+          ctx.assertCallSet(getActivationSequenceFor(`${fhost}-1`));
+        },
+      );
+
+      yield new TestData(
+        `[then,if] works- #2`,
+        Object.assign(Promise.resolve(24), { id: 0 }),
+        {
+          template: `
+          <template>
+            <template promise.bind="promise">
+              <pending-host pending p.bind="promise"></pending-host>
+              <fulfilled-host then.from-view="data" if.bind="data === 42" data.bind="data"></fulfilled-host>
+              <rejected-host catch.from-view="err" err.bind="err"></rejected-host>
+            </template>
+          </template>`,
+        },
+        config(),
+        '',
+        [],
+        getDeactivationSequenceFor(`${fhost}-1`),
+        async (ctx) => {
+          ctx.clear();
+          const q = ctx.platform.domWriteQueue;
+          const app = ctx.app;
+          await (app.promise = Promise.resolve(42));
+          await q.yield();
+
+          const controller = (app as ICustomElementViewModel).$controller;
+          const tc = controller.children.find((c) => c.viewModel instanceof PromiseTemplateController).viewModel as PromiseTemplateController;
+
+          controller.scope.overrideContext.flag = true;
+          await ((tc['fulfilled']['view'] as ISyntheticView).children.find((c) => c.viewModel instanceof If).viewModel as If)['pending'];
+
+          assert.html.innerEqual(ctx.host, wrap('resolved with 42', 'f'));
+          ctx.assertCallSet(getActivationSequenceFor(`${fhost}-1`));
+        },
+      );
+
+      yield new TestData(
+        `[catch,if] works- #1`,
+        Object.assign(Promise.reject(new Error('foo-bar')), { id: 0 }),
+        {
+          template: `
+          <let flag.bind="false"></let>
+          <template promise.bind="promise">
+            <pending-host pending p.bind="promise"></pending-host>
+            <fulfilled-host then.from-view="data" data.bind="data"></fulfilled-host>
+            <rejected-host catch.from-view="err" if.bind="flag" err.bind="err"></rejected-host>
+          </template>`,
+        },
+        config(),
+        '',
+        [],
+        getDeactivationSequenceFor(`${rhost}-1`),
+        async (ctx) => {
+          ctx.clear();
+          const app = ctx.app;
+          const controller = (app as ICustomElementViewModel).$controller;
+          const tc = controller.children.find((c) => c.viewModel instanceof PromiseTemplateController).viewModel as PromiseTemplateController;
+
+          controller.scope.overrideContext.flag = true;
+          await ((tc['rejected']['view'] as ISyntheticView).children.find((c) => c.viewModel instanceof If).viewModel as If)['pending'];
+
+          assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'));
+          ctx.assertCallSet(getActivationSequenceFor(`${rhost}-1`));
+        },
+      );
+
+      yield new TestData(
+        `[catch,if] works- #2`,
+        Object.assign(Promise.reject(new Error('foo')), { id: 0 }),
+        {
+          template: `
+          <template>
+            <template promise.bind="promise">
+              <pending-host pending p.bind="promise"></pending-host>
+              <fulfilled-host then.from-view="data" data.bind="data"></fulfilled-host>
+              <rejected-host catch.from-view="err" if.bind="err.message === 'foo-bar'" err.bind="err"></rejected-host>
+            </template>
+          </template>`,
+        },
+        config(),
+        '',
+        [],
+        getDeactivationSequenceFor(`${rhost}-1`),
+        async (ctx) => {
+          ctx.clear();
+          const q = ctx.platform.domWriteQueue;
+          const app = ctx.app;
+          try {
+            await (app.promise = Promise.reject(new Error('foo-bar')));
+          } catch {
+            // ignore rejection
+          }
+          await q.yield();
+
+          const controller = (app as ICustomElementViewModel).$controller;
+          const tc = controller.children.find((c) => c.viewModel instanceof PromiseTemplateController).viewModel as PromiseTemplateController;
+
+          controller.scope.overrideContext.flag = true;
+          await ((tc['rejected']['view'] as ISyntheticView).children.find((c) => c.viewModel instanceof If).viewModel as If)['pending'];
+
+          assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'));
+          ctx.assertCallSet(getActivationSequenceFor(`${rhost}-1`));
+        },
+      );
+
     // #region timings
     for (const $resolve of [true, false]) {
       const getPromise = (ticks: number) => () => Object.assign(

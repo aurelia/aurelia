@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/platform-browser",
-  "version": "0.10.0-dev.202102212309",
+  "version": "0.10.0-dev.202102251102",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/index.d.ts",
@@ -37,7 +37,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/platform": "0.10.0-dev.202102212309"
+    "@aurelia/platform": "0.10.0-dev.202102251102"
   },
   "devDependencies": {
     "typescript": "^4.0.3"

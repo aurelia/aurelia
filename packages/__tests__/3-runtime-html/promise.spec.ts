@@ -150,7 +150,10 @@ describe.only('promise template-controller', function () {
   class DebugLog implements ISink {
     public readonly log: string[] = [];
     public handleEvent(event: DefaultLogEvent): void {
-      this.log.push(`${event.scope.join('.')}.${event.message}`);
+      const scope = event.scope.join('.');
+      if (scope.includes('-host')) {
+        this.log.push(`${scope}.${event.message}`);
+      }
     }
     public clear() {
       this.log.length = 0;
@@ -167,7 +170,6 @@ describe.only('promise template-controller', function () {
   class PromiseTestExecutionContext implements TestExecutionContext<any> {
     private _scheduler: IPlatform;
     private readonly _log: DebugLog;
-    private changeId: number = 0;
     public constructor(
       public ctx: TestContext,
       public container: IContainer,
@@ -195,13 +197,6 @@ describe.only('promise template-controller', function () {
     public clear() {
       this._log?.clear();
     }
-    public async wait($switch: Switch): Promise<void> {
-      const promise = $switch.promise;
-      await promise;
-      if ($switch.promise !== promise) {
-        await this.wait($switch);
-      }
-    }
 
     public assertCalls(expected: (string | number)[], message: string = '') {
       assert.deepStrictEqual(this.log, this.transformCalls(expected), message);
@@ -212,15 +207,6 @@ describe.only('promise template-controller', function () {
       const actual = this.log;
       assert.strictEqual(actual.length, expected.length, `${message} - calls.length - ${actual}`);
       assert.strictEqual(actual.filter((c) => !expected.includes(c)).length, 0, `${message} - calls set equality - ${actual}`);
-    }
-
-    public async assertChange($switch: Switch, act: () => void, expectedHtml: string, expectedLog: (string | number)[]) {
-      this.clear();
-      act();
-      await this.wait($switch);
-      const change = `change${++this.changeId}`;
-      assert.html.innerEqual(this.host, expectedHtml, `${change} innerHTML`);
-      this.assertCalls(expectedLog, change);
     }
 
     private transformCalls(calls: (string | number)[]) {
@@ -1771,6 +1757,199 @@ describe.only('promise template-controller', function () {
           assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'));
           ctx.assertCallSet(getActivationSequenceFor(`${rhost}-1`));
         },
+      );
+
+      const waitSwitch: ($switch: Switch) => Promise<void> = async ($switch) => {
+        const promise = $switch.promise;
+        await promise;
+        if ($switch.promise !== promise) {
+          await waitSwitch($switch);
+        }
+      };
+
+      // eslint-disable-next-line require-atomic-updates
+      for (const $resolve of [true, false]) {
+
+        yield new TestData(
+          `[case,promise.bind] works - ${$resolve ? 'fulfilled' : 'rejected'}`,
+          $resolve ? Promise.resolve(42) : Promise.reject(new Error('foo-bar')),
+          {
+            template: `
+          <let status.bind="'unknown'"></let>
+          <template switch.bind="status">
+            <template case="unknown">Unknown</template>
+            <template case="processing" promise.bind="promise">
+              <pending-host pending p.bind="promise"></pending-host>
+              <fulfilled-host then.from-view="data" data.bind="data"></fulfilled-host>
+              <rejected-host catch.from-view="err" if.bind="err.message === 'foo-bar'" err.bind="err"></rejected-host>
+            </template>
+          </template>`,
+          },
+          config(),
+          'Unknown',
+          [],
+          getDeactivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`),
+          async (ctx) => {
+            ctx.clear();
+            const q = ctx.platform.domWriteQueue;
+            const app = ctx.app;
+            const controller = (app as ICustomElementViewModel).$controller;
+            controller.scope.overrideContext.status = 'processing';
+            await waitSwitch(controller.children.find((c) => c.viewModel instanceof Switch).viewModel as Switch);
+
+            try {
+              await app.promise;
+            } catch {
+              // ignore rejection
+            }
+            await q.yield();
+
+            assert.html.innerEqual(ctx.host, $resolve ? wrap('resolved with 42', 'f') : wrap('rejected with foo-bar', 'r'));
+            ctx.assertCallSet(getActivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`));
+          },
+        );
+      }
+
+      yield new TestData(
+        `[then,switch] works - #1`,
+        Promise.resolve('foo'),
+        {
+          template: `
+          <template>
+            <template promise.bind="promise">
+              <pending-host pending p.bind="promise"></pending-host>
+              <template then.from-view="status" switch.bind="status">
+                <fulfilled-host case='processing' data="processing"></fulfilled-host>
+                <fulfilled-host default-case data="unknown"></fulfilled-host>
+              </template>
+              <rejected-host catch.from-view="err" err.bind="err"></rejected-host>
+            </template>
+          </template>`,
+        },
+        config(),
+        '<fulfilled-host data="unknown" class="au">resolved with unknown</fulfilled-host>',
+        getActivationSequenceFor(`${fhost}-2`),
+        getDeactivationSequenceFor(`${fhost}-1`),
+        async (ctx) => {
+          ctx.clear();
+          const q = ctx.platform.domWriteQueue;
+          const app = ctx.app;
+          const controller = (app as ICustomElementViewModel).$controller;
+          const tc = controller.children.find((c) => c.viewModel instanceof PromiseTemplateController).viewModel as PromiseTemplateController;
+          const $switch = tc['fulfilled'].view.children.find((c) => c.viewModel instanceof Switch).viewModel as Switch;
+
+          await (app.promise = Promise.resolve('processing'));
+          await q.yield();
+          await waitSwitch($switch);
+
+          assert.html.innerEqual(ctx.host, '<fulfilled-host data="processing" class="au">resolved with processing</fulfilled-host>');
+          ctx.assertCallSet([...getDeactivationSequenceFor(`${fhost}-2`), ...getActivationSequenceFor(`${fhost}-1`)]);
+        },
+      );
+
+      yield new TestData(
+        `[then,switch] works - #2`,
+        Promise.resolve('foo'),
+        {
+          template: `
+          <let status.bind="'processing'"></let>
+          <template promise.bind="promise">
+            <pending-host pending p.bind="promise"></pending-host>
+            <template then switch.bind="status">
+              <fulfilled-host case='processing' data="processing"></fulfilled-host>
+              <fulfilled-host default-case data="unknown"></fulfilled-host>
+            </template>
+            <rejected-host catch.from-view="err" err.bind="err"></rejected-host>
+          </template>`,
+        },
+        config(),
+        '<fulfilled-host data="processing" class="au">resolved with processing</fulfilled-host>',
+        getActivationSequenceFor(`${fhost}-1`),
+        getDeactivationSequenceFor(`${fhost}-2`),
+        async (ctx) => {
+          ctx.clear();
+          const app = ctx.app;
+          const controller = (app as ICustomElementViewModel).$controller;
+          const tc = controller.children.find((c) => c.viewModel instanceof PromiseTemplateController).viewModel as PromiseTemplateController;
+          const $switch = tc['fulfilled'].view.children.find((c) => c.viewModel instanceof Switch).viewModel as Switch;
+          controller.scope.overrideContext.status = 'foo';
+          await waitSwitch($switch);
+          assert.html.innerEqual(ctx.host, '<fulfilled-host data="unknown" class="au">resolved with unknown</fulfilled-host>');
+          ctx.assertCallSet([...getDeactivationSequenceFor(`${fhost}-1`), ...getActivationSequenceFor(`${fhost}-2`)]);
+        }
+      );
+
+      yield new TestData(
+        `[catch,switch] works - #1`,
+        Promise.reject(new Error('foo')),
+        {
+          template: `
+          <template>
+            <template promise.bind="promise">
+              <pending-host pending p.bind="promise"></pending-host>
+              <fulfilled-host then.from-view="data" data.bind="data"></fulfilled-host>
+              <template catch.from-view="err" switch.bind="err.message">
+                <rejected-host case='processing' err.bind="{message: 'processing'}"></rejected-host>
+                <rejected-host default-case  err.bind="{message: 'unknown'}"></rejected-host>
+              </template>
+            </template>
+          </template>`,
+        },
+        config(),
+        '<rejected-host err.bind="{message: \'unknown\'}" class="au">rejected with unknown</rejected-host>',
+        getActivationSequenceFor(`${rhost}-2`),
+        getDeactivationSequenceFor(`${rhost}-1`),
+        async (ctx) => {
+          ctx.clear();
+          const q = ctx.platform.domWriteQueue;
+          const app = ctx.app;
+          const controller = (app as ICustomElementViewModel).$controller;
+          const tc = controller.children.find((c) => c.viewModel instanceof PromiseTemplateController).viewModel as PromiseTemplateController;
+          const $switch = tc['rejected'].view.children.find((c) => c.viewModel instanceof Switch).viewModel as Switch;
+
+          try {
+            await (app.promise = Promise.reject(new Error('processing')));
+          } catch {
+            // ignore rejection
+          }
+          await q.yield();
+          await waitSwitch($switch);
+
+          assert.html.innerEqual(ctx.host, '<rejected-host err.bind="{message: \'processing\'}" class="au">rejected with processing</rejected-host>');
+          ctx.assertCallSet([...getDeactivationSequenceFor(`${rhost}-2`), ...getActivationSequenceFor(`${rhost}-1`)]);
+        },
+      );
+
+      yield new TestData(
+        `[catch,switch] works - #2`,
+        Promise.reject(new Error('foo')),
+        {
+          template: `
+          <let status.bind="'processing'"></let>
+          <template promise.bind="promise">
+            <pending-host pending p.bind="promise"></pending-host>
+            <fulfilled-host then.from-view="data" data.bind="data"></fulfilled-host>
+            <template catch switch.bind="status">
+              <rejected-host case='processing' err.bind="{message: 'processing'}"></rejected-host>
+              <rejected-host default-case  err.bind="{message: 'unknown'}"></rejected-host>
+            </template>
+          </template>`,
+        },
+        config(),
+        '<rejected-host err.bind="{message: \'processing\'}" class="au">rejected with processing</rejected-host>',
+        getActivationSequenceFor(`${rhost}-1`),
+        getDeactivationSequenceFor(`${rhost}-2`),
+        async (ctx) => {
+          ctx.clear();
+          const app = ctx.app;
+          const controller = (app as ICustomElementViewModel).$controller;
+          const tc = controller.children.find((c) => c.viewModel instanceof PromiseTemplateController).viewModel as PromiseTemplateController;
+          const $switch = tc['rejected'].view.children.find((c) => c.viewModel instanceof Switch).viewModel as Switch;
+          controller.scope.overrideContext.status = 'foo';
+          await waitSwitch($switch);
+          assert.html.innerEqual(ctx.host, '<rejected-host err.bind="{message: \'unknown\'}" class="au">rejected with unknown</rejected-host>');
+          ctx.assertCallSet([...getDeactivationSequenceFor(`${rhost}-1`), ...getActivationSequenceFor(`${rhost}-2`)]);
+        }
       );
 
     // #region timings

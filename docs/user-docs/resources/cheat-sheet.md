@@ -1122,6 +1122,10 @@ au.register(GlobalResources).app(...);
 
 ## Routing
 
+{% hint style="info" %}
+`Please note that we currently have an interim router implementation and that some (minor) changes to application code might be required when the original router is added back in.`
+{% endhint %}
+
 ### Migrating from v1
 
 * Move the routes from the `config.map(...)` call in your `configureRouter` method to either `static routes = [...]` or to the `@route({ routes: [...] })` decorator \(in the near future there will also be a separate `@routes` decorator as a shorthand\). For each route config object:

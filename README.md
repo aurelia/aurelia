@@ -40,14 +40,18 @@ export class App {
 ```html
 <!-- app.html -->
 <form>
-  <label for="name-field">What is your name?</label>
-  <input id="name-field" value.bind="name & debounce:500">
+  <label>
+    <span>What is your name?</span>
+    <input value.bind="name & debounce:500">
+  </label>
 
-  <label for="quest-field">What is your quest?</label>
-  <select id="quest-field" value.bind="quest">
-    <option></option>
-    <option repeat.for="q of quests">${q}</option>
-  </select>
+  <label>
+    <span>What is your quest?</span>
+    <select value.bind="quest">
+      <option></option>
+      <option repeat.for="q of quests">${q}</option>
+    </select>
+  </label>
 </form>
 
 <p if.bind="name">${welcome}, ${name}!</p>

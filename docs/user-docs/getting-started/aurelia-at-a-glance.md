@@ -14,7 +14,7 @@ If you are looking for a nice gentle introduction to Aurelia that will only take
 
 ## Intuitive templating syntax
 
-Once you begin to dive into Aurelia's template syntax, you quickly realize that templating in Aurelia is nothing more than slightly enhanced HTML. 
+Once you begin to dive into Aurelia's template syntax, you quickly realize that templating in Aurelia is nothing more than slightly enhanced HTML.
 
 Say you had an array of objects and those objects were cats. Each cat has a name and a breed, Aurelia provides a `repeat.for` attribute which you put on the element you want to repeat and it will loop over your array to allow you to use the object.
 
@@ -28,7 +28,7 @@ Say you had an array of objects and those objects were cats. Each cat has a name
 {% endtab %}
 
 {% tab title="cute-cats.ts" %}
-```
+```text
 export class CuteCats {
     cats = [
         { name: 'Bruno', breed: 'Siamese' },
@@ -125,5 +125,5 @@ Add a `au-viewport` element into your view and then use the `load` attribute to 
 <au-viewport></au-viewport>
 ```
 
-We highly recommend you go and read up on everything the router can do for you in the [router section](../app-basics/routing.md) of the documentation. 
+We highly recommend you go and read up on everything the router can do for you in the [router section](../app-basics/routing.md) of the documentation.
 

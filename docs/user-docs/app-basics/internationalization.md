@@ -53,17 +53,17 @@ As explained earlier, the plugin uses `i18next` under the hood. During registrat
 
 Using default options.
 
-  ```typescript
+```typescript
   new Aurelia().register(I18nConfiguration)
-  ```
+```
 
-  This initializes the plugin, as well as `i18next` with default options.
+This initializes the plugin, as well as `i18next` with default options.
 
-  However, often the default settings will not suffice.
+However, often the default settings will not suffice.
 
 Using custom options.
 
-  ```typescript
+```typescript
   new Aurelia()
     .register(I18nConfiguration.customize((options)=>{
       options.initOptions = {
@@ -73,13 +73,13 @@ Using custom options.
         }
       };
     }));
-  ```
+```
 
-  The `customize` function with a callback can be used to customize the initialization of `i18next`. The `options.initOptions` can be mutated to modify the initialization of `i18next`. Every option that can be used in [`i18next.init`](https://www.i18next.com/overview/api#init) can be used here, as well.
+The `customize` function with a callback can be used to customize the initialization of `i18next`. The `options.initOptions` can be mutated to modify the initialization of `i18next`. Every option that can be used in [`i18next.init`](https://www.i18next.com/overview/api#init) can be used here, as well.
 
-  Additionally, all [`i18next` plugins](https://www.i18next.com/overview/plugins-and-utils) can be installed using the `options.initOptions.plugins` array, as shown below.
+Additionally, all [`i18next` plugins](https://www.i18next.com/overview/plugins-and-utils) can be installed using the `options.initOptions.plugins` array, as shown below.
 
-  ```typescript
+```typescript
   import * as intervalPlural from 'i18next-intervalplural-postprocessor';
 
   new Aurelia()
@@ -88,7 +88,7 @@ Using custom options.
        plugins: [intervalPlural] // depending on your tsconfig this might also be intervalPlural.default
      };
    }));
-  ```
+```
 
 ### Configuring translation attribute aliases
 
@@ -117,9 +117,7 @@ The registered aliases can then be used in your view in place of `t`.
 ```
 
 {% hint style="info" %}
-
 You can mix and match any alias at the same time.
-
 {% endhint %}
 
 ### Managing translation resources
@@ -190,7 +188,7 @@ new Aurelia()
 
 With this strategy no translation resources get bundled with the app. Instead `i18next` instructs the registered Backend to load the translation resource using the `loadPath` pattern `'/locales/{{lng}}/{{ns}}.json'` during initialization and whenever the active locale is changed. Note that `{{lng}}`, and `{{ns}}` are placeholders for locale name, and namespace respectively. The default namespace used by `i18next` is `translation` \(which can of course be changed using init options\). For example, for locale `en`, it is expected that the a `translation.json` is available under `/locales/en`. Thus, you have to ensure that those translation resources are accessible under correct path.
 
-##### Recipes
+**Recipes**
 
 This section shows couple of recipes to make resources available for Backend plugins.
 
@@ -237,16 +235,13 @@ export class MyDemoVm {
   }
 }
 ```
+
 {% hint style="info" %}
-
 When the active locale is changed, the `I18N`class publishes the `i18n:locale:changed` event, and dispatches the `aurelia-translation-signal` signal. The i18n value-converters and binding-behaviors subscribe to these events, and update translations automatically. This event and signal are very useful tools if you want to perform your own custom locale-sensitive logic when the locale is changed.
-
 {% endhint %}
 
 {% hint style="info" %}
-
 Note Unlike the previous version of Aurelia, in vNext all translatable resources \(marked by the out of the box attributes, value converters, and binding behaviors\) are updated automatically on change of locale, without the need of any additional component or service.
-
 {% endhint %}
 
 ### Translation
@@ -408,7 +403,7 @@ Which produces the following result.
 
 **Manipulate translations with the t-params attribute**
 
-So far we have seen a simple key to value mapping. However, `i18next` supports more complex use-cases such as [interpolation](https://www.i18next.com/translation-function/interpolation), [context-specific translation](https://www.i18next.com/translation-function/context), and more. With `i18next` this is done by initializing the library with the options object.  Using `@aurelia/i18n`, we use the `t-params` attribute pattern along with `t` to the same result. The object bound to `t-params` is passed on to `i18next` as-is. This means that the options-object schema supported by `i18next` for any particular operation will work as expected. Let's see how this works in Aurelia with some basic examples of this. For further details check out the `i18next` docs.
+So far we have seen a simple key to value mapping. However, `i18next` supports more complex use-cases such as [interpolation](https://www.i18next.com/translation-function/interpolation), [context-specific translation](https://www.i18next.com/translation-function/context), and more. With `i18next` this is done by initializing the library with the options object. Using `@aurelia/i18n`, we use the `t-params` attribute pattern along with `t` to the same result. The object bound to `t-params` is passed on to `i18next` as-is. This means that the options-object schema supported by `i18next` for any particular operation will work as expected. Let's see how this works in Aurelia with some basic examples of this. For further details check out the `i18next` docs.
 
 **Interpolation**
 
@@ -568,9 +563,7 @@ The `nf` ValueConverter and BindingBehavior can be used to format numbers in a d
 The formatting options are used to affect how the number is formatted. A prominent use-case for that is to format the number as currency. For a full list of options look [here](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/NumberFormat#Parameters).
 
 {% hint style="info" %}
-
 Both ValueConverter and BindingBehavior update the formatted value when the active locale is changed.
-
 {% endhint %}
 
 #### Format number via code
@@ -692,9 +685,7 @@ export class MyDemoVm {
 This can be useful if you want to cache the `Intl.DateTimeFormat` instance and reuse it later.
 
 {% hint style="info" %}
-
 The `I18N#df` in the previous version of Aurelia matches the `I18N#createDateTimeFormat`, whereas `I18N#df` provides the formatted date instead.
-
 {% endhint %}
 
 ### Relative time formatting
@@ -723,9 +714,7 @@ The `rt` ValueConverter and BindingBehavior can be used to relatively format dat
 The formatting options are used to affect how the date is formatted. For a full list of options look [here](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RelativeTimeFormat#Syntax). The value being formatted must be an instance of `Date`, otherwise the original value is returned as-is.
 
 {% hint style="info" %}
-
 Both ValueConverter and BindingBehavior updates the formatted value when the active locale is changed.
-
 {% endhint %}
 
 **Relative time format signal**
@@ -785,9 +774,7 @@ export class MyDemoVm {
 This can be useful if you want to cache the `Intl.RelativeTimeFormat` instance and reuse it later.
 
 {% hint style="info" %}
-
 If you have used relative time formatting with `aurelia-i18n` plugin, then you have noticed that instead of full-fledged class dedicated for relative time formatting, in `@aurelia/i18n` plugin it is just a couple of methods in `I18N`.
-
 {% endhint %}
 
 **A caveat**

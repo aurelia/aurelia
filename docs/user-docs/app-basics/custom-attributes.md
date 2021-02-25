@@ -72,7 +72,3 @@ export class MyApp {
 
 Using `with` is basically shorthand for "I'm working with properties of this object", which lets you reuse code as necessary. If you are familiar with `with` keyword of JavaScript, you should be able to see some familiarities here too.
 
-### 
-
-## 
-

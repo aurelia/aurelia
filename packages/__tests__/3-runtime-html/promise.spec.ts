@@ -1098,6 +1098,22 @@ describe.only('promise template-controller', function () {
         );
       }
 
+      yield new TestData(
+        'shows static elements',
+        Promise.resolve(42),
+        {
+          template: `
+        <template>
+          <template promise.bind="promise">
+            <div>foo</div>
+          </template>
+        </template>` },
+        config(),
+        '<div>foo</div>',
+        [],
+        [],
+      );
+
       const template2 = `
     <template>
       <template promise.bind="promise">
@@ -1980,8 +1996,141 @@ describe.only('promise template-controller', function () {
         [],
       );
 
+      {
+        let resolve: (value: unknown) => void;
+        yield new TestData(
+          `*[promise]>div>*[pending|then|catch] works`,
+          Object.assign(new Promise((r) => { resolve = r; }), { id: 0 }),
+          {
+            template: `
+            <template>
+              <template promise.bind="promise">
+                <div>
+                  <pending-host pending p.bind="promise"></pending-host>
+                  <fulfilled-host then.from-view="data" data.bind="data"></fulfilled-host>
+                  <rejected-host catch.from-view="err" err.bind="err"></rejected-host>
+                </div>
+              </template>
+            </template>`,
+          },
+          config(),
+          `<div> ${wrap('pending0', 'p')} </div>`,
+          getActivationSequenceFor(`${phost}-1`),
+          getDeactivationSequenceFor(`${rhost}-1`),
+          async (ctx) => {
+            ctx.clear();
+            const q = ctx.platform.domWriteQueue;
+            resolve(42);
+            await q.yield();
+            await q.yield();
+
+            assert.html.innerEqual(ctx.host, `<div> ${wrap('resolved with 42', 'f')} </div>`, 'fulfilled');
+            ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor(`${fhost}-1`)]);
+
+            ctx.clear();
+            ctx.app.promise = Promise.reject(new Error('foo-bar'));
+            await q.yield();
+            await q.yield();
+
+            assert.html.innerEqual(ctx.host, `<div> ${wrap('rejected with foo-bar', 'r')} </div>`, 'rejected');
+            ctx.assertCallSet([...getDeactivationSequenceFor(`${fhost}-1`), ...getActivationSequenceFor(`${rhost}-1`)]);
+          }
+        );
+      }
+
+      {
+        let resolve: (value: unknown) => void;
+        yield new TestData(
+          `*[promise]>CE>*[pending|then|catch] produces output`,
+          Object.assign(new Promise((r) => { resolve = r; }), { id: 0 }),
+          {
+            template: `
+            <template as-custom-element="foo-bar">
+              foo bar
+            </template>
+            <template promise.bind="promise">
+              <foo-bar>
+                <pending-host pending p.bind="promise"></pending-host>
+                <fulfilled-host then.from-view="data" data.bind="data"></fulfilled-host>
+                <rejected-host catch.from-view="err" err.bind="err"></rejected-host>
+              </foo-bar>
+            </template>`,
+          },
+          config(),
+          `<foo-bar class="au"> ${wrap('pending0', 'p')} foo bar </foo-bar>`,
+          getActivationSequenceFor(`${phost}-1`),
+          getDeactivationSequenceFor(`${rhost}-1`),
+          async (ctx) => {
+            ctx.clear();
+            const q = ctx.platform.domWriteQueue;
+            resolve(42);
+            await q.yield();
+            await q.yield();
+
+            assert.html.innerEqual(ctx.host, `<foo-bar class="au"> ${wrap('resolved with 42', 'f')} foo bar </foo-bar>`, 'fulfilled');
+            ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor(`${fhost}-1`)]);
+
+            ctx.clear();
+            ctx.app.promise = Promise.reject(new Error('foo-bar'));
+            await q.yield();
+            await q.yield();
+
+            assert.html.innerEqual(ctx.host, `<foo-bar class="au"> ${wrap('rejected with foo-bar', 'r')} foo bar </foo-bar>`, 'rejected');
+            ctx.assertCallSet([...getDeactivationSequenceFor(`${fhost}-1`), ...getActivationSequenceFor(`${rhost}-1`)]);
+          }
+        );
+      }
+
+      {
+        let resolve: (value: unknown) => void;
+        yield new TestData(
+          `*[promise]>CE>CE>*[pending|then|catch] produces output`,
+          Object.assign(new Promise((r) => { resolve = r; }), { id: 0 }),
+          {
+            template: `
+            <template as-custom-element="foo-bar">
+              foo bar
+            </template>
+            <template as-custom-element="fiz-baz">
+              fiz baz
+            </template>
+            <template promise.bind="promise">
+              <foo-bar>
+                <fiz-baz>
+                  <pending-host pending p.bind="promise"></pending-host>
+                  <fulfilled-host then.from-view="data" data.bind="data"></fulfilled-host>
+                  <rejected-host catch.from-view="err" err.bind="err"></rejected-host>
+                </fiz-baz>
+              </foo-bar>
+            </template>`,
+          },
+          config(),
+          `<foo-bar class="au"> <fiz-baz class="au"> ${wrap('pending0', 'p')} fiz baz </fiz-baz> foo bar </foo-bar>`,
+          getActivationSequenceFor(`${phost}-1`),
+          getDeactivationSequenceFor(`${rhost}-1`),
+          async (ctx) => {
+            ctx.clear();
+            const q = ctx.platform.domWriteQueue;
+            resolve(42);
+            await q.yield();
+            await q.yield();
+
+            assert.html.innerEqual(ctx.host, `<foo-bar class="au"> <fiz-baz class="au"> ${wrap('resolved with 42', 'f')} fiz baz </fiz-baz> foo bar </foo-bar>`, 'fulfilled');
+            ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor(`${fhost}-1`)]);
+
+            ctx.clear();
+            ctx.app.promise = Promise.reject(new Error('foo-bar'));
+            await q.yield();
+            await q.yield();
+
+            assert.html.innerEqual(ctx.host, `<foo-bar class="au"> <fiz-baz class="au"> ${wrap('rejected with foo-bar', 'r')} fiz baz </fiz-baz> foo bar </foo-bar>`, 'rejected');
+            ctx.assertCallSet([...getDeactivationSequenceFor(`${fhost}-1`), ...getActivationSequenceFor(`${rhost}-1`)]);
+          }
+        );
+      }
     }
     // #region timings
+    // eslint-disable-next-line require-atomic-updates
     for (const $resolve of [true, false]) {
       const getPromise = (ticks: number) => () => Object.assign(
         createMultiTickPromise(ticks, () => $resolve ? Promise.resolve(42) : Promise.reject(new Error('foo-bar')))(),

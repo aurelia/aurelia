@@ -1952,6 +1952,35 @@ describe.only('promise template-controller', function () {
         }
       );
 
+      yield new TestData(
+        `au-slot use-case`,
+        Promise.reject(new Error('foo')),
+        {
+          template: `
+          <foo-bar p.bind="42|promisify:true">
+            <div au-slot>f1</div>
+            <div au-slot="rejected">r1</div>
+          </foo-bar>
+          <foo-bar p.bind="'forty-two'|promisify:false">
+            <div au-slot>f2</div>
+            <div au-slot="rejected">r2</div>
+          </foo-bar>
+          <template as-custom-element="foo-bar">
+            <bindable property="p"></bindable>
+            <template promise.bind="p">
+              <au-slot name="pending" pending></au-slot>
+              <au-slot then></au-slot>
+              <au-slot name="rejected" catch></au-slot>
+            </template>
+          </template>`,
+        },
+        config(),
+        '<foo-bar p.bind="42|promisify:true" class="au"> <div>f1</div> </foo-bar> <foo-bar p.bind="\'forty-two\'|promisify:false" class="au"> <div>r2</div> </foo-bar>',
+        [],
+        [],
+      );
+
+    }
     // #region timings
     for (const $resolve of [true, false]) {
       const getPromise = (ticks: number) => () => Object.assign(

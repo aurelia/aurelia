@@ -536,7 +536,7 @@ describe('promise template-controller', function () {
           );
           yield new TestData(
             'shows content for rejected promise',
-            Promise.reject(new Error('foo-bar')),
+            () => Promise.reject(new Error('foo-bar')),
             { delayPromise, template: template1 },
             config(),
             wrap('rejected with foo-bar', 'r'),
@@ -635,7 +635,7 @@ describe('promise template-controller', function () {
           );
           yield new TestData(
             'reacts to change in promise value - rejected -> rejected',
-            Promise.reject(new Error('foo-bar')),
+            () => Promise.reject(new Error('foo-bar')),
             { delayPromise, template: template1 },
             config(),
             wrap('rejected with foo-bar', 'r'),
@@ -652,7 +652,7 @@ describe('promise template-controller', function () {
           );
           yield new TestData(
             'reacts to change in promise value - rejected -> fulfilled',
-            Promise.reject(new Error('foo-bar')),
+            () => Promise.reject(new Error('foo-bar')),
             { delayPromise, template: template1 },
             config(),
             wrap('rejected with foo-bar', 'r'),
@@ -669,7 +669,7 @@ describe('promise template-controller', function () {
           );
           yield new TestData(
             'reacts to change in promise value - rejected -> (pending -> fulfilled)',
-            Promise.reject(new Error('foo-bar')),
+            () => Promise.reject(new Error('foo-bar')),
             { delayPromise, template: template1 },
             config(),
             wrap('rejected with foo-bar', 'r'),
@@ -697,7 +697,7 @@ describe('promise template-controller', function () {
           );
           yield new TestData(
             'reacts to change in promise value - rejected -> (pending -> rejected)',
-            Promise.reject(new Error('foo-bar')),
+            () => Promise.reject(new Error('foo-bar')),
             { delayPromise, template: template1 },
             config(),
             wrap('rejected with foo-bar', 'r'),
@@ -1253,7 +1253,7 @@ describe('promise template-controller', function () {
           );
           yield new TestData(
             'works in nested template - rejected>fulfilled',
-            Promise.reject({ json() { return Promise.resolve(42); } }),
+            () => Promise.reject({ json() { return Promise.resolve(42); } }),
             {
               delayPromise, template: `
             <template>
@@ -1274,7 +1274,7 @@ describe('promise template-controller', function () {
           );
           yield new TestData(
             'works in nested template - rejected>rejected',
-            Promise.reject({ json() { return Promise.reject(new Error('foo-bar')); } }),
+            () => Promise.reject({ json() { return Promise.reject(new Error('foo-bar')); } }),
             {
               delayPromise, template: `
             <template>
@@ -1738,7 +1738,7 @@ describe('promise template-controller', function () {
 
           yield new TestData(
             `[catch,if] works- #1`,
-            Object.assign(Promise.reject(new Error('foo-bar')), { id: 0 }),
+            () => Object.assign(Promise.reject(new Error('foo-bar')), { id: 0 }),
             {
               delayPromise, template: `
           <let flag.bind="false"></let>
@@ -1768,7 +1768,7 @@ describe('promise template-controller', function () {
 
           yield new TestData(
             `[catch,if] works- #2`,
-            Object.assign(Promise.reject(new Error('foo')), { id: 0 }),
+            () => Object.assign(Promise.reject(new Error('foo')), { id: 0 }),
             {
               delayPromise, template: `
           <template>
@@ -1818,7 +1818,7 @@ describe('promise template-controller', function () {
 
             yield new TestData(
               `[case,${pattribute}] works - ${$resolve ? 'fulfilled' : 'rejected'}`,
-              $resolve ? Promise.resolve(42) : Promise.reject(new Error('foo-bar')),
+              () => $resolve ? Promise.resolve(42) : Promise.reject(new Error('foo-bar')),
               {
                 delayPromise, template: `
           <let status.bind="'unknown'"></let>
@@ -1927,7 +1927,7 @@ describe('promise template-controller', function () {
 
           yield new TestData(
             `[catch,switch] works - #1`,
-            Promise.reject(new Error('foo')),
+            () => Promise.reject(new Error('foo')),
             {
               delayPromise, template: `
           <template>
@@ -1968,7 +1968,7 @@ describe('promise template-controller', function () {
 
           yield new TestData(
             `[catch,switch] works - #2`,
-            Promise.reject(new Error('foo')),
+            () => Promise.reject(new Error('foo')),
             {
               delayPromise, template: `
           <let status.bind="'processing'"></let>
@@ -2000,7 +2000,7 @@ describe('promise template-controller', function () {
 
           yield new TestData(
             `au-slot use-case`,
-            Promise.reject(new Error('foo')),
+            () => Promise.reject(new Error('foo')),
             {
               delayPromise, template: `
           <foo-bar p.bind="42|promisify:true">

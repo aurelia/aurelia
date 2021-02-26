@@ -69,6 +69,8 @@ import {
   FulfilledTemplateController,
   RejectedTemplateController,
   PromiseAttributePattern,
+  FulfilledAttributePattern,
+  RejectedAttributePattern,
 } from './resources/template-controllers/promise.js';
 import { Compose } from './resources/custom-elements/compose.js';
 import { AuSlot } from './resources/custom-elements/au-slot.js';
@@ -180,6 +182,8 @@ export const PendingTemplateControllerRegistration = PendingTemplateController a
 export const FulfilledTemplateControllerRegistration = FulfilledTemplateController as unknown as IRegistry;
 export const RejectedTemplateControllerRegistration = RejectedTemplateController as unknown as IRegistry;
 export const PromiseAttributePatternRegistration = PromiseAttributePattern as unknown as IRegistry;
+export const FulfilledAttributePatternRegistration = FulfilledAttributePattern as unknown as IRegistry;
+export const RejectedAttributePatternRegistration = RejectedAttributePattern as unknown as IRegistry;
 export const AttrBindingBehaviorRegistration = AttrBindingBehavior as unknown as IRegistry;
 export const SelfBindingBehaviorRegistration = SelfBindingBehavior as unknown as IRegistry;
 export const UpdateTriggerBindingBehaviorRegistration = UpdateTriggerBindingBehavior as unknown as IRegistry;
@@ -221,6 +225,8 @@ export const DefaultResources = [
   FulfilledTemplateControllerRegistration,
   RejectedTemplateControllerRegistration,
   PromiseAttributePatternRegistration,
+  FulfilledAttributePatternRegistration,
+  RejectedAttributePatternRegistration,
   AttrBindingBehaviorRegistration,
   SelfBindingBehaviorRegistration,
   UpdateTriggerBindingBehaviorRegistration,

@@ -42,6 +42,7 @@ import {
 } from '@aurelia/runtime-html';
 import {
   assert,
+  generateCartesianProduct,
   TestContext,
 } from '@aurelia/testing';
 import {
@@ -185,35 +186,18 @@ describe.only('promise template-controller', function () {
     public get log() {
       return this._log?.log ?? [];
     }
-    public getSwitches(controller = this.controller) {
-      return controller.children
-        .reduce((acc: Switch[], c) => {
-          const vm = c.viewModel;
-          if (vm instanceof Switch) {
-            acc.push(vm);
-          }
-          return acc;
-        }, []);
-    }
     public clear() {
       this._log?.clear();
     }
 
-    public assertCalls(expected: (string | number)[], message: string = '') {
-      assert.deepStrictEqual(this.log, this.transformCalls(expected), message);
+    public assertCalls(expected: string[], message: string = '') {
+      assert.deepStrictEqual(this.log, expected, message);
     }
 
-    public assertCallSet(expected: (string | number)[], message: string = '') {
-      expected = this.transformCalls(expected);
+    public assertCallSet(expected: string[], message: string = '') {
       const actual = this.log;
       assert.strictEqual(actual.length, expected.length, `${message} - calls.length - ${actual}`);
       assert.strictEqual(actual.filter((c) => !expected.includes(c)).length, 0, `${message} - calls set equality - ${actual}`);
-    }
-
-    private transformCalls(calls: (string | number)[]) {
-      let cases: Case[];
-      const getCases = () => cases ?? (cases = this.getSwitches().flatMap((s) => s['cases']));
-      return calls.map((item) => typeof item === 'string' ? item : `Case-#${getCases()[item - 1].id}.isMatch()`);
     }
   }
 
@@ -392,7 +376,7 @@ describe.only('promise template-controller', function () {
       }: Partial<TestSetupContext>,
       public readonly config: Config,
       public readonly expectedInnerHtml: string,
-      public readonly expectedStartLog: (string | number)[],
+      public readonly expectedStartLog: string[],
       public readonly expectedStopLog: string[],
       public readonly additionalAssertions: ((ctx: PromiseTestExecutionContext) => Promise<void> | void) | null = null,
       public readonly only: boolean = false,
@@ -487,13 +471,17 @@ describe.only('promise template-controller', function () {
         return new Config(true, createWaiter(5));
       },
     ];
-    for (const attribute of ['promise.bind', 'promise.resolve']) {
+    for (const [pattribute, fattribute, rattribute] of generateCartesianProduct([
+      ['promise.bind', 'promise.resolve'],
+      ['then.from-view', 'then'],
+      ['catch.from-view', 'catch'],
+    ])) {
       const template1 = `
     <template>
-      <template ${attribute}="promise">
+      <template ${pattribute}="promise">
         <pending-host pending p.bind="promise"></pending-host>
-        <fulfilled-host then.from-view="data" data.bind="data"></fulfilled-host>
-        <rejected-host catch.from-view="err" err.bind="err"></rejected-host>
+        <fulfilled-host ${fattribute}="data" data.bind="data"></fulfilled-host>
+        <rejected-host ${rattribute}="err" err.bind="err"></rejected-host>
       </template>
     </template>`;
       for (const delayPromise of [null, ...(Object.values(DelayPromise))]) {
@@ -847,7 +835,7 @@ describe.only('promise template-controller', function () {
           yield new TestData(
             'can be used in isolation without any of the child template controllers',
             new Promise(() => {/* noop */ }),
-            { delayPromise, template: `<template><template ${attribute}="promise">this is shown always</template></template>` },
+            { delayPromise, template: `<template><template ${pattribute}="promise">this is shown always</template></template>` },
             config(),
             'this is shown always',
             [],
@@ -855,7 +843,7 @@ describe.only('promise template-controller', function () {
           );
           const pTemplt =
             `<template>
-        <template ${attribute}="promise">
+        <template ${pattribute}="promise">
           <pending-host pending p.bind="promise"></pending-host>
         </template>
       </template>`;
@@ -903,9 +891,9 @@ describe.only('promise template-controller', function () {
           }
           const pfCombTemplt =
             `<template>
-        <template ${attribute}="promise">
+        <template ${pattribute}="promise">
           <pending-host pending p.bind="promise"></pending-host>
-          <fulfilled-host then.from-view="data" data.bind="data"></fulfilled-host>
+          <fulfilled-host ${fattribute}="data" data.bind="data"></fulfilled-host>
         </template>
       </template>`;
           {
@@ -952,9 +940,9 @@ describe.only('promise template-controller', function () {
           }
           const prCombTemplt =
             `<template>
-        <template ${attribute}="promise">
+        <template ${pattribute}="promise">
           <pending-host pending p.bind="promise"></pending-host>
-          <rejected-host catch.from-view="err" err.bind="err"></rejected-host>
+          <rejected-host ${rattribute}="err" err.bind="err"></rejected-host>
         </template>
       </template>`;
           {
@@ -1001,8 +989,8 @@ describe.only('promise template-controller', function () {
           }
           const fTemplt =
             `<template>
-      <template ${attribute}="promise">
-        <fulfilled-host then.from-view="data" data.bind="data"></fulfilled-host>
+      <template ${pattribute}="promise">
+        <fulfilled-host ${fattribute}="data" data.bind="data"></fulfilled-host>
       </template>
     </template>`;
           {
@@ -1049,8 +1037,8 @@ describe.only('promise template-controller', function () {
           }
           const rTemplt =
             `<template>
-      <template ${attribute}="promise">
-        <rejected-host catch.from-view="err" err.bind="err"></rejected-host>
+      <template ${pattribute}="promise">
+        <rejected-host ${rattribute}="err" err.bind="err"></rejected-host>
       </template>
     </template>`;
           {
@@ -1097,9 +1085,9 @@ describe.only('promise template-controller', function () {
           }
           const frTemplt =
             `<template>
-      <template ${attribute}="promise">
-        <fulfilled-host then.from-view="data" data.bind="data"></fulfilled-host>
-        <rejected-host catch.from-view="err" err.bind="err"></rejected-host>
+      <template ${pattribute}="promise">
+        <fulfilled-host ${fattribute}="data" data.bind="data"></fulfilled-host>
+        <rejected-host ${rattribute}="err" err.bind="err"></rejected-host>
       </template>
     </template>`;
           {
@@ -1151,7 +1139,7 @@ describe.only('promise template-controller', function () {
             {
               delayPromise, template: `
         <template>
-          <template ${attribute}="promise">
+          <template ${pattribute}="promise">
             <div>foo</div>
           </template>
         </template>` },
@@ -1163,7 +1151,7 @@ describe.only('promise template-controller', function () {
 
           const template2 = `
     <template>
-      <template ${attribute}="promise">
+      <template ${pattribute}="promise">
         <pending-host pending p.bind="promise"></pending-host>
         <fulfilled-host1 then></fulfilled-host1>
         <rejected-host1 catch></rejected-host1>
@@ -1233,12 +1221,12 @@ describe.only('promise template-controller', function () {
             {
               delayPromise, template: `
             <template>
-              <template ${attribute}="promise">
+              <template ${pattribute}="promise">
                 <pending-host pending p.bind="promise"></pending-host>
-                <template then.from-view="response" ${attribute}="response.json()">
-                  <fulfilled-host then.from-view="data" data.bind="data"></fulfilled-host>
+                <template ${fattribute}="response" ${pattribute}="response.json()">
+                  <fulfilled-host ${fattribute}="data" data.bind="data"></fulfilled-host>
                 </template>
-                <rejected-host catch.from-view="err" err.bind="err"></rejected-host>
+                <rejected-host ${rattribute}="err" err.bind="err"></rejected-host>
               </template>
             </template>`
             },
@@ -1253,13 +1241,13 @@ describe.only('promise template-controller', function () {
             {
               delayPromise, template: `
             <template>
-              <template ${attribute}="promise">
+              <template ${pattribute}="promise">
                 <pending-host pending p.bind="promise"></pending-host>
-                <template then.from-view="response" ${attribute}="response.json()">
-                  <fulfilled-host then.from-view="data" data.bind="data"></fulfilled-host>
-                  <rejected-host catch.from-view="err" err.bind="updateError(err)"></rejected-host>
+                <template ${fattribute}="response" ${pattribute}="response.json()">
+                  <fulfilled-host ${fattribute}="data" data.bind="data"></fulfilled-host>
+                  <rejected-host ${rattribute}="err" err.bind="updateError(err)"></rejected-host>
                 </template>
-                <rejected-host catch.from-view="err1" err.bind="err1"></rejected-host>
+                <rejected-host ${rattribute}="err1" err.bind="err1"></rejected-host>
               </template>
             </template>`
             },
@@ -1274,12 +1262,12 @@ describe.only('promise template-controller', function () {
             {
               delayPromise, template: `
             <template>
-              <template ${attribute}="promise">
+              <template ${pattribute}="promise">
                 <pending-host pending p.bind="promise"></pending-host>
-                <fulfilled-host then.from-view="data1" data.bind="data1"></fulfilled-host>
-                <template catch.from-view="response" ${attribute}="response.json()">
-                  <fulfilled-host then.from-view="data" data.bind="data"></fulfilled-host>
-                  <rejected-host catch.from-view="err" err.bind="err"></rejected-host>
+                <fulfilled-host ${fattribute}="data1" data.bind="data1"></fulfilled-host>
+                <template ${rattribute}="response" ${pattribute}="response.json()">
+                  <fulfilled-host ${fattribute}="data" data.bind="data"></fulfilled-host>
+                  <rejected-host ${rattribute}="err" err.bind="err"></rejected-host>
                 </template>
               </template>
             </template>`
@@ -1295,12 +1283,12 @@ describe.only('promise template-controller', function () {
             {
               delayPromise, template: `
             <template>
-              <template ${attribute}="promise">
+              <template ${pattribute}="promise">
                 <pending-host pending p.bind="promise"></pending-host>
-                <fulfilled-host then.from-view="data1" data.bind="data1"></fulfilled-host>
-                <template catch.from-view="response" ${attribute}="response.json()">
-                  <fulfilled-host then.from-view="data" data.bind="data"></fulfilled-host>
-                  <rejected-host catch.from-view="err" err.bind="err"></rejected-host>
+                <fulfilled-host ${fattribute}="data1" data.bind="data1"></fulfilled-host>
+                <template ${rattribute}="response" ${pattribute}="response.json()">
+                  <fulfilled-host ${fattribute}="data" data.bind="data"></fulfilled-host>
+                  <rejected-host ${rattribute}="err" err.bind="err"></rejected-host>
                 </template>
               </template>
             </template>`
@@ -1318,10 +1306,10 @@ describe.only('promise template-controller', function () {
               {
                 delayPromise, template: `
             <template>
-              <template ${attribute}="42|promisify:${$resolve}">
+              <template ${pattribute}="42|promisify:${$resolve}">
                 <pending-host pending></pending-host>
-                <fulfilled-host then.from-view="data | double" data.bind="data"></fulfilled-host>
-                <rejected-host catch.from-view="err | double" err.bind="err"></rejected-host>
+                <fulfilled-host ${fattribute}="data | double" data.bind="data"></fulfilled-host>
+                <rejected-host ${rattribute}="err | double" err.bind="err"></rejected-host>
               </template>
             </template>`
               },
@@ -1337,10 +1325,10 @@ describe.only('promise template-controller', function () {
               {
                 delayPromise, template: `
             <template>
-              <template ${attribute}="42|promisify:${$resolve}:10">
+              <template ${pattribute}="42|promisify:${$resolve}:10">
                 <pending-host pending></pending-host>
-                <fulfilled-host then.from-view="data | double" data.bind="data"></fulfilled-host>
-                <rejected-host catch.from-view="err | double" err.bind="err"></rejected-host>
+                <fulfilled-host ${fattribute}="data | double" data.bind="data"></fulfilled-host>
+                <rejected-host ${rattribute}="err | double" err.bind="err"></rejected-host>
               </template>
             </template>`
               },
@@ -1374,10 +1362,10 @@ describe.only('promise template-controller', function () {
               {
                 delayPromise, template: `
             <template>
-              <template ${attribute}="promise & noop">
+              <template ${pattribute}="promise & noop">
                 <pending-host pending></pending-host>
-                <fulfilled-host then.from-view="data & noop" data.bind="data"></fulfilled-host>
-                <rejected-host catch.from-view="err & noop" err.bind="err"></rejected-host>
+                <fulfilled-host ${fattribute}="data & noop" data.bind="data"></fulfilled-host>
+                <rejected-host ${rattribute}="err & noop" err.bind="err"></rejected-host>
               </template>
             </template>`
               },
@@ -1396,10 +1384,10 @@ describe.only('promise template-controller', function () {
               {
                 delayPromise, template: `
             <template>
-              <template ${attribute}="promise & noop">
+              <template ${pattribute}="promise & noop">
                 <pending-host pending p.bind="promise"></pending-host>
-                <fulfilled-host then.from-view="data & noop" data.bind="data"></fulfilled-host>
-                <rejected-host catch.from-view="err & noop" err.bind="err"></rejected-host>
+                <fulfilled-host ${fattribute}="data & noop" data.bind="data"></fulfilled-host>
+                <rejected-host ${rattribute}="err & noop" err.bind="err"></rejected-host>
               </template>
             </template>`
               },
@@ -1438,10 +1426,10 @@ describe.only('promise template-controller', function () {
                   delayPromise, template: `
               <let foo-bar.bind="'Fizz Bazz'"></let>
               <my-el prop.bind="fooBar"></my-el>
-              <template ${attribute}="promise">
+              <template ${pattribute}="promise">
                 <pending-host pending p.bind="promise"></pending-host>
-                <fulfilled-host then.from-view="data" data.bind="data"></fulfilled-host>
-                <rejected-host catch.from-view="err" err.bind="err"></rejected-host>
+                <fulfilled-host ${fattribute}="data" data.bind="data"></fulfilled-host>
+                <rejected-host ${rattribute}="err" err.bind="err"></rejected-host>
               </template>`,
                   registrations: [
                     CustomElement.define({ name: 'my-el', template: `\${prop}`, bindables: ['prop'] }, class MyEl { }),
@@ -1471,7 +1459,7 @@ describe.only('promise template-controller', function () {
           }
 
           yield new TestData(
-            `[repeat.for] > [${attribute}] works`,
+            `[repeat.for] > [${pattribute}] works`,
             null,
             {
               // , ['forty-two', true], ['fizz-bazz', false]
@@ -1479,9 +1467,9 @@ describe.only('promise template-controller', function () {
           <template>
             <let items.bind="[[42, true], ['foo-bar', false]]"></let>
             <template repeat.for="item of items">
-              <template ${attribute}="item[0] | promisify:item[1]">
-                <fulfilled-host then.from-view="data" data.bind="data"></fulfilled-host>
-                <rejected-host catch.from-view="err" err.bind="err"></rejected-host>
+              <template ${pattribute}="item[0] | promisify:item[1]">
+                <fulfilled-host ${fattribute}="data" data.bind="data"></fulfilled-host>
+                <rejected-host ${rattribute}="err" err.bind="err"></rejected-host>
               </template>
             </template>
           </template>`,
@@ -1493,16 +1481,16 @@ describe.only('promise template-controller', function () {
           );
 
           yield new TestData(
-            `[repeat.for,${attribute}] works`,
+            `[repeat.for,${pattribute}] works`,
             null,
             {
               // , ['forty-two', true], ['fizz-bazz', false]
               template: `
           <template>
             <let items.bind="[[42, true], ['foo-bar', false]]"></let>
-              <template repeat.for="item of items" ${attribute}="item[0] | promisify:item[1]">
-                <fulfilled-host then.from-view="data" data.bind="data"></fulfilled-host>
-                <rejected-host catch.from-view="err" err.bind="err"></rejected-host>
+              <template repeat.for="item of items" ${pattribute}="item[0] | promisify:item[1]">
+                <fulfilled-host ${fattribute}="data" data.bind="data"></fulfilled-host>
+                <rejected-host ${rattribute}="err" err.bind="err"></rejected-host>
               </template>
           </template>`,
             },
@@ -1518,9 +1506,9 @@ describe.only('promise template-controller', function () {
             {
               delayPromise, template: `
           <template>
-            <template ${attribute}="[42, 'forty-two'] | promisify:true">
-              <fulfilled-host then.from-view="items" repeat.for="data of items" data.bind="data"></fulfilled-host>
-              <rejected-host catch.from-view="err" err.bind="err"></rejected-host>
+            <template ${pattribute}="[42, 'forty-two'] | promisify:true">
+              <fulfilled-host ${fattribute}="items" repeat.for="data of items" data.bind="data"></fulfilled-host>
+              <rejected-host ${rattribute}="err" err.bind="err"></rejected-host>
             </template>
           </template>`,
             },
@@ -1536,11 +1524,11 @@ describe.only('promise template-controller', function () {
             {
               delayPromise, template: `
           <template>
-            <template ${attribute}="[42, 'forty-two'] | promisify:true">
-              <template then.from-view="items">
+            <template ${pattribute}="[42, 'forty-two'] | promisify:true">
+              <template ${fattribute}="items">
                 <fulfilled-host repeat.for="data of items" data.bind="data"></fulfilled-host>
               </template>
-              <rejected-host catch.from-view="err" err.bind="err"></rejected-host>
+              <rejected-host ${rattribute}="err" err.bind="err"></rejected-host>
             </template>
           </template>`,
             },
@@ -1567,9 +1555,9 @@ describe.only('promise template-controller', function () {
               {
                 delayPromise, template: `
           <template>
-            <template ${attribute}="[42, 'forty-two'] | promisify:false">
-              <fulfilled-host then.from-view="data" data.bind="data"></fulfilled-host>
-              <rej-host catch.from-view="error" repeat.for="err of error | parseError" err.bind="err"></rej-host>
+            <template ${pattribute}="[42, 'forty-two'] | promisify:false">
+              <fulfilled-host ${fattribute}="data" data.bind="data"></fulfilled-host>
+              <rej-host ${rattribute}="error" repeat.for="err of error | parseError" err.bind="err"></rej-host>
             </template>
           </template>`,
                 registrations,
@@ -1585,9 +1573,9 @@ describe.only('promise template-controller', function () {
               {
                 delayPromise, template: `
           <template>
-            <template ${attribute}="[42, 'forty-two'] | promisify:false">
-              <fulfilled-host then.from-view="data" data.bind="data"></fulfilled-host>
-              <template catch.from-view="error">
+            <template ${pattribute}="[42, 'forty-two'] | promisify:false">
+              <fulfilled-host ${fattribute}="data" data.bind="data"></fulfilled-host>
+              <template ${rattribute}="error">
                 <rej-host repeat.for="err of error | parseError" err.bind="err"></rej-host>
               </template>
             </template>
@@ -1602,20 +1590,20 @@ describe.only('promise template-controller', function () {
           }
 
           yield new TestData(
-            `[if,${attribute}], [else,${attribute}] works`,
+            `[if,${pattribute}], [else,${pattribute}] works`,
             Promise.resolve(42),
             {
               delayPromise, template: `
           <let flag.bind="false"></let>
-          <template if.bind="flag" ${attribute}="42 | promisify:true">
+          <template if.bind="flag" ${pattribute}="42 | promisify:true">
             <pending-host pending></pending-host>
-            <fulfilled-host then.from-view="data1" data.bind="data1"></fulfilled-host>
-            <rejected-host catch.from-view="err1" err.bind="err1"></rejected-host>
+            <fulfilled-host ${fattribute}="data1" data.bind="data1"></fulfilled-host>
+            <rejected-host ${rattribute}="err1" err.bind="err1"></rejected-host>
           </template>
-          <template else ${attribute}="'forty-two' | promisify:false:10">
+          <template else ${pattribute}="'forty-two' | promisify:false:10">
             <pending-host pending></pending-host>
-            <fulfilled-host then.from-view="data2" data.bind="data2"></fulfilled-host>
-            <rejected-host catch.from-view="err2" err.bind="err2"></rejected-host>
+            <fulfilled-host ${fattribute}="data2" data.bind="data2"></fulfilled-host>
+            <rejected-host ${rattribute}="err2" err.bind="err2"></rejected-host>
           </template>`,
             },
             config(),
@@ -1662,10 +1650,10 @@ describe.only('promise template-controller', function () {
             {
               delayPromise, template: `
           <let flag.bind="false"></let>
-          <template ${attribute}="promise">
+          <template ${pattribute}="promise">
             <pending-host pending p.bind="promise" if.bind="flag"></pending-host>
-            <fulfilled-host then.from-view="data" data.bind="data"></fulfilled-host>
-            <rejected-host catch.from-view="err" err.bind="err"></rejected-host>
+            <fulfilled-host ${fattribute}="data" data.bind="data"></fulfilled-host>
+            <rejected-host ${rattribute}="err" err.bind="err"></rejected-host>
           </template>`,
             },
             config(),
@@ -1694,10 +1682,10 @@ describe.only('promise template-controller', function () {
             {
               delayPromise, template: `
           <let flag.bind="false"></let>
-          <template ${attribute}="promise">
+          <template ${pattribute}="promise">
             <pending-host pending p.bind="promise"></pending-host>
-            <fulfilled-host then.from-view="data" if.bind="flag" data.bind="data"></fulfilled-host>
-            <rejected-host catch.from-view="err" err.bind="err"></rejected-host>
+            <fulfilled-host ${fattribute}="data" if.bind="flag" data.bind="data"></fulfilled-host>
+            <rejected-host ${rattribute}="err" err.bind="err"></rejected-host>
           </template>`,
             },
             config(),
@@ -1724,10 +1712,10 @@ describe.only('promise template-controller', function () {
             {
               delayPromise, template: `
           <template>
-            <template ${attribute}="promise">
+            <template ${pattribute}="promise">
               <pending-host pending p.bind="promise"></pending-host>
-              <fulfilled-host then.from-view="data" if.bind="data === 42" data.bind="data"></fulfilled-host>
-              <rejected-host catch.from-view="err" err.bind="err"></rejected-host>
+              <fulfilled-host ${fattribute}="data" if.bind="data === 42" data.bind="data"></fulfilled-host>
+              <rejected-host ${rattribute}="err" err.bind="err"></rejected-host>
             </template>
           </template>`,
             },
@@ -1759,10 +1747,10 @@ describe.only('promise template-controller', function () {
             {
               delayPromise, template: `
           <let flag.bind="false"></let>
-          <template ${attribute}="promise">
+          <template ${pattribute}="promise">
             <pending-host pending p.bind="promise"></pending-host>
-            <fulfilled-host then.from-view="data" data.bind="data"></fulfilled-host>
-            <rejected-host catch.from-view="err" if.bind="flag" err.bind="err"></rejected-host>
+            <fulfilled-host ${fattribute}="data" data.bind="data"></fulfilled-host>
+            <rejected-host ${rattribute}="err" if.bind="flag" err.bind="err"></rejected-host>
           </template>`,
             },
             config(),
@@ -1789,10 +1777,10 @@ describe.only('promise template-controller', function () {
             {
               delayPromise, template: `
           <template>
-            <template ${attribute}="promise">
+            <template ${pattribute}="promise">
               <pending-host pending p.bind="promise"></pending-host>
-              <fulfilled-host then.from-view="data" data.bind="data"></fulfilled-host>
-              <rejected-host catch.from-view="err" if.bind="err.message === 'foo-bar'" err.bind="err"></rejected-host>
+              <fulfilled-host ${fattribute}="data" data.bind="data"></fulfilled-host>
+              <rejected-host ${rattribute}="err" if.bind="err.message === 'foo-bar'" err.bind="err"></rejected-host>
             </template>
           </template>`,
             },
@@ -1834,17 +1822,17 @@ describe.only('promise template-controller', function () {
           for (const $resolve of [true, false]) {
 
             yield new TestData(
-              `[case,${attribute}] works - ${$resolve ? 'fulfilled' : 'rejected'}`,
+              `[case,${pattribute}] works - ${$resolve ? 'fulfilled' : 'rejected'}`,
               $resolve ? Promise.resolve(42) : Promise.reject(new Error('foo-bar')),
               {
                 delayPromise, template: `
           <let status.bind="'unknown'"></let>
           <template switch.bind="status">
             <template case="unknown">Unknown</template>
-            <template case="processing" ${attribute}="promise">
+            <template case="processing" ${pattribute}="promise">
               <pending-host pending p.bind="promise"></pending-host>
-              <fulfilled-host then.from-view="data" data.bind="data"></fulfilled-host>
-              <rejected-host catch.from-view="err" if.bind="err.message === 'foo-bar'" err.bind="err"></rejected-host>
+              <fulfilled-host ${fattribute}="data" data.bind="data"></fulfilled-host>
+              <rejected-host ${rattribute}="err" if.bind="err.message === 'foo-bar'" err.bind="err"></rejected-host>
             </template>
           </template>`,
               },
@@ -1879,13 +1867,13 @@ describe.only('promise template-controller', function () {
             {
               delayPromise, template: `
           <template>
-            <template ${attribute}="promise">
+            <template ${pattribute}="promise">
               <pending-host pending p.bind="promise"></pending-host>
-              <template then.from-view="status" switch.bind="status">
+              <template ${fattribute}="status" switch.bind="status">
                 <fulfilled-host case='processing' data="processing"></fulfilled-host>
                 <fulfilled-host default-case data="unknown"></fulfilled-host>
               </template>
-              <rejected-host catch.from-view="err" err.bind="err"></rejected-host>
+              <rejected-host ${rattribute}="err" err.bind="err"></rejected-host>
             </template>
           </template>`,
             },
@@ -1916,13 +1904,13 @@ describe.only('promise template-controller', function () {
             {
               delayPromise, template: `
           <let status.bind="'processing'"></let>
-          <template ${attribute}="promise">
+          <template ${pattribute}="promise">
             <pending-host pending p.bind="promise"></pending-host>
             <template then switch.bind="status">
               <fulfilled-host case='processing' data="processing"></fulfilled-host>
               <fulfilled-host default-case data="unknown"></fulfilled-host>
             </template>
-            <rejected-host catch.from-view="err" err.bind="err"></rejected-host>
+            <rejected-host ${rattribute}="err" err.bind="err"></rejected-host>
           </template>`,
             },
             config(),
@@ -1948,10 +1936,10 @@ describe.only('promise template-controller', function () {
             {
               delayPromise, template: `
           <template>
-            <template ${attribute}="promise">
+            <template ${pattribute}="promise">
               <pending-host pending p.bind="promise"></pending-host>
-              <fulfilled-host then.from-view="data" data.bind="data"></fulfilled-host>
-              <template catch.from-view="err" switch.bind="err.message">
+              <fulfilled-host ${fattribute}="data" data.bind="data"></fulfilled-host>
+              <template ${rattribute}="err" switch.bind="err.message">
                 <rejected-host case='processing' err.bind="{message: 'processing'}"></rejected-host>
                 <rejected-host default-case  err.bind="{message: 'unknown'}"></rejected-host>
               </template>
@@ -1989,9 +1977,9 @@ describe.only('promise template-controller', function () {
             {
               delayPromise, template: `
           <let status.bind="'processing'"></let>
-          <template ${attribute}="promise">
+          <template ${pattribute}="promise">
             <pending-host pending p.bind="promise"></pending-host>
-            <fulfilled-host then.from-view="data" data.bind="data"></fulfilled-host>
+            <fulfilled-host ${fattribute}="data" data.bind="data"></fulfilled-host>
             <template catch switch.bind="status">
               <rejected-host case='processing' err.bind="{message: 'processing'}"></rejected-host>
               <rejected-host default-case  err.bind="{message: 'unknown'}"></rejected-host>
@@ -2030,7 +2018,7 @@ describe.only('promise template-controller', function () {
           </foo-bar>
           <template as-custom-element="foo-bar">
             <bindable property="p"></bindable>
-            <template ${attribute}="p">
+            <template ${pattribute}="p">
               <au-slot name="pending" pending></au-slot>
               <au-slot then></au-slot>
               <au-slot name="rejected" catch></au-slot>
@@ -2051,11 +2039,11 @@ describe.only('promise template-controller', function () {
               {
                 delayPromise, template: `
             <template>
-              <template ${attribute}="promise">
+              <template ${pattribute}="promise">
                 <div>
                   <pending-host pending p.bind="promise"></pending-host>
-                  <fulfilled-host then.from-view="data" data.bind="data"></fulfilled-host>
-                  <rejected-host catch.from-view="err" err.bind="err"></rejected-host>
+                  <fulfilled-host ${fattribute}="data" data.bind="data"></fulfilled-host>
+                  <rejected-host ${rattribute}="err" err.bind="err"></rejected-host>
                 </div>
               </template>
             </template>`,
@@ -2095,11 +2083,11 @@ describe.only('promise template-controller', function () {
             <template as-custom-element="foo-bar">
               foo bar
             </template>
-            <template ${attribute}="promise">
+            <template ${pattribute}="promise">
               <foo-bar>
                 <pending-host pending p.bind="promise"></pending-host>
-                <fulfilled-host then.from-view="data" data.bind="data"></fulfilled-host>
-                <rejected-host catch.from-view="err" err.bind="err"></rejected-host>
+                <fulfilled-host ${fattribute}="data" data.bind="data"></fulfilled-host>
+                <rejected-host ${rattribute}="err" err.bind="err"></rejected-host>
               </foo-bar>
             </template>`,
               },
@@ -2141,12 +2129,12 @@ describe.only('promise template-controller', function () {
             <template as-custom-element="fiz-baz">
               fiz baz
             </template>
-            <template ${attribute}="promise">
+            <template ${pattribute}="promise">
               <foo-bar>
                 <fiz-baz>
                   <pending-host pending p.bind="promise"></pending-host>
-                  <fulfilled-host then.from-view="data" data.bind="data"></fulfilled-host>
-                  <rejected-host catch.from-view="err" err.bind="err"></rejected-host>
+                  <fulfilled-host ${fattribute}="data" data.bind="data"></fulfilled-host>
+                  <rejected-host ${rattribute}="err" err.bind="err"></rejected-host>
                 </fiz-baz>
               </foo-bar>
             </template>`,
@@ -2223,15 +2211,15 @@ describe.only('promise template-controller', function () {
           // These tests are more like sanity checks rather than asserting the lifecycle hooks invocation timings and sequence of those.
           // These rather assert that under varied configurations of promise and hook timings, the template controllers still work.
           for (const [name, promiseTick, config] of [
-            ['pending activation duration == promise settlement duration',                                                          4, { binding: 1, bound: 1, attaching: 1, attached: 1 }],
-            ['pending "binding" duration == promise settlement duration',                                                           2, { binding: 2 }],
-            ['pending "binding" duration > promise settlement duration',                                                            1, { binding: 2 }],
-            ['pending "binding" duration > promise settlement duration (longer running promise and hook)',                          4, { binding: 6 }],
-            ['pending "binding+bound" duration > promise settlement duration',                                                      2, { binding: 1, bound: 2 }],
-            ['pending "binding+bound" duration > promise settlement duration (longer running promise and hook)',                    4, { binding: 3, bound: 3 }],
-            ['pending "binding+bound+attaching" duration > promise settlement duration',                                            2, { binding: 1, bound: 1, attaching: 1 }],
-            ['pending "binding+bound+attaching" duration > promise settlement duration (longer running promise and hook)',          5, { binding: 2, bound: 2, attaching: 2 }],
-            ['pending "binding+bound+attaching+attached" duration > promise settlement duration',                                   3, { binding: 1, bound: 1, attaching: 1, attached: 1 }],
+            ['pending activation duration == promise settlement duration', 4, { binding: 1, bound: 1, attaching: 1, attached: 1 }],
+            ['pending "binding" duration == promise settlement duration', 2, { binding: 2 }],
+            ['pending "binding" duration > promise settlement duration', 1, { binding: 2 }],
+            ['pending "binding" duration > promise settlement duration (longer running promise and hook)', 4, { binding: 6 }],
+            ['pending "binding+bound" duration > promise settlement duration', 2, { binding: 1, bound: 2 }],
+            ['pending "binding+bound" duration > promise settlement duration (longer running promise and hook)', 4, { binding: 3, bound: 3 }],
+            ['pending "binding+bound+attaching" duration > promise settlement duration', 2, { binding: 1, bound: 1, attaching: 1 }],
+            ['pending "binding+bound+attaching" duration > promise settlement duration (longer running promise and hook)', 5, { binding: 2, bound: 2, attaching: 2 }],
+            ['pending "binding+bound+attaching+attached" duration > promise settlement duration', 3, { binding: 1, bound: 1, attaching: 1, attached: 1 }],
             ['pending "binding+bound+attaching+attached" duration > promise settlement duration (longer running promise and hook)', 6, { binding: 2, bound: 2, attaching: 2, attached: 2 }],
           ] as const) {
             yield new TestData(
@@ -2261,21 +2249,21 @@ describe.only('promise template-controller', function () {
                   ? [...getActivationSequenceFor(`${phost}-1`), ...getDeactivationSequenceFor(`${phost}-1`)]
                   : [];
 
-                  try {
-                    await app.promise;
-                  } catch {
-                    // ignore rejection
-                  }
-
-                  const q = ctx.platform.domWriteQueue;
-                  await q.yield();
-                  if ($resolve) {
-                    assert.html.innerEqual(ctx.host, wrap('resolved with 42', 'f'), 'fulfilled');
-                  } else {
-                    assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'), 'rejected');
-                  }
-                  ctx.assertCallSet([...logs, ...getActivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`)], `calls mismatch; presettled task status: ${task.status}`);
+                try {
+                  await app.promise;
+                } catch {
+                  // ignore rejection
                 }
+
+                const q = ctx.platform.domWriteQueue;
+                await q.yield();
+                if ($resolve) {
+                  assert.html.innerEqual(ctx.host, wrap('resolved with 42', 'f'), 'fulfilled');
+                } else {
+                  assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'), 'rejected');
+                }
+                ctx.assertCallSet([...logs, ...getActivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`)], `calls mismatch; presettled task status: ${task.status}`);
+              }
             );
           }
 

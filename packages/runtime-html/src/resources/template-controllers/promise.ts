@@ -345,3 +345,17 @@ export class PromiseAttributePattern {
     return new AttrSyntax(name, value, 'promise', 'bind');
   }
 }
+
+@attributePattern({ pattern: 'then', symbols: '' })
+export class FulfilledAttributePattern {
+  public 'then'(name: string, value: string, _parts: string[]): AttrSyntax {
+    return new AttrSyntax(name, value, 'then', 'from-view');
+  }
+}
+
+@attributePattern({ pattern: 'catch', symbols: '' })
+export class RejectedAttributePattern {
+  public 'catch'(name: string, value: string, _parts: string[]): AttrSyntax {
+    return new AttrSyntax(name, value, 'catch', 'from-view');
+  }
+}

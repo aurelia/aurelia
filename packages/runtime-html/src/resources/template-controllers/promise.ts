@@ -1,4 +1,4 @@
-import { ILogger, nextId, onResolve, resolveAll, Task, TaskStatus } from '@aurelia/kernel';
+import { nextId, onResolve, resolveAll, Task, TaskStatus } from '@aurelia/kernel';
 import { BindingMode, LifecycleFlags, Scope } from '@aurelia/runtime';
 import { bindable } from '../../bindable.js';
 import { INode, IRenderLocation } from '../../dom.js';
@@ -33,17 +33,12 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
   private preSettledTask: Task<void | Promise<void>> | null = null;
   private postSettledTask: Task<void | Promise<void>> | null = null;
   private postSettlePromise!: Promise<void>;
-  // TODO(Sayan): remove logger post-test
-  private readonly logger: ILogger;
 
   public constructor(
     @IViewFactory private readonly factory: IViewFactory,
     @IRenderLocation private readonly location: IRenderLocation,
     @IPlatform private readonly platform: IPlatform,
-    @ILogger logger: ILogger,
-  ) {
-    this.logger = logger.scopeTo(`${this.constructor.name}-${this.id}`);
-  }
+  ) { }
 
   public link(
     flags: LifecycleFlags,
@@ -67,17 +62,13 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
   }
 
   public valueChanged(_newValue: boolean, _oldValue: boolean, flags: LifecycleFlags): void {
-    // this.logger.debug('value changed 1');
     if (!this.$controller.isActive) { return; }
-    // this.logger.debug('value changed 2');
     this.swap(null, flags);
   }
 
   private swap(initiator: IHydratedController | null, flags: LifecycleFlags): void {
-    const console = (globalThis as any).console;
     const value = this.value;
     if (!(value instanceof Promise)) { return; }
-    console.log('swapping');
     const q = this.platform.domWriteQueue;
     const fulfilled = this.fulfilled;
     const rejected = this.rejected;
@@ -89,14 +80,12 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
     let preSettlePromise: Promise<void>;
     const defaultQueuingOptions = { reusable: false };
     const $swap = () => {
-      console.log('$swapping');
       // Note that the whole thing is not wrapped in a q.queueTask intentionally.
       // Because that would block the app till the actual promise is resolved, which is not the goal anyway.
       void resolveAll(
         // At first deactivate the fulfilled and rejected views, as well as activate the pending view.
         // The order of these 3 should not necessarily be sequential (i.e. order-irrelevant).
         preSettlePromise = (this.preSettledTask = q.queueTask(() => {
-          console.log('settling');
           return resolveAll(
             fulfilled?.deactivate(initiator, flags),
             rejected?.deactivate(initiator, flags),
@@ -110,7 +99,6 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
                 return;
               }
               const fulfill = () => {
-                console.log(`fulfill is called`);
                 // Deactivation of pending view and the activation of the fulfilled view should not necessarily be sequential.
                 this.postSettlePromise = (this.postSettledTask = q.queueTask(() => resolveAll(
                   pending?.deactivate(initiator, flags),
@@ -148,7 +136,6 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
     };
 
     if (this.postSettledTask?.status === TaskStatus.running) {
-      console.log('previous post-settled task is running');
       void this.postSettlePromise.then($swap);
     } else {
       this.postSettledTask?.cancel();
@@ -157,7 +144,6 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
   }
 
   public detaching(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void> {
-    // this.logger.debug('detaching');
     this.preSettledTask?.cancel();
     this.preSettledTask = null;
     this.postSettledTask?.cancel();
@@ -179,15 +165,11 @@ export class PendingTemplateController implements ICustomAttributeViewModel {
   @bindable({ mode: BindingMode.toView }) public value!: Promise<unknown>;
 
   public view: ISyntheticView;
-  // TODO(Sayan): remove logger post-test
-  private readonly logger: ILogger;
 
   public constructor(
     @IViewFactory private readonly factory: IViewFactory,
     @IRenderLocation location: IRenderLocation,
-    @ILogger logger: ILogger,
   ) {
-    this.logger = logger.scopeTo(`${this.constructor.name}-${this.id}`);
     this.view = this.factory.create().setLocation(location);
   }
 
@@ -215,7 +197,6 @@ export class PendingTemplateController implements ICustomAttributeViewModel {
   }
 
   public detaching(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void> {
-    // this.logger.debug('detaching');
     return this.deactivate(initiator, flags);
   }
 
@@ -233,15 +214,11 @@ export class FulfilledTemplateController implements ICustomAttributeViewModel {
   @bindable({ mode: BindingMode.toView }) public value!: unknown;
 
   public view: ISyntheticView;
-  // TODO(Sayan): remove logger post-test
-  private readonly logger: ILogger;
 
   public constructor(
     @IViewFactory private readonly factory: IViewFactory,
     @IRenderLocation location: IRenderLocation,
-    @ILogger logger: ILogger,
   ) {
-    this.logger = logger.scopeTo(`${this.constructor.name}-${this.id}`);
     this.view = this.factory.create().setLocation(location);
   }
 
@@ -270,7 +247,6 @@ export class FulfilledTemplateController implements ICustomAttributeViewModel {
   }
 
   public detaching(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void> {
-    // this.logger.debug('detaching');
     return this.deactivate(initiator, flags);
   }
 

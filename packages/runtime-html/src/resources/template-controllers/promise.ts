@@ -15,6 +15,7 @@ import {
 } from '../../templating/controller.js';
 import { ICompiledRenderContext } from '../../templating/render-context.js';
 import { IViewFactory } from '../../templating/view.js';
+import { attributePattern, AttrSyntax } from '../attribute-pattern.js';
 import { templateController } from '../custom-attribute.js';
 
 @templateController('promise')
@@ -336,4 +337,11 @@ function getPromiseController(controller: IHydratableController) {
     return $promise;
   }
   throw new Error('The parent promise.resolve not found; only `*[promise.resolve] > *[pending|then|catch]` relation is supported.');
+}
+
+@attributePattern({ pattern: 'promise.resolve', symbols: '' })
+export class PromiseAttributePattern {
+  public 'promise.resolve'(name: string, value: string, _parts: string[]): AttrSyntax {
+    return new AttrSyntax(name, value, 'promise', 'bind');
+  }
 }

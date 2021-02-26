@@ -1,7 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
   DefaultLogEvent,
@@ -14,16 +12,13 @@ import {
   pascalCase,
   Registration,
   sink,
-  ConsoleSink,
   optional,
   Task,
   TaskStatus,
-  resolveAll,
 } from '@aurelia/kernel';
 import {
   bindingBehavior,
   BindingBehaviorInstance,
-  Case,
   Controller,
   customElement,
   CustomElement,

@@ -333,6 +333,10 @@ export class RenderContext implements IComponentFactory {
     return this.container.getResolver(key, autoRegister);
   }
 
+  public invoke<K, TDeps extends unknown[] = unknown[]>(key: Constructable<K>, dynamicDependencies?: TDeps): K {
+    return this.container.invoke(key, dynamicDependencies);
+  }
+
   public getFactory<T extends Constructable>(key: T): IFactory<T> {
     return this.container.getFactory(key);
   }

@@ -26,7 +26,7 @@ describe('DI.invoke', function () {
 
   it('with dynamic deps', function () {
     let instanceCount = 0;
-    let instanceDeps = [];
+    const instanceDeps = [];
 
     class MyClass {
       public constructor(...deps: any[]) {
@@ -49,9 +49,9 @@ describe('DI.invoke', function () {
 
   it('with @inject + dynamic deps', function () {
     let instanceCount = 0;
-    let instanceDeps = [];
     let depCount = 0;
     let depInstance: MyDep;
+    const instanceDeps = [];
 
     class MyDep {
       public constructor() {

@@ -1300,7 +1300,7 @@ describe('promise template-controller', function () {
               {
                 delayPromise, template: `
             <template>
-              <template ${pattribute}="42|promisify:${$resolve}:15">
+              <template ${pattribute}="42|promisify:${$resolve}:25">
                 <pending-host pending></pending-host>
                 <fulfilled-host ${fattribute}="data | double" data.bind="data"></fulfilled-host>
                 <rejected-host ${rattribute}="err | double" err.bind="err"></rejected-host>
@@ -2634,5 +2634,72 @@ describe('promise template-controller', function () {
       data);
   }
 
-  // TODO negative test data
+  class NegativeTestData implements TestSetupContext {
+    public readonly registrations: any[] = [];
+    public readonly expectedStopLog: string[] = [];
+    public readonly verifyStopCallsAsSet: boolean = false;
+    public readonly promise: Promise<unknown> = Promise.resolve(42);
+    public readonly delayPromise: DelayPromise = null;
+    public constructor(
+      public readonly name: string,
+      public readonly template: string,
+    ) { }
+  }
+
+  function* getNegativeTestData() {
+    yield new NegativeTestData(
+      `pending cannot be used in isolation`,
+      `<template><template pending>pending</template></template>`
+    );
+    yield new NegativeTestData(
+      `then cannot be used in isolation`,
+      `<template><template then>fulfilled</template></template>`
+    );
+    yield new NegativeTestData(
+      `catch cannot be used in isolation`,
+      `<template><template catch>rejected</template></template>`
+    );
+    yield new NegativeTestData(
+      `pending cannot be nested inside an if.bind`,
+      `<template><template if.bind="true"><template pending>pending</template></template></template>`
+    );
+    yield new NegativeTestData(
+      `then cannot be nested inside an if.bind`,
+      `<template><template if.bind="true"><template then>fulfilled</template></template></template>`
+    );
+    yield new NegativeTestData(
+      `catch cannot be nested inside an if.bind`,
+      `<template><template if.bind="true"><template catch>rejected</template></template></template>`
+    );
+    yield new NegativeTestData(
+      `pending cannot be nested inside an else`,
+      `<template><template if.bind="false"></template><template else><template pending>pending</template></template></template>`
+    );
+    yield new NegativeTestData(
+      `then cannot be nested inside an else`,
+      `<template><template if.bind="false"></template><template else><template then>fulfilled</template></template></template>`
+    );
+    yield new NegativeTestData(
+      `catch cannot be nested inside an else`,
+      `<template><template if.bind="false"></template><template else><template catch>rejected</template></template></template>`
+    );
+    yield new NegativeTestData(
+      `pending cannot be nested inside a repeater`,
+      `<template><template repeat.for="i of 1"><template pending>pending</template></template></template>`
+    );
+    yield new NegativeTestData(
+      `then cannot be nested inside a repeater`,
+      `<template><template repeat.for="i of 1"><template then>fulfilled</template></template></template>`
+    );
+    yield new NegativeTestData(
+      `catch cannot be nested inside a repeater`,
+      `<template><template repeat.for="i of 1"><template catch>rejected</template></template></template>`
+    );
+  }
+
+  for (const data of getNegativeTestData()) {
+    $it(data.name, async function (ctx) {
+      assert.match(ctx.error.message, /The parent promise\.resolve not found; only `\*\[promise\.resolve\] > \*\[pending\|then\|catch\]` relation is supported\./);
+    }, data);
+  }
 });

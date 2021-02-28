@@ -1308,12 +1308,12 @@ describe('promise template-controller', function () {
             </template>`
               },
               config(),
-              '<pending-host class="au">pendingundefined</pending-host>',
-              getActivationSequenceFor(`${phost}-1`),
+              null,
+              null,
               getDeactivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`),
               async (ctx) => {
-                ctx.clear();
                 const q = ctx.platform.domWriteQueue;
+                await q.yield();
                 const tc = (ctx.app as ICustomElementViewModel).$controller.children.find((c) => c.viewModel instanceof PromiseTemplateController).viewModel as PromiseTemplateController;
                 try {
                   await tc.value;
@@ -1327,7 +1327,7 @@ describe('promise template-controller', function () {
                 } else {
                   assert.html.innerEqual(ctx.host, wrap('rejected with 42 42', 'r'), 'rejected');
                 }
-                ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`)]);
+                ctx.assertCallSet([...getActivationSequenceFor(`${phost}-1`), ...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`)]);
               },
             );
 
@@ -2478,6 +2478,131 @@ describe('promise template-controller', function () {
                 assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar foo-bar', 'r'), 'rejected 2');
               }
               ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`)], `calls mismatch4`);
+            },
+          );
+
+          yield new TestData(
+            `change of promise in quick succession - previous promise is settled after the new promise is settled - ${$resolve ? 'fulfilled' : 'rejected'}`,
+            Promise.resolve(42),
+            {
+              delayPromise, template: template1,
+              registrations: [
+                Registration.instance(configLookup, new Map<string, Config>([
+                  [phost, new Config(true, createWaiterWithTicks(Object.create(null)))],
+                  [fhost, new Config(true, createWaiterWithTicks($resolve ? { binding: 1, bound: 2, attaching: 2, attached: 2 } : Object.create(null)))],
+                  [rhost, new Config(true, createWaiterWithTicks($resolve ? Object.create(null) : { binding: 1, bound: 2, attaching: 2, attached: 2 }))],
+                ])),
+              ],
+            },
+            null,
+            wrap(`resolved with 42`, 'f'),
+            getActivationSequenceFor(`${fhost}-1`),
+            getDeactivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`),
+            async (ctx) => {
+              ctx.clear();
+              const app = ctx.app;
+
+              let resolve1: (value: unknown) => void;
+              let reject1: (value: unknown) => void;
+              const promise1 = app.promise = Object.assign(new Promise((rs, rj) => [resolve1, reject1] = [rs, rj]), { id: 0 });
+
+              const q = ctx.platform.domWriteQueue;
+              await q.yield();
+              assert.html.innerEqual(ctx.host, wrap('pending0', 'p'), 'pending0');
+              ctx.assertCallSet([...getDeactivationSequenceFor(`${fhost}-1`), ...getActivationSequenceFor(`${phost}-1`)], `calls mismatch1`);
+              ctx.clear();
+
+              try {
+                await (app.promise = Object.assign($resolve ? Promise.resolve(84) : Promise.reject(new Error('foo-bar')), { id: 1 }));
+              } catch {
+                // ignore rejection
+              }
+
+              try {
+                if ($resolve) {
+                  resolve1(4242);
+                } else {
+                  reject1(new Error('fiz baz'));
+                }
+                await promise1;
+              } catch {
+                // ignore rejection
+              }
+
+              await q.yield();
+              if ($resolve) {
+                assert.html.innerEqual(ctx.host, wrap('resolved with 84', 'f'), 'fulfilled 1');
+              } else {
+                assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'), 'rejected 1');
+              }
+              ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`)], `calls mismatch2`);
+            },
+          );
+
+          yield new TestData(
+            `change of promise in quick succession - previous promise is settled after the new post-settled work is finished - ${$resolve ? 'fulfilled' : 'rejected'}`,
+            Promise.resolve(42),
+            {
+              delayPromise, template: template1,
+              registrations: [
+                Registration.instance(configLookup, new Map<string, Config>([
+                  [phost, new Config(true, createWaiterWithTicks(Object.create(null)))],
+                  [fhost, new Config(true, createWaiterWithTicks($resolve ? { binding: 1, bound: 2, attaching: 2, attached: 2 } : Object.create(null)))],
+                  [rhost, new Config(true, createWaiterWithTicks($resolve ? Object.create(null) : { binding: 1, bound: 2, attaching: 2, attached: 2 }))],
+                ])),
+              ],
+            },
+            null,
+            wrap(`resolved with 42`, 'f'),
+            getActivationSequenceFor(`${fhost}-1`),
+            getDeactivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`),
+            async (ctx) => {
+              ctx.clear();
+              const app = ctx.app;
+
+              let resolve1: (value: unknown) => void;
+              let reject1: (value: unknown) => void;
+              const promise1 = app.promise = Object.assign(new Promise((rs, rj) => [resolve1, reject1] = [rs, rj]), { id: 0 });
+
+              const q = ctx.platform.domWriteQueue;
+              await q.yield();
+              assert.html.innerEqual(ctx.host, wrap('pending0', 'p'), 'pending0');
+              ctx.assertCallSet([...getDeactivationSequenceFor(`${fhost}-1`), ...getActivationSequenceFor(`${phost}-1`)], `calls mismatch1`);
+              ctx.clear();
+
+              try {
+                await (app.promise = Object.assign($resolve ? Promise.resolve(84) : Promise.reject(new Error('foo-bar')), { id: 1 }));
+              } catch {
+                // ignore rejection
+              }
+
+              await q.yield();
+              if ($resolve) {
+                assert.html.innerEqual(ctx.host, wrap('resolved with 84', 'f'), 'fulfilled 1');
+              } else {
+                assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'), 'rejected 1');
+              }
+              ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`)], `calls mismatch2`);
+
+              const tc = (ctx.app as ICustomElementViewModel).$controller.children.find((c) => c.viewModel instanceof PromiseTemplateController).viewModel as PromiseTemplateController;
+              const postSettleTask = tc['postSettledTask'];
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+              const taskNums = [q['pending'].length, q['processing'].length, q['delayed'].length];
+
+              try {
+                if ($resolve) {
+                  resolve1(4242);
+                } else {
+                  reject1(new Error('fiz baz'));
+                }
+                await promise1;
+              } catch {
+                // ignore rejection
+              }
+              await q.yield();
+              assert.strictEqual(tc['postSettledTask'], postSettleTask);
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+              assert.deepStrictEqual([q['pending'].length, q['processing'].length, q['delayed'].length], taskNums);
             },
           );
         }

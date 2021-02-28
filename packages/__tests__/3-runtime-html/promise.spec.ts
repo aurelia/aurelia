@@ -1300,7 +1300,7 @@ describe('promise template-controller', function () {
               {
                 delayPromise, template: `
             <template>
-              <template ${pattribute}="42|promisify:${$resolve}:10">
+              <template ${pattribute}="42|promisify:${$resolve}:15">
                 <pending-host pending></pending-host>
                 <fulfilled-host ${fattribute}="data | double" data.bind="data"></fulfilled-host>
                 <rejected-host ${rattribute}="err | double" err.bind="err"></rejected-host>

@@ -116,7 +116,7 @@ describe('ISignaler', function () {
           assert.strictEqual(mock.calls[i][0], 'handleChange', `mock.calls[i][0]`);
           assert.strictEqual(mock.calls[i][1], undefined, `mock.calls[i][1]`);
           assert.strictEqual(mock.calls[i][2], undefined, `mock.calls[i][2]`);
-          assert.strictEqual(mock.calls[i][3], flags | LifecycleFlags.updateTarget, `mock.calls[i][3]`);
+          assert.strictEqual(mock.calls[i][3], flags, `mock.calls[i][3]`);
         }
       }
     }],
@@ -131,11 +131,11 @@ describe('ISignaler', function () {
           assert.strictEqual(mock.calls[i][0], 'handleChange', `mock.calls[i][0]`);
           assert.strictEqual(mock.calls[i][1], undefined, `mock.calls[i][1]`);
           assert.strictEqual(mock.calls[i][2], undefined, `mock.calls[i][2]`);
-          assert.strictEqual(mock.calls[i][3], flags | LifecycleFlags.updateTarget, `mock.calls[i][3]`);
+          assert.strictEqual(mock.calls[i][3], flags, `mock.calls[i][3]`);
           assert.strictEqual(mock.calls[i * 2 + 1][0], 'handleChange', `mock.calls[i * 2 + 1][0]`);
           assert.strictEqual(mock.calls[i * 2 + 1][1], undefined, `mock.calls[i * 2 + 1][1]`);
           assert.strictEqual(mock.calls[i * 2 + 1][2], undefined, `mock.calls[i * 2 + 1][2]`);
-          assert.strictEqual(mock.calls[i * 2 + 1][3], flags | LifecycleFlags.updateTarget, `mock.calls[i * 2 + 1][3]`);
+          assert.strictEqual(mock.calls[i * 2 + 1][3], flags, `mock.calls[i * 2 + 1][3]`);
         }
       }
     }]

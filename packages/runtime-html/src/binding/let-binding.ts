@@ -16,7 +16,6 @@ export interface LetBinding extends IConnectableBinding {}
 export class LetBinding implements IPartialConnectableBinding {
   public interceptor: this = this;
 
-  public id!: number;
   public isBound: boolean = false;
   public $scope?: Scope = void 0;
   public $hostScope: Scope | null = null;
@@ -32,28 +31,22 @@ export class LetBinding implements IPartialConnectableBinding {
     public locator: IServiceLocator,
     private readonly toBindingContext: boolean = false,
   ) {
-    connectable.assignIdTo(this);
   }
 
-  public handleChange(_newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {
+  public handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {
     if (!this.isBound) {
       return;
     }
 
-    if (flags & LifecycleFlags.updateTarget) {
-      const target = this.target as IIndexable;
-      const targetProperty = this.targetProperty as string;
-      const previousValue: unknown = target[targetProperty];
-      this.obs.version++;
-      const newValue: unknown = this.sourceExpression.evaluate(flags, this.$scope!, this.$hostScope, this.locator, this.interceptor);
-      this.obs.clear(false);
-      if (newValue !== previousValue) {
-        target[targetProperty] = newValue;
-      }
-      return;
+    const target = this.target as IIndexable;
+    const targetProperty = this.targetProperty as string;
+    const previousValue: unknown = target[targetProperty];
+    this.obs.version++;
+    newValue = this.sourceExpression.evaluate(flags, this.$scope!, this.$hostScope, this.locator, this.interceptor);
+    this.obs.clear(false);
+    if (newValue !== previousValue) {
+      target[targetProperty] = newValue;
     }
-
-    throw new Error('Unexpected handleChange context in LetBinding');
   }
 
   public $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void {

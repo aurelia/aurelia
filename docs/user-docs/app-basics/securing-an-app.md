@@ -2,14 +2,14 @@
 
 ## Introduction
 
-The first rule of securing client-side applications: the client cannot be trusted. Your backend should never trust the input coming from the front-end, under any circumstance. Malicious individuals often know how to use browser debug tools and manually craft HTTP requests to your backend. You may even find yourself in a situation where a disgruntled employee \(or former employee\), who is a developer with intimate knowledge of the system, is seeking revenge by attempting a malicious attack.
+The first rule of securing client-side applications is: the client cannot be trusted. Your backend should never trust the input coming from the front-end, under any circumstance. Malicious individuals often know how to use browser debug tools and manually craft HTTP requests to your backend. You may even find yourself in a situation where a disgruntled employee \(or former employee\), who is an engineer with intimate knowledge of the system, is seeking revenge by attempting a malicious attack.
 
-**Your primary mechanism for securing any SPA application, Aurelia or otherwise, is to work hard on securing your backend services.**
+**Your primary mechanism for securing any SPA application, Aurelia or otherwise, is to work hard at securing your backend services.**
 
 {% hint style="warning" %}
 **Security Advice**
 
-This article, more or less, contains only a few quick warnings. It is in no way exhaustive, nor should it be your only resource on securing your application. The bulk of the work in security relates to your server-side technology. You should spend adequate time reading up on and understanding security best practices for whatever backend tech you have chosen.
+This article only contains a few basic tips. It is in no way exhaustive, nor should it be your only resource on securing your application. The bulk of the security work you will set up in your application falls on your server-side technology. You should spend adequate time reading up on and understanding security best practices for whatever backend tech you have chosen.
 {% endhint %}
 
 ## Authentication and Authorization
@@ -54,7 +54,7 @@ Internally, Aurelia makes no use of `eval` or the `Function` constructor. Additi
 
 ## Secret Data
 
-Do not embed private keys into your JavaScript code. While the average user may not be able to access them, anyone with true ill intent can simply download your client code, un-minifiy it and use basic regular expressions on the codebase to find things that _look like_ sensitive data. Perhaps they've discovered what backend technology you are using or what cloud services your product is based on simply by studying your app's HTTP requests or looking at the page source. Using that information they may be able to refine their search based on certain patterns well-known to users of those technologies, making it easier to find your private keys.
+Do not embed private keys into your JavaScript code. While the average user may not be able to access them, anyone with ill-intent can simply download your client code, un-minify it and use basic regular expressions on the codebase to find things that _look like_ sensitive data. Perhaps they've discovered what backend technology you are using or what cloud services your product is based on simply by studying your app's HTTP requests or looking at the page source. Using that information they may be able to refine their search based on certain patterns well-known to users of those technologies, making it easier to find your private keys.
 
 If you have a need to acquire any secret data on the client, it should be done with great care. Here is a \(non-exhaustive\) list of recommendations:
 

@@ -31,32 +31,25 @@ export enum BindingMode {
 }
 
 export const enum LifecycleFlags {
-  none                          = 0b0000_000_00_00_000,
+  none                          = 0b0000_000_00_0,
   // Bitmask for flags that need to be stored on a binding during $bind for mutation
   // callbacks outside of $bind
-  persistentBindingFlags        = 0b1111_000_00_00_111,
-  allowParentScopeTraversal     = 0b0001_000_00_00_000,
-  observeLeafPropertiesOnly     = 0b0010_000_00_00_000,
-  targetObserverFlags           = 0b1100_000_00_00_111,
-  noFlush                       = 0b0100_000_00_00_000,
-  persistentTargetObserverQueue = 0b1000_000_00_00_000,
-  bindingStrategy               = 0b0000_000_00_00_111,
-  getterSetterStrategy          = 0b0000_000_00_00_001,
-  proxyStrategy                 = 0b0000_000_00_00_010,
-  isStrictBindingStrategy       = 0b0000_000_00_00_100,
-  update                        = 0b0000_000_00_11_000,
-  updateTarget                  = 0b0000_000_00_01_000,
-  updateSource                  = 0b0000_000_00_10_000,
-  from                          = 0b0000_000_11_00_000,
-  fromBind                      = 0b0000_000_01_00_000,
-  fromUnbind                    = 0b0000_000_10_00_000,
-  mustEvaluate                  = 0b0000_001_00_00_000,
-  isTraversingParentScope       = 0b0000_010_00_00_000,
-  dispose                       = 0b0000_100_00_00_000,
+  persistentBindingFlags        = 0b1111_000_00_1,
+  allowParentScopeTraversal     = 0b0001_000_00_0,
+  observeLeafPropertiesOnly     = 0b0010_000_00_0,
+  targetObserverFlags           = 0b1100_000_00_1,
+  noFlush                       = 0b0100_000_00_0,
+  persistentTargetObserverQueue = 0b1000_000_00_0,
+  bindingStrategy               = 0b0000_000_00_1,
+  isStrictBindingStrategy       = 0b0000_000_00_1,
+  fromBind                      = 0b0000_000_01_0,
+  fromUnbind                    = 0b0000_000_10_0,
+  mustEvaluate                  = 0b0000_001_00_0,
+  isTraversingParentScope       = 0b0000_010_00_0,
+  dispose                       = 0b0000_100_00_0,
 }
 
 export interface IConnectable {
-  id: number;
   observeProperty(obj: object, key: PropertyKey): void;
   observeCollection(obj: Collection): void;
   subscribeTo(subscribable: ISubscribable | ICollectionSubscribable): void;
@@ -213,7 +206,6 @@ export const enum AccessorType {
  * Basic interface to normalize getting/setting a value of any property on any object
  */
 export interface IAccessor<TValue = unknown> {
-  [id: number]: number;
   type: AccessorType;
   getValue(obj?: object, key?: PropertyKey): TValue;
   setValue(newValue: TValue, flags: LifecycleFlags, obj?: object, key?: PropertyKey): void;
@@ -300,7 +292,6 @@ export interface ICollectionChangeTracker<T extends Collection> {
 export interface ICollectionObserver<T extends CollectionKind> extends
   ICollectionChangeTracker<CollectionKindToType<T>>,
   ICollectionSubscribable {
-  [id: number]: number;
   type: AccessorType;
   collection: ObservedCollectionKindToType<T>;
   getLengthObserver(): T extends CollectionKind.array ? CollectionLengthObserver : CollectionSizeObserver;

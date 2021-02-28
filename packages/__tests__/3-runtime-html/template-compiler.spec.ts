@@ -7,6 +7,7 @@ import {
   LoggerConfiguration,
   DefaultLogger,
   LogLevel,
+  camelCase,
 } from '@aurelia/kernel';
 import {
   AccessScopeExpression,
@@ -44,6 +45,7 @@ import {
   InstructionType,
   ElementInfo,
   BindableInfo,
+  IExpressionParser,
 } from '@aurelia/runtime-html';
 import {
   assert,
@@ -590,6 +592,7 @@ function createCustomElement(
     instructions: childInstructions,
     slotInfo: null,
   };
+  const exprParser = ctx.container.get(IExpressionParser);
   const attributeMarkup = attributes.map(a => `${a[0]}="${a[1]}"`).join(' ');
   const rawMarkup = `<${tagName} ${attributeMarkup}>${(childInput && childInput.template) || ''}</${tagName}>`;
   const input = {
@@ -597,7 +600,8 @@ function createCustomElement(
     template: finalize ? `<div>${rawMarkup}</div>` : rawMarkup,
     instructions: []
   };
-  const outputMarkup = ctx.createElementFromMarkup(`<${tagName} ${attributeMarkup.replace(/\$\{.*\}/, '')}>${(childOutput && childOutput.template.outerHTML) || ''}</${tagName}>`);
+  const outputAttributeMarkup = attributes.map(a => exprParser.parse(a[1], BindingType.Interpolation) !== null ? '' : `${a[0]}="${a[1]}"`).join(' ');
+  const outputMarkup = ctx.createElementFromMarkup(`<${tagName} ${outputAttributeMarkup.replace(/\$\{.*\}/, '')}>${(childOutput && childOutput.template.outerHTML) || ''}</${tagName}>`);
   outputMarkup.classList.add('au');
   const output = {
     ...defaultCustomElementDefinitionProperties,
@@ -691,7 +695,7 @@ function createAttributeInstruction(bindableDescription: BindableDefinition | nu
     }
   } else {
     const type = TT.propertyBinding;
-    const to = attr;
+    const to = camelCase(attr);
     if (!!cmd && validCommands.includes(cmd)) {
       const from = parseExpression(attributeValue);
       return { type, to, mode, from };
@@ -1167,7 +1171,8 @@ describe(`TemplateCompiler - combinations`, function () {
       [
         (ctx) => `''`
       ] as ((ctx: TestContext) => string)[]
-    ],                       (ctx, pdName, pdProp, pdAttr, bindables, [cmd, attrValue], [bindableDescription, attrName]) => {
+    ],
+    (ctx, pdName, pdProp, pdAttr, bindables, [cmd, attrValue], [bindableDescription, attrName]) => {
       it(`customElement - pdName=${pdName}  pdProp=${pdProp}  pdAttr=${pdAttr}  cmd=${cmd}  attrName=${attrName}  attrValue="${attrValue}"`, function () {
 
         const { sut, container } = createFixture(

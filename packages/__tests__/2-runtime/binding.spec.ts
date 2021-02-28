@@ -145,7 +145,7 @@ describe('PropertyBinding', function () {
 
     const flagsVariations: (() => [LF, string])[] = [
       () => [LF.fromBind,                                            `fromBind               `],
-      () => [LF.updateTarget,                                `updateTarget           `],
+      () => [LF.none,                                                `none                   `],
     ];
 
     const scopeVariations: (() => [Scope, string])[] = [
@@ -217,7 +217,7 @@ describe('PropertyBinding', function () {
 
     const flagsVariations: (() => [LF, string])[] = [
       () => [LF.fromBind,                                            `fromBind               `],
-      () => [LF.updateTarget,                                `updateTarget           `],
+      () => [LF.none,                                                `none                   `],
     ];
 
     const scopeVariations: (() => [Scope, string])[] = [
@@ -446,7 +446,7 @@ describe('PropertyBinding', function () {
 
     const flagsVariations: (() => [LF, string])[] = [
       () => [LF.fromBind,                                            `fromBind               `],
-      () => [LF.updateTarget,                                `updateTarget           `],
+      () => [LF.none,                                                `none                   `],
     ];
 
     const scopeVariations: (() => [Scope, string])[] = [
@@ -494,7 +494,7 @@ describe('PropertyBinding', function () {
         // massSpy(sut, 'handleChange');
         // massSpy(expr, 'evaluate', 'assign');
 
-        flags = LF.updateSource;
+        flags = LF.none;
 
         // - Act - Part 2
         targetObserver.setValue(newValue, flags);
@@ -562,7 +562,7 @@ describe('PropertyBinding', function () {
 
     const flagsVariations: (() => [LF, string])[] = [
       () => [LF.fromBind,             `fromBind     `],
-      () => [LF.updateTarget, `updateTarget `]
+      () => [LF.none,                 `none `]
     ];
 
     const scopeVariations: (() => [Scope, string])[] = [
@@ -813,7 +813,7 @@ describe('PropertyBinding', function () {
         // massSpy(sut, 'handleChange');
         // massSpy(expr, 'evaluate', 'assign');
 
-        flags = LF.updateSource;
+        flags = LF.none;
 
         // - Act - Part 3
         targetObserver.setValue(newValue2, flags);

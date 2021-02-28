@@ -4,6 +4,8 @@ import css from './app-shell.css';
 
 import { MeasurementsPage } from '../pages/measurements';
 import { LeftSidebar } from './left-sidebar';
+import { LatestMeasurements } from '../pages/latest-measurements';
+import { CompareBranches } from '../pages/compare-branches';
 
 @customElement({
   name: 'app-shell',
@@ -13,6 +15,8 @@ import { LeftSidebar } from './left-sidebar';
     shadowCSS(css),
     MeasurementsPage,
     LeftSidebar,
+    LatestMeasurements,
+    CompareBranches,
   ],
 })
 export class AppShell {
@@ -21,5 +25,13 @@ export class AppShell {
       path: 'measurements',
       component: MeasurementsPage,
     },
+    {
+      path: 'latest-measurements',
+      component: LatestMeasurements,
+    },
+    {
+      path: 'compare',
+      component: CompareBranches,
+    }
   ];
 }

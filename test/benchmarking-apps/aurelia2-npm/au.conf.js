@@ -3,6 +3,6 @@
 /** @type {import('@aurelia/http-server').HttpServerOptions} */
 module.exports = {
   root: './dist/',
-  port: 9000,
+  port: 9001,
   responseCacheControl: 'no-store',
 };

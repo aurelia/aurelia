@@ -4,7 +4,6 @@ import { AccessorType, LifecycleFlags } from '@aurelia/runtime';
 import type { IAccessor } from '@aurelia/runtime';
 
 export class ClassAttributeAccessor implements IAccessor {
-  [id: number]: number;
   public currentValue: unknown = '';
   public oldValue: unknown = '';
 

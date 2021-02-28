@@ -1,6 +1,7 @@
-import { ChildProcess, fork, exec } from 'child_process';
+import { Measurement } from '@benchmarking-apps/storage';
+import { ChildProcess, exec, fork } from 'child_process';
 import { join } from 'path';
-import { BenchOptions, Data, Measurement } from './shared';
+import { BenchOptions, Data } from './shared';
 
 async function execSafe(command: string, fallback: string): Promise<string> {
   return new Promise<string>(resolve => {
@@ -9,7 +10,7 @@ async function execSafe(command: string, fallback: string): Promise<string> {
         console.warn(`Error executing '${command}', falling back to result '${fallback}' (err: ${err.message})`);
         resolve(fallback);
       } else {
-        resolve(stdout);
+        resolve(stdout.replace(/\n|\r/g, ''));
       }
     });
   });
@@ -19,7 +20,7 @@ async function main() {
   const metadata = {
     ts_start: Date.now(),
     ts_end: 0,
-    branch: await execSafe('git branch --show-current', process.env.CIRCLE_BRANCH || ''),
+    branch: await execSafe('git rev-parse --abbrev-ref HEAD', process.env.CURRENT_BRANCH || ''),
     commit: await execSafe('git rev-parse HEAD', ''),
   };
 
@@ -56,7 +57,7 @@ async function main() {
 
   let persistenceFailed = false;
   try {
-    await storage.persist(metadata);
+    await storage.persist(options.batchId, metadata);
   } catch {
     persistenceFailed = true;
   }
@@ -69,7 +70,7 @@ async function main() {
   }
 
   function addMeasurements(measurements: Data<Measurement>[]) {
-    storage.addMeasurements(...measurements);
+    storage.addMeasurements(...measurements as Measurement[]);
   }
 }
 

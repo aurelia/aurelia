@@ -6,6 +6,10 @@ description: >-
 
 # Lifecycle Hooks
 
+{% hint style="info" %}
+`Please note that we currently have an interim router implementation and that some (minor) changes to application code might be required when the original router is added back in.`
+{% endhint %}
+
 Inside of your routeable components which implement the `IRouteableComponent` interface, there are certain methods which are called at different points of the routing lifecycle. These lifecycle hooks allow you to run code inside of your components such as fetch data or change the UI itself.
 
 {% hint style="success" %}

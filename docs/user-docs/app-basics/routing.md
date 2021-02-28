@@ -4,6 +4,10 @@ description: A quick guide on how to add in routing to your Aurelia applications
 
 # Routing
 
+{% hint style="info" %}
+`Please note that we currently have an interim router implementation and that some (minor) changes to application code might be required when the original router is added back in.`
+{% endhint %}
+
 The router package allows you to add in flexible and highly configurable routing into your Aurelia applications. It offers a plethora of different ways you can add in routing from convention-based routing \(direct routing\) through to traditional configuration based routing.
 
 The Aurelia router supports three different types of routing in your Aurelia applications. It is also possible to mix and switch between the three different types of router to suit your needs.

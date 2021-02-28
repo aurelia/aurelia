@@ -45,7 +45,6 @@ export interface AttributeBinding extends IConnectableBinding {}
 export class AttributeBinding implements IPartialConnectableBinding {
   public interceptor: this = this;
 
-  public id!: number;
   public isBound: boolean = false;
   public $platform: IPlatform;
   public $scope: Scope = null!;
@@ -80,18 +79,17 @@ export class AttributeBinding implements IPartialConnectableBinding {
     public locator: IServiceLocator,
   ) {
     this.target = target as Element;
-    connectable.assignIdTo(this);
     this.$platform = locator.get(IPlatform);
   }
 
   public updateTarget(value: unknown, flags: LifecycleFlags): void {
     flags |= this.persistentFlags;
-    this.targetObserver.setValue(value, flags | LifecycleFlags.updateTarget, this.target, this.targetProperty);
+    this.targetObserver.setValue(value, flags, this.target, this.targetProperty);
   }
 
   public updateSource(value: unknown, flags: LifecycleFlags): void {
     flags |= this.persistentFlags;
-    this.sourceExpression.assign!(flags | LifecycleFlags.updateSource, this.$scope, this.$hostScope, this.locator, value);
+    this.sourceExpression.assign!(flags, this.$scope, this.$hostScope, this.locator, value);
   }
 
   public handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {
@@ -106,12 +104,6 @@ export class AttributeBinding implements IPartialConnectableBinding {
     const sourceExpression = this.sourceExpression;
     const $scope = this.$scope;
     const locator = this.locator;
-
-    if (mode === BindingMode.fromView) {
-      flags &= ~LifecycleFlags.updateTarget;
-      flags |= LifecycleFlags.updateSource;
-    }
-
     const targetObserver = this.targetObserver;
     // Alpha: during bind a simple strategy for bind is always flush immediately
     // todo:

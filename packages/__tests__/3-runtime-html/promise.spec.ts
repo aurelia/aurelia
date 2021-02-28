@@ -1434,6 +1434,31 @@ describe('promise template-controller', function () {
           }
 
           yield new TestData(
+            `shows content specific to promise`,
+            null,
+            {
+              delayPromise, template: `
+          <template>
+            <template ${pattribute}="42|promisify:true">
+              <pending-host pending></pending-host>
+              <fulfilled-host ${fattribute}="data" data.bind="data"></fulfilled-host>
+              <rejected-host ${rattribute}="err" err.bind="err"></rejected-host>
+            </template>
+
+            <template ${pattribute}="'forty-two'|promisify:false">
+              <pending-host pending></pending-host>
+              <fulfilled-host ${fattribute}="data" data.bind="data"></fulfilled-host>
+              <rejected-host ${rattribute}="err" err.bind="err"></rejected-host>
+            </template>
+          </template>`
+            },
+            config(),
+            `${wrap('resolved with 42', 'f')} ${wrap('rejected with forty-two', 'r')}`,
+            getActivationSequenceFor([`${fhost}-1`, `${rhost}-2`]),
+            getDeactivationSequenceFor([`${fhost}-1`, `${rhost}-2`]),
+          );
+
+          yield new TestData(
             `[repeat.for] > [${pattribute}] works`,
             null,
             {

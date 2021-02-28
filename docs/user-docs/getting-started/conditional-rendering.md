@@ -9,7 +9,7 @@ Have you ever needed to hide or show part of a UI based on some condition? Well,
 {% hint style="success" %}
 **Here's what you'll learn...**
 
-* Adding and removing DOM with `if`/`else`.
+* Adding and removing DOM with `if`/`else`, `switch`, and `promise.resolve`.
 * Hiding and showing DOM with `show`/`hide`.
 * Choosing between `if`/`else` and `show`/`hide`.
 {% endhint %}
@@ -405,3 +405,136 @@ This section includes few more interesting examples that you might encounter in 
   ```
   {% endcode %}
 
+## promise.resolve
+
+The `promise.resolve` template controller enables us to render different content based on the status of a `promise`.
+The most basic example looks like as follows.
+
+```markup
+<template promise.resolve="promise">
+ <template pending>The promise is not yet settled.</template>
+ <template then="data">The promise is resolved with ${data}.</template>
+ <template catch="err">This promise is rejected with ${err.message}.</template>
+</template>
+
+<template promise.resolve="promise">
+ <template pending>The promise is not yet settled.</template>
+ <template then>The promise is resolved.</template>
+ <template catch>This promise is rejected.</template>
+</template>
+```
+
+As it can be seen in the example above, then are three more companion template controllers: `pending`, `then`, and `catch`.
+The content under `pending` is shown till the promise is settled.
+Once the promise is settled, depending on whether the promise is resolved, or rejected, one of the content under `then`, and `catch` will be shown respectively.
+Moreover, after the promise is settled, the content under the `pending` is detached from the DOM.
+
+Another important point to note here is that the resolved data from the promise can be accessed using the bound property with `then` (in the example above, it is `data`).
+Similarly, the rejection error/reason can be accessed using the bound property with `catch` (in the example above, it is `err`).
+The usage of these settled values are optional.
+
+Contextually, it should be clarified here that these two bindings are in `from-view` binding mode.
+In fact `then="data"`, and `catch="err"` can also be written as `then.from-view="data"`, and `catch.from-view="err"`.
+As that might be the most frequently used binding mode in this context, Aurelia2 provides a less verbose option in form of simply `then="data"`, and `catch="err"`.
+
+{% hint style="info" %}
+The `promise.resolve="promise"` is also an alias for `promise.bind="promise"`.
+However, as the former feels more natural in the context, the documentation will continue using that attribute pattern.
+{% endhint %}
+
+### Motivation
+
+The need for this template controller originated from the need of showing partial content in the view while another part of the view that is dependent on the promise, waits.
+
+```markup
+<span> promise-independent content </span>
+
+<template promise.resolve="generalInfoPromise">
+ <template pending>Fetching info...</template>
+ <template then="info">${info.name} ${info.age}</template>
+ <template catch="err1">Cannot get the general information</template>
+</template>
+
+<template promise.resolve="addressInfoPromise">
+ <template pending>Fetching address info...</template>
+ <template then="address">${address.pin} ${address.city}</template>
+ <template catch="err2">Cannot get the address information</template>
+</template>
+```
+
+In the example above the `span` will be shown independently of the status of either `generalInfoPromise`, or `addressInfoPromise`.
+The section dependent on each of those promise will attach DOM Elements according to the status of each promises, although independent of each other.
+
+### Nesting
+
+The template controllers can be nested.
+
+```markup
+<template promise.resolve="fetchPromise">
+ <template pending>Fetching...</template>
+ <template then="response" promise.bind="response.json()">
+   <template then="data">${data}</template>
+   <template catch>Deserialization error</template>
+ </template>
+ <template catch="err2">Cannot fetch</template>
+</template>
+```
+
+### Restriction
+
+The `pending`, `then`, and `catch` can not be used in isolation without the `promise.resolve` template controller.
+That is each one of the following examples throws error.
+
+```markup
+<template pending>does not work</template>
+<template then>does not work</template>
+<template catch>does not work</template>
+```
+
+However, `promise.resolve` template controller can be used without any of those three template controllers.
+Following are some valid examples.
+
+```markup
+<template promise.resolve="promise">
+</template>
+
+<template promise.resolve="promise">
+ <template pending>Please wait...</template>
+</template>
+
+<template promise.resolve="promise">
+ <template then="data">...</template>
+ <template catch="err">...</template>
+</template>
+```
+
+It is important to note here that those three template controllers cannot be used under any template controller other than `promise.resolve`.
+Following are some invalid examples.
+
+```markup
+<template promise.resolve="generalInfoPromise">
+ <template if.bind="true" pending>Fetching info...</template> <!--Here pending gets nested under if.bind-->
+ <template then="info">${info.name} ${info.age}</template>
+ <template catch="err1">Cannot get the general information</template>
+</template>
+
+<template promise.resolve="generalInfoPromise">
+ <template repeat.for="i of 10" then="info">${info.name} ${info.age}</template>  <!--Here pending gets nested under repeat.for-->
+ <template catch="err1">Cannot get the general information</template>
+</template>
+```
+
+However, the following are some valid examples of combining other template controllers.
+
+```markup
+<template promise.resolve="generalInfoPromise">
+ <template pending if.bind="someCondition">Fetching info...</template>
+ <template then="info">${info.name} ${info.age}</template>
+ <template catch="err1">Cannot get the general information</template>
+</template>
+
+<template promise.resolve="generalInfoPromise">
+ <template then="items" repeat.for="item of item">${item.name}</template>
+ <template catch="err1">Cannot get the general information</template>
+</template>
+```

@@ -37,7 +37,6 @@ import {
 } from '@aurelia/runtime-html';
 import {
   assert,
-  generateCartesianProduct,
   TestContext,
 } from '@aurelia/testing';
 import {
@@ -197,9 +196,6 @@ describe('promise template-controller', function () {
   }
 
   enum DelayPromise {
-    hydrating = 'hydrating',
-    hydrated = 'hydrated',
-    created = 'created',
     binding = 'binding',
   }
 
@@ -231,7 +227,7 @@ describe('promise template-controller', function () {
     try {
       await au
         .register(
-          LoggerConfiguration.create({ level: LogLevel.trace, sinks: [DebugLog/* , ConsoleSink */] }),
+          LoggerConfiguration.create({ level: LogLevel.trace, sinks: [DebugLog] }),
           ...registrations,
           Promisify,
           Double,
@@ -311,21 +307,6 @@ describe('promise template-controller', function () {
       if (delaySeedPromise === null) {
         this.init();
       }
-    }
-
-    public hydrating(): void {
-      if (this.delaySeedPromise !== DelayPromise.hydrating) { return; }
-      this.init();
-    }
-
-    public hydrated(): void {
-      if (this.delaySeedPromise !== DelayPromise.hydrated) { return; }
-      this.init();
-    }
-
-    public created(): void {
-      if (this.delaySeedPromise !== DelayPromise.created) { return; }
-      this.init();
     }
 
     public binding(): void {
@@ -466,11 +447,10 @@ describe('promise template-controller', function () {
         return new Config(true, createWaiter(5));
       },
     ];
-    for (const [pattribute, fattribute, rattribute] of generateCartesianProduct([
-      ['promise.bind', 'promise.resolve'],
-      ['then.from-view', 'then'],
-      ['catch.from-view', 'catch'],
-    ])) {
+    for (const [pattribute, fattribute, rattribute] of [
+      ['promise.bind', 'then.from-view', 'catch.from-view'],
+      ['promise.resolve', 'then', 'catch']
+    ]) {
       const template1 = `
     <template>
       <template ${pattribute}="promise">
@@ -1586,42 +1566,28 @@ describe('promise template-controller', function () {
 
           yield new TestData(
             `[if,${pattribute}], [else,${pattribute}] works`,
-            Promise.resolve(42),
+            null,
             {
               delayPromise, template: `
           <let flag.bind="false"></let>
           <template if.bind="flag" ${pattribute}="42 | promisify:true">
-            <pending-host pending></pending-host>
             <fulfilled-host ${fattribute}="data1" data.bind="data1"></fulfilled-host>
             <rejected-host ${rattribute}="err1" err.bind="err1"></rejected-host>
           </template>
-          <template else ${pattribute}="'forty-two' | promisify:false:10">
-            <pending-host pending></pending-host>
+          <template else ${pattribute}="'forty-two' | promisify:false">
             <fulfilled-host ${fattribute}="data2" data.bind="data2"></fulfilled-host>
             <rejected-host ${rattribute}="err2" err.bind="err2"></rejected-host>
           </template>`,
             },
             config(),
-            '<pending-host class="au">pendingundefined</pending-host>',
-            getActivationSequenceFor(`${phost}-1`),
+            '<rejected-host err.bind="err2" class="au">rejected with forty-two</rejected-host>',
+            getActivationSequenceFor(`${rhost}-1`),
             getDeactivationSequenceFor(`${fhost}-2`),
             async (ctx) => {
-              ctx.clear();
               const q = ctx.platform.domWriteQueue;
               const app = ctx.app;
               const controller = (app as ICustomElementViewModel).$controller;
               const $if = controller.children.find((c) => c.viewModel instanceof If).viewModel as If;
-
-              const ptc2 = $if.elseView.children.find((c) => c.viewModel instanceof PromiseTemplateController).viewModel as PromiseTemplateController;
-              try {
-                await ptc2.value;
-              } catch {
-                // ignore rejection
-              }
-              await q.yield();
-
-              assert.html.innerEqual(ctx.host, '<rejected-host err.bind="err2" class="au">rejected with forty-two</rejected-host>');
-              ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor(`${rhost}-1`)]);
               ctx.clear();
 
               controller.scope.overrideContext.flag = true;
@@ -2168,7 +2134,7 @@ describe('promise template-controller', function () {
           );
           yield new TestData(
             `pending activation duration < promise settlement duration - ${$resolve ? 'fulfilled' : 'rejected'}`,
-            getPromise(6),
+            getPromise(20),
             {
               delayPromise, template: template1,
               registrations: [
@@ -2180,13 +2146,13 @@ describe('promise template-controller', function () {
               ],
             },
             null,
-            wrap('pending0', 'p'),
-            getActivationSequenceFor(`${phost}-1`),
+            null,
+            null,
             getDeactivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`),
             async (ctx) => {
-              ctx.clear();
               const q = ctx.platform.domWriteQueue;
 
+              await q.yield();
               try {
                 await ctx.app.promise;
               } catch (e) {
@@ -2199,7 +2165,7 @@ describe('promise template-controller', function () {
               } else {
                 assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'), 'rejected');
               }
-              ctx.assertCallSet([...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`)]);
+              ctx.assertCallSet([...getActivationSequenceFor(`${phost}-1`), ...getDeactivationSequenceFor(`${phost}-1`), ...getActivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`)]);
             },
           );
 
@@ -2235,6 +2201,9 @@ describe('promise template-controller', function () {
               null,
               getDeactivationSequenceFor($resolve ? `${fhost}-1` : `${rhost}-1`),
               async (ctx) => {
+                const q = ctx.platform.domWriteQueue;
+                await q.yield();
+
                 const app = ctx.app;
                 // Note: If the ticks are close to each other, we cannot avoid a race condition for the purpose of deterministic tests.
                 // Therefore, the expected logs are constructed dynamically to ensure certain level of confidence.
@@ -2250,7 +2219,6 @@ describe('promise template-controller', function () {
                   // ignore rejection
                 }
 
-                const q = ctx.platform.domWriteQueue;
                 await q.yield();
                 if ($resolve) {
                   assert.html.innerEqual(ctx.host, wrap('resolved with 42', 'f'), 'fulfilled');
@@ -2282,10 +2250,7 @@ describe('promise template-controller', function () {
             async (ctx) => {
               ctx.clear();
               const app = ctx.app;
-              app.promise = Object.assign(
-                createMultiTickPromise(10, () => $resolve ? Promise.resolve(84) : Promise.reject(new Error('foo-bar')))(),
-                { id: 0 }
-              );
+              app.promise = Object.assign(new Promise(() => { /* unsettled */ }), { id: 0 });
 
               const q = ctx.platform.domWriteQueue;
               await q.yield();
@@ -2330,10 +2295,7 @@ describe('promise template-controller', function () {
             async (ctx) => {
               ctx.clear();
               const app = ctx.app;
-              app.promise = Object.assign(
-                createMultiTickPromise(10, () => $resolve ? Promise.resolve(84) : Promise.reject(new Error('foo-bar')))(),
-                { id: 0 }
-              );
+              app.promise = Object.assign(new Promise(() => { /* unsettled */ }), { id: 0 });
 
               const q = ctx.platform.domWriteQueue;
               await q.yield();
@@ -2341,7 +2303,7 @@ describe('promise template-controller', function () {
               ctx.assertCallSet([...getDeactivationSequenceFor(`${fhost}-1`), ...getActivationSequenceFor(`${phost}-1`)], `calls mismatch1`);
               ctx.clear();
 
-              // interrupt
+              // interrupt; the previous promise is of longer duration because it is never settled.
               const promise = app.promise = Object.assign(
                 createMultiTickPromise(5, () => $resolve ? Promise.resolve(4242) : Promise.reject(new Error('foo-bar foo-bar')))(),
                 { id: 1 }
@@ -2390,10 +2352,9 @@ describe('promise template-controller', function () {
             async (ctx) => {
               ctx.clear();
               const app = ctx.app;
-              let promise = app.promise = Object.assign(
-                createMultiTickPromise(10, () => $resolve ? Promise.resolve(84) : Promise.reject(new Error('foo-bar')))(),
-                { id: 0 }
-              );
+              let resolve: (value: unknown) => void;
+              let reject: (value: unknown) => void;
+              let promise = app.promise = Object.assign(new Promise((rs, rj) => [resolve, reject] = [rs, rj]), { id: 0 });
 
               const q = ctx.platform.domWriteQueue;
               await q.yield();
@@ -2402,6 +2363,11 @@ describe('promise template-controller', function () {
               ctx.clear();
 
               try {
+                if ($resolve) {
+                  resolve(84);
+                } else {
+                  reject(new Error('fizz bazz'));
+                }
                 await promise;
               } catch {
                 // ignore rejection
@@ -2454,10 +2420,10 @@ describe('promise template-controller', function () {
             async (ctx) => {
               ctx.clear();
               const app = ctx.app;
-              let promise = app.promise = Object.assign(
-                createMultiTickPromise(10, () => $resolve ? Promise.resolve(84) : Promise.reject(new Error('foo-bar')))(),
-                { id: 0 }
-              );
+
+              let resolve: (value: unknown) => void;
+              let reject: (value: unknown) => void;
+              let promise = app.promise = Object.assign(new Promise((rs, rj) => [resolve, reject] = [rs, rj]), { id: 0 });
 
               const q = ctx.platform.domWriteQueue;
               await q.yield();
@@ -2466,6 +2432,11 @@ describe('promise template-controller', function () {
               ctx.clear();
 
               try {
+                if ($resolve) {
+                  resolve(84);
+                } else {
+                  reject(new Error('foo-bar'));
+                }
                 await promise;
               } catch {
                 // ignore rejection
@@ -2473,10 +2444,7 @@ describe('promise template-controller', function () {
 
               // run the post-settled task
               q.flush();
-              promise = app.promise = Object.assign(
-                createMultiTickPromise(20, () => $resolve ? Promise.resolve(4242) : Promise.reject(new Error('foo-bar foo-bar')))(),
-                { id: 1 }
-              );
+              promise = app.promise = Object.assign(new Promise((rs, rj) => [resolve, reject] = [rs, rj]), { id: 1 });
 
               await q.yield();
               if ($resolve) {
@@ -2493,6 +2461,11 @@ describe('promise template-controller', function () {
               ctx.clear();
 
               try {
+                if ($resolve) {
+                  resolve(4242);
+                } else {
+                  reject(new Error('foo-bar foo-bar'));
+                }
                 await promise;
               } catch {
                 // ignore rejection
@@ -2516,14 +2489,16 @@ describe('promise template-controller', function () {
     (data.only ? $it.only : $it)(data.name,
       async function (ctx) {
 
-        await ctx.platform.domWriteQueue.yield();
         assert.strictEqual(ctx.error, null);
-        if (data.expectedInnerHtml !== null) {
-          assert.html.innerEqual(ctx.host, data.expectedInnerHtml, 'innerHTML');
+        const expectedContent = data.expectedInnerHtml;
+        if (expectedContent !== null) {
+          await ctx.platform.domWriteQueue.yield();
+          assert.html.innerEqual(ctx.host, expectedContent, 'innerHTML');
         }
 
-        if (data.expectedStartLog !== null) {
-          ctx.assertCallSet(data.expectedStartLog, 'start lifecycle calls');
+        const expectedLog = data.expectedStartLog;
+        if (expectedLog !== null) {
+          ctx.assertCallSet(expectedLog, 'start lifecycle calls');
         }
 
         const additionalAssertions = data.additionalAssertions;

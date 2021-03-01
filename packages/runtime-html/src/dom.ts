@@ -3,19 +3,34 @@ import { IAppRoot } from './app-root.js';
 import { IPlatform } from './platform.js';
 import { CustomElement } from './resources/custom-element.js';
 import { MountTarget } from './templating/controller.js';
+import type { IHydratedController } from './templating/controller.js';
 
-export type INode<T extends Node = Node> = T;
-export const INode = DI.createInterface<INode>('INode').noDefault();
+export class Refs {
+  [key: string]: IHydratedController | undefined;
+}
+
+export function getRef(node: INode, name: string): IHydratedController | null {
+  return node.$au?.[name] ?? null;
+}
+
+export function setRef(node: INode, name: string, controller: IHydratedController): void {
+  ((node as Writable<INode>).$au ??= new Refs())[name] = controller;
+}
+
+export type INode<T extends Node = Node> = T & {
+  readonly $au?: Refs;
+};
+export const INode = DI.createInterface<INode>('INode');
 
 export type IEventTarget<T extends EventTarget = EventTarget> = T;
-export const IEventTarget = DI.createInterface<IEventTarget>('IEventTarget').withDefault(x => x.cachedCallback(handler => {
+export const IEventTarget = DI.createInterface<IEventTarget>('IEventTarget', x => x.cachedCallback(handler => {
   if (handler.has(IAppRoot, true)) {
     return handler.get(IAppRoot).host;
   }
   return handler.get(IPlatform).document;
 }));
 
-export const IRenderLocation = DI.createInterface<IRenderLocation>('IRenderLocation').noDefault();
+export const IRenderLocation = DI.createInterface<IRenderLocation>('IRenderLocation');
 export type IRenderLocation<T extends ChildNode = ChildNode> = T & {
   $start?: IRenderLocation<T>;
 };
@@ -371,13 +386,13 @@ export class FragmentNodeSequence implements INodeSequence {
   }
 }
 
-export const IWindow = DI.createInterface<IWindow>('IWindow').withDefault(x => x.callback(handler => handler.get(IPlatform).window));
+export const IWindow = DI.createInterface<IWindow>('IWindow', x => x.callback(handler => handler.get(IPlatform).window));
 export interface IWindow extends Window { }
 
-export const ILocation = DI.createInterface<ILocation>('ILocation').withDefault(x => x.callback(handler => handler.get(IWindow).location));
+export const ILocation = DI.createInterface<ILocation>('ILocation', x => x.callback(handler => handler.get(IWindow).location));
 export interface ILocation extends Location { }
 
-export const IHistory = DI.createInterface<IHistory>('IHistory').withDefault(x => x.callback(handler => handler.get(IWindow).history));
+export const IHistory = DI.createInterface<IHistory>('IHistory', x => x.callback(handler => handler.get(IWindow).history));
 // NOTE: `IHistory` is documented
 /**
  * https://developer.mozilla.org/en-US/docs/Web/API/History

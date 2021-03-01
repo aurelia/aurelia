@@ -1,4 +1,3 @@
-/* eslint-disable eqeqeq, compat/compat */
 import {
   connectable,
   ConnectableSwitcher,
@@ -30,7 +29,6 @@ export interface ComputedWatcher extends IConnectableBinding { }
 export class ComputedWatcher implements IConnectableBinding, ISubscriber, ICollectionSubscriber {
   public interceptor = this;
 
-  public id!: number;
   public value: unknown = void 0;
   public isBound: boolean = false;
 
@@ -44,7 +42,6 @@ export class ComputedWatcher implements IConnectableBinding, ISubscriber, IColle
     private readonly cb: IWatcherCallback<object>,
     public readonly useProxy: boolean,
   ) {
-    connectable.assignIdTo(this);
   }
 
   public handleChange(): void {
@@ -68,8 +65,7 @@ export class ComputedWatcher implements IConnectableBinding, ISubscriber, IColle
       return;
     }
     this.isBound = false;
-    this.record.clear(true);
-    this.cRecord.clear(true);
+    this.obs.clear(true);
   }
 
   private run(): void {
@@ -88,13 +84,12 @@ export class ComputedWatcher implements IConnectableBinding, ISubscriber, IColle
 
   private compute(): unknown {
     this.running = true;
-    this.record.version++;
+    this.obs.version++;
     try {
       enter(this);
       return this.value = unwrap(this.get.call(void 0, this.useProxy ? wrap(this.obj) : this.obj, this));
     } finally {
-      this.record.clear(false);
-      this.cRecord.clear(false);
+      this.obs.clear(false);
       this.running = false;
       exit(this);
     }
@@ -124,18 +119,17 @@ export class ExpressionWatcher implements IConnectableBinding {
     private readonly callback: IWatcherCallback<object>,
   ) {
     this.obj = scope.bindingContext;
-    connectable.assignIdTo(this);
   }
 
   public handleChange(value: unknown): void {
     const expr = this.expression;
     const obj = this.obj;
     const oldValue = this.value;
-    const canOptimize = expr.$kind === ExpressionKind.AccessScope && this.record.count === 1;
+    const canOptimize = expr.$kind === ExpressionKind.AccessScope && this.obs.count === 1;
     if (!canOptimize) {
-      this.record.version++;
+      this.obs.version++;
       value = expr.evaluate(0, this.scope, null, this.locator, this);
-      this.record.clear(false);
+      this.obs.clear(false);
     }
     if (!Object.is(value, oldValue)) {
       this.value = value;
@@ -149,9 +143,9 @@ export class ExpressionWatcher implements IConnectableBinding {
       return;
     }
     this.isBound = true;
-    this.record.version++;
+    this.obs.version++;
     this.value = this.expression.evaluate(LifecycleFlags.none, this.scope, null, this.locator, this);
-    this.record.clear(false);
+    this.obs.clear(false);
   }
 
   public $unbind(): void {
@@ -159,7 +153,7 @@ export class ExpressionWatcher implements IConnectableBinding {
       return;
     }
     this.isBound = false;
-    this.record.clear(true);
+    this.obs.clear(true);
     this.value = void 0;
   }
 }

@@ -8,8 +8,8 @@ export class ConfigurableRoute<T> implements IConfigurableRoute<T> {
   public constructor(
     public readonly path: string,
     public readonly caseSensitive: boolean,
-    public readonly handler: T,
-  ) { }
+    public handler: T,
+  ) {}
 }
 
 export class Endpoint<T> {

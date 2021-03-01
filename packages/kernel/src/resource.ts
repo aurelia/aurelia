@@ -119,7 +119,6 @@ export const Protocol = {
   resource,
 };
 
-// eslint-disable-next-line @typescript-eslint/unbound-method
 const hasOwn = Object.prototype.hasOwnProperty;
 
 /**
@@ -143,7 +142,6 @@ export function fromAnnotationOrDefinitionOrTypeOrDefault<
     value = def[name];
     if (value === void 0) {
       value = (Type as Constructable & TDef)[name] as TDef[K] | undefined;
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       if (value === void 0 || !hasOwn.call(Type, name)) { // First just check the value (common case is faster), but do make sure it doesn't come from the proto chain
         return getDefault();
       }
@@ -168,7 +166,6 @@ export function fromAnnotationOrTypeOrDefault<T, K extends keyof T, V>(
   let value = Metadata.getOwn(Protocol.annotation.keyFor(name as string), Type) as V;
   if (value === void 0) {
     value = Type[name] as unknown as V;
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if (value === void 0 || !hasOwn.call(Type, name)) { // First just check the value (common case is faster), but do make sure it doesn't come from the proto chain
       return getDefault();
     }

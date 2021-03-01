@@ -6,7 +6,8 @@ import {
   InstanceProvider,
   IDisposable,
   onResolve,
-  resolveAll
+  resolveAll,
+  ILogger
 } from '@aurelia/kernel';
 import { LifecycleFlags } from '@aurelia/runtime';
 import { INode } from './dom.js';
@@ -22,12 +23,54 @@ export interface ISinglePageApp {
 }
 
 export interface IAppRoot extends AppRoot {}
-export const IAppRoot = DI.createInterface<IAppRoot>('IAppRoot').noDefault();
+export const IAppRoot = DI.createInterface<IAppRoot>('IAppRoot');
+
+export interface IWorkTracker extends WorkTracker {}
+export const IWorkTracker = DI.createInterface<IWorkTracker>('IWorkTracker', x => x.singleton(WorkTracker));
+export class WorkTracker {
+  private stack: number = 0;
+  private promise: Promise<void> | null = null;
+  private resolve: (() => void) | null = null;
+
+  public constructor(@ILogger private readonly logger: ILogger) {
+    this.logger = logger.scopeTo('WorkTracker');
+  }
+
+  public start(): void {
+    this.logger.trace(`start(stack:${this.stack})`);
+    ++this.stack;
+  }
+
+  public finish(): void {
+    this.logger.trace(`finish(stack:${this.stack})`);
+    if (--this.stack === 0) {
+      const resolve = this.resolve;
+      if (resolve !== null) {
+        this.resolve  = this.promise = null;
+        resolve();
+      }
+    }
+  }
+
+  public wait(): Promise<void> {
+    this.logger.trace(`wait(stack:${this.stack})`);
+    if (this.promise === null) {
+      if (this.stack === 0) {
+        return Promise.resolve();
+      }
+      this.promise = new Promise(resolve => {
+        this.resolve = resolve;
+      });
+    }
+    return this.promise;
+  }
+}
 
 export class AppRoot implements IDisposable {
   public readonly host: HTMLElement;
 
   public controller: ICustomElementController = (void 0)!;
+  public work: IWorkTracker;
 
   private hydratePromise: Promise<void> | void = void 0;
   private readonly enhanceDefinition: CustomElementDefinition | undefined;
@@ -40,6 +83,7 @@ export class AppRoot implements IDisposable {
     enhance: boolean = false,
   ) {
     this.host = config.host;
+    this.work = container.get(IWorkTracker);
     rootProvider.prepare(this);
     if (container.has(INode, false) && container.get(INode) !== config.host) {
       this.container = container.createChild();

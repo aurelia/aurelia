@@ -52,7 +52,7 @@ export enum ValidationTrigger {
 }
 
 /* @internal */
-export const IDefaultTrigger = DI.createInterface<ValidationTrigger>('IDefaultTrigger').noDefault();
+export const IDefaultTrigger = DI.createInterface<ValidationTrigger>('IDefaultTrigger');
 
 /**
  * Binding behavior. Indicates the bound property should be validated.
@@ -197,10 +197,14 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
 
   private task: ITask | null = null;
   private validateBinding() {
-    this.task?.cancel();
-    this.task = this.platform.domReadQueue.queueTask(async () => {
-      await this.controller.validateBinding(this.propertyBinding);
-    });
+    // Queue the new one before canceling the old one, to prevent early yield
+    const task = this.task;
+    this.task = this.platform.domReadQueue.queueTask(() =>
+      this.controller.validateBinding(this.propertyBinding)
+    );
+    if (task !== this.task) {
+      task?.cancel();
+    }
   }
 
   private processDelta(delta: ValidateArgumentsDelta) {

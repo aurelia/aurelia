@@ -121,28 +121,26 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
         const { currentValue } = this;
         this.currentValue = this.oldValue = newValue;
         this.hasChanges = false;
-        this.callSubscribers(newValue, currentValue, LifecycleFlags.none);
+        this.subs.notify(newValue, currentValue, LifecycleFlags.none);
       }
     }
   }
 
   public subscribe(subscriber: ISubscriber): void {
-    if (!this.hasSubscribers()) {
+    if (this.subs.add(subscriber) && this.subs.count === 1) {
       this.currentValue = this.oldValue = this.obj.getAttribute(this.propertyKey);
-      startObservation(this.platform.MutationObserver, this.obj, this);
+      startObservation(this.obj.ownerDocument.defaultView!.MutationObserver, this.obj, this);
     }
-    this.addSubscriber(subscriber);
   }
 
   public unsubscribe(subscriber: ISubscriber): void {
-    this.removeSubscriber(subscriber);
-    if (!this.hasSubscribers()) {
+    if (this.subs.remove(subscriber) && this.subs.count === 0) {
       stopObservation(this.obj, this);
     }
   }
 }
 
-subscriberCollection()(AttributeObserver);
+subscriberCollection(AttributeObserver);
 
 const startObservation = ($MutationObserver: typeof MutationObserver, element: IHtmlElement, subscription: ElementMutationSubscription): void => {
   if (element.$eMObservers === undefined) {

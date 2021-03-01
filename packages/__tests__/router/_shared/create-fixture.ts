@@ -97,7 +97,7 @@ export async function createFixture<T extends Constructable>(
   container.register(Registration.instance(IHIAConfig, hiaConfig));
   container.register(TestRouterConfiguration.for(ctx, level));
   container.register(RouterConfiguration.customize(routerOptions));
-  container.register(LoggerConfiguration.create({ $console: console, level: LogLevel.trace }));
+  container.register(LoggerConfiguration.create({ sinks: [ConsoleSink], level: LogLevel.warn }));
   container.register(...deps);
 
   const activityTracker = container.get(IActivityTracker);
@@ -107,7 +107,6 @@ export async function createFixture<T extends Constructable>(
 
   const au = new Aurelia(container);
   const host = ctx.createElement('div');
-  ctx.doc.body.appendChild(host as any);
 
   const logConfig = container.get(ILogConfig);
 

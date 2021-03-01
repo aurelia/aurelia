@@ -13,11 +13,6 @@ export type ResolveCallback<T = any> = (handler: IContainer, requestor: IContain
 
 export type InterfaceSymbol<K = any> = (target: Injectable<K>, property: string, index: number) => void;
 
-export interface IDefaultableInterfaceSymbol<K> extends InterfaceSymbol<K> {
-  withDefault(configure: (builder: ResolverBuilder<K>) => IResolver<K>): InterfaceSymbol<K>;
-  noDefault(): InterfaceSymbol<K>;
-}
-
 // This interface exists only to break a circular type referencing issue in the IServiceLocator interface.
 // Otherwise IServiceLocator references IResolver, which references IContainer, which extends IServiceLocator.
 interface IResolverLike<C, K = any> {
@@ -58,6 +53,7 @@ export interface IRegistry {
 }
 
 export interface IContainer extends IServiceLocator, IDisposable {
+  readonly root: IContainer;
   register(...params: any[]): IContainer;
   registerResolver<K extends Key, T = K>(key: K, resolver: IResolver<T>, isDisposable?: boolean): IResolver<T>;
   registerTransformer<K extends Key, T = K>(key: K, transformer: Transformer<T>): boolean;
@@ -127,9 +123,6 @@ export type Resolved<K> = (
 );
 
 export type Injectable<T = {}> = Constructable<T> & { inject?: Key[] };
-
-type InternalDefaultableInterfaceSymbol<K> = IDefaultableInterfaceSymbol<K> & Partial<IRegistration<K> & {
-  friendlyName: string; $isInterface: true;}>;
 
 function cloneArrayWithPossibleProps<T>(source: readonly T[]): T[] {
   const clone = source.slice();
@@ -278,7 +271,7 @@ export const DI = {
   /**
    * creates a decorator that also matches an interface and can be used as a {@linkcode Key}.
    * ```ts
-   * const ILogger = DI.createInterface<Logger>('Logger').noDefault();
+   * const ILogger = DI.createInterface<Logger>('Logger');
    * container.register(Registration.singleton(ILogger, getSomeLogger()));
    * const log = container.get(ILogger);
    * log.info('hello world');
@@ -290,8 +283,7 @@ export const DI = {
    * ```
    * you can also build default registrations into your interface.
    * ```ts
-   * export const ILogger = DI.createInterface<Logger>('Logger')
-   *        .withDefault( builder => builder.cachedCallback(LoggerDefault));
+   * export const ILogger = DI.createInterface<Logger>('Logger', builder => builder.cachedCallback(LoggerDefault));
    * const log = container.get(ILogger);
    * log.info('hello world');
    * class Foo {
@@ -302,8 +294,7 @@ export const DI = {
    * ```
    * but these default registrations won't work the same with other decorators that take keys, for example
    * ```ts
-   * export const MyStr = DI.createInterface<string>('MyStr')
-   *        .withDefault( builder => builder.instance('somestring'));
+   * export const MyStr = DI.createInterface<string>('MyStr', builder => builder.instance('somestring'));
    * class Foo {
    *   constructor( @optional(MyStr) public readonly str: string ) {
    *   }
@@ -318,33 +309,25 @@ export const DI = {
    *
    * - @param friendlyName used to improve error messaging
    */
-  createInterface<K extends Key>(friendlyName?: string): IDefaultableInterfaceSymbol<K> {
-    const Interface: InternalDefaultableInterfaceSymbol<K> = function (target: Injectable<K>, property: string, index: number): any {
+  createInterface<K extends Key>(configureOrName?: string | ((builder: ResolverBuilder<K>) => IResolver<K>), configuror?: (builder: ResolverBuilder<K>) => IResolver<K>): InterfaceSymbol<K> {
+    const configure = typeof configureOrName === 'function' ? configureOrName : configuror;
+    const friendlyName = typeof configureOrName === 'string' ? configureOrName : undefined;
+
+    const Interface = function (target: Injectable<K>, property: string, index: number): void {
       if (target == null || new.target !== undefined) {
         throw new Error(`No registration for interface: '${Interface.friendlyName}'`); // TODO: add error (trying to resolve an InterfaceSymbol that has no registrations)
       }
       const annotationParamtypes = DI.getOrCreateAnnotationParamTypes(target);
       annotationParamtypes[index] = Interface;
-      return target;
     };
     Interface.$isInterface = true;
     Interface.friendlyName = friendlyName == null ? '(anonymous)' : friendlyName;
 
-    Interface.noDefault = function (): InterfaceSymbol<K> {
-      return Interface;
-    };
-
-    Interface.withDefault = function (configure: (builder: ResolverBuilder<K>) => IResolver<K>): InterfaceSymbol<K> {
-      Interface.withDefault = function (): InterfaceSymbol<K> {
-        throw new Error(`You can only define one default implementation for an interface.`);
-      };
-
+    if (configure != null) {
       Interface.register = function (container: IContainer, key?: Key): IResolver<K> {
-        return configure(new ResolverBuilder(container, key ?? Interface));
+          return configure(new ResolverBuilder(container, key ?? Interface));
       };
-
-      return Interface;
-    };
+    }
 
     Interface.toString = function toString(): string {
       return `InterfaceSymbol<${Interface.friendlyName}>`;
@@ -442,7 +425,7 @@ export const DI = {
   },
 };
 
-export const IContainer = DI.createInterface<IContainer>('IContainer').noDefault();
+export const IContainer = DI.createInterface<IContainer>('IContainer');
 export const IServiceLocator = IContainer as unknown as InterfaceSymbol<IServiceLocator>;
 
 function createResolver(getter: (key: any, handler: IContainer, requestor: IContainer) => any): (key: any) => any {
@@ -731,6 +714,14 @@ export interface IInvoker<T extends Constructable = any> {
   ): Resolved<T>;
 }
 
+function containerGetKey(this: IContainer, d: Key) {
+  return this.get(d);
+}
+
+function transformInstance<T>(inst: Resolved<T>, transform: (instance: any) => any) {
+  return transform(inst);
+}
+
 /** @internal */
 export class Factory<T extends Constructable = any> implements IFactory<T> {
   private transformers: ((instance: any) => any)[] | null = null;
@@ -742,22 +733,16 @@ export class Factory<T extends Constructable = any> implements IFactory<T> {
   public construct(container: IContainer, dynamicDependencies?: Key[]): Resolved<T> {
     let instance: Resolved<T>;
     if (dynamicDependencies === void 0) {
-      instance = new this.Type(...this.dependencies.map(function (d) {
-        return container.get(d);
-      })) as Resolved<T>;
+      instance = new this.Type(...this.dependencies.map(containerGetKey, container)) as Resolved<T>;
     } else {
-      instance = new this.Type(...this.dependencies.map(function (d) {
-        return container.get(d);
-      }), ...dynamicDependencies) as Resolved<T>;
+      instance = new this.Type(...this.dependencies.map(containerGetKey, container), ...dynamicDependencies) as Resolved<T>;
     }
 
     if (this.transformers == null) {
       return instance;
     }
 
-    return this.transformers.reduce(function (inst, transform) {
-      return transform(inst);
-    }, instance);
+    return this.transformers.reduce(transformInstance, instance);
   }
 
   public registerTransformer(transformer: (instance: any) => any): void {
@@ -836,7 +821,7 @@ export class Container implements IContainer {
   public get depth(): number {
     return this.parent === null ? 0 : this.parent.depth + 1;
   }
-  private readonly root: Container;
+  public readonly root: Container;
 
   private readonly resolvers: Map<Key, IResolver | IDisposableResolver>;
   // Factories are "global" per container tree
@@ -1272,15 +1257,20 @@ export class ParameterizedRegistry implements IRegistry {
   }
 }
 
-const cache = new WeakMap<IResolver>();
+type ResolverLookup = WeakMap<IResolver, unknown>;
+const containerLookup = new WeakMap<IContainer, ResolverLookup>();
 
 function cacheCallbackResult<T>(fun: ResolveCallback<T>): ResolveCallback<T> {
   return function (handler: IContainer, requestor: IContainer, resolver: IResolver): T {
-    if (cache.has(resolver)) {
-      return cache.get(resolver);
+    let resolverLookup = containerLookup.get(handler);
+    if (resolverLookup === void 0) {
+      containerLookup.set(handler, resolverLookup = new WeakMap());
+    }
+    if (resolverLookup.has(resolver)) {
+      return resolverLookup.get(resolver) as T;
     }
     const t = fun(handler, requestor, resolver);
-    cache.set(resolver, t);
+    resolverLookup.set(resolver, t);
     return t;
   };
 }

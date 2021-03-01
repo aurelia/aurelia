@@ -1,3 +1,4 @@
+*.iml
 .idea
 .DS_STORE
 .rpt2_cache
@@ -13,10 +14,11 @@ TESTS-*.xml
 
 **/debug.log
 **/npm-debug.log
-**/lerna-debug.log
 
-test/cypress/integration/examples
 screenshots
 
 *.code-workspace
 test/benchmarking-apps/runner/cosmos.config.json
+
+# Use the following directory to stash anything in the workspace, that you don't want to push to remote. For example: personal notes, todos etc.
+/.ignored

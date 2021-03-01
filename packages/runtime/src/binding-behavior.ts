@@ -8,7 +8,7 @@ import {
   DI,
   fromAnnotationOrDefinitionOrTypeOrDefault,
 } from '@aurelia/kernel';
-import { Collection, LifecycleFlags } from './observation.js';
+import { Collection, IndexMap, LifecycleFlags } from './observation.js';
 import { registerAliases } from './alias.js';
 
 import type {
@@ -20,8 +20,8 @@ import type {
   IServiceLocator,
   Key,
 } from '@aurelia/kernel';
-import type { BindingCollectionObserverRecord, BindingObserverRecord, IConnectableBinding } from './binding/connectable.js';
-import type { BindingBehaviorExpression, IBindingBehaviorExpression } from './binding/ast.js';
+import type { BindingObserverRecord, IConnectableBinding } from './binding/connectable.js';
+import type { BindingBehaviorExpression, ForOfStatement, IBindingBehaviorExpression, IsBindingBehavior } from './binding/ast.js';
 import type { IObserverLocator } from './observation/observer-locator.js';
 import type { IBinding } from './observation.js';
 import type { Scope } from './observation/binding-context.js';
@@ -156,11 +156,8 @@ export interface BindingInterceptor extends IConnectableBinding {}
 
 export class BindingInterceptor implements IInterceptableBinding {
   public interceptor: this = this;
-  public get id(): number {
-    return this.binding.id!;
-  }
   public get observerLocator(): IObserverLocator {
-    return this.binding.observerLocator!;
+    return this.binding.observerLocator;
   }
   public get locator(): IServiceLocator {
     return this.binding.locator;
@@ -174,11 +171,11 @@ export class BindingInterceptor implements IInterceptableBinding {
   public get isBound(): boolean {
     return this.binding.isBound;
   }
-  public get record(): BindingObserverRecord {
-    return this.binding.record;
+  public get obs(): BindingObserverRecord {
+    return this.binding.obs;
   }
-  public get cRecord(): BindingCollectionObserverRecord {
-    return this.binding.cRecord;
+  public get sourceExpression(): IsBindingBehavior | ForOfStatement {
+    return (this.binding as unknown as { sourceExpression: IsBindingBehavior | ForOfStatement }).sourceExpression;
   }
 
   public constructor(
@@ -204,6 +201,9 @@ export class BindingInterceptor implements IInterceptableBinding {
   }
   public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
     this.binding.handleChange!(newValue, previousValue, flags);
+  }
+  public handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void {
+    this.binding.handleCollectionChange(indexMap, flags);
   }
   public observeProperty(obj: object, key: string): void {
     this.binding.observeProperty!(obj, key as string);

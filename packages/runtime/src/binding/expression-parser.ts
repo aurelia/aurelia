@@ -44,7 +44,7 @@ import {
 } from './ast.js';
 
 export interface IExpressionParser extends ExpressionParser {}
-export const IExpressionParser = DI.createInterface<IExpressionParser>('IExpressionParser').withDefault(x => x.singleton(ExpressionParser));
+export const IExpressionParser = DI.createInterface<IExpressionParser>('IExpressionParser', x => x.singleton(ExpressionParser));
 
 export class ExpressionParser {
   private readonly expressionLookup: Record<string, IsBindingBehavior> = Object.create(null);
@@ -313,10 +313,13 @@ const $this = AccessThisExpression.$this;
 const $host = AccessThisExpression.$host;
 const $parent = AccessThisExpression.$parent;
 
-/* eslint-disable @typescript-eslint/indent */
 export const enum BindingType {
                 None = 0,
-    IgnoreCustomAttr = 0b100000000_0000,
+          // if a binding command is taking over the processing of an attribute
+          // then it should add this flag to its binding type
+          // which then tell the binder to proceed the attribute compilation as is,
+          // instead of normal process: transformation -> compilation
+          IgnoreAttr = 0b100000000_0000,
        Interpolation = 0b010000000_0000,
           IsRef      = 0b101010000_0000,
           IsIterator = 0b000100000_0000,

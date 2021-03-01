@@ -6,6 +6,10 @@ description: >-
 
 # Navigating With Load
 
+{% hint style="info" %}
+`Please note that we currently have an interim router implementation and that some (minor) changes to application code might be required when the original router is added back in.`
+{% endhint %}
+
 ## Router Instance
 
 To use the `load` method, you have to first inject the router into your component. This can be done easily by using the `IRouter` decorator on your component constructor method. The following code will add a property to your component called `router` which we can reference.
@@ -31,7 +35,7 @@ export class MyComponent implements IRouteableComponent {
     constructor(@IRouter private router: IRouter) {
 
     }
-    
+
     viewProducts() {
         this.router.load('products');
     }
@@ -49,7 +53,7 @@ export class MyComponent implements IRouteableComponent {
     constructor(@IRouter private router: IRouter) {
 
     }
-    
+
     viewProduct() {
         this.router.load('product(12)');
     }
@@ -67,7 +71,7 @@ export class MyComponent implements IRouteableComponent {
     constructor(@IRouter private router: IRouter) {
 
     }
-    
+
     viewProduct() {
         this.router.load({ component: Product, parameters: { id: '12' } });
     }
@@ -85,7 +89,7 @@ export class MyComponent implements IRouteableComponent {
     constructor(@IRouter private router: IRouter) {
 
     }
-    
+
     viewProduct() {
         this.router.load({ component: 'product', parameters: { id: '12' }, viewport: 'main' });
     }

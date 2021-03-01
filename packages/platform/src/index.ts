@@ -35,11 +35,10 @@ export class Platform<TGlobal extends typeof globalThis = typeof globalThis> {
 
   public readonly performanceNow: () => number;
 
-  public readonly macroTaskQueue: TaskQueue;
+  public readonly taskQueue: TaskQueue;
 
   public constructor(g: TGlobal, overrides: Partial<Exclude<Platform, 'globalThis'>> = {}) {
     this.globalThis = g;
-    /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
     this.decodeURI = 'decodeURI' in overrides ? overrides.decodeURI! : g.decodeURI;
     this.decodeURIComponent = 'decodeURIComponent' in overrides ? overrides.decodeURIComponent! : g.decodeURIComponent;
     this.encodeURI = 'encodeURI' in overrides ? overrides.encodeURI! : g.encodeURI;
@@ -59,8 +58,7 @@ export class Platform<TGlobal extends typeof globalThis = typeof globalThis> {
     this.performanceNow = 'performanceNow' in overrides ? overrides.performanceNow! : g.performance?.now?.bind(g.performance) ?? notImplemented('performance.now');
 
     this.flushMacroTask = this.flushMacroTask.bind(this);
-    this.macroTaskQueue = new TaskQueue(this, this.requestMacroTask.bind(this), this.cancelMacroTask.bind(this));
-    /* eslint-enable @typescript-eslint/no-unnecessary-type-assertion */
+    this.taskQueue = new TaskQueue(this, this.requestMacroTask.bind(this), this.cancelMacroTask.bind(this));
   }
 
   public static getOrCreate<TGlobal extends typeof globalThis = typeof globalThis>(
@@ -97,7 +95,7 @@ export class Platform<TGlobal extends typeof globalThis = typeof globalThis> {
     this.macroTaskHandle = -1;
     if (this.macroTaskRequested === true) {
       this.macroTaskRequested = false;
-      this.macroTaskQueue.flush();
+      this.taskQueue.flush();
     }
   }
 }
@@ -125,7 +123,12 @@ export class TaskQueue {
   private lastFlush: number = 0;
 
   public get isEmpty(): boolean {
-    return this.processing.length === 0 && this.pending.length === 0 && this.delayed.length === 0;
+    return (
+      this.pendingAsyncCount === 0 &&
+      this.processing.length === 0 &&
+      this.pending.length === 0 &&
+      this.delayed.length === 0
+    );
   }
 
   /**
@@ -782,7 +785,7 @@ const defaultQueueTaskOptions: Required<QueueTaskOptions> = {
   suspend: false,
 };
 
-type PResolve<T> = (value?: T | PromiseLike<T>) => void;
+type PResolve<T> = (value: T | PromiseLike<T>) => void;
 type PReject<T = any> = (reason?: T) => void;
 let $resolve: PResolve<any>;
 let $reject: PReject;

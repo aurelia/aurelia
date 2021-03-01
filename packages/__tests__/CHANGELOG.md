@@ -3,6 +3,78 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="0.9.0"></a>
+# 0.9.0 (2021-01-31)
+
+### Features:
+
+* ***:** decorator auSlots wip ([6ddb362](https://github.com/aurelia/aurelia/commit/6ddb362))
+* ***:** processContent wip ([cb8a103](https://github.com/aurelia/aurelia/commit/cb8a103))
+* **show/hide:** port show & hide attributes from v1 ([8dd9562](https://github.com/aurelia/aurelia/commit/8dd9562))
+* **compiler:** preserve 'alias' in the compiled instruction for usage by component instance ([e80a837](https://github.com/aurelia/aurelia/commit/e80a837))
+* **plugin-conventions:** rejects usage of <slot> in non-ShadowDOM mode ([0b545f4](https://github.com/aurelia/aurelia/commit/0b545f4))
+* **di:** remove DI.createInterface builder ([8146dcc](https://github.com/aurelia/aurelia/commit/8146dcc))
+* **route-recognizer:** support path array ([b1ef7f1](https://github.com/aurelia/aurelia/commit/b1ef7f1))
+* **kernel:** add inheritParentResources config option ([ce5e17d](https://github.com/aurelia/aurelia/commit/ce5e17d))
+
+
+### Bug Fixes:
+
+* **route-expression:** fix segment grouping, scoping and serialization ([5acd0ed](https://github.com/aurelia/aurelia/commit/5acd0ed))
+* **router:** querystring ([eca9606](https://github.com/aurelia/aurelia/commit/eca9606))
+* ***:** broken validation tests ([a051257](https://github.com/aurelia/aurelia/commit/a051257))
+* **logger:** fix sink registration ([6f93797](https://github.com/aurelia/aurelia/commit/6f93797))
+* **au-slot:** non-strictly-initialized property ([699e7b8](https://github.com/aurelia/aurelia/commit/699e7b8))
+* ***:** as-element support for au-slot ([ae233e3](https://github.com/aurelia/aurelia/commit/ae233e3))
+* ***:** compilation skipping ([c9f5bda](https://github.com/aurelia/aurelia/commit/c9f5bda))
+* ***:** broken test in node ([054f4b3](https://github.com/aurelia/aurelia/commit/054f4b3))
+* ***:** linting issue ([fbddf28](https://github.com/aurelia/aurelia/commit/fbddf28))
+* ***:** broken tests ([e968b79](https://github.com/aurelia/aurelia/commit/e968b79))
+* ***:** order-agnostic processContent decorator ([c3a4bb6](https://github.com/aurelia/aurelia/commit/c3a4bb6))
+* **batch:** ensure nested batch not batched in outer ([ae61005](https://github.com/aurelia/aurelia/commit/ae61005))
+* **tests:** rename sub flag prop in test ([e4dc092](https://github.com/aurelia/aurelia/commit/e4dc092))
+* **accessors:** add index signature ([617c416](https://github.com/aurelia/aurelia/commit/617c416))
+* **computed-observer:** ensure getter invoked efficiently ([8b2bcf9](https://github.com/aurelia/aurelia/commit/8b2bcf9))
+* **route-recognizer:** cleanup & fix empty path routes ([5edb119](https://github.com/aurelia/aurelia/commit/5edb119))
+* **tests:** correct validation controller tests ([2849c99](https://github.com/aurelia/aurelia/commit/2849c99))
+
+
+### Performance Improvements:
+
+* **controller:** use stack to minimize promise tick overhead ([d861da8](https://github.com/aurelia/aurelia/commit/d861da8))
+
+
+### Refactorings:
+
+* **router:** renames 'children' to 'routes' ([90b56a2](https://github.com/aurelia/aurelia/commit/90b56a2))
+* ***:** au-slot info via DI ([1719669](https://github.com/aurelia/aurelia/commit/1719669))
+* **logging:** replace $console config option with ConsoleSink ([4ea5d22](https://github.com/aurelia/aurelia/commit/4ea5d22))
+* **all:** rename macroTaskQueue to taskQueue ([87c073d](https://github.com/aurelia/aurelia/commit/87c073d))
+* ***:** decorator auSlots ([26e980c](https://github.com/aurelia/aurelia/commit/26e980c))
+* ***:** decorator auSlots ([9fbb312](https://github.com/aurelia/aurelia/commit/9fbb312))
+* ***:** and more tests for processContent ([893831e](https://github.com/aurelia/aurelia/commit/893831e))
+* **test:** inline resources via karma preprocessor ([f74bce9](https://github.com/aurelia/aurelia/commit/f74bce9))
+* **all:** rename interfaces, simplify subscriber collection ([1c37183](https://github.com/aurelia/aurelia/commit/1c37183))
+* **test:** migrate from webpack to karma native modules ([e3e99f7](https://github.com/aurelia/aurelia/commit/e3e99f7))
+* **all:** remove ILifecycle ([d141d8e](https://github.com/aurelia/aurelia/commit/d141d8e))
+* **array-obs:** remove ILifecycle from array-obs ([da92d9f](https://github.com/aurelia/aurelia/commit/da92d9f))
+* **connectable:** more cryptic, less generic name ([0f303cb](https://github.com/aurelia/aurelia/commit/0f303cb))
+* **subscribers:** use a separate record for managing subscribers ([9f9152d](https://github.com/aurelia/aurelia/commit/9f9152d))
+* **di:** store factory per container root instead of via metadata ([dbbd8b9](https://github.com/aurelia/aurelia/commit/dbbd8b9))
+* **connectable:** make record/cRecord first class, remove other methods ([d0cb810](https://github.com/aurelia/aurelia/commit/d0cb810))
+* **connectable:** make observe coll part of IConnectable, updat watchers ([3df866c](https://github.com/aurelia/aurelia/commit/3df866c))
+* **all:** remove IBindingTargetAccessor & IBindingTargetObserver interfaces ([d9c27c6](https://github.com/aurelia/aurelia/commit/d9c27c6))
+* **subscribers:** shorter internal prop names, add some more comments ([1c6cb2d](https://github.com/aurelia/aurelia/commit/1c6cb2d))
+* **router:** rename resolutionStrategy to resolutionMode ([9591c7f](https://github.com/aurelia/aurelia/commit/9591c7f))
+* **el-accessor:** merge size & length observersremove task reuse ([3af2d9f](https://github.com/aurelia/aurelia/commit/3af2d9f))
+* **router:** rename deferral back to resolutionStrategy ([1b6adf1](https://github.com/aurelia/aurelia/commit/1b6adf1))
+* **observer:** ensure length subscription adds array subscription, add tests ([64182ae](https://github.com/aurelia/aurelia/commit/64182ae))
+* **obs:** clean up bind from observer, ([3006d3b](https://github.com/aurelia/aurelia/commit/3006d3b))
+* **router:** use stack to minimize promise tick overhead + various improvements ([09d2379](https://github.com/aurelia/aurelia/commit/09d2379))
+* **if:** cleanup & utilize WorkTracker ([df3a5d5](https://github.com/aurelia/aurelia/commit/df3a5d5))
+* **router:** remove guard-hooks option ([054f0a7](https://github.com/aurelia/aurelia/commit/054f0a7))
+* **router:** port of PR #845 ([a67d0a2](https://github.com/aurelia/aurelia/commit/a67d0a2))
+
 <a name="0.8.0"></a>
 # 0.8.0 (2020-11-30)
 

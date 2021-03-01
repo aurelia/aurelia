@@ -8,13 +8,19 @@ export function createFixture<T>(template: string | Node,
   autoStart: boolean = true,
   ctx: TestContext = TestContext.create(),
 ) {
-  const { container, lifecycle, platform, observerLocator } = ctx;
+  const { container, platform, observerLocator } = ctx;
   container.register(...registrations);
   const root = ctx.doc.body.appendChild(ctx.doc.createElement('div'));
   const host = root.appendChild(ctx.createElement('app'));
   const au = new Aurelia(container);
   const App = CustomElement.define({ name: 'app', template }, $class || class { } as Constructable<T>);
-  const component = new App();
+  if (container.has(App, true)) {
+    throw new Error(
+      'Container of the context cotains instance of the application root component. ' +
+      'Consider using a different class, or context as it will likely cause surprises in tests.'
+    );
+  }
+  const component = container.get(App);
 
   let startPromise: Promise<void> | void = void 0;
   if (autoStart) {
@@ -27,7 +33,6 @@ export function createFixture<T>(template: string | Node,
     ctx,
     host: ctx.doc.firstElementChild,
     container,
-    lifecycle,
     platform,
     testHost: root,
     appHost: host,

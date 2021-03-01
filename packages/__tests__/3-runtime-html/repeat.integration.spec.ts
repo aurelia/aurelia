@@ -1,4 +1,4 @@
-/* eslint-disable quotes, @typescript-eslint/explicit-member-accessibility */
+/* eslint-disable @typescript-eslint/explicit-member-accessibility */
 import { Aurelia, CustomElement } from '@aurelia/runtime-html';
 import { TestContext, assert } from "@aurelia/testing";
 

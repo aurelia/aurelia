@@ -17,7 +17,7 @@ import { FragmentNodeSequence, INode, INodeSequence, IRenderLocation } from '../
 import { IRenderer, ITemplateCompiler, IInstruction, Instruction, InstructionTypeName } from '../renderer.js';
 import { CustomElementDefinition, PartialCustomElementDefinition } from '../resources/custom-element.js';
 import { IViewFactory, ViewFactory } from './view.js';
-import { AuSlotContentType, IProjectionProvider, RegisteredProjections } from '../resources/custom-elements/au-slot.js';
+import { AuSlotContentType, IAuSlotsInfo, IProjectionProvider, RegisteredProjections } from '../resources/custom-elements/au-slot.js';
 import { IPlatform } from '../platform.js';
 import { IController } from './controller.js';
 import type { ICustomAttributeViewModel, ICustomElementViewModel, IHydratableController } from './controller.js';
@@ -113,6 +113,7 @@ export interface ICompiledRenderContext extends IRenderContext, IProjectionProvi
     instruction?: IInstruction,
     viewFactory?: IViewFactory,
     location?: IRenderLocation,
+    auSlotsInfo?: IAuSlotsInfo,
   ): IComponentFactory;
 
   render(
@@ -227,6 +228,7 @@ export function getRenderContext(
 const emptyNodeCache = new WeakMap<IPlatform, FragmentNodeSequence>();
 
 export class RenderContext implements IComponentFactory {
+  public readonly root: IContainer;
   private readonly container: IContainer;
 
   private readonly parentControllerProvider: InstanceProvider<IController>;
@@ -234,6 +236,7 @@ export class RenderContext implements IComponentFactory {
   private readonly instructionProvider: InstanceProvider<Instruction>;
   private readonly factoryProvider: ViewFactoryProvider;
   private readonly renderLocationProvider: InstanceProvider<IRenderLocation>;
+  private readonly auSlotsInfoProvider: InstanceProvider<IAuSlotsInfo>;
 
   private viewModelProvider: InstanceProvider<ICustomElementViewModel> | undefined = void 0;
   private fragment: Node | null = null;
@@ -250,6 +253,7 @@ export class RenderContext implements IComponentFactory {
     public readonly definition: CustomElementDefinition,
     public readonly parentContainer: IContainer,
   ) {
+    this.root = parentContainer.root;
     const container = this.container = parentContainer.createChild();
     // TODO(fkleuver): get contextual + root renderers
     const renderers = container.getAll(IRenderer);
@@ -278,6 +282,11 @@ export class RenderContext implements IComponentFactory {
     container.registerResolver(
       IRenderLocation,
       this.renderLocationProvider = new InstanceProvider<IRenderLocation>('IRenderLocation'),
+      true,
+    );
+    container.registerResolver(
+      IAuSlotsInfo,
+      this.auSlotsInfoProvider = new InstanceProvider<IAuSlotsInfo>('IAuSlotsInfo'),
       true,
     );
     const ep = this.elementProvider = new InstanceProvider('ElementResolver');
@@ -448,6 +457,7 @@ export class RenderContext implements IComponentFactory {
     instruction?: Instruction,
     viewFactory?: IViewFactory,
     location?: IRenderLocation,
+    auSlotsInfo?: IAuSlotsInfo,
   ): IComponentFactory {
     if (parentController !== void 0) {
       this.parentControllerProvider.prepare(parentController);
@@ -464,6 +474,9 @@ export class RenderContext implements IComponentFactory {
     }
     if (viewFactory !== void 0) {
       this.factoryProvider.prepare(viewFactory);
+    }
+    if(auSlotsInfo !== void 0) {
+      this.auSlotsInfoProvider.prepare(auSlotsInfo);
     }
 
     return this;

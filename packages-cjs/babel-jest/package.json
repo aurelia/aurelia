@@ -1,0 +1,57 @@
+{
+  "name": "@aurelia/babel-jest",
+  "version": "0.9.0",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "type": "commonjs",
+  "types": "dist/index.d.ts",
+  "typings": "dist/index.d.ts",
+  "license": "MIT",
+  "homepage": "https://aurelia.io",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aurelia/aurelia"
+  },
+  "bugs": {
+    "url": "https://github.com/aurelia/aurelia/issues"
+  },
+  "keywords": [
+    "aurelia",
+    "jest"
+  ],
+  "files": [
+    "dist",
+    "src",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "lint": "eslint --cache --ext .js,.ts src/",
+    "lint:ci": "eslint --cache --ext .js,.ts --quiet --report-unused-disable-directives src/",
+    "build": "tsc -b",
+    "dev": "tsc -b -w --preserveWatchOutput",
+    "publish:dev": "npm publish --tag dev",
+    "publish:latest": "npm publish --tag latest"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@aurelia/kernel": "0.9.0",
+    "@aurelia/metadata": "0.9.0",
+    "@aurelia/platform": "0.9.0",
+    "@aurelia/plugin-conventions": "0.9.0",
+    "@aurelia/runtime": "0.9.0",
+    "babel-jest": "^26.3.0"
+  },
+  "devDependencies": {
+    "@jest/transform": "^26.3.0",
+    "@jest/types": "^26.3.0",
+    "@types/node": "^14.11.5",
+    "typescript": "^4.0.3"
+  },
+  "engines": {
+    "node": ">=14.15.0"
+  }
+}

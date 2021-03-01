@@ -10,19 +10,14 @@ import type {
   ISubscriber,
   ISubscriberCollection,
   ICollectionSubscriber,
-  IObserver,
 } from '../observation.js';
 
 export interface CollectionLengthObserver extends ISubscriberCollection {}
 
-export class CollectionLengthObserver {
+export class CollectionLengthObserver implements ICollectionSubscriber {
   public value: number;
   public readonly type: AccessorType = AccessorType.Array;
   public readonly obj: unknown[];
-  /**
-   * @internal
-   */
-  public subCount: number = 0;
 
   public constructor(
     public readonly owner: ICollectionObserver<CollectionKind.array>,
@@ -44,7 +39,7 @@ export class CollectionLengthObserver {
         this.obj.length = newValue;
       }
       this.value = newValue;
-      this.callSubscribers(newValue, currentValue, flags | LifecycleFlags.updateTarget);
+      this.subs.notify(newValue, currentValue, flags);
     }
   }
 
@@ -52,21 +47,17 @@ export class CollectionLengthObserver {
     const oldValue = this.value;
     const value = this.obj.length;
     if ((this.value = value) !== oldValue) {
-      this.callSubscribers(value, oldValue, flags);
+      this.subs.notify(value, oldValue, flags);
     }
   }
 }
 
 export interface CollectionSizeObserver extends ISubscriberCollection {}
 
-export class CollectionSizeObserver {
+export class CollectionSizeObserver implements ICollectionSubscriber {
   public value: number;
   public readonly type: AccessorType;
   public readonly obj: Set<unknown> | Map<unknown, unknown>;
-  /**
-   * @internal
-   */
-  public subCount: number = 0;
 
   public constructor(
     public readonly owner: ICollectionObserver<CollectionKind.map | CollectionKind.set>,
@@ -88,32 +79,31 @@ export class CollectionSizeObserver {
     const value = this.obj.size;
     this.value = value;
     if (value !== oldValue) {
-      this.callSubscribers(value, oldValue, flags);
+      this.subs.notify(value, oldValue, flags);
     }
   }
 }
 
-interface CollectionLengthObserverImpl extends IObserver, ISubscriberCollection, ICollectionSubscriber {
-  subCount: number;
+interface CollectionLengthObserverImpl extends ISubscriberCollection, ICollectionSubscriber {
   owner: ICollectionObserver<CollectionKind>;
 }
 
-function implementLengthObserver(klass: Constructable<CollectionLengthObserverImpl>) {
-  const proto = klass.prototype as CollectionLengthObserverImpl;
+function implementLengthObserver(klass: Constructable<ISubscriberCollection>) {
+  const proto = klass.prototype as ISubscriberCollection;
   ensureProto(proto, 'subscribe', subscribe, true);
   ensureProto(proto, 'unsubscribe', unsubscribe, true);
-  subscriberCollection()(klass);
+  subscriberCollection(klass);
 }
 
 function subscribe(this: CollectionLengthObserverImpl, subscriber: ISubscriber): void {
-  if (this.addSubscriber(subscriber) && ++this.subCount === 1) {
-    this.owner.addCollectionSubscriber(this);
+  if (this.subs.add(subscriber) && this.subs.count === 1) {
+    this.owner.subscribe(this);
   }
 }
 
 function unsubscribe(this: CollectionLengthObserverImpl, subscriber: ISubscriber): void {
-  if (this.removeSubscriber(subscriber) && --this.subCount) {
-    this.owner.removeCollectionSubscriber(this);
+  if (this.subs.remove(subscriber) && this.subs.count === 0) {
+    this.owner.subscribe(this);
   }
 }
 

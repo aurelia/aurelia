@@ -29,12 +29,10 @@ import { Writable } from '@aurelia/kernel';
 
 describe(`Repeat`, function () {
   function runActivateLifecycle(sut: Repeat, flags: LifecycleFlags, scope: Scope): void {
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    sut.$controller.activate(sut.$controller, null, flags, scope);
+    void sut.$controller.activate(sut.$controller, null, flags, scope);
   }
   function runDeactivateLifecycle(sut: Repeat, flags: LifecycleFlags): void {
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    sut.$controller.deactivate(sut.$controller, null, flags);
+    void sut.$controller.deactivate(sut.$controller, null, flags);
   }
 
   interface Spec {

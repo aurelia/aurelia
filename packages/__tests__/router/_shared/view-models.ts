@@ -4,41 +4,18 @@ import { Parameters, IRouteableComponent, LoadInstruction, Navigation, Viewport,
 import { IHookInvocationAggregator } from './hook-invocation-tracker.js';
 import { IHookSpec, hookSpecsMap } from './hook-spec.js';
 
-export interface ITestRouteViewModel extends IRouteableComponent {
+export interface ITestRouteViewModel extends IRouteViewModel {
   readonly $controller: ICustomElementController<this>;
   readonly name: string;
   viewport: Viewport;
 
-  binding(
-    initiator: IHydratedController,
-    parent: IHydratedParentController,
-    flags: LifecycleFlags,
-  ): void | Promise<void>;
-  bound(
-    initiator: IHydratedController,
-    parent: IHydratedParentController,
-    flags: LifecycleFlags,
-  ): void | Promise<void>;
-  attaching(
-    initiator: IHydratedController,
-    parent: IHydratedParentController,
-    flags: LifecycleFlags,
-  ): void | Promise<void>;
-  attached(
-    initiator: IHydratedController,
-    flags: LifecycleFlags,
-  ): void | Promise<void>;
+  binding(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void>;
+  bound(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void>;
+  attaching(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void>;
+  attached(initiator: IHydratedController, flags: LifecycleFlags): void | Promise<void>;
 
-  detaching(
-    initiator: IHydratedController,
-    parent: IHydratedParentController,
-    flags: LifecycleFlags,
-  ): void | Promise<void>;
-  unbinding(
-    initiator: IHydratedController,
-    parent: IHydratedParentController,
-    flags: LifecycleFlags,
-  ): void | Promise<void>;
+  detaching(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void>;
+  unbinding(initiator: IHydratedController, parent: IHydratedParentController, flags: LifecycleFlags): void | Promise<void>;
 
   canLoad(
     params: Parameters,

@@ -7,7 +7,7 @@ import { AuSlotContentType } from '../resources/custom-elements/au-slot.js';
 import type { ICustomElementViewModel, ISyntheticView, IDryCustomElementController, IContextualCustomElementController, ICompiledCustomElementController, ICustomElementController, ICustomAttributeController, IHydratedController, IHydratedParentController } from './controller.js';
 
 export interface IViewFactory extends ViewFactory {}
-export const IViewFactory = DI.createInterface<IViewFactory>('IViewFactory').noDefault();
+export const IViewFactory = DI.createInterface<IViewFactory>('IViewFactory');
 export class ViewFactory implements IViewFactory {
   public static maxCacheSize: number = 0xFFFF;
 
@@ -131,7 +131,7 @@ export type ViewSelector = (object: ICustomElementViewModel, views: readonly Par
 export type ComposableObjectComponentType<T extends ICustomElementViewModel>
   = ConstructableClass<{ viewModel: T } & ICustomElementViewModel>;
 
-export const IViewLocator = DI.createInterface<IViewLocator>('IViewLocator').withDefault(x => x.singleton(ViewLocator));
+export const IViewLocator = DI.createInterface<IViewLocator>('IViewLocator', x => x.singleton(ViewLocator));
 export interface IViewLocator extends ViewLocator {}
 
 export class ViewLocator {

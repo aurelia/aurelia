@@ -1,7 +1,4 @@
-/* eslint-disable @typescript-eslint/typedef */
-/* eslint-disable eqeqeq */
 /* eslint-disable @typescript-eslint/explicit-member-accessibility */
-/* eslint-disable @typescript-eslint/strict-boolean-expressions */
 import {
   assert,
   createContainer,
@@ -18,10 +15,19 @@ import {
   BindingMode,
   LifecycleFlags,
   SVGAnalyzerRegistration,
+  IPlatform,
+  ValueConverter,
 } from '@aurelia/runtime-html';
 
 type CaseType = {
-  expected: number | string; expectedStrictMode?: number | string; expectedValueAfterChange?: number | string; changeFnc?: (val) => any; app: any; interpolation: string; it: string;
+  expected: number | string;
+  expectedStrictMode?: number | string;
+  expectedValueAfterChange?: number | string;
+  changeFnc?: (val: any, platform: IPlatform) => any;
+  app: any;
+  interpolation: string;
+  it: string;
+  only?: boolean;
 };
 
 const testDateString = new Date('Sat Feb 02 2002 00:00:00 GMT+0000 (Coordinated Universal Time)').toString();
@@ -190,23 +196,73 @@ describe('3-runtime/interpolation.spec.ts -- [UNIT]interpolation', function () {
       interpolation: `test $\{value} out $\{value}`,
       it: 'Multiple SAME statements work in interpolation with undefined'
     },
+    {
+      expected: 'test  out ',
+      expectedValueAfterChange: 'test foo-node out ',
+      changeFnc: (_, platform) => {
+        const span = platform.document.createElement('span');
+        span.appendChild(platform.document.createTextNode('foo-node'));
+        return span;
+      }, app: class { public value: any; },
+      interpolation: `test $\{value} out `,
+      it: 'works with HTML Element'
+    },
+    {
+      expected: 'test  out ',
+      // special edcase, same node is appended in multiple positions
+      // resulting in the last place that uses it wins
+      expectedValueAfterChange: 'test  out foo-node',
+      changeFnc: (_, platform) => {
+        return platform.document.createTextNode('foo-node');
+      }, app: class { public value: any; },
+      interpolation: `test $\{value} out $\{value}`,
+      it: 'Multiple SAME statements work in interpolation with HTML Text'
+    },
+    {
+      expected: 'test 1,2,3 out',
+      expectedValueAfterChange: 'test foo-node out',
+      changeFnc: (_, platform) => {
+        return platform.document.createTextNode('foo-node');
+      },
+      app: class { public value: any = [1, 2, 3]; },
+      interpolation: `test $\{value} out`,
+      it: 'changes from array to node',
+    },
+    {
+      expected: 'test foo-node out',
+      expectedValueAfterChange: 'test 1,2,3 out',
+      changeFnc: (_, platform) => {
+        return [1, 2, 3];
+      },
+      app: class {
+        public static get inject() { return [IPlatform]; }
+        public value: any;
+        public constructor(
+          p: IPlatform,
+        ) {
+          this.value = p.document.createTextNode('foo-node');
+        }
+      },
+      interpolation: `test $\{value} out`,
+      it: 'changes from node array',
+    }
   ];
 
   cases.forEach((x) => {
-    it(x.it, async function () {
+    const $it = x.only ? it.only : it;
+    $it(x.it, async function () {
       const { tearDown, appHost } = createFixture(`<template>${x.interpolation}</template>`, x.app);
       assert.strictEqual(appHost.textContent, x.expected.toString(), `host.textContent`);
       await tearDown();
     });
-    it(`${x.it} change tests work`, async function () {
+    $it(`${x.it} change tests work`, async function () {
       const { tearDown, appHost, platform, component } = createFixture(`<template>${x.interpolation}</template>`, x.app);
       if (x.changeFnc !== undefined) {
-        const val = x.changeFnc(component.value);
+        const val = x.changeFnc(component.value, platform);
         if (val != null) {
           component.value = val;
         }
       } else if (typeof x.expected === 'string' && x.expected !== 'Infinity') {
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         component.value = `${component.value || ``}1`;
 
       } else {
@@ -217,7 +273,7 @@ describe('3-runtime/interpolation.spec.ts -- [UNIT]interpolation', function () {
       await tearDown();
     });
     if (x.expectedStrictMode) {
-      it(`${x.it} STRICT MODE `, async function () {
+      $it(`${x.it} STRICT MODE `, async function () {
         const strict = CustomElement.define({ name: 'strict', template: `${x.interpolation}`, isStrictBinding: true }, x.app);
         const { tearDown, appHost } = createFixture(`<template><strict></strict></template>`, class { }, [strict]);
         assert.strictEqual(appHost.textContent, x.expectedStrictMode.toString(), `host.textContent`);
@@ -408,6 +464,121 @@ describe('3-runtime/interpolation.spec.ts -- [UNIT]interpolation', function () {
         [1, 1, 3],
       );
     });
+  });
+});
+
+describe('3-runtime/interpolation.spec.ts', function () {
+  it('[Repeat] interpolates expression with value converter that returns HTML nodes', async function () {
+    const { tearDown, appHost, ctx, component, startPromise } = createFixture(
+      `<template><div repeat.for="item of items">\${item.value | $}</div></template>`,
+      class App {
+        public items = Array.from({ length: 10 }, (_, idx) => {
+          return { value: idx + 1 };
+        });
+      },
+      [
+        ValueConverter.define('$', class MoneyValueConverter {
+          public static get inject() {
+            return [IPlatform];
+          }
+
+          public constructor(private readonly p: IPlatform) {}
+
+          public toView(val: string) {
+            let num = Number(val);
+            num = isNaN(num) ? 0 : num;
+            return this.toNode(`<span>$<b>${num}</b></span>`);
+          }
+
+          private toNode(html: string) {
+            const parser = this.p.document.createElement('div');
+            parser.innerHTML = html;
+            return parser.firstChild;
+          }
+        })
+      ]
+    );
+    await startPromise;
+
+    let divs = Array.from(appHost.querySelectorAll('div'));
+    assert.strictEqual(divs.length, 10);
+
+    divs.forEach((div, idx) => {
+      assert.strictEqual(div.textContent, `$${idx + 1}`);
+      const b = div.querySelector('b');
+      assert.strictEqual(b.textContent, String(idx + 1));
+    });
+
+    component.items = Array.from({ length: 10 }, (_, idx) => {
+      return { value: idx + 11 };
+    });
+
+    divs = Array.from(appHost.querySelectorAll('div'));
+    assert.strictEqual(divs.length, 10);
+    divs.forEach((div, idx) => {
+      assert.strictEqual(div.textContent, `$${idx + 11}`);
+      const b = div.querySelector('b');
+      assert.strictEqual(b.textContent, String(idx + 11));
+    });
+    ctx.platform.domWriteQueue.flush();
+
+    divs.forEach((div, idx) => {
+      assert.strictEqual(div.textContent, `$${idx + 11}`);
+      const b = div.querySelector('b');
+      assert.strictEqual(b.textContent, String(idx + 11));
+    });
+    assert.strictEqual(appHost.textContent, component.items.map(item => `$${item.value}`).join(''));
+
+    component.items = [];
+    divs = Array.from(appHost.querySelectorAll('div'));
+    assert.strictEqual(divs.length, 0);
+    assert.strictEqual(appHost.textContent, '');
+
+    await tearDown();
+    assert.strictEqual(appHost.textContent, '');
+  });
+
+  it('[IF/Else] interpolates expression with value converter that returns HTML nodes in <template/>', async function () {
+    const { tearDown, appHost, component, startPromise } = createFixture(
+      `<template if.bind="show">\${message | $:'if'}</template><template else>\${message | $:'else'}</template>`,
+      class App {
+        public show = true;
+        public message = 'foo';
+      },
+      [
+        ValueConverter.define('$', class MoneyValueConverter {
+          public static get inject() {
+            return [IPlatform];
+          }
+
+          public constructor(private readonly p: IPlatform) {}
+
+          public toView(val: string, prefix: string) {
+            return this.toNode(`<${prefix}>${prefix} ${val}</${prefix}>`);
+          }
+
+          private toNode(html: string) {
+            const parser = this.p.document.createElement('div');
+            parser.innerHTML = html;
+            return parser.firstChild;
+          }
+        })
+      ]
+    );
+    await startPromise;
+    assert.strictEqual(appHost.textContent, 'if foo');
+    assert.html.innerEqual(appHost, '<if>if foo</if>');
+
+    component.show = false;
+
+    assert.strictEqual(appHost.textContent, 'else foo');
+    assert.html.innerEqual(appHost, '<else>else foo</else>');
+
+    await tearDown();
+    // when a <template else/> is removed, it doesn't leave any nodes in the appended target
+    // so the app host text content is turned back to empty
+    assert.strictEqual(appHost.textContent, '');
+    assert.html.innerEqual(appHost, '');
   });
 });
 

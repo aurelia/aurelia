@@ -1,287 +1,222 @@
 import {
-  LifecycleFlags as LF,
   SubscriberFlags as SF,
 } from '../observation.js';
-import { ensureProto } from '../utilities-objects.js';
+import { def, defineHiddenProp, ensureProto } from '../utilities-objects.js';
 
 import type {
   ICollectionSubscriber,
-  ICollectionSubscriberCollection,
   IndexMap,
   ISubscriber,
   ISubscriberCollection,
+  ISubscriberRecord,
+  LifecycleFlags as LF,
 } from '../observation.js';
 
-export function subscriberCollection(): ClassDecorator {
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  return function (target: Function): void { // ClassDecorator expects it to be derived from Function
-    const proto = target.prototype as ISubscriberCollection;
+export type IAnySubscriber = ISubscriber | ICollectionSubscriber;
 
-    ensureProto(proto, '_sFlags', SF.None, true);
-    ensureProto(proto, 'addSubscriber', addSubscriber, true);
-    ensureProto(proto, 'removeSubscriber', removeSubscriber, true);
-    ensureProto(proto, 'hasSubscriber', hasSubscriber, true);
-    ensureProto(proto, 'hasSubscribers', hasSubscribers, true);
-    ensureProto(proto, 'callSubscribers', callSubscribers, true);
-
-    ensureProto(proto, 'subscribe', addSubscriber);
-    ensureProto(proto, 'unsubscribe', removeSubscriber);
-  };
+/* eslint-disable @typescript-eslint/ban-types */
+export function subscriberCollection(): ClassDecorator;
+export function subscriberCollection(target: Function): void;
+export function subscriberCollection(target?: Function): ClassDecorator | void {
+  return target == null ? subscriberCollectionDeco : subscriberCollectionDeco(target);
 }
 
-export function collectionSubscriberCollection(): ClassDecorator {
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  return function (target: Function): void { // ClassDecorator expects it to be derived from Function
-    const proto = target.prototype as ICollectionSubscriberCollection;
+function subscriberCollectionDeco(target: Function): void { // ClassDecorator expects it to be derived from Function
+  const proto = target.prototype as ISubscriberCollection;
+  // not configurable, as in devtool, the getter could be invoked on the prototype,
+  // and become permanently broken
+  def(proto, 'subs', { get: getSubscriberRecord });
 
-    ensureProto(proto, '_csFlags', SF.None, true);
-    ensureProto(proto, 'addCollectionSubscriber', addCollectionSubscriber, true);
-    ensureProto(proto, 'removeCollectionSubscriber', removeCollectionSubscriber, true);
-    ensureProto(proto, 'hasCollectionSubscriber', hasCollectionSubscriber, true);
-    ensureProto(proto, 'hasCollectionSubscribers', hasCollectionSubscribers, true);
-    ensureProto(proto, 'callCollectionSubscribers', callCollectionSubscribers, true);
-
-    ensureProto(proto, 'subscribeToCollection', addCollectionSubscriber);
-    ensureProto(proto, 'unsubscribeFromCollection', removeCollectionSubscriber);
-  };
+  ensureProto(proto, 'subscribe', addSubscriber);
+  ensureProto(proto, 'unsubscribe', removeSubscriber);
 }
+/* eslint-enable @typescript-eslint/ban-types */
 
-function addSubscriber(this: ISubscriberCollection, subscriber: ISubscriber): boolean {
-  if (this.hasSubscriber(subscriber)) {
-    return false;
-  }
-  const subscriberFlags = this._sFlags;
-  if ((subscriberFlags & SF.Subscriber0) === 0) {
-    this._s0 = subscriber;
-    this._sFlags |= SF.Subscriber0;
-  } else if ((subscriberFlags & SF.Subscriber1) === 0) {
-    this._s1 = subscriber;
-    this._sFlags |= SF.Subscriber1;
-  } else if ((subscriberFlags & SF.Subscriber2) === 0) {
-    this._s2 = subscriber;
-    this._sFlags |= SF.Subscriber2;
-  } else if ((subscriberFlags & SF.SubscribersRest) === 0) {
-    this._sRest = [subscriber];
-    this._sFlags |= SF.SubscribersRest;
-  } else {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    this._sRest!.push(subscriber); // Non-null is implied by else branch of (subscriberFlags & SF.SubscribersRest) === 0
-  }
-  return true;
-}
-
-function addCollectionSubscriber(this: ICollectionSubscriberCollection, subscriber: ICollectionSubscriber): boolean {
-  if (this.hasCollectionSubscriber(subscriber)) {
-    return false;
-  }
-  const subscriberFlags = this._csFlags;
-  if ((subscriberFlags & SF.Subscriber0) === 0) {
-    this._cs0 = subscriber;
-    this._csFlags |= SF.Subscriber0;
-  } else if ((subscriberFlags & SF.Subscriber1) === 0) {
-    this._cs1 = subscriber;
-    this._csFlags |= SF.Subscriber1;
-  } else if ((subscriberFlags & SF.Subscriber2) === 0) {
-    this._cs2 = subscriber;
-    this._csFlags |= SF.Subscriber2;
-  } else if ((subscriberFlags & SF.SubscribersRest) === 0) {
-    this._csRest = [subscriber];
-    this._csFlags |= SF.SubscribersRest;
-  } else {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    this._csRest!.push(subscriber); // Non-null is implied by else branch of (subscriberFlags & SF.SubscribersRest) === 0
-  }
-  return true;
-}
-
-function removeSubscriber(this: ISubscriberCollection, subscriber: ISubscriber): boolean {
-  const subscriberFlags = this._sFlags;
-  if ((subscriberFlags & SF.Subscriber0) > 0 && this._s0 === subscriber) {
-    this._s0 = void 0;
-    this._sFlags = (this._sFlags | SF.Subscriber0) ^ SF.Subscriber0;
-    return true;
-  } else if ((subscriberFlags & SF.Subscriber1) > 0 && this._s1 === subscriber) {
-    this._s1 = void 0;
-    this._sFlags = (this._sFlags | SF.Subscriber1) ^ SF.Subscriber1;
-    return true;
-  } else if ((subscriberFlags & SF.Subscriber2) > 0 && this._s2 === subscriber) {
-    this._s2 = void 0;
-    this._sFlags = (this._sFlags | SF.Subscriber2) ^ SF.Subscriber2;
-    return true;
-  } else if ((subscriberFlags & SF.SubscribersRest) > 0) {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const subscribers = this._sRest!; // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
-    for (let i = 0, ii = subscribers.length; i < ii; ++i) {
-      if (subscribers[i] === subscriber) {
-        subscribers.splice(i, 1);
-        if (ii === 1) {
-          this._sFlags = (this._sFlags | SF.SubscribersRest) ^ SF.SubscribersRest;
-        }
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
-function removeCollectionSubscriber(this: ICollectionSubscriberCollection, subscriber: ICollectionSubscriber): boolean {
-  const subscriberFlags = this._csFlags;
-  if ((subscriberFlags & SF.Subscriber0) > 0 && this._cs0 === subscriber) {
-    this._cs0 = void 0;
-    this._csFlags = (this._csFlags | SF.Subscriber0) ^ SF.Subscriber0;
-    return true;
-  } else if ((subscriberFlags & SF.Subscriber1) > 0 && this._cs1 === subscriber) {
-    this._cs1 = void 0;
-    this._csFlags = (this._csFlags | SF.Subscriber1) ^ SF.Subscriber1;
-    return true;
-  } else if ((subscriberFlags & SF.Subscriber2) > 0 && this._cs2 === subscriber) {
-    this._cs2 = void 0;
-    this._csFlags = (this._csFlags | SF.Subscriber2) ^ SF.Subscriber2;
-    return true;
-  } else if ((subscriberFlags & SF.SubscribersRest) > 0) {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const subscribers = this._csRest!; // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
-    for (let i = 0, ii = subscribers.length; i < ii; ++i) {
-      if (subscribers[i] === subscriber) {
-        subscribers.splice(i, 1);
-        if (ii === 1) {
-          this._csFlags = (this._csFlags | SF.SubscribersRest) ^ SF.SubscribersRest;
-        }
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
-function hasSubscribers(this: ISubscriberCollection): boolean {
-  return this._sFlags !== SF.None;
-}
-
-function hasCollectionSubscribers(this: ICollectionSubscriberCollection): boolean {
-  return this._csFlags !== SF.None;
-}
-
-function hasSubscriber(this: ISubscriberCollection, subscriber: ISubscriber): boolean {
-  // Flags here is just a perf tweak
-  // Compared to not using flags, it's a moderate speed-up when this collection does not have the subscriber;
-  // and minor slow-down when it does, and the former is more common than the latter.
-  const subscriberFlags = this._sFlags;
-  if ((subscriberFlags & SF.Subscriber0) > 0 && this._s0 === subscriber) {
-    return true;
-  }
-  if ((subscriberFlags & SF.Subscriber1) > 0 && this._s1 === subscriber) {
-    return true;
-  }
-  if ((subscriberFlags & SF.Subscriber2) > 0 && this._s2 === subscriber) {
-    return true;
-  }
-  if ((subscriberFlags & SF.SubscribersRest) > 0) {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const subscribers = this._sRest!; // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
-    for (let i = 0, ii = subscribers.length; i < ii; ++i) {
-      if (subscribers[i] === subscriber) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
-function hasCollectionSubscriber(this: ICollectionSubscriberCollection, subscriber: ICollectionSubscriber): boolean {
-  const subscriberFlags = this._csFlags;
-  if ((subscriberFlags & SF.Subscriber0) > 0 && this._cs0 === subscriber) {
-    return true;
-  }
-  if ((subscriberFlags & SF.Subscriber1) > 0 && this._cs1 === subscriber) {
-    return true;
-  }
-  if ((subscriberFlags & SF.Subscriber2) > 0 && this._cs2 === subscriber) {
-    return true;
-  }
-  if ((subscriberFlags & SF.SubscribersRest) > 0) {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const subscribers = this._csRest!; // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
-    for (let i = 0, ii = subscribers.length; i < ii; ++i) {
-      if (subscribers[i] === subscriber) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
-function callSubscribers(this: ISubscriberCollection, newValue: unknown, previousValue: unknown, flags: LF): void {
+export class SubscriberRecord<T extends IAnySubscriber> implements ISubscriberRecord<T> {
   /**
-   * Note: change handlers may have the side-effect of adding/removing subscribers to this collection during this
-   * callSubscribers invocation, so we're caching them all before invoking any.
-   * Subscribers added during this invocation are not invoked (and they shouldn't be).
-   * Subscribers removed during this invocation will still be invoked (and they also shouldn't be,
-   * however this is accounted for via $isBound and similar flags on the subscriber objects)
+   * subscriber flags: bits indicating the existence status of the subscribers of this record
    */
-  const subscriber0 = this._s0;
-  const subscriber1 = this._s1;
-  const subscriber2 = this._s2;
-  let subscribers = this._sRest;
-  if (subscribers !== void 0) {
-    subscribers = subscribers.slice();
+  private _sf: SF = SF.None;
+  private _s0?: T;
+  private _s1?: T;
+  private _s2?: T;
+  /**
+   * subscriber rest: When there's more than 3 subscribers, use an array to store the subscriber references
+   */
+  private _sr?: T[];
+
+  public count: number = 0;
+
+  public add(subscriber: T): boolean {
+    if (this.has(subscriber)) {
+      return false;
+    }
+    const subscriberFlags = this._sf;
+    if ((subscriberFlags & SF.Subscriber0) === 0) {
+      this._s0 = subscriber;
+      this._sf |= SF.Subscriber0;
+    } else if ((subscriberFlags & SF.Subscriber1) === 0) {
+      this._s1 = subscriber;
+      this._sf |= SF.Subscriber1;
+    } else if ((subscriberFlags & SF.Subscriber2) === 0) {
+      this._s2 = subscriber;
+      this._sf |= SF.Subscriber2;
+    } else if ((subscriberFlags & SF.SubscribersRest) === 0) {
+      this._sr = [subscriber];
+      this._sf |= SF.SubscribersRest;
+    } else {
+      this._sr!.push(subscriber); // Non-null is implied by else branch of (subscriberFlags & SF.SubscribersRest) === 0
+    }
+    ++this.count;
+    return true;
   }
-  if (subscriber0 !== void 0) {
-    callSubscriber(subscriber0, newValue, previousValue, flags, subscriber0.id === void 0 ? 0 : this[subscriber0.id]);
+
+  public has(subscriber: T): boolean {
+    // Flags here is just a perf tweak
+    // Compared to not using flags, it's a moderate speed-up when this collection does not have the subscriber;
+    // and minor slow-down when it does, and the former is more common than the latter.
+    const subscriberFlags = this._sf;
+    if ((subscriberFlags & SF.Subscriber0) > 0 && this._s0 === subscriber) {
+      return true;
+    }
+    if ((subscriberFlags & SF.Subscriber1) > 0 && this._s1 === subscriber) {
+      return true;
+    }
+    if ((subscriberFlags & SF.Subscriber2) > 0 && this._s2 === subscriber) {
+      return true;
+    }
+    if ((subscriberFlags & SF.SubscribersRest) > 0) {
+      const subscribers = this._sr!; // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
+      const ii = subscribers.length;
+      let i = 0;
+      for (; i < ii; ++i) {
+        if (subscribers[i] === subscriber) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
-  if (subscriber1 !== void 0) {
-    callSubscriber(subscriber1, newValue, previousValue, flags, subscriber1.id === void 0 ? 0 : this[subscriber1.id]);
+
+  public any(): boolean {
+    return this._sf !== SF.None;
   }
-  if (subscriber2 !== void 0) {
-    callSubscriber(subscriber2, newValue, previousValue, flags, subscriber2.id === void 0 ? 0 : this[subscriber2.id]);
+
+  public remove(subscriber: T): boolean {
+    const subscriberFlags = this._sf;
+    if ((subscriberFlags & SF.Subscriber0) > 0 && this._s0 === subscriber) {
+      this._s0 = void 0;
+      this._sf = (this._sf | SF.Subscriber0) ^ SF.Subscriber0;
+      --this.count;
+      return true;
+    } else if ((subscriberFlags & SF.Subscriber1) > 0 && this._s1 === subscriber) {
+      this._s1 = void 0;
+      this._sf = (this._sf | SF.Subscriber1) ^ SF.Subscriber1;
+      --this.count;
+      return true;
+    } else if ((subscriberFlags & SF.Subscriber2) > 0 && this._s2 === subscriber) {
+      this._s2 = void 0;
+      this._sf = (this._sf | SF.Subscriber2) ^ SF.Subscriber2;
+      --this.count;
+      return true;
+    } else if ((subscriberFlags & SF.SubscribersRest) > 0) {
+      const subscribers = this._sr!; // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
+      const ii = subscribers.length;
+      let i = 0;
+      for (; i < ii; ++i) {
+        if (subscribers[i] === subscriber) {
+          subscribers.splice(i, 1);
+          if (ii === 1) {
+            this._sf = (this._sf | SF.SubscribersRest) ^ SF.SubscribersRest;
+          }
+          --this.count;
+          return true;
+        }
+      }
+    }
+    return false;
   }
-  if (subscribers !== void 0) {
-    const length = subscribers.length;
-    let subscriber: ISubscriber | undefined;
-    for (let i = 0; i < length; ++i) {
-      subscriber = subscribers[i];
-      if (subscriber !== void 0) {
-        callSubscriber(subscriber, newValue, previousValue, flags, subscriber.id === void 0 ? 0 : this[subscriber.id]);
+
+  public notify(val: unknown, oldVal: unknown, flags: LF): void {
+    /**
+     * Note: change handlers may have the side-effect of adding/removing subscribers to this collection during this
+     * callSubscribers invocation, so we're caching them all before invoking any.
+     * Subscribers added during this invocation are not invoked (and they shouldn't be).
+     * Subscribers removed during this invocation will still be invoked (and they also shouldn't be,
+     * however this is accounted for via $isBound and similar flags on the subscriber objects)
+     */
+    const sub0 = this._s0 as ISubscriber;
+    const sub1 = this._s1 as ISubscriber;
+    const sub2 = this._s2 as ISubscriber;
+    let subs = this._sr as ISubscriber[];
+    if (subs !== void 0) {
+      subs = subs.slice();
+    }
+
+    if (sub0 !== void 0) {
+      sub0.handleChange(val, oldVal, flags);
+    }
+    if (sub1 !== void 0) {
+      sub1.handleChange(val, oldVal, flags);
+    }
+    if (sub2 !== void 0) {
+      sub2.handleChange(val, oldVal, flags);
+    }
+    if (subs !== void 0) {
+      const ii = subs.length;
+      let sub: ISubscriber | undefined;
+      let i = 0;
+      for (; i < ii; ++i) {
+        sub = subs[i];
+        if (sub !== void 0) {
+          sub.handleChange(val, oldVal, flags);
+        }
+      }
+    }
+  }
+
+  public notifyCollection(indexMap: IndexMap, flags: LF): void {
+    const sub0 = this._s0 as ICollectionSubscriber;
+    const sub1 = this._s1 as ICollectionSubscriber;
+    const sub2 = this._s2 as ICollectionSubscriber;
+    let subs = this._sr as ICollectionSubscriber[];
+    if (subs !== void 0) {
+      subs = subs.slice();
+    }
+
+    if (sub0 !== void 0) {
+      sub0.handleCollectionChange(indexMap, flags);
+    }
+    if (sub1 !== void 0) {
+      sub1.handleCollectionChange(indexMap, flags);
+    }
+    if (sub2 !== void 0) {
+      sub2.handleCollectionChange(indexMap, flags);
+    }
+    if (subs !== void 0) {
+      const ii = subs.length;
+      let sub: ICollectionSubscriber | undefined;
+      let i = 0;
+      for (; i < ii; ++i) {
+        sub = subs[i];
+        if (sub !== void 0) {
+          sub.handleCollectionChange(indexMap, flags);
+        }
       }
     }
   }
 }
 
-function callSubscriber(
-  subscriber: ISubscriber,
-  newValue: unknown,
-  previousValue: unknown,
-  flags: LF,
-  ownFlags: LF,
-): void {
-  subscriber.handleChange(newValue, previousValue, ((flags | LF.update) ^ LF.update) | ownFlags);
+function getSubscriberRecord(this: ISubscriberCollection) {
+  const record = new SubscriberRecord();
+  defineHiddenProp(this, 'subs', record);
+  return record;
 }
 
-function callCollectionSubscribers(this: ICollectionSubscriberCollection, indexMap: IndexMap, flags: LF): void {
-  const subscriber0 = this._cs0;
-  const subscriber1 = this._cs1;
-  const subscriber2 = this._cs2;
-  let subscribers = this._csRest;
-  if (subscribers !== void 0) {
-    subscribers = subscribers.slice();
-  }
-  if (subscriber0 !== void 0) {
-    subscriber0.handleCollectionChange(indexMap, flags);
-  }
-  if (subscriber1 !== void 0) {
-    subscriber1.handleCollectionChange(indexMap, flags);
-  }
-  if (subscriber2 !== void 0) {
-    subscriber2.handleCollectionChange(indexMap, flags);
-  }
-  if (subscribers !== void 0) {
-    const length = subscribers.length;
-    let subscriber: ICollectionSubscriber | undefined;
-    for (let i = 0; i < length; ++i) {
-      subscriber = subscribers[i];
-      if (subscriber !== void 0) {
-        subscriber.handleCollectionChange(indexMap, flags);
-      }
-    }
-  }
+function addSubscriber(this: ISubscriberCollection, subscriber: IAnySubscriber): boolean {
+  return this.subs.add(subscriber as ISubscriber & ICollectionSubscriber);
+}
+
+function removeSubscriber(this: ISubscriberCollection, subscriber: IAnySubscriber): boolean {
+  return this.subs.remove(subscriber as ISubscriber & ICollectionSubscriber);
 }

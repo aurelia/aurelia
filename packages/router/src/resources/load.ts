@@ -6,16 +6,20 @@ import { IRouter, RouterNavigationEndEvent } from '../router.js';
 
 @customAttribute('load')
 export class LoadCustomAttribute implements ICustomAttributeViewModel {
-  @bindable({ mode: BindingMode.toView })
-  public value: unknown;
+  @bindable({ mode: BindingMode.toView, primary: true, callback: 'valueChanged' })
+  public route: unknown;
 
-  private hasHref: boolean | null = null;
+  @bindable({ mode: BindingMode.toView, callback: 'valueChanged' })
+  public params: unknown;
+
+  @bindable({ mode: BindingMode.toView })
+  public attribute: string = 'href';
 
   private routerNavigationSubscription!: IDisposable;
 
-  private readonly activeClass: string = 'load-active';
   public constructor(
-    @INode private readonly element: INode<Element>,
+    @IEventTarget private readonly target: IEventTarget,
+    @INode private readonly el: INode<HTMLElement>,
     @IRouter private readonly router: IRouter,
     @ILinkHandler private readonly linkHandler: ILinkHandler,
     @IEventAggregator private readonly ea: IEventAggregator,
@@ -46,6 +50,7 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
       const value = typeof this.value === 'string' ? this.value : JSON.stringify(this.value);
       this.element.setAttribute('href', value);
     }
+    this.navigationEndListener!.dispose();
   }
   private readonly navigationEndHandler = (_navigation: RouterNavigationEndEvent): void => {
     const controller = CustomAttribute.for(this.element, 'load')!.parent!;
@@ -55,12 +60,19 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
       if (instruction.scope === null) {
         instruction.scope = created.scope;
       }
+    } else {
+      this.instructions = null;
+      this.href = null;
     }
     // TODO: Use router configuration for class name and update target
     if (this.router.checkActive(instructions, { context: controller })) {
       this.element.classList.add(this.activeClass);
     } else {
-      this.element.classList.remove(this.activeClass);
+      if (this.href === null) {
+        this.el.removeAttribute(this.attribute);
+      } else {
+        this.el.setAttribute(this.attribute, this.href);
+      }
     }
   };
 }

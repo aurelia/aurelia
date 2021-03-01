@@ -1,10 +1,4 @@
 import { DI, Primitive, isArrayIndex, ILogger } from '@aurelia/kernel';
-import {
-  AccessorOrObserver,
-  CollectionKind,
-  CollectionObserver,
-  ILifecycle,
-} from '../observation.js';
 import { getArrayObserver } from './array-observer.js';
 import { ComputedObserver } from './computed-observer.js';
 import { IDirtyChecker } from './dirty-checker.js';
@@ -13,6 +7,7 @@ import { PrimitiveObserver } from './primitive-observer.js';
 import { PropertyAccessor } from './property-accessor.js';
 import { getSetObserver } from './set-observer.js';
 import { SetterObserver } from './setter-observer.js';
+import { def } from '../utilities-objects.js';
 
 import type {
   Collection,
@@ -20,6 +15,9 @@ import type {
   ICollectionObserver,
   IObservable,
   IObserver,
+  AccessorOrObserver,
+  CollectionKind,
+  CollectionObserver,
 } from '../observation.js';
 
 export const propertyAccessor = new PropertyAccessor();
@@ -29,7 +27,7 @@ export interface IObjectObservationAdapter {
 }
 
 export interface IObserverLocator extends ObserverLocator {}
-export const IObserverLocator = DI.createInterface<IObserverLocator>('IObserverLocator').withDefault(x => x.singleton(ObserverLocator));
+export const IObserverLocator = DI.createInterface<IObserverLocator>('IObserverLocator', x => x.singleton(ObserverLocator));
 
 export interface INodeObserverLocator {
   handles(obj: unknown, key: PropertyKey, requestor: IObserverLocator): boolean;
@@ -37,8 +35,7 @@ export interface INodeObserverLocator {
   getAccessor(obj: object, key: PropertyKey, requestor: IObserverLocator): IAccessor | IObserver;
 }
 export const INodeObserverLocator = DI
-  .createInterface<INodeObserverLocator>('INodeObserverLocator')
-  .withDefault(x => x.cachedCallback(handler => {
+  .createInterface<INodeObserverLocator>('INodeObserverLocator', x => x.cachedCallback(handler => {
     handler.getAll(ILogger).forEach(logger => {
       logger.error('Using default INodeObserverLocator implementation. Will not be able to observe nodes (HTML etc...).');
     });
@@ -69,12 +66,11 @@ export type ObservableSetter = PropertyDescriptor['set'] & {
 };
 
 export class ObserverLocator {
-  protected static readonly inject = [ILifecycle, IDirtyChecker, INodeObserverLocator];
+  protected static readonly inject = [IDirtyChecker, INodeObserverLocator];
 
   private readonly adapters: IObjectObservationAdapter[] = [];
 
   public constructor(
-    private readonly lifecycle: ILifecycle,
     private readonly dirtyChecker: IDirtyChecker,
     private readonly nodeObserverLocator: INodeObserverLocator,
   ) {}
@@ -101,15 +97,15 @@ export class ObserverLocator {
   }
 
   public getArrayObserver(observedArray: unknown[]): ICollectionObserver<CollectionKind.array> {
-    return getArrayObserver(observedArray, this.lifecycle);
+    return getArrayObserver(observedArray);
   }
 
   public getMapObserver(observedMap: Map<unknown, unknown>): ICollectionObserver<CollectionKind.map>  {
-    return getMapObserver(observedMap, this.lifecycle);
+    return getMapObserver(observedMap);
   }
 
   public getSetObserver(observedSet: Set<unknown>): ICollectionObserver<CollectionKind.set>  {
-    return getSetObserver(observedSet, this.lifecycle);
+    return getSetObserver(observedSet);
   }
 
   private createObserver(obj: IObservable, key: string): AccessorOrObserver {
@@ -124,19 +120,19 @@ export class ObserverLocator {
     switch (key) {
       case 'length':
         if (obj instanceof Array) {
-          return getArrayObserver(obj, this.lifecycle).getLengthObserver();
+          return getArrayObserver(obj).getLengthObserver();
         }
         break;
       case 'size':
         if (obj instanceof Map) {
-          return getMapObserver(obj, this.lifecycle).getLengthObserver();
+          return getMapObserver(obj).getLengthObserver();
         } else if (obj instanceof Set) {
-          return getSetObserver(obj, this.lifecycle).getLengthObserver();
+          return getSetObserver(obj).getLengthObserver();
         }
         break;
       default:
         if (obj instanceof Array && isArrayIndex(key)) {
-          return getArrayObserver(obj, this.lifecycle).getIndexObserver(Number(key));
+          return getArrayObserver(obj).getIndexObserver(Number(key));
         }
         break;
     }
@@ -191,7 +187,7 @@ export class ObserverLocator {
       return observer;
     }
     if (obj.$observers === void 0) {
-      Reflect.defineProperty(obj, '$observers', { value: { [key]: observer } });
+      def(obj, '$observers', { value: { [key]: observer } });
       return observer;
     }
     return obj.$observers[key] = observer;
@@ -200,14 +196,14 @@ export class ObserverLocator {
 
 export type RepeatableCollection = Collection | null | undefined | number;
 
-export function getCollectionObserver(collection: RepeatableCollection, lifecycle: ILifecycle | null): CollectionObserver | undefined {
+export function getCollectionObserver(collection: RepeatableCollection): CollectionObserver | undefined {
   let obs: CollectionObserver | undefined;
   if (collection instanceof Array) {
-    obs = getArrayObserver(collection, lifecycle);
+    obs = getArrayObserver(collection);
   } else if (collection instanceof Map) {
-    obs = getMapObserver(collection, lifecycle);
+    obs = getMapObserver(collection);
   } else if (collection instanceof Set) {
-    obs = getSetObserver(collection, lifecycle);
+    obs = getSetObserver(collection);
   }
   return obs;
 }

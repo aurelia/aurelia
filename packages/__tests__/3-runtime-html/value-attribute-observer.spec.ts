@@ -20,7 +20,7 @@ describe.skip('ValueAttributeObserver', function () {
     describe(`setValue() - type="${inputType}"`, function () {
       function createFixture(hasSubscriber: boolean) {
         const ctx = TestContext.create();
-        const { container, lifecycle, observerLocator, platform } = ctx;
+        const { container, observerLocator, platform } = ctx;
 
         const el = ctx.createElementFromMarkup(`<input type="${inputType}"/>`) as HTMLInputElement;
         ctx.doc.body.appendChild(el);
@@ -32,7 +32,7 @@ describe.skip('ValueAttributeObserver', function () {
           sut.subscribe(subscriber);
         }
 
-        return { ctx, container, lifecycle, observerLocator, el, sut, subscriber, platform };
+        return { ctx, container, observerLocator, el, sut, subscriber, platform };
       }
 
       function tearDown({ ctx, sut, el }: Partial<ReturnType<typeof createFixture>>) {
@@ -46,7 +46,7 @@ describe.skip('ValueAttributeObserver', function () {
 
             it(_`hasSubscriber=${hasSubscriber}, valueBefore=${valueBefore}, valueAfter=${valueAfter}`, function () {
 
-              const { ctx, sut, lifecycle, el, subscriber, platform } = createFixture(hasSubscriber);
+              const { ctx, sut, el, subscriber, platform } = createFixture(hasSubscriber);
 
               const expectedValueBefore = nullValues.includes(valueBefore) ? '' : valueBefore;
               const expectedValueAfter = nullValues.includes(valueAfter) ? '' : valueAfter;
@@ -65,7 +65,7 @@ describe.skip('ValueAttributeObserver', function () {
                 assert.deepStrictEqual(
                   subscriber.handleChange.calls,
                   [
-                    [expectedValueBefore, '', LF.updateTarget],
+                    [expectedValueBefore, '', LF.none],
                   ],
                   'subscriber.handleChange.calls',
                 );
@@ -81,8 +81,8 @@ describe.skip('ValueAttributeObserver', function () {
                 assert.deepStrictEqual(
                   subscriber.handleChange.calls,
                   [
-                    [expectedValueBefore, '', LF.updateTarget],
-                    [expectedValueAfter, expectedValueBefore, LF.updateTarget],
+                    [expectedValueBefore, '', LF.none],
+                    [expectedValueAfter, expectedValueBefore, LF.none],
                   ],
                   'subscriber.handleChange.calls',
                 );
@@ -91,7 +91,7 @@ describe.skip('ValueAttributeObserver', function () {
                 assert.strictEqual(subscriber.handleChange.calls.length, callCount, `subscriber.handleChange.calls.length`);
               }
 
-              tearDown({ ctx, sut, lifecycle, el });
+              tearDown({ ctx, sut, el });
             });
           }
         }

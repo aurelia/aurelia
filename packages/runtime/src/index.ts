@@ -70,7 +70,6 @@ export {
   BindingMediator,
   MediatedBinding,
   BindingObserverRecord,
-  BindingCollectionObserverRecord,
 } from './binding/connectable.js';
 export {
   IExpressionParser,
@@ -119,6 +118,12 @@ export {
   DirtyCheckSettings,
 } from './observation/dirty-checker.js';
 export {
+  IEffect,
+  IObservation,
+  Observation,
+  EffectFunc,
+} from './observation/observation.js';
+export {
   IObservableDefinition,
   observable,
 } from './observation/observable.js';
@@ -147,8 +152,8 @@ export {
   ISignaler,
 } from './observation/signaler.js';
 export {
+  SubscriberRecord,
   subscriberCollection,
-  collectionSubscriberCollection,
 } from './observation/subscriber-collection.js';
 export {
   ConnectableSwitcher,
@@ -185,7 +190,6 @@ export {
   LifecycleFlags,
   AccessorOrObserver,
   IBinding,
-  ILifecycle,
   AccessorType,
   Collection,
   CollectionKind,
@@ -209,6 +213,7 @@ export {
   ICollectionSubscriberCollection,
   ICollectionSubscribable,
   ISubscriber,
+  ISubscriberRecord,
   isIndexMap,
   copyIndexMap,
   cloneIndexMap,

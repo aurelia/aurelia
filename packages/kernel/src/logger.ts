@@ -3,6 +3,7 @@ import { bound, toLookup } from './functions.js';
 import { Class, Constructable } from './interfaces.js';
 import { Protocol } from './resource.js';
 import { Metadata } from '@aurelia/metadata';
+import { IPlatform } from './platform.js';
 
 export const enum LogLevel {
   /**
@@ -69,7 +70,7 @@ export interface ILogConfig {
 
 interface ILoggingConfigurationOptions extends ILogConfig {
   $console: IConsoleLike;
-  sinks: Class<ISink>[];
+  sinks: (Class<ISink> | IRegistry)[];
 }
 
 /**
@@ -157,11 +158,11 @@ export interface ISink {
  */
 export interface ILogger extends DefaultLogger {}
 
-export const ILogConfig = DI.createInterface<ILogConfig>('ILogConfig').withDefault(x => x.instance(new LogConfig(ColorOptions.noColors, LogLevel.warn)));
-export const ISink = DI.createInterface<ISink>('ISink').noDefault();
-export const ILogEventFactory = DI.createInterface<ILogEventFactory>('ILogEventFactory').withDefault(x => x.singleton(DefaultLogEventFactory));
-export const ILogger = DI.createInterface<ILogger>('ILogger').withDefault(x => x.singleton(DefaultLogger));
-export const ILogScopes = DI.createInterface<string[]>('ILogScope').noDefault();
+export const ILogConfig = DI.createInterface<ILogConfig>('ILogConfig', x => x.instance(new LogConfig(ColorOptions.noColors, LogLevel.warn)));
+export const ISink = DI.createInterface<ISink>('ISink');
+export const ILogEventFactory = DI.createInterface<ILogEventFactory>('ILogEventFactory', x => x.singleton(DefaultLogEventFactory));
+export const ILogger = DI.createInterface<ILogger>('ILogger', x => x.singleton(DefaultLogger));
+export const ILogScopes = DI.createInterface<string[]>('ILogScope');
 
 interface SinkDefinition {
   handles: Exclude<LogLevel, LogLevel.none>[];
@@ -280,7 +281,6 @@ function getScopeString(scope: readonly string[], colorOptions: ColorOptions): s
   if (colorOptions === ColorOptions.noColors) {
     return scope.join('.');
   }
-  // eslint-disable-next-line @typescript-eslint/unbound-method
   return scope.map(format.cyan).join('.');
 }
 
@@ -322,36 +322,55 @@ export class DefaultLogEventFactory implements ILogEventFactory {
 }
 
 export class ConsoleSink implements ISink {
+  public static register(container: IContainer) {
+    Registration.singleton(ISink, ConsoleSink).register(container);
+  }
+
   public readonly handleEvent: (event: ILogEvent) => void;
 
-  public constructor($console: IConsoleLike) {
+  public constructor(
+    @IPlatform p: IPlatform,
+  ) {
+    const $console = p.console as {
+      debug(...args: unknown[]): void;
+      info(...args: unknown[]): void;
+      warn(...args: unknown[]): void;
+      error(...args: unknown[]): void;
+    };
     this.handleEvent = function emit(event: ILogEvent): void {
       const optionalParams = event.optionalParams;
       if (optionalParams === void 0 || optionalParams.length === 0) {
+        const msg = event.toString();
         switch (event.severity) {
           case LogLevel.trace:
           case LogLevel.debug:
-            return $console.debug(event.toString());
+            return $console.debug(msg);
           case LogLevel.info:
-            return $console.info(event.toString());
+            return $console.info(msg);
           case LogLevel.warn:
-            return $console.warn(event.toString());
+            return $console.warn(msg);
           case LogLevel.error:
           case LogLevel.fatal:
-            return $console.error(event.toString());
+            return $console.error(msg);
         }
       } else {
+        let msg = event.toString();
+        let offset = 0;
+        // console.log in chrome doesn't call .toString() on object inputs (https://bugs.chromium.org/p/chromium/issues/detail?id=1146817)
+        while (msg.includes('%s')) {
+          msg = msg.replace('%s', String(optionalParams[offset++]));
+        }
         switch (event.severity) {
           case LogLevel.trace:
           case LogLevel.debug:
-            return $console.debug(event.toString(), ...optionalParams);
+            return $console.debug(msg, ...optionalParams.slice(offset));
           case LogLevel.info:
-            return $console.info(event.toString(), ...optionalParams);
+            return $console.info(msg, ...optionalParams.slice(offset));
           case LogLevel.warn:
-            return $console.warn(event.toString(), ...optionalParams);
+            return $console.warn(msg, ...optionalParams.slice(offset));
           case LogLevel.error:
           case LogLevel.fatal:
-            return $console.error(event.toString(), ...optionalParams);
+            return $console.error(msg, ...optionalParams.slice(offset));
         }
       }
     };
@@ -664,21 +683,9 @@ export class DefaultLogger {
  * ```ts
  * container.register(LoggerConfiguration.create());
  *
- * container.register(LoggerConfiguration.create({$console: console}))
+ * container.register(LoggerConfiguration.create({sinks: [ConsoleSink]}))
  *
- * container.register(LoggerConfiguration.create({$console: console, level: LogLevel.debug}))
- *
- * container.register(LoggerConfiguration.create({
- *  $console: {
- *     debug: noop,
- *     info: noop,
- *     warn: noop,
- *     error: msg => {
- *       throw new Error(msg);
- *     }
- *  },
- *  level: LogLevel.debug
- * }))
+ * container.register(LoggerConfiguration.create({sinks: [ConsoleSink], level: LogLevel.debug}))
  *
  * ```
  */
@@ -690,7 +697,6 @@ export const LoggerConfiguration = toLookup({
    */
   create(
     {
-      $console,
       level = LogLevel.warn,
       colorOptions = ColorOptions.noColors,
       sinks = [],
@@ -701,15 +707,12 @@ export const LoggerConfiguration = toLookup({
         container.register(
           Registration.instance(ILogConfig, new LogConfig(colorOptions, level)),
         );
-        if ($console !== void 0 && $console !== null) {
-          container.register(
-            Registration.instance(ISink, new ConsoleSink($console))
-          );
-        }
         for (const $sink of sinks) {
-          container.register(
-            Registration.singleton(ISink, $sink)
-          );
+          if (typeof $sink === 'function') {
+            container.register(Registration.singleton(ISink, $sink));
+          } else {
+            container.register($sink);
+          }
         }
         return container;
       },

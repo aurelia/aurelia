@@ -1,12 +1,12 @@
 import { IObserver, LifecycleFlags } from '../observation.js';
 import { SetterNotifier } from './setter-observer.js';
+import { def } from '../utilities-objects.js';
+import { currentConnectable } from './connectable-switcher.js';
 
 import type { Constructable, IIndexable } from '@aurelia/kernel';
-import type { IBindingContext, InterceptorFunc, ISubscriber, IObservable } from '../observation.js';
+import type { IBindingContext, InterceptorFunc, IObservable } from '../observation.js';
 import type { ObservableGetter } from './observer-locator.js';
 import type { SetterObserver } from './setter-observer.js';
-
-// todo(bigopon): static obs here
 
 export interface IObservableDefinition {
   name?: PropertyKey;
@@ -16,7 +16,7 @@ export interface IObservableDefinition {
 
 function getObserversLookup(obj: IObservable): IIndexable<{}, SetterObserver | SetterNotifier> {
   if (obj.$observers === void 0) {
-    Reflect.defineProperty(obj, '$observers', { value: {} });
+    def(obj, '$observers', { value: {} });
     // todo: define in a weakmap
   }
   return obj.$observers as IIndexable<{}, SetterObserver | SetterNotifier>;
@@ -119,7 +119,9 @@ export function observable(
     // todo(bigopon/fred): discuss string api for converter
     const $set = config.set;
     descriptor.get = function g(/* @observable */this: SetterObserverOwningObject) {
-      return getNotifier(this, key!, callback, initialValue, $set).getValue();
+      const notifier = getNotifier(this, key!, callback, initialValue, $set);
+      currentConnectable()?.subscribeTo(notifier);
+      return notifier.getValue();
     };
     descriptor.set = function s(/* @observable */this: SetterObserverOwningObject, newValue: unknown) {
       getNotifier(this, key!, callback, initialValue, $set).setValue(newValue, LifecycleFlags.none);
@@ -129,25 +131,10 @@ export function observable(
     };
 
     if (isClassDecorator) {
-      Reflect.defineProperty((target as Constructable).prototype, key, descriptor);
+      def((target as Constructable).prototype, key, descriptor);
     } else {
       return descriptor;
     }
-  }
-}
-
-type ChangeHandlerCallback =
-  (this: SetterObserverOwningObject, value: unknown, oldValue: unknown, key: PropertyKey) => void;
-
-class CallbackSubscriber implements ISubscriber {
-  public constructor(
-    private readonly obj: SetterObserverOwningObject,
-    private readonly key: PropertyKey,
-    private readonly cb: ChangeHandlerCallback,
-  ) {}
-
-  public handleChange(value: unknown, oldValue: unknown): void {
-    this.cb.call(this.obj, value, oldValue, this.key);
   }
 }
 
@@ -156,20 +143,13 @@ function getNotifier(
   key: PropertyKey,
   callbackKey: PropertyKey,
   initialValue: unknown,
-  set?: InterceptorFunc,
+  set: InterceptorFunc | undefined,
 ): SetterNotifier {
   const lookup = getObserversLookup(obj) as unknown as Record<PropertyKey, SetterObserver | SetterNotifier>;
   let notifier = lookup[key as string] as SetterNotifier;
   if (notifier == null) {
-    notifier = new SetterNotifier(set);
+    notifier = new SetterNotifier(obj, callbackKey, set, initialValue === noValue ? void 0 : initialValue);
     lookup[key as string] = notifier;
-    if (initialValue !== noValue) {
-      notifier.setValue(initialValue, LifecycleFlags.none);
-    }
-    const callback = obj[callbackKey as string];
-    if (typeof callback === 'function') {
-      notifier.subscribe(new CallbackSubscriber(obj, key, callback));
-    }
   }
   return notifier;
 }

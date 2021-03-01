@@ -1,4 +1,3 @@
-/* eslint-disable mocha/no-skipped-tests, mocha/no-exclusive-tests, @typescript-eslint/strict-boolean-expressions, @typescript-eslint/strict-boolean-expressions */
 import { toArray } from '@aurelia/kernel';
 import { DirtyCheckProperty, IDirtyChecker } from '@aurelia/runtime';
 import { assert, getVisibleText, eachCartesianJoin } from '@aurelia/testing';
@@ -10,7 +9,6 @@ import { $it, assertCalls, getViewModel } from './util.js';
 import { ComponentMode } from './app/startup.js';
 
 describe('app', function () {
-
   eachCartesianJoin([
     ['app', 'enhance'] as ['app' , 'enhance'],
     [ComponentMode.class, ComponentMode.instance,],
@@ -817,7 +815,7 @@ describe('app', function () {
           assert.html.computedStyle(cards2[0].querySelector('span'), { color: selectedDetailsColor }, 'incorrect selected color1 - container2');
 
           cards1[1].click();
-          await ctx.platform.domWriteQueue.yield();
+          ctx.platform.domWriteQueue.flush();
 
           assert.html.computedStyle(cards1[0], { backgroundColor: 'rgba(0, 0, 0, 0)' }, 'incorrect background1 - container1');
           assert.html.computedStyle(cards1[0].querySelector('span'), { color: 'rgb(0, 0, 0)' }, 'incorrect color1 - container1');
@@ -846,7 +844,7 @@ describe('app', function () {
       cardsVm.styleStr = 'background-color: rgb(0, 0, 255); border: 1px solid rgb(0, 255, 0)';
       cardsVm.styleObj = { 'background-color': 'rgb(0, 0, 255)', 'border': '1px solid rgb(0, 255, 0)' };
       cardsVm.styleArray = [{ 'background-color': 'rgb(0, 0, 255)' }, { 'border': '1px solid rgb(0, 255, 0)' }];
-      await ctx.platform.domWriteQueue.yield();
+      ctx.platform.domWriteQueue.flush();
 
       for (const id of ['bound-style-obj', 'bound-style-array', 'bound-style-str']) {
         const para = cardsEl.querySelector(`p#${id}`);
@@ -884,12 +882,12 @@ describe('app', function () {
       }
 
       heroes[0].imgSrc = undefined;
-      await ctx.platform.domWriteQueue.yield();
+      ctx.platform.domWriteQueue.flush();
       assert.equal(images[0].src, '', `expected null img src`);
 
       const imgSrc = "foobar.jpg";
       heroes[0].imgSrc = imgSrc;
-      await ctx.platform.domWriteQueue.yield();
+      ctx.platform.domWriteQueue.flush();
       assert.equal(images[0].src.endsWith(imgSrc), true, `incorrect img src`);
     }, { method, componentMode });
 
@@ -901,26 +899,30 @@ describe('app', function () {
 
       let prev = vm.random;
       const assertAttr = () => {
-        assert.equal(container['foobar'], vm.random);
-        assert.equal(container.getAttribute('foobar'), undefined);
-        assert.equal(container['foo-bar'], undefined);
-        assert.equal(container.getAttribute('foo-bar'), vm.random);
+        assert.strictEqual(container['foobar'], vm.random, 'container.foobar === vm.random');
+        // 1) foo-bar.bind="random & attr" !== 2) foobar.bind="random",
+        // (1) targets fooBar(which will be turned to foobar) attribute, while 2 targets foobar property,
+        // and foobar attribute is not linked to foobar property
+        // so they have different values
+        assert.strictEqual(container.getAttribute('foobar'), String(vm.random), 'container.getAttribute(foobar) === String(vm.random)');
+        assert.strictEqual(container['foo-bar'], undefined, 'container.foo-bar === undefined');
+        assert.strictEqual(container.getAttribute('foo-bar'), null, 'container.getAttribute(foo-bar) === null');
       };
       assertAttr();
 
       // self BB
       container.click();
-      await ctx.platform.domWriteQueue.yield();
+      ctx.platform.domWriteQueue.flush();
       assert.notEqual(vm.random, prev, 'new random expected1');
       assertAttr();
 
       prev = vm.random;
       button.click();
-      await ctx.platform.domWriteQueue.yield();
+      ctx.platform.domWriteQueue.flush();
       assert.equal(vm.random, prev, 'new random not expected');
 
       container.click();
-      await ctx.platform.domWriteQueue.yield();
+      ctx.platform.domWriteQueue.flush();
       assert.notEqual(vm.random, prev, 'new random expected2');
       assertAttr();
     }, { method, componentMode });

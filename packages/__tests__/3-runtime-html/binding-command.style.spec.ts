@@ -267,7 +267,7 @@ describe('template-compiler.binding-commands.style', function () {
 
   function createFixture<T>(template: string | Node, $class: Constructable<T> | null, ...registrations: any[]) {
     const ctx = TestContext.create();
-    const { container, lifecycle, observerLocator, platform } = ctx;
+    const { container, observerLocator, platform } = ctx;
     container.register(...registrations);
     const host = ctx.doc.body.appendChild(ctx.createElement('app'));
     const au = new Aurelia(container);
@@ -278,6 +278,6 @@ describe('template-compiler.binding-commands.style', function () {
       ctx.doc.body.removeChild(host);
     }
 
-    return { container, lifecycle, platform, ctx, host, au, component, observerLocator, tearDown };
+    return { container, platform, ctx, host, au, component, observerLocator, tearDown };
   }
 });

@@ -1,6 +1,6 @@
 // This is to test for some intrinsic properties of enhance which is otherwise difficult to test in Data-driven tests parallel to `.app`
-import { Constructable, IContainer } from '@aurelia/kernel';
-import { CustomElement, ICustomElementViewModel, IPlatform, Aurelia } from '@aurelia/runtime-html';
+import { Constructable, DI, IContainer, Registration } from '@aurelia/kernel';
+import { CustomElement, ICustomElementViewModel, IPlatform, Aurelia, customElement, bindable, BrowserPlatform, StandardConfiguration } from '@aurelia/runtime-html';
 import { assert, TestContext, eachCartesianJoin } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util.js';
 
@@ -284,6 +284,77 @@ describe('2-runtime/enhance.spec.ts', function () {
     await au.start();
     assert.html.textContent('span', 'Fiz', 'span.text - 3', host);
     await au.stop();
+    ctx.doc.body.removeChild(host);
+    au.dispose();
+  });
+
+  it(`enhance works on detached node`, async function () {
+    // eslint-disable-next-line no-template-curly-in-string
+    @customElement({ name: 'my-element', template: '<span>${value}</span>' })
+    class MyElement {
+      @bindable public value: string;
+    }
+    @customElement({
+      name: 'app',
+      isStrictBinding: true,
+      template: '<div ref="container" id="container"></div>'
+    })
+    class App {
+      private enhancedHost: HTMLElement;
+      private enhanceAu: Aurelia;
+      private readonly container!: HTMLDivElement;
+
+      public async bound() {
+        const _host = this.enhancedHost = new ctx.DOMParser().parseFromString('<div><my-element value.bind="42.toString()"></my-element></div>', 'text/html').body.firstElementChild as HTMLElement;
+        // this.container.appendChild(this.enhancedHost);
+        const _au = this.enhanceAu = new Aurelia(
+          DI.createContainer()
+            .register(
+              Registration.instance(IPlatform, BrowserPlatform.getOrCreate(globalThis)),
+              StandardConfiguration,
+            )
+        );
+        await _au
+          .register(MyElement) // in real app, there should be more
+          .enhance({ host: _host, component: CustomElement.define({ name: 'enhance' }, class EnhanceRoot { }) })
+          .start();
+
+        assert.html.innerEqual(_host, '<my-element value.bind="42.toString()" class="au"><span>42</span></my-element>', 'enhanced.innerHtml');
+        assert.html.innerEqual(this.container, '', 'container.innerHtml - before attach');
+      }
+
+      public attaching() {
+        this.container.appendChild(this.enhancedHost);
+      }
+
+      // The inverse order of the stop and detaching is intentional
+      public async detaching() {
+        await this.enhanceAu.stop();
+        assert.html.innerEqual(this.enhancedHost, '<my-element value.bind="42.toString()" class="au"></my-element>', 'enhanced.innerHtml');
+        assert.html.innerEqual(this.container, '<div><my-element value.bind="42.toString()" class="au"></my-element></div>', 'enhanced.innerHtml');
+      }
+
+      public unbinding() {
+        this.enhancedHost.remove();
+      }
+    }
+
+    const ctx = TestContext.create();
+    const host = ctx.doc.createElement('div');
+    ctx.doc.body.appendChild(host);
+
+    const container = ctx.container;
+    const au = new Aurelia(container);
+    await au
+      .app({ host, component: App })
+      .start();
+
+    assert.html.innerEqual(host.querySelector('#container'), '<div><my-element value.bind="42.toString()" class="au"><span>42</span></my-element></div>', 'container.innerHTML - after attach');
+
+    await au.stop();
+
+    assert.html.innerEqual(host, '', 'post-stop host.innerHTML');
+
     ctx.doc.body.removeChild(host);
     au.dispose();
   });

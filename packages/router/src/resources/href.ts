@@ -5,13 +5,14 @@ import { LoadCustomAttribute, RouterConfiguration } from '../index.js';
 import { ILinkHandler } from './link-handler.js';
 import { RoutingInstruction } from '../instructions/routing-instruction.js';
 
-@customAttribute({
-  name: 'href',
-  noMultiBindings: true
-})
+@customAttribute({ name: 'href', noMultiBindings: true })
 export class HrefCustomAttribute implements ICustomAttributeViewModel {
   @bindable({ mode: BindingMode.toView })
-  public value: string | undefined;
+  public value: unknown;
+
+  private eventListener: IDisposable | null = null;
+  private isInitialized: boolean = false;
+  private isEnabled: boolean;
 
   public readonly $controller!: ICustomAttributeController<this>;
 
@@ -19,7 +20,8 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
   private readonly activeClass: string = 'load-active';
 
   public constructor(
-    @INode private readonly element: INode<Element>,
+    @IEventTarget private readonly target: IEventTarget,
+    @INode private readonly el: INode<HTMLElement>,
     @IRouter private readonly router: IRouter,
     @ILinkHandler private readonly linkHandler: ILinkHandler,
     @IEventAggregator private readonly ea: IEventAggregator,
@@ -30,20 +32,21 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
       this.element.addEventListener('click', this.linkHandler.handler);
       this.routerNavigationSubscription = this.ea.subscribe(RouterNavigationEndEvent.eventName, this.navigationEndHandler);
     }
-    this.updateValue();
   }
   public unbinding(): void {
     this.element.removeEventListener('click', this.linkHandler.handler);
     this.routerNavigationSubscription?.dispose();
   }
 
-  public valueChanged(): void {
-    this.updateValue();
+  public valueChanged(newValue: unknown): void {
+    this.el.setAttribute('href', newValue as string);
   }
 
-  private updateValue(): void {
-    this.element.setAttribute('href', this.value as string);
-  }
+  private readonly onClick = (e: MouseEvent): void => {
+    // Ensure this is an ordinary left-button click.
+    if (e.altKey || e.ctrlKey || e.shiftKey || e.metaKey || e.button !== 0) {
+      return;
+    }
 
   private readonly navigationEndHandler = (_navigation: RouterNavigationEndEvent): void => {
     const controller = CustomAttribute.for(this.element, 'href')!.parent!;

@@ -213,8 +213,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     const slotName = symbol.slotName!;
     let slotInfo: SlotInfo | null = null;
     if (isAuSlot) {
-      // eslint-disable-next-line @typescript-eslint/no-extra-non-null-assertion,@typescript-eslint/no-unnecessary-type-assertion
-      const targetedProjection = targetedProjections?.projections?.[slotName!];
+      const targetedProjection = targetedProjections?.projections?.[slotName];
       slotInfo = targetedProjection !== void 0
         ? new SlotInfo(slotName, AuSlotContentType.Projection, new ProjectionContext(targetedProjection, targetedProjections?.scope))
         : new SlotInfo(slotName, AuSlotContentType.Fallback, new ProjectionContext(this.compileProjectionFallback(symbol, projections, targetedProjections)));

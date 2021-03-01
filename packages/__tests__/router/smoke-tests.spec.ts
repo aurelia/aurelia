@@ -32,9 +32,6 @@ function vp(count: number, name = ''): string {
   }
   return template;
 }
-function name(type: Constructable): string {
-  return kebabCase(type.name);
-}
 
 function getDefaultHIAConfig(): IHIAConfig {
   return {
@@ -50,7 +47,7 @@ function getText(spec: CSpec): string {
     if (x instanceof Array) {
       return getText(x);
     }
-    return name(x);
+    return kebabCase(x.name);
   }).join('');
 }
 function assertComponentsVisible(host: HTMLElement, spec: CSpec, msg: string = ''): void {
@@ -96,21 +93,21 @@ describe('router (smoke tests)', function () {
 
     const A = [...A0, ...A1, ...A2];
 
-    @customElement({ name: name(B01), template: `${name(B01)}${vp(0)}` })
+    @customElement({ name: 'b01', template: `b01${vp(0)}` })
     class B01 {
       public async canUnload(
-        next: Navigation | null,
-        current: Navigation,
+        next: RouteNode | null,
+        current: RouteNode,
       ): Promise<true> {
         await new Promise(function (resolve) { setTimeout(resolve, 0); });
         return true;
       }
     }
-    @customElement({ name: name(B02), template: `${name(B02)}${vp(0)}` })
+    @customElement({ name: 'b02', template: `b02${vp(0)}` })
     class B02 {
       public async canUnload(
-        next: Navigation | null,
-        current: Navigation,
+        next: RouteNode | null,
+        current: RouteNode,
       ): Promise<false> {
         await new Promise(function (resolve) { setTimeout(resolve, 0); });
         return false;
@@ -118,21 +115,21 @@ describe('router (smoke tests)', function () {
     }
     const B0 = [B01, B02];
 
-    @customElement({ name: name(B11), template: `${name(B11)}${vp(1)}` })
+    @customElement({ name: 'b11', template: `b11${vp(1)}` })
     class B11 {
       public async canUnload(
-        next: Navigation | null,
-        current: Navigation,
+        next: RouteNode | null,
+        current: RouteNode,
       ): Promise<true> {
         await new Promise(function (resolve) { setTimeout(resolve, 0); });
         return true;
       }
     }
-    @customElement({ name: name(B12), template: `${name(B12)}${vp(1)}` })
+    @customElement({ name: 'b12', template: `b12${vp(1)}` })
     class B12 {
       public async canUnload(
-        next: Navigation | null,
-        current: Navigation,
+        next: RouteNode | null,
+        current: RouteNode,
       ): Promise<false> {
         await new Promise(function (resolve) { setTimeout(resolve, 0); });
         return false;
@@ -150,7 +147,7 @@ describe('router (smoke tests)', function () {
     it(`${name(Root1)} can load ${name(A01)} as a string and can determine if it's active`, async function () {
       const { router, host, tearDown } = await createFixture(Root1, Z, getDefaultHIAConfig, getRouterOptions);
 
-      await router.load(name(A01));
+      await router.load('a01');
       assertComponentsVisible(host, [Root1, A01]);
       assertIsActive(router, A01, {}, true, 1);
 
@@ -202,11 +199,11 @@ describe('router (smoke tests)', function () {
     it(`${name(Root1)} can load ${name(A01)},${name(A02)} in order and can determine if it's active`, async function () {
       const { router, host, tearDown } = await createFixture(Root1, Z, getDefaultHIAConfig, getRouterOptions);
 
-      await router.load(name(A01));
+      await router.load('a01');
       assertComponentsVisible(host, [Root1, A01]);
       assertIsActive(router, A01, {}, true, 1);
 
-      await router.load(name(A02));
+      await router.load('a02');
       assertComponentsVisible(host, [Root1, A02]);
       assertIsActive(router, A02, {}, true, 2);
 
@@ -294,11 +291,11 @@ describe('router (smoke tests)', function () {
     it(`${name(Root1)} correctly handles canUnload with goto ${name(B11)}/${name(B02)},${name(B11)}/${name(A02)} in order`, async function () {
       const { router, host, tearDown } = await createFixture(Root1, Z, getDefaultHIAConfig, getRouterOptions);
 
-      let result = await router.load(`${name(B11)}/${name(B02)}`);
+      let result = await router.load(`b11/b02`);
       assertComponentsVisible(host, [Root1, B11, [B02]]);
       assert.strictEqual(result, true, '#1 result===true');
 
-      result = await router.load(`${name(B11)}/${name(A02)}`);
+      result = await router.load(`b11/a02`);
       assertComponentsVisible(host, [Root1, B11, [B02]]);
       assert.strictEqual(result, false, '#2 result===false');
 
@@ -308,11 +305,11 @@ describe('router (smoke tests)', function () {
     it(`${name(Root1)} correctly handles canUnload with goto ${name(B12)}/${name(B01)},${name(B11)}/${name(B01)} in order`, async function () {
       const { router, host, tearDown } = await createFixture(Root1, Z, getDefaultHIAConfig, getRouterOptions);
 
-      let result = await router.load(`${name(B12)}/${name(B01)}`);
+      let result = await router.load(`b12/b01`);
       assertComponentsVisible(host, [Root1, B12, [B01]]);
       assert.strictEqual(result, true, '#1 result===true');
 
-      result = await router.load(`${name(B11)}/${name(B01)}`);
+      result = await router.load(`b11/b01`);
       assertComponentsVisible(host, [Root1, B12, [B01]]);
       assert.strictEqual(result, false, '#2 result===false');
 
@@ -322,11 +319,11 @@ describe('router (smoke tests)', function () {
     it(`${name(Root1)} correctly handles canUnload with goto ${name(B12)}/${name(B01)},${name(B12)}/${name(A01)} in order`, async function () {
       const { router, host, tearDown } = await createFixture(Root1, Z, getDefaultHIAConfig, getRouterOptions);
 
-      let result = await router.load(`${name(B12)}/${name(B01)}`);
+      let result = await router.load(`b12/b01`);
       assertComponentsVisible(host, [Root1, B12, [B01]]);
       assert.strictEqual(result, true, '#1 result===true');
 
-      result = await router.load(`${name(B12)}/${name(A01)}`);
+      result = await router.load(`b12/a01`);
       assertComponentsVisible(host, [Root1, B12, [A01]]);
       assert.strictEqual(result, true, '#2 result===true');
 
@@ -336,7 +333,7 @@ describe('router (smoke tests)', function () {
     it(`${name(Root1)} can load ${name(A11)}/${name(A01)} as a string`, async function () {
       const { router, host, tearDown } = await createFixture(Root1, Z, getDefaultHIAConfig, getRouterOptions);
 
-      await router.load(`${name(A11)}/${name(A01)}`);
+      await router.load(`a11/a01`);
       assertComponentsVisible(host, [Root1, A11, A01]);
 
       await tearDown();
@@ -354,10 +351,10 @@ describe('router (smoke tests)', function () {
     it(`${name(Root1)} can load ${name(A11)}/${name(A01)},${name(A11)}/${name(A02)} in order`, async function () {
       const { router, host, tearDown, startTracing, stopTracing } = await createFixture(Root1, Z, getDefaultHIAConfig, getRouterOptions);
 
-      await router.load(`${name(A11)}/${name(A01)}`);
+      await router.load(`a11/a01`);
       assertComponentsVisible(host, [Root1, A11, A01]);
 
-      await router.load(`${name(A11)}/${name(A02)}`);
+      await router.load(`a11/a02`);
       assertComponentsVisible(host, [Root1, A11, A02]);
 
       await tearDown();
@@ -433,18 +430,18 @@ describe('router (smoke tests)', function () {
     // Now generate stuff
     const $1vp: Record<string, CSpec> = {
       // [x]
-      [`${name(A01)}`]: [A01],
-      [`${name(A02)}`]: [A02],
+      [`a01`]: [A01],
+      [`a02`]: [A02],
       // [x/x]
-      [`${name(A11)}/${name(A01)}`]: [A11, [A01]],
-      [`${name(A11)}/${name(A02)}`]: [A11, [A02]],
-      [`${name(A12)}/${name(A01)}`]: [A12, [A01]],
-      [`${name(A12)}/${name(A02)}`]: [A12, [A02]],
+      [`a11/a01`]: [A11, [A01]],
+      [`a11/a02`]: [A11, [A02]],
+      [`a12/a01`]: [A12, [A01]],
+      [`a12/a02`]: [A12, [A02]],
       // [x/x/x]
-      [`${name(A11)}/${name(A12)}/${name(A01)}`]: [A11, [A12, [A01]]],
-      [`${name(A11)}/${name(A12)}/${name(A02)}`]: [A11, [A12, [A02]]],
-      [`${name(A12)}/${name(A11)}/${name(A01)}`]: [A12, [A11, [A01]]],
-      [`${name(A12)}/${name(A11)}/${name(A02)}`]: [A12, [A11, [A02]]],
+      [`a11/a12/a01`]: [A11, [A12, [A01]]],
+      [`a11/a12/a02`]: [A11, [A12, [A02]]],
+      [`a12/a11/a01`]: [A12, [A11, [A01]]],
+      [`a12/a11/a02`]: [A12, [A11, [A02]]],
     };
 
     const $2vps: Record<string, CSpec> = {

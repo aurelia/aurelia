@@ -275,7 +275,7 @@ describe('focus.spec.ts', function () {
           assert.equal(component.hasFocus, true, 'window@blur');
 
           component.selectedOption = '2';
-          await ctx.platform.domWriteQueue.yield();
+          ctx.platform.domWriteQueue.flush();
           assert.equal(doc.activeElement, focusable);
           assert.equal(component.hasFocus, true, 'select@change');
         }
@@ -345,7 +345,7 @@ describe('focus.spec.ts', function () {
 
   function createFixture<T>(template: string | Node, $class: Constructable<T>, autoStart: boolean = true, ...registrations: any[]) {
     const ctx = TestContext.create();
-    const { container, lifecycle, observerLocator } = ctx;
+    const { container, observerLocator } = ctx;
     container.register(...registrations, Focus);
     const testHost = ctx.doc.body.appendChild(ctx.doc.createElement('div'));
     const appHost = testHost.appendChild(ctx.createElement('app'));
@@ -363,7 +363,6 @@ describe('focus.spec.ts', function () {
       startPromise,
       ctx,
       container,
-      lifecycle,
       testHost,
       appHost,
       au,

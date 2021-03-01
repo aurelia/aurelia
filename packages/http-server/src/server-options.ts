@@ -1,7 +1,7 @@
 import { LogLevel as $LogLevel } from '@aurelia/kernel';
 import { EOL } from 'os';
 import { resolve } from 'path';
-import { IHttpServerOptions, LogLevel } from './interfaces';
+import { IHttpServerOptions, LogLevel } from './interfaces.js';
 
 const space = ' ';
 

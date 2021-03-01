@@ -1,7 +1,5 @@
-import { DI } from '@aurelia/kernel';
 import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
 import type { Scope } from './observation/binding-context.js';
-
 import type { CollectionLengthObserver, CollectionSizeObserver } from './observation/collection-length-observer.js';
 
 export interface IBinding {
@@ -15,75 +13,6 @@ export interface IBinding {
 }
 
 export type InterceptorFunc<TInput = unknown, TOutput = unknown> = (value: TInput) => TOutput;
-
-export interface ILifecycle extends Lifecycle {}
-export const ILifecycle = DI.createInterface<ILifecycle>('ILifecycle').withDefault(x => x.singleton(Lifecycle));
-
-export class Lifecycle  {
-  public readonly batch: IAutoProcessingQueue<IBatchable> = new BatchQueue(this);
-}
-
-export interface IProcessingQueue<T> {
-  add(requestor: T): void;
-  process(flags: LifecycleFlags): void;
-}
-
-export interface IAutoProcessingQueue<T> extends IProcessingQueue<T> {
-  readonly depth: number;
-  begin(): void;
-  end(flags?: LifecycleFlags): void;
-  inline(fn: () => void, flags?: LifecycleFlags): void;
-}
-
-export class BatchQueue implements IAutoProcessingQueue<IBatchable> {
-  public queue: IBatchable[] = [];
-  public depth: number = 0;
-
-  public constructor(
-    @ILifecycle public readonly lifecycle: ILifecycle,
-  ) {}
-
-  public begin(): void {
-    ++this.depth;
-  }
-
-  public end(flags?: LifecycleFlags): void {
-    if (flags === void 0) {
-      flags = LifecycleFlags.none;
-    }
-    if (--this.depth === 0) {
-      this.process(flags);
-    }
-  }
-
-  public inline(fn: () => void, flags?: LifecycleFlags): void {
-    this.begin();
-    fn();
-    this.end(flags);
-  }
-
-  public add(requestor: IBatchable): void {
-    this.queue.push(requestor);
-  }
-
-  public remove(requestor: IBatchable): void {
-    const index = this.queue.indexOf(requestor);
-    if (index > -1) {
-      this.queue.splice(index, 1);
-    }
-  }
-
-  public process(flags: LifecycleFlags): void {
-    while (this.queue.length > 0) {
-      const batch = this.queue.slice();
-      this.queue = [];
-      const { length } = batch;
-      for (let i = 0; i < length; ++i) {
-        batch[i].flushBatch(flags);
-      }
-    }
-  }
-}
 
 /*
 * Note: the oneTime binding now has a non-zero value for 2 reasons:
@@ -102,34 +31,28 @@ export enum BindingMode {
 }
 
 export const enum LifecycleFlags {
-  none                          = 0b0000_000_00_00_000,
+  none                          = 0b0000_000_00_0,
   // Bitmask for flags that need to be stored on a binding during $bind for mutation
   // callbacks outside of $bind
-  persistentBindingFlags        = 0b1111_000_00_00_111,
-  allowParentScopeTraversal     = 0b0001_000_00_00_000,
-  observeLeafPropertiesOnly     = 0b0010_000_00_00_000,
-  targetObserverFlags           = 0b1100_000_00_00_111,
-  noFlush                       = 0b0100_000_00_00_000,
-  persistentTargetObserverQueue = 0b1000_000_00_00_000,
-  bindingStrategy               = 0b0000_000_00_00_111,
-  getterSetterStrategy          = 0b0000_000_00_00_001,
-  proxyStrategy                 = 0b0000_000_00_00_010,
-  isStrictBindingStrategy       = 0b0000_000_00_00_100,
-  update                        = 0b0000_000_00_11_000,
-  updateTarget                  = 0b0000_000_00_01_000,
-  updateSource                  = 0b0000_000_00_10_000,
-  from                          = 0b0000_000_11_00_000,
-  fromBind                      = 0b0000_000_01_00_000,
-  fromUnbind                    = 0b0000_000_10_00_000,
-  mustEvaluate                  = 0b0000_001_00_00_000,
-  isTraversingParentScope       = 0b0000_010_00_00_000,
-  dispose                       = 0b0000_100_00_00_000,
+  persistentBindingFlags        = 0b1111_000_00_1,
+  allowParentScopeTraversal     = 0b0001_000_00_0,
+  observeLeafPropertiesOnly     = 0b0010_000_00_0,
+  targetObserverFlags           = 0b1100_000_00_1,
+  noFlush                       = 0b0100_000_00_0,
+  persistentTargetObserverQueue = 0b1000_000_00_0,
+  bindingStrategy               = 0b0000_000_00_1,
+  isStrictBindingStrategy       = 0b0000_000_00_1,
+  fromBind                      = 0b0000_000_01_0,
+  fromUnbind                    = 0b0000_000_10_0,
+  mustEvaluate                  = 0b0000_001_00_0,
+  isTraversingParentScope       = 0b0000_010_00_0,
+  dispose                       = 0b0000_100_00_0,
 }
 
 export interface IConnectable {
-  id: number;
-  observeProperty(obj: object, propertyName: PropertyKey): void;
+  observeProperty(obj: object, key: PropertyKey): void;
   observeCollection(obj: Collection): void;
+  subscribeTo(subscribable: ISubscribable | ICollectionSubscribable): void;
 }
 
 /** @internal */
@@ -162,45 +85,55 @@ export interface ICollectionSubscriber {
 }
 
 export interface ISubscribable {
-  subscribe(subscriber: ISubscriber | ICollectionSubscriber): void;
-  unsubscribe(subscriber: ISubscriber | ICollectionSubscriber): void;
+  subscribe(subscriber: ISubscriber): void;
+  unsubscribe(subscriber: ISubscriber): void;
 }
 
 export interface ICollectionSubscribable {
-  subscribeToCollection(subscriber: ICollectionSubscriber): void;
-  unsubscribeFromCollection(subscriber: ICollectionSubscriber): void;
+  subscribe(subscriber: ICollectionSubscriber): void;
+  unsubscribe(subscriber: ICollectionSubscriber): void;
 }
 
+/**
+ * An interface describing the contract of a subscriber list,
+ * with the ability to propagate values to those subscribers
+ */
+export interface ISubscriberRecord<T extends ISubscriber | ICollectionSubscriber> {
+  readonly count: number;
+  add(subscriber: T): boolean;
+  has(subscriber: T): boolean;
+  remove(subscriber: T): boolean;
+  any(): boolean;
+  notify(value: unknown, oldValue: unknown, flags: LifecycleFlags): void;
+  notifyCollection(indexMap: IndexMap, flags: LifecycleFlags): void;
+}
+
+/**
+ * An internal interface describing the implementation of a ISubscribable of Aurelia that supports batching
+ *
+ * This is usually mixed into a class via the import `subscriberCollection` import from Aurelia.
+ * The `subscriberCollection` import can be used as either a decorator, or a function call.
+ */
 export interface ISubscriberCollection extends ISubscribable {
   [key: number]: LifecycleFlags;
-
-  /** @internal */_sFlags: SubscriberFlags;
-  /** @internal */_s0?: ISubscriber;
-  /** @internal */_s1?: ISubscriber;
-  /** @internal */_s2?: ISubscriber;
-  /** @internal */_sRest?: ISubscriber[];
-
-  callSubscribers(newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void;
-  hasSubscribers(): boolean;
-  hasSubscriber(subscriber: ISubscriber): boolean;
-  removeSubscriber(subscriber: ISubscriber): boolean;
-  addSubscriber(subscriber: ISubscriber): boolean;
+  /**
+   * The backing subscriber record for all subscriber methods of this collection
+   */
+  readonly subs: ISubscriberRecord<ISubscriber>;
 }
 
-export interface ICollectionSubscriberCollection extends ICollectionSubscribable, ISubscribable {
+/**
+ * An internal interface describing the implementation of a ICollectionSubscribable of Aurelia that supports batching
+ *
+ * This is usually mixed into a class via the import `subscriberCollection` import from Aurelia.
+ * The `subscriberCollection` import can be used as either a decorator, or a function call.
+ */
+export interface ICollectionSubscriberCollection extends ICollectionSubscribable {
   [key: number]: LifecycleFlags;
-
-  /** @internal */_csFlags: SubscriberFlags;
-  /** @internal */_cs0?: ICollectionSubscriber;
-  /** @internal */_cs1?: ICollectionSubscriber;
-  /** @internal */_cs2?: ICollectionSubscriber;
-  /** @internal */_csRest?: ICollectionSubscriber[];
-
-  callCollectionSubscribers(indexMap: IndexMap, flags: LifecycleFlags): void;
-  hasCollectionSubscribers(): boolean;
-  hasCollectionSubscriber(subscriber: ICollectionSubscriber): boolean;
-  removeCollectionSubscriber(subscriber: ICollectionSubscriber): boolean;
-  addCollectionSubscriber(subscriber: ICollectionSubscriber): boolean;
+  /**
+   * The backing subscriber record for all subscriber methods of this collection
+   */
+  readonly subs: ISubscriberRecord<ICollectionSubscriber>;
 }
 
 /**
@@ -249,7 +182,6 @@ export const enum AccessorType {
   Observer      = 0b0_0000_0001,
 
   Node          = 0b0_0000_0010,
-  Obj           = 0b0_0000_0100,
 
   // misc characteristic of accessors/observers when update
   //
@@ -259,7 +191,11 @@ export const enum AccessorType {
   // queue it instead
   // todo: https://gist.github.com/paulirish/5d52fb081b3570c81e3a
   // todo: https://csstriggers.com/
-  Layout        = 0b0_0000_1000,
+  Layout        = 0b0_0000_0100,
+  // by default, everything is an object
+  // eg: a property is accessed on an object
+  // unless explicitly not so
+  Primtive      = 0b0_0000_1000,
 
   Array         = 0b0_0001_0010,
   Set           = 0b0_0010_0010,
@@ -275,14 +211,13 @@ export interface IAccessor<TValue = unknown> {
   setValue(newValue: TValue, flags: LifecycleFlags, obj?: object, key?: PropertyKey): void;
 }
 
-export interface IObserver extends IAccessor, ISubscribable {
-  [id: number]: number;
-}
+/**
+ * An interface describing a standard contract of an observer in Aurelia binding & observation system
+ */
+export interface IObserver extends IAccessor, ISubscribable {}
 
 export type AccessorOrObserver = (IAccessor | IObserver) & {
   doNotCache?: boolean;
-} & {
-  [id: number]: number;
 };
 
 /**
@@ -356,13 +291,9 @@ export interface ICollectionChangeTracker<T extends Collection> {
  */
 export interface ICollectionObserver<T extends CollectionKind> extends
   ICollectionChangeTracker<CollectionKindToType<T>>,
-  ICollectionSubscriberCollection,
-  IBatchable {
+  ICollectionSubscribable {
   type: AccessorType;
-  inBatch: boolean;
-  lifecycle?: ILifecycle;
   collection: ObservedCollectionKindToType<T>;
-  lengthObserver: T extends CollectionKind.array ? CollectionLengthObserver : CollectionSizeObserver;
   getLengthObserver(): T extends CollectionKind.array ? CollectionLengthObserver : CollectionSizeObserver;
   notify(): void;
 }

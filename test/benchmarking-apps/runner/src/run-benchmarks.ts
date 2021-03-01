@@ -1,8 +1,29 @@
-import { ChildProcess, fork } from 'child_process';
+import { Measurement } from '@benchmarking-apps/storage';
+import { ChildProcess, exec, fork } from 'child_process';
 import { join } from 'path';
-import { BenchOptions, Data, Measurement } from './shared';
+import { BenchOptions, Data } from './shared';
+
+async function execSafe(command: string, fallback: string): Promise<string> {
+  return new Promise<string>(resolve => {
+    exec(command, (err, stdout, _stderr) => {
+      if (err) {
+        console.warn(`Error executing '${command}', falling back to result '${fallback}' (err: ${err.message})`);
+        resolve(fallback);
+      } else {
+        resolve(stdout.replace(/\n|\r/g, ''));
+      }
+    });
+  });
+}
 
 async function main() {
+  const metadata = {
+    ts_start: Date.now(),
+    ts_end: 0,
+    branch: await execSafe('git rev-parse --abbrev-ref HEAD', process.env.CURRENT_BRANCH || ''),
+    commit: await execSafe('git rev-parse HEAD', ''),
+  };
+
   const options = await BenchOptions.createFromCliArgs();
   const storage = options.storage;
 
@@ -32,9 +53,11 @@ async function main() {
   }
   await promise;
 
+  metadata.ts_end = Date.now();
+
   let persistenceFailed = false;
   try {
-    await storage.persist();
+    await storage.persist(options.batchId, metadata);
   } catch {
     persistenceFailed = true;
   }
@@ -47,7 +70,7 @@ async function main() {
   }
 
   function addMeasurements(measurements: Data<Measurement>[]) {
-    storage.addMeasurements(...measurements);
+    storage.addMeasurements(...measurements as Measurement[]);
   }
 }
 

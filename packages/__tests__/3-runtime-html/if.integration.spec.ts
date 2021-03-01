@@ -15,6 +15,7 @@ import {
   TextBindingRendererRegistration,
   TextBindingInstruction,
   Interpolation,
+  IWorkTracker,
   INodeObserverLocatorRegistration,
 } from '@aurelia/runtime-html';
 import {
@@ -27,12 +28,10 @@ import { Writable } from '@aurelia/kernel';
 
 describe(`If/Else`, function () {
   function runActivateLifecycle(sut: If, flags: LifecycleFlags, scope: Scope): void {
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    sut.$controller.activate(sut.$controller, null, flags, scope);
+    void sut.$controller.activate(sut.$controller, null, flags, scope);
   }
   function runDeactivateLifecycle(sut: If, flags: LifecycleFlags): void {
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    sut.$controller.deactivate(sut.$controller, null, flags);
+    void sut.$controller.deactivate(sut.$controller, null, flags);
   }
 
   interface Spec {
@@ -151,9 +150,10 @@ describe(`If/Else`, function () {
           container,
         );
 
+        const work = container.get(IWorkTracker);
         const ifFactory = new ViewFactory('if-view', ifContext, void 0, null);
         const elseFactory = new ViewFactory('else-view', elseContext, void 0, null);
-        const sut = new If(ifFactory, ifLoc);
+        const sut = new If(ifFactory, ifLoc, work);
         const elseSut = new Else(elseFactory);
         const ifController = (sut as Writable<If>).$controller = Controller.forCustomAttribute(null, container, sut, (void 0)!);
         elseSut.link(LifecycleFlags.none, void 0!, { children: [ifController] } as unknown as IHydratableController, void 0!, void 0!, void 0!);
@@ -180,13 +180,13 @@ describe(`If/Else`, function () {
 
         runActivateLifecycle(sut, baseFlags | activateFlags1, scope);
 
-        assert.strictEqual(sut.view.nodes.lastChild['textContent'], firstBindInitialNodesText, '$nodes.textContent #1');
+        assert.strictEqual(sut.view.nodes.lastChild.previousSibling['textContent'], firstBindInitialNodesText, '$nodes.textContent #1');
 
         if (activateTwice) {
           runActivateLifecycle(sut, baseFlags | activateFlags1, scope);
         }
 
-        assert.strictEqual(sut.view.nodes.lastChild['textContent'], firstBindFinalNodesText, '$nodes.textContent #2');
+        assert.strictEqual(sut.view.nodes.lastChild.previousSibling['textContent'], firstBindFinalNodesText, '$nodes.textContent #2');
 
         assert.strictEqual(host.textContent, firstAttachInitialHostText, 'host.textContent #1');
 
@@ -209,12 +209,12 @@ describe(`If/Else`, function () {
 
         runActivateLifecycle(sut, baseFlags | activateFlags2, scope);
 
-        assert.strictEqual(sut.view.nodes.lastChild['textContent'], secondBindInitialNodesText, '$nodes.textContent #3');
+        assert.strictEqual(sut.view.nodes.lastChild.previousSibling['textContent'], secondBindInitialNodesText, '$nodes.textContent #3');
         if (activateTwice) {
           runActivateLifecycle(sut, baseFlags | activateFlags2, scope);
         }
 
-        assert.strictEqual(sut.view.nodes.lastChild['textContent'], secondBindFinalNodesText, '$nodes.textContent #4');
+        assert.strictEqual(sut.view.nodes.lastChild.previousSibling['textContent'], secondBindFinalNodesText, '$nodes.textContent #4');
 
         assert.strictEqual(host.textContent, secondAttachInitialHostText, 'host.textContent #4');
 

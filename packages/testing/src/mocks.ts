@@ -20,13 +20,13 @@ import type {
   IObserverLocator,
   ISignaler,
   BindingObserverRecord,
-  BindingCollectionObserverRecord,
   Collection,
+  ISubscribable,
+  ICollectionSubscribable,
 } from '@aurelia/runtime';
 
 export class MockBinding implements IConnectableBinding {
   public interceptor: this = this;
-  public id!: number;
   public observerSlots!: number;
   public version!: number;
   public observerLocator!: IObserverLocator;
@@ -35,8 +35,7 @@ export class MockBinding implements IConnectableBinding {
   public $hostScope!: Scope | null;
   public isBound!: boolean;
   public value: unknown;
-  public record!: BindingObserverRecord;
-  public cRecord!: BindingCollectionObserverRecord;
+  public obs!: BindingObserverRecord;
 
   public calls: [keyof MockBinding, ...any[]][] = [];
 
@@ -62,6 +61,10 @@ export class MockBinding implements IConnectableBinding {
 
   public observeCollection(col: Collection): void {
     this.trace('observeCollection', col);
+  }
+
+  public subscribeTo(subscribable: ISubscribable | ICollectionSubscribable): void {
+    this.trace('subscribeTo', subscribable);
   }
 
   public $bind(flags: LifecycleFlags, scope: Scope): void {

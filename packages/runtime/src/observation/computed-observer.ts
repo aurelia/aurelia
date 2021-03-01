@@ -1,4 +1,3 @@
-/* eslint-disable eqeqeq, compat/compat */
 import {
   LifecycleFlags,
   AccessorType,
@@ -7,6 +6,7 @@ import { subscriberCollection } from './subscriber-collection.js';
 import { enterConnectable, exitConnectable } from './connectable-switcher.js';
 import { connectable } from '../binding/connectable.js';
 import { wrap, unwrap } from './proxy-observation.js';
+import { def } from '../utilities-objects.js';
 
 import type {
   ISubscriber,
@@ -32,7 +32,7 @@ export class ComputedObserver implements IConnectableBinding, ISubscriber, IColl
     const observer = new ComputedObserver(obj, getter, setter, useProxy, observerLocator);
     const $get = ((/* Computed Observer */) => observer.getValue()) as ObservableGetter;
     $get.getObserver = () => observer;
-    Reflect.defineProperty(obj, key, {
+    def(obj, key, {
       enumerable: descriptor.enumerable,
       configurable: true,
       get: $get,
@@ -44,15 +44,10 @@ export class ComputedObserver implements IConnectableBinding, ISubscriber, IColl
     return observer;
   }
 
-  public id!: number;
   public interceptor = this;
-  public type: AccessorType = AccessorType.Obj;
+  public type: AccessorType = AccessorType.Observer;
   public value: unknown = void 0;
 
-  /**
-   * @internal
-   */
-  private subCount: number = 0;
   // todo: maybe use a counter allow recursive call to a certain level
   /**
    * @internal
@@ -68,11 +63,10 @@ export class ComputedObserver implements IConnectableBinding, ISubscriber, IColl
     public readonly useProxy: boolean,
     public readonly observerLocator: IObserverLocator,
   ) {
-    connectable.assignIdTo(this);
   }
 
   public getValue() {
-    if (this.subCount === 0) {
+    if (this.subs.count === 0) {
       return this.get.call(this.obj, this);
     }
     if (this.isDirty) {
@@ -100,14 +94,14 @@ export class ComputedObserver implements IConnectableBinding, ISubscriber, IColl
 
   public handleChange(): void {
     this.isDirty = true;
-    if (this.subCount > 0) {
+    if (this.subs.count > 0) {
       this.run();
     }
   }
 
   public handleCollectionChange(): void {
     this.isDirty = true;
-    if (this.subCount > 0) {
+    if (this.subs.count > 0) {
       this.run();
     }
   }
@@ -116,17 +110,16 @@ export class ComputedObserver implements IConnectableBinding, ISubscriber, IColl
     // in theory, a collection subscriber could be added before a property subscriber
     // and it should be handled similarly in subscribeToCollection
     // though not handling for now, and wait until the merge of normal + collection subscription
-    if (this.addSubscriber(subscriber) && ++this.subCount === 1) {
+    if (this.subs.add(subscriber) && this.subs.count === 1) {
       this.compute();
       this.isDirty = false;
     }
   }
 
   public unsubscribe(subscriber: ISubscriber): void {
-    if (this.removeSubscriber(subscriber) && --this.subCount === 0) {
+    if (this.subs.remove(subscriber) && this.subs.count === 0) {
       this.isDirty = true;
-      this.record.clear(true);
-      this.cRecord.clear(true);
+      this.obs.clear(true);
     }
   }
 
@@ -141,19 +134,18 @@ export class ComputedObserver implements IConnectableBinding, ISubscriber, IColl
 
     if (!Object.is(newValue, oldValue)) {
       // should optionally queue
-      this.callSubscribers(newValue, oldValue, LifecycleFlags.none);
+      this.subs.notify(newValue, oldValue, LifecycleFlags.none);
     }
   }
 
   private compute(): unknown {
     this.running = true;
-    this.record.version++;
+    this.obs.version++;
     try {
       enterConnectable(this);
       return this.value = unwrap(this.get.call(this.useProxy ? wrap(this.obj) : this.obj, this));
     } finally {
-      this.record.clear(false);
-      this.cRecord.clear(false);
+      this.obs.clear(false);
       this.running = false;
       exitConnectable(this);
     }
@@ -161,4 +153,4 @@ export class ComputedObserver implements IConnectableBinding, ISubscriber, IColl
 }
 
 connectable(ComputedObserver);
-subscriberCollection()(ComputedObserver);
+subscriberCollection(ComputedObserver);

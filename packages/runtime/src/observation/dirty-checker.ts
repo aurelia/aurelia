@@ -6,7 +6,7 @@ import type { IIndexable, ITask, QueueTaskOptions } from '@aurelia/kernel';
 import type { IObservable, ISubscriber } from '../observation';
 
 export interface IDirtyChecker extends DirtyChecker {}
-export const IDirtyChecker = DI.createInterface<IDirtyChecker>('IDirtyChecker').withDefault(x => x.singleton(DirtyChecker));
+export const IDirtyChecker = DI.createInterface<IDirtyChecker>('IDirtyChecker', x => x.singleton(DirtyChecker));
 
 export const DirtyCheckSettings = {
   /**
@@ -70,7 +70,7 @@ export class DirtyChecker {
     this.tracked.push(property);
 
     if (this.tracked.length === 1) {
-      this.task = this.platform.macroTaskQueue.queueTask(this.check, queueTaskOpts);
+      this.task = this.platform.taskQueue.queueTask(this.check, queueTaskOpts);
     }
   }
 
@@ -107,9 +107,7 @@ export interface DirtyCheckProperty extends IObserver, ISubscriberCollection { }
 
 export class DirtyCheckProperty implements DirtyCheckProperty {
   public oldValue: unknown;
-  public type: AccessorType = AccessorType.Obj;
-
-  private subCount: number = 0;
+  public type: AccessorType = AccessorType.None;
 
   public constructor(
     private readonly dirtyChecker: IDirtyChecker,
@@ -135,23 +133,23 @@ export class DirtyCheckProperty implements DirtyCheckProperty {
     const oldValue = this.oldValue;
     const newValue = this.getValue();
 
-    this.callSubscribers(newValue, oldValue, flags | LifecycleFlags.updateTarget);
+    this.subs.notify(newValue, oldValue, flags);
 
     this.oldValue = newValue;
   }
 
   public subscribe(subscriber: ISubscriber): void {
-    if (this.addSubscriber(subscriber) && ++this.subCount === 1) {
+    if (this.subs.add(subscriber) && this.subs.count === 1) {
       this.oldValue = this.obj[this.propertyKey];
       this.dirtyChecker.addProperty(this);
     }
   }
 
   public unsubscribe(subscriber: ISubscriber): void {
-    if (this.removeSubscriber(subscriber) && --this.subCount === 0) {
+    if (this.subs.remove(subscriber) && this.subs.count === 0) {
       this.dirtyChecker.removeProperty(this);
     }
   }
 }
 
-subscriberCollection()(DirtyCheckProperty);
+subscriberCollection(DirtyCheckProperty);

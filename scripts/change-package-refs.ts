@@ -6,27 +6,40 @@ const log = createLogger('change-package-refs');
 
 const refs = {
   dev: {
-    'main': 'dist/esnext/index.js',
-    'module': 'dist/esnext/index.js',
+    'main': 'dist/esm/index.js',
+    'module': 'dist/esm/index.js',
   },
   release: {
-    'main': 'dist/umd/index.js',
-    'module': 'dist/esnext/index.js',
+    'main': 'dist/cjs/index.js',
+    'module': 'dist/esm/index.js',
   }
 };
 
 const fields = ['main', 'module'];
 
 (async function (): Promise<void> {
-  const ref = process.argv.slice(2)[0];
+  const [, , ref, type] = process.argv;
 
-  for (const { name } of project.packages.filter(p => p.folder === 'packages')) {
+  for (const { name, folder } of project.packages.filter(p => !p.name.kebab.includes('_') && p.folder.includes('packages'))) {
     log(`changing package.json fields to ${ref} for: ${c.magentaBright(name.npm)}`);
-    const pkg = await loadPackageJson('packages', name.kebab);
+    const pkg = await loadPackageJson(folder, name.kebab);
     for (const field of fields) {
       pkg[field] = refs[ref][field];
     }
-    await savePackageJson(pkg, 'packages', name.kebab);
+    if (type) {
+      if (type === 'none') {
+        if (pkg.bin) {
+          log(`saw a 'bin' field, so leaving the package.json "type" field as-is for: ${c.magentaBright(name.npm)}`);
+        } else {
+          log(`removing the package.json "type" field for: ${c.magentaBright(name.npm)}`);
+          pkg['type'] = void 0;
+        }
+      } else {
+        log(`changing package.json "type" to ${type} for: ${c.magentaBright(name.npm)}`);
+        pkg['type'] = type;
+      }
+    }
+    await savePackageJson(pkg, folder, name.kebab);
   }
 
   log('Done.');

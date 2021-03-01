@@ -291,7 +291,7 @@ describe('3-runtime-html/checked-observer.spec.ts', function () {
 
   async function createFixture<T>(template: string | Node, $class: Constructable | null, ...registrations: any[]) {
     const ctx = TestContext.create();
-    const { container, lifecycle, observerLocator } = ctx;
+    const { container, observerLocator } = ctx;
     registrations = Array.from(new Set([...registrations]));
     container.register(...registrations);
     const testHost = ctx.createElement('div');
@@ -307,7 +307,6 @@ describe('3-runtime-html/checked-observer.spec.ts', function () {
       ctx,
       au,
       container,
-      lifecycle,
       testHost,
       appHost,
       component: component as T,
@@ -339,7 +338,7 @@ describe('[UNIT] 3-runtime/checked-observer.spec.ts/CheckedObserver', function (
   describe('setValue() - primitive - type="checkbox"', function () {
     function createFixture(hasSubscriber: boolean) {
       const ctx = TestContext.create();
-      const { container, lifecycle, observerLocator, platform } = ctx;
+      const { container, observerLocator, platform } = ctx;
       const el = ctx.createElementFromMarkup(`<input type="checkbox"/>`) as IInputElement;
       ctx.doc.body.appendChild(el);
 
@@ -351,7 +350,7 @@ describe('[UNIT] 3-runtime/checked-observer.spec.ts/CheckedObserver', function (
         sut.subscribe(subscriber);
       }
 
-      return { ctx, container, lifecycle, observerLocator, el, sut, subscriber, platform };
+      return { ctx, container, observerLocator, el, sut, subscriber, platform };
     }
 
     function tearDown({ ctx, sut, el }: Partial<ReturnType<typeof createFixture>>) {
@@ -375,7 +374,7 @@ describe('[UNIT] 3-runtime/checked-observer.spec.ts/CheckedObserver', function (
                 // const changeCountBefore = expectedPropValue !== null ? 1 : 0;
                 // const changeCountAfter = expectedPropValue !== expectedNewValue ? 1 : 0;
 
-                const { ctx, sut, lifecycle, el, subscriber } = createFixture(hasSubscriber);
+                const { ctx, sut, el, subscriber } = createFixture(hasSubscriber);
 
                 sut.setValue(propValue, LF.none);
                 // assert.strictEqual(lifecycle.flushCount, changeCountBefore, 'lifecycle.flushCount 1');
@@ -408,7 +407,7 @@ describe('[UNIT] 3-runtime/checked-observer.spec.ts/CheckedObserver', function (
                   );
                 }
 
-                tearDown({ ctx, sut, lifecycle, el });
+                tearDown({ ctx, sut, el });
               });
             }
           }
@@ -420,7 +419,7 @@ describe('[UNIT] 3-runtime/checked-observer.spec.ts/CheckedObserver', function (
   describe('handleEvent() - primitive - type="checkbox"', function () {
     function createFixture() {
       const ctx = TestContext.create();
-      const { container, lifecycle, observerLocator, platform } = ctx;
+      const { container, observerLocator, platform } = ctx;
       const el = ctx.createElementFromMarkup(`<input type="checkbox"/>`) as IInputElement;
       ctx.doc.body.appendChild(el);
 
@@ -429,7 +428,7 @@ describe('[UNIT] 3-runtime/checked-observer.spec.ts/CheckedObserver', function (
       const subscriber = { handleChange: createSpy() };
       sut.subscribe(subscriber);
 
-      return { ctx, container, lifecycle, observerLocator, el, sut, subscriber, platform };
+      return { ctx, container, observerLocator, el, sut, subscriber, platform };
     }
 
     function tearDown({ ctx, sut, el }: Partial<ReturnType<typeof createFixture>>) {
@@ -477,7 +476,7 @@ describe('[UNIT] 3-runtime/checked-observer.spec.ts/CheckedObserver', function (
   describe('setValue() - primitive - type="radio"', function () {
     function createFixture(hasSubscriber: boolean) {
       const ctx = TestContext.create();
-      const { container, lifecycle, observerLocator, platform } = ctx;
+      const { container, observerLocator, platform } = ctx;
 
       const elA = ctx.createElementFromMarkup(`<input name="foo" type="radio" value="A"/>`) as ObservedInputElement;
       const elB = ctx.createElementFromMarkup(`<input name="foo" type="radio" value="B"/>`) as ObservedInputElement;
@@ -501,7 +500,7 @@ describe('[UNIT] 3-runtime/checked-observer.spec.ts/CheckedObserver', function (
         sutC.subscribe(subscriberC);
       }
 
-      return { ctx, container, lifecycle, observerLocator, platform, elA, elB, elC, sutA, sutB, sutC, subscriberA, subscriberB, subscriberC };
+      return { ctx, container, observerLocator, platform, elA, elB, elC, sutA, sutB, sutC, subscriberA, subscriberB, subscriberC };
     }
 
     function tearDown({ ctx, sutA, sutB, sutC, elA, elB, elC }: Partial<ReturnType<typeof createFixture>>) {
@@ -522,7 +521,7 @@ describe('[UNIT] 3-runtime/checked-observer.spec.ts/CheckedObserver', function (
             // const changeCountBefore = expectedPropValue != null ? 3 : 0;
             // const changeCountAfter = expectedPropValue !== expectedNewValue ? 3 : 0;
 
-            const { ctx, sutA, sutB, sutC, elA, elB, elC, lifecycle, subscriberA, subscriberB, subscriberC } = createFixture(hasSubscriber);
+            const { ctx, sutA, sutB, sutC, elA, elB, elC, subscriberA, subscriberB, subscriberC } = createFixture(hasSubscriber);
 
             sutA.setValue(checkedBefore, LF.none);
             sutB.setValue(checkedBefore, LF.none);
@@ -582,7 +581,7 @@ describe('[UNIT] 3-runtime/checked-observer.spec.ts/CheckedObserver', function (
               assert.deepStrictEqual(subscriberC.handleChange.calls, [], `subscriberC.handleChange`);
             }
 
-            tearDown({ ctx, sutA, sutB, sutC, elA, elB, elC, lifecycle });
+            tearDown({ ctx, sutA, sutB, sutC, elA, elB, elC });
           });
         }
       }
@@ -592,7 +591,7 @@ describe('[UNIT] 3-runtime/checked-observer.spec.ts/CheckedObserver', function (
   describe('handleEvent() - primitive - type="radio"', function () {
     function createFixture() {
       const ctx = TestContext.create();
-      const { container, lifecycle, observerLocator, platform } = ctx;
+      const { container, observerLocator, platform } = ctx;
 
       const elA = ctx.createElementFromMarkup(`<input name="foo" type="radio" value="A"/>`) as ObservedInputElement;
       const elB = ctx.createElementFromMarkup(`<input name="foo" type="radio" value="B"/>`) as ObservedInputElement;
@@ -610,7 +609,7 @@ describe('[UNIT] 3-runtime/checked-observer.spec.ts/CheckedObserver', function (
       sutB.subscribe(subscriberB);
       sutC.subscribe(subscriberC);
 
-      return { ctx, container, lifecycle, observerLocator, platform, elA, elB, elC, sutA, sutB, sutC, subscriberA, subscriberB, subscriberC };
+      return { ctx, container, observerLocator, platform, elA, elB, elC, sutA, sutB, sutC, subscriberA, subscriberB, subscriberC };
     }
 
     function tearDown({ ctx, sutA, sutB, sutC, elA, elB, elC }: Partial<ReturnType<typeof createFixture>>) {
@@ -663,7 +662,7 @@ describe('[UNIT] 3-runtime/checked-observer.spec.ts/CheckedObserver', function (
   describe.skip('setValue() - array - type="checkbox"', function () {
     function createFixture(hasSubscriber: boolean, value: any, prop: string) {
       const ctx = TestContext.create();
-      const { container, lifecycle, observerLocator, platform } = ctx;
+      const { container, observerLocator, platform } = ctx;
 
       const el = ctx.createElementFromMarkup(`<input type="checkbox"/>`) as ObservedInputElement;
       el[prop] = value;
@@ -677,7 +676,7 @@ describe('[UNIT] 3-runtime/checked-observer.spec.ts/CheckedObserver', function (
         sut.subscribe(subscriber);
       }
 
-      return { ctx, value, container, lifecycle, observerLocator, platform, el, sut, subscriber };
+      return { ctx, value, container, observerLocator, platform, el, sut, subscriber };
     }
 
     function tearDown({ ctx, sut, el }: Partial<ReturnType<typeof createFixture>>) {
@@ -703,7 +702,7 @@ describe('[UNIT] 3-runtime/checked-observer.spec.ts/CheckedObserver', function (
                     const changeCountBefore = 1;
                     const changeCountAfter = checkedBefore !== checkedAfter ? 1 : 0;
 
-                    const { ctx, sut, lifecycle, el, subscriber, platform } = createFixture(hasSubscriber, value, prop);
+                    const { ctx, sut, el, subscriber } = createFixture(hasSubscriber, value, prop);
 
                     sut.setValue(propValue, LF.none);
                     // assert.strictEqual(lifecycle.flushCount, changeCountBefore, 'lifecycle.flushCount 1');
@@ -723,7 +722,7 @@ describe('[UNIT] 3-runtime/checked-observer.spec.ts/CheckedObserver', function (
                       `subscriber.handleChange`,
                     );
 
-                    tearDown({ ctx, sut, lifecycle, el });
+                    tearDown({ ctx, sut, el });
                   });
                 }
               }
@@ -737,7 +736,7 @@ describe('[UNIT] 3-runtime/checked-observer.spec.ts/CheckedObserver', function (
   describe('mutate collection - array - type="checkbox"', function () {
     function createFixture(hasSubscriber: boolean, value: any, prop: string) {
       const ctx = TestContext.create();
-      const { container, lifecycle, observerLocator, platform } = ctx;
+      const { container, observerLocator, platform } = ctx;
 
       const el = ctx.createElementFromMarkup(`<input type="checkbox"/>`) as ObservedInputElement;
       el[prop] = value;
@@ -751,7 +750,7 @@ describe('[UNIT] 3-runtime/checked-observer.spec.ts/CheckedObserver', function (
         sut.subscribe(subscriber);
       }
 
-      return { ctx, value, container, lifecycle, observerLocator, platform, el, sut, subscriber };
+      return { ctx, value, container, observerLocator, platform, el, sut, subscriber };
     }
 
     function tearDown({ ctx, sut, el }: Partial<ReturnType<typeof createFixture>>) {
@@ -768,7 +767,7 @@ describe('[UNIT] 3-runtime/checked-observer.spec.ts/CheckedObserver', function (
 
             const array = [];
 
-            const { ctx, sut, lifecycle, el, subscriber, platform } = createFixture(hasSubscriber, value, prop);
+            const { ctx, sut, el, subscriber } = createFixture(hasSubscriber, value, prop);
 
             sut.setValue(array, LF.none);
 
@@ -797,7 +796,7 @@ describe('[UNIT] 3-runtime/checked-observer.spec.ts/CheckedObserver', function (
               );
             }
 
-            tearDown({ ctx, sut, lifecycle, el });
+            tearDown({ ctx, sut, el });
           });
         }
       }
@@ -911,7 +910,7 @@ describe('[UNIT] 3-runtime/checked-observer.spec.ts/CheckedObserver', function (
   describe.skip('SelectValueObserver.setValue() - array - type="checkbox"', function () {
     function createFixture(hasSubscriber: boolean, value: any, prop: string) {
       const ctx = TestContext.create();
-      const { container, lifecycle, observerLocator, platform } = ctx;
+      const { container, observerLocator, platform } = ctx;
 
       const el = ctx.createElementFromMarkup(`<input type="checkbox"/>`) as ObservedInputElement;
       ctx.doc.body.appendChild(el);
@@ -924,7 +923,7 @@ describe('[UNIT] 3-runtime/checked-observer.spec.ts/CheckedObserver', function (
         sut.subscribe(subscriber);
       }
 
-      return { ctx, value, container, observerLocator, platform, el, sut, subscriber, valueOrModelObserver, lifecycle };
+      return { ctx, value, container, observerLocator, platform, el, sut, subscriber, valueOrModelObserver };
     }
 
     function tearDown({ ctx, sut, el }: Partial<ReturnType<typeof createFixture>>) {
@@ -947,7 +946,7 @@ describe('[UNIT] 3-runtime/checked-observer.spec.ts/CheckedObserver', function (
 
                   it(_`hasSubscriber=${hasSubscriber}, ${prop}=${value}, checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, propValue=${propValue}, newValue=${newValue}`, function () {
 
-                    const { ctx, sut, el, subscriber, valueOrModelObserver, lifecycle, platform } = createFixture(hasSubscriber, value, prop);
+                    const { ctx, sut, el, subscriber, valueOrModelObserver } = createFixture(hasSubscriber, value, prop);
 
                     sut.setValue(propValue, LF.none);
 

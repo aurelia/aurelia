@@ -1,10 +1,10 @@
-import { DI } from './di';
-import { emptyArray } from './platform';
-import { Protocol } from './resource';
+import { DI } from './di.js';
+import { emptyArray } from './platform.js';
+import { Protocol } from './resource.js';
 
-import type { IRegistry } from './di';
-import type { Constructable, IDisposable, IIndexable } from './interfaces';
-import type { ResourceDefinition } from './resource';
+import type { IRegistry } from './di.js';
+import type { Constructable, IDisposable, IIndexable } from './interfaces.js';
+import type { ResourceDefinition } from './resource.js';
 
 export interface IModule {
   [key: string]: unknown;
@@ -12,7 +12,7 @@ export interface IModule {
 }
 
 export interface IModuleLoader extends ModuleLoader {}
-export const IModuleLoader = DI.createInterface<IModuleLoader>().withDefault(x => x.singleton(ModuleLoader));
+export const IModuleLoader = DI.createInterface<IModuleLoader>(x => x.singleton(ModuleLoader));
 
 function noTransform<TRet = AnalyzedModule>(m: AnalyzedModule): TRet {
   return m as unknown as TRet;

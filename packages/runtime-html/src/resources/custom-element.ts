@@ -18,6 +18,7 @@ import {
   Injectable,
   IResolver,
   emptyArray,
+  Writable,
 } from '@aurelia/kernel';
 import {
   registerAliases,
@@ -28,13 +29,14 @@ import {
   PartialBindableDefinition,
 } from '../bindable.js';
 import { IProjections } from './custom-elements/au-slot.js';
-import { INode, getEffectiveParentNode } from '../dom.js';
+import { INode, getEffectiveParentNode, getRef } from '../dom.js';
 import { IInstruction } from '../renderer.js';
 import { PartialChildrenDefinition, ChildrenDefinition, Children } from '../templating/children.js';
 import { Controller } from '../templating/controller.js';
 import { Watch } from '../watch.js';
 import type { ICustomElementViewModel, ICustomElementController } from '../templating/controller.js';
 import type { IWatchDefinition } from '../watch.js';
+import { IPlatform } from '../platform.js';
 
 export type PartialCustomElementDefinition = PartialResourceDefinition<{
   readonly cache?: '*' | number;
@@ -53,6 +55,7 @@ export type PartialCustomElementDefinition = PartialResourceDefinition<{
   readonly enhance?: boolean;
   readonly projectionsMap?: Map<IInstruction, IProjections>;
   readonly watches?: IWatchDefinition[];
+  readonly processContent?: ProcessContentHook | null;
 }>;
 
 export type CustomElementType<C extends Constructable = Constructable> = ResourceType<C, ICustomElementViewModel & (C extends Constructable<infer P> ? P : {}), PartialCustomElementDefinition>;
@@ -220,6 +223,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
     public readonly enhance: boolean,
     public readonly projectionsMap: Map<IInstruction, IProjections>,
     public readonly watches: IWatchDefinition[],
+    public readonly processContent: ProcessContentHook | null,
   ) {}
 
   public static create<T extends Constructable = Constructable>(
@@ -244,7 +248,6 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         throw new Error(`Cannot create a custom element definition with only a name and no type: ${nameOrDef}`);
       }
 
-      // eslint-disable-next-line @typescript-eslint/unbound-method
       const name = fromDefinitionOrDefault('name', def, CustomElement.generateName);
       if (typeof (def as CustomElementDefinition).Type === 'function') {
         // This needs to be a clone (it will usually be the compiler calling this signature)
@@ -277,6 +280,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         fromDefinitionOrDefault('enhance', def, () => false),
         fromDefinitionOrDefault('projectionsMap', def as CustomElementDefinition, () => new Map<IInstruction, IProjections>()),
         fromDefinitionOrDefault('watches', def as CustomElementDefinition, () => emptyArray),
+        fromAnnotationOrTypeOrDefault('processContent', Type, () => null),
       );
     }
 
@@ -313,6 +317,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         fromAnnotationOrTypeOrDefault('enhance', Type, () => false),
         fromAnnotationOrTypeOrDefault('projectionsMap', Type, () => new Map<IInstruction, IProjections>()),
         mergeArrays(Watch.getAnnotation(Type), Type.watches),
+        fromAnnotationOrTypeOrDefault('processContent', Type, () => null),
       );
     }
 
@@ -321,7 +326,6 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
     // property needs to be copied. So we have that exception for 'hooks', but we may need to revisit that default behavior
     // if this turns out to be too opinionated.
 
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     const name = fromDefinitionOrDefault('name', nameOrDef, CustomElement.generateName);
     return new CustomElementDefinition(
       Type,
@@ -354,6 +358,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
       fromAnnotationOrDefinitionOrTypeOrDefault('enhance', nameOrDef, Type, () => false),
       fromAnnotationOrDefinitionOrTypeOrDefault('projectionsMap', nameOrDef, Type, () => new Map<IInstruction, IProjections>()),
       mergeArrays(nameOrDef.watches, Watch.getAnnotation(Type), Type.watches),
+      fromAnnotationOrDefinitionOrTypeOrDefault('processContent', nameOrDef, Type, () => null),
     );
   }
 
@@ -407,8 +412,8 @@ export const CustomElement: CustomElementKind = {
   },
   for<C extends ICustomElementViewModel = ICustomElementViewModel>(node: Node, opts: ForOpts = defaultForOpts): ICustomElementController<C> {
     if (opts.name === void 0 && opts.searchParents !== true) {
-      const controller = Metadata.getOwn(CustomElement.name, node) as Controller<C> | undefined;
-      if (controller === void 0) {
+      const controller = getRef(node, CustomElement.name) as Controller<C> | null;
+      if (controller === null) {
         if (opts.optional === true) {
           return null!;
         }
@@ -418,8 +423,8 @@ export const CustomElement: CustomElementKind = {
     }
     if (opts.name !== void 0) {
       if (opts.searchParents !== true) {
-        const controller = Metadata.getOwn(CustomElement.name, node) as Controller<C> | undefined;
-        if (controller === void 0) {
+        const controller = getRef(node, CustomElement.name) as Controller<C> | null;
+        if (controller === null) {
           throw new Error(`The provided node is not a custom element or containerless host.`);
         }
 
@@ -433,8 +438,8 @@ export const CustomElement: CustomElementKind = {
       let cur = node as INode | null;
       let foundAController = false;
       while (cur !== null) {
-        const controller = Metadata.getOwn(CustomElement.name, cur) as Controller<C> | undefined;
-        if (controller !== void 0) {
+        const controller = getRef(cur, CustomElement.name) as Controller<C> | null;
+        if (controller !== null) {
           foundAController = true;
           if (controller.is(opts.name)) {
             return controller as unknown as ICustomElementController<C>;
@@ -453,9 +458,9 @@ export const CustomElement: CustomElementKind = {
 
     let cur = node as INode | null;
     while (cur !== null) {
-      const controller = Metadata.getOwn(CustomElement.name, cur);
-      if (controller !== void 0) {
-        return controller;
+      const controller = getRef(cur, CustomElement.name) as Controller<C> | null;
+      if (controller !== null) {
+        return controller as unknown as ICustomElementController<C>;
       }
 
       cur = getEffectiveParentNode(cur);
@@ -547,3 +552,39 @@ export const CustomElement: CustomElementKind = {
     };
   })(),
 };
+
+type DecoratorFactoryMethod<TClass> = (target: Constructable<TClass>, propertyKey: string, descriptor: PropertyDescriptor) => void;
+type ProcessContentHook = (node: INode, platform: IPlatform) => boolean | void;
+
+const pcHookMetadataProperty = Protocol.annotation.keyFor('processContent');
+export function processContent(hook: ProcessContentHook): CustomElementDecorator;
+export function processContent<TClass>(): DecoratorFactoryMethod<TClass>;
+export function processContent<TClass>(hook?: ProcessContentHook): CustomElementDecorator | DecoratorFactoryMethod<TClass> {
+  return hook === void 0
+    ? function (target: Constructable<TClass>, propertyKey: string, _descriptor: PropertyDescriptor) {
+      Metadata.define(pcHookMetadataProperty, ensureHook(target, propertyKey), target);
+    }
+    : function (target: Constructable<TClass>) {
+      hook = ensureHook(target, hook!);
+      const def = Metadata.getOwn(CustomElement.name, target) as CustomElementDefinition<Constructable<TClass>>;
+      if (def !== void 0) {
+        (def as Writable<CustomElementDefinition<Constructable<TClass>>>).processContent = hook;
+      } else {
+        Metadata.define(pcHookMetadataProperty, hook, target);
+      }
+      return target;
+    };
+}
+
+function ensureHook<TClass>(target: Constructable<TClass>, hook: string | ProcessContentHook): ProcessContentHook {
+  if (typeof hook === 'string') {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-explicit-any
+    hook = (target as any)[hook] as ProcessContentHook;
+  }
+
+  const hookType = typeof hook;
+  if (hookType !== 'function') {
+    throw new Error(`Invalid @processContent hook. Expected the hook to be a function (when defined in a class, it needs to be a static function) but got a ${hookType}.`);
+  }
+  return hook;
+}

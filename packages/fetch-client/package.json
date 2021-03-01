@@ -1,11 +1,12 @@
 {
   "name": "@aurelia/fetch-client",
-  "version": "0.8.0",
-  "main": "dist/esnext/index.js",
-  "module": "dist/esnext/index.js",
+  "version": "0.9.0",
+  "main": "dist/esm/index.js",
+  "module": "dist/esm/index.js",
   "types": "dist/index.d.ts",
   "typings": "dist/index.d.ts",
   "license": "MIT",
+  "type": "module",
   "homepage": "https://aurelia.io",
   "repository": {
     "type": "git",
@@ -27,17 +28,23 @@
   ],
   "scripts": {
     "lint": "eslint --cache --ext .js,.ts src/",
+    "lint:ci": "eslint --cache --ext .js,.ts --quiet --report-unused-disable-directives src/",
     "build": "tsc -b",
-    "dev": "tsc -b -w --preserveWatchOutput"
+    "dev": "tsc -b -w --preserveWatchOutput",
+    "publish:dev": "npm publish --tag dev",
+    "publish:latest": "npm publish --tag latest"
   },
   "publishConfig": {
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "0.8.0",
-    "@aurelia/metadata": "0.8.0"
+    "@aurelia/kernel": "0.9.0",
+    "@aurelia/metadata": "0.9.0"
   },
   "devDependencies": {
     "typescript": "^4.0.3"
+  },
+  "engines": {
+    "node": ">=14.15.0"
   }
 }

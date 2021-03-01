@@ -5,9 +5,9 @@ const log = createLogger('get-version-info');
 
 export function getCurrentVersion(): {major: string; minor: string; patch: string} {
   const versionRegExp = /(\d+)\.(\d+)\.(\d+)($|-)/;
-  const match = versionRegExp.exec(project.lerna.version);
+  const match = versionRegExp.exec(project.pkg.version);
   if (match === null) {
-    throw new Error(`lerna.json 'version' should match ${versionRegExp}`);
+    throw new Error(`pkg.json 'version' should match ${versionRegExp}`);
   }
   const major = match[1];
   const minor = match[2];

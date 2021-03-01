@@ -1566,7 +1566,7 @@ describe('controller.hook-timings.integration', function () {
 
       mgr.setPrefix('swap');
       app.n = 2;
-      await waitTicks(10);
+      await au.root.work.wait();
 
       mgr.setPrefix('stop');
       await au.stop(true);
@@ -1776,7 +1776,7 @@ class Notifier {
   }
 }
 
-const INotifierConfig = DI.createInterface<INotifierConfig>('INotifierConfig').noDefault();
+const INotifierConfig = DI.createInterface<INotifierConfig>('INotifierConfig');
 interface INotifierConfig extends NotifierConfig {}
 class NotifierConfig {
   public constructor(
@@ -1785,7 +1785,7 @@ class NotifierConfig {
   ) {}
 }
 
-const INotifierManager = DI.createInterface<INotifierManager>('INotifierManager').withDefault(x => x.singleton(NotifierManager));
+const INotifierManager = DI.createInterface<INotifierManager>('INotifierManager', x => x.singleton(NotifierManager));
 interface INotifierManager extends NotifierManager {}
 class NotifierManager {
   public readonly entryNotifyHistory: string[] = [];

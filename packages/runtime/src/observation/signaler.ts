@@ -5,7 +5,7 @@ import type { ISubscriber } from '../observation.js';
 type Signal = string;
 
 export interface ISignaler extends Signaler {}
-export const ISignaler = DI.createInterface<ISignaler>('ISignaler').withDefault(x => x.singleton(Signaler));
+export const ISignaler = DI.createInterface<ISignaler>('ISignaler', x => x.singleton(Signaler));
 
 export class Signaler {
   public signals: Record<string, Set<ISubscriber>> = Object.create(null);
@@ -16,7 +16,7 @@ export class Signaler {
       return;
     }
     for (const listener of listeners.keys()) {
-      listener.handleChange(undefined, undefined, flags! | LifecycleFlags.updateTarget);
+      listener.handleChange(undefined, undefined, flags!);
     }
   }
 

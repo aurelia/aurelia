@@ -3,6 +3,57 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="0.9.0"></a>
+# 0.9.0 (2021-01-31)
+
+### Features:
+
+* **router:** preserve original path / finalPath values in RouteNode ([e7aab7f](https://github.com/aurelia/aurelia/commit/e7aab7f))
+* **router:** add simple title customization api ([8ad49ad](https://github.com/aurelia/aurelia/commit/8ad49ad))
+* **di:** remove DI.createInterface builder ([8146dcc](https://github.com/aurelia/aurelia/commit/8146dcc))
+* **route-recognizer:** support path array ([b1ef7f1](https://github.com/aurelia/aurelia/commit/b1ef7f1))
+
+
+### Bug Fixes:
+
+* **route-expression:** fix segment grouping, scoping and serialization ([5acd0ed](https://github.com/aurelia/aurelia/commit/5acd0ed))
+* **router:** querystring ([eca9606](https://github.com/aurelia/aurelia/commit/eca9606))
+* **router:** update document.title ([071fd38](https://github.com/aurelia/aurelia/commit/071fd38))
+* **router:** set default swap strat to remove-first ([bad1f26](https://github.com/aurelia/aurelia/commit/bad1f26))
+* **router:** fix component agent slip-up ([e49d579](https://github.com/aurelia/aurelia/commit/e49d579))
+* **load:** apply the correct href attribute (preliminary)' ([e63d7fe](https://github.com/aurelia/aurelia/commit/e63d7fe))
+* **router:** pass data property to route node in direct routing ([6fc0e6b](https://github.com/aurelia/aurelia/commit/6fc0e6b))
+* **router:** fix params inheritance ([63df5ac](https://github.com/aurelia/aurelia/commit/63df5ac))
+* **router:** fix relative/absolute navigation ([2bcf8d2](https://github.com/aurelia/aurelia/commit/2bcf8d2))
+* **router:** fix absolute & relative paths ([6f2a49f](https://github.com/aurelia/aurelia/commit/6f2a49f))
+* **router:** add transitionPlan validation prop ([0f1b271](https://github.com/aurelia/aurelia/commit/0f1b271))
+* **router:** fix some lazy-loading edge cases / cleanup route-recognizer ([0043dad](https://github.com/aurelia/aurelia/commit/0043dad))
+* **router:** fix load isActive and expose it as a fromView bindable ([2e3eaaf](https://github.com/aurelia/aurelia/commit/2e3eaaf))
+* **router:** fix href isEnabled logic ([7f8ea00](https://github.com/aurelia/aurelia/commit/7f8ea00))
+* **router:** fix several issues in link handler and add trace logging ([8b9fa29](https://github.com/aurelia/aurelia/commit/8b9fa29))
+* **router:** add missing route config properties to the validator ([f8367a6](https://github.com/aurelia/aurelia/commit/f8367a6))
+* **router:** stop the router on AppTask.afterDeactivate ([aca6d81](https://github.com/aurelia/aurelia/commit/aca6d81))
+* **router:** use afterActivate app task ([d17bab7](https://github.com/aurelia/aurelia/commit/d17bab7))
+* **router:** fix caching issue with two siblings that are the same component ([3e60c79](https://github.com/aurelia/aurelia/commit/3e60c79))
+
+
+### Refactorings:
+
+* **router:** renames 'children' to 'routes' ([90b56a2](https://github.com/aurelia/aurelia/commit/90b56a2))
+* **router:** use @lifecycleHooks api for shared hooks ([b308328](https://github.com/aurelia/aurelia/commit/b308328))
+* **router:** fix some title stuff ([ddac8e0](https://github.com/aurelia/aurelia/commit/ddac8e0))
+* **router:** various fixes w.r.t. relative/absolute urls and default resolution ([b6dc3b9](https://github.com/aurelia/aurelia/commit/b6dc3b9))
+* **router:** fix several reference / clone issues w.r.t. redirects etc ([665a4c7](https://github.com/aurelia/aurelia/commit/665a4c7))
+* **router:** cleanup/simplify the tree compiler ([9e0a30b](https://github.com/aurelia/aurelia/commit/9e0a30b))
+* **all:** rename macroTaskQueue to taskQueue ([87c073d](https://github.com/aurelia/aurelia/commit/87c073d))
+* **router:** cleanup load & href custom attributes, add v1 compat ([b75ea31](https://github.com/aurelia/aurelia/commit/b75ea31))
+* **router:** rename resolutionStrategy to resolutionMode ([9591c7f](https://github.com/aurelia/aurelia/commit/9591c7f))
+* **router:** rename deferral back to resolutionStrategy ([1b6adf1](https://github.com/aurelia/aurelia/commit/1b6adf1))
+* **router:** use stack to minimize promise tick overhead + various improvements ([09d2379](https://github.com/aurelia/aurelia/commit/09d2379))
+* **viewport-agent:** utilize controller lifecycle linkage ([8e72222](https://github.com/aurelia/aurelia/commit/8e72222))
+* **router:** remove guard-hooks option ([054f0a7](https://github.com/aurelia/aurelia/commit/054f0a7))
+* **router:** port of PR #845 ([a67d0a2](https://github.com/aurelia/aurelia/commit/a67d0a2))
+
 <a name="0.8.0"></a>
 # 0.8.0 (2020-11-30)
 

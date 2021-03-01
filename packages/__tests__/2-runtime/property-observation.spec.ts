@@ -93,7 +93,7 @@ describe('SetterObserver', function () {
     const valueArr = [undefined, null, 0, '', {}];
     const objectArr = createObjectArr();
     const propertyNameArr = [undefined, null, Symbol(), '', 'foo'];
-    const flags = LF.updateTarget;
+    const flags = LF.none;
     for (const object of objectArr) {
       for (const propertyName of propertyNameArr) {
         for (const value of valueArr) {
@@ -111,7 +111,7 @@ describe('SetterObserver', function () {
   describe('subscribe()', function () {
     const propertyNameArr = [undefined, null, Symbol(), '', 'foo', 1];
     const objectArr = createObjectArr();
-    const flags = LF.updateTarget;
+    const flags = LF.none;
     for (const object of objectArr) {
       for (const propertyName of propertyNameArr) {
         it(`can handle ${getName(object)}[${typeof propertyName}]`, function () {
@@ -144,7 +144,7 @@ describe('SetterObserver', function () {
                 assert.deepStrictEqual(
                   subscriber.changes,
                   [
-                    new ChangeSet(0, flags & ~LF.update, value, prevValue),
+                    new ChangeSet(0, flags, value, prevValue),
                   ],
                 );
               }
@@ -154,8 +154,8 @@ describe('SetterObserver', function () {
                   assert.deepStrictEqual(
                     subscriber.changes,
                     [
-                      new ChangeSet(0, flags & ~LF.update, value, prevValue),
-                      new ChangeSet(1, flags & ~LF.update, prevValue, value),
+                      new ChangeSet(0, flags, value, prevValue),
+                      new ChangeSet(1, flags, prevValue, value),
                     ],
                   );
                 }
@@ -174,8 +174,7 @@ describe('SetterObserver', function () {
 describe('BindableObserver', function () {
   function createFixture(flags: LF, obj: IIndexable, key: string) {
     const ctx = TestContext.create();
-    const lifecycle = ctx.lifecycle;
-    const sut = new BindableObserver(obj, key, `${key ? key.toString() : `${key}`}Changed`, noop, { lifecycle } as any);
+    const sut = new BindableObserver(obj, key, `${key ? key.toString() : `${key}`}Changed`, noop, { } as any);
 
     return { sut };
   }
@@ -207,7 +206,7 @@ describe('BindableObserver', function () {
     const valueArr = [undefined, null, 0, '', {}];
     const objectArr = createObjectArr();
     const propertyNameArr = [undefined, null, Symbol(), '', 'foo'];
-    const flags = LF.updateTarget;
+    const flags = LF.none;
     for (const object of objectArr) {
       for (const propertyName of propertyNameArr) {
         for (const value of valueArr) {
@@ -225,7 +224,7 @@ describe('BindableObserver', function () {
   describe('subscribe()', function () {
     const propertyNameArr = [undefined, null, Symbol(), '', 'foo', 1];
     const objectArr = createObjectArr();
-    const flags = LF.updateTarget;
+    const flags = LF.none;
     for (const object of objectArr) {
       for (const propertyName of propertyNameArr) {
         it(`can handle ${getName(object)}[${typeof propertyName}]`, function () {
@@ -258,7 +257,7 @@ describe('BindableObserver', function () {
                 assert.deepStrictEqual(
                   subscriber.changes,
                   [
-                    new ChangeSet(0, flags & ~LF.update, value, prevValue),
+                    new ChangeSet(0, flags, value, prevValue),
                   ],
                 );
               }
@@ -268,8 +267,8 @@ describe('BindableObserver', function () {
                   assert.deepStrictEqual(
                     subscriber.changes,
                     [
-                      new ChangeSet(0, flags & ~LF.update, value, prevValue),
-                      new ChangeSet(1, flags & ~LF.update, prevValue, value),
+                      new ChangeSet(0, flags, value, prevValue),
+                      new ChangeSet(1, flags, prevValue, value),
                     ],
                   );
                 }

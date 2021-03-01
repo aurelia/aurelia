@@ -1,4 +1,4 @@
-import type { IConnectable } from '../observation';
+import type { IConnectable } from '../observation.js';
 
 /**
  * Current subscription collector
@@ -23,7 +23,7 @@ export function currentConnectable(): IConnectable | null {
 
 export function enterConnectable(connectable: IConnectable): void {
   if (connectable == null) {
-    throw new Error('connectable cannot be null/undefined');
+    throw new Error('Connectable cannot be null/undefined');
   }
   if (_connectable == null) {
     _connectable = connectable;
@@ -32,7 +32,7 @@ export function enterConnectable(connectable: IConnectable): void {
     return;
   }
   if (_connectable === connectable) {
-    throw new Error(`Already in this connectable ${connectable.id}`);
+    throw new Error(`Trying to enter an active connectable`);
   }
   connectables.push(_connectable);
   _connectable = connectable;
@@ -44,7 +44,7 @@ export function exitConnectable(connectable: IConnectable): void {
     throw new Error('Connectable cannot be null/undefined');
   }
   if (_connectable !== connectable) {
-    throw new Error(`${connectable.id} is not currently collecting`);
+    throw new Error(`Trying to exit an unactive connectable`);
   }
 
   connectables.pop();

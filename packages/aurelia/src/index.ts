@@ -147,7 +147,7 @@ export {
   // DefaultLogEvent,
   // DefaultLogEventFactory,
   // DefaultLogger,
-  // ConsoleSink,
+  ConsoleSink,
   LoggerConfiguration,
 
   // relativeToFile,
@@ -196,72 +196,10 @@ export {
 } from '@aurelia/kernel';
 
 export {
-  // BrowserNavigator,
-
-  // ILinkHandlerOptions,
-  // AnchorEventInfo,
-
-  // LinkHandler,
-
-  // Guard,
-
-  // GuardTypes,
-  // GuardIdentity,
-  // IGuardOptions,
-  // Guardian,
-
-  // InstructionResolver,
-
-  // GuardFunction,
-  // GuardTarget,
-  // INavigatorInstruction,
-  // IRouteableComponent,
-  // IRouteableComponentType,
-  // IViewportInstruction,
-  // NavigationInstruction,
-  // ReentryBehavior,
-
-  // lifecycleLogger,
-  // LifecycleClass,
-
-  INavRoute,
-  // Nav,
-
-  NavRoute,
-
-  // IStoredNavigatorEntry,
-  // INavigatorEntry,
-  // INavigatorOptions,
-  // INavigatorFlags,
-  // INavigatorState,
-  // INavigatorStore,
-  // INavigatorViewer,
-  // INavigatorViewerEvent,
-  // Navigator,
-
-  // QueueItem,
-  // IQueueOptions,
-  // Queue,
-
-  // RouteHandler,
-  // ConfigurableRoute,
-  // HandlerEntry,
-  // RouteGenerator,
-  // TypesRecord,
-  // RecognizeResult,
-  // RecognizeResults,
-  // CharSpec,
-  // // State as RouterState, // duplicated in @aurelia/runtime
-  // StaticSegment,
-  // DynamicSegment,
-  // StarSegment,
-  // EpsilonSegment,
-  // Segment,
-  // RouteRecognizer,
-
   RouterOptions,
   IRouterStartOptions,
   IRouter,
+  IRouterEvents,
   Router,
 
   // IViewportOptions,
@@ -442,7 +380,6 @@ export {
   ISignaler,
 
   subscriberCollection,
-  collectionSubscriberCollection,
 
   bindingBehavior,
   BindingBehavior,
@@ -530,7 +467,7 @@ export {
   // QueueTaskTargetOptions,
 
   bindable,
-  // PartialBindableDefinition,
+  PartialBindableDefinition,
   // BindableDefinition,
   Bindable,
 
@@ -552,6 +489,7 @@ export {
   // IDOMInitializer,
   // ISinglePageApp,
   IAppRoot,
+  IWorkTracker,
 
   // IfRegistration,
   // ElseRegistration,
@@ -582,7 +520,6 @@ export {
 
   // DefaultResources as RuntimeDefaultResources,
   // IObserverLocatorRegistration,
-  // ILifecycleRegistration,
   // IRendererRegistration,
   // RuntimeConfiguration,
 
@@ -636,7 +573,6 @@ export {
 
   // ViewModelKind,
   // IBinding,
-  ILifecycle,
   // IViewModel,
   ICustomAttributeViewModel,
   ICustomElementViewModel,
@@ -775,6 +711,8 @@ export {
 
   // Subject,
   // Compose,
+  IAuSlotsInfo,
+  AuSlotsInfo,
 
   // IProjectorLocatorRegistration,
   // ITargetAccessorLocatorRegistration,
@@ -946,6 +884,10 @@ export {
 
   // TemplateBinder,
 
-  // ITemplateElementFactory
+  // ITemplateElementFactory,
+  ILifecycleHooks,
+  LifecycleHook,
+  LifecycleHooks,
+  lifecycleHooks,
 } from '@aurelia/runtime-html';
 

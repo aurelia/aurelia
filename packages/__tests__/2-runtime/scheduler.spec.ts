@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-/* eslint-disable @typescript-eslint/require-await */
 import { TestContext, assert } from '@aurelia/testing';
 import { TaskQueuePriority, QueueTaskOptions, ITask, TaskStatus, TaskQueue } from '@aurelia/runtime';
 
@@ -7,7 +6,7 @@ function createExposedPromise() {
   let resolve: () => void;
   let reject: (err: any) => void;
 
-  const promise = new Promise(function ($resolve, $reject) {
+  const promise = new Promise<void>(function ($resolve, $reject) {
     resolve = $resolve;
     reject = $reject;
   });
@@ -81,8 +80,8 @@ describe('Scheduler', function () {
       name: 'domWriteQueue',
     },
     {
-      sut: platform.macroTaskQueue,
-      name: 'macroTaskQueue',
+      sut: platform.taskQueue,
+      name: 'taskQueue',
     },
     {
       sut: platform.domReadQueue,
@@ -93,8 +92,8 @@ describe('Scheduler', function () {
       name: 'domWriteQueue',
     },
     {
-      sut: platform.macroTaskQueue,
-      name: 'macroTaskQueue',
+      sut: platform.taskQueue,
+      name: 'taskQueue',
     },
   ];
 
@@ -1503,9 +1502,9 @@ describe('Scheduler', function () {
         suspend: true,
       };
 
-      const task0 = platform.macroTaskQueue.queueTask(callback0, opts);
-      const task1 = platform.macroTaskQueue.queueTask(callback1, opts);
-      const task2 = platform.macroTaskQueue.queueTask(callback2, opts);
+      const task0 = platform.taskQueue.queueTask(callback0, opts);
+      const task1 = platform.taskQueue.queueTask(callback1, opts);
+      const task2 = platform.taskQueue.queueTask(callback2, opts);
 
       assert.deepStrictEqual(states, [TaskState.NotStarted, TaskState.NotStarted, TaskState.NotStarted], `state after queueing 3 tasks`);
 

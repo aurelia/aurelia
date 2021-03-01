@@ -26,7 +26,7 @@ import {
   createSpecFunction,
   TestExecutionContext,
   TestFunction,
-} from '../util';
+} from '../util.js';
 
 describe('runtime-html.integration', function () {
 
@@ -218,7 +218,7 @@ describe('runtime-html.integration', function () {
 
           const grandchildVm = CustomElement.for<GrandChild>(host.querySelector('grand-child')).viewModel;
           grandchildVm.value = 42;
-          await ctx.platform.domWriteQueue.yield();
+          ctx.platform.domWriteQueue.flush();
 
           assert.html.textContent(cgc, '42');
           assert.html.textContent(cc, '42');
@@ -262,7 +262,7 @@ describe('runtime-html.integration', function () {
           assert.strictEqual(childVm.value, 1);
 
           app.value = 42;
-          await ctx.platform.domWriteQueue.yield();
+          ctx.platform.domWriteQueue.flush();
 
           assert.html.textContent(cgc, '42');
           assert.html.textContent(cc, '42');
@@ -306,7 +306,7 @@ describe('runtime-html.integration', function () {
           assert.strictEqual(childVm.value, 1);
 
           grandchildVm.value = 42;
-          await ctx.platform.domWriteQueue.yield();
+          ctx.platform.domWriteQueue.flush();
 
           assert.html.textContent(cgc, '42');
           assert.html.textContent(cc, '42');
@@ -316,7 +316,7 @@ describe('runtime-html.integration', function () {
           assert.strictEqual(app.value, 42);
 
           childVm.value = 24;
-          await ctx.platform.domWriteQueue.yield();
+          ctx.platform.domWriteQueue.flush();
 
           assert.html.textContent(cgc, '24');
           assert.html.textContent(cc, '24');
@@ -352,13 +352,13 @@ describe('runtime-html.integration', function () {
           assert.strictEqual(childVm.value, 1, 'child.value.1');
 
           childVm.value = 42;
-          await ctx.platform.domWriteQueue.yield();
+          ctx.platform.domWriteQueue.flush();
           assert.strictEqual(app.value, 1, 'app.value.2');
           assert.html.textContent(cc, '42', 'cc.text.2');
           assert.html.textContent(cr, '1', 'cr.text.2');
 
           app.value = 24;
-          await ctx.platform.domWriteQueue.yield();
+          ctx.platform.domWriteQueue.flush();
           assert.strictEqual(childVm.value, 24, 'child.value.3');
           assert.html.textContent(cc, '24', 'cc.text.3');
           assert.html.textContent(cr, '24', 'cr.text.3');
@@ -388,14 +388,14 @@ describe('runtime-html.integration', function () {
           assert.strictEqual(app.value, 2, 'app.value.1');
 
           app.value = 24;
-          await ctx.platform.domWriteQueue.yield();
+          ctx.platform.domWriteQueue.flush();
           const childVm = CustomElement.for<Child>(host.querySelector('child')).viewModel;
           assert.strictEqual(childVm.value, 2, 'child.value.2');
           assert.html.textContent(cc, '2', 'cc.text.2');
           assert.html.textContent(cr, '24', 'cr.text.2');
 
           childVm.value = 42;
-          await ctx.platform.domWriteQueue.yield();
+          ctx.platform.domWriteQueue.flush();
           assert.strictEqual(app.value, 42, 'app.value.3');
           assert.html.textContent(cc, '42', 'cc.text.3');
           assert.html.textContent(cr, '42', 'cr.text.3');
@@ -436,14 +436,14 @@ describe('runtime-html.integration', function () {
           assert.strictEqual(childVm.value, 1);
 
           childVm.condition = true;
-          await ctx.platform.domWriteQueue.yield();
+          ctx.platform.domWriteQueue.flush();
           const grandchildVm = CustomElement.for<GrandChild>(host.querySelector('grand-child')).viewModel;
           assert.strictEqual(grandchildVm.value, 1);
           const cgc = host.querySelector('#cgc');
           assert.html.textContent(cgc, '1');
 
           grandchildVm.value = 42;
-          await ctx.platform.domWriteQueue.yield();
+          ctx.platform.domWriteQueue.flush();
           assert.html.textContent(cgc, '42');
           assert.html.textContent(cc, '42');
           assert.html.textContent(cr, '42');

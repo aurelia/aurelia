@@ -18,7 +18,7 @@ import {
 } from '@aurelia/runtime';
 import { CallBinding } from './binding/call-binding.js';
 import { AttributeBinding } from './binding/attribute.js';
-import { InterpolationBinding, ContentBinding } from './binding/interpolation-binding.js';
+import { InterpolationBinding, InterpolationPartBinding, ContentBinding } from './binding/interpolation-binding.js';
 import { LetBinding } from './binding/let-binding.js';
 import { PropertyBinding } from './binding/property-binding.js';
 import { RefBinding } from './binding/ref-binding.js';
@@ -26,9 +26,9 @@ import { Listener } from './binding/listener.js';
 import { IEventDelegator } from './observation/event-delegator.js';
 import { CustomElement, CustomElementDefinition, PartialCustomElementDefinition } from './resources/custom-element.js';
 import { getRenderContext, ICompiledRenderContext } from './templating/render-context.js';
-import { RegisteredProjections, SlotInfo } from './resources/custom-elements/au-slot.js';
+import { AuSlotsInfo, RegisteredProjections, SlotInfo } from './resources/custom-elements/au-slot.js';
 import { CustomAttribute } from './resources/custom-attribute.js';
-import { convertToRenderLocation, INode } from './dom.js';
+import { convertToRenderLocation, INode, setRef } from './dom.js';
 import { Controller } from './templating/controller.js';
 import { IViewFactory } from './templating/view.js';
 import { IPlatform } from './platform.js';
@@ -85,7 +85,7 @@ export type InstructionTypeName = string;
 export interface IInstruction {
   readonly type: InstructionTypeName;
 }
-export const IInstruction = DI.createInterface<IInstruction>('Instruction').noDefault();
+export const IInstruction = DI.createInterface<IInstruction>('Instruction');
 
 export function isInstruction(value: unknown): value is IInstruction {
   const type = (value as { type?: string }).type;
@@ -273,7 +273,7 @@ export interface ITemplateCompiler {
   ): CustomElementDefinition;
 }
 
-export const ITemplateCompiler = DI.createInterface<ITemplateCompiler>('ITemplateCompiler').noDefault();
+export const ITemplateCompiler = DI.createInterface<ITemplateCompiler>('ITemplateCompiler');
 
 export interface IInstructionTypeClassifier<TType extends string = string> {
   instructionType: TType;
@@ -290,7 +290,7 @@ export interface IRenderer<
   ): void;
 }
 
-export const IRenderer = DI.createInterface<IRenderer>('IRenderer').noDefault();
+export const IRenderer = DI.createInterface<IRenderer>('IRenderer');
 
 type DecoratableInstructionRenderer<TType extends string, TProto, TClass> = Class<TProto & Partial<IInstructionTypeClassifier<TType> & Pick<IRenderer, 'render'>>, TClass> & Partial<IRegistry>;
 type DecoratedInstructionRenderer<TType extends string, TProto, TClass> =  Class<TProto & IInstructionTypeClassifier<TType> & Pick<IRenderer, 'render'>, TClass> & IRegistry;
@@ -399,17 +399,19 @@ export class CustomElementRenderer implements IRenderer {
     let viewFactory: IViewFactory | undefined;
 
     const slotInfo = instruction.slotInfo;
-    if (slotInfo!==null) {
+    if (slotInfo !== null) {
       const projectionCtx = slotInfo.projectionContext;
       viewFactory = getRenderContext(projectionCtx.content, context).getViewFactory(void 0, slotInfo.type, projectionCtx.scope);
     }
 
+    const targetedProjections = context.getProjectionFor(instruction);
     const factory = context.getComponentFactory(
       /* parentController */controller,
       /* host             */target,
       /* instruction      */instruction,
       /* viewFactory      */viewFactory,
       /* location         */target,
+      /* auSlotsInfo      */new AuSlotsInfo(Object.keys(targetedProjections?.projections ?? {})),
     );
 
     const key = CustomElement.keyFrom(instruction.res);
@@ -420,12 +422,12 @@ export class CustomElementRenderer implements IRenderer {
       /* container           */context,
       /* viewModel           */component,
       /* host                */target,
-      /* targetedProjections */context.getProjectionFor(instruction),
+      /* targetedProjections */targetedProjections,
       /* flags               */flags,
     );
 
     flags = childController.flags;
-    Metadata.define(key, childController, target);
+    setRef(target, key, childController);
 
     context.renderChildren(
       /* flags        */flags,
@@ -469,7 +471,7 @@ export class CustomAttributeRenderer implements IRenderer {
       /* flags     */flags,
     );
 
-    Metadata.define(key, childController, target);
+    setRef(target, key, childController);
 
     context.renderChildren(
       /* flags        */flags,
@@ -517,7 +519,7 @@ export class TemplateControllerRenderer implements IRenderer {
       /* flags     */flags,
     );
 
-    Metadata.define(key, childController, renderLocation);
+    setRef(renderLocation, key, childController);
 
     component.link?.(flags, context, controller, childController, target, instruction);
 
@@ -645,14 +647,16 @@ export class InterpolationBindingRenderer implements IRenderer {
       this.platform.domWriteQueue,
     );
     const partBindings = binding.partBindings;
-    let partBinding: ContentBinding;
-    for (let i = 0, ii = partBindings.length; ii > i; ++i) {
+    const ii = partBindings.length;
+    let i = 0;
+    let partBinding: InterpolationPartBinding;
+    for (; ii > i; ++i) {
       partBinding = partBindings[i];
       partBindings[i] = applyBindingBehavior(
         partBinding,
         partBinding.sourceExpression as unknown as IsBindingBehavior,
         context
-      ) as ContentBinding;
+      ) as InterpolationPartBinding;
     }
     controller.addBinding(binding);
   }
@@ -749,31 +753,46 @@ export class TextBindingRenderer implements IRenderer {
     target: ChildNode,
     instruction: TextBindingInstruction,
   ): void {
-    const next = target.nextSibling;
+    const next = target.nextSibling!;
+    const parent = target.parentNode!;
+    const doc = this.platform.document;
+    const expr = ensureExpression(this.parser, instruction.from, BindingType.Interpolation) as Interpolation;
+    const staticParts = expr.parts;
+    const dynamicParts = expr.expressions;
+
+    const ii = dynamicParts.length;
+    let i = 0;
+    let text = staticParts[0];
+    if (text !== '') {
+      parent.insertBefore(doc.createTextNode(text), next);
+    }
+    for (; ii > i; ++i) {
+      // each of the dynamic expression of an interpolation
+      // will be mapped to a ContentBinding
+      controller.addBinding(applyBindingBehavior(
+        new ContentBinding(
+          dynamicParts[i],
+          // using a text node instead of comment, as a mean to:
+          // support seamless transition between a html node, or a text
+          // reduce the noise in the template, caused by html comment
+          parent.insertBefore(doc.createTextNode(''), next),
+          context,
+          this.observerLocator,
+          this.platform,
+        ),
+        dynamicParts[i] as unknown as IsBindingBehavior,
+        context
+      ) as ContentBinding);
+      // while each of the static part of an interpolation
+      // will just be a text node
+      text = staticParts[i + 1];
+      if (text !== '') {
+        parent.insertBefore(doc.createTextNode(text), next);
+      }
+    }
     if (target.nodeName === 'AU-M') {
       target.remove();
     }
-    const expr = ensureExpression(this.parser, instruction.from, BindingType.Interpolation) as Interpolation;
-    const binding = new InterpolationBinding(
-      this.observerLocator,
-      expr,
-      next!,
-      'textContent',
-      BindingMode.toView,
-      context,
-      this.platform.domWriteQueue,
-    );
-    const partBindings = binding.partBindings;
-    let partBinding: ContentBinding;
-    for (let i = 0, ii = partBindings.length; ii > i; ++i) {
-      partBinding = partBindings[i];
-      partBindings[i] = applyBindingBehavior(
-        partBinding,
-        partBinding.sourceExpression as unknown as IsBindingBehavior,
-        context
-      ) as ContentBinding;
-    }
-    controller.addBinding(binding);
   }
 }
 
@@ -792,7 +811,6 @@ export class ListenerBindingRenderer implements IRenderer {
     target: HTMLElement,
     instruction: ListenerBindingInstruction,
   ): void {
-    // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsEventCommand | (instruction.strategy + BindingType.DelegationStrategyDelta));
     const binding = applyBindingBehavior(
       new Listener(context.platform, instruction.to, instruction.strategy, expr, target, instruction.preventDefault, this.eventDelegator, context),

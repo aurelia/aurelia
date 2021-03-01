@@ -2,7 +2,7 @@
 description: Leverage Aurelia's binding engine to connect views to your data.
 ---
 
-# Displaying Basic Data
+# Displaying Data
 
 One of Aurelia's strengths is its powerful, performant, and extensible templating engine. Let's dive into the basics and learn how to begin leveraging it for fun and profit!
 
@@ -18,7 +18,9 @@ One of Aurelia's strengths is its powerful, performant, and extensible templatin
 
 ## The Basics
 
-As you learned in [Building Components](components/README.md), a component typically involves two pieces: a _view-model_ and a _view_. The view-model is a vanilla JS class or object that provides basic state and actions through properties and methods. View-models don't require inheriting from a special base class, construction with a special factory function, or any other intrusive framework behavior. The view is a standards-based HTML template that renders the current state of the view-model. Aurelia joins these two pieces together through binding, allowing your view to efficiently update in response to view-model changes. Let's start by reviewing a class that's very similar to our `say-hello` view-model from earlier.
+As you learned in [Building Components](components/), a component typically involves two pieces: a _view-model_ and a _view_. The view-model is a vanilla JS class or object that provides basic state and actions through properties and methods. View-models don't require inheriting from a special base class, construction with a special factory function, or any other intrusive framework behavior. The view is a standards-based HTML template that renders the current state of the view-model.
+
+Aurelia joins these two pieces together through binding, allowing your view to efficiently update in response to view-model changes. Let's start by reviewing a class that's very similar to our `say-hello` view-model from earlier.
 
 {% code title="say-hello.js" %}
 ```javascript
@@ -306,7 +308,7 @@ Aurelia's binding engine makes several special properties available to you in yo
 
 ### General
 
-* `$this` - The the view-model that your binding expressions are being evaluated against.
+* `$this` - The view-model that your binding expressions are being evaluated against.
 
 ### Event
 

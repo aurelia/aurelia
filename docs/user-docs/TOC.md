@@ -4,27 +4,28 @@
 
 ## Getting Started
 
-* [Quick Start Guide](getting-started/quick-start-guide/README.md)
+* [Aurelia at a glance](getting-started/aurelia-at-a-glance.md)
+* [Quick install guide](getting-started/quick-install-guide.md)
+* [Hello World](getting-started/quick-start-guide/README.md)
   * [Creating Your First App](getting-started/quick-start-guide/creating-your-first-app.md)
-  * [Exploring the Source Code](getting-started/quick-start-guide/exploring-the-source-code.md)
   * [Your First Component - Part 1: The View-Model](getting-started/quick-start-guide/your-first-component-part-1-the-view-model.md)
   * [Your First Component - Part 2: The View](getting-started/quick-start-guide/your-first-component-part-2-the-view.md)
-  * [Beyond the Basics](getting-started/quick-start-guide/bonus.md)
   * [Next Steps](getting-started/quick-start-guide/next-steps.md)
+* [Template Syntax](getting-started/template-syntax.md)
 * [Building Components](getting-started/components/README.md)
   * [Creating a Custom Element](getting-started/components/creating-a-custom-element.md)
   * [Creating a Custom Attribute](getting-started/components/creating-a-custom-attribute.md)
   * [Components Lifecycles](getting-started/components/component-lifecycles.md)
   * [Watching Data](getting-started/components/watching-data.md)
   * [Templating - Local Template](getting-started/components/local-templates.md)
-* [Displaying Basic Data](getting-started/displaying-basic-data.md)
+* [Displaying Data](getting-started/displaying-basic-data.md)
 * [Rendering Collections](getting-started/rendering-collections.md)
 * [Conditional Rendering](getting-started/conditional-rendering.md)
+* [Observation](getting-started/observation.md)
 * [Handling Events](getting-started/handling-events.md)
 
 ## App Basics
 
-* [Building a Contact Manager App](app-basics/building-a-contact-manager-app.md)
 * [Working with Form Elements](app-basics/working-with-form-elements.md)
 * [Dependency Injection](app-basics/dependency-injection.md)
 * [Components Revisited](app-basics/components-revisited.md)
@@ -32,7 +33,6 @@
 * [Extending Templating Syntax](app-basics/extending-templating-syntax.md)
 * [Routing](app-basics/routing.md)
 * [Tooling](app-basics/tooling.md)
-* [Building a Dashboard App](app-basics/building-a-dashboard-app.md)
 * [Calling Web Services](app-basics/calling-web-services.md)
 * [Transforming Data with Value Converters](app-basics/transforming-data-with-value-converters.md)
 * [Leveraging Dynamic Composition](app-basics/leveraging-dynamic-composition.md)
@@ -40,18 +40,14 @@
 * [Integrating 3rd Party Libraries](app-basics/integrating-3rd-party-libraries.md)
 * [App Configuration and Startup](app-basics/app-configuration-and-startup.md)
 * [Custom Attributes](app-basics/custom-attributes.md)
-* [Cross-Component Communication](app-basics/cross-component-communication.md)
 * [Managing App State](app-basics/managing-app-state.md)
 * [Securing an App](app-basics/securing-an-app.md)
 * [Customizing Binding Behavior](app-basics/customizing-binding-behavior.md)
-* [Validating Data](app-basics/validating-data.md)
 * [Internationalization](app-basics/internationalization.md)
-* [Adding Animation](app-basics/adding-animation.md)
-* [Overlays, Modals, and Toast](app-basics/overlays-modals-toast.md)
-* [Testing Apps and Components](app-basics/testing-apps-and-components.md)
 
 ## Routing
 
+* [Fundamentals](routing/fundamentals.md)
 * [Configuration & Setup](routing/configuration-and-setup.md)
 * [Direct Routing](routing/direct-routing.md)
 * [Component Configured Routing](routing/component-configured-routing.md)
@@ -63,25 +59,19 @@
 * [Router Hooks](routing/router-hooks.md)
 * [Differences From V1](routing/differences-from-v1.md)
 
-## Advanced Scenarios
+## Validation
 
-* [One Thousand Components](advanced-scenarios/one-thousand-components.md)
-* [Binding and Templating Internals](advanced-scenarios/binding-and-templating-internals.md)
-* [Performance Optimization Techniques](advanced-scenarios/performance-optimization-techniques.md)
-* [Virtualizing Large Collections](advanced-scenarios/virtualizing-large-collections.md)
-* [Organizing Large-Scale Projects](advanced-scenarios/organizing-large-scale-projects.md)
-* [Advanced UI Modeling and Composition](advanced-scenarios/advanced-ui-modeling-with-composite-mvvm.md)
-* [Consuming and Producing Web Components](advanced-scenarios/consuming-and-producing-web-components.md)
-* [Shipping Your Own Aurelia Plugin](advanced-scenarios/shipping-your-own-aurelia-plugin.md)
-* [Server-Side Rendering](advanced-scenarios/server-side-rendering.md)
-* [Building Desktop Apps and PWAs](advanced-scenarios/building-desktop-apps-and-pwa.md)
-* [Building Phone Apps](advanced-scenarios/building-phone-apps.md)
-* [Extending the Template Compiler](advanced-scenarios/extending-the-template-compiler.md)
-* [Extending the Binding Engine](advanced-scenarios/extending-the-binding-engine.md)
-
-## API
-
-* [Introduction](api/api.md)
+* [Getting Started](validation/getting-started.md)
+* [Architecture](validation/architecture.md)
+* [Registering the Plugin](validation/registering-the-plugin.md)
+* [Defining & Customizing Rules](validation/defining-rules.md)
+* [Tagging Rules](validation/tagging-rules.md)
+* [Model Based Validation](validation/model-based-validation.md)
+* [Validation Controller](validation/validation-controller.md)
+* [Validate Binding Behavior](validation/validate-binding-behavior.md)
+* [Displaying Errors](validation/displaying-errors.md)
+* [I18n Internationalization](validation/i18n-internationalization.md)
+* [Migration Guide & Breaking Changes](validation/migration-guide.md)
 
 ## Examples
 
@@ -89,8 +79,6 @@
   * [Expression Syntax](examples/binding-and-templating/expression-syntax.md)
 * [Custom Attributes](examples/custom-attributes/README.md)
   * [Binding to Element Size](examples/custom-attributes/binding-to-element-size.md)
-* [Routing](examples/routing/README.md)
-  * [Configuring Auth-Protected Routes](examples/routing/configuring-auth-protected-routes.md)
 * [Integration](examples/integration/README.md)
   * [Microsoft FAST](examples/integration/ms-fast.md)
   * [Ionic](examples/integration/ionic.md)
